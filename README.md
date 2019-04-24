@@ -4,7 +4,7 @@ JavaScript / node.js tool that can be used to verify that Ethereum bytecode was
 compiled from a certain Solidity source code.
 
 This tool uses the metadata that is embedded in every Solidity contract bytecode
-to automatically retrieve the compiler versiond and all settings used, so at best,
+to automatically retrieve the compiler version and all settings used, so at best,
 you only need to specify the metadata and nothing else.
 
 ## Usage
@@ -34,7 +34,7 @@ Once you have that metadata in e.g. the file called `"meta.json"` you run
 
 The script will download the correct Solidity compiler binary, compile the
 contract and output the resulting bytecode and metadata json. The only
-step you still have to do is comparing the bytecode with the craetion
+step you still have to do is comparing the bytecode with the creation
 bytecode of the contract in the blockchain.
 
 ## Security Precautions
