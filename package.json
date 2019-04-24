@@ -1,0 +1,29 @@
+{
+  "name": "source-verify",
+  "version": "1.0.0",
+  "description": "Solidity metadata-based re-compilation and source verification tool",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ethereum/source-verify.git"
+  },
+  "keywords": [
+    "ethereum",
+    "solidity",
+    "verification",
+    "bytecode",
+    "metadata"
+  ],
+  "files": [
+    "index.js"
+  ],
+  "author": "chriseth",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ethereum/source-verify/issues"
+  },
+  "homepage": "https://github.com/ethereum/source-verify#readme",
+  "dependencies": {
+    "solc": "^0.5.7"
+  }
+}
