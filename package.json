@@ -24,6 +24,10 @@
   },
   "homepage": "https://github.com/ethereum/source-verify#readme",
   "dependencies": {
-    "solc": "^0.5.7"
+    "cbor": "^4.3.0",
+    "request": "^2.88.0",
+    "request-promise-native": "^1.0.7",
+    "solc": "^0.5.7",
+    "web3": "^1.2.1"
   }
 }
