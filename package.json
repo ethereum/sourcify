@@ -25,6 +25,7 @@
   "homepage": "https://github.com/ethereum/source-verify#readme",
   "dependencies": {
     "cbor": "^4.3.0",
+    "express": "^4.17.1",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.7",
     "solc": "^0.5.7",
