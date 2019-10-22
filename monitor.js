@@ -3,7 +3,7 @@
 'use strict';
 
 if (process.argv.length < 3) {
-    console.log("Usage: monitor.js <repository path>")
+    console.log("Usage: monitor.js <repository path> [<chain> <address>]")
     process.exit(1)
 }
 
@@ -256,6 +256,12 @@ let retrieveSourceInChain = function(chain)
 }
 
 // After testing, reduce intervals
-setInterval(retrieveBlocks, 1000 * 15);
+
+if (process.argv.length >= 5) {
+    retrieveCode(process.argv[3], process.argv[4])
+} else {
+    setInterval(retrieveBlocks, 1000 * 15);
+}
+
 setInterval(retrieveMetadata, 1000 * 15);
 setInterval(retrieveSource, 1000 * 15);
