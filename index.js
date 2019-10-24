@@ -4,6 +4,7 @@
 
 let solcjs = require('solc');
 let process = require('process');
+let fs = require('fs');
 
 function read(stream) {
 	let result = '';
@@ -25,6 +26,21 @@ function read(stream) {
 	});
 };
 
+function retrieveSources(metadataSources)
+{
+    let repository = process.argv[2]
+    let sources = {}
+    for (let path in metadataSources) {
+        if (metadataSources[path]['content']) {
+            sources[path] = {'content': metadataSources[path]['content']}
+        } else {
+            // TODO try other methods of retrieval
+            sources[path] = {'content': fs.readFileSync(repository + '/keccak256/' + metadataSources[path]['keccak256']).toString()}
+        }
+    }
+    return sources
+}
+
 (async () => {
     let metadata_raw = (await read(process.stdin)).trim();
     let metadata = JSON.parse(metadata_raw);
@@ -40,11 +56,11 @@ function read(stream) {
     solcjs.loadRemoteVersion('v' + metadata['compiler']['version'], (error, solcjs) => {
         if (error) throw error;
 
-        input['sources'] = metadata['sources'];
+        input['sources'] = retrieveSources(metadata['sources']);
         input['language'] = metadata['language'];
         input['settings']['metadata'] = input['settings']['metadata'] || {}
         delete input['settings']['useLiteralContent'];
-        input['settings']['metadata']['useLiteralContent'] = true;
+        //input['settings']['metadata']['useLiteralContent'] = true;
         input['settings']['outputSelection'] = input['settings']['outputSelection'] || {}
         input['settings']['outputSelection'][fileName] = input['settings']['outputSelection'][fileName] || {}
         input['settings']['outputSelection'][fileName][contractName] = ['evm.bytecode', 'metadata'];
