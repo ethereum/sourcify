@@ -143,8 +143,12 @@ let retrieveCode = function(chain, address)
             let cborData = cborDecode(web3.utils.hexToBytes(bytecode))
             if (cborData && 'bzzr1' in cborData) {
                 let metadataBzzr1 = web3.utils.bytesToHex(cborData['bzzr1']).slice(2)
-                console.log("[BLOCKS] Queueing retrievel of metadata for " + chain + " " + address + ": " + metadataBzzr1)
+                console.log("[BLOCKS] Queueing retrievel of metadata for " + chain + " " + address + ": bzzr1 " + metadataBzzr1)
                 chains[chain].metadataQueue[address] = {bzzr1: metadataBzzr1};
+            } else if (cborData && 'bzzr0' in cborData) {
+                let metadataBzzr0 = web3.utils.bytesToHex(cborData['bzzr0']).slice(2);
+                console.log("[BLOCKS] Queueing retrievel of metadata for " + chain + " " + address + ": bzzr0 " + metadataBzzr0)
+                chains[chain].metadataQueue[address] = {bzzr0: metadataBzzr0};
             }
             // TODO handle ipfs
         } catch (error) {}
@@ -193,13 +197,21 @@ let retrieveMetadataInChain = function(chain)
     console.log("[METADATA] " + chain + " Processing metadata queue...");
     for (let address in chains[chain].metadataQueue) {
         console.log("[METADATA] " + address);
-        (async function(address, metadataBzzr1) {
+        (async function(address, metadataBzzr1, metadataBzzr0) {
             let metadataRaw
-            try {
-                // TODO guard against too large files
-                // TODO only write files after recompilation check?
-                metadataRaw = await request('https://swarm-gateways.net/bzz-raw:/' + metadataBzzr1);
-            } catch (error) { return; }
+            if (metadataBzzr1) {
+                try {
+                    // TODO guard against too large files
+                    // TODO only write files after recompilation check?
+                    metadataRaw = await request('https://swarm-gateways.net/bzz-raw:/' + metadataBzzr1);
+                } catch (error) { return; }
+            } else if (metadataBzzr0) {
+                try {
+                    metadataRaw = fs.readFileSync(repository + '/swarm/bzzr0/' + metadataBzzr0)
+                } catch (error) { return; }
+            } else {
+                throw "unknown metadata url";
+            }
             console.log("[METADATA] Got metadata for " + chain + " " + address);
             fsextra.outputFileSync(repository + '/swarm/bzzr1/' + metadataBzzr1, metadataRaw);
             fsextra.outputFileSync(repository + '/contract/' + chain + '/' + address + '/metadata.json', metadataRaw);
@@ -209,7 +221,7 @@ let retrieveMetadataInChain = function(chain)
                 metadataRaw: metadataRaw,
                 sources: metadata.sources
             }
-        })(address, chains[chain].metadataQueue[address].bzzr1);
+        })(address, chains[chain].metadataQueue[address]['bzzr1'], chains[chain].metadataQueue[address]['bzzr0']);
     }
 }
 
@@ -250,6 +262,11 @@ let retrieveSourceInChain = function(chain)
                     }
                     // TODO add ipfs and also call sourceFound
                 }
+                fs.readFile(repository + '/keccak256/' + sources[s]['keccak256'], (err, data) => {
+                    if (!err) {
+                        sourceFound(chain, address, s, data.toString());
+                    }
+                });
             }
         })(address, chains[chain].sourceQueue[address].metadataRaw, chains[chain].sourceQueue[address].sources);
     }
