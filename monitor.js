@@ -135,6 +135,27 @@ for (let chain of ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli'])
     })(chain);
 }
 
+let addToQueue = function(queue, key, item)
+{
+    if (queue[key] !== undefined)
+        return;
+    item.timestamp = +new Date;
+    queue[key] = item;
+};
+
+let cleanupQueue = function(queue, maxAgeInSecs)
+{
+    let toDelete = {}
+    for (let key in queue) {
+        if (queue[key].timestamp + maxAgeInSecs * 1000 < +new Date) {
+            toDelete[key] = true
+        }
+    }
+    for (let key in toDelete) {
+        delete queue[key]
+    }
+};
+
 let retrieveCode = function(chain, address)
 {
     let web3 = chains[chain].web3;
@@ -144,11 +165,11 @@ let retrieveCode = function(chain, address)
             if (cborData && 'bzzr1' in cborData) {
                 let metadataBzzr1 = web3.utils.bytesToHex(cborData['bzzr1']).slice(2)
                 console.log("[BLOCKS] Queueing retrievel of metadata for " + chain + " " + address + ": bzzr1 " + metadataBzzr1)
-                chains[chain].metadataQueue[address] = {bzzr1: metadataBzzr1};
+                addToQueue(chains[chain].metadataQueue, address, {bzzr1: metadataBzzr1});
             } else if (cborData && 'bzzr0' in cborData) {
                 let metadataBzzr0 = web3.utils.bytesToHex(cborData['bzzr0']).slice(2);
                 console.log("[BLOCKS] Queueing retrievel of metadata for " + chain + " " + address + ": bzzr0 " + metadataBzzr0)
-                chains[chain].metadataQueue[address] = {bzzr0: metadataBzzr0};
+                addToQueue(chains[chain].metadataQueue, address, {bzzr0: metadataBzzr0});
             }
             // TODO handle ipfs
         } catch (error) {}
@@ -195,6 +216,8 @@ let retrieveMetadata = function()
 let retrieveMetadataInChain = function(chain)
 {
     console.log("[METADATA] " + chain + " Processing metadata queue...");
+    /// Try to retrieve metadata for one hour
+    cleanupQueue(chains[chain].metadataQueue, 3600)
     for (let address in chains[chain].metadataQueue) {
         console.log("[METADATA] " + address);
         (async function(address, metadataBzzr1, metadataBzzr0) {
@@ -217,10 +240,10 @@ let retrieveMetadataInChain = function(chain)
             fsextra.outputFileSync(repository + '/contract/' + chain + '/' + address + '/metadata.json', metadataRaw);
             let metadata = JSON.parse(metadataRaw);
             delete chains[chain].metadataQueue[address];
-            chains[chain].sourceQueue[address] = {
+            addToQueue(chains[chain].sourceQueue, address, {
                 metadataRaw: metadataRaw,
                 sources: metadata.sources
-            }
+            });
         })(address, chains[chain].metadataQueue[address]['bzzr1'], chains[chain].metadataQueue[address]['bzzr0']);
     }
 }
@@ -247,6 +270,8 @@ let retrieveSource = function()
 let retrieveSourceInChain = function(chain)
 {
     console.log("[SOURCE] Processing source queue...");
+    /// Try to retrieve source for five days.
+    cleanupQueue(chains[chain].sourceQueue, 3600 * 24 * 5)
     for (let address in chains[chain].sourceQueue) {
         console.log("[SOURCE] " + chain + " " + address);
         (function(address, metadataRaw, sources) {
