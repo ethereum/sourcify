@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Source Repository Injector</title>
+    <link rel="stylesheet" type="text/css" href="/css/style.css">
+  </head>
+  <body>
+    <h1>Decentralized Metadata and Source Code Repository</h1>
+    <p>Upload metadata and source files of your contract to make it available.<br/>
+    Note that the metadata file has to be exactly the same as at deploy time.<br/>
+    Browse repository <a href="/repository">here</a> or via
+    <a href="https://gateway.ipfs.io/ipns/QmNmBr4tiXtwTrHKjyppUyAhW1FQZMJTdnUrksA9hapS4u">ipfs/ipns gateway</a>.</p>
+    <div class="container">
+      <fieldset>
+        <form action="/" method="post" encType="multipart/form-data">
+          <select name="chain"><option value="mainnet">Ethereum Mainnet</option></select><br/>
+          <input type="text" name="address" placeholder="Contract Address"/><br/>
+          <input type="file" name="files" multiple/><br/>
+          <input type="submit"/>
+        </form>
+      </fieldset>
+    </div>
+  </body>
+</html>
