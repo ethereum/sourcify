@@ -14,7 +14,13 @@
     <div class="container">
       <fieldset>
         <form action="/" method="post" encType="multipart/form-data">
-          <select name="chain"><option value="mainnet">Ethereum Mainnet</option></select><br/>
+          <select name="chain">
+            <option value="mainnet">Ethereum Mainnet</option>
+            <option value="ropsten">Ropsten</option>
+            <option value="rinkeby">Rinkeby</option>
+            <option value="kovan">Kovan</option>
+            <option value="goerli">G&ouml;rli</option>
+          </select><br/>
           <input type="text" name="address" placeholder="Contract Address"/><br/>
           <input type="file" name="files" multiple/><br/>
           <input type="submit"/>
