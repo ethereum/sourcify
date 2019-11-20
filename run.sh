@@ -7,4 +7,5 @@ then
 fi
 
 docker build -t ethereum/source-verify .
-docker run -p "$1":80 -v "$2":/repository ethereum/source-verify
+docker run -v "$2":/repository ethereum/source-verify ./run_monitor.sh &
+docker run -p "$1":80 -v "$2":/repository ethereum/source-verify ./run_server.sh 2>&1 | tee server.log &
