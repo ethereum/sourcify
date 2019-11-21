@@ -35,10 +35,12 @@ app.post('/', (req, res) => {
         req.body.address,
         files
     ).then(result => {
-        let path = `/repository/contract/${req.body.chain}/${result}/`
+        let mainAddress = result[0]
+        let path = `/repository/contract/${req.body.chain}/${mainAddress}/`
         res.send(
             "<html><body>Contract successfully verified!<br/>" +
-            `<a href=\"${path}\">${path}</a><br/>` +
+            `<a href=\"${path}\">${mainAddress}</a><br/>` +
+            (result.length > 1 ? `Found ${result.length} other addresses of this contract: ${result.join(', ')}<br/>` : "") +
             "<a href=\"/\">Verify another one</a>" +
             "</body></html>"
         )

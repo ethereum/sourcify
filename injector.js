@@ -5,6 +5,8 @@ let solc = require('solc')
 let cbor = require('cbor')
 let fsextra = require('fs-extra')
 
+let addressDB = require('./address-db.js')
+
 var exports = module.exports = {}
 
 let chains = {}
@@ -146,26 +148,44 @@ let storeData = function(repository, chain, address, compilationResult, sources)
 }
 
 exports.inject = async function(repository, chain, address, files) {
-  address = Web3.utils.toChecksumAddress(address)
+  if (address) {
+    address = Web3.utils.toChecksumAddress(address)
+  }
   let metadata = findMetadataFile(files)
   let sources = rearrangeSources(metadata, files)
   // Starting from here, we cannot trust the metadata object anymore,
   // because it is modified inside recompile.
   let compilationResult = await recompile(metadata, sources)
 
-  let bytecode = await getBytecode(chains[chain].web3, address)
-  if (compilationResult.deployedBytecode != bytecode) {
-    throw (
-      "Bytecode does not match.\n" +
-      "On-chain deployed bytecode: " + bytecode + "\n" +
-      "Re-compiled bytecode: " + compilationResult.deployedBytecode + "\n"
-    )
+  let addresses = []
+  if (address) {
+    let bytecode = await getBytecode(chains[chain].web3, address)
+    if (compilationResult.deployedBytecode != bytecode) {
+      throw (
+        "Bytecode does not match.\n" +
+        "On-chain deployed bytecode: " + bytecode + "\n" +
+        "Re-compiled bytecode: " + compilationResult.deployedBytecode + "\n"
+      )
+    }
+    addresses.push(address)
+  } else {
+    // TODO this should probably return pairs of chain and address
+    addresses = await addressDB.findAddresses(chain, compilationResult.deployedBytecode)
+    if (addresses.length == 0) {
+      throw (
+        "Contract compiled successfully, but could not find matching bytecode " +
+        "and no address provided.\n" +
+        "Re-compiled bytecode: " + compilationResult.deployedBytecode + "\n"
+      )
+    }
   }
   // Since the bytecode matches, we can be sure that we got the right
   // metadata file (up to json formatting) and exactly the right sources.
   // Now we can store the re-compiled and correctly formatted metadata file
   // and the sources.
 
-  await storeData(repository, chain, address, compilationResult, sources)
-  return address
+  for (let i in addresses) {
+    await storeData(repository, chain, addresses[i], compilationResult, sources)
+  }
+  return addresses
 }
