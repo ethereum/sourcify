@@ -38,8 +38,10 @@ let retrieveSources = async function(sources)
 {
     var output = {}
     for (var s in sources) {
-        // TODO support literals sources
-        output[s] = await retrieveSingleSource(s, sources[s]['urls'])
+        output[s] = sources[s].content
+        if (!output[s]) {
+            output[s] = await retrieveSingleSource(s, sources[s]['urls'])
+        }
     }
     return output
 }
