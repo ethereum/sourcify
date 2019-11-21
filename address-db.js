@@ -20,7 +20,7 @@ const util = require('util');
 
 const Web3 = require('web3')
 
-const dbFile = './addressDB.txt'
+const dbFile = '/db/addressDB.txt'
 const lineLength = 114 // including newline
 const hashStart = 2
 const addressStart = 71 // after the "0x"
@@ -40,7 +40,7 @@ let setup = async function() {
 }
 
 let readRecord = async function(i) {
-    let buffer = new Buffer(lineLength)
+    let buffer = Buffer.alloc(lineLength)
     await read(fd, buffer, 0, buffer.length, i * lineLength)
     let data = buffer.toString()
     return {hash: data.substr(hashStart, 64).toLowerCase(), address: data.substr(addressStart, 40).toLowerCase()}
@@ -81,7 +81,9 @@ exports.findAddresses = async function(chain, bytecode) {
     if (!fd) {
         try {
             await setup()
-        } catch {
+        } catch (e) {
+            console.log("Address DB setup error:")
+            console.log(e)
         }
     }
     if (!fd) {
