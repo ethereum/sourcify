@@ -109,8 +109,16 @@ let rearrangeSources = function(metadata, files) {
   let sources = {}
   let byHash = storeByHash(files)
   for (var fileName in metadata.sources) {
+    let content = metadata.sources[fileName]['content']
     let hash = metadata.sources[fileName]['keccak256']
-    if (!byHash[hash]) {
+    if(content) {
+        if (Web3.utils.keccak256(content) != hash) {
+            throw("invalid content for file " + fileName); 
+        }
+    } else {
+      content = byHash[hash];    
+    }
+    if (!content) {
       throw (
         "The metadata file mentions a source file called \"" +
         fileName +
@@ -119,7 +127,7 @@ let rearrangeSources = function(metadata, files) {
         ". Please try to find it and include it in the upload."
       )
     }
-    sources[fileName] = byHash[hash]
+    sources[fileName] = content
   }
   return sources
 }
