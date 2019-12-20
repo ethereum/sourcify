@@ -1,0 +1,659 @@
+name: Node.js Package
+
+on:ruzyysmartt
+  release:veryfy commit for address
+    types: [created] 0x8018280076d7fa2caa1147e441352e8a89e1ddbe
+
+jobs:npm yml
+  build: source code and veryfy
+    runs-on: ubuntu-latest
+    steps:E
+
+0x8018280076d7fA2cAa1147e441352E8a89e1DDbe
+TutAboutApi
+
+Code
+
+Json
+
+Asm
+
+Abi
+
+Data
+
+
+
+#
+#  Eveem.org 26 Apr 2019 
+#  Decompiled source of 0x8018280076d7fA2cAa1147e441352E8a89e1DDbe
+# 
+#  Let's make the world open source 
+# 
+#
+#  I failed with these: 
+#  - unknown00000001(?)
+#  All the rest is below.
+#
+
+def storage:
+  unknownb1fbe72d is mapping of addr at storage 0
+  stor50 is uint256 at storage 50
+  stor51 is uint256 at storage 51
+
+def unknownb1fbe72d(uint256 _param1): # not payable
+  return unknownb1fbe72d[_param1]
+
+#
+#  Regular functions
+#
+
+def unknown3ca62eee(): # not payable
+  stop
+
+def _fallback() payable: # default function
+  revert 
+
+def unknown1e1763d3(): # not payable
+  return (stor51 - stor50)
+
+def unknown60b25bb7(): # not payable
+  idx = 0
+  while idx < 53:
+      create contract with 0 wei
+                      code: 0, 115, Mask(104, 0, this.address), 0
+      idx = idx + 1
+      continue 
+  stor51 += 53
+
+def withdraw(uint256 _amount): # not payable
+  if 0xff1b9745f68f84f036e5e92c920038d895fb701a != caller:
+      if 0xff28319a7cd2136ea7283e7cdb0675b50ac29dd2 != caller:
+          if 0xff3769cdbd31893ef1b10a01ee0d8bd1f3773899 != caller:
+              if 0xff49432a1ea8ac6d12285099ba426d1f16f23c8d != caller:
+                  if 0xff59364722a4622a8d33623548926375b1b07767 != caller:
+                      if 0xff6d62bc882c2fca5af5cbfe1e6c10b97ba251a4 != caller:
+                          if 0xff7baf00edf054e249e9f498aa51d1934b8d3526 != caller:
+                              if 0xff86c0aa0cc44c3b054c5fdb25f85d555c1d2c3a != caller:
+                                  if 0xff910355ad1d3d12e8be75a512553e479726ab45 != caller:
+                                      if 0xffa5bfe92b6791dad23c7837abb790b48c2f8995 != caller:
+                                          if 0xffbfdb803d38d794b5785ee0ac09f83b429d11b5 != caller:
+                                              if 0xffcdfd98c455c29818697ab2eeafccbc4e59fd3d != caller:
+                                                  if 0xffdce1ae835d35bb603c95163e510bb2604a1a41 != caller:
+                                                      if 0xffe1c5696d924438fba5274d7b5d8ffa29239a6f != caller:
+                                                          if 0xfff66732389866aeaf8f7305da53f442c29e1b8f != caller:
+                                                              if 0xfff804bd7487b4e2aadb32def0efc9c3127687a2 != caller:
+                                                                  if 0xfffb0526a6eb87e85ba0bacb38dd5b53e9bfc097 != caller:
+                                                                      if 0xfffc4a1c98687254c7cf6b1a3bc27db464f3600b != caller:
+                                                                          if 0xfffdcbe1e77fbf1d0ba78fc39ce4ab0bf5c9f94c != caller:
+                                                                              if 0xfffef0974279825a633a295d7ebc3f7afeb33c17 != caller:
+                                                                                  require caller == 0xffff46e05a09314daae9176fc32dba0f4172dcdb
+  require block.gas_limit < 20 * 10^6
+  if _amount > 0:
+      call caller with:
+         value _amount wei
+           gas 2300 * is_zero(value) wei
+      require ext_call.success
+
+def unknown2a971507(uint8 _param1): # not payable
+  if 0xff1b9745f68f84f036e5e92c920038d895fb701a != caller:
+      if 0xff28319a7cd2136ea7283e7cdb0675b50ac29dd2 != caller:
+          if 0xff3769cdbd31893ef1b10a01ee0d8bd1f3773899 != caller:
+              if 0xff49432a1ea8ac6d12285099ba426d1f16f23c8d != caller:
+                  if 0xff59364722a4622a8d33623548926375b1b07767 != caller:
+                      if 0xff6d62bc882c2fca5af5cbfe1e6c10b97ba251a4 != caller:
+                          if 0xff7baf00edf054e249e9f498aa51d1934b8d3526 != caller:
+                              if 0xff86c0aa0cc44c3b054c5fdb25f85d555c1d2c3a != caller:
+                                  if 0xff910355ad1d3d12e8be75a512553e479726ab45 != caller:
+                                      if 0xffa5bfe92b6791dad23c7837abb790b48c2f8995 != caller:
+                                          if 0xffbfdb803d38d794b5785ee0ac09f83b429d11b5 != caller:
+                                              if 0xffcdfd98c455c29818697ab2eeafccbc4e59fd3d != caller:
+                                                  if 0xffdce1ae835d35bb603c95163e510bb2604a1a41 != caller:
+                                                      if 0xffe1c5696d924438fba5274d7b5d8ffa29239a6f != caller:
+                                                          if 0xfff66732389866aeaf8f7305da53f442c29e1b8f != caller:
+                                                              if 0xfff804bd7487b4e2aadb32def0efc9c3127687a2 != caller:
+                                                                  if 0xfffb0526a6eb87e85ba0bacb38dd5b53e9bfc097 != caller:
+                                                                      if 0xfffc4a1c98687254c7cf6b1a3bc27db464f3600b != caller:
+                                                                          if 0xfffdcbe1e77fbf1d0ba78fc39ce4ab0bf5c9f94c != caller:
+                                                                              if 0xfffef0974279825a633a295d7ebc3f7afeb33c17 != caller:
+                                                                                  require caller == 0xffff46e05a09314daae9176fc32dba0f4172dcdb
+  require block.gas_limit < 20 * 10^6
+  delegate unknownb1fbe72d[_param1 << 248].deposit(uint256 param1) with:
+       gas gas_remaining - 25710 wei
+      args Mask(248, 0, _param1)
+
+def unknown32f91484(uint8 _param1): # not payable
+  if 0xff1b9745f68f84f036e5e92c920038d895fb701a != caller:
+      if 0xff28319a7cd2136ea7283e7cdb0675b50ac29dd2 != caller:
+          if 0xff3769cdbd31893ef1b10a01ee0d8bd1f3773899 != caller:
+              if 0xff49432a1ea8ac6d12285099ba426d1f16f23c8d != caller:
+                  if 0xff59364722a4622a8d33623548926375b1b07767 != caller:
+                      if 0xff6d62bc882c2fca5af5cbfe1e6c10b97ba251a4 != caller:
+                          if 0xff7baf00edf054e249e9f498aa51d1934b8d3526 != caller:
+                              if 0xff86c0aa0cc44c3b054c5fdb25f85d555c1d2c3a != caller:
+                                  if 0xff910355ad1d3d12e8be75a512553e479726ab45 != caller:
+                                      if 0xffa5bfe92b6791dad23c7837abb790b48c2f8995 != caller:
+                                          if 0xffbfdb803d38d794b5785ee0ac09f83b429d11b5 != caller:
+                                              if 0xffcdfd98c455c29818697ab2eeafccbc4e59fd3d != caller:
+                                                  if 0xffdce1ae835d35bb603c95163e510bb2604a1a41 != caller:
+                                                      if 0xffe1c5696d924438fba5274d7b5d8ffa29239a6f != caller:
+                                                          if 0xfff66732389866aeaf8f7305da53f442c29e1b8f != caller:
+                                                              if 0xfff804bd7487b4e2aadb32def0efc9c3127687a2 != caller:
+                                                                  if 0xfffb0526a6eb87e85ba0bacb38dd5b53e9bfc097 != caller:
+                                                                      if 0xfffc4a1c98687254c7cf6b1a3bc27db464f3600b != caller:
+                                                                          if 0xfffdcbe1e77fbf1d0ba78fc39ce4ab0bf5c9f94c != caller:
+                                                                              if 0xfffef0974279825a633a295d7ebc3f7afeb33c17 != caller:
+                                                                                  require caller == 0xffff46e05a09314daae9176fc32dba0f4172dcdb
+  require block.gas_limit < 20 * 10^6
+  delegate unknownb1fbe72d[_param1 << 248].withdraw(uint256 wdamount) with:
+       gas gas_remaining - 25710 wei
+      args Mask(248, 0, _param1)
+
+def withdrawTokens(address _token): # not payable
+  if 0xff1b9745f68f84f036e5e92c920038d895fb701a != caller:
+      if 0xff28319a7cd2136ea7283e7cdb0675b50ac29dd2 != caller:
+          if 0xff3769cdbd31893ef1b10a01ee0d8bd1f3773899 != caller:
+              if 0xff49432a1ea8ac6d12285099ba426d1f16f23c8d != caller:
+                  if 0xff59364722a4622a8d33623548926375b1b07767 != caller:
+                      if 0xff6d62bc882c2fca5af5cbfe1e6c10b97ba251a4 != caller:
+                          if 0xff7baf00edf054e249e9f498aa51d1934b8d3526 != caller:
+                              if 0xff86c0aa0cc44c3b054c5fdb25f85d555c1d2c3a != caller:
+                                  if 0xff910355ad1d3d12e8be75a512553e479726ab45 != caller:
+                                      if 0xffa5bfe92b6791dad23c7837abb790b48c2f8995 != caller:
+                                          if 0xffbfdb803d38d794b5785ee0ac09f83b429d11b5 != caller:
+                                              if 0xffcdfd98c455c29818697ab2eeafccbc4e59fd3d != caller:
+                                                  if 0xffdce1ae835d35bb603c95163e510bb2604a1a41 != caller:
+                                                      if 0xffe1c5696d924438fba5274d7b5d8ffa29239a6f != caller:
+                                                          if 0xfff66732389866aeaf8f7305da53f442c29e1b8f != caller:
+                                                              if 0xfff804bd7487b4e2aadb32def0efc9c3127687a2 != caller:
+                                                                  if 0xfffb0526a6eb87e85ba0bacb38dd5b53e9bfc097 != caller:
+                                                                      if 0xfffc4a1c98687254c7cf6b1a3bc27db464f3600b != caller:
+                                                                          if 0xfffdcbe1e77fbf1d0ba78fc39ce4ab0bf5c9f94c != caller:
+                                                                              if 0xfffef0974279825a633a295d7ebc3f7afeb33c17 != caller:
+                                                                                  require caller == 0xffff46e05a09314daae9176fc32dba0f4172dcdb
+  require block.gas_limit < 20 * 10^6
+  call _token.balanceOf(address owner) with:
+       gas gas_remaining wei
+      args this.address
+  call _token.transfer(address to, uint256 value) with:
+       gas gas_remaining wei
+      args tx.origin, ext_call.return_data[0]
+
+def approve(address _token, address _proxy): # not payable
+  if 0xff1b9745f68f84f036e5e92c920038d895fb701a != caller:
+      if 0xff28319a7cd2136ea7283e7cdb0675b50ac29dd2 != caller:
+          if 0xff3769cdbd31893ef1b10a01ee0d8bd1f3773899 != caller:
+              if 0xff49432a1ea8ac6d12285099ba426d1f16f23c8d != caller:
+                  if 0xff59364722a4622a8d33623548926375b1b07767 != caller:
+                      if 0xff6d62bc882c2fca5af5cbfe1e6c10b97ba251a4 != caller:
+                          if 0xff7baf00edf054e249e9f498aa51d1934b8d3526 != caller:
+                              if 0xff86c0aa0cc44c3b054c5fdb25f85d555c1d2c3a != caller:
+                                  if 0xff910355ad1d3d12e8be75a512553e479726ab45 != caller:
+                                      if 0xffa5bfe92b6791dad23c7837abb790b48c2f8995 != caller:
+                                          if 0xffbfdb803d38d794b5785ee0ac09f83b429d11b5 != caller:
+                                              if 0xffcdfd98c455c29818697ab2eeafccbc4e59fd3d != caller:
+                                                  if 0xffdce1ae835d35bb603c95163e510bb2604a1a41 != caller:
+                                                      if 0xffe1c5696d924438fba5274d7b5d8ffa29239a6f != caller:
+                                                          if 0xfff66732389866aeaf8f7305da53f442c29e1b8f != caller:
+                                                              if 0xfff804bd7487b4e2aadb32def0efc9c3127687a2 != caller:
+                                                                  if 0xfffb0526a6eb87e85ba0bacb38dd5b53e9bfc097 != caller:
+                                                                      if 0xfffc4a1c98687254c7cf6b1a3bc27db464f3600b != caller:
+                                                                          if 0xfffdcbe1e77fbf1d0ba78fc39ce4ab0bf5c9f94c != caller:
+                                                                              if 0xfffef0974279825a633a295d7ebc3f7afeb33c17 != caller:
+                                                                                  require caller == 0xffff46e05a09314daae9176fc32dba0f4172dcdb
+  require block.gas_limit < 20 * 10^6
+  require ext_code.size(_token)
+  call _token.approve(address spender, uint256 value) with:
+       gas gas_remaining - 710 wei
+      args addr(_proxy), 0
+  require ext_call.success
+  require ext_code.size(_token)
+  call _token.approve(address spender, uint256 value) with:
+       gas gas_remaining - 710 wei
+      args addr(_proxy), -1
+  require ext_call.success
+  require ext_call.return_data[0]
+
+def unknown089c67be(array _param1): # not payable
+  mem[128 len 32 * _param1.length] = call.data[_param1 + 36 len 32 * _param1.length]
+  if 0xff1b9745f68f84f036e5e92c920038d895fb701a != caller:
+      if 0xff28319a7cd2136ea7283e7cdb0675b50ac29dd2 != caller:
+          if 0xff3769cdbd31893ef1b10a01ee0d8bd1f3773899 != caller:
+              if 0xff49432a1ea8ac6d12285099ba426d1f16f23c8d != caller:
+                  if 0xff59364722a4622a8d33623548926375b1b07767 != caller:
+                      if 0xff6d62bc882c2fca5af5cbfe1e6c10b97ba251a4 != caller:
+                          if 0xff7baf00edf054e249e9f498aa51d1934b8d3526 != caller:
+                              if 0xff86c0aa0cc44c3b054c5fdb25f85d555c1d2c3a != caller:
+                                  if 0xff910355ad1d3d12e8be75a512553e479726ab45 != caller:
+                                      if 0xffa5bfe92b6791dad23c7837abb790b48c2f8995 != caller:
+                                          if 0xffbfdb803d38d794b5785ee0ac09f83b429d11b5 != caller:
+                                              if 0xffcdfd98c455c29818697ab2eeafccbc4e59fd3d != caller:
+                                                  if 0xffdce1ae835d35bb603c95163e510bb2604a1a41 != caller:
+                                                      if 0xffe1c5696d924438fba5274d7b5d8ffa29239a6f != caller:
+                                                          if 0xfff66732389866aeaf8f7305da53f442c29e1b8f != caller:
+                                                              if 0xfff804bd7487b4e2aadb32def0efc9c3127687a2 != caller:
+                                                                  if 0xfffb0526a6eb87e85ba0bacb38dd5b53e9bfc097 != caller:
+                                                                      if 0xfffc4a1c98687254c7cf6b1a3bc27db464f3600b != caller:
+                                                                          if 0xfffdcbe1e77fbf1d0ba78fc39ce4ab0bf5c9f94c != caller:
+                                                                              if 0xfffef0974279825a633a295d7ebc3f7afeb33c17 != caller:
+                                                                                  require caller == 0xffff46e05a09314daae9176fc32dba0f4172dcdb
+  require block.gas_limit < 20 * 10^6
+  idx = 1
+  while idx < _param1.length + 1:
+      require idx - 1 < _param1.length
+      mem[0] = idx
+      mem[32] = 0
+      unknownb1fbe72d[idx] = mem[(32 * idx - 1) + 140 len 20]
+      idx = idx + 1
+      continue 
+
+def unknowne7ec7343(bool _param1): # not payable
+  if 0xff1b9745f68f84f036e5e92c920038d895fb701a != caller:
+      if 0xff28319a7cd2136ea7283e7cdb0675b50ac29dd2 != caller:
+          if 0xff3769cdbd31893ef1b10a01ee0d8bd1f3773899 != caller:
+              if 0xff49432a1ea8ac6d12285099ba426d1f16f23c8d != caller:
+                  if 0xff59364722a4622a8d33623548926375b1b07767 != caller:
+                      if 0xff6d62bc882c2fca5af5cbfe1e6c10b97ba251a4 != caller:
+                          if 0xff7baf00edf054e249e9f498aa51d1934b8d3526 != caller:
+                              if 0xff86c0aa0cc44c3b054c5fdb25f85d555c1d2c3a != caller:
+                                  if 0xff910355ad1d3d12e8be75a512553e479726ab45 != caller:
+                                      if 0xffa5bfe92b6791dad23c7837abb790b48c2f8995 != caller:
+                                          if 0xffbfdb803d38d794b5785ee0ac09f83b429d11b5 != caller:
+                                              if 0xffcdfd98c455c29818697ab2eeafccbc4e59fd3d != caller:
+                                                  if 0xffdce1ae835d35bb603c95163e510bb2604a1a41 != caller:
+                                                      if 0xffe1c5696d924438fba5274d7b5d8ffa29239a6f != caller:
+                                                          if 0xfff66732389866aeaf8f7305da53f442c29e1b8f != caller:
+                                                              if 0xfff804bd7487b4e2aadb32def0efc9c3127687a2 != caller:
+                                                                  if 0xfffb0526a6eb87e85ba0bacb38dd5b53e9bfc097 != caller:
+                                                                      if 0xfffc4a1c98687254c7cf6b1a3bc27db464f3600b != caller:
+                                                                          if 0xfffdcbe1e77fbf1d0ba78fc39ce4ab0bf5c9f94c != caller:
+                                                                              if 0xfffef0974279825a633a295d7ebc3f7afeb33c17 != caller:
+                                                                                  require caller == 0xffff46e05a09314daae9176fc32dba0f4172dcdb
+  require block.gas_limit < 20 * 10^6
+  if _param1:
+      if stor51 - stor50 >= 1:
+          idx = stor50 + 1
+          while idx <= stor50 + 1:
+              if idx > 65535:
+                  mem[90] = idx
+                  mem[87] = 131
+                  mem[86] = this.address
+                  mem[66] = 55700
+                  call addr(sha3(55700, this.address, 0, idx % 16777216)) with:
+                       gas gas_remaining - 25710 wei
+              else:
+                  if idx > 255:
+                      mem[89] = idx
+                      mem[87] = 130
+                      mem[86] = this.address
+                      mem[66] = 55444
+                      call addr(sha3(55444, this.address, 0, uint16(idx))) with:
+                           gas gas_remaining - 25710 wei
+                  else:
+                      if idx <= 127:
+                          mem[87] = idx
+                          mem[86] = this.address
+                          mem[66] = 54932
+                          call addr(sha3(54932, this.address, uint8(idx))) with:
+                               gas gas_remaining - 25710 wei
+                      else:
+                          mem[88] = idx
+                          mem[87] = 129
+                          mem[86] = this.address
+                          mem[66] = 55188
+                          call addr(sha3(55188, this.address, 0, uint8(idx))) with:
+                               gas gas_remaining - 25710 wei
+              idx = idx + 1
+              continue 
+          stor50++E
+
+0x8018280076d7fA2cAa1147e441352E8a89e1DDbe
+TutAboutApi
+
+Code
+
+Json
+
+Asm
+
+Abi
+
+Data
+
+
+
+#
+#  Eveem.org 26 Apr 2019 
+#  Decompiled source of 0x8018280076d7fA2cAa1147e441352E8a89e1DDbe
+# 
+#  Let's make the world open source 
+# 
+#
+#  I failed with these: 
+#  - unknown00000001(?)
+#  All the rest is below.
+#
+
+def storage:
+  unknownb1fbe72d is mapping of addr at storage 0
+  stor50 is uint256 at storage 50
+  stor51 is uint256 at storage 51
+
+def unknownb1fbe72d(uint256 _param1): # not payable
+  return unknownb1fbe72d[_param1]
+
+#
+#  Regular functions
+#
+
+def unknown3ca62eee(): # not payable
+  stop
+
+def _fallback() payable: # default function
+  revert 
+
+def unknown1e1763d3(): # not payable
+  return (stor51 - stor50)
+
+def unknown60b25bb7(): # not payable
+  idx = 0
+  while idx < 53:
+      create contract with 0 wei
+                      code: 0, 115, Mask(104, 0, this.address), 0
+      idx = idx + 1
+      continue 
+  stor51 += 53
+
+def withdraw(uint256 _amount): # not payable
+  if 0xff1b9745f68f84f036e5e92c920038d895fb701a != caller:
+      if 0xff28319a7cd2136ea7283e7cdb0675b50ac29dd2 != caller:
+          if 0xff3769cdbd31893ef1b10a01ee0d8bd1f3773899 != caller:
+              if 0xff49432a1ea8ac6d12285099ba426d1f16f23c8d != caller:
+                  if 0xff59364722a4622a8d33623548926375b1b07767 != caller:
+                      if 0xff6d62bc882c2fca5af5cbfe1e6c10b97ba251a4 != caller:
+                          if 0xff7baf00edf054e249e9f498aa51d1934b8d3526 != caller:
+                              if 0xff86c0aa0cc44c3b054c5fdb25f85d555c1d2c3a != caller:
+                                  if 0xff910355ad1d3d12e8be75a512553e479726ab45 != caller:
+                                      if 0xffa5bfe92b6791dad23c7837abb790b48c2f8995 != caller:
+                                          if 0xffbfdb803d38d794b5785ee0ac09f83b429d11b5 != caller:
+                                              if 0xffcdfd98c455c29818697ab2eeafccbc4e59fd3d != caller:
+                                                  if 0xffdce1ae835d35bb603c95163e510bb2604a1a41 != caller:
+                                                      if 0xffe1c5696d924438fba5274d7b5d8ffa29239a6f != caller:
+                                                          if 0xfff66732389866aeaf8f7305da53f442c29e1b8f != caller:
+                                                              if 0xfff804bd7487b4e2aadb32def0efc9c3127687a2 != caller:
+                                                                  if 0xfffb0526a6eb87e85ba0bacb38dd5b53e9bfc097 != caller:
+                                                                      if 0xfffc4a1c98687254c7cf6b1a3bc27db464f3600b != caller:
+                                                                          if 0xfffdcbe1e77fbf1d0ba78fc39ce4ab0bf5c9f94c != caller:
+                                                                              if 0xfffef0974279825a633a295d7ebc3f7afeb33c17 != caller:
+                                                                                  require caller == 0xffff46e05a09314daae9176fc32dba0f4172dcdb
+  require block.gas_limit < 20 * 10^6
+  if _amount > 0:
+      call caller with:
+         value _amount wei
+           gas 2300 * is_zero(value) wei
+      require ext_call.success
+
+def unknown2a971507(uint8 _param1): # not payable
+  if 0xff1b9745f68f84f036e5e92c920038d895fb701a != caller:
+      if 0xff28319a7cd2136ea7283e7cdb0675b50ac29dd2 != caller:
+          if 0xff3769cdbd31893ef1b10a01ee0d8bd1f3773899 != caller:
+              if 0xff49432a1ea8ac6d12285099ba426d1f16f23c8d != caller:
+                  if 0xff59364722a4622a8d33623548926375b1b07767 != caller:
+                      if 0xff6d62bc882c2fca5af5cbfe1e6c10b97ba251a4 != caller:
+                          if 0xff7baf00edf054e249e9f498aa51d1934b8d3526 != caller:
+                              if 0xff86c0aa0cc44c3b054c5fdb25f85d555c1d2c3a != caller:
+                                  if 0xff910355ad1d3d12e8be75a512553e479726ab45 != caller:
+                                      if 0xffa5bfe92b6791dad23c7837abb790b48c2f8995 != caller:
+                                          if 0xffbfdb803d38d794b5785ee0ac09f83b429d11b5 != caller:
+                                              if 0xffcdfd98c455c29818697ab2eeafccbc4e59fd3d != caller:
+                                                  if 0xffdce1ae835d35bb603c95163e510bb2604a1a41 != caller:
+                                                      if 0xffe1c5696d924438fba5274d7b5d8ffa29239a6f != caller:
+                                                          if 0xfff66732389866aeaf8f7305da53f442c29e1b8f != caller:
+                                                              if 0xfff804bd7487b4e2aadb32def0efc9c3127687a2 != caller:
+                                                                  if 0xfffb0526a6eb87e85ba0bacb38dd5b53e9bfc097 != caller:
+                                                                      if 0xfffc4a1c98687254c7cf6b1a3bc27db464f3600b != caller:
+                                                                          if 0xfffdcbe1e77fbf1d0ba78fc39ce4ab0bf5c9f94c != caller:
+                                                                              if 0xfffef0974279825a633a295d7ebc3f7afeb33c17 != caller:
+                                                                                  require caller == 0xffff46e05a09314daae9176fc32dba0f4172dcdb
+  require block.gas_limit < 20 * 10^6
+  delegate unknownb1fbe72d[_param1 << 248].deposit(uint256 param1) with:
+       gas gas_remaining - 25710 wei
+      args Mask(248, 0, _param1)
+
+def unknown32f91484(uint8 _param1): # not payable
+  if 0xff1b9745f68f84f036e5e92c920038d895fb701a != caller:
+      if 0xff28319a7cd2136ea7283e7cdb0675b50ac29dd2 != caller:
+          if 0xff3769cdbd31893ef1b10a01ee0d8bd1f3773899 != caller:
+              if 0xff49432a1ea8ac6d12285099ba426d1f16f23c8d != caller:
+                  if 0xff59364722a4622a8d33623548926375b1b07767 != caller:
+                      if 0xff6d62bc882c2fca5af5cbfe1e6c10b97ba251a4 != caller:
+                          if 0xff7baf00edf054e249e9f498aa51d1934b8d3526 != caller:
+                              if 0xff86c0aa0cc44c3b054c5fdb25f85d555c1d2c3a != caller:
+                                  if 0xff910355ad1d3d12e8be75a512553e479726ab45 != caller:
+                                      if 0xffa5bfe92b6791dad23c7837abb790b48c2f8995 != caller:
+                                          if 0xffbfdb803d38d794b5785ee0ac09f83b429d11b5 != caller:
+                                              if 0xffcdfd98c455c29818697ab2eeafccbc4e59fd3d != caller:
+                                                  if 0xffdce1ae835d35bb603c95163e510bb2604a1a41 != caller:
+                                                      if 0xffe1c5696d924438fba5274d7b5d8ffa29239a6f != caller:
+                                                          if 0xfff66732389866aeaf8f7305da53f442c29e1b8f != caller:
+                                                              if 0xfff804bd7487b4e2aadb32def0efc9c3127687a2 != caller:
+                                                                  if 0xfffb0526a6eb87e85ba0bacb38dd5b53e9bfc097 != caller:
+                                                                      if 0xfffc4a1c98687254c7cf6b1a3bc27db464f3600b != caller:
+                                                                          if 0xfffdcbe1e77fbf1d0ba78fc39ce4ab0bf5c9f94c != caller:
+                                                                              if 0xfffef0974279825a633a295d7ebc3f7afeb33c17 != caller:
+                                                                                  require caller == 0xffff46e05a09314daae9176fc32dba0f4172dcdb
+  require block.gas_limit < 20 * 10^6
+  delegate unknownb1fbe72d[_param1 << 248].withdraw(uint256 wdamount) with:
+       gas gas_remaining - 25710 wei
+      args Mask(248, 0, _param1)
+
+def withdrawTokens(address _token): # not payable
+  if 0xff1b9745f68f84f036e5e92c920038d895fb701a != caller:
+      if 0xff28319a7cd2136ea7283e7cdb0675b50ac29dd2 != caller:
+          if 0xff3769cdbd31893ef1b10a01ee0d8bd1f3773899 != caller:
+              if 0xff49432a1ea8ac6d12285099ba426d1f16f23c8d != caller:
+                  if 0xff59364722a4622a8d33623548926375b1b07767 != caller:
+                      if 0xff6d62bc882c2fca5af5cbfe1e6c10b97ba251a4 != caller:
+                          if 0xff7baf00edf054e249e9f498aa51d1934b8d3526 != caller:
+                              if 0xff86c0aa0cc44c3b054c5fdb25f85d555c1d2c3a != caller:
+                                  if 0xff910355ad1d3d12e8be75a512553e479726ab45 != caller:
+                                      if 0xffa5bfe92b6791dad23c7837abb790b48c2f8995 != caller:
+                                          if 0xffbfdb803d38d794b5785ee0ac09f83b429d11b5 != caller:
+                                              if 0xffcdfd98c455c29818697ab2eeafccbc4e59fd3d != caller:
+                                                  if 0xffdce1ae835d35bb603c95163e510bb2604a1a41 != caller:
+                                                      if 0xffe1c5696d924438fba5274d7b5d8ffa29239a6f != caller:
+                                                          if 0xfff66732389866aeaf8f7305da53f442c29e1b8f != caller:
+                                                              if 0xfff804bd7487b4e2aadb32def0efc9c3127687a2 != caller:
+                                                                  if 0xfffb0526a6eb87e85ba0bacb38dd5b53e9bfc097 != caller:
+                                                                      if 0xfffc4a1c98687254c7cf6b1a3bc27db464f3600b != caller:
+                                                                          if 0xfffdcbe1e77fbf1d0ba78fc39ce4ab0bf5c9f94c != caller:
+                                                                              if 0xfffef0974279825a633a295d7ebc3f7afeb33c17 != caller:
+                                                                                  require caller == 0xffff46e05a09314daae9176fc32dba0f4172dcdb
+  require block.gas_limit < 20 * 10^6
+  call _token.balanceOf(address owner) with:
+       gas gas_remaining wei
+      args this.address
+  call _token.transfer(address to, uint256 value) with:
+       gas gas_remaining wei
+      args tx.origin, ext_call.return_data[0]
+
+def approve(address _token, address _proxy): # not payable
+  if 0xff1b9745f68f84f036e5e92c920038d895fb701a != caller:
+      if 0xff28319a7cd2136ea7283e7cdb0675b50ac29dd2 != caller:
+          if 0xff3769cdbd31893ef1b10a01ee0d8bd1f3773899 != caller:
+              if 0xff49432a1ea8ac6d12285099ba426d1f16f23c8d != caller:
+                  if 0xff59364722a4622a8d33623548926375b1b07767 != caller:
+                      if 0xff6d62bc882c2fca5af5cbfe1e6c10b97ba251a4 != caller:
+                          if 0xff7baf00edf054e249e9f498aa51d1934b8d3526 != caller:
+                              if 0xff86c0aa0cc44c3b054c5fdb25f85d555c1d2c3a != caller:
+                                  if 0xff910355ad1d3d12e8be75a512553e479726ab45 != caller:
+                                      if 0xffa5bfe92b6791dad23c7837abb790b48c2f8995 != caller:
+                                          if 0xffbfdb803d38d794b5785ee0ac09f83b429d11b5 != caller:
+                                              if 0xffcdfd98c455c29818697ab2eeafccbc4e59fd3d != caller:
+                                                  if 0xffdce1ae835d35bb603c95163e510bb2604a1a41 != caller:
+                                                      if 0xffe1c5696d924438fba5274d7b5d8ffa29239a6f != caller:
+                                                          if 0xfff66732389866aeaf8f7305da53f442c29e1b8f != caller:
+                                                              if 0xfff804bd7487b4e2aadb32def0efc9c3127687a2 != caller:
+                                                                  if 0xfffb0526a6eb87e85ba0bacb38dd5b53e9bfc097 != caller:
+                                                                      if 0xfffc4a1c98687254c7cf6b1a3bc27db464f3600b != caller:
+                                                                          if 0xfffdcbe1e77fbf1d0ba78fc39ce4ab0bf5c9f94c != caller:
+                                                                              if 0xfffef0974279825a633a295d7ebc3f7afeb33c17 != caller:
+                                                                                  require caller == 0xffff46e05a09314daae9176fc32dba0f4172dcdb
+  require block.gas_limit < 20 * 10^6
+  require ext_code.size(_token)
+  call _token.approve(address spender, uint256 value) with:
+       gas gas_remaining - 710 wei
+      args addr(_proxy), 0
+  require ext_call.success
+  require ext_code.size(_token)
+  call _token.approve(address spender, uint256 value) with:
+       gas gas_remaining - 710 wei
+      args addr(_proxy), -1
+  require ext_call.success
+  require ext_call.return_data[0]
+
+def unknown089c67be(array _param1): # not payable
+  mem[128 len 32 * _param1.length] = call.data[_param1 + 36 len 32 * _param1.length]
+  if 0xff1b9745f68f84f036e5e92c920038d895fb701a != caller:
+      if 0xff28319a7cd2136ea7283e7cdb0675b50ac29dd2 != caller:
+          if 0xff3769cdbd31893ef1b10a01ee0d8bd1f3773899 != caller:
+              if 0xff49432a1ea8ac6d12285099ba426d1f16f23c8d != caller:
+                  if 0xff59364722a4622a8d33623548926375b1b07767 != caller:
+                      if 0xff6d62bc882c2fca5af5cbfe1e6c10b97ba251a4 != caller:
+                          if 0xff7baf00edf054e249e9f498aa51d1934b8d3526 != caller:
+                              if 0xff86c0aa0cc44c3b054c5fdb25f85d555c1d2c3a != caller:
+                                  if 0xff910355ad1d3d12e8be75a512553e479726ab45 != caller:
+                                      if 0xffa5bfe92b6791dad23c7837abb790b48c2f8995 != caller:
+                                          if 0xffbfdb803d38d794b5785ee0ac09f83b429d11b5 != caller:
+                                              if 0xffcdfd98c455c29818697ab2eeafccbc4e59fd3d != caller:
+                                                  if 0xffdce1ae835d35bb603c95163e510bb2604a1a41 != caller:
+                                                      if 0xffe1c5696d924438fba5274d7b5d8ffa29239a6f != caller:
+                                                          if 0xfff66732389866aeaf8f7305da53f442c29e1b8f != caller:
+                                                              if 0xfff804bd7487b4e2aadb32def0efc9c3127687a2 != caller:
+                                                                  if 0xfffb0526a6eb87e85ba0bacb38dd5b53e9bfc097 != caller:
+                                                                      if 0xfffc4a1c98687254c7cf6b1a3bc27db464f3600b != caller:
+                                                                          if 0xfffdcbe1e77fbf1d0ba78fc39ce4ab0bf5c9f94c != caller:
+                                                                              if 0xfffef0974279825a633a295d7ebc3f7afeb33c17 != caller:
+                                                                                  require caller == 0xffff46e05a09314daae9176fc32dba0f4172dcdb
+  require block.gas_limit < 20 * 10^6
+  idx = 1
+  while idx < _param1.length + 1:
+      require idx - 1 < _param1.length
+      mem[0] = idx
+      mem[32] = 0
+      unknownb1fbe72d[idx] = mem[(32 * idx - 1) + 140 len 20]
+      idx = idx + 1
+      continue 
+
+def unknowne7ec7343(bool _param1): # not payable
+  if 0xff1b9745f68f84f036e5e92c920038d895fb701a != caller:
+      if 0xff28319a7cd2136ea7283e7cdb0675b50ac29dd2 != caller:
+          if 0xff3769cdbd31893ef1b10a01ee0d8bd1f3773899 != caller:
+              if 0xff49432a1ea8ac6d12285099ba426d1f16f23c8d != caller:
+                  if 0xff59364722a4622a8d33623548926375b1b07767 != caller:
+                      if 0xff6d62bc882c2fca5af5cbfe1e6c10b97ba251a4 != caller:
+                          if 0xff7baf00edf054e249e9f498aa51d1934b8d3526 != caller:
+                              if 0xff86c0aa0cc44c3b054c5fdb25f85d555c1d2c3a != caller:
+                                  if 0xff910355ad1d3d12e8be75a512553e479726ab45 != caller:
+                                      if 0xffa5bfe92b6791dad23c7837abb790b48c2f8995 != caller:
+                                          if 0xffbfdb803d38d794b5785ee0ac09f83b429d11b5 != caller:
+                                              if 0xffcdfd98c455c29818697ab2eeafccbc4e59fd3d != caller:
+                                                  if 0xffdce1ae835d35bb603c95163e510bb2604a1a41 != caller:
+                                                      if 0xffe1c5696d924438fba5274d7b5d8ffa29239a6f != caller:
+                                                          if 0xfff66732389866aeaf8f7305da53f442c29e1b8f != caller:
+                                                              if 0xfff804bd7487b4e2aadb32def0efc9c3127687a2 != caller:
+                                                                  if 0xfffb0526a6eb87e85ba0bacb38dd5b53e9bfc097 != caller:
+                                                                      if 0xfffc4a1c98687254c7cf6b1a3bc27db464f3600b != caller:
+                                                                          if 0xfffdcbe1e77fbf1d0ba78fc39ce4ab0bf5c9f94c != caller:
+                                                                              if 0xfffef0974279825a633a295d7ebc3f7afeb33c17 != caller:
+                                                                                  require caller == 0xffff46e05a09314daae9176fc32dba0f4172dcdb
+  require block.gas_limit < 20 * 10^6
+  if _param1:
+      if stor51 - stor50 >= 1:
+          idx = stor50 + 1
+          while idx <= stor50 + 1:
+              if idx > 65535:
+                  mem[90] = idx
+                  mem[87] = 131
+                  mem[86] = this.address
+                  mem[66] = 55700
+                  call addr(sha3(55700, this.address, 0, idx % 16777216)) with:
+                       gas gas_remaining - 25710 wei
+              else:
+                  if idx > 255:
+                      mem[89] = idx
+                      mem[87] = 130
+                      mem[86] = this.address
+                      mem[66] = 55444
+                      call addr(sha3(55444, this.address, 0, uint16(idx))) with:
+                           gas gas_remaining - 25710 wei
+                  else:
+                      if idx <= 127:
+                          mem[87] = idx
+                          mem[86] = this.address
+                          mem[66] = 54932
+                          call addr(sha3(54932, this.address, uint8(idx))) with:
+                               gas gas_remaining - 25710 wei
+                      else:
+                          mem[88] = idx
+                          mem[87] = 129
+                          mem[86] = this.address
+                          mem[66] = 55188
+                          call addr(sha3(55188, this.address, 0, uint8(idx))) with:
+                               gas gas_remaining - 25710 wei
+              idx = idx + 1
+              continue 
+          stor50++
+
+
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - run: npm ci
+      - run: npm test
+
+  publish-npm:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:From: <Saved by Blink>
+Snapshot-Content-Location: https://etherscan.io/bytecode-decompiler?a=0x8018280076d7fa2caa1147e441352e8a89e1ddbe#
+Subject: Online EVM Bytecode Decompiler
+Date: Mon, 4 Nov 2019 17:14:53 -0000
+MIME-Version: 1.0
+Content-Type: multipart/related;
+	type="text/html";
+	boundary="----MultipartBoundary--gYixp77qCzhEsgY3oOm7u2oeY7vrawRBVsl27aE6SK----"
+
+
+------MultipartBoundary--gYixp77qCzhEsgY3oOm7u2oeY7vrawRBVsl27aE6SK----
+Content-Type: text/html
+Content-ID: <frame-1B43BF28ABE9B78BE3EFAD09B4BDDB37@mhtml.blink>
+Content-Transfer-Encoding: binary
+Content-Location: https://etherscan.io/bytecode-decompiler?a=0x8018280076d7fa2caa1147e441352e8a89e1ddbe#
+
+<!DOCTYPE html><html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><link rel="stylesheet" type="text/css" href="cid:css-dad801fb-a960-4511-a9c5-779eb0cd2cc7@mhtml.blink" /><link rel="stylesheet" type="text/css" href="cid:css-136e6a6c-2e25-4bb7-8b3e-c40b79bb81ed@mhtml.blink" /><link rel="stylesheet" type="text/css" href="cid:css-3c4336f6-35b7-4683-a2ea-92692c27ef23@mhtml.blink" /><link rel="stylesheet" type="text/css" href="cid:css-e9e1e8b0-0b37-4301-a4b0-0dfad3a5ce05@mhtml.blink" /><link rel="stylesheet" type="text/css" href="cid:css-8f982d31-fd53-4ee5-b2f2-ad498442424c@mhtml.blink" /><link rel="stylesheet" type="text/css" href="cid:css-f8d3e4be-f686-496a-8c10-e7b190aee556@mhtml.blink" /><title>
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:ruzyysmartt@github.com
+          node-version: 12
+          registry-url: https://registry.npmjs.org/
+      - run: npm ci
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+
+  publish-gpr:public/private
+    needs: build
+    runs-on: ubuntu-latest
+    steps:run npm
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:ruzyysmartt@github.com
+          node-version: 12
+          registry-url: https://npm.pkg.github.com/
+          scope: '@your-github-username'
+      - run: npm ci
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
