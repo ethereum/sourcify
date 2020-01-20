@@ -4,12 +4,21 @@ let Web3 = require('web3')
 let solc = require('solc')
 let cbor = require('cbor')
 let fsextra = require('fs-extra')
+let dagPB = require('ipld-dag-pb');
 
 let addressDB = require('./address-db.js')
 
 var exports = module.exports = {}
 
 let chains = {}
+
+// For unit testing with testrpc...
+if (process.env.TESTING){
+  chains['localhost'] = {
+    web3: new Web3('http://localhost:8545')
+  };
+}
+
 for (let chain of ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli'])
 {
     chains[chain] = {};
@@ -91,7 +100,7 @@ let findMetadataFile = function(files) {
       if (m['language'] === 'Solidity') {
         return m
       }
-    } catch { }
+    } catch (err) { }
   }
   throw "Metadata file not found. Did you include \"metadata.json\"?"
 }
@@ -113,10 +122,10 @@ let rearrangeSources = function(metadata, files) {
     let hash = metadata.sources[fileName]['keccak256']
     if(content) {
         if (Web3.utils.keccak256(content) != hash) {
-            throw("invalid content for file " + fileName); 
+            throw("invalid content for file " + fileName);
         }
     } else {
-      content = byHash[hash];    
+      content = byHash[hash];
     }
     if (!content) {
       throw (
@@ -142,8 +151,8 @@ let storeData = function(repository, chain, address, compilationResult, sources)
   } else if (cborData['bzzr1']) {
     metadataPath = '/swarm/bzzr1/' + Web3.utils.bytesToHex(cborData['bzzr1']).slice(2)
   } else if (cborData['ipfs']) {
-    throw "TODO: Implement ipfs"
-    //metadataPath = '/ipfs/' + Web3.utils.bytesToHex(cborData['ipfs']).slice(2)
+    const bytecodeLink = new dagPB.DAGLink('', 0, cborData['ipfs']);
+    metadataPath = '/ipfs/' + bytecodeLink.toJSON().cid;
   } else {
     throw "Re-compilation successful, but could not find reference to metadata file in cbor data."
   }
@@ -197,3 +206,5 @@ exports.inject = async function(repository, chain, address, files) {
   }
   return addresses
 }
+
+exports.cborDecode = cborDecode;

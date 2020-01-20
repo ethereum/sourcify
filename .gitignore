@@ -1,0 +1,6 @@
+.DS_Store
+db/
+node_modules/
+repository/
+mockRepository/
+server.log
