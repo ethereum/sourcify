@@ -20,13 +20,12 @@ describe('utils', function(){
     const file = new UnixFS('file', Buffer.from(metadata));
     const node = new dagPB.DAGNode(file.marshal());
 
-    // Convert metadata node and extracted bytecode hashes to DAGLink objects
+    // Convert metadata node hash to DAGLink object
     const metadataLink = await node.toDAGLink()
-    const bytecodeLink = new dagPB.DAGLink('', 0, cborData['ipfs']);
 
     // Extract ipfs
     const metadataHash = multihashes.toB58String(metadataLink._cid.multihash);
-    const bytecodeHash = bytecodeLink.toJSON().cid;
+    const bytecodeHash = multihashes.toB58String(cborData['ipfs']);
 
     assert.equal(metadataHash, bytecodeHash);
   });

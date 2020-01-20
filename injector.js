@@ -4,7 +4,7 @@ let Web3 = require('web3')
 let solc = require('solc')
 let cbor = require('cbor')
 let fsextra = require('fs-extra')
-let dagPB = require('ipld-dag-pb');
+let multihashes = require('multihashes');
 
 let addressDB = require('./address-db.js')
 
@@ -151,8 +151,7 @@ let storeData = function(repository, chain, address, compilationResult, sources)
   } else if (cborData['bzzr1']) {
     metadataPath = '/swarm/bzzr1/' + Web3.utils.bytesToHex(cborData['bzzr1']).slice(2)
   } else if (cborData['ipfs']) {
-    const bytecodeLink = new dagPB.DAGLink('', 0, cborData['ipfs']);
-    metadataPath = '/ipfs/' + bytecodeLink.toJSON().cid;
+    metadataPath = '/ipfs/' + multihashes.toB58String(cborData['ipfs']);
   } else {
     throw "Re-compilation successful, but could not find reference to metadata file in cbor data."
   }

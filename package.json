@@ -31,19 +31,19 @@
     "express": "^4.17.1",
     "express-fileupload": "^1.1.6-alpha.6",
     "html": "^1.0.0",
-    "ipld-dag-pb": "^0.18.2",
+    "multihashes": "^0.4.15",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.7",
     "serve-index": "^1.9.1",
-    "solc": "^0.5.7",
+    "solc": "^0.6.1",
     "web3": "^1.2.1"
   },
   "devDependencies": {
     "@0x/sol-compiler": "^4.0.3",
     "ganache-cli": "^6.8.2",
     "ipfs-unixfs": "^0.3.0",
+    "ipld-dag-pb": "^0.18.2",
     "mocha": "^7.0.0",
-    "multihashes": "^0.4.15",
     "pify": "^4.0.1"
   }
 }
