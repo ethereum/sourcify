@@ -1,0 +1,17 @@
+{
+  "contracts": "*",
+  "solcVersion": "0.6.0",
+  "compilerSettings": {
+    "optimizer": { "enabled": false },
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "metadata",
+          "evm.deployedBytecode.object",
+          "evm.bytecode.object"
+        ]
+      }
+    }
+  }
+}
