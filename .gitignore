@@ -6,4 +6,6 @@ node_modules/
 repository/
 mockRepository/
 server.log
-.idea
+ui/node_modules/
+ui/dist/
+ui/.cache/

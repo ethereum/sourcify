@@ -1,0 +1,116 @@
+body {
+  font-family: sans-serif;
+  background: #efefef;
+  color: #444;
+}
+
+input {
+  font-family: sans-serif;
+  font-size: 13px;
+  color: #444;
+  padding: 10px;
+  border: 1px solid #ccc;
+}
+
+input[type='submit'] {
+  display: block;
+  width: 100%;
+  border-radius: 0;
+  font-size: 13px;
+  outline: none;
+  padding: 12px;
+  color: #5a83ac;
+  border: 2px solid #5a83ac;
+  background-color: white;
+  box-shadow: -3px 3px 0 #a5deb6;
+  transition: 300ms;
+}
+
+input[type='submit']:hover {
+  cursor: pointer;
+  background-color: #deebff;
+  color: #444;
+}
+
+input[type='submit']:active {
+  box-shadow: -1px 1px 0 #a5deb6;
+}
+
+.app {
+  padding: 0 24px;
+  text-align: center;
+}
+
+.app-fieldset {
+  display: inline-block;
+  border: none;
+  padding: 0;
+  margin: 0;
+  background-color: white;
+  box-shadow: 0 3px 4px #ccc;
+  padding: 24px;
+  max-width: 860px;
+}
+
+.app-fieldset_body {
+  display: flex;
+  flex-direction: row;
+  max-width: 300px;
+}
+
+.app-fieldset_left {
+  display: flex;
+  flex-direction: column;
+}
+
+.app-fieldset_left > * {
+  min-width: 240px;
+}
+
+.select {
+  font-size: 13px;
+}
+
+input[name='address'] {
+  margin: 12px 0;
+  padding: 12px 10px;
+}
+
+input[name='address']:focus {
+  border: 1px solid #5a83ac;
+}
+
+.app-dropzone {
+  color: #9d9d9d;
+  text-align: center;
+  padding: 12px 24px;
+  border: dashed 2px #9d9d9d;
+  margin: 0;
+  line-height: 1.5;
+  transition: 300ms;
+}
+
+.app-dropzone:hover {
+  cursor: pointer;
+  background-color: #deebff;
+  border: dashed 2px #5a83ac;
+  color: #444;
+}
+
+.app-fieldset_footer {
+  margin-top: 12px;
+}
+
+.error {
+  color: red;
+  margin-top: 12px;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.success {
+  color: #a5deb6;
+  margin-top: 12px;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
