@@ -10,18 +10,14 @@
   "scripts": {
     "test": "TESTING=true mocha",
     "coverage": "node ./node_modules/nyc/bin/nyc.js --reporter=lcov --reporter=text-summary ./node_modules/tape/bin/tape ./test/index.js",
-    "coveralls": "npm run coverage && node ./node_modules/coveralls/bin/coveralls.js <coverage/lcov.info"
+    "coveralls": "npm run coverage && node ./node_modules/coveralls/bin/coveralls.js <coverage/lcov.info",
+    "dev": "npm run build:ui && ./run.sh 80 repository db",
+    "dev:ui": "cd ./ui/ && npm install && npm start",
+    "dev:server": "npm run build:ui && ./run_server.sh",
+    "build:ui": "cd ./ui/ && npm install && npm run build"
   },
-  "keywords": [
-    "ethereum",
-    "solidity",
-    "verification",
-    "bytecode",
-    "metadata"
-  ],
-  "files": [
-    "index.js"
-  ],
+  "keywords": ["ethereum", "solidity", "verification", "bytecode", "metadata"],
+  "files": ["index.js"],
   "author": "chriseth",
   "license": "MIT",
   "bugs": {

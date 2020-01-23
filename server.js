@@ -8,9 +8,9 @@ const port = 80
 
 const injector = require('./injector.js')
 
-const repository = '/repository/'
+const repository = './repository/'
 
-app.use(express.static('public'));
+app.use(express.static('ui/dist'))
 app.use(fileUpload({
     limits: { fileSize: 50 * 1024 * 1024 },
     abortOnLimit: true
@@ -18,9 +18,7 @@ app.use(fileUpload({
 
 app.get('/', (req, res) => res.sendFile('public/index.html'))
 app.get('/health', (req, res) => res.send('Alive and kicking!'))
-
 app.use('/repository', express.static(repository), serveIndex(repository, {'icons': true}))
-
 
 app.post('/', (req, res) => {
     let files = []
@@ -39,16 +37,18 @@ app.post('/', (req, res) => {
     ).then(result => {
         let mainAddress = result[0]
         let path = `/repository/contract/${req.body.chain}/${mainAddress}/`
-        res.send(
-            "<html><body>Contract successfully verified!<br/>" +
-            `<a href=\"${path}\">${mainAddress}</a><br/>` +
-            (result.length > 1 ? `Found ${result.length} other addresses of this contract: ${result.join(', ')}<br/>` : "") +
-            "<a href=\"/\">Verify another one</a>" +
-            "</body></html>"
-        )
+        res.status(200).send({ result, path })
+
+        // res.send(
+            // "<html><body>Contract successfully verified!<br/>" +
+            // `<a href=\"${path}\">${mainAddress}</a><br/>` +
+            // (result.length > 1 ? `Found ${result.length} other addresses of this contract: ${result.join(', ')}<br/>` : "") +
+            // "<a href=\"/\">Verify another one</a>" +
+            // "</body></html>"
+        // )
     }).catch(err => {
-        console.log("Error!")
-        res.send("Error: " + err)
+        console.log(`Error: ${err}`)
+        res.send({ error: err })
     })
 })
 

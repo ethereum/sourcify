@@ -96,9 +96,9 @@ let recompile = async function(metadata, sources) {
 let findMetadataFile = function(files) {
   for (let i in files) {
     try {
-      let m = JSON.parse(files[i])
-      if (m['language'] === 'Solidity') {
-        return m
+      const file = JSON.parse(JSON.parse(files[i]))
+      if (file['language'] === 'Solidity') {
+        return file
       }
     } catch (err) { }
   }
