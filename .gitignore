@@ -4,3 +4,4 @@ node_modules/
 repository/
 mockRepository/
 server.log
+.idea
