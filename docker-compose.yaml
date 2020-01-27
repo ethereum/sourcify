@@ -1,0 +1,34 @@
+version: "3"
+services:
+  monitor:
+    container_name: monitor
+    build:
+      context: .
+      dockerfile: Dockerfile.monitor
+    ports:
+    - "3000:80"
+    networks:
+    - source-verify-network
+    restart: always
+  server:
+    container_name: server
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    ports:
+    - "8080:80"
+    networks:
+    - source-verify-network
+    restart: always
+  # health-check:
+  #   container_name: health-check
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.healthcheck
+  #   ports:
+  #     - "10000:80"
+  #   networks:
+  #     - source-verify-network
+  #   restart: always
+networks:
+  source-verify-network:

@@ -17,6 +17,8 @@ app.use(fileUpload({
 }))
 
 app.get('/', (req, res) => res.sendFile('public/index.html'))
+app.get('/health', (req, res) => res.send('Alive and kicking!'))
+
 app.use('/repository', express.static(repository), serveIndex(repository, {'icons': true}))
 
 
