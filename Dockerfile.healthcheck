@@ -1,0 +1,4 @@
+FROM byrnedo/alpine-curl
+WORKDIR /usr/src/app
+COPY health_check.sh ./health_check.sh
+CMD ["./health_check.sh"]

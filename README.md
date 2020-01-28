@@ -61,6 +61,17 @@ modifications have to be prepared at deploy time, but it is still a possibility.
  - perform source verification given only an address instead of the bytecode
    or the metadata
 
+
+## Run inside docker
+### Prerequisites
+Docker (https://docs.docker.com/docker-for-mac/install/)
+Docker-compose (https://docs.docker.com/compose/install/)
+
+If you want to run using docker-compose just run:
+`docker-compose up`
+
+If you change something in files just run:
+`docker-compose build && docker-compose up -d` (-d flag means that output won't be printed in stdout)
 ## Development
 
 ### Launch service
