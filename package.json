@@ -8,7 +8,9 @@
     "url": "git+https://github.com/ethereum/source-verify.git"
   },
   "scripts": {
-    "test": "TESTING=true mocha"
+    "test": "TESTING=true mocha",
+    "coverage": "node ./node_modules/nyc/bin/nyc.js --reporter=lcov --reporter=text-summary ./node_modules/tape/bin/tape ./test/index.js",
+    "coveralls": "npm run coverage && node ./node_modules/coveralls/bin/coveralls.js <coverage/lcov.info"
   },
   "keywords": [
     "ethereum",
