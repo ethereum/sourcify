@@ -1,311 +1,308 @@
-#!/usr/bin/env node
+const Web3 = require('web3')
+const ethers = require('ethers')
+const cbor = require('cbor')
+const request = require('request-promise-native');
+const fs = require('fs')
+const fsextra = require('fs-extra')
+const multihashes = require('multihashes')
 
-'use strict';
+const save = fsextra.outputFileSync;
 
-if (process.argv.length < 3) {
-    console.log("Usage: monitor.js <repository path> [<chain> <address>]")
-    process.exit(1)
-}
+class Monitor {
+    constructor(config={}) {
+        this.chains = {};
 
-let Web3 = require('web3')
-let ethers = require('ethers')
-let cbor = require('cbor')
-let request = require('request-promise-native')
-let fs = require('fs')
-let fsextra = require('fs-extra')
+        this.ipfsCatRequest = config.ipfsCatRequest || 'https://ipfs.infura.io:5001/api/v0/cat?arg=';
+        this.ipfsProvider = config.ipfsProvider || null;
+        this.swarmGateway = 'https://swarm-gateways.net/';
+        this.repository = config.repository || 'repository';
+        this.infuraPID = config.infuraPID || '891fe57328084fcca24912b662ad101f';
+        this.blockTime = config.blockTime || 15 // seconds
 
-var exports = module.exports = {}
+        this.blockInterval;
+        this.metadataInterval;
+        this.sourceInterval;
+    }
 
-let cborDecode = function(bytecode)
-{
-    let cborLength = bytecode[bytecode.length - 2] * 0x100 + bytecode[bytecode.length - 1]
-    return cbor.decodeFirstSync(new Buffer(bytecode.slice(bytecode.length - 2 - cborLength, -2)))
-}
+    async start(customChain){
+        const chainNames = customChain
+            ? [customChain.name]
+            : ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli'];
 
-let retrieveSingleSource = async function(name, urls)
-{
-    console.log(" - " + name)
-    for (var url of urls) {
-        if (url.startsWith('bzz-raw')) {
-            console.log("    (via swarm: " + url + ")")
-            return await request('https://swarm-gateways.net/' + url)
+        for (let chain of chainNames){
+            let url = customChain ? customChain.url : `https://${chain}.infura.io/v3/${this.infuraPID}`;
+
+            this.chains[chain] = {
+                web3: new Web3(url),
+                metadataQueue: {},
+                sourceQueue: {},
+                latestBlock: 0
+            };
+
+            const blockNumber = await this.chains[chain].web3.eth.getBlockNumber();
+            console.log(chain + ": Starting from block " + blockNumber);
+            this.chains[chain].latestBlock = blockNumber;
         }
-        // TODO also try ipfs
+
+        this.blockInterval = setInterval(this.retrieveBlocks.bind(this), 1000 * this.blockTime);
+        this.metadataInterval = setInterval(this.retrieveMetadata.bind(this), 1000 * this.blockTime);
+        this.sourceInterval = setInterval(this.retrieveSource.bind(this), 1000 * this.blockTime);
     }
-    throw "Source " + name + " could not be found."
-}
-let retrieveSources = async function(sources)
-{
-    var output = {}
-    for (var s in sources) {
-        output[s] = sources[s].content
-        if (!output[s]) {
-            output[s] = await retrieveSingleSource(s, sources[s]['urls'])
+
+    stop(){
+        console.log('Stopping monitor...')
+        clearInterval(this.blockInterval);
+        clearInterval(this.metadataInterval);
+        clearInterval(this.sourceInterval);
+    }
+
+    cborDecode(bytecode){
+        const cborLength = bytecode[bytecode.length - 2] * 0x100 + bytecode[bytecode.length - 1];
+        const segment = new Buffer(bytecode.slice(bytecode.length - 2 - cborLength, -2))
+        return cbor.decodeFirstSync(segment);
+    }
+
+    async ipfsCat(hash){
+        return (this.ipfsProvider)
+            ? this.ipfsProvider.cat(`/ipfs/${hash}`)
+            : request(`${this.ipfsCatRequest}${hash}`);
+    }
+
+    addToQueue(queue, key, item){
+        if (queue[key] !== undefined)
+            return;
+        item.timestamp = +new Date;
+        queue[key] = item;
+    }
+
+    cleanupQueue(queue, maxAgeInSecs){
+        let toDelete = {}
+        for (let key in queue) {
+            if (queue[key].timestamp + maxAgeInSecs * 1000 < +new Date) {
+                toDelete[key] = true
+            }
+        }
+        for (let key in toDelete) {
+            delete queue[key]
         }
     }
-    return output
-}
 
-let getBytecodeMetadataAndSources = async function(web3, address) {
-    address = web3.utils.toChecksumAddress(address)
-    console.log("Retrieving bytecode of contract at address " + address + "...")
-    let bytecode = await web3.eth.getCode(address)
-    let cborData = cborDecode(web3.utils.hexToBytes(bytecode))
-    console.log(
-        "Contract compiled with Solidity " +
-        (cborData['solc'][0]) + "." +
-        (cborData['solc'][1]) + "." +
-        (cborData['solc'][2])
-    )
-    let metadataBzzr1 = web3.utils.bytesToHex(cborData['bzzr1']).slice(2)
-    console.log("Retrieving metadata from swarm gateway. Hash: " + metadataBzzr1)
-    let metadataRaw = await request('https://swarm-gateways.net/bzz-raw:/' + metadataBzzr1)
-    let metadata = JSON.parse(metadataRaw)
-    console.log("Retrieving sources...")
-    let sources = await retrieveSources(metadata.sources)
-    console.log("Have everything needed to verify compilation.")
-    return {bytecode: bytecode, metadataRaw: metadataRaw, metadata: metadata, sources: sources}
+    // =======
+    // Blocks
+    // =======
 
-};
-
-
-let reformatMetadata = function(metadata, sources) {
-    let input = {}
-    input['settings'] = metadata['settings']
-    let fileName = ''
-    let contractName = ''
-    for (fileName in metadata['settings']['compilationTarget'])
-        contractName = metadata['settings']['compilationTarget'][fileName]
-    delete input['settings']['compilationTarget']
-
-    input['sources'] = {}
-    for (var source in sources)
-        input['sources'][source] = {'content': sources[source]}
-    input['language'] = metadata['language']
-    input['settings']['metadata'] = input['settings']['metadata'] || {}
-    input['settings']['outputSelection'] = input['settings']['outputSelection'] || {}
-    input['settings']['outputSelection'][fileName] = input['settings']['outputSelection'][fileName] || {}
-    input['settings']['outputSelection'][fileName][contractName] = ['evm.bytecode', 'evm.deployedBytecode', 'metadata']
-
-    return {
-        input: input,
-        fileName: fileName,
-        contractName: contractName
+    retrieveBlocks(){
+        for (let chain in this.chains) {
+            this.retrieveBlocksInChain(chain);
+        }
     }
-}
 
-let recompile = async function(metadata, sources) {
-    let reformatted = reformatMetadata(metadata, sources)
-    let input = reformatted.input
-    let fileName = reformatted.fileName
-    let contractName = reformatted.contractName
+    retrieveBlocksInChain(chain){
+        const _this = this;
+        const web3 = this.chains[chain].web3;
 
-    console.log('Re-compiling ' + fileName + ':' + contractName + ' with Solidity ' + metadata['compiler']['version'])
-    console.log('Retrieving compiler...')
-    let solcjs = await new Promise((resolve, reject) => {
-        solc.loadRemoteVersion('v' + metadata['compiler']['version'], (error, soljson) => {
-            if (error) {
-                reject()
-            } else {
-                resolve(soljson)
+        web3.eth.getBlockNumber((err, newBlockNr) => {
+
+            newBlockNr = Math.min(newBlockNr, _this.chains[chain].latestBlock + 4);
+
+            for (; _this.chains[chain].latestBlock < newBlockNr; _this.chains[chain].latestBlock++) {
+                web3.eth.getBlock(_this.chains[chain].latestBlock, true, (err, block) => {
+                    if (err || !block) {
+                        console.log("[BLOCKS] " + chain + " Block " + _this.chains[chain].latestBlock + " not available: " + err);
+                        return;
+                    }
+                    console.log("[BLOCKS] " + chain + " Processing Block " + block.number + ":");
+                    for (var i in block.transactions) {
+                        let t = block.transactions[i]
+                        if (t.to === null) {
+                            let address = ethers.utils.getContractAddress(t);
+                            console.log("[BLOCKS] " + address);
+                            _this.retrieveCode(chain, address);
+                        }
+                    }
+                })
             }
         })
-    })
-    console.log('Compiling...');
-    let output = JSON.parse(solcjs.compile(JSON.stringify(input)));
-    return {
-        bytecode: output['contracts'][fileName][contractName]['evm']['bytecode']['object'],
-        deployedBytecode: '0x' + output['contracts'][fileName][contractName]['evm']['deployedBytecode']['object'],
-        metadata: output['contracts'][fileName][contractName]['metadata'].trim()
     }
-}
 
-let repository = process.argv[2];
-let chains = {}
-for (let chain of ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli'])
-{
-    chains[chain] = {};
-    chains[chain].web3 = new Web3('https://' + chain + '.infura.io/v3/891fe57328084fcca24912b662ad101f');
-    chains[chain].metadataQueue = {};
-    chains[chain].sourceQueue = {};
-    chains[chain].latestBlock = 0;
-    (function(chain) {
-        chains[chain].web3.eth.getBlockNumber((err, nr) => {
-            console.log(chain + ": Starting from block " + nr);
-            chains[chain].latestBlock = nr;
+    retrieveCode(chain, address){
+        const _this = this;
+        let web3 = this.chains[chain].web3;
+        web3.eth.getCode(address, (err, bytecode) => {
+            try {
+                let cborData = _this.cborDecode(web3.utils.hexToBytes(bytecode))
+                if (cborData && 'bzzr1' in cborData) {
+                    let metadataBzzr1 = web3.utils.bytesToHex(cborData['bzzr1']).slice(2)
+                    console.log("[BLOCKS] Queueing retrievel of metadata for " + chain + " " + address + ": bzzr1 " + metadataBzzr1)
+                    _this.addToQueue(_this.chains[chain].metadataQueue, address, {bzzr1: metadataBzzr1});
+                } else if (cborData && 'bzzr0' in cborData) {
+                    let metadataBzzr0 = web3.utils.bytesToHex(cborData['bzzr0']).slice(2);
+                    console.log("[BLOCKS] Queueing retrievel of metadata for " + chain + " " + address + ": bzzr0 " + metadataBzzr0)
+                    _this.addToQueue(_this.chains[chain].metadataQueue, address, {bzzr0: metadataBzzr0});
+                } else if (cborData && 'ipfs' in cborData){
+                    let metadataIPFS = multihashes.toB58String(cborData['ipfs']);
+                    console.log("[BLOCKS] Queueing retrievel of metadata for " + chain + " " + address + ": ipfs " + metadataIPFS)
+                    _this.addToQueue(_this.chains[chain].metadataQueue, address, {ipfs: metadataIPFS});
+                }
+            } catch (error) {}
+        })
+    }
+
+    // =========
+    // Metadata
+    // =========
+
+    retrieveMetadata(){
+        for (let chain in this.chains) {
+            this.retrieveMetadataInChain(chain);
+        }
+    }
+
+    retrieveMetadataInChain(chain, gateway){
+        const _this = this;
+        console.log("[METADATA] " + chain + " Processing metadata queue...");
+
+        /// Try to retrieve metadata for one hour
+        this.cleanupQueue(this.chains[chain].metadataQueue, 3600)
+        for (let address in this.chains[chain].metadataQueue) {
+            console.log("[METADATA] " + address);
+
+            this.retrieveMetadataByStorageProvider(
+                chain,
+                address,
+                this.chains[chain].metadataQueue[address]['bzzr1'],
+                this.chains[chain].metadataQueue[address]['bzzr0'],
+                this.chains[chain].metadataQueue[address]['ipfs']
+            );
+        }
+    }
+
+    async retrieveMetadataByStorageProvider(
+        chain,
+        address,
+        metadataBzzr1,
+        metadataBzzr0,
+        metadataIpfs
+    ){
+        let metadataRaw
+
+        if (metadataBzzr1) {
+
+            try {
+                // TODO guard against too large files
+                // TODO only write files after recompilation check?
+                metadataRaw = await request(`${this.swarmGateway}/bzz-raw:/${metadataBzzr1}`);
+                save(`${this.repository}/swarm/bzzr1/${metadataBzzr1}`, metadataRaw);
+            } catch (error) { return }
+
+        } else if (metadataBzzr0) {
+
+            try {
+                metadataRaw = fs.readFileSync(`${_this.repository}/swarm/bzzr0/${metadataBzzr0}`)
+            } catch (error) { return }
+
+        } else if (metadataIpfs){
+
+            try {
+                metadataRaw = await this.ipfsCat(metadataIpfs);
+                save(`${this.repository}/ipfs/${metadataIpfs}`, metadataRaw.toString());
+            } catch (error) { return }
+        }
+
+        console.log("[METADATA] Got metadata for " + chain + " " + address);
+        save(`${this.repository}/contract/${chain}/${address}/metadata.json`, metadataRaw.toString());
+
+        const metadata = JSON.parse(metadataRaw);
+        delete this.chains[chain].metadataQueue[address];
+
+        this.addToQueue(this.chains[chain].sourceQueue, address, {
+            metadataRaw: metadataRaw.toString(),
+            sources: metadata.sources
         });
-    })(chain);
-}
+    }
 
-let addToQueue = function(queue, key, item)
-{
-    if (queue[key] !== undefined)
-        return;
-    item.timestamp = +new Date;
-    queue[key] = item;
-};
 
-let cleanupQueue = function(queue, maxAgeInSecs)
-{
-    let toDelete = {}
-    for (let key in queue) {
-        if (queue[key].timestamp + maxAgeInSecs * 1000 < +new Date) {
-            toDelete[key] = true
+    // =======
+    // Sources
+    // =======
+
+    retrieveSource(){
+        for (let chain in this.chains) {
+            this.retrieveSourceInChain(chain);
         }
     }
-    for (let key in toDelete) {
-        delete queue[key]
-    }
-};
 
-let retrieveCode = function(chain, address)
-{
-    let web3 = chains[chain].web3;
-    web3.eth.getCode(address, (err, bytecode) => {
+    retrieveSourceInChain(chain){
+        console.log("[SOURCE] Processing source queue...");
+
+        /// Try to retrieve source for five days.
+        this.cleanupQueue(this.chains[chain].sourceQueue, 3600 * 24 * 5)
+
+        for (let address in this.chains[chain].sourceQueue) {
+            console.log("[SOURCE] " + chain + " " + address);
+            this.retrieveSourceByAddress(
+                chain,
+                address,
+                this.chains[chain].sourceQueue[address].metadataRaw,
+                this.chains[chain].sourceQueue[address].sources
+            );
+        }
+    }
+
+    retrieveSourceByAddress(chain, address, metadataRaw, sources){
+        const _this = this;
+
+        for (let sourceKey in sources) {
+            for (let url of sources[sourceKey]['urls']) {
+                this.retrieveSwarmSource(chain, address, sourceKey, url);
+                this.retrieveIpfsSource(chain, address, sourceKey, url);
+            }
+
+            const keccakPath = `${this.repository}/keccak256/${sources[sourceKey]['keccak256']}`;
+            fs.readFile(keccakPath, (err, data) => {
+                if (!err) {
+                    _this.sourceFound(chain, address, s, data.toString());
+                }
+            });
+        }
+    }
+
+    async retrieveSwarmSource(chain, address, sourceKey, url){
+        if (!url.startsWith('bzz-raw')) return;
+
         try {
-            let cborData = cborDecode(web3.utils.hexToBytes(bytecode))
-            if (cborData && 'bzzr1' in cborData) {
-                let metadataBzzr1 = web3.utils.bytesToHex(cborData['bzzr1']).slice(2)
-                console.log("[BLOCKS] Queueing retrievel of metadata for " + chain + " " + address + ": bzzr1 " + metadataBzzr1)
-                addToQueue(chains[chain].metadataQueue, address, {bzzr1: metadataBzzr1});
-            } else if (cborData && 'bzzr0' in cborData) {
-                let metadataBzzr0 = web3.utils.bytesToHex(cborData['bzzr0']).slice(2);
-                console.log("[BLOCKS] Queueing retrievel of metadata for " + chain + " " + address + ": bzzr0 " + metadataBzzr0)
-                addToQueue(chains[chain].metadataQueue, address, {bzzr0: metadataBzzr0});
-            }
-            // TODO handle ipfs
-        } catch (error) {}
-    })
-}
-
-let retrieveBlocks = function()
-{
-    for (let chain in chains) {
-        retrieveBlocksInChain(chain);
-    }
-}
-let retrieveBlocksInChain = function(chain)
-{
-    let web3 = chains[chain].web3;
-    web3.eth.getBlockNumber((err, newBlockNr) => {
-        newBlockNr = Math.min(newBlockNr, chains[chain].latestBlock + 4);
-        for (; chains[chain].latestBlock < newBlockNr; chains[chain].latestBlock++) {
-            web3.eth.getBlock(chains[chain].latestBlock, true, (err, block) => {
-                if (err || !block) {
-                    console.log("[BLOCKS] " + chain + " Block " + chains[chain].latestBlock + " not available: " + err);
-                    return;
-                }
-                console.log("[BLOCKS] " + chain + " Processing Block " + block.number + ":");
-                for (var i in block.transactions) {
-                    let t = block.transactions[i]
-                    if (t.to === null) {
-                        let address = ethers.utils.getContractAddress(t);
-                        console.log("[BLOCKS] " + address);
-                        retrieveCode(chain, address);
-                    }
-                }
-            });
+            const source = await request(`${this.swarmGateway}${url}`);
+            this.sourceFound(chain, address, sourceKey, source);
+        } catch (error) {
+            // ignore
         }
-    });
-}
-
-let retrieveMetadata = function()
-{
-    for (let chain in chains) {
-        retrieveMetadataInChain(chain);
     }
-}
-let retrieveMetadataInChain = function(chain)
-{
-    console.log("[METADATA] " + chain + " Processing metadata queue...");
-    /// Try to retrieve metadata for one hour
-    cleanupQueue(chains[chain].metadataQueue, 3600)
-    for (let address in chains[chain].metadataQueue) {
-        console.log("[METADATA] " + address);
-        (async function(address, metadataBzzr1, metadataBzzr0) {
-            let metadataRaw
-            if (metadataBzzr1) {
-                try {
-                    // TODO guard against too large files
-                    // TODO only write files after recompilation check?
-                    metadataRaw = await request('https://swarm-gateways.net/bzz-raw:/' + metadataBzzr1);
-                } catch (error) { return; }
-            } else if (metadataBzzr0) {
-                try {
-                    metadataRaw = fs.readFileSync(repository + '/swarm/bzzr0/' + metadataBzzr0)
-                } catch (error) { return; }
-            } else {
-                throw "unknown metadata url";
-            }
-            console.log("[METADATA] Got metadata for " + chain + " " + address);
-            fsextra.outputFileSync(repository + '/swarm/bzzr1/' + metadataBzzr1, metadataRaw);
-            fsextra.outputFileSync(repository + '/contract/' + chain + '/' + address + '/metadata.json', metadataRaw);
-            let metadata = JSON.parse(metadataRaw);
-            delete chains[chain].metadataQueue[address];
-            addToQueue(chains[chain].sourceQueue, address, {
-                metadataRaw: metadataRaw,
-                sources: metadata.sources
-            });
-        })(address, chains[chain].metadataQueue[address]['bzzr1'], chains[chain].metadataQueue[address]['bzzr0']);
+
+    async retrieveIpfsSource(chain, address, sourceKey, url){
+        if (!url.startsWith('dweb')) return;
+
+        try {
+            const source = await this.ipfsCat(url.split('dweb:/ipfs/')[1]);
+            this.sourceFound(chain, address, sourceKey, source.toString());
+        } catch (error) {
+            // ignore
+        }
+    }
+
+    sourceFound(chain, address, sourceKey, source){
+        const pathSanitized = sourceKey
+            .replace(/[^a-z0-9_.\/-]/gim, "_")
+            .replace(/(^|\/)[.]+($|\/)/, '_');
+
+        save(`${this.repository}/contract/${chain}/${address}/sources/${pathSanitized}`, source);
+
+        delete this.chains[chain].sourceQueue[address].sources[path]
+        console.log("[SOURCES] " + chain + " " + address + " Sources left to be retrieved: ");
+        console.log(Object.keys(this.chains[chain].sourceQueue[address].sources));
+        if (Object.keys(this.chains[chain].sourceQueue[address].sources).length == 0) {
+            delete this.chains[chain].sourceQueue[address];
+        }
     }
 }
 
-let sourceFound = function(chain, address, path, source)
-{
-    let pathSanitized = path.replace(/[^a-z0-9_.\/-]/gim, "_").replace(/(^|\/)[.]+($|\/)/, '_')
-    fsextra.outputFileSync(repository + '/contract/' + chain + '/' + address + '/sources/' + pathSanitized, source);
-
-    delete chains[chain].sourceQueue[address].sources[path]
-    console.log("[SOURCES] " + chain + " " + address + " Sources left to be retrieved: ");
-    console.log(Object.keys(chains[chain].sourceQueue[address].sources));
-    if (Object.keys(chains[chain].sourceQueue[address].sources).length == 0) {
-        delete chains[chain].sourceQueue[address];
-    }
-}
-
-let retrieveSource = function()
-{
-    for (let chain in chains) {
-        retrieveSourceInChain(chain);
-    }
-}
-let retrieveSourceInChain = function(chain)
-{
-    console.log("[SOURCE] Processing source queue...");
-    /// Try to retrieve source for five days.
-    cleanupQueue(chains[chain].sourceQueue, 3600 * 24 * 5)
-    for (let address in chains[chain].sourceQueue) {
-        console.log("[SOURCE] " + chain + " " + address);
-        (function(address, metadataRaw, sources) {
-            for (var s in sources) {
-                for (var url of sources[s]['urls']) {
-                    if (url.startsWith('bzz-raw')) {
-                        (async function(chain, address, path, url) {
-                            try {
-                                let source = await request('https://swarm-gateways.net/' + url);
-                                sourceFound(chain, address, path, source);
-                            } catch (error) {}
-                        })(chain, address, s, url);
-                    }
-                    // TODO add ipfs and also call sourceFound
-                }
-                fs.readFile(repository + '/keccak256/' + sources[s]['keccak256'], (err, data) => {
-                    if (!err) {
-                        sourceFound(chain, address, s, data.toString());
-                    }
-                });
-            }
-        })(address, chains[chain].sourceQueue[address].metadataRaw, chains[chain].sourceQueue[address].sources);
-    }
-}
-
-// After testing, reduce intervals
-
-if (process.argv.length >= 5) {
-    retrieveCode(process.argv[3], process.argv[4])
-} else {
-    setInterval(retrieveBlocks, 1000 * 15);
-}
-
-setInterval(retrieveMetadata, 1000 * 15);
-setInterval(retrieveSource, 1000 * 15);
+module.exports = Monitor;

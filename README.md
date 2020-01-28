@@ -76,7 +76,7 @@ If you change something in files just run:
 
 ### Launch service
 ```
-./run_sh 80 repository db.
+./run.sh 80 repository db
 ```
 This will build the project in a docker container, launching the monitor and server.
 Verified sources and contract addresses will be stored in `repository` and `db` folders
