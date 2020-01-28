@@ -7,7 +7,8 @@ const options = [
   { value: 'ropsten', label: 'Ropsten' },
   { value: 'rinkeby', label: 'Rinkeby' },
   { value: 'kovan', label: 'Kovan' },
-  { value: 'goerli', label: 'Görli' }
+  { value: 'goerli', label: 'Görli' },
+  { value: 'localhost', label: 'localhost:8545' }
 ]
 
 export default function App() {
