@@ -93,8 +93,6 @@ export default function App() {
               })}
             />
 
-            {/* TODO: style focus border */}
-            {/* TODO: error state if empty and chain isn't mainnet */}
             <input
               type="text"
               name="address"
@@ -103,7 +101,6 @@ export default function App() {
               onChange={e => updateAddress(e.target.value)}
             />
 
-            {/* TODO: style text */}
             <div {...getRootProps({ className: 'app-dropzone' })}>
               <input {...getInputProps()} />
               {acceptedFiles.length ? (
@@ -119,21 +116,23 @@ export default function App() {
                 </span>
               )}
             </div>
-
-            {error && <div className="error">{error}</div>}
-            {success && (
-              <div className="success">Contract successfully verified!</div>
-            )}
           </div>
         </div>
         <div className="app-fieldset_footer">
-          {/* TODO: disabled state */}
           <input
-            // disabled={!!acceptedFiles.length}
+            disabled={
+              acceptedFiles.length === 0 ||
+              (chain.value !== 'mainnet' && !address)
+            }
             type="submit"
             onClick={handleSubmit}
           />
         </div>
+
+        {error && <div className="error">{error}</div>}
+        {success && (
+          <div className="success">Contract successfully verified!</div>
+        )}
       </fieldset>
       <p>
         source code:{' '}

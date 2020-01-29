@@ -36,6 +36,14 @@ input[type='submit']:active {
   box-shadow: -1px 1px 0 #a5deb6;
 }
 
+input[type='submit']:disabled {
+  color: #9d9d9d;
+  border: 2px solid #9d9d9d;
+  box-shadow: none;
+  background-color: white;
+  cursor: not-allowed;
+}
+
 .app {
   padding: 0 24px;
   text-align: center;
@@ -103,14 +111,14 @@ input[name='address']:focus {
 
 .error {
   color: red;
-  margin-top: 12px;
-  font-size: 13px;
+  margin-top: 24px;
+  font-size: 14px;
   overflow-wrap: anywhere;
 }
 
 .success {
-  color: #a5deb6;
-  margin-top: 12px;
-  font-size: 13px;
+  color: #56754e;
+  margin-top: 24px;
+  font-size: 14px;
   overflow-wrap: anywhere;
 }
