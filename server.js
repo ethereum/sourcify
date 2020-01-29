@@ -8,7 +8,7 @@ const port = 80
 
 const injector = require('./injector.js')
 
-const repository = '/repository/'
+const repository = './repository/'
 
 app.use(express.static('ui/dist'))
 app.use(fileUpload({
