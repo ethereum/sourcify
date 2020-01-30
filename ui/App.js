@@ -15,12 +15,14 @@ export default function App() {
   const { acceptedFiles, getRootProps, getInputProps } = useDropzone()
   const [chain, updateChain] = useState(options[0])
   const [address, updateAddress] = useState('')
-  const [success, updateSuccess] = useState(false)
+  const [loading, updateLoading] = useState(false)
   const [error, updateError] = useState(null)
+  const [result, updateResult] = useState([])
 
   function handleSubmit() {
     updateError(null)
-    updateSuccess(false)
+    updateResult([])
+    updateLoading(true)
 
     const formData = new FormData()
     acceptedFiles.forEach(file => {
@@ -35,17 +37,16 @@ export default function App() {
     })
       .then(res => res.json())
       .then(response => {
-        console.log('∆∆∆ response', response)
-        // TODO: handle path and matching files
-
+        updateLoading(false)
         if (response.error) {
           updateError(response.error)
         } else {
-          updateSuccess(true)
+          updateResult(response.result)
         }
       })
       .catch(err => {
-        console.log('∆∆∆ err', err)
+        console.log('Error: ', err)
+        updateLoading(false)
         updateError('Something went wrong!')
       })
   }
@@ -129,9 +130,29 @@ export default function App() {
           />
         </div>
 
+        {loading && <div className="loading">Loading...</div>}
         {error && <div className="error">{error}</div>}
-        {success && (
-          <div className="success">Contract successfully verified!</div>
+        {!!result.length && (
+          <div className="success">
+            Contract successfully verified!
+            <br />
+            <br />
+            View the assets in the{' '}
+            <a href={`/repository/contract/${chain.value}/${result[0]}`}>
+              file explorer
+            </a>
+            .
+            {result.length > 1 && (
+              <>
+                <br />
+                <br />
+                <div>
+                  `Found ${result.length} addresses of this contract: $
+                  {result.join(', ')}`
+                </div>
+              </>
+            )}
+          </div>
         )}
       </fieldset>
       <p>

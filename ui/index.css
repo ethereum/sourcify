@@ -109,6 +109,12 @@ input[name='address']:focus {
   margin-top: 12px;
 }
 
+.loading {
+  color: #9d9d9d;
+  margin-top: 24px;
+  font-size: 14px;
+}
+
 .error {
   color: red;
   margin-top: 24px;
