@@ -16,15 +16,22 @@ app.use(fileUpload({
     abortOnLimit: true
 }))
 
-app.get('/', (req, res) => res.sendFile('public/index.html'))
+app.get('/', (req, res) => res.sendFile('ui/dist/index.html'))
 app.get('/health', (req, res) => res.send('Alive and kicking!'))
 app.use('/repository', express.static(repository), serveIndex(repository, {'icons': true}))
 
 app.post('/', (req, res) => {
     let files = []
     for (var x in req.files.files) {
-        if (req.files.files[x].data) {
-            files.push(req.files.files[x].data.toString())
+        const data = req.files.files[x].data
+        if (data) {
+          try {
+              // Note: metadata files are overly stringified;
+              // this `JSON.parse` still returns a string
+              files.push(JSON.parse(data.toString()))
+          } catch (err) {
+              files.push(data.toString())
+          }
         } else {
             console.log("File " + x + " invalid!")
         }
@@ -35,17 +42,7 @@ app.post('/', (req, res) => {
         req.body.address,
         files
     ).then(result => {
-        let mainAddress = result[0]
-        let path = `/repository/contract/${req.body.chain}/${mainAddress}/`
-        res.status(200).send({ result, path })
-
-        // res.send(
-            // "<html><body>Contract successfully verified!<br/>" +
-            // `<a href=\"${path}\">${mainAddress}</a><br/>` +
-            // (result.length > 1 ? `Found ${result.length} other addresses of this contract: ${result.join(', ')}<br/>` : "") +
-            // "<a href=\"/\">Verify another one</a>" +
-            // "</body></html>"
-        // )
+        res.status(200).send({ result })
     }).catch(err => {
         console.log(`Error: ${err}`)
         res.send({ error: err })

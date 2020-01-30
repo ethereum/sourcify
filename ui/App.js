@@ -147,8 +147,8 @@ export default function App() {
                 <br />
                 <br />
                 <div>
-                  `Found ${result.length} addresses of this contract: $
-                  {result.join(', ')}`
+                  Found {result.length} addresses of this contract:{' '}
+                  {result.join(', ')}
                 </div>
               </>
             )}

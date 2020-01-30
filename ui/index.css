@@ -57,13 +57,12 @@ input[type='submit']:disabled {
   background-color: white;
   box-shadow: 0 3px 4px #ccc;
   padding: 24px;
-  max-width: 860px;
+  max-width: 280px;
 }
 
 .app-fieldset_body {
   display: flex;
   flex-direction: row;
-  max-width: 300px;
 }
 
 .app-fieldset_left {
