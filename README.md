@@ -16,21 +16,27 @@ compiler has an option to include the source code in the metadata directly
 and only this mode is currently supported (see "Future Plans" below).
 You can achieve this by compiling using
 
-    solc --metadata --metadata-literal
+```
+solc --metadata --metadata-literal
+```
 
 on the commandline or via
 
-    {
-		"settings": {
-			 "metadata": { "useLiteralContent": true }
-		}
-	}
+```
+{
+  "settings": {
+    "metadata": { "useLiteralContent": true }
+  }
+}
+```
 
 in standard-json-io.
 
 Once you have that metadata in e.g. the file called `"meta.json"` you run
 
-    ./index.js < meta.json
+```
+./index.js < meta.json
+```
 
 The script will download the correct Solidity compiler binary, compile the
 contract and output the resulting bytecode and metadata json. The only
@@ -55,11 +61,11 @@ modifications have to be prepared at deploy time, but it is still a possibility.
 
 ## Future Plans
 
- - cope with metadata that does not have in-place source code
- - automatically retrieve the metadata and the source code from SWARM or IPFS,
-   so you only need to supply the metadata hash or bytecode
- - perform source verification given only an address instead of the bytecode
-   or the metadata
+- cope with metadata that does not have in-place source code
+- automatically retrieve the metadata and the source code from SWARM or IPFS,
+  so you only need to supply the metadata hash or bytecode
+- perform source verification given only an address instead of the bytecode
+  or the metadata
 
 
 ## Run inside docker
@@ -75,9 +81,11 @@ If you change something in files just run:
 ## Development
 
 ### Launch service
+
 ```
-./run_sh 80 repository db.
+./run.sh 80 repository db
 ```
+
 This will build the project in a docker container, launching the monitor and server.
 Verified sources and contract addresses will be stored in `repository` and `db` folders
 in your project root. The directories are created automatically if they don't exist.
@@ -89,21 +97,23 @@ Stop the docker run with: `docker stop $(docker ps -a -q)` (Stops all containers
 ### Tests
 
 Run tests with:
+
 ```
 npm test
 ```
 
 `test/sources` contains contracts, compilation artifacts and metadata files which can be used for building test cases.
 
-+ **contracts/**: Solidity files (browser tests)
-+ **metadata/**: raw metadata files (browser tests)
-+ **pass/**: compilation artifacts which should verify (unit tests)
-+ **fail/**: compilation artifacts which should not verify (unit tests)
-+ **compiler.json**: compiler config for generating more cases
+- **contracts/**: Solidity files (browser tests)
+- **metadata/**: raw metadata files (browser tests)
+- **pass/**: compilation artifacts which should verify (unit tests)
+- **fail/**: compilation artifacts which should not verify (unit tests)
+- **compiler.json**: compiler config for generating more cases
 
 Sources are compiled with 0x's [sol-compiler][22]. This lets you pick any compiler version or settings by modifying the `compiler.json` file as needed.
 
 To generate more test data, go to the `test/sources` directory, add Solidity files to the `contracts` folder and run:
+
 ```
 npx sol-compiler
 ```
@@ -111,4 +121,3 @@ npx sol-compiler
 Compilation artifacts will be written to an `artifacts` folder.
 
 [22]: https://sol-compiler.com/
-
