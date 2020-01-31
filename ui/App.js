@@ -2,15 +2,6 @@ import React, { useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import Select from 'react-select'
 
-const options = [
-  { value: 'mainnet', label: 'Ethereum Mainnet' },
-  { value: 'ropsten', label: 'Ropsten' },
-  { value: 'rinkeby', label: 'Rinkeby' },
-  { value: 'kovan', label: 'Kovan' },
-  { value: 'goerli', label: 'Görli' },
-  { value: 'localhost', label: 'localhost:8545' }
-]
-
 export default function App() {
   const { acceptedFiles, getRootProps, getInputProps } = useDropzone()
   const [chain, updateChain] = useState(options[0])
@@ -18,6 +9,15 @@ export default function App() {
   const [loading, updateLoading] = useState(false)
   const [error, updateError] = useState(null)
   const [result, updateResult] = useState([])
+
+  const chainOptions = [
+    { value: 'mainnet', label: 'Ethereum Mainnet' },
+    { value: 'ropsten', label: 'Ropsten' },
+    { value: 'rinkeby', label: 'Rinkeby' },
+    { value: 'kovan', label: 'Kovan' },
+    { value: 'goerli', label: 'Görli' },
+    { value: 'localhost', label: 'localhost:8545' }
+  ]
 
   function handleSubmit() {
     updateError(null)
@@ -82,7 +82,7 @@ export default function App() {
               value={chain}
               onChange={option => updateChain(option)}
               name="chain"
-              options={options}
+              options={chainOptions}
               theme={theme => ({
                 ...theme,
                 borderRadius: 0,
