@@ -1,5 +1,17 @@
 version: "3"
 services:
+  https-portal:
+    image: steveltn/https-portal:1
+    ports:
+      - '80:80'
+      - '443:443'
+    restart: always
+    environment:
+      DOMAINS: 'source-verify.blockchain-it.hr -> http://ui:80, monitor.source-verify.blockchain-it.hr -> http://monitor:80, server.source-verify.blockchain-it.hr -> http://server:80, backup.source-verify -> http://server:80' #have here serving directly resources
+      STAGE: 'production'
+    container_name: nginx
+    networks:
+      - source-verify-network
   monitor:
     container_name: monitor
     build:
@@ -16,7 +28,17 @@ services:
       context: .
       dockerfile: Dockerfile.server
     ports:
-    - "8080:80"
+    - "8545:80"
+    networks:
+    - source-verify-network
+    restart: always
+  ui:
+    container_name: ui
+    build:
+      context: ui
+      dockerfile: Dockerfile
+    ports:
+    - "1234:80"
     networks:
     - source-verify-network
     restart: always

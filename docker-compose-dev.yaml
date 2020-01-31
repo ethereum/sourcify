@@ -1,0 +1,34 @@
+version: "3"
+services:
+  monitor:
+    container_name: monitor
+    build:
+      context: .
+      dockerfile: Dockerfile.monitor
+    ports:
+    - "80:80"
+    networks:
+    - source-verify-dev-network
+    restart: always
+  ui:
+    container_name: ui
+    build:
+      context: ui
+      dockerfile: Dockerfile
+    ports:
+    - "1234:80"
+    networks:
+    - source-verify-dev-network
+    restart: always
+  localchain:
+    container_name: localchain
+    build:
+      context: .
+      dockerfile: Dockerfile.localchain
+    ports:
+    - "8545:8545"
+    networks:
+    - source-verify-dev-network
+    restart: always
+networks:
+  source-verify-dev-network:
