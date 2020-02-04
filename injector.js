@@ -15,7 +15,7 @@ let chains = {}
 // For unit testing with testrpc...
 if (process.env.TESTING){
   chains['localhost'] = {
-    web3: new Web3('http://localhost:8545')
+    web3: new Web3(process.env.LOCALCHAIN_URL)
   };
 }
 

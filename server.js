@@ -4,7 +4,9 @@ const express = require('express')
 const serveIndex = require('serve-index')
 const fileUpload = require('express-fileupload')
 const app = express()
-const port = 80
+const cors = require('cors')
+
+const port = process.env.SERVER_PORT
 
 const injector = require('./injector.js')
 
@@ -15,6 +17,10 @@ app.use(fileUpload({
     limits: { fileSize: 50 * 1024 * 1024 },
     abortOnLimit: true
 }))
+
+app.use(cors({
+    origin: '*' //TODO: Fix this
+}));
 
 app.get('/', (req, res) => res.sendFile('ui/dist/index.html'))
 app.get('/health', (req, res) => res.send('Alive and kicking!'))

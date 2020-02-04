@@ -4,8 +4,12 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "cross-env NODE_ENV=production parcel index.html",
-    "build": "rimraf dist && cross-env NODE_ENV=production parcel build index.html"
+    "start": "parcel serve -p 1234 index.html",
+    "start:prod": "cross-env NODE_ENV=production parcel index.html",
+    "start:dev": "cross-env NODE_ENV=development parcel index.html",
+    "start:test": "cross-env NODE_ENV=testing parcel index.html",
+    "build": "rimraf dist && parcel build index.html",
+    "build:env": "cross-env NODE_ENV=production parcel build index.html"
   },
   "dependencies": {
     "react": "^16.12.0",

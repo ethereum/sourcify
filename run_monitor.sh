@@ -1,4 +1,3 @@
 #!/bin/sh
 
-echo "Starting monitor..."
-while true; do node ./monitor.js /repository/; done
+while true; do node ./run_monitor.js; done

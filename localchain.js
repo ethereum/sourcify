@@ -15,17 +15,18 @@ const SimpleWithImport = require('./test/sources/pass/simpleWithImport')
 
 let server;
 const log = console.log;
+const port = process.env.LOCALCHAIN_PORT;
 
 async function main(){
 
   // Launch server
-  log('Launching server on port 8545...');
+  log(`Launching server on port ${port}...`);
   log();
 
   server = ganache.server();
-  await pify(server.listen)(8545);
+  await pify(server.listen)(port);
 
-  const web3 = new Web3('http://localhost:8545');
+  const web3 = new Web3(`http://localhost:${port}`);
   const accounts = await web3.eth.getAccounts();
 
   // Deploy contracts

@@ -3,19 +3,22 @@ import { useDropzone } from 'react-dropzone'
 import Select from 'react-select'
 
 export default function App() {
-  const chainOptions = [
-      { value: 'mainnet', label: 'Ethereum Mainnet' },
-      { value: 'ropsten', label: 'Ropsten' },
-      { value: 'rinkeby', label: 'Rinkeby' },
-      { value: 'kovan', label: 'Kovan' },
-      { value: 'goerli', label: 'Görli' },
-      { value: 'localhost', label: 'localhost:8545' }
-  ]
-  const { acceptedFiles, getRootProps, getInputProps } = useDropzone()
-  const [chain, updateChain] = useState(chainOptions[0])
-  const [address, updateAddress] = useState('')
-  const [loading, updateLoading] = useState(false)
-  const [error, updateError] = useState(null)
+    const chainOptions = [
+        { value: 'mainnet', label: 'Ethereum Mainnet' },
+        { value: 'ropsten', label: 'Ropsten' },
+        { value: 'rinkeby', label: 'Rinkeby' },
+        { value: 'kovan', label: 'Kovan' },
+        { value: 'goerli', label: 'Görli' },
+        { value: 'localhost', label: 'localhost:8545' }
+    ]
+    const { acceptedFiles, getRootProps, getInputProps } = useDropzone()
+    const [chain, updateChain] = useState(chainOptions[0])
+    const [address, updateAddress] = useState('')
+    const [loading, updateLoading] = useState(false)
+    const [error, updateError] = useState(null)
+    const url = process.env.URL
+    const log = console.log
+
   const [result, updateResult] = useState([])
 
   function handleSubmit() {
@@ -29,28 +32,30 @@ export default function App() {
     })
     formData.append('chain', chain.value)
     if (address) formData.append('address', address)
-
-    fetch('/', {
-      method: 'POST',
-      body: formData
-    })
-      .then(res => { 
-        console.log(res)
-        res.json()
+    try{
+      fetch(`${url}`, {
+        method: 'POST',
+        body: formData
       })
-      .then(response => {
-        updateLoading(false)
-        if (response.error) {
-          updateError(response.error)
-        } else {
-          updateResult(response.result)
-        }
-      })
-      .catch(err => {
+        .then(res => res.json())
+        .then(response => {
+          updateLoading(false)
+          if (response.error) {
+            updateError(response.error)
+          } else {
+            updateResult(response.result)
+          }
+        }).catch(err => {
+          updateLoading(false)
+          updateError('Something went wrong!')
+        })
+      } 
+      catch(err) {
         console.log('Error: ', err)
         updateLoading(false)
         updateError('Something went wrong!')
-      })
+      }
+
   }
 
   const acceptedFilesItems = acceptedFiles.map(file => (
