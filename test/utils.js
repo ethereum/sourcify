@@ -5,9 +5,7 @@ const UnixFS = require('ipfs-unixfs');
 const multihashes = require('multihashes');
 const web3 = require('web3');
 
-const { cborDecode, inject } = require('../injector');
-
-const util = require('util')
+const { cborDecode } = require('../src/utils');
 
 describe('utils', function(){
 
@@ -35,5 +33,4 @@ describe('utils', function(){
   it.skip('recompile: errors on compilation failure');
   it.skip('reformatMetadata: synthesizes a compiler input from sources and metadata');
   it.skip('reformatMetadata: throws if compilation target is missing');
-  it.skip('getBytecodeMetadataAndSources:')
 })

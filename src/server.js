@@ -1,14 +1,15 @@
 const express = require('express')
-//const bodyParser = require('body-parser');
-//const request = require('request');
 const serveIndex = require('serve-index')
 const fileUpload = require('express-fileupload')
+const Injector = require('./injector');
+
 const app = express()
 const cors = require('cors')
 
 const port = process.env.SERVER_PORT
 
 const injector = require('./injector.js')
+const injector = new Injector();
 
 const repository = './repository/'
 
@@ -30,11 +31,11 @@ app.post('/', (req, res) => {
         const data = req.files.files[x].data
         if (data) {
           try {
-              // Note: metadata files are overly stringified;
-              // this `JSON.parse` still returns a string
-              files.push(JSON.parse(data.toString()))
+            // Note: metadata files are overly stringified;
+            // this `JSON.parse` still returns a string
+            files.push(JSON.parse(data.toString()))
           } catch (err) {
-              files.push(data.toString())
+            files.push(data.toString())
           }
         } else {
             console.log("File " + x + " invalid!")
