@@ -4,7 +4,7 @@ const express = require('express')
 const serveIndex = require('serve-index')
 const fileUpload = require('express-fileupload')
 const app = express()
-const port = 8545
+const port = 80
 
 const injector = require('./injector.js')
 

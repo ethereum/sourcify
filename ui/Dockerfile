@@ -1,17 +1,17 @@
-FROM node:10-alpine as builder
+FROM node:10 as builder
 
 ARG WORKSPACE_DIR=/app
 WORKDIR ${WORKSPACE_DIR}
 
 COPY . ${WORKSPACE_DIR}
-RUN npm ci
-RUN npm run build
+RUN npm install
+CMD ["npm", "start"]
 
-FROM nginx:alpine
+# FROM nginx:alpine
 
-COPY --from=builder /app/nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=builder /app/dist /usr/share/nginx/html
+# COPY --from=builder /app/nginx.conf /etc/nginx/conf.d/default.conf
+# COPY --from=builder /app/dist /usr/share/nginx/html
 
-EXPOSE 80
+# EXPOSE 80
 
-CMD ["nginx", "-g", "daemon off;"]
+# CMD ["nginx", "-g", "daemon off;"]

@@ -17,7 +17,6 @@ export default function App() {
   const [loading, updateLoading] = useState(false)
   const [error, updateError] = useState(null)
   const [result, updateResult] = useState([])
-  
 
   function handleSubmit() {
     updateError(null)
@@ -35,7 +34,10 @@ export default function App() {
       method: 'POST',
       body: formData
     })
-      .then(res => res.json())
+      .then(res => { 
+        console.log(res)
+        res.json()
+      })
       .then(response => {
         updateLoading(false)
         if (response.error) {

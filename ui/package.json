@@ -4,8 +4,8 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "cross-env NODE_ENV=development parcel index.html",
-    "build": "cross-env NODE_ENV=production parcel build index.html"
+    "start": "cross-env NODE_ENV=production parcel index.html",
+    "build": "rimraf dist && cross-env NODE_ENV=production parcel build index.html"
   },
   "dependencies": {
     "react": "^16.12.0",
@@ -17,6 +17,7 @@
     "@babel/preset-env": "^7.8.3",
     "@babel/preset-react": "^7.8.3",
     "cross-env": "^6.0.3",
-    "parcel-bundler": "^1.12.4"
+    "parcel-bundler": "^1.12.4",
+    "rimraf": "^3.0.1"
   }
 }
