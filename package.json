@@ -11,15 +11,15 @@
     "test": "TESTING=true LOCALCHAIN_URL=http://localhost:8545 mocha --exit",
     "coverage": "node ./node_modules/nyc/bin/nyc.js --reporter=lcov --reporter=text-summary ./node_modules/tape/bin/tape ./test/index.js",
     "coveralls": "npm run coverage && node ./node_modules/coveralls/bin/coveralls.js <coverage/lcov.info",
-    "localchain": "./localchain.js",
-    "localchain:test": "NODE_ENV=testing ./localchain.js",
-    "dev": "npm run build:ui && ./run.sh 80 repository db",
+    "localchain": "./scripts/localchain.js",
+    "localchain:test": "NODE_ENV=testing ./scripts/localchain.js",
+    "dev": "npm run build:ui && ./scripts/run.sh 80 repository db",
     "dev:ui": "cd ./ui/ && npm install && npm start",
-    "dev:server": "npm run build:ui && ./run_server.sh",
-    "dev:server:local": "npm run build:ui && TESTING=true ./run_server.sh",
-    "build:ui": "cd ./ui/ && npm install && npm run build",
-    "monitor": "node run_monitor.js",
-    "server": "node server.js ./repository"
+    "dev:server": "npm run build:ui && ./scripts/run_server.sh",
+    "dev:server:local": "npm run build:ui && TESTING=true ./scripts/run_server.sh",
+    "build:ui": "cd ./ui/ && npm install && npm run build"
+    "monitor": "node ./scripts/run_monitor.js",
+    "server": "node ./src/server.js ./repository"
   },
   "keywords": [
     "ethereum",

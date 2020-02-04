@@ -10,8 +10,8 @@ const ganache = require('ganache-cli');
 const pify = require('pify');
 const Web3 = require('web3');
 
-const Simple = require('./test/sources/pass/simple');
-const SimpleWithImport = require('./test/sources/pass/simpleWithImport')
+const Simple = require('./../test/sources/pass/simple');
+const SimpleWithImport = require('./../test/sources/pass/simpleWithImport')
 
 let server;
 const log = console.log;
