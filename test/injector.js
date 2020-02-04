@@ -10,6 +10,7 @@ const fs = require('fs');
 
 const Simple = require('./sources/pass/simple.js');
 
+const { deployFromArtifact } = require('./helpers/helpers');
 const { inject } = require('../injector');
 
 describe('injector', function(){
@@ -24,7 +25,6 @@ describe('injector', function(){
 
   describe('inject', function(){
     let server;
-    let accounts;
     let port = 8545;
     let chain = 'localhost';
     let mockRepo = 'mockRepository';
@@ -33,7 +33,6 @@ describe('injector', function(){
       server = ganache.server();
       await pify(server.listen)(port);
       web3 = new Web3(`http://${chain}:${port}`);
-      accounts = await web3.eth.getAccounts();
     })
 
     // Clean up repository
@@ -49,19 +48,9 @@ describe('injector', function(){
     it('verifies sources from metadata with an address & stores by IPFS hash', async function(){
       this.timeout(15000);
 
-      const source = Simple.sourceCodes['Simple.sol'];
+      const source = Simple.sourceCodes["Simple.sol"];
       const metadata = Simple.compilerOutput.metadata;
-      const abi = Simple.compilerOutput.abi;
-
-      const options = {
-        data: Simple.compilerOutput.evm.bytecode.object,
-        gasPrice: '1',
-        gas: 4000000,
-      };
-
-      // Deploy contract
-      const simple = new web3.eth.Contract(abi, options);
-      const instance = await simple.deploy().send({from: accounts[0]});
+      const instance = await deployFromArtifact(web3, Simple);
 
       // Inject by address into repository after recompiling
       await inject(
