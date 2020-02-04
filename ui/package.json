@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "cross-env NODE_ENV=development parcel index.html",
+    "start": "cross-env NODE_ENV=development parcel build index.html",
     "build": "cross-env NODE_ENV=production parcel build index.html"
   },
   "dependencies": {

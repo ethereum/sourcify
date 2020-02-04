@@ -2,22 +2,26 @@ import React, { useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import Select from 'react-select'
 
-export default function App() {
-  const { acceptedFiles, getRootProps, getInputProps } = useDropzone()
-  const [chain, updateChain] = useState(options[0])
-  const [address, updateAddress] = useState('')
-  const [loading, updateLoading] = useState(false)
-  const [error, updateError] = useState(null)
-  const [result, updateResult] = useState([])
 
+export default function App() {
   const chainOptions = [
     { value: 'mainnet', label: 'Ethereum Mainnet' },
     { value: 'ropsten', label: 'Ropsten' },
     { value: 'rinkeby', label: 'Rinkeby' },
     { value: 'kovan', label: 'Kovan' },
-    { value: 'goerli', label: 'Görli' },
-    { value: 'localhost', label: 'localhost:8545' }
+    { value: 'goerli', label: 'Görli' }
   ]
+
+  if (process.env.NODE_ENV === 'development'){
+    chainOptions.push({ value: 'localhost', label: 'localhost:8545' })
+  }
+
+  const { acceptedFiles, getRootProps, getInputProps } = useDropzone()
+  const [chain, updateChain] = useState(chainOptions[0])
+  const [address, updateAddress] = useState('')
+  const [loading, updateLoading] = useState(false)
+  const [error, updateError] = useState(null)
+  const [result, updateResult] = useState([])
 
   function handleSubmit() {
     updateError(null)

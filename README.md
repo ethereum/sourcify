@@ -120,4 +120,26 @@ npx sol-compiler
 
 Compilation artifacts will be written to an `artifacts` folder.
 
+### UI Testing
+
+(Using two terminal tabs)
+
+In tab A, setup a ganache-based localhost network with deployed contracts by running:
+
+```
+npm run localchain
+```
+
+In tab B, launch the development server with
+```
+npm run dev:server:local
+```
+
+In your browser, navigate to `http://localhost`
+
++ select network: `localhost:8545`.
++ copy-paste a contract address from the terminal output of the localchain command
++ use the files in test/sources/all to experiment with success and failure cases
+
+
 [22]: https://sol-compiler.com/

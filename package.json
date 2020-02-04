@@ -15,7 +15,7 @@
     "dev": "npm run build:ui && ./run.sh 80 repository db",
     "dev:ui": "cd ./ui/ && npm install && npm start",
     "dev:server": "npm run build:ui && ./run_server.sh",
-    "dev:server:local": "npm run build:ui && TESTING=true ./run_server.sh",
+    "dev:server:local": "npm run dev:ui && TESTING=true ./run_server.sh",
     "build:ui": "cd ./ui/ && npm install && npm run build"
   },
   "keywords": ["ethereum", "solidity", "verification", "bytecode", "metadata"],
