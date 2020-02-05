@@ -7,14 +7,14 @@ services:
       - '443:443'
     restart: always
     environment:
-      DOMAINS: 'source-verify.blockchain-it.hr -> http://ui:1234, monitor.source-verify.blockchain-it.hr -> http://monitor:80, server.source-verify.blockchain-it.hr -> http://server:80, backup.source-verify -> http://server:80' #have here serving directly resources
+      DOMAINS: 'source-verify.blockchain-it.hr -> http://ui:1234, monitor.source-verify.blockchain-it.hr -> http://monitor:80, server.source-verify.blockchain-it.hr -> http://server:80, backup.source-verify.blockchain-it.hr -> http://server:80' #have here resources serving directly 
       STAGE: 'staging'
     container_name: nginx
     networks:
       - source-verify-network
   monitor:
     env_file:
-     - .env
+     - .env.production
     container_name: monitor
     build:
       context: .
@@ -26,7 +26,7 @@ services:
     restart: always
   ui:
     env_file:
-     - .env
+     - .env.production
     container_name: ui
     build:
       context: ui
@@ -38,7 +38,7 @@ services:
     restart: always
   server:
     env_file:
-     - .env
+     - .env.production
     container_name: server
     build:
       context: .
