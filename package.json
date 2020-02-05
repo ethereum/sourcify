@@ -17,7 +17,8 @@
     "dev:ui": "cd ./ui/ && npm install && npm start",
     "dev:server": "npm run build:ui && ./run_server.sh",
     "dev:server:local": "npm run build:ui && TESTING=true ./run_server.sh",
-    "build:ui": "cd ./ui/ && npm install && npm run build"
+    "build:ui": "cd ./ui/ && npm install && npm run build",
+    "monitor": "node run_monitor.js"
   },
   "keywords": [
     "ethereum",
