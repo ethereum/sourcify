@@ -1,57 +1,51 @@
 version: "3.3"
 services:
+  https-portal:
+    env_file:
+    - .env.prod
+    image: steveltn/https-portal:1
+    ports:
+      - '80:80'
+      - '443:443'
+    restart: always
+    environment:
+      DOMAINS: '${FQDN} -> http://ui:1234, monitor.${FQDN} -> http://monitor:80, server.${FQDN} -> http://server:80, backup.${FQDN} -> http://nginx:80, ${FQDN}/repository -> http://nginx:80' #have here resources serving directly 
+      STAGE: 'staging'
+    container_name: nginx
+    networks:
+      - source-verify-network
   monitor:
     image: blockchainit/source-verify-monitor:${TAG}
     env_file:
-    - .env.testing
+    - .env.prod
     container_name: monitor
     ports:
     - "${MONITOR_EXTERNAL_PORT}:${MONITOR_PORT}"
     networks:
-    - source-verify-testing-network
+    - source-verify-network
     restart: always
-    volumes:
-    - ./repository:/app/repository
   ui:
     image: blockchainit/source-verify-ui:${TAG}
     env_file:
-    - .env.testing
+    - .env.prod
     container_name: ui
-    build:
-      context: ui
-      dockerfile: Dockerfile
     ports:
     - "${UI_EXTERNAL_PORT}:${UI_PORT}"
     networks:
-    - source-verify-testing-network
+    - source-verify-network
     restart: always
   server:
     image: blockchainit/source-verify-server:${TAG}
     env_file:
-    - .env.testing
+    - .env.prod
     container_name: server
     build:
       context: .
       dockerfile: Dockerfile.server
     ports:
     - "${SERVER_EXTERNAL_PORT}:${SERVER_PORT}"
-    volumes:
-    - ./repository:/app/repository
     networks:
-    - source-verify-testing-network
-    restart: always
-  localchain:
-    image: blockchainit/source-verify-localchain:${TAG}
-    env_file:
-    - .env.testing
-    container_name: localchain
-    build:
-      context: .
-      dockerfile: Dockerfile.localchain    
-    ports:
-    - "${LOCALCHAIN_EXTERNAL_PORT}:${LOCALCHAIN_PORT}"
-    networks:
-    - source-verify-testing-network
+    - source-verify-network
     restart: always
   nginx:
     image: nginx:stable
@@ -62,7 +56,7 @@ services:
     - repository:/usr/share/nginx/html
     - ./nginx.conf:/etc/nginx/conf.d/default.conf
 networks:
-  source-verify-testing-network:
+  source-verify-network:
 volumes:
   repository:
   db:

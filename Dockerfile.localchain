@@ -4,6 +4,6 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
-EXPOSE 80
+EXPOSE 8545
 
-CMD ["npm", "run", "localchain:test"]
+CMD ["npm", "run", "localchain"]

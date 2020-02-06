@@ -5,6 +5,6 @@ WORKDIR ${WORKSPACE_DIR}
 COPY . ${WORKSPACE_DIR}
 RUN npm ci
 
-EXPOSE 3000
+EXPOSE 1234
 
 CMD ["npm", "run", "start"]

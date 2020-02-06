@@ -6,4 +6,4 @@ RUN npm ci
 COPY . .
 EXPOSE 80
 
-CMD ["node", "server.js", "/repository"]
+CMD ["npm", "run", "server"]

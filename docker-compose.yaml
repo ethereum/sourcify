@@ -1,62 +1,68 @@
 version: "3.3"
 services:
-  https-portal:
-    image: steveltn/https-portal:1
-    ports:
-      - '80:80'
-      - '443:443'
-    restart: always
-    environment:
-      DOMAINS: 'source-verify.blockchain-it.hr -> http://ui:1234, monitor.source-verify.blockchain-it.hr -> http://monitor:80, server.source-verify.blockchain-it.hr -> http://server:80, backup.source-verify.blockchain-it.hr -> http://server:80' #have here resources serving directly 
-      STAGE: 'staging'
-    container_name: nginx
-    networks:
-      - source-verify-network
   monitor:
+    image: blockchainit/source-verify-monitor:${TAG}
     env_file:
-     - .env.production
+    - .env.testing
     container_name: monitor
-    build:
-      context: .
-      dockerfile: Dockerfile.monitor
     ports:
-    - "3000:80"
+    - "${MONITOR_EXTERNAL_PORT}:${MONITOR_PORT}"
     networks:
-    - source-verify-network
+    - source-verify-testing-network
     restart: always
+    volumes:
+    - ./repository:/app/repository
   ui:
+    image: blockchainit/source-verify-ui:${TAG}
     env_file:
-     - .env.production
+    - .env.testing
     container_name: ui
     build:
       context: ui
       dockerfile: Dockerfile
     ports:
-    - "1234:1234"
+    - "${UI_EXTERNAL_PORT}:${UI_PORT}"
     networks:
-    - source-verify-network
+    - source-verify-testing-network
     restart: always
   server:
+    image: blockchainit/source-verify-server:${TAG}
     env_file:
-     - .env.production
+    - .env.testing
     container_name: server
     build:
       context: .
       dockerfile: Dockerfile.server
     ports:
-    - "10000:80"
+    - "${SERVER_EXTERNAL_PORT}:${SERVER_PORT}"
+    volumes:
+    - ./repository:/app/repository
     networks:
-    - source-verify-network
+    - source-verify-testing-network
     restart: always
-  # health-check:
-  #   container_name: health-check
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.healthcheck
-  #   ports:
-  #     - "10000:80"
-  #   networks:
-  #     - source-verify-network
-  #   restart: always
+  localchain:
+    image: blockchainit/source-verify-localchain:${TAG}
+    env_file:
+    - .env.testing
+    container_name: localchain
+    build:
+      context: .
+      dockerfile: Dockerfile.localchain    
+    ports:
+    - "${LOCALCHAIN_EXTERNAL_PORT}:${LOCALCHAIN_PORT}"
+    networks:
+    - source-verify-testing-network
+    restart: always
+  nginx:
+    image: nginx:stable
+    container_name: nginx
+    ports: 
+    - ${NGINX_EXTERNAL_PORT}:${NGINX_PORT}
+    volumes:
+    - repository:/usr/share/nginx/html
+    - ./nginx.conf:/etc/nginx/conf.d/default.conf
 networks:
-  source-verify-network:
+  source-verify-testing-network:
+volumes:
+  repository:
+  db:

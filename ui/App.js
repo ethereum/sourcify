@@ -16,7 +16,7 @@ export default function App() {
     const [address, updateAddress] = useState('')
     const [loading, updateLoading] = useState(false)
     const [error, updateError] = useState(null)
-    const url = process.env.URL
+    const url = process.env.SERVER_URL
     const log = console.log
 
   const [result, updateResult] = useState([])
