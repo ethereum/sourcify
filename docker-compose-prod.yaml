@@ -11,7 +11,7 @@ services:
     environment:
       DOMAINS: '${FQDN} -> http://ui:1234, monitor.${FQDN} -> http://monitor:80, server.${FQDN} -> http://server:80, backup.${FQDN} -> http://nginx:80, ${FQDN}/repository -> http://nginx:80' #have here resources serving directly 
       STAGE: 'staging'
-    container_name: nginx
+    container_name: https-portal
     networks:
       - source-verify-network
   monitor:
