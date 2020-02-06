@@ -53,16 +53,24 @@ services:
     networks:
     - source-verify-testing-network
     restart: always
-  nginx:
-    image: nginx:stable
-    container_name: nginx
-    ports: 
-    - ${NGINX_EXTERNAL_PORT}:${NGINX_PORT}
+  repository:
+    image: mythevalentinus/h5ai-nginx:latest
+    environment:
+      USERNAME: user
+      PASSWORD: pass
+    restart: always
+    container_name: repository
     volumes:
-    - repository:/usr/share/nginx/html
-    - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - h5ai:/h5ai
+      - ./repository:/data
+      - ./h5ai-nginx/options.json:/h5ai/_h5ai/private/conf/options.json
+      - ./h5ai-nginx/types.json:/h5ai/_h5ai/private/conf/types.json
+    ports:
+    - ${NGINX_EXTERNAL_PORT}:${NGINX_PORT}
 networks:
   source-verify-testing-network:
 volumes:
   repository:
   db:
+  h5ai:
+    driver: local
