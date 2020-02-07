@@ -12,9 +12,6 @@ services:
       DOMAINS: '${FQDN} -> http://ui:1234, server.${FQDN} -> http://server:80, repository.${FQDN} -> http://respository:80'
       STAGE: 'staging'
     container_name: nginx
-    volumes:
-    - repository:/var/www/vhosts/repository.source-verify.blockchain-it.hr
-    - ./nginx.conf:/etc/nginx/conf.d/source-verify.blockchain-it.hr.ssl.conf
     networks:
       - source-verify-network
   monitor:
@@ -26,6 +23,10 @@ services:
     - "${MONITOR_EXTERNAL_PORT}:${MONITOR_PORT}"
     networks:
     - source-verify-network
+    volumes:
+    - type: volume
+      source: repository
+      target: /app/repository
     restart: always
   ui:
     image: blockchainit/source-verify-ui:${TAG}
@@ -46,6 +47,8 @@ services:
     - "${SERVER_EXTERNAL_PORT}:${SERVER_PORT}"
     networks:
     - source-verify-network
+    volumes:
+    - ./repository:/app/repository
     restart: always
   repository:
     image: mythevalentinus/h5ai-nginx:latest
@@ -56,9 +59,15 @@ services:
     container_name: repository
     volumes:
       - h5ai:/h5ai
-      - ./repository:/data
-      - ./h5ai-nginx/options.json:/h5ai/_h5ai/private/conf/options.json
-      - ./h5ai-nginx/types.json:/h5ai/_h5ai/private/conf/types.json
+      - type: bind
+        source: ./repository
+        target: /data
+      - type: bind
+        source: ./h5ai-nginx/options.json
+        target: /h5ai/_h5ai/private/conf/options.json
+      - type: bind
+        source: ./h5ai-nginx/types.json
+        target: /h5ai/_h5ai/private/conf/types.json
     ports:
     - ${NGINX_EXTERNAL_PORT}:${NGINX_PORT}
 networks:
