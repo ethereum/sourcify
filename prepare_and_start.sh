@@ -1,5 +1,6 @@
 rm .env
 rm ui/.env
+mkdir repository
 cp .env.${STAGE} .env
 cp .env.${STAGE} ui/.env
 

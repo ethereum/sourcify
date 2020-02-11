@@ -18,9 +18,7 @@ app.use(fileUpload({
     abortOnLimit: true
 }))
 
-app.use(cors({
-    origin: '*' //TODO: Fix this
-}));
+app.use(cors())
 
 app.get('/', (req, res) => res.sendFile('ui/dist/index.html'))
 app.get('/health', (req, res) => res.send('Alive and kicking!'))

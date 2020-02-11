@@ -1,19 +1,5 @@
 version: "3.3"
 services:
-  https-portal:
-    env_file:
-    - .env.prod
-    image: steveltn/https-portal:1
-    ports:
-      - '80:80'
-      - '443:443'
-    restart: always
-    environment:
-      DOMAINS: '${FQDN} -> http://ui:1234, server.${FQDN} -> http://server:80, repository.${FQDN} -> http://respository:80'
-      STAGE: 'staging'
-    container_name: nginx
-    networks:
-      - source-verify-network
   monitor:
     image: blockchainit/source-verify-monitor:${TAG}
     env_file:
@@ -24,9 +10,7 @@ services:
     networks:
     - source-verify-network
     volumes:
-    - type: volume
-      source: repository
-      target: /app/repository
+    - ./repository:/app/repository
     restart: always
   ui:
     image: blockchainit/source-verify-ui:${TAG}
@@ -51,23 +35,14 @@ services:
     - ./repository:/app/repository
     restart: always
   repository:
-    image: mythevalentinus/h5ai-nginx:latest
-    environment:
-      USERNAME: user
-      PASSWORD: pass
+    image: blockchainit/source-verify-repository:${TAG}
     restart: always
     container_name: repository
     volumes:
       - h5ai:/h5ai
-      - type: bind
-        source: ./repository
-        target: /data
-      - type: bind
-        source: ./h5ai-nginx/options.json
-        target: /h5ai/_h5ai/private/conf/options.json
-      - type: bind
-        source: ./h5ai-nginx/types.json
-        target: /h5ai/_h5ai/private/conf/types.json
+      - ./repository:/data
+      - ./h5ai-nginx/options.json:/h5ai/_h5ai/private/conf/options.json
+      - ./h5ai-nginx/types.json:/h5ai/_h5ai/private/conf/types.json
     ports:
     - ${NGINX_EXTERNAL_PORT}:${NGINX_PORT}
 networks:

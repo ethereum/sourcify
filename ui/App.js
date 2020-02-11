@@ -18,6 +18,7 @@ export default function App() {
     const [error, updateError] = useState(null)
     const url = process.env.SERVER_URL
     const log = console.log
+    log(`Server URL: ${url}`)
 
   const [result, updateResult] = useState([])
 

@@ -1,21 +1,22 @@
 version: "3.3"
 services:
   monitor:
-    image: blockchainit/source-verify-monitor:${TAG}
     env_file:
-    - .env.testing
+    - .env.build
     container_name: monitor
+    build:
+      context: .
+      dockerfile: Dockerfile.monitor
     ports:
     - "${MONITOR_EXTERNAL_PORT}:${MONITOR_PORT}"
     networks:
-    - source-verify-testing-network
+    - source-verify-network
     restart: always
     volumes:
     - ./repository:/app/repository
   ui:
-    image: blockchainit/source-verify-ui:${TAG}
     env_file:
-    - .env.testing
+    - .env.build
     container_name: ui
     build:
       context: ui
@@ -23,12 +24,11 @@ services:
     ports:
     - "${UI_EXTERNAL_PORT}:${UI_PORT}"
     networks:
-    - source-verify-testing-network
+    - source-verify-network
     restart: always
   server:
-    image: blockchainit/source-verify-server:${TAG}
     env_file:
-    - .env.testing
+    - .env.build
     container_name: server
     build:
       context: .
@@ -38,12 +38,12 @@ services:
     volumes:
     - ./repository:/app/repository
     networks:
-    - source-verify-testing-network
+    - source-verify-network
     restart: always
   localchain:
     image: blockchainit/source-verify-localchain:${TAG}
     env_file:
-    - .env.testing
+    - .env.build
     container_name: localchain
     build:
       context: .
@@ -51,13 +51,15 @@ services:
     ports:
     - "${LOCALCHAIN_EXTERNAL_PORT}:${LOCALCHAIN_PORT}"
     networks:
-    - source-verify-testing-network
+    - source-verify-network
     restart: always
   repository:
-    image: mythevalentinus/h5ai-nginx:latest
-    environment:
-      USERNAME: user
-      PASSWORD: pass
+    image: blockchainit/source-verify-repository:${TAG}
+    env_file:
+    - .env.build
+    build:
+      context: h5ai-nginx
+      dockerfile: Dockerfile
     restart: always
     container_name: repository
     volumes:
@@ -68,7 +70,7 @@ services:
     ports:
     - ${NGINX_EXTERNAL_PORT}:${NGINX_PORT}
 networks:
-  source-verify-testing-network:
+  source-verify-network:
 volumes:
   repository:
   db:
