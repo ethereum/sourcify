@@ -1,4 +1,0 @@
-FROM webdevops/php-nginx
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY /_h5ai/ /usr/share/nginx/html/_h5ai/
-CMD ["supervisord"]

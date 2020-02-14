@@ -1,7 +1,0 @@
-[submodule "h5ai-nginx"]
-path=h5ai-nginx
-url=https://github.com/blockchain-it-hr/h5ai-nginx.git
-
-[submodule "docker-h5ai"]
-path=docker-h5ai
-url=https://github.com/blockchain-it-hr/docker-h5ai.git

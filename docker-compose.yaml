@@ -3,63 +3,39 @@ services:
   monitor:
     image: blockchainit/source-verify-monitor:${TAG}
     env_file:
-    - .env.build
+    - .env.prod
     container_name: monitor
-    build:
-      context: .
-      dockerfile: Dockerfile.monitor
     ports:
     - "${MONITOR_EXTERNAL_PORT}:${MONITOR_PORT}"
     networks:
-    - source-verify-build-network
-    restart: always
+    - source-verify-network
     volumes:
     - ./repository:/app/repository
+    restart: always
   ui:
     image: blockchainit/source-verify-ui:${TAG}
     env_file:
-    - .env.build
+    - .env.prod
     container_name: ui
-    build:
-      context: ui
-      dockerfile: Dockerfile
     ports:
     - "${UI_EXTERNAL_PORT}:${UI_PORT}"
     networks:
-    - source-verify-build-network
+    - source-verify-network
     restart: always
   server:
     image: blockchainit/source-verify-server:${TAG}
     env_file:
-    - .env.build
+    - .env.prod
     container_name: server
-    build:
-      context: .
-      dockerfile: Dockerfile.server
     ports:
     - "${SERVER_EXTERNAL_PORT}:${SERVER_PORT}"
+    networks:
+    - source-verify-network
     volumes:
     - ./repository:/app/repository
-    networks:
-    - source-verify-build-network
-    restart: always
-  localchain:
-    env_file:
-    - .env.build
-    container_name: localchain
-    build:
-      context: .
-      dockerfile: Dockerfile.localchain    
-    ports:
-    - "${LOCALCHAIN_EXTERNAL_PORT}:${LOCALCHAIN_PORT}"
-    networks:
-    - source-verify-build-network
     restart: always
   repository:
     image: blockchainit/source-verify-repository:${TAG}
-    build:
-      context: h5ai-nginx
-      dockerfile: Dockerfile
     restart: always
     container_name: repository
     volumes:
@@ -70,9 +46,10 @@ services:
     ports:
     - ${NGINX_EXTERNAL_PORT}:${NGINX_PORT}
 networks:
-  source-verify-build-network:
+  source-verify-network:
 volumes:
   repository:
   db:
   h5ai:
     driver: local
+ 

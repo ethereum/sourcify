@@ -73,11 +73,17 @@ modifications have to be prepared at deploy time, but it is still a possibility.
 Docker (https://docs.docker.com/docker-for-mac/install/)
 Docker-compose (https://docs.docker.com/compose/install/)
 
-If you want to run using docker-compose just run:
-`docker-compose up`
+### How to run
+Prepare environment and start by running
+`STAGE=prod ./prepare_and_start.sh` for production 
+`STAGE=testing ./prepare_and_start.sh` for testing.
+
+If you want to build images locally run:
+`docker-compose -f docker-compose.yaml build --no-cache --parallel`
 
 If you change something in files just run:
-`docker-compose build && docker-compose up -d` (-d flag means that output won't be printed in stdout)
+`docker-compose build --no-cache --parallel && docker-compose up -d` (-d flag means that output won't be printed in stdout)
+
 ## Development
 
 ### Launch service
