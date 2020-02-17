@@ -58,6 +58,7 @@
     "@types/cbor": "^5.0.0",
     "@types/fs-extra": "^8.0.1",
     "@types/node": "^13.7.1",
+    "@types/request-promise-native": "^1.0.17",
     "ganache-cli": "^6.8.2",
     "ipfs": "^0.40.0",
     "ipfs-unixfs": "^0.3.0",
