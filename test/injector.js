@@ -9,7 +9,7 @@ const fs = require('fs');
 const Web3 = require('web3');
 const Simple = require('./sources/pass/simple.js');
 const { deployFromArtifact } = require('./helpers/helpers');
-const Injector = require('../src/injector');
+const Injector = require('../src/injector').default;
 
 describe('injector', function(){
   it.skip('findMetadataFile: identifies a metadata file in a group of files');

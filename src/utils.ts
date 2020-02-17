@@ -16,7 +16,7 @@ export type RecompilationResult = {
   metadata: string
 }
 
-export function cborDecode(bytecode: number[]) : Buffer {
+export function cborDecode(bytecode: number[]) : any {
   const cborLength : number = bytecode[bytecode.length - 2] * 0x100 + bytecode[bytecode.length - 1];
   const bytecodeBuffer = Buffer.from(bytecode.slice(bytecode.length - 2 - cborLength, -2));
   return cbor.decodeFirstSync(bytecodeBuffer);

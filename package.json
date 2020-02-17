@@ -56,6 +56,7 @@
   "devDependencies": {
     "@0x/sol-compiler": "^4.0.3",
     "@types/cbor": "^5.0.0",
+    "@types/fs-extra": "^8.0.1",
     "@types/node": "^13.7.1",
     "ganache-cli": "^6.8.2",
     "ipfs": "^0.40.0",

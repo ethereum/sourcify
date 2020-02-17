@@ -1,23 +1,34 @@
-const Web3 = require('web3')
-const save = require('fs-extra').outputFileSync
-const multihashes = require('multihashes');
-const path = require('path');
-const addressDB = require('./address-db');
+import Web3 from 'web3';
+import { outputFileSync } from 'fs-extra';
+import path from 'path';
 
-const {
+const addressDB: any = require('./address-db');
+const multihashes : any = require('multihashes');
+
+const save = outputFileSync;
+
+import {
   cborDecode,
   getBytecode,
-  recompile
-} = require('./utils');
+  recompile,
+  RecompilationResult,
+} from './utils';
 
-class Injector {
-  constructor(config={}){
+export interface InjectorConfig {
+  infuraPID? : string
+}
+
+export default class Injector {
+  private chains : any;
+  private infuraPID : string;
+
+  public constructor(config : InjectorConfig = {}){
     this.chains = {};
     this.infuraPID = config.infuraPID || "891fe57328084fcca24912b662ad101f";
-    this._initChains();
+    this.initChains();
   }
 
-  _initChains(){
+  private initChains(){
     for (let chain of ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli']){
       this.chains[chain] = {};
       this.chains[chain].web3 = new Web3(`https://${chain}.infura.io/v3/${this.infuraPID}`);
@@ -31,67 +42,73 @@ class Injector {
     }
   }
 
-  findMetadataFile(files) {
+  private findMetadataFile(files: string[]) : string {
     for (let i in files) {
       try {
         let m = JSON.parse(files[i])
         if (m['language'] === 'Solidity') {
-          return m
+          return m;
         }
-      } catch (err) { }
+      } catch (err) { /* ignore */ }
     }
-    throw "Metadata file not found. Did you include \"metadata.json\"?"
+    throw new Error("Metadata file not found. Did you include \"metadata.json\"?");
   }
 
-  storeByHash(files){
-    let byHash = {}
-    for (var i in files) {
+  private storeByHash(files: string[]) : any {
+    const byHash: any = {};
+
+    for (let i in files) {
       byHash[Web3.utils.keccak256(files[i])] = files[i]
     }
     return byHash;
   }
 
-  rearrangeSources(metadata, files) {
-    const sources = {}
+  private rearrangeSources(metadata : any, files: string[]) : any {
+    const sources: any = {}
     const byHash = this.storeByHash(files);
 
     for (let fileName in metadata.sources) {
-      let content = metadata.sources[fileName]['content']
-      let hash = metadata.sources[fileName]['keccak256']
+      let content: string = metadata.sources[fileName].content;
+      let hash: string = metadata.sources[fileName].keccak256;
       if(content) {
           if (Web3.utils.keccak256(content) != hash) {
-              throw("invalid content for file " + fileName);
+              throw new Error(`Invalid content for file ${fileName}`);
           }
       } else {
         content = byHash[hash];
       }
       if (!content) {
-        throw (
-          "The metadata file mentions a source file called \"" +
-          fileName +
-          "\" that cannot be fonud in your upload.\n" +
-          "Its keccak256 hash is " + hash +
-          ". Please try to find it and include it in the upload."
-        )
+        throw new Error(
+          `The metadata file mentions a source file called "${fileName}"` +
+          `that cannot be fonud in your upload.\nIts keccak256 hash is ${hash}. ` +
+          `Please try to find it and include it in the upload.`
+        );
       }
-      sources[fileName] = content
+      sources[fileName] = content;
     }
     return sources
   }
 
+  private storeData(
+    repository: string,
+    chain : string,
+    address : string,
+    compilationResult : RecompilationResult,
+    sources: any
+  ) : void {
 
-  storeData(repository, chain, address, compilationResult, sources){
-    let metadataPath;
-    const cborData = cborDecode(Web3.utils.hexToBytes(compilationResult.deployedBytecode));
+    let metadataPath : string;
+    const bytes = Web3.utils.hexToBytes(compilationResult.deployedBytecode);
+    const cborData = cborDecode(bytes);
 
-    if (cborData['bzzr0']) {
-      metadataPath = '/swarm/bzzr0/' + Web3.utils.bytesToHex(cborData['bzzr0']).slice(2)
-    } else if (cborData['bzzr1']) {
-      metadataPath = '/swarm/bzzr1/' + Web3.utils.bytesToHex(cborData['bzzr1']).slice(2)
+    if (cborData['bzzr1']) {
+      metadataPath = `/swarm/bzzr1/${Web3.utils.bytesToHex(cborData['bzzr1']).slice(2)}`;
     } else if (cborData['ipfs']) {
-      metadataPath = '/ipfs/' + multihashes.toB58String(cborData['ipfs']);
+      metadataPath = `/ipfs/${multihashes.toB58String(cborData['ipfs'])}`;
     } else {
-      throw "Re-compilation successful, but could not find reference to metadata file in cbor data."
+      throw new Error(
+        "Re-compilation successful, but could not find reference to metadata file in cbor data."
+      );
     }
 
     const hashPath = path.join(repository, metadataPath);
@@ -119,12 +136,18 @@ class Injector {
     }
   }
 
-  async inject(repository, chain, address, files) {
+  public async inject(
+    repository: string,
+    chain: string,
+    address: string,
+    files: string[]
+  ) : Promise<string[]> {
+
     if (address) {
       address = Web3.utils.toChecksumAddress(address)
     }
 
-    const addresses = [];
+    let addresses = [];
     const metadata = this.findMetadataFile(files)
     const sources = this.rearrangeSources(metadata, files)
 
@@ -135,10 +158,9 @@ class Injector {
     if (address) {
       let bytecode = await getBytecode(this.chains[chain].web3, address)
       if (compilationResult.deployedBytecode != bytecode) {
-        throw (
-          "Bytecode does not match.\n" +
-          "On-chain deployed bytecode: " + bytecode + "\n" +
-          "Re-compiled bytecode: " + compilationResult.deployedBytecode + "\n"
+        throw new Error(
+          `Bytecode does not match.\n"On-chain deployed bytecode: ${bytecode}\n` +
+          `Re-compiled bytecode: ${compilationResult.deployedBytecode}\n`
         )
       }
       addresses.push(address)
@@ -147,9 +169,8 @@ class Injector {
       addresses = await addressDB.findAddresses(chain, compilationResult.deployedBytecode)
       if (addresses.length == 0) {
         throw (
-          "Contract compiled successfully, but could not find matching bytecode " +
-          "and no address provided.\n" +
-          "Re-compiled bytecode: " + compilationResult.deployedBytecode + "\n"
+          `Contract compiled successfully, but could not find matching bytecode and no ` +
+          `address provided.\n Re-compiled bytecode: ${compilationResult.deployedBytecode}\n`
         )
       }
     }
@@ -164,5 +185,3 @@ class Injector {
     return addresses
   }
 }
-
-module.exports = Injector;
