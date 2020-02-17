@@ -2,12 +2,11 @@ const assert = require('assert');
 const ganache = require('ganache-cli');
 const exec = require('child_process').execSync;
 const pify = require('pify');
-const Web3 = require('web3');
 const dagPB = require('ipld-dag-pb');
 const UnixFS = require('ipfs-unixfs');
 const multihashes = require('multihashes');
 const fs = require('fs');
-
+const Web3 = require('web3');
 const Simple = require('./sources/pass/simple.js');
 const { deployFromArtifact } = require('./helpers/helpers');
 const Injector = require('../src/injector');
@@ -28,6 +27,7 @@ describe('injector', function(){
     let chain = 'localhost';
     let mockRepo = 'mockRepository';
     let injector = new Injector();
+    let web3;
 
     before(async function(){
       server = ganache.server();

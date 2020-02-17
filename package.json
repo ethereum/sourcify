@@ -2,13 +2,18 @@
   "name": "source-verify",
   "version": "1.0.0",
   "description": "Solidity metadata-based re-compilation and source verification tool",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "index.js"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ethereum/source-verify.git"
   },
   "scripts": {
-    "test": "TESTING=true LOCALCHAIN_URL=http://localhost:8545 mocha --exit",
+    "test": "tsc && TESTING=true LOCALCHAIN_URL=http://localhost:8545 ts-node ./node_modules/.bin/mocha --exit",
+    "tslint": "tslint -p tsconfig.json",
     "coverage": "node ./node_modules/nyc/bin/nyc.js --reporter=lcov --reporter=text-summary ./node_modules/tape/bin/tape ./test/index.js",
     "coveralls": "npm run coverage && node ./node_modules/coveralls/bin/coveralls.js <coverage/lcov.info",
     "localchain": "./scripts/localchain.js",
@@ -28,9 +33,6 @@
     "bytecode",
     "metadata"
   ],
-  "files": [
-    "index.js"
-  ],
   "author": "chriseth",
   "license": "MIT",
   "bugs": {
@@ -49,16 +51,22 @@
     "request-promise-native": "^1.0.7",
     "serve-index": "^1.9.1",
     "solc": "^0.6.1",
-    "web3": "^1.2.1"
+    "web3": "^1.2.6"
   },
   "devDependencies": {
     "@0x/sol-compiler": "^4.0.3",
+    "@types/cbor": "^5.0.0",
+    "@types/node": "^13.7.1",
     "ganache-cli": "^6.8.2",
     "ipfs": "^0.40.0",
     "ipfs-unixfs": "^0.3.0",
     "ipld-dag-pb": "^0.18.2",
     "mocha": "^7.0.0",
     "pify": "^4.0.1",
-    "rimraf": "^3.0.1"
+    "rimraf": "^3.0.1",
+    "ts-node": "^8.6.2",
+    "tslint": "^6.0.0",
+    "typescript": "^3.7.5",
+    "typestrict": "^1.0.2"
   }
 }
