@@ -2,12 +2,23 @@ workflows:
   version: 2.1
   node-multi-build:
     jobs:
-    - node-v10
-    - node-v12:
-        run_coveralls: true
+      - node-v10
+      - node-v12:
+          run_coveralls: true
+      - build_push_docker
 
 version: 2.1
 jobs:
+  build_push_docker:
+    docker:
+      - image: circleci/node:10.0.0
+    steps: 
+    - checkout
+    - setup_remote_docker
+    - run:
+        name: Build and push docker images
+        command: |
+          ./build_and_publish_docker_images.sh
   node-base: &node-base
     working_directory: ~/source-verify
     docker:
