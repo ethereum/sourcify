@@ -41,7 +41,7 @@ services:
     - source-verify-network
     restart: always
   localchain:
-    image: blockchainit/source-verify-localchain:${TAG}
+    image: ethereum/source-verify:localchain-${TAG}
     env_file:
     - .env
     container_name: localchain
@@ -54,7 +54,7 @@ services:
     - source-verify-network
     restart: always
   repository:
-    image: blockchainit/source-verify-repository:${TAG}
+    image: ethereum/source-verify:repository-${TAG}
     env_file:
     - .env
     build:

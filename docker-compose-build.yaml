@@ -1,7 +1,7 @@
 version: "3.3"
 services:
   monitor:
-    image: blockchainit/source-verify-monitor:${TAG}
+    image: ethereum/source-verify:monitor-${TAG}
     env_file:
     - .env.build
     container_name: monitor
@@ -16,7 +16,7 @@ services:
     volumes:
     - ./repository:/app/repository
   ui:
-    image: blockchainit/source-verify-ui:${TAG}
+    image: ethereum/source-verify:ui-${TAG}
     env_file:
     - .env.build
     container_name: ui
@@ -29,7 +29,7 @@ services:
     - source-verify-build-network
     restart: always
   server:
-    image: blockchainit/source-verify-server:${TAG}
+    image: ethereum/source-verify:server-${TAG}
     env_file:
     - .env.build
     container_name: server
@@ -44,6 +44,7 @@ services:
     - source-verify-build-network
     restart: always
   localchain:
+    image: ethereum/source-verify:localchain-${TAG}
     env_file:
     - .env.build
     container_name: localchain
@@ -56,7 +57,7 @@ services:
     - source-verify-build-network
     restart: always
   repository:
-    image: blockchainit/source-verify-repository:${TAG}
+    image: ethereum/source-verify:repository-${TAG}
     build:
       context: h5ai-nginx
       dockerfile: Dockerfile
