@@ -4,6 +4,10 @@ import Web3 from 'web3';
 const solc: any = require('solc');
 const log = console.log;
 
+declare interface StringMap {
+  [key: string]: string;
+}
+
 declare type ReformattedMetadata = {
   input: any,
   fileName: string,
@@ -16,19 +20,40 @@ export type RecompilationResult = {
   metadata: string
 }
 
+/**
+ * Extracts cbor encoded segement from bytecode
+ * @example
+ *   const bytes = Web3.utils.hexToBytes(evm.deployedBytecode);
+ *   cborDecode(bytes);
+ *   > { ipfs: "QmarHSr9aSNaPSR6G9KFPbuLV9aEqJfTk1y9B8pdwqK4Rq" }
+ *
+ * @param  {number[]} bytecode
+ * @return {any}
+ */
 export function cborDecode(bytecode: number[]) : any {
   const cborLength : number = bytecode[bytecode.length - 2] * 0x100 + bytecode[bytecode.length - 1];
   const bytecodeBuffer = Buffer.from(bytecode.slice(bytecode.length - 2 - cborLength, -2));
   return cbor.decodeFirstSync(bytecodeBuffer);
 }
 
+/**
+ * Wraps eth_getCode
+ * @param {Web3}   web3    connected web3 instance
+ * @param {string} address contract
+ */
 export async function getBytecode(web3: Web3, address: string) {
   address = web3.utils.toChecksumAddress(address);
   log(`Retrieving bytecode of contract at address ${address}...`);
   return await web3.eth.getCode(address);
 };
 
-function reformatMetadata(metadata : any, sources : string[]) : ReformattedMetadata {
+/**
+ * Formats metadata into an object which can be passed to solc for recompilation
+ * @param  {any}                 metadata solc metadata object
+ * @param  {string[]}            sources  solidity sources
+ * @return {ReformattedMetadata}
+ */
+function reformatMetadata(metadata : any, sources : StringMap ) : ReformattedMetadata {
   const input : any = {};
   let fileName : string = '';
   let contractName : string = '';
@@ -68,11 +93,19 @@ function reformatMetadata(metadata : any, sources : string[]) : ReformattedMetad
   }
 }
 
-export async function recompile(metadata : any, sources : any) : Promise<RecompilationResult> {
-  const reformatted = reformatMetadata(metadata, sources);
-  const input = reformatted.input;
-  const fileName = reformatted.fileName;
-  const contractName = reformatted.contractName;
+/**
+ * Compiles sources using version and settings specified in metadata
+ * @param  {any}                          metadata
+ * @param  {string[]}                     sources  solidity files
+ * @return {Promise<RecompilationResult>}
+ */
+export async function recompile(metadata : any, sources : StringMap) : Promise<RecompilationResult> {
+  const {
+    input,
+    fileName,
+    contractName
+  } = reformatMetadata(metadata, sources);
+
   const version = metadata.compiler.version;
 
   log(`Re-compiling ${fileName}:${contractName} with Solidity ${version}`);
@@ -82,7 +115,7 @@ export async function recompile(metadata : any, sources : any) : Promise<Recompi
     solc.loadRemoteVersion(`v${version}`, (error: Error, soljson: any) => {
       (error) ? reject(error) : resolve(soljson);
     });
-  })
+  });
 
   log('Compiling...');
 
