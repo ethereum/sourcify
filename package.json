@@ -12,7 +12,7 @@
     "url": "git+https://github.com/ethereum/source-verify.git"
   },
   "scripts": {
-    "test": "tsc && TESTING=true LOCALCHAIN_URL=http://localhost:8545 ts-node ./node_modules/.bin/mocha --exit",
+    "test": "TESTING=true LOCALCHAIN_URL=http://localhost:8545 ts-node ./node_modules/.bin/mocha --exit",
     "tslint": "tslint -p tsconfig.json",
     "coverage": "node ./node_modules/nyc/bin/nyc.js --reporter=lcov --reporter=text-summary ./node_modules/tape/bin/tape ./test/index.js",
     "coveralls": "npm run coverage && node ./node_modules/coveralls/bin/coveralls.js <coverage/lcov.info",
