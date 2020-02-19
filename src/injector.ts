@@ -14,7 +14,7 @@ import {
   RecompilationResult,
 } from './utils';
 
-interface StringMap {
+declare interface StringMap {
   [key: string]: string;
 }
 

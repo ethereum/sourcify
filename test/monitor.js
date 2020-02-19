@@ -15,16 +15,15 @@ const Monitor = require('../src/monitor').default;
 describe('monitor', function(){
 
   describe('E2E', function(){
+    let monitor;
+    let web3;
     let server;
     let accounts;
-    let monitor;
     let port = 8545;
     let ipfs;
     let node;
-    let web3;
     let chain = 'localhost';
     let mockRepo = 'mockRepository';
-
 
     before(async function(){
       server = ganache.server({blockTime: 1});

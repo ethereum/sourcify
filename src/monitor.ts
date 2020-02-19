@@ -22,7 +22,7 @@ export interface MonitorConfig {
   swarmGateway? : string,
   repository? : string,
   infuraPID? : string,
-  blockTime? : number,
+  blockTime? : number
 }
 
 export interface CustomChainConfig {
