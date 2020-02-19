@@ -180,7 +180,7 @@ export default class Injector {
     // and the sources.
 
     for (const i in addresses) {
-      await this.storeData(repository, chain, addresses[i], compilationResult, sources)
+      this.storeData(repository, chain, addresses[i], compilationResult, sources)
     }
     return addresses
   }

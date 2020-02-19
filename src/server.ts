@@ -18,9 +18,11 @@ app.use(fileUpload({
 
 app.use(cors())
 
+/* tslint:disable:no-unused-variable */
 app.get('/', (req, res) => res.sendFile('ui/dist/index.html'))
 app.get('/health', (req, res) => res.send('Alive and kicking!'))
 app.use('/repository', express.static(repository), serveIndex(repository, {'icons': true}))
+/* tslint:enable:no-unused-variable */
 
 app.post('/', (req, res) => {
     const files = [];
@@ -45,7 +47,7 @@ app.post('/', (req, res) => {
                 console.log(`File ${x} invalid!`)
             }
         }
-        const result = injector.inject(
+        injector.inject(
             repository,
             req.body.chain,
             req.body.address,

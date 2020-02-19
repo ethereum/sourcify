@@ -106,7 +106,7 @@ export default class Monitor {
     const toDelete : any = {};
 
     for (const key in queue) {
-      if (queue[key].timestamp + maxAgeInSecs * 1000 < new Date()) {
+      if (queue[key].timestamp as number + maxAgeInSecs * 1000 < new Date()) {
         toDelete[key] = true;
       }
     }
@@ -130,7 +130,9 @@ export default class Monitor {
     const web3 = this.chains[chain].web3;
 
     web3.eth.getBlockNumber((err: Error, newBlockNr: number) => {
-      newBlockNr = Math.min(newBlockNr, _this.chains[chain].latestBlock + 4);
+      if (err) return;
+
+      newBlockNr = Math.min(newBlockNr, _this.chains[chain].latestBlock as number + 4);
 
       for (; _this.chains[chain].latestBlock < newBlockNr; _this.chains[chain].latestBlock++) {
         const latest = _this.chains[chain].latestBlock;
@@ -144,7 +146,7 @@ export default class Monitor {
 
           log(`[BLOCKS] ${chain} Processing Block ${block.number}:`);
 
-          for (let i in block.transactions) {
+          for (const i in block.transactions) {
             const t = block.transactions[i]
             if (t.to === null) {
               const address = ethers.utils.getContractAddress(t);
@@ -162,6 +164,8 @@ export default class Monitor {
     const web3 = this.chains[chain].web3;
 
     web3.eth.getCode(address, (err : Error, bytecode : string) => {
+      if (err) return;
+
       try {
         const cborData = cborDecode(web3.utils.hexToBytes(bytecode))
 
@@ -208,7 +212,6 @@ export default class Monitor {
   }
 
   private retrieveMetadataInChain(chain: string) : void {
-    const _this = this;
     log(`[METADATA] ${chain} Processing metadata queue...`);
 
     /// Try to retrieve metadata for one hour
@@ -216,6 +219,7 @@ export default class Monitor {
     for (const address in this.chains[chain].metadataQueue) {
       log(`[METADATA] ${address}`);
 
+      // tslint:disable-next-line:no-floating-promises
       this.retrieveMetadataByStorageProvider(
         chain,
         address,
@@ -284,7 +288,6 @@ export default class Monitor {
       this.retrieveSourceByAddress(
         chain,
         address,
-        this.chains[chain].sourceQueue[address].metadataRaw,
         this.chains[chain].sourceQueue[address].sources
       );
     }
@@ -293,14 +296,17 @@ export default class Monitor {
   private retrieveSourceByAddress(
     chain: string,
     address: string,
-    metadataRaw: string,
     sources: any
   ) : void {
     const _this = this;
 
     for (const sourceKey in sources) {
       for (const url of sources[sourceKey]['urls']) {
+
+        // tslint:disable-next-line:no-floating-promises
         this.retrieveSwarmSource(chain, address, sourceKey, url);
+
+        // tslint:disable-next-line:no-floating-promises
         this.retrieveIpfsSource(chain, address, sourceKey, url);
       }
 
