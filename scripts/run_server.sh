@@ -1,4 +1,8 @@
 #!/bin/sh
 
 echo "Starting server..."
-while true; do npm run build && node ./dist/server.js /repository; done
+
+# Build ts
+npm run build
+
+while true; do node ./dist/server.js /repository; done

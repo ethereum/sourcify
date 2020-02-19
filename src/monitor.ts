@@ -30,6 +30,14 @@ export interface CustomChainConfig {
   url: string
 }
 
+declare interface QueueItem {
+  bzzr1? : string,
+  ipfs? : string,
+  timestamp? : number,
+  metadataRaw? : string,
+  sources?: any
+}
+
 export default class Monitor {
   private chains : any;
   private ipfsCatRequest: string;
@@ -95,18 +103,19 @@ export default class Monitor {
       : request(`${this.ipfsCatRequest}${hash}`);
   }
 
-  private addToQueue(queue:any, key:string, item: any) : void {
+  private addToQueue(queue: any, key:string, item: QueueItem) : void {
     if (queue[key] !== undefined)
       return;
-    item.timestamp = new Date();
+    item.timestamp = new Date().getTime();
     queue[key] = item;
   }
 
   private cleanupQueue(queue: any, maxAgeInSecs: number) : void {
     const toDelete : any = {};
 
+    // getTime
     for (const key in queue) {
-      if (queue[key].timestamp as number + maxAgeInSecs * 1000 < new Date()) {
+      if ((queue[key].timestamp as number + (maxAgeInSecs * 1000)) < new Date().getTime()) {
         toDelete[key] = true;
       }
     }
