@@ -30,6 +30,21 @@ export interface CustomChainConfig {
   url: string
 }
 
+declare interface ChainSet {
+  [key: string]: ChainData
+}
+
+declare interface ChainData {
+  web3 : Web3,
+  metadataQueue: Queue,
+  sourceQueue: Queue,
+  latestBlock : number
+}
+
+declare interface Queue {
+  [key: string]: QueueItem;
+}
+
 declare interface QueueItem {
   bzzr1? : string,
   ipfs? : string,
@@ -38,8 +53,12 @@ declare interface QueueItem {
   sources?: any
 }
 
+declare interface StringToBooleanMap {
+  [key: string]: boolean;
+}
+
 export default class Monitor {
-  private chains : any;
+  private chains : ChainSet;
   private ipfsCatRequest: string;
   private ipfsProvider: any;
   private swarmGateway: string;
@@ -50,6 +69,11 @@ export default class Monitor {
   private sourceInterval: any;
   private metadataInterval: any;
 
+  /**
+   * Constructor
+   *
+   * @param {MonitorConfig = {}} config [description]
+   */
   constructor(config: MonitorConfig = {}) {
     this.chains = {};
 
@@ -65,13 +89,25 @@ export default class Monitor {
     this.metadataInterval = null;
   }
 
+  /**
+   * Starts running the monitor, listening to public eth chains via Infura for new contract
+   * deployments and inserting them in a queue that periodically queries decentralized storage
+   * providers like IPFS to retrieve metadata stored at the hash embedded in a contract's deployed
+   * bytecode. Can be configured to listen to a single custom network (like localhost) for testing.
+   *
+   * @param  {CustomChainConfig} customChain
+   * @return {Promise<void>}
+   */
   public async start(customChain : CustomChainConfig) : Promise<void> {
     const chainNames: string[] = customChain
       ? [customChain.name]
       : ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli'];
 
     for (const chain of chainNames){
-      const url : string = customChain ? customChain.url : `https://${chain}.infura.io/v3/${this.infuraPID}`;
+
+      const url : string = customChain
+        ? customChain.url
+        : `https://${chain}.infura.io/v3/${this.infuraPID}`;
 
       this.chains[chain] = {
         web3: new Web3(url),
@@ -90,6 +126,9 @@ export default class Monitor {
     this.sourceInterval = setInterval(this.retrieveSource.bind(this), 1000 * this.blockTime);
   }
 
+  /**
+   * Shuts down the monitor
+   */
   public stop() : void {
     log('Stopping monitor...')
     clearInterval(this.blockInterval);
@@ -97,21 +136,47 @@ export default class Monitor {
     clearInterval(this.sourceInterval);
   }
 
+  /**
+   * Wraps the ipfs.cat command. `cat` can be run with in-memory ipfs
+   * provider or by a gateway url, per monitor config
+   *
+   * @param  {string}          hash [description]
+   * @return {Promise<string>}      [description]
+   */
   private async ipfsCat(hash: string) : Promise<string> {
     return (this.ipfsProvider)
       ? this.ipfsProvider.cat(`/ipfs/${hash}`)
       : request(`${this.ipfsCatRequest}${hash}`);
   }
 
-  private addToQueue(queue: any, key:string, item: QueueItem) : void {
+  // =======
+  // Queue
+  // =======
+
+  /**
+   * Adds item to a string indexed set the monitor will periodically iterate over,
+   * seeking to match contract deployments and their associated metadata / source components.
+   * Each item is timestamped so it can be removed when stale.
+   *
+   * @param {StringMap} queue string indexed set
+   * @param {string}    key   index
+   * @param {QueueItem} item
+   */
+  private addToQueue(queue: Queue, key:string, item: QueueItem) : void {
     if (queue[key] !== undefined)
       return;
     item.timestamp = new Date().getTime();
     queue[key] = item;
   }
 
-  private cleanupQueue(queue: any, maxAgeInSecs: number) : void {
-    const toDelete : any = {};
+  /**
+   * Deletes items from a queue that have gone stale
+   *
+   * @param {StringMap} queue        string indexed set
+   * @param {number}    maxAgeInSecs staleness criterion
+   */
+  private cleanupQueue(queue: Queue, maxAgeInSecs: number) : void {
+    const toDelete : StringToBooleanMap = {};
 
     // getTime
     for (const key in queue) {
@@ -128,12 +193,21 @@ export default class Monitor {
   // Blocks
   // =======
 
+  /**
+   * Retrieves blocks for all chains
+   */
   private retrieveBlocks() : void {
     for (const chain in this.chains) {
       this.retrieveBlocksInChain(chain);
     }
   }
 
+  /**
+   * Polls chain for new blocks, detecting contract deployments and
+   * calling `retrieveBytecode` when one is discovered
+   *
+   * @param {any} chain [description]
+   */
   private retrieveBlocksInChain(chain: any) : void {
     const _this = this;
     const web3 = this.chains[chain].web3;
@@ -141,7 +215,7 @@ export default class Monitor {
     web3.eth.getBlockNumber((err: Error, newBlockNr: number) => {
       if (err) return;
 
-      newBlockNr = Math.min(newBlockNr, _this.chains[chain].latestBlock as number + 4);
+      newBlockNr = Math.min(newBlockNr, _this.chains[chain].latestBlock + 4);
 
       for (; _this.chains[chain].latestBlock < newBlockNr; _this.chains[chain].latestBlock++) {
         const latest = _this.chains[chain].latestBlock;
@@ -168,6 +242,14 @@ export default class Monitor {
     })
   }
 
+  /**
+   * Fetches on-chain deployed bytecode and extracts its metadata hash. Add the item to
+   * a metadata queue which will periodically query decentralized storage to discover whether
+   * metadata exists at the discovered metadata hash address.
+   *
+   * @param {string} chain   ex: 'ropsten'
+   * @param {string} address contract address
+   */
   private retrieveCode(chain: string, address: string) : void {
     const _this = this;
     const web3 = this.chains[chain].web3;
@@ -214,12 +296,22 @@ export default class Monitor {
   // Metadata
   // =========
 
+  /**
+   * Retrieves metadata by chain. This data may be in decentralized storage - its storage
+   * address has been queued after a contract deployment was detected by the retrieveBlocks
+   * engine.
+   */
   private retrieveMetadata() : void {
     for (const chain in this.chains) {
       this.retrieveMetadataInChain(chain);
     }
   }
 
+  /**
+   * Retrieves metadata from decentralized storage provider
+   * for chain after deleting stale metadata queue items.
+   * @param {string} chain ex: 'ropsten'
+   */
   private retrieveMetadataInChain(chain: string) : void {
     log(`[METADATA] ${chain} Processing metadata queue...`);
 
@@ -238,11 +330,22 @@ export default class Monitor {
     }
   }
 
+  /**
+   * Queries decentralized storage for metadata at the location specified by
+   * hash embedded in the bytecode of a deployed contract. If metadata is discovered,
+   * its sources are added to a source discovery queue. (Supports swarm:bzzr1 and ipfs)
+   *
+   * @param  {string}        chain         ex: 'ropsten'
+   * @param  {string}        address       contract address
+   * @param  {string}        metadataBzzr1 storage hash
+   * @param  {string}        metadataIpfs  storage hash
+   * @return {Promise<void>}
+   */
   private async retrieveMetadataByStorageProvider(
     chain: string,
     address: string,
-    metadataBzzr1: string,
-    metadataIpfs: string
+    metadataBzzr1: string | undefined,
+    metadataIpfs: string | undefined
   ) : Promise<void> {
     let metadataRaw
 
@@ -280,12 +383,21 @@ export default class Monitor {
   // Sources
   // =======
 
+  /**
+   * Queries decentralized storage for solidity files at the location specified by
+   * a metadata sources manifest.
+   */
   private retrieveSource() : void{
     for (const chain in this.chains) {
       this.retrieveSourceInChain(chain);
     }
   }
 
+  /**
+   * Retrieves solidity files by address from decentralized storage provider after
+   * deleting stale source queue items.
+   * @param {string} chain ex: 'ropsten'
+   */
   private retrieveSourceInChain(chain: string) : void {
     log("[SOURCE] Processing source queue...");
 
@@ -302,6 +414,14 @@ export default class Monitor {
     }
   }
 
+  /**
+   * Retrieves solidity files *for* a contract address from decentralized storage provider.
+   *
+   * @param {string} chain ex: 'ropsten'
+   * @param {string} chain   [description]
+   * @param {string} address [description]
+   * @param {any}    sources [description]
+   */
   private retrieveSourceByAddress(
     chain: string,
     address: string,
@@ -319,6 +439,7 @@ export default class Monitor {
         this.retrieveIpfsSource(chain, address, sourceKey, url);
       }
 
+      // TODO: is this deletable?
       const keccakPath = `${this.repository}/keccak256/${sources[sourceKey].keccak256}`;
 
       try {
@@ -329,6 +450,14 @@ export default class Monitor {
     }
   }
 
+  /**
+   * Queries swarm for solidity file at metadata specified url and saves if found
+   * @param  {string}        chain     ex: 'ropsten'
+   * @param  {string}        address   contract address
+   * @param  {string}        sourceKey file path or file name
+   * @param  {string}        url       metadata specified swarm url
+   * @return {Promise<void>}
+   */
   private async retrieveSwarmSource(
     chain: string,
     address: string,
@@ -345,6 +474,14 @@ export default class Monitor {
     }
   }
 
+  /**
+   * Queries ipfs for solidity file at metadata specified url and saves if found.
+   * @param  {string}        chain     ex: 'ropsten'
+   * @param  {string}        address   contract address
+   * @param  {string}        sourceKey file path or file name
+   * @param  {string}        url       metadata specified ipfs url
+   * @return {Promise<void>}
+   */
   private async retrieveIpfsSource(
     chain: string,
     address: string,
@@ -362,6 +499,17 @@ export default class Monitor {
     }
   }
 
+  /**
+   * Writes discovered sources to repository under chain address and source key
+   * qualified path:
+   *
+   * @example "repository/contract/ropsten/0xabc..defc/sources/Simple.sol"
+
+   * @param {string} chain     ex: 'ropsten'
+   * @param {string} address   contract address
+   * @param {string} sourceKey file path or file name
+   * @param {string} source    solidity file
+   */
   private sourceFound(
     chain: string,
     address: string,
