@@ -22,6 +22,7 @@
     "dev:ui": "cd ./ui/ && npm install && npm start",
     "dev:server": "npm run build:ui && ./scripts/run_server.sh",
     "dev:server:local": "npm run build:ui && TESTING=true ./scripts/run_server.sh",
+    "build": "tsc",
     "build:ui": "cd ./ui/ && npm install && npm run build",
     "monitor": "node ./scripts/run_monitor.js",
     "server": "node ./src/server.js ./repository"
@@ -56,9 +57,13 @@
   "devDependencies": {
     "@0x/sol-compiler": "^4.0.3",
     "@types/cbor": "^5.0.0",
+    "@types/cors": "^2.8.6",
+    "@types/express": "^4.17.2",
+    "@types/express-fileupload": "^1.1.2",
     "@types/fs-extra": "^8.0.1",
     "@types/node": "^13.7.1",
     "@types/request-promise-native": "^1.0.17",
+    "@types/serve-index": "^1.7.30",
     "ganache-cli": "^6.8.2",
     "ipfs": "^0.40.0",
     "ipfs-unixfs": "^0.3.0",

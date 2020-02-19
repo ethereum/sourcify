@@ -62,8 +62,8 @@ export default class Monitor {
       ? [customChain.name]
       : ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli'];
 
-    for (let chain of chainNames){
-      let url : string = customChain ? customChain.url : `https://${chain}.infura.io/v3/${this.infuraPID}`;
+    for (const chain of chainNames){
+      const url : string = customChain ? customChain.url : `https://${chain}.infura.io/v3/${this.infuraPID}`;
 
       this.chains[chain] = {
         web3: new Web3(url),
@@ -105,12 +105,12 @@ export default class Monitor {
   private cleanupQueue(queue: any, maxAgeInSecs: number) : void {
     const toDelete : any = {};
 
-    for (let key in queue) {
+    for (const key in queue) {
       if (queue[key].timestamp + maxAgeInSecs * 1000 < new Date()) {
         toDelete[key] = true;
       }
     }
-    for (let key in toDelete) {
+    for (const key in toDelete) {
       delete queue[key]
     }
   }
@@ -120,7 +120,7 @@ export default class Monitor {
   // =======
 
   private retrieveBlocks() : void {
-    for (let chain in this.chains) {
+    for (const chain in this.chains) {
       this.retrieveBlocksInChain(chain);
     }
   }
@@ -144,8 +144,8 @@ export default class Monitor {
 
           log(`[BLOCKS] ${chain} Processing Block ${block.number}:`);
 
-          for (var i in block.transactions) {
-            let t = block.transactions[i]
+          for (let i in block.transactions) {
+            const t = block.transactions[i]
             if (t.to === null) {
               const address = ethers.utils.getContractAddress(t);
               log(`[BLOCKS] ${address}`);
@@ -202,7 +202,7 @@ export default class Monitor {
   // =========
 
   private retrieveMetadata() : void {
-    for (let chain in this.chains) {
+    for (const chain in this.chains) {
       this.retrieveMetadataInChain(chain);
     }
   }
@@ -213,7 +213,7 @@ export default class Monitor {
 
     /// Try to retrieve metadata for one hour
     this.cleanupQueue(this.chains[chain].metadataQueue, 3600)
-    for (let address in this.chains[chain].metadataQueue) {
+    for (const address in this.chains[chain].metadataQueue) {
       log(`[METADATA] ${address}`);
 
       this.retrieveMetadataByStorageProvider(
@@ -268,7 +268,7 @@ export default class Monitor {
   // =======
 
   private retrieveSource() : void{
-    for (let chain in this.chains) {
+    for (const chain in this.chains) {
       this.retrieveSourceInChain(chain);
     }
   }
@@ -279,7 +279,7 @@ export default class Monitor {
     /// Try to retrieve source for five days.
     this.cleanupQueue(this.chains[chain].sourceQueue, 3600 * 24 * 5)
 
-    for (let address in this.chains[chain].sourceQueue) {
+    for (const address in this.chains[chain].sourceQueue) {
       log(`[SOURCE] ${chain} ${address}`);
       this.retrieveSourceByAddress(
         chain,
@@ -298,8 +298,8 @@ export default class Monitor {
   ) : void {
     const _this = this;
 
-    for (let sourceKey in sources) {
-      for (let url of sources[sourceKey]['urls']) {
+    for (const sourceKey in sources) {
+      for (const url of sources[sourceKey]['urls']) {
         this.retrieveSwarmSource(chain, address, sourceKey, url);
         this.retrieveIpfsSource(chain, address, sourceKey, url);
       }

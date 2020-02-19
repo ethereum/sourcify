@@ -29,7 +29,7 @@ export default class Injector {
   }
 
   private initChains(){
-    for (let chain of ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli']){
+    for (const chain of ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli']){
       this.chains[chain] = {};
       this.chains[chain].web3 = new Web3(`https://${chain}.infura.io/v3/${this.infuraPID}`);
     }
@@ -43,9 +43,9 @@ export default class Injector {
   }
 
   private findMetadataFile(files: string[]) : string {
-    for (let i in files) {
+    for (const i in files) {
       try {
-        let m = JSON.parse(files[i])
+        const m = JSON.parse(files[i])
         if (m['language'] === 'Solidity') {
           return m;
         }
@@ -57,7 +57,7 @@ export default class Injector {
   private storeByHash(files: string[]) : any {
     const byHash: any = {};
 
-    for (let i in files) {
+    for (const i in files) {
       byHash[Web3.utils.keccak256(files[i])] = files[i]
     }
     return byHash;
@@ -67,9 +67,9 @@ export default class Injector {
     const sources: any = {}
     const byHash = this.storeByHash(files);
 
-    for (let fileName in metadata.sources) {
+    for (const fileName in metadata.sources) {
       let content: string = metadata.sources[fileName].content;
-      let hash: string = metadata.sources[fileName].keccak256;
+      const hash: string = metadata.sources[fileName].keccak256;
       if(content) {
           if (Web3.utils.keccak256(content) != hash) {
               throw new Error(`Invalid content for file ${fileName}`);
@@ -117,7 +117,7 @@ export default class Injector {
     save(hashPath, compilationResult.metadata);
     save(addressPath, compilationResult.metadata);
 
-    for (let sourcePath in sources) {
+    for (const sourcePath in sources) {
 
       const sanitizedPath = sourcePath
         .replace(/[^a-z0-9_.\/-]/gim, "_")
@@ -156,7 +156,7 @@ export default class Injector {
     const compilationResult = await recompile(metadata, sources)
 
     if (address) {
-      let bytecode = await getBytecode(this.chains[chain].web3, address)
+      const bytecode = await getBytecode(this.chains[chain].web3, address)
       if (compilationResult.deployedBytecode != bytecode) {
         throw new Error(
           `Bytecode does not match.\n"On-chain deployed bytecode: ${bytecode}\n` +
@@ -179,7 +179,7 @@ export default class Injector {
     // Now we can store the re-compiled and correctly formatted metadata file
     // and the sources.
 
-    for (let i in addresses) {
+    for (const i in addresses) {
       await this.storeData(repository, chain, addresses[i], compilationResult, sources)
     }
     return addresses
