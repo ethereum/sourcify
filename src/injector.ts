@@ -14,6 +14,10 @@ import {
   RecompilationResult,
 } from './utils';
 
+interface StringMap {
+  [key: string]: string;
+}
+
 export interface InjectorConfig {
   infuraPID? : string
 }
@@ -22,12 +26,20 @@ export default class Injector {
   private chains : any;
   private infuraPID : string;
 
+  /**
+   * Constructor
+   * @param {InjectorConfig = {}} config
+   */
   public constructor(config : InjectorConfig = {}){
     this.chains = {};
     this.infuraPID = config.infuraPID || "891fe57328084fcca24912b662ad101f";
     this.initChains();
   }
 
+  /**
+   * Instantiates a web3 provider for all public ethereum networks via Infura.
+   * If environment variable TESTING is set to true, localhost:8545 is also available.
+   */
   private initChains(){
     for (const chain of ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli']){
       this.chains[chain] = {};
@@ -42,10 +54,19 @@ export default class Injector {
     }
   }
 
+  /**
+   * Selects metadata file from an array of files that may include sources, etc
+   * @param  {string[]} files
+   * @return {string}         metadata
+   */
   private findMetadataFile(files: string[]) : string {
     for (const i in files) {
       try {
         const m = JSON.parse(files[i])
+
+        // TODO: this might need a stronger validation check.
+        //       many assumptions are made about structure of
+        //       metadata object after this selection step.
         if (m['language'] === 'Solidity') {
           return m;
         }
@@ -54,8 +75,13 @@ export default class Injector {
     throw new Error("Metadata file not found. Did you include \"metadata.json\"?");
   }
 
-  private storeByHash(files: string[]) : any {
-    const byHash: any = {};
+  /**
+   * Generates a map of files indexed by the keccak hash of their contents
+   * @param  {string[]}  files sources
+   * @return {StringMap}
+   */
+  private storeByHash(files: string[]) : StringMap {
+    const byHash: StringMap = {};
 
     for (const i in files) {
       byHash[Web3.utils.keccak256(files[i])] = files[i]
@@ -63,8 +89,15 @@ export default class Injector {
     return byHash;
   }
 
-  private rearrangeSources(metadata : any, files: string[]) : any {
-    const sources: any = {}
+  /**
+   * Validates metadata content keccak hashes for all files and
+   * returns mapping of file contents by file name
+   * @param  {any}       metadata
+   * @param  {string[]}  files    source files
+   * @return {StringMap}
+   */
+  private rearrangeSources(metadata : any, files: string[]) : StringMap {
+    const sources: StringMap = {}
     const byHash = this.storeByHash(files);
 
     for (const fileName in metadata.sources) {
@@ -89,12 +122,20 @@ export default class Injector {
     return sources
   }
 
+  /**
+   * Writes verified sources to repository by address and by ipfs | swarm hash
+   * @param {string}              repository        repository root (ex: 'repository')
+   * @param {string}              chain             chain name (ex: 'ropsten')
+   * @param {string}              address           contract address
+   * @param {RecompilationResult} compilationResult solc output
+   * @param {StringMap}           sources           'rearranged' sources
+   */
   private storeData(
     repository: string,
     chain : string,
     address : string,
     compilationResult : RecompilationResult,
-    sources: any
+    sources: StringMap
   ) : void {
 
     let metadataPath : string;
@@ -136,6 +177,16 @@ export default class Injector {
     }
   }
 
+  /**
+   * Used by the front-end. Accepts a set of source files and a metadata string,
+   * recompiles / validates them and stores them in the repository by chain/address
+   * and by swarm | ipfs hash.
+   * @param  {string}            repository repository root (ex: 'repository')
+   * @param  {string}            chain      chain name (ex: 'ropsten')
+   * @param  {string}            address    contract address
+   * @param  {string[]}          files
+   * @return {Promise<string[]>}            addresses of successfully verified contracts
+   */
   public async inject(
     repository: string,
     chain: string,
@@ -178,7 +229,6 @@ export default class Injector {
     // metadata file (up to json formatting) and exactly the right sources.
     // Now we can store the re-compiled and correctly formatted metadata file
     // and the sources.
-
     for (const i in addresses) {
       this.storeData(repository, chain, addresses[i], compilationResult, sources)
     }
