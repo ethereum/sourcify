@@ -1,8 +1,8 @@
 import Web3 from 'web3';
 import { outputFileSync } from 'fs-extra';
 import path from 'path';
+import { findAddresses } from './address-db';
 
-const addressDB: any = require('./address-db');
 const multihashes : any = require('multihashes');
 
 const save = outputFileSync;
@@ -217,7 +217,7 @@ export default class Injector {
       addresses.push(address)
     } else {
       // TODO this should probably return pairs of chain and address
-      addresses = await addressDB.findAddresses(chain, compilationResult.deployedBytecode)
+      addresses = await findAddresses(chain, compilationResult.deployedBytecode)
       if (addresses.length == 0) {
         throw (
           `Contract compiled successfully, but could not find matching bytecode and no ` +

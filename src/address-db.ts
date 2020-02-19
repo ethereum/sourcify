@@ -88,7 +88,7 @@ async function findByHash(bytecodeHash : string) : Promise<string[]> {
 }
 
 
-export default async function findAddresses(
+export async function findAddresses(
   chain: string,
   bytecode: string
 ) : Promise<string[]> {
