@@ -24,8 +24,8 @@
     "dev:server:local": "npm run build:ui && TESTING=true ./scripts/run_server.sh",
     "build": "tsc",
     "build:ui": "cd ./ui/ && npm install && npm run build",
-    "monitor": "./scripts/run_monitor.sh",
-    "server": "node ./dist/server.js ./repository"
+    "monitor": "tsc && ./scripts/run_monitor.sh",
+    "server": "tsc && node ./dist/server.js ./repository"
   },
   "keywords": [
     "ethereum",

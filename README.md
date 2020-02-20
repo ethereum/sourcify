@@ -7,6 +7,12 @@ This tool uses the metadata that is embedded in every Solidity contract bytecode
 to automatically retrieve the compiler versiond and all settings used, so at best,
 you only need to specify the metadata and nothing else.
 
+## Install
+```
+$ npm install
+$ git submodule update --init
+```
+
 ## Usage
 
 Until we have a reliable way to retrieve files based on their hash (see
