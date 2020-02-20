@@ -1,7 +1,7 @@
 version: "3.3"
 services:
   monitor:
-    image: blockchainit/source-verify-monitor:${TAG}
+    image: ethereum/source-verify:monitor-${TAG}
     env_file:
     - .env
     container_name: monitor
@@ -13,7 +13,7 @@ services:
     - ./repository:/app/repository
     restart: always
   ui:
-    image: blockchainit/source-verify-ui:${TAG}
+    image: ethereum/source-verify:ui-${TAG}
     env_file:
     - .env
     container_name: ui
@@ -23,7 +23,7 @@ services:
     - source-verify-network
     restart: always
   server:
-    image: blockchainit/source-verify-server:${TAG}
+    image: ethereum/source-verify:server-${TAG}
     env_file:
     - .env
     container_name: server
@@ -35,7 +35,7 @@ services:
     - ./repository:/app/repository
     restart: always
   repository:
-    image: blockchainit/source-verify-repository:${TAG}
+    image: ethereum/source-verify:repository-${TAG}
     restart: always
     container_name: repository
     volumes:
