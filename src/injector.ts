@@ -49,7 +49,7 @@ export default class Injector {
     // For unit testing with testrpc...
     if (process.env.TESTING){
       this.chains['localhost'] = {
-        web3: new Web3('http://localhost:8545')
+        web3: new Web3(<string>process.env.LOCALCHAIN_URL)
       };
     }
   }

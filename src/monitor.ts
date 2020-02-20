@@ -98,7 +98,7 @@ export default class Monitor {
    * @param  {CustomChainConfig} customChain
    * @return {Promise<void>}
    */
-  public async start(customChain : CustomChainConfig) : Promise<void> {
+  public async start(customChain? : CustomChainConfig) : Promise<void> {
     const chainNames: string[] = customChain
       ? [customChain.name]
       : ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli'];

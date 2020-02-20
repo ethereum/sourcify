@@ -75,7 +75,7 @@ Docker-compose (https://docs.docker.com/compose/install/)
 
 ### How to run
 Prepare environment and start by running
-`STAGE=prod ./prepare_and_start.sh` for production 
+`STAGE=prod ./prepare_and_start.sh` for production
 `STAGE=testing ./prepare_and_start.sh` for testing.
 
 If you want to build images locally run:
@@ -89,16 +89,16 @@ If you change something in files just run:
 ### Launch service
 
 ```
-./run.sh 80 repository db
+docker-compose -f docker-compose-testing.yaml up --build
 ```
 
-This will build the project in a docker container, launching the monitor and server.
+This will build the project in docker containers, launching the monitor and server.
 Verified sources and contract addresses will be stored in `repository` and `db` folders
 in your project root. The directories are created automatically if they don't exist.
 
-`public/index.html` will be served to `http://localhost`
+`/ui/dist/index.html` will be served to `http://localhost:1234`
 
-Stop the docker run with: `docker stop $(docker ps -a -q)` (Stops all containers)
+Stop the docker run with ctrl-c
 
 ### Tests
 

@@ -6,4 +6,4 @@ RUN npm ci
 COPY . .
 EXPOSE 8545
 
-CMD ["npm", "run", "localchain"]
+CMD ["npm", "run", "localchain:test"]
