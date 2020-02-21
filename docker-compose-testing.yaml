@@ -2,11 +2,11 @@ version: "3.3"
 services:
   monitor:
     env_file:
-    - .env
+    - .env.testing
     container_name: monitor
     build:
       context: .
-      dockerfile: Dockerfile.monitor
+      dockerfile: src/Dockerfile.monitor
     ports:
     - "${MONITOR_EXTERNAL_PORT}:${MONITOR_PORT}"
     networks:
@@ -16,7 +16,7 @@ services:
     - ./repository:/app/repository
   ui:
     env_file:
-    - .env
+    - .env.testing
     container_name: ui
     build:
       context: ui
@@ -28,11 +28,11 @@ services:
     restart: always
   server:
     env_file:
-    - .env
+    - .env.testing
     container_name: server
     build:
       context: .
-      dockerfile: Dockerfile.server
+      dockerfile: src/Dockerfile.server
     ports:
     - "${SERVER_EXTERNAL_PORT}:${SERVER_PORT}"
     volumes:
@@ -43,11 +43,11 @@ services:
   localchain:
     image: ethereum/source-verify:localchain-${TAG}
     env_file:
-    - .env
+    - .env.testing
     container_name: localchain
     build:
       context: .
-      dockerfile: Dockerfile.localchain    
+      dockerfile: src/Dockerfile.localchain
     ports:
     - "${LOCALCHAIN_EXTERNAL_PORT}:${LOCALCHAIN_PORT}"
     networks:
@@ -56,7 +56,7 @@ services:
   repository:
     image: ethereum/source-verify:repository-${TAG}
     env_file:
-    - .env
+    - .env.testing
     build:
       context: h5ai-nginx
       dockerfile: Dockerfile
