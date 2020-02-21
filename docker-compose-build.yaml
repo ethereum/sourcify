@@ -7,7 +7,7 @@ services:
     container_name: monitor
     build:
       context: .
-      dockerfile: Dockerfile.monitor
+      dockerfile: src/Dockerfile.monitor
     ports:
     - "${MONITOR_EXTERNAL_PORT}:${MONITOR_PORT}"
     networks:
@@ -35,7 +35,7 @@ services:
     container_name: server
     build:
       context: .
-      dockerfile: Dockerfile.server
+      dockerfile: src/Dockerfile.server
     ports:
     - "${SERVER_EXTERNAL_PORT}:${SERVER_PORT}"
     volumes:
@@ -50,7 +50,7 @@ services:
     container_name: localchain
     build:
       context: .
-      dockerfile: Dockerfile.localchain    
+      dockerfile: src/Dockerfile.localchain
     ports:
     - "${LOCALCHAIN_EXTERNAL_PORT}:${LOCALCHAIN_PORT}"
     networks:
