@@ -163,6 +163,14 @@ let storeData = function(repository, chain, address, compilationResult, sources)
   }
 }
 
+exports.validate = async function(files) {
+  let metadata = findMetadataFile(files)
+  let sources = rearrangeSources(metadata, files)
+  // Starting from here, we cannot trust the metadata object anymore,
+  // because it is modified inside recompile.
+  return await recompile(metadata, sources)
+}
+
 exports.inject = async function(repository, chain, address, files) {
   if (address) {
     address = Web3.utils.toChecksumAddress(address)
