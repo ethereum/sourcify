@@ -1,7 +1,9 @@
 import Web3 from 'web3';
 import { outputFileSync } from 'fs-extra';
 import path from 'path';
-import { findAddresses } from './address-db';
+
+// tslint:disable no-commented-code
+// import { findAddresses } from './address-db';
 
 const multihashes : any = require('multihashes');
 
@@ -201,7 +203,7 @@ export default class Injector {
       address = Web3.utils.toChecksumAddress(address)
     }
 
-    let addresses = [];
+    const addresses = [];
     const metadata = this.findMetadataFile(files)
     const sources = this.rearrangeSources(metadata, files)
 
@@ -219,7 +221,11 @@ export default class Injector {
       }
       addresses.push(address)
     } else {
+      // TODO: implement address db writes
       // TODO this should probably return pairs of chain and address
+
+      // tslint:disable no-commented-code
+      /*
       addresses = await findAddresses(chain, compilationResult.deployedBytecode)
       if (addresses.length == 0) {
         throw (
@@ -227,6 +233,7 @@ export default class Injector {
           `address provided.\n Re-compiled bytecode: ${compilationResult.deployedBytecode}\n`
         )
       }
+      */
     }
     // Since the bytecode matches, we can be sure that we got the right
     // metadata file (up to json formatting) and exactly the right sources.
