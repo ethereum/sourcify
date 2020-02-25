@@ -19,12 +19,14 @@ declare interface StringMap {
 }
 
 export interface InjectorConfig {
-  infuraPID? : string
+  infuraPID? : string,
+  localChainUrl? : string
 }
 
 export default class Injector {
   private chains : any;
   private infuraPID : string;
+  private localChainUrl: string | undefined;
 
   /**
    * Constructor
@@ -33,6 +35,7 @@ export default class Injector {
   public constructor(config : InjectorConfig = {}){
     this.chains = {};
     this.infuraPID = config.infuraPID || "891fe57328084fcca24912b662ad101f";
+    this.localChainUrl = config.localChainUrl;
     this.initChains();
   }
 
@@ -47,9 +50,9 @@ export default class Injector {
     }
 
     // For unit testing with testrpc...
-    if (process.env.TESTING){
+    if (this.localChainUrl){
       this.chains['localhost'] = {
-        web3: new Web3(<string>process.env.LOCALCHAIN_URL)
+        web3: new Web3(this.localChainUrl)
       };
     }
   }

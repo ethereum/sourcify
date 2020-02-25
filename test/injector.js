@@ -27,7 +27,7 @@ describe('injector', function(){
     let port = 8545;
     let chain = 'localhost';
     let mockRepo = 'mockRepository';
-    let injector = new Injector();
+    let injector = new Injector({localChainUrl: process.env.LOCALCHAIN_URL});
     let web3;
 
     before(async function(){

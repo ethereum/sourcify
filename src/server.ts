@@ -5,7 +5,16 @@ import cors from 'cors';
 import Injector from './injector';
 
 const app = express();
-const injector = new Injector();
+
+let localChainUrl;
+if (process.env.TESTING){
+  localChainUrl = process.env.LOCALCHAIN_URL;
+}
+
+const injector = new Injector({
+  localChainUrl: localChainUrl
+});
+
 const repository = './repository/';
 const port = process.env.SERVER_PORT;
 
