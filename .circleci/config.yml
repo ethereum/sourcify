@@ -1,11 +1,22 @@
 workflows:
   version: 2.1
+  build_publish_deploy_docker:
+    jobs:
+      - build_push_docker
+      - deploy:
+          filters:
+            branches:
+              only:
+              - feature-CD
+              - staging
+              - master
+          requires:
+          - build_push_docker
   node-multi-build:
     jobs:
       - node-v10
       - node-v12:
           run_coveralls: true
-      - build_push_docker
 
 version: 2.1
 jobs:
@@ -25,6 +36,20 @@ jobs:
         command: |
           echo ${CIRCLE_BRANCH}
           CIRCLE_BRANCH=${CIRCLE_BRANCH} ./build_and_publish_docker_images.sh
+  deploy:
+    docker:
+      - image: circleci/node:10.19.0-buster
+    steps: 
+    - checkout
+    - setup_remote_docker
+    - add_ssh_keys:
+        fingerprints:
+          - "a9:2f:97:c3:64:10:80:c7:8e:2f:db:f7:a3:4a:53:66"
+    - run:
+        name: Build and push docker images
+        command: |
+          echo ${CIRCLE_BRANCH}
+          CIRCLE_BRANCH=${CIRCLE_BRANCH} ./deploy.sh    
   node-base: &node-base
     working_directory: ~/source-verify
     docker:
