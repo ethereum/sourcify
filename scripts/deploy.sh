@@ -22,6 +22,7 @@ ssh -o "Strict&HostKeyChecking no" source-verify@komputing.org "\
 mkdir -p $REPO_PATH && \
 cd $REPO_PATH && \
 curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/docker-compose-prod.yaml > docker-compose.yaml && \
+curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/.env.${TAG} > .env && \
 docker-compose pull && \
 echo $TAG && \
-source .env.$TAG & TAG=$TAG docker-compose up -d"
+source .env & TAG=$TAG docker-compose up -d"

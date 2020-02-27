@@ -1,14 +1,12 @@
-version: "3.3"
+version: "3.5"
 services:
   monitor:
     image: ethereum/source-verify:monitor-${TAG}
     env_file:
     - .env.${TAG}
-    container_name: monitor-
+    container_name: monitor-${TAG}
     ports:
     - "${MONITOR_EXTERNAL_PORT}:${MONITOR_PORT}"
-    networks:
-    - source-verify-network
     volumes:
     - ./repository:/app/repository
     restart: always
@@ -16,37 +14,34 @@ services:
     image: ethereum/source-verify:ui-${TAG}
     env_file:
     - .env.${TAG}
-    container_name: ui
+    container_name: ui-${TAG}
     ports:
     - "${UI_EXTERNAL_PORT}:${UI_PORT}"
-    networks:
-    - source-verify-network
     restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${UI_PORT}"]
+      interval: 5m
+      timeout: 10s
+      retries: 3
   server:
     image: ethereum/source-verify:server-${TAG}
     env_file:
     - .env.${TAG}
-    container_name: server
+    container_name: server-${TAG}
     ports:
     - "${SERVER_EXTERNAL_PORT}:${SERVER_PORT}"
-    networks:
-    - source-verify-network
     volumes:
     - ./repository:/app/repository
     restart: always
   repository:
     image: ethereum/source-verify:repository-${TAG}
     restart: always
-    container_name: repository
+    container_name: repository-${TAG}
     volumes:
       - h5ai:/h5ai
       - ./repository:/data
-      - ./h5ai-nginx/options.json:/h5ai/_h5ai/private/conf/options.json
-      - ./h5ai-nginx/types.json:/h5ai/_h5ai/private/conf/types.json
     ports:
     - ${NGINX_EXTERNAL_PORT}:${NGINX_PORT}
-networks:
-  source-verify-network:
 volumes:
   repository:
   db:

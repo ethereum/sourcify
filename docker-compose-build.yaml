@@ -10,8 +10,6 @@ services:
       dockerfile: src/Dockerfile.monitor
     ports:
     - "${MONITOR_EXTERNAL_PORT}:${MONITOR_PORT}"
-    networks:
-    - source-verify-build-network
     restart: always
     volumes:
     - ./repository:/app/repository
@@ -25,8 +23,6 @@ services:
       dockerfile: Dockerfile
     ports:
     - "${UI_EXTERNAL_PORT}:${UI_PORT}"
-    networks:
-    - source-verify-build-network
     restart: always
   server:
     image: ethereum/source-verify:server-${TAG}
@@ -40,8 +36,6 @@ services:
     - "${SERVER_EXTERNAL_PORT}:${SERVER_PORT}"
     volumes:
     - ./repository:/app/repository
-    networks:
-    - source-verify-build-network
     restart: always
   localchain:
     image: ethereum/source-verify:localchain-${TAG}
@@ -53,8 +47,6 @@ services:
       dockerfile: src/Dockerfile.localchain
     ports:
     - "${LOCALCHAIN_EXTERNAL_PORT}:${LOCALCHAIN_PORT}"
-    networks:
-    - source-verify-build-network
     restart: always
   repository:
     image: ethereum/source-verify:repository-${TAG}
@@ -70,8 +62,6 @@ services:
       - ./h5ai-nginx/types.json:/h5ai/_h5ai/private/conf/types.json
     ports:
     - ${NGINX_EXTERNAL_PORT}:${NGINX_PORT}
-networks:
-  source-verify-build-network:
 volumes:
   repository:
   db:
