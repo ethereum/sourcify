@@ -20,9 +20,9 @@ services:
     restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${UI_PORT}"]
-      interval: 5m
+      interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 10
   server:
     image: ethereum/source-verify:server-${TAG}
     env_file:
@@ -33,6 +33,11 @@ services:
     volumes:
     - ./repository:/app/repository
     restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
   repository:
     image: ethereum/source-verify:repository-${TAG}
     restart: always
