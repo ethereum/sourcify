@@ -10,7 +10,7 @@ const request = require('request-promise-native')
 
 const { deployFromArtifact, waitSecs } = require('./helpers/helpers');
 const SimpleWithImport = require('./sources/pass/simpleWithImport.js');
-const Monitor = require('../monitor');
+const Monitor = require('../src/monitor');
 
 describe('monitor', function(){
 

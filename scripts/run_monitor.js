@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const death = require('death');
-const Monitor = require('./monitor.js');
+const Monitor = require('../src/monitor.js');
 
 const monitor = new Monitor({
   repository: 'repository'

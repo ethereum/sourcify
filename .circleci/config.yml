@@ -23,7 +23,7 @@ jobs:
   build_push_docker:
     docker:
       - image: circleci/node:10.19.0-buster
-    steps: 
+    steps:
     - checkout
     - run:
         name: "Pull Submodules"
@@ -39,7 +39,7 @@ jobs:
   deploy:
     docker:
       - image: circleci/node:10.19.0-buster
-    steps: 
+    steps:
     - checkout
     - setup_remote_docker
     - add_ssh_keys:
@@ -49,7 +49,7 @@ jobs:
         name: Build and push docker images
         command: |
           echo ${CIRCLE_BRANCH}
-          CIRCLE_BRANCH=${CIRCLE_BRANCH} ./deploy.sh    
+          CIRCLE_BRANCH=${CIRCLE_BRANCH} ./scripts/deploy.sh
   node-base: &node-base
     working_directory: ~/source-verify
     docker:
