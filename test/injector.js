@@ -10,7 +10,7 @@ const fs = require('fs');
 
 const Simple = require('./sources/pass/simple.js');
 const { deployFromArtifact } = require('./helpers/helpers');
-const Injector = require('../src/injector');
+const Injector = require('../src/injector').default;
 
 describe('injector', function(){
   it.skip('findMetadataFile: identifies a metadata file in a group of files');
@@ -27,7 +27,8 @@ describe('injector', function(){
     let port = 8545;
     let chain = 'localhost';
     let mockRepo = 'mockRepository';
-    let injector = new Injector();
+    let injector = new Injector({localChainUrl: process.env.LOCALCHAIN_URL});
+    let web3;
 
     before(async function(){
       server = ganache.server();

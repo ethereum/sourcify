@@ -69,7 +69,10 @@ jobs:
         name: install-npm
         command: npm install
     - run:
-        name: test
+        name: tslint
+        command: npm run tslint
+    - run:
+        name: tsc and test
         command: npm run test
     - save_cache:
         key: dependency-cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "package.json" }}
