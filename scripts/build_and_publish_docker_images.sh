@@ -17,7 +17,6 @@ fi
 echo $TAG
 
 docker login --username $DOCKER_USER --password $DOCKER_PASS
-which docker-compose
-docker-compose -v
-docker-compose -f docker-compose-build.yaml build --no-cache --parallel --build-arg TAG=$TAG
+cp .env.build .env
+docker-compose -f docker-compose-build.yaml build
 docker-compose -f docker-compose-build.yaml push

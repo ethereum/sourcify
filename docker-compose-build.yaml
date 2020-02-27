@@ -62,6 +62,8 @@ services:
       - ./h5ai-nginx/types.json:/h5ai/_h5ai/private/conf/types.json
     ports:
     - ${NGINX_EXTERNAL_PORT}:${NGINX_PORT}
+networks:
+  source-verify-build-network:
 volumes:
   repository:
   db:

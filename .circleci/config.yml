@@ -34,7 +34,7 @@ jobs:
         name: Build and push docker images
         command: |
           echo ${CIRCLE_BRANCH}
-          CIRCLE_BRANCH=${CIRCLE_BRANCH} ./build_and_publish_docker_images.sh
+          CIRCLE_BRANCH=${CIRCLE_BRANCH} ./scripts/build_and_publish_docker_images.sh
   deploy:
     docker:
       - image: circleci/node:10.19.0-buster
