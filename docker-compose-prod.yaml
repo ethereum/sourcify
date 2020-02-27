@@ -18,11 +18,11 @@ services:
     ports:
     - "${UI_EXTERNAL_PORT}:${UI_PORT}"
     restart: always
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${UI_PORT}"]
-      interval: 30s
-      timeout: 10s
-      retries: 10
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:${UI_PORT}"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 10
   server:
     image: ethereum/source-verify:server-${TAG}
     env_file:
