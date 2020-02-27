@@ -3,7 +3,7 @@ services:
   monitor:
     image: ethereum/source-verify:monitor-${TAG}
     env_file:
-    - .env.build
+    - .env.${TAG}
     container_name: monitor
     build:
       context: .
@@ -18,7 +18,7 @@ services:
   ui:
     image: ethereum/source-verify:ui-${TAG}
     env_file:
-    - .env.build
+    - .env.${TAG}
     container_name: ui
     build:
       context: ui
@@ -31,7 +31,7 @@ services:
   server:
     image: ethereum/source-verify:server-${TAG}
     env_file:
-    - .env.build
+    - .env.${TAG}
     container_name: server
     build:
       context: .
@@ -46,7 +46,7 @@ services:
   localchain:
     image: ethereum/source-verify:localchain-${TAG}
     env_file:
-    - .env.build
+    - .env.${TAG}
     container_name: localchain
     build:
       context: .

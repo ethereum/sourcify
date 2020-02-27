@@ -3,7 +3,7 @@ services:
   monitor:
     image: ethereum/source-verify:monitor-${TAG}
     env_file:
-    - .env.prod
+    - .env.${TAG}
     container_name: monitor-
     ports:
     - "${MONITOR_EXTERNAL_PORT}:${MONITOR_PORT}"
@@ -15,7 +15,7 @@ services:
   ui:
     image: ethereum/source-verify:ui-${TAG}
     env_file:
-    - .env.prod
+    - .env.${TAG}
     container_name: ui
     ports:
     - "${UI_EXTERNAL_PORT}:${UI_PORT}"
@@ -25,7 +25,7 @@ services:
   server:
     image: ethereum/source-verify:server-${TAG}
     env_file:
-    - .env.prod
+    - .env.${TAG}
     container_name: server
     ports:
     - "${SERVER_EXTERNAL_PORT}:${SERVER_PORT}"
@@ -52,4 +52,3 @@ volumes:
   db:
   h5ai:
     driver: local
- 
