@@ -4,7 +4,7 @@ services:
     image: ethereum/source-verify:monitor-${TAG}
     env_file:
     - .env.prod
-    container_name: monitor
+    container_name: monitor-
     ports:
     - "${MONITOR_EXTERNAL_PORT}:${MONITOR_PORT}"
     networks:
