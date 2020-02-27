@@ -4,12 +4,6 @@ set -e
 # If not staging or master branch are existing
 export TAG="$CIRCLE_BRANCH"
 
-if [ "$CIRCLE_BRANCH" == "feature-CD" ]; then 
-    export TAG="latest"
-    export REPO_PATH='/opt/source-verify/staging/source-verify/'
-    echo $TAG
-fi
-
 if [ "$CIRCLE_BRANCH" == "staging" ]; then 
     export TAG="latest"
     export REPO_PATH='/opt/source-verify/staging/source-verify/'

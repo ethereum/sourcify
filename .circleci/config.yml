@@ -7,7 +7,6 @@ workflows:
           filters:
             branches:
               only:
-              - feature-CD
               - staging
               - master
           requires:
