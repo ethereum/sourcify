@@ -2,7 +2,12 @@ workflows:
   version: 2.1
   build_publish_deploy_docker:
     jobs:
-      - build_push_docker
+      - build_push_docker:
+          filters:
+            branches:
+              only:
+              - staging
+              - master
       - deploy:
           filters:
             branches:
