@@ -65,12 +65,12 @@ app.post('/', (req, res) => {
       res.status(200).send({ result })
     }).catch(err => {
       console.log(`Error: ${err}`)
-      res.send({ error: err })
+      res.send({ error: err.message })
     })
   } else {
     const err = new Error('Request missing expected property: "req.files.files"');
     console.log(err);
-    res.send({ error: err });
+    res.send({ error: err.message });
   }
 })
 
