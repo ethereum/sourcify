@@ -19,7 +19,7 @@ echo $TAG
 ssh -o "StrictHostKeyChecking no" source-verify@komputing.org "\
 mkdir -p $REPO_PATH && \
 cd $REPO_PATH && \
-curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/docker-compose-prod.yaml > docker-compose.yaml && \
+curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/docker-compose-${TAG}.yaml > docker-compose.yaml && \
 curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/.env.${TAG} > .env && \
 TAG=$TAG docker-compose pull && \
 echo $TAG && \

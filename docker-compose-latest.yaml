@@ -1,69 +1,64 @@
-version: "3.3"
+version: "3.5"
 services:
   monitor:
     image: ethereum/source-verify:monitor-${TAG}
     env_file:
     - .env.${TAG}
-    container_name: monitor
-    build:
-      context: .
-      dockerfile: src/Dockerfile.monitor
+    container_name: monitor-${TAG}
     ports:
     - "${MONITOR_EXTERNAL_PORT}:${MONITOR_PORT}"
-    restart: always
     volumes:
     - ./repository:/app/repository
+    restart: always
+    networks:
+    - source-verify-staging
   ui:
     image: ethereum/source-verify:ui-${TAG}
     env_file:
     - .env.${TAG}
-    container_name: ui
-    build:
-      context: ui
-      dockerfile: Dockerfile
+    container_name: ui-${TAG}
     ports:
     - "${UI_EXTERNAL_PORT}:${UI_PORT}"
     restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${UI_PORT}"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+    networks:
+    - source-verify-staging
   server:
     image: ethereum/source-verify:server-${TAG}
     env_file:
     - .env.${TAG}
-    container_name: server
-    build:
-      context: .
-      dockerfile: src/Dockerfile.server
+    container_name: server-${TAG}
     ports:
     - "${SERVER_EXTERNAL_PORT}:${SERVER_PORT}"
     volumes:
     - ./repository:/app/repository
     restart: always
-  localchain:
-    image: ethereum/source-verify:localchain-${TAG}
-    env_file:
-    - .env.${TAG}
-    container_name: localchain
-    build:
-      context: .
-      dockerfile: src/Dockerfile.localchain
-    ports:
-    - "${LOCALCHAIN_EXTERNAL_PORT}:${LOCALCHAIN_PORT}"
-    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+    networks:
+    - source-verify-staging
   repository:
     image: ethereum/source-verify:repository-${TAG}
-    build:
-      context: h5ai-nginx
-      dockerfile: Dockerfile
     restart: always
-    container_name: repository
+    container_name: repository-${TAG}
     volumes:
       - h5ai:/h5ai
       - ./repository:/data
-      - ./h5ai-nginx/options.json:/h5ai/_h5ai/private/conf/options.json
-      - ./h5ai-nginx/types.json:/h5ai/_h5ai/private/conf/types.json
     ports:
     - ${NGINX_EXTERNAL_PORT}:${NGINX_PORT}
+    networks:
+    - source-verify-staging
 volumes:
   repository:
   db:
   h5ai:
     driver: local
+networks:
+  source-verify-staging:
