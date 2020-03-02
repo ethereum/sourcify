@@ -11,7 +11,7 @@ export default function App() {
         { value: 'goerli', label: 'Görli' }
     ]
 
-    if (process.env.TESTING){
+    if (process.env.NODE_ENV === 'testing'){
       chainOptions.push({
         value: 'localhost',
         label: 'localhost:8545'
