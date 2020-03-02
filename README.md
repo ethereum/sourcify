@@ -1,11 +1,15 @@
 # source-verify
 
-JavaScript / node.js tool that can be used to verify that Ethereum bytecode was
-compiled from a certain Solidity source code.
+Source-Verify is a service that verifies Ethereum bytecode was compiled from a certain
+Solidity source code and maintains a public repository of contract metadata.
 
-This tool uses the metadata that is embedded in every Solidity contract bytecode
-to automatically retrieve the compiler versiond and all settings used, so at best,
-you only need to specify the metadata and nothing else.
+The repository indexes metadata with IPFS or Swarm hashes which the solc compiler
+embeds in contract bytecode. By fetching code on chain and extracting this hash,
+you can obtain related metadata from Source-Verify's records.
+
+More information can be found in Solidity [metadata documentation][30]
+
+[30]: https://solidity.readthedocs.io/en/latest/metadata.html#contract-metadata
 
 ## Install
 ```
@@ -13,20 +17,35 @@ $ npm install
 $ git submodule update --init
 ```
 
-## Usage
+## Service
 
-Until we have a reliable way to retrieve files based on their hash (see
-"Future Plans" below),
-you need to supply both the matadata and the source code. The Solidity
-compiler has an option to include the source code in the metadata directly
-and only this mode is currently supported (see "Future Plans" below).
-You can achieve this by compiling using
+The service has three components:
++ a "monitor" which watches public Ethereum networks for contract deployments
+and tries to associate them with sources and metadata published to Swarm or IPFS. It currently
+watches:
+  + mainnet
+  + ropsten
+  + rinkeby
+  + kovan
+  + goerli
+
++ a website which allows you to submit sources and metadata for a specific contract address
+  + https://verification.komputing.org/ (Stable)
+  + https://verificationstaging.komputing.org/ (Unstable)
+
++ a public metadata repository that contains uploaded (or discovered) metadata and their sources:
+  + https://contractrepo.komputing.org/ (Stable)
+  + https://contractrepostaging.komputing.org/ (Unstable)
+
+**Getting metadata**
+
+Using solc directly on the commandline:
 
 ```
-solc --metadata --metadata-literal
+solc --metadata --metadata-literal <mySource.sol>
 ```
 
-on the commandline or via
+or with JSON/IO
 
 ```
 {
@@ -36,18 +55,19 @@ on the commandline or via
 }
 ```
 
-in standard-json-io.
+**Using the monitor**
 
-Once you have that metadata in e.g. the file called `"meta.json"` you run
+If your Solidity code compiles with solc >= 0.6.0, you just need to upload your
+contract metadata and sources to IPFS as part of your deployment process. The monitor service will
+automatically add your files to the metadata repository when it sees your contract created on the
+network.
 
-```
-./index.js < meta.json
-```
+A simple example for Truffle projects can be found at [cgewecke/metacoin-source-verify][40]
+which contains [a script][41] to publish to IPFS directly from a Truffle compilation artifact.
 
-The script will download the correct Solidity compiler binary, compile the
-contract and output the resulting bytecode and metadata json. The only
-step you still have to do is comparing the bytecode with the craetion
-bytecode of the contract in the blockchain.
+
+[40]: https://github.com/cgewecke/metacoin-source-verify
+[41]: https://github.com/cgewecke/metacoin-source-verify/blob/master/scripts/ipfs.js
 
 ## Security Precautions
 
@@ -80,19 +100,17 @@ Docker (https://docs.docker.com/docker-for-mac/install/)
 Docker-compose (https://docs.docker.com/compose/install/)
 
 ### How to run
-Prepare environment and start by running
-`STAGE=prod ./prepare_and_start.sh` for production
-`STAGE=testing ./prepare_and_start.sh` for testing.
 
 If you want to build images locally run:
 `docker-compose -f docker-compose.yaml build --no-cache --parallel`
 
 If you change something in files just run:
-`docker-compose build --no-cache --parallel && docker-compose up -d` (-d flag means that output won't be printed in stdout)
+`docker-compose build --no-cache --parallel && docker-compose up -d` (-d flag means that output
+won't be printed in stdout)
 
 ## Development
 
-### Launch service
+**Launch**
 
 ```
 docker-compose -f docker-compose-testing.yaml up --build
@@ -102,8 +120,20 @@ This will build the project in docker containers, launching the monitor and serv
 Verified sources and contract addresses will be stored in `repository` and `db` folders
 in your project root. The directories are created automatically if they don't exist.
 
-`/ui/dist/index.html` will be served to `http://localhost:1234`
+`/ui/dist/index.html` will be served to **http://localhost:1234**
 
+**UI**
+
+To help with manual UI testing, some contracts whose sources and metadata can be found in the
+`test/sources/all` folder are automatically deployed to a local ganache instance running
+on port 8545. Their contract addresses are deterministically generated at:
+
+| Contracts  |  Addresses |
+| ---------  |  --------- |
+| Simple.sol |  0x8168f192F7432C93FCb16e039B57FB890AaB3230 |
+| SimpleWithImport.sol | 0x0Ef7de872C7110d6020fa5e62d7cD31Fd90FF811 |
+
+**Shutdown**
 Stop the docker run with ctrl-c
 
 ### Tests
@@ -114,7 +144,8 @@ Run tests with:
 npm test
 ```
 
-`test/sources` contains contracts, compilation artifacts and metadata files which can be used for building test cases.
+`test/sources` contains contracts, compilation artifacts and metadata files which can be used for
+building test cases.
 
 - **contracts/**: Solidity files (browser tests)
 - **metadata/**: raw metadata files (browser tests)
@@ -122,9 +153,11 @@ npm test
 - **fail/**: compilation artifacts which should not verify (unit tests)
 - **compiler.json**: compiler config for generating more cases
 
-Sources are compiled with 0x's [sol-compiler][22]. This lets you pick any compiler version or settings by modifying the `compiler.json` file as needed.
+Test sources are compiled with 0x's [sol-compiler][22]. This lets you pick any compiler version or
+settings by modifying the `compiler.json` file as needed.
 
-To generate more test data, go to the `test/sources` directory, add Solidity files to the `contracts` folder and run:
+To generate more test data, go to the `test/sources` directory, add Solidity files to the
+`contracts` folder and run:
 
 ```
 npx sol-compiler
