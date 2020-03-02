@@ -17,6 +17,6 @@ fi
 echo $TAG
 
 docker login --username $DOCKER_USER --password $DOCKER_PASS
-cp .env.$TAG .env
+cp .env.${TAG} .env
 docker-compose -f docker-compose-build.yaml build
 docker-compose -f docker-compose-build.yaml push
