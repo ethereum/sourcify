@@ -8,9 +8,16 @@ export default function App() {
         { value: 'ropsten', label: 'Ropsten' },
         { value: 'rinkeby', label: 'Rinkeby' },
         { value: 'kovan', label: 'Kovan' },
-        { value: 'goerli', label: 'Görli' },
-        { value: 'localhost', label: 'localhost:8545' }
+        { value: 'goerli', label: 'Görli' }
     ]
+
+    if (process.env.TESTING){
+      chainOptions.push({
+        value: 'localhost',
+        label: 'localhost:8545'
+      })
+    }
+
     const { acceptedFiles, getRootProps, getInputProps } = useDropzone()
     const [chain, updateChain] = useState(chainOptions[0])
     const [address, updateAddress] = useState('')
@@ -50,7 +57,7 @@ export default function App() {
           updateLoading(false)
           updateError('Something went wrong!')
         })
-      } 
+      }
       catch(err) {
         console.log('Error: ', err)
         updateLoading(false)
