@@ -112,7 +112,7 @@ export default function App() {
             <input
               type="text"
               name="address"
-              placeholder="Contract Address (optional for Mainnet)"
+              placeholder="Contract Address (required)"
               value={address}
               onChange={e => updateAddress(e.target.value)}
             />
@@ -137,8 +137,7 @@ export default function App() {
         <div className="app-fieldset_footer">
           <input
             disabled={
-              acceptedFiles.length === 0 ||
-              (chain.value !== 'mainnet' && !address)
+              acceptedFiles.length === 0 || !address
             }
             type="submit"
             onClick={handleSubmit}
