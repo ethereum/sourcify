@@ -23,7 +23,10 @@ async function main(){
   log(`Launching server on port ${port}...`);
   log();
 
-  server = ganache.server();
+  server = ganache.server({
+    mnemonic: 'jacket swarm radio village civil cage report rate filter scrap valve spend'
+  });
+
   await pify(server.listen)(port);
 
   const web3 = new Web3(`http://localhost:${port}`);
