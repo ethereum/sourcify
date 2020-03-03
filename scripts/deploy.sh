@@ -11,7 +11,7 @@ fi
 
 if [ "$CIRCLE_BRANCH" == "master" ]; then
     export TAG="stable"; 
-    export REPO_PATH='/opt/source-verify/master/source-verify/'
+    export REPO_PATH='/opt/source-verify/production/source-verify/'
 fi
 
 echo $TAG
