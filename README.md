@@ -133,6 +133,14 @@ on port 8545. Their contract addresses are deterministically generated at:
 | Simple.sol |  0x8168f192F7432C93FCb16e039B57FB890AaB3230 |
 | SimpleWithImport.sol | 0x0Ef7de872C7110d6020fa5e62d7cD31Fd90FF811 |
 
+
+Similar sources are also pre-deployed to **Ropsten** and can be found in the `test/sources/ropsten` folder:
+
+| Contracts  |  Addresses |
+| ---------  |  --------- |
+| Simple.sol |  0xEB6Cf7952c666F81f1a5678E80D4fC5Ce3a7bF0b |
+| SimpleWithImport.sol | 0x4668b709182F41837c4e06C8de1D3568df7778D9 |
+
 **Shutdown**
 Stop the docker run with ctrl-c
 
