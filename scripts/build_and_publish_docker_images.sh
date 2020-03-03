@@ -18,5 +18,5 @@ echo $TAG
 
 docker login --username $DOCKER_USER --password $DOCKER_PASS
 cp .env.build .env
-docker-compose -f docker-compose-build.yaml build
+docker-compose -f docker-compose-build.yaml build --no-cache --parallel
 docker-compose -f docker-compose-build.yaml push
