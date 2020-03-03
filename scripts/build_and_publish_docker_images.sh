@@ -17,7 +17,5 @@ fi
 echo $TAG
 
 docker login --username $DOCKER_USER --password $DOCKER_PASS
-rm .env
-cp .env.${TAG} .env
-source .env && docker-compose -f docker-compose-build.yaml build --no-cache --parallel
-source .env && docker-compose -f docker-compose-build.yaml push
+source .env.${TAG}  && docker-compose -f docker-compose-build.yaml build --no-cache --parallel
+source .env.${TAG}  && docker-compose -f docker-compose-build.yaml push
