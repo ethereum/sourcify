@@ -52,7 +52,7 @@ services:
       - h5ai:/h5ai
       - ./repository:/data
     ports:
-    - ${NGINX_EXTERNAL_PORT}:${NGINX_PORT}
+    - ${REPOSITORY_EXTERNAL_PORT}:${REPOSITORY_PORT}
     networks:
     - source-verify-staging
 volumes:
