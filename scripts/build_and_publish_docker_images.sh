@@ -20,5 +20,5 @@ curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/d
 curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/.env.${TAG} > .env
 
 docker login --username $DOCKER_USER --password $DOCKER_PASS
-source .env.${TAG}  && docker-compose -f docker-compose-build.yaml build --no-cache --parallel
-source .env.${TAG}  && docker-compose -f docker-compose-build.yaml push
+source .env.${TAG}  && docker-compose -f docker-compose.yaml build --no-cache --parallel
+source .env.${TAG}  && docker-compose -f docker-compose.yaml push
