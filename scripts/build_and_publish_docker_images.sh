@@ -22,5 +22,6 @@ cd environments && cp .env.$TAG .env
 echo $SERVICE
 
 docker login --username $DOCKER_USER --password $DOCKER_PASS
-docker-compose -f $SERVICE.yaml -f build-$SERVICE.yaml build
-docker push ethereum/source-verify:$SERVICE-$TAG
+cp .env.${TAG} .env
+source .env && docker-compose -f docker-compose-build.yaml build --no-cache --parallel
+source .env && docker-compose -f docker-compose-build.yaml push
