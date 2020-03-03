@@ -1,9 +1,9 @@
 FROM node:10
 
-WORKDIR /usr/src/app
+WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
 EXPOSE 80
 
-CMD ["node", "monitor.js", "/repository/"]
+CMD ["npm", "run", "server"]

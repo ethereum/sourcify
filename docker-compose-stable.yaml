@@ -1,0 +1,64 @@
+version: "3.5"
+services:
+  monitor:
+    image: ethereum/source-verify:monitor-${TAG}
+    env_file:
+    - .env.${TAG}
+    container_name: monitor-${TAG}
+    ports:
+    - "${MONITOR_EXTERNAL_PORT}:${MONITOR_PORT}"
+    volumes:
+    - ./repository:/app/repository
+    restart: always
+    networks:
+    - source-verify-production
+  ui:
+    image: ethereum/source-verify:ui-${TAG}
+    env_file:
+    - .env.${TAG}
+    container_name: ui-${TAG}
+    ports:
+    - "${UI_EXTERNAL_PORT}:${UI_PORT}"
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${UI_PORT}"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+    networks:
+    - source-verify-production
+  server:
+    image: ethereum/source-verify:server-${TAG}
+    env_file:
+    - .env.${TAG}
+    container_name: server-${TAG}
+    ports:
+    - "${SERVER_EXTERNAL_PORT}:${SERVER_PORT}"
+    volumes:
+    - ./repository:/app/repository
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+    networks:
+    - source-verify-production
+  repository:
+    image: ethereum/source-verify:repository-${TAG}
+    restart: always
+    container_name: repository-${TAG}
+    volumes:
+      - h5ai:/h5ai
+      - ./repository:/data
+    ports:
+    - ${NGINX_EXTERNAL_PORT}:${NGINX_PORT}
+    networks:
+    - source-verify-production
+volumes:
+  repository:
+  db:
+  h5ai:
+    driver: local
+networks:
+  source-verify-production:

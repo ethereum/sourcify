@@ -10,22 +10,26 @@ const ganache = require('ganache-cli');
 const pify = require('pify');
 const Web3 = require('web3');
 
-const Simple = require('./test/sources/pass/simple');
-const SimpleWithImport = require('./test/sources/pass/simpleWithImport')
+const Simple = require('./../test/sources/pass/simple');
+const SimpleWithImport = require('./../test/sources/pass/simpleWithImport')
 
 let server;
 const log = console.log;
+const port = process.env.LOCALCHAIN_PORT;
 
 async function main(){
 
   // Launch server
-  log('Launching server on port 8545...');
+  log(`Launching server on port ${port}...`);
   log();
 
-  server = ganache.server();
-  await pify(server.listen)(8545);
+  server = ganache.server({
+    mnemonic: 'jacket swarm radio village civil cage report rate filter scrap valve spend'
+  });
 
-  const web3 = new Web3('http://localhost:8545');
+  await pify(server.listen)(port);
+
+  const web3 = new Web3(`http://localhost:${port}`);
   const accounts = await web3.eth.getAccounts();
 
   // Deploy contracts

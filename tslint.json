@@ -1,0 +1,14 @@
+{
+  "extends": "typestrict",
+  "rules": {
+    "no-debugger": true,
+    "mocha-avoid-only": true,
+    "prefer-const": true,
+    "no-var-keyword": true,
+    "interface-name": [true, "never-prefix"],
+    "no-commented-code": {
+      "severity": "warning"
+    },
+    "no-use-before-declare": false
+  }
+}

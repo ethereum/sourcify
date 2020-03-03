@@ -3,21 +3,31 @@ import { useDropzone } from 'react-dropzone'
 import Select from 'react-select'
 
 export default function App() {
-  const { acceptedFiles, getRootProps, getInputProps } = useDropzone()
-  const [chain, updateChain] = useState(options[0])
-  const [address, updateAddress] = useState('')
-  const [loading, updateLoading] = useState(false)
-  const [error, updateError] = useState(null)
-  const [result, updateResult] = useState([])
+    const chainOptions = [
+        { value: 'mainnet', label: 'Ethereum Mainnet' },
+        { value: 'ropsten', label: 'Ropsten' },
+        { value: 'rinkeby', label: 'Rinkeby' },
+        { value: 'kovan', label: 'Kovan' },
+        { value: 'goerli', label: 'Görli' }
+    ]
 
-  const chainOptions = [
-    { value: 'mainnet', label: 'Ethereum Mainnet' },
-    { value: 'ropsten', label: 'Ropsten' },
-    { value: 'rinkeby', label: 'Rinkeby' },
-    { value: 'kovan', label: 'Kovan' },
-    { value: 'goerli', label: 'Görli' },
-    { value: 'localhost', label: 'localhost:8545' }
-  ]
+    if (process.env.NODE_ENV === 'testing'){
+      chainOptions.push({
+        value: 'localhost',
+        label: 'localhost:8545'
+      })
+    }
+
+    const { acceptedFiles, getRootProps, getInputProps } = useDropzone()
+    const [chain, updateChain] = useState(chainOptions[0])
+    const [address, updateAddress] = useState('')
+    const [loading, updateLoading] = useState(false)
+    const [error, updateError] = useState(null)
+    const url = process.env.SERVER_URL
+    const log = console.log
+    log(`Server URL: ${url}`)
+
+  const [result, updateResult] = useState([])
 
   function handleSubmit() {
     updateError(null)
@@ -30,25 +40,30 @@ export default function App() {
     })
     formData.append('chain', chain.value)
     if (address) formData.append('address', address)
-
-    fetch('/', {
-      method: 'POST',
-      body: formData
-    })
-      .then(res => res.json())
-      .then(response => {
-        updateLoading(false)
-        if (response.error) {
-          updateError(response.error)
-        } else {
-          updateResult(response.result)
-        }
+    try{
+      fetch(`${url}`, {
+        method: 'POST',
+        body: formData
       })
-      .catch(err => {
+        .then(res => res.json())
+        .then(response => {
+          updateLoading(false)
+          if (response.error) {
+            updateError(response.error)
+          } else {
+            updateResult(response.result)
+          }
+        }).catch(err => {
+          updateLoading(false)
+          updateError('Something went wrong!')
+        })
+      }
+      catch(err) {
         console.log('Error: ', err)
         updateLoading(false)
         updateError('Something went wrong!')
-      })
+      }
+
   }
 
   const acceptedFilesItems = acceptedFiles.map(file => (
@@ -97,7 +112,7 @@ export default function App() {
             <input
               type="text"
               name="address"
-              placeholder="Contract Address (optional for Mainnet)"
+              placeholder="Contract Address (required)"
               value={address}
               onChange={e => updateAddress(e.target.value)}
             />
@@ -122,8 +137,7 @@ export default function App() {
         <div className="app-fieldset_footer">
           <input
             disabled={
-              acceptedFiles.length === 0 ||
-              (chain.value !== 'mainnet' && !address)
+              acceptedFiles.length === 0 || !address
             }
             type="submit"
             onClick={handleSubmit}
