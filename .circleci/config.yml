@@ -1,40 +1,60 @@
-aliases:
-  - &docker-base
-      docker:
-        - image: circleci/node:10.19.0-buster
-      steps:
-      - checkout
-      - run:
-          name: "Pull Submodules"
-          command: |
-            git submodule init
-            git submodule update --remote
-      - setup_remote_docker
-      - run:
-         name: Build and push docker images
-         command: |
-           CIRCLE_BRANCH=${CIRCLE_BRANCH} ./scripts/build_and_publish_docker_images.sh    
-  - &deploy-base
-      docker:
-        - image: circleci/node:10.19.0-buster
-      steps:
-      - checkout
-      - setup_remote_docker
-      - add_ssh_keys:
-          fingerprints:
-            - "a9:2f:97:c3:64:10:80:c7:8e:2f:db:f7:a3:4a:53:66"
-      - run:
-          name: Deploy
-          no_output_timeout: 30m
-          command: |
-            CIRCLE_BRANCH=${CIRCLE_BRANCH} ACCESS_KEY=$ACCESS_KEY SECRET_ACCESS_KEY=$SECRET_ACCESS_KEY ./scripts/deploy.sh
-  - &filter-base
-      filters:
-        branches:
-          only:
-          - staging
-          - master
-  - &node-base
+workflows:
+  version: 2
+  build_publish_deploy_docker:
+    jobs:
+      - build_push_docker:
+          filters:
+            branches:
+              only:
+              - staging
+              - master
+      - deploy:
+          filters:
+            branches:
+              only:
+              - staging
+              - master
+          requires:
+          - build_push_docker
+  node-multi-build:
+    jobs:
+      - node-v10
+      - node-v12:
+          run_coveralls: true
+
+version: 2.1
+jobs:
+  build_push_docker:
+    docker:
+      - image: circleci/node:10.19.0-buster
+    steps:
+    - checkout
+    - run:
+        name: "Pull Submodules"
+        command: |
+          git submodule init
+          git submodule update --remote
+    - setup_remote_docker
+    - run:
+        name: Build and push docker images
+        command: |
+          echo ${CIRCLE_BRANCH}
+          CIRCLE_BRANCH=${CIRCLE_BRANCH} ./scripts/build_and_publish_docker_images.sh
+  deploy:
+    docker:
+      - image: circleci/node:10.19.0-buster
+    steps:
+    - checkout
+    - setup_remote_docker
+    - add_ssh_keys:
+        fingerprints:
+          - "a9:2f:97:c3:64:10:80:c7:8e:2f:db:f7:a3:4a:53:66"
+    - run:
+        name: Build and push docker images
+        command: |
+          echo ${CIRCLE_BRANCH}
+          CIRCLE_BRANCH=${CIRCLE_BRANCH} ./scripts/deploy.sh
+  node-base: &node-base
     working_directory: ~/source-verify
     docker:
     - image: circleci/node
