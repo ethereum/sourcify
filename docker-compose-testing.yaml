@@ -26,6 +26,8 @@ services:
     networks:
     - source-verify-network
     restart: always
+    volumes:
+    - ./.env.${TAG}:/app/.env
   server:
     env_file:
     - .env.testing
