@@ -24,6 +24,8 @@ services:
     ports:
     - "${UI_EXTERNAL_PORT}:${UI_PORT}"
     restart: always
+    volumes:
+    - ./.env.${TAG}:/app/.env
   server:
     image: ethereum/source-verify:server-${TAG}
     env_file:

@@ -27,6 +27,8 @@ services:
       retries: 10
     networks:
     - source-verify-production
+    volumes:
+    - ./.env.${TAG}:/app/.env
   server:
     image: ethereum/source-verify:server-${TAG}
     env_file:
