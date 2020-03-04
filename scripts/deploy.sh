@@ -23,4 +23,5 @@ curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/d
 curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/.env.${TAG} > .env && \
 TAG=$TAG docker-compose pull && \
 echo $TAG && \
-source .env && TAG=$TAG COMPOSE_PROJECT_NAME=source-verify-${TAG} docker-compose up -d"
+source .env && TAG=$TAG COMPOSE_PROJECT_NAME=source-verify-${TAG} docker-compose up -d && \
+./scripts/clear_old_docker_images.sh"
