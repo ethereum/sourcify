@@ -86,7 +86,10 @@ export default function App() {
         <a href="https://gateway.ipfs.io/ipns/QmNmBr4tiXtwTrHKjyppUyAhW1FQZMJTdnUrksA9hapS4u">
           ipfs/ipns gateway
         </a>
-        .
+        <br/><br/>
+        Also if you have any question join us on <a href='https://gitter.im/ethereum/source-verify'>Gitter</a>.
+        <br/>
+        Source code is located on <a href='https://gitter.im/ethereum/source-verify'>link</a>. <br/> Feel free to open issues or contribute.
       </p>
 
       <fieldset className="app-fieldset">
