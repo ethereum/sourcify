@@ -89,6 +89,36 @@ visible in the bytecode. Variables can be renamed or unused code can be
 introduced. Since the bytecode contains a hash of the source code, such
 modifications have to be prepared at deploy time, but it is still a possibility.
 
+**Using the repository**
+
+There is a repository which contains all the files that monitor and server have found
+on one of the networks they are scraping.
+
+Repository is located on this [link](https://contractrepo.komputing.org/).
+
+When you go to the link, UI looks like this:
+<img src="./public/ui_start.png" width="80%"/>
+
+There you have options to search, donwload or open folders.
+
+For example to download:
+
+<img src="./public/download.png" width="80%"/>
+
+
+Or if you want to search something:
+
+<img src="./public/search.png" width="80%"/>
+
+Metadata inside is visible as raw, and you can download it like that
+
+<img src="./public/metadata.png" width="80%"/>
+
+or if you want to take a look of the contract in browser you can open it like this:
+
+<img src="./public/sol.png" width="80%"/>
+
+
 ## Future Plans
 
 - cope with metadata that does not have in-place source code
@@ -100,8 +130,9 @@ modifications have to be prepared at deploy time, but it is still a possibility.
 
 ## Run inside docker
 ### Prerequisites
-Docker (https://docs.docker.com/docker-for-mac/install/)
-Docker-compose (https://docs.docker.com/compose/install/)
+[Docker](https://docs.docker.com/docker-for-mac/install/)
+
+[Docker-compose](https://docs.docker.com/compose/install/)
 
 ### How to run
 
