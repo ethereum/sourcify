@@ -11,6 +11,10 @@ More information can be found in Solidity [metadata documentation][30]
 
 [30]: https://solidity.readthedocs.io/en/latest/metadata.html#contract-metadata
 
+If you have any question please ask us on [gitter][31].
+
+[31]: https://gitter.im/ethereum/source-verify
+
 ## Install
 ```
 $ npm install
@@ -101,8 +105,11 @@ Docker-compose (https://docs.docker.com/compose/install/)
 
 ### How to run
 
+If you just want to run with docker:
+`docker-compose -f docker.compose.yaml up -d`
+
 If you want to build images locally run:
-`docker-compose -f docker-compose.yaml build --no-cache --parallel`
+`docker-compose -f docker-compose.yaml build`
 
 If you change something in files just run:
 `docker-compose build --no-cache --parallel && docker-compose up -d` (-d flag means that output
