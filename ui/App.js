@@ -88,8 +88,6 @@ export default function App() {
         </a>
         <br/><br/>
         Also if you have any question join us on <a href='https://gitter.im/ethereum/source-verify'>Gitter</a>.
-        <br/>
-        Source code is located on <a href='https://github.com/ethereum/source-verify'>link</a>. <br/> Feel free to open issues or contribute.
       </p>
 
       <fieldset className="app-fieldset">
@@ -174,10 +172,12 @@ export default function App() {
         )}
       </fieldset>
       <p>
-        source code:{' '}
+        Source code:{' '}
         <a href="https://github.com/ethereum/source-verify/">
           https://github.com/ethereum/source-verify/
         </a>
+        <br/>
+        Feel free to open issues or contribute.
       </p>
     </div>
   )
