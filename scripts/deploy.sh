@@ -25,4 +25,4 @@ TAG=$TAG docker-compose pull && \
 echo $TAG && \
 source .env && TAG=$TAG COMPOSE_PROJECT_NAME=source-verify-${TAG} docker-compose up -d && \\
 curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/scripts/clear-repo.sh > clear-repo.sh && \\
-./clear-repo.sh"
+ls -al && ./clear-repo.sh"
