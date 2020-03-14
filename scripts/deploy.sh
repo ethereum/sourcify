@@ -15,5 +15,12 @@ fi
 
 # Do ssh to server
 ssh -o "StrictHostKeyChecking no" source-verify@komputing.org "\
-curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/scripts/setup.sh > setup.sh && chmod +x setup.sh && chown $USER:$USER setup.sh && \
-REPO_PATH='${REPO_PATH}' CIRCLE_BRANCH='${CIRCLE_BRANCH}' TAG='${TAG}' ACCESS_KEY='${ACCESS_KEY}' SECRET_ACCESS_KEY='${SECRET_ACCESS_KEY}' ./setup.sh"
+mkdir -p $REPO_PATH && \
+cd $REPO_PATH && \
+curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/docker-compose-${TAG}.yaml > docker-compose.yaml && \
+curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/.env.${TAG} > .env && \
+TAG=$TAG docker-compose pull && \
+echo $TAG && \
+source .env && TAG=$TAG COMPOSE_PROJECT_NAME=source-verify-${TAG} docker-compose up -d && \\
+curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/clear-repo.sh > clear-repo.sh && \\
+./clear-repo.sh"
