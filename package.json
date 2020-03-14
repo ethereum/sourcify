@@ -66,7 +66,7 @@
     "@types/serve-index": "^1.7.30",
     "ganache-cli": "^6.8.2",
     "ipfs": "^0.40.0",
-    "ipfs-unixfs": "^0.3.0",
+    "ipfs-unixfs": "^1.0.0",
     "ipld-dag-pb": "^0.18.2",
     "mocha": "^7.0.0",
     "pify": "^4.0.1",
