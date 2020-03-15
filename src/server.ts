@@ -59,7 +59,7 @@ app.post('/', (req, res) => {
     injector.inject(
       repository,
       req.body.chain,
-      req.body.address,
+      [req.body.address],
       files
     ).then(result => {
       res.status(200).send({ result })

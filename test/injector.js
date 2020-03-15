@@ -3,37 +3,41 @@ const ganache = require('ganache-cli');
 const exec = require('child_process').execSync;
 const pify = require('pify');
 const Web3 = require('web3');
-const dagPB = require('ipld-dag-pb');
-const UnixFS = require('ipfs-unixfs');
-const multihashes = require('multihashes');
-const fs = require('fs');
+const read = require('fs').readFileSync;
 
 const Simple = require('./sources/pass/simple.js');
-const { deployFromArtifact } = require('./helpers/helpers');
+const SimpleWithImport = require('./sources/pass/simpleWithImport');
+const MismatchedBytecode = require('./sources/fail/wrongCompiler');
+
+const { deployFromArtifact, getIPFSHash } = require('./helpers/helpers');
 const Injector = require('../src/injector').default;
 
 describe('injector', function(){
-  it.skip('findMetadataFile: identifies a metadata file in a group of files');
-  it.skip('findMetadataFile: errors when no metadata file is present');
-
-  it.skip('rearrangeSources: checks submitted sources against expected metadata hash');
-  it.skip('rearrangeSources: assembles submitted sources into a fileName-to-content map');
-
-  it.skip('storeData: writes metadata and sources to the repository');
-  it.skip('storeData: errors if the recompiled bytecode has no metadata hash')
-
   describe('inject', function(){
+    this.timeout(15000);
+
     let server;
     let port = 8545;
     let chain = 'localhost';
     let mockRepo = 'mockRepository';
     let injector = new Injector({localChainUrl: process.env.LOCALCHAIN_URL});
     let web3;
+    let simpleInstance;
+    let simpleWithImportInstance;
+
+    const simpleSource = Simple.sourceCodes["Simple.sol"];
+    const simpleWithImportSource = SimpleWithImport.sourceCodes["SimpleWithImport.sol"];
+    const importSource = SimpleWithImport.sourceCodes["Import.sol"];
+    const simpleMetadata = Simple.compilerOutput.metadata;
+    const simpleWithImportMetadata = SimpleWithImport.compilerOutput.metadata;
 
     before(async function(){
       server = ganache.server();
       await pify(server.listen)(port);
       web3 = new Web3(`http://${chain}:${port}`);
+
+      simpleInstance = await deployFromArtifact(web3, Simple);
+      simpleWithImportInstance = await deployFromArtifact(web3, SimpleWithImport);
     })
 
     // Clean up repository
@@ -46,33 +50,80 @@ describe('injector', function(){
       await pify(server.close)();
     });
 
-    it('verifies sources from metadata with an address & stores by IPFS hash', async function(){
-      this.timeout(15000);
-
-      const source = Simple.sourceCodes["Simple.sol"];
-      const metadata = Simple.compilerOutput.metadata;
-      const instance = await deployFromArtifact(web3, Simple);
-
+    it('verifies sources from multiple metadatas, addresses & stores by IPFS hash', async function(){
       // Inject by address into repository after recompiling
       await injector.inject(
         mockRepo,
         'localhost',
-        instance.options.address,
-        [source, metadata]
+        [
+          simpleInstance.options.address,
+          simpleWithImportInstance.options.address
+        ],
+        [
+          simpleSource,
+          simpleWithImportSource,
+          importSource,
+          simpleMetadata,
+          simpleWithImportMetadata
+        ]
       );
 
       // Verify metadata was stored to repository, indexed by ipfs hash
-      const file = new UnixFS('file', Buffer.from(metadata));
-      const node = new dagPB.DAGNode(file.marshal());
-      const metadataLink = await node.toDAGLink()
-      const ipfsHash = multihashes.toB58String(metadataLink._cid.multihash);
+      const simpleHash = await getIPFSHash(simpleMetadata);
+      const simpleWithImportHash = await getIPFSHash(simpleWithImportMetadata);
 
-      const ipfsMetadata = fs.readFileSync(`${mockRepo}/ipfs/${ipfsHash}`, 'utf-8');
-      assert.equal(ipfsMetadata, metadata);
+      const simpleSavedMetadata = read(`${mockRepo}/ipfs/${simpleHash}`, 'utf-8');
+      const simpleWithImportSavedMetadata = read(`${mockRepo}/ipfs/${simpleWithImportHash}`, 'utf-8');
+
+      assert.equal(simpleSavedMetadata, simpleMetadata);
+      assert.equal(simpleWithImportSavedMetadata, simpleWithImportMetadata);
     });
 
-    it.skip('verifies sources from metadata after checking address DB & stores by IPFS hash');
-    it.skip('errors if bytecode fetched by address does not match recompilation hash');
-    it.skip('errors when no address supplied and no hash matches in the address DB');
+    it('errors if metadata is missing', async function(){
+      try {
+        await injector.inject(
+          mockRepo,
+          'localhost',
+          [ simpleInstance.options.address],
+          [ simpleSource ]
+        );
+      } catch(err) {
+        assert.equal(
+          err.message,
+          'Metadata file not found. Did you include "metadata.json"?'
+        );
+      }
+    });
+
+    it('errors if sources specified in metadata are missing', async function(){
+      try {
+        await injector.inject(
+          mockRepo,
+          'localhost',
+          [ simpleInstance.options.address],
+          [ simpleMetadata ]
+        );
+      } catch(err) {
+        assert(err.message.includes('Simple.sol'));
+        assert(err.message.includes('cannot be found'));
+      }
+    });
+
+    it('errors when recompiled bytecode does not match deployed', async function(){
+      const mismatchedSource = MismatchedBytecode.sourceCodes["Simple.sol"];
+      const mismatchedMetadata = MismatchedBytecode.compilerOutput.metadata;
+
+      try {
+        await injector.inject(
+          mockRepo,
+          'localhost',
+          [ simpleInstance.options.address],
+          [ mismatchedMetadata, mismatchedSource ]
+        );
+      } catch(err) {
+        assert(err.message.includes('Could not match on-chain deployed bytecode'));
+        assert(err.message.includes('contracts/Simple.sol'));
+      }
+    });
   });
 })

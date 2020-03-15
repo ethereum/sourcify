@@ -60,11 +60,13 @@ export default class Injector {
   }
 
   /**
-   * Selects metadata file from an array of files that may include sources, etc
+   * Selects metadata files from an array of files that may include sources, etc
    * @param  {string[]} files
-   * @return {string}         metadata
+   * @return {string[]}         metadata
    */
-  private findMetadataFile(files: string[]) : string {
+  private findMetadataFiles(files: string[]) : any[] {
+    const metadataFiles = [];
+
     for (const i in files) {
       try {
         const m = JSON.parse(files[i])
@@ -73,11 +75,16 @@ export default class Injector {
         //       many assumptions are made about structure of
         //       metadata object after this selection step.
         if (m['language'] === 'Solidity') {
-          return m;
+          metadataFiles.push(m);
         }
       } catch (err) { /* ignore */ }
     }
-    throw new Error("Metadata file not found. Did you include \"metadata.json\"?");
+
+    if(!metadataFiles.length){
+      throw new Error("Metadata file not found. Did you include \"metadata.json\"?");
+    }
+
+    return metadataFiles;
   }
 
   /**
@@ -118,7 +125,7 @@ export default class Injector {
       if (!content) {
         throw new Error(
           `The metadata file mentions a source file called "${fileName}"` +
-          `that cannot be fonud in your upload.\nIts keccak256 hash is ${hash}. ` +
+          `that cannot be found in your upload.\nIts keccak256 hash is ${hash}. ` +
           `Please try to find it and include it in the upload.`
         );
       }
@@ -183,6 +190,36 @@ export default class Injector {
   }
 
   /**
+   * Searches a set of addresses for the one whose deployedBytecode
+   * matches a given bytecode string
+   * @param {String[]}          addresses
+   * @param {string}      deployedBytecode
+   */
+  private async matchBytecodeToAddress(
+    chain: string,
+    addresses: string[] = [],
+    compiledBytecode: string
+  ) : Promise<string | null> {
+
+    let match : string | null = null;
+
+    for (let address of addresses){
+      address = Web3.utils.toChecksumAddress(address)
+
+      let deployedBytecode : string | null = null;
+      try {
+        deployedBytecode = await getBytecode(this.chains[chain].web3, address)
+      } catch(e){ /* ignore */ }
+
+      if (deployedBytecode && deployedBytecode === compiledBytecode){
+        match = address;
+        break;
+      }
+    }
+    return match;
+  }
+
+  /**
    * Used by the front-end. Accepts a set of source files and a metadata string,
    * recompiles / validates them and stores them in the repository by chain/address
    * and by swarm | ipfs hash.
@@ -190,58 +227,59 @@ export default class Injector {
    * @param  {string}            chain      chain name (ex: 'ropsten')
    * @param  {string}            address    contract address
    * @param  {string[]}          files
-   * @return {Promise<string[]>}            addresses of successfully verified contracts
+   * @return {Promise<void>}
    */
   public async inject(
     repository: string,
     chain: string,
-    address: string,
+    addresses: string[],
     files: string[]
-  ) : Promise<string[]> {
+  ) : Promise<void> {
 
-    if (address) {
-      address = Web3.utils.toChecksumAddress(address)
-    }
+    const metadataFiles = this.findMetadataFiles(files)
 
-    const addresses = [];
-    const metadata = this.findMetadataFile(files)
-    const sources = this.rearrangeSources(metadata, files)
+    for (const metadata of metadataFiles){
+      const sources = this.rearrangeSources(metadata, files)
 
-    // Starting from here, we cannot trust the metadata object anymore,
-    // because it is modified inside recompile.
-    const compilationResult = await recompile(metadata, sources)
+      // Starting from here, we cannot trust the metadata object anymore,
+      // because it is modified inside recompile.
+      const target = Object.assign({}, metadata.settings.compilationTarget);
+      const compilationResult = await recompile(metadata, sources)
 
-    if (address) {
-      const bytecode = await getBytecode(this.chains[chain].web3, address)
-      if (compilationResult.deployedBytecode != bytecode) {
+      const address = await this.matchBytecodeToAddress(
+        chain,
+        addresses,
+        compilationResult.deployedBytecode
+      )
+
+      if (address) {
+        // Since the bytecode matches, we can be sure that we got the right
+        // metadata file (up to json formatting) and exactly the right sources.
+        // Now we can store the re-compiled and correctly formatted metadata file
+        // and the sources.
+        this.storeData(repository, chain, address, compilationResult, sources)
+
+      } else {
         throw new Error(
-          `Bytecode does not match.\n"On-chain deployed bytecode: ${bytecode}\n` +
-          `Re-compiled bytecode: ${compilationResult.deployedBytecode}\n`
+          `Could not match on-chain deployed bytecode to recompiled bytecode for:\n` +
+          `${JSON.stringify(target, null, ' ')}\n` +
+          `Addresses checked:\n` +
+          `${JSON.stringify(addresses, null, ' ')}`
         )
       }
-      addresses.push(address)
-    } else {
-      // TODO: implement address db writes
-      // TODO this should probably return pairs of chain and address
+      /* else {
+        // TODO: implement address db writes
+        // TODO this should probably return pairs of chain and address
 
-      // tslint:disable no-commented-code
-      /*
-      addresses = await findAddresses(chain, compilationResult.deployedBytecode)
-      if (addresses.length == 0) {
-        throw (
-          `Contract compiled successfully, but could not find matching bytecode and no ` +
-          `address provided.\n Re-compiled bytecode: ${compilationResult.deployedBytecode}\n`
-        )
-      }
+        // tslint:disable no-commented-code
+        addresses = await findAddresses(chain, compilationResult.deployedBytecode)
+        if (addresses.length == 0) {
+          throw (
+            `Contract compiled successfully, but could not find matching bytecode and no ` +
+            `address provided.\n Re-compiled bytecode: ${compilationResult.deployedBytecode}\n`
+          )
+        }
       */
     }
-    // Since the bytecode matches, we can be sure that we got the right
-    // metadata file (up to json formatting) and exactly the right sources.
-    // Now we can store the re-compiled and correctly formatted metadata file
-    // and the sources.
-    for (const i in addresses) {
-      this.storeData(repository, chain, addresses[i], compilationResult, sources)
-    }
-    return addresses
   }
 }
