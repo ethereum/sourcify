@@ -104,9 +104,7 @@ export default class Injector {
     }
 
     if(!metadataFiles.length){
-      const err = new Error("Metadata file not found. Did you include \"metadata.json\"?");
-      this.log.info({loc:'[FIND]', err: err});
-      throw err;
+      throw new Error("Metadata file not found. Did you include \"metadata.json\"?");
     }
 
     return metadataFiles;
@@ -150,8 +148,8 @@ export default class Injector {
         content = byHash[hash];
       }
       if (!content) {
-        const err = new Error(
-          `The metadata file mentions a source file called "${fileName}" ` +
+        throw new Error(
+          `The metadata file mentions a source file called "${fileName}"` +
           `that cannot be found in your upload.\nIts keccak256 hash is ${hash}. ` +
           `Please try to find it and include it in the upload.`
         );
@@ -230,53 +228,6 @@ export default class Injector {
   }
 
   /**
-   * Writes verified sources to repository by address under the "partial_matches" folder.
-   * This method used when recompilation bytecode matches deployed *except* for their
-   * metadata components.
-   * @param {string}              repository        repository root (ex: 'repository')
-   * @param {string}              chain             chain name (ex: 'ropsten')
-   * @param {string}              address           contract address
-   * @param {RecompilationResult} compilationResult solc output
-   * @param {StringMap}           sources           'rearranged' sources
-   */
-  private storePartialMatchData(
-    repository: string,
-    chain : string,
-    address : string,
-    compilationResult : RecompilationResult,
-    sources: StringMap
-  ) : void {
-
-    const addressPath = path.join(
-      repository,
-      'partial_matches',
-      chain,
-      address,
-      '/metadata.json'
-    );
-
-    save(addressPath, compilationResult.metadata);
-
-    for (const sourcePath in sources) {
-
-      const sanitizedPath = sourcePath
-        .replace(/[^a-z0-9_.\/-]/gim, "_")
-        .replace(/(^|\/)[.]+($|\/)/, '_');
-
-      const outputPath = path.join(
-        repository,
-        'partial_matches',
-        chain,
-        address,
-        'sources',
-        sanitizedPath
-      )
-
-      save(outputPath, sources[sourcePath]);
-    }
-  }
-
-  /**
    * Searches a set of addresses for the one whose deployedBytecode
    * matches a given bytecode string
    * @param {String[]}          addresses
@@ -286,67 +237,24 @@ export default class Injector {
     chain: string,
     addresses: string[] = [],
     compiledBytecode: string
-  ) : Promise<BytecodeMatch> {
-    let match : BytecodeMatch = { address: null, status: null };
+  ) : Promise<string | null> {
+
+    let match : string | null = null;
 
     for (let address of addresses){
       address = Web3.utils.toChecksumAddress(address)
 
       let deployedBytecode : string | null = null;
       try {
-        this.log.info(
-          {
-            loc: '[MATCH]',
-            chain: chain,
-            address: address
-          },
-          `Retrieving contract bytecode address`
-        );
         deployedBytecode = await getBytecode(this.chains[chain].web3, address)
       } catch(e){ /* ignore */ }
 
-      if (deployedBytecode && deployedBytecode.length > 2){
-        if (deployedBytecode === compiledBytecode){
-
-          match = { address: address, status: 'perfect' };
-          break;
-
-        } else if (trimMetadata(deployedBytecode) === trimMetadata(compiledBytecode)){
-
-          match = { address: address, status: 'partial' };
-          break;
-        }
+      if (deployedBytecode && deployedBytecode === compiledBytecode){
+        match = address;
+        break;
       }
     }
     return match;
-  }
-
-  /**
-   * Throws if addresses array contains a null value (express) or is length 0
-   * @param {string[] = []} addresses param (submitted to injector)
-   */
-  private validateAddresses(addresses: string[] = []){
-    const err = new Error("Missing address for submitted sources/metadata");
-
-    if (!addresses.length){
-      throw err;
-    }
-
-    for (const address of addresses ){
-      if (address == null) throw err;
-    }
-  }
-
-  /**
-   * Throws if `chain` is falsy or wrong type
-   * @param {string} chain param (submitted to injector)
-   */
-  private validateChain(chain: string){
-    const err = new Error("Missing chain name for submitted sources/metadata");
-
-    if (!chain || typeof chain !== 'string'){
-      throw err;
-    }
   }
 
   /**
@@ -357,20 +265,16 @@ export default class Injector {
    * @param  {string}            chain      chain name (ex: 'ropsten')
    * @param  {string}            address    contract address
    * @param  {string[]}          files
-   * @return {Promise<string[]>}            addresses of successfully verified contracts
+   * @return {Promise<void>}
    */
   public async inject(
     repository: string,
     chain: string,
     addresses: string[],
     files: string[]
-  ) : Promise<Match[]> {
-
-    this.validateAddresses(addresses);
-    this.validateChain(chain);
+  ) : Promise<void> {
 
     const metadataFiles = this.findMetadataFiles(files)
-    const matches: Match[] = [];
 
     for (const metadata of metadataFiles){
       const sources = this.rearrangeSources(metadata, files)
@@ -378,56 +282,28 @@ export default class Injector {
       // Starting from here, we cannot trust the metadata object anymore,
       // because it is modified inside recompile.
       const target = Object.assign({}, metadata.settings.compilationTarget);
+      const compilationResult = await recompile(metadata, sources)
 
-      let compilationResult : RecompilationResult;
-      try {
-        compilationResult = await recompile(metadata, sources, this.log)
-      } catch(err) {
-        this.log.info({loc: `[RECOMPILE]`, err: err});
-        throw err;
-      }
-
-      const match = await this.matchBytecodeToAddress(
+      const address = await this.matchBytecodeToAddress(
         chain,
         addresses,
         compilationResult.deployedBytecode
       )
 
-      // Since the bytecode matches, we can be sure that we got the right
-      // metadata file (up to json formatting) and exactly the right sources.
-      // Now we can store the re-compiled and correctly formatted metadata file
-      // and the sources.
-      if (match.address && match.status === 'perfect') {
-
-        this.storePerfectMatchData(repository, chain, match.address, compilationResult, sources)
-        matches.push({
-          address: match.address,
-          status: match.status
-        });
-
-      } else if (match.address && match.status === 'partial'){
-
-        this.storePartialMatchData(repository, chain, match.address, compilationResult, sources)
-        matches.push({
-          address: match.address,
-          status: match.status
-        });
+      if (address) {
+        // Since the bytecode matches, we can be sure that we got the right
+        // metadata file (up to json formatting) and exactly the right sources.
+        // Now we can store the re-compiled and correctly formatted metadata file
+        // and the sources.
+        this.storeData(repository, chain, address, compilationResult, sources)
 
       } else {
-        const err = new Error(
+        throw new Error(
           `Could not match on-chain deployed bytecode to recompiled bytecode for:\n` +
           `${JSON.stringify(target, null, ' ')}\n` +
           `Addresses checked:\n` +
           `${JSON.stringify(addresses, null, ' ')}`
-        );
-
-        this.log.info({
-          loc: '[INJECT]',
-          chain: chain,
-          addresses: addresses,
-          err: err
-        })
-        throw err;
+        )
       }
       /* else {
         // TODO: implement address db writes
@@ -443,6 +319,5 @@ export default class Injector {
         }
       */
     }
-    return matches
   }
 }

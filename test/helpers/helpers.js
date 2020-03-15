@@ -1,8 +1,6 @@
 const dagPB = require('ipld-dag-pb');
 const UnixFS = require('ipfs-unixfs');
 const multihashes = require('multihashes');
-const Web3 = require('web3');
-const utils = require('./../../src/utils');
 
 /**
  * Deploys a contract to testrpc
@@ -50,38 +48,8 @@ async function getIPFSHash(str){
   return multihashes.toB58String(metadataLink._cid.multihash);
 }
 
-/**
- * Extracts bzzr0 hash from a compiled artifact's deployed bytecode
- * @param  {Object} artifact artifact in ex: test/sources/pass
- * @return {String}          hash
- */
-function getBzzr0Hash(artifact){
-  const bytes = Web3.utils.hexToBytes(artifact.compilerOutput.evm.deployedBytecode.object);
-  const data = utils.cborDecode(bytes);
-  const val = Web3.utils.bytesToHex(data.bzzr0).slice(2);
-
-  if (!val.length) throw ('Artifact does not support bzzr0');
-  return val;
-}
-
-/**
- * Extracts bzzr1 hash from a compiled artifact's deployed bytecode
- * @param  {Object} artifact artifact in ex: test/sources/pass
- * @return {String}          hash
- */
-function getBzzr1Hash(artifact){
-  const bytes = Web3.utils.hexToBytes(artifact.compilerOutput.evm.deployedBytecode.object);
-  const data = utils.cborDecode(bytes);
-  const val = Web3.utils.bytesToHex(data.bzzr1).slice(2);
-
-  if (!val.length) throw ('Artifact does not support bzzr1');
-  return val;
-}
-
 module.exports = {
   deployFromArtifact: deployFromArtifact,
   waitSecs: waitSecs,
-  getIPFSHash: getIPFSHash,
-  getBzzr0Hash: getBzzr0Hash,
-  getBzzr1Hash: getBzzr1Hash
+  getIPFSHash: getIPFSHash
 }
