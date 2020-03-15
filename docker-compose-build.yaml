@@ -24,6 +24,8 @@ services:
     ports:
     - "${UI_EXTERNAL_PORT}:${UI_PORT}"
     restart: always
+    volumes:
+    - ./.env.${TAG}:/app/.env
   server:
     image: ethereum/source-verify:server-${TAG}
     env_file:
@@ -61,7 +63,7 @@ services:
       - ./h5ai-nginx/options.json:/h5ai/_h5ai/private/conf/options.json
       - ./h5ai-nginx/types.json:/h5ai/_h5ai/private/conf/types.json
     ports:
-    - ${NGINX_EXTERNAL_PORT}:${NGINX_PORT}
+    - ${REPOSITORY_EXTERNAL_PORT}:${REPOSITORY_PORT}
 volumes:
   repository:
   db:

@@ -1,66 +1,69 @@
-version: "3.5"
+version: "3.3"
 services:
   monitor:
     image: ethereum/source-verify:monitor-${TAG}
     env_file:
     - .env.${TAG}
-    container_name: monitor-${TAG}
+    container_name: monitor
+    build:
+      context: .
+      dockerfile: src/Dockerfile.monitor
     ports:
     - "${MONITOR_EXTERNAL_PORT}:${MONITOR_PORT}"
+    restart: always
     volumes:
     - ./repository:/app/repository
-    restart: always
-    networks:
-    - source-verify-production
   ui:
     image: ethereum/source-verify:ui-${TAG}
     env_file:
     - .env.${TAG}
-    container_name: ui-${TAG}
+    container_name: ui
+    build:
+      context: ui
+      dockerfile: Dockerfile
     ports:
     - "${UI_EXTERNAL_PORT}:${UI_PORT}"
     restart: always
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${UI_PORT}"]
-      interval: 30s
-      timeout: 10s
-      retries: 10
-    networks:
-    - source-verify-production
-    volumes:
-    - ./.env.${TAG}:/app/.env
   server:
     image: ethereum/source-verify:server-${TAG}
     env_file:
     - .env.${TAG}
-    container_name: server-${TAG}
+    container_name: server
+    build:
+      context: .
+      dockerfile: src/Dockerfile.server
     ports:
     - "${SERVER_EXTERNAL_PORT}:${SERVER_PORT}"
     volumes:
     - ./repository:/app/repository
     restart: always
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT}/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 10
-    networks:
-    - source-verify-production
+  localchain:
+    image: ethereum/source-verify:localchain-${TAG}
+    env_file:
+    - .env.${TAG}
+    container_name: localchain
+    build:
+      context: .
+      dockerfile: src/Dockerfile.localchain
+    ports:
+    - "${LOCALCHAIN_EXTERNAL_PORT}:${LOCALCHAIN_PORT}"
+    restart: always
   repository:
     image: ethereum/source-verify:repository-${TAG}
+    build:
+      context: h5ai-nginx
+      dockerfile: Dockerfile
     restart: always
-    container_name: repository-${TAG}
+    container_name: repository
     volumes:
       - h5ai:/h5ai
       - ./repository:/data
+      - ./h5ai-nginx/options.json:/h5ai/_h5ai/private/conf/options.json
+      - ./h5ai-nginx/types.json:/h5ai/_h5ai/private/conf/types.json
     ports:
     - ${REPOSITORY_EXTERNAL_PORT}:${REPOSITORY_PORT}
-    networks:
-    - source-verify-production
 volumes:
   repository:
   db:
   h5ai:
     driver: local
-networks:
-  source-verify-production:

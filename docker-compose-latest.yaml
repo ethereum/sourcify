@@ -27,6 +27,8 @@ services:
       retries: 10
     networks:
     - source-verify-staging
+    volumes:
+    - ./.env.${TAG}:/app/.env
   server:
     image: ethereum/source-verify:server-${TAG}
     env_file:
@@ -52,9 +54,17 @@ services:
       - h5ai:/h5ai
       - ./repository:/data
     ports:
-    - ${NGINX_EXTERNAL_PORT}:${NGINX_PORT}
+    - ${REPOSITORY_EXTERNAL_PORT}:${REPOSITORY_PORT}
     networks:
     - source-verify-staging
+  localchain:
+    image: ethereum/source-verify:localchain-${TAG}
+    container_name: localchain
+    ports:
+    - "${LOCALCHAIN_EXTERNAL_PORT}:${LOCALCHAIN_PORT}"
+    networks:
+    - source-verify-staging
+    restart: always
 volumes:
   repository:
   db:

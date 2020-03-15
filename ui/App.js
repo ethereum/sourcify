@@ -24,6 +24,7 @@ export default function App() {
     const [loading, updateLoading] = useState(false)
     const [error, updateError] = useState(null)
     const url = process.env.SERVER_URL
+    const repositoryUrl = process.env.REPOSITORY_URL
     const log = console.log
     log(`Server URL: ${url}`)
 
@@ -81,11 +82,12 @@ export default function App() {
         Note that the metadata file has to be exactly the same as at deploy
         time.
         <br />
-        Browse repository <a href="/repository">here</a> or via{' '}
+        Browse repository <a href={`${repositoryUrl}`}>here</a> or via{' '}
         <a href="https://gateway.ipfs.io/ipns/QmNmBr4tiXtwTrHKjyppUyAhW1FQZMJTdnUrksA9hapS4u">
           ipfs/ipns gateway
         </a>
-        .
+        <br/><br/>
+        Also if you have any question join us on <a href='https://gitter.im/ethereum/source-verify'>Gitter</a>.
       </p>
 
       <fieldset className="app-fieldset">
@@ -170,10 +172,12 @@ export default function App() {
         )}
       </fieldset>
       <p>
-        source code:{' '}
+        Source code:{' '}
         <a href="https://github.com/ethereum/source-verify/">
           https://github.com/ethereum/source-verify/
         </a>
+        <br/>
+        Feel free to open issues or contribute.
       </p>
     </div>
   )
