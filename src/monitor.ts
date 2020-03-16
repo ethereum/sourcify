@@ -10,7 +10,6 @@ import {
 import { cborDecode } from './utils';
 import { BlockTransactionObject } from 'web3-eth';
 import Logger from 'bunyan';
-//import Logger from 'bunyan';
 
 const multihashes = require('multihashes');
 
@@ -92,7 +91,7 @@ export default class Monitor {
     this.metadataInterval = null;
 
     this.log = Logger.createLogger({
-      name: "monitor",
+      name: "Monitor",
       streams: [{
         stream: process.stdout,
         level: config.silent ? 'fatal' : 30
