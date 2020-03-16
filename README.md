@@ -151,7 +151,7 @@ Note: you don't need to run all the services, just the ones you want.
 
 ```
 cp .env.testing .env
-docker-compose -f ipfs.yaml -f localchain.yaml -f monitor.yaml -f repository.yaml -f s3.yaml -f server.yaml -f ui.yaml up -d
+docker-compose -f docker-compose-testing.yaml up --build
 ```
 
 Other approach would be to run every service in docker except one that you are working on.
