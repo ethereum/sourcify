@@ -85,7 +85,7 @@ function reformatMetadata(
 
   if (contractName == '') {
     const err = new Error("Could not determine compilation target from metadata.");
-    log.info({loc: '[REFORMAT]', err: err});
+    log.info({loc: 'REFORMAT', err: err});
     throw err;
   }
 

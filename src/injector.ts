@@ -99,7 +99,9 @@ export default class Injector {
     }
 
     if(!metadataFiles.length){
-      throw new Error("Metadata file not found. Did you include \"metadata.json\"?");
+      const err = new Error("Metadata file not found. Did you include \"metadata.json\"?");
+      this.log.info({loc:'[FIND]', err: err});
+      throw err;
     }
 
     return metadataFiles;
@@ -136,19 +138,27 @@ export default class Injector {
       if(content) {
           if (Web3.utils.keccak256(content) != hash) {
               const err = new Error(`Invalid content for file ${fileName}`);
-              this.log.info({ loc: '[REARRANGE]', fileName: fileName, err: err});
+              this.log.info({
+                  loc: '[REARRANGE]',
+                  fileName: fileName,
+                  err: err
+              });
               throw err;
           }
       } else {
         content = byHash[hash];
       }
       if (!content) {
-        throw new Error(
+        const err = new Error(
           `The metadata file mentions a source file called "${fileName}"` +
           `that cannot be found in your upload.\nIts keccak256 hash is ${hash}. ` +
           `Please try to find it and include it in the upload.`
         );
-        this.log.info({loc: '[REARRANGE]', fileName: fileName, err: err});
+        this.log.info({
+          loc: '[REARRANGE]',
+          fileName: fileName,
+          err: err
+        });
         throw err;
       }
       sources[fileName] = content;
@@ -241,6 +251,14 @@ export default class Injector {
 
       let deployedBytecode : string | null = null;
       try {
+        this.log.info(
+          {
+            loc: '[MATCH]',
+            chain: chain,
+            address: address
+          },
+          `Retrieving contract bytecode address`
+        );
         deployedBytecode = await getBytecode(this.chains[chain].web3, address)
       } catch(e){ /* ignore */ }
 
@@ -277,7 +295,14 @@ export default class Injector {
       // Starting from here, we cannot trust the metadata object anymore,
       // because it is modified inside recompile.
       const target = Object.assign({}, metadata.settings.compilationTarget);
-      const compilationResult = await recompile(metadata, sources)
+
+      let compilationResult : RecompilationResult;
+      try {
+        compilationResult = await recompile(metadata, sources, this.log)
+      } catch(err) {
+        this.log.info({loc: `[RECOMPILE]`, err: err});
+        throw err;
+      }
 
       const address = await this.matchBytecodeToAddress(
         chain,
@@ -293,12 +318,20 @@ export default class Injector {
         this.storeData(repository, chain, address, compilationResult, sources)
 
       } else {
-        throw new Error(
+        const err = new Error(
           `Could not match on-chain deployed bytecode to recompiled bytecode for:\n` +
           `${JSON.stringify(target, null, ' ')}\n` +
           `Addresses checked:\n` +
           `${JSON.stringify(addresses, null, ' ')}`
-        )
+        );
+
+        this.log.info({
+          loc: '[INJECT]',
+          chain: chain,
+          addresses: addresses,
+          err: err
+        })
+        throw err;
       }
       /* else {
         // TODO: implement address db writes
