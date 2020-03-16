@@ -24,6 +24,8 @@ services:
     ports:
     - "${UI_EXTERNAL_PORT}:${UI_PORT}"
     restart: always
+    volumes:
+    - ./.env.${TAG}:/app/.env
   server:
     image: ethereum/source-verify:server-${TAG}
     env_file:
@@ -36,17 +38,6 @@ services:
     - "${SERVER_EXTERNAL_PORT}:${SERVER_PORT}"
     volumes:
     - ./repository:/app/repository
-    restart: always
-  localchain:
-    image: ethereum/source-verify:localchain-${TAG}
-    env_file:
-    - .env.${TAG}
-    container_name: localchain
-    build:
-      context: .
-      dockerfile: src/Dockerfile.localchain
-    ports:
-    - "${LOCALCHAIN_EXTERNAL_PORT}:${LOCALCHAIN_PORT}"
     restart: always
   repository:
     image: ethereum/source-verify:repository-${TAG}

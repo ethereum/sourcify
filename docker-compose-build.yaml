@@ -3,7 +3,7 @@ services:
   monitor:
     image: ethereum/source-verify:monitor-${TAG}
     env_file:
-    - .env.${TAG}
+    - .env
     container_name: monitor
     build:
       context: .
@@ -16,7 +16,7 @@ services:
   ui:
     image: ethereum/source-verify:ui-${TAG}
     env_file:
-    - .env.${TAG}
+    - .env
     container_name: ui
     build:
       context: ui
@@ -25,11 +25,11 @@ services:
     - "${UI_EXTERNAL_PORT}:${UI_PORT}"
     restart: always
     volumes:
-    - ./.env.${TAG}:/app/.env
+    - ./.env:/app/.env
   server:
     image: ethereum/source-verify:server-${TAG}
     env_file:
-    - .env.${TAG}
+    - .env
     container_name: server
     build:
       context: .
@@ -42,7 +42,7 @@ services:
   localchain:
     image: ethereum/source-verify:localchain-${TAG}
     env_file:
-    - .env.${TAG}
+    - .env
     container_name: localchain
     build:
       context: .

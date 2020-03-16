@@ -23,6 +23,6 @@ curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/d
 curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/.env.${TAG} > .env && \
 TAG=$TAG docker-compose pull && \
 echo $TAG && \
-source .env && TAG=$TAG COMPOSE_PROJECT_NAME=source-verify-${TAG} docker-compose up -d && \\
+TAG=$TAG COMPOSE_PROJECT_NAME=source-verify-${TAG} docker-compose up -d && \\
 curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/scripts/clear-repo.sh > clear-repo.sh && \\
 chmod +x clear-repo.sh && ./clear-repo.sh"
