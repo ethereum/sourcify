@@ -1,0 +1,22 @@
+{
+  "name": "@source-verify/verify-js",
+  "version": "1.0.0",
+  "description": "",
+  "main": "verify.js",
+  "scripts": {
+    "start": "node verify.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ethereum/source-verify.git"
+  },
+  "keywords": [
+    "verify"
+  ],
+  "author": "chriseth",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ethereum/source-verify/issues"
+  },
+  "homepage": "https://github.com/ethereum/source-verify#readme"
+}
