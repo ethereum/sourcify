@@ -3,6 +3,7 @@ import serveIndex from 'serve-index';
 import fileUpload from 'express-fileupload';
 import cors from 'cors';
 import Injector from './injector';
+import Logger from 'bunyan';
 
 const app = express();
 
@@ -14,6 +15,8 @@ if (process.env.TESTING){
 const injector = new Injector({
   localChainUrl: localChainUrl
 });
+
+const log = Logger.createLogger({name: "Server"});
 
 const repository = './repository/';
 const port = process.env.SERVER_PORT;
@@ -53,7 +56,7 @@ app.post('/', (req, res) => {
         files.push(data.toString())
         }
       } else {
-        console.log(`File ${x} invalid!`)
+        log.info({loc:'[POST:PARSE]'}, `File ${x} invalid!`)
       }
     }
     injector.inject(
@@ -64,14 +67,14 @@ app.post('/', (req, res) => {
     ).then(result => {
       res.status(200).send({ result })
     }).catch(err => {
-      console.log(`Error: ${err}`)
+      log.info({ loc:'[POST:INJECT]', err: err })
       res.send({ error: err.message })
     })
   } else {
     const err = new Error('Request missing expected property: "req.files.files"');
-    console.log(err);
+    log.info({ loc:'[POST:FILES]', err: err })
     res.send({ error: err.message });
   }
 })
 
-app.listen(port, () => console.log(`Injector listening on port ${port}!`))
+app.listen(port, () => log.info({loc:'[LISTEN]'}, `Injector listening on port ${port}!`))

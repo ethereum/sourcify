@@ -132,11 +132,7 @@ export default class Injector {
       if(content) {
           if (Web3.utils.keccak256(content) != hash) {
               const err = new Error(`Invalid content for file ${fileName}`);
-              this.log.info({
-                  loc: '[REARRANGE]',
-                  fileName: fileName,
-                  err: err
-              });
+              this.log.info({ loc: '[REARRANGE]', fileName: fileName, err: err});
               throw err;
           }
       } else {
@@ -148,11 +144,7 @@ export default class Injector {
           `that cannot be found in your upload.\nIts keccak256 hash is ${hash}. ` +
           `Please try to find it and include it in the upload.`
         );
-        this.log.info({
-          loc: '[REARRANGE]',
-          fileName: fileName,
-          err: err
-        });
+        this.log.info({loc: '[REARRANGE]', fileName: fileName, err: err});
         throw err;
       }
       sources[fileName] = content;
