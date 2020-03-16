@@ -151,6 +151,7 @@ won't be printed in stdout)
 **Launch**
 
 ```
+cp .env.testing .env
 docker-compose -f docker-compose-testing.yaml up --build
 ```
 
