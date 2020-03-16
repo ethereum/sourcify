@@ -4,7 +4,6 @@ import fileUpload from 'express-fileupload';
 import cors from 'cors';
 import Injector from './injector';
 import Logger from 'bunyan';
-import util from 'util';
 
 const app = express();
 
@@ -27,6 +26,8 @@ const log = Logger.createLogger({
     level: silent ? 'fatal' : 30
   }]
 });
+
+const log = Logger.createLogger({name: "Server"});
 
 const repository = './repository/';
 const port = process.env.SERVER_PORT;
@@ -61,39 +62,8 @@ app.post('/', (req, res) => {
         if (req.files.files[parseInt(x)].data){
           inputs.push(req.files.files[parseInt(x)].data);
         }
-      }
-
-    // Case: <UploadedFile>
-    } else if (req.files.files["data"]) {
-      inputs.push(req.files.files["data"]);
-
-    // Case: default
-    } else {
-      const msg = `Invalid file(s) detected: ${util.inspect(req.files.files)}`;
-      log.info({loc:'[POST:INVALID_FILE]'}, msg);
-    }
-
-    if (!inputs.length){
-      const msg = 'Unable to extract any files. Your request may be misformatted ' +
-                  'or missing some contents.';
-
-      const err = new Error(msg);
-      log.info({ loc:'[POST:NO_FILES]', err: err })
-      res.status(400).send({ error: err.message })
-      return;
-    }
-
-    for (const data of inputs){
-      try {
-        const val = JSON.parse(data.toString());
-        const type = Object.prototype.toString.call(val);
-
-        (type === '[object Object]')
-          ? files.push(JSON.stringify(val))  // JSON formatted metadata
-          : files.push(val);                 // Stringified metadata
-
-      } catch (err) {
-        files.push(data.toString())          // Solidity files
+      } else {
+        log.info({loc:'[POST:PARSE]'}, `File ${x} invalid!`)
       }
     }
     injector.inject(
@@ -104,17 +74,14 @@ app.post('/', (req, res) => {
     ).then(result => {
       res.status(200).send({ result })
     }).catch(err => {
-      log.info({ loc:'[POST:INJECT_ERROR]', err: err })
-      res.status(400).send({ error: err.message })
+      log.info({ loc:'[POST:INJECT]', err: err })
+      res.send({ error: err.message })
     })
   } else {
-    const msg = 'Request missing expected property: "req.files.files"';
-    const err = new Error(msg);
-    log.info({ loc:'[POST:REQUEST_MISFORMAT]', err: err })
-    res.status(400).send({ error: err.message });
+    const err = new Error('Request missing expected property: "req.files.files"');
+    log.info({ loc:'[POST:FILES]', err: err })
+    res.send({ error: err.message });
   }
 })
 
 app.listen(port, () => log.info({loc:'[LISTEN]'}, `Injector listening on port ${port}!`))
-
-export default app;
