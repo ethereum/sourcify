@@ -95,6 +95,7 @@ If you change something in files just run:
 ### Launch service
 
 ```
+cp .env.testing .env
 docker-compose -f docker-compose-testing.yaml up --build
 ```
 
