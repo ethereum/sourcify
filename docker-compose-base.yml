@@ -9,7 +9,7 @@ services:
   monitor:
     image: ethereum/source-verify:monitor-${TAG}
     env_file:
-    - .env.${TAG}
+    - .env
     container_name: monitor-${TAG}
     ports:
     - "${MONITOR_EXTERNAL_PORT}:${MONITOR_PORT}"
@@ -18,11 +18,11 @@ services:
         target: /app/repository
     restart: always
     networks:
-    - source-verify-production
+    - source-verify-staging
   ui:
     image: ethereum/source-verify:ui-${TAG}
     env_file:
-    - .env.${TAG}
+    - .env
     container_name: ui-${TAG}
     ports:
     - "${UI_EXTERNAL_PORT}:${UI_PORT}"
@@ -32,14 +32,14 @@ services:
       interval: 30s
       timeout: 10s
       retries: 10
-    networks:
-    - source-verify-production
     volumes:
-    - ./.env.${TAG}:/app/.env
+    - ./.env:/app/.env
+    networks:
+    - source-verify-staging
   server:
     image: ethereum/source-verify:server-${TAG}
     env_file:
-    - .env.${TAG}
+    - .env
     container_name: server-${TAG}
     ports:
     - "${SERVER_EXTERNAL_PORT}:${SERVER_PORT}"
@@ -53,7 +53,7 @@ services:
       timeout: 10s
       retries: 10
     networks:
-    - source-verify-production
+    - source-verify-staging
   repository:
     image: ethereum/source-verify:repository-${TAG}
     restart: always
@@ -66,19 +66,28 @@ services:
     ports:
     - ${REPOSITORY_EXTERNAL_PORT}:${REPOSITORY_PORT}
     networks:
-    - source-verify-production
+    - source-verify-staging
+  localchain:
+    image: ethereum/source-verify:localchain-${TAG}
+    restart: always
+    container_name: localchain-${TAG}
+    ports:
+    - "${LOCALCHAIN_EXTERNAL_PORT}:${LOCALCHAIN_PORT}"
+    networks:
+    - source-verify-staging
   s3sync:
     image: ethereum/source-verify:s3-${TAG}
     restart: always
     container_name: s3-${TAG}
+    env_file: .env
     volumes:
       - <<: *project-mount
         target: /app/repository
     networks:
-    - source-verify-production
+    - source-verify-staging
 volumes:
   db:
   h5ai:
     driver: local
 networks:
-  source-verify-production:
+  source-verify-staging:

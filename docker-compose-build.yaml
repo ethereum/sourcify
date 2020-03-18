@@ -1,4 +1,10 @@
-version: "3.3"
+version: "3.5"
+
+x-project-mount:
+  &project-mount
+  type: bind
+  source: ./repository
+
 services:
   monitor:
     image: ethereum/source-verify:monitor-${TAG}
@@ -12,7 +18,8 @@ services:
     - "${MONITOR_EXTERNAL_PORT}:${MONITOR_PORT}"
     restart: always
     volumes:
-    - ./repository:/app/repository
+      - <<: *project-mount
+        target: /app/repository
   ui:
     image: ethereum/source-verify:ui-${TAG}
     env_file:
@@ -37,7 +44,8 @@ services:
     ports:
     - "${SERVER_EXTERNAL_PORT}:${SERVER_PORT}"
     volumes:
-    - ./repository:/app/repository
+      - <<: *project-mount
+        target: /app/repository
     restart: always
   localchain:
     image: ethereum/source-verify:localchain-${TAG}
@@ -59,11 +67,22 @@ services:
     container_name: repository
     volumes:
       - h5ai:/h5ai
-      - ./repository:/data
+      - <<: *project-mount
+        target: /data     
       - ./h5ai-nginx/options.json:/h5ai/_h5ai/private/conf/options.json
       - ./h5ai-nginx/types.json:/h5ai/_h5ai/private/conf/types.json
     ports:
     - ${REPOSITORY_EXTERNAL_PORT}:${REPOSITORY_PORT}
+  s3sync:
+    image: ethereum/source-verify:s3-${TAG}
+    container_name: s3sync
+    build:
+      context: .
+      dockerfile: Dockerfile.s3
+    restart: always
+    volumes:
+      - <<: *project-mount
+        target: /app/repository
 volumes:
   repository:
   db:
