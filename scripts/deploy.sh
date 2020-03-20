@@ -7,11 +7,13 @@ export TAG="$CIRCLE_BRANCH"
 if [ "$CIRCLE_BRANCH" == "staging" ]; then 
     export TAG="latest"
     export REPO_PATH='/opt/source-verify/staging/source-verify/'
+    export COMPOSE_COMMAND='source .env && COMPOSE_PROJECT_NAME=${TAG}_source-verify docker-compose -f base.yaml -f localchain.yaml'
 fi
 
 if [ "$CIRCLE_BRANCH" == "master" ]; then
     export TAG="stable"; 
     export REPO_PATH='/opt/source-verify/production/source-verify/'
+    export COMPOSE_COMMAND='source .env && COMPOSE_PROJECT_NAME=${TAG}_source-verify docker-compose -f base.yaml'
 fi
 
 echo $TAG
@@ -19,10 +21,9 @@ echo $TAG
 ssh -o "StrictHostKeyChecking no" source-verify@komputing.org "\
 mkdir -p $REPO_PATH && \
 cd $REPO_PATH && \
-curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/docker-compose-${TAG}.yaml > docker-compose.yaml && \
-curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/.env.${TAG} > .env && \
-TAG=$TAG docker-compose pull && \
+curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/environments ./environments && \
+eval ${COMPOSE_COMMAND} pull && \
 echo $TAG && \
-source .env && TAG=$TAG COMPOSE_PROJECT_NAME=source-verify-${TAG} docker-compose up -d && \\
+eval ${COMPOSE_COMMAND} up -d \
 curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/scripts/clear-repo.sh > clear-repo.sh && \\
 chmod +x clear-repo.sh && ./clear-repo.sh"

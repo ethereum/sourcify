@@ -16,9 +16,8 @@ fi
 
 echo $TAG
 
-curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/docker-compose-build.yaml > docker-compose.yaml
-curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/.env.${TAG} > .env
+curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/environments ./environments && cd environments && \
 
 docker login --username $DOCKER_USER --password $DOCKER_PASS
-source .env.${TAG}  && docker-compose -f docker-compose.yaml build --no-cache --parallel
-source .env.${TAG}  && docker-compose -f docker-compose.yaml push
+docker-compose -f base.yaml -f build --no-cache --parallel
+docker-compose -f base.yaml -f build.yaml push

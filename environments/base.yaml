@@ -1,93 +1,80 @@
-version: "3.5"
-
-x-project-mount:
-  &project-mount
+version: "3.7"
+x-project-repository-mount:
+  &project-repository-mount
   type: bind
-  source: ./repository
+  source: ../repository
+
+x-env-file-mount:
+  &env-file-mount
+  type: bind
+  source: .env
+
+x-project-base:
+  &project-base
+  env_file:
+    - .env
+  restart: always
+  networks:
+    - source-verify
+
+networks:
+  source-verify:
+volumes:
+  db:
+  h5ai:
+    driver: local
 
 services:
   monitor:
+    <<: *project-base
     image: ethereum/source-verify:monitor-${TAG}
-    env_file:
-    - .env
     container_name: monitor-${TAG}
+    volumes:
+      - <<: *project-repository-mount
+        target: /app/repository
     ports:
     - "${MONITOR_EXTERNAL_PORT}:${MONITOR_PORT}"
-    volumes:
-      - <<: *project-mount
-        target: /app/repository
-    restart: always
-    networks:
-    - source-verify-staging
   ui:
     image: ethereum/source-verify:ui-${TAG}
-    env_file:
-    - .env
     container_name: ui-${TAG}
-    ports:
-    - "${UI_EXTERNAL_PORT}:${UI_PORT}"
-    restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${UI_PORT}"]
       interval: 30s
       timeout: 10s
       retries: 10
     volumes:
-    - ./.env:/app/.env
-    networks:
-    - source-verify-staging
+    - <<: *env-file-mount
+      target: /app/.env
+    ports:
+    - "${UI_EXTERNAL_PORT}:${UI_PORT}"
   server:
+    <<: *project-base
     image: ethereum/source-verify:server-${TAG}
-    env_file:
-    - .env
     container_name: server-${TAG}
     ports:
     - "${SERVER_EXTERNAL_PORT}:${SERVER_PORT}"
     volumes:
-      - <<: *project-mount
+      - <<: *project-repository-mount
         target: /app/repository
-    restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT}/health"]
       interval: 30s
       timeout: 10s
       retries: 10
-    networks:
-    - source-verify-staging
   repository:
+    <<: *project-base
     image: ethereum/source-verify:repository-${TAG}
-    restart: always
     container_name: repository-${TAG}
     volumes:
-      - h5ai:/h5ai
-      - <<: *project-mount
+      - <<: *project-repository-mount
         target: /data
         read_only: true
     ports:
     - ${REPOSITORY_EXTERNAL_PORT}:${REPOSITORY_PORT}
-    networks:
-    - source-verify-staging
-  localchain:
-    image: ethereum/source-verify:localchain-${TAG}
-    restart: always
-    container_name: localchain-${TAG}
-    ports:
-    - "${LOCALCHAIN_EXTERNAL_PORT}:${LOCALCHAIN_PORT}"
-    networks:
-    - source-verify-staging
   s3sync:
+    <<: *project-base
     image: ethereum/source-verify:s3-${TAG}
-    restart: always
     container_name: s3-${TAG}
-    env_file: .env
     volumes:
-      - <<: *project-mount
+      - <<: *project-repository-mount
         target: /app/repository
-    networks:
-    - source-verify-staging
-volumes:
-  db:
-  h5ai:
-    driver: local
-networks:
-  source-verify-staging:
