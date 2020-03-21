@@ -23,4 +23,8 @@ services:
   s3sync:
     build:
       context: ../
-      dockerfile: Dockerfile.s3
+      dockerfile: src/s3sync/Dockerfile.s3
+  ipfs:
+    build:
+      context: ../
+      dockerfile: src/ipfs/Dockerfile.ipfs

@@ -18,8 +18,8 @@ networks:
 services:
   s3sync:
     <<: *project-base
-    image: ethereum/source-verify:s3-${TAG}
-    container_name: s3-${TAG}
+    image: ethereum/source-verify:ipfs-${TAG}
+    container_name: ipfs-${TAG}
     volumes:
       - <<: *project-repository-mount
         target: /app/repository

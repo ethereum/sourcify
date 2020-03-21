@@ -8,7 +8,10 @@ x-project-base:
     - .env
   restart: always
   networks:
-    - source-verify-base
+    - source-verify
+
+networks:
+  source-verify:
 
 services:
   localchain:
