@@ -85,10 +85,10 @@ Prepare environment and start by running
 `STAGE=testing ./prepare_and_start.sh` for testing.
 
 If you want to build images locally run:
-`docker-compose -f docker-compose.yaml build --no-cache --parallel`
+`docker-compose -f base.yaml -f s3.yaml -f localchain.yaml -f ipfs.yaml -f build.yaml build --parallel`
 
 If you change something in files just run:
-`docker-compose build --no-cache --parallel && docker-compose up -d` (-d flag means that output won't be printed in stdout)
+`docker-compose -f base.yaml -f s3.yaml -f ipfs.yaml -f localchain.yaml up -d` (-d flag means that output won't be printed in stdout)
 
 ## Development
 
