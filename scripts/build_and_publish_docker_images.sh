@@ -15,7 +15,7 @@ if [ "$CIRCLE_BRANCH" == "master" ]; then
 fi
 
 if [ "$CIRCLE_BRANCH" == "volumes-read-write-config" ]; then
-    export TAG="latest"
+    export TAG="test"
     echo $TAG
 fi
 

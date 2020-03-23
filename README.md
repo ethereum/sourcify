@@ -73,7 +73,6 @@ modifications have to be prepared at deploy time, but it is still a possibility.
 - perform source verification given only an address instead of the bytecode
   or the metadata
 
-
 ## Run inside docker
 ### Prerequisites
 Docker (https://docs.docker.com/docker-for-mac/install/)
