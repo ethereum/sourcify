@@ -134,7 +134,7 @@ describe("server", function() {
       });
   });
 
-  it("when submitting without an address (error)", function(done){
+  it("when submitting without a chain name (error)", function(done){
     chai.request(serverAddress)
       .post('/')
       .attach("files", read(simpleMetadataPath), "simple.meta.json")
