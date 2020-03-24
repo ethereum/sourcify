@@ -8,6 +8,7 @@ const read = require('fs').readFileSync;
 const Simple = require('./sources/pass/simple.js');
 const SimpleWithImport = require('./sources/pass/simpleWithImport');
 const MismatchedBytecode = require('./sources/fail/wrongCompiler');
+const Literal = require('./sources/pass/simple.literal');
 
 const { deployFromArtifact, getIPFSHash } = require('./helpers/helpers');
 const Injector = require('../src/injector').default;
@@ -24,12 +25,14 @@ describe('injector', function(){
     let web3;
     let simpleInstance;
     let simpleWithImportInstance;
+    let literalInstance;
 
     const simpleSource = Simple.sourceCodes["Simple.sol"];
     const simpleWithImportSource = SimpleWithImport.sourceCodes["SimpleWithImport.sol"];
     const importSource = SimpleWithImport.sourceCodes["Import.sol"];
     const simpleMetadata = Simple.compilerOutput.metadata;
     const simpleWithImportMetadata = SimpleWithImport.compilerOutput.metadata;
+    const literalMetadata = Literal.compilerOutput.metadata;
 
     before(async function(){
       server = ganache.server();
@@ -38,6 +41,7 @@ describe('injector', function(){
 
       simpleInstance = await deployFromArtifact(web3, Simple);
       simpleWithImportInstance = await deployFromArtifact(web3, SimpleWithImport);
+      literalInstance = await deployFromArtifact(web3, Literal);
     })
 
     // Clean up repository
@@ -77,6 +81,22 @@ describe('injector', function(){
 
       assert.equal(simpleSavedMetadata, simpleMetadata);
       assert.equal(simpleWithImportSavedMetadata, simpleWithImportMetadata);
+    });
+
+    it('verfies a metadata with embedded source code (--metadata-literal)', async function(){
+      // Inject by address into repository after recompiling
+      await injector.inject(
+        mockRepo,
+        'localhost',
+        [ literalInstance.options.address ],
+        [ literalMetadata ]
+      );
+
+      // Verify metadata was stored to repository, indexed by ipfs hash
+      const literalHash = await getIPFSHash(literalMetadata);
+      const literalSavedMetadata = read(`${mockRepo}/ipfs/${literalHash}`, 'utf-8');
+
+      assert.equal(literalSavedMetadata, literalMetadata);
     });
 
     it('errors if metadata is missing', async function(){
