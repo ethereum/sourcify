@@ -19,7 +19,6 @@ const { deployFromArtifact } = require('./helpers/helpers');
 const Simple = require('./sources/pass/simple.js');
 const simpleMetadataPath = './test/sources/all/simple.meta.json';
 const simpleSourcePath = './test/sources/all/Simple.sol';
-const simpleMetadataJSONPath = './test/sources/metadata/simple.meta.object.json';
 
 chai.use(chaiHttp);
 
@@ -50,7 +49,7 @@ describe("server", function() {
     await pify(server.close)();
   });
 
-  it("when submitting a valid request (stringified metadata)", function(done){
+  it("when submitting a valid request", function(done){
     const expectedPath = path.join(
       './repository',
       'contract',
@@ -74,35 +73,6 @@ describe("server", function() {
         // Verify sources were written to repo
         const saved = JSON.stringify(read(expectedPath, 'utf-8'));
         assert.equal(saved, submittedMetadata.trim());
-        done();
-      });
-  });
-
-  it("when submitting a valid request (json formatted metadata)", function(done){
-    const expectedPath = path.join(
-      './repository',
-      'contract',
-      'localhost',
-      simpleInstance.options.address,
-      'metadata.json'
-    );
-
-    // The injector will save a stringified version
-    const stringifiedMetadata = read(simpleMetadataPath, 'utf-8');
-
-    chai.request(serverAddress)
-      .post('/')
-      .attach("files", read(simpleMetadataJSONPath), "simple.meta.object.json")
-      .attach("files", read(simpleSourcePath), "Simple.sol")
-      .field("address", simpleInstance.options.address)
-      .field("chain", 'localhost')
-      .end(function (err, res) {
-        assert.equal(err, null);
-        assert.equal(res.status, 200);
-
-        // Verify sources were written to repo
-        const saved = JSON.stringify(read(expectedPath, 'utf-8'));
-        assert.equal(saved, stringifiedMetadata.trim());
         done();
       });
   });
@@ -164,7 +134,7 @@ describe("server", function() {
       });
   });
 
-  it("when submitting without a chain name (error)", function(done){
+  it("when submitting without an address (error)", function(done){
     chai.request(serverAddress)
       .post('/')
       .attach("files", read(simpleMetadataPath), "simple.meta.json")
