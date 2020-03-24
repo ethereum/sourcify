@@ -263,6 +263,34 @@ export default class Injector {
   }
 
   /**
+   * Throws if addresses array contains a null value (express) or is length 0
+   * @param {string[] = []} addresses param (submitted to injector)
+   */
+  private validateAddresses(addresses: string[] = []){
+    const err = new Error("Missing address for submitted sources/metadata");
+
+    if (!addresses.length){
+      throw err;
+    }
+
+    for (const address of addresses ){
+      if (address == null) throw err;
+    }
+  }
+
+  /**
+   * Throws if `chain` is falsy or wrong type
+   * @param {string} chain param (submitted to injector)
+   */
+  private validateChain(chain: string){
+    const err = new Error("Missing chain name for submitted sources/metadata");
+
+    if (!chain || typeof chain !== 'string'){
+      throw err;
+    }
+  }
+
+  /**
    * Used by the front-end. Accepts a set of source files and a metadata string,
    * recompiles / validates them and stores them in the repository by chain/address
    * and by swarm | ipfs hash.
@@ -278,6 +306,9 @@ export default class Injector {
     addresses: string[],
     files: string[]
   ) : Promise<void> {
+
+    this.validateAddresses(addresses);
+    this.validateChain(chain);
 
     const metadataFiles = this.findMetadataFiles(files)
 
