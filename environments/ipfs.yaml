@@ -16,7 +16,7 @@ networks:
   source-verify:
   
 services:
-  s3sync:
+  ipfs:
     <<: *project-base
     image: ethereum/source-verify:ipfs-${TAG}
     container_name: ipfs-${TAG}

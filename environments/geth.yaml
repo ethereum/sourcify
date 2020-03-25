@@ -20,7 +20,7 @@ services:
     - "./datadir:/root/.ethereum"
     - "../src/geth/goerli-genesis.json:/home/genesis.json"
     - "../src/geth/config.toml:/home/config.toml"
-    - "../src/go-ethereum/start_geth.sh:/home/start_geth.sh"
+    - "./tmp:/tmp/"
     ports:
     - 8545:8545
     - 30303:30303
