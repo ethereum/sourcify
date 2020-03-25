@@ -25,7 +25,8 @@
     "build": "tsc",
     "build:ui": "cd ./ui/ && npm install && npm run build",
     "monitor": "tsc && ./scripts/run_monitor.sh",
-    "server": "tsc && node ./dist/server.js ./repository"
+    "server": "tsc && node ./dist/server.js ./repository",
+    "server:test": "tsc && TESTING=true LOCALCHAIN_URL=http://localhost:8545 SERVER_PORT=2000 node ./dist/server.js ./repository"
   },
   "keywords": [
     "ethereum",
@@ -66,6 +67,8 @@
     "@types/node": "^13.7.1",
     "@types/request-promise-native": "^1.0.17",
     "@types/serve-index": "^1.7.30",
+    "chai": "^4.2.0",
+    "chai-http": "^4.3.0",
     "ganache-cli": "^6.8.2",
     "ipfs": "^0.40.0",
     "ipfs-unixfs": "^1.0.0",

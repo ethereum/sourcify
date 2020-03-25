@@ -1,7 +1,7 @@
 // Simple.sol (include literal source contents instead of urls)
 // solc 0.6.0
 // solc setting "metadata: { "useLiteralContent": true }"
-modules.exports = {
+module.exports = {
   "compilerOutput": {
     "abi": [
       {
