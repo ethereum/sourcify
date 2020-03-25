@@ -1,8 +1,8 @@
 import cbor from 'cbor';
 import Web3 from 'web3';
+import Logger from 'bunyan';
 
 const solc: any = require('solc');
-const log = console.log;
 
 declare interface StringMap {
   [key: string]: string;
@@ -43,9 +43,21 @@ export function cborDecode(bytecode: number[]) : any {
  */
 export async function getBytecode(web3: Web3, address: string) {
   address = web3.utils.toChecksumAddress(address);
-  log(`Retrieving bytecode of contract at address ${address}...`);
   return await web3.eth.getCode(address);
 };
+
+
+/**
+ * Removes post-fixed metadata from a bytecode string
+ * (for partial bytecode match comparisons )
+ * @param  {string} bytecode
+ * @return {string}          bytecode minus metadata
+ */
+export function getBytecodeWithoutMetadata(bytecode: string) : string {
+  // Last 4 chars of bytecode specify byte size of metadata component,
+  const metadataSize = parseInt(bytecode.slice(-4), 16) * 2 + 4;
+  return bytecode.slice(0, bytecode.length - metadataSize);
+}
 
 /**
  * Formats metadata into an object which can be passed to solc for recompilation
@@ -53,7 +65,12 @@ export async function getBytecode(web3: Web3, address: string) {
  * @param  {string[]}            sources  solidity sources
  * @return {ReformattedMetadata}
  */
-function reformatMetadata(metadata : any, sources : StringMap ) : ReformattedMetadata {
+function reformatMetadata(
+  metadata : any,
+  sources : StringMap,
+  log: Logger
+) : ReformattedMetadata {
+
   const input : any = {};
   let fileName : string = '';
   let contractName : string = '';
@@ -67,7 +84,9 @@ function reformatMetadata(metadata : any, sources : StringMap ) : ReformattedMet
   delete input['settings']['compilationTarget']
 
   if (contractName == '') {
-    throw new Error("Could not determine compilation target from metadata.");
+    const err = new Error("Could not determine compilation target from metadata.");
+    log.info({loc: '[REFORMAT]', err: err});
+    throw err;
   }
 
   input['sources'] = {}
@@ -99,25 +118,35 @@ function reformatMetadata(metadata : any, sources : StringMap ) : ReformattedMet
  * @param  {string[]}                     sources  solidity files
  * @return {Promise<RecompilationResult>}
  */
-export async function recompile(metadata : any, sources : StringMap) : Promise<RecompilationResult> {
+export async function recompile(
+  metadata : any,
+  sources : StringMap,
+  log: Logger
+) : Promise<RecompilationResult> {
+
   const {
     input,
     fileName,
     contractName
-  } = reformatMetadata(metadata, sources);
+  } = reformatMetadata(metadata, sources, log);
 
   const version = metadata.compiler.version;
 
-  log(`Re-compiling ${fileName}:${contractName} with Solidity ${version}`);
-  log('Retrieving compiler...');
+  log.info(
+    {
+      loc: '[RECOMPILE]',
+      fileName: fileName,
+      contractName: contractName,
+      version: version
+    },
+    'Recompiling'
+  );
 
   const solcjs: any = await new Promise((resolve, reject) => {
     solc.loadRemoteVersion(`v${version}`, (error: Error, soljson: any) => {
       (error) ? reject(error) : resolve(soljson);
     });
   });
-
-  log('Compiling...');
 
   const compiled: any = solcjs.compile(JSON.stringify(input));
   const output = JSON.parse(compiled);
