@@ -1,6 +1,5 @@
 const assert = require('assert');
 const simple = require('./sources/pass/simple.js');
-const bzzr0 = require('./sources/pass/simple.bzzr0.js');
 const bzzr1 = require('./sources/pass/simple.bzzr1.js');
 const dagPB = require('ipld-dag-pb');
 const UnixFS = require('ipfs-unixfs');
@@ -41,16 +40,6 @@ describe('utils', function(){
 
     // a264 is the ipfs prefix for the metadata section...
     assert.equal(metadata.slice(0,4), "a264");
-  });
-
-  it('getBytecodeWithoutMetadata: removes metadata (bzzr0)', function(){
-    const deployedBytecode = bzzr0.compilerOutput.evm.deployedBytecode.object;
-    const trimmed = getBytecodeWithoutMetadata(deployedBytecode);
-    const diffLength = deployedBytecode.length - trimmed.length;
-    const metadata = deployedBytecode.slice(-diffLength);
-
-    // a265 is the bzzr prefix for the metadata section...
-    assert.equal(metadata.slice(0,4), "a265");
   });
 
   it('getBytecodeWithoutMetadata: removes metadata (bzzr1)', function(){
