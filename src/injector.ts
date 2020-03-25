@@ -15,10 +15,16 @@ import {
   getBytecode,
   recompile,
   RecompilationResult,
+  getBytecodeWithoutMetadata as trimMetadata
 } from './utils';
 
 declare interface StringMap {
   [key: string]: string;
+}
+
+declare interface BytecodeMatch {
+  address: string | null,
+  status: 'perfect' | 'partial' | null
 }
 
 export interface InjectorConfig {
@@ -160,7 +166,7 @@ export default class Injector {
    * @param {RecompilationResult} compilationResult solc output
    * @param {StringMap}           sources           'rearranged' sources
    */
-  private storeData(
+  private storePerfectMatchData(
     repository: string,
     chain : string,
     address : string,
@@ -217,6 +223,53 @@ export default class Injector {
   }
 
   /**
+   * Writes verified sources to repository by address under the "partial_matches" folder.
+   * This method used when recompilation bytecode matches deployed *except* for their
+   * metadata components.
+   * @param {string}              repository        repository root (ex: 'repository')
+   * @param {string}              chain             chain name (ex: 'ropsten')
+   * @param {string}              address           contract address
+   * @param {RecompilationResult} compilationResult solc output
+   * @param {StringMap}           sources           'rearranged' sources
+   */
+  private storePartialMatchData(
+    repository: string,
+    chain : string,
+    address : string,
+    compilationResult : RecompilationResult,
+    sources: StringMap
+  ) : void {
+
+    const addressPath = path.join(
+      repository,
+      'partial_matches',
+      chain,
+      address,
+      '/metadata.json'
+    );
+
+    save(addressPath, compilationResult.metadata);
+
+    for (const sourcePath in sources) {
+
+      const sanitizedPath = sourcePath
+        .replace(/[^a-z0-9_.\/-]/gim, "_")
+        .replace(/(^|\/)[.]+($|\/)/, '_');
+
+      const outputPath = path.join(
+        repository,
+        'partial_matches',
+        chain,
+        address,
+        'sources',
+        sanitizedPath
+      )
+
+      save(outputPath, sources[sourcePath]);
+    }
+  }
+
+  /**
    * Searches a set of addresses for the one whose deployedBytecode
    * matches a given bytecode string
    * @param {String[]}          addresses
@@ -226,9 +279,8 @@ export default class Injector {
     chain: string,
     addresses: string[] = [],
     compiledBytecode: string
-  ) : Promise<string | null> {
-
-    let match : string | null = null;
+  ) : Promise<BytecodeMatch> {
+    let match : BytecodeMatch = { address: null, status: null };
 
     for (let address of addresses){
       address = Web3.utils.toChecksumAddress(address)
@@ -246,9 +298,17 @@ export default class Injector {
         deployedBytecode = await getBytecode(this.chains[chain].web3, address)
       } catch(e){ /* ignore */ }
 
-      if (deployedBytecode && deployedBytecode === compiledBytecode){
-        match = address;
-        break;
+      if (deployedBytecode && deployedBytecode.length > 2){
+        if (deployedBytecode === compiledBytecode){
+
+          match = { address: address, status: 'perfect' };
+          break;
+
+        } else if (trimMetadata(deployedBytecode) === trimMetadata(compiledBytecode)){
+
+          match = { address: address, status: 'partial' };
+          break;
+        }
       }
     }
     return match;
@@ -319,18 +379,23 @@ export default class Injector {
         throw err;
       }
 
-      const address = await this.matchBytecodeToAddress(
+      const match = await this.matchBytecodeToAddress(
         chain,
         addresses,
         compilationResult.deployedBytecode
       )
 
-      if (address) {
-        // Since the bytecode matches, we can be sure that we got the right
-        // metadata file (up to json formatting) and exactly the right sources.
-        // Now we can store the re-compiled and correctly formatted metadata file
-        // and the sources.
-        this.storeData(repository, chain, address, compilationResult, sources)
+      // Since the bytecode matches, we can be sure that we got the right
+      // metadata file (up to json formatting) and exactly the right sources.
+      // Now we can store the re-compiled and correctly formatted metadata file
+      // and the sources.
+      if (match.address && match.status === 'perfect') {
+
+        this.storePerfectMatchData(repository, chain, match.address, compilationResult, sources)
+
+      } else if (match.address && match.status === 'partial'){
+
+        this.storePartialMatchData(repository, chain, match.address, compilationResult, sources)
 
       } else {
         const err = new Error(
