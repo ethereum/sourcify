@@ -1,0 +1,26 @@
+version: "3.7"
+
+x-project-base:
+  &project-base
+  env_file:
+    - .env
+  restart: always
+  networks:
+    - source-verify
+
+networks:
+  source-verify:
+  
+services:
+  geth:
+    <<: *project-base
+    image: ethereum/source-verify:geth-latest
+    container_name: geth-${TAG}
+    volumes:
+    - "./datadir:/root/.ethereum"
+    - "../src/geth/goerli-genesis.json:/home/genesis.json"
+    - "../src/geth/config.toml:/home/config.toml"
+    - "../src/go-ethereum/start_geth.sh:/home/start_geth.sh"
+    ports:
+    - 8545:8545
+    - 30303:30303
