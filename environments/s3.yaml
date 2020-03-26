@@ -4,6 +4,11 @@ x-project-repository-mount:
   type: bind
   source: ../repository
   
+x-project-mount:
+  &project-database-mount
+  type: bind
+  source: ./tmp
+
 x-project-base:
   &project-base
   env_file:
@@ -21,5 +26,7 @@ services:
     image: ethereum/source-verify:s3-${TAG}
     container_name: s3-${TAG}
     volumes:
+      - <<: *project-database-mount
+        target: /tmp
       - <<: *project-repository-mount
         target: /app/repository

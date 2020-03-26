@@ -3,7 +3,12 @@ x-project-repository-mount:
   &project-repository-mount
   type: bind
   source: ../repository
-  
+
+x-project-database-mount:
+  &project-database-mount
+  type: bind
+  source: ./tmp
+
 x-project-base:
   &project-base
   env_file:
@@ -21,5 +26,8 @@ services:
     image: ethereum/source-verify:ipfs-${TAG}
     container_name: ipfs-${TAG}
     volumes:
-      - <<: *project-repository-mount
-        target: /app/repository
+    - <<: *project-database-mount
+      target: /tmp
+    - <<: *project-repository-mount
+      target: /app/repository
+     
