@@ -27,6 +27,6 @@ services:
     container_name: s3-${TAG}
     volumes:
       - <<: *project-database-mount
-        target: /tmp
-      - <<: *project-repository-mount
         target: /app/repository
+      - <<: *project-repository-mount
+        target: /app/repository/repository
