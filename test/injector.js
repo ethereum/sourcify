@@ -12,6 +12,8 @@ const MismatchedBytecode = require('./sources/fail/wrongCompiler');
 const Literal = require('./sources/pass/simple.literal');
 const SimpleBzzr0 = require('./sources/pass/simple.bzzr0');
 const SimpleBzzr1 = require('./sources/pass/simple.bzzr1');
+const Library = require('./sources/pass/library');
+const SimpleWithLibrary = require('./sources/pass/simpleWithLibrary');
 
 const {
   deployFromArtifact,
@@ -21,6 +23,7 @@ const {
 } = require('./helpers/helpers');
 
 const Injector = require('../src/injector').default;
+const { addLibraryLinksToMetadata } = require('../src/utils');
 
 describe('injector', function(){
   describe('inject', function(){
@@ -198,6 +201,58 @@ describe('injector', function(){
 
       const savedMetadata = read(expectedPath, 'utf-8');
       assert.equal(savedMetadata, mismatchedMetadata);
+    })
+
+    it('verfies a contract with a linked library (partial match)', async function(){
+      const library = await deployFromArtifact(web3, Library);
+
+      const instance = await deployFromArtifact(
+        web3,
+        SimpleWithLibrary,
+        library.options.address
+      );
+
+      // Add deployed library address to metadata;
+      const unlinkedMetadata = SimpleWithLibrary.compilerOutput.metadata;
+      const linkReferences = SimpleWithLibrary.compilerOutput.evm.bytecode.linkReferences;
+      const link = { "Library" : library.options.address.toLowerCase() }; // ?
+
+      const linkedMetadata = addLibraryLinksToMetadata(
+        link,
+        unlinkedMetadata,
+        linkReferences
+      );
+
+      // Inject by address into repository after recompiling
+      await injector.inject(
+        mockRepo,
+        'localhost',
+        [ instance.options.address ],
+        [
+          linkedMetadata,
+          SimpleWithLibrary.sourceCodes["Library.sol"],
+          SimpleWithLibrary.sourceCodes["SimpleWithLibrary.sol"]
+        ]
+      );
+
+      // Verify metadata was stored to repository, indexed by ipfs hash
+      // Verify metadata was saved, indexed by address under partial_matches
+      const expectedPath = path.join(
+        mockRepo,
+        'partial_matches',
+        chain,
+        instance.options.address,
+        '/metadata.json'
+      );
+
+      // Recompiled metadata is different than the linked metadata we
+      // gave to the injector, because it doesn't index Libraries by source key.
+      let recompiledMetadata = JSON.parse(unlinkedMetadata)
+      recompiledMetadata.settings.libraries = link;
+      recompiledMetadata = JSON.stringify(recompiledMetadata);
+
+      const savedMetadata = read(expectedPath, 'utf-8');
+      assert.equal(savedMetadata, recompiledMetadata);
     })
 
     it('errors if metadata is missing', async function(){

@@ -9,24 +9,39 @@ const utils = require('./../../src/utils');
  * @param  {Object} web3
  * @param  {Object} artifact     ex: const Simple = require('./sources/pass/simple.js');
  * @param  {String} contractName ex: "Simple.sol"
- * @param  {Array}  args         constructor args
+ * @param  {String} address      library address
  * @return {Web3Contract}        deployed contract instance
  */
-async function deployFromArtifact(web3, artifact, args){
+async function deployFromArtifact(web3, artifact, address){
   const accounts = await web3.eth.getAccounts();
   const abi = artifact.compilerOutput.abi;
 
-  args = args || [];
+  const bytecode = (address)
+    ? linkBytecode(artifact, address)
+    : artifact.compilerOutput.evm.bytecode.object;
 
   const options = {
-    data: artifact.compilerOutput.evm.bytecode.object,
+    data: bytecode,
     gasPrice: '1',
     gas: 4000000,
   };
 
   // Deploy contract
   const contract = new web3.eth.Contract(abi, options);
-  return contract.deploy(...args).send({from: accounts[0]});
+  return contract.deploy().send({from: accounts[0]});
+}
+
+/**
+ * Links a single libary into artifact bytecode
+ * @param  {Object} artifact
+ * @param  {String} address  library address
+ * @return {String}          linked bytecode
+ */
+function linkBytecode(artifact, address){
+  const bytecode = artifact.compilerOutput.evm.bytecode.object;
+  const regex = new RegExp(/__\$.*?\$__/, 'g');
+  bytecode = bytecode.replace(regex, address.replace("0x", ""));
+  return bytecode;
 }
 
 /**
