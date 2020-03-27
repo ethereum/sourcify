@@ -146,7 +146,7 @@ export default class Injector {
       }
       if (!content) {
         const err = new Error(
-          `The metadata file mentions a source file called "${fileName}"` +
+          `The metadata file mentions a source file called "${fileName}" ` +
           `that cannot be found in your upload.\nIts keccak256 hash is ${hash}. ` +
           `Please try to find it and include it in the upload.`
         );
@@ -178,7 +178,9 @@ export default class Injector {
     const bytes = Web3.utils.hexToBytes(compilationResult.deployedBytecode);
     const cborData = cborDecode(bytes);
 
-    if (cborData['bzzr1']) {
+    if (cborData['bzzr0']) {
+      metadataPath = `/swarm/bzzr0/${Web3.utils.bytesToHex(cborData['bzzr0']).slice(2)}`;
+    } else if (cborData['bzzr1']) {
       metadataPath = `/swarm/bzzr1/${Web3.utils.bytesToHex(cborData['bzzr1']).slice(2)}`;
     } else if (cborData['ipfs']) {
       metadataPath = `/ipfs/${multihashes.toB58String(cborData['ipfs'])}`;
