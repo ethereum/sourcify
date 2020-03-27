@@ -359,11 +359,12 @@ export default class Injector {
     chain: string,
     addresses: string[],
     files: string[]
-  ) : Promise<void> {
+  ) : Promise<string[]> {
 
     this.validateAddresses(addresses);
     this.validateChain(chain);
 
+    const savedAddresses = [];
     const metadataFiles = this.findMetadataFiles(files)
 
     for (const metadata of metadataFiles){
@@ -394,10 +395,12 @@ export default class Injector {
       if (match.address && match.status === 'perfect') {
 
         this.storePerfectMatchData(repository, chain, match.address, compilationResult, sources)
+        savedAddresses.push(match.address);
 
       } else if (match.address && match.status === 'partial'){
 
         this.storePartialMatchData(repository, chain, match.address, compilationResult, sources)
+        savedAddresses.push(match.address);
 
       } else {
         const err = new Error(
@@ -429,5 +432,6 @@ export default class Injector {
         }
       */
     }
+    return savedAddresses;
   }
 }
