@@ -1,4 +1,5 @@
 #!/bin/bash
 set -e
-geth init genesis.json
-geth --syncmode "full" --goerli
+echo ${NETWORK_NAME}
+#geth init genesis.json
+geth --syncmode "full" --${NETWORK_NAME}
