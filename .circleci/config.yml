@@ -8,7 +8,7 @@ workflows:
               only:
               - staging
               - master
-              - volumes-read-wrte-config
+              - volumes-read-write-config
       - deploy:
           filters:
             branches:
