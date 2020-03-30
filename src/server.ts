@@ -85,11 +85,15 @@ app.post('/', (req, res) => {
 
     for (const data of inputs){
       try {
-        // Note: metadata files are overly stringified;
-        // this `JSON.parse` still returns a string
-        files.push(JSON.parse(data.toString()))
+        const val = JSON.parse(data.toString());
+        const type = Object.prototype.toString.call(val);
+
+        (type === '[object Object]')
+          ? files.push(JSON.stringify(val))  // JSON formatted metadata
+          : files.push(val);                 // Stringified metadata
+
       } catch (err) {
-        files.push(data.toString())
+        files.push(data.toString())          // Solidity files
       }
     }
     injector.inject(
