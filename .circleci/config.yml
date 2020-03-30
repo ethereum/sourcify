@@ -1,7 +1,17 @@
+
+
+
 workflows:
   version: 2
   build_publish_deploy_docker:
     jobs:
+      - build-push-ipfs:
+          filters:
+            branches:
+              only:
+              - staging
+              - master
+              - volumes-read-write-config
       - build-push-docker:
           filters:
             branches:
@@ -17,6 +27,7 @@ workflows:
               - master
           requires:
           - build-push-docker
+      - build-push-ipfs
   node-multi-build:
     jobs:
       - node-v10
