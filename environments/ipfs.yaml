@@ -2,12 +2,12 @@ version: "3.7"
 x-project-repository-mount:
   &project-repository-mount
   type: bind
-  source: ../repository
+  source: ./tmp/repository/
 
 x-project-database-mount:
   &project-database-mount
   type: bind
-  source: ./tmp
+  source: ./tmp/database/
 
 x-project-base:
   &project-base
@@ -27,7 +27,7 @@ services:
     container_name: ipfs-${TAG}
     volumes:
     - <<: *project-database-mount
-      target: /tmp
+      target: /app/repository/repository/
     - <<: *project-repository-mount
-      target: /app/repository
+      target: /app/repository/database/
      

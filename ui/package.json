@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "parcel serve -p 1234 index.html",
+    "start": "rimraf .cache && parcel serve -p 1234 index.html",
     "start:prod": "cross-env NODE_ENV=production parcel index.html",
     "start:dev": "cross-env NODE_ENV=development parcel index.html",
     "start:test": "cross-env NODE_ENV=testing parcel index.html",
@@ -22,6 +22,6 @@
     "@babel/preset-react": "^7.8.3",
     "cross-env": "^6.0.3",
     "parcel-bundler": "^1.12.4",
-    "rimraf": "^3.0.1"
+    "rimraf": "^3.0.2"
   }
 }
