@@ -16,7 +16,7 @@ workflows:
               - staging
               - master
           requires:
-          - build_push_docker
+          - build-push-docker
   node-multi-build:
     jobs:
       - node-v10
