@@ -24,5 +24,5 @@ echo $TAG
 cd environments && cp .env.$TAG .env
 
 docker login --username $DOCKER_USER --password $DOCKER_PASS
-docker-compose -f geth.yaml -f ipfs.yaml -f localchain.yaml -f monitor.yaml -f repository.yaml -f s3.yaml -f server.yaml -f ui.yaml -f build.yaml build --parallel
-docker-compose -f geth.yaml -f ipfs.yaml -f localchain.yaml -f monitor.yaml -f repository.yaml -f s3.yaml -f server.yaml -f ui.yaml -f build.yaml push
+docker-compose -f $SERVICE.yaml -f build-$SERVICE.yaml build
+docker-compose -f $SERVICE.yaml push
