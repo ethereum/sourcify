@@ -9,12 +9,12 @@ import {
 
 import { cborDecode } from './utils';
 import { BlockTransactionObject } from 'web3-eth';
+import Logger from 'bunyan';
 
 const multihashes = require('multihashes');
 
 const read = readFileSync;
 const save = outputFileSync;
-const log = console.log;
 
 export interface MonitorConfig {
   ipfsCatRequest? : string,
@@ -22,7 +22,8 @@ export interface MonitorConfig {
   swarmGateway? : string,
   repository? : string,
   infuraPID? : string,
-  blockTime? : number
+  blockTime? : number,
+  silent?: boolean
 }
 
 export interface CustomChainConfig {
@@ -58,6 +59,7 @@ declare interface StringToBooleanMap {
 }
 
 export default class Monitor {
+  private log: Logger;
   private chains : ChainSet;
   private ipfsCatRequest: string;
   private ipfsProvider: any;
@@ -87,6 +89,14 @@ export default class Monitor {
     this.blockInterval = null;
     this.sourceInterval = null;
     this.metadataInterval = null;
+
+    this.log = Logger.createLogger({
+      name: "Monitor",
+      streams: [{
+        stream: process.stdout,
+        level: config.silent ? 'fatal' : 30
+      }]
+    });
   }
 
   /**
@@ -118,7 +128,15 @@ export default class Monitor {
 
       const blockNumber = await this.chains[chain].web3.eth.getBlockNumber();
       this.chains[chain].latestBlock = blockNumber;
-      log(`${chain}: Starting from block ${blockNumber}`);
+
+      this.log.info(
+        {
+          loc: '[START]',
+          chain: chain,
+          block: blockNumber
+        },
+        'Starting monitor for chain'
+      );
     }
 
     this.blockInterval = setInterval(this.retrieveBlocks.bind(this), 1000 * this.blockTime);
@@ -130,7 +148,7 @@ export default class Monitor {
    * Shuts down the monitor
    */
   public stop() : void {
-    log('Stopping monitor...')
+    this.log.info({loc: '[STOP]'}, 'Stopping monitor')
     clearInterval(this.blockInterval);
     clearInterval(this.metadataInterval);
     clearInterval(this.sourceInterval);
@@ -223,17 +241,44 @@ export default class Monitor {
         web3.eth.getBlock(latest, true, (err: Error, block: BlockTransactionObject) => {
           if (err || !block) {
             const latest = _this.chains[chain].latestBlock;
-            log(`[BLOCKS] ${chain} Block ${latest} not available: ${err}`);
+
+            this.log.info(
+              {
+                loc: '[BLOCKS]',
+                chain: chain,
+                block: latest,
+                err: err
+              },
+              'Block not available'
+            );
+
             return;
           }
 
-          log(`[BLOCKS] ${chain} Processing Block ${block.number}:`);
+          this.log.info(
+            {
+              loc: '[BLOCKS]',
+              chain: chain,
+              block: block.number
+            },
+            'Processing Block'
+          );
 
           for (const i in block.transactions) {
             const t = block.transactions[i]
             if (t.to === null) {
               const address = ethers.utils.getContractAddress(t);
-              log(`[BLOCKS] ${address}`);
+
+              this.log.info(
+                {
+                  loc: '[BLOCKS]',
+                  chain: chain,
+                  block: block.number,
+                  address: address
+                },
+                `Retrieving code for address`
+              );
+
               _this.retrieveCode(chain, address);
             }
           }
@@ -263,9 +308,14 @@ export default class Monitor {
         if (cborData && 'bzzr1' in cborData) {
           const metadataBzzr1 = web3.utils.bytesToHex(cborData['bzzr1']).slice(2);
 
-          log(
-            `[BLOCKS] Queueing retrieval of metadata for ${chain} ${address} ` +
-            `: bzzr1 ${metadataBzzr1}`
+          this.log.info(
+            {
+              loc: '[BLOCKS]',
+              chain: chain,
+              address: address,
+              bzzr1: metadataBzzr1
+            },
+            'Queueing retrieval of metadata'
           );
 
           _this.addToQueue(
@@ -277,9 +327,14 @@ export default class Monitor {
         } else if (cborData && 'ipfs' in cborData){
           const metadataIPFS = multihashes.toB58String(cborData['ipfs']);
 
-          log(
-            `[BLOCKS] Queueing retrieval of metadata for ${chain} ${address} ` +
-            `: ipfs ${metadataIPFS}`
+          this.log.info(
+            {
+              loc: '[BLOCKS]',
+              chain: chain,
+              address: address,
+              ipfs: metadataIPFS
+            },
+            'Queueing retrieval of metadata'
           )
 
           _this.addToQueue(
@@ -313,12 +368,17 @@ export default class Monitor {
    * @param {string} chain ex: 'ropsten'
    */
   private retrieveMetadataInChain(chain: string) : void {
-    log(`[METADATA] ${chain} Processing metadata queue...`);
-
     /// Try to retrieve metadata for one hour
     this.cleanupQueue(this.chains[chain].metadataQueue, 3600)
     for (const address in this.chains[chain].metadataQueue) {
-      log(`[METADATA] ${address}`);
+      this.log.info(
+        {
+          loc: '[METADATA]',
+          chain: chain,
+          address: address
+        },
+        'Processing metadata queue'
+      );
 
       // tslint:disable-next-line:no-floating-promises
       this.retrieveMetadataByStorageProvider(
@@ -366,7 +426,15 @@ export default class Monitor {
       } catch (error) { return }
     }
 
-    log(`[METADATA] Got metadata for ${chain} ${address}`);
+    this.log.info(
+      {
+        loc: '[METADATA]',
+        chain: chain,
+        address: address
+      },
+      'Got metadata by address'
+    );
+
     save(`${this.repository}/contract/${chain}/${address}/metadata.json`, metadataRaw.toString());
 
     const metadata = JSON.parse(metadataRaw);
@@ -399,13 +467,19 @@ export default class Monitor {
    * @param {string} chain ex: 'ropsten'
    */
   private retrieveSourceInChain(chain: string) : void {
-    log("[SOURCE] Processing source queue...");
-
     /// Try to retrieve source for five days.
     this.cleanupQueue(this.chains[chain].sourceQueue, 3600 * 24 * 5)
 
     for (const address in this.chains[chain].sourceQueue) {
-      log(`[SOURCE] ${chain} ${address}`);
+      this.log.info(
+        {
+          loc: '[SOURCE]',
+          chain: chain,
+          address: address
+        },
+        'Processing source queue'
+      );
+
       this.retrieveSourceByAddress(
         chain,
         address,
@@ -525,8 +599,17 @@ export default class Monitor {
 
     delete this.chains[chain].sourceQueue[address].sources[sourceKey]
 
-    log(`[SOURCES] ${chain} ${address} Sources left to be retrieved: `);
-    log(Object.keys(this.chains[chain].sourceQueue[address].sources));
+    const remaining = Object.keys(this.chains[chain].sourceQueue[address].sources)
+
+    this.log.info(
+      {
+        loc: '[SOURCES]',
+        chain: chain,
+        address: address,
+        sources: remaining
+      },
+      'Sources left to be retrieved'
+    );
 
     if (Object.keys(this.chains[chain].sourceQueue[address].sources).length == 0) {
       delete this.chains[chain].sourceQueue[address];

@@ -24,4 +24,3 @@ echo $SERVICE
 docker login --username $DOCKER_USER --password $DOCKER_PASS
 docker-compose -f $SERVICE.yaml -f build-$SERVICE.yaml build
 docker push ethereum/source-verify:$SERVICE-$TAG
-#docker-compose -f $SERVICE.yaml -f build-$SERVICE.yaml push
