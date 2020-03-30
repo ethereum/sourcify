@@ -25,7 +25,7 @@
     "dev:server": "npm run build:ui && ./scripts/run_server.sh",
     "dev:server:local": "npm run build:ui && TESTING=true ./scripts/run_server.sh",
     "build:ui": "cd ./ui/ && npm install && npm run build",
-    "monitor": "tsc && ./scripts/run_monitor.sh",
+    "monitor": "tsc && ./scripts/run_monitor.js",
     "server": "tsc && node ./dist/server.js ./repository",
     "server:test": "tsc && TESTING=true LOCALCHAIN_URL=http://localhost:8545 SERVER_PORT=2000 node ./dist/server.js ./repository"
   },
