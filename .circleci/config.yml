@@ -1,85 +1,41 @@
-
-
-
-workflows:
-  version: 2
-  build_publish_deploy_docker:
-    jobs:
-      - build-push-ipfs:
-          filters:
-            branches:
-              only:
-              - staging
-              - master
-              - volumes-read-write-config
-      - build-push-docker:
-          filters:
-            branches:
-              only:
-              - staging
-              - master
-              - volumes-read-write-config
-      - deploy:
-          filters:
-            branches:
-              only:
-              - staging
-              - master
-          requires:
-          - build-push-docker
-      - build-push-ipfs
-  node-multi-build:
-    jobs:
-      - node-v10
-      - node-v12:
-          run_coveralls: true
-
 version: 2.1
-jobs:
-  build-push-ipfs: 
-    docker:
-      - image: circleci/node:10.19.0-buster
-    steps:
-    - checkout
-    - run:
-        name: "Pull Submodules"
-        command: |
-          git submodule init
-          git submodule update --remote
-    - setup_remote_docker
-    - run:
-        name: Build and push docker images
-        command: |
-          CIRCLE_BRANCH=${CIRCLE_BRANCH} SERVICE=ipfs ./scripts/build_and_publish_docker_images.sh
-  build-push-docker: &build_push_docker-base
-    docker:
-      - image: circleci/node:10.19.0-buster
-    steps:
-    - checkout
-    - run:
-        name: "Pull Submodules"
-        command: |
-          git submodule init
-          git submodule update --remote
-    - setup_remote_docker
-    - run:
-        name: Build and push docker images
-        command: |
-          CIRCLE_BRANCH=${CIRCLE_BRANCH} ./scripts/build_and_publish_docker_images.sh
-  deploy:
-    docker:
-      - image: circleci/node:10.19.0-buster
-    steps:
-    - checkout
-    - setup_remote_docker
-    - add_ssh_keys:
-        fingerprints:
-          - "a9:2f:97:c3:64:10:80:c7:8e:2f:db:f7:a3:4a:53:66"
-    - run:
-        name: Build and push docker images
-        command: |
-          CIRCLE_BRANCH=${CIRCLE_BRANCH} ./scripts/deploy.sh
-  node-base: &node-base
+aliases:
+  - &docker-base
+      docker:
+        - image: circleci/node:10.19.0-buster
+      steps:
+      - checkout
+      - run:
+          name: "Pull Submodules"
+          command: |
+            git submodule init
+            git submodule update --remote
+      - setup_remote_docker
+#      - run:
+#          name: Build and push docker images
+#          command: |
+#            CIRCLE_BRANCH=${CIRCLE_BRANCH} SERVICE=test ./scripts/build_and_publish_docker_images.sh    
+  - &deploy-base
+      docker:
+        - image: circleci/node:10.19.0-buster
+      steps:
+      - checkout
+      - setup_remote_docker
+      - add_ssh_keys:
+          fingerprints:
+            - "a9:2f:97:c3:64:10:80:c7:8e:2f:db:f7:a3:4a:53:66"
+      - run:
+          name: Build and push docker images
+          command: |
+            CIRCLE_BRANCH=${CIRCLE_BRANCH} ./scripts/deploy.sh
+  - &filter-base
+      filters:
+        branches:
+          only:
+          - staging
+          - master
+          - volumes-read-write-config
+  - &node-base
     working_directory: ~/source-verify
     docker:
     - image: circleci/node
@@ -108,6 +64,36 @@ jobs:
         paths:
         - ./node_modules
 
+workflows:
+  version: 2
+  build_publish_deploy_docker:
+    jobs:
+      - build-push-ipfs:
+          <<: *filter-base
+      - deploy:
+          filters:
+            branches:
+              only:
+              - staging
+              - master
+          requires:
+          - build-push-ipfs
+  node-multi-build:
+    jobs:
+      - node-v10
+      - node-v12:
+          run_coveralls: true
+          
+jobs:
+  build-push-ipfs: 
+    <<: *docker-base
+    steps:
+    - run:
+        name: Build and push docker images
+        command: |
+          CIRCLE_BRANCH=${CIRCLE_BRANCH} SERVICE=ipfs ./scripts/build_and_publish_docker_images.sh
+  deploy:
+    <<: *deploy-base
         
   node-v10:
     <<: *node-base
