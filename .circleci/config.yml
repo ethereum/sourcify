@@ -13,7 +13,7 @@ aliases:
       - run:
          name: Build and push docker images
          command: |
-           CIRCLE_BRANCH=${CIRCLE_BRANCH} SERVICE=test ./scripts/build_and_publish_docker_images.sh    
+           CIRCLE_BRANCH=${CIRCLE_BRANCH} ./scripts/build_and_publish_docker_images.sh    
   - &deploy-base
       docker:
         - image: circleci/node:10.19.0-buster
@@ -87,7 +87,6 @@ workflows:
     jobs:
       - node-v10
       - node-v12
-
 
 jobs:
   build-push-ipfs: 
