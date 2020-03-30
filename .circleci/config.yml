@@ -1,5 +1,5 @@
 aliases:
-  - &docker_base
+  - &docker-base
       docker:
         - image: circleci/node:10.19.0-buster
       steps:
@@ -75,6 +75,48 @@ workflows:
               - staging
               - master
               - volumes-read-write-config
+      - build-push-localchain:
+          filters:
+            branches:
+              only:
+              - staging
+              - master
+              - volumes-read-write-config
+      - build-push-monitor:
+          filters:
+            branches:
+              only:
+              - staging
+              - master
+              - volumes-read-write-config
+      - build-push-repository:
+          filters:
+            branches:
+              only:
+              - staging
+              - master
+              - volumes-read-write-config
+      - build-push-s3:
+          filters:
+            branches:
+              only:
+              - staging
+              - master
+              - volumes-read-write-config
+      - build-push-server:
+          filters:
+            branches:
+              only:
+              - staging
+              - master
+              - volumes-read-write-config
+      - build-push-ui:
+          filters:
+            branches:
+              only:
+              - staging
+              - master
+              - volumes-read-write-config
       - deploy:
           filters:
             branches:
@@ -83,6 +125,13 @@ workflows:
               - master
           requires:
           - build-push-ipfs
+          - build-push-localchain
+          - build-push-monitor
+          - build-push-repository
+          - build-push-s3
+          - build-push-monitor
+          - build-push-server
+          - build-push-ui   
   node-multi-build:
     jobs:
       - node-v10
@@ -90,9 +139,33 @@ workflows:
 
 jobs:
   build-push-ipfs: 
-    <<: *docker_base
+    <<: *docker-base
     environment:
-      SERVICE: ipfs
+      SERVICE: "ipfs"
+  build-push-localchain: 
+    <<: *docker-base
+    environment:
+      SERVICE: "localchain"
+  build-push-monitor: 
+    <<: *docker-base
+    environment:
+      SERVICE: "monitor"
+  build-push-repository: 
+    <<: *docker-base
+    environment:
+      SERVICE: "repository"
+  build-push-s3: 
+    <<: *docker-base
+    environment:
+      SERVICE: "s3"
+  build-push-server: 
+    <<: *docker-base
+    environment:
+      SERVICE: "server"
+  build-push-ui: 
+    <<: *docker-base
+    environment:
+      SERVICE: "ui"
   deploy:
     <<: *deploy-base
   node-v10:

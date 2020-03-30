@@ -23,4 +23,4 @@ echo $SERVICE
 
 docker login --username $DOCKER_USER --password $DOCKER_PASS
 docker-compose -f $SERVICE.yaml -f build-$SERVICE.yaml build
-docker-compose -f $SERVICE.yaml push
+docker-compose -f $SERVICE.yaml -f build-$SERVICE.yaml push
