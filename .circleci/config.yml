@@ -24,7 +24,7 @@ aliases:
           fingerprints:
             - "a9:2f:97:c3:64:10:80:c7:8e:2f:db:f7:a3:4a:53:66"
       - run:
-          name: Build and push docker images
+          name: Deploy
           no_output_timeout: 30m
           command: |
             CIRCLE_BRANCH=${CIRCLE_BRANCH} ./scripts/deploy.sh
