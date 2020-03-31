@@ -16,16 +16,17 @@
     "tslint": "tslint -p tsconfig.json",
     "coverage": "node ./node_modules/nyc/bin/nyc.js --reporter=lcov --reporter=text-summary ./node_modules/tape/bin/tape ./test/index.js",
     "coveralls": "npm run coverage && node ./node_modules/coveralls/bin/coveralls.js <coverage/lcov.info",
-    "localchain": "./src/localchain.js",
-    "localchain:test": "NODE_ENV=testing LOCALCHAIN_PORT=8545 ./src/localchain.js",
+    "localchain": "./scripts/localchain.js",
+    "localchain:test": "NODE_ENV=testing LOCALCHAIN_PORT=8545 ./scripts/localchain.js",
     "dev": "npm run build:ui && ./src/run.sh 80 repository db",
     "dev:ui": "cd ./ui/ && npm install && npm start",
     "dev:server": "npm run build:ui && ./scripts/run_server.sh",
     "dev:server:local": "npm run build:ui && TESTING=true ./scripts/run_server.sh",
     "build": "tsc",
     "build:ui": "cd ./ui/ && npm install && npm run build",
-    "monitor": "rimraf ./dist && tsc && node ./src/run_monitor.js",
-    "server": "rimraf ./dist && tsc && node ./dist/src/server.js ./repository"
+    "monitor": "rimraf ./dist && tsc && node ./scripts/run_monitor.js",
+    "server": "rimraf ./dist && tsc && node ./dist/scripts/server.js ./repository",
+    "server:test": "tsc && TESTING=true LOCALCHAIN_URL=http://localhost:8545 SERVER_PORT=2000 node ./dist/server.js ./repository"
   },
   "keywords": [
     "ethereum",
