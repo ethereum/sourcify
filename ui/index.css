@@ -71,7 +71,7 @@ input[type='submit']:disabled {
 }
 
 .app-fieldset_left > * {
-  min-width: 240px;
+  min-width: 300px;
 }
 
 .select {
