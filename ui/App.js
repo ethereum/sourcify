@@ -3,30 +3,30 @@ import { useDropzone } from 'react-dropzone'
 import Select from 'react-select'
 
 export default function App() {
-    const chainOptions = [
-        { value: 'mainnet', label: 'Ethereum Mainnet' },
-        { value: 'ropsten', label: 'Ropsten' },
-        { value: 'rinkeby', label: 'Rinkeby' },
-        { value: 'kovan', label: 'Kovan' },
-        { value: 'goerli', label: 'Görli' }
-    ]
+  const chainOptions = [
+      { value: 'mainnet', label: 'Ethereum Mainnet' },
+      { value: 'ropsten', label: 'Ropsten' },
+      { value: 'rinkeby', label: 'Rinkeby' },
+      { value: 'kovan', label: 'Kovan' },
+      { value: 'goerli', label: 'Görli' }
+  ]
 
-    if (process.env.NODE_ENV === 'testing'){
-      chainOptions.push({
-        value: 'localhost',
-        label: 'localhost:8545'
-      })
-    }
+  if (process.env.NODE_ENV === 'testing'){
+    chainOptions.push({
+      value: 'localhost',
+      label: 'localhost:8545'
+    })
+  }
 
-    const { acceptedFiles, getRootProps, getInputProps } = useDropzone()
-    const [chain, updateChain] = useState(chainOptions[0])
-    const [address, updateAddress] = useState('')
-    const [loading, updateLoading] = useState(false)
-    const [error, updateError] = useState(null)
-    const url = process.env.SERVER_URL
-    const repositoryUrl = process.env.REPOSITORY_URL
-    const log = console.log
-    log(`Server URL: ${url}`)
+  const { acceptedFiles, getRootProps, getInputProps } = useDropzone()
+  const [chain, updateChain] = useState(chainOptions[0])
+  const [address, updateAddress] = useState('')
+  const [loading, updateLoading] = useState(false)
+  const [error, updateError] = useState(null)
+  const url = process.env.SERVER_URL
+  const repositoryUrl = process.env.REPOSITORY_URL
+  const log = console.log
+  log(`Server URL: ${url}`)
 
   const [result, updateResult] = useState([])
 
