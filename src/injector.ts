@@ -12,6 +12,7 @@ const save = outputFileSync;
 import {
   cborDecode,
   getBytecode,
+  resolveAddress,
   recompile,
   RecompilationResult,
 } from './utils';
@@ -188,7 +189,8 @@ export default class Injector {
    * and by swarm | ipfs hash.
    * @param  {string}            repository repository root (ex: 'repository')
    * @param  {string}            chain      chain name (ex: 'ropsten')
-   * @param  {string}            address    contract address
+   * @param  {string}            address    contract address or ENS address
+   * @param  {boolean}           isENS      needs to be resolved by ENS
    * @param  {string[]}          files
    * @return {Promise<string[]>}            addresses of successfully verified contracts
    */
@@ -196,10 +198,14 @@ export default class Injector {
     repository: string,
     chain: string,
     address: string,
+    isENS: boolean,
     files: string[]
   ) : Promise<string[]> {
 
     if (address) {
+      if (isENS) {
+        address = resolveAddress(address)
+      }
       address = Web3.utils.toChecksumAddress(address)
     }
 

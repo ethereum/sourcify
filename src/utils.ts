@@ -48,6 +48,16 @@ export async function getBytecode(web3: Web3, address: string) {
 };
 
 /**
+ * Wraps ens.getAddress
+ * @param {Web3}   web3    connected web3 instance
+ * @param {string} address ENS address
+ */
+export async function resolveAddress(web3: Web3, address: string) {
+  console.log("Resolving ENS address at " + address + "to ethereum account...")
+  return await web3.eth.ens.getAddress(address)
+}
+
+/**
  * Formats metadata into an object which can be passed to solc for recompilation
  * @param  {any}                 metadata solc metadata object
  * @param  {string[]}            sources  solidity sources

@@ -60,6 +60,7 @@ app.post('/', (req, res) => {
       repository,
       req.body.chain,
       req.body.address,
+      req.body.isENS,
       files
     ).then(result => {
       res.status(200).send({ result })
