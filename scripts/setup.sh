@@ -11,7 +11,9 @@ else
     cd source-verify
     git fetch
     git checkout ${CIRCLE_BRANCH}
+    git pull origin staging
     git reset --hard origin/${CIRCLE_BRANCH}
+    git pull origin staging
 fi
 
 if [ "${TAG}" == "stable" ]; then
