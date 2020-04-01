@@ -8,14 +8,14 @@ if [ "$CIRCLE_BRANCH" == "staging" ]; then
     export REPO_PATH='/opt/source-verify/staging/'
     TAG='latest'
     echo $TAG
-    export COMPOSE_COMMAND='COMPOSE_PROJECT_NAME="${TAG}"_source-verify docker-compose -f ipfs.yaml -f localchain.yaml -f monitor.yaml -f repository.yaml -f s3.yaml -f server.yaml -f ui.yaml'
+    export COMPOSE_COMMAND="COMPOSE_PROJECT_NAME=${TAG}_source-verify docker-compose -f ipfs.yaml -f localchain.yaml -f monitor.yaml -f repository.yaml -f s3.yaml -f server.yaml -f ui.yaml"
     echo "${COMPOSE_COMMAND}"
 fi
 
 if [ "$CIRCLE_BRANCH" == "master" ]; then
     export TAG='stable' 
     export REPO_PATH='/opt/source-verify/production/'
-    export COMPOSE_COMMAND='COMPOSE_PROJECT_NAME="${TAG}"_source-verify docker-compose -f ipfs.yaml -f localchain.yaml -f monitor.yaml -f s3.yaml -f server.yaml -f ui.yaml'
+    export COMPOSE_COMMAND="COMPOSE_PROJECT_NAME="${TAG}"_source-verify docker-compose -f ipfs.yaml -f localchain.yaml -f monitor.yaml -f s3.yaml -f server.yaml -f ui.yaml"
 fi
 
 # Do ssh to server
