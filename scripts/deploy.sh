@@ -16,20 +16,10 @@ if [ "$CIRCLE_BRANCH" == "master" ]; then
     export COMPOSE_COMMAND='source .env && COMPOSE_PROJECT_NAME=${TAG}_source-verify docker-compose -f ipfs.yaml -f localchain.yaml -f monitor.yaml -f s3.yaml -f server.yaml -f ui.yaml'
 fi
 
-if [ "$CIRCLE_BRANCH" == "volumes-read-write-config" ]; then
-    export TAG="testing"
-     export REPO_PATH='/opt/source-verify/testing/'
-    export COMPOSE_COMMAND='source .env && COMPOSE_PROJECT_NAME=${TAG}_source-verify docker-compose -f ipfs.yaml -f localchain.yaml -f monitor.yaml -f s3.yaml -f server.yaml -f ui.yaml'
-fi
-
 echo $TAG
 # Do ssh to server
 ssh -o "StrictHostKeyChecking no" source-verify@komputing.org "\
-mkdir -p $REPO_PATH && \
-cd $REPO_PATH && \
-git clone https://github.com/ethereum/source-verify.git && \
-git checkout ${CIRCLE_BRANCH} && \
-cd source-verify/environments && \
+../scripts/setup.sh && \
 eval ${COMPOSE_COMMAND} pull && \
 eval ${COMPOSE_COMMAND} up -d && \
-cd ../scripts/ && ./clear-repo.sh"
+../scripts/clear-repo.sh"

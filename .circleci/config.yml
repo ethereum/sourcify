@@ -34,7 +34,6 @@ aliases:
           only:
           - staging
           - master
-          - volumes-read-write-config
   - &node-base
     working_directory: ~/source-verify
     docker:
@@ -75,49 +74,42 @@ workflows:
               only:
               - staging
               - master
-              - volumes-read-write-config
       - build-push-localchain:
           filters:
             branches:
               only:
               - staging
               - master
-              - volumes-read-write-config
       - build-push-monitor:
           filters:
             branches:
               only:
               - staging
               - master
-              - volumes-read-write-config
       - build-push-repository:
           filters:
             branches:
               only:
               - staging
               - master
-              - volumes-read-write-config
       - build-push-s3:
           filters:
             branches:
               only:
               - staging
               - master
-              - volumes-read-write-config
       - build-push-server:
           filters:
             branches:
               only:
               - staging
               - master
-              - volumes-read-write-config
       - build-push-ui:
           filters:
             branches:
               only:
               - staging
               - master
-              - volumes-read-write-config
       - deploy:
           filters:
             branches:
