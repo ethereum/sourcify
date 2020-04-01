@@ -9,6 +9,7 @@ if [[ ! -d source-verify ]]; then
     git checkout ${CIRCLE_BRANCH}
 else
     cd source-verify
+    git checkout ${CIRCLE_BRANCH}
     git reset --hard origin/${CIRCLE_BRANCH}
 fi
 
