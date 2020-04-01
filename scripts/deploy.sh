@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 # If not staging or master branch are existing
 export TAG="$CIRCLE_BRANCH"
@@ -21,10 +20,8 @@ echo $TAG
 ssh -o "StrictHostKeyChecking no" source-verify@komputing.org "\
 mkdir -p $REPO_PATH && \
 cd $REPO_PATH && \
-git clone https://github.com/ethereum/source-verify.git && \
-git checkout ${CIRCLE_BRANCH} && \
-git reset --hard origin/${CIRCLE_BRANCH} && \
-./scripts/find_replace.sh && \
+( git clone https://github.com/ethereum/source-verify.git && cd source-verify && git checkout ${CIRCLE_BRANCH} ) || ( cd source-verify && git reset --hard origin/${CIRCLE_BRANCH} ) && \
+cd source-verify && echo $PWD && TAG=$TAG ACCESS_KEY=$ACCESS_KEY SECRET_ACCESS_KEY=$SECRET_ACCESS_KEY ./scripts/find_replace.sh && \
 cd source-verify/environments && \
 eval ${COMPOSE_COMMAND} pull && \
 eval ${COMPOSE_COMMAND} up -d && \
