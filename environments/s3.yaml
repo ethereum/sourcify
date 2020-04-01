@@ -1,0 +1,32 @@
+version: "3.7"
+x-project-repository-mount:
+  &project-repository-mount
+  type: bind
+  source: ./tmp/repository/
+  
+x-project-mount:
+  &project-database-mount
+  type: bind
+  source: ./tmp/database/
+
+x-project-base:
+  &project-base
+  env_file:
+    - .env
+  restart: always
+  networks:
+    - source-verify
+
+networks:
+  source-verify:
+  
+services:
+  s3sync:
+    <<: *project-base
+    image: ethereum/source-verify:s3-${TAG}
+    container_name: s3-${TAG}
+    volumes:
+      - <<: *project-repository-mount
+        target: /app/repository/repository/
+      - <<: *project-database-mount
+        target: /app/repository/database/

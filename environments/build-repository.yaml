@@ -1,0 +1,6 @@
+version: "3.7"
+services:
+  repository:
+    build:
+      context: ../h5ai-nginx
+      dockerfile: Dockerfile

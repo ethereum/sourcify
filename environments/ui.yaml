@@ -1,0 +1,23 @@
+version: "3.7"
+x-env-file-mount:
+  &env-file-mount
+  type: bind
+  source: .env
+
+networks:
+  source-verify:
+
+services:
+  ui:
+    image: ethereum/source-verify:ui-${TAG}
+    container_name: ui-${TAG}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${UI_PORT}"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+    volumes:
+    - <<: *env-file-mount
+      target: /app/.env
+    ports:
+    - "${UI_EXTERNAL_PORT}:${UI_PORT}"
