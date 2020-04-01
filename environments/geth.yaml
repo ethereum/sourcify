@@ -19,8 +19,8 @@ services:
     volumes:
     - "../src/geth/goerli-genesis.json:/home/genesis.json"
     - "../src/geth/config.toml:/home/config.toml"
-    - "$DATABASE_PATH/${NETWORK_NAME}/:/tmp/"
-    - "../scripts/start_geth.sh:/home/start_geth.sh"
+    - "./tmp/database/${NETWORK_NAME}/:/tmp/"
+    - "./start_geth.sh:/home/start_geth.sh"
     ports:
     - 8545:8545
     - 30303:30303

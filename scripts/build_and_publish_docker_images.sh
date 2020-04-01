@@ -18,9 +18,9 @@ fi
 
 echo $TAG
 
-curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/docker-compose-build.yaml > docker-compose.yaml
-curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/.env.${TAG} > .env
+cd environments && cp .env.$TAG .env
+echo $SERVICE
 
 docker login --username $DOCKER_USER --password $DOCKER_PASS
-source .env.${TAG}  && docker-compose -f docker-compose.yaml build --no-cache --parallel
-source .env.${TAG}  && docker-compose -f docker-compose.yaml push
+docker-compose -f $SERVICE.yaml -f build-$SERVICE.yaml build
+docker push ethereum/source-verify:$SERVICE-$TAG

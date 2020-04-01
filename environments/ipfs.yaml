@@ -2,7 +2,12 @@ version: "3.7"
 x-project-repository-mount:
   &project-repository-mount
   type: bind
-  source: $REPOSITORY_PATH
+  source: ./tmp/repository/
+
+x-project-database-mount:
+  &project-database-mount
+  type: bind
+  source: ./tmp/database/
 
 x-project-base:
   &project-base
@@ -11,11 +16,6 @@ x-project-base:
   restart: always
   networks:
     - source-verify
-
-x-env-file-mount:
-  &env-file-mount
-  type: bind
-  source: .env
 
 networks:
   source-verify:
@@ -26,7 +26,8 @@ services:
     image: ethereum/source-verify:ipfs-${TAG}
     container_name: ipfs-${TAG}
     volumes:
+    - <<: *project-database-mount
+      target: /app/repository/repository/
     - <<: *project-repository-mount
-      target: /app/repository/
-    - <<: *env-file-mount
-      target: /app/.env
+      target: /app/repository/database/
+     
