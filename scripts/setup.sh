@@ -22,7 +22,8 @@ fi
 TAG=$TAG ACCESS_KEY=$ACCESS_KEY SECRET_ACCESS_KEY=$SECRET_ACCESS_KEY ./scripts/find_replace.sh
 source environments/.env
 echo $PWD
-DATABASE_PATH=$DATABASE_PATH REPOSITORY_PATH=$REPOSITORY_PATH ./scripts/prepare.sh
+DATABASE_PATH="$DATABASE_PATH" REPOSITORY_PATH="$REPOSITORY_PATH" ./scripts/prepare.sh
+cd environments
 echo $PWD 
 eval ${COMPOSE_COMMAND} pull
 echo $PWD
