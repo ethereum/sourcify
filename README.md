@@ -73,7 +73,6 @@ modifications have to be prepared at deploy time, but it is still a possibility.
 - perform source verification given only an address instead of the bytecode
   or the metadata
 
-
 ## Run inside docker
 ### Prerequisites
 Docker (https://docs.docker.com/docker-for-mac/install/)
@@ -81,14 +80,16 @@ Docker-compose (https://docs.docker.com/compose/install/)
 
 ### How to run
 Prepare environment and start by running
-`STAGE=prod ./prepare_and_start.sh` for production
-`STAGE=testing ./prepare_and_start.sh` for testing.
-
 If you want to build images locally run:
-`docker-compose -f docker-compose.yaml build --no-cache --parallel`
+`docker-compose -f geth.yaml -f ipfs.yaml -f localchain.yaml -f monitor.yaml -f repository.yaml -f s3.yaml -f server.yaml -f ui.yaml -f build.yaml build --parallel`
 
-If you change something in files just run:
-`docker-compose build --no-cache --parallel && docker-compose up -d` (-d flag means that output won't be printed in stdout)
+If you just want to run it do:
+`docker-compose -f geth.yaml -f ipfs.yaml -f localchain.yaml -f monitor.yaml -f repository.yaml -f s3.yaml -f server.yaml -f ui.yaml -f build.yaml build` (-d flag means that output won't be printed in stdout)
+
+Note: you don't need to run all the services, just the ones you want.
+
+### How to run
+
 
 ## Development
 
@@ -98,6 +99,8 @@ If you change something in files just run:
 cp .env.testing .env
 docker-compose -f docker-compose-testing.yaml up --build
 ```
+
+Other approach would be to run every service in docker except one that you are working on.
 
 This will build the project in docker containers, launching the monitor and server.
 Verified sources and contract addresses will be stored in `repository` and `db` folders
