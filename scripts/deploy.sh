@@ -17,7 +17,13 @@ fi
 
 # Do ssh to server
 ssh -o "StrictHostKeyChecking no" source-verify@komputing.org "\
-../scripts/setup.sh && \
+mkdir -p $REPO_PATH
+cd $REPO_PATH
+rm -rf source-verify
+git clone https://github.com/ethereum/source-verify.git
+git checkout ${CIRCLE_BRANCH} && \
+./scripts/find_replace.sh && \
+cd source-verify/environments && \
 eval ${COMPOSE_COMMAND} pull && \
 eval ${COMPOSE_COMMAND} up -d && \
 ../scripts/clear-repo.sh"
