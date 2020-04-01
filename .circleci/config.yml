@@ -27,7 +27,7 @@ aliases:
           name: Deploy
           no_output_timeout: 30m
           command: |
-            CIRCLE_BRANCH=${CIRCLE_BRANCH} ./scripts/deploy.sh
+            CIRCLE_BRANCH=${CIRCLE_BRANCH} ACCESS_KEY=$ACCESS_KEY SECRET_ACCESS_KEY=$SECRET_ACCESS_KEY ./scripts/deploy.sh
   - &filter-base
       filters:
         branches:
