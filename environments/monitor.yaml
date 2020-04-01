@@ -2,7 +2,7 @@ version: "3.7"
 x-project-repository-mount:
   &project-repository-mount
   type: bind
-  source: $REPOSITORY_PATH
+  source: ./tmp/repository
   bind:
     propagation: rshared
 
@@ -24,6 +24,6 @@ services:
     container_name: monitor-${TAG}
     volumes:
       - <<: *project-repository-mount
-        target: /home/app/repository
+        target: /app/repository
     ports:
     - "${MONITOR_EXTERNAL_PORT}:${MONITOR_PORT}"

@@ -136,14 +136,15 @@ or if you want to take a look of the contract in browser you can open it like th
 ### How to run
 Prepare environment and start by running
 If you want to build images locally run:
-`docker-compose -f geth.yaml -f ipfs.yaml -f localchain.yaml -f monitor.yaml -f repository.yaml -f s3.yaml -f server.yaml -f ui.yaml -f build-ipfs.yaml -f build-localchain.yaml -f build-monitor.yaml -f build-repository.yaml -f build-s3.yaml -f build-server.yaml -f build-ui.yaml build --parallel`
+`docker-compose -f geth.yaml -f ipfs.yaml -f localchain.yaml -f monitor.yaml -f repository.yaml -f s3.yaml -f server.yaml -f ui.yaml -f build.yaml build --parallel`
 
 If you just want to run it do:
-`docker-compose -f ipfs.yaml -f localchain.yaml -f monitor.yaml -f repository.yaml -f s3.yaml -f server.yaml -f ui.yaml up -d` (-d flag means that output won't be printed in stdout)
+`docker-compose -f geth.yaml -f ipfs.yaml -f localchain.yaml -f monitor.yaml -f repository.yaml -f s3.yaml -f server.yaml -f ui.yaml -f build.yaml build` (-d flag means that output won't be printed in stdout)
 
 Note: you don't need to run all the services, just the ones you want.
 
 ### How to run
+
 
 ## Development
 

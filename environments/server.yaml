@@ -2,7 +2,7 @@ version: "3.7"
 x-project-repository-mount:
   &project-repository-mount
   type: bind
-  source: $REPOSITORY_PATH
+  source: ./tmp/repository/
   bind:
     propagation: rshared
 
@@ -26,7 +26,7 @@ services:
     - "${SERVER_EXTERNAL_PORT}:${SERVER_PORT}"
     volumes:
       - <<: *project-repository-mount
-        target: /home/app/repository/
+        target: /app/repository/
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT}/health"]
       interval: 30s

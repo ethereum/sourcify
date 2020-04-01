@@ -2,12 +2,12 @@ version: "3.7"
 x-project-repository-mount:
   &project-repository-mount
   type: bind
-  source: $REPOSITORY_PATH
+  source: ./tmp/repository/
   
 x-project-mount:
   &project-database-mount
   type: bind
-  source: $DATABASE_PATH
+  source: ./tmp/database/
 
 x-project-base:
   &project-base
@@ -16,11 +16,6 @@ x-project-base:
   restart: always
   networks:
     - source-verify
-
-x-env-file-mount:
-  &env-file-mount
-  type: bind
-  source: .env
 
 networks:
   source-verify:
@@ -31,8 +26,6 @@ services:
     image: ethereum/source-verify:s3-${TAG}
     container_name: s3-${TAG}
     volumes:
-      - <<: *env-file-mount
-        target: /app/.env
       - <<: *project-repository-mount
         target: /app/repository/repository/
       - <<: *project-database-mount

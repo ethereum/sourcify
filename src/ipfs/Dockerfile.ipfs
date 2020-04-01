@@ -1,5 +1,5 @@
 FROM openjdk:8
-RUN apt-get update && apt-get install -y cron curl unzip git 
+RUN apt-get update && apt-get install -y cron curl unzip git
 WORKDIR /app
 RUN git clone https://github.com/komputing/source_verify_ens_updater.git /app
 RUN ./gradlew build --no-daemon 

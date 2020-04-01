@@ -2,7 +2,7 @@ version: "3.7"
 x-project-repository-mount:
   &project-repository-mount
   type: bind
-  source: $REPOSITORY_PATH
+  source: ./tmp/repository
   read_only: true
 
 x-project-base:
