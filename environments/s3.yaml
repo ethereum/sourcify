@@ -2,12 +2,12 @@ version: "3.7"
 x-project-repository-mount:
   &project-repository-mount
   type: bind
-  source: ./tmp/repository/
+  source: $REPOSITORY_PATH
   
 x-project-mount:
   &project-database-mount
   type: bind
-  source: ./tmp/database/
+  source: $DATABASE_PATH
 
 x-project-base:
   &project-base
