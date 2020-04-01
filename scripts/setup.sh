@@ -1,3 +1,5 @@
+#!/bin/bash
+
 mkdir -p $REPO_PATH
 cd $REPO_PATH
 
