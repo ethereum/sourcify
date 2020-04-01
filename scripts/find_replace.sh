@@ -13,4 +13,4 @@ search="SECRET_ACCESS_KEY=xxx"
 replace="SECRET_ACCESS_KEY=$SECRET_ACCESS_KEY"
 sed -i "s/${search}/${replace}/g" environments/.env.$TAG
 
-cp environments/.env.$TAG .env
+cp environments/.env.$TAG environments/.env
