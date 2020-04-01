@@ -1,6 +1,6 @@
 version: "3.7"
 networks:
-  source-verify-base:
+  source-verify:
   
 x-project-base:
   &project-base
@@ -9,9 +9,6 @@ x-project-base:
   restart: always
   networks:
     - source-verify
-
-networks:
-  source-verify:
 
 services:
   localchain:
