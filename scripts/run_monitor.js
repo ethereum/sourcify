@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 const death = require('death');
-const Monitor = require('../dist/src/monitor.js').default;
+const Monitor = require('../dist/monitor.js').default;
 let config;
 
 const monitor = new Monitor({

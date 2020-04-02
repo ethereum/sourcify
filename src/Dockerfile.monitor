@@ -1,9 +1,8 @@
-FROM node:10
-
-WORKDIR /app
+FROM node:10 as builder
+WORKDIR /home/app
 COPY package*.json ./
 RUN npm ci
 COPY . .
+RUN npm run monitor:build
 EXPOSE 80
-
-CMD ["npm", "run", "monitor"]
+CMD ["npm", "run", "monitor:start"]
