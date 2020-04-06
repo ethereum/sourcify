@@ -369,9 +369,8 @@ export default class Injector {
     this.validateAddresses(addresses);
     this.validateChain(chain);
 
-    const savedAddresses = [];
     const metadataFiles = this.findMetadataFiles(files)
-    let matches: Match[] = [];
+    const matches: Match[] = [];
 
     for (const metadata of metadataFiles){
       const sources = this.rearrangeSources(metadata, files)
@@ -401,7 +400,6 @@ export default class Injector {
       if (match.address && match.status === 'perfect') {
 
         this.storePerfectMatchData(repository, chain, match.address, compilationResult, sources)
-        savedAddresses.push(match.address);
         matches.push({
           address: match.address,
           status: match.status
@@ -410,7 +408,6 @@ export default class Injector {
       } else if (match.address && match.status === 'partial'){
 
         this.storePartialMatchData(repository, chain, match.address, compilationResult, sources)
-        savedAddresses.push(match.address);
         matches.push({
           address: match.address,
           status: match.status
