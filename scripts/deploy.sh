@@ -1,28 +1,19 @@
 #!/bin/bash
-set -e
 
 # If not staging or master branch are existing
 export TAG="$CIRCLE_BRANCH"
 
 if [ "$CIRCLE_BRANCH" == "staging" ]; then 
-    export TAG="latest"
-    export REPO_PATH='/opt/source-verify/staging/source-verify/'
+    export TAG='latest'
+    export REPO_PATH='/opt/source-verify/staging/'
 fi
 
 if [ "$CIRCLE_BRANCH" == "master" ]; then
-    export TAG="stable"; 
-    export REPO_PATH='/opt/source-verify/production/source-verify/'
+    export TAG='stable' 
+    export REPO_PATH='/opt/source-verify/production/'
 fi
 
-echo $TAG
 # Do ssh to server
 ssh -o "StrictHostKeyChecking no" source-verify@komputing.org "\
-mkdir -p $REPO_PATH && \
-cd $REPO_PATH && \
-curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/docker-compose-${TAG}.yaml > docker-compose.yaml && \
-curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/.env.${TAG} > .env && \
-TAG=$TAG docker-compose pull && \
-echo $TAG && \
-source .env && TAG=$TAG COMPOSE_PROJECT_NAME=source-verify-${TAG} docker-compose up -d && \\
-curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/scripts/clear-repo.sh > clear-repo.sh && \\
-chmod +x clear-repo.sh && ./clear-repo.sh"
+curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/scripts/setup.sh > setup.sh && chmod +x setup.sh && chown $USER:$USER setup.sh && \
+REPO_PATH='${REPO_PATH}' CIRCLE_BRANCH='${CIRCLE_BRANCH}' TAG='${TAG}' ACCESS_KEY='${ACCESS_KEY}' SECRET_ACCESS_KEY='${SECRET_ACCESS_KEY}' ./setup.sh"

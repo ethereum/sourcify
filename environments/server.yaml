@@ -1,0 +1,34 @@
+version: "3.7"
+x-project-repository-mount:
+  &project-repository-mount
+  type: bind
+  source: $REPOSITORY_PATH
+  bind:
+    propagation: rshared
+
+x-project-base:
+  &project-base
+  env_file:
+    - .env
+  restart: always
+  networks:
+    - source-verify
+
+networks:
+  source-verify:
+
+services:
+  server:
+    <<: *project-base
+    image: ethereum/source-verify:server-${TAG}
+    container_name: server-${TAG}
+    ports:
+    - "${SERVER_EXTERNAL_PORT}:${SERVER_PORT}"
+    volumes:
+      - <<: *project-repository-mount
+        target: /home/app/repository/
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 10

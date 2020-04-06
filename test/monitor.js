@@ -57,7 +57,8 @@ describe('monitor', function(){
       monitor = new Monitor({
         blockTime: 1,
         ipfsProvider: ipfs,
-        repository: mockRepo
+        repository: mockRepo,
+        silent: true
       });
 
       await monitor.start(customChain);
