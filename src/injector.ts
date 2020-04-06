@@ -352,7 +352,7 @@ export default class Injector {
    * @param  {string}            chain      chain name (ex: 'ropsten')
    * @param  {string}            address    contract address
    * @param  {string[]}          files
-   * @return {Promise<void>}
+   * @return {Promise<string[]>}            addresses of successfully verified contracts
    */
   public async inject(
     repository: string,
