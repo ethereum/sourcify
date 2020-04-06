@@ -1,6 +1,6 @@
 FROM node:10
 
-WORKDIR /app
+WORKDIR /home/app
 COPY package*.json ./
 RUN npm ci
 COPY . .

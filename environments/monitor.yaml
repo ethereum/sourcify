@@ -24,6 +24,6 @@ services:
     container_name: monitor-${TAG}
     volumes:
       - <<: *project-repository-mount
-        target: /app/repository
+        target: /home/app/repository
     ports:
     - "${MONITOR_EXTERNAL_PORT}:${MONITOR_PORT}"
