@@ -5,6 +5,7 @@ import cors from 'cors';
 import Injector from './injector';
 import Logger from 'bunyan';
 import util from 'util';
+import { findByAddress } from './utils';
 
 const app = express();
 
@@ -31,7 +32,6 @@ const log = Logger.createLogger({
 const repository = './repository/';
 const port = process.env.SERVER_PORT;
 
-
 app.use(express.static('ui/dist'))
 
 // TODO: 52MB is the max file size - is this right?
@@ -51,6 +51,16 @@ app.use('/repository', express.static(repository), serveIndex(repository, {'icon
 app.post('/', (req, res) => {
   const files = [];
   const inputs = [];
+
+  // If address exists in repostory just return it, otherwise recompile
+  try {
+    const result = findByAddress(req.body.address, req.body.chain, repository);
+    res.status(200).send({ result }) 
+  } catch(err) {
+    const msg = "Could not find file in repository, proceeding to recompilation"
+    log.info({loc:'[POST:VERIFICATION_BY_ADDRESS_FAILED]'}, msg);
+  }
+
 
   if (req.files && req.files.files) {
 
