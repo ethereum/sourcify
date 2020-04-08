@@ -1,6 +1,10 @@
 import cbor from 'cbor';
 import Web3 from 'web3';
 import Logger from 'bunyan';
+import { NextFunction, Request, Response } from "express";
+import { injector, log } from './server';
+import util from 'util';
+import svc from 'solc-version-manager';
 
 const solc: any = require('solc');
 
@@ -141,7 +145,7 @@ export async function recompile(
     },
     'Recompiling'
   );
-
+  
   const solcjs: any = await new Promise((resolve, reject) => {
     solc.loadRemoteVersion(`v${version}`, (error: Error, soljson: any) => {
       (error) ? reject(error) : resolve(soljson);
@@ -159,3 +163,125 @@ export async function recompile(
   }
 }
 
+export type InputData = {
+  repository: string
+  chain: string,
+  addresses: string[],
+  files: string[],
+}
+
+export function findInputFiles(req: Request): any {
+  const inputs: any = [];
+
+  if (req.files && req.files.files) {
+
+    // Case: <UploadedFile[]>
+    if (Array.isArray(req.files.files)){
+      req.files.files.forEach(file => {
+        inputs.push(file.data)
+      })
+      return inputs;
+
+    // Case: <UploadedFile>
+    } else if (req.files.files["data"]) {
+      inputs.push(req.files.files["data"]);
+      return inputs;
+    }
+
+    // Case: default
+    const msg = `Invalid file(s) detected: ${util.inspect(req.files.files)}`;
+    log.info({loc:'[POST:INVALID_FILE]'}, msg);
+    throw new BadRequest(msg);
+  }
+
+  const msg = 'Request missing expected property: "req.files.files"';
+  const err = new Error(msg); //TODO: remove
+  log.info({ loc:'[POST:REQUEST_MISFORMAT]', err: err })
+  throw new BadRequest(err.message);
+}
+
+export function sanatizeInputFiles(inputs: any) {
+  const files = [];
+  if (!inputs.files.length){
+    const msg = 'Unable to extract any files. Your request may be misformatted ' +
+                'or missing some contents.';
+
+    const err = new Error(msg);
+    log.info({ loc:'[POST:NO_FILES]', err: err })
+    throw new BadRequest(msg)
+  }
+
+  for (const data of inputs){
+    try {
+      const val = JSON.parse(data.toString());
+      const type = Object.prototype.toString.call(val);
+
+      (type === '[object Object]')
+        ? files.push(JSON.stringify(val))  // JSON formatted metadata
+        : files.push(val);                 // Stringified metadata
+
+    } catch (err) {
+      files.push(data.toString())          // Solidity files
+    }
+
+    return files as string[];
+  }
+}
+
+export async function inject(inputData: InputData) {
+  injector.inject(
+    inputData
+  ).then(result => {
+    return result
+  }).catch(err => {
+    log.info({ loc:'[POST:INJECT_ERROR]', err: err })
+    //res.status(400).send({ error: err.message })
+    throw new BadRequest(err.message);
+  })
+}
+
+//------------------------------------------------------------------------------------------------------
+// Errors
+export class HttpException extends Error {
+  status?: number;
+  message: string;
+
+  constructor(message: string, status?: number) {
+    super(message);
+    this.status = status;
+    this.message = message;
+  }
+}
+
+export class BadRequest extends HttpException {
+  constructor(message: string){
+    super(message, 401);
+  }
+}
+
+export class NotFound extends HttpException {
+  constructor(message: string) {
+    super(message, 404);
+  }
+}
+
+
+export function errorMiddleware(error: Error, request: Request, response: Response, next: NextFunction) {
+  if (error.message.includes("call exception")) {
+    castError(new NotFound(error.message), request, response, next);
+  } else if (error.message.includes("network does support") || error.message.includes("invalid input argument")) {
+    castError(new BadRequest(error.message), request, response, next);
+  } else {
+    castError(new HttpException(error.message, 500), request, response, next);
+  }
+}
+
+export function castError(error: HttpException, request: Request, response: Response, next: NextFunction) {
+  const status = error.status || 500;
+  const message = error.message || "Something went wrong";
+  response
+    .status(status)
+    .send({
+      message
+    });
+}

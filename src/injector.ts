@@ -15,7 +15,9 @@ import {
   getBytecode,
   recompile,
   RecompilationResult,
-  getBytecodeWithoutMetadata as trimMetadata
+  getBytecodeWithoutMetadata as trimMetadata,
+  InputData,
+  NotFound
 } from './utils';
 
 declare interface StringMap {
@@ -360,11 +362,9 @@ export default class Injector {
    * @return {Promise<string[]>}            addresses of successfully verified contracts
    */
   public async inject(
-    repository: string,
-    chain: string,
-    addresses: string[],
-    files: string[]
+    inputData: InputData
   ) : Promise<Match[]> {
+    const { repository, chain, addresses, files } = inputData;
 
     this.validateAddresses(addresses);
     this.validateChain(chain);
@@ -427,7 +427,8 @@ export default class Injector {
           addresses: addresses,
           err: err
         })
-        throw err;
+        
+        throw new NotFound(err.message);
       }
       /* else {
         // TODO: implement address db writes
