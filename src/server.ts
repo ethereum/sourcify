@@ -53,10 +53,13 @@ app.post('/', (req, res) => {
   const inputs = [];
 
   // If address exists in repostory just return it, otherwise recompile
-  const result = findByAddress(req.body.address, req.body.chain, repository);
-  if(result){
-    res.status(200).send({ address: req.body.address, match: "match" }) //TODO:
+  try {
+    const result = findByAddress(req.body.address, req.body.chain, repository);
+    res.status(200).send({ result }) 
+  } catch(err) {
+    console.info("Could not find file in repository, proceeding to recompilation");
   }
+
 
   if (req.files && req.files.files) {
 

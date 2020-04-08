@@ -160,6 +160,7 @@ export async function recompile(
 }
 
 import fs from 'fs';
+import { Match } from './injector';
 
 /**
  * Only for checking that files exists in path
@@ -167,18 +168,24 @@ import fs from 'fs';
  * @param chain 
  * @param repository 
  */
-export function findByAddress(address: string, chain: string, repository: string): boolean {
-  const path = `${repository}/contract/${chain}/${address}`
-  const normalizedPath = require("path").join(__dirname, path);
+export function findByAddress(address: string, chain: string, repository: string): Match[] {
+  const path = `${repository}contract/${chain}/${address}`
+  const normalizedPath = require("path").join(__dirname, '..', path);
   const files = [];
+
+  const matches: Match[] = [];
 
   fs.readdirSync(normalizedPath).forEach((file) => {
     files.push(file)
   });
 
   if(files.length > 0){
-    return true;
+    matches.push({
+      address: address,
+      status: "perfect"
+    });
+    return matches
   }
-  
-  return false;
+
+  throw new Error("Address not found in repository");  
 }
