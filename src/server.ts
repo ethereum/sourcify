@@ -55,7 +55,7 @@ app.post('/', (req, res) => {
   // If address exists in repostory just return it, otherwise recompile
   const result = findByAddress(req.body.address, req.body.chain, repository);
   if(result){
-    res.status(200).send({ result })
+    res.status(200).send({ address: req.body.address, match: "match" }) //TODO:
   }
 
   if (req.files && req.files.files) {

@@ -160,14 +160,25 @@ export async function recompile(
 }
 
 import fs from 'fs';
-import { Match } from './injector';
 
-export function findByAddress(address: string, chain: string, repository: string): any {
+/**
+ * Only for checking that files exists in path
+ * @param address 
+ * @param chain 
+ * @param repository 
+ */
+export function findByAddress(address: string, chain: string, repository: string): boolean {
   const path = `${repository}/contract/${chain}/${address}`
   const normalizedPath = require("path").join(__dirname, path);
-  const match: Match;
+  const files = [];
 
   fs.readdirSync(normalizedPath).forEach((file) => {
     files.push(file)
   });
+
+  if(files.length > 0){
+    return true;
+  }
+  
+  return false;
 }
