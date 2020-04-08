@@ -159,3 +159,15 @@ export async function recompile(
   }
 }
 
+import fs from 'fs';
+import { Match } from './injector';
+
+export function findByAddress(address: string, chain: string, repository: string): any {
+  const path = `${repository}/contract/${chain}/${address}`
+  const normalizedPath = require("path").join(__dirname, path);
+  const match: Match;
+
+  fs.readdirSync(normalizedPath).forEach((file) => {
+    files.push(file)
+  });
+}
