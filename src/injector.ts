@@ -17,27 +17,18 @@ import {
   RecompilationResult,
   getBytecodeWithoutMetadata as trimMetadata,
   InputData,
-  NotFound
+  NotFound,
+  Match
 } from './utils';
 
 declare interface StringMap {
   [key: string]: string;
 }
 
-declare interface BytecodeMatch {
-  address: string | null,
-  status: 'perfect' | 'partial' | null
-}
-
 export interface InjectorConfig {
   infuraPID? : string,
   localChainUrl? : string,
   silent? : boolean
-}
-
-export type Match = {
-  address: string,
-  status: string 
 }
 
 export default class Injector {
@@ -288,8 +279,8 @@ export default class Injector {
     chain: string,
     addresses: string[] = [],
     compiledBytecode: string
-  ) : Promise<BytecodeMatch> {
-    let match : BytecodeMatch = { address: null, status: null };
+  ) : Promise<Match> {
+    let match : Match = { address: null, status: null };
 
     for (let address of addresses){
       address = Web3.utils.toChecksumAddress(address)
@@ -427,7 +418,7 @@ export default class Injector {
           addresses: addresses,
           err: err
         })
-        
+
         throw new NotFound(err.message);
       }
       /* else {
