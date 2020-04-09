@@ -289,6 +289,7 @@ export class NotFound extends HttpException {
 }
 
 // All Error and HttpException properties
+/* tslint:disable:no-unused-variable */
 export function errorMiddleware(error: Error & HttpException, request: Request, response: Response, next: NextFunction) {
     const status = error.status || 500;
     const message = error.message || "Something went wrong";
