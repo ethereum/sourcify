@@ -4,7 +4,8 @@ import fileUpload from 'express-fileupload';
 import cors from 'cors';
 import Injector, {Match} from './injector';
 import Logger from 'bunyan';
-import {errorMiddleware, findInputFiles, InputData, sanatizeInputFiles} from "./utils";
+import {findInputFiles, InputData, sanatizeInputFiles, findByAddress, errorMiddleware} from "./utils";
+
 
 const app = express();
 
@@ -28,9 +29,8 @@ export const log = Logger.createLogger({
     }]
 });
 
-const repository = process.env.REPOSITORY_PATH || './repository/';
+const repository = './repository';
 const port = process.env.SERVER_PORT;
-
 
 app.use(express.static('ui/dist'))
 
@@ -55,6 +55,15 @@ app.post('/', (req, res, next) => {
         files: [],
         addresses: [req.body.address],
         chain: req.body.chain,
+    }
+
+    // Try to find by address
+    try {
+      const result = findByAddress(req.body.address, req.body.chain, repository);
+      res.status(200).send({ result }) 
+    } catch(err) {
+      const msg = "Could not find file in repository, proceeding to recompilation"
+      log.info({loc:'[POST:VERIFICATION_BY_ADDRESS_FAILED]'}, msg);
     }
 
     inputData.files = sanatizeInputFiles(findInputFiles(req));

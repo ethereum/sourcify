@@ -4,7 +4,8 @@ import Logger from 'bunyan';
 import {NextFunction, Request, Response} from "express";
 import {log} from './server';
 import util from 'util';
-
+import fs from 'fs';
+import { Match } from './injector';
 
 const solc: any = require('solc');
 
@@ -227,6 +228,35 @@ export function sanatizeInputFiles(inputs: any): string[] {
     }
     return files;
 }
+
+/**
+ * Only for checking that files exists in path
+ * @param address 
+ * @param chain 
+ * @param repository 
+ */
+export function findByAddress(address: string, chain: string, repository: string): Match[] {
+    const path = `${repository}/contract/${chain}/${address}`
+    const normalizedPath = require("path").join(__dirname, '..', path);
+    const files = [];
+  
+    const matches: Match[] = [];
+  
+    fs.readdirSync(normalizedPath).forEach((file) => {
+      files.push(file)
+    });
+  
+    if(files.length > 0){
+      matches.push({
+        address: address,
+        status: "perfect"
+      });
+      return matches
+    }
+  
+    throw new Error("Address not found in repository");  
+  }
+  
 
 //------------------------------------------------------------------------------------------------------
 
