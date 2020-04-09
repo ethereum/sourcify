@@ -115,7 +115,7 @@ describe("server", function() {
       .field("chain", 'localhost')
       .end(function (err, res) {
         assert.equal(err, null);
-        assert.equal(res.status, 400);
+        assert.equal(res.status, 500);
         assert(res.error.text.includes('metadata file mentions a source file'));
         assert(res.error.text.includes('cannot be found in your upload'));
         done();
@@ -130,7 +130,7 @@ describe("server", function() {
       .field("chain", 'localhost')
       .end(function (err, res) {
         assert.equal(err, null);
-        assert.equal(res.status, 400);
+        assert.equal(res.status, 500);
         assert(res.error.text.includes('Metadata file not found'));
         done();
       });
@@ -143,7 +143,7 @@ describe("server", function() {
       .field("chain", 'localhost')
       .end(function (err, res) {
         assert.equal(err, null);
-        assert.equal(res.status, 400);
+        assert.equal(res.status, 401);
         assert(res.error.text.includes('Request missing expected property'));
         assert(res.error.text.includes('req.files.files'));
         done();
@@ -158,7 +158,7 @@ describe("server", function() {
       .field("chain", 'localhost')
       .end(function (err, res) {
         assert.equal(err, null);
-        assert.equal(res.status, 400);
+        assert.equal(res.status, 500);
         assert(res.error.text.includes('Missing address'));
         done();
       });
@@ -172,7 +172,7 @@ describe("server", function() {
       .field("address", simpleInstance.options.address)
       .end(function (err, res) {
         assert.equal(err, null);
-        assert.equal(res.status, 400);
+        assert.equal(res.status, 500);
         assert(res.error.text.includes('Missing chain name'));
         done();
       });
