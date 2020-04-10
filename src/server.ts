@@ -48,7 +48,6 @@ app.use(fileUpload({
 }))
 
 app.use(cors())
-app.use(errorMiddleware);
 
 /* tslint:disable:no-unused-variable */
 app.get('/', (req, res) => res.sendFile('ui/dist/index.html'))
@@ -88,6 +87,7 @@ app.post('/', (req, res, next) => {
   })
 })
 
+app.use(errorMiddleware);
 
 app.listen(port, () => log.info({loc: '[LISTEN]'}, `Injector listening on port ${port}!`))
 
