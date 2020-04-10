@@ -23,7 +23,7 @@ if (process.env.TESTING) {
   silent = true;
 }
 
-export const injector = new Injector({
+const injector = new Injector({
   localChainUrl: localChainUrl,
   silent: silent
 });
