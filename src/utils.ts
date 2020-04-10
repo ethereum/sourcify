@@ -199,9 +199,8 @@ export function findInputFiles(req: Request, log: Logger): any {
   }
 
   const msg = 'Request missing expected property: "req.files.files"';
-  const err = new Error(msg); //TODO: remove
-  log.info({loc: '[POST:REQUEST_MISFORMAT]', err: err})
-  throw new BadRequest(err.message);
+  log.info({loc: '[POST:REQUEST_MISFORMAT]', err: msg})
+  throw new BadRequest(msg);
 }
 
 export function sanatizeInputFiles(inputs: any, log: Logger): string[] {
