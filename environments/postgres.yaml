@@ -1,0 +1,22 @@
+version: "3.7"
+
+x-project-base:
+  &project-base
+  env_file:
+    - .env
+  restart: always
+  networks:
+    - source-verify
+
+networks:
+  source-verify:
+
+services:
+  db:
+    <<: *project-base
+    container_name: db-${TAG}
+    image: postgres:12.2
+    ports:
+      - "${EXTERNAL_DB_PORT}:${DB_PORT}"
+    volumes:
+      - ../src/postgres/schema.sql:/docker-entrypoint-initdb.d/1-schema.sql
