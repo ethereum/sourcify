@@ -4,6 +4,7 @@ import Logger from 'bunyan';
 import {NextFunction, Request, Response} from "express";
 import util from 'util';
 import fs from 'fs';
+import path from 'path';
 
 const solc: any = require('solc');
 
@@ -198,16 +199,18 @@ export function findInputFiles(req: Request, log: Logger): any {
     throw new BadRequest(msg);
   }
 
-  const msg = 'Request missing expected property: "req.files.files"';
-  log.info({loc: '[POST:REQUEST_MISFORMAT]', err: msg})
-  throw new BadRequest(msg);
+  // If we reach this point, an address has been submitted and searched for
+  // but there are no files associated with the request.
+  const msg = 'Address for specified chain not found in repository';
+  log.info({loc: '[POST:ADDRESS_NOT_FOUND]', err: msg})
+  throw new NotFound(msg);
 }
 
-export function sanatizeInputFiles(inputs: any, log: Logger): string[] {
+export function sanitizeInputFiles(inputs: any, log: Logger): string[] {
   const files = [];
   if (!inputs.length) {
     const msg = 'Unable to extract any files. Your request may be misformatted ' +
-      'or missing some contents.';
+                'or missing some contents.';
 
     const err = new Error(msg);
     log.info({loc: '[POST:NO_FILES]', err: err})
@@ -237,26 +240,20 @@ export function sanatizeInputFiles(inputs: any, log: Logger): string[] {
  * @param chain
  * @param repository
  */
-export function findByAddress(address: string, chain: string, repository: string): Match[] {
-  const path = `${repository}/contract/${chain}/${address}`
-  const normalizedPath = require("path").join(__dirname, '..', path);
-  const files = [];
+export function findByAddress(address: string, chain: string, repository: string): Match {
+  const addressPath = `${repository}/contract/${chain}/${address}`
+  const normalizedPath = path.join(__dirname, '..', addressPath);
 
-  const matches: Match[] = [];
-
-  fs.readdirSync(normalizedPath).forEach((file) => {
-    files.push(file)
-  });
-
-  if(files.length > 0){
-    matches.push({
-      address: address,
-      status: "perfect"
-    });
-    return matches
+  try {
+    fs.readdirSync(normalizedPath);
+  } catch(e){
+    throw new Error("Address not found in repository");
   }
 
-  throw new Error("Address not found in repository");
+  return {
+    address: address,
+    status: "perfect"
+  }
 }
 
 //------------------------------------------------------------------------------------------------------

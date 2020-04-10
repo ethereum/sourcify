@@ -7,7 +7,7 @@ import Logger from 'bunyan';
 import {
   findInputFiles,
   InputData,
-  sanatizeInputFiles,
+  sanitizeInputFiles,
   findByAddress,
   errorMiddleware,
   Match
@@ -65,17 +65,25 @@ app.post('/', (req, res, next) => {
     chain: req.body.chain,
   }
 
-  // Try to find by address
+  // Try to find by address, return on success.
   try {
     const result = findByAddress(req.body.address, req.body.chain, repository);
-    res.status(200).send({ result })
+    res.status(200).send(result);
+    return;
   } catch(err) {
     const msg = "Could not find file in repository, proceeding to recompilation"
     log.info({loc:'[POST:VERIFICATION_BY_ADDRESS_FAILED]'}, msg);
   }
 
-  inputData.files = sanatizeInputFiles(findInputFiles(req, log), log);
+  // Try to organize files for submission, exit on error.
+  try {
+    const files = findInputFiles(req, log);
+    inputData.files = sanitizeInputFiles(files, log);
+  } catch (err) {
+    return next(err);
+  }
 
+  // Injection
   const promises: Promise<Match[]>[] = [];
   promises.push(injector.inject(inputData));
 
