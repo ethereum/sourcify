@@ -68,7 +68,7 @@ app.post('/', (req, res, next) => {
   // Try to find by address, return on success.
   try {
     const result = findByAddress(req.body.address, req.body.chain, repository);
-    res.status(200).send(result);
+    res.status(200).send({result});
     return;
   } catch(err) {
     const msg = "Could not find file in repository, proceeding to recompilation"

@@ -225,9 +225,9 @@ describe("server", function() {
           assert.equal(err, null);
           assert.equal(res.status, 200);
 
-          const result = JSON.parse(res.text);
-          assert.equal(result.status, 'perfect');
-          assert.equal(result.address, simpleInstance.options.address);
+          const text = JSON.parse(res.text);
+          assert.equal(text.result[0].status, 'perfect');
+          assert.equal(text.result[0].address, simpleInstance.options.address);
 
           done();
         });

@@ -240,7 +240,7 @@ export function sanitizeInputFiles(inputs: any, log: Logger): string[] {
  * @param chain
  * @param repository
  */
-export function findByAddress(address: string, chain: string, repository: string): Match {
+export function findByAddress(address: string, chain: string, repository: string): Match[] {
   const addressPath = `${repository}/contract/${chain}/${address}`
   const normalizedPath = path.join(__dirname, '..', addressPath);
 
@@ -250,10 +250,10 @@ export function findByAddress(address: string, chain: string, repository: string
     throw new Error("Address not found in repository");
   }
 
-  return {
+  return [{
     address: address,
     status: "perfect"
-  }
+  }]
 }
 
 //------------------------------------------------------------------------------------------------------
