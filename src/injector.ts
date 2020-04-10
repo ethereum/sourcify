@@ -15,27 +15,20 @@ import {
   getBytecode,
   recompile,
   RecompilationResult,
-  getBytecodeWithoutMetadata as trimMetadata
+  getBytecodeWithoutMetadata as trimMetadata,
+  InputData,
+  NotFound,
+  Match
 } from './utils';
 
 declare interface StringMap {
   [key: string]: string;
 }
 
-declare interface BytecodeMatch {
-  address: string | null,
-  status: 'perfect' | 'partial' | null
-}
-
 export interface InjectorConfig {
   infuraPID? : string,
   localChainUrl? : string,
   silent? : boolean
-}
-
-export type Match = {
-  address: string,
-  status: string 
 }
 
 export default class Injector {
@@ -286,8 +279,8 @@ export default class Injector {
     chain: string,
     addresses: string[] = [],
     compiledBytecode: string
-  ) : Promise<BytecodeMatch> {
-    let match : BytecodeMatch = { address: null, status: null };
+  ) : Promise<Match> {
+    let match : Match = { address: null, status: null };
 
     for (let address of addresses){
       address = Web3.utils.toChecksumAddress(address)
@@ -360,11 +353,9 @@ export default class Injector {
    * @return {Promise<string[]>}            addresses of successfully verified contracts
    */
   public async inject(
-    repository: string,
-    chain: string,
-    addresses: string[],
-    files: string[]
+    inputData: InputData
   ) : Promise<Match[]> {
+    const { repository, chain, addresses, files } = inputData;
 
     this.validateAddresses(addresses);
     this.validateChain(chain);
@@ -427,7 +418,8 @@ export default class Injector {
           addresses: addresses,
           err: err
         })
-        throw err;
+
+        throw new NotFound(err.message);
       }
       /* else {
         // TODO: implement address db writes
