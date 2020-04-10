@@ -139,7 +139,7 @@ export default function App() {
         <div className="app-fieldset_footer">
           <input
             disabled={
-              acceptedFiles.length === 0 || !address
+              !address
             }
             type="submit"
             onClick={handleSubmit}

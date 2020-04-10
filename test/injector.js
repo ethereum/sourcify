@@ -68,21 +68,23 @@ describe('injector', function(){
 
     it('verifies sources from multiple metadatas, addresses & stores by IPFS hash', async function(){
       // Inject by address into repository after recompiling
-      await injector.inject(
-        mockRepo,
-        'localhost',
-        [
+      const inputData = {
+        repository: mockRepo,
+        chain: 'localhost',
+        addresses: [
           simpleInstance.options.address,
           simpleWithImportInstance.options.address
         ],
-        [
+        files: [
           simpleSource,
           simpleWithImportSource,
           importSource,
           simpleMetadata,
           simpleWithImportMetadata
         ]
-      );
+      };
+
+      await injector.inject(inputData);
 
       // Verify metadata was stored to repository, indexed by ipfs hash
       const simpleHash = await getIPFSHash(simpleMetadata);
@@ -97,12 +99,14 @@ describe('injector', function(){
 
     it('verfies a metadata with embedded source code (--metadata-literal)', async function(){
       // Inject by address into repository after recompiling
-      await injector.inject(
-        mockRepo,
-        'localhost',
-        [ literalInstance.options.address ],
-        [ literalMetadata ]
-      );
+      const inputData = {
+        repository: mockRepo,
+        chain: 'localhost',
+        addresses: [ literalInstance.options.address ],
+        files: [ literalMetadata ]
+      };
+
+      await injector.inject(inputData);
 
       // Verify metadata was stored to repository, indexed by ipfs hash
       const literalHash = await getIPFSHash(literalMetadata);
@@ -117,15 +121,17 @@ describe('injector', function(){
       const source = SimpleBzzr0.sourceCodes["Simple.sol"];
 
       // Inject by address into repository after recompiling
-      await injector.inject(
-        mockRepo,
-        'localhost',
-        [ instance.options.address ],
-        [
+      const inputData = {
+        repository: mockRepo,
+        chain: 'localhost',
+        addresses: [ instance.options.address ],
+        files: [
           metadata,
           source
         ]
-      );
+      };
+
+      await injector.inject(inputData);
 
       // Verify metadata was stored to repository, indexed by ipfs hash
       const hash = getBzzr0Hash(SimpleBzzr0);
@@ -140,15 +146,17 @@ describe('injector', function(){
       const source = SimpleBzzr1.sourceCodes["Simple.sol"];
 
       // Inject by address into repository after recompiling
-      await injector.inject(
-        mockRepo,
-        'localhost',
-        [ instance.options.address ],
-        [
+      const inputData = {
+        repository: mockRepo,
+        chain: 'localhost',
+        addresses: [ instance.options.address ],
+        files: [
           metadata,
           source
         ]
-      );
+      };
+
+      await injector.inject(inputData);
 
       // Verify metadata was stored to repository, indexed by ipfs hash
       const hash = getBzzr1Hash(SimpleBzzr1);
@@ -167,15 +175,17 @@ describe('injector', function(){
 
       // Inject Simple with a metadata that specifies solc 0.6.1 instead of 0.6.0
       // Functional bytecode of both contracts is identical but metadata hashes will be different.
-      await injector.inject(
-        mockRepo,
-        'localhost',
-        [ simpleInstance.options.address ],
-        [
+      const inputData = {
+        repository: mockRepo,
+        chain: 'localhost',
+        addresses: [ simpleInstance.options.address ],
+        files: [
           simpleSource,
           mismatchedMetadata
         ]
-      );
+      };
+
+      await injector.inject(inputData);
 
       // Verify metadata was saved, indexed by address under partial_matches
       const expectedPath = path.join(
@@ -191,13 +201,15 @@ describe('injector', function(){
     })
 
     it('errors if metadata is missing', async function(){
+      const inputData = {
+        repository: mockRepo,
+        chain: 'localhost',
+        addresses: [ simpleInstance.options.address],
+        files: [ simpleSource ]
+      }
+
       try {
-        await injector.inject(
-          mockRepo,
-          'localhost',
-          [ simpleInstance.options.address],
-          [ simpleSource ]
-        );
+        await injector.inject(inputData);
       } catch(err) {
         assert.equal(
           err.message,
@@ -207,13 +219,15 @@ describe('injector', function(){
     });
 
     it('errors if sources specified in metadata are missing', async function(){
+      const inputData = {
+        repository: mockRepo,
+        chain: 'localhost',
+        addresses: [ simpleInstance.options.address],
+        files: [ simpleMetadata ]
+      }
+
       try {
-        await injector.inject(
-          mockRepo,
-          'localhost',
-          [ simpleInstance.options.address],
-          [ simpleMetadata ]
-        );
+        await injector.inject(inputData);
       } catch(err) {
         assert(err.message.includes('Simple.sol'));
         assert(err.message.includes('cannot be found'));
@@ -221,15 +235,16 @@ describe('injector', function(){
     });
 
     it('errors when recompiled bytecode does not match deployed', async function(){
+      const inputData = {
+        repository: mockRepo,
+        chain: 'localhost',
+        addresses: [ simpleWithImportInstance.options.address],
+        files: [ simpleMetadata, simpleSource ]
+      }
 
       // Try to match Simple sources/metadata to SimpleWithImport's address
       try {
-        await injector.inject(
-          mockRepo,
-          'localhost',
-          [ simpleWithImportInstance.options.address],
-          [ simpleMetadata, simpleSource ]
-        );
+        await injector.inject(inputData);
       } catch(err) {
         assert(err.message.includes('Could not match on-chain deployed bytecode'));
         assert(err.message.includes('contracts/Simple.sol'));
