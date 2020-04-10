@@ -1,7 +1,7 @@
 import cbor from 'cbor';
 import Web3 from 'web3';
 import Logger from 'bunyan';
-import {ErrorRequestHandler, NextFunction, Request, Response} from "express";
+import {NextFunction, Request, Response} from "express";
 import util from 'util';
 import fs from 'fs';
 
