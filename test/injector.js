@@ -223,17 +223,19 @@ describe('injector', function(){
         linkReferences
       );
 
-      // Inject by address into repository after recompiling
-      await injector.inject(
-        mockRepo,
-        'localhost',
-        [ instance.options.address ],
-        [
+      const inputData = {
+        repository: mockRepo,
+        chain: 'localhost',
+        addresses: [ instance.options.address ],
+        files: [
           linkedMetadata,
           SimpleWithLibrary.sourceCodes["Library.sol"],
           SimpleWithLibrary.sourceCodes["SimpleWithLibrary.sol"]
         ]
-      );
+      }
+
+      // Inject by address into repository after recompiling
+      await injector.inject(inputData);
 
       // Verify metadata was stored to repository, indexed by ipfs hash
       // Verify metadata was saved, indexed by address under partial_matches
