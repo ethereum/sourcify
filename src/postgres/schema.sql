@@ -2,6 +2,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE bytecode (
     id uuid PRIMARY KEY,
+    address text NOT NULL,
     creation_bytecode text NOT NULL,
     chain_id integer NOT NULL,
     block_number integer NOT NULL,
