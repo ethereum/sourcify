@@ -11,7 +11,7 @@ npm install
 npm run deploy:goerli
 
 # Give monitor a chance to detect and save.
-sleep 45
+sleep 145
 
 # Script which verifies repository write
 cd ..
