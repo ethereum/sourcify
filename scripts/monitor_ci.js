@@ -12,8 +12,10 @@ const fetch = require('node-fetch');
 const util = require('util');
 const log = console.log;
 
-// TODO: Check if multiple repositories and toggle by staging or master branch
-const root = 'https://contractrepostaging.komputing.org/';
+const root = (process.env.CIRCLE_BRANCH === 'staging')
+  ? 'https://contractrepostaging.komputing.org/'
+  : 'https://contractrepo.komputing.org';
+
 const artifact = require('../metacoin-source-verify/build/contracts/MetaCoin.json')
 const address = artifact.networks['5'].address;
 
