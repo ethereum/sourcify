@@ -241,11 +241,11 @@ export function sanitizeInputFiles(inputs: any, log: Logger): string[] {
  * @param repository
  */
 export function findByAddress(address: string, chain: string, repository: string): Match[] {
-  const addressPath = `${repository}/contract/${chain}/${address}`
+  const addressPath = `${repository}/contract/${chain}/${address}/metadata.json`;
   const normalizedPath = path.join(__dirname, '..', addressPath);
 
   try {
-    fs.readdirSync(normalizedPath);
+    fs.readFileSync(normalizedPath);
   } catch(e){
     throw new Error("Address not found in repository");
   }
