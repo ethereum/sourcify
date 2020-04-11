@@ -1,6 +1,7 @@
 process.env.TESTING = true;
 process.env.SERVER_PORT=2000;
 process.env.LOCALCHAIN_URL="http://localhost:8545";
+process.env.MOCK_REPOSITORY='./mockRepository';
 
 const assert = require('assert');
 const chai = require('chai');
@@ -32,7 +33,6 @@ describe("server", function() {
   let server;
   let web3;
   let simpleInstance;
-  let repo = 'repository';
   let serverAddress = 'http://localhost:2000';
 
   before(async function(){
@@ -45,7 +45,7 @@ describe("server", function() {
 
   // Clean up repository
   afterEach(function(){
-    try { exec(`rm -rf ${repo}`) } catch(err) { /*ignore*/ }
+    try { exec(`rm -rf ${process.env.MOCK_REPOSITORY}`) } catch(err) { /*ignore*/ }
   })
 
   // Clean up server
@@ -55,7 +55,7 @@ describe("server", function() {
 
   it("when submitting a valid request (stringified metadata)", function(done){
     const expectedPath = path.join(
-      './repository',
+      process.env.MOCK_REPOSITORY,
       'contract',
       'localhost',
       simpleInstance.options.address,
@@ -83,7 +83,7 @@ describe("server", function() {
 
   it("when submitting a valid request (json formatted metadata)", function(done){
     const expectedPath = path.join(
-      './repository',
+      process.env.MOCK_REPOSITORY,
       'contract',
       'localhost',
       simpleInstance.options.address,
@@ -213,7 +213,7 @@ describe("server", function() {
     });
 
     afterEach(function(){
-      try { exec(`rm -rf ${mockRepo}`) } catch(err) { /*ignore*/ }
+      try { exec(`rm -rf ${process.env.MOCK_REPOSITORY}`) } catch(err) { /*ignore*/ }
     });
 
     it("when address / chain exist (success)", function(done){

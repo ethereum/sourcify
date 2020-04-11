@@ -36,7 +36,7 @@ const log = Logger.createLogger({
   }]
 });
 
-const repository = './repository';
+const repository = process.env.MOCK_REPOSITORY || './repository';
 const port = process.env.SERVER_PORT;
 
 app.use(express.static('ui/dist'))
