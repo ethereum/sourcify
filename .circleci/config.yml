@@ -13,7 +13,7 @@ aliases:
       - run:
          name: Build and push docker images
          command: |
-           CIRCLE_BRANCH=${CIRCLE_BRANCH} ./scripts/build_and_publish_docker_images.sh    
+           CIRCLE_BRANCH=${CIRCLE_BRANCH} ./scripts/build_and_publish_docker_images.sh
   - &deploy-base
       docker:
         - image: circleci/node:10.19.0-buster
@@ -62,7 +62,24 @@ aliases:
         key: dependency-cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "package.json" }}
         paths:
         - ./node_modules
-
+  - &monitor-e2e-base
+    working_directory: ~/source-verify
+    docker:
+    - image: circleci/node
+    steps:
+    - checkout
+    - restore_cache:
+        key: dependency-cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "package.json" }}
+    - run:
+        name: install-npm
+        command: npm install
+    - run:
+        name: monitor test
+        command: npm run monitor:ci
+    - save_cache:
+        key: dependency-cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "package.json" }}
+        paths:
+        - ./node_modules
 version: 2
 workflows:
   version: 2
@@ -124,38 +141,39 @@ workflows:
           - build-push-s3
           - build-push-monitor
           - build-push-server
-          - build-push-ui   
+          - build-push-ui
   node-multi-build:
     jobs:
       - node-v10
       - node-v12
+      - monitor-e2e
 
 jobs:
-  build-push-ipfs: 
+  build-push-ipfs:
     <<: *docker-base
     environment:
       SERVICE: "ipfs"
-  build-push-localchain: 
+  build-push-localchain:
     <<: *docker-base
     environment:
       SERVICE: "localchain"
-  build-push-monitor: 
+  build-push-monitor:
     <<: *docker-base
     environment:
       SERVICE: "monitor"
-  build-push-repository: 
+  build-push-repository:
     <<: *docker-base
     environment:
       SERVICE: "repository"
-  build-push-s3: 
+  build-push-s3:
     <<: *docker-base
     environment:
       SERVICE: "s3"
-  build-push-server: 
+  build-push-server:
     <<: *docker-base
     environment:
       SERVICE: "server"
-  build-push-ui: 
+  build-push-ui:
     <<: *docker-base
     environment:
       SERVICE: "ui"
@@ -171,4 +189,8 @@ jobs:
     - image: circleci/node:12
     environment:
       run_coveralls: "true"
+  monitor-e2e:
+    <<: *monitor-e2e-base
+    docker:
+    - image: circleci/node:10
 
