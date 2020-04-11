@@ -142,11 +142,19 @@ workflows:
           - build-push-monitor
           - build-push-server
           - build-push-ui
+      - monitor-e2e:
+          filters:
+            branches:
+              only:
+              - staging
+              - master
+          requires:
+          - deploy
+
   node-multi-build:
     jobs:
       - node-v10
       - node-v12
-      - monitor-e2e
 
 jobs:
   build-push-ipfs:
