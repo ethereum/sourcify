@@ -1,6 +1,7 @@
 process.env.TESTING = true;
 process.env.SERVER_PORT=2000;
 process.env.LOCALCHAIN_URL="http://localhost:8545";
+process.env.MOCK_REPOSITORY='./mockRepository';
 
 const assert = require('assert');
 const chai = require('chai');
@@ -20,6 +21,9 @@ const Simple = require('./sources/pass/simple.js');
 const simpleMetadataPath = './test/sources/all/simple.meta.json';
 const simpleSourcePath = './test/sources/all/Simple.sol';
 const simpleMetadataJSONPath = './test/sources/metadata/simple.meta.object.json';
+const importSourcePath = './test/sources/all/Import.sol';
+const simpleWithImportSourcePath = './test/sources/all/SimpleWithImport.sol';
+const simpleWithImportMetadataPath = './test/sources/all/simpleWithImport.meta.json';
 
 chai.use(chaiHttp);
 
@@ -29,7 +33,6 @@ describe("server", function() {
   let server;
   let web3;
   let simpleInstance;
-  let repo = 'repository';
   let serverAddress = 'http://localhost:2000';
 
   before(async function(){
@@ -42,7 +45,7 @@ describe("server", function() {
 
   // Clean up repository
   afterEach(function(){
-    try { exec(`rm -rf ${repo}`) } catch(err) { /*ignore*/ }
+    try { exec(`rm -rf ${process.env.MOCK_REPOSITORY}`) } catch(err) { /*ignore*/ }
   })
 
   // Clean up server
@@ -52,7 +55,7 @@ describe("server", function() {
 
   it("when submitting a valid request (stringified metadata)", function(done){
     const expectedPath = path.join(
-      './repository',
+      process.env.MOCK_REPOSITORY,
       'contract',
       'localhost',
       simpleInstance.options.address,
@@ -80,7 +83,7 @@ describe("server", function() {
 
   it("when submitting a valid request (json formatted metadata)", function(done){
     const expectedPath = path.join(
-      './repository',
+      process.env.MOCK_REPOSITORY,
       'contract',
       'localhost',
       simpleInstance.options.address,
@@ -103,6 +106,24 @@ describe("server", function() {
         // Verify sources were written to repo
         const saved = JSON.stringify(read(expectedPath, 'utf-8'));
         assert.equal(saved, stringifiedMetadata.trim());
+        done();
+      });
+  });
+
+  it("when submitting and bytecode does not match (error)", function(done){
+    chai.request(serverAddress)
+      .post('/')
+      .attach("files", read(simpleWithImportMetadataPath), "simpleWithImport.meta.json")
+      .attach("files", read(simpleWithImportSourcePath), "SimpleWithImport.sol")
+      .attach("files", read(importSourcePath), "Import.sol")
+      .field("address", simpleInstance.options.address)
+      .field("chain", 'localhost')
+      .end(function (err, res) {
+        assert.equal(err, null);
+        assert.equal(res.status, 404);
+
+        const result = JSON.parse(res.text);
+        assert(result.error.includes("Could not match on-chain deployed bytecode"));
         done();
       });
   });
@@ -135,20 +156,6 @@ describe("server", function() {
         done();
       });
   });
-
-  it("when submitting without attaching files (error)", function(done){
-    chai.request(serverAddress)
-      .post('/')
-      .field("address", simpleInstance.options.address)
-      .field("chain", 'localhost')
-      .end(function (err, res) {
-        assert.equal(err, null);
-        assert.equal(res.status, 401);
-        assert(res.error.text.includes('Request missing expected property'));
-        assert(res.error.text.includes('req.files.files'));
-        done();
-      });
-  })
 
   it("when submitting without an address (error)", function(done){
     chai.request(serverAddress)
@@ -187,5 +194,73 @@ describe("server", function() {
         assert(res.text.includes('Alive and kicking!'))
         done();
       });
+  });
+
+  describe("when submitting only an address / chain pair", function(){
+
+    // Setup: write "Simple.sol" to repo
+    beforeEach(function(done){
+      chai.request(serverAddress)
+        .post('/')
+        .attach("files", read(simpleMetadataPath), "simple.meta.json")
+        .attach("files", read(simpleSourcePath), "Simple.sol")
+        .field("address", simpleInstance.options.address)
+        .field("chain", 'localhost')
+        .end(function (err, res) {
+          assert.equal(res.status, 200);
+          done();
+        });
+    });
+
+    afterEach(function(){
+      try { exec(`rm -rf ${process.env.MOCK_REPOSITORY}`) } catch(err) { /*ignore*/ }
+    });
+
+    it("when address / chain exist (success)", function(done){
+      chai.request(serverAddress)
+        .post('/')
+        .field("address", simpleInstance.options.address)
+        .field("chain", 'localhost')
+        .end(function (err, res) {
+          assert.equal(err, null);
+          assert.equal(res.status, 200);
+
+          const text = JSON.parse(res.text);
+          assert.equal(text.result[0].status, 'perfect');
+          assert.equal(text.result[0].address, simpleInstance.options.address);
+
+          done();
+        });
+    });
+
+    it("when chain does not exist (error)", function(done){
+      chai.request(serverAddress)
+        .post('/')
+        .field("address", simpleInstance.options.address)
+        .field("chain", 'bitcoin_diamond_lottery')
+        .end(function (err, res) {
+          assert.equal(err, null);
+          assert.equal(res.status, 404);
+
+          const result = JSON.parse(res.text);
+          assert.equal(result.error, "Address for specified chain not found in repository");
+          done();
+        });
+    });
+
+    it("when address does not exist (error)", function(done){
+      chai.request(serverAddress)
+        .post('/')
+        .field("address", "0xabcde")
+        .field("chain", 'localhost')
+        .end(function (err, res) {
+          assert.equal(err, null);
+          assert.equal(res.status, 404);
+
+          const result = JSON.parse(res.text);
+          assert.equal(result.error, "Address for specified chain not found in repository");
+          done();
+        });
+    });
   });
 });
