@@ -74,6 +74,11 @@ describe("server", function() {
         assert.equal(err, null);
         assert.equal(res.status, 200);
 
+        // Reponse should be array of matches
+        const text = JSON.parse(res.text);
+        assert.equal(text.result[0].status, 'perfect');
+        assert.equal(text.result[0].address, simpleInstance.options.address);
+
         // Verify sources were written to repo
         const saved = JSON.stringify(read(expectedPath, 'utf-8'));
         assert.equal(saved, submittedMetadata.trim());
