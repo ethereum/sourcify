@@ -154,7 +154,7 @@ export default function App() {
             <br />
             <br />
             View the assets in the{' '}
-            <a href={`/repository/contract/${chain.value}/${result[0].address}`}>
+            <a href={`${process.env.REPOSITORY_URL}contract/${chain.value}/${result[0].address}`}>
               file explorer
             </a>
             .
