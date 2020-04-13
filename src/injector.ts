@@ -350,18 +350,22 @@ export default class Injector {
    * @param  {string}            chain      chain name (ex: 'ropsten')
    * @param  {string}            address    contract address
    * @param  {string[]}          files
-   * @return {Promise<string[]>}            addresses of successfully verified contracts
+   * @return {Promise<object>}              address & status of successfully verified contracts
    */
   public async inject(
     inputData: InputData
-  ) : Promise<Match[]> {
+  ) : Promise<Match> {
     const { repository, chain, addresses, files } = inputData;
 
     this.validateAddresses(addresses);
     this.validateChain(chain);
 
-    const metadataFiles = this.findMetadataFiles(files)
-    const matches: Match[] = [];
+    const metadataFiles = this.findMetadataFiles(files);
+
+    let match: Match = {
+      address: null,
+      status: null
+    };
 
     for (const metadata of metadataFiles){
       const sources = this.rearrangeSources(metadata, files)
@@ -378,7 +382,7 @@ export default class Injector {
         throw err;
       }
 
-      const match = await this.matchBytecodeToAddress(
+      match = await this.matchBytecodeToAddress(
         chain,
         addresses,
         compilationResult.deployedBytecode
@@ -391,18 +395,10 @@ export default class Injector {
       if (match.address && match.status === 'perfect') {
 
         this.storePerfectMatchData(repository, chain, match.address, compilationResult, sources)
-        matches.push({
-          address: match.address,
-          status: match.status
-        });
 
       } else if (match.address && match.status === 'partial'){
 
         this.storePartialMatchData(repository, chain, match.address, compilationResult, sources)
-        matches.push({
-          address: match.address,
-          status: match.status
-        });
 
       } else {
         const err = new Error(
@@ -435,6 +431,6 @@ export default class Injector {
         }
       */
     }
-    return matches
+    return match;
   }
 }

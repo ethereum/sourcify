@@ -84,7 +84,7 @@ app.post('/', (req, res, next) => {
   }
 
   // Injection
-  const promises: Promise<Match[]>[] = [];
+  const promises: Promise<Match>[] = [];
   promises.push(injector.inject(inputData));
 
   //This is so we can have multiple parallel injections, logic still has to be completely implemented
