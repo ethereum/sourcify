@@ -17,10 +17,9 @@ import {
 const app = express();
 
 let localChainUrl;
-let silent;
+
 if (process.env.TESTING) {
   localChainUrl = process.env.LOCALCHAIN_URL;
-  silent = true;
 }
 
 const log = Logger.createLogger({
