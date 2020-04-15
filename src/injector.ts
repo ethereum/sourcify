@@ -28,7 +28,8 @@ declare interface StringMap {
 export interface InjectorConfig {
   infuraPID? : string,
   localChainUrl? : string,
-  silent? : boolean
+  silent? : boolean,
+  log? : Logger
 }
 
 export default class Injector {
@@ -46,7 +47,7 @@ export default class Injector {
     this.infuraPID = config.infuraPID || "891fe57328084fcca24912b662ad101f";
     this.localChainUrl = config.localChainUrl;
 
-    this.log = Logger.createLogger({
+    this.log = config.log || Logger.createLogger({
       name: "Injector",
       streams: [{
         stream: process.stdout,
