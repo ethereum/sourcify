@@ -23,17 +23,18 @@ if (process.env.TESTING) {
   silent = true;
 }
 
-const injector = new Injector({
-  localChainUrl: localChainUrl,
-  silent: silent
-});
-
 const log = Logger.createLogger({
   name: "Server",
   streams: [{
     stream: process.stdout,
     level: silent ? 'fatal' : 30
   }]
+});
+
+const injector = new Injector({
+  localChainUrl: localChainUrl,
+  silent: silent,
+  log: log
 });
 
 const repository = process.env.MOCK_REPOSITORY || './repository';
