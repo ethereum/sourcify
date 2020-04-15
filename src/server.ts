@@ -27,13 +27,12 @@ const log = Logger.createLogger({
   name: "Server",
   streams: [{
     stream: process.stdout,
-    level: silent ? 'fatal' : 30
+    level: 30
   }]
 });
 
 const injector = new Injector({
   localChainUrl: localChainUrl,
-  silent: silent,
   log: log
 });
 
