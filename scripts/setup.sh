@@ -28,7 +28,7 @@ cd scripts
 echo $PWD
 DATABASE_PATH="$DATABASE_PATH" REPOSITORY_PATH="$REPOSITORY_PATH" ./prepare.sh
 cd ../environments
-echo $PWD 
+echo $PWD
 eval ${COMPOSE_COMMAND} pull
 echo $PWD
 eval ${COMPOSE_COMMAND} up -d
