@@ -16,3 +16,4 @@ environment/.env
 **/.env
 stats**
 tmp
+**/files/
