@@ -1,4 +1,4 @@
-import express, { response } from 'express';
+import express from 'express';
 import serveIndex from 'serve-index';
 import fileUpload from 'express-fileupload';
 import cors from 'cors';
@@ -12,11 +12,9 @@ import {
   errorMiddleware,
   Match,
   fetchAllFileContents,
-  fetchAllFilePaths,
   fetchAllFileUrls,
   FileObject
 } from "./utils";
-import path from 'path';
 
 const app = express();
 
