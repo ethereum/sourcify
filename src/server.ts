@@ -10,9 +10,11 @@ import {
   sanitizeInputFiles,
   findByAddress,
   errorMiddleware,
-  Match
+  Match,
+  fetchAllFileContents,
+  fetchAllFileUrls,
+  FileObject
 } from "./utils";
-
 
 const app = express();
 
@@ -53,10 +55,31 @@ app.get('/', (req, res) => res.sendFile('ui/dist/index.html'))
 app.get('/health', (req, res) => res.status(200).send('Alive and kicking!'))
 app.use('/repository', express.static(repository), serveIndex(repository, {'icons': true}))
 
+
+app.get('/tree/:chain/:address', (req, res, next) => {
+  try {
+    const chain:string = req.params.chain;
+    const address: string = req.params.address;
+    const files = fetchAllFileUrls(chain, address);
+    res.status(200).send(JSON.stringify(files))
+  } catch(err){
+    next(err);
+  }
+})
+
+app.get('/files/:chain/:address', (req, res, next) => {
+  try{
+    const chain:string = req.params.chain;
+    const address: string = req.params.address;
+    const files: Array<FileObject> = fetchAllFileContents(chain, address);
+    res.status(200).send(files);
+  } catch(err) {
+    next(err);
+  }
+})
+
 /* tslint:enable:no-unused-variable */
-
 app.post('/', (req, res, next) => {
-
   const inputData: InputData = {
     repository: repository,
     files: [],

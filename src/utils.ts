@@ -5,6 +5,7 @@ import {NextFunction, Request, Response} from "express";
 import util from 'util';
 import fs from 'fs';
 import path from 'path';
+import dirTree from 'directory-tree';
 
 const solc: any = require('solc');
 
@@ -254,6 +255,41 @@ export function findByAddress(address: string, chain: string, repository: string
     address: address,
     status: "perfect"
   }]
+}
+
+export type FileObject = {
+  name: string,
+  path: string
+  content?: string
+}
+
+export function fetchAllFileUrls(chain: string, address: string): Array<string> {
+  const files: Array<FileObject> = fetchAllFilePaths(chain, address);
+  const urls: Array<string> = [];
+  files.forEach((file) => {
+    const relativePath = file.path.split('/repository')[1].substr(1);
+    urls.push(`${process.env.REPOSITORY_URL}${relativePath}`);
+  });
+  return urls;
+}
+
+export function fetchAllFilePaths(chain: string, address: string): Array<FileObject>{
+  const fullPath: string = path.resolve(__dirname, `../repository/contract/byChainId/${chain}/${address}/`);
+  const files: Array<FileObject> = [];
+  dirTree(fullPath, {}, (item) => {
+    files.push({"name": item.name, "path": item.path});
+  });
+  return files;
+}
+
+export function fetchAllFileContents(chain: string, address: string): Array<FileObject>{
+  const files = fetchAllFilePaths(chain, address);
+    for(const file in files){
+      const loadedFile = fs.readFileSync(files[file].path)
+      files[file].content = loadedFile.toString();
+    }
+
+    return files;
 }
 
 //------------------------------------------------------------------------------------------------------
