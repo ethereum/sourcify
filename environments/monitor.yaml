@@ -3,8 +3,6 @@ x-project-repository-mount:
   &project-repository-mount
   type: bind
   source: $REPOSITORY_PATH
-  bind:
-    propagation: rshared
 
 x-project-base:
   &project-base
