@@ -1,0 +1,13 @@
+version: "3.7"
+services:
+  https-portal:
+    image: steveltn/https-portal:1
+    ports:
+      - '80:80'
+      - '443:443'
+    restart: always
+    environment:
+      DOMAINS: 'server.${FQDN} -> http://server-${TAG}:${SERVER_PORT}, ${FQDN} -> http://ui-${TAG}:${UI_PORT}
+      contractrepo.${FQDN} -> http://repository-${TAG}:${REPOSITORY_PORT}'
+      STAGE: 'staging'
+      FORCE_RENEW: 'false'
