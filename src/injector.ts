@@ -2,6 +2,8 @@ import Web3 from 'web3';
 import { outputFileSync } from 'fs-extra';
 import path from 'path';
 import Logger from 'bunyan';
+import * as chainOptions from '../chains.json';
+import fs from 'fs';
 
 // tslint:disable no-commented-code
 // import { findAddresses } from './address-db';
@@ -65,13 +67,13 @@ export default class Injector {
   private initChains(){
     for (const chain of ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli']){
       this.chains[chain] = {};
-      this.chains[chain].web3 = new Web3(`https://${chain}.infura.io/v3/${this.infuraPID}`);
+      this.chains[chain].rpc = new Web3(`https://${chain}.infura.io/v3/${this.infuraPID}`);
     }
 
     // For unit testing with testrpc...
     if (this.localChainUrl){
       this.chains['localhost'] = {
-        web3: new Web3(this.localChainUrl)
+        rpc: new Web3(this.localChainUrl)
       };
     }
   }
@@ -157,6 +159,24 @@ export default class Injector {
     return sources
   }
 
+  private createSymlink(
+    target: string,
+    path: string
+  ): void {
+    fs.symlinkSync(target, path);
+  }
+
+
+  private getIdFromChainName(chain: string): string { 
+    for(const chainOption in chainOptions) {
+      if(chainOptions[chainOption].network === 'chain'){
+        return chainOptions[chainOption].chainId;
+      }
+    }
+    throw new NotFound("Chain not found!"); //TODO: should we throw an error here or just let it pass?
+  }
+
+
   /**
    * Writes verified sources to repository by address and by ipfs | swarm hash
    * @param {string}              repository        repository root (ex: 'repository')
@@ -200,9 +220,11 @@ export default class Injector {
 
     const hashPath = path.join(repository, metadataPath);
     const addressPath = path.join(repository, 'contract', chain, address, '/metadata.json');
+    const chainIdPath = path.join(repository, 'contract', 'byChainId', this.getIdFromChainName(chain), address, '/medatada.json')
 
     save(hashPath, compilationResult.metadata);
     save(addressPath, compilationResult.metadata);
+    this.createSymlink(addressPath, chainIdPath);
 
     for (const sourcePath in sources) {
 
@@ -219,7 +241,17 @@ export default class Injector {
         sanitizedPath
       )
 
+      const outputIdPath = path.join(
+        repository,
+        'contract',
+        this.getIdFromChainName(chain),
+        address,
+        'sources',
+        sanitizedPath
+      );
+
       save(outputPath, sources[sourcePath]);
+      this.createSymlink(outputPath, outputIdPath);
     }
   }
 
@@ -249,7 +281,10 @@ export default class Injector {
       '/metadata.json'
     );
 
+    const chainIdPath = path.join(repository, 'contract', 'byChainId', this.getIdFromChainName(chain), address, '/medatada.json')
+
     save(addressPath, compilationResult.metadata);
+    this.createSymlink(addressPath, chainIdPath);
 
     for (const sourcePath in sources) {
 
@@ -266,7 +301,17 @@ export default class Injector {
         sanitizedPath
       )
 
+      const outputIdPath = path.join(
+        repository,
+        'partial_matches',
+        this.getIdFromChainName(chain),
+        address,
+        'sources',
+        sanitizedPath)
+
       save(outputPath, sources[sourcePath]);
+      this.createSymlink(outputPath, outputIdPath);
+
     }
   }
 
