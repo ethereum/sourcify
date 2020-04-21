@@ -6,9 +6,13 @@
     "prefer-const": true,
     "no-var-keyword": true,
     "interface-name": [true, "never-prefix"],
+    "resolveJsonModule": true,
     "no-commented-code": {
       "severity": "warning"
     },
     "no-use-before-declare": false
+  },
+  "linterOptions": {
+    "exclude": "src/**/*.json"
   }
 }
