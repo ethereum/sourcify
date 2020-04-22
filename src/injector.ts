@@ -2,8 +2,7 @@ import Web3 from 'web3';
 import { outputFileSync } from 'fs-extra';
 import path from 'path';
 import Logger from 'bunyan';
-import * as chainOptions from '../chains.json';
-import fs from 'fs';
+import * as chainOptions from './chains.json';
 
 // tslint:disable no-commented-code
 // import { findAddresses } from './address-db';
@@ -159,12 +158,12 @@ export default class Injector {
     return sources
   }
 
-  private createSymlink(
-    target: string,
-    path: string
-  ): void {
-    fs.symlinkSync(target, path);
-  }
+  // private createSymlink(
+  //   target: string,
+  //   path: string
+  // ): void {
+  //   fs.symlinkSync(target, path);
+  // }
 
 
   private getIdFromChainName(chain: string): number { 
