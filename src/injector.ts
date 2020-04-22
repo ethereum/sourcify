@@ -3,6 +3,8 @@ import { outputFileSync } from 'fs-extra';
 import path from 'path';
 import Logger from 'bunyan';
 import * as chainOptions from './chains.json';
+// tslint:disable no-unused-variable
+import fs from 'fs'
 
 // tslint:disable no-commented-code
 // import { findAddresses } from './address-db';
@@ -66,13 +68,13 @@ export default class Injector {
   private initChains(){
     for (const chain of ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli']){
       this.chains[chain] = {};
-      this.chains[chain].rpc = new Web3(`https://${chain}.infura.io/v3/${this.infuraPID}`);
+      this.chains[chain].web3 = new Web3(`https://${chain}.infura.io/v3/${this.infuraPID}`);
     }
 
     // For unit testing with testrpc...
     if (this.localChainUrl){
       this.chains['localhost'] = {
-        rpc: new Web3(this.localChainUrl)
+        web3: new Web3(this.localChainUrl)
       };
     }
   }
@@ -224,7 +226,6 @@ export default class Injector {
     save(hashPath, compilationResult.metadata);
     save(addressPath, compilationResult.metadata);
     save(chainIdPath, compilationResult.metadata);
-    //this.createSymlink(addressPath, chainIdPath);
 
     for (const sourcePath in sources) {
 
@@ -244,6 +245,7 @@ export default class Injector {
       const outputIdPath = path.join(
         repository,
         'contract',
+        'byChainId',
         this.getIdFromChainName(chain).toString(),
         address,
         'sources',
@@ -252,7 +254,6 @@ export default class Injector {
 
       save(outputPath, sources[sourcePath]);
       save(outputIdPath, sources[sourcePath]);
-      //this.createSymlink(outputPath, outputIdPath);
     }
   }
 
@@ -286,7 +287,6 @@ export default class Injector {
 
     save(addressPath, compilationResult.metadata);
     save(chainIdPath, compilationResult.metadata);
-    //this.createSymlink(addressPath, chainIdPath);
 
     for (const sourcePath in sources) {
 
@@ -306,6 +306,7 @@ export default class Injector {
       const outputIdPath = path.join(
         repository,
         'partial_matches',
+        'byChainId',
         this.getIdFromChainName(chain).toString(),
         address,
         'sources',
@@ -313,8 +314,6 @@ export default class Injector {
 
       save(outputPath, sources[sourcePath]);
       save(outputIdPath, sources[sourcePath]);
-      //this.createSymlink(outputPath, outputIdPath);
-
     }
   }
 
