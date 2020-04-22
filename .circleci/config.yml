@@ -91,49 +91,42 @@ workflows:
               only:
               - staging
               - master
-              - symlink
       - build-push-localchain:
           filters:
             branches:
               only:
               - staging
               - master
-              - symlink
       - build-push-monitor:
           filters:
             branches:
               only:
               - staging
               - master
-              - symlink              
       - build-push-repository:
           filters:
             branches:
               only:
               - staging
               - master
-              - symlink
       - build-push-s3:
           filters:
             branches:
               only:
               - staging
               - master
-              - symlink
       - build-push-server:
           filters:
             branches:
               only:
               - staging
               - master
-              - symlink
       - build-push-ui:
           filters:
             branches:
               only:
               - staging
               - master
-              - symlink
       - deploy:
           filters:
             branches:
