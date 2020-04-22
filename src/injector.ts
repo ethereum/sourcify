@@ -167,9 +167,9 @@ export default class Injector {
   }
 
 
-  private getIdFromChainName(chain: string): string { 
+  private getIdFromChainName(chain: string): number { 
     for(const chainOption in chainOptions) {
-      if(chainOptions[chainOption].network === 'chain'){
+      if(chainOptions[chainOption].network === chain){
         return chainOptions[chainOption].chainId;
       }
     }
@@ -220,11 +220,12 @@ export default class Injector {
 
     const hashPath = path.join(repository, metadataPath);
     const addressPath = path.join(repository, 'contract', chain, address, '/metadata.json');
-    const chainIdPath = path.join(repository, 'contract', 'byChainId', this.getIdFromChainName(chain), address, '/medatada.json')
+    const chainIdPath = path.join(repository, 'contract', 'byChainId', this.getIdFromChainName(chain).toString(), address, '/medatada.json')
 
     save(hashPath, compilationResult.metadata);
     save(addressPath, compilationResult.metadata);
-    this.createSymlink(addressPath, chainIdPath);
+    save(chainIdPath, compilationResult.metadata);
+    //this.createSymlink(addressPath, chainIdPath);
 
     for (const sourcePath in sources) {
 
@@ -244,14 +245,15 @@ export default class Injector {
       const outputIdPath = path.join(
         repository,
         'contract',
-        this.getIdFromChainName(chain),
+        this.getIdFromChainName(chain).toString(),
         address,
         'sources',
         sanitizedPath
       );
 
       save(outputPath, sources[sourcePath]);
-      this.createSymlink(outputPath, outputIdPath);
+      save(outputIdPath, sources[sourcePath]);
+      //this.createSymlink(outputPath, outputIdPath);
     }
   }
 
@@ -281,10 +283,11 @@ export default class Injector {
       '/metadata.json'
     );
 
-    const chainIdPath = path.join(repository, 'contract', 'byChainId', this.getIdFromChainName(chain), address, '/medatada.json')
+    const chainIdPath = path.join(repository, 'contract', 'byChainId', this.getIdFromChainName(chain).toString(), address, '/medatada.json')
 
     save(addressPath, compilationResult.metadata);
-    this.createSymlink(addressPath, chainIdPath);
+    save(chainIdPath, compilationResult.metadata);
+    //this.createSymlink(addressPath, chainIdPath);
 
     for (const sourcePath in sources) {
 
@@ -304,13 +307,14 @@ export default class Injector {
       const outputIdPath = path.join(
         repository,
         'partial_matches',
-        this.getIdFromChainName(chain),
+        this.getIdFromChainName(chain).toString(),
         address,
         'sources',
         sanitizedPath)
 
       save(outputPath, sources[sourcePath]);
-      this.createSymlink(outputPath, outputIdPath);
+      save(outputIdPath, sources[sourcePath]);
+      //this.createSymlink(outputPath, outputIdPath);
 
     }
   }

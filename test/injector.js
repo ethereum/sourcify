@@ -198,6 +198,17 @@ describe('injector', function(){
 
       const savedMetadata = read(expectedPath, 'utf-8');
       assert.equal(savedMetadata, mismatchedMetadata);
+
+      // // Check symlink also
+      // const outputIdMetadata = path.join(
+      //   mockRepo,
+      //   'partial_matches',
+      //   this.getIdFromChainName(chain).toString(),
+      //   simpleInstance.options.address,
+      //   '/metadata.json'
+      // );
+
+      // assert.equal(outputIdMetadata, mismatchedMetadata);
     })
 
     it('errors if metadata is missing', async function(){
