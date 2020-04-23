@@ -21,3 +21,6 @@ services:
       target: /app/.env
     ports:
     - "${UI_EXTERNAL_PORT}:${UI_PORT}"
+    networks:
+    - source-verify
+
