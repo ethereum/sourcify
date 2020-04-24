@@ -8,3 +8,4 @@ echo "Docker container has been started"
 
 crontab cron.job
 cron -f
+ 
