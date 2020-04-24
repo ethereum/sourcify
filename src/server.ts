@@ -13,7 +13,8 @@ import {
   Match,
   fetchAllFileContents,
   fetchAllFileUrls,
-  FileObject
+  FileObject,
+  NotFound
 } from "./utils";
 
 const app = express();
@@ -61,6 +62,7 @@ app.get('/tree/byId/:chain/:address', (req, res, next) => {
     const chain:string = req.params.chain;
     const address: string = req.params.address;
     const files = fetchAllFileUrls(chain, address);
+    if(!files.length) throw new NotFound("Files have not been found!");
     res.status(200).send(JSON.stringify(files))
   } catch(err){
     next(err);
@@ -72,6 +74,7 @@ app.get('/files/byId/:chain/:address', (req, res, next) => {
     const chain:string = req.params.chain;
     const address: string = req.params.address;
     const files: Array<FileObject> = fetchAllFileContents(chain, address);
+    if(!files.length) throw new NotFound("Files have not been found!");
     res.status(200).send(files);
   } catch(err) {
     next(err);
@@ -83,6 +86,7 @@ app.get('/tree/:chain/:address', (req, res, next) => {
     const chain:string = req.params.chain;
     const address: string = req.params.address;
     const files = fetchAllFileUrls(chain, address);
+    if(!files.length) throw new NotFound("Files have not been found!");
     res.status(200).send(JSON.stringify(files))
   } catch(err){
     next(err);
@@ -94,6 +98,7 @@ app.get('/files/:chain/:address', (req, res, next) => {
     const chain:string = req.params.chain;
     const address: string = req.params.address;
     const files: Array<FileObject> = fetchAllFileContents(chain, address);
+    if(files.length === 0) throw new NotFound("Files have not been found!");
     res.status(200).send(files);
   } catch(err) {
     next(err);
