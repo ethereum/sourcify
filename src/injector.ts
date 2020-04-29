@@ -75,8 +75,9 @@ export default class Injector {
 
     // For unit testing with testrpc...
     if (this.localChainUrl){
-      this.chains['localhost'] = {
-        web3: new Web3(this.localChainUrl)
+      const chainOption = getChainByName('localhost');
+      this.chains[chainOption.chainId] = {
+        web3: new Web3(chainOption.web3[0])
       };
     }
   }
@@ -170,7 +171,7 @@ export default class Injector {
   // }
 
 
-  private getIdFromChainName(chain: string): number { 
+  private getIdFromChainName(chain: string): number {
     for(const chainOption in chainOptions) {
       if(chainOptions[chainOption].network === chain){
         return chainOptions[chainOption].chainId;

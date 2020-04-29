@@ -1,13 +1,13 @@
 [
     {
       "name": "Localchain",
-      "chainId": 0,
+      "chainId": 1337,
       "shortName": "loc",
       "chain": "LOC",
       "network": "localhost",
       "networkId": 0,
       "nativeCurrency": {"name":"Ether","symbol":"ETH","decimals":18},
-      "web3": [],
+      "web3": ["http://localhost:8545"],
       "faucets": [],
       "infoURL": "https://ethereum.org"
     },
