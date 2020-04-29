@@ -15,6 +15,7 @@ const util = require('util');
 const path = require('path');
 
 const app = require('../src/server').default;
+const getChainId = require('../src/utils').getChainId;
 const { deployFromArtifact } = require('./helpers/helpers');
 
 const Simple = require('./sources/pass/simple.js');
@@ -34,9 +35,10 @@ describe("server", function() {
   let web3;
   let simpleInstance;
   let serverAddress = 'http://localhost:2000';
+  let chainId = getChainId('localhost');
 
   before(async function(){
-    server = ganache.server();
+    server = ganache.server({chainId: chainId});
     await pify(server.listen)(8545);
     web3 = new Web3(process.env.LOCALCHAIN_URL);
 
@@ -57,7 +59,7 @@ describe("server", function() {
     const expectedPath = path.join(
       process.env.MOCK_REPOSITORY,
       'contract',
-      'localhost',
+      chainId.toString(),
       simpleInstance.options.address,
       'metadata.json'
     );
@@ -90,7 +92,7 @@ describe("server", function() {
     const expectedPath = path.join(
       process.env.MOCK_REPOSITORY,
       'contract',
-      'localhost',
+      chainId.toString(),
       simpleInstance.options.address,
       'metadata.json'
     );
@@ -184,8 +186,8 @@ describe("server", function() {
       .field("address", simpleInstance.options.address)
       .end(function (err, res) {
         assert.equal(err, null);
-        assert.equal(res.status, 500);
-        assert(res.error.text.includes('Missing chain name'));
+        assert.equal(res.status, 404);
+        assert(res.error.text.includes('Chain undefined not supported'));
         done();
       });
   });
@@ -248,7 +250,7 @@ describe("server", function() {
           assert.equal(res.status, 404);
 
           const result = JSON.parse(res.text);
-          assert.equal(result.error, "Address for specified chain not found in repository");
+          assert.equal(result.error, "Chain bitcoin_diamond_lottery not supported!");
           done();
         });
     });

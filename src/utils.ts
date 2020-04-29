@@ -295,7 +295,9 @@ export function fetchAllFileContents(chain: string, address: string): Array<File
 
 export function getChainId(chain: string): string {
   for(const chainOption in chainOptions){
-      if(chainOptions[chainOption].network.toLowerCase() === chain || String(chainOptions[chainOption].chainId) === chain){
+      const network = chainOptions[chainOption].network;
+      const chainId = chainOptions[chainOption].chainId;
+      if( (network && network.toLowerCase() === chain) || String(chainId) === chain){
         return String(chainOptions[chainOption].chainId);
       }
     }
@@ -305,7 +307,8 @@ export function getChainId(chain: string): string {
 
 export function getChainByName(name: string): any {
   for(const chainOption in chainOptions) {
-    if(chainOptions[chainOption].network.toLowerCase() === name){
+    const network = chainOptions[chainOption].network;
+    if(network && network.toLowerCase() === name){
       return chainOptions[chainOption];
     }
   }

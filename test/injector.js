@@ -21,6 +21,7 @@ const {
 } = require('./helpers/helpers');
 
 const Injector = require('../src/injector').default;
+const getChainId = require('../src/utils').getChainId;
 
 describe('injector', function(){
   describe('inject', function(){
@@ -28,6 +29,7 @@ describe('injector', function(){
 
     let server;
     let port = 8545;
+    let chainId = getChainId('localhost');
     let chain = 'localhost';
     let mockRepo = 'mockRepository';
     let injector;
@@ -44,7 +46,7 @@ describe('injector', function(){
     const literalMetadata = Literal.compilerOutput.metadata;
 
     before(async function(){
-      server = ganache.server();
+      server = ganache.server({chainId: chainId});
       await pify(server.listen)(port);
       web3 = new Web3(`http://${chain}:${port}`);
     })
@@ -70,7 +72,7 @@ describe('injector', function(){
       // Inject by address into repository after recompiling
       const inputData = {
         repository: mockRepo,
-        chain: 'localhost',
+        chain: getChainId('localhost'),
         addresses: [
           simpleInstance.options.address,
           simpleWithImportInstance.options.address
@@ -101,7 +103,7 @@ describe('injector', function(){
       // Inject by address into repository after recompiling
       const inputData = {
         repository: mockRepo,
-        chain: 'localhost',
+        chain: getChainId('localhost'),
         addresses: [ literalInstance.options.address ],
         files: [ literalMetadata ]
       };
@@ -123,7 +125,7 @@ describe('injector', function(){
       // Inject by address into repository after recompiling
       const inputData = {
         repository: mockRepo,
-        chain: 'localhost',
+        chain: getChainId('localhost'),
         addresses: [ instance.options.address ],
         files: [
           metadata,
@@ -148,7 +150,7 @@ describe('injector', function(){
       // Inject by address into repository after recompiling
       const inputData = {
         repository: mockRepo,
-        chain: 'localhost',
+        chain: getChainId('localhost'),
         addresses: [ instance.options.address ],
         files: [
           metadata,
@@ -177,7 +179,7 @@ describe('injector', function(){
       // Functional bytecode of both contracts is identical but metadata hashes will be different.
       const inputData = {
         repository: mockRepo,
-        chain: 'localhost',
+        chain: getChainId('localhost'),
         addresses: [ simpleInstance.options.address ],
         files: [
           simpleSource,
@@ -191,7 +193,7 @@ describe('injector', function(){
       const expectedPath = path.join(
         mockRepo,
         'partial_matches',
-        chain,
+        getChainId('localhost').toString(),
         simpleInstance.options.address,
         '/metadata.json'
       );
@@ -214,7 +216,7 @@ describe('injector', function(){
     it('errors if metadata is missing', async function(){
       const inputData = {
         repository: mockRepo,
-        chain: 'localhost',
+        chain: getChainId('localhost'),
         addresses: [ simpleInstance.options.address],
         files: [ simpleSource ]
       }
@@ -232,7 +234,7 @@ describe('injector', function(){
     it('errors if sources specified in metadata are missing', async function(){
       const inputData = {
         repository: mockRepo,
-        chain: 'localhost',
+        chain: getChainId('localhost'),
         addresses: [ simpleInstance.options.address],
         files: [ simpleMetadata ]
       }
@@ -248,7 +250,7 @@ describe('injector', function(){
     it('errors when recompiled bytecode does not match deployed', async function(){
       const inputData = {
         repository: mockRepo,
-        chain: 'localhost',
+        chain: getChainId('localhost'),
         addresses: [ simpleWithImportInstance.options.address],
         files: [ simpleMetadata, simpleSource ]
       }
