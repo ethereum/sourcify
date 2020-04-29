@@ -21,7 +21,8 @@ import {
   getBytecodeWithoutMetadata as trimMetadata,
   InputData,
   NotFound,
-  Match
+  Match,
+  getChainByName
 } from './utils';
 
 declare interface StringMap {
@@ -67,8 +68,9 @@ export default class Injector {
    */
   private initChains(){
     for (const chain of ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli']){
-      this.chains[chain] = {};
-      this.chains[chain].web3 = new Web3(`https://${chain}.infura.io/v3/${this.infuraPID}`);
+      const chainOption = getChainByName(chain);
+      this.chains[chainOption.chainId] = {};
+      this.chains[chainOption.chainId].web3 = new Web3(chainOption.web3[0]);
     }
 
     // For unit testing with testrpc...
@@ -221,11 +223,9 @@ export default class Injector {
 
     const hashPath = path.join(repository, metadataPath);
     const addressPath = path.join(repository, 'contract', chain, address, '/metadata.json');
-    const chainIdPath = path.join(repository, 'contract', 'byChainId', this.getIdFromChainName(chain).toString(), address, '/medatada.json')
 
     save(hashPath, compilationResult.metadata);
     save(addressPath, compilationResult.metadata);
-    save(chainIdPath, compilationResult.metadata);
 
     for (const sourcePath in sources) {
 
@@ -242,18 +242,7 @@ export default class Injector {
         sanitizedPath
       )
 
-      const outputIdPath = path.join(
-        repository,
-        'contract',
-        'byChainId',
-        this.getIdFromChainName(chain).toString(),
-        address,
-        'sources',
-        sanitizedPath
-      );
-
       save(outputPath, sources[sourcePath]);
-      save(outputIdPath, sources[sourcePath]);
     }
   }
 
@@ -283,10 +272,8 @@ export default class Injector {
       '/metadata.json'
     );
 
-    const chainIdPath = path.join(repository, 'contract', 'byChainId', this.getIdFromChainName(chain).toString(), address, '/medatada.json')
 
     save(addressPath, compilationResult.metadata);
-    save(chainIdPath, compilationResult.metadata);
 
     for (const sourcePath in sources) {
 
@@ -303,17 +290,7 @@ export default class Injector {
         sanitizedPath
       )
 
-      const outputIdPath = path.join(
-        repository,
-        'partial_matches',
-        'byChainId',
-        this.getIdFromChainName(chain).toString(),
-        address,
-        'sources',
-        sanitizedPath)
-
       save(outputPath, sources[sourcePath]);
-      save(outputIdPath, sources[sourcePath]);
     }
   }
 

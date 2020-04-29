@@ -6,6 +6,7 @@ import util from 'util';
 import fs from 'fs';
 import path from 'path';
 import dirTree from 'directory-tree';
+import * as chainOptions from './chains.json';
 
 const solc: any = require('solc');
 
@@ -292,10 +293,29 @@ export function fetchAllFileContents(chain: string, address: string): Array<File
     return files;
 }
 
+export function getChainId(chain: string): string {
+  for(const chainOption in chainOptions){
+      if(chainOptions[chainOption].network.toLowerCase() === chain || String(chainOptions[chainOption].chainId) === chain){
+        return String(chainOptions[chainOption].chainId);
+      }
+    }
+
+  throw new NotFound(`Chain ${chain} not supported!`);
+}
+
+export function getChainByName(name: string): any {
+  for(const chainOption in chainOptions) {
+    if(chainOptions[chainOption].network.toLowerCase() === name){
+      return chainOptions[chainOption];
+    }
+  }
+
+  throw new NotFound(`Chain ${name} not supported!`)
+}
+
 //------------------------------------------------------------------------------------------------------
 
 // TODO: implement response middelware that will automatically handle successful and non successful (error) responses
-
 // Errors
 export class HttpException extends Error {
   status?: number;
