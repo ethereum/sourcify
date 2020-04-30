@@ -7,7 +7,7 @@ import {
   readFileSync
 } from 'fs-extra';
 
-import { cborDecode } from './utils';
+import { cborDecode, getChainByName } from './utils';
 import { BlockTransactionObject } from 'web3-eth';
 import Logger from 'bunyan';
 
@@ -39,7 +39,8 @@ declare interface ChainData {
   web3 : Web3,
   metadataQueue: Queue,
   sourceQueue: Queue,
-  latestBlock : number
+  latestBlock : number,
+  chainId: string
 }
 
 declare interface Queue {
@@ -114,16 +115,17 @@ export default class Monitor {
       : ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli'];
 
     for (const chain of chainNames){
-
+      const options = getChainByName(chain)
       const url : string = customChain
         ? customChain.url
-        : `https://${chain}.infura.io/v3/${this.infuraPID}`;
+        : options.web3[0];
 
       this.chains[chain] = {
         web3: new Web3(url),
         metadataQueue: {},
         sourceQueue: {},
-        latestBlock: 0
+        latestBlock: 0,
+        chainId: options.chainId.toString()
       };
 
       const blockNumber = await this.chains[chain].web3.eth.getBlockNumber();
@@ -435,7 +437,8 @@ export default class Monitor {
       'Got metadata by address'
     );
 
-    save(`${this.repository}/contract/${chain}/${address}/metadata.json`, metadataRaw.toString());
+    const id = this.chains[chain].chainId;
+    save(`${this.repository}/contract/${id}/${address}/metadata.json`, metadataRaw.toString());
 
     const metadata = JSON.parse(metadataRaw);
     delete this.chains[chain].metadataQueue[address];
@@ -595,7 +598,8 @@ export default class Monitor {
       .replace(/[^a-z0-9_.\/-]/gim, "_")
       .replace(/(^|\/)[.]+($|\/)/, '_');
 
-    save(`${this.repository}/contract/${chain}/${address}/sources/${pathSanitized}`, source);
+    const id = this.chains[chain].chainId;
+    save(`${this.repository}/contract/${id}/${address}/sources/${pathSanitized}`, source);
 
     delete this.chains[chain].sourceQueue[address].sources[sourceKey]
 
