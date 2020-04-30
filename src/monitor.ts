@@ -21,7 +21,6 @@ export interface MonitorConfig {
   ipfsProvider? : any,
   swarmGateway? : string,
   repository? : string,
-  infuraPID? : string,
   blockTime? : number,
   silent?: boolean
 }
@@ -66,7 +65,6 @@ export default class Monitor {
   private ipfsProvider: any;
   private swarmGateway: string;
   private repository: string;
-  private infuraPID: string;;
   private blockTime: number;
   private blockInterval: any;
   private sourceInterval: any;
@@ -84,7 +82,6 @@ export default class Monitor {
     this.ipfsProvider = config.ipfsProvider || null;
     this.swarmGateway = 'https://swarm-gateways.net/';
     this.repository = config.repository || 'repository';
-    this.infuraPID = config.infuraPID || '891fe57328084fcca24912b662ad101f';
     this.blockTime = config.blockTime || 15 // seconds;
 
     this.blockInterval = null;
