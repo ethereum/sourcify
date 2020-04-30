@@ -11,6 +11,7 @@ const request = require('request-promise-native')
 const { deployFromArtifact, waitSecs } = require('./helpers/helpers');
 const SimpleWithImport = require('./sources/pass/simpleWithImport.js');
 const Monitor = require('../src/monitor').default;
+const getChainByName = require('../src/utils').getChainByName;
 
 describe('monitor', function(){
 
@@ -24,6 +25,7 @@ describe('monitor', function(){
     let node;
     let chain = 'localhost';
     let mockRepo = 'mockRepository';
+    let chainId = getChainByName(chain).chainId.toString();
 
     before(async function(){
       server = ganache.server({blockTime: 1});
@@ -73,7 +75,7 @@ describe('monitor', function(){
       await waitSecs(5);
 
       // Verify metadata stored
-      const addressMetadataPath = path.join(mockRepo, 'contract', chain, address, 'metadata.json');
+      const addressMetadataPath = path.join(mockRepo, 'contract', chainId, address, 'metadata.json');
       const ipfsMetadataPath = path.join(mockRepo, 'ipfs', metadataIpfs[0].path);
 
       const addressMetadata = fs.readFileSync(addressMetadataPath, 'utf-8');
@@ -92,7 +94,7 @@ describe('monitor', function(){
       const importPath = path.join(
         mockRepo,
         'contract',
-        chain,
+        chainId,
         address,
         'sources',
         importKey
@@ -101,7 +103,7 @@ describe('monitor', function(){
       const simpleWithImportPath = path.join(
         mockRepo,
         'contract',
-        chain,
+        chainId,
         address,
         'sources',
         simpleWithImportKey
