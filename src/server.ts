@@ -13,7 +13,9 @@ import {
   Match,
   fetchAllFileContents,
   fetchAllFileUrls,
-  FileObject
+  FileObject,
+  NotFound,
+  getChainId
 } from "./utils";
 
 const app = express();
@@ -56,11 +58,14 @@ app.get('/health', (req, res) => res.status(200).send('Alive and kicking!'))
 app.use('/repository', express.static(repository), serveIndex(repository, {'icons': true}))
 
 
+
 app.get('/tree/:chain/:address', (req, res, next) => {
   try {
     const chain:string = req.params.chain;
     const address: string = req.params.address;
-    const files = fetchAllFileUrls(chain, address);
+    const chainId = getChainId(chain);
+    const files = fetchAllFileUrls(chainId, address);
+    if(!files.length) throw new NotFound("Files have not been found!");
     res.status(200).send(JSON.stringify(files))
   } catch(err){
     next(err);
@@ -71,7 +76,9 @@ app.get('/files/:chain/:address', (req, res, next) => {
   try{
     const chain:string = req.params.chain;
     const address: string = req.params.address;
-    const files: Array<FileObject> = fetchAllFileContents(chain, address);
+    const chainId = getChainId(chain);
+    const files: Array<FileObject> = fetchAllFileContents(chainId, address);
+    if(files.length === 0) throw new NotFound("Files have not been found!");
     res.status(200).send(files);
   } catch(err) {
     next(err);
@@ -84,12 +91,12 @@ app.post('/', (req, res, next) => {
     repository: repository,
     files: [],
     addresses: [req.body.address],
-    chain: req.body.chain,
+    chain: getChainId(req.body.chain)
   }
 
   // Try to find by address, return on success.
   try {
-    const result = findByAddress(req.body.address, req.body.chain, repository);
+    const result = findByAddress(req.body.address, inputData.chain, repository);
     res.status(200).send({result});
     return;
   } catch(err) {
@@ -109,7 +116,7 @@ app.post('/', (req, res, next) => {
   const promises: Promise<Match>[] = [];
   promises.push(injector.inject(inputData));
 
-  //This is so we can have multiple parallel injections, logic still has to be completely implemented
+  // This is so we can have multiple parallel injections, logic still has to be completely implemented
   Promise.all(promises).then((result) => {
     res.status(200).send({result});
   }).catch(err => {

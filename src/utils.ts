@@ -6,6 +6,7 @@ import util from 'util';
 import fs from 'fs';
 import path from 'path';
 import dirTree from 'directory-tree';
+import * as chainOptions from './chains.json';
 
 const solc: any = require('solc');
 
@@ -274,7 +275,7 @@ export function fetchAllFileUrls(chain: string, address: string): Array<string> 
 }
 
 export function fetchAllFilePaths(chain: string, address: string): Array<FileObject>{
-  const fullPath: string = path.resolve(__dirname, `../repository/contract/byChainId/${chain}/${address}/`);
+  const fullPath: string = path.resolve(__dirname, `../repository/contract/${chain}/${address}/`);
   const files: Array<FileObject> = [];
   dirTree(fullPath, {}, (item) => {
     files.push({"name": item.name, "path": item.path});
@@ -292,10 +293,32 @@ export function fetchAllFileContents(chain: string, address: string): Array<File
     return files;
 }
 
+export function getChainId(chain: string): string {
+  for(const chainOption in chainOptions){
+      const network = chainOptions[chainOption].network;
+      const chainId = chainOptions[chainOption].chainId;
+      if( (network && network.toLowerCase() === chain) || String(chainId) === chain){
+        return String(chainOptions[chainOption].chainId);
+      }
+    }
+
+  throw new NotFound(`Chain ${chain} not supported!`);
+}
+
+export function getChainByName(name: string): any {
+  for(const chainOption in chainOptions) {
+    const network = chainOptions[chainOption].network;
+    if(network && network.toLowerCase() === name){
+      return chainOptions[chainOption];
+    }
+  }
+
+  throw new NotFound(`Chain ${name} not supported!`)
+}
+
 //------------------------------------------------------------------------------------------------------
 
 // TODO: implement response middelware that will automatically handle successful and non successful (error) responses
-
 // Errors
 export class HttpException extends Error {
   status?: number;

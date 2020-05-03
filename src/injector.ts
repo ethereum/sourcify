@@ -2,6 +2,9 @@ import Web3 from 'web3';
 import { outputFileSync } from 'fs-extra';
 import path from 'path';
 import Logger from 'bunyan';
+import * as chainOptions from './chains.json';
+// tslint:disable no-unused-variable
+import fs from 'fs'
 
 // tslint:disable no-commented-code
 // import { findAddresses } from './address-db';
@@ -18,7 +21,8 @@ import {
   getBytecodeWithoutMetadata as trimMetadata,
   InputData,
   NotFound,
-  Match
+  Match,
+  getChainByName
 } from './utils';
 
 declare interface StringMap {
@@ -64,14 +68,16 @@ export default class Injector {
    */
   private initChains(){
     for (const chain of ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli']){
-      this.chains[chain] = {};
-      this.chains[chain].web3 = new Web3(`https://${chain}.infura.io/v3/${this.infuraPID}`);
+      const chainOption = getChainByName(chain);
+      this.chains[chainOption.chainId] = {};
+      this.chains[chainOption.chainId].web3 = new Web3(chainOption.web3[0]);
     }
 
     // For unit testing with testrpc...
     if (this.localChainUrl){
-      this.chains['localhost'] = {
-        web3: new Web3(this.localChainUrl)
+      const chainOption = getChainByName('localhost');
+      this.chains[chainOption.chainId] = {
+        web3: new Web3(chainOption.web3[0])
       };
     }
   }
@@ -156,6 +162,24 @@ export default class Injector {
     }
     return sources
   }
+
+  // private createSymlink(
+  //   target: string,
+  //   path: string
+  // ): void {
+  //   fs.symlinkSync(target, path);
+  // }
+
+
+  private getIdFromChainName(chain: string): number {
+    for(const chainOption in chainOptions) {
+      if(chainOptions[chainOption].network === chain){
+        return chainOptions[chainOption].chainId;
+      }
+    }
+    throw new NotFound("Chain not found!"); //TODO: should we throw an error here or just let it pass?
+  }
+
 
   /**
    * Writes verified sources to repository by address and by ipfs | swarm hash
@@ -248,6 +272,7 @@ export default class Injector {
       address,
       '/metadata.json'
     );
+
 
     save(addressPath, compilationResult.metadata);
 
