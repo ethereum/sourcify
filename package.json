@@ -88,7 +88,7 @@
     "pify": "^4.0.1",
     "rimraf": "^3.0.2",
     "ts-node": "^8.6.2",
-    "tslint": "^6.0.0",
+    "tslint": "^6.1.1",
     "typescript": "^3.7.5",
     "typestrict": "^1.0.2"
   }
