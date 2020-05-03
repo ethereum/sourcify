@@ -20,7 +20,7 @@ const artifact = require('../metacoin-source-verify/build/contracts/MetaCoin.jso
 const address = artifact.networks['5'].address;
 
 async function main(){
-  const url = `${root}contract/goerli/${address}/metadata.json`;
+  const url = `${root}contract/5/${address}/metadata.json`;
 
   log();
   log(`>>>>>>>>>>>>>>>>>>>>`);
