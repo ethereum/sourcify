@@ -44,7 +44,7 @@ describe('monitor', function(){
     });
 
     it('SimpleWithImport: matches deployed to IPFS sources', async function(){
-      this.timeout(15000);
+      this.timeout(25000);
 
       const customChain = {
         url: `http://${chain}:${port}`,
@@ -72,7 +72,7 @@ describe('monitor', function(){
       const instance = await deployFromArtifact(web3, SimpleWithImport);
       const address = instance.options.address;
 
-      await waitSecs(5);
+      await waitSecs(10);
 
       // Verify metadata stored
       const addressMetadataPath = path.join(mockRepo, 'contract', chainId, address, 'metadata.json');
