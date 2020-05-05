@@ -273,7 +273,6 @@ export default class Injector {
       '/metadata.json'
     );
 
-
     save(addressPath, compilationResult.metadata);
 
     for (const sourcePath in sources) {
