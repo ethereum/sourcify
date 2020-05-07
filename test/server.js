@@ -41,7 +41,6 @@ describe("server", function() {
     server = ganache.server({chainId: chainId});
     await pify(server.listen)(8545);
     web3 = new Web3(process.env.LOCALCHAIN_URL);
-
     simpleInstance = await deployFromArtifact(web3, Simple);
   });
 

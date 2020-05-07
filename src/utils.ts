@@ -175,6 +175,7 @@ export type InputData = {
   chain: string,
   addresses: string[],
   files: string[],
+  bytecode?: string
 }
 
 export function findInputFiles(req: Request, log: Logger): any {
