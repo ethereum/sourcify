@@ -18,5 +18,5 @@ services:
     image: postgres:12.2
     ports:
       - "${EXTERNAL_DB_PORT}:${DB_PORT}"
-    volumes:
-      - ../src/postgres/schema.sql:/docker-entrypoint-initdb.d/1-schema.sql
+    # volumes:
+    #   - ../src/postgres/schema.sql:/docker-entrypoint-initdb.d/1-schema.sql
