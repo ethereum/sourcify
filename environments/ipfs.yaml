@@ -9,8 +9,6 @@ x-project-base:
   env_file:
     - .env
   restart: always
-  networks:
-    - source-verify
 
 x-env-file-mount:
   &env-file-mount
@@ -18,7 +16,10 @@ x-env-file-mount:
   source: .env
 
 networks:
-  source-verify:
+  default:
+    external:
+      name: "source-verify-${TAG}"
+  
   
 services:
   ipfs:

@@ -12,13 +12,15 @@ x-project-base:
   restart: always
   networks:
     - source-verify
-networks:
-  source-verify:
 volumes:
   db:
   h5ai:
     driver: local
-
+networks:
+  default:
+    external:
+      name: source-verify-latest
+      
 services:
   repository:
     <<: *project-base
@@ -30,3 +32,5 @@ services:
         read_only: true
     ports:
     - ${REPOSITORY_EXTERNAL_PORT}:${REPOSITORY_PORT}
+
+

@@ -4,7 +4,7 @@ CREATE TABLE metadata (
     id uuid PRIMARY KEY,
     address text NOT NULL,
     creationBytecode bytea NOT NULL,
-    chainId integer NOT NULL,
+    chainId integer,
     blockNumber integer NOT NULL,
     deployedCodeHash bytea NOT NULL
     );

@@ -11,12 +11,12 @@ x-project-base:
   env_file:
     - .env
   restart: always
-  networks:
-    - source-verify
 
 networks:
-  source-verify:
-
+  default:
+    external:
+      name: "source-verify-${TAG}"
+      
 services:
   monitor:
     <<: *project-base

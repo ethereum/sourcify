@@ -5,8 +5,10 @@ x-env-file-mount:
   source: .env
 
 networks:
-  source-verify:
-
+  default:
+    external:
+      name: "source-verify-${TAG}"
+  
 services:
   ui:
     image: ethereum/source-verify:ui-${TAG}

@@ -1,0 +1,17 @@
+version: "3.7"
+services:
+  seeder:
+    build: .
+    container_name: db-seeder
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"
+    env_file:
+      - .env.docker
+    command: bash -c "npm run migrate && npm run start"
+    restart: always
+    volumes: 
+    - './files/codedb.txt:/home/app/files/codedb.txt'
+networks:
+  default:
+    external: 
+      name: "source-verify-$TAG"

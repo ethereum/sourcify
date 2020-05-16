@@ -1,14 +1,14 @@
 version: "3.7"
-networks:
-  source-verify:
-  
 x-project-base:
   &project-base
   env_file:
     - .env
   restart: always
-  networks:
-    - source-verify
+
+networks:
+  default:
+    external:
+      name: "source-verify-${TAG}"
 
 services:
   localchain:

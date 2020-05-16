@@ -5,11 +5,6 @@ x-project-base:
   env_file:
     - .env
   restart: always
-  networks:
-    - source-verify
-
-networks:
-  source-verify:
 
 services:
   db:
@@ -20,3 +15,8 @@ services:
       - "${EXTERNAL_DB_PORT}:${DB_PORT}"
     # volumes:
     #   - ../src/postgres/schema.sql:/docker-entrypoint-initdb.d/1-schema.sql
+
+networks:
+  default:
+    external:
+      name: "source-verify-${TAG}"
