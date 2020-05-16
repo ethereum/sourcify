@@ -1,7 +1,7 @@
 version: "3.7"
 services:
   seeder:
-    build: .
+    image: ethereum/source-verify:db-seeder-latest
     container_name: db-seeder
     ports:
       - "${SERVER_PORT}:${SERVER_PORT}"
