@@ -14,7 +14,7 @@ const log = console.log;
 
 const root = (process.env.CIRCLE_BRANCH === 'staging')
   ? 'https://contractrepostaging.komputing.org/'
-  : 'https://contractrepo.komputing.org';
+  : 'https://contractrepo.komputing.org/';
 
 const artifact = require('../metacoin-source-verify/build/contracts/MetaCoin.json')
 const address = artifact.networks['5'].address;
