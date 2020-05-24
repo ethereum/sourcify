@@ -2,6 +2,9 @@ import Web3 from 'web3';
 import { outputFileSync } from 'fs-extra';
 import path from 'path';
 import Logger from 'bunyan';
+import * as chainOptions from './chains.json';
+// tslint:disable no-unused-variable
+import fs from 'fs'
 
 // tslint:disable no-commented-code
 // import { findAddresses } from './address-db';
@@ -15,27 +18,23 @@ import {
   getBytecode,
   recompile,
   RecompilationResult,
-  getBytecodeWithoutMetadata as trimMetadata
+  getBytecodeWithoutMetadata as trimMetadata,
+  InputData,
+  NotFound,
+  Match,
+  getChainByName
 } from './utils';
 
 declare interface StringMap {
   [key: string]: string;
 }
 
-declare interface BytecodeMatch {
-  address: string | null,
-  status: 'perfect' | 'partial' | null
-}
-
 export interface InjectorConfig {
   infuraPID? : string,
   localChainUrl? : string,
-  silent? : boolean
-}
-
-export type Match = {
-  address: string,
-  status: string 
+  silent? : boolean,
+  log? : Logger,
+  offline?: boolean
 }
 
 export default class Injector {
@@ -43,6 +42,7 @@ export default class Injector {
   private chains : any;
   private infuraPID : string;
   private localChainUrl: string | undefined;
+  private offline: boolean;
 
   /**
    * Constructor
@@ -52,8 +52,9 @@ export default class Injector {
     this.chains = {};
     this.infuraPID = config.infuraPID || "891fe57328084fcca24912b662ad101f";
     this.localChainUrl = config.localChainUrl;
+    this.offline = config.offline || false;
 
-    this.log = Logger.createLogger({
+    this.log = config.log || Logger.createLogger({
       name: "Injector",
       streams: [{
         stream: process.stdout,
@@ -61,7 +62,9 @@ export default class Injector {
       }]
     });
 
-    this.initChains();
+    if (!this.offline){
+      this.initChains();
+    }
   }
 
   /**
@@ -70,14 +73,16 @@ export default class Injector {
    */
   private initChains(){
     for (const chain of ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli']){
-      this.chains[chain] = {};
-      this.chains[chain].web3 = new Web3(`https://${chain}.infura.io/v3/${this.infuraPID}`);
+      const chainOption = getChainByName(chain);
+      this.chains[chainOption.chainId] = {};
+      this.chains[chainOption.chainId].web3 = new Web3(chainOption.web3[0]);
     }
 
     // For unit testing with testrpc...
     if (this.localChainUrl){
-      this.chains['localhost'] = {
-        web3: new Web3(this.localChainUrl)
+      const chainOption = getChainByName('localhost');
+      this.chains[chainOption.chainId] = {
+        web3: new Web3(chainOption.web3[0])
       };
     }
   }
@@ -162,6 +167,16 @@ export default class Injector {
     }
     return sources
   }
+
+  private getIdFromChainName(chain: string): number {
+    for(const chainOption in chainOptions) {
+      if(chainOptions[chainOption].network === chain){
+        return chainOptions[chainOption].chainId;
+      }
+    }
+    throw new NotFound("Chain not found!"); //TODO: should we throw an error here or just let it pass?
+  }
+
 
   /**
    * Writes verified sources to repository by address and by ipfs | swarm hash
@@ -286,8 +301,8 @@ export default class Injector {
     chain: string,
     addresses: string[] = [],
     compiledBytecode: string
-  ) : Promise<BytecodeMatch> {
-    let match : BytecodeMatch = { address: null, status: null };
+  ) : Promise<Match> {
+    let match : Match = { address: null, status: null };
 
     for (let address of addresses){
       address = Web3.utils.toChecksumAddress(address)
@@ -305,20 +320,39 @@ export default class Injector {
         deployedBytecode = await getBytecode(this.chains[chain].web3, address)
       } catch(e){ /* ignore */ }
 
-      if (deployedBytecode && deployedBytecode.length > 2){
-        if (deployedBytecode === compiledBytecode){
+      const status = this.compareBytecodes(deployedBytecode, compiledBytecode);
 
-          match = { address: address, status: 'perfect' };
-          break;
-
-        } else if (trimMetadata(deployedBytecode) === trimMetadata(compiledBytecode)){
-
-          match = { address: address, status: 'partial' };
-          break;
-        }
+      if (status){
+        match = { address: address, status: status };
+        break;
       }
     }
     return match;
+  }
+
+  /**
+   * Returns a string description of how closely two bytecodes match. Bytecodes
+   * that match in all respects apart from their metadata hashes are 'partial'.
+   * Bytecodes that don't match are `null`.
+   * @param  {string} deployedBytecode
+   * @param  {string} compiledBytecode
+   * @return {string | null}  match description ('perfect'|'partial'|null)
+   */
+  private compareBytecodes(
+    deployedBytecode: string | null,
+    compiledBytecode: string
+  ) : 'perfect' | 'partial' | null {
+
+    if (deployedBytecode && deployedBytecode.length > 2){
+      if (deployedBytecode === compiledBytecode){
+        return 'perfect';
+      }
+
+      if (trimMetadata(deployedBytecode) === trimMetadata(compiledBytecode)){
+        return 'partial';
+      }
+    }
+    return null;
   }
 
   /**
@@ -357,20 +391,21 @@ export default class Injector {
    * @param  {string}            chain      chain name (ex: 'ropsten')
    * @param  {string}            address    contract address
    * @param  {string[]}          files
-   * @return {Promise<string[]>}            addresses of successfully verified contracts
+   * @return {Promise<object>}              address & status of successfully verified contracts
    */
   public async inject(
-    repository: string,
-    chain: string,
-    addresses: string[],
-    files: string[]
-  ) : Promise<Match[]> {
-
+    inputData: InputData
+  ) : Promise<Match> {
+    const { repository, chain, addresses, files } = inputData;
     this.validateAddresses(addresses);
     this.validateChain(chain);
 
-    const metadataFiles = this.findMetadataFiles(files)
-    const matches: Match[] = [];
+    const metadataFiles = this.findMetadataFiles(files);
+
+    let match: Match = {
+      address: null,
+      status: null
+    };
 
     for (const metadata of metadataFiles){
       const sources = this.rearrangeSources(metadata, files)
@@ -387,11 +422,29 @@ export default class Injector {
         throw err;
       }
 
-      const match = await this.matchBytecodeToAddress(
-        chain,
-        addresses,
-        compilationResult.deployedBytecode
-      )
+      // When injector is called by monitor, the bytecode has already been
+      // obtained for address and we only need to compare w/ compilation result.
+      if (inputData.bytecode){
+
+        const status = this.compareBytecodes(
+          inputData.bytecode,
+          compilationResult.deployedBytecode
+        )
+
+        match = {
+          address: Web3.utils.toChecksumAddress(addresses[0]),
+          status: status
+        }
+
+      // For other cases, we need to retrieve the code for specified address
+      // from the chain.
+      } else {
+        match = await this.matchBytecodeToAddress(
+          chain,
+          addresses,
+          compilationResult.deployedBytecode
+        )
+      }
 
       // Since the bytecode matches, we can be sure that we got the right
       // metadata file (up to json formatting) and exactly the right sources.
@@ -400,18 +453,10 @@ export default class Injector {
       if (match.address && match.status === 'perfect') {
 
         this.storePerfectMatchData(repository, chain, match.address, compilationResult, sources)
-        matches.push({
-          address: match.address,
-          status: match.status
-        });
 
       } else if (match.address && match.status === 'partial'){
 
         this.storePartialMatchData(repository, chain, match.address, compilationResult, sources)
-        matches.push({
-          address: match.address,
-          status: match.status
-        });
 
       } else {
         const err = new Error(
@@ -427,22 +472,10 @@ export default class Injector {
           addresses: addresses,
           err: err
         })
-        throw err;
-      }
-      /* else {
-        // TODO: implement address db writes
-        // TODO this should probably return pairs of chain and address
 
-        // tslint:disable no-commented-code
-        addresses = await findAddresses(chain, compilationResult.deployedBytecode)
-        if (addresses.length == 0) {
-          throw (
-            `Contract compiled successfully, but could not find matching bytecode and no ` +
-            `address provided.\n Re-compiled bytecode: ${compilationResult.deployedBytecode}\n`
-          )
-        }
-      */
+        throw new NotFound(err.message);
+      }
     }
-    return matches
+    return match;
   }
 }

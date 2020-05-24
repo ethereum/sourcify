@@ -77,10 +77,15 @@ export default function App() {
     <div className="app">
       <h2>Decentralized Metadata and Source Code Repository</h2>
       <p>
-        Upload metadata and source files of your contract to make it available.
+        Increase the trust in your Smart Contracts by publishing their source code here.
+        <br /> <br />
+        Together with the compilation metadata, everyone can re-compile the Smart Contract and
         <br />
-        Note that the metadata file has to be exactly the same as at deploy
-        time.
+        be sure that the source code is exactly the same as at deploy time, including every comment.
+        <br />
+        <br />
+        You can use this platform to obtain the ABI for each contract.
+        <br />
         <br />
         Browse repository <a href={`${repositoryUrl}`}>here</a> or via{' '}
         <a href="https://gateway.ipfs.io/ipns/QmNmBr4tiXtwTrHKjyppUyAhW1FQZMJTdnUrksA9hapS4u">
@@ -139,7 +144,7 @@ export default function App() {
         <div className="app-fieldset_footer">
           <input
             disabled={
-              acceptedFiles.length === 0 || !address
+              !address
             }
             type="submit"
             onClick={handleSubmit}
@@ -154,7 +159,7 @@ export default function App() {
             <br />
             <br />
             View the assets in the{' '}
-            <a href={`/repository/contract/${chain.value}/${result[0]}`}>
+            <a href={`${process.env.REPOSITORY_URL}contract/${chain.value}/${result[0].address}`}>
               file explorer
             </a>
             .

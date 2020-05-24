@@ -5,7 +5,8 @@
     "sourceMap": true,
     "esModuleInterop": true,
     "strict": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "resolveJsonModule": true
   },
   "include": ["./src", "src/run_monitor.js", "src/localchain.js"]
 }

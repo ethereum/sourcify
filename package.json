@@ -28,6 +28,7 @@
     "monitor:build": "npm run clean && tsc",
     "monitor:start": "node ./scripts/run_monitor.js",
     "monitor": "rimraf ./dist && tsc && node ./scripts/run_monitor.js",
+    "monitor:ci": "scripts/monitor_ci.sh",
     "server:build": "npm run clean && npm run build",
     "server:start": "node ./dist/server.js",
     "server:test": "tsc && TESTING=true LOCALCHAIN_URL=http://localhost:8545 SERVER_PORT=2000 node ./dist/server.js ./repository"
@@ -48,16 +49,20 @@
   "dependencies": {
     "bunyan": "^1.8.12",
     "cbor": "^4.3.0",
+    "cors": "^2.8.5",
     "death": "^1.1.0",
+    "directory-tree": "^2.2.4",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "express-fileupload": "^1.1.6-alpha.6",
+    "helmet": "^3.22.0",
     "html": "^1.0.0",
     "multihashes": "^0.4.15",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.7",
     "serve-index": "^1.9.1",
     "solc": "^0.6.1",
+    "solc-version-manager": "^0.1.6",
     "web3": "^1.2.6"
   },
   "devDependencies": {
@@ -65,10 +70,12 @@
     "@types/bunyan": "^1.8.6",
     "@types/cbor": "^5.0.0",
     "@types/cors": "^2.8.6",
-    "@types/express": "^4.17.2",
+    "@types/dotenv": "^8.2.0",
+    "@types/express": "^4.17.5",
     "@types/express-fileupload": "^1.1.2",
     "@types/fs-extra": "^8.0.1",
-    "@types/node": "^13.7.1",
+    "@types/helmet": "0.0.45",
+    "@types/node": "^13.11.1",
     "@types/request-promise-native": "^1.0.17",
     "@types/serve-index": "^1.7.30",
     "chai": "^4.2.0",
@@ -81,7 +88,7 @@
     "pify": "^4.0.1",
     "rimraf": "^3.0.2",
     "ts-node": "^8.6.2",
-    "tslint": "^6.0.0",
+    "tslint": "^6.1.1",
     "typescript": "^3.7.5",
     "typestrict": "^1.0.2"
   }

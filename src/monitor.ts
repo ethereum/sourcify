@@ -1,19 +1,14 @@
 import Web3 from 'web3';
 import { ethers } from 'ethers';
 import request from  'request-promise-native';
+import { outputFileSync } from 'fs-extra';
 
-import {
-  outputFileSync,
-  readFileSync
-} from 'fs-extra';
-
-import { cborDecode } from './utils';
+import { cborDecode, getChainByName, InputData } from './utils';
+import Injector from './injector';
 import { BlockTransactionObject } from 'web3-eth';
 import Logger from 'bunyan';
 
 const multihashes = require('multihashes');
-
-const read = readFileSync;
 const save = outputFileSync;
 
 export interface MonitorConfig {
@@ -21,7 +16,6 @@ export interface MonitorConfig {
   ipfsProvider? : any,
   swarmGateway? : string,
   repository? : string,
-  infuraPID? : string,
   blockTime? : number,
   silent?: boolean
 }
@@ -39,7 +33,8 @@ declare interface ChainData {
   web3 : Web3,
   metadataQueue: Queue,
   sourceQueue: Queue,
-  latestBlock : number
+  latestBlock : number,
+  chainId: string
 }
 
 declare interface Queue {
@@ -51,7 +46,9 @@ declare interface QueueItem {
   ipfs? : string,
   timestamp? : number,
   metadataRaw? : string,
-  sources?: any
+  sources?: any,
+  found?: any,
+  bytecode?: string
 }
 
 declare interface StringToBooleanMap {
@@ -65,11 +62,11 @@ export default class Monitor {
   private ipfsProvider: any;
   private swarmGateway: string;
   private repository: string;
-  private infuraPID: string;;
   private blockTime: number;
   private blockInterval: any;
   private sourceInterval: any;
   private metadataInterval: any;
+  private injector: Injector;
 
   /**
    * Constructor
@@ -83,7 +80,6 @@ export default class Monitor {
     this.ipfsProvider = config.ipfsProvider || null;
     this.swarmGateway = 'https://swarm-gateways.net/';
     this.repository = config.repository || 'repository';
-    this.infuraPID = config.infuraPID || '891fe57328084fcca24912b662ad101f';
     this.blockTime = config.blockTime || 15 // seconds;
 
     this.blockInterval = null;
@@ -96,6 +92,11 @@ export default class Monitor {
         stream: process.stdout,
         level: config.silent ? 'fatal' : 30
       }]
+    });
+
+    this.injector = new Injector({
+      offline: true,
+      log: this.log
     });
   }
 
@@ -114,16 +115,17 @@ export default class Monitor {
       : ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli'];
 
     for (const chain of chainNames){
-
+      const options = getChainByName(chain)
       const url : string = customChain
         ? customChain.url
-        : `https://${chain}.infura.io/v3/${this.infuraPID}`;
+        : options.web3[0];
 
       this.chains[chain] = {
         web3: new Web3(url),
         metadataQueue: {},
         sourceQueue: {},
-        latestBlock: 0
+        latestBlock: 0,
+        chainId: options.chainId.toString()
       };
 
       const blockNumber = await this.chains[chain].web3.eth.getBlockNumber();
@@ -321,7 +323,10 @@ export default class Monitor {
           _this.addToQueue(
             _this.chains[chain].metadataQueue,
             address,
-            {bzzr1: metadataBzzr1}
+            {
+              bzzr1: metadataBzzr1,
+              bytecode: bytecode
+            }
           );
 
         } else if (cborData && 'ipfs' in cborData){
@@ -340,7 +345,10 @@ export default class Monitor {
           _this.addToQueue(
             _this.chains[chain].metadataQueue,
             address,
-            {ipfs: metadataIPFS}
+            {
+              ipfs: metadataIPFS,
+              bytecode: bytecode
+            }
           );
         }
       } catch (error) { /* ignore */ }
@@ -384,6 +392,7 @@ export default class Monitor {
       this.retrieveMetadataByStorageProvider(
         chain,
         address,
+        this.chains[chain].metadataQueue[address].bytecode,
         this.chains[chain].metadataQueue[address]['bzzr1'],
         this.chains[chain].metadataQueue[address]['ipfs']
       );
@@ -404,10 +413,16 @@ export default class Monitor {
   private async retrieveMetadataByStorageProvider(
     chain: string,
     address: string,
+    bytecode: string | undefined,
     metadataBzzr1: string | undefined,
     metadataIpfs: string | undefined
   ) : Promise<void> {
-    let metadataRaw
+    let metadataRaw;
+
+    const found: any = {
+      files: [],
+      bytecode: bytecode
+    };
 
     if (metadataBzzr1) {
 
@@ -415,14 +430,20 @@ export default class Monitor {
         // TODO guard against too large files
         // TODO only write files after recompilation check?
         metadataRaw = await request(`${this.swarmGateway}/bzz-raw:/${metadataBzzr1}`);
-        save(`${this.repository}/swarm/bzzr1/${metadataBzzr1}`, metadataRaw);
+        found.swarm = {
+          metadataPath: `${this.repository}/swarm/bzzr1/${metadataBzzr1}`,
+          file: metadataRaw
+        }
       } catch (error) { return }
 
     } else if (metadataIpfs){
 
       try {
         metadataRaw = await this.ipfsCat(metadataIpfs);
-        save(`${this.repository}/ipfs/${metadataIpfs}`, metadataRaw.toString());
+        found.ipfs = {
+          metadataPath: `${this.repository}/ipfs/${metadataIpfs}`,
+          file: metadataRaw.toString()
+        }
       } catch (error) { return }
     }
 
@@ -435,14 +456,15 @@ export default class Monitor {
       'Got metadata by address'
     );
 
-    save(`${this.repository}/contract/${chain}/${address}/metadata.json`, metadataRaw.toString());
+    found.files.push(metadataRaw.toString())
 
     const metadata = JSON.parse(metadataRaw);
     delete this.chains[chain].metadataQueue[address];
 
     this.addToQueue(this.chains[chain].sourceQueue, address, {
       metadataRaw: metadataRaw.toString(),
-      sources: metadata.sources
+      sources: metadata.sources,
+      found: found
     });
   }
 
@@ -501,8 +523,6 @@ export default class Monitor {
     address: string,
     sources: any
   ) : void {
-    const _this = this;
-
     for (const sourceKey in sources) {
       for (const url of sources[sourceKey]['urls']) {
 
@@ -512,15 +532,6 @@ export default class Monitor {
         // tslint:disable-next-line:no-floating-promises
         this.retrieveIpfsSource(chain, address, sourceKey, url);
       }
-
-      // TODO: is this deletable?
-      const keccakPath = `${this.repository}/keccak256/${sources[sourceKey].keccak256}`;
-
-      try {
-        const data = read(keccakPath);
-        this.sourceFound(chain, address, sourceKey, data.toString());
-
-      } catch(err) { /* ignore */ }
     }
   }
 
@@ -542,7 +553,10 @@ export default class Monitor {
 
     try {
       const source = await request(`${this.swarmGateway}${url}`);
+
+      // tslint:disable-next-line:no-floating-promises
       this.sourceFound(chain, address, sourceKey, source);
+
     } catch (error) {
       // ignore
     }
@@ -567,7 +581,10 @@ export default class Monitor {
 
     try {
       const source = await this.ipfsCat(url.split('dweb:/ipfs/')[1]);
+
+      // tslint:disable-next-line:no-floating-promises
       this.sourceFound(chain, address, sourceKey, source.toString());
+
     } catch (error) {
       // ignore
     }
@@ -584,19 +601,14 @@ export default class Monitor {
    * @param {string} sourceKey file path or file name
    * @param {string} source    solidity file
    */
-  private sourceFound(
+  private async sourceFound(
     chain: string,
     address: string,
     sourceKey: string,
     source: string
-  ) : void {
+  ) : Promise<void>{
 
-    const pathSanitized : string = sourceKey
-      .replace(/[^a-z0-9_.\/-]/gim, "_")
-      .replace(/(^|\/)[.]+($|\/)/, '_');
-
-    save(`${this.repository}/contract/${chain}/${address}/sources/${pathSanitized}`, source);
-
+    this.chains[chain].sourceQueue[address].found.files.push(source);
     delete this.chains[chain].sourceQueue[address].sources[sourceKey]
 
     const remaining = Object.keys(this.chains[chain].sourceQueue[address].sources)
@@ -611,7 +623,33 @@ export default class Monitor {
       'Sources left to be retrieved'
     );
 
-    if (Object.keys(this.chains[chain].sourceQueue[address].sources).length == 0) {
+    const queueItem = this.chains[chain].sourceQueue[address];
+
+    // Once we've assembled all the sources, inject them.
+    // Also save ipfs and swarm hashes.
+    if (Object.keys(queueItem.sources).length == 0) {
+
+      const data: InputData = {
+        repository: this.repository,
+        chain: getChainByName(chain).chainId.toString(),
+        addresses: [address],
+        files: queueItem.found.files,
+        bytecode: queueItem.found.bytecode
+      };
+
+      try {
+        await this.injector.inject(data)
+
+        if (queueItem.found.swarm){
+          save(queueItem.found.swarm.metadataPath, queueItem.found.swarm.file)
+        }
+
+        if (queueItem.found.ipfs){
+          save(queueItem.found.ipfs.metadataPath, queueItem.found.ipfs.file)
+        }
+      } catch(err){
+        /* ignore */
+      }
       delete this.chains[chain].sourceQueue[address];
     }
   }
