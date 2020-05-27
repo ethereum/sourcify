@@ -25,3 +25,7 @@ services:
         target: /home/app/repository
     ports:
     - "${MONITOR_EXTERNAL_PORT}:${MONITOR_PORT}"
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://loki:3100/loki/api/v1/push"
