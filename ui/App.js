@@ -4,11 +4,11 @@ import Select from 'react-select'
 
 export default function App() {
     const chainOptions = [
-        { value: 'mainnet', label: 'Ethereum Mainnet' },
-        { value: 'ropsten', label: 'Ropsten' },
-        { value: 'rinkeby', label: 'Rinkeby' },
-        { value: 'kovan', label: 'Kovan' },
-        { value: 'goerli', label: 'Görli' }
+        { value: 'mainnet', label: 'Ethereum Mainnet', id: '1' },
+        { value: 'ropsten', label: 'Ropsten', id: '3' },
+        { value: 'rinkeby', label: 'Rinkeby', id: '4' },
+        { value: 'kovan', label: 'Kovan', id: '42' },
+        { value: 'goerli', label: 'Görli', id: '5' }
     ]
 
     if (process.env.TESTING === 'true'){
@@ -159,7 +159,7 @@ export default function App() {
             <br />
             <br />
             View the assets in the{' '}
-            <a href={`${process.env.REPOSITORY_URL}contract/${chain.value}/${result[0].address}`}>
+            <a href={`${process.env.REPOSITORY_URL}contract/${chain.id}/${result[0].address}`}>
               file explorer
             </a>
             .
