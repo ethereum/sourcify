@@ -17,3 +17,5 @@ environment/.env
 stats**
 tmp
 metacoin-source-verify/
+**/synced
+**/sort.log
