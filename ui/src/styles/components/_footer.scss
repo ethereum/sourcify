@@ -1,0 +1,12 @@
+.footer {
+  grid-area: footer;
+  background: $accent-color;
+  padding: 1rem 0;
+  display: flex;
+  justify-content: center;
+  margin-top: 46px;
+
+  p {
+    color: #fff;
+  }
+}

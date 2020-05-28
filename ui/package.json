@@ -1,27 +1,47 @@
 {
-  "name": "ui",
-  "version": "1.0.0",
-  "main": "index.js",
-  "license": "MIT",
+  "name": "sourcify",
+  "author": "",
+  "version": "0.0.1",
+  "description": "",
   "scripts": {
-    "start": "rimraf .cache && parcel serve -p 1234 index.html",
-    "start:prod": "cross-env NODE_ENV=production parcel index.html",
-    "start:dev": "cross-env NODE_ENV=development parcel index.html",
-    "start:test": "cross-env NODE_ENV=testing parcel index.html",
-    "build": "rimraf dist && parcel build index.html",
-    "build:env": "cross-env NODE_ENV=production parcel build index.html"
+    "dev": "webpack-dev-server --config webpack.dev.js",
+    "prebuild": "npm install && rimraf dist",
+    "build": "webpack --config webpack.prod.js",
+    "serve": "serve -l 1234 dist/",
+    "start": "npm run build && npm run serve"
   },
+  "keywords": [],
+  "license": "ISC",
   "dependencies": {
     "react": "^16.12.0",
+    "react-cool-onclickoutside": "^1.5.4",
     "react-dom": "^16.12.0",
-    "react-dropzone": "^10.2.1",
-    "react-select": "^3.0.8"
+    "react-dropzone": "^11.0.1"
   },
   "devDependencies": {
-    "@babel/preset-env": "^7.8.3",
-    "@babel/preset-react": "^7.8.3",
-    "cross-env": "^6.0.3",
-    "parcel-bundler": "^1.12.4",
-    "rimraf": "^3.0.2"
+    "@babel/core": "^7.5.5",
+    "@babel/plugin-proposal-class-properties": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "@babel/preset-react": "^7.0.0",
+    "@types/react": "^16.9.2",
+    "@types/react-dom": "^16.9.0",
+    "babel-loader": "^8.0.6",
+    "copy-webpack-plugin": "^6.0.2",
+    "css-loader": "^3.2.0",
+    "dotenv-webpack": "^2.0.0",
+    "html-webpack-plugin": "^4.3.0",
+    "mini-css-extract-plugin": "^0.9.0",
+    "node-sass": "^4.13.0",
+    "rimraf": "^3.0.2",
+    "sass-loader": "^8.0.0",
+    "serve": "^11.1.0",
+    "source-map-loader": "^1.0.0",
+    "style-loader": "^1.0.0",
+    "ts-loader": "^7.0.5",
+    "typescript": "^3.5.3",
+    "webpack": "^4.39.2",
+    "webpack-cli": "^3.3.10",
+    "webpack-dev-server": "^3.8.0",
+    "webpack-merge": "^4.2.2"
   }
 }
