@@ -217,8 +217,18 @@ export default class Monitor {
    * Retrieves blocks for all chains
    */
   private retrieveBlocks() : void {
-    for (const chain in this.chains) {
-      this.retrieveBlocksInChain(chain);
+    try{
+      for (const chain in this.chains) {
+        this.retrieveBlocksInChain(chain);
+      }
+    } catch(err) {
+      this.log.info(
+        {
+          loc: '[ERROR]',
+          err: err
+        },
+        'Block retreival error'
+      );
     }
   }
 
@@ -365,9 +375,19 @@ export default class Monitor {
    * engine.
    */
   private retrieveMetadata() : void {
+  try {
     for (const chain in this.chains) {
       this.retrieveMetadataInChain(chain);
     }
+  } catch(err) {
+    this.log.info(
+      {
+        loc: '[ERROR]',
+        err: err
+      },
+      'Metadata retreival error'
+    );
+  }
   }
 
   /**
@@ -478,9 +498,19 @@ export default class Monitor {
    * a metadata sources manifest.
    */
   private retrieveSource() : void{
+    try{
     for (const chain in this.chains) {
       this.retrieveSourceInChain(chain);
     }
+  } catch(err) {
+    this.log.info(
+      {
+        loc: '[ERROR]',
+        err: err
+      },
+      'Source retreival error'
+    );
+  }
   }
 
   /**
