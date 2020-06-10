@@ -34,7 +34,7 @@
       "args": [
         "-c", "1",
         "-a", "0xfff0f5801a9e13426c306455A3BcC5EF3e9BC979",
-        "-f", "testcontracts/ERC20Standard.sol", "testcontracts/metadata.json",
+        "-f", "test/testcontracts/ERC20Standard/ERC20Standard.sol", "test/testcontracts/ERC20Standard/metadata.json"
       ]
     },
     {

@@ -80,6 +80,16 @@ aliases:
         key: dependency-cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "package.json" }}
         paths:
         - ./node_modules
+  - &npm-publish-base
+    working_directory: ~/source-verify
+    docker:
+    - image: circleci/node
+    steps:
+    - checkout
+    - run:
+        name: Publish npm package
+        command: ./scripts/publish_to_npm.sh
+  
 version: 2
 workflows:
   version: 2
@@ -166,6 +176,14 @@ workflows:
                 - master
     jobs:
       - monitor-e2e
+  
+  npm_package_publish:
+    jobs:
+      - npm-publish:
+          filters:
+            branches:
+              only:
+              - master
 
 
 jobs:
@@ -213,4 +231,6 @@ jobs:
     <<: *monitor-e2e-base
     docker:
     - image: circleci/node:10
+  npm-publish:
+    <<: *npm-publish-base
 
