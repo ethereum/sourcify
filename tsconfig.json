@@ -8,5 +8,5 @@
     "outDir": "dist",
     "resolveJsonModule": true
   },
-  "include": ["./src", "src/run_monitor.js", "src/localchain.js"]
+  "include": ["./src", "src/run_monitor.js", "src/localchain.js", "./src/chains.json"]
 }

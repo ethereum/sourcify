@@ -15,8 +15,12 @@ import {
   fetchAllFileUrls,
   FileObject,
   NotFound,
-  getChainId
+  getChainId,
+  repository
 } from "./utils";
+
+import dotenv from 'dotenv';
+dotenv.config()
 
 const app = express();
 
@@ -39,7 +43,6 @@ const injector = new Injector({
   log: log
 });
 
-const repository = process.env.MOCK_REPOSITORY || './repository';
 const port = process.env.SERVER_PORT;
 
 app.use(express.static('ui/dist'))
@@ -56,8 +59,6 @@ app.use(cors())
 app.get('/', (req, res) => res.sendFile('ui/dist/index.html'))
 app.get('/health', (req, res) => res.status(200).send('Alive and kicking!'))
 app.use('/repository', express.static(repository), serveIndex(repository, {'icons': true}))
-
-
 
 app.get('/tree/:chain/:address', (req, res, next) => {
   try {

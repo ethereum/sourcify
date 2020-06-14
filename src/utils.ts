@@ -9,6 +9,7 @@ import dirTree from 'directory-tree';
 import * as chainOptions from './chains.json';
 
 const solc: any = require('solc');
+export const repository = process.env.MOCK_REPOSITORY || './repository';
 
 declare interface StringMap {
   [key: string]: string;
@@ -315,6 +316,31 @@ export function getChainByName(name: string): any {
   }
 
   throw new NotFound(`Chain ${name} not supported!`)
+}
+
+import { outputFileSync } from 'fs-extra';
+const saveFile = outputFileSync;
+
+/**
+ * Save file and update the repository tag
+ * 
+ * @param path 
+ * @param file 
+ */
+export function save(path: string, file: any) {
+  saveFile(path, file);
+  updateRepositoryTag();
+}
+
+/**
+ * Update repository tag
+ */
+export function updateRepositoryTag() {
+  const filePath: string = path.join(repository, 'sourcify.version')
+
+  const timestamp = new Date().getTime().toString();
+
+  fs.writeFileSync(filePath, timestamp);
 }
 
 //------------------------------------------------------------------------------------------------------

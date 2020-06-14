@@ -2,7 +2,7 @@ version: "3.7"
 x-env-file-mount:
   &env-file-mount
   type: bind
-  source: .env
+  source: ../.env
 
 networks:
   source-verify:

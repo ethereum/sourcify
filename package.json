@@ -13,7 +13,7 @@
   },
   "scripts": {
     "clean": "rimraf ./dist",
-    "build": "tsc",
+    "build": "tsc --build --clean && tsc",
     "test": "TESTING=true LOCALCHAIN_URL=http://localhost:8545 ts-node ./node_modules/.bin/mocha --exit",
     "tslint": "tslint -p tsconfig.json",
     "coverage": "node ./node_modules/nyc/bin/nyc.js --reporter=lcov --reporter=text-summary ./node_modules/tape/bin/tape ./test/index.js",
@@ -55,6 +55,7 @@
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "express-fileupload": "^1.1.6-alpha.6",
+    "folder-hash": "^3.3.2",
     "helmet": "^3.22.0",
     "html": "^1.0.0",
     "multihashes": "^0.4.15",
@@ -63,7 +64,7 @@
     "serve-index": "^1.9.1",
     "solc": "^0.6.1",
     "solc-version-manager": "^0.1.6",
-    "web3": "^1.2.6"
+    "web3": "^1.2.8"
   },
   "devDependencies": {
     "@0x/sol-compiler": "^4.0.3",

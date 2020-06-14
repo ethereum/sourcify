@@ -19,7 +19,7 @@
       "network": "mainnet",
       "networkId": 1,
       "nativeCurrency": {"name":"Ether","symbol":"ETH","decimals":18},
-      "web3": ["https://mainnet.infura.io/v3/891fe57328084fcca24912b662ad101f"],
+      "web3": ["https://mainnet.infura.io/v3/e45239e446bd4ec5bdf91747fc745e12"],
       "faucets": [],
       "infoURL": "https://ethereum.org"
     },
@@ -319,7 +319,7 @@
       "network": "ropsten",
       "networkId": 3,
       "nativeCurrency": {"name":"Ropsten Ether","symbol":"ROP","decimals":18},
-      "web3": ["https://ropsten.infura.io/v3/891fe57328084fcca24912b662ad101f"],
+      "web3": ["https://ropsten.infura.io/v3/e45239e446bd4ec5bdf91747fc745e12"],
       "faucets": ["https://faucet.ropsten.be?${ADDRESS}"],
       "infoURL": "https://github.com/ethereum/ropsten"
     },
@@ -403,7 +403,7 @@
       "network": "rinkeby",
       "networkId": 4,
       "nativeCurrency": {"name":"Rinkeby Ether","symbol":"RIN","decimals":18},
-      "web3": ["https://rinkeby.infura.io/v3/891fe57328084fcca24912b662ad101f"],
+      "web3": ["https://rinkeby.infura.io/v3/e45239e446bd4ec5bdf91747fc745e12"],
       "faucets": ["https://faucet.rinkeby.io"],
       "infoURL": "https://www.rinkeby.io"
     },
@@ -415,7 +415,7 @@
       "network": "kovan",
       "networkId": 42,
       "nativeCurrency": {"name":"Kovan Ether","symbol":"KOV","decimals":18},
-      "web3": ["https://kovan.infura.io/v3/891fe57328084fcca24912b662ad101f"],
+      "web3": ["https://kovan.infura.io/v3/e45239e446bd4ec5bdf91747fc745e12"],
       "faucets": ["https://faucet.kovan.network","https://gitter.im/kovan-testnet/faucet"],
       "infoURL": "https://kovan-testnet.github.io/website"
     },
@@ -451,7 +451,7 @@
       "network": "goerli",
       "networkId": 5,
       "nativeCurrency": {"name":"Görli Ether","symbol":"GOR","decimals":18},
-      "web3": ["https://goerli.infura.io/v3/891fe57328084fcca24912b662ad101f"],
+      "web3": ["https://goerli.infura.io/v3/e45239e446bd4ec5bdf91747fc745e12"],
       "faucets": ["https://goerli-faucet.slock.it/?address=${ADDRESS}","https://faucet.goerli.mudit.blog"],
       "infoURL": "https://goerli.net/#about"
     },
