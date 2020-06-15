@@ -31,7 +31,9 @@
     "monitor:ci": "scripts/monitor_ci.sh",
     "server:build": "npm run clean && npm run build",
     "server:start": "node ./dist/server.js",
-    "server:test": "tsc && TESTING=true LOCALCHAIN_URL=http://localhost:8545 SERVER_PORT=2000 node ./dist/server.js ./repository"
+    "server:test": "tsc && TESTING=true LOCALCHAIN_URL=http://localhost:8545 SERVER_PORT=2000 node ./dist/server.js ./repository",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "keywords": [
     "ethereum",
@@ -63,7 +65,8 @@
     "serve-index": "^1.9.1",
     "solc": "^0.6.1",
     "solc-version-manager": "^0.1.6",
-    "web3": "^1.2.6"
+    "web3": "^1.2.8",
+    "snyk": "^1.341.0"
   },
   "devDependencies": {
     "@0x/sol-compiler": "^4.0.3",
@@ -91,5 +94,6 @@
     "tslint": "^6.1.1",
     "typescript": "^3.7.5",
     "typestrict": "^1.0.2"
-  }
+  },
+  "snyk": true
 }
