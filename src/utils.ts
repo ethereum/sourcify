@@ -336,10 +336,8 @@ export function save(path: string, file: any) {
  * Update repository tag
  */
 export function updateRepositoryTag() {
-  const filePath: string = path.join(repository, 'sourcify.version')
-
+  const filePath: string = path.join(repository, 'Manifest.json')
   const timestamp = new Date().getTime().toString();
-
   fs.writeFileSync(filePath, timestamp);
 }
 
