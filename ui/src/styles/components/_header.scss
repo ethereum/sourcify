@@ -1,0 +1,29 @@
+.header {
+  grid-area: header;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  //TODO
+  padding: 48px 64px;
+
+  &__social-icons {
+    //TODO
+    display: flex;
+    color: $black-500;
+
+    a {
+      display: block;
+      height: 2rem;
+
+      &:first-child {
+        margin-right: 1rem;
+      }
+    }
+
+    svg {
+      width: inherit;
+      height: inherit;
+      color: $black-900;
+    }
+  }
+}
