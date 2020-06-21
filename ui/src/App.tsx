@@ -49,7 +49,18 @@ const App: React.FC = () => {
               <p>Problems or questions? Ask us anything on <a href="">Gitter!</a></p>
             </div>
           </div>
-          <div className="container__right">RIGHT</div>
+          <div className="container__right">
+            <div className="form-container">
+              <div className="form-container__header">
+                <h3>VERIFIER</h3>
+              </div>
+              <div className="form-container__middle">
+                <form className="form" action="">
+                  <input type="text" placeholder="Contract Address*"/>
+                </form>
+              </div>
+            </div>
+          </div>
         </div>
       </MainLayout>
     </div>

@@ -31,10 +31,11 @@ body {
           "main"
           "footer";
   grid-template-rows: auto 1fr auto;
-  gap: 2rem;
 }
 
 @import './components/header';
+@import './components/footer';
+@import './components/form';
 
 .main {
   grid-area: main;
@@ -48,7 +49,7 @@ body {
   height: 100%;
   display: flex;
 
-  @media only screen and(max-height: 768px) {
+  @media only screen and (max-width: 768px) {
     flex-direction: column;
   }
   
@@ -93,6 +94,10 @@ body {
       font-size: 18px;
       margin-top: auto;
 
+      @media only screen and (max-width: 768px) {
+        margin: 2rem 0;
+      }
+
       :not(:last-child) {
         margin-bottom: 8px;
       }
@@ -107,7 +112,7 @@ body {
 
   &__right {
     flex: 1;
-    border: 1px solid firebrick;
+    // border: 1px solid firebrick;
   }
 }
 

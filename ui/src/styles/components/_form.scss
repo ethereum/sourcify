@@ -1,0 +1,32 @@
+.form-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-shadow: 0 4px 4px 0 rgba($black, 0.25);
+  //border: 2px solid green;
+
+  &__header {
+    height: min-content;
+    padding: 1.5rem;
+    text-align: center;
+    width: 100%;
+    box-shadow: 0 4px 4px 0 rgba($black, 0.25);
+    border-top: 4px solid $accent-color;
+
+    h3 {
+      font-size: 24px;
+    }
+  }
+
+  &__middle {
+    padding: 40px 24px;
+
+    .form {
+      input {
+        width: 100%;
+        padding: 1rem 40px;
+        font-size: 18px;
+      }
+    }
+  }
+}
