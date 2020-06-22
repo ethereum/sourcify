@@ -156,6 +156,18 @@ workflows:
       - node-v10
       - node-v12
 
+  nightly:
+    triggers:
+      - schedule:
+          cron: "0 1 * * *" # 1am UTC
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - monitor-e2e
+
+
 jobs:
   build-push-ipfs:
     <<: *docker-base
