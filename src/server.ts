@@ -36,7 +36,8 @@ const log = Logger.createLogger({
 
 const injector = new Injector({
   localChainUrl: localChainUrl,
-  log: log
+  log: log,
+  infuraPID: process.env.INFURA_ID || "changeinfuraid"
 });
 
 const repository = process.env.MOCK_REPOSITORY || './repository';

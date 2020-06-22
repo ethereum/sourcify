@@ -12,11 +12,9 @@ if [ "$CIRCLE_BRANCH" == "master" ]; then
     export TAG="stable";
 fi
 
-if [ "$CIRCLE_BRANCH" == "volumes-read-write-config" ]; then
-    export TAG="testing"
-fi
-
 echo $TAG
+
+./scripts/find_replace.sh
 
 cd environments && cp .env.$TAG .env
 echo $SERVICE

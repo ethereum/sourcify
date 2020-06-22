@@ -50,7 +50,7 @@ export default class Injector {
    */
   public constructor(config : InjectorConfig = {}){
     this.chains = {};
-    this.infuraPID = config.infuraPID || "e675ec2d3f6b4cc2bf2f0b2bfb5883bb";
+    this.infuraPID = config.infuraPID || "changeinfuraid";
     this.localChainUrl = config.localChainUrl;
     this.offline = config.offline || false;
 

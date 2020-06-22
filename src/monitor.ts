@@ -7,6 +7,9 @@ import { cborDecode, getChainByName, InputData } from './utils';
 import Injector from './injector';
 import { BlockTransactionObject } from 'web3-eth';
 import Logger from 'bunyan';
+import dotenv from 'dotenv';
+
+dotenv.config({ path: process.cwd().concat("/environments/.env") });
 
 const multihashes = require('multihashes');
 const save = outputFileSync;
@@ -96,7 +99,8 @@ export default class Monitor {
 
     this.injector = new Injector({
       offline: true,
-      log: this.log
+      log: this.log,
+      infuraPID: process.env.INFURA_ID || "changeinfuraid"
     });
   }
 
@@ -118,7 +122,7 @@ export default class Monitor {
       const options = getChainByName(chain)
       const url : string = customChain
         ? customChain.url
-        : options.web3[0];
+        : options.web3[0].replace("${INFURA_ID}", process.env.INFURA_ID);
 
       this.chains[chain] = {
         web3: new Web3(url),

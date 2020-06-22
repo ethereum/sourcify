@@ -19,3 +19,5 @@ tmp
 metacoin-source-verify/
 **/synced
 **/sort.log
+secret.key
+**/.env.secrets
