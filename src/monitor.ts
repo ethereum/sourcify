@@ -96,7 +96,8 @@ export default class Monitor {
 
     this.injector = new Injector({
       offline: true,
-      log: this.log
+      log: this.log,
+      infuraPID: process.env.INFURA_ID || "changeinfuraid"
     });
   }
 
