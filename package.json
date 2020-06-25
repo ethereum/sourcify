@@ -47,7 +47,7 @@
   },
   "homepage": "https://github.com/ethereum/source-verify#readme",
   "dependencies": {
-    "bunyan": "^1.8.12",
+    "bunyan": "^1.8.13",
     "cbor": "^4.3.0",
     "cors": "^2.8.5",
     "death": "^1.1.0",
