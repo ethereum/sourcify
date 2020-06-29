@@ -2,6 +2,7 @@ import React from "react";
 
 import "./styles/app.scss";
 import MainLayout from "./components/layout/MainLayout";
+import {FileUpload} from "./components/verifier";
 
 const App: React.FC = () => {
   return (
@@ -57,6 +58,7 @@ const App: React.FC = () => {
               <div className="form-container__middle">
                 <form className="form" action="">
                   <input type="text" placeholder="Contract Address*"/>
+                  <FileUpload />
                 </form>
               </div>
             </div>

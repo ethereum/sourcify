@@ -1,6 +1,5 @@
 import React from "react";
-import GithubIcon from "../icons/GithubIcon";
-import TwitterIcon from "../icons/TwitterIcon";
+import { GithubIcon, TwitterIcon } from "../icons";
 
 const Header: React.FC = () => {
   return (
