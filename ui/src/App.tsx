@@ -56,9 +56,11 @@ const App: React.FC = () => {
                 <h3>VERIFIER</h3>
               </div>
               <div className="form-container__middle">
-                <form className="form" action="">
+                <form className="form" onSubmit={() => console.log("SUBMITED")}>
                   <input type="text" placeholder="Contract Address*"/>
+
                   <FileUpload />
+                  <button type="submit" className="form__submit-btn">VERIFY</button>
                 </form>
               </div>
             </div>
