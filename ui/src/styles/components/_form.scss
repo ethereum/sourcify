@@ -3,6 +3,7 @@
   flex-direction: column;
   height: 100%;
   box-shadow: 0 4px 4px 0 rgba($black, 0.25);
+  position: relative;
 
   &__header {
     height: min-content;

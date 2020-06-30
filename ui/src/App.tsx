@@ -2,7 +2,7 @@ import React from "react";
 
 import "./styles/app.scss";
 import MainLayout from "./components/layout/MainLayout";
-import {FileUpload} from "./components/verifier";
+import Verifier from "./components/verifier/Verifier";
 
 const App: React.FC = () => {
   return (
@@ -56,12 +56,7 @@ const App: React.FC = () => {
                 <h3>VERIFIER</h3>
               </div>
               <div className="form-container__middle">
-                <form className="form" onSubmit={() => console.log("SUBMITED")}>
-                  <input type="text" placeholder="Contract Address*"/>
-
-                  <FileUpload />
-                  <button type="submit" className="form__submit-btn">VERIFY</button>
-                </form>
+                <Verifier />
               </div>
             </div>
           </div>
