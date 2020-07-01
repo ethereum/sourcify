@@ -4,7 +4,7 @@ mkdir -p $REPO_PATH
 cd $REPO_PATH
 
 if [[ ! -d source-verify ]]; then
-    git clone https://github.com/ethereum/source-verify.git
+    git clone https://github.com/ethereum/sourcify.git
     cd source-verify
     git checkout ${CIRCLE_BRANCH}
 else
@@ -22,11 +22,11 @@ else
     export COMPOSE_COMMAND="COMPOSE_PROJECT_NAME=${TAG}_source-verify docker-compose -f ipfs.yaml -f monitor.yaml -f repository.yaml -f s3.yaml -f server.yaml -f ui.yaml -f localchain.yaml"
 fi
 
-TAG=$TAG ACCESS_KEY=$ACCESS_KEY SECRET_ACCESS_KEY=$SECRET_ACCESS_KEY ./scripts/find_replace.sh
-source environments/.env
+TAG=$TAG ./scripts/find_replace.sh
+source ../environments/.env
 cd scripts
 echo $PWD
-DATABASE_PATH="$DATABASE_PATH" REPOSITORY_PATH="$REPOSITORY_PATH" ./prepare.sh
+./prepare.sh
 cd ../environments
 echo $PWD
 eval ${COMPOSE_COMMAND} pull
