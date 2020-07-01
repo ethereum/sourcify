@@ -25,14 +25,98 @@ export const log = Logger.createLogger({
   }]
 });
 
-declare interface StringMap {
+export declare interface StringMap {
   [key: string]: string;
 }
 
+export declare interface ABIInput {
+  indexed: boolean,
+  internalType: string,
+  name: string,
+  type: string
+}
+
+export declare type ABI = [{
+    anonymous: boolean,
+    inputs: ABIInput[],
+    name: string,
+    type: string
+}]
+
+export declare interface CompilationSettings {
+    compilationTarget?: any,
+    evmVersion: string,
+    libraries?: any,
+    metadata?: any,
+    optimizer: {
+      enabled: boolean,
+      runs: number
+    },
+    remappings: []
+}
+
+export declare interface Metadata extends NewMetadata{
+  compiler?: { version: string},
+  language?: string,
+  output?: {
+    abi: ABI[],
+    devdoc: { methods: {} },
+    userdoc: { methods: {} }
+  },
+  settings?: CompilationSettings,
+  sources?: MetadataSource
+  version?: number
+}
+
+export declare interface NewMetadata {
+  compilers?: Compiler[],
+  contractTypes?: {
+    (key: string): {
+      abi: ABI
+    }
+  },
+  manifest?: string,
+  sources?: MetadataSource
+}
+
+export declare interface Compiler {
+  contractTypes: string[],
+  name: string,
+  settings: CompilationSettings,
+  version: string
+}
+
+export declare interface MetadataSource {
+  (contractName: string): {
+    checksum?: {
+        algorithm: string,
+        hash: string
+    },
+    license?: string,
+    type?: string,
+    keccak256?: string,
+    urls: string[]
+  }
+}
+
+export declare interface CompilationInput {
+  language: string,
+  settings: any,
+  sources: any,
+  output?: any,
+  solcjs?: any,
+  version?: string
+}
+
 declare interface ReformattedMetadata {
-  input: any,
+  input: CompilationInput,
   fileName: string,
   contractName: string
+}
+
+export interface RecompilationInput {
+  metadata: Metadata,
+  sources: CompilationInput
 }
 
 export interface RecompilationResult {
@@ -92,16 +176,18 @@ export function getBytecodeWithoutMetadata(bytecode: string): string {
  * @return {ReformattedMetadata}
  */
 function reformatMetadata(
-  metadata: any,
+  metadata: Metadata,
   sources: StringMap,
   log: Logger
 ): ReformattedMetadata {
 
-  const input: any = {};
+  const input: CompilationInput = {
+    sources: {},
+    settings: metadata.settings,
+    language: metadata.language
+  };
   let fileName: string = '';
   let contractName: string = '';
-
-  input.settings = metadata.settings;
 
   for (fileName in metadata.settings.compilationTarget) {
     contractName = metadata.settings.compilationTarget[fileName];
@@ -115,7 +201,6 @@ function reformatMetadata(
     throw err;
   }
 
-  input['sources'] = {}
   for (const source in sources) {
     input.sources[source] = { 'content': sources[source] }
   }
@@ -137,6 +222,7 @@ function reformatMetadata(
     contractName: contractName
   }
 }
+
 
 /**
  * Compiles sources using version and settings specified in metadata

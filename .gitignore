@@ -11,7 +11,6 @@ ui/.cache/
 source-verify.dab
 nginx.conf
 dist/
-environment/.env
 **/.env
 stats**
 tmp

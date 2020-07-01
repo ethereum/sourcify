@@ -90,6 +90,25 @@ export default class Injector {
     }
   }
 
+
+  // TODO:
+  private convertNewMetadataToMetadata(file: any): Metadata{
+    let newMetadata: NewMetadata = Object.assign({}, JSON.parse(file));
+    let metadata: Metadata = {};
+
+
+    // Can there be multiple compilers?
+    metadata.compiler.version = newMetadata.compilers[0].version;
+    metadata.language = newMetadata.compilers[0].name;
+
+    // for(const element of newMetadata.contractTypes) {
+    //   metadata.output = element;
+    // }
+
+    // Now convert
+    return newMetadata;
+  }
+
   /**
    * Selects metadata files from an array of files that may include sources, etc
    * @param  {string[]} files
@@ -102,12 +121,25 @@ export default class Injector {
       try {
         const m = JSON.parse(files[i].content)
 
+        // For new metadata specification
+        if(m['manifest']){
+          // this.convertNewMetadataToMetadata(files[i]);
+          const compilers: any = m['compilers'];
+          for(const c in compilers){
+            const compiler: any = compilers[c];
+            if(compiler['name'] === 'solidity'){
+              metadataFiles.push(m)
+            }
+          }
+        }
+
         // TODO: this might need a stronger validation check.
         //       many assumptions are made about structure of
         //       metadata object after this selection step.
         if (m['language'] === 'Solidity') {
           metadataFiles.push({ name: files[i].name, content: m });
         }
+
       } catch (err) { /* ignore */ }
     }
 
@@ -415,7 +447,7 @@ export default class Injector {
     this.validateAddresses(addresses);
     this.validateChain(chain);
 
-    const metadataFiles = this.findMetadataFiles(files);
+    const metadataFiles: Metadata[] = this.findMetadataFiles(files);
 
     let match: Match = {
       address: null,
@@ -437,7 +469,7 @@ export default class Injector {
         throw err;
       }
 
-      // When injector is called by monitor, the bytecode has already been
+      // When injector is called by monitor, the b  ytecode has already been
       // obtained for address and we only need to compare w/ compilation result.
       if (inputData.bytecode) {
 
