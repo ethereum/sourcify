@@ -1,3 +1,3 @@
 #!/bin/bash
 
-git-crypt lock
+gpg --yes --batch --passphrase=$SECRET_KEY -c .env.secrets
