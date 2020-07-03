@@ -23,7 +23,7 @@ else
 fi
 
 TAG=$TAG ./scripts/find_replace.sh
-source ../environments/.env
+source ./environments/.env
 ./scripts/prepare.sh
 cd environments
 echo $PWD
@@ -31,4 +31,5 @@ eval ${COMPOSE_COMMAND} pull
 echo $PWD
 eval ${COMPOSE_COMMAND} up -d
 echo $PWD
+cd ..
 ./scripts/clear-repo.sh
