@@ -8,7 +8,7 @@ gpg --yes --batch --passphrase=$SECRET_KEY ../environments/.env.secrets.gpg
 source ../environments/.env.secrets
 pwd
 search="AWS_ACCESS_KEY_ID=xxx"
-replace="AWS_ACCESS_KEY_ID=$ACCESS_KEY"
+replace="AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID"
 sed -i "s/${search}/${replace}/g" ../environments/.env.$TAG
 
 search="AWS_SECRET_ACCESS_KEY=xxx"
