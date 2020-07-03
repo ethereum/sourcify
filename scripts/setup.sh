@@ -24,13 +24,11 @@ fi
 
 TAG=$TAG ./scripts/find_replace.sh
 source ../environments/.env
-cd scripts
-echo $PWD
-./prepare.sh
-cd ../environments
+./scripts/prepare.sh
+cd environments
 echo $PWD
 eval ${COMPOSE_COMMAND} pull
 echo $PWD
 eval ${COMPOSE_COMMAND} up -d
 echo $PWD
-../scripts/clear-repo.sh
+./scripts/clear-repo.sh

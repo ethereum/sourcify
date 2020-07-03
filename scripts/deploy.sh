@@ -15,5 +15,5 @@ fi
 
 # Do ssh to server
 ssh -o "StrictHostKeyChecking no" source-verify@komputing.org "\
-curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/scripts/setup.sh > setup.sh && chmod +x setup.sh && chown $USER:$USER setup.sh && \
-REPO_PATH='${REPO_PATH}' CIRCLE_BRANCH='${CIRCLE_BRANCH}' TAG='${TAG}' ./setup.sh"
+mkdir scripts && curl https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/scripts/setup.sh > scripts/setup.sh && chmod +x scripts/setup.sh && chown $USER:$USER ./scripts/setup.sh && \
+REPO_PATH='${REPO_PATH}' CIRCLE_BRANCH='${CIRCLE_BRANCH}' TAG='${TAG}' ./scripts/setup.sh"

@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 
+cd scripts/
 gpg --yes --batch --passphrase=$SECRET_KEY ../environments/.env.secrets.gpg
 source ../environments/.env.secrets
 pwd
