@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+source ~/.profile
+
 cd scripts/
 gpg --yes --batch --passphrase=$SECRET_KEY ../environments/.env.secrets.gpg
 source ../environments/.env.secrets
