@@ -11,6 +11,7 @@
   cursor: pointer;
   padding: 1rem;
   transition: .5s;
+  border-radius: .5rem;
 
   &:hover {
     background: rgba($accent-color, 0.1);

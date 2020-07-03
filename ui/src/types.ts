@@ -12,11 +12,12 @@ export type GlobalStateActions = {
 }
 
 export type VerifierState = {
+    loading: boolean,
     address: string,
     files: []
 }
 
 export type VerifierActions = {
-    type: "SET_ADDRESS" | "SET_FILES" | "CLEAR_FILES",
+    type: "SET_ADDRESS" | "SET_FILES" | "CLEAR_FILES" | "SET_LOADING",
     payload?: any
 }

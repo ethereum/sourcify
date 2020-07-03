@@ -16,7 +16,12 @@ export const verifierReducer = (state: VerifierState, action: VerifierActions) =
             return {
                 ...state,
                 files: []
-            }
+            };
+        case "SET_LOADING":
+            return {
+                ...state,
+                loading: action.payload
+            };
         default:
             return state;
     }

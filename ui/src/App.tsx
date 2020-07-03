@@ -51,14 +51,7 @@ const App: React.FC = () => {
             </div>
           </div>
           <div className="container__right">
-            <div className="form-container">
-              <div className="form-container__header">
-                <h3>VERIFIER</h3>
-              </div>
-              <div className="form-container__middle">
-                <Verifier />
-              </div>
-            </div>
+              <Verifier />
           </div>
         </div>
       </MainLayout>

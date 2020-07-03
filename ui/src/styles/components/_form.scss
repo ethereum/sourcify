@@ -4,14 +4,16 @@
   height: 100%;
   box-shadow: 0 4px 4px 0 rgba($black, 0.25);
   position: relative;
+  border-radius: .5rem;
 
   &__header {
     height: min-content;
     padding: 1.5rem;
     text-align: center;
     width: 100%;
-    box-shadow: 0 4px 4px 0 rgba($black, 0.25);
+    box-shadow: 0 4px 4px 0 rgba($black, 0.1);
     border-top: 4px solid $accent-color;
+    border-radius: .5rem .5rem 0 0;
 
     h3 {
       font-size: 24px;
@@ -49,6 +51,10 @@
         width: 100%;
         padding: 1rem 40px;
         font-size: 18px;
+        border: 1px solid rgba($black, 0.2);
+        height: 3.5rem;
+        border-radius: .5rem;
+        margin-bottom: 1rem;
       }
 
       &__submit-btn {
@@ -59,6 +65,7 @@
         background: $accent-color;
         border: none;
         color: #fff;
+        border-radius: .5rem;
       }
     }
   }
