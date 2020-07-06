@@ -1,20 +1,10 @@
 import React, {useReducer} from "react";
-import {FileUpload, AddressInput} from "./form";
 import {verifierReducer} from "../../reducers/verifierReducer";
 import {VerifierState} from "../../types";
+import {CHAIN_OPTIONS as chainOptions} from "../../common/constants";
+import {FileUpload, AddressInput} from "./form";
 import Dropdown from "../Dropdown";
 import LoadingOverlay from "../LoadingOverlay";
-import {useDispatchContext} from "../../state/State";
-
-// TODO
-// move to constants
-export const chainOptions = [
-    {value: "mainnet", label: "Ethereum Mainnet", id: 1},
-    {value: "ropsten", label: "Ropsten", id: 3},
-    {value: "rinkeby", label: "Rinkeby", id: 4},
-    {value: "kovan", label: "Kovan", id: 42},
-    {value: "goerli", label: "Görli", id: 5},
-];
 
 const initialState: VerifierState = {
     loading: false,
@@ -24,7 +14,6 @@ const initialState: VerifierState = {
 
 const Verifier: React.FC = () => {
     const [state, dispatch] = useReducer(verifierReducer, initialState);
-    const globalDispatch = useDispatchContext();
 
     const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         dispatch(
@@ -53,7 +42,7 @@ const Verifier: React.FC = () => {
 
     return (
         <div className="form-container">
-            { state.loading && <LoadingOverlay /> }
+            {state.loading && <LoadingOverlay/>}
             <div className="form-container__header">
                 <h3>VERIFIER</h3>
             </div>

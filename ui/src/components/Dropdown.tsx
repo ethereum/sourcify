@@ -17,7 +17,7 @@ const Dropdown: React.FC<DropdownProps> = ({items, initialValue}) => {
     const [isOpen, setIsOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<Item>(initialValue);
 
-    const ref = useOnclickOutside(() => setIsOpen(false));
+    const ref = useOnclickOutside(() => setIsOpen(false), { ignoreClass: "dropdown__header"});
 
     const toggleDropdown = () => setIsOpen(!isOpen);
 
