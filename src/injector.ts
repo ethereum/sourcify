@@ -75,8 +75,7 @@ export default class Injector {
     for (const chain of ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli']){
       const chainOption = getChainByName(chain);
       this.chains[chainOption.chainId] = {};
-      const chainsWeb3 = chainOption.web3[0].replace("${INFURA_ID}", process.env.INFURA_ID);
-      this.chains[chainOption.chainId].web3 = new Web3(chainsWeb3);
+      this.chains[chainOption.chainId].web3 = new Web3(chainOption.web3[0]);
     }
 
     // For unit testing with testrpc...
