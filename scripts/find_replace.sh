@@ -7,6 +7,17 @@ cd scripts/
 gpg --yes --batch --passphrase=$SECRET_KEY ../environments/.env.secrets.gpg
 source ../environments/.env.secrets
 pwd
+
+export TAG="$CIRCLE_BRANCH"
+
+if [ "$CIRCLE_BRANCH" == "staging" ]; then
+    export TAG="latest"
+fi
+
+if [ "$CIRCLE_BRANCH" == "master" ]; then
+    export TAG="stable";
+fi
+
 search="AWS_ACCESS_KEY_ID=xxx"
 replace="AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID"
 sed -i "s/${search}/${replace}/g" ../environments/.env.$TAG
