@@ -1,19 +1,22 @@
 import React, {useReducer} from "react";
 import {verifierReducer} from "../../reducers/verifierReducer";
 import {VerifierState} from "../../types";
-import {CHAIN_OPTIONS as chainOptions} from "../../common/constants";
+import {CHAIN_OPTIONS as chainOptions, REPOSITORY_URL, SERVER_URL} from "../../common/constants";
 import {FileUpload, AddressInput} from "./form";
 import Dropdown from "../Dropdown";
 import LoadingOverlay from "../LoadingOverlay";
+import {useDispatchContext} from "../../state/State";
 
 const initialState: VerifierState = {
     loading: false,
     address: "",
+    chain: chainOptions[0],
     files: []
 }
 
 const Verifier: React.FC = () => {
     const [state, dispatch] = useReducer(verifierReducer, initialState);
+    const globalDispatch = useDispatchContext();
 
     const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         dispatch(
@@ -34,10 +37,53 @@ const Verifier: React.FC = () => {
         );
     }
 
-    const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-        //TODO
+    const handleOnSelect = (chain: any) => {
+        dispatch(
+            {type: "SET_CHAIN", payload: chain}
+        )
+    }
+
+    const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        console.log("SUBMIT");
+
+        globalDispatch({type: "REMOVE_NOTIFICATION"});
+
+        dispatch({type: "SET_LOADING", payload: true})
+
+        const formData = new FormData();
+        formData.append("address", state.address);
+        formData.append("chain", state.chain.id.toString());
+
+        if (state.files.length > 0) {
+            state.files.forEach(file => formData.append('files', file));
+        }
+
+        const response = await fetch(SERVER_URL, {
+            method: "post",
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            globalDispatch({type: "SHOW_NOTIFICATION", payload: {type: "error", content: data.error}});
+            dispatch({type: "SET_LOADING", payload: false});
+            return;
+        }
+
+        globalDispatch({
+            type: "SHOW_NOTIFICATION", payload: {
+                type: "success",
+                content: () => <p>Contract successfully verified! View the assets in the
+                    <a
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        href={`${REPOSITORY_URL}/${state.chain.id}/${state.address}`}>file explorer.</a>
+                </p>
+            }
+        })
+
+        dispatch({type: "SET_LOADING", payload: false})
     }
 
     return (
@@ -48,7 +94,7 @@ const Verifier: React.FC = () => {
             </div>
             <div className="form-container__middle">
                 <form className="form" onSubmit={onSubmit}>
-                    <Dropdown items={chainOptions} initialValue={chainOptions[0]}/>
+                    <Dropdown items={chainOptions} initialValue={chainOptions[0]} onSelect={handleOnSelect}/>
                     <AddressInput onChange={handleAddressChange}/>
                     {
                         state.files.length > 0 && <div className="form__file-upload-header">

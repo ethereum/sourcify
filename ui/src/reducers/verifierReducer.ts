@@ -7,6 +7,11 @@ export const verifierReducer = (state: VerifierState, action: VerifierActions) =
                 ...state,
                 address: action.payload
             };
+        case "SET_CHAIN":
+            return {
+                ...state,
+                chain: action.payload
+            }
         case "SET_FILES":
             return {
                 ...state,

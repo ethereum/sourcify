@@ -10,10 +10,11 @@ type Item = {
 
 type DropdownProps = {
     items: Item[],
-    initialValue: Item
+    initialValue: Item,
+    onSelect: (item: any) => void
 };
 
-const Dropdown: React.FC<DropdownProps> = ({items, initialValue}) => {
+const Dropdown: React.FC<DropdownProps> = ({items, initialValue, onSelect}) => {
     const [isOpen, setIsOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<Item>(initialValue);
 
@@ -23,6 +24,7 @@ const Dropdown: React.FC<DropdownProps> = ({items, initialValue}) => {
 
     const handleOnClick = (item: Item) => {
         setSelectedItem(item);
+        onSelect(item);
         setIsOpen(false);
     }
 
