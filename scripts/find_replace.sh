@@ -12,11 +12,17 @@ export TAG="$CIRCLE_BRANCH"
 
 if [ "$CIRCLE_BRANCH" == "staging" ]; then
     export TAG="latest"
+    export INFURA_ID=$INFURA_ID_STAGING
 fi
 
 if [ "$CIRCLE_BRANCH" == "master" ]; then
     export TAG="stable";
+    export INFURA_ID=$INFURA_ID_MASTER
 fi
+
+search="INFURA_ID=xxx"
+replace="INFURA_ID=$INFURA_ID"
+sed -i "s/${search}/${replace}/g" ../environments/.env.$TAG
 
 search="AWS_ACCESS_KEY_ID=xxx"
 replace="AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID"
@@ -32,10 +38,6 @@ sed -i "s/${search}/${replace}/g" ../environments/.env.$TAG
 
 search="NPM_TOKEN=xxx"
 replace="NPM_TOKEN=$NPM_TOKEN"
-sed -i "s/${search}/${replace}/g" ../environments/.env.$TAG
-
-search="INFURA_ID=xxx"
-replace="INFURA_ID=$INFURA_ID"
 sed -i "s/${search}/${replace}/g" ../environments/.env.$TAG
 
 search="ENS_SECRET=xxx"
