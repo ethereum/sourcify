@@ -6,7 +6,6 @@
 }
 
 .container {
-  //border: 2px solid;
   height: 100%;
   display: flex;
 
@@ -15,7 +14,7 @@
   }
 
   &__left {
-    flex: 1.2;
+    flex: 1.5;
     // TODO
     // add this to new container
     display: flex;
@@ -71,6 +70,5 @@
 
   &__right {
     flex: 1;
-    // border: 1px solid firebrick;
   }
 }

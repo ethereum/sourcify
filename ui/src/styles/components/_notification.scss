@@ -4,11 +4,16 @@
   left: 50%;
   transform: translate(-50%, -50%);
   color: #fff;
-
   padding: 1rem;
   width: 50%;
   max-width: 50%;
   transition: .5s;
+
+  @media only screen and (max-width: 768px) {
+    top: 10%;
+    width: 80%;
+    max-width: 80%;
+  }
 
   &__content {
     display: flex;
@@ -29,6 +34,12 @@
       font-weight: bold;
       color: inherit;
     }
+
+    p {
+      @media only screen and (max-width: 768px) {
+        word-break: break-word;
+      }
+    }
   }
 
   &--default {
@@ -39,9 +50,6 @@
   &--success {
     background: #6B9B46;
     border-left: 8px solid #4D7133;
-    //background: rgba(#6B9B46, 0.9);
-    //border-left: 8px solid #6B9B46;
-
   }
 
   &--error {

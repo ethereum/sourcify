@@ -3,7 +3,7 @@ import React from "react";
 import "./styles/app.scss";
 import MainLayout from "./components/layout/MainLayout";
 import Verifier from "./components/verifier/Verifier";
-import {GITTER_URL, IPFS_IPNS_GATEWAY_URL, REPOSITORY_URL} from "./common/constants";
+import {GITTER_URL, IPFS_IPNS_GATEWAY_URL, REPOSITORY_URL, SOLIDITY_ETHEREUM_URL} from "./common/constants";
 
 const App: React.FC = () => {
     return (
@@ -50,7 +50,8 @@ const App: React.FC = () => {
                             </p>
                             <p>
                                 Not sure what all of this is for? Learn why source verification
-                                matters <a href="">here</a>.
+                                matters <a href={SOLIDITY_ETHEREUM_URL} target="_blank"
+                                           rel="noopener noreferrer">here</a>.
                             </p>
                             <p>Problems or questions? Ask us anything on <a href={GITTER_URL} target="_blank"
                                                                             rel="noopener noreferrer">Gitter!</a></p>

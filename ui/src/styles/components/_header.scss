@@ -5,17 +5,14 @@
   align-items: center;
   //TODO
   padding: 48px 64px;
-  margin-bottom: 46px;
+  margin-bottom: 24px;
 
   @media only screen and (max-width: 768px) {
     padding: 16px 24px;
-
   }
 
   &__social-icons {
-    //TODO
     display: flex;
-    color: $black-500;
 
     a {
       display: block;
@@ -29,7 +26,7 @@
     svg {
       width: inherit;
       height: inherit;
-      color: $black-900;
+      color: $black-700;
     }
   }
 }

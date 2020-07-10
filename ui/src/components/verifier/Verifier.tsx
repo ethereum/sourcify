@@ -1,11 +1,12 @@
 import React, {useReducer} from "react";
 import {verifierReducer} from "../../reducers/verifierReducer";
 import {VerifierState} from "../../types";
-import {CHAIN_OPTIONS as chainOptions, REPOSITORY_URL, SERVER_URL} from "../../common/constants";
+import {CHAIN_OPTIONS as chainOptions, REPOSITORY_URL} from "../../common/constants";
 import {FileUpload, AddressInput} from "./form";
 import Dropdown from "../Dropdown";
 import LoadingOverlay from "../LoadingOverlay";
 import {useDispatchContext} from "../../state/State";
+import {verify} from "../../api/verifier";
 
 const initialState: VerifierState = {
     loading: false,
@@ -58,12 +59,7 @@ const Verifier: React.FC = () => {
             state.files.forEach(file => formData.append('files', file));
         }
 
-        const response = await fetch(SERVER_URL, {
-            method: "post",
-            body: formData
-        });
-
-        const data = await response.json();
+        const data = await verify(formData);
 
         if (data.error) {
             globalDispatch({type: "SHOW_NOTIFICATION", payload: {type: "error", content: data.error}});
@@ -74,11 +70,10 @@ const Verifier: React.FC = () => {
         globalDispatch({
             type: "SHOW_NOTIFICATION", payload: {
                 type: "success",
-                content: () => <p>Contract successfully verified! View the assets in the
-                    <a
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        href={`${REPOSITORY_URL}/${state.chain.id}/${state.address}`}>file explorer.</a>
+                content: () => <p>Contract successfully verified! View the assets in the <a
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    href={`${REPOSITORY_URL}/${state.chain.id}/${data.address}`}>file explorer.</a>
                 </p>
             }
         })
@@ -103,7 +98,9 @@ const Verifier: React.FC = () => {
                         </div>
                     }
                     <FileUpload handleFiles={handleFiles} files={state.files}/>
-                    <button type="submit" className="form__submit-btn">VERIFY</button>
+                    <button type="submit" className={`form__submit-btn ${!state.address ? `form__submit-btn--disabled` : ""}`}
+                            disabled={!state.address}>VERIFY
+                    </button>
                 </form>
             </div>
         </div>

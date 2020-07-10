@@ -4,7 +4,6 @@
   height: 100%;
   background: $black-500;
   display: flex;
-  color: white;
   align-items: center;
   justify-content: center;
   border-radius: .5rem;
@@ -15,6 +14,7 @@
   position: relative;
   width: 4rem;
   height: 4rem;
+  background: transparent;
 
   span {
     box-sizing: border-box;

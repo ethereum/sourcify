@@ -66,6 +66,12 @@
         border: none;
         color: #fff;
         border-radius: .5rem;
+        transition: background-color .5s;
+
+        &--disabled {
+          background: $black-600;
+          cursor: not-allowed;
+        }
       }
     }
   }

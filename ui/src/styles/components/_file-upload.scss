@@ -10,8 +10,10 @@
   overflow-x: hidden;
   cursor: pointer;
   padding: 1rem;
-  transition: .5s;
+  transition: background-color .5s;
   border-radius: .5rem;
+  min-height: 30vh;
+  max-height: 50vh;
 
   &:hover {
     background: rgba($accent-color, 0.1);
