@@ -16,4 +16,14 @@ sleep 300
 
 # Script which verifies repository write
 cd ..
-./scripts/monitor_ci.js
+for i in `seq 1 10`
+do
+    # Give monitor a chance to detect and save.
+    sleep 30
+    # Script which verifies repository write
+    result=$(./scripts/monitor_ci.js)
+    if [[ $result != *"Error"* ]]; then
+        echo $result
+        break
+    fi
+done

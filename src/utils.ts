@@ -9,6 +9,7 @@ import dirTree from 'directory-tree';
 import * as chainOptions from './chains.json';
 
 const solc: any = require('solc');
+export let repository = process.env.MOCK_REPOSITORY || './repository';
 
 declare interface StringMap {
   [key: string]: string;
@@ -244,7 +245,7 @@ export function sanitizeInputFiles(inputs: any, log: Logger): string[] {
  * @param repository
  */
 export function findByAddress(address: string, chain: string, repository: string): Match[] {
-  const addressPath = `${repository}/contract/${chain}/${address}/metadata.json`;
+  const addressPath = `${repository}/contracts/full_match/${chain}/${address}/metadata.json`;
   const normalizedPath = path.join(__dirname, '..', addressPath);
 
   try {
@@ -315,6 +316,42 @@ export function getChainByName(name: string): any {
   }
 
   throw new NotFound(`Chain ${name} not supported!`)
+}
+
+import { outputFileSync } from 'fs-extra';
+const saveFile = outputFileSync;
+
+/**
+ * Save file and update the repository tag
+ *
+ * @param path
+ * @param file
+ */
+export function save(path: string, file: any) {
+  saveFile(path, file);
+  updateRepositoryTag();
+}
+
+type Tag = {
+  timestamp: string,
+  repositoryVersion: string
+}
+
+/**
+ * Update repository tag
+ */
+export function updateRepositoryTag(repositoryPath?: string) {
+  if(repositoryPath !== undefined) {
+    repository = repositoryPath;
+  }
+  const filePath: string = path.join(repository, 'manifest.json')
+  const timestamp = new Date().getTime().toString();
+  const repositoryVersion = process.env.REPOSITORY_VERSION || '0.1';
+  const tag: Tag = {
+    timestamp: timestamp,
+    repositoryVersion: repositoryVersion
+  }
+  fs.writeFileSync(filePath, JSON.stringify(tag));
 }
 
 //------------------------------------------------------------------------------------------------------
