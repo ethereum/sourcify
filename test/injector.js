@@ -1,3 +1,5 @@
+process.env.MOCK_REPOSITORY='./mockRepository';
+
 const assert = require('assert');
 const ganache = require('ganache-cli');
 const exec = require('child_process').execSync;
@@ -206,6 +208,7 @@ describe('injector', function(){
       // Verify metadata was saved, indexed by address under partial_matches
       const expectedPath = path.join(
         mockRepo,
+        'contracts',
         'partial_matches',
         getChainId('localhost').toString(),
         simpleInstance.options.address,

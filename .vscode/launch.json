@@ -1,0 +1,76 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Server",
+      "program": "${workspaceFolder}/dist/server.js",
+      "envFile": "${workspaceFolder}/environments/.env",
+      "preLaunchTask": "tsc: build - tsconfig.json",
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Monitor",
+      "program": "${workspaceFolder}/scripts/run_monitor.js",
+      "envFile": "${workspaceFolder}/environments/.env",
+      "preLaunchTask": "tsc: build - tsconfig.json",
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+    },
+    {
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "name": "CLI",
+      "program": "${workspaceFolder}/dist/sourcify.js",
+      "request": "launch",
+      "restart": true,
+      "preLaunchTask": "tsc: build - tsconfig.json",
+      "type": "node",
+      "args": [
+        "-c", "1",
+        "-a", "0xfff0f5801a9e13426c306455A3BcC5EF3e9BC979",
+        "-f", "testcontracts/ERC20Standard.sol", "testcontracts/metadata.json",
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Mocha File",
+      "program": "${workspaceRoot}/node_modules/.bin/mocha",
+      "args": [
+          "-r",
+          "ts-node/register",
+          "--timeout",
+          "999999",
+          "--colors",
+          "${file}"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+  },
+  {
+    "type": "node",
+    "request": "launch",
+    "name": "Mocha Test",
+    "program": "${workspaceRoot}/node_modules/.bin/mocha",
+    "env": {
+      "TESTING": "true",
+      "LOCALCHAIN_URL": "http://localhost:8545"
+    },
+    "args": [
+        "-r",
+        "ts-node/register",
+        "${workspaceFolder}/test/server.js",
+        "--grep",
+        "when submitting only an address / chain pair",
+        "--no-timeout"
+    ],
+    "console": "integratedTerminal",
+    "internalConsoleOptions": "neverOpen"
+}]
+}
