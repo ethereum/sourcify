@@ -1,10 +1,9 @@
 .dropdown {
-  // TODO move this
   margin-bottom: 1rem;
   position: relative;
 
   &__header {
-    border: 1px solid rgba($black, 0.2);
+    border: 1px solid $black-300;
     height: 3.5rem;
     border-radius: .5rem;
     display: flex;
@@ -15,7 +14,7 @@
   }
 
   &__list {
-    border: 2px solid rgba($black, 0.2);
+    border: 2px solid $black-100;
     border-radius: .5rem;
     list-style: none;
     padding: 0;
@@ -23,7 +22,7 @@
     background: #fff;
     width: 100%;
     transform: translateY(.5rem);
-    box-shadow: 0 4px 4px 0 rgba($black, 0.1);
+    box-shadow: 0 4px 4px 0 $black-100;
   }
 }
 

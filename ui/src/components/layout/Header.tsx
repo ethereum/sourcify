@@ -6,7 +6,7 @@ const Header: React.FC = () => {
     return (
         <header className="header">
             <a href="/">
-                <img src="../../../public/logo.svg" alt="logo"/>
+                <img src="../../../logo.svg" alt="logo"/>
             </a>
             <div className="header__social-icons">
                 <a href={TWITTER_URL} target="_blank"

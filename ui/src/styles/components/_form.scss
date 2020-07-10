@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  box-shadow: 0 4px 4px 0 rgba($black, 0.25);
+  box-shadow: 0 4px 4px 0 $black-200;
   position: relative;
   border-radius: .5rem;
 
@@ -11,7 +11,7 @@
     padding: 1.5rem;
     text-align: center;
     width: 100%;
-    box-shadow: 0 4px 4px 0 rgba($black, 0.1);
+    box-shadow: 0 4px 4px 0 $black-100;
     border-top: 4px solid $accent-color;
     border-radius: .5rem .5rem 0 0;
 
@@ -51,7 +51,7 @@
         width: 100%;
         padding: 1rem 40px;
         font-size: 18px;
-        border: 1px solid rgba($black, 0.2);
+        border: 1px solid $black-300;
         height: 3.5rem;
         border-radius: .5rem;
         margin-bottom: 1rem;
@@ -67,9 +67,11 @@
         color: #fff;
         border-radius: .5rem;
         transition: background-color .5s;
+        font-weight: bold;
+        margin-top: auto;
 
         &--disabled {
-          background: $black-600;
+          background: rgba($accent-color, 0.6);
           cursor: not-allowed;
         }
       }
