@@ -3,8 +3,8 @@ import { ethers } from 'ethers';
 import request from  'request-promise-native';
 import { outputFileSync } from 'fs-extra';
 
-import { cborDecode, getChainByName, InputData } from './utils';
-import Injector from './injector';
+import { cborDecode, getChainByName, InputData } from '../utils';
+import Injector from '../injector';
 import { BlockTransactionObject } from 'web3-eth';
 import Logger from 'bunyan';
 import dotenv from 'dotenv';

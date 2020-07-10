@@ -1,0 +1,24 @@
+version: "3.7"
+
+x-project-base:
+  &project-base
+  env_file:
+    - .env
+  restart: always
+  networks:
+    - source-verify
+
+networks:
+  source-verify:
+  
+services:
+  rabbitmq:
+    <<: *project-base
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+    - 8080:15672
+    - 5672:5672
+    environment:
+    - RABBITMQ_DEFAULT_USER=user
+    - RABBITMQ_DEFAULT_PASS=password

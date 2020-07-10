@@ -8,7 +8,7 @@
       "type": "node",
       "request": "launch",
       "name": "Server",
-      "program": "${workspaceFolder}/dist/server.js",
+      "program": "${workspaceFolder}/dist/server/server.js",
       "envFile": "${workspaceFolder}/environments/.env",
       "preLaunchTask": "tsc: build - tsconfig.json",
       "outFiles": ["${workspaceFolder}/dist/**/*.js"]

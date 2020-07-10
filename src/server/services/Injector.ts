@@ -1,7 +1,8 @@
 import Web3 from 'web3';
 import path from 'path';
 import Logger from 'bunyan';
-import * as chainOptions from './chains.json';
+import { Match, RecompilationResult, InputData, StringMap } from '../../common/types';
+import { FileService } from '../services/FileService';
 // tslint:disable no-unused-variable
 import fs from 'fs'
 
@@ -14,21 +15,10 @@ import {
   cborDecode,
   getBytecode,
   recompile,
-  RecompilationResult,
   getBytecodeWithoutMetadata as trimMetadata,
-  InputData,
-  Match,
-  getChainByName,
+  NotFound,
   save
-} from './utils';
-
-import {
-  NotFound
-} from './errorHandler';
-
-declare interface StringMap {
-  [key: string]: string;
-}
+} from '../../utils/Utils';
 
 export interface InjectorConfig {
   infuraPID? : string,
@@ -44,6 +34,7 @@ export default class Injector {
   private infuraPID : string;
   private localChainUrl: string | undefined;
   private offline: boolean;
+  public fileService: FileService;
 
   /**
    * Constructor
@@ -62,6 +53,7 @@ export default class Injector {
         level: config.silent ? 'fatal' : 30
       }]
     });
+    this.fileService = new FileService(this.log);
 
     if (!this.offline){
       this.initChains();
@@ -74,7 +66,7 @@ export default class Injector {
    */
   private initChains(){
     for (const chain of ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli']){
-      const chainOption = getChainByName(chain);
+      const chainOption = this.fileService.getChainByName(chain);
       this.chains[chainOption.chainId] = {};
       if (this.infuraPID === "changeinfuraid") {
         const web3 = chainOption.fullnode.dappnode;
@@ -87,7 +79,7 @@ export default class Injector {
 
     // For unit testing with testrpc...
     if (this.localChainUrl){
-      const chainOption = getChainByName('localhost');
+      const chainOption = this.fileService.getChainByName('localhost');
       this.chains[chainOption.chainId] = {
         web3: new Web3(chainOption.web3[0])
       };
@@ -174,16 +166,6 @@ export default class Injector {
     }
     return sources
   }
-
-  private getIdFromChainName(chain: string): number {
-    for(const chainOption in chainOptions) {
-      if(chainOptions[chainOption].network === chain){
-        return chainOptions[chainOption].chainId;
-      }
-    }
-    throw new NotFound("Chain not found!"); //TODO: should we throw an error here or just let it pass?
-  }
-
 
   /**
    * Writes verified sources to repository by address and by ipfs | swarm hash
