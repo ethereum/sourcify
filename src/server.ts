@@ -4,6 +4,7 @@ import fileUpload from 'express-fileupload';
 import cors from 'cors';
 import Injector from './injector';
 import Logger from 'bunyan';
+import path from 'path';
 import {
   findInputFiles,
   InputData,
@@ -19,6 +20,9 @@ import {
 } from "./utils";
 
 const app = express();
+
+import dotenv from 'dotenv';
+dotenv.config({ path: path.resolve(__dirname, "..", "environments/.env") });
 
 let localChainUrl;
 
@@ -36,7 +40,8 @@ const log = Logger.createLogger({
 
 const injector = new Injector({
   localChainUrl: localChainUrl,
-  log: log
+  log: log,
+  infuraPID: process.env.INFURA_ID || "changeinfuraid"
 });
 
 const repository = process.env.MOCK_REPOSITORY || './repository';
