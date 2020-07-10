@@ -4,6 +4,7 @@ import fileUpload from 'express-fileupload';
 import cors from 'cors';
 import Injector from './injector';
 import Logger from 'bunyan';
+import path from 'path';
 import {
   findInputFiles,
   InputData,
@@ -19,6 +20,10 @@ import {
 } from "./utils";
 
 const app = express();
+
+import dotenv from 'dotenv';
+console.log(path.resolve(__dirname, "..", "environments/.env"))
+dotenv.config({ path: path.resolve(__dirname, "..", "environments/.env") });
 
 let localChainUrl;
 
