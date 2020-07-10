@@ -1,5 +1,5 @@
 .notification {
-  position: absolute;
+  position: fixed;
   top: 5%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -10,7 +10,7 @@
   transition: .5s;
 
   @media only screen and (max-width: 768px) {
-    top: 10%;
+    top: 7%;
     width: 80%;
     max-width: 80%;
   }
