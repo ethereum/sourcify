@@ -75,7 +75,7 @@ describe('monitor', function(){
       await waitSecs(10);
 
       // Verify metadata stored
-      const addressMetadataPath = path.join(mockRepo, 'contract', chainId, address, 'metadata.json');
+      const addressMetadataPath = path.join(mockRepo, 'contracts', 'full_match', chainId, address, 'metadata.json');
       const ipfsMetadataPath = path.join(mockRepo, 'ipfs', metadataIpfs[0].path);
 
       const addressMetadata = fs.readFileSync(addressMetadataPath, 'utf-8');
@@ -93,7 +93,8 @@ describe('monitor', function(){
 
       const importPath = path.join(
         mockRepo,
-        'contract',
+        'contracts',
+        'full_match',
         chainId,
         address,
         'sources',
@@ -102,7 +103,8 @@ describe('monitor', function(){
 
       const simpleWithImportPath = path.join(
         mockRepo,
-        'contract',
+        'contracts',
+        'full_match',
         chainId,
         address,
         'sources',

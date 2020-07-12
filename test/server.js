@@ -57,7 +57,8 @@ describe("server", function() {
   it("when submitting a valid request (stringified metadata)", function(done){
     const expectedPath = path.join(
       process.env.MOCK_REPOSITORY,
-      'contract',
+      'contracts',
+      'full_match',
       chainId.toString(),
       simpleInstance.options.address,
       'metadata.json'
@@ -90,7 +91,8 @@ describe("server", function() {
   it("when submitting a valid request (json formatted metadata)", function(done){
     const expectedPath = path.join(
       process.env.MOCK_REPOSITORY,
-      'contract',
+      'contracts',
+      'full_match',
       chainId.toString(),
       simpleInstance.options.address,
       'metadata.json'
@@ -127,7 +129,6 @@ describe("server", function() {
       .end(function (err, res) {
         assert.equal(err, null);
         assert.equal(res.status, 404);
-
         const result = JSON.parse(res.text);
         assert(result.error.includes("Could not match on-chain deployed bytecode"));
         done();

@@ -1,5 +1,4 @@
 import Web3 from 'web3';
-import { outputFileSync } from 'fs-extra';
 import path from 'path';
 import Logger from 'bunyan';
 import * as chainOptions from './chains.json';
@@ -11,8 +10,6 @@ import fs from 'fs'
 
 const multihashes : any = require('multihashes');
 
-const save = outputFileSync;
-
 import {
   cborDecode,
   getBytecode,
@@ -22,7 +19,8 @@ import {
   InputData,
   NotFound,
   Match,
-  getChainByName
+  getChainByName,
+  save
 } from './utils';
 
 declare interface StringMap {
@@ -221,7 +219,14 @@ export default class Injector {
     }
 
     const hashPath = path.join(repository, metadataPath);
-    const addressPath = path.join(repository, 'contract', chain, address, '/metadata.json');
+    const addressPath = path.join(
+        repository,
+        'contracts',
+        'full_match',
+        chain,
+        address,
+        '/metadata.json'
+    );
 
     save(hashPath, compilationResult.metadata);
     save(addressPath, compilationResult.metadata);
@@ -234,12 +239,13 @@ export default class Injector {
 
       const outputPath = path.join(
         repository,
-        'contract',
+        'contracts',
+        'full_match',
         chain,
         address,
         'sources',
         sanitizedPath
-      )
+      );
 
       save(outputPath, sources[sourcePath]);
     }
@@ -265,6 +271,7 @@ export default class Injector {
 
     const addressPath = path.join(
       repository,
+      'contracts',
       'partial_matches',
       chain,
       address,
@@ -281,12 +288,13 @@ export default class Injector {
 
       const outputPath = path.join(
         repository,
+        'contracts',
         'partial_matches',
         chain,
         address,
         'sources',
         sanitizedPath
-      )
+      );
 
       save(outputPath, sources[sourcePath]);
     }
@@ -392,7 +400,7 @@ export default class Injector {
    * @param  {string}            chain      chain name (ex: 'ropsten')
    * @param  {string}            address    contract address
    * @param  {string[]}          files
-   * @return {Promise<object>}              address & status of successfully verified contracts
+   * @return {Promise<object>}              address & status of successfully verified contract
    */
   public async inject(
     inputData: InputData
