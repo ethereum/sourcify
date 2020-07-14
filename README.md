@@ -1,19 +1,42 @@
-# source-verify
+# Sourcify 🧑‍💻📝🔍 
 
-Source-Verify is a service that verifies Ethereum bytecode was compiled from a certain
+Sourcify wants to help make contract interactions on the blockchain safer and more transparent for users.
+
+To achieve this goal, Sourcify supports several efforts to foster adoption of open-source source file verification, metadata files and NatSpec comments.
+
+At its core, Sourcify currently maintains
+
++ an [interface](https://github.com/sourcifyeth/sourcify/tree/master/ui) that helps developers to verify metadata and contract source code. It is accessible via [sourcify.dev](https://sourcify.dev/).
++ a decentralized contract repository of all verified contracts, powered by IPFS, accessible via [sourcify.dev](https://sourcify.dev/) and [verificat.eth](https://gateway.ipfs.io/ipfs/QmcgzQhyAXsLJ1nhZ4pPVVMqvoivpXynwdhHMx4J1xavqv/)(soon to be transfered to sourcify.eth).
++ a monitoring & verifier service that checks for new contracts on Ethereum blockchains (mainnet and testnets) and tries to verify them automatically. 
++ the [Sourcify Remix plugin](https://github.com/sourcifyeth/remix-sourcify), including a verifier and contract fetcher functionality.
+
+Sourcify aims to provide a base layer allowing other tools build on top of it. Its main purpose is to keep metadata and source files available via IPFS and Swarm (preventing that the links in the bytecode turn into dead links).
+
+Besides the technical infrastructure, Sourcify is also a collective initiative to bring transparency and awareness to the space. We want to educate and build bridges between development tools, wallets, interfaces and other components which all play an important role in demystifying interaction with smart contracts for the end user and hence making blockchain interactions safer.
+
+[This repository](https://github.com/ethereum/sourcify) only contains the main components, i.e. the Sourcify monitoring & verifier service and the verification UI.
+The [Sourcify Github organization](https://github.com/sourcifyeth) contains all other auxiliary services and components.
+
+**Have questions or improvement ideas?**
+
+💬  Chat with us on [Gitter](https://gitter.im/ethereum/source-verify).
+
+🌐  Follow us and help us spread the word on [Twitter](https://twitter.com/SourcifyEth).
+
+## The Basic Concept
+
+Sourcify verifies that Ethereum bytecode was compiled from a certain
 Solidity source code and maintains a public repository of contract metadata.
 
 The repository indexes metadata with IPFS or Swarm hashes which the solc compiler
-embeds in contract bytecode. By fetching code on chain and extracting this hash,
-you can obtain related metadata from Source-Verify's records.
+embeds in contract bytecode. By fetching code on-chain and extracting this hash,
+it is possible to obtain related metadata from Sourcify's records.
 
-More information can be found in Solidity [metadata documentation][30]
+Read more about Sourcify in the [FAQ](https://solidity.ethereum.org/2020/06/25/sourcify-faq/).
+Information on metadata can be found in [Solidity documentation][30].
 
 [30]: https://solidity.readthedocs.io/en/latest/metadata.html#contract-metadata
-
-If you have any question please ask us on [gitter][31].
-
-[31]: https://gitter.im/ethereum/source-verify
 
 ## Install
 ```
@@ -21,10 +44,11 @@ $ npm install
 $ git submodule update --init
 ```
 
-## Service
+## The Technical Details
 
-The service has three components:
-+ a "monitor" which watches public Ethereum networks for contract deployments
+As mentioned above, Sourcify has several components:
+
++ a "monitoring & verifier service" which watches public Ethereum networks for contract deployments
 and tries to associate them with sources and metadata published to Swarm or IPFS. It currently
 watches:
   + mainnet
@@ -33,7 +57,7 @@ watches:
   + kovan
   + goerli
 
-+ a website which allows you to submit sources and metadata for a specific contract address
++ a website which allows you to submit sources and metadata for a specific contract address manually
   + https://verification.komputing.org/ (Stable)
   + https://verificationstaging.komputing.org/ (Unstable)
 
@@ -41,7 +65,7 @@ watches:
   + https://contractrepo.komputing.org/ (Stable)
   + https://contractrepostaging.komputing.org/ (Unstable)
 
-**Getting metadata**
+### Getting Metadata
 
 Using solc directly on the commandline:
 
@@ -59,21 +83,20 @@ or with JSON/IO
 }
 ```
 
-**Using the monitor**
+### Using the Monitoring Service
 
-If your Solidity code compiles with solc >= 0.6.0, you just need to upload your
-contract metadata and sources to IPFS as part of your deployment process. The monitor service will
+If your Solidity code compiles with solc >= 0.6.0, all you need to do is to upload your
+contract metadata and sources to IPFS as part of your deployment process. The monitoring service will
 automatically add your files to the metadata repository when it sees your contract created on the
 network.
 
 A simple example for Truffle projects can be found at [cgewecke/metacoin-source-verify][40]
 which contains [a script][41] to publish to IPFS directly from a Truffle compilation artifact.
 
-
 [40]: https://github.com/cgewecke/metacoin-source-verify
 [41]: https://github.com/cgewecke/metacoin-source-verify/blob/master/scripts/ipfs.js
 
-## Security Precautions
+### Security Precautions
 
 Please note that source code verification is only reliable if it is performed
 on the **creation** bytecode, i.e. the bytecode payload used when the contract
@@ -89,17 +112,17 @@ visible in the bytecode. Variables can be renamed or unused code can be
 introduced. Since the bytecode contains a hash of the source code, such
 modifications have to be prepared at deploy time, but it is still a possibility.
 
-**Using the repository**
+### Using the Repository
 
-There is a repository which contains all the files that monitor and server have found
-on one of the networks they are scraping.
+There is a repository which contains all the files that the monitoring service has found
+on the networks that are being watched.
 
-Repository is located on this [link](https://contractrepo.komputing.org/).
+The repository is accessible via this [link](https://contractrepo.komputing.org/).
 
-When you go to the link, UI looks like this:
+The repository UI currently looks like this:
 <img src="./public/ui_start.png" width="80%"/>
 
-There you have options to search, donwload or open folders.
+It offers the option to search, donwload or open folders.
 
 For example to download:
 
@@ -110,14 +133,13 @@ Or if you want to search something:
 
 <img src="./public/search.png" width="80%"/>
 
-Metadata inside is visible as raw, and you can download it like that
+The metadata inside is visible as raw, and can be downloaded like that:
 
 <img src="./public/metadata.png" width="80%"/>
 
-or if you want to take a look of the contract in browser you can open it like this:
+Alternatively, if you want to take a look at the contract in the browser, you can open it like this:
 
 <img src="./public/sol.png" width="80%"/>
-
 
 ## Future Plans
 
