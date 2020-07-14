@@ -7,7 +7,7 @@ To achieve this goal, Sourcify supports several efforts to foster adoption of op
 At its core, Sourcify currently maintains
 
 + an [interface](https://github.com/sourcifyeth/sourcify/tree/master/ui) that helps developers to verify metadata and contract source code. It is accessible via [sourcify.dev](https://sourcify.dev/).
-+ a decentralized contract repository of all verified contracts, powered by IPFS, accessible via [sourcify.dev](https://sourcify.dev/) and [verificat.eth](https://gateway.ipfs.io/ipfs/QmcgzQhyAXsLJ1nhZ4pPVVMqvoivpXynwdhHMx4J1xavqv/)(soon to be transfered to sourcify.eth).
++ a decentralized contract repository of all verified contracts, powered by IPFS, accessible via [sourcify.dev](https://sourcify.dev/) and [verificat.eth](verificat.eth.link)(soon to be transfered to sourcify.eth).
 + a monitoring & verifier service that checks for new contracts on Ethereum blockchains (mainnet and testnets) and tries to verify them automatically. 
 + the [Sourcify Remix plugin](https://github.com/sourcifyeth/remix-sourcify), including a verifier and contract fetcher functionality.
 
