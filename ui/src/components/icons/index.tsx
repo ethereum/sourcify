@@ -68,3 +68,17 @@ export const ChevronUpIcon = () => (
         <path d="M18 15l-6-6-6 6"/>
     </svg>
 )
+
+export const GitterIcon = () => (
+    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+         strokeLinejoin="round" viewBox="0 0 32 32">
+        <path d="M24 6h2v13h-2zM6 2h2v17H6zM18 6h2v24h-2zM12 6h2v24h-2z"/>
+    </svg>
+)
+
+export const GitterIconOutlined = () => (
+    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+         strokeLinejoin="round" viewBox="0 0 50 50">
+        <path d="M10 3h4v27h-4zm9 7h4v37h-4zm9 0h4v37h-4zm9 0h4v20h-4z"/>
+    </svg>
+)

@@ -1,6 +1,6 @@
 import React from "react";
-import {GithubIcon, TwitterIcon} from "../icons";
-import {GITHUB_URL, TWITTER_URL} from "../../common/constants";
+import {GithubIcon, GitterIconOutlined, TwitterIcon} from "../icons";
+import {GITHUB_URL, GITTER_URL, TWITTER_URL} from "../../common/constants";
 
 const Header: React.FC = () => {
     return (
@@ -16,6 +16,10 @@ const Header: React.FC = () => {
                 <a href={GITHUB_URL} target="_blank"
                    rel="noopener noreferrer">
                     <GithubIcon/>
+                </a>
+                <a href={GITTER_URL} target="_blank"
+                   rel="noopener noreferrer">
+                    <GitterIconOutlined/>
                 </a>
             </div>
         </header>

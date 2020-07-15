@@ -17,7 +17,7 @@
       display: block;
       height: 2rem;
 
-      &:first-child {
+      &:not(:last-child) {
         margin-right: 1rem;
       }
     }
