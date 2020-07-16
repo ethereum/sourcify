@@ -1,7 +1,7 @@
 import React, {useReducer} from "react";
 import {verifierReducer} from "../../reducers/verifierReducer";
 import {VerifierState} from "../../types";
-import {CHAIN_OPTIONS as chainOptions, REPOSITORY_URL} from "../../common/constants";
+import {CHAIN_OPTIONS as chainOptions, REPOSITORY_URL_FULL_MATCH} from "../../common/constants";
 import {FileUpload, AddressInput} from "./form";
 import Dropdown from "../Dropdown";
 import LoadingOverlay from "../LoadingOverlay";
@@ -73,7 +73,7 @@ const Verifier: React.FC = () => {
                 content: () => <p>Contract successfully verified! View the assets in the <a
                     target="_blank"
                     rel="noopener noreferrer"
-                    href={`${REPOSITORY_URL}/${state.chain.id}/${data.address}`}>file explorer.</a>
+                    href={`${REPOSITORY_URL_FULL_MATCH}/${state.chain.id}/${data.address}`}>file explorer.</a>
                 </p>
             }
         })
