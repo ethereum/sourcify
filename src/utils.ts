@@ -333,7 +333,7 @@ export function save(path: string, file: any) {
 }
 
 type Tag = {
-  timestamp: string,
+  timestamp: any,
   repositoryVersion: string
 }
 
@@ -345,7 +345,7 @@ export function updateRepositoryTag(repositoryPath?: string) {
     repository = repositoryPath;
   }
   const filePath: string = path.join(repository, 'manifest.json')
-  const timestamp = new Date().getTime().toString();
+  const timestamp = new Date().getTime();
   const repositoryVersion = process.env.REPOSITORY_VERSION || '0.1';
   const tag: Tag = {
     timestamp: timestamp,
