@@ -1,7 +1,11 @@
 import React, {useReducer} from "react";
 import {verifierReducer} from "../../reducers/verifierReducer";
 import {VerifierState} from "../../types";
-import {CHAIN_OPTIONS as chainOptions, REPOSITORY_URL_FULL_MATCH} from "../../common/constants";
+import {
+    CHAIN_OPTIONS as chainOptions,
+    REPOSITORY_URL_FULL_MATCH,
+    REPOSITORY_URL_PARTIAL_MATCH
+} from "../../common/constants";
 import {FileUpload, AddressInput} from "./form";
 import Dropdown from "../Dropdown";
 import LoadingOverlay from "../LoadingOverlay";
@@ -67,6 +71,21 @@ const Verifier: React.FC = () => {
             return;
         }
 
+        if (data.status === 'partial') {
+            globalDispatch({
+                type: "SHOW_NOTIFICATION", payload: {
+                    type: "success",
+                    content: () => <p>Contract partially verified! View the assets in the <a
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        href={`${REPOSITORY_URL_PARTIAL_MATCH}/${state.chain.id}/${data.address}`}>file explorer.</a>
+                    </p>
+                }
+            });
+            dispatch({type: "SET_LOADING", payload: false});
+            return;
+        }
+
         globalDispatch({
             type: "SHOW_NOTIFICATION", payload: {
                 type: "success",
@@ -76,9 +95,9 @@ const Verifier: React.FC = () => {
                     href={`${REPOSITORY_URL_FULL_MATCH}/${state.chain.id}/${data.address}`}>file explorer.</a>
                 </p>
             }
-        })
+        });
 
-        dispatch({type: "SET_LOADING", payload: false})
+        dispatch({type: "SET_LOADING", payload: false});
     }
 
     return (
