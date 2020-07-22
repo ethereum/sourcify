@@ -1,6 +1,6 @@
 {
   "name": "ethereum-sourcify-cli",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Solidity metadata-based re-compilation and source verification tool",
   "bin": {
     "sourcify": "./dist/sourcify.js"
