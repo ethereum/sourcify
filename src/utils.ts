@@ -1,15 +1,30 @@
 import cbor from 'cbor';
 import Web3 from 'web3';
 import Logger from 'bunyan';
-import {NextFunction, Request, Response} from "express";
 import util from 'util';
 import fs from 'fs';
 import path from 'path';
 import dirTree from 'directory-tree';
 import * as chainOptions from './chains.json';
+import Injector from './injector';
+import {
+  BadRequest,
+  NotFound,
+} from './errorHandler';
 
 const solc: any = require('solc');
+export let repository = process.env.MOCK_REPOSITORY || './repository';
 
+export let localChainUrl: string = "";
+
+export const log = Logger.createLogger({
+  name: "Server",
+  streams: [{
+    stream: process.stdout,
+    level: 30
+  }]
+});
+ 
 declare interface StringMap {
   [key: string]: string;
 }
@@ -174,42 +189,37 @@ export type InputData = {
   repository: string
   chain: string,
   addresses: string[],
-  files: string[],
+  files?: any[],
   bytecode?: string
 }
 
-export function findInputFiles(req: Request, log: Logger): any {
+export function findInputFiles(files: any): any {
   const inputs: any = [];
 
-  if (req.files && req.files.files) {
+  if (files && files.files) {
 
     // Case: <UploadedFile[]>
-    if (Array.isArray(req.files.files)) {
-      req.files.files.forEach(file => {
+    if (Array.isArray(files.files)) {
+      files.files.forEach((file: { data: any; }) => {
         inputs.push(file.data)
       })
       return inputs;
 
       // Case: <UploadedFile>
-    } else if (req.files.files["data"]) {
-      inputs.push(req.files.files["data"]);
+    } else if (files.files["data"]) {
+      inputs.push(files.files["data"]);
       return inputs;
     }
 
     // Case: default
-    const msg = `Invalid file(s) detected: ${util.inspect(req.files.files)}`;
+    const msg = `Invalid file(s) detected: ${util.inspect(files.files)}`;
     log.info({loc: '[POST:INVALID_FILE]'}, msg);
     throw new BadRequest(msg);
   }
 
-  // If we reach this point, an address has been submitted and searched for
-  // but there are no files associated with the request.
-  const msg = 'Address for specified chain not found in repository';
-  log.info({loc: '[POST:ADDRESS_NOT_FOUND]', err: msg})
-  throw new NotFound(msg);
 }
 
-export function sanitizeInputFiles(inputs: any, log: Logger): string[] {
+export function sanitizeInputFiles(inputs: any): string[] {
   const files = [];
   if (!inputs.length) {
     const msg = 'Unable to extract any files. Your request may be misformatted ' +
@@ -244,8 +254,8 @@ export function sanitizeInputFiles(inputs: any, log: Logger): string[] {
  * @param repository
  */
 export function findByAddress(address: string, chain: string, repository: string): Match[] {
-  const addressPath = `${repository}/contract/${chain}/${address}/metadata.json`;
-  const normalizedPath = path.join(__dirname, '..', addressPath);
+  const addressPath = `${repository}/contracts/full_match/${chain}/${address}/metadata.json`;
+  const normalizedPath = path.join('./', addressPath);
 
   try {
     fs.readFileSync(normalizedPath);
@@ -317,49 +327,69 @@ export function getChainByName(name: string): any {
   throw new NotFound(`Chain ${name} not supported!`)
 }
 
+import { outputFileSync } from 'fs-extra';
+const saveFile = outputFileSync;
+
+/**
+ * Save file and update the repository tag
+ *
+ * @param path
+ * @param file
+ */
+export function save(path: string, file: any) {
+  saveFile(path, file);
+  updateRepositoryTag(path.split('/')[0]);
+}
+
+type Tag = {
+  timestamp: any,
+  repositoryVersion: string
+}
+
+/**
+ * Update repository tag
+ */
+export function updateRepositoryTag(repositoryPath?: string) {
+  if(repositoryPath !== undefined) {
+    repository = repositoryPath;
+  }
+  const filePath: string = path.join(repository, 'manifest.json')
+  const timestamp = new Date().getTime();
+  const repositoryVersion = process.env.REPOSITORY_VERSION || '0.1';
+  const tag: Tag = {
+    timestamp: timestamp,
+    repositoryVersion: repositoryVersion
+  }
+  fs.writeFileSync(filePath, JSON.stringify(tag));
+}
+
 //------------------------------------------------------------------------------------------------------
 
-// TODO: implement response middelware that will automatically handle successful and non successful (error) responses
-// Errors
-export class HttpException extends Error {
-  status?: number;
-  message: string;
-  name: string;
-
-  constructor(message: string, name: string, status?: number) {
-    super(message);
-    this.message = message || "Something went wrong";
-    this.name = name || "HttpException";
-    this.status = status || 500;
+export function verify(inputData: InputData, injector: Injector): any{
+  console.log(process.cwd());
+  // Try to find by address, return on success.
+  try {
+    return findByAddress(inputData.addresses[0], inputData.chain, inputData.repository);
+  } catch(err) {
+    const msg = "Could not find file in repository, proceeding to recompilation"
+    log.info({loc:'[POST:VERIFICATION_BY_ADDRESS_FAILED]'}, msg);
   }
-}
 
-export class BadRequest extends HttpException {
-  constructor(message: string) {
-    super(message, "BadRequest", 401);
+  if(inputData.files.length === 0){
+    // If we reach this point, an address has been submitted and searched for
+    // but there are no files associated with the request.
+    const msg = 'Address for specified chain not found in repository';
+    log.info({loc: '[POST:ADDRESS_NOT_FOUND]', err: msg})
+    throw new NotFound(msg);
   }
+
+  // Try to organize files for submission, exit on error.
+  inputData.files = sanitizeInputFiles(inputData.files);
+  
+  // Injection
+  const promises: Promise<Match>[] = [];
+  promises.push(injector.inject(inputData));
+
+  return promises;
 }
 
-export class NotFound extends HttpException {
-  constructor(message: string) {
-    super(message, "NotFound", 404);
-  }
-}
-
-// All Error and HttpException properties
-/* tslint:disable:no-unused-variable */
-export function errorMiddleware(
-  error: Error & HttpException,
-  request: Request,
-  response: Response,
-  next: NextFunction
-) : void {
-    const status = error.status || 500;
-    const message = error.message || "Something went wrong";
-
-    response
-      .status(status)
-      .send({
-        error: message
-      });
-}

@@ -1,5 +1,4 @@
 .idea
-.vscode
 .DS_Store
 db/
 node_modules/

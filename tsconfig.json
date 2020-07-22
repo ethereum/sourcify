@@ -6,7 +6,8 @@
     "esModuleInterop": true,
     "strict": true,
     "outDir": "dist",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "strictNullChecks": false
   },
-  "include": ["./src", "src/run_monitor.js", "src/localchain.js"]
+  "include": ["./src", "src/run_monitor.js", "src/localchain.js", "src/cli"]
 }

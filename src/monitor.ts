@@ -204,6 +204,7 @@ export default class Monitor {
 
     // getTime
     for (const key in queue) {
+      // tslint:disable-next-line: no-useless-cast
       if ((queue[key].timestamp as number + (maxAgeInSecs * 1000)) < new Date().getTime()) {
         toDelete[key] = true;
       }

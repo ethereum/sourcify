@@ -1,0 +1,82 @@
+{
+    "compiler": {
+        "version": "0.6.6+commit.6c089d02"
+    },
+    "language": "Solidity",
+    "output": {
+        "abi": [
+            {
+                "inputs": [],
+                "name": "retreive",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "num",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "store",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ],
+        "devdoc": {
+            "details": "Store & retreive value in a variable",
+            "methods": {
+                "retreive()": {
+                    "details": "Return value ",
+                    "returns": {
+                        "_0": "value of 'number'"
+                    }
+                },
+                "store(uint256)": {
+                    "details": "Store value in variable",
+                    "params": {
+                        "num": "value to store"
+                    }
+                }
+            },
+            "title": "Storage"
+        },
+        "userdoc": {
+            "methods": {}
+        }
+    },
+    "settings": {
+        "compilationTarget": {
+            "browser/1_Storage.sol": "Storage"
+        },
+        "evmVersion": "istanbul",
+        "libraries": {},
+        "metadata": {
+            "bytecodeHash": "ipfs"
+        },
+        "optimizer": {
+            "enabled": false,
+            "runs": 200
+        },
+        "remappings": []
+    },
+    "sources": {
+        "browser/1_Storage.sol": {
+            "keccak256": "0x8b702bba7a2e3314acdcade320613d44fd6eb3ccb9345535eb75bf103f8742c1",
+            "urls": [
+                "bzz-raw://d39aebb9b095eb8fae6ebeb90790d630a194c1dbd5ef0032ce53b28855336912",
+                "dweb:/ipfs/QmTXjBzeDLQfJU8hryg7E1YZ4uMpcqrJryaLP6QqbX2Vsq"
+            ]
+        }
+    },
+    "version": 1
+}
