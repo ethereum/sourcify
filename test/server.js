@@ -1,7 +1,7 @@
 process.env.TESTING = true;
-process.env.SERVER_PORT=2000;
-process.env.LOCALCHAIN_URL="http://localhost:8545";
-process.env.MOCK_REPOSITORY='./mockRepository';
+process.env.SERVER_PORT = 2000;
+process.env.LOCALCHAIN_URL = "http://localhost:8545";
+process.env.MOCK_REPOSITORY = './mockRepository';
 
 const assert = require('assert');
 const chai = require('chai');
@@ -28,7 +28,7 @@ const simpleWithImportMetadataPath = './test/sources/all/simpleWithImport.meta.j
 
 chai.use(chaiHttp);
 
-describe("server", function() {
+describe("server", function () {
   this.timeout(15000);
 
   let server;
@@ -37,24 +37,24 @@ describe("server", function() {
   let serverAddress = 'http://localhost:2000';
   let chainId = getChainId('localhost');
 
-  before(async function(){
-    server = ganache.server({chainId: chainId});
+  before(async function () {
+    server = ganache.server({ chainId: chainId });
     await pify(server.listen)(8545);
     web3 = new Web3(process.env.LOCALCHAIN_URL);
     simpleInstance = await deployFromArtifact(web3, Simple);
   });
 
   // Clean up repository
-  afterEach(function(){
-    try { exec(`rm -rf ${process.env.MOCK_REPOSITORY}`) } catch(err) { /*ignore*/ }
+  afterEach(function () {
+    try { exec(`rm -rf ${process.env.MOCK_REPOSITORY}`) } catch (err) { /*ignore*/ }
   })
 
   // Clean up server
-  after(async function(){
+  after(async function () {
     await pify(server.close)();
   });
 
-  it("when submitting a valid request (stringified metadata)", function(done){
+  it("when submitting a valid request (stringified metadata)", function (done) {
     const expectedPath = path.join(
       process.env.MOCK_REPOSITORY,
       'contracts',
@@ -88,7 +88,7 @@ describe("server", function() {
       });
   });
 
-  it("when submitting a valid request (json formatted metadata)", function(done){
+  it("when submitting a valid request (json formatted metadata)", function (done) {
     const expectedPath = path.join(
       process.env.MOCK_REPOSITORY,
       'contracts',
@@ -118,7 +118,7 @@ describe("server", function() {
       });
   });
 
-  it("when submitting and bytecode does not match (error)", function(done){
+  it("when submitting and bytecode does not match (error)", function (done) {
     chai.request(serverAddress)
       .post('/')
       .attach("files", read(simpleWithImportMetadataPath), "simpleWithImport.meta.json")
@@ -135,7 +135,7 @@ describe("server", function() {
       });
   });
 
-  it("when submitting a single metadata file (error)", function(done){
+  it("when submitting a single metadata file (error)", function (done) {
     chai.request(serverAddress)
       .post('/')
       .attach("files", read(simpleMetadataPath), "simple.meta.json")
@@ -150,7 +150,7 @@ describe("server", function() {
       });
   });
 
-  it("when submitting a single source file (error)", function(done){
+  it("when submitting a single source file (error)", function (done) {
     chai.request(serverAddress)
       .post('/')
       .attach("files", read(simpleSourcePath), "Simple.sol")
@@ -164,7 +164,7 @@ describe("server", function() {
       });
   });
 
-  it("when submitting without an address (error)", function(done){
+  it("when submitting without an address (error)", function (done) {
     chai.request(serverAddress)
       .post('/')
       .attach("files", read(simpleMetadataPath), "simple.meta.json")
@@ -178,7 +178,7 @@ describe("server", function() {
       });
   });
 
-  it("when submitting without a chain name (error)", function(done){
+  it("when submitting without a chain name (error)", function (done) {
     chai.request(serverAddress)
       .post('/')
       .attach("files", read(simpleMetadataPath), "simple.meta.json")
@@ -192,7 +192,7 @@ describe("server", function() {
       });
   });
 
-  it("get /health", function(done){
+  it("get /health", function (done) {
     chai.request(serverAddress)
       .get('/health')
       .end(function (err, res) {
@@ -203,10 +203,10 @@ describe("server", function() {
       });
   });
 
-  describe("when submitting only an address / chain pair", function(){
+  describe("when submitting only an address / chain pair", function () {
 
     // Setup: write "Simple.sol" to repo
-    beforeEach(function(done){
+    beforeEach(function (done) {
       chai.request(serverAddress)
         .post('/')
         .attach("files", read(simpleMetadataPath), "simple.meta.json")
@@ -219,11 +219,11 @@ describe("server", function() {
         });
     });
 
-    afterEach(function(){
-      try { exec(`rm -rf ${process.env.MOCK_REPOSITORY}`) } catch(err) { /*ignore*/ }
+    afterEach(function () {
+      try { exec(`rm -rf ${process.env.MOCK_REPOSITORY}`) } catch (err) { /*ignore*/ }
     });
 
-    it("when address / chain exist (success)", function(done){
+    it("when address / chain exist (success)", function (done) {
       chai.request(serverAddress)
         .post('/')
         .field("address", simpleInstance.options.address)
@@ -240,7 +240,7 @@ describe("server", function() {
         });
     });
 
-    it("when chain does not exist (error)", function(done){
+    it("when chain does not exist (error)", function (done) {
       chai.request(serverAddress)
         .post('/')
         .field("address", simpleInstance.options.address)
@@ -255,7 +255,7 @@ describe("server", function() {
         });
     });
 
-    it("when address does not exist (error)", function(done){
+    it("when address does not exist (error)", function (done) {
       chai.request(serverAddress)
         .post('/')
         .field("address", "0xabcde")
@@ -269,5 +269,18 @@ describe("server", function() {
           done();
         });
     });
+
+    it("when light endpoint is used", function (done) {
+      chai.request(serverAddress)
+        .get('/checkByAddresses')
+        .query({addresses: simpleInstance.options.address + ",0x0000A906D248Cc99FB8CB296C8Ad8C6Df05431c9", chainIds: "1337"})
+        .end(function (err, res) {
+          assert.equal(err, null);
+          const result = JSON.parse(res.text);
+          assert.equal(result[0].status, "perfect");
+          assert.equal(result[1].status, "false");
+          done();
+        })
+    })
   });
 });
