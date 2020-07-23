@@ -36,7 +36,9 @@
     "server:build": "npm run clean && npm run build",
     "server:start": "node ./dist/server.js",
     "server:test": "tsc && TESTING=true LOCALCHAIN_URL=http://localhost:8545 SERVER_PORT=2000 node ./dist/server.js ./repository",
-    "cli:test": "npm run build && ./node_modules/.bin/mocha test/sourcify.js"
+    "cli:test": "npm run build && ./node_modules/.bin/mocha test/sourcify.js",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "keywords": [
     "ethereum",
@@ -52,7 +54,7 @@
   },
   "homepage": "https://github.com/ethereum/sourcify#readme",
   "dependencies": {
-    "bunyan": "^1.8.12",
+    "bunyan": "^1.8.13",
     "cbor": "^4.3.0",
     "chalk": "^4.0.0",
     "clear": "^0.1.0",
@@ -72,8 +74,9 @@
     "serve-index": "^1.9.1",
     "solc": "^0.6.1",
     "solc-version-manager": "^0.1.6",
-    "web3": "^1.2.6",
-    "yargs": "^15.3.1"
+    "web3": "^1.2.8",
+    "yargs": "^15.3.1",
+    "snyk": "^1.364.2"
   },
   "devDependencies": {
     "@0x/sol-compiler": "^4.0.3",
@@ -103,5 +106,6 @@
     "tslint": "^6.1.1",
     "typescript": "^3.7.5",
     "typestrict": "^1.0.2"
-  }
+  },
+  "snyk": true
 }
