@@ -92,7 +92,7 @@ const Verifier: React.FC = () => {
                 content: () => <p>Contract successfully verified! View the assets in the <a
                     target="_blank"
                     rel="noopener noreferrer"
-                    href={`${REPOSITORY_URL_FULL_MATCH}/${state.chain.id}/${data.address}`}>file explorer.</a>
+                    href={`${REPOSITORY_URL_FULL_MATCH}/${state.chain.id}/${data.address}/`}>file explorer.</a>
                 </p>
             }
         });
