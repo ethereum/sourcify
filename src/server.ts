@@ -2,7 +2,7 @@ import express from 'express';
 import serveIndex from 'serve-index';
 import fileUpload from 'express-fileupload';
 import cors from 'cors';
-import { log, findInputFiles } from './utils';
+import { log, findInputFiles, findByAddress } from './utils';
 import Injector from './injector';
 import path from 'path';
 import {
@@ -43,7 +43,7 @@ app.use(express.static('ui/dist'))
 
 // TODO: 52MB is the max file size - is this right?
 app.use(fileUpload({
-  limits: {fileSize: 50 * 1024 * 1024},
+  limits: { fileSize: 50 * 1024 * 1024 },
   abortOnLimit: true
 }))
 
@@ -52,30 +52,30 @@ app.use(cors())
 /* tslint:disable:no-unused-variable */
 app.get('/', (req, res) => res.sendFile('ui/dist/index.html'))
 app.get('/health', (req, res) => res.status(200).send('Alive and kicking!'))
-app.use('/repository', express.static(repository), serveIndex(repository, {'icons': true}))
+app.use('/repository', express.static(repository), serveIndex(repository, { 'icons': true }))
 
 app.get('/tree/:chain/:address', (req, res, next) => {
   try {
-    const chain:string = req.params.chain;
+    const chain: string = req.params.chain;
     const address: string = req.params.address;
     const chainId = getChainId(chain);
     const files = fetchAllFileUrls(chainId, address);
-    if(!files.length) throw new NotFound("Files have not been found!");
+    if (!files.length) throw new NotFound("Files have not been found!");
     res.status(200).send(JSON.stringify(files))
-  } catch(err){
+  } catch (err) {
     next(err);
   }
 })
 
 app.get('/files/:chain/:address', (req, res, next) => {
-  try{
-    const chain:string = req.params.chain;
+  try {
+    const chain: string = req.params.chain;
     const address: string = req.params.address;
     const chainId = getChainId(chain);
     const files: Array<FileObject> = fetchAllFileContents(chainId, address);
-    if(files.length === 0) throw new NotFound("Files have not been found!");
+    if (files.length === 0) throw new NotFound("Files have not been found!");
     res.status(200).send(files);
-  } catch(err) {
+  } catch (err) {
     next(err);
   }
 })
@@ -109,8 +109,30 @@ app.post('/', (req, res, next) => {
   }
 })
 
+// Only checks if it is already verified in the repository
+app.get('/checkByAddresses', (req: any, res) => {
+  let resultArray: Array<Object> = [];
+  const map: Map<string, Object> = new Map();
+  req.query.addresses.split(',').forEach((address: string) => {
+    for(const chainId of req.query.chainIds.split(',')) {
+      try {
+        map.set(address, findByAddress(address, chainId, repository)[0]);
+        break;
+      } catch (error) {}
+    };
+    if (!map.has(address)) {
+      map.set(address, {
+        "address": address,
+        "status": "false"
+      })
+    }
+  });
+  resultArray = Array.from(map.values())
+  res.send(resultArray);
+})
+
 app.use(errorMiddleware);
 
-app.listen(port, () => log.info({loc: '[LISTEN]'}, `Injector listening on port ${port}!`))
+app.listen(port, () => log.info({ loc: '[LISTEN]' }, `Injector listening on port ${port}!`))
 
 export default app;
