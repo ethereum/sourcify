@@ -16,7 +16,8 @@
     "react": "^16.12.0",
     "react-cool-onclickoutside": "^1.5.4",
     "react-dom": "^16.12.0",
-    "react-dropzone": "^11.0.1"
+    "react-dropzone": "^11.0.1",
+    "web3-utils": "^1.2.11"
   },
   "devDependencies": {
     "@babel/core": "^7.5.5",

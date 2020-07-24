@@ -40,6 +40,15 @@
       animation-delay: -0.15s;
     }
   }
+
+  &--small {
+    span {
+      width: 2rem;
+      height: 2rem;
+      border: .2rem solid $accent-color;
+      border-color: $accent-color transparent transparent transparent;
+    }
+  }
 }
 
 @keyframes spinner {
