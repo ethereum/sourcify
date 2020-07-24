@@ -1,4 +1,4 @@
-import React, {useReducer} from "react";
+import React, {useEffect, useReducer} from "react";
 import {verifierReducer} from "../../reducers/verifierReducer";
 import {VerifierState} from "../../types";
 import {
@@ -10,18 +10,92 @@ import {FileUpload, AddressInput} from "./form";
 import Dropdown from "../Dropdown";
 import LoadingOverlay from "../LoadingOverlay";
 import {useDispatchContext} from "../../state/State";
-import {verify} from "../../api/verifier";
+import {checkAddresses, verify} from "../../api/verifier";
+import Web3 from "web3-utils";
+import {getChainIds} from "../../utils";
+import Spinner from "../Spinner";
 
 const initialState: VerifierState = {
     loading: false,
     address: "",
     chain: chainOptions[0],
-    files: []
+    files: [],
+    incorrectAddresses: new Set(),
+    isValidationError: false,
+    verifyAddressLoading: false
 }
 
 const Verifier: React.FC = () => {
     const [state, dispatch] = useReducer(verifierReducer, initialState);
     const globalDispatch = useDispatchContext();
+
+    useEffect(() => {
+        // reset values
+        state.incorrectAddresses.clear();
+        dispatch({type: "SET_INCORRECT_ADDRESSES", payload: state.incorrectAddresses});
+        dispatch({type: "SET_VERIFY_ADDRESS_LOADING", payload: false});
+        globalDispatch({type: "REMOVE_NOTIFICATION"});
+
+        // check if input is empty
+        if (state.address.length > 0) {
+            const addresses = state.address.split(',');
+
+            // check if inputted addresses are valid
+            addresses.forEach(address => {
+                if (!Web3.isAddress(address)) {
+                    state.incorrectAddresses.add(address)
+                    dispatch({type: "SET_INCORRECT_ADDRESSES", payload: state.incorrectAddresses});
+                }
+            });
+
+            // check if there is any address that doesn't pass validation
+            if (state.incorrectAddresses.size >= 1) {
+                dispatch({type: "SET_IS_VALIDATION_ERROR", payload: true})
+                return;
+            }
+
+            dispatch({type: "SET_IS_VALIDATION_ERROR", payload: false})
+            dispatch({type: "SET_VERIFY_ADDRESS_LOADING", payload: true});
+
+            checkAddresses(addresses.join(','), getChainIds()).then(data => {
+                console.log(data.error)
+                if (data.error) {
+                    globalDispatch({
+                        type: "SHOW_NOTIFICATION",
+                        payload: {
+                            type: "error",
+                            content: data.error
+                        }
+                    });
+                    return;
+                }
+
+                // if there are addresses that doesn't exist in repo
+                if (data.unsuccessful.length > 0) {
+                    globalDispatch({
+                        type: "SHOW_NOTIFICATION",
+                        payload: {
+                            type: "error",
+                            content: data.unsuccessful.length > 1 ?
+                                `Addresses ${data.unsuccessful.join(',')} are not yet verified` :
+                                `Address ${data.unsuccessful.join(',')} is not yet verified`
+                        }
+                    });
+                } else {
+                    globalDispatch({
+                        type: "SHOW_NOTIFICATION",
+                        payload: {
+                            type: "success",
+                            content: data.successful.length > 1 ?
+                                "Addresses successfully verified" :
+                                "Address successfully verified"
+                        }
+                    });
+                }
+                dispatch({type: "SET_VERIFY_ADDRESS_LOADING", payload: false});
+            });
+        }
+    }, [state.address])
 
     const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         dispatch(
@@ -92,7 +166,7 @@ const Verifier: React.FC = () => {
                 content: () => <p>Contract successfully verified! View the assets in the <a
                     target="_blank"
                     rel="noopener noreferrer"
-                    href={`${REPOSITORY_URL_FULL_MATCH}/${state.chain.id}/${data.address}/`}>file explorer.</a>
+                    href={`${REPOSITORY_URL_FULL_MATCH}/${state.chain.id}/${data.address}`}>file explorer.</a>
                 </p>
             }
         });
@@ -109,7 +183,15 @@ const Verifier: React.FC = () => {
             <div className="form-container__middle">
                 <form className="form" onSubmit={onSubmit}>
                     <Dropdown items={chainOptions} initialValue={chainOptions[0]} onSelect={handleOnSelect}/>
-                    <AddressInput onChange={handleAddressChange}/>
+                    <div className="input-wrapper">
+                        <AddressInput onChange={handleAddressChange}/>
+                        {state.verifyAddressLoading && <Spinner small={true}/>}
+                    </div>
+                    {state.isValidationError && (() => {
+                        return state.incorrectAddresses.size > 1 ?
+                            <span className="validation validation--error">Some of the addresses are not valid</span> :
+                            <span className="validation validation--error">Address is not valid</span>
+                    })()}
                     {
                         state.files.length > 0 && <div className="form__file-upload-header">
                             <span>FILES ({state.files.length})</span>
@@ -117,7 +199,8 @@ const Verifier: React.FC = () => {
                         </div>
                     }
                     <FileUpload handleFiles={handleFiles} files={state.files}/>
-                    <button type="submit" className={`form__submit-btn ${!state.address ? `form__submit-btn--disabled` : ""}`}
+                    <button type="submit"
+                            className={`form__submit-btn ${!state.address ? `form__submit-btn--disabled` : ""}`}
                             disabled={!state.address}>VERIFY
                     </button>
                 </form>
