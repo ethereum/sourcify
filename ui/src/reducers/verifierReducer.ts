@@ -27,6 +27,21 @@ export const verifierReducer = (state: VerifierState, action: VerifierActions) =
                 ...state,
                 loading: action.payload
             };
+        case "SET_INCORRECT_ADDRESSES":
+            return {
+                ...state,
+                incorrectAddresses: action.payload
+            };
+        case "SET_IS_VALIDATION_ERROR":
+            return {
+                ...state,
+                isValidationError: action.payload
+            };
+        case "SET_VERIFY_ADDRESS_LOADING":
+            return {
+                ...state,
+                verifyAddressLoading: action.payload
+            };
         default:
             return state;
     }

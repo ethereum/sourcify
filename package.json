@@ -63,7 +63,8 @@
     "serve-index": "^1.9.1",
     "solc": "^0.6.1",
     "solc-version-manager": "^0.1.6",
-    "web3": "^1.2.6"
+    "web3": "^1.2.6",
+    "web3-utils": "^1.2.11"
   },
   "devDependencies": {
     "@0x/sol-compiler": "^4.0.3",
