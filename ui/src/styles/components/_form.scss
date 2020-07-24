@@ -47,6 +47,11 @@
         }
       }
 
+      .input-wrapper {
+        display: flex;
+        align-items: center;
+      }
+
       input {
         width: 100%;
         padding: 1rem 40px;
@@ -54,7 +59,7 @@
         border: 1px solid $black-300;
         height: 3.5rem;
         border-radius: .5rem;
-        margin-bottom: 1rem;
+        //margin-bottom: 1rem;
       }
 
       &__submit-btn {
@@ -76,5 +81,23 @@
         }
       }
     }
+  }
+}
+
+.validation {
+  padding: .3rem 0;
+  font-size: .8em;
+
+  &--error {
+    color: #F94144;
+  }
+}
+
+.validation {
+  padding: .3rem 0;
+  font-size: .8em;
+
+  &--error {
+    color: #F94144;
   }
 }
