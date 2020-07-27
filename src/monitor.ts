@@ -485,12 +485,16 @@ export default class Monitor {
 
     const metadata = JSON.parse(metadataRaw);
     delete this.chains[chain].metadataQueue[address];
-
-    this.addToQueue(this.chains[chain].sourceQueue, address, {
-      metadataRaw: metadataRaw.toString(),
-      sources: metadata.sources,
-      found: found
-    });
+    
+    try {
+      this.addToQueue(this.chains[chain].sourceQueue, address, {
+        metadataRaw: metadataRaw.toString(),
+        sources: metadata.sources,
+        found: found
+      });
+      } catch (error) {
+      
+    }
   }
 
 
