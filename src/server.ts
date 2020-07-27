@@ -116,7 +116,9 @@ app.get('/checkByAddresses', (req: any, res) => {
   req.query.addresses.split(',').forEach((address: string) => {
     for(const chainId of req.query.chainIds.split(',')) {
       try {
-        map.set(address, findByAddress(address, chainId, repository)[0]);
+        const object: any = findByAddress(address, chainId, repository)[0];
+        object.chainId = chainId;
+        map.set(address, object);
         break;
       } catch (error) {}
     };
