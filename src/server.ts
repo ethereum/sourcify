@@ -90,13 +90,13 @@ app.post('/', (req, res, next) => {
   }
 
   try {
-    const files = findInputFiles(req.files);
-    if(files !== undefined) inputData.files = files;
-  } catch(err){
+    const files: FileObject[] = findInputFiles(req.files);
+    if (files !== undefined) inputData.files = files;
+  } catch (err) {
     // Just ignore error if no files have been found
   }
 
-  try{
+  try {
     Promise.all(verify(inputData, injector)).then((result) => {
       res.status(200).send({
         result
@@ -114,13 +114,13 @@ app.get('/checkByAddresses', (req: any, res) => {
   let resultArray: Array<Object> = [];
   const map: Map<string, Object> = new Map();
   req.query.addresses.split(',').forEach((address: string) => {
-    for(const chainId of req.query.chainIds.split(',')) {
+    for (const chainId of req.query.chainIds.split(',')) {
       try {
         const object: any = findByAddress(address, chainId, repository)[0];
         object.chainId = chainId;
         map.set(address, object);
         break;
-      } catch (error) {}
+      } catch (error) { }
     };
     if (!map.has(address)) {
       map.set(address, {

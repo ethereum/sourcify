@@ -13,9 +13,9 @@ const SimpleWithImport = require('./sources/pass/simpleWithImport.js');
 const Monitor = require('../src/monitor').default;
 const getChainByName = require('../src/utils').getChainByName;
 
-describe('monitor', function(){
+describe('monitor', function () {
 
-  describe('E2E', function(){
+  describe('E2E', function () {
     let monitor;
     let web3;
     let server;
@@ -27,23 +27,23 @@ describe('monitor', function(){
     let mockRepo = 'mockRepository';
     let chainId = getChainByName(chain).chainId.toString();
 
-    before(async function(){
-      server = ganache.server({blockTime: 1});
+    before(async function () {
+      server = ganache.server({ blockTime: 1 });
       await pify(server.listen)(port);
       web3 = new Web3(`http://${chain}:${port}`);
       accounts = await web3.eth.getAccounts();
     });
 
     // Clean up server
-    after(async function(){
+    after(async function () {
       monitor.stop();
       await pify(server.close)();
       await ipfs.stop();
 
-      try { exec(`rm -rf ${mockRepo}`) } catch(err) { /*ignore*/ }
+      try { exec(`rm -rf ${mockRepo}`) } catch (err) { /*ignore*/ }
     });
 
-    it('SimpleWithImport: matches deployed to IPFS sources', async function(){
+    it('SimpleWithImport: matches deployed to IPFS sources', async function () {
       this.timeout(25000);
 
       const customChain = {

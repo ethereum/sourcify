@@ -1,4 +1,4 @@
-process.env.MOCK_REPOSITORY='./mockRepository';
+process.env.MOCK_REPOSITORY = './mockRepository';
 
 const assert = require('assert');
 const ganache = require('ganache-cli');
@@ -25,8 +25,8 @@ const {
 const Injector = require('../src/injector').default;
 const getChainId = require('../src/utils').getChainId;
 
-describe('injector', function(){
-  describe('inject', function(){
+describe('injector', function () {
+  describe('inject', function () {
     this.timeout(25000);
 
     let server;
@@ -47,44 +47,44 @@ describe('injector', function(){
     const simpleWithImportMetadata = SimpleWithImport.compilerOutput.metadata;
     const literalMetadata = Literal.compilerOutput.metadata;
 
-    before(async function(){
-      server = ganache.server({chainId: chainId});
+    before(async function () {
+      server = ganache.server({ chainId: chainId });
       await pify(server.listen)(port);
       web3 = new Web3(`http://${chain}:${port}`);
     })
 
-    beforeEach(async function(){
+    beforeEach(async function () {
       simpleInstance = await deployFromArtifact(web3, Simple);
       simpleWithImportInstance = await deployFromArtifact(web3, SimpleWithImport);
       literalInstance = await deployFromArtifact(web3, Literal);
-      injector = new Injector({ localChainUrl: process.env.LOCALCHAIN_URL, silent: true});
+      injector = new Injector({ localChainUrl: process.env.LOCALCHAIN_URL, silent: true });
     })
 
-    beforeEach(async function(){
+    beforeEach(async function () {
       simpleInstance = await deployFromArtifact(web3, Simple);
       simpleWithImportInstance = await deployFromArtifact(web3, SimpleWithImport);
       literalInstance = await deployFromArtifact(web3, Literal);
-      injector = new Injector({ localChainUrl: process.env.LOCALCHAIN_URL, silent: true});
+      injector = new Injector({ localChainUrl: process.env.LOCALCHAIN_URL, silent: true });
     })
 
-    beforeEach(async function(){
+    beforeEach(async function () {
       simpleInstance = await deployFromArtifact(web3, Simple);
       simpleWithImportInstance = await deployFromArtifact(web3, SimpleWithImport);
       literalInstance = await deployFromArtifact(web3, Literal);
-      injector = new Injector({ localChainUrl: process.env.LOCALCHAIN_URL, silent: true});
+      injector = new Injector({ localChainUrl: process.env.LOCALCHAIN_URL, silent: true });
     })
 
     // Clean up repository
-    afterEach(function(){
-      try { exec(`rm -rf ${mockRepo}`) } catch(err) { /*ignore*/ }
+    afterEach(function () {
+      try { exec(`rm -rf ${mockRepo}`) } catch (err) { /*ignore*/ }
     })
 
     // Clean up server
-    after(async function(){
+    after(async function () {
       await pify(server.close)();
     });
 
-    it('verifies sources from multiple metadatas, addresses & stores by IPFS hash', async function(){
+    it('verifies sources from multiple metadatas, addresses & stores by IPFS hash', async function () {
       // Inject by address into repository after recompiling
       const inputData = {
         repository: mockRepo,
@@ -94,11 +94,11 @@ describe('injector', function(){
           simpleWithImportInstance.options.address
         ],
         files: [
-          simpleSource,
-          simpleWithImportSource,
-          importSource,
-          simpleMetadata,
-          simpleWithImportMetadata
+          { name: "Simple.sol", content: simpleSource },
+          { name: "SimpleWithImport.sol", content: simpleWithImportSource },
+          { name: "Import.sol", content: importSource },
+          { name: "simple.json", content: simpleMetadata },
+          { name: "simpleWithImport.json", content: simpleWithImportMetadata }
         ]
       };
 
@@ -115,13 +115,13 @@ describe('injector', function(){
       assert.equal(simpleWithImportSavedMetadata, simpleWithImportMetadata);
     });
 
-    it('verfies a metadata with embedded source code (--metadata-literal)', async function(){
+    it('verfies a metadata with embedded source code (--metadata-literal)', async function () {
       // Inject by address into repository after recompiling
       const inputData = {
         repository: mockRepo,
         chain: getChainId('localhost'),
-        addresses: [ literalInstance.options.address ],
-        files: [ literalMetadata ]
+        addresses: [literalInstance.options.address],
+        files: [{ name: "literal.json", content: literalMetadata }]
       };
 
       await injector.inject(inputData);
@@ -133,7 +133,7 @@ describe('injector', function(){
       assert.equal(literalSavedMetadata, literalMetadata);
     });
 
-    it('verfies a contract with a bzzr0 hash', async function(){
+    it('verfies a contract with a bzzr0 hash', async function () {
       const instance = await deployFromArtifact(web3, SimpleBzzr0);
       const metadata = SimpleBzzr0.compilerOutput.metadata;
       const source = SimpleBzzr0.sourceCodes["Simple.sol"];
@@ -142,10 +142,10 @@ describe('injector', function(){
       const inputData = {
         repository: mockRepo,
         chain: getChainId('localhost'),
-        addresses: [ instance.options.address ],
+        addresses: [instance.options.address],
         files: [
-          metadata,
-          source
+          { name: "metadata.json", content: metadata },
+          { name: "Source.sol", content: source }
         ]
       };
 
@@ -158,7 +158,7 @@ describe('injector', function(){
       assert.equal(savedMetadata, metadata);
     });
 
-    it('verfies a contract with a bzzr1 hash', async function(){
+    it('verfies a contract with a bzzr1 hash', async function () {
       const instance = await deployFromArtifact(web3, SimpleBzzr1);
       const metadata = SimpleBzzr1.compilerOutput.metadata;
       const source = SimpleBzzr1.sourceCodes["Simple.sol"];
@@ -167,10 +167,10 @@ describe('injector', function(){
       const inputData = {
         repository: mockRepo,
         chain: getChainId('localhost'),
-        addresses: [ instance.options.address ],
+        addresses: [instance.options.address],
         files: [
-          metadata,
-          source
+          { name: "metadata.json", content: metadata },
+          { name: "source.sol", content: source }
         ]
       };
 
@@ -183,7 +183,7 @@ describe('injector', function(){
       assert.equal(savedMetadata, metadata);
     });
 
-    it('verifies a contract when deployed & compiled metadata hashes do not match', async function(){
+    it('verifies a contract when deployed & compiled metadata hashes do not match', async function () {
       const mismatchedMetadata = MismatchedBytecode.compilerOutput.metadata;
 
       assert.notEqual(
@@ -196,10 +196,10 @@ describe('injector', function(){
       const inputData = {
         repository: mockRepo,
         chain: getChainId('localhost'),
-        addresses: [ simpleInstance.options.address ],
+        addresses: [simpleInstance.options.address],
         files: [
-          simpleSource,
-          mismatchedMetadata
+          { name: "Simple.sol", content: simpleSource },
+          { name: "mismatch.json", content: mismatchedMetadata }
         ]
       };
 
@@ -212,7 +212,7 @@ describe('injector', function(){
         'partial_matches',
         getChainId('localhost').toString(),
         simpleInstance.options.address,
-        '/metadata.json'
+        '/mismatch.json'
       );
 
       const savedMetadata = read(expectedPath, 'utf-8');
@@ -230,17 +230,17 @@ describe('injector', function(){
       // assert.equal(outputIdMetadata, mismatchedMetadata);
     })
 
-    it('errors if metadata is missing', async function(){
+    it('errors if metadata is missing', async function () {
       const inputData = {
         repository: mockRepo,
         chain: getChainId('localhost'),
-        addresses: [ simpleInstance.options.address],
-        files: [ simpleSource ]
+        addresses: [simpleInstance.options.address],
+        files: [{ name: "Simple.sol", content: simpleSource }]
       }
 
       try {
         await injector.inject(inputData);
-      } catch(err) {
+      } catch (err) {
         assert.equal(
           err.message,
           'Metadata file not found. Did you include "metadata.json"?'
@@ -248,34 +248,35 @@ describe('injector', function(){
       }
     });
 
-    it('errors if sources specified in metadata are missing', async function(){
+    it('errors if sources specified in metadata are missing', async function () {
       const inputData = {
         repository: mockRepo,
         chain: getChainId('localhost'),
-        addresses: [ simpleInstance.options.address],
-        files: [ simpleMetadata ]
+        addresses: [simpleInstance.options.address],
+        files: [{ name: "simple.json", content: simpleMetadata }]
       }
 
       try {
         await injector.inject(inputData);
-      } catch(err) {
+      } catch (err) {
         assert(err.message.includes('Simple.sol'));
         assert(err.message.includes('cannot be found'));
       }
     });
 
-    it('errors when recompiled bytecode does not match deployed', async function(){
+    it('errors when recompiled bytecode does not match deployed', async function () {
       const inputData = {
         repository: mockRepo,
         chain: getChainId('localhost'),
-        addresses: [ simpleWithImportInstance.options.address],
-        files: [ simpleMetadata, simpleSource ]
+        addresses: [simpleWithImportInstance.options.address],
+        files: [{ name: "simple.json", content: simpleMetadata },
+        { name: "Simple.sol", content: simpleSource }]
       }
 
       // Try to match Simple sources/metadata to SimpleWithImport's address
       try {
         await injector.inject(inputData);
-      } catch(err) {
+      } catch (err) {
         assert(err.message.includes('Could not match on-chain deployed bytecode'));
         assert(err.message.includes('contracts/Simple.sol'));
       }
