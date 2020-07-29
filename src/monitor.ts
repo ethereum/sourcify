@@ -668,6 +668,15 @@ export default class Monitor {
     // Also save ipfs and swarm hashes.
     if (Object.keys(queueItem.sources).length == 0) {
 
+      for (const i in queueItem.found.files) {
+        try {
+          JSON.parse(queueItem.found.files[i]);
+          queueItem.found.files[i] = {name: "metadata.json", content: queueItem.found.files[i]}
+        } catch (error) {
+          queueItem.found.files[i] = {name: "Source.sol", content: queueItem.found.files[i]}
+        }
+      }
+
       const data: InputData = {
         repository: this.repository,
         chain: getChainByName(chain).chainId.toString(),

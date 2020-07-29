@@ -24,7 +24,7 @@ export const log = Logger.createLogger({
     level: 30
   }]
 });
- 
+
 declare interface StringMap {
   [key: string]: string;
 }
@@ -111,13 +111,13 @@ function reformatMetadata(
 
   if (contractName == '') {
     const err = new Error("Could not determine compilation target from metadata.");
-    log.info({loc: '[REFORMAT]', err: err});
+    log.info({ loc: '[REFORMAT]', err: err });
     throw err;
   }
 
   input['sources'] = {}
   for (const source in sources) {
-    input.sources[source] = {'content': sources[source]}
+    input.sources[source] = { 'content': sources[source] }
   }
 
   input.language = metadata.language
@@ -189,7 +189,7 @@ export type InputData = {
   repository: string
   chain: string,
   addresses: string[],
-  files?: any[],
+  files?: FileObject[],
   bytecode?: string
 }
 
@@ -200,47 +200,47 @@ export function findInputFiles(files: any): any {
 
     // Case: <UploadedFile[]>
     if (Array.isArray(files.files)) {
-      files.files.forEach((file: { data: any; }) => {
-        inputs.push(file.data)
+      files.files.forEach((file: any) => {
+        inputs.push({ name: file.name, content: file.data })
       })
       return inputs;
 
       // Case: <UploadedFile>
     } else if (files.files["data"]) {
-      inputs.push(files.files["data"]);
+      inputs.push({ name: files.files.name, content: files.files["data"] });
       return inputs;
     }
 
     // Case: default
     const msg = `Invalid file(s) detected: ${util.inspect(files.files)}`;
-    log.info({loc: '[POST:INVALID_FILE]'}, msg);
+    log.info({ loc: '[POST:INVALID_FILE]' }, msg);
     throw new BadRequest(msg);
   }
 
 }
 
-export function sanitizeInputFiles(inputs: any): string[] {
-  const files = [];
+export function sanitizeInputFiles(inputs: any): FileObject[] {
+  const files: FileObject[] = [];
   if (!inputs.length) {
     const msg = 'Unable to extract any files. Your request may be misformatted ' +
-                'or missing some contents.';
+      'or missing some contents.';
 
     const err = new Error(msg);
-    log.info({loc: '[POST:NO_FILES]', err: err})
+    log.info({ loc: '[POST:NO_FILES]', err: err })
     throw new BadRequest(msg)
   }
 
-  for (const data of inputs) {
+  for (const file of inputs) {
     try {
-      const val = JSON.parse(data.toString());
+      const val = JSON.parse(file.content.toString());
       const type = Object.prototype.toString.call(val);
 
       (type === '[object Object]')
-        ? files.push(JSON.stringify(val))  // JSON formatted metadata
-        : files.push(val);                 // Stringified metadata
+        ? files.push({ name: file.name, content: JSON.stringify(val) })  // JSON formatted metadata
+        : files.push({ name: file.name, content: val });                 // Stringified metadata
 
     } catch (err) {
-      files.push(data.toString())          // Solidity files
+      files.push({ name: file.name, content: file.content.toString() })          // Solidity files
     }
 
   }
@@ -254,12 +254,16 @@ export function sanitizeInputFiles(inputs: any): string[] {
  * @param repository
  */
 export function findByAddress(address: string, chain: string, repository: string): Match[] {
-  const addressPath = `${repository}/contracts/full_match/${chain}/${address}/metadata.json`;
+  const addressPath = `${repository}/contracts/full_match/${chain}/${address}/`;
   const normalizedPath = path.join('./', addressPath);
 
   try {
-    fs.readFileSync(normalizedPath);
-  } catch(e){
+    const contractDirectory = fs.readdirSync(normalizedPath);
+    const jsonFile = contractDirectory
+      .filter(file => file.endsWith('.json'))
+      .map(file => path.resolve(__dirname, file))
+    fs.readFileSync(path.join('./', normalizedPath, jsonFile[0].substring(jsonFile[0].lastIndexOf("/") + 1)));
+  } catch (e) {
     throw new Error("Address not found in repository");
   }
 
@@ -271,7 +275,7 @@ export function findByAddress(address: string, chain: string, repository: string
 
 export type FileObject = {
   name: string,
-  path: string
+  path?: string
   content?: string
 }
 
@@ -285,41 +289,41 @@ export function fetchAllFileUrls(chain: string, address: string): Array<string> 
   return urls;
 }
 
-export function fetchAllFilePaths(chain: string, address: string): Array<FileObject>{
-  const fullPath: string = path.resolve(__dirname, `../repository/contract/${chain}/${address}/`);
+export function fetchAllFilePaths(chain: string, address: string): Array<FileObject> {
+  const fullPath: string = path.resolve(__dirname, `../repository/contracts/full_match/${chain}/${address}/`);
   const files: Array<FileObject> = [];
   dirTree(fullPath, {}, (item) => {
-    files.push({"name": item.name, "path": item.path});
+    files.push({ "name": item.name, "path": item.path });
   });
   return files;
 }
 
-export function fetchAllFileContents(chain: string, address: string): Array<FileObject>{
+export function fetchAllFileContents(chain: string, address: string): Array<FileObject> {
   const files = fetchAllFilePaths(chain, address);
-    for(const file in files){
-      const loadedFile = fs.readFileSync(files[file].path)
-      files[file].content = loadedFile.toString();
-    }
+  for (const file in files) {
+    const loadedFile = fs.readFileSync(files[file].path)
+    files[file].content = loadedFile.toString();
+  }
 
-    return files;
+  return files;
 }
 
 export function getChainId(chain: string): string {
-  for(const chainOption in chainOptions){
-      const network = chainOptions[chainOption].network;
-      const chainId = chainOptions[chainOption].chainId;
-      if( (network && network.toLowerCase() === chain) || String(chainId) === chain){
-        return String(chainOptions[chainOption].chainId);
-      }
+  for (const chainOption in chainOptions) {
+    const network = chainOptions[chainOption].network;
+    const chainId = chainOptions[chainOption].chainId;
+    if ((network && network.toLowerCase() === chain) || String(chainId) === chain) {
+      return String(chainOptions[chainOption].chainId);
     }
+  }
 
   throw new NotFound(`Chain ${chain} not supported!`);
 }
 
 export function getChainByName(name: string): any {
-  for(const chainOption in chainOptions) {
+  for (const chainOption in chainOptions) {
     const network = chainOptions[chainOption].network;
-    if(network && network.toLowerCase() === name){
+    if (network && network.toLowerCase() === name) {
       return chainOptions[chainOption];
     }
   }
@@ -350,7 +354,7 @@ type Tag = {
  * Update repository tag
  */
 export function updateRepositoryTag(repositoryPath?: string) {
-  if(repositoryPath !== undefined) {
+  if (repositoryPath !== undefined) {
     repository = repositoryPath;
   }
   const filePath: string = path.join(repository, 'manifest.json')
@@ -365,27 +369,26 @@ export function updateRepositoryTag(repositoryPath?: string) {
 
 //------------------------------------------------------------------------------------------------------
 
-export function verify(inputData: InputData, injector: Injector): any{
-  console.log(process.cwd());
+export function verify(inputData: InputData, injector: Injector): any {
   // Try to find by address, return on success.
   try {
     return findByAddress(inputData.addresses[0], inputData.chain, inputData.repository);
-  } catch(err) {
+  } catch (err) {
     const msg = "Could not find file in repository, proceeding to recompilation"
-    log.info({loc:'[POST:VERIFICATION_BY_ADDRESS_FAILED]'}, msg);
+    log.info({ loc: '[POST:VERIFICATION_BY_ADDRESS_FAILED]' }, msg);
   }
 
-  if(inputData.files.length === 0){
+  if (inputData.files.length === 0) {
     // If we reach this point, an address has been submitted and searched for
     // but there are no files associated with the request.
     const msg = 'Address for specified chain not found in repository';
-    log.info({loc: '[POST:ADDRESS_NOT_FOUND]', err: msg})
+    log.info({ loc: '[POST:ADDRESS_NOT_FOUND]', err: msg })
     throw new NotFound(msg);
   }
 
   // Try to organize files for submission, exit on error.
   inputData.files = sanitizeInputFiles(inputData.files);
-  
+
   // Injection
   const promises: Promise<Match>[] = [];
   promises.push(injector.inject(inputData));

@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "d4843b14-dd04-4946-a59f-4cede556b911",
+		"_postman_id": "fe74ed2f-ec7d-4cd4-8145-84b0bc6ae106",
 		"name": "Sourcify",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -14,12 +14,10 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:2000/checkByAddresses?addresses=0x0000A906D248Cc99FB8CB296C8Ad8C6Df05431c9,0x0A67477639a71bf98528280D3724f465A1814740,0x0A67477639a71bf98528280D3724f465A1814741,0x0a06cc1Ce1105d90ce01752813449A029906aD7b&chainIds=1,3,4,5,42",
-							"protocol": "http",
+							"raw": "{{host}}/checkByAddresses?addresses=0x0000A906D248Cc99FB8CB296C8Ad8C6Df05431c9,0x0A67477639a71bf98528280D3724f465A1814740,0x0A67477639a71bf98528280D3724f465A1814741,0x0a06cc1Ce1105d90ce01752813449A029906aD7b&chainIds=1,3,4,5,42",
 							"host": [
-								"localhost"
+								"{{host}}"
 							],
-							"port": "2000",
 							"path": [
 								"checkByAddresses"
 							],
@@ -33,6 +31,40 @@
 									"value": "1,3,4,5,42"
 								}
 							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": ""
+						},
+						"description": "Check server health status"
+					},
+					"response": []
+				},
+				{
+					"name": "getFileUrls",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": ""
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getFiles",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": ""
 						}
 					},
 					"response": []

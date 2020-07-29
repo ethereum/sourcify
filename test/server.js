@@ -61,7 +61,7 @@ describe("server", function () {
       'full_match',
       chainId.toString(),
       simpleInstance.options.address,
-      'metadata.json'
+      'simple.meta.json'
     );
 
     const submittedMetadata = read(simpleMetadataPath, 'utf-8');
@@ -95,7 +95,7 @@ describe("server", function () {
       'full_match',
       chainId.toString(),
       simpleInstance.options.address,
-      'metadata.json'
+      'simple.meta.object.json'
     );
 
     // The injector will save a stringified version
