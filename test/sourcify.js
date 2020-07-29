@@ -1,4 +1,4 @@
-process.env.MOCK_REPOSITORY='./mockRepository';
+process.env.MOCK_REPOSITORY = './mockRepository';
 
 const chai = require('chai');
 const chaiExec = require("@jsdevtools/chai-exec");

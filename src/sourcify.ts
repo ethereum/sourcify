@@ -19,10 +19,10 @@ dotenv.config({ path: path.resolve(__dirname, "..", "environments/.env") });
 clear();
 console.log(
   chalk.red(
-    figlet.textSync('sourcify cli', { 
-        horizontalLayout: 'default',
-        font: 'Banner',
-     }),
+    figlet.textSync('sourcify cli', {
+      horizontalLayout: 'default',
+      font: 'Banner',
+    }),
   ),
 );
 console.log("Use this for local verification only!")
@@ -49,25 +49,26 @@ interface Arguments {
 }
 
 const argv: Arguments = yargs.options({
-  files: {type: 'array', alias: 'f', description: 'Paths to the files or folders with files you want to verify'},
-  chain: {type: 'string', alias: 'c', demand: true},
-  address: {type: 'string', alias: 'a', demand: true},
-  repository: {type: 'string', alias: 'r', description: 'Path to the directory with verified contracts'},
-  infura: {type: 'string', alias: 'id', description: 'Provide your own Infura project ID'}
+  files: { type: 'array', alias: 'f', description: 'Paths to the files or folders with files you want to verify' },
+  chain: { type: 'string', alias: 'c', demand: true },
+  address: { type: 'string', alias: 'a', demand: true },
+  repository: { type: 'string', alias: 'r', description: 'Path to the directory with verified contracts' },
+  infura: { type: 'string', alias: 'id', description: 'Provide your own Infura project ID' }
 }).argv;
 
-if (argv.chain){
-  inputData.chain = argv.chain;    
+if (argv.chain) {
+  inputData.chain = argv.chain;
 }
 
-if (argv.address){
+if (argv.address) {
   inputData.addresses.push(argv.address);
 }
 
 if (argv.files) {
-  for(const file in argv.files){
-      const readFile = fs.readFileSync(path.resolve(argv.files[file].toString()));
-      inputData.files.push(readFile);
+  for (const file in argv.files) {
+    const filePath: string = path.resolve(argv.files[file].toString());
+    const readFile: Buffer = fs.readFileSync(filePath);
+    inputData.files.push({ name: filePath.substring(filePath.lastIndexOf("/") + 1), content: readFile.toString() });
   }
 }
 
@@ -80,25 +81,25 @@ if (!argv.infura && !process.env.INFURA_ID) {
 }
 
 export const log = Logger.createLogger({
-    name: "CLI",
-    streams: [{
-      stream: process.stdout,
-      level: 30
-    }]
-  });
+  name: "CLI",
+  streams: [{
+    stream: process.stdout,
+    level: 30
+  }]
+});
 
 const injector = new Injector({
-    localChainUrl: localChainUrl,
-    log: log,
-    infuraPID: argv.infura || process.env.INFURA_ID
+  localChainUrl: localChainUrl,
+  log: log,
+  infuraPID: argv.infura || process.env.INFURA_ID
 });
-  try{
-    Promise.all(verify(inputData, injector)).then((result) => {
-      console.log("Contract successfully verified!")
-      console.log(result);
-    }).catch(err => {
-      console.log(err.message)
-    });
-  } catch (err) {
-   console.log(err.message);
+try {
+  Promise.all(verify(inputData, injector)).then((result) => {
+    console.log("Contract successfully verified!")
+    console.log(result);
+  }).catch(err => {
+    console.log(err.message)
+  });
+} catch (err) {
+  console.log(err.message);
 }

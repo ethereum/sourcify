@@ -8,7 +8,7 @@ import fs from 'fs'
 // tslint:disable no-commented-code
 // import { findAddresses } from './address-db';
 
-const multihashes : any = require('multihashes');
+const multihashes: any = require('multihashes');
 
 import {
   cborDecode,
@@ -19,7 +19,8 @@ import {
   InputData,
   Match,
   getChainByName,
-  save
+  save,
+  FileObject
 } from './utils';
 
 import {
@@ -31,17 +32,17 @@ declare interface StringMap {
 }
 
 export interface InjectorConfig {
-  infuraPID? : string,
-  localChainUrl? : string,
-  silent? : boolean,
-  log? : Logger,
+  infuraPID?: string,
+  localChainUrl?: string,
+  silent?: boolean,
+  log?: Logger,
   offline?: boolean
 }
 
 export default class Injector {
-  private log : Logger;
-  private chains : any;
-  private infuraPID : string;
+  private log: Logger;
+  private chains: any;
+  private infuraPID: string;
   private localChainUrl: string | undefined;
   private offline: boolean;
 
@@ -49,7 +50,7 @@ export default class Injector {
    * Constructor
    * @param {InjectorConfig = {}} config
    */
-  public constructor(config : InjectorConfig = {}){
+  public constructor(config: InjectorConfig = {}) {
     this.chains = {};
     this.infuraPID = config.infuraPID || "changeinfuraid";
     this.localChainUrl = config.localChainUrl;
@@ -63,7 +64,7 @@ export default class Injector {
       }]
     });
 
-    if (!this.offline){
+    if (!this.offline) {
       this.initChains();
     }
   }
@@ -72,8 +73,8 @@ export default class Injector {
    * Instantiates a web3 provider for all public ethereum networks via Infura.
    * If environment variable TESTING is set to true, localhost:8545 is also available.
    */
-  private initChains(){
-    for (const chain of ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli']){
+  private initChains() {
+    for (const chain of ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli']) {
       const chainOption = getChainByName(chain);
       this.chains[chainOption.chainId] = {};
       if (this.infuraPID === "changeinfuraid") {
@@ -86,7 +87,7 @@ export default class Injector {
     }
 
     // For unit testing with testrpc...
-    if (this.localChainUrl){
+    if (this.localChainUrl) {
       const chainOption = getChainByName('localhost');
       this.chains[chainOption.chainId] = {
         web3: new Web3(chainOption.web3[0])
@@ -99,25 +100,25 @@ export default class Injector {
    * @param  {string[]} files
    * @return {string[]}         metadata
    */
-  private findMetadataFiles(files: string[]) : any[] {
+  private findMetadataFiles(files: any[]): any[] {
     const metadataFiles = [];
 
     for (const i in files) {
       try {
-        const m = JSON.parse(files[i])
+        const m = JSON.parse(files[i].content)
 
         // TODO: this might need a stronger validation check.
         //       many assumptions are made about structure of
         //       metadata object after this selection step.
         if (m['language'] === 'Solidity') {
-          metadataFiles.push(m);
+          metadataFiles.push({ name: files[i].name, content: m });
         }
       } catch (err) { /* ignore */ }
     }
 
-    if(!metadataFiles.length){
+    if (!metadataFiles.length) {
       const err = new Error("Metadata file not found. Did you include \"metadata.json\"?");
-      this.log.info({loc:'[FIND]', err: err});
+      this.log.info({ loc: '[FIND]', err: err });
       throw err;
     }
 
@@ -129,11 +130,11 @@ export default class Injector {
    * @param  {string[]}  files sources
    * @return {StringMap}
    */
-  private storeByHash(files: string[]) : StringMap {
-    const byHash: StringMap = {};
+  private storeByHash(files: any[]): StringMap {
+    const byHash: any = {};
 
     for (const i in files) {
-      byHash[Web3.utils.keccak256(files[i])] = files[i]
+      byHash[Web3.utils.keccak256(files[i].content)] = files[i]
     }
     return byHash;
   }
@@ -145,19 +146,19 @@ export default class Injector {
    * @param  {string[]}  files    source files
    * @return {StringMap}
    */
-  private rearrangeSources(metadata : any, files: string[]) : StringMap {
+  private rearrangeSources(metadata: any, files: FileObject[]): StringMap {
     const sources: StringMap = {}
     const byHash = this.storeByHash(files);
 
-    for (const fileName in metadata.sources) {
-      let content: string = metadata.sources[fileName].content;
-      const hash: string = metadata.sources[fileName].keccak256;
-      if(content) {
-          if (Web3.utils.keccak256(content) != hash) {
-              const err = new Error(`Invalid content for file ${fileName}`);
-              this.log.info({ loc: '[REARRANGE]', fileName: fileName, err: err});
-              throw err;
-          }
+    for (const fileName in metadata.content.sources) {
+      let content: any = metadata.content.sources[fileName].content;
+      const hash: string = metadata.content.sources[fileName].keccak256;
+      if (content) {
+        if (Web3.utils.keccak256(content) != hash) {
+          const err = new Error(`Invalid content for file ${fileName}`);
+          this.log.info({ loc: '[REARRANGE]', fileName: fileName, err: err });
+          throw err;
+        }
       } else {
         content = byHash[hash];
       }
@@ -167,17 +168,17 @@ export default class Injector {
           `that cannot be found in your upload.\nIts keccak256 hash is ${hash}. ` +
           `Please try to find it and include it in the upload.`
         );
-        this.log.info({loc: '[REARRANGE]', fileName: fileName, err: err});
+        this.log.info({ loc: '[REARRANGE]', fileName: fileName, err: err });
         throw err;
       }
-      sources[fileName] = content;
+      sources[fileName] = content.content || content;
     }
     return sources
   }
 
   private getIdFromChainName(chain: string): number {
-    for(const chainOption in chainOptions) {
-      if(chainOptions[chainOption].network === chain){
+    for (const chainOption in chainOptions) {
+      if (chainOptions[chainOption].network === chain) {
         return chainOptions[chainOption].chainId;
       }
     }
@@ -195,13 +196,14 @@ export default class Injector {
    */
   private storePerfectMatchData(
     repository: string,
-    chain : string,
-    address : string,
-    compilationResult : RecompilationResult,
-    sources: StringMap
-  ) : void {
+    chain: string,
+    address: string,
+    compilationResult: RecompilationResult,
+    sources: StringMap,
+    metadataFileName: string
+  ): void {
 
-    let metadataPath : string;
+    let metadataPath: string;
     const bytes = Web3.utils.hexToBytes(compilationResult.deployedBytecode);
     const cborData = cborDecode(bytes);
 
@@ -217,7 +219,7 @@ export default class Injector {
       );
 
       this.log.info({
-        loc:'[STOREDATA]',
+        loc: '[STOREDATA]',
         address: address,
         chain: chain,
         err: err
@@ -228,12 +230,12 @@ export default class Injector {
 
     const hashPath = path.join(repository, metadataPath);
     const addressPath = path.join(
-        repository,
-        'contracts',
-        'full_match',
-        chain,
-        address,
-        '/metadata.json'
+      repository,
+      'contracts',
+      'full_match',
+      chain,
+      address,
+      metadataFileName
     );
 
     save(hashPath, compilationResult.metadata);
@@ -271,11 +273,12 @@ export default class Injector {
    */
   private storePartialMatchData(
     repository: string,
-    chain : string,
-    address : string,
-    compilationResult : RecompilationResult,
-    sources: StringMap
-  ) : void {
+    chain: string,
+    address: string,
+    compilationResult: RecompilationResult,
+    sources: StringMap,
+    metadataFileName: string
+  ): void {
 
     const addressPath = path.join(
       repository,
@@ -283,7 +286,7 @@ export default class Injector {
       'partial_match',
       chain,
       address,
-      '/metadata.json'
+      metadataFileName
     );
 
     save(addressPath, compilationResult.metadata);
@@ -318,13 +321,13 @@ export default class Injector {
     chain: string,
     addresses: string[] = [],
     compiledBytecode: string
-  ) : Promise<Match> {
-    let match : Match = { address: null, status: null };
+  ): Promise<Match> {
+    let match: Match = { address: null, status: null };
 
-    for (let address of addresses){
+    for (let address of addresses) {
       address = Web3.utils.toChecksumAddress(address)
 
-      let deployedBytecode : string | null = null;
+      let deployedBytecode: string | null = null;
       try {
         this.log.info(
           {
@@ -335,11 +338,11 @@ export default class Injector {
           `Retrieving contract bytecode address`
         );
         deployedBytecode = await getBytecode(this.chains[chain].web3, address)
-      } catch(e){ /* ignore */ }
+      } catch (e) { /* ignore */ }
 
       const status = this.compareBytecodes(deployedBytecode, compiledBytecode);
 
-      if (status){
+      if (status) {
         match = { address: address, status: status };
         break;
       }
@@ -358,14 +361,14 @@ export default class Injector {
   private compareBytecodes(
     deployedBytecode: string | null,
     compiledBytecode: string
-  ) : 'perfect' | 'partial' | null {
+  ): 'perfect' | 'partial' | null {
 
-    if (deployedBytecode && deployedBytecode.length > 2){
-      if (deployedBytecode === compiledBytecode){
+    if (deployedBytecode && deployedBytecode.length > 2) {
+      if (deployedBytecode === compiledBytecode) {
         return 'perfect';
       }
 
-      if (trimMetadata(deployedBytecode) === trimMetadata(compiledBytecode)){
+      if (trimMetadata(deployedBytecode) === trimMetadata(compiledBytecode)) {
         return 'partial';
       }
     }
@@ -376,14 +379,14 @@ export default class Injector {
    * Throws if addresses array contains a null value (express) or is length 0
    * @param {string[] = []} addresses param (submitted to injector)
    */
-  private validateAddresses(addresses: string[] = []){
+  private validateAddresses(addresses: string[] = []) {
     const err = new Error("Missing address for submitted sources/metadata");
 
-    if (!addresses.length){
+    if (!addresses.length) {
       throw err;
     }
 
-    for (const address of addresses ){
+    for (const address of addresses) {
       if (address == null) throw err;
     }
   }
@@ -392,10 +395,10 @@ export default class Injector {
    * Throws if `chain` is falsy or wrong type
    * @param {string} chain param (submitted to injector)
    */
-  private validateChain(chain: string){
+  private validateChain(chain: string) {
     const err = new Error("Missing chain name for submitted sources/metadata");
 
-    if (!chain || typeof chain !== 'string'){
+    if (!chain || typeof chain !== 'string') {
       throw err;
     }
   }
@@ -412,7 +415,7 @@ export default class Injector {
    */
   public async inject(
     inputData: InputData
-  ) : Promise<Match> {
+  ): Promise<Match> {
     const { repository, chain, addresses, files } = inputData;
     this.validateAddresses(addresses);
     this.validateChain(chain);
@@ -424,24 +427,24 @@ export default class Injector {
       status: null
     };
 
-    for (const metadata of metadataFiles){
+    for (const metadata of metadataFiles) {
       const sources = this.rearrangeSources(metadata, files)
 
       // Starting from here, we cannot trust the metadata object anymore,
       // because it is modified inside recompile.
-      const target = Object.assign({}, metadata.settings.compilationTarget);
+      const target = Object.assign({}, metadata.content.settings.compilationTarget);
 
-      let compilationResult : RecompilationResult;
+      let compilationResult: RecompilationResult;
       try {
-        compilationResult = await recompile(metadata, sources, this.log)
-      } catch(err) {
-        this.log.info({loc: `[RECOMPILE]`, err: err});
+        compilationResult = await recompile(metadata.content, sources, this.log)
+      } catch (err) {
+        this.log.info({ loc: `[RECOMPILE]`, err: err });
         throw err;
       }
 
       // When injector is called by monitor, the bytecode has already been
       // obtained for address and we only need to compare w/ compilation result.
-      if (inputData.bytecode){
+      if (inputData.bytecode) {
 
         const status = this.compareBytecodes(
           inputData.bytecode,
@@ -453,8 +456,8 @@ export default class Injector {
           status: status
         }
 
-      // For other cases, we need to retrieve the code for specified address
-      // from the chain.
+        // For other cases, we need to retrieve the code for specified address
+        // from the chain.
       } else {
         match = await this.matchBytecodeToAddress(
           chain,
@@ -469,11 +472,11 @@ export default class Injector {
       // and the sources.
       if (match.address && match.status === 'perfect') {
 
-        this.storePerfectMatchData(repository, chain, match.address, compilationResult, sources)
+        this.storePerfectMatchData(repository, chain, match.address, compilationResult, sources, metadataFiles[0].name)
 
-      } else if (match.address && match.status === 'partial'){
+      } else if (match.address && match.status === 'partial') {
 
-        this.storePartialMatchData(repository, chain, match.address, compilationResult, sources)
+        this.storePartialMatchData(repository, chain, match.address, compilationResult, sources, metadataFiles[0].name)
 
       } else {
         const err = new Error(
