@@ -255,7 +255,7 @@ export default class Injector {
   }
 
   /**
-   * Writes verified sources to repository by address under the "partial_matches" folder.
+   * Writes verified sources to repository by address under the "partial_match" folder.
    * This method used when recompilation bytecode matches deployed *except* for their
    * metadata components.
    * @param {string}              repository        repository root (ex: 'repository')
@@ -275,7 +275,7 @@ export default class Injector {
     const addressPath = path.join(
       repository,
       'contracts',
-      'partial_matches',
+      'partial_match',
       chain,
       address,
       '/metadata.json'
@@ -292,7 +292,7 @@ export default class Injector {
       const outputPath = path.join(
         repository,
         'contracts',
-        'partial_matches',
+        'partial_match',
         chain,
         address,
         'sources',

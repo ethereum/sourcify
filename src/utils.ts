@@ -286,7 +286,7 @@ export function fetchAllFileUrls(chain: string, address: string): Array<string> 
 }
 
 export function fetchAllFilePaths(chain: string, address: string): Array<FileObject>{
-  const fullPath: string = path.resolve(__dirname, `../repository/contract/${chain}/${address}/`);
+  const fullPath: string = path.resolve(__dirname, `../repository/contracts/full_match/${chain}/${address}/`);
   const files: Array<FileObject> = [];
   dirTree(fullPath, {}, (item) => {
     files.push({"name": item.name, "path": item.path});

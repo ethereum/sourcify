@@ -205,11 +205,11 @@ describe('injector', function(){
 
       await injector.inject(inputData);
 
-      // Verify metadata was saved, indexed by address under partial_matches
+      // Verify metadata was saved, indexed by address under partial_match
       const expectedPath = path.join(
         mockRepo,
         'contracts',
-        'partial_matches',
+        'partial_match',
         getChainId('localhost').toString(),
         simpleInstance.options.address,
         '/metadata.json'
@@ -221,7 +221,7 @@ describe('injector', function(){
       // // Check symlink also
       // const outputIdMetadata = path.join(
       //   mockRepo,
-      //   'partial_matches',
+      //   'partial_match',
       //   this.getIdFromChainName(chain).toString(),
       //   simpleInstance.options.address,
       //   '/metadata.json'
