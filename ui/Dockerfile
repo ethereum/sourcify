@@ -1,4 +1,4 @@
-FROM node:10 as builder
+FROM node:10-alpine as builder
 
 ARG WORKSPACE_DIR=/app
 WORKDIR ${WORKSPACE_DIR}
