@@ -1,0 +1,7 @@
+vversion: "3.7"
+  services:
+    s3:
+      logging:
+        driver: loki
+        options:
+          loki-url: ${LOKI_URL}
