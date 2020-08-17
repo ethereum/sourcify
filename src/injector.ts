@@ -76,8 +76,13 @@ export default class Injector {
     for (const chain of ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli']){
       const chainOption = getChainByName(chain);
       this.chains[chainOption.chainId] = {};
-      const web3 = chainOption.web3[0].replace('${INFURA_ID}', this.infuraPID);
-      this.chains[chainOption.chainId].web3 = new Web3(web3);
+      if (this.infuraPID === "changeinfuraid") {
+        const web3 = chainOption.fullnode.dappnode;
+        this.chains[chainOption.chainId].web3 = new Web3(web3);
+      } else {
+        const web3 = chainOption.web3[0].replace('${INFURA_ID}', this.infuraPID);
+        this.chains[chainOption.chainId].web3 = new Web3(web3);
+      }
     }
 
     // For unit testing with testrpc...
@@ -255,7 +260,7 @@ export default class Injector {
   }
 
   /**
-   * Writes verified sources to repository by address under the "partial_matches" folder.
+   * Writes verified sources to repository by address under the "partial_match" folder.
    * This method used when recompilation bytecode matches deployed *except* for their
    * metadata components.
    * @param {string}              repository        repository root (ex: 'repository')
@@ -275,7 +280,7 @@ export default class Injector {
     const addressPath = path.join(
       repository,
       'contracts',
-      'partial_matches',
+      'partial_match',
       chain,
       address,
       '/metadata.json'
@@ -292,7 +297,7 @@ export default class Injector {
       const outputPath = path.join(
         repository,
         'contracts',
-        'partial_matches',
+        'partial_match',
         chain,
         address,
         'sources',
