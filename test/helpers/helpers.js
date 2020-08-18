@@ -2,7 +2,7 @@ const dagPB = require('ipld-dag-pb');
 const UnixFS = require('ipfs-unixfs');
 const multihashes = require('multihashes');
 const Web3 = require('web3');
-const utils = require('./../../src/utils');
+const utils = require('./../../src/utils/Utils');
 
 /**
  * Deploys a contract to testrpc

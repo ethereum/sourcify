@@ -33,7 +33,7 @@ export class Server {
     this.app.use(cors())
     this.app.use(bodyParser.json());
     this.app.use(bodyParser.urlencoded({ extended: true }));
-    this.app.get('/health', (req, res) => res.status(200).send('Alive and kicking!'))
+    this.app.get('/health', (_req, res) => res.status(200).send('Alive and kicking!'))
     this.app.use('/repository', express.static(this.repository), serveIndex(this.repository, {'icons': true}))
     this.app.use('/', routes);
     this.app.use(genericErrorHandler);
@@ -41,5 +41,5 @@ export class Server {
     this.app.listen(this.port, () => logger.info({loc: '[LISTEN]'}, `Injector listening on port ${this.port}!`))
   }
 }
-
+// tslint:disable no-unused-variable
 const server = new Server();

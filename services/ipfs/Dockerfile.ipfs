@@ -4,7 +4,7 @@ WORKDIR /app
 RUN git clone https://github.com/komputing/source_verify_ens_updater.git /app
 RUN ./gradlew build --no-daemon 
 RUN curl https://dist.ipfs.io/go-ipfs/v0.4.23/go-ipfs_v0.4.23_linux-amd64.tar.gz > go-ipfs.tar.gz && tar xvfz go-ipfs.tar.gz && cd go-ipfs && ./install.sh
-ADD src/ipfs/publish_to_ipfs.sh ./publish_to_ipfs.sh
-ADD src/ipfs/entrypoint.sh ./entrypoint.sh
+ADD services/ipfs/publish_to_ipfs.sh ./publish_to_ipfs.sh
+ADD services/ipfs/entrypoint.sh ./entrypoint.sh
 RUN chmod +x ./entrypoint.sh
 ENTRYPOINT ./entrypoint.sh

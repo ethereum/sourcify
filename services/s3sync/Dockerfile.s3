@@ -4,8 +4,8 @@ RUN apt-get update && apt-get install -y cron curl unzip
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 RUN unzip awscliv2.zip
 RUN ./aws/install
-ADD src/s3sync/login_sync_s3.sh ./login_sync_s3.sh
-ADD src/s3sync/entrypoint.sh ./entrypoint.sh
+ADD services/s3sync/login_sync_s3.sh ./login_sync_s3.sh
+ADD services/s3sync/entrypoint.sh ./entrypoint.sh
 COPY ./environments/.env .env
 RUN chmod +x ./entrypoint.sh
 ENTRYPOINT ./entrypoint.sh
