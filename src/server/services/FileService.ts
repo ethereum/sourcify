@@ -28,10 +28,7 @@ export class FileService implements IFileService {
     logger: bunyan;
 
     constructor(logger?: bunyan) {
-      this.logger = Logger("FileService");
-      if(logger !== undefined){
-          this.logger = logger;
-      }
+      this.logger = logger || Logger("FileService");
     }
 
     async getTreeByChainAndAddress(chainId: any, address: string): Promise<string[]> {

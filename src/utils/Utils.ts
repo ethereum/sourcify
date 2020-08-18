@@ -5,7 +5,7 @@ import {NextFunction, Request, Response} from "express";
 import fs from 'fs';
 import path from 'path';
 import config from '../config';
-import { FileObject, Match, RecompilationResult, InputData, StringMap, ReformattedMetadata} from '../common/types';
+import { RecompilationResult, StringMap, ReformattedMetadata} from '../common/types';
 
 const solc: any = require('solc');
 

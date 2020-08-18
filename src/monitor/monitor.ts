@@ -2,64 +2,19 @@ import Web3 from 'web3';
 import { ethers } from 'ethers';
 import request from  'request-promise-native';
 import { outputFileSync } from 'fs-extra';
-
-import { cborDecode, getChainByName, InputData } from '../utils';
-import Injector from '../injector';
+import { Logger } from '../utils/logger/Logger';
+import * as bunyan from 'bunyan';
+import { cborDecode } from '../utils/Utils';
+import Injector from '../server/services/Injector';
+import config from '../config';
 import { BlockTransactionObject } from 'web3-eth';
-import Logger from 'bunyan';
-import dotenv from 'dotenv';
-
-dotenv.config({ path: process.cwd().concat("/environments/.env") });
+import { MonitorConfig, ChainSet, CustomChainConfig, Queue, QueueItem, StringToBooleanMap, InputData } from '../common/types';
 
 const multihashes = require('multihashes');
 const save = outputFileSync;
 
-export interface MonitorConfig {
-  ipfsCatRequest? : string,
-  ipfsProvider? : any,
-  swarmGateway? : string,
-  repository? : string,
-  blockTime? : number,
-  silent?: boolean
-}
-
-export interface CustomChainConfig {
-  name: string,
-  url: string
-}
-
-declare interface ChainSet {
-  [key: string]: ChainData
-}
-
-declare interface ChainData {
-  web3 : Web3,
-  metadataQueue: Queue,
-  sourceQueue: Queue,
-  latestBlock : number,
-  chainId: string
-}
-
-declare interface Queue {
-  [key: string]: QueueItem;
-}
-
-declare interface QueueItem {
-  bzzr1? : string,
-  ipfs? : string,
-  timestamp? : number,
-  metadataRaw? : string,
-  sources?: any,
-  found?: any,
-  bytecode?: string
-}
-
-declare interface StringToBooleanMap {
-  [key: string]: boolean;
-}
-
 export default class Monitor {
-  private log: Logger;
+  private log: bunyan;
   private chains : ChainSet;
   private ipfsCatRequest: string;
   private ipfsProvider: any;
@@ -74,33 +29,27 @@ export default class Monitor {
   /**
    * Constructor
    *
-   * @param {MonitorConfig = {}} config [description]
+   * @param {MonitorConfig = {}} monitorConfig [description]
    */
-  constructor(config: MonitorConfig = {}) {
+  constructor(monitorConfig: MonitorConfig = {}) {
     this.chains = {};
 
-    this.ipfsCatRequest = config.ipfsCatRequest || 'https://ipfs.infura.io:5001/api/v0/cat?arg=';
-    this.ipfsProvider = config.ipfsProvider || null;
+    this.ipfsCatRequest = monitorConfig.ipfsCatRequest || 'https://ipfs.infura.io:5001/api/v0/cat?arg=';
+    this.ipfsProvider = monitorConfig.ipfsProvider || null;
     this.swarmGateway = 'https://swarm-gateways.net/';
-    this.repository = config.repository || 'repository';
-    this.blockTime = config.blockTime || 15 // seconds;
+    this.repository = monitorConfig.repository || 'repository';
+    this.blockTime = monitorConfig.blockTime || 15 // seconds;
 
     this.blockInterval = null;
     this.sourceInterval = null;
     this.metadataInterval = null;
 
-    this.log = Logger.createLogger({
-      name: "Monitor",
-      streams: [{
-        stream: process.stdout,
-        level: config.silent ? 'fatal' : 30
-      }]
-    });
+    this.log = Logger("Monitor");
 
     this.injector = new Injector({
       offline: true,
       log: this.log,
-      infuraPID: process.env.INFURA_ID || "changeinfuraid"
+      infuraPID: config.infuraId || "changeinfuraid"
     });
   }
 
@@ -119,7 +68,7 @@ export default class Monitor {
       : ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli'];
 
     for (const chain of chainNames){
-      const options = getChainByName(chain)
+      const options = this.injector.fileService.getChainByName(chain)
       const url : string = customChain
         ? customChain.url
         : options.web3[0].replace("${INFURA_ID}", process.env.INFURA_ID);
@@ -670,7 +619,7 @@ export default class Monitor {
 
       const data: InputData = {
         repository: this.repository,
-        chain: getChainByName(chain).chainId.toString(),
+        chain: this.injector.fileService.getChainByName(chain).chainId.toString(),
         addresses: [address],
         files: queueItem.found.files,
         bytecode: queueItem.found.bytecode

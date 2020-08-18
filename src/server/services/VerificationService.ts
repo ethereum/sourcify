@@ -3,8 +3,8 @@ import { IFileService } from './FileService';
 import * as bunyan from 'bunyan';
 import { Logger } from '../../utils/logger/Logger';
 import { FileArray } from 'express-fileupload';
-import MQ from '../services/Queue'; 
-import { ConfirmChannel } from 'amqplib';
+// import MQ from '../services/Queue'; 
+// import { ConfirmChannel } from 'amqplib';
 import Injector from './Injector';
 import config from '../../config';
 
@@ -51,8 +51,8 @@ export class VerificationService implements IVerificationService {
 
     inject = async (inputData: InputData): Promise<Match> => {
         // Injection
-        let injection: Promise<Match>;
-        const { repository, chain, addresses, files } = inputData;
+        //const injection: Promise<Match>;
+        //const { repository, chain, addresses, files } = inputData;
 
         const injector = new Injector({
             localChainUrl: config.localchain.url,

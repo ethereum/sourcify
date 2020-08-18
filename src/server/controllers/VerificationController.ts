@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response, Router, query } from 'express';
+import { NextFunction, Request, Response, Router } from 'express';
 import BaseController from './BaseController';
 import { IController } from '../../common/interfaces';
 import { IVerificationService } from '../services/VerificationService';
@@ -39,7 +39,7 @@ export default class VerificationController extends BaseController implements IC
         } else {
             if (!req.files) next(new NotFoundError("Input files not found!"));
             inputData.files = await this.verificationService.organizeFilesForSubmision(req.files!!);
-            let matches: any = [];
+            const matches: any = [];
             matches.push(await this.verificationService.inject(inputData));
             const promises: Promise<Match>[] = [];
             promises.push(matches);
@@ -50,7 +50,7 @@ export default class VerificationController extends BaseController implements IC
 
     }
 
-    checkByAddresses = async (req: any, res: Response, next: NextFunction) => {
+    checkByAddresses = async (req: any, res: Response) => {
         let resultArray: Array<Object> = [];
         const map: Map<string, Object> = new Map();
         for(const address of req.query.addresses.split(',')) {

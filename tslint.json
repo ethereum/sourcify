@@ -9,7 +9,6 @@
     "no-commented-code": {
       "severity": "warning"
     },
-    "no-use-before-declare": false,
-    "disable"
+    "no-use-before-declare": false
   }
 }

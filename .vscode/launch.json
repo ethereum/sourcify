@@ -26,7 +26,7 @@
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
       "name": "CLI",
-      "program": "${workspaceFolder}/dist/sourcify.js",
+      "program": "${workspaceFolder}/dist/cli/sourcify.js",
       "request": "launch",
       "restart": true,
       "preLaunchTask": "tsc: build - tsconfig.json",
