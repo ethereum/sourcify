@@ -63,7 +63,7 @@ export default class FileController extends BaseController implements IControlle
         this.router.route(':chain/:address')
         .get([
             query('chain').custom(chain => isValidChain(chain, this.fileService)), //TODO
-            query('address').custom(address => isValidAddress)
+            query('address').custom(address => isValidAddress(address))
         ], this.safeHandler(this.getByChainAndAddress));
         return this.router;
     }

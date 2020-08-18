@@ -1,8 +1,8 @@
-import { NextFunction, Request, Response, Router, query } from 'express';
+import { NextFunction, Request, Response, Router } from 'express';
 import BaseController from './BaseController';
 import { IController } from '../../common/interfaces';
 import { IVerificationService } from '../services/VerificationService';
-import { InputData, Match } from '../../common/types';
+import { InputData } from '../../common/types';
 import config from '../../config';
 import { IFileService } from '../services/FileService';
 import * as bunyan from 'bunyan';
@@ -27,33 +27,40 @@ export default class VerificationController extends BaseController implements IC
     }
 
     verify = async (req: Request, res: Response, next: NextFunction) => {
+        let chain;
+        try {
+            chain = this.fileService.getChainId(req.body.chain);
+        } catch (error) {
+            return next(error);
+        }
+        
         const inputData: InputData = {
             repository: config.repository.path,
             files: [],
             addresses: [req.body.address],
-            chain: this.fileService.getChainId(req.body.chain)
+            chain: chain
         }
         const result = await this.verificationService.findByAddress(req.body.address, inputData.chain, config.repository.path);
         if (result.length != 0) {
             res.status(200).send({ result });
         } else {
-            if (!req.files) next(new NotFoundError("Input files not found!"));
-            inputData.files = await this.verificationService.organizeFilesForSubmision(req.files!!);
-            let matches: any = [];
+            if (!req.files) return next(new NotFoundError("Address for specified chain not found in repository"));
+            // tslint:disable no-useless-cast
+            this.fileService.zipExtractor(req.files[0]);
+            inputData.files = await this.verificationService.organizeFilesForSubmision(req.files!);
+            const matches: any = [];
             matches.push(await this.verificationService.inject(inputData));
-            const promises: Promise<Match>[] = [];
-            promises.push(matches);
-            Promise.all(promises).then((result) => {
+            Promise.all(matches).then((result) => {
                 res.status(200).send({ result })
-            })
+            }).catch()
         }
 
     }
 
-    checkByAddresses = async (req: any, res: Response, next: NextFunction) => {
+    checkByAddresses = async (req: any, res: Response) => {
         let resultArray: Array<Object> = [];
         const map: Map<string, Object> = new Map();
-        for(const address of req.query.addresses.split(',')) {
+        for (const address of req.query.addresses.split(',')) {
             for (const chainId of req.query.chainIds.split(',')) {
 
                 const object: any = await this.verificationService.findByAddress(address, chainId, config.repository.path);

@@ -9,6 +9,7 @@ import { Logger } from '../../utils/logger/Logger';
 import * as bunyan from 'bunyan';
 import { FileArray } from 'express-fileupload';
 import util from 'util';
+import extract from 'extract-zip';
 
 export interface IFileService {
     getTreeByChainAndAddress(chainId: any, address: string): Promise<Array<string>>;
@@ -22,16 +23,14 @@ export interface IFileService {
     getChainId(chain: string): string;
     getChainByName(name: string): any;
     getIdFromChainName(chain: string): number;
+    zipExtractor(source: any): void;
 }
 
 export class FileService implements IFileService {
     logger: bunyan;
 
     constructor(logger?: bunyan) {
-      this.logger = Logger("FileService");
-      if(logger !== undefined){
-          this.logger = logger;
-      }
+      this.logger = logger || Logger("FileService");
     }
 
     async getTreeByChainAndAddress(chainId: any, address: string): Promise<string[]> {
@@ -182,6 +181,14 @@ export class FileService implements IFileService {
       }
     
       throw new NotFoundError(`Chain ${name} not supported!`)
+    }
+
+    async zipExtractor(source: string) {
+      try{
+        await extract(source, { dir: process.env.tempPath})
+      } catch(err) {
+        console.log(err)
+      }
     }
 
 }
