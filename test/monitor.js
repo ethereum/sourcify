@@ -1,3 +1,6 @@
+process.env.MOCK_REPOSITORY = './mockRepository';
+process.env.MOCK_DATABASE = './mockDatabase';
+
 const assert = require('assert');
 const ganache = require('ganache-cli');
 const exec = require('child_process').execSync;
@@ -10,8 +13,7 @@ const request = require('request-promise-native')
 
 const { deployFromArtifact, waitSecs } = require('./helpers/helpers');
 const SimpleWithImport = require('./sources/pass/simpleWithImport.js');
-const Monitor = require('../src/monitor').default;
-const getChainByName = require('../src/utils').getChainByName;
+const Monitor = require('../src/monitor/monitor').default;
 
 describe('monitor', function(){
 
@@ -25,7 +27,6 @@ describe('monitor', function(){
     let node;
     let chain = 'localhost';
     let mockRepo = 'mockRepository';
-    let chainId = getChainByName(chain).chainId.toString();
 
     before(async function(){
       server = ganache.server({blockTime: 1});
@@ -62,6 +63,8 @@ describe('monitor', function(){
         repository: mockRepo,
         silent: true
       });
+
+      const chainId = monitor.injector.fileService.getChainByName(chain).chainId.toString();
 
       await monitor.start(customChain);
 
