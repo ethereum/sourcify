@@ -24,7 +24,7 @@ services:
     - "${SERVER_EXTERNAL_PORT}:${SERVER_PORT}"
     volumes:
       - <<: *project-repository-mount
-        target: /home/app/repository/
+        target: /home/data/repository
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT}/health"]
       interval: 30s

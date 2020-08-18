@@ -1,3 +1,6 @@
+process.env.MOCK_REPOSITORY = './mockRepository';
+process.env.MOCK_DATABASE = './mockDatabase';
+
 const assert = require('assert');
 const ganache = require('ganache-cli');
 const exec = require('child_process').execSync;
@@ -10,8 +13,7 @@ const request = require('request-promise-native')
 
 const { deployFromArtifact, waitSecs } = require('./helpers/helpers');
 const SimpleWithImport = require('./sources/pass/simpleWithImport.js');
-const Monitor = require('../src/monitor').default;
-const getChainByName = require('../src/utils').getChainByName;
+const Monitor = require('../src/monitor/monitor').default;
 
 describe('monitor', function(){
 
@@ -25,7 +27,6 @@ describe('monitor', function(){
     let node;
     let chain = 'localhost';
     let mockRepo = 'mockRepository';
-    let chainId = getChainByName(chain).chainId.toString();
 
     before(async function(){
       server = ganache.server({blockTime: 1});
@@ -63,6 +64,8 @@ describe('monitor', function(){
         silent: true
       });
 
+      const chainId = monitor.injector.fileService.getChainByName(chain).chainId.toString();
+
       await monitor.start(customChain);
 
       const sourceAIpfs = await ipfs.add(SimpleWithImport.sourceCodes["SimpleWithImport.sol"]);
@@ -76,7 +79,7 @@ describe('monitor', function(){
 
       // Verify metadata stored
       const addressMetadataPath = path.join(mockRepo, 'contracts', 'full_match', chainId, address, 'metadata.json');
-      const ipfsMetadataPath = path.join(mockRepo, 'ipfs', metadataIpfs[0].path);
+      const ipfsMetadataPath = path.join(mockRepo, 'ipfs', metadataIpfs.path);
 
       const addressMetadata = fs.readFileSync(addressMetadataPath, 'utf-8');
       const ipfsMetadata = fs.readFileSync(ipfsMetadataPath, 'utf-8');

@@ -3,4 +3,4 @@ services:
   s3sync:
     build:
       context: ../
-      dockerfile: src/s3sync/Dockerfile.s3
+      dockerfile: services/s3sync/Dockerfile.s3
