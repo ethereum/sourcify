@@ -1,11 +1,11 @@
 import cbor from 'cbor';
 import Web3 from 'web3';
 import Logger from 'bunyan';
-import {NextFunction, Request, Response} from "express";
+import { NextFunction, Request, Response } from "express";
 import fs from 'fs';
 import path from 'path';
 import config from '../config';
-import { RecompilationResult, StringMap, ReformattedMetadata} from '../common/types';
+import { RecompilationResult, StringMap, ReformattedMetadata } from '../common/types';
 
 const solc: any = require('solc');
 
@@ -74,13 +74,13 @@ function reformatMetadata(
 
   if (contractName == '') {
     const err = new Error("Could not determine compilation target from metadata.");
-    log.info({loc: '[REFORMAT]', err: err});
+    log.info({ loc: '[REFORMAT]', err: err });
     throw err;
   }
 
   input['sources'] = {}
   for (const source in sources) {
-    input.sources[source] = {'content': sources[source]}
+    input.sources[source] = { 'content': sources[source] }
   }
 
   input.language = metadata.language
@@ -171,7 +171,7 @@ type Tag = {
  * Update repository tag
  */
 export function updateRepositoryTag(repositoryPath?: string) {
-  if(repositoryPath !== undefined) {
+  if (repositoryPath !== undefined) {
     config.repository.path = repositoryPath;
   }
   const filePath: string = path.join(config.repository.path, 'manifest.json')
@@ -219,13 +219,13 @@ export function errorMiddleware(
   request: Request,
   response: Response,
   next: NextFunction
-) : void {
-    const status = error.status || 500;
-    const message = error.message || "Something went wrong";
+): void {
+  const status = error.status || 500;
+  const message = error.message || "Something went wrong";
 
-    response
-      .status(status)
-      .send({
-        error: message
-      });
+  response
+    .status(status)
+    .send({
+      error: message
+    });
 }
