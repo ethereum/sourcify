@@ -14,11 +14,11 @@
 // const util = require('util');
 // const path = require('path');
 
-// const app = require('../src/server').default;
-// const getChainId = require('../src/utils').getChainId;
+// const app = require('../src/server/server').default;
 // const { deployFromArtifact } = require('./helpers/helpers');
 
 // const Simple = require('./sources/pass/simple.js');
+// const { FileService } = require('../src/server/services/FileService');
 // const simpleMetadataPath = './test/sources/all/simple.meta.json';
 // const simpleSourcePath = './test/sources/all/Simple.sol';
 // const simpleMetadataJSONPath = './test/sources/metadata/simple.meta.object.json';
@@ -35,7 +35,8 @@
 //   let web3;
 //   let simpleInstance;
 //   let serverAddress = 'http://localhost:2000';
-//   let chainId = getChainId('localhost');
+//   let fileservice = new FileService();
+//   let chainId = fileservice.getChainId('localhost');
 
 //   before(async function () {
 //     server = ganache.server({ chainId: chainId });

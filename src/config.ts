@@ -22,7 +22,7 @@ export default {
         port: process.env.REPOSITORY_PORT || 80,
         // tslint:disable no-useless-cast
         path: process.env.MOCK_REPOSITORY || path.resolve(__dirname, process.env.REPOSITORY_PATH!) || path.resolve(__dirname, './repository'),
-        dbPath: path.resolve(__dirname, process.env.DATABASE_PATH!!) 
+        dbPath: process.env.MOCK_DATABASE || path.resolve(__dirname, process.env.DATABASE_PATH!) || path.resolve(__dirname, './database')
     },
     mq: {
         username:process.env.RABBITMQUSERNAME,

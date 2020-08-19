@@ -66,8 +66,6 @@
         "-r",
         "ts-node/register",
         "${workspaceFolder}/test/server.js",
-        "--grep",
-        "when submitting only an address / chain pair",
         "--no-timeout"
     ],
     "console": "integratedTerminal",

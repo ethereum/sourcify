@@ -1,4 +1,5 @@
 process.env.MOCK_REPOSITORY = './mockRepository';
+process.env.MOCK_DATABASE = './mockDatabase';
 
 const assert = require('assert');
 const ganache = require('ganache-cli');
@@ -27,7 +28,7 @@ const getChainId = require('../src/utils/Utils').getChainId;
 
 describe('injector', function () {
     describe('inject', function () {
-        this.timeout(25000);
+        this.timeout(250000);
 
         let server;
         let port = 8545;
