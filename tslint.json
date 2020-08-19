@@ -5,7 +5,6 @@
     "mocha-avoid-only": true,
     "prefer-const": true,
     "no-var-keyword": true,
-    "interface-name": [true, "always-prefix"],
     "no-commented-code": {
       "severity": "warning"
     },

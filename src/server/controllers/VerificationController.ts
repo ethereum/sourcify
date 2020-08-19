@@ -38,14 +38,15 @@ export default class VerificationController extends BaseController implements IC
             res.status(200).send({ result });
         } else {
             if (!req.files) next(new NotFoundError("Input files not found!"));
-            inputData.files = await this.verificationService.organizeFilesForSubmision(req.files!!);
+            // tslint:disable no-useless-cast
+            inputData.files = await this.verificationService.organizeFilesForSubmision(req.files!);
             const matches: any = [];
             matches.push(await this.verificationService.inject(inputData));
             const promises: Promise<Match>[] = [];
             promises.push(matches);
             Promise.all(promises).then((result) => {
                 res.status(200).send({ result })
-            })
+            }).catch()
         }
 
     }

@@ -27,7 +27,7 @@ export class VerificationService implements IVerificationService {
         this.fileService = fileService;
     }
 
-    verify(inputData: InputData): Promise<string[]> {
+    verify(_inputData: InputData): Promise<string[]> {
         throw new Error("Method not implemented.");
     }
 
