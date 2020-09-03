@@ -1,7 +1,7 @@
 process.env.TESTING = true;
-process.env.SERVER_PORT = 2000;
 process.env.LOCALCHAIN_URL = "http://localhost:8545";
 process.env.MOCK_REPOSITORY = './mockRepository';
+process.env.MOCK_DATABASE = './mockDatabase';
 
 const assert = require('assert');
 const chai = require('chai');
@@ -29,12 +29,12 @@ const simpleWithImportMetadataPath = './test/sources/all/simpleWithImport.meta.j
 chai.use(chaiHttp);
 
 describe("server", function () {
-  this.timeout(15000);
+  this.timeout(50000);
 
   let server;
   let web3;
   let simpleInstance;
-  let serverAddress = 'http://localhost:2000';
+  let serverAddress = 'http://localhost:5000';
   let fileservice = new FileService();
   let chainId = fileservice.getChainId('localhost');
 

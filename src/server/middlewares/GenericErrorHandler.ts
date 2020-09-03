@@ -3,12 +3,11 @@ import { Request, Response } from 'express';
 import { Logger } from '../../utils/logger/Logger';
 import * as bunyan from 'bunyan';
 
-export default function genericErrorHandler(err: any, _req: Request, res: Response): void {
+export default function genericErrorHandler(err: any, _req: Request, res: Response, _next: any): void {
   const logger: bunyan = Logger("Error");
   logger.error(`Error: ${JSON.stringify(err)}`);
   if (err.errors) {
     res.status(err.code).json({
-      code: err.code,
       message: err.message,
       errors: err.errors
     });
@@ -16,7 +15,6 @@ export default function genericErrorHandler(err: any, _req: Request, res: Respon
   }
   const errorCode = +err.code || err.status || 500;
   res.status(errorCode).json({
-    code: errorCode,
-    message: err.message || HttpStatus.getStatusText(errorCode)
+    error: err.message || HttpStatus.getStatusText(errorCode)
   });
 }

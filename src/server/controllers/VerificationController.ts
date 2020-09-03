@@ -27,17 +27,24 @@ export default class VerificationController extends BaseController implements IC
     }
 
     verify = async (req: Request, res: Response, next: NextFunction) => {
+        let chain;
+        try {
+            chain = this.fileService.getChainId(req.body.chain);
+        } catch (error) {
+            return next(error);
+        }
+        
         const inputData: InputData = {
             repository: config.repository.path,
             files: [],
             addresses: [req.body.address],
-            chain: this.fileService.getChainId(req.body.chain)
+            chain: chain
         }
         const result = await this.verificationService.findByAddress(req.body.address, inputData.chain, config.repository.path);
         if (result.length != 0) {
             res.status(200).send({ result });
         } else {
-            if (!req.files) next(new NotFoundError("Input files not found!"));
+            if (!req.files) return next(new NotFoundError("Address for specified chain not found in repository"));
             // tslint:disable no-useless-cast
             inputData.files = await this.verificationService.organizeFilesForSubmision(req.files!);
             const matches: any = [];

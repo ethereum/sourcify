@@ -17,9 +17,9 @@ import {
   getBytecode,
   recompile,
   getBytecodeWithoutMetadata as trimMetadata,
-  NotFound,
   save
 } from '../../utils/Utils';
+import { NotFoundError } from '../../common/errors';
 
 export interface InjectorConfig {
   infuraPID?: string,
@@ -371,11 +371,11 @@ export default class Injector {
    * @param {string} chain param (submitted to injector)
    */
   private validateChain(chain: string) {
-    const err = new Error("Missing chain name for submitted sources/metadata");
-
+    
     if (!chain || typeof chain !== 'string') {
-      throw err;
+      throw new Error("Missing chain name for submitted sources/metadata");;
     }
+    
   }
 
   /**
@@ -468,7 +468,7 @@ export default class Injector {
           err: err
         })
 
-        throw new NotFound(err.message);
+        throw new NotFoundError(err.message);
       }
     }
     return match;

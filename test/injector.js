@@ -28,7 +28,7 @@ const getChainId = require('../src/utils/Utils').getChainId;
 
 describe('injector', function () {
     describe('inject', function () {
-        this.timeout(25000);
+        this.timeout(100000);
 
         let server;
         let port = 8545;
