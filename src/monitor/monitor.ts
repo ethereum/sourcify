@@ -1,6 +1,7 @@
 import Web3 from 'web3';
 import { ethers } from 'ethers';
 import request from  'request-promise-native';
+import concat from 'it-concat';
 import { outputFileSync } from 'fs-extra';
 import { Logger } from '../utils/logger/Logger';
 import * as bunyan from 'bunyan';
@@ -118,7 +119,7 @@ export default class Monitor {
    */
   private async ipfsCat(hash: string) : Promise<string> {
     return (this.ipfsProvider)
-      ? this.ipfsProvider.cat(`/ipfs/${hash}`)
+      ? (await concat(this.ipfsProvider.cat(`/ipfs/${hash}`))).slice().toString()
       : request(`${this.ipfsCatRequest}${hash}`);
   }
 

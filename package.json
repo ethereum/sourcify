@@ -69,6 +69,7 @@
     "helmet": "^3.22.0",
     "html": "^1.0.0",
     "http-status-codes": "^1.3.0",
+    "it-concat": "^1.0.1",
     "multihashes": "^0.4.15",
     "path": "^0.12.7",
     "request": "^2.88.0",
