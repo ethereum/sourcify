@@ -56,7 +56,7 @@
   {
     "type": "node",
     "request": "launch",
-    "name": "Mocha Test",
+    "name": "Mocha Monitor",
     "program": "${workspaceRoot}/node_modules/.bin/mocha",
     "env": {
       "TESTING": "true",
@@ -65,10 +65,47 @@
     "args": [
         "-r",
         "ts-node/register",
-        "${workspaceFolder}/test/server.js",
+        "${workspaceFolder}/test/monitor.js",
         "--no-timeout"
     ],
     "console": "integratedTerminal",
     "internalConsoleOptions": "neverOpen"
-}]
+},
+{
+  "type": "node",
+  "request": "launch",
+  "name": "Mocha Server",
+  "program": "${workspaceRoot}/node_modules/.bin/mocha",
+  "env": {
+    "TESTING": "true",
+    "LOCALCHAIN_URL": "http://localhost:8545"
+  },
+  "args": [
+      "-r",
+      "ts-node/register",
+      "${workspaceFolder}/test/server.js",
+      "--no-timeout"
+  ],
+  "console": "integratedTerminal",
+  "internalConsoleOptions": "neverOpen"
+},
+{
+  "type": "node",
+  "request": "launch",
+  "name": "Mocha Injector",
+  "program": "${workspaceRoot}/node_modules/.bin/mocha",
+  "env": {
+    "TESTING": "true",
+    "LOCALCHAIN_URL": "http://localhost:8545"
+  },
+  "args": [
+      "-r",
+      "ts-node/register",
+      "${workspaceFolder}/test/injector.js",
+      "--no-timeout"
+  ],
+  "console": "integratedTerminal",
+  "internalConsoleOptions": "neverOpen"
+}
+]
 }

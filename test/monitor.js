@@ -79,7 +79,7 @@ describe('monitor', function(){
 
       // Verify metadata stored
       const addressMetadataPath = path.join(mockRepo, 'contracts', 'full_match', chainId, address, 'metadata.json');
-      const ipfsMetadataPath = path.join(mockRepo, 'ipfs', metadataIpfs[0].path);
+      const ipfsMetadataPath = path.join(mockRepo, 'ipfs', metadataIpfs.path);
 
       const addressMetadata = fs.readFileSync(addressMetadataPath, 'utf-8');
       const ipfsMetadata = fs.readFileSync(ipfsMetadataPath, 'utf-8');
