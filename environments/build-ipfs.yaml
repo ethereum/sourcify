@@ -2,5 +2,5 @@ version: "3.7"
 services:
   ipfs:
     build:
-      context: ../
-      dockerfile: services/ipfs/Dockerfile.ipfs
+      context: ../services/ipfs/
+      dockerfile: ./Dockerfile.ipfs

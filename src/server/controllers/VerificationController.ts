@@ -1,42 +1,37 @@
 import { NextFunction, Request, Response, Router } from 'express';
 import BaseController from './BaseController';
 import { IController } from '../../common/interfaces';
-import { IVerificationService } from '../services/VerificationService';
-import { InputData } from '../../common/types';
-import config from '../../config';
-import { IFileService } from '../services/FileService';
+import { IVerificationService } from '@ethereum-sourcify/verification';
+import { InputData, getChainId, Logger } from '@ethereum-sourcify/core';
+import { NotFoundError } from '../../common/errors'
+import { IValidationService, PathBuffer } from '@ethereum-sourcify/validation';
 import * as bunyan from 'bunyan';
-import { Logger } from '../../utils/logger/Logger';
-import { NotFoundError } from '../../common/errors';
+import config from '../../config';
+import fileUpload from 'express-fileupload';
 
 export default class VerificationController extends BaseController implements IController {
     router: Router;
     verificationService: IVerificationService;
-    fileService: IFileService;
+    validationService: IValidationService;
     logger: bunyan;
 
-    constructor(verificationService: IVerificationService, fileService: IFileService, logger?: bunyan) {
+    constructor(verificationService: IVerificationService, validationService: IValidationService) {
         super();
         this.router = Router();
         this.verificationService = verificationService;
-        this.fileService = fileService;
+        this.validationService = validationService;
         this.logger = Logger("VerificationService");
-        if (logger !== undefined) {
-            this.logger = logger;
-        }
     }
 
     verify = async (req: Request, res: Response, next: NextFunction) => {
         let chain;
         try {
-            chain = this.fileService.getChainId(req.body.chain);
+            chain = getChainId(req.body.chain);
         } catch (error) {
             return next(error);
         }
-        
+
         const inputData: InputData = {
-            repository: config.repository.path,
-            files: [],
             addresses: [req.body.address],
             chain: chain
         }
@@ -46,9 +41,18 @@ export default class VerificationController extends BaseController implements IC
         } else {
             if (!req.files) return next(new NotFoundError("Address for specified chain not found in repository"));
             // tslint:disable no-useless-cast
-            inputData.files = await this.verificationService.organizeFilesForSubmision(req.files!);
+            const filesArr: fileUpload.UploadedFile[] = [].concat(req.files!.files); // ensure an array, regardless of how many files received
+            const wrappedFiles = filesArr.map(f => new PathBuffer(f.data));
+            const validatedFiles = this.validationService.checkFiles(wrappedFiles);
+            const errors = validatedFiles
+                            .filter(file => !file.isValid())
+                            .map(file => file.info);
+            if (errors.length) {
+                return next(new NotFoundError(errors.join("\n"), false));
+            }
+            inputData.files = validatedFiles;
             const matches: any = [];
-            matches.push(await this.verificationService.inject(inputData));
+            matches.push(await this.verificationService.inject(inputData, config.localchain.url));
             Promise.all(matches).then((result) => {
                 res.status(200).send({ result })
             }).catch()
@@ -61,12 +65,15 @@ export default class VerificationController extends BaseController implements IC
         const map: Map<string, Object> = new Map();
         for (const address of req.query.addresses.split(',')) {
             for (const chainId of req.query.chainIds.split(',')) {
-
-                const object: any = await this.verificationService.findByAddress(address, chainId, config.repository.path);
-                object.chainId = chainId;
-                if (object.length != 0) {
-                    map.set(address, object[0]);
-                    break;
+                try {
+                    const object: any = await this.verificationService.findByAddress(address, chainId, config.repository.path);
+                    object.chainId = chainId;
+                    if (object.length != 0) {
+                        map.set(address, object[0]);
+                        break;
+                    }
+                } catch (error) {
+                    // ignore
                 }
             };
             if (!map.has(address)) {

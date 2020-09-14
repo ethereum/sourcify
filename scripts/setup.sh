@@ -30,7 +30,7 @@ cd environments
 echo $PWD
 eval ${COMPOSE_COMMAND} pull
 echo $PWD
-eval ${COMPOSE_COMMAND} up -d --force-recreate
+eval ${COMPOSE_COMMAND} --compatibility up -d --force-recreate
 echo $PWD
 cd ..
 ./scripts/clear-repo.sh

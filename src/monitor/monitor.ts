@@ -1,22 +1,31 @@
 import Web3 from 'web3';
 import { ethers } from 'ethers';
-import request from  'request-promise-native';
+import request from 'request-promise-native';
 import concat from 'it-concat';
 import { outputFileSync } from 'fs-extra';
-import { Logger } from '../utils/logger/Logger';
 import * as bunyan from 'bunyan';
-import { cborDecode } from '../utils/Utils';
-import Injector from '../server/services/Injector';
+import { Injector } from '@ethereum-sourcify/verification';
 import config from '../config';
 import { BlockTransactionObject } from 'web3-eth';
-import { MonitorConfig, ChainSet, CustomChainConfig, Queue, QueueItem, StringToBooleanMap, InputData } from '../common/types';
+import {
+  MonitorConfig,
+  ChainSet,
+  CustomChainConfig,
+  Queue,
+  QueueItem,
+  StringToBooleanMap,
+  InputData,
+  getChainByName,
+  cborDecode,
+  Logger
+} from '@ethereum-sourcify/core';
 
 const multihashes = require('multihashes');
 const save = outputFileSync;
 
 export default class Monitor {
   private log: bunyan;
-  private chains : ChainSet;
+  private chains: ChainSet;
   private ipfsCatRequest: string;
   private ipfsProvider: any;
   private swarmGateway: string;
@@ -50,7 +59,8 @@ export default class Monitor {
     this.injector = new Injector({
       offline: true,
       log: this.log,
-      infuraPID: config.infuraId || "changeinfuraid"
+      infuraPID: config.endpoint.infuraId || "changeinfuraid",
+      repositoryPath: config.repository.path
     });
   }
 
@@ -63,14 +73,14 @@ export default class Monitor {
    * @param  {CustomChainConfig} customChain
    * @return {Promise<void>}
    */
-  public async start(customChain? : CustomChainConfig) : Promise<void> {
+  public async start(customChain?: CustomChainConfig): Promise<void> {
     const chainNames: string[] = customChain
       ? [customChain.name]
       : ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli'];
 
-    for (const chain of chainNames){
-      const options = this.injector.fileService.getChainByName(chain)
-      const url : string = customChain
+    for (const chain of chainNames) {
+      const options = getChainByName(chain)
+      const url: string = customChain
         ? customChain.url
         : options.web3[0].replace("${INFURA_ID}", process.env.INFURA_ID);
 
@@ -103,8 +113,8 @@ export default class Monitor {
   /**
    * Shuts down the monitor
    */
-  public stop() : void {
-    this.log.info({loc: '[STOP]'}, 'Stopping monitor')
+  public stop(): void {
+    this.log.info({ loc: '[STOP]' }, 'Stopping monitor')
     clearInterval(this.blockInterval);
     clearInterval(this.metadataInterval);
     clearInterval(this.sourceInterval);
@@ -117,7 +127,7 @@ export default class Monitor {
    * @param  {string}          hash [description]
    * @return {Promise<string>}      [description]
    */
-  private async ipfsCat(hash: string) : Promise<string> {
+  private async ipfsCat(hash: string): Promise<string> {
     return (this.ipfsProvider)
       ? (await concat(this.ipfsProvider.cat(`/ipfs/${hash}`))).slice().toString()
       : request(`${this.ipfsCatRequest}${hash}`);
@@ -136,7 +146,7 @@ export default class Monitor {
    * @param {string}    key   index
    * @param {QueueItem} item
    */
-  private addToQueue(queue: Queue, key:string, item: QueueItem) : void {
+  private addToQueue(queue: Queue, key: string, item: QueueItem): void {
     if (queue[key] !== undefined)
       return;
     item.timestamp = new Date().getTime();
@@ -149,8 +159,8 @@ export default class Monitor {
    * @param {StringMap} queue        string indexed set
    * @param {number}    maxAgeInSecs staleness criterion
    */
-  private cleanupQueue(queue: Queue, maxAgeInSecs: number) : void {
-    const toDelete : StringToBooleanMap = {};
+  private cleanupQueue(queue: Queue, maxAgeInSecs: number): void {
+    const toDelete: StringToBooleanMap = {};
 
     // getTime
     for (const key in queue) {
@@ -171,12 +181,12 @@ export default class Monitor {
   /**
    * Retrieves blocks for all chains
    */
-  private retrieveBlocks() : void {
-    try{
+  private retrieveBlocks(): void {
+    try {
       for (const chain in this.chains) {
         this.retrieveBlocksInChain(chain);
       }
-    } catch(err) {
+    } catch (err) {
       this.log.info(
         {
           loc: '[ERROR]',
@@ -193,13 +203,13 @@ export default class Monitor {
    *
    * @param {any} chain [description]
    */
-  private retrieveBlocksInChain(chain: any) : void {
+  private retrieveBlocksInChain(chain: any): void {
     const _this = this;
     const web3 = this.chains[chain].web3;
 
     web3.eth.getBlockNumber((err: Error, newBlockNr: number) => {
       if (err) return;
-
+      // tslint:disable restrict-plus-operands
       newBlockNr = Math.min(newBlockNr, _this.chains[chain].latestBlock + 4);
 
       for (; _this.chains[chain].latestBlock < newBlockNr; _this.chains[chain].latestBlock++) {
@@ -262,11 +272,11 @@ export default class Monitor {
    * @param {string} chain   ex: 'ropsten'
    * @param {string} address contract address
    */
-  private retrieveCode(chain: string, address: string) : void {
+  private retrieveCode(chain: string, address: string): void {
     const _this = this;
     const web3 = this.chains[chain].web3;
 
-    web3.eth.getCode(address, (err : Error, bytecode : string) => {
+    web3.eth.getCode(address, (err: Error, bytecode: string) => {
       if (err) return;
 
       try {
@@ -294,7 +304,7 @@ export default class Monitor {
             }
           );
 
-        } else if (cborData && 'ipfs' in cborData){
+        } else if (cborData && 'ipfs' in cborData) {
           const metadataIPFS = multihashes.toB58String(cborData['ipfs']);
 
           this.log.info(
@@ -329,20 +339,20 @@ export default class Monitor {
    * address has been queued after a contract deployment was detected by the retrieveBlocks
    * engine.
    */
-  private retrieveMetadata() : void {
-  try {
-    for (const chain in this.chains) {
-      this.retrieveMetadataInChain(chain);
+  private retrieveMetadata(): void {
+    try {
+      for (const chain in this.chains) {
+        this.retrieveMetadataInChain(chain);
+      }
+    } catch (err) {
+      this.log.info(
+        {
+          loc: '[ERROR]',
+          err: err
+        },
+        'Metadata retreival error'
+      );
     }
-  } catch(err) {
-    this.log.info(
-      {
-        loc: '[ERROR]',
-        err: err
-      },
-      'Metadata retreival error'
-    );
-  }
   }
 
   /**
@@ -350,7 +360,7 @@ export default class Monitor {
    * for chain after deleting stale metadata queue items.
    * @param {string} chain ex: 'ropsten'
    */
-  private retrieveMetadataInChain(chain: string) : void {
+  private retrieveMetadataInChain(chain: string): void {
     /// Try to retrieve metadata for one hour
     this.cleanupQueue(this.chains[chain].metadataQueue, 3600)
     for (const address in this.chains[chain].metadataQueue) {
@@ -391,7 +401,7 @@ export default class Monitor {
     bytecode: string | undefined,
     metadataBzzr1: string | undefined,
     metadataIpfs: string | undefined
-  ) : Promise<void> {
+  ): Promise<void> {
     let metadataRaw;
 
     const found: any = {
@@ -411,7 +421,7 @@ export default class Monitor {
         }
       } catch (error) { return }
 
-    } else if (metadataIpfs){
+    } else if (metadataIpfs) {
 
       try {
         metadataRaw = await this.ipfsCat(metadataIpfs);
@@ -435,15 +445,15 @@ export default class Monitor {
 
     const metadata = JSON.parse(metadataRaw);
     delete this.chains[chain].metadataQueue[address];
-    
+
     try {
       this.addToQueue(this.chains[chain].sourceQueue, address, {
         metadataRaw: metadataRaw.toString(),
         sources: metadata.sources,
         found: found
       });
-      } catch (error) {
-      
+    } catch (error) {
+
     }
   }
 
@@ -456,20 +466,20 @@ export default class Monitor {
    * Queries decentralized storage for solidity files at the location specified by
    * a metadata sources manifest.
    */
-  private retrieveSource() : void{
-    try{
-    for (const chain in this.chains) {
-      this.retrieveSourceInChain(chain);
+  private retrieveSource(): void {
+    try {
+      for (const chain in this.chains) {
+        this.retrieveSourceInChain(chain);
+      }
+    } catch (err) {
+      this.log.info(
+        {
+          loc: '[ERROR]',
+          err: err
+        },
+        'Source retreival error'
+      );
     }
-  } catch(err) {
-    this.log.info(
-      {
-        loc: '[ERROR]',
-        err: err
-      },
-      'Source retreival error'
-    );
-  }
   }
 
   /**
@@ -477,7 +487,7 @@ export default class Monitor {
    * deleting stale source queue items.
    * @param {string} chain ex: 'ropsten'
    */
-  private retrieveSourceInChain(chain: string) : void {
+  private retrieveSourceInChain(chain: string): void {
     /// Try to retrieve source for five days.
     this.cleanupQueue(this.chains[chain].sourceQueue, 3600 * 24 * 5)
 
@@ -511,7 +521,7 @@ export default class Monitor {
     chain: string,
     address: string,
     sources: any
-  ) : void {
+  ): void {
     for (const sourceKey in sources) {
       for (const url of sources[sourceKey]['urls']) {
 
@@ -537,7 +547,7 @@ export default class Monitor {
     address: string,
     sourceKey: string,
     url: string
-  ) : Promise<void> {
+  ): Promise<void> {
     if (!url.startsWith('bzz-raw')) return;
 
     try {
@@ -564,7 +574,7 @@ export default class Monitor {
     address: string,
     sourceKey: string,
     url: string
-  ) : Promise<void> {
+  ): Promise<void> {
 
     if (!url.startsWith('dweb')) return;
 
@@ -595,7 +605,7 @@ export default class Monitor {
     address: string,
     sourceKey: string,
     source: string
-  ) : Promise<void>{
+  ): Promise<void> {
 
     this.chains[chain].sourceQueue[address].found.files.push(source);
     delete this.chains[chain].sourceQueue[address].sources[sourceKey]
@@ -619,8 +629,7 @@ export default class Monitor {
     if (Object.keys(queueItem.sources).length == 0) {
 
       const data: InputData = {
-        repository: this.repository,
-        chain: this.injector.fileService.getChainByName(chain).chainId.toString(),
+        chain: getChainByName(chain).chainId.toString(),
         addresses: [address],
         files: queueItem.found.files,
         bytecode: queueItem.found.bytecode
@@ -629,14 +638,14 @@ export default class Monitor {
       try {
         await this.injector.inject(data)
 
-        if (queueItem.found.swarm){
+        if (queueItem.found.swarm) {
           save(queueItem.found.swarm.metadataPath, queueItem.found.swarm.file)
         }
 
-        if (queueItem.found.ipfs){
+        if (queueItem.found.ipfs) {
           save(queueItem.found.ipfs.metadataPath, queueItem.found.ipfs.file)
         }
-      } catch(err){
+      } catch (err) {
         /* ignore */
       }
       delete this.chains[chain].sourceQueue[address];
