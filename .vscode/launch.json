@@ -4,14 +4,23 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
+
     {
       "type": "node",
       "request": "launch",
       "name": "Server",
       "program": "${workspaceFolder}/dist/server/server.js",
       "envFile": "${workspaceFolder}/environments/.env",
-      "preLaunchTask": "tsc: build - tsconfig.json",
-      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+      //"preLaunchTask": "tsc: build - tsconfig.json",
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js",
+        "${workspaceFolder}/services/core/build/**/*.js",
+        "${workspaceFolder}/services/validation/build/**/*.js",
+        "${workspaceFolder}/services/verification/build/**/*.js"
+      ],
+      "smartStep": true,
+      "console": "internalConsole", 
+      "outputCapture": "std",
     },
     {
       "type": "node",
@@ -20,7 +29,9 @@
       "program": "${workspaceFolder}/scripts/run_monitor.js",
       "envFile": "${workspaceFolder}/environments/.env",
       "preLaunchTask": "tsc: build - tsconfig.json",
-      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js"
+      ]
     },
     {
       "console": "integratedTerminal",
@@ -32,9 +43,13 @@
       "preLaunchTask": "tsc: build - tsconfig.json",
       "type": "node",
       "args": [
-        "-c", "1",
-        "-a", "0xfff0f5801a9e13426c306455A3BcC5EF3e9BC979",
-        "-f", "test/testcontracts/ERC20Standard/ERC20Standard.sol", "test/testcontracts/ERC20Standard/metadata.json"
+        "-c",
+        "1",
+        "-a",
+        "0xfff0f5801a9e13426c306455A3BcC5EF3e9BC979",
+        "-f",
+        "test/testcontracts/ERC20Standard/ERC20Standard.sol",
+        "test/testcontracts/ERC20Standard/metadata.json"
       ]
     },
     {
@@ -43,69 +58,262 @@
       "name": "Mocha File",
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "args": [
-          "-r",
-          "ts-node/register",
-          "--timeout",
-          "999999",
-          "--colors",
-          "${file}"
+        "-r",
+        "ts-node/register",
+        "--timeout",
+        "999999",
+        "--colors",
+        "${file}"
       ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
-  },
-  {
-    "type": "node",
-    "request": "launch",
-    "name": "Mocha Monitor",
-    "program": "${workspaceRoot}/node_modules/.bin/mocha",
-    "env": {
-      "TESTING": "true",
-      "LOCALCHAIN_URL": "http://localhost:8545"
     },
-    "args": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Mocha Monitor",
+      "program": "${workspaceRoot}/node_modules/.bin/mocha",
+      "env": {
+        "TESTING": "true",
+        "LOCALCHAIN_URL": "http://localhost:8545"
+      },
+      "args": [
         "-r",
         "ts-node/register",
         "${workspaceFolder}/test/monitor.js",
         "--no-timeout"
-    ],
-    "console": "integratedTerminal",
-    "internalConsoleOptions": "neverOpen"
-},
-{
-  "type": "node",
-  "request": "launch",
-  "name": "Mocha Server",
-  "program": "${workspaceRoot}/node_modules/.bin/mocha",
-  "env": {
-    "TESTING": "true",
-    "LOCALCHAIN_URL": "http://localhost:8545"
-  },
-  "args": [
-      "-r",
-      "ts-node/register",
-      "${workspaceFolder}/test/server.js",
-      "--no-timeout"
-  ],
-  "console": "integratedTerminal",
-  "internalConsoleOptions": "neverOpen"
-},
-{
-  "type": "node",
-  "request": "launch",
-  "name": "Mocha Injector",
-  "program": "${workspaceRoot}/node_modules/.bin/mocha",
-  "env": {
-    "TESTING": "true",
-    "LOCALCHAIN_URL": "http://localhost:8545"
-  },
-  "args": [
-      "-r",
-      "ts-node/register",
-      "${workspaceFolder}/test/injector.js",
-      "--no-timeout"
-  ],
-  "console": "integratedTerminal",
-  "internalConsoleOptions": "neverOpen"
-}
-]
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Mocha Server",
+      "program": "${workspaceRoot}/node_modules/.bin/mocha",
+      "env": {
+        "TESTING": "true",
+        "LOCALCHAIN_URL": "http://localhost:8545"
+      },
+      "args": [
+        "-r",
+        "ts-node/register",
+        "${workspaceFolder}/test/server.js",
+        "--no-timeout"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Mocha Injector",
+      "program": "${workspaceRoot}/node_modules/.bin/mocha",
+      "env": {
+        "TESTING": "true",
+        "LOCALCHAIN_URL": "http://localhost:8545"
+      },
+      "args": [
+        "-r",
+        "ts-node/register",
+        "${workspaceFolder}/test/injector.js",
+        "--no-timeout"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Validation service (single file)",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/services/validation/build/index.js",
+      "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
+      "outFiles": [
+        "${workspaceFolder}/services/validation/build/**/*.js"
+      ],
+      "args": [
+        "services/validation/test/files/single/1_Storage.sol",
+        "services/validation/test/files/single/metadata.json"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Validation service (single file - missing)",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/services/validation/build/index.js",
+      "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
+      "outFiles": [
+        "${workspaceFolder}/services/validation/build/**/*.js"
+      ],
+      "args": [
+        "services/validation/test/files/single/metadata.json"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Validation service (truffle project - zip)",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/services/validation/build/index.js",
+      "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
+      "outFiles": [
+        "${workspaceFolder}/services/validation/build/**/*.js"
+      ],
+      "args": [
+        "services/validation/test/files/truffle-example.zip"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Validation service (truffle project - zip - missing source)",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/services/validation/build/index.js",
+      "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
+      "outFiles": [
+        "${workspaceFolder}/services/validation/build/**/*.js"
+      ],
+      "args": [
+        "services/validation/test/files/truffle-example-missing-source.zip"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Validation service (truffle project - directory)",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/services/validation/build/index.js",
+      "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
+      "outFiles": [
+        "${workspaceFolder}/services/validation/build/**/*.js"
+      ],
+      "args": [
+        "services/validation/test/files/truffle-example"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Validation service (truffle project - directory - missing source)",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/services/validation/build/index.js",
+      "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
+      "outFiles": [
+        "${workspaceFolder}/services/validation/build/**/*.js"
+      ],
+      "args": [
+        "services/validation/test/files/truffle-example-missing-source"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Validation service (multiple files)",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/services/validation/build/index.js",
+      "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
+      "outFiles": [
+        "${workspaceFolder}/services/validation/build/**/*.js"
+      ],
+      "args": [
+        "services/validation/test/files/multiple/Escrow.sol",
+        "services/validation/test/files/multiple/Main.sol",
+        "services/validation/test/files/multiple/Owned.sol",
+        "services/validation/test/files/multiple/provableAPI_0.6.sol",
+        "services/validation/test/files/multiple/Savings.sol",
+        "services/validation/test/files/multiple/metadata.json"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Validation service (multiple files, but missing)",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/services/validation/build/index.js",
+      "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
+      "outFiles": [
+        "${workspaceFolder}/services/validation/build/**/*.js"
+      ],
+      "args": [
+        "services/validation/test/files/multiple/Main.sol",
+        "services/validation/test/files/multiple/provableAPI_0.6.sol",
+        "services/validation/test/files/multiple/Savings.sol",
+        "services/validation/test/files/multiple/metadata.json"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Validation service (single file, altered code)",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/services/validation/build/index.js",
+      "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
+      "outFiles": [
+        "${workspaceFolder}/services/validation/build/**/*.js"
+      ],
+      "args": [
+        "services/validation/test/files/single-invalid"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Validation service (single file, prepare json)",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/services/validation/build/index.js",
+      "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
+      "outFiles": [
+        "${workspaceFolder}/services/validation/build/**/*.js"
+      ],
+      "args": [
+        "--prepare-json",
+        "browser/1_Storage.sol:Storage",
+        "services/validation/test/files/single"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Verification service (single file)",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/services/verification/build/index.js",
+      "preLaunchTask": "tsc: build - services/verification/tsconfig.json",
+      "outFiles": [
+        "${workspaceFolder}/services/verification/build/**/*.js"
+      ],
+      "args": [
+        "-c",
+        "1",
+        "-a",
+        "0xfff0f5801a9e13426c306455A3BcC5EF3e9BC979",
+        "-f",
+        "services/validation/test/ERC20Standard.sol",
+        "services/validation/test/metadata.json"
+      ]
+    }
+  ]
 }

@@ -1,0 +1,4 @@
+Storage (browser/1_Storage.sol):
+  Error: Invalid sources:
+    browser/1_Storage.sol:
+      The calculated and the provided hash values don't match.
