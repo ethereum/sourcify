@@ -11,7 +11,9 @@
       "program": "${workspaceFolder}/dist/server/server.js",
       "envFile": "${workspaceFolder}/environments/.env",
       "preLaunchTask": "tsc: build - tsconfig.json",
-      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js"
+      ]
     },
     {
       "type": "node",
@@ -20,7 +22,9 @@
       "program": "${workspaceFolder}/scripts/run_monitor.js",
       "envFile": "${workspaceFolder}/environments/.env",
       "preLaunchTask": "tsc: build - tsconfig.json",
-      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js"
+      ]
     },
     {
       "console": "integratedTerminal",
@@ -32,9 +36,13 @@
       "preLaunchTask": "tsc: build - tsconfig.json",
       "type": "node",
       "args": [
-        "-c", "1",
-        "-a", "0xfff0f5801a9e13426c306455A3BcC5EF3e9BC979",
-        "-f", "test/testcontracts/ERC20Standard/ERC20Standard.sol", "test/testcontracts/ERC20Standard/metadata.json"
+        "-c",
+        "1",
+        "-a",
+        "0xfff0f5801a9e13426c306455A3BcC5EF3e9BC979",
+        "-f",
+        "test/testcontracts/ERC20Standard/ERC20Standard.sol",
+        "test/testcontracts/ERC20Standard/metadata.json"
       ]
     },
     {
@@ -43,69 +51,86 @@
       "name": "Mocha File",
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "args": [
-          "-r",
-          "ts-node/register",
-          "--timeout",
-          "999999",
-          "--colors",
-          "${file}"
+        "-r",
+        "ts-node/register",
+        "--timeout",
+        "999999",
+        "--colors",
+        "${file}"
       ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
-  },
-  {
-    "type": "node",
-    "request": "launch",
-    "name": "Mocha Monitor",
-    "program": "${workspaceRoot}/node_modules/.bin/mocha",
-    "env": {
-      "TESTING": "true",
-      "LOCALCHAIN_URL": "http://localhost:8545"
     },
-    "args": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Mocha Monitor",
+      "program": "${workspaceRoot}/node_modules/.bin/mocha",
+      "env": {
+        "TESTING": "true",
+        "LOCALCHAIN_URL": "http://localhost:8545"
+      },
+      "args": [
         "-r",
         "ts-node/register",
         "${workspaceFolder}/test/monitor.js",
         "--no-timeout"
-    ],
-    "console": "integratedTerminal",
-    "internalConsoleOptions": "neverOpen"
-},
-{
-  "type": "node",
-  "request": "launch",
-  "name": "Mocha Server",
-  "program": "${workspaceRoot}/node_modules/.bin/mocha",
-  "env": {
-    "TESTING": "true",
-    "LOCALCHAIN_URL": "http://localhost:8545"
-  },
-  "args": [
-      "-r",
-      "ts-node/register",
-      "${workspaceFolder}/test/server.js",
-      "--no-timeout"
-  ],
-  "console": "integratedTerminal",
-  "internalConsoleOptions": "neverOpen"
-},
-{
-  "type": "node",
-  "request": "launch",
-  "name": "Mocha Injector",
-  "program": "${workspaceRoot}/node_modules/.bin/mocha",
-  "env": {
-    "TESTING": "true",
-    "LOCALCHAIN_URL": "http://localhost:8545"
-  },
-  "args": [
-      "-r",
-      "ts-node/register",
-      "${workspaceFolder}/test/injector.js",
-      "--no-timeout"
-  ],
-  "console": "integratedTerminal",
-  "internalConsoleOptions": "neverOpen"
-}
-]
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Mocha Server",
+      "program": "${workspaceRoot}/node_modules/.bin/mocha",
+      "env": {
+        "TESTING": "true",
+        "LOCALCHAIN_URL": "http://localhost:8545"
+      },
+      "args": [
+        "-r",
+        "ts-node/register",
+        "${workspaceFolder}/test/server.js",
+        "--no-timeout"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Mocha Injector",
+      "program": "${workspaceRoot}/node_modules/.bin/mocha",
+      "env": {
+        "TESTING": "true",
+        "LOCALCHAIN_URL": "http://localhost:8545"
+      },
+      "args": [
+        "-r",
+        "ts-node/register",
+        "${workspaceFolder}/test/injector.js",
+        "--no-timeout"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Validation service",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/services/validation/build/index.js",
+      "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
+      "outFiles": [
+        "${workspaceFolder}/services/validation/build/**/*.js"
+      ],
+      "args": [
+        "services/validation/test/1_Storage.sol",
+        "services/validation/test/metadata.json"
+      ]
+    }
+  ]
 }
