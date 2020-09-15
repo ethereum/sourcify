@@ -2,7 +2,7 @@ import { FileObject } from '../../common/types';
 import dirTree from 'directory-tree';
 import config from '../../config'
 import fs from 'fs';
-import * as chainOptions from '../../chains.json';
+import * as core from '../../../services/core/build/index'
 import { Match } from '../../common/types';
 import { NotFoundError, BadRequestError } from '../../common/errors';
 import { Logger } from '../../utils/logger/Logger';
@@ -19,9 +19,6 @@ export interface IFileService {
     findInputFiles(files: FileArray): any;
     sanitizeInputFiles(inputs: any): string[];
     findByAddress(address: string, chain: string, repository: string): Match[];
-    getChainId(chain: string): string;
-    getChainByName(name: string): any;
-    getIdFromChainName(chain: string): number;
 }
 
 export class FileService implements IFileService {
@@ -32,12 +29,12 @@ export class FileService implements IFileService {
     }
 
     async getTreeByChainAndAddress(chainId: any, address: string): Promise<string[]> {
-        chainId = this.getChainId(chainId);
+        chainId = core.getChainId(chainId);
         return this.fetchAllFileUrls(chainId, address);
     }
     
     async getByChainAndAddress(chainId: any, address: string): Promise<FileObject[]> {
-        chainId = this.getChainId(chainId);
+        chainId = core.getChainId(chainId);
         return this.fetchAllFileContents(chainId, address);
     }
 
@@ -147,38 +144,6 @@ export class FileService implements IFileService {
         address: address,
         status: "perfect"
       }]
-    }
-    
-    getChainId(chain: string): string {
-      for(const chainOption in chainOptions){
-          const network = chainOptions[chainOption].network;
-          const chainId = chainOptions[chainOption].chainId;
-          if( (network && network.toLowerCase() === chain) || String(chainId) === chain){
-            return String(chainOptions[chainOption].chainId);
-          }
-        }
-    
-      throw new NotFoundError(`Chain ${chain} not supported!`);
-    }
-
-    getIdFromChainName(chain: string): number {
-      for(const chainOption in chainOptions) {
-        if(chainOptions[chainOption].network === chain){
-          return chainOptions[chainOption].chainId;
-        }
-      }
-      throw new NotFoundError("Chain not found!"); //TODO: should we throw an error here or just let it pass?
-    }
-    
-    getChainByName(name: string): any {
-      for(const chainOption in chainOptions) {
-        const network = chainOptions[chainOption].network;
-        if(network && network.toLowerCase() === name){
-          return chainOptions[chainOption];
-        }
-      }
-    
-      throw new NotFoundError(`Chain ${name} not supported!`)
     }
 
 }
