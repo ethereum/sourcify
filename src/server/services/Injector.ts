@@ -391,11 +391,10 @@ export default class Injector {
   public async inject(
     inputData: InputData
   ): Promise<Match> {
-    const { repository, chain, addresses, files } = inputData;
+    const { repository, chain, addresses, sources, metadataFiles } = inputData;
     this.validateAddresses(addresses);
     this.validateChain(chain);
 
-    const metadataFiles = this.findMetadataFiles(files);
 
     let match: Match = {
       address: null,
@@ -403,7 +402,6 @@ export default class Injector {
     };
 
     for (const metadata of metadataFiles) {
-      const sources = this.rearrangeSources(metadata, files)
 
       // Starting from here, we cannot trust the metadata object anymore,
       // because it is modified inside recompile.
@@ -411,7 +409,10 @@ export default class Injector {
 
       let compilationResult: RecompilationResult;
       try {
-        compilationResult = await recompile(metadata, sources, this.log)
+        for (let source of sources) {
+          compilationResult = await recompile(metadata, source, this.log)
+        }
+        
       } catch (err) {
         this.log.info({ loc: `[RECOMPILE]`, err: err });
         throw err;
