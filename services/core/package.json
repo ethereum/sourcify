@@ -1,17 +1,13 @@
 {
-  "name": "sourcify-validation",
+  "name": "sourcify-core",
   "version": "1.0.0",
-  "description": "Pre-verification script to check if files are valid and ready to be submitted for verification",
+  "description": "",
   "bin": {
-    "sourcify-validation": "./build/index.js"
+    "sourcify-core": "./build/index.js"
   },
   "files": [
     "build"
   ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/sourcifyeth/sourcify-script.git"
-  },
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -22,13 +18,9 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "^14.6.4",
     "nodemon": "^2.0.4",
     "rimraf": "^3.0.2",
     "ts-node": "^9.0.0",
     "typescript": "^4.0.2"
-  },
-  "dependencies": {
-    "web3": "^1.2.11"
   }
 }

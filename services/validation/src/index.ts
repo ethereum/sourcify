@@ -21,8 +21,6 @@ fileNames.forEach(fileName => {
 
 });
 
-console.log(checkFiles(files));
-
 export function checkFiles(files: any) {
     const sanitizedFiles = sanitizeInputFiles(findInputFiles(files))
     const metadataFiles = findMetadataFiles(sanitizedFiles);
@@ -38,6 +36,10 @@ export function checkFiles(files: any) {
     }
 }
 
+export function organizeFilesForSubmition(files: any){
+    const f = findInputFiles(files);
+    return sanitizeInputFiles(f);
+}
 
 function findInputFiles(files: any): any {
     const inputs: any = [];
