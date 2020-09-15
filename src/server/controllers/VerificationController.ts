@@ -3,12 +3,12 @@ import BaseController from './BaseController';
 import { IController } from '../../common/interfaces';
 import { IVerificationService } from '../services/VerificationService';
 import { InputData } from '../../common/types';
+import * as core from '../../../services/core/build/index'
 import config from '../../config';
 import { IFileService } from '../services/FileService';
 import * as bunyan from 'bunyan';
 import { Logger } from '../../utils/logger/Logger';
 import { NotFoundError } from '../../common/errors';
-import { checkFiles } from '../../../services/validation/build'
 
 export default class VerificationController extends BaseController implements IController {
     router: Router;
@@ -30,15 +30,14 @@ export default class VerificationController extends BaseController implements IC
     verify = async (req: Request, res: Response, next: NextFunction) => {
         let chain;
         try {
-            chain = this.fileService.getChainId(req.body.chain);
+            chain = core.getChainId(req.body.chain);
         } catch (error) {
             return next(error);
         }
 
         const inputData: InputData = {
             repository: config.repository.path,
-            metadataFiles: [],
-            sources: [],
+            files: [],
             addresses: [req.body.address],
             chain: chain
         }
@@ -48,25 +47,7 @@ export default class VerificationController extends BaseController implements IC
         } else {
             if (!req.files) return next(new NotFoundError("Address for specified chain not found in repository"));
             // tslint:disable no-useless-cast
-            const inputs: any = [];
-            let response;
-            if (req.files && req.files.files) {
-                // Case: <UploadedFile[]>
-                if (Array.isArray(req.files.files)) {
-                    req.files.files.forEach(file => {
-                        inputs.push(file)
-                    })
-                    response = checkFiles(inputs);
-
-                    // Case: <UploadedFile>
-                } else if (req.files.files["data"]) {
-                    inputs.push(req.files);
-                    response = checkFiles(inputs);
-                }
-
-            }
-            inputData.metadataFiles = response.metadataFiles;
-            inputData.sources = response.sources;
+            inputData.files = await this.verificationService.organizeFilesForSubmision(req.files!);
             const matches: any = [];
             matches.push(await this.verificationService.inject(inputData));
             Promise.all(matches).then((result) => {
