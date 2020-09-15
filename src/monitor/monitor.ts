@@ -622,7 +622,7 @@ export default class Monitor {
         repository: this.repository,
         chain: this.injector.fileService.getChainByName(chain).chainId.toString(),
         addresses: [address],
-        files: queueItem.found.files,
+        sources: queueItem.found.files,
         bytecode: queueItem.found.bytecode
       };
 
