@@ -3,6 +3,7 @@ import path from 'path';
 import { Logger } from '../../utils/logger/Logger';
 import * as bunyan from 'bunyan';
 import { Match, RecompilationResult, InputData, StringMap } from '../../common/types';
+import * as core from '../../../services/core/build/index'
 import { FileService } from '../services/FileService';
 // tslint:disable no-unused-variable
 import fs from 'fs'
@@ -62,7 +63,7 @@ export default class Injector {
    */
   private initChains() {
     for (const chain of ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli']) {
-      const chainOption = this.fileService.getChainByName(chain);
+      const chainOption = core.getChainByName(chain);
       this.chains[chainOption.chainId] = {};
       if (this.infuraPID === "changeinfuraid") {
         const web3 = chainOption.fullnode.dappnode;
@@ -75,7 +76,7 @@ export default class Injector {
 
     // For unit testing with testrpc...
     if (this.localChainUrl) {
-      const chainOption = this.fileService.getChainByName('localhost');
+      const chainOption = core.getChainByName('localhost');
       this.chains[chainOption.chainId] = {
         web3: new Web3(chainOption.web3[0])
       };
@@ -371,11 +372,11 @@ export default class Injector {
    * @param {string} chain param (submitted to injector)
    */
   private validateChain(chain: string) {
-    
+
     if (!chain || typeof chain !== 'string') {
       throw new Error("Missing chain name for submitted sources/metadata");;
     }
-    
+
   }
 
   /**
@@ -391,10 +392,11 @@ export default class Injector {
   public async inject(
     inputData: InputData
   ): Promise<Match> {
-    const { repository, chain, addresses, sources, metadataFiles } = inputData;
+    const { repository, chain, addresses, files } = inputData;
     this.validateAddresses(addresses);
     this.validateChain(chain);
 
+    const metadataFiles = this.findMetadataFiles(files);
 
     let match: Match = {
       address: null,
@@ -402,6 +404,7 @@ export default class Injector {
     };
 
     for (const metadata of metadataFiles) {
+      const sources = this.rearrangeSources(metadata, files)
 
       // Starting from here, we cannot trust the metadata object anymore,
       // because it is modified inside recompile.
@@ -409,10 +412,7 @@ export default class Injector {
 
       let compilationResult: RecompilationResult;
       try {
-        for (let source of sources) {
-          compilationResult = await recompile(metadata, source, this.log)
-        }
-        
+        compilationResult = await recompile(metadata, sources, this.log)
       } catch (err) {
         this.log.info({ loc: `[RECOMPILE]`, err: err });
         throw err;
