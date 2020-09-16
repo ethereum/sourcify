@@ -7,7 +7,7 @@ import { Logger } from '../utils/logger/Logger';
 import * as bunyan from 'bunyan';
 import { cborDecode } from '../utils/Utils';
 import Injector from '../server/services/Injector';
-import * as core from '../../services/core/build/index'
+import { getChainByName } from '../../services/core/build/index';
 import config from '../config';
 import { BlockTransactionObject } from 'web3-eth';
 import { MonitorConfig, ChainSet, CustomChainConfig, Queue, QueueItem, StringToBooleanMap, InputData } from '../common/types';
@@ -70,7 +70,7 @@ export default class Monitor {
       : ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli'];
 
     for (const chain of chainNames){
-      const options = core.getChainByName(chain)
+      const options = getChainByName(chain)
       const url : string = customChain
         ? customChain.url
         : options.web3[0].replace("${INFURA_ID}", process.env.INFURA_ID);
@@ -621,7 +621,7 @@ export default class Monitor {
 
       const data: InputData = {
         repository: this.repository,
-        chain: core.getChainByName(chain).chainId.toString(),
+        chain: getChainByName(chain).chainId.toString(),
         addresses: [address],
         files: queueItem.found.files,
         bytecode: queueItem.found.bytecode

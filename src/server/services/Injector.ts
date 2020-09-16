@@ -3,7 +3,7 @@ import path from 'path';
 import { Logger } from '../../utils/logger/Logger';
 import * as bunyan from 'bunyan';
 import { Match, RecompilationResult, InputData, StringMap } from '../../common/types';
-import * as core from '../../../services/core/build/index'
+import { getChainByName } from '../../../services/core/build/index';
 import { FileService } from '../services/FileService';
 // tslint:disable no-unused-variable
 import fs from 'fs'
@@ -63,7 +63,7 @@ export default class Injector {
    */
   private initChains() {
     for (const chain of ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli']) {
-      const chainOption = core.getChainByName(chain);
+      const chainOption = getChainByName(chain);
       this.chains[chainOption.chainId] = {};
       if (this.infuraPID === "changeinfuraid") {
         const web3 = chainOption.fullnode.dappnode;
@@ -76,7 +76,7 @@ export default class Injector {
 
     // For unit testing with testrpc...
     if (this.localChainUrl) {
-      const chainOption = core.getChainByName('localhost');
+      const chainOption = getChainByName('localhost');
       this.chains[chainOption.chainId] = {
         web3: new Web3(chainOption.web3[0])
       };
