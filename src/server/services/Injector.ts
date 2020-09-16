@@ -2,7 +2,7 @@ import Web3 from 'web3';
 import path from 'path';
 import { Logger } from '../../utils/logger/Logger';
 import * as bunyan from 'bunyan';
-import { Match, RecompilationResult, InputData, StringMap } from '../../common/types';
+import { Match, RecompilationResult, InputData, StringMap } from '../../../services/core/build/index';
 import { getChainByName } from '../../../services/core/build/index';
 import { FileService } from '../services/FileService';
 // tslint:disable no-unused-variable

@@ -1,9 +1,9 @@
-import { FileObject } from '../../common/types';
+import { FileObject } from '../../../services/core/build/index';
 import dirTree from 'directory-tree';
 import config from '../../config'
 import fs from 'fs';
 import { getChainId } from '../../../services/core/build/index';
-import { Match } from '../../common/types';
+import { Match } from '../../../services/core/build/index';
 import { NotFoundError, BadRequestError } from '../../common/errors';
 import { Logger } from '../../utils/logger/Logger';
 import * as bunyan from 'bunyan';

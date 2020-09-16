@@ -9,7 +9,3 @@ export interface IResponseError {
     message: string;
     errors?: any[];
 }
-
-export interface ITransformable {
-    transform(): Object;
-}
