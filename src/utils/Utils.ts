@@ -4,7 +4,7 @@ import Logger from 'bunyan';
 import fs from 'fs';
 import path from 'path';
 import config from '../config';
-import { RecompilationResult, StringMap, ReformattedMetadata } from '../common/types';
+import { RecompilationResult, StringMap, ReformattedMetadata } from '../../services/core/build/index';
 
 const solc: any = require('solc');
 

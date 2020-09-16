@@ -10,7 +10,7 @@ import Injector from '../server/services/Injector';
 import { getChainByName } from '../../services/core/build/index';
 import config from '../config';
 import { BlockTransactionObject } from 'web3-eth';
-import { MonitorConfig, ChainSet, CustomChainConfig, Queue, QueueItem, StringToBooleanMap, InputData } from '../common/types';
+import { MonitorConfig, ChainSet, CustomChainConfig, Queue, QueueItem, StringToBooleanMap, InputData } from '../../services/core/build/index';
 
 const multihashes = require('multihashes');
 const save = outputFileSync;

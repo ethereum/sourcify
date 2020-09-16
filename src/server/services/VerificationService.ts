@@ -1,4 +1,4 @@
-import { InputData, Match } from '../../common/types';
+import { InputData, Match } from '../../../services/core/build/index';
 import { IFileService } from './FileService';
 import * as bunyan from 'bunyan';
 import { Logger } from '../../utils/logger/Logger';
