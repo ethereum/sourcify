@@ -2,8 +2,8 @@ import { NextFunction, Request, Response, Router } from 'express';
 import BaseController from './BaseController';
 import { IController } from '../../common/interfaces';
 import { IVerificationService } from '../services/VerificationService';
-import { InputData } from '../../common/types';
-import * as core from '../../../services/core/build/index'
+import { InputData } from '../../../services/core/build/index';
+import { getChainId } from '../../../services/core/build/index';
 import config from '../../config';
 import { IFileService } from '../services/FileService';
 import * as bunyan from 'bunyan';
@@ -30,7 +30,7 @@ export default class VerificationController extends BaseController implements IC
     verify = async (req: Request, res: Response, next: NextFunction) => {
         let chain;
         try {
-            chain = core.getChainId(req.body.chain);
+            chain = getChainId(req.body.chain);
         } catch (error) {
             return next(error);
         }
