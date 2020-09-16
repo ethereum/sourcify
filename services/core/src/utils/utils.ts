@@ -1,6 +1,6 @@
 import * as chainOptions from '../chains.json';
 
-export const getChainId = (chain: string): string => {
+export function getChainId (chain: string): string {
     for (const chainOption in chainOptions) {
         const network = chainOptions[chainOption].network;
         const chainId = chainOptions[chainOption].chainId;
@@ -12,7 +12,7 @@ export const getChainId = (chain: string): string => {
     throw new Error(`Chain ${chain} not supported!`);
 }
 
-export const getIdFromChainName = (chain: string): number => {
+export function getIdFromChainName(chain: string): number {
     for (const chainOption in chainOptions) {
         if (chainOptions[chainOption].network === chain) {
             return chainOptions[chainOption].chainId;
@@ -21,7 +21,7 @@ export const getIdFromChainName = (chain: string): number => {
     throw new Error("Chain not found!"); //TODO: should we throw an error here or just let it pass?
 }
 
-export const getChainByName = (name: string): any => {
+export function getChainByName(name: string): any {
     for (const chainOption in chainOptions) {
         const network = chainOptions[chainOption].network;
         if (network && network.toLowerCase() === name) {
