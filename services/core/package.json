@@ -1,7 +1,7 @@
 {
   "name": "sourcify-core",
   "version": "1.0.0",
-  "description": "",
+  "description": "Sourcify core module",
   "bin": {
     "sourcify-core": "./build/index.js"
   },
@@ -12,15 +12,12 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rimraf ./build && tsc",
-    "start": "npm run build && node build/index.js",
-    "start:dev": "nodemon"
+    "start": "npm run build && node build/index.js"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "nodemon": "^2.0.4",
     "rimraf": "^3.0.2",
-    "ts-node": "^9.0.0",
     "typescript": "^4.0.2"
   }
 }

@@ -3,11 +3,12 @@ import BaseController from './BaseController';
 import { IController } from '../../common/interfaces';
 import { IFileService } from '../services/FileService';
 import * as HttpStatus from 'http-status-codes';
-import { NotFoundError, ValidationError } from '../../common/errors';
-import { param, validationResult } from 'express-validator/check';
+import { NotFoundError, ValidationError } from '../../../services/core/build/index';
+import { query, validationResult } from 'express-validator/check';
 import { isValidAddress, isValidChain } from '../../common/validators/validators';
 import * as bunyan from 'bunyan';
-import { Logger } from '../../utils/logger/Logger';
+import config from '../../config';
+import { Logger } from '../../../services/core/build/index'
 
 export default class FileController extends BaseController implements IController {
     router: Router;
@@ -18,8 +19,8 @@ export default class FileController extends BaseController implements IControlle
         super();
         this.router = Router();
         this.fileService = fileService;
-        this.logger = Logger("FileController");
-        if (logger !== undefined) {
+        this.logger = Logger(config.logging.dir, "FileController");
+        if(logger !== undefined){
             this.logger = logger;
         }
     }

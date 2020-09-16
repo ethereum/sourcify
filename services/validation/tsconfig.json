@@ -4,6 +4,7 @@
     "target": "es5",
     "sourceMap": true,
     "esModuleInterop": true,
+    "declaration": true,
     "strict": true,
     "outDir": "build",
     "resolveJsonModule": true,

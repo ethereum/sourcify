@@ -1,26 +1,20 @@
 import Web3 from 'web3';
 import path from 'path';
-import { Logger } from '../../utils/logger/Logger';
+import config from '../../config';
+import { Logger } from '../../../services/core/build/index'
 import * as bunyan from 'bunyan';
-import { Match, RecompilationResult, InputData, StringMap } from '../../../services/core/build/index';
-import { getChainByName } from '../../../services/core/build/index';
+import { Match, InputData, StringMap, getChainByName, cborDecode } from '../../../services/core/build/index';
+import { recompile, RecompilationResult } from '../../../services/verification/build/index';
 import { FileService } from '../services/FileService';
-// tslint:disable no-unused-variable
-import fs from 'fs'
-
-// tslint:disable no-commented-code
-// import { findAddresses } from './address-db';
 
 const multihashes: any = require('multihashes');
 
-import {
-  cborDecode,
-  getBytecode,
-  recompile,
-  getBytecodeWithoutMetadata as trimMetadata,
-  save
-} from '../../utils/Utils';
-import { NotFoundError } from '../../common/errors';
+// import {
+//   getBytecode,
+//   getBytecodeWithoutMetadata as trimMetadata,
+//   save
+// } from '../../../services/core/build/index';
+import { NotFoundError } from '../../../services/core/build/index';
 
 export interface InjectorConfig {
   infuraPID?: string,
@@ -84,87 +78,6 @@ export default class Injector {
   }
 
   /**
-   * Selects metadata files from an array of files that may include sources, etc
-   * @param  {string[]} files
-   * @return {string[]}         metadata
-   */
-  private findMetadataFiles(files: string[]): any[] {
-    const metadataFiles = [];
-
-    for (const i in files) {
-      try {
-        const m = JSON.parse(files[i])
-
-        // TODO: this might need a stronger validation check.
-        //       many assumptions are made about structure of
-        //       metadata object after this selection step.
-        if (m['language'] === 'Solidity') {
-          metadataFiles.push(m);
-        }
-      } catch (err) { /* ignore */ }
-    }
-
-    if (!metadataFiles.length) {
-      const err = new Error("Metadata file not found. Did you include \"metadata.json\"?");
-      this.log.info({ loc: '[FIND]', err: err });
-      throw err;
-    }
-
-    return metadataFiles;
-  }
-
-  /**
-   * Generates a map of files indexed by the keccak hash of their contents
-   * @param  {string[]}  files sources
-   * @return {StringMap}
-   */
-  private storeByHash(files: string[]): StringMap {
-    const byHash: StringMap = {};
-
-    for (const i in files) {
-      byHash[Web3.utils.keccak256(files[i])] = files[i]
-    }
-    return byHash;
-  }
-
-  /**
-   * Validates metadata content keccak hashes for all files and
-   * returns mapping of file contents by file name
-   * @param  {any}       metadata
-   * @param  {string[]}  files    source files
-   * @return {StringMap}
-   */
-  private rearrangeSources(metadata: any, files: string[]): StringMap {
-    const sources: StringMap = {}
-    const byHash = this.storeByHash(files);
-
-    for (const fileName in metadata.sources) {
-      let content: string = metadata.sources[fileName].content;
-      const hash: string = metadata.sources[fileName].keccak256;
-      if (content) {
-        if (Web3.utils.keccak256(content) != hash) {
-          const err = new Error(`Invalid content for file ${fileName}`);
-          this.log.info({ loc: '[REARRANGE]', fileName: fileName, err: err });
-          throw err;
-        }
-      } else {
-        content = byHash[hash];
-      }
-      if (!content) {
-        const err = new Error(
-          `The metadata file mentions a source file called "${fileName}" ` +
-          `that cannot be found in your upload.\nIts keccak256 hash is ${hash}. ` +
-          `Please try to find it and include it in the upload.`
-        );
-        this.log.info({ loc: '[REARRANGE]', fileName: fileName, err: err });
-        throw err;
-      }
-      sources[fileName] = content;
-    }
-    return sources
-  }
-
-  /**
    * Writes verified sources to repository by address and by ipfs | swarm hash
    * @param {string}              repository        repository root (ex: 'repository')
    * @param {string}              chain             chain name (ex: 'ropsten')
@@ -215,8 +128,8 @@ export default class Injector {
       '/metadata.json'
     );
 
-    save(hashPath, compilationResult.metadata);
-    save(addressPath, compilationResult.metadata);
+    // save(hashPath, compilationResult.metadata);
+    // save(addressPath, compilationResult.metadata);
 
     for (const sourcePath in sources) {
 
@@ -234,7 +147,7 @@ export default class Injector {
         sanitizedPath
       );
 
-      save(outputPath, sources[sourcePath]);
+      //save(outputPath, sources[sourcePath]);
     }
   }
 
@@ -265,7 +178,7 @@ export default class Injector {
       '/metadata.json'
     );
 
-    save(addressPath, compilationResult.metadata);
+    //save(addressPath, compilationResult.metadata);
 
     for (const sourcePath in sources) {
 
@@ -283,7 +196,7 @@ export default class Injector {
         sanitizedPath
       );
 
-      save(outputPath, sources[sourcePath]);
+      //save(outputPath, sources[sourcePath]);
     }
   }
 
@@ -313,7 +226,7 @@ export default class Injector {
           },
           `Retrieving contract bytecode address`
         );
-        deployedBytecode = await getBytecode(this.chains[chain].web3, address)
+        //deployedBytecode = await getBytecode(this.chains[chain].web3, address)
       } catch (e) { /* ignore */ }
 
       const status = this.compareBytecodes(deployedBytecode, compiledBytecode);
@@ -344,9 +257,9 @@ export default class Injector {
         return 'perfect';
       }
 
-      if (trimMetadata(deployedBytecode) === trimMetadata(compiledBytecode)) {
-        return 'partial';
-      }
+      // if (trimMetadata(deployedBytecode) === trimMetadata(compiledBytecode)) {
+      //   return 'partial';
+      // }
     }
     return null;
   }
@@ -396,23 +309,20 @@ export default class Injector {
     this.validateAddresses(addresses);
     this.validateChain(chain);
 
-    const metadataFiles = this.findMetadataFiles(files);
-
     let match: Match = {
       address: null,
       status: null
     };
 
-    for (const metadata of metadataFiles) {
-      const sources = this.rearrangeSources(metadata, files)
+    for (const source of files) {
 
       // Starting from here, we cannot trust the metadata object anymore,
       // because it is modified inside recompile.
-      const target = Object.assign({}, metadata.settings.compilationTarget);
+      const target = Object.assign({}, source.metadata.settings.compilationTarget);
 
       let compilationResult: RecompilationResult;
       try {
-        compilationResult = await recompile(metadata, sources, this.log)
+        compilationResult = await recompile(source.metadata, source.solidity, this.log)
       } catch (err) {
         this.log.info({ loc: `[RECOMPILE]`, err: err });
         throw err;
@@ -448,11 +358,11 @@ export default class Injector {
       // and the sources.
       if (match.address && match.status === 'perfect') {
 
-        this.storePerfectMatchData(repository, chain, match.address, compilationResult, sources)
+        this.storePerfectMatchData(repository, chain, match.address, compilationResult, source.solidity)
 
       } else if (match.address && match.status === 'partial') {
 
-        this.storePartialMatchData(repository, chain, match.address, compilationResult, sources)
+        this.storePartialMatchData(repository, chain, match.address, compilationResult, source.solidity)
 
       } else {
         const err = new Error(

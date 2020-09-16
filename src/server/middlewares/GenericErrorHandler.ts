@@ -1,10 +1,11 @@
 import * as HttpStatus from 'http-status-codes';
 import { Request, Response } from 'express';
-import { Logger } from '../../utils/logger/Logger';
+import { Logger } from '../../../services/core/build/index';
+import config from '../../config';
 import * as bunyan from 'bunyan';
 
 export default function genericErrorHandler(err: any, _req: Request, res: Response, _next: any): void {
-  const logger: bunyan = Logger("Error");
+  const logger: bunyan = Logger(config.logging.dir, "Error");
   logger.error(`Error: ${JSON.stringify(err)}`);
   if (err.errors) {
     res.status(err.code).json({
