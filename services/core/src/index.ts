@@ -2,3 +2,5 @@
 
 export * from './utils/types'
 export * from './utils/utils'
+export * from './utils/logger'
+export * from './errors/index'

@@ -5,11 +5,11 @@ import cors from 'cors';
 import routes from './routes';
 import bodyParser from 'body-parser';
 import config from '../config';
-import { Logger } from '../utils/logger/Logger';
+import { Logger } from '../../services/core/build/index';
 import genericErrorHandler from './middlewares/GenericErrorHandler';
 import notFoundHandler from './middlewares/NotFoundError';
 
-export const logger = Logger("Server");
+export const logger = Logger(config.logging.dir, "Server");
 export class Server {
 
   app: express.Application;

@@ -3,11 +3,10 @@ import { ethers } from 'ethers';
 import request from  'request-promise-native';
 import concat from 'it-concat';
 import { outputFileSync } from 'fs-extra';
-import { Logger } from '../utils/logger/Logger';
+import { Logger } from '../../services/core/build/index'
 import * as bunyan from 'bunyan';
-import { cborDecode } from '../utils/Utils';
 import Injector from '../server/services/Injector';
-import { getChainByName } from '../../services/core/build/index';
+import { getChainByName, cborDecode } from '../../services/core/build/index';
 import config from '../config';
 import { BlockTransactionObject } from 'web3-eth';
 import { MonitorConfig, ChainSet, CustomChainConfig, Queue, QueueItem, StringToBooleanMap, InputData } from '../../services/core/build/index';

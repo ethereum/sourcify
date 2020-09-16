@@ -1,17 +1,14 @@
 import { InputData, Match } from '../../../services/core/build/index';
 import { IFileService } from './FileService';
 import * as bunyan from 'bunyan';
-import { Logger } from '../../utils/logger/Logger';
-import { FileArray } from 'express-fileupload';
+import config from '../../config';
+import { Logger } from '../../../services/core/build/index'
 // import MQ from '../services/Queue'; 
 // import { ConfirmChannel } from 'amqplib';
 import Injector from './Injector';
-import config from '../../config';
 
 export interface IVerificationService {
-    verify(inputData: InputData): Promise<Array<string>>;
     findByAddress(address: string, chain: string, repository: string): Promise<Match[]>
-    organizeFilesForSubmision(files: FileArray): Promise<any>
     inject(inputData: InputData): Promise<Match>;
 }
 
@@ -20,15 +17,11 @@ export class VerificationService implements IVerificationService {
     logger: bunyan;
 
     constructor(fileService: IFileService, logger?: bunyan) {
-        this.logger = Logger("VerificationService");
+        this.logger = Logger(config.logging.dir, "VerificationService");
         if(logger !== undefined){
             this.logger = logger;
         }
         this.fileService = fileService;
-    }
-
-    verify(_inputData: InputData): Promise<string[]> {
-        throw new Error("Method not implemented.");
     }
 
     findByAddress = async (address: string, chain: string, repository: string) => {
@@ -41,12 +34,6 @@ export class VerificationService implements IVerificationService {
             this.logger.info({loc:'[POST:VERIFICATION_BY_ADDRESS_FAILED]'}, msg);
         }
         return matches;
-    }
-
-    organizeFilesForSubmision = async (files: FileArray) => {
-        // Try to organize files for submission, exit on error.
-        files = this.fileService.findInputFiles(files);
-        return this.fileService.sanitizeInputFiles(files);
     }
 
     inject = async (inputData: InputData): Promise<Match> => {

@@ -1,6 +1,7 @@
 import * as chainOptions from '../chains.json';
+import cbor from 'cbor';
 
-export function getChainId (chain: string): string {
+export function getChainId(chain: string): string {
     for (const chainOption in chainOptions) {
         const network = chainOptions[chainOption].network;
         const chainId = chainOptions[chainOption].chainId;
@@ -30,4 +31,20 @@ export function getChainByName(name: string): any {
     }
 
     throw new Error(`Chain ${name} not supported!`)
+}
+
+/**
+ * Extracts cbor encoded segement from bytecode
+ * @example
+ *   const bytes = Web3.utils.hexToBytes(evm.deployedBytecode);
+ *   cborDecode(bytes);
+ *   > { ipfs: "QmarHSr9aSNaPSR6G9KFPbuLV9aEqJfTk1y9B8pdwqK4Rq" }
+ *
+ * @param  {number[]} bytecode
+ * @return {any}
+ */
+export function cborDecode(bytecode: number[]): any {
+    const cborLength: number = bytecode[bytecode.length - 2] * 0x100 + bytecode[bytecode.length - 1];
+    const bytecodeBuffer = Buffer.from(bytecode.slice(bytecode.length - 2 - cborLength, -2));
+    return cbor.decodeFirstSync(bytecodeBuffer);
 }

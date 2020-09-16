@@ -118,7 +118,7 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Validation service",
+      "name": "Validation service (single file)",
       "skipFiles": [
         "<node_internals>/**"
       ],
@@ -128,8 +128,29 @@
         "${workspaceFolder}/services/validation/build/**/*.js"
       ],
       "args": [
-        "services/validation/test/1_Storage.sol",
-        "services/validation/test/metadata.json"
+        "services/validation/test/single/1_Storage.sol",
+        "services/validation/test/single/metadata.json"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Validation service (multiple files)",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/services/validation/build/index.js",
+      "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
+      "outFiles": [
+        "${workspaceFolder}/services/validation/build/**/*.js"
+      ],
+      "args": [
+        "services/validation/test/multiple/Escrow.sol",
+        "services/validation/test/multiple/Main.sol",
+        "services/validation/test/multiple/Owned.sol",
+        "services/validation/test/multiple/provableAPI_0.6.sol",
+        "services/validation/test/multiple/Savings.sol",
+        "services/validation/test/multiple/metadata.json"
       ]
     }
   ]
