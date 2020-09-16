@@ -4,6 +4,7 @@ import { IController } from '../../common/interfaces';
 import { IVerificationService } from '../services/VerificationService';
 import { InputData } from '../../../services/core/build/index';
 import { getChainId } from '../../../services/core/build/index';
+import { checkFiles } from '../../../services/validation/build/index';
 import config from '../../config';
 import { IFileService } from '../services/FileService';
 import * as bunyan from 'bunyan';
@@ -37,7 +38,6 @@ export default class VerificationController extends BaseController implements IC
 
         const inputData: InputData = {
             repository: config.repository.path,
-            files: [],
             addresses: [req.body.address],
             chain: chain
         }
@@ -47,7 +47,11 @@ export default class VerificationController extends BaseController implements IC
         } else {
             if (!req.files) return next(new NotFoundError("Address for specified chain not found in repository"));
             // tslint:disable no-useless-cast
-            inputData.files = await this.verificationService.organizeFilesForSubmision(req.files!);
+            const validatedFiles = checkFiles(req.files!);
+            if (validatedFiles.error) {
+                return next(new NotFoundError(validatedFiles.error));
+            }
+            inputData.files = validatedFiles.files;
             const matches: any = [];
             matches.push(await this.verificationService.inject(inputData));
             Promise.all(matches).then((result) => {

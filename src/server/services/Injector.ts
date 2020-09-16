@@ -396,23 +396,20 @@ export default class Injector {
     this.validateAddresses(addresses);
     this.validateChain(chain);
 
-    const metadataFiles = this.findMetadataFiles(files);
-
     let match: Match = {
       address: null,
       status: null
     };
 
-    for (const metadata of metadataFiles) {
-      const sources = this.rearrangeSources(metadata, files)
+    for (const source of files) {
 
       // Starting from here, we cannot trust the metadata object anymore,
       // because it is modified inside recompile.
-      const target = Object.assign({}, metadata.settings.compilationTarget);
+      const target = Object.assign({}, source.metadata.settings.compilationTarget);
 
       let compilationResult: RecompilationResult;
       try {
-        compilationResult = await recompile(metadata, sources, this.log)
+        compilationResult = await recompile(source.metadata, source.solidity, this.log)
       } catch (err) {
         this.log.info({ loc: `[RECOMPILE]`, err: err });
         throw err;
@@ -448,11 +445,11 @@ export default class Injector {
       // and the sources.
       if (match.address && match.status === 'perfect') {
 
-        this.storePerfectMatchData(repository, chain, match.address, compilationResult, sources)
+        this.storePerfectMatchData(repository, chain, match.address, compilationResult, source.solidity)
 
       } else if (match.address && match.status === 'partial') {
 
-        this.storePartialMatchData(repository, chain, match.address, compilationResult, sources)
+        this.storePartialMatchData(repository, chain, match.address, compilationResult, source.solidity)
 
       } else {
         const err = new Error(

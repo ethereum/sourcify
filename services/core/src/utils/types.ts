@@ -10,7 +10,7 @@ export interface InputData {
     repository: string,
     chain: string,
     addresses: string[],
-    files?: any[],
+    files?: any,
     bytecode?: string
 }
 

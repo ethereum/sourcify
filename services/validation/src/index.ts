@@ -5,38 +5,52 @@ import fs from 'fs';
 import path from 'path';
 import Web3 from 'web3';
 
-const fileNames = process.argv.slice(2);
+if (process.argv.length > 2) {
+    const fileNames = process.argv.slice(2);
 
-let files: any[] = [];
-fileNames.forEach(fileName => {
+    let files: any[] = [];
+    fileNames.forEach(fileName => {
 
-    try {
-        files.push({
-            name: fileName,
-            data: fs.readFileSync(path.resolve(fileName))
-        })
-    } catch (error) {
-        throw new Error("Can not read file " + fileName);
-    }
+        try {
+            files.push({
+                name: fileName,
+                data: fs.readFileSync(path.resolve(fileName))
+            })
+        } catch (error) {
+            throw new Error("Can not read file " + fileName);
+        }
 
-});
+    });
+
+    checkFiles(files);
+}
+
 
 export function checkFiles(files: any) {
     const sanitizedFiles = sanitizeInputFiles(findInputFiles(files))
     const metadataFiles = findMetadataFiles(sanitizedFiles);
     let sources: any = [];
-
+    let error;
     metadataFiles.forEach(metadata => {
-        sources.push(rearrangeSources(metadata, sanitizedFiles));
+        try {
+            sources.push(
+                {
+                    metadata: metadata,
+                    solidity: rearrangeSources(metadata, sanitizedFiles)
+                })
+        } catch (err) {
+            error = err.message;
+        }
+
     });
 
     return {
-        metadataFiles: metadataFiles,
-        sources: sources
+        files: sources,
+        error: error
     }
 }
 
-export function organizeFilesForSubmition(files: any){
+export function organizeFilesForSubmition(files: any) {
     const f = findInputFiles(files);
     return sanitizeInputFiles(f);
 }
@@ -44,15 +58,34 @@ export function organizeFilesForSubmition(files: any){
 function findInputFiles(files: any): any {
     const inputs: any = [];
 
-    files.forEach((file: { data: any; }) => {
-        inputs.push(file.data)
-    })
-    if (inputs) {
+    if (files && files.files) {
+        // Case: <UploadedFile[]>
+        if (Array.isArray(files.files)) {
+            files.files.forEach((file: { data: any; }) => {
+                inputs.push(file.data)
+            })
+            return inputs;
+
+            // Case: <UploadedFile>
+        } else if (files.files["data"]) {
+            inputs.push(files.files["data"]);
+            return inputs;
+        }
+
+        // Case: default
+        const msg = `Invalid file(s) detected: ${util.inspect(files.files)}`;
+        throw new Error(msg);
+    } else if (files) {
+        files.forEach((file: { data: any; }) => {
+            inputs.push(file.data);
+        });
+
         return inputs;
     }
 
-    // Case: default
-    const msg = `Invalid file(s) detected: ${util.inspect(files.files)}`;
+    // If we reach this point, an address has been submitted and searched for
+    // but there are no files associated with the request.
+    const msg = 'Address for specified chain not found in repository';
     throw new Error(msg);
 }
 
@@ -83,6 +116,11 @@ function sanitizeInputFiles(inputs: any): string[] {
     return files;
 }
 
+/**
+ * Selects metadata files from an array of files that may include sources, etc
+ * @param  {string[]} files
+ * @return {string[]}         metadata
+ */
 function findMetadataFiles(files: string[]): any[] {
     const metadataFiles = [];
 
@@ -106,6 +144,13 @@ function findMetadataFiles(files: string[]): any[] {
     return metadataFiles;
 }
 
+/**
+ * Validates metadata content keccak hashes for all files and
+ * returns mapping of file contents by file name
+ * @param  {any}       metadata
+ * @param  {string[]}  files    source files
+ * @return {StringMap}
+ */
 function rearrangeSources(metadata: any, files: string[]): StringMap {
     const sources: StringMap = {}
     const byHash = storeByHash(files);
@@ -127,9 +172,14 @@ function rearrangeSources(metadata: any, files: string[]): StringMap {
         }
         sources[fileName] = content;
     }
-    return sources
+    return sources;
 }
 
+/**
+ * Generates a map of files indexed by the keccak hash of their contents
+ * @param  {string[]}  files sources
+ * @return {StringMap}
+ */
 function storeByHash(files: string[]): StringMap {
     const byHash: StringMap = {};
 
