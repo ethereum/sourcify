@@ -4,6 +4,7 @@ import util from 'util';
 import fs from 'fs';
 import path from 'path';
 import Web3 from 'web3';
+import { StringMap } from '../../core/build'
 
 if (process.argv.length > 2) {
     const fileNames = process.argv.slice(2);
@@ -187,8 +188,4 @@ function storeByHash(files: string[]): StringMap {
         byHash[Web3.utils.keccak256(files[i])] = files[i]
     }
     return byHash;
-}
-
-declare interface StringMap {
-    [key: string]: string;
 }

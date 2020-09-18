@@ -1,5 +1,5 @@
 import * as HttpStatus from 'http-status-codes';
-import { IResponseError } from '../interfaces';
+import { IResponseError } from '../utils/interfaces';
 
 export class ValidationError implements IResponseError {
     code: number;

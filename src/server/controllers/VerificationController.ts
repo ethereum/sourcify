@@ -5,11 +5,11 @@ import { IVerificationService } from '../services/VerificationService';
 import { InputData } from '../../../services/core/build/index';
 import { getChainId } from '../../../services/core/build/index';
 import { checkFiles } from '../../../services/validation/build/index';
-import config from '../../config';
 import { IFileService } from '../services/FileService';
 import * as bunyan from 'bunyan';
-import { Logger } from '../../utils/logger/Logger';
-import { NotFoundError } from '../../common/errors';
+import config from '../../config';
+import { Logger } from '../../../services/core/build/index'
+import { NotFoundError } from '../../../services/core/build/index';
 
 export default class VerificationController extends BaseController implements IController {
     router: Router;
@@ -22,7 +22,7 @@ export default class VerificationController extends BaseController implements IC
         this.router = Router();
         this.verificationService = verificationService;
         this.fileService = fileService;
-        this.logger = Logger("VerificationService");
+        this.logger = Logger(config.logging.dir, "VerificationService");
         if (logger !== undefined) {
             this.logger = logger;
         }
@@ -53,7 +53,7 @@ export default class VerificationController extends BaseController implements IC
             }
             inputData.files = validatedFiles.files;
             const matches: any = [];
-            matches.push(await this.verificationService.inject(inputData));
+            //matches.push(await this.verificationService.inject(inputData));
             Promise.all(matches).then((result) => {
                 res.status(200).send({ result })
             }).catch()

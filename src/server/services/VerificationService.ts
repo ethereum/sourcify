@@ -1,11 +1,11 @@
 import { InputData, Match } from '../../../services/core/build/index';
 import { IFileService } from './FileService';
 import * as bunyan from 'bunyan';
-import { Logger } from '../../utils/logger/Logger';
+import config from '../../config';
+import { Logger } from '../../../services/core/build/index'
 // import MQ from '../services/Queue'; 
 // import { ConfirmChannel } from 'amqplib';
 import Injector from './Injector';
-import config from '../../config';
 
 export interface IVerificationService {
     findByAddress(address: string, chain: string, repository: string): Promise<Match[]>
@@ -17,7 +17,7 @@ export class VerificationService implements IVerificationService {
     logger: bunyan;
 
     constructor(fileService: IFileService, logger?: bunyan) {
-        this.logger = Logger("VerificationService");
+        this.logger = Logger(config.logging.dir, "VerificationService");
         if(logger !== undefined){
             this.logger = logger;
         }

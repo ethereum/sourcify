@@ -4,7 +4,8 @@ import path from 'path';
 import fs from 'fs';
 import { getChainId } from '../../../services/core/build/index';
 import { Match } from '../../../services/core/build/index';
-import { Logger } from '../../utils/logger/Logger';
+import config from '../../config';
+import { Logger } from '../../../services/core/build/index'
 import * as bunyan from 'bunyan';
 
 export interface IFileService {
@@ -20,7 +21,7 @@ export class FileService implements IFileService {
   logger: bunyan;
 
   constructor(logger?: bunyan) {
-    this.logger = logger || Logger("FileService");
+    this.logger = logger || Logger(config.logging.dir, "FileService");
   }
 
   async getTreeByChainAndAddress(chainId: any, address: string): Promise<string[]> {
