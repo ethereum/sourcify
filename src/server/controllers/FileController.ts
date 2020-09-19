@@ -4,9 +4,9 @@ import * as bunyan from 'bunyan';
 import { query, validationResult } from 'express-validator/check';
 
 import BaseController from './BaseController';
-import { IController } from 'sourcify-core/src/interfaces';
+import { IController } from 'sourcify-core/build';
 import config from 'sourcify-core/build/utils/config';
-import { IFileService, NotFoundError, ValidationError, isValidAddress, isValidChain, Logger } from 'sourcify-core/build';
+import { IFileService, NotFoundError, ValidationError, Logger, isValidAddress, isValidChain } from 'sourcify-core/build';
 
 export default class FileController extends BaseController implements IController {
     router: Router;

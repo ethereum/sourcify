@@ -1,10 +1,15 @@
 import bunyan from 'bunyan';
 import { FileService, IFileService } from 'sourcify-core/build'
 
+export interface CheckFileResponse {
+  files: any,
+  error: string
+}
 
 export interface IValidationService {
   validateAddresses(addresses: string[]): void; //Maybe change return to boolean?
   validateChain(chain: string): void //Maybe change return to boolean?
+  checkFiles(files: any): CheckFileResponse;
 }
 
 export class ValidationService implements IValidationService {
@@ -38,10 +43,12 @@ export class ValidationService implements IValidationService {
   
       });
   
-      return {
+      const response: CheckFileResponse = {
           files: sources,
           error: error
       }
+
+      return response;
   }
 
       /**

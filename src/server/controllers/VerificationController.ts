@@ -3,20 +3,23 @@ import * as bunyan from 'bunyan';
 import { NextFunction, Request, Response, Router } from 'express';
 import BaseController from './BaseController';
 import { IController, InputData, getChainId, IFileService, Logger, NotFoundError } from 'sourcify-core/build';
-import { IValidationService } from 'sourcify-validation/build'
+import { IVerificationService } from 'sourcify-verification/build/services/VerificationService';
+import { IValidationService, CheckFileResponse } from 'sourcify-validation/build/services/ValidationService';
 import config from 'sourcify-core/build/utils/config';
-import { IVerificationService } from 'sourcify-verification/build';
+
 
 export default class VerificationController extends BaseController implements IController {
     router: Router;
     verificationService: IVerificationService;
+    validationService: IValidationService;
     fileService: IFileService;
     logger: bunyan;
 
-    constructor(verificationService: IVerificationService, fileService: IFileService, logger?: bunyan) {
+    constructor(verificationService: IVerificationService, validationService: IValidationService, fileService: IFileService, logger?: bunyan) {
         super();
         this.router = Router();
         this.verificationService = verificationService;
+        this.validationService = validationService;
         this.fileService = fileService;
         this.logger = Logger(config.logging.dir, "VerificationService");
         if (logger !== undefined) {
@@ -45,7 +48,7 @@ export default class VerificationController extends BaseController implements IC
         } else {
             if (!req.files) return next(new NotFoundError("Address for specified chain not found in repository"));
             // tslint:disable no-useless-cast
-            const validatedFiles = checkFiles(req.files!);
+            const validatedFiles: CheckFileResponse = this.validationService.checkFiles(req.files!);
             if (validatedFiles.error) {
                 return next(new NotFoundError(validatedFiles.error));
             }

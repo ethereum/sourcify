@@ -1,9 +1,9 @@
 import * as bunyan from 'bunyan';
 import Web3 from 'web3';
+const solc: any = require('solc');	
 
-import { InputData, Match, IFileService, StringMap, RecompilationResult, FileService } from 'sourcify-core/build';
+import { InputData, Match, IFileService, StringMap, RecompilationResult, FileService, ReformattedMetadata, Logger } from 'sourcify-core/build';
 import config from 'sourcify-core/build/utils/config';
-import { Logger } from '../../../core/build/index'
 import Injector from './Injector';
 
 export interface IVerificationService {
@@ -12,6 +12,9 @@ export interface IVerificationService {
     matchBytecodeToAddress(chain: string, addresses: string[], compiledBytecode: string): Promise<Match>;
     compareBytecodes(deployedBytecode: string | null, compiledBytecode: string): 'perfect' | 'partial' | null;
     recompile(metadata: any, sources: StringMap, log: bunyan ): Promise<RecompilationResult>
+    reformatMetadata(metadata: any, sources: StringMap, log: bunyan): ReformattedMetadata;
+    getBytecode(web3: Web3, address: string): Promise<string>;
+    getBytecodeWithoutMetadata(bytecode: string): string;
 }
 
 export class VerificationService implements IVerificationService {
@@ -154,7 +157,7 @@ export class VerificationService implements IVerificationService {
             input,
             fileName,
             contractName
-        } = this.validationService.reformatMetadata(metadata, sources, log);
+        } = this.reformatMetadata(metadata, sources, log);
 
         const version = metadata.compiler.version;
 
@@ -185,5 +188,82 @@ export class VerificationService implements IVerificationService {
         }
     }
 
+
+
+    /**
+     * Formats metadata into an object which can be passed to solc for recompilation
+     * @param  {any}                 metadata solc metadata object
+     * @param  {string[]}            sources  solidity sources
+     * @return {ReformattedMetadata}
+     */
+    reformatMetadata(
+        metadata: any,
+        sources: StringMap,
+        log: bunyan
+    ): ReformattedMetadata {
+
+        const input: any = {};
+        let fileName: string = '';
+        let contractName: string = '';
+
+        input.settings = metadata.settings;
+
+        for (fileName in metadata.settings.compilationTarget) {
+            contractName = metadata.settings.compilationTarget[fileName];
+        }
+
+        delete input['settings']['compilationTarget']
+
+        if (contractName == '') {
+            const err = new Error("Could not determine compilation target from metadata.");
+            log.info({ loc: '[REFORMAT]', err: err });
+            throw err;
+        }
+
+        input['sources'] = {}
+        for (const source in sources) {
+            input.sources[source] = { 'content': sources[source] }
+        }
+
+        input.language = metadata.language
+        input.settings.metadata = input.settings.metadata || {}
+        input.settings.outputSelection = input.settings.outputSelection || {}
+        input.settings.outputSelection[fileName] = input.settings.outputSelection[fileName] || {}
+
+        input.settings.outputSelection[fileName][contractName] = [
+            'evm.bytecode',
+            'evm.deployedBytecode',
+            'metadata'
+        ];
+
+        return {
+            input: input,
+            fileName: fileName,
+            contractName: contractName
+        }
+    }
+
+    /**
+     * Wraps eth_getCode
+     * @param {Web3}   web3    connected web3 instance
+     * @param {string} address contract
+     */
+    async getBytecode(web3: Web3, address: string): Promise<string> {
+        address = web3.utils.toChecksumAddress(address);
+        return await web3.eth.getCode(address);
+    };
+
+
+    /**
+     * Removes post-fixed metadata from a bytecode string
+     * (for partial bytecode match comparisons )
+     * @param  {string} bytecode
+     * @return {string}          bytecode minus metadata
+     */
+    getBytecodeWithoutMetadata(bytecode: string): string {
+        // Last 4 chars of bytecode specify byte size of metadata component,
+        const metadataSize = parseInt(bytecode.slice(-4), 16) * 2 + 4;
+        return bytecode.slice(0, bytecode.length - metadataSize);
+    }
 
 }

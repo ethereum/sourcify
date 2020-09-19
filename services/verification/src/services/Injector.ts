@@ -1,9 +1,9 @@
 import Web3 from 'web3';
 import * as bunyan from 'bunyan';
 import { IVerificationService, VerificationService } from '../services/VerificationService';
-import { IFileService, FileService, ValidationError } from 'sourcify-core/build';
-import { Logger, Match, InputData, StringMap, getChainByName, cborDecode, RecompilationResult, NotFoundError, InjectorConfig, multihashes } from 'sourcify-core/build/index'
-import { IValidationService, ValidationService } from 'sourcify-validation/build';
+import { IFileService, FileService, } from 'sourcify-core/build';
+import { Logger, Match, InputData,  getChainByName, RecompilationResult, NotFoundError, InjectorConfig} from 'sourcify-core/build/index'
+import { IValidationService, ValidationService } from 'sourcify-validation/src/services/ValidationService';
 
 
 export default class Injector {

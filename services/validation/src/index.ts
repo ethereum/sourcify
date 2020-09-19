@@ -26,6 +26,3 @@ if (process.argv.length > 2) {
     validationService.checkFiles(files);
 
 }
-
-
-export * from './services/ValidationService';
