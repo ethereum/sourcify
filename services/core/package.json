@@ -1,7 +1,7 @@
 {
   "name": "sourcify-core",
   "version": "1.0.0",
-  "description": "",
+  "description": "Sourcify core module",
   "bin": {
     "sourcify-core": "./build/index.js"
   },

@@ -9,5 +9,5 @@
     "resolveJsonModule": true,
     "strictNullChecks": false
   },
-  "include": ["./src", "src/run_monitor.js", "src/localchain.js", "src/cli"]
+  "include": ["./src", "src/run_monitor.js", "src/localchain.js", "src/cli", "services/core/src/interfaces.ts"]
 }

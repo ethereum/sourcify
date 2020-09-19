@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { FileService } from '../server/services/FileService';
-import { VerificationService } from '../server/services/VerificationService'; 
+import { FileService } from 'sourcify-core/build/index';
+import { VerificationService } from 'sourcify-verification/build/index'; 
 import FileController from './controllers/FileController';
 import VerificationController from './controllers/VerificationController';
 import { logger } from '../server/server';

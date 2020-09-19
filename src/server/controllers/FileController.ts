@@ -1,14 +1,12 @@
 import { NextFunction, Request, Response, Router } from 'express';
-import BaseController from './BaseController';
-import { IController } from '../../common/interfaces';
-import { IFileService } from '../services/FileService';
 import * as HttpStatus from 'http-status-codes';
-import { NotFoundError, ValidationError } from '../../../services/core/build/index';
-import { query, validationResult } from 'express-validator/check';
-import { isValidAddress, isValidChain } from '../../common/validators/validators';
 import * as bunyan from 'bunyan';
-import config from '../../config';
-import { Logger } from '../../../services/core/build/index'
+import { query, validationResult } from 'express-validator/check';
+
+import BaseController from './BaseController';
+import { IController } from 'sourcify-core/src/interfaces';
+import config from 'sourcify-core/build/utils/config';
+import { IFileService, NotFoundError, ValidationError, isValidAddress, isValidChain, Logger } from 'sourcify-core/build';
 
 export default class FileController extends BaseController implements IController {
     router: Router;

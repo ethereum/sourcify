@@ -66,3 +66,25 @@ export declare interface QueueItem {
 export declare interface StringToBooleanMap {
   [key: string]: boolean;
 }
+
+export interface RecompilationResult {
+  bytecode: string,
+  deployedBytecode: string,
+  metadata: string
+}
+
+export interface ReformattedMetadata {
+  input: any,
+  fileName: string,
+  contractName: string
+}
+
+
+import * as bunyan from 'bunyan';
+export interface InjectorConfig {
+  infuraPID?: string,
+  localChainUrl?: string,
+  silent?: boolean,
+  log?: bunyan,
+  offline?: boolean
+}

@@ -1,15 +1,11 @@
+import * as bunyan from 'bunyan';
+
 import { NextFunction, Request, Response, Router } from 'express';
 import BaseController from './BaseController';
-import { IController } from '../../common/interfaces';
-import { IVerificationService } from '../services/VerificationService';
-import { InputData } from '../../../services/core/build/index';
-import { getChainId } from '../../../services/core/build/index';
-import { checkFiles } from '../../../services/validation/build/index';
-import { IFileService } from '../services/FileService';
-import * as bunyan from 'bunyan';
-import config from '../../config';
-import { Logger } from '../../../services/core/build/index'
-import { NotFoundError } from '../../../services/core/build/index';
+import { IController, InputData, getChainId, IFileService, Logger, NotFoundError } from 'sourcify-core/build';
+import { IValidationService } from 'sourcify-validation/build'
+import config from 'sourcify-core/build/utils/config';
+import { IVerificationService } from 'sourcify-verification/build';
 
 export default class VerificationController extends BaseController implements IController {
     router: Router;
@@ -36,6 +32,8 @@ export default class VerificationController extends BaseController implements IC
             return next(error);
         }
 
+        this.fileService.saveFilesToTempFolder(req.files);
+
         const inputData: InputData = {
             repository: config.repository.path,
             addresses: [req.body.address],
@@ -53,7 +51,7 @@ export default class VerificationController extends BaseController implements IC
             }
             inputData.files = validatedFiles.files;
             const matches: any = [];
-            //matches.push(await this.verificationService.inject(inputData));
+            matches.push(await this.verificationService.inject(inputData));
             Promise.all(matches).then((result) => {
                 res.status(200).send({ result })
             }).catch()
