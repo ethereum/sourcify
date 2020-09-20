@@ -128,8 +128,8 @@
         "${workspaceFolder}/services/validation/build/**/*.js"
       ],
       "args": [
-        "services/validation/test/single/1_Storage.sol",
-        "services/validation/test/single/metadata.json"
+        "/home/user/Programming/FIRME/ETHEREUM/SOLIDITY_TEAM/source-verify/temp/ERC20Standard.sol",
+        "/home/user/Programming/FIRME/ETHEREUM/SOLIDITY_TEAM/source-verify/temp/metadata.json"
       ]
     },
     {

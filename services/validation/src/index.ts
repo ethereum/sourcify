@@ -2,13 +2,12 @@
 
 import fs from 'fs';
 import path from 'path';
-import { ValidationService } from './services/ValidationService';
+import { ValidationService, CheckFileResponse } from './services/ValidationService';
 
 if (process.argv.length > 2) {
     const fileNames = process.argv.slice(2);
 
-
-    let files: any[] = [];
+    const files: any[] = [];
     fileNames.forEach(fileName => {
 
         try {
@@ -23,6 +22,6 @@ if (process.argv.length > 2) {
     });
 
     const validationService = new ValidationService();
-    validationService.checkFiles(files);
-
+    const response: CheckFileResponse = validationService.checkFiles(files);
+    console.log(JSON.stringify(response));
 }

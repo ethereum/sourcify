@@ -25,7 +25,7 @@ export class ValidationService implements IValidationService {
         this.fileService = fileService || new FileService();
     }
 
-    checkFiles(files: any) {
+    checkFiles(files: any): CheckFileResponse {
       const sanitizedFiles = this.fileService.sanitizeInputFiles(this.fileService.findInputFiles(files))
       const metadataFiles = this.fileService.findMetadataFiles(sanitizedFiles);
       let sources: any = [];

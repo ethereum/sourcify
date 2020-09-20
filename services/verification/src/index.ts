@@ -6,6 +6,7 @@ import path from 'path';
 import { VerificationService } from './services/VerificationService';
 import { InputData } from 'sourcify-core/build';
 
+
 if (process.argv.length > 2) {
     const fileNames = process.argv.slice(2);
 
