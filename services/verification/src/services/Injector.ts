@@ -3,7 +3,7 @@ import * as bunyan from 'bunyan';
 import { IVerificationService, VerificationService } from '../services/VerificationService';
 import { IFileService, FileService, } from 'sourcify-core/build';
 import { Logger, Match, InputData,  getChainByName, RecompilationResult, NotFoundError, InjectorConfig} from 'sourcify-core/build/index'
-import { IValidationService, ValidationService } from 'sourcify-validation/src/services/ValidationService';
+import { IValidationService, ValidationService } from 'sourcify-validation/build/services/ValidationService';
 
 
 export default class Injector {
