@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-const solc: any = require('solc');
 import fs from 'fs';
 import path from 'path';
 import { VerificationService } from './services/VerificationService';
@@ -59,7 +58,7 @@ if (argv.address) {
 if (argv.files) {
     for (const file in argv.files) {
         const readFile = fs.readFileSync(path.resolve(argv.files[file].toString()));
-        inputData.files.push(readFile);
+        inputData.files.push(readFile.toString());
     }
 }
 
