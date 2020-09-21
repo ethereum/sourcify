@@ -1,20 +1,22 @@
 import Web3 from 'web3';
 import path from 'path';
-import config from '../../config';
-import { Logger } from '../../../services/core/build/index'
+import { Logger } from '../../../services/core/build/index';
 import * as bunyan from 'bunyan';
-import { Match, InputData, StringMap, getChainByName, cborDecode } from '../../../services/core/build/index';
-import { recompile, RecompilationResult } from '../../../services/verification/build/index';
+import { Match, InputData, StringMap, cborDecode, NotFoundError, getChainByName } from '../../../services/core/build/index';
 import { FileService } from '../services/FileService';
+// tslint:disable no-unused-variable
+import fs from 'fs'
+const solc: any = require('solc');
+
+
+// tslint:disable no-commented-code
+// import { findAddresses } from './address-db';
 
 const multihashes: any = require('multihashes');
 
-// import {
-//   getBytecode,
-//   getBytecodeWithoutMetadata as trimMetadata,
-//   save
-// } from '../../../services/core/build/index';
-import { NotFoundError } from '../../../services/core/build/index';
+import {
+  save
+} from '../../utils/Utils';
 
 export interface InjectorConfig {
   infuraPID?: string,
@@ -78,6 +80,87 @@ export default class Injector {
   }
 
   /**
+   * Selects metadata files from an array of files that may include sources, etc
+   * @param  {string[]} files
+   * @return {string[]}         metadata
+   */
+  private findMetadataFiles(files: string[]): any[] {
+    const metadataFiles = [];
+
+    for (const i in files) {
+      try {
+        const m = JSON.parse(files[i])
+
+        // TODO: this might need a stronger validation check.
+        //       many assumptions are made about structure of
+        //       metadata object after this selection step.
+        if (m['language'] === 'Solidity') {
+          metadataFiles.push(m);
+        }
+      } catch (err) { /* ignore */ }
+    }
+
+    if (!metadataFiles.length) {
+      const err = new Error("Metadata file not found. Did you include \"metadata.json\"?");
+      this.log.info({ loc: '[FIND]', err: err });
+      throw err;
+    }
+
+    return metadataFiles;
+  }
+
+  /**
+   * Generates a map of files indexed by the keccak hash of their contents
+   * @param  {string[]}  files sources
+   * @return {StringMap}
+   */
+  private storeByHash(files: string[]): StringMap {
+    const byHash: StringMap = {};
+
+    for (const i in files) {
+      byHash[Web3.utils.keccak256(files[i])] = files[i]
+    }
+    return byHash;
+  }
+
+  /**
+   * Validates metadata content keccak hashes for all files and
+   * returns mapping of file contents by file name
+   * @param  {any}       metadata
+   * @param  {string[]}  files    source files
+   * @return {StringMap}
+   */
+  private rearrangeSources(metadata: any, files: string[]): StringMap {
+    const sources: StringMap = {}
+    const byHash = this.storeByHash(files);
+
+    for (const fileName in metadata.sources) {
+      let content: string = metadata.sources[fileName].content;
+      const hash: string = metadata.sources[fileName].keccak256;
+      if (content) {
+        if (Web3.utils.keccak256(content) != hash) {
+          const err = new Error(`Invalid content for file ${fileName}`);
+          this.log.info({ loc: '[REARRANGE]', fileName: fileName, err: err });
+          throw err;
+        }
+      } else {
+        content = byHash[hash];
+      }
+      if (!content) {
+        const err = new Error(
+          `The metadata file mentions a source file called "${fileName}" ` +
+          `that cannot be found in your upload.\nIts keccak256 hash is ${hash}. ` +
+          `Please try to find it and include it in the upload.`
+        );
+        this.log.info({ loc: '[REARRANGE]', fileName: fileName, err: err });
+        throw err;
+      }
+      sources[fileName] = content;
+    }
+    return sources
+  }
+
+  /**
    * Writes verified sources to repository by address and by ipfs | swarm hash
    * @param {string}              repository        repository root (ex: 'repository')
    * @param {string}              chain             chain name (ex: 'ropsten')
@@ -128,8 +211,8 @@ export default class Injector {
       '/metadata.json'
     );
 
-    // save(hashPath, compilationResult.metadata);
-    // save(addressPath, compilationResult.metadata);
+    save(hashPath, compilationResult.metadata);
+    save(addressPath, compilationResult.metadata);
 
     for (const sourcePath in sources) {
 
@@ -147,7 +230,7 @@ export default class Injector {
         sanitizedPath
       );
 
-      //save(outputPath, sources[sourcePath]);
+      save(outputPath, sources[sourcePath]);
     }
   }
 
@@ -178,7 +261,7 @@ export default class Injector {
       '/metadata.json'
     );
 
-    //save(addressPath, compilationResult.metadata);
+    save(addressPath, compilationResult.metadata);
 
     for (const sourcePath in sources) {
 
@@ -196,7 +279,7 @@ export default class Injector {
         sanitizedPath
       );
 
-      //save(outputPath, sources[sourcePath]);
+      save(outputPath, sources[sourcePath]);
     }
   }
 
@@ -226,7 +309,7 @@ export default class Injector {
           },
           `Retrieving contract bytecode address`
         );
-        //deployedBytecode = await getBytecode(this.chains[chain].web3, address)
+        deployedBytecode = await getBytecode(this.chains[chain].web3, address)
       } catch (e) { /* ignore */ }
 
       const status = this.compareBytecodes(deployedBytecode, compiledBytecode);
@@ -257,9 +340,9 @@ export default class Injector {
         return 'perfect';
       }
 
-      // if (trimMetadata(deployedBytecode) === trimMetadata(compiledBytecode)) {
-      //   return 'partial';
-      // }
+      if (trimMetadata(deployedBytecode) === trimMetadata(compiledBytecode)) {
+        return 'partial';
+      }
     }
     return null;
   }
@@ -384,4 +467,138 @@ export default class Injector {
     }
     return match;
   }
+}
+
+export interface RecompilationResult {
+  bytecode: string,
+  deployedBytecode: string,
+  metadata: string
+}
+
+/**
+ * Wraps eth_getCode
+ * @param {Web3}   web3    connected web3 instance
+ * @param {string} address contract
+ */
+export async function getBytecode(web3: Web3, address: string) {
+  address = web3.utils.toChecksumAddress(address);
+  return await web3.eth.getCode(address);
+};
+
+/**
+ * Compiles sources using version and settings specified in metadata
+ * @param  {any}                          metadata
+ * @param  {string[]}                     sources  solidity files
+ * @return {Promise<RecompilationResult>}
+ */
+export async function recompile(
+  metadata: any,
+  sources: StringMap,
+  log: any
+): Promise<RecompilationResult> {
+
+  const {
+    input,
+    fileName,
+    contractName
+  } = reformatMetadata(metadata, sources, log);
+
+  const version = metadata.compiler.version;
+
+  log.info(
+    {
+      loc: '[RECOMPILE]',
+      fileName: fileName,
+      contractName: contractName,
+      version: version
+    },
+    'Recompiling'
+  );
+
+  const solcjs: any = await new Promise((resolve, reject) => {
+    solc.loadRemoteVersion(`v${version}`, (error: Error, soljson: any) => {
+      (error) ? reject(error) : resolve(soljson);
+    });
+  });
+
+  const compiled: any = solcjs.compile(JSON.stringify(input));
+  const output = JSON.parse(compiled);
+  const contract: any = output.contracts[fileName][contractName];
+
+  return {
+    bytecode: contract.evm.bytecode.object,
+    deployedBytecode: `0x${contract.evm.deployedBytecode.object}`,
+    metadata: contract.metadata.trim()
+  }
+}
+
+/**
+ * Removes post-fixed metadata from a bytecode string
+ * (for partial bytecode match comparisons )
+ * @param  {string} bytecode
+ * @return {string}          bytecode minus metadata
+ */
+export function trimMetadata(bytecode: string): string {
+  // Last 4 chars of bytecode specify byte size of metadata component,
+  const metadataSize = parseInt(bytecode.slice(-4), 16) * 2 + 4;
+  return bytecode.slice(0, bytecode.length - metadataSize);
+}
+
+/**
+ * Formats metadata into an object which can be passed to solc for recompilation
+ * @param  {any}                 metadata solc metadata object
+ * @param  {string[]}            sources  solidity sources
+ * @return {ReformattedMetadata}
+ */
+function reformatMetadata(
+  metadata: any,
+  sources: StringMap,
+  log: any
+): ReformattedMetadata {
+
+  const input: any = {};
+  let fileName: string = '';
+  let contractName: string = '';
+
+  input.settings = metadata.settings;
+
+  for (fileName in metadata.settings.compilationTarget) {
+    contractName = metadata.settings.compilationTarget[fileName];
+  }
+
+  delete input['settings']['compilationTarget']
+
+  if (contractName == '') {
+    const err = new Error("Could not determine compilation target from metadata.");
+    log.info({ loc: '[REFORMAT]', err: err });
+    throw err;
+  }
+
+  input['sources'] = {}
+  for (const source in sources) {
+    input.sources[source] = { 'content': sources[source] }
+  }
+
+  input.language = metadata.language
+  input.settings.metadata = input.settings.metadata || {}
+  input.settings.outputSelection = input.settings.outputSelection || {}
+  input.settings.outputSelection[fileName] = input.settings.outputSelection[fileName] || {}
+
+  input.settings.outputSelection[fileName][contractName] = [
+    'evm.bytecode',
+    'evm.deployedBytecode',
+    'metadata'
+  ];
+
+  return {
+    input: input,
+    fileName: fileName,
+    contractName: contractName
+  }
+}
+
+export declare interface ReformattedMetadata {
+  input: any,
+  fileName: string,
+  contractName: string
 }
