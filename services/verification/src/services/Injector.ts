@@ -21,7 +21,7 @@ export default class Injector {
    * @param {InjectorConfig = {}} config
    */
   public constructor(config: InjectorConfig = {}) {
-    this.chains = {};
+    this.chains = {};checkFiles
     this.infuraPID = config.infuraPID || "changeinfuraid";
     this.localChainUrl = config.localChainUrl;
     this.offline = config.offline || false;

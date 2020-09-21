@@ -128,8 +128,8 @@
         "${workspaceFolder}/services/validation/build/**/*.js"
       ],
       "args": [
-        "/home/user/Programming/FIRME/ETHEREUM/SOLIDITY_TEAM/source-verify/temp/ERC20Standard.sol",
-        "/home/user/Programming/FIRME/ETHEREUM/SOLIDITY_TEAM/source-verify/temp/metadata.json"
+        "services/validation/test/ERC20Standard.sol",
+        "services/validation/test/metadata.json"
       ]
     },
     {
@@ -171,8 +171,8 @@
         "-a",
         "0xfff0f5801a9e13426c306455A3BcC5EF3e9BC979",
         "-f",
-        "temp/ERC20Standard.sol",
-        "temp/metadata.json"
+        "services/validation/test/ERC20Standard.sol",
+        "services/validation/test/metadata.json"
       ]
     }
   ]
