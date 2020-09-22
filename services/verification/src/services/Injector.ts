@@ -1,6 +1,6 @@
 import Web3 from 'web3';
 import * as bunyan from 'bunyan';
-import { Match, InputData, NotFoundError, getChainByName, Logger } from '../../../../services/core/build/index';
+import { Match, InputData, NotFoundError, getChainByName, Logger } from 'sourcify-core';
 import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata } from '../utils';
 
 export interface InjectorConfig {

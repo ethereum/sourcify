@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response, Router } from 'express';
 import BaseController from './BaseController';
 import { IController } from '../../common/interfaces';
-import { IVerificationService } from '../../../services/verification/build/index';
-import { InputData, getChainId, Logger, NotFoundError } from '../../../services/core/build/index';
-import { IValidationService } from '../../../services/validation/build/index';
+import { IVerificationService } from 'sourcify-verification';
+import { InputData, getChainId, Logger, NotFoundError } from 'sourcify-core';
+import { IValidationService } from 'sourcify-validation';
 import * as bunyan from 'bunyan';
 import config from '../../config';
 
@@ -62,12 +62,15 @@ export default class VerificationController extends BaseController implements IC
         const map: Map<string, Object> = new Map();
         for (const address of req.query.addresses.split(',')) {
             for (const chainId of req.query.chainIds.split(',')) {
-
-                const object: any = await this.verificationService.findByAddress(address, chainId, config.repository.path);
-                object.chainId = chainId;
-                if (object.length != 0) {
-                    map.set(address, object[0]);
-                    break;
+                try {
+                    const object: any = await this.verificationService.findByAddress(address, chainId, config.repository.path);
+                    object.chainId = chainId;
+                    if (object.length != 0) {
+                        map.set(address, object[0]);
+                        break;
+                    }
+                } catch (error) {
+                    // ignore
                 }
             };
             if (!map.has(address)) {

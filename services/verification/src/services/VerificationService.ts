@@ -1,4 +1,4 @@
-import { InputData, Match, Logger } from '../../../../services/core/build/index';
+import { InputData, Match, FileService, IFileService } from 'sourcify-core';
 import { Injector } from './Injector';
 import * as bunyan from 'bunyan';
 // import MQ from '../services/Queue'; 
@@ -11,21 +11,21 @@ export interface IVerificationService {
 }
 
 export class VerificationService implements IVerificationService {
-    //fileService: IFileService;
+    fileService: IFileService;
     logger: bunyan;
 
     constructor(fileService?: any, logger?: bunyan) {
         if (logger !== undefined) {
             this.logger = logger;
         }
-        //this.fileService = fileService;
+        this.fileService = fileService;
     }
 
     findByAddress = async (address: string, chain: string, repository: string) => {
         // Try to find by address, return on success.
         let matches: Match[] = [];
         try {
-            //matches = this.fileService.findByAddress(address, chain, repository);
+            matches = await this.fileService.findByAddress(address, chain, repository);
         } catch (err) {
             const msg = "Could not find file in repository, proceeding to recompilation"
             this.logger.info({ loc: '[POST:VERIFICATION_BY_ADDRESS_FAILED]' }, msg);
