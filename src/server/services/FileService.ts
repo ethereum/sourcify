@@ -1,11 +1,8 @@
-import { FileObject } from '../../../services/core/build/index';
+import { FileObject, getChainId, Match, Logger } from '../../../services/core/build/index';
 import dirTree from 'directory-tree';
 import config from '../../config'
 import fs from 'fs';
-import { getChainId } from '../../../services/core/build/index';
-import { Match } from '../../../services/core/build/index';
 import config from '../../config';
-import { Logger } from '../../../services/core/build/index'
 import * as bunyan from 'bunyan';
 
 export interface IFileService {
