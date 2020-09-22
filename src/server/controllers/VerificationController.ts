@@ -1,14 +1,11 @@
 import { NextFunction, Request, Response, Router } from 'express';
 import BaseController from './BaseController';
 import { IController } from '../../common/interfaces';
-import { IVerificationService } from '../services/VerificationService';
-import { InputData } from '../../../services/core/build/index';
-import { getChainId } from '../../../services/core/build/index';
+import { IVerificationService } from '../../../services/verification/build/index';
+import { InputData, getChainId, Logger, NotFoundError } from '../../../services/core/build/index';
 import { IValidationService } from '../../../services/validation/build/index';
 import * as bunyan from 'bunyan';
 import config from '../../config';
-import { Logger } from '../../../services/core/build/index'
-import { NotFoundError } from '../../../services/core/build/index';
 
 export default class VerificationController extends BaseController implements IController {
     router: Router;
@@ -52,7 +49,7 @@ export default class VerificationController extends BaseController implements IC
             }
             inputData.files = validatedFiles.files;
             const matches: any = [];
-            matches.push(await this.verificationService.inject(inputData));
+            matches.push(await this.verificationService.inject(inputData, config.localchain.url));
             Promise.all(matches).then((result) => {
                 res.status(200).send({ result })
             }).catch()

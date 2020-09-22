@@ -1,48 +1,45 @@
-import { InputData, Match } from '../../../services/core/build/index';
-import { IFileService } from './FileService';
+import { InputData, Match, Logger } from '../../../../services/core/build/index';
+import { Injector } from './Injector';
 import * as bunyan from 'bunyan';
-import config from '../../config';
-import { Logger } from '../../../services/core/build/index'
 // import MQ from '../services/Queue'; 
 // import { ConfirmChannel } from 'amqplib';
-import Injector from './Injector';
+
 
 export interface IVerificationService {
     findByAddress(address: string, chain: string, repository: string): Promise<Match[]>
-    inject(inputData: InputData): Promise<Match>;
+    inject(inputData: InputData, localChainUrl: string): Promise<Match>;
 }
 
 export class VerificationService implements IVerificationService {
-    fileService: IFileService;
+    //fileService: IFileService;
     logger: bunyan;
 
-    constructor(fileService: IFileService, logger?: bunyan) {
-        this.logger = Logger(config.logging.dir, "VerificationService");
-        if(logger !== undefined){
+    constructor(fileService?: any, logger?: bunyan) {
+        if (logger !== undefined) {
             this.logger = logger;
         }
-        this.fileService = fileService;
+        //this.fileService = fileService;
     }
 
     findByAddress = async (address: string, chain: string, repository: string) => {
         // Try to find by address, return on success.
         let matches: Match[] = [];
         try {
-            matches = this.fileService.findByAddress(address, chain, repository);
-        } catch(err) {
+            //matches = this.fileService.findByAddress(address, chain, repository);
+        } catch (err) {
             const msg = "Could not find file in repository, proceeding to recompilation"
-            this.logger.info({loc:'[POST:VERIFICATION_BY_ADDRESS_FAILED]'}, msg);
+            this.logger.info({ loc: '[POST:VERIFICATION_BY_ADDRESS_FAILED]' }, msg);
         }
         return matches;
     }
 
-    inject = async (inputData: InputData): Promise<Match> => {
+    inject = async (inputData: InputData, localChainUrl: string): Promise<Match> => {
         // Injection
         //const injection: Promise<Match>;
         //const { repository, chain, addresses, files } = inputData;
 
         const injector = new Injector({
-            localChainUrl: config.localchain.url,
+            localChainUrl: localChainUrl,
             log: this.logger,
             infuraPID: process.env.INFURA_ID || "changeinfuraid"
         });
@@ -55,11 +52,11 @@ export class VerificationService implements IVerificationService {
 
         //const channel: ConfirmChannel = await MQ.createChannelAndExchange(exchange, topic);
         //MQ.publishToExchange(exchange, channel, "inputdata", JSON.stringify(inputData));
-        
-        
+
+
         // promises.push(injector.inject(inputData));
 
-        
+
 
         //return injection;
 
