@@ -7,8 +7,8 @@ RUN unzip ./build/distributions/source_verify_ens_updater.zip
 RUN chmod +x source_verify_ens_updater/bin/source_verify_ens_updater
 RUN ls -al ./build/distributions/
 RUN curl https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz > go-ipfs.tar.gz && tar xvfz go-ipfs.tar.gz && cd go-ipfs && ./install.sh
-ADD src/ipfs/publish.sh ./publish.sh
-ADD src/ipfs/entrypoint.sh ./entrypoint.sh
-ADD src/ipfs/cron.job ./cron.job
+ADD services/ipfs/publish.sh ./publish.sh
+ADD services/ipfs/entrypoint.sh ./entrypoint.sh
+ADD services/ipfs/cron.job ./cron.job
 RUN chmod +x ./entrypoint.sh
 ENTRYPOINT ./entrypoint.sh
