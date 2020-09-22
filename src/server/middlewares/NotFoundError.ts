@@ -1,6 +1,6 @@
 import * as HttpStatus from 'http-status-codes';
 import { Request, Response } from 'express';
-import { Logger } from '../../../services/core/build/index';
+import { Logger } from 'sourcify-core';
 import * as bunyan from 'bunyan';
 import config from '../../config';
 

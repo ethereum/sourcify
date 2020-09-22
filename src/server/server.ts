@@ -5,7 +5,7 @@ import cors from 'cors';
 import routes from './routes';
 import bodyParser from 'body-parser';
 import config from '../config';
-import { Logger } from '../../services/core/build/index';
+import { Logger } from 'sourcify-core';
 import genericErrorHandler from './middlewares/GenericErrorHandler';
 import notFoundHandler from './middlewares/NotFoundError';
 

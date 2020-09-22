@@ -1,5 +1,5 @@
 import Web3 from 'web3';
-import { StringMap } from '../../../services/core/build/index';
+import { StringMap } from 'sourcify-core';
 const solc: any = require('solc');
 
 export interface RecompilationResult {

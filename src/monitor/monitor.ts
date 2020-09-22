@@ -4,7 +4,7 @@ import request from 'request-promise-native';
 import concat from 'it-concat';
 import { outputFileSync } from 'fs-extra';
 import * as bunyan from 'bunyan';
-import { Injector } from '../../services/verification/build/index';
+import { Injector } from 'sourcify-verification';
 import config from '../config';
 import { BlockTransactionObject } from 'web3-eth';
 import {
@@ -18,7 +18,7 @@ import {
   getChainByName,
   cborDecode,
   Logger
-} from '../../services/core/build/index';
+} from 'sourcify-core';
 
 const multihashes = require('multihashes');
 const save = outputFileSync;

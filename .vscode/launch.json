@@ -152,6 +152,28 @@
         "services/validation/test/multiple/Savings.sol",
         "services/validation/test/multiple/metadata.json"
       ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Verification service (single file)",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/services/verification/build/index.js",
+      "preLaunchTask": "tsc: build - services/verification/tsconfig.json",
+      "outFiles": [
+        "${workspaceFolder}/services/verification/build/**/*.js"
+      ],
+      "args": [
+        "-c",
+        "1",
+        "-a",
+        "0xfff0f5801a9e13426c306455A3BcC5EF3e9BC979",
+        "-f",
+        "services/validation/test/ERC20Standard.sol",
+        "services/validation/test/metadata.json"
+      ]
     }
   ]
 }
