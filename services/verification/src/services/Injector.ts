@@ -1,14 +1,18 @@
 import Web3 from 'web3';
+import path from 'path';
 import * as bunyan from 'bunyan';
-import { Match, InputData, NotFoundError, getChainByName, Logger } from 'sourcify-core';
+import { Match, InputData, NotFoundError, getChainByName, Logger, FileService, StringMap, cborDecode } from 'sourcify-core';
 import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata } from '../utils';
+
+const multihashes: any = require('multihashes');
 
 export interface InjectorConfig {
     infuraPID?: string,
     localChainUrl?: string,
     silent?: boolean,
     log?: bunyan,
-    offline?: boolean
+    offline?: boolean,
+    repositoryPath?: string
 }
 
 export class Injector {
@@ -17,6 +21,9 @@ export class Injector {
     private infuraPID: string;
     private localChainUrl: string | undefined;
     private offline: boolean;
+    public fileService: FileService;
+    repositoryPath: string;
+
 
     /**
      * Constructor
@@ -27,9 +34,10 @@ export class Injector {
         this.infuraPID = config.infuraPID || "changeinfuraid";
         this.localChainUrl = config.localChainUrl;
         this.offline = config.offline || false;
-
+        this.repositoryPath = config.repositoryPath;
         this.log = config.log || Logger("Injector");
 
+        this.fileService = new FileService(this.repositoryPath, this.log);
 
         if (!this.offline) {
             this.initChains();
@@ -220,11 +228,11 @@ export class Injector {
             // and the sources.
             if (match.address && match.status === 'perfect') {
 
-
+                this.storePerfectMatchData(repository, chain, match.address, compilationResult, source.solidity)
 
             } else if (match.address && match.status === 'partial') {
 
-
+                this.storePartialMatchData(repository, chain, match.address, compilationResult, source.solidity)
 
             } else {
                 const err = new Error(
@@ -245,6 +253,129 @@ export class Injector {
             }
         }
         return match;
+    }
+
+    /**
+   * Writes verified sources to repository by address and by ipfs | swarm hash
+   * @param {string}              repository        repository root (ex: 'repository')
+   * @param {string}              chain             chain name (ex: 'ropsten')
+   * @param {string}              address           contract address
+   * @param {RecompilationResult} compilationResult solc output
+   * @param {StringMap}           sources           'rearranged' sources
+   */
+    private storePerfectMatchData(
+        repository: string,
+        chain: string,
+        address: string,
+        compilationResult: RecompilationResult,
+        sources: StringMap
+    ): void {
+
+        let metadataPath: string;
+        const bytes = Web3.utils.hexToBytes(compilationResult.deployedBytecode);
+        const cborData = cborDecode(bytes);
+
+        if (cborData['bzzr0']) {
+            metadataPath = `/swarm/bzzr0/${Web3.utils.bytesToHex(cborData['bzzr0']).slice(2)}`;
+        } else if (cborData['bzzr1']) {
+            metadataPath = `/swarm/bzzr1/${Web3.utils.bytesToHex(cborData['bzzr1']).slice(2)}`;
+        } else if (cborData['ipfs']) {
+            metadataPath = `/ipfs/${multihashes.toB58String(cborData['ipfs'])}`;
+        } else {
+            const err = new Error(
+                "Re-compilation successful, but could not find reference to metadata file in cbor data."
+            );
+
+            this.log.info({
+                loc: '[STOREDATA]',
+                address: address,
+                chain: chain,
+                err: err
+            });
+
+            throw err;
+        }
+
+        const hashPath = path.join(repository, metadataPath);
+        const addressPath = path.join(
+            repository,
+            'contracts',
+            'full_match',
+            chain,
+            address,
+            '/metadata.json'
+        );
+
+        this.fileService.save(hashPath, compilationResult.metadata);
+        this.fileService.save(addressPath, compilationResult.metadata);
+
+        for (const sourcePath in sources) {
+
+            const sanitizedPath = sourcePath
+                .replace(/[^a-z0-9_.\/-]/gim, "_")
+                .replace(/(^|\/)[.]+($|\/)/, '_');
+
+            const outputPath = path.join(
+                repository,
+                'contracts',
+                'full_match',
+                chain,
+                address,
+                'sources',
+                sanitizedPath
+            );
+
+            this.fileService.save(outputPath, sources[sourcePath]);
+        }
+    }
+
+    /**
+     * Writes verified sources to repository by address under the "partial_match" folder.
+     * This method used when recompilation bytecode matches deployed *except* for their
+     * metadata components.
+     * @param {string}              repository        repository root (ex: 'repository')
+     * @param {string}              chain             chain name (ex: 'ropsten')
+     * @param {string}              address           contract address
+     * @param {RecompilationResult} compilationResult solc output
+     * @param {StringMap}           sources           'rearranged' sources
+     */
+    private storePartialMatchData(
+        repository: string,
+        chain: string,
+        address: string,
+        compilationResult: RecompilationResult,
+        sources: StringMap
+    ): void {
+
+        const addressPath = path.join(
+            repository,
+            'contracts',
+            'partial_match',
+            chain,
+            address,
+            '/metadata.json'
+        );
+
+        this.fileService.save(addressPath, compilationResult.metadata);
+
+        for (const sourcePath in sources) {
+
+            const sanitizedPath = sourcePath
+                .replace(/[^a-z0-9_.\/-]/gim, "_")
+                .replace(/(^|\/)[.]+($|\/)/, '_');
+
+            const outputPath = path.join(
+                repository,
+                'contracts',
+                'partial_match',
+                chain,
+                address,
+                'sources',
+                sanitizedPath
+            );
+
+            this.fileService.save(outputPath, sources[sourcePath]);
+        }
     }
 }
 

@@ -1,4 +1,4 @@
-import { InputData, Match, FileService, IFileService } from 'sourcify-core';
+import { InputData, Match, IFileService } from 'sourcify-core';
 import { Injector } from './Injector';
 import * as bunyan from 'bunyan';
 // import MQ from '../services/Queue'; 
@@ -15,9 +15,7 @@ export class VerificationService implements IVerificationService {
     logger: bunyan;
 
     constructor(fileService?: any, logger?: bunyan) {
-        if (logger !== undefined) {
-            this.logger = logger;
-        }
+        this.logger = logger;
         this.fileService = fileService;
     }
 
@@ -28,7 +26,9 @@ export class VerificationService implements IVerificationService {
             matches = await this.fileService.findByAddress(address, chain, repository);
         } catch (err) {
             const msg = "Could not find file in repository, proceeding to recompilation"
-            this.logger.info({ loc: '[POST:VERIFICATION_BY_ADDRESS_FAILED]' }, msg);
+            if (this.logger) {
+                this.logger.info({ loc: '[POST:VERIFICATION_BY_ADDRESS_FAILED]' }, msg);
+            }
         }
         return matches;
     }
@@ -41,7 +41,8 @@ export class VerificationService implements IVerificationService {
         const injector = new Injector({
             localChainUrl: localChainUrl,
             log: this.logger,
-            infuraPID: process.env.INFURA_ID || "changeinfuraid"
+            infuraPID: process.env.INFURA_ID || "changeinfuraid",
+            repositoryPath: inputData.repository
         });
 
         return injector.inject(inputData);

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import config from '../config';
 import { FileService } from 'sourcify-core';
 import { VerificationService } from 'sourcify-verification';
 import { ValidationService } from 'sourcify-validation';
@@ -8,7 +9,7 @@ import { logger } from '../server/server';
 
 const router: Router = Router();
 
-const fileService = new FileService(logger);
+const fileService = new FileService(config.repository.path, logger);
 const validationService: ValidationService = new ValidationService(logger);
 const verificationService = new VerificationService(fileService, logger);
 
