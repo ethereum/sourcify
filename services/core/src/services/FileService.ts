@@ -4,6 +4,8 @@ import dirTree from 'directory-tree';
 import path from 'path';
 import fs from 'fs';
 import * as bunyan from 'bunyan';
+import { outputFileSync } from 'fs-extra';
+const saveFile = outputFileSync;
 
 export interface IFileService {
     getTreeByChainAndAddress(chainId: any, address: string): Promise<Array<string>>;
@@ -12,13 +14,16 @@ export interface IFileService {
     fetchAllFilePaths(chain: string, address: string): Array<FileObject>;
     fetchAllFileContents(chain: string, address: string): Array<FileObject>;
     findByAddress(address: string, chain: string, repository: string): Match[];
+    repositoryPath: string;
 }
 
 export class FileService implements IFileService {
     logger: bunyan;
+    public repositoryPath: string;
 
-    constructor(logger?: bunyan) {
+    constructor(repositoryPath: string, logger?: bunyan) {
         this.logger = logger;
+        this.repositoryPath = repositoryPath;
     }
 
     async getTreeByChainAndAddress(chainId: any, address: string): Promise<string[]> {
@@ -83,4 +88,39 @@ export class FileService implements IFileService {
         }]
     }
 
+
+
+
+    /**
+     * Save file and update the repository tag
+     *
+     * @param path
+     * @param file
+     */
+    save(path: string, file: any) {
+        saveFile(path, file);
+        this.updateRepositoryTag();
+    }
+
+
+
+    /**
+     * Update repository tag
+     */
+    updateRepositoryTag() {
+        const filePath: string = path.join(this.repositoryPath, 'manifest.json')
+        const timestamp = new Date().getTime();
+        const repositoryVersion = process.env.REPOSITORY_VERSION || '0.1';
+        const tag: Tag = {
+            timestamp: timestamp,
+            repositoryVersion: repositoryVersion
+        }
+        fs.writeFileSync(filePath, JSON.stringify(tag));
+    }
+
+}
+
+type Tag = {
+    timestamp: any,
+    repositoryVersion: string
 }
