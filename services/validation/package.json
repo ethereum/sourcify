@@ -1,6 +1,6 @@
 {
   "name": "sourcify-validation",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Pre-verification module to check if files are valid and ready to be submitted for verification",
   "bin": {
     "sourcify-validation": "./build/index.js"

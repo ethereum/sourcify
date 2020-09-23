@@ -65,6 +65,9 @@
     "multihashes": "^0.4.15",
     "request-promise-native": "^1.0.9",
     "serve-index": "^1.9.1",
+    "sourcify-core": "^0.1.0",
+    "sourcify-validation": "^0.1.0",
+    "sourcify-verification": "^0.1.0",
     "web3": "^1.2.11"
   },
   "devDependencies": {

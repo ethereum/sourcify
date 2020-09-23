@@ -19,7 +19,7 @@ export interface IFileService {
 
 export class FileService implements IFileService {
     logger: bunyan;
-    public repositoryPath: string;
+    repositoryPath: string;
 
     constructor(repositoryPath: string, logger?: bunyan) {
         this.logger = logger;
@@ -65,10 +65,8 @@ export class FileService implements IFileService {
         return files;
     }
 
-
-
     /**
-     * Only for checking that filess exists in path
+     * Only for checking that files exists in path
      * @param address
      * @param chain
      * @param repository
@@ -88,9 +86,6 @@ export class FileService implements IFileService {
         }]
     }
 
-
-
-
     /**
      * Save file and update the repository tag
      *
@@ -101,8 +96,6 @@ export class FileService implements IFileService {
         saveFile(path, file);
         this.updateRepositoryTag();
     }
-
-
 
     /**
      * Update repository tag
