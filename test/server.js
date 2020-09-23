@@ -18,7 +18,7 @@ const app = require('../src/server/server').default;
 const { deployFromArtifact } = require('./helpers/helpers');
 
 const Simple = require('./sources/pass/simple.js');
-const { FileService } = require('../src/server/services/FileService');
+const { FileService } = require('sourcify-core');
 const simpleMetadataPath = './test/sources/all/simple.meta.json';
 const simpleSourcePath = './test/sources/all/Simple.sol';
 const simpleMetadataJSONPath = './test/sources/metadata/simple.meta.object.json';

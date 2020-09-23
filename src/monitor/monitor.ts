@@ -59,7 +59,8 @@ export default class Monitor {
     this.injector = new Injector({
       offline: true,
       log: this.log,
-      infuraPID: config.infuraId || "changeinfuraid"
+      infuraPID: config.infuraId || "changeinfuraid",
+      repositoryPath: config.repository.path
     });
   }
 
@@ -208,7 +209,7 @@ export default class Monitor {
 
     web3.eth.getBlockNumber((err: Error, newBlockNr: number) => {
       if (err) return;
-
+      // tslint:disable restrict-plus-operands
       newBlockNr = Math.min(newBlockNr, _this.chains[chain].latestBlock + 4);
 
       for (; _this.chains[chain].latestBlock < newBlockNr; _this.chains[chain].latestBlock++) {
