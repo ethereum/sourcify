@@ -1,6 +1,6 @@
 import bunyan from 'bunyan';
 import Web3 from 'web3';
-import { StringMap } from '../../core/build'
+import { StringMap } from 'sourcify-core'
 import util from 'util';
 
 export interface CheckFileResponse {

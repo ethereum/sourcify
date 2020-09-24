@@ -1,6 +1,6 @@
 {
   "name": "sourcify-validation",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Pre-verification module to check if files are valid and ready to be submitted for verification",
   "bin": {
     "sourcify-validation": "./build/index.js"
@@ -14,6 +14,7 @@
   },
   "main": "build/index.js",
   "scripts": {
+    "prepublishOnly": "npm ci && npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rimraf ./build && tsc",
     "start": "npm run build && node build/index.js"
@@ -28,6 +29,7 @@
   },
   "dependencies": {
     "bunyan": "^1.8.14",
+    "sourcify-core": "^0.1.1",
     "web3": "^1.2.11"
   }
 }

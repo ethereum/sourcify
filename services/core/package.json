@@ -1,6 +1,6 @@
 {
   "name": "sourcify-core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Sourcify core module with common interfaces, types and methods",
   "bin": {
     "sourcify-core": "./build/index.js"
@@ -11,6 +11,7 @@
   ],
   "main": "build/index.js",
   "scripts": {
+    "prepublishOnly": "npm ci && npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rimraf ./build && tsc",
     "start": "npm run build && node build/index.js"
