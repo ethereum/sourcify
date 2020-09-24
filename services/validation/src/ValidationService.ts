@@ -16,11 +16,7 @@ export class ValidationService implements IValidationService {
     logger: bunyan;
 
     constructor(logger?: bunyan) {
-        //TODO: solve logger
-        //this.logger = Logger(config.logging.dir, "VerificationService");
-        if (logger !== undefined) {
-            this.logger = logger;
-        }
+        this.logger = logger;
     }
 
     checkFiles(files: any) {
@@ -47,12 +43,12 @@ export class ValidationService implements IValidationService {
         return response;
     }
 
-    organizeFilesForSubmition(files: any) {
+    private organizeFilesForSubmition(files: any) {
         const f = this.findInputFiles(files);
         return this.sanitizeInputFiles(f);
     }
 
-    findInputFiles(files: any): any {
+    private findInputFiles(files: any): any {
         const inputs: any = [];
 
         if (files && files.files) {
@@ -86,7 +82,7 @@ export class ValidationService implements IValidationService {
         throw new Error(msg);
     }
 
-    sanitizeInputFiles(inputs: any): string[] {
+    private sanitizeInputFiles(inputs: any): string[] {
         const files = [];
         if (!inputs.length) {
             const msg = 'Unable to extract any files. Your request may be misformatted ' +
@@ -118,7 +114,7 @@ export class ValidationService implements IValidationService {
      * @param  {string[]} files
      * @return {string[]}         metadata
      */
-    findMetadataFiles(files: string[]): any[] {
+    private findMetadataFiles(files: string[]): any[] {
         const metadataFiles = [];
 
         for (const i in files) {
@@ -148,7 +144,7 @@ export class ValidationService implements IValidationService {
      * @param  {string[]}  files    source files
      * @return {StringMap}
      */
-    rearrangeSources(metadata: any, files: string[]): StringMap {
+    private rearrangeSources(metadata: any, files: string[]): StringMap {
         const sources: StringMap = {}
         const byHash = this.storeByHash(files);
 
@@ -177,7 +173,7 @@ export class ValidationService implements IValidationService {
      * @param  {string[]}  files sources
      * @return {StringMap}
      */
-    storeByHash(files: string[]): StringMap {
+    private storeByHash(files: string[]): StringMap {
         const byHash: StringMap = {};
 
         for (const i in files) {

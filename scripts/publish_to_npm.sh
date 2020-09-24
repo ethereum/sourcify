@@ -1,20 +1,51 @@
 #!/bin/bash
 
-PACKAGE_VERSION=$(cat package.json \
+CORE_LOCAL_VERSION=$(cat services/core/package.json \
   | grep version \
   | head -1 \
   | awk -F: '{ print $2 }' \
   | sed 's/[",]//g' \
   | tr -d '[[:space:]]')
 
-NPM_VERSION=$(npm view ethereum-sourcify/cli dist-tags.latest)
+CORE_NPM_VERSION=$(npm view sourcify-core dist-tags.latest)
 
-if [ $NPM_VERSION = $PACKAGE_VERSION ]; then
+VALIDATION_LOCAL_VERSION=$(cat services/validation/package.json \
+  | grep version \
+  | head -1 \
+  | awk -F: '{ print $2 }' \
+  | sed 's/[",]//g' \
+  | tr -d '[[:space:]]')
+
+VALIDATION_NPM_VERSION=$(npm view sourcify-validation dist-tags.latest)
+
+VERIFICATION_LOCAL_VERSION=$(cat services/verification/package.json \
+  | grep version \
+  | head -1 \
+  | awk -F: '{ print $2 }' \
+  | sed 's/[",]//g' \
+  | tr -d '[[:space:]]')
+
+VERIFICATION_VERSION=$(npm view sourcify-verification dist-tags.latest)
+
+npm config set //registry.npmjs.org/:_authToken=${NPM_TOKEN}
+
+if [ $CORE_LOCAL_VERSION = $CORE_NPM_VERSION ]; then
+    echo "sourcify-core:"
     echo "Latest npm version is equal to current package version. Up the version to publish to npm."
-    exit 0
+else
+    npm publish services/core/ --verbose
 fi
 
+if [ $VALIDATION_LOCAL_VERSION = $VALIDATION_NPM_VERSION ]; then
+    echo "sourcify-validation:"
+    echo "Latest npm version is equal to current package version. Up the version to publish to npm."
+else
+    npm publish services/validation/ --verbose
+fi
 
-# publish
-npm config set //registry.npmjs.org/:_authToken=${NPM_TOKEN}
-npm publish --verbose
+if [ $VERIFICATION_LOCAL_VERSION = $VERIFICATION_NPM_VERSION ]; then
+    echo "sourcify-verification:"
+    echo "Latest npm version is equal to current package version. Up the version to publish to npm."
+else
+    npm publish services/verification/ --verbose
+fi
