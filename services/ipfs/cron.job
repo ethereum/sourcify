@@ -1,4 +1,4 @@
 SHELL=/bin/bash
 
-*/10 * * * * /app/publish.sh >> /var/log/cron.log 2>&1
+*/2 * * * * /app/publish.sh >> /var/log/cron.log 2>&1
 # This extra line makes it a valid cron

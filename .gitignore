@@ -20,3 +20,4 @@ metacoin-source-verify/
 **/sort.log
 secret.key
 **/.env.secrets
+**/ipfs.key
