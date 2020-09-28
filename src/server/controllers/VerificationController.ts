@@ -2,7 +2,8 @@ import { NextFunction, Request, Response, Router } from 'express';
 import BaseController from './BaseController';
 import { IController } from '../../common/interfaces';
 import { IVerificationService } from 'sourcify-verification';
-import { InputData, getChainId, Logger, NotFoundError } from 'sourcify-core';
+import { InputData, getChainId, Logger } from 'sourcify-core';
+import { NotFoundError } from '../../common/errors'
 import { IValidationService } from 'sourcify-validation';
 import * as bunyan from 'bunyan';
 import config from '../../config';
@@ -18,10 +19,7 @@ export default class VerificationController extends BaseController implements IC
         this.router = Router();
         this.verificationService = verificationService;
         this.validationService = validationService;
-        this.logger = Logger(config.logging.dir, "VerificationService");
-        if (logger !== undefined) {
-            this.logger = logger;
-        }
+        this.logger = logger || Logger("VerificationService");
     }
 
     verify = async (req: Request, res: Response, next: NextFunction) => {
@@ -45,7 +43,7 @@ export default class VerificationController extends BaseController implements IC
             // tslint:disable no-useless-cast
             const validatedFiles = this.validationService.checkFiles(req.files!);
             if (validatedFiles.error) {
-                return next(new NotFoundError(validatedFiles.error));
+                return next(new NotFoundError(validatedFiles.error, false));
             }
             inputData.files = validatedFiles.files;
             const matches: any = [];

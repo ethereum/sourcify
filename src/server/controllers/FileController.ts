@@ -2,11 +2,11 @@ import { NextFunction, Request, Response, Router } from 'express';
 import BaseController from './BaseController';
 import { IController } from '../../common/interfaces';
 import * as HttpStatus from 'http-status-codes';
-import { NotFoundError, ValidationError, Logger, IFileService } from 'sourcify-core';
+import { Logger, IFileService } from 'sourcify-core';
 import { query, validationResult } from 'express-validator/check';
 import { isValidAddress, isValidChain } from '../../common/validators/validators';
+import { NotFoundError, ValidationError } from '../../common/errors'
 import * as bunyan from 'bunyan';
-import config from '../../config';
 
 export default class FileController extends BaseController implements IController {
     router: Router;
@@ -17,10 +17,7 @@ export default class FileController extends BaseController implements IControlle
         super();
         this.router = Router();
         this.fileService = fileService;
-        this.logger = Logger(config.logging.dir, "FileController");
-        if(logger !== undefined){
-            this.logger = logger;
-        }
+        this.logger = logger || Logger("FileController");
     }
 
     getTreeByChainAndAddress = async (req: Request, res: Response, next: NextFunction) => {

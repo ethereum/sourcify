@@ -1,7 +1,7 @@
 import Web3 from 'web3';
 import path from 'path';
 import * as bunyan from 'bunyan';
-import { Match, InputData, NotFoundError, getChainByName, Logger, FileService, StringMap, cborDecode } from 'sourcify-core';
+import { Match, InputData, getChainByName, Logger, FileService, StringMap, cborDecode } from 'sourcify-core';
 import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata } from '../utils';
 
 const multihashes: any = require('multihashes');
@@ -249,7 +249,7 @@ export class Injector {
                     err: err
                 })
 
-                throw new NotFoundError(err.message);
+                throw new Error(err.message);
             }
         }
         return match;

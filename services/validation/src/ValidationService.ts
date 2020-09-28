@@ -1,6 +1,6 @@
 import bunyan from 'bunyan';
 import Web3 from 'web3';
-import { StringMap } from 'sourcify-core'
+import { Logger, StringMap } from 'sourcify-core'
 import util from 'util';
 
 export interface CheckFileResponse {
@@ -16,7 +16,7 @@ export class ValidationService implements IValidationService {
     logger: bunyan;
 
     constructor(logger?: bunyan) {
-        this.logger = logger;
+        this.logger = logger || Logger("ValidationService");
     }
 
     checkFiles(files: any) {
@@ -43,11 +43,6 @@ export class ValidationService implements IValidationService {
         return response;
     }
 
-    private organizeFilesForSubmition(files: any) {
-        const f = this.findInputFiles(files);
-        return this.sanitizeInputFiles(f);
-    }
-
     private findInputFiles(files: any): any {
         const inputs: any = [];
 
@@ -67,6 +62,7 @@ export class ValidationService implements IValidationService {
 
             // Case: default
             const msg = `Invalid file(s) detected: ${util.inspect(files.files)}`;
+            this.logger.error(msg);
             throw new Error(msg);
         } else if (files) {
             files.forEach((file: { data: any; }) => {
@@ -79,6 +75,7 @@ export class ValidationService implements IValidationService {
         // If we reach this point, an address has been submitted and searched for
         // but there are no files associated with the request.
         const msg = 'Address for specified chain not found in repository';
+        this.logger.info(msg);
         throw new Error(msg);
     }
 
@@ -87,7 +84,7 @@ export class ValidationService implements IValidationService {
         if (!inputs.length) {
             const msg = 'Unable to extract any files. Your request may be misformatted ' +
                 'or missing some contents.';
-
+            this.logger.error(msg);
             throw new Error(msg);
 
         }
@@ -131,7 +128,9 @@ export class ValidationService implements IValidationService {
         }
 
         if (!metadataFiles.length) {
-            throw new Error("Metadata file not found. Did you include \"metadata.json\"?");
+            const msg = "Metadata file not found. Did you include \"metadata.json\"?";
+            this.logger.error(msg);
+            throw new Error(msg);
         }
 
         return metadataFiles;
@@ -153,15 +152,19 @@ export class ValidationService implements IValidationService {
             const hash: string = metadata.sources[fileName].keccak256;
             if (content) {
                 if (Web3.utils.keccak256(content) != hash) {
-                    throw new Error(`Invalid content for file ${fileName}`);
+                    const msg = `Invalid content for file ${fileName}`;
+                    this.logger.error(msg);
+                    throw new Error(msg);
                 }
             } else {
                 content = byHash[hash];
             }
             if (!content) {
-                throw new Error(`The metadata file mentions a source file called "${fileName}" ` +
+                const msg = `The metadata file mentions a source file called "${fileName}" ` +
                     `that cannot be found in your upload.\nIts keccak256 hash is ${hash}. ` +
-                    `Please try to find it and include it in the upload.`);
+                    `Please try to find it and include it in the upload.`;
+                this.logger.error(msg);
+                throw new Error(msg);
             }
             sources[fileName] = content;
         }

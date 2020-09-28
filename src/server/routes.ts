@@ -10,7 +10,7 @@ import { logger } from '../server/server';
 const router: Router = Router();
 
 const fileService = new FileService(config.repository.path, logger);
-const validationService: ValidationService = new ValidationService(logger);
+const validationService: ValidationService = new ValidationService();
 const verificationService = new VerificationService(fileService, logger);
 
 const fileController = new FileController(fileService, logger);
