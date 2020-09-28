@@ -9,7 +9,7 @@ import { Logger } from 'sourcify-core';
 import genericErrorHandler from './middlewares/GenericErrorHandler';
 import notFoundHandler from './middlewares/NotFoundError';
 
-export const logger = Logger(config.logging.dir, "Server");
+export const logger = Logger("Server");
 export class Server {
 
   app: express.Application;

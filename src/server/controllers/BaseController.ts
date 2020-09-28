@@ -1,4 +1,4 @@
-import { InternalServerError } from 'sourcify-core';
+import { InternalServerError } from '../../common/errors';
 import { NextFunction, Request, Response } from 'express';
 
 type RequestHandler = (req: Request, res: Response, next: NextFunction) => Promise<any>;
