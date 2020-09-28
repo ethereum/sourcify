@@ -4,6 +4,7 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
+
     {
       "type": "node",
       "request": "launch",
@@ -128,8 +129,24 @@
         "${workspaceFolder}/services/validation/build/**/*.js"
       ],
       "args": [
-        "services/validation/test/single/1_Storage.sol",
-        "services/validation/test/single/metadata.json"
+        "services/validation/test/files/single/1_Storage.sol",
+        "services/validation/test/files/single/metadata.json"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Validation service (single file - missing)",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/services/validation/build/index.js",
+      "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
+      "outFiles": [
+        "${workspaceFolder}/services/validation/build/**/*.js"
+      ],
+      "args": [
+        "services/validation/test/files/single/metadata.json"
       ]
     },
     {
@@ -145,13 +162,13 @@
         "${workspaceFolder}/services/validation/build/**/*.js"
       ],
       "args": [
-        "services/validation/test/truffle-example.zip"
+        "services/validation/test/files/truffle-example.zip"
       ]
     },
     {
       "type": "node",
       "request": "launch",
-      "name": "Validation service (incorrect truffle project - zip)",
+      "name": "Validation service (truffle project - zip - missing source)",
       "skipFiles": [
         "<node_internals>/**"
       ],
@@ -161,7 +178,7 @@
         "${workspaceFolder}/services/validation/build/**/*.js"
       ],
       "args": [
-        "services/validation/test/truffle-example-incorrect.zip"
+        "services/validation/test/files/truffle-example-missing-source.zip"
       ]
     },
     {
@@ -177,13 +194,13 @@
         "${workspaceFolder}/services/validation/build/**/*.js"
       ],
       "args": [
-        "services/validation/test/truffle-example"
+        "services/validation/test/files/truffle-example"
       ]
     },
     {
       "type": "node",
       "request": "launch",
-      "name": "Validation service (incorrect truffle project - directory)",
+      "name": "Validation service (truffle project - directory - missing source)",
       "skipFiles": [
         "<node_internals>/**"
       ],
@@ -193,7 +210,7 @@
         "${workspaceFolder}/services/validation/build/**/*.js"
       ],
       "args": [
-        "services/validation/test/truffle-example-incorrect"
+        "services/validation/test/files/truffle-example-missing-source"
       ]
     },
     {
@@ -209,12 +226,12 @@
         "${workspaceFolder}/services/validation/build/**/*.js"
       ],
       "args": [
-        "services/validation/test/multiple/Escrow.sol",
-        "services/validation/test/multiple/Main.sol",
-        "services/validation/test/multiple/Owned.sol",
-        "services/validation/test/multiple/provableAPI_0.6.sol",
-        "services/validation/test/multiple/Savings.sol",
-        "services/validation/test/multiple/metadata.json"
+        "services/validation/test/files/multiple/Escrow.sol",
+        "services/validation/test/files/multiple/Main.sol",
+        "services/validation/test/files/multiple/Owned.sol",
+        "services/validation/test/files/multiple/provableAPI_0.6.sol",
+        "services/validation/test/files/multiple/Savings.sol",
+        "services/validation/test/files/multiple/metadata.json"
       ]
     },
     {
@@ -230,10 +247,44 @@
         "${workspaceFolder}/services/validation/build/**/*.js"
       ],
       "args": [
-        "services/validation/test/multiple/Main.sol",
-        "services/validation/test/multiple/provableAPI_0.6.sol",
-        "services/validation/test/multiple/Savings.sol",
-        "services/validation/test/multiple/metadata.json"
+        "services/validation/test/files/multiple/Main.sol",
+        "services/validation/test/files/multiple/provableAPI_0.6.sol",
+        "services/validation/test/files/multiple/Savings.sol",
+        "services/validation/test/files/multiple/metadata.json"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Validation service (single file, altered code)",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/services/validation/build/index.js",
+      "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
+      "outFiles": [
+        "${workspaceFolder}/services/validation/build/**/*.js"
+      ],
+      "args": [
+        "services/validation/test/files/single-invalid"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Validation service (single file, prepare json)",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/services/validation/build/index.js",
+      "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
+      "outFiles": [
+        "${workspaceFolder}/services/validation/build/**/*.js"
+      ],
+      "args": [
+        "--prepare-json",
+        "browser/1_Storage.sol:Storage",
+        "services/validation/test/files/single"
       ]
     },
     {

@@ -6,6 +6,4 @@ Storage (browser/1_Storage.sol):
       keccak256: 0xaedc7086ad8503907209f50bac1e4dc6c2eca2ed41b15d03740fea748ea3f88e
       bzz-raw://4bc331951c25951321cb29abbd689eb3af669530222c6bb2d45ff45334ee83a7
       dweb:/ipfs/QmWb1NQ6Pw8ZLMFX8uDjMyftgcEieT9iP2TvWisPhjN3U2
-
-Files ignored due to readability issues:
-  test/files/single/foobar.sol
+The prepare-json target is not a valid contract! Exiting.
