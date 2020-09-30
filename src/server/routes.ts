@@ -13,7 +13,7 @@ const verificationService = new VerificationService(fileService, logger);
 const fileController = new FileController(fileService, logger);
 const verificationController = new VerificationController(verificationService, fileService, logger);
 
-router.use('/files', fileController.registerRoutes());
+router.use('/files/', fileController.registerRoutes());
 router.use('/', verificationController.registerRoutes());
 
 export default router;
