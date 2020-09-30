@@ -1,5 +1,4 @@
 #!/bin/bash
-
 ./scripts/find_replace.sh
 
 # Install E2E test
@@ -9,7 +8,7 @@ yarn
 
 # Publishes sources to IPFS (via Infura) and deploys contracts to Goerli
 # Account key and Infura project ID are Circle CI env variable settings.
-npm run deploy:goerli
+npm run deploy:goerli || exit 1
 
 # Give monitor a chance to detect and save.
 sleep 300

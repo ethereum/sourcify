@@ -76,6 +76,7 @@ aliases:
     - run:
         name: monitor test
         command: npm run monitor:ci
+        no_output_timeout: 30m
     - save_cache:
         key: dependency-cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "package.json" }}
         paths:
