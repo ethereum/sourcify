@@ -1,6 +1,6 @@
 {
   "name": "sourcify-core",
-  "version": "0.1.2",
+  "version": "0.1.21",
   "description": "Sourcify core module with common interfaces, types and methods",
   "bin": {
     "sourcify-core": "./build/index.js"

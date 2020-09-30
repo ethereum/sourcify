@@ -3,7 +3,7 @@ import BaseController from './BaseController';
 import { IController } from '../../common/interfaces';
 import * as HttpStatus from 'http-status-codes';
 import { Logger, IFileService } from 'sourcify-core';
-import { query, validationResult } from 'express-validator/check';
+import { param, validationResult } from 'express-validator/check';
 import { isValidAddress, isValidChain } from '../../common/validators/validators';
 import { NotFoundError, ValidationError } from '../../common/errors'
 import * as bunyan from 'bunyan';
@@ -55,12 +55,12 @@ export default class FileController extends BaseController implements IControlle
     registerRoutes = (): Router => {
         this.router.route('/tree/:chain/:address')
             .get([
-                param('chain').custom(chain => isValidChain(chain, this.fileService)),
+                param('chain').custom(chain => isValidChain(chain)),
                 param('address').custom(address => isValidAddress(address))
             ], this.safeHandler(this.getTreeByChainAndAddress));
         this.router.route('/:chain/:address')
             .get([
-                param('chain').custom(chain => isValidChain(chain, this.fileService)), 
+                param('chain').custom(chain => isValidChain(chain)), 
                 param('address').custom(address => isValidAddress(address))
             ], this.safeHandler(this.getByChainAndAddress));
         return this.router;
