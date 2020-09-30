@@ -1,6 +1,6 @@
 {
   "name": "sourcify-core",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Sourcify core module with common interfaces, types and methods",
   "bin": {
     "sourcify-core": "./build/index.js"
@@ -9,6 +9,10 @@
   "files": [
     "build"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ethereum/sourcify.git"
+  },
   "main": "build/index.js",
   "scripts": {
     "prepublishOnly": "npm ci && npm run build",

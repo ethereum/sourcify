@@ -1,6 +1,6 @@
 {
   "name": "sourcify-validation",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Pre-verification module to check if files are valid and ready to be submitted for verification",
   "bin": {
     "sourcify-validation": "./build/index.js"
@@ -10,7 +10,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sourcifyeth/sourcify-script.git"
+    "url": "git+https://github.com/ethereum/sourcify.git"
   },
   "main": "build/index.js",
   "scripts": {
@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "bunyan": "^1.8.14",
-    "sourcify-core": "^0.1.1",
+    "sourcify-core": "^0.1.2",
     "web3": "^1.2.11"
   }
 }
