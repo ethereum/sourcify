@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "fe74ed2f-ec7d-4cd4-8145-84b0bc6ae106",
+		"_postman_id": "b127a947-f46f-47b4-bda7-ac2282575339",
 		"name": "Sourcify",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -54,16 +54,17 @@
 					"response": []
 				},
 				{
-					"name": "getFileUrls",
+					"name": "getTreeByChainAndAddress",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/tree/:chain/:address",
+							"raw": "{{host}}/files/tree/:chain/:address",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
+								"files",
 								"tree",
 								":chain",
 								":address"
@@ -75,7 +76,7 @@
 								},
 								{
 									"key": "address",
-									"value": "0x0000A906D248Cc99FB8CB296C8Ad8C6Df05431c9"
+									"value": "0x1fE5d745beABA808AAdF52057Dd7AAA47b42cFD0"
 								}
 							]
 						}
@@ -83,7 +84,7 @@
 					"response": []
 				},
 				{
-					"name": "getFiles",
+					"name": "getByChainAndAddress",
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -104,7 +105,7 @@
 								},
 								{
 									"key": "address",
-									"value": "0x0000A906D248Cc99FB8CB296C8Ad8C6Df05431c9"
+									"value": "0x1fE5d745beABA808AAdF52057Dd7AAA47b42cFD0"
 								}
 							]
 						}

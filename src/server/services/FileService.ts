@@ -1,6 +1,6 @@
 import { FileObject } from '../../common/types';
 import dirTree from 'directory-tree';
-import path from 'path';
+import config from '../../config'
 import fs from 'fs';
 import * as chainOptions from '../../chains.json';
 import { Match } from '../../common/types';
@@ -52,7 +52,7 @@ export class FileService implements IFileService {
       }
       
     fetchAllFilePaths(chain: string, address: string): Array<FileObject>{
-        const fullPath: string = path.resolve(__dirname, `../../../repository/contract/${chain}/${address}/`);
+        const fullPath: string = config.repository.path + `/contracts/full_match/${chain}/${address}/`;
         const files: Array<FileObject> = [];
         dirTree(fullPath, {}, (item) => {
           files.push({"name": item.name, "path": item.path});
