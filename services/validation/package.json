@@ -1,6 +1,6 @@
 {
   "name": "sourcify-validation",
-  "version": "0.1.2",
+  "version": "0.1.22",
   "description": "Pre-verification module to check if files are valid and ready to be submitted for verification",
   "bin": {
     "sourcify-validation": "./build/index.js"
@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "bunyan": "^1.8.14",
-    "sourcify-core": "^0.1.2",
+    "sourcify-core": "^0.1.21",
     "web3": "^1.2.11"
   }
 }
