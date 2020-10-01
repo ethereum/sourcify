@@ -13,11 +13,11 @@ export default class FileController extends BaseController implements IControlle
     fileService: IFileService;
     logger: bunyan;
 
-    constructor(fileService: IFileService, logger?: bunyan) {
+    constructor(fileService: IFileService) {
         super();
         this.router = Router();
         this.fileService = fileService;
-        this.logger = logger || Logger("FileController");
+        this.logger = Logger("FileController");
     }
 
     getTreeByChainAndAddress = async (req: Request, res: Response, next: NextFunction) => {

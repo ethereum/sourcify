@@ -14,12 +14,12 @@ export default class VerificationController extends BaseController implements IC
     validationService: IValidationService;
     logger: bunyan;
 
-    constructor(verificationService: IVerificationService, validationService: IValidationService, logger?: bunyan) {
+    constructor(verificationService: IVerificationService, validationService: IValidationService) {
         super();
         this.router = Router();
         this.verificationService = verificationService;
         this.validationService = validationService;
-        this.logger = logger || Logger("VerificationService");
+        this.logger = Logger("VerificationService");
     }
 
     verify = async (req: Request, res: Response, next: NextFunction) => {
