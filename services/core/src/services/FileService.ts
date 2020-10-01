@@ -5,6 +5,7 @@ import path from 'path';
 import fs from 'fs';
 import * as bunyan from 'bunyan';
 import { outputFileSync } from 'fs-extra';
+import { Logger } from '../utils/logger';
 const saveFile = outputFileSync;
 
 export interface IFileService {
@@ -22,7 +23,7 @@ export class FileService implements IFileService {
     repositoryPath: string;
 
     constructor(repositoryPath: string, logger?: bunyan) {
-        this.logger = logger;
+        this.logger = logger || Logger("FileService");
         this.repositoryPath = repositoryPath;
     }
 

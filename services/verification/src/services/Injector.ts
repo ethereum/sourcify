@@ -12,7 +12,8 @@ export interface InjectorConfig {
     silent?: boolean,
     log?: bunyan,
     offline?: boolean,
-    repositoryPath?: string
+    repositoryPath?: string,
+    fileService?: FileService
 }
 
 export class Injector {
@@ -37,7 +38,7 @@ export class Injector {
         this.repositoryPath = config.repositoryPath;
         this.log = config.log || Logger("Injector");
 
-        this.fileService = new FileService(this.repositoryPath, this.log);
+        this.fileService = config.fileService || new FileService(this.repositoryPath, this.log);
 
         if (!this.offline) {
             this.initChains();

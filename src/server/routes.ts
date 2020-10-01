@@ -5,16 +5,15 @@ import { VerificationService } from 'sourcify-verification';
 import { ValidationService } from 'sourcify-validation';
 import FileController from './controllers/FileController';
 import VerificationController from './controllers/VerificationController';
-import { logger } from '../server/server';
 
 const router: Router = Router();
 
-const fileService = new FileService(config.repository.path, logger);
+const fileService = new FileService(config.repository.path);
 const validationService: ValidationService = new ValidationService();
-const verificationService = new VerificationService(fileService, logger);
+const verificationService = new VerificationService(fileService);
 
-const fileController = new FileController(fileService, logger);
-const verificationController: VerificationController = new VerificationController(verificationService, validationService, logger);
+const fileController = new FileController(fileService);
+const verificationController: VerificationController = new VerificationController(verificationService, validationService);
 
 router.use('/files/', fileController.registerRoutes());
 router.use('/', verificationController.registerRoutes());
