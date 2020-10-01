@@ -28,11 +28,16 @@ export default class FileController extends BaseController implements IControlle
         let tree;
         try {
             tree = await this.fileService.getTreeByChainAndAddress(req.params.chain, req.params.address);
-            if (!tree.length) next(new NotFoundError("Files have not been found!"));
+            if (!tree.length) return next(new NotFoundError("Files have not been found!"));
         } catch (err) {
             next(new NotFoundError(err.message));
             return;
         }
+        this.logger.info({
+            chainId: req.params.chain,
+            address: req.params.address
+        },
+            "getTreeByChainAndAddress success");
         return res.status(HttpStatus.OK).json(tree)
     }
 
@@ -49,6 +54,11 @@ export default class FileController extends BaseController implements IControlle
         } catch (err) {
             return next(new NotFoundError(err.message));
         }
+        this.logger.info({
+            chainId: req.params.chain,
+            address: req.params.address
+        },
+            "getByChainAndAddress success");
         return res.status(HttpStatus.OK).json(files);
     }
 
@@ -60,7 +70,7 @@ export default class FileController extends BaseController implements IControlle
             ], this.safeHandler(this.getTreeByChainAndAddress));
         this.router.route('/:chain/:address')
             .get([
-                param('chain').custom(chain => isValidChain(chain)), 
+                param('chain').custom(chain => isValidChain(chain)),
                 param('address').custom(address => isValidAddress(address))
             ], this.safeHandler(this.getByChainAndAddress));
         return this.router;
