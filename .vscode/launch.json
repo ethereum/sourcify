@@ -135,7 +135,7 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Validation service (zip file - truffle project)",
+      "name": "Validation service (truffle project - zip)",
       "skipFiles": [
         "<node_internals>/**"
       ],
@@ -151,7 +151,7 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Validation service (zip file - incorrect truffle project)",
+      "name": "Validation service (incorrect truffle project - zip)",
       "skipFiles": [
         "<node_internals>/**"
       ],
@@ -162,6 +162,38 @@
       ],
       "args": [
         "services/validation/test/truffle-example-incorrect.zip"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Validation service (truffle project - directory)",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/services/validation/build/index.js",
+      "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
+      "outFiles": [
+        "${workspaceFolder}/services/validation/build/**/*.js"
+      ],
+      "args": [
+        "services/validation/test/truffle-example"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Validation service (incorrect truffle project - directory)",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/services/validation/build/index.js",
+      "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
+      "outFiles": [
+        "${workspaceFolder}/services/validation/build/**/*.js"
+      ],
+      "args": [
+        "services/validation/test/truffle-example-incorrect"
       ]
     },
     {
@@ -180,6 +212,25 @@
         "services/validation/test/multiple/Escrow.sol",
         "services/validation/test/multiple/Main.sol",
         "services/validation/test/multiple/Owned.sol",
+        "services/validation/test/multiple/provableAPI_0.6.sol",
+        "services/validation/test/multiple/Savings.sol",
+        "services/validation/test/multiple/metadata.json"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Validation service (multiple files, but missing)",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/services/validation/build/index.js",
+      "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
+      "outFiles": [
+        "${workspaceFolder}/services/validation/build/**/*.js"
+      ],
+      "args": [
+        "services/validation/test/multiple/Main.sol",
         "services/validation/test/multiple/provableAPI_0.6.sol",
         "services/validation/test/multiple/Savings.sol",
         "services/validation/test/multiple/metadata.json"

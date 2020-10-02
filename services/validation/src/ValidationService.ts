@@ -1,18 +1,43 @@
 import bunyan from 'bunyan';
 import Web3 from 'web3';
 import { Logger, StringMap } from 'sourcify-core'
-import util from 'util';
 import AdmZip from 'adm-zip';
 import fs from 'fs';
 import Path from 'path';
 
-export interface CheckFileResponse {
-    files: any,
-    error: string
+/**
+ * Regular expression matching metadata nested within another file.
+ */
+const NESTED_METADATA_REGEX = /"{\\"compiler\\":{\\"version\\".*?},\\"version\\":1}"/;
+
+/**
+ * Abstraction of a checked solidity contract. With metadata and source (solidity) files.
+ * The info property contains the information about compilation or errors encountered while validating the metadata.
+ */
+export class CheckedContract {
+    metadata: any;
+    solidity: StringMap;
+    missing: any;
+
+    /**
+     * Contains the information about compilation or errors encountered while validating the metadata.
+     */
+    info: string;
+
+    public isValid(): boolean {
+        return Object.keys(this.missing).length === 0;
+    }
+
+    public constructor(metadata: any, solidity: StringMap, missing: any, info: string) {
+        this.metadata = metadata;
+        this.solidity = solidity;
+        this.missing = missing;
+        this.info = info;
+    }
 }
 
 export interface IValidationService {
-    checkFiles(files: any): CheckFileResponse;
+    checkFiles(files: Buffer[]): CheckedContract[];
 }
 
 export class ValidationService implements IValidationService {
@@ -22,72 +47,88 @@ export class ValidationService implements IValidationService {
         this.logger = logger || Logger("ValidationService");
     }
 
-    checkFiles(files: any) {
-        const sanitizedFiles = this.sanitizeInputFiles(this.findInputFiles(files))
+    checkFiles(files: Buffer[]): CheckedContract[] {
+        const inputFiles = this.findInputFiles(files);
+        const sanitizedFiles = this.sanitizeInputFiles(inputFiles);
         const metadataFiles = this.findMetadataFiles(sanitizedFiles);
-        let sources: any = [];
-        let error;
+        
+        const errorMsgMaterial: string[] = [];
+
+        let checked: CheckedContract[] = [];
         metadataFiles.forEach(metadata => {
-            try {
-                sources.push(
-                    {
-                        metadata: metadata,
-                        solidity: this.rearrangeSources(metadata, sanitizedFiles)
-                    })
-            } catch (err) {
-                error = err.message;
+            let info: string;
+            const {foundSources, missingSources} = this.rearrangeSources(metadata, sanitizedFiles);
+            if (Object.keys(missingSources).length) {
+                info = this.composeErrorMessage(metadata, foundSources, missingSources);
+                errorMsgMaterial.push(info);
+            } else {
+                info = this.composeSuccessMessage(metadata);
             }
-
+            
+            checked.push(new CheckedContract(metadata, foundSources, missingSources, info));
         });
-        const response: CheckFileResponse = {
-            files: sources,
-            error: error
-        }
-        return response;
-    }
 
-    private findInputFiles(files: any): any {
-        const inputs: any = [];
-
-        if (files && files.files) {
-            // Case: <UploadedFile[]>
-            if (Array.isArray(files.files)) {
-                files.files.forEach((file: { data: any; }) => {
-                    inputs.push(file.data)
-                })
-                return inputs;
-
-                // Case: <UploadedFile>
-            } else if (files.files["data"]) {
-                inputs.push(files.files["data"]);
-                return inputs;
-            }
-
-            // Case: default
-            const msg = `Invalid file(s) detected: ${util.inspect(files.files)}`;
+        if (errorMsgMaterial.length) {
+            const msg = errorMsgMaterial.join("\n");
             this.logger.error(msg);
-            throw new Error(msg);
-        } else if (files) {
-            const truffleFiles: any[] = this.attemptTruffleExtraction(files[0]);
-            if (truffleFiles) {
-                files = truffleFiles;
-            }
-
-            files.forEach((file: { data: any; }) => {
-                inputs.push(file.data);
-            });
-
-            return inputs;
         }
-
-        // If we reach this point, an address has been submitted and searched for
-        // but there are no files associated with the request.
-        const msg = 'Address for specified chain not found in repository';
-        this.logger.info(msg);
-        throw new Error(msg);
+        
+        return checked;
     }
 
-    private sanitizeInputFiles(inputs: any): string[] {
+    /**
+     * Traverses the given files, unzipping any zip archive.
+     * 
+     * @param files the array containing the files to be checked
+     * @returns an array containing the provided files, with any zips being unzipped and returned
+     */
+    private findInputFiles(files: Buffer[]): Buffer[] {
+        const inputFiles: Buffer[] = [];
+        for (const file of files) {
+            if (this.isZip(file)) {
+                this.unzip(file, files);
+            } else {
+                inputFiles.push(file);
+            }
+        }
+        
+        return inputFiles;
+    }
+
+    /**
+     * Checks whether the provided file is in fact zipped.
+     * @param file the buffered file to be checked
+     * @returns true if the file is zipped; false otherwise
+     */
+    private isZip(file: Buffer): boolean {
+        try {
+            new AdmZip(file);
+            return true;
+        } catch(err) {}
+        return false;
+    }
+
+    /**
+     * Unzips the provided file buffer to the provided array.
+     * 
+     * @param zippedFile the buffer containin the zipped file to be unpacked
+     * @param files the array to be filled with the content of the zip
+     */
+    private unzip(zippedFile: Buffer, files: Buffer[]): void {
+        const timestamp = Date.now().toString();
+        const tmpDir = `tmp-unzipped-${timestamp}`;
+        
+        new AdmZip(zippedFile).extractAllTo(tmpDir);
+
+        this.traverseDirectoryRecursively(tmpDir, (filePath) => {
+            const buff = fs.readFileSync(filePath);
+            files.push(buff);
+        });
+        
+        this.traverseDirectoryRecursively(tmpDir, fs.unlinkSync, fs.rmdirSync);
+    }
+
+    private sanitizeInputFiles(inputs: Buffer[]): string[] {
         const files = [];
         if (!inputs.length) {
             const msg = 'Unable to extract any files. Your request may be misformatted ' +
@@ -120,28 +161,29 @@ export class ValidationService implements IValidationService {
      * @return {string[]}         metadata
      */
     private findMetadataFiles(files: string[]): any[] {
-        const metadataFiles = [];
+        const metadataCollection = [];
 
-        for (const i in files) {
-            try {
-                const m = JSON.parse(files[i])
-
-                // TODO: this might need a stronger validation check.
-                //       many assumptions are made about structure of
-                //       metadata object after this selection step.
-                if (m['language'] === 'Solidity') {
-                    metadataFiles.push(m);
+        for (const file of files) {
+            let metadata = this.extractMetadataFromString(file);
+            if (!metadata) {
+                const matchRes = file.match(NESTED_METADATA_REGEX);
+                if (matchRes) {
+                    metadata = this.extractMetadataFromString(matchRes[0]);
                 }
-            } catch (err) { /* ignore */ }
+            }
+
+            if (metadata) {
+                metadataCollection.push(metadata);
+            }
         }
 
-        if (!metadataFiles.length) {
+        if (!metadataCollection.length) {
             const msg = "Metadata file not found. Did you include \"metadata.json\"?";
             this.logger.error(msg);
             throw new Error(msg);
         }
 
-        return metadataFiles;
+        return metadataCollection;
     }
 
     /**
@@ -151,13 +193,15 @@ export class ValidationService implements IValidationService {
      * @param  {string[]}  files    source files
      * @return {StringMap}
      */
-    private rearrangeSources(metadata: any, files: string[]): StringMap {
-        const sources: StringMap = {}
+    private rearrangeSources(metadata: any, files: string[]): {foundSources: StringMap, missingSources: any} {
+        const foundSources: StringMap = {}
+        const missingSources: any = {};
         const byHash = this.storeByHash(files);
 
         for (const fileName in metadata.sources) {
-            let content: string = metadata.sources[fileName].content;
-            const hash: string = metadata.sources[fileName].keccak256;
+            const sourceInfo = metadata.sources[fileName];
+            let content: string = sourceInfo.content;
+            const hash: string = sourceInfo.keccak256;
             if (content) {
                 if (Web3.utils.keccak256(content) != hash) {
                     const msg = `Invalid content for file ${fileName}`;
@@ -167,16 +211,15 @@ export class ValidationService implements IValidationService {
             } else {
                 content = byHash[hash];
             }
-            if (!content) {
-                const msg = `The metadata file mentions a source file called "${fileName}" ` +
-                    `that cannot be found in your upload.\nIts keccak256 hash is ${hash}. ` +
-                    `Please try to find it and include it in the upload.`;
-                this.logger.error(msg);
-                throw new Error(msg);
+            
+            if (content) {
+                foundSources[fileName] = content;
+            } else {
+                missingSources[fileName] = {keccak256: hash, urls: sourceInfo.urls};
             }
-            sources[fileName] = content;
         }
-        return sources;
+
+        return {foundSources, missingSources};
     }
 
     /**
@@ -193,99 +236,42 @@ export class ValidationService implements IValidationService {
         return byHash;
     }
 
-    /**
-     * Checks whether the provided file is zipped and whether it contains a Truffle project.
-     * If so, returns the contained .sol and .json files.
-     * 
-     * @param zipFile an object containing a data parameter that is actually a Buffer
-     * @returns null if not given a zipped project; array of .sol and .json files otherwise
-     */
-    private attemptTruffleExtraction(zipFile: { data: Buffer }): any[] {
-        const timestamp = Date.now().toString();
-        const tmpDir = `tmp_unzipped_${timestamp}`;
-
+    private extractMetadataFromString(file: string): any {
         try {
-            const zip = new AdmZip(zipFile.data);
-            zip.extractAllTo(tmpDir);
-
-            let files = fs.readdirSync(tmpDir);
-            let prefix = tmpDir;
-
-            const innerDirPath = Path.join(prefix, files[0]);
-            if (files.length === 1 && fs.lstatSync(innerDirPath).isDirectory()) { // zip contains one dir in root
-                prefix = innerDirPath;
+            let obj = JSON.parse(file);
+            if (this.isMetadata(obj)) {
+                return obj;
             }
 
-            const truffleConfigPath = Path.join(prefix, "truffle-config.js");
-            if (!fs.existsSync(truffleConfigPath)) {
-                return null;
+            // if the input string originates from a file where it was double encoded (e.g. truffle)
+            obj = JSON.parse(obj);
+            if (this.isMetadata(obj)) {
+                return obj;
             }
-
-            let retFiles: any[] = [];
-
-            const contractsPath = Path.join(prefix, "contracts");
-            this.addFilesWithExtension(".sol", contractsPath, retFiles);
-
-            const builtContractsPath = Path.join(prefix, "build", "contracts");
-            this.addFilesWithExtension(".json", builtContractsPath, retFiles, this.extractMetadataFromJson);
-
-            retFiles = retFiles.filter(f => f.name !== "Migrations.sol" && f.name !== "Migrations.json");
-
-            return retFiles;
-
-        } catch (err) { // not a zipped truffle project structure
-            return null;
-        } finally {
-            if (fs.existsSync(tmpDir)) {
-                this.deleteDirRecursively(tmpDir);
-            }
-        }
+        } catch (err) {}
+        
+        return null;
     }
 
     /**
-     * Adds all files with the provided extension from dirPath to the provided ret.
-     * Optionally performs a buffer to buffer function on each file.
+     * A method that checks if the provided object was generated as a metadata file of a Solidity contract.
+     * Current implementation is rather simplistic and may require further engineering.
      * 
-     * @param extension all files having this extension will be added to ret
-     * @param dirPath the path of the directory to be searched
-     * @param ret the array to fill with files
-     * @param worker work to perform on each file
+     * @param metadata the JSON to be checked
+     * @returns true if the provided object is a Solidity metadata file; false otherwise
      */
-    private addFilesWithExtension(extension: string, dirPath: string, ret: any[], worker?: (input: Buffer) => Buffer): void {
-        const fileNames = fs.readdirSync(dirPath);
-
-        for (const fileName of fileNames) {
-            if (fileName.endsWith(extension)) {
-                const filePath = Path.join(dirPath, fileName);
-                let file = fs.readFileSync(filePath);
-                if (worker) {
-                    file = worker(file);
-                }
-                ret.push({ name: fileName, data: file });
-            }
-        }
+    private isMetadata(obj: any): boolean {
+        return obj.language === "Solidity"; // TODO
     }
 
     /**
-     * Extracts metadata from the provided input buffer. The Buffer is expected to contain a JSON object.
-     * @param input the input buffer containing a stringified JSON object with metadata property
-     * @returns a buffer containing the extracted metadata
-     */
-    private extractMetadataFromJson(input: Buffer): Buffer {
-        const parsed = JSON.parse(input.toString()); // TODO encoding?
-        if (!parsed.metadata) {
-            throw Error("No property named 'metadata' in the provided object.");
-        }
-        const metadataStr = parsed.metadata;
-        return Buffer.from(metadataStr);
-    }
-
-    /**
-     * Deletes the provided directory and its content.
+     * Applies the provided worker function to the provided directory and its content.
      * 
-     * @param dirPath the path of the dir to be deleted
+     * @param dirPath the path of the dir to be traversed
+     * @param worker the function to be applied on each file that is not a directory
+     * @param after the function to be applied on the directory after traversing its children
      */
-    private deleteDirRecursively(dirPath: string) {
+    private traverseDirectoryRecursively(dirPath: string, worker: (filePath: string) => void, after?: (filePath: string) => void) {
         if (!fs.existsSync(dirPath)) {
             return;
         }
@@ -293,12 +279,69 @@ export class ValidationService implements IValidationService {
         fs.readdirSync(dirPath).forEach(nestedName => {
             const nestedPath = Path.join(dirPath, nestedName);
             if (fs.lstatSync(nestedPath).isDirectory()) {
-                this.deleteDirRecursively(nestedPath);
+                this.traverseDirectoryRecursively(nestedPath, worker, after);
             } else {
-                fs.unlinkSync(nestedPath);
+                try {
+                    worker(nestedPath);
+                } catch (_) {}
             }
         });
 
-        fs.rmdirSync(dirPath);
+        if (after) {
+            after(dirPath);
+        }
+    }
+
+    private getPathAndTitleLine(metadata: any) {
+        const compilationTarget = metadata.settings.compilationTarget;
+        const contractPath = Object.keys(compilationTarget)[0];
+        const contractTitle = compilationTarget[contractPath];
+        return `${contractTitle} (${contractPath}):\n`;
+    }
+
+    /**
+     * Constructs the message to be displayed in case of a successful finding
+     * of source files related to the provided metadata file.
+     * @param metadata 
+     */
+    private composeSuccessMessage(metadata: any): string {
+        const compilerVersionDetailed = metadata.compiler.version;
+        const compilerVersion = compilerVersionDetailed.split("+")[0];
+        const pathAndTitleLine = this.getPathAndTitleLine(metadata);
+        return pathAndTitleLine +
+                "  Success!\n" +
+                `  Compiled with Solidity ${compilerVersion}\n` +
+                `  https://solc-bin.ethereum.org/wasm/soljson-v${compilerVersionDetailed}.js\n` +
+                `  https://solc-bin.ethereum.org/linux-amd64/solc-linux-amd64-v${compilerVersionDetailed}`;
+    }
+
+    private composeErrorMessage(metadata: any, foundSources: StringMap, missingSources: any): string {
+        const pathAndTitleLine = this.getPathAndTitleLine(metadata);
+        let msg = pathAndTitleLine +
+               "  Error: Missing sources:\n" +
+               "  The following files were not part in the list of files and directories provided.\n" +
+               "  Please retrieve the files (potentially via ipfs) and re-run the script.\n";
+        
+        for (const missingSourceName in missingSources) {
+            msg += `    ${missingSourceName}:\n`;
+            const missingSourceProps = missingSources[missingSourceName];
+            for (const prop in missingSourceProps) {
+                const propValue = missingSourceProps[prop];
+                if (Array.isArray(propValue)) {
+                    propValue.forEach((elem: string) => {
+                        msg += `      ${elem}\n`;
+                    });
+                } else {
+                    msg += `      ${prop}: ${propValue}\n`;
+                }
+            }
+        }
+        
+        const foundSourcesNumber = Object.keys(foundSources).length;
+        if (foundSourcesNumber) {
+            msg += `  ${foundSourcesNumber} other source files found successfully.\n`;
+        }
+
+        return msg;
     }
 }

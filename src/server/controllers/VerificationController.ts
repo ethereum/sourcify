@@ -7,6 +7,7 @@ import { NotFoundError } from '../../common/errors'
 import { IValidationService } from 'sourcify-validation';
 import * as bunyan from 'bunyan';
 import config from '../../config';
+import fileUpload from 'express-fileupload';
 
 export default class VerificationController extends BaseController implements IController {
     router: Router;
@@ -41,11 +42,15 @@ export default class VerificationController extends BaseController implements IC
         } else {
             if (!req.files) return next(new NotFoundError("Address for specified chain not found in repository"));
             // tslint:disable no-useless-cast
-            const validatedFiles = this.validationService.checkFiles(req.files!);
-            if (validatedFiles.error) {
-                return next(new NotFoundError(validatedFiles.error, false));
+            const filesArr: fileUpload.UploadedFile[] = [].concat(req.files!.files); // ensure an array, regardless of how many files received
+            const validatedFiles = this.validationService.checkFiles(filesArr.map(f => f.data));
+            const errors = validatedFiles
+                            .filter(file => !file.isValid())
+                            .map(file => file.info);
+            if (errors.length) {
+                return next(new NotFoundError(errors.join("\n"), false));
             }
-            inputData.files = validatedFiles.files;
+            inputData.files = validatedFiles;
             const matches: any = [];
             matches.push(await this.verificationService.inject(inputData, config.localchain.url));
             Promise.all(matches).then((result) => {
