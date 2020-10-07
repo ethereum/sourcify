@@ -2,7 +2,7 @@ import Web3 from 'web3';
 import path from 'path';
 import * as bunyan from 'bunyan';
 import { Match, InputData, getChainByName, Logger, FileService, StringMap, cborDecode } from 'sourcify-core';
-import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata } from '../utils';
+import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint } from '../utils';
 
 const multihashes: any = require('multihashes');
 
@@ -32,7 +32,7 @@ export class Injector {
      */
     public constructor(config: InjectorConfig = {}) {
         this.chains = {};
-        this.infuraPID = config.infuraPID || "changeinfuraid";
+        this.infuraPID = config.infuraPID;
         this.localChainUrl = config.localChainUrl;
         this.offline = config.offline || false;
         this.repositoryPath = config.repositoryPath;
@@ -46,19 +46,27 @@ export class Injector {
     }
 
     /**
-     * Instantiates a web3 provider for all public ethereum networks via Infura.
+     * Instantiates a web3 provider for all public ethereum networks via Infura or regular node.
      * If environment variable TESTING is set to true, localhost:8545 is also available.
      */
-    private initChains() {
+    private async initChains() {
+        if (this.infuraPID) {
+            await checkEndpoint(this.infuraPID).catch((err) => {
+                this.log.warn({ infuraID: this.infuraPID }, err.message);
+            })
+        }
         for (const chain of ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli']) {
             const chainOption = getChainByName(chain);
             this.chains[chainOption.chainId] = {};
-            if (this.infuraPID === "changeinfuraid") {
-                const web3 = chainOption.fullnode.dappnode;
-                this.chains[chainOption.chainId].web3 = new Web3(web3);
-            } else {
+            if (this.infuraPID) {
                 const web3 = chainOption.web3[0].replace('${INFURA_ID}', this.infuraPID);
                 this.chains[chainOption.chainId].web3 = new Web3(web3);
+            } else {
+                const web3 = chainOption.fullnode.dappnode;
+                this.chains[chainOption.chainId].web3 = new Web3(web3)
+                await checkEndpoint(web3).catch(() => {
+                    this.log.warn({ endpoint: web3 }, `Invalid endpoint for chain ${chain}`);
+                })
             }
         }
 
