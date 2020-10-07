@@ -23,10 +23,10 @@ export class Server {
     }
 
     this.app = express();
-    
+
     // TODO: 52MB is the max file size - is this right?
     this.app.use(fileUpload({
-      limits: {fileSize: 50 * 1024 * 1024},
+      limits: { fileSize: 50 * 1024 * 1024 },
       abortOnLimit: true
     }))
     

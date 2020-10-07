@@ -59,7 +59,7 @@ export default class Monitor {
     this.injector = new Injector({
       offline: true,
       log: this.log,
-      infuraPID: config.infuraId || "changeinfuraid",
+      infuraPID: config.endpoint.infuraId || "changeinfuraid",
       repositoryPath: config.repository.path
     });
   }
