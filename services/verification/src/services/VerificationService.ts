@@ -38,11 +38,10 @@ export class VerificationService implements IVerificationService {
         // Injection
         //const injection: Promise<Match>;
         //const { repository, chain, addresses, files } = inputData;
-
         const injector = new Injector({
             localChainUrl: localChainUrl,
             log: this.logger,
-            infuraPID: process.env.INFURA_ID || "changeinfuraid",
+            infuraPID: process.env.INFURA_ID,
             repositoryPath: inputData.repository,
             fileService: this.fileService
         });

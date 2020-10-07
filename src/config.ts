@@ -25,12 +25,15 @@ export default {
         dbPath: process.env.MOCK_DATABASE || path.resolve(__dirname, process.env.DATABASE_PATH!) || path.resolve(__dirname, './database')
     },
     mq: {
-        username:process.env.RABBITMQUSERNAME,
-        password:process.env.RABBITMQPASSWORD
+        username: process.env.RABBITMQUSERNAME,
+        password: process.env.RABBITMQPASSWORD
     },
     testing: process.env.TESTING || false,
     tag: process.env.TAG || 'latest',
-    infuraId: process.env.INFURA_ID,
+    endpoint: {
+        infuraId: process.env.INFURA_ID,
+        ethereumNode: process.env.ETHEREUM_NODE
+    },
     logging: {
         dir: process.env.LOGGING_DIR || 'logs',
         level: process.env.LOGGING_LEVEL || 'debug'
