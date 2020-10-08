@@ -1,14 +1,8 @@
 {
-  "name": "ethereum-sourcify-cli",
-  "version": "1.0.10",
+  "name": "ethereum-sourcify",
+  "version": "1.0.0",
   "description": "Solidity metadata-based re-compilation and source verification tool",
-  "bin": {
-    "sourcify": "./dist/sourcify.js"
-  },
-  "types": "dist/sourcify.d.ts",
-  "files": [
-    "dist"
-  ],
+  "private": true,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ethereum/sourcify.git"
