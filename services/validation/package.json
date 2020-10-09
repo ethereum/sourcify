@@ -1,6 +1,6 @@
 {
   "name": "sourcify-validation",
-  "version": "0.1.31",
+  "version": "0.1.33",
   "description": "Pre-verification module to check if files are valid and ready to be submitted for verification",
   "bin": {
     "sourcify-validation": "./build/index.js"
@@ -20,7 +20,7 @@
     "start": "npm run build && node build/index.js"
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@types/bunyan": "^1.8.6",
     "@types/node": "^14.6.4",

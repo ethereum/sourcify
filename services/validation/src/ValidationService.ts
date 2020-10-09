@@ -44,7 +44,7 @@ export class ValidationService implements IValidationService {
     logger: bunyan;
 
     constructor(logger?: bunyan) {
-        if (logger === undefined) this.logger = logger || Logger("ValidationService");
+        this.logger = (logger === undefined) ? Logger("ValidationService") : logger
     }
 
     checkFiles(files: Buffer[]): CheckedContract[] {
