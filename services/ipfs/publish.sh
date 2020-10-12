@@ -1,9 +1,7 @@
 #!/bin/bash
-source /app/.env
+
 export PATH=~$PATH:/usr/local/bin:/usr/local/openjdk-11/bin:/usr/bin
 export JAVA_HOME=/usr/local/openjdk-11/
-
-ipfs key import main /app/ipfs.key 
 
 hash=$(ipfs add -Q -r /app/repository)
 echo $hash
