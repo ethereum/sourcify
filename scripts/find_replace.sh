@@ -5,6 +5,8 @@ source ~/.profile
 
 cd scripts/
 gpg --yes --batch --passphrase=$SECRET_KEY ../environments/.env.secrets.gpg
+gpg --yes --batch --passphrase=$SECRET_KEY ../environments/ipfs-stable.key.gpg
+gpg --yes --batch --passphrase=$SECRET_KEY ../environments/ipfs-latest.key.gpg
 source ../environments/.env.secrets
 pwd
 
@@ -13,11 +15,17 @@ export TAG="$CIRCLE_BRANCH"
 if [ "$CIRCLE_BRANCH" == "staging" ]; then
     export TAG="latest"
     export INFURA_ID=$INFURA_ID_STAGING
+    export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_STAGING
+    export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_STAGING
+    export IPFS_SECRET=$IPFS_SECRET_STAGING
 fi
 
 if [ "$CIRCLE_BRANCH" == "master" ]; then
     export TAG="stable";
     export INFURA_ID=$INFURA_ID_MASTER
+    export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_MASTER
+    export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_MASTER
+    export IPFS_SECRET=$IPFS_SECRET_MASTER
 fi
 
 search="INFURA_ID=xxx"

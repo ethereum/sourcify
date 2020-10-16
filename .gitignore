@@ -13,10 +13,10 @@ nginx.conf
 dist/
 environment/.env
 **/.env
+**/*.key
 stats**
 tmp
 metacoin-source-verify/
 **/synced
 **/sort.log
-secret.key
 **/.env.secrets
