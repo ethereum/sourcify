@@ -1,17 +1,43 @@
 # Sourcify Script 🧑‍💻📝🔍 
 
-#### Use this script to verify if your source files are in the correct format for [Sourcify](https://github.com/ethereum/sourcify)
+The Sourcify Validation script helps you re-compile and source-verify your Solidity smart contracts.
+
+If Solidity source files are spread across multiple files, re-compiling them is often complicated.
+To help with re-compilation, the Solidity compiler generates a file called "metadata.json" that
+contains all settings, filenames and file hashes required to re-compile the contract into the exact
+same binary.
+
+Several tools, including truffle and buidler store this file with each compilation.
 
 ##### How to?
 
+Just point Sourcify Validation at your source folder that includes the build directory,
+and it will tell you how to re-compile each of your contracts:
+
 * `npm install -g sourcify-validation`
-* `sourcify-validation path/to/file1 path/to/file2 path/to/dir path/to/zip`
-    * the script will scan through all the provided files, directories and zips searching for metadata and the belonging source files
-* If everything goes well, proceed here: [Sourcify](https://verification.komputing.org/)
+* `sourcify-validation my/repository`
+
+You can specify a directories, a sequence of files and even zip files.
+The script will scan through all the provided files, search for metadata and the belonging source files.
+
+If everything goes well, you can ask it to provide a "standard-json input file"
+that you just need to send to the compiler, to etherscan, or whatever service you use
+for verification.
+
+If you use sourcify, this step is done for you. All you need to do is upload the files
+you provided to Sourcify-Validation.
+
 
 ## Example - multiple sources
 ### Command
 `sourcify-validation Escrow.sol Main.sol Owned.sol provableAPI_0.6.sol Savings.sol metadata.json`
+
+The file ``metadata.json`` is the essential part: It contains the compilation parameters.
+During compilation, you get it using ``solc --metadata ...``.
+
+Since Sourcify Validation will only consider the relevant files, you can also just run it as
+`sourcify-validation .`.
+
 
 ### Output
 ```
@@ -21,6 +47,22 @@ Savings (browser/Savings.sol):
   https://solc-bin.ethereum.org/wasm/soljson-v0.6.11+commit.5ef660b1.js
   https://solc-bin.ethereum.org/linux-amd64/solc-linux-amd64-v0.6.11+commit.5ef660b1
 ```
+
+As a next step, download the Solidity copmiler of the right versionyou can request the standard-json input for the compiler
+for a specific contract and pipe it through the Solidity compiler of the right version:
+
+`sourcify-validation -j browser/Savings.sol:Savings . | solc-linux-amd64-v0.6.11+commit.5ef660b1 --standard-json - > output.json`.
+
+If you use `jq`, it will nicely format it:
+
+### Output
+```
+sourcify-validation -j browser/Savings.sol:Savings . | solc-linux-amd64-v0.6.11+commit.5ef660b1 --standard-json - | jq
+{
+  ...
+}
+```
+
 
 ## Example - multiple sources; some are missing
 ### Command
