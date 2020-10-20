@@ -1,6 +1,6 @@
 Savings (browser/Savings.sol):
   Error: Missing sources:
-  The following files were not part in the list of files and directories provided.
+  The following files were not provided (or were altered, so their hash doesn't match the one in the metadata).
   Please retrieve the files (potentially via ipfs) and re-run the script.
     browser/Owned.sol:
       keccak256: 0xfc7e62d306436eb1359b92d30e2c992404480de4708721e059eb60c13f8509f2
@@ -15,5 +15,3 @@ Savings (browser/Savings.sol):
       bzz-raw://2cc801b85a22395cef8ec208dec5aea3a592a83157d9cb89b73f0324e042e22a
       dweb:/ipfs/QmRGfr1axuXfswx89QotL2ZcjBzxrg1R7JMH5QzuUd6KvW
   2 other source files found successfully.
-
-

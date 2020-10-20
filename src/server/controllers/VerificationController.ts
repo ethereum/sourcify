@@ -4,7 +4,7 @@ import { IController } from '../../common/interfaces';
 import { IVerificationService } from 'sourcify-verification';
 import { InputData, getChainId, Logger } from 'sourcify-core';
 import { NotFoundError } from '../../common/errors'
-import { IValidationService } from 'sourcify-validation';
+import { IValidationService, PathBuffer } from 'sourcify-validation';
 import * as bunyan from 'bunyan';
 import config from '../../config';
 import fileUpload from 'express-fileupload';
@@ -43,7 +43,8 @@ export default class VerificationController extends BaseController implements IC
             if (!req.files) return next(new NotFoundError("Address for specified chain not found in repository"));
             // tslint:disable no-useless-cast
             const filesArr: fileUpload.UploadedFile[] = [].concat(req.files!.files); // ensure an array, regardless of how many files received
-            const validatedFiles = this.validationService.checkFiles(filesArr.map(f => f.data));
+            const wrappedFiles = filesArr.map(f => new PathBuffer(f.data));
+            const validatedFiles = this.validationService.checkFiles(wrappedFiles);
             const errors = validatedFiles
                             .filter(file => !file.isValid())
                             .map(file => file.info);
