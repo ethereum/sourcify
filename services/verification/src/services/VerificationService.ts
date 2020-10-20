@@ -1,4 +1,4 @@
-import { InputData, Match, Logger, FileService } from 'sourcify-core';
+import { InputData, Match, Logger, FileService } from '@ethereum-sourcify/core';
 import { Injector } from './Injector';
 import * as bunyan from 'bunyan';
 // import MQ from '../services/Queue'; 
@@ -16,7 +16,7 @@ export class VerificationService implements IVerificationService {
 
     constructor(fileService?: any, logger?: bunyan) {
         this.logger = logger || Logger("VerificationService");
-        this.fileService = fileService;
+        this.fileService = fileService || new FileService("./repository");
     }
 
     findByAddress = async (address: string, chain: string, repository: string) => {
@@ -42,7 +42,7 @@ export class VerificationService implements IVerificationService {
             localChainUrl: localChainUrl,
             log: this.logger,
             infuraPID: process.env.INFURA_ID,
-            repositoryPath: inputData.repository,
+            repositoryPath: this.fileService.repositoryPath,
             fileService: this.fileService
         });
 

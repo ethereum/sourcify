@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import config from '../config';
-import { Logger, FileService } from 'sourcify-core';
-import { VerificationService } from 'sourcify-verification';
-import { ValidationService } from 'sourcify-validation';
+import { Logger, FileService } from '@ethereum-sourcify/core';
+import { VerificationService } from '@ethereum-sourcify/verification';
+import { ValidationService } from '@ethereum-sourcify/validation';
 import FileController from './controllers/FileController';
 import VerificationController from './controllers/VerificationController';
 

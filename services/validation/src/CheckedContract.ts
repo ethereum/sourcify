@@ -1,5 +1,5 @@
 import { SourceMap } from './ValidationService';
-import { StringMap } from 'sourcify-core';
+import { StringMap } from '@ethereum-sourcify/core';
 
 const STANDARD_JSON_SETTINGS_KEYS = [
         "stopAfter", "remappings", "optimizer", "evmVersion", "debug", "metadata", "libraries", "outputSelection"

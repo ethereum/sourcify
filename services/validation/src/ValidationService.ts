@@ -1,6 +1,6 @@
 import bunyan from 'bunyan';
 import Web3 from 'web3';
-import { StringMap } from 'sourcify-core';
+import { StringMap } from '@ethereum-sourcify/core';
 import AdmZip from 'adm-zip';
 import fs from 'fs';
 import Path from 'path';

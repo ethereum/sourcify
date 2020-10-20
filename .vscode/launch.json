@@ -11,10 +11,16 @@
       "name": "Server",
       "program": "${workspaceFolder}/dist/server/server.js",
       "envFile": "${workspaceFolder}/environments/.env",
-      "preLaunchTask": "tsc: build - tsconfig.json",
+      //"preLaunchTask": "tsc: build - tsconfig.json",
       "outFiles": [
-        "${workspaceFolder}/dist/**/*.js"
-      ]
+        "${workspaceFolder}/dist/**/*.js",
+        "${workspaceFolder}/services/core/build/**/*.js",
+        "${workspaceFolder}/services/validation/build/**/*.js",
+        "${workspaceFolder}/services/verification/build/**/*.js"
+      ],
+      "smartStep": true,
+      "console": "internalConsole", 
+      "outputCapture": "std",
     },
     {
       "type": "node",

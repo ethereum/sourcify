@@ -1,4 +1,4 @@
-import { getChainId } from 'sourcify-core'
+import { getChainId } from '@ethereum-sourcify/core'
 
 const web3 = require('web3');
 export function isValidAddress(address: string) {

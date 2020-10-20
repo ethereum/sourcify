@@ -1,6 +1,6 @@
 {
-  "name": "sourcify-validation",
-  "version": "0.1.33",
+  "name": "@ethereum-sourcify/validation",
+  "version": "0.1.0",
   "description": "Pre-verification module to check if files are valid and ready to be submitted for verification",
   "bin": {
     "sourcify-validation": "./build/index.js"
@@ -33,8 +33,9 @@
     "bunyan": "^1.8.14",
     "chai": "^4.2.0",
     "chai-exec": "^2.1.1",
+    "commander": "^6.1.0",
     "mocha": "^8.1.3",
-    "sourcify-core": "^0.1.21",
+    "@ethereum-sourcify/core": "^0.1.0",
     "web3": "^1.2.11"
   }
 }

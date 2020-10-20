@@ -4,7 +4,7 @@ import request from 'request-promise-native';
 import concat from 'it-concat';
 import { outputFileSync } from 'fs-extra';
 import * as bunyan from 'bunyan';
-import { Injector } from 'sourcify-verification';
+import { Injector } from '@ethereum-sourcify/verification';
 import config from '../config';
 import { BlockTransactionObject } from 'web3-eth';
 import {
@@ -18,7 +18,7 @@ import {
   getChainByName,
   cborDecode,
   Logger
-} from 'sourcify-core';
+} from '@ethereum-sourcify/core';
 
 const multihashes = require('multihashes');
 const save = outputFileSync;
@@ -629,7 +629,6 @@ export default class Monitor {
     if (Object.keys(queueItem.sources).length == 0) {
 
       const data: InputData = {
-        repository: this.repository,
         chain: getChainByName(chain).chainId.toString(),
         addresses: [address],
         files: queueItem.found.files,

@@ -33,19 +33,19 @@ if [ $CORE_LOCAL_VERSION = $CORE_NPM_VERSION ]; then
     echo "sourcify-core:"
     echo "Latest npm version is equal to current package version. Up the version to publish to npm."
 else
-    npm publish services/core/ --verbose
+    npm publish services/core/ --verbose --access=public
 fi
 
 if [ $VALIDATION_LOCAL_VERSION = $VALIDATION_NPM_VERSION ]; then
     echo "sourcify-validation:"
     echo "Latest npm version is equal to current package version. Up the version to publish to npm."
 else
-    npm publish services/validation/ --verbose
+    npm publish services/validation/ --verbose --access=public
 fi
 
 if [ $VERIFICATION_LOCAL_VERSION = $VERIFICATION_NPM_VERSION ]; then
     echo "sourcify-verification:"
     echo "Latest npm version is equal to current package version. Up the version to publish to npm."
 else
-    npm publish services/verification/ --verbose
+    npm publish services/verification/ --verbose --access=public
 fi

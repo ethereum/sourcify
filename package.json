@@ -59,9 +59,9 @@
     "multihashes": "^3.0.1",
     "request-promise-native": "^1.0.9",
     "serve-index": "^1.9.1",
-    "sourcify-core": "^0.1.21",
-    "sourcify-validation": "^0.1.33",
-    "sourcify-verification": "^0.1.22",
+    "@ethereum-sourcify/core": "*",
+    "@ethereum-sourcify/validation": "*",
+    "@ethereum-sourcify/verification": "*",
     "web3": "^1.2.11"
   },
   "devDependencies": {

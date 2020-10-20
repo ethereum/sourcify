@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response, Router } from 'express';
 import BaseController from './BaseController';
 import { IController } from '../../common/interfaces';
-import { IVerificationService } from 'sourcify-verification';
-import { InputData, getChainId, Logger } from 'sourcify-core';
+import { IVerificationService } from '@ethereum-sourcify/verification';
+import { InputData, getChainId, Logger } from '@ethereum-sourcify/core';
 import { NotFoundError } from '../../common/errors'
-import { IValidationService, PathBuffer } from 'sourcify-validation';
+import { IValidationService, PathBuffer } from '@ethereum-sourcify/validation';
 import * as bunyan from 'bunyan';
 import config from '../../config';
 import fileUpload from 'express-fileupload';
@@ -32,7 +32,6 @@ export default class VerificationController extends BaseController implements IC
         }
 
         const inputData: InputData = {
-            repository: config.repository.path,
             addresses: [req.body.address],
             chain: chain
         }

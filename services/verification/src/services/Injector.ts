@@ -1,7 +1,7 @@
 import Web3 from 'web3';
 import path from 'path';
 import * as bunyan from 'bunyan';
-import { Match, InputData, getChainByName, Logger, FileService, StringMap, cborDecode } from 'sourcify-core';
+import { Match, InputData, getChainByName, Logger, FileService, StringMap, cborDecode } from '@ethereum-sourcify/core';
 import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint } from '../utils';
 
 const multihashes: any = require('multihashes');
@@ -184,7 +184,7 @@ export class Injector {
     public async inject(
         inputData: InputData
     ): Promise<Match> {
-        const { repository, chain, addresses, files } = inputData;
+        const { chain, addresses, files } = inputData;
         this.validateAddresses(addresses);
         this.validateChain(chain);
 
@@ -237,11 +237,11 @@ export class Injector {
             // and the sources.
             if (match.address && match.status === 'perfect') {
 
-                this.storePerfectMatchData(repository, chain, match.address, compilationResult, source.solidity)
+                this.storePerfectMatchData(this.repositoryPath, chain, match.address, compilationResult, source.solidity)
 
             } else if (match.address && match.status === 'partial') {
 
-                this.storePartialMatchData(repository, chain, match.address, compilationResult, source.solidity)
+                this.storePartialMatchData(this.repositoryPath, chain, match.address, compilationResult, source.solidity)
 
             } else {
                 const err = new Error(

@@ -2,7 +2,7 @@ import { NextFunction, Request, Response, Router } from 'express';
 import BaseController from './BaseController';
 import { IController } from '../../common/interfaces';
 import * as HttpStatus from 'http-status-codes';
-import { Logger, IFileService } from 'sourcify-core';
+import { Logger, IFileService } from '@ethereum-sourcify/core';
 import { param, validationResult } from 'express-validator/check';
 import { isValidAddress, isValidChain } from '../../common/validators/validators';
 import { NotFoundError, ValidationError } from '../../common/errors'

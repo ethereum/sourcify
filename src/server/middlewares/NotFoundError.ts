@@ -1,6 +1,6 @@
 import * as HttpStatus from 'http-status-codes';
 import { Request, Response } from 'express';
-import { Logger } from 'sourcify-core';
+import { Logger } from '@ethereum-sourcify/core';
 import * as bunyan from 'bunyan';
 
 export default function notFoundError(err: any, _req: Request, res: Response, _next: any): void {

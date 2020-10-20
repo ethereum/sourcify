@@ -1,6 +1,6 @@
 import Web3 from 'web3';
 import fetch from 'node-fetch';
-import { StringMap } from 'sourcify-core';
+import { StringMap } from '@ethereum-sourcify/core';
 const solc: any = require('solc');
 
 export interface RecompilationResult {

@@ -10,7 +10,7 @@ Several tools, including [Truffle](https://www.trufflesuite.com/) and [Buidler](
 
 ## Usage as a script
 
-* `npm install -g sourcify-validation`
+* `npm install -g @ethereum-sourcify/validation`
 * `sourcify-validation my/repository`
 
 You can specify a sequence of files, directories and even zip files.
@@ -193,10 +193,10 @@ Migrations (/home/user/dir/truffle-example/contracts/Migrations.sol):
 ```
 
 ## Usage as a module
-* `npm install sourcify-validation`
+* `npm install @ethereum-sourcify/validation`
 #### Process paths
 ```typescript
-import { ValidationService } from 'sourcify-validation';
+import { ValidationService } from '@ethereum-sourcify/validation';
 
 const validationService = new ValidationService();
 const paths = ["path/to/file1", "path/to/file2"];
@@ -235,7 +235,7 @@ console.log(firstContract.getStandardJson());
 #### Process buffers
 ```typescript
 import express from 'express';
-import { ValidationService, PathBuffer } from 'sourcify-validation';
+import { ValidationService, PathBuffer } from '@ethereum-sourcify/validation';
 
 const app = express();
 const validationService = new ValidationService();
