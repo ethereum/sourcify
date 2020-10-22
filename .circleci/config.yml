@@ -102,12 +102,12 @@ workflows:
               only:
               - staging
               - master
-      - build-push-localchain:
-          filters:
-            branches:
-              only:
-              - staging
-              - master
+      # - build-push-localchain:
+      #     filters:
+      #       branches:
+      #         only:
+      #         - staging
+      #         - master
       - build-push-monitor:
           filters:
             branches:
@@ -146,7 +146,7 @@ workflows:
               - master
           requires:
           - build-push-ipfs
-          - build-push-localchain
+          # - build-push-localchain
           # - build-push-monitor
           - build-push-repository
           - build-push-s3
