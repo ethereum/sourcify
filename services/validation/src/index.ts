@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import program from 'commander';
-const { version, name } = require("../package.json");
+const { version, bin } = require("../package.json");
+const name = Object.keys(bin)[0];
 import { ValidationService, IValidationService } from './ValidationService';
 import CheckedContract from './CheckedContract';
 export * from './ValidationService';
