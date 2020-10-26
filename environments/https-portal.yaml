@@ -7,6 +7,10 @@ services:
       - '80:80'
       - '443:443'
     restart: always
+    depends_on:
+      - server
+      - ui
+      - repository
     environment:
       DOMAINS: 'server.${FQDN} -> http://server-${TAG}:${SERVER_PORT}, ${FQDN} -> http://ui-${TAG}:${UI_PORT}, contractrepo.${FQDN} -> http://repository-${TAG}:${REPOSITORY_PORT}'
       STAGE: 'production'

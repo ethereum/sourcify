@@ -1,27 +1,23 @@
 import { NextFunction, Request, Response, Router } from 'express';
 import BaseController from './BaseController';
 import { IController } from '../../common/interfaces';
-import { IFileService } from '../services/FileService';
 import * as HttpStatus from 'http-status-codes';
-import { NotFoundError, ValidationError } from '../../common/errors';
+import { Logger, IFileService } from '@ethereum-sourcify/core';
 import { param, validationResult } from 'express-validator/check';
 import { isValidAddress, isValidChain } from '../../common/validators/validators';
+import { NotFoundError, ValidationError } from '../../common/errors'
 import * as bunyan from 'bunyan';
-import { Logger } from '../../utils/logger/Logger';
 
 export default class FileController extends BaseController implements IController {
     router: Router;
     fileService: IFileService;
     logger: bunyan;
 
-    constructor(fileService: IFileService, logger?: bunyan) {
+    constructor(fileService: IFileService) {
         super();
         this.router = Router();
         this.fileService = fileService;
         this.logger = Logger("FileController");
-        if (logger !== undefined) {
-            this.logger = logger;
-        }
     }
 
     getTreeByChainAndAddress = async (req: Request, res: Response, next: NextFunction) => {
@@ -32,11 +28,16 @@ export default class FileController extends BaseController implements IControlle
         let tree;
         try {
             tree = await this.fileService.getTreeByChainAndAddress(req.params.chain, req.params.address);
-            if (!tree.length) next(new NotFoundError("Files have not been found!"));
+            if (!tree.length) return next(new NotFoundError("Files have not been found!"));
         } catch (err) {
             next(new NotFoundError(err.message));
             return;
         }
+        this.logger.info({
+            chainId: req.params.chain,
+            address: req.params.address
+        },
+            "getTreeByChainAndAddress success");
         return res.status(HttpStatus.OK).json(tree)
     }
 
@@ -53,18 +54,23 @@ export default class FileController extends BaseController implements IControlle
         } catch (err) {
             return next(new NotFoundError(err.message));
         }
+        this.logger.info({
+            chainId: req.params.chain,
+            address: req.params.address
+        },
+            "getByChainAndAddress success");
         return res.status(HttpStatus.OK).json(files);
     }
 
     registerRoutes = (): Router => {
         this.router.route('/tree/:chain/:address')
             .get([
-                param('chain').custom(chain => isValidChain(chain, this.fileService)),
+                param('chain').custom(chain => isValidChain(chain)),
                 param('address').custom(address => isValidAddress(address))
             ], this.safeHandler(this.getTreeByChainAndAddress));
         this.router.route('/:chain/:address')
             .get([
-                param('chain').custom(chain => isValidChain(chain, this.fileService)), 
+                param('chain').custom(chain => isValidChain(chain)),
                 param('address').custom(address => isValidAddress(address))
             ], this.safeHandler(this.getByChainAndAddress));
         return this.router;

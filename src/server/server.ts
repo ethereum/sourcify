@@ -5,7 +5,7 @@ import cors from 'cors';
 import routes from './routes';
 import bodyParser from 'body-parser';
 import config from '../config';
-import { Logger } from '../utils/logger/Logger';
+import { Logger } from '@ethereum-sourcify/core';
 import genericErrorHandler from './middlewares/GenericErrorHandler';
 import notFoundHandler from './middlewares/NotFoundError';
 
@@ -23,10 +23,10 @@ export class Server {
     }
 
     this.app = express();
-    
+
     // TODO: 52MB is the max file size - is this right?
     this.app.use(fileUpload({
-      limits: {fileSize: 50 * 1024 * 1024},
+      limits: { fileSize: 50 * 1024 * 1024 },
       abortOnLimit: true
     }))
     
