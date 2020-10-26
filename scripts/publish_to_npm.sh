@@ -7,7 +7,7 @@ CORE_LOCAL_VERSION=$(cat services/core/package.json \
   | sed 's/[",]//g' \
   | tr -d '[[:space:]]')
 
-CORE_NPM_VERSION=$(npm view sourcify-core dist-tags.latest)
+CORE_NPM_VERSION=$(npm view @ethereum-sourcify/core dist-tags.latest)
 
 VALIDATION_LOCAL_VERSION=$(cat services/validation/package.json \
   | grep version \
@@ -16,7 +16,7 @@ VALIDATION_LOCAL_VERSION=$(cat services/validation/package.json \
   | sed 's/[",]//g' \
   | tr -d '[[:space:]]')
 
-VALIDATION_NPM_VERSION=$(npm view sourcify-validation dist-tags.latest)
+VALIDATION_NPM_VERSION=$(npm view @ethereum-sourcify/validation dist-tags.latest)
 
 VERIFICATION_LOCAL_VERSION=$(cat services/verification/package.json \
   | grep version \
@@ -25,26 +25,26 @@ VERIFICATION_LOCAL_VERSION=$(cat services/verification/package.json \
   | sed 's/[",]//g' \
   | tr -d '[[:space:]]')
 
-VERIFICATION_VERSION=$(npm view sourcify-verification dist-tags.latest)
+VERIFICATION_NPM_VERSION=$(npm view @ethereum-sourcify/verification dist-tags.latest)
 
 npm config set //registry.npmjs.org/:_authToken=${NPM_TOKEN}
 
 if [ $CORE_LOCAL_VERSION = $CORE_NPM_VERSION ]; then
-    echo "sourcify-core:"
+    echo "@ethereum-sourcify/core:"
     echo "Latest npm version is equal to current package version. Up the version to publish to npm."
 else
     npm publish services/core/ --verbose --access=public
 fi
 
 if [ $VALIDATION_LOCAL_VERSION = $VALIDATION_NPM_VERSION ]; then
-    echo "sourcify-validation:"
+    echo "@ethereum-sourcify/validation:"
     echo "Latest npm version is equal to current package version. Up the version to publish to npm."
 else
     npm publish services/validation/ --verbose --access=public
 fi
 
 if [ $VERIFICATION_LOCAL_VERSION = $VERIFICATION_NPM_VERSION ]; then
-    echo "sourcify-verification:"
+    echo "@ethereum-sourcify/verification:"
     echo "Latest npm version is equal to current package version. Up the version to publish to npm."
 else
     npm publish services/verification/ --verbose --access=public
