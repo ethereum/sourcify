@@ -4,6 +4,7 @@ export const CHAIN_OPTIONS = [
     {value: "rinkeby", label: "Rinkeby", id: 4},
     {value: "kovan", label: "Kovan", id: 42},
     {value: "goerli", label: "Görli", id: 5},
+    {value: "xdai", label: "xDai", id: 100}
 ];
 
 export const REPOSITORY_URL = process.env.REPOSITORY_URL;

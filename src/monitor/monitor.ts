@@ -76,9 +76,10 @@ export default class Monitor {
   public async start(customChain?: CustomChainConfig): Promise<void> {
     const chainNames: string[] = customChain
       ? [customChain.name]
-      : ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli'];
+      : ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli']; // TODO consider using utils.getSupportedChains()
 
     for (const chain of chainNames) {
+      // TODO getChainByName was not valid at the time of this code's writing; hopefully you switched to getSupportedChains as suggested above
       const options = getChainByName(chain)
       const url: string = customChain
         ? customChain.url
@@ -629,7 +630,7 @@ export default class Monitor {
     if (Object.keys(queueItem.sources).length == 0) {
 
       const data: InputData = {
-        chain: getChainByName(chain).chainId.toString(),
+        chain: getChainByName(chain).chainId.toString(), // TODO getChainByName was not valid at the time of this code's writing; check the new version
         addresses: [address],
         files: queueItem.found.files,
         bytecode: queueItem.found.bytecode

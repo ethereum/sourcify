@@ -1,7 +1,7 @@
 import Web3 from 'web3';
 import path from 'path';
 import * as bunyan from 'bunyan';
-import { Match, InputData, getChainByName, Logger, FileService, StringMap, cborDecode } from '@ethereum-sourcify/core';
+import { Match, InputData, getChainByName, getSupportedChains, Logger, FileService, StringMap, cborDecode } from '@ethereum-sourcify/core';
 import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint } from '../utils';
 
 const multihashes: any = require('multihashes');
@@ -55,24 +55,23 @@ export class Injector {
                 this.log.warn({ infuraID: this.infuraPID }, err.message);
             })
         }
-        for (const chain of ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli']) {
-            const chainOption = getChainByName(chain);
-            this.chains[chainOption.chainId] = {};
+        for (const chain of getSupportedChains()) {
+            this.chains[chain.chainId] = {};
             if (this.infuraPID) {
-                const web3 = chainOption.web3[0].replace('${INFURA_ID}', this.infuraPID);
-                this.chains[chainOption.chainId].web3 = new Web3(web3);
+                const web3 = chain.web3[0].replace('${INFURA_ID}', this.infuraPID);
+                this.chains[chain.chainId].web3 = new Web3(web3);
             } else {
-                const web3 = chainOption.fullnode.dappnode;
-                this.chains[chainOption.chainId].web3 = new Web3(web3)
+                const web3 = chain.fullnode.dappnode;
+                this.chains[chain.chainId].web3 = new Web3(web3)
                 await checkEndpoint(web3).catch(() => {
-                    this.log.warn({ endpoint: web3 }, `Invalid endpoint for chain ${chain}`);
+                    this.log.warn({ endpoint: web3 }, `Invalid endpoint for chain ${chain.name}`);
                 })
             }
         }
 
         // For unit testing with testrpc...
         if (this.localChainUrl) {
-            const chainOption = getChainByName('localhost');
+            const chainOption = getChainByName('Localchain');
             this.chains[chainOption.chainId] = {
                 web3: new Web3(chainOption.web3[0])
             };

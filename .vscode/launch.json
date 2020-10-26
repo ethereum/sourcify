@@ -11,7 +11,7 @@
       "name": "Server",
       "program": "${workspaceFolder}/dist/server/server.js",
       "envFile": "${workspaceFolder}/environments/.env",
-      //"preLaunchTask": "tsc: build - tsconfig.json",
+      "preLaunchTask": "npm: build:lerna",
       "outFiles": [
         "${workspaceFolder}/dist/**/*.js",
         "${workspaceFolder}/services/core/build/**/*.js",
