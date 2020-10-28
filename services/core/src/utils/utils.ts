@@ -1,6 +1,21 @@
 import * as chainOptions from '../chains.json';
 import cbor from 'cbor';
 
+/**
+ * Returns the chains where Sourcify is currently applicable.
+ * @returns array of currently supported chains
+ */
+export function getSupportedChains(): Array<any> {
+    const supportedChains = [];
+    for (const chainOption in chainOptions) {
+        const chainOptionValue = chainOptions[chainOption];
+        if (chainOptionValue.supported) {
+            supportedChains.push(chainOptionValue);
+        }
+    }
+    return supportedChains;
+}
+
 export function getChainId(chain: string): string {
     for (const chainOption in chainOptions) {
         const network = chainOptions[chainOption].network;
@@ -19,13 +34,13 @@ export function getIdFromChainName(chain: string): number {
             return chainOptions[chainOption].chainId;
         }
     }
-    throw new Error("Chain not found!"); //TODO: should we throw an error here or just let it pass?
+    throw new Error("Chain not found!");
 }
 
 export function getChainByName(name: string): any {
     for (const chainOption in chainOptions) {
-        const network = chainOptions[chainOption].network;
-        if (network && network.toLowerCase() === name) {
+        const otherName = chainOptions[chainOption].name;
+        if (otherName === name) {
             return chainOptions[chainOption];
         }
     }

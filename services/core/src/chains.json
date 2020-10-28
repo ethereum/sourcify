@@ -22,7 +22,8 @@
       "web3": ["https://mainnet.infura.io/v3/${INFURA_ID}"],
       "fullnode": {"dappnode": "http://geth.dappnode:8545"},
       "faucets": [],
-      "infoURL": "https://ethereum.org"
+      "infoURL": "https://ethereum.org",
+      "supported": true
     },
     {
       "name": "xDAI Chain",
@@ -34,7 +35,8 @@
       "nativeCurrency": {"name":"xDAI","symbol":"xDAI","decimals":18},
       "web3": ["https://dai.poa.network"],
       "faucets": [],
-      "infoURL": "https://forum.poa.network/c/xdai-chain"
+      "infoURL": "https://forum.poa.network/c/xdai-chain",
+      "supported": true
     },
     {
       "name": "EtherInc",
@@ -323,7 +325,8 @@
       "web3": ["https://ropsten.infura.io/v3/${INFURA_ID}"],
       "fullnode": {"dappnode": "http://ropsten.dappnode:8545"},
       "faucets": ["https://faucet.ropsten.be?${ADDRESS}"],
-      "infoURL": "https://github.com/ethereum/ropsten"
+      "infoURL": "https://github.com/ethereum/ropsten",
+      "supported": true
     },
     {
       "name": "RSK Mainnet",
@@ -408,7 +411,8 @@
       "web3": ["https://rinkeby.infura.io/v3/${INFURA_ID}"],
       "fullnode": {"dappnode": "http://rinkeby.dappnode:8545"},
       "faucets": ["https://faucet.rinkeby.io"],
-      "infoURL": "https://www.rinkeby.io"
+      "infoURL": "https://www.rinkeby.io",
+      "supported": true
     },
     {
       "name": "Ethereum Testnet Kovan",
@@ -421,7 +425,8 @@
       "web3": ["https://kovan.infura.io/v3/${INFURA_ID}"],
       "fullnode": {"dappnode": "http://kovan.dappnode:8545"},
       "faucets": ["https://faucet.kovan.network","https://gitter.im/kovan-testnet/faucet"],
-      "infoURL": "https://kovan-testnet.github.io/website"
+      "infoURL": "https://kovan-testnet.github.io/website",
+      "supported": true
     },
     {
       "name": "Athereum",
@@ -458,7 +463,8 @@
       "web3": ["https://goerli.infura.io/v3/${INFURA_ID}"],
       "fullnode": {"dappnode": "http://goerli-geth.dappnode:8545"},
       "faucets": ["https://goerli-faucet.slock.it/?address=${ADDRESS}","https://faucet.goerli.mudit.blog"],
-      "infoURL": "https://goerli.net/#about"
+      "infoURL": "https://goerli.net/#about",
+      "supported": true
     },
     {
       "name": "Ethereum Classic Testnet Kotti",

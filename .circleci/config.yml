@@ -47,21 +47,22 @@ aliases:
         name: Versions
         command: npm version
     - checkout
-    - restore_cache:
-        key: dependency-cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "package.json" }}
+    # Caching is disabled because lerna does not like cached node_modules
+    # - restore_cache:
+    #     key: dependency-cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "package.json" }}
     - run:
         name: install-npm
-        command: npm install
+        command: npx lerna bootstrap
     - run:
         name: tslint
         command: npm run tslint
     - run:
         name: tsc and test
         command: npm run test
-    - save_cache:
-        key: dependency-cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "package.json" }}
-        paths:
-        - ./node_modules
+    # - save_cache:
+    #     key: dependency-cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "package.json" }}
+    #     paths:
+    #     - ./node_modules
   - &monitor-e2e-base
     working_directory: ~/source-verify
     docker:
