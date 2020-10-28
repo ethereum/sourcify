@@ -30,7 +30,7 @@ export class Injector {
      * Constructor
      * @param {InjectorConfig = {}} config
      */
-    public constructor(config: InjectorConfig = {}) {
+    private constructor(config: InjectorConfig = {}) {
         this.chains = {};
         this.infuraPID = config.infuraPID;
         this.localChainUrl = config.localChainUrl;
@@ -39,10 +39,19 @@ export class Injector {
         this.log = config.log || Logger("Injector");
 
         this.fileService = config.fileService || new FileService(this.repositoryPath, this.log);
+    }
 
-        if (!this.offline) {
-            this.initChains();
+    /**
+     * Creates an instance of Injector. Waits for chains to initialize.
+     * Await this method to work with an instance that has all chains initialized.
+     * @param config 
+     */
+    public static async createAsync(config: InjectorConfig = {}) {
+        const instance = new Injector(config);
+        if (!instance.offline) {
+            await instance.initChains();
         }
+        return instance;
     }
 
     /**
@@ -51,9 +60,11 @@ export class Injector {
      */
     private async initChains() {
         if (this.infuraPID) {
+            this.log.info({loc: "[INIT_CHAINS]"}, "started checking infuraPID");
             await checkEndpoint(this.infuraPID).catch((err) => {
                 this.log.warn({ infuraID: this.infuraPID }, err.message);
             })
+            this.log.info({loc: "[INIT_CHAINS]"}, "finished checking infuraPID");
         }
         for (const chain of getSupportedChains()) {
             this.chains[chain.chainId] = {};
@@ -68,6 +79,9 @@ export class Injector {
                 })
             }
         }
+
+        const numberOfChains = Object.keys(this.chains).length;
+        this.log.info({loc: "[INIT_CHAINS]", numberOfChains}, "Finished loading chains");
 
         // For unit testing with testrpc...
         if (this.localChainUrl) {
@@ -104,7 +118,7 @@ export class Injector {
                     },
                     `Retrieving contract bytecode address`
                 );
-                deployedBytecode = await getBytecode(this.chains[chain].web3, address)
+                deployedBytecode = await getBytecode(this.chains[chain].web3, address);
             } catch (e) { /* ignore */ }
 
             const status = this.compareBytecodes(deployedBytecode, compiledBytecode);

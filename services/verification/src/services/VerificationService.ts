@@ -38,7 +38,7 @@ export class VerificationService implements IVerificationService {
         // Injection
         //const injection: Promise<Match>;
         //const { repository, chain, addresses, files } = inputData;
-        const injector = new Injector({
+        const injector = await Injector.createAsync({
             localChainUrl: localChainUrl,
             log: this.logger,
             infuraPID: process.env.INFURA_ID,

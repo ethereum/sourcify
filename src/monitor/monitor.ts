@@ -56,12 +56,12 @@ export default class Monitor {
 
     this.log = Logger("Monitor");
 
-    this.injector = new Injector({
+    Injector.createAsync({
       offline: true,
       log: this.log,
       infuraPID: config.endpoint.infuraId || "changeinfuraid",
       repositoryPath: config.repository.path
-    });
+    }).then((injector: Injector) => this.injector = injector); // TODO temporary solution to enable compilation; await not allowed inside a constructor
   }
 
   /**

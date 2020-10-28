@@ -1,7 +1,9 @@
 import Web3 from 'web3';
 import fetch from 'node-fetch';
 import { StringMap } from '@ethereum-sourcify/core';
-const solc: any = require('solc');
+import Path from 'path';
+import fs from 'fs';
+const solc = require('solc');
 
 export interface RecompilationResult {
     bytecode: string,
@@ -86,11 +88,7 @@ export async function recompile(
         'Recompiling'
     );
 
-    const solcjs: any = await new Promise((resolve, reject) => {
-        solc.loadRemoteVersion(`v${version}`, (error: Error, soljson: any) => {
-            (error) ? reject(error) : resolve(soljson);
-        });
-    });
+    const solcjs = await getSolc(version, log);
 
     const compiled: any = solcjs.compile(JSON.stringify(input));
     const output = JSON.parse(compiled);
@@ -168,3 +166,53 @@ function reformatMetadata(
     }
 }
 
+
+/**
+ * Fetches the requested version of the Solidity compiler.
+ * First attempts to search localy; if that fails, falls back to downloading it.
+ * 
+ * @param version the solc version to retrieve: the expected format is
+ * 
+ * "[v]<major>.<minor>.<patch>+commit.<hash>"
+ * 
+ * e.g.: "0.6.6+commit.6c089d02"
+ * 
+ * defaults to "latest"
+ * 
+ * @param log a logger to track the course of events
+ * 
+ * @returns the requested solc instance
+ */
+export function getSolc(version: string = "latest", log: {info: any, error: any}): Promise<any> {
+    // /^\d+\.\d+\.\d+\+commit\.[a-f0-9]{8}$/
+    version = version.trim();
+    if (!version.startsWith("v")) {
+        version = "v" + version;
+    }
+
+    const solcRepo = process.env.SOLC_REPO || "solc-repo";
+    const solcPath = Path.resolve(solcRepo, `soljson-${version}.js`);
+    log.info({loc: "[GET_SOLC]", "target": solcPath}, "Searching for solc locally");
+
+    if (fs.existsSync(solcPath)) {
+        log.info({loc: "[GET_SOLC]"}, "Found solc locally");
+        return new Promise((resolve, reject) => {
+            const soljson = solc.setupMethods(require(solcPath));
+            resolve(soljson);
+        });
+    }
+
+    log.info({loc: "[GET_SOLC]", version}, "Searching for solc remotely");
+
+    return new Promise((resolve, reject) => {
+        solc.loadRemoteVersion(version, (error: Error, soljson: any) => {
+            if (error) {
+                log.error({loc: "[GET_SOLC]", version}, "Could not find solc remotely");
+                reject(error);
+            } else {
+                log.info({loc: "[GET_SOLC]", version}, "Found solc remotely");
+                resolve(soljson);
+            }
+        });
+    });
+}
