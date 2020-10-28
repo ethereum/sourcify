@@ -1,14 +1,15 @@
 {
   "compilerOptions": {
     "allowJs": true,
-    "target": "es5",
+    "target": "es2017",
     "sourceMap": true,
     "esModuleInterop": true,
     "strict": true,
     "declaration": true,
     "outDir": "build",
     "resolveJsonModule": true,
-    "strictNullChecks": false
+    "strictNullChecks": false,
+    "module": "commonjs"
   },
   "include": ["./src"]
 }

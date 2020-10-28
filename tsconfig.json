@@ -1,13 +1,15 @@
 {
   "compilerOptions": {
     "allowJs": true,
-    "target": "es5",
+    "target": "es2017",
     "sourceMap": true,
     "esModuleInterop": true,
     "strict": true,
     "outDir": "dist",
     "resolveJsonModule": true,
-    "strictNullChecks": false
+    "strictNullChecks": false,
+    "declaration": true,
+    "module": "commonjs"
   },
   "include": ["./src", "src/run_monitor.js", "src/localchain.js", "src/cli"]
 }

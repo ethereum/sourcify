@@ -19,7 +19,7 @@
         "${workspaceFolder}/services/verification/build/**/*.js"
       ],
       "smartStep": true,
-      "console": "internalConsole", 
+      "console": "integratedTerminal", 
       "outputCapture": "std",
     },
     {

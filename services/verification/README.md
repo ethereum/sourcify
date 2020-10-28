@@ -53,7 +53,7 @@ Files object in the `InputData` consists of `metadata` and `solidity` properties
 ```typescript
 import { Injector } from '@ethereum-sourcify/verification';
 
-const injector = new Injector(injectorConfig);
+const injector = await Injector.createAsync(injectorConfig);
 
 const result = await injector.inject(inputData);
 
