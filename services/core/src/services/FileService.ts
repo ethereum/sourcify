@@ -1,10 +1,11 @@
-import { FileObject, Match, Tag } from '../utils/types';
-import { getChainId } from '../utils/utils';
 import dirTree from 'directory-tree';
 import path from 'path';
 import fs from 'fs';
+import web3 from 'web3';
 import * as bunyan from 'bunyan';
 import { outputFileSync } from 'fs-extra';
+import { FileObject, Match, Tag } from '../utils/types';
+import { getChainId } from '../utils/utils';
 import { Logger } from '../utils/logger';
 const saveFile = outputFileSync;
 
@@ -48,7 +49,7 @@ export class FileService implements IFileService {
     }
 
     fetchAllFilePaths(chain: string, address: string): Array<FileObject> {
-        const fullPath: string = this.repositoryPath + `/contracts/full_match/${chain}/${address}/`;
+        const fullPath: string = this.repositoryPath + `/contracts/full_match/${chain}/${web3.utils.toChecksumAddress(address)}/`;
         const files: Array<FileObject> = [];
         dirTree(fullPath, {}, (item) => {
             files.push({ "name": item.name, "path": item.path });
@@ -73,7 +74,7 @@ export class FileService implements IFileService {
      * @param repository
      */
     findByAddress(address: string, chain: string, repository: string): Match[] {
-        const addressPath = `${repository}/contracts/full_match/${chain}/${address}/metadata.json`;
+        const addressPath = `${repository}/contracts/full_match/${chain}/${web3.utils.toChecksumAddress(address)}/metadata.json`;
 
         try {
             fs.readFileSync(addressPath);

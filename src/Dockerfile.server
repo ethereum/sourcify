@@ -4,11 +4,11 @@ RUN apk update && apk upgrade && \
     apk add --no-cache bash git openssh python make g++ curl
 RUN npm install -g lerna
 COPY environments/.env ./environments/
-COPY services/core ./services/
-COPY services/validation ./services/
-COPY services/verification ./services/
+COPY services/core ./services/core
+COPY services/validation ./services/validation
+COPY services/verification ./services/verification
 COPY src ./src
 COPY *.json ./
-RUN lerna bootstrap --hoist && lerna run build
+RUN lerna bootstrap && lerna run build
 
 CMD ["npm", "run", "server:start"]
