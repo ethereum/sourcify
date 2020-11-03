@@ -11,7 +11,7 @@
     "prepublishOnly": "npm install && npm run build",
     "clean": "rimraf ./dist",
     "build": "tsc",
-    "pretest": "npm run build",
+    "pretest": "npm run build:lerna",
     "test": "TESTING=true LOCALCHAIN_URL=http://localhost:8545 ts-node ./node_modules/.bin/mocha --exit",
     "tslint": "tslint -p tsconfig.json",
     "coverage": "node ./node_modules/nyc/bin/nyc.js --reporter=lcov --reporter=text-summary ./node_modules/tape/bin/tape ./test/index.js",
@@ -30,7 +30,8 @@
     "server:build": "npm run clean && npm run build",
     "server:start": "node ./dist/server/server.js",
     "server:test": "tsc && TESTING=true LOCALCHAIN_URL=http://localhost:8545 SERVER_PORT=2000 node ./dist/server/server.js ./repository",
-    "cli:test": "npm run build && ./node_modules/.bin/mocha test/sourcify.js"
+    "cli:test": "npm run build && ./node_modules/.bin/mocha test/sourcify.js",
+    "build:lerna": "lerna run build"
   },
   "keywords": [
     "ethereum",

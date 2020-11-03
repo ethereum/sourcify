@@ -3,7 +3,7 @@ import BaseController from './BaseController';
 import { IController } from '../../common/interfaces';
 import * as HttpStatus from 'http-status-codes';
 import { Logger, IFileService } from '@ethereum-sourcify/core';
-import { param, validationResult } from 'express-validator/check';
+import { param, validationResult } from 'express-validator';
 import { isValidAddress, isValidChain } from '../../common/validators/validators';
 import { NotFoundError, ValidationError } from '../../common/errors'
 import * as bunyan from 'bunyan';
