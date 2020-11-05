@@ -191,7 +191,7 @@ export function getSolc(version: string = "latest", log: {info: any, error: any}
     }
 
     const solcRepo = process.env.SOLC_REPO || "solc-repo";
-    const solcPath = Path.resolve(solcRepo, version + ".js");
+    const solcPath = Path.resolve(solcRepo, `soljson-${version}.js`);
     log.info({loc: "[GET_SOLC]", "target": solcPath}, "Searching for solc locally");
 
     if (fs.existsSync(solcPath)) {
