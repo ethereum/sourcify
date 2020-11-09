@@ -3,7 +3,7 @@ import path from 'path';
 import * as bunyan from 'bunyan';
 import { Match, InputData, getChainByName, getSupportedChains, Logger, FileService, StringMap, cborDecode } from '@ethereum-sourcify/core';
 import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint } from '../utils';
-
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const multihashes: any = require('multihashes');
 
 export interface InjectorConfig {
@@ -179,7 +179,7 @@ export class Injector {
     private validateChain(chain: string) {
 
         if (!chain || typeof chain !== 'string') {
-            throw new Error("Missing chain name for submitted sources/metadata");;
+            throw new Error("Missing chain name for submitted sources/metadata");
         }
 
     }
@@ -334,7 +334,7 @@ export class Injector {
         for (const sourcePath in sources) {
 
             const sanitizedPath = sourcePath
-                .replace(/[^a-z0-9_.\/-]/gim, "_")
+                .replace(/[^a-z0-9_./-]/gim, "_")
                 .replace(/(^|\/)[.]+($|\/)/, '_');
 
             const outputPath = path.join(
@@ -383,7 +383,7 @@ export class Injector {
         for (const sourcePath in sources) {
 
             const sanitizedPath = sourcePath
-                .replace(/[^a-z0-9_.\/-]/gim, "_")
+                .replace(/[^a-z0-9_./-]/gim, "_")
                 .replace(/(^|\/)[.]+($|\/)/, '_');
 
             const outputPath = path.join(

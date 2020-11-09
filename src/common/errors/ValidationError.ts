@@ -7,7 +7,7 @@ export class ValidationError implements IResponseError {
     log: boolean;
     errors: any[];
 
-    constructor(validationErrors: any[], log: boolean = true) {
+    constructor(validationErrors: any[], log = true) {
         this.code = HttpStatus.BAD_REQUEST;
         this.message = 'Validation Error';
         this.log = log;

@@ -56,14 +56,15 @@ watches:
   + rinkeby
   + kovan
   + goerli
+  + xDai
 
 + a website which allows you to submit sources and metadata for a specific contract address manually
   + https://verification.komputing.org/ (Stable)
-  + https://verificationstaging.komputing.org/ (Unstable)
+  + https://verificationstaging.shardlabs.io/ (Unstable)
 
 + a public metadata repository that contains uploaded (or discovered) metadata and their sources:
   + https://contractrepo.komputing.org/ (Stable)
-  + https://contractrepostaging.komputing.org/ (Unstable)
+  + https://contractrepo.verificationstaging.shardlabs.io/ (Unstable)
 
 ### Getting Metadata
 
@@ -211,7 +212,7 @@ Stop the docker run with ctrl-c
 Run tests with:
 
 ```
-npm test
+lerna run test
 ```
 
 `test/sources` contains contracts, compilation artifacts and metadata files which can be used for
