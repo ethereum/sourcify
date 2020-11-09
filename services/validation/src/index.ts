@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import program from 'commander';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version, bin } = require("../package.json");
 const name = Object.keys(bin)[0];
 import { ValidationService, IValidationService } from './ValidationService';

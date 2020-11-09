@@ -3,6 +3,7 @@ import fetch from 'node-fetch';
 import { StringMap } from '@ethereum-sourcify/core';
 import Path from 'path';
 import fs from 'fs';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const solc = require('solc');
 
 export interface RecompilationResult {
@@ -56,7 +57,7 @@ export async function checkEndpoint(provider: string) {
 export async function getBytecode(web3: Web3, address: string) {
     address = web3.utils.toChecksumAddress(address);
     return await web3.eth.getCode(address);
-};
+}
 
 /**
  * Compiles sources using version and settings specified in metadata
@@ -126,8 +127,8 @@ function reformatMetadata(
 ): ReformattedMetadata {
 
     const input: any = {};
-    let fileName: string = '';
-    let contractName: string = '';
+    let fileName = '';
+    let contractName = '';
 
     input.settings = metadata.settings;
 
@@ -183,7 +184,7 @@ function reformatMetadata(
  * 
  * @returns the requested solc instance
  */
-export function getSolc(version: string = "latest", log: {info: any, error: any}): Promise<any> {
+export function getSolc(version = "latest", log: {info: any, error: any}): Promise<any> {
     // /^\d+\.\d+\.\d+\+commit\.[a-f0-9]{8}$/
     version = version.trim();
     if (!version.startsWith("v")) {
@@ -197,6 +198,7 @@ export function getSolc(version: string = "latest", log: {info: any, error: any}
     if (fs.existsSync(solcPath)) {
         log.info({loc: "[GET_SOLC]"}, "Found solc locally");
         return new Promise((resolve, reject) => {
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
             const soljson = solc.setupMethods(require(solcPath));
             resolve(soljson);
         });

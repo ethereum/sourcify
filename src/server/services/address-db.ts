@@ -18,10 +18,10 @@ import util from 'util';
 import Web3 from 'web3';
 
 const log = console.log;
-const dbFile : string = '/db/addressDB.txt';
-const lineLength : number = 114; // including newline
-const hashStart : number = 2;
-const addressStart : number = 71; // after the "0x"
+const dbFile  = '/db/addressDB.txt';
+const lineLength  = 114; // including newline
+const hashStart  = 2;
+const addressStart  = 71; // after the "0x"
 
 let fd : number;
 let numRecords : number;

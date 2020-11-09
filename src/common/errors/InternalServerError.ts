@@ -6,7 +6,7 @@ export class InternalServerError implements IResponseError {
     message: string;
     log: boolean;
 
-    constructor(message?: string, log: boolean = true) {
+    constructor(message?: string, log = true) {
         this.code = HttpStatus.INTERNAL_SERVER_ERROR,
         this.message = message || 'Something went wrong',
         this.log = log;
