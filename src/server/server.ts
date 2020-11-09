@@ -6,10 +6,11 @@ import routes from './routes';
 import bodyParser from 'body-parser';
 import config from '../config';
 import { Logger } from '@ethereum-sourcify/core';
+import bunyan from 'bunyan';
 import genericErrorHandler from './middlewares/GenericErrorHandler';
 import notFoundHandler from './middlewares/NotFoundError';
 
-export const logger = Logger("Server");
+export const logger: bunyan = Logger("Server");
 export class Server {
 
   app: express.Application;
