@@ -17,7 +17,8 @@ import {
   InputData,
   getChainByName,
   cborDecode,
-  Logger
+  Logger,
+  getSupportedChains
 } from '@ethereum-sourcify/core';
 
 const multihashes = require('multihashes');
@@ -74,27 +75,21 @@ export default class Monitor {
    * @return {Promise<void>}
    */
   public async start(customChain?: CustomChainConfig): Promise<void> {
-    const chainNames: string[] = customChain
-      ? [customChain.name]
-      : ['mainnet', 'ropsten', 'rinkeby', 'kovan', 'goerli']; // TODO consider using utils.getSupportedChains()
-
-    for (const chain of chainNames) {
-      // TODO getChainByName was not valid at the time of this code's writing; hopefully you switched to getSupportedChains as suggested above
-      const options = getChainByName(chain)
+    for (const chain of getSupportedChains()) {
       const url: string = customChain
         ? customChain.url
-        : options.web3[0].replace("${INFURA_ID}", process.env.INFURA_ID);
-
-      this.chains[chain] = {
+        : chain.web3[0].replace("${INFURA_ID}", process.env.INFURA_ID);
+      
+      this.chains[chain.name] = {
         web3: new Web3(url),
         metadataQueue: {},
         sourceQueue: {},
         latestBlock: 0,
-        chainId: options.chainId.toString()
+        chainId: chain.chainId.toString()
       };
 
-      const blockNumber = await this.chains[chain].web3.eth.getBlockNumber();
-      this.chains[chain].latestBlock = blockNumber;
+      const blockNumber = await this.chains[chain.name].web3.eth.getBlockNumber();
+      this.chains[chain.name].latestBlock = blockNumber;
 
       this.log.info(
         {
@@ -130,7 +125,7 @@ export default class Monitor {
    */
   private async ipfsCat(hash: string): Promise<string> {
     return (this.ipfsProvider)
-      ? (await concat(this.ipfsProvider.cat(`/ipfs/${hash}`))).slice().toString()
+      ? (await concat(this.ipfsProvider.cat(`/ipfs/${hash}`))).slice().toString() // TODO the point of slice? copying? return await should be avoided
       : request(`${this.ipfsCatRequest}${hash}`);
   }
 
@@ -166,7 +161,8 @@ export default class Monitor {
     // getTime
     for (const key in queue) {
       // tslint:disable-next-line: no-useless-cast
-      if ((queue[key].timestamp as number + (maxAgeInSecs * 1000)) < new Date().getTime()) {
+      const currentTimeMillis = new Date().getTime();
+      if ((queue[key].timestamp as number + (maxAgeInSecs * 1000)) < currentTimeMillis) {
         toDelete[key] = true;
       }
     }
@@ -202,9 +198,9 @@ export default class Monitor {
    * Polls chain for new blocks, detecting contract deployments and
    * calling `retrieveBytecode` when one is discovered
    *
-   * @param {any} chain [description]
+   * @param {string} chain [description]
    */
-  private retrieveBlocksInChain(chain: any): void {
+  private retrieveBlocksInChain(chain: string): void {
     const _this = this;
     const web3 = this.chains[chain].web3;
 
@@ -277,57 +273,51 @@ export default class Monitor {
     const _this = this;
     const web3 = this.chains[chain].web3;
 
+    this.log.info({loc: "[BLOCKS]", chain, address}, "Retrieving code");
+
     web3.eth.getCode(address, (err: Error, bytecode: string) => {
-      if (err) return;
+      if (err) {
+        this.log.error({loc: "[BLOCKS]", chain, address}, "Cannot retrieve code");
+        return;
+      }
 
       try {
         const cborData = cborDecode(web3.utils.hexToBytes(bytecode))
 
-        if (cborData && 'bzzr1' in cborData) {
-          const metadataBzzr1 = web3.utils.bytesToHex(cborData['bzzr1']).slice(2);
+        if (!cborData) {
 
-          this.log.info(
-            {
-              loc: '[BLOCKS]',
-              chain: chain,
-              address: address,
-              bzzr1: metadataBzzr1
-            },
-            'Queueing retrieval of metadata'
-          );
-
-          _this.addToQueue(
-            _this.chains[chain].metadataQueue,
-            address,
-            {
-              bzzr1: metadataBzzr1,
-              bytecode: bytecode
-            }
-          );
-
-        } else if (cborData && 'ipfs' in cborData) {
-          const metadataIPFS = multihashes.toB58String(cborData['ipfs']);
-
-          this.log.info(
-            {
-              loc: '[BLOCKS]',
-              chain: chain,
-              address: address,
-              ipfs: metadataIPFS
-            },
-            'Queueing retrieval of metadata'
-          )
-
-          _this.addToQueue(
-            _this.chains[chain].metadataQueue,
-            address,
-            {
-              ipfs: metadataIPFS,
-              bytecode: bytecode
-            }
-          );
         }
-      } catch (error) { /* ignore */ }
+
+        let option;
+        let metadata;
+
+        if ("bzzr1" in cborData) {
+          option = "bzzr1";
+          metadata = web3.utils.bytesToHex(cborData['bzzr1']).slice(2);
+        } else if ("ipfs" in cborData) {
+          option = "ipfs";
+          metadata = multihashes.toB58String(cborData['ipfs']);
+        } else {
+          this.log.warn({loc: "[BLOCKS]", chain, address}, "Could not find a compatible metadata extraction method");
+          return;
+        }
+
+        const infoObject: any = {loc: "[BLOCKS]", chain, address};
+        infoObject[option] = option;
+        this.log.info(infoObject, "Queueing retrieval of metadata");
+
+        const queueItem: any = {bytecode};
+        queueItem[option] = metadata;
+
+        _this.addToQueue(
+          _this.chains[chain].metadataQueue,
+          address,
+          queueItem
+        );
+
+      } catch (error) {
+        this.log.error({loc: "[BLOCKS]", chain, address}, "Error in metadata extraction.");
+      }
     })
   }
 
@@ -406,7 +396,7 @@ export default class Monitor {
     let metadataRaw;
 
     const found: any = {
-      files: [],
+      files: {},
       bytecode: bytecode
     };
 
@@ -442,7 +432,7 @@ export default class Monitor {
       'Got metadata by address'
     );
 
-    found.files.push(metadataRaw.toString())
+    // found.files.push(metadataRaw.toString()) TODO this shouldn't be in the same array as solidity content
 
     const metadata = JSON.parse(metadataRaw);
     delete this.chains[chain].metadataQueue[address];
@@ -608,10 +598,15 @@ export default class Monitor {
     source: string
   ): Promise<void> {
 
-    this.chains[chain].sourceQueue[address].found.files.push(source);
-    delete this.chains[chain].sourceQueue[address].sources[sourceKey]
+    const queueItem = this.chains[chain].sourceQueue[address];
+    if (queueItem && (sourceKey in queueItem.sources)) {
+      queueItem.found.files[sourceKey] = source;
+      delete queueItem.sources[sourceKey];
+    } else {
+      return;
+    }
 
-    const remaining = Object.keys(this.chains[chain].sourceQueue[address].sources)
+    const remaining = Object.keys(queueItem.sources);
 
     this.log.info(
       {
@@ -623,21 +618,23 @@ export default class Monitor {
       'Sources left to be retrieved'
     );
 
-    const queueItem = this.chains[chain].sourceQueue[address];
-
     // Once we've assembled all the sources, inject them.
     // Also save ipfs and swarm hashes.
     if (Object.keys(queueItem.sources).length == 0) {
 
+      const metadataSolidityPair: any = {};
+      metadataSolidityPair.metadata = JSON.parse(queueItem.metadataRaw); // TODO property metadataRaw is optional
+      metadataSolidityPair.solidity = queueItem.found.files;
+
       const data: InputData = {
         chain: getChainByName(chain).chainId.toString(), // TODO getChainByName was not valid at the time of this code's writing; check the new version
         addresses: [address],
-        files: queueItem.found.files,
+        files: [metadataSolidityPair],
         bytecode: queueItem.found.bytecode
       };
 
       try {
-        await this.injector.inject(data)
+        await this.injector.inject(data);
 
         if (queueItem.found.swarm) {
           save(queueItem.found.swarm.metadataPath, queueItem.found.swarm.file)
