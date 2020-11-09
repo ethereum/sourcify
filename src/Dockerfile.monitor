@@ -1,8 +1,14 @@
 FROM node:10 as builder
 WORKDIR /home/app
-COPY package*.json ./
-RUN npm ci
-COPY . .
-RUN npm run monitor:build
-EXPOSE 80
+
+RUN npm install -g lerna
+COPY environments/.env ./environments/
+COPY services/core ./services/core
+COPY services/validation ./services/validation
+COPY services/verification ./services/verification
+COPY src ./src
+COPY scripts/run_monitor.js ./scripts/
+COPY *.json ./
+RUN lerna bootstrap && lerna run build
+
 CMD ["npm", "run", "monitor:start"]

@@ -22,7 +22,11 @@ services:
     container_name: monitor-${TAG}
     volumes:
       - <<: *project-repository-mount
-        target: /home/app/repository
+        target: /home/data/repository
+      - type: bind
+        source: $SOLC_REPO_HOST
+        target: $SOLC_REPO
+        read_only: true
     ports:
     - "${MONITOR_EXTERNAL_PORT}:${MONITOR_PORT}"
     deploy:
