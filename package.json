@@ -23,7 +23,7 @@
     "dev:server": "npm run build:ui && ./scripts/run_server.sh",
     "dev:server:local": "npm run build:ui && TESTING=true ./scripts/run_server.sh",
     "build:ui": "cd ./ui/ && npm install && npm run build",
-    "monitor:build": "npm run clean && tsc",
+    "monitor:build": "npm run clean && npm run build",
     "monitor:start": "node ./scripts/run_monitor.js",
     "monitor": "rimraf ./dist && tsc && node ./scripts/run_monitor.js",
     "monitor:ci": "scripts/monitor_ci.sh",
