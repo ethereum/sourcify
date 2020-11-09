@@ -33,4 +33,4 @@ services:
       resources:
         limits:
           cpus: '2'
-          memory: 2g
+          memory: 4g
