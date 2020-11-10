@@ -1,2 +1,3 @@
 environments/.env.secrets filter=git-crypt diff=git-crypt
 .gitattributes !filter !diff
+*.sol linguist-language=Solidity
