@@ -54,11 +54,11 @@ aliases:
         name: install-npm
         command: npx lerna bootstrap
     - run:
-        name: tslint
-        command: npm run tslint
+        name: lint
+        command: npm run lint
     - run:
         name: tsc and test
-        command: npm run test
+        command: npx lerna run build && npx lerna run test
     # - save_cache:
     #     key: dependency-cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "package.json" }}
     #     paths:

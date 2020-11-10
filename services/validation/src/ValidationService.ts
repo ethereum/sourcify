@@ -138,7 +138,7 @@ export class ValidationService implements IValidationService {
         try {
             new AdmZip(file);
             return true;
-        } catch (err) { }
+        } catch (err) { undefined }
         return false;
     }
 
@@ -172,7 +172,7 @@ export class ValidationService implements IValidationService {
         }
 
         for (const file of files) {
-            let content: string = file.buffer.toString();
+            const content: string = file.buffer.toString();
             /*try {
                 const val = JSON.parse(file.buffer.toString());
                 const type = Object.prototype.toString.call(val);
@@ -292,7 +292,7 @@ export class ValidationService implements IValidationService {
             if (this.isMetadata(obj)) {
                 return obj;
             }
-        } catch (err) { }
+        } catch (err) { undefined }
 
         return null;
     }
