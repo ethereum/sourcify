@@ -29,6 +29,10 @@ services:
         source: $SOLC_REPO_HOST
         target: $SOLC_REPO
         read_only: true
+      - type: bind
+        source: $SOLJSON_REPO_HOST
+        target: $SOLJSON_REPO
+        read_only: true
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT}/health"]
       interval: 30s

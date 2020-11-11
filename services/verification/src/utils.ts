@@ -5,6 +5,7 @@ import Path from 'path';
 import fs from 'fs';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const solc = require('solc');
+import {spawnSync} from 'child_process';
 
 export interface RecompilationResult {
     bytecode: string,
@@ -89,10 +90,13 @@ export async function recompile(
         'Recompiling'
     );
 
-    const solcjs = await getSolc(version, log);
-
-    const compiled: any = solcjs.compile(JSON.stringify(input));
+    const compiled = await useCompiler(version, input, log);
     const output = JSON.parse(compiled);
+
+    if (output.errors) {
+        log.error({loc: "[RECOMPILE]", fileName, contractName, version}, output.errors);
+        throw new Error(output.errors);
+    }
     const contract: any = output.contracts[fileName][contractName];
 
     return {
@@ -100,6 +104,33 @@ export async function recompile(
         deployedBytecode: `0x${contract.evm.deployedBytecode.object}`,
         metadata: contract.metadata.trim()
     }
+}
+
+/**
+ * Searches for a solc: first for a local executable version, then using the getSolc function.
+ * Once the compiler is retrieved, it is used, and the stringified solc output is returned.
+ * 
+ * @param version the version of solc to be used for compilation
+ * @param input a JSON object of the standard-json format compatible with solc
+ * @param log the logger
+ * @returns stringified solc output
+ */
+async function useCompiler(version: string, input: any, log: {info: any, error: any}) {
+    const inputStringified = JSON.stringify(input);
+    const repoPath = process.env.SOLC_REPO || "solc-repo";
+    const solcPath = Path.join(repoPath, `solc-linux-amd64-v${version}`);
+    let compiled: string = null;
+
+    if (fs.existsSync(solcPath)) {
+        log.info({loc: "[RECOMPILE]", version, solcPath}, "Compiling with external executable");
+        const shellOutputBuffer = spawnSync(solcPath, ["--standard-json"], {input: inputStringified});
+        compiled = shellOutputBuffer.stdout.toString();
+    } else {
+        const soljson = await getSolc(version, log);
+        compiled = soljson.compile(inputStringified);
+    }
+
+    return compiled;
 }
 
 /**
@@ -169,8 +200,8 @@ function reformatMetadata(
 
 
 /**
- * Fetches the requested version of the Solidity compiler.
- * First attempts to search localy; if that fails, falls back to downloading it.
+ * Fetches the requested version of the Solidity compiler (soljson).
+ * First attempts to search locally; if that fails, falls back to downloading it.
  * 
  * @param version the solc version to retrieve: the expected format is
  * 
@@ -187,24 +218,24 @@ function reformatMetadata(
 export function getSolc(version = "latest", log: {info: any, error: any}): Promise<any> {
     // /^\d+\.\d+\.\d+\+commit\.[a-f0-9]{8}$/
     version = version.trim();
-    if (!version.startsWith("v")) {
+    if (version !== "latest" && !version.startsWith("v")) {
         version = "v" + version;
     }
 
-    const solcRepo = process.env.SOLC_REPO || "solc-repo";
-    const solcPath = Path.resolve(solcRepo, `soljson-${version}.js`);
-    log.info({loc: "[GET_SOLC]", "target": solcPath}, "Searching for solc locally");
+    const soljsonRepo = process.env.SOLJSON_REPO || "soljson-repo";
+    const soljsonPath = Path.resolve(soljsonRepo, `soljson-${version}.js`);
+    log.info({loc: "[GET_SOLC]", "target": soljsonPath}, "Searching for js solc locally");
 
-    if (fs.existsSync(solcPath)) {
-        log.info({loc: "[GET_SOLC]"}, "Found solc locally");
+    if (fs.existsSync(soljsonPath)) {
+        log.info({loc: "[GET_SOLC]"}, "Found js solc locally");
         return new Promise((resolve, reject) => {
             // eslint-disable-next-line @typescript-eslint/no-var-requires
-            const soljson = solc.setupMethods(require(solcPath));
+            const soljson = solc.setupMethods(require(soljsonPath));
             resolve(soljson);
         });
     }
 
-    log.info({loc: "[GET_SOLC]", version}, "Searching for solc remotely");
+    log.info({loc: "[GET_SOLC]", version}, "Searching for js solc remotely");
 
     return new Promise((resolve, reject) => {
         solc.loadRemoteVersion(version, (error: Error, soljson: any) => {

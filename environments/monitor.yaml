@@ -27,6 +27,10 @@ services:
         source: $SOLC_REPO_HOST
         target: $SOLC_REPO
         read_only: true
+      - type: bind
+        source: $SOLJSON_REPO_HOST
+        target: $SOLJSON_REPO
+        read_only: true
     ports:
     - "${MONITOR_EXTERNAL_PORT}:${MONITOR_PORT}"
     deploy:
