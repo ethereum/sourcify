@@ -42,5 +42,5 @@ export class Server {
     this.app.listen(this.port, () => logger.info({loc: '[LISTEN]'}, `Injector listening on port ${this.port}!`))
   }
 }
-// tslint:disable no-unused-variable
+
 const server = new Server();

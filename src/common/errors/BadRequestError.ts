@@ -6,7 +6,7 @@ export class BadRequestError implements IResponseError {
     message: string;
     log: boolean;
 
-    constructor(message?: string, log: boolean = true) {
+    constructor(message?: string, log = true) {
         this.code = HttpStatus.BAD_REQUEST,
         this.message = message || 'Bad request',
         this.log = log;

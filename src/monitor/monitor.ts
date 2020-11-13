@@ -1,3 +1,4 @@
+/* eslint-disable */
 import Web3 from 'web3';
 import { ethers } from 'ethers';
 import request from 'request-promise-native';
@@ -20,6 +21,7 @@ import {
   Logger,
   getSupportedChains
 } from '@ethereum-sourcify/core';
+import { PathBuffer, ValidationService } from '@ethereum-sourcify/validation';
 
 const multihashes = require('multihashes');
 const save = outputFileSync;
@@ -36,6 +38,7 @@ export default class Monitor {
   private sourceInterval: any;
   private metadataInterval: any;
   private injector: Injector;
+  private validationService: ValidationService;
 
   /**
    * Constructor
@@ -56,6 +59,7 @@ export default class Monitor {
     this.metadataInterval = null;
 
     this.log = Logger("Monitor");
+    this.validationService = new ValidationService(this.log);
 
     Injector.createAsync({
       offline: true,
@@ -622,18 +626,31 @@ export default class Monitor {
     // Also save ipfs and swarm hashes.
     if (Object.keys(queueItem.sources).length == 0) {
 
-      const metadataSolidityPair: any = {};
-      metadataSolidityPair.metadata = JSON.parse(queueItem.metadataRaw); // TODO property metadataRaw is optional
-      metadataSolidityPair.solidity = queueItem.found.files;
+      const inputFiles: PathBuffer[] = [];
+      const metadataPathBuffer = new PathBuffer(Buffer.from(queueItem.metadataRaw)); // TODO is property metadataRaw really optional?
+      inputFiles.push(metadataPathBuffer);
+      for (const filePath in queueItem.found.files) {
+        const fileContent = queueItem.found.files[filePath];
+        const filePathBuffer = new PathBuffer(Buffer.from(fileContent), filePath);
+        inputFiles.push(filePathBuffer);
+      }
 
       const data: InputData = {
-        chain: getChainByName(chain).chainId.toString(), // TODO getChainByName was not valid at the time of this code's writing; check the new version
+        chain: getChainByName(chain).chainId.toString(),
         addresses: [address],
-        files: [metadataSolidityPair],
         bytecode: queueItem.found.bytecode
       };
 
       try {
+        const validatedFiles = this.validationService.checkFiles(inputFiles);
+        const errors = validatedFiles
+                        .filter(contract => !contract.isValid())
+                        .map(contract => contract.info);
+        if (errors.length) {
+          throw new Error(errors.join("\n"));
+        }
+        data.files = validatedFiles;
+
         await this.injector.inject(data);
 
         if (queueItem.found.swarm) {
@@ -644,7 +661,11 @@ export default class Monitor {
           save(queueItem.found.ipfs.metadataPath, queueItem.found.ipfs.file)
         }
       } catch (err) {
-        /* ignore */
+        this.log.error({
+          loc: "[SOURCES:INJECTION_FAILED]",
+          chain,
+          address
+        }, err);
       }
       delete this.chains[chain].sourceQueue[address];
     }

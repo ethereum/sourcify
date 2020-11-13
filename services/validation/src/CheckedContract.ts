@@ -91,7 +91,7 @@ export default class CheckedContract {
      * @param useOriginalSettings If true, the returned object will contain settings as specified
      * during the original compilation; otherwise no settings will be imposed.
      */
-    public getStandardJson(useOriginalSettings: boolean = true) {
+    public getStandardJson(useOriginalSettings = true) {
         const standardJson: any = {
             language: "Solidity",
             sources: this.metadata.sources
@@ -101,7 +101,7 @@ export default class CheckedContract {
             standardJson.settings = {};
             standardJson.settings.outputSelection = { "*": { "*": [ "evm.bytecode", "abi" ] } };
             for (const key of STANDARD_JSON_SETTINGS_KEYS) {
-                if (this.metadata.settings.hasOwnProperty(key)) {
+                if (Object.prototype.hasOwnProperty.call(this.metadata.settings, key)) {
                     standardJson.settings[key] = this.metadata.settings[key];
                 }
             }

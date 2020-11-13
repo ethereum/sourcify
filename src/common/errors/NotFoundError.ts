@@ -6,7 +6,7 @@ export class NotFoundError implements IResponseError {
     message: string;
     log: boolean;
 
-    constructor(message?: string, log: boolean = true) {
+    constructor(message?: string, log = true) {
         this.code = HttpStatus.NOT_FOUND,
         this.message = message || 'Resouce not found',
         this.log = log;

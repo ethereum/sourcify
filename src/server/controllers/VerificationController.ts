@@ -40,7 +40,7 @@ export default class VerificationController extends BaseController implements IC
             res.status(200).send({ result });
         } else {
             if (!req.files) return next(new NotFoundError("Address for specified chain not found in repository"));
-            // tslint:disable no-useless-cast
+            
             const filesArr: fileUpload.UploadedFile[] = [].concat(req.files!.files); // ensure an array, regardless of how many files received
             const wrappedFiles = filesArr.map(f => new PathBuffer(f.data));
             const validatedFiles = this.validationService.checkFiles(wrappedFiles);
@@ -75,14 +75,14 @@ export default class VerificationController extends BaseController implements IC
                 } catch (error) {
                     // ignore
                 }
-            };
+            }
             if (!map.has(address)) {
                 map.set(address, {
                     "address": address,
                     "status": "false"
                 })
             }
-        };
+        }
         resultArray = Array.from(map.values())
         res.send(resultArray)
     }

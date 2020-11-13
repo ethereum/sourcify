@@ -15,7 +15,7 @@
   "main": "build/index.js",
   "scripts": {
     "prepublishOnly": "npm ci && npm run build",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "echo \"Error: no test specified\"",
     "build": "rimraf ./build && tsc",
     "start": "npm run build && node build/index.js"
   },
