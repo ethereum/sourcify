@@ -50,6 +50,7 @@
     "@ethereum-sourcify/core": "*",
     "@ethereum-sourcify/validation": "*",
     "@ethereum-sourcify/verification": "*",
+    "@types/node-fetch": "^2.5.7",
     "bunyan": "^1.8.12",
     "cors": "^2.8.5",
     "death": "^1.1.0",
@@ -62,7 +63,7 @@
     "http-status-codes": "^2.1.4",
     "it-concat": "^1.0.1",
     "multihashes": "^3.0.1",
-    "request-promise-native": "^1.0.9",
+    "node-fetch": "^2.6.1",
     "serve-index": "^1.9.1",
     "web3": "^1.2.11"
   },
