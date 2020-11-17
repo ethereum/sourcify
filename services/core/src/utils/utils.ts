@@ -24,7 +24,7 @@ export type Chain = {
     web3: string[],
     faucets: string[],
     infoURL: string,
-    fullnode: { dappnode: string }
+    fullnode?: { dappnode: string }
 };
 
 type ChainMap = {
@@ -66,20 +66,32 @@ const supportedChains = filter(chainMap, c => c.supported);
 const monitoredChains = filter(chainMap, c => c.monitored);
 const fullnodeChains = filter(chainMap, c => c.fullnode);
 
+const TEST_CHAINS: Chain[] = [{
+    name: "Localhost",
+    shortName: "Localhost",
+    chainId: 0,
+    faucets: [],
+    infoURL: null,
+    nativeCurrency: null,
+    network: "testnet",
+    networkId: 0,
+    web3: [ `http://localhost:${process.env.LOCALCHAIN_PORT || 8545}` ]
+}];
+
 /**
  * Returns the chains currently supported by Sourcify server.
  * @returns array of chains currently supported by Sourcify server
  */
-export function getSupportedChains(): Chain[] {
-    return supportedChains;
+export function getSupportedChains(testing = false): Chain[] {
+    return testing ? TEST_CHAINS : supportedChains;
 }
 
 /**
  * Returns the chains currently monitored by Sourcify.
  * @returns array of chains currently monitored by Sourcify
  */
-export function getMonitoredChains(): Chain[] {
-    return monitoredChains;
+export function getMonitoredChains(testing = false): Chain[] {
+    return testing ? TEST_CHAINS : monitoredChains;
 }
 
 /**
