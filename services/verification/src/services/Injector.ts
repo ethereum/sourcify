@@ -197,7 +197,7 @@ export class Injector {
     public async inject(
         inputData: InputData
     ): Promise<Match> {
-        const { chain, addresses, files } = inputData;
+        const { chain, addresses, contracts } = inputData;
         this.validateAddresses(addresses);
         this.validateChain(chain);
 
@@ -206,15 +206,26 @@ export class Injector {
             status: null
         };
 
-        for (const source of files) {
+        for (const contract of contracts) {
 
             // Starting from here, we cannot trust the metadata object anymore,
             // because it is modified inside recompile.
-            const target = Object.assign({}, source.metadata.settings.compilationTarget);
+            const target = Object.assign({}, contract.metadata.settings.compilationTarget);
+            
+            // target is expected to have been checked in validation (size 1 assertion)
+
+            if (!contract.isValid()) {
+                // eslint-disable-next-line no-useless-catch
+                try {
+                    await contract.fetchMissing(this.log);
+                } catch(err) {
+                    throw err;
+                }
+            }
 
             let compilationResult: RecompilationResult;
             try {
-                compilationResult = await recompile(source.metadata, source.solidity, this.log)
+                compilationResult = await recompile(contract.metadata, contract.solidity, this.log)
             } catch (err) {
                 this.log.info({ loc: `[RECOMPILE]`, err: err });
                 throw err;
@@ -250,11 +261,11 @@ export class Injector {
             // and the sources.
             if (match.address && match.status === 'perfect') {
 
-                this.storePerfectMatchData(this.repositoryPath, chain, match.address, compilationResult, source.solidity)
+                this.storePerfectMatchData(this.repositoryPath, chain, match.address, compilationResult, contract.solidity)
 
             } else if (match.address && match.status === 'partial') {
 
-                this.storePartialMatchData(this.repositoryPath, chain, match.address, compilationResult, source.solidity)
+                this.storePartialMatchData(this.repositoryPath, chain, match.address, compilationResult, contract.solidity)
 
             } else {
                 const err = new Error(
