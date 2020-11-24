@@ -4,7 +4,7 @@ import program from 'commander';
 const { version, bin } = require("../package.json");
 const name = Object.keys(bin)[0];
 import { ValidationService, IValidationService } from './ValidationService';
-import CheckedContract from './CheckedContract';
+import { CheckedContract } from '@ethereum-sourcify/core';
 export * from './ValidationService';
 
 const NAME_DELIMITER = ":";

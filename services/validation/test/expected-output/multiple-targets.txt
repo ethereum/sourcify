@@ -1,0 +1,1 @@
+Malformed settings.compilationTarget in: {0}/test/files/metadata-multiple-targets.json

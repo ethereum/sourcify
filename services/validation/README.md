@@ -242,7 +242,7 @@ const validationService = new ValidationService();
 
 app.post("/", (req, res) => {
     const uploadedFiles = [].concat(req.files.files);
-    const files = uploadedFiles.map(f => new PathBuffer(f.data));
+    const files = uploadedFiles.map(f => ({ buffer: f.data }));
     const checkedContracts = validationService.checkFiles(files);
     const allValid = checkedContracts.every(contract => contract.isValid());
     if (allValid) {
