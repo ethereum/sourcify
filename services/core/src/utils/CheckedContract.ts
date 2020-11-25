@@ -1,15 +1,19 @@
-import { SourceMap } from './ValidationService';
-import { StringMap } from '@ethereum-sourcify/core';
+import Web3 from 'web3';
+import { StringMap, SourceMap } from './types';
+import bunyan from 'bunyan';
+import fetch from 'node-fetch';
 
 const STANDARD_JSON_SETTINGS_KEYS = [
         "stopAfter", "remappings", "optimizer", "evmVersion", "debug", "metadata", "libraries", "outputSelection"
 ];
 
+const IPFS_PREFIX = "dweb:/ipfs/";
+
 /**
  * Abstraction of a checked solidity contract. With metadata and source (solidity) files.
  * The info property contains the information about compilation or errors encountered while validating the metadata.
  */
-export default class CheckedContract {
+export class CheckedContract {
     /** Object containing contract metadata keys and values. */
     metadata: any;
 
@@ -178,6 +182,71 @@ export default class CheckedContract {
         }
 
         return msgLines.join("\n");
+    }
+
+    /**
+     * Asynchronously attempts to fetch the missing sources of this contract. An error is thrown in case of a failure.
+     * 
+     * @param log log object
+     */
+    public async fetchMissing(log?: bunyan): Promise<void> {
+        const retrieved: StringMap = {};
+        for (const fileName in this.missing) {
+            if (!fileName.startsWith("@openzeppelin")) {
+                continue;
+            }
+
+            const file = this.missing[fileName];
+            const hash = this.missing[fileName].keccak256;
+
+            let success = false;
+            for (const url of file.urls) {
+                if (url.startsWith(IPFS_PREFIX)) {
+                    const ipfsCode = url.slice(IPFS_PREFIX.length);
+                    const ipfsUrl = 'https://ipfs.infura.io:5001/api/v0/cat?arg='+ipfsCode;
+                    const retrievedContent = await this.performFetch(ipfsUrl, hash, fileName, log);
+                    if (retrievedContent) {
+                        success = true;
+                        retrieved[fileName] = retrievedContent;
+                        break;
+                    }
+                }
+            }
+        }
+
+        for (const fileName in retrieved) {
+            delete this.missing[fileName];
+            this.solidity[fileName] = retrieved[fileName];
+        }
+
+        this.info = this.isValid() ? this.composeSuccessMessage() : this.composeErrorMessage();
+
+        const missingFiles = Object.keys(this.missing);
+        if (missingFiles.length) {
+            log.error({ loc: "[FETCH]", contractName: this.name, missingFiles });
+            throw new Error(`Missing sources after fetching: ${missingFiles.join(", ")}`);
+        }
+    }
+
+    private async performFetch(url: string, hash: string, fileName: string, log?: bunyan): Promise<string> {
+        const infoObject = { loc: "[FETCH]", fileName, url };
+        if (log) log.info(infoObject, "Fetch attempt");
+
+        const res = await fetch(url);
+        if (res.status === 200) {
+            const content = await res.text();
+            if (Web3.utils.keccak256(content) !== hash) {
+                if (log) log.error(infoObject, "The calculated and the provided hash don't match.");
+                return null;
+            }
+
+            if (log) log.info(infoObject, "Fetch successful!");
+            return content;
+
+        } else {
+            if (log) log.error(infoObject, "Fetch failed!");
+            return null;
+        }
     }
 }
 

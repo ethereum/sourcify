@@ -19,9 +19,10 @@ import {
   getChainByName,
   cborDecode,
   Logger,
-  getSupportedChains
+  getSupportedChains,
+  PathBuffer
 } from '@ethereum-sourcify/core';
-import { PathBuffer, ValidationService } from '@ethereum-sourcify/validation';
+import { ValidationService } from '@ethereum-sourcify/validation';
 
 const multihashes = require('multihashes');
 const save = outputFileSync;
@@ -627,11 +628,11 @@ export default class Monitor {
     if (Object.keys(queueItem.sources).length == 0) {
 
       const inputFiles: PathBuffer[] = [];
-      const metadataPathBuffer = new PathBuffer(Buffer.from(queueItem.metadataRaw)); // TODO is property metadataRaw really optional?
+      const metadataPathBuffer = { buffer: Buffer.from(queueItem.metadataRaw) }; // TODO is property metadataRaw really optional?
       inputFiles.push(metadataPathBuffer);
       for (const filePath in queueItem.found.files) {
         const fileContent = queueItem.found.files[filePath];
-        const filePathBuffer = new PathBuffer(Buffer.from(fileContent), filePath);
+        const filePathBuffer = { buffer: Buffer.from(fileContent), path: filePath };
         inputFiles.push(filePathBuffer);
       }
 
@@ -649,7 +650,7 @@ export default class Monitor {
         if (errors.length) {
           throw new Error(errors.join("\n"));
         }
-        data.files = validatedFiles;
+        data.contracts = validatedFiles;
 
         await this.injector.inject(data);
 

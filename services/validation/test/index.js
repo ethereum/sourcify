@@ -133,4 +133,9 @@ describe("main", function() {
         const commandArguments = `${options} ${testPath}`;
         compareExecutionWithFile(commandArguments, "target-not-found.txt", 1)
     })
+
+    it("should fail for multiple compilationTargets", function() {
+        const testPath = path.join("test", "files", "metadata-multiple-targets.json");
+        compareExecutionWithFile(testPath, "multiple-targets.txt", 1);
+    });
 });
