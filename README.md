@@ -59,12 +59,12 @@ watches:
   + xDai
 
 + a website which allows you to submit sources and metadata for a specific contract address manually
-  + https://verification.komputing.org/ (Stable)
-  + https://verificationstaging.shardlabs.io/ (Unstable)
+  + https://sourcify.dev (Stable)
+  + https://verificationstaging.shardlabs.io (Unstable)
 
 + a public metadata repository that contains uploaded (or discovered) metadata and their sources:
-  + https://contractrepo.komputing.org/ (Stable)
-  + https://contractrepo.verificationstaging.shardlabs.io/ (Unstable)
+  + https://contractrepo.komputing.org (Stable)
+  + https://contractrepo.verificationstaging.shardlabs.io (Unstable)
 
 ### Getting Metadata
 
