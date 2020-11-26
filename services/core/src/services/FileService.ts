@@ -4,7 +4,7 @@ import fs from 'fs';
 import web3 from 'web3';
 import * as bunyan from 'bunyan';
 import { outputFileSync } from 'fs-extra';
-import { FileObject, Match, Tag } from '../utils/types';
+import { FileObject, Match, Tag, MatchLevel, FilesInfo } from '../utils/types';
 import { getChainId } from '../utils/utils';
 import { Logger } from '../utils/logger';
 const saveFile = outputFileSync;
@@ -17,6 +17,8 @@ export interface IFileService {
     fetchAllFileContents(chain: string, address: string): Array<FileObject>;
     findByAddress(address: string, chain: string, repository: string): Match[];
     repositoryPath: string;
+    getTree(chainId: any, address: string, match: string): Promise<FilesInfo<string>>;
+    getContent(chainId: any, address: string, match: string): Promise<FilesInfo<FileObject>>;
 }
 
 export class FileService implements IFileService {
@@ -38,8 +40,8 @@ export class FileService implements IFileService {
         return this.fetchAllFileContents(chainId, address);
     }
 
-    fetchAllFileUrls(chain: string, address: string): Array<string> {
-        const files: Array<FileObject> = this.fetchAllFilePaths(chain, address);
+    fetchAllFileUrls(chain: string, address: string, match = "full_match"): Array<string> {
+        const files: Array<FileObject> = this.fetchAllFilePaths(chain, address, match);
         const urls: Array<string> = [];
         files.forEach((file) => {
             const relativePath = file.path.split('/repository')[1].substr(1);
@@ -48,8 +50,8 @@ export class FileService implements IFileService {
         return urls;
     }
 
-    fetchAllFilePaths(chain: string, address: string): Array<FileObject> {
-        const fullPath: string = this.repositoryPath + `/contracts/full_match/${chain}/${web3.utils.toChecksumAddress(address)}/`;
+    fetchAllFilePaths(chain: string, address: string, match = "full_match"): Array<FileObject> {
+        const fullPath: string = this.repositoryPath + `/contracts/${match}/${chain}/${web3.utils.toChecksumAddress(address)}/`;
         const files: Array<FileObject> = [];
         dirTree(fullPath, {}, (item) => {
             files.push({ "name": item.name, "path": item.path });
@@ -57,14 +59,36 @@ export class FileService implements IFileService {
         return files;
     }
 
-    fetchAllFileContents(chain: string, address: string): Array<FileObject> {
-        const files = this.fetchAllFilePaths(chain, address);
+    fetchAllFileContents(chain: string, address: string, match = "full_match"): Array<FileObject> {
+        const files = this.fetchAllFilePaths(chain, address, match);
         for (const file in files) {
             const loadedFile = fs.readFileSync(files[file].path)
             files[file].content = loadedFile.toString();
         }
 
         return files;
+    }
+    
+    getTree = async (chainId: any, address: string, match: MatchLevel): Promise<FilesInfo<string>> => {
+        chainId = getChainId(chainId);
+        const fullMatchesTree = this.fetchAllFileUrls(chainId, address, "full_match");
+        if (fullMatchesTree.length || match === "full_match") {
+            return { status: "full", files: fullMatchesTree };
+        }
+
+        const files = this.fetchAllFileUrls(chainId, address, "partial_match");
+        return { status: "partial", files };
+    }
+
+    getContent = async (chainId: any, address: string, match: MatchLevel): Promise<FilesInfo<FileObject>> => {
+        chainId = getChainId(chainId);
+        const fullMatchesFiles = this.fetchAllFileContents(chainId, address, "full_match");
+        if (fullMatchesFiles.length || match === "full_match") {
+            return { status: "full", files: fullMatchesFiles };
+        }
+
+        const files = this.fetchAllFileContents(chainId, address, "partial_match");
+        return { status: "partial", files };
     }
 
     /**

@@ -1,6 +1,6 @@
 # Get source files for the address
 
-Returns all verified sources from the repository for the desired contract address and chain, including `metadata.json`.
+Returns all verified sources from the repository for the desired contract address and chain, including `metadata.json`. Searches only for full matches.
 
 **URL** : `/files/:chain/:address`
 

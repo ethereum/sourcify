@@ -1,6 +1,6 @@
 # Get file tree
 
-Returns repository URLs for every file in the source tree for the desired chain and address.
+Returns repository URLs for every file in the source tree for the desired chain and address. Searches only for full matches.
 
 **URL** : `/files/tree/:chain/:address`
 
