@@ -37,6 +37,21 @@ export interface Match {
   status: 'perfect' | 'partial' | null
 }
 
+/**
+ * A type for specfifying the strictness level of querying (only full or any kind of matches)
+ */
+export type MatchLevel = "full_match" | "any_match";
+
+/**
+ * A type for specifying the match quality of files.
+ */
+export type MatchQuality = "full" | "partial";
+
+/**
+ * An array wrapper with info properties.
+ */
+export type FilesInfo<T> = { status: MatchQuality, files: Array<T> };
+
 export interface MonitorConfig {
   ipfsCatRequest? : string,
   ipfsProvider? : any,

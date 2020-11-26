@@ -252,6 +252,8 @@ You can find examples in our Postman collection in the root of this project `Sou
 
 * [Verify](docs/api/server/verify.md) : `POST /`
 * [Check by address](docs/api/server/checkByAddress.md) : `GET /checkByAddresses?addresses={address}&chainIds={chainIds}`
-* [Get file tree](docs/api/server/getTreeByChainAndAddress.md) : `GET /files/tree/:chain/:address`
-* [Get source files](docs/api/server/getByChainAndAddress.md) : `GET /files/:chain/:address`
+* [Get file tree (full match)](docs/api/server/getTreeByChainAndAddress.md) : `GET /files/tree/:chain/:address`
+* [Get source files (full match)](docs/api/server/getByChainAndAddress.md) : `GET /files/:chain/:address`
+* [Get file tree (full or partial match)](docs/api/server/getAnyTreeByChainAndAddess.md) : `GET /files/tree/any/:chain/:address`
+* [Get source files (full or partial match)](docs/api/server/getAnyByChainAndAddress.md) : `GET /files/any/:chain/:address`
 * [Server health](docs/api/server/health.md) : `GET /health`
