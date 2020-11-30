@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "b127a947-f46f-47b4-bda7-ac2282575339",
+		"_postman_id": "2bc04441-01cb-4ed0-9ea6-3ca30e4666a8",
 		"name": "Sourcify",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -107,6 +107,40 @@
 									"key": "address",
 									"value": "0x1fE5d745beABA808AAdF52057Dd7AAA47b42cFD0"
 								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "verify",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "address",
+									"value": "0x0001Db7722Fb4211C24d4aC5E1127353116323d3",
+									"type": "text"
+								},
+								{
+									"key": "chain",
+									"value": "5",
+									"type": "text"
+								},
+								{
+									"key": "files",
+									"type": "file",
+									"src": "/sourcify/repository/contracts/full_match/5/0x0001Db7722Fb4211C24d4aC5E1127353116323d3.zip"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{host}}",
+							"host": [
+								"{{host}}"
 							]
 						}
 					},
