@@ -15,7 +15,7 @@ Sourcify aims to provide a base layer allowing other tools build on top of it. I
 
 Besides the technical infrastructure, Sourcify is also a collective initiative to bring transparency and awareness to the space. We want to educate and build bridges between development tools, wallets, interfaces and other components which all play an important role in demystifying interaction with smart contracts for the end user and hence making blockchain interactions safer.
 
-[This repository](https://github.com/ethereum/sourcify) only contains the main components, i.e. the Sourcify monitoring & verifier service and the verification UI.
+[This repository](https://github.com/ethereum/sourcify) only contains the main components, Sourcify monorepo with main services and the verification UI.
 The [Sourcify Github organization](https://github.com/sourcifyeth) contains all other auxiliary services and components.
 
 **Have questions or improvement ideas?**
@@ -37,12 +37,6 @@ Read more about Sourcify in the [FAQ](https://solidity.ethereum.org/2020/06/25/s
 Information on metadata can be found in [Solidity documentation][30].
 
 [30]: https://solidity.readthedocs.io/en/latest/metadata.html#contract-metadata
-
-## Install
-```
-$ npm install
-$ git submodule update --init
-```
 
 ## The Technical Details
 
@@ -150,6 +144,16 @@ Alternatively, if you want to take a look at the contract in the browser, you ca
 - perform source verification given only an address instead of the bytecode
   or the metadata
 
+### How to
+
+## Install and run server with UI
+```
+$ npx lerna bootstrap
+$ npx lerna run build
+$ npm run server:start
+$ npm run dev:ui
+```
+
 ## Run inside docker
 ### Prerequisites
 [Docker](https://docs.docker.com/docker-for-mac/install/)
@@ -157,8 +161,8 @@ Alternatively, if you want to take a look at the contract in the browser, you ca
 [Docker-compose](https://docs.docker.com/compose/install/)
 
 ### How to run
-Prepare environment and start by running
-If you want to build images locally run:
+Prepare environment and start by running these commands from the `environments` directory:
+To build images locally run:
 `docker-compose -f geth.yaml -f ipfs.yaml -f localchain.yaml -f monitor.yaml -f repository.yaml -f s3.yaml -f server.yaml -f ui.yaml -f build-ipfs.yaml -f build-localchain.yaml -f build-monitor.yaml -f build-repository.yaml -f build-s3.yaml -f build-server.yaml -f build-ui.yaml build --parallel`
 
 If you just want to run it do:
@@ -205,7 +209,8 @@ Similar sources are also pre-deployed to **Ropsten** and can be found in the `te
 | SimpleWithImport.sol | 0x4668b709182F41837c4e06C8de1D3568df7778D9 |
 
 **Shutdown**
-Stop the docker run with ctrl-c
+Stop the docker run with `ctrl+c`.
+To remove exited containers type `docker-compose -f server.yaml -f ... down`. You can list all previously started containers with `-f` flag.
 
 ### Tests
 
@@ -237,3 +242,16 @@ npx sol-compiler
 Compilation artifacts will be written to an `artifacts` folder.
 
 [22]: https://sol-compiler.com/
+
+# API
+
+We also provide publicly available API for both environments that you can use.
+You can find examples in our Postman collection in the root of this project `Sourcify.postman_collection.json`.
+
+### Server API
+
+* [Verify](docs/api/server/verify.md) : `POST /`
+* [Check by address](docs/api/server/checkByAddress.md) : `GET /checkByAddresses?addresses={address}&chainIds={chainIds}`
+* [Get file tree](docs/api/server/getTreeByChainAndAddress.md) : `GET /files/tree/:chain/:address`
+* [Get source files](docs/api/server/getByChainAndAddress.md) : `GET /files/:chain/:address`
+* [Server health](docs/api/server/health.md) : `GET /health`
