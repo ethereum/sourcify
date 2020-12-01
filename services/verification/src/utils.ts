@@ -158,6 +158,7 @@ function reformatMetadata(
 
     input.settings = metadata.settings;
 
+    // this assumes that the size of copmilationTarget is 1
     for (fileName in metadata.settings.compilationTarget) {
         contractName = metadata.settings.compilationTarget[fileName];
     }

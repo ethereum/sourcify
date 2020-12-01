@@ -4,7 +4,7 @@ import { IController } from '../../common/interfaces';
 import { IVerificationService } from '@ethereum-sourcify/verification';
 import { InputData, getChainId, Logger } from '@ethereum-sourcify/core';
 import { NotFoundError } from '../../common/errors'
-import { IValidationService, PathBuffer } from '@ethereum-sourcify/validation';
+import { IValidationService } from '@ethereum-sourcify/validation';
 import * as bunyan from 'bunyan';
 import config from '../../config';
 import fileUpload from 'express-fileupload';
@@ -42,15 +42,16 @@ export default class VerificationController extends BaseController implements IC
             if (!req.files) return next(new NotFoundError("Address for specified chain not found in repository"));
             
             const filesArr: fileUpload.UploadedFile[] = [].concat(req.files!.files); // ensure an array, regardless of how many files received
-            const wrappedFiles = filesArr.map(f => new PathBuffer(f.data));
-            const validatedFiles = this.validationService.checkFiles(wrappedFiles);
-            const errors = validatedFiles
-                            .filter(file => !file.isValid())
-                            .map(file => file.info);
+            const wrappedFiles = filesArr.map(f => ({ buffer: f.data }));
+            const validatedContracts = this.validationService.checkFiles(wrappedFiles);
+            const errors = validatedContracts
+                            .filter(contract => Object.keys(contract.invalid).length)
+                            .map(contract => `${contract.name} ${Object(contract.invalid).keys()}`);
+
             if (errors.length) {
-                return next(new NotFoundError(errors.join("\n"), false));
+                return next(new NotFoundError("Errors in:\n" + errors.join("\n"), false));
             }
-            inputData.files = validatedFiles;
+            inputData.contracts = validatedContracts;
             const matches: any = [];
             matches.push(await this.verificationService.inject(inputData, config.localchain.url));
             Promise.all(matches).then((result) => {
