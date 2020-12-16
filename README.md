@@ -54,11 +54,11 @@ watches:
 
 + a website which allows you to submit sources and metadata for a specific contract address manually
   + https://sourcify.dev (Stable)
-  + https://verificationstaging.shardlabs.io (Unstable)
+  + https://sourcify.shardlabs.io (Unstable)
 
 + a public metadata repository that contains uploaded (or discovered) metadata and their sources:
   + https://contractrepo.komputing.org (Stable)
-  + https://contractrepo.verificationstaging.shardlabs.io (Unstable)
+  + https://contractrepo.sourcify.shardlabs.io (Unstable)
 
 ### Getting Metadata
 
