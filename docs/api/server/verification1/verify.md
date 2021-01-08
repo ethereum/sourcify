@@ -2,13 +2,28 @@
 
 Sends provided files for verification.
 
-**URL** : `/`
+**URL** : `/verify` or `/`
 
 **Method** : `POST`
 
-**Body form-data**
-* `address`
-* `chain`
+**Content-Type** : `multipart/form-data` or `application/json`
+
+Regardless of the Content-Type, the body should provide:
+- `address`
+- `chain`
+
+If using `multipart/form-data`, the files should be in a field named `files`.
+If using `application/json`, the files should be in an object under the key `files` so the whole object is of the form:
+```json
+{
+    "address": ...,
+    "chain": ...,
+    "files": {
+        "file-name1.sol": ...,
+        "file-name2.sol": ...
+    }
+}
+```
 
 ## Responses
 
@@ -48,8 +63,20 @@ Sends provided files for verification.
 ```
 
 ### OR
+**Condition** : Missing or invalid parameters received.
 
-**Condition** : Contract bytecode does not match deployed bytecode.
+**Code** : `400 Bad Request`
+
+**Content** :
+```json
+{
+    "error": "Missing body parameters: address, chain"
+}
+```
+
+### OR
+
+**Condition** : Failed fetching missing files. OR Contract bytecode does not match deployed bytecode.
 
 **Code** : `500 Internal Server Error`
 

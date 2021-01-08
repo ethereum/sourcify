@@ -63,3 +63,12 @@ export function cborDecode(bytecode: number[]): any {
     const bytecodeBuffer = Buffer.from(bytecode.slice(bytecode.length - 2 - cborLength, -2));
     return cbor.decodeFirstSync(bytecodeBuffer);
 }
+
+/**
+ * Checks whether the provided object contains any keys or not.
+ * @param obj The object whose emptiness is tested.
+ * @returns true if any keys present; false otherwise
+ */
+export function isEmpty(obj: object): boolean {
+    return !Object.keys(obj).length && obj.constructor === Object;
+}

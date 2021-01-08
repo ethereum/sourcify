@@ -1,5 +1,6 @@
 import Web3 from 'web3';
-import { StringMap, SourceMap } from './types';
+import { StringMap, SourceMap, Metadata } from './types';
+import { isEmpty } from './utils';
 import bunyan from 'bunyan';
 import fetch from 'node-fetch';
 
@@ -11,11 +12,14 @@ const IPFS_PREFIX = "dweb:/ipfs/";
 
 /**
  * Abstraction of a checked solidity contract. With metadata and source (solidity) files.
- * The info property contains the information about compilation or errors encountered while validating the metadata.
+ * The getInfo method returns the information about compilation or errors encountered while validating the metadata.
  */
 export class CheckedContract {
+    /** The raw string representation of the contract's metadata. */
+    metadataRaw: string;
+
     /** Object containing contract metadata keys and values. */
-    metadata: any;
+    metadata: Metadata;
 
     /** SourceMap mapping the original compilation path to PathContent. */
     solidity: StringMap;
@@ -26,17 +30,14 @@ export class CheckedContract {
     /** Contains the invalid source files. */
     invalid: StringMap;
 
-    /**
-     * Contains the message about compilation or errors encountered while validating the metadata.
-     * Should be without a trailing newline.
-     */
-    info: string;
-
     /** Object containing input for solc when used with the --standard-json flag. */
     standardJson: any;
 
     /** The path of the contract during compile-time. */
     compiledPath: string;
+
+    /** The version of the Solidity compiler to use for compilation. */
+    compilerVersion?: string;
 
     /** The name of the contract. */
     name: string;
@@ -44,8 +45,8 @@ export class CheckedContract {
     /** Checks whether this contract is valid or not.
      * @returns true if no sources are missing or are invalid (malformed); false otherwise
      */
-    public isValid(): boolean {
-        return isEmpty(this.missing) && isEmpty(this.invalid);
+    public static isValid(contract: CheckedContract): boolean {
+        return isEmpty(contract.missing) && isEmpty(contract.invalid);
     }
 
     private sourceMapToStringMap(input: SourceMap) {
@@ -57,6 +58,7 @@ export class CheckedContract {
     }
 
     public constructor(metadata: any, solidity: SourceMap, missing: any, invalid: StringMap) {
+        this.metadataRaw = JSON.stringify(metadata);
         this.metadata = JSON.parse(JSON.stringify(metadata));
         this.solidity = this.sourceMapToStringMap(solidity);
         this.missing = missing;
@@ -72,11 +74,12 @@ export class CheckedContract {
             delete metadataSource.license;
         }
 
+        if (metadata.compiler && metadata.compiler.version) {
+            this.compilerVersion = metadata.compiler.version;
+        }
         const { contractPath, contractName } = this.getPathAndName();
         this.compiledPath = contractPath;
         this.name = contractName;
-
-        this.info = this.isValid() ? this.composeSuccessMessage() : this.composeErrorMessage();
     }
 
     /**
@@ -105,8 +108,9 @@ export class CheckedContract {
             standardJson.settings = {};
             standardJson.settings.outputSelection = { "*": { "*": [ "evm.bytecode", "abi" ] } };
             for (const key of STANDARD_JSON_SETTINGS_KEYS) {
-                if (Object.prototype.hasOwnProperty.call(this.metadata.settings, key)) {
-                    standardJson.settings[key] = this.metadata.settings[key];
+                const settings: any = this.metadata.settings; // has to be of type any, does not compile if calling this.metadata.settings
+                if (Object.prototype.hasOwnProperty.call(settings, key)) {
+                    standardJson.settings[key] = settings[key];
                 }
             }
         }
@@ -119,14 +123,13 @@ export class CheckedContract {
      * of source files related to the provided metadata file.
      */
     private composeSuccessMessage(): string {
-        const compilerVersionDetailed = this.metadata.compiler.version;
-        const compilerVersion = compilerVersionDetailed.split("+")[0];
+        const simpleCompilerVersion = this.compilerVersion.split("+")[0];
         const msgLines: string[] = [];
         msgLines.push(`${this.name} (${this.compiledPath}):`);
         msgLines.push("  Success!");
-        msgLines.push(`  Compiled with Solidity ${compilerVersion}`);
-        msgLines.push(`  https://solc-bin.ethereum.org/wasm/soljson-v${compilerVersionDetailed}.js`);
-        msgLines.push(`  https://solc-bin.ethereum.org/linux-amd64/solc-linux-amd64-v${compilerVersionDetailed}`);
+        msgLines.push(`  Compiled with Solidity ${simpleCompilerVersion}`);
+        msgLines.push(`  https://solc-bin.ethereum.org/wasm/soljson-v${this.compilerVersion}.js`);
+        msgLines.push(`  https://solc-bin.ethereum.org/linux-amd64/solc-linux-amd64-v${this.compilerVersion}`);
         return msgLines.join("\n");
     }
 
@@ -181,6 +184,10 @@ export class CheckedContract {
             msgLines.push(`  ${foundSourcesNumber} other source files found successfully.`);
         }
 
+        if (!this.compilerVersion) {
+            msgLines.push("  No compiler version provided.");
+        }
+
         return msgLines.join("\n");
     }
 
@@ -219,8 +226,6 @@ export class CheckedContract {
             this.solidity[fileName] = retrieved[fileName];
         }
 
-        this.info = this.isValid() ? this.composeSuccessMessage() : this.composeErrorMessage();
-
         const missingFiles = Object.keys(this.missing);
         if (missingFiles.length) {
             log.error({ loc: "[FETCH]", contractName: this.name, missingFiles });
@@ -248,13 +253,15 @@ export class CheckedContract {
             return null;
         }
     }
-}
 
-/**
- * Checks whether the provided object contains any keys or not.
- * @param obj The object whose emptiness is tested.
- * @returns true if any keys present; false otherwise
- */
-function isEmpty(obj: object): boolean {
-    return !Object.keys(obj).length;
+
+    /**
+     * Returns a message describing the errors encountered while validating the metadata.
+     * Does not include a trailing newline.
+     * 
+     * @returns the validation info message
+     */
+    public getInfo() {
+        return CheckedContract.isValid(this) ? this.composeSuccessMessage() : this.composeErrorMessage();
+    }
 }

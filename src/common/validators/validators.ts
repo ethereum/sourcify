@@ -6,9 +6,11 @@ export function isValidAddress(address: string) {
 }
 
 export function isValidChain(chain: string): any {
-   if (getChainId(chain) !== undefined) {
-      return true;
-   }
+   try {
+      if (getChainId(chain) !== undefined) {
+         return true;
+      }
+   } catch(err) { undefined }
    return false;
 }
 

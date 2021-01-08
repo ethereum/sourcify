@@ -107,16 +107,16 @@ if (require.main === module) {
     let invalidContracts = 0;
     checkedContracts.forEach(contract => {
         if (matches(contract, recompilationTarget)) {
-            if (contract.isValid()) {
+            if (CheckedContract.isValid(contract)) {
                 recompilableContracts.push(contract);
             } else {
-                console.log(contract.info);
+                console.log(contract.getInfo());
                 console.log(`The ${OPTION_NAME} target is not a valid contract! Exiting.`);
                 process.exit(1);
             }
         } else if (recompilationTarget === undefined) {
-            let msg = contract.info; // should be without a trailing newline
-            if (contract.isValid()) {
+            let msg = contract.getInfo(); // should be without a trailing newline
+            if (CheckedContract.isValid(contract)) {
                 msg += "\n";
                 msg += `  To recompile, use: \`${name} --${OPTION_NAME} ${contract.compiledPath}:${contract.name} ${fileNamesJoint}`;
                 msg += ` | solc --standard-json\``;

@@ -10,8 +10,23 @@ export interface FileObject {
 export interface InputData {
     chain: string,
     addresses: string[],
-    contracts?: CheckedContract[],
+    contract?: CheckedContract,
     bytecode?: string;
+}
+
+export interface CompilationSettings {
+  compilationTarget: any;
+  outputSelection: any;
+}
+
+export interface CompilerInfo {
+  version: string;
+}
+
+export interface Metadata {
+  sources: any;
+  settings: CompilationSettings;
+  compiler: CompilerInfo;
 }
 
 export declare interface StringMap {
@@ -34,7 +49,9 @@ export interface SourceMap {
 
 export interface Match {
   address: string | null,
-  status: 'perfect' | 'partial' | null
+  status: 'perfect' | 'partial' | null,
+  storageTimestamp?: Date,
+  message?: string
 }
 
 /**

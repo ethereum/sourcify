@@ -101,15 +101,15 @@ export class FileService implements IFileService {
         const addressPath = `${repository}/contracts/full_match/${chain}/${web3.utils.toChecksumAddress(address)}/metadata.json`;
 
         try {
-            fs.readFileSync(addressPath);
+            const storageTimestamp = fs.statSync(addressPath).birthtime;
+            return [{
+                address: address,
+                status: "perfect",
+                storageTimestamp
+            }];
         } catch (e) {
             throw new Error("Address not found in repository");
         }
-
-        return [{
-            address: address,
-            status: "perfect"
-        }]
     }
 
     /**

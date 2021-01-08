@@ -10,7 +10,7 @@ export default function notFoundError(err: any, _req: Request, res: Response, _n
     logger.error(`Error: ${JSON.stringify(err)}`);
   }
 
-  res.status(HttpStatus.NOT_FOUND).json({
+  res.status(HttpStatus.StatusCodes.NOT_FOUND).json({
     error: HttpStatus.getStatusText(err.message)
   });
 }

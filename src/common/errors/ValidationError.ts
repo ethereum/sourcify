@@ -1,4 +1,4 @@
-import * as HttpStatus from 'http-status-codes';
+import { StatusCodes } from 'http-status-codes';
 import { IResponseError } from '../interfaces';
 
 export class ValidationError implements IResponseError {
@@ -8,8 +8,9 @@ export class ValidationError implements IResponseError {
     errors: any[];
 
     constructor(validationErrors: any[], log = true) {
-        this.code = HttpStatus.BAD_REQUEST;
-        this.message = 'Validation Error';
+        this.code = StatusCodes.BAD_REQUEST;
+        const errorParams = validationErrors.map(e => e.param);
+        this.message = `Validation Error: ${errorParams.join(", ")}`;
         this.log = log;
         this.errors = validationErrors.map((e: any) =>  {
             return {

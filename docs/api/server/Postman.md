@@ -1,0 +1,1 @@
+Be sure to check the description and examples of each Postman request. Some requests require file upload - enable these requests by setting your working directory to the Sourcify root directory.

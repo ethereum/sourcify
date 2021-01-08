@@ -34,7 +34,7 @@ interface InjectorConfig {
 interface InputData {
     chain: string; // id of the Ethereum network with deployed contract
     addresses: string[]; // For now only one address is supported
-    files: any; // Solidity and metadata files
+    contracts: CheckedContract[]; // Solidity and metadata files
     bytecode?: string; // If you already have bytecode of the deployed contract
 }
 ```

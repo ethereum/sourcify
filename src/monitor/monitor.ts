@@ -20,7 +20,8 @@ import {
   cborDecode,
   Logger,
   getSupportedChains,
-  PathBuffer
+  PathBuffer,
+  CheckedContract
 } from '@ethereum-sourcify/core';
 import { ValidationService } from '@ethereum-sourcify/validation';
 
@@ -643,14 +644,21 @@ export default class Monitor {
       };
 
       try {
-        const validatedFiles = this.validationService.checkFiles(inputFiles);
-        const errors = validatedFiles
-                        .filter(contract => !contract.isValid())
-                        .map(contract => contract.info);
+        const validatedContracts = this.validationService.checkFiles(inputFiles);
+        const errors = validatedContracts
+                        .filter(contract => !CheckedContract.isValid(contract))
+                        .map(contract => contract.getInfo());
         if (errors.length) {
           throw new Error(errors.join("\n"));
         }
-        data.contracts = validatedFiles;
+
+        if (validatedContracts.length !== 1) {
+          const contractNames = validatedContracts.map(c => c.name).join(", ");
+          const msg = `Detected ${validatedContracts.length} contracts (${contractNames}), but can only verify one at a time`;
+          throw new Error(msg);
+        }
+
+        data.contract = validatedContracts[0];
 
         await this.injector.inject(data);
 
