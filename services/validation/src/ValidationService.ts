@@ -10,6 +10,15 @@ import Path from 'path';
  */
 const NESTED_METADATA_REGEX = /"{\\"compiler\\":{\\"version\\".*?},\\"version\\":1}"/;
 
+/**
+ * Wraps the existing PathContent and adds a count variable
+ * that keeps track of how many times the file was used.
+ */
+interface CountablePathContent {
+    count: number;
+    file: PathContent;
+}
+
 export interface IValidationService {
     /**
      * Checks all metadata files found in the provided paths. Paths may include regular files, directoris and zip archives.
@@ -22,14 +31,14 @@ export interface IValidationService {
     checkPaths(paths: string[], ignoring?: string[]): CheckedContract[];
 
     /**
-     * Checks the files provided in the array of Buffers. May include buffers of zip archives.
+     * Checks the provided files. Works with zips.
      * Attempts to find all the resources specified in every metadata file found.
      * 
-     * @param files The array of buffers to be checked.
+     * @param files The array or object of buffers to be checked.
      * @returns An array of CheckedContract objets.
      * @throws Error if no metadata files are found.
      */
-    checkFiles(files: PathBuffer[]): CheckedContract[];
+    checkFiles(files: PathBuffer[], unused?: string[]): CheckedContract[];
 }
 
 export class ValidationService implements IValidationService {
@@ -59,26 +68,32 @@ export class ValidationService implements IValidationService {
         return this.checkFiles(files);
     }
 
-    checkFiles(files: PathBuffer[]): CheckedContract[] {
+    checkFiles(files: PathBuffer[], unused?: string[]): CheckedContract[] {
         const inputFiles = this.findInputFiles(files);
         const parsedFiles = inputFiles.map(pathBuffer => ({ content: pathBuffer.buffer.toString(), path: pathBuffer.path }));
-        const metadataFiles = this.findMetadataFiles(parsedFiles);
+        const { metadataFiles, otherFiles } = this.splitFiles(parsedFiles);
 
         const checkedContracts: CheckedContract[] = [];
         const errorMsgMaterial: string[] = [];
 
+        const byHash = this.storeByHash(otherFiles);
+
         metadataFiles.forEach(metadata => {
-            const { foundSources, missingSources, invalidSources } = this.rearrangeSources(metadata, parsedFiles);
+            const { foundSources, missingSources, invalidSources } = this.rearrangeSources(metadata, byHash);
             const checkedContract = new CheckedContract(metadata, foundSources, missingSources, invalidSources);
             checkedContracts.push(checkedContract);
-            if (!checkedContract.isValid()) {
-                errorMsgMaterial.push(checkedContract.info);
+            if (!CheckedContract.isValid(checkedContract)) {
+                errorMsgMaterial.push(checkedContract.getInfo());
             }
         });
 
         if (errorMsgMaterial.length) {
             const msg = errorMsgMaterial.join("\n");
             if (this.logger) this.logger.error(msg);
+        }
+
+        if (unused) {
+            this.extractUnused(byHash, unused);
         }
 
         return checkedContracts;
@@ -123,7 +138,7 @@ export class ValidationService implements IValidationService {
      * @param files the array to be filled with the content of the zip
      */
     private unzip(zippedFile: PathBuffer, files: PathBuffer[]): void {
-        const timestamp = Date.now().toString();
+        const timestamp = Date.now().toString() + "-" + Math.random().toString().slice(2);
         const tmpDir = `tmp-unzipped-${timestamp}`;
 
         new AdmZip(zippedFile.buffer).extractAllTo(tmpDir);
@@ -140,8 +155,9 @@ export class ValidationService implements IValidationService {
      * @param  {string[]} files
      * @return {string[]}         metadata
      */
-    private findMetadataFiles(files: PathContent[]): any[] {
-        const metadataCollection = [];
+    private splitFiles(files: PathContent[]): { metadataFiles: any[], otherFiles: PathContent[] } {
+        const metadataFiles = [];
+        const otherFiles: PathContent[] = [];
         const malformedMetadataFiles = [];
 
         for (const file of files) {
@@ -156,10 +172,12 @@ export class ValidationService implements IValidationService {
             if (metadata) {
                 try {
                     this.assertObjectSize(metadata.settings.compilationTarget, 1);
-                    metadataCollection.push(metadata);
+                    metadataFiles.push(metadata);
                 } catch (err) {
                     malformedMetadataFiles.push(file.path);
                 }
+            } else {
+                otherFiles.push(file);
             }
         }
 
@@ -170,7 +188,7 @@ export class ValidationService implements IValidationService {
                 malformedMetadataFiles.join(", ") : `${malformedMetadataFiles.length} metadata files`;
             msg = `Malformed settings.compilationTarget in: ${responsibleFiles}`;
 
-        } else if (!metadataCollection.length) {
+        } else if (!metadataFiles.length) {
             msg = "Metadata file not found. Did you include \"metadata.json\"?";
         }
 
@@ -179,25 +197,24 @@ export class ValidationService implements IValidationService {
             throw new Error(msg);
         }
 
-        return metadataCollection;
+        return { metadataFiles, otherFiles };
     }
 
     /**
      * Validates metadata content keccak hashes for all files and
      * returns mapping of file contents by file name
      * @param  {any}       metadata
-     * @param  {string[]}  files    source files
+     * @param  {Map<string, any>}  byHash    Map from keccak to source
      * @return foundSources, missingSources, invalidSources
      */
-    private rearrangeSources(metadata: any, files: PathContent[]) {
+    private rearrangeSources(metadata: any, byHash: Map<string, CountablePathContent>) {
         const foundSources: SourceMap = {};
         const missingSources: any = {};
         const invalidSources: StringMap = {};
-        const byHash = this.storeByHash(files);
 
         for (const fileName in metadata.sources) {
             const sourceInfo = metadata.sources[fileName];
-            let file: PathContent = {content: undefined};
+            let file: PathContent = { content: undefined };
             file.content = sourceInfo.content;
             const hash: string = sourceInfo.keccak256;
             if (file.content) {
@@ -207,7 +224,11 @@ export class ValidationService implements IValidationService {
                     continue;
                 }
             } else {
-                file = byHash.get(hash);
+                const countablePathContent = byHash.get(hash);
+                if (countablePathContent) {
+                    file = countablePathContent.file;
+                    countablePathContent.count++;
+                } // else: no file has the hash that was searched for
             }
 
             if (file && file.content) {
@@ -226,14 +247,23 @@ export class ValidationService implements IValidationService {
      * @param  {string[]}  files Array containing sources.
      * @returns Map object that maps hash to PathContent.
      */
-    private storeByHash(files: PathContent[]): Map<string, PathContent> {
-        const byHash: Map<string, PathContent> = new Map();
+    private storeByHash(files: PathContent[]): Map<string, CountablePathContent> {
+        const byHash: Map<string, CountablePathContent> = new Map();
 
         for (const i in files) {
             const calculatedHash = Web3.utils.keccak256(files[i].content);
-            byHash.set(calculatedHash, files[i]);
+            byHash.set(calculatedHash, { count: 0, file: files[i] });
         }
         return byHash;
+    }
+
+    private extractUnused(byHash: Map<string, CountablePathContent>, unused: string[]): void {
+        for (const [, countablePathContent] of byHash) {
+            const { file, count } = countablePathContent;
+            if (count === 0) {
+                unused.push(file.path);
+            }
+        }
     }
 
     private extractMetadataFromString(file: string): any {

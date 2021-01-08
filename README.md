@@ -250,10 +250,16 @@ You can find examples in our Postman collection in the root of this project `Sou
 
 ### Server API
 
-* [Verify](docs/api/server/verify.md) : `POST /`
-* [Check by address](docs/api/server/checkByAddress.md) : `GET /checkByAddresses?addresses={address}&chainIds={chainIds}`
+* [Check by addresses](docs/api/server/verification1/check-by-addresses.md) : `GET /check-by-addresses?addresses={address}&chainIds={chainIds}`
+* Verification API (v1)
+  * [Verify](docs/api/server/verification1/verify.md) : `POST /` or `POST /verify`
+* Verification API (v2 - session based)
+  * [Add input files](docs/api/server/verification2/input-files.md) : `POST /input-files`
+  * [Verify validated](docs/api/server/verification2/verify-validated.md) : `POST /verify-validated`
+  * [Get session data](docs/api/server/verification2/session-data.md) : `GET /session-data`
+  * [Restart session](docs/api/server/verification2/restart-session.md) : `POST /restart-session`
 * [Get file tree (full match)](docs/api/server/getTreeByChainAndAddress.md) : `GET /files/tree/:chain/:address`
 * [Get source files (full match)](docs/api/server/getByChainAndAddress.md) : `GET /files/:chain/:address`
-* [Get file tree (full or partial match)](docs/api/server/getAnyTreeByChainAndAddess.md) : `GET /files/tree/any/:chain/:address`
+* [Get file tree (full or partial match)](docs/api/server/getAnyTreeByChainAndAddress.md) : `GET /files/tree/any/:chain/:address`
 * [Get source files (full or partial match)](docs/api/server/getAnyByChainAndAddress.md) : `GET /files/any/:chain/:address`
 * [Server health](docs/api/server/health.md) : `GET /health`

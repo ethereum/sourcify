@@ -1,8 +1,10 @@
-# Check by address
+# Check by addresses
 
 Checks if contract with the desired chain and address is verified and in the repository. It will only search for perfect matches.
 
-**URL** : `checkByAddresses?addresses={address}&chainIds={chainIds}`
+**URL** : `check-by-addresses?addresses={address}&chainIds={chainIds}`
+
+**URL (deprecated)** : `checkByAddresses?addresses={address}&chainIds={chainIds}`
 
 **Method** : `GET`
 

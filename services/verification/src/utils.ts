@@ -23,7 +23,7 @@ export declare interface ReformattedMetadata {
  * Checks if provided endpoint is online
  * @param {string} provider personal project ID from infura.io or real Ethereum node endpoint
  */
-export async function checkEndpoint(provider: string) {
+export async function checkEndpoint(provider: string): Promise<void> {
     if (provider.includes("http")) {
         const web3 = new Web3(provider);
         await web3.eth.getNodeInfo().catch(() => {
@@ -55,7 +55,7 @@ export async function checkEndpoint(provider: string) {
  * @param {Web3}   web3    connected web3 instance
  * @param {string} address contract
  */
-export async function getBytecode(web3: Web3, address: string) {
+export async function getBytecode(web3: Web3, address: string): Promise<string> {
     address = web3.utils.toChecksumAddress(address);
     return await web3.eth.getCode(address);
 }

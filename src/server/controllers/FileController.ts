@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response, Router } from 'express';
 import BaseController from './BaseController';
 import { IController } from '../../common/interfaces';
-import * as HttpStatus from 'http-status-codes';
+import { StatusCodes } from 'http-status-codes';
 import { Logger, IFileService, MatchLevel, FilesInfo } from '@ethereum-sourcify/core';
 import { param, validationResult } from 'express-validator';
 import { isValidAddress, isValidChain } from '../../common/validators/validators';
@@ -41,7 +41,7 @@ export default class FileController extends BaseController implements IControlle
                 address: req.params.address
             },
                 successMessage);
-            return res.status(HttpStatus.OK).json(reportStatus ? retrieved : retrieved.files);
+            return res.status(StatusCodes.OK).json(reportStatus ? retrieved : retrieved.files);
         }
     }
 

@@ -196,6 +196,7 @@ Migrations (/home/user/dir/truffle-example/contracts/Migrations.sol):
 * `npm install @ethereum-sourcify/validation`
 #### Process paths
 ```typescript
+import { CheckedContract } from '@ethereum-sourcify/core';
 import { ValidationService } from '@ethereum-sourcify/validation';
 
 const validationService = new ValidationService();
@@ -211,7 +212,7 @@ function work(files) {
 }
 
 checkedContracts.forEach(contract => {
-  if (contract.isValid()) {
+  if (CheckedContract.isValid(contract)) {
     console.log(`Contract ${contract.name} is valid!`);
   } else {
     console.log(`Contract ${contract.name} is not valid!`);

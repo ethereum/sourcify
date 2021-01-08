@@ -1,6 +1,7 @@
 const chai = require('chai');
 const Path = require('path');
 const ValidationService = require('../build/ValidationService').ValidationService;
+const { CheckedContract } = require('@ethereum-sourcify/core');
 const validationService = new ValidationService();
 
 function objectLength(obj) {
@@ -37,7 +38,7 @@ describe("ValidationService", function() {
             chai.expect(onlyContract.name).to.equal("Storage");
             chai.expect(onlyContract.compiledPath).to.equal("browser/1_Storage.sol");
             
-            chai.expect(onlyContract.isValid());
+            chai.expect(CheckedContract.isValid(onlyContract));
             chai.expect(objectLength(onlyContract.solidity)).to.equal(1);
             chai.expect(onlyContract.solidity).to.have.all.keys("browser/1_Storage.sol");
             chai.expect(onlyContract.missing).to.be.empty;
@@ -56,7 +57,7 @@ describe("ValidationService", function() {
             chai.expect(onlyContract.name).to.equal("Storage");
             chai.expect(onlyContract.compiledPath).to.equal("browser/1_Storage.sol");
 
-            chai.expect(!onlyContract.isValid());
+            chai.expect(!CheckedContract.isValid(onlyContract));
             chai.expect(onlyContract.solidity).to.be.empty;
             chai.expect(objectLength(onlyContract.missing)).to.equal(1);
             chai.expect(onlyContract.missing).to.have.key("browser/1_Storage.sol");
