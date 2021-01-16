@@ -51,7 +51,7 @@ aliases:
     # - restore_cache:
     #     key: dependency-cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "package.json" }}
     - run:
-        name: install-npm
+        name: install dependencies
         command: npx lerna bootstrap
     - run:
         name: lint
