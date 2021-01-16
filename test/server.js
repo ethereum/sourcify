@@ -13,7 +13,7 @@ const path = require("path");
 const MAX_INPUT_SIZE = require("../dist/server/controllers/VerificationController").default.MAX_INPUT_SIZE;
 chai.use(chaiHttp);
 
-const EXTENDED_TIME = 10000; // 10 seconds
+const EXTENDED_TIME = 15000; // 15 seconds
 
 describe("Server", async () => {
     const server = new Server();

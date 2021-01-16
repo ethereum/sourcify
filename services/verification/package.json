@@ -1,6 +1,6 @@
 {
   "name": "@ethereum-sourcify/verification",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "verification module that returns matches bytecode of the deployed and provided contract",
   "bin": {
     "sourcify-verification": "./build/index.js"
@@ -14,7 +14,6 @@
   },
   "main": "build/index.js",
   "scripts": {
-    "prepublishOnly": "npm ci && npm run build",
     "test": "echo \"Error: no test specified\"",
     "build": "rimraf ./build && tsc",
     "start": "npm run build && node build/index.js"

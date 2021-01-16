@@ -1,8 +1,8 @@
 aliases:
   - &docker-base
-      docker:
-        - image: circleci/node:10.19.0-buster
-      steps:
+    docker:
+      - image: circleci/node:10.19.0-buster
+    steps:
       - checkout
       - run:
           name: "Pull Submodules"
@@ -11,87 +11,57 @@ aliases:
             git submodule update --remote
       - setup_remote_docker
       - run:
-         name: Build and push docker images
-         command: |
-           CIRCLE_BRANCH=${CIRCLE_BRANCH} ./scripts/build_and_publish_docker_images.sh
-  - &deploy-base
-      docker:
-        - image: circleci/node:10.19.0-buster
-      steps:
-      - checkout
-      - setup_remote_docker
-      - add_ssh_keys:
-          fingerprints:
-            - "a9:2f:97:c3:64:10:80:c7:8e:2f:db:f7:a3:4a:53:66"
-      - run:
-          name: Deploy
-          no_output_timeout: 30m
+          name: Build and push docker images
           command: |
-            CIRCLE_BRANCH=${CIRCLE_BRANCH} ./scripts/deploy.sh
+            CIRCLE_BRANCH=${CIRCLE_BRANCH} ./scripts/build_and_publish_docker_images.sh
   - &filter-base
-      filters:
-        branches:
-          only:
+    filters:
+      branches:
+        only:
           - staging
           - master
   - &node-base
     working_directory: ~/source-verify
     docker:
-    - image: circleci/node
+      - image: circleci/node
     parameters:
       run_coveralls:
         type: boolean
         default: false
     steps:
-    - run:
-        name: Versions
-        command: npm version
-    - checkout
-    # Caching is disabled because lerna does not like cached node_modules
-    # - restore_cache:
-    #     key: dependency-cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "package.json" }}
-    - run:
-        name: install-npm
-        command: npx lerna bootstrap
-    - run:
-        name: lint
-        command: npm run lint
-    - run:
-        name: tsc and test
-        command: npx lerna run build && npx lerna run test
-    # - save_cache:
-    #     key: dependency-cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "package.json" }}
-    #     paths:
-    #     - ./node_modules
+      - run:
+          name: Versions
+          command: npm version
+      - checkout
+      - run:
+          name: install dependencies
+          command: npx lerna bootstrap
+      - run:
+          name: lint
+          command: npm run lint
+      - run:
+          name: tsc and test
+          command: npx lerna run build && npx lerna run test
   - &monitor-e2e-base
     working_directory: ~/source-verify
     docker:
-    - image: circleci/node
+      - image: circleci/node
     steps:
-    - checkout
-    - restore_cache:
-        key: dependency-cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "package.json" }}
-    - run:
-        name: install-npm
-        command: npm install
-    - run:
-        name: monitor test
-        command: npm run monitor:ci
-        no_output_timeout: 30m
-    - save_cache:
-        key: dependency-cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "package.json" }}
-        paths:
-        - ./node_modules
-  - &npm-publish-base
-    working_directory: ~/source-verify
-    docker:
-    - image: circleci/node
-    steps:
-    - checkout
-    - run:
-        name: Publish npm package
-        command: ./scripts/publish_to_npm.sh
-  
+      - checkout
+      - restore_cache:
+          key: dependency-cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "package.json" }}
+      - run:
+          name: install-npm
+          command: npm install
+      - run:
+          name: monitor test
+          command: npm run monitor:ci
+          no_output_timeout: 30m
+      - save_cache:
+          key: dependency-cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "package.json" }}
+          paths:
+            - ./node_modules
+
 version: 2
 workflows:
   version: 2
@@ -101,71 +71,72 @@ workflows:
           filters:
             branches:
               only:
-              - staging
-              - master
-      # - build-push-localchain:
-      #     filters:
-      #       branches:
-      #         only:
-      #         - staging
-      #         - master
+                - staging
+                - master
       - build-push-monitor:
           filters:
             branches:
               only:
-              - staging
-              - master
+                - staging
+                - master
       - build-push-repository:
           filters:
             branches:
               only:
-              - staging
-              - master
+                - staging
+                - master
       - build-push-s3:
           filters:
             branches:
               only:
-              - staging
-              - master
+                - staging
+                - master
       - build-push-server:
           filters:
             branches:
               only:
-              - staging
-              - master
+                - staging
+                - master
       - build-push-ui:
           filters:
             branches:
               only:
-              - staging
-              - master
+                - staging
+                - master
       - deploy:
           filters:
             branches:
               only:
-              - staging
-              - master
+                - staging
+                - master
           requires:
-          - build-push-ipfs
-          # - build-push-localchain
-          - build-push-monitor
-          - build-push-repository
-          - build-push-s3
-          - build-push-server
-          - build-push-ui
+            - build-push-ipfs
+            - build-push-monitor
+            - build-push-repository
+            - build-push-s3
+            - build-push-server
+            - build-push-ui
       - monitor-e2e:
           filters:
             branches:
               only:
-              - staging
-              - master
+                - staging
+                - master
           requires:
-          - deploy
+            - deploy
 
   node-multi-build:
     jobs:
       - node-v10
       - node-v12
+      - npm-publish:
+          filters:
+            branches:
+              only:
+                - master
+          requires:
+            - node-v10
+            - node-v12
 
   nightly:
     triggers:
@@ -177,15 +148,6 @@ workflows:
                 - master
     jobs:
       - monitor-e2e
-  
-  npm_package_publish:
-    jobs:
-      - npm-publish:
-          filters:
-            branches:
-              only:
-              - master
-
 
 jobs:
   build-push-ipfs:
@@ -217,21 +179,45 @@ jobs:
     environment:
       SERVICE: "ui"
   deploy:
-    <<: *deploy-base
+    docker:
+      - image: circleci/node:10.19.0-buster
+    steps:
+      - checkout
+      - setup_remote_docker
+      - add_ssh_keys:
+          fingerprints:
+            - "a9:2f:97:c3:64:10:80:c7:8e:2f:db:f7:a3:4a:53:66"
+      - run:
+          name: Deploy
+          no_output_timeout: 30m
+          command: |
+            CIRCLE_BRANCH=${CIRCLE_BRANCH} ./scripts/deploy.sh
   node-v10:
     <<: *node-base
     docker:
-    - image: circleci/node:10
+      - image: circleci/node:10
   node-v12:
     <<: *node-base
     docker:
-    - image: circleci/node:12
+      - image: circleci/node:12
     environment:
       run_coveralls: "true"
   monitor-e2e:
     <<: *monitor-e2e-base
     docker:
-    - image: circleci/node:10
+      - image: circleci/node:10
   npm-publish:
-    <<: *npm-publish-base
-
+    working_directory: ~/source-verify
+    docker:
+      - image: circleci/node:12
+    steps:
+      - checkout
+      - run:
+          name: install dependencies
+          command: npx lerna bootstrap
+      - run:
+          name: build everything
+          command: npx lerna run build
+      - run:
+          name: Publish npm package
+          command: ./scripts/publish_to_npm.sh
