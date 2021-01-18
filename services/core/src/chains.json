@@ -669,5 +669,57 @@
       "web3": ["https://core.poa.network"],
       "faucets": [],
       "infoURL": "https://poa.network"
+    },
+    {
+      "name": "Binance Smart Chain Mainnet",
+      "chainId": 56,
+      "shortName": "bsc mainnet",
+      "chain": "Binance Smart Chain Mainnet",
+      "network": "binance smart chain mainnet",
+      "networkId": 56,
+      "nativeCurrency": {"name":"BNB","symbol":"BNB","decimals":18},
+      "web3": ["https://bsc-dataseed.binance.org/"],
+      "faucets": [],
+      "infoURL": "https://www.binance.org/",
+      "supported": true
+    },
+    {
+      "name": "Binance Smart Chain Testnet",
+      "chainId": 97,
+      "shortName": "bsc testnet",
+      "chain": "Binance Smart Chain Testnet",
+      "network": "binance smart chain testnet",
+      "networkId": 97,
+      "nativeCurrency": {"name":"BNB","symbol":"BNB","decimals":18},
+      "web3": ["https://data-seed-prebsc-1-s1.binance.org:8545/"],
+      "faucets": ["https://testnet.binance.org/faucet-smart"],
+      "infoURL": "https://www.binance.org/",
+      "supported": true
+    },
+    {
+      "name": "Matic Mainnet",
+      "chainId": 137,
+      "shortName": "matic mainnet",
+      "chain": "Matic Mainnet",
+      "network": "matic mainnet",
+      "networkId": 137,
+      "nativeCurrency": {"name":"MATIC","symbol":"MATIC","decimals":18},
+      "web3": ["https://rpc-mainnet.maticvigil.com/"],
+      "faucets": [],
+      "infoURL": "https://matic.network/",
+      "supported": true
+    },
+    {
+      "name": "Mumbai Testnet",
+      "chainId": 80001,
+      "shortName": "mumbai",
+      "chain": "Mumbai Testnet",
+      "network": "mumbai testnet",
+      "networkId": 80001,
+      "nativeCurrency": {"name":"MATIC","symbol":"MATIC","decimals":18},
+      "web3": ["https://rpc-mumbai.maticvigil.com/"],
+      "faucets": ["https://faucet.matic.network/"],
+      "infoURL": "https://matic.network/",
+      "supported": true
     }
   ]

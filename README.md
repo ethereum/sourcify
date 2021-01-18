@@ -45,12 +45,16 @@ As mentioned above, Sourcify has several components:
 + a "monitoring & verifier service" which watches public Ethereum networks for contract deployments
 and tries to associate them with sources and metadata published to Swarm or IPFS. It currently
 watches:
-  + mainnet
-  + ropsten
-  + rinkeby
-  + kovan
-  + goerli
+  + Ethereum Mainnet
+  + Ropsten
+  + Rinkeby
+  + Kovan
+  + Goerli
   + xDai
+  + Matic Mainnet
+  + Mumbai Testnet
+  + Binance Smart Chain Mainnet
+  + Binance Smart Chain Testnet
 
 + a website which allows you to submit sources and metadata for a specific contract address manually
   + https://sourcify.dev (Stable)
