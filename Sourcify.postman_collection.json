@@ -74,6 +74,230 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "verify - missing - fetch",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "address",
+											"value": "0x656d0062eC89c940213E3F3170EA8b2add1c0143",
+											"type": "text"
+										},
+										{
+											"key": "chain",
+											"value": "100",
+											"type": "text"
+										},
+										{
+											"key": "files",
+											"type": "file",
+											"src": "test/testcontracts/1_Storage/metadata.json"
+										},
+										{
+											"key": "fetch",
+											"value": "true",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{host}}",
+									"host": [
+										"{{host}}"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "verify - missing - fetch",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "address",
+													"value": "0x656d0062eC89c940213E3F3170EA8b2add1c0143",
+													"type": "text"
+												},
+												{
+													"key": "chain",
+													"value": "100",
+													"type": "text"
+												},
+												{
+													"key": "files",
+													"type": "file",
+													"src": "test/testcontracts/1_Storage/metadata.json"
+												},
+												{
+													"key": "fetch",
+													"value": "true",
+													"type": "text"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{host}}",
+											"host": [
+												"{{host}}"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "X-Powered-By",
+											"value": "Express"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "*"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Content-Length",
+											"value": "88"
+										},
+										{
+											"key": "ETag",
+											"value": "W/\"58-J/J2ShSm6vDzcetM7QhLTil+co8\""
+										},
+										{
+											"key": "Set-Cookie",
+											"value": "sourcify_vid=s%3A1MUnH1uhcDyJytHrXoYrnU3pnYpHwg4k.ESJevK%2BKUpvwiC9MxqT%2FJTXaU%2BGKSIv3yYqJlJ4W6MA; Path=/; Expires=Wed, 20 Jan 2021 23:50:51 GMT; HttpOnly"
+										},
+										{
+											"key": "Date",
+											"value": "Wed, 20 Jan 2021 11:50:51 GMT"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"result\": [\n        {\n            \"address\": \"0x656d0062eC89c940213E3F3170EA8b2add1c0143\",\n            \"status\": \"perfect\"\n        }\n    ]\n}"
+								}
+							]
+						},
+						{
+							"name": "verify - missing - do not fetch",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "address",
+											"value": "0x656d0062eC89c940213E3F3170EA8b2add1c0143",
+											"type": "text"
+										},
+										{
+											"key": "chain",
+											"value": "100",
+											"type": "text"
+										},
+										{
+											"key": "files",
+											"type": "file",
+											"src": "test/testcontracts/1_Storage/metadata.json"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{host}}",
+									"host": [
+										"{{host}}"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "verify - missing - do not fetch",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "address",
+													"value": "0x656d0062eC89c940213E3F3170EA8b2add1c0143",
+													"type": "text"
+												},
+												{
+													"key": "chain",
+													"value": "100",
+													"type": "text"
+												},
+												{
+													"key": "files",
+													"type": "file",
+													"src": "test/testcontracts/1_Storage/metadata.json"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{host}}",
+											"host": [
+												"{{host}}"
+											]
+										}
+									},
+									"status": "Bad Request",
+									"code": 400,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "X-Powered-By",
+											"value": "Express"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "*"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Content-Length",
+											"value": "75"
+										},
+										{
+											"key": "ETag",
+											"value": "W/\"4b-91ydo9mIuZsJIBw/zbFBZMMd6nk\""
+										},
+										{
+											"key": "Set-Cookie",
+											"value": "sourcify_vid=s%3A1MUnH1uhcDyJytHrXoYrnU3pnYpHwg4k.ESJevK%2BKUpvwiC9MxqT%2FJTXaU%2BGKSIv3yYqJlJ4W6MA; Path=/; Expires=Wed, 20 Jan 2021 23:50:15 GMT; HttpOnly"
+										},
+										{
+											"key": "Date",
+											"value": "Wed, 20 Jan 2021 11:50:15 GMT"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"error\": \"Invalid or missing sources in:\\nStorage (browser/1_Storage.sol)\"\n}"
+								}
+							]
 						}
 					],
 					"event": [
@@ -200,7 +424,7 @@
 							]
 						},
 						{
-							"name": "Add input files - without metadata",
+							"name": "Add input files - source only",
 							"request": {
 								"method": "POST",
 								"header": [],
@@ -224,73 +448,34 @@
 									]
 								}
 							},
-							"response": [
-								{
-									"name": "Add input files - without metadata",
-									"originalRequest": {
-										"method": "POST",
-										"header": [],
-										"body": {
-											"mode": "formdata",
-											"formdata": [
-												{
-													"key": "files",
-													"type": "file",
-													"src": "test/testcontracts/1_Storage/1_Storage.sol"
-												}
-											]
-										},
-										"url": {
-											"raw": "{{host}}/input-files",
-											"host": [
-												"{{host}}"
-											],
-											"path": [
-												"input-files"
-											]
+							"response": []
+						},
+						{
+							"name": "Add input files - metadata only",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "files",
+											"type": "file",
+											"src": "test/testcontracts/1_Storage/metadata.json"
 										}
-									},
-									"status": "OK",
-									"code": 200,
-									"_postman_previewlanguage": "json",
-									"header": [
-										{
-											"key": "X-Powered-By",
-											"value": "Express"
-										},
-										{
-											"key": "Access-Control-Allow-Origin",
-											"value": "*"
-										},
-										{
-											"key": "Content-Type",
-											"value": "application/json; charset=utf-8"
-										},
-										{
-											"key": "Content-Length",
-											"value": "43"
-										},
-										{
-											"key": "ETag",
-											"value": "W/\"2b-GRCkRQ7DAtUZ6oOVl+Q+eZi9siI\""
-										},
-										{
-											"key": "Set-Cookie",
-											"value": "sourcify_vid=s%3Ai8fGEBmscCNl4g5Lr-55tEiTPRIFJZI3.i%2Bg%2B9doxHuunTqq5V6nPPsnkc5GIc8RUpuzVm2wFGqo; Path=/; Expires=Wed, 13 Jan 2021 05:40:11 GMT; HttpOnly"
-										},
-										{
-											"key": "Date",
-											"value": "Tue, 12 Jan 2021 17:40:11 GMT"
-										},
-										{
-											"key": "Connection",
-											"value": "keep-alive"
-										}
+									]
+								},
+								"url": {
+									"raw": "{{host}}/input-files",
+									"host": [
+										"{{host}}"
 									],
-									"cookie": [],
-									"body": "{\n    \"contracts\": [],\n    \"unused\": [\n        \"1_Storage.sol\"\n    ]\n}"
+									"path": [
+										"input-files"
+									]
 								}
-							]
+							},
+							"response": []
 						},
 						{
 							"name": "Add input files - under wrong property",
@@ -845,6 +1030,108 @@
 									],
 									"cookie": [],
 									"body": "{\n    \"contracts\": [\n        {\n            \"verificationId\": \"0x3f67e9f57515bb1e7195c7c5af1eff630091567c0bb65ba3dece57a56da766fe\",\n            \"compiledPath\": \"browser/1_Storage.sol\",\n            \"name\": \"Storage\",\n            \"compilerVersion\": \"0.6.6+commit.6c089d02\",\n            \"address\": \"0x656d0062eC89c940213E3F3170EA8b2add1c0143\",\n            \"networkId\": \"100\",\n            \"files\": {\n                \"found\": [\n                    \"browser/1_Storage.sol\"\n                ],\n                \"missing\": []\n            },\n            \"status\": \"perfect\"\n        }\n    ],\n    \"unused\": []\n}"
+								}
+							]
+						},
+						{
+							"name": "Verify validated contracts - fetch missing source",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"contracts\": [\n        {\n            \"address\": \"0x656d0062eC89c940213E3F3170EA8b2add1c0143\",\n            \"networkId\": \"100\",\n            \"compilerVersion\": \"0.6.6+commit.6c089d02\",\n            \"verificationId\": \"0x3f67e9f57515bb1e7195c7c5af1eff630091567c0bb65ba3dece57a56da766fe\"\n        }\n    ],\n    \"fetch\": true\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{host}}/verify-validated",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"verify-validated"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Verify validated contracts - fetch missing source",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"contracts\": [\n        {\n            \"address\": \"0x656d0062eC89c940213E3F3170EA8b2add1c0143\",\n            \"networkId\": \"100\",\n            \"compilerVersion\": \"0.6.6+commit.6c089d02\",\n            \"verificationId\": \"0x3f67e9f57515bb1e7195c7c5af1eff630091567c0bb65ba3dece57a56da766fe\"\n        }\n    ],\n    \"fetch\": true\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{host}}/verify-validated",
+											"host": [
+												"{{host}}"
+											],
+											"path": [
+												"verify-validated"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "X-Powered-By",
+											"value": "Express"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "*"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Content-Length",
+											"value": "375"
+										},
+										{
+											"key": "ETag",
+											"value": "W/\"177-KLpUVJREY/f+juod/D1HYTPgH0w\""
+										},
+										{
+											"key": "Set-Cookie",
+											"value": "sourcify_vid=s%3AJc8SefWWpuHUIH6OAsjltayogQfAofJ2.DF%2FVQveyCQCjtNpOgza8CJ43Q2qSWCkjgepNb9hARmE; Path=/; Expires=Thu, 21 Jan 2021 00:21:19 GMT; HttpOnly"
+										},
+										{
+											"key": "Date",
+											"value": "Wed, 20 Jan 2021 12:21:19 GMT"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"contracts\": [\n        {\n            \"verificationId\": \"0x3f67e9f57515bb1e7195c7c5af1eff630091567c0bb65ba3dece57a56da766fe\",\n            \"compiledPath\": \"browser/1_Storage.sol\",\n            \"name\": \"Storage\",\n            \"compilerVersion\": \"0.6.6+commit.6c089d02\",\n            \"address\": \"0x656d0062eC89c940213E3F3170EA8b2add1c0143\",\n            \"networkId\": \"100\",\n            \"files\": {\n                \"found\": [\n                    \"browser/1_Storage.sol\"\n                ],\n                \"missing\": []\n            },\n            \"status\": \"perfect\"\n        }\n    ],\n    \"unused\": [],\n    \"fetch\": true\n}"
 								}
 							]
 						},

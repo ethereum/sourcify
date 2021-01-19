@@ -13,9 +13,9 @@
 
 ## Responses
 
-**Assumptions for all example responses (except the last one)** :
-* There is one pending contract with all source files, but no `address` or `networkId`.
-* Supplying the following minimum object (extra properties would be ignored):
+**Assumptions for all example responses (except the last)** :
+* There is one pending contract with 0 or 1 missing source file, but no `address` or `networkId`.
+* Supplying the following minimum object:
 ```json
 {
     "contracts": [
@@ -29,7 +29,9 @@
 }
 ```
 
-**Condition** : The provided contract `perfect`ly matches the one at the provided `networkId` and `address`.
+**Conditions** :
+- All the source files have been previously provided.
+- The provided contract `perfect`ly matches the one at the provided `networkId` and `address`.
 
 **Code** : `200 OK`
 
@@ -55,6 +57,41 @@
         }
     ],
     "unused": []
+}
+```
+
+### OR
+
+**Conditions** :
+- One source file is missing.
+- Fetching requested by providing `fetch: true`, look [here](exchange-object.md) for more info.
+- The provided contract `perfect`ly matches the one at the provided `networkId` and `address`.
+
+**Code** : `200 OK`
+
+**Content** :
+
+```json
+{
+    "contracts": [
+        {
+            "verificationId": "0x3f67e9f57515bb1e7195c7c5af1eff630091567c0bb65ba3dece57a56da766fe",
+            "compiledPath": "browser/1_Storage.sol",
+            "name": "Storage",
+            "compilerVersion": "0.6.6+commit.6c089d02",
+            "address": "0x656d0062eC89c940213E3F3170EA8b2add1c0143",
+            "networkId": "100",
+            "files": {
+                "found": [
+                    "browser/1_Storage.sol"
+                ],
+                "missing": []
+            },
+            "status": "perfect"
+        }
+    ],
+    "unused": [],
+    "fetch": true
 }
 ```
 

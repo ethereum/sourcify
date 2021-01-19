@@ -43,10 +43,15 @@ export class CheckedContract {
     name: string;
 
     /** Checks whether this contract is valid or not.
+     *  This is a static method due to persistence issues.
+     * 
+     * @param contract the contract to be checked
+     * @param ignoreMissing a flag indicating that missing sources should be ignored
      * @returns true if no sources are missing or are invalid (malformed); false otherwise
      */
-    public static isValid(contract: CheckedContract): boolean {
-        return isEmpty(contract.missing) && isEmpty(contract.invalid);
+    public static isValid(contract: CheckedContract, ignoreMissing?: boolean): boolean {
+        return (isEmpty(contract.missing) || ignoreMissing)
+            && isEmpty(contract.invalid);
     }
 
     private sourceMapToStringMap(input: SourceMap) {
@@ -196,64 +201,50 @@ export class CheckedContract {
      * 
      * @param log log object
      */
-    public async fetchMissing(log?: bunyan): Promise<void> {
+    public static async fetchMissing(contract: CheckedContract, log?: bunyan): Promise<void> {
         const retrieved: StringMap = {};
-        for (const fileName in this.missing) {
-            if (!fileName.startsWith("@openzeppelin")) {
-                continue;
-            }
+        const missingFiles: string[] = [];
+        for (const fileName in contract.missing) {
+            const file = contract.missing[fileName];
+            const hash = contract.missing[fileName].keccak256;
 
-            const file = this.missing[fileName];
-            const hash = this.missing[fileName].keccak256;
+            let retrievedContent = null;
 
-            let success = false;
-            for (const url of file.urls) {
-                if (url.startsWith(IPFS_PREFIX)) {
-                    const ipfsCode = url.slice(IPFS_PREFIX.length);
-                    const ipfsUrl = 'https://ipfs.infura.io:5001/api/v0/cat?arg='+ipfsCode;
-                    const retrievedContent = await this.performFetch(ipfsUrl, hash, fileName, log);
-                    if (retrievedContent) {
-                        success = true;
-                        retrieved[fileName] = retrievedContent;
-                        break;
+            const githubUrl = getGithubUrl(fileName);
+            if (githubUrl) {
+                retrievedContent = await performFetch(githubUrl, hash, fileName, log);
+            
+            } else {
+                for (const url of file.urls) {
+                    if (url.startsWith(IPFS_PREFIX)) {
+                        const ipfsCode = url.slice(IPFS_PREFIX.length);
+                        const ipfsUrl = 'https://ipfs.infura.io:5001/api/v0/cat?arg='+ipfsCode;
+                        retrievedContent = await performFetch(ipfsUrl, hash, fileName, log);
+                        if (retrievedContent) {
+                            break;
+                        }
                     }
                 }
+            }
+
+            if (retrievedContent) {
+                retrieved[fileName] = retrievedContent;
+            } else {
+                missingFiles.push(fileName);
+                break; // makes an early exit
             }
         }
 
         for (const fileName in retrieved) {
-            delete this.missing[fileName];
-            this.solidity[fileName] = retrieved[fileName];
+            delete contract.missing[fileName];
+            contract.solidity[fileName] = retrieved[fileName];
         }
 
-        const missingFiles = Object.keys(this.missing);
         if (missingFiles.length) {
             log.error({ loc: "[FETCH]", contractName: this.name, missingFiles });
-            throw new Error(`Missing sources after fetching: ${missingFiles.join(", ")}`);
+            throw new Error(`Resource missing; unsuccessful fetching: ${missingFiles.join(", ")}`);
         }
     }
-
-    private async performFetch(url: string, hash: string, fileName: string, log?: bunyan): Promise<string> {
-        const infoObject = { loc: "[FETCH]", fileName, url };
-        if (log) log.info(infoObject, "Fetch attempt");
-
-        const res = await fetch(url);
-        if (res.status === 200) {
-            const content = await res.text();
-            if (Web3.utils.keccak256(content) !== hash) {
-                if (log) log.error(infoObject, "The calculated and the provided hash don't match.");
-                return null;
-            }
-
-            if (log) log.info(infoObject, "Fetch successful!");
-            return content;
-
-        } else {
-            if (log) log.error(infoObject, "Fetch failed!");
-            return null;
-        }
-    }
-
 
     /**
      * Returns a message describing the errors encountered while validating the metadata.
@@ -264,4 +255,49 @@ export class CheckedContract {
     public getInfo() {
         return CheckedContract.isValid(this) ? this.composeSuccessMessage() : this.composeErrorMessage();
     }
+}
+
+/**
+ * Performs fetch and compares with the hash provided.
+ * 
+ * @param url the url to be used as the file source
+ * @param hash the hash of the file to be fetched; used for later comparison
+ * @param fileName the name of the file; used for logging
+ * @param log whether or not to log
+ * @returns the fetched file if found; null otherwise
+ */
+async function performFetch(url: string, hash: string, fileName: string, log?: bunyan): Promise<string> {
+    const infoObject = { loc: "[FETCH]", fileName, url };
+    if (log) log.info(infoObject, "Fetch attempt");
+
+    const res = await fetch(url);
+    if (res.status === 200) {
+        const content = await res.text();
+        if (Web3.utils.keccak256(content) !== hash) {
+            if (log) log.error(infoObject, "The calculated and the provided hash don't match.");
+            return null;
+        }
+
+        if (log) log.info(infoObject, "Fetch successful!");
+        return content;
+
+    } else {
+        if (log) log.error(infoObject, "Fetch failed!");
+        return null;
+    }
+}
+
+/**
+ * Makes a GitHub-compatible url out of the provided url, if possible.
+ * 
+ * @param url 
+ * @returns a GitHub-compatible url if possible; null otherwise
+ */
+function getGithubUrl(url: string): string {
+    if (!url.includes("github.com")) {
+        return null;
+    }
+    return url
+        .replace("github.com", "raw.githubusercontent.com")
+        .replace("/blob/", "/");
 }
