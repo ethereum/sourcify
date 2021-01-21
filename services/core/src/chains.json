@@ -23,7 +23,8 @@
       "fullnode": {"dappnode": "http://geth.dappnode:8545"},
       "faucets": [],
       "infoURL": "https://ethereum.org",
-      "supported": true
+      "supported": true,
+      "monitored": true
     },
     {
       "name": "xDAI Chain",
@@ -326,7 +327,8 @@
       "fullnode": {"dappnode": "http://ropsten.dappnode:8545"},
       "faucets": ["https://faucet.ropsten.be?${ADDRESS}"],
       "infoURL": "https://github.com/ethereum/ropsten",
-      "supported": true
+      "supported": true,
+      "monitored": true
     },
     {
       "name": "RSK Mainnet",
@@ -412,7 +414,8 @@
       "fullnode": {"dappnode": "http://rinkeby.dappnode:8545"},
       "faucets": ["https://faucet.rinkeby.io"],
       "infoURL": "https://www.rinkeby.io",
-      "supported": true
+      "supported": true,
+      "monitored": true
     },
     {
       "name": "Ethereum Testnet Kovan",
@@ -464,7 +467,8 @@
       "fullnode": {"dappnode": "http://goerli-geth.dappnode:8545"},
       "faucets": ["https://goerli-faucet.slock.it/?address=${ADDRESS}","https://faucet.goerli.mudit.blog"],
       "infoURL": "https://goerli.net/#about",
-      "supported": true
+      "supported": true,
+      "monitored": true
     },
     {
       "name": "Ethereum Classic Testnet Kotti",
@@ -707,7 +711,8 @@
       "web3": ["https://rpc-mainnet.maticvigil.com/"],
       "faucets": [],
       "infoURL": "https://matic.network/",
-      "supported": true
+      "supported": true,
+      "monitored": true
     },
     {
       "name": "Mumbai Testnet",
@@ -720,6 +725,7 @@
       "web3": ["https://rpc-mumbai.maticvigil.com/"],
       "faucets": ["https://faucet.matic.network/"],
       "infoURL": "https://matic.network/",
-      "supported": true
+      "supported": true,
+      "monitored": true
     }
   ]

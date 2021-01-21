@@ -1,19 +1,31 @@
 import * as chainOptions from '../chains.json';
 import cbor from 'cbor';
 
-/**
- * Returns the chains where Sourcify is currently applicable.
- * @returns array of currently supported chains
- */
-export function getSupportedChains(): Array<any> {
-    const supportedChains = [];
+function filterChains(predicate: (chain: any) => boolean): Array<any> {
+    const filteredChains = [];
     for (const chainOption in chainOptions) {
         const chainOptionValue = chainOptions[chainOption];
-        if (chainOptionValue.supported) {
-            supportedChains.push(chainOptionValue);
+        if (predicate(chainOptionValue)) {
+            filteredChains.push(chainOptionValue);
         }
     }
-    return supportedChains;
+    return filteredChains;
+}
+
+/**
+ * Returns the chains currently supported by Sourcify server.
+ * @returns array of chains currently supported by Sourcify server
+ */
+export function getSupportedChains(): Array<any> {
+    return filterChains(c => c.supported);
+}
+
+/**
+ * Returns the chains currently monitored by Sourcify.
+ * @returns array of chains currently monitored by Sourcify
+ */
+export function getMonitoredChains(): Array<any> {
+    return filterChains(c => c.monitored);
 }
 
 export function getChainId(chain: string): string {

@@ -53,8 +53,8 @@ watches:
   + xDai
   + Matic Mainnet
   + Mumbai Testnet
-  + Binance Smart Chain Mainnet
-  + Binance Smart Chain Testnet
+  + Binance Smart Chain Mainnet (monitoring temporarily suspended)
+  + Binance Smart Chain Testnet (monitoring temporarily suspended)
 
 + a website which allows you to submit sources and metadata for a specific contract address manually
   + https://sourcify.dev (Stable)
