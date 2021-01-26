@@ -2,6 +2,8 @@ process.env.TESTING = true;
 process.env.LOCALCHAIN_URL = "http://localhost:8545";
 process.env.MOCK_REPOSITORY = './dist/data/mock-repository';
 process.env.MOCK_DATABASE = './dist/data/mock-database';
+process.env.SOLC_REPO='./dist/data/solc-repo';
+process.env.SOLJSON_REPO='/dist/data/soljson-repo';
 
 const chai = require("chai");
 const chaiHttp = require("chai-http");
@@ -11,6 +13,7 @@ const fs = require("fs");
 const rimraf = require("rimraf");
 const path = require("path");
 const MAX_INPUT_SIZE = require("../dist/server/controllers/VerificationController").default.MAX_INPUT_SIZE;
+const StatusCodes = require('http-status-codes').StatusCodes;
 chai.use(chaiHttp);
 
 const EXTENDED_TIME = 15000; // 15 seconds
@@ -39,7 +42,7 @@ describe("Server", async () => {
 
     const assertError = (err, res, field) => {
         chai.expect(err).to.be.null;
-        chai.expect(res.status).to.equal(400);
+        chai.expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
         chai.expect(res.body.message.startsWith("Validation Error"));
         chai.expect(res.body.errors).to.be.an("array");
         chai.expect(res.body.errors).to.have.a.lengthOf(1);
@@ -69,7 +72,7 @@ describe("Server", async () => {
 
         const assertStatus = (err, res, expectedStatus, done) => {
             chai.expect(err).to.be.null;
-            chai.expect(res.status).to.equal(200);
+            chai.expect(res.status).to.equal(StatusCodes.OK);
             const resultArray = res.body;
             chai.expect(resultArray).to.have.a.lengthOf(1);
             const result = resultArray[0];
@@ -81,7 +84,7 @@ describe("Server", async () => {
         it("should return false for previously unverified contract", (done) => {
             chai.request(server.app)
                 .get("/check-by-Addresses")
-                .query({ chainIds: 100, addresses: contractAddress })
+                .query({ chainIds: contractChain, addresses: contractAddress })
                 .end((err, res) => assertStatus(err, res, "false", done));
         }).timeout(EXTENDED_TIME);
 
@@ -98,7 +101,7 @@ describe("Server", async () => {
         it("should return true for previously verified contract", (done) => {
             chai.request(server.app)
                 .get("/check-by-addresses")
-                .query({ chainIds: 100, addresses: contractAddress })
+                .query({ chainIds: contractChain, addresses: contractAddress })
                 .end((err, res) => {
                     assertStatus(err, res, "false");
                     chai.request(server.app).post("/")
@@ -108,11 +111,11 @@ describe("Server", async () => {
                         .attach("files", sourceBuffer)
                         .end((err, res) => {
                             chai.expect(err).to.be.null;
-                            chai.expect(res.status).to.equal(200);
+                            chai.expect(res.status).to.equal(StatusCodes.OK);
 
                             chai.request(server.app)
                                 .get("/check-by-addresses")
-                                .query({ chainIds: 100, addresses: contractAddress })
+                                .query({ chainIds: contractChain, addresses: contractAddress })
                                 .end((err, res) => assertStatus(err, res, "perfect", done));
                         });     
                 });
@@ -127,7 +130,7 @@ describe("Server", async () => {
                 .end((err, res) => {
                     chai.expect(err).to.be.null;
                     chai.expect(res.body).to.haveOwnProperty("error");
-                    chai.expect(res.status).to.equal(404);
+                    chai.expect(res.status).to.equal(StatusCodes.NOT_FOUND);
                     done();
                 });
     }
@@ -143,7 +146,7 @@ describe("Server", async () => {
 
         const assertions = (err, res, done) => {
             chai.expect(err).to.be.null;
-            chai.expect(res.status).to.equal(200);
+            chai.expect(res.status).to.equal(StatusCodes.OK);
             chai.expect(res.body).to.haveOwnProperty("result");
             const resultArr = res.body.result;
             chai.expect(resultArr).to.have.a.lengthOf(1);
@@ -191,19 +194,56 @@ describe("Server", async () => {
                 .end((err, res) => assertions(err, res, done));
         }).timeout(EXTENDED_TIME);
 
-        it("should return Internal Server Error for missing file", (done) => {
+        const assertMissingFile = (err, res) => {
+            chai.expect(err).to.be.null;
+            chai.expect(res.body).to.haveOwnProperty("error");
+            const errorMessage = res.body.error.toLowerCase();
+            chai.expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
+            chai.expect(errorMessage).to.include("missing");
+            chai.expect(errorMessage).to.include("Storage".toLowerCase());
+        }
+
+        it("should return Bad Request Error for missing file", (done) => {
             chai.request(server.app)
                 .post("/")
                 .field("address", contractAddress)
                 .field("chain", contractChain)
                 .attach("files", metadataBuffer, "metadata.json")
                 .end((err, res) => {
-                    chai.expect(err).to.be.null;
-                    chai.expect(res.body).to.haveOwnProperty("error");
-                    const errorMessage = res.body.error.toLowerCase();
-                    chai.expect(res.status).to.equal(500);
-                    chai.expect(errorMessage).to.include("missing");
-                    chai.expect(errorMessage).to.include("1_Storage.sol".toLowerCase());
+                    assertMissingFile(err, res);
+                    done();
+                });
+        }).timeout(EXTENDED_TIME);
+
+        it("should fetch a missing file that is accessible via ipfs (using fetch=true)", (done) => {
+            chai.request(server.app)
+                .post("/")
+                .field("address", contractAddress)
+                .field("chain", contractChain)
+                .field("fetch", true)
+                .attach("files", metadataBuffer, "metadata.json")
+                .end((err, res) => assertions(err, res, done));
+        }).timeout(EXTENDED_TIME);
+
+        it("should fetch a missing file that is accessible via ipfs (using fetch=\"true\")", (done) => {
+            chai.request(server.app)
+                .post("/")
+                .field("address", contractAddress)
+                .field("chain", contractChain)
+                .field("fetch", "true")
+                .attach("files", metadataBuffer, "metadata.json")
+                .end((err, res) => assertions(err, res, done));
+        }).timeout(EXTENDED_TIME);
+
+        it("should not fetch a missing file if the 'fetch' property is not true or \"true\"", (done) => {
+            chai.request(server.app)
+                .post("/")
+                .field("address", contractAddress)
+                .field("chain", contractChain)
+                .field("fetch", 1)
+                .attach("files", metadataBuffer, "metadata.json")
+                .end((err, res) => {
+                    assertMissingFile(err, res);
                     done();
                 });
         }).timeout(EXTENDED_TIME);
@@ -216,10 +256,36 @@ describe("Server", async () => {
                 .end((err, res) => {
                     chai.expect(err).to.be.null;
                     chai.expect(res.body).to.haveOwnProperty("error");
-                    chai.expect(res.status).to.equal(400);
+                    chai.expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
                     chai.expect(res.body.error).to.equal("There are currently no pending contracts.")
                     done();
                 });
+        }).timeout(EXTENDED_TIME);
+
+        const assertOnlyAddressAndChainMissing = (res) => {
+            chai.expect(res.status).to.equal(StatusCodes.OK);
+            const contracts = res.body.contracts;
+            chai.expect(contracts).to.have.a.lengthOf(1);
+            const contract = contracts[0];
+            chai.expect(contract.status).to.equal("error");
+            chai.expect(contract.files.missing).to.deep.equal([]);
+            chai.expect(contract.files.found).to.deep.equal(["browser/1_Storage.sol"]);
+            chai.expect(res.body.unused).to.be.empty;
+            return contracts;
+        };
+
+        it("should accept file upload in JSON format", (done) => {
+            chai.request(server.app)
+                .post("/input-files")
+                .send({
+                    files: {
+                        "metadata.json": metadataBuffer.toString(),
+                        "1_Storage.sol": sourceBuffer.toString()
+                    }
+                }).then(res => {
+                    assertOnlyAddressAndChainMissing(res);
+                    done();
+                })
         }).timeout(EXTENDED_TIME);
 
         it("should not verify after addition of metadata+source, but should after providing address+networkId", (done) => {
@@ -228,20 +294,15 @@ describe("Server", async () => {
                 .attach("files", sourceBuffer, "1_Storage.sol")
                 .attach("files", metadataBuffer, "metadata.json")
                 .then(res => {
-                    chai.expect(res.status).to.equal(200);
-                    const contracts = res.body.contracts;
-                    chai.expect(contracts).to.have.a.lengthOf(1);
-                    const contract = contracts[0];
-                    chai.expect(contract.status).to.equal("error");
-                    chai.expect(res.body.unused).to.be.empty;
-                    contract.address = contractAddress;
-                    contract.networkId = contractChain;
+                    const contracts = assertOnlyAddressAndChainMissing(res);
+                    contracts[0].address = contractAddress;
+                    contracts[0].networkId = contractChain;
 
                     agent.post("/verify-validated")
                         .send({ contracts })
                         .end((err, res) => {
                             chai.expect(err).to.be.null;
-                            chai.expect(res.status).to.equal(200);
+                            chai.expect(res.status).to.equal(StatusCodes.OK);
                             const contracts = res.body.contracts;
                             chai.expect(contracts).to.have.a.lengthOf(1);
                             const contract = contracts[0];
@@ -255,7 +316,7 @@ describe("Server", async () => {
 
         const assertAfterMetadataUpload = (err, res) => {
             chai.expect(err).to.be.null;
-            chai.expect(res.status).to.equal(200);
+            chai.expect(res.status).to.equal(StatusCodes.OK);
             chai.expect(res.body.unused).to.be.empty;
 
             const contracts = res.body.contracts;
@@ -278,7 +339,7 @@ describe("Server", async () => {
                         .attach("files", sourceBuffer, "1_Storage.sol")
                         .end((err, res) => {
                             chai.expect(err).to.be.null;
-                            chai.expect(res.status).to.equal(200);
+                            chai.expect(res.status).to.equal(StatusCodes.OK);
 
                             chai.expect(res.body.unused).to.deep.equal(["1_Storage.sol"]);
                             chai.expect(res.body.contracts).to.be.empty;
@@ -289,7 +350,7 @@ describe("Server", async () => {
 
         const assertAllFound = (err, res, finalStatus) => {
             chai.expect(err).to.be.null;
-            chai.expect(res.status).to.equal(200);
+            chai.expect(res.status).to.equal(StatusCodes.OK);
             chai.expect(res.body.unused).to.be.empty;
 
             const contracts = res.body.contracts;
@@ -333,22 +394,22 @@ describe("Server", async () => {
             agent.post("/input-files")
                 .attach("files", Buffer.from(file))
                 .then(res => {
-                    chai.expect(res.status).to.equal(200);
+                    chai.expect(res.status).to.equal(StatusCodes.OK);
 
                     agent.post("/input-files")
                         .attach("files", Buffer.from("a"))
                         .then(res => {
-                            chai.expect(res.status).to.equal(413);
+                            chai.expect(res.status).to.equal(StatusCodes.REQUEST_TOO_LONG);
                             chai.expect(res.body.error);
 
                             agent.post("/restart-session")
                                 .then(res => {
-                                    chai.expect(res.status).to.equal(200);
+                                    chai.expect(res.status).to.equal(StatusCodes.OK);
 
                                     agent.post("/input-files")
                                         .attach("files", Buffer.from("a"))
                                         .then(res => {
-                                            chai.expect(res.status).to.equal(200);
+                                            chai.expect(res.status).to.equal(StatusCodes.OK);
                                             done();
                                         });
                                 });
@@ -357,7 +418,7 @@ describe("Server", async () => {
         }).timeout(EXTENDED_TIME);
 
         const assertSingleContractStatus = (res, expectedStatus, shouldHaveTimestamp) => {
-            chai.expect(res.status).to.equal(200);
+            chai.expect(res.status).to.equal(StatusCodes.OK);
             chai.expect(res.body).to.haveOwnProperty("contracts");
             const contracts = res.body.contracts;
             chai.expect(contracts).to.have.a.lengthOf(1);
@@ -396,6 +457,31 @@ describe("Server", async () => {
                                 });
                         });
                 });
+        }).timeout(EXTENDED_TIME);
+
+        it("should verify after being told to fetch", (done) => {
+            const agent = chai.request.agent(server.app);
+            agent.post("/input-files")
+                .attach("files", metadataBuffer)
+                .then(res => {
+                    const contracts = assertSingleContractStatus(res, "error");
+                    contracts[0].address = contractAddress;
+                    contracts[0].networkId = contractChain;
+
+                    agent.post("/verify-validated")
+                        .send({ contracts })
+                        .then(res => {
+                            assertSingleContractStatus(res, "error");
+
+                            agent.post("/verify-validated")
+                                .send({ contracts, fetch: true })
+                                .then(res => {
+                                    assertSingleContractStatus(res, "perfect");
+                                    chai.expect(res.body.fetch);
+                                    done();
+                                })
+                        })
+                })
         }).timeout(EXTENDED_TIME);
     });
 });

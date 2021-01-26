@@ -62,6 +62,11 @@ export default class VerificationController extends BaseController implements IC
         return validChainIds;
     }
 
+    private stringifyInvalidAndMissing(contract: CheckedContract) {
+        const errors = Object.keys(contract.invalid).concat(Object.keys(contract.missing));
+        return `${contract.name} (${errors.join(", ")})`;
+    }
+    
     private legacyVerifyEndpoint = async (origReq: Request, res: Response): Promise<any> => {
         const req = (origReq as MyRequest);
         this.validateRequest(req);
@@ -86,11 +91,12 @@ export default class VerificationController extends BaseController implements IC
             throw new BadRequestError(error.message);
         }
 
+        const ignoreMissing = req.body.fetch;
         const errors = validatedContracts
-                        .filter(contract => Object.keys(contract.invalid).length)
-                        .map(contract => `${contract.name} ${Object(contract.invalid).keys()}`);
+                        .filter(contract => !CheckedContract.isValid(contract, ignoreMissing))
+                        .map(this.stringifyInvalidAndMissing);
         if (errors.length) {
-            throw new BadRequestError("Errors in:\n" + errors.join("\n"), false);
+            throw new BadRequestError("Invalid or missing sources in:\n" + errors.join("\n"), false);
         }
 
         if (validatedContracts.length !== 1) {
@@ -103,7 +109,9 @@ export default class VerificationController extends BaseController implements IC
         if (!contract.compilerVersion) {
             throw new BadRequestError("Metadata file not specifying a compiler version.");
         }
-        const inputData: InputData = { contract, addresses: req.addresses, chain: req.chain };
+
+        const fetchMissing = req.body.fetch;
+        const inputData: InputData = { contract, addresses: req.addresses, chain: req.chain, fetchMissing };
 
         const resultPromise = this.verificationService.inject(inputData, config.localchain.url);
         resultPromise.then(result => {
@@ -175,6 +183,7 @@ export default class VerificationController extends BaseController implements IC
 
         const receivedContracts: SendableContract[] = req.body.contracts;
 
+        const ignoreMissing = req.body.fetch;
         const verifiable: ContractWrapperMap = {};
         for (const receivedContract of receivedContracts) {
             const id = receivedContract.verificationId;
@@ -183,23 +192,25 @@ export default class VerificationController extends BaseController implements IC
                 contractWrapper.address = receivedContract.address;
                 contractWrapper.networkId = receivedContract.networkId;
                 contractWrapper.compilerVersion = receivedContract.compilerVersion;
-                if (isVerifiable(contractWrapper)) {
+                contractWrapper.contract.metadata.compiler.version = receivedContract.compilerVersion;
+                if (isVerifiable(contractWrapper, ignoreMissing)) {
                     verifiable[id] = contractWrapper;
                 }
             }
         }
 
-        await this.verifyValidated(verifiable);
+        await this.verifyValidated(verifiable, req.body.fetch);
         res.send(getSessionJSON(session));
     }
 
-    private async verifyValidated(contractWrappers: ContractWrapperMap): Promise<void> {
+    private async verifyValidated(contractWrappers: ContractWrapperMap, fetchMissing?: boolean): Promise<void> {
         for (const id in contractWrappers) {
             const contractWrapper = contractWrappers[id];
-            if (!isVerifiable(contractWrapper)) {
+            const ignoreMissing = fetchMissing;
+            if (!isVerifiable(contractWrapper, ignoreMissing)) {
                 continue;
             }
-            const inputData: InputData = { addresses: [contractWrapper.address], chain: contractWrapper.networkId, contract: contractWrapper.contract };
+            const inputData: InputData = { addresses: [contractWrapper.address], chain: contractWrapper.networkId, contract: contractWrapper.contract, fetchMissing };
 
             const found = await this.verificationService.findByAddress(contractWrapper.address, contractWrapper.networkId, config.repository.path);
             let match: Match;
@@ -283,7 +294,7 @@ export default class VerificationController extends BaseController implements IC
         this.saveFiles(pathContents, session);
         this.validateContracts(session);
 
-        await this.verifyValidated(session.contractWrappers);
+        await this.verifyValidated(session.contractWrappers, req.body.fetch);
         res.send(getSessionJSON(session));
     }
 
@@ -322,11 +333,18 @@ export default class VerificationController extends BaseController implements IC
         }
     }
 
+    private fetchSanitizer = body("fetch").customSanitizer((f, { req }) => {
+        const sanitized = f === true || f === "true";
+        req.session.fetch = sanitized;
+        return sanitized;
+    });
+
     registerRoutes = (): Router => {
         this.router.route(['/', '/verify'])
             .post(
                 body("address").exists().bail().custom((address, { req }) => req.addresses = this.validateAddresses(address)),
                 body("chain").exists().bail().custom((chain, { req }) => req.chain = getChainId(chain)),
+                this.fetchSanitizer,
                 this.safeHandler(this.legacyVerifyEndpoint)
             );
 
@@ -347,7 +365,11 @@ export default class VerificationController extends BaseController implements IC
             .post(this.safeHandler(this.restartSessionEndpoint));
 
         this.router.route('/verify-validated')
-            .post(body("contracts").isArray(), this.safeHandler(this.verifyValidatedEndpoint));
+            .post(
+                body("contracts").isArray(),
+                this.fetchSanitizer,
+                this.safeHandler(this.verifyValidatedEndpoint)
+            );
 
         return this.router;
     }

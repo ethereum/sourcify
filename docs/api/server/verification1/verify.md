@@ -78,7 +78,7 @@ If using `application/json`, the files should be in an object under the key `fil
 
 **Condition** : Failed fetching missing files. OR Contract bytecode does not match deployed bytecode.
 
-**Code** : `500 Internal Server Error`
+**Code** : `400 Bad Request Error`
 
 **Content** : 
 ```json
