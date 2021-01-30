@@ -18,7 +18,7 @@ chai.use(chaiHttp);
 
 const EXTENDED_TIME = 15000; // 15 seconds
 
-describe("Server", async () => {
+describe("Server", async function() {
     const server = new Server();
     const promisified = util.promisify(server.app.listen);
     await promisified(server.port);
@@ -36,9 +36,9 @@ describe("Server", async () => {
     const sourceBuffer = fs.readFileSync(sourcePath);
     const metadataPath = path.join("test", "testcontracts", "1_Storage", "metadata.json");
     const metadataBuffer = fs.readFileSync(metadataPath);
-    const contractChain = "100"; // xdai
-    const contractAddress = "0x656d0062eC89c940213E3F3170EA8b2add1c0143";
-    const fakeAddress = "0x656d0062eC89c940213E3F3170EA8b2add1c0142"
+    const contractChain = "5"; // goerli
+    const contractAddress = "0x000000bCB92160f8B7E094998Af6BCaD7fa537fe";
+    const fakeAddress = "0x000000bCB92160f8B7E094998Af6BCaD7fa537ff"
 
     const assertError = (err, res, field) => {
         chai.expect(err).to.be.null;
@@ -49,7 +49,9 @@ describe("Server", async () => {
         chai.expect(res.body.errors[0].field).to.equal(field);
     }
 
-    describe("/check-by-addresses", () => {
+    describe("/check-by-addresses", function() {
+        this.timeout(EXTENDED_TIME);
+
         it("should fail for missing chainIds", (done) => {
             chai.request(server.app)
                 .get("/check-by-addresses")
@@ -68,7 +70,7 @@ describe("Server", async () => {
                     assertError(err, res, "addresses");
                     done();
                 });
-        }).timeout(EXTENDED_TIME);
+        });
 
         const assertStatus = (err, res, expectedStatus, done) => {
             chai.expect(err).to.be.null;
@@ -86,7 +88,7 @@ describe("Server", async () => {
                 .get("/check-by-Addresses")
                 .query({ chainIds: contractChain, addresses: contractAddress })
                 .end((err, res) => assertStatus(err, res, "false", done));
-        }).timeout(EXTENDED_TIME);
+        });
 
         it("should fail for invalid address", (done) => {
             chai.request(server.app)
@@ -96,7 +98,7 @@ describe("Server", async () => {
                     assertError(err, res, "addresses");
                     done();
                 });
-        }).timeout(EXTENDED_TIME);
+        });
 
         it("should return true for previously verified contract", (done) => {
             chai.request(server.app)
@@ -119,7 +121,7 @@ describe("Server", async () => {
                                 .end((err, res) => assertStatus(err, res, "perfect", done));
                         });     
                 });
-        }).timeout(EXTENDED_TIME);
+        });
     });
 
     const checkNonVerified = (path, done) => {
@@ -135,14 +137,16 @@ describe("Server", async () => {
                 });
     }
 
-    describe("/", () => {
+    describe("/", function() {
+        this.timeout(EXTENDED_TIME);
+
         it("should correctly inform for an address check of a non verified contract (at /)", (done) => {
             checkNonVerified("/", done);
-        }).timeout(EXTENDED_TIME);
+        });
 
         it("should correctly inform for an address check of a non verified contract (at /verify)", (done) => {
             checkNonVerified("/verify", done);
-        }).timeout(EXTENDED_TIME);
+        });
 
         const assertions = (err, res, done) => {
             chai.expect(err).to.be.null;
@@ -164,7 +168,7 @@ describe("Server", async () => {
                 .attach("files", metadataBuffer, "metadata.json")
                 .attach("files", sourceBuffer, "1_Storage.sol")
                 .end((err, res) => assertions(err, res, done));
-        }).timeout(EXTENDED_TIME);
+        });
 
         it("should verify json upload with string properties", (done) => {
             chai.request(server.app)
@@ -178,7 +182,7 @@ describe("Server", async () => {
                     }
                 })
                 .end((err, res) => assertions(err, res, done));
-        }).timeout(EXTENDED_TIME);
+        });
 
         it("should verify json upload with Buffer properties", (done) => {
             chai.request(server.app)
@@ -192,7 +196,7 @@ describe("Server", async () => {
                     }
                 })
                 .end((err, res) => assertions(err, res, done));
-        }).timeout(EXTENDED_TIME);
+        });
 
         const assertMissingFile = (err, res) => {
             chai.expect(err).to.be.null;
@@ -213,7 +217,7 @@ describe("Server", async () => {
                     assertMissingFile(err, res);
                     done();
                 });
-        }).timeout(EXTENDED_TIME);
+        });
 
         it("should fetch a missing file that is accessible via ipfs (using fetch=true)", (done) => {
             chai.request(server.app)
@@ -223,7 +227,7 @@ describe("Server", async () => {
                 .field("fetch", true)
                 .attach("files", metadataBuffer, "metadata.json")
                 .end((err, res) => assertions(err, res, done));
-        }).timeout(EXTENDED_TIME);
+        });
 
         it("should fetch a missing file that is accessible via ipfs (using fetch=\"true\")", (done) => {
             chai.request(server.app)
@@ -233,7 +237,7 @@ describe("Server", async () => {
                 .field("fetch", "true")
                 .attach("files", metadataBuffer, "metadata.json")
                 .end((err, res) => assertions(err, res, done));
-        }).timeout(EXTENDED_TIME);
+        });
 
         it("should not fetch a missing file if the 'fetch' property is not true or \"true\"", (done) => {
             chai.request(server.app)
@@ -246,10 +250,12 @@ describe("Server", async () => {
                     assertMissingFile(err, res);
                     done();
                 });
-        }).timeout(EXTENDED_TIME);
+        });
     });
 
-    describe("verification v2", () => {
+    describe("verification v2", function() {
+        this.timeout(EXTENDED_TIME);
+
         it("should inform when no pending contracts", (done) => {
             chai.request(server.app)
                 .post("/verify-validated")
@@ -260,7 +266,7 @@ describe("Server", async () => {
                     chai.expect(res.body.error).to.equal("There are currently no pending contracts.")
                     done();
                 });
-        }).timeout(EXTENDED_TIME);
+        });
 
         const assertOnlyAddressAndChainMissing = (res) => {
             chai.expect(res.status).to.equal(StatusCodes.OK);
@@ -285,8 +291,8 @@ describe("Server", async () => {
                 }).then(res => {
                     assertOnlyAddressAndChainMissing(res);
                     done();
-                })
-        }).timeout(EXTENDED_TIME);
+                });
+        });
 
         it("should not verify after addition of metadata+source, but should after providing address+networkId", (done) => {
             const agent = chai.request.agent(server.app);
@@ -312,7 +318,7 @@ describe("Server", async () => {
                             done();
                         });
             });
-        }).timeout(EXTENDED_TIME);
+        });
 
         const assertAfterMetadataUpload = (err, res) => {
             chai.expect(err).to.be.null;
@@ -346,7 +352,7 @@ describe("Server", async () => {
                             done();
                         });
                 });
-        }).timeout(EXTENDED_TIME);
+        });
 
         const assertAllFound = (err, res, finalStatus) => {
             chai.expect(err).to.be.null;
@@ -385,7 +391,7 @@ describe("Server", async () => {
                                 });
                         });
                 });
-        }).timeout(EXTENDED_TIME);
+        });
 
         it("should fail if too many files uploaded, but should succeed after deletion", (done) => {
             const agent = chai.request.agent(server.app);
@@ -415,7 +421,7 @@ describe("Server", async () => {
                                 });
                         });
                 }); 
-        }).timeout(EXTENDED_TIME);
+        });
 
         const assertSingleContractStatus = (res, expectedStatus, shouldHaveTimestamp) => {
             chai.expect(res.status).to.equal(StatusCodes.OK);
@@ -453,11 +459,11 @@ describe("Server", async () => {
                                         .then(res => {
                                             assertSingleContractStatus(res, "perfect", true);
                                             done();
-                                        })
+                                        });
                                 });
                         });
                 });
-        }).timeout(EXTENDED_TIME);
+        });
 
         it("should verify after being told to fetch", (done) => {
             const agent = chai.request.agent(server.app);
@@ -479,9 +485,9 @@ describe("Server", async () => {
                                     assertSingleContractStatus(res, "perfect");
                                     chai.expect(res.body.fetch);
                                     done();
-                                })
-                        })
-                })
-        }).timeout(EXTENDED_TIME);
+                                });
+                        });
+                });
+        });
     });
 });

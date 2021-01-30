@@ -7,7 +7,7 @@
 		"abi": [
 			{
 				"inputs": [],
-				"name": "retrieve",
+				"name": "retreive",
 				"outputs": [
 					{
 						"internalType": "uint256",
@@ -33,9 +33,9 @@
 			}
 		],
 		"devdoc": {
-			"details": "Store & retrieve value in a variable",
+			"details": "Store & retreive value in a variable",
 			"methods": {
-				"retrieve()": {
+				"retreive()": {
 					"details": "Return value ",
 					"returns": {
 						"_0": "value of 'number'"
@@ -71,10 +71,10 @@
 	},
 	"sources": {
 		"browser/1_Storage.sol": {
-			"keccak256": "0x790c322296d253a536d03e4c549fb533187ef1c4d35f7c5c52a4ede2730fc214",
+			"keccak256": "0xaedc7086ad8503907209f50bac1e4dc6c2eca2ed41b15d03740fea748ea3f88e",
 			"urls": [
-				"bzz-raw://544b435f50c5790028e53848ae30a9d71005f60816b0a93483047bcd32904084",
-				"dweb:/ipfs/QmSB24iAbTTSh4uCxx6hLzo2tSre95BEa5jxhLq4xJXQDg"
+				"bzz-raw://4bc331951c25951321cb29abbd689eb3af669530222c6bb2d45ff45334ee83a7",
+				"dweb:/ipfs/QmWb1NQ6Pw8ZLMFX8uDjMyftgcEieT9iP2TvWisPhjN3U2"
 			]
 		}
 	},
