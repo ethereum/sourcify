@@ -6,6 +6,10 @@ import fs from 'fs';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const solc = require('solc');
 import {spawnSync} from 'child_process';
+import { StatusCodes } from 'http-status-codes';
+import { mkdirpSync } from 'fs-extra';
+
+const GITHUB_SOLC_REPO = "https://github.com/ethereum/solc-bin/raw/gh-pages/linux-amd64/";
 
 export interface RecompilationResult {
     bytecode: string,
@@ -102,7 +106,8 @@ export async function recompile(
 }
 
 /**
- * Searches for a solc: first for a local executable version, then using the getSolc function.
+ * Searches for a solc: first for a local executable version, then from GitHub
+ * and then using the getSolc function.
  * Once the compiler is retrieved, it is used, and the stringified solc output is returned.
  * 
  * @param version the version of solc to be used for compilation
@@ -113,8 +118,13 @@ export async function recompile(
 async function useCompiler(version: string, input: any, log: {info: any, error: any}) {
     const inputStringified = JSON.stringify(input);
     const repoPath = process.env.SOLC_REPO || "solc-repo";
-    const solcPath = Path.join(repoPath, `solc-linux-amd64-v${version}`);
+    const fileName = `solc-linux-amd64-v${version}`;
+    const solcPath = Path.join(repoPath, fileName);
     let compiled: string = null;
+
+    if (!fs.existsSync(solcPath)) {
+        await fetchSolcFromGitHub(solcPath, version, fileName, log);
+    }
 
     if (fs.existsSync(solcPath)) {
         log.info({loc: "[RECOMPILE]", version, solcPath}, "Compiling with external executable");
@@ -126,6 +136,23 @@ async function useCompiler(version: string, input: any, log: {info: any, error: 
     }
 
     return compiled;
+}
+
+async function fetchSolcFromGitHub(solcPath: string, version: string, fileName: string, log: {info: any, error: any}) {
+    const githubSolcURI = GITHUB_SOLC_REPO + encodeURIComponent(fileName);
+    const logObject = {loc: "[RECOMPILE]", version, githubSolcURI};
+    log.info(logObject, "Fetching executable solc from GitHub");
+
+    const res = await fetch(githubSolcURI);
+    if (res.status === StatusCodes.OK) {
+        log.info(logObject, "Successfully fetched executable solc from GitHub");
+        mkdirpSync(Path.dirname(solcPath));
+        const buffer = await res.buffer();
+        fs.writeFileSync(solcPath, buffer, { mode: 0o755 });
+
+    } else {
+        log.error(logObject, "Failed fetching executable solc from GitHub");
+    }
 }
 
 /**

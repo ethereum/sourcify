@@ -4,7 +4,11 @@ export const CHAIN_OPTIONS = [
     {value: "rinkeby", label: "Rinkeby", id: 4},
     {value: "kovan", label: "Kovan", id: 42},
     {value: "goerli", label: "Görli", id: 5},
-    {value: "xdai", label: "xDai", id: 100}
+    {value: "xdai", label: "xDai", id: 100},
+    {value: "binance smart chain mainnet", label: "Binance Smart Chain Mainnet", id: 56},
+    {value: "binance smart chain testnet", label: "Binance Smart Chain Testnet", id: 97},
+    {value: "matic mainnet", label: "Matic Mainnet", id: 137},
+    {value: "mumbai testnet", label: "Mumbai Testnet", id: 80001}
 ];
 
 export const REPOSITORY_URL = process.env.REPOSITORY_URL;

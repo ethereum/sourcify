@@ -19,7 +19,7 @@ import {
   getChainByName,
   cborDecode,
   Logger,
-  getSupportedChains,
+  getMonitoredChains,
   PathBuffer,
   CheckedContract
 } from '@ethereum-sourcify/core';
@@ -81,7 +81,7 @@ export default class Monitor {
    * @return {Promise<void>}
    */
   public async start(customChain?: CustomChainConfig): Promise<void> {
-    for (const chain of getSupportedChains()) {
+    for (const chain of getMonitoredChains()) {
       const url: string = customChain
         ? customChain.url
         : chain.web3[0].replace("${INFURA_ID}", process.env.INFURA_ID);
@@ -227,7 +227,7 @@ export default class Monitor {
                 loc: '[BLOCKS]',
                 chain: chain,
                 block: latest,
-                err: err
+                err: err.message
               },
               'Block not available'
             );

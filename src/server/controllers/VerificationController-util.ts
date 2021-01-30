@@ -39,7 +39,8 @@ export type SessionMaps = {
 export type MySession = 
     Session &
     SessionMaps & { 
-    unusedSources: string[]
+    unusedSources: string[],
+    fetch?: boolean
 };
 
 export type MyRequest = 
@@ -59,9 +60,9 @@ export type SendableContract =
     verificationId?: string
 }
 
-export function isVerifiable(contractWrapper: ContractWrapper) {
+export function isVerifiable(contractWrapper: ContractWrapper, ignoreMissing?: boolean) {
     const contract = contractWrapper.contract;
-    return isEmpty(contract.missing)
+    return (isEmpty(contract.missing) || ignoreMissing)
         && isEmpty(contract.invalid)
         && Boolean(contractWrapper.compilerVersion)
         && Boolean(contractWrapper.address)
@@ -103,7 +104,7 @@ export function getSessionJSON(session: MySession) {
     }
 
     const unused = session.unusedSources || [];
-    return { contracts, unused };
+    return { contracts, unused, fetch: session.fetch };
 }
 
 export function generateId(obj: any): string {
