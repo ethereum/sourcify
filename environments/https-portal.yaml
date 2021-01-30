@@ -12,7 +12,7 @@ services:
       - repository
     environment:
       DOMAINS: 'server.${FQDN} -> http://server-${TAG}:${SERVER_PORT}, ${FQDN} -> http://ui-${TAG}:${UI_PORT}, contractrepo.${FQDN} -> http://repository-${TAG}:${REPOSITORY_PORT}, prometheus.${FQDN} -> http://prometheus:9090, grafana.${FQDN} -> http://grafana:11000, loki.${FQDN} -> http://loki:3100'
-      STAGE: 'local'
+      STAGE: 'production'
       FORCE_RENEW: 'false'
     networks:
     - source-verify
