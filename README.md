@@ -52,7 +52,7 @@ watches:
   + Goerli
   + xDai
   + Matic Mainnet
-  + Mumbai Testnet
+  + Matic Testnet Mumbai
   + Binance Smart Chain Mainnet (monitoring temporarily suspended)
   + Binance Smart Chain Testnet (monitoring temporarily suspended)
 
