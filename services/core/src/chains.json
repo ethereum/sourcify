@@ -715,9 +715,9 @@
       "monitored": true
     },
     {
-      "name": "Mumbai Testnet",
+      "name": "Matic Testnet Mumbai",
       "chainId": 80001,
-      "shortName": "mumbai",
+      "shortName": "maticmum",
       "chain": "Mumbai Testnet",
       "network": "mumbai testnet",
       "networkId": 80001,
