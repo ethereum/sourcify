@@ -24,7 +24,11 @@ function compareExecutionWithFile(commandArguments, expectedFileName, expectedEx
     chai.expect(myCLI).exitCode.to.equal(expectedExitCode);
 }
 
-describe("main", function() {    
+const EXTENDED_TIME = 15000; // 15 seconds
+
+describe("main", function() {
+    this.timeout(EXTENDED_TIME);
+
     it("should succeed for single source file", function() {
         const testPath = path.join("test", "files", "single");
         compareExecutionWithFile(testPath, "single-correct.txt", 0);
