@@ -8,8 +8,12 @@ function objectLength(obj) {
     return Object.keys(obj).length;
 }
 
+const EXTENDED_TIME = 15000; // 15 seconds
+
 describe("ValidationService", function() {
+    this.timeout(EXTENDED_TIME);
     describe("#checkPaths", function() {
+
         it("should succeed for single source file", function() {
             const ignoring = [];
             const paths = [Path.join("test", "files", "single")];
