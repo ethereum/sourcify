@@ -1,10 +1,9 @@
-import {SERVER_URL} from "../common/constants";
+import { SERVER_URL } from "../common/constants";
 
 type ResponseBody = {
     error?: string,
-    result?: [
-        { address?: string, status?: string }
-    ]
+    errors?: [{ field: string, message: string }],
+    result?: [{ address?: string, status?: string }]
 }
 
 type VerificationResult = {
@@ -42,6 +41,8 @@ export const verify = async (formData: any): Promise<VerificationResult> => {
 
         if (body.error) {
             data.error = body.error;
+        } else if (body.errors) {
+            data.error = body.errors.map(e => e.message).join(", ");
         } else {
             data.address = body.result[0].address;
             data.status = body.result[0].status;
