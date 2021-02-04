@@ -11,11 +11,13 @@ import Path from 'path';
 const NESTED_METADATA_REGEX = /"{\\"compiler\\":{\\"version\\".*?},\\"version\\":1}"/;
 
 const CONTENT_VARIATORS = [
+    (content: string) => content,
     (content: string) => content.replace(/\r?\n/g, "\r\n"),
     (content: string) => content.replace(/\r\n/g, "\n")
 ];
 
 const ENDING_VARIATORS = [
+    (content: string) => content,
     (content: string) => content.trimEnd(),
     (content: string) => content.trimEnd() + "\n",
     (content: string) => content.trimEnd() + "\r\n",

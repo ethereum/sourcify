@@ -142,5 +142,10 @@ describe("ValidationService", function() {
         it("should remove a trailing \\n", function() {
             checkSingleWithModifiedEnding("single-remove-trailing-\\n", "\n", "\n");
         });
+
+        it("should validate a file with two trailing \\n", function() {
+            // this fails if not checking the original file
+            checkSingleWithModifiedEnding("single-keep-original", "\n", "\n\n");
+        });
     });
 });
