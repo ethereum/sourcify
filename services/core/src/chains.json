@@ -37,8 +37,7 @@
       "web3": ["https://dai.poa.network"],
       "faucets": [],
       "infoURL": "https://forum.poa.network/c/xdai-chain",
-      "supported": true,
-      "monitored": true
+      "supported": true
     },
     {
       "name": "EtherInc",
@@ -430,8 +429,7 @@
       "fullnode": {"dappnode": "http://kovan.dappnode:8545"},
       "faucets": ["https://faucet.kovan.network","https://gitter.im/kovan-testnet/faucet"],
       "infoURL": "https://kovan-testnet.github.io/website",
-      "supported": true,
-      "monitored": true
+      "supported": true
     },
     {
       "name": "Athereum",
@@ -717,9 +715,9 @@
       "monitored": true
     },
     {
-      "name": "Matic Testnet Mumbai",
+      "name": "Mumbai Testnet",
       "chainId": 80001,
-      "shortName": "maticmum",
+      "shortName": "mumbai",
       "chain": "Mumbai Testnet",
       "network": "mumbai testnet",
       "networkId": 80001,

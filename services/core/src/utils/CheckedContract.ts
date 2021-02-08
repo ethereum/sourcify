@@ -49,7 +49,7 @@ export class CheckedContract {
      * @param ignoreMissing a flag indicating that missing sources should be ignored
      * @returns true if no sources are missing or are invalid (malformed); false otherwise
      */
-    public static isValid(contract: CheckedContract, ignoreMissing = false): boolean {
+    public static isValid(contract: CheckedContract, ignoreMissing?: boolean): boolean {
         return (isEmpty(contract.missing) || ignoreMissing)
             && isEmpty(contract.invalid);
     }

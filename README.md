@@ -4,22 +4,23 @@ Sourcify wants to help make contract interactions on the blockchain safer and mo
 
 To achieve this goal, Sourcify supports several efforts to foster adoption of open-source source file verification, metadata files and NatSpec comments.
 
-**ℹ️ [This repository](https://github.com/ethereum/sourcify) only contains the main components, the Sourcify monorepo with main services and the verification UI. The [Sourcify Github organization](https://github.com/sourcifyeth) contains all other auxiliary services and components.**
+At its core, Sourcify currently maintains
 
-At its core, Sourcify currently maintains:
-
-+ an [interface](https://github.com/sourcifyeth/sourcify/tree/master/ui) that helps developers to verify metadata and contract source code. It is accessible via [sourcify.dev](https://sourcify.dev/) and [sourcify.eth](sourcify.eth.link).
-+ a decentralized contract repository of all verified contracts, powered by IPFS, accessible via [sourcify.dev](https://sourcify.dev/) and [verificat.eth](verificat.eth.link).
-+ a monitoring & verifier service that checks for new contracts on selected EVM-compatible chains and tries to verify them automatically. 
-+ verify & fetch plugins for several IDEs.
++ an [interface](https://github.com/sourcifyeth/sourcify/tree/master/ui) that helps developers to verify metadata and contract source code. It is accessible via [sourcify.dev](https://sourcify.dev/).
++ a decentralized contract repository of all verified contracts, powered by IPFS, accessible via [sourcify.dev](https://sourcify.dev/) and [verificat.eth](verificat.eth.link)(soon to be transfered to sourcify.eth).
++ a monitoring & verifier service that checks for new contracts on Ethereum blockchains (mainnet and testnets) and tries to verify them automatically. 
++ the [Sourcify Remix plugin](https://github.com/sourcifyeth/remix-sourcify), including a verifier and contract fetcher functionality.
 
 Sourcify aims to provide a base layer allowing other tools build on top of it. Its main purpose is to keep metadata and source files available via IPFS and Swarm (preventing that the links in the bytecode turn into dead links).
 
 Besides the technical infrastructure, Sourcify is also a collective initiative to bring transparency and awareness to the space. We want to educate and build bridges between development tools, wallets, interfaces and other components which all play an important role in demystifying interaction with smart contracts for the end user and hence making blockchain interactions safer.
 
+[This repository](https://github.com/ethereum/sourcify) only contains the main components, Sourcify monorepo with main services and the verification UI.
+The [Sourcify Github organization](https://github.com/sourcifyeth) contains all other auxiliary services and components.
+
 **Have questions or improvement ideas?**
 
-💬  Chat with us on [Gitter](https://gitter.im/ethereum/source-verify) or [Discord](https://discord.gg/8WEykm2aHC) (channels are bridged).
+💬  Chat with us on [Gitter](https://gitter.im/ethereum/source-verify).
 
 🌐  Follow us and help us spread the word on [Twitter](https://twitter.com/SourcifyEth).
 
@@ -51,7 +52,7 @@ watches:
   + Goerli
   + xDai
   + Matic Mainnet
-  + Matic Testnet Mumbai
+  + Mumbai Testnet
   + Binance Smart Chain Mainnet (monitoring temporarily suspended)
   + Binance Smart Chain Testnet (monitoring temporarily suspended)
 

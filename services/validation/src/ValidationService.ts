@@ -10,20 +10,14 @@ import Path from 'path';
  */
 const NESTED_METADATA_REGEX = /"{\\"compiler\\":{\\"version\\".*?},\\"version\\":1}"/;
 
-const CONTENT_VARIATORS = [
-    (content: string) => content,
-    (content: string) => content.replace(/\r?\n/g, "\r\n"),
-    (content: string) => content.replace(/\r\n/g, "\n")
-];
-
-const ENDING_VARIATORS = [
-    (content: string) => content,
-    (content: string) => content.trimEnd(),
-    (content: string) => content.trimEnd() + "\n",
-    (content: string) => content.trimEnd() + "\r\n",
-    (content: string) => content + "\n",
-    (content: string) => content + "\r\n"
-];
+/**
+ * Wraps the existing PathContent and adds a count variable
+ * that keeps track of how many times the file was used.
+ */
+interface CountablePathContent {
+    count: number;
+    file: PathContent;
+}
 
 export interface IValidationService {
     /**
@@ -77,19 +71,15 @@ export class ValidationService implements IValidationService {
     checkFiles(files: PathBuffer[], unused?: string[]): CheckedContract[] {
         const inputFiles = this.findInputFiles(files);
         const parsedFiles = inputFiles.map(pathBuffer => ({ content: pathBuffer.buffer.toString(), path: pathBuffer.path }));
-        const { metadataFiles, sourceFiles } = this.splitFiles(parsedFiles);
+        const { metadataFiles, otherFiles } = this.splitFiles(parsedFiles);
 
         const checkedContracts: CheckedContract[] = [];
         const errorMsgMaterial: string[] = [];
 
-        const byHash = this.storeByHash(sourceFiles);
-        const usedFiles: string[] = [];
+        const byHash = this.storeByHash(otherFiles);
 
         metadataFiles.forEach(metadata => {
-            const { foundSources, missingSources, invalidSources, metadata2provided } = this.rearrangeSources(metadata, byHash);
-            const currentUsedFiles = Object.values(metadata2provided);
-            usedFiles.push(...currentUsedFiles);
-
+            const { foundSources, missingSources, invalidSources } = this.rearrangeSources(metadata, byHash);
             const checkedContract = new CheckedContract(metadata, foundSources, missingSources, invalidSources);
             checkedContracts.push(checkedContract);
             if (!CheckedContract.isValid(checkedContract)) {
@@ -103,7 +93,7 @@ export class ValidationService implements IValidationService {
         }
 
         if (unused) {
-            this.extractUnused(sourceFiles, usedFiles, unused);
+            this.extractUnused(byHash, unused);
         }
 
         return checkedContracts;
@@ -165,9 +155,9 @@ export class ValidationService implements IValidationService {
      * @param  {string[]} files
      * @return {string[]}         metadata
      */
-    private splitFiles(files: PathContent[]): { metadataFiles: any[], sourceFiles: PathContent[] } {
+    private splitFiles(files: PathContent[]): { metadataFiles: any[], otherFiles: PathContent[] } {
         const metadataFiles = [];
-        const sourceFiles: PathContent[] = [];
+        const otherFiles: PathContent[] = [];
         const malformedMetadataFiles = [];
 
         for (const file of files) {
@@ -187,7 +177,7 @@ export class ValidationService implements IValidationService {
                     malformedMetadataFiles.push(file.path);
                 }
             } else {
-                sourceFiles.push(file);
+                otherFiles.push(file);
             }
         }
 
@@ -207,7 +197,7 @@ export class ValidationService implements IValidationService {
             throw new Error(msg);
         }
 
-        return { metadataFiles, sourceFiles };
+        return { metadataFiles, otherFiles };
     }
 
     /**
@@ -217,11 +207,10 @@ export class ValidationService implements IValidationService {
      * @param  {Map<string, any>}  byHash    Map from keccak to source
      * @return foundSources, missingSources, invalidSources
      */
-    private rearrangeSources(metadata: any, byHash: Map<string, PathContent>) {
+    private rearrangeSources(metadata: any, byHash: Map<string, CountablePathContent>) {
         const foundSources: SourceMap = {};
         const missingSources: any = {};
         const invalidSources: StringMap = {};
-        const metadata2provided: StringMap = {}; // maps fileName as in metadata to the fileName of the provided file
 
         for (const fileName in metadata.sources) {
             const sourceInfo = metadata.sources[fileName];
@@ -235,10 +224,10 @@ export class ValidationService implements IValidationService {
                     continue;
                 }
             } else {
-                const pathContent = byHash.get(hash);
-                if (pathContent) {
-                    file = pathContent;
-                    metadata2provided[fileName] = pathContent.path;
+                const countablePathContent = byHash.get(hash);
+                if (countablePathContent) {
+                    file = countablePathContent.file;
+                    countablePathContent.count++;
                 } // else: no file has the hash that was searched for
             }
 
@@ -249,7 +238,7 @@ export class ValidationService implements IValidationService {
             }
         }
 
-        return { foundSources, missingSources, invalidSources, metadata2provided };
+        return { foundSources, missingSources, invalidSources };
     }
 
     /**
@@ -258,39 +247,23 @@ export class ValidationService implements IValidationService {
      * @param  {string[]}  files Array containing sources.
      * @returns Map object that maps hash to PathContent.
      */
-    private storeByHash(files: PathContent[]): Map<string, PathContent> {
-        const byHash: Map<string, PathContent> = new Map();
+    private storeByHash(files: PathContent[]): Map<string, CountablePathContent> {
+        const byHash: Map<string, CountablePathContent> = new Map();
 
-        for (const pathContent of files) {
-            for (const variation of this.generateVariations(pathContent)) {
-                const calculatedHash = Web3.utils.keccak256(variation.content);
-                byHash.set(calculatedHash, variation);
-            }
+        for (const i in files) {
+            const calculatedHash = Web3.utils.keccak256(files[i].content);
+            byHash.set(calculatedHash, { count: 0, file: files[i] });
         }
-
         return byHash;
     }
 
-    private generateVariations(pathContent: PathContent): PathContent[] {
-        const variations: string[] = [];
-        const original = pathContent.content;
-        for (const contentVariator of CONTENT_VARIATORS) {
-            const variatedContent = contentVariator(original);
-            for (const endingVariator of ENDING_VARIATORS) {
-                const variation = endingVariator(variatedContent);
-                variations.push(variation);
+    private extractUnused(byHash: Map<string, CountablePathContent>, unused: string[]): void {
+        for (const [, countablePathContent] of byHash) {
+            const { file, count } = countablePathContent;
+            if (count === 0) {
+                unused.push(file.path);
             }
         }
-
-        return variations.map(content => {
-            return { content, path: pathContent.path }
-        });
-    }
-
-    private extractUnused(inputFiles: PathContent[], usedFiles: string[], unused: string[]): void {
-        const usedFilesSet = new Set(usedFiles);
-        const tmpUnused = inputFiles.map(pc => pc.path).filter(file => !usedFilesSet.has(file));
-        unused.push(...tmpUnused);
     }
 
     private extractMetadataFromString(file: string): any {

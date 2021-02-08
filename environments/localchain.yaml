@@ -1,0 +1,19 @@
+version: "3.7"
+networks:
+  source-verify:
+  
+x-project-base:
+  &project-base
+  env_file:
+    - .env
+  restart: always
+  networks:
+    - source-verify
+
+services:
+  localchain:
+    <<: *project-base
+    image: ethereum/source-verify:localchain-${TAG}
+    container_name: localchain-${TAG}
+    ports:
+    - "${LOCALCHAIN_EXTERNAL_PORT}:${LOCALCHAIN_PORT}"

@@ -43,7 +43,7 @@ describe("Server", async function() {
     const assertError = (err, res, field) => {
         chai.expect(err).to.be.null;
         chai.expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
-        chai.expect(res.body.message.startsWith("Validation Error")).to.be.true;
+        chai.expect(res.body.message.startsWith("Validation Error"));
         chai.expect(res.body.errors).to.be.an("array");
         chai.expect(res.body.errors).to.have.a.lengthOf(1);
         chai.expect(res.body.errors[0].field).to.equal(field);
@@ -313,7 +313,7 @@ describe("Server", async function() {
                             chai.expect(contracts).to.have.a.lengthOf(1);
                             const contract = contracts[0];
                             chai.expect(contract.status).to.equal("perfect");
-                            chai.expect(contract.storageTimestamp).to.not.exist;
+                            chai.expect(!contract.storageTimestamp);
                             chai.expect(res.body.unused).to.be.empty;
                             done();
                         });
@@ -365,7 +365,7 @@ describe("Server", async function() {
 
             chai.expect(contract.name).to.equal("Storage");
             chai.expect(contract.status).to.equal(finalStatus);
-            chai.expect(contract.storageTimestamp).to.not.exist;
+            chai.expect(!contract.storageTimestamp);
         }
 
         it("should verify when session cookie stored clientside", (done) => {
@@ -406,7 +406,7 @@ describe("Server", async function() {
                         .attach("files", Buffer.from("a"))
                         .then(res => {
                             chai.expect(res.status).to.equal(StatusCodes.REQUEST_TOO_LONG);
-                            chai.expect(res.body.error).to.exist;
+                            chai.expect(res.body.error);
 
                             agent.post("/restart-session")
                                 .then(res => {
@@ -430,7 +430,7 @@ describe("Server", async function() {
             chai.expect(contracts).to.have.a.lengthOf(1);
             const contract = contracts[0];
             chai.expect(contract.status).to.equal(expectedStatus);
-            chai.expect(!!contract.storageTimestamp).to.equal(!!shouldHaveTimestamp);
+            chai.expect(Boolean(contract.storageTimestamp) == Boolean(shouldHaveTimestamp));
             return contracts;
         }
 
@@ -483,7 +483,7 @@ describe("Server", async function() {
                                 .send({ contracts, fetch: true })
                                 .then(res => {
                                     assertSingleContractStatus(res, "perfect");
-                                    chai.expect(res.body.fetch).to.be.true;
+                                    chai.expect(res.body.fetch);
                                     done();
                                 });
                         });
