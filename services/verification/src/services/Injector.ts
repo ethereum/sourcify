@@ -1,7 +1,7 @@
 import Web3 from 'web3';
 import path from 'path';
 import * as bunyan from 'bunyan';
-import { Match, InputData, getChainByName, getSupportedChains, Logger, FileService, StringMap, cborDecode, CheckedContract } from '@ethereum-sourcify/core';
+import { Match, InputData, getSupportedChains, getFullnodeChains, Logger, FileService, StringMap, cborDecode, CheckedContract } from '@ethereum-sourcify/core';
 import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint } from '../utils';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const multihashes: any = require('multihashes');
@@ -20,7 +20,6 @@ export class Injector {
     private log: bunyan;
     private chains: any;
     private infuraPID: string;
-    private localChainUrl: string | undefined;
     private offline: boolean;
     public fileService: FileService;
     repositoryPath: string;
@@ -33,7 +32,6 @@ export class Injector {
     private constructor(config: InjectorConfig = {}) {
         this.chains = {};
         this.infuraPID = config.infuraPID;
-        this.localChainUrl = config.localChainUrl;
         this.offline = config.offline || false;
         this.repositoryPath = config.repositoryPath;
         this.log = config.log || Logger("Injector");
@@ -66,7 +64,10 @@ export class Injector {
             })
             this.log.info({loc: "[INIT_CHAINS]"}, "finished checking infuraPID");
         }
-        for (const chain of getSupportedChains()) {
+
+        const chainsData = this.infuraPID ? getSupportedChains() : getFullnodeChains();
+
+        for (const chain of chainsData) {
             this.chains[chain.chainId] = {};
             if (this.infuraPID) {
                 const web3 = chain.web3[0].replace('${INFURA_ID}', this.infuraPID);
@@ -82,14 +83,6 @@ export class Injector {
 
         const numberOfChains = Object.keys(this.chains).length;
         this.log.info({loc: "[INIT_CHAINS]", numberOfChains}, "Finished loading chains");
-
-        // For unit testing with testrpc...
-        if (this.localChainUrl) {
-            const chainOption = getChainByName('Localchain');
-            this.chains[chainOption.chainId] = {
-                web3: new Web3(chainOption.web3[0])
-            };
-        }
     }
 
     /**
