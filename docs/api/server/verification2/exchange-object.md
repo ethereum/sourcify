@@ -7,7 +7,7 @@ The object sent from the server to the client is of the following form:
         {
             "verificationId": "0x3f67e9f57515bb1e7195c7c5af1eff630091567c0bb65ba3dece57a56da766fe",
             "address": null,
-            "networkId": null,
+            "chainId": null,
             "compiledPath": "browser/1_Storage.sol",
             "name": "Storage",
             "compilerVersion": "0.6.6+commit.6c089d02",
@@ -41,7 +41,7 @@ The object expected by the server from the client is a proper subset of (1) and 
         {
             "verificationId": "0x3f67e9f57515bb1e7195c7c5af1eff630091567c0bb65ba3dece57a56da766fe",
             "address": "0x656d0062eC89c940213E3F3170EA8b2add1c0143",
-            "networkId": "100",
+            "chainId": "100",
             "compilerVersion": "0.6.6+commit.6c089d02"
         }
     ],

@@ -190,7 +190,7 @@ export default class VerificationController extends BaseController implements IC
             const contractWrapper = session.contractWrappers[id];
             if (contractWrapper) {
                 contractWrapper.address = receivedContract.address;
-                contractWrapper.networkId = receivedContract.networkId;
+                contractWrapper.chainId = receivedContract.chainId;
                 contractWrapper.compilerVersion = receivedContract.compilerVersion;
                 contractWrapper.contract.metadata.compiler.version = receivedContract.compilerVersion;
                 if (isVerifiable(contractWrapper, ignoreMissing)) {
@@ -210,9 +210,9 @@ export default class VerificationController extends BaseController implements IC
             if (!isVerifiable(contractWrapper, ignoreMissing)) {
                 continue;
             }
-            const inputData: InputData = { addresses: [contractWrapper.address], chain: contractWrapper.networkId, contract: contractWrapper.contract, fetchMissing };
+            const inputData: InputData = { addresses: [contractWrapper.address], chain: contractWrapper.chainId, contract: contractWrapper.contract, fetchMissing };
 
-            const found = await this.verificationService.findByAddress(contractWrapper.address, contractWrapper.networkId, config.repository.path);
+            const found = await this.verificationService.findByAddress(contractWrapper.address, contractWrapper.chainId, config.repository.path);
             let match: Match;
             if (found.length) {
                 match = found[0];

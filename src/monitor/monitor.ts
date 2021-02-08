@@ -16,7 +16,6 @@ import {
   QueueItem,
   StringToBooleanMap,
   InputData,
-  getChainByName,
   cborDecode,
   Logger,
   getMonitoredChains,
@@ -84,7 +83,7 @@ export default class Monitor {
     for (const chain of getMonitoredChains()) {
       const url: string = customChain
         ? customChain.url
-        : chain.web3[0].replace("${INFURA_ID}", process.env.INFURA_ID);
+        : chain.web3[0].replace("${INFURA_API_KEY}", process.env.INFURA_ID);
       
       this.chains[chain.name] = {
         web3: new Web3(url),
@@ -638,7 +637,7 @@ export default class Monitor {
       }
 
       const data: InputData = {
-        chain: getChainByName(chain).chainId.toString(),
+        chain: this.chains[chain].chainId,
         addresses: [address],
         bytecode: queueItem.found.bytecode
       };

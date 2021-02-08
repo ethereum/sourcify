@@ -294,7 +294,7 @@ describe("Server", async function() {
                 });
         });
 
-        it("should not verify after addition of metadata+source, but should after providing address+networkId", (done) => {
+        it("should not verify after addition of metadata+source, but should after providing address+chainId", (done) => {
             const agent = chai.request.agent(server.app);
             agent.post("/input-files")
                 .attach("files", sourceBuffer, "1_Storage.sol")
@@ -302,7 +302,7 @@ describe("Server", async function() {
                 .then(res => {
                     const contracts = assertOnlyAddressAndChainMissing(res);
                     contracts[0].address = contractAddress;
-                    contracts[0].networkId = contractChain;
+                    contracts[0].chainId = contractChain;
 
                     agent.post("/verify-validated")
                         .send({ contracts })
@@ -379,7 +379,7 @@ describe("Server", async function() {
                     agent.post("/input-files")
                         .attach("files", sourceBuffer, "1_Storage.sol")
                         .end((err, res) => {
-                            contracts[0].networkId = contractChain;
+                            contracts[0].chainId = contractChain;
                             contracts[0].address = contractAddress;
                             assertAllFound(err, res, "error");
 
@@ -447,7 +447,7 @@ describe("Server", async function() {
                         .send({ contracts })
                         .then(res => {
                             assertSingleContractStatus(res, "error");
-                            contracts[0].networkId = contractChain;
+                            contracts[0].chainId = contractChain;
 
                             agent.post("/verify-validated")
                                 .send({ contracts })
@@ -472,7 +472,7 @@ describe("Server", async function() {
                 .then(res => {
                     const contracts = assertSingleContractStatus(res, "error");
                     contracts[0].address = contractAddress;
-                    contracts[0].networkId = contractChain;
+                    contracts[0].chainId = contractChain;
 
                     agent.post("/verify-validated")
                         .send({ contracts })
