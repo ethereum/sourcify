@@ -54,7 +54,7 @@
     "cors": "^2.8.5",
     "death": "^1.1.0",
     "dotenv": "^8.2.0",
-    "ethers": "^5.0.14",
+    "ethers": "^5.0.30",
     "express": "^4.17.1",
     "express-fileupload": "^1.2.0",
     "express-session": "^1.17.1",
@@ -64,7 +64,7 @@
     "multihashes": "^3.0.1",
     "request-promise-native": "^1.0.9",
     "serve-index": "^1.9.1",
-    "web3": "^1.2.11"
+    "web3": "^1.3.1"
   },
   "devDependencies": {
     "@types/bunyan": "^1.8.6",
