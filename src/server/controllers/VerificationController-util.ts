@@ -17,7 +17,7 @@ export type ContractMeta = {
     name?: string
     compilerVersion?: string,
     address?: string,
-    networkId?: string,
+    chainId?: string,
     status?: Status,
     statusMessage?: string,
     storageTimestamp?: Date
@@ -66,7 +66,7 @@ export function isVerifiable(contractWrapper: ContractWrapper, ignoreMissing?: b
         && isEmpty(contract.invalid)
         && Boolean(contractWrapper.compilerVersion)
         && Boolean(contractWrapper.address)
-        && Boolean(contractWrapper.networkId);
+        && Boolean(contractWrapper.chainId);
 }
 
 function getSendableContract(contractWrapper: ContractWrapper, verificationId: string): SendableContract {
@@ -84,7 +84,7 @@ function getSendableContract(contractWrapper: ContractWrapper, verificationId: s
         name: contract.name,
         compilerVersion,
         address: contractWrapper.address,
-        networkId: contractWrapper.networkId,
+        chainId: contractWrapper.chainId,
         files: {
             found: Object.keys(contract.solidity),
             missing: Object.keys(contract.missing).concat(Object.keys(contract.invalid))

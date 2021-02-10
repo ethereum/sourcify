@@ -55,7 +55,7 @@ If using `application/json`, the files should be in an object under the key `fil
 
 **Conditions** :
 * Session only contains a metadata file that specifies one source file that is not yet uploaded.
-* The address and networkId are NOT specified, so the verification cannot be run after just uploading the missing source file.
+* The address and chainId are NOT specified, so the verification cannot be run after just uploading the missing source file.
 * Uploading the missing source file.
 
 **Code** : `200 OK`
@@ -87,7 +87,7 @@ If using `application/json`, the files should be in an object under the key `fil
 
 **Conditions** :
 * Session only contains a metadata file that specifies one source file that is not yet uploaded.
-* The address and networkId have alredy been specified, so the verification is run automatically after uploading the missing source file.
+* The address and chainId have alredy been specified, so the verification is run automatically after uploading the missing source file.
 * Uploading the missing source file.
 
 **Code** : `200 OK`
@@ -99,7 +99,7 @@ If using `application/json`, the files should be in an object under the key `fil
     "contracts": [
         {
             "address": "0x656d0062eC89c940213E3F3170EA8b2add1c0143",
-            "networkId": "100",
+            "chainId": "100",
             "compiledPath": "browser/1_Storage.sol",
             "name": "Storage",
             "compilerVersion": "0.6.6+commit.6c089d02",
