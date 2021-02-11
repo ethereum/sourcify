@@ -34,8 +34,19 @@ describe("Server", async function() {
 
     const sourcePath = path.join("test", "testcontracts", "1_Storage", "1_Storage.sol");
     const sourceBuffer = fs.readFileSync(sourcePath);
+
     const metadataPath = path.join("test", "testcontracts", "1_Storage", "metadata.json");
     const metadataBuffer = fs.readFileSync(metadataPath);
+    const metadata = JSON.parse(metadataBuffer.toString());
+    const ipfsAddress = metadata.sources["browser/1_Storage.sol"].urls[1];
+
+    // change the last char in ipfs hash of the source file
+    const lastChar = ipfsAddress.charAt(ipfsAddress.length-1);
+    const modifiedLastChar = lastChar === "a" ? "b" : "a";
+    const modifiedIpfsAddress = ipfsAddress.slice(0, ipfsAddress.length-1) + modifiedLastChar;
+    metadata.sources["browser/1_Storage.sol"].urls[1] = modifiedIpfsAddress;
+    const modifiedMetadataBuffer = Buffer.from(JSON.stringify(metadata));
+
     const contractChain = "5"; // goerli
     const contractAddress = "0x000000bCB92160f8B7E094998Af6BCaD7fa537fe";
     const fakeAddress = "0x000000bCB92160f8B7E094998Af6BCaD7fa537ff"
@@ -202,54 +213,30 @@ describe("Server", async function() {
             chai.expect(err).to.be.null;
             chai.expect(res.body).to.haveOwnProperty("error");
             const errorMessage = res.body.error.toLowerCase();
-            chai.expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
+            chai.expect(res.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
             chai.expect(errorMessage).to.include("missing");
             chai.expect(errorMessage).to.include("Storage".toLowerCase());
         }
 
-        it("should return Bad Request Error for missing file", (done) => {
+        it("should return Bad Request Error for a source that is missing and unfetchable", (done) => {
             chai.request(server.app)
                 .post("/")
                 .field("address", contractAddress)
                 .field("chain", contractChain)
-                .attach("files", metadataBuffer, "metadata.json")
+                .attach("files", modifiedMetadataBuffer, "metadata.json")
                 .end((err, res) => {
                     assertMissingFile(err, res);
                     done();
                 });
         });
 
-        it("should fetch a missing file that is accessible via ipfs (using fetch=true)", (done) => {
+        it("should fetch a missing file that is accessible via ipfs", (done) => {
             chai.request(server.app)
                 .post("/")
                 .field("address", contractAddress)
                 .field("chain", contractChain)
-                .field("fetch", true)
                 .attach("files", metadataBuffer, "metadata.json")
                 .end((err, res) => assertions(err, res, done));
-        });
-
-        it("should fetch a missing file that is accessible via ipfs (using fetch=\"true\")", (done) => {
-            chai.request(server.app)
-                .post("/")
-                .field("address", contractAddress)
-                .field("chain", contractChain)
-                .field("fetch", "true")
-                .attach("files", metadataBuffer, "metadata.json")
-                .end((err, res) => assertions(err, res, done));
-        });
-
-        it("should not fetch a missing file if the 'fetch' property is not true or \"true\"", (done) => {
-            chai.request(server.app)
-                .post("/")
-                .field("address", contractAddress)
-                .field("chain", contractChain)
-                .field("fetch", 1)
-                .attach("files", metadataBuffer, "metadata.json")
-                .end((err, res) => {
-                    assertMissingFile(err, res);
-                    done();
-                });
         });
     });
 
@@ -268,15 +255,17 @@ describe("Server", async function() {
                 });
         });
 
-        const assertOnlyAddressAndChainMissing = (res) => {
+        const assertAddressAndChainMissing = (res, expectedFound, expectedMissing) => {
             chai.expect(res.status).to.equal(StatusCodes.OK);
             const contracts = res.body.contracts;
             chai.expect(contracts).to.have.a.lengthOf(1);
+
             const contract = contracts[0];
             chai.expect(contract.status).to.equal("error");
-            chai.expect(contract.files.missing).to.deep.equal([]);
-            chai.expect(contract.files.found).to.deep.equal(["browser/1_Storage.sol"]);
+            chai.expect(contract.files.missing).to.deep.equal(expectedMissing);
+            chai.expect(contract.files.found).to.deep.equal(expectedFound);
             chai.expect(res.body.unused).to.be.empty;
+            chai.expect(contract.storageTimestamp).to.equal(undefined);
             return contracts;
         };
 
@@ -289,7 +278,7 @@ describe("Server", async function() {
                         "1_Storage.sol": sourceBuffer.toString()
                     }
                 }).then(res => {
-                    assertOnlyAddressAndChainMissing(res);
+                    assertAddressAndChainMissing(res, ["browser/1_Storage.sol"], []);
                     done();
                 });
         });
@@ -300,7 +289,7 @@ describe("Server", async function() {
                 .attach("files", sourceBuffer, "1_Storage.sol")
                 .attach("files", metadataBuffer, "metadata.json")
                 .then(res => {
-                    const contracts = assertOnlyAddressAndChainMissing(res);
+                    const contracts = assertAddressAndChainMissing(res, ["browser/1_Storage.sol"], []);
                     contracts[0].address = contractAddress;
                     contracts[0].chainId = contractChain;
 
@@ -465,27 +454,40 @@ describe("Server", async function() {
                 });
         });
 
-        it("should verify after being told to fetch", (done) => {
+        it("should fail for a source that is missing and unfetchable", (done) => {
+            const agent = chai.request.agent(server.app);
+            agent.post("/input-files")
+                .attach("files", modifiedMetadataBuffer)
+                .then(res => {
+                    assertAddressAndChainMissing(res, [], ["browser/1_Storage.sol"]);
+                    done();
+                });
+        });
+
+        it("should fetch missing sources", (done) => {
             const agent = chai.request.agent(server.app);
             agent.post("/input-files")
                 .attach("files", metadataBuffer)
                 .then(res => {
-                    const contracts = assertSingleContractStatus(res, "error");
+                    assertAddressAndChainMissing(res, ["browser/1_Storage.sol"], []);
+                    done();
+                });
+        });
+
+        it("should verify after fetching and then providing address+chainId", (done) => {
+            const agent = chai.request.agent(server.app);
+            agent.post("/input-files")
+                .attach("files", metadataBuffer)
+                .then(res => {
+                    const contracts = assertAddressAndChainMissing(res, ["browser/1_Storage.sol"], []);
                     contracts[0].address = contractAddress;
                     contracts[0].chainId = contractChain;
 
                     agent.post("/verify-validated")
                         .send({ contracts })
                         .then(res => {
-                            assertSingleContractStatus(res, "error");
-
-                            agent.post("/verify-validated")
-                                .send({ contracts, fetch: true })
-                                .then(res => {
-                                    assertSingleContractStatus(res, "perfect");
-                                    chai.expect(res.body.fetch).to.be.true;
-                                    done();
-                                });
+                            assertSingleContractStatus(res, "perfect");
+                            done();
                         });
                 });
         });

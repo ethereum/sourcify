@@ -44,8 +44,7 @@ The object expected by the server from the client is a proper subset of (1) and 
             "chainId": "100",
             "compilerVersion": "0.6.6+commit.6c089d02"
         }
-    ],
-    "fetch": true // if true or "true", then considered true, all other values are treated as false
+    ]
 }
 ```
 - If the client does not know some of the properties yet, they may be omitted.

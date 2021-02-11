@@ -4,6 +4,7 @@ const Monitor = require('../dist/monitor/monitor.js').default;
 let config;
 
 const monitor = new Monitor({
+  ipfsCatRequest: process.env.IPFS_URL,
   repository: 'repository'
 });
 
