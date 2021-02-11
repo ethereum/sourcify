@@ -11,8 +11,7 @@ export interface InputData {
     chain: string,
     addresses: string[],
     contract?: CheckedContract,
-    bytecode?: string;
-    fetchMissing?: boolean;
+    bytecode?: string
 }
 
 export interface CompilationSettings {

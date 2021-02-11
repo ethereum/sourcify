@@ -1,6 +1,6 @@
 import { Request } from 'express';
 import { Session } from 'express-session';
-import { PathContent, CheckedContract, isEmpty, PathBuffer } from '@ethereum-sourcify/core';
+import { PathContent, CheckedContract, isEmpty } from '@ethereum-sourcify/core';
 import Web3 from 'web3';
 
 export interface PathContentMap {
@@ -39,8 +39,7 @@ export type SessionMaps = {
 export type MySession = 
     Session &
     SessionMaps & { 
-    unusedSources: string[],
-    fetch?: boolean
+    unusedSources: string[]
 };
 
 export type MyRequest = 
@@ -60,9 +59,9 @@ export type SendableContract =
     verificationId?: string
 }
 
-export function isVerifiable(contractWrapper: ContractWrapper, ignoreMissing?: boolean) {
+export function isVerifiable(contractWrapper: ContractWrapper) {
     const contract = contractWrapper.contract;
-    return (isEmpty(contract.missing) || ignoreMissing)
+    return isEmpty(contract.missing)
         && isEmpty(contract.invalid)
         && Boolean(contractWrapper.compilerVersion)
         && Boolean(contractWrapper.address)
@@ -104,7 +103,7 @@ export function getSessionJSON(session: MySession) {
     }
 
     const unused = session.unusedSources || [];
-    return { contracts, unused, fetch: session.fetch };
+    return { contracts, unused };
 }
 
 export function generateId(obj: any): string {
