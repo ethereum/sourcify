@@ -1,6 +1,6 @@
 {
   "name": "@ethereum-sourcify/verification",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "verification module that returns matches bytecode of the deployed and provided contract",
   "bin": {
     "sourcify-verification": "./build/index.js"
