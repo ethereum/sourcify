@@ -1,63 +1,108 @@
-import * as chainOptions from '../chains.json';
+import fs from 'fs';
 import cbor from 'cbor';
+import { join as pathJoin } from 'path';
 
-function filterChains(predicate: (chain: any) => boolean): Array<any> {
-    const filteredChains = [];
-    for (const chainOption in chainOptions) {
-        const chainOptionValue = chainOptions[chainOption];
-        if (predicate(chainOptionValue)) {
-            filteredChains.push(chainOptionValue);
+function customRead(fileName: string): any {
+    const path = pathJoin(__dirname, "..", "..", "src", fileName);
+    const file = fs.readFileSync(path).toString();
+    return JSON.parse(file);
+}
+
+type Currency = {
+    name: string,
+    symbol: string,
+    decimals: number
+};
+
+export type Chain = {
+    name: string,
+    chainId: number,
+    shortName: string,
+    network: string,
+    networkId: number,
+    nativeCurrency: Currency,
+    web3: string[],
+    faucets: string[],
+    infoURL: string,
+    fullnode: { dappnode: string }
+};
+
+type ChainMap = {
+    [chainId: string]: Chain
+};
+
+const chainMap: ChainMap = {};
+const sourcifyChains = customRead("sourcify-chains.json");
+for (const chain of customRead("chains.json")) {
+    const chainId = chain.chainId;
+    if (chainId in chainMap) {
+        const err = `Corrupt chains file (chains.json): multiple chains have the same chainId: ${chainId}`;
+        throw new Error(err);
+    }
+
+    if (chainId in sourcifyChains) {
+        const sourcifyData = sourcifyChains[chainId];
+        Object.assign(chain, sourcifyData);
+    }
+
+    chain.web3 = chain.rpc;
+    delete chain.rpc;
+
+    chainMap[chainId] = chain;
+}
+
+function filter(obj: any, predicate: ((c: any) => boolean)): any[] {
+    const arr = [];
+    for (const id in obj) {
+        const value = obj[id];
+        if (predicate(value)) {
+            arr.push(value);
         }
     }
-    return filteredChains;
+    return arr;
 }
+
+const supportedChains = filter(chainMap, c => c.supported);
+const monitoredChains = filter(chainMap, c => c.monitored);
+const fullnodeChains = filter(chainMap, c => c.fullnode);
 
 /**
  * Returns the chains currently supported by Sourcify server.
  * @returns array of chains currently supported by Sourcify server
  */
-export function getSupportedChains(): Array<any> {
-    return filterChains(c => c.supported);
+export function getSupportedChains(): Chain[] {
+    return supportedChains;
 }
 
 /**
  * Returns the chains currently monitored by Sourcify.
  * @returns array of chains currently monitored by Sourcify
  */
-export function getMonitoredChains(): Array<any> {
-    return filterChains(c => c.monitored);
+export function getMonitoredChains(): Chain[] {
+    return monitoredChains;
 }
 
+/**
+ * Returns the chains with additional means
+ */
+export function getFullnodeChains(): Chain[] {
+    return fullnodeChains;
+}
+
+/**
+ * Checks whether the provided chain identifier is a legal chainId.
+ * Throws if not.
+ * 
+ * @returns the same provided chainId if valid
+ * @throws Error if not a valid chainId
+ * @param chain chain
+ */
 export function getChainId(chain: string): string {
-    for (const chainOption in chainOptions) {
-        const network = chainOptions[chainOption].network;
-        const chainId = chainOptions[chainOption].chainId;
-        if ((network && network.toLowerCase() === chain) || String(chainId) === chain) {
-            return String(chainOptions[chainOption].chainId);
-        }
+    if (!(chain in chainMap)) {
+        throw new Error(`Chain ${chain} not supported!`);
     }
 
-    throw new Error(`Chain ${chain} not supported!`);
-}
-
-export function getIdFromChainName(chain: string): number {
-    for (const chainOption in chainOptions) {
-        if (chainOptions[chainOption].network === chain) {
-            return chainOptions[chainOption].chainId;
-        }
-    }
-    throw new Error("Chain not found!");
-}
-
-export function getChainByName(name: string): any {
-    for (const chainOption in chainOptions) {
-        const otherName = chainOptions[chainOption].name;
-        if (otherName === name) {
-            return chainOptions[chainOption];
-        }
-    }
-
-    throw new Error(`Chain ${name} not supported!`)
+    return chain;
 }
 
 /**

@@ -1,6 +1,6 @@
 import { Request } from 'express';
 import { Session } from 'express-session';
-import { PathContent, CheckedContract, isEmpty, PathBuffer } from '@ethereum-sourcify/core';
+import { PathContent, CheckedContract, isEmpty } from '@ethereum-sourcify/core';
 import Web3 from 'web3';
 
 export interface PathContentMap {
@@ -17,7 +17,7 @@ export type ContractMeta = {
     name?: string
     compilerVersion?: string,
     address?: string,
-    networkId?: string,
+    chainId?: string,
     status?: Status,
     statusMessage?: string,
     storageTimestamp?: Date
@@ -39,8 +39,7 @@ export type SessionMaps = {
 export type MySession = 
     Session &
     SessionMaps & { 
-    unusedSources: string[],
-    fetch?: boolean
+    unusedSources: string[]
 };
 
 export type MyRequest = 
@@ -60,13 +59,13 @@ export type SendableContract =
     verificationId?: string
 }
 
-export function isVerifiable(contractWrapper: ContractWrapper, ignoreMissing?: boolean) {
+export function isVerifiable(contractWrapper: ContractWrapper) {
     const contract = contractWrapper.contract;
-    return (isEmpty(contract.missing) || ignoreMissing)
+    return isEmpty(contract.missing)
         && isEmpty(contract.invalid)
         && Boolean(contractWrapper.compilerVersion)
         && Boolean(contractWrapper.address)
-        && Boolean(contractWrapper.networkId);
+        && Boolean(contractWrapper.chainId);
 }
 
 function getSendableContract(contractWrapper: ContractWrapper, verificationId: string): SendableContract {
@@ -84,7 +83,7 @@ function getSendableContract(contractWrapper: ContractWrapper, verificationId: s
         name: contract.name,
         compilerVersion,
         address: contractWrapper.address,
-        networkId: contractWrapper.networkId,
+        chainId: contractWrapper.chainId,
         files: {
             found: Object.keys(contract.solidity),
             missing: Object.keys(contract.missing).concat(Object.keys(contract.invalid))
@@ -104,7 +103,7 @@ export function getSessionJSON(session: MySession) {
     }
 
     const unused = session.unusedSources || [];
-    return { contracts, unused, fetch: session.fetch };
+    return { contracts, unused };
 }
 
 export function generateId(obj: any): string {

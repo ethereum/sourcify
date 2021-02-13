@@ -8,6 +8,7 @@ const solc = require('solc');
 import {spawnSync} from 'child_process';
 import { StatusCodes } from 'http-status-codes';
 import { mkdirpSync } from 'fs-extra';
+import * as bunyan from 'bunyan';
 
 const GITHUB_SOLC_REPO = "https://github.com/ethereum/solc-bin/raw/gh-pages/linux-amd64/";
 
@@ -73,7 +74,7 @@ export async function getBytecode(web3: Web3, address: string): Promise<string> 
 export async function recompile(
     metadata: any,
     sources: StringMap,
-    log: any
+    log: bunyan
 ): Promise<RecompilationResult> {
 
     const {
@@ -107,7 +108,7 @@ export async function recompile(
 
 /**
  * Searches for a solc: first for a local executable version, then from GitHub
- * and then using the getSolc function.
+ * and then using the getSolcJs function.
  * Once the compiler is retrieved, it is used, and the stringified solc output is returned.
  * 
  * @param version the version of solc to be used for compilation
@@ -115,30 +116,46 @@ export async function recompile(
  * @param log the logger
  * @returns stringified solc output
  */
-async function useCompiler(version: string, input: any, log: {info: any, error: any}) {
+async function useCompiler(version: string, input: any, log: bunyan) {
     const inputStringified = JSON.stringify(input);
-    const repoPath = process.env.SOLC_REPO || "solc-repo";
-    const fileName = `solc-linux-amd64-v${version}`;
-    const solcPath = Path.join(repoPath, fileName);
+    const solcPath = await getSolcExecutable(version, log);
     let compiled: string = null;
 
-    if (!fs.existsSync(solcPath)) {
-        await fetchSolcFromGitHub(solcPath, version, fileName, log);
-    }
-
-    if (fs.existsSync(solcPath)) {
-        log.info({loc: "[RECOMPILE]", version, solcPath}, "Compiling with external executable");
+    if (solcPath) {
+        const logObject = {loc: "[RECOMPILE]", version, solcPath};
+        log.info(logObject, "Compiling with external executable");
         const shellOutputBuffer = spawnSync(solcPath, ["--standard-json"], {input: inputStringified});
+        if (!shellOutputBuffer.stdout) {
+            log.error(logObject, shellOutputBuffer.error || "Recompilation error");
+            throw new Error("Recompilation error");
+        }
         compiled = shellOutputBuffer.stdout.toString();
     } else {
-        const soljson = await getSolc(version, log);
+        const soljson = await getSolcJs(version, log);
         compiled = soljson.compile(inputStringified);
     }
 
     return compiled;
 }
 
-async function fetchSolcFromGitHub(solcPath: string, version: string, fileName: string, log: {info: any, error: any}) {
+async function getSolcExecutable(version: string, log: bunyan): Promise<string> {
+    const fileName = `solc-linux-amd64-v${version}`;
+    const tmpSolcRepo = process.env.SOLC_REPO_TMP || Path.join("/tmp", "solc-repo");
+
+    const repoPaths = [tmpSolcRepo, process.env.SOLC_REPO || "solc-repo"];
+    for (const repoPath of repoPaths) {
+        const solcPath = Path.join(repoPath, fileName);
+        if (fs.existsSync(solcPath)) {
+            return solcPath;
+        }
+    }
+
+    const tmpSolcPath = Path.join(tmpSolcRepo, fileName);
+    const success = await fetchSolcFromGitHub(tmpSolcPath, version, fileName, log);
+    return success ? tmpSolcPath : null;
+}
+
+async function fetchSolcFromGitHub(solcPath: string, version: string, fileName: string, log: bunyan): Promise<boolean> {
     const githubSolcURI = GITHUB_SOLC_REPO + encodeURIComponent(fileName);
     const logObject = {loc: "[RECOMPILE]", version, githubSolcURI};
     log.info(logObject, "Fetching executable solc from GitHub");
@@ -149,10 +166,11 @@ async function fetchSolcFromGitHub(solcPath: string, version: string, fileName: 
         mkdirpSync(Path.dirname(solcPath));
         const buffer = await res.buffer();
         fs.writeFileSync(solcPath, buffer, { mode: 0o755 });
-
-    } else {
-        log.error(logObject, "Failed fetching executable solc from GitHub");
+        return true;
     }
+
+    log.error(logObject, "Failed fetching executable solc from GitHub");
+    return false;
 }
 
 /**
@@ -238,7 +256,7 @@ function reformatMetadata(
  * 
  * @returns the requested solc instance
  */
-export function getSolc(version = "latest", log: {info: any, error: any}): Promise<any> {
+export function getSolcJs(version = "latest", log: bunyan): Promise<any> {
     // /^\d+\.\d+\.\d+\+commit\.[a-f0-9]{8}$/
     version = version.trim();
     if (version !== "latest" && !version.startsWith("v")) {
@@ -251,7 +269,7 @@ export function getSolc(version = "latest", log: {info: any, error: any}): Promi
 
     if (fs.existsSync(soljsonPath)) {
         log.info({loc: "[GET_SOLC]"}, "Found js solc locally");
-        return new Promise((resolve, reject) => {
+        return new Promise(resolve => {
             // eslint-disable-next-line @typescript-eslint/no-var-requires
             const soljson = solc.setupMethods(require(soljsonPath));
             resolve(soljson);
@@ -259,7 +277,6 @@ export function getSolc(version = "latest", log: {info: any, error: any}): Promi
     }
 
     log.info({loc: "[GET_SOLC]", version}, "Searching for js solc remotely");
-
     return new Promise((resolve, reject) => {
         solc.loadRemoteVersion(version, (error: Error, soljson: any) => {
             if (error) {

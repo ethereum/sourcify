@@ -13,7 +13,7 @@ const util = require('util');
 const log = console.log;
 
 const root = (process.env.CIRCLE_BRANCH === 'staging')
-  ? 'https://contractrepo.verificationstaging.shardlabs.io/'
+  ? 'https://contractrepo.sourcify.shardlabs.hr/'
   : 'https://contractrepo.komputing.org/';
 
 const artifact = require('../metacoin-source-verify/build/contracts/MetaCoin.json')

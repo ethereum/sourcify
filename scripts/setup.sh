@@ -28,6 +28,6 @@ source ./environments/.env
 ./scripts/prepare.sh
 cd environments
 eval ${COMPOSE_COMMAND} pull
-eval COMPOSE_HTTP_TIMEOUT=700 ${COMPOSE_COMMAND} --compatibility up -d --force-recreate
+eval COMPOSE_HTTP_TIMEOUT=700 ${COMPOSE_COMMAND} --compatibility up -d
 cd ..
 ./scripts/clear-repo.sh

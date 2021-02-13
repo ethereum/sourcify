@@ -33,6 +33,8 @@ services:
         source: $SOLJSON_REPO_HOST
         target: $SOLJSON_REPO
         read_only: true
+    environment:
+      VIRTUAL_HOST: server.${FQDN}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT}/health"]
       interval: 30s

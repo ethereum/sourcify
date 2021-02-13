@@ -16,7 +16,6 @@ import {
   QueueItem,
   StringToBooleanMap,
   InputData,
-  getChainByName,
   cborDecode,
   Logger,
   getMonitoredChains,
@@ -27,6 +26,8 @@ import { ValidationService } from '@ethereum-sourcify/validation';
 
 const multihashes = require('multihashes');
 const save = outputFileSync;
+const FETCH_TIMEOUT = parseInt(process.env.MONITOR_FETCH_TIMEOUT) || (5 * 60 * 1000);
+const timedRequest = (url: string) => request(url, { timeout: FETCH_TIMEOUT });
 
 export default class Monitor {
   private log: bunyan;
@@ -84,7 +85,7 @@ export default class Monitor {
     for (const chain of getMonitoredChains()) {
       const url: string = customChain
         ? customChain.url
-        : chain.web3[0].replace("${INFURA_ID}", process.env.INFURA_ID);
+        : chain.web3[0].replace("${INFURA_API_KEY}", process.env.INFURA_ID);
       
       this.chains[chain.name] = {
         web3: new Web3(url),
@@ -132,7 +133,7 @@ export default class Monitor {
   private async ipfsCat(hash: string): Promise<string> {
     return (this.ipfsProvider)
       ? (await concat(this.ipfsProvider.cat(`/ipfs/${hash}`))).slice().toString() // TODO the point of slice? copying? return await should be avoided
-      : request(`${this.ipfsCatRequest}${hash}`);
+      : timedRequest(`${this.ipfsCatRequest}${hash}`);
   }
 
   // =======
@@ -411,7 +412,7 @@ export default class Monitor {
       try {
         // TODO guard against too large files
         // TODO only write files after recompilation check?
-        metadataRaw = await request(`${this.swarmGateway}/bzz-raw:/${metadataBzzr1}`);
+        metadataRaw = await timedRequest(`${this.swarmGateway}/bzz-raw:/${metadataBzzr1}`);
         found.swarm = {
           metadataPath: `${this.repository}/swarm/bzzr1/${metadataBzzr1}`,
           file: metadataRaw
@@ -548,7 +549,7 @@ export default class Monitor {
     if (!url.startsWith('bzz-raw')) return;
 
     try {
-      const source = await request(`${this.swarmGateway}${url}`);
+      const source = await timedRequest(`${this.swarmGateway}${url}`);
 
       // tslint:disable-next-line:no-floating-promises
       this.sourceFound(chain, address, sourceKey, source);
@@ -638,7 +639,7 @@ export default class Monitor {
       }
 
       const data: InputData = {
-        chain: getChainByName(chain).chainId.toString(),
+        chain: this.chains[chain].chainId,
         addresses: [address],
         bytecode: queueItem.found.bytecode
       };

@@ -9,7 +9,8 @@ const STANDARD_JSON_SETTINGS_KEYS = [
 ];
 
 const IPFS_PREFIX = "dweb:/ipfs/";
-
+const IPFS_URL = process.env.IPFS_URL || 'https://ipfs.infura.io:5001/api/v0/cat?arg=';
+const FETCH_TIMEOUT = parseInt(process.env.FETCH_TIMEOUT) || 500; // ms
 /**
  * Abstraction of a checked solidity contract. With metadata and source (solidity) files.
  * The getInfo method returns the information about compilation or errors encountered while validating the metadata.
@@ -218,7 +219,7 @@ export class CheckedContract {
                 for (const url of file.urls) {
                     if (url.startsWith(IPFS_PREFIX)) {
                         const ipfsCode = url.slice(IPFS_PREFIX.length);
-                        const ipfsUrl = 'https://ipfs.infura.io:5001/api/v0/cat?arg='+ipfsCode;
+                        const ipfsUrl = IPFS_URL + ipfsCode;
                         retrievedContent = await performFetch(ipfsUrl, hash, fileName, log);
                         if (retrievedContent) {
                             break;
@@ -267,11 +268,14 @@ export class CheckedContract {
  * @returns the fetched file if found; null otherwise
  */
 async function performFetch(url: string, hash: string, fileName: string, log?: bunyan): Promise<string> {
-    const infoObject = { loc: "[FETCH]", fileName, url };
+    const infoObject = { loc: "[FETCH]", fileName, url, timeout: FETCH_TIMEOUT };
     if (log) log.info(infoObject, "Fetch attempt");
 
-    const res = await fetch(url);
-    if (res.status === 200) {
+    const res = await fetch(url, { timeout: FETCH_TIMEOUT }).catch(err => {
+        if (log) log.error(infoObject, "Fetching timed out");
+    });
+
+    if (res && res.status === 200) {
         const content = await res.text();
         if (Web3.utils.keccak256(content) !== hash) {
             if (log) log.error(infoObject, "The calculated and the provided hash don't match.");
