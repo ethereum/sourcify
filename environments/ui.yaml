@@ -20,6 +20,8 @@ services:
     <<: *project-base
     image: ethereum/source-verify:ui-${TAG}
     container_name: ui-${TAG}
+    environment:
+      VIRTUAL_HOST: ${FQDN}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${UI_PORT}"]
       interval: 30s
