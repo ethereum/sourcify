@@ -25,8 +25,9 @@ OUTPUT+="}"
 echo $OUTPUT > $REPOSITORY_PATH/stats.json
 
 hash=$(ipfs add -Q -r /app/repository)
-echo $hash
-curl -X POST "https://ipfs.komputing.org/api/v0/pin/add?arg=$hash&recursive=true"
+echo "Update successful! New ipfs hash: $hash"
+# curl -X POST "https://ipfs.komputing.org/api/v0/pin/add?arg=$hash"
 ipfs name publish --key=main $hash
 
-/app/source_verify_ens_updater/bin/source_verify_ens_updater /app/repository
+# ENS updater
+# /app/source_verify_ens_updater/bin/source_verify_ens_updater /app/repository
