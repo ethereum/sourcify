@@ -2,13 +2,12 @@ FROM node:10-alpine as builder
 WORKDIR /home/app
 RUN apk update && apk upgrade && \
     apk add --no-cache bash git openssh python make g++ curl
-RUN npm install -g lerna
 COPY environments/.env ./environments/
 COPY services/core ./services/core
 COPY services/validation ./services/validation
 COPY services/verification ./services/verification
 COPY src ./src
 COPY *.json ./
-RUN lerna bootstrap && lerna run build
+RUN npx lerna bootstrap && npx lerna run build
 
 CMD ["npm", "run", "server:start"]
