@@ -1222,5 +1222,41 @@
     "rpc": ["https://toys.joys.cash/"],
     "faucets": ["https://faucet.joys.digital/"],
     "infoURL": "https://joys.digital"
+  },
+  {
+    "name": "Celo Alfajores Testnet",
+    "chainId": 44787,
+    "shortName": "ALFA",
+    "chain": "CELO",
+    "network": "Alfajores",
+    "networkId": 44787,
+    "nativeCurrency": {"name":"CELO","symbol":"CELO","decimals":18},
+    "rpc": ["https://alfajores-forno.celo-testnet.org", "wss://alfajores-forno.celo-testnet.org/ws"],
+    "faucets": ["https://celo.org/developers/faucet", "https://cauldron.pretoriaresearchlab.io/alfajores-faucet"],
+    "infoURL": "https://docs.celo.org/"
+  },
+  {
+    "name": "Celo Baklava Testnet",
+    "chainId": 62320,
+    "shortName": "BKLV",
+    "chain": "CELO",
+    "network": "Baklava",
+    "networkId": 62320,
+    "nativeCurrency": {"name":"CELO","symbol":"CELO","decimals":18},
+    "rpc": ["https://baklava-forno.celo-testnet.org"],
+    "faucets": ["https://docs.google.com/forms/d/e/1FAIpQLSdfr1BwUTYepVmmvfVUDRCwALejZ-TUva2YujNpvrEmPAX2pg/viewform", "https://cauldron.pretoriaresearchlab.io/baklava-faucet"],
+    "infoURL": "https://docs.celo.org/"
+  },
+  {
+    "name": "Celo Mainnet",
+    "chainId": 42220,
+    "shortName": "CELO",
+    "chain": "CELO",
+    "network": "Mainnet",
+    "networkId": 42220,
+    "nativeCurrency": {"name":"CELO","symbol":"CELO","decimals":18},
+    "rpc": ["https://forno.celo.org", "wss://forno.celo.org/ws"],
+    "faucets": [],
+    "infoURL": "https://docs.celo.org/"
   }
 ]

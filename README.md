@@ -54,6 +54,9 @@ watches:
   + Matic Testnet Mumbai
   + Binance Smart Chain Mainnet (monitoring temporarily suspended)
   + Binance Smart Chain Testnet (monitoring temporarily suspended)
+  + Celo Alfajores Testnet
+  + Celo Baklava Testnet
+  + Celo Mainnet
 
 + a website which allows you to submit sources and metadata for a specific contract address manually
   + https://sourcify.dev (Stable)
