@@ -8,7 +8,7 @@ To achieve this goal, Sourcify supports several efforts to foster adoption of op
 
 At its core, Sourcify currently maintains:
 
-+ an [interface](https://github.com/sourcifyeth/sourcify/tree/master/ui) that helps developers to verify metadata and contract source code. It is accessible via [sourcify.dev](https://sourcify.dev/) and [sourcify.eth](sourcify.eth.link).
++ an [interface](https://github.com/sourcifyeth/sourcify/tree/master/ui) that helps developers to verify metadata and contract source code. It is accessible via [sourcify.dev](https://sourcify.dev/).
 + a decentralized contract repository of all verified contracts, powered by IPFS, accessible via [sourcify.dev](https://sourcify.dev/) and [verificat.eth](verificat.eth.link).
 + a monitoring & verifier service that checks for new contracts on selected EVM-compatible chains and tries to verify them automatically. 
 + verify & fetch plugins for several IDEs.
