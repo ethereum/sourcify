@@ -14,7 +14,7 @@ const log = console.log;
 
 const root = (process.env.CIRCLE_BRANCH === 'staging')
   ? 'https://contractrepo.sourcify.shardlabs.io/'
-  : 'https://contractrepo.komputing.org/';
+  : 'https://repo.sourcify.dev/';
 
 const artifact = require('../metacoin-source-verify/build/contracts/MetaCoin.json')
 const address = artifact.networks['5'].address;

@@ -60,7 +60,7 @@ watches:
   + https://sourcify.shardlabs.io (Unstable)
 
 + a public metadata repository that contains uploaded (or discovered) metadata and their sources:
-  + https://contractrepo.komputing.org (Stable)
+  + https://repo.sourcify.dev (Stable)
   + https://contractrepo.sourcify.shardlabs.io (Unstable)
 
 ### Getting Metadata
@@ -115,7 +115,7 @@ modifications have to be prepared at deploy time, but it is still a possibility.
 There is a repository which contains all the files that the monitoring service has found
 on the networks that are being watched.
 
-The repository is accessible via this [link](https://contractrepo.komputing.org/).
+The repository is accessible via this [link](https://repo.sourcify.dev/).
 
 The repository UI currently looks like this:
 <img src="./public/ui_start.png" width="80%"/>
