@@ -20,9 +20,11 @@ do
     # Give monitor a chance to detect and save.
     sleep 30
     # Script which verifies repository write
-    result=$(./scripts/monitor_ci.js)
-    if [[ $result != *"Error"* ]]; then
-        echo $result
-        break
+    if (./scripts/monitor_ci.js); then
+        echo "Test contract successfully verified!"
+        exit 0
     fi
 done
+
+echo "Test contract not verified!"
+exit 2
