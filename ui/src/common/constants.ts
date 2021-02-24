@@ -7,8 +7,8 @@ export const CHAIN_OPTIONS = [
     {value: "xdai", label: "xDai", id: 100},
     {value: "binance smart chain mainnet", label: "Binance Smart Chain Mainnet", id: 56},
     {value: "binance smart chain testnet", label: "Binance Smart Chain Testnet", id: 97},
-    {value: "matic mainnet", label: "Matic Mainnet", id: 137},
-    {value: "mumbai testnet", label: "Matic Testnet Mumbai", id: 80001}
+    {value: "matic mainnet", label: "Polygon (previously Matic)", id: 137},
+    {value: "mumbai testnet", label: "Mumbai Testnet (Polygon/Matic)", id: 80001}
 ];
 
 export const REPOSITORY_URL = process.env.REPOSITORY_URL;

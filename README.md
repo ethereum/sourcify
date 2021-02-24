@@ -50,8 +50,8 @@ watches:
   + Kovan
   + Goerli
   + xDai
-  + Matic Mainnet
-  + Matic Testnet Mumbai
+  + Polygon (previously Matic)
+  + Mumbai Testnet (Polygon/Matic)
   + Binance Smart Chain Mainnet (monitoring temporarily suspended)
   + Binance Smart Chain Testnet (monitoring temporarily suspended)
 
