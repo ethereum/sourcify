@@ -8,7 +8,10 @@ export const CHAIN_OPTIONS = [
     {value: "binance smart chain mainnet", label: "Binance Smart Chain Mainnet", id: 56},
     {value: "binance smart chain testnet", label: "Binance Smart Chain Testnet", id: 97},
     {value: "matic mainnet", label: "Polygon (previously Matic)", id: 137},
-    {value: "mumbai testnet", label: "Mumbai Testnet (Polygon/Matic)", id: 80001}
+    {value: "mumbai testnet", label: "Mumbai Testnet (Polygon/Matic)", id: 80001},
+    {value: "celo mainnet", label: "Celo Mainnet", id: 42220},
+    {value: "alfajores testnet", label: "Celo Alfajores Testnet", id: 44787},
+    {value: "baklava testnet", label: "Celo Baklava Testnet", id: 62320},
 ];
 
 export const REPOSITORY_URL = process.env.REPOSITORY_URL;
