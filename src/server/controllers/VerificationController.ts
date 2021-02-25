@@ -121,15 +121,16 @@ export default class VerificationController extends BaseController implements IC
 
     private checkByAddresses = async (req: any, res: Response) => {
         this.validateRequest(req);
-        const map: Map<string, Object> = new Map();
+        const map: Map<string, any> = new Map();
         for (const address of req.addresses) {
             for (const chainId of req.chainIds) {
                 try {
-                    const object: any = await this.verificationService.findByAddress(address, chainId, config.repository.path);
-                    object.chainId = chainId;
-                    if (object.length != 0) {
-                        map.set(address, object[0]);
-                        break;
+                    const found: Match[] = await this.verificationService.findByAddress(address, chainId, config.repository.path);
+                    if (found.length != 0) {
+                        if (!map.has(address)) {
+                            map.set(address, { address, status: "perfect", chainIds: [] });
+                        }
+                        map.get(address).chainIds.push(chainId);
                     }
                 } catch (error) {
                     // ignore
