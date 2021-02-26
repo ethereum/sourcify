@@ -1,12 +1,8 @@
-import fs from 'fs';
 import cbor from 'cbor';
-import { join as pathJoin } from 'path';
-
-function customRead(fileName: string): any {
-    const path = pathJoin(__dirname, "..", "..", "src", fileName);
-    const file = fs.readFileSync(path).toString();
-    return JSON.parse(file);
-}
+import * as chainsRaw from "../chains.json";
+import * as sourcifyChainsRaw from "../sourcify-chains.json";
+const chains = chainsRaw as any;
+const sourcifyChains = sourcifyChainsRaw as any;
 
 type Currency = {
     name: string,
@@ -32,8 +28,8 @@ type ChainMap = {
 };
 
 const chainMap: ChainMap = {};
-const sourcifyChains = customRead("sourcify-chains.json");
-for (const chain of customRead("chains.json")) {
+for (const i in chains) {
+    const chain = chains[i];
     const chainId = chain.chainId;
     if (chainId in chainMap) {
         const err = `Corrupt chains file (chains.json): multiple chains have the same chainId: ${chainId}`;
