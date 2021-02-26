@@ -2,8 +2,8 @@ process.env.TESTING = true;
 process.env.LOCALCHAIN_URL = "http://localhost:8545";
 process.env.MOCK_REPOSITORY = './dist/data/mock-repository';
 process.env.MOCK_DATABASE = './dist/data/mock-database';
-process.env.SOLC_REPO='./dist/data/solc-repo';
-process.env.SOLJSON_REPO='/dist/data/soljson-repo';
+process.env.SOLC_REPO = './dist/data/solc-repo';
+process.env.SOLJSON_REPO = '/dist/data/soljson-repo';
 
 const chai = require("chai");
 const chaiHttp = require("chai-http");
@@ -18,18 +18,21 @@ chai.use(chaiHttp);
 
 const EXTENDED_TIME = 15000; // 15 seconds
 
-describe("Server", async function() {
+describe("Server", function() {
     const server = new Server();
-    const promisified = util.promisify(server.app.listen);
-    await promisified(server.port);
-    console.log(`Injector listening on port ${server.port}!`);
+
+    before(async () => {
+        const promisified = util.promisify(server.app.listen);
+        await promisified(server.port);
+        console.log(`Injector listening on port ${server.port}!`);
+    });
 
     beforeEach(() => {
-        rimraf.sync(process.env.MOCK_REPOSITORY);
+        rimraf.sync(server.repository);
     });
 
     after(() => {
-        rimraf.sync(process.env.MOCK_REPOSITORY);
+        rimraf.sync(server.repository);
     });
 
     const sourcePath = path.join("test", "testcontracts", "1_Storage", "1_Storage.sol");

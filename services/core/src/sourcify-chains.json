@@ -47,6 +47,18 @@
         "supported": true,
         "monitored": true
     },
+    "42220": {
+        "supported": true,
+        "monitored": true
+    },
+    "44787": {
+        "supported": true,
+        "monitored": true
+    },
+    "62320": {
+        "supported": true,
+        "monitored": true
+    },
     "80001": {
         "supported": true,
         "monitored": true

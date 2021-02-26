@@ -1,12 +1,8 @@
-import fs from 'fs';
 import cbor from 'cbor';
-import { join as pathJoin } from 'path';
-
-function customRead(fileName: string): any {
-    const path = pathJoin(__dirname, "..", "..", "src", fileName);
-    const file = fs.readFileSync(path).toString();
-    return JSON.parse(file);
-}
+import * as chainsRaw from "../chains.json";
+import * as sourcifyChainsRaw from "../sourcify-chains.json";
+const chains = chainsRaw as any;
+const sourcifyChains = sourcifyChainsRaw as any;
 
 type Currency = {
     name: string,
@@ -24,7 +20,7 @@ export type Chain = {
     web3: string[],
     faucets: string[],
     infoURL: string,
-    fullnode: { dappnode: string }
+    fullnode?: { dappnode: string }
 };
 
 type ChainMap = {
@@ -32,8 +28,8 @@ type ChainMap = {
 };
 
 const chainMap: ChainMap = {};
-const sourcifyChains = customRead("sourcify-chains.json");
-for (const chain of customRead("chains.json")) {
+for (const i in chains) {
+    const chain = chains[i];
     const chainId = chain.chainId;
     if (chainId in chainMap) {
         const err = `Corrupt chains file (chains.json): multiple chains have the same chainId: ${chainId}`;
@@ -66,20 +62,32 @@ const supportedChains = filter(chainMap, c => c.supported);
 const monitoredChains = filter(chainMap, c => c.monitored);
 const fullnodeChains = filter(chainMap, c => c.fullnode);
 
+const TEST_CHAINS: Chain[] = [{
+    name: "Localhost",
+    shortName: "Localhost",
+    chainId: 0,
+    faucets: [],
+    infoURL: null,
+    nativeCurrency: null,
+    network: "testnet",
+    networkId: 0,
+    web3: [ `http://localhost:${process.env.LOCALCHAIN_PORT || 8545}` ]
+}];
+
 /**
  * Returns the chains currently supported by Sourcify server.
  * @returns array of chains currently supported by Sourcify server
  */
-export function getSupportedChains(): Chain[] {
-    return supportedChains;
+export function getSupportedChains(testing = false): Chain[] {
+    return testing ? TEST_CHAINS : supportedChains;
 }
 
 /**
  * Returns the chains currently monitored by Sourcify.
  * @returns array of chains currently monitored by Sourcify
  */
-export function getMonitoredChains(): Chain[] {
-    return monitoredChains;
+export function getMonitoredChains(testing = false): Chain[] {
+    return testing ? TEST_CHAINS : monitoredChains;
 }
 
 /**

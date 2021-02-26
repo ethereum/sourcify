@@ -8,7 +8,7 @@ To achieve this goal, Sourcify supports several efforts to foster adoption of op
 
 At its core, Sourcify currently maintains:
 
-+ an [interface](https://github.com/sourcifyeth/sourcify/tree/master/ui) that helps developers to verify metadata and contract source code. It is accessible via [sourcify.dev](https://sourcify.dev/) and [sourcify.eth](sourcify.eth.link).
++ an [interface](https://github.com/sourcifyeth/sourcify/tree/master/ui) that helps developers to verify metadata and contract source code. It is accessible via [sourcify.dev](https://sourcify.dev/).
 + a decentralized contract repository of all verified contracts, powered by IPFS, accessible via [sourcify.dev](https://sourcify.dev/) and [verificat.eth](verificat.eth.link).
 + a monitoring & verifier service that checks for new contracts on selected EVM-compatible chains and tries to verify them automatically. 
 + verify & fetch plugins for several IDEs.
@@ -50,17 +50,20 @@ watches:
   + Kovan
   + Goerli
   + xDai
-  + Matic Mainnet
-  + Matic Testnet Mumbai
+  + Polygon (previously Matic)
+  + Mumbai Testnet (Polygon/Matic)
   + Binance Smart Chain Mainnet (monitoring temporarily suspended)
   + Binance Smart Chain Testnet (monitoring temporarily suspended)
+  + Celo Mainnet
+  + Celo Alfajores Testnet
+  + Celo Baklava Testnet
 
 + a website which allows you to submit sources and metadata for a specific contract address manually
   + https://sourcify.dev (Stable)
   + https://sourcify.shardlabs.io (Unstable)
 
 + a public metadata repository that contains uploaded (or discovered) metadata and their sources:
-  + https://contractrepo.komputing.org (Stable)
+  + https://repo.sourcify.dev (Stable)
   + https://contractrepo.sourcify.shardlabs.io (Unstable)
 
 ### Getting Metadata
@@ -115,7 +118,7 @@ modifications have to be prepared at deploy time, but it is still a possibility.
 There is a repository which contains all the files that the monitoring service has found
 on the networks that are being watched.
 
-The repository is accessible via this [link](https://contractrepo.komputing.org/).
+The repository is accessible via this [link](https://repo.sourcify.dev/).
 
 The repository UI currently looks like this:
 <img src="./public/ui_start.png" width="80%"/>

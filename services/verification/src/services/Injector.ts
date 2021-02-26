@@ -53,6 +53,14 @@ export class Injector {
     }
 
     /**
+     * Creates an instance of Injector. Does not initialize chains.
+     * @param config 
+     */
+    public static createOffline(config: InjectorConfig = {}): Injector {
+        return new Injector(config);
+    }
+
+    /**
      * Instantiates a web3 provider for all public ethereum networks via Infura or regular node.
      * If environment variable TESTING is set to true, localhost:8545 is also available.
      */

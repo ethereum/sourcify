@@ -12,9 +12,19 @@ const fetch = require('node-fetch');
 const util = require('util');
 const log = console.log;
 
-const root = (process.env.CIRCLE_BRANCH === 'staging')
-  ? 'https://contractrepo.sourcify.shardlabs.hr/'
-  : 'https://contractrepo.komputing.org/';
+let root;
+const circleBranch = process.env.CIRCLE_BRANCH;
+
+if (circleBranch === 'master') {
+  root = 'https://repo.sourcify.dev/';
+
+} else if (circleBranch === 'staging') {
+  root = 'https://contractrepo.sourcify.shardlabs.io/';
+
+} else {
+  log('Unknown circle branch:', circleBranch);
+  process.exit(1);
+}
 
 const artifact = require('../metacoin-source-verify/build/contracts/MetaCoin.json')
 const address = artifact.networks['5'].address;

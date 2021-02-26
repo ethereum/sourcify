@@ -19,7 +19,7 @@
     "network": "mainnet",
     "networkId": 10,
     "nativeCurrency": {"name":"Ether","symbol":"OETH","decimals":18},
-    "rpc": [],
+    "rpc": ["https://mainnet.optimism.io/"],
     "faucets": [],
     "infoURL": "https://optimism.io"
   },
@@ -348,6 +348,66 @@
     "infoURL": "https://explorer.lightstreams.io"
   },
   {
+    "name": "Harmony Mainnet Shard 0",
+    "chainId": 1666600000,
+    "shortName": "hmy-s0",
+    "chain": "Harmony",
+    "network": "mainnet",
+    "networkId": 1666600000,
+    "nativeCurrency": {"name":"ONE","symbol":"ONE","decimals":18},
+    "rpc": ["https://rpc.s0.t.hmny.io"],
+    "faucets": [],
+    "infoURL": "https://www.harmony.one/"
+  },
+  {
+    "name": "Harmony Mainnet Shard 1",
+    "chainId": 1666600001,
+    "shortName": "hmy-s1",
+    "chain": "Harmony",
+    "network": "mainnet",
+    "networkId": 1666600001,
+    "nativeCurrency": {"name":"ONE","symbol":"ONE","decimals":18},
+    "rpc": ["https://rpc.s1.t.hmny.io"],
+    "faucets": [],
+    "infoURL": "https://www.harmony.one/"
+  },
+  {
+    "name": "Harmony Mainnet Shard 2",
+    "chainId": 1666600002,
+    "shortName": "hmy-s2",
+    "chain": "Harmony",
+    "network": "mainnet",
+    "networkId": 1666600002,
+    "nativeCurrency": {"name":"ONE","symbol":"ONE","decimals":18},
+    "rpc": ["https://rpc.s2.t.hmny.io"],
+    "faucets": [],
+    "infoURL": "https://www.harmony.one/"
+  },
+  {
+    "name": "Harmony Mainnet Shard 3",
+    "chainId": 1666600003,
+    "shortName": "hmy-s3",
+    "chain": "Harmony",
+    "network": "mainnet",
+    "networkId": 1666600003,
+    "nativeCurrency": {"name":"ONE","symbol":"ONE","decimals":18},
+    "rpc": ["https://rpc.s3.t.hmny.io"],
+    "faucets": [],
+    "infoURL": "https://www.harmony.one/"
+  },
+  {
+    "name": "ThaiChain 2.0 ThaiFi",
+    "chainId": 17,
+    "shortName": "tfi",
+    "chain": "TCH",
+    "network": "thaifi",
+    "networkId": 17,
+    "nativeCurrency": {"name":"Thaifi Ether","symbol":"TFI","decimals":18},
+    "rpc": ["https://rpc.thaifi.com"],
+    "faucets": [],
+    "infoURL": "https://exp.thaifi.com"
+  },
+  {
     "name": "ThunderCore Testnet",
     "chainId": 18,
     "shortName": "TST",
@@ -466,18 +526,6 @@
     "rpc": ["http://13.57.207.168:3435","https://app.freighttrust.net/ftn/${API_KEY}"],
     "faucets": ["http://faucet.freight.sh"],
     "infoURL": "https://freighttrust.com"
-  },
-  {
-    "name": "SoterOne Mainnet",
-    "chainId": 218,
-    "shortName": "SO1",
-    "chain": "SOTER",
-    "network": "mainnet",
-    "networkId": 218,
-    "nativeCurrency": {"name":"SoterOne Mainnet Ether","symbol":"SOTER","decimals":18},
-    "rpc": ["https://rpc.soter.one"],
-    "faucets": [],
-    "infoURL": "https://www.soterone.com"
   },
   {
     "name": "Webchain",
@@ -636,6 +684,18 @@
     "infoURL": "https://pirl.io"
   },
   {
+    "name": "TBWG Chain",
+    "chainId": 35,
+    "shortName": "tbwg",
+    "chain": "TBWG",
+    "network": "mainnet",
+    "networkId": 35,
+    "nativeCurrency": {"name":"TBWG Ether","symbol":"TBG","decimals":18},
+    "rpc": ["https://rpc.tbwg.io"],
+    "faucets": [],
+    "infoURL": "https://tbwg.io"
+  },
+  {
     "name": "Joys Digital Mainnet",
     "chainId": 35855456,
     "shortName": "JOYS",
@@ -715,7 +775,7 @@
     "network": "goerli",
     "networkId": 420,
     "nativeCurrency": {"name":"Görli Ether","symbol":"GOR","decimals":18},
-    "rpc": [],
+    "rpc": ["https://goerli.optimism.io/"],
     "faucets": [],
     "infoURL": "https://optimism.io"
   },
@@ -732,6 +792,18 @@
     "infoURL": "https://teampeggle.com"
   },
   {
+    "name": "Celo Mainnet",
+    "chainId": 42220,
+    "shortName": "CELO",
+    "chain": "CELO",
+    "network": "Mainnet",
+    "networkId": 42220,
+    "nativeCurrency": {"name":"CELO","symbol":"CELO","decimals":18},
+    "rpc": ["https://forno.celo.org","wss://forno.celo.org/ws"],
+    "faucets": [],
+    "infoURL": "https://docs.celo.org/"
+  },
+  {
     "name": "Athereum",
     "chainId": 43110,
     "shortName": "avaeth",
@@ -742,6 +814,42 @@
     "rpc": ["https://ava.network:21015/ext/evm/rpc"],
     "faucets": ["http://athfaucet.ava.network//?address=${ADDRESS}"],
     "infoURL": "https://athereum.ava.network"
+  },
+  {
+    "name": "Avalanche Fuji Testnet",
+    "chainId": 43113,
+    "shortName": "Fuji",
+    "chain": "AVAX",
+    "network": "testnet",
+    "networkId": 1,
+    "nativeCurrency": {"name":"Avalanche","symbol":"AVAX","decimals":18},
+    "rpc": ["https://api.avax-test.network/ext/bc/C/rpc"],
+    "faucets": ["https://faucet.avax-test.network/"],
+    "infoURL": "https://cchain.explorer.avax-test.network"
+  },
+  {
+    "name": "Avalanche Mainnet",
+    "chainId": 43114,
+    "shortName": "Avalanche",
+    "chain": "AVAX",
+    "network": "mainnet",
+    "networkId": 1,
+    "nativeCurrency": {"name":"Avalanche","symbol":"AVAX","decimals":18},
+    "rpc": ["https://api.avax.network/ext/bc/C/rpc"],
+    "faucets": [],
+    "infoURL": "https://cchain.explorer.avax.network/"
+  },
+  {
+    "name": "Celo Alfajores Testnet",
+    "chainId": 44787,
+    "shortName": "ALFA",
+    "chain": "CELO",
+    "network": "Alfajores",
+    "networkId": 44787,
+    "nativeCurrency": {"name":"CELO","symbol":"CELO","decimals":18},
+    "rpc": ["https://alfajores-forno.celo-testnet.org","wss://alfajores-forno.celo-testnet.org/ws"],
+    "faucets": ["https://celo.org/developers/faucet","https://cauldron.pretoriaresearchlab.io/alfajores-faucet"],
+    "infoURL": "https://docs.celo.org/"
   },
   {
     "name": "Energi Testnet",
@@ -912,6 +1020,18 @@
     "infoURL": "https://ethereumclassic.org"
   },
   {
+    "name": "Celo Baklava Testnet",
+    "chainId": 62320,
+    "shortName": "BKLV",
+    "chain": "CELO",
+    "network": "Baklava",
+    "networkId": 62320,
+    "nativeCurrency": {"name":"CELO","symbol":"CELO","decimals":18},
+    "rpc": ["https://baklava-forno.celo-testnet.org"],
+    "faucets": ["https://docs.google.com/forms/d/e/1FAIpQLSdfr1BwUTYepVmmvfVUDRCwALejZ-TUva2YujNpvrEmPAX2pg/viewform","https://cauldron.pretoriaresearchlab.io/baklava-faucet"],
+    "infoURL": "https://docs.celo.org/"
+  },
+  {
     "name": "Ethereum Classic Testnet Mordor",
     "chainId": 63,
     "shortName": "metc",
@@ -972,6 +1092,18 @@
     "infoURL": "http://test.dbmbp.com"
   },
   {
+    "name": "SoterOne Mainnet",
+    "chainId": 68,
+    "shortName": "SO1",
+    "chain": "SOTER",
+    "network": "mainnet",
+    "networkId": 68,
+    "nativeCurrency": {"name":"SoterOne Mainnet Ether","symbol":"SOTER","decimals":18},
+    "rpc": ["https://rpc.soter.one"],
+    "faucets": [],
+    "infoURL": "https://www.soterone.com"
+  },
+  {
     "name": "Karura Network",
     "chainId": 686,
     "shortName": "kar",
@@ -982,6 +1114,18 @@
     "rpc": [],
     "faucets": [],
     "infoURL": "https://karura.network"
+  },
+  {
+    "name": "Optimistic Ethereum Testnet Kovan",
+    "chainId": 69,
+    "shortName": "okov",
+    "chain": "ETH",
+    "network": "kovan",
+    "networkId": 69,
+    "nativeCurrency": {"name":"Kovan Ether","symbol":"KOR","decimals":18},
+    "rpc": ["https://kovan.optimism.io/"],
+    "faucets": [],
+    "infoURL": "https://optimism.io"
   },
   {
     "name": "ThaiChain",
@@ -1147,7 +1291,7 @@
     "network": "mainnet",
     "networkId": 88,
     "nativeCurrency": {"name":"TomoChain Ether","symbol":"TOMO","decimals":18},
-    "rpc": ["https://core.tomocoin.io"],
+    "rpc": ["https://rpc.tomochain.com"],
     "faucets": [],
     "infoURL": "https://tomocoin.io"
   },
