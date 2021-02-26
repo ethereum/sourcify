@@ -28,10 +28,14 @@
       "name": "Monitor",
       "program": "${workspaceFolder}/scripts/run_monitor.js",
       "envFile": "${workspaceFolder}/environments/.env",
-      "preLaunchTask": "tsc: build - tsconfig.json",
+      "preLaunchTask": "npm: build:lerna",
       "outFiles": [
-        "${workspaceFolder}/dist/**/*.js"
+        "${workspaceFolder}/dist/**/*.js",
+        "${workspaceFolder}/services/core/build/**/*.js",
+        "${workspaceFolder}/services/validation/build/**/*.js",
+        "${workspaceFolder}/services/verification/build/**/*.js"
       ],
+      "smartStep": true,
       "console": "integratedTerminal", 
       "outputCapture": "std"
     },

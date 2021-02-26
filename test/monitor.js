@@ -1,124 +1,122 @@
-// process.env.MOCK_REPOSITORY = './mockRepository';
-// process.env.MOCK_DATABASE = './mockDatabase';
+const MOCK_REPOSITORY = process.env.MOCK_REPOSITORY = "./mockRepository";
+process.env.MOCK_DATABASE = "./mockDatabase";
+process.env.IPFS_URL = "http://ipfs.io/ipfs/";
+const GANACHE_PORT = process.env.LOCALCHAIN_PORT || 8545;
 
-// const assert = require('assert');
-// const ganache = require('ganache-cli');
-// const exec = require('child_process').execSync;
-// const pify = require('pify');
-// const Web3 = require('web3');
-// const IPFS = require('ipfs')
-// const fs = require('fs');
-// const path = require('path');
-// const request = require('request-promise-native')
+const ganache = require('ganache-cli');
+const util = require('util');
+const ipfs = require('ipfs');
+const rimraf = require('rimraf');
+const chai = require('chai');
+const Monitor = require("../dist/monitor/monitor").default;
+const { deployFromArtifact, waitSecs } = require('./helpers/helpers');
+const fs = require("fs");
+const path = require("path");
+const Web3 = require("web3");
 
-// const { deployFromArtifact, waitSecs } = require('./helpers/helpers');
-// const SimpleWithImport = require('./sources/pass/simpleWithImport.js');
-// const Monitor = require('../src/monitor/monitor').default;
+function assertEqualityFromPath(obj1, obj2path) {
+    const obj2raw = fs.readFileSync(obj2path).toString();
+    const obj2 = JSON.parse(obj2raw);
+    chai.expect(obj1, `assertFromPath: ${obj2path}`).to.deep.equal(obj2);
+}
 
-// describe('monitor', function(){
+function assertFilesStored(chainId, address, metadataIpfsHash, metadata) {
+    const pathPrefix = path.join(MOCK_REPOSITORY, 'contracts', 'full_match', chainId, address);
+    const addressMetadataPath = path.join(pathPrefix, 'metadata.json');
+    const ipfsMetadataPath = path.join(MOCK_REPOSITORY, 'ipfs', metadataIpfsHash);
 
-//   describe('E2E', function(){
-//     let monitor;
-//     let web3;
-//     let server;
-//     let accounts;
-//     let port = 8545;
-//     let ipfs;
-//     let node;
-//     let chain = 'localhost';
-//     let mockRepo = 'mockRepository';
+    assertEqualityFromPath(metadata, addressMetadataPath);
+    assertEqualityFromPath(metadata, ipfsMetadataPath);
 
-//     before(async function(){
-//       server = ganache.server({blockTime: 1});
-//       await pify(server.listen)(port);
-//       web3 = new Web3(`http://${chain}:${port}`);
-//       accounts = await web3.eth.getAccounts();
-//     });
+    for (const sourceName in metadata.sources) {
+        const source = metadata.sources[sourceName];
+        const sourcePath = path.join(pathPrefix, "sources", sourceName);
+        const savedSource = fs.readFileSync(sourcePath).toString();
+        const savedSourceHash = Web3.utils.keccak256(savedSource);
+        chai.expect(savedSourceHash, "sourceHash comparison").to.equal(source.keccak256);
+    }
+}
 
-//     // Clean up server
-//     after(async function(){
-//       monitor.stop();
-//       await pify(server.close)();
-//       await ipfs.stop();
+function startMonitor(startBlock) {
+    const monitor = new Monitor({ repository: MOCK_REPOSITORY, testing: true });
 
-//       try { exec(`rm -rf ${mockRepo}`) } catch(err) { /*ignore*/ }
-//     });
+    chai.expect(monitor.chainMonitors).to.have.a.lengthOf(1);
+    const chainId = monitor.chainMonitors[0].chainId;
 
-//     it('SimpleWithImport: matches deployed to IPFS sources', async function(){
-//       this.timeout(25000);
+    if (startBlock !== undefined) {
+        process.env[`MONITOR_START_${chainId}`] = startBlock;
+    }
 
-//       const customChain = {
-//         url: `http://${chain}:${port}`,
-//         name: chain
-//       };
+    monitor.start();
+    return { monitor, chainId };
+}
 
-//       ipfs = await IPFS.create({
-//         offline: true,
-//         silent: true
-//       });
+describe("Monitor", function() {
+    const ganacheServer = ganache.server({ blockTime: 1 });
 
-//       monitor = new Monitor({
-//         blockTime: 1,
-//         ipfsProvider: ipfs,
-//         repository: mockRepo,
-//         silent: true
-//       });
+    let ipfsNode;
 
-//       const chainId = monitor.injector.fileService.getChainByName(chain).chainId.toString();
+    const contractArtifact = require('./sources/pass/simpleWithImport.js');
+    const rawMetadata = contractArtifact.compilerOutput.metadata;
+    const metadata = JSON.parse(rawMetadata);
+    let metadataIpfsHash;
 
-//       await monitor.start(customChain);
+    const sources = contractArtifact.sourceCodes;
 
-//       const sourceAIpfs = await ipfs.add(SimpleWithImport.sourceCodes["SimpleWithImport.sol"]);
-//       const sourceBIpfs = await ipfs.add(SimpleWithImport.sourceCodes["Import.sol"]);
-//       const metadataIpfs = await ipfs.add(SimpleWithImport.compilerOutput.metadata);
+    let web3Provider;
 
-//       const instance = await deployFromArtifact(web3, SimpleWithImport);
-//       const address = instance.options.address;
+    const deployContract = async (artifact) => {
+        const instance = await deployFromArtifact(web3Provider, artifact);
+        return instance.options.address;
+    }
 
-//       await waitSecs(10);
+    before(async function() {
+        this.timeout(20 * 1000);
 
-//       // Verify metadata stored
-//       const addressMetadataPath = path.join(mockRepo, 'contracts', 'full_match', chainId, address, 'metadata.json');
-//       const ipfsMetadataPath = path.join(mockRepo, 'ipfs', metadataIpfs.path);
+        ipfsNode = await ipfs.create({ offline: true, silent: true });
+        metadataIpfsHash = (await ipfsNode.add(rawMetadata)).path;
+        for (const sourceName in sources) {
+            await ipfsNode.add(sources[sourceName]);
+        }
 
-//       const addressMetadata = fs.readFileSync(addressMetadataPath, 'utf-8');
-//       const ipfsMetadata = fs.readFileSync(ipfsMetadataPath, 'utf-8');
+        await util.promisify(ganacheServer.listen)(GANACHE_PORT);
+        web3Provider = new Web3(`http://localhost:${GANACHE_PORT}`);
+    });
 
-//       assert.equal(addressMetadata, SimpleWithImport.compilerOutput.metadata);
-//       assert.equal(ipfsMetadata, SimpleWithImport.compilerOutput.metadata);
+    beforeEach(function() {
+        rimraf.sync(MOCK_REPOSITORY);
+    });
 
-//       // Verify source stored
-//       const metadata = JSON.parse(SimpleWithImport.compilerOutput.metadata);
+    it("should sourcify the deployed contract", async function() {
+        this.timeout(25 * 1000);
 
-//       // Source keys sorted alpha
-//       const importKey = Object.keys(metadata.sources)[0];
-//       const simpleWithImportKey = Object.keys(metadata.sources)[1];
+        const { monitor, chainId } = startMonitor();
+        const address = await deployContract(contractArtifact);
 
-//       const importPath = path.join(
-//         mockRepo,
-//         'contracts',
-//         'full_match',
-//         chainId,
-//         address,
-//         'sources',
-//         importKey
-//       );
+        await waitSecs(20);
+        assertFilesStored(chainId, address, metadataIpfsHash, metadata);
 
-//       const simpleWithImportPath = path.join(
-//         mockRepo,
-//         'contracts',
-//         'full_match',
-//         chainId,
-//         address,
-//         'sources',
-//         simpleWithImportKey
-//       );
+        monitor.stop();
+    });
 
-//       const savedImportSource = fs.readFileSync(importPath, 'utf-8');
-//       const savedSimpleWithImportSource = fs.readFileSync(simpleWithImportPath, 'utf-8');
+    it("should sourcify the deployed contract after being started with a delay", async function() {
+        this.timeout(50 * 1000);
 
-//       assert.equal(savedImportSource, SimpleWithImport.sourceCodes["Import.sol"]);
-//       assert.equal(savedSimpleWithImportSource, SimpleWithImport.sourceCodes["SimpleWithImport.sol"])
-//     });
-//   });
-// });
+        const currentBlockNumber = await web3Provider.eth.getBlockNumber();
+        const address = await deployContract(contractArtifact);
+
+        await waitSecs(10); // to allow for blocks to generate 
+        const { monitor, chainId } = startMonitor(currentBlockNumber - 1);
+
+        await waitSecs(30);
+        assertFilesStored(chainId, address, metadataIpfsHash, metadata);
+
+        monitor.stop();
+    });
+
+    after(async function() {
+        await util.promisify(ganacheServer.close)();
+        await ipfsNode.stop();
+        rimraf.sync(MOCK_REPOSITORY);
+    });
+});

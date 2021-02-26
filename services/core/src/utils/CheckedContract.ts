@@ -55,18 +55,10 @@ export class CheckedContract {
             && isEmpty(contract.invalid);
     }
 
-    private sourceMapToStringMap(input: SourceMap) {
-        const ret: StringMap = {};
-        for (const key in input) {
-            ret[key] = input[key].content;
-        }
-        return ret;
-    }
-
-    public constructor(metadata: any, solidity: SourceMap, missing: any, invalid: StringMap) {
+    public constructor(metadata: any, solidity: StringMap, missing: any = {}, invalid: StringMap = {}) {
         this.metadataRaw = JSON.stringify(metadata);
         this.metadata = JSON.parse(JSON.stringify(metadata));
-        this.solidity = this.sourceMapToStringMap(solidity);
+        this.solidity = solidity;
         this.missing = missing;
         this.invalid = invalid;
 
@@ -75,7 +67,7 @@ export class CheckedContract {
             const metadataSource = sources[compiledPath];
             const foundSource = solidity[compiledPath];
             if (!metadataSource.content && foundSource) {
-                metadataSource.content = foundSource.content;
+                metadataSource.content = foundSource;
             }
             delete metadataSource.license;
         }

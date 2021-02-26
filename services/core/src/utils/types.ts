@@ -70,43 +70,8 @@ export type MatchQuality = "full" | "partial";
 export type FilesInfo<T> = { status: MatchQuality, files: Array<T> };
 
 export interface MonitorConfig {
-  ipfsCatRequest? : string,
-  ipfsProvider? : any,
-  swarmGateway? : string,
   repository? : string,
-  blockTime? : number,
-  silent?: boolean
-}
-
-export interface CustomChainConfig {
-  name: string,
-  url: string
-}
-
-export declare interface ChainSet {
-  [key: string]: ChainData
-}
-
-export declare interface ChainData {
-  web3 : Web3,
-  metadataQueue: Queue,
-  sourceQueue: Queue,
-  latestBlock : number,
-  chainId: string
-}
-
-export declare interface Queue {
-  [key: string]: QueueItem;
-}
-
-export declare interface QueueItem {
-  bzzr1? : string,
-  ipfs? : string,
-  timestamp? : number,
-  metadataRaw? : string,
-  sources?: any,
-  found?: any,
-  bytecode?: string
+  testing?: boolean
 }
 
 export declare interface StringToBooleanMap {
