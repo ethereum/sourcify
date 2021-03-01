@@ -76,7 +76,7 @@ export class Injector {
         const chainsData = this.infuraPID ? getSupportedChains() : getFullnodeChains();
 
         for (const chain of chainsData) {
-            this.chains[chain.chainId] = {};
+            this.chains[chain.chainId] = { name: chain.name };
             if (this.infuraPID) {
                 const web3 = chain.web3[0].replace('${INFURA_API_KEY}', this.infuraPID);
                 this.chains[chain.chainId].web3 = new Web3(web3);
@@ -105,6 +105,7 @@ export class Injector {
         compiledBytecode: string
     ): Promise<Match> {
         let match: Match = { address: null, status: null };
+        const chainName = this.chains[chain].name || "The chain";
 
         for (let address of addresses) {
             address = Web3.utils.toChecksumAddress(address)
@@ -125,8 +126,12 @@ export class Injector {
             const status = this.compareBytecodes(deployedBytecode, compiledBytecode);
 
             if (status) {
-                match = { address: address, status: status };
+                match = { address, status };
                 break;
+            } else if (!deployedBytecode) {
+                match.message = `${chainName} does not have a contract deployed at ${address}.`;
+            } else if (deployedBytecode.length === compiledBytecode.length) {
+                match.message = `Verifying contracts with immutable variables is not supported on ${chainName}`;
             }
         }
         return match;
@@ -202,12 +207,6 @@ export class Injector {
 
         let match: Match;
 
-        // Starting from here, we cannot trust the metadata object anymore,
-        // because it is modified inside recompile.
-        const target = Object.assign({}, contract.metadata.settings.compilationTarget);
-        
-        // target is expected to have been checked in validation (size 1 assertion)
-
         if (!CheckedContract.isValid(contract)) {
             // eslint-disable-next-line no-useless-catch
             try {
@@ -265,10 +264,8 @@ export class Injector {
 
         } else {
             const err = new Error(
-                `Could not match on-chain deployed bytecode to recompiled bytecode for:\n` +
-                `${JSON.stringify(target, null, ' ')}\n` +
-                `Addresses checked:\n` +
-                `${JSON.stringify(addresses, null, ' ')}`
+                `Contract ${contract.name}: the deployed and recompiled bytecode don't match.\n` +
+                (match.message || "")
             );
 
             this.log.info({
