@@ -82,22 +82,22 @@ export async function recompile(
         contractName
     } = reformatMetadata(metadata, sources, log);
 
+    const loc = "[RECOMPILE]";
     const version = metadata.compiler.version;
 
     log.info(
-        {
-            loc: '[RECOMPILE]',
-            fileName: fileName,
-            contractName: contractName,
-            version: version
-        },
+        { loc, fileName, contractName, version },
         'Recompiling'
     );
 
     const compiled = await useCompiler(version, input, log);
     const output = JSON.parse(compiled);
-    const contract: any = output.contracts[fileName][contractName];
+    if (!output.contracts || !output.contracts[fileName] || !output.contracts[fileName][contractName]) {
+        log.error({ loc, fileName, contractName, version, errors: output.errors });
+        throw new Error("Recompilation error (probably caused by invalid metadata)");
+    }
 
+    const contract: any = output.contracts[fileName][contractName];
     return {
         bytecode: contract.evm.bytecode.object,
         deployedBytecode: `0x${contract.evm.deployedBytecode.object}`,
