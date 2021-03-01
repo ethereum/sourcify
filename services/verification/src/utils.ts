@@ -202,7 +202,7 @@ function reformatMetadata(
 
     input.settings = metadata.settings;
 
-    // this assumes that the size of copmilationTarget is 1
+    // this assumes that the size of compilationTarget is 1
     for (fileName in metadata.settings.compilationTarget) {
         contractName = metadata.settings.compilationTarget[fileName];
     }
@@ -231,11 +231,9 @@ function reformatMetadata(
         'metadata'
     ];
 
-    return {
-        input: input,
-        fileName: fileName,
-        contractName: contractName
-    }
+    input.settings.libraries = { "": metadata.settings.libraries || {} };
+
+    return { input, fileName, contractName };
 }
 
 
