@@ -52,13 +52,14 @@ class ChainMonitor {
         const startBlock = (rawStartBlock !== undefined) ?
             parseInt(rawStartBlock) : await this.web3Provider.eth.getBlockNumber();
         this.processBlock(startBlock);
-        this.logger.info({ loc: "[MONITOR_START]", startBlock }, "Starting monitor");
+        this.logger.info({ loc: "[MONITOR_START]", startBlock });
     }
 
     /**
      * Stops the monitor after executing all pending requests.
      */
     stop = (): void => {
+        this.logger.info({ loc: "[MONITOR_STOP]" }, "Monitor will be stopped after pending calls finish.");
         this.running = false;
     }
 

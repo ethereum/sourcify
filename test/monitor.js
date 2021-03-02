@@ -21,6 +21,7 @@ function assertEqualityFromPath(obj1, obj2path) {
 }
 
 function assertFilesStored(chainId, address, metadataIpfsHash, metadata) {
+    console.log(`Started assertions for ${address}`);
     const pathPrefix = path.join(MOCK_REPOSITORY, 'contracts', 'full_match', chainId, address);
     const addressMetadataPath = path.join(pathPrefix, 'metadata.json');
     const ipfsMetadataPath = path.join(MOCK_REPOSITORY, 'ipfs', metadataIpfsHash);
@@ -67,6 +68,7 @@ describe("Monitor", function() {
 
     const deployContract = async (artifact) => {
         const instance = await deployFromArtifact(web3Provider, artifact);
+        console.log("Deployed contract at", instance.options.address);
         return instance.options.address;
     }
 
@@ -74,41 +76,52 @@ describe("Monitor", function() {
         this.timeout(20 * 1000);
 
         ipfsNode = await ipfs.create({ offline: true, silent: true });
+        console.log("Initialized ipfs test node");
+
         metadataIpfsHash = (await ipfsNode.add(rawMetadata)).path;
         for (const sourceName in sources) {
             await ipfsNode.add(sources[sourceName]);
         }
+        console.log("Published files to ipfs");
 
         await util.promisify(ganacheServer.listen)(GANACHE_PORT);
+        console.log("Started ganache local server");
+
         web3Provider = new Web3(`http://localhost:${GANACHE_PORT}`);
+        console.log("Initialized web3 provider");
     });
 
     beforeEach(function() {
         rimraf.sync(MOCK_REPOSITORY);
     });
 
+    const BUFFER_SECS = 10;
+
     it("should sourcify the deployed contract", async function() {
-        this.timeout(25 * 1000);
+        const MONITOR_SECS = 25;
+        this.timeout((MONITOR_SECS + BUFFER_SECS) * 1000);
 
         const { monitor, chainId } = startMonitor();
         const address = await deployContract(contractArtifact);
 
-        await waitSecs(20);
+        await waitSecs(MONITOR_SECS);
         assertFilesStored(chainId, address, metadataIpfsHash, metadata);
 
         monitor.stop();
     });
 
     it("should sourcify the deployed contract after being started with a delay", async function() {
-        this.timeout(50 * 1000);
+        const GENERATION_SECS = 10;
+        const MONITOR_SECS = 35;
+        this.timeout((GENERATION_SECS + MONITOR_SECS + BUFFER_SECS) * 1000);
 
         const currentBlockNumber = await web3Provider.eth.getBlockNumber();
         const address = await deployContract(contractArtifact);
 
-        await waitSecs(10); // to allow for blocks to generate 
+        await waitSecs(GENERATION_SECS);
         const { monitor, chainId } = startMonitor(currentBlockNumber - 1);
 
-        await waitSecs(30);
+        await waitSecs(MONITOR_SECS);
         assertFilesStored(chainId, address, metadataIpfsHash, metadata);
 
         monitor.stop();
