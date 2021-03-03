@@ -1,4 +1,4 @@
-import { cborDecode, getMonitoredChains, MonitorConfig, CheckedContract } from "@ethereum-sourcify/core";
+import { cborDecode, getMonitoredChains, MonitorConfig, CheckedContract, FileService, IFileService } from "@ethereum-sourcify/core";
 import { Injector } from "@ethereum-sourcify/verification";
 import Logger from "bunyan";
 import Web3 from "web3";
@@ -30,18 +30,20 @@ class ChainMonitor {
     private sourceFetcher: SourceFetcher;
     private logger: Logger;
     private injector: Injector;
+    private fileService: IFileService;
     private running: boolean;
 
     private getBytecodeRetryPause: number;
     private getBlockPause: number;
     private initialGetBytecodeTries: number;
 
-    constructor(name: string, chainId: string, web3Url: string, sourceFetcher: SourceFetcher, injector: Injector) {
+    constructor(name: string, chainId: string, web3Url: string, sourceFetcher: SourceFetcher, injector: Injector, fileService: IFileService) {
         this.chainId = chainId;
         this.web3Provider = new Web3(web3Url);
         this.sourceFetcher = sourceFetcher;
         this.logger = new Logger({ name });
         this.injector = injector;
+        this.fileService = fileService;
 
         this.getBytecodeRetryPause = parseInt(process.env.GET_BYTECODE_RETRY_PAUSE) || (5 * 1000);
         this.getBlockPause = parseInt(process.env.GET_BLOCK_PAUSE) || (10 * 1000);
@@ -54,14 +56,14 @@ class ChainMonitor {
         const startBlock = (rawStartBlock !== undefined) ?
             parseInt(rawStartBlock) : await this.web3Provider.eth.getBlockNumber();
         this.processBlock(startBlock);
-        this.logger.info({ loc: "[MONITOR_START]", startBlock });
+        this.logger.info({ loc: "[MONITOR:START]", startBlock });
     }
 
     /**
      * Stops the monitor after executing all pending requests.
      */
     stop = (): void => {
-        this.logger.info({ loc: "[MONITOR_STOP]" }, "Monitor will be stopped after pending calls finish.");
+        this.logger.info({ loc: "[MONITOR:STOP]" }, "Monitor will be stopped after pending calls finish.");
         this.running = false;
     }
 
@@ -80,7 +82,11 @@ class ChainMonitor {
             for (const tx of block.transactions) {
                 if (createsContract(tx)) {
                     const address = ethers.utils.getContractAddress(tx);
-                    this.processBytecode(address, this.initialGetBytecodeTries);
+                    if (this.isVerified(address)) {
+                        this.logger.info({ loc: "[PROCESS_ADDRESS:SKIP]", address }, "Already verified");
+                    } else {
+                        this.processBytecode(address, this.initialGetBytecodeTries);
+                    }
                 }
             }
 
@@ -91,6 +97,15 @@ class ChainMonitor {
         }).finally(() => {
             this.mySetTimeout(this.processBlock, this.getBlockPause, blockNumber);
         });
+    }
+
+    private isVerified(address: string): boolean {
+        try {
+            this.fileService.findByAddress(this.chainId, address, this.fileService.repositoryPath);
+            return true;
+        } catch(err) {
+            return false;
+        }
     }
 
     private adaptBlockPause = (operation: "increase" | "decrease") => {
@@ -154,10 +169,8 @@ export default class Monitor {
     private sourceFetcher = new SourceFetcher();
 
     constructor(config: MonitorConfig = {}) {
-        this.injector = Injector.createOffline({
-            log: new Logger({ name: "Monitor" }),
-            repositoryPath: config.repository || SystemConfig.repository.path
-        });
+        const repositoryPath = config.repository || SystemConfig.repository.path;
+        this.injector = Injector.createOffline({ log: new Logger({ name: "Monitor" }), repositoryPath });
 
         const chains = getMonitoredChains(config.testing || false);
         this.chainMonitors = chains.map((chain: any) => new ChainMonitor(
@@ -165,7 +178,8 @@ export default class Monitor {
             chain.chainId.toString(),
             chain.web3[0].replace("${INFURA_API_KEY}", SystemConfig.endpoint.infuraId),
             this.sourceFetcher,
-            this.injector
+            this.injector,
+            new FileService(repositoryPath)
         ));
     }
 
