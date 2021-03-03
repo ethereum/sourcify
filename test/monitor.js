@@ -1,4 +1,4 @@
-const MOCK_REPOSITORY = process.env.MOCK_REPOSITORY = "./mockRepository";
+process.env.MOCK_REPOSITORY = "./mockRepository";
 process.env.MOCK_DATABASE = "./mockDatabase";
 process.env.IPFS_URL = "http://ipfs.io/ipfs/";
 const GANACHE_PORT = process.env.LOCALCHAIN_PORT || 8545;
@@ -14,42 +14,49 @@ const fs = require("fs");
 const path = require("path");
 const Web3 = require("web3");
 
+class MonitorWrapper {
+    constructor() {
+        this.repository = "./mockRepository" + Math.random().toString().slice(2);
+        this.monitor = new Monitor({ repository: this.repository, testing: true });
+        chai.expect(this.monitor.chainMonitors).to.have.a.lengthOf(1);
+        this.chainId = this.monitor.chainMonitors[0].chainId;
+    }
+
+    start(startBlock) {
+        if (startBlock !== undefined) {
+            process.env[`MONITOR_START_${this.chainId}`] = startBlock;
+        }
+        this.monitor.start();
+    }
+
+    stop() {
+        this.monitor.stop();
+        rimraf.sync(this.repository);
+    }
+
+    assertFilesStored(address, metadataIpfsHash, metadata) {
+        console.log(`Started assertions for ${address}`);
+        const pathPrefix = path.join(this.repository, 'contracts', 'full_match', this.chainId, address);
+        const addressMetadataPath = path.join(pathPrefix, 'metadata.json');
+        const ipfsMetadataPath = path.join(this.repository, 'ipfs', metadataIpfsHash);
+    
+        assertEqualityFromPath(metadata, addressMetadataPath);
+        assertEqualityFromPath(metadata, ipfsMetadataPath);
+    
+        for (const sourceName in metadata.sources) {
+            const source = metadata.sources[sourceName];
+            const sourcePath = path.join(pathPrefix, "sources", sourceName);
+            const savedSource = fs.readFileSync(sourcePath).toString();
+            const savedSourceHash = Web3.utils.keccak256(savedSource);
+            chai.expect(savedSourceHash, "sourceHash comparison").to.equal(source.keccak256);
+        }
+    }
+}
+
 function assertEqualityFromPath(obj1, obj2path) {
     const obj2raw = fs.readFileSync(obj2path).toString();
     const obj2 = JSON.parse(obj2raw);
     chai.expect(obj1, `assertFromPath: ${obj2path}`).to.deep.equal(obj2);
-}
-
-function assertFilesStored(chainId, address, metadataIpfsHash, metadata) {
-    console.log(`Started assertions for ${address}`);
-    const pathPrefix = path.join(MOCK_REPOSITORY, 'contracts', 'full_match', chainId, address);
-    const addressMetadataPath = path.join(pathPrefix, 'metadata.json');
-    const ipfsMetadataPath = path.join(MOCK_REPOSITORY, 'ipfs', metadataIpfsHash);
-
-    assertEqualityFromPath(metadata, addressMetadataPath);
-    assertEqualityFromPath(metadata, ipfsMetadataPath);
-
-    for (const sourceName in metadata.sources) {
-        const source = metadata.sources[sourceName];
-        const sourcePath = path.join(pathPrefix, "sources", sourceName);
-        const savedSource = fs.readFileSync(sourcePath).toString();
-        const savedSourceHash = Web3.utils.keccak256(savedSource);
-        chai.expect(savedSourceHash, "sourceHash comparison").to.equal(source.keccak256);
-    }
-}
-
-function startMonitor(startBlock) {
-    const monitor = new Monitor({ repository: MOCK_REPOSITORY, testing: true });
-
-    chai.expect(monitor.chainMonitors).to.have.a.lengthOf(1);
-    const chainId = monitor.chainMonitors[0].chainId;
-
-    if (startBlock !== undefined) {
-        process.env[`MONITOR_START_${chainId}`] = startBlock;
-    }
-
-    monitor.start();
-    return { monitor, chainId };
 }
 
 describe("Monitor", function() {
@@ -91,45 +98,40 @@ describe("Monitor", function() {
         console.log("Initialized web3 provider");
     });
 
-    beforeEach(function() {
-        rimraf.sync(MOCK_REPOSITORY);
-    });
-
-    const BUFFER_SECS = 10;
+    const EXTRA_SECS = 10; // extra time that allows latency in execution
 
     it("should sourcify the deployed contract", async function() {
-        const MONITOR_SECS = 25;
-        this.timeout((MONITOR_SECS + BUFFER_SECS) * 1000);
+        const MONITOR_SECS = 25; // how long to wait for monitor to do its job
+        this.timeout((MONITOR_SECS + EXTRA_SECS) * 1000);
 
-        const { monitor, chainId } = startMonitor();
+        const monitorWrapper = new MonitorWrapper();
+        monitorWrapper.start();
         const address = await deployContract(contractArtifact);
 
         await waitSecs(MONITOR_SECS);
-        assertFilesStored(chainId, address, metadataIpfsHash, metadata);
-
-        monitor.stop();
+        monitorWrapper.assertFilesStored(address, metadataIpfsHash, metadata);
+        monitorWrapper.stop();
     });
 
     it("should sourcify the deployed contract after being started with a delay", async function() {
-        const GENERATION_SECS = 10;
+        const GENERATION_SECS = 10; // how long to wait for extra blocks to be generated
         const MONITOR_SECS = 35;
-        this.timeout((GENERATION_SECS + MONITOR_SECS + BUFFER_SECS) * 1000);
+        this.timeout((GENERATION_SECS + MONITOR_SECS + EXTRA_SECS) * 1000);
 
         const currentBlockNumber = await web3Provider.eth.getBlockNumber();
         const address = await deployContract(contractArtifact);
 
         await waitSecs(GENERATION_SECS);
-        const { monitor, chainId } = startMonitor(currentBlockNumber - 1);
+        const monitorWrapper = new MonitorWrapper();
+        monitorWrapper.start(currentBlockNumber - 1);
 
         await waitSecs(MONITOR_SECS);
-        assertFilesStored(chainId, address, metadataIpfsHash, metadata);
-
-        monitor.stop();
+        monitorWrapper.assertFilesStored(address, metadataIpfsHash, metadata);
+        monitorWrapper.stop();
     });
 
     after(async function() {
         await util.promisify(ganacheServer.close)();
         await ipfsNode.stop();
-        rimraf.sync(MOCK_REPOSITORY);
     });
 });
