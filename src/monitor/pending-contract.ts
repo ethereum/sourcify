@@ -5,7 +5,12 @@ import Logger from 'bunyan';
 import Web3 from 'web3';
 import { CheckedContract, isEmpty } from '@ethereum-sourcify/core';
 
-type PendingSource = { keccak256: string, urls: string[], name: string };
+type PendingSource = {
+    keccak256: string,
+    content?: string,
+    urls: string[],
+    name: string
+};
 interface PendingSourceMap {
     [keccak256: string]: PendingSource;
 }
@@ -43,9 +48,17 @@ export default class PendingContract {
         for (const name in this.metadata.sources) {
             const source = this.metadata.sources[name];
             source.name = name;
+
+            if (source.content) {
+                this.fetchedSources[name] = source.content;
+            } else if (!source.keccak256) {
+                const err = "The source provides neither content nor keccak256";
+                this.logger.error({ loc: "[PENDING_CONTRACT:ADD_METADATA]", name, err });
+                break;
+            }
             this.pendingSources[source.keccak256] = source;
 
-            for (const url of source.urls) { // TODO make this more efficient; this might leave unnecessary subscriptions hanging
+            for (const url of source.urls) {
                 const sourceAddress = SourceAddress.fromUrl(url);
                 if (!sourceAddress) {
                     this.logger.error(
