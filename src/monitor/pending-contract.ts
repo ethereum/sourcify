@@ -51,6 +51,7 @@ export default class PendingContract {
 
             if (source.content) {
                 this.fetchedSources[name] = source.content;
+                continue;
             } else if (!source.keccak256) {
                 const err = "The source provides neither content nor keccak256";
                 this.logger.error({ loc: "[PENDING_CONTRACT:ADD_METADATA]", name, err });
@@ -69,6 +70,11 @@ export default class PendingContract {
                 }
                 this.sourceFetcher.subscribe(sourceAddress, this.addFetchedSource);
             }
+        }
+
+        if (isEmpty(this.pendingSources)) {
+            const contract = new CheckedContract(this.metadata, this.fetchedSources);
+            this.callback(contract);
         }
     }
 
