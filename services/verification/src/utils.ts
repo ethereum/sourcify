@@ -93,7 +93,8 @@ export async function recompile(
     const compiled = await useCompiler(version, input, log);
     const output = JSON.parse(compiled);
     if (!output.contracts || !output.contracts[fileName] || !output.contracts[fileName][contractName]) {
-        log.error({ loc, fileName, contractName, version, errors: output.errors });
+        const errors = output.errors.filter((e: any) => e.severity === "error").map((e: any) => e.message);
+        log.error({ loc, fileName, contractName, version, errors });
         throw new Error("Recompilation error (probably caused by invalid metadata)");
     }
 
@@ -123,12 +124,14 @@ async function useCompiler(version: string, input: any, log: bunyan) {
     if (solcPath) {
         const logObject = {loc: "[RECOMPILE]", version, solcPath};
         log.info(logObject, "Compiling with external executable");
+
         const shellOutputBuffer = spawnSync(solcPath, ["--standard-json"], {input: inputStringified});
         if (!shellOutputBuffer.stdout) {
             log.error(logObject, shellOutputBuffer.error || "Recompilation error");
             throw new Error("Recompilation error");
         }
         compiled = shellOutputBuffer.stdout.toString();
+
     } else {
         const soljson = await getSolcJs(version, log);
         compiled = soljson.compile(inputStringified);

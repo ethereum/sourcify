@@ -80,7 +80,7 @@ export default class VerificationController extends BaseController implements IC
 
         const inputFiles = this.extractFiles(req);
         if (!inputFiles) {
-            const msg = "The contract at the provided address has not yet been sourcified.";
+            const msg = "The contract at the provided address and chain has not yet been sourcified.";
             throw new NotFoundError(msg);
         }
 

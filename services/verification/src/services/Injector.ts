@@ -128,10 +128,14 @@ export class Injector {
             if (status) {
                 match = { address, status };
                 break;
-            } else if (!deployedBytecode) {
-                match.message = `${chainName} does not have a contract deployed at ${address}.`;
-            } else if (deployedBytecode.length === compiledBytecode.length) {
-                match.message = `Verifying contracts with immutable variables is not supported on ${chainName}`;
+            } else if (addresses.length === 1) {
+                if (!deployedBytecode) {
+                    match.message = `${chainName} is temporarily unavailable.`
+                } else if (deployedBytecode === "0x") {
+                    match.message = `${chainName} does not have a contract deployed at ${address}.`;
+                } else if (deployedBytecode.length === compiledBytecode.length) {
+                    match.message = `Verifying contracts with immutable variables is not supported for ${chainName}.`;
+                }
             }
         }
         return match;
@@ -263,10 +267,8 @@ export class Injector {
             this.storePartialMatchData(this.repositoryPath, chain, match.address, compilationResult, contract.solidity)
 
         } else {
-            const err = new Error(
-                `Contract ${contract.name}: the deployed and recompiled bytecode don't match.\n` +
-                (match.message || "")
-            );
+            const message = match.message || "The deployed and recompiled bytecode don't match."
+            const err = new Error(`Contract name: ${contract.name}. ${message}`);
 
             this.log.info({
                 loc: '[INJECT]',
