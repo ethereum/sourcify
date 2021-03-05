@@ -212,26 +212,14 @@ export class Injector {
         let match: Match;
 
         if (!CheckedContract.isValid(contract)) {
-            // eslint-disable-next-line no-useless-catch
-            try {
-                await CheckedContract.fetchMissing(contract, this.log);
-            } catch(err) {
-                throw err;
-            }
+            await CheckedContract.fetchMissing(contract, this.log);
         }
 
-        let compilationResult: RecompilationResult;
-        try {
-            compilationResult = await recompile(contract.metadata, contract.solidity, this.log)
-        } catch (err) {
-            this.log.error({ loc: `[RECOMPILE]`, err: err });
-            throw err;
-        }
+        const compilationResult = await recompile(contract.metadata, contract.solidity, this.log)
 
         // When injector is called by monitor, the bytecode has already been
         // obtained for address and we only need to compare w/ compilation result.
         if (inputData.bytecode) {
-
             for (const address of addresses) {
                 const status = this.compareBytecodes(
                     inputData.bytecode,
