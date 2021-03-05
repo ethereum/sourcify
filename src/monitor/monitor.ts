@@ -198,3 +198,8 @@ export default class Monitor {
         this.sourceFetcher.stop();
     }
 }
+
+if (require.main === module) {
+    const monitor = new Monitor();
+    monitor.start();
+}
