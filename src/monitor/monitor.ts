@@ -101,7 +101,7 @@ class ChainMonitor {
 
     private isVerified(address: string): boolean {
         try {
-            this.fileService.findByAddress(this.chainId, address, this.fileService.repositoryPath);
+            this.fileService.findByAddress(this.chainId, address);
             return true;
         } catch(err) {
             return false;

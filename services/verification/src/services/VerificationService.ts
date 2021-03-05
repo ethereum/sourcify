@@ -6,7 +6,7 @@ import * as bunyan from 'bunyan';
 
 
 export interface IVerificationService {
-    findByAddress(address: string, chain: string, repository: string): Promise<Match[]>
+    findByAddress(address: string, chain: string): Promise<Match[]>
     inject(inputData: InputData, localChainUrl: string): Promise<Match>;
 }
 
@@ -19,11 +19,11 @@ export class VerificationService implements IVerificationService {
         this.fileService = fileService || new FileService("./repository");
     }
 
-    findByAddress = async (address: string, chain: string, repository: string) => {
+    findByAddress = async (address: string, chain: string) => {
         // Try to find by address, return on success.
         let matches: Match[] = [];
         try {
-            matches = await this.fileService.findByAddress(address, chain, repository);
+            matches = this.fileService.findByAddress(address, chain);
         } catch (err) {
             const msg = "Could not find file in repository"
             this.logger.info({
