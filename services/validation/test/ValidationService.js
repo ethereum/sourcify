@@ -74,7 +74,7 @@ describe("ValidationService", function() {
             const paths = [Path.join("test", "files", "single", "1_Storage.sol")];
             chai.expect(
                 () => validationService.checkPaths(paths)
-            ).to.throw();
+            ).to.throw("Metadata file not found. Did you include \"metadata.json\"?");
         });
 
         it("should ignore invalid paths", function() {

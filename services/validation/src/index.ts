@@ -42,7 +42,7 @@ function logOutput(recompilableContracts: CheckedContract[], programOptions: any
             break;
         }
         case 1: {
-            const standardJson = recompilableContracts[0].getStandardJson(programOptions.settings);
+            const standardJson = recompilableContracts[0].standardJson;
             const prettifiedStandardJson = JSON.stringify(standardJson, null, programOptions.pretty ? 2 : undefined);
             console.log(prettifiedStandardJson);
             break;
@@ -68,12 +68,6 @@ program
         "Output only a JSON object to be used as standard-json input to solc.\n" +
         "The expected argument ought to be of the form path:name; ommiting any of the two is tolerated if unambiguous.\n" +
         `E.g. \`${name} --${OPTION_NAME} foo/bar/Contract.sol:ContractName path/to/dir path/to/zip\`\n`
-    )
-    .option(
-        "-S, --no-settings",
-        "Omit the original settings when preparing a standard-json.\n" +
-        `Only available with the --${OPTION_NAME} option\n`,
-        true
     )
     .option(
         "-p, --pretty",

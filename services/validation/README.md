@@ -29,9 +29,6 @@ you had provided to this script.
   * The expected argument ought to be of the form path:name
   * E.g. `sourcify-validation --prepare-json foo/bar/Contract.sol:ContractName path/to/dir`
   * Omitting either the path or the name is tolerated if unambiguous.
-* -S, --no-settings
-  * Omit the original settings when preparing a standard-json.
-  * Only available with the --prepare-json option.
 * -p, --pretty
   * Output the standard json in a pretty format.
   * Only available with the --prepare-json option.

@@ -1,6 +1,6 @@
 import Web3 from 'web3';
 import fetch from 'node-fetch';
-import { StringMap } from '@ethereum-sourcify/core';
+import { StringMap, reformatMetadata } from '@ethereum-sourcify/core';
 import Path from 'path';
 import fs from 'fs';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -15,12 +15,6 @@ export interface RecompilationResult {
     bytecode: string,
     deployedBytecode: string,
     metadata: string
-}
-
-export declare interface ReformattedMetadata {
-    input: any,
-    fileName: string,
-    contractName: string
 }
 
 /**
@@ -186,59 +180,6 @@ export function getBytecodeWithoutMetadata(bytecode: string): string {
     const metadataSize = parseInt(bytecode.slice(-4), 16) * 2 + 4;
     return bytecode.slice(0, bytecode.length - metadataSize);
 }
-
-/**
- * Formats metadata into an object which can be passed to solc for recompilation
- * @param  {any}                 metadata solc metadata object
- * @param  {string[]}            sources  solidity sources
- * @return {ReformattedMetadata}
- */
-function reformatMetadata(
-    metadata: any,
-    sources: StringMap,
-    log: any
-): ReformattedMetadata {
-
-    const input: any = {};
-    let fileName = '';
-    let contractName = '';
-
-    input.settings = metadata.settings;
-
-    // this assumes that the size of compilationTarget is 1
-    for (fileName in metadata.settings.compilationTarget) {
-        contractName = metadata.settings.compilationTarget[fileName];
-    }
-
-    delete input['settings']['compilationTarget']
-
-    if (contractName == '') {
-        const err = new Error("Could not determine compilation target from metadata.");
-        log.info({ loc: '[REFORMAT]', err: err });
-        throw err;
-    }
-
-    input['sources'] = {}
-    for (const source in sources) {
-        input.sources[source] = { 'content': sources[source] }
-    }
-
-    input.language = metadata.language
-    input.settings.metadata = input.settings.metadata || {}
-    input.settings.outputSelection = input.settings.outputSelection || {}
-    input.settings.outputSelection[fileName] = input.settings.outputSelection[fileName] || {}
-
-    input.settings.outputSelection[fileName][contractName] = [
-        'evm.bytecode',
-        'evm.deployedBytecode',
-        'metadata'
-    ];
-
-    input.settings.libraries = { "": metadata.settings.libraries || {} };
-
-    return { input, fileName, contractName };
-}
-
 
 /**
  * Fetches the requested version of the Solidity compiler (soljson).

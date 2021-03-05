@@ -82,3 +82,28 @@ export type Tag = {
   timestamp: any,
   repositoryVersion: string
 }
+
+export declare interface ReformattedMetadata {
+  input: any,
+  fileName: string,
+  contractName: string
+}
+
+type Currency = {
+  name: string,
+  symbol: string,
+  decimals: number
+};
+
+export type Chain = {
+  name: string,
+  chainId: number,
+  shortName: string,
+  network: string,
+  networkId: number,
+  nativeCurrency: Currency,
+  web3: string[],
+  faucets: string[],
+  infoURL: string,
+  fullnode?: { dappnode: string }
+};
