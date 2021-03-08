@@ -20,6 +20,7 @@ services:
     <<: *project-base
     image: ethereum/source-verify:monitor-${TAG}
     container_name: monitor-${TAG}
+    stop_signal: SIGINT
     volumes:
       - <<: *project-repository-mount
         target: /home/data/repository
