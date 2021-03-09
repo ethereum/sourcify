@@ -1,5 +1,5 @@
-import { cborDecode, getMonitoredChains, MonitorConfig, CheckedContract, FileService, IFileService } from "@ethereum-sourcify/core";
-import { Injector } from "@ethereum-sourcify/verification";
+import { cborDecode, getMonitoredChains, MonitorConfig, CheckedContract, FileService } from "@ethereum-sourcify/core";
+import { VerificationService, IVerificationService } from "@ethereum-sourcify/verification";
 import Logger from "bunyan";
 import Web3 from "web3";
 import { Transaction } from "web3-core";
@@ -29,21 +29,19 @@ class ChainMonitor {
     private web3Provider: Web3;
     private sourceFetcher: SourceFetcher;
     private logger: Logger;
-    private injector: Injector;
-    private fileService: IFileService;
+    private verificationService: IVerificationService;
     private running: boolean;
 
     private getBytecodeRetryPause: number;
     private getBlockPause: number;
     private initialGetBytecodeTries: number;
 
-    constructor(name: string, chainId: string, web3Url: string, sourceFetcher: SourceFetcher, injector: Injector, fileService: IFileService) {
+    constructor(name: string, chainId: string, web3Url: string, sourceFetcher: SourceFetcher, verificationService: IVerificationService) {
         this.chainId = chainId;
         this.web3Provider = new Web3(web3Url);
         this.sourceFetcher = sourceFetcher;
         this.logger = new Logger({ name });
-        this.injector = injector;
-        this.fileService = fileService;
+        this.verificationService = verificationService;
 
         this.getBytecodeRetryPause = parseInt(process.env.GET_BYTECODE_RETRY_PAUSE) || (5 * 1000);
         this.getBlockPause = parseInt(process.env.GET_BLOCK_PAUSE) || (10 * 1000);
@@ -100,12 +98,8 @@ class ChainMonitor {
     }
 
     private isVerified(address: string): boolean {
-        try {
-            this.fileService.findByAddress(this.chainId, address);
-            return true;
-        } catch(err) {
-            return false;
-        }
+        const foundArr = this.verificationService.findByAddress(this.chainId, address);
+        return !!foundArr.length;
     }
 
     private adaptBlockPause = (operation: "increase" | "decrease") => {
@@ -144,7 +138,7 @@ class ChainMonitor {
 
     private inject = (contract: CheckedContract, bytecode: string, address: string) => {
         const logObject = { loc: "[MONITOR:INJECT]", contract: contract.name, address };
-        this.injector.inject({
+        this.verificationService.inject({
             contract,
             bytecode,
             chain: this.chainId,
@@ -165,12 +159,10 @@ class ChainMonitor {
  */
 export default class Monitor {
     private chainMonitors: ChainMonitor[];
-    private injector: Injector;
     private sourceFetcher = new SourceFetcher();
 
     constructor(config: MonitorConfig = {}) {
         const repositoryPath = config.repository || SystemConfig.repository.path;
-        this.injector = Injector.createOffline({ log: new Logger({ name: "Monitor" }), repositoryPath });
 
         const chains = getMonitoredChains(config.testing || false);
         this.chainMonitors = chains.map((chain: any) => new ChainMonitor(
@@ -178,8 +170,10 @@ export default class Monitor {
             chain.chainId.toString(),
             chain.web3[0].replace("${INFURA_API_KEY}", SystemConfig.endpoint.infuraId),
             this.sourceFetcher,
-            this.injector,
-            new FileService(repositoryPath)
+            new VerificationService(
+                new FileService(repositoryPath),
+                new Logger({ name: "Monitor" })
+            )
         ));
     }
 

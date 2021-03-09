@@ -33,8 +33,8 @@ export class FileService implements IFileService {
     repositoryPath: string;
 
     constructor(repositoryPath: string, logger?: bunyan) {
-        this.logger = logger || Logger("FileService");
         this.repositoryPath = repositoryPath;
+        this.logger = logger || Logger("FileService");
     }
 
     async getTreeByChainAndAddress(chainId: any, address: string): Promise<string[]> {

@@ -7,12 +7,11 @@ const multihashes: any = require('multihashes');
 
 export interface InjectorConfig {
     infuraPID?: string,
-    localChainUrl?: string,
     silent?: boolean,
     log?: bunyan,
     offline?: boolean,
     repositoryPath?: string,
-    fileService?: FileService
+    fileService?: IFileService
 }
 
 export class Injector {
@@ -288,6 +287,15 @@ export class Injector {
      * @param compilationResult should contain deployedBytecode and metadata
      */
     private storeMetadata(matchQuality: MatchQuality, chain: string, address: string, compilationResult: RecompilationResult) {
+        this.fileService.save({
+            matchQuality,
+            chain,
+            address,
+            fileName: "metadata.json"
+        },
+            compilationResult.metadata
+        );
+
         if (matchQuality === "full") {
             let metadataPath: string;
             const bytes = Web3.utils.hexToBytes(compilationResult.deployedBytecode);
@@ -313,15 +321,6 @@ export class Injector {
 
             this.fileService.save(metadataPath, compilationResult.metadata);
         }
-
-        this.fileService.save({
-            matchQuality,
-            chain,
-            address,
-            fileName: "metadata.json"
-        },
-            compilationResult.metadata
-        );
     }
 
     /**

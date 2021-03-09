@@ -1,25 +1,25 @@
-import { InputData, Match, Logger, FileService } from '@ethereum-sourcify/core';
+import { InputData, Match, Logger, IFileService } from '@ethereum-sourcify/core';
 import { Injector } from './Injector';
 import * as bunyan from 'bunyan';
 // import MQ from '../services/Queue'; 
 // import { ConfirmChannel } from 'amqplib';
 
-
 export interface IVerificationService {
-    findByAddress(address: string, chain: string): Promise<Match[]>
-    inject(inputData: InputData, localChainUrl: string): Promise<Match>;
+    findByAddress(address: string, chain: string): Match[];
+    inject(inputData: InputData): Promise<Match>;
 }
 
 export class VerificationService implements IVerificationService {
-    fileService: FileService;
+    fileService: IFileService;
     logger: bunyan;
+    private injector: Injector;
 
-    constructor(fileService?: any, logger?: bunyan) {
+    constructor(fileService: IFileService, logger?: bunyan) {
+        this.fileService = fileService;
         this.logger = logger || Logger("VerificationService");
-        this.fileService = fileService || new FileService("./repository");
     }
 
-    findByAddress = async (address: string, chain: string) => {
+    findByAddress = (address: string, chain: string) => {
         // Try to find by address, return on success.
         let matches: Match[] = [];
         try {
@@ -34,19 +34,20 @@ export class VerificationService implements IVerificationService {
         return matches;
     }
 
-    inject = async (inputData: InputData, localChainUrl: string): Promise<Match> => {
+    inject = async (inputData: InputData): Promise<Match> => {
         // Injection
         //const injection: Promise<Match>;
         //const { repository, chain, addresses, files } = inputData;
-        const injector = await Injector.createAsync({
-            localChainUrl: localChainUrl,
-            log: this.logger,
-            infuraPID: process.env.INFURA_ID,
-            repositoryPath: this.fileService.repositoryPath,
-            fileService: this.fileService
-        });
+        if (!this.injector) {
+            this.injector = await Injector.createAsync({
+                log: this.logger,
+                infuraPID: process.env.INFURA_ID,
+                repositoryPath: this.fileService.repositoryPath,
+                fileService: this.fileService
+            });
+        }
 
-        return injector.inject(inputData);
+        return this.injector.inject(inputData);
 
         //TODO:
         // const exchange = "test";
