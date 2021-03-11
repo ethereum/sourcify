@@ -94,7 +94,7 @@ export async function recompile(
 
     const contract: any = output.contracts[fileName][contractName];
     return {
-        bytecode: contract.evm.bytecode.object,
+        bytecode: `0x${contract.evm.bytecode.object}`,
         deployedBytecode: `0x${contract.evm.deployedBytecode.object}`,
         metadata: contract.metadata.trim()
     }

@@ -15,6 +15,13 @@ const path = require("path");
 const Web3 = require("web3");
 const ethers = require("ethers");
 
+class Counter {
+    static get() {
+        return Counter.cnt++;
+    }
+}
+Counter.cnt = 0;
+
 class MonitorWrapper {
     constructor() {
         this.repository = "./mockRepository" + Math.random().toString().slice(2);
@@ -94,19 +101,20 @@ function assertEqualityFromPath(obj1, obj2path, expectedBirthtime) {
 }
 
 class ContractWrapper {
-    constructor(jsPath) {
+    constructor(jsPath, publishOptions) {
         this.artifact = require(jsPath);
         this.rawMetadata = this.artifact.compilerOutput.metadata;
         this.metadata = JSON.parse(this.rawMetadata);
         this.sources = this.artifact.sourceCodes;
+        this.publishOptions = publishOptions;
     }
 
-    async publish(ipfsNode, options={}) {
-        if (options.metadata) {
+    async publish(ipfsNode) {
+        if (this.publishOptions.metadata) {
             this.metadataIpfsHash = (await ipfsNode.add(this.rawMetadata)).path;
         }
 
-        if (options.sources) {
+        if (this.publishOptions.sources) {
             for (const sourceName in this.sources) {
                 await ipfsNode.add(this.sources[sourceName]);
             }
@@ -118,8 +126,11 @@ describe("Monitor", function() {
     this.timeout(60 * 1000);
     const ganacheServer = ganache.server({ blockTime: 1, total_accounts: 5 });
 
-    const simpleWithImportWrapper = new ContractWrapper("./sources/pass/simpleWithImport.js");
-    const simpleLiteralWrapper = new ContractWrapper("./sources/pass/simple.literal.js");
+    const contractWrappers = {
+        simpleWithImport: new ContractWrapper("./sources/pass/simpleWithImport.js", { metadata: true, sources: true }),
+        simpleLiteral: new ContractWrapper("./sources/pass/simple.literal.js", { metadata: true }),
+        withImmutables: new ContractWrapper("./sources/pass/withImmutables.js", { metadata: true, sources: true })
+    };
 
     let ipfsNode;
     let web3Provider;
@@ -135,8 +146,9 @@ describe("Monitor", function() {
         ipfsNode = await ipfs.create({ offline: true, silent: true });
         console.log("Initialized ipfs test node");
 
-        await simpleWithImportWrapper.publish(ipfsNode, { metadata: true, sources: true });
-        await simpleLiteralWrapper.publish(ipfsNode, { metadata: true });
+        for (const contractName in contractWrappers) {
+            await contractWrappers[contractName].publish(ipfsNode);
+        }
 
         await util.promisify(ganacheServer.listen)(GANACHE_PORT);
         console.log("Started ganache local server");
@@ -146,13 +158,14 @@ describe("Monitor", function() {
         console.log("Initialized web3 provider");
     });
 
-    const MONITOR_SECS = 25;
-    const CATCH_UP_SECS = 10;
+    const MONITOR_SECS = 25; // waiting for monitor to do its job 
+    const GENERATION_SECS = 10; // waiting for extra blocks to be generated
+    const CATCH_UP_SECS = 10; // waiting for a delayed monitor to catch up
 
-    const sourcifyContract = async (contractWrapper, index) => {
+    const sourcifyContract = async (contractWrapper) => {
         const monitorWrapper = new MonitorWrapper();
         monitorWrapper.start();
-        const address = await deployContract(contractWrapper, accounts[index]);
+        const address = await deployContract(contractWrapper, accounts[Counter.get()]);
 
         await waitSecs(MONITOR_SECS);
         monitorWrapper.assertFilesStored(address, contractWrapper);
@@ -160,41 +173,44 @@ describe("Monitor", function() {
     }
 
     it("should sourcify the deployed contract", async function() {
-        await sourcifyContract(simpleWithImportWrapper, 0);
+        await sourcifyContract(contractWrappers.simpleWithImport);
     });
 
     it("should sourcify if metadata provides only literal content", async function() {
-        await sourcifyContract(simpleLiteralWrapper, 1);
+        await sourcifyContract(contractWrappers.simpleLiteral);
     });
 
     it("should not resourcify if already sourcified", async function() {
         const monitorWrapper = new MonitorWrapper();
-        const from = accounts[2];
+        const from = accounts[Counter.get()];
         const calculatedAddress = ethers.utils.getContractAddress({ from, nonce: 0 });
-        const metadataBirthtime = monitorWrapper.writeMetadata(calculatedAddress, simpleWithImportWrapper.rawMetadata);
+        const metadataBirthtime = monitorWrapper.writeMetadata(calculatedAddress, contractWrappers.simpleLiteral.rawMetadata);
 
         monitorWrapper.start();
-        const deployedAddress = await deployContract(simpleWithImportWrapper, from);
+        const deployedAddress = await deployContract(contractWrappers.simpleWithImport, from);
         chai.expect(calculatedAddress).to.deep.equal(deployedAddress);
 
         await waitSecs(MONITOR_SECS);
-        monitorWrapper.assertFilesNotStored(deployedAddress, simpleWithImportWrapper, metadataBirthtime);
+        monitorWrapper.assertFilesNotStored(deployedAddress, contractWrappers.simpleWithImport, metadataBirthtime);
         monitorWrapper.stop();
     });
 
     it("should sourcify the deployed contract after being started with a delay", async function() {
         const currentBlockNumber = await web3Provider.eth.getBlockNumber();
-        const address = await deployContract(simpleWithImportWrapper, accounts[3]);
-        
-        const GENERATION_SECS = 10; // how long to wait for extra blocks to be generated
+        const address = await deployContract(simpleWithImportWrapper, accounts[Counter.get()]);
+
         await waitSecs(GENERATION_SECS);
 
         const monitorWrapper = new MonitorWrapper();
         monitorWrapper.start(currentBlockNumber - 1);
 
         await waitSecs(CATCH_UP_SECS + MONITOR_SECS);
-        monitorWrapper.assertFilesStored(address, simpleWithImportWrapper);
+        monitorWrapper.assertFilesStored(address, contractWrappers.simpleWithImport);
         monitorWrapper.stop();
+    });
+
+    it("should sourcify a contract with immutables", async function() {
+        await sourcifyContract(contractWrappers.withImmutables);
     });
 
     after(async function() {

@@ -174,7 +174,7 @@ export class Injector {
             }
 
             if (probablyImmutables(deployedBytecode, compiledRuntimeBytecode)) {
-                const creationData = await this.getCreationDataFromContractAddress(chain, address);
+                const creationData = await this.getCreationData(chain, address);
                 if (creationData && creationData.startsWith(compiledCreationBytecode)) {
                     // The reason why this uses `startsWith` instead of `===` is that:
                     // creationData = creationBytecode + constructorArguments
@@ -187,18 +187,22 @@ export class Injector {
         return null;
     }
 
-    private async getCreationDataFromContractAddress(chain: string, contractAddress: string): Promise<string> {
+    private async getCreationData(chain: string, contractAddress: string): Promise<string> {
+        const loc = "[FETCH_CREATION_DATA]";
         const fetchAddress = this.chains[chain].contractFetchAddress;
+
         if (fetchAddress) {
+            this.log.info({ loc, chain, contractAddress, fetchAddress });
+
             const res = await fetch(fetchAddress.replace("${ADDRESS}", contractAddress));
             if (res.status === StatusCodes.OK) {
                 const buffer = await res.buffer();
                 const page = buffer.toString();
-                
+
                 const matched = page.match(/.*at txn <a href='\/tx\/(.*?)'.*/);
                 if (matched && matched[1]) {
                     const txHash = matched[1];
-                    const web3 = this.chains[chain];
+                    const web3 = this.chains[chain].web3;
                     const tx = await web3.eth.getTransaction(txHash);
                     return tx.input;
                 }
@@ -206,7 +210,7 @@ export class Injector {
         }
 
         const msg = "Cannot fetch creation data";
-        this.log.error({ loc: "[FETCH_ETHERSCAN]", chain, contractAddress, err: msg });
+        this.log.error({ loc, chain, contractAddress, err: msg });
         throw new Error(msg);
     }
 

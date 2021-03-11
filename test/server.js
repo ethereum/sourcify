@@ -163,14 +163,14 @@ describe("Server", function() {
             checkNonVerified("/verify", done);
         });
 
-        const assertions = (err, res, done) => {
+        const assertions = (err, res, done, expectedAddress=contractAddress) => {
             chai.expect(err).to.be.null;
             chai.expect(res.status).to.equal(StatusCodes.OK);
             chai.expect(res.body).to.haveOwnProperty("result");
             const resultArr = res.body.result;
             chai.expect(resultArr).to.have.a.lengthOf(1);
             const result = resultArr[0];
-            chai.expect(result.address).to.equal(contractAddress);
+            chai.expect(result.address).to.equal(expectedAddress);
             chai.expect(result.status).to.equal("perfect");
             done();
         }
@@ -258,6 +258,21 @@ describe("Server", function() {
                     chai.expect(res.body.error).to.contain("Verifying contracts with immutable variables is not supported");
                     done();
                 });
+        });
+
+        it("should verify a contract with immutables", done => {
+            const address = "0xBdDe4D595F2CDdA92ca274423374E0e1C7286426";
+            const sourcePath = path.join("test", "sources", "contracts", "WithImmutables.sol");
+            const sourceBuffer = fs.readFileSync(sourcePath);
+            const metadataPath = path.join("test", "sources", "metadata", "withImmutables.meta.object.json");
+            const metadataBuffer = fs.readFileSync(metadataPath);
+            chai.request(server.app)
+                .post("/")
+                .field("address", address)
+                .field("chain", "5")
+                .attach("files", metadataBuffer, "metadata.json")
+                .attach("files", sourceBuffer, "WithImmutables.sol")
+                .end((err, res) => assertions(err, res, done, address));
         });
     });
 
