@@ -230,3 +230,15 @@ export function getSolcJs(version = "latest", log: bunyan): Promise<any> {
         });
     });
 }
+
+/**
+ * Checks whether the provided bytecodes probably differ due to immutable variables.
+ * @param bytecode1 
+ * @param bytecode2 
+ * @returns true if difference is probably due to immutables, false otherwise
+ */
+ export function probablyImmutables(bytecode1: string, bytecode2: string): boolean {
+    return bytecode1 && bytecode2 &&
+        (bytecode1.length === bytecode2.length) &&
+        (bytecode1 !== bytecode2);
+}

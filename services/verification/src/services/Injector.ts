@@ -1,7 +1,9 @@
 import Web3 from 'web3';
 import * as bunyan from 'bunyan';
 import { Match, InputData, getSupportedChains, getFullnodeChains, Logger, IFileService, FileService, StringMap, cborDecode, CheckedContract, MatchQuality } from '@ethereum-sourcify/core';
-import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint } from '../utils';
+import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint, probablyImmutables } from '../utils';
+import fetch from 'node-fetch';
+import { StatusCodes } from 'http-status-codes';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const multihashes: any = require('multihashes');
 
@@ -73,7 +75,11 @@ export class Injector {
         const chainsData = this.infuraPID ? getSupportedChains() : getFullnodeChains();
 
         for (const chain of chainsData) {
-            this.chains[chain.chainId] = { name: chain.name };
+            this.chains[chain.chainId] = {
+                name: chain.name,
+                contractFetchAddress: chain.contractFetchAddress,
+            };
+
             if (this.infuraPID) {
                 const web3 = chain.web3[0].replace('${INFURA_API_KEY}', this.infuraPID);
                 this.chains[chain.chainId].web3 = new Web3(web3);
@@ -99,7 +105,8 @@ export class Injector {
     private async matchBytecodeToAddress(
         chain: string,
         addresses: string[] = [],
-        compiledBytecode: string
+        compiledRuntimeBytecode: string,
+        compiledCreationBytecode: string,
     ): Promise<Match> {
         let match: Match = { address: null, status: null };
         const chainName = this.chains[chain].name || "The chain";
@@ -120,7 +127,7 @@ export class Injector {
                 deployedBytecode = await getBytecode(this.chains[chain].web3, address);
             } catch (e) { /* ignore */ }
 
-            const status = this.compareBytecodes(deployedBytecode, compiledBytecode);
+            const status = await this.compareBytecodes(deployedBytecode, compiledRuntimeBytecode, compiledCreationBytecode, chain, address);
 
             if (status) {
                 match = { address, status };
@@ -130,7 +137,7 @@ export class Injector {
                     match.message = `${chainName} is temporarily unavailable.`
                 } else if (deployedBytecode === "0x") {
                     match.message = `${chainName} does not have a contract deployed at ${address}.`;
-                } else if (deployedBytecode.length === compiledBytecode.length) {
+                } else if (probablyImmutables(deployedBytecode, compiledRuntimeBytecode)) {
                     match.message = `Verifying contracts with immutable variables is not supported for ${chainName}.`;
                 }
             }
@@ -144,24 +151,63 @@ export class Injector {
      * that match in all respects apart from their metadata hashes are 'partial'.
      * Bytecodes that don't match are `null`.
      * @param  {string} deployedBytecode
-     * @param  {string} compiledBytecode
+     * @param  {string} compiledRuntimeBytecode
+     * @param  {string} compiledCreationBytecode
+     * @param  {string} contractFetchAddress address to use for fetching 
      * @return {string | null}  match description ('perfect'|'partial'|null)
      */
-    private compareBytecodes(
+    private async compareBytecodes(
         deployedBytecode: string | null,
-        compiledBytecode: string
-    ): 'perfect' | 'partial' | null {
+        compiledRuntimeBytecode: string,
+        compiledCreationBytecode: string,
+        chain: string,
+        address: string
+    ): Promise<'perfect' | 'partial' | null> {
 
         if (deployedBytecode && deployedBytecode.length > 2) {
-            if (deployedBytecode === compiledBytecode) {
+            if (deployedBytecode === compiledRuntimeBytecode) {
                 return 'perfect';
             }
 
-            if (trimMetadata(deployedBytecode) === trimMetadata(compiledBytecode)) {
+            if (trimMetadata(deployedBytecode) === trimMetadata(compiledRuntimeBytecode)) {
                 return 'partial';
+            }
+
+            if (probablyImmutables(deployedBytecode, compiledRuntimeBytecode)) {
+                const creationData = await this.getCreationDataFromContractAddress(chain, address);
+                if (creationData && creationData.startsWith(compiledCreationBytecode)) {
+                    // The reason why this uses `startsWith` instead of `===` is that:
+                    // creationData = creationBytecode + constructorArguments
+                    // It is highly unlikely that this kind of comparison would lead to a false positive since:
+                    // creationBytecode = constructorLogic + runtimeBytecode + cborEncodedMetadataHash
+                    return 'perfect';
+                }
             }
         }
         return null;
+    }
+
+    private async getCreationDataFromContractAddress(chain: string, contractAddress: string): Promise<string> {
+        const fetchAddress = this.chains[chain].contractFetchAddress;
+        if (fetchAddress) {
+            const res = await fetch(fetchAddress.replace("${ADDRESS}", contractAddress));
+            if (res.status === StatusCodes.OK) {
+                const buffer = await res.buffer();
+                const page = buffer.toString();
+                
+                const matched = page.match(/.*at txn <a href='\/tx\/(.*?)'.*/);
+                if (matched && matched[1]) {
+                    const txHash = matched[1];
+                    const web3 = this.chains[chain];
+                    const tx = await web3.eth.getTransaction(txHash);
+                    return tx.input;
+                }
+            }
+        }
+
+        const msg = "Cannot fetch creation data";
+        this.log.error({ loc: "[FETCH_ETHERSCAN]", chain, contractAddress, err: msg });
+        throw new Error(msg);
     }
 
     /**
@@ -216,25 +262,31 @@ export class Injector {
         // When injector is called by monitor, the bytecode has already been
         // obtained for address and we only need to compare w/ compilation result.
         if (inputData.bytecode) {
-            for (const address of addresses) {
-                const status = this.compareBytecodes(
-                    inputData.bytecode,
-                    compilationResult.deployedBytecode
-                );
-                const checkedAddress = Web3.utils.toChecksumAddress(address);
-                match = { address: checkedAddress, status };
-                if (match.status) {
-                    break;
-                }
+            if (addresses.length !== 1) {
+                const err = "Injector cannot work with multiple addresses if bytecode is provided";
+                this.log.error({ loc: "[INJECTOR]", addresses, err });
+                throw new Error(err);
             }
+            const address = addresses[0];
 
-            // For other cases, we need to retrieve the code for specified address
-            // from the chain.
+            const status = await this.compareBytecodes(
+                inputData.bytecode,
+                compilationResult.deployedBytecode,
+                compilationResult.bytecode,
+                chain,
+                address
+            );
+            const checkedAddress = Web3.utils.toChecksumAddress(address);
+            match = { address: checkedAddress, status };
+
+        // For other cases, we need to retrieve the code for specified address
+        // from the chain.
         } else {
             match = await this.matchBytecodeToAddress(
                 chain,
                 addresses,
-                compilationResult.deployedBytecode
+                compilationResult.deployedBytecode,
+                compilationResult.bytecode
             );
         }
 

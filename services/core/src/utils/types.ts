@@ -10,7 +10,8 @@ export interface InputData {
     chain: string,
     addresses: string[],
     contract?: CheckedContract,
-    bytecode?: string
+    bytecode?: string,
+    creationData?: string,
 }
 
 export interface CompilationSettings {
@@ -104,5 +105,6 @@ export type Chain = {
   web3: string[],
   faucets: string[],
   infoURL: string,
-  fullnode?: { dappnode: string }
+  fullnode?: { dappnode: string },
+  contractFetchAddress?: string,
 };
