@@ -243,21 +243,16 @@ describe("Server", function() {
                 .end((err, res) => assertions(err, res, done));
         });
 
-        it("should support metadata with libraries and should report that immutables are not supported", done => {
+        it("should verify a mumbai contract (with libraries and immutables)", done => {
+            const address = "0x7c90F0C9Eb46391c93d0545dDF4658d3B8DF1866";
             const metadataPath = path.join("test", "sources", "metadata", "with-immutables-and-libraries.meta.object.json");
             const metadataBuffer = fs.readFileSync(metadataPath);
             chai.request(server.app)
                 .post("/")
-                .field("address", "0x7c90F0C9Eb46391c93d0545dDF4658d3B8DF1866")
+                .field("address", address)
                 .field("chain", "80001")
                 .attach("files", metadataBuffer, "metadata.json")
-                .end((err, res) => {
-                    chai.expect(err).to.be.null;
-                    chai.expect(res.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
-                    console.log(res.body);
-                    chai.expect(res.body.error).to.contain("Verifying contracts with immutable variables is not supported");
-                    done();
-                });
+                .end((err, res) => assertions(err, res, done, address));
         });
 
         it("should verify a contract with immutables", done => {

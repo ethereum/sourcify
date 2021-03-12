@@ -101,12 +101,13 @@ function assertEqualityFromPath(obj1, obj2path, expectedBirthtime) {
 }
 
 class ContractWrapper {
-    constructor(jsPath, publishOptions) {
+    constructor(jsPath, publishOptions, args=[]) {
         this.artifact = require(jsPath);
         this.rawMetadata = this.artifact.compilerOutput.metadata;
         this.metadata = JSON.parse(this.rawMetadata);
         this.sources = this.artifact.sourceCodes;
         this.publishOptions = publishOptions;
+        this.args = args;
     }
 
     async publish(ipfsNode) {
@@ -129,7 +130,7 @@ describe("Monitor", function() {
     const contractWrappers = {
         simpleWithImport: new ContractWrapper("./sources/pass/simpleWithImport.js", { metadata: true, sources: true }),
         simpleLiteral: new ContractWrapper("./sources/pass/simple.literal.js", { metadata: true }),
-        withImmutables: new ContractWrapper("./sources/pass/withImmutables.js", { metadata: true, sources: true })
+        withImmutables: new ContractWrapper("./sources/pass/withImmutables.js", { metadata: true, sources: true }, [2])
     };
 
     let ipfsNode;
@@ -137,7 +138,7 @@ describe("Monitor", function() {
     let accounts;
 
     const deployContract = async (contractWrapper, from) => {
-        const instance = await deployFromArtifact(web3Provider, contractWrapper.artifact, from);
+        const instance = await deployFromArtifact(web3Provider, contractWrapper.artifact, from, contractWrapper.args);
         console.log("Deployed contract at", instance.options.address);
         return instance.options.address;
     }
@@ -184,7 +185,7 @@ describe("Monitor", function() {
         const monitorWrapper = new MonitorWrapper();
         const from = accounts[Counter.get()];
         const calculatedAddress = ethers.utils.getContractAddress({ from, nonce: 0 });
-        const metadataBirthtime = monitorWrapper.writeMetadata(calculatedAddress, contractWrappers.simpleLiteral.rawMetadata);
+        const metadataBirthtime = monitorWrapper.writeMetadata(calculatedAddress, contractWrappers.simpleWithImport.rawMetadata);
 
         monitorWrapper.start();
         const deployedAddress = await deployContract(contractWrappers.simpleWithImport, from);
@@ -197,7 +198,7 @@ describe("Monitor", function() {
 
     it("should sourcify the deployed contract after being started with a delay", async function() {
         const currentBlockNumber = await web3Provider.eth.getBlockNumber();
-        const address = await deployContract(simpleWithImportWrapper, accounts[Counter.get()]);
+        const address = await deployContract(contractWrappers.simpleWithImport, accounts[Counter.get()]);
 
         await waitSecs(GENERATION_SECS);
 

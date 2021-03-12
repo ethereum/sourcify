@@ -75,10 +75,7 @@ export class Injector {
         const chainsData = this.infuraPID ? getSupportedChains() : getFullnodeChains();
 
         for (const chain of chainsData) {
-            this.chains[chain.chainId] = {
-                name: chain.name,
-                contractFetchAddress: chain.contractFetchAddress,
-            };
+            this.chains[chain.chainId] = chain;
 
             if (this.infuraPID) {
                 const web3 = chain.web3[0].replace('${INFURA_API_KEY}', this.infuraPID);
@@ -127,7 +124,16 @@ export class Injector {
                 deployedBytecode = await getBytecode(this.chains[chain].web3, address);
             } catch (e) { /* ignore */ }
 
-            const status = await this.compareBytecodes(deployedBytecode, compiledRuntimeBytecode, compiledCreationBytecode, chain, address);
+            let status;
+            try {
+                status = await this.compareBytecodes(
+                    deployedBytecode, null, compiledRuntimeBytecode, compiledCreationBytecode, chain, address
+                );
+            } catch (err) {
+                if (addresses.length === 1) {
+                    match.message = "There were problems during contract verification.";
+                }
+            }
 
             if (status) {
                 match = { address, status };
@@ -139,6 +145,8 @@ export class Injector {
                     match.message = `${chainName} does not have a contract deployed at ${address}.`;
                 } else if (probablyImmutables(deployedBytecode, compiledRuntimeBytecode)) {
                     match.message = `Verifying contracts with immutable variables is not supported for ${chainName}.`;
+                } else {
+                    match.message = "The deployed and recompiled bytecode don't match.";
                 }
             }
         }
@@ -151,13 +159,16 @@ export class Injector {
      * that match in all respects apart from their metadata hashes are 'partial'.
      * Bytecodes that don't match are `null`.
      * @param  {string} deployedBytecode
+     * @param  {string} creationData
      * @param  {string} compiledRuntimeBytecode
      * @param  {string} compiledCreationBytecode
-     * @param  {string} contractFetchAddress address to use for fetching 
+     * @param  {string} chain chainId of the chain where contract is being checked
+     * @param  {string} address contract address
      * @return {string | null}  match description ('perfect'|'partial'|null)
      */
     private async compareBytecodes(
         deployedBytecode: string | null,
+        creationData: string,
         compiledRuntimeBytecode: string,
         compiledCreationBytecode: string,
         chain: string,
@@ -169,37 +180,56 @@ export class Injector {
                 return 'perfect';
             }
 
-            if (trimMetadata(deployedBytecode) === trimMetadata(compiledRuntimeBytecode)) {
+            const trimmedDeployedBytecode = trimMetadata(deployedBytecode);
+            const trimmedCompiledRuntimeBytecode = trimMetadata(compiledRuntimeBytecode);
+            if (trimmedDeployedBytecode === trimmedCompiledRuntimeBytecode) {
                 return 'partial';
             }
 
-            if (probablyImmutables(deployedBytecode, compiledRuntimeBytecode)) {
-                const creationData = await this.getCreationData(chain, address);
-                if (creationData && creationData.startsWith(compiledCreationBytecode)) {
-                    // The reason why this uses `startsWith` instead of `===` is that:
-                    // creationData = creationBytecode + constructorArguments
-                    // It is highly unlikely that this kind of comparison would lead to a false positive since:
-                    // creationBytecode = constructorLogic + runtimeBytecode + cborEncodedMetadataHash
-                    return 'perfect';
+            if (trimmedDeployedBytecode.length === trimmedCompiledRuntimeBytecode.length) {
+                creationData = creationData || await this.getCreationData(chain, address);
+                if (creationData) {
+                    compiledCreationBytecode = compiledCreationBytecode.replace(/^0x/, "");
+    
+                    if (creationData.includes(compiledCreationBytecode)) {
+                        // The reason why this uses `includes` instead of `===` is that
+                        // creationData may contain constructor arguments at the end part.
+                        // Also, apparently some chains may prepend data to creationBytecode.
+                        return 'perfect';
+                    }
+                    
+                    const trimmedCompiledCreationBytecode = trimMetadata(compiledCreationBytecode);
+                    if (creationData.includes(trimmedCompiledCreationBytecode)) {
+                        return 'partial';
+                    }
                 }
             }
         }
+
         return null;
     }
 
+    /**
+     * Returns the `creationData` from the transaction that created the contract at the provided chain and address.
+     * @param chain 
+     * @param contractAddress 
+     * @returns `creationData` if found, `null` otherwise
+     */
     private async getCreationData(chain: string, contractAddress: string): Promise<string> {
         const loc = "[FETCH_CREATION_DATA]";
-        const fetchAddress = this.chains[chain].contractFetchAddress;
+        let fetchAddress = this.chains[chain].contractFetchAddress;
+        const txRegex = this.chains[chain].txRegex;
 
         if (fetchAddress) {
+            fetchAddress = fetchAddress.replace("${ADDRESS}", contractAddress);
             this.log.info({ loc, chain, contractAddress, fetchAddress });
 
-            const res = await fetch(fetchAddress.replace("${ADDRESS}", contractAddress));
+            const res = await fetch(fetchAddress);
             if (res.status === StatusCodes.OK) {
                 const buffer = await res.buffer();
                 const page = buffer.toString();
 
-                const matched = page.match(/.*at txn <a href='\/tx\/(.*?)'.*/);
+                const matched = page.match(txRegex);
                 if (matched && matched[1]) {
                     const txHash = matched[1];
                     const web3 = this.chains[chain].web3;
@@ -209,9 +239,9 @@ export class Injector {
             }
         }
 
-        const msg = "Cannot fetch creation data";
-        this.log.error({ loc, chain, contractAddress, err: msg });
-        throw new Error(msg);
+        const err = "Cannot fetch creation data";
+        this.log.error({ loc, chain, contractAddress, err });
+        return null;
     }
 
     /**
@@ -275,6 +305,7 @@ export class Injector {
 
             const status = await this.compareBytecodes(
                 inputData.bytecode,
+                inputData.creationData,
                 compilationResult.deployedBytecode,
                 compilationResult.bytecode,
                 chain,
@@ -304,7 +335,7 @@ export class Injector {
             this.storeMetadata(matchQuality, chain, match.address, compilationResult);
 
         } else {
-            const message = match.message || "The deployed and recompiled bytecode don't match."
+            const message = match.message || "Could not match the deployed and recompiled bytecode."
             const err = new Error(`Contract name: ${contract.name}. ${message}`);
 
             this.log.error({

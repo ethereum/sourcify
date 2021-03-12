@@ -37,7 +37,7 @@ export async function checkEndpoint(provider: string): Promise<void> {
             body: JSON.stringify({ "jsonrpc": "2.0", "id": 1, "method": "eth_blockNumber", "params": [] })
         })
             .then((response) => {
-                if (response.status == 401) {
+                if (response.status == StatusCodes.UNAUTHORIZED) {
                     throw new Error("Check your Infura ID");
                 }
             }).catch(() => {
@@ -57,6 +57,8 @@ export async function getBytecode(web3: Web3, address: string): Promise<string> 
     address = web3.utils.toChecksumAddress(address);
     return await web3.eth.getCode(address);
 }
+
+const RECOMPILATION_ERR_MSG = "Recompilation error (probably caused by invalid metadata)";
 
 /**
  * Compiles sources using version and settings specified in metadata
@@ -89,7 +91,7 @@ export async function recompile(
     if (!output.contracts || !output.contracts[fileName] || !output.contracts[fileName][contractName]) {
         const errors = output.errors.filter((e: any) => e.severity === "error").map((e: any) => e.message);
         log.error({ loc, fileName, contractName, version, errors });
-        throw new Error("Recompilation error (probably caused by invalid metadata)");
+        throw new Error(RECOMPILATION_ERR_MSG);
     }
 
     const contract: any = output.contracts[fileName][contractName];
@@ -121,8 +123,8 @@ async function useCompiler(version: string, input: any, log: bunyan) {
 
         const shellOutputBuffer = spawnSync(solcPath, ["--standard-json"], {input: inputStringified});
         if (!shellOutputBuffer.stdout) {
-            log.error(logObject, shellOutputBuffer.error || "Recompilation error");
-            throw new Error("Recompilation error");
+            log.error(logObject, shellOutputBuffer.error || RECOMPILATION_ERR_MSG);
+            throw new Error(RECOMPILATION_ERR_MSG);
         }
         compiled = shellOutputBuffer.stdout.toString();
 

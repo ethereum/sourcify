@@ -83,7 +83,8 @@ class ChainMonitor {
                     if (this.isVerified(address)) {
                         this.logger.info({ loc: "[PROCESS_ADDRESS:SKIP]", address }, "Already verified");
                     } else {
-                        this.processBytecode(address, this.initialGetBytecodeTries);
+                        this.logger.info({ loc: "[PROCESS_ADDRESS]", address }, "New contract");
+                        this.processBytecode(tx.input, address, this.initialGetBytecodeTries);
                     }
                 }
             }
@@ -109,7 +110,7 @@ class ChainMonitor {
         this.getBlockPause = Math.max(this.getBlockPause, BLOCK_PAUSE_LOWER_LIMIT);
     }
 
-    private processBytecode = (address: string, retriesLeft: number): void => {
+    private processBytecode = (creationData: string, address: string, retriesLeft: number): void => {
         if (retriesLeft-- <= 0) {
             return;
         }
@@ -125,7 +126,7 @@ class ChainMonitor {
             try {
                 const cborData = cborDecode(numericBytecode);
                 const metadataAddress = SourceAddress.fromCborData(cborData);
-                this.sourceFetcher.assemble(metadataAddress, contract => this.inject(contract, bytecode, address));
+                this.sourceFetcher.assemble(metadataAddress, contract => this.inject(contract, bytecode, creationData, address));
             } catch(err) {
                 this.logger.error({ loc: "[GET_BYTECODE:METADATA_READING]", address }, err.message);
             }
@@ -136,11 +137,12 @@ class ChainMonitor {
         });
     }
 
-    private inject = (contract: CheckedContract, bytecode: string, address: string) => {
+    private inject = (contract: CheckedContract, bytecode: string, creationData: string, address: string) => {
         const logObject = { loc: "[MONITOR:INJECT]", contract: contract.name, address };
         this.verificationService.inject({
             contract,
             bytecode,
+            creationData,
             chain: this.chainId,
             addresses: [address]
         }).then(() => this.logger.info(logObject, "Successfully injected")
