@@ -23,9 +23,6 @@ for (const i in chains) {
         Object.assign(chain, sourcifyData);
     }
 
-    chain.web3 = chain.rpc;
-    delete chain.rpc;
-
     chainMap[chainId] = chain;
 }
 
@@ -53,7 +50,7 @@ const TEST_CHAINS: Chain[] = [{
     nativeCurrency: null,
     network: "testnet",
     networkId: 0,
-    web3: [ `http://localhost:${process.env.LOCALCHAIN_PORT || 8545}` ]
+    rpc: [ `http://localhost:${process.env.LOCALCHAIN_PORT || 8545}` ]
 }];
 
 /**

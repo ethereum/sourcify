@@ -1,4 +1,4 @@
-import { cborDecode, getMonitoredChains, MonitorConfig, CheckedContract, FileService } from "@ethereum-sourcify/core";
+import { cborDecode, getMonitoredChains, MonitorConfig, CheckedContract, FileService, Chain } from "@ethereum-sourcify/core";
 import { VerificationService, IVerificationService } from "@ethereum-sourcify/verification";
 import Logger from "bunyan";
 import Web3 from "web3";
@@ -167,10 +167,10 @@ export default class Monitor {
         const repositoryPath = config.repository || SystemConfig.repository.path;
 
         const chains = getMonitoredChains(config.testing || false);
-        this.chainMonitors = chains.map((chain: any) => new ChainMonitor(
+        this.chainMonitors = chains.map((chain: Chain) => new ChainMonitor(
             chain.name,
             chain.chainId.toString(),
-            chain.web3[0].replace("${INFURA_API_KEY}", SystemConfig.endpoint.infuraId),
+            chain.rpc[0].replace("${INFURA_API_KEY}", SystemConfig.endpoint.infuraId),
             this.sourceFetcher,
             new VerificationService(
                 new FileService(repositoryPath),

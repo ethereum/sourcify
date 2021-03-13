@@ -41,7 +41,8 @@ class MonitorWrapper {
 
     stop() {
         const envVar = `MONITOR_START_${this.chainId}`;
-        if (process.env[envVar] && this.envVarStash) {
+        delete process.env[envVar];
+        if (this.envVarStash) {
             process.env[envVar] = this.envVarStash;
         }
         this.monitor.stop();

@@ -243,7 +243,7 @@ describe("Server", function() {
                 .end((err, res) => assertions(err, res, done));
         });
 
-        it("should verify a mumbai contract (with libraries and immutables)", done => {
+        it("should verify a mumbai contract with immutables and libraries (blockscout)", done => {
             const address = "0x7c90F0C9Eb46391c93d0545dDF4658d3B8DF1866";
             const metadataPath = path.join("test", "sources", "metadata", "with-immutables-and-libraries.meta.object.json");
             const metadataBuffer = fs.readFileSync(metadataPath);
@@ -255,7 +255,7 @@ describe("Server", function() {
                 .end((err, res) => assertions(err, res, done, address));
         });
 
-        it("should verify a contract with immutables", done => {
+        it("should verify a goerli contract with immutables (etherscan)", done => {
             const address = "0xBdDe4D595F2CDdA92ca274423374E0e1C7286426";
             const sourcePath = path.join("test", "sources", "contracts", "WithImmutables.sol");
             const sourceBuffer = fs.readFileSync(sourcePath);

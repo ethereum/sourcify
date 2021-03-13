@@ -1,7 +1,7 @@
 import Web3 from 'web3';
 import * as bunyan from 'bunyan';
-import { Match, InputData, getSupportedChains, getFullnodeChains, Logger, IFileService, FileService, StringMap, cborDecode, CheckedContract, MatchQuality } from '@ethereum-sourcify/core';
-import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint, probablyImmutables } from '../utils';
+import { Match, InputData, getSupportedChains, getFullnodeChains, Logger, IFileService, FileService, StringMap, cborDecode, CheckedContract, MatchQuality, Chain } from '@ethereum-sourcify/core';
+import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint } from '../utils';
 import fetch from 'node-fetch';
 import { StatusCodes } from 'http-status-codes';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -16,9 +16,27 @@ export interface InjectorConfig {
     fileService?: IFileService
 }
 
+class InjectorChain {
+    web3: Web3;
+    rpc: string[];
+    name: string;
+    contractFetchAddress: string;
+    txRegex: string;
+    constructor(chain: Chain) {
+        this.rpc = chain.rpc;
+        this.name = chain.name;
+        this.contractFetchAddress = chain.contractFetchAddress;
+        this.txRegex = chain.txRegex;
+    }
+}
+
+interface InjectorChainMap {
+    [id: string]: InjectorChain
+}
+
 export class Injector {
     private log: bunyan;
-    private chains: any;
+    private chains: InjectorChainMap;
     private infuraPID: string;
     private offline: boolean;
     public fileService: IFileService;
@@ -75,10 +93,10 @@ export class Injector {
         const chainsData = this.infuraPID ? getSupportedChains() : getFullnodeChains();
 
         for (const chain of chainsData) {
-            this.chains[chain.chainId] = chain;
+            this.chains[chain.chainId] = new InjectorChain(chain);
 
             if (this.infuraPID) {
-                const web3 = chain.web3[0].replace('${INFURA_API_KEY}', this.infuraPID);
+                const web3 = chain.rpc[0].replace('${INFURA_API_KEY}', this.infuraPID);
                 this.chains[chain.chainId].web3 = new Web3(web3);
             } else {
                 const web3 = chain.fullnode.dappnode;
@@ -138,13 +156,11 @@ export class Injector {
             if (status) {
                 match = { address, status };
                 break;
-            } else if (addresses.length === 1) {
+            } else if (addresses.length === 1 && !match.message) {
                 if (!deployedBytecode) {
                     match.message = `${chainName} is temporarily unavailable.`
                 } else if (deployedBytecode === "0x") {
                     match.message = `${chainName} does not have a contract deployed at ${address}.`;
-                } else if (probablyImmutables(deployedBytecode, compiledRuntimeBytecode)) {
-                    match.message = `Verifying contracts with immutable variables is not supported for ${chainName}.`;
                 } else {
                     match.message = "The deployed and recompiled bytecode don't match.";
                 }
@@ -225,10 +241,9 @@ export class Injector {
             this.log.info({ loc, chain, contractAddress, fetchAddress });
 
             const res = await fetch(fetchAddress);
+            const buffer = await res.buffer();
+            const page = buffer.toString();
             if (res.status === StatusCodes.OK) {
-                const buffer = await res.buffer();
-                const page = buffer.toString();
-
                 const matched = page.match(txRegex);
                 if (matched && matched[1]) {
                     const txHash = matched[1];
@@ -236,12 +251,14 @@ export class Injector {
                     const tx = await web3.eth.getTransaction(txHash);
                     return tx.input;
                 }
+            } else {
+                this.log.error({ loc, chain, contractAddress, page })
             }
         }
 
         const err = "Cannot fetch creation data";
         this.log.error({ loc, chain, contractAddress, err });
-        return null;
+        throw new Error(err);
     }
 
     /**

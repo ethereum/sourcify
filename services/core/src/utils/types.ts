@@ -102,9 +102,10 @@ export type Chain = {
   network: string,
   networkId: number,
   nativeCurrency: Currency,
-  web3: string[],
+  rpc: string[],
   faucets: string[],
   infoURL: string,
   fullnode?: { dappnode: string },
   contractFetchAddress?: string,
+  txRegex?: string,
 };
