@@ -1,4 +1,5 @@
 import { CheckedContract } from "./CheckedContract";
+import Web3 from "web3";
 
 export interface FileObject {
     name: string,
@@ -108,4 +109,5 @@ export type Chain = {
   fullnode?: { dappnode: string },
   contractFetchAddress?: string,
   txRegex?: string,
+  archiveWeb3?: Web3,
 };

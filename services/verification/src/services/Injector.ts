@@ -1,9 +1,7 @@
 import Web3 from 'web3';
 import * as bunyan from 'bunyan';
 import { Match, InputData, getSupportedChains, getFullnodeChains, Logger, IFileService, FileService, StringMap, cborDecode, CheckedContract, MatchQuality, Chain } from '@ethereum-sourcify/core';
-import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint } from '../utils';
-import fetch from 'node-fetch';
-import { StatusCodes } from 'http-status-codes';
+import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint, getCreationDataFromArchive, getCreationDataByScraping } from '../utils';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const multihashes: any = require('multihashes');
 
@@ -22,11 +20,14 @@ class InjectorChain {
     name: string;
     contractFetchAddress: string;
     txRegex: string;
+    archiveWeb3: Web3;
+
     constructor(chain: Chain) {
         this.rpc = chain.rpc;
         this.name = chain.name;
         this.contractFetchAddress = chain.contractFetchAddress;
         this.txRegex = chain.txRegex;
+        this.archiveWeb3 = chain.archiveWeb3;
     }
 }
 
@@ -232,27 +233,28 @@ export class Injector {
      * @returns `creationData` if found, `null` otherwise
      */
     private async getCreationData(chain: string, contractAddress: string): Promise<string> {
-        const loc = "[FETCH_CREATION_DATA]";
+        const loc = "[GET_CREATION_DATA]";
         let fetchAddress = this.chains[chain].contractFetchAddress;
         const txRegex = this.chains[chain].txRegex;
 
-        if (fetchAddress) {
+        if (fetchAddress && txRegex) { // fetch from a block explorer and extract by regex
             fetchAddress = fetchAddress.replace("${ADDRESS}", contractAddress);
-            this.log.info({ loc, chain, contractAddress, fetchAddress });
+            const web3 = this.chains[chain].web3;
+            this.log.info({ loc, chain, contractAddress, fetchAddress }, "Scraping block explorer");
+            try {
+                return await getCreationDataByScraping(fetchAddress, txRegex, web3);
+            } catch(err) {
+                this.log.error({ loc, chain, contractAddress, err }, "Scraping failed!");
+            }
+        }
 
-            const res = await fetch(fetchAddress);
-            const buffer = await res.buffer();
-            const page = buffer.toString();
-            if (res.status === StatusCodes.OK) {
-                const matched = page.match(txRegex);
-                if (matched && matched[1]) {
-                    const txHash = matched[1];
-                    const web3 = this.chains[chain].web3;
-                    const tx = await web3.eth.getTransaction(txHash);
-                    return tx.input;
-                }
-            } else {
-                this.log.error({ loc, chain, contractAddress, page });
+        const archiveWeb3 = this.chains[chain].archiveWeb3;
+        if (archiveWeb3) { // fetch by binary search on chain history
+            this.log.info({ loc, chain, contractAddress }, "Fetching archive data");
+            try {
+                return await getCreationDataFromArchive(contractAddress, archiveWeb3);
+            } catch(err) {
+                this.log.error({ loc, chain, contractAddress, err }, "Archive search failed!");
             }
         }
 
@@ -450,4 +452,3 @@ export class Injector {
         }
     }
 }
-

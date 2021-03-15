@@ -1,10 +1,13 @@
+import Web3 from "web3";
+
 const ETHERSCAN_REGEX = "at txn <a href='/tx/(.*?)'";
 const ETHERSCAN_SUFFIX = "address/${ADDRESS}";
 const BLOCKSCOUT_REGEX = "transaction_hash_link\" href=\"/tx/(.*?)\"";
 const BLOCKSCOUT_SUFFIX = "address/${ADDRESS}/transactions";
+const BLOCKSCOUT_XDAI_REGEX = "transaction_hash_link\" href=\"/xdai/mainnet/tx/(.*?)\"";
 
-class SourcifyChain {
-    
+function createArchiveEndpoint(hostPrefix: string) {
+    return new Web3(`https://${hostPrefix}.alchemyapi.io/v2/${process.env.ALCHEMY_ID}`)
 }
 
 export default {
@@ -15,7 +18,8 @@ export default {
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://etherscan.io/" + ETHERSCAN_SUFFIX,
-        "txRegex": ETHERSCAN_REGEX
+        "txRegex": ETHERSCAN_REGEX,
+        "archiveWeb3": createArchiveEndpoint("eth-mainnet")
     },
     "3": {
         "fullnode": {
@@ -24,7 +28,8 @@ export default {
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://ropsten.etherscan.io/" + ETHERSCAN_SUFFIX,
-        "txRegex": ETHERSCAN_REGEX
+        "txRegex": ETHERSCAN_REGEX,
+        "archiveWeb3": createArchiveEndpoint("eth-ropsten")
     },
     "4": {
         "fullnode": {
@@ -33,7 +38,8 @@ export default {
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://rinkeby.etherscan.io/" + ETHERSCAN_SUFFIX,
-        "txRegex": ETHERSCAN_REGEX
+        "txRegex": ETHERSCAN_REGEX,
+        "archiveWeb3": createArchiveEndpoint("eth-rinkeby")
     },
     "5": {
         "fullnode": {
@@ -42,7 +48,8 @@ export default {
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://goerli.etherscan.io/" + ETHERSCAN_SUFFIX,
-        "txRegex": ETHERSCAN_REGEX
+        "txRegex": ETHERSCAN_REGEX,
+        "archiveWeb3": createArchiveEndpoint("eth-goerli")
     },
     "42": {
         "fullnode": {
@@ -51,7 +58,8 @@ export default {
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://kovan.etherscan.io/" + ETHERSCAN_SUFFIX,
-        "txRegex": ETHERSCAN_REGEX
+        "txRegex": ETHERSCAN_REGEX,
+        "archiveWeb3": createArchiveEndpoint("eth-kovan")
     },
     "56": {
         "supported": true,
@@ -69,7 +77,7 @@ export default {
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://blockscout.com/xdai/mainnet/" + BLOCKSCOUT_SUFFIX,
-        "txRegex": "transaction_hash_link\" href=\"/xdai/mainnet/tx/(.*?)\""
+        "txRegex": BLOCKSCOUT_XDAI_REGEX
     },
     "137": {
         "supported": true,
