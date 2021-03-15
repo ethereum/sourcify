@@ -252,7 +252,7 @@ export class Injector {
                     return tx.input;
                 }
             } else {
-                this.log.error({ loc, chain, contractAddress, page })
+                this.log.error({ loc, chain, contractAddress, page });
             }
         }
 

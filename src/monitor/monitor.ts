@@ -5,12 +5,9 @@ import Web3 from "web3";
 import { Transaction } from "web3-core";
 import { SourceAddress } from "./util";
 import { ethers } from "ethers";
-import dotenv from 'dotenv';
-import path from 'path';
 import SourceFetcher from "./source-fetcher";
 import SystemConfig from '../config';
 import assert from 'assert';
-dotenv.config({ path: path.resolve(__dirname, "..", "..", "environments/.env") });
 
 const BLOCK_PAUSE_FACTOR = parseInt(process.env.BLOCK_PAUSE_FACTOR) || 1.1;
 assert(BLOCK_PAUSE_FACTOR > 1);
@@ -99,7 +96,7 @@ class ChainMonitor {
     }
 
     private isVerified(address: string): boolean {
-        const foundArr = this.verificationService.findByAddress(this.chainId, address);
+        const foundArr = this.verificationService.findByAddress(address, this.chainId);
         return !!foundArr.length;
     }
 

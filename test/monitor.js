@@ -58,9 +58,9 @@ class MonitorWrapper {
         return path.join(pathPrefix, "metadata.json");
     }
 
-    assertFilesNotStored(address, contractWrapper, metadataBirthtime) {
+    assertFilesNotStored(address, contractWrapper, metadataMtime) {
         const addressMetadataPath = this.getAddressMetadataPath(address);
-        assertEqualityFromPath(contractWrapper.metadata, addressMetadataPath, metadataBirthtime);
+        assertEqualityFromPath(contractWrapper.metadata, addressMetadataPath, metadataMtime);
     }
 
     assertFilesStored(address, contractWrapper) {
@@ -91,13 +91,13 @@ class MonitorWrapper {
     }
 }
 
-function assertEqualityFromPath(obj1, obj2path, expectedBirthtime) {
+function assertEqualityFromPath(obj1, obj2path, expectedMtime) {
     const obj2raw = fs.readFileSync(obj2path).toString();
     const obj2 = JSON.parse(obj2raw);
     chai.expect(obj1, `assertFromPath: ${obj2path}`).to.deep.equal(obj2);
-    if (expectedBirthtime) {
-        const actualBirthtime = fs.statSync(obj2path).birthtime;
-        chai.expect(actualBirthtime).to.deep.equal(expectedBirthtime);
+    if (expectedMtime) {
+        const actualMtime = fs.statSync(obj2path).mtime;
+        chai.expect(actualMtime).to.deep.equal(expectedMtime);
     }
 }
 
