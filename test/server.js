@@ -16,7 +16,7 @@ const MAX_INPUT_SIZE = require("../dist/server/controllers/VerificationControlle
 const StatusCodes = require('http-status-codes').StatusCodes;
 chai.use(chaiHttp);
 
-const EXTENDED_TIME = 15000; // 15 seconds
+const EXTENDED_TIME = 20000; // 20 seconds
 
 describe("Server", function() {
     const server = new Server();
@@ -243,7 +243,7 @@ describe("Server", function() {
                 .end((err, res) => assertions(err, res, done));
         });
 
-        it("should verify a mumbai contract with immutables and libraries (blockscout)", done => {
+        it("should verify a contract with immutables on Matic Testnet Mumbai (also with libraries)", done => {
             const address = "0x7c90F0C9Eb46391c93d0545dDF4658d3B8DF1866";
             const metadataPath = path.join("test", "sources", "metadata", "with-immutables-and-libraries.meta.object.json");
             const metadataBuffer = fs.readFileSync(metadataPath);
@@ -255,20 +255,33 @@ describe("Server", function() {
                 .end((err, res) => assertions(err, res, done, address));
         });
 
-        it("should verify a goerli contract with immutables (etherscan)", done => {
-            const address = "0xBdDe4D595F2CDdA92ca274423374E0e1C7286426";
-            const sourcePath = path.join("test", "sources", "contracts", "WithImmutables.sol");
-            const sourceBuffer = fs.readFileSync(sourcePath);
-            const metadataPath = path.join("test", "sources", "metadata", "withImmutables.meta.object.json");
-            const metadataBuffer = fs.readFileSync(metadataPath);
-            chai.request(server.app)
-                .post("/")
-                .field("address", address)
-                .field("chain", "5")
-                .attach("files", metadataBuffer, "metadata.json")
-                .attach("files", sourceBuffer, "WithImmutables.sol")
-                .end((err, res) => assertions(err, res, done, address));
-        });
+        const verifyContractWithImmutables = (address, chainId, chainName) => {
+            it(`should verify a contract with immutables on ${chainName}`, done => {
+                const sourcePath = path.join("test", "sources", "contracts", "WithImmutables.sol");
+                const sourceBuffer = fs.readFileSync(sourcePath);
+                const metadataPath = path.join("test", "sources", "metadata", "withImmutables.meta.object.json");
+                const metadataBuffer = fs.readFileSync(metadataPath);
+                chai.request(server.app)
+                    .post("/")
+                    .field("address", address)
+                    .field("chain", chainId)
+                    .attach("files", metadataBuffer, "metadata.json")
+                    .attach("files", sourceBuffer, "WithImmutables.sol")
+                    .end((err, res) => assertions(err, res, done, address));
+            });
+        };
+
+        verifyContractWithImmutables("0x656d0062eC89c940213E3F3170EA8b2add1c0143", "3", "Ropsten");
+
+        verifyContractWithImmutables("0x656d0062eC89c940213E3F3170EA8b2add1c0143", "4", "Rinkeby");
+
+        verifyContractWithImmutables("0xBdDe4D595F2CDdA92ca274423374E0e1C7286426", "5", "Goerli");
+        
+        verifyContractWithImmutables("0x443C64AcC4c6dB358Eb1CA78fdf7577C2a7eA499", "42", "Kovan");
+
+        verifyContractWithImmutables("0x3CE1a25376223695284edc4C2b323C3007010C94", "100", "xDai");
+        
+        verifyContractWithImmutables("0x66ec3fBf4D7d7B7483Ae4fBeaBDD6022037bfa1a", "44787", "Alfajores Celo");
     });
 
     describe("verification v2", function() {

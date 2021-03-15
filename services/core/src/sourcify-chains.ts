@@ -1,7 +1,11 @@
-const ETHERSCAN_REGEX = "at txn <a href='\/tx\/(.*?)'";
+const ETHERSCAN_REGEX = "at txn <a href='/tx/(.*?)'";
 const ETHERSCAN_SUFFIX = "address/${ADDRESS}";
 const BLOCKSCOUT_REGEX = "transaction_hash_link\" href=\"/tx/(.*?)\"";
 const BLOCKSCOUT_SUFFIX = "address/${ADDRESS}/transactions";
+
+class SourcifyChain {
+    
+}
 
 export default {
     "1": {
@@ -65,7 +69,7 @@ export default {
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://blockscout.com/xdai/mainnet/" + BLOCKSCOUT_SUFFIX,
-        "txRegex": BLOCKSCOUT_REGEX
+        "txRegex": "transaction_hash_link\" href=\"/xdai/mainnet/tx/(.*?)\""
     },
     "137": {
         "supported": true,
