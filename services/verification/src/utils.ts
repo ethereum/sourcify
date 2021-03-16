@@ -5,9 +5,10 @@ import Path from 'path';
 import fs from 'fs';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const solc = require('solc');
-import {spawnSync} from 'child_process';
+import { spawnSync } from 'child_process';
 import { StatusCodes } from 'http-status-codes';
 import * as bunyan from 'bunyan';
+import { ethers } from 'ethers';
 
 const GITHUB_SOLC_REPO = "https://github.com/ethereum/solc-bin/raw/gh-pages/linux-amd64/";
 
@@ -37,7 +38,7 @@ export async function checkEndpoint(provider: string): Promise<void> {
             body: JSON.stringify({ "jsonrpc": "2.0", "id": 1, "method": "eth_blockNumber", "params": [] })
         })
             .then((response) => {
-                if (response.status == 401) {
+                if (response.status == StatusCodes.UNAUTHORIZED) {
                     throw new Error("Check your Infura ID");
                 }
             }).catch(() => {
@@ -57,6 +58,8 @@ export async function getBytecode(web3: Web3, address: string): Promise<string> 
     address = web3.utils.toChecksumAddress(address);
     return await web3.eth.getCode(address);
 }
+
+const RECOMPILATION_ERR_MSG = "Recompilation error (probably caused by invalid metadata)";
 
 /**
  * Compiles sources using version and settings specified in metadata
@@ -89,12 +92,12 @@ export async function recompile(
     if (!output.contracts || !output.contracts[fileName] || !output.contracts[fileName][contractName]) {
         const errors = output.errors.filter((e: any) => e.severity === "error").map((e: any) => e.message);
         log.error({ loc, fileName, contractName, version, errors });
-        throw new Error("Recompilation error (probably caused by invalid metadata)");
+        throw new Error(RECOMPILATION_ERR_MSG);
     }
 
     const contract: any = output.contracts[fileName][contractName];
     return {
-        bytecode: contract.evm.bytecode.object,
+        bytecode: `0x${contract.evm.bytecode.object}`,
         deployedBytecode: `0x${contract.evm.deployedBytecode.object}`,
         metadata: contract.metadata.trim()
     }
@@ -121,8 +124,8 @@ async function useCompiler(version: string, input: any, log: bunyan) {
 
         const shellOutputBuffer = spawnSync(solcPath, ["--standard-json"], {input: inputStringified});
         if (!shellOutputBuffer.stdout) {
-            log.error(logObject, shellOutputBuffer.error || "Recompilation error");
-            throw new Error("Recompilation error");
+            log.error(logObject, shellOutputBuffer.error || RECOMPILATION_ERR_MSG);
+            throw new Error(RECOMPILATION_ERR_MSG);
         }
         compiled = shellOutputBuffer.stdout.toString();
 
@@ -229,4 +232,77 @@ export function getSolcJs(version = "latest", log: bunyan): Promise<any> {
             }
         });
     });
+}
+
+ async function getCreationBlockNumber(contractAddress: string, web3: Web3): Promise<number> {
+    let highestBlock = await web3.eth.getBlockNumber();
+    let lowestBlock = 0;
+
+    let contractCode = await web3.eth.getCode(contractAddress, highestBlock);
+    if (contractCode == "0x") {
+        throw new Error(`Contract ${contractAddress} does not exist!`);
+    }
+
+    while (lowestBlock <= highestBlock) {
+        const searchBlock = Math.floor((lowestBlock + highestBlock) / 2)
+        contractCode = await web3.eth.getCode(contractAddress, searchBlock);
+
+        if (contractCode != "0x") {
+            highestBlock = searchBlock;
+        } else if (contractCode == "0x") {
+            lowestBlock = searchBlock;
+        }
+
+        if (highestBlock == lowestBlock + 1) {
+            return highestBlock;
+        }
+    }
+}
+
+/**
+ * Modified and optimized version of https://www.shawntabrizi.com/ethereum-find-contract-creator/
+ * 
+ * @param contractAddress the hexadecimal address of the contract 
+ * @param web3 initialized web3 object for chain requests
+ * @returns a Promise of the creation data
+ */
+export async function getCreationDataFromArchive(contractAddress: string, web3: Web3): Promise<string> {
+    const creationBlockNumber = await getCreationBlockNumber(contractAddress, web3);
+    const creationBlock = await web3.eth.getBlock(creationBlockNumber, true);
+    const transactions = creationBlock.transactions;
+
+    for (const i in transactions) {
+        const transaction = transactions[i];
+
+        const calculatedContractAddress = ethers.utils.getContractAddress(transaction);
+        if (calculatedContractAddress === contractAddress) {
+            return transaction.input;
+        }
+    }
+
+    throw new Error(`Creation data of contract ${contractAddress} could not be located!`);
+}
+
+/**
+ * Returns the data used for contract creation in the transaction found by the provided regex on the provided page.
+ * 
+ * @param fetchAddress the URL from which to fetch the page to be scrapd
+ * @param txRegex regex whose first group matches the transaction hash on the page
+ * @param web3 initialized web3 object for chain requests
+ * @returns a promise of the creation data
+ */
+export async function getCreationDataByScraping(fetchAddress: string, txRegex: string, web3: Web3): Promise<string> {
+    const res = await fetch(fetchAddress);
+    const buffer = await res.buffer();
+    const page = buffer.toString();
+    if (res.status === StatusCodes.OK) {
+        const matched = page.match(txRegex);
+        if (matched && matched[1]) {
+            const txHash = matched[1];
+            const tx = await web3.eth.getTransaction(txHash);
+            return tx.input;
+        }
+    }
+
+    throw new Error(`Creation data could not be scraped from ${fetchAddress}`);
 }

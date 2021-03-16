@@ -6,7 +6,6 @@ import { InputData, getChainId, Logger, PathBuffer, CheckedContract, isEmpty, Pa
 import { BadRequestError, NotFoundError, PayloadTooLargeError, ValidationError } from '../../common/errors'
 import { IValidationService } from '@ethereum-sourcify/validation';
 import * as bunyan from 'bunyan';
-import config from '../../config';
 import fileUpload from 'express-fileupload';
 import { isValidAddress } from '../../common/validators/validators';
 import { MySession, getSessionJSON, generateId, isVerifiable, SendableContract, ContractWrapperMap, updateUnused, MyRequest } from './VerificationController-util';

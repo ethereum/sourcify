@@ -1,6 +1,6 @@
 import cbor from 'cbor';
 import * as chainsRaw from "../chains.json";
-import * as sourcifyChainsRaw from "../sourcify-chains.json";
+import sourcifyChainsRaw from "../sourcify-chains";
 import { StringMap, ReformattedMetadata, Chain } from './types';
 const chains = chainsRaw as any;
 const sourcifyChains = sourcifyChainsRaw as any;
@@ -22,9 +22,6 @@ for (const i in chains) {
         const sourcifyData = sourcifyChains[chainId];
         Object.assign(chain, sourcifyData);
     }
-
-    chain.web3 = chain.rpc;
-    delete chain.rpc;
 
     chainMap[chainId] = chain;
 }
@@ -53,7 +50,7 @@ const TEST_CHAINS: Chain[] = [{
     nativeCurrency: null,
     network: "testnet",
     networkId: 0,
-    web3: [ `http://localhost:${process.env.LOCALCHAIN_PORT || 8545}` ]
+    rpc: [ `http://localhost:${process.env.LOCALCHAIN_PORT || 8545}` ]
 }];
 
 /**

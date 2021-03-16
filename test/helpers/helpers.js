@@ -16,17 +16,12 @@ const utils = require('../../services/core/build/utils/utils');
 async function deployFromArtifact(web3, artifact, from, args){
   const abi = artifact.compilerOutput.abi;
 
-  args = args || [];
-
-  const options = {
-    data: artifact.compilerOutput.evm.bytecode.object,
-    gasPrice: '1',
-    gas: 4000000,
-  };
-
   // Deploy contract
-  const contract = new web3.eth.Contract(abi, options);
-  return contract.deploy(...args).send({ from });
+  const contract = new web3.eth.Contract(abi);
+  return contract.deploy({
+      data: artifact.compilerOutput.evm.bytecode.object,
+      arguments: args || []
+  }).send({ from, gasPrice: '1', gas: 4000000 });
 }
 
 /**

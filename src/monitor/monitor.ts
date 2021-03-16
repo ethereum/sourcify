@@ -1,16 +1,13 @@
-import { cborDecode, getMonitoredChains, MonitorConfig, CheckedContract, FileService } from "@ethereum-sourcify/core";
+import { cborDecode, getMonitoredChains, MonitorConfig, CheckedContract, FileService, Chain } from "@ethereum-sourcify/core";
 import { VerificationService, IVerificationService } from "@ethereum-sourcify/verification";
 import Logger from "bunyan";
 import Web3 from "web3";
 import { Transaction } from "web3-core";
 import { SourceAddress } from "./util";
 import { ethers } from "ethers";
-import dotenv from 'dotenv';
-import path from 'path';
 import SourceFetcher from "./source-fetcher";
 import SystemConfig from '../config';
 import assert from 'assert';
-dotenv.config({ path: path.resolve(__dirname, "..", "..", "environments/.env") });
 
 const BLOCK_PAUSE_FACTOR = parseInt(process.env.BLOCK_PAUSE_FACTOR) || 1.1;
 assert(BLOCK_PAUSE_FACTOR > 1);
@@ -83,7 +80,8 @@ class ChainMonitor {
                     if (this.isVerified(address)) {
                         this.logger.info({ loc: "[PROCESS_ADDRESS:SKIP]", address }, "Already verified");
                     } else {
-                        this.processBytecode(address, this.initialGetBytecodeTries);
+                        this.logger.info({ loc: "[PROCESS_ADDRESS]", address }, "New contract");
+                        this.processBytecode(tx.input, address, this.initialGetBytecodeTries);
                     }
                 }
             }
@@ -98,7 +96,7 @@ class ChainMonitor {
     }
 
     private isVerified(address: string): boolean {
-        const foundArr = this.verificationService.findByAddress(this.chainId, address);
+        const foundArr = this.verificationService.findByAddress(address, this.chainId);
         return !!foundArr.length;
     }
 
@@ -109,7 +107,7 @@ class ChainMonitor {
         this.getBlockPause = Math.max(this.getBlockPause, BLOCK_PAUSE_LOWER_LIMIT);
     }
 
-    private processBytecode = (address: string, retriesLeft: number): void => {
+    private processBytecode = (creationData: string, address: string, retriesLeft: number): void => {
         if (retriesLeft-- <= 0) {
             return;
         }
@@ -125,7 +123,7 @@ class ChainMonitor {
             try {
                 const cborData = cborDecode(numericBytecode);
                 const metadataAddress = SourceAddress.fromCborData(cborData);
-                this.sourceFetcher.assemble(metadataAddress, contract => this.inject(contract, bytecode, address));
+                this.sourceFetcher.assemble(metadataAddress, contract => this.inject(contract, bytecode, creationData, address));
             } catch(err) {
                 this.logger.error({ loc: "[GET_BYTECODE:METADATA_READING]", address }, err.message);
             }
@@ -136,11 +134,12 @@ class ChainMonitor {
         });
     }
 
-    private inject = (contract: CheckedContract, bytecode: string, address: string) => {
+    private inject = (contract: CheckedContract, bytecode: string, creationData: string, address: string) => {
         const logObject = { loc: "[MONITOR:INJECT]", contract: contract.name, address };
         this.verificationService.inject({
             contract,
             bytecode,
+            creationData,
             chain: this.chainId,
             addresses: [address]
         }).then(() => this.logger.info(logObject, "Successfully injected")
@@ -165,10 +164,10 @@ export default class Monitor {
         const repositoryPath = config.repository || SystemConfig.repository.path;
 
         const chains = getMonitoredChains(config.testing || false);
-        this.chainMonitors = chains.map((chain: any) => new ChainMonitor(
+        this.chainMonitors = chains.map((chain: Chain) => new ChainMonitor(
             chain.name,
             chain.chainId.toString(),
-            chain.web3[0].replace("${INFURA_API_KEY}", SystemConfig.endpoint.infuraId),
+            chain.rpc[0].replace("${INFURA_API_KEY}", SystemConfig.endpoint.infuraId),
             this.sourceFetcher,
             new VerificationService(
                 new FileService(repositoryPath),
