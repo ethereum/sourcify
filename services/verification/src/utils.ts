@@ -137,6 +137,10 @@ async function useCompiler(version: string, input: any, log: bunyan) {
     return compiled;
 }
 
+function validateSolcPath(solcPath: string): boolean {
+    return spawnSync(solcPath, ["--version"]).status === 0;
+}
+
 async function getSolcExecutable(version: string, log: bunyan): Promise<string> {
     const fileName = `solc-linux-amd64-v${version}`;
     const tmpSolcRepo = process.env.SOLC_REPO_TMP || Path.join("/tmp", "solc-repo");
@@ -144,7 +148,7 @@ async function getSolcExecutable(version: string, log: bunyan): Promise<string> 
     const repoPaths = [tmpSolcRepo, process.env.SOLC_REPO || "solc-repo"];
     for (const repoPath of repoPaths) {
         const solcPath = Path.join(repoPath, fileName);
-        if (fs.existsSync(solcPath)) {
+        if (fs.existsSync(solcPath) && validateSolcPath(solcPath)) {
             return solcPath;
         }
     }
@@ -164,8 +168,12 @@ async function fetchSolcFromGitHub(solcPath: string, version: string, fileName: 
         log.info(logObject, "Successfully fetched executable solc from GitHub");
         fs.mkdirSync(Path.dirname(solcPath), { recursive: true });
         const buffer = await res.buffer();
+
+        try { fs.unlinkSync(solcPath); } catch (_e) { undefined }
         fs.writeFileSync(solcPath, buffer, { mode: 0o755 });
-        return true;
+        if (validateSolcPath(solcPath)) {
+            return true;
+        }
     }
 
     log.error(logObject, "Failed fetching executable solc from GitHub");
