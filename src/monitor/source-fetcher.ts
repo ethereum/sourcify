@@ -59,7 +59,7 @@ export default class SourceFetcher {
     }
 
     /**
-     * Stops the fetcher after executing all pending requests.
+     * Tells the fetcher not to make new requests. Does not affect pending requests.
      */
     stop(): void {
         this.running = false;
@@ -73,18 +73,13 @@ export default class SourceFetcher {
         }
 
         const sourceHash = sourceHashes[index];
-        const subscription = this.subscriptions[sourceHash];
-        let nextFast = false;
-
-        if (!(sourceHash in this.subscriptions) || subscription.beingProcessed) {
-            nextFast = true;
         
-        } else if (this.shouldCleanup(sourceHash)) {
+        if (this.shouldCleanup(sourceHash)) {
             this.cleanup(sourceHash);
-            nextFast = true;
         }
-
-        if (nextFast) {
+        
+        const subscription = this.subscriptions[sourceHash];
+        if (!subscription || subscription.beingProcessed) {
             this.mySetTimeout(this.fetch, NO_PAUSE, sourceHashes, index + 1);
             return;
         }
@@ -163,7 +158,7 @@ export default class SourceFetcher {
             this.subscriptions[sourceHash] = new Subscription(sourceAddress, fetchUrl);
             this.fileCounter++;
         }
-        
+
         this.timestamps[sourceHash] = new Date();
         this.subscriptions[sourceHash].subscribers.push(callback);
 
@@ -176,7 +171,7 @@ export default class SourceFetcher {
         });
     }
 
-    private cleanup(sourceHash: string) {
+    private cleanup(sourceHash: string): void {
         delete this.timestamps[sourceHash];
         const subscribers = Object.keys(this.subscriptions[sourceHash].subscribers);
         const subscriptionsDelta = subscribers.length;
@@ -192,7 +187,11 @@ export default class SourceFetcher {
         });
     }
 
-    private shouldCleanup(sourceHash: string) {
+    private shouldCleanup(sourceHash: string): boolean {
+        const subscription = this.subscriptions[sourceHash];
+        if (!subscription || subscription.beingProcessed) {
+            return false;
+        }
         const timestamp = this.timestamps[sourceHash];
         return timestamp && (timestamp.getTime() + this.cleanupTime < Date.now());
     }

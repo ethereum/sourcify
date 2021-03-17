@@ -4,7 +4,7 @@ const multihashes = require("multihashes");
 
 export type SourceOrigin = "ipfs" | "bzzr1" | "bzzr0";
 
-export type FetchedFileCallback= (fetchedFile: string) => any;
+export type FetchedFileCallback = (fetchedFile: string) => any;
 
 interface Prefix {
     regex: RegExp,
