@@ -1,7 +1,6 @@
-FROM node:10-alpine as builder
+FROM node:12
 WORKDIR /home/app
-RUN apk update && apk upgrade && \
-    apk add --no-cache bash git openssh python make g++ curl
+
 COPY environments/.env ./environments/
 COPY services/core ./services/core
 COPY services/validation ./services/validation
