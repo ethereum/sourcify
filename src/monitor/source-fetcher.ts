@@ -73,11 +73,11 @@ export default class SourceFetcher {
         }
 
         const sourceHash = sourceHashes[index];
-        
-        if (this.shouldCleanup(sourceHash)) {
+
+        if (this.isTimeUp(sourceHash)) {
             this.cleanup(sourceHash);
         }
-        
+
         const subscription = this.subscriptions[sourceHash];
         if (!subscription || subscription.beingProcessed) {
             this.mySetTimeout(this.fetch, NO_PAUSE, sourceHashes, index + 1);
@@ -150,10 +150,10 @@ export default class SourceFetcher {
      * @param callback the callback to be called on the fetched content
      */
     subscribe(sourceAddress: SourceAddress, callback: FetchedFileCallback): void {
-        const sourceHash = sourceAddress.getUniqueIdentifier();
+        const sourceHash = sourceAddress.getSourceHash();
         const gateway = this.findGateway(sourceAddress);
         const fetchUrl = gateway.createUrl(sourceAddress.id);
-        
+
         if (!(sourceHash in this.subscriptions)) {
             this.subscriptions[sourceHash] = new Subscription(sourceAddress, fetchUrl);
             this.fileCounter++;
@@ -171,11 +171,29 @@ export default class SourceFetcher {
         });
     }
 
+    /**
+     * Stop fetching the sources specified by the provided sourceAddresses.
+     * 
+     * @param sourceAddresses 
+     */
+    unsubscribe(sourceAddresses: SourceAddress[]): void {
+        for (const sourceAddress of sourceAddresses) {
+            const sourceHash = sourceAddress.getSourceHash();
+            this.cleanup(sourceHash);
+        }
+    }
+
     private cleanup(sourceHash: string): void {
-        delete this.timestamps[sourceHash];
-        const subscribers = Object.keys(this.subscriptions[sourceHash].subscribers);
+        const subscription = this.subscriptions[sourceHash];
+        if (!subscription) {
+            return;
+        }
+
+        const subscribers = Object.keys(subscription.subscribers);
         const subscriptionsDelta = subscribers.length;
         delete this.subscriptions[sourceHash];
+
+        delete this.timestamps[sourceHash];
 
         this.fileCounter--;
         this.subscriptionCounter -= subscriptionsDelta;
@@ -187,7 +205,7 @@ export default class SourceFetcher {
         });
     }
 
-    private shouldCleanup(sourceHash: string): boolean {
+    private isTimeUp(sourceHash: string): boolean {
         const subscription = this.subscriptions[sourceHash];
         if (!subscription || subscription.beingProcessed) {
             return false;
