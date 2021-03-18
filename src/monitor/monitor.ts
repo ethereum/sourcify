@@ -115,7 +115,7 @@ class ChainMonitor {
         this.web3Provider.eth.getCode(address).then(bytecode => {
             if (bytecode === "0x") {
                 this.logger.info({ loc: "[PROCESS_BYTECODE]", address, retriesLeft }, "Empty bytecode");
-                this.mySetTimeout(this.processBytecode, this.getBytecodeRetryPause, address, retriesLeft);
+                this.mySetTimeout(this.processBytecode, this.getBytecodeRetryPause, creationData, address, retriesLeft);
                 return;
             }
 
@@ -130,7 +130,7 @@ class ChainMonitor {
 
         }).catch(err => {
             this.logger.error({ loc: "[GET_BYTECODE]", address, retriesLeft }, err.message);
-            this.mySetTimeout(this.processBytecode, this.getBytecodeRetryPause, address, retriesLeft);
+            this.mySetTimeout(this.processBytecode, this.getBytecodeRetryPause, creationData, address, retriesLeft);
         });
     }
 
