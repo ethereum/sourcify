@@ -6,7 +6,6 @@ import { InputData, getChainId, Logger, PathBuffer, CheckedContract, isEmpty, Pa
 import { BadRequestError, NotFoundError, PayloadTooLargeError, ValidationError } from '../../common/errors'
 import { IValidationService } from '@ethereum-sourcify/validation';
 import * as bunyan from 'bunyan';
-import config from '../../config';
 import fileUpload from 'express-fileupload';
 import { isValidAddress } from '../../common/validators/validators';
 import { MySession, getSessionJSON, generateId, isVerifiable, SendableContract, ContractWrapperMap, updateUnused, MyRequest } from './VerificationController-util';
@@ -72,7 +71,7 @@ export default class VerificationController extends BaseController implements IC
         this.validateRequest(req);
 
         for (const address of req.addresses) {
-            const result = await this.verificationService.findByAddress(address, req.chain, config.repository.path);
+            const result = this.verificationService.findByAddress(address, req.chain);
             if (result.length != 0) {
                 return res.send({ result });
             }
@@ -80,7 +79,7 @@ export default class VerificationController extends BaseController implements IC
 
         const inputFiles = this.extractFiles(req);
         if (!inputFiles) {
-            const msg = "The contract at the provided address has not yet been sourcified.";
+            const msg = "The contract at the provided address and chain has not yet been sourcified.";
             throw new NotFoundError(msg);
         }
 
@@ -111,7 +110,7 @@ export default class VerificationController extends BaseController implements IC
 
         const inputData: InputData = { contract, addresses: req.addresses, chain: req.chain };
 
-        const resultPromise = this.verificationService.inject(inputData, config.localchain.url);
+        const resultPromise = this.verificationService.inject(inputData);
         resultPromise.then(result => {
             res.send({ result: [result] }); // array is an old expected behavior (e.g. by frontend)
         }).catch(error => {
@@ -121,15 +120,16 @@ export default class VerificationController extends BaseController implements IC
 
     private checkByAddresses = async (req: any, res: Response) => {
         this.validateRequest(req);
-        const map: Map<string, Object> = new Map();
+        const map: Map<string, any> = new Map();
         for (const address of req.addresses) {
             for (const chainId of req.chainIds) {
                 try {
-                    const object: any = await this.verificationService.findByAddress(address, chainId, config.repository.path);
-                    object.chainId = chainId;
-                    if (object.length != 0) {
-                        map.set(address, object[0]);
-                        break;
+                    const found: Match[] = this.verificationService.findByAddress(address, chainId);
+                    if (found.length != 0) {
+                        if (!map.has(address)) {
+                            map.set(address, { address, status: "perfect", chainIds: [] });
+                        }
+                        map.get(address).chainIds.push(chainId);
                     }
                 } catch (error) {
                     // ignore
@@ -212,13 +212,13 @@ export default class VerificationController extends BaseController implements IC
             }
             const inputData: InputData = { addresses: [contractWrapper.address], chain: contractWrapper.chainId, contract: contractWrapper.contract };
 
-            const found = await this.verificationService.findByAddress(contractWrapper.address, contractWrapper.chainId, config.repository.path);
+            const found = this.verificationService.findByAddress(contractWrapper.address, contractWrapper.chainId);
             let match: Match;
             if (found.length) {
                 match = found[0];
 
             } else {
-                const matchPromise = this.verificationService.inject(inputData, config.localchain.url);
+                const matchPromise = this.verificationService.inject(inputData);
                 match = await matchPromise.catch((error: Error): Match => {
                     return {
                         status: null,

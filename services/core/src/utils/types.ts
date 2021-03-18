@@ -1,5 +1,5 @@
-import Web3 from "web3";
 import { CheckedContract } from "./CheckedContract";
+import Web3 from "web3";
 
 export interface FileObject {
     name: string,
@@ -11,7 +11,8 @@ export interface InputData {
     chain: string,
     addresses: string[],
     contract?: CheckedContract,
-    bytecode?: string
+    bytecode?: string,
+    creationData?: string,
 }
 
 export interface CompilationSettings {
@@ -82,3 +83,31 @@ export type Tag = {
   timestamp: any,
   repositoryVersion: string
 }
+
+export declare interface ReformattedMetadata {
+  input: any,
+  fileName: string,
+  contractName: string
+}
+
+type Currency = {
+  name: string,
+  symbol: string,
+  decimals: number
+};
+
+export type Chain = {
+  name: string,
+  chainId: number,
+  shortName: string,
+  network: string,
+  networkId: number,
+  nativeCurrency: Currency,
+  rpc: string[],
+  faucets: string[],
+  infoURL: string,
+  fullnode?: { dappnode: string },
+  contractFetchAddress?: string,
+  txRegex?: string,
+  archiveWeb3?: Web3,
+};

@@ -1,27 +1,9 @@
 import cbor from 'cbor';
 import * as chainsRaw from "../chains.json";
-import * as sourcifyChainsRaw from "../sourcify-chains.json";
+import sourcifyChainsRaw from "../sourcify-chains";
+import { StringMap, ReformattedMetadata, Chain } from './types';
 const chains = chainsRaw as any;
 const sourcifyChains = sourcifyChainsRaw as any;
-
-type Currency = {
-    name: string,
-    symbol: string,
-    decimals: number
-};
-
-export type Chain = {
-    name: string,
-    chainId: number,
-    shortName: string,
-    network: string,
-    networkId: number,
-    nativeCurrency: Currency,
-    web3: string[],
-    faucets: string[],
-    infoURL: string,
-    fullnode?: { dappnode: string }
-};
 
 type ChainMap = {
     [chainId: string]: Chain
@@ -40,9 +22,6 @@ for (const i in chains) {
         const sourcifyData = sourcifyChains[chainId];
         Object.assign(chain, sourcifyData);
     }
-
-    chain.web3 = chain.rpc;
-    delete chain.rpc;
 
     chainMap[chainId] = chain;
 }
@@ -71,7 +50,7 @@ const TEST_CHAINS: Chain[] = [{
     nativeCurrency: null,
     network: "testnet",
     networkId: 0,
-    web3: [ `http://localhost:${process.env.LOCALCHAIN_PORT || 8545}` ]
+    rpc: [ `http://localhost:${process.env.LOCALCHAIN_PORT || 8545}` ]
 }];
 
 /**
@@ -136,4 +115,58 @@ export function cborDecode(bytecode: number[]): any {
  */
 export function isEmpty(obj: object): boolean {
     return !Object.keys(obj).length && obj.constructor === Object;
+}
+
+/**
+ * Formats metadata into an object which can be passed to solc for recompilation
+ * @param  {any}                 metadata solc metadata object
+ * @param  {string[]}            sources  solidity sources
+ * @return {ReformattedMetadata}
+ */
+export function reformatMetadata(
+    metadata: any,
+    sources: StringMap,
+    log?: any
+): ReformattedMetadata {
+
+    const input: any = {};
+    let fileName = '';
+    let contractName = '';
+
+    input.settings = metadata.settings;
+
+    if (!metadata.settings ||
+        !metadata.settings.compilationTarget ||
+        Object.keys(metadata.settings.compilationTarget).length != 1
+    ) {
+        const err = "Invalid compilationTarget";
+        if (log) log.error({ loc: "REFORMAT", err });
+        throw new Error(err);
+    }
+
+    for (fileName in metadata.settings.compilationTarget) {
+        contractName = metadata.settings.compilationTarget[fileName];
+    }
+
+    delete input.settings.compilationTarget;
+
+    input.sources = {};
+    for (const source in sources) {
+        input.sources[source] = { content: sources[source] }
+    }
+
+    input.language = metadata.language
+    input.settings.metadata = input.settings.metadata || {}
+    input.settings.outputSelection = input.settings.outputSelection || {}
+    input.settings.outputSelection[fileName] = input.settings.outputSelection[fileName] || {}
+
+    input.settings.outputSelection[fileName][contractName] = [
+        'evm.bytecode',
+        'evm.deployedBytecode',
+        'metadata'
+    ];
+
+    input.settings.libraries = { "": metadata.settings.libraries || {} };
+
+    return { input, fileName, contractName };
 }

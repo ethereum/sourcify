@@ -1,13 +1,19 @@
 import dirTree from 'directory-tree';
-import path from 'path';
+import Path from 'path';
 import fs from 'fs';
 import web3 from 'web3';
 import * as bunyan from 'bunyan';
-import { outputFileSync } from 'fs-extra';
-import { FileObject, Match, Tag, MatchLevel, FilesInfo } from '../utils/types';
+import { FileObject, Match, Tag, MatchLevel, FilesInfo, MatchQuality } from '../utils/types';
 import { getChainId } from '../utils/utils';
 import { Logger } from '../utils/logger';
-const saveFile = outputFileSync;
+
+type PathConfig = {
+    matchQuality: MatchQuality
+    chain: string
+    address: string
+    fileName: string
+    source?: boolean
+};
 
 export interface IFileService {
     getTreeByChainAndAddress(chainId: any, address: string): Promise<Array<string>>;
@@ -15,7 +21,8 @@ export interface IFileService {
     fetchAllFileUrls(chain: string, address: string): Array<string>;
     fetchAllFilePaths(chain: string, address: string): Array<FileObject>;
     fetchAllFileContents(chain: string, address: string): Array<FileObject>;
-    findByAddress(address: string, chain: string, repository: string): Match[];
+    findByAddress(address: string, chain: string): Match[];
+    save(path: string | PathConfig, file: string): void;
     repositoryPath: string;
     getTree(chainId: any, address: string, match: string): Promise<FilesInfo<string>>;
     getContent(chainId: any, address: string, match: string): Promise<FilesInfo<FileObject>>;
@@ -26,8 +33,8 @@ export class FileService implements IFileService {
     repositoryPath: string;
 
     constructor(repositoryPath: string, logger?: bunyan) {
-        this.logger = logger || Logger("FileService");
         this.repositoryPath = repositoryPath;
+        this.logger = logger || Logger("FileService");
     }
 
     async getTreeByChainAndAddress(chainId: any, address: string): Promise<string[]> {
@@ -91,19 +98,37 @@ export class FileService implements IFileService {
         return { status: "partial", files };
     }
 
+    private generateContractPath(pathConfig: PathConfig) {
+        return Path.join(
+            this.repositoryPath,
+            "contracts",
+            `${pathConfig.matchQuality}_match`,
+            pathConfig.chain,
+            web3.utils.toChecksumAddress(pathConfig.address),
+            pathConfig.source ? "sources" : "",
+            pathConfig.fileName || ""
+        );
+    }
+
     /**
-     * Only for checking that files exists in path
+     * Checks contract existence in repository.
+     * 
      * @param address
      * @param chain
      * @param repository
      */
-    findByAddress(address: string, chain: string, repository: string): Match[] {
-        const addressPath = `${repository}/contracts/full_match/${chain}/${web3.utils.toChecksumAddress(address)}/metadata.json`;
+    findByAddress(address: string, chain: string): Match[] {
+        const contractPath = this.generateContractPath({
+            matchQuality: "full",
+            chain,
+            address,
+            fileName: "metadata.json"
+        });
 
         try {
-            const storageTimestamp = fs.statSync(addressPath).birthtime;
+            const storageTimestamp = fs.statSync(contractPath).birthtime;
             return [{
-                address: address,
+                address,
                 status: "perfect",
                 storageTimestamp
             }];
@@ -113,13 +138,17 @@ export class FileService implements IFileService {
     }
 
     /**
-     * Save file and update the repository tag
+     * Save file to repository and update the repository tag. The path may include non-existent parent directories.
      *
-     * @param path
-     * @param file
+     * @param path the path within the repository where the file will be stored
+     * @param file the content to be stored
      */
-    save(path: string, file: any) {
-        saveFile(path, file);
+    save(path: string | PathConfig, file: string): void {
+        const finalPath = (typeof path === "string") ?
+            Path.join(this.repositoryPath, path) : this.generateContractPath(path);
+
+        fs.mkdirSync(Path.dirname(finalPath), { recursive: true });
+        fs.writeFileSync(finalPath, file);
         this.updateRepositoryTag();
     }
 
@@ -127,7 +156,7 @@ export class FileService implements IFileService {
      * Update repository tag
      */
     updateRepositoryTag() {
-        const filePath: string = path.join(this.repositoryPath, 'manifest.json')
+        const filePath: string = Path.join(this.repositoryPath, 'manifest.json')
         const timestamp = new Date().getTime();
         const repositoryVersion = process.env.REPOSITORY_VERSION || '0.1';
         const tag: Tag = {

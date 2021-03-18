@@ -16,7 +16,7 @@ const MAX_INPUT_SIZE = require("../dist/server/controllers/VerificationControlle
 const StatusCodes = require('http-status-codes').StatusCodes;
 chai.use(chaiHttp);
 
-const EXTENDED_TIME = 15000; // 15 seconds
+const EXTENDED_TIME = 20000; // 20 seconds
 
 describe("Server", function() {
     const server = new Server();
@@ -86,7 +86,7 @@ describe("Server", function() {
                 });
         });
 
-        const assertStatus = (err, res, expectedStatus, done) => {
+        const assertStatus = (err, res, expectedStatus, expectedChainIds, done) => {
             chai.expect(err).to.be.null;
             chai.expect(res.status).to.equal(StatusCodes.OK);
             const resultArray = res.body;
@@ -94,14 +94,15 @@ describe("Server", function() {
             const result = resultArray[0];
             chai.expect(result.address).to.equal(contractAddress);
             chai.expect(result.status).to.equal(expectedStatus);
+            chai.expect(result.chainIds).to.deep.equal(expectedChainIds)
             if (done) done();
         }
 
         it("should return false for previously unverified contract", (done) => {
             chai.request(server.app)
-                .get("/check-by-Addresses")
+                .get("/check-by-addresses")
                 .query({ chainIds: contractChain, addresses: contractAddress })
-                .end((err, res) => assertStatus(err, res, "false", done));
+                .end((err, res) => assertStatus(err, res, "false", undefined, done));
         });
 
         it("should fail for invalid address", (done) => {
@@ -119,7 +120,7 @@ describe("Server", function() {
                 .get("/check-by-addresses")
                 .query({ chainIds: contractChain, addresses: contractAddress })
                 .end((err, res) => {
-                    assertStatus(err, res, "false");
+                    assertStatus(err, res, "false", undefined);
                     chai.request(server.app).post("/")
                         .field("address", contractAddress)
                         .field("chain", contractChain)
@@ -132,7 +133,7 @@ describe("Server", function() {
                             chai.request(server.app)
                                 .get("/check-by-addresses")
                                 .query({ chainIds: contractChain, addresses: contractAddress })
-                                .end((err, res) => assertStatus(err, res, "perfect", done));
+                                .end((err, res) => assertStatus(err, res, "perfect", [contractChain], done));
                         });     
                 });
         });
@@ -162,14 +163,14 @@ describe("Server", function() {
             checkNonVerified("/verify", done);
         });
 
-        const assertions = (err, res, done) => {
+        const assertions = (err, res, done, expectedAddress=contractAddress) => {
             chai.expect(err).to.be.null;
             chai.expect(res.status).to.equal(StatusCodes.OK);
             chai.expect(res.body).to.haveOwnProperty("result");
             const resultArr = res.body.result;
             chai.expect(resultArr).to.have.a.lengthOf(1);
             const result = resultArr[0];
-            chai.expect(result.address).to.equal(contractAddress);
+            chai.expect(result.address).to.equal(expectedAddress);
             chai.expect(result.status).to.equal("perfect");
             done();
         }
@@ -241,6 +242,46 @@ describe("Server", function() {
                 .attach("files", metadataBuffer, "metadata.json")
                 .end((err, res) => assertions(err, res, done));
         });
+
+        it("should verify a contract with immutables on Matic Testnet Mumbai (also with libraries)", done => {
+            const address = "0x7c90F0C9Eb46391c93d0545dDF4658d3B8DF1866";
+            const metadataPath = path.join("test", "sources", "metadata", "with-immutables-and-libraries.meta.object.json");
+            const metadataBuffer = fs.readFileSync(metadataPath);
+            chai.request(server.app)
+                .post("/")
+                .field("address", address)
+                .field("chain", "80001")
+                .attach("files", metadataBuffer, "metadata.json")
+                .end((err, res) => assertions(err, res, done, address));
+        });
+
+        const verifyContractWithImmutables = (address, chainId, chainName) => {
+            it(`should verify a contract with immutables on ${chainName}`, done => {
+                const sourcePath = path.join("test", "sources", "contracts", "WithImmutables.sol");
+                const sourceBuffer = fs.readFileSync(sourcePath);
+                const metadataPath = path.join("test", "sources", "metadata", "withImmutables.meta.object.json");
+                const metadataBuffer = fs.readFileSync(metadataPath);
+                chai.request(server.app)
+                    .post("/")
+                    .field("address", address)
+                    .field("chain", chainId)
+                    .attach("files", metadataBuffer, "metadata.json")
+                    .attach("files", sourceBuffer, "WithImmutables.sol")
+                    .end((err, res) => assertions(err, res, done, address));
+            });
+        };
+
+        verifyContractWithImmutables("0x656d0062eC89c940213E3F3170EA8b2add1c0143", "3", "Ropsten");
+
+        verifyContractWithImmutables("0x656d0062eC89c940213E3F3170EA8b2add1c0143", "4", "Rinkeby");
+
+        verifyContractWithImmutables("0xBdDe4D595F2CDdA92ca274423374E0e1C7286426", "5", "Goerli");
+        
+        verifyContractWithImmutables("0x443C64AcC4c6dB358Eb1CA78fdf7577C2a7eA499", "42", "Kovan");
+
+        verifyContractWithImmutables("0x3CE1a25376223695284edc4C2b323C3007010C94", "100", "xDai");
+        
+        verifyContractWithImmutables("0x66ec3fBf4D7d7B7483Ae4fBeaBDD6022037bfa1a", "44787", "Alfajores Celo");
     });
 
     describe("verification v2", function() {

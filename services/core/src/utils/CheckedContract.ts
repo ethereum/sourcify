@@ -1,12 +1,8 @@
 import Web3 from 'web3';
-import { StringMap, SourceMap, Metadata } from './types';
-import { isEmpty } from './utils';
+import { StringMap, Metadata } from './types';
+import { isEmpty, reformatMetadata } from './utils';
 import bunyan from 'bunyan';
 import fetch from 'node-fetch';
-
-const STANDARD_JSON_SETTINGS_KEYS = [
-        "stopAfter", "remappings", "optimizer", "evmVersion", "debug", "metadata", "libraries", "outputSelection"
-];
 
 const IPFS_PREFIX = "dweb:/ipfs/";
 const IPFS_URL = process.env.IPFS_URL || 'https://ipfs.infura.io:5001/api/v0/cat?arg=';
@@ -75,45 +71,11 @@ export class CheckedContract {
         if (metadata.compiler && metadata.compiler.version) {
             this.compilerVersion = metadata.compiler.version;
         }
-        const { contractPath, contractName } = this.getPathAndName();
-        this.compiledPath = contractPath;
+
+        const { input, fileName, contractName } = reformatMetadata(metadata, solidity);
+        this.standardJson = input;
+        this.compiledPath = fileName;
         this.name = contractName;
-    }
-
-    /**
-     * Returns the contract path and name as specified in the metadata provided during construction.
-     */
-    private getPathAndName() {
-        const compilationTarget = this.metadata.settings.compilationTarget;
-        const contractPath = Object.keys(compilationTarget)[0];
-        const contractName = compilationTarget[contractPath];
-        return { contractPath, contractName };
-    }
-
-    /**
-     * Returns a JSON object compatible with solc --standard-json.
-     * 
-     * @param useOriginalSettings If true, the returned object will contain settings as specified
-     * during the original compilation; otherwise no settings will be imposed.
-     */
-    public getStandardJson(useOriginalSettings = true) {
-        const standardJson: any = {
-            language: "Solidity",
-            sources: this.metadata.sources
-        };
-
-        if (useOriginalSettings && this.metadata.settings) {
-            standardJson.settings = {};
-            standardJson.settings.outputSelection = { "*": { "*": [ "evm.bytecode", "abi" ] } };
-            for (const key of STANDARD_JSON_SETTINGS_KEYS) {
-                const settings: any = this.metadata.settings; // has to be of type any, does not compile if calling this.metadata.settings
-                if (Object.prototype.hasOwnProperty.call(settings, key)) {
-                    standardJson.settings[key] = settings[key];
-                }
-            }
-        }
-
-        return standardJson;
     }
 
     /**

@@ -1,14 +1,14 @@
 import Web3 from 'web3';
 import fetch from 'node-fetch';
-import { StringMap } from '@ethereum-sourcify/core';
+import { StringMap, reformatMetadata } from '@ethereum-sourcify/core';
 import Path from 'path';
 import fs from 'fs';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const solc = require('solc');
-import {spawnSync} from 'child_process';
+import { spawnSync } from 'child_process';
 import { StatusCodes } from 'http-status-codes';
-import { mkdirpSync } from 'fs-extra';
 import * as bunyan from 'bunyan';
+import { ethers } from 'ethers';
 
 const GITHUB_SOLC_REPO = "https://github.com/ethereum/solc-bin/raw/gh-pages/linux-amd64/";
 
@@ -16,12 +16,6 @@ export interface RecompilationResult {
     bytecode: string,
     deployedBytecode: string,
     metadata: string
-}
-
-export declare interface ReformattedMetadata {
-    input: any,
-    fileName: string,
-    contractName: string
 }
 
 /**
@@ -44,7 +38,7 @@ export async function checkEndpoint(provider: string): Promise<void> {
             body: JSON.stringify({ "jsonrpc": "2.0", "id": 1, "method": "eth_blockNumber", "params": [] })
         })
             .then((response) => {
-                if (response.status == 401) {
+                if (response.status == StatusCodes.UNAUTHORIZED) {
                     throw new Error("Check your Infura ID");
                 }
             }).catch(() => {
@@ -65,6 +59,8 @@ export async function getBytecode(web3: Web3, address: string): Promise<string> 
     return await web3.eth.getCode(address);
 }
 
+const RECOMPILATION_ERR_MSG = "Recompilation error (probably caused by invalid metadata)";
+
 /**
  * Compiles sources using version and settings specified in metadata
  * @param  {any}                          metadata
@@ -83,24 +79,25 @@ export async function recompile(
         contractName
     } = reformatMetadata(metadata, sources, log);
 
+    const loc = "[RECOMPILE]";
     const version = metadata.compiler.version;
 
     log.info(
-        {
-            loc: '[RECOMPILE]',
-            fileName: fileName,
-            contractName: contractName,
-            version: version
-        },
+        { loc, fileName, contractName, version },
         'Recompiling'
     );
 
     const compiled = await useCompiler(version, input, log);
     const output = JSON.parse(compiled);
-    const contract: any = output.contracts[fileName][contractName];
+    if (!output.contracts || !output.contracts[fileName] || !output.contracts[fileName][contractName]) {
+        const errors = output.errors.filter((e: any) => e.severity === "error").map((e: any) => e.message);
+        log.error({ loc, fileName, contractName, version, errors });
+        throw new Error(RECOMPILATION_ERR_MSG);
+    }
 
+    const contract: any = output.contracts[fileName][contractName];
     return {
-        bytecode: contract.evm.bytecode.object,
+        bytecode: `0x${contract.evm.bytecode.object}`,
         deployedBytecode: `0x${contract.evm.deployedBytecode.object}`,
         metadata: contract.metadata.trim()
     }
@@ -124,18 +121,24 @@ async function useCompiler(version: string, input: any, log: bunyan) {
     if (solcPath) {
         const logObject = {loc: "[RECOMPILE]", version, solcPath};
         log.info(logObject, "Compiling with external executable");
+
         const shellOutputBuffer = spawnSync(solcPath, ["--standard-json"], {input: inputStringified});
         if (!shellOutputBuffer.stdout) {
-            log.error(logObject, shellOutputBuffer.error || "Recompilation error");
-            throw new Error("Recompilation error");
+            log.error(logObject, shellOutputBuffer.error || RECOMPILATION_ERR_MSG);
+            throw new Error(RECOMPILATION_ERR_MSG);
         }
         compiled = shellOutputBuffer.stdout.toString();
+
     } else {
         const soljson = await getSolcJs(version, log);
         compiled = soljson.compile(inputStringified);
     }
 
     return compiled;
+}
+
+function validateSolcPath(solcPath: string): boolean {
+    return spawnSync(solcPath, ["--version"]).status === 0;
 }
 
 async function getSolcExecutable(version: string, log: bunyan): Promise<string> {
@@ -145,7 +148,7 @@ async function getSolcExecutable(version: string, log: bunyan): Promise<string> 
     const repoPaths = [tmpSolcRepo, process.env.SOLC_REPO || "solc-repo"];
     for (const repoPath of repoPaths) {
         const solcPath = Path.join(repoPath, fileName);
-        if (fs.existsSync(solcPath)) {
+        if (fs.existsSync(solcPath) && validateSolcPath(solcPath)) {
             return solcPath;
         }
     }
@@ -163,10 +166,14 @@ async function fetchSolcFromGitHub(solcPath: string, version: string, fileName: 
     const res = await fetch(githubSolcURI);
     if (res.status === StatusCodes.OK) {
         log.info(logObject, "Successfully fetched executable solc from GitHub");
-        mkdirpSync(Path.dirname(solcPath));
+        fs.mkdirSync(Path.dirname(solcPath), { recursive: true });
         const buffer = await res.buffer();
+
+        try { fs.unlinkSync(solcPath); } catch (_e) { undefined }
         fs.writeFileSync(solcPath, buffer, { mode: 0o755 });
-        return true;
+        if (validateSolcPath(solcPath)) {
+            return true;
+        }
     }
 
     log.error(logObject, "Failed fetching executable solc from GitHub");
@@ -184,61 +191,6 @@ export function getBytecodeWithoutMetadata(bytecode: string): string {
     const metadataSize = parseInt(bytecode.slice(-4), 16) * 2 + 4;
     return bytecode.slice(0, bytecode.length - metadataSize);
 }
-
-/**
- * Formats metadata into an object which can be passed to solc for recompilation
- * @param  {any}                 metadata solc metadata object
- * @param  {string[]}            sources  solidity sources
- * @return {ReformattedMetadata}
- */
-function reformatMetadata(
-    metadata: any,
-    sources: StringMap,
-    log: any
-): ReformattedMetadata {
-
-    const input: any = {};
-    let fileName = '';
-    let contractName = '';
-
-    input.settings = metadata.settings;
-
-    // this assumes that the size of copmilationTarget is 1
-    for (fileName in metadata.settings.compilationTarget) {
-        contractName = metadata.settings.compilationTarget[fileName];
-    }
-
-    delete input['settings']['compilationTarget']
-
-    if (contractName == '') {
-        const err = new Error("Could not determine compilation target from metadata.");
-        log.info({ loc: '[REFORMAT]', err: err });
-        throw err;
-    }
-
-    input['sources'] = {}
-    for (const source in sources) {
-        input.sources[source] = { 'content': sources[source] }
-    }
-
-    input.language = metadata.language
-    input.settings.metadata = input.settings.metadata || {}
-    input.settings.outputSelection = input.settings.outputSelection || {}
-    input.settings.outputSelection[fileName] = input.settings.outputSelection[fileName] || {}
-
-    input.settings.outputSelection[fileName][contractName] = [
-        'evm.bytecode',
-        'evm.deployedBytecode',
-        'metadata'
-    ];
-
-    return {
-        input: input,
-        fileName: fileName,
-        contractName: contractName
-    }
-}
-
 
 /**
  * Fetches the requested version of the Solidity compiler (soljson).
@@ -288,4 +240,77 @@ export function getSolcJs(version = "latest", log: bunyan): Promise<any> {
             }
         });
     });
+}
+
+ async function getCreationBlockNumber(contractAddress: string, web3: Web3): Promise<number> {
+    let highestBlock = await web3.eth.getBlockNumber();
+    let lowestBlock = 0;
+
+    let contractCode = await web3.eth.getCode(contractAddress, highestBlock);
+    if (contractCode == "0x") {
+        throw new Error(`Contract ${contractAddress} does not exist!`);
+    }
+
+    while (lowestBlock <= highestBlock) {
+        const searchBlock = Math.floor((lowestBlock + highestBlock) / 2)
+        contractCode = await web3.eth.getCode(contractAddress, searchBlock);
+
+        if (contractCode != "0x") {
+            highestBlock = searchBlock;
+        } else if (contractCode == "0x") {
+            lowestBlock = searchBlock;
+        }
+
+        if (highestBlock == lowestBlock + 1) {
+            return highestBlock;
+        }
+    }
+}
+
+/**
+ * Modified and optimized version of https://www.shawntabrizi.com/ethereum-find-contract-creator/
+ * 
+ * @param contractAddress the hexadecimal address of the contract 
+ * @param web3 initialized web3 object for chain requests
+ * @returns a Promise of the creation data
+ */
+export async function getCreationDataFromArchive(contractAddress: string, web3: Web3): Promise<string> {
+    const creationBlockNumber = await getCreationBlockNumber(contractAddress, web3);
+    const creationBlock = await web3.eth.getBlock(creationBlockNumber, true);
+    const transactions = creationBlock.transactions;
+
+    for (const i in transactions) {
+        const transaction = transactions[i];
+
+        const calculatedContractAddress = ethers.utils.getContractAddress(transaction);
+        if (calculatedContractAddress === contractAddress) {
+            return transaction.input;
+        }
+    }
+
+    throw new Error(`Creation data of contract ${contractAddress} could not be located!`);
+}
+
+/**
+ * Returns the data used for contract creation in the transaction found by the provided regex on the provided page.
+ * 
+ * @param fetchAddress the URL from which to fetch the page to be scrapd
+ * @param txRegex regex whose first group matches the transaction hash on the page
+ * @param web3 initialized web3 object for chain requests
+ * @returns a promise of the creation data
+ */
+export async function getCreationDataByScraping(fetchAddress: string, txRegex: string, web3: Web3): Promise<string> {
+    const res = await fetch(fetchAddress);
+    const buffer = await res.buffer();
+    const page = buffer.toString();
+    if (res.status === StatusCodes.OK) {
+        const matched = page.match(txRegex);
+        if (matched && matched[1]) {
+            const txHash = matched[1];
+            const tx = await web3.eth.getTransaction(txHash);
+            return tx.input;
+        }
+    }
+
+    throw new Error(`Creation data could not be scraped from ${fetchAddress}`);
 }
