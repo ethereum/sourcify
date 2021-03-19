@@ -35,6 +35,63 @@ declare interface TimestampMap {
  * Allows subscribing to individual sources.
  */
 export default class SourceFetcher {
+    gatewayFetchers = [
+        new GatewayFetcher(new SimpleGateway("ipfs", process.env.IPFS_URL || "https://ipfs.infura.io:5001/api/v0/cat?arg=")),
+        new GatewayFetcher(new SimpleGateway(["bzzr0", "bzzr1"], "https://swarm-gateways.net/bzz-raw:/"))
+    ]
+
+    /**
+     * Tells the fetcher not to make new requests. Does not affect pending requests.
+     */
+    stop(): void {
+        this.gatewayFetchers.forEach(gatewayFetcher => gatewayFetcher.stop());
+    }
+
+    private findGatewayFetcher(sourceAddress: SourceAddress) {
+        for (const gatewayFetcher of this.gatewayFetchers) {
+            if (gatewayFetcher.worksWith(sourceAddress)) {
+                return gatewayFetcher;
+            }
+        }
+
+        throw new Error(`Gateway not found for ${sourceAddress.origin}`);
+    }
+
+    /**
+     * Fetches the requested source and executes the callback on the fetched content.
+     * 
+     * @param sourceAddress an object representing the location of the source file
+     * @param callback the callback to be called on the fetched content
+     */
+    subscribe(sourceAddress: SourceAddress, callback: FetchedFileCallback): void {
+        const gatewayFetcher = this.findGatewayFetcher(sourceAddress);
+        gatewayFetcher.subscribe(sourceAddress, callback);
+    }
+
+    /**
+     * Stop fetching the source specified by the provided sourceAddress.
+     * 
+     * @param sourceAddress
+     */
+    unsubscribe(sourceAddress: SourceAddress): void {
+        const gatewayFetcher = this.findGatewayFetcher(sourceAddress);
+        gatewayFetcher.unsubscribe(sourceAddress);
+    }
+
+    /**
+     * Begins the process of assembling a contract's sources. This is done by fetching the metadata from the address provided. 
+     * After assembling the contract, the provided callback is called.
+     * 
+     * @param metadataAddress an object representing the location of the contract metadata
+     * @param callback the callback to be called on the contract once it is assembled
+     */
+     assemble(metadataAddress: SourceAddress, callback: (contract: CheckedContract) => void) {
+        const contract = new PendingContract(this, callback);
+        contract.assemble(metadataAddress);
+    }
+}
+
+class GatewayFetcher {
     private subscriptions: SubscriptionMap = {};
     private timestamps: TimestampMap = {};
     private logger = new Logger({ name: "SourceFetcher" });
@@ -46,21 +103,16 @@ export default class SourceFetcher {
     private fetchPause: number; // how much time to wait between two requests
     private cleanupTime: number; // how much time has to pass before a source is forgotten
 
-    private gateways: IGateway[] = [
-        new SimpleGateway("ipfs", process.env.IPFS_URL || "https://ipfs.infura.io:5001/api/v0/cat?arg="),
-        new SimpleGateway(["bzzr0", "bzzr1"], "https://swarm-gateways.net/bzz-raw:/")
-    ];
+    private gateway: IGateway;
 
-    constructor() {
+    constructor(gateway: IGateway) {
+        this.gateway = gateway;
         this.fetchTimeout = parseInt(process.env.MONITOR_FETCH_TIMEOUT) || (5 * 60 * 1000);
         this.fetchPause = parseInt(process.env.MONITOR_FETCH_PAUSE) || (1 * 1000);
         this.cleanupTime = parseInt(process.env.MONITOR_CLEANUP_PERIOD) || (30 * 60 * 1000);
         this.fetch([], STARTING_INDEX);
     }
 
-    /**
-     * Stops the fetcher after executing all pending requests.
-     */
     stop(): void {
         this.running = false;
     }
@@ -68,24 +120,19 @@ export default class SourceFetcher {
     private fetch = (sourceHashes: string[], index: number): void => {
         if (index >= sourceHashes.length) {
             const newSourceHashes = Object.keys(this.subscriptions); // make a copy so that subscriptions can be freely cleared if necessary
-            if (this.running) setTimeout(this.fetch, NO_PAUSE, newSourceHashes, STARTING_INDEX);
+            this.mySetTimeout(this.fetch, NO_PAUSE, newSourceHashes, STARTING_INDEX);
             return;
         }
 
         const sourceHash = sourceHashes[index];
-        const subscription = this.subscriptions[sourceHash];
-        let nextFast = false;
 
-        if (!(sourceHash in this.subscriptions) || subscription.beingProcessed) {
-            nextFast = true;
-        
-        } else if (this.shouldCleanup(sourceHash)) {
+        if (this.isTimeUp(sourceHash)) {
             this.cleanup(sourceHash);
-            nextFast = true;
         }
 
-        if (nextFast) {
-            setTimeout(this.fetch, NO_PAUSE, sourceHashes, index + 1);
+        const subscription = this.subscriptions[sourceHash];
+        if (!subscription || subscription.beingProcessed) {
+            this.mySetTimeout(this.fetch, NO_PAUSE, sourceHashes, index + 1);
             return;
         }
 
@@ -99,6 +146,7 @@ export default class SourceFetcher {
                 } else {
                     this.logger.error({
                         loc: "[SOURCE_FETCHER:FETCH_FAILED]",
+                        gateway: this.gateway.baseUrl,
                         status: resp.status,
                         statusText: resp.statusText,
                         sourceHash
@@ -107,22 +155,19 @@ export default class SourceFetcher {
             });
 
         }).catch(err => this.logger.error(
-            { loc: "[SOURCE_FETCHER]", fetchUrl }, err.message
+            { loc: "[SOURCE_FETCHER]", gateway: this.gateway.baseUrl, fetchUrl },
+            err.message
         )).finally(() => {
             subscription.beingProcessed = false;
         });
 
-        if (this.running) setTimeout(this.fetch, this.fetchPause, sourceHashes, index + 1);
+        this.mySetTimeout(this.fetch, this.fetchPause, sourceHashes, index + 1);
     }
 
-    private findGateway(sourceAddress: SourceAddress) {
-        for (const gateway of this.gateways) {
-            if (gateway.worksWith(sourceAddress.origin)) {
-                return gateway;
-            }
+    private mySetTimeout = (handler: TimerHandler, timeout: number, ...args: any[]) => {
+        if (this.running) {
+            setTimeout(handler, timeout, ...args);
         }
-
-        throw new Error(`Gateway not found for ${sourceAddress.origin}`);
     }
 
     private notifySubscribers(id: string, file: string) {
@@ -135,6 +180,7 @@ export default class SourceFetcher {
 
         this.logger.info({
             loc: "[SOURCE_FETCHER:NOTIFY]",
+            gateway: this.gateway.baseUrl,
             id,
             subscribers: subscription.subscribers.length
         }, "Fetching successful");
@@ -142,64 +188,66 @@ export default class SourceFetcher {
         subscription.subscribers.forEach(callback => callback(file));
     }
 
-    /**
-     * Fetches the requested source and executes the callback on the fetched content.
-     * 
-     * @param sourceAddress an object representing the location of the source file
-     * @param callback the callback to be called on the fetched content
-     */
+    worksWith(sourceAddress: SourceAddress): boolean {
+        return this.gateway.worksWith(sourceAddress.origin);
+    }
+
     subscribe(sourceAddress: SourceAddress, callback: FetchedFileCallback): void {
-        const sourceHash = sourceAddress.getUniqueIdentifier();
-        const gateway = this.findGateway(sourceAddress);
-        const fetchUrl = gateway.createUrl(sourceAddress.id);
-        
+        const sourceHash = sourceAddress.getSourceHash();
+        const fetchUrl = this.gateway.createUrl(sourceAddress.id);
+
         if (!(sourceHash in this.subscriptions)) {
             this.subscriptions[sourceHash] = new Subscription(sourceAddress, fetchUrl);
             this.fileCounter++;
         }
-        
+
         this.timestamps[sourceHash] = new Date();
         this.subscriptions[sourceHash].subscribers.push(callback);
 
         this.subscriptionCounter++;
         this.logger.info({
             loc: "[SOURCE_FETCHER:NEW_SUBSCRIPTION]",
+            gateway: this.gateway.baseUrl,
             sourceHash,
             filesPending: this.fileCounter,
             subscriptions: this.subscriptionCounter
         });
     }
 
-    private cleanup(sourceHash: string) {
-        delete this.timestamps[sourceHash];
-        const subscribers = Object.keys(this.subscriptions[sourceHash].subscribers);
+    unsubscribe(sourceAddress: SourceAddress): void {
+        const sourceHash = sourceAddress.getSourceHash();
+        this.cleanup(sourceHash);
+    }
+
+    private cleanup(sourceHash: string): void {
+        const subscription = this.subscriptions[sourceHash];
+        if (!subscription) {
+            return;
+        }
+
+        const subscribers = Object.keys(subscription.subscribers);
         const subscriptionsDelta = subscribers.length;
         delete this.subscriptions[sourceHash];
+
+        delete this.timestamps[sourceHash];
 
         this.fileCounter--;
         this.subscriptionCounter -= subscriptionsDelta;
         this.logger.info({
             loc: "[SOURCE_FETCHER:CLEANUP]",
+            gateway: this.gateway.baseUrl,
             sourceHash,
             filesPending: this.fileCounter,
             subscriptions: this.subscriptionCounter
         });
     }
 
-    private shouldCleanup(sourceHash: string) {
+    private isTimeUp(sourceHash: string): boolean {
+        const subscription = this.subscriptions[sourceHash];
+        if (!subscription || subscription.beingProcessed) {
+            return false;
+        }
         const timestamp = this.timestamps[sourceHash];
         return timestamp && (timestamp.getTime() + this.cleanupTime < Date.now());
-    }
-
-    /**
-     * Begins the process of assembling a contract's sources. This is done by fetching the metadata from the address provided. 
-     * After assembling the contract, the provided callback is called.
-     * 
-     * @param metadataAddress an object representing the location of the contract metadata
-     * @param callback the callback to be called on the contract once it is assembled
-     */
-    assemble(metadataAddress: SourceAddress, callback: (contract: CheckedContract) => void) {
-        const contract = new PendingContract(this, callback);
-        contract.assemble(metadataAddress);
     }
 }

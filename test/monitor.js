@@ -87,7 +87,7 @@ class MonitorWrapper {
         const addressMetadataPath = this.getAddressMetadataPath(address);
         fs.mkdirSync(path.dirname(addressMetadataPath), { recursive: true });
         fs.writeFileSync(addressMetadataPath, metadata);
-        return fs.statSync(addressMetadataPath).birthtime;
+        return fs.statSync(addressMetadataPath).ctime;
     }
 }
 

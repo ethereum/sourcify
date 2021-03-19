@@ -52,7 +52,7 @@ describe("Server", function() {
 
     const contractChain = "5"; // goerli
     const contractAddress = "0x000000bCB92160f8B7E094998Af6BCaD7fa537fe";
-    const fakeAddress = "0x000000bCB92160f8B7E094998Af6BCaD7fa537ff"
+    const fakeAddress = "0x000000bCB92160f8B7E094998Af6BCaD7fa537ff";
 
     const assertError = (err, res, field) => {
         chai.expect(err).to.be.null;
