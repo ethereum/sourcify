@@ -111,3 +111,8 @@ export type Chain = {
   txRegex?: string,
   archiveWeb3?: Web3,
 };
+
+export type InfoErrorLogger = {
+  info: (obj: any, ...params: any[]) => void,
+  error: (obj: any, ...params: any[]) => void
+};
