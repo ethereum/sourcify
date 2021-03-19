@@ -1,7 +1,6 @@
 import Web3 from 'web3';
-import { StringMap, Metadata } from './types';
+import { StringMap, Metadata, InfoErrorLogger } from './types';
 import { isEmpty, reformatMetadata } from './utils';
-import bunyan from 'bunyan';
 import fetch from 'node-fetch';
 
 const IPFS_PREFIX = "dweb:/ipfs/";
@@ -156,7 +155,7 @@ export class CheckedContract {
      * 
      * @param log log object
      */
-    public static async fetchMissing(contract: CheckedContract, log?: bunyan): Promise<void> {
+    public static async fetchMissing(contract: CheckedContract, log?: InfoErrorLogger): Promise<void> {
         const retrieved: StringMap = {};
         const missingFiles: string[] = [];
         for (const fileName in contract.missing) {
@@ -221,7 +220,7 @@ export class CheckedContract {
  * @param log whether or not to log
  * @returns the fetched file if found; null otherwise
  */
-async function performFetch(url: string, hash: string, fileName: string, log?: bunyan): Promise<string> {
+async function performFetch(url: string, hash: string, fileName: string, log?: InfoErrorLogger): Promise<string> {
     const infoObject = { loc: "[FETCH]", fileName, url, timeout: FETCH_TIMEOUT };
     if (log) log.info(infoObject, "Fetch attempt");
 

@@ -35,6 +35,24 @@ interface InjectorChainMap {
     [id: string]: InjectorChain
 }
 
+class LoggerWrapper {
+    logger: bunyan;
+    logId: string;
+
+    constructor(logger: bunyan) {
+        this.logger = logger;
+        this.logId = Math.random().toString().slice(2);
+    }
+
+    info(obj: any, ...params: any[]): void {
+        return this.logger.info(Object.assign(obj, { verificationId: this.logId }), ...params);
+    }
+
+    error(obj: any, ...params: any[]): void {
+        return this.logger.error(Object.assign(obj, { verificationId: this.logId }), ...params);
+    }
+}
+
 export class Injector {
     private log: bunyan;
     private chains: InjectorChainMap;
@@ -150,7 +168,7 @@ export class Injector {
                 );
             } catch (err) {
                 if (addresses.length === 1) {
-                    match.message = "There were problems during contract verification.";
+                    match.message = "There were problems during contract verification. Please try again in a minute.";
                 }
             }
 
@@ -244,7 +262,7 @@ export class Injector {
             try {
                 return await getCreationDataByScraping(fetchAddress, txRegex, web3);
             } catch(err) {
-                this.log.error({ loc, chain, contractAddress, err }, "Scraping failed!");
+                this.log.error({ loc, chain, contractAddress, err: err.message }, "Scraping failed!");
             }
         }
 
@@ -254,7 +272,7 @@ export class Injector {
             try {
                 return await getCreationDataFromArchive(contractAddress, archiveWeb3);
             } catch(err) {
-                this.log.error({ loc, chain, contractAddress, err }, "Archive search failed!");
+                this.log.error({ loc, chain, contractAddress, err: err.message }, "Archive search failed!");
             }
         }
 
@@ -305,12 +323,13 @@ export class Injector {
         this.validateChain(chain);
 
         let match: Match;
+        const wrappedLogger = new LoggerWrapper(this.log);
 
         if (!CheckedContract.isValid(contract)) {
-            await CheckedContract.fetchMissing(contract, this.log);
+            await CheckedContract.fetchMissing(contract, wrappedLogger);
         }
 
-        const compilationResult = await recompile(contract.metadata, contract.solidity, this.log)
+        const compilationResult = await recompile(contract.metadata, contract.solidity, wrappedLogger);
 
         // When injector is called by monitor, the bytecode has already been
         // obtained for address and we only need to compare w/ compilation result.
