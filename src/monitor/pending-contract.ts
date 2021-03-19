@@ -71,7 +71,10 @@ export default class PendingContract {
 
                 this.sourceFetcher.subscribe(sourceAddress, (sourceContent: string) => {
                     this.addFetchedSource(sourceContent);
-                    this.sourceFetcher.unsubscribe(sourceAddresses);
+                    // once source is resolved from one endpoint, others don't have to be pinged anymore, so delete them
+                    for (const deletableSourceAddress of sourceAddresses) {
+                        this.sourceFetcher.unsubscribe(deletableSourceAddress);
+                    }
                 });
             }
         }
