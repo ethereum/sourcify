@@ -48,6 +48,7 @@ export default {
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://goerli.etherscan.io/" + ETHERSCAN_SUFFIX,
+        "rpc": ["https://goerli.infura.io/v3/${INFURA_API_KEY}"],
         "txRegex": ETHERSCAN_REGEX,
         "archiveWeb3": createArchiveEndpoint("eth-goerli")
     },

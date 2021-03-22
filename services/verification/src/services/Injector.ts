@@ -371,6 +371,9 @@ export class Injector {
             const matchQuality = this.statusToMatchQuality(match.status);
             this.storeSources(matchQuality, chain, match.address, contract.solidity);
             this.storeMetadata(matchQuality, chain, match.address, compilationResult);
+            if (match.status === "perfect") {
+                this.fileService.deletePartial(chain, match.address);
+            }
 
         } else {
             const message = match.message || "Could not match the deployed and recompiled bytecode."
