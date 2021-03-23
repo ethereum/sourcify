@@ -4,7 +4,7 @@ const multihashes = require("multihashes");
 
 export type SourceOrigin = "ipfs" | "bzzr1" | "bzzr0";
 
-export type FetchedFileCallback= (fetchedFile: string) => any;
+export type FetchedFileCallback = (fetchedFile: string) => any;
 
 interface Prefix {
     regex: RegExp,
@@ -36,7 +36,10 @@ export class SourceAddress {
         this.id = id;
     }
 
-    getUniqueIdentifier(): string {
+    /**
+     * @returns a unique identifier of this source address
+     */
+    getSourceHash(): string {
         return this.origin + "-" + this.id;
     }
 

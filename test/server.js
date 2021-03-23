@@ -52,7 +52,7 @@ describe("Server", function() {
 
     const contractChain = "5"; // goerli
     const contractAddress = "0x000000bCB92160f8B7E094998Af6BCaD7fa537fe";
-    const fakeAddress = "0x000000bCB92160f8B7E094998Af6BCaD7fa537ff"
+    const fakeAddress = "0x000000bCB92160f8B7E094998Af6BCaD7fa537ff";
 
     const assertError = (err, res, field) => {
         chai.expect(err).to.be.null;
@@ -163,7 +163,7 @@ describe("Server", function() {
             checkNonVerified("/verify", done);
         });
 
-        const assertions = (err, res, done, expectedAddress=contractAddress) => {
+        const assertions = (err, res, done, expectedAddress=contractAddress, expectedStatus="perfect") => {
             chai.expect(err).to.be.null;
             chai.expect(res.status).to.equal(StatusCodes.OK);
             chai.expect(res.body).to.haveOwnProperty("result");
@@ -171,8 +171,8 @@ describe("Server", function() {
             chai.expect(resultArr).to.have.a.lengthOf(1);
             const result = resultArr[0];
             chai.expect(result.address).to.equal(expectedAddress);
-            chai.expect(result.status).to.equal("perfect");
-            done();
+            chai.expect(result.status).to.equal(expectedStatus);
+            if (done) done();
         }
 
         it("should verify multipart upload", (done) => {
@@ -282,6 +282,52 @@ describe("Server", function() {
         verifyContractWithImmutables("0x3CE1a25376223695284edc4C2b323C3007010C94", "100", "xDai");
         
         verifyContractWithImmutables("0x66ec3fBf4D7d7B7483Ae4fBeaBDD6022037bfa1a", "44787", "Alfajores Celo");
+
+        it("should return 'partial', then delete partial when 'full' match", done => {
+            const partialMetadataPath = path.join("test", "testcontracts", "1_Storage", "metadata-modified.json");
+            const partialMetadataBuffer = fs.readFileSync(partialMetadataPath);
+
+            const partialSourcePath = path.join("test", "testcontracts", "1_Storage", "1_Storage-modified.sol");
+            const partialSourceBuffer = fs.readFileSync(partialSourcePath);
+
+            const partialMetadataURL = `/repository/contracts/partial_match/${contractChain}/${contractAddress}/metadata.json`;
+            const partialMetadata = JSON.parse(partialMetadataBuffer.toString());
+
+            chai.request(server.app)
+                .post("/")
+                .field("address", contractAddress)
+                .field("chain", contractChain)
+                .attach("files", partialMetadataBuffer, "metadata.json")
+                .attach("files", partialSourceBuffer)
+                .end((err, res) => {
+                    assertions(err, res, null, contractAddress, "partial");
+
+                    chai.request(server.app)
+                        .get(partialMetadataURL)
+                        .end((err, res) => {
+                            chai.expect(err).to.be.null;
+                            chai.expect(res.body).to.deep.equal(partialMetadata);
+
+                            chai.request(server.app)
+                                .post("/")
+                                .field("address", contractAddress)
+                                .field("chain", contractChain)
+                                .attach("files", metadataBuffer, "metadata.json")
+                                .attach("files", sourceBuffer)
+                                .end((err, res) => {
+                                    assertions(err, res, null, contractAddress);
+
+                                    chai.request(server.app)
+                                        .get(partialMetadataURL)
+                                        .end((err, res) => {
+                                            chai.expect(err).to.be.null;
+                                            chai.expect(res.status).to.equal(StatusCodes.NOT_FOUND);
+                                            done();
+                                        });
+                                });
+                        });
+                });     
+        });
     });
 
     describe("verification v2", function() {

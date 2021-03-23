@@ -2,9 +2,9 @@
 ./scripts/find_replace.sh
 
 # Install E2E test
-git clone https://github.com/cgewecke/metacoin-source-verify.git
+git clone https://github.com/sourcifyeth/metacoin-source-verify.git
 cd metacoin-source-verify
-yarn
+npm ci
 
 # Publishes sources to IPFS (via Infura) and deploys contracts to Goerli
 # Account key and Infura project ID are Circle CI env variable settings.

@@ -6,6 +6,7 @@ import * as bunyan from 'bunyan';
 import { FileObject, Match, Tag, MatchLevel, FilesInfo, MatchQuality } from '../utils/types';
 import { getChainId } from '../utils/utils';
 import { Logger } from '../utils/logger';
+import rimraf from 'rimraf';
 
 type PathConfig = {
     matchQuality: MatchQuality
@@ -23,6 +24,7 @@ export interface IFileService {
     fetchAllFileContents(chain: string, address: string): Array<FileObject>;
     findByAddress(address: string, chain: string): Match[];
     save(path: string | PathConfig, file: string): void;
+    deletePartial(chain: string, address: string): void;
     repositoryPath: string;
     getTree(chainId: any, address: string, match: string): Promise<FilesInfo<string>>;
     getContent(chainId: any, address: string, match: string): Promise<FilesInfo<FileObject>>;
@@ -36,7 +38,6 @@ export class FileService implements IFileService {
         this.repositoryPath = repositoryPath;
         this.logger = logger || Logger("FileService");
     }
-
     async getTreeByChainAndAddress(chainId: any, address: string): Promise<string[]> {
         chainId = getChainId(chainId);
         return this.fetchAllFileUrls(chainId, address);
@@ -150,6 +151,27 @@ export class FileService implements IFileService {
         fs.mkdirSync(Path.dirname(finalPath), { recursive: true });
         fs.writeFileSync(finalPath, file);
         this.updateRepositoryTag();
+    }
+
+    deletePartial(chain: string, address: string): void {
+        const pathConfig: PathConfig = {
+            matchQuality: "partial",
+            chain,
+            address,
+            fileName: ""
+        };
+
+        const finalPath = this.generateContractPath(pathConfig);
+        rimraf(finalPath, err => {
+            if (err) {
+                this.logger.error({
+                    loc: "[FILE_SERVICE:DELETE_PARTIAL]",
+                    err: err.message,
+                    chain,
+                    address
+                }, "Failed deleting a partial match");
+            }
+        });
     }
 
     /**

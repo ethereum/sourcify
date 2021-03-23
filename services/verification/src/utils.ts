@@ -1,13 +1,12 @@
 import Web3 from 'web3';
 import fetch from 'node-fetch';
-import { StringMap, reformatMetadata } from '@ethereum-sourcify/core';
+import { StringMap, reformatMetadata, InfoErrorLogger } from '@ethereum-sourcify/core';
 import Path from 'path';
 import fs from 'fs';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const solc = require('solc');
 import { spawnSync } from 'child_process';
 import { StatusCodes } from 'http-status-codes';
-import * as bunyan from 'bunyan';
 import { ethers } from 'ethers';
 
 const GITHUB_SOLC_REPO = "https://github.com/ethereum/solc-bin/raw/gh-pages/linux-amd64/";
@@ -70,7 +69,7 @@ const RECOMPILATION_ERR_MSG = "Recompilation error (probably caused by invalid m
 export async function recompile(
     metadata: any,
     sources: StringMap,
-    log: bunyan
+    log: InfoErrorLogger
 ): Promise<RecompilationResult> {
 
     const {
@@ -113,7 +112,7 @@ export async function recompile(
  * @param log the logger
  * @returns stringified solc output
  */
-async function useCompiler(version: string, input: any, log: bunyan) {
+async function useCompiler(version: string, input: any, log: InfoErrorLogger) {
     const inputStringified = JSON.stringify(input);
     const solcPath = await getSolcExecutable(version, log);
     let compiled: string = null;
@@ -137,18 +136,25 @@ async function useCompiler(version: string, input: any, log: bunyan) {
     return compiled;
 }
 
-function validateSolcPath(solcPath: string): boolean {
-    return spawnSync(solcPath, ["--version"]).status === 0;
+function validateSolcPath(solcPath: string, log: InfoErrorLogger): boolean {
+    const spawned = spawnSync(solcPath, ["--version"]);
+    if (spawned.status === 0) {
+        return true;
+    }
+
+    const error = spawned.error ? spawned.error.message : "Unknown error";
+    log.error({ loc: "[VALIDATE_SOLC_PATH]", solcPath, error });
+    return false;
 }
 
-async function getSolcExecutable(version: string, log: bunyan): Promise<string> {
+async function getSolcExecutable(version: string, log: InfoErrorLogger): Promise<string> {
     const fileName = `solc-linux-amd64-v${version}`;
     const tmpSolcRepo = process.env.SOLC_REPO_TMP || Path.join("/tmp", "solc-repo");
 
     const repoPaths = [tmpSolcRepo, process.env.SOLC_REPO || "solc-repo"];
     for (const repoPath of repoPaths) {
         const solcPath = Path.join(repoPath, fileName);
-        if (fs.existsSync(solcPath) && validateSolcPath(solcPath)) {
+        if (fs.existsSync(solcPath) && validateSolcPath(solcPath, log)) {
             return solcPath;
         }
     }
@@ -158,7 +164,7 @@ async function getSolcExecutable(version: string, log: bunyan): Promise<string> 
     return success ? tmpSolcPath : null;
 }
 
-async function fetchSolcFromGitHub(solcPath: string, version: string, fileName: string, log: bunyan): Promise<boolean> {
+async function fetchSolcFromGitHub(solcPath: string, version: string, fileName: string, log: InfoErrorLogger): Promise<boolean> {
     const githubSolcURI = GITHUB_SOLC_REPO + encodeURIComponent(fileName);
     const logObject = {loc: "[RECOMPILE]", version, githubSolcURI};
     log.info(logObject, "Fetching executable solc from GitHub");
@@ -171,12 +177,13 @@ async function fetchSolcFromGitHub(solcPath: string, version: string, fileName: 
 
         try { fs.unlinkSync(solcPath); } catch (_e) { undefined }
         fs.writeFileSync(solcPath, buffer, { mode: 0o755 });
-        if (validateSolcPath(solcPath)) {
+        if (validateSolcPath(solcPath, log)) {
             return true;
         }
+    } else {
+        log.error(logObject, "Failed fetching executable solc from GitHub");
     }
 
-    log.error(logObject, "Failed fetching executable solc from GitHub");
     return false;
 }
 
@@ -208,7 +215,7 @@ export function getBytecodeWithoutMetadata(bytecode: string): string {
  * 
  * @returns the requested solc instance
  */
-export function getSolcJs(version = "latest", log: bunyan): Promise<any> {
+export function getSolcJs(version = "latest", log: InfoErrorLogger): Promise<any> {
     // /^\d+\.\d+\.\d+\+commit\.[a-f0-9]{8}$/
     version = version.trim();
     if (version !== "latest" && !version.startsWith("v")) {

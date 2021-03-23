@@ -44,23 +44,15 @@ aliases:
           command: npx lerna run build && npx lerna run test
   - &monitor-e2e-base
     working_directory: ~/source-verify
-    docker:
-      - image: circleci/node
     steps:
       - checkout
-      - restore_cache:
-          key: dependency-cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "package.json" }}
       - run:
-          name: install-npm
-          command: npm install
+          name: install node-fetch
+          command: npm install node-fetch
       - run:
           name: monitor test
-          command: npm run monitor:ci
+          command: ./scripts/monitor_ci.sh
           no_output_timeout: 30m
-      - save_cache:
-          key: dependency-cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "package.json" }}
-          paths:
-            - ./node_modules
 
 version: 2
 workflows:
