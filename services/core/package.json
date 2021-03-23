@@ -1,6 +1,6 @@
 {
   "name": "@ethereum-sourcify/core",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Sourcify core module with common interfaces, types and methods",
   "bin": {
     "sourcify-core": "./build/index.js"
