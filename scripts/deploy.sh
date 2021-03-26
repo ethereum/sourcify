@@ -3,8 +3,9 @@ set -e
 
 if [ "$CIRCLE_BRANCH" == "staging" ]; then 
     TAG='latest'
-    REPO_PATH='/home/sourcify/staging/'
-    SERVER='sourcify@ec2-52-58-207-182.eu-central-1.compute.amazonaws.com'
+    REPO_PATH='/home/gather/staging/'
+    # SERVER='sourcify@ec2-52-58-207-182.eu-central-1.compute.amazonaws.com'
+    SERVER='-J source-verify@komputing.org gather@10.10.42.102'
 elif [ "$CIRCLE_BRANCH" == "master" ]; then
     TAG='stable' 
     REPO_PATH='/opt/source-verify/production/'
