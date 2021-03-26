@@ -6,6 +6,7 @@ if [ "$CIRCLE_BRANCH" == "staging" ]; then
     REPO_PATH='/home/gather/staging/'
     # SERVER='sourcify@ec2-52-58-207-182.eu-central-1.compute.amazonaws.com'
     SERVER='-J source-verify@komputing.org gather@10.10.42.102'
+    curl "https://raw.githubusercontent.com/ethereum/source-verify/${CIRCLE_BRANCH}/.circleci/ssh.config" > ~/.ssh/config
 elif [ "$CIRCLE_BRANCH" == "master" ]; then
     TAG='stable' 
     REPO_PATH='/opt/source-verify/production/'
