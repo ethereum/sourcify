@@ -1,0 +1,18 @@
+.collapsable-list-container {
+    border: solid 2px #80808063;
+    border-radius: 4px;
+    margin-bottom: 10px;
+
+    button {
+        width: 100%;
+        cursor: pointer;
+    }
+}
+
+.chevron-holder {
+    float: right;
+}
+
+.collapsable-list-item {
+    padding: 10px;
+}

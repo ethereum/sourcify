@@ -8,6 +8,10 @@ export default {
         port: process.env.MONITOR_PORT || 80
     },
     ui: {
+        urls: [
+            process.env.UI_URL,
+            process.env.UI_DRAFT_URL
+        ],
         port: process.env.UI_PORT || 1234
     },
     server: {

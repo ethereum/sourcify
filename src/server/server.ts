@@ -33,7 +33,11 @@ export class Server {
       abortOnLimit: true
     }))
     
-    this.app.use(cors())
+    const uiUrls = config.ui.urls.filter(Boolean);
+    this.app.use(cors({
+      origin: uiUrls.length ? uiUrls : "http://localhost:1234",
+      credentials: true
+    }));
     this.app.use(bodyParser.json());
     this.app.use(bodyParser.urlencoded({ extended: true }));
     this.app.use(session(getSessionOptions()));
@@ -62,7 +66,11 @@ function getSessionOptions(): session.SessionOptions {
     rolling: true,
     resave: false,
     saveUninitialized: true,
-    cookie: { maxAge } };
+    cookie: {
+      maxAge,
+      // TODO secure: true
+    },
+  };
 }
 
 if (require.main === module) {

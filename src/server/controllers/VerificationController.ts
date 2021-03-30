@@ -159,12 +159,15 @@ export default class VerificationController extends BaseController implements IC
 
             const newPendingContracts: ContractWrapperMap = {};
             for (const contract of contracts) {
-                newPendingContracts[generateId(contract.metadataRaw)] = {
-                    compilerVersion: contract.compilerVersion,
-                    contract
+                newPendingContracts[generateId(contract.metadataRaw)] = { contract };
+            }
+            
+            session.contractWrappers ||= {};
+            for (const newId in newPendingContracts) {
+                if (!(newId in session.contractWrappers)) {
+                    session.contractWrappers[newId] = newPendingContracts[newId];
                 }
             }
-            session.contractWrappers = newPendingContracts;
             updateUnused(unused, session);
 
         } catch(error) {
@@ -188,8 +191,6 @@ export default class VerificationController extends BaseController implements IC
             if (contractWrapper) {
                 contractWrapper.address = receivedContract.address;
                 contractWrapper.chainId = receivedContract.chainId;
-                contractWrapper.compilerVersion = receivedContract.compilerVersion;
-                contractWrapper.contract.metadata.compiler.version = receivedContract.compilerVersion;
 
                 if (isVerifiable(contractWrapper)) {
                     verifiable[id] = contractWrapper;
@@ -271,7 +272,7 @@ export default class VerificationController extends BaseController implements IC
         return inputFiles;
     }
 
-    private saveFiles(pathContents: PathContent[], session: MySession) {
+    private saveFiles(pathContents: PathContent[], session: MySession): number {
         if (!session.inputFiles) {
             session.inputFiles = {};
         }
@@ -289,9 +290,16 @@ export default class VerificationController extends BaseController implements IC
             throw new PayloadTooLargeError(msg);
         }
 
+        let newFilesCount = 0;
         pathContents.forEach(pc => {
-            session.inputFiles[generateId(pc.content)] = pc;
+            const newId = generateId(pc.content);
+            if (!(newId in session.inputFiles)) {
+                session.inputFiles[newId] = pc;
+                ++newFilesCount;
+            }
         });
+
+        return newFilesCount;
     }
 
     private addInputFilesEndpoint = async (req: Request, res: Response) => {
@@ -302,10 +310,11 @@ export default class VerificationController extends BaseController implements IC
         });
 
         const session = (req.session as MySession);
-        this.saveFiles(pathContents, session);
-        this.validateContracts(session);
-
-        await this.verifyValidated(session.contractWrappers);
+        const newFilesCount = this.saveFiles(pathContents, session);
+        if (newFilesCount) {
+            this.validateContracts(session);
+            await this.verifyValidated(session.contractWrappers);
+        }
         res.send(getSessionJSON(session));
     }
 
