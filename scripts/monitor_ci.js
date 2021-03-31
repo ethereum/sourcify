@@ -19,7 +19,7 @@ if (circleBranch === 'master') {
   root = 'https://repo.sourcify.dev/';
 
 } else if (circleBranch === 'staging') {
-  root = 'https://contractrepo.sourcify.shardlabs.io/';
+  root = 'https://repo.staging.sourcify.dev/';
 
 } else {
   log('Unknown circle branch:', circleBranch);

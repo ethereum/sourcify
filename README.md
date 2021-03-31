@@ -60,11 +60,11 @@ watches:
 
 + a website which allows you to submit sources and metadata for a specific contract address manually
   + https://sourcify.dev (Stable)
-  + https://sourcify.shardlabs.io (Unstable)
+  + https://staging.sourcify.dev (Unstable)
 
 + a public metadata repository that contains uploaded (or discovered) metadata and their sources:
   + https://repo.sourcify.dev (Stable)
-  + https://contractrepo.sourcify.shardlabs.io (Unstable)
+  + https://repo.staging.sourcify.dev (Unstable)
 
 ### Getting Metadata
 
@@ -286,4 +286,4 @@ The repository (https://repo.sourcify.dev) provides the following GET endpoints:
 E.g. the following URL fetches `browser/OceanMan.sol`, a source of the contract deployed on Ethereum Mainnet (chain ID: 1) at address 0x00000000064Ecc11c97AC4a5551F279532Bf9E0D.
 * https://repo.sourcify.dev/contracts/full_match/1/0x00000000064Ecc11c97AC4a5551F279532Bf9E0D/sources/browser/OceanMan.sol
 
-In order to fetch from the staging repository, replace https://repo.sourcify.dev with https://contractrepo.sourcify.shardlabs.io.
+In order to fetch from the staging repository, replace https://repo.sourcify.dev with https://repo.staging.sourcify.dev.
