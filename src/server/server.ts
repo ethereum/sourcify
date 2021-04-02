@@ -32,10 +32,9 @@ export class Server {
       limits: { fileSize: 50 * 1024 * 1024 },
       abortOnLimit: true
     }))
-    
-    const uiUrls = config.ui.urls.filter(Boolean);
+
     this.app.use(cors({
-      origin: uiUrls.length ? uiUrls : "http://localhost:1234",
+      origin: config.testing ? "*" : config.corsAllowedOrigins,
       credentials: true
     }));
     this.app.use(bodyParser.json());
@@ -56,19 +55,16 @@ export class Server {
 }
 
 function getSessionOptions(): session.SessionOptions {
-  const secret = process.env.SESSION_SECRET || "session top secret";
-  const defaultMaxAge = 12 * 60 * 60 * 1000; // defaults to 12 hrs in millis
-  const maxAge = parseInt(process.env.SESSION_MAX_AGE, 10) || defaultMaxAge;
-
   return {
-    secret,
+    secret: config.session.secret,
     name: "sourcify_vid",
     rolling: true,
     resave: false,
     saveUninitialized: true,
     cookie: {
-      maxAge,
-      // TODO secure: true
+      maxAge: config.session.maxAge,
+      secure: config.session.secure,
+      sameSite: "none"
     },
   };
 }
