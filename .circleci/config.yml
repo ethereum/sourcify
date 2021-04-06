@@ -95,6 +95,11 @@ workflows:
               only:
                 - staging
                 - master
+      - build-push-ui-draft:
+          filters:
+            branches:
+              only:
+                - staging
       - deploy:
           filters:
             branches:
@@ -108,6 +113,7 @@ workflows:
             - build-push-s3
             - build-push-server
             - build-push-ui
+            - build-push-ui-draft
       - monitor-e2e:
           filters:
             branches:
@@ -170,6 +176,10 @@ jobs:
     <<: *docker-base
     environment:
       SERVICE: "ui"
+  build-push-ui-draft:
+    <<: *docker-base
+    environment:
+      SERVICE: "ui-draft"
   deploy:
     docker:
       - image: circleci/node:10.19.0-buster

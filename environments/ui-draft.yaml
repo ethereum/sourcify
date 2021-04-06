@@ -1,0 +1,34 @@
+version: "3.7"
+x-env-file-mount:
+  &env-file-mount
+  type: bind
+  source: .env
+
+networks:
+  source-verify:
+
+x-project-base:
+  &project-base
+  env_file:
+  - .env
+  restart: always
+  networks:
+  - source-verify    
+
+services:
+  ui-draft:
+    <<: *project-base
+    build:
+      context: ../ui-draft
+      dockerfile: Dockerfile
+    container_name: ui-draft-${TAG}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${UI_PORT}"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+    volumes:
+    - <<: *env-file-mount
+      target: /app/.env
+    ports:
+    - "${UI_DRAFT_EXTERNAL_PORT}:${UI_PORT}"
