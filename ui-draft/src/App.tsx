@@ -2,7 +2,7 @@ import React from "react";
 
 import "./styles/app.scss";
 import MainLayout from "./components/layout/MainLayout";
-import Verifier from "./components/verifier/Verifier2";
+import Verifier from "./components/verifier/Verifier";
 import Checker from "./components/verifier/Checker";
 import {GITTER_URL, IPFS_IPNS_GATEWAY_URL, REPOSITORY_URL, SOLIDITY_ETHEREUM_URL} from "./common/constants";
 
@@ -17,7 +17,7 @@ const App: React.FC = () => {
                         </h1>
                         <h3 className="sub-title">
                             Make the most of your Solidity code with metadata files and source
-                            verifcation.
+                            verification.
                         </h3>
                         <div className="description">
                             <p className="description__text">

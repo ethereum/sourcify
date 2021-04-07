@@ -9,6 +9,11 @@
     }
 }
 
+.collapsable-list {
+    max-height: 150px;
+    overflow-y: scroll;
+}
+
 .chevron-holder {
     float: right;
 }

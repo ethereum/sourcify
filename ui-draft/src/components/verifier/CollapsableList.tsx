@@ -23,15 +23,11 @@ class CollapsableList extends React.Component<CollapsableListProps, CollapsableL
             <button onClick={() => this.setState({ collapsed: !this.state.collapsed })}>
                 {this.props.title} ({this.props.items.length})
                 <div className="chevron-holder">
-                    {
-                        this.props.items.length > 0 && (
-                            this.state.collapsed ? <ChevronDownIcon/> : <ChevronUpIcon/>
-                        )
-                    }
+                    { this.state.collapsed ? <ChevronDownIcon/> : <ChevronUpIcon/> }
                 </div>
             </button>
             {
-                !this.state.collapsed && <ul>
+                !this.state.collapsed && <ul className="collapsable-list">
                     {this.props.items.map((item, i) => <li className="collapsable-list-item" key={i}>{item}</li>)}
                 </ul>
             }

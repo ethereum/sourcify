@@ -85,7 +85,27 @@ class Contract extends React.Component<ContractProps, ContractState> {
     }
 
     private displayStatusMessage() {
-        return this.props.contractModel.statusMessage;
+        let message = this.props.contractModel.statusMessage;
+        if (!message) {
+            const missingData = [];
+            if (!this.props.contractModel.address) {
+                missingData.push("address");
+            }
+            if (!this.props.contractModel.chainId) {
+                missingData.push("chain");
+            }
+            if (this.props.contractModel.files.missing.length) {
+                missingData.push("source files");
+            }
+
+            if (missingData.length) {
+                return `Cannot verify because there is data missing: ${missingData.join(", ")}`;
+            }
+            return "";
+        }
+        message = message.replace(/^Contract name: .*?\. /, "");
+        message = message.replace(/at 0x\d{40}./, "at the provided address.");
+        return message;
     }
 
     private getStatusClass() {
@@ -99,8 +119,8 @@ class Contract extends React.Component<ContractProps, ContractState> {
         }
     }
 
-    
     render() {
+        const storageTimestamp = this.props.contractModel.storageTimestamp;
         const defaultChainOption = <option key={-1} disabled value="dummy"> -- select -- </option>;
         const chainOptions = CHAIN_GROUPS.map(group => <optgroup key={group.label} label={group.label}>{
             group.chains.map(chain => <option key={chain.id} value={chain.id}>{chain.label}</option>)
@@ -113,17 +133,22 @@ class Contract extends React.Component<ContractProps, ContractState> {
         return <div className="contract">
             <div className="contract-row">
                 <p className="contract-left">Contract:</p>
-                <p className="contract-right"><strong>{this.props.contractModel.name}</strong></p>
+                <p className="contract-right">
+                    <strong>{this.props.contractModel.name}</strong>
+                </p>
             </div>
 
             <div className="contract-row">
                 <p className="contract-left">Status:</p>
-                <p className={`contract-right ${this.getStatusClass()}`}>{this.displayStatus()}</p>
+                <p className={`contract-right ${this.getStatusClass()}`}>
+                    <strong>{this.displayStatus()}</strong>
+                    {!!storageTimestamp && ` on ${new Date(storageTimestamp).toUTCString()}` }
+                </p>
             </div>
 
             {
                 !!displayableStatusMessage && <div className="contract-row">
-                    <p>{displayableStatusMessage}</p>
+                    <p className="contract-status-error">{displayableStatusMessage}</p>
                 </div>
             }
 

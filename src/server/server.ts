@@ -64,7 +64,7 @@ function getSessionOptions(): session.SessionOptions {
     cookie: {
       maxAge: config.session.maxAge,
       secure: config.session.secure,
-      sameSite: "none"
+      sameSite: "lax"
     },
   };
 }
