@@ -3,14 +3,12 @@ import path from 'path';
 
 dotenv.config({ path: path.resolve(__dirname, "..", "environments/.env") });
 
-const UI_PORT = process.env.UI_PORT || 1234;
-
 export default {
     monitor: {
         port: process.env.MONITOR_PORT || 80
     },
     ui: {
-        port: UI_PORT
+        port: process.env.UI_PORT || 1234
     },
     server: {
         port: process.env.SERVER_PORT || 5000,
@@ -44,5 +42,5 @@ export default {
         maxAge: parseInt(process.env.SESSION_MAX_AGE, 10) || (12 * 60 * 60 * 1000), // 12 hrs in millis
         secure: !process.env.RUNNING_LOCALLY && !process.env.TESTING
     },
-    corsAllowedOrigins: RegExp(`^https?://${process.env.FQDN}(:${UI_PORT})?$`)
+    corsAllowedOrigins: RegExp(`^https?://${process.env.FQDN}(:\\d+)?$`)
 }
