@@ -18,9 +18,7 @@ x-project-base:
 services:
   ui-draft:
     <<: *project-base
-    build:
-      context: ../ui-draft
-      dockerfile: Dockerfile
+    image: ethereum/source-verify:ui-draft-${TAG}
     container_name: ui-draft-${TAG}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${UI_PORT}"]
