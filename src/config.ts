@@ -36,5 +36,11 @@ export default {
     logging: {
         dir: process.env.LOGGING_DIR || 'logs',
         level: process.env.LOGGING_LEVEL || 'debug'
-    }
+    },
+    session: {
+        secret: process.env.SESSION_SECRET || "session top secret",
+        maxAge: parseInt(process.env.SESSION_MAX_AGE, 10) || (12 * 60 * 60 * 1000), // 12 hrs in millis
+        secure: !process.env.RUNNING_LOCALLY && !process.env.TESTING
+    },
+    corsAllowedOrigins: RegExp(`^https?://${process.env.FQDN}(:\\d+)?$`)
 }

@@ -1,0 +1,6 @@
+version: "3.7"
+services:
+  ui-draft:
+    build:
+      context: ../ui-draft
+      dockerfile: Dockerfile

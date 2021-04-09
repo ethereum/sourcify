@@ -15,7 +15,6 @@ export type ContractLocation = {
 export type ContractMeta = {
     compiledPath?: string,
     name?: string
-    compilerVersion?: string,
     address?: string,
     chainId?: string,
     status?: Status,
@@ -63,25 +62,17 @@ export function isVerifiable(contractWrapper: ContractWrapper) {
     const contract = contractWrapper.contract;
     return isEmpty(contract.missing)
         && isEmpty(contract.invalid)
-        && Boolean(contractWrapper.compilerVersion)
         && Boolean(contractWrapper.address)
         && Boolean(contractWrapper.chainId);
 }
 
 function getSendableContract(contractWrapper: ContractWrapper, verificationId: string): SendableContract {
     const contract = contractWrapper.contract;
-    let compilerVersion = undefined;
-    if (contractWrapper.compilerVersion) {
-        compilerVersion = contractWrapper.compilerVersion;
-    } else if (contract.metadata.compiler && contract.metadata.compiler.version) {
-        compilerVersion = contract.metadata.compiler.version;
-    }
 
     return {
         verificationId,
         compiledPath: contract.compiledPath,
         name: contract.name,
-        compilerVersion,
         address: contractWrapper.address,
         chainId: contractWrapper.chainId,
         files: {
