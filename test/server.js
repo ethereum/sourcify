@@ -255,11 +255,11 @@ describe("Server", function() {
                 .end((err, res) => assertions(err, res, done, address));
         });
 
-        const verifyContractWithImmutables = (address, chainId, chainName) => {
+        const verifyContractWithImmutables = (address, chainId, chainName, metadataFileName="withImmutables.meta.object.json") => {
             it(`should verify a contract with immutables on ${chainName}`, done => {
                 const sourcePath = path.join("test", "sources", "contracts", "WithImmutables.sol");
                 const sourceBuffer = fs.readFileSync(sourcePath);
-                const metadataPath = path.join("test", "sources", "metadata", "withImmutables.meta.object.json");
+                const metadataPath = path.join("test", "sources", "metadata", metadataFileName);
                 const metadataBuffer = fs.readFileSync(metadataPath);
                 chai.request(server.app)
                     .post("/")
@@ -282,6 +282,8 @@ describe("Server", function() {
         verifyContractWithImmutables("0x3CE1a25376223695284edc4C2b323C3007010C94", "100", "xDai");
         
         verifyContractWithImmutables("0x66ec3fBf4D7d7B7483Ae4fBeaBDD6022037bfa1a", "44787", "Alfajores Celo");
+
+        verifyContractWithImmutables("0xD222286c59c0B9c8D06Bac42AfB7B8CB153e7Bf7", "77", "Sokol", "withImmutables2.meta.object.json");
 
         it("should return 'partial', then delete partial when 'full' match", done => {
             const partialMetadataPath = path.join("test", "testcontracts", "1_Storage", "metadata-modified.json");

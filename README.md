@@ -50,6 +50,7 @@ watches:
   + Kovan
   + Goerli
   + xDai
+  + POA Network Sokol
   + Polygon (previously Matic)
   + Mumbai Testnet (Polygon/Matic)
   + Binance Smart Chain Mainnet (monitoring temporarily suspended)

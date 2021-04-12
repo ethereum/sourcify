@@ -13,6 +13,7 @@ export const CHAIN_GROUPS = [
         label: "xDai",
         chains: [
             {value: "xdai", label: "xDai", id: 100},
+            {value: "sokol", label: "Sokol", id: 77},
         ]
     },
     {
