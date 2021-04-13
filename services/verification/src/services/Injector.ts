@@ -224,17 +224,14 @@ export class Injector {
             if (trimmedDeployedBytecode.length === trimmedCompiledRuntimeBytecode.length) {
                 creationData = creationData || await this.getCreationData(chain, address);
                 if (creationData) {
-                    compiledCreationBytecode = compiledCreationBytecode.replace(/^0x/, "");
-    
-                    if (creationData.includes(compiledCreationBytecode)) {
-                        // The reason why this uses `includes` instead of `===` is that
+                    if (creationData.startsWith(compiledCreationBytecode)) {
+                        // The reason why this uses `startsWith` instead of `===` is that
                         // creationData may contain constructor arguments at the end part.
-                        // Also, apparently some chains may prepend data to creationBytecode.
                         return 'perfect';
                     }
-                    
+
                     const trimmedCompiledCreationBytecode = trimMetadata(compiledCreationBytecode);
-                    if (creationData.includes(trimmedCompiledCreationBytecode)) {
+                    if (creationData.startsWith(trimmedCompiledCreationBytecode)) {
                         return 'partial';
                     }
                 }
