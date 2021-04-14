@@ -1,20 +1,25 @@
-import React from "react";
+import React, { ChangeEventHandler } from "react";
 import { SESSION_DATA_URL, ADD_FILES_URL, RESTART_SESSION_URL, VERIFY_VALIDATED_URL } from "../../common/constants";
 import Contract, { ContractModel } from "../Contract";
 import FileUpload from "./form/FileUpload";
 import CollapsableList from "./CollapsableList";
 import LoadingOverlay from "../LoadingOverlay";
+import StorageProvider from "../../storage-provider";
 
 export class VerifierState {
     contracts: ContractModel[];
     unused: string[];
     fetching: boolean;
+    displayed: string;
 }
+
+const DISPLAY_ALL_CONTRACTS = "All contracts";
 
 const INITIAL_STATE: VerifierState = {
     contracts: [],
     unused: [],
     fetching: false,
+    displayed: StorageProvider.getDisplayed() || DISPLAY_ALL_CONTRACTS,
 };
 
 function isJson(res: Response): boolean {
@@ -39,10 +44,14 @@ class Verifier extends React.Component<{}, VerifierState> {
         }).then(res => {
             if (res.ok && isJson(res)) {
                 res.json().then((sessionData: VerifierState) => {
+                    if (!sessionData.contracts.length) {
+                        StorageProvider.clear();
+                    }
+
                     this.setState({
                         contracts: sessionData.contracts,
                         unused: sessionData.unused
-                    })
+                    });
                 });
             } else {
                 res.text().then(msg => {
@@ -55,7 +64,7 @@ class Verifier extends React.Component<{}, VerifierState> {
     }
 
     componentDidMount() {
-        this.customFetch(SESSION_DATA_URL, {});
+        this.customFetch(SESSION_DATA_URL);
     }
 
     private uploadFiles = (files: any[]) => {
@@ -91,9 +100,23 @@ class Verifier extends React.Component<{}, VerifierState> {
         })
     }
 
+    private updateDisplayed: ChangeEventHandler<HTMLSelectElement> = e => {
+        const displayed = e.target.value;
+        this.setState({ displayed });
+        StorageProvider.setDisplayed(displayed);
+    }
+
     render() {
         const contracts = this.state.contracts;
+        const displayableContracts = (this.state.displayed === DISPLAY_ALL_CONTRACTS) ? contracts : contracts.filter(c => c.verificationId === this.state.displayed);
         const unused = this.state.unused;
+
+        const defaultContractOption = <option key={DISPLAY_ALL_CONTRACTS} value={DISPLAY_ALL_CONTRACTS}> {DISPLAY_ALL_CONTRACTS} ({this.state.contracts.length}) </option>;
+        const contractOptions = contracts.map(contract =>
+            <option key={contract.verificationId} value={contract.verificationId}>{contract.name}</option>
+        );
+
+        contractOptions.unshift(defaultContractOption);
 
         // TODO button should probably not be inside h3; try flex instead
         return <div className="form-container__middle" style={{ marginTop: "10px", position: "relative" }}>
@@ -110,14 +133,23 @@ class Verifier extends React.Component<{}, VerifierState> {
             <FileUpload handleFiles={this.uploadFiles} files={[]}/>
 
             {
+                (contracts && contracts.length > 0) && <div style={{ marginTop: "20px", marginBottom: "20px" }}>
+                    <span><strong> Contract selection: </strong></span>
+                    <select defaultValue={this.state.displayed} onChange={this.updateDisplayed}>
+                        { contractOptions }
+                    </select>
+                </div>
+            }
+
+            {
                 (contracts.length === 0 && unused.length > 0) &&
                     <h3 style={{ textAlign: "center", marginTop: "15px", marginBottom: "15px", color: "#c41111" }}> No metadata files uploaded </h3>
             }
             {
-                contracts.length > 0 &&
-                    contracts.map((contractModel, i) => <Contract
+                displayableContracts.length > 0 &&
+                    displayableContracts.map((contractModel, i) => <Contract
                         key={i}
-                        setAddress={address => this.verifyValidated({ // TODO perhaps the callback should pass the verification id
+                        setAddress={address => this.verifyValidated({
                             verificationId: contractModel.verificationId,
                             address,
                             chainId: contractModel.chainId
