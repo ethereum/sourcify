@@ -1,6 +1,6 @@
 import Web3 from 'web3';
 import * as bunyan from 'bunyan';
-import { Match, InputData, getSupportedChains, getFullnodeChains, Logger, IFileService, FileService, StringMap, cborDecode, CheckedContract, MatchQuality, Chain } from '@ethereum-sourcify/core';
+import { Match, InputData, getSupportedChains, getFullnodeChains, Logger, IFileService, FileService, StringMap, cborDecode, CheckedContract, MatchQuality, Chain, CompareResult, Status } from '@ethereum-sourcify/core';
 import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint, getCreationDataFromArchive, getCreationDataByScraping } from '../utils';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const multihashes: any = require('multihashes');
@@ -161,9 +161,9 @@ export class Injector {
                 deployedBytecode = await getBytecode(this.chains[chain].web3, address);
             } catch (e) { /* ignore */ }
 
-            let status;
+            let compareResult;
             try {
-                status = await this.compareBytecodes(
+                compareResult = await this.compareBytecodes(
                     deployedBytecode, null, compiledRuntimeBytecode, compiledCreationBytecode, chain, address
                 );
             } catch (err) {
@@ -172,8 +172,8 @@ export class Injector {
                 }
             }
 
-            if (status) {
-                match = { address, status };
+            if (compareResult.status) {
+                match = { address, status: compareResult.status, encodedConstructorArgs: compareResult.encodedConstructorArgs };
                 break;
             } else if (addresses.length === 1 && !match.message) {
                 if (!deployedBytecode) {
@@ -199,7 +199,7 @@ export class Injector {
      * @param  {string} compiledCreationBytecode
      * @param  {string} chain chainId of the chain where contract is being checked
      * @param  {string} address contract address
-     * @return {string | null}  match description ('perfect'|'partial'|null)
+     * @return {CompareResult}  match description ('perfect'|'partial'|null) and possibly constructor args (ABI-encoded)
      */
     private async compareBytecodes(
         deployedBytecode: string | null,
@@ -208,17 +208,17 @@ export class Injector {
         compiledCreationBytecode: string,
         chain: string,
         address: string
-    ): Promise<'perfect' | 'partial' | null> {
+    ): Promise<CompareResult> {
 
         if (deployedBytecode && deployedBytecode.length > 2) {
             if (deployedBytecode === compiledRuntimeBytecode) {
-                return 'perfect';
+                return { status: "perfect", encodedConstructorArgs: undefined };
             }
 
             const trimmedDeployedBytecode = trimMetadata(deployedBytecode);
             const trimmedCompiledRuntimeBytecode = trimMetadata(compiledRuntimeBytecode);
             if (trimmedDeployedBytecode === trimmedCompiledRuntimeBytecode) {
-                return 'partial';
+                return { status: "partial", encodedConstructorArgs: undefined };
             }
 
             if (trimmedDeployedBytecode.length === trimmedCompiledRuntimeBytecode.length) {
@@ -227,18 +227,20 @@ export class Injector {
                     if (creationData.startsWith(compiledCreationBytecode)) {
                         // The reason why this uses `startsWith` instead of `===` is that
                         // creationData may contain constructor arguments at the end part.
-                        return 'perfect';
+                        const encodedConstructorArgs = this.extractEncodedConstructorArgs(creationData, compiledCreationBytecode);
+                        return { status: "perfect", encodedConstructorArgs };
                     }
 
                     const trimmedCompiledCreationBytecode = trimMetadata(compiledCreationBytecode);
+
                     if (creationData.startsWith(trimmedCompiledCreationBytecode)) {
-                        return 'partial';
+                        return { status: "partial", encodedConstructorArgs: undefined };
                     }
                 }
             }
         }
 
-        return null;
+        return { status: null, encodedConstructorArgs: undefined };
     }
 
     /**
@@ -276,6 +278,11 @@ export class Injector {
         const err = "Cannot fetch creation data";
         this.log.error({ loc, chain, contractAddress, err });
         throw new Error(err);
+    }
+
+    private extractEncodedConstructorArgs(creationData: string, compiledCreationBytecode: string) {
+        const startIndex = creationData.indexOf(compiledCreationBytecode);
+        return "0x" + creationData.slice(startIndex + compiledCreationBytecode.length);
     }
 
     /**
@@ -338,7 +345,7 @@ export class Injector {
             }
             const address = addresses[0];
 
-            const status = await this.compareBytecodes(
+            const compareResult = await this.compareBytecodes(
                 inputData.bytecode,
                 inputData.creationData,
                 compilationResult.deployedBytecode,
@@ -347,7 +354,7 @@ export class Injector {
                 address
             );
             const checkedAddress = Web3.utils.toChecksumAddress(address);
-            match = { address: checkedAddress, status };
+            match = { address: checkedAddress, status: compareResult.status, encodedConstructorArgs: compareResult.encodedConstructorArgs };
 
         // For other cases, we need to retrieve the code for specified address
         // from the chain.
@@ -372,6 +379,10 @@ export class Injector {
                 this.fileService.deletePartial(chain, match.address);
             }
 
+            if (match.encodedConstructorArgs && match.encodedConstructorArgs.length) {
+                this.storeConstructorArgs(matchQuality, chain, match.address, match.encodedConstructorArgs);
+            }
+
         } else {
             const message = match.message || "Could not match the deployed and recompiled bytecode."
             const err = new Error(`Contract name: ${contract.name}. ${message}`);
@@ -392,7 +403,7 @@ export class Injector {
      * @param status 
      * @returns {MatchQuality} matchQuality
      */
-    private statusToMatchQuality(status: string): MatchQuality {
+    private statusToMatchQuality(status: Status): MatchQuality {
         if (status === "perfect") return "full";
         if (status === "partial") return status;
     }
@@ -449,9 +460,7 @@ export class Injector {
     }
 
     /**
-     * Writes verified sources to repository by address under the "partial_match" folder.
-     * This method used when recompilation bytecode matches deployed *except* for their
-     * metadata components.
+     * Writes the verified sources (.sol files) to the repository.
      * @param {string}              chain             chain name (ex: 'ropsten')
      * @param {string}              address           contract address
      * @param {StringMap}           sources           'rearranged' sources
@@ -469,5 +478,25 @@ export class Injector {
                 sources[sourcePath]
             );
         }
+    }
+
+    /**
+     * Writes the constructor arguments to the repository.
+     * @param matchQuality 
+     * @param chain 
+     * @param address 
+     * @param encodedConstructorArgs 
+     * @param metadataRaw 
+     */
+    private storeConstructorArgs(matchQuality: MatchQuality, chain: string, address: string, encodedConstructorArgs: string) {
+        this.fileService.save({
+            matchQuality,
+            chain,
+            address,
+            source: false,
+            fileName: "constructor-args.txt"
+        },
+            encodedConstructorArgs
+        )
     }
 }
