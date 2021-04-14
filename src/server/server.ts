@@ -34,8 +34,8 @@ export class Server {
     }))
 
     this.app.use(cors({
-      origin: config.testing ? "*" : config.corsAllowedOrigins,
-      credentials: true
+      origin: config.corsAllowedOrigins,
+      credentials: true,
     }));
     this.app.use(bodyParser.json());
     this.app.use(bodyParser.urlencoded({ extended: true }));
