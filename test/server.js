@@ -14,6 +14,7 @@ const rimraf = require("rimraf");
 const path = require("path");
 const MAX_INPUT_SIZE = require("../dist/server/controllers/VerificationController").default.MAX_INPUT_SIZE;
 const StatusCodes = require('http-status-codes').StatusCodes;
+const { waitSecs } = require("./helpers/helpers");
 chai.use(chaiHttp);
 
 const EXTENDED_TIME = 20000; // 20 seconds
@@ -316,9 +317,10 @@ describe("Server", function() {
                                 .field("chain", contractChain)
                                 .attach("files", metadataBuffer, "metadata.json")
                                 .attach("files", sourceBuffer)
-                                .end((err, res) => {
+                                .end(async (err, res) => {
                                     assertions(err, res, null, contractAddress);
 
+                                    await waitSecs(2); // allow server some time to execute the deletion (it started *after* the last response)
                                     chai.request(server.app)
                                         .get(partialMetadataURL)
                                         .end((err, res) => {
