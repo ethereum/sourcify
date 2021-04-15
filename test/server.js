@@ -15,7 +15,15 @@ const path = require("path");
 const MAX_INPUT_SIZE = require("../dist/server/controllers/VerificationController").default.MAX_INPUT_SIZE;
 const StatusCodes = require('http-status-codes').StatusCodes;
 const { waitSecs } = require("./helpers/helpers");
+const Web3EthAbi = require("web3-eth-abi");
 chai.use(chaiHttp);
+
+const binaryParser = function(res, cb) {
+    res.setEncoding("binary");
+    res.data = "";
+    res.on("data", chunk => res.data += chunk);
+    res.on("end", () => cb(null, Buffer.from(res.data, "binary")));
+}
 
 const EXTENDED_TIME = 20000; // 20 seconds
 
@@ -256,7 +264,7 @@ describe("Server", function() {
                 .end((err, res) => assertions(err, res, done, address));
         });
 
-        const verifyContractWithImmutables = (address, chainId, chainName, metadataFileName="withImmutables.meta.object.json") => {
+        const verifyContractWithImmutables = (address, chainId, chainName, ctorArg, metadataFileName="withImmutables.meta.object.json") => {
             it(`should verify a contract with immutables on ${chainName}`, done => {
                 const sourcePath = path.join("test", "sources", "contracts", "WithImmutables.sol");
                 const sourceBuffer = fs.readFileSync(sourcePath);
@@ -268,23 +276,37 @@ describe("Server", function() {
                     .field("chain", chainId)
                     .attach("files", metadataBuffer, "metadata.json")
                     .attach("files", sourceBuffer, "WithImmutables.sol")
-                    .end((err, res) => assertions(err, res, done, address));
+                    .end((err, res) => {
+                        assertions(err, res, null, address);
+
+                        chai.request(server.app)
+                            .get(`/repository/contracts/full_match/${chainId}/${address}/constructor-args.txt`)
+                            .buffer()
+                            .parse(binaryParser)
+                            .end((err, res) => {
+                                chai.expect(err).to.be.null;
+                                chai.expect(res.status).to.equal(StatusCodes.OK);
+                                const encodedParameter = Web3EthAbi.encodeParameter("uint256", ctorArg);
+                                chai.expect(res.body.toString()).to.equal(encodedParameter);
+                                done();
+                            });
+                    });
             });
         };
 
-        verifyContractWithImmutables("0x656d0062eC89c940213E3F3170EA8b2add1c0143", "3", "Ropsten");
+        verifyContractWithImmutables("0x656d0062eC89c940213E3F3170EA8b2add1c0143", "3", "Ropsten", 987);
 
-        verifyContractWithImmutables("0x656d0062eC89c940213E3F3170EA8b2add1c0143", "4", "Rinkeby");
+        verifyContractWithImmutables("0x656d0062eC89c940213E3F3170EA8b2add1c0143", "4", "Rinkeby", 101);
 
-        verifyContractWithImmutables("0xBdDe4D595F2CDdA92ca274423374E0e1C7286426", "5", "Goerli");
+        verifyContractWithImmutables("0xBdDe4D595F2CDdA92ca274423374E0e1C7286426", "5", "Goerli", 2);
         
-        verifyContractWithImmutables("0x443C64AcC4c6dB358Eb1CA78fdf7577C2a7eA499", "42", "Kovan");
+        verifyContractWithImmutables("0x443C64AcC4c6dB358Eb1CA78fdf7577C2a7eA499", "42", "Kovan", 256);
 
-        verifyContractWithImmutables("0x3CE1a25376223695284edc4C2b323C3007010C94", "100", "xDai");
+        verifyContractWithImmutables("0x3CE1a25376223695284edc4C2b323C3007010C94", "100", "xDai", 123);
         
-        verifyContractWithImmutables("0x66ec3fBf4D7d7B7483Ae4fBeaBDD6022037bfa1a", "44787", "Alfajores Celo");
+        verifyContractWithImmutables("0x66ec3fBf4D7d7B7483Ae4fBeaBDD6022037bfa1a", "44787", "Alfajores Celo", 777);
 
-        verifyContractWithImmutables("0xD222286c59c0B9c8D06Bac42AfB7B8CB153e7Bf7", "77", "Sokol", "withImmutables2.meta.object.json");
+        verifyContractWithImmutables("0xD222286c59c0B9c8D06Bac42AfB7B8CB153e7Bf7", "77", "Sokol", 1234, "withImmutables2.meta.object.json");
 
         it("should return 'partial', then delete partial when 'full' match", done => {
             const partialMetadataPath = path.join("test", "testcontracts", "1_Storage", "metadata-modified.json");
