@@ -607,5 +607,41 @@ describe("Server", function() {
                         });
                 });
         });
+
+        
+        it("should correctly handle when uploaded 0/2 and then 1/2 sources", done => {
+            const metadataPath = path.join("test", "sources", "metadata", "child-contract.meta.object.json");
+            const metadataBuffer = fs.readFileSync(metadataPath);
+
+            const parentPath = path.join("test", "sources", "contracts", "ParentContract.sol");
+            const parentBuffer = fs.readFileSync(parentPath);
+
+            const agent = chai.request.agent(server.app);
+            agent.post("/input-files")
+                .attach("files", metadataBuffer)
+                .then(res => {
+                    chai.expect(res.status).to.equal(StatusCodes.OK);
+                    chai.expect(res.body.contracts).to.have.lengthOf(1);
+                    chai.expect(res.body.unused).to.be.empty;
+
+                    const contract = res.body.contracts[0];
+                    chai.expect(contract.files.found).to.have.lengthOf(0);
+                    chai.expect(contract.files.missing).to.have.lengthOf(2);
+
+                    agent.post("/input-files")
+                        .attach("files", parentBuffer)
+                        .then(res => {
+                            chai.expect(res.status).to.equal(StatusCodes.OK);
+                            chai.expect(res.body.contracts).to.have.lengthOf(1);
+                            chai.expect(res.body.unused).to.be.empty;
+
+                            const contract = res.body.contracts[0];
+                            chai.expect(contract.files.found).to.have.lengthOf(1);
+                            chai.expect(contract.files.missing).to.have.lengthOf(1);
+
+                            done();
+                        });
+                });
+        });
     });
 });

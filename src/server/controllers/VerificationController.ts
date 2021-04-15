@@ -164,8 +164,17 @@ export default class VerificationController extends BaseController implements IC
             
             session.contractWrappers ||= {};
             for (const newId in newPendingContracts) {
-                if (!(newId in session.contractWrappers)) {
-                    session.contractWrappers[newId] = newPendingContracts[newId];
+                const newContractWrapper = newPendingContracts[newId];
+                const oldContractWrapper = session.contractWrappers[newId];
+                if (oldContractWrapper) {
+                    for (const path in newContractWrapper.contract.solidity) {
+                        oldContractWrapper.contract.solidity[path] = newContractWrapper.contract.solidity[path];
+                        delete oldContractWrapper.contract.missing[path];
+                    }
+                    oldContractWrapper.contract.solidity = newContractWrapper.contract.solidity;
+                    oldContractWrapper.contract.missing = newContractWrapper.contract.missing;
+                } else {
+                    session.contractWrappers[newId] = newContractWrapper;
                 }
             }
             updateUnused(unused, session);
