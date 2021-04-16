@@ -44,10 +44,6 @@ class Verifier extends React.Component<{}, VerifierState> {
         }).then(res => {
             if (res.ok && isJson(res)) {
                 res.json().then((sessionData: VerifierState) => {
-                    if (!sessionData.contracts.length) {
-                        StorageProvider.clear();
-                    }
-
                     this.setState({
                         contracts: sessionData.contracts,
                         unused: sessionData.unused
@@ -85,6 +81,7 @@ class Verifier extends React.Component<{}, VerifierState> {
 
     private restartSession = (): void => {
         this.setState(INITIAL_STATE);
+        StorageProvider.clear();
         this.customFetch(RESTART_SESSION_URL, { method: "POST" });
     }
 
