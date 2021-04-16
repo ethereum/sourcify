@@ -643,5 +643,19 @@ describe("Server", function() {
                         });
                 });
         });
+
+        it("should find contracts in a zipped Truffle project", done => {
+            const zippedTrufflePath = path.join("services", "validation", "test", "files", "truffle-example.zip");
+            const zippedTruffleBuffer = fs.readFileSync(zippedTrufflePath);
+            chai.request(server.app)
+                .post("/input-files")
+                .attach("files", zippedTruffleBuffer)
+                .then(res => {
+                    chai.expect(res.status).to.equal(StatusCodes.OK);
+                    chai.expect(res.body.contracts).to.have.lengthOf(3);
+                    chai.expect(res.body.unused).to.be.empty;
+                    done();
+                });
+        })
     });
 });
