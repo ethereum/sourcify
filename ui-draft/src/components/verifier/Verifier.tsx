@@ -33,7 +33,7 @@ class Verifier extends React.Component<{}, VerifierState> {
         this.state = INITIAL_STATE;
     }
 
-    private customFetch = async (url: string, options: { method?: "GET" | "POST", headers?: any, body?: any } = {}) => {
+    private customFetch = async (url: string, options: { method?: "GET" | "POST", headers?: any, body?: any, updateDisplayed?: boolean } = {}) => {
         this.setState({ fetching: true });
 
         fetch(url, {
@@ -44,10 +44,23 @@ class Verifier extends React.Component<{}, VerifierState> {
         }).then(res => {
             if (res.ok && isJson(res)) {
                 res.json().then((sessionData: VerifierState) => {
+                    let newDisplayed = this.state.displayed;
+                    if (options.updateDisplayed) {
+                        const oldVerificationIds = new Set(this.state.contracts.map(c => c.verificationId));
+                        for (const receivedContract of sessionData.contracts) {
+                            if (!oldVerificationIds.has(receivedContract.verificationId)) {
+                                newDisplayed = DISPLAY_ALL_CONTRACTS;
+                                break;
+                            }
+                        }
+                    }
+
                     this.setState({
                         contracts: sessionData.contracts,
                         unused: sessionData.unused
                     });
+
+                    this.updateDisplayed(newDisplayed);
                 });
             } else {
                 res.text().then(msg => {
@@ -71,7 +84,7 @@ class Verifier extends React.Component<{}, VerifierState> {
 
         const formData = new FormData();
         files.forEach(file => formData.append("files", file));
-        this.customFetch(ADD_FILES_URL, { method: "POST", body: formData });
+        this.customFetch(ADD_FILES_URL, { method: "POST", body: formData, updateDisplayed: true });
     }
 
     private anythingUploaded(): boolean {
@@ -97,8 +110,12 @@ class Verifier extends React.Component<{}, VerifierState> {
         })
     }
 
-    private updateDisplayed: ChangeEventHandler<HTMLSelectElement> = e => {
+    private displayedContractHandler: ChangeEventHandler<HTMLSelectElement> = e => {
         const displayed = e.target.value;
+        this.updateDisplayed(displayed);
+    }
+
+    private updateDisplayed = (displayed: string) => {
         this.setState({ displayed });
         StorageProvider.setDisplayed(displayed);
     }
@@ -132,7 +149,7 @@ class Verifier extends React.Component<{}, VerifierState> {
             {
                 (contracts && contracts.length > 0) && <div style={{ marginTop: "20px", marginBottom: "20px" }}>
                     <span><strong> Contract selection: </strong></span>
-                    <select defaultValue={this.state.displayed} onChange={this.updateDisplayed}>
+                    <select value={this.state.displayed} onChange={this.displayedContractHandler}>
                         { contractOptions }
                     </select>
                 </div>
