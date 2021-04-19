@@ -25,7 +25,7 @@ services:
     image: ethereum/source-verify:repository-${TAG}
     container_name: repository-${TAG}
     environment:
-      VIRTUAL_HOST: contractrepo.${FQDN}
+      VIRTUAL_HOST: repo.${FQDN}
     volumes:
       - <<: *project-repository-mount
         target: /data

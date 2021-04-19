@@ -14,6 +14,7 @@ const fs = require("fs");
 const path = require("path");
 const Web3 = require("web3");
 const ethers = require("ethers");
+const Web3EthAbi = require("web3-eth-abi");
 
 class Counter {
     static get() {
@@ -58,9 +59,14 @@ class MonitorWrapper {
         return path.join(pathPrefix, "metadata.json");
     }
 
-    assertFilesNotStored(address, contractWrapper, metadataMtime) {
+    getConstructorArgsPath(address) {
+        const pathPrefix = this.getPathPrefix(address);
+        return path.join(pathPrefix, "constructor-args.txt");
+    }
+
+    assertFilesNotStored(address, contractWrapper, expectedMtime) {
         const addressMetadataPath = this.getAddressMetadataPath(address);
-        assertEqualityFromPath(contractWrapper.metadata, addressMetadataPath, metadataMtime);
+        assertEqualityFromPath(contractWrapper.metadata, addressMetadataPath, { expectedMtime, isJson: true });
     }
 
     assertFilesStored(address, contractWrapper) {
@@ -68,11 +74,16 @@ class MonitorWrapper {
         const pathPrefix = this.getPathPrefix(address);
         const addressMetadataPath = this.getAddressMetadataPath(address);
         const ipfsMetadataPath = path.join(this.repository, "ipfs", contractWrapper.metadataIpfsHash);
-    
+
         const metadata = contractWrapper.metadata;
-        assertEqualityFromPath(metadata, addressMetadataPath);
-        assertEqualityFromPath(metadata, ipfsMetadataPath);
-    
+        assertEqualityFromPath(metadata, addressMetadataPath, { isJson: true });
+        assertEqualityFromPath(metadata, ipfsMetadataPath, { isJson: true });
+
+        if (contractWrapper.argsHex) {
+            const constructorArgsPath = this.getConstructorArgsPath(address);
+            assertEqualityFromPath(contractWrapper.argsHex, constructorArgsPath);
+        }
+
         for (const sourceName in metadata.sources) {
             const source = metadata.sources[sourceName];
             const sourcePath = path.join(pathPrefix, "sources", sourceName);
@@ -83,6 +94,12 @@ class MonitorWrapper {
         }
     }
 
+    /**
+     * Used for writing (dummy) metadata independent of monitor's work.
+     * @param {string} address 
+     * @param {*} metadata 
+     * @returns ctime of written metadata
+     */
     writeMetadata(address, metadata) {
         const addressMetadataPath = this.getAddressMetadataPath(address);
         fs.mkdirSync(path.dirname(addressMetadataPath), { recursive: true });
@@ -91,13 +108,13 @@ class MonitorWrapper {
     }
 }
 
-function assertEqualityFromPath(obj1, obj2path, expectedMtime) {
+function assertEqualityFromPath(obj1, obj2path, options={}) {
     const obj2raw = fs.readFileSync(obj2path).toString();
-    const obj2 = JSON.parse(obj2raw);
+    const obj2 = options.isJson ? JSON.parse(obj2raw) : obj2raw;
     chai.expect(obj1, `assertFromPath: ${obj2path}`).to.deep.equal(obj2);
-    if (expectedMtime) {
+    if (options.expectedMtime) {
         const actualMtime = fs.statSync(obj2path).mtime;
-        chai.expect(actualMtime).to.deep.equal(expectedMtime);
+        chai.expect(actualMtime).to.deep.equal(options.expectedMtime);
     }
 }
 
@@ -109,6 +126,21 @@ class ContractWrapper {
         this.sources = this.artifact.sourceCodes;
         this.publishOptions = publishOptions;
         this.args = args;
+        
+        if (args.length) {
+            this.constructArgsHex();
+        }
+    }
+    
+    constructArgsHex() {
+        let ctorSpecInput;
+        for (const methodSpec of this.artifact.compilerOutput.abi) {
+            if (methodSpec.type === "constructor") {
+                ctorSpecInput = methodSpec.inputs;
+            }
+        }
+        
+        this.argsHex = Web3EthAbi.encodeParameters(ctorSpecInput, this.args);
     }
 
     async publish(ipfsNode) {

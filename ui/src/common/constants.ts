@@ -5,6 +5,7 @@ export const CHAIN_OPTIONS = [
     {value: "kovan", label: "Kovan", id: 42},
     {value: "goerli", label: "Görli", id: 5},
     {value: "xdai", label: "xDai", id: 100},
+    {value: "sokol", label: "Sokol", id: 77},
     {value: "binance smart chain mainnet", label: "Binance Smart Chain Mainnet", id: 56},
     {value: "binance smart chain testnet", label: "Binance Smart Chain Testnet", id: 97},
     {value: "matic mainnet", label: "Polygon (previously Matic)", id: 137},

@@ -133,7 +133,7 @@ export function reformatMetadata(
     let fileName = '';
     let contractName = '';
 
-    input.settings = metadata.settings;
+    input.settings = JSON.parse(JSON.stringify(metadata.settings));
 
     if (!metadata.settings ||
         !metadata.settings.compilationTarget ||

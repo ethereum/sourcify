@@ -16,11 +16,11 @@ else
 fi
 
 if [ "${TAG}" == "stable" ]; then
-    COMPOSE_COMMAND="COMPOSE_PROJECT_NAME=${TAG}_source-verify docker-compose -f ipfs.yaml -f monitor.yaml -f repository.yaml -f s3.yaml -f server.yaml -f ui.yaml "
+    COMPOSE_COMMAND="COMPOSE_PROJECT_NAME=${TAG} docker-compose -f ipfs.yaml -f monitor.yaml -f repository.yaml -f s3.yaml -f server.yaml -f ui.yaml "
 elif [ "${TAG}" == "latest" ]; then
-    COMPOSE_COMMAND="COMPOSE_PROJECT_NAME=${TAG}_source-verify docker-compose -f ipfs.yaml -f ipfs-monitoring.yaml -f monitor.yaml -f monitor-monitoring.yaml -f repository.yaml -f repository-monitoring.yaml -f s3.yaml -f s3-monitoring.yaml -f server.yaml -f server-monitoring.yaml -f ui.yaml -f ui-monitoring.yaml -f https-portal.yaml"
+    COMPOSE_COMMAND="COMPOSE_PROJECT_NAME=${TAG} docker-compose -f ipfs.yaml -f monitor.yaml -f repository.yaml -f s3.yaml -f server.yaml -f ui.yaml -f ui-draft.yaml"
 else
-    COMPOSE_COMMAND="COMPOSE_PROJECT_NAME=${TAG}_source-verify docker-compose -f ipfs.yaml -f monitor.yaml -f repository.yaml -f s3.yaml -f server.yaml -f ui.yaml -f localchain.yaml"
+    COMPOSE_COMMAND="COMPOSE_PROJECT_NAME=${TAG} docker-compose -f ipfs.yaml -f monitor.yaml -f repository.yaml -f s3.yaml -f server.yaml -f ui.yaml -f localchain.yaml"
 fi
 
 TAG=$TAG ./scripts/find_replace.sh
@@ -30,4 +30,3 @@ cd environments
 docker image prune --all -f
 eval ${COMPOSE_COMMAND} pull
 eval COMPOSE_HTTP_TIMEOUT=1200 ${COMPOSE_COMMAND} --compatibility up -d
-cd ..

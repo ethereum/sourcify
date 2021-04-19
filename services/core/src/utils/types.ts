@@ -50,9 +50,17 @@ export interface SourceMap {
 
 export interface Match {
   address: string | null,
-  status: 'perfect' | 'partial' | null,
+  status: Status,
   storageTimestamp?: Date,
-  message?: string
+  message?: string,
+  encodedConstructorArgs?: string,
+}
+
+export type Status = 'perfect' | 'partial' | null;
+
+export type CompareResult = {
+  status: Status,
+  encodedConstructorArgs: string
 }
 
 /**

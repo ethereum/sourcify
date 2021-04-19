@@ -2,12 +2,15 @@ import Web3 from "web3";
 
 const ETHERSCAN_REGEX = "at txn <a href='/tx/(.*?)'";
 const ETHERSCAN_SUFFIX = "address/${ADDRESS}";
-const BLOCKSCOUT_REGEX = "transaction_hash_link\" href=\"/tx/(.*?)\"";
+const BLOCKSCOUT_REGEX = "transaction_hash_link\" href=\"${BLOCKSCOUT_PREFIX}/tx/(.*?)\"";
 const BLOCKSCOUT_SUFFIX = "address/${ADDRESS}/transactions";
-const BLOCKSCOUT_XDAI_REGEX = "transaction_hash_link\" href=\"/xdai/mainnet/tx/(.*?)\"";
 
 function createArchiveEndpoint(hostPrefix: string) {
     return new Web3(`https://${hostPrefix}.alchemyapi.io/v2/${process.env.ALCHEMY_ID}`)
+}
+
+function getBlockscoutRegex(blockscoutPrefix="") {
+    return BLOCKSCOUT_REGEX.replace("${BLOCKSCOUT_PREFIX}", blockscoutPrefix);
 }
 
 export default {
@@ -68,6 +71,12 @@ export default {
         "contractFetchAddress": "https://bscscan.com/" + ETHERSCAN_SUFFIX,
         "txRegex": ETHERSCAN_REGEX
     },
+    "77": {
+        "supported": true,
+        "monitored": true,
+        "contractFetchAddress": "https://blockscout.com/poa/sokol/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex("/poa/sokol")
+    },
     "97": {
         "supported": true,
         "monitored": false,
@@ -78,36 +87,36 @@ export default {
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://blockscout.com/xdai/mainnet/" + BLOCKSCOUT_SUFFIX,
-        "txRegex": BLOCKSCOUT_XDAI_REGEX
+        "txRegex": getBlockscoutRegex("/xdai/mainnet")
     },
     "137": {
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://explorer-mainnet.maticvigil.com/" + BLOCKSCOUT_SUFFIX,
-        "txRegex": BLOCKSCOUT_REGEX
+        "txRegex": getBlockscoutRegex()
     },
     "42220": {
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://explorer.celo.org/" + BLOCKSCOUT_SUFFIX,
-        "txRegex": BLOCKSCOUT_REGEX
+        "txRegex": getBlockscoutRegex()
     },
     "44787": {
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://alfajores-blockscout.celo-testnet.org/" + BLOCKSCOUT_SUFFIX,
-        "txRegex": BLOCKSCOUT_REGEX
+        "txRegex": getBlockscoutRegex()
     },
     "62320": {
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://baklava-blockscout.celo-testnet.org/" + BLOCKSCOUT_SUFFIX,
-        "txRegex": BLOCKSCOUT_REGEX
+        "txRegex": getBlockscoutRegex()
     },
     "80001": {
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://explorer-mumbai.maticvigil.com/" + BLOCKSCOUT_SUFFIX,
-        "txRegex": BLOCKSCOUT_REGEX
+        "txRegex": getBlockscoutRegex()
     }
 }

@@ -50,6 +50,7 @@ watches:
   + Kovan
   + Goerli
   + xDai
+  + POA Network Sokol
   + Polygon (previously Matic)
   + Mumbai Testnet (Polygon/Matic)
   + Binance Smart Chain Mainnet (monitoring temporarily suspended)
@@ -60,11 +61,11 @@ watches:
 
 + a website which allows you to submit sources and metadata for a specific contract address manually
   + https://sourcify.dev (Stable)
-  + https://sourcify.shardlabs.io (Unstable)
+  + https://staging.sourcify.dev (Unstable)
 
 + a public metadata repository that contains uploaded (or discovered) metadata and their sources:
   + https://repo.sourcify.dev (Stable)
-  + https://contractrepo.sourcify.shardlabs.io (Unstable)
+  + https://repo.staging.sourcify.dev (Unstable)
 
 ### Getting Metadata
 
@@ -279,6 +280,7 @@ This paragraph should be read with the following in mind:
 
 The repository (https://repo.sourcify.dev) provides the following GET endpoints:
 * JSON-formatted metadata file (with ABI): `/contracts/<MATCH_QUALITY>/<CHAIN_ID>/<CONTRACT_ADDRESS>/metadata.json`
+* JSON-formatted file with constructor arguments (only for fully matched contracts using [immutable variables](https://ethereum.stackexchange.com/questions/82240/what-is-the-immutable-keyword-in-solidity)): `/contracts/full_match/<CHAIN_ID>/<CONTRACT_ADDRESS>/constructor-args.txt`
 * Source file: `/contracts/<MATCH_QUALITY>/<CHAIN_ID>/<CONTRACT_ADDRESS>/sources/<FILE_PATH>`
 * JSON-formatted full and partial match count per chain: `/stats.json`
 * JSON-formatted timestamp and version of the repo: `/manifest.json`
@@ -286,4 +288,4 @@ The repository (https://repo.sourcify.dev) provides the following GET endpoints:
 E.g. the following URL fetches `browser/OceanMan.sol`, a source of the contract deployed on Ethereum Mainnet (chain ID: 1) at address 0x00000000064Ecc11c97AC4a5551F279532Bf9E0D.
 * https://repo.sourcify.dev/contracts/full_match/1/0x00000000064Ecc11c97AC4a5551F279532Bf9E0D/sources/browser/OceanMan.sol
 
-In order to fetch from the staging repository, replace https://repo.sourcify.dev with https://contractrepo.sourcify.shardlabs.io.
+In order to fetch from the staging repository, replace https://repo.sourcify.dev with https://repo.staging.sourcify.dev.

@@ -32,8 +32,11 @@ export class Server {
       limits: { fileSize: 50 * 1024 * 1024 },
       abortOnLimit: true
     }))
-    
-    this.app.use(cors())
+
+    this.app.use(cors({
+      origin: config.corsAllowedOrigins,
+      credentials: true,
+    }));
     this.app.use(bodyParser.json());
     this.app.use(bodyParser.urlencoded({ extended: true }));
     this.app.use(session(getSessionOptions()));
@@ -52,17 +55,18 @@ export class Server {
 }
 
 function getSessionOptions(): session.SessionOptions {
-  const secret = process.env.SESSION_SECRET || "session top secret";
-  const defaultMaxAge = 12 * 60 * 60 * 1000; // defaults to 12 hrs in millis
-  const maxAge = parseInt(process.env.SESSION_MAX_AGE, 10) || defaultMaxAge;
-
   return {
-    secret,
+    secret: config.session.secret,
     name: "sourcify_vid",
     rolling: true,
     resave: false,
     saveUninitialized: true,
-    cookie: { maxAge } };
+    cookie: {
+      maxAge: config.session.maxAge,
+      secure: config.session.secure,
+      sameSite: "lax"
+    },
+  };
 }
 
 if (require.main === module) {
