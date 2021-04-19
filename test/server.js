@@ -501,7 +501,7 @@ describe("Server", function() {
         it("should fail if too many files uploaded, but should succeed after deletion", (done) => {
             const agent = chai.request.agent(server.app);
 
-            const file = "a".repeat(MAX_INPUT_SIZE);
+            const file = "a".repeat(MAX_INPUT_SIZE * 3 / 4); // because of base64 encoding which increases size by 1/3, making it 4/3 of the original
             agent.post("/input-files")
                 .attach("files", Buffer.from(file))
                 .then(res => {
