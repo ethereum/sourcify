@@ -117,7 +117,6 @@ class Contract extends React.Component<ContractProps, ContractState> {
             return "";
         }
         message = message.replace(/^Contract name: .*?\. /, "");
-        // message = message.replace(/at 0x\d{40}./, "at the provided address.");
         return message;
     }
 
