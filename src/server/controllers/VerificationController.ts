@@ -12,6 +12,8 @@ import { MySession, getSessionJSON, generateId, isVerifiable, SendableContract, 
 import { StatusCodes } from 'http-status-codes';
 import { body, query, validationResult } from 'express-validator';
 
+const FILE_ENCODING = "base64";
+
 export default class VerificationController extends BaseController implements IController {
     router: Router;
     verificationService: IVerificationService;
@@ -150,7 +152,7 @@ export default class VerificationController extends BaseController implements IC
         const pathBuffers: PathBuffer[] = [];
         for (const id in session.inputFiles) {
             const pathContent = session.inputFiles[id];
-            pathBuffers.push({ path: pathContent.path, buffer: Buffer.from(pathContent.content) });
+            pathBuffers.push({ path: pathContent.path, buffer: Buffer.from(pathContent.content, FILE_ENCODING) });
         }
         
         try {
@@ -164,8 +166,17 @@ export default class VerificationController extends BaseController implements IC
             
             session.contractWrappers ||= {};
             for (const newId in newPendingContracts) {
-                if (!(newId in session.contractWrappers)) {
-                    session.contractWrappers[newId] = newPendingContracts[newId];
+                const newContractWrapper = newPendingContracts[newId];
+                const oldContractWrapper = session.contractWrappers[newId];
+                if (oldContractWrapper) {
+                    for (const path in newContractWrapper.contract.solidity) {
+                        oldContractWrapper.contract.solidity[path] = newContractWrapper.contract.solidity[path];
+                        delete oldContractWrapper.contract.missing[path];
+                    }
+                    oldContractWrapper.contract.solidity = newContractWrapper.contract.solidity;
+                    oldContractWrapper.contract.missing = newContractWrapper.contract.missing;
+                } else {
+                    session.contractWrappers[newId] = newContractWrapper;
                 }
             }
             updateUnused(unused, session);
@@ -306,7 +317,7 @@ export default class VerificationController extends BaseController implements IC
         this.validateRequest(req);
         const inputFiles = this.extractFiles(req, true);
         const pathContents: PathContent[] = inputFiles.map(pb => {
-            return { path: pb.path, content: pb.buffer.toString() }
+            return { path: pb.path, content: pb.buffer.toString(FILE_ENCODING) }
         });
 
         const session = (req.session as MySession);

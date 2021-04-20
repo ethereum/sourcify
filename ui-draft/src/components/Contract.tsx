@@ -1,7 +1,7 @@
 import React, { ChangeEventHandler } from "react";
 import { CHAIN_GROUPS } from "../common/constants";
-import CollapsableList from "./verifier/CollapsableList";
 import Web3 from "web3-utils";
+import { ChevronDownIcon, ChevronUpIcon } from "./icons";
 
 export type Status = "perfect" | "partial" | "error";
 
@@ -25,6 +25,10 @@ export type ContractModel =
     verificationId?: string
 }
 
+const DUMMY_CHAIN = "dummy";
+const CHECK_SYMBOL = String.fromCharCode(9989);
+const X_SYMBOL = String.fromCharCode(10060);
+
 interface ContractProps {
     contractModel: ContractModel;
     setAddress: (address: string) => void;
@@ -34,6 +38,7 @@ interface ContractProps {
 interface ContractState {
     addressMessage: string;
     addressMessageClass: string;
+    collapsed: boolean;
 }
 
 class Contract extends React.Component<ContractProps, ContractState> {
@@ -41,7 +46,8 @@ class Contract extends React.Component<ContractProps, ContractState> {
         super(props);
         this.state = {
             addressMessage: "",
-            addressMessageClass: "address-valid"
+            addressMessageClass: "address-valid",
+            collapsed: false
         }
     }
 
@@ -50,7 +56,7 @@ class Contract extends React.Component<ContractProps, ContractState> {
         let addressMessage: string;
         let addressMessageClass: string;
 
-        if (Web3.isAddress(address)) {
+        if (!address || Web3.isAddress(address)) {
             addressMessage = "";
             addressMessageClass = "";
 
@@ -78,7 +84,14 @@ class Contract extends React.Component<ContractProps, ContractState> {
             case "perfect":
                 return "Fully verified";
             case "partial":
-                return "Partially verified";
+                return <>
+                    <span>Partially verified </span>
+                    <a href='https://blog.soliditylang.org/2020/06/25/sourcify-faq/#what-are-full-matches'
+                        target="_blank"
+                        rel="noopener noreferrer">
+                        <small>(What does that mean?)</small>
+                    </a>
+                </>;
             default:
                 return "Not verified";
         }
@@ -104,7 +117,6 @@ class Contract extends React.Component<ContractProps, ContractState> {
             return "";
         }
         message = message.replace(/^Contract name: .*?\. /, "");
-        message = message.replace(/at 0x\d{40}./, "at the provided address.");
         return message;
     }
 
@@ -119,9 +131,13 @@ class Contract extends React.Component<ContractProps, ContractState> {
         }
     }
 
+    private file2ListItem(file: string, i: number, symbol: string) {
+        return <li className="collapsable-list-item" key={i}>{file} {symbol}</li>;
+    }
+
     render() {
         const storageTimestamp = this.props.contractModel.storageTimestamp;
-        const defaultChainOption = <option key={-1} disabled value="dummy"> -- select -- </option>;
+        const defaultChainOption = <option key={-1} disabled value={DUMMY_CHAIN}> -- select -- </option>;
         const chainOptions = CHAIN_GROUPS.map(group => <optgroup key={group.label} label={group.label}>{
             group.chains.map(chain => <option key={chain.id} value={chain.id}>{chain.label}</option>)
         }</optgroup>);
@@ -129,6 +145,11 @@ class Contract extends React.Component<ContractProps, ContractState> {
         chainOptions.unshift(defaultChainOption);
 
         const displayableStatusMessage = this.displayStatusMessage();
+
+        const files = this.props.contractModel.files;
+
+        const addressInputClass = this.props.contractModel.address ? "" : "missing-input";
+        const chainSelectorClass = this.props.contractModel.chainId ? "" : "missing-input";
 
         return <div className="contract">
             <div className="contract-row">
@@ -148,14 +169,19 @@ class Contract extends React.Component<ContractProps, ContractState> {
 
             {
                 !!displayableStatusMessage && <div className="contract-row">
-                    <p className="contract-status-error">{displayableStatusMessage}</p>
+                    <p>{displayableStatusMessage}</p>
                 </div>
             }
 
             <div className="contract-row">
                 <p className="contract-left">Address:</p>
                 <div className="contract-right">
-                    <input defaultValue={this.props.contractModel.address} onChange={this.updateAddress} placeholder="0x00..."/>
+                    <input
+                        defaultValue={this.props.contractModel.address}
+                        onChange={this.updateAddress}
+                        placeholder="0x00..."
+                        className={addressInputClass}
+                    />
                     <p className={this.state.addressMessageClass}>
                         {this.state.addressMessage}
                     </p>
@@ -164,13 +190,27 @@ class Contract extends React.Component<ContractProps, ContractState> {
 
             <div className="contract-row">
                 <p className="contract-left">Chain:</p>
-                <select className="contract-right" defaultValue={this.props.contractModel.chainId || "dummy"} onChange={this.updateChainId}>
+                <select className={`contract-right ${chainSelectorClass}`} defaultValue={this.props.contractModel.chainId || DUMMY_CHAIN} onChange={this.updateChainId}>
                     { chainOptions }
                 </select>
             </div>
 
-            <CollapsableList title="Found sources" items={this.props.contractModel.files.found} />
-            <CollapsableList title="Missing sources" items={this.props.contractModel.files.missing} />
+            <div className="collapsable-list-container">
+                <button
+                    onClick={() => this.setState({ collapsed: !this.state.collapsed })}
+                >
+                    Sources ({files.found.length}/{files.found.length + files.missing.length}) { files.missing.length ? X_SYMBOL : CHECK_SYMBOL}
+                    <div className="chevron-holder">
+                        { this.state.collapsed ? <ChevronDownIcon/> : <ChevronUpIcon/> }
+                    </div>
+                </button>
+                {
+                    !this.state.collapsed && <ul className="collapsable-list">
+                        {files.missing.map((file, i) => this.file2ListItem(file, i, X_SYMBOL))}
+                        {files.found.map((file, i) => this.file2ListItem(file, i, CHECK_SYMBOL))}
+                    </ul>
+                }
+            </div>
         </div>
     }
 }
