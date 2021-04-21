@@ -4,9 +4,9 @@
   "description": "Modularized abstraction of Sourcify server API",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && npm run lint",
     "test": "npm run build && mocha",
-    "lint": "eslint . --ext .ts --ext .js"
+    "lint": "eslint . --ext .ts"
   },
   "author": "FabijanC",
   "license": "MIT",
