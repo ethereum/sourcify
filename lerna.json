@@ -15,7 +15,9 @@
   },
   "packages": [
     ".",
-    "services/*"
+    "services/core",
+    "services/validation",
+    "services/verification"
   ],
   "version": "0.1.5"
 }

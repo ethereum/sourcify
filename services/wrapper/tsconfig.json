@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+      "allowJs": true,
+      "target": "es2017",
+      "sourceMap": true,
+      "esModuleInterop": true,
+      "strict": true,
+      "outDir": "dist",
+      "resolveJsonModule": true,
+      "strictNullChecks": false,
+      "declaration": true,
+      "module": "commonjs"
+    },
+    "include": ["./src"]
+  }
+  
