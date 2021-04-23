@@ -30,15 +30,36 @@ function getMetadataUrl(chain: number, address: string, matchLevel: "full" | "pa
     return `${REPO_URL}/${matchLevel}_match/${chain}/${address}/metadata.json`;
 }
 
+/**
+ * Performs a GET request on the specified URL.
+ * Returns the body if status is `200`, otherwise `null`
+ * @param url the URL on which GET is performed
+ */
+async function customFetch(url: string) {
+    try {
+        const res = await axios.get(url);
+        if (res.status === 200) {
+            return res.data;
+        }
+    } catch (err) { undefined }
+
+    return null;
+}
+
 export async function getMetadata(chain: number, address: string, options: FetchOptions = {}): Promise<Metadata> {
     const fullMatchMetadataUrl = getMetadataUrl(chain, address, "full");
-    const res = await axios.get(fullMatchMetadataUrl);
-    if (res.status === 200) {
-        return res.data;
+
+    const metadata = await customFetch(fullMatchMetadataUrl);
+    if (metadata) {
+        return metadata;
     }
 
     if (options.allowPartial) {
-        throw new Error("options.allowPartial not yet supported"); // TODO
+        const partialMatchMetadataUrl = getMetadataUrl(chain, address, "partial");
+        const metadata = await customFetch(partialMatchMetadataUrl);
+        if (metadata) {
+            return metadata;
+        }
     }
 
     throw new Error(`Could not get metadata from chain ${chain} and address ${address}. Try modifying the options.`);
