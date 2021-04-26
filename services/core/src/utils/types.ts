@@ -7,9 +7,13 @@ export interface FileObject {
     content?: string
   }
 
+export interface ChainAddressPair {
+  chain: string,
+  address: string,
+}
+
 export interface InputData {
-    chain: string,
-    addresses: string[],
+    chainAddressPairs: ChainAddressPair[],
     contract?: CheckedContract,
     bytecode?: string,
     creationData?: string,
@@ -20,14 +24,12 @@ export interface CompilationSettings {
   outputSelection: any;
 }
 
-export interface CompilerInfo {
-  version: string;
-}
-
 export interface Metadata {
   sources: any;
   settings: CompilationSettings;
-  compiler: CompilerInfo;
+  compiler: {
+    version: string;
+  };
 }
 
 export declare interface StringMap {
@@ -49,7 +51,8 @@ export interface SourceMap {
 }
 
 export interface Match {
-  address: string | null,
+  chain: string,
+  address: string,
   status: Status,
   storageTimestamp?: Date,
   message?: string,

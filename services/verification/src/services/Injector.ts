@@ -53,6 +53,32 @@ class LoggerWrapper {
     }
 }
 
+/**
+ * Basically representing a db row.
+ * 
+ */
+class DeploymentData {
+    chain: string;
+    address: string;
+    creationData: string;
+
+    constructor(chain: string, address: string, creationData?: string) {
+        this.chain = chain;
+        this.address = address;
+        this.creationData = creationData;
+    }
+
+    /**
+     * Compare by chain and address
+     * 
+     * @param other another instance of DeploymentData
+     * @returns true if other has the same chain and address
+     */
+    equalsChainAddress(other: DeploymentData): boolean {
+        return this.chain === other.chain && this.address === other.address;
+    }
+}
+
 export class Injector {
     private log: bunyan;
     private chains: InjectorChainMap;
@@ -137,25 +163,22 @@ export class Injector {
      * @param {string}      deployedBytecode
      */
     private async matchBytecodeToAddress(
-        chain: string,
-        addresses: string[] = [],
+        deploymentDatas: DeploymentData[],
         compiledRuntimeBytecode: string,
         compiledCreationBytecode: string,
-    ): Promise<Match> {
-        let match: Match = { address: null, status: null };
-        const chainName = this.chains[chain].name || "The chain";
+    ): Promise<Match[]> {
+        const matches: Match[] = [];
 
-        for (let address of addresses) {
-            address = Web3.utils.toChecksumAddress(address)
+        for (let { chain, address, creationData } of deploymentDatas) {
+            const match: Match = { chain, address, status: null };
+            const chainName = this.chains[chain].name || "The chain";
 
-            let deployedBytecode: string | null = null;
+            address = Web3.utils.toChecksumAddress(address);
+
+            let deployedBytecode: string = null;
             try {
                 this.log.info(
-                    {
-                        loc: '[MATCH]',
-                        chain: chain,
-                        address: address
-                    },
+                    { loc: '[MATCH]', chain, address },
                     `Retrieving contract bytecode address`
                 );
                 deployedBytecode = await getBytecode(this.chains[chain].web3, address);
@@ -164,18 +187,19 @@ export class Injector {
             let compareResult;
             try {
                 compareResult = await this.compareBytecodes(
-                    deployedBytecode, null, compiledRuntimeBytecode, compiledCreationBytecode, chain, address
+                    deployedBytecode, creationData, compiledRuntimeBytecode, compiledCreationBytecode, chain, address
                 );
             } catch (err) {
-                if (addresses.length === 1) {
+                if (deploymentDatas.length === 1) {
                     match.message = "There were problems during contract verification. Please try again in a minute.";
                 }
             }
 
             if (compareResult && compareResult.status) {
-                match = { address, status: compareResult.status, encodedConstructorArgs: compareResult.encodedConstructorArgs };
-                break;
-            } else if (addresses.length === 1 && !match.message) {
+                match.status = compareResult.status;
+                match.encodedConstructorArgs = compareResult.encodedConstructorArgs;
+
+            } else if (deploymentDatas.length === 1 && !match.message) {
                 if (!deployedBytecode) {
                     match.message = `${chainName} is temporarily unavailable.`
                 } else if (deployedBytecode === "0x") {
@@ -184,9 +208,11 @@ export class Injector {
                     match.message = "The deployed and recompiled bytecode don't match.";
                 }
             }
+
+            matches.push(match);
         }
 
-        return match;
+        return matches;
     }
 
     /**
@@ -286,32 +312,6 @@ export class Injector {
     }
 
     /**
-     * Throws if addresses array contains a null value (express) or is length 0
-     * @param {string[] = []} addresses param (submitted to injector)
-     */
-    private validateAddresses(addresses: string[] = []) {
-        const err = new Error("Missing address for submitted sources/metadata");
-
-        if (!addresses.length) {
-            throw err;
-        }
-
-        for (const address of addresses) {
-            if (address == null) throw err;
-        }
-    }
-
-    /**
-     * Throws if `chain` is falsy or wrong type
-     * @param {string} chain param (submitted to injector)
-     */
-    private validateChain(chain: string) {
-        if (!chain || typeof chain !== 'string') {
-            throw new Error("Missing chain name for submitted sources/metadata");
-        }
-    }
-
-    /**
      * Used by the front-end. Accepts a set of source files and a metadata string,
      * recompiles / validates them and stores them in the repository by chain/address
      * and by swarm | ipfs hash.
@@ -321,12 +321,14 @@ export class Injector {
      * @param  {string[]}          files
      * @return {Promise<object>}              address & status of successfully verified contract
      */
-    public async inject(inputData: InputData): Promise<Match> {
-        const { chain, addresses, contract } = inputData;
-        this.validateAddresses(addresses);
-        this.validateChain(chain);
+    public async inject(inputData: InputData): Promise<Match[]> {
+        const { chainAddressPairs, contract } = inputData;
+        const deploymentDatas: DeploymentData[] = [];
+        for (const { chain, address } of chainAddressPairs) {
+            deploymentDatas.push(new DeploymentData(chain, address));
+        }
 
-        let match: Match;
+        let matches: Match[] = [];
         const wrappedLogger = new LoggerWrapper(this.log);
 
         if (!CheckedContract.isValid(contract)) {
@@ -338,12 +340,12 @@ export class Injector {
         // When injector is called by monitor, the bytecode has already been
         // obtained for address and we only need to compare w/ compilation result.
         if (inputData.bytecode) {
-            if (addresses.length !== 1) {
+            if (chainAddressPairs.length !== 1) {
                 const err = "Injector cannot work with multiple addresses if bytecode is provided";
-                this.log.error({ loc: "[INJECTOR]", addresses, err });
+                this.log.error({ loc: "[INJECTOR]", chainAddressPairs, err });
                 throw new Error(err);
             }
-            const address = addresses[0];
+            const { chain, address } = chainAddressPairs[0];
 
             const compareResult = await this.compareBytecodes(
                 inputData.bytecode,
@@ -354,14 +356,35 @@ export class Injector {
                 address
             );
             const checkedAddress = Web3.utils.toChecksumAddress(address);
-            match = { address: checkedAddress, status: compareResult.status, encodedConstructorArgs: compareResult.encodedConstructorArgs };
+            matches = [{
+                chain,
+                address: checkedAddress,
+                status: compareResult.status,
+                encodedConstructorArgs: compareResult.encodedConstructorArgs
+            }];
 
         // For other cases, we need to retrieve the code for specified address
         // from the chain.
         } else {
-            match = await this.matchBytecodeToAddress(
-                chain,
-                addresses,
+            const fetchedDeploymentDatas = await this.fetchByBytecode(compilationResult.deployedBytecode);
+            const pendingDeploymentDatas: DeploymentData[] = [];
+            for (const fetchedDeploymentData of fetchedDeploymentDatas) {
+                let addable = true;
+                for (const userDeploymentData of deploymentDatas) {
+                    if (!fetchedDeploymentData.equalsChainAddress(userDeploymentData)) {
+                        addable = false;
+                    }
+                }
+
+                if (addable) {
+                    pendingDeploymentDatas.push(fetchedDeploymentData);
+                }
+            }
+
+            deploymentDatas.concat(pendingDeploymentDatas);
+
+            matches = await this.matchBytecodeToAddress(
+                deploymentDatas,
                 compilationResult.deployedBytecode,
                 compilationResult.bytecode
             );
@@ -371,35 +394,47 @@ export class Injector {
         // metadata file (up to json formatting) and exactly the right sources.
         // Now we can store the re-compiled and correctly formatted metadata file
         // and the sources.
-        if (match.address && match.status) {
-            const metadataPath = this.getMetadataPathFromCborEncoded(compilationResult, match.address, chain);
-            if (metadataPath) {
-                this.fileService.save(metadataPath, compilationResult.metadata);
-                this.fileService.deletePartial(chain, match.address);
+        for (const match of matches) {
+            if (match.status) {
+                const metadataPath = this.getMetadataPathFromCborEncoded(compilationResult, match.address, match.chain);
+                if (metadataPath) {
+                    this.fileService.save(metadataPath, compilationResult.metadata);
+                    this.fileService.deletePartial(match.chain, match.address);
+                } else {
+                    match.status = "partial";
+                }
+
+                const matchQuality = this.statusToMatchQuality(match.status);
+                this.storeSources(matchQuality, match.chain, match.address, contract.solidity);
+                this.storeMetadata(matchQuality, match.chain, match.address, compilationResult);
+                if (match.status === "perfect") {
+                    this.fileService.deletePartial(match.chain, match.address);
+                }
+
+                if (match.encodedConstructorArgs && match.encodedConstructorArgs.length) {
+                    this.storeConstructorArgs(matchQuality, match.chain, match.address, match.encodedConstructorArgs);
+                }
+
             } else {
-                match.status = "partial";
+                const message = match.message || "Could not match the deployed and recompiled bytecode."
+                const err = new Error(`Contract name: ${contract.name}. ${message}`);
+
+                this.log.error({
+                    loc: '[INJECT]', chain: match.chain, address: match.address, err
+                });
             }
-
-            const matchQuality = this.statusToMatchQuality(match.status);
-            this.storeSources(matchQuality, chain, match.address, contract.solidity);
-            this.storeMetadata(matchQuality, chain, match.address, compilationResult);
-
-            if (match.encodedConstructorArgs && match.encodedConstructorArgs.length) {
-                this.storeConstructorArgs(matchQuality, chain, match.address, match.encodedConstructorArgs);
-            }
-
-        } else {
-            const message = match.message || "Could not match the deployed and recompiled bytecode."
-            const err = new Error(`Contract name: ${contract.name}. ${message}`);
-
-            this.log.error({
-                loc: '[INJECT]', chain, addresses, err
-            });
-
-            throw new Error(err.message);
         }
 
-        return match;
+        return matches;
+    }
+
+    /**
+     * Returns db rows that satisfy prefix(row.creationData) == provided bytecode.
+     * 
+     * @param bytecode The prefix by which db should be queried
+     */
+    private fetchByBytecode(bytecode: string): DeploymentData[] {
+        throw new Error("Not implemented");
     }
 
     /**
