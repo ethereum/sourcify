@@ -110,11 +110,9 @@ export default class VerificationController extends BaseController implements IC
         }
 
         const contract = validatedContracts[0];
-        if (!contract.compilerVersion) {
-            throw new BadRequestError("Metadata file not specifying a compiler version.");
-        }
 
-        const inputData: InputData = { contract, addresses: req.addresses, chain: req.chain };
+        const chainAddressPairs = req.addresses.map(address => ({ chain: req.chain, address }))
+        const inputData: InputData = { contract, chainAddressPairs };
 
         const resultPromise = this.verificationService.inject(inputData);
         resultPromise.then(result => {
@@ -165,7 +163,7 @@ export default class VerificationController extends BaseController implements IC
 
             const newPendingContracts: ContractWrapperMap = {};
             for (const contract of contracts) {
-                newPendingContracts[generateId(contract.metadataRaw)] = { contract };
+                newPendingContracts[generateId(contract.metadataRaw)] = { contract, matches: [] };
             }
             
             session.contractWrappers ||= {};
@@ -204,8 +202,7 @@ export default class VerificationController extends BaseController implements IC
             const id = receivedContract.verificationId;
             const contractWrapper = session.contractWrappers[id];
             if (contractWrapper) {
-                contractWrapper.address = receivedContract.address;
-                contractWrapper.chainId = receivedContract.chainId;
+                contractWrapper.matches = receivedContract.matches;
 
                 if (isVerifiable(contractWrapper)) {
                     verifiable[id] = contractWrapper;
@@ -226,27 +223,30 @@ export default class VerificationController extends BaseController implements IC
             if (!isVerifiable(contractWrapper)) {
                 continue;
             }
-            const inputData: InputData = { addresses: [contractWrapper.address], chain: contractWrapper.chainId, contract: contractWrapper.contract };
 
-            const found = this.verificationService.findByAddress(contractWrapper.address, contractWrapper.chainId);
-            let match: Match;
-            if (found.length) {
-                match = found[0];
+            const chainAddressPairs = contractWrapper.matches.map(cw => ({ chain: cw.chain, address: cw.address }));
+            const inputData: InputData = { chainAddressPairs, contract: contractWrapper.contract };
 
-            } else {
-                const matchPromise = this.verificationService.inject(inputData);
-                match = await matchPromise.catch((error: Error): Match => {
-                    return {
-                        status: null,
-                        address: null,
-                        message: error.message,
-                    };
-                });
+            const matches: Match[] = [];
+            for (const { chain, address } of chainAddressPairs) {
+                const found = this.verificationService.findByAddress(address, chain);
+
+                if (found.length) {
+                    matches.push(found[0]);
+                } else {
+                    const matchPromise = this.verificationService.inject(inputData);
+                    const match = await matchPromise.catch((error: Error): Match[] => {
+                        return [{
+                            chain: null,
+                            status: null,
+                            address: null,
+                            message: error.message,
+                        }];
+                    });
+                }
             }
 
-            contractWrapper.status = match.status || "error";
-            contractWrapper.statusMessage = match.message;
-            contractWrapper.storageTimestamp = match.storageTimestamp;
+            contractWrapper.matches = matches;
         }
     }
 

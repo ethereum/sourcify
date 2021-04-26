@@ -129,6 +129,7 @@ export class FileService implements IFileService {
         try {
             const storageTimestamp = fs.statSync(contractPath).birthtime;
             return [{
+                chain,
                 address,
                 status: "perfect",
                 storageTimestamp
