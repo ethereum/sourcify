@@ -40,8 +40,3 @@ services:
       interval: 30s
       timeout: 10s
       retries: 10
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: 3g
