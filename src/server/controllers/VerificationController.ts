@@ -11,6 +11,7 @@ import { isValidAddress } from '../../common/validators/validators';
 import { MySession, getSessionJSON, generateId, isVerifiable, SendableContract, ContractWrapperMap, updateUnused, MyRequest } from './VerificationController-util';
 import { StatusCodes } from 'http-status-codes';
 import { body, query, validationResult } from 'express-validator';
+import web3utils from "web3-utils";
 
 const FILE_ENCODING = "base64";
 
@@ -33,9 +34,12 @@ export default class VerificationController extends BaseController implements IC
     private validateAddresses(addresses: string): string[] {
         const addressesArray = addresses.split(",");
         const invalidAddresses: string[] = [];
-        for (const address of addressesArray) {
+        for (const i in addressesArray) {
+            const address = addressesArray[i];
             if (!isValidAddress(address)) {
                 invalidAddresses.push(address);
+            } else {
+                addressesArray[i] = web3utils.toChecksumAddress(address);
             }
         }
 
