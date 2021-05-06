@@ -501,7 +501,7 @@ describe("Server", function() {
         it("should fail if too many files uploaded, but should succeed after deletion", (done) => {
             const agent = chai.request.agent(server.app);
 
-            const file = "a".repeat(MAX_INPUT_SIZE);
+            const file = "a".repeat(MAX_INPUT_SIZE * 3 / 4); // because of base64 encoding which increases size by 1/3, making it 4/3 of the original
             agent.post("/input-files")
                 .attach("files", Buffer.from(file))
                 .then(res => {
@@ -607,5 +607,55 @@ describe("Server", function() {
                         });
                 });
         });
+
+        
+        it("should correctly handle when uploaded 0/2 and then 1/2 sources", done => {
+            const metadataPath = path.join("test", "sources", "metadata", "child-contract.meta.object.json");
+            const metadataBuffer = fs.readFileSync(metadataPath);
+
+            const parentPath = path.join("test", "sources", "contracts", "ParentContract.sol");
+            const parentBuffer = fs.readFileSync(parentPath);
+
+            const agent = chai.request.agent(server.app);
+            agent.post("/input-files")
+                .attach("files", metadataBuffer)
+                .then(res => {
+                    chai.expect(res.status).to.equal(StatusCodes.OK);
+                    chai.expect(res.body.contracts).to.have.lengthOf(1);
+                    chai.expect(res.body.unused).to.be.empty;
+
+                    const contract = res.body.contracts[0];
+                    chai.expect(contract.files.found).to.have.lengthOf(0);
+                    chai.expect(contract.files.missing).to.have.lengthOf(2);
+
+                    agent.post("/input-files")
+                        .attach("files", parentBuffer)
+                        .then(res => {
+                            chai.expect(res.status).to.equal(StatusCodes.OK);
+                            chai.expect(res.body.contracts).to.have.lengthOf(1);
+                            chai.expect(res.body.unused).to.be.empty;
+
+                            const contract = res.body.contracts[0];
+                            chai.expect(contract.files.found).to.have.lengthOf(1);
+                            chai.expect(contract.files.missing).to.have.lengthOf(1);
+
+                            done();
+                        });
+                });
+        });
+
+        it("should find contracts in a zipped Truffle project", done => {
+            const zippedTrufflePath = path.join("services", "validation", "test", "files", "truffle-example.zip");
+            const zippedTruffleBuffer = fs.readFileSync(zippedTrufflePath);
+            chai.request(server.app)
+                .post("/input-files")
+                .attach("files", zippedTruffleBuffer)
+                .then(res => {
+                    chai.expect(res.status).to.equal(StatusCodes.OK);
+                    chai.expect(res.body.contracts).to.have.lengthOf(3);
+                    chai.expect(res.body.unused).to.be.empty;
+                    done();
+                });
+        })
     });
 });

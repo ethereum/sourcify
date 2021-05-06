@@ -29,4 +29,4 @@ source ./environments/.env
 cd environments
 docker image prune --all -f
 eval ${COMPOSE_COMMAND} pull
-eval COMPOSE_HTTP_TIMEOUT=1200 ${COMPOSE_COMMAND} --compatibility up -d
+eval COMPOSE_HTTP_TIMEOUT=1200 ${COMPOSE_COMMAND} up -d

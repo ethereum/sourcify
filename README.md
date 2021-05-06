@@ -62,6 +62,7 @@ watches:
 + a website which allows you to submit sources and metadata for a specific contract address manually
   + https://sourcify.dev (Stable)
   + https://staging.sourcify.dev (Unstable)
+  + https://draft.staging.sourcify.dev (New UI design)
 
 + a public metadata repository that contains uploaded (or discovered) metadata and their sources:
   + https://repo.sourcify.dev (Stable)

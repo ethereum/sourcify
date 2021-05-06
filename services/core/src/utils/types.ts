@@ -112,6 +112,7 @@ export type Chain = {
   networkId: number,
   nativeCurrency: Currency,
   rpc: string[],
+  preferredRpc?: string,
   faucets: string[],
   infoURL: string,
   fullnode?: { dappnode: string },
