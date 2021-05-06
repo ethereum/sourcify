@@ -31,7 +31,7 @@ const X_SYMBOL = String.fromCharCode(10060);
 
 interface ContractProps {
     contractModel: ContractModel;
-    setAddress: (address: string) => void;
+    setAddress: (address: string, update: boolean) => void;
     setChainId: (chainId: string) => void;
 }
 
@@ -55,19 +55,19 @@ class Contract extends React.Component<ContractProps, ContractState> {
         const address = e.target.value;
         let addressMessage: string;
         let addressMessageClass: string;
+        let update: boolean;
 
         if (!address || Web3.isAddress(address)) {
             addressMessage = "";
             addressMessageClass = "";
-
-            if (address !== this.props.contractModel.address) {
-                this.props.setAddress(address);
-            }
+            update = address !== this.props.contractModel.address;
 
         } else {
             addressMessage = "Invalid address";
             addressMessageClass = "address-invalid";
         }
+
+        this.props.setAddress(address, update);
 
         this.setState({
             addressMessage,
@@ -151,6 +151,7 @@ class Contract extends React.Component<ContractProps, ContractState> {
         const addressInputClass = this.props.contractModel.address ? "" : "missing-input";
         const chainSelectorClass = this.props.contractModel.chainId ? "" : "missing-input";
 
+        console.log("DEBUG this.props.contractModel.address", this.props.contractModel.address);
         return <div className="contract">
             <div className="contract-row">
                 <p className="contract-left">Contract:</p>
@@ -177,7 +178,7 @@ class Contract extends React.Component<ContractProps, ContractState> {
                 <p className="contract-left">Address:</p>
                 <div className="contract-right">
                     <input
-                        defaultValue={this.props.contractModel.address}
+                        value={this.props.contractModel.address || ""}
                         onChange={this.updateAddress}
                         placeholder="0x00..."
                         className={addressInputClass}
@@ -190,7 +191,11 @@ class Contract extends React.Component<ContractProps, ContractState> {
 
             <div className="contract-row">
                 <p className="contract-left">Chain:</p>
-                <select className={`contract-right ${chainSelectorClass}`} defaultValue={this.props.contractModel.chainId || DUMMY_CHAIN} onChange={this.updateChainId}>
+                <select
+                    className={`contract-right ${chainSelectorClass}`}
+                    value={this.props.contractModel.chainId || DUMMY_CHAIN}
+                    onChange={this.updateChainId}
+                >
                     { chainOptions }
                 </select>
             </div>
