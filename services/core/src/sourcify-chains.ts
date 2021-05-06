@@ -63,7 +63,8 @@ export default {
         "monitored": true,
         "contractFetchAddress": "https://kovan.etherscan.io/" + ETHERSCAN_SUFFIX,
         "txRegex": ETHERSCAN_REGEX,
-        "archiveWeb3": createArchiveEndpoint("eth-kovan")
+        "archiveWeb3": createArchiveEndpoint("eth-kovan"),
+        "preferredRpc": "https://kovan.infura.io/v3/${INFURA_API_KEY}"
     },
     "56": {
         "supported": true,

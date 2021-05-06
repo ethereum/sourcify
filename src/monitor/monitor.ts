@@ -48,10 +48,15 @@ class ChainMonitor {
     start = async (): Promise<void> => {
         this.running = true;
         const rawStartBlock = process.env[`MONITOR_START_${this.chainId}`];
-        const startBlock = (rawStartBlock !== undefined) ?
-            parseInt(rawStartBlock) : await this.web3Provider.eth.getBlockNumber();
-        this.processBlock(startBlock);
-        this.logger.info({ loc: "[MONITOR:START]", startBlock });
+
+        try {
+            const startBlock = (rawStartBlock !== undefined) ?
+                parseInt(rawStartBlock) : await this.web3Provider.eth.getBlockNumber();
+            this.processBlock(startBlock);
+            this.logger.info({ loc: "[MONITOR:START]", startBlock });
+        } catch (err) {
+            this.logger.error({ loc: "[MONITOR:START]", err: "Cannot getBlockNumber" });
+        }
     }
 
     /**
