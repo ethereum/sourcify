@@ -146,6 +146,21 @@ describe("Server", function() {
                         });     
                 });
         });
+
+        it("should convert addresses to checksummed format", done => {
+            chai.request(server.app)
+                .get("/check-by-addresses")
+                .query({ chainIds: contractChain, addresses: contractAddress.toLowerCase() })
+                .end((err, res) => {
+                    chai.expect(err).to.be.null;
+                    chai.expect(res.status).to.equal(StatusCodes.OK);
+                    chai.expect(res.body).to.have.a.lengthOf(1);
+                    const result = res.body[0];
+                    chai.expect(result.address).to.equal(contractAddress);
+                    chai.expect(result.status).to.equal("false");
+                    done();
+                });
+        });
     });
 
     const checkNonVerified = (path, done) => {

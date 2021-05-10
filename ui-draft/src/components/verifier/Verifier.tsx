@@ -163,11 +163,23 @@ class Verifier extends React.Component<{}, VerifierState> {
                 displayableContracts.length > 0 &&
                     displayableContracts.map((contractModel, i) => <Contract
                         key={i}
-                        setAddress={address => this.verifyValidated({
-                            verificationId: contractModel.verificationId,
-                            address,
-                            chainId: contractModel.chainId
-                        })}
+                        setAddress={(address, update) => {
+                            if (update) {
+                                this.verifyValidated({
+                                    verificationId: contractModel.verificationId,
+                                    address,
+                                    chainId: contractModel.chainId,
+                                });
+                            } else {
+                                for (const contract of this.state.contracts) {
+                                    contract.address = address;
+                                }
+                                this.setState({
+                                    contracts
+                                });
+                            }
+
+                        }}
                         setChainId={chainId => this.verifyValidated({
                             verificationId: contractModel.verificationId,
                             address: contractModel.address,
