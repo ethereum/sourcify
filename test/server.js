@@ -369,6 +369,18 @@ describe("Server", function() {
                         });
                 });     
         });
+
+        it("should mark contracts without an embedded metadata hash as a 'partial' match", done => {
+            const address = "0x093203902B71Cdb1dAA83153b3Df284CD1a2f88d";
+            const metadataPath = path.join("test", "sources", "metadata", "withoutMetadataHash.meta.object.json");
+            const metadataBuffer = fs.readFileSync(metadataPath);
+            chai.request(server.app)
+                .post("/")
+                .field("address", address)
+                .field("chain", "5")
+                .attach("files", metadataBuffer)
+                .end((err, res) => assertions(err, res, done, address, "partial"));
+        });
     });
 
     describe("verification v2", function() {
