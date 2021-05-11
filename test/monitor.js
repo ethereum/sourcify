@@ -163,7 +163,8 @@ describe("Monitor", function() {
     const contractWrappers = {
         simpleWithImport: new ContractWrapper("./sources/pass/simpleWithImport.js", { metadata: true, sources: true }),
         simpleLiteral: new ContractWrapper("./sources/pass/simple.literal.js", { metadata: true }),
-        withImmutables: new ContractWrapper("./sources/pass/withImmutables.js", { metadata: true, sources: true }, [2])
+        withImmutables: new ContractWrapper("./sources/pass/withImmutables.js", { metadata: true, sources: true }, [2]),
+        withoutMetadataHash: new ContractWrapper("./sources/pass/withoutMetadataHash.js", { metadata: true, sources: true })
     };
 
     let ipfsNode;
@@ -245,6 +246,13 @@ describe("Monitor", function() {
 
     it("should sourcify a contract with immutables", async function() {
         await sourcifyContract(contractWrappers.withImmutables);
+    });
+
+    it("should gracefully handle a contract without an embedded metadata hash", async function() {
+        const monitorWrapper = new MonitorWrapper();
+
+        await waitSecs(MONITOR_SECS);
+        monitorWrapper.stop();
     });
 
     after(async function() {
