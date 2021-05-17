@@ -2,6 +2,7 @@ import Web3 from 'web3';
 import * as bunyan from 'bunyan';
 import { Match, InputData, getSupportedChains, getFullnodeChains, Logger, IFileService, FileService, StringMap, cborDecode, CheckedContract, MatchQuality, Chain, CompareResult, Status } from '@ethereum-sourcify/core';
 import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint, getCreationDataFromArchive, getCreationDataByScraping } from '../utils';
+import { Client } from 'ts-postgres';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const multihashes: any = require('multihashes');
 
@@ -86,6 +87,7 @@ export class Injector {
     private offline: boolean;
     public fileService: IFileService;
     repositoryPath: string;
+    private dbClient: Client;
 
     /**
      * Constructor
@@ -97,6 +99,13 @@ export class Injector {
         this.offline = config.offline || false;
         this.repositoryPath = config.repositoryPath;
         this.log = config.log || Logger("Injector");
+        this.dbClient = new Client({
+            host: process.env.POSTGRES_HOST,
+            port: parseInt(process.env.POSTGRES_PORT),
+            user: process.env.POSTGRES_USER,
+            database: process.env.POSTGRES_DB,
+            password: process.env.POSTGRES_PASSWORD
+        });
 
         this.fileService = config.fileService || new FileService(this.repositoryPath, this.log);
     }
@@ -111,6 +120,9 @@ export class Injector {
         if (!instance.offline) {
             await instance.initChains();
         }
+        
+        await instance.dbClient.connect();
+
         return instance;
     }
 
@@ -433,8 +445,15 @@ export class Injector {
      * 
      * @param bytecode The prefix by which db should be queried
      */
-    private fetchByBytecode(bytecode: string): DeploymentData[] {
-        throw new Error("Not implemented");
+    private async fetchByBytecode(bytecode: string): Promise<DeploymentData[]> {
+        const result = await this.dbClient.query(`
+            WITH aux AS
+            (SELECT chain, address, encode(code, 'hex') as hexCode from complete)
+            SELECT * FROM aux WHERE hexCode LIKE $1 || '%';
+        `, [bytecode.replace(/^0x/, "")]);
+
+        console.log("DEBUG query:", result);
+        return null; // TODO
     }
 
     /**
