@@ -181,11 +181,13 @@ export class Injector {
     ): Promise<Match[]> {
         const matches: Match[] = [];
 
-        for (let { chain, address, creationData } of deploymentDatas) {
+        for (const deploymentData of deploymentDatas) {
+            const chain = deploymentData.chain;
+            const address = Web3.utils.toChecksumAddress(deploymentData.address);
+            const creationData = deploymentData.creationData;
+
             const match: Match = { chain, address, status: null };
             const chainName = this.chains[chain].name || "The chain";
-
-            address = Web3.utils.toChecksumAddress(address);
 
             let deployedBytecode: string = null;
             try {
