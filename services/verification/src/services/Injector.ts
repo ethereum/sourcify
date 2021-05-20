@@ -380,7 +380,8 @@ export class Injector {
         // For other cases, we need to retrieve the code for specified address
         // from the chain.
         } else {
-            const fetchedDeploymentDatas = await this.fetchByBytecode(compilationResult.deployedBytecode);
+            const trimmedBytecode = trimMetadata(compilationResult.deployedBytecode);
+            const fetchedDeploymentDatas = await this.fetchByBytecode(trimmedBytecode);
             const pendingDeploymentDatas: DeploymentData[] = [];
             for (const fetchedDeploymentData of fetchedDeploymentDatas) {
                 let addable = true;
@@ -446,16 +447,24 @@ export class Injector {
      * Returns db rows that satisfy prefix(row.creationData) == provided bytecode.
      * 
      * @param bytecode The prefix by which db should be queried
+     * @returns Array of objects representing deployed contracts
      */
     private async fetchByBytecode(bytecode: string): Promise<DeploymentData[]> {
-        const result = await this.dbClient.query(`
+        const resultIterator = await this.dbClient.query(`
             WITH aux AS
             (SELECT chain, address, encode(code, 'hex') as hexCode from complete)
             SELECT * FROM aux WHERE hexCode LIKE $1 || '%';
         `, [bytecode.replace(/^0x/, "")]);
 
-        console.log("DEBUG query:", result);
-        return null; // TODO
+        const result: DeploymentData[] = [];
+        for await (const row of resultIterator) {
+            result.push(new DeploymentData(
+                (row.get("chain") as string).replace("eip155:", ""),
+                row.get("address") as string,
+                row.get("hexcode") as string
+            ));
+        }
+        return result;
     }
 
     /**
