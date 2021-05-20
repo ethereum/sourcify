@@ -172,7 +172,7 @@ export class Injector {
                 }
             }
 
-            if (compareResult.status) {
+            if (compareResult && compareResult.status) {
                 match = { address, status: compareResult.status, encodedConstructorArgs: compareResult.encodedConstructorArgs };
                 break;
             } else if (addresses.length === 1 && !match.message) {
