@@ -172,7 +172,7 @@ export class Injector {
                 }
             }
 
-            if (compareResult.status) {
+            if (compareResult && compareResult.status) {
                 match = { address, status: compareResult.status, encodedConstructorArgs: compareResult.encodedConstructorArgs };
                 break;
             } else if (addresses.length === 1 && !match.message) {
@@ -372,12 +372,17 @@ export class Injector {
         // Now we can store the re-compiled and correctly formatted metadata file
         // and the sources.
         if (match.address && match.status) {
+            const metadataPath = this.getMetadataPathFromCborEncoded(compilationResult, match.address, chain);
+            if (metadataPath) {
+                this.fileService.save(metadataPath, compilationResult.metadata);
+                this.fileService.deletePartial(chain, match.address);
+            } else {
+                match.status = "partial";
+            }
+
             const matchQuality = this.statusToMatchQuality(match.status);
             this.storeSources(matchQuality, chain, match.address, contract.solidity);
             this.storeMetadata(matchQuality, chain, match.address, compilationResult);
-            if (match.status === "perfect") {
-                this.fileService.deletePartial(chain, match.address);
-            }
 
             if (match.encodedConstructorArgs && match.encodedConstructorArgs.length) {
                 this.storeConstructorArgs(matchQuality, chain, match.address, match.encodedConstructorArgs);
@@ -414,6 +419,27 @@ export class Injector {
             .replace(/(^|\/)[.]+($|\/)/, '_');
     }
 
+    private getMetadataPathFromCborEncoded(compilationResult: RecompilationResult, address: string, chain: string) {
+        const bytes = Web3.utils.hexToBytes(compilationResult.deployedBytecode);
+        const cborData = cborDecode(bytes);
+
+        if (cborData['bzzr0']) {
+            return`/swarm/bzzr0/${Web3.utils.bytesToHex(cborData['bzzr0']).slice(2)}`;
+        } else if (cborData['bzzr1']) {
+            return `/swarm/bzzr1/${Web3.utils.bytesToHex(cborData['bzzr1']).slice(2)}`;
+        } else if (cborData['ipfs']) {
+            return `/ipfs/${multihashes.toB58String(cborData['ipfs'])}`;
+        }
+
+        this.log.error({
+            loc: '[INJECTOR:GET_METADATA_PATH]',
+            address,
+            chain,
+            err: "No metadata hash in cbor encoded data."
+        });
+        return null;
+    }
+
     /**
      * Stores the metadata from compilationResult to the swarm | ipfs subrepo. The exact storage path depends
      * on the swarm | ipfs address extracted from compilationResult.deployedByteode.
@@ -431,32 +457,6 @@ export class Injector {
         },
             compilationResult.metadata
         );
-
-        if (matchQuality === "full") {
-            let metadataPath: string;
-            const bytes = Web3.utils.hexToBytes(compilationResult.deployedBytecode);
-            const cborData = cborDecode(bytes);
-
-            if (cborData['bzzr0']) {
-                metadataPath = `/swarm/bzzr0/${Web3.utils.bytesToHex(cborData['bzzr0']).slice(2)}`;
-            } else if (cborData['bzzr1']) {
-                metadataPath = `/swarm/bzzr1/${Web3.utils.bytesToHex(cborData['bzzr1']).slice(2)}`;
-            } else if (cborData['ipfs']) {
-                metadataPath = `/ipfs/${multihashes.toB58String(cborData['ipfs'])}`;
-            } else {
-                const err = new Error(
-                    "Re-compilation successful, but could not find reference to metadata file in cbor data."
-                );
-
-                this.log.error({
-                    loc: '[INJECTOR:STORE_METADATA]', address, chain, err
-                });
-
-                throw err;
-            }
-
-            this.fileService.save(metadataPath, compilationResult.metadata);
-        }
     }
 
     /**
