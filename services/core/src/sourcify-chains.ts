@@ -41,6 +41,7 @@ export default {
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://rinkeby.etherscan.io/" + ETHERSCAN_SUFFIX,
+        "rpc": [`${process.env.NODE_ADDRESS}:${process.env.NODE_PORT_RINKEBY}`],
         "txRegex": ETHERSCAN_REGEX,
         "archiveWeb3": createArchiveEndpoint("eth-rinkeby")
     },
@@ -51,7 +52,7 @@ export default {
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://goerli.etherscan.io/" + ETHERSCAN_SUFFIX,
-        "rpc": ["https://goerli.infura.io/v3/${INFURA_API_KEY}"],
+        "rpc": [`${process.env.NODE_ADDRESS}:${process.env.NODE_PORT_GOERLI}`],
         "txRegex": ETHERSCAN_REGEX,
         "archiveWeb3": createArchiveEndpoint("eth-goerli")
     },
