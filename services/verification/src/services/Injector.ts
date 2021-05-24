@@ -6,7 +6,7 @@ import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata
 const multihashes: any = require('multihashes');
 
 export interface InjectorConfig {
-    infuraPID?: string,
+    alchemyPID?: string,
     silent?: boolean,
     log?: bunyan,
     offline?: boolean,
@@ -56,7 +56,7 @@ class LoggerWrapper {
 export class Injector {
     private log: bunyan;
     private chains: InjectorChainMap;
-    private infuraPID: string;
+    private alchemyPID: string;
     private offline: boolean;
     public fileService: IFileService;
     repositoryPath: string;
@@ -67,7 +67,7 @@ export class Injector {
      */
     private constructor(config: InjectorConfig = {}) {
         this.chains = {};
-        this.infuraPID = config.infuraPID;
+        this.alchemyPID = config.alchemyPID;
         this.offline = config.offline || false;
         this.repositoryPath = config.repositoryPath;
         this.log = config.log || Logger("Injector");
@@ -97,25 +97,25 @@ export class Injector {
     }
 
     /**
-     * Instantiates a web3 provider for all public ethereum networks via Infura or regular node.
+     * Instantiates a web3 provider for all public ethereum networks via Infura/Alchemy or regular node.
      * If environment variable TESTING is set to true, localhost:8545 is also available.
      */
     private async initChains() {
-        if (this.infuraPID) {
+        if (this.alchemyPID) {
             this.log.info({loc: "[INIT_CHAINS]"}, "started checking infuraPID");
-            await checkEndpoint(this.infuraPID).catch((err) => {
-                this.log.warn({ infuraID: this.infuraPID }, err.message);
+            await checkEndpoint(this.alchemyPID).catch((err) => {
+                this.log.warn({ infuraID: this.alchemyPID }, err.message);
             })
             this.log.info({loc: "[INIT_CHAINS]"}, "finished checking infuraPID");
         }
 
-        const chainsData = this.infuraPID ? getSupportedChains() : getFullnodeChains();
+        const chainsData = this.alchemyPID ? getSupportedChains() : getFullnodeChains();
 
         for (const chain of chainsData) {
             this.chains[chain.chainId] = new InjectorChain(chain);
 
-            if (this.infuraPID) {
-                const web3 = chain.rpc[0].replace('${INFURA_API_KEY}', this.infuraPID);
+            if (this.alchemyPID) {
+                const web3 = chain.rpc[0];
                 this.chains[chain.chainId].web3 = new Web3(web3);
             } else {
                 const web3 = chain.fullnode.dappnode;

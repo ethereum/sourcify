@@ -172,7 +172,7 @@ export default class Monitor {
         this.chainMonitors = chains.map((chain: Chain) => new ChainMonitor(
             chain.name,
             chain.chainId.toString(),
-            chain.rpc[0].replace("${INFURA_API_KEY}", SystemConfig.endpoint.infuraId),
+            chain.rpc[0],
             this.sourceFetcher,
             new VerificationService(
                 new FileService(repositoryPath),

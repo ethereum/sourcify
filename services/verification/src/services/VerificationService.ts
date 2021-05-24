@@ -41,7 +41,7 @@ export class VerificationService implements IVerificationService {
         if (!this.injector) {
             this.injector = await Injector.createAsync({
                 log: this.logger,
-                infuraPID: process.env.INFURA_ID,
+                alchemyPID: process.env.ALCHEMY_ID,
                 repositoryPath: this.fileService.repositoryPath,
                 fileService: this.fileService
             });
