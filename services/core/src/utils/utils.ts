@@ -21,9 +21,6 @@ for (const i in chains) {
     if (chainId in sourcifyChains) {
         const sourcifyData = sourcifyChains[chainId];
         Object.assign(chain, sourcifyData);
-        if (sourcifyData.preferredRpc) {
-            chain.rpc = [sourcifyData.preferredRpc];
-        }
     }
 
     chainMap[chainId] = chain;

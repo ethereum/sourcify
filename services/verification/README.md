@@ -17,7 +17,7 @@ If you are building a project that will check sources for some addresses multipl
 
 ```typescript
 interface InjectorConfig {
-    infuraPID?: string, // Infura project ID
+    alchemyPID?: string, // Alchemy project ID
     localChainUrl?: string, // local Ethereum node (optional)
     silent?: boolean,
     log?: bunyan, // bunyan logger (optional)

@@ -5,8 +5,12 @@ const ETHERSCAN_SUFFIX = "address/${ADDRESS}";
 const BLOCKSCOUT_REGEX = "transaction_hash_link\" href=\"${BLOCKSCOUT_PREFIX}/tx/(.*?)\"";
 const BLOCKSCOUT_SUFFIX = "address/${ADDRESS}/transactions";
 
-function createArchiveEndpoint(hostPrefix: string) {
-    return new Web3(`https://${hostPrefix}.alchemyapi.io/v2/${process.env.ALCHEMY_ID}`)
+function getAlchemyURL(hostPrefix: string) {
+    return `https://${hostPrefix}.alchemyapi.io/v2/${process.env.ALCHEMY_ID}`;
+}
+
+function createAlchemyEndpoint(hostPrefix: string) {
+    return new Web3(getAlchemyURL(hostPrefix));
 }
 
 function getBlockscoutRegex(blockscoutPrefix="") {
@@ -21,8 +25,11 @@ export default {
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://etherscan.io/" + ETHERSCAN_SUFFIX,
+        "rpc": [
+            getAlchemyURL("eth-mainnet")
+        ],
         "txRegex": ETHERSCAN_REGEX,
-        "archiveWeb3": createArchiveEndpoint("eth-mainnet")
+        "archiveWeb3": createAlchemyEndpoint("eth-mainnet")
     },
     "3": {
         "fullnode": {
@@ -31,8 +38,11 @@ export default {
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://ropsten.etherscan.io/" + ETHERSCAN_SUFFIX,
+        "rpc": [
+            getAlchemyURL("eth-ropsten")
+        ],
         "txRegex": ETHERSCAN_REGEX,
-        "archiveWeb3": createArchiveEndpoint("eth-ropsten")
+        "archiveWeb3": createAlchemyEndpoint("eth-ropsten")
     },
     "4": {
         "fullnode": {
@@ -41,9 +51,13 @@ export default {
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://rinkeby.etherscan.io/" + ETHERSCAN_SUFFIX,
-        "rpc": [`${process.env.NODE_ADDRESS}:${process.env.NODE_PORT_RINKEBY}`],
+        "rpc": [
+            process.env.TESTING === "true" ?
+            getAlchemyURL("eth-rinkeby") :
+            `${process.env.NODE_ADDRESS}:${process.env.NODE_PORT_RINKEBY}`
+        ],
         "txRegex": ETHERSCAN_REGEX,
-        "archiveWeb3": createArchiveEndpoint("eth-rinkeby")
+        "archiveWeb3": createAlchemyEndpoint("eth-rinkeby")
     },
     "5": {
         "fullnode": {
@@ -52,9 +66,13 @@ export default {
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://goerli.etherscan.io/" + ETHERSCAN_SUFFIX,
-        "rpc": [`${process.env.NODE_ADDRESS}:${process.env.NODE_PORT_GOERLI}`],
+        "rpc": [
+            process.env.TESTING === "true" ?
+            getAlchemyURL("eth-goerli") :
+            `${process.env.NODE_ADDRESS}:${process.env.NODE_PORT_GOERLI}`
+        ],
         "txRegex": ETHERSCAN_REGEX,
-        "archiveWeb3": createArchiveEndpoint("eth-goerli")
+        "archiveWeb3": createAlchemyEndpoint("eth-goerli")
     },
     "42": {
         "fullnode": {
@@ -63,9 +81,11 @@ export default {
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://kovan.etherscan.io/" + ETHERSCAN_SUFFIX,
+        "rpc": [
+            getAlchemyURL("eth-kovan")
+        ],
         "txRegex": ETHERSCAN_REGEX,
-        "archiveWeb3": createArchiveEndpoint("eth-kovan"),
-        "preferredRpc": "https://kovan.infura.io/v3/${INFURA_API_KEY}"
+        "archiveWeb3": createAlchemyEndpoint("eth-kovan"),
     },
     "56": {
         "supported": true,
