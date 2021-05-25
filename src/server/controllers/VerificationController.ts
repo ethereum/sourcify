@@ -32,10 +32,11 @@ export default class VerificationController extends BaseController implements IC
     }
 
     private validateAddresses(addresses: string): string[] {
-        const addressesArray = addresses.split(",");
+        const addressesArray = addresses.split(",").filter(a => a.trim()); // keep non empty
         const invalidAddresses: string[] = [];
         for (const i in addressesArray) {
-            const address = addressesArray[i];
+            const address = addressesArray[i].trim();
+
             if (!isValidAddress(address)) {
                 invalidAddresses.push(address);
             } else {
@@ -116,7 +117,7 @@ export default class VerificationController extends BaseController implements IC
 
         const resultPromise = this.verificationService.inject(inputData);
         resultPromise.then(result => {
-            res.send({ result: [result] }); // array is an old expected behavior (e.g. by frontend)
+            res.send({ result });
         }).catch(error => {
             res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ error: error.message });
         });
