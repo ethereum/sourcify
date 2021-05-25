@@ -381,12 +381,12 @@ export class Injector {
         // from the chain.
         } else {
             const trimmedBytecode = trimMetadata(compilationResult.deployedBytecode);
-            const fetchedDeploymentDatas = await this.fetchByBytecode(trimmedBytecode);
+            const fetchedDeploymentDatas = await this.fetchByBytecode(compilationResult.bytecode);
             const pendingDeploymentDatas: DeploymentData[] = [];
             for (const fetchedDeploymentData of fetchedDeploymentDatas) {
                 let addable = true;
                 for (const userDeploymentData of deploymentDatas) {
-                    if (!fetchedDeploymentData.equalsChainAddress(userDeploymentData)) {
+                    if (fetchedDeploymentData.equalsChainAddress(userDeploymentData)) {
                         addable = false;
                     }
                 }
@@ -396,10 +396,10 @@ export class Injector {
                 }
             }
 
-            deploymentDatas.concat(pendingDeploymentDatas);
+            const mergedDeploymentDatas = deploymentDatas.concat(pendingDeploymentDatas);
 
             matches = await this.matchBytecodeToAddress(
-                deploymentDatas,
+                mergedDeploymentDatas,
                 compilationResult.deployedBytecode,
                 compilationResult.bytecode
             );
