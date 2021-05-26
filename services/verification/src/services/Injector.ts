@@ -99,13 +99,16 @@ export class Injector {
         this.offline = config.offline || false;
         this.repositoryPath = config.repositoryPath;
         this.log = config.log || Logger("Injector");
-        this.dbClient = new Client({
-            host: process.env.POSTGRES_HOST,
-            port: parseInt(process.env.POSTGRES_PORT),
-            user: process.env.POSTGRES_USER,
-            database: process.env.POSTGRES_DB,
-            password: process.env.POSTGRES_PASSWORD
-        });
+
+        if (process.env.TESTING !== "true") {
+            this.dbClient = new Client({
+                host: process.env.POSTGRES_HOST,
+                port: parseInt(process.env.POSTGRES_PORT),
+                user: process.env.POSTGRES_USER,
+                database: process.env.POSTGRES_DB,
+                password: process.env.POSTGRES_PASSWORD
+            });
+        }
 
         this.fileService = config.fileService || new FileService(this.repositoryPath, this.log);
     }
@@ -120,8 +123,10 @@ export class Injector {
         if (!instance.offline) {
             await instance.initChains();
         }
-        
-        await instance.dbClient.connect();
+
+        if (instance.dbClient) {
+            await instance.dbClient.connect();
+        }
 
         return instance;
     }
@@ -463,6 +468,9 @@ export class Injector {
      * @returns Array of objects representing deployed contracts
      */
     private async fetchByBytecode(bytecode: string): Promise<DeploymentData[]> {
+        if (!this.dbClient) {
+            return [];
+        }
         const resultIterator = await this.dbClient.query(`
             WITH aux AS
             (SELECT chain, address, encode(code, 'hex') as hexCode from complete)
