@@ -380,29 +380,42 @@ export class Injector {
         // For other cases, we need to retrieve the code for specified address
         // from the chain.
         } else {
-            const trimmedBytecode = trimMetadata(compilationResult.deployedBytecode);
             const fetchedDeploymentDatas = await this.fetchByBytecode(compilationResult.bytecode);
-            const pendingDeploymentDatas: DeploymentData[] = [];
-            for (const fetchedDeploymentData of fetchedDeploymentDatas) {
-                let addable = true;
-                for (const userDeploymentData of deploymentDatas) {
+            const finalDeploymentDatas = [];
+            for (const userDeploymentData of deploymentDatas) {
+                let shouldProcess = true;
+                for (const fetchedDeploymentData of fetchedDeploymentDatas) {
                     if (fetchedDeploymentData.equalsChainAddress(userDeploymentData)) {
-                        addable = false;
+                        shouldProcess = false;
+                        break;
                     }
                 }
 
-                if (addable) {
-                    pendingDeploymentDatas.push(fetchedDeploymentData);
+                if (shouldProcess) {
+                    finalDeploymentDatas.push(userDeploymentData);
                 }
             }
 
-            const mergedDeploymentDatas = deploymentDatas.concat(pendingDeploymentDatas);
+            for (const fetchedDeploymentData of fetchedDeploymentDatas) {
+                const encodedConstructorArgs = this.extractEncodedConstructorArgs(
+                    fetchedDeploymentData.creationData, compilationResult.bytecode
+                );
 
-            matches = await this.matchBytecodeToAddress(
-                mergedDeploymentDatas,
+                matches.push({
+                    chain: fetchedDeploymentData.chain,
+                    address: fetchedDeploymentData.address,
+                    status: "perfect",
+                    encodedConstructorArgs
+                });
+            }
+
+            const pendingMatches = await this.matchBytecodeToAddress(
+                finalDeploymentDatas,
                 compilationResult.deployedBytecode,
                 compilationResult.bytecode
             );
+
+            matches = matches.concat(pendingMatches);
         }
 
         // Since the bytecode matches, we can be sure that we got the right
@@ -426,7 +439,7 @@ export class Injector {
                     this.fileService.deletePartial(match.chain, match.address);
                 }
 
-                if (match.encodedConstructorArgs && match.encodedConstructorArgs.length) {
+                if (match.encodedConstructorArgs && match.encodedConstructorArgs.length > 2) {
                     this.storeConstructorArgs(matchQuality, match.chain, match.address, match.encodedConstructorArgs);
                 }
 
