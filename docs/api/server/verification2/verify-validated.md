@@ -43,15 +43,19 @@
             "compiledPath": "browser/1_Storage.sol",
             "name": "Storage",
             "compilerVersion": "0.6.6+commit.6c089d02",
-            "address": "0x656d0062eC89c940213E3F3170EA8b2add1c0143",
-            "chainId": "100",
             "files": {
                 "found": [
                     "browser/1_Storage.sol"
                 ],
                 "missing": []
             },
-            "status": "perfect"
+            "matches": [
+                {
+                    "chain": "100",
+                    "address": "0x656d0062eC89c940213E3F3170EA8b2add1c0143",
+                    "status": "perfect"
+                }
+            ]
         }
     ],
     "unused": []
@@ -82,8 +86,14 @@
                 ],
                 "missing": []
             },
-            "status": "perfect",
-            "storageTimestamp": "2021-01-12T15:41:56.502Z"
+            "matches": [
+                {
+                    "chain": "100",
+                    "address": "0x656d0062eC89c940213E3F3170EA8b2add1c0143",
+                    "status": "perfect",
+                    "storageTimestamp": "2021-01-12T15:41:56.502Z"
+                }
+            ]
         }
     ],
     "unused": []
