@@ -17,20 +17,25 @@ The object sent from the server to the client is of the following form:
                 ],
                 "missing": []
             },
-            "status": "error",
-            "statusMessage": "message",
-            "storageTimestamp": "2021-01-12T15:41:56.502Z"
+            "matches": [
+                {
+                    "chain": ...,
+                    "address": ...,
+                    "status": ...,
+                    "storageTimestamp": ...
+                }
+            ],
+            "error": "message in case of no matches"
         }
     ],
     "unused": []
 }
 ```
 
-### `status`
-- The `status` property can hold either the value `perfect`, `partial` or `error`.
+### `matches`
+- The `matches` array holds object whose `status` is either `perfect`, `partial` or `error`.
 - The first two indicate the level of matching obtained during verification.
 - `error` indicates that verification has not yet been successfully run.
-- More information about `status` might be provided under `statusMessage`.
 - If a `storageTimestamp` is provided, the contract was already previously verified at the indicated point in time.
 
 ## Client -> Server (2)

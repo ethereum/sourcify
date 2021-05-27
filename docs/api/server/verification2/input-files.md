@@ -44,8 +44,7 @@ If using `application/json`, the files should be in an object under the key `fil
                     "browser/1_Storage.sol"
                 ]
             },
-            "verificationId": "0x3f67e9f57515bb1e7195c7c5af1eff630091567c0bb65ba3dece57a56da766fe",
-            "status": "error"
+            "verificationId": "0x3f67e9f57515bb1e7195c7c5af1eff630091567c0bb65ba3dece57a56da766fe"
         }
     ],
     "unused": []
@@ -76,7 +75,8 @@ If using `application/json`, the files should be in an object under the key `fil
                 "missing": []
             },
             "verificationId": "0x3f67e9f57515bb1e7195c7c5af1eff630091567c0bb65ba3dece57a56da766fe",
-            "status": "error"
+            "matches": [],
+            "error": "Contract name: Storage. No address matched."
         }
     ],
     "unused": []
@@ -110,7 +110,7 @@ If using `application/json`, the files should be in an object under the key `fil
                 "missing": []
             },
             "verificationId": "0x3f67e9f57515bb1e7195c7c5af1eff630091567c0bb65ba3dece57a56da766fe",
-            "status": "perfect" | "partial" | "error" // the conditions for each outcome are described in the `status` section of exchange-object.md
+            "matches": [...]
         }
     ],
     "unused": []
