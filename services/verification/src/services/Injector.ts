@@ -458,6 +458,13 @@ export class Injector {
             }
         }
 
+        if (!matches.length) {
+            const message = "No address matched.";
+            const err = new Error(`Contract name: ${contract.name}. ${message}`);
+            this.log.error({ loc: "[INJECT]", err });
+            throw err;
+        }
+
         return matches;
     }
 

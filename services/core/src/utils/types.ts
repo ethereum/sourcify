@@ -59,7 +59,7 @@ export interface Match {
   encodedConstructorArgs?: string,
 }
 
-export type Status = 'perfect' | 'partial' | null;
+export type Status = 'perfect' | 'partial' | 'error' | null;
 
 export type CompareResult = {
   status: Status,

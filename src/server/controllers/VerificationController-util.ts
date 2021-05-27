@@ -14,8 +14,11 @@ export type ContractLocation = {
 
 export type ContractMeta = {
     compiledPath?: string,
-    name?: string
-    matches: Match[]
+    name?: string,
+    address?: string,
+    chainId?: string,
+    matches: Match[],
+    error?: string,
 }
 
 export type ContractWrapper =
@@ -43,8 +46,6 @@ export type MyRequest =
     chain: string
 };
 
-export type Status = "perfect" | "partial" | "error";
-
 export type SendableContract =
     ContractMeta & {
     files: {
@@ -57,18 +58,27 @@ export type SendableContract =
 export function isVerifiable(contractWrapper: ContractWrapper) {
     const contract = contractWrapper.contract;
     return isEmpty(contract.missing)
-        && isEmpty(contract.invalid)
-        && Boolean(contractWrapper.matches.length)
+        && isEmpty(contract.invalid);
 }
 
 function getSendableContract(contractWrapper: ContractWrapper, verificationId: string): SendableContract {
     const contract = contractWrapper.contract;
+    const matches: Match[] = [];
+    for (const match of contractWrapper.matches) {
+        matches.push({
+            address: match.address,
+            chain: match.chain,
+            status: match.status || "error",
+            storageTimestamp: match.storageTimestamp
+        });
+    }
 
     return {
         verificationId,
         compiledPath: contract.compiledPath,
         name: contract.name,
-        matches: contractWrapper.matches,
+        matches,
+        error: contractWrapper.error,
         files: {
             found: Object.keys(contract.solidity),
             missing: Object.keys(contract.missing).concat(Object.keys(contract.invalid))
