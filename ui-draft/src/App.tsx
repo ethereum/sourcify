@@ -7,8 +7,11 @@ import Checker from "./components/verifier/Checker";
 import {GITTER_URL, IPFS_IPNS_GATEWAY_URL, REPOSITORY_URL, SOLIDITY_ETHEREUM_URL} from "./common/constants";
 
 const App: React.FC = () => {
-    return (
-        <div id="app" className="grid">
+    return <p style={{ marginTop: "50px", textAlign: "center" }}>
+            The new version of Sourcify UI is currently unavailable.
+            Check out <a href="https://sourcify.dev"> the stable UI</a>.
+        </p>;
+        /*(<div id="app" className="grid">
             <MainLayout>
                 <div className="container">
                     <div className="container__left">
@@ -65,7 +68,7 @@ const App: React.FC = () => {
                 </div>
             </MainLayout>
         </div>
-    );
+    );*/
 };
 
 export default App;

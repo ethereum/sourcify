@@ -12,7 +12,7 @@ type ContractMeta = {
     address?: string,
     chainId?: string,
     status?: Status,
-    statusMessage?: string,
+    error?: string,
     storageTimestamp?: Date
 }
 
@@ -98,7 +98,7 @@ class Contract extends React.Component<ContractProps, ContractState> {
     }
 
     private displayStatusMessage() {
-        let message = this.props.contractModel.statusMessage;
+        let message = this.props.contractModel.error;
         if (!message) {
             const missingData = [];
             if (!this.props.contractModel.address) {

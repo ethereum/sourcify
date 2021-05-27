@@ -203,6 +203,8 @@ export default class VerificationController extends BaseController implements IC
             const id = receivedContract.verificationId;
             const contractWrapper = session.contractWrappers[id];
             if (contractWrapper) {
+                contractWrapper.address = receivedContract.address;
+                contractWrapper.chainId = receivedContract.chainId;
                 contractWrapper.matches = receivedContract.matches;
 
                 if (isVerifiable(contractWrapper)) {
@@ -220,34 +222,41 @@ export default class VerificationController extends BaseController implements IC
             const contractWrapper = contractWrappers[id];
 
             await this.checkAndFetchMissing(contractWrapper.contract);
-
             if (!isVerifiable(contractWrapper)) {
                 continue;
             }
+            
+            const inputData: InputData = { chainAddressPairs: [], contract: contractWrapper.contract };
+            
+            const chainAddressPairs = contractWrapper.matches.map(match => {
+                if (match.chain === contractWrapper.chainId && match.address === contractWrapper.address) {
+                    return; // skip if will be added after loop
+                }
+                return { chain: match.chain, address: match.address };
+            });
 
-            const chainAddressPairs = contractWrapper.matches.map(cw => ({ chain: cw.chain, address: cw.address }));
-            const inputData: InputData = { chainAddressPairs, contract: contractWrapper.contract };
+            if (contractWrapper.chainId && contractWrapper.address) {
+                chainAddressPairs.push({ chain: contractWrapper.chainId, address: contractWrapper.address });
+            }
 
-            const matches: Match[] = [];
+            const oldMatches: Match[] = [];
             for (const { chain, address } of chainAddressPairs) {
                 const found = this.verificationService.findByAddress(address, chain);
 
                 if (found.length) {
-                    matches.push(found[0]);
+                    oldMatches.push(found[0]);
                 } else {
-                    const matchPromise = this.verificationService.inject(inputData);
-                    const match = await matchPromise.catch((error: Error): Match[] => {
-                        return [{
-                            chain: null,
-                            status: null,
-                            address: null,
-                            message: error.message,
-                        }];
-                    });
+                    inputData.chainAddressPairs.push({ chain, address });
                 }
             }
 
-            contractWrapper.matches = matches;
+            const matchPromise = this.verificationService.inject(inputData);
+            const newMatches = await matchPromise.catch((error: Error): Match[] => {
+                contractWrapper.error = error.message;
+                return [];
+            });
+
+            contractWrapper.matches = oldMatches.concat(newMatches);
         }
     }
 
