@@ -381,8 +381,8 @@ export default class VerificationController extends BaseController implements IC
     registerRoutes = (): Router => {
         this.router.route(['/', '/verify'])
             .post(
-                body("address").exists().bail().custom((address, { req }) => req.addresses = this.validateAddresses(address)),
-                body("chain").exists().bail().custom((chain, { req }) => req.chain = getChainId(chain)),
+                body("address").custom((address, { req }) => req.addresses = this.validateAddresses(address)),
+                body("chain").custom((chain, { req }) => req.chain = getChainId(chain)),
                 this.safeHandler(this.legacyVerifyEndpoint)
             );
 
