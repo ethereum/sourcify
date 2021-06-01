@@ -383,6 +383,41 @@ describe("Server", function() {
                 .attach("files", metadataBuffer)
                 .end((err, res) => assertions(err, res, done, address, "partial"));
         });
+
+        it("should verify a contract with library placeholders", done => {
+            const chainId = "5";
+            const address = "0x399B23c75d8fd0b95E81E41e1c7c88937Ee18000";
+
+            const metadataPath = path.join("test", "sources", "metadata", "using-library.meta.object.json");
+            const metadataBuffer = fs.readFileSync(metadataPath);
+
+            const sourcePath = path.join("test", "sources", "contracts", "UsingLibrary.sol");
+            const sourceBuffer = fs.readFileSync(sourcePath);
+
+            chai.request(server.app)
+                .post("/")
+                .field("address", address)
+                .field("chain", chainId)
+                .attach("files", metadataBuffer)
+                .attach("files", sourceBuffer)
+                .end((err, res) => {
+                    assertions(err, res, null, address, "perfect");
+                    chai.request(server.app)
+                            .get(`/repository/contracts/full_match/${chainId}/${address}/library-map.json`)
+                            .buffer()
+                            .parse(binaryParser)
+                            .end((err, res) => {
+                                chai.expect(err).to.be.null;
+                                chai.expect(res.status).to.equal(StatusCodes.OK);
+                                const receivedLibraryMap = JSON.parse(res.body.toString());
+                                const expectedLibraryMap = {
+                                    "__$da572ae5e60c838574a0f88b27a0543803$__": "11fea6722e00ba9f43861a6e4da05fecdf9806b7"
+                                };
+                                chai.expect(receivedLibraryMap).to.deep.equal(expectedLibraryMap);
+                                done();
+                            });
+                });
+        });
     });
 
     describe("verification v2", function() {

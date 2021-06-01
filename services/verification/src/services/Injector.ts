@@ -1,6 +1,6 @@
 import Web3 from 'web3';
 import * as bunyan from 'bunyan';
-import { Match, InputData, getSupportedChains, getFullnodeChains, Logger, IFileService, FileService, StringMap, cborDecode, CheckedContract, MatchQuality, Chain, CompareResult, Status } from '@ethereum-sourcify/core';
+import { Match, InputData, getSupportedChains, getFullnodeChains, Logger, IFileService, FileService, StringMap, cborDecode, CheckedContract, MatchQuality, Chain, Status } from '@ethereum-sourcify/core';
 import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint, getCreationDataFromArchive, getCreationDataByScraping, getCreationDataFromGraphQL } from '../utils';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const multihashes: any = require('multihashes');
@@ -141,8 +141,7 @@ export class Injector {
     private async matchBytecodeToAddress(
         chain: string,
         addresses: string[] = [],
-        compiledRuntimeBytecode: string,
-        compiledCreationBytecode: string,
+        recompiled: RecompilationResult
     ): Promise<Match> {
         let match: Match = { address: null, status: null };
         const chainName = this.chains[chain].name || "The chain";
@@ -163,10 +162,9 @@ export class Injector {
                 deployedBytecode = await getBytecode(this.chains[chain].web3, address);
             } catch (e) { /* ignore */ }
 
-            let compareResult;
             try {
-                compareResult = await this.compareBytecodes(
-                    deployedBytecode, null, compiledRuntimeBytecode, compiledCreationBytecode, chain, address
+                match = await this.compareBytecodes(
+                    deployedBytecode, null, recompiled, chain, address
                 );
             } catch (err) {
                 if (addresses.length === 1) {
@@ -174,8 +172,7 @@ export class Injector {
                 }
             }
 
-            if (compareResult && compareResult.status) {
-                match = { address, status: compareResult.status, encodedConstructorArgs: compareResult.encodedConstructorArgs };
+            if (match.status) {
                 break;
             } else if (addresses.length === 1 && !match.message) {
                 if (!deployedBytecode) {
@@ -201,48 +198,93 @@ export class Injector {
      * @param  {string} compiledCreationBytecode
      * @param  {string} chain chainId of the chain where contract is being checked
      * @param  {string} address contract address
-     * @return {CompareResult}  match description ('perfect'|'partial'|null) and possibly constructor args (ABI-encoded)
+     * @return {Match}  match description ('perfect'|'partial'|null) and possibly constructor args (ABI-encoded) and library links
      */
     private async compareBytecodes(
         deployedBytecode: string | null,
         creationData: string,
-        compiledRuntimeBytecode: string,
-        compiledCreationBytecode: string,
+        recompiled: RecompilationResult,
         chain: string,
         address: string
-    ): Promise<CompareResult> {
+    ): Promise<Match> {
+
+        const match: Match = {
+            address,
+            status: null,
+            encodedConstructorArgs: undefined,
+            libraryMap: undefined
+        };
 
         if (deployedBytecode && deployedBytecode.length > 2) {
-            if (deployedBytecode === compiledRuntimeBytecode) {
-                return { status: "perfect", encodedConstructorArgs: undefined };
+            const { replaced, libraryMap } = this.addLibraryAddresses(recompiled.deployedBytecode, deployedBytecode);
+            recompiled.deployedBytecode = replaced;
+            match.libraryMap = libraryMap;
+
+            if (deployedBytecode === recompiled.deployedBytecode) {
+                match.status = "perfect";
+                return match;
             }
 
             const trimmedDeployedBytecode = trimMetadata(deployedBytecode);
-            const trimmedCompiledRuntimeBytecode = trimMetadata(compiledRuntimeBytecode);
+            const trimmedCompiledRuntimeBytecode = trimMetadata(recompiled.deployedBytecode);
             if (trimmedDeployedBytecode === trimmedCompiledRuntimeBytecode) {
-                return { status: "partial", encodedConstructorArgs: undefined };
+                match.status = "partial";
+                return match;
             }
 
             if (trimmedDeployedBytecode.length === trimmedCompiledRuntimeBytecode.length) {
                 creationData = creationData || await this.getCreationData(chain, address);
+
+                const { replaced, libraryMap } = this.addLibraryAddresses(recompiled.creationBytecode, creationData);
+                recompiled.creationBytecode = replaced;
+                match.libraryMap = libraryMap;
+
                 if (creationData) {
-                    if (creationData.startsWith(compiledCreationBytecode)) {
+                    if (creationData.startsWith(recompiled.creationBytecode)) {
                         // The reason why this uses `startsWith` instead of `===` is that
                         // creationData may contain constructor arguments at the end part.
-                        const encodedConstructorArgs = this.extractEncodedConstructorArgs(creationData, compiledCreationBytecode);
-                        return { status: "perfect", encodedConstructorArgs };
+                        const encodedConstructorArgs = this.extractEncodedConstructorArgs(creationData, recompiled.creationBytecode);
+                        match.status = "perfect";
+                        match.encodedConstructorArgs = encodedConstructorArgs;
+                        return match;
                     }
 
-                    const trimmedCompiledCreationBytecode = trimMetadata(compiledCreationBytecode);
+                    const trimmedCompiledCreationBytecode = trimMetadata(recompiled.creationBytecode);
 
                     if (creationData.startsWith(trimmedCompiledCreationBytecode)) {
-                        return { status: "partial", encodedConstructorArgs: undefined };
+                        match.status = "partial";
+                        return match;
                     }
                 }
             }
         }
 
-        return { status: null, encodedConstructorArgs: undefined };
+        return match;
+    }
+
+    private addLibraryAddresses(template: string, real: string): {
+        replaced: string,
+        libraryMap: StringMap
+    } {
+        const PLACEHOLDER_START = "__$";
+        const PLACEHOLDER_LENGTH = 40;
+
+        const libraryMap: StringMap = {};
+
+        let index = template.indexOf(PLACEHOLDER_START);
+        for (; index !== -1; index = template.indexOf(PLACEHOLDER_START)) {
+            const placeholder = template.slice(index, index + PLACEHOLDER_LENGTH);
+            const address = real.slice(index, index + PLACEHOLDER_LENGTH);
+            libraryMap[placeholder] = address;
+            const regexCompatiblePlaceholder = placeholder.replace("__$", "__\\$").replace("$__", "\\$__");
+            const regex = RegExp(regexCompatiblePlaceholder, "g");
+            template = template.replace(regex, address);
+        }
+
+        return {
+            replaced: template,
+            libraryMap
+        };
     }
 
     /**
@@ -355,18 +397,15 @@ export class Injector {
                 this.log.error({ loc: "[INJECTOR]", addresses, err });
                 throw new Error(err);
             }
-            const address = addresses[0];
+            const address = Web3.utils.toChecksumAddress(addresses[0]);
 
-            const compareResult = await this.compareBytecodes(
+            match = await this.compareBytecodes(
                 inputData.bytecode,
                 inputData.creationData,
-                compilationResult.deployedBytecode,
-                compilationResult.bytecode,
+                compilationResult,
                 chain,
                 address
             );
-            const checkedAddress = Web3.utils.toChecksumAddress(address);
-            match = { address: checkedAddress, status: compareResult.status, encodedConstructorArgs: compareResult.encodedConstructorArgs };
 
         // For other cases, we need to retrieve the code for specified address
         // from the chain.
@@ -374,8 +413,7 @@ export class Injector {
             match = await this.matchBytecodeToAddress(
                 chain,
                 addresses,
-                compilationResult.deployedBytecode,
-                compilationResult.bytecode
+                compilationResult
             );
         }
 
@@ -398,6 +436,10 @@ export class Injector {
 
             if (match.encodedConstructorArgs && match.encodedConstructorArgs.length) {
                 this.storeConstructorArgs(matchQuality, chain, match.address, match.encodedConstructorArgs);
+            }
+
+            if (match.libraryMap && Object.keys(match.libraryMap).length) {
+                this.storeLibraryMap(matchQuality, chain, match.address, match.libraryMap);
             }
 
         } else {
@@ -498,7 +540,6 @@ export class Injector {
      * @param chain 
      * @param address 
      * @param encodedConstructorArgs 
-     * @param metadataRaw 
      */
     private storeConstructorArgs(matchQuality: MatchQuality, chain: string, address: string, encodedConstructorArgs: string) {
         this.fileService.save({
@@ -509,6 +550,26 @@ export class Injector {
             fileName: "constructor-args.txt"
         },
             encodedConstructorArgs
-        )
+        );
+    }
+
+    /**
+     * Writes the map of library links (pairs of the format <placeholder:address>) to the repository.
+     * @param matchQuality 
+     * @param chain 
+     * @param address 
+     * @param libraryMap 
+     */
+    private storeLibraryMap(matchQuality: MatchQuality, chain: string, address: string, libraryMap: StringMap) {
+        const indentationSpaces = 2;
+        this.fileService.save({
+            matchQuality,
+            chain,
+            address,
+            source: false,
+            fileName: "library-map.json"
+        },
+            JSON.stringify(libraryMap, null, indentationSpaces)
+        );
     }
 }
