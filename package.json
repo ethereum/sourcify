@@ -55,7 +55,7 @@
     "cors": "^2.8.5",
     "death": "^1.1.0",
     "dotenv": "^8.2.0",
-    "ethers": "^5.0.14",
+    "ethers": "^5.3.0",
     "express": "^4.17.1",
     "express-fileupload": "^1.2.0",
     "express-session": "^1.17.1",
