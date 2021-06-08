@@ -8,7 +8,7 @@ npm ci
 
 # Publishes sources to IPFS (via Infura) and deploys contracts to Goerli
 # Account key and Infura project ID are Circle CI env variable settings.
-npm run deploy:goerli || exit 1
+npm run deploy:rinkeby || exit 1
 
 # Give monitor a chance to detect and save.
 sleep 300
