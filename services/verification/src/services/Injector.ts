@@ -106,7 +106,9 @@ export class Injector {
                 port: parseInt(process.env.POSTGRES_PORT),
                 user: process.env.POSTGRES_USER,
                 database: process.env.POSTGRES_DB,
-                password: process.env.POSTGRES_PASSWORD
+                password: process.env.POSTGRES_PASSWORD,
+                connectionTimeoutMillis: parseInt(process.env.DB_TIMEOUT) || 3000,
+                query_timeout: parseInt(process.env.DB_TIMEOUT) || 3000
             });
         }
 
@@ -126,8 +128,14 @@ export class Injector {
 
         if (instance.dbClient) {
             instance.log.info({loc: "[INJECTOR:CREATE]"}, "Connecting to DB");
-            await instance.dbClient.connect();
-            instance.log.info({loc: "[INJECTOR:CREATE]"}, "Connected to DB");
+            try {
+                await instance.dbClient.connect();
+                instance.log.info({loc: "[INJECTOR:CREATE]"}, "Connected to DB");
+            } catch (err) {
+                instance.log.error({loc: "[INJECTOR:CREATE]"}, "Failed connecting to DB");
+                await instance.dbClient.end();
+                delete instance.dbClient;
+            }
         }
 
         return instance;
