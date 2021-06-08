@@ -2,7 +2,7 @@ import Web3 from 'web3';
 import * as bunyan from 'bunyan';
 import { Match, InputData, getSupportedChains, getFullnodeChains, Logger, IFileService, FileService, StringMap, cborDecode, CheckedContract, MatchQuality, Chain, CompareResult, Status } from '@ethereum-sourcify/core';
 import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint, getCreationDataFromArchive, getCreationDataByScraping } from '../utils';
-import { Client } from 'ts-postgres';
+import pg from 'pg';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const multihashes: any = require('multihashes');
 
@@ -87,7 +87,7 @@ export class Injector {
     private offline: boolean;
     public fileService: IFileService;
     repositoryPath: string;
-    private dbClient: Client;
+    private dbClient: pg.Client;
 
     /**
      * Constructor
@@ -101,7 +101,7 @@ export class Injector {
         this.log = config.log || Logger("Injector");
 
         if (process.env.TESTING !== "true") {
-            this.dbClient = new Client({
+            this.dbClient = new pg.Client({
                 host: process.env.POSTGRES_HOST,
                 port: parseInt(process.env.POSTGRES_PORT),
                 user: process.env.POSTGRES_USER,
@@ -125,7 +125,9 @@ export class Injector {
         }
 
         if (instance.dbClient) {
+            instance.log.info({loc: "[INJECTOR:CREATE]"}, "Connecting to DB");
             await instance.dbClient.connect();
+            instance.log.info({loc: "[INJECTOR:CREATE]"}, "Connected to DB");
         }
 
         return instance;
@@ -145,11 +147,11 @@ export class Injector {
      */
     private async initChains() {
         if (this.alchemyPID) {
-            this.log.info({loc: "[INIT_CHAINS]"}, "started checking infuraPID");
+            this.log.info({loc: "[INIT_CHAINS]"}, "started checking provider ID");
             await checkEndpoint(this.alchemyPID).catch((err) => {
-                this.log.warn({ infuraID: this.alchemyPID }, err.message);
+                this.log.warn({ alchemyID: this.alchemyPID }, err.message);
             })
-            this.log.info({loc: "[INIT_CHAINS]"}, "finished checking infuraPID");
+            this.log.info({loc: "[INIT_CHAINS]"}, "finished checking provider ID");
         }
 
         const chainsData = this.alchemyPID ? getSupportedChains() : getFullnodeChains();
@@ -478,21 +480,17 @@ export class Injector {
         if (!this.dbClient) {
             return [];
         }
-        const resultIterator = await this.dbClient.query(`
+        const queryResult = await this.dbClient.query(`
             WITH aux AS
             (SELECT chain, address, encode(code, 'hex') as hexCode from complete)
             SELECT * FROM aux WHERE hexCode LIKE $1 || '%';
         `, [bytecode.replace(/^0x/, "")]);
 
-        const result: DeploymentData[] = [];
-        for await (const row of resultIterator) {
-            result.push(new DeploymentData(
-                (row.get("chain") as string).replace("eip155:", ""),
-                row.get("address") as string,
-                row.get("hexcode") as string
-            ));
-        }
-        return result;
+        return queryResult.rows.map(row => new DeploymentData(
+            row.chain.replace("eip155:", ""),
+            row.address,
+            row.hexcode
+        ));
     }
 
     /**
