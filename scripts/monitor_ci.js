@@ -3,7 +3,7 @@
 /**
  * Part of E2E Monitor test run for staging and master builds
  * Script queries the repository to discover whether a contract
- * published to Goerli in CI has been picked up and saved by the
+ * published to Rinkeby in CI has been picked up and saved by the
  * monitor.
  */
 
@@ -27,7 +27,7 @@ if (circleBranch === 'master') {
 }
 
 const artifact = require('../metacoin-source-verify/build/contracts/MetaCoin.json')
-const address = artifact.networks['5'].address;
+const address = artifact.networks['4'].address;
 
 async function main(){
   const url = `${root}contracts/full_match/5/${address}/metadata.json`;
