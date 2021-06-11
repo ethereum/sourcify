@@ -140,5 +140,17 @@ export default {
         "monitored": true,
         "contractFetchAddress": "https://explorer-mumbai.maticvigil.com/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
+    },
+    "43113": {
+        "supported": true,
+        "monitored": true,
+        "contractFetchAddress": "https://cchain.explorer.avax-test.network/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "43114": {
+        "supported": true,
+        "monitored": true,
+        "contractFetchAddress": "https://cchain.explorer.avax.network/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
     }
 }
