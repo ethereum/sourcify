@@ -39,6 +39,3 @@ assert(result.address === deploymentAddress, `Address should be ${deploymentAddr
 
 const EXPECTED_STATUS = "perfect";
 assert(result.status === EXPECTED_STATUS, `Status should be ${EXPECTED_STATUS}. Actual: ${result.status}`);
-
-const EXPECTED_CHAIN = deploymentChain || "5";
-assert(result.chain === EXPECTED_CHAIN, `Chain should be ${EXPECTED_CHAIN}. Actual: ${result.chain}`);
