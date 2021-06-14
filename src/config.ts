@@ -31,7 +31,7 @@ export default {
     tag: process.env.TAG || 'latest',
     endpoint: {
         infuraId: process.env.INFURA_ID,
-        alchemyId: process.env.ALCHEMY_ID,
+        alchemyId: process.env.ALCHEMY_ID_MAINNET,
         ethereumNode: process.env.ETHEREUM_NODE
     },
     logging: {

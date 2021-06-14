@@ -102,11 +102,11 @@ export class Injector {
      */
     private async initChains() {
         if (this.alchemyPID) {
-            this.log.info({loc: "[INIT_CHAINS]"}, "started checking infuraPID");
+            this.log.info({loc: "[INIT_CHAINS]"}, "started checking providerPID");
             await checkEndpoint(this.alchemyPID).catch((err) => {
-                this.log.warn({ infuraID: this.alchemyPID }, err.message);
+                this.log.warn({ providerID: this.alchemyPID }, err.message);
             })
-            this.log.info({loc: "[INIT_CHAINS]"}, "finished checking infuraPID");
+            this.log.info({loc: "[INIT_CHAINS]"}, "finished checking providerPID");
         }
 
         const chainsData = this.alchemyPID ? getSupportedChains() : getFullnodeChains();
