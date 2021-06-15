@@ -1,3 +1,4 @@
+process.env.TESTING = "true";
 const chai = require('chai');
 const chaiExec = require("@jsdevtools/chai-exec");
 const fs = require('fs');

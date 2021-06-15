@@ -1,3 +1,5 @@
+process.env.TESTING = "true";
+
 const chai = require('chai');
 const Path = require('path');
 const fs = require('fs');

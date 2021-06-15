@@ -1,3 +1,4 @@
+process.env.TESTING = "true";
 process.env.MOCK_REPOSITORY = "./mockRepository";
 process.env.MOCK_DATABASE = "./mockDatabase";
 process.env.IPFS_URL = "http://ipfs.io/ipfs/";

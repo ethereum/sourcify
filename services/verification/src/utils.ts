@@ -28,7 +28,7 @@ export async function checkEndpoint(provider: string): Promise<void> {
             throw new Error("Check your node");
         })
     } else if (provider) {
-        await fetch(`https://mainnet.infura.io/v3/${provider}`, {
+        await fetch(`https://eth-mainnet.alchemyapi.io/v2/${provider}`, {
             method: "post",
             headers: {
                 'Accept': 'application/json',

@@ -3,34 +3,22 @@
 /**
  * Part of E2E Monitor test run for staging and master builds
  * Script queries the repository to discover whether a contract
- * published to Goerli in CI has been picked up and saved by the
+ * published to Rinkeby in CI has been picked up and saved by the
  * monitor.
  */
 
+require("dotenv").config({ path: "environments/.env" });
 const assert = require('assert');
 const fetch = require('node-fetch');
 const util = require('util');
 const log = console.log;
 
-let root;
-const circleBranch = process.env.CIRCLE_BRANCH;
-
-if (circleBranch === 'master') {
-  root = 'https://repo.sourcify.dev/';
-
-} else if (circleBranch === 'staging') {
-  root = 'https://repo.staging.sourcify.dev/';
-
-} else {
-  log('Unknown circle branch:', circleBranch);
-  process.exit(1);
-}
-
+const chainID = "4";
 const artifact = require('../metacoin-source-verify/build/contracts/MetaCoin.json')
-const address = artifact.networks['5'].address;
+const address = artifact.networks[chainID].address;
 
 async function main(){
-  const url = `${root}contracts/full_match/5/${address}/metadata.json`;
+  const url = `${process.env.REPOSITORY_URL}/contracts/full_match/${chainID}/${address}/metadata.json`;
 
   log();
   log(`>>>>>>>>>>>>>>>>>>>>`);

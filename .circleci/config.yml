@@ -47,8 +47,8 @@ aliases:
     steps:
       - checkout
       - run:
-          name: install node-fetch
-          command: npm install node-fetch
+          name: install node-fetch dotenv
+          command: npm install node-fetch dotenv
       - run:
           name: monitor test
           command: ./scripts/monitor_ci.sh
@@ -122,6 +122,14 @@ workflows:
                 - master
           requires:
             - deploy
+      - verification-e2e:
+          filters:
+            branches:
+              only:
+                - staging
+                - master
+          requires:
+            - deploy
 
   node-multi-build:
     jobs:
@@ -146,6 +154,7 @@ workflows:
                 - master
     jobs:
       - monitor-e2e
+      - verification-e2e
 
 jobs:
   build-push-ipfs:
@@ -208,6 +217,18 @@ jobs:
     <<: *monitor-e2e-base
     docker:
       - image: circleci/node:10
+  verification-e2e:
+    working_directory: ~/source-verify
+    steps:
+      - checkout
+      - run:
+          name: install dotenv
+          command: npm install dotenv
+      - run:
+          name: verification test
+          command: ./scripts/verification-e2e.sh
+    docker:
+      - image: circleci/node:12
   npm-publish:
     working_directory: ~/source-verify
     docker:
