@@ -1,4 +1,3 @@
-import { url } from "inspector";
 import Web3 from "web3";
 
 const ETHERSCAN_REGEX = "at txn <a href='/tx/(.*?)'";
