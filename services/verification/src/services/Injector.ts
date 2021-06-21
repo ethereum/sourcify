@@ -1,7 +1,7 @@
 import Web3 from 'web3';
 import * as bunyan from 'bunyan';
 import { Match, InputData, getSupportedChains, getFullnodeChains, Logger, IFileService, FileService, StringMap, cborDecode, CheckedContract, MatchQuality, Chain, CompareResult, Status } from '@ethereum-sourcify/core';
-import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint, getCreationDataFromArchive, getCreationDataByScraping } from '../utils';
+import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint, getCreationDataFromArchive, getCreationDataByScraping, getCreationDataFromGraphQL } from '../utils';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const multihashes: any = require('multihashes');
 
@@ -19,6 +19,7 @@ class InjectorChain {
     rpc: string[];
     name: string;
     contractFetchAddress: string;
+    graphQLFetchAddress: string;
     txRegex: string;
     archiveWeb3: Web3;
 
@@ -26,6 +27,7 @@ class InjectorChain {
         this.rpc = chain.rpc;
         this.name = chain.name;
         this.contractFetchAddress = chain.contractFetchAddress;
+        this.graphQLFetchAddress = chain.graphQLFetchAddress;
         this.txRegex = chain.txRegex;
         this.archiveWeb3 = chain.archiveWeb3;
     }
@@ -251,17 +253,27 @@ export class Injector {
      */
     private async getCreationData(chain: string, contractAddress: string): Promise<string> {
         const loc = "[GET_CREATION_DATA]";
-        let fetchAddress = this.chains[chain].contractFetchAddress;
+        let txFetchAddress = this.chains[chain].contractFetchAddress;
         const txRegex = this.chains[chain].txRegex;
 
-        if (fetchAddress && txRegex) { // fetch from a block explorer and extract by regex
-            fetchAddress = fetchAddress.replace("${ADDRESS}", contractAddress);
+        if (txFetchAddress && txRegex) { // fetch from a block explorer and extract by regex
+            txFetchAddress = txFetchAddress.replace("${ADDRESS}", contractAddress);
             const web3 = this.chains[chain].web3;
-            this.log.info({ loc, chain, contractAddress, fetchAddress }, "Scraping block explorer");
+            this.log.info({ loc, chain, contractAddress, fetchAddress: txFetchAddress }, "Scraping block explorer");
             try {
-                return await getCreationDataByScraping(fetchAddress, txRegex, web3);
+                return await getCreationDataByScraping(txFetchAddress, txRegex, web3);
             } catch(err) {
                 this.log.error({ loc, chain, contractAddress, err: err.message }, "Scraping failed!");
+            }
+        }
+
+        const graphQLFetchAddress = this.chains[chain].graphQLFetchAddress;
+        if (graphQLFetchAddress) { // fetch from graphql node
+            const web3 = this.chains[chain].web3;
+            try {
+                return await getCreationDataFromGraphQL(graphQLFetchAddress, contractAddress, web3);
+            } catch (err) {
+                this.log.error({ loc, chain, contractAddress, err: err.message });
             }
         }
 
