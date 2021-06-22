@@ -1,8 +1,4 @@
 version: "3.7"
-x-env-file-mount:
-  &env-file-mount
-  type: bind
-  source: .env
 
 networks:
   source-verify:
@@ -27,8 +23,5 @@ services:
       interval: 30s
       timeout: 10s
       retries: 10
-    volumes:
-    - <<: *env-file-mount
-      target: /app/.env
     ports:
     - "${UI_EXTERNAL_PORT}:${UI_PORT}"

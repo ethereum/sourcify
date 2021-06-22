@@ -1,6 +1,7 @@
 version: "3.7"
 services:
   monitor:
+    image: ethereum/source-verify:monitor-${TAG}
     build:
       context: ../
       dockerfile: src/Dockerfile.monitor

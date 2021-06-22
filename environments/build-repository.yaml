@@ -1,6 +1,7 @@
 version: "3.7"
 services:
   repository:
+    image: ethereum/source-verify:repository-${TAG}
     build:
       context: ../h5ai-nginx
       dockerfile: Dockerfile

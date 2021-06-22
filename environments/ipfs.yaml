@@ -1,8 +1,4 @@
 version: "3.7"
-x-project-repository-mount:
-  &project-repository-mount
-  type: bind
-  source: $REPOSITORY_PATH
 
 x-project-base:
   &project-base
@@ -12,23 +8,24 @@ x-project-base:
   networks:
     - source-verify
 
-x-env-file-mount:
-  &env-file-mount
-  type: bind
-  source: .env
-
 networks:
   source-verify:
   
 services:
   ipfs:
-    <<: *project-base
     image: ethereum/source-verify:ipfs-${TAG}
     container_name: ipfs-${TAG}
     ports:
     - "${IPFS_EXTERNAL_PORT}:8080"
+    env_file:
+    - .env
+    restart: always
+    networks:
+    - source-verify
     volumes:
-    - <<: *project-repository-mount
+    - type: bind
+      source: $REPOSITORY_PATH
       target: /app/repository/
-    - <<: *env-file-mount
-      target: /app/.env
+    - type: bind
+      source: ../services/ipfs/ipfs-${TAG}.key
+      target: /app/ipfs-${TAG}.key

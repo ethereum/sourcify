@@ -1,6 +1,7 @@
 version: "3.7"
 services:
   ui:
+    image: ethereum/source-verify:ui-${TAG}
     build:
       context: ../ui
       dockerfile: Dockerfile

@@ -1,6 +1,7 @@
 version: "3.7"
 services:
   s3sync:
+    image: ethereum/source-verify:s3-${TAG}
     build:
       context: ../
       dockerfile: services/s3sync/Dockerfile.s3
