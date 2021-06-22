@@ -272,6 +272,7 @@ You can find examples in our Postman collection in the root of this project `Sou
 * [Get source files (full match)](docs/api/server/getByChainAndAddress.md) : `GET /files/:chain/:address`
 * [Get file tree (full or partial match)](docs/api/server/getAnyTreeByChainAndAddress.md) : `GET /files/tree/any/:chain/:address`
 * [Get source files (full or partial match)](docs/api/server/getAnyByChainAndAddress.md) : `GET /files/any/:chain/:address`
+* [Get contract addresses (full or partial match)](docs/api/server/getContractsByChain.md) : `GET /files/contracts/:chain`
 * [Server health](docs/api/server/health.md) : `GET /health`
 
 ### Repository API
