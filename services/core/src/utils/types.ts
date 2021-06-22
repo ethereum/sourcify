@@ -7,6 +7,11 @@ export interface FileObject {
     content?: string
   }
 
+export declare interface ContractData {
+  full: string[],
+  partial: string[]
+}
+
 export interface InputData {
     chain: string,
     addresses: string[],
