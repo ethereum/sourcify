@@ -143,5 +143,10 @@ export default {
         "monitored": true,
         "contractFetchAddress": "https://explorer-mumbai.maticvigil.com/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
+    },
+    "421611": {
+        "supported": true,
+        "monitored": true,
+        "graphQLFetchAddress": "https://rinkeby-indexer.arbitrum.io/graphql"
     }
 }
