@@ -1,6 +1,7 @@
 version: "3.7"
 services:
   server:
+    image: ethereum/source-verify:server-${TAG}
     build:
       context: ../
       dockerfile: src/Dockerfile.server

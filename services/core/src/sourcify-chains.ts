@@ -1,4 +1,3 @@
-import { url } from "inspector";
 import Web3 from "web3";
 
 const ETHERSCAN_REGEX = "at txn <a href='/tx/(.*?)'";
@@ -10,7 +9,7 @@ function getCustomURL(chainName: string, useOwn=false) {
     if (useOwn && process.env.TESTING !== "true") {
         const port = process.env[`NODE_PORT_${chainName.toUpperCase()}`];
         const url = `${process.env.NODE_ADDRESS}:${port}`;
-        console.log("Using own node", url);
+        console.log(`Using own node for ${chainName} at ${url}`);
         return url;
     }
     const id = process.env[`ALCHEMY_ID_${chainName.toUpperCase()}`];
@@ -34,10 +33,10 @@ export default {
         "monitored": true,
         "contractFetchAddress": "https://etherscan.io/" + ETHERSCAN_SUFFIX,
         "rpc": [
-            getCustomURL("mainnet")
+            getCustomURL("mainnet", true)
         ],
         "txRegex": ETHERSCAN_REGEX,
-        "archiveWeb3": createArchiveEndpoint("mainnet")
+        "archiveWeb3": createArchiveEndpoint("mainnet", true)
     },
     "3": {
         "fullnode": {
@@ -144,5 +143,10 @@ export default {
         "monitored": true,
         "contractFetchAddress": "https://explorer-mumbai.maticvigil.com/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
+    },
+    "421611": {
+        "supported": true,
+        "monitored": true,
+        "graphQLFetchAddress": "https://rinkeby-indexer.arbitrum.io/graphql"
     }
 }

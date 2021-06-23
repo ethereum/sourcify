@@ -17,11 +17,6 @@ x-project-base:
   networks:
     - source-verify
 
-x-env-file-mount:
-  &env-file-mount
-  type: bind
-  source: .env
-
 networks:
   source-verify:
   
@@ -31,8 +26,6 @@ services:
     image: ethereum/source-verify:s3-${TAG}
     container_name: s3-${TAG}
     volumes:
-      - <<: *env-file-mount
-        target: /app/.env
       - <<: *project-repository-mount
         target: /app/repository/repository/
       - <<: *project-database-mount

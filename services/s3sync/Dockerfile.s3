@@ -6,6 +6,5 @@ RUN unzip awscliv2.zip
 RUN ./aws/install
 ADD services/s3sync/login_sync_s3.sh ./login_sync_s3.sh
 ADD services/s3sync/entrypoint.sh ./entrypoint.sh
-COPY ./environments/.env .env
 RUN chmod +x ./entrypoint.sh
 ENTRYPOINT ./entrypoint.sh

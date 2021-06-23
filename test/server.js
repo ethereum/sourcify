@@ -320,8 +320,10 @@ describe("Server", function() {
         verifyContractWithImmutables("0x3CE1a25376223695284edc4C2b323C3007010C94", "100", "xDai", 123);
         
         verifyContractWithImmutables("0x66ec3fBf4D7d7B7483Ae4fBeaBDD6022037bfa1a", "44787", "Alfajores Celo", 777);
-
+        
         verifyContractWithImmutables("0xD222286c59c0B9c8D06Bac42AfB7B8CB153e7Bf7", "77", "Sokol", 1234, "withImmutables2.meta.object.json");
+
+        verifyContractWithImmutables("0x84d9eF98bF8a66bfB6ed8383F340C402507CfC15", "421611", "Arbitrum Rinkeby", 42, "withImmutables2.meta.object.json");
 
         it("should return 'partial', then delete partial when 'full' match", done => {
             const partialMetadataPath = path.join("test", "testcontracts", "1_Storage", "metadata-modified.json");

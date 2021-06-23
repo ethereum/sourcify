@@ -116,6 +116,7 @@ export type Chain = {
   infoURL: string,
   fullnode?: { dappnode: string },
   contractFetchAddress?: string,
+  graphQLFetchAddress?: string,
   txRegex?: string,
   archiveWeb3?: Web3,
 };

@@ -1,7 +1,6 @@
 FROM node:12
 WORKDIR /home/app
 
-COPY environments/.env ./environments/
 COPY services/core ./services/core
 COPY services/validation ./services/validation
 COPY services/verification ./services/verification

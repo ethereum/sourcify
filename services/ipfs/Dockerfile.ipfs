@@ -9,6 +9,4 @@ RUN curl https://dist.ipfs.io/go-ipfs/v0.7.0/go-ipfs_v0.7.0_linux-amd64.tar.gz >
 ADD ./publish.sh ./publish.sh
 ADD ./entrypoint.sh ./entrypoint.sh
 ADD ./cron.job ./cron.job
-ADD ./ipfs-latest.key ./ipfs-latest.key
-ADD ./ipfs-stable.key ./ipfs-stable.key
 ENTRYPOINT ./entrypoint.sh

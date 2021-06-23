@@ -13,12 +13,8 @@ if [ "$CIRCLE_BRANCH" == "master" ]; then
 fi
 
 echo $TAG
-
-./scripts/find_replace.sh
-
-cd environments && cp .env.$TAG .env
 echo $SERVICE
 
 docker login --username $DOCKER_USER --password $DOCKER_PASS
-docker-compose -f $SERVICE.yaml -f build-$SERVICE.yaml build
+docker-compose -f environments/build-$SERVICE.yaml build
 docker push ethereum/source-verify:$SERVICE-$TAG
