@@ -32,10 +32,10 @@ export default class VerificationController extends BaseController implements IC
     }
 
     private validateAddresses(addresses: string): string[] {
-        const addressesArray = addresses.split(",");
+        const addressesArray = addresses.split(",").filter(a => a.trim()); // keep non empty
         const invalidAddresses: string[] = [];
         for (const i in addressesArray) {
-            const address = addressesArray[i];
+            const address = addressesArray[i].trim();
             if (!isValidAddress(address)) {
                 invalidAddresses.push(address);
             } else {
@@ -114,11 +114,12 @@ export default class VerificationController extends BaseController implements IC
             throw new BadRequestError("Metadata file not specifying a compiler version.");
         }
 
-        const inputData: InputData = { contract, addresses: req.addresses, chain: req.chain };
+        const chainAddressPairs = req.addresses.map(address => ({ chain: req.chain, address }));
+        const inputData: InputData = { contract, chainAddressPairs };
 
         const resultPromise = this.verificationService.inject(inputData);
         resultPromise.then(result => {
-            res.send({ result: [result] }); // array is an old expected behavior (e.g. by frontend)
+            res.send({ result });
         }).catch(error => {
             res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ error: error.message });
         });
@@ -165,7 +166,7 @@ export default class VerificationController extends BaseController implements IC
 
             const newPendingContracts: ContractWrapperMap = {};
             for (const contract of contracts) {
-                newPendingContracts[generateId(contract.metadataRaw)] = { contract };
+                newPendingContracts[generateId(contract.metadataRaw)] = { contract, matches: [] };
             }
             
             session.contractWrappers ||= {};
@@ -206,6 +207,7 @@ export default class VerificationController extends BaseController implements IC
             if (contractWrapper) {
                 contractWrapper.address = receivedContract.address;
                 contractWrapper.chainId = receivedContract.chainId;
+                contractWrapper.matches = receivedContract.matches;
 
                 if (isVerifiable(contractWrapper)) {
                     verifiable[id] = contractWrapper;
@@ -226,27 +228,29 @@ export default class VerificationController extends BaseController implements IC
             if (!isVerifiable(contractWrapper)) {
                 continue;
             }
-            const inputData: InputData = { addresses: [contractWrapper.address], chain: contractWrapper.chainId, contract: contractWrapper.contract };
+
+            const chainAddressPairs = [{ address: contractWrapper.address, chain: contractWrapper.chainId }];
+            const inputData: InputData = { chainAddressPairs, contract: contractWrapper.contract };
 
             const found = this.verificationService.findByAddress(contractWrapper.address, contractWrapper.chainId);
-            let match: Match;
+            let matches: Match[];
             if (found.length) {
-                match = found[0];
+                matches = found;
 
             } else {
                 const matchPromise = this.verificationService.inject(inputData);
-                match = await matchPromise.catch((error: Error): Match => {
-                    return {
+                matches = await matchPromise.catch((error: Error): Match[] => {
+                    return [{
                         status: null,
+                        chain: null,
                         address: null,
                         message: error.message,
-                    };
+                    }];
                 });
             }
 
-            contractWrapper.status = match.status || "error";
-            contractWrapper.statusMessage = match.message;
-            contractWrapper.storageTimestamp = match.storageTimestamp;
+            contractWrapper.matches = matches;
+            // TODO 
         }
     }
 
@@ -371,8 +375,8 @@ export default class VerificationController extends BaseController implements IC
     registerRoutes = (): Router => {
         this.router.route(['/', '/verify'])
             .post(
-                body("address").exists().bail().custom((address, { req }) => req.addresses = this.validateAddresses(address)),
-                body("chain").exists().bail().custom((chain, { req }) => req.chain = getChainId(chain)),
+                body("address").custom((address, { req }) => req.addresses = this.validateAddresses(address)),
+                body("chain").custom((chain, { req }) => req.chain = getChainId(chain)),
                 this.safeHandler(this.legacyVerifyEndpoint)
             );
 

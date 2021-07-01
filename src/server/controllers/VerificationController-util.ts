@@ -1,6 +1,6 @@
 import { Request } from 'express';
 import { Session } from 'express-session';
-import { PathContent, CheckedContract, isEmpty } from '@ethereum-sourcify/core';
+import { PathContent, CheckedContract, isEmpty, Match } from '@ethereum-sourcify/core';
 import Web3 from 'web3';
 
 export interface PathContentMap {
@@ -14,12 +14,11 @@ export type ContractLocation = {
 
 export type ContractMeta = {
     compiledPath?: string,
-    name?: string
+    name?: string,
     address?: string,
     chainId?: string,
-    status?: Status,
-    statusMessage?: string,
-    storageTimestamp?: Date
+    matches: Match[],
+    error?: string,
 }
 
 export type ContractWrapper =
@@ -61,9 +60,7 @@ export type SendableContract =
 export function isVerifiable(contractWrapper: ContractWrapper) {
     const contract = contractWrapper.contract;
     return isEmpty(contract.missing)
-        && isEmpty(contract.invalid)
-        && Boolean(contractWrapper.address)
-        && Boolean(contractWrapper.chainId);
+        && isEmpty(contract.invalid);
 }
 
 function getSendableContract(contractWrapper: ContractWrapper, verificationId: string): SendableContract {
@@ -73,15 +70,12 @@ function getSendableContract(contractWrapper: ContractWrapper, verificationId: s
         verificationId,
         compiledPath: contract.compiledPath,
         name: contract.name,
-        address: contractWrapper.address,
-        chainId: contractWrapper.chainId,
+        matches: contractWrapper.matches,
+        error: contractWrapper.error,
         files: {
             found: Object.keys(contract.solidity),
             missing: Object.keys(contract.missing).concat(Object.keys(contract.invalid))
-        },
-        status: contractWrapper.status || "error",
-        statusMessage: contractWrapper.statusMessage,
-        storageTimestamp: contractWrapper.storageTimestamp
+        }
     };
 }
 

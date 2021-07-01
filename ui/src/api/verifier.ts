@@ -1,15 +1,16 @@
 import { SERVER_URL } from "../common/constants";
 
+type Status = "perfect" | "partial" | null;
+
 type ResponseBody = {
     error?: string,
-    errors?: [{ field: string, message: string }],
-    result?: [{ address?: string, status?: string }]
+    errors?: { field: string, message: string }[],
+    result?: { chain: string, address: string, status: Status }[]
 }
 
 type VerificationResult = {
-    status: string,
+    result: { chain: string, address: string, status: Status }[],
     error: string,
-    address: string
 }
 
 type CheckAddressesResult = {
@@ -26,10 +27,9 @@ export type ServersideAddressCheck = {
 
 export const verify = async (formData: any): Promise<VerificationResult> => {
     const data: VerificationResult = {
-        status: "",
-        error: "",
-        address: ""
-    }
+        result: [],
+        error: ""
+    };
 
     try {
         const response = await fetch(SERVER_URL, {
@@ -43,8 +43,7 @@ export const verify = async (formData: any): Promise<VerificationResult> => {
         } else if (body.errors) {
             data.error = body.errors.map(e => e.message).join(", ");
         } else {
-            data.address = body.result[0].address;
-            data.status = body.result[0].status;
+            data.result = body.result;
         }
 
     } catch (e) {

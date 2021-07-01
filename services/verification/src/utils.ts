@@ -19,7 +19,7 @@ export interface RecompilationResult {
 
 /**
  * Checks if provided endpoint is online
- * @param {string} provider personal project ID from infura.io or real Ethereum node endpoint
+ * @param {string} provider personal project ID from Alchemy or real Ethereum node endpoint
  */
 export async function checkEndpoint(provider: string): Promise<void> {
     if (provider.includes("http")) {
@@ -38,10 +38,10 @@ export async function checkEndpoint(provider: string): Promise<void> {
         })
             .then((response) => {
                 if (response.status == StatusCodes.UNAUTHORIZED) {
-                    throw new Error("Check your Infura ID");
+                    throw new Error("Check your provider ID");
                 }
             }).catch(() => {
-                throw new Error("Check your Infura ID");
+                throw new Error("Check your provider ID");
             });
     } else {
         throw new Error("No provider set");

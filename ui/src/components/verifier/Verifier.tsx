@@ -98,7 +98,7 @@ const Verifier: React.FC = () => {
      * Sort of JSX equivalent of arr.join(sep).
      * Copied from https://stackoverflow.com/a/23619085
     */
-    function intersperse(arr: any[], sep: any) {
+    function intersperse(arr: JSX.Element[], sep: any) {
         if (arr.length === 0) {
             return [];
         }
@@ -108,8 +108,12 @@ const Verifier: React.FC = () => {
         }, [arr[0]]);
     }
 
+    function shorten(s: string) {
+        return s.slice(0, 5) + "..." + s.slice(s.length - 3);
+    }
+
     const checkResultToElement = (checkResult: ServersideAddressCheck) => {
-        return <p key={checkResult.address}>{checkResult.address} is verified on: {
+        return <p key={checkResult.address}>{shorten(checkResult.address)} is verified on: {
             intersperse(
                 checkResult.chainIds.map(chainId => chainToLink(chainId, checkResult.address)), 
                 ", "
@@ -154,6 +158,23 @@ const Verifier: React.FC = () => {
         )
     }
 
+    const formatChainAndAddress = (chainId: string, address: string) => {
+        const chain = ID_TO_CHAIN[chainId];
+        const label = chain ? chain.label : "Unknown chain";
+        return `${shorten(address)} (${label})`;
+    }
+
+    const matchToLink = (match: any) => {
+        const matchDirectory = match.status === "perfect" ? REPOSITORY_URL_FULL_MATCH : REPOSITORY_URL_PARTIAL_MATCH;
+        const display = formatChainAndAddress(match.chain, match.address);
+        return <a
+            key={display}
+            target="_blank"
+            rel="noopener noreferrer"
+            href={`${matchDirectory}/${match.chain}/${match.address}`}
+        >{ display }</a>;
+    }
+
     const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
@@ -177,34 +198,42 @@ const Verifier: React.FC = () => {
             return;
         }
 
-        if (data.status === 'partial') {
-            globalDispatch({
-                type: "SHOW_NOTIFICATION", payload: {
-                    type: "success",
-                    content: () => <p>Contract partially verified! View the assets in the <a
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        href={`${REPOSITORY_URL_PARTIAL_MATCH}/${state.chain.id}/${data.address}`}>file explorer.</a>
-                    </p>
-                }
-            });
-            dispatch({type: "SET_LOADING", payload: false});
-            return;
+        const matches = { perfect: [], partial: [], null: [] };
+        for (const match of data.result) {
+            matches[match.status].push(match);
         }
 
         globalDispatch({
             type: "SHOW_NOTIFICATION", payload: {
                 type: "success",
-                content: () => <p>Contract successfully verified! View the assets in the <a
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    href={`${REPOSITORY_URL_FULL_MATCH}/${state.chain.id}/${data.address}`}>file explorer.</a>
-                </p>
+                content: () => {
+                    const rows: JSX.Element[] = [];
+                    if (matches.perfect.length) {
+                        const perfectLinks = matches.perfect.map(matchToLink);
+                        rows.push(<p key="perfect"> Fully verified: {intersperse(perfectLinks, ", ")} </p>);
+                    }
+
+                    if (matches.partial.length) {
+                        const partialLinks = matches.partial.map(matchToLink);
+                        rows.push(<p key="partial"> Partially verified: {intersperse(partialLinks, ", ")} </p>)
+                    }
+
+                    if (matches.null.length) {
+                        const unverifiedElements = matches.null.map((m, i) => <span key={i}>
+                            { `${formatChainAndAddress(m.chain, m.address)}` }
+                        </span>);
+                        rows.push(<p key="null"> Unverified: {intersperse(unverifiedElements, ", ")} </p>)
+                    }
+
+                    return <ul> { rows } </ul>;
+                }
             }
         });
 
         dispatch({type: "SET_LOADING", payload: false});
     }
+
+    const noInput = !state.address && !state.files.length;
 
     return (
         <div className="form-container">
@@ -232,8 +261,8 @@ const Verifier: React.FC = () => {
                     }
                     <FileUpload handleFiles={handleFiles} files={state.files}/>
                     <button type="submit"
-                            className={`form__submit-btn ${!state.address ? `form__submit-btn--disabled` : ""}`}
-                            disabled={!state.address}>VERIFY
+                            className={`form__submit-btn ${noInput ? `form__submit-btn--disabled` : ""}`}
+                            disabled={noInput}>VERIFY
                     </button>
                 </form>
             </div>

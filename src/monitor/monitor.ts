@@ -163,8 +163,7 @@ class ChainMonitor {
             contract,
             bytecode,
             creationData,
-            chain: this.chainId,
-            addresses: [address]
+            chainAddressPairs: [{ chain: this.chainId, address }]
         }).then(() => this.logger.info(logObject, "Successfully injected")
         ).catch(err => this.logger.error(logObject, err.message));
     }

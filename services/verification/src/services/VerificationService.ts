@@ -6,7 +6,7 @@ import * as bunyan from 'bunyan';
 
 export interface IVerificationService {
     findByAddress(address: string, chain: string): Match[];
-    inject(inputData: InputData): Promise<Match>;
+    inject(inputData: InputData): Promise<Match[]>;
 }
 
 export class VerificationService implements IVerificationService {
@@ -34,7 +34,7 @@ export class VerificationService implements IVerificationService {
         return matches;
     }
 
-    inject = async (inputData: InputData): Promise<Match> => {
+    inject = async (inputData: InputData): Promise<Match[]> => {
         // Injection
         //const injection: Promise<Match>;
         //const { repository, chain, addresses, files } = inputData;
