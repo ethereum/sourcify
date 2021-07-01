@@ -12,7 +12,7 @@ import { ethers } from 'ethers';
 const GITHUB_SOLC_REPO = "https://github.com/ethereum/solc-bin/raw/gh-pages/linux-amd64/";
 
 export interface RecompilationResult {
-    bytecode: string,
+    creationBytecode: string,
     deployedBytecode: string,
     metadata: string
 }
@@ -96,7 +96,7 @@ export async function recompile(
 
     const contract: any = output.contracts[fileName][contractName];
     return {
-        bytecode: `0x${contract.evm.bytecode.object}`,
+        creationBytecode: `0x${contract.evm.bytecode.object}`,
         deployedBytecode: `0x${contract.evm.deployedBytecode.object}`,
         metadata: contract.metadata.trim()
     }

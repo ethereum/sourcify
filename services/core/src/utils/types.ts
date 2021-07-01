@@ -54,14 +54,10 @@ export interface Match {
   storageTimestamp?: Date,
   message?: string,
   encodedConstructorArgs?: string,
+  libraryMap?: StringMap
 }
 
 export type Status = 'perfect' | 'partial' | null;
-
-export type CompareResult = {
-  status: Status,
-  encodedConstructorArgs: string
-}
 
 /**
  * A type for specfifying the strictness level of querying (only full or any kind of matches)
