@@ -148,5 +148,17 @@ export default {
         "supported": true,
         "monitored": true,
         "graphQLFetchAddress": "https://rinkeby-indexer.arbitrum.io/graphql"
+    },
+    "43113": {
+        "supported": true,
+        "monitored": true,
+        "contractFetchAddress": "https://cchain.explorer.avax-test.network/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "43114": {
+        "supported": true,
+        "monitored": true,
+        "contractFetchAddress": "https://cchain.explorer.avax.network/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
     }
 }
