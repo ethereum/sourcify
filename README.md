@@ -58,6 +58,9 @@ watches:
   + Celo Mainnet
   + Celo Alfajores Testnet
   + Celo Baklava Testnet
+  + Avalanche Fuji Testnet
+  + Avalanche Mainnet
+  + Arbitrum Testnet Rinkeby
 
 + a website which allows you to submit sources and metadata for a specific contract address manually
   + https://sourcify.dev (Stable)
