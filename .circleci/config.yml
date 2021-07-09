@@ -96,7 +96,7 @@ workflows:
 
   node-multi-build:
     jobs:
-      - node-v10
+      - node-v14
       - node-v12
       - npm-publish:
           filters:
@@ -104,7 +104,7 @@ workflows:
               only:
                 - master
           requires:
-            - node-v10
+            - node-v14
             - node-v12
 
   nightly:
@@ -167,10 +167,10 @@ jobs:
           no_output_timeout: 30m
           command: |
             ./scripts/deploy.sh
-  node-v10:
+  node-v14:
     <<: *node-base
     docker:
-      - image: circleci/node:10
+      - image: circleci/node:14
   node-v12:
     <<: *node-base
     docker:
@@ -180,7 +180,7 @@ jobs:
   monitor-e2e:
     <<: *monitor-e2e-base
     docker:
-      - image: circleci/node:10
+      - image: circleci/node:14
   verification-e2e:
     working_directory: ~/source-verify
     steps:
@@ -192,11 +192,11 @@ jobs:
           name: verification test
           command: ./scripts/verification-e2e.sh
     docker:
-      - image: circleci/node:12
+      - image: circleci/node:14
   npm-publish:
     working_directory: ~/source-verify
     docker:
-      - image: circleci/node:12
+      - image: circleci/node:14
     steps:
       - checkout
       - run:
