@@ -1,7 +1,7 @@
 aliases:
   - &docker-base
     docker:
-      - image: circleci/node:10.19.0-buster
+      - image: cimg/base:2021.04
     steps:
       - checkout
       - run:
@@ -9,11 +9,12 @@ aliases:
           command: |
             git submodule init
             git submodule update --remote
-      - setup_remote_docker
+      - setup_remote_docker:
+          version: 20.10.2
       - run:
           name: Build and push docker images
           command: |
-            CIRCLE_BRANCH=${CIRCLE_BRANCH} ./scripts/build_and_publish_docker_images.sh
+            ./scripts/build_and_publish_docker_images.sh
   - &filter-base
     filters:
       branches:
@@ -22,8 +23,6 @@ aliases:
           - master
   - &node-base
     working_directory: ~/source-verify
-    docker:
-      - image: circleci/node
     parameters:
       run_coveralls:
         type: boolean
@@ -191,10 +190,11 @@ jobs:
       SERVICE: "ui-draft"
   deploy:
     docker:
-      - image: circleci/node:10.19.0-buster
+      - image: cimg/base:2021.04
     steps:
       - checkout
-      - setup_remote_docker
+      - setup_remote_docker:
+          version: 20.10.2
       - add_ssh_keys:
           fingerprints:
             - "a9:2f:97:c3:64:10:80:c7:8e:2f:db:f7:a3:4a:53:66"
@@ -202,7 +202,7 @@ jobs:
           name: Deploy
           no_output_timeout: 30m
           command: |
-            CIRCLE_BRANCH=${CIRCLE_BRANCH} ./scripts/deploy.sh
+            ./scripts/deploy.sh
   node-v10:
     <<: *node-base
     docker:
