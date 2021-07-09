@@ -59,52 +59,24 @@ workflows:
   build_publish_deploy_docker:
     jobs:
       - build-push-ipfs:
-          filters:
-            branches:
-              only:
-                - staging
-                - master
+          <<: *filter-base
       - build-push-monitor:
-          filters:
-            branches:
-              only:
-                - staging
-                - master
+          <<: *filter-base
       - build-push-repository:
-          filters:
-            branches:
-              only:
-                - staging
-                - master
+          <<: *filter-base
       - build-push-s3:
-          filters:
-            branches:
-              only:
-                - staging
-                - master
+          <<: *filter-base
       - build-push-server:
-          filters:
-            branches:
-              only:
-                - staging
-                - master
+          <<: *filter-base
       - build-push-ui:
-          filters:
-            branches:
-              only:
-                - staging
-                - master
+          <<: *filter-base
       - build-push-ui-draft:
           filters:
             branches:
               only:
                 - staging
       - deploy:
-          filters:
-            branches:
-              only:
-                - staging
-                - master
+          <<: *filter-base
           requires:
             - build-push-ipfs
             - build-push-monitor
@@ -114,19 +86,11 @@ workflows:
             - build-push-ui
             - build-push-ui-draft
       - monitor-e2e:
-          filters:
-            branches:
-              only:
-                - staging
-                - master
+          <<: *filter-base
           requires:
             - deploy
       - verification-e2e:
-          filters:
-            branches:
-              only:
-                - staging
-                - master
+          <<: *filter-base
           requires:
             - deploy
 
