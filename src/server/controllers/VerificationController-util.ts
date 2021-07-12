@@ -15,8 +15,6 @@ export type ContractLocation = {
 export type ContractMeta = {
     compiledPath?: string,
     name?: string,
-    address?: string,
-    chainId?: string,
     matches: Match[],
     error?: string,
 }

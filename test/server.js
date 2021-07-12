@@ -421,7 +421,6 @@ describe("Server", function() {
     });
 
     describe("verification v2", function() {
-        return; // TODO
         this.timeout(EXTENDED_TIME);
 
         it("should inform when no pending contracts", (done) => {
@@ -436,17 +435,16 @@ describe("Server", function() {
                 });
         });
 
-        const assertAddressAndChainMissing = (res, expectedFound, expectedMissing) => {
+        const assertMatchesIsEmpty = (res, expectedFound, expectedMissing) => {
             chai.expect(res.status).to.equal(StatusCodes.OK);
             const contracts = res.body.contracts;
             chai.expect(contracts).to.have.a.lengthOf(1);
 
             const contract = contracts[0];
-            chai.expect(contract.status).to.equal("error");
+            chai.expect(contract.matches).to.deep.equal([]);
             chai.expect(contract.files.missing).to.deep.equal(expectedMissing);
             chai.expect(contract.files.found).to.deep.equal(expectedFound);
             chai.expect(res.body.unused).to.be.empty;
-            chai.expect(contract.storageTimestamp).to.equal(undefined);
             return contracts;
         };
 
@@ -459,7 +457,7 @@ describe("Server", function() {
                         "1_Storage.sol": sourceBuffer.toString()
                     }
                 }).then(res => {
-                    assertAddressAndChainMissing(res, ["browser/1_Storage.sol"], []);
+                    assertMatchesIsEmpty(res, ["browser/1_Storage.sol"], []);
                     done();
                 });
         });
@@ -470,9 +468,10 @@ describe("Server", function() {
                 .attach("files", sourceBuffer, "1_Storage.sol")
                 .attach("files", metadataBuffer, "metadata.json")
                 .then(res => {
-                    const contracts = assertAddressAndChainMissing(res, ["browser/1_Storage.sol"], []);
-                    contracts[0].address = contractAddress;
-                    contracts[0].chainId = contractChain;
+                    const contracts = assertMatchesIsEmpty(res, ["browser/1_Storage.sol"], []);
+                    contracts[0].matches = [
+                        { address: contractAddress, chain: contractChain }
+                    ];
 
                     agent.post("/verify-validated")
                         .send({ contracts })
@@ -482,8 +481,12 @@ describe("Server", function() {
                             const contracts = res.body.contracts;
                             chai.expect(contracts).to.have.a.lengthOf(1);
                             const contract = contracts[0];
-                            chai.expect(contract.status).to.equal("perfect");
-                            chai.expect(contract.storageTimestamp).to.not.exist;
+                            chai.expect(contract.matches).to.have.a.lengthOf(1);
+                            const match = contract.matches[0];
+                            chai.expect(match.address).to.equal(contractAddress);
+                            chai.expect(match.chain).to.equal(contractChain);
+                            chai.expect(match.status).to.equal("perfect");
+                            chai.expect(match.storageTimestamp).to.not.exist;
                             chai.expect(res.body.unused).to.be.empty;
                             done();
                         });
@@ -500,7 +503,7 @@ describe("Server", function() {
             const contract = contracts[0];
 
             chai.expect(contract.name).to.equal("Storage");
-            chai.expect(contract.status).to.equal("error");
+            chai.expect(contract.matches).to.deep.equal([]);
         }
 
         it("should not verify when session cookie not stored clientside", (done) => {
@@ -524,7 +527,7 @@ describe("Server", function() {
                 });
         });
 
-        const assertAllFound = (err, res, finalStatus) => {
+        const assertAllFound = (err, res, expectedMatches) => {
             chai.expect(err).to.be.null;
             chai.expect(res.status).to.equal(StatusCodes.OK);
             chai.expect(res.body.unused).to.be.empty;
@@ -534,8 +537,7 @@ describe("Server", function() {
             const contract = contracts[0];
 
             chai.expect(contract.name).to.equal("Storage");
-            chai.expect(contract.status).to.equal(finalStatus);
-            chai.expect(contract.storageTimestamp).to.not.exist;
+            chai.expect(contract.matches).to.deep.equal(expectedMatches);
         }
 
         it("should verify when session cookie stored clientside", (done) => {
@@ -549,14 +551,18 @@ describe("Server", function() {
                     agent.post("/input-files")
                         .attach("files", sourceBuffer, "1_Storage.sol")
                         .end((err, res) => {
-                            contracts[0].chainId = contractChain;
-                            contracts[0].address = contractAddress;
-                            assertAllFound(err, res, "error");
+                            assertAllFound(err, res, []);
+                            contracts[0].matches[0] = { chain: contractChain, address: contractAddress };
 
                             agent.post("/verify-validated")
                                 .send({ contracts })
                                 .end((err, res) => {
-                                    assertAllFound(err, res, "perfect");
+                                    assertAllFound(err, res, [{
+                                        chain: contractChain,
+                                        address: contractAddress,
+                                        status: "perfect",
+                                        libraryMap: {},
+                                    }]);
                                     done();
                                 });
                         });
@@ -590,17 +596,25 @@ describe("Server", function() {
                                         });
                                 });
                         });
-                }); 
+                });
         });
 
-        const assertSingleContractStatus = (res, expectedStatus, shouldHaveTimestamp) => {
+        const assertSingleContractStatus = (res, expectedMatch, shouldHaveTimestamp) => {
             chai.expect(res.status).to.equal(StatusCodes.OK);
+
             chai.expect(res.body).to.haveOwnProperty("contracts");
             const contracts = res.body.contracts;
             chai.expect(contracts).to.have.a.lengthOf(1);
             const contract = contracts[0];
-            chai.expect(contract.status).to.equal(expectedStatus);
-            chai.expect(!!contract.storageTimestamp).to.equal(!!shouldHaveTimestamp);
+
+            const matches = contract.matches;
+            if (expectedMatch) {
+                chai.expect(matches).to.have.a.lengthOf(1);
+                const match = matches[0];
+                chai.expect(match.chain).to.equal(expectedMatch.chain);
+                chai.expect(match.address).to.equal(expectedMatch.address);
+                chai.expect(!!match.storageTimestamp).to.equal(!!shouldHaveTimestamp);
+            }
             return contracts;
         }
 
@@ -610,24 +624,37 @@ describe("Server", function() {
                 .attach("files", sourceBuffer)
                 .attach("files", metadataBuffer)
                 .then(res => {
-                    const contracts = assertSingleContractStatus(res, "error");
-                    contracts[0].address = contractAddress;
+                    const contracts1 = assertSingleContractStatus(res);
+                    contracts1[0].matches[0] = {
+                        address: contractAddress
+                    };
 
                     agent.post("/verify-validated")
-                        .send({ contracts })
+                        .send({ contracts: contracts1 })
                         .then(res => {
-                            assertSingleContractStatus(res, "error");
-                            contracts[0].chainId = contractChain;
+                            const contracts2 = assertSingleContractStatus(res, {
+                                address: contractAddress,
+                                status: "error"
+                            });
+                            contracts2[0].matches[0].chain = contractChain;
 
                             agent.post("/verify-validated")
-                                .send({ contracts })
+                                .send({ contracts: contracts2 })
                                 .then(res => {
-                                    assertSingleContractStatus(res, "perfect");
-                                    
+                                    const contracts3 = assertSingleContractStatus(res, {
+                                        address: contractAddress,
+                                        chain: contractChain,
+                                        status: "perfect"
+                                    });
+
                                     agent.post("/verify-validated")
-                                        .send({ contracts })
+                                        .send({ contracts: contracts3 })
                                         .then(res => {
-                                            assertSingleContractStatus(res, "perfect", true);
+                                            assertSingleContractStatus(res, {
+                                                address: contractAddress,
+                                                chain: contractChain,
+                                                status: "perfect"
+                                            }, true);
                                             done();
                                         });
                                 });
@@ -640,7 +667,7 @@ describe("Server", function() {
             agent.post("/input-files")
                 .attach("files", modifiedMetadataBuffer)
                 .then(res => {
-                    assertAddressAndChainMissing(res, [], ["browser/1_Storage.sol"]);
+                    assertMatchesIsEmpty(res, [], ["browser/1_Storage.sol"]);
                     done();
                 });
         });
@@ -650,7 +677,7 @@ describe("Server", function() {
             agent.post("/input-files")
                 .attach("files", metadataBuffer)
                 .then(res => {
-                    assertAddressAndChainMissing(res, ["browser/1_Storage.sol"], []);
+                    assertMatchesIsEmpty(res, ["browser/1_Storage.sol"], []);
                     done();
                 });
         });
@@ -660,20 +687,25 @@ describe("Server", function() {
             agent.post("/input-files")
                 .attach("files", metadataBuffer)
                 .then(res => {
-                    const contracts = assertAddressAndChainMissing(res, ["browser/1_Storage.sol"], []);
-                    contracts[0].address = contractAddress;
-                    contracts[0].chainId = contractChain;
+                    const contracts = assertMatchesIsEmpty(res, ["browser/1_Storage.sol"], []);
+                    contracts[0].matches[0] = {
+                        address: contractAddress,
+                        chain: contractChain
+                    };
 
                     agent.post("/verify-validated")
                         .send({ contracts })
                         .then(res => {
-                            assertSingleContractStatus(res, "perfect");
+                            assertSingleContractStatus(res, {
+                                address: contractAddress,
+                                chain: contractChain,
+                                status: "perfect"
+                            });
                             done();
                         });
                 });
         });
 
-        
         it("should correctly handle when uploaded 0/2 and then 1/2 sources", done => {
             const metadataPath = path.join("test", "sources", "metadata", "child-contract.meta.object.json");
             const metadataBuffer = fs.readFileSync(metadataPath);

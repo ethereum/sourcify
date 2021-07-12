@@ -2,7 +2,7 @@ import { Request, Response, Router } from 'express';
 import BaseController from './BaseController';
 import { IController } from '../../common/interfaces';
 import { IVerificationService } from '@ethereum-sourcify/verification';
-import { InputData, getChainId, Logger, PathBuffer, CheckedContract, isEmpty, PathContent, Match } from '@ethereum-sourcify/core';
+import { InputData, getChainId, Logger, PathBuffer, CheckedContract, isEmpty, PathContent, Match, ChainAddressPair } from '@ethereum-sourcify/core';
 import { BadRequestError, NotFoundError, PayloadTooLargeError, ValidationError } from '../../common/errors'
 import { IValidationService } from '@ethereum-sourcify/validation';
 import * as bunyan from 'bunyan';
@@ -205,8 +205,6 @@ export default class VerificationController extends BaseController implements IC
             const id = receivedContract.verificationId;
             const contractWrapper = session.contractWrappers[id];
             if (contractWrapper) {
-                contractWrapper.address = receivedContract.address;
-                contractWrapper.chainId = receivedContract.chainId;
                 contractWrapper.matches = receivedContract.matches;
 
                 if (isVerifiable(contractWrapper)) {
@@ -229,28 +227,32 @@ export default class VerificationController extends BaseController implements IC
                 continue;
             }
 
-            const chainAddressPairs = [{ address: contractWrapper.address, chain: contractWrapper.chainId }];
-            const inputData: InputData = { chainAddressPairs, contract: contractWrapper.contract };
+            const foundMatches: Match[] = [];
+            const pairsToProcess: ChainAddressPair[] = [];
+            for (const match of contractWrapper.matches) {
+                const foundMatch = this.verificationService.findByAddress(match.address, match.chain);
+                if (foundMatch.length) {
+                    foundMatches.push(foundMatch[0]);
+                } else {
+                    pairsToProcess.push({ address: match.address, chain: match.chain });
+                }
+            }
 
-            const found = this.verificationService.findByAddress(contractWrapper.address, contractWrapper.chainId);
-            let matches: Match[];
-            if (found.length) {
-                matches = found;
-
-            } else {
+            let newMatches: Match[] = [];
+            if (pairsToProcess) {
+                const inputData: InputData = { chainAddressPairs: pairsToProcess, contract: contractWrapper.contract };
                 const matchPromise = this.verificationService.inject(inputData);
-                matches = await matchPromise.catch((error: Error): Match[] => {
-                    return [{
-                        status: null,
-                        chain: null,
-                        address: null,
-                        message: error.message,
-                    }];
+                newMatches = await matchPromise.catch((error: Error): Match[] => {
+                    contractWrapper.error = error.message;
+                    return pairsToProcess.map(pair => ({
+                        chain: pair.chain,
+                        address: pair.address,
+                        status: "error"
+                    }));
                 });
             }
 
-            contractWrapper.matches = matches;
-            // TODO 
+            contractWrapper.matches = foundMatches.concat(newMatches);
         }
     }
 
