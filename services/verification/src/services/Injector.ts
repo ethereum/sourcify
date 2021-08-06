@@ -1,7 +1,7 @@
 import Web3 from 'web3';
 import * as bunyan from 'bunyan';
 import { Match, InputData, getSupportedChains, getFullnodeChains, Logger, IFileService, FileService, StringMap, cborDecode, CheckedContract, MatchQuality, Chain, Status } from '@ethereum-sourcify/core';
-import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint, getCreationDataFromArchive, getCreationDataByScraping, getCreationDataFromGraphQL } from '../utils';
+import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint, getCreationDataFromArchive, getCreationDataByScraping, getCreationDataFromGraphQL, getCreationDataTelos } from '../utils';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const multihashes: any = require('multihashes');
 
@@ -22,6 +22,7 @@ class InjectorChain {
     graphQLFetchAddress: string;
     txRegex: string;
     archiveWeb3: Web3;
+    isTelos: boolean;
 
     constructor(chain: Chain) {
         this.rpc = chain.rpc;
@@ -307,6 +308,18 @@ export class Injector {
             } catch(err) {
                 this.log.error({ loc, chain, contractAddress, err: err.message }, "Scraping failed!");
             }
+        }
+
+        if (txFetchAddress && this.chains[chain].isTelos) {
+            txFetchAddress = txFetchAddress.replace("${ADDRESS}", contractAddress);
+            const web3 = this.chains[chain].web3;
+            this.log.info({ loc, chain, contractAddress, fetchAddress: txFetchAddress }, "Querying Telos API");
+            try {
+                return await getCreationDataTelos(txFetchAddress, web3);
+            } catch(err) {
+                this.log.error({ loc, chain, contractAddress, err: err.message }, "Telos API failed!");
+            } 
+            
         }
 
         const graphQLFetchAddress = this.chains[chain].graphQLFetchAddress;
