@@ -4,6 +4,7 @@ const ETHERSCAN_REGEX = "at txn <a href='/tx/(.*?)'";
 const ETHERSCAN_SUFFIX = "address/${ADDRESS}";
 const BLOCKSCOUT_REGEX = "transaction_hash_link\" href=\"${BLOCKSCOUT_PREFIX}/tx/(.*?)\"";
 const BLOCKSCOUT_SUFFIX = "address/${ADDRESS}/transactions";
+const TELOS_SUFFIX = "v2/evm/get_contract?contract=${ADDRESS}";
 
 function getCustomURL(chainName: string, useOwn=false) {
     if (useOwn && process.env.TESTING !== "true") {
@@ -164,13 +165,13 @@ export default {
     "40": {
         "supported": true,
         "monitored": false,
-        "contractFetchAddress": "https://mainnet.telos.net/v2/explore/evm/" + ETHERSCAN_SUFFIX,
-        "txRegex": ETHERSCAN_REGEX
+        "contractFetchAddress": "https://mainnet.telos.net/" + TELOS_SUFFIX,
+        "isTelos": true
     },
     "41": {
         "supported": true,
         "monitored": false,
-        "contractFetchAddress": "https://testnet.telos.net/v2/explore/evm/" + ETHERSCAN_SUFFIX,
-        "txRegex": ETHERSCAN_REGEX
+        "contractFetchAddress": "https://testnet.telos.net/" + TELOS_SUFFIX,
+        "isTelos": true
     }
 }
