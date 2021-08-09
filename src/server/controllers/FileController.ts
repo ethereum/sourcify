@@ -76,7 +76,7 @@ export default class FileController extends BaseController implements IControlle
             { prefix: "", method: this.createEndpoint(this.fileService.getContent, "full_match", "getContent full_match success") }
             
         ].forEach(pair => {
-            let validators = [param("chain").custom(isValidChain)];
+            const validators = [param("chain").custom(isValidChain)];
             if(pair.prefix != '/contracts') validators.push(param("address").custom(isValidAddress))
             this.router.route((pair.prefix != '/contracts') ? pair.prefix + "/:chain/:address" : pair.prefix + "/:chain")
             .get(validators, this.safeHandler(pair.method))
