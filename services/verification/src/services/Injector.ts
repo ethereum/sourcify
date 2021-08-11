@@ -161,7 +161,9 @@ export class Injector {
                     `Retrieving contract bytecode address`
                 );
                 deployedBytecode = await getBytecode(this.chains[chain].web3, address);
-            } catch (e) { /* ignore */ }
+            } catch (e) {
+                this.log.error({ loc: "[MATCH:GET_BYTECODE_FAIL]", chain, address }, e.message);
+            }
 
             try {
                 match = await this.compareBytecodes(

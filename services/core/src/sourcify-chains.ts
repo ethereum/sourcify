@@ -6,19 +6,26 @@ const BLOCKSCOUT_REGEX = "transaction_hash_link\" href=\"${BLOCKSCOUT_PREFIX}/tx
 const BLOCKSCOUT_SUFFIX = "address/${ADDRESS}/transactions";
 const TELOS_SUFFIX = "v2/evm/get_contract?contract=${ADDRESS}";
 
-function getCustomURL(chainName: string, useOwn=false) {
+type ChainGroup = "eth" | "polygon";
+
+function getCustomURL(chainName: string, chainGroup: ChainGroup, useOwn=false) {
     if (useOwn && process.env.TESTING !== "true") {
         const port = process.env[`NODE_PORT_${chainName.toUpperCase()}`];
         const url = `${process.env.NODE_ADDRESS}:${port}`;
         console.log(`Using own node for ${chainName} at ${url}`);
         return url;
     }
-    const id = process.env[`ALCHEMY_ID_${chainName.toUpperCase()}`];
-    return `https://eth-${chainName}.alchemyapi.io/v2/${id}`;
+
+    const id = process.env[`ALCHEMY_ID_${chainGroup.toUpperCase()}_${chainName.toUpperCase()}`];
+    const domain = {
+        eth: "alchemyapi.io",
+        polygon: "g.alchemy.com"
+    }[chainGroup];
+    return `https://${chainGroup}-${chainName}.${domain}/v2/${id}`;
 }
 
-function createArchiveEndpoint(chainName: string, useOwn=false) {
-    return new Web3(getCustomURL(chainName, useOwn));
+function createArchiveEndpoint(chainName: string, chainGroup: ChainGroup, useOwn=false) {
+    return new Web3(getCustomURL(chainName, chainGroup, useOwn));
 }
 
 function getBlockscoutRegex(blockscoutPrefix="") {
@@ -34,10 +41,10 @@ export default {
         "monitored": true,
         "contractFetchAddress": "https://etherscan.io/" + ETHERSCAN_SUFFIX,
         "rpc": [
-            getCustomURL("mainnet", true)
+            getCustomURL("mainnet", "eth", true)
         ],
         "txRegex": ETHERSCAN_REGEX,
-        "archiveWeb3": createArchiveEndpoint("mainnet", true)
+        "archiveWeb3": createArchiveEndpoint("mainnet", "eth", true)
     },
     "3": {
         "fullnode": {
@@ -47,10 +54,10 @@ export default {
         "monitored": true,
         "contractFetchAddress": "https://ropsten.etherscan.io/" + ETHERSCAN_SUFFIX,
         "rpc": [
-            getCustomURL("ropsten")
+            getCustomURL("ropsten", "eth")
         ],
         "txRegex": ETHERSCAN_REGEX,
-        "archiveWeb3": createArchiveEndpoint("ropsten")
+        "archiveWeb3": createArchiveEndpoint("ropsten", "eth")
     },
     "4": {
         "fullnode": {
@@ -60,10 +67,10 @@ export default {
         "monitored": true,
         "contractFetchAddress": "https://rinkeby.etherscan.io/" + ETHERSCAN_SUFFIX,
         "rpc": [
-            getCustomURL("rinkeby", true)
+            getCustomURL("rinkeby", "eth", true)
         ],
         "txRegex": ETHERSCAN_REGEX,
-        "archiveWeb3": createArchiveEndpoint("rinkeby", true)
+        "archiveWeb3": createArchiveEndpoint("rinkeby", "eth", true)
     },
     "5": {
         "fullnode": {
@@ -73,10 +80,10 @@ export default {
         "monitored": true,
         "contractFetchAddress": "https://goerli.etherscan.io/" + ETHERSCAN_SUFFIX,
         "rpc": [
-            getCustomURL("goerli", true)
+            getCustomURL("goerli", "eth", true)
         ],
         "txRegex": ETHERSCAN_REGEX,
-        "archiveWeb3": createArchiveEndpoint("goerli", true)
+        "archiveWeb3": createArchiveEndpoint("goerli", "eth", true)
     },
     "42": {
         "fullnode": {
@@ -86,10 +93,10 @@ export default {
         "monitored": true,
         "contractFetchAddress": "https://kovan.etherscan.io/" + ETHERSCAN_SUFFIX,
         "rpc": [
-            getCustomURL("kovan")
+            getCustomURL("kovan", "eth")
         ],
         "txRegex": ETHERSCAN_REGEX,
-        "archiveWeb3": createArchiveEndpoint("kovan"),
+        "archiveWeb3": createArchiveEndpoint("kovan", "eth"),
     },
     "56": {
         "supported": true,
@@ -118,8 +125,11 @@ export default {
     "137": {
         "supported": true,
         "monitored": true,
-        "contractFetchAddress": "https://explorer-mainnet.maticvigil.com/" + BLOCKSCOUT_SUFFIX,
-        "txRegex": getBlockscoutRegex()
+        "contractFetchAddress": "https://polygonscan.com/" + ETHERSCAN_SUFFIX,
+        "rpc": [
+            getCustomURL("mainnet", "polygon")
+        ],
+        "txRegex": ETHERSCAN_REGEX
     },
     "42220": {
         "supported": true,
@@ -142,8 +152,11 @@ export default {
     "80001": {
         "supported": true,
         "monitored": true,
-        "contractFetchAddress": "https://explorer-mumbai.maticvigil.com/" + BLOCKSCOUT_SUFFIX,
-        "txRegex": getBlockscoutRegex()
+        "contractFetchAddress": "https://mumbai.polygonscan.com/" + ETHERSCAN_SUFFIX,
+        "rpc": [
+            getCustomURL("mumbai", "polygon")
+        ],
+        "txRegex": ETHERSCAN_REGEX
     },
     "421611": {
         "supported": true,
