@@ -53,9 +53,21 @@ export async function checkEndpoint(provider: string): Promise<void> {
  * @param {Web3}   web3    connected web3 instance
  * @param {string} address contract
  */
-export async function getBytecode(web3: Web3, address: string): Promise<string> {
-    address = web3.utils.toChecksumAddress(address);
-    return await web3.eth.getCode(address);
+export async function getBytecode(web3array: Web3[], address: string): Promise<string> {
+    address = Web3.utils.toChecksumAddress(address);
+    for (const web3 of web3array) {
+        try {
+            return <string> await Promise.race([
+                web3.eth.getCode(address),
+                new Promise((_resolve, reject) => {
+                    setTimeout(reject, 1e3);
+                })
+            ])
+        } catch (err) {
+            undefined
+        }
+    }
+    throw new Error(`Could not get bytecode for ${address}`);
 }
 
 const RECOMPILATION_ERR_MSG = "Recompilation error (probably caused by invalid metadata)";

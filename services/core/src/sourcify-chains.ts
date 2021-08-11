@@ -12,7 +12,6 @@ function getCustomURL(chainName: string, chainGroup: ChainGroup, useOwn=false) {
     if (useOwn && process.env.TESTING !== "true") {
         const port = process.env[`NODE_PORT_${chainName.toUpperCase()}`];
         const url = `${process.env.NODE_ADDRESS}:${port}`;
-        console.log(`Using own node for ${chainName} at ${url}`);
         return url;
     }
 
@@ -41,7 +40,8 @@ export default {
         "monitored": true,
         "contractFetchAddress": "https://etherscan.io/" + ETHERSCAN_SUFFIX,
         "rpc": [
-            getCustomURL("mainnet", "eth", true)
+            getCustomURL("mainnet", "eth", true),
+            getCustomURL("mainnet", "eth")
         ],
         "txRegex": ETHERSCAN_REGEX,
         "archiveWeb3": createArchiveEndpoint("mainnet", "eth", true)
@@ -67,7 +67,8 @@ export default {
         "monitored": true,
         "contractFetchAddress": "https://rinkeby.etherscan.io/" + ETHERSCAN_SUFFIX,
         "rpc": [
-            getCustomURL("rinkeby", "eth", true)
+            getCustomURL("rinkeby", "eth", true),
+            getCustomURL("rinkeby", "eth")
         ],
         "txRegex": ETHERSCAN_REGEX,
         "archiveWeb3": createArchiveEndpoint("rinkeby", "eth", true)
@@ -80,7 +81,8 @@ export default {
         "monitored": true,
         "contractFetchAddress": "https://goerli.etherscan.io/" + ETHERSCAN_SUFFIX,
         "rpc": [
-            getCustomURL("goerli", "eth", true)
+            getCustomURL("goerli", "eth", true),
+            getCustomURL("goerli", "eth")
         ],
         "txRegex": ETHERSCAN_REGEX,
         "archiveWeb3": createArchiveEndpoint("goerli", "eth", true)

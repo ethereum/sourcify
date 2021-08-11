@@ -11,11 +11,12 @@ export interface InjectorConfig {
     log?: bunyan,
     offline?: boolean,
     repositoryPath?: string,
-    fileService?: IFileService
+    fileService?: IFileService,
+    web3timeout?: number
 }
 
 class InjectorChain {
-    web3: Web3;
+    web3array: Web3[];
     rpc: string[];
     name: string;
     contractFetchAddress: string;
@@ -25,6 +26,7 @@ class InjectorChain {
     isTelos: boolean;
 
     constructor(chain: Chain) {
+        this.web3array = [];
         this.rpc = chain.rpc;
         this.name = chain.name;
         this.contractFetchAddress = chain.contractFetchAddress;
@@ -62,6 +64,7 @@ export class Injector {
     private alchemyPID: string;
     private offline: boolean;
     public fileService: IFileService;
+    private web3timeout: number;
     repositoryPath: string;
 
     /**
@@ -74,6 +77,7 @@ export class Injector {
         this.offline = config.offline || false;
         this.repositoryPath = config.repositoryPath;
         this.log = config.log || Logger("Injector");
+        this.web3timeout = config.web3timeout || 3000;
 
         this.fileService = config.fileService || new FileService(this.repositoryPath, this.log);
     }
@@ -118,11 +122,13 @@ export class Injector {
             this.chains[chain.chainId] = new InjectorChain(chain);
 
             if (this.alchemyPID) {
-                const web3 = chain.rpc[0];
-                this.chains[chain.chainId].web3 = new Web3(web3);
+                this.chains[chain.chainId].web3array = chain.rpc.map((rpcURL: string) => {
+                    const opts = { timeout: this.web3timeout };
+                    return new Web3(new Web3.providers.HttpProvider(rpcURL, opts));
+                });
             } else {
                 const web3 = chain.fullnode.dappnode;
-                this.chains[chain.chainId].web3 = new Web3(web3)
+                this.chains[chain.chainId].web3array = [new Web3(web3)];
                 await checkEndpoint(web3).catch(() => {
                     this.log.warn({ endpoint: web3 }, `Invalid endpoint for chain ${chain.name}`);
                 })
@@ -160,10 +166,8 @@ export class Injector {
                     },
                     `Retrieving contract bytecode address`
                 );
-                deployedBytecode = await getBytecode(this.chains[chain].web3, address);
-            } catch (e) {
-                this.log.error({ loc: "[MATCH:GET_BYTECODE_FAIL]", chain, address }, e.message);
-            }
+                deployedBytecode = await getBytecode(this.chains[chain].web3array, address);
+            } catch (e) { /* ignore */ }
 
             try {
                 match = await this.compareBytecodes(
@@ -303,34 +307,37 @@ export class Injector {
 
         if (txFetchAddress && txRegex) { // fetch from a block explorer and extract by regex
             txFetchAddress = txFetchAddress.replace("${ADDRESS}", contractAddress);
-            const web3 = this.chains[chain].web3;
             this.log.info({ loc, chain, contractAddress, fetchAddress: txFetchAddress }, "Scraping block explorer");
-            try {
-                return await getCreationDataByScraping(txFetchAddress, txRegex, web3);
-            } catch(err) {
-                this.log.error({ loc, chain, contractAddress, err: err.message }, "Scraping failed!");
+            for (const web3 of this.chains[chain].web3array) {
+                try {
+                    return await getCreationDataByScraping(txFetchAddress, txRegex, web3);
+                } catch(err) {
+                    this.log.error({ loc, chain, contractAddress, err: err.message }, "Scraping failed!");
+                }
             }
         }
 
         if (txFetchAddress && this.chains[chain].isTelos) {
             txFetchAddress = txFetchAddress.replace("${ADDRESS}", contractAddress);
-            const web3 = this.chains[chain].web3;
-            this.log.info({ loc, chain, contractAddress, fetchAddress: txFetchAddress }, "Querying Telos API");
-            try {
-                return await getCreationDataTelos(txFetchAddress, web3);
-            } catch(err) {
-                this.log.error({ loc, chain, contractAddress, err: err.message }, "Telos API failed!");
-            } 
+            for (const web3 of this.chains[chain].web3array) {
+                this.log.info({ loc, chain, contractAddress, fetchAddress: txFetchAddress }, "Querying Telos API");
+                try {
+                    return await getCreationDataTelos(txFetchAddress, web3);
+                } catch(err) {
+                    this.log.error({ loc, chain, contractAddress, err: err.message }, "Telos API failed!");
+                } 
+            }
             
         }
 
         const graphQLFetchAddress = this.chains[chain].graphQLFetchAddress;
         if (graphQLFetchAddress) { // fetch from graphql node
-            const web3 = this.chains[chain].web3;
-            try {
-                return await getCreationDataFromGraphQL(graphQLFetchAddress, contractAddress, web3);
-            } catch (err) {
-                this.log.error({ loc, chain, contractAddress, err: err.message });
+            for (const web3 of this.chains[chain].web3array) {
+                try {
+                    return await getCreationDataFromGraphQL(graphQLFetchAddress, contractAddress, web3);
+                } catch (err) {
+                    this.log.error({ loc, chain, contractAddress, err: err.message });
+                }
             }
         }
 
