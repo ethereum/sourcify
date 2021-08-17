@@ -54,10 +54,11 @@ export default {
         "monitored": true,
         "contractFetchAddress": "https://ropsten.etherscan.io/" + ETHERSCAN_SUFFIX,
         "rpc": [
+            getCustomURL("ropsten", "eth", true),
             getCustomURL("ropsten", "eth")
         ],
         "txRegex": ETHERSCAN_REGEX,
-        "archiveWeb3": createArchiveEndpoint("ropsten", "eth")
+        "archiveWeb3": createArchiveEndpoint("ropsten", "eth", true)
     },
     "4": {
         "fullnode": {
