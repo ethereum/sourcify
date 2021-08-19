@@ -3,7 +3,7 @@ import Path from 'path';
 import fs from 'fs';
 import web3 from 'web3';
 import * as bunyan from 'bunyan';
-import { FileObject, Match, Tag, MatchLevel, FilesInfo, MatchQuality } from '../utils/types';
+import { FileObject, Match, Tag, MatchLevel, FilesInfo, MatchQuality, ContractData } from '../utils/types';
 import { getChainId } from '../utils/utils';
 import { Logger } from '../utils/logger';
 import rimraf from 'rimraf';
@@ -28,6 +28,7 @@ export interface IFileService {
     repositoryPath: string;
     getTree(chainId: any, address: string, match: string): Promise<FilesInfo<string>>;
     getContent(chainId: any, address: string, match: string): Promise<FilesInfo<FileObject>>;
+    getContracts(chainId: any): Promise<ContractData>;
 }
 
 export class FileService implements IFileService {
@@ -76,6 +77,14 @@ export class FileService implements IFileService {
 
         return files;
     }
+    fetchAllContracts = async(chain: String): Promise<ContractData> => {
+        const fullPath = this.repositoryPath + `/contracts/full_match/${chain}/`;
+        const partialPath = this.repositoryPath + `/contracts/partial_match/${chain}/`;
+        return {
+            full: (fs.existsSync(fullPath)) ? fs.readdirSync(fullPath) : [],
+            partial: (fs.existsSync(partialPath)) ? fs.readdirSync(partialPath) : []
+        };
+    }
     
     getTree = async (chainId: any, address: string, match: MatchLevel): Promise<FilesInfo<string>> => {
         chainId = getChainId(chainId);
@@ -99,6 +108,10 @@ export class FileService implements IFileService {
         return { status: "partial", files };
     }
 
+    getContracts = async(chainId: any): Promise<ContractData> => {
+        const contracts = await this.fetchAllContracts(chainId);
+        return contracts
+    }
     private generateContractPath(pathConfig: PathConfig) {
         return Path.join(
             this.repositoryPath,
