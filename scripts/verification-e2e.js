@@ -2,9 +2,11 @@ const assert = require("assert");
 require("dotenv").config({ path: "environments/.env" });
 const { spawnSync } = require("child_process");
 
-const deploymentAddress = process.argv[2];
-assert(deploymentAddress, "No address provided");
-const deploymentChain = process.argv[3];
+const deploymentChain = process.argv[2];
+assert(deploymentChain, "No chain provided");
+const artifact = require('../metacoin-source-verify/build/contracts/MetaCoinSalted.json')
+const deploymentAddress = artifact.networks[deploymentChain].address;
+assert(deploymentAddress, "No address found - has the contract been deployed?");
 
 const serverUrl = process.env.SERVER_URL;
 console.log("server:", serverUrl);

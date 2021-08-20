@@ -5,18 +5,30 @@
 git clone https://github.com/sourcifyeth/metacoin-source-verify.git
 cd metacoin-source-verify
 npm ci
-
-# Test WITHOUT providing address or chain
-# Deploys contracts to Rinkeby
-# Account key and Infura project ID are Circle CI env variable settings.
-# npm run deploy-with-salt:rinkeby || exit 1
-# DEPLOYMENT_ADDRESS=$(truffle networks | grep MetaCoinSalted | sed 's/^.*MetaCoinSalted: \\(.*\\).*$/\\1/')
 cd ..
-# node scripts/verification-e2e.js $DEPLOYMENT_ADDRESS || exit 2
 
-# Test WITH providing address and chain
-cd metacoin-source-verify
-npm run deploy-with-salt:rinkeby || exit 3
-DEPLOYMENT_ADDRESS=$(npm run address --silent)
-cd ..
-node scripts/verification-e2e.js $DEPLOYMENT_ADDRESS 4 || exit 4
+declare -A chains=([3]=ropsten [4]=rinkeby [5]=goerli)
+declare -A errors
+
+for id in "${!chains[@]}"; do
+    cd metacoin-source-verify
+    CHAIN_NAME=${chains[$id]}
+    npm run deploy-with-salt:$CHAIN_NAME || errors[$CHAIN_NAME]="failed deployment"
+    cd ..
+    node scripts/verification-e2e.js $id || errors[$CHAIN_NAME]="failed verification"
+done
+
+if [ ${#errors[@]} -eq 0 ]; then
+    echo "All chains successfully tested"
+else
+    for id in "${!chains[@]}"; do
+        CHAIN_NAME=${chains[$id]}
+        ERROR=${errors[$CHAIN_NAME]}
+        if [ -n "$ERROR" ]; then
+            echo "$CHAIN_NAME: $ERROR"
+        else
+            echo "$CHAIN_NAME: success"
+        fi
+    done
+    exit 1
+fi
