@@ -8,7 +8,7 @@ npm ci
 
 # Publishes sources to IPFS (via Infura) and deploys contracts to Goerli
 # Account key and Infura project ID are Circle CI env variable settings.
-npm run deploy:rinkeby || exit 1
+npm run deploy:$CHAIN_NAME || exit 1
 
 # Give monitor a chance to detect and save.
 sleep 300
@@ -20,7 +20,7 @@ do
     # Give monitor a chance to detect and save.
     sleep 30
     # Script which verifies repository write
-    if (./scripts/monitor_ci.js); then
+    if (./scripts/monitor_ci.js $CHAIN_ID $CHAIN_NAME); then
         echo "Test contract successfully verified!"
         exit 0
     fi
