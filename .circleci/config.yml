@@ -52,6 +52,20 @@ aliases:
           name: monitor test
           command: ./scripts/monitor_ci.sh
           no_output_timeout: 30m
+    docker:
+      - image: circleci/node:14
+  - &verification-e2e-base
+    working_directory: ~/source-verify
+    steps:
+      - checkout
+      - run:
+          name: install dotenv
+          command: npm install dotenv
+      - run:
+          name: verification test
+          command: ./scripts/verification-e2e.sh
+    docker:
+      - image: circleci/node:14
 
 version: 2
 workflows:
@@ -85,11 +99,27 @@ workflows:
             - build-push-server
             - build-push-ui
             - build-push-ui-draft
-      - monitor-e2e:
+      - monitor-e2e-ropsten:
           <<: *filter-base
           requires:
             - deploy
-      - verification-e2e:
+      - monitor-e2e-rinkeby:
+          <<: *filter-base
+          requires:
+            - deploy
+      - monitor-e2e-goerli:
+          <<: *filter-base
+          requires:
+            - deploy
+      - verification-e2e-ropsten:
+          <<: *filter-base
+          requires:
+            - deploy
+      - verification-e2e-rinkeby:
+          <<: *filter-base
+          requires:
+            - deploy
+      - verification-e2e-goerli:
           <<: *filter-base
           requires:
             - deploy
@@ -116,8 +146,12 @@ workflows:
               only:
                 - master
     jobs:
-      - monitor-e2e
-      - verification-e2e
+      - monitor-e2e-ropsten
+      - monitor-e2e-rinkeby
+      - monitor-e2e-goerli
+      - verification-e2e-ropsten
+      - verification-e2e-rinkeby
+      - verification-e2e-goerli
 
 jobs:
   build-push-ipfs:
@@ -177,22 +211,36 @@ jobs:
       - image: circleci/node:12
     environment:
       run_coveralls: "true"
-  monitor-e2e:
+  monitor-e2e-ropsten:
     <<: *monitor-e2e-base
-    docker:
-      - image: circleci/node:14
-  verification-e2e:
-    working_directory: ~/source-verify
-    steps:
-      - checkout
-      - run:
-          name: install dotenv
-          command: npm install dotenv
-      - run:
-          name: verification test
-          command: ./scripts/verification-e2e.sh
-    docker:
-      - image: circleci/node:14
+    environment:
+      CHAIN_ID: 3
+      CHAIN_NAME: ropsten
+  monitor-e2e-rinkeby:
+    <<: *monitor-e2e-base
+    environment:
+      CHAIN_ID: 4
+      CHAIN_NAME: rinkeby
+  monitor-e2e-goerli:
+    <<: *monitor-e2e-base
+    environment:
+      CHAIN_ID: 5
+      CHAIN_NAME: goerli
+  verification-e2e-ropsten:
+    <<: *verification-e2e-base
+    environment:
+      CHAIN_ID: 3
+      CHAIN_NAME: ropsten
+  verification-e2e-rinkeby:
+    <<: *verification-e2e-base
+    environment:
+      CHAIN_ID: 4
+      CHAIN_NAME: rinkeby
+  verification-e2e-goerli:
+    <<: *verification-e2e-base
+    environment:
+      CHAIN_ID: 5
+      CHAIN_NAME: goerli
   npm-publish:
     working_directory: ~/source-verify
     docker:
