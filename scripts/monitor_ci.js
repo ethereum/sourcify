@@ -13,44 +13,59 @@ const fetch = require('node-fetch');
 const util = require('util');
 const log = console.log;
 
-const chainID = "4";
 const artifact = require('../metacoin-source-verify/build/contracts/MetaCoin.json')
-const address = artifact.networks[chainID].address;
+const chainIDs = process.argv.slice(2).map(id => parseInt(id));
+if (chainIDs.length === 0) {
+  log("No chainIDs specified");
+  process.exit(1);
+}
+
+log(`ChainIDs: ${chainIDs.join(", ")}`)
 
 async function main(){
-  const url = `${process.env.REPOSITORY_URL}/contracts/full_match/${chainID}/${address}/metadata.json`;
+  const failedChains = [];
+  for (const chainID of chainIDs) {
+    const address = artifact.networks[chainID].address;
+    const url = `${process.env.REPOSITORY_URL}/contracts/full_match/${chainID}/${address}/metadata.json`;
 
-  log();
-  log(`>>>>>>>>>>>>>>>>>>>>`);
-  log(`Fetching: ${url}    `);
-  log(`>>>>>>>>>>>>>>>>>>>>`);
-  log();
+    log();
+    log(`>>>>>>>>>>>>>>>>>>>>`);
+    log(`Fetching: ${url}    `);
+    log(`>>>>>>>>>>>>>>>>>>>>`);
+    log();
 
-  const res = await fetch(url);
-  const text = await res.text();
+    const res = await fetch(url);
+    const text = await res.text();
 
-  let metadata;
-  try {
-    metadata = JSON.parse(text);
-  } catch (err) {
-    throw new Error('Metadata not found in repository...');
+    let metadata;
+    try {
+      metadata = JSON.parse(text);
+    } catch (err) {
+      log(`Metadata not found in repository for chain ${chainID}...`);
+      failedChains.push(chainID);
+      continue;
+    }
+
+    assert(metadata.compiler.version !== undefined);
+    assert(metadata.language === 'Solidity');
+
+    log();
+    log(`>>>>>>>>`);
+    log(`Metadata`);
+    log(`>>>>>>>>`);
+    log();
+
+    log(util.inspect(metadata));
   }
 
-  assert(metadata.compiler.version !== undefined);
-  assert(metadata.language === 'Solidity');
-
-  log();
-  log(`>>>>>>>>`);
-  log(`Metadata`);
-  log(`>>>>>>>>`);
-  log();
-
-  console.log(util.inspect(metadata));
+  if (failedChains.length) {
+    throw new Error(`Metadata not found for chains: ${failedChains.join(", ")}`);
+  }
 };
 
 main()
   .then(() => process.exit(0))
   .catch((err) => {
-    console.log(err);
-    process.exit(1);
+    log(err);
+    process.exit(2);
   })
