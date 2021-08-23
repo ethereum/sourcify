@@ -43,7 +43,8 @@ export class VerificationService implements IVerificationService {
                 log: this.logger,
                 alchemyPID: process.env.ALCHEMY_ID_ETH_MAINNET,
                 repositoryPath: this.fileService.repositoryPath,
-                fileService: this.fileService
+                fileService: this.fileService,
+                web3timeout: parseInt(process.env.WEB3_TIMEOUT)
             });
         }
 
