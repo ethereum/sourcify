@@ -17,6 +17,8 @@ services:
     container_name: ipfs-${TAG}
     ports:
     - "${IPFS_EXTERNAL_PORT}:8080"
+    - "4001:4001"
+    - "5001:5001"
     env_file:
     - .env
     restart: always
