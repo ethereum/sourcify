@@ -18,6 +18,7 @@ services:
     ports:
     - "${IPFS_EXTERNAL_PORT}:8080"
     - "4001:4001"
+    - "4002:4002/udp"
     - "5001:5001"
     env_file:
     - .env
