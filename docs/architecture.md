@@ -66,6 +66,7 @@
 - After a successful review, the commits may be squashed and rebased onto `staging`.
 - If the new staging environment works well for a few hours/days, or after there have been multiple new features on the `staging` branch, a new version PR is created which targets the `master` branch.
 - Following these points is not necessary for Sourcify to work, but is considered good practice.
+- However what is necessary is that versions in the `package.json` files be manually bumped, as was done in [this commit](https://github.com/ethereum/sourcify/commit/15814a10bd4b856f5815e2bd032133bdb17f8884).
 
 ## Supported Chains and Adding New Ones
 - The chains whose contracts can be verified with Sourcify are specified in [`services/core/src/sourcify-chains.ts`](https://github.com/ethereum/sourcify/blob/master/services/core/src/sourcify-chains.ts):
@@ -78,7 +79,7 @@
   - our own RPC nodes hosted on Gather (e.g. Rinkeby)
   - non-restricted nodes (e.g. xDai)
   - restricted nodes (e.g. Polygon/Matic):
-    - these require creating and storing a key for node access; this is done through [Alchemy](https://alchemyapi.io/)
+    - these require creating and storing a key for node access; Sourcify achieves this through [Alchemy](https://alchemyapi.io/)
 
 ## CI/CD
 - Specified in `.circleci/config.yml`.
@@ -91,9 +92,13 @@
     - `monitor-e2e` deploys a contract, waits and periodically checks if the Monitor service has picked the contract up.
     - `verification-e2e` deploys a contract, sends it to the server for verification and expects it to be succesfully verified.
   - Note: deployment does not depend on the success of Mocha tests.
-- When pushing to `master`, if the Mocha tests are successfully executed, the `npm-publish` task is run.
+- When pushing to `master`, if the Mocha tests are successfully executed, the `npm-publish` task is run, which updates NPM packages if their versions have changed.
 - When pushing to `staging`, the ui-draft image is also pushed.
-- Sometimes CircleCI fails when you expect it to succeed - in that case, use `Rerun from failed`.
+- Sometimes CircleCI fails when you expect it to succeed. It might be because:
+  - some RPC endpoints are unavailable
+  - CircleCI was having internal issues
+  - limit was reached in a third party service
+- After inspecting the CircleCI logs for eventual errors, it is often worth executing the option `Rerun from failed`.
 
 ## Accounts, Keys and Secret Variables
 - Secret keys are tracked in `environments/.env.secrets.gpg`, which is an encrypted file.
@@ -145,7 +150,7 @@
 - The `src` directory's most important subdirectories are:
   - `server`
   - `monitor`
-- The `services` directory's most important subdirectories are:
+- The `services` directory's most important subdirectories are (they are also published as separate NPM packages):
   - `verification`
   - `validation`
   - `core` - contains common types and functionalities used by other services
@@ -207,10 +212,15 @@
       ```
     - Run the debug configuration in `.vscode/launch.json`:
       - modify the chain flag for different chains (no flag for Mainnet)
+    - Alternatively build and run with Docker:
+      ```
+      $ docker build -t shardlabs/go-ethereum-sourcify:<VERSION> .
+      $ docker-compose -f geth-<CHAIN>.yaml up
+      ```
     - Check the state of the DB with:
       ```
       $ docker exec -it postgres bash
-      # psql <username> <username>
+      # psql <DBNAME> <USERNAME>
       # select * from complete limit 10;
       ```
     - If the output is an almost completely black screen, try scrolling for a few seconds.
