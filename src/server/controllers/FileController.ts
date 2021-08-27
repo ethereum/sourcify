@@ -34,7 +34,7 @@ export default class FileController extends BaseController implements IControlle
                 retrieved = await retrieveMethod(req.params.chain, req.params.address, match);
                 if (retrieved.files.length === 0) return next(new NotFoundError("Files have not been found!"));
     
-            } catch (err) {
+            } catch (err: any) {
                 return next(new NotFoundError(err.message));
             }
             this.logger.info({
@@ -56,7 +56,7 @@ export default class FileController extends BaseController implements IControlle
             try {
                 retrieved = await contractRetrieveMethod(req.params.chain);
                 if (retrieved.full.length === 0 && retrieved.partial.length === 0) return next(new NotFoundError("Contracts have not been found!"));
-            } catch (err) {
+            } catch (err: any) {
                 return next(new NotFoundError(err.message));
             }
             this.logger.info({

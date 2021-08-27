@@ -129,7 +129,7 @@ class ChainMonitor {
                 const cborData = cborDecode(numericBytecode);
                 const metadataAddress = SourceAddress.fromCborData(cborData);
                 this.sourceFetcher.assemble(metadataAddress, contract => this.inject(contract, bytecode, creationData, address));
-            } catch(err) {
+            } catch(err: any) {
                 this.logger.error({ loc: "[GET_BYTECODE:METADATA_READING]", address }, err.message);
             }
 

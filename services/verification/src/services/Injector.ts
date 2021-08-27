@@ -110,7 +110,7 @@ export class Injector {
     private async initChains() {
         if (this.alchemyPID) {
             this.log.info({loc: "[INIT_CHAINS]"}, "started checking providerPID");
-            await checkEndpoint(this.alchemyPID).catch((err) => {
+            await checkEndpoint(this.alchemyPID).catch((err: Error) => {
                 this.log.warn({ providerID: this.alchemyPID }, err.message);
             })
             this.log.info({loc: "[INIT_CHAINS]"}, "finished checking providerPID");
@@ -311,7 +311,7 @@ export class Injector {
             for (const web3 of this.chains[chain].web3array) {
                 try {
                     return await getCreationDataByScraping(txFetchAddress, txRegex, web3);
-                } catch(err) {
+                } catch(err: any) {
                     this.log.error({ loc, chain, contractAddress, err: err.message }, "Scraping failed!");
                 }
             }
@@ -323,7 +323,7 @@ export class Injector {
                 this.log.info({ loc, chain, contractAddress, fetchAddress: txFetchAddress }, "Querying Telos API");
                 try {
                     return await getCreationDataTelos(txFetchAddress, web3);
-                } catch(err) {
+                } catch(err: any) {
                     this.log.error({ loc, chain, contractAddress, err: err.message }, "Telos API failed!");
                 } 
             }
@@ -335,7 +335,7 @@ export class Injector {
             for (const web3 of this.chains[chain].web3array) {
                 try {
                     return await getCreationDataFromGraphQL(graphQLFetchAddress, contractAddress, web3);
-                } catch (err) {
+                } catch (err: any) {
                     this.log.error({ loc, chain, contractAddress, err: err.message });
                 }
             }
@@ -346,7 +346,7 @@ export class Injector {
             this.log.info({ loc, chain, contractAddress }, "Fetching archive data");
             try {
                 return await getCreationDataFromArchive(contractAddress, archiveWeb3);
-            } catch(err) {
+            } catch(err: any) {
                 this.log.error({ loc, chain, contractAddress, err: err.message }, "Archive search failed!");
             }
         }

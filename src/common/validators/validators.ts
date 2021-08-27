@@ -10,7 +10,7 @@ export function isValidChain(chain: string): any {
       if (getChainId(chain) !== undefined) {
          return true;
       }
-   } catch(err) { undefined }
+   } catch(err: any) { undefined }
    return false;
 }
 

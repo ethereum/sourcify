@@ -91,7 +91,7 @@ if (require.main === module) {
     const ignoring: any[] = [];
     try {
         checkedContracts = validationService.checkPaths(fileNames, ignoring);
-    } catch (err) {
+    } catch (err: any) {
         console.log(err.message);
         process.exitCode = 1;
     }

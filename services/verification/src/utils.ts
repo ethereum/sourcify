@@ -381,7 +381,7 @@ export async function getCreationDataFromGraphQL(fetchAddress: string, contractA
         const txHash = resp.data.allAccounts.nodes[0].creationTx;
         const tx = await web3.eth.getTransaction(txHash);
         return tx.input;
-    } catch (err) {
+    } catch (err: any) {
         throw new Error(`Creation data could not be fetched from ${fetchAddress}, reason: ${err.message}`);
     }
 }
