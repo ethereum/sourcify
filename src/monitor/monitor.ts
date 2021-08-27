@@ -13,6 +13,7 @@ const BLOCK_PAUSE_FACTOR = parseInt(process.env.BLOCK_PAUSE_FACTOR) || 1.1;
 assert(BLOCK_PAUSE_FACTOR > 1);
 const BLOCK_PAUSE_UPPER_LIMIT = parseInt(process.env.BLOCK_PAUSE_UPPER_LIMIT) || (30 * 1000); // default: 30 seconds
 const BLOCK_PAUSE_LOWER_LIMIT = parseInt(process.env.BLOCK_PAUSE_LOWER_LIMIT) || (0.5 * 1000); // default: 0.5 seconds
+const WEB3_TIMEOUT = parseInt(process.env.WEB3_TIMEOUT) || 3000;
 
 function createsContract(tx: Transaction): boolean {
     return !tx.to;
@@ -23,7 +24,8 @@ function createsContract(tx: Transaction): boolean {
  */
 class ChainMonitor {
     private chainId: string;
-    private web3Provider: Web3;
+    private web3urls: string[];
+    private web3provider: Web3;
     private sourceFetcher: SourceFetcher;
     private logger: Logger;
     private verificationService: IVerificationService;
@@ -33,9 +35,9 @@ class ChainMonitor {
     private getBlockPause: number;
     private initialGetBytecodeTries: number;
 
-    constructor(name: string, chainId: string, web3Url: string, sourceFetcher: SourceFetcher, verificationService: IVerificationService) {
+    constructor(name: string, chainId: string, web3urls: string[], sourceFetcher: SourceFetcher, verificationService: IVerificationService) {
         this.chainId = chainId;
-        this.web3Provider = new Web3(web3Url);
+        this.web3urls = web3urls;
         this.sourceFetcher = sourceFetcher;
         this.logger = new Logger({ name });
         this.verificationService = verificationService;
@@ -49,13 +51,29 @@ class ChainMonitor {
         this.running = true;
         const rawStartBlock = process.env[`MONITOR_START_${this.chainId}`];
 
-        try {
-            const startBlock = (rawStartBlock !== undefined) ?
-                parseInt(rawStartBlock) : await this.web3Provider.eth.getBlockNumber();
-            this.processBlock(startBlock);
-            this.logger.info({ loc: "[MONITOR:START]", startBlock });
-        } catch (err) {
-            this.logger.error({ loc: "[MONITOR:START]", err: "Cannot getBlockNumber" });
+        // iterate over RPCs to find a working one; log the search result
+        let found = false;
+        for (const web3url of this.web3urls) {
+            this.logger.info({ loc: "[MONITOR:START]", web3url }, "Attempting to connect");
+            const opts = { timeout: WEB3_TIMEOUT };
+            const web3provider = new Web3(new Web3.providers.HttpProvider(web3url, opts));
+            try {
+                const lastBlockNumber = await web3provider.eth.getBlockNumber();
+                this.logger.info({ loc: "[MONITOR:START]", lastBlockNumber }, "Found a working chain");
+                found = true;
+
+                this.web3provider = web3provider;
+
+                const startBlock = (rawStartBlock !== undefined) ? parseInt(rawStartBlock) : lastBlockNumber;
+                this.processBlock(startBlock);
+                break;
+            } catch (err) {
+                this.logger.error({ loc: "[MONITOR:START]", err: "Cannot getBlockNumber", web3url });
+            }
+        }
+
+        if (!found) {
+            this.logger.error({ loc: "[MONITOR:START]", err: "No working chains! Exiting!" });
         }
     }
 
@@ -68,7 +86,7 @@ class ChainMonitor {
     }
 
     private processBlock = (blockNumber: number) => {
-        this.web3Provider.eth.getBlock(blockNumber, true).then(block => {
+        this.web3provider.eth.getBlock(blockNumber, true).then(block => {
             if (!block) {
                 this.adaptBlockPause("increase");
 
@@ -117,7 +135,7 @@ class ChainMonitor {
             return;
         }
 
-        this.web3Provider.eth.getCode(address).then(bytecode => {
+        this.web3provider.eth.getCode(address).then(bytecode => {
             if (bytecode === "0x") {
                 this.logger.info({ loc: "[PROCESS_BYTECODE]", address, retriesLeft }, "Empty bytecode");
                 this.mySetTimeout(this.processBytecode, this.getBytecodeRetryPause, creationData, address, retriesLeft);
@@ -172,7 +190,7 @@ export default class Monitor {
         this.chainMonitors = chains.map((chain: Chain) => new ChainMonitor(
             chain.name,
             chain.chainId.toString(),
-            chain.rpc[0],
+            chain.rpc,
             this.sourceFetcher,
             new VerificationService(
                 new FileService(repositoryPath),
