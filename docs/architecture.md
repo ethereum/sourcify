@@ -88,12 +88,15 @@
 - When pushing to `staging` or `master`, the `build-publish-deploy` task is run:
   - Docker images of server, UI, repository and monitor are built and pushed to Docker Hub
   - If all images are built and pushed successfully, deployment is initiated.
-  - If deployment is successful, end-to-end tests are run:
-    - `monitor-e2e` deploys a contract, waits and periodically checks if the Monitor service has picked the contract up.
-    - `verification-e2e` deploys a contract, sends it to the server for verification and expects it to be succesfully verified.
+  - If deployment is successful, end-to-end (e2e) tests are run:
+    - `monitor-e2e-*` deploys a contract, waits and periodically checks if the Monitor service has picked the contract up.
+    - `verification-e2-*` deploys a contract, sends it to the server for verification and expects it to be succesfully verified.
   - Note: deployment does not depend on the success of Mocha tests.
 - When pushing to `master`, if the Mocha tests are successfully executed, the `npm-publish` task is run, which updates NPM packages if their versions have changed.
 - When pushing to `staging`, the ui-draft image is also pushed.
+- A `nigthly` workflow is launched every day at 01:00 UTC:
+  - it runs the e2e tests for the `master` version of Sourcify
+  - it is recommended to check the result of this test every day
 - Sometimes CircleCI fails when you expect it to succeed. It might be because:
   - some RPC endpoints are unavailable
   - CircleCI was having internal issues
@@ -212,7 +215,8 @@
       ```
     - Run the debug configuration in `.vscode/launch.json`:
       - modify the chain flag for different chains (no flag for Mainnet)
-    - Alternatively build and run with Docker:
+    - Alternatively build and run with Docker
+      - in `.env`, set `POSTGRES_HOST` to `postgres`
       ```
       $ docker build -t shardlabs/go-ethereum-sourcify:<VERSION> .
       $ docker-compose -f geth-<CHAIN>.yaml up
