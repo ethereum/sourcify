@@ -13,7 +13,13 @@ const fetch = require('node-fetch');
 const util = require('util');
 const log = console.log;
 
-const chainID = "4";
+const chainID = parseInt(process.argv[2]);
+const chainName = process.argv[3];
+if (!chainID || !chainName) {
+  log("Expected arguments: <chainID> <chainName>");
+  process.exit(1);
+}
+
 const artifact = require('../metacoin-source-verify/build/contracts/MetaCoin.json')
 const address = artifact.networks[chainID].address;
 
@@ -45,12 +51,12 @@ async function main(){
   log(`>>>>>>>>`);
   log();
 
-  console.log(util.inspect(metadata));
+  log(util.inspect(metadata));
 };
 
 main()
   .then(() => process.exit(0))
   .catch((err) => {
-    console.log(err);
+    log(err);
     process.exit(1);
   })

@@ -8,8 +8,8 @@ export default class BaseController {
         return async (req: Request, res: Response, next: NextFunction) => {
             try {
                 return await requestHandler(req, res, next);
-            } catch (err) {
-                next(typeof err === 'object' ? err : new InternalServerError(err));
+            } catch (err: any) {
+                next(typeof err === 'object' ? err : new InternalServerError(err.mesage));
             }
         };
     }

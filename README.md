@@ -286,6 +286,7 @@ This paragraph should be read with the following in mind:
 The repository (https://repo.sourcify.dev) provides the following GET endpoints:
 * JSON-formatted metadata file (with ABI): `/contracts/<MATCH_QUALITY>/<CHAIN_ID>/<CONTRACT_ADDRESS>/metadata.json`
 * JSON-formatted file with constructor arguments (only for fully matched contracts using [immutable variables](https://ethereum.stackexchange.com/questions/82240/what-is-the-immutable-keyword-in-solidity)): `/contracts/full_match/<CHAIN_ID>/<CONTRACT_ADDRESS>/constructor-args.txt`
+* JSON-formatted file mapping library address placeholders to actual addresses: `/contracts/<MATCH_QUALITY>/<CHAIN_ID>/<CONTRACT_ADDRESS>/library-map.json`
 * Source file: `/contracts/<MATCH_QUALITY>/<CHAIN_ID>/<CONTRACT_ADDRESS>/sources/<FILE_PATH>`
 * JSON-formatted full and partial match count per chain: `/stats.json`
 * JSON-formatted timestamp and version of the repo: `/manifest.json`

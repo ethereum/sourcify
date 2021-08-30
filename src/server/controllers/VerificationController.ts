@@ -92,7 +92,7 @@ export default class VerificationController extends BaseController implements IC
         let validatedContracts: CheckedContract[];
         try {
             validatedContracts = this.validationService.checkFiles(inputFiles);
-        } catch(error) {
+        } catch(error: any) {
             throw new BadRequestError(error.message);
         }
 
