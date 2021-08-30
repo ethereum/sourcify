@@ -33,7 +33,7 @@
   - used by the server and Monitor when fetching metadata/source files
 - S3:
   - makes a backup of the repository in an S3 bucket
-  - periodically - every hour 
+  - periodically - every hour
 - Repository:
   - an explorer of source and metadata files of verified contracts
   - `full` and `partial` matches are kept separately
@@ -95,7 +95,7 @@
 - When pushing to `master`, if the Mocha tests are successfully executed, the `npm-publish` task is run, which updates NPM packages if their versions have changed.
 - When pushing to `staging`, the ui-draft image is also pushed.
 - A `nigthly` workflow is launched every day at 01:00 UTC:
-  - it runs the e2e tests for the `master` version of Sourcify
+  - it runs the E2E tests for the `master` version of Sourcify
   - it is recommended to check the result of this test every day
 - Sometimes CircleCI fails when you expect it to succeed. It might be because:
   - some RPC endpoints are unavailable
@@ -103,7 +103,11 @@
   - limit was reached in a third party service
 - After inspecting the CircleCI logs for eventual errors, it is often worth executing the option `Rerun from failed`.
 
-## Accounts, Keys and Secret Variables
+## Accounts, Keys and Environment Variables
+- Environment variables used for configuration are:
+  - read from `environments/.env.latest` on the `staging` branch
+  - read from `environments/.env.stable` on the `master` branch
+  - marked as `xxx` if they are secret keys; when deploying or E2E-testing, they are replaced using `scripts/find_replace.sh`
 - Secret keys are tracked in `environments/.env.secrets.gpg`, which is an encrypted file.
 - The file can be decrypted using `scripts/decrypt.sh`, and encrypted using `scripts/encrypt.sh`, both scripts requiring the `SECRET_KEY` environment variable.
 - [CI/CD](#ci/cd) uses its own [set of environment variables](https://app.circleci.com/settings/project/github/ethereum/sourcify/environment-variables?return-to=https%3A%2F%2Fapp.circleci.com%2Fpipelines%2Fgithub%2Fethereum%2Fsourcify):
@@ -116,7 +120,7 @@
   ```
   $ npx lerna bootstrap
   ```
-- Create the `.env` file in the `environments` directory; it can be modeled after `environments/.env.latest`:
+- Create the `.env` file in the `environments` directory; it can be modeled after `.env.latest`:
   - Generate an Alchemy API key (same key can work with all `ALCHEMY_ID_*` variables)
   - Designate a path where solc instances will be downloaded (SOLC_REPO)
   - Designate a path where contract files will be stored upon verification (REPOSITORY_PATH)
