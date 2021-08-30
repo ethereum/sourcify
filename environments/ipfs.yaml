@@ -16,10 +16,9 @@ services:
     image: ethereum/source-verify:ipfs-${TAG}
     container_name: ipfs-${TAG}
     ports:
-    - "${IPFS_EXTERNAL_PORT}:8080"
-    - "4001:4001"
-    - "4002:4002/udp"
-    - "5001:5001"
+    - "${IPFS_GW_EXTERNAL_PORT}:8080"
+    - "${IPFS_LIBP2P_EXTERNAL_PORT}:4001"
+    - "${IPFS_API_EXTERNAL_PORT}:5001"
     env_file:
     - .env
     restart: always
