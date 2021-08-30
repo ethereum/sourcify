@@ -1,6 +1,6 @@
 {
   "name": "@ethereum-sourcify/validation",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "Pre-verification module to check if files are valid and ready to be submitted for verification",
   "bin": {
     "sourcify-validation": "./build/index.js"
