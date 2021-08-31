@@ -61,6 +61,8 @@ watches:
   + Avalanche Fuji Testnet
   + Avalanche Mainnet
   + Arbitrum Testnet Rinkeby
+  + Syscoin Mainnet
+  + Syscoin Tanenbaum Testnet
 
 + a website which allows you to submit sources and metadata for a specific contract address manually
   + https://sourcify.dev (Stable)
