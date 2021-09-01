@@ -2212,7 +2212,7 @@
   {
     "name": "Syscoin Tanenbaum Testnet",
     "chainId": 5700,
-    "shortName": "sys",
+    "shortName": "tsys",
     "chain": "SYS",
     "network": "testnet",
     "networkId": 5700,
