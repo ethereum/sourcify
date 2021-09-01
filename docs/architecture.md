@@ -10,6 +10,9 @@
   - API described in [the README](https://github.com/ethereum/sourcify#api).
   - There is an additional, session-based API v2, designed to be used by the version of UI (UI-draft).
   - Internal logic described in [Code Logic](#code-logic).
+  - Available at (with a POST request):
+    - https://sourcify.dev/server (`master`)
+    - https://staging.sourcify.dev/server (`staging`)
 - Monitor:
   - Workflow ([link](https://medium.com/shard-labs/how-smart-contracts-can-be-automatically-verified-28ee1c5cf941)):
     - RPC nodes are periodically queried for new blocks
@@ -21,7 +24,7 @@
 - UI:
   - provides a user friendly interface for communicating with the server
   - two purposes:
-    - check if an address is verified
+    - check if an address is verified (and return a repo link to sources if so)
     - verify a contract
   - available at:
     - https://sourcify.dev (`master`)
