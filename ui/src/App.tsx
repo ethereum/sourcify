@@ -16,7 +16,7 @@ const App: React.FC = () => {
                         </h1>
                         <h3 className="sub-title">
                             Make the most of your Solidity code with metadata files and source
-                            verifcation.
+                            verification.
                         </h3>
                         <div className="description">
                             <p className="description__text">
