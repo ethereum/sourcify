@@ -189,5 +189,11 @@ export default {
         "monitored": false,
         "contractFetchAddress": "https://testnet.telos.net/" + TELOS_SUFFIX,
         "isTelos": true
+    },
+    "8": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://ubiqscan.io/" + ETHERSCAN_SUFFIX,
+        "txRegex": ETHERSCAN_REGEX
     }
 }

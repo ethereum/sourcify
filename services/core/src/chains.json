@@ -1885,16 +1885,16 @@
     "infoURL": "https://acala.network"
   },
   {
-    "name": "Ubiq Network Mainnet",
+    "name": "Ubiq",
     "chainId": 8,
     "shortName": "ubq",
     "chain": "UBQ",
     "network": "mainnet",
-    "networkId": 88,
+    "networkId": 8,
     "nativeCurrency": {"name":"Ubiq Ether","symbol":"UBQ","decimals":18},
     "rpc": ["https://rpc.octano.dev","https://pyrus2.ubiqscan.io"],
     "faucets": [],
-    "explorers": [],
+    "explorers": [{"name":"ubiqscan","url":"https://ubiqscan.io","standard":"EIP3091"}],
     "infoURL": "https://ubiqsmart.com"
   },
   {
