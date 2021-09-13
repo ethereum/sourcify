@@ -189,5 +189,23 @@ export default {
         "monitored": false,
         "contractFetchAddress": "https://testnet.telos.net/" + TELOS_SUFFIX,
         "isTelos": true
+    },
+    "311752642": {
+        "supported": true,
+        "monitored": true,
+        "contractFetchAddress": "https://mainnet-explorer.oneledger.network/" + BLOCKSCOUT_SUFFIX,
+        "rpc": [
+            "https://mainnet-rpc.oneledger.network"
+        ],
+        "txRegex": getBlockscoutRegex()
+    },
+    "4216137055": {
+        "supported": true,
+        "monitored": true,
+        "contractFetchAddress": "https://frankenstein-explorer.oneledger.network/" + BLOCKSCOUT_SUFFIX,
+        "rpc": [
+            "https://frankenstein-rpc.oneledger.network"
+        ],
+        "txRegex": getBlockscoutRegex()
     }
 }
