@@ -43,26 +43,7 @@ As mentioned above, Sourcify has several components:
 
 + a "monitoring & verifier service" which watches public Ethereum networks for contract deployments
 and tries to associate them with sources and metadata published to Swarm or IPFS. It currently
-watches:
-  + Ethereum Mainnet
-  + Ropsten
-  + Rinkeby
-  + Kovan
-  + Goerli
-  + xDai
-  + POA Network Sokol
-  + Polygon (previously Matic)
-  + Mumbai Testnet (Polygon/Matic)
-  + Binance Smart Chain Mainnet (monitoring temporarily suspended)
-  + Binance Smart Chain Testnet (monitoring temporarily suspended)
-  + Celo Mainnet
-  + Celo Alfajores Testnet
-  + Celo Baklava Testnet
-  + Avalanche Fuji Testnet
-  + Avalanche Mainnet
-  + Arbitrum Testnet Rinkeby
-  + Ubiq
-  + OneLedger Testnet Frankenstein
+watches Ethereum mainnet and test networks, and other EVM based chains listed [here](#supported-networks) 
 
 + a website which allows you to submit sources and metadata for a specific contract address manually
   + https://sourcify.dev (Stable)
@@ -297,3 +278,39 @@ E.g. the following URL fetches `browser/OceanMan.sol`, a source of the contract 
 * https://repo.sourcify.dev/contracts/full_match/1/0x00000000064Ecc11c97AC4a5551F279532Bf9E0D/sources/browser/OceanMan.sol
 
 In order to fetch from the staging repository, replace https://repo.sourcify.dev with https://repo.staging.sourcify.dev.
+
+# Supported Networks
+  + Ethereum Mainnet
+  + Ropsten
+  + Rinkeby
+  + Kovan
+  + Goerli
+  + xDai
+  + POA Network Sokol
+  + Polygon (previously Matic)
+  + Mumbai Testnet (Polygon/Matic)
+  + Binance Smart Chain Mainnet (monitoring temporarily suspended)
+  + Binance Smart Chain Testnet (monitoring temporarily suspended)
+  + Celo Mainnet
+  + Celo Alfajores Testnet
+  + Celo Baklava Testnet
+  + Avalanche Fuji Testnet
+  + Avalanche Mainnet
+  + Arbitrum Testnet Rinkeby
+  + Ubiq
+  + OneLedger Testnet Frankenstein
+
+## Adding a new chain
+
+If you'd like to add a new chain support to Sourcify you can open a pull request to the **staging** branch with following:
+- Make sure the chain is listed in [chains.json](services/core/src/chains.json). This file is kept in sync with [chainlist.org](https://chainlist.org/chains.json) and should not be edited.
+
+- Add the chain details in [sourcify-chains.ts](services/core/src/sourcify-chains.ts) similar to other chains with `supported: true` and `monitored: false`. 
+
+- Add the chain to the front-end in [constants.ts](ui/src/common/constants.ts)
+
+- Provide a test contract on the chain with address, source code, and metadata file in the pull request.
+
+# Contributing
+
+When opening a pull request, please set the base branch as **staging**. Direct merges to master is not possible.
