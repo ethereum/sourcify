@@ -163,8 +163,17 @@ export default {
     },
     "421611": {
         "supported": true,
-        "monitored": true,
+        "monitored": false,
         "graphQLFetchAddress": "https://rinkeby-indexer.arbitrum.io/graphql"
+    },
+    "42161": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://arbiscan.io" + ETHERSCAN_SUFFIX,
+        "rpc": [
+            'https://arb1.arbitrum.io/rpc'
+        ],
+        "txRegex": ETHERSCAN_REGEX
     },
     "43113": {
         "supported": true,
@@ -189,5 +198,20 @@ export default {
         "monitored": false,
         "contractFetchAddress": "https://testnet.telos.net/" + TELOS_SUFFIX,
         "isTelos": true
+    },
+    "8": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://ubiqscan.io/" + ETHERSCAN_SUFFIX,
+        "txRegex": ETHERSCAN_REGEX
+    },
+    "4216137055": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://frankenstein-explorer.oneledger.network/" + BLOCKSCOUT_SUFFIX,
+        "rpc": [
+            "https://frankenstein-rpc.oneledger.network"
+        ],
+        "txRegex": getBlockscoutRegex()
     }
 }
