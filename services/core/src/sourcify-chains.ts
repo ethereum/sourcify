@@ -163,8 +163,17 @@ export default {
     },
     "421611": {
         "supported": true,
-        "monitored": true,
+        "monitored": false,
         "graphQLFetchAddress": "https://rinkeby-indexer.arbitrum.io/graphql"
+    },
+    "42161": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://arbiscan.io" + ETHERSCAN_SUFFIX,
+        "rpc": [
+            'https://arb1.arbitrum.io/rpc'
+        ],
+        "txRegex": ETHERSCAN_REGEX
     },
     "43113": {
         "supported": true,

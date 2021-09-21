@@ -294,8 +294,9 @@ In order to fetch from the staging repository, replace https://repo.sourcify.dev
   + Celo Mainnet
   + Celo Alfajores Testnet
   + Celo Baklava Testnet
-  + Avalanche Fuji Testnet
   + Avalanche Mainnet
+  + Avalanche Fuji Testnet
+  + Arbitrum Mainnet
   + Arbitrum Testnet Rinkeby
   + Ubiq
   + OneLedger Testnet Frankenstein
