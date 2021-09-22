@@ -1,6 +1,6 @@
 [submodule "h5ai-nginx"]
 	path = h5ai-nginx
-	url = https://github.com/blockchain-it-hr/h5ai-nginx
+	url = https://github.com/sourcifyeth/h5ai-nginx
 [submodule "docker/sourcify-monitoring"]
 	path = docker/sourcify-monitoring
 	url = git@github.com:sourcifyeth/sourcify-monitoring.git
