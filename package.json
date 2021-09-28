@@ -65,7 +65,7 @@
     "multihashes": "^3.0.1",
     "node-fetch": "^2.6.1",
     "serve-index": "^1.9.1",
-    "web3": "^1.5.3"
+    "web3": "^1.2.11"
   },
   "devDependencies": {
     "@types/bunyan": "^1.8.6",
@@ -82,11 +82,11 @@
     "chai": "^4.2.0",
     "chai-http": "^4.3.0",
     "eslint": "^7.13.0",
-    "ganache-cli": "^6.12.2",
-    "ipfs": "^0.59.0",
+    "ganache-cli": "^6.10.1",
+    "ipfs": "^0.48.1",
     "ipfs-unixfs": "^1.0.0",
     "ipld-dag-pb": "^0.18.2",
-    "lerna": "^4.0.0",
+    "lerna": "^3.22.1",
     "mocha": "^7.0.0",
     "pify": "^4.0.1",
     "rimraf": "^3.0.2",
