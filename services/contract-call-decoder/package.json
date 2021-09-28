@@ -1,0 +1,40 @@
+{
+  "name": "contract-call-decoder",
+  "version": "0.1.0",
+  "description": "Contract call decoder module for a given chain, contract address, and transaction input data. Extracts the metadata.json IPFS hash from the contract bytecode and fetches the metadata. Finds the called function in the contract ABI and decodes the call parameters. If available, shows the NatSpec/userDoc of the called function.",
+  "types": "build/index.d.ts",
+  "files": [
+    "build"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ethereum/sourcify.git"
+  },
+  "main": "build/index.js",
+  "scripts": {
+    "test": "npm run build && mocha",
+    "build": "rimraf ./build && tsc",
+    "start": "npm run build && node build/index.js"
+  },
+  "keywords": [
+    "ethereum",
+    "contract",
+    "decoder",
+    "metadata",
+    "ipfs",
+    "transaction",
+    "evm"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cbor": "^8.0.0",
+    "multihashes": "^0.4.21",
+    "rimraf": "^3.0.2",
+    "web3": "^1.5.3"
+  },
+  "devDependencies": {
+    "chai": "^4.3.4",
+    "mocha": "^9.1.2"
+  }
+}
