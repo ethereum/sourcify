@@ -85,7 +85,7 @@ export async function recompile(
 ): Promise<RecompilationResult> {
 
     const {
-        input,
+        solcJsonInput,
         fileName,
         contractName
     } = reformatMetadata(metadata, sources, log);
@@ -98,7 +98,7 @@ export async function recompile(
         'Recompiling'
     );
 
-    const compiled = await useCompiler(version, input, log);
+    const compiled = await useCompiler(version, solcJsonInput, log);
     const output = JSON.parse(compiled);
     if (!output.contracts || !output.contracts[fileName] || !output.contracts[fileName][contractName]) {
         const errors = output.errors.filter((e: any) => e.severity === "error").map((e: any) => e.message);
@@ -124,8 +124,8 @@ export async function recompile(
  * @param log the logger
  * @returns stringified solc output
  */
-async function useCompiler(version: string, input: any, log: InfoErrorLogger) {
-    const inputStringified = JSON.stringify(input);
+async function useCompiler(version: string, solcJsonInput: any, log: InfoErrorLogger) {
+    const inputStringified = JSON.stringify(solcJsonInput);
     const solcPath = await getSolcExecutable(version, log);
     let compiled: string = null;
 
@@ -134,6 +134,18 @@ async function useCompiler(version: string, input: any, log: InfoErrorLogger) {
         log.info(logObject, "Compiling with external executable");
 
         const shellOutputBuffer = spawnSync(solcPath, ["--standard-json"], {input: inputStringified});
+
+        // Handle errors.
+        if (shellOutputBuffer.error) {
+            const typedError: NodeJS.ErrnoException = shellOutputBuffer.error;
+            // Handle compilation output size > stdout buffer
+            if (typedError.code  === 'ENOBUFS') {
+                log.error(logObject, shellOutputBuffer.error || RECOMPILATION_ERR_MSG);
+                throw new Error('Compilation output size too large')
+            }
+            log.error(logObject, shellOutputBuffer.error || RECOMPILATION_ERR_MSG);
+            throw new Error('Compilation Error')
+        }
         if (!shellOutputBuffer.stdout) {
             log.error(logObject, shellOutputBuffer.error || RECOMPILATION_ERR_MSG);
             throw new Error(RECOMPILATION_ERR_MSG);
