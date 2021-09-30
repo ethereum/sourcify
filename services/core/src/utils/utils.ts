@@ -129,11 +129,11 @@ export function reformatMetadata(
     log?: any
 ): ReformattedMetadata {
 
-    const input: any = {};
+    const solcJsonInput: any = {};
     let fileName = '';
     let contractName = '';
 
-    input.settings = JSON.parse(JSON.stringify(metadata.settings));
+    solcJsonInput.settings = JSON.parse(JSON.stringify(metadata.settings));
 
     if (!metadata.settings ||
         !metadata.settings.compilationTarget ||
@@ -148,25 +148,25 @@ export function reformatMetadata(
         contractName = metadata.settings.compilationTarget[fileName];
     }
 
-    delete input.settings.compilationTarget;
+    delete solcJsonInput.settings.compilationTarget;
 
-    input.sources = {};
+    solcJsonInput.sources = {};
     for (const source in sources) {
-        input.sources[source] = { content: sources[source] }
+        solcJsonInput.sources[source] = { content: sources[source] }
     }
 
-    input.language = metadata.language
-    input.settings.metadata = input.settings.metadata || {}
-    input.settings.outputSelection = input.settings.outputSelection || {}
-    input.settings.outputSelection[fileName] = input.settings.outputSelection[fileName] || {}
+    solcJsonInput.language = metadata.language
+    solcJsonInput.settings.metadata = solcJsonInput.settings.metadata || {}
+    solcJsonInput.settings.outputSelection = solcJsonInput.settings.outputSelection || {}
+    solcJsonInput.settings.outputSelection[fileName] = solcJsonInput.settings.outputSelection[fileName] || {}
 
-    input.settings.outputSelection[fileName][contractName] = [
-        'evm.bytecode',
-        'evm.deployedBytecode',
+    solcJsonInput.settings.outputSelection[fileName][contractName] = [
+        'evm.bytecode.object',
+        'evm.deployedBytecode.object',
         'metadata'
     ];
 
-    input.settings.libraries = { "": metadata.settings.libraries || {} };
+    solcJsonInput.settings.libraries = { "": metadata.settings.libraries || {} };
 
-    return { input, fileName, contractName };
+    return { solcJsonInput, fileName, contractName };
 }

@@ -94,7 +94,7 @@ export type Tag = {
 }
 
 export declare interface ReformattedMetadata {
-  input: any,
+  solcJsonInput: any,
   fileName: string,
   contractName: string
 }
