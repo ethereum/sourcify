@@ -9,7 +9,10 @@
     "outDir": "build",
     "resolveJsonModule": true,
     "strictNullChecks": false,
-    "module": "commonjs"
+    "module": "commonjs",
+    "types": [
+      "node"
+    ]
   },
   "include": ["./src"]
 }

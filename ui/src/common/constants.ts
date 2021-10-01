@@ -15,10 +15,12 @@ export const CHAIN_OPTIONS = [
     {value: "baklava testnet", label: "Celo Baklava Testnet", id: 62320},
     {value: "avalanche testnet", label: "Avalanche Fuji Testnet", id: 43113},
     {value: "avalanche mainnet", label: "Avalanche Mainnet", id: 43114},
-    {value: "arbitrum rinkeby", label: "Arbitrum Testnet Rinkeby", id: 421611},
+    {value: "arbitrum one", label: "Arbitrum Mainnet", id: 42161},
     {value: "arbitrum rinkeby", label: "Arbitrum Testnet Rinkeby", id: 421611},
     {value: "telos mainnet", label: "Telos EVM Mainnet", id: 40},
     {value: "telos testnet", label: "Telos EVM Testnet", id: 41},
+    {value: "ubiq", label: "Ubiq", id: 8},
+    {value: "oneledger testnet", label: "OneLedger Testnet Frankenstein", id: 4216137055},
 ];
 
 export const ID_TO_CHAIN = {};

@@ -1,4 +1,5 @@
 ## Services
+
 - Server:
   - Workflow:
     - listens for requests (source and metadata files, addresses, chain IDs)
@@ -46,6 +47,7 @@
   - API and more described in [the README](https://github.com/ethereum/sourcify#repository-api)
 
 ## Servers
+
 - Sourcify relies on two servers: _Komputing_ and _Gather_.
 - _Komputing_ hosts:
   - the stable versions of [services](#services) (AKA the `master`).
@@ -64,19 +66,21 @@
       - this would eliminate the need of users providing address and chain when verifying
 
 ## Development Flow
+
 - When developing new features, a new branch is created from the `staging` branch.
-- When adding the new feature in a PR, the branch `staging` should be targeted. 
+- When adding the new feature in a PR, the branch `staging` should be targeted.
 - After a successful review, the commits may be squashed and rebased onto `staging`.
 - If the new staging environment works well for a few hours/days, or after there have been multiple new features on the `staging` branch, a new version PR is created which targets the `master` branch.
 - Following these points is not necessary for Sourcify to work, but is considered good practice.
 - However what is necessary is that versions in the `package.json` files be manually bumped, as was done in [this commit](https://github.com/ethereum/sourcify/commit/15814a10bd4b856f5815e2bd032133bdb17f8884).
 
 ## Supported Chains and Adding New Ones
+
 - The chains whose contracts can be verified with Sourcify are specified in [`services/core/src/sourcify-chains.ts`](https://github.com/ethereum/sourcify/blob/master/services/core/src/sourcify-chains.ts):
   - Here it is possible to separately enable manual and monitoring support.
 - When adding support for a new chain:
   - Check what data is already present in [`services/core/src/chains.json`](https://github.com/ethereum/sourcify/blob/master/services/core/src/chains.json) because that file is read by `sourcify-chains.ts`:
-    - `chains.json` is not to be edited manually, but should be updated by downloading a new version from [this page](https://chainid.network/chains.json).
+    - `chains.json` is not to be edited manually, but should be updated by downloading a new version from [this page](https://chainid.network/chains.json). The downloaded json file can be sorted by chainId with `jq 'sort_by(.chainId)' chains.json > out.json`
   - Add support in the UI by editing [`ui/src/common/constants.ts`](https://github.com/ethereum/sourcify/blob/master/ui/src/common/constants.ts) and in [the Remix plugin](#other-packages)
 - Supporting a chain means, among other things, enabling it to communicate with a synchronized node. For this, chains use:
   - our own RPC nodes hosted on Gather (e.g. Rinkeby)
@@ -85,6 +89,7 @@
     - these require creating and storing a key for node access; Sourcify achieves this through [Alchemy](https://alchemyapi.io/)
 
 ## CI/CD
+
 - Specified in `.circleci/config.yml`.
 - When a new commit is pushed to `origin`, regardless of the branch, Mocha tests are run.
 - Pipeline progress can be tracked in [the dashboard](https://app.circleci.com/pipelines/github/ethereum/sourcify).
@@ -107,6 +112,7 @@
 - After inspecting the CircleCI logs for eventual errors, it is often worth executing the option `Rerun from failed`.
 
 ## Accounts, Keys and Environment Variables
+
 - Environment variables used for configuration are:
   - read from `environments/.env.latest` on the `staging` branch
   - read from `environments/.env.stable` on the `master` branch
@@ -118,6 +124,7 @@
 - The `SECRET_KEY` for decryption as well as Alchemy keys are kept in a password manager.
 
 ## Building & Testing Locally
+
 - Sourcify is structured as a monorepo and relies on [lerna](https://github.com/lerna/lerna); the monorepo-related settings are specified in `lerna.json`.
 - The first thing to do after cloning the repository is to run:
   ```
@@ -148,7 +155,7 @@
 - Other Sourcify runnable configurations can be found in `.vscode/launch.json`.
 - Testing:
   - running all tests is performed with:
-    ``` 
+    ```
     $ npx lerna run test
     ```
   - to run a part of the tests, e.g. all tests containing the string 'metadata' in the file `tests/server.js`:
@@ -157,6 +164,7 @@
     ```
 
 ## Code Logic
+
 - The `src` directory's most important subdirectories are:
   - `server`
   - `monitor`
@@ -167,18 +175,19 @@
 - This is a general workflow (some class names are clickable links):
   - [`Server`](https://github.com/ethereum/sourcify/blob/master/src/server/server.ts) accepts requests sending source files, addresses and chain IDs.
   - It uses [`Routes`](https://github.com/ethereum/sourcify/blob/master/src/server/routes.ts), which uses endpoint definitions in:
-    - [`FileController`](https://github.com/ethereum/sourcify/blob/master/src/server/controllers/FileController.ts) and 
+    - [`FileController`](https://github.com/ethereum/sourcify/blob/master/src/server/controllers/FileController.ts) and
     - [`VerificationController`](https://github.com/ethereum/sourcify/blob/master/src/server/controllers/VerificationController.ts)
   - `VerificationController` checks request validity by calling [`ValidationService`](https://github.com/ethereum/sourcify/blob/master/services/validation/src/ValidationService.ts) and delegates to [`VerificationService`](https://github.com/ethereum/sourcify/blob/master/services/verification/src/services/VerificationService.ts)
   - The `ValidationService` works as follows:
-      - unpacks any zip-archives
-      - locates the metadata file among the received files
-      - searches the rest of the received files to locate the sources specified by the metadata
-      - as the search is done according to keccak256 hash, minor fixes are attempted on the source files to try and get the correct version of the file
+    - unpacks any zip-archives
+    - locates the metadata file among the received files
+    - searches the rest of the received files to locate the sources specified by the metadata
+    - as the search is done according to keccak256 hash, minor fixes are attempted on the source files to try and get the correct version of the file
   - `VerificationService` delegates to [`Injector`](https://github.com/ethereum/sourcify/blob/master/services/verification/src/services/Injector.ts).
   - The `Injector` ultimately decides on whether to `inject` the contract files or not.
 
 ## Project Organization and Documentation
+
 - Except for the file you are reading at this moment, relevant information can be found in the following files and directories in the repository:
   - `README.md`
   - `docs/*`
@@ -191,6 +200,7 @@
   - [Gitter](https://gitter.im/ethereum/source-verify)
 
 ## Other packages
+
 - Remix plugin
   - https://github.com/sourcifyeth/remix-sourcify
   - Similar in functionality to [the UI](https://sourcify.dev).
