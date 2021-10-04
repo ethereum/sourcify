@@ -60,14 +60,13 @@ export async function getBytecode(web3array: Web3[], address: string): Promise<s
             return <string> await Promise.race([
                 web3.eth.getCode(address),
                 new Promise((_resolve, reject) => {
-                    setTimeout(reject, 1e3);
+                    setTimeout(() => reject('RPC took too long to respond'), 3e3);
                 })
             ])
-        } catch (err) {
-            undefined
+        } catch (err: any) {
+            throw new Error(err);
         }
     }
-    throw new Error(`Could not get bytecode for ${address}`);
 }
 
 const RECOMPILATION_ERR_MSG = "Recompilation error (probably caused by invalid metadata)";
