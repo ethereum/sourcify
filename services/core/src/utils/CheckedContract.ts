@@ -71,8 +71,8 @@ export class CheckedContract {
             this.compilerVersion = metadata.compiler.version;
         }
 
-        const { input, fileName, contractName } = reformatMetadata(metadata, solidity);
-        this.standardJson = input;
+        const { solcJsonInput, fileName, contractName } = reformatMetadata(metadata, solidity);
+        this.standardJson = solcJsonInput;
         this.compiledPath = fileName;
         this.name = contractName;
     }
