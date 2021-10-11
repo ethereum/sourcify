@@ -21,8 +21,14 @@
     position: absolute;
     background: #fff;
     width: 100%;
+    height: 50rem;
+    overflow-y: scroll;
     transform: translateY(.5rem);
     box-shadow: 0 4px 4px 0 $black-100;
+
+    @media only screen and (max-width: 1442px) {
+      height: 400px;
+    }
   }
 }
 
