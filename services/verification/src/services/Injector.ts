@@ -157,17 +157,20 @@ export class Injector {
             address = Web3.utils.toChecksumAddress(address)
 
             let deployedBytecode: string | null = null;
+            this.log.info(
+                {
+                    loc: '[MATCH]',
+                    chain: chain,
+                    address: address
+                },
+                `Retrieving contract bytecode address`
+            );
             try {
-                this.log.info(
-                    {
-                        loc: '[MATCH]',
-                        chain: chain,
-                        address: address
-                    },
-                    `Retrieving contract bytecode address`
-                );
                 deployedBytecode = await getBytecode(this.chains[chain].web3array, address);
-            } catch (e) { /* ignore */ }
+            } catch (err: any) {
+                this.log.error({ loc: "[MATCH]", address, chain, msg: err.message });
+                throw err;
+            }
 
             try {
                 match = await this.compareBytecodes(
