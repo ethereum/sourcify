@@ -4009,8 +4009,8 @@
     "networkId": 57,
     "nativeCurrency": {"name":"Syscoin","symbol":"SYS","decimals":18},
     "rpc": ["https://rpc.syscoin.org", "wss://rpc.syscoin.org/wss"],
-    "faucets": ["https://faucet.syscoin.org"],
-    "explorers": ["https://nevm.syscoin.org"],
+    "faucets": [],
+    "explorers": [{"name": "Syscoin Block Explorer","url": "https://nevm.syscoin.org","standard": "EIP3091"}],
     "infoURL": "https://syscoin.org"
   },
   {
@@ -4023,7 +4023,7 @@
     "nativeCurrency": {"name":"Testnet Syscoin","symbol":"tSYS","decimals":18},
     "rpc": ["https://rpc.tanenbaum.io", "wss://rpc.tanenbaum.io/wss"],
     "faucets": ["https://faucet.tanenbaum.io"],
-    "explorers": ["https://tanenbaum.io"],
+    "explorers": [{"name": "Syscoin Testnet Block Explorer","url": "https://tanenbaum.io","standard": "EIP3091"}],
     "infoURL": "https://syscoin.org"
   }
 ]

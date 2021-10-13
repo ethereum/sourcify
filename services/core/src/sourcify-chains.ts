@@ -213,5 +213,12 @@ export default {
             "https://frankenstein-rpc.oneledger.network"
         ],
         "txRegex": getBlockscoutRegex()
+    },
+    "5700": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://tanenbaum.io/" + BLOCKSCOUT_SUFFIX,
+        "rpc": ["https://rpc.tanenbaum.io", "wss://rpc.tanenbaum.io/wss"],
+        "txRegex": getBlockscoutRegex()
     }
 }
