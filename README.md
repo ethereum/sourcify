@@ -300,6 +300,7 @@ In order to fetch from the staging repository, replace https://repo.sourcify.dev
   + Arbitrum Testnet Rinkeby
   + Ubiq
   + OneLedger Testnet Frankenstein
+  + Velas Mainnet
 
 ## Adding a new chain
 
