@@ -125,6 +125,12 @@ export default {
         "contractFetchAddress": "https://blockscout.com/xdai/mainnet/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex("/xdai/mainnet")
     },
+    "106": {
+        "supported": true,
+        "monitored": true,
+        "contractFetchAddress": "https://evmexplorer.velas.com/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
     "137": {
         "supported": true,
         "monitored": true,
