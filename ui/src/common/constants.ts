@@ -21,7 +21,7 @@ export const CHAIN_OPTIONS = [
     {value: "telos testnet", label: "Telos EVM Testnet", id: 41},
     {value: "ubiq", label: "Ubiq", id: 8},
     {value: "oneledger testnet", label: "OneLedger Testnet Frankenstein", id: 4216137055},
-    {value: "velas", label: "Velas Mainnet", id: 106},
+    {value: "velas", label: "Velas EVM Mainnet", id: 106},
 ];
 
 export const ID_TO_CHAIN = {};
