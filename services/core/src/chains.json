@@ -3999,31 +3999,5 @@
     "shortName": "palm",
     "chainId": 11297108109,
     "networkId": 11297108109
-  },
-  {
-    "name": "Syscoin Mainnet",
-    "chainId": 57,
-    "shortName": "sys",
-    "chain": "SYS",
-    "network": "mainnet",
-    "networkId": 57,
-    "nativeCurrency": {"name":"Syscoin","symbol":"SYS","decimals":18},
-    "rpc": ["https://rpc.syscoin.org", "wss://rpc.syscoin.org/wss"],
-    "faucets": [],
-    "explorers": [{"name": "Syscoin Block Explorer","url": "https://nevm.syscoin.org","standard": "EIP3091"}],
-    "infoURL": "https://syscoin.org"
-  },
-  {
-    "name": "Syscoin Tanenbaum Testnet",
-    "chainId": 5700,
-    "shortName": "tsys",
-    "chain": "SYS",
-    "network": "testnet",
-    "networkId": 5700,
-    "nativeCurrency": {"name":"Testnet Syscoin","symbol":"tSYS","decimals":18},
-    "rpc": ["https://rpc.tanenbaum.io", "wss://rpc.tanenbaum.io/wss"],
-    "faucets": ["https://faucet.tanenbaum.io"],
-    "explorers": [{"name": "Syscoin Testnet Block Explorer","url": "https://tanenbaum.io","standard": "EIP3091"}],
-    "infoURL": "https://syscoin.org"
   }
 ]
