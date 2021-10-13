@@ -718,11 +718,7 @@
     "name": "Syscoin Mainnet",
     "chain": "SYS",
     "network": "mainnet",
-    "rpc": [
-      "https://nevm.syscoin.org/api/eth-rpc",
-      "https://web3.syscoin.org",
-      "wss://web3.syscoin.org"
-    ],
+    "rpc": ["https://rpc.syscoin.org", "wss://rpc.syscoin.org/wss"],
     "faucets": ["https://faucet.syscoin.org"],
     "nativeCurrency": {
       "name": "Syscoin",
@@ -1598,21 +1594,53 @@
     "networkId": 256
   },
   {
+    "name": "SUR Blockchain Network",
+    "chain": "SUR",
+    "network": "mainnet",
+    "rpc": ["https://sur.nilin.org"],
+    "faucets": [],
+    "nativeCurrency": {
+      "name": "Suren",
+      "symbol": "SRN",
+      "decimals": 18
+    },
+    "infoURL": "https://surnet.org",
+    "shortName": "SUR",
+    "chainId": 262,
+    "networkId": 1,
+    "icon": "SUR",
+    "explorers": [
+      {
+        "name": "Surnet Explorer",
+        "url": "https://explorer.surnet.org/",
+        "icon": "SUR",
+        "standard": "EIP3091"
+      }
+    ]
+  },
+  {
     "name": "High Performance Blockchain",
     "chain": "HPB",
     "network": "mainnet",
-    "rpc": ["https://hpb.app"],
-    "faucets": [],
+    "rpc": ["https://hpbnode.com", "wss://ws.hpbnode.com"],
+    "faucets": ["https://myhpbwallet.com/"],
     "nativeCurrency": {
       "name": "High Performance Blockchain Ether",
       "symbol": "HPB",
       "decimals": 18
     },
-    "infoURL": "https://hpbscan.org/",
+    "infoURL": "https://hpb.io",
     "shortName": "hpb",
     "chainId": 269,
-    "networkId": 100,
-    "slip44": 269
+    "networkId": 269,
+    "slip44": 269,
+    "explorers": [
+      {
+        "name": "hpbscan",
+        "url": "https://hpbscan.org/",
+        "standard": "EIP3091"
+      }
+    ]
   },
   {
     "name": "KCC Mainnet",
@@ -1757,6 +1785,25 @@
         "standard": "EIP3091"
       }
     ]
+  },
+  {
+    "name": "PulseChain Mainnet",
+    "shortName": "pls",
+    "chain": "PLS",
+    "network": "mainnet",
+    "chainId": 369,
+    "networkId": 369,
+    "infoURL": "https://pulsechain.com/",
+    "rpc": [
+      "https://rpc.mainnet.pulsechain.com/v1/${PULSECHAIN_API_KEY}",
+      "wss://rpc.mainnet.pulsechain.com/ws/v1/${PULSECHAIN_API_KEY}"
+    ],
+    "faucets": [],
+    "nativeCurrency": {
+      "name": "Pulse",
+      "symbol": "PLS",
+      "decimals": 18
+    }
   },
   {
     "name": "Lisinski",
@@ -1978,6 +2025,25 @@
     "slip44": 5718350
   },
   {
+    "name": "PulseChain Testnet",
+    "shortName": "tpls",
+    "chain": "tPLS",
+    "network": "testnet",
+    "chainId": 940,
+    "networkId": 940,
+    "infoURL": "https://pulsechain.com/",
+    "rpc": [
+      "https://rpc.testnet.pulsechain.com/v1/${PULSECHAIN_API_KEY}",
+      "wss://rpc.testnet.pulsechain.com/ws/v1/${PULSECHAIN_API_KEY}"
+    ],
+    "faucets": [],
+    "nativeCurrency": {
+      "name": "Test Pulse",
+      "symbol": "tPLS",
+      "decimals": 18
+    }
+  },
+  {
     "name": "Nepal Blockchain Network",
     "chain": "YETI",
     "network": "mainnet",
@@ -2132,7 +2198,10 @@
     "name": "MathChain",
     "chain": "MATH",
     "network": "mainnet",
-    "rpc": [],
+    "rpc": [
+      "https://mathchain-asia.maiziqianbao.net/rpc",
+      "https://mathchain-us.maiziqianbao.net/rpc"
+    ],
     "faucets": [],
     "nativeCurrency": {
       "name": "MathChain",
@@ -2280,6 +2349,22 @@
     "slip44": 1620
   },
   {
+    "name": "Btachain",
+    "chain": "btachain",
+    "network": "mainnet",
+    "rpc": ["https://dataseed1.btachain.com/"],
+    "faucets": [],
+    "nativeCurrency": {
+      "name": "Bitcoin Asset",
+      "symbol": "BTA",
+      "decimals": 18
+    },
+    "infoURL": "https://bitcoinasset.io/",
+    "shortName": "bta",
+    "chainId": 1657,
+    "networkId": 1657
+  },
+  {
     "name": "Teslafunds",
     "chain": "TSF",
     "network": "mainnet",
@@ -2377,6 +2462,31 @@
     "networkId": 2559
   },
   {
+    "name": "Fantom Testnet",
+    "chain": "FTM",
+    "network": "testnet",
+    "rpc": ["https://rpc.testnet.fantom.network"],
+    "faucets": ["https://faucet.fantom.network"],
+    "nativeCurrency": {
+      "name": "Fantom",
+      "symbol": "FTM",
+      "decimals": 18
+    },
+    "infoURL": "https://docs.fantom.foundation/quick-start/short-guide#fantom-testnet",
+    "shortName": "tftm",
+    "chainId": 4002,
+    "networkId": 4002,
+    "icon": "fantom",
+    "explorers": [
+      {
+        "name": "ftmscan",
+        "url": "https://testnet.ftmscan.com/",
+        "icon": "ftmscan",
+        "standard": "EIP3091"
+      }
+    ]
+  },
+  {
     "name": "IoTeX Network Mainnet",
     "chain": "iotex.io",
     "network": "mainnet",
@@ -2446,7 +2556,7 @@
     "name": "Syscoin Tanenbaum Testnet",
     "chain": "SYS",
     "network": "testnet",
-    "rpc": ["https://tanenbaum.io/api/eth-rpc"],
+    "rpc": ["https://rpc.tanenbaum.io", "wss://rpc.tanenbaum.io/wss"],
     "faucets": ["https://faucet.tanenbaum.io"],
     "nativeCurrency": {
       "name": "Testnet Syscoin",
@@ -2854,7 +2964,7 @@
       "decimals": 18
     },
     "rpc": [
-      "https://mainnet.infura.io/v3/${INFURA_API_KEY}",
+      "https://arbitrum-mainnet.infura.io/v3/${INFURA_API_KEY}",
       "https://arb-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}",
       "https://arb1.arbitrum.io/rpc",
       "wss://arb1.arbitrum.io/ws"
@@ -2872,7 +2982,16 @@
         "standard": "EIP3091"
       }
     ],
-    "infoURL": "https://arbitrum.io"
+    "infoURL": "https://arbitrum.io",
+    "parent": {
+      "type": "L2",
+      "chain": "eip155-1",
+      "bridges": [
+        {
+          "url": "https://bridge.arbitrum.io"
+        }
+      ]
+    }
   },
   {
     "name": "Celo Mainnet",
@@ -3094,7 +3213,7 @@
     "name": "QuarkChain Mainnet Shard 0",
     "chain": "QuarkChain",
     "network": "mainnet",
-    "rpc": ["http://jrpc.mainnet.quarkchain.io:39000/"],
+    "rpc": ["http://eth-jrpc.mainnet.quarkchain.io:39000/"],
     "faucets": [],
     "nativeCurrency": {
       "name": "QKC",
@@ -3108,13 +3227,20 @@
     "parent": {
       "chain": "eip155-100000",
       "type": "shard"
-    }
+    },
+    "explorers": [
+      {
+        "name": "quarkchain-mainnet",
+        "url": "https://mainnet.quarkchain.io/0",
+        "standard": "EIP3091"
+      }
+    ]
   },
   {
     "name": "QuarkChain Mainnet Shard 1",
     "chain": "QuarkChain",
     "network": "mainnet",
-    "rpc": ["http://jrpc.mainnet.quarkchain.io:39001/"],
+    "rpc": ["http://eth-jrpc.mainnet.quarkchain.io:39001/"],
     "faucets": [],
     "nativeCurrency": {
       "name": "QKC",
@@ -3128,13 +3254,20 @@
     "parent": {
       "chain": "eip155-100000",
       "type": "shard"
-    }
+    },
+    "explorers": [
+      {
+        "name": "quarkchain-mainnet",
+        "url": "https://mainnet.quarkchain.io/1",
+        "standard": "EIP3091"
+      }
+    ]
   },
   {
     "name": "QuarkChain Mainnet Shard 2",
     "chain": "QuarkChain",
     "network": "mainnet",
-    "rpc": ["http://jrpc.mainnet.quarkchain.io:39002/"],
+    "rpc": ["http://eth-jrpc.mainnet.quarkchain.io:39002/"],
     "faucets": [],
     "nativeCurrency": {
       "name": "QKC",
@@ -3148,13 +3281,20 @@
     "parent": {
       "chain": "eip155-100000",
       "type": "shard"
-    }
+    },
+    "explorers": [
+      {
+        "name": "quarkchain-mainnet",
+        "url": "https://mainnet.quarkchain.io/2",
+        "standard": "EIP3091"
+      }
+    ]
   },
   {
     "name": "QuarkChain Mainnet Shard 3",
     "chain": "QuarkChain",
     "network": "mainnet",
-    "rpc": ["http://jrpc.mainnet.quarkchain.io:39003/"],
+    "rpc": ["http://eth-jrpc.mainnet.quarkchain.io:39003/"],
     "faucets": [],
     "nativeCurrency": {
       "name": "QKC",
@@ -3168,13 +3308,20 @@
     "parent": {
       "chain": "eip155-100000",
       "type": "shard"
-    }
+    },
+    "explorers": [
+      {
+        "name": "quarkchain-mainnet",
+        "url": "https://mainnet.quarkchain.io/3",
+        "standard": "EIP3091"
+      }
+    ]
   },
   {
     "name": "QuarkChain Mainnet Shard 4",
     "chain": "QuarkChain",
     "network": "mainnet",
-    "rpc": ["http://jrpc.mainnet.quarkchain.io:39004/"],
+    "rpc": ["http://eth-jrpc.mainnet.quarkchain.io:39004/"],
     "faucets": [],
     "nativeCurrency": {
       "name": "QKC",
@@ -3188,13 +3335,20 @@
     "parent": {
       "chain": "eip155-100000",
       "type": "shard"
-    }
+    },
+    "explorers": [
+      {
+        "name": "quarkchain-mainnet",
+        "url": "https://mainnet.quarkchain.io/4",
+        "standard": "EIP3091"
+      }
+    ]
   },
   {
     "name": "QuarkChain Mainnet Shard 5",
     "chain": "QuarkChain",
     "network": "mainnet",
-    "rpc": ["http://jrpc.mainnet.quarkchain.io:39005/"],
+    "rpc": ["http://eth-jrpc.mainnet.quarkchain.io:39005/"],
     "faucets": [],
     "nativeCurrency": {
       "name": "QKC",
@@ -3208,13 +3362,20 @@
     "parent": {
       "chain": "eip155-100000",
       "type": "shard"
-    }
+    },
+    "explorers": [
+      {
+        "name": "quarkchain-mainnet",
+        "url": "https://mainnet.quarkchain.io/5",
+        "standard": "EIP3091"
+      }
+    ]
   },
   {
     "name": "QuarkChain Mainnet Shard 6",
     "chain": "QuarkChain",
     "network": "mainnet",
-    "rpc": ["http://jrpc.mainnet.quarkchain.io:39006/"],
+    "rpc": ["http://eth-jrpc.mainnet.quarkchain.io:39006/"],
     "faucets": [],
     "nativeCurrency": {
       "name": "QKC",
@@ -3228,13 +3389,20 @@
     "parent": {
       "chain": "eip155-100000",
       "type": "shard"
-    }
+    },
+    "explorers": [
+      {
+        "name": "quarkchain-mainnet",
+        "url": "https://mainnet.quarkchain.io/6",
+        "standard": "EIP3091"
+      }
+    ]
   },
   {
     "name": "QuarkChain Mainnet Shard 7",
     "chain": "QuarkChain",
     "network": "mainnet",
-    "rpc": ["http://jrpc.mainnet.quarkchain.io:39007/"],
+    "rpc": ["http://eth-jrpc.mainnet.quarkchain.io:39007/"],
     "faucets": [],
     "nativeCurrency": {
       "name": "QKC",
@@ -3248,7 +3416,14 @@
     "parent": {
       "chain": "eip155-100000",
       "type": "shard"
-    }
+    },
+    "explorers": [
+      {
+        "name": "quarkchain-mainnet",
+        "url": "https://mainnet.quarkchain.io/7",
+        "standard": "EIP3091"
+      }
+    ]
   },
   {
     "name": "QuarkChain Devnet Root",
@@ -3270,7 +3445,7 @@
     "name": "QuarkChain Devnet Shard 0",
     "chain": "QuarkChain",
     "network": "devnet",
-    "rpc": ["http://jrpc.devnet.quarkchain.io:39000/"],
+    "rpc": ["http://eth-jrpc.devnet.quarkchain.io:39900/"],
     "faucets": [],
     "nativeCurrency": {
       "name": "QKC",
@@ -3284,13 +3459,20 @@
     "parent": {
       "chain": "eip155-110000",
       "type": "shard"
-    }
+    },
+    "explorers": [
+      {
+        "name": "quarkchain-devnet",
+        "url": "https://devnet.quarkchain.io/0",
+        "standard": "EIP3091"
+      }
+    ]
   },
   {
     "name": "QuarkChain Devnet Shard 1",
     "chain": "QuarkChain",
     "network": "devnet",
-    "rpc": ["http://jrpc.devnet.quarkchain.io:39001/"],
+    "rpc": ["http://eth-jrpc.devnet.quarkchain.io:39901/"],
     "faucets": [],
     "nativeCurrency": {
       "name": "QKC",
@@ -3304,13 +3486,20 @@
     "parent": {
       "chain": "eip155-110000",
       "type": "shard"
-    }
+    },
+    "explorers": [
+      {
+        "name": "quarkchain-devnet",
+        "url": "https://devnet.quarkchain.io/1",
+        "standard": "EIP3091"
+      }
+    ]
   },
   {
     "name": "QuarkChain Devnet Shard 2",
     "chain": "QuarkChain",
     "network": "devnet",
-    "rpc": ["http://jrpc.devnet.quarkchain.io:39002/"],
+    "rpc": ["http://eth-jrpc.devnet.quarkchain.io:39902/"],
     "faucets": [],
     "nativeCurrency": {
       "name": "QKC",
@@ -3324,13 +3513,20 @@
     "parent": {
       "chain": "eip155-110000",
       "type": "shard"
-    }
+    },
+    "explorers": [
+      {
+        "name": "quarkchain-devnet",
+        "url": "https://devnet.quarkchain.io/2",
+        "standard": "EIP3091"
+      }
+    ]
   },
   {
     "name": "QuarkChain Devnet Shard 3",
     "chain": "QuarkChain",
     "network": "devnet",
-    "rpc": ["http://jrpc.devnet.quarkchain.io:39003/"],
+    "rpc": ["http://eth-jrpc.devnet.quarkchain.io:39903/"],
     "faucets": [],
     "nativeCurrency": {
       "name": "QKC",
@@ -3344,13 +3540,20 @@
     "parent": {
       "chain": "eip155-110000",
       "type": "shard"
-    }
+    },
+    "explorers": [
+      {
+        "name": "quarkchain-devnet",
+        "url": "https://devnet.quarkchain.io/3",
+        "standard": "EIP3091"
+      }
+    ]
   },
   {
     "name": "QuarkChain Devnet Shard 4",
     "chain": "QuarkChain",
     "network": "devnet",
-    "rpc": ["http://jrpc.devnet.quarkchain.io:39004/"],
+    "rpc": ["http://eth-jrpc.devnet.quarkchain.io:39904/"],
     "faucets": [],
     "nativeCurrency": {
       "name": "QKC",
@@ -3364,13 +3567,20 @@
     "parent": {
       "chain": "eip155-110000",
       "type": "shard"
-    }
+    },
+    "explorers": [
+      {
+        "name": "quarkchain-devnet",
+        "url": "https://devnet.quarkchain.io/4",
+        "standard": "EIP3091"
+      }
+    ]
   },
   {
     "name": "QuarkChain Devnet Shard 5",
     "chain": "QuarkChain",
     "network": "devnet",
-    "rpc": ["http://jrpc.devnet.quarkchain.io:39005/"],
+    "rpc": ["http://eth-jrpc.devnet.quarkchain.io:39905/"],
     "faucets": [],
     "nativeCurrency": {
       "name": "QKC",
@@ -3384,13 +3594,20 @@
     "parent": {
       "chain": "eip155-110000",
       "type": "shard"
-    }
+    },
+    "explorers": [
+      {
+        "name": "quarkchain-devnet",
+        "url": "https://devnet.quarkchain.io/5",
+        "standard": "EIP3091"
+      }
+    ]
   },
   {
     "name": "QuarkChain Devnet Shard 6",
     "chain": "QuarkChain",
     "network": "devnet",
-    "rpc": ["http://jrpc.devnet.quarkchain.io:39006/"],
+    "rpc": ["http://eth-jrpc.devnet.quarkchain.io:39906/"],
     "faucets": [],
     "nativeCurrency": {
       "name": "QKC",
@@ -3404,13 +3621,20 @@
     "parent": {
       "chain": "eip155-110000",
       "type": "shard"
-    }
+    },
+    "explorers": [
+      {
+        "name": "quarkchain-devnet",
+        "url": "https://devnet.quarkchain.io/6",
+        "standard": "EIP3091"
+      }
+    ]
   },
   {
     "name": "QuarkChain Devnet Shard 7",
     "chain": "QuarkChain",
     "network": "devnet",
-    "rpc": ["http://jrpc.devnet.quarkchain.io:39007/"],
+    "rpc": ["http://eth-jrpc.devnet.quarkchain.io:39907/"],
     "faucets": [],
     "nativeCurrency": {
       "name": "QKC",
@@ -3424,7 +3648,14 @@
     "parent": {
       "chain": "eip155-110000",
       "type": "shard"
-    }
+    },
+    "explorers": [
+      {
+        "name": "quarkchain-devnet",
+        "url": "https://devnet.quarkchain.io/7",
+        "standard": "EIP3091"
+      }
+    ]
   },
   {
     "name": "Akroma",
@@ -3531,7 +3762,16 @@
         "url": "https://rinkeby-explorer.arbitrum.io",
         "standard": "EIP3091"
       }
-    ]
+    ],
+    "parent": {
+      "type": "L2",
+      "chain": "eip155-4",
+      "bridges": [
+        {
+          "url": "https://bridge.arbitrum.io"
+        }
+      ]
+    }
   },
   {
     "name": "Ether-1",
