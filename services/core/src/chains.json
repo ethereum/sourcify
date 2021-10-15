@@ -212,7 +212,14 @@
     "infoURL": "https://optimism.io",
     "shortName": "oeth",
     "chainId": 10,
-    "networkId": 10
+    "networkId": 10,
+    "explorers": [
+      {
+        "name": "etherscan",
+        "url": "https://optimistic.etherscan.io",
+        "standard": "none"
+      }
+    ]
   },
   {
     "name": "Metadium Mainnet",
@@ -347,8 +354,8 @@
     "name": "Songbird Canary-Network",
     "chain": "SGB",
     "network": "songbird",
-    "rpc": [],
-    "faucets": [],
+    "rpc": ["https://songbird.towolabs.com/rpc"],
+    "faucets": ["https://free-online-app.com/faucet-for-eth-evm-chains/"],
     "nativeCurrency": {
       "name": "Songbird",
       "symbol": "SGB",
@@ -357,7 +364,14 @@
     "infoURL": "https://flare.xyz",
     "shortName": "sgb",
     "chainId": 19,
-    "networkId": 19
+    "networkId": 19,
+    "explorers": [
+      {
+        "name": "blockscout",
+        "url": "https://songbird-explorer.flare.network",
+        "standard": "none"
+      }
+    ]
   },
   {
     "name": "ELA-ETH-Sidechain Mainnet",
@@ -428,7 +442,7 @@
     "chain": "RSK",
     "network": "mainnet",
     "rpc": ["https://public-node.rsk.co", "https://mycrypto.rsk.co"],
-    "faucets": [],
+    "faucets": ["https://free-online-app.com/faucet-for-eth-evm-chains/"],
     "nativeCurrency": {
       "name": "RSK Mainnet Ether",
       "symbol": "RBTC",
@@ -438,7 +452,14 @@
     "shortName": "rsk",
     "chainId": 30,
     "networkId": 30,
-    "slip44": 137
+    "slip44": 137,
+    "explorers": [
+      {
+        "name": "blockscout",
+        "url": "https://explorer.rsk.co",
+        "standard": "EIP3091"
+      }
+    ]
   },
   {
     "name": "RSK Testnet",
@@ -696,7 +717,7 @@
       "https://bsc-dataseed4.ninicoin.io",
       "wss://bsc-ws-node.nariox.org"
     ],
-    "faucets": [],
+    "faucets": ["https://free-online-app.com/faucet-for-eth-evm-chains/"],
     "nativeCurrency": {
       "name": "Binance Chain Native Token",
       "symbol": "BNB",
@@ -706,6 +727,7 @@
     "shortName": "bnb",
     "chainId": 56,
     "networkId": 56,
+    "slip44": 714,
     "explorers": [
       {
         "name": "bscscan",
@@ -713,22 +735,6 @@
         "standard": "EIP3091"
       }
     ]
-  },
-  {
-    "name": "Syscoin Mainnet",
-    "chain": "SYS",
-    "network": "mainnet",
-    "rpc": ["https://rpc.syscoin.org", "wss://rpc.syscoin.org/wss"],
-    "faucets": ["https://faucet.syscoin.org"],
-    "nativeCurrency": {
-      "name": "Syscoin",
-      "symbol": "SYS",
-      "decimals": 18
-    },
-    "infoURL": "https://www.syscoin.org",
-    "shortName": "sys",
-    "chainId": 57,
-    "networkId": 57
   },
   {
     "name": "Ontology Mainnet",
@@ -786,7 +792,7 @@
     "chain": "GO",
     "network": "mainnet",
     "rpc": ["https://rpc.gochain.io"],
-    "faucets": [],
+    "faucets": ["https://free-online-app.com/faucet-for-eth-evm-chains/"],
     "nativeCurrency": {
       "name": "GoChain Ether",
       "symbol": "GO",
@@ -810,7 +816,7 @@
     "chain": "ETC",
     "network": "mainnet",
     "rpc": ["https://ethereumclassic.network"],
-    "faucets": [],
+    "faucets": ["https://free-online-app.com/faucet-for-eth-evm-chains/?"],
     "nativeCurrency": {
       "name": "Ethereum Classic Ether",
       "symbol": "ETC",
@@ -820,7 +826,14 @@
     "shortName": "etc",
     "chainId": 61,
     "networkId": 1,
-    "slip44": 61
+    "slip44": 61,
+    "explorers": [
+      {
+        "name": "blockscout",
+        "url": "https://blockscout.com/etc/mainnet",
+        "standard": "none"
+      }
+    ]
   },
   {
     "name": "Ethereum Classic Testnet Morden",
@@ -899,7 +912,7 @@
     "chain": "okexchain",
     "network": "mainnet",
     "rpc": ["https://exchainrpc.okex.org"],
-    "faucets": [],
+    "faucets": ["https://free-online-app.com/faucet-for-eth-evm-chains/?"],
     "nativeCurrency": {
       "name": "OKExChain Global Utility Token",
       "symbol": "OKT",
@@ -1000,7 +1013,14 @@
     "infoURL": "https://poa.network",
     "shortName": "poa",
     "chainId": 77,
-    "networkId": 77
+    "networkId": 77,
+    "explorers": [
+      {
+        "name": "blockscout",
+        "url": "https://blockscout.com/poa/sokol",
+        "standard": "none"
+      }
+    ]
   },
   {
     "name": "PrimusChain mainnet",
@@ -1117,7 +1137,8 @@
     "infoURL": "https://tomocoin.io",
     "shortName": "tomo",
     "chainId": 88,
-    "networkId": 88
+    "networkId": 88,
+    "slip44": 889
   },
   {
     "name": "CryptoKylin Testnet",
@@ -1191,7 +1212,15 @@
     "infoURL": "https://poa.network",
     "shortName": "skl",
     "chainId": 99,
-    "networkId": 99
+    "networkId": 99,
+    "slip44": 178,
+    "explorers": [
+      {
+        "name": "blockscout",
+        "url": "https://blockscout.com/poa/core",
+        "standard": "none"
+      }
+    ]
   },
   {
     "name": "xDAI Chain",
@@ -1206,7 +1235,10 @@
       "https://dai.poa.network",
       "ws://xdai.poanetwork.dev:8546"
     ],
-    "faucets": [],
+    "faucets": [
+      "https://free-online-app.com/faucet-for-eth-evm-chains/",
+      "https://xdai-app.herokuapp.com/faucet"
+    ],
     "nativeCurrency": {
       "name": "xDAI",
       "symbol": "xDAI",
@@ -1216,7 +1248,14 @@
     "shortName": "xdai",
     "chainId": 100,
     "networkId": 100,
-    "slip44": 700
+    "slip44": 700,
+    "explorers": [
+      {
+        "name": "blockscout",
+        "url": "https://blockscout.com/poa/xdai",
+        "standard": "EIP3091"
+      }
+    ]
   },
   {
     "name": "EtherInc",
@@ -1265,7 +1304,8 @@
     "infoURL": "https://thundercore.com",
     "shortName": "TT",
     "chainId": 108,
-    "networkId": 108
+    "networkId": 108,
+    "slip44": 1001
   },
   {
     "name": "Proton Testnet",
@@ -1357,7 +1397,7 @@
       "https://http-mainnet.hecochain.com",
       "wss://ws-mainnet.hecochain.com"
     ],
-    "faucets": [],
+    "faucets": ["https://free-online-app.com/faucet-for-eth-evm-chains/"],
     "nativeCurrency": {
       "name": "Huobi ECO Chain Native Token",
       "symbol": "HT",
@@ -1367,6 +1407,7 @@
     "shortName": "heco",
     "chainId": 128,
     "networkId": 128,
+    "slip44": 1010,
     "explorers": [
       {
         "name": "hecoinfo",
@@ -1385,7 +1426,7 @@
       "https://rpc-mainnet.matic.quiknode.pro",
       "https://matic-mainnet.chainstacklabs.com"
     ],
-    "faucets": [],
+    "faucets": ["https://free-online-app.com/faucet-for-eth-evm-chains/"],
     "nativeCurrency": {
       "name": "Matic",
       "symbol": "MATIC",
@@ -1395,6 +1436,7 @@
     "shortName": "matic",
     "chainId": 137,
     "networkId": 137,
+    "slip44": 966,
     "explorers": [
       {
         "name": "polygonscan",
@@ -1537,7 +1579,10 @@
     "chain": "Energy Web Chain",
     "network": "mainnet",
     "rpc": ["https://rpc.energyweb.org", "wss://rpc.energyweb.org/ws"],
-    "faucets": ["https://faucet.carbonswap.exchange"],
+    "faucets": [
+      "https://faucet.carbonswap.exchange",
+      "https://free-online-app.com/faucet-for-eth-evm-chains/"
+    ],
     "nativeCurrency": {
       "name": "Energy Web Token",
       "symbol": "EWT",
@@ -1547,14 +1592,21 @@
     "shortName": "ewt",
     "chainId": 246,
     "networkId": 246,
-    "slip44": 246
+    "slip44": 246,
+    "explorers": [
+      {
+        "name": "blockscout",
+        "url": "https://explorer.energyweb.org",
+        "standard": "none"
+      }
+    ]
   },
   {
     "name": "Fantom Opera",
     "chain": "FTM",
     "network": "mainnet",
     "rpc": ["https://rpc.ftm.tools"],
-    "faucets": [],
+    "faucets": ["https://free-online-app.com/faucet-for-eth-evm-chains/"],
     "nativeCurrency": {
       "name": "Fantom",
       "symbol": "FTM",
@@ -1691,6 +1743,32 @@
         "name": "kcc-scan",
         "url": "https://scan-testnet.kcc.network",
         "standard": "EIP3091"
+      }
+    ]
+  },
+  {
+    "name": "Shiden",
+    "chain": "SDN",
+    "network": "shiden",
+    "rpc": [
+      "https://rpc.shiden.astar.network:8545",
+      "wss://shiden.api.onfinality.io/public-ws"
+    ],
+    "faucets": [],
+    "nativeCurrency": {
+      "name": "Shiden",
+      "symbol": "SDN",
+      "decimals": 18
+    },
+    "infoURL": "https://shiden.astar.network/",
+    "shortName": "sdn",
+    "chainId": 336,
+    "networkId": 336,
+    "explorers": [
+      {
+        "name": "subscan",
+        "url": "https://shiden.subscan.io",
+        "standard": "none"
       }
     ]
   },
@@ -2124,7 +2202,8 @@
     "infoURL": "https://evrice.com",
     "shortName": "EVC",
     "chainId": 1010,
-    "networkId": 1010
+    "networkId": 1010,
+    "slip44": 1020
   },
   {
     "name": "Newton",
@@ -2253,7 +2332,7 @@
       "https://rpc.moonriver.moonbeam.network",
       "wss://wss.moonriver.moonbeam.network"
     ],
-    "faucets": [],
+    "faucets": ["https://free-online-app.com/faucet-for-eth-evm-chains/"],
     "nativeCurrency": {
       "name": "Moonriver",
       "symbol": "MOVR",
@@ -2262,7 +2341,14 @@
     "infoURL": "https://moonbeam.network/networks/moonriver/",
     "shortName": "mriver",
     "chainId": 1285,
-    "networkId": 1285
+    "networkId": 1285,
+    "explorers": [
+      {
+        "name": "blockscout",
+        "url": "https://blockscout.moonriver.moonbeam.network",
+        "standard": "none"
+      }
+    ]
   },
   {
     "name": "Moonrock",
@@ -2566,7 +2652,14 @@
     "infoURL": "https://syscoin.org",
     "shortName": "tsys",
     "chainId": 5700,
-    "networkId": 5700
+    "networkId": 5700,
+    "explorers": [
+      {
+        "name": "Syscoin Testnet Block Explorer",
+        "url": "https://tanenbaum.io",
+        "standard": "EIP3091"
+      }
+    ]
   },
   {
     "name": "Ontology Testnet",
@@ -2742,6 +2835,34 @@
     "networkId": 8995
   },
   {
+    "name": "Evmos Testnet",
+    "chain": "Evmos",
+    "network": "testnet",
+    "rpc": [],
+    "faucets": ["https://faucet.evmos.org"],
+    "nativeCurrency": {
+      "name": "Photon",
+      "symbol": "PHOTON",
+      "decimals": 18
+    },
+    "infoURL": "https://evmos.org",
+    "shortName": "evmos-mons",
+    "chainId": 9000,
+    "networkId": 9000,
+    "explorers": [
+      {
+        "name": "Evmos EVM Explorer (Blockscout)",
+        "url": "https://evm.evmos.org",
+        "standard": "none"
+      },
+      {
+        "name": "Evmos Cosmos Explorer (Big Dipper)",
+        "url": "https://explorer.evmos.org",
+        "standard": "none"
+      }
+    ]
+  },
+  {
     "name": "Smart Bitcoin Cash",
     "chain": "smartBCH",
     "network": "mainnet",
@@ -2843,7 +2964,8 @@
     "infoURL": "https://webchain.network",
     "shortName": "web",
     "chainId": 24484,
-    "networkId": 37129
+    "networkId": 37129,
+    "slip44": 227
   },
   {
     "name": "MintMe.com Coin",
@@ -3006,8 +3128,15 @@
       "decimals": 18
     },
     "rpc": ["https://forno.celo.org", "wss://forno.celo.org/ws"],
-    "faucets": [],
-    "infoURL": "https://docs.celo.org/"
+    "faucets": ["https://free-online-app.com/faucet-for-eth-evm-chains/"],
+    "infoURL": "https://docs.celo.org/",
+    "explorers": [
+      {
+        "name": "blockscout",
+        "url": "https://explorer.celo.org",
+        "standard": "none"
+      }
+    ]
   },
   {
     "name": "Athereum",
@@ -3046,16 +3175,24 @@
     "chain": "AVAX",
     "network": "mainnet",
     "rpc": ["https://api.avax.network/ext/bc/C/rpc"],
-    "faucets": [],
+    "faucets": ["https://free-online-app.com/faucet-for-eth-evm-chains/"],
     "nativeCurrency": {
       "name": "Avalanche",
       "symbol": "AVAX",
       "decimals": 18
     },
-    "infoURL": "https://cchain.explorer.avax.network/",
+    "infoURL": "https://www.avax.network/",
     "shortName": "Avalanche",
     "chainId": 43114,
-    "networkId": 1
+    "networkId": 43114,
+    "slip44": 9000,
+    "explorers": [
+      {
+        "name": "blockscout",
+        "url": "https://cchain.explorer.avax.network",
+        "standard": "none"
+      }
+    ]
   },
   {
     "name": "Celo Alfajores Testnet",
@@ -3938,6 +4075,54 @@
     "networkId": 99415706
   },
   {
+    "name": "Neon EVM DevNet",
+    "chain": "Solana",
+    "network": "devnet",
+    "rpc": ["https://proxy.devnet.neonlabs.org/solana"],
+    "faucets": ["https://neonswap.live/#/get-tokens"],
+    "nativeCurrency": {
+      "name": "Neon",
+      "symbol": "NEON",
+      "decimals": 18
+    },
+    "infoURL": "https://neon-labs.org/",
+    "shortName": "neonevm-devnet",
+    "chainId": 245022926,
+    "networkId": 245022926
+  },
+  {
+    "name": "Neon EVM MainNet",
+    "chain": "Solana",
+    "network": "mainnet",
+    "rpc": ["https://proxy.mainnet.neonlabs.org/solana"],
+    "faucets": [],
+    "nativeCurrency": {
+      "name": "Neon",
+      "symbol": "NEON",
+      "decimals": 18
+    },
+    "infoURL": "https://neon-labs.org/",
+    "shortName": "neonevm-mainnet",
+    "chainId": 245022934,
+    "networkId": 245022934
+  },
+  {
+    "name": "Neon EVM TestNet",
+    "chain": "Solana",
+    "network": "testnet",
+    "rpc": ["https://proxy.testnet.neonlabs.org/solana"],
+    "faucets": [],
+    "nativeCurrency": {
+      "name": "Neon",
+      "symbol": "NEON",
+      "decimals": 18
+    },
+    "infoURL": "https://neon-labs.org/",
+    "shortName": "neonevm-testnet",
+    "chainId": 245022940,
+    "networkId": 245022940
+  },
+  {
     "name": "OneLedger Mainnet",
     "chain": "OLT",
     "network": "mainnet",
@@ -4030,7 +4215,7 @@
     "chain": "Harmony",
     "network": "mainnet",
     "rpc": ["https://api.harmony.one"],
-    "faucets": [],
+    "faucets": ["https://free-online-app.com/faucet-for-eth-evm-chains/"],
     "nativeCurrency": {
       "name": "ONE",
       "symbol": "ONE",
