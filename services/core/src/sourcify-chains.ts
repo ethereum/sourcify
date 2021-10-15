@@ -193,6 +193,15 @@ export default {
         "contractFetchAddress": "https://cchain.explorer.avax.network/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
+    "5700": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://tanenbaum.io/" + BLOCKSCOUT_SUFFIX,
+        "rpc": [
+            'https://rpc.tanenbaum.io'
+        ],
+        "txRegex": getBlockscoutRegex()
+    },
     "40": {
         "supported": true,
         "monitored": false,
