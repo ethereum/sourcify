@@ -8,6 +8,8 @@ export const CHAIN_OPTIONS = [
     {value: "sokol", label: "Sokol", id: 77},
     {value: "binance smart chain mainnet", label: "Binance Smart Chain Mainnet", id: 56},
     {value: "binance smart chain testnet", label: "Binance Smart Chain Testnet", id: 97},
+    {value: "energi mainnet", label: "Energi Mainnet", id: 39797},
+    {value: "energi testnet", label: "Energi Testnet", id: 49797},
     {value: "matic mainnet", label: "Polygon (previously Matic)", id: 137},
     {value: "mumbai testnet", label: "Mumbai Testnet (Polygon/Matic)", id: 80001},
     {value: "celo mainnet", label: "Celo Mainnet", id: 42220},
