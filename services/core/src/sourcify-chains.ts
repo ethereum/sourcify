@@ -213,5 +213,17 @@ export default {
             "https://frankenstein-rpc.oneledger.network"
         ],
         "txRegex": getBlockscoutRegex()
+    },
+    "39797": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer.energi.network/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "49797": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer.test.energi.network/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
     }
 }
