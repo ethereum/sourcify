@@ -7,15 +7,8 @@ declare type MetadataOutput = {
 export default class ContractCallDecoder {
     ipfsGateway: string;
     web3Provider: Web3;
-    /**
-     * Extracts cbor encoded segement from bytecode
-     *
-     * @param  {string} -hexStringByteCode bytecode in hex
-     * @return {any}
-     * @example
-     *   > { ipfs: "QmarHSr9aSNaPSR6G9KFPbuLV9aEqJfTk1y9B8pdwqK4Rq" }
-     */
-    constructor(rpcURL?: string, ipfsGateway?: string);
+    timeout: number;
+    constructor(rpcURL?: string, ipfsGateway?: string, timeout?: number);
     /**
      * Funcion to fetch the metadata from IPFS. Requires the gateway to accept links as <gatewayURL>/ipfs/<hash>
      *
@@ -25,9 +18,12 @@ export default class ContractCallDecoder {
     fetchMetadataWithHash(metadataHash: string): Promise<any>;
     fetchMetadataOutputWithHash(metadataHash: string): Promise<MetadataOutput>;
     /**
+     * Extracts cbor encoded segement from bytecode
      *
-     * @param hexStringByteCode Bytecode of the contract in hex string
-     * @returns Metadata hash in string
+     * @param  {string} -hexStringByteCode bytecode in hex
+     * @return {string} the hash decoded from bytecode.
+     * @example
+     *   "QmarHSr9aSNaPSR6G9KFPbuLV9aEqJfTk1y9B8pdwqK4Rq"
      */
     static decodeMetadataHash(hexStringByteCode: string): Promise<string>;
 }

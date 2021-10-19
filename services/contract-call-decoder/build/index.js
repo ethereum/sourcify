@@ -11,25 +11,17 @@ import { decodeFirst } from 'cbor';
 import Web3 from 'web3';
 import { toB58String } from 'multihashes';
 import fetch from 'node-fetch';
+import timeoutSignal from 'timeout-signal';
 const bytesToHashProcessors = [
     { origin: "ipfs", process: toB58String },
     { origin: "bzzr0", process: (data) => Web3.utils.bytesToHex([...data]).slice(2) },
     { origin: "bzzr1", process: (data) => Web3.utils.bytesToHex([...data]).slice(2) }
 ];
 export default class ContractCallDecoder {
-    // TODO: Refactor for reuse 
-    // Code from /services/core/src/utils/utils.ts and /monitor/utils.ts
-    /**
-     * Extracts cbor encoded segement from bytecode
-     *
-     * @param  {string} -hexStringByteCode bytecode in hex
-     * @return {any}
-     * @example
-     *   > { ipfs: "QmarHSr9aSNaPSR6G9KFPbuLV9aEqJfTk1y9B8pdwqK4Rq" }
-     */
-    constructor(rpcURL = "http://localhost:8545", ipfsGateway = "https://ipfs.io") {
+    constructor(rpcURL = "http://localhost:8545", ipfsGateway = "https://ipfs.io", timeout = 30000) {
         this.ipfsGateway = ipfsGateway;
         this.web3Provider = new Web3(rpcURL);
+        this.timeout = timeout; // timeout to wait for the IPFS gateway response.
     }
     /**
      * Funcion to fetch the metadata from IPFS. Requires the gateway to accept links as <gatewayURL>/ipfs/<hash>
@@ -39,8 +31,23 @@ export default class ContractCallDecoder {
      */
     fetchMetadataWithHash(metadataHash) {
         return __awaiter(this, void 0, void 0, function* () {
-            const metadata = yield (yield fetch(`${this.ipfsGateway}/ipfs/${metadataHash}`)).json();
-            return metadata;
+            let response;
+            try {
+                response = yield fetch(`${this.ipfsGateway}/ipfs/${metadataHash}`, { signal: timeoutSignal(this.timeout) });
+            }
+            catch (err) {
+                if (err.type === 'aborted') {
+                    throw new Error(`Timeout fetching from the IPFS gateway ${this.ipfsGateway}`);
+                }
+                throw err;
+            }
+            if (response.ok) {
+                return response.json();
+            }
+            else {
+                const msg = yield response.text();
+                throw new Error(msg);
+            }
         });
     }
     fetchMetadataOutputWithHash(metadataHash) {
@@ -49,10 +56,14 @@ export default class ContractCallDecoder {
             return metadata.output;
         });
     }
+    // Code from /services/core/src/utils/utils.ts and /monitor/utils.ts
     /**
+     * Extracts cbor encoded segement from bytecode
      *
-     * @param hexStringByteCode Bytecode of the contract in hex string
-     * @returns Metadata hash in string
+     * @param  {string} -hexStringByteCode bytecode in hex
+     * @return {string} the hash decoded from bytecode.
+     * @example
+     *   "QmarHSr9aSNaPSR6G9KFPbuLV9aEqJfTk1y9B8pdwqK4Rq"
      */
     static decodeMetadataHash(hexStringByteCode) {
         return __awaiter(this, void 0, void 0, function* () {

@@ -2,6 +2,8 @@ import {decodeFirst} from 'cbor';
 import Web3 from 'web3';
 import { toB58String } from 'multihashes';
 import fetch from 'node-fetch';
+import {Response} from 'node-fetch/@types';
+import timeoutSignal from 'timeout-signal';
 
 interface Processor {
     origin: string,
@@ -23,21 +25,13 @@ const bytesToHashProcessors: Processor[] = [
 export default class ContractCallDecoder {
 
   ipfsGateway: string;
-  web3Provider: Web3; 
-  // TODO: Refactor for reuse 
-  // Code from /services/core/src/utils/utils.ts and /monitor/utils.ts
-  /**
-   * Extracts cbor encoded segement from bytecode
-   *
-   * @param  {string} -hexStringByteCode bytecode in hex 
-   * @return {any}
-   * @example
-   *   > { ipfs: "QmarHSr9aSNaPSR6G9KFPbuLV9aEqJfTk1y9B8pdwqK4Rq" }
-   */
-
-  constructor(rpcURL = "http://localhost:8545", ipfsGateway = "https://ipfs.io") {
+  web3Provider: Web3;
+  timeout: number;
+  
+  constructor(rpcURL = "http://localhost:8545", ipfsGateway = "https://ipfs.io", timeout = 30000) {
     this.ipfsGateway = ipfsGateway;
     this.web3Provider = new Web3(rpcURL);
+    this.timeout = timeout; // timeout to wait for the IPFS gateway response.
   }
 
   /**
@@ -47,8 +41,21 @@ export default class ContractCallDecoder {
    * @returns the metadata file as an object
    */
   async fetchMetadataWithHash(metadataHash: string): Promise<any> {
-    const metadata: any = await (await fetch(`${this.ipfsGateway}/ipfs/${metadataHash}`)).json();
-    return metadata;
+    let response: Response
+    try {
+      response = await fetch(`${this.ipfsGateway}/ipfs/${metadataHash}`, {signal: timeoutSignal(this.timeout)});
+    } catch (err: any) { // Catch timeout
+      if (err.type === 'aborted') {
+        throw new Error(`Timeout fetching from the IPFS gateway ${this.ipfsGateway}`)
+      }
+      throw err;
+    }
+    if (response.ok) { // OK
+      return response.json();
+    } else { // Send Error message
+      const msg = await response.text();
+      throw new Error(msg)
+    }
   }
 
   async fetchMetadataOutputWithHash(metadataHash: string): Promise<MetadataOutput> {
@@ -56,10 +63,14 @@ export default class ContractCallDecoder {
     return metadata.output;
   }
 
+  // Code from /services/core/src/utils/utils.ts and /monitor/utils.ts
   /**
-   * 
-   * @param hexStringByteCode Bytecode of the contract in hex string
-   * @returns Metadata hash in string
+   * Extracts cbor encoded segement from bytecode
+   *
+   * @param  {string} -hexStringByteCode bytecode in hex 
+   * @return {string} the hash decoded from bytecode.
+   * @example
+   *   "QmarHSr9aSNaPSR6G9KFPbuLV9aEqJfTk1y9B8pdwqK4Rq"
    */
   static async decodeMetadataHash(hexStringByteCode: string): Promise<string> {
       const numArrayByteCode = Web3.utils.hexToBytes(hexStringByteCode); // convert to number array

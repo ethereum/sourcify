@@ -1,8 +1,11 @@
 import chai from "chai";
+import chaiAsPromised from "chai-as-promised";
 import dotenv from "dotenv";
 import ContractCallDecoder from "../build/index.js";
 import QmRFjbs2fEEQnAKaZzZKqWArJTta76GaWsD4PRbHuoY41S from "./QmRFjbs2fEEQnAKaZzZKqWArJTta76GaWsD4PRbHuoY41S.js";
 dotenv.config();
+
+chai.use(chaiAsPromised);
 
 describe("Contract Call Decoder", function () {
   it("should extract the IPFS hash from the bytecode", async () => {
@@ -18,8 +21,24 @@ describe("Contract Call Decoder", function () {
   it("should fetch the metadata file from IPFS", async () => {
     const metadataHash = "QmRFjbs2fEEQnAKaZzZKqWArJTta76GaWsD4PRbHuoY41S";
     const expectedOutput = QmRFjbs2fEEQnAKaZzZKqWArJTta76GaWsD4PRbHuoY41S;
-    const decoder = new ContractCallDecoder(process.env.GOERLI_RPC);
+    const decoder = new ContractCallDecoder();
     const metadata = await decoder.fetchMetadataWithHash(metadataHash);
     chai.expect(expectedOutput).to.deep.equal(metadata);
   });
+
+  it("should fail to fetch incorrect metadata hash from IPFS", async () => {
+    const metadataHash = "abcdef";
+    const decoder = new ContractCallDecoder();
+    return chai
+      .expect(decoder.fetchMetadataWithHash(metadataHash))
+      .be.rejectedWith(Error);
+  });
+
+  it("should timeout to fetch non-existent hash from IPFS in 5sec", async () => {
+    const metadataHash = "QmRFjbs2fEEQnAKaZzZKqWArJTta76GaWsD4PRbHuoY4as";
+    const decoder = new ContractCallDecoder(undefined, undefined, 5000);
+    return chai
+      .expect(decoder.fetchMetadataWithHash(metadataHash))
+      .be.rejectedWith(Error);
+  }).timeout(10000);
 });
