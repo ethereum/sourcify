@@ -291,6 +291,8 @@ In order to fetch from the staging repository, replace https://repo.sourcify.dev
   + Mumbai Testnet (Polygon/Matic)
   + Binance Smart Chain Mainnet (monitoring temporarily suspended)
   + Binance Smart Chain Testnet (monitoring temporarily suspended)
+  + Energi Mainnet
+  + Energi Testnet
   + Celo Mainnet
   + Celo Alfajores Testnet
   + Celo Baklava Testnet
