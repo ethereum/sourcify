@@ -336,6 +336,16 @@
         "services/validation/test/ERC20Standard.sol",
         "services/validation/test/metadata.json"
       ]
-    }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Contract Call Decoder",
+      "program": "${workspaceFolder}/services/contract-call-decoder/src/index.ts",
+      "preLaunchTask": "npm: build:contract-call-decoder",
+      "outFiles": [
+        "${workspaceFolder}/services/contract-call-decoder/build/*.js"
+      ]
+    },
   ]
 }
