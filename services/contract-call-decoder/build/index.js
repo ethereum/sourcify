@@ -1,17 +1,26 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-const cbor_1 = __importDefault(require("cbor"));
-const web3_1 = __importDefault(require("web3"));
-const multihashes_1 = __importDefault(require("multihashes"));
+import cbor from 'cbor';
+import Web3 from 'web3';
+import multihashes from 'multihashes';
+// @ts-ignore
+import { evaluate } from 'radspec';
 const bytesToHashProcessors = [
-    { origin: "ipfs", process: multihashes_1.default.toB58String },
-    { origin: "bzzr0", process: (data) => web3_1.default.utils.bytesToHex([...data]).slice(2) },
-    { origin: "bzzr1", process: (data) => web3_1.default.utils.bytesToHex([...data]).slice(2) }
+    { origin: "ipfs", process: multihashes.toB58String },
+    { origin: "bzzr0", process: (data) => Web3.utils.bytesToHex([...data]).slice(2) },
+    { origin: "bzzr1", process: (data) => Web3.utils.bytesToHex([...data]).slice(2) }
 ];
-class ContractCallDecoder {
+export default class ContractCallDecoder {
+    constructor(rpcURL) {
+        this.web3 = new Web3(rpcURL);
+    }
     // TODO: Refactor for reuse 
     // Code from /services/core/src/utils/utils.ts and /monitor/utils.ts
     /**
@@ -22,20 +31,157 @@ class ContractCallDecoder {
      * @example
      *   > { ipfs: "QmarHSr9aSNaPSR6G9KFPbuLV9aEqJfTk1y9B8pdwqK4Rq" }
      */
-    static async decodeMetadataHash(hexStringByteCode) {
-        const numArrayByteCode = web3_1.default.utils.hexToBytes(hexStringByteCode);
-        const cborLength = numArrayByteCode[numArrayByteCode.length - 2] * 0x100 + numArrayByteCode[numArrayByteCode.length - 1];
-        const bytecodeBuffer = Buffer.from(numArrayByteCode.slice(numArrayByteCode.length - 2 - cborLength, -2));
-        const bufferObject = await cbor_1.default.decodeFirst(bytecodeBuffer);
-        for (const processor of bytesToHashProcessors) {
-            const origin = processor.origin;
-            if (bufferObject[origin])
-                return processor.process(bufferObject[origin]);
+    static decodeMetadataHash(hexStringByteCode) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const numArrayByteCode = Web3.utils.hexToBytes(hexStringByteCode);
+            const cborLength = numArrayByteCode[numArrayByteCode.length - 2] * 0x100 + numArrayByteCode[numArrayByteCode.length - 1];
+            const bytecodeBuffer = Buffer.from(numArrayByteCode.slice(numArrayByteCode.length - 2 - cborLength, -2));
+            const bufferObject = yield cbor.decodeFirst(bytecodeBuffer);
+            for (const processor of bytesToHashProcessors) {
+                const origin = processor.origin;
+                if (bufferObject[origin])
+                    return processor.process(bufferObject[origin]);
+            }
+            throw new Error(`Couldn't decode the hash format: ${origin}`);
+        });
+    }
+    /**
+     * Function to decode a human readable documentation for the called function.
+     *
+     * @param hexTxInput - input transaction data in hex string
+     * @param metadataOutput - output field of the metadata.json. Includes abi, userdoc, devdoc
+     * @returns an Object with all extractable useful information
+     *
+     * @example
+     * return {
+        functionName: 'mint',
+        params: [
+          {
+            name: '_to',
+            type: 'address',
+            value: '0xAA6042aa65eb93C6439cDaeBC27B3bd09c5DFe94'
+          },
+          { name: '_amount', type: 'uint256', value: '1000000000000000000' }
+        ],
+        userdoc: {
+          notice: 'Creates 1000000000000000000 token to 0xAA6042aa65eb93C6439cDaeBC27B3bd09c5DFe94. Must only be called by the owner (MasterChef).'
+        },
+        devdoc: undefined
+      }
+     */
+    decodeDocumentation(hexTxInput, metadataOutput) {
+        var _a, _b;
+        return __awaiter(this, void 0, void 0, function* () {
+            // 0x + 4bytes
+            const functionSignatureHash = hexTxInput.slice(0, 10);
+            const hexTxInputData = hexTxInput.slice(10);
+            const functionAbiItem = this.findAbiItemFromSignatureHash(functionSignatureHash, metadataOutput.abi);
+            const paramValues = this.web3.eth.abi.decodeParameters(functionAbiItem.inputs, hexTxInputData);
+            const params = functionAbiItem.inputs.map(param => {
+                return { name: param.name, type: param.type, value: paramValues[param.name] };
+            });
+            const functionSignature = this.generateFunctionSignature(functionAbiItem);
+            const userdocItem = (_a = metadataOutput.userdoc) === null || _a === void 0 ? void 0 : _a.methods[functionSignature];
+            const devdocItem = (_b = metadataOutput.devdoc) === null || _b === void 0 ? void 0 : _b.methods[functionSignature];
+            const userdocExpression = userdocItem && userdocItem.notice && (yield this.fillNatSpecExpression(userdocItem.notice, metadataOutput.abi, hexTxInput));
+            const devdocExpression = devdocItem && devdocItem.details && (yield this.fillNatSpecExpression(devdocItem.details, metadataOutput.abi, hexTxInput));
+            return {
+                functionName: functionAbiItem.name,
+                params,
+                userdoc: userdocItem && Object.assign(Object.assign({}, userdocItem), { notice: userdocExpression }),
+                devdoc: devdocItem && Object.assign(Object.assign({}, devdocItem), { details: devdocExpression })
+            };
+        });
+    }
+    /**
+     * Function to generate the standard function signature from an AbiItem.
+     *
+     * Function signature === 'mint(address,uint256)'
+     *
+     * Function signature !== '0x4fa2d1f9'
+     *
+     * Function signature is the function name + parameter types that is hashed to create the function selector/function ID. The (first 4 bytes of the) hash is sometimes wrongly named as the "function signature" but the signature is the unhashed version. See https://docs.soliditylang.org/en/v0.8.8/abi-spec.html#function-selector
+     *
+     * @param functionAbiItem
+     * @returns
+     * @example
+     * // returns "mint(address,uint256)"
+     * generateFunctionSignature({
+          "inputs": [
+            { "internalType": "address", "name": "_to", "type": "address" },
+            { "internalType": "uint256", "name": "_amount", "type": "uint256" }
+          ],
+          "name": "mint",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        })
+     */
+    generateFunctionSignature(functionAbiItem) {
+        const typeNamesStr = functionAbiItem.inputs.map(inputItem => inputItem.type).join(','); // e.g. 'address,uint26,uint8' or '' if empty
+        return `${functionAbiItem.name}(${typeNamesStr})`;
+    }
+    /**
+     * Function to find the function in the abi array, using its signatureHash.
+     *
+     * Creates signatureHash for each AbiItem (constructor, event, function etc.). Returns the matching AbiItem
+     *
+     * @param functionSignatureHash
+     * @param abi
+     * @returns The matched AbiItem
+     *
+     * @example
+     *  const abiItem: AbiItem = findAbiItemFromSignature('0x4fdba32d', [...])
+     *  console.log(abiItem)
+     *  // returns
+     *    {
+            "inputs": [
+              { "internalType": "address", "name": "owner", "type": "address" },
+              { "internalType": "address", "name": "spender", "type": "address" }
+            ],
+            "name": "allowance",
+            "outputs": [
+              { "internalType": "uint256", "name": "", "type": "uint256" }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+          }
+     */
+    findAbiItemFromSignatureHash(functionSignatureHash, abi) {
+        // Generate function signature hashes in the abi
+        const abiFunctionSignatureHashes = abi.map((abiFunc => {
+            // skip non functions e.g. constructor, event
+            if (abiFunc.type !== 'function') {
+                return '';
+            }
+            return this.web3.eth.abi.encodeFunctionSignature(abiFunc);
+        }));
+        const calledFunctionIndex = abiFunctionSignatureHashes.indexOf(functionSignatureHash);
+        if (calledFunctionIndex === -1) {
+            throw new Error(`Couldn't find the function with signature ${functionSignatureHash} in the given abi`);
         }
-        throw new Error(`Couldn't decode the hash format: ${origin}`);
+        return abi[calledFunctionIndex];
+    }
+    /**
+     * Funtion to parse and fill the variables in the dynamic NatSpec expression
+     *
+     * @param expression - @notice or @dev comments of functions in dynamic Natspec
+     * @param abi - the whole abi array of the contract
+     * @param txData - transaction input in hex string
+     * @returns filled NatSpec
+     * @example
+     *  // returns "Sends 100000000 tokens to 0x88B6d1389736270c16604EeC0c1fdA318dc7e3BC"
+     *  fillNatSpecExpression("Sends `_amount` tokens to `_address`", [{},...,{}], "0xa2fs...21a")
+     */
+    fillNatSpecExpression(expression, abi, txData) {
+        const call = {
+            abi: abi,
+            transaction: {
+                data: txData
+            }
+        };
+        const messagePromise = evaluate(expression, call);
+        return messagePromise;
     }
 }
-exports.default = ContractCallDecoder;
-ContractCallDecoder.decodeMetadataHash('0x608060405234801561001057600080fd5b506004361061004c5760003560e01c80637bd703e81461005157806390b98a11146100a957806396e4ee3d1461010f578063f8b2cb4f1461015b575b600080fd5b6100936004803603602081101561006757600080fd5b81019080803573ffffffffffffffffffffffffffffffffffffffff1690602001909291905050506101b3565b6040518082815260200191505060405180910390f35b6100f5600480360360408110156100bf57600080fd5b81019080803573ffffffffffffffffffffffffffffffffffffffff169060200190929190803590602001909291905050506101cf565b604051808215151515815260200191505060405180910390f35b6101456004803603604081101561012557600080fd5b810190808035906020019092919080359060200190929190505050610328565b6040518082815260200191505060405180910390f35b61019d6004803603602081101561017157600080fd5b81019080803573ffffffffffffffffffffffffffffffffffffffff169060200190929190505050610335565b6040518082815260200191505060405180910390f35b60006101c86101c183610335565b6002610328565b9050919050565b6000816000803373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000205410156102205760009050610322565b816000803373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060008282540392505081905550816000808573ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600082825401925050819055508273ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff167fddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef846040518082815260200191505060405180910390a3600190505b92915050565b6000818302905092915050565b60008060008373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002054905091905056fea2646970667358221220711ac087831068bd33b58ebff95a8cdb23734e3a7a5c3c30fdb0d01e2b73c1ae64736f6c63430006020033')
-    .then(ipfsHash => console.log(ipfsHash));
 //# sourceMappingURL=index.js.map

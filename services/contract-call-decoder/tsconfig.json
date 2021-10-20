@@ -1,15 +1,21 @@
 {
   "compilerOptions": {
     "allowJs": true,
-    "target": "es2017",
+    "target": "es6",
     "sourceMap": true,
     "esModuleInterop": true,
     "strict": true,
     "declaration": true,
     "outDir": "build",
-    "resolveJsonModule": true,
     "strictNullChecks": false,
-    "module": "commonjs"
+    "moduleResolution": "node",
+    "module": "es6",
+    "typeRoots": [
+      "./types",
+      "./node_modules/@types"
+    ]
   },
-  "include": ["./src"]
+  "include": [
+    "./src"
+  ]
 }
