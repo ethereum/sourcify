@@ -2812,7 +2812,7 @@
     "name": "Energi Mainnet",
     "chain": "NRG",
     "network": "mainnet",
-    "rpc": ["https://nodeapi.energi.network"],
+    "rpc": ["https://nodeapi.gen3.energi.network"],
     "faucets": [],
     "nativeCurrency": {
       "name": "Energi",
@@ -2964,11 +2964,11 @@
     "name": "Energi Testnet",
     "chain": "NRG",
     "network": "testnet",
-    "rpc": ["https://nodeapi.test.energi.network"],
+    "rpc": ["https://nodeapi.test3.energi.network"],
     "faucets": [],
     "nativeCurrency": {
       "name": "Energi",
-      "symbol": "NRG",
+      "symbol": "tNRG",
       "decimals": 18
     },
     "infoURL": "https://www.energi.world/",
