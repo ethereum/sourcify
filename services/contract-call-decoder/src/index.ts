@@ -4,9 +4,9 @@ import { toB58String } from 'multihashes';
 import fetch from 'node-fetch';
 import {Response} from 'node-fetch/@types';
 import timeoutSignal from 'timeout-signal';
-// @ts-ignore
 import {evaluate} from 'radspec';
 import {AbiItem} from 'web3-utils';
+
 interface Processor {
     origin: string,
     process: (bytes: Buffer) => string
@@ -26,13 +26,18 @@ const bytesToHashProcessors: Processor[] = [
 
 export default class ContractCallDecoder {
 
-  ipfsGateway: string;
-  web3: Web3;
-  timeout: number;
+  private web3: Web3;
+
+  private ipfsGateway: string;
   
+  public utils: Web3['utils'];
+
+  private timeout: number;
+
   constructor(rpcURL = "http://localhost:8545", ipfsGateway = "https://ipfs.io", timeout = 30000) {
-    this.ipfsGateway = ipfsGateway;
     this.web3 = new Web3(rpcURL);
+    this.utils = this.web3.utils;
+    this.ipfsGateway = ipfsGateway;
     this.timeout = timeout; // timeout to wait for the IPFS gateway response.
   }
 
@@ -228,5 +233,40 @@ export default class ContractCallDecoder {
     }
     const messagePromise = evaluate(expression, call)
     return messagePromise;
+  }
+
+  private isAddress(address: string): boolean {
+    try {
+      return this.utils.isAddress(address);
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Function to fetch the contract deployed byte code. Requires the address of the contract
+   * 
+   * @param address - Contract address
+   * @returns the deployed bytecode as a string
+   */
+  async fetchDeployedByteCode(address: string): Promise<string> {
+    if (!address) {
+      throw new Error('No wallet address defined.');
+    }
+
+    if (!this.isAddress(address)) {
+      throw Error(`Invalid 'address' parameter '${address}'.`);
+    }
+
+    try {
+      const byteCode = await this.web3.eth.getCode(address);
+      if (byteCode === '0x0' || byteCode === '0x') {
+        throw new Error(`Could not get bytecode for ${address}`)
+      }
+
+      return byteCode;
+    } catch {
+      throw new Error(`Could not get bytecode for ${address}`);
+    }
   }
 }

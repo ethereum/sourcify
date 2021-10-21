@@ -9,6 +9,7 @@
     "outDir": "build",
     "strictNullChecks": false,
     "moduleResolution": "node",
+    "resolveJsonModule": true,
     "module": "es6",
     "typeRoots": [
       "./types",
@@ -17,5 +18,5 @@
   },
   "include": [
     "./src"
-  ]
+  ],
 }

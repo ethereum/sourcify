@@ -3,11 +3,14 @@ import chaiAsPromised from "chai-as-promised";
 import dotenv from "dotenv";
 import ContractCallDecoder from "../build/index.js";
 import metadata from "./metadata.js";
+import examples from "./bytecode.js";
 import QmRFjbs2fEEQnAKaZzZKqWArJTta76GaWsD4PRbHuoY41S from "./QmRFjbs2fEEQnAKaZzZKqWArJTta76GaWsD4PRbHuoY41S.js";
 dotenv.config();
 
 chai.use(chaiAsPromised);
 
+const noBytecodeAddress = '0x6bb11EBDF00ebDFbe707005B506A24Fd57d5Bd66'
+const address = '0xB2d0641fc8863514B6533b129fD744200eE17D29'
 describe("Contract Call Decoder", function () {
   const simpleDecoder = new ContractCallDecoder();
 
@@ -136,4 +139,32 @@ describe("Contract Call Decoder", function () {
       chai.expect(output.params).to.deep.equal(expectedParams);
     });
   });
+  describe('#fetchDeployedByteCode()', () => {
+    it("should throw an exception error, if address isn't provided", async () => {
+      const decoder = new ContractCallDecoder('https://rpc.tanenbaum.io')
+      return chai
+        .expect(decoder.fetchDeployedByteCode(''))
+        .rejectedWith(Error, 'No wallet address defined.')
+    })
+
+    it('should throw an exception error, if address format is wrong', async () => {
+      const decoder = new ContractCallDecoder('https://rpc.tanenbaum.io')
+      return chai
+        .expect(decoder.fetchDeployedByteCode())
+        .rejectedWith(Error, 'No wallet address defined.')
+    })
+
+    it("should throw an exception error, if it can't get bytecode", async () => {
+      const decoder = new ContractCallDecoder('https://rpc.tanenbaum.io')
+      return chai
+        .expect(decoder.fetchDeployedByteCode(noBytecodeAddress))
+        .rejectedWith(Error, `Could not get bytecode for ${noBytecodeAddress}`)
+    })
+
+    it('should retrieve deployed bytcode', async () => {
+      const decoder = new ContractCallDecoder('https://rpc.tanenbaum.io')
+      const byteCode = await decoder.fetchDeployedByteCode(address)
+      chai.expect(examples.deployedBytecode).to.deep.equal(byteCode)
+    })
+  })
 });
