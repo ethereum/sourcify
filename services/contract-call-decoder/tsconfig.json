@@ -9,7 +9,13 @@
     "outDir": "build",
     "strictNullChecks": false,
     "moduleResolution": "node",
-    "module": "es6"
+    "module": "es6",
+    "typeRoots": [
+      "./types",
+      "./node_modules/@types"
+    ]
   },
-  "include": ["./src"]
+  "include": [
+    "./src"
+  ]
 }

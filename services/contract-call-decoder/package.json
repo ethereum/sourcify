@@ -31,6 +31,7 @@
     "cbor": "^8.0.0",
     "multihashes": "^0.4.21",
     "node-fetch": "^3.0.0",
+    "radspec": "^1.12.0",
     "rimraf": "^3.0.2",
     "timeout-signal": "^1.1.0",
     "web3": "^1.5.3"
