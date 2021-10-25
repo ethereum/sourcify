@@ -1,12 +1,10 @@
 version: "3.7"
-x-project-repository-mount:
-  &project-repository-mount
+x-project-repository-mount: &project-repository-mount
   type: bind
   source: $REPOSITORY_PATH
   read_only: true
 
-x-project-base:
-  &project-base
+x-project-base: &project-base
   env_file:
     - .env
   restart: always
@@ -14,10 +12,10 @@ x-project-base:
     - source-verify
 networks:
   source-verify:
-volumes:
-  db:
-  h5ai:
-    driver: local
+# volumes:
+#   db:
+#   h5ai:
+#     driver: local
 
 services:
   repository:
@@ -31,4 +29,4 @@ services:
         target: /data
         read_only: true
     ports:
-    - ${REPOSITORY_EXTERNAL_PORT}:${REPOSITORY_PORT}
+      - ${REPOSITORY_EXTERNAL_PORT}:${REPOSITORY_PORT}
