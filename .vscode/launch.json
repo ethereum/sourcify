@@ -347,5 +347,21 @@
         "${workspaceFolder}/services/contract-call-decoder/build/*.js"
       ]
     },
+      {
+        "args": [
+          "--colors",
+          "${workspaceFolder}/services/contract-call-decoder/test"
+        ],
+        "cwd": "${workspaceFolder}/services/contract-call-decoder",
+        "internalConsoleOptions": "openOnSessionStart",
+        "name": "Contract Call Decoder Tests",
+        "program": "${workspaceFolder}/services/contract-call-decoder/node_modules/mocha/bin/_mocha",
+        "request": "launch",
+        "skipFiles": [
+          "<node_internals>/**",
+          "${workspaceFolder}/services/contract-call-decoder/node_modules/**/*.js"
+        ],
+        "type": "pwa-node"
+      },
   ]
 }
