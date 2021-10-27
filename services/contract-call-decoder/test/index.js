@@ -1,18 +1,23 @@
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import dotenv from "dotenv";
+import path from "path";
 import ContractCallDecoder from "../build/index.js";
-import metadata from "./metadata.js";
-import examples from "./bytecode.js";
+import * as expected from "./expected.js";
+import { metadata1, metadata3, metadata4 } from "./metadata.js";
 import QmRFjbs2fEEQnAKaZzZKqWArJTta76GaWsD4PRbHuoY41S from "./QmRFjbs2fEEQnAKaZzZKqWArJTta76GaWsD4PRbHuoY41S.js";
-dotenv.config();
-
+dotenv.config({ path: path.resolve("./test/.env") }); // Tests called from project root
 chai.use(chaiAsPromised);
 
-const noBytecodeAddress = '0x6bb11EBDF00ebDFbe707005B506A24Fd57d5Bd66'
-const address = '0xB2d0641fc8863514B6533b129fD744200eE17D29'
+const noBytecodeAddress = "0x6bb11EBDF00ebDFbe707005B506A24Fd57d5Bd66";
+const address = "0xB2d0641fc8863514B6533b129fD744200eE17D29";
+
 describe("Contract Call Decoder", function () {
-  const simpleDecoder = new ContractCallDecoder();
+  let simpleDecoder = new ContractCallDecoder();
+
+  // this.beforeAll(() => {
+  //   simpleDecoder =
+  // });
 
   it("should extract the IPFS hash from the bytecode", async () => {
     const byteCode =
@@ -53,14 +58,13 @@ describe("Contract Call Decoder", function () {
   });
 
   describe("mint(address,uint256) function", () => {
-    let inputData, output;
+    let tx, output;
     this.beforeAll(async () => {
-      inputData =
-        "0x40c10f19000000000000000000000000aa6042aa65eb93c6439cdaebc27b3bd09c5dfe940000000000000000000000000000000000000000000000000de0b6b3a7640000";
-      output = await simpleDecoder.decodeDocumentation(
-        inputData,
-        metadata.output
-      );
+      tx = {
+        input:
+          "0x40c10f19000000000000000000000000aa6042aa65eb93c6439cdaebc27b3bd09c5dfe940000000000000000000000000000000000000000000000000de0b6b3a7640000",
+      };
+      output = await simpleDecoder.decodeDocumentation(tx, metadata1.output);
     });
 
     // Tests
@@ -93,16 +97,15 @@ describe("Contract Call Decoder", function () {
     });
   });
 
-  describe("approve(address,uint256) function", () => {
-    let inputData, output;
+  describe("approve(address,uint256) function ", () => {
+    let tx, output;
 
     this.beforeAll(async () => {
-      inputData =
-        "0x095ea7b3000000000000000000000000a3176119b2166b021fc2eb5f47b86a8ac641dc90ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
-      output = await simpleDecoder.decodeDocumentation(
-        inputData,
-        metadata.output
-      );
+      tx = {
+        input:
+          "0x095ea7b3000000000000000000000000a3176119b2166b021fc2eb5f47b86a8ac641dc90ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      };
+      output = await simpleDecoder.decodeDocumentation(tx, metadata1.output);
     });
 
     // Tests
@@ -139,32 +142,110 @@ describe("Contract Call Decoder", function () {
       chai.expect(output.params).to.deep.equal(expectedParams);
     });
   });
-  describe('#fetchDeployedByteCode()', () => {
-    it("should throw an exception error, if address isn't provided", async () => {
-      const decoder = new ContractCallDecoder('https://rpc.tanenbaum.io')
-      return chai
-        .expect(decoder.fetchDeployedByteCode(''))
-        .rejectedWith(Error, 'No wallet address defined.')
-    })
 
-    it('should throw an exception error, if address format is wrong', async () => {
-      const decoder = new ContractCallDecoder('https://rpc.tanenbaum.io')
+  // Tx 0x14e8058b6335521567eed31eae07afd50875939b42c326a9ec7a3a8d13a50556 on Rinkeby
+  describe("transfer(address,uint256) function", () => {
+    let tx, output;
+
+    this.beforeAll(async () => {
+      tx = {
+        from: "0x5a14d695c6e2cf9c9bec4472604267acef7b652e",
+        to: "0x1d08eb247554a3c8ddb29b7313aa8b961b5f87a6",
+        input:
+          "0xa9059cbb000000000000000000000000e89546063d995dfc96d719e4ff533e82a02dbb8800000000000000000000000000000000000000000000006c6b935b8bbd400000",
+      };
+      output = await simpleDecoder.decodeDocumentation(tx, metadata3.output);
+    });
+
+    it("should replace `msg.sender` and `dst` in userdoc but not replace incorrect `amount`.", () => {
+      // actualy parameter of func. is 'rawAmount' but @notice has `amount`.
+      const expectedUserdoc =
+        "Transfer `amount` tokens from 0x5A14D695C6e2cF9C9Bec4472604267acEF7B652e to 0xE89546063D995dFC96D719e4FF533e82A02dBb88";
+      chai.expect(output.userdoc.notice).to.equal(expectedUserdoc);
+    });
+  });
+
+  // Tx 0x559d2102087c96e09d6da278eea394187c1bb3ada2853766e83cad7e567c33b8 in Rinkeby
+  describe("setFulfillmentPermission(address,bool) function", () => {
+    let tx, output;
+    this.beforeAll(async () => {
+      tx = {
+        from: "0x0a6be7ef9def0025bd75a7ea8bc661a143235ed7",
+        input:
+          "0x7fcd56db0000000000000000000000005b0c7b3c536ea45ba709224c966ca11afcf00b9a0000000000000000000000000000000000000000000000000000000000000001",
+        to: "0x98977330d7b19bc260de0adb748876e3bc030c48",
+      };
+      output = await simpleDecoder.decodeDocumentation(tx, metadata4.output);
+    });
+
+    it("should not throw when parameters in ticks are not found but write what's found in docs e.g. `true`", async () => {
+      it("should replace `msg.sender` in userdoc ", () => {
+        const expectedUserdoc =
+          "Sets the fulfillment permission for a given node. Use `true` to allow, `false` to disallow.";
+        chai.expect(output.userdoc.notice).to.equal(expectedUserdoc);
+      });
+    });
+  });
+
+  describe("#fetchDeployedByteCode()", () => {
+    it("should throw an exception error, if address isn't provided", async () => {
+      const decoder = new ContractCallDecoder("https://rpc.tanenbaum.io");
       return chai
-        .expect(decoder.fetchDeployedByteCode())
-        .rejectedWith(Error, 'No wallet address defined.')
-    })
+        .expect(decoder.fetchDeployedByteCode(""))
+        .rejectedWith(Error, "No contract address defined.");
+    });
+
+    it("should throw an exception error, if address format is wrong", async () => {
+      const decoder = new ContractCallDecoder("https://rpc.tanenbaum.io");
+      return chai
+        .expect(
+          decoder.fetchDeployedByteCode(
+            "0x2aa760e35c24510f82b831a1b4da6fb891741f4df868f86723c747b22cd76b33"
+          )
+        )
+        .rejectedWith(
+          Error,
+          "Invalid 'address' parameter '0x2aa760e35c24510f82b831a1b4da6fb891741f4df868f86723c747b22cd76b33'"
+        );
+    });
 
     it("should throw an exception error, if it can't get bytecode", async () => {
-      const decoder = new ContractCallDecoder('https://rpc.tanenbaum.io')
+      const decoder = new ContractCallDecoder("https://rpc.tanenbaum.io");
       return chai
         .expect(decoder.fetchDeployedByteCode(noBytecodeAddress))
-        .rejectedWith(Error, `Could not get bytecode for ${noBytecodeAddress}`)
-    })
+        .rejectedWith(Error, `Could not get bytecode for ${noBytecodeAddress}`);
+    });
 
-    it('should retrieve deployed bytcode', async () => {
-      const decoder = new ContractCallDecoder('https://rpc.tanenbaum.io')
-      const byteCode = await decoder.fetchDeployedByteCode(address)
-      chai.expect(examples.deployedBytecode).to.deep.equal(byteCode)
-    })
-  })
+    it("should retrieve deployed bytcode", async () => {
+      const decoder = new ContractCallDecoder("https://rpc.tanenbaum.io");
+      const byteCode = await decoder.fetchDeployedByteCode(address);
+      chai.expect(expected.deployedBytecode).to.deep.equal(byteCode);
+    });
+  });
+
+  describe("Full Functionality", () => {
+    it("Should decode Rinkeby tx with hash 0xa7a84bd023700d8bec5aa5e644681c64e2b27e7e186f7c91f2c0d640e4e2fa62", async () => {
+      const decoder = new ContractCallDecoder(process.env.RINKEBY_RPC);
+      const tx = {
+        input:
+          "0x23b872dd0000000000000000000000001dd5682f664a1402bf7d89ae346cbdd786244f42000000000000000000000000d1cd6444c222898e82964fcdf3ec152aa58b06560000000000000000000000000000000000000000000000000000000000002715",
+        from: "0x1dD5682F664A1402BF7d89Ae346cbDd786244F42",
+        to: "0x6b1ee6618e4237d39f1afbb8d196e39fbbc6deac",
+      };
+      const documentation = await decoder.decode(tx);
+      chai.expect(expected.expectedDocumentation1).deep.equal(documentation);
+    }).timeout(5000); // IPFS fetch takes long
+
+    it("Should decode Rinkeby tx with hash 0x78ff128ef23b742db84905cd13616fa114ae6bbf8067c40875ff76a353e6fba7", async () => {
+      const decoder = new ContractCallDecoder(process.env.RINKEBY_RPC);
+      const tx = {
+        input:
+          "0xa9059cbb000000000000000000000000e8fd6e7e759f33ea9bda1151667de7cb7e7454ad00000000000000000000000000000000000000000000003635c9adc5dea00000",
+        to: "0x1d08eb247554a3c8ddb29b7313aa8b961b5f87a6",
+        from: "0xa0c378a0925b5289912bf5d8a6ce3a55a90fff92",
+      };
+      const documentation = await decoder.decode(tx, address);
+      chai.expect(expected.expectedDocumentation2).deep.equal(documentation);
+    }).timeout(5000); // IPFS fetch takes long
+  });
 });

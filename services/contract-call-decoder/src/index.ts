@@ -4,9 +4,9 @@ import { toB58String } from 'multihashes';
 import fetch from 'node-fetch';
 import {Response} from 'node-fetch/@types';
 import timeoutSignal from 'timeout-signal';
-import {evaluate} from 'radspec';
+import {evaluate} from '@ethereum-sourcify/radspec';
 import {AbiItem} from 'web3-utils';
-
+import { Transaction } from 'web3-core'
 interface Processor {
     origin: string,
     process: (bytes: Buffer) => string
@@ -16,6 +16,17 @@ type MetadataOutput = {
   abi: AbiItem[],
   userdoc: any,
   devdoc: any
+}
+
+type DecodeOutput = {
+  functionName: 'string',
+  params: any,
+  userdoc: { notice: string } | undefined,
+  devdoc: { 
+    details: string | undefined,
+    params: any,
+    returns: any,
+  } | undefined
 }
 
 const bytesToHashProcessors: Processor[] = [
@@ -34,11 +45,30 @@ export default class ContractCallDecoder {
 
   private timeout: number;
 
+  // TODO: Make IPFS argument a callback/promise to let non-http but tcp connections
   constructor(rpcURL = "http://localhost:8545", ipfsGateway = "https://ipfs.io", timeout = 30000) {
     this.web3 = new Web3(rpcURL);
     this.utils = this.web3.utils;
     this.ipfsGateway = ipfsGateway;
     this.timeout = timeout; // timeout to wait for the IPFS gateway response.
+  }
+
+  /**
+   * Main functionality of the ContractCallDecoder
+   * 
+   * @param tx - Web3 Transaction object  
+   * @param contractAddress 
+   * @returns 
+   */
+  public async decode(tx: Transaction): Promise<DecodeOutput> {
+    if (tx.input == '0x') // not a contract call
+      return null;
+    const contractAddress = tx.to;
+    const contractByteCode = await this.fetchDeployedByteCode(contractAddress);
+    const metadataHash = await ContractCallDecoder.decodeMetadataHash(contractByteCode);
+    const metadataOutput = await this.fetchMetadataOutputWithHash(metadataHash);
+    const documentation = await this.decodeDocumentation(tx, metadataOutput);
+    return documentation;
   }
 
   /**
@@ -68,7 +98,7 @@ export default class ContractCallDecoder {
   }
 
   async fetchMetadataOutputWithHash(metadataHash: string): Promise<MetadataOutput> {
-    const metadata: any = this.fetchMetadataWithHash(metadataHash);
+    const metadata: any = await this.fetchMetadataWithHash(metadataHash);
     return metadata.output;
   }
 
@@ -99,7 +129,7 @@ export default class ContractCallDecoder {
   /**
    * Function to decode a human readable documentation for the called function.
    * 
-   * @param hexTxInput - input transaction data in hex string
+   * @param tx - Transaction object
    * @param metadataOutput - output field of the metadata.json. Includes abi, userdoc, devdoc
    * @returns an Object with all extractable useful information
    * 
@@ -120,10 +150,10 @@ export default class ContractCallDecoder {
       devdoc: undefined
     }
    */
-  async decodeDocumentation( hexTxInput: string, metadataOutput: MetadataOutput ): Promise<any> {
+  async decodeDocumentation( tx: Transaction, metadataOutput: MetadataOutput ): Promise<any> {
     // 0x + 4bytes
-    const functionSignatureHash = hexTxInput.slice(0,10);
-    const hexTxInputData = hexTxInput.slice(10);
+    const functionSignatureHash = tx.input.slice(0,10);
+    const hexTxInputData = tx.input.slice(10);
     const functionAbiItem = this.findAbiItemFromSignatureHash(functionSignatureHash, metadataOutput.abi)
     const paramValues = this.web3.eth.abi.decodeParameters(functionAbiItem.inputs, hexTxInputData);
     const params = functionAbiItem.inputs.map(param => {
@@ -132,8 +162,8 @@ export default class ContractCallDecoder {
     const functionSignature = this.generateFunctionSignature(functionAbiItem);
     const userdocItem = metadataOutput.userdoc?.methods[functionSignature];
     const devdocItem = metadataOutput.devdoc?.methods[functionSignature];
-    const userdocExpression = userdocItem && userdocItem.notice && await this.fillNatSpecExpression(userdocItem.notice, metadataOutput.abi, hexTxInput);
-    const devdocExpression = devdocItem && devdocItem.details && await this.fillNatSpecExpression(devdocItem.details, metadataOutput.abi, hexTxInput);
+    const userdocExpression = userdocItem && userdocItem.notice && await this.fillNatSpecExpression(userdocItem.notice, metadataOutput.abi, tx);
+    const devdocExpression = devdocItem && devdocItem.details && await this.fillNatSpecExpression(devdocItem.details, metadataOutput.abi, tx);
 
     return {
         functionName: functionAbiItem.name,
@@ -218,17 +248,18 @@ export default class ContractCallDecoder {
    * 
    * @param expression - @notice or @dev comments of functions in dynamic Natspec
    * @param abi - the whole abi array of the contract 
-   * @param txData - transaction input in hex string
+   * @param tx - Transaction object
    * @returns filled NatSpec 
    * @example
    *  // returns "Sends 100000000 tokens to 0x88B6d1389736270c16604EeC0c1fdA318dc7e3BC"
    *  fillNatSpecExpression("Sends `_amount` tokens to `_address`", [{},...,{}], "0xa2fs...21a") 
    */
-  fillNatSpecExpression(expression: string, abi: AbiItem[], txData: string): string {
+  fillNatSpecExpression(expression: string, abi: AbiItem[], tx: Transaction): string {
     const call = {
       abi: abi,
       transaction: {
-        data: txData
+        ...tx,
+        data: tx.input // radspec expects data instead of input
       }
     }
     const messagePromise = evaluate(expression, call)
@@ -251,7 +282,7 @@ export default class ContractCallDecoder {
    */
   async fetchDeployedByteCode(address: string): Promise<string> {
     if (!address) {
-      throw new Error('No wallet address defined.');
+      throw new Error('No contract address defined.');
     }
 
     if (!this.isAddress(address)) {

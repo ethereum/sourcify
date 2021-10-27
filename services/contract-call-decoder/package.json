@@ -1,7 +1,7 @@
 {
-  "name": "contract-call-decoder",
+  "name": "@ethereum-sourcify/contract-call-decoder",
   "version": "0.1.0",
-  "description": "Contract call decoder module for a given chain, contract address, and transaction input data. Extracts the metadata.json IPFS hash from the contract bytecode and fetches the metadata. Finds the called function in the contract ABI and decodes the call parameters. If available, shows the NatSpec/userDoc of the called function.",
+  "description": "Contract call decoder module transaction input data. Fetches the contract bytecode via the given RPC and fetches the metadata.json if available on IPFS. Decodes the tx input into human readable parameters with devdoc and userdoc. Fills the dynamic NatSpec expressions in devdoc and userdoc.",
   "types": "build/index.d.ts",
   "files": [
     "build"
@@ -14,24 +14,26 @@
   "scripts": {
     "test": "npm run build && mocha",
     "build": "rimraf ./build && tsc",
-    "start": "npm run build && node build/index.js"
+    "start": "npm run build && node build/index.js",
+    "prepublishOnly": "env NODE_ENV=production npm run build"
   },
   "keywords": [
     "ethereum",
     "contract",
-    "decoder",
+    "natspec",
     "metadata",
     "ipfs",
     "transaction",
-    "evm"
+    "sourcify",
+    "source-verify"
   ],
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@ethereum-sourcify/radspec": "^1.12.1",
     "cbor": "^8.0.0",
     "multihashes": "^0.4.21",
     "node-fetch": "^3.0.0",
-    "radspec": "^1.12.0",
     "rimraf": "^3.0.2",
     "timeout-signal": "^1.1.0",
     "web3": "^1.5.3"
