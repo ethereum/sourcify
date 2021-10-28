@@ -46,7 +46,7 @@ export default class ContractCallDecoder {
   private timeout: number;
 
   // TODO: Make IPFS argument a callback/promise to let non-http but tcp connections
-  constructor(rpcURL = "http://localhost:8545", ipfsGateway = "https://ipfs.io", timeout = 30000) {
+  constructor(rpcURL = "http://localhost:8545", ipfsGateway = "https://ipfs.ethdevops.io", timeout = 30000) {
     this.web3 = new Web3(rpcURL);
     this.utils = this.web3.utils;
     this.ipfsGateway = ipfsGateway;
@@ -61,6 +61,7 @@ export default class ContractCallDecoder {
    * @returns 
    */
   public async decode(tx: Transaction): Promise<DecodeOutput> {
+    console.log(this.ipfsGateway)
     if (tx.input == '0x') // not a contract call
       return null;
     const contractAddress = tx.to;
