@@ -222,5 +222,11 @@ export default {
             "https://frankenstein-rpc.oneledger.network"
         ],
         "txRegex": getBlockscoutRegex()
+    },
+    "82": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://scan.meter.io/" + ETHERSCAN_SUFFIX,
+        "txRegex": ETHERSCAN_REGEX
     }
 }

@@ -4424,5 +4424,28 @@
     "shortName": "palm",
     "chainId": 11297108109,
     "networkId": 11297108109
+  },
+  {
+    "name": "Meter Mainnet",
+    "chain": "Meter",
+    "network": "mainnet",
+    "rpc": ["https://rpc.meter.io"],
+    "faucets": [],
+    "nativeCurrency": {
+      "name": "MTR",
+      "symbol": "MTR",
+      "decimals": 18
+    },
+    "infoURL": "https://www.meter.io",
+    "shortName": "meter",
+    "chainId": 82,
+    "networkId": 82,
+    "explorers": [
+      {
+        "name": "meterscan",
+        "url": "https://scan.meter.io/",
+        "standard": "EIP3091"
+      }
+    ]
   }
 ]
