@@ -8,6 +8,7 @@ const solc = require('solc');
 import { spawnSync } from 'child_process';
 import { StatusCodes } from 'http-status-codes';
 import { ethers } from 'ethers';
+import any from  'promise.any';
 
 const GITHUB_SOLC_REPO = "https://github.com/ethereum/solc-bin/raw/gh-pages/linux-amd64/";
 
@@ -60,7 +61,8 @@ export async function getBytecode(web3array: Web3[], address: string): Promise<s
         rpcPromises.push(web3.eth.getCode(address));
     }
     try {
-        return <string> await Promise.race([
+        // Promise.any for Node v15.0.0<
+        return <string> await any([ 
             ...rpcPromises,
             new Promise((_resolve, reject) => {
                 setTimeout(() => reject('RPC took too long to respond'), 3e3);
