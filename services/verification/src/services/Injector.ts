@@ -124,7 +124,9 @@ export class Injector {
             if (this.alchemyPID) {
                 this.chains[chain.chainId].web3array = chain.rpc.map((rpcURL: string) => {
                     const opts = { timeout: this.web3timeout };
-                    return new Web3(new Web3.providers.HttpProvider(rpcURL, opts));
+                    return rpcURL.startsWith('http') ? 
+                        new Web3(new Web3.providers.HttpProvider(rpcURL, opts)) :
+                        new Web3(new Web3.providers.WebsocketProvider(rpcURL, opts))
                 });
             } else {
                 const web3 = chain.fullnode.dappnode;

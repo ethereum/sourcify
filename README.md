@@ -1,4 +1,4 @@
-# Sourcify 🧑‍💻📝🔍 
+# Sourcify 🧑‍💻📝🔍
 
 Sourcify wants to help make contract interactions on the blockchain safer and more transparent for users.
 
@@ -8,10 +8,10 @@ To achieve this goal, Sourcify supports several efforts to foster adoption of op
 
 At its core, Sourcify currently maintains:
 
-+ an [interface](https://github.com/sourcifyeth/sourcify/tree/master/ui) that helps developers to verify metadata and contract source code. It is accessible via [sourcify.dev](https://sourcify.dev/).
-+ a decentralized contract repository of all verified contracts, powered by IPFS, accessible via [sourcify.dev](https://sourcify.dev/) and [verificat.eth](verificat.eth.link).
-+ a monitoring & verifier service that checks for new contracts on selected EVM-compatible chains and tries to verify them automatically. 
-+ verify & fetch plugins for several IDEs.
+- an [interface](https://github.com/sourcifyeth/sourcify/tree/master/ui) that helps developers to verify metadata and contract source code. It is accessible via [sourcify.dev](https://sourcify.dev/).
+- a decentralized contract repository of all verified contracts, powered by IPFS, accessible via [sourcify.dev](https://sourcify.dev/) and [verificat.eth](verificat.eth.link).
+- a monitoring & verifier service that checks for new contracts on selected EVM-compatible chains and tries to verify them automatically.
+- verify & fetch plugins for several IDEs.
 
 Sourcify aims to provide a base layer allowing other tools build on top of it. Its main purpose is to keep metadata and source files available via IPFS and Swarm (preventing that the links in the bytecode turn into dead links).
 
@@ -19,9 +19,9 @@ Besides the technical infrastructure, Sourcify is also a collective initiative t
 
 **Have questions or improvement ideas?**
 
-💬  Chat with us on [Gitter](https://gitter.im/ethereum/source-verify) or [Discord](https://discord.gg/8WEykm2aHC) (channels are bridged).
+💬 Chat with us on [Gitter](https://gitter.im/ethereum/source-verify) or [Discord](https://discord.gg/8WEykm2aHC) (channels are bridged).
 
-🌐  Follow us and help us spread the word on [Twitter](https://twitter.com/SourcifyEth).
+🌐 Follow us and help us spread the word on [Twitter](https://twitter.com/SourcifyEth).
 
 ## The Basic Concept
 
@@ -41,18 +41,19 @@ Information on metadata can be found in [Solidity documentation][30].
 
 As mentioned above, Sourcify has several components:
 
-+ a "monitoring & verifier service" which watches public Ethereum networks for contract deployments
-and tries to associate them with sources and metadata published to Swarm or IPFS. It currently
-watches Ethereum mainnet and test networks, and other EVM based chains listed [here](#supported-networks) 
+- a "monitoring & verifier service" which watches public Ethereum networks for contract deployments
+  and tries to associate them with sources and metadata published to Swarm or IPFS. It currently
+  watches Ethereum mainnet and test networks, and other EVM based chains listed [here](#supported-networks)
 
-+ a website which allows you to submit sources and metadata for a specific contract address manually
-  + https://sourcify.dev (Stable)
-  + https://staging.sourcify.dev (Unstable)
-  + https://draft.staging.sourcify.dev (New UI design)
+- a website which allows you to submit sources and metadata for a specific contract address manually
 
-+ a public metadata repository that contains uploaded (or discovered) metadata and their sources:
-  + https://repo.sourcify.dev (Stable)
-  + https://repo.staging.sourcify.dev (Unstable)
+  - https://sourcify.dev (Stable)
+  - https://staging.sourcify.dev (Unstable)
+  - https://draft.staging.sourcify.dev (New UI design)
+
+- a public metadata repository that contains uploaded (or discovered) metadata and their sources:
+  - https://repo.sourcify.dev (Stable)
+  - https://repo.staging.sourcify.dev (Unstable)
 
 ### Getting Metadata
 
@@ -101,6 +102,12 @@ visible in the bytecode. Variables can be renamed or unused code can be
 introduced. Since the bytecode contains a hash of the source code, such
 modifications have to be prepared at deploy time, but it is still a possibility.
 
+### Pinning the Repository on IPFS
+
+Pin and help us decentralize the Sourcify repository!
+
+Refer to [the guide](https://github.com/wmitsuda/otterscan/blob/develop/docs/ipfs.md#pinning-sourcify-locally) by @wmitsuda
+
 ### Using the Repository
 
 There is a repository which contains all the files that the monitoring service has found
@@ -140,6 +147,7 @@ Alternatively, if you want to take a look at the contract in the browser, you ca
 ### How to
 
 ## Install and run server with UI
+
 ```
 $ npx lerna bootstrap
 $ npx lerna run build
@@ -148,12 +156,15 @@ $ npm run dev:ui
 ```
 
 ## Run inside docker
+
 ### Prerequisites
+
 [Docker](https://docs.docker.com/docker-for-mac/install/)
 
 [Docker-compose](https://docs.docker.com/compose/install/)
 
 ### How to run
+
 Prepare environment and start by running these commands from the `environments` directory:
 To build images locally run:
 `docker-compose -f geth.yaml -f ipfs.yaml -f localchain.yaml -f monitor.yaml -f repository.yaml -f s3.yaml -f server.yaml -f ui.yaml -f build-ipfs.yaml -f build-localchain.yaml -f build-monitor.yaml -f build-repository.yaml -f build-s3.yaml -f build-server.yaml -f build-ui.yaml build --parallel`
@@ -188,17 +199,16 @@ To help with manual UI testing, some contracts whose sources and metadata can be
 `test/sources/all` folder are automatically deployed to a local ganache instance running
 on port 8545. Their contract addresses are deterministically generated at:
 
-| Contracts  |  Addresses |
-| ---------  |  --------- |
-| Simple.sol |  0x8168f192F7432C93FCb16e039B57FB890AaB3230 |
+| Contracts            | Addresses                                  |
+| -------------------- | ------------------------------------------ |
+| Simple.sol           | 0x8168f192F7432C93FCb16e039B57FB890AaB3230 |
 | SimpleWithImport.sol | 0x0Ef7de872C7110d6020fa5e62d7cD31Fd90FF811 |
-
 
 Similar sources are also pre-deployed to **Ropsten** and can be found in the `test/sources/ropsten` folder:
 
-| Contracts  |  Addresses |
-| ---------  |  --------- |
-| Simple.sol |  0xEB6Cf7952c666F81f1a5678E80D4fC5Ce3a7bF0b |
+| Contracts            | Addresses                                  |
+| -------------------- | ------------------------------------------ |
+| Simple.sol           | 0xEB6Cf7952c666F81f1a5678E80D4fC5Ce3a7bF0b |
 | SimpleWithImport.sol | 0x4668b709182F41837c4e06C8de1D3568df7778D9 |
 
 **Shutdown**
@@ -243,71 +253,76 @@ You can find examples in our Postman collection in the root of this project `Sou
 
 ### Server API
 
-* [Check by addresses](docs/api/server/verification1/check-by-addresses.md) : `GET /check-by-addresses?addresses={address}&chainIds={chainIds}`
-* Verification API (v1)
-  * [Verify](docs/api/server/verification1/verify.md) : `POST /` or `POST /verify`
-* Verification API (v2 - session based)
-  * [Add input files](docs/api/server/verification2/input-files.md) : `POST /input-files`
-  * [Verify validated](docs/api/server/verification2/verify-validated.md) : `POST /verify-validated`
-  * [Get session data](docs/api/server/verification2/session-data.md) : `GET /session-data`
-  * [Restart session](docs/api/server/verification2/restart-session.md) : `POST /restart-session`
-* [Get file tree (full match)](docs/api/server/getTreeByChainAndAddress.md) : `GET /files/tree/:chain/:address`
-* [Get source files (full match)](docs/api/server/getByChainAndAddress.md) : `GET /files/:chain/:address`
-* [Get file tree (full or partial match)](docs/api/server/getAnyTreeByChainAndAddress.md) : `GET /files/tree/any/:chain/:address`
-* [Get source files (full or partial match)](docs/api/server/getAnyByChainAndAddress.md) : `GET /files/any/:chain/:address`
-* [Get contract addresses (full or partial match)](docs/api/server/getContractsByChain.md) : `GET /files/contracts/:chain`
-* [Server health](docs/api/server/health.md) : `GET /health`
+- [Check by addresses](docs/api/server/verification1/check-by-addresses.md) : `GET /check-by-addresses?addresses={address}&chainIds={chainIds}`
+- Verification API (v1)
+  - [Verify](docs/api/server/verification1/verify.md) : `POST /` or `POST /verify`
+- Verification API (v2 - session based)
+  - [Add input files](docs/api/server/verification2/input-files.md) : `POST /input-files`
+  - [Verify validated](docs/api/server/verification2/verify-validated.md) : `POST /verify-validated`
+  - [Get session data](docs/api/server/verification2/session-data.md) : `GET /session-data`
+  - [Restart session](docs/api/server/verification2/restart-session.md) : `POST /restart-session`
+- [Get file tree (full match)](docs/api/server/getTreeByChainAndAddress.md) : `GET /files/tree/:chain/:address`
+- [Get source files (full match)](docs/api/server/getByChainAndAddress.md) : `GET /files/:chain/:address`
+- [Get file tree (full or partial match)](docs/api/server/getAnyTreeByChainAndAddress.md) : `GET /files/tree/any/:chain/:address`
+- [Get source files (full or partial match)](docs/api/server/getAnyByChainAndAddress.md) : `GET /files/any/:chain/:address`
+- [Get contract addresses (full or partial match)](docs/api/server/getContractsByChain.md) : `GET /files/contracts/:chain`
+- [Server health](docs/api/server/health.md) : `GET /health`
 
 ### Repository API
 
 This paragraph should be read with the following in mind:
-* `<MATCH_QUALITY>` is either `full_match` or `partial_match`.
-* `<CHAIN_ID>` is the respective ID of the chain (e.g. 1 for Ethereum Mainnet, 5 for Görli). See the full list [here](https://chainid.network/).
-* `<CONTRACT_ADDRESS>` is the hexadecimal address of the contract (40 hex digits prefixed by `0x`).
-* `<FILE_PATH>` is the original path of a source file. Sourcify doesn't flatten the file hierarchy, so everything is provided as during compilation.
+
+- `<MATCH_QUALITY>` is either `full_match` or `partial_match`.
+- `<CHAIN_ID>` is the respective ID of the chain (e.g. 1 for Ethereum Mainnet, 5 for Görli). See the full list [here](https://chainid.network/).
+- `<CONTRACT_ADDRESS>` is the hexadecimal address of the contract (40 hex digits prefixed by `0x`).
+- `<FILE_PATH>` is the original path of a source file. Sourcify doesn't flatten the file hierarchy, so everything is provided as during compilation.
 
 The repository (https://repo.sourcify.dev) provides the following GET endpoints:
-* JSON-formatted metadata file (with ABI): `/contracts/<MATCH_QUALITY>/<CHAIN_ID>/<CONTRACT_ADDRESS>/metadata.json`
-* JSON-formatted file with constructor arguments (only for fully matched contracts using [immutable variables](https://ethereum.stackexchange.com/questions/82240/what-is-the-immutable-keyword-in-solidity)): `/contracts/full_match/<CHAIN_ID>/<CONTRACT_ADDRESS>/constructor-args.txt`
-* JSON-formatted file mapping library address placeholders to actual addresses: `/contracts/<MATCH_QUALITY>/<CHAIN_ID>/<CONTRACT_ADDRESS>/library-map.json`
-* Source file: `/contracts/<MATCH_QUALITY>/<CHAIN_ID>/<CONTRACT_ADDRESS>/sources/<FILE_PATH>`
-* JSON-formatted full and partial match count per chain: `/stats.json`
-* JSON-formatted timestamp and version of the repo: `/manifest.json`
+
+- JSON-formatted metadata file (with ABI): `/contracts/<MATCH_QUALITY>/<CHAIN_ID>/<CONTRACT_ADDRESS>/metadata.json`
+- JSON-formatted file with constructor arguments (only for fully matched contracts using [immutable variables](https://ethereum.stackexchange.com/questions/82240/what-is-the-immutable-keyword-in-solidity)): `/contracts/full_match/<CHAIN_ID>/<CONTRACT_ADDRESS>/constructor-args.txt`
+- JSON-formatted file mapping library address placeholders to actual addresses: `/contracts/<MATCH_QUALITY>/<CHAIN_ID>/<CONTRACT_ADDRESS>/library-map.json`
+- Source file: `/contracts/<MATCH_QUALITY>/<CHAIN_ID>/<CONTRACT_ADDRESS>/sources/<FILE_PATH>`
+- JSON-formatted full and partial match count per chain: `/stats.json`
+- JSON-formatted timestamp and version of the repo: `/manifest.json`
 
 E.g. the following URL fetches `browser/OceanMan.sol`, a source of the contract deployed on Ethereum Mainnet (chain ID: 1) at address 0x00000000064Ecc11c97AC4a5551F279532Bf9E0D.
-* https://repo.sourcify.dev/contracts/full_match/1/0x00000000064Ecc11c97AC4a5551F279532Bf9E0D/sources/browser/OceanMan.sol
+
+- https://repo.sourcify.dev/contracts/full_match/1/0x00000000064Ecc11c97AC4a5551F279532Bf9E0D/sources/browser/OceanMan.sol
 
 In order to fetch from the staging repository, replace https://repo.sourcify.dev with https://repo.staging.sourcify.dev.
 
 # Supported Networks
-  + Ethereum Mainnet
-  + Ropsten
-  + Rinkeby
-  + Kovan
-  + Goerli
-  + xDai
-  + POA Network Sokol
-  + Polygon (previously Matic)
-  + Mumbai Testnet (Polygon/Matic)
-  + Binance Smart Chain Mainnet (monitoring temporarily suspended)
-  + Binance Smart Chain Testnet (monitoring temporarily suspended)
-  + Celo Mainnet
-  + Celo Alfajores Testnet
-  + Celo Baklava Testnet
-  + Avalanche Mainnet
-  + Avalanche Fuji Testnet
-  + Arbitrum Mainnet
-  + Arbitrum Testnet Rinkeby
-  + Ubiq
-  + OneLedger Testnet Frankenstein
-  + Syscoin Tanenbaum Testnet
+
+- Ethereum Mainnet
+- Ropsten
+- Rinkeby
+- Kovan
+- Goerli
+- xDai
+- POA Network Sokol
+- Polygon (previously Matic)
+- Mumbai Testnet (Polygon/Matic)
+- Binance Smart Chain Mainnet (monitoring temporarily suspended)
+- Binance Smart Chain Testnet (monitoring temporarily suspended)
+- Celo Mainnet
+- Celo Alfajores Testnet
+- Celo Baklava Testnet
+- Avalanche Mainnet
+- Avalanche Fuji Testnet
+- Arbitrum Mainnet
+- Arbitrum Testnet Rinkeby
+- Ubiq
+- OneLedger Testnet Frankenstein
+- Syscoin Tanenbaum Testnet
 
 ## Adding a new chain
 
 If you'd like to add a new chain support to Sourcify you can open a pull request to the **staging** branch with following:
+
 - Make sure the chain is listed in [chains.json](services/core/src/chains.json). This file is kept in sync with [chainlist.org](https://chainlist.org/chains.json) and should not be edited.
 
-- Add the chain details in [sourcify-chains.ts](services/core/src/sourcify-chains.ts) similar to other chains with `supported: true` and `monitored: false`. 
+- Add the chain details in [sourcify-chains.ts](services/core/src/sourcify-chains.ts) similar to other chains with `supported: true` and `monitored: false`.
 
 - Add the chain to the front-end in [constants.ts](ui/src/common/constants.ts)
 
