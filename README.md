@@ -293,6 +293,7 @@ E.g. the following URL fetches `browser/OceanMan.sol`, a source of the contract 
 In order to fetch from the staging repository, replace https://repo.sourcify.dev with https://repo.staging.sourcify.dev.
 
 # Supported Networks
+
 - Ethereum Mainnet
 - Ropsten
 - Rinkeby
