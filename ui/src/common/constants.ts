@@ -22,6 +22,7 @@ export const CHAIN_OPTIONS = [
     {value: "ubiq", label: "Ubiq", id: 8},
     {value: "oneledger testnet", label: "OneLedger Testnet Frankenstein", id: 4216137055},
     {value: "syscoin testnet", label: "Syscoin Tanenbaum Testnet", id: 5700},
+    {value: "meter mainnet", label: "Meter Mainnet", id: 82},
 ];
 
 export const ID_TO_CHAIN = {};
