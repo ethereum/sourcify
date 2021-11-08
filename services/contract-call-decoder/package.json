@@ -1,6 +1,6 @@
 {
   "name": "@ethereum-sourcify/contract-call-decoder",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Contract call decoder module transaction input data. Fetches the contract bytecode via the given RPC and fetches the metadata.json if available on IPFS. Decodes the tx input into human readable parameters with devdoc and userdoc. Fills the dynamic NatSpec expressions in devdoc and userdoc.",
   "types": "build/index.d.ts",
   "files": [
