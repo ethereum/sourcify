@@ -305,7 +305,7 @@ export class ValidationService implements IValidationService {
             if (this.isMetadata(obj)) {
                 return obj;
             }
-        } catch (err) { undefined }
+        } catch (err) { undefined } // Don't throw here as other files can be metadata files.
 
         return null;
     }
