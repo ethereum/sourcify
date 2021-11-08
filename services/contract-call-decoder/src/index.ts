@@ -67,7 +67,6 @@ export default class ContractCallDecoder {
    * @returns 
    */
   public async decode(tx: Transaction): Promise<DecodeOutput> {
-    console.log(this.ipfsGateway)
     if (tx.input == '0x') // not a contract call
       return null;
     const contractAddress = tx.to;
@@ -309,15 +308,15 @@ export default class ContractCallDecoder {
       throw Error(`Invalid 'address' parameter '${address}'.`);
     }
 
+    let byteCode;
     try {
-      const byteCode = await this.web3.eth.getCode(address);
-      if (byteCode === '0x0' || byteCode === '0x') {
-        throw new Error(`No bytecode found at ${address}`)
-      }
-
-      return byteCode;
+      byteCode = await this.web3.eth.getCode(address);
     } catch(err) {
       throw new Error(`Could not get bytecode for ${address}`);
     }
+    if (byteCode === '0x0' || byteCode === '0x') {
+      throw new Error(`No bytecode found at ${address}`)
+    }
+    return byteCode;
   }
 }

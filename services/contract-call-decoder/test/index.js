@@ -9,9 +9,6 @@ import QmRFjbs2fEEQnAKaZzZKqWArJTta76GaWsD4PRbHuoY41S from "./QmRFjbs2fEEQnAKaZz
 dotenv.config({ path: path.resolve("./test/.env") }); // Tests called from project root
 chai.use(chaiAsPromised);
 
-const noBytecodeAddress = "0x6bb11EBDF00ebDFbe707005B506A24Fd57d5Bd66";
-const address = "0xB2d0641fc8863514B6533b129fD744200eE17D29";
-
 describe("Contract Call Decoder", function () {
   let simpleDecoder = new ContractCallDecoder();
 
@@ -195,15 +192,19 @@ describe("Contract Call Decoder", function () {
   });
 
   describe("#fetchDeployedByteCode()", () => {
+    let decoder, noBytecodeAddress, contractAddress;
+    this.beforeAll(() => {
+      decoder = new ContractCallDecoder(process.env.RINKEBY_RPC);
+      noBytecodeAddress = "0x8b48d9908a80508a7aa5900008ab176987f418e2";
+      contractAddress = "0x749da5a21557accbac2dfaca5aa16fe6e7d39a96";
+    });
     it("should throw an exception error, if address isn't provided", async () => {
-      const decoder = new ContractCallDecoder("https://rpc.tanenbaum.io");
       return chai
         .expect(decoder.fetchDeployedByteCode(""))
         .rejectedWith(Error, "No contract address defined.");
     });
 
     it("should throw an exception error, if address format is wrong", async () => {
-      const decoder = new ContractCallDecoder("https://rpc.tanenbaum.io");
       return chai
         .expect(
           decoder.fetchDeployedByteCode(
@@ -217,16 +218,14 @@ describe("Contract Call Decoder", function () {
     });
 
     it("should throw an error, if not a contract", async () => {
-      const decoder = new ContractCallDecoder("https://rpc.tanenbaum.io");
       return chai
         .expect(decoder.fetchDeployedByteCode(noBytecodeAddress))
         .rejectedWith(Error, `No bytecode found at ${noBytecodeAddress}`);
     });
 
-    it("should retrieve deployed bytcode", async () => {
-      const decoder = new ContractCallDecoder("https://rpc.tanenbaum.io");
-      const byteCode = await decoder.fetchDeployedByteCode(address);
-      chai.expect(expected.deployedBytecode).to.deep.equal(byteCode);
+    it("should retrieve deployed bytcode from Rinkeby 0x749da5a21557accbac2dfaca5aa16fe6e7d39a96", async () => {
+      const byteCode = await decoder.fetchDeployedByteCode(contractAddress);
+      chai.expect(expected.deployedBytecode).to.equal(byteCode);
     });
   });
 
@@ -251,7 +250,7 @@ describe("Contract Call Decoder", function () {
         to: "0x1d08eb247554a3c8ddb29b7313aa8b961b5f87a6",
         from: "0xa0c378a0925b5289912bf5d8a6ce3a55a90fff92",
       };
-      const documentation = await decoder.decode(tx, address);
+      const documentation = await decoder.decode(tx);
       chai.expect(expected.expectedDocumentation2).deep.equal(documentation);
     }).timeout(5000); // IPFS fetch takes long
   });
