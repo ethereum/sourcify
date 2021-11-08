@@ -1,12 +1,13 @@
-import {decodeFirst} from 'cbor';
+import { decodeFirstSync } from 'cbor';
 import Web3 from 'web3';
 import { toB58String } from 'multihashes';
 import fetch from 'node-fetch';
-import {Response} from 'node-fetch/@types';
 import timeoutSignal from 'timeout-signal';
 import {evaluate} from '@ethereum-sourcify/radspec';
-import {AbiItem} from 'web3-utils';
-import { Transaction } from 'web3-core'
+import web3utils, {AbiItem} from 'web3-utils';
+import { Transaction } from 'web3-core';
+
+const { hexToBytes, bytesToHex } = web3utils;
 interface Processor {
     origin: string,
     process: (bytes: Buffer) => string
@@ -16,6 +17,11 @@ type MetadataOutput = {
   abi: AbiItem[],
   userdoc: any,
   devdoc: any
+}
+
+type DecodedMetadataHash = {
+  origin: string,
+  hash: string
 }
 
 type DecodeOutput = {
@@ -29,12 +35,12 @@ type DecodeOutput = {
   } | undefined
 }
 
+
 const bytesToHashProcessors: Processor[] = [
     { origin: "ipfs", process: toB58String },
-    { origin: "bzzr0", process: (data) => Web3.utils.bytesToHex([...data]).slice(2) }, // convert buffer to number[] with [...data]
-    { origin: "bzzr1", process: (data) => Web3.utils.bytesToHex([...data]).slice(2) }
+    { origin: "bzzr0", process: (data) => bytesToHex([...data]).slice(2) }, // convert buffer to number[] with [...data]
+    { origin: "bzzr1", process: (data) => bytesToHex([...data]).slice(2) }
 ]
-
 export default class ContractCallDecoder {
 
   private web3: Web3;
@@ -66,7 +72,7 @@ export default class ContractCallDecoder {
       return null;
     const contractAddress = tx.to;
     const contractByteCode = await this.fetchDeployedByteCode(contractAddress);
-    const metadataHash = await ContractCallDecoder.decodeMetadataHash(contractByteCode);
+    const metadataHash = ContractCallDecoder.decodeMetadataHash(contractByteCode);
     const metadataOutput = await this.fetchMetadataOutputWithHash(metadataHash);
     const documentation = await this.decodeDocumentation(tx, metadataOutput);
     return documentation;
@@ -75,14 +81,15 @@ export default class ContractCallDecoder {
   /**
    * Funcion to fetch the metadata from IPFS. Requires the gateway to accept links as <gatewayURL>/ipfs/<hash>
    * 
-   * @param metadataHash - IPFS CID to be fetched
+   * @param metadataHash - hash and origin of the metadata to be fetched
    * @returns the metadata file as an object
    */
-  async fetchMetadataWithHash(metadataHash: string): Promise<any> {
-    let response: Response
-
+  async fetchMetadataWithHash(metadataHash: DecodedMetadataHash): Promise<any> {
+    let response;
+    if (metadataHash.origin !== 'ipfs')
+      throw new Error(`Unsupported origin: ${metadataHash.origin}, only ipfs is supported`);
     try {
-      response = await fetch(`${this.ipfsGateway}/ipfs/${metadataHash}`, {signal: timeoutSignal(this.timeout)});
+      response = await fetch(`${this.ipfsGateway}/ipfs/${metadataHash.hash}`, {signal: timeoutSignal(this.timeout)});
     } catch (err: any) { // Catch timeout
       if (err.type === 'aborted') {
         throw new Error(`Timeout fetching from the IPFS gateway ${this.ipfsGateway}`)
@@ -98,33 +105,45 @@ export default class ContractCallDecoder {
     }
   }
 
-  async fetchMetadataOutputWithHash(metadataHash: string): Promise<MetadataOutput> {
+  async fetchMetadataOutputWithHash(metadataHash: DecodedMetadataHash): Promise<MetadataOutput> {
     const metadata: any = await this.fetchMetadataWithHash(metadataHash);
     return metadata.output;
   }
-
-  // Code from /services/core/src/utils/utils.ts and /monitor/utils.ts
   /**
-   * Extracts cbor encoded segement from bytecode
-   *
-   * @param  {string} -hexStringByteCode bytecode in hex 
-   * @return {string} the hash decoded from bytecode.
-   * @example
-   *   "QmarHSr9aSNaPSR6G9KFPbuLV9aEqJfTk1y9B8pdwqK4Rq"
+   * Decodes a cbor encoded string into an object
+   * 
+   * @param hexStringByteCode 
+   * @returns 
    */
-  static async decodeMetadataHash(hexStringByteCode: string): Promise<string> {
-      const numArrayByteCode = Web3.utils.hexToBytes(hexStringByteCode); // convert to number array
-      const cborLength: number = numArrayByteCode[numArrayByteCode.length - 2] * 0x100 + numArrayByteCode[numArrayByteCode.length - 1];
-      const bytecodeBuffer = Buffer.from(numArrayByteCode.slice(numArrayByteCode.length - 2 - cborLength, -2));
-      const bufferObject = await decodeFirst(bytecodeBuffer); // decode first cbor occurance
+  static decodeCborAtTheEnd(hexStringByteCode: string): any {
+    const numArrayByteCode = hexToBytes(hexStringByteCode); // convert to number array
+    const cborLength: number = numArrayByteCode[numArrayByteCode.length - 2] * 0x100 + numArrayByteCode[numArrayByteCode.length - 1]; // length of cbor coded section
+    const cborBuffer = Buffer.from(numArrayByteCode.slice(numArrayByteCode.length - 2 - cborLength, -2)); // get cbor decoded section from the end of bytecode
+    const decodedObject: any = decodeFirstSync(Buffer.from(cborBuffer));
+    return decodedObject;
+  }
 
+  static getHashFromDecodedCbor(decodedCbor: any): DecodedMetadataHash {
       // check which protocol the decoded object matches. ipfs, bzzr1... etc. Decode the string according to the protocol's hash format.
       for (const processor of bytesToHashProcessors) {
         const origin = processor.origin;
-        if (bufferObject[origin])
-          return processor.process(bufferObject[origin])
+        if (decodedCbor[origin])
+          return { origin, hash: processor.process(decodedCbor[origin])}
       }
-      throw new Error(`Couldn't decode the hash format: ${origin}`);
+      throw new Error(`Couldn't find an ipfs, bzzr0, or bzzr1 cbor code to decode.`);
+  }
+
+  /**
+   * Wrapper function to directly decode the whole bytecode.
+   *
+   * @param  {string} -hexStringByteCode bytecode in hex 
+   * @return {MetadataOutput} the hash decoded from bytecode and its format
+   * @example
+   *   { origin: "ipfs", hash: "QmarHSr9aSNaPSR6G9KFPbuLV9aEqJfTk1y9B8pdwqK4Rq"}
+   */
+  static decodeMetadataHash(hexStringByteCode: string): DecodedMetadataHash {
+    const decodedCbor = this.decodeCborAtTheEnd(hexStringByteCode);
+    return this.getHashFromDecodedCbor(decodedCbor);
   }
   
   /**
@@ -136,20 +155,20 @@ export default class ContractCallDecoder {
    * 
    * @example
    * return {
-      functionName: 'mint',
-      params: [
-        {
-          name: '_to',
-          type: 'address',
-          value: '0xAA6042aa65eb93C6439cDaeBC27B3bd09c5DFe94'
-        },
-        { name: '_amount', type: 'uint256', value: '1000000000000000000' }
-      ],
-      userdoc: {
-        notice: 'Creates 1000000000000000000 token to 0xAA6042aa65eb93C6439cDaeBC27B3bd09c5DFe94. Must only be called by the owner (MasterChef).'
-      },
-      devdoc: undefined
-    }
+   *  functionName: 'mint',
+   *  params: [
+   *    {
+   *      name: '_to',
+   *      type: 'address',
+   *      value: '0xAA6042aa65eb93C6439cDaeBC27B3bd09c5DFe94'
+   *    },
+   *    { name: '_amount', type: 'uint256', value: '1000000000000000000' }
+   *  ],
+   *  userdoc: {
+   *    notice: 'Creates 1000000000000000000 token to 0xAA6042aa65eb93C6439cDaeBC27B3bd09c5DFe94. Must only be called by the owner (MasterChef).'
+   *  },
+   *  devdoc: undefined
+   * }
    */
   async decodeDocumentation( tx: Transaction, metadataOutput: MetadataOutput ): Promise<any> {
     // 0x + 4bytes
@@ -293,11 +312,11 @@ export default class ContractCallDecoder {
     try {
       const byteCode = await this.web3.eth.getCode(address);
       if (byteCode === '0x0' || byteCode === '0x') {
-        throw new Error(`Could not get bytecode for ${address}`)
+        throw new Error(`No bytecode found at ${address}`)
       }
 
       return byteCode;
-    } catch {
+    } catch(err) {
       throw new Error(`Could not get bytecode for ${address}`);
     }
   }

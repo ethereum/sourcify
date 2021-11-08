@@ -33,7 +33,7 @@
     "@ethereum-sourcify/radspec": "^1.12.1",
     "cbor": "^8.0.0",
     "multihashes": "^0.4.21",
-    "node-fetch": "^3.0.0",
+    "node-fetch": "^2.6.6",
     "rimraf": "^3.0.2",
     "timeout-signal": "^1.1.0",
     "web3": "^1.5.3"
@@ -43,6 +43,7 @@
     "@types/chai-as-promised": "^7.1.4",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.11.2",
+    "@types/node-fetch": "^3.0.3",
     "chai": "^4.3.4",
     "chai-as-promised": "^7.1.1",
     "mocha": "^9.1.2",
