@@ -222,5 +222,14 @@ export default {
             "https://frankenstein-rpc.oneledger.network"
         ],
         "txRegex": getBlockscoutRegex()
-    }
+    },
+    "10": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://optimistic.etherscan.io/" + ETHERSCAN_SUFFIX,
+        "rpc": [
+            'https://mainnet.optimism.io'
+        ],
+        "txRegex": ETHERSCAN_REGEX
+    },
 }

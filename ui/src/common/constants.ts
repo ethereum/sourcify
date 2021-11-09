@@ -22,6 +22,7 @@ export const CHAIN_OPTIONS = [
     {value: "ubiq", label: "Ubiq", id: 8},
     {value: "oneledger testnet", label: "OneLedger Testnet Frankenstein", id: 4216137055},
     {value: "syscoin testnet", label: "Syscoin Tanenbaum Testnet", id: 5700},
+    {value: "optimistic mainnet", label: "Optimistic Ethereum Mainnet", id: 10},
 ];
 
 export const ID_TO_CHAIN = {};

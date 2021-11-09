@@ -315,6 +315,7 @@ In order to fetch from the staging repository, replace https://repo.sourcify.dev
 - Ubiq
 - OneLedger Testnet Frankenstein
 - Syscoin Tanenbaum Testnet
+- Optimistic Mainnet
 
 ## Adding a new chain
 
