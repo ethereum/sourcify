@@ -178,14 +178,14 @@ export default {
     "43113": {
         "supported": true,
         "monitored": true,
-        "contractFetchAddress": "https://cchain.explorer.avax-test.network/" + BLOCKSCOUT_SUFFIX,
-        "txRegex": getBlockscoutRegex()
+        "contractFetchAddress": "https://testnet.snowtrace.io/" + ETHERSCAN_SUFFIX,
+        "txRegex": ETHERSCAN_REGEX
     },
     "43114": {
         "supported": true,
         "monitored": true,
-        "contractFetchAddress": "https://cchain.explorer.avax.network/" + BLOCKSCOUT_SUFFIX,
-        "txRegex": getBlockscoutRegex()
+        "contractFetchAddress": "https://snowtrace.io/" + ETHERSCAN_SUFFIX,
+        "txRegex": ETHERSCAN_REGEX
     },
     "5700": {
         "supported": true,
