@@ -231,5 +231,23 @@ export default {
             'https://kovan.optimism.io'
         ],
         "txRegex": ETHERSCAN_REGEX
+    },
+    "28": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://blockexplorer.rinkeby.boba.network/" + BLOCKSCOUT_SUFFIX,
+        "rpc": [
+            '"https://rinkeby.boba.network/"'
+        ],
+        "txRegex": getBlockscoutRegex()
+    },
+    "288": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://blockexplorer.boba.network/" + BLOCKSCOUT_SUFFIX,
+        "rpc": [
+            'https://mainnet.boba.network/'
+        ],
+        "txRegex": getBlockscoutRegex()
     }
 }
