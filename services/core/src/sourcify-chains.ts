@@ -234,5 +234,13 @@ export default {
         "monitored": false,
         "contractFetchAddress": "https://explorer.test.energi.network/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
+    "69": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://kovan-optimistic.etherscan.io/" + ETHERSCAN_SUFFIX,
+        "rpc": [
+            'https://kovan.optimism.io'
+        ],
+        "txRegex": ETHERSCAN_REGEX
     }
 }
