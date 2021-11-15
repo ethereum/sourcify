@@ -1,15 +1,18 @@
 import { SERVER_URL } from "../common/constants";
+import { ContractToChoose } from "../types";
 
 type ResponseBody = {
     error?: string,
     errors?: [{ field: string, message: string }],
-    result?: [{ address?: string, status?: string }]
+    result?: [{ address?: string, status?: string }],
+    contractsToChoose?: ContractToChoose[],
 }
 
 type VerificationResult = {
     status: string,
     error: string,
-    address: string
+    address: string,
+    contractsToChoose?: ContractToChoose[]
 }
 
 type CheckAddressesResult = {
@@ -40,6 +43,8 @@ export const verify = async (formData: any): Promise<VerificationResult> => {
 
         if (body.error) {
             data.error = body.error;
+            if (body.contractsToChoose)
+                data.contractsToChoose = body.contractsToChoose;
         } else if (body.errors) {
             data.error = body.errors.map(e => e.message).join(", ");
         } else {
