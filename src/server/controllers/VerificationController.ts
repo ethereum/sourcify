@@ -103,13 +103,14 @@ export default class VerificationController extends BaseController implements IC
             throw new BadRequestError("Invalid or missing sources in:\n" + errors.join("\n"), false);
         }
 
-        if (validatedContracts.length !== 1) {
+        if (validatedContracts.length !== 1 && !req.body.chosenContract) {
             const contractNames = validatedContracts.map(c => c.name).join(", ");
-            const msg = `Detected ${validatedContracts.length} contracts (${contractNames}), but can only verify 1 at a time.`;
-            throw new BadRequestError(msg);
+            const msg = `Detected ${validatedContracts.length} contracts (${contractNames}), but can only verify 1 at a time. Please choose a main contract and click Verify again.`;
+            const contractsToChoose = validatedContracts.map(contract => ({name: contract.name, path: contract.compiledPath}))
+            return res.status(StatusCodes.BAD_REQUEST).send({error: msg, contractsToChoose})
         }
 
-        const contract = validatedContracts[0];
+        const contract = req.body.chosenContract ? validatedContracts[req.body.chosenContract] : validatedContracts[0];
         if (!contract.compilerVersion) {
             throw new BadRequestError("Metadata file not specifying a compiler version.");
         }
