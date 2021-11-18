@@ -222,5 +222,19 @@ export default {
             "https://frankenstein-rpc.oneledger.network"
         ],
         "txRegex": getBlockscoutRegex()
+    },
+    "11297108109": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer.palm.io/api?module=contract&action=getsourcecode&address=",
+        "txRegex": getBlockscoutRegex()
+        
+    },
+    "11297108099": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer.palm-uat.xyz/api?module=contract&action=getsourcecode&address=",
+        "txRegex": getBlockscoutRegex()
+        
     }
 }
