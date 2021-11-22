@@ -20,7 +20,9 @@ export const verifierReducer = (state: VerifierState, action: VerifierActions) =
         case "CLEAR_FILES":
             return {
                 ...state,
-                files: []
+                files: [],
+                contractsToChoose: [],
+                chosenContract: undefined
             };
         case "SET_LOADING":
             return {
@@ -42,6 +44,16 @@ export const verifierReducer = (state: VerifierState, action: VerifierActions) =
                 ...state,
                 verifyAddressLoading: action.payload
             };
+        case "SET_CHOSEN_CONTRACT":
+            return {
+                ...state,
+                chosenContract: action.payload
+            };
+        case "SET_CONTRACTS_TO_CHOOSE":
+            return {
+                ...state,
+                contractsToChoose: action.payload
+            }
         default:
             return state;
     }

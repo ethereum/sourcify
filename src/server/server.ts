@@ -37,8 +37,8 @@ export class Server {
       origin: config.corsAllowedOrigins,
       credentials: true,
     }));
-    this.app.use(bodyParser.json());
-    this.app.use(bodyParser.urlencoded({ extended: true }));
+    this.app.use(bodyParser.json({limit: '2mb'}));
+    this.app.use(bodyParser.urlencoded({ limit: '2mb', extended: true }));
     this.app.use(session(getSessionOptions()));
     this.app.get('/health', (_req, res) => res.status(200).send('Alive and kicking!'))
     this.app.use('/repository', express.static(this.repository), serveIndex(this.repository, {'icons': true}))
