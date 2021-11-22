@@ -214,6 +214,12 @@ export default {
         "contractFetchAddress": "https://frankenstein-explorer.oneledger.network/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
+    "10": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://optimistic.etherscan.io/" + ETHERSCAN_SUFFIX,
+        "txRegex": ETHERSCAN_REGEX
+    },
     "69": {
         "supported": true,
         "monitored": false,
@@ -231,5 +237,5 @@ export default {
         "monitored": false,
         "contractFetchAddress": "https://blockexplorer.boba.network/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
-    }
+    },
 }
