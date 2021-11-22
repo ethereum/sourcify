@@ -9,6 +9,7 @@ import Path from 'path';
  * Regular expression matching metadata nested within another json.
  */
 const NESTED_METADATA_REGEX = /"{\\"compiler\\":{\\"version\\".*?},\\"version\\":1}"/;
+const HARDHAT_OUTPUT_FORMAT_REGEX = /"hh-sol-build-info-1"/;
 
 const CONTENT_VARIATORS = [
     (content: string) => content,
@@ -171,6 +172,14 @@ export class ValidationService implements IValidationService {
         const malformedMetadataFiles = [];
 
         for (const file of files) {
+            // If hardhat output file, extract source and metadatas.
+            if (file.content.match(HARDHAT_OUTPUT_FORMAT_REGEX)) {
+                const {hardhatMetadataFiles, hardhatSourceFiles} = this.extractHardhatMetadataAndSources(file);
+                sourceFiles.push(...hardhatSourceFiles);
+                metadataFiles.push(...hardhatMetadataFiles);
+                continue;
+            }
+
             let metadata = this.extractMetadataFromString(file.content);
             if (!metadata) {
                 const matchRes = file.content.match(NESTED_METADATA_REGEX);
@@ -376,5 +385,39 @@ export class ValidationService implements IValidationService {
             }
             throw new Error(err);
         }
+    }
+
+    /**
+     * Hardhat build output can contain metadata and source files of every contract used in compilation.
+     * Extracts these files from a given hardhat file following the hardhat output format.
+     * 
+     * @param hardhatFile 
+     * @returns - {hardhatMetadataFiles, hardhatSourceFiles} 
+     */
+    private extractHardhatMetadataAndSources(hardhatFile: PathContent) {
+        const hardhatMetadataFiles: any[] = [];
+        const hardhatSourceFiles: PathContent[] = [];
+
+        const hardhatJson = JSON.parse(hardhatFile.content);
+
+        // Extract source files
+        const hardhatSourceFilesObject = hardhatJson.input.sources;
+        for (const path in hardhatSourceFilesObject) {
+            if (hardhatSourceFilesObject[path].content) {
+                hardhatSourceFiles.push({path: path, content: hardhatSourceFilesObject[path].content})
+            }
+        }
+
+        // Extract metadata files
+        const contractsObject = hardhatJson.output.contracts;
+        for (const path in contractsObject) {
+            for (const contractName in contractsObject[path]) {
+                if(contractsObject[path][contractName].metadata) {
+                    const metadataObj = this.extractMetadataFromString(contractsObject[path][contractName].metadata)
+                    hardhatMetadataFiles.push(metadataObj)
+                }
+            }
+        }
+        return {hardhatMetadataFiles, hardhatSourceFiles}
     }
 }
