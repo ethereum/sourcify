@@ -170,30 +170,24 @@ export default {
         "supported": true,
         "monitored": false,
         "contractFetchAddress": "https://arbiscan.io" + ETHERSCAN_SUFFIX,
-        "rpc": [
-            'https://arb1.arbitrum.io/rpc'
-        ],
         "txRegex": ETHERSCAN_REGEX
     },
     "43113": {
         "supported": true,
         "monitored": true,
-        "contractFetchAddress": "https://cchain.explorer.avax-test.network/" + BLOCKSCOUT_SUFFIX,
-        "txRegex": getBlockscoutRegex()
+        "contractFetchAddress": "https://testnet.snowtrace.io/" + ETHERSCAN_SUFFIX,
+        "txRegex": ETHERSCAN_REGEX
     },
     "43114": {
         "supported": true,
         "monitored": true,
-        "contractFetchAddress": "https://cchain.explorer.avax.network/" + BLOCKSCOUT_SUFFIX,
-        "txRegex": getBlockscoutRegex()
+        "contractFetchAddress": "https://snowtrace.io/" + ETHERSCAN_SUFFIX,
+        "txRegex": ETHERSCAN_REGEX
     },
     "5700": {
         "supported": true,
         "monitored": false,
         "contractFetchAddress": "https://tanenbaum.io/" + BLOCKSCOUT_SUFFIX,
-        "rpc": [
-            'https://rpc.tanenbaum.io'
-        ],
         "txRegex": getBlockscoutRegex()
     },
     "40": {
@@ -218,18 +212,30 @@ export default {
         "supported": true,
         "monitored": false,
         "contractFetchAddress": "https://frankenstein-explorer.oneledger.network/" + BLOCKSCOUT_SUFFIX,
-        "rpc": [
-            "https://frankenstein-rpc.oneledger.network"
-        ],
         "txRegex": getBlockscoutRegex()
+    },
+    "10": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://optimistic.etherscan.io/" + ETHERSCAN_SUFFIX,
+        "txRegex": ETHERSCAN_REGEX
     },
     "69": {
         "supported": true,
         "monitored": false,
         "contractFetchAddress": "https://kovan-optimistic.etherscan.io/" + ETHERSCAN_SUFFIX,
-        "rpc": [
-            'https://kovan.optimism.io'
-        ],
         "txRegex": ETHERSCAN_REGEX
-    }
+    },
+    "28": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://blockexplorer.rinkeby.boba.network/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "288": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://blockexplorer.boba.network/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
 }
