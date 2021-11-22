@@ -170,9 +170,6 @@ export default {
         "supported": true,
         "monitored": false,
         "contractFetchAddress": "https://arbiscan.io" + ETHERSCAN_SUFFIX,
-        "rpc": [
-            'https://arb1.arbitrum.io/rpc'
-        ],
         "txRegex": ETHERSCAN_REGEX
     },
     "43113": {
@@ -191,9 +188,6 @@ export default {
         "supported": true,
         "monitored": false,
         "contractFetchAddress": "https://tanenbaum.io/" + BLOCKSCOUT_SUFFIX,
-        "rpc": [
-            'https://rpc.tanenbaum.io'
-        ],
         "txRegex": getBlockscoutRegex()
     },
     "40": {
@@ -218,18 +212,24 @@ export default {
         "supported": true,
         "monitored": false,
         "contractFetchAddress": "https://frankenstein-explorer.oneledger.network/" + BLOCKSCOUT_SUFFIX,
-        "rpc": [
-            "https://frankenstein-rpc.oneledger.network"
-        ],
         "txRegex": getBlockscoutRegex()
     },
     "69": {
         "supported": true,
         "monitored": false,
         "contractFetchAddress": "https://kovan-optimistic.etherscan.io/" + ETHERSCAN_SUFFIX,
-        "rpc": [
-            'https://kovan.optimism.io'
-        ],
         "txRegex": ETHERSCAN_REGEX
+    },
+    "28": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://blockexplorer.rinkeby.boba.network/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "288": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://blockexplorer.boba.network/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
     }
 }

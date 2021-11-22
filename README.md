@@ -316,6 +316,8 @@ In order to fetch from the staging repository, replace https://repo.sourcify.dev
 - OneLedger Testnet Frankenstein
 - Syscoin Tanenbaum Testnet
 - Optimistic Kovan
+- Boba Network Mainnet
+- Boba Network Rinkeby Testnet
 
 ## Adding a new chain
 
