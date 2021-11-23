@@ -238,4 +238,10 @@ export default {
         "contractFetchAddress": "https://blockexplorer.boba.network/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
+    "106": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://evmexplorer.velas.com/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
 }
