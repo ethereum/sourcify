@@ -83,7 +83,7 @@
     "chai-http": "^4.3.0",
     "eslint": "^7.13.0",
     "ganache-cli": "^6.10.1",
-    "ipfs": "^0.48.1",
+    "ipfs-core": "^0.12.2",
     "ipfs-unixfs": "^1.0.0",
     "ipld-dag-pb": "^0.18.2",
     "lerna": "^3.22.1",
