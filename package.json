@@ -63,7 +63,7 @@
     "http-status-codes": "^2.1.4",
     "it-concat": "^1.0.1",
     "multihashes": "^3.0.1",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "2.6.6",
     "serve-index": "^1.9.1",
     "web3": "^1.2.11"
   },
