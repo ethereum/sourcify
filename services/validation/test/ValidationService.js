@@ -122,30 +122,30 @@ describe("ValidationService", function() {
         }
 
         it("should replace \\r\\n with \\n", function() {
-            checkSingleWithModifiedEnding("single-replace-with-\\n", "\r\n", "}");
+            checkSingleWithModifiedEnding("single-replace-with-n", "\r\n", "}");
         });
 
         it("should replace \\n with \\r\\n", function() {
-            checkSingleWithModifiedEnding("single-replace-with-\\r\\n", "\n", "}");
+            checkSingleWithModifiedEnding("single-replace-with-rn", "\n", "}");
         });
 
         it("should add a trailing \\r\\n", function() {
-            checkSingleWithModifiedEnding("single-add-trailing-\\r\\n", "\r\n", "}");
+            checkSingleWithModifiedEnding("single-add-trailing-rn", "\r\n", "}");
         });
 
         it("should add a trailing \\n", function() {
-            checkSingleWithModifiedEnding("single-add-trailing-\\n", "\n", "}");
+            checkSingleWithModifiedEnding("single-add-trailing-n", "\n", "}");
         });
 
         it("should remove a trailing \\r\\n", function() {
-            checkSingleWithModifiedEnding("single-remove-trailing-\\r\\n", "\r\n", "\r\n");
+            checkSingleWithModifiedEnding("single-remove-trailing-rn", "\r\n", "\r\n");
         });
 
         it("should remove a trailing \\n", function() {
-            checkSingleWithModifiedEnding("single-remove-trailing-\\n", "\n", "\n");
+            checkSingleWithModifiedEnding("single-remove-trailing-n", "\n", "\n");
         });
 
-        it("should validate a file with two trailing \\n", function() {
+        it("should validate a file with two trailing n", function() {
             // this fails if not checking the original file
             checkSingleWithModifiedEnding("single-keep-original", "\n", "\n\n");
         });

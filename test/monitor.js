@@ -6,7 +6,7 @@ const GANACHE_PORT = process.env.LOCALCHAIN_PORT || 8545;
 
 const ganache = require('ganache-cli');
 const util = require('util');
-const ipfs = require('ipfs');
+const ipfs = require('ipfs-core');
 const rimraf = require('rimraf');
 const chai = require('chai');
 const Monitor = require("../dist/monitor/monitor").default;
