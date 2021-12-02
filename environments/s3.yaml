@@ -1,16 +1,9 @@
 version: "3.7"
-x-project-repository-mount:
-  &project-repository-mount
+x-project-repository-mount: &project-repository-mount
   type: bind
   source: $REPOSITORY_PATH
-  
-x-project-mount:
-  &project-database-mount
-  type: bind
-  source: $DATABASE_PATH
 
-x-project-base:
-  &project-base
+x-project-base: &project-base
   env_file:
     - .env
   restart: always
@@ -19,7 +12,7 @@ x-project-base:
 
 networks:
   source-verify:
-  
+
 services:
   s3sync:
     <<: *project-base
@@ -28,5 +21,3 @@ services:
     volumes:
       - <<: *project-repository-mount
         target: /app/repository/repository/
-      - <<: *project-database-mount
-        target: /app/repository/database/
