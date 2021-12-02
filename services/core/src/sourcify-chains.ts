@@ -113,6 +113,12 @@ export default {
         "contractFetchAddress": "https://blockscout.com/poa/sokol/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex("/poa/sokol")
     },
+    "82": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://scan.meter.io/" + ETHERSCAN_SUFFIX,
+        "txRegex": ETHERSCAN_REGEX
+    },
     "97": {
         "supported": true,
         "monitored": false,
@@ -236,6 +242,12 @@ export default {
         "supported": true,
         "monitored": false,
         "contractFetchAddress": "https://blockexplorer.boba.network/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "106": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://evmexplorer.velas.com/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
 }

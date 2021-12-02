@@ -319,6 +319,8 @@ In order to fetch from the staging repository, replace https://repo.sourcify.dev
 - Optimistic Ethereum Kovan Testnet
 - Boba Network Mainnet
 - Boba Network Rinkeby Testnet
+- Velas EVM Mainnet
+- Meter Mainnet
 
 ## Adding a new chain
 
