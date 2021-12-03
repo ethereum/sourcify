@@ -45,7 +45,8 @@ for VAR_NAME in INFURA_ID ALCHEMY_ID_ETH_{MAINNET,GOERLI,RINKEBY,ROPSTEN,KOVAN} 
 do
     echo "find_repace.sh: replacing $VAR_NAME"
     VAR_VAL=$(eval "echo \${$VAR_NAME}")
-    sed -i "s/${VAR_NAME}=xxx/${VAR_NAME}=${VAR_VAL}/g" ../environments/.env.$TAG
+    # Use @ as delimiter instead of / as values may contain / but @ is unlikely
+    sed -i "s@${VAR_NAME}=xxx@${VAR_NAME}=${VAR_VAL}@g" ../environments/.env.$TAG
 done
 
 cp ../environments/.env.$TAG ../environments/.env
