@@ -75,6 +75,11 @@ describe("Server", function () {
   const contractChain = "5"; // goerli
   const contractAddress = "0x000000bCB92160f8B7E094998Af6BCaD7fa537fe";
   const fakeAddress = "0x000000bCB92160f8B7E094998Af6BCaD7fa537ff";
+  const hardhatOutput = {
+    chain: "5",
+    address: "0x1EFFEbE8B0bc20f2Dc504AA16dC76FF1AB2297A3",
+    mainContractIndex: 5,
+  };
 
   const assertError = (err, res, field) => {
     chai.expect(err).to.be.null;
@@ -83,6 +88,24 @@ describe("Server", function () {
     chai.expect(res.body.errors).to.be.an("array");
     chai.expect(res.body.errors).to.have.a.lengthOf(1);
     chai.expect(res.body.errors[0].field).to.equal(field);
+  };
+
+  const assertions = (
+    err,
+    res,
+    done,
+    expectedAddress = contractAddress,
+    expectedStatus = "perfect"
+  ) => {
+    chai.expect(err).to.be.null;
+    chai.expect(res.status).to.equal(StatusCodes.OK);
+    chai.expect(res.body).to.haveOwnProperty("result");
+    const resultArr = res.body.result;
+    chai.expect(resultArr).to.have.a.lengthOf(1);
+    const result = resultArr[0];
+    chai.expect(result.address).to.equal(expectedAddress);
+    chai.expect(result.status).to.equal(expectedStatus);
+    if (done) done();
   };
 
   describe("/check-by-addresses", function () {
@@ -214,24 +237,6 @@ describe("Server", function () {
     it("should correctly inform for an address check of a non verified contract (at /verify)", (done) => {
       checkNonVerified("/verify", done);
     });
-
-    const assertions = (
-      err,
-      res,
-      done,
-      expectedAddress = contractAddress,
-      expectedStatus = "perfect"
-    ) => {
-      chai.expect(err).to.be.null;
-      chai.expect(res.status).to.equal(StatusCodes.OK);
-      chai.expect(res.body).to.haveOwnProperty("result");
-      const resultArr = res.body.result;
-      chai.expect(resultArr).to.have.a.lengthOf(1);
-      const result = resultArr[0];
-      chai.expect(result.address).to.equal(expectedAddress);
-      chai.expect(result.status).to.equal(expectedStatus);
-      if (done) done();
-    };
 
     it("should verify multipart upload", (done) => {
       chai
@@ -921,6 +926,117 @@ describe("Server", function () {
           chai.expect(res.body.unused).to.be.empty;
           done();
         });
+      it("should correctly handle when uploaded 0/2 and then 1/2 sources", (done) => {
+        const metadataPath = path.join(
+          "test",
+          "sources",
+          "metadata",
+          "child-contract.meta.object.json"
+        );
+        const metadataBuffer = fs.readFileSync(metadataPath);
+
+        const parentPath = path.join(
+          "test",
+          "sources",
+          "contracts",
+          "ParentContract.sol"
+        );
+        const parentBuffer = fs.readFileSync(parentPath);
+
+        const agent = chai.request.agent(server.app);
+        agent
+          .post("/input-files")
+          .attach("files", metadataBuffer)
+          .then((res) => {
+            chai.expect(res.status).to.equal(StatusCodes.OK);
+            chai.expect(res.body.contracts).to.have.lengthOf(1);
+            chai.expect(res.body.unused).to.be.empty;
+
+            const contract = res.body.contracts[0];
+            chai.expect(contract.files.found).to.have.lengthOf(0);
+            chai.expect(contract.files.missing).to.have.lengthOf(2);
+
+            agent
+              .post("/input-files")
+              .attach("files", parentBuffer)
+              .then((res) => {
+                chai.expect(res.status).to.equal(StatusCodes.OK);
+                chai.expect(res.body.contracts).to.have.lengthOf(1);
+                chai.expect(res.body.unused).to.be.empty;
+
+                const contract = res.body.contracts[0];
+                chai.expect(contract.files.found).to.have.lengthOf(1);
+                chai.expect(contract.files.missing).to.have.lengthOf(1);
+
+                done();
+              });
+          });
+      });
+
+      it("should find contracts in a zipped Truffle project", (done) => {
+        const zippedTrufflePath = path.join(
+          "services",
+          "validation",
+          "test",
+          "files",
+          "truffle-example.zip"
+        );
+        const zippedTruffleBuffer = fs.readFileSync(zippedTrufflePath);
+        chai
+          .request(server.app)
+          .post("/input-files")
+          .attach("files", zippedTruffleBuffer)
+          .then((res) => {
+            chai.expect(res.status).to.equal(StatusCodes.OK);
+            chai.expect(res.body.contracts).to.have.lengthOf(3);
+            chai.expect(res.body.unused).to.be.empty;
+            done();
+          });
+      });
+    });
+
+    describe("hardhat build-info file support", function () {
+      this.timeout(EXTENDED_TIME);
+
+      const hardhatOutputPath = path.join(
+        "test",
+        "sources",
+        "hardhat-output",
+        "output.json"
+      );
+
+      const hardhatOutputBuffer = fs.readFileSync(hardhatOutputPath);
+
+      it("should detect multiple contracts in the build-info file", (done) => {
+        chai
+          .request(server.app)
+          .post("/")
+          .field("chain", hardhatOutput.chain)
+          .field("address", hardhatOutput.address)
+          .attach("files", hardhatOutputBuffer)
+          .then((res) => {
+            chai.expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
+            chai.expect(res.body.contractsToChoose.length).to.be.equal(6);
+            chai
+              .expect(res.body.error)
+              .to.be.a("string")
+              .and.satisfy((msg) => msg.startsWith("Detected "));
+            done();
+          });
+      });
+
+      it("should verify the chosen contract in the build-info file", (done) => {
+        chai
+          .request(server.app)
+          .post("/")
+          .field("chain", hardhatOutput.chain)
+          .field("address", hardhatOutput.address)
+          .field("chosenContract", hardhatOutput.mainContractIndex)
+          .attach("files", hardhatOutputBuffer)
+          .end((err, res) => {
+            assertions(err, res, done, hardhatOutput.address, "perfect");
+          });
+      });
     });
   });
 });
