@@ -131,7 +131,7 @@ export default class VerificationController extends BaseController implements IC
         for (const address of req.addresses) {
             for (const chainId of req.chainIds) {
                 try {
-                    const found: Match[] = this.verificationService.findByAddress(address, chainId);
+                    const found: Match[] = this.verificationService.findAllByAddress(address, chainId);
                     if (found.length != 0) {
                         if (!map.has(address)) {
                             map.set(address, { address, chainIds: [] });
