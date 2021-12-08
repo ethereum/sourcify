@@ -23,6 +23,7 @@ export interface IFileService {
     fetchAllFilePaths(chain: string, address: string): Array<FileObject>;
     fetchAllFileContents(chain: string, address: string): Array<FileObject>;
     findByAddress(address: string, chain: string): Match[];
+    findAllByAddress(address: string, chain: string): Match[];
     save(path: string | PathConfig, file: string): void;
     deletePartial(chain: string, address: string): void;
     repositoryPath: string;
