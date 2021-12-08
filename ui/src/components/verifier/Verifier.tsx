@@ -13,6 +13,11 @@ import LoadingOverlay from "../LoadingOverlay";
 import Spinner from "../Spinner";
 import { AddressInput, FileUpload } from "./form";
 
+const verificationState = {
+    PARTIAL: 'partial',
+    PERFECT: 'perfect'
+}
+
 const initialState: VerifierState = {
     loading: false,
     address: "",
@@ -107,12 +112,24 @@ const Verifier: React.FC = () => {
     }
 
     const checkResultToElement = (checkResult: ServersideAddressCheck) => {
-        return <p key={checkResult.address}>{checkResult.address} is verified on: {
-            intersperse(
-                checkResult.chainIds.map(chainId => chainToLink(chainId, checkResult.address)), 
-                ", "
-            )
-        }</p>
+        return (
+            <>
+                <p key={checkResult.address}>{checkResult.address} is fully verified on: {
+                    intersperse(
+                        checkResult.chainIds.filter(chain => chain.status === verificationState.PERFECT).map(chainId => chainToLink(chainId.chainId, checkResult.address)), 
+                        ", "
+                    )
+                }
+                </p>
+                <p key={checkResult.address}>Also partially verified on: {
+                    intersperse(
+                        checkResult.chainIds.filter(chain => chain.status === verificationState.PARTIAL).map(chainId => chainToLink(chainId.chainId, checkResult.address)), 
+                        ", "
+                    )
+                }
+                </p>
+            </>
+        )
     }
 
     const chainToLink = (chainId: string, address: string): JSX.Element => {
@@ -182,7 +199,7 @@ const Verifier: React.FC = () => {
             return;
         }
 
-        if (data.status === 'partial') {
+        if (data.status === verificationState.PARTIAL) {
             globalDispatch({
                 type: "SHOW_NOTIFICATION", payload: {
                     type: "success",
