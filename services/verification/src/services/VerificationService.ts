@@ -6,6 +6,7 @@ import * as bunyan from 'bunyan';
 
 export interface IVerificationService {
     findByAddress(address: string, chain: string): Match[];
+    findAllByAddress(address: string, chain: string): Match[];
     inject(inputData: InputData): Promise<Match>;
 }
 
