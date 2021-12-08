@@ -60,6 +60,10 @@ describe("Server", function() {
     const modifiedMetadataBuffer = Buffer.from(JSON.stringify(metadata));
 
     const contractChain = "5"; // goerli
+    const foundContractChain = {
+        chainId: '5',
+        status: 'perfect'
+    }
     const contractAddress = "0x000000bCB92160f8B7E094998Af6BCaD7fa537fe";
     const fakeAddress = "0x000000bCB92160f8B7E094998Af6BCaD7fa537ff";
 
@@ -150,6 +154,97 @@ describe("Server", function() {
         it("should convert addresses to checksummed format", done => {
             chai.request(server.app)
                 .get("/check-by-addresses")
+                .query({ chainIds: contractChain, addresses: contractAddress.toLowerCase() })
+                .end((err, res) => {
+                    chai.expect(err).to.be.null;
+                    chai.expect(res.status).to.equal(StatusCodes.OK);
+                    chai.expect(res.body).to.have.a.lengthOf(1);
+                    const result = res.body[0];
+                    chai.expect(result.address).to.equal(contractAddress);
+                    chai.expect(result.status).to.equal("false");
+                    done();
+                });
+        });
+    });
+
+    describe("/check-all-by-addresses", function() {
+        this.timeout(EXTENDED_TIME);
+
+        it("should fail for missing chainIds", (done) => {
+            chai.request(server.app)
+                .get("/check-all-by-addresses")
+                .query({ addresses: contractAddress })
+                .end((err, res) => {
+                    assertError(err, res, "chainIds");
+                    done();
+                });
+        });
+
+        it("should fail for missing addresses", (done) => {
+            chai.request(server.app)
+                .get("/check-all-by-addresses")
+                .query({ chainIds: 1 })
+                .end((err, res) => {
+                    assertError(err, res, "addresses");
+                    done();
+                });
+        });
+
+        const assertStatus = (err, res, expectedStatus, expectedChainIds, done) => {
+            chai.expect(err).to.be.null;
+            chai.expect(res.status).to.equal(StatusCodes.OK);
+            const resultArray = res.body;
+            chai.expect(resultArray).to.have.a.lengthOf(1);
+            const result = resultArray[0];
+            chai.expect(result.address).to.equal(contractAddress);
+            chai.expect(result.status).to.equal(expectedStatus);
+            chai.expect(result.chainIds).to.deep.equal(expectedChainIds)
+            if (done) done();
+        }
+
+        it("should return false for previously unverified contract", (done) => {
+            chai.request(server.app)
+                .get("/check-all-by-addresses")
+                .query({ chainIds: contractChain, addresses: contractAddress })
+                .end((err, res) => assertStatus(err, res, "false", undefined, done));
+        });
+
+        it("should fail for invalid address", (done) => {
+            chai.request(server.app)
+                .get("/check-all-by-addresses")
+                .query({ chainIds: contractChain, addresses: fakeAddress })
+                .end((err, res) => {
+                    assertError(err, res, "addresses");
+                    done();
+                });
+        });
+
+        it("should return true for previously verified contract", (done) => {
+            chai.request(server.app)
+                .get("/check-all-by-addresses")
+                .query({ chainIds: contractChain, addresses: contractAddress })
+                .end((err, res) => {
+                    assertStatus(err, res, "false", undefined);
+                    chai.request(server.app).post("/")
+                        .field("address", contractAddress)
+                        .field("chain", contractChain)
+                        .attach("files", metadataBuffer, "metadata.json")
+                        .attach("files", sourceBuffer)
+                        .end((err, res) => {
+                            chai.expect(err).to.be.null;
+                            chai.expect(res.status).to.equal(StatusCodes.OK);
+
+                            chai.request(server.app)
+                                .get("/check-all-by-addresses")
+                                .query({ chainIds: contractChain, addresses: contractAddress })
+                                .end((err, res) => assertStatus(err, res, undefined, [foundContractChain], done));
+                        });     
+                });
+        });
+
+        it("should convert addresses to checksummed format", done => {
+            chai.request(server.app)
+                .get("/check-all-by-addresses")
                 .query({ chainIds: contractChain, addresses: contractAddress.toLowerCase() })
                 .end((err, res) => {
                     chai.expect(err).to.be.null;
