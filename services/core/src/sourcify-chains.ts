@@ -101,6 +101,14 @@ export default {
         "txRegex": ETHERSCAN_REGEX,
         "archiveWeb3": createArchiveEndpoint("kovan", "eth"),
     },
+    "43": {
+        "supported": true,
+        "monitored": false,
+    },
+    "44": {
+        "supported": true,
+        "monitored": false,
+    },
     "56": {
         "supported": true,
         "monitored": false,

@@ -3,6 +3,8 @@ export const CHAIN_OPTIONS = [
     {value: "ropsten", label: "Ropsten", id: 3},
     {value: "rinkeby", label: "Rinkeby", id: 4},
     {value: "kovan", label: "Kovan", id: 42},
+    {value: "pangolin", label: "Pangolin", id: 43},
+    {value: "crab", label: "Crab", id: 44},
     {value: "goerli", label: "Görli", id: 5},
     {value: "xdai", label: "xDai", id: 100},
     {value: "sokol", label: "Sokol", id: 77},
