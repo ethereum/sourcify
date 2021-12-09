@@ -112,22 +112,29 @@ const Verifier: React.FC = () => {
     }
 
     const checkResultToElement = (checkResult: ServersideAddressCheck) => {
+        const fullMatches = checkResult.chainIds.filter(chain => chain.status === verificationState.PERFECT)
+        const partialMatches = checkResult.chainIds.filter(chain => chain.status === verificationState.PARTIAL)
         return (
             <>
-                <p key={checkResult.address}>{checkResult.address} is fully verified on: {
-                    intersperse(
-                        checkResult.chainIds.filter(chain => chain.status === verificationState.PERFECT).map(chainId => chainToLink(chainId.chainId, checkResult.address)), 
-                        ", "
-                    )
+                <p key={checkResult.address}>{checkResult.address}</p>
+                { fullMatches.length > 0 && 
+                    <p>Fully verified on: {
+                        intersperse(
+                            fullMatches.map(chainId => chainToLink(chainId.chainId, checkResult.address)), 
+                            ", "
+                        )
+                    }
+                    </p>
                 }
-                </p>
-                <p key={checkResult.address}>Also partially verified on: {
-                    intersperse(
-                        checkResult.chainIds.filter(chain => chain.status === verificationState.PARTIAL).map(chainId => chainToLink(chainId.chainId, checkResult.address, verificationState.PARTIAL)), 
-                        ", "
-                    )
+                { partialMatches.length > 0 &&
+                    <p key={checkResult.address}>Partially verified on: {
+                        intersperse(
+                            partialMatches.map(chainId => chainToLink(chainId.chainId, checkResult.address, verificationState.PARTIAL)), 
+                            ", "
+                        )
+                    }
+                    </p>
                 }
-                </p>
             </>
         )
     }
