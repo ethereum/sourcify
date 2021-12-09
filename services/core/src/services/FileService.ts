@@ -3,7 +3,7 @@ import Path from 'path';
 import fs from 'fs';
 import web3 from 'web3';
 import * as bunyan from 'bunyan';
-import { FileObject, Match, Tag, MatchLevel, FilesInfo, MatchQuality, ContractData } from '../utils/types';
+import { FileObject, Match, Status, Tag, MatchLevel, FilesInfo, MatchQuality, ContractData } from '../utils/types';
 import { getChainId } from '../utils/utils';
 import { Logger } from '../utils/logger';
 import rimraf from 'rimraf';
@@ -23,6 +23,7 @@ export interface IFileService {
     fetchAllFilePaths(chain: string, address: string): Array<FileObject>;
     fetchAllFileContents(chain: string, address: string): Array<FileObject>;
     findByAddress(address: string, chain: string): Match[];
+    findAllByAddress(address: string, chain: string): Match[];
     save(path: string | PathConfig, file: string): void;
     deletePartial(chain: string, address: string): void;
     repositoryPath: string;
@@ -125,6 +126,31 @@ export class FileService implements IFileService {
     }
 
     /**
+     * Checks if path exists and for a particular chain returns the perfect or partial match
+     * 
+     * @param fullContractPath
+     * @param partialContractPath
+     */
+    fetchFromStorage(fullContractPath: string, partialContractPath: string): { time: Date, status: Status } {
+        if (fs.existsSync(fullContractPath)) {
+            return {
+                time: fs.statSync(fullContractPath).birthtime,
+                status: 'perfect'
+            }
+        }
+
+        if (fs.existsSync(partialContractPath)) {
+            return {
+                time: fs.statSync(partialContractPath).birthtime,
+                status: 'partial'
+            }
+        }
+
+        throw new Error('path not found')
+    }
+
+
+    /**
      * Checks contract existence in repository.
      * 
      * @param address
@@ -146,6 +172,43 @@ export class FileService implements IFileService {
                 status: "perfect",
                 storageTimestamp
             }];
+        } catch (e) {
+            throw new Error("Address not found in repository");
+        }
+    }
+
+    /**
+     * Checks contract existence in repository for full and partial matches.
+     * 
+     * @param address
+     * @param chain
+     * @param repository
+     */
+    findAllByAddress(address: string, chain: string): Match[] {
+        const fullContractPath = this.generateContractPath({
+            matchQuality: "full",
+            chain,
+            address,
+            fileName: "metadata.json"
+        });
+
+        const partialContractPath = this.generateContractPath({
+            matchQuality: "partial",
+            chain,
+            address,
+            fileName: "metadata.json"
+        })
+
+        try {
+
+            const storage = this.fetchFromStorage(fullContractPath, partialContractPath)
+            return [
+                {
+                    address,
+                    status: storage?.status,
+                    storageTimestamp: storage?.time,
+                },
+            ];
         } catch (e) {
             throw new Error("Address not found in repository");
         }
