@@ -1,11 +1,9 @@
 version: "3.7"
-x-project-repository-mount:
-  &project-repository-mount
+x-project-repository-mount: &project-repository-mount
   type: bind
   source: $REPOSITORY_PATH
 
-x-project-base:
-  &project-base
+x-project-base: &project-base
   env_file:
     - .env
   restart: always
@@ -21,7 +19,7 @@ services:
     image: ethereum/source-verify:server-${TAG}
     container_name: server-${TAG}
     ports:
-    - "${SERVER_EXTERNAL_PORT}:${SERVER_PORT}"
+      - "${SERVER_EXTERNAL_PORT}:${SERVER_PORT}"
     volumes:
       - <<: *project-repository-mount
         target: /home/data/repository
@@ -33,8 +31,6 @@ services:
         source: $SOLJSON_REPO_HOST
         target: $SOLJSON_REPO
         read_only: true
-    environment:
-      VIRTUAL_HOST: server.${FQDN}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT}/health"]
       interval: 30s
