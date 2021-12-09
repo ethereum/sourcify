@@ -18,7 +18,7 @@ Checks if contract with the desired chain and address is verified and in the rep
 [
     {
         "address": "0x0000A906D248Cc99FB8CB296C8Ad8C6Df05431c9",
-        "chains": [
+        "chainIds": [
           {
             chainId: '1',
             status: 'perfect'
@@ -27,7 +27,7 @@ Checks if contract with the desired chain and address is verified and in the rep
     },
     {
         "address": "0x0A67477639a71bf98528280D3724f465A1814740",
-        "chains": [
+        "chainIds": [
           {
             chainId: '1',
             status: 'perfect'
@@ -38,9 +38,18 @@ Checks if contract with the desired chain and address is verified and in the rep
           }
         ]
     },
-    {
-        "address": "0x0A67477639a71bf98528280D3724f465A1814741",
-        "status": "false"
-    },
+]
+```
+
+**Code** : `404 NOT FOUND`
+
+**Content** : 
+
+```json
+[
+  {
+    "address": "0x0A67477639a71bf98528280D3724f465A1814741",
+    "status": "false"
+  },
 ]
 ```

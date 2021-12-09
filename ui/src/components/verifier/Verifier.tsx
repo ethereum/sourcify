@@ -123,7 +123,7 @@ const Verifier: React.FC = () => {
                 </p>
                 <p key={checkResult.address}>Also partially verified on: {
                     intersperse(
-                        checkResult.chainIds.filter(chain => chain.status === verificationState.PARTIAL).map(chainId => chainToLink(chainId.chainId, checkResult.address)), 
+                        checkResult.chainIds.filter(chain => chain.status === verificationState.PARTIAL).map(chainId => chainToLink(chainId.chainId, checkResult.address, verificationState.PARTIAL)), 
                         ", "
                     )
                 }
@@ -132,13 +132,14 @@ const Verifier: React.FC = () => {
         )
     }
 
-    const chainToLink = (chainId: string, address: string): JSX.Element => {
+    const chainToLink = (chainId: string, address: string, type = verificationState.PERFECT): JSX.Element => {
+        const path = type === verificationState.PERFECT ? REPOSITORY_URL_FULL_MATCH : REPOSITORY_URL_PARTIAL_MATCH;
         const chain = ID_TO_CHAIN[chainId];
         const label = chain ? chain.label : "Unknown chain";
         return <a
             target="_blank"
             rel="noopener noreferrer"
-            href={`${REPOSITORY_URL_FULL_MATCH}/${chainId}/${address}`}
+            href={`${path}/${chainId}/${address}`}
             style={ { wordBreak: "break-word" } }
             key={chainId}
         >{label}</a>;
