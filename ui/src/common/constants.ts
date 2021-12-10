@@ -21,6 +21,7 @@ export const CHAIN_OPTIONS = [
     {value: "telos testnet", label: "Telos EVM Testnet", id: 41},
     {value: "ubiq", label: "Ubiq", id: 8},
     {value: "oneledger testnet", label: "OneLedger Testnet Frankenstein", id: 4216137055},
+    {value: "syscoin mainnet", label: "Syscoin Mainnet", id: 57},
     {value: "syscoin testnet", label: "Syscoin Tanenbaum Testnet", id: 5700},
     {value: "optimistic mainnet", label: "Optimistic Ethereum Mainnet", id: 10},
     {value: "optimistic kovan", label: "Optimistic Ethereum Testnet Kovan", id: 69},

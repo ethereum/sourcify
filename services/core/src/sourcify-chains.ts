@@ -190,6 +190,12 @@ export default {
         "contractFetchAddress": "https://snowtrace.io/" + ETHERSCAN_SUFFIX,
         "txRegex": ETHERSCAN_REGEX
     },
+    "57": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer.syscoin.org/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
     "5700": {
         "supported": true,
         "monitored": false,
