@@ -136,7 +136,6 @@
   - Designate a path where contract files will be stored upon verification (REPOSITORY_PATH)
   - If you're running a custom IPFS node, set `IPFS_URL` to be your endpoint (typically http://127.0.0.1:8080/ipfs/), otherwise use a public service such as https://ipfs.io/ipfs
   - Other `.env` settings:
-    - `FQDN=localhost`
     - `SERVER_URL=http://localhost:5000`
 - The server can be run with one of the following:
   - `$ npm run server:start`

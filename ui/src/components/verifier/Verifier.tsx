@@ -13,6 +13,11 @@ import LoadingOverlay from "../LoadingOverlay";
 import Spinner from "../Spinner";
 import { AddressInput, FileUpload } from "./form";
 
+const verificationState = {
+    PARTIAL: 'partial',
+    PERFECT: 'perfect'
+}
+
 const initialState: VerifierState = {
     loading: false,
     address: "",
@@ -107,21 +112,41 @@ const Verifier: React.FC = () => {
     }
 
     const checkResultToElement = (checkResult: ServersideAddressCheck) => {
-        return <p key={checkResult.address}>{checkResult.address} is verified on: {
-            intersperse(
-                checkResult.chainIds.map(chainId => chainToLink(chainId, checkResult.address)), 
-                ", "
-            )
-        }</p>
+        const fullMatches = checkResult.chainIds.filter(chain => chain.status === verificationState.PERFECT)
+        const partialMatches = checkResult.chainIds.filter(chain => chain.status === verificationState.PARTIAL)
+        return (
+            <>
+                <p key={checkResult.address}>{checkResult.address}</p>
+                { fullMatches.length > 0 && 
+                    <p>Fully verified on: {
+                        intersperse(
+                            fullMatches.map(chainId => chainToLink(chainId.chainId, checkResult.address)), 
+                            ", "
+                        )
+                    }
+                    </p>
+                }
+                { partialMatches.length > 0 &&
+                    <p key={checkResult.address}>Partially verified on: {
+                        intersperse(
+                            partialMatches.map(chainId => chainToLink(chainId.chainId, checkResult.address, verificationState.PARTIAL)), 
+                            ", "
+                        )
+                    }
+                    </p>
+                }
+            </>
+        )
     }
 
-    const chainToLink = (chainId: string, address: string): JSX.Element => {
+    const chainToLink = (chainId: string, address: string, type = verificationState.PERFECT): JSX.Element => {
+        const path = type === verificationState.PERFECT ? REPOSITORY_URL_FULL_MATCH : REPOSITORY_URL_PARTIAL_MATCH;
         const chain = ID_TO_CHAIN[chainId];
         const label = chain ? chain.label : "Unknown chain";
         return <a
             target="_blank"
             rel="noopener noreferrer"
-            href={`${REPOSITORY_URL_FULL_MATCH}/${chainId}/${address}`}
+            href={`${path}/${chainId}/${address}`}
             style={ { wordBreak: "break-word" } }
             key={chainId}
         >{label}</a>;
@@ -182,7 +207,7 @@ const Verifier: React.FC = () => {
             return;
         }
 
-        if (data.status === 'partial') {
+        if (data.status === verificationState.PARTIAL) {
             globalDispatch({
                 type: "SHOW_NOTIFICATION", payload: {
                     type: "success",
