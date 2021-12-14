@@ -1,4 +1,8 @@
 import Web3 from "web3";
+import * as dotenv from 'dotenv';
+import path from 'path';
+
+dotenv.config({ path: path.resolve(__dirname, "..", "..", "..", "environments/.env") });
 
 const ETHERSCAN_REGEX = "at txn <a href='/tx/(.*?)'";
 const ETHERSCAN_SUFFIX = "address/${ADDRESS}";
