@@ -146,19 +146,19 @@ export default {
     },
     "42220": {
         "supported": true,
-        "monitored": true,
+        "monitored": false,
         "contractFetchAddress": "https://explorer.celo.org/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
     "44787": {
         "supported": true,
-        "monitored": true,
+        "monitored": false,
         "contractFetchAddress": "https://alfajores-blockscout.celo-testnet.org/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
     "62320": {
         "supported": true,
-        "monitored": true,
+        "monitored": false,
         "contractFetchAddress": "https://baklava-blockscout.celo-testnet.org/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
@@ -173,24 +173,24 @@ export default {
     },
     "421611": {
         "supported": true,
-        "monitored": false,
+        "monitored": true,
         "graphQLFetchAddress": "https://rinkeby-indexer.arbitrum.io/graphql"
     },
     "42161": {
         "supported": true,
-        "monitored": false,
+        "monitored": true,
         "contractFetchAddress": "https://arbiscan.io" + ETHERSCAN_SUFFIX,
         "txRegex": ETHERSCAN_REGEX
     },
     "43113": {
         "supported": true,
-        "monitored": true,
+        "monitored": false,
         "contractFetchAddress": "https://testnet.snowtrace.io/" + ETHERSCAN_SUFFIX,
         "txRegex": ETHERSCAN_REGEX
     },
     "43114": {
         "supported": true,
-        "monitored": true,
+        "monitored": false,
         "contractFetchAddress": "https://snowtrace.io/" + ETHERSCAN_SUFFIX,
         "txRegex": ETHERSCAN_REGEX
     },
@@ -226,25 +226,25 @@ export default {
     },
     "10": {
         "supported": true,
-        "monitored": false,
+        "monitored": true,
         "contractFetchAddress": "https://optimistic.etherscan.io/" + ETHERSCAN_SUFFIX,
         "txRegex": ETHERSCAN_REGEX
     },
     "69": {
         "supported": true,
-        "monitored": false,
+        "monitored": true,
         "contractFetchAddress": "https://kovan-optimistic.etherscan.io/" + ETHERSCAN_SUFFIX,
         "txRegex": ETHERSCAN_REGEX
     },
     "28": {
         "supported": true,
-        "monitored": false,
+        "monitored": true,
         "contractFetchAddress": "https://blockexplorer.rinkeby.boba.network/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
     "288": {
         "supported": true,
-        "monitored": false,
+        "monitored": true,
         "contractFetchAddress": "https://blockexplorer.boba.network/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
