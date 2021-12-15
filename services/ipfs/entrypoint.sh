@@ -22,7 +22,6 @@ fi
 ANNOUNCED_ADDRESSES=$ANNOUNCED_ADDRESSES']'
 
 ipfs config Addresses.Announce $ANNOUNCED_ADDRESSES --json
-ipfs config --json Experimental.ShardingEnabled true
 ipfs config --json Reprovider.Strategy '"pinned"'
 ipfs config --json Experimental.AcceleratedDHTClient true
 

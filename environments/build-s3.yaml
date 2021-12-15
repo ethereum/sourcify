@@ -3,5 +3,5 @@ services:
   s3sync:
     image: ethereum/source-verify:s3-${TAG}
     build:
-      context: ../
-      dockerfile: services/s3sync/Dockerfile.s3
+      context: ../services/s3sync
+      dockerfile: Dockerfile.s3

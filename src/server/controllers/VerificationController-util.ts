@@ -44,7 +44,8 @@ export type MySession =
 export type MyRequest = 
     Request & {
     addresses: string[],
-    chain: string
+    chain: string,
+    chosenContract: number
 };
 
 export type Status = "perfect" | "partial" | "error";

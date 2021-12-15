@@ -3,7 +3,7 @@
 db/
 node_modules/
 repository/
-mockRepository/
+mockRepository*
 server.log
 ui/node_modules/
 ui/dist/
@@ -11,8 +11,8 @@ ui/.cache/
 source-verify.dab
 nginx.conf
 dist/
-environment/.env
 **/.env
+**/.env-backup
 **/*.key
 stats**
 tmp

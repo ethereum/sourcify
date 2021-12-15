@@ -1,6 +1,6 @@
 import React from "react";
-import {useDispatchContext, useGlobalStateContext} from "../state/State";
-import {CheckCircleIcon, XCircleIcon, XIcon} from "./icons";
+import { useDispatchContext, useGlobalStateContext } from "../state/State";
+import { CheckCircleIcon, XCircleIcon, XIcon } from "./icons";
 
 const Notification: React.FC = () => {
     const globalState = useGlobalStateContext();

@@ -1,7 +1,7 @@
 FROM node:14-alpine as builder
 
-RUN apk update && apk upgrade && \
-    apk add --no-cache curl
+# RUN apk update && apk upgrade && \
+#     apk add --no-cache curl
 
 ARG WORKSPACE_DIR=/app
 WORKDIR ${WORKSPACE_DIR}

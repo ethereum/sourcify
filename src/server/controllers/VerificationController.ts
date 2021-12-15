@@ -103,13 +103,14 @@ export default class VerificationController extends BaseController implements IC
             throw new BadRequestError("Invalid or missing sources in:\n" + errors.join("\n"), false);
         }
 
-        if (validatedContracts.length !== 1) {
+        if (validatedContracts.length !== 1 && !req.body.chosenContract) {
             const contractNames = validatedContracts.map(c => c.name).join(", ");
-            const msg = `Detected ${validatedContracts.length} contracts (${contractNames}), but can only verify 1 at a time.`;
-            throw new BadRequestError(msg);
+            const msg = `Detected ${validatedContracts.length} contracts (${contractNames}), but can only verify 1 at a time. Please choose a main contract and click Verify again.`;
+            const contractsToChoose = validatedContracts.map(contract => ({name: contract.name, path: contract.compiledPath}))
+            return res.status(StatusCodes.BAD_REQUEST).send({error: msg, contractsToChoose})
         }
 
-        const contract = validatedContracts[0];
+        const contract = req.body.chosenContract ? validatedContracts[req.body.chosenContract] : validatedContracts[0];
         if (!contract.compilerVersion) {
             throw new BadRequestError("Metadata file not specifying a compiler version.");
         }
@@ -124,6 +125,36 @@ export default class VerificationController extends BaseController implements IC
         });
     }
 
+    private checkAllByAddresses = async (req: any, res: Response) => {
+        this.validateRequest(req);
+        const map: Map<string, any> = new Map();
+        for (const address of req.addresses) {
+            for (const chainId of req.chainIds) {
+                try {
+                    const found: Match[] = this.verificationService.findAllByAddress(address, chainId);
+                    if (found.length != 0) {
+                        if (!map.has(address)) {
+                            map.set(address, { address, chainIds: [] });
+                        }
+
+
+                        map.get(address).chainIds.push({chainId, status: found[0].status});
+                    }
+                } catch (error) {
+                    // ignore
+                }
+            }
+            if (!map.has(address)) {
+                map.set(address, {
+                    "address": address,
+                    "status": "false"
+                })
+            }
+        }
+        const resultArray = Array.from(map.values());
+        res.send(resultArray)
+    }
+
     private checkByAddresses = async (req: any, res: Response) => {
         this.validateRequest(req);
         const map: Map<string, any> = new Map();
@@ -135,6 +166,7 @@ export default class VerificationController extends BaseController implements IC
                         if (!map.has(address)) {
                             map.set(address, { address, status: "perfect", chainIds: [] });
                         }
+
                         map.get(address).chainIds.push(chainId);
                     }
                 } catch (error) {
@@ -374,6 +406,13 @@ export default class VerificationController extends BaseController implements IC
                 body("address").exists().bail().custom((address, { req }) => req.addresses = this.validateAddresses(address)),
                 body("chain").exists().bail().custom((chain, { req }) => req.chain = getChainId(chain)),
                 this.safeHandler(this.legacyVerifyEndpoint)
+            );
+
+        this.router.route(['/check-all-by-addresses', '/checkAllByAddresses'])
+            .get(
+                query("addresses").exists().bail().custom((addresses, { req }) => req.addresses = this.validateAddresses(addresses)),
+                query("chainIds").exists().bail().custom((chainIds, { req }) => req.chainIds = this.validateChainIds(chainIds)),
+                this.safeHandler(this.checkAllByAddresses)
             );
 
         this.router.route(['/check-by-addresses', '/checkByAddresses'])

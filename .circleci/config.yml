@@ -40,7 +40,7 @@ aliases:
           command: npm run lint
       - run:
           name: tsc and test
-          command: npx lerna run build && npx lerna run test
+          command: npx lerna run build && npx lerna run test --stream
   - &monitor-e2e-base
     working_directory: ~/source-verify
     steps:
