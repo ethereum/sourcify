@@ -22,8 +22,12 @@ export const CHAIN_OPTIONS = [
     {value: "ubiq", label: "Ubiq", id: 8},
     {value: "oneledger testnet", label: "OneLedger Testnet Frankenstein", id: 4216137055},
     {value: "syscoin testnet", label: "Syscoin Tanenbaum Testnet", id: 5700},
-    {value: "palm mainnet", label: "Palm Mainnet", id: 11297108109},
-    {value: "test mainnet", label: "Testnet Mainnet", id: 11297108099},
+    {value: "optimistic mainnet", label: "Optimistic Ethereum Mainnet", id: 10},
+    {value: "optimistic kovan", label: "Optimistic Ethereum Testnet Kovan", id: 69},
+    {value: "boba network mainnet", label: "Boba Network", id: 288 },
+    {value: "boba network rinkeby", label: "Boba Network Rinkeby Testnet", id: 28 },
+    {value: "velas", label: "Velas EVM Mainnet", id: 106},
+    {value: "meter mainnet", label: "Meter Mainnet", id: 82},
 ];
 
 export const ID_TO_CHAIN = {};

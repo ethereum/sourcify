@@ -1,15 +1,18 @@
 import { SERVER_URL } from "../common/constants";
+import { ContractToChoose } from "../types";
 
 type ResponseBody = {
     error?: string,
     errors?: [{ field: string, message: string }],
-    result?: [{ address?: string, status?: string }]
+    result?: [{ address?: string, status?: string }],
+    contractsToChoose?: ContractToChoose[],
 }
 
 type VerificationResult = {
     status: string,
     error: string,
-    address: string
+    address: string,
+    contractsToChoose?: ContractToChoose[]
 }
 
 type CheckAddressesResult = {
@@ -18,10 +21,15 @@ type CheckAddressesResult = {
     error: string
 }
 
+type ChainIdsResponse = {
+    chainId: string,
+    status: string
+}
+
 export type ServersideAddressCheck = {
     address: string,
     status: string,
-    chainIds?: string[]
+    chainIds?: ChainIdsResponse[]
 };
 
 export const verify = async (formData: any): Promise<VerificationResult> => {
@@ -40,6 +48,8 @@ export const verify = async (formData: any): Promise<VerificationResult> => {
 
         if (body.error) {
             data.error = body.error;
+            if (body.contractsToChoose)
+                data.contractsToChoose = body.contractsToChoose;
         } else if (body.errors) {
             data.error = body.errors.map(e => e.message).join(", ");
         } else {
@@ -62,12 +72,12 @@ export const checkAddresses = async (addresses: string, chainIds: string): Promi
     }
 
     try {
-        const response = await fetch(`${SERVER_URL}/checkByAddresses?addresses=${addresses}&chainIds=${chainIds}`, {
+        const response = await fetch(`${SERVER_URL}/checkAllByAddresses?addresses=${addresses}&chainIds=${chainIds}`, {
             method: "GET"
-        })
+        }) 
         const body: ServersideAddressCheck[] = await response.json();
 
-        data.successful = body.filter(value => value.status === 'perfect');
+        data.successful = body.filter(value => value?.chainIds?.length >= 0);
         data.unsuccessful = body.filter(value => value.status === 'false').map(e => e.address);
 
     } catch (e) {

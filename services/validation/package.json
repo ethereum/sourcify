@@ -14,7 +14,7 @@
   },
   "main": "build/index.js",
   "scripts": {
-    "test": "npm run build && mocha",
+    "test": "npm run build && mocha --exit",
     "build": "rimraf ./build && tsc",
     "start": "npm run build && node build/index.js"
   },

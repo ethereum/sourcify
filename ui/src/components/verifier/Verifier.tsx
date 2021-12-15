@@ -1,20 +1,22 @@
-import React, {useEffect, useReducer} from "react";
-import {verifierReducer} from "../../reducers/verifierReducer";
-import {VerifierState} from "../../types";
+import React, { useEffect, useReducer } from "react";
+import Web3 from "web3-utils";
+import { checkAddresses, ServersideAddressCheck, verify } from "../../api/verifier";
 import {
-    CHAIN_OPTIONS as chainOptions,
-    REPOSITORY_URL_FULL_MATCH,
-    REPOSITORY_URL_PARTIAL_MATCH,
-    ID_TO_CHAIN,
-    CHAIN_IDS_STR
+    CHAIN_IDS_STR, CHAIN_OPTIONS as chainOptions, ID_TO_CHAIN, REPOSITORY_URL_FULL_MATCH,
+    REPOSITORY_URL_PARTIAL_MATCH
 } from "../../common/constants";
-import {FileUpload, AddressInput} from "./form";
+import { verifierReducer } from "../../reducers/verifierReducer";
+import { useDispatchContext } from "../../state/State";
+import { VerifierState } from "../../types";
 import Dropdown from "../Dropdown";
 import LoadingOverlay from "../LoadingOverlay";
-import {useDispatchContext} from "../../state/State";
-import {checkAddresses, verify, ServersideAddressCheck} from "../../api/verifier";
-import Web3 from "web3-utils";
 import Spinner from "../Spinner";
+import { AddressInput, FileUpload } from "./form";
+
+const verificationState = {
+    PARTIAL: 'partial',
+    PERFECT: 'perfect'
+}
 
 const initialState: VerifierState = {
     loading: false,
@@ -23,7 +25,8 @@ const initialState: VerifierState = {
     files: [],
     incorrectAddresses: new Set(),
     isValidationError: false,
-    verifyAddressLoading: false
+    verifyAddressLoading: false,
+    contractsToChoose: [],
 }
 
 const Verifier: React.FC = () => {
@@ -109,21 +112,41 @@ const Verifier: React.FC = () => {
     }
 
     const checkResultToElement = (checkResult: ServersideAddressCheck) => {
-        return <p key={checkResult.address}>{checkResult.address} is verified on: {
-            intersperse(
-                checkResult.chainIds.map(chainId => chainToLink(chainId, checkResult.address)), 
-                ", "
-            )
-        }</p>
+        const fullMatches = checkResult.chainIds.filter(chain => chain.status === verificationState.PERFECT)
+        const partialMatches = checkResult.chainIds.filter(chain => chain.status === verificationState.PARTIAL)
+        return (
+            <>
+                <p key={checkResult.address}>{checkResult.address}</p>
+                { fullMatches.length > 0 && 
+                    <p>Fully verified on: {
+                        intersperse(
+                            fullMatches.map(chainId => chainToLink(chainId.chainId, checkResult.address)), 
+                            ", "
+                        )
+                    }
+                    </p>
+                }
+                { partialMatches.length > 0 &&
+                    <p key={checkResult.address}>Partially verified on: {
+                        intersperse(
+                            partialMatches.map(chainId => chainToLink(chainId.chainId, checkResult.address, verificationState.PARTIAL)), 
+                            ", "
+                        )
+                    }
+                    </p>
+                }
+            </>
+        )
     }
 
-    const chainToLink = (chainId: string, address: string): JSX.Element => {
+    const chainToLink = (chainId: string, address: string, type = verificationState.PERFECT): JSX.Element => {
+        const path = type === verificationState.PERFECT ? REPOSITORY_URL_FULL_MATCH : REPOSITORY_URL_PARTIAL_MATCH;
         const chain = ID_TO_CHAIN[chainId];
         const label = chain ? chain.label : "Unknown chain";
         return <a
             target="_blank"
             rel="noopener noreferrer"
-            href={`${REPOSITORY_URL_FULL_MATCH}/${chainId}/${address}`}
+            href={`${path}/${chainId}/${address}`}
             style={ { wordBreak: "break-word" } }
             key={chainId}
         >{label}</a>;
@@ -153,7 +176,7 @@ const Verifier: React.FC = () => {
             {type: "SET_CHAIN", payload: chain}
         )
     }
-
+    
     const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
@@ -164,7 +187,8 @@ const Verifier: React.FC = () => {
         const formData = new FormData();
         formData.append("address", state.address);
         formData.append("chain", state.chain.id.toString());
-
+        state.chosenContract && formData.append("chosenContract", state.chosenContract);
+        
         if (state.files.length > 0) {
             state.files.forEach(file => formData.append('files', file));
         }
@@ -172,12 +196,18 @@ const Verifier: React.FC = () => {
         const data = await verify(formData);
 
         if (data.error) {
+            if (data.contractsToChoose){
+                globalDispatch({type: "SHOW_NOTIFICATION", payload: {type: "error", content: data.error}});
+                dispatch({type: "SET_LOADING", payload: false});
+                dispatch({type: "SET_CONTRACTS_TO_CHOOSE", payload: data.contractsToChoose});
+                return;
+            }
             globalDispatch({type: "SHOW_NOTIFICATION", payload: {type: "error", content: data.error}});
             dispatch({type: "SET_LOADING", payload: false});
             return;
         }
 
-        if (data.status === 'partial') {
+        if (data.status === verificationState.PARTIAL) {
             globalDispatch({
                 type: "SHOW_NOTIFICATION", payload: {
                     type: "success",
@@ -206,6 +236,10 @@ const Verifier: React.FC = () => {
         dispatch({type: "SET_LOADING", payload: false});
     }
 
+    const handleChooseContract = (i: number) => {
+        dispatch({type: "SET_CHOSEN_CONTRACT", payload: i});
+
+    }
     return (
         <div className="form-container">
             {state.loading && <LoadingOverlay/>}
@@ -231,6 +265,12 @@ const Verifier: React.FC = () => {
                         </div>
                     }
                     <FileUpload handleFiles={handleFiles} files={state.files}/>
+                    <div>
+                        {state.contractsToChoose.length>0 && <div className="choose-contract-title">Choose the main contract you want to verify</div>}
+                        {
+                            state.contractsToChoose.map((contract, i)=> <div className={`choose-contract-item ${state.chosenContract === i && 'choose-contract-item__chosen'}`} onClick={() => handleChooseContract(i)}> &bull; <span className="choose-contract-item-name">{contract.name}</span>: {contract.path}</div>)
+                        }
+                    </div>
                     <button type="submit"
                             className={`form__submit-btn ${!state.address ? `form__submit-btn--disabled` : ""}`}
                             disabled={!state.address}>VERIFY

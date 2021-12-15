@@ -4,7 +4,6 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
-
     {
       "type": "node",
       "request": "launch",
@@ -59,9 +58,39 @@
       ]
     },
     {
+      "internalConsoleOptions": "openOnSessionStart",
+      "name": "Mocha - All",
+      "program": "${workspaceFolder}/node_modules/.bin/mocha",
+      "request": "launch",
+      "args": [
+        "-r",
+        "ts-node/register",
+        "--no-timeout",
+        "--colors"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js",
+        "${workspaceFolder}/services/core/build/**/*.js",
+        "${workspaceFolder}/services/validation/build/**/*.js",
+        "${workspaceFolder}/services/verification/build/**/*.js"
+      ],
+      "smartStep": true,
+      "envFile": "${workspaceFolder}/environments/.env",
+      "env": {
+        "TESTING": "true",
+        "LOCALCHAIN_URL": "http://localhost:8545"
+      },
+      "skipFiles": [
+        "<node_internals>/**",
+        "node_modules/**"
+      ],
+      "type": "pwa-node",
+      "console": "integratedTerminal",
+    },
+    {
       "type": "node",
       "request": "launch",
-      "name": "Mocha File",
+      "name": "Mocha - File",
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "args": [
         "-r",
@@ -77,7 +106,7 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Mocha Monitor",
+      "name": "Mocha - Monitor",
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "env": {
         "TESTING": "true",
@@ -95,7 +124,7 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Mocha Server",
+      "name": "Mocha - Server",
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "env": {
         "TESTING": "true",
@@ -113,7 +142,7 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Mocha Injector",
+      "name": "Mocha - Injector",
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "env": {
         "TESTING": "true",
