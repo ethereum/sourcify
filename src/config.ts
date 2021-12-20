@@ -43,5 +43,5 @@ export default {
         maxAge: parseInt(process.env.SESSION_MAX_AGE, 10) || (12 * 60 * 60 * 1000), // 12 hrs in millis
         secure: !process.env.RUNNING_LOCALLY && !process.env.TESTING
     },
-    corsAllowedOrigins: "*"
+    corsAllowedOrigins: RegExp(`^https?://(?:.+\\.)?(localhost|sourcify.dev)(:\\d+)?$`)
 }
