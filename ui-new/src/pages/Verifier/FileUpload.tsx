@@ -1,13 +1,11 @@
 import React from "react";
 import { useDropzone } from "react-dropzone";
-import { DropzoneFile, SendableContract } from "../../types";
+import { DropzoneFile } from "../../types";
 
 type FileUploadProps = {
   handleFilesAdded: (files: []) => void;
   restartSession: () => void;
   addedFiles: DropzoneFile[];
-  unusedFiles: string[];
-  checkedContracts: SendableContract[];
   isLoading: boolean;
 };
 
@@ -15,8 +13,6 @@ const FileUpload: React.FC<FileUploadProps> = ({
   handleFilesAdded,
   restartSession,
   addedFiles,
-  unusedFiles,
-  checkedContracts,
   isLoading,
 }) => {
   const { acceptedFiles, getRootProps, getInputProps } = useDropzone({
@@ -28,14 +24,14 @@ const FileUpload: React.FC<FileUploadProps> = ({
 
   const displayFiles = addedFiles.map((file) => {
     return (
-      <li key={file.name}>
+      <li key={file.name + file.size}>
         {file.name} - {file.size} bytes
       </li>
     );
   });
   console.log(addedFiles);
   return (
-    <div className="flex flex-col basis-0 flex-grow bg-ceruleanBlue-40 mx-4 px-8">
+    <div className="flex flex-col basis-0 flex-grow bg-ceruleanBlue-40 mx-4 px-8 transition-all ease-in-out duration-300">
       <div className="my-6 flex justify-center items-center">
         <p>Drag and drop the Solidity and metadata files below</p>
       </div>
@@ -46,40 +42,15 @@ const FileUpload: React.FC<FileUploadProps> = ({
         {...getRootProps()}
         className="flex flex-col flex-grow bg-ceruleanBlue-10 cursor-pointer"
       >
-        <div className="flex-grow bg-ceruleanBlue-10 border-dashed border-ceruleanBlue-100 border-2 m-2 rounded-lg hover:bg-ceruleanBlue-70">
+        <div className="flex-grow bg-ceruleanBlue-10 border-dashed border-ceruleanBlue-100 border-2 m-2 rounded-lg hover:bg-ceruleanBlue-70 relative">
           <input {...getInputProps()} type="file" />
-          <div className="font-bold text-lg">Added Files</div>
-          <div className="flex flex-col">{displayFiles}</div>
+          <h2 className="font-bold text-lg">Added Files</h2>
+          <ul className="flex flex-col">{displayFiles}</ul>
           {isLoading && (
-            <div className="flex flex-grow items-center justify-center bg-ceruleanBlue-10 border-dashed border-ceruleanBlue-100 border-2 m-2 rounded-lg hover:bg-ceruleanBlue-70"></div>
-          )}
-          {/* {unusedFiles.length > 0 ? (
-            <div>
-              <div className="font-bold underline">Unused Files</div>
-              <ul>
-                {unusedFiles.map((file) => (
-                  <li>{file}</li>
-                ))}
-              </ul>
+            <div className="flex w-full h-full items-center justify-center bg-ceruleanBlue-10 absolute top-0 left-0 opacity-80">
+              <div className="opacity-100">Loading</div>
             </div>
-          ) : (
-            <p>Drag 'n' drop some files here, or click to select files</p>
           )}
-          {checkedContracts.length > 0 && (
-            <div className="font-bold underline text-lg">Contract Files</div>
-          )}
-          {
-            <div>
-              {checkedContracts.map((checkedContract) => (
-                <div className="ml-4">
-                  <p className="underline">{checkedContract.name}</p>
-                  {checkedContract.files.found.map((file) => (
-                    <p>{file}</p>
-                  ))}
-                </div>
-              ))}
-            </div>
-          } */}
         </div>
       </div>
       <div className="mt-4">

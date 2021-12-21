@@ -1,9 +1,25 @@
 import { useState } from "react";
 import Header from "../../components/Header";
-import { ADD_FILES_URL, RESTART_SESSION_URL } from "../../constants";
-import { DropzoneFile, SendableContract, SessionResponse } from "../../types";
+import {
+  ADD_FILES_URL,
+  RESTART_SESSION_URL,
+  VERIFY_VALIDATED_URL,
+} from "../../constants";
+import {
+  DropzoneFile,
+  SendableContract,
+  SessionResponse,
+  VerificationInput,
+} from "../../types";
 import CheckedContractsView from "./CheckedContractsView";
 import FileUpload from "./FileUpload";
+
+type FetchOptions = {
+  credentials: "include";
+  method: "GET" | "POST";
+  body: HTMLFormElement | string;
+  headers: Headers;
+};
 
 const Verifier: React.FC = () => {
   const [addedFiles, setAddedFiles] = useState<DropzoneFile[]>([]);
@@ -13,26 +29,25 @@ const Verifier: React.FC = () => {
   );
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleFiles = async (files: DropzoneFile[]) => {
+  const fetchAndUpdate = async (URL: string, fetchOptions: RequestInit) => {
     setIsLoading(true);
-    setAddedFiles(addedFiles.concat(files));
-    if (files.length === 0) {
-      console.log("Nothing to upload");
-      return;
-    }
-
-    const formData = new FormData();
-    files.forEach((file) => formData.append("files", file));
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    let res: SessionResponse = await fetch(ADD_FILES_URL, {
+    const res: SessionResponse = await fetch(URL, {
       credentials: "include",
-      method: "POST",
-      body: formData,
+      ...fetchOptions,
     }).then((res) => res.json());
     setUnusedFiles([...res.unused]);
     setCheckedContracts([...res.contracts]);
-    console.log(res);
     setIsLoading(false);
+  };
+
+  const handleFiles = async (files: DropzoneFile[]) => {
+    const formData = new FormData();
+    files.forEach((file) => formData.append("files", file));
+    await fetchAndUpdate(ADD_FILES_URL, {
+      method: "POST",
+      body: formData,
+    });
+    setAddedFiles(addedFiles.concat(files));
   };
 
   const restartSession = async () => {
@@ -45,6 +60,19 @@ const Verifier: React.FC = () => {
     setCheckedContracts([]);
     setAddedFiles([]);
     setIsLoading(false);
+  };
+
+  const verifyCheckedContract = async (sendable: VerificationInput) => {
+    console.log("Verifying checkedContract " + sendable.verificationId);
+    fetchAndUpdate(VERIFY_VALIDATED_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        contracts: [sendable],
+      }),
+    });
   };
 
   return (
@@ -61,12 +89,18 @@ const Verifier: React.FC = () => {
         <FileUpload
           handleFilesAdded={handleFiles}
           addedFiles={addedFiles}
-          unusedFiles={unusedFiles}
-          checkedContracts={checkedContracts}
           isLoading={isLoading}
           restartSession={restartSession}
         />
-        <CheckedContractsView />
+        {/* {checkedContracts.length > 0 && ( */}
+        {/* <div className={`${checkedContracts.length > 0 ? "w-auto" : "w-0"}`}> */}
+        <CheckedContractsView
+          checkedContracts={checkedContracts}
+          isHidden={checkedContracts.length < 1}
+          verifyCheckedContract={verifyCheckedContract}
+        />
+        {/* </div> */}
+        {/* )} */}
       </div>
     </div>
   );
