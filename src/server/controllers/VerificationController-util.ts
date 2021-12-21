@@ -1,6 +1,6 @@
 import { Request } from 'express';
 import { Session } from 'express-session';
-import { PathContent, CheckedContract, isEmpty } from '@ethereum-sourcify/core';
+import { PathContent, CheckedContract, isEmpty, StringMap } from '@ethereum-sourcify/core';
 import Web3 from 'web3';
 
 export interface PathContentMap {
@@ -54,7 +54,8 @@ export type SendableContract =
     ContractMeta & {
     files: {
         found: string[],
-        missing: string[]
+        missing: string[],
+        invalid: StringMap
     },
     verificationId?: string
 }
@@ -78,7 +79,8 @@ function getSendableContract(contractWrapper: ContractWrapper, verificationId: s
         chainId: contractWrapper.chainId,
         files: {
             found: Object.keys(contract.solidity),
-            missing: Object.keys(contract.missing).concat(Object.keys(contract.invalid))
+            missing: Object.keys(contract.missing),
+            invalid: contract.invalid
         },
         status: contractWrapper.status || "error",
         statusMessage: contractWrapper.statusMessage,

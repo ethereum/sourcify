@@ -1,4 +1,6 @@
-
+export declare interface StringMap {
+    [key: string]: string;
+}
 export type DropzoneFile = File & {
   size: number;
   path: string;
@@ -27,6 +29,13 @@ export type SendableContract = ContractMeta & {
   files: {
     found: string[];
     missing: string[];
+    invalid: StringMap;
   };
   verificationId?: string;
 };
+
+export type VerificationInput = {
+  verificationId: string;
+  chainId: string;
+  address: string;
+}
