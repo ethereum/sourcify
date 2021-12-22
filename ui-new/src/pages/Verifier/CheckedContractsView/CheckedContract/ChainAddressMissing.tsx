@@ -33,13 +33,20 @@ const ChainAddressMissing: React.FC<ChainAddressMissingProps> = ({
   verifyCheckedContract,
 }) => {
   const [address, setAddress] = useState<string>();
+  const [isInvalidAddress, setIsInvalidAddress] = useState<boolean>(false);
   const [chainId, setChainId] = useState<string>();
 
   const handleAddressChange: ChangeEventHandler<HTMLInputElement> = (e) => {
-    setAddress(e.target.value);
+    const tempAddr = e.target.value;
+    setAddress(tempAddr);
+    const isValid = /^0x[0-9a-fA-F]{40}$/.test(tempAddr);
+    if (!isValid) {
+      return setIsInvalidAddress(true);
+    }
+    setIsInvalidAddress(false);
     verifyCheckedContract({
       verificationId: checkedContract.verificationId || "",
-      address: e.target.value,
+      address: tempAddr,
       chainId: chainId || "",
     });
   };
@@ -66,16 +73,27 @@ const ChainAddressMissing: React.FC<ChainAddressMissingProps> = ({
       </div>
       <form className="mt-4">
         <div>
-          <label className="block">Address</label>
+          <div className="flex justify-between">
+            <label className="block" htmlFor="address">
+              Address
+            </label>
+            {isInvalidAddress && (
+              <span className="text-red-500 text-sm">Invalid Address</span>
+            )}
+          </div>
           <Input
+            id="address"
             value={address}
             onChange={handleAddressChange}
             placeholder="0x2fabe97..."
           />
         </div>
         <div>
-          <label className="block">Network</label>
+          <label className="block" htmlFor="network-select">
+            Network
+          </label>
           <NetworkSelect
+            id="network-select"
             value={chainId}
             handleChainIdChange={handleChainIdChange}
           />
