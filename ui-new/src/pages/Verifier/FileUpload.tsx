@@ -1,5 +1,6 @@
 import React from "react";
 import { useDropzone } from "react-dropzone";
+import Input from "../../components/Input";
 import { DropzoneFile } from "../../types";
 
 type FileUploadProps = {
@@ -59,11 +60,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
       <div className="mt-4">
         <p className="text-center">or provide a Github repository</p>
         <div className="flex justify-center items-center mt-2">
-          <input
-            className="mb-4 w-full rounded-md border-2 border-gray-400 p-1"
-            type="text"
-            placeholder="https://github.com/Uniswap/v3-core"
-          />
+          <Input placeholder="https://github.com/Uniswap/v3-core" />
         </div>
       </div>
     </div>

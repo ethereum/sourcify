@@ -1,4 +1,6 @@
 import React, { ChangeEventHandler, useState } from "react";
+import Input from "../../../../components/Input";
+import NetworkSelect from "../../../../components/NetworkSelect";
 import { SendableContract, VerificationInput } from "../../../../types";
 
 type MessageProps = {
@@ -13,6 +15,9 @@ const Message: React.FC<MessageProps> = ({ status, chainId, address }) => {
         Contract {status}ly verified at <b>{chainId}</b>:{address}
       </p>
     );
+  }
+  if (status === "chainAddress") {
+    return <p>Please provide contract address and network </p>;
   }
   return null;
 };
@@ -39,29 +44,41 @@ const ChainAddressMissing: React.FC<ChainAddressMissingProps> = ({
     });
   };
 
-  const handleChainIdChange: ChangeEventHandler<HTMLInputElement> = (e) => {
-    setChainId(e.target.value);
+  const handleChainIdChange = (newChainId: number) => {
+    const newChainIdStr = newChainId.toString();
+    setChainId(newChainIdStr);
+    console.log(`New id is: ${newChainId}`);
     verifyCheckedContract({
       verificationId: checkedContract.verificationId || "",
       address: address || "",
-      chainId: e.target.value,
+      chainId: newChainIdStr,
     });
   };
+
   return (
-    <div>
-      <Message
-        status={status}
-        chainId={checkedContract.chainId}
-        address={checkedContract.address}
-      />
-      <form>
+    <div className="mt-4">
+      <div className="">
+        <Message
+          status={status}
+          chainId={checkedContract.chainId}
+          address={checkedContract.address}
+        />
+      </div>
+      <form className="mt-4">
         <div>
           <label className="block">Address</label>
-          <input value={address} onChange={handleAddressChange} />
+          <Input
+            value={address}
+            onChange={handleAddressChange}
+            placeholder="0x2fabe97..."
+          />
         </div>
         <div>
           <label className="block">Network</label>
-          <input value={chainId} onChange={handleChainIdChange} />
+          <NetworkSelect
+            value={chainId}
+            handleChainIdChange={handleChainIdChange}
+          />
         </div>
       </form>
     </div>
