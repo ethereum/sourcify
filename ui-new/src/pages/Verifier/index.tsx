@@ -85,7 +85,7 @@ const Verifier: React.FC = () => {
           the on-chain bytecode
         </p>
       </div>
-      <div className="flex flex-row flex-grow">
+      <div className="flex flex-row flex-grow mt-6">
         <FileUpload
           handleFilesAdded={handleFiles}
           addedFiles={addedFiles}
