@@ -1,12 +1,11 @@
 import React from "react";
 import { useDropzone } from "react-dropzone";
 import Input from "../../components/Input";
-import { DropzoneFile } from "../../types";
 
 type FileUploadProps = {
   handleFilesAdded: (files: []) => void;
   restartSession: () => void;
-  addedFiles: DropzoneFile[];
+  addedFiles: string[];
   isLoading: boolean;
 };
 
@@ -24,11 +23,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
   // const dropzoneAcceptedFiles = acceptedFiles as DropzoneFile[]; // Typecast for file.path and file.size
 
   const displayFiles = addedFiles.map((file) => {
-    return (
-      <li key={file.name + file.size}>
-        {file.name} - {file.size} bytes
-      </li>
-    );
+    return <li key={file}>{file}</li>;
   });
   console.log(addedFiles);
   return (

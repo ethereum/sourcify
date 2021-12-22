@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "../../components/Header";
 import {
   ADD_FILES_URL,
   RESTART_SESSION_URL,
+  SESSION_DATA_URL,
   VERIFY_VALIDATED_URL,
 } from "../../constants";
 import {
@@ -14,29 +15,28 @@ import {
 import CheckedContractsView from "./CheckedContractsView";
 import FileUpload from "./FileUpload";
 
-type FetchOptions = {
-  credentials: "include";
-  method: "GET" | "POST";
-  body: HTMLFormElement | string;
-  headers: Headers;
-};
-
 const Verifier: React.FC = () => {
-  const [addedFiles, setAddedFiles] = useState<DropzoneFile[]>([]);
+  const [addedFiles, setAddedFiles] = useState<string[]>([]);
   const [unusedFiles, setUnusedFiles] = useState<string[]>([]);
   const [checkedContracts, setCheckedContracts] = useState<SendableContract[]>(
     []
   );
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchAndUpdate = async (URL: string, fetchOptions: RequestInit) => {
+  useEffect(() => {
+    fetchAndUpdate(SESSION_DATA_URL);
+  }, []);
+
+  const fetchAndUpdate = async (URL: string, fetchOptions?: RequestInit) => {
     setIsLoading(true);
     const res: SessionResponse = await fetch(URL, {
       credentials: "include",
+      method: fetchOptions?.method || "GET", // default GET
       ...fetchOptions,
     }).then((res) => res.json());
     setUnusedFiles([...res.unused]);
     setCheckedContracts([...res.contracts]);
+    setAddedFiles([...res.files]);
     setIsLoading(false);
   };
 
@@ -47,7 +47,6 @@ const Verifier: React.FC = () => {
       method: "POST",
       body: formData,
     });
-    setAddedFiles(addedFiles.concat(files));
   };
 
   const restartSession = async () => {
