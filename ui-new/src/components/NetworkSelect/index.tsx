@@ -34,11 +34,13 @@ function fuzzySearch(options: SelectSearchOption[]) {
 type NetworkSelectProps = {
   value: string | undefined;
   handleChainIdChange: (chainId: number) => void;
+  id?: string;
 };
 
 export default function NetworkSelect({
   value,
   handleChainIdChange,
+  id,
 }: NetworkSelectProps) {
   return (
     <CustomSelectSearch
@@ -49,6 +51,7 @@ export default function NetworkSelect({
         value: chain.id,
       }))}
       search
+      id={id}
       filterOptions={fuzzySearch}
       emptyMessage="Not found"
       placeholder="Choose network"
