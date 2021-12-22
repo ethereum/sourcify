@@ -10,6 +10,7 @@ export type DropzoneFile = File & {
 export type SessionResponse = {
   contracts: SendableContract[];
   unused: string[];
+  files: string[];
 };
 
 export type Status = "perfect" | "partial" | "error";
