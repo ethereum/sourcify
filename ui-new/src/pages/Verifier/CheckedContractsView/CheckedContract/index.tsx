@@ -1,24 +1,14 @@
 import React, { useState } from "react";
+import { HiChevronDown } from "react-icons/hi";
 import { SendableContract, VerificationInput } from "../../../../types";
 import ChainAddressMissing from "./ChainAddressMissing";
 import Invalid from "./Invalid";
+import Label from "./Label";
 import Missing from "./Missing";
 
 type CheckedContractProps = {
   checkedContract: SendableContract;
   verifyCheckedContract: (sendable: VerificationInput) => void;
-};
-
-interface ILABELS {
-  [key: string]: string;
-}
-const LABELS: ILABELS = {
-  perfect: "Perfect Match",
-  partial: "Partial Match",
-  missing: "Files Missing",
-  invalid: "Invalid Files",
-  chainAddress: "Chain & Address Missing",
-  error: "Unknown Error",
 };
 
 const CheckedContract: React.FC<CheckedContractProps> = ({
@@ -43,16 +33,19 @@ const CheckedContract: React.FC<CheckedContractProps> = ({
   else status = "error";
 
   return (
-    <div className="my-4 bg-red-400 p-4 break-all">
+    <div className="my-4 bg-gray-300 rounded-md border-2 border-ceruleanBlue-100 p-4 break-all">
       {/* Contract item header */}
       <button
         onClick={toggleCollapse}
         className="flex flex-row justify-between w-full"
       >
-        <h2 className="font-bold">{checkedContract.name}</h2>
+        <h2 className="font-bold text-lg flex items-center">
+          {checkedContract.name}
+        </h2>
         <div>
-          <span>{LABELS[status]}</span>
-          <b className="mx-2">V</b>
+          {/* <div className="flex flex-row items-center"> */}
+          <Label status={status} />
+          <HiChevronDown size="2em" className="inline" />
         </div>
       </button>
 
