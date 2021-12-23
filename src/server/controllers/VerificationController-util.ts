@@ -90,14 +90,18 @@ function getSendableContract(contractWrapper: ContractWrapper, verificationId: s
 
 export function getSessionJSON(session: MySession) {
     const contractWrappers = session.contractWrappers || {};
-    const contracts: SendableContract[] = [];
+    const contracts: SendableContract[] = [];    
     for (const id in contractWrappers) {
         const sendableContract = getSendableContract(contractWrappers[id], id);
         contracts.push(sendableContract);
     }
 
+    const files: string[] = [];
+    for (const id in session.inputFiles) {
+        files.push(session.inputFiles[id].path)
+    }
     const unused = session.unusedSources || [];
-    return { contracts, unused };
+    return { contracts, unused, files };
 }
 
 export function generateId(obj: any): string {
