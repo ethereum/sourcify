@@ -94,6 +94,9 @@ const Verifier: React.FC = () => {
           handleFilesAdded={handleFiles}
           addedFiles={addedFiles}
           isLoading={isLoading}
+          metadataMissing={
+            unusedFiles.length > 0 && checkedContracts.length === 0
+          }
           restartSession={restartSession}
         />
         {/* {checkedContracts.length > 0 && ( */}

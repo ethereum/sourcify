@@ -1,5 +1,6 @@
 import React from "react";
 import { useDropzone } from "react-dropzone";
+import { AiFillFileAdd } from "react-icons/ai";
 import Input from "../../components/Input";
 
 type FileUploadProps = {
@@ -7,6 +8,7 @@ type FileUploadProps = {
   restartSession: () => void;
   addedFiles: string[];
   isLoading: boolean;
+  metadataMissing: boolean;
 };
 
 const FileUpload: React.FC<FileUploadProps> = ({
@@ -14,6 +16,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
   restartSession,
   addedFiles,
   isLoading,
+  metadataMissing,
 }) => {
   const { acceptedFiles, getRootProps, getInputProps } = useDropzone({
     onDrop: (acceptedFiles: any): void => {
@@ -30,7 +33,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
     <div className="flex flex-col basis-0 flex-grow bg-gray-200 shadow-lg rounded-lg mx-4 px-8 transition-all ease-in-out duration-300">
       <div className="mt-6 flex flex-col justify-center items-center">
         <h2 className="font-bold text-xl block">File Add Zone</h2>
-        <p>Drag and drop the Solidity and metadata files below</p>
+        <p>Add the metadata and the Solidity source files for verification</p>
       </div>
       <div className="flex flex-grow flex-col mt-2">
         <div className="flex justify-end text-ceruleanBlue-100 hover:underline">
@@ -40,10 +43,27 @@ const FileUpload: React.FC<FileUploadProps> = ({
           {...getRootProps()}
           className="flex flex-col flex-grow cursor-pointer"
         >
-          <div className="flex-grow border-dashed border-gray-500 border-2 rounded-lg hover:bg-gray-300 hover:border-ceruleanBlue-100 p-4 relative">
+          <div className="flex flex-col flex-grow border-dashed border-gray-500 border-2 rounded-lg hover:bg-gray-300 hover:border-ceruleanBlue-100 p-4 relative">
             <input {...getInputProps()} type="file" />
-            <h2 className="font-bold text-lg">Added Files</h2>
-            <ul className="flex flex-col">{displayFiles}</ul>
+            {metadataMissing && (
+              <div className="bg-red-400 text-gray-800 text-center py-2 rounded-lg">
+                <p>Metadata files missing!</p>
+              </div>
+            )}
+            {displayFiles.length ? (
+              <div>
+                <h2 className="font-bold text-lg">Added Files</h2>
+                <ul className="flex flex-col">{displayFiles}</ul>
+              </div>
+            ) : (
+              <div className="flex flex-col flex-grow justify-center items-center text-center">
+                <AiFillFileAdd size="2em" className="text-ceruleanBlue-100" />
+                <div className="mt-2">
+                  Drag and drop files
+                  <br /> or click to select
+                </div>
+              </div>
+            )}
             {isLoading && (
               <div className="flex w-full h-full items-center justify-center bg-ceruleanBlue-10 absolute top-0 left-0 opacity-80">
                 <div className="opacity-100">Loading</div>
