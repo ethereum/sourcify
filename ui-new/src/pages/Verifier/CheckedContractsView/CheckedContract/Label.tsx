@@ -1,7 +1,7 @@
 import React from "react";
 
 type LabelProps = {
-  status: string;
+  customStatus: string;
 };
 
 interface ILABELS {
@@ -12,14 +12,13 @@ const LABELS: ILABELS = {
   partial: "Partial Match",
   missing: "Files Missing",
   invalid: "Invalid Files",
-  chainAddress: "Chain & Address Missing",
-  error: "Unknown Error",
+  error: "Chain & Address Missing",
 };
 
-const Label: React.FC<LabelProps> = ({ status }) => {
+const Label: React.FC<LabelProps> = ({ customStatus }) => {
   return (
     <span className="px-3 py-2 mr-2 bg-gray-400 text-gray-800 text-xs rounded-full">
-      {LABELS[status]}
+      {LABELS[customStatus]}
     </span>
   );
 };

@@ -61,6 +61,11 @@ const Verifier: React.FC = () => {
     setIsLoading(false);
   };
 
+  /**
+   * Function to submit a validated contract to verification with chainId and address.
+   *
+   * @param sendable -
+   */
   const verifyCheckedContract = async (sendable: VerificationInput) => {
     console.log("Verifying checkedContract " + sendable.verificationId);
     fetchAndUpdate(VERIFY_VALIDATED_URL, {

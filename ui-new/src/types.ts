@@ -40,3 +40,19 @@ export type VerificationInput = {
   chainId: string;
   address: string;
 }
+export interface Match {
+    address: string | null;
+    status: Status;
+    storageTimestamp?: Date;
+    message?: string;
+    encodedConstructorArgs?: string;
+    libraryMap?: StringMap;
+}
+
+export type CheckAllByAddressResult = {
+  address: string;
+  chainIds: {
+    chainId: string,
+    status: string
+  }[]
+}
