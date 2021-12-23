@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { HiChevronDown } from "react-icons/hi";
 import { SendableContract, VerificationInput } from "../../../../types";
-import ChainAddressMissing from "./ChainAddressMissing";
+import ChainAddressForm from "./ChainAddressForm";
 import Invalid from "./Invalid";
 import Label from "./Label";
 import Missing from "./Missing";
@@ -22,15 +22,14 @@ const CheckedContract: React.FC<CheckedContractProps> = ({
     setCollapsed((c) => !c);
   };
 
-  let status;
-  if (checkedContract.status === "perfect") status = "perfect";
-  else if (checkedContract.status === "partial") status = "partial";
-  else if (checkedContract.files.missing.length > 0) status = "missing";
+  let customStatus;
+  if (checkedContract.status === "perfect") customStatus = "perfect";
+  else if (checkedContract.status === "partial") customStatus = "partial";
+  else if (checkedContract.files.missing.length > 0) customStatus = "missing";
   // Missing files status takes precedence over invalid
   else if (Object.keys(checkedContract.files.invalid).length > 0)
-    status = "invalid";
-  else if (checkedContract.status === "error") status = "chainAddress";
-  else status = "error";
+    customStatus = "invalid";
+  else customStatus = "error";
 
   return (
     <div className="my-4 bg-gray-300 rounded-md border-2 border-ceruleanBlue-100 p-4 break-all">
@@ -44,30 +43,26 @@ const CheckedContract: React.FC<CheckedContractProps> = ({
         </h2>
         <div>
           {/* <div className="flex flex-row items-center"> */}
-          <Label status={status} />
+          <Label customStatus={customStatus} />
           <HiChevronDown size="2em" className="inline" />
         </div>
       </button>
 
       {/* Collapsed section */}
       <div className={`${collapsed ? "hidden" : ""}`}>
-        {["perfect", "partial"].includes(status) && (
-          <div>
-            <p>
-              Contract {status}ly verified at {checkedContract.chainId} -{" "}
-              {checkedContract.address}
-            </p>
-          </div>
-        )}
-        {status === "chainAddress" && (
-          <ChainAddressMissing
+        {["perfect", "partial", "error"].includes(customStatus) && (
+          <ChainAddressForm
             checkedContract={checkedContract}
-            status={status}
+            customStatus={customStatus}
             verifyCheckedContract={verifyCheckedContract}
           />
         )}
-        {status === "missing" && <Missing checkedContract={checkedContract} />}
-        {status === "invalid" && <Invalid checkedContract={checkedContract} />}
+        {customStatus === "missing" && (
+          <Missing checkedContract={checkedContract} />
+        )}
+        {customStatus === "invalid" && (
+          <Invalid checkedContract={checkedContract} />
+        )}
       </div>
     </div>
   );
