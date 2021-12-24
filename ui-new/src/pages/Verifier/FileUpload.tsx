@@ -1,13 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { AiFillFileAdd } from "react-icons/ai";
 import Input from "../../components/Input";
+import LoadingOverlay from "../../components/LoadingOverlay";
 
 type FileUploadProps = {
   handleFilesAdded: (files: []) => void;
   restartSession: () => void;
   addedFiles: string[];
-  isLoading: boolean;
   metadataMissing: boolean;
 };
 
@@ -15,12 +15,14 @@ const FileUpload: React.FC<FileUploadProps> = ({
   handleFilesAdded,
   restartSession,
   addedFiles,
-  isLoading,
   metadataMissing,
 }) => {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { acceptedFiles, getRootProps, getInputProps } = useDropzone({
-    onDrop: (acceptedFiles: any): void => {
-      handleFilesAdded(acceptedFiles);
+    onDrop: async (acceptedFiles: any) => {
+      setIsLoading(true);
+      await handleFilesAdded(acceptedFiles);
+      setIsLoading(false);
     },
   });
   // const dropzoneAcceptedFiles = acceptedFiles as DropzoneFile[]; // Typecast for file.path and file.size
@@ -37,7 +39,15 @@ const FileUpload: React.FC<FileUploadProps> = ({
       </div>
       <div className="flex flex-grow flex-col mt-2">
         <div className="flex justify-end text-ceruleanBlue-100 hover:underline">
-          <button onClick={restartSession}>Clear Files</button>
+          <button
+            onClick={async () => {
+              setIsLoading(true);
+              await restartSession();
+              setIsLoading(false);
+            }}
+          >
+            Clear Files
+          </button>
         </div>
         <div
           {...getRootProps()}
@@ -64,11 +74,8 @@ const FileUpload: React.FC<FileUploadProps> = ({
                 </div>
               </div>
             )}
-            {isLoading && (
-              <div className="flex w-full h-full items-center justify-center bg-ceruleanBlue-10 absolute top-0 left-0 opacity-80">
-                <div className="opacity-100">Loading</div>
-              </div>
-            )}
+            {/* Loading Overlay */}
+            {isLoading && <LoadingOverlay message="Checking contracts" />}
           </div>
         </div>
       </div>

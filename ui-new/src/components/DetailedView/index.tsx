@@ -116,7 +116,7 @@ const DetailedView = ({
                       {Object.keys(files.invalid).map((filePath) => (
                         <li className="">
                           <HiOutlineExclamation
-                            className="inline mr-2 text-orange-500"
+                            className="inline mr-2 text-yellow-600"
                             size="1.25em"
                           />
                           <span className="align-middle">{filePath}</span>

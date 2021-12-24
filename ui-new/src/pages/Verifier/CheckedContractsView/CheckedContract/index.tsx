@@ -1,7 +1,12 @@
 import React, { useState } from "react";
 import { HiChevronDown, HiOutlineExternalLink } from "react-icons/hi";
 import DetailedView from "../../../../components/DetailedView";
-import { SendableContract, VerificationInput } from "../../../../types";
+import LoadingOverlay from "../../../../components/LoadingOverlay";
+import {
+  SendableContract,
+  SessionResponse,
+  VerificationInput,
+} from "../../../../types";
 import ChainAddressForm from "./ChainAddressForm";
 import Invalid from "./Invalid";
 import Label from "./Label";
@@ -9,7 +14,9 @@ import Missing from "./Missing";
 
 type CheckedContractProps = {
   checkedContract: SendableContract;
-  verifyCheckedContract: (sendable: VerificationInput) => void;
+  verifyCheckedContract: (
+    sendable: VerificationInput
+  ) => Promise<SessionResponse | undefined>;
 };
 
 const CheckedContract: React.FC<CheckedContractProps> = ({
@@ -19,6 +26,7 @@ const CheckedContract: React.FC<CheckedContractProps> = ({
   const [collapsed, setCollapsed] = useState<boolean>(true);
   const [isDetailedViewShown, setIsDetailedViewShown] =
     useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const toggleCollapse: React.MouseEventHandler = (e) => {
     e.preventDefault();
@@ -44,7 +52,9 @@ const CheckedContract: React.FC<CheckedContractProps> = ({
   else customStatus = "error";
 
   return (
-    <div className="my-4 bg-gray-300 rounded-md border-2 border-ceruleanBlue-100 p-4 break-words">
+    <div className="my-4 bg-gray-300 rounded-md border-2 border-ceruleanBlue-100 p-4 break-words relative">
+      {/* Loading Overlay */}
+      {isLoading && <LoadingOverlay message="Verifying Contract" />}
       {/* Contract item header */}
       <button
         onClick={toggleCollapse}
@@ -65,12 +75,13 @@ const CheckedContract: React.FC<CheckedContractProps> = ({
       </button>
 
       {/* Collapsed section */}
-      <div className={`${collapsed ? "hidden" : ""}`}>
+      <div className={`${collapsed ? "hidden" : ""} mt-4`}>
         {["perfect", "partial", "error"].includes(customStatus) && (
           <ChainAddressForm
             checkedContract={checkedContract}
             customStatus={customStatus}
             verifyCheckedContract={verifyCheckedContract}
+            setIsLoading={setIsLoading}
           />
         )}
         {customStatus === "missing" && (

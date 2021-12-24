@@ -22,14 +22,12 @@ const Verifier: React.FC = () => {
   const [checkedContracts, setCheckedContracts] = useState<SendableContract[]>(
     []
   );
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     fetchAndUpdate(SESSION_DATA_URL);
   }, []);
 
   const fetchAndUpdate = async (URL: string, fetchOptions?: RequestInit) => {
-    setIsLoading(true);
     try {
       const rawRes: Response = await fetch(URL, {
         credentials: "include",
@@ -44,10 +42,10 @@ const Verifier: React.FC = () => {
       setUnusedFiles([...res.unused]);
       setCheckedContracts([...res.contracts]);
       setAddedFiles([...res.files]);
+      return res;
     } catch (error) {
       alert(error);
     }
-    setIsLoading(false);
   };
 
   const handleFiles = async (files: DropzoneFile[]) => {
@@ -60,7 +58,6 @@ const Verifier: React.FC = () => {
   };
 
   const restartSession = async () => {
-    setIsLoading(true);
     await fetch(RESTART_SESSION_URL, {
       credentials: "include",
       method: "POST",
@@ -68,7 +65,7 @@ const Verifier: React.FC = () => {
     setUnusedFiles([]);
     setCheckedContracts([]);
     setAddedFiles([]);
-    setIsLoading(false);
+    return;
   };
 
   /**
@@ -78,7 +75,7 @@ const Verifier: React.FC = () => {
    */
   const verifyCheckedContract = async (sendable: VerificationInput) => {
     console.log("Verifying checkedContract " + sendable.verificationId);
-    fetchAndUpdate(VERIFY_VALIDATED_URL, {
+    return fetchAndUpdate(VERIFY_VALIDATED_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -103,7 +100,6 @@ const Verifier: React.FC = () => {
         <FileUpload
           handleFilesAdded={handleFiles}
           addedFiles={addedFiles}
-          isLoading={isLoading}
           metadataMissing={
             unusedFiles.length > 0 && checkedContracts.length === 0
           }

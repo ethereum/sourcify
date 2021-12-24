@@ -1,11 +1,17 @@
 import React from "react";
-import { SendableContract, VerificationInput } from "../../../types";
+import {
+  SendableContract,
+  SessionResponse,
+  VerificationInput,
+} from "../../../types";
 import CheckedContract from "./CheckedContract";
 
 type CheckedContractsViewProps = {
   checkedContracts: SendableContract[];
   isHidden: boolean;
-  verifyCheckedContract: (sendable: VerificationInput) => {};
+  verifyCheckedContract: (
+    sendable: VerificationInput
+  ) => Promise<SessionResponse | undefined>;
 };
 
 const CheckedContractsView: React.FC<CheckedContractsViewProps> = ({
