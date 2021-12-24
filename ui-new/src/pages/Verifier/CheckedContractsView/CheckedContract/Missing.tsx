@@ -11,7 +11,7 @@ const Missing: React.FC<MissingProps> = ({ checkedContract }) => {
   const totalContracts =
     files.found.length + missingCount + Object.keys(files.invalid).length;
   return (
-    <div>
+    <div className="mt-4">
       <p>
         {missingCount} out of {totalContracts} source files missing. Please add
         the files in the add file zone
