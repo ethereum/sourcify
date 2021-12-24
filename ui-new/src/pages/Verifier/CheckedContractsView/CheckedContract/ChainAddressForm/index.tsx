@@ -5,6 +5,7 @@ import { CHAIN_IDS_STR } from "../../../../../constants";
 import {
   CheckAllByAddressResult,
   SendableContract,
+  SessionResponse,
   VerificationInput,
 } from "../../../../../types";
 import { checkAllByAddresses } from "../../../../../utils/api";
@@ -13,12 +14,16 @@ import Message from "./Message";
 type ChainAddressFormProps = {
   customStatus: string;
   checkedContract: SendableContract;
-  verifyCheckedContract: (sendable: VerificationInput) => void;
+  verifyCheckedContract: (
+    sendable: VerificationInput
+  ) => Promise<SessionResponse | undefined>;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 };
 const ChainAddressForm = ({
   customStatus,
   checkedContract,
   verifyCheckedContract,
+  setIsLoading,
 }: ChainAddressFormProps) => {
   const [address, setAddress] = useState<string>();
   const [isInvalidAddress, setIsInvalidAddress] = useState<boolean>(false);
@@ -52,11 +57,12 @@ const ChainAddressForm = ({
   const handleSubmit: FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
     if (!address || !chainId || isInvalidAddress) return;
+    setIsLoading(true);
     verifyCheckedContract({
       verificationId: checkedContract.verificationId || "",
       address: address || "",
       chainId: chainId,
-    });
+    }).finally(() => setIsLoading(false));
   };
   return (
     <div className="mt-4">
@@ -96,7 +102,7 @@ const ChainAddressForm = ({
         </div>
         <button
           type="submit"
-          className="mt-4 py-2 px-4 w-full bg-ceruleanBlue-100 hover:bg-ceruleanBlue-130 focus:ring-ceruleanBlue-70 focus:ring-offset-ceruleanBlue-10 text-white transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-default"
+          className="mt-4 py-2 px-4 w-full bg-ceruleanBlue-100 hover:bg-ceruleanBlue-130 disabled:hover:bg-ceruleanBlue-100 focus:ring-ceruleanBlue-70 focus:ring-offset-ceruleanBlue-10 text-white transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-default "
           disabled={!address || !chainId || isInvalidAddress}
         >
           Verify
