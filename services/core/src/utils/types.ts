@@ -38,7 +38,20 @@ export interface Metadata {
 export declare interface StringMap {
   [key: string]: string;
 }
+export interface InvalidSources {
+    [key: string]: {
+        expectedHash: string;
+        calculatedHash: string;
+        msg?: string; // Keep msg for compatibilty with legacy UI
+    }
+}
 
+export interface MissingSources {
+  [key: string]: {
+    keccak256: string;
+    urls: string[];
+  }
+}
 export interface PathBuffer {
   path?: string;
   buffer: Buffer;
