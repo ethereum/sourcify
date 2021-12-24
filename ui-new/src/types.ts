@@ -26,6 +26,9 @@ export type SessionResponse = {
   unused: string[];
   files: string[];
 };
+export interface IGenericError {
+    error: string
+}
 
 export type Status = "perfect" | "partial" | "error";
 

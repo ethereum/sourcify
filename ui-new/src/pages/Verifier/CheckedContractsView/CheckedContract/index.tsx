@@ -44,7 +44,7 @@ const CheckedContract: React.FC<CheckedContractProps> = ({
   else customStatus = "error";
 
   return (
-    <div className="my-4 bg-gray-300 rounded-md border-2 border-ceruleanBlue-100 p-4 break-all">
+    <div className="my-4 bg-gray-300 rounded-md border-2 border-ceruleanBlue-100 p-4 break-words">
       {/* Contract item header */}
       <button
         onClick={toggleCollapse}

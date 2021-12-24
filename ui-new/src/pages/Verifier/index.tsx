@@ -8,6 +8,7 @@ import {
 } from "../../constants";
 import {
   DropzoneFile,
+  IGenericError,
   SendableContract,
   SessionResponse,
   VerificationInput,
@@ -29,14 +30,23 @@ const Verifier: React.FC = () => {
 
   const fetchAndUpdate = async (URL: string, fetchOptions?: RequestInit) => {
     setIsLoading(true);
-    const res: SessionResponse = await fetch(URL, {
-      credentials: "include",
-      method: fetchOptions?.method || "GET", // default GET
-      ...fetchOptions,
-    }).then((res) => res.json());
-    setUnusedFiles([...res.unused]);
-    setCheckedContracts([...res.contracts]);
-    setAddedFiles([...res.files]);
+    try {
+      const rawRes: Response = await fetch(URL, {
+        credentials: "include",
+        method: fetchOptions?.method || "GET", // default GET
+        ...fetchOptions,
+      });
+      if (!rawRes.ok) {
+        const err: IGenericError = await rawRes.json();
+        throw new Error(err.error);
+      }
+      const res: SessionResponse = await rawRes.json();
+      setUnusedFiles([...res.unused]);
+      setCheckedContracts([...res.contracts]);
+      setAddedFiles([...res.files]);
+    } catch (error) {
+      alert(error);
+    }
     setIsLoading(false);
   };
 
