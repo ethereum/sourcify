@@ -56,7 +56,11 @@ const CheckedContract: React.FC<CheckedContractProps> = ({
         <div>
           {/* <div className="flex flex-row items-center"> */}
           <Label customStatus={customStatus} />
-          <HiChevronDown size="2em" className="inline" />
+          <HiChevronDown
+            size="2em"
+            className={"inline transition-transform duration-300 ease-in-out"}
+            style={collapsed ? {} : { transform: "rotateX(180deg)" }}
+          />
         </div>
       </button>
 
