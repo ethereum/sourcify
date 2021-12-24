@@ -6,21 +6,21 @@ type MissingProps = {
 };
 
 const Missing: React.FC<MissingProps> = ({ checkedContract }) => {
+  const { files } = checkedContract;
+  const missingCount = Object.keys(files.missing).length;
   const totalContracts =
-    checkedContract.files.found.length +
-    checkedContract.files.missing.length +
-    Object.keys(checkedContract.files.invalid).length;
+    files.found.length + missingCount + Object.keys(files.invalid).length;
   return (
     <div>
       <p>
-        {checkedContract.files.missing.length} out of {totalContracts} source
-        files missing. Please add the files in the add file zone
+        {missingCount} out of {totalContracts} source files missing. Please add
+        the files in the add file zone
       </p>
-      <ul className="mt-4">
-        {checkedContract.files.missing.map((fileName, i) => (
-          <li key={i + "-" + fileName}>{fileName}</li>
+      {/* <ul className="mt-4">
+        {Object.keys(files.missing).map((filePath, i) => (
+          <li key={i + "-" + filePath}>{filePath}</li>
         ))}
-      </ul>
+      </ul> */}
     </div>
   );
 };
