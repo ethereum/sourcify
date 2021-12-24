@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { HiChevronDown } from "react-icons/hi";
+import { HiChevronDown, HiOutlineExternalLink } from "react-icons/hi";
+import DetailedView from "../../../../components/DetailedView";
 import { SendableContract, VerificationInput } from "../../../../types";
 import ChainAddressForm from "./ChainAddressForm";
 import Invalid from "./Invalid";
@@ -15,17 +16,28 @@ const CheckedContract: React.FC<CheckedContractProps> = ({
   checkedContract,
   verifyCheckedContract,
 }) => {
-  const [collapsed, setCollapsed] = useState(true);
+  const [collapsed, setCollapsed] = useState<boolean>(true);
+  const [isDetailedViewShown, setIsDetailedViewShown] =
+    useState<boolean>(false);
 
   const toggleCollapse: React.MouseEventHandler = (e) => {
     e.preventDefault();
     setCollapsed((c) => !c);
   };
 
+  const closeModal = () => {
+    setIsDetailedViewShown(false);
+  };
+
+  const openModal = () => {
+    setIsDetailedViewShown(true);
+  };
+
   let customStatus;
   if (checkedContract.status === "perfect") customStatus = "perfect";
   else if (checkedContract.status === "partial") customStatus = "partial";
-  else if (checkedContract.files.missing.length > 0) customStatus = "missing";
+  else if (Object.keys(checkedContract.files.missing).length > 0)
+    customStatus = "missing";
   // Missing files status takes precedence over invalid
   else if (Object.keys(checkedContract.files.invalid).length > 0)
     customStatus = "invalid";
@@ -63,6 +75,20 @@ const CheckedContract: React.FC<CheckedContractProps> = ({
         {customStatus === "invalid" && (
           <Invalid checkedContract={checkedContract} />
         )}
+        <DetailedView
+          isShown={isDetailedViewShown}
+          closeModal={closeModal}
+          checkedContract={checkedContract}
+        />
+        <div className="flex justify-end mt-4">
+          <button
+            onClick={openModal}
+            className="font-bold hover:underline flex items-center"
+          >
+            <HiOutlineExternalLink className="inline mr-0.5" size="1.25em" />
+            Detailed View
+          </button>
+        </div>
       </div>
     </div>
   );

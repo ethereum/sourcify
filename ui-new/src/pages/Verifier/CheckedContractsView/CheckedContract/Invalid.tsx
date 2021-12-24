@@ -6,20 +6,19 @@ type InvalidProps = {
 };
 
 const Invalid: React.FC<InvalidProps> = ({ checkedContract }) => {
+  const { files } = checkedContract;
+  const invalidCount = Object.keys(files.invalid).length;
   const totalContracts =
-    checkedContract.files.found.length +
-    checkedContract.files.missing.length +
-    Object.keys(checkedContract.files.invalid).length;
+    files.found.length + Object.keys(files.missing).length + invalidCount;
   return (
     <div>
       <p>
-        {checkedContract.files.invalid.length} out of {totalContracts} source
-        files don't have the expected hashes. Please provide the correct files
-        on the add file zone.
+        {invalidCount} out of {totalContracts} source files don't have the
+        expected hashes. Please provide the correct files on the add file zone.
       </p>
       <ul className="mt-4">
-        {checkedContract.files.missing.map((fileName, i) => (
-          <li key={i + "-" + fileName}>{fileName}</li>
+        {Object.keys(files.missing).map((filePath, i) => (
+          <li key={i + "-" + filePath}>{filePath}</li>
         ))}
       </ul>
     </div>

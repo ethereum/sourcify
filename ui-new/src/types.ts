@@ -6,6 +6,20 @@ export type DropzoneFile = File & {
   path: string;
 };
 
+export interface InvalidSources {
+    [key: string]: {
+        expectedHash: string;
+        calculatedHash: string;
+        msg?: string; // Keep msg for compatibilty with legacy UI
+    }
+}
+
+export interface MissingSources {
+  [key: string]: {
+    keccak256: string;
+    urls: string[];
+  }
+}
 // Server session
 export type SessionResponse = {
   contracts: SendableContract[];
@@ -29,8 +43,8 @@ export type ContractMeta = {
 export type SendableContract = ContractMeta & {
   files: {
     found: string[];
-    missing: string[];
-    invalid: StringMap;
+    missing: MissingSources;
+    invalid: InvalidSources;
   };
   verificationId?: string;
 };
