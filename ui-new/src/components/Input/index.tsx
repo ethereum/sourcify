@@ -20,7 +20,7 @@ const Input: React.FC<InputProps> = ({
   return (
     <input
       className={
-        "mb-4 w-full rounded-md border-2 border-gray-400 px-2 py-1.5 " +
+        "mb-4 w-full rounded-md border-2 border-ceruleanBlue-200 bg-gray-50 px-4 py-2 " +
         className
       }
       id={id}

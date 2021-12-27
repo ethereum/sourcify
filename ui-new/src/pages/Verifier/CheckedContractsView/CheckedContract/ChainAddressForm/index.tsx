@@ -102,7 +102,7 @@ const ChainAddressForm = ({
         </div>
         <button
           type="submit"
-          className="mt-4 py-2 px-4 w-full bg-ceruleanBlue-100 hover:bg-ceruleanBlue-130 disabled:hover:bg-ceruleanBlue-100 focus:ring-ceruleanBlue-70 focus:ring-offset-ceruleanBlue-10 text-white transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-default "
+          className="mt-4 py-2 px-4 w-full bg-ceruleanBlue-500 hover:bg-ceruleanBlue-130 disabled:hover:bg-ceruleanBlue-500 focus:ring-ceruleanBlue-300 focus:ring-offset-ceruleanBlue-100 text-white transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-default "
           disabled={!address || !chainId || isInvalidAddress}
         >
           Verify
