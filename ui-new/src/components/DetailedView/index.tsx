@@ -81,8 +81,8 @@ const DetailedView = ({
                       Unable to find or retrieve the required source files below
                     </p>
                     <ul>
-                      {Object.keys(files.missing).map((filePath) => (
-                        <li className="mt-4">
+                      {Object.keys(files.missing).map((filePath, i) => (
+                        <li className="mt-4" key={`${filePath}-${i}`}>
                           <HiX
                             className="inline mr-2 text-red-700"
                             size="1.25em"
@@ -94,9 +94,9 @@ const DetailedView = ({
                             </h4>
                             <p>{files.missing[filePath].keccak256}</p>
                             <h4 className="font-bold">File URLs:</h4>
-                            {files.missing[filePath].urls.map((url) => (
+                            {files.missing[filePath].urls.map((url, i) => (
                               <>
-                                <p>{url}</p>
+                                <p key={`${url}-${i}`}>{url}</p>
                               </>
                             ))}
                           </div>
@@ -113,8 +113,8 @@ const DetailedView = ({
                       Invalid ({invalidCount}/{totalFilesCount})
                     </h3>
                     <ul>
-                      {Object.keys(files.invalid).map((filePath) => (
-                        <li className="">
+                      {Object.keys(files.invalid).map((filePath, i) => (
+                        <li key={`${filePath}-${i}`}>
                           <HiOutlineExclamation
                             className="inline mr-2 text-yellow-600"
                             size="1.25em"
@@ -144,8 +144,8 @@ const DetailedView = ({
                       Found ({files.found.length}/{totalFilesCount})
                     </h3>
                     <ul>
-                      {files.found.map((file) => (
-                        <li className="">
+                      {files.found.map((file, i) => (
+                        <li className="" key={`${file}-${i}`}>
                           <HiCheck
                             className="inline mr-2 text-green-700"
                             size="1.25em"
