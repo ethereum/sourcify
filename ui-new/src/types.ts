@@ -30,6 +30,14 @@ export interface IGenericError {
     error: string
 }
 
+export interface IResponseError {
+    code: number;
+    message: string;
+    log: boolean;
+    errors?: any[];
+}
+
+
 export type Status = "perfect" | "partial" | "error";
 
 export type ContractMeta = {

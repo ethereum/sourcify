@@ -23,8 +23,8 @@ const GithubInput = ({
     console.log(e.target.value);
     e.preventDefault();
     setUrl(e.target.value);
-    setError("");
     let zipUrl;
+    if (!e.target.value) return setError("");
     try {
       // Add trailing slash to e.target.value
       zipUrl = new URL(

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import Header from "../../components/Header";
+import Toast from "../../components/Toast";
 import {
   ADD_FILES_URL,
   RESTART_SESSION_URL,
@@ -9,6 +10,7 @@ import {
 import {
   DropzoneFile,
   IGenericError,
+  IResponseError,
   SendableContract,
   SessionResponse,
   VerificationInput,
@@ -22,6 +24,7 @@ const Verifier: React.FC = () => {
   const [checkedContracts, setCheckedContracts] = useState<SendableContract[]>(
     []
   );
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   useEffect(() => {
     fetchAndUpdate(SESSION_DATA_URL);
@@ -42,9 +45,11 @@ const Verifier: React.FC = () => {
       setUnusedFiles([...res.unused]);
       setCheckedContracts([...res.contracts]);
       setAddedFiles([...res.files]);
+      setErrorMessage("");
       return res;
-    } catch (error) {
-      alert(error);
+    } catch (e) {
+      const error = e as IResponseError;
+      setErrorMessage(error.message);
     }
   };
 
@@ -89,6 +94,11 @@ const Verifier: React.FC = () => {
   return (
     <div className="flex flex-col flex-1">
       <Header />
+      <Toast
+        message={errorMessage}
+        isShown={!!errorMessage}
+        dismiss={() => setErrorMessage("")}
+      />
       <div className="text-center">
         <h1 className="text-3xl md:text-4xl font-bold">Verifier</h1>
         <p className="mt-2">
