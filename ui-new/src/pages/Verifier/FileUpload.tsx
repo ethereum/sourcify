@@ -2,14 +2,19 @@ import React, { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { AiFillFileAdd } from "react-icons/ai";
 import { HiOutlineExclamation } from "react-icons/hi";
-import Input from "../../components/Input";
 import LoadingOverlay from "../../components/LoadingOverlay";
+import { SessionResponse } from "../../types";
+import GithubInput from "./GithubInput";
 
 type FileUploadProps = {
   handleFilesAdded: (files: []) => void;
   restartSession: () => void;
   addedFiles: string[];
   metadataMissing: boolean;
+  fetchAndUpdate: (
+    URL: string,
+    fetchOptions?: RequestInit
+  ) => Promise<SessionResponse | undefined>;
 };
 
 const FileUpload: React.FC<FileUploadProps> = ({
@@ -17,6 +22,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
   restartSession,
   addedFiles,
   metadataMissing,
+  fetchAndUpdate,
 }) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { acceptedFiles, getRootProps, getInputProps } = useDropzone({
@@ -92,8 +98,12 @@ const FileUpload: React.FC<FileUploadProps> = ({
         </div>
         <div className="mt-4">
           <p className="text-center">or provide a Github repository</p>
-          <div className="flex justify-center items-center mt-2">
-            <Input placeholder="https://github.com/Uniswap/v3-core" />
+          <div className=" mt-2">
+            <GithubInput
+              fetchAndUpdate={fetchAndUpdate}
+              setIsLoading={setIsLoading}
+              isLoading={isLoading}
+            />
           </div>
         </div>
       </div>
