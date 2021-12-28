@@ -104,6 +104,7 @@ const Verifier: React.FC = () => {
             unusedFiles.length > 0 && checkedContracts.length === 0
           }
           restartSession={restartSession}
+          fetchAndUpdate={fetchAndUpdate}
         />
         {/* {checkedContracts.length > 0 && ( */}
         {/* <div className={`${checkedContracts.length > 0 ? "w-auto" : "w-0"}`}> */}
