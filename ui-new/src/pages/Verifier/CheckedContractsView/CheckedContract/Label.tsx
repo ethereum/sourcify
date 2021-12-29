@@ -35,7 +35,7 @@ const Label: React.FC<LabelProps> = ({ customStatus }) => {
   return (
     <span
       className={
-        `px-3 py-2 mr-2 bg-opacity-70 text-xs rounded-full ` +
+        `px-3 py-2 mr-2 text-xs rounded-full  ` +
         LABEL_BG[customStatus] +
         " " +
         LABEL_TEXT[customStatus]

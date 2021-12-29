@@ -54,18 +54,18 @@ const CheckedContract: React.FC<CheckedContractProps> = ({
   else customStatus = "error";
 
   return (
-    <div className="mb-4 bg-gray-100 border-2 border-gray-200 rounded-md p-4 break-words relative">
+    <div className="mb-4 bg-ceruleanBlue-100 rounded-md relative overflow-hidden">
       {/* Loading Overlay */}
       {isLoading && <LoadingOverlay message="Verifying Contract" />}
       {/* Contract item header */}
       <button
         onClick={toggleCollapseWrapper}
-        className="flex flex-row justify-between w-full"
+        className="flex flex-row justify-between w-full bg-ceruleanBlue-400 text-white p-4"
       >
-        <h2 className="font-bold text-lg flex items-middle min-w-0 overflow-hidden overflow-ellipsis">
+        <h2 className="font-bold text-lg break-all text-left mr-1">
           {checkedContract.name}
         </h2>
-        <div className="flex flex-nowrap">
+        <div className="flex flex-nowrap items-center">
           {/* <div className="flex flex-row items-center"> */}
           <Label customStatus={customStatus} />
           <HiChevronDown
@@ -77,7 +77,7 @@ const CheckedContract: React.FC<CheckedContractProps> = ({
       </button>
 
       {/* Collapsed section */}
-      <div className={`${collapsed ? "hidden" : ""} mt-4`}>
+      <div className={`${collapsed ? "hidden" : ""} break-words px-4 p-4`}>
         {["perfect", "partial", "error"].includes(customStatus) && (
           <ChainAddressForm
             checkedContract={checkedContract}

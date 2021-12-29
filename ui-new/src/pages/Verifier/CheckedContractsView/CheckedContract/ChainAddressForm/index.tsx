@@ -65,7 +65,7 @@ const ChainAddressForm = ({
     }).finally(() => setIsLoading(false));
   };
   return (
-    <div className="mt-4">
+    <div className="">
       <div className="">
         <Message
           customStatus={customStatus}
