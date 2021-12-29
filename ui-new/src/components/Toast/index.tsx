@@ -6,6 +6,7 @@ type ToastProps = {
   dismiss: () => void;
 };
 
+// Template from https://www.tailwind-elements.com/docs/standard/components/toast/
 const Toast = ({ message, isShown, dismiss }: ToastProps) => {
   if (!isShown) return null;
   return (

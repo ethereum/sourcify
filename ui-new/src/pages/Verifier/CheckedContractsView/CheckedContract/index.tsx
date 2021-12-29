@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { MouseEventHandler, useState } from "react";
 import { HiChevronDown, HiOutlineExternalLink } from "react-icons/hi";
 import DetailedView from "../../../../components/DetailedView";
 import LoadingOverlay from "../../../../components/LoadingOverlay";
@@ -17,28 +17,30 @@ type CheckedContractProps = {
   verifyCheckedContract: (
     sendable: VerificationInput
   ) => Promise<SessionResponse | undefined>;
+  collapsed: boolean;
+  toggleCollapse: () => void;
 };
 
 const CheckedContract: React.FC<CheckedContractProps> = ({
   checkedContract,
   verifyCheckedContract,
+  collapsed,
+  toggleCollapse,
 }) => {
-  const [collapsed, setCollapsed] = useState<boolean>(true);
   const [isDetailedViewShown, setIsDetailedViewShown] =
     useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const toggleCollapse: React.MouseEventHandler = (e) => {
-    e.preventDefault();
-    setCollapsed((c) => !c);
-  };
-
   const closeModal = () => {
     setIsDetailedViewShown(false);
   };
-
   const openModal = () => {
     setIsDetailedViewShown(true);
+  };
+
+  const toggleCollapseWrapper: MouseEventHandler<HTMLButtonElement> = (e) => {
+    e.preventDefault();
+    toggleCollapse();
   };
 
   let customStatus;
@@ -52,12 +54,12 @@ const CheckedContract: React.FC<CheckedContractProps> = ({
   else customStatus = "error";
 
   return (
-    <div className="my-4 bg-gray-100 border-2 border-gray-200 rounded-md p-4 break-words relative">
+    <div className="mb-4 bg-gray-100 border-2 border-gray-200 rounded-md p-4 break-words relative">
       {/* Loading Overlay */}
       {isLoading && <LoadingOverlay message="Verifying Contract" />}
       {/* Contract item header */}
       <button
-        onClick={toggleCollapse}
+        onClick={toggleCollapseWrapper}
         className="flex flex-row justify-between w-full"
       >
         <h2 className="font-bold text-lg flex items-middle min-w-0 overflow-hidden overflow-ellipsis">
