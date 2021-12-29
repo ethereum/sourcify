@@ -7,7 +7,7 @@ import Verifier from "./pages/Verifier";
 
 function App() {
   return (
-    <div className="px-8 md:px-24 flex min-h-screen pb-8 text-gray-800 bg-white">
+    <div className="px-8 md:px-12 lg:px-24 flex min-h-screen pb-8 text-gray-800 bg-white">
       <BrowserRouter>
         <Routes>
           <Route path="/verifier" element={<Verifier />} />
