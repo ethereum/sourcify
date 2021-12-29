@@ -39,7 +39,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
   });
   console.log(addedFiles);
   return (
-    <div className="pt-1 bg-ceruleanBlue-500 flex flex-grow basis-0 rounded-xl mx-2">
+    <div className="pt-1 bg-ceruleanBlue-500 flex flex-grow basis-0 rounded-xl mx-2 mb-4 md:mb-0">
       <div className="flex flex-col basis-0 flex-grow rounded-lg px-8 transition-all ease-in-out duration-300 bg-white overflow-hidden shadow-md">
         <div className="mt-8 flex flex-col justify-center items-center text-center">
           <h2 className="font-bold text-xl block">File Add Zone</h2>
