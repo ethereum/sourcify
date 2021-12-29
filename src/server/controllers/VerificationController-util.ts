@@ -1,9 +1,12 @@
 import { Request } from 'express';
 import { Session } from 'express-session';
-import { PathContent, CheckedContract, isEmpty, StringMap } from '@ethereum-sourcify/core';
+import { PathContent, CheckedContract, isEmpty, StringMap, PathBuffer } from '@ethereum-sourcify/core';
 import Web3 from 'web3';
 import { MissingSources } from '@ethereum-sourcify/core';
 import { InvalidSources } from '@ethereum-sourcify/core';
+import QueryString from 'qs';
+import { BadRequestError } from '../../common/errors';
+import fetch from 'node-fetch';
 
 export interface PathContentMap {
     [id: string]: PathContent;
@@ -104,6 +107,26 @@ export function getSessionJSON(session: MySession) {
     }
     const unused = session.unusedSources || [];
     return { contracts, unused, files };
+}
+
+export async function  addRemoteFile(query: QueryString.ParsedQs): Promise<PathBuffer[]> {
+    if (typeof query.url !== 'string') {
+        throw new BadRequestError("Query url must be a string")
+    }
+    let res;
+    try { 
+        res = await fetch(query.url);
+    } catch (err) {
+        throw new BadRequestError("Couldn't fetch from " + query.url)
+    }
+    if(!res.ok)
+        throw new BadRequestError("Couldn't fetch from " + query.url)
+    const fileName =  res.headers.get('Content-Disposition').split('filename=')[1];
+    const buffer = await res.buffer();
+    return [{
+        path: fileName || 'file',
+        buffer
+    }]
 }
 
 export function generateId(obj: any): string {
