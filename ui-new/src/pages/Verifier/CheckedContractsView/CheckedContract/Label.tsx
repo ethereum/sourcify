@@ -20,15 +20,15 @@ const LABEL_BG: ILABELS = {
   partial: "bg-yellow-200",
   missing: "bg-red-200",
   invalid: "bg-red-200",
-  error: "bg-ceruleanBlue-200",
+  error: "bg-yellow-200",
 };
 
 const LABEL_TEXT: ILABELS = {
-  perfect: "text-green-600",
-  partial: "text-yellow-600",
-  missing: "text-red-600",
-  invalid: "text-red-600",
-  error: "text-blue-600",
+  perfect: "text-green-800",
+  partial: "text-yellow-800",
+  missing: "text-red-800",
+  invalid: "text-red-800",
+  error: "text-yellow-800",
 };
 
 const Label: React.FC<LabelProps> = ({ customStatus }) => {
