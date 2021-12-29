@@ -1,3 +1,4 @@
+import { HiExclamation } from "react-icons/hi";
 import { ID_TO_CHAIN } from "../../../../../constants";
 import {
   CheckAllByAddressResult,
@@ -55,7 +56,14 @@ const Message = ({
   }
   if (customStatus === "error") {
     if (checkedContract.statusMessage) {
-      return <p>{checkedContract.statusMessage}</p>;
+      return (
+        <div className="bg-yellow-100 px-4 py-2 rounded-md outline-2 outline-yellow-400 outline">
+          <p className="break-all">
+            <HiExclamation className="text-yellow-500 inline mr-1 align-middle" />
+            {checkedContract.statusMessage}
+          </p>
+        </div>
+      );
     }
     return <p>Please provide contract address and network </p>;
   }
