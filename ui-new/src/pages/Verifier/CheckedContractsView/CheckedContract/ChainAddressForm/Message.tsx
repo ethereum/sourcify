@@ -1,4 +1,4 @@
-import { HiExclamation } from "react-icons/hi";
+import { HiCheck, HiExclamation } from "react-icons/hi";
 import { ID_TO_CHAIN } from "../../../../../constants";
 import {
   CheckAllByAddressResult,
@@ -48,10 +48,16 @@ const Message = ({
   // Show success after successfull verification
   if (customStatus === "perfect" || customStatus === "partial") {
     return (
-      <p>
-        Verification successful! {customStatus}ly verified at{" "}
-        <b>{checkedContract.chainId}</b>:{checkedContract.address}
-      </p>
+      <div className="bg-green-100 px-4 py-2 rounded-md outline-2 outline-green-400 outline">
+        <p className="break-all">
+          <HiCheck className="text-green-500 inline mr-1 align-middle" />
+          Verification successful! {customStatus}ly verified at{" "}
+          <b>
+            {ID_TO_CHAIN[parseInt(checkedContract.chainId as string)].label}
+          </b>
+          :{checkedContract.address}
+        </p>
+      </div>
     );
   }
   if (customStatus === "error") {

@@ -92,7 +92,7 @@ const Verifier: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col flex-1">
+    <div className="flex flex-col flex-1 pb-8 px-8 md:px-12 lg:px-24">
       <Header />
       <Toast
         message={errorMessage}
