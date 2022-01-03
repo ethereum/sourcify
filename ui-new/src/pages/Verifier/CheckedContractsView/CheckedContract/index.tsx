@@ -54,13 +54,13 @@ const CheckedContract: React.FC<CheckedContractProps> = ({
   else customStatus = "error";
 
   return (
-    <div className="mb-4 bg-ceruleanBlue-100 rounded-md relative overflow-hidden">
+    <div className="mb-4 bg-ceruleanBlue-100 rounded-md relative">
       {/* Loading Overlay */}
       {isLoading && <LoadingOverlay message="Verifying Contract" />}
       {/* Contract item header */}
       <button
         onClick={toggleCollapseWrapper}
-        className="flex flex-row justify-between w-full bg-ceruleanBlue-400 text-white p-4"
+        className="flex flex-row justify-between w-full bg-ceruleanBlue-400 rounded-md text-white p-4"
       >
         <h2 className="font-bold text-lg break-all text-left mr-1">
           {checkedContract.name}

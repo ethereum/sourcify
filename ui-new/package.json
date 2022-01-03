@@ -19,6 +19,7 @@
     "react-router-dom": "^6.1.1",
     "react-scripts": "5.0.0",
     "react-select-search": "^3.0.9",
+    "react-tooltip": "^4.2.21",
     "typescript": "^4.5.4",
     "web-vitals": "^2.1.2"
   },
