@@ -70,6 +70,7 @@ const Chart = () => {
           data={formattedData}
         >
           <CartesianGrid strokeDasharray="3 3" />
+          <Tooltip cursor={{ fill: "rgba(232, 239, 255, 0.4)" }} />
           <XAxis dataKey="name" />
           <YAxis
             yAxisId="left"
