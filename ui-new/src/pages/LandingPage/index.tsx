@@ -32,6 +32,17 @@ const AppIconName = ({ img, name }: AppIconNameProps) => (
   </div>
 );
 
+type FooterItemProps = {
+  href?: string;
+  children: string;
+};
+const FooterItem = ({ href, children }: FooterItemProps) => (
+  <a href={href} target="_blank">
+    <li className="text-ceruleanBlue-300 hover:text-ceruleanBlue-100">
+      {children}
+    </li>
+  </a>
+);
 const LandingPage = () => {
   return (
     <div>
@@ -249,6 +260,45 @@ const LandingPage = () => {
       <section className="flex flex-col items-center px-8 md:px-12 lg:px-24 bg-white py-16">
         <Chart />
       </section>
+
+      <footer className="px-48 py-16 bg-ceruleanBlue-500 text-white ">
+        <div className="font-mono grid grid-cols-3 gap-8">
+          <div>
+            <h3 className="uppercase font-bold text-ceruleanBlue-100">
+              Internal Links
+            </h3>
+            <ul>
+              <FooterItem href="/verifier">Contract Verifier</FooterItem>
+              <FooterItem href="/fetcher">Contract Fetcher</FooterItem>
+              <FooterItem href="">Status Page</FooterItem>
+              <FooterItem href="">About</FooterItem>
+            </ul>
+          </div>
+          <div>
+            <h3 className="uppercase font-bold text-ceruleanBlue-100">
+              External Links
+            </h3>
+            <ul>
+              <FooterItem href="">Documentation</FooterItem>
+              <FooterItem href="">IPFS Gateway</FooterItem>
+              <FooterItem href="">Media Kit</FooterItem>
+            </ul>
+          </div>
+          <div>
+            <h3 className="uppercase font-bold text-ceruleanBlue-100">
+              Socials
+            </h3>
+            <ul>
+              <FooterItem href="">Twitter / Fosstodon</FooterItem>
+              <FooterItem href="">Gitter / Matrix </FooterItem>
+              <FooterItem href="">Github</FooterItem>
+            </ul>
+          </div>
+        </div>
+        <div className="text-center text-sm mt-8 text-ceruleanBlue-300">
+          Sourcify Team • {new Date().getFullYear()} • sourcify.eth{" "}
+        </div>
+      </footer>
     </div>
   );
 };
