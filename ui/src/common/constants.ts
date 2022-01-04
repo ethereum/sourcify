@@ -28,6 +28,8 @@ export const CHAIN_OPTIONS = [
     {value: "boba network rinkeby", label: "Boba Network Rinkeby Testnet", id: 28 },
     {value: "velas", label: "Velas EVM Mainnet", id: 106},
     {value: "meter mainnet", label: "Meter Mainnet", id: 82},
+    {value: "aurora mainnet", label: "Aurora Mainnet", id: 1313161554 },
+    {value: "aurora testnet", label: "Aurora Testnet", id: 1313161555 },
 ];
 
 export const ID_TO_CHAIN = {};
