@@ -42,8 +42,8 @@ for (const chainOption of CHAIN_OPTIONS) {
 
 export const CHAIN_IDS_STR = CHAIN_OPTIONS.map(chainOption => chainOption.id).join(",");
 
-export const REPOSITORY_URL = process.env.NODE_ENV === "development" ? process.env.REACT_APP_LOCAL_REPOSITORY_URL : process.env.REACT_APP_STAGING_REPOSITORY_URL;
-export const SERVER_URL = process.env.NODE_ENV === "development" ? process.env.REACT_APP_LOCAL_SERVER_URL : process.env.REACT_APP_STAGING_SERVER_URL;
+export const REPOSITORY_URL = process.env.REACT_APP_REPOSITORY_URL;
+export const SERVER_URL = process.env.REACT_APP_SERVER_URL;
 
 export const REPOSITORY_URL_FULL_MATCH = `${REPOSITORY_URL}/contracts/full_match`;
 export const REPOSITORY_URL_PARTIAL_MATCH = `${REPOSITORY_URL}/contracts/partial_match`;
