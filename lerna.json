@@ -1,21 +1,14 @@
 {
   "command": {
     "publish": {
-      "ignoreChanges": [
-        "*.md"
-      ],
+      "ignoreChanges": ["*.md"],
       "message": "chore(release): publish",
       "registry": "https://npm.pkg.github.com"
     },
     "bootstrap": {
-      "npmClientArgs": [
-        "--no-package-lock"
-      ]
+      "npmClientArgs": ["--no-package-lock"]
     }
   },
-  "packages": [
-    ".",
-    "services/*"
-  ],
+  "packages": [".", "ui", "ui-new", "services/*"],
   "version": "0.1.5"
 }
