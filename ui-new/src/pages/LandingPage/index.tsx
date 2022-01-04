@@ -19,6 +19,7 @@ import otter from "../../assets/integrations/otter.jpg";
 import remix from "../../assets/integrations/remix.png";
 import walleth from "../../assets/integrations/walleth.png";
 import Header from "../../components/Header";
+import Chart from "./Chart";
 
 type AppIconNameProps = {
   img: string;
@@ -242,6 +243,11 @@ const LandingPage = () => {
             </button>
           </div>
         </div>
+      </section>
+
+      {/* Verified contract stats */}
+      <section className="flex flex-col items-center px-8 md:px-12 lg:px-24 bg-white py-16">
+        <Chart />
       </section>
     </div>
   );
