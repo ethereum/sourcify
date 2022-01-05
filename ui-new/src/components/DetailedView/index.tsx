@@ -13,8 +13,8 @@ const DetailedView = ({
   closeModal,
   checkedContract,
 }: DetailedViewProps) => {
-  const { files, address, storageTimestamp, name, compiledPath } =
-    checkedContract;
+  // const { files, address, storageTimestamp, name, compiledPath } =
+  const { files, name, compiledPath } = checkedContract;
   console.log(files);
   const foundCount = files.found.length;
   const missingCount = Object.keys(files.missing).length;
