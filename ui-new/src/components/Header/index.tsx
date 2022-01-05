@@ -18,7 +18,7 @@ const Header = () => {
             className="max-h-8 md:max-h-10"
           />
           <span className="ml-3 text-gray-700 font-mono text-xl md:text-2xl">
-            sourcify
+            sourcify.eth
           </span>
         </a>
       </div>
