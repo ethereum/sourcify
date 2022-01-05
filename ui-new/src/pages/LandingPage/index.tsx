@@ -262,7 +262,7 @@ const LandingPage = () => {
       </section>
 
       <footer className="px-48 py-16 bg-ceruleanBlue-500 text-white ">
-        <div className="font-mono grid grid-cols-3 gap-8">
+        <nav className="font-mono grid grid-cols-3 gap-8">
           <div>
             <h3 className="uppercase font-bold text-ceruleanBlue-100">
               Internal Links
@@ -294,7 +294,7 @@ const LandingPage = () => {
               <FooterItem href="">Github</FooterItem>
             </ul>
           </div>
-        </div>
+        </nav>
         <div className="text-center text-sm mt-8 text-ceruleanBlue-300">
           Sourcify Team • {new Date().getFullYear()} • sourcify.eth{" "}
         </div>
