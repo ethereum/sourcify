@@ -1,6 +1,10 @@
 module.exports = {
   content: ["./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
+    fontFamily: {
+      sans: ["IBM Plex Sans", "Roboto", "sans-serif"],
+      mono: ["VT323", "monospace"],
+    },
     extend: {
       colors: {
         ceruleanBlue: {
