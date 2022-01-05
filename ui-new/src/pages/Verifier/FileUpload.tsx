@@ -25,7 +25,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
   fetchAndUpdate,
 }) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { acceptedFiles, getRootProps, getInputProps } = useDropzone({
+  const { getRootProps, getInputProps } = useDropzone({
     onDrop: async (acceptedFiles: any) => {
       setIsLoading(true);
       await handleFilesAdded(acceptedFiles);

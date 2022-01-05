@@ -27,7 +27,11 @@ type AppIconNameProps = {
 };
 const AppIconName = ({ img, name }: AppIconNameProps) => (
   <div className="flex flex-col ">
-    <img src={img} className="w-32 transition-opacity ease-in-out" />
+    <img
+      src={img}
+      className="w-32 transition-opacity ease-in-out"
+      alt={`${name} logo`}
+    />
     <div className="text-center mt-1">{name}</div>
   </div>
 );
@@ -37,7 +41,7 @@ type FooterItemProps = {
   children: string;
 };
 const FooterItem = ({ href, children }: FooterItemProps) => (
-  <a href={href} target="_blank">
+  <a href={href} target="_blank" rel="noreferrer">
     <li className="text-ceruleanBlue-300 hover:text-ceruleanBlue-100">
       {children}
     </li>
@@ -80,13 +84,13 @@ const LandingPage = () => {
               className="absolute mt-32 mr-32 z-10 transition-all duration-300 ease-in-out hover:mb-32 hover:ml-32"
               id="hero-source-code"
             >
-              <img src={code} className="w-96" />
+              <img src={code} className="w-96" alt="source code visual" />
             </div>
             <div
               className="absolute mb-32 ml-32 z-0 transition-all duration-300 ease-in-out  hover:mt-32 hover:mr-32"
               id="hero-bytecode"
             >
-              <img src={bytecode} className="w-96" />
+              <img src={bytecode} className="w-96" alt="bytecode visual" />
             </div>
             {/* </div> */}
           </div>
@@ -158,46 +162,55 @@ const LandingPage = () => {
             src={ethereum}
             data-tip="Ethereum"
             className="w-24 transition-opacity mx-4 my-4 "
+            alt="Ethereum logo"
           />
           <img
             src={arbitrum}
             data-tip="Arbitrum"
             className="w-24 transition-opacity mx-4 my-4"
+            alt="Arbitrum logo"
           />
           <img
             src={avalanche}
             data-tip="Avalanche"
             className="w-24 transition-opacity mx-4 my-4"
+            alt="Avalanche logo"
           />
           <img
             src={bsc}
             data-tip="Binance Smart Chain"
             className="w-24 transition-opacity mx-4 my-4"
+            alt="Binance Smart Chain logo"
           />
           <img
             src={boba}
             data-tip="Boba Network"
             className="rounded-full w-24 transition-opacity mx-4 my-4"
+            alt="Boba network logo"
           />
           <img
             src={celo}
             data-tip="Celo"
             className="w-24 transition-opacity mx-4 my-4"
+            alt="Celo logo"
           />
           <img
             src={polygon}
             data-tip="Polygon"
             className="w-24 transition-opacity mx-4 my-4"
+            alt="Polygon logo"
           />
           <img
             src={optimism}
             data-tip="Optimism"
             className="w-24 transition-opacity mx-4 my-4"
+            alt="Optimism logo"
           />
           <img
             src={xdai}
             data-tip="Gnosis Chain"
             className="w-24 transition-opacity mx-4 my-4"
+            alt="Gnosis chain logo"
           />
         </div>
         <button className="mx-auto">and many more</button>
@@ -238,7 +251,11 @@ const LandingPage = () => {
 
           {/* Right col: examples */}
           <div className="px-12">
-            <img src={blockscoutSS} className="px-12" />
+            <img
+              src={blockscoutSS}
+              className="px-12"
+              alt="Blockscout screenshot"
+            />
           </div>
         </div>
         <div className="mt-12">
