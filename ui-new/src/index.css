@@ -4,6 +4,10 @@
 
 @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=VT323&display=swap");
 
+:root {
+  --color-primary: #2b50aa;
+  --color-secondary: #ff858d;
+}
 body {
   margin: 0;
   -webkit-font-smoothing: antialiased;
@@ -47,4 +51,30 @@ html {
 .logos-container img:hover {
   opacity: 100%;
   cursor: pointer;
+}
+
+/* from https://codepen.io/christiancroser/pen/xqrLBm */
+.link-underline {
+  background-image: linear-gradient(
+    transparent calc(100% - 3px),
+    var(--color-secondary) 3px
+  );
+  background-repeat: no-repeat;
+  background-size: 0% 100%;
+  transition: background-size 0.3s;
+}
+
+.link-underline:hover,
+.link-underline:focus {
+  background-size: 100% 100%;
+}
+
+/* Colored list bullet */
+.colored-bullet::before {
+  content: "\2022"; /* Add content: \2022 is the CSS Code/unicode for a bullet */
+  color: var(--color-primary); /* Change the color */
+  font-weight: bold; /* If you want it to be bold */
+  display: inline-block; /* Needed to add space between the bullet and the text */
+  width: 1em; /* Also needed for space (tweak if needed) */
+  margin-left: -1em; /* Also needed for space (tweak if needed) */
 }

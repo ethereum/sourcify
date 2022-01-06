@@ -23,9 +23,9 @@ const Header = () => {
         </a>
       </div>
       <div className="flex items-center">
-        <nav className="font-mono text-xl text-gray-700">
+        <nav className="font-mono text-lg md:text-2xl text-gray-700">
           <a
-            className="px-2 py-2 md:px-6 hover:text-ceruleanBlue-600 hover:underline decoration-lightCoral-500 decoration-2 "
+            className="link-underline mx-2 my-2 md:mx-6 hover:text-ceruleanBlue-500"
             href={IPFS_IPNS_GATEWAY_URL}
             target="_blank"
             rel="noreferrer"
@@ -33,7 +33,7 @@ const Header = () => {
             IPFS
           </a>
           <a
-            className="px-2 py-2 md:px-6 hover:text-ceruleanBlue-600 hover:underline decoration-lightCoral-500 decoration-2 "
+            className="link-underline mx-2 my-2 md:mx-6 hover:text-ceruleanBlue-500"
             href="/docs"
             target="_blank"
             rel="noreferrer"

@@ -2,8 +2,8 @@ import { HiArrowDown } from "react-icons/hi";
 import ReactTooltip from "react-tooltip";
 import arbitrum from "../../assets/chains/arbitrum.svg";
 import avalanche from "../../assets/chains/avalanche.png";
+import bsc from "../../assets/chains/binance.png";
 import boba from "../../assets/chains/boba.png";
-import bsc from "../../assets/chains/bsc.png";
 import celo from "../../assets/chains/celo.png";
 import ethereum from "../../assets/chains/ethereum.png";
 import optimism from "../../assets/chains/optimism.svg";
@@ -36,6 +36,24 @@ const AppIconName = ({ img, name }: AppIconNameProps) => (
   </div>
 );
 
+type ResourceListItemProps = {
+  children: string;
+  href: string;
+  date?: string;
+};
+const ResourceListItem = ({ children, href, date }: ResourceListItemProps) => (
+  <li>
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="colored-bullet text-gray-600 hover:text-ceruleanBlue-500"
+    >
+      <span className="link-underline">{children}</span>{" "}
+      {date && <span className="text-gray-400 text-sm">{"- " + date}</span>}
+    </a>
+  </li>
+);
 type FooterItemProps = {
   href?: string;
   children: string;
@@ -64,11 +82,11 @@ const LandingPage = () => {
             </h2>
             <div className="flex justify-evenly">
               <a href="/verifier" target="_blank">
-                <button className="mt-4 py-2 px-4 bg-ceruleanBlue-500 hover:bg-ceruleanBlue-130 disabled:hover:bg-ceruleanBlue-500 focus:ring-ceruleanBlue-300 focus:ring-offset-ceruleanBlue-100 text-white transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-default">
+                <button className="mt-4 py-2 px-4 bg-ceruleanBlue-500 hover:bg-ceruleanBlue-130 disabled:hover:bg-ceruleanBlue-500 focus:ring-ceruleanBlue-300 focus:ring-offset-ceruleanBlue-100 text-white transition ease-in duration-200 text-center font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-default uppercase">
                   Verify Contract
                 </button>
               </a>
-              <button className="mt-4 py-2 px-4 bg-ceruleanBlue-500 hover:bg-ceruleanBlue-130 disabled:hover:bg-ceruleanBlue-500 focus:ring-ceruleanBlue-300 focus:ring-offset-ceruleanBlue-100 text-white transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-default">
+              <button className="mt-4 py-2 px-4 bg-ceruleanBlue-500 hover:bg-ceruleanBlue-130 disabled:hover:bg-ceruleanBlue-500 focus:ring-ceruleanBlue-300 focus:ring-offset-ceruleanBlue-100 text-white transition ease-in duration-200 text-center font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-default uppercase">
                 Check Contract
               </button>
             </div>
@@ -157,63 +175,73 @@ const LandingPage = () => {
           </p>
         </div>
         <ReactTooltip effect="solid" />
-        <div className="flex flex-row mt-8 w-full justify-evenly py-16 logos-container flex-wrap">
+        <div className="flex flex-row mt-8 w-full justify-center py-16 logos-container flex-wrap">
           <img
             src={ethereum}
             data-tip="Ethereum"
-            className="w-24 transition-opacity mx-4 my-4 "
+            className="h-12 md:h-24 transition-opacity mx-4 my-4 "
             alt="Ethereum logo"
           />
           <img
             src={arbitrum}
             data-tip="Arbitrum"
-            className="w-24 transition-opacity mx-4 my-4"
+            className="h-12 md:h-24 transition-opacity mx-4 my-4"
             alt="Arbitrum logo"
           />
           <img
             src={avalanche}
             data-tip="Avalanche"
-            className="w-24 transition-opacity mx-4 my-4"
+            className="h-12 md:h-24 transition-opacity mx-4 my-4"
             alt="Avalanche logo"
           />
           <img
             src={bsc}
             data-tip="Binance Smart Chain"
-            className="w-24 transition-opacity mx-4 my-4"
+            className="h-12 md:h-24 transition-opacity mx-4 my-4 rounded-full"
             alt="Binance Smart Chain logo"
           />
           <img
             src={boba}
             data-tip="Boba Network"
-            className="rounded-full w-24 transition-opacity mx-4 my-4"
+            className="rounded-full h-12 md:h-24 transition-opacity mx-4 my-4"
             alt="Boba network logo"
           />
           <img
             src={celo}
             data-tip="Celo"
-            className="w-24 transition-opacity mx-4 my-4"
+            className="h-12 md:h-24 transition-opacity mx-4 my-4"
             alt="Celo logo"
+          />
+          <img
+            src={xdai}
+            data-tip="Gnosis Chain (xDai)"
+            className="h-12 md:h-24 transition-opacity mx-4 my-4 rounded-full"
+            alt="Gnosis chain (xDai) logo"
           />
           <img
             src={polygon}
             data-tip="Polygon"
-            className="w-24 transition-opacity mx-4 my-4"
+            className="h-12 md:h-24 transition-opacity mx-4 my-4"
             alt="Polygon logo"
           />
           <img
             src={optimism}
             data-tip="Optimism"
-            className="w-24 transition-opacity mx-4 my-4"
+            className="h-12 md:h-24 transition-opacity mx-4 my-4"
             alt="Optimism logo"
           />
-          <img
-            src={xdai}
-            data-tip="Gnosis Chain"
-            className="w-24 transition-opacity mx-4 my-4"
-            alt="Gnosis chain logo"
-          />
         </div>
-        <button className="mx-auto">and many more</button>
+        <div className="flex justify-center">
+          <a
+            href="/docs/networks"
+            target="_blank"
+            rel="noreferrer"
+            // className="underline decoration-lightCoral-500 decoration-2 font-semibold text-ceruleanBlue-500"
+            className="link-underline font-semibold text-ceruleanBlue-500"
+          >
+            See all networks
+          </a>
+        </div>
       </section>
 
       {/* Integrations & Tools */}
@@ -263,10 +291,10 @@ const LandingPage = () => {
             Do you want to integrate Sourcify into your project?
           </h3>
           <div className="flex justify-center">
-            <button className="mt-4 py-2 px-4 bg-ceruleanBlue-500 hover:bg-ceruleanBlue-130 disabled:hover:bg-ceruleanBlue-500 focus:ring-ceruleanBlue-300 focus:ring-offset-ceruleanBlue-100 text-white transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-default">
+            <button className="mt-4 py-2 px-4 bg-ceruleanBlue-500 hover:bg-ceruleanBlue-130 disabled:hover:bg-ceruleanBlue-500 focus:ring-ceruleanBlue-300 focus:ring-offset-ceruleanBlue-100 text-white transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-default uppercase">
               Check Docs
             </button>
-            <button className="ml-4 mt-4 py-2 px-4 bg-ceruleanBlue-100 hover:bg-ceruleanBlue-130 disabled:hover:bg-ceruleanBlue-500 focus:ring-ceruleanBlue-300 focus:ring-offset-ceruleanBlue-100 text-ceruleanBlue-500 transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-default">
+            <button className="ml-4 mt-4 py-2 px-4 bg-ceruleanBlue-100 hover:bg-ceruleanBlue-130 disabled:hover:bg-ceruleanBlue-500 focus:ring-ceruleanBlue-300 focus:ring-offset-ceruleanBlue-100 text-ceruleanBlue-500 transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-default uppercase">
               Get in touch
             </button>
           </div>
@@ -278,7 +306,90 @@ const LandingPage = () => {
         <Chart />
       </section>
 
-      <footer className="px-48 py-16 bg-ceruleanBlue-500 text-white ">
+      {/* Talks & Articles */}
+      <section className="px-8 md:px-12 lg:px-24 bg-white py-16">
+        <h1 className="text-3xl text-ceruleanBlue-500 font-bold">Resources</h1>
+        <div className="flex flex-col items-center mt-8">
+          <iframe
+            className="w-[24rem] h-[14rem] sm:w-[32rem] sm:h-[18rem] md:w-[48rem] md:h-[27rem]"
+            src="https://www.youtube.com/embed/z5D613Qt7Kc"
+            title="Next Level Source Code Verification w: Sourcify"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          ></iframe>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-8">
+            <ul>
+              <h3 className="text-ceruleanBlue-500 uppercase text-lg font-semibold">
+                📖 Read
+              </h3>
+              <ResourceListItem
+                href="https://blog.soliditylang.org/2020/06/25/sourcify-faq/"
+                date="25 Jun 2020"
+              >
+                All you need to know about Sourcify
+              </ResourceListItem>
+              <ResourceListItem
+                href="https://blog.soliditylang.org/2020/06/02/sourcify-towards-safer-contract-interaction-for-humans/"
+                date="02 June 2020"
+              >
+                Sourcify: Towards Safer Contract Interactions for Humans
+              </ResourceListItem>
+              <ResourceListItem
+                href="https://news.shardlabs.io/how-smart-contracts-can-be-automatically-verified-28ee1c5cf941"
+                date="29 Jan 2021"
+              >
+                How Smart Contracts Can Be Automatically Verified
+              </ResourceListItem>
+              <ResourceListItem
+                href="https://medium.com/remix-ide/verify-contracts-on-remix-with-sourcify-2912004d9c84"
+                date="26 Jun 2020"
+              >
+                Verify Contracts on Remix with Sourcify
+              </ResourceListItem>
+              <ResourceListItem
+                href="https://soliditydeveloper.com/decentralized-etherscan/"
+                date="21 Nov 2020"
+              >
+                The future of a Decentralized Etherscan
+              </ResourceListItem>
+            </ul>
+            <ul>
+              <h3 className="text-ceruleanBlue-500 uppercase text-lg font-semibold">
+                📽 Watch
+              </h3>
+              <ResourceListItem
+                href="https://vimeo.com/639594632"
+                date="21 Oct 2021"
+              >
+                Goodbye YOLO-Signing
+              </ResourceListItem>
+              <ResourceListItem
+                href="https://www.youtube.com/watch?v=Zc_fJElIooQ"
+                date="22 Jul 2021"
+              >
+                Franziska Heintel : Sourcify: Towards Safer Contract
+                Interactions for Humans
+              </ResourceListItem>
+              <ResourceListItem
+                href="https://www.youtube.com/watch?v=uYvbBP3GEFk&list=PLaM7G4Llrb7xlGxwlYGTy1T-GHpytE3RC&index=23"
+                date="13 May 2020"
+              >
+                Verify all the sources by Ligi
+              </ResourceListItem>
+              <ResourceListItem
+                href="https://www.youtube.com/watch?v=_73OrDbpxoY&list=PLrtFm7U0BIfUH7g1-blb-eYFgzOYWhvqm&index=13"
+                date="04 Mar 2020"
+              >
+                Christian Reitwiessner: Improving Wallet UX and Security through
+                a Decentralized Metadata and Source Code Repository
+              </ResourceListItem>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <footer className="px-48 py-16 bg-ceruleanBlue-500 text-white text-xl">
         <nav className="font-mono grid grid-cols-3 gap-8">
           <div>
             <h3 className="uppercase font-bold text-ceruleanBlue-100">
