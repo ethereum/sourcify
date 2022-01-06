@@ -44,11 +44,11 @@ html {
   margin-top: 8rem;
 }
 
-.logos-container:hover img {
+.logos-container:hover * {
   opacity: 50%;
 }
 
-.logos-container img:hover {
+.logos-container *:hover {
   opacity: 100%;
   cursor: pointer;
 }
@@ -77,4 +77,8 @@ html {
   display: inline-block; /* Needed to add space between the bullet and the text */
   width: 1em; /* Also needed for space (tweak if needed) */
   margin-left: -1em; /* Also needed for space (tweak if needed) */
+}
+
+.hover-to-fill:hover > svg {
+  fill: var(--color-primary);
 }

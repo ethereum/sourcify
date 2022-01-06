@@ -18,6 +18,7 @@ import keystone from "../../assets/integrations/keystone.png";
 import otter from "../../assets/integrations/otter.jpg";
 import remix from "../../assets/integrations/remix.png";
 import walleth from "../../assets/integrations/walleth.png";
+import Button from "../../components/Button";
 import Header from "../../components/Header";
 import Chart from "./Chart";
 
@@ -81,14 +82,10 @@ const LandingPage = () => {
               and automatic verification service*.{" "}
             </h2>
             <div className="flex justify-evenly">
-              <a href="/verifier" target="_blank">
-                <button className="mt-4 py-2 px-4 bg-ceruleanBlue-500 hover:bg-ceruleanBlue-130 disabled:hover:bg-ceruleanBlue-500 focus:ring-ceruleanBlue-300 focus:ring-offset-ceruleanBlue-100 text-white transition ease-in duration-200 text-center font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-default uppercase">
-                  Verify Contract
-                </button>
-              </a>
-              <button className="mt-4 py-2 px-4 bg-ceruleanBlue-500 hover:bg-ceruleanBlue-130 disabled:hover:bg-ceruleanBlue-500 focus:ring-ceruleanBlue-300 focus:ring-offset-ceruleanBlue-100 text-white transition ease-in duration-200 text-center font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-default uppercase">
+              <Button href="/verifier">Verify Contract</Button>
+              <Button href="/fetcher" type="secondary">
                 Check Contract
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -230,6 +227,9 @@ const LandingPage = () => {
             className="h-12 md:h-24 transition-opacity mx-4 my-4"
             alt="Optimism logo"
           />
+          <div className="p-1 h-14 w-14 text-xs md:text-base md:h-24 md:w-24 transition-opacity rounded-full mx-4 my-4 text-ceruleanBlue-400 flex justify-center items-center text-center">
+            And many more!
+          </div>
         </div>
         <div className="flex justify-center">
           <a
@@ -291,12 +291,14 @@ const LandingPage = () => {
             Do you want to integrate Sourcify into your project?
           </h3>
           <div className="flex justify-center">
-            <button className="mt-4 py-2 px-4 bg-ceruleanBlue-500 hover:bg-ceruleanBlue-130 disabled:hover:bg-ceruleanBlue-500 focus:ring-ceruleanBlue-300 focus:ring-offset-ceruleanBlue-100 text-white transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-default uppercase">
-              Check Docs
-            </button>
-            <button className="ml-4 mt-4 py-2 px-4 bg-ceruleanBlue-100 hover:bg-ceruleanBlue-130 disabled:hover:bg-ceruleanBlue-500 focus:ring-ceruleanBlue-300 focus:ring-offset-ceruleanBlue-100 text-ceruleanBlue-500 transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-default uppercase">
+            <Button href="/docs">Check Docs</Button>
+            <Button
+              href="https://gitter.im/ethereum/source-verify"
+              type="secondary"
+              className="ml-4"
+            >
               Get in touch
-            </button>
+            </Button>
           </div>
         </div>
       </section>
