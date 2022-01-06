@@ -44,34 +44,34 @@ const Header = () => {
         {/* Icons */}
         <div className="flex items-center md:ml-8">
           <a
-            className="px-2"
+            className="px-2 hover-to-fill"
             href="https://github.com/ethereum/sourcify"
             target="_blank"
             rel="noreferrer"
             data-tip="Github"
           >
-            <Github className="h-4 md:h-6 w-auto fill-gray-700 hover:fill-ceruleanBlue-500" />
+            <Github className="h-4 md:h-6 w-auto fill-gray-700 " />
           </a>
           <a
-            className="px-2"
+            className="px-2 hover-to-fill"
             href="https://twitter.com/sourcifyeth"
             target="_blank"
             rel="noreferrer"
             data-tip="Twitter"
           >
-            <Twitter className="h-4 md:h-6 w-auto fill-gray-700 hover:fill-ceruleanBlue-500" />
+            <Twitter className="h-4 md:h-6 w-auto fill-gray-700 500" />
           </a>
           <a
-            className="px-2"
+            className="px-2 hover-to-fill"
             href="https://gitter.im/ethereum/source-verify"
             target="_blank"
             rel="noreferrer"
-            data-tip="Gitter"
+            data-tip="Gitter chat"
           >
             <Gitter className="h-4 md:h-6 w-auto fill-gray-700 hover:fill-ceruleanBlue-500" />
           </a>
           <a
-            className="pl-2"
+            className="pl-2 hover-to-fill"
             href="https://matrix.to/#/#ethereum_source-verify:gitter.im"
             target="_blank"
             rel="noreferrer"
