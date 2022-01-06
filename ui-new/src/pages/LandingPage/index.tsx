@@ -11,8 +11,8 @@ import polygon from "../../assets/chains/polygon.webp";
 import xdai from "../../assets/chains/xdai.png";
 import code from "../../assets/contract-code.png";
 import bytecode from "../../assets/contract-info.png";
-import blockscoutSS from "../../assets/integrations/blockscout-screenshot.png";
 import blockscout from "../../assets/integrations/blockscout.png";
+import ethSdk from "../../assets/integrations/eth-sdk.png";
 import hardhatDeploy from "../../assets/integrations/hardhat-deploy.jpeg";
 import keystone from "../../assets/integrations/keystone.png";
 import otter from "../../assets/integrations/otter.jpg";
@@ -21,20 +21,27 @@ import walleth from "../../assets/integrations/walleth.png";
 import Button from "../../components/Button";
 import Header from "../../components/Header";
 import Chart from "./Chart";
+import CustomCarousel from "./CustomCarousel";
 
 type AppIconNameProps = {
   img: string;
   name: string;
+  href?: string;
 };
-const AppIconName = ({ img, name }: AppIconNameProps) => (
-  <div className="flex flex-col ">
+const AppIconName = ({ img, name, href }: AppIconNameProps) => (
+  <a
+    href={href}
+    target="_blank"
+    rel="noreferrer"
+    className="flex flex-col mr-12 my-2 hover:text-ceruleanBlue-500"
+  >
     <img
       src={img}
-      className="w-32 transition-opacity ease-in-out"
+      className="h-20 self-center transition-opacity ease-in-out p-1"
       alt={`${name} logo`}
     />
-    <div className="text-center mt-1">{name}</div>
-  </div>
+    <div className="text-center mt-2 ">{name}</div>
+  </a>
 );
 
 type ResourceListItemProps = {
@@ -249,42 +256,66 @@ const LandingPage = () => {
         <h1 className="text-3xl text-ceruleanBlue-500 font-bold">
           Integrations
         </h1>
-        <div className="grid grid-cols-2 gap-12 mt-12">
-          {/* Left col: Apps & Tools */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mt-12">
+          {/* Left col: Apps */}
           <div className="w-full">
             {/* Apps */}
             <h2 className="text-2xl text-ceruleanBlue-500 font-semibold">
               Who is building with Sourcify?
             </h2>
             <div
-              className="flex flex-row justify-evenly mt-8 flex-wrap logos-container"
+              className="flex flex-row mt-8 flex-wrap logos-container"
               id="networks-container"
             >
-              <AppIconName img={walleth} name="Walleth" />
-              <AppIconName img={otter} name="Otterscan" />
-              <AppIconName img={blockscout} name="Blockscout" />
-              <AppIconName img={keystone} name="Keystone" />
-            </div>
-            {/* Tools */}
-            <div className="mt-8">
-              <h2 className="text-2xl text-ceruleanBlue-500 font-semibold">
-                Tools & Plugins
-              </h2>
-              <div className="flex flex-row justify-evenly mt-4 logos-container">
-                <AppIconName img={hardhatDeploy} name="hardhat-deploy" />
-                <AppIconName img={remix} name="Remix IDE" />
-              </div>
+              <AppIconName
+                img={walleth}
+                name="Walleth"
+                href="https://walleth.org/"
+              />
+              <AppIconName
+                img={otter}
+                name="Otterscan"
+                href="https://twitter.com/wmitsuda/status/1444789707540414466"
+              />
+              <AppIconName
+                img={blockscout}
+                name="Blockscout"
+                href="https://docs.blockscout.com/for-users/smart-contract-interaction/verifying-a-smart-contract/contracts-verification-via-sourcify"
+              />
+              <AppIconName
+                img={keystone}
+                name="Keystone"
+                href="https://twitter.com/SourcifyEth/status/1415319812801183753"
+              />
+              <AppIconName
+                img={ethSdk}
+                name="eth-sdk"
+                href="https://github.com/dethcrypto/eth-sdk/pull/42"
+              />
             </div>
           </div>
-
-          {/* Right col: examples */}
-          <div className="px-12">
-            <img
-              src={blockscoutSS}
-              className="px-12"
-              alt="Blockscout screenshot"
-            />
+          <div>
+            {/* Right col: Tools */}
+            <h2 className="text-2xl text-ceruleanBlue-500 font-semibold">
+              Tools & Plugins
+            </h2>
+            <div className="flex flex-row mt-8 logos-container">
+              <AppIconName
+                img={hardhatDeploy}
+                name="hardhat-deploy"
+                href="https://github.com/wighawag/hardhat-deploy#5-hardhat-sourcify"
+              />
+              <AppIconName
+                img={remix}
+                name="Remix IDE"
+                href="https://medium.com/remix-ide/verify-contracts-on-remix-with-sourcify-2912004d9c84"
+              />
+            </div>
           </div>
+        </div>
+        {/* Examples slider */}
+        <div className="flex justify-center mt-12">
+          <CustomCarousel />
         </div>
         <div className="mt-12">
           <h3 className="text-center text-xl font-semibold text-ceruleanBlue-800">

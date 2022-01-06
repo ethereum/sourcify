@@ -44,11 +44,11 @@ html {
   margin-top: 8rem;
 }
 
-.logos-container:hover * {
+.logos-container:hover > * {
   opacity: 50%;
 }
 
-.logos-container *:hover {
+.logos-container > *:hover {
   opacity: 100%;
   cursor: pointer;
 }
