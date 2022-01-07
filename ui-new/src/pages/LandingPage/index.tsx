@@ -1,4 +1,5 @@
 import { HiArrowDown } from "react-icons/hi";
+import { Link } from "react-router-dom";
 import ReactTooltip from "react-tooltip";
 import arbitrum from "../../assets/chains/arbitrum.svg";
 import avalanche from "../../assets/chains/avalanche.png";
@@ -89,10 +90,12 @@ const LandingPage = () => {
               and automatic verification service*.{" "}
             </h2>
             <div className="flex justify-evenly">
-              <Button href="/verifier">Verify Contract</Button>
-              <Button href="/fetcher" type="secondary">
-                Check Contract
-              </Button>
+              <Link to="/verifier">
+                <Button>Verify Contract</Button>
+              </Link>
+              <Link to="/fetcher">
+                <Button type="secondary">Check Contract</Button>
+              </Link>
             </div>
           </div>
 
@@ -322,14 +325,18 @@ const LandingPage = () => {
             Do you want to integrate Sourcify into your project?
           </h3>
           <div className="flex justify-center">
-            <Button href="/docs">Check Docs</Button>
-            <Button
+            <a href="/docs" target="_blank" rel="noreferrer">
+              <Button>Check Docs</Button>
+            </a>
+            <a
               href="https://gitter.im/ethereum/source-verify"
-              type="secondary"
-              className="ml-4"
+              target="_blank"
+              rel="noreferrer"
             >
-              Get in touch
-            </Button>
+              <Button type="secondary" className="ml-4">
+                Get in touch
+              </Button>
+            </a>
           </div>
         </div>
       </section>
