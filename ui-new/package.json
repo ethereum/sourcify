@@ -30,7 +30,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
+    "test": "echo \"Error: no test specified\"",
     "eject": "react-scripts eject",
     "lint": "eslint . --ext .ts"
   },
