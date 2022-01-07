@@ -254,4 +254,10 @@ export default {
         "contractFetchAddress": "https://evmexplorer.velas.com/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
+    "25": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "hhttps://cronos.crypto.org/explorer/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
 }
