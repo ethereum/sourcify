@@ -1,5 +1,10 @@
-import { HiArrowDown } from "react-icons/hi";
+import { HiArrowDown, HiCheckCircle } from "react-icons/hi";
 import { Link } from "react-router-dom";
+import { PrismLight as SyntaxHighlighter } from "react-syntax-highlighter";
+import jsonLang from "react-syntax-highlighter/dist/esm/languages/prism/json";
+import solidityLang from "react-syntax-highlighter/dist/esm/languages/prism/solidity";
+import lightStyle from "react-syntax-highlighter/dist/esm/styles/prism/ghcolors";
+import codeStyle from "react-syntax-highlighter/dist/esm/styles/prism/vsc-dark-plus";
 import ReactTooltip from "react-tooltip";
 import arbitrum from "../../assets/chains/arbitrum.svg";
 import avalanche from "../../assets/chains/avalanche.png";
@@ -10,8 +15,6 @@ import ethereum from "../../assets/chains/ethereum.png";
 import optimism from "../../assets/chains/optimism.svg";
 import polygon from "../../assets/chains/polygon.webp";
 import xdai from "../../assets/chains/xdai.png";
-import code from "../../assets/contract-code.png";
-import bytecode from "../../assets/contract-info.png";
 import blockscout from "../../assets/integrations/blockscout.png";
 import ethSdk from "../../assets/integrations/eth-sdk.png";
 import hardhatDeploy from "../../assets/integrations/hardhat-deploy.jpeg";
@@ -21,9 +24,15 @@ import remix from "../../assets/integrations/remix.png";
 import walleth from "../../assets/integrations/walleth.png";
 import Button from "../../components/Button";
 import Header from "../../components/Header";
+import { REPOSITORY_URL_FULL_MATCH } from "../../constants";
 import Chart from "./Chart";
+import sourceCode from "./Contract.sol";
 import CustomCarousel from "./CustomCarousel";
+import metadata from "./metadata.json";
 
+SyntaxHighlighter.registerLanguage("solidity", solidityLang);
+SyntaxHighlighter.registerLanguage("json", jsonLang);
+// Helper components
 type AppIconNameProps = {
   img: string;
   name: string;
@@ -74,6 +83,11 @@ const FooterItem = ({ href, children }: FooterItemProps) => (
     </li>
   </a>
 );
+
+//////////////////////////////////
+///////// MAIN COMPONENT /////////
+//////////////////////////////////
+
 const LandingPage = () => {
   return (
     <div>
@@ -104,20 +118,76 @@ const LandingPage = () => {
             className="flex items-center justify-center relative"
             id="hero-image"
           >
-            {/* <div className="relative min-h-[450px]"> */}
+            {/* Front visual */}
             <div
               className="absolute mt-32 mr-32 z-10 transition-all duration-300 ease-in-out hover:mb-32 hover:ml-32"
               id="hero-source-code"
             >
-              <img src={code} className="w-96" alt="source code visual" />
+              <SyntaxHighlighter
+                language="solidity"
+                style={codeStyle}
+                className="rounded-md"
+                customStyle={{
+                  fontSize: "0.7rem",
+                  lineHeight: "1.2",
+                  padding: "1rem",
+                }}
+                codeTagProps={{
+                  style: { fontSize: "inherit", lineHeight: "inherit" },
+                }}
+              >
+                {sourceCode}
+              </SyntaxHighlighter>
+              {/* <img src={code} className="w-96" alt="source code visual" /> */}
             </div>
+            {/* Back visual */}
             <div
               className="absolute mb-32 ml-32 z-0 transition-all duration-300 ease-in-out  hover:mt-32 hover:mr-32"
               id="hero-bytecode"
             >
-              <img src={bytecode} className="w-96" alt="bytecode visual" />
+              <div className="bg-ceruleanBlue-100 px-4 py-2 rounded-md outline-2 outline-ceruleanBlue-400 outline w-96">
+                <div className="py-4">
+                  {/* <div className="text-green-700 bg-green-100 rounded-md outline-2 outline-green-400 outline inline py-1 px-1"> */}
+                  <div className=" text-green-600 flex items-center">
+                    <HiCheckCircle className="text-green-600 inline mr-1 align-middle text-xl" />
+                    Contract fully verified
+                  </div>
+                </div>
+                <div className="whitespace-nowrap overflow-hidden overflow-ellipsis ">
+                  <img
+                    src={ethereum}
+                    className="h-6 inline mb-1"
+                    alt="eth icon"
+                  />
+                  <a
+                    href={`${REPOSITORY_URL_FULL_MATCH}/5/0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4`}
+                    className="link-underline"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <b>Ethereum Görli</b>{" "}
+                    0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4
+                  </a>
+                </div>
+                <div className="mt-4">
+                  <p>metadata.json</p>
+                  <SyntaxHighlighter
+                    language="json"
+                    style={lightStyle}
+                    className="rounded-md overflow-y-scroll h-64 p-3 m-3"
+                    customStyle={{
+                      fontSize: "0.7rem",
+                      lineHeight: "1.2",
+                    }}
+                    codeTagProps={{
+                      style: { fontSize: "inherit", lineHeight: "inherit" },
+                    }}
+                  >
+                    {metadata}
+                  </SyntaxHighlighter>
+                </div>
+              </div>
             </div>
-            {/* </div> */}
           </div>
         </section>
         <button className="my-4">
@@ -262,7 +332,6 @@ const LandingPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mt-12">
           {/* Left col: Apps */}
           <div className="w-full">
-            {/* Apps */}
             <h2 className="text-2xl text-ceruleanBlue-500 font-semibold">
               Who is building with Sourcify?
             </h2>
@@ -316,7 +385,7 @@ const LandingPage = () => {
             </div>
           </div>
         </div>
-        {/* Examples slider */}
+        {/* Examples carousel */}
         <div className="flex justify-center mt-12">
           <CustomCarousel />
         </div>
