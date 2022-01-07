@@ -64,8 +64,7 @@ html {
   transition: background-size 0.3s;
 }
 
-.link-underline:hover,
-.link-underline:focus {
+.link-underline:hover {
   background-size: 100% 100%;
 }
 
