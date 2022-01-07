@@ -10,7 +10,7 @@
       "name": "Server",
       "program": "${workspaceFolder}/dist/server/server.js",
       "envFile": "${workspaceFolder}/environments/.env",
-      "preLaunchTask": "npm: build:lerna",
+      "preLaunchTask": "npm: server:build",
       "outFiles": [
         "${workspaceFolder}/dist/**/*.js",
         "${workspaceFolder}/services/core/build/**/*.js",
