@@ -254,4 +254,40 @@ export default {
         "contractFetchAddress": "https://evmexplorer.velas.com/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
+    "588": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://stardust-explorer.metis.io/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "1088": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://andromeda-explorer.metis.io/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "122": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer.fuse.io/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "123": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer.fusespark.io/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "1313161555": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer.testnet.aurora.dev/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "1313161554": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer.mainnet.aurora.dev/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
 }

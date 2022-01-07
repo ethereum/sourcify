@@ -321,6 +321,12 @@ In order to fetch from the staging repository, replace https://repo.sourcify.dev
 - Boba Network Rinkeby Testnet
 - Velas EVM Mainnet
 - Meter Mainnet
+- Metis Andromeda Mainnet 
+- Metis Stardust 
+- Fuse Mainnet 
+- Fuse Sparknet
+- Aurora Mainnet
+- Aurora Testnet
 
 ## Adding a new chain
 

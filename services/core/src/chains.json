@@ -242,6 +242,102 @@
     "networkId": 12
   },
   {
+    "name": "Metis Andromeda Mainnet",
+    "chain": "metis",
+    "network": "mainnet",
+    "rpc": ["https://andromeda.metis.io/?owner=1088"],
+    "faucets": [],
+    "nativeCurrency": {
+      "name": "Metis",
+      "symbol": "Metis",
+      "decimals": 18
+    },
+    "infoURL": "https://www.metis.io/",
+    "shortName": "metis",
+    "chainId": 1088,
+    "networkId": 1088
+  },
+  {
+    "name": "Metis Stardust Testnet",
+    "chain": "metis",
+    "network": "testnet",
+    "rpc": ["https://stardust.metis.io/?owner=588"],
+    "faucets": [],
+    "nativeCurrency": {
+      "name": "Metis",
+      "symbol": "Metis",
+      "decimals": 18
+    },
+    "infoURL": "https://www.metis.io/",
+    "shortName": "metis",
+    "chainId": 588,
+    "networkId": 588
+  },
+  {
+    "name": "Fuse Mainnet",
+    "chain": "fuse",
+    "network": "mainnet",
+    "rpc": ["https://rpc.fuse.io/"],
+    "faucets": [],
+    "nativeCurrency": {
+      "name": "Fuse",
+      "symbol": "fuse",
+      "decimals": 18
+    },
+    "infoURL": "https://fuse.io/",
+    "shortName": "fuse",
+    "chainId": 122,
+    "networkId": 122
+  },
+  {
+    "name": "Fuse Sparknet",
+    "chain": "fuse",
+    "network": "testnet",
+    "rpc": ["https://rpc.fusespark.io/"],
+    "faucets": [],
+    "nativeCurrency": {
+      "name": "Fuse",
+      "symbol": "fuse",
+      "decimals": 18
+    },
+    "infoURL": "https://fuse.io/",
+    "shortName": "fuse",
+    "chainId": 123,
+    "networkId": 123
+  },
+  {
+    "name": "Aurora Mainnet",
+    "chain": "aurora",
+    "network": "mainnet",
+    "rpc": ["https://mainnet.aurora.dev/"],
+    "faucets": [],
+    "nativeCurrency": {
+      "name": "ETH",
+      "symbol": "aETH",
+      "decimals": 18
+    },
+    "infoURL": "https://aurora.dev/",
+    "shortName": "aurora",
+    "chainId": 1313161554,
+    "networkId": 1313161554
+  },
+  {
+    "name": "Aurora Testnet",
+    "chain": "aurora",
+    "network": "testnet",
+    "rpc": ["https://testnet.aurora.dev/"],
+    "faucets": ["https://testnet.aurora.dev/faucet","https://goerli-faucet.slock.it/","https://faucet.goerli.mudit.blog/"],
+    "nativeCurrency": {
+      "name": "ETH",
+      "symbol": "aETH",
+      "decimals": 18
+    },
+    "infoURL": "https://testnet.aurora.dev/",
+    "shortName": "aurora",
+    "chainId": 1313161555,
+    "networkId": 1313161555
+  },
+  {
     "name": "Diode Testnet Staging",
     "chain": "DIODE",
     "network": "testnet",
