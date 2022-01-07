@@ -1,4 +1,6 @@
-import { HiArrowDown, HiCheckCircle } from "react-icons/hi";
+import { useRef } from "react";
+import { BsChevronCompactDown } from "react-icons/bs";
+import { HiCheckCircle } from "react-icons/hi";
 import { Link } from "react-router-dom";
 import { PrismLight as SyntaxHighlighter } from "react-syntax-highlighter";
 import jsonLang from "react-syntax-highlighter/dist/esm/languages/prism/json";
@@ -89,6 +91,7 @@ const FooterItem = ({ href, children }: FooterItemProps) => (
 //////////////////////////////////
 
 const LandingPage = () => {
+  const aboutRef = useRef<HTMLElement>(null);
   return (
     <div>
       <div className="h-screen flex flex-col px-8 md:px-12 lg:px-24 bg-gray-100">
@@ -190,13 +193,19 @@ const LandingPage = () => {
             </div>
           </div>
         </section>
-        <button className="my-4">
-          <HiArrowDown className="inline" /> Learn more
+        <button
+          className="my-4"
+          onClick={() =>
+            aboutRef.current &&
+            aboutRef.current.scrollIntoView({ behavior: "smooth" })
+          }
+        >
+          <BsChevronCompactDown className="inline text-4xl animate-bounce text-gray-500" />
         </button>
       </div>
 
       {/* About section */}
-      <section className="px-8 md:px-12 lg:px-24 bg-white py-16">
+      <section className="px-8 md:px-12 lg:px-24 bg-white py-16" ref={aboutRef}>
         <h1 className="text-3xl text-ceruleanBlue-500 font-bold">
           Sourcify enables simple, next-level source verification.
         </h1>
