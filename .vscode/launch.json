@@ -121,6 +121,23 @@
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
     },
+        {
+          "type": "node",
+          "request": "launch",
+          "name": "Mocha - Validation",
+          "program": "${workspaceRoot}/services/validation/node_modules/.bin/mocha",
+          "env": {
+            "TESTING": "true",
+            "LOCALCHAIN_URL": "http://localhost:8545"
+          },
+          "args": [
+            "${workspaceFolder}/services/validation/test/",
+            "--exit"
+          ],
+          "console": "integratedTerminal",
+          "cwd": "${workspaceFolder}/services/validation",
+          "internalConsoleOptions": "neverOpen"
+        },
     {
       "type": "node",
       "request": "launch",
