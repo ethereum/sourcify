@@ -1,4 +1,12 @@
-import { HiArrowDown } from "react-icons/hi";
+import { useRef } from "react";
+import { BsChevronCompactDown } from "react-icons/bs";
+import { HiCheckCircle } from "react-icons/hi";
+import { Link } from "react-router-dom";
+import { PrismLight as SyntaxHighlighter } from "react-syntax-highlighter";
+import jsonLang from "react-syntax-highlighter/dist/esm/languages/prism/json";
+import solidityLang from "react-syntax-highlighter/dist/esm/languages/prism/solidity";
+import lightStyle from "react-syntax-highlighter/dist/esm/styles/prism/ghcolors";
+import codeStyle from "react-syntax-highlighter/dist/esm/styles/prism/vsc-dark-plus";
 import ReactTooltip from "react-tooltip";
 import arbitrum from "../../assets/chains/arbitrum.svg";
 import avalanche from "../../assets/chains/avalanche.png";
@@ -9,8 +17,6 @@ import ethereum from "../../assets/chains/ethereum.png";
 import optimism from "../../assets/chains/optimism.svg";
 import polygon from "../../assets/chains/polygon.webp";
 import xdai from "../../assets/chains/xdai.png";
-import code from "../../assets/contract-code.png";
-import bytecode from "../../assets/contract-info.png";
 import blockscout from "../../assets/integrations/blockscout.png";
 import ethSdk from "../../assets/integrations/eth-sdk.png";
 import hardhatDeploy from "../../assets/integrations/hardhat-deploy.jpeg";
@@ -18,31 +24,19 @@ import keystone from "../../assets/integrations/keystone.png";
 import otter from "../../assets/integrations/otter.jpg";
 import remix from "../../assets/integrations/remix.png";
 import walleth from "../../assets/integrations/walleth.png";
+import AppIconName from "../../components/AppIconName";
 import Button from "../../components/Button";
 import Header from "../../components/Header";
-import Chart from "./Chart";
+import { REPOSITORY_URL_FULL_MATCH } from "../../constants";
+import ChartSection from "./ChartSection";
+import sourceCode from "./Contract.sol";
 import CustomCarousel from "./CustomCarousel";
+import metadata from "./metadata.json";
 
-type AppIconNameProps = {
-  img: string;
-  name: string;
-  href?: string;
-};
-const AppIconName = ({ img, name, href }: AppIconNameProps) => (
-  <a
-    href={href}
-    target="_blank"
-    rel="noreferrer"
-    className="flex flex-col mr-12 my-2 hover:text-ceruleanBlue-500"
-  >
-    <img
-      src={img}
-      className="h-20 self-center transition-opacity ease-in-out p-1"
-      alt={`${name} logo`}
-    />
-    <div className="text-center mt-2 ">{name}</div>
-  </a>
-);
+SyntaxHighlighter.registerLanguage("solidity", solidityLang);
+SyntaxHighlighter.registerLanguage("json", jsonLang);
+
+// Helper components
 
 type ResourceListItemProps = {
   children: string;
@@ -73,7 +67,13 @@ const FooterItem = ({ href, children }: FooterItemProps) => (
     </li>
   </a>
 );
+
+//////////////////////////////////
+///////// MAIN COMPONENT /////////
+//////////////////////////////////
+
 const LandingPage = () => {
+  const aboutRef = useRef<HTMLElement>(null);
   return (
     <div>
       <div className="h-screen flex flex-col px-8 md:px-12 lg:px-24 bg-gray-100">
@@ -89,10 +89,12 @@ const LandingPage = () => {
               and automatic verification service*.{" "}
             </h2>
             <div className="flex justify-evenly">
-              <Button href="/verifier">Verify Contract</Button>
-              <Button href="/fetcher" type="secondary">
-                Check Contract
-              </Button>
+              <Link to="/verifier">
+                <Button>Verify Contract</Button>
+              </Link>
+              <Link to="/fetcher">
+                <Button type="secondary">Check Contract</Button>
+              </Link>
             </div>
           </div>
 
@@ -101,29 +103,91 @@ const LandingPage = () => {
             className="flex items-center justify-center relative"
             id="hero-image"
           >
-            {/* <div className="relative min-h-[450px]"> */}
+            {/* Front visual */}
             <div
               className="absolute mt-32 mr-32 z-10 transition-all duration-300 ease-in-out hover:mb-32 hover:ml-32"
               id="hero-source-code"
             >
-              <img src={code} className="w-96" alt="source code visual" />
+              <SyntaxHighlighter
+                language="solidity"
+                style={codeStyle}
+                className="rounded-md"
+                customStyle={{
+                  fontSize: "0.7rem",
+                  lineHeight: "1.2",
+                  padding: "1rem",
+                }}
+                codeTagProps={{
+                  style: { fontSize: "inherit", lineHeight: "inherit" },
+                }}
+              >
+                {sourceCode}
+              </SyntaxHighlighter>
+              {/* <img src={code} className="w-96" alt="source code visual" /> */}
             </div>
+            {/* Back visual */}
             <div
               className="absolute mb-32 ml-32 z-0 transition-all duration-300 ease-in-out  hover:mt-32 hover:mr-32"
               id="hero-bytecode"
             >
-              <img src={bytecode} className="w-96" alt="bytecode visual" />
+              <div className="bg-ceruleanBlue-100 px-4 py-2 rounded-md outline-2 outline-ceruleanBlue-400 outline w-96">
+                <div className="py-4">
+                  {/* <div className="text-green-700 bg-green-100 rounded-md outline-2 outline-green-400 outline inline py-1 px-1"> */}
+                  <div className=" text-green-600 flex items-center">
+                    <HiCheckCircle className="text-green-600 inline mr-1 align-middle text-xl" />
+                    Contract fully verified
+                  </div>
+                </div>
+                <div className="whitespace-nowrap overflow-hidden overflow-ellipsis ">
+                  <img
+                    src={ethereum}
+                    className="h-6 inline mb-1"
+                    alt="eth icon"
+                  />
+                  <a
+                    href={`${REPOSITORY_URL_FULL_MATCH}/5/0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4`}
+                    className="link-underline"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <b>Ethereum Görli</b>{" "}
+                    0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4
+                  </a>
+                </div>
+                <div className="mt-4">
+                  <p>metadata.json</p>
+                  <SyntaxHighlighter
+                    language="json"
+                    style={lightStyle}
+                    className="rounded-md overflow-y-scroll h-64 p-3 m-3"
+                    customStyle={{
+                      fontSize: "0.7rem",
+                      lineHeight: "1.2",
+                    }}
+                    codeTagProps={{
+                      style: { fontSize: "inherit", lineHeight: "inherit" },
+                    }}
+                  >
+                    {metadata}
+                  </SyntaxHighlighter>
+                </div>
+              </div>
             </div>
-            {/* </div> */}
           </div>
         </section>
-        <button className="my-4">
-          <HiArrowDown className="inline" /> Learn more
+        <button
+          className="my-4"
+          onClick={() =>
+            aboutRef.current &&
+            aboutRef.current.scrollIntoView({ behavior: "smooth" })
+          }
+        >
+          <BsChevronCompactDown className="inline text-4xl animate-bounce text-gray-500" />
         </button>
       </div>
 
       {/* About section */}
-      <section className="px-8 md:px-12 lg:px-24 bg-white py-16">
+      <section className="px-8 md:px-12 lg:px-24 bg-white py-16" ref={aboutRef}>
         <h1 className="text-3xl text-ceruleanBlue-500 font-bold">
           Sourcify enables simple, next-level source verification.
         </h1>
@@ -259,7 +323,6 @@ const LandingPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mt-12">
           {/* Left col: Apps */}
           <div className="w-full">
-            {/* Apps */}
             <h2 className="text-2xl text-ceruleanBlue-500 font-semibold">
               Who is building with Sourcify?
             </h2>
@@ -276,6 +339,7 @@ const LandingPage = () => {
                 img={otter}
                 name="Otterscan"
                 href="https://twitter.com/wmitsuda/status/1444789707540414466"
+                rounded
               />
               <AppIconName
                 img={blockscout}
@@ -313,7 +377,7 @@ const LandingPage = () => {
             </div>
           </div>
         </div>
-        {/* Examples slider */}
+        {/* Examples carousel */}
         <div className="flex justify-center mt-12">
           <CustomCarousel />
         </div>
@@ -322,21 +386,25 @@ const LandingPage = () => {
             Do you want to integrate Sourcify into your project?
           </h3>
           <div className="flex justify-center">
-            <Button href="/docs">Check Docs</Button>
-            <Button
+            <a href="/docs" target="_blank" rel="noreferrer">
+              <Button>Check Docs</Button>
+            </a>
+            <a
               href="https://gitter.im/ethereum/source-verify"
-              type="secondary"
-              className="ml-4"
+              target="_blank"
+              rel="noreferrer"
             >
-              Get in touch
-            </Button>
+              <Button type="secondary" className="ml-4">
+                Get in touch
+              </Button>
+            </a>
           </div>
         </div>
       </section>
 
       {/* Verified contract stats */}
-      <section className="flex flex-col items-center px-8 md:px-12 lg:px-24 bg-white py-16">
-        <Chart />
+      <section className="flex flex-col items-center px-8 md:px-12 lg:px-24 bg-gray-100 py-16">
+        <ChartSection />
       </section>
 
       {/* Talks & Articles */}
