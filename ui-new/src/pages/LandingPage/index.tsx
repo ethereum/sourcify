@@ -24,37 +24,19 @@ import keystone from "../../assets/integrations/keystone.png";
 import otter from "../../assets/integrations/otter.jpg";
 import remix from "../../assets/integrations/remix.png";
 import walleth from "../../assets/integrations/walleth.png";
+import AppIconName from "../../components/AppIconName";
 import Button from "../../components/Button";
 import Header from "../../components/Header";
 import { REPOSITORY_URL_FULL_MATCH } from "../../constants";
-import Chart from "./Chart";
+import ChartSection from "./ChartSection";
 import sourceCode from "./Contract.sol";
 import CustomCarousel from "./CustomCarousel";
 import metadata from "./metadata.json";
 
 SyntaxHighlighter.registerLanguage("solidity", solidityLang);
 SyntaxHighlighter.registerLanguage("json", jsonLang);
+
 // Helper components
-type AppIconNameProps = {
-  img: string;
-  name: string;
-  href?: string;
-};
-const AppIconName = ({ img, name, href }: AppIconNameProps) => (
-  <a
-    href={href}
-    target="_blank"
-    rel="noreferrer"
-    className="flex flex-col mr-12 my-2 hover:text-ceruleanBlue-500"
-  >
-    <img
-      src={img}
-      className="h-20 self-center transition-opacity ease-in-out p-1"
-      alt={`${name} logo`}
-    />
-    <div className="text-center mt-2 ">{name}</div>
-  </a>
-);
 
 type ResourceListItemProps = {
   children: string;
@@ -357,6 +339,7 @@ const LandingPage = () => {
                 img={otter}
                 name="Otterscan"
                 href="https://twitter.com/wmitsuda/status/1444789707540414466"
+                rounded
               />
               <AppIconName
                 img={blockscout}
@@ -420,8 +403,8 @@ const LandingPage = () => {
       </section>
 
       {/* Verified contract stats */}
-      <section className="flex flex-col items-center px-8 md:px-12 lg:px-24 bg-white py-16">
-        <Chart />
+      <section className="flex flex-col items-center px-8 md:px-12 lg:px-24 bg-gray-100 py-16">
+        <ChartSection />
       </section>
 
       {/* Talks & Articles */}
