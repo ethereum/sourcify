@@ -30,6 +30,9 @@ module.exports = {
           900: "#5D0E13",
         },
       },
+      minHeight: {
+        '96': '350px',
+      }
     },
   },
   variants: {
