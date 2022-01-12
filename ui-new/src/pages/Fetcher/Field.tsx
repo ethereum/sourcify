@@ -1,4 +1,4 @@
-import { useState, FormEventHandler, ChangeEventHandler } from 'react'
+import { useState, useEffect, FormEventHandler, ChangeEventHandler } from 'react'
 import Input from "../../components/Input";
 import Toast from "../../components/Toast";
 
@@ -10,6 +10,16 @@ type FieldProp = {
 const Field = ({ loading, handleRequest }: FieldProp) => {
   const [address, setAddress] = useState<any>("");
   const [error, setError] = useState<string>("");
+
+  useEffect(() => {
+    const isAddress = /^0x[0-9a-fA-F]{40}$/.test(address)
+    const fetchMatches = async () => {
+      if (isAddress) {
+        await handleRequest(address)
+      } 
+    }
+    fetchMatches()
+  }, [address, handleRequest])
   
   const handleSubmit: FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
@@ -36,7 +46,7 @@ const Field = ({ loading, handleRequest }: FieldProp) => {
               isShown={!!error}
               dismiss={() => setError("")}
             /> } <br/>
-          <small className="text-ceruleanBlue-800">Tap enter &#9166; after submitting contract address or ENS name</small>
+          <small className="text-ceruleanBlue-800">Tap enter &#9166; if search doesn't happen automatically</small>
         </form>
       </div>
       {loading && (
