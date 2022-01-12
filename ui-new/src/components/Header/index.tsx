@@ -1,10 +1,10 @@
+import { Link } from "react-router-dom";
 import ReactTooltip from "react-tooltip";
 import { ReactComponent as Github } from "../../assets/icons/github.svg";
 import { ReactComponent as Gitter } from "../../assets/icons/gitter.svg";
 import { ReactComponent as Matrix } from "../../assets/icons/matrix.svg";
 import { ReactComponent as Twitter } from "../../assets/icons/twitter.svg";
 import logoText from "../../assets/logo-rounded.svg";
-import { IPFS_IPNS_GATEWAY_URL } from "../../constants";
 
 const Header = () => {
   return (
@@ -26,12 +26,23 @@ const Header = () => {
         <nav className="font-mono text-lg md:text-2xl text-gray-700">
           <a
             className="link-underline mx-2 my-2 md:mx-6 hover:text-ceruleanBlue-500"
-            href={IPFS_IPNS_GATEWAY_URL}
-            target="_blank"
+            href="/#about"
             rel="noreferrer"
           >
-            IPFS
+            About
           </a>
+          <Link
+            className="link-underline mx-2 my-2 md:mx-6 hover:text-ceruleanBlue-500"
+            to="/verifier"
+          >
+            Verify
+          </Link>
+          <Link
+            className="link-underline mx-2 my-2 md:mx-6 hover:text-ceruleanBlue-500"
+            to="/lookup"
+          >
+            Lookup
+          </Link>
           <a
             className="link-underline mx-2 my-2 md:mx-6 hover:text-ceruleanBlue-500"
             href="/docs"

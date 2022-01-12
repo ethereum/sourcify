@@ -93,101 +93,101 @@ const LandingPage = () => {
                 <Button>Verify Contract</Button>
               </Link>
               <Link to="/fetcher">
-                <Button type="secondary">Check Contract</Button>
+                <Button type="secondary">Lookup Contract</Button>
               </Link>
             </div>
           </div>
 
           {/* Hero right */}
-          <div
-            className="flex items-center justify-center relative"
-            id="hero-image"
-          >
-            {/* Front visual */}
+          <div className="flex items-center justify-center" id="">
             <div
-              className="absolute mt-32 mr-32 z-10 transition-all duration-300 ease-in-out hover:mb-32 hover:ml-32"
-              id="hero-source-code"
+              className="flex items-center justify-center relative"
+              id="hero-image"
             >
-              <SyntaxHighlighter
-                language="solidity"
-                style={codeStyle}
-                className="rounded-md"
-                customStyle={{
-                  fontSize: "0.7rem",
-                  lineHeight: "1.2",
-                  padding: "1rem",
-                }}
-                codeTagProps={{
-                  style: { fontSize: "inherit", lineHeight: "inherit" },
-                }}
+              {/* Front visual */}
+              <div
+                className="absolute mt-32 mr-32 z-10 transition-all duration-300 ease-in-out hover:mb-32 hover:ml-32"
+                id="hero-source-code"
               >
-                {sourceCode}
-              </SyntaxHighlighter>
-              {/* <img src={code} className="w-96" alt="source code visual" /> */}
-            </div>
-            {/* Back visual */}
-            <div
-              className="absolute mb-32 ml-32 z-0 transition-all duration-300 ease-in-out  hover:mt-32 hover:mr-32"
-              id="hero-bytecode"
-            >
-              <div className="bg-ceruleanBlue-100 px-4 py-2 rounded-md outline-2 outline-ceruleanBlue-400 outline w-96">
-                <div className="py-4">
-                  {/* <div className="text-green-700 bg-green-100 rounded-md outline-2 outline-green-400 outline inline py-1 px-1"> */}
-                  <div className=" text-green-600 flex items-center">
-                    <HiCheckCircle className="text-green-600 inline mr-1 align-middle text-xl" />
-                    Contract fully verified
+                <SyntaxHighlighter
+                  language="solidity"
+                  style={codeStyle}
+                  className="rounded-md"
+                  customStyle={{
+                    fontSize: "0.7rem",
+                    lineHeight: "1.2",
+                    padding: "1rem",
+                  }}
+                  codeTagProps={{
+                    style: { fontSize: "inherit", lineHeight: "inherit" },
+                  }}
+                >
+                  {sourceCode}
+                </SyntaxHighlighter>
+                {/* <img src={code} className="w-96" alt="source code visual" /> */}
+              </div>
+              {/* Back visual */}
+              <div
+                className="absolute mb-32 ml-32 z-0 transition-all duration-300 ease-in-out  hover:mt-32 hover:mr-32"
+                id="hero-bytecode"
+              >
+                <div className="bg-ceruleanBlue-100 px-4 py-2 rounded-md outline-2 outline-ceruleanBlue-400 outline w-96">
+                  <div className="py-4">
+                    {/* <div className="text-green-700 bg-green-100 rounded-md outline-2 outline-green-400 outline inline py-1 px-1"> */}
+                    <div className=" text-green-600 flex items-center">
+                      <HiCheckCircle className="text-green-600 inline mr-1 align-middle text-xl" />
+                      Contract fully verified
+                    </div>
                   </div>
-                </div>
-                <div className="whitespace-nowrap overflow-hidden overflow-ellipsis ">
-                  <img
-                    src={ethereum}
-                    className="h-6 inline mb-1"
-                    alt="eth icon"
-                  />
-                  <a
-                    href={`${REPOSITORY_URL_FULL_MATCH}/5/0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4`}
-                    className="link-underline"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <b>Ethereum Görli</b>{" "}
-                    0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4
-                  </a>
-                </div>
-                <div className="mt-4">
-                  <p>metadata.json</p>
-                  <SyntaxHighlighter
-                    language="json"
-                    style={lightStyle}
-                    className="rounded-md overflow-y-scroll h-64 p-3 m-3"
-                    customStyle={{
-                      fontSize: "0.7rem",
-                      lineHeight: "1.2",
-                    }}
-                    codeTagProps={{
-                      style: { fontSize: "inherit", lineHeight: "inherit" },
-                    }}
-                  >
-                    {metadata}
-                  </SyntaxHighlighter>
+                  <div className="whitespace-nowrap overflow-hidden overflow-ellipsis ">
+                    <img
+                      src={ethereum}
+                      className="h-6 inline mb-1"
+                      alt="eth icon"
+                    />
+                    <a
+                      href={`${REPOSITORY_URL_FULL_MATCH}/5/0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4`}
+                      className="link-underline"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <b>Ethereum Görli</b>{" "}
+                      0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4
+                    </a>
+                  </div>
+                  <div className="mt-4">
+                    <p>metadata.json</p>
+                    <SyntaxHighlighter
+                      language="json"
+                      style={lightStyle}
+                      className="rounded-md overflow-y-scroll h-64 p-3 m-3"
+                      customStyle={{
+                        fontSize: "0.7rem",
+                        lineHeight: "1.2",
+                      }}
+                      codeTagProps={{
+                        style: { fontSize: "inherit", lineHeight: "inherit" },
+                      }}
+                    >
+                      {metadata}
+                    </SyntaxHighlighter>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </section>
-        <button
-          className="my-4"
-          onClick={() =>
-            aboutRef.current &&
-            aboutRef.current.scrollIntoView({ behavior: "smooth" })
-          }
-        >
+        <a className="my-4 flex justify-center" href="/#about">
           <BsChevronCompactDown className="inline text-4xl animate-bounce text-gray-500" />
-        </button>
+        </a>
       </div>
 
       {/* About section */}
-      <section className="px-8 md:px-12 lg:px-24 bg-white py-16" ref={aboutRef}>
+      <section
+        className="px-8 md:px-12 lg:px-24 bg-white py-16"
+        ref={aboutRef}
+        id="about"
+      >
         <h1 className="text-3xl text-ceruleanBlue-500 font-bold">
           Sourcify enables simple, next-level source verification.
         </h1>
