@@ -11,7 +11,7 @@ import { CHAIN_IDS_STR } from "../../constants";
 const Fetcher = () => {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
-  const [response, setResponse] = useState<CheckAllByAddressResult>(); // TODO: type this later
+  const [response, setResponse] = useState<CheckAllByAddressResult | undefined>(undefined);
 
   const handleRequest = async (address: string) => {
     setLoading(true)
@@ -21,9 +21,13 @@ const Fetcher = () => {
         (match) => (match.address = address)
       );
       setResponse(currentAddressMatches)
-      console.log(response)
     } catch (err) {
-      console.log(err)
+      setErrorMessage("An error occurred, try again!");
+      <Toast
+        message={errorMessage}
+        isShown={!!errorMessage}
+        dismiss={() => setErrorMessage("")}
+      />
     }
     finally {
       setLoading(false)
@@ -46,7 +50,7 @@ const Fetcher = () => {
       </div>
       <div className="flex flex-col h-full justify-center md:flex-row flex-grow mt-6">
         <div className="pt-1 min-h-96 bg-ceruleanBlue-500 flex w-3/5 rounded-xl mx-2 mb-4 md:mb-0">
-          {!!response ? <Result response={response} /> : <Field loading={loading} handleRequest={handleRequest} />}
+          {!!response ? <Result response={response} setResponse={setResponse} /> : <Field loading={loading} handleRequest={handleRequest} />}
         </div>
       </div>
     </div>

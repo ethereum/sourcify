@@ -3,8 +3,9 @@ import { Link } from "react-router-dom";
 import { CheckAllByAddressResult } from "../../types";
 import { ID_TO_CHAIN } from "../../constants";
 
-type FieldProp = {
+type ResultProp = {
   response: CheckAllByAddressResult
+  setResponse: React.Dispatch<React.SetStateAction<CheckAllByAddressResult | undefined>>
 }
 
 const URL_TYPE = {
@@ -35,7 +36,7 @@ const chainToName = (chainId: any) => {
 
 const NetworkRow = ({ address, chainId, status }: NetworkRowProp) => {
   return (
-    <div className="flex justify-between px-6 py-1 mt-6 border-b-2 w-2/3 text-left">
+    <div className="flex justify-between px-6 py-1 mt-6 border-b-2 w-11/12 text-left">
       <div className="flex flex-1 items-center">
         <p className="text-sm font-bold">{chainToName(chainId)}</p> <small className="text-xs">({status})</small>
       </div>
@@ -101,9 +102,13 @@ const verificationIcon = (status: string | undefined) => {
   )
 }
 
-const Result = ({ response }: FieldProp) => {
+const Result = ({ response, setResponse }: ResultProp) => {
   return (
     <div className="flex flex-col basis-0 py-8 flex-grow rounded-lg px-8 transition-all ease-in-out duration-300 bg-white overflow-hidden shadow-md">
+      <svg className="h-8 w-8 cursor-pointer" onClick={() => setResponse(undefined)} viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22.9168 10.4166L8.3335 25L22.9168 39.5833" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M8.3335 25H41.6668" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
       <div className="mt-4 flex flex-col items-center text-center">
         {verificationIcon(response?.status)}
         {(!!response && response?.status !== 'false') ? <Found response={response} /> : <NotFound address={response?.address} />}
