@@ -2,15 +2,14 @@ import { useState, FormEventHandler, ChangeEventHandler } from 'react'
 import Input from "../../components/Input";
 import Toast from "../../components/Toast";
 
-
 type FieldProp = {
-  loading: boolean
+  loading: boolean,
   handleRequest: (address: string) => void
 }
 
 const Field = ({ loading, handleRequest }: FieldProp) => {
-  const [address, setAddress] = useState("");
-  const [error, setError] = useState("");
+  const [address, setAddress] = useState<any>("");
+  const [error, setError] = useState<string>("");
   
   const handleSubmit: FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
@@ -19,7 +18,6 @@ const Field = ({ loading, handleRequest }: FieldProp) => {
       setError('Wrong address format! 🚨')
       return
     }
-
     await handleRequest(address)
   }
 
