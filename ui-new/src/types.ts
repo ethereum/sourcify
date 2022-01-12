@@ -76,6 +76,7 @@ export interface Match {
 
 export type CheckAllByAddressResult = {
   address: string;
+  status?: string;
   chainIds: {
     chainId: string,
     status: string
