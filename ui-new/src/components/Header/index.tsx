@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import ReactTooltip from "react-tooltip";
 import { ReactComponent as Github } from "../../assets/icons/github.svg";
-import { ReactComponent as Gitter } from "../../assets/icons/gitter.svg";
 import { ReactComponent as Matrix } from "../../assets/icons/matrix.svg";
 import { ReactComponent as Twitter } from "../../assets/icons/twitter.svg";
 import logoText from "../../assets/logo-rounded.svg";
@@ -11,7 +10,7 @@ const Header = () => {
     <header className="flex justify-between py-4 md:py-6 w-auto">
       <ReactTooltip effect="solid" />
       <div>
-        <a href="/" className="flex items-center">
+        <Link to="/" className="flex items-center">
           <img
             src={logoText}
             alt="Sourcify logo"
@@ -20,7 +19,7 @@ const Header = () => {
           <span className="ml-3 text-gray-700 font-mono text-xl md:text-2xl">
             sourcify.eth
           </span>
-        </a>
+        </Link>
       </div>
       <div className="flex items-center">
         <nav className="font-mono text-lg md:text-2xl text-gray-700">
@@ -71,15 +70,6 @@ const Header = () => {
             data-tip="Twitter"
           >
             <Twitter className="h-4 md:h-6 w-auto fill-gray-700 500" />
-          </a>
-          <a
-            className="px-2 hover-to-fill"
-            href="https://gitter.im/ethereum/source-verify"
-            target="_blank"
-            rel="noreferrer"
-            data-tip="Gitter chat"
-          >
-            <Gitter className="h-4 md:h-6 w-auto fill-gray-700 hover:fill-ceruleanBlue-500" />
           </a>
           <a
             className="pl-2 hover-to-fill"

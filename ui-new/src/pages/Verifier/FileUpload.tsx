@@ -45,7 +45,17 @@ const FileUpload: React.FC<FileUploadProps> = ({
           <h2 className="font-bold text-xl block">File Add Zone</h2>
           <p>Add the metadata and the Solidity source files for verification</p>
         </div>
-        <div className="flex flex-grow flex-col mt-2">
+        <div className="flex flex-grow flex-col pb-8">
+          <div className="mt-4">
+            <p className="">Import from Github repository</p>
+            <div className=" mt-2">
+              <GithubInput
+                fetchAndUpdate={fetchAndUpdate}
+                setIsLoading={setIsLoading}
+                isLoading={isLoading}
+              />
+            </div>
+          </div>
           <div className="flex justify-end">
             <button
               onClick={async () => {
@@ -94,16 +104,6 @@ const FileUpload: React.FC<FileUploadProps> = ({
               {/* Loading Overlay */}
               {isLoading && <LoadingOverlay message="Checking contracts" />}
             </div>
-          </div>
-        </div>
-        <div className="mt-4">
-          <p className="text-center">or provide a Github repository</p>
-          <div className=" mt-2">
-            <GithubInput
-              fetchAndUpdate={fetchAndUpdate}
-              setIsLoading={setIsLoading}
-              isLoading={isLoading}
-            />
           </div>
         </div>
       </div>

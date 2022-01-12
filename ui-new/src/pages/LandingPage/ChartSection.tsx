@@ -68,7 +68,6 @@ const Chart = ({ stats }: { stats: statsType | undefined }) => {
             <Tooltip cursor={{ fill: "rgba(232, 239, 255, 0.4)" }} />
             <XAxis dataKey="name" />
             <YAxis
-              yAxisId="left"
               dataKey="fullMatch"
               domain={[
                 0,
@@ -81,26 +80,19 @@ const Chart = ({ stats }: { stats: statsType | undefined }) => {
               ]}
               tickFormatter={(tick) => tick.toLocaleString()}
             />
-            <YAxis
-              yAxisId="right"
-              orientation="right"
-              dataKey="partialMatch"
-              domain={[0, (dataMax: number) => dataMax * 5]}
-              tickFormatter={(tick) => tick.toLocaleString()}
-            />
             <Tooltip />
             <Legend />
             <Bar
               name="Full Matches"
-              yAxisId="left"
               dataKey="fullMatch"
               fill="#2B50AA"
+              stackId="a"
             />
             <Bar
               name="Partial Matches"
-              yAxisId="right"
               dataKey="partialMatch"
               fill="#A9BDEE"
+              stackId="a"
             />
           </BarChart>
         </ResponsiveContainer>
