@@ -194,6 +194,12 @@ export default {
         "contractFetchAddress": "https://snowtrace.io/" + ETHERSCAN_SUFFIX,
         "txRegex": ETHERSCAN_REGEX
     },
+    "57": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer.syscoin.org/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
     "5700": {
         "supported": true,
         "monitored": false,
@@ -252,6 +258,18 @@ export default {
         "supported": true,
         "monitored": false,
         "contractFetchAddress": "https://evmexplorer.velas.com/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "1313161554": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer.mainnet.aurora.dev/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "1313161555": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer.testnet.aurora.dev/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
 }
