@@ -9,6 +9,7 @@ const ETHERSCAN_SUFFIX = "address/${ADDRESS}";
 const BLOCKSCOUT_REGEX = "transaction_hash_link\" href=\"${BLOCKSCOUT_PREFIX}/tx/(.*?)\"";
 const BLOCKSCOUT_SUFFIX = "address/${ADDRESS}/transactions";
 const TELOS_SUFFIX = "v2/evm/get_contract?contract=${ADDRESS}";
+const METER_SUFFIX="api/accounts/${ADDRESS}"
 
 type ChainGroup = "eth" | "polygon";
 
@@ -120,8 +121,14 @@ export default {
     "82": {
         "supported": true,
         "monitored": false,
-        "contractFetchAddress": "https://scan.meter.io/" + ETHERSCAN_SUFFIX,
-        "txRegex": ETHERSCAN_REGEX
+        "contractFetchAddress": "https://api.meter.io:8000/" + METER_SUFFIX,
+        "isMeter": true,
+    },
+    "83":{
+        "supported":true,
+        "monitored":false,
+        "contractFecthAddress":"https://api.meter.io:4000/" + METER_SUFFIX,
+        "isMeter":true,
     },
     "97": {
         "supported": true,
