@@ -491,7 +491,7 @@ const LandingPage = () => {
       </section>
 
       <footer className="px-48 py-16 bg-ceruleanBlue-500 text-white text-xl">
-        <nav className="font-mono grid grid-cols-3 gap-8">
+        <nav className="font-vt323 grid grid-cols-3 gap-8">
           <div>
             <h3 className="uppercase font-bold text-ceruleanBlue-100">
               Internal Links
