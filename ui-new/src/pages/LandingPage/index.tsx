@@ -27,7 +27,7 @@ import walleth from "../../assets/integrations/walleth.png";
 import AppIconName from "../../components/AppIconName";
 import Button from "../../components/Button";
 import Header from "../../components/Header";
-import { REPOSITORY_URL_FULL_MATCH } from "../../constants";
+import { DOCS_URL, REPOSITORY_URL_FULL_MATCH } from "../../constants";
 import ChartSection from "./ChartSection";
 import sourceCode from "./Contract.sol";
 import CustomCarousel from "./CustomCarousel";
@@ -92,7 +92,7 @@ const LandingPage = () => {
               <Link to="/verifier">
                 <Button>Verify Contract</Button>
               </Link>
-              <Link to="/fetcher">
+              <Link to="/lookup">
                 <Button type="secondary">Lookup Contract</Button>
               </Link>
             </div>
@@ -304,7 +304,7 @@ const LandingPage = () => {
         </div>
         <div className="flex justify-center">
           <a
-            href="/docs/networks"
+            href={`${DOCS_URL}/docs/networks`}
             target="_blank"
             rel="noreferrer"
             // className="underline decoration-lightCoral-500 decoration-2 font-semibold text-ceruleanBlue-500"
@@ -386,7 +386,7 @@ const LandingPage = () => {
             Do you want to integrate Sourcify into your project?
           </h3>
           <div className="flex justify-center">
-            <a href="/docs" target="_blank" rel="noreferrer">
+            <a href={DOCS_URL} target="_blank" rel="noreferrer">
               <Button>Check Docs</Button>
             </a>
             <a
@@ -498,7 +498,7 @@ const LandingPage = () => {
             </h3>
             <ul>
               <FooterItem href="/verifier">Contract Verifier</FooterItem>
-              <FooterItem href="/fetcher">Contract Fetcher</FooterItem>
+              <FooterItem href="/lookup">Contract Fetcher</FooterItem>
               <FooterItem href="">Status Page</FooterItem>
               <FooterItem href="">About</FooterItem>
             </ul>
