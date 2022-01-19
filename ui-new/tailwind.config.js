@@ -3,7 +3,6 @@ module.exports = {
   theme: {
     fontFamily: {
       sans: ["IBM Plex Sans", "Roboto", "sans-serif"],
-      mono: ["VT323", "monospace"],
     },
     extend: {
       colors: {
@@ -31,8 +30,8 @@ module.exports = {
         },
       },
       minHeight: {
-        '96': '350px',
-      }
+        96: "350px",
+      },
     },
   },
   variants: {

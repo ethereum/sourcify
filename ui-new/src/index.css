@@ -25,6 +25,12 @@ html {
   scroll-behavior: smooth;
 }
 
+.font-vt323 {
+  /* Font VT323 is looks smaller in same pt or px setting than others. Try to keep the fonts same size in case it falls back to default monospace font */
+  font-family: "VT323", monospace;
+  font-size-adjust: 0.4;
+}
+
 #root {
   min-height: 100vh;
 }
