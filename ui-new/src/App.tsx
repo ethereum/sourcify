@@ -1,7 +1,7 @@
 import React from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import Fetcher from "./pages/Fetcher";
 import LandingPage from "./pages/LandingPage";
+import Lookup from "./pages/Lookup";
 import Verifier from "./pages/Verifier";
 
 function App() {
@@ -10,7 +10,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/verifier" element={<Verifier />} />
-          <Route path="/fetcher" element={<Fetcher />} />
+          <Route path="/lookup" element={<Lookup />} />
           <Route path="/" element={<LandingPage />} />
         </Routes>
       </BrowserRouter>

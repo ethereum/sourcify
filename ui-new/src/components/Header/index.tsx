@@ -4,6 +4,7 @@ import { ReactComponent as Github } from "../../assets/icons/github.svg";
 import { ReactComponent as Matrix } from "../../assets/icons/matrix.svg";
 import { ReactComponent as Twitter } from "../../assets/icons/twitter.svg";
 import logoText from "../../assets/logo-rounded.svg";
+import { DOCS_URL } from "../../constants";
 
 const Header = () => {
   return (
@@ -44,7 +45,7 @@ const Header = () => {
           </Link>
           <a
             className="link-underline mx-2 my-2 md:mx-6 hover:text-ceruleanBlue-500"
-            href="/docs"
+            href={DOCS_URL}
             target="_blank"
             rel="noreferrer"
           >
@@ -69,7 +70,7 @@ const Header = () => {
             rel="noreferrer"
             data-tip="Twitter"
           >
-            <Twitter className="h-4 md:h-6 w-auto fill-gray-700 500" />
+            <Twitter className="h-[0.95rem] md:h-[1.4rem] w-auto fill-gray-700 500" />
           </a>
           <a
             className="pl-2 hover-to-fill"
