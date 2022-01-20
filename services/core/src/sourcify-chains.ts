@@ -122,13 +122,11 @@ export default {
         "supported": true,
         "monitored": false,
         "contractFetchAddress": "https://api.meter.io:8000/" + METER_SUFFIX,
-        "isMeter": true,
     },
     "83":{
         "supported":true,
         "monitored":false,
-        "contractFecthAddress":"https://api.meter.io:4000/" + METER_SUFFIX,
-        "isMeter":true,
+        "contractFetchAddress":"https://api.meter.io:4000/" + METER_SUFFIX,
     },
     "97": {
         "supported": true,
@@ -217,13 +215,11 @@ export default {
         "supported": true,
         "monitored": false,
         "contractFetchAddress": "https://mainnet.telos.net/" + TELOS_SUFFIX,
-        "isTelos": true
     },
     "41": {
         "supported": true,
         "monitored": false,
         "contractFetchAddress": "https://testnet.telos.net/" + TELOS_SUFFIX,
-        "isTelos": true
     },
     "8": {
         "supported": true,

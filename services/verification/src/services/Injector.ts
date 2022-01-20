@@ -23,8 +23,6 @@ class InjectorChain {
     graphQLFetchAddress: string;
     txRegex: string;
     archiveWeb3: Web3;
-    isTelos: boolean;
-    isMeter: boolean;
 
     constructor(chain: Chain) {
         this.web3array = [];
@@ -323,7 +321,8 @@ export class Injector {
             }
         }
 
-        if (txFetchAddress && this.chains[chain].isTelos) {
+        // Telos
+        if (txFetchAddress && ( chain == "40" || chain == "41")) {
             txFetchAddress = txFetchAddress.replace("${ADDRESS}", contractAddress);
             for (const web3 of this.chains[chain].web3array) {
                 this.log.info({ loc, chain, contractAddress, fetchAddress: txFetchAddress }, "Querying Telos API");
@@ -336,7 +335,8 @@ export class Injector {
             
         }
 
-        if (txFetchAddress && this.chains[chain].isMeter){
+        // Meter network
+        if (txFetchAddress && (chain == "83" || chain == "82")){
             txFetchAddress = txFetchAddress.replace("${ADDRESS}", contractAddress);
             for (const web3 of this.chains[chain].web3array){
                 this.log.info({loc, chain, contractAddress, fetchAddress: txFetchAddress}, "Querying Meter API")
