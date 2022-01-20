@@ -1,7 +1,7 @@
 import Web3 from 'web3';
 import * as bunyan from 'bunyan';
 import { Match, InputData, getSupportedChains, getFullnodeChains, Logger, IFileService, FileService, StringMap, cborDecode, CheckedContract, MatchQuality, Chain, Status } from '@ethereum-sourcify/core';
-import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint, getCreationDataFromArchive, getCreationDataByScraping, getCreationDataFromGraphQL, getCreationDataTelos } from '../utils';
+import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint, getCreationDataFromArchive, getCreationDataByScraping, getCreationDataFromGraphQL, getCreationDataTelos, getCreationDataMeter } from '../utils';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const multihashes: any = require('multihashes');
 
@@ -23,7 +23,6 @@ class InjectorChain {
     graphQLFetchAddress: string;
     txRegex: string;
     archiveWeb3: Web3;
-    isTelos: boolean;
 
     constructor(chain: Chain) {
         this.web3array = [];
@@ -322,7 +321,8 @@ export class Injector {
             }
         }
 
-        if (txFetchAddress && this.chains[chain].isTelos) {
+        // Telos
+        if (txFetchAddress && ( chain == "40" || chain == "41")) {
             txFetchAddress = txFetchAddress.replace("${ADDRESS}", contractAddress);
             for (const web3 of this.chains[chain].web3array) {
                 this.log.info({ loc, chain, contractAddress, fetchAddress: txFetchAddress }, "Querying Telos API");
@@ -333,6 +333,19 @@ export class Injector {
                 } 
             }
             
+        }
+
+        // Meter network
+        if (txFetchAddress && (chain == "83" || chain == "82")){
+            txFetchAddress = txFetchAddress.replace("${ADDRESS}", contractAddress);
+            for (const web3 of this.chains[chain].web3array){
+                this.log.info({loc, chain, contractAddress, fetchAddress: txFetchAddress}, "Querying Meter API")
+                try{
+                    return await getCreationDataMeter(txFetchAddress, web3);
+                }catch(err:any){
+                    this.log.error({ loc, chain, contractAddress, err: err.message }, "Meter API failed!");
+                }
+            }
         }
 
         const graphQLFetchAddress = this.chains[chain].graphQLFetchAddress;
