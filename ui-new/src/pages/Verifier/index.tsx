@@ -102,8 +102,8 @@ const Verifier: React.FC = () => {
       <div className="text-center">
         <h1 className="text-3xl md:text-4xl font-bold">Verifier</h1>
         <p className="mt-2">
-          Recompile contracts and check if the compiled bytecode matches with
-          the on-chain bytecode
+          Verify smart contracts by recompiling with the Solidity source code
+          and metadata.
         </p>
       </div>
       <div className="flex flex-col md:flex-row flex-grow mt-6">
