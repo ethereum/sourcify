@@ -82,6 +82,13 @@ const Header = () => {
             <Matrix className="h-4 md:h-6 w-auto fill-gray-700 hover:fill-ceruleanBlue-500" />
           </a>
         </div>
+        <Link
+          className="link-underline mx-2 my-2 md:mx-6 hover:text-ceruleanBlue-500"
+          to="/status"
+          data-tip="Server status: working"
+        >
+          ✅
+        </Link>
       </div>
     </header>
   );

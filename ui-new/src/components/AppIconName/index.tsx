@@ -9,7 +9,7 @@ const AppIconName = ({ img, name, href, rounded }: AppIconNameProps) => (
     href={href}
     target="_blank"
     rel="noreferrer"
-    className="flex flex-col mr-12 my-2 hover:text-ceruleanBlue-500"
+    className="flex flex-col mx-6 my-2 hover:text-ceruleanBlue-500"
   >
     <img
       src={img}
