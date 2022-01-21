@@ -57,7 +57,7 @@ const Chart = ({ stats }: { stats: statsType | undefined }) => {
         </span>{" "}
         contracts verified on Ethereum networks so far!
       </h2>
-      <div className="h-72 md:h-96 lg:h-[36rem] w-11/12">
+      <div className="h-72 md:h-96 lg:h-[30rem] w-11/12 max-w-2xl my-8">
         <ResponsiveContainer>
           <BarChart
             // width={700}
@@ -91,7 +91,7 @@ const Chart = ({ stats }: { stats: statsType | undefined }) => {
             <Bar
               name="Partial Matches"
               dataKey="partialMatch"
-              fill="#A9BDEE"
+              fill="#7693DA"
               stackId="a"
             />
           </BarChart>
@@ -124,7 +124,7 @@ const ChartSection = () => {
         <h2 className="my-4 text-2xl font-bold text-lightCoral-500 text-center">
           Including:
         </h2>
-        <div className="flex flex-row mt-8 flex-wrap logos-container">
+        <div className="flex flex-row mt-8 flex-wrap items-center justify-center logos-container">
           <AppIconName
             img={uniswap}
             name="Uniswap"
