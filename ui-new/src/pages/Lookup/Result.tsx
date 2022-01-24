@@ -58,6 +58,85 @@ const chainToName = (chainId: any) => {
   return ID_TO_CHAIN[chainId]?.label;
 };
 
+type MatchStatusProps = {
+  status: string;
+};
+const PerfectMatchInfoText = (
+  <span>
+    A perfect match indicates the Solidity source code does not deviate a single
+    byte from the source code when deployed. <br /> See{" "}
+    <a
+      href="https://docs.sourcify.dev/docs/full-vs-partial-match"
+      className="underline cursor"
+      target="_blank"
+      rel="noreferrer"
+    >
+      docs
+    </a>{" "}
+    for details.
+  </span>
+);
+const PartialMatchInfoText = (
+  <span>
+    A partial match indicates the Solidity source code functionally corresponds
+    to the deployed contract but some aspects of the source code might differ
+    from the original source code. <br /> See{" "}
+    <a
+      href="https://docs.sourcify.dev/docs/full-vs-partial-match"
+      className="underline cursor"
+      target="_blank"
+      rel="noreferrer"
+    >
+      docs
+    </a>{" "}
+    for details.
+  </span>
+);
+const MatchStatusBadge = ({ status }: MatchStatusProps) => {
+  if (status === "perfect") {
+    return (
+      <>
+        <ReactTooltip
+          effect="solid"
+          delayHide={500}
+          clickable={true}
+          className="max-w-xl"
+          id="perfect-info"
+        />
+        <span
+          className="text-sm px-3 ml-1 py-1.5 capitalize bg-green-600 text-white font-medium rounded-full"
+          data-tip={renderToString(PerfectMatchInfoText)}
+          data-html={true}
+          data-for="perfect-info"
+        >
+          {status} match
+        </span>
+      </>
+    );
+  }
+  if (status === "partial") {
+    return (
+      <>
+        <ReactTooltip
+          effect="solid"
+          delayHide={500}
+          clickable={true}
+          className="max-w-xl"
+          id="partial-info"
+        />
+        <span
+          className="text-sm px-3 ml-1 py-1.5 capitalize bg-[#969f19] text-white font-medium rounded-full"
+          data-tip={renderToString(PartialMatchInfoText)}
+          data-html={true}
+          data-for="partial-info"
+        >
+          {status} match
+        </span>
+      </>
+    );
+  }
+  return null;
+};
 const NetworkRow = ({ address, chainId, status }: NetworkRowProp) => {
   return (
     <tr className="border-b hover:bg-gray-100">
@@ -66,7 +145,9 @@ const NetworkRow = ({ address, chainId, status }: NetworkRowProp) => {
       pl-4"
       >
         <span className="text-lg font-bold">{chainToName(chainId)}</span>{" "}
-        <small className="ml-1 text-xs inline">({status})</small>
+      </td>
+      <td>
+        <MatchStatusBadge status={status} />
       </td>
       <td className="py-4 text-right">
         <a
@@ -110,12 +191,22 @@ const InfoText = (
 const Found = ({ response }: FoundProp) => {
   return (
     <div className="flex flex-col justify-center">
-      <ReactTooltip effect="solid" delayHide={500} clickable={true} />
+      <ReactTooltip
+        effect="solid"
+        delayHide={500}
+        clickable={true}
+        className="max-w-xl"
+        id="verified-info"
+      />
       <div className="mx-20 mt-1">
         <p>
           The contract at address{" "}
           <span className="font-medium">{response?.address}</span> is{" "}
-          <span data-html={true} data-tip={renderToString(InfoText)}>
+          <span
+            data-tip={renderToString(InfoText)}
+            data-html={true}
+            data-for="verified-info"
+          >
             verified
             <HiOutlineInformationCircle className="inline text-gray-600 text-lg" />
           </span>{" "}
