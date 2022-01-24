@@ -26,11 +26,8 @@ const GithubInput = ({
     let zipUrl;
     if (!e.target.value) return setError("");
     try {
-      // Add trailing slash to e.target.value
-      zipUrl = new URL(
-        "archive/refs/heads/master.zip",
-        e.target.value.replace(/\/?$/, "/")
-      ).href;
+      // Add trailing slash to e.target.value i.e. example.com ==> example.com/
+      zipUrl = new URL(e.target.value).href;
       setIsLoading(true);
     } catch (_) {
       return setError("Enter a valid URL");
@@ -48,7 +45,7 @@ const GithubInput = ({
         disabled={isLoading}
         value={url}
         onChange={handleUrlChange}
-        placeholder="https://github.com/Uniswap/v3-core"
+        placeholder="https://github.com/Uniswap/v3-core/archive/refs/heads/main.zip"
       />
     </>
   );
