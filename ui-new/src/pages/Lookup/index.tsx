@@ -1,13 +1,13 @@
 import { useState } from "react";
 import Header from "../../components/Header";
+import Toast from "../../components/Toast";
+import { CHAIN_IDS_STR } from "../../constants";
+import { CheckAllByAddressResult } from "../../types";
+import { checkAllByAddresses } from "../../utils/api";
 import Field from "./Field";
 import Result from "./Result";
-import Toast from "../../components/Toast";
-import { checkAllByAddresses } from "../../utils/api";
-import { CheckAllByAddressResult } from "../../types";
-import { CHAIN_IDS_STR } from "../../constants";
 
-const Fetcher = () => {
+const Lookup = () => {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [response, setResponse] = useState<CheckAllByAddressResult | undefined>(
@@ -18,6 +18,7 @@ const Fetcher = () => {
     setLoading(true);
     try {
       const result = await checkAllByAddresses(address, CHAIN_IDS_STR);
+      console.log(result);
       const currentAddressMatches = result.find(
         (match) => (match.address = address)
       );
@@ -35,7 +36,7 @@ const Fetcher = () => {
   };
 
   return (
-    <div className="flex flex-col flex-1 pb-8 px-8 md:px-12 lg:px-24 h-full">
+    <div className="flex flex-col flex-grow pb-8 px-8 md:px-12 lg:px-24">
       <Header />
       <Toast
         message={errorMessage}
@@ -43,14 +44,13 @@ const Fetcher = () => {
         dismiss={() => setErrorMessage("")}
       />
       <div className="text-center">
-        <h1 className="text-3xl md:text-4xl font-bold">Fetcher</h1>
+        <h1 className="text-3xl md:text-4xl font-bold">Contract Lookup</h1>
         <p className="mt-2">
-          Check if the contract at the given address and chain is verified on
-          Sourcify
+          Check if the contract at the given address is verified on Sourcify
         </p>
       </div>
-      <div className="flex flex-col h-full justify-center md:flex-row flex-grow mt-6">
-        <div className="pt-1 min-h-96 bg-ceruleanBlue-500 flex w-3/5 rounded-xl mx-2 mb-4 md:mb-0">
+      <div className="flex flex-col flex-grow items-center justify-center mt-6">
+        <div className="pt-1 bg-ceruleanBlue-500 flex w-full rounded-xl mx-2 mb-4 md:mb-0">
           {!!response ? (
             <Result response={response} setResponse={setResponse} />
           ) : (
@@ -62,4 +62,4 @@ const Fetcher = () => {
   );
 };
 
-export default Fetcher;
+export default Lookup;
