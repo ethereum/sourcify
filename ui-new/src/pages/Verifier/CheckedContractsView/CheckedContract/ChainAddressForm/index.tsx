@@ -1,3 +1,4 @@
+import { isAddress } from "@ethersproject/address";
 import React, { ChangeEventHandler, FormEventHandler, useState } from "react";
 import Input from "../../../../../components/Input";
 import NetworkSelect from "../../../../../components/NetworkSelect";
@@ -33,7 +34,7 @@ const ChainAddressForm = ({
   const handleAddressChange: ChangeEventHandler<HTMLInputElement> = (e) => {
     const tempAddr = e.target.value;
     setAddress(tempAddr);
-    const isValid = /^0x[0-9a-fA-F]{40}$/.test(tempAddr);
+    const isValid = isAddress(tempAddr);
     if (!isValid) {
       setFoundMatches(undefined);
       return setIsInvalidAddress(true);

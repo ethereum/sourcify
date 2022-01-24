@@ -23,8 +23,8 @@ const Lookup = () => {
         (match) => (match.address = address)
       );
       setResponse(currentAddressMatches);
-    } catch (err) {
-      setErrorMessage("An error occurred, try again!");
+    } catch (err: any) {
+      setErrorMessage(err.message || "An error occurred, try again!");
       <Toast
         message={errorMessage}
         isShown={!!errorMessage}
