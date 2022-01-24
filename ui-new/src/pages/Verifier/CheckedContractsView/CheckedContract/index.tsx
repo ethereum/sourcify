@@ -60,7 +60,7 @@ const CheckedContract: React.FC<CheckedContractProps> = ({
       {/* Contract item header */}
       <button
         onClick={toggleCollapseWrapper}
-        className="flex flex-row justify-between w-full bg-ceruleanBlue-400 rounded-md text-white p-4"
+        className="flex flex-row justify-between w-full bg-ceruleanBlue-500 rounded-md text-white p-4"
       >
         <h2 className="font-bold text-lg break-all text-left mr-1">
           {checkedContract.name}

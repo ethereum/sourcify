@@ -116,15 +116,11 @@ const Verifier: React.FC = () => {
           restartSession={restartSession}
           fetchAndUpdate={fetchAndUpdate}
         />
-        {/* {checkedContracts.length > 0 && ( */}
-        {/* <div className={`${checkedContracts.length > 0 ? "w-auto" : "w-0"}`}> */}
         <CheckedContractsView
           checkedContracts={checkedContracts}
           isHidden={checkedContracts.length < 1}
           verifyCheckedContract={verifyCheckedContract}
         />
-        {/* </div> */}
-        {/* )} */}
       </div>
     </div>
   );

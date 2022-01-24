@@ -50,7 +50,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
         </div>
         <div className="flex flex-grow flex-col pb-8">
           <div className="mt-4">
-            <p className="">Import from Github repository</p>
+            <p className="">Import from remote file or zip</p>
             <div className="mt-1">
               <GithubInput
                 fetchAndUpdate={fetchAndUpdate}
