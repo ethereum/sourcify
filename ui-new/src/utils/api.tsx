@@ -2,14 +2,14 @@ import { SERVER_URL } from "../constants";
 import { CheckAllByAddressResult } from "../types";
 
 type ChainIdsResponse = {
-  chainId: string,
-  status: string
-}
+  chainId: string;
+  status: string;
+};
 
 export type ServersideAddressCheck = {
-  address: string,
-  status: string,
-  chainIds?: ChainIdsResponse[]
+  address: string;
+  status: string;
+  chainIds?: ChainIdsResponse[];
 };
 
 export const checkAllByAddresses = async (
@@ -21,7 +21,15 @@ export const checkAllByAddresses = async (
     {
       method: "GET",
     }
-  ).then((res) => res.json());
+  ).then((res) => {
+    if (!res.ok) {
+      // e.g. HTTP 400 invalid address
+      return res.json().then((json) => {
+        throw new Error(json.message);
+      });
+    }
+    return res.json();
+  });
 
   return response;
 };
