@@ -1,3 +1,5 @@
+/* eslint-disable no-useless-escape */
+
 import * as dotenv from 'dotenv';
 import path from 'path';
 
@@ -43,5 +45,8 @@ export default {
         maxAge: parseInt(process.env.SESSION_MAX_AGE, 10) || (12 * 60 * 60 * 1000), // 12 hrs in millis
         secure: !process.env.RUNNING_LOCALLY && !process.env.TESTING
     },
-    corsAllowedOrigins: RegExp(`^https?://(?:.+\\.)?(localhost|sourcify.dev)(:\\d+)?$`)
+    corsAllowedOrigins: [
+        /^https?:\/\/(?:.+\.)?sourcify.dev$/, // sourcify.dev and subdomains
+        process.env.NODE_ENV === "development" && /^https?:\/\/localhost(?::\d+)?$/, // localhost on any port
+    ]
 }

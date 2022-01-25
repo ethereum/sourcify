@@ -121,10 +121,11 @@ export async function  addRemoteFile(query: QueryString.ParsedQs): Promise<PathB
     }
     if(!res.ok)
         throw new BadRequestError("Couldn't fetch from " + query.url)
-    const fileName =  res.headers.get('Content-Disposition').split('filename=')[1];
+    // Save with the fileName exists on server response header.
+    const fileName =  res.headers.get('Content-Disposition')?.split('filename=')[1] || query.url.substring(query.url.lastIndexOf('/')+1) || "file"
     const buffer = await res.buffer();
     return [{
-        path: fileName || 'file',
+        path: fileName,
         buffer
     }]
 }

@@ -137,7 +137,8 @@ export class CheckedContract {
 
         for (const invalidSourceName in this.invalid) {
             msgLines.push(`    ${invalidSourceName}:`);
-            msgLines.push(`      ${this.invalid[invalidSourceName]}`);
+            msgLines.push(`      expectedHash: ${this.invalid[invalidSourceName].expectedHash}`);
+            msgLines.push(`      calculatedHash: ${this.invalid[invalidSourceName].calculatedHash}`);
         }
 
         const foundSourcesNumber = Object.keys(this.solidity).length;
