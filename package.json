@@ -31,7 +31,7 @@
     "server:start": "node ./dist/server/server.js",
     "server:test": "tsc && TESTING=true LOCALCHAIN_URL=http://localhost:8545 SERVER_PORT=2000 node ./dist/server/server.js ./repository",
     "cli:test": "npm run build && ./node_modules/.bin/mocha test/sourcify.js",
-    "build:lerna": "lerna run build"
+    "build:clean": "rm -rf node_modules/ services/verification/node_modules/ services/validation/node_modules/ services/core/node_modules/ && npx lerna bootstrap && npx lerna run build"
   },
   "keywords": [
     "ethereum",
