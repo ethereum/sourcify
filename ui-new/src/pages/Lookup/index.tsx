@@ -46,7 +46,7 @@ const Lookup = () => {
       <div className="text-center">
         <h1 className="text-3xl md:text-4xl font-bold">Contract Lookup</h1>
         <p className="mt-2">
-          Check if the contract at the given address is verified on Sourcify
+          Look for verified contracts in the Sourcify repository
         </p>
       </div>
       <div className="flex flex-col flex-grow items-center justify-center mt-6">
