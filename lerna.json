@@ -9,6 +9,6 @@
       "npmClientArgs": ["--no-package-lock"]
     }
   },
-  "packages": [".", "ui-new", "services/*"],
+  "packages": [".", "services/*"],
   "version": "0.1.5"
 }
