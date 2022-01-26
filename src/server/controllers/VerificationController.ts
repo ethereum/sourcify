@@ -8,7 +8,7 @@ import { IValidationService } from '@ethereum-sourcify/validation';
 import * as bunyan from 'bunyan';
 import fileUpload from 'express-fileupload';
 import { isValidAddress } from '../../common/validators/validators';
-import { MySession, getSessionJSON, generateId, isVerifiable, SendableContract, ContractWrapperMap, updateUnused, MyRequest } from './VerificationController-util';
+import { MySession, getSessionJSON, generateId, isVerifiable, SendableContract, ContractWrapperMap, updateUnused, MyRequest, addRemoteFile } from './VerificationController-util';
 import { StatusCodes } from 'http-status-codes';
 import { body, query, validationResult } from 'express-validator';
 import web3utils from "web3-utils";
@@ -304,12 +304,12 @@ export default class VerificationController extends BaseController implements IC
         }
     }
 
-    private extractFilesFromForm(files: any) {
+    private extractFilesFromForm(files: any): PathBuffer[] {
         const fileArr: fileUpload.UploadedFile[] = [].concat(files); // ensure an array, regardless of how many files received
         return fileArr.map(f => ({ path: f.name, buffer: f.data }));
     }
     
-    private extractFilesFromJSON(files: any) {
+    private extractFilesFromJSON(files: any): PathBuffer[] {
         const inputFiles = [];
         for (const name in files) {
             const file = files[name];
@@ -351,7 +351,12 @@ export default class VerificationController extends BaseController implements IC
 
     private addInputFilesEndpoint = async (req: Request, res: Response) => {
         this.validateRequest(req);
-        const inputFiles = this.extractFiles(req, true);
+        let inputFiles: PathBuffer[];
+        if (req.query.url) {
+            inputFiles = await addRemoteFile(req.query)
+        } else {
+            inputFiles = this.extractFiles(req, true);
+        }
         const pathContents: PathContent[] = inputFiles.map(pb => {
             return { path: pb.path, content: pb.buffer.toString(FILE_ENCODING) }
         });
@@ -427,7 +432,7 @@ export default class VerificationController extends BaseController implements IC
         
         this.router.route('/input-files')
             .post(this.safeHandler(this.addInputFilesEndpoint));
-
+        
         this.router.route('/restart-session')
             .post(this.safeHandler(this.restartSessionEndpoint));
 

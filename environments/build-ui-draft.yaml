@@ -5,3 +5,8 @@ services:
     build:
       context: ../ui-draft
       dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      - REACT_APP_SERVER_URL=${SERVER_URL}
+      - REACT_APP_REPOSITORY_URL=${REPOSITORY_URL}

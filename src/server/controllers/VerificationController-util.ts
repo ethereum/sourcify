@@ -1,7 +1,12 @@
 import { Request } from 'express';
 import { Session } from 'express-session';
-import { PathContent, CheckedContract, isEmpty } from '@ethereum-sourcify/core';
+import { PathContent, CheckedContract, isEmpty, StringMap, PathBuffer } from '@ethereum-sourcify/core';
 import Web3 from 'web3';
+import { MissingSources } from '@ethereum-sourcify/core';
+import { InvalidSources } from '@ethereum-sourcify/core';
+import QueryString from 'qs';
+import { BadRequestError } from '../../common/errors';
+import fetch from 'node-fetch';
 
 export interface PathContentMap {
     [id: string]: PathContent;
@@ -54,7 +59,8 @@ export type SendableContract =
     ContractMeta & {
     files: {
         found: string[],
-        missing: string[]
+        missing: MissingSources,
+        invalid: InvalidSources
     },
     verificationId?: string
 }
@@ -77,8 +83,9 @@ function getSendableContract(contractWrapper: ContractWrapper, verificationId: s
         address: contractWrapper.address,
         chainId: contractWrapper.chainId,
         files: {
-            found: Object.keys(contract.solidity),
-            missing: Object.keys(contract.missing).concat(Object.keys(contract.invalid))
+            found: Object.keys(contract.solidity), // Source paths
+            missing: contract.missing,
+            invalid: contract.invalid
         },
         status: contractWrapper.status || "error",
         statusMessage: contractWrapper.statusMessage,
@@ -88,14 +95,39 @@ function getSendableContract(contractWrapper: ContractWrapper, verificationId: s
 
 export function getSessionJSON(session: MySession) {
     const contractWrappers = session.contractWrappers || {};
-    const contracts: SendableContract[] = [];
+    const contracts: SendableContract[] = [];    
     for (const id in contractWrappers) {
         const sendableContract = getSendableContract(contractWrappers[id], id);
         contracts.push(sendableContract);
     }
 
+    const files: string[] = [];
+    for (const id in session.inputFiles) {
+        files.push(session.inputFiles[id].path)
+    }
     const unused = session.unusedSources || [];
-    return { contracts, unused };
+    return { contracts, unused, files };
+}
+
+export async function  addRemoteFile(query: QueryString.ParsedQs): Promise<PathBuffer[]> {
+    if (typeof query.url !== 'string') {
+        throw new BadRequestError("Query url must be a string")
+    }
+    let res;
+    try { 
+        res = await fetch(query.url);
+    } catch (err) {
+        throw new BadRequestError("Couldn't fetch from " + query.url)
+    }
+    if(!res.ok)
+        throw new BadRequestError("Couldn't fetch from " + query.url)
+    // Save with the fileName exists on server response header.
+    const fileName =  res.headers.get('Content-Disposition')?.split('filename=')[1] || query.url.substring(query.url.lastIndexOf('/')+1) || "file"
+    const buffer = await res.buffer();
+    return [{
+        path: fileName,
+        buffer
+    }]
 }
 
 export function generateId(obj: any): string {

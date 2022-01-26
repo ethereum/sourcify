@@ -1,13 +1,10 @@
-FROM node:14-alpine as builder
+FROM node:16-alpine AS builder
 
-# RUN apk update && apk upgrade && \
-#     apk add --no-cache curl
+RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
+WORKDIR /home/node/app
+COPY --chown=node:node . ./
+RUN npm install 
+RUN npm run build
 
-ARG WORKSPACE_DIR=/app
-WORKDIR ${WORKSPACE_DIR}
-COPY . ${WORKSPACE_DIR}
-RUN npm ci
-
-EXPOSE 1234
-
-CMD ["npm", "run", "start"]
+FROM nginx:alpine
+COPY --from=builder /home/node/app/build /usr/share/nginx/html
