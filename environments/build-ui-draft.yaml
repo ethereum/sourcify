@@ -6,7 +6,7 @@ services:
       context: ../ui-draft
       dockerfile: Dockerfile
     env_file:
-      - .env
+      - .env.stable # get SERVER_URL and REPOSITORY_URL from .env.stable
     environment:
       - REACT_APP_SERVER_URL=${SERVER_URL}
       - REACT_APP_REPOSITORY_URL=${REPOSITORY_URL}
