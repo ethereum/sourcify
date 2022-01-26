@@ -527,12 +527,12 @@ describe("Server", function () {
       123
     );
 
-    verifyContractWithImmutables(
-      "0x66ec3fBf4D7d7B7483Ae4fBeaBDD6022037bfa1a",
-      "44787",
-      "Alfajores Celo",
-      777
-    );
+    // verifyContractWithImmutables(
+    //   "0x66ec3fBf4D7d7B7483Ae4fBeaBDD6022037bfa1a",
+    //   "44787",
+    //   "Alfajores Celo",
+    //   777
+    // );
 
     verifyContractWithImmutables(
       "0xD222286c59c0B9c8D06Bac42AfB7B8CB153e7Bf7",
