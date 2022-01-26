@@ -6,7 +6,9 @@ services:
       context: ../ui-draft
       dockerfile: Dockerfile
     env_file:
-      - .env.stable # get SERVER_URL and REPOSITORY_URL from .env.stable
+      - ./environments/.env.latest # get SERVER_URL and REPOSITORY_URL from .env.latest
     environment:
       - REACT_APP_SERVER_URL=${SERVER_URL}
       - REACT_APP_REPOSITORY_URL=${REPOSITORY_URL}
+    ports:
+      - "${UI_DRAFT_EXTERNAL_PORT}:80"
