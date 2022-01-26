@@ -19,7 +19,7 @@ import polygon from "../../assets/chains/polygon.webp";
 import xdai from "../../assets/chains/xdai.png";
 import blockscout from "../../assets/integrations/blockscout.png";
 import ethSdk from "../../assets/integrations/eth-sdk.png";
-import hardhatDeploy from "../../assets/integrations/hardhat-deploy.jpeg";
+import HardhatDeploy from "../../assets/integrations/hardhat-deploy";
 import keystone from "../../assets/integrations/keystone.png";
 import otter from "../../assets/integrations/otter.jpg";
 import remix from "../../assets/integrations/remix.png";
@@ -365,7 +365,7 @@ const LandingPage = () => {
             </h2>
             <div className="flex flex-row mt-8 logos-container">
               <AppIconName
-                img={hardhatDeploy}
+                Svg={HardhatDeploy}
                 name="hardhat-deploy"
                 href="https://github.com/wighawag/hardhat-deploy#5-hardhat-sourcify"
               />
