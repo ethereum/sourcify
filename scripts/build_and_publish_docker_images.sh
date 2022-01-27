@@ -15,6 +15,9 @@ fi
 echo $TAG
 echo $SERVICE
 
+# For variables passed build time in build-ui-draft.yam
+cp environments/.env.$TAG environments/.env
+
 docker login --username $DOCKER_USER --password $DOCKER_PASS
 docker-compose -f environments/build-$SERVICE.yaml build
 docker push ethereum/source-verify:$SERVICE-$TAG

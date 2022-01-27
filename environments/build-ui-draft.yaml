@@ -5,10 +5,8 @@ services:
     build:
       context: ../ui-draft
       dockerfile: Dockerfile
-    env_file:
-      - ./environments/.env.latest # get SERVER_URL and REPOSITORY_URL from .env.latest
-    environment:
-      - REACT_APP_SERVER_URL=${SERVER_URL}
-      - REACT_APP_REPOSITORY_URL=${REPOSITORY_URL}
-    ports:
-      - "${UI_DRAFT_EXTERNAL_PORT}:80"
+      # Pass SERVER_URL and REPOSITORY_URL to be injected build time.
+      # Will be set in .env (see scripts/build_and_publish_docker_images.sh)
+      args:
+        - SERVER_URL=$SERVER_URL
+        - REPOSITORY_URL=$REPOSITORY_URL
