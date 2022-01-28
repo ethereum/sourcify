@@ -9,6 +9,7 @@ const ETHERSCAN_SUFFIX = "address/${ADDRESS}";
 const BLOCKSCOUT_REGEX = "transaction_hash_link\" href=\"${BLOCKSCOUT_PREFIX}/tx/(.*?)\"";
 const BLOCKSCOUT_SUFFIX = "address/${ADDRESS}/transactions";
 const TELOS_SUFFIX = "v2/evm/get_contract?contract=${ADDRESS}";
+const METER_SUFFIX="api/accounts/${ADDRESS}"
 
 type ChainGroup = "eth" | "polygon";
 
@@ -120,8 +121,12 @@ export default {
     "82": {
         "supported": true,
         "monitored": false,
-        "contractFetchAddress": "https://scan.meter.io/" + ETHERSCAN_SUFFIX,
-        "txRegex": ETHERSCAN_REGEX
+        "contractFetchAddress": "https://api.meter.io:8000/" + METER_SUFFIX,
+    },
+    "83":{
+        "supported":true,
+        "monitored":false,
+        "contractFetchAddress":"https://api.meter.io:4000/" + METER_SUFFIX,
     },
     "97": {
         "supported": true,
@@ -194,6 +199,12 @@ export default {
         "contractFetchAddress": "https://snowtrace.io/" + ETHERSCAN_SUFFIX,
         "txRegex": ETHERSCAN_REGEX
     },
+    "57": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer.syscoin.org/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
     "5700": {
         "supported": true,
         "monitored": false,
@@ -204,13 +215,11 @@ export default {
         "supported": true,
         "monitored": false,
         "contractFetchAddress": "https://mainnet.telos.net/" + TELOS_SUFFIX,
-        "isTelos": true
     },
     "41": {
         "supported": true,
         "monitored": false,
         "contractFetchAddress": "https://testnet.telos.net/" + TELOS_SUFFIX,
-        "isTelos": true
     },
     "8": {
         "supported": true,
@@ -252,6 +261,18 @@ export default {
         "supported": true,
         "monitored": false,
         "contractFetchAddress": "https://evmexplorer.velas.com/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "1313161554": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer.mainnet.aurora.dev/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "1313161555": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer.testnet.aurora.dev/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
 }
