@@ -1,9 +1,10 @@
 import bunyan from 'bunyan';
 import Web3 from 'web3';
-import { StringMap, SourceMap, PathBuffer, PathContent, CheckedContract } from '@ethereum-sourcify/core';
+import { StringMap, SourceMap, PathBuffer, PathContent, CheckedContract, InvalidSources } from '@ethereum-sourcify/core';
 import AdmZip from 'adm-zip';
 import fs from 'fs';
 import Path from 'path';
+import { MissingSources } from '@ethereum-sourcify/core';
 
 /**
  * Regular expression matching metadata nested within another json.
@@ -228,33 +229,38 @@ export class ValidationService implements IValidationService {
      */
     private rearrangeSources(metadata: any, byHash: Map<string, PathContent>) {
         const foundSources: StringMap = {};
-        const missingSources: any = {};
-        const invalidSources: StringMap = {};
+        const missingSources: MissingSources = {};
+        const invalidSources: InvalidSources = {};
         const metadata2provided: StringMap = {}; // maps fileName as in metadata to the fileName of the provided file
 
-        for (const fileName in metadata.sources) {
-            const sourceInfo = metadata.sources[fileName];
+        for (const sourcePath in metadata.sources) {
+            const sourceInfo = metadata.sources[sourcePath];
             let file: PathContent = { content: undefined };
             file.content = sourceInfo.content;
-            const hash: string = sourceInfo.keccak256;
+            const expectedHash: string = sourceInfo.keccak256;
+            // Check sources.[sourceName].content in metadata 
             if (file.content) {
-                if (Web3.utils.keccak256(file.content) != hash) {
-                    const msg = "The calculated and the provided hash values don't match.";
-                    invalidSources[fileName] = msg;
+                const contentHash = Web3.utils.keccak256(file.content)
+                if (contentHash != expectedHash) {
+                    invalidSources[sourcePath] = {
+                        expectedHash: expectedHash,
+                        calculatedHash: contentHash,
+                        msg: "The calculated and the expected hash values don't match in metadata."
+                    }
                     continue;
                 }
             } else {
-                const pathContent = byHash.get(hash);
+                const pathContent = byHash.get(expectedHash);
                 if (pathContent) {
                     file = pathContent;
-                    metadata2provided[fileName] = pathContent.path;
+                    metadata2provided[sourcePath] = pathContent.path;
                 } // else: no file has the hash that was searched for
             }
 
             if (file && file.content) {
-                foundSources[fileName] = file.content;
+                foundSources[sourcePath] = file.content;
             } else {
-                missingSources[fileName] = { keccak256: hash, urls: sourceInfo.urls };
+                missingSources[sourcePath] = { keccak256: expectedHash, urls: sourceInfo.urls };
             }
         }
 
