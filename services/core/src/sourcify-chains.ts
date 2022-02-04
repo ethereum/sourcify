@@ -275,4 +275,16 @@ export default {
         "contractFetchAddress": "https://explorer.testnet.aurora.dev/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
+    "17": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://exp.metachain.asia/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "35": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://exp.xchain.asia/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
 }
