@@ -280,5 +280,17 @@ export default {
         "monitored": false,
         "contractFetchAddress": "https://devnet-explorer.gather.network/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
+    },
+    "356256156": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://testnet-explorer.gather.network/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "192837465": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer.gather.network/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
     }
 }
