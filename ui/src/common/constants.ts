@@ -33,6 +33,8 @@ export const CHAIN_OPTIONS = [
     {value: "aurora mainnet", label: "Aurora Mainnet", id: 1313161554 },
     {value: "aurora testnet", label: "Aurora Testnet", id: 1313161555 },
     {value: "gather devnet", label: "Gather Devnet", id: 486217935 },
+    {value: "gather testnet", label: "Gather Testnet", id: 356256156 },
+    {value: "gather mainnet", label: "Gather Mainnet", id: 192837465 }
 ];
 
 export const ID_TO_CHAIN = {};
