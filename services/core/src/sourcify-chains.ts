@@ -275,4 +275,22 @@ export default {
         "contractFetchAddress": "https://explorer.testnet.aurora.dev/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
+    "1284": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://moonbeam.moonscan.io/" + ETHERSCAN_SUFFIX,
+        "txRegex": ETHERSCAN_REGEX
+    },
+    "1285": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://moonriver.moonscan.io/" + ETHERSCAN_SUFFIX,
+        "txRegex": ETHERSCAN_REGEX
+    },
+    "1287": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://moonbase.moonscan.io/" + ETHERSCAN_SUFFIX,
+        "txRegex": ETHERSCAN_REGEX
+    },
 }
