@@ -32,6 +32,10 @@ export const CHAIN_OPTIONS = [
     {value: "meter testnet", label: "Meter Testnet", id: 83},
     {value: "aurora mainnet", label: "Aurora Mainnet", id: 1313161554 },
     {value: "aurora testnet", label: "Aurora Testnet", id: 1313161555 },
+    {value: "harmony shard 0", label: "Harmony Shard 0", id: 1666600000 },
+    {value: "harmony shard 1", label: "Harmony Shard 1", id: 1666600001 },
+    {value: "harmony shard 2", label: "Harmony Shard 2", id: 1666600002 },
+    {value: "harmony shard 3", label: "Harmony Shard 3", id: 1666600003 },
 ];
 
 export const ID_TO_CHAIN = {};

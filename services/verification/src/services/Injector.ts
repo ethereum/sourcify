@@ -1,7 +1,7 @@
 import Web3 from 'web3';
 import * as bunyan from 'bunyan';
 import { Match, InputData, getSupportedChains, getFullnodeChains, Logger, IFileService, FileService, StringMap, cborDecode, CheckedContract, MatchQuality, Chain, Status } from '@ethereum-sourcify/core';
-import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint, getCreationDataFromArchive, getCreationDataByScraping, getCreationDataFromGraphQL, getCreationDataTelos, getCreationDataMeter } from '../utils';
+import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint, getCreationDataFromArchive, getCreationDataByScraping, getCreationDataFromGraphQL, getCreationDataTelos, getCreationDataMeter, getCreationDataHarmony } from '../utils';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const multihashes: any = require('multihashes');
 
@@ -339,11 +339,25 @@ export class Injector {
         if (txFetchAddress && (chain == "83" || chain == "82")){
             txFetchAddress = txFetchAddress.replace("${ADDRESS}", contractAddress);
             for (const web3 of this.chains[chain].web3array){
-                this.log.info({loc, chain, contractAddress, fetchAddress: txFetchAddress}, "Querying Meter API")
-                try{
+                this.log.info({ loc, chain, contractAddress, fetchAddress: txFetchAddress }, "Querying Meter API")
+                try {
                     return await getCreationDataMeter(txFetchAddress, web3);
-                }catch(err:any){
+                } catch(err:any){
                     this.log.error({ loc, chain, contractAddress, err: err.message }, "Meter API failed!");
+                }
+            }
+        }
+        
+        // Harmony network
+        if (txFetchAddress && (chain == "1666600000" || chain == "1666600001" || chain == "1666600002" || chain == "1666600003")){
+            const shard = Number(chain) - 1666600000;
+            txFetchAddress = txFetchAddress.replace("${SHARD}", shard.toString()).replace("${ADDRESS}", contractAddress);
+            for (const web3 of this.chains[chain].web3array){
+                this.log.info({ loc, chain, contractAddress, fetchAddress: txFetchAddress }, "Querying Harmony API")
+                try {
+                    return await getCreationDataHarmony(txFetchAddress, web3);
+                } catch(err:any){
+                    this.log.error({ loc, chain, contractAddress, err: err.message }, "Harmony API failed!");
                 }
             }
         }

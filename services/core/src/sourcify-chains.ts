@@ -9,7 +9,8 @@ const ETHERSCAN_SUFFIX = "address/${ADDRESS}";
 const BLOCKSCOUT_REGEX = "transaction_hash_link\" href=\"${BLOCKSCOUT_PREFIX}/tx/(.*?)\"";
 const BLOCKSCOUT_SUFFIX = "address/${ADDRESS}/transactions";
 const TELOS_SUFFIX = "v2/evm/get_contract?contract=${ADDRESS}";
-const METER_SUFFIX="api/accounts/${ADDRESS}"
+const METER_SUFFIX = "api/accounts/${ADDRESS}"
+const HARMONY_SUFFIX = "v0/shard/${SHARD}/address/${ADDRESS}/contract"
 
 type ChainGroup = "eth" | "polygon";
 
@@ -275,4 +276,24 @@ export default {
         "contractFetchAddress": "https://explorer.testnet.aurora.dev/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
+    "1666600000": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer-v2-api.hmny.io/" + HARMONY_SUFFIX 
+    },
+    "1666600001": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer-v2-api.hmny.io/" + HARMONY_SUFFIX 
+    },
+    "1666600002": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer-v2-api.hmny.io/" + HARMONY_SUFFIX 
+    },
+    "1666600003": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer-v2-api.hmny.io/" + HARMONY_SUFFIX 
+    }
 }

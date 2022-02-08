@@ -324,6 +324,10 @@ In order to fetch from the staging repository, replace https://repo.sourcify.dev
 - Meter Mainnet
 - Aurora Mainnet
 - Aurora Testnet
+- Harmony Shard 0
+- Harmony Shard 1
+- Harmony Shard 2
+- Harmony Shard 3
 
 ## Adding a new chain
 

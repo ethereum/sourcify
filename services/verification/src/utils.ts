@@ -360,7 +360,7 @@ export async function getCreationDataTelos(fetchAddress: string, web3: Web3): Pr
         }
     }
 
-    throw new Error(`Creation data could not be scraped from ${fetchAddress}`);
+    throw new Error(`Creation data could not be fetched from ${fetchAddress}`);
 }
 
 export async function getCreationDataMeter(fetchAddress: string, web3: Web3): Promise<string> {
@@ -374,7 +374,21 @@ export async function getCreationDataMeter(fetchAddress: string, web3: Web3): Pr
         }
     }
 
-    throw new Error(`Creation data could not be scraped from ${fetchAddress}`);
+    throw new Error(`Creation data could not be fetched from ${fetchAddress}`);
+}
+
+export async function getCreationDataHarmony(fetchAddress: string, web3: Web3): Promise<string> {
+    const res = await fetch(fetchAddress);
+    if (res.status === StatusCodes.OK) {
+        const response = await res.json();
+        if (response.transactionHash) {
+            const txHash = response.transactionHash;
+            const tx = await web3.eth.getTransaction(txHash);
+            return tx.input;
+        }
+    }
+
+    throw new Error(`Creation data could not be fetched from ${fetchAddress}`);
 }
 
 
