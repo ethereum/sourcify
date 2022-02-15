@@ -275,4 +275,10 @@ export default {
         "contractFetchAddress": "https://explorer.testnet.aurora.dev/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
+    "555": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://exp.velaverse.io/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
 }
