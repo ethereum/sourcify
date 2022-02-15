@@ -12,12 +12,18 @@ const NO_PAUSE = 0;
 class Subscription {
     sourceAddress: SourceAddress;
     fetchUrl: string;
+    fallbackFetchUrl: string;
     beingProcessed = false;
     subscribers: Array<FetchedFileCallback> = [];
 
-    constructor(sourceAddress: SourceAddress, fetchUrl: string) {
+    constructor(sourceAddress: SourceAddress, fetchUrl: string, fallbackFetchUrl?: string) {
         this.sourceAddress = sourceAddress;
         this.fetchUrl = fetchUrl;
+        this.fallbackFetchUrl = fallbackFetchUrl;
+    }
+    
+    useFallbackUrl() {
+        this.fetchUrl = this.fallbackFetchUrl;
     }
 }
 
@@ -36,7 +42,7 @@ declare interface TimestampMap {
  */
 export default class SourceFetcher {
     gatewayFetchers = [
-        new GatewayFetcher(new SimpleGateway("ipfs", process.env.IPFS_URL || "https://ipfs.infura.io:5001/api/v0/cat?arg=")),
+        new GatewayFetcher(new SimpleGateway("ipfs", process.env.IPFS_URL || "https://ipfs.infura.io:5001/api/v0/cat?arg=", "https://ipfs.ethdevops.io/ipfs/")),
         new GatewayFetcher(new SimpleGateway(["bzzr0", "bzzr1"], "https://swarm-gateways.net/bzz-raw:/"))
     ]
 
@@ -137,25 +143,57 @@ class GatewayFetcher {
         }
 
         subscription.beingProcessed = true;
-        const fetchUrl = subscription.fetchUrl;
-        nodeFetch(fetchUrl, { timeout: this.fetchTimeout }).then(resp => {
+        nodeFetch(subscription.fetchUrl, { timeout: this.fetchTimeout })
+        .then(resp => {
             resp.text().then(text => {
                 if (resp.status === StatusCodes.OK) {
                     this.notifySubscribers(sourceHash, text);
-
                 } else {
                     this.logger.error({
                         loc: "[SOURCE_FETCHER:FETCH_FAILED]",
-                        gateway: this.gateway.baseUrl,
+                        fetchUrl: subscription.fetchUrl,
                         status: resp.status,
                         statusText: resp.statusText,
                         sourceHash
                     }, text);
                 }
             });
+        })
+        .catch(err => {
+            this.logger.error(
+                { loc: "[SOURCE_FETCHER:FETCH_FAILED]", fetchUrl: subscription.fetchUrl },
+                err.message
+            )
+            if (!subscription.fallbackFetchUrl) {
+                return Promise.resolve();
+            }
+            // fall back to external ipfs gateway
+            subscription.useFallbackUrl();
+            this.logger.info({
+                loc: "[SOURCE_FETCHER:FALLBACK]",
+                fetchUrl: subscription.fetchUrl,
+                id: sourceHash,
+                subscribers: subscription.subscribers.length
+            }, "Using the fallback gateway");
+            return nodeFetch(subscription.fetchUrl, { timeout: this.fetchTimeout }).then(resp => {
+                resp.text().then(text => {
+                    if (resp.status === StatusCodes.OK) {
+                        this.notifySubscribers(sourceHash, text);
+                    } else {
+                        this.logger.error({
+                            loc: "[SOURCE_FETCHER:FETCH_FAILED]",
+                            fetchUrl: subscription.fetchUrl,
+                            status: resp.status,
+                            statusText: resp.statusText,
+                            sourceHash
+                        }, text);
+                    }
+                });
 
-        }).catch(err => this.logger.error(
-            { loc: "[SOURCE_FETCHER]", gateway: this.gateway.baseUrl, fetchUrl },
+            })
+        })
+        .catch(err => this.logger.error(
+            { loc: "[SOURCE_FETCHER]", fetchUrl: subscription.fetchUrl },
             err.message
         )).finally(() => {
             subscription.beingProcessed = false;
@@ -180,7 +218,7 @@ class GatewayFetcher {
 
         this.logger.info({
             loc: "[SOURCE_FETCHER:NOTIFY]",
-            gateway: this.gateway.baseUrl,
+            fetchUrl: subscription.fetchUrl,
             id,
             subscribers: subscription.subscribers.length
         }, "Fetching successful");
@@ -195,9 +233,11 @@ class GatewayFetcher {
     subscribe(sourceAddress: SourceAddress, callback: FetchedFileCallback): void {
         const sourceHash = sourceAddress.getSourceHash();
         const fetchUrl = this.gateway.createUrl(sourceAddress.id);
-
+        let fallbackFetchUrl;
+        if (this.gateway.fallbackUrl) 
+            fallbackFetchUrl = this.gateway.createFallbackUrl(sourceAddress.id)
         if (!(sourceHash in this.subscriptions)) {
-            this.subscriptions[sourceHash] = new Subscription(sourceAddress, fetchUrl);
+            this.subscriptions[sourceHash] = new Subscription(sourceAddress, fetchUrl, fallbackFetchUrl);
             this.fileCounter++;
         }
 
@@ -207,7 +247,7 @@ class GatewayFetcher {
         this.subscriptionCounter++;
         this.logger.info({
             loc: "[SOURCE_FETCHER:NEW_SUBSCRIPTION]",
-            gateway: this.gateway.baseUrl,
+            fetchUrl: this.subscriptions[sourceHash].fetchUrl,
             sourceHash,
             filesPending: this.fileCounter,
             subscriptions: this.subscriptionCounter
@@ -224,6 +264,7 @@ class GatewayFetcher {
         if (!subscription) {
             return;
         }
+        const fetchUrl = subscription.fetchUrl;
 
         const subscribers = Object.keys(subscription.subscribers);
         const subscriptionsDelta = subscribers.length;
@@ -235,7 +276,7 @@ class GatewayFetcher {
         this.subscriptionCounter -= subscriptionsDelta;
         this.logger.info({
             loc: "[SOURCE_FETCHER:CLEANUP]",
-            gateway: this.gateway.baseUrl,
+            fetchUrl: fetchUrl,
             sourceHash,
             filesPending: this.fileCounter,
             subscriptions: this.subscriptionCounter

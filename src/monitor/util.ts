@@ -37,7 +37,7 @@ export class SourceAddress {
     }
 
     /**
-     * @returns a unique identifier of this source address
+     * @returns a unique identifier of this source address of format ipfs-QmawU3NM1WNWkBauRudYCiFvuFE1tTLHB98akyBvb9UWwA
      */
     getSourceHash(): string {
         return this.origin + "-" + this.id;
