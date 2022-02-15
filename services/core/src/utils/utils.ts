@@ -133,6 +133,8 @@ export function reformatMetadata(
     let fileName = '';
     let contractName = '';
 
+    // check for inliner in solvJSONINput and remove it
+    // check version in meta data, before checking the one above
     solcJsonInput.settings = JSON.parse(JSON.stringify(metadata.settings));
 
     if (!metadata.settings ||
@@ -146,6 +148,12 @@ export function reformatMetadata(
 
     for (fileName in metadata.settings.compilationTarget) {
         contractName = metadata.settings.compilationTarget[fileName];
+    }
+
+    if (metadata.version >= "0.8.2" && metadata.version <= "0.8.4") {
+        if (solcJsonInput.inliner) {
+            delete solcJsonInput.settings.optimizer.details.inliner
+        }
     }
 
     delete solcJsonInput.settings.compilationTarget;
