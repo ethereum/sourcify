@@ -184,7 +184,7 @@ export default {
     "42161": {
         "supported": true,
         "monitored": true,
-        "contractFetchAddress": "https://arbiscan.io" + ETHERSCAN_SUFFIX,
+        "contractFetchAddress": "https://arbiscan.io/" + ETHERSCAN_SUFFIX,
         "txRegex": ETHERSCAN_REGEX
     },
     "43113": {
