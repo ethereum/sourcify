@@ -162,6 +162,27 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Mocha - Networks",
+      "program": "${workspaceRoot}/node_modules/.bin/mocha",
+      "env": {
+        "TESTING": "true",
+        "LOCALCHAIN_URL": "http://localhost:8545"
+      },
+      "args": [
+        "-r",
+        "ts-node/register",
+        "${workspaceFolder}/test/networks/network-tests.js",
+        "--no-timeout",
+        // Run a single test when debugging
+        // "--grep=Baklava",
+        "--exit",
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Mocha - Injector",
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "env": {
