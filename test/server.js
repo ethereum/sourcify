@@ -527,12 +527,12 @@ describe("Server", function () {
       123
     );
 
-    verifyContractWithImmutables(
-      "0x66ec3fBf4D7d7B7483Ae4fBeaBDD6022037bfa1a",
-      "44787",
-      "Alfajores Celo",
-      777
-    );
+    // verifyContractWithImmutables(
+    //   "0x66ec3fBf4D7d7B7483Ae4fBeaBDD6022037bfa1a",
+    //   "44787",
+    //   "Alfajores Celo",
+    //   777
+    // );
 
     verifyContractWithImmutables(
       "0xD222286c59c0B9c8D06Bac42AfB7B8CB153e7Bf7",
@@ -727,7 +727,7 @@ describe("Server", function () {
           },
         })
         .then((res) => {
-          assertAddressAndChainMissing(res, ["browser/1_Storage.sol"], []);
+          assertAddressAndChainMissing(res, ["browser/1_Storage.sol"], {});
           done();
         });
     });
@@ -742,7 +742,7 @@ describe("Server", function () {
           const contracts = assertAddressAndChainMissing(
             res,
             ["browser/1_Storage.sol"],
-            []
+            {}
           );
           contracts[0].address = contractAddress;
           contracts[0].chainId = contractChain;
@@ -930,7 +930,16 @@ describe("Server", function () {
         .post("/input-files")
         .attach("files", modifiedMetadataBuffer)
         .then((res) => {
-          assertAddressAndChainMissing(res, [], ["browser/1_Storage.sol"]);
+          assertAddressAndChainMissing(res, [], {
+            "browser/1_Storage.sol": {
+              keccak256:
+                "0xaedc7086ad8503907209f50bac1e4dc6c2eca2ed41b15d03740fea748ea3f88e",
+              urls: [
+                "bzz-raw://4bc331951c25951321cb29abbd689eb3af669530222c6bb2d45ff45334ee83a7",
+                "dweb:/ipfs/QmWb1NQ6Pw8ZLMFX8uDjMyftgcEieT9iP2TvWisPhjN3Ua",
+              ],
+            },
+          });
           done();
         });
     });
@@ -941,7 +950,7 @@ describe("Server", function () {
         .post("/input-files")
         .attach("files", metadataBuffer)
         .then((res) => {
-          assertAddressAndChainMissing(res, ["browser/1_Storage.sol"], []);
+          assertAddressAndChainMissing(res, ["browser/1_Storage.sol"], {});
           done();
         });
     });
@@ -955,7 +964,7 @@ describe("Server", function () {
           const contracts = assertAddressAndChainMissing(
             res,
             ["browser/1_Storage.sol"],
-            []
+            {}
           );
           contracts[0].address = contractAddress;
           contracts[0].chainId = contractChain;
@@ -998,7 +1007,7 @@ describe("Server", function () {
 
           const contract = res.body.contracts[0];
           chai.expect(contract.files.found).to.have.lengthOf(0);
-          chai.expect(contract.files.missing).to.have.lengthOf(2);
+          chai.expect(Object.keys(contract.files.missing)).to.have.lengthOf(2);
 
           agent
             .post("/input-files")
@@ -1010,7 +1019,9 @@ describe("Server", function () {
 
               const contract = res.body.contracts[0];
               chai.expect(contract.files.found).to.have.lengthOf(1);
-              chai.expect(contract.files.missing).to.have.lengthOf(1);
+              chai
+                .expect(Object.keys(contract.files.missing))
+                .to.have.lengthOf(1);
 
               done();
             });

@@ -31,6 +31,7 @@
     "server:start": "node ./dist/server/server.js",
     "server:test": "tsc && TESTING=true LOCALCHAIN_URL=http://localhost:8545 SERVER_PORT=2000 node ./dist/server/server.js ./repository",
     "cli:test": "npm run build && ./node_modules/.bin/mocha test/sourcify.js",
+    "build:clean": "rm -rf node_modules/ services/verification/node_modules/ services/validation/node_modules/ services/core/node_modules/ && npx lerna bootstrap && npx lerna run build",
     "build:lerna": "lerna run build"
   },
   "keywords": [
@@ -77,11 +78,11 @@
     "@types/node": "^14.11.2",
     "@types/request-promise-native": "^1.0.17",
     "@types/serve-index": "^1.7.30",
-    "@typescript-eslint/eslint-plugin": "^4.6.1",
-    "@typescript-eslint/parser": "^4.6.1",
+    "@typescript-eslint/eslint-plugin": "^5.7.0",
+    "@typescript-eslint/parser": "^5.7.0",
     "chai": "^4.2.0",
     "chai-http": "^4.3.0",
-    "eslint": "^7.13.0",
+    "eslint": "^8.5.0",
     "ganache-cli": "^6.10.1",
     "ipfs-core": "^0.12.2",
     "ipfs-unixfs": "^1.0.0",

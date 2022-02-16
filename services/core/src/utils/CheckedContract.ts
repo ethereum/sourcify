@@ -2,6 +2,7 @@ import Web3 from 'web3';
 import { StringMap, Metadata, InfoErrorLogger } from './types';
 import { isEmpty, reformatMetadata } from './utils';
 import fetch from 'node-fetch';
+import { InvalidSources, MissingSources } from '..';
 
 const IPFS_PREFIX = "dweb:/ipfs/";
 const IPFS_URL = process.env.IPFS_URL || 'https://ipfs.infura.io:5001/api/v0/cat?arg=';
@@ -21,10 +22,10 @@ export class CheckedContract {
     solidity: StringMap;
 
     /** Object containing the information about missing source files. */
-    missing: any;
+    missing: MissingSources;
 
     /** Contains the invalid source files. */
-    invalid: StringMap;
+    invalid: InvalidSources;
 
     /** Object containing input for solc when used with the --standard-json flag. */
     standardJson: any;
@@ -50,7 +51,7 @@ export class CheckedContract {
             && isEmpty(contract.invalid);
     }
 
-    public constructor(metadata: any, solidity: StringMap, missing: any = {}, invalid: StringMap = {}) {
+    public constructor(metadata: any, solidity: StringMap, missing: MissingSources = {}, invalid: InvalidSources = {}) {
         this.metadataRaw = JSON.stringify(metadata);
         this.metadata = JSON.parse(JSON.stringify(metadata));
         this.solidity = solidity;
@@ -117,7 +118,8 @@ export class CheckedContract {
         for (const missingSourceName in this.missing) {
             msgLines.push(`    ${missingSourceName}:`);
             const missingSourceProps = this.missing[missingSourceName];
-            for (const prop in missingSourceProps) {
+            let prop: keyof typeof missingSourceProps;
+            for (prop in missingSourceProps) {
                 const propValue = missingSourceProps[prop];
                 if (Array.isArray(propValue)) {
                     propValue.forEach((elem: string) => {
@@ -135,7 +137,8 @@ export class CheckedContract {
 
         for (const invalidSourceName in this.invalid) {
             msgLines.push(`    ${invalidSourceName}:`);
-            msgLines.push(`      ${this.invalid[invalidSourceName]}`);
+            msgLines.push(`      expectedHash: ${this.invalid[invalidSourceName].expectedHash}`);
+            msgLines.push(`      calculatedHash: ${this.invalid[invalidSourceName].calculatedHash}`);
         }
 
         const foundSourcesNumber = Object.keys(this.solidity).length;
