@@ -130,6 +130,7 @@ export function reformatMetadata(
 ): ReformattedMetadata {
 
     const solcJsonInput: any = {};
+    const inlinerAffectedVersions = ['0.8.2+commit.661d1103', '0.8.3+commit.8d00100c', '0.8.4+commit.c7e474f2']
     let fileName = '';
     let contractName = '';
 
@@ -150,8 +151,8 @@ export function reformatMetadata(
         contractName = metadata.settings.compilationTarget[fileName];
     }
 
-    if (metadata.version >= "0.8.2" && metadata.version <= "0.8.4") {
-        if (solcJsonInput.inliner) {
+    if (inlinerAffectedVersions.includes(metadata.compiler.version)) {
+        if (solcJsonInput.settings?.optimizer?.details?.inliner) {
             delete solcJsonInput.settings.optimizer.details.inliner
         }
     }
