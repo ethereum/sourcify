@@ -14,6 +14,11 @@ const ethers = require("ethers");
 
 const TEST_TIME = 30000; // 30 seconds
 
+// Extract the chainId from new network support pull request, if exists
+const newAddedChainId = process.env.NEW_CHAIN_ID;
+console.log("newAddedChainId");
+console.log(newAddedChainId);
+
 chai.use(chaiHttp);
 
 describe("Test Supported Networks", function () {
@@ -403,6 +408,8 @@ describe("Test Supported Networks", function () {
     relativeSourcePathsArray, // Allow multiple source files
     relativeMetadataPath
   ) {
+    // If it is a pull request for adding new network support, only test the new network
+    if (newAddedChainId && newAddedChainId != chainId) return;
     it(`should verify a contract on ${chainName} (${chainId})`, function (done) {
       const metadataPath = path.join(
         "test",
@@ -443,6 +450,8 @@ describe("Test Supported Networks", function () {
     relativeSourcePathsArray,
     relativeMetadataPath
   ) {
+    // If it is a pull request for adding new network support, only test the new network
+    if (newAddedChainId && newAddedChainId != chainId) return;
     it(`should verify a contract with immutables on ${chainName} (${chainId})`, function (done) {
       const metadataPath = path.join(
         "test",
