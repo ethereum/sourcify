@@ -24,12 +24,17 @@ OUTPUT+="}"
 
 echo $OUTPUT > $REPOSITORY_PATH/stats.json
 
+date
 hash=$(ipfs add -Q -r /app/repository)
 echo "Update successful! New ipfs hash: $hash"
+date
+echo "Garbage collecting"
 # curl -X POST "https://ipfs.komputing.org/api/v0/pin/add?arg=$hash"
 ipfs repo gc --quiet
 echo "Garbage collection done"
+date
 ipfs -D name publish --key=main $hash
 echo "Published hash under ipns key"
+date
 # ENS updater
 # /app/source_verify_ens_updater/bin/source_verify_ens_updater /app/repository
