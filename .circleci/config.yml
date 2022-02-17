@@ -136,7 +136,19 @@ workflows:
           requires:
             - node-v14
             - node-v12
-
+  test-new-network:
+    jobs:
+      - test-new-network
+  test-networks-regularly:
+    jobs:
+      - test-networks
+    triggers:
+      - schedule:
+          cron: "0 9 * * 1" # Every Monday 9 am UTC
+          filters:
+            branches:
+              only:
+                - master
   nightly:
     triggers:
       - schedule:
@@ -211,6 +223,33 @@ jobs:
       - image: circleci/node:12
     environment:
       run_coveralls: "true"
+  test-new-network:
+    working_directory: ~/source-verify
+    steps:
+      - checkout
+      - run:
+          name: install dependencies
+          command: npx lerna bootstrap
+      - run:
+          name: build
+          command: npx lerna run build
+      - run:
+          name: test new network PR
+          command: ./scripts/test_new_network_support.sh
+    docker:
+      - image: circleci/node:14
+  test-networks:
+    working_directory: ~/source-verify
+    steps:
+      - checkout
+      - run:
+          name: install dependencies
+          command: npx lerna bootstrap
+      - run:
+          name: build and test
+          command: npx lerna run build && npx lerna run test:networks
+    docker:
+      - image: circleci/node:14
   monitor-e2e-ropsten:
     <<: *monitor-e2e-base
     environment:
