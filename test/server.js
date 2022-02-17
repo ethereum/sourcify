@@ -179,7 +179,7 @@ describe("Server", function () {
             .request(server.app)
             .post("/")
             .field("address", contractAddress)
-            .field("chain", contractChain
+            .field("chain", contractChain)
             .attach("files", metadataBuffer, "metadata.json")
             .attach("files", sourceBuffer)
             .end((err, res) => {
@@ -437,8 +437,6 @@ describe("Server", function () {
         .attach("files", metadataBuffer, "metadata.json")
         .end((err, res) => assertions(err, res, done, address));
     });
-
-
 
     it("should return 'partial', then delete partial when 'full' match", (done) => {
       const partialMetadataPath = path.join(
