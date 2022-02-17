@@ -140,6 +140,8 @@ workflows:
     jobs:
       - test-new-network
   test-networks-regularly:
+    jobs:
+      - test-networks
     triggers:
       - schedule:
           cron: "0 9 * * 1" # Every Monday 9 am UTC
