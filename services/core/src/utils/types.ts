@@ -128,7 +128,6 @@ export type Chain = {
   rpc: string[],
   faucets: string[],
   infoURL: string,
-  fullnode?: { dappnode: string },
   contractFetchAddress?: string,
   graphQLFetchAddress?: string,
   txRegex?: string,

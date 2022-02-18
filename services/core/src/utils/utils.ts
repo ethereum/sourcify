@@ -39,7 +39,6 @@ function filter(obj: any, predicate: ((c: any) => boolean)): any[] {
 
 const supportedChains = filter(chainMap, c => c.supported);
 const monitoredChains = filter(chainMap, c => c.monitored);
-const fullnodeChains = filter(chainMap, c => c.fullnode);
 
 const TEST_CHAINS: Chain[] = [{
     name: "Localhost",
@@ -67,13 +66,6 @@ export function getSupportedChains(testing = false): Chain[] {
  */
 export function getMonitoredChains(testing = false): Chain[] {
     return testing ? TEST_CHAINS : monitoredChains;
-}
-
-/**
- * Returns the chains with additional means
- */
-export function getFullnodeChains(): Chain[] {
-    return fullnodeChains;
 }
 
 /**
