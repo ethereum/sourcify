@@ -38,9 +38,6 @@ function getBlockscoutRegex(blockscoutPrefix="") {
 
 export default {
     "1": {
-        "fullnode": {
-            "dappnode": "http://geth.dappnode:8545"
-        },
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://etherscan.io/" + ETHERSCAN_SUFFIX,
@@ -52,9 +49,6 @@ export default {
         "archiveWeb3": createArchiveEndpoint("mainnet", "eth", true)
     },
     "3": {
-        "fullnode": {
-            "dappnode": "http://ropsten.dappnode:8545"
-        },
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://ropsten.etherscan.io/" + ETHERSCAN_SUFFIX,
@@ -66,9 +60,6 @@ export default {
         "archiveWeb3": createArchiveEndpoint("ropsten", "eth", true)
     },
     "4": {
-        "fullnode": {
-            "dappnode": "http://rinkeby.dappnode:8545"
-        },
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://rinkeby.etherscan.io/" + ETHERSCAN_SUFFIX,
@@ -80,9 +71,6 @@ export default {
         "archiveWeb3": createArchiveEndpoint("rinkeby", "eth", true)
     },
     "5": {
-        "fullnode": {
-            "dappnode": "http://goerli-geth.dappnode:8545"
-        },
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://goerli.etherscan.io/" + ETHERSCAN_SUFFIX,
@@ -94,9 +82,6 @@ export default {
         "archiveWeb3": createArchiveEndpoint("goerli", "eth", true)
     },
     "42": {
-        "fullnode": {
-            "dappnode": "http://kovan.dappnode:8545"
-        },
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://kovan.etherscan.io/" + ETHERSCAN_SUFFIX,
