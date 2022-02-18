@@ -1,5 +1,6 @@
 // set env vars before Server init
 process.env.MOCK_REPOSITORY = "./mockRepository";
+process.env.MOCK_DATABASE = "./database";
 process.env.TESTING = "true";
 
 const chai = require("chai");
