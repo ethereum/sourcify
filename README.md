@@ -324,7 +324,7 @@ In order to fetch from the staging repository, replace https://repo.sourcify.dev
 - Meter Mainnet
 - Aurora Mainnet
 - Aurora Testnet
-- Pulsechain Testnet
+- PulseChain Testnet
 
 ## Adding a new chain
 
