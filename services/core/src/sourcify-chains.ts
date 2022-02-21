@@ -275,4 +275,10 @@ export default {
         "contractFetchAddress": "https://explorer.testnet.aurora.dev/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
+    "940": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": `https://scan.v2.testnet.pulsechain.com/${BLOCKSCOUT_SUFFIX}`,
+        "txRegex": getBlockscoutRegex(),
+    },
 }

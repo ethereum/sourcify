@@ -32,6 +32,7 @@ export const CHAIN_OPTIONS = [
     {value: "meter testnet", label: "Meter Testnet", id: 83},
     {value: "aurora mainnet", label: "Aurora Mainnet", id: 1313161554 },
     {value: "aurora testnet", label: "Aurora Testnet", id: 1313161555 },
+    {value: "pulsechain testnet", label: "Pulsechain Testnet", id: 940 },
 ];
 
 export const ID_TO_CHAIN = {};
