@@ -345,7 +345,9 @@ export async function getCreationDataByScraping(fetchAddress: string, txRegex: s
             return tx.input;
         }
     }
-
+    if (page.includes("captcha") || page.includes("CAPTCHA")) {
+        throw new Error("Scraping failed because of CAPTCHA requirement at ${fetchAddress}");
+    }
     throw new Error(`Creation data could not be scraped from ${fetchAddress}`);
 }
 
