@@ -29,6 +29,7 @@ describe("Source Fetcher", function () {
     sourceFetcher.subscribe(sourceAddress, (fetchedFileStr) => {
       const jsonFile = JSON.parse(fetchedFileStr);
       console.log(jsonFile.settings.compilationTarget);
+      process.env.IPFS_URL = "http://ipfs.io/ipfs/"; // Set back to correct value
       done();
     });
   });

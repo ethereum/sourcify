@@ -6,7 +6,7 @@ import { InvalidSources, MissingSources } from '..';
 
 const IPFS_PREFIX = "dweb:/ipfs/";
 const IPFS_URL = process.env.IPFS_URL || 'https://ipfs.infura.io:5001/api/v0/cat?arg=';
-const FETCH_TIMEOUT = parseInt(process.env.FETCH_TIMEOUT) || 500; // ms
+const FETCH_TIMEOUT = parseInt(process.env.FETCH_TIMEOUT) || 3000; // ms
 /**
  * Abstraction of a checked solidity contract. With metadata and source (solidity) files.
  * The getInfo method returns the information about compilation or errors encountered while validating the metadata.

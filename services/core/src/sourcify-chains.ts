@@ -4,7 +4,7 @@ import path from 'path';
 
 dotenv.config({ path: path.resolve(__dirname, "..", "..", "..", "environments/.env") });
 
-const ETHERSCAN_REGEX = "at txn <a href='/tx/(.*?)'";
+const ETHERSCAN_REGEX = /at txn\s+<a href='\/tx\/(.*?)'/;
 const ETHERSCAN_SUFFIX = "address/${ADDRESS}";
 const BLOCKSCOUT_REGEX = "transaction_hash_link\" href=\"${BLOCKSCOUT_PREFIX}/tx/(.*?)\"";
 const BLOCKSCOUT_SUFFIX = "address/${ADDRESS}/transactions";
@@ -184,7 +184,7 @@ export default {
     "42161": {
         "supported": true,
         "monitored": true,
-        "contractFetchAddress": "https://arbiscan.io" + ETHERSCAN_SUFFIX,
+        "contractFetchAddress": "https://arbiscan.io/" + ETHERSCAN_SUFFIX,
         "txRegex": ETHERSCAN_REGEX
     },
     "43113": {
