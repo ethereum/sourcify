@@ -63,8 +63,6 @@
       "program": "${workspaceFolder}/node_modules/.bin/mocha",
       "request": "launch",
       "args": [
-        "-r",
-        "ts-node/register",
         "--no-timeout",
         "--colors"
       ],
@@ -93,13 +91,18 @@
       "name": "Mocha - File",
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "args": [
-        "-r",
-        "ts-node/register",
         "--timeout",
         "999999",
         "--colors",
         "${file}"
       ],
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js",
+        "${workspaceFolder}/services/core/build/**/*.js",
+        "${workspaceFolder}/services/validation/build/**/*.js",
+        "${workspaceFolder}/services/verification/build/**/*.js"
+      ],
+      "smartStep": true,
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
     },
@@ -113,11 +116,16 @@
         "LOCALCHAIN_URL": "http://localhost:8545"
       },
       "args": [
-        "-r",
-        "ts-node/register",
         "${workspaceFolder}/test/monitor.js",
         "--no-timeout"
       ],
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js",
+        "${workspaceFolder}/services/core/build/**/*.js",
+        "${workspaceFolder}/services/validation/build/**/*.js",
+        "${workspaceFolder}/services/verification/build/**/*.js"
+      ],
+      "smartStep": true,
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
     },
@@ -134,6 +142,13 @@
         "${workspaceFolder}/services/validation/test/",
         "--exit"
       ],
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js",
+        "${workspaceFolder}/services/core/build/**/*.js",
+        "${workspaceFolder}/services/validation/build/**/*.js",
+        "${workspaceFolder}/services/verification/build/**/*.js"
+      ],
+      "smartStep": true,
       "console": "integratedTerminal",
       "cwd": "${workspaceFolder}/services/validation",
       "internalConsoleOptions": "neverOpen"
@@ -148,16 +163,21 @@
         "LOCALCHAIN_URL": "http://localhost:8545"
       },
       "args": [
-        "-r",
-        "ts-node/register",
         "${workspaceFolder}/test/server.js",
         "--no-timeout",
         // Run a single test when debugging
-        // "--grep=correctly handle when uploaded 0/2 and then 1/2 sources",
+        "--grep=should return true for",
         "--exit",
       ],
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js",
+        "${workspaceFolder}/services/core/build/**/*.js",
+        "${workspaceFolder}/services/validation/build/**/*.js",
+        "${workspaceFolder}/services/verification/build/**/*.js"
+      ],
+      "smartStep": true,
       "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen"
+      // "internalConsoleOptions": "neverOpen"
     },
     {
       "type": "node",
@@ -169,14 +189,19 @@
         "LOCALCHAIN_URL": "http://localhost:8545"
       },
       "args": [
-        "-r",
-        "ts-node/register",
         "${workspaceFolder}/test/networks/network-tests.js",
         "--no-timeout",
         // Run a single test when debugging
         // "--grep=Baklava",
         "--exit",
       ],
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js",
+        "${workspaceFolder}/services/core/build/**/*.js",
+        "${workspaceFolder}/services/validation/build/**/*.js",
+        "${workspaceFolder}/services/verification/build/**/*.js"
+      ],
+      "smartStep": true,
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
     },
@@ -190,11 +215,16 @@
         "LOCALCHAIN_URL": "http://localhost:8545"
       },
       "args": [
-        "-r",
-        "ts-node/register",
         "${workspaceFolder}/test/injector.js",
         "--no-timeout"
       ],
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js",
+        "${workspaceFolder}/services/core/build/**/*.js",
+        "${workspaceFolder}/services/validation/build/**/*.js",
+        "${workspaceFolder}/services/verification/build/**/*.js"
+      ],
+      "smartStep": true,
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
     },
@@ -210,6 +240,7 @@
       "outFiles": [
         "${workspaceFolder}/services/validation/build/**/*.js"
       ],
+      "smartStep": true,
       "args": [
         "services/validation/test/files/single/1_Storage.sol",
         "services/validation/test/files/single/metadata.json"
@@ -224,6 +255,7 @@
       ],
       "program": "${workspaceFolder}/services/validation/build/index.js",
       "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
+      "smartStep": true,
       "outFiles": [
         "${workspaceFolder}/services/validation/build/**/*.js"
       ],
@@ -240,6 +272,7 @@
       ],
       "program": "${workspaceFolder}/services/validation/build/index.js",
       "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
+      "smartStep": true,
       "outFiles": [
         "${workspaceFolder}/services/validation/build/**/*.js"
       ],
@@ -256,6 +289,7 @@
       ],
       "program": "${workspaceFolder}/services/validation/build/index.js",
       "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
+      "smartStep": true,
       "outFiles": [
         "${workspaceFolder}/services/validation/build/**/*.js"
       ],
@@ -272,6 +306,7 @@
       ],
       "program": "${workspaceFolder}/services/validation/build/index.js",
       "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
+      "smartStep": true,
       "outFiles": [
         "${workspaceFolder}/services/validation/build/**/*.js"
       ],
@@ -288,6 +323,7 @@
       ],
       "program": "${workspaceFolder}/services/validation/build/index.js",
       "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
+      "smartStep": true,
       "outFiles": [
         "${workspaceFolder}/services/validation/build/**/*.js"
       ],
@@ -304,6 +340,7 @@
       ],
       "program": "${workspaceFolder}/services/validation/build/index.js",
       "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
+      "smartStep": true,
       "outFiles": [
         "${workspaceFolder}/services/validation/build/**/*.js"
       ],
@@ -325,6 +362,7 @@
       ],
       "program": "${workspaceFolder}/services/validation/build/index.js",
       "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
+      "smartStep": true,
       "outFiles": [
         "${workspaceFolder}/services/validation/build/**/*.js"
       ],
@@ -344,6 +382,7 @@
       ],
       "program": "${workspaceFolder}/services/validation/build/index.js",
       "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
+      "smartStep": true,
       "outFiles": [
         "${workspaceFolder}/services/validation/build/**/*.js"
       ],
@@ -360,6 +399,7 @@
       ],
       "program": "${workspaceFolder}/services/validation/build/index.js",
       "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
+      "smartStep": true,
       "outFiles": [
         "${workspaceFolder}/services/validation/build/**/*.js"
       ],
@@ -394,6 +434,7 @@
       ],
       "program": "${workspaceFolder}/services/verification/build/index.js",
       "preLaunchTask": "tsc: build - services/verification/tsconfig.json",
+      "smartStep": true,
       "outFiles": [
         "${workspaceFolder}/services/verification/build/**/*.js"
       ],
