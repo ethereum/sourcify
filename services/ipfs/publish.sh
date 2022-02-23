@@ -26,7 +26,7 @@ echo $OUTPUT > $REPOSITORY_PATH/stats.json
 
 date
 echo "Starting ipfs add"
-hash=$(ipfs -D add -Q -r --fscache --nocopy /root/.ipfs/repository)
+hash=$(ipfs add -Q -r --fscache --nocopy /root/.ipfs/repository)
 echo "Finished ipfs add! New ipfs hash: $hash"
 date
 echo "Publishing hash under ipns key"
