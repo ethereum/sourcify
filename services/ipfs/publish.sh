@@ -25,7 +25,7 @@ OUTPUT+="}"
 echo $OUTPUT > $REPOSITORY_PATH/stats.json
 
 date
-hash=$(ipfs add -Q -r --fscache /app/repository)
+hash=$(ipfs add -Q -r --fscache --nocopy /app/repository)
 echo "Update successful! New ipfs hash: $hash"
 date
 echo "Garbage collecting"
