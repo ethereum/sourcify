@@ -34,7 +34,7 @@ source /app/.env
 
 ipfs key import main /app/ipfs-${TAG}.key 
 
-ipfs daemon --enable-pubsub-experiment --enable-namesys-pubsub &
+ipfs daemon --enable-pubsub-experiment --enable-namesys-pubsub --enable-gc &
 
 # Start the run once job.
 echo "Docker container has been started"
