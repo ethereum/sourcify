@@ -166,7 +166,7 @@
         "${workspaceFolder}/test/server.js",
         "--no-timeout",
         // Run a single test when debugging
-        "--grep=should return true for",
+        // "--grep=should return true for",
         "--exit",
       ],
       "outFiles": [

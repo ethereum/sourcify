@@ -1,8 +1,10 @@
-pragma solidity >=0.4.22 <0.7.0;
-// This line makes everything different
+// SPDX-License-Identifier: GPL-3.0
+
+pragma solidity >=0.7.0 <0.9.0;
+
 /**
  * @title Storage
- * @dev Store & retreive value in a variable
+ * @dev Store & retrieve value in a variable
  */
 contract Storage {
 
@@ -20,7 +22,7 @@ contract Storage {
      * @dev Return value 
      * @return value of 'number'
      */
-    function retreive() public view returns (uint256){
+    function retrieve() public view returns (uint256){
         return number;
     }
 }
