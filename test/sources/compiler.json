@@ -1,6 +1,7 @@
 {
   "contracts": "*",
-  "solcVersion": "0.6.0",
+  "contractsDir": "../networks/sources/shared",
+  "solcVersion": "0.7.4+commit.3f05b770",
   "compilerSettings": {
     "optimizer": { "enabled": false },
     "outputSelection": {
