@@ -58,6 +58,10 @@ function filter(obj: any, predicate: ((c: any) => boolean)): any[] {
     return arr;
 }
 
+export function getSourcifyChains(): Chain[] {
+    return filter(chainMap, c => c.supported !== undefined)
+}
+
 export function getSupportedChains(): Chain[] {
     return filter(chainMap, c => c.supported);
 }

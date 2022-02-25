@@ -5,7 +5,7 @@ import cors from 'cors';
 import routes from './routes';
 import bodyParser from 'body-parser';
 import config from '../config';
-import { Logger } from '@ethereum-sourcify/core';
+import { Logger, getSourcifyChains } from '@ethereum-sourcify/core';
 import bunyan from 'bunyan';
 import genericErrorHandler from './middlewares/GenericErrorHandler';
 import notFoundHandler from './middlewares/NotFoundError';
@@ -41,6 +41,10 @@ export class Server {
     this.app.use(bodyParser.urlencoded({ limit: '2mb', extended: true }));
     this.app.use(session(getSessionOptions()));
     this.app.get('/health', (_req, res) => res.status(200).send('Alive and kicking!'))
+    this.app.get('/chains', (_req, res) => {
+      const sourcifyChains = getSourcifyChains();
+      res.status(200).json(sourcifyChains)
+    })
     this.app.use('/repository', express.static(this.repository), serveIndex(this.repository, {'icons': true}))
     this.app.use('/', routes);
     this.app.use(genericErrorHandler);
