@@ -12,6 +12,16 @@ export const verifierReducer = (state: VerifierState, action: VerifierActions) =
                 ...state,
                 chain: action.payload
             }
+        case "SET_SOURCIFY_CHAIN_MAP":
+            return {
+                ...state,
+                sourcifyChainMap: action.payload
+            }
+        case "SET_SOURCIFY_CHAINS":
+            return {
+                ...state,
+                sourcifyChains: action.payload
+            }
         case "SET_FILES":
             return {
                 ...state,

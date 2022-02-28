@@ -1,5 +1,5 @@
 import { SERVER_URL } from "../common/constants";
-import { ContractToChoose } from "../types";
+import { Chain, ChainMap, ContractToChoose } from "../types";
 
 type ResponseBody = {
     error?: string,
@@ -85,4 +85,16 @@ export const checkAddresses = async (addresses: string, chainIds: string): Promi
         data.error = e.message;
     }
     return data;
+}
+
+
+/**
+ * @function to fetch Sourcify's chains array and return as an object with the chainId as keys.
+ * 
+ * The Ethereum networks are placed on top, the rest of the networks are sorted alphabetically.
+ * 
+ */
+export const getSourcifyChains = async (): Promise<Chain[]> => {
+    const chainsArray = await (await fetch(`${SERVER_URL}/chains`)).json();
+    return chainsArray;
 }
