@@ -47,7 +47,7 @@ for (const i in chains) {
     chainMap[chainId] = chain;
 }
 
-function filter(obj: any, predicate: ((c: any) => boolean)): any[] {
+function filter(obj: ChainMap, predicate: ((c: any) => boolean)): Chain[] {
     const arr = [];
     for (const id in obj) {
         const value = obj[id];
@@ -59,7 +59,20 @@ function filter(obj: any, predicate: ((c: any) => boolean)): any[] {
 }
 
 export function getSourcifyChains(): Chain[] {
-    return filter(chainMap, c => c.supported !== undefined)
+    const chainsArray = filter(chainMap, c => c.supported !== undefined);
+    const idToChain = (id: number) => {
+        return chainsArray.find((chain) => chain.chainId == id);
+    };
+    // Have Ethereum chains on top.
+    const ethereumChainIds = [1, 3, 4, 5, 42];
+    const etherumChains = ethereumChainIds.map((id) => idToChain(id));
+    // Others, sorted alphabetically
+    const otherChains = chainsArray
+        .filter((chain) => ![1, 3, 4, 5, 42].includes(chain.chainId))
+        .sort((a, b) => (a.name > b.name ? 1 : b.name > a.name ? -1 : 0));
+
+    const sourcifyChainsSorted = etherumChains.concat(otherChains);
+    return sourcifyChainsSorted;
 }
 
 export function getSupportedChains(): Chain[] {
