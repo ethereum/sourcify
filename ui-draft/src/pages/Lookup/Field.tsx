@@ -34,6 +34,11 @@ const Field = ({ loading, handleRequest }: FieldProp) => {
     handleRequest(newAddress);
   };
 
+  const handleExample = () => {
+    const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984"; // Uniswap
+    setAddress(exampleAddress);
+    handleRequest(exampleAddress);
+  };
   return (
     <div className="flex flex-col py-16 px-12 flex-grow rounded-lg transition-all ease-in-out duration-300 bg-white overflow-hidden shadow-md">
       <div className="flex flex-col text-left relative">
@@ -58,6 +63,11 @@ const Field = ({ loading, handleRequest }: FieldProp) => {
               dismiss={() => setError("")}
             />
           )}{" "}
+          <div className="flex justify-end">
+            <button onClick={handleExample} className="text-gray-400">
+              Example Contract
+            </button>
+          </div>
         </form>
       </div>
     </div>
