@@ -8,6 +8,8 @@ import {
   VERIFY_VALIDATED_URL,
 } from "../../constants";
 import {
+  Chain,
+  ChainMap,
   DropzoneFile,
   IGenericError,
   IResponseError,
@@ -15,6 +17,7 @@ import {
   SessionResponse,
   VerificationInput,
 } from "../../types";
+import { getSourcifyChains } from "../../utils/api";
 import CheckedContractsView from "./CheckedContractsView";
 import FileUpload from "./FileUpload";
 
@@ -25,9 +28,28 @@ const Verifier: React.FC = () => {
     []
   );
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [sourcifyChains, setSourcifyChains] = useState<Chain[]>([]);
+  const [sourcifyChainMap, setSourcifyChainMap] = useState<ChainMap>({});
 
   useEffect(() => {
     fetchAndUpdate(SESSION_DATA_URL);
+    getSourcifyChains()
+      .then((sourcifyChains) => {
+        setSourcifyChains(sourcifyChains);
+        const chainMap = sourcifyChains.reduce<ChainMap>(function (
+          acc,
+          currentChain
+        ) {
+          acc[currentChain.chainId] = currentChain;
+          return acc;
+        },
+        {});
+        setSourcifyChainMap(chainMap);
+      })
+      .catch((err) => {
+        setErrorMessage("Can't fetch Sourcify chains from the server!");
+        console.log(err);
+      });
   }, []);
 
   const fetchAndUpdate = async (URL: string, fetchOptions?: RequestInit) => {
