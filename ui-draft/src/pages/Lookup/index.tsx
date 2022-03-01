@@ -40,7 +40,7 @@ const Lookup = () => {
   };
 
   return (
-    <div className="flex flex-col flex-grow pb-8 px-8 md:px-12 lg:px-24">
+    <div className="flex flex-col flex-grow pb-8 px-8 md:px-12 lg:px-24 bg-gray-100">
       <Header />
       <Toast
         message={errorMessage}
