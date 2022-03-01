@@ -1,8 +1,13 @@
 import { isAddress } from "@ethersproject/address";
-import React, { ChangeEventHandler, FormEventHandler, useState } from "react";
+import React, {
+  ChangeEventHandler,
+  FormEventHandler,
+  useContext,
+  useState,
+} from "react";
 import Input from "../../../../../components/Input";
 import NetworkSelect from "../../../../../components/NetworkSelect";
-import { CHAIN_IDS_STR } from "../../../../../constants";
+import { Context } from "../../../../../Context";
 import {
   CheckAllByAddressResult,
   SendableContract,
@@ -30,6 +35,7 @@ const ChainAddressForm = ({
   const [isInvalidAddress, setIsInvalidAddress] = useState<boolean>(false);
   const [chainId, setChainId] = useState<string>();
   const [foundMatches, setFoundMatches] = useState<CheckAllByAddressResult>();
+  const { sourcifyChains } = useContext(Context);
 
   const handleAddressChange: ChangeEventHandler<HTMLInputElement> = (e) => {
     const tempAddr = e.target.value;
@@ -40,7 +46,10 @@ const ChainAddressForm = ({
       return setIsInvalidAddress(true);
     }
     setIsInvalidAddress(false);
-    checkAllByAddresses(tempAddr, CHAIN_IDS_STR).then((res) => {
+    checkAllByAddresses(
+      tempAddr,
+      sourcifyChains.map((c) => c.chainId.toString()).join(",")
+    ).then((res) => {
       // checkAllByAddresses inputs and outptus multiple addresses.
       const currentAddressMatches = res.find(
         (match) => (match.address = tempAddr)

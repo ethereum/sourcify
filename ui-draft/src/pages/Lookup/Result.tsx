@@ -1,3 +1,4 @@
+import { useContext } from "react";
 import { renderToString } from "react-dom/server";
 import {
   HiBadgeCheck,
@@ -9,10 +10,10 @@ import { Link } from "react-router-dom";
 import ReactTooltip from "react-tooltip";
 import Button from "../../components/Button";
 import {
-  ID_TO_CHAIN,
   REPOSITORY_URL_FULL_MATCH,
   REPOSITORY_URL_PARTIAL_MATCH,
 } from "../../constants";
+import { Context } from "../../Context";
 import { CheckAllByAddressResult } from "../../types";
 
 type ResultProp = {
@@ -52,10 +53,6 @@ type FoundProp = {
 };
 type NotFoundProp = {
   address: any;
-};
-
-const chainToName = (chainId: any) => {
-  return ID_TO_CHAIN[chainId]?.label;
 };
 
 type MatchStatusProps = {
@@ -138,6 +135,12 @@ const MatchStatusBadge = ({ status }: MatchStatusProps) => {
   return null;
 };
 const NetworkRow = ({ address, chainId, status }: NetworkRowProp) => {
+  const { sourcifyChainMap } = useContext(Context);
+
+  const chainToName = (chainId: any) => {
+    return sourcifyChainMap[chainId]?.title || sourcifyChainMap[chainId]?.name;
+  };
+
   return (
     <tr className="border-b hover:bg-gray-100">
       <td
@@ -243,7 +246,7 @@ const NotFound = ({ address }: NotFoundProp) => {
         </p>
       </div>
       <div className="mt-14">
-        <p>Do you have the source code and metadata??</p>
+        <p>Do you have the source code and metadata?</p>
         <Link to="/verifier">
           <Button>Verify Contract</Button>
         </Link>

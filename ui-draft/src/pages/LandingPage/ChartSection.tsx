@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
   Bar,
   BarChart,
@@ -14,7 +14,8 @@ import synthetix from "../../assets/contracts/synthetix.png";
 import uniswap from "../../assets/contracts/uniswap.png";
 import AppIconName from "../../components/AppIconName";
 import LoadingOverlay from "../../components/LoadingOverlay";
-import { ID_TO_CHAIN, REPOSITORY_URL } from "../../constants";
+import { REPOSITORY_URL } from "../../constants";
+import { Context } from "../../Context";
 
 type statsType = {
   [key: string]: {
@@ -24,6 +25,8 @@ type statsType = {
 };
 
 const Chart = ({ stats }: { stats: statsType | undefined }) => {
+  const { sourcifyChainMap } = useContext(Context);
+
   if (!stats) {
     return (
       <div className="h-72 md:h-96 lg:h-[36rem] w-full relative">
@@ -37,7 +40,7 @@ const Chart = ({ stats }: { stats: statsType | undefined }) => {
     .map((key) => {
       const keyInt = parseInt(key);
       return {
-        name: ID_TO_CHAIN[keyInt].label,
+        name: sourcifyChainMap[keyInt].title || sourcifyChainMap[keyInt].name,
         fullMatch: stats[key].full_match,
         partialMatch: stats[key].partial_match,
       };

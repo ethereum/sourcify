@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import Header from "../../components/Header";
 import Toast from "../../components/Toast";
-import { CHAIN_IDS_STR } from "../../constants";
+import { Context } from "../../Context";
 import { CheckAllByAddressResult } from "../../types";
 import { checkAllByAddresses } from "../../utils/api";
 import Field from "./Field";
@@ -13,11 +13,15 @@ const Lookup = () => {
   const [response, setResponse] = useState<CheckAllByAddressResult | undefined>(
     undefined
   );
+  const { sourcifyChains } = useContext(Context);
 
   const handleRequest = async (address: string) => {
     setLoading(true);
     try {
-      const result = await checkAllByAddresses(address, CHAIN_IDS_STR);
+      const result = await checkAllByAddresses(
+        address,
+        sourcifyChains.map((c) => c.chainId.toString()).join(",")
+      );
       console.log(result);
       const currentAddressMatches = result.find(
         (match) => (match.address = address)

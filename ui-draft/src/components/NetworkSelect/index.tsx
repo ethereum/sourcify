@@ -1,10 +1,10 @@
 import Fuse from "fuse.js";
-import React from "react";
+import React, { useContext } from "react";
 import SelectSearch, {
   SelectSearchOption,
   SelectSearchProps,
 } from "react-select-search";
-import { CHAIN_OPTIONS } from "../../constants";
+import { Context } from "../../Context";
 import "./style.css";
 
 // Fix incorrect value field type of onChange. Should be string and not SelectedOptionValue
@@ -42,13 +42,15 @@ export default function NetworkSelect({
   handleChainIdChange,
   id,
 }: NetworkSelectProps) {
+  const { sourcifyChains } = useContext(Context);
+
   return (
     <CustomSelectSearch
       onChange={handleChainIdChange}
       value={value}
-      options={CHAIN_OPTIONS.map((chain) => ({
-        name: `#${chain.id} ${chain.label}`,
-        value: chain.id,
+      options={sourcifyChains.map((chain) => ({
+        name: `${chain.title || chain.name} (${chain.chainId}) `,
+        value: chain.chainId,
       }))}
       search
       id={id}

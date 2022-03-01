@@ -1,5 +1,5 @@
 import { SERVER_URL } from "../constants";
-import { CheckAllByAddressResult } from "../types";
+import { Chain, CheckAllByAddressResult } from "../types";
 
 type ChainIdsResponse = {
   chainId: string;
@@ -32,4 +32,15 @@ export const checkAllByAddresses = async (
   });
 
   return response;
+};
+
+/**
+ * @function to fetch Sourcify's chains array and return as an object with the chainId as keys.
+ *
+ * The Ethereum networks are placed on top, the rest of the networks are sorted alphabetically.
+ *
+ */
+export const getSourcifyChains = async (): Promise<Chain[]> => {
+  const chainsArray = await (await fetch(`${SERVER_URL}/chains`)).json();
+  return chainsArray;
 };
