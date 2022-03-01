@@ -274,8 +274,8 @@ const LandingPage = () => {
                 👶 Human-readable contract intractions
               </h1>
               <p className="text-lg">
-                Goodbye YOLO signing 👋. Decode contract interactions with the
-                verified contract's ABI and{" "}
+                Goodbye <i>YOLO signing</i> 👋. Decode contract interactions
+                with the verified contract's ABI and{" "}
                 <A href="https://docs.soliditylang.org/en/develop/natspec-format.html">
                   NatSpec comments
                 </A>{" "}
@@ -571,9 +571,8 @@ const LandingPage = () => {
             </h3>
             <ul>
               <FooterItem href="/verifier">Contract Verifier</FooterItem>
-              <FooterItem href="/lookup">Contract Fetcher</FooterItem>
-              <FooterItem href="">Status Page</FooterItem>
-              <FooterItem href="">About</FooterItem>
+              <FooterItem href="/lookup">Contract Lookup</FooterItem>
+              <FooterItem href="/status">Server Status</FooterItem>
             </ul>
           </div>
           <div>
@@ -581,9 +580,13 @@ const LandingPage = () => {
               External Links
             </h3>
             <ul>
-              <FooterItem href="">Documentation</FooterItem>
-              <FooterItem href="">IPFS Gateway</FooterItem>
-              <FooterItem href="">Media Kit</FooterItem>
+              <FooterItem href="https://docs.sourcify.dev">
+                Documentation
+              </FooterItem>
+              <FooterItem href={IPFS_IPNS_GATEWAY_URL}>IPFS Gateway</FooterItem>
+              <FooterItem href="https://github.com/sourcifyeth">
+                Media Kit
+              </FooterItem>
             </ul>
           </div>
           <div>
@@ -591,9 +594,18 @@ const LandingPage = () => {
               Socials
             </h3>
             <ul>
-              <FooterItem href="">Twitter / Fosstodon</FooterItem>
-              <FooterItem href="">Gitter / Matrix </FooterItem>
-              <FooterItem href="">Github</FooterItem>
+              <FooterItem href="https://twitter.com/sourcifyeth">
+                Twitter / Fosstodon
+              </FooterItem>
+              <FooterItem href="https://matrix.to/#/#ethereum_source-verify:gitter.im">
+                Gitter / Matrix
+              </FooterItem>
+              <FooterItem href="https://github.com/ethereum/sourcify">
+                Github (main)
+              </FooterItem>
+              <FooterItem href="https://github.com/sourcifyeth">
+                Github (organization)
+              </FooterItem>
             </ul>
           </div>
         </nav>
