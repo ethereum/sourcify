@@ -22,7 +22,7 @@ class InjectorChain {
     contractFetchAddress: string;
     graphQLFetchAddress: string;
     txRegex: string;
-    archiveWeb3: Web3;
+    // archiveWeb3: Web3;
 
     constructor(chain: Chain) {
         this.web3array = [];
@@ -31,7 +31,7 @@ class InjectorChain {
         this.contractFetchAddress = chain.contractFetchAddress;
         this.graphQLFetchAddress = chain.graphQLFetchAddress;
         this.txRegex = chain.txRegex;
-        this.archiveWeb3 = chain.archiveWeb3;
+        // this.archiveWeb3 = chain.archiveWeb3;
     }
 }
 
@@ -349,15 +349,16 @@ export class Injector {
             }
         }
 
-        const archiveWeb3 = this.chains[chain].archiveWeb3;
-        if (archiveWeb3) { // fetch by binary search on chain history
-            this.log.info({ loc, chain, contractAddress }, "Fetching archive data");
-            try {
-                return await getCreationDataFromArchive(contractAddress, archiveWeb3);
-            } catch(err: any) {
-                this.log.error({ loc, chain, contractAddress, err: err.message }, "Archive search failed!");
-            }
-        }
+        // Commented out for publishing chains in sourcify-chains at /chains endpoint. Also, since all chains with archiveWeb3 (Ethereum networks) already had txRegex and txFetchAddress, this block of code never executes.
+        // const archiveWeb3 = this.chains[chain].archiveWeb3;
+        // if (archiveWeb3) { // fetch by binary search on chain history
+        //     this.log.info({ loc, chain, contractAddress }, "Fetching archive data");
+        //     try {
+        //         return await getCreationDataFromArchive(contractAddress, archiveWeb3);
+        //     } catch(err: any) {
+        //         this.log.error({ loc, chain, contractAddress, err: err.message }, "Archive search failed!");
+        //     }
+        // }
 
         const err = "Cannot fetch creation data";
         this.log.error({ loc, chain, contractAddress, err });
