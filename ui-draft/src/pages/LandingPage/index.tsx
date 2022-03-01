@@ -1,3 +1,6 @@
+// AnimateOnScroll
+import AOS from "aos";
+import "aos/dist/aos.css";
 import { useRef } from "react";
 import { BsChevronCompactDown } from "react-icons/bs";
 import { HiCheckCircle } from "react-icons/hi";
@@ -17,6 +20,7 @@ import ethereum from "../../assets/chains/ethereum.png";
 import optimism from "../../assets/chains/optimism.svg";
 import polygon from "../../assets/chains/polygon.webp";
 import xdai from "../../assets/chains/xdai.png";
+import decode from "../../assets/decode.gif";
 import blockscout from "../../assets/integrations/blockscout.png";
 import ethSdk from "../../assets/integrations/eth-sdk.png";
 import HardhatDeploy from "../../assets/integrations/hardhat-deploy";
@@ -24,14 +28,24 @@ import keystone from "../../assets/integrations/keystone.png";
 import otter from "../../assets/integrations/otter.jpg";
 import remix from "../../assets/integrations/remix.png";
 import walleth from "../../assets/integrations/walleth.png";
+import openSourceDecentralized from "../../assets/openSourceDecentralized.svg";
+import verification from "../../assets/verification.svg";
 import AppIconName from "../../components/AppIconName";
 import Button from "../../components/Button";
 import Header from "../../components/Header";
-import { DOCS_URL, REPOSITORY_URL_FULL_MATCH } from "../../constants";
+import {
+  DOCS_URL,
+  IPFS_IPNS_GATEWAY_URL,
+  REPOSITORY_URL_FULL_MATCH,
+} from "../../constants";
 import ChartSection from "./ChartSection";
 import sourceCode from "./Contract.sol";
 import CustomCarousel from "./CustomCarousel";
 import metadata from "./metadata.json";
+AOS.init({
+  duration: 800,
+  once: true,
+});
 
 SyntaxHighlighter.registerLanguage("solidity", solidityLang);
 SyntaxHighlighter.registerLanguage("json", jsonLang);
@@ -68,6 +82,16 @@ const FooterItem = ({ href, children }: FooterItemProps) => (
   </a>
 );
 
+const A = ({ href, children }: FooterItemProps) => (
+  <a
+    href={href}
+    target="_blank"
+    rel="noreferrer"
+    className="text-ceruleanBlue-500 link-underline"
+  >
+    {children}
+  </a>
+);
 //////////////////////////////////
 ///////// MAIN COMPONENT /////////
 //////////////////////////////////
@@ -81,14 +105,16 @@ const LandingPage = () => {
         <section className="grid grid-cols-2 gap-8 flex-1">
           {/* Hero left */}
           <div className="flex flex-col justify-center">
-            <h1 className="text-5xl font-bold mb-4">
-              For informed decisions and a more transparent UX in web3
+            <h1 className="text-5xl font-bold mb-4 leading-tight">
+              Source-verified smart contracts for transparency and better UX in
+              web3
             </h1>
             <h2 className="text-xl ">
-              Sourcify is a decentralized metadata and source code repository*
-              and automatic verification service*.{" "}
+              Sourcify enables transparent and human-readable smart contract
+              interactions through automated Solidity contract verification,
+              contract metadata, and NatSpec comments.
             </h2>
-            <div className="flex justify-evenly">
+            <div className="flex justify-evenly mt-4">
               <Link to="/verifier">
                 <Button>Verify Contract</Button>
               </Link>
@@ -184,66 +210,96 @@ const LandingPage = () => {
 
       {/* About section */}
       <section
-        className="px-8 md:px-12 lg:px-24 bg-white py-16"
+        className="px-8 md:px-12 lg:px-48 bg-white py-16"
         ref={aboutRef}
         id="about"
       >
-        <h1 className="text-3xl text-ceruleanBlue-500 font-bold">
-          Sourcify enables simple, next-level source verification.
-        </h1>
         <div className="mt-12">
-          <p className="font-mono text-lg">
-            Sourcify helps to make interacting with smart contracts on the
-            blockchain safer and more transparent for users. To achieve this
-            goal, we support several efforts to foster adoption of open-source
-            source verification, metadata files and NatSpec comments.
-          </p>
-          <p className="mt-6">
-            At its core, Sourcify currently maintains an interface that helps
-            developers to verify metadata and contract source code and users to
-            check whether contracts have been verified:
-            <ul>
-              <li>- a contract repository of all verified contracts.</li>
-              <li>
-                - a monitoring & verifier service that checks for new contracts
-                on several blockchains (see supported networks) and tries to
-                verify them automatically.
-              </li>
-              <li>- an API</li>
-              <li>- ??? a NPM package ???</li>
-            </ul>
-          </p>
-          <div className="mt-6 pt-12">
-            <h3>Why do all this?</h3>
-            <p className="mt-4">
-              Sourcify aims to enable trust-minimized, well-informed web3
-              interactions by helping the ecosystem to turn transaction
-              hex-strings displayed in wallets into human readable information.
-              On a technical level, that means keeping metadata and source files
-              available via IPFS and creating a decentralized infrastructure
-              base layer, which allows other tools to be built on top of it.
-            </p>
+          <div className="flex items-center">
+            <div className="flex-1" data-aos="fade-right">
+              <img
+                src={openSourceDecentralized}
+                alt="Illustration depicting open source and decentralized development"
+                className="pr-48 pl-8 -scale-x-100"
+              />
+            </div>
+            <div className="flex-1" data-aos="fade-left">
+              <h1 className="text-2xl text-ceruleanBlue-500 font-bold">
+                🦄 Fully open-source and decentralized
+              </h1>{" "}
+              <p className="text-lg mt-4">
+                Sourcify's code is fully open-sourced. The repository of
+                verified contracts is completely public and decentralized by
+                being served over <A href={IPFS_IPNS_GATEWAY_URL}>IPFS</A>.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="my-24 text-right">
+          <div className="flex items-center">
+            <div className="flex-1" data-aos="fade-right">
+              <h1 className="text-2xl text-ceruleanBlue-500 font-bold">
+                ✅ Next-level smart contract verification
+              </h1>{" "}
+              <p className="text-lg mt-4">
+                <A href="https://docs.sourcify.dev/docs/full-vs-partial-match/">
+                  Full matches
+                </A>{" "}
+                on Sourcify cryptographically guarantee the verified source code
+                is identical to the original deployed contract. 🕵️Our monitoring
+                service observes contract creations and verifies the source
+                codes automatically if published to IPFS.
+              </p>
+            </div>
+            <div className="flex-1" data-aos="fade-left">
+              <img
+                src={verification}
+                alt="Illustration of contract verification"
+                className="pr-48 pl-8 max-h-80"
+              />
+            </div>
+          </div>
+        </div>
+        <div className="mb-12" data-aos="fade-left">
+          <div className="flex items-center">
+            <div className="flex-1 flex justify-end" data-aos="fade-right">
+              <img
+                src={decode}
+                alt="Decoding contract interaction with Sourcify"
+                className="pl-48 pr-8"
+              />
+            </div>
+            <div className="flex-1" data-aos="fade-left">
+              <h1 className="text-2xl text-ceruleanBlue-500 font-bold">
+                👶 Human-readable contract intractions
+              </h1>
+              <p className="text-lg">
+                Goodbye YOLO signing 👋. Decode contract interactions with the
+                verified contract's ABI and{" "}
+                <A href="https://docs.soliditylang.org/en/develop/natspec-format.html">
+                  NatSpec comments
+                </A>{" "}
+                . Show wallet users meaningful information instead of hex
+                strings.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Supported Networks */}
-      <section className="px-8 md:px-12 lg:px-24 bg-gray-100 py-16">
+      <section
+        className="px-8 md:px-12 lg:px-24 bg-gray-100 py-16"
+        data-aos="fade"
+      >
         <h1 className="text-3xl text-ceruleanBlue-500 font-bold">
-          Supported Networks
+          ⛓ Supported Chains
         </h1>
-        <div className="mt-8">
-          <p>
-            For a full overview of all supported networks, see the Supported
-            Networks Grid in the documentation.
-          </p>
-          <p>
-            Getting Sourcify support for your network is easy. Please follow the
-            instructions in the docs to get started.{" "}
-          </p>
+        <div className="mt-8 text-lg">
+          <p>Sourcify is multi-chain and works on all EVM based networks.</p>
         </div>
         <ReactTooltip effect="solid" />
-        <div className="flex flex-row mt-8 w-full justify-center py-16 logos-container flex-wrap">
+        <div className="flex flex-row w-full justify-center py-16 logos-container flex-wrap">
           <img
             src={ethereum}
             data-tip="Ethereum"
@@ -299,7 +355,13 @@ const LandingPage = () => {
             alt="Optimism logo"
           />
           <div className="p-1 h-14 w-14 text-xs md:text-base md:h-24 md:w-24 transition-opacity rounded-full mx-4 my-4 text-ceruleanBlue-400 flex justify-center items-center text-center">
-            And many more!
+            <a
+              href={`${DOCS_URL}/docs/networks`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              And many more!
+            </a>
           </div>
         </div>
         <div className="flex justify-center">
@@ -316,9 +378,12 @@ const LandingPage = () => {
       </section>
 
       {/* Integrations & Tools */}
-      <section className="px-8 md:px-12 lg:px-24 bg-white py-16">
+      <section
+        className="px-8 md:px-12 lg:px-24 bg-white py-16"
+        data-aos="fade"
+      >
         <h1 className="text-3xl text-ceruleanBlue-500 font-bold">
-          Integrations
+          🛠️ Integrations
         </h1>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mt-12">
           {/* Left col: Apps */}
@@ -383,7 +448,7 @@ const LandingPage = () => {
         </div>
         <div className="mt-12">
           <h3 className="text-center text-xl font-semibold text-ceruleanBlue-800">
-            Do you want to integrate Sourcify into your project?
+            Want to integrate Sourcify into your project?
           </h3>
           <div className="flex justify-center">
             <a href={DOCS_URL} target="_blank" rel="noreferrer">
@@ -403,13 +468,21 @@ const LandingPage = () => {
       </section>
 
       {/* Verified contract stats */}
-      <section className="flex flex-col items-center px-8 md:px-12 lg:px-24 bg-gray-100 py-16">
+      <section
+        className="flex flex-col items-center px-8 md:px-12 lg:px-24 bg-gray-100 py-16"
+        data-aos="fade"
+      >
         <ChartSection />
       </section>
 
       {/* Talks & Articles */}
-      <section className="px-8 md:px-12 lg:px-24 bg-white py-16">
-        <h1 className="text-3xl text-ceruleanBlue-500 font-bold">Resources</h1>
+      <section
+        className="px-8 md:px-12 lg:px-24 bg-white py-16"
+        data-aos="fade"
+      >
+        <h1 className="text-3xl text-ceruleanBlue-500 font-bold">
+          👀 Resources
+        </h1>
         <div className="flex flex-col items-center mt-8">
           <iframe
             className="w-[24rem] h-[14rem] sm:w-[32rem] sm:h-[18rem] md:w-[48rem] md:h-[27rem]"

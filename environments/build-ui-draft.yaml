@@ -10,3 +10,4 @@ services:
       args:
         - SERVER_URL=$SERVER_URL
         - REPOSITORY_URL=$REPOSITORY_URL
+        - IPNS=$IPNS
