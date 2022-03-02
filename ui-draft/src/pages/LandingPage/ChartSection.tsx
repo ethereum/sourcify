@@ -34,13 +34,23 @@ const Chart = ({ stats }: { stats: statsType | undefined }) => {
       </div>
     );
   }
+  if (Object.keys(sourcifyChainMap).length === 0) {
+    return (
+      <div className="h-72 md:h-96 lg:h-[36rem] w-full relative">
+        <LoadingOverlay message="Getting Sourcify chains" />
+      </div>
+    );
+  }
   // Filter Ethereum networks only
   const formattedData = Object.keys(stats)
     .filter((key) => ["1", "3", "4", "5", "42"].includes(key))
     .map((key) => {
       const keyInt = parseInt(key);
       return {
-        name: sourcifyChainMap[keyInt].name || sourcifyChainMap[keyInt].title, // Shorter name takes precedence
+        name:
+          Object.keys(sourcifyChainMap).length > 0 &&
+          sourcifyChainMap[keyInt] &&
+          (sourcifyChainMap[keyInt]?.name || sourcifyChainMap[keyInt].title), // Shorter name takes precedence
         fullMatch: stats[key].full_match,
         partialMatch: stats[key].partial_match,
       };
