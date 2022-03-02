@@ -21,18 +21,12 @@ import optimism from "../../assets/chains/optimism.svg";
 import polygon from "../../assets/chains/polygon.webp";
 import xdai from "../../assets/chains/xdai.png";
 import decode from "../../assets/decode.gif";
-import blockscout from "../../assets/integrations/blockscout.png";
-import ethSdk from "../../assets/integrations/eth-sdk.png";
-import HardhatDeploy from "../../assets/integrations/hardhat-deploy";
-import keystone from "../../assets/integrations/keystone.png";
-import otter from "../../assets/integrations/otter.jpg";
-import remix from "../../assets/integrations/remix.png";
-import walleth from "../../assets/integrations/walleth.png";
 import openSourceDecentralized from "../../assets/openSourceDecentralized.svg";
 import verification from "../../assets/verification.svg";
-import AppIconName from "../../components/AppIconName";
 import Button from "../../components/Button";
 import Header from "../../components/Header";
+import PoweredBySourcify from './PoweredBySourcify';
+import ToolsPlugin from './ToolsPlugin';
 import {
   DOCS_URL,
   IPFS_IPNS_GATEWAY_URL,
@@ -386,65 +380,13 @@ const LandingPage = () => {
           🛠️ Integrations
         </h1>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mt-12">
-          {/* Left col: Apps */}
           <div className="w-full">
-            <h2 className="text-2xl text-ceruleanBlue-500 font-semibold">
-              Who is building with Sourcify?
-            </h2>
-            <div
-              className="flex flex-row mt-8 flex-wrap logos-container"
-              id="networks-container"
-            >
-              <AppIconName
-                img={walleth}
-                name="Walleth"
-                href="https://walleth.org/"
-              />
-              <AppIconName
-                img={otter}
-                name="Otterscan"
-                href="https://twitter.com/wmitsuda/status/1444789707540414466"
-                rounded
-              />
-              <AppIconName
-                img={blockscout}
-                name="Blockscout"
-                href="https://docs.blockscout.com/for-users/smart-contract-interaction/verifying-a-smart-contract/contracts-verification-via-sourcify"
-              />
-              <AppIconName
-                img={keystone}
-                name="Keystone"
-                href="https://twitter.com/SourcifyEth/status/1415319812801183753"
-              />
-              <AppIconName
-                img={ethSdk}
-                name="eth-sdk"
-                href="https://github.com/dethcrypto/eth-sdk/pull/42"
-              />
-            </div>
+            <PoweredBySourcify />
+            <ToolsPlugin />
           </div>
-          <div>
-            {/* Right col: Tools */}
-            <h2 className="text-2xl text-ceruleanBlue-500 font-semibold">
-              Tools & Plugins
-            </h2>
-            <div className="flex flex-row mt-8 logos-container">
-              <AppIconName
-                Svg={HardhatDeploy}
-                name="hardhat-deploy"
-                href="https://github.com/wighawag/hardhat-deploy#5-hardhat-sourcify"
-              />
-              <AppIconName
-                img={remix}
-                name="Remix IDE"
-                href="https://medium.com/remix-ide/verify-contracts-on-remix-with-sourcify-2912004d9c84"
-              />
-            </div>
+          <div className="flex mt-12">
+            <CustomCarousel />
           </div>
-        </div>
-        {/* Examples carousel */}
-        <div className="flex justify-center mt-12">
-          <CustomCarousel />
         </div>
         <div className="mt-12">
           <h3 className="text-center text-xl font-semibold text-ceruleanBlue-800">
@@ -584,8 +526,8 @@ const LandingPage = () => {
                 Documentation
               </FooterItem>
               <FooterItem href={IPFS_IPNS_GATEWAY_URL}>IPFS Gateway</FooterItem>
-              <FooterItem href="https://github.com/sourcifyeth">
-                Media Kit
+              <FooterItem href="https://github.com/sourcifyeth/assets">
+                Brand Resources
               </FooterItem>
             </ul>
           </div>
@@ -595,16 +537,19 @@ const LandingPage = () => {
             </h3>
             <ul>
               <FooterItem href="https://twitter.com/sourcifyeth">
-                Twitter / Fosstodon
+                Twitter
+              </FooterItem>
+              <FooterItem href="https://gitter.im/ethereum/source-verify">
+                Gitter
               </FooterItem>
               <FooterItem href="https://matrix.to/#/#ethereum_source-verify:gitter.im">
-                Gitter / Matrix
+                Matrix
               </FooterItem>
               <FooterItem href="https://github.com/ethereum/sourcify">
-                Github (main)
+                GitHub (main)
               </FooterItem>
               <FooterItem href="https://github.com/sourcifyeth">
-                Github (organization)
+                GitHub (organization)
               </FooterItem>
             </ul>
           </div>
