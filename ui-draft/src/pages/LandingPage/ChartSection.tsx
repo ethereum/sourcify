@@ -9,7 +9,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import ens from "../../assets/contracts/ens.png";
+import optimism from "../../assets/chains/optimism.svg";
 import synthetix from "../../assets/contracts/synthetix.png";
 import uniswap from "../../assets/contracts/uniswap.png";
 import AppIconName from "../../components/AppIconName";
@@ -40,7 +40,7 @@ const Chart = ({ stats }: { stats: statsType | undefined }) => {
     .map((key) => {
       const keyInt = parseInt(key);
       return {
-        name: sourcifyChainMap[keyInt].title || sourcifyChainMap[keyInt].name,
+        name: sourcifyChainMap[keyInt].name || sourcifyChainMap[keyInt].title, // Shorter name takes precedence
         fullMatch: stats[key].full_match,
         partialMatch: stats[key].partial_match,
       };
@@ -131,17 +131,22 @@ const ChartSection = () => {
           <AppIconName
             img={uniswap}
             name="Uniswap"
-            href="https://repo.sourcify.dev/contracts/full_match/1/0x000000001f91b581BF90b0D07A6259dc083Cc838/"
+            href="https://repo.sourcify.dev/contracts/full_match/1/0x1F98431c8aD98523631AE4a59f267346ea31F984/"
           />
-          <AppIconName
+          {/* <AppIconName
             img={ens}
             name="ENS"
             href="https://repo.sourcify.dev/contracts/full_match/1/0x000000001f91b581BF90b0D07A6259dc083Cc838/"
-          />
+          /> */}
           <AppIconName
             img={synthetix}
             name="Synthetix"
-            href="https://repo.sourcify.dev/contracts/full_match/1/0x000000001f91b581BF90b0D07A6259dc083Cc838/"
+            href="https://repo.sourcify.dev/contracts/full_match/10/0x06C6D063896ac733673c4474E44d9268f2402A55/"
+          />
+          <AppIconName
+            img={optimism}
+            name="Optimism"
+            href="https://repo.sourcify.dev/contracts/full_match/1/0x5e4e65926ba27467555eb562121fac00d24e9dd2/"
           />
         </div>
       </div>
