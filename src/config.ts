@@ -43,7 +43,7 @@ export default {
     session: {
         secret: process.env.SESSION_SECRET || "session top secret",
         maxAge: parseInt(process.env.SESSION_MAX_AGE, 10) || (12 * 60 * 60 * 1000), // 12 hrs in millis
-        secure: !process.env.RUNNING_LOCALLY && !process.env.TESTING
+        secure: process.env.NODE_ENV === "production" && process.env.TESTING !== "true" // Set Secure in the Set-Cookie header i.e. require https
     },
     corsAllowedOrigins: [
         /^https?:\/\/(?:.+\.)?sourcify.dev$/, // sourcify.dev and subdomains
