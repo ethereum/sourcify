@@ -219,7 +219,7 @@ const LandingPage = () => {
             </div>
             <div className="flex-1" data-aos="fade-left">
               <h1 className="text-2xl text-ceruleanBlue-500 font-bold">
-                🦄 Fully open-source and decentralized
+                Fully open-source and decentralized
               </h1>{" "}
               <p className="text-lg mt-4">
                 Sourcify's code is fully open-sourced. The repository of
@@ -233,14 +233,14 @@ const LandingPage = () => {
           <div className="flex items-center">
             <div className="flex-1" data-aos="fade-right">
               <h1 className="text-2xl text-ceruleanBlue-500 font-bold">
-                ✅ Next-level smart contract verification
+                Next-level smart contract verification
               </h1>{" "}
               <p className="text-lg mt-4">
                 <A href="https://docs.sourcify.dev/docs/full-vs-partial-match/">
                   Full matches
                 </A>{" "}
                 on Sourcify cryptographically guarantee the verified source code
-                is identical to the original deployed contract. 🕵️Our monitoring
+                is identical to the original deployed contract. Our monitoring
                 service observes contract creations and verifies the source
                 codes automatically if published to IPFS.
               </p>
@@ -265,7 +265,7 @@ const LandingPage = () => {
             </div>
             <div className="flex-1" data-aos="fade-left">
               <h1 className="text-2xl text-ceruleanBlue-500 font-bold">
-                👶 Human-readable contract intractions
+                Human-readable contract intractions
               </h1>
               <p className="text-lg">
                 Goodbye <i>YOLO signing</i> 👋. Decode contract interactions
