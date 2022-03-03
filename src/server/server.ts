@@ -10,7 +10,9 @@ import bunyan from 'bunyan';
 import genericErrorHandler from './middlewares/GenericErrorHandler';
 import notFoundHandler from './middlewares/NotFoundError';
 import session from 'express-session';
+import createMemoryStore from 'memorystore';
 import util from 'util';
+const MemoryStore = createMemoryStore(session);
 
 export const logger: bunyan = Logger("Server");
 export class Server {
@@ -70,6 +72,9 @@ function getSessionOptions(): session.SessionOptions {
       secure: config.session.secure,
       sameSite: "lax"
     },
+    store: new MemoryStore({
+      checkPeriod: config.session.maxAge
+    }),
   };
 }
 
