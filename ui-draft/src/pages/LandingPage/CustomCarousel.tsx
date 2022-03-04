@@ -2,6 +2,7 @@ import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a loader
 import blockscoutSS from "../../assets/integrations/blockscout-screenshot.png";
 import hardhat from "../../assets/integrations/hardhat.gif";
+import otterscan from "../../assets/integrations/otterscan.png";
 import remix from "../../assets/integrations/remix.gif";
 
 const CustomCarousel = () => {
@@ -40,6 +41,15 @@ const CustomCarousel = () => {
               // className="px-12 max-h-48 h-auto w-auto"
               style={{ width: "auto" }}
               alt="Remix verification GIF"
+            />
+          </div>,
+          <div className="flex justify-center items-center w-full h-full">
+            <img
+              src={otterscan}
+              // className="md:h-[24rem]"
+              // className="px-12 max-h-48 h-auto w-auto"
+              style={{ width: "auto" }}
+              alt="Otterscan Verified by Sourcify"
             />
           </div>,
         ]
