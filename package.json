@@ -49,6 +49,7 @@
   },
   "homepage": "https://github.com/ethereum/sourcify#readme",
   "dependencies": {
+    "@datapunt/matomo-tracker-react": "^0.5.1",
     "@ethereum-sourcify/core": "*",
     "@ethereum-sourcify/validation": "*",
     "@ethereum-sourcify/verification": "*",
