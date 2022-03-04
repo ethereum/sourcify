@@ -25,8 +25,6 @@ import openSourceDecentralized from "../../assets/openSourceDecentralized.svg";
 import verification from "../../assets/verification.svg";
 import Button from "../../components/Button";
 import Header from "../../components/Header";
-import PoweredBySourcify from './PoweredBySourcify';
-import ToolsPlugin from './ToolsPlugin';
 import {
   DOCS_URL,
   IPFS_IPNS_GATEWAY_URL,
@@ -36,6 +34,8 @@ import ChartSection from "./ChartSection";
 import sourceCode from "./Contract.sol";
 import CustomCarousel from "./CustomCarousel";
 import metadata from "./metadata.json";
+import PoweredBySourcify from "./PoweredBySourcify";
+import ToolsPlugin from "./ToolsPlugin";
 AOS.init({
   duration: 800,
   once: true,
@@ -96,10 +96,10 @@ const LandingPage = () => {
     <div>
       <div className="h-screen flex flex-col px-8 md:px-12 lg:px-24 bg-gray-100">
         <Header />
-        <section className="grid grid-cols-2 gap-8 flex-1">
+        <section className="grid md:grid-cols-2 gap-8 flex-1">
           {/* Hero left */}
           <div className="flex flex-col justify-center">
-            <h1 className="text-5xl font-bold mb-4 leading-tight">
+            <h1 className="text-2xl md:text-4xl xl:text-5xl font-bold mb-4 leading-tight">
               Source-verified smart contracts for transparency and better UX in
               web3
             </h1>
@@ -119,14 +119,17 @@ const LandingPage = () => {
           </div>
 
           {/* Hero right */}
-          <div className="flex items-center justify-center" id="">
+          <div
+            className="hidden md:flex items-center justify-center overflow-hidden"
+            id=""
+          >
             <div
-              className="flex items-center justify-center relative"
+              className="flex items-center justify-center relative w-full h-full"
               id="hero-image"
             >
               {/* Front visual */}
               <div
-                className="absolute mt-32 mr-32 z-10 transition-all duration-300 ease-in-out hover:mb-32 hover:ml-32"
+                className="absolute mt-16 mr-16 xl:mt-32 xl:mr-32 z-10 transition-all duration-300 ease-in-out md:text-[0.6rem] lg:text-[0.7rem] xl:text-[0.8rem]"
                 id="hero-source-code"
               >
                 <SyntaxHighlighter
@@ -134,64 +137,58 @@ const LandingPage = () => {
                   style={codeStyle}
                   className="rounded-md"
                   customStyle={{
-                    fontSize: "0.7rem",
+                    fontSize: "inherit",
                     lineHeight: "1.2",
                     padding: "1rem",
                   }}
-                  codeTagProps={{
-                    style: { fontSize: "inherit", lineHeight: "inherit" },
-                  }}
+                  wrapLongLines
+                  codeTagProps={{ style: { display: "block" } }}
                 >
                   {sourceCode}
                 </SyntaxHighlighter>
-                {/* <img src={code} className="w-96" alt="source code visual" /> */}
               </div>
               {/* Back visual */}
               <div
-                className="absolute mb-32 ml-32 z-0 transition-all duration-300 ease-in-out  hover:mt-32 hover:mr-32"
+                className="absolute mb-32 ml-16 lg:ml-32  z-0 transition-all duration-300 ease-in-out bg-ceruleanBlue-100 px-4 py-2 rounded-md border-2 border-ceruleanBlue-400 text-sm lg:text-base"
                 id="hero-bytecode"
               >
-                <div className="bg-ceruleanBlue-100 px-4 py-2 rounded-md outline-2 outline-ceruleanBlue-400 outline w-96">
-                  <div className="py-4">
-                    {/* <div className="text-green-700 bg-green-100 rounded-md outline-2 outline-green-400 outline inline py-1 px-1"> */}
-                    <div className=" text-green-600 flex items-center">
-                      <HiCheckCircle className="text-green-600 inline mr-1 align-middle text-xl" />
-                      Contract fully verified
-                    </div>
+                <div className="py-4">
+                  <div className=" text-green-600 flex items-center">
+                    <HiCheckCircle className="text-green-600 inline mr-1 align-middle text-xl" />
+                    Contract fully verified
                   </div>
-                  <div className="whitespace-nowrap overflow-hidden overflow-ellipsis ">
-                    <img
-                      src={ethereum}
-                      className="h-6 inline mb-1"
-                      alt="eth icon"
-                    />
-                    <a
-                      href={`${REPOSITORY_URL_FULL_MATCH}/5/0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4`}
-                      className="link-underline"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <b>Ethereum Görli</b>{" "}
-                      0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4
-                    </a>
-                  </div>
-                  <div className="mt-4">
-                    <p>metadata.json</p>
-                    <SyntaxHighlighter
-                      language="json"
-                      style={lightStyle}
-                      className="rounded-md overflow-y-scroll h-64 p-3 m-3"
-                      customStyle={{
-                        fontSize: "0.7rem",
-                        lineHeight: "1.2",
-                      }}
-                      codeTagProps={{
-                        style: { fontSize: "inherit", lineHeight: "inherit" },
-                      }}
-                    >
-                      {metadata}
-                    </SyntaxHighlighter>
-                  </div>
+                </div>
+                <div className="">
+                  <img
+                    src={ethereum}
+                    className="h-6 inline mb-1 -ml-1"
+                    alt="eth icon"
+                  />
+                  <a
+                    href={`${REPOSITORY_URL_FULL_MATCH}/5/0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4`}
+                    className="link-underline break-all"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <b>Ethereum Görli</b> <br />
+                    0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4
+                  </a>
+                </div>
+                <div className="mt-4 text-[0.6rem] lg:text-[0.7rem]">
+                  <p className="text-sm text-lg:base">metadata.json</p>
+                  <SyntaxHighlighter
+                    language="json"
+                    style={lightStyle}
+                    className="rounded-md h-48 xl:h-64 p-3 m-3"
+                    customStyle={{
+                      fontSize: "inherit",
+                      lineHeight: "1.2",
+                    }}
+                    wrapLongLines
+                    codeTagProps={{ style: { display: "block" } }}
+                  >
+                    {metadata}
+                  </SyntaxHighlighter>
                 </div>
               </div>
             </div>
