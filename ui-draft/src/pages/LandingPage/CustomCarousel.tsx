@@ -16,23 +16,27 @@ const CustomCarousel = () => {
       {
         // Pass an array of Elements to Carousel
         [
-          <img
-            src={blockscoutSS}
-            className="h-[30rem]"
-            style={{ width: "auto" }}
-            alt="Blockscout screenshot"
-          />,
-          <img
-            src={hardhat}
-            className="h-[30rem]"
-            // className="px-12 max-h-48 h-auto w-auto"
-            style={{ width: "auto" }}
-            alt="Hardhat verification GIF"
-          />,
+          <div className="flex justify-center items-center w-full h-full">
+            <img
+              src={blockscoutSS}
+              // className="md:h-[30rem]"
+              style={{ width: "auto" }}
+              alt="Blockscout screenshot"
+            />
+          </div>,
+          <div className="flex justify-center items-center w-full h-full">
+            <img
+              src={hardhat}
+              // className="md:h-[30rem]"
+              // className="px-12 max-h-48 h-auto w-auto"
+              style={{ width: "auto" }}
+              alt="Hardhat verification GIF"
+            />
+          </div>,
           <div className="flex justify-center items-center w-full h-full">
             <img
               src={remix}
-              className="h-[24rem]"
+              // className="md:h-[24rem]"
               // className="px-12 max-h-48 h-auto w-auto"
               style={{ width: "auto" }}
               alt="Remix verification GIF"

@@ -108,7 +108,7 @@ const LandingPage = () => {
               interactions through automated Solidity contract verification,
               contract metadata, and NatSpec comments.
             </h2>
-            <div className="flex justify-evenly mt-4">
+            <div className="flex flex-col items-center sm:flex-row justify-evenly mt-4">
               <Link to="/verifier">
                 <Button>Verify Contract</Button>
               </Link>
@@ -206,15 +206,15 @@ const LandingPage = () => {
         id="about"
       >
         <div className="mt-12">
-          <div className="flex items-center">
+          <div className="flex items-center flex-col md:flex-row">
             <div className="flex-1" data-aos="fade-right">
               <img
                 src={openSourceDecentralized}
                 alt="Illustration depicting open source and decentralized development"
-                className="pr-48 pl-8 -scale-x-100"
+                className="w-64 md:w-auto md:pr-48 md:pl-8 -scale-x-100"
               />
             </div>
-            <div className="flex-1" data-aos="fade-left">
+            <div className="flex-1 mt-4 md:mt-0" data-aos="fade-left">
               <h1 className="text-2xl text-ceruleanBlue-500 font-bold">
                 Fully open-source and decentralized
               </h1>{" "}
@@ -226,9 +226,9 @@ const LandingPage = () => {
             </div>
           </div>
         </div>
-        <div className="my-24 text-right">
-          <div className="flex items-center">
-            <div className="flex-1" data-aos="fade-right">
+        <div className="my-24 md:text-right">
+          <div className="flex items-center flex-col-reverse md:flex-row">
+            <div className="flex-1  mt-4 md:mt-0" data-aos="fade-right">
               <h1 className="text-2xl text-ceruleanBlue-500 font-bold">
                 Next-level smart contract verification
               </h1>{" "}
@@ -246,18 +246,21 @@ const LandingPage = () => {
               <img
                 src={verification}
                 alt="Illustration of contract verification"
-                className="pr-48 pl-8 max-h-80"
+                className="w-48 md:w-auto md:pr-48 md:pl-8 max-h-80"
               />
             </div>
           </div>
         </div>
         <div className="mb-12" data-aos="fade-left">
-          <div className="flex items-center">
-            <div className="flex-1 flex justify-end" data-aos="fade-right">
+          <div className="flex items-center flex-col md:flex-row">
+            <div
+              className="flex-1 flex md:justify-end  mt-4 md:mt-0"
+              data-aos="fade-right"
+            >
               <img
                 src={decode}
                 alt="Decoding contract interaction with Sourcify"
-                className="pl-48 pr-8"
+                className="md:pl-48 md:pr-8"
               />
             </div>
             <div className="flex-1" data-aos="fade-left">
@@ -284,7 +287,7 @@ const LandingPage = () => {
         data-aos="fade"
       >
         <h1 className="text-3xl text-ceruleanBlue-500 font-bold">
-          ⛓ Supported Chains
+          Supported Chains
         </h1>
         <div className="mt-8 text-lg">
           <p>Sourcify is multi-chain and works on all EVM based networks.</p>
@@ -370,13 +373,13 @@ const LandingPage = () => {
 
       {/* Integrations & Tools */}
       <section
-        className="px-8 md:px-12 lg:px-24 bg-white py-16"
+        className="px-8 md:px-12 lg:px-24 bg-white py-16 text-center md:text-left"
         data-aos="fade"
       >
         <h1 className="text-3xl text-ceruleanBlue-500 font-bold">
-          🛠️ Integrations
+          Integrations
         </h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mt-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-12">
           <div className="w-full">
             <PoweredBySourcify />
             <ToolsPlugin />
@@ -419,12 +422,10 @@ const LandingPage = () => {
         className="px-8 md:px-12 lg:px-24 bg-white py-16"
         data-aos="fade"
       >
-        <h1 className="text-3xl text-ceruleanBlue-500 font-bold">
-          👀 Resources
-        </h1>
+        <h1 className="text-3xl text-ceruleanBlue-500 font-bold">Resources</h1>
         <div className="flex flex-col items-center mt-8">
           <iframe
-            className="w-[24rem] h-[14rem] sm:w-[32rem] sm:h-[18rem] md:w-[48rem] md:h-[27rem]"
+            className="sm:w-full sm:h-auto md:w-[48rem] md:h-[27rem]"
             src="https://www.youtube.com/embed/z5D613Qt7Kc"
             title="Next Level Source Code Verification w: Sourcify"
             frameBorder="0"
@@ -502,8 +503,8 @@ const LandingPage = () => {
         </div>
       </section>
 
-      <footer className="px-48 py-16 bg-ceruleanBlue-500 text-white text-xl">
-        <nav className="font-vt323 grid grid-cols-3 gap-8">
+      <footer className="text-center md:text-left px-8 py-8 md:px-48 md:py-16 bg-ceruleanBlue-500 text-white text-xl">
+        <nav className="font-vt323 grid md:grid-cols-3 gap-8">
           <div>
             <h3 className="uppercase font-bold text-ceruleanBlue-100">
               Internal Links
