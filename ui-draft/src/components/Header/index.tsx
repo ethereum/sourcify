@@ -10,6 +10,10 @@ import { DOCS_URL } from "../../constants";
 
 const Header = () => {
   const [showNav, setShowNav] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth > 768); // tailwind md=768px
+  window.addEventListener("resize", () => {
+    setIsDesktop(window.innerWidth > 768);
+  });
 
   const toggleNav = () => {
     setShowNav((prev) => !prev);
@@ -17,13 +21,9 @@ const Header = () => {
   return (
     <header className="flex justify-between py-4 md:py-6 w-auto flex-wrap md:flex-nowrap">
       <ReactTooltip effect="solid" />
-      <div>
+      <div className="flex items-center">
         <Link to="/" className="flex items-center">
-          <img
-            src={logoText}
-            alt="Sourcify logo"
-            className="max-h-8 md:max-h-10"
-          />
+          <img src={logoText} alt="Sourcify logo" className="max-h-10" />
           <span className="ml-3 text-gray-700 font-vt323 text-2xl">
             sourcify.eth
           </span>
@@ -36,13 +36,13 @@ const Header = () => {
       <div className="h-0 basis-full"></div>
       <div
         className={`${
-          showNav ? "flex" : "hidden"
+          showNav || isDesktop ? "flex" : "hidden"
         } items-center justify-center text-center w-full mt-4 md:mt-0`}
       >
         <div className="flex items-center flex-col md:flex-row">
           <nav
             className={`${
-              showNav ? "flex" : "hidden"
+              showNav || isDesktop ? "flex" : "hidden"
             } font-vt323 text-2xl text-gray-700 flex-col md:flex-row`}
           >
             <Link
