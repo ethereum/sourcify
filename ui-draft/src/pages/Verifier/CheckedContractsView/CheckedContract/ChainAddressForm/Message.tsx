@@ -1,5 +1,6 @@
+import { useContext } from "react";
 import { HiCheck, HiExclamation } from "react-icons/hi";
-import { ID_TO_CHAIN } from "../../../../../constants";
+import { Context } from "../../../../../Context";
 import {
   CheckAllByAddressResult,
   SendableContract,
@@ -18,33 +19,40 @@ type RepoLinkProps = {
   status: "perfect" | "partial";
   address: string;
 };
-const RepoLinks = ({ chainIds, status, address }: RepoLinkProps) => (
-  <p>
-    {status === "perfect" && "Fully"}
-    {status === "partial" && "Partially"} verified at{" "}
-    {chainIds.map((chainId, i) => {
-      return (
-        <span>
-          {i > 0 && ", "}
-          <a
-            href={generateRepoLink(chainId, address, status)}
-            target="_blank"
-            className="underline"
-            key={`${address}-${chainId}-repo-link`}
-            rel="noreferrer"
-          >
-            {ID_TO_CHAIN[parseInt(chainId)].label}
-          </a>
-        </span>
-      );
-    })}
-  </p>
-);
+const RepoLinks = ({ chainIds, status, address }: RepoLinkProps) => {
+  const { sourcifyChainMap } = useContext(Context);
+
+  return (
+    <p>
+      {status === "perfect" && "Fully"}
+      {status === "partial" && "Partially"} verified at{" "}
+      {chainIds.map((chainId, i) => {
+        return (
+          <span>
+            {i > 0 && ", "}
+            <a
+              href={generateRepoLink(chainId, address, status)}
+              target="_blank"
+              className="underline"
+              key={`${address}-${chainId}-repo-link`}
+              rel="noreferrer"
+            >
+              {sourcifyChainMap[parseInt(chainId)].title ||
+                sourcifyChainMap[parseInt(chainId)].name}
+            </a>
+          </span>
+        );
+      })}
+    </p>
+  );
+};
 const Message = ({
   customStatus,
   foundMatches,
   checkedContract,
 }: MessageProps) => {
+  const { sourcifyChainMap } = useContext(Context);
+  const chain = sourcifyChainMap[parseInt(checkedContract.chainId as string)];
   // Show success after successfull verification
   if (customStatus === "perfect" || customStatus === "partial") {
     return (
@@ -52,10 +60,7 @@ const Message = ({
         <p className="break-all">
           <HiCheck className="text-green-500 inline mr-1 align-middle" />
           Verification successful! {customStatus}ly verified at{" "}
-          <b>
-            {ID_TO_CHAIN[parseInt(checkedContract.chainId as string)].label}
-          </b>
-          :{checkedContract.address}
+          <b>{chain.title || chain.name}</b>:{checkedContract.address}
         </p>
       </div>
     );

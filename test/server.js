@@ -1,10 +1,10 @@
 process.env.TESTING = true;
-process.env.LOCALCHAIN_URL = "http://localhost:8545";
 process.env.MOCK_REPOSITORY = "./dist/data/mock-repository";
 process.env.MOCK_DATABASE = "./dist/data/mock-database";
 process.env.SOLC_REPO = "./dist/data/solc-repo";
 process.env.SOLJSON_REPO = "/dist/data/soljson-repo";
 
+const ganache = require("ganache");
 const chai = require("chai");
 const chaiHttp = require("chai-http");
 const Server = require("../dist/server/server").Server;
@@ -12,11 +12,17 @@ const util = require("util");
 const fs = require("fs");
 const rimraf = require("rimraf");
 const path = require("path");
+const Web3 = require("web3");
 const MAX_INPUT_SIZE =
   require("../dist/server/controllers/VerificationController").default
     .MAX_INPUT_SIZE;
+const GANACHE_PORT = process.env.LOCALCHAIN_PORT
+  ? parseInt(process.env.LOCALCHAIN_PORT)
+  : 8545;
 const StatusCodes = require("http-status-codes").StatusCodes;
 const { waitSecs } = require("./helpers/helpers");
+const { deployFromAbiAndBytecode } = require("./helpers/helpers");
+
 chai.use(chaiHttp);
 
 const binaryParser = function (res, cb) {
@@ -28,15 +34,45 @@ const binaryParser = function (res, cb) {
 
 const EXTENDED_TIME = 20000; // 20 seconds
 
-const foundContractChain = {
-  chainId: "5",
-  status: "perfect",
-};
-
 describe("Server", function () {
   const server = new Server();
+  const ganacheServer = ganache.server({
+    wallet: { totalAccounts: 1 },
+    chain: { chainId: 0, networkId: 0 },
+  });
+  let web3Provider;
+  let accounts;
+  let contractAddress;
+  const contractChain = "0";
+
+  const sourcePath = path.join(
+    "test",
+    "testcontracts",
+    "Storage",
+    "Storage.sol"
+  );
+  const sourceBuffer = fs.readFileSync(sourcePath);
+
+  const artifact = require("./testcontracts/Storage/Storage.json");
+  const metadata = require("./testcontracts/Storage/metadata.json");
+  const metadataBuffer = Buffer.from(JSON.stringify(metadata));
 
   before(async () => {
+    await ganacheServer.listen(GANACHE_PORT);
+    console.log("Started ganache local server on port " + GANACHE_PORT);
+
+    web3Provider = new Web3(`http://localhost:${GANACHE_PORT}`);
+    accounts = await web3Provider.eth.getAccounts();
+    console.log("Initialized web3 provider");
+
+    // Deploy the test contract
+    contractAddress = await deployFromAbiAndBytecode(
+      web3Provider,
+      artifact.abi,
+      artifact.bytecode,
+      accounts[0]
+    );
+
     const promisified = util.promisify(server.app.listen);
     await promisified(server.port);
     console.log(`Injector listening on port ${server.port}!`);
@@ -46,44 +82,25 @@ describe("Server", function () {
     rimraf.sync(server.repository);
   });
 
-  after(() => {
+  after(async () => {
     rimraf.sync(server.repository);
+    await ganacheServer.close();
   });
 
-  const sourcePath = path.join(
-    "test",
-    "testcontracts",
-    "1_Storage",
-    "1_Storage.sol"
-  );
-  const sourceBuffer = fs.readFileSync(sourcePath);
-
-  const metadataPath = path.join(
-    "test",
-    "testcontracts",
-    "1_Storage",
-    "metadata.json"
-  );
-  const metadataBuffer = fs.readFileSync(metadataPath);
-  const metadata = JSON.parse(metadataBuffer.toString());
-  const ipfsAddress = metadata.sources["browser/1_Storage.sol"].urls[1];
+  const ipfsAddress =
+    metadata.sources["project:/contracts/Storage.sol"].urls[1];
 
   // change the last char in ipfs hash of the source file
   const lastChar = ipfsAddress.charAt(ipfsAddress.length - 1);
   const modifiedLastChar = lastChar === "a" ? "b" : "a";
   const modifiedIpfsAddress =
     ipfsAddress.slice(0, ipfsAddress.length - 1) + modifiedLastChar;
-  metadata.sources["browser/1_Storage.sol"].urls[1] = modifiedIpfsAddress;
-  const modifiedMetadataBuffer = Buffer.from(JSON.stringify(metadata));
+  const modifiedIpfsMetadata = { ...metadata };
+  modifiedIpfsMetadata.sources["project:/contracts/Storage.sol"].urls[1] =
+    modifiedIpfsAddress;
+  const modifiedIpfsMetadataBuffer = Buffer.from(JSON.stringify(metadata));
 
-  const contractChain = "5"; // goerli
-  const contractAddress = "0x000000bCB92160f8B7E094998Af6BCaD7fa537fe";
   const fakeAddress = "0x000000bCB92160f8B7E094998Af6BCaD7fa537ff";
-  const hardhatOutput = {
-    chain: "5",
-    address: "0x1EFFEbE8B0bc20f2Dc504AA16dC76FF1AB2297A3",
-    mainContractIndex: 5,
-  };
 
   const assertError = (err, res, field) => {
     chai.expect(err).to.be.null;
@@ -296,7 +313,13 @@ describe("Server", function () {
                 .get("/check-all-by-addresses")
                 .query({ chainIds: contractChain, addresses: contractAddress })
                 .end((err, res) =>
-                  assertStatus(err, res, undefined, [foundContractChain], done)
+                  assertStatus(
+                    err,
+                    res,
+                    undefined,
+                    [{ chainId: contractChain, status: "perfect" }],
+                    done
+                  )
                 );
             });
         });
@@ -354,7 +377,7 @@ describe("Server", function () {
         .field("address", contractAddress)
         .field("chain", contractChain)
         .attach("files", metadataBuffer, "metadata.json")
-        .attach("files", sourceBuffer, "1_Storage.sol")
+        .attach("files", sourceBuffer, "Storage.sol")
         .end((err, res) => assertions(err, res, done));
     });
 
@@ -367,7 +390,7 @@ describe("Server", function () {
           chain: contractChain,
           files: {
             "metadata.json": metadataBuffer.toString(),
-            "1_Storage.sol": sourceBuffer.toString(),
+            "Storage.sol": sourceBuffer.toString(),
           },
         })
         .end((err, res) => assertions(err, res, done));
@@ -382,7 +405,7 @@ describe("Server", function () {
           chain: contractChain,
           files: {
             "metadata.json": metadataBuffer,
-            "1_Storage.sol": sourceBuffer,
+            "Storage.sol": sourceBuffer,
           },
         })
         .end((err, res) => assertions(err, res, done));
@@ -403,7 +426,7 @@ describe("Server", function () {
         .post("/")
         .field("address", contractAddress)
         .field("chain", contractChain)
-        .attach("files", modifiedMetadataBuffer, "metadata.json")
+        .attach("files", modifiedIpfsMetadataBuffer, "metadata.json")
         .end((err, res) => {
           assertMissingFile(err, res);
           done();
@@ -439,24 +462,20 @@ describe("Server", function () {
     });
 
     it("should return 'partial', then delete partial when 'full' match", (done) => {
-      const partialMetadataPath = path.join(
-        "test",
-        "testcontracts",
-        "1_Storage",
-        "metadata-modified.json"
+      const partialMetadata = require("./testcontracts/Storage/metadataModified.json");
+      const partialMetadataBuffer = Buffer.from(
+        JSON.stringify(partialMetadata)
       );
-      const partialMetadataBuffer = fs.readFileSync(partialMetadataPath);
 
       const partialSourcePath = path.join(
         "test",
         "testcontracts",
-        "1_Storage",
-        "1_Storage-modified.sol"
+        "Storage",
+        "StorageModified.sol"
       );
       const partialSourceBuffer = fs.readFileSync(partialSourcePath);
 
       const partialMetadataURL = `/repository/contracts/partial_match/${contractChain}/${contractAddress}/metadata.json`;
-      const partialMetadata = JSON.parse(partialMetadataBuffer.toString());
 
       chai
         .request(server.app)
@@ -499,8 +518,10 @@ describe("Server", function () {
         });
     });
 
-    it("should mark contracts without an embedded metadata hash as a 'partial' match", (done) => {
-      const address = "0x093203902B71Cdb1dAA83153b3Df284CD1a2f88d";
+    it("should mark contracts without an embedded metadata hash as a 'partial' match", async () => {
+      // Simple contract without bytecode at https://goerli.etherscan.io/address/0x093203902B71Cdb1dAA83153b3Df284CD1a2f88d
+      const bytecode =
+        "0x6080604052348015600f57600080fd5b50601680601d6000396000f3fe6080604052600080fdfea164736f6c6343000700000a";
       const metadataPath = path.join(
         "test",
         "sources",
@@ -508,19 +529,33 @@ describe("Server", function () {
         "withoutMetadataHash.meta.object.json"
       );
       const metadataBuffer = fs.readFileSync(metadataPath);
+      const metadata = JSON.parse(metadataBuffer.toString());
+      const address = await deployFromAbiAndBytecode(
+        web3Provider,
+        metadata.output.abi,
+        bytecode,
+        accounts[0]
+      );
+
       chai
         .request(server.app)
         .post("/")
         .field("address", address)
-        .field("chain", "5")
+        .field("chain", contractChain)
         .attach("files", metadataBuffer)
-        .end((err, res) => assertions(err, res, done, address, "partial"));
+        .end((err, res) => assertions(err, res, null, address, "partial"));
+      return true;
     });
 
-    it("should verify a contract with library placeholders", (done) => {
-      const chainId = "5";
-      const address = "0x399B23c75d8fd0b95E81E41e1c7c88937Ee18000";
-
+    it("should verify a contract with library placeholders", async () => {
+      // Originally https://goerli.etherscan.io/address/0x399B23c75d8fd0b95E81E41e1c7c88937Ee18000#code
+      const artifact = require("./sources/artifacts/UsingLibrary.json");
+      const address = await deployFromAbiAndBytecode(
+        web3Provider,
+        artifact.abi,
+        artifact.bytecode,
+        accounts[0]
+      );
       const metadataPath = path.join(
         "test",
         "sources",
@@ -541,7 +576,7 @@ describe("Server", function () {
         .request(server.app)
         .post("/")
         .field("address", address)
-        .field("chain", chainId)
+        .field("chain", contractChain)
         .attach("files", metadataBuffer)
         .attach("files", sourceBuffer)
         .end((err, res) => {
@@ -549,7 +584,7 @@ describe("Server", function () {
           chai
             .request(server.app)
             .get(
-              `/repository/contracts/full_match/${chainId}/${address}/library-map.json`
+              `/repository/contracts/full_match/${contractChain}/${address}/library-map.json`
             )
             .buffer()
             .parse(binaryParser)
@@ -562,7 +597,6 @@ describe("Server", function () {
                   "11fea6722e00ba9f43861a6e4da05fecdf9806b7",
               };
               chai.expect(receivedLibraryMap).to.deep.equal(expectedLibraryMap);
-              done();
             });
         });
     });
@@ -611,11 +645,15 @@ describe("Server", function () {
         .send({
           files: {
             "metadata.json": metadataBuffer.toString(),
-            "1_Storage.sol": sourceBuffer.toString(),
+            "Storage.sol": sourceBuffer.toString(),
           },
         })
         .then((res) => {
-          assertAddressAndChainMissing(res, ["browser/1_Storage.sol"], {});
+          assertAddressAndChainMissing(
+            res,
+            ["project:/contracts/Storage.sol"],
+            {}
+          );
           done();
         });
     });
@@ -624,12 +662,12 @@ describe("Server", function () {
       const agent = chai.request.agent(server.app);
       agent
         .post("/input-files")
-        .attach("files", sourceBuffer, "1_Storage.sol")
+        .attach("files", sourceBuffer, "Storage.sol")
         .attach("files", metadataBuffer, "metadata.json")
         .then((res) => {
           const contracts = assertAddressAndChainMissing(
             res,
-            ["browser/1_Storage.sol"],
+            ["project:/contracts/Storage.sol"],
             {}
           );
           contracts[0].address = contractAddress;
@@ -676,12 +714,12 @@ describe("Server", function () {
           chai
             .request(server.app)
             .post("/input-files")
-            .attach("files", sourceBuffer, "1_Storage.sol")
+            .attach("files", sourceBuffer, "Storage.sol")
             .end((err, res) => {
               chai.expect(err).to.be.null;
               chai.expect(res.status).to.equal(StatusCodes.OK);
 
-              chai.expect(res.body.unused).to.deep.equal(["1_Storage.sol"]);
+              chai.expect(res.body.unused).to.deep.equal(["Storage.sol"]);
               chai.expect(res.body.contracts).to.be.empty;
               done();
             });
@@ -713,7 +751,7 @@ describe("Server", function () {
 
           agent
             .post("/input-files")
-            .attach("files", sourceBuffer, "1_Storage.sol")
+            .attach("files", sourceBuffer, "Storage.sol")
             .end((err, res) => {
               contracts[0].chainId = contractChain;
               contracts[0].address = contractAddress;
@@ -816,15 +854,15 @@ describe("Server", function () {
       const agent = chai.request.agent(server.app);
       agent
         .post("/input-files")
-        .attach("files", modifiedMetadataBuffer)
+        .attach("files", modifiedIpfsMetadataBuffer)
         .then((res) => {
           assertAddressAndChainMissing(res, [], {
-            "browser/1_Storage.sol": {
+            "project:/contracts/Storage.sol": {
               keccak256:
-                "0xaedc7086ad8503907209f50bac1e4dc6c2eca2ed41b15d03740fea748ea3f88e",
+                "0x88c47206b5ec3d60ab820e9d126c4ac54cb17fa7396ff49ebe27db2862982ad8",
               urls: [
-                "bzz-raw://4bc331951c25951321cb29abbd689eb3af669530222c6bb2d45ff45334ee83a7",
-                "dweb:/ipfs/QmWb1NQ6Pw8ZLMFX8uDjMyftgcEieT9iP2TvWisPhjN3Ua",
+                "bzz-raw://5d1eeb01c8c10bed9e290f4a80a8d4081422a7b298a13049d72867022522cf6b",
+                "dweb:/ipfs/QmaFRC9ZtT7y3t9XNWCbDuMTEwKkyaQJzYFzw3NbeohSna", // last char changed to "a"
               ],
             },
           });
@@ -838,7 +876,11 @@ describe("Server", function () {
         .post("/input-files")
         .attach("files", metadataBuffer)
         .then((res) => {
-          assertAddressAndChainMissing(res, ["browser/1_Storage.sol"], {});
+          assertAddressAndChainMissing(
+            res,
+            ["project:/contracts/Storage.sol"],
+            {}
+          );
           done();
         });
     });
@@ -851,7 +893,7 @@ describe("Server", function () {
         .then((res) => {
           const contracts = assertAddressAndChainMissing(
             res,
-            ["browser/1_Storage.sol"],
+            ["project:/contracts/Storage.sol"],
             {}
           );
           contracts[0].address = contractAddress;
@@ -1006,22 +1048,32 @@ describe("Server", function () {
 
     describe("hardhat build-info file support", function () {
       this.timeout(EXTENDED_TIME);
-
-      const hardhatOutputPath = path.join(
-        "test",
-        "sources",
-        "hardhat-output",
-        "output.json"
+      let address;
+      const mainContractIndex = 5;
+      const hardhatOutputJSON = require("./sources/hardhat-output/output.json");
+      const MyToken =
+        hardhatOutputJSON.output.contracts["contracts/MyToken.sol"].MyToken;
+      const hardhatOutputBuffer = Buffer.from(
+        JSON.stringify(hardhatOutputJSON)
       );
-
-      const hardhatOutputBuffer = fs.readFileSync(hardhatOutputPath);
+      before(async function () {
+        address = await deployFromAbiAndBytecode(
+          web3Provider,
+          MyToken.abi,
+          MyToken.evm.bytecode.object,
+          accounts[0],
+          ["Sourcify Hardhat Test", "TEST"]
+        );
+        console.log(`Contract deployed at ${address}`);
+        await waitSecs(3);
+      });
 
       it("should detect multiple contracts in the build-info file", (done) => {
         chai
           .request(server.app)
           .post("/")
-          .field("chain", hardhatOutput.chain)
-          .field("address", hardhatOutput.address)
+          .field("chain", contractChain)
+          .field("address", address)
           .attach("files", hardhatOutputBuffer)
           .then((res) => {
             chai.expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
@@ -1038,12 +1090,12 @@ describe("Server", function () {
         chai
           .request(server.app)
           .post("/")
-          .field("chain", hardhatOutput.chain)
-          .field("address", hardhatOutput.address)
-          .field("chosenContract", hardhatOutput.mainContractIndex)
+          .field("chain", contractChain)
+          .field("address", address)
+          .field("chosenContract", mainContractIndex)
           .attach("files", hardhatOutputBuffer)
           .end((err, res) => {
-            assertions(err, res, done, hardhatOutput.address, "perfect");
+            assertions(err, res, done, address, "perfect");
           });
       });
     });

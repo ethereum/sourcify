@@ -1,6 +1,6 @@
 import Web3 from 'web3';
 import * as bunyan from 'bunyan';
-import { Match, InputData, getSupportedChains, getFullnodeChains, Logger, IFileService, FileService, StringMap, cborDecode, CheckedContract, MatchQuality, Chain, Status } from '@ethereum-sourcify/core';
+import { Match, InputData, getSupportedChains, Logger, IFileService, FileService, StringMap, cborDecode, CheckedContract, MatchQuality, Chain, Status } from '@ethereum-sourcify/core';
 import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint, getCreationDataFromArchive, getCreationDataByScraping, getCreationDataFromGraphQL, getCreationDataTelos, getCreationDataMeter } from '../utils';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const multihashes: any = require('multihashes');
@@ -22,7 +22,7 @@ class InjectorChain {
     contractFetchAddress: string;
     graphQLFetchAddress: string;
     txRegex: string;
-    archiveWeb3: Web3;
+    // archiveWeb3: Web3;
 
     constructor(chain: Chain) {
         this.web3array = [];
@@ -31,7 +31,7 @@ class InjectorChain {
         this.contractFetchAddress = chain.contractFetchAddress;
         this.graphQLFetchAddress = chain.graphQLFetchAddress;
         this.txRegex = chain.txRegex;
-        this.archiveWeb3 = chain.archiveWeb3;
+        // this.archiveWeb3 = chain.archiveWeb3;
     }
 }
 
@@ -115,31 +115,21 @@ export class Injector {
             this.log.info({loc: "[INIT_CHAINS]"}, "finished checking providerPID");
         }
 
-        const chainsData = this.alchemyPID ? getSupportedChains() : getFullnodeChains();
+        const chainsData = getSupportedChains();
 
         for (const chain of chainsData) {
             this.chains[chain.chainId] = new InjectorChain(chain);
 
-            if (this.alchemyPID) {
-                this.chains[chain.chainId].web3array = chain.rpc.map((rpcURL: string) => {
-                    const opts = { timeout: this.web3timeout };
-                    return rpcURL.startsWith('http') ? 
-                        new Web3(new Web3.providers.HttpProvider(rpcURL, opts)) :
-                        new Web3(new Web3.providers.WebsocketProvider(rpcURL, opts))
-                });
-            } else {
-                const web3 = chain.fullnode.dappnode;
-                this.chains[chain.chainId].web3array = [new Web3(web3)];
-                await checkEndpoint(web3).catch(() => {
-                    this.log.warn({ endpoint: web3 }, `Invalid endpoint for chain ${chain.name}`);
-                })
-            }
+            this.chains[chain.chainId].web3array = chain.rpc.map((rpcURL: string) => {
+                const opts = { timeout: this.web3timeout };
+                const web3 = rpcURL.startsWith('http') ? 
+                    new Web3(new Web3.providers.HttpProvider(rpcURL, opts)) :
+                    new Web3(new Web3.providers.WebsocketProvider(rpcURL, opts));
+                return web3;
+            });
         }
-
-        const numberOfChains = Object.keys(this.chains).length;
-        this.log.info({loc: "[INIT_CHAINS]", numberOfChains}, "Finished loading chains");
     }
-
+    
     /**
      * Searches a set of addresses for the one whose deployedBytecode
      * matches a given bytecode string
@@ -359,15 +349,16 @@ export class Injector {
             }
         }
 
-        const archiveWeb3 = this.chains[chain].archiveWeb3;
-        if (archiveWeb3) { // fetch by binary search on chain history
-            this.log.info({ loc, chain, contractAddress }, "Fetching archive data");
-            try {
-                return await getCreationDataFromArchive(contractAddress, archiveWeb3);
-            } catch(err: any) {
-                this.log.error({ loc, chain, contractAddress, err: err.message }, "Archive search failed!");
-            }
-        }
+        // Commented out for publishing chains in sourcify-chains at /chains endpoint. Also, since all chains with archiveWeb3 (Ethereum networks) already had txRegex and txFetchAddress, this block of code never executes.
+        // const archiveWeb3 = this.chains[chain].archiveWeb3;
+        // if (archiveWeb3) { // fetch by binary search on chain history
+        //     this.log.info({ loc, chain, contractAddress }, "Fetching archive data");
+        //     try {
+        //         return await getCreationDataFromArchive(contractAddress, archiveWeb3);
+        //     } catch(err: any) {
+        //         this.log.error({ loc, chain, contractAddress, err: err.message }, "Archive search failed!");
+        //     }
+        // }
 
         const err = "Cannot fetch creation data";
         this.log.error({ loc, chain, contractAddress, err });

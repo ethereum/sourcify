@@ -24,13 +24,6 @@ const Header = () => {
       </div>
       <div className="flex items-center">
         <nav className="font-vt323 text-lg md:text-2xl text-gray-700">
-          <a
-            className="link-underline mx-2 my-2 md:mx-6 hover:text-ceruleanBlue-500"
-            href="/#about"
-            rel="noreferrer"
-          >
-            About
-          </a>
           <Link
             className="link-underline mx-2 my-2 md:mx-6 hover:text-ceruleanBlue-500"
             to="/verifier"

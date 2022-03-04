@@ -1,10 +1,9 @@
-import Web3 from "web3";
 import * as dotenv from 'dotenv';
 import path from 'path';
 
 dotenv.config({ path: path.resolve(__dirname, "..", "..", "..", "environments/.env") });
 
-const ETHERSCAN_REGEX = /at txn\s+<a href='\/tx\/(.*?)'/;
+const ETHERSCAN_REGEX = (/at txn\s+<a href='\/tx\/(.*?)'/).source; // save as string to be able to return the txRegex in /chains response. If stored as RegExp returns {}
 const ETHERSCAN_SUFFIX = "address/${ADDRESS}";
 const BLOCKSCOUT_REGEX = "transaction_hash_link\" href=\"${BLOCKSCOUT_PREFIX}/tx/(.*?)\"";
 const BLOCKSCOUT_SUFFIX = "address/${ADDRESS}/transactions";
@@ -28,19 +27,12 @@ function getCustomURL(chainName: string, chainGroup: ChainGroup, useOwn=false) {
     return `https://${chainGroup}-${chainName}.${domain}/v2/${id}`;
 }
 
-function createArchiveEndpoint(chainName: string, chainGroup: ChainGroup, useOwn=false) {
-    return new Web3(getCustomURL(chainName, chainGroup, useOwn));
-}
-
 function getBlockscoutRegex(blockscoutPrefix="") {
     return BLOCKSCOUT_REGEX.replace("${BLOCKSCOUT_PREFIX}", blockscoutPrefix);
 }
 
 export default {
     "1": {
-        "fullnode": {
-            "dappnode": "http://geth.dappnode:8545"
-        },
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://etherscan.io/" + ETHERSCAN_SUFFIX,
@@ -49,12 +41,8 @@ export default {
             getCustomURL("mainnet", "eth")
         ],
         "txRegex": ETHERSCAN_REGEX,
-        "archiveWeb3": createArchiveEndpoint("mainnet", "eth", true)
     },
     "3": {
-        "fullnode": {
-            "dappnode": "http://ropsten.dappnode:8545"
-        },
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://ropsten.etherscan.io/" + ETHERSCAN_SUFFIX,
@@ -63,12 +51,8 @@ export default {
             getCustomURL("ropsten", "eth")
         ],
         "txRegex": ETHERSCAN_REGEX,
-        "archiveWeb3": createArchiveEndpoint("ropsten", "eth", true)
     },
     "4": {
-        "fullnode": {
-            "dappnode": "http://rinkeby.dappnode:8545"
-        },
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://rinkeby.etherscan.io/" + ETHERSCAN_SUFFIX,
@@ -77,12 +61,8 @@ export default {
             getCustomURL("rinkeby", "eth")
         ],
         "txRegex": ETHERSCAN_REGEX,
-        "archiveWeb3": createArchiveEndpoint("rinkeby", "eth", true)
     },
     "5": {
-        "fullnode": {
-            "dappnode": "http://goerli-geth.dappnode:8545"
-        },
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://goerli.etherscan.io/" + ETHERSCAN_SUFFIX,
@@ -91,12 +71,8 @@ export default {
             getCustomURL("goerli", "eth")
         ],
         "txRegex": ETHERSCAN_REGEX,
-        "archiveWeb3": createArchiveEndpoint("goerli", "eth", true)
     },
     "42": {
-        "fullnode": {
-            "dappnode": "http://kovan.dappnode:8545"
-        },
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://kovan.etherscan.io/" + ETHERSCAN_SUFFIX,
@@ -104,7 +80,6 @@ export default {
             getCustomURL("kovan", "eth")
         ],
         "txRegex": ETHERSCAN_REGEX,
-        "archiveWeb3": createArchiveEndpoint("kovan", "eth"),
     },
     "56": {
         "supported": true,

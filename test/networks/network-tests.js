@@ -1,5 +1,6 @@
 // set env vars before Server init
 process.env.MOCK_REPOSITORY = "./mockRepository";
+process.env.MOCK_DATABASE = "./database";
 process.env.TESTING = "true";
 
 const chai = require("chai");
@@ -54,7 +55,7 @@ describe("Test Supported Networks", function () {
     ["uint256"],
     [987],
     ["shared/WithImmutables.sol"],
-    "shared/withImmutables.meta.object.json"
+    "shared/old.withImmutables.metadata.json"
   );
 
   verifyContractWithImmutables(
@@ -64,7 +65,7 @@ describe("Test Supported Networks", function () {
     ["uint256"],
     [101],
     ["shared/WithImmutables.sol"],
-    "shared/withImmutables.meta.object.json"
+    "shared/old.withImmutables.metadata.json"
   );
 
   verifyContractWithImmutables(
@@ -74,7 +75,7 @@ describe("Test Supported Networks", function () {
     ["uint256"],
     [2],
     ["shared/WithImmutables.sol"],
-    "shared/withImmutables.meta.object.json"
+    "shared/old.withImmutables.metadata.json"
   );
 
   verifyContractWithImmutables(
@@ -84,7 +85,7 @@ describe("Test Supported Networks", function () {
     ["uint256"],
     [256],
     ["shared/WithImmutables.sol"],
-    "shared/withImmutables.meta.object.json"
+    "shared/old.withImmutables.metadata.json"
   );
 
   verifyContractWithImmutables(
@@ -94,7 +95,7 @@ describe("Test Supported Networks", function () {
     ["uint256"],
     [123],
     ["shared/WithImmutables.sol"],
-    "shared/withImmutables.meta.object.json"
+    "shared/old.withImmutables.metadata.json"
   );
 
   verifyContract(
@@ -119,7 +120,7 @@ describe("Test Supported Networks", function () {
       ["uint256"],
       [777],
       ["shared/WithImmutables.sol"],
-      "shared/withImmutables.meta.object.json"
+      "shared/old.withImmutables.metadata.json"
     );
   });
 
@@ -130,7 +131,7 @@ describe("Test Supported Networks", function () {
     ["uint256"],
     [111],
     ["shared/WithImmutables.sol"],
-    "shared/withImmutables2.meta.object.json"
+    "shared/withImmutables.metadata.json"
   );
 
   verifyContractWithImmutables(
@@ -152,7 +153,7 @@ describe("Test Supported Networks", function () {
     ["uint256"],
     [222],
     ["shared/WithImmutables.sol"],
-    "shared/withImmutables2.meta.object.json"
+    "shared/withImmutables.metadata.json"
   );
 
   verifyContractWithImmutables(
@@ -215,7 +216,7 @@ describe("Test Supported Networks", function () {
     ["uint256"],
     [222],
     ["shared/WithImmutables.sol"],
-    "shared/withImmutables2.meta.object.json"
+    "shared/withImmutables.metadata.json"
   );
 
   verifyContractWithImmutables(
@@ -225,7 +226,7 @@ describe("Test Supported Networks", function () {
     ["uint256"],
     [222],
     ["shared/WithImmutables.sol"],
-    "shared/withImmutables2.meta.object.json"
+    "shared/withImmutables.metadata.json"
   );
 
   verifyContractWithImmutables(
@@ -253,7 +254,7 @@ describe("Test Supported Networks", function () {
     ["uint256"],
     [1234],
     ["shared/WithImmutables.sol"],
-    "shared/withImmutables2.meta.object.json"
+    "shared/withImmutables.metadata.json"
   );
   verifyContractWithImmutables(
     "0x84d9eF98bF8a66bfB6ed8383F340C402507CfC15",
@@ -262,7 +263,7 @@ describe("Test Supported Networks", function () {
     ["uint256"],
     [42],
     ["shared/WithImmutables.sol"],
-    "shared/withImmutables2.meta.object.json"
+    "shared/withImmutables.metadata.json"
   );
   verifyContractWithImmutables(
     "0x0bb3F43533FBf16d69dBdccf6AaAef81acd76FAB",
@@ -333,7 +334,7 @@ describe("Test Supported Networks", function () {
     ["uint256"],
     [123456],
     ["shared/WithImmutables.sol"],
-    "shared/withImmutables2.meta.object.json"
+    "shared/withImmutables.metadata.json"
   );
   verifyContractWithImmutables(
     "0x668E7f4d8051511279d3BD6d6854e7D39cc94873",
@@ -355,7 +356,7 @@ describe("Test Supported Networks", function () {
     ["uint256"],
     [666],
     ["shared/WithImmutables.sol"],
-    "shared/withImmutables2.meta.object.json"
+    "shared/withImmutables.metadata.json"
   );
   verifyContract(
     "0xd8A08AFf1B0585Cad0E173Ce0E93551Ac59D3530",
@@ -378,7 +379,7 @@ describe("Test Supported Networks", function () {
     ["uint256"],
     [666],
     ["shared/WithImmutables.sol"],
-    "shared/withImmutables2.meta.object.json"
+    "shared/withImmutables.metadata.json"
   );
   verifyContract(
     "0xC9BdeEd33CD01541e1eeD10f90519d2C06Fe3feB",
@@ -394,7 +395,7 @@ describe("Test Supported Networks", function () {
     ["uint256"],
     [123],
     ["shared/WithImmutables.sol"],
-    "shared/withImmutables2.meta.object.json"
+    "shared/withImmutables.metadata.json"
   );
 
   //////////////////////

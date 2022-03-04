@@ -9,7 +9,28 @@ type ChainMap = {
     [chainId: string]: Chain
 };
 
+const TEST_CHAINS: Chain[] = [{
+    name: "Localhost",
+    shortName: "Localhost",
+    chainId: 0,
+    faucets: [],
+    infoURL: null,
+    nativeCurrency: null,
+    network: "testnet",
+    networkId: 0,
+    rpc: [ `http://localhost:${process.env.LOCALCHAIN_PORT || 8545}` ],
+    supported: true,
+    monitored: true,
+}];
+
 const chainMap: ChainMap = {};
+// Add test chains too if testing
+if (process.env.TESTING == "true") {
+    for (const chain of TEST_CHAINS) {
+        chainMap[chain.chainId.toString()] = chain;
+    }
+}
+
 for (const i in chains) {
     const chain = chains[i];
     const chainId = chain.chainId;
@@ -26,7 +47,7 @@ for (const i in chains) {
     chainMap[chainId] = chain;
 }
 
-function filter(obj: any, predicate: ((c: any) => boolean)): any[] {
+function filter(obj: ChainMap, predicate: ((c: any) => boolean)): Chain[] {
     const arr = [];
     for (const id in obj) {
         const value = obj[id];
@@ -37,43 +58,33 @@ function filter(obj: any, predicate: ((c: any) => boolean)): any[] {
     return arr;
 }
 
-const supportedChains = filter(chainMap, c => c.supported);
-const monitoredChains = filter(chainMap, c => c.monitored);
-const fullnodeChains = filter(chainMap, c => c.fullnode);
+export function getSourcifyChains(): Chain[] {
+    const chainsArray = filter(chainMap, c => c.supported !== undefined);
+    const idToChain = (id: number) => {
+        return chainsArray.find((chain) => chain.chainId == id);
+    };
+    // Have Ethereum chains on top.
+    const ethereumChainIds = [1, 3, 4, 5, 42];
+    const etherumChains = ethereumChainIds.map((id) => idToChain(id));
+    // Others, sorted alphabetically
+    const otherChains = chainsArray
+        .filter((chain) => ![1, 3, 4, 5, 42].includes(chain.chainId))
+        .sort((a, b) => (a.name > b.name ? 1 : b.name > a.name ? -1 : 0));
 
-const TEST_CHAINS: Chain[] = [{
-    name: "Localhost",
-    shortName: "Localhost",
-    chainId: 0,
-    faucets: [],
-    infoURL: null,
-    nativeCurrency: null,
-    network: "testnet",
-    networkId: 0,
-    rpc: [ `http://localhost:${process.env.LOCALCHAIN_PORT || 8545}` ]
-}];
-
-/**
- * Returns the chains currently supported by Sourcify server.
- * @returns array of chains currently supported by Sourcify server
- */
-export function getSupportedChains(testing = false): Chain[] {
-    return testing ? TEST_CHAINS : supportedChains;
+    const sourcifyChainsSorted = etherumChains.concat(otherChains);
+    return sourcifyChainsSorted;
 }
 
-/**
- * Returns the chains currently monitored by Sourcify.
- * @returns array of chains currently monitored by Sourcify
- */
-export function getMonitoredChains(testing = false): Chain[] {
-    return testing ? TEST_CHAINS : monitoredChains;
+export function getSupportedChains(): Chain[] {
+    return filter(chainMap, c => c.supported);
 }
 
-/**
- * Returns the chains with additional means
- */
-export function getFullnodeChains(): Chain[] {
-    return fullnodeChains;
+export function getMonitoredChains(): Chain[] {
+    return filter(chainMap, c => c.monitored);
+}
+
+export function getTestChains(): Chain[] {
+    return TEST_CHAINS;
 }
 
 /**

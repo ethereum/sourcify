@@ -128,11 +128,12 @@ export type Chain = {
   rpc: string[],
   faucets: string[],
   infoURL: string,
-  fullnode?: { dappnode: string },
   contractFetchAddress?: string,
   graphQLFetchAddress?: string,
   txRegex?: string,
-  archiveWeb3?: Web3,
+  // archiveWeb3?: Web3,
+  supported?: boolean,
+  monitored?: boolean
 };
 
 export type InfoErrorLogger = {

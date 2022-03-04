@@ -2,20 +2,20 @@ process.env.TESTING = "true";
 process.env.MOCK_REPOSITORY = "./mockRepository";
 process.env.MOCK_DATABASE = "./mockDatabase";
 process.env.IPFS_URL = "http://ipfs.io/ipfs/";
-const GANACHE_PORT = process.env.LOCALCHAIN_PORT || 8545;
-
-const ganache = require("ganache-cli");
-const util = require("util");
+const GANACHE_PORT = process.env.LOCALCHAIN_PORT
+  ? parseInt(process.env.LOCALCHAIN_PORT)
+  : 8545;
+const ContractWrapper = require("./helpers/ContractWrapper");
+const ganache = require("ganache");
 const ipfs = require("ipfs-core");
 const rimraf = require("rimraf");
 const chai = require("chai");
 const Monitor = require("../dist/monitor/monitor").default;
-const { deployFromArtifact, waitSecs } = require("./helpers/helpers");
+const { waitSecs } = require("./helpers/helpers");
 const fs = require("fs");
 const path = require("path");
 const Web3 = require("web3");
 const ethers = require("ethers");
-const Web3EthAbi = require("web3-eth-abi");
 
 class Counter {
   static get() {
@@ -28,7 +28,7 @@ class MonitorWrapper {
   constructor() {
     this.repository = "./mockRepository" + Math.random().toString().slice(2);
     this.monitor = new Monitor({ repository: this.repository, testing: true });
-    chai.expect(this.monitor.chainMonitors).to.have.a.lengthOf(1);
+    chai.expect(this.monitor.chainMonitors).to.have.a.lengthOf(1); // Number of chains in TEST_CHAINS at services/core/utils/utils.ts
     this.chainId = this.monitor.chainMonitors[0].chainId;
   }
 
@@ -135,63 +135,31 @@ function assertEqualityFromPath(obj1, obj2path, options = {}) {
   }
 }
 
-class ContractWrapper {
-  constructor(jsPath, publishOptions, args = []) {
-    this.artifact = require(jsPath);
-    this.rawMetadata = this.artifact.compilerOutput.metadata;
-    this.metadata = JSON.parse(this.rawMetadata);
-    this.sources = this.artifact.sourceCodes;
-    this.publishOptions = publishOptions;
-    this.args = args;
-
-    if (args.length) {
-      this.constructArgsHex();
-    }
-  }
-
-  constructArgsHex() {
-    let ctorSpecInput;
-    for (const methodSpec of this.artifact.compilerOutput.abi) {
-      if (methodSpec.type === "constructor") {
-        ctorSpecInput = methodSpec.inputs;
-      }
-    }
-
-    this.argsHex = Web3EthAbi.encodeParameters(ctorSpecInput, this.args);
-  }
-
-  async publish(ipfsNode) {
-    if (this.publishOptions.metadata) {
-      this.metadataIpfsHash = (await ipfsNode.add(this.rawMetadata)).path;
-    }
-
-    if (this.publishOptions.sources) {
-      for (const sourceName in this.sources) {
-        await ipfsNode.add(this.sources[sourceName]);
-      }
-    }
-  }
-}
-
 describe("Monitor", function () {
   this.timeout(60 * 1000);
-  const ganacheServer = ganache.server({ blockTime: 1, total_accounts: 5 });
+  const ganacheServer = ganache.server({
+    wallet: { totalAccounts: 5 },
+    chain: { chainId: 0, networkId: 0 },
+  });
 
   const contractWrappers = {
     simpleWithImport: new ContractWrapper(
-      "./sources/pass/simpleWithImport.js",
+      require("./sources/pass/simpleWithImport.js"),
       { metadata: true, sources: true }
     ),
-    simpleLiteral: new ContractWrapper("./sources/pass/simple.literal.js", {
-      metadata: true,
-    }),
+    simpleLiteral: new ContractWrapper(
+      require("./sources/pass/simple.literal.js"),
+      {
+        metadata: true,
+      }
+    ),
     withImmutables: new ContractWrapper(
-      "./sources/pass/withImmutables.js",
+      require("./sources/pass/withImmutables.js"),
       { metadata: true, sources: true },
       [2]
     ),
     withoutMetadataHash: new ContractWrapper(
-      "./sources/pass/withoutMetadataHash.js",
+      require("./sources/pass/withoutMetadataHash.js"),
       { metadata: true, sources: true }
     ),
   };
@@ -199,17 +167,6 @@ describe("Monitor", function () {
   let ipfsNode;
   let web3Provider;
   let accounts;
-
-  const deployContract = async (contractWrapper, from) => {
-    const instance = await deployFromArtifact(
-      web3Provider,
-      contractWrapper.artifact,
-      from,
-      contractWrapper.args
-    );
-    console.log("Deployed contract at", instance.options.address);
-    return instance.options.address;
-  };
 
   before(async function () {
     ipfsNode = await ipfs.create({ offline: true, silent: true });
@@ -219,8 +176,8 @@ describe("Monitor", function () {
       await contractWrappers[contractName].publish(ipfsNode);
     }
 
-    await util.promisify(ganacheServer.listen)(GANACHE_PORT);
-    console.log("Started ganache local server");
+    await ganacheServer.listen(GANACHE_PORT);
+    console.log("Started ganache local server at port " + GANACHE_PORT);
 
     web3Provider = new Web3(`http://localhost:${GANACHE_PORT}`);
     accounts = await web3Provider.eth.getAccounts();
@@ -234,8 +191,8 @@ describe("Monitor", function () {
   const sourcifyContract = async (contractWrapper) => {
     const monitorWrapper = new MonitorWrapper();
     monitorWrapper.start();
-    const address = await deployContract(
-      contractWrapper,
+    const address = await contractWrapper.deploy(
+      web3Provider,
       accounts[Counter.get()]
     );
 
@@ -253,6 +210,7 @@ describe("Monitor", function () {
   });
 
   it("should not resourcify if already sourcified", async function () {
+    const contract = contractWrappers.simpleWithImport;
     const monitorWrapper = new MonitorWrapper();
     const from = accounts[Counter.get()];
     const calculatedAddress = ethers.utils.getContractAddress({
@@ -261,20 +219,17 @@ describe("Monitor", function () {
     });
     const metadataBirthtime = monitorWrapper.writeMetadata(
       calculatedAddress,
-      contractWrappers.simpleWithImport.rawMetadata
+      contract.rawMetadata
     );
 
     monitorWrapper.start();
-    const deployedAddress = await deployContract(
-      contractWrappers.simpleWithImport,
-      from
-    );
+    const deployedAddress = await contract.deploy(web3Provider, from);
     chai.expect(calculatedAddress).to.deep.equal(deployedAddress);
 
     await waitSecs(MONITOR_SECS);
     monitorWrapper.assertFilesNotStored(
       deployedAddress,
-      contractWrappers.simpleWithImport,
+      contract,
       metadataBirthtime
     );
     monitorWrapper.stop();
@@ -282,8 +237,9 @@ describe("Monitor", function () {
 
   it("should sourcify the deployed contract after being started with a delay", async function () {
     const currentBlockNumber = await web3Provider.eth.getBlockNumber();
-    const address = await deployContract(
-      contractWrappers.simpleWithImport,
+    const contract = contractWrappers.simpleWithImport;
+    const address = await contract.deploy(
+      web3Provider,
       accounts[Counter.get()]
     );
 
@@ -293,10 +249,7 @@ describe("Monitor", function () {
     monitorWrapper.start(currentBlockNumber - 1);
 
     await waitSecs(CATCH_UP_SECS + MONITOR_SECS);
-    monitorWrapper.assertFilesStored(
-      address,
-      contractWrappers.simpleWithImport
-    );
+    monitorWrapper.assertFilesStored(address, contract);
     monitorWrapper.stop();
   });
 
@@ -312,7 +265,7 @@ describe("Monitor", function () {
   });
 
   after(async function () {
-    await util.promisify(ganacheServer.close)();
+    await ganacheServer.close();
     await ipfsNode.stop();
   });
 });
