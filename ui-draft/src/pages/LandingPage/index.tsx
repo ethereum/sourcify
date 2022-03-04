@@ -94,7 +94,7 @@ const LandingPage = () => {
   const aboutRef = useRef<HTMLElement>(null);
   return (
     <div>
-      <div className="h-screen flex flex-col px-8 md:px-12 lg:px-24 bg-gray-100">
+      <div className="h-screen flex flex-col  px-8 md:px-12 lg:px-24 bg-gray-100 ">
         <Header />
         <section className="grid md:grid-cols-2 gap-8 flex-1">
           {/* Hero left */}
@@ -149,7 +149,7 @@ const LandingPage = () => {
               </div>
               {/* Back visual */}
               <div
-                className="absolute mb-32 ml-16 lg:ml-32  z-0 transition-all duration-300 ease-in-out bg-ceruleanBlue-100 px-4 py-2 rounded-md border-2 border-ceruleanBlue-400 text-sm lg:text-base"
+                className="absolute mb-16 ml-16 lg:ml-32  z-0 transition-all duration-300 ease-in-out bg-ceruleanBlue-100 px-4 py-2 rounded-md border-2 border-ceruleanBlue-400 text-sm lg:text-base"
                 id="hero-bytecode"
               >
                 <div className="py-4">
