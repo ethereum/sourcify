@@ -43,12 +43,22 @@ html {
   margin-right: 0;
   margin-top: 0;
 }
+/* Less margin on smaller screen */
 #hero-image:hover #hero-bytecode {
   z-index: 10;
   margin-bottom: 0;
   margin-left: 0;
-  margin-right: 8rem;
+  margin-right: 4rem;
   margin-top: 8rem;
+}
+@media (min-width: 1024px) {
+  #hero-image:hover #hero-bytecode {
+    z-index: 10;
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 8rem;
+    margin-top: 8rem;
+  }
 }
 
 .logos-container:hover > * {
