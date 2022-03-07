@@ -7,7 +7,7 @@ import {
   ResponsiveContainer,
   Tooltip,
   XAxis,
-  YAxis,
+  YAxis
 } from "recharts";
 import AppIconName from "../../components/AppIconName";
 import LoadingOverlay from "../../components/LoadingOverlay";
@@ -151,8 +151,15 @@ const ChartSection = () => {
         <div className="flex flex-row mt-8 flex-wrap items-center justify-center logos-container">
           {Featured()}
         </div>
-        <div className="text-center mt-5 text-lg flex justify-center">
-          <p className="hover:underline">Verified? <a href={FEATURE_ISSUE_URL} target='_blank' rel="noreferrer">Add your project</a></p>&#8594;
+        <div className="text-center mt-5 flex justify-center">
+            <a
+              className="link-underline font-semibold text-ceruleanBlue-500"
+              href={FEATURE_ISSUE_URL}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Verified? Add your project
+            </a>
         </div>
       </div>
     </div>
