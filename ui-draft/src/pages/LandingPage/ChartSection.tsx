@@ -55,8 +55,6 @@ const Chart = ({ stats }: { stats: statsType | undefined }) => {
         partialMatch: stats[key].partial_match,
       };
     });
-
-  console.log(formattedData);
   const total = formattedData.reduce((prev, curr, i) => {
     return prev + curr.fullMatch + curr.partialMatch;
   }, 0);
@@ -129,6 +127,8 @@ const Featured = () => {
         />
       )
     }
+
+    return null
   })
 }
 
