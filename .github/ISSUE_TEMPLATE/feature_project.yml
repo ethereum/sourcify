@@ -27,6 +27,14 @@ body:
     validations:
       required: true
   - type: input
+    id: address
+    attributes:
+      label: Contract Address
+      description: Address of verified contract
+      placeholder: ex. 0x123456
+    validations:
+      required: true
+  - type: input
     id: logo
     attributes:
       label: Project Logo
