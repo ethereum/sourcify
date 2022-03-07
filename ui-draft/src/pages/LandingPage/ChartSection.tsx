@@ -155,7 +155,7 @@ const ChartSection = () => {
           {Featured()}
         </div>
         <div className="text-center mt-5 text-lg flex justify-center">
-          <p>Verified? <a href={FEATURE_ISSUE_URL} target='_blank' rel="noreferrer">Add your project</a></p>&#8594;
+          <p className="hover:underline">Verified? <a href={FEATURE_ISSUE_URL} target='_blank' rel="noreferrer">Add your project</a></p>&#8594;
         </div>
       </div>
     </div>
