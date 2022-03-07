@@ -1,4 +1,6 @@
 #!/bin/bash
+# Avoid cron job ipfs command not found.
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 date
 echo "Started find in repository for stats"
