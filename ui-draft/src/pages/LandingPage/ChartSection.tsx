@@ -16,6 +16,7 @@ import AppIconName from "../../components/AppIconName";
 import LoadingOverlay from "../../components/LoadingOverlay";
 import { REPOSITORY_URL } from "../../constants";
 import { Context } from "../../Context";
+import featured from '../../featured';
 
 const FEATURE_ISSUE_URL = 'https://github.com/ethereum/sourcify/issues/new?assignees=ogwurujohnson%2Ckuzdogan&labels=feature%2Csupport&template=feature_project.yml&title=%5BFeature+Request%5D%3A+'
 
@@ -120,6 +121,20 @@ const Chart = ({ stats }: { stats: statsType | undefined }) => {
 ////// MAIN COMPONENT ///////
 /////////////////////////////
 
+const Featured = () => {
+  return featured.map((project) => {
+    if (project.displayed) {
+      return (
+        <AppIconName
+          img={project.logo}
+          name={project.name}
+          href={project.href}
+        />
+      )
+    }
+  })
+}
+
 const ChartSection = () => {
   const [stats, setStats] = useState<statsType>();
   useEffect(() => {
@@ -137,26 +152,7 @@ const ChartSection = () => {
           Including:
         </h2>
         <div className="flex flex-row mt-8 flex-wrap items-center justify-center logos-container">
-          <AppIconName
-            img={uniswap}
-            name="Uniswap"
-            href="https://repo.sourcify.dev/contracts/full_match/1/0x1F98431c8aD98523631AE4a59f267346ea31F984/"
-          />
-          {/* <AppIconName
-            img={ens}
-            name="ENS"
-            href="https://repo.sourcify.dev/contracts/full_match/1/0x000000001f91b581BF90b0D07A6259dc083Cc838/"
-          /> */}
-          <AppIconName
-            img={synthetix}
-            name="Synthetix"
-            href="https://repo.sourcify.dev/contracts/full_match/10/0x06C6D063896ac733673c4474E44d9268f2402A55/"
-          />
-          <AppIconName
-            img={optimism}
-            name="Optimism"
-            href="https://repo.sourcify.dev/contracts/full_match/1/0x5e4e65926ba27467555eb562121fac00d24e9dd2/"
-          />
+          {Featured()}
         </div>
         <div className="text-center mt-5 text-lg flex justify-center">
           <p>Verified? <a href={FEATURE_ISSUE_URL} target='_blank' rel="noreferrer">Add your project</a></p>&#8594;
