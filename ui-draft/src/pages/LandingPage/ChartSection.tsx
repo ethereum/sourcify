@@ -9,9 +9,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import optimism from "../../assets/chains/optimism.svg";
-import synthetix from "../../assets/contracts/synthetix.png";
-import uniswap from "../../assets/contracts/uniswap.png";
 import AppIconName from "../../components/AppIconName";
 import LoadingOverlay from "../../components/LoadingOverlay";
 import { REPOSITORY_URL } from "../../constants";
