@@ -7,7 +7,7 @@ export default function ToolsPlugin() {
     <div className="w-full mt-16">
       {/* Right col: Tools */}
       <h2 className="text-2xl text-ceruleanBlue-500 font-semibold">
-        Tools and Integrations
+        Verification Plugins
       </h2>
       <div className="flex justify-center md:justify-start flex-row mt-8 logos-container">
         <AppIconName
