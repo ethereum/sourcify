@@ -127,7 +127,7 @@ const LandingPage = () => {
               className="flex items-center justify-center relative w-full h-full"
               id="hero-image"
             >
-              {/* Front visual */}
+              {/* Source code visual */}
               <div
                 className="absolute mt-16 mr-16 xl:mt-32 xl:mr-32 z-10 transition-all duration-300 ease-in-out md:text-[0.6rem] lg:text-[0.7rem] xl:text-[0.8rem]"
                 id="hero-source-code"
@@ -147,9 +147,9 @@ const LandingPage = () => {
                   {sourceCode}
                 </SyntaxHighlighter>
               </div>
-              {/* Back visual */}
+              {/* Verification visual */}
               <div
-                className="absolute mb-16 ml-16 lg:ml-32  z-0 transition-all duration-300 ease-in-out bg-ceruleanBlue-100 px-4 py-2 rounded-md border-2 border-ceruleanBlue-400 text-sm lg:text-base"
+                className="absolute mb-16 ml-16 lg:ml-32 z-0 transition-all duration-300 ease-in-out bg-ceruleanBlue-100 px-4 py-2 rounded-md border-2 border-ceruleanBlue-400 text-sm lg:text-base"
                 id="hero-bytecode"
               >
                 <div className="py-4">
@@ -263,7 +263,7 @@ const LandingPage = () => {
                 className="md:pl-48 md:pr-8"
               />
             </div>
-            <div className="flex-1" data-aos="fade-left">
+            <div className="flex-1 mt-4 md:mt-0" data-aos="fade-left">
               <h1 className="text-2xl text-ceruleanBlue-500 font-bold">
                 Human-readable contract interactions
               </h1>
@@ -373,13 +373,13 @@ const LandingPage = () => {
 
       {/* Integrations & Tools */}
       <section
-        className="px-8 md:px-12 lg:px-24 bg-white py-16 text-center md:text-left"
+        className="px-8 md:px-12 lg:px-24 bg-white py-16"
         data-aos="fade"
       >
         <h1 className="text-3xl text-ceruleanBlue-500 font-bold">
           Integrations
         </h1>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-12 text-center md:text-left">
           <div className="w-full">
             <PoweredBySourcify />
             <ToolsPlugin />

@@ -1,6 +1,7 @@
 export const REPOSITORY_URL = process.env.REACT_APP_REPOSITORY_URL;
 export const SERVER_URL = process.env.REACT_APP_SERVER_URL;
 export const DOCS_URL = "https://docs.sourcify.dev"
+export const PLAYGROUND_URL = "https://playground.sourcify.dev"
 
 export const REPOSITORY_URL_FULL_MATCH = `${REPOSITORY_URL}/contracts/full_match`;
 export const REPOSITORY_URL_PARTIAL_MATCH = `${REPOSITORY_URL}/contracts/partial_match`;
