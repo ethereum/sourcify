@@ -4,6 +4,7 @@ import blockscoutSS from "../../assets/integrations/blockscout-screenshot.png";
 import hardhat from "../../assets/integrations/hardhat.gif";
 import otterscan from "../../assets/integrations/otterscan.png";
 import remix from "../../assets/integrations/remix.gif";
+import walleth from "../../assets/integrations/walleth-ss.png";
 
 const CustomCarousel = () => {
   return (
@@ -50,6 +51,15 @@ const CustomCarousel = () => {
               // className="px-12 max-h-48 h-auto w-auto"
               style={{ width: "auto" }}
               alt="Otterscan Verified by Sourcify"
+            />
+          </div>,
+          <div className="flex justify-center items-center w-full h-full">
+            <img
+              src={walleth}
+              // className="md:h-[24rem]"
+              // className="px-12 max-h-48 h-auto w-auto"
+              style={{ width: "auto" }}
+              alt="Walleth Verified by Sourcify"
             />
           </div>,
         ]
