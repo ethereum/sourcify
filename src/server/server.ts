@@ -48,6 +48,7 @@ export class Server {
       res.status(200).json(sourcifyChains)
     })
     this.app.use('/repository', express.static(this.repository), serveIndex(this.repository, {'icons': true}))
+    this.app.use('/chain-tests', express.static("chain-tests-report"))
     this.app.use('/', routes);
     this.app.use(genericErrorHandler);
     this.app.use(notFoundHandler);

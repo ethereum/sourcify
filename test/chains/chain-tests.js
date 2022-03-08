@@ -15,14 +15,14 @@ const ethers = require("ethers");
 
 const TEST_TIME = 30000; // 30 seconds
 
-// Extract the chainId from new network support pull request, if exists
+// Extract the chainId from new chain support pull request, if exists
 const newAddedChainId = process.env.NEW_CHAIN_ID;
 console.log("newAddedChainId");
 console.log(newAddedChainId);
 
 chai.use(chaiHttp);
 
-describe("Test Supported Networks", function () {
+describe("Test Supported Chains", function () {
   this.timeout(TEST_TIME);
   const server = new Server();
 
@@ -409,17 +409,17 @@ describe("Test Supported Networks", function () {
     relativeSourcePathsArray, // Allow multiple source files
     relativeMetadataPath
   ) {
-    // If it is a pull request for adding new network support, only test the new network
+    // If it is a pull request for adding new chain support, only test the new chain
     if (newAddedChainId && newAddedChainId != chainId) return;
     it(`should verify a contract on ${chainName} (${chainId})`, function (done) {
       const metadataPath = path.join(
         "test",
-        "networks",
+        "chains",
         "sources",
         relativeMetadataPath
       );
       const sourcePathsArray = relativeSourcePathsArray.map((relSourcePath) =>
-        path.join("test", "networks", "sources", relSourcePath)
+        path.join("test", "chains", "sources", relSourcePath)
       );
       const files = {
         "metadata.json": fs.readFileSync(metadataPath).toString(),
@@ -451,17 +451,17 @@ describe("Test Supported Networks", function () {
     relativeSourcePathsArray,
     relativeMetadataPath
   ) {
-    // If it is a pull request for adding new network support, only test the new network
+    // If it is a pull request for adding new chain support, only test the new chain
     if (newAddedChainId && newAddedChainId != chainId) return;
     it(`should verify a contract with immutables on ${chainName} (${chainId})`, function (done) {
       const metadataPath = path.join(
         "test",
-        "networks",
+        "chains",
         "sources",
         relativeMetadataPath
       );
       const sourcePathsArray = relativeSourcePathsArray.map((relSourcePath) =>
-        path.join("test", "networks", "sources", relSourcePath)
+        path.join("test", "chains", "sources", relSourcePath)
       );
       const files = {
         "metadata.json": fs.readFileSync(metadataPath).toString(),

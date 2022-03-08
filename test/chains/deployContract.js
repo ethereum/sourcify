@@ -12,7 +12,7 @@ program
   .usage("--chainId=<chainId> --privateKey=<privateKey>")
   .requiredOption(
     "--chainId <chainId>",
-    "Chain ID of the network to deploy the contract. The network must be added to services/core/sourcify-chains.ts. Also make sure to build typescript after adding the network with `npx lerna run build`."
+    "Chain ID of the chain to deploy the contract. The chain must be added to services/core/sourcify-chains.ts. Also make sure to build typescript after adding the chain with `npx lerna run build`."
   )
   .requiredOption(
     "--privateKey <privateKey>",
@@ -48,6 +48,6 @@ async function main(chainId, privateKey) {
     [222]
   );
   console.log(
-    `Contract deployed at ${contractAddress} on the network ${chain.name} (${chain.chainId})`
+    `Contract deployed at ${contractAddress} on the chain ${chain.name} (${chain.chainId})`
   );
 }
