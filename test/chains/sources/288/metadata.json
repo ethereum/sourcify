@@ -1,1 +1,94 @@
-{"compiler":{"version":"0.6.9+commit.3e3065ac"},"language":"Solidity","output":{"abi":[{"inputs":[{"internalType":"address","name":"dvmFactory","type":"address"},{"internalType":"address","name":"dppFactory","type":"address"},{"internalType":"address","name":"dspFactory","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[],"name":"_DPP_FACTORY_","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"_DSP_FACTORY_","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"_DVM_FACTORY_","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"token0","type":"address"},{"internalType":"address","name":"token1","type":"address"},{"internalType":"address","name":"userAddr","type":"address"}],"name":"getPairDetail","outputs":[{"components":[{"internalType":"uint256","name":"i","type":"uint256"},{"internalType":"uint256","name":"K","type":"uint256"},{"internalType":"uint256","name":"B","type":"uint256"},{"internalType":"uint256","name":"Q","type":"uint256"},{"internalType":"uint256","name":"B0","type":"uint256"},{"internalType":"uint256","name":"Q0","type":"uint256"},{"internalType":"uint256","name":"R","type":"uint256"},{"internalType":"uint256","name":"lpFeeRate","type":"uint256"},{"internalType":"uint256","name":"mtFeeRate","type":"uint256"},{"internalType":"address","name":"baseToken","type":"address"},{"internalType":"address","name":"quoteToken","type":"address"},{"internalType":"address","name":"curPair","type":"address"},{"internalType":"uint256","name":"pairVersion","type":"uint256"}],"internalType":"struct DODOV2RouteHelper.PairDetail[]","name":"res","type":"tuple[]"}],"stateMutability":"view","type":"function"}],"devdoc":{"methods":{}},"userdoc":{"methods":{}}},"settings":{"compilationTarget":{"contracts/DODOV2RouteHelper.sol":"DODOV2RouteHelper"},"evmVersion":"istanbul","libraries":{},"metadata":{"bytecodeHash":"ipfs"},"optimizer":{"enabled":true,"runs":200},"remappings":[]},"sources":{"contracts/DODOV2RouteHelper.sol":{"keccak256":"0x9abf261922dd942c9498ddb7f7ab4197dd5b5671dcd2111e1b92501787d6723d","license":"Apache-2.0","urls":["bzz-raw://0188406d358f39c3a35b3150a3b0ad39d05f778afc8aec2ccb56194b7d3fd864","dweb:/ipfs/QmSTaVrziH4caKZyxJ1yfiMzaUhcTUfzGS3XHb2AkRLJag"]}},"version":1}
+{
+  "address": "0x43f980475B9eb5D93A19dfA84511ECE7b330c226",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "retrieve",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "num",
+          "type": "uint256"
+        }
+      ],
+      "name": "store",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0xbfd3e063eabfaf13726da950947b659a2c4cdcd37f6f0f467c50de61061ee85f",
+  "receipt": {
+    "to": null,
+    "from": "0x3C99545602fF72723e813DC31F696cD893E5E525",
+    "contractAddress": "0x43f980475B9eb5D93A19dfA84511ECE7b330c226",
+    "transactionIndex": 0,
+    "gasUsed": "90551",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x06fa77626dd869f20212f8d0de7a5ab6cf5152b1491d126b9173613710396cca",
+    "transactionHash": "0xbfd3e063eabfaf13726da950947b659a2c4cdcd37f6f0f467c50de61061ee85f",
+    "logs": [],
+    "blockNumber": 18658,
+    "cumulativeGasUsed": "90551",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "solcInputHash": "1b087c10e1c4f94fee8cd22752cf3b8d",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.9+commit.e5eed63a\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"retrieve\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"num\",\"type\":\"uint256\"}],\"name\":\"store\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"retrieve()\":{\"details\":\"Return value\",\"returns\":{\"_0\":\"value of 'number'\"}},\"store(uint256)\":{\"details\":\"Store value in variable\",\"params\":{\"num\":\"value to store\"}}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/Storage.sol\":\"Storage\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":2000},\"remappings\":[]},\"sources\":{\"contracts/Storage.sol\":{\"content\":\"// SPDX-License-Identifier: GPL-3.0\\n\\npragma solidity >=0.6.9;\\n\\ncontract Storage {\\n  uint256 number;\\n\\n  /**\\n   * @dev Store value in variable\\n   * @param num value to store\\n   */\\n  function store(uint256 num) public {\\n    number = num;\\n  }\\n\\n  /**\\n   * @dev Return value\\n   * @return value of 'number'\\n   */\\n  function retrieve() public view returns (uint256) {\\n    return number;\\n  }\\n}\\n\",\"keccak256\":\"0xf8ef48b7c155a2b796b0a9c140e4bdaaa4e1cf7cdd3770b68c683dff1f4059e5\",\"license\":\"GPL-3.0\"}},\"version\":1}",
+  "bytecode": "0x6080604052348015600f57600080fd5b5060ac8061001e6000396000f3fe6080604052348015600f57600080fd5b506004361060325760003560e01c80632e64cec11460375780636057361d14604c575b600080fd5b60005460405190815260200160405180910390f35b605c6057366004605e565b600055565b005b600060208284031215606f57600080fd5b503591905056fea2646970667358221220c9813657db381c9bff4dedb31084de1e50b1dc404e374b6082df0fb0bf18498a64736f6c63430008090033",
+  "deployedBytecode": "0x6080604052348015600f57600080fd5b506004361060325760003560e01c80632e64cec11460375780636057361d14604c575b600080fd5b60005460405190815260200160405180910390f35b605c6057366004605e565b600055565b005b600060208284031215606f57600080fd5b503591905056fea2646970667358221220c9813657db381c9bff4dedb31084de1e50b1dc404e374b6082df0fb0bf18498a64736f6c63430008090033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {
+      "retrieve()": {
+        "details": "Return value",
+        "returns": {
+          "_0": "value of 'number'"
+        }
+      },
+      "store(uint256)": {
+        "details": "Store value in variable",
+        "params": {
+          "num": "value to store"
+        }
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 3,
+        "contract": "contracts/Storage.sol:Storage",
+        "label": "number",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_uint256"
+      }
+    ],
+    "types": {
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}
