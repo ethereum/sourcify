@@ -657,7 +657,7 @@ describe("Test Supported Chains", function () {
         title: "Test identifier",
         value: {
           chainId: chainId,
-          testType: "normal",
+          testType: "immutable",
         },
       });
 
