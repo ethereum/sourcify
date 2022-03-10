@@ -265,7 +265,7 @@ const LandingPage = () => {
             </div>
             <div className="flex-1" data-aos="fade-left">
               <h1 className="text-2xl text-ceruleanBlue-500 font-bold">
-                Human-readable contract intractions
+                Human-readable contract interactions
               </h1>
               <p className="text-lg">
                 Goodbye <i>YOLO signing</i> 👋. Decode contract interactions

@@ -17,6 +17,8 @@ import LoadingOverlay from "../../components/LoadingOverlay";
 import { REPOSITORY_URL } from "../../constants";
 import { Context } from "../../Context";
 
+const FEATURE_ISSUE_URL = 'https://github.com/ethereum/sourcify/issues/new?assignees=ogwurujohnson%2Ckuzdogan&labels=feature%2Csupport&template=feature_project.yml&title=%5BFeature+Request%5D%3A+'
+
 type statsType = {
   [key: string]: {
     full_match: number;
@@ -121,13 +123,10 @@ const Chart = ({ stats }: { stats: statsType | undefined }) => {
 const ChartSection = () => {
   const [stats, setStats] = useState<statsType>();
   useEffect(() => {
-    console.log(`${REPOSITORY_URL}/stats.json`);
     fetch(`${REPOSITORY_URL}/stats.json`)
       .then((res) => res.json())
       .then((json) => setStats(json));
   }, []);
-
-  console.log(stats);
 
   return (
     <div className="flex flex-col items-center w-full">
@@ -158,6 +157,9 @@ const ChartSection = () => {
             name="Optimism"
             href="https://repo.sourcify.dev/contracts/full_match/1/0x5e4e65926ba27467555eb562121fac00d24e9dd2/"
           />
+        </div>
+        <div className="text-center mt-5 text-lg flex justify-center">
+          <p>Verified? <a href={FEATURE_ISSUE_URL} target='_blank' rel="noreferrer">Add your project</a></p>&#8594;
         </div>
       </div>
     </div>
