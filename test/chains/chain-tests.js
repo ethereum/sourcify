@@ -599,6 +599,28 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
+
+  verifyContract(
+    "0x08BB0D7fCe37dD766d13DC19A00c95878ed2E68c",
+    "1284",
+    "Moonbeam",
+    ["1284/Incrementer.sol"],
+    "1284/metadata.json"
+  );
+  verifyContract(
+    "0x460947bD434b4FF90Af62f3F389b39aab0d6A77D",
+    "1285",
+    "Moonriver",
+    ["1285/Incrementer.sol"],
+    "1285/metadata.json"
+  );
+  verifyContract(
+    "0x08BB0D7fCe37dD766d13DC19A00c95878ed2E68c",
+    "1287",
+    "Moonbase",
+    ["1287/Incrementer.sol"],
+    "1287/metadata.json"
+  );
   //////////////////////
   // Helper functions //
   //////////////////////

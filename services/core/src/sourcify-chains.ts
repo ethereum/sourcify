@@ -250,4 +250,16 @@ export default {
         "contractFetchAddress": "https://explorer.testnet.aurora.dev/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
+    "1284": { // Moonbeam
+        "supported": true,
+        "monitored": false
+    },
+    "1285": { // Moonriver
+        "supported": true,
+        "monitored": false
+    },
+    "1287": { // Moonbase
+        "supported": true,
+        "monitored": false
+    }
 }
