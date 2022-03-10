@@ -60,17 +60,15 @@ export async function getBytecode(web3array: Web3[], address: string): Promise<s
     for (const web3 of web3array) {
         rpcPromises.push(web3.eth.getCode(address));
     }
-    try {
+    // Return any of the succesful RPC responses.
+    // If none successful, return the first one of either the RPC responses or a timeout.
+    return Promise.race([
         // Promise.any for Node v15.0.0<
-        return promiseAny([ 
-            ...rpcPromises,
-            new Promise((_resolve, reject) => {
-                setTimeout(() => reject('RPC took too long to respond'), 3e3);
-            })
-        ])
-    } catch (err: any) {
-        throw new Error(err);
-    }
+        promiseAny(rpcPromises),
+        new Promise<string>((_resolve, reject) => {
+            setTimeout(() => reject('RPC took too long to respond'), 3e3);
+        })
+    ])
 }
 
 const RECOMPILATION_ERR_MSG = "Recompilation error (probably caused by invalid metadata)";

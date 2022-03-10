@@ -26,6 +26,7 @@ chai.use(chaiHttp);
 describe("Test Supported Chains", function () {
   this.timeout(TEST_TIME);
   const server = new Server();
+  let currentResponse = null; // to log server response when test fails
 
   before(async function () {
     const promisified = util.promisify(server.app.listen);
@@ -39,6 +40,18 @@ describe("Test Supported Chains", function () {
 
   after(() => {
     rimraf.sync(server.repository);
+  });
+
+  // log server response when test fails
+  afterEach(function () {
+    const errorBody = currentResponse && currentResponse.body;
+    if (this.currentTest.state === "failed" && errorBody) {
+      console.log(
+        "Server response of failed test " + this.currentTest.title + ":"
+      );
+      console.log(errorBody);
+    }
+    currentResponse = null;
   });
 
   verifyContract(
@@ -586,7 +599,6 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
-
   //////////////////////
   // Helper functions //
   //////////////////////
@@ -716,6 +728,7 @@ describe("Test Supported Chains", function () {
     expectedAddress = contractAddress,
     expectedStatus = "perfect"
   ) {
+    currentResponse = res;
     chai.expect(err).to.be.null;
     chai.expect(res.status).to.equal(StatusCodes.OK);
     chai.expect(res.body).to.haveOwnProperty("result");
