@@ -1,7 +1,9 @@
 import cbor from 'cbor';
+import semver from 'semver';
 import * as chainsRaw from "../chains.json";
 import sourcifyChainsRaw from "../sourcify-chains";
 import { StringMap, ReformattedMetadata, Chain } from './types';
+
 const chains = chainsRaw as any;
 const sourcifyChains = sourcifyChainsRaw as any;
 
@@ -141,7 +143,6 @@ export function reformatMetadata(
 ): ReformattedMetadata {
 
     const solcJsonInput: any = {};
-    const inlinerAffectedVersions = ['0.8.2+commit.661d1103', '0.8.3+commit.8d00100c', '0.8.4+commit.c7e474f2']
     let fileName = '';
     let contractName = '';
 
@@ -161,8 +162,7 @@ export function reformatMetadata(
     for (fileName in metadata.settings.compilationTarget) {
         contractName = metadata.settings.compilationTarget[fileName];
     }
-
-    if (inlinerAffectedVersions.includes(metadata.compiler.version)) {
+    if (semver.gte('0.8.2' || '0.8.3' || '0.8.4', metadata.compiler.version)) {
         if (solcJsonInput.settings?.optimizer?.details?.inliner) {
             delete solcJsonInput.settings.optimizer.details.inliner
         }

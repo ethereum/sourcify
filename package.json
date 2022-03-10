@@ -69,6 +69,7 @@
     "memorystore": "^1.6.7",
     "multihashes": "^3.0.1",
     "node-fetch": "2.6.6",
+    "semver": "^7.3.5",
     "serve-index": "^1.9.1",
     "web3": "^1.2.11"
   },
@@ -81,6 +82,7 @@
     "@types/express-session": "^1.17.3",
     "@types/node": "^14.11.2",
     "@types/request-promise-native": "^1.0.17",
+    "@types/semver": "^7.3.9",
     "@types/serve-index": "^1.7.30",
     "@typescript-eslint/eslint-plugin": "^5.7.0",
     "@typescript-eslint/parser": "^5.7.0",
