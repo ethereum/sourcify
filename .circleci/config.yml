@@ -139,13 +139,6 @@ workflows:
   test-new-chain:
     jobs:
       - test-new-chain
-  testing-test-chains:
-    jobs:
-      - test-chains:
-          filters:
-            branches:
-              only:
-                - display-network-test-results
   test-chains-regularly:
     jobs:
       - test-chains
@@ -156,6 +149,7 @@ workflows:
             branches:
               only:
                 - master
+                - staging
   nightly:
     triggers:
       - schedule:
