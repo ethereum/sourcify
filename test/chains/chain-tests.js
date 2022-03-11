@@ -621,6 +621,41 @@ describe("Test Supported Chains", function () {
     ["1287/Incrementer.sol"],
     "1287/metadata.json"
   );
+
+  // Palm
+  verifyContract(
+    "0xd46fd24ea21F04459407Fb0B518451e54d0b07a1",
+    "11297108109",
+    "Palm Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x68107Fb54f5f29D8e0B3Ac44a99f4444D1F22a68",
+    "11297108109",
+    "Palm Mainnet",
+    ["uint256"],
+    [123456],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+  // Palm Testnet
+  verifyContract(
+    "0x68107Fb54f5f29D8e0B3Ac44a99f4444D1F22a68",
+    "11297108099",
+    "Palm Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0xd46fd24ea21F04459407Fb0B518451e54d0b07a1",
+    "11297108099",
+    "Palm Testnet",
+    ["uint256"],
+    [123456],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
   //////////////////////
   // Helper functions //
   //////////////////////
