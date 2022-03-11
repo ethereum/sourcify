@@ -1,11 +1,9 @@
-import AppIconName from "../../components/AppIconName";
-import walleth from "../../assets/integrations/walleth.png";
-import otter from "../../assets/integrations/otter.jpg";
-
 import blockscout from "../../assets/integrations/blockscout.png";
 import ethSdk from "../../assets/integrations/eth-sdk.png";
-
 import keystone from "../../assets/integrations/keystone.png";
+import otter from "../../assets/integrations/otter.jpg";
+import walleth from "../../assets/integrations/walleth.png";
+import AppIconName from "../../components/AppIconName";
 
 export default function PoweredBySourcify() {
   return (
@@ -14,14 +12,10 @@ export default function PoweredBySourcify() {
         Powered by Sourcify
       </h2>
       <div
-        className="flex flex-row mt-8 flex-wrap logos-container"
+        className="flex justify-center md:justify-start flex-row mt-8 flex-wrap logos-container"
         id="networks-container"
       >
-        <AppIconName
-          img={walleth}
-          name="Walleth"
-          href="https://walleth.org/"
-        />
+        <AppIconName img={walleth} name="Walleth" href="https://walleth.org/" />
         <AppIconName
           img={otter}
           name="Otterscan"
@@ -45,5 +39,5 @@ export default function PoweredBySourcify() {
         />
       </div>
     </div>
-  )
+  );
 }

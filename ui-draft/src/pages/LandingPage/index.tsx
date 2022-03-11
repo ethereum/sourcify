@@ -25,8 +25,6 @@ import openSourceDecentralized from "../../assets/openSourceDecentralized.svg";
 import verification from "../../assets/verification.svg";
 import Button from "../../components/Button";
 import Header from "../../components/Header";
-import PoweredBySourcify from './PoweredBySourcify';
-import ToolsPlugin from './ToolsPlugin';
 import {
   DOCS_URL,
   IPFS_IPNS_GATEWAY_URL,
@@ -36,7 +34,8 @@ import ChartSection from "./ChartSection";
 import sourceCode from "./Contract.sol";
 import CustomCarousel from "./CustomCarousel";
 import metadata from "./metadata.json";
-
+import PoweredBySourcify from "./PoweredBySourcify";
+import ToolsPlugin from "./ToolsPlugin";
 AOS.init({
   duration: 800,
   once: true,
@@ -95,12 +94,12 @@ const LandingPage = () => {
   const aboutRef = useRef<HTMLElement>(null);
   return (
     <div>
-      <div className="h-screen flex flex-col px-8 md:px-12 lg:px-24 bg-gray-100">
+      <div className="h-screen flex flex-col  px-8 md:px-12 lg:px-24 bg-gray-100 ">
         <Header />
-        <section className="grid grid-cols-2 gap-8 flex-1">
+        <section className="grid md:grid-cols-2 gap-8 flex-1">
           {/* Hero left */}
           <div className="flex flex-col justify-center">
-            <h1 className="text-5xl font-bold mb-4 leading-tight">
+            <h1 className="text-2xl md:text-4xl xl:text-5xl font-bold mb-4 leading-tight">
               Source-verified smart contracts for transparency and better UX in
               web3
             </h1>
@@ -109,7 +108,7 @@ const LandingPage = () => {
               interactions through automated Solidity contract verification,
               contract metadata, and NatSpec comments.
             </h2>
-            <div className="flex justify-evenly mt-4">
+            <div className="flex flex-col items-center sm:flex-row justify-evenly mt-4">
               <Link to="/verifier">
                 <Button>Verify Contract</Button>
               </Link>
@@ -120,14 +119,17 @@ const LandingPage = () => {
           </div>
 
           {/* Hero right */}
-          <div className="flex items-center justify-center" id="">
+          <div
+            className="hidden md:flex items-center justify-center overflow-hidden"
+            id=""
+          >
             <div
-              className="flex items-center justify-center relative"
+              className="flex items-center justify-center relative w-full h-full"
               id="hero-image"
             >
-              {/* Front visual */}
+              {/* Source code visual */}
               <div
-                className="absolute mt-32 mr-32 z-10 transition-all duration-300 ease-in-out hover:mb-32 hover:ml-32"
+                className="absolute mt-16 mr-16 xl:mt-32 xl:mr-32 z-10 transition-all duration-300 ease-in-out md:text-[0.6rem] lg:text-[0.7rem] xl:text-[0.8rem]"
                 id="hero-source-code"
               >
                 <SyntaxHighlighter
@@ -135,64 +137,58 @@ const LandingPage = () => {
                   style={codeStyle}
                   className="rounded-md"
                   customStyle={{
-                    fontSize: "0.7rem",
+                    fontSize: "inherit",
                     lineHeight: "1.2",
                     padding: "1rem",
                   }}
-                  codeTagProps={{
-                    style: { fontSize: "inherit", lineHeight: "inherit" },
-                  }}
+                  wrapLongLines
+                  codeTagProps={{ style: { display: "block" } }}
                 >
                   {sourceCode}
                 </SyntaxHighlighter>
-                {/* <img src={code} className="w-96" alt="source code visual" /> */}
               </div>
-              {/* Back visual */}
+              {/* Verification visual */}
               <div
-                className="absolute mb-32 ml-32 z-0 transition-all duration-300 ease-in-out  hover:mt-32 hover:mr-32"
+                className="absolute mb-16 ml-16 lg:ml-32 z-0 transition-all duration-300 ease-in-out bg-ceruleanBlue-100 px-4 py-2 rounded-md border-2 border-ceruleanBlue-400 text-sm lg:text-base"
                 id="hero-bytecode"
               >
-                <div className="bg-ceruleanBlue-100 px-4 py-2 rounded-md outline-2 outline-ceruleanBlue-400 outline w-96">
-                  <div className="py-4">
-                    {/* <div className="text-green-700 bg-green-100 rounded-md outline-2 outline-green-400 outline inline py-1 px-1"> */}
-                    <div className=" text-green-600 flex items-center">
-                      <HiCheckCircle className="text-green-600 inline mr-1 align-middle text-xl" />
-                      Contract fully verified
-                    </div>
+                <div className="py-4">
+                  <div className=" text-green-600 flex items-center">
+                    <HiCheckCircle className="text-green-600 inline mr-1 align-middle text-xl" />
+                    Contract fully verified
                   </div>
-                  <div className="whitespace-nowrap overflow-hidden overflow-ellipsis ">
-                    <img
-                      src={ethereum}
-                      className="h-6 inline mb-1"
-                      alt="eth icon"
-                    />
-                    <a
-                      href={`${REPOSITORY_URL_FULL_MATCH}/5/0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4`}
-                      className="link-underline"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <b>Ethereum Görli</b>{" "}
-                      0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4
-                    </a>
-                  </div>
-                  <div className="mt-4">
-                    <p>metadata.json</p>
-                    <SyntaxHighlighter
-                      language="json"
-                      style={lightStyle}
-                      className="rounded-md overflow-y-scroll h-64 p-3 m-3"
-                      customStyle={{
-                        fontSize: "0.7rem",
-                        lineHeight: "1.2",
-                      }}
-                      codeTagProps={{
-                        style: { fontSize: "inherit", lineHeight: "inherit" },
-                      }}
-                    >
-                      {metadata}
-                    </SyntaxHighlighter>
-                  </div>
+                </div>
+                <div className="">
+                  <img
+                    src={ethereum}
+                    className="h-6 inline mb-1 -ml-1"
+                    alt="eth icon"
+                  />
+                  <a
+                    href={`${REPOSITORY_URL_FULL_MATCH}/5/0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4`}
+                    className="link-underline break-all"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <b>Ethereum Görli</b> <br />
+                    0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4
+                  </a>
+                </div>
+                <div className="mt-4 text-[0.6rem] lg:text-[0.7rem]">
+                  <p className="text-sm text-lg:base">metadata.json</p>
+                  <SyntaxHighlighter
+                    language="json"
+                    style={lightStyle}
+                    className="rounded-md h-48 xl:h-64 p-3 m-3"
+                    customStyle={{
+                      fontSize: "inherit",
+                      lineHeight: "1.2",
+                    }}
+                    wrapLongLines
+                    codeTagProps={{ style: { display: "block" } }}
+                  >
+                    {metadata}
+                  </SyntaxHighlighter>
                 </div>
               </div>
             </div>
@@ -210,15 +206,15 @@ const LandingPage = () => {
         id="about"
       >
         <div className="mt-12">
-          <div className="flex items-center">
+          <div className="flex items-center flex-col md:flex-row">
             <div className="flex-1" data-aos="fade-right">
               <img
                 src={openSourceDecentralized}
                 alt="Illustration depicting open source and decentralized development"
-                className="pr-48 pl-8 -scale-x-100"
+                className="w-64 md:w-auto md:pr-48 md:pl-8 -scale-x-100"
               />
             </div>
-            <div className="flex-1" data-aos="fade-left">
+            <div className="flex-1 mt-4 md:mt-0" data-aos="fade-left">
               <h1 className="text-2xl text-ceruleanBlue-500 font-bold">
                 Fully open-source and decentralized
               </h1>{" "}
@@ -230,9 +226,9 @@ const LandingPage = () => {
             </div>
           </div>
         </div>
-        <div className="my-24 text-right">
-          <div className="flex items-center">
-            <div className="flex-1" data-aos="fade-right">
+        <div className="my-24 md:text-right">
+          <div className="flex items-center flex-col-reverse md:flex-row">
+            <div className="flex-1  mt-4 md:mt-0" data-aos="fade-right">
               <h1 className="text-2xl text-ceruleanBlue-500 font-bold">
                 Next-level smart contract verification
               </h1>{" "}
@@ -250,21 +246,24 @@ const LandingPage = () => {
               <img
                 src={verification}
                 alt="Illustration of contract verification"
-                className="pr-48 pl-8 max-h-80"
+                className="w-48 md:w-auto md:pr-48 md:pl-8 max-h-80"
               />
             </div>
           </div>
         </div>
         <div className="mb-12" data-aos="fade-left">
-          <div className="flex items-center">
-            <div className="flex-1 flex justify-end" data-aos="fade-right">
+          <div className="flex items-center flex-col md:flex-row">
+            <div
+              className="flex-1 flex md:justify-end  mt-4 md:mt-0"
+              data-aos="fade-right"
+            >
               <img
                 src={decode}
                 alt="Decoding contract interaction with Sourcify"
-                className="pl-48 pr-8"
+                className="md:pl-48 md:pr-8"
               />
             </div>
-            <div className="flex-1" data-aos="fade-left">
+            <div className="flex-1 mt-4 md:mt-0" data-aos="fade-left">
               <h1 className="text-2xl text-ceruleanBlue-500 font-bold">
                 Human-readable contract interactions
               </h1>
@@ -288,7 +287,7 @@ const LandingPage = () => {
         data-aos="fade"
       >
         <h1 className="text-3xl text-ceruleanBlue-500 font-bold">
-          ⛓ Supported Chains
+          Supported Chains
         </h1>
         <div className="mt-8 text-lg">
           <p>Sourcify is multi-chain and works on all EVM based networks.</p>
@@ -378,9 +377,9 @@ const LandingPage = () => {
         data-aos="fade"
       >
         <h1 className="text-3xl text-ceruleanBlue-500 font-bold">
-          🛠️ Integrations
+          Integrations
         </h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mt-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-12 text-center md:text-left">
           <div className="w-full">
             <PoweredBySourcify />
             <ToolsPlugin />
@@ -423,12 +422,10 @@ const LandingPage = () => {
         className="px-8 md:px-12 lg:px-24 bg-white py-16"
         data-aos="fade"
       >
-        <h1 className="text-3xl text-ceruleanBlue-500 font-bold">
-          👀 Resources
-        </h1>
+        <h1 className="text-3xl text-ceruleanBlue-500 font-bold">Resources</h1>
         <div className="flex flex-col items-center mt-8">
           <iframe
-            className="w-[24rem] h-[14rem] sm:w-[32rem] sm:h-[18rem] md:w-[48rem] md:h-[27rem]"
+            className="sm:w-full sm:h-auto md:w-[48rem] md:h-[27rem]"
             src="https://www.youtube.com/embed/z5D613Qt7Kc"
             title="Next Level Source Code Verification w: Sourcify"
             frameBorder="0"
@@ -506,8 +503,8 @@ const LandingPage = () => {
         </div>
       </section>
 
-      <footer className="px-48 py-16 bg-ceruleanBlue-500 text-white text-xl">
-        <nav className="font-vt323 grid grid-cols-3 gap-8">
+      <footer className="text-center md:text-left px-8 py-8 md:px-48 md:py-16 bg-ceruleanBlue-500 text-white text-xl">
+        <nav className="font-vt323 grid md:grid-cols-3 gap-8">
           <div>
             <h3 className="uppercase font-bold text-ceruleanBlue-100">
               Internal Links

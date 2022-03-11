@@ -41,6 +41,7 @@ export class Server {
     }));
     this.app.use(bodyParser.json({limit: '2mb'}));
     this.app.use(bodyParser.urlencoded({ limit: '2mb', extended: true }));
+    this.app.set('trust proxy', 1) // trust first proxy, required for secure cookies.
     this.app.use(session(getSessionOptions()));
     this.app.get('/health', (_req, res) => res.status(200).send('Alive and kicking!'))
     this.app.get('/chains', (_req, res) => {
