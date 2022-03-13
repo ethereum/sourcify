@@ -12,7 +12,7 @@ const METER_SUFFIX="api/accounts/${ADDRESS}"
 
 type ChainGroup = "eth" | "polygon";
 
-function getCustomURL(chainName: string, chainGroup: ChainGroup, useOwn=false) {
+function buildAlchemyURL(chainName: string, chainGroup: ChainGroup, useOwn=false) {
     if (useOwn && process.env.TESTING !== "true") {
         const port = process.env[`NODE_PORT_${chainName.toUpperCase()}`];
         const url = `${process.env.NODE_ADDRESS}:${port}`;
@@ -26,7 +26,10 @@ function getCustomURL(chainName: string, chainGroup: ChainGroup, useOwn=false) {
     }[chainGroup];
     return `https://${chainGroup}-${chainName}.${domain}/v2/${id}`;
 }
-
+// replaces INFURA_API_KEY in https://networkname.infura.io/v3/{INFURA_API_KEY}
+function replaceInfuraID(infuraURL: string) {
+    return infuraURL.replace("{INFURA_API_KEY}", process.env.INFURA_ID)
+}
 function getBlockscoutRegex(blockscoutPrefix="") {
     return BLOCKSCOUT_REGEX.replace("${BLOCKSCOUT_PREFIX}", blockscoutPrefix);
 }
@@ -37,8 +40,8 @@ export default {
         "monitored": true,
         "contractFetchAddress": "https://etherscan.io/" + ETHERSCAN_SUFFIX,
         "rpc": [
-            getCustomURL("mainnet", "eth", true),
-            getCustomURL("mainnet", "eth")
+            buildAlchemyURL("mainnet", "eth", true),
+            buildAlchemyURL("mainnet", "eth")
         ],
         "txRegex": ETHERSCAN_REGEX,
     },
@@ -47,8 +50,8 @@ export default {
         "monitored": true,
         "contractFetchAddress": "https://ropsten.etherscan.io/" + ETHERSCAN_SUFFIX,
         "rpc": [
-            getCustomURL("ropsten", "eth", true),
-            getCustomURL("ropsten", "eth")
+            buildAlchemyURL("ropsten", "eth", true),
+            buildAlchemyURL("ropsten", "eth")
         ],
         "txRegex": ETHERSCAN_REGEX,
     },
@@ -57,8 +60,8 @@ export default {
         "monitored": true,
         "contractFetchAddress": "https://rinkeby.etherscan.io/" + ETHERSCAN_SUFFIX,
         "rpc": [
-            getCustomURL("rinkeby", "eth", true),
-            getCustomURL("rinkeby", "eth")
+            buildAlchemyURL("rinkeby", "eth", true),
+            buildAlchemyURL("rinkeby", "eth")
         ],
         "txRegex": ETHERSCAN_REGEX,
     },
@@ -67,8 +70,8 @@ export default {
         "monitored": true,
         "contractFetchAddress": "https://goerli.etherscan.io/" + ETHERSCAN_SUFFIX,
         "rpc": [
-            getCustomURL("goerli", "eth", true),
-            getCustomURL("goerli", "eth")
+            buildAlchemyURL("goerli", "eth", true),
+            buildAlchemyURL("goerli", "eth")
         ],
         "txRegex": ETHERSCAN_REGEX,
     },
@@ -77,7 +80,7 @@ export default {
         "monitored": true,
         "contractFetchAddress": "https://kovan.etherscan.io/" + ETHERSCAN_SUFFIX,
         "rpc": [
-            getCustomURL("kovan", "eth")
+            buildAlchemyURL("kovan", "eth")
         ],
         "txRegex": ETHERSCAN_REGEX,
     },
@@ -120,7 +123,7 @@ export default {
         "monitored": true,
         "contractFetchAddress": "https://polygonscan.com/" + ETHERSCAN_SUFFIX,
         "rpc": [
-            getCustomURL("mainnet", "polygon")
+            buildAlchemyURL("mainnet", "polygon")
         ],
         "txRegex": ETHERSCAN_REGEX
     },
@@ -147,7 +150,7 @@ export default {
         "monitored": true,
         "contractFetchAddress": "https://mumbai.polygonscan.com/" + ETHERSCAN_SUFFIX,
         "rpc": [
-            getCustomURL("mumbai", "polygon")
+            buildAlchemyURL("mumbai", "polygon")
         ],
         "txRegex": ETHERSCAN_REGEX
     },
@@ -250,4 +253,30 @@ export default {
         "contractFetchAddress": "https://explorer.testnet.aurora.dev/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
+    "1284": { // Moonbeam
+        "supported": true,
+        "monitored": false
+    },
+    "1285": { // Moonriver
+        "supported": true,
+        "monitored": false
+    },
+    "1287": { // Moonbase
+        "supported": true,
+        "monitored": false
+    },
+    "11297108109": { // Palm
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer.palm.io/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex(),
+        "rpc": [replaceInfuraID("https://palm-mainnet.infura.io/v3/{INFURA_API_KEY}")]
+    },
+    "11297108099": { // Palm Testnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer.palm-uat.xyz/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex(),
+        "rpc": [replaceInfuraID("https://palm-testnet.infura.io/v3/{INFURA_API_KEY}")]
+    }
 }

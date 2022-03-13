@@ -1,9 +1,9 @@
 #!/bin/bash
-# Script to run tests on new network support requests.
+# Script to run tests on new chain support requests.
 
 # from https://stackoverflow.com/questions/55839004/circleci-regex-filtering-match-within-string 
 
-NEW_NETWORK_REGEX='.*add-network-(\d+)'
+NEW_CHAIN_REGEX='.*add-chain-(\d+)'
 
 # if CIRCLE_PR_NUMBER is NOT set (meaning it is not a PR 
 # from a forked repository), then CIRCLE_BRANCH will 
@@ -18,7 +18,7 @@ else
 fi
 
 echo "Real branch name: ${REAL_BRANCH_NAME}"
-NEW_CHAIN_ID="$(echo "${REAL_BRANCH_NAME}" | sed -n "s/^.*add-network-\([0-9]\+\).*$/\1/p")"
+NEW_CHAIN_ID="$(echo "${REAL_BRANCH_NAME}" | sed -n "s/^.*add-chain-\([0-9]\+\).*$/\1/p")"
 
 # if the ticket number regex does not match, then it's not 
 # a feature branch, and we shouldn't upload to JIRA.
@@ -27,5 +27,5 @@ if [ -z "${NEW_CHAIN_ID}" ]; then
 
 # if it is a new chain PR, test it
 else
-    NEW_CHAIN_ID=${NEW_CHAIN_ID} npm run test:networks
+    NEW_CHAIN_ID=${NEW_CHAIN_ID} npm run test:chains
 fi
