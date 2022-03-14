@@ -1,4 +1,4 @@
-import { cborDecode, getMonitoredChains, MonitorConfig, CheckedContract, FileService, Chain } from "@ethereum-sourcify/core";
+import { cborDecode, getMonitoredChains, getTestChains, MonitorConfig, CheckedContract, FileService, Chain } from "@ethereum-sourcify/core";
 import { VerificationService, IVerificationService } from "@ethereum-sourcify/verification";
 import Logger from "bunyan";
 import Web3 from "web3";
@@ -186,7 +186,7 @@ export default class Monitor {
     constructor(config: MonitorConfig = {}) {
         const repositoryPath = config.repository || SystemConfig.repository.path;
 
-        const chains = getMonitoredChains(config.testing || false);
+        const chains = config.testing ? getTestChains() :  getMonitoredChains();
         this.chainMonitors = chains.map((chain: Chain) => new ChainMonitor(
             chain.name,
             chain.chainId.toString(),

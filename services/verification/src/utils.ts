@@ -345,7 +345,9 @@ export async function getCreationDataByScraping(fetchAddress: string, txRegex: s
             return tx.input;
         }
     }
-
+    if (page.includes("captcha") || page.includes("CAPTCHA")) {
+        throw new Error("Scraping failed because of CAPTCHA requirement at ${fetchAddress}");
+    }
     throw new Error(`Creation data could not be scraped from ${fetchAddress}`);
 }
 
@@ -355,6 +357,20 @@ export async function getCreationDataTelos(fetchAddress: string, web3: Web3): Pr
         const response = await res.json();
         if (response.creation_trx) {
             const txHash = response.creation_trx;
+            const tx = await web3.eth.getTransaction(txHash);
+            return tx.input;
+        }
+    }
+
+    throw new Error(`Creation data could not be scraped from ${fetchAddress}`);
+}
+
+export async function getCreationDataMeter(fetchAddress: string, web3: Web3): Promise<string> {
+    const res = await fetch(fetchAddress);
+    if (res.status === StatusCodes.OK) {
+        const response = await res.json();
+        if (response.account?.creationTxHash) {
+            const txHash = response.account.creationTxHash;
             const tx = await web3.eth.getTransaction(txHash);
             return tx.input;
         }

@@ -4,12 +4,12 @@ set -e
 mkdir -p $REPO_PATH
 cd $REPO_PATH
 
-if [[ ! -d source-verify && ! -d sourcify ]]; then
-    git clone https://github.com/ethereum/sourcify.git source-verify
-    cd source-verify
+if [[ ! -d sourcify ]]; then
+    git clone https://github.com/ethereum/sourcify.git sourcify
+    cd sourcify
     git checkout ${CIRCLE_BRANCH}
 else
-    cd source-verify
+    cd sourcify
     git fetch
     git checkout ${CIRCLE_BRANCH}
     git reset --hard origin/${CIRCLE_BRANCH}

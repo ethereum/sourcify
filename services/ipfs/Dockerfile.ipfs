@@ -1,11 +1,7 @@
-FROM openjdk:11
-RUN apt-get update && apt-get install -y cron curl unzip git
+FROM ubuntu:20.04
+RUN apt-get update && apt-get install -y cron curl
 WORKDIR /app
-RUN git clone https://github.com/komputing/source_verify_ens_updater.git /app
-RUN ./gradlew distZip
-RUN unzip ./build/distributions/source_verify_ens_updater.zip
-RUN chmod +x source_verify_ens_updater/bin/source_verify_ens_updater
-RUN curl https://dist.ipfs.io/go-ipfs/v0.9.1/go-ipfs_v0.9.1_linux-amd64.tar.gz > go-ipfs.tar.gz && tar xvfz go-ipfs.tar.gz && cd go-ipfs && ./install.sh
+RUN curl https://dist.ipfs.io/go-ipfs/v0.12.0/go-ipfs_v0.12.0_linux-amd64.tar.gz > go-ipfs.tar.gz && tar xvfz go-ipfs.tar.gz && cd go-ipfs && ./install.sh
 ADD ./publish.sh ./publish.sh
 ADD ./entrypoint.sh ./entrypoint.sh
 ADD ./cron.job ./cron.job

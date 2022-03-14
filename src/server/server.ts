@@ -5,12 +5,14 @@ import cors from 'cors';
 import routes from './routes';
 import bodyParser from 'body-parser';
 import config from '../config';
-import { Logger } from '@ethereum-sourcify/core';
+import { Logger, getSourcifyChains } from '@ethereum-sourcify/core';
 import bunyan from 'bunyan';
 import genericErrorHandler from './middlewares/GenericErrorHandler';
 import notFoundHandler from './middlewares/NotFoundError';
 import session from 'express-session';
+import createMemoryStore from 'memorystore';
 import util from 'util';
+const MemoryStore = createMemoryStore(session);
 
 export const logger: bunyan = Logger("Server");
 export class Server {
@@ -41,6 +43,10 @@ export class Server {
     this.app.use(bodyParser.urlencoded({ limit: '2mb', extended: true }));
     this.app.use(session(getSessionOptions()));
     this.app.get('/health', (_req, res) => res.status(200).send('Alive and kicking!'))
+    this.app.get('/chains', (_req, res) => {
+      const sourcifyChains = getSourcifyChains();
+      res.status(200).json(sourcifyChains)
+    })
     this.app.use('/repository', express.static(this.repository), serveIndex(this.repository, {'icons': true}))
     this.app.use('/', routes);
     this.app.use(genericErrorHandler);
@@ -66,6 +72,9 @@ function getSessionOptions(): session.SessionOptions {
       secure: config.session.secure,
       sameSite: "lax"
     },
+    store: new MemoryStore({
+      checkPeriod: config.session.maxAge
+    }),
   };
 }
 

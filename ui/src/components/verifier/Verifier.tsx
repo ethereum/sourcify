@@ -1,8 +1,11 @@
 import React, { useEffect, useReducer } from "react";
 import Web3 from "web3-utils";
-import { checkAddresses, ServersideAddressCheck, verify } from "../../api/verifier";
 import {
-    CHAIN_IDS_STR, CHAIN_OPTIONS as chainOptions, ID_TO_CHAIN, REPOSITORY_URL_FULL_MATCH,
+    checkAddresses, getSourcifyChains, ServersideAddressCheck,
+    verify
+} from "../../api/verifier";
+import {
+    REPOSITORY_URL_FULL_MATCH,
     REPOSITORY_URL_PARTIAL_MATCH
 } from "../../common/constants";
 import { verifierReducer } from "../../reducers/verifierReducer";
@@ -13,10 +16,17 @@ import LoadingOverlay from "../LoadingOverlay";
 import Spinner from "../Spinner";
 import { AddressInput, FileUpload } from "./form";
 
+const verificationState = {
+    PARTIAL: 'partial',
+    PERFECT: 'perfect'
+}
+
 const initialState: VerifierState = {
     loading: false,
     address: "",
-    chain: chainOptions[0],
+    chain: {},
+    sourcifyChainMap: {},
+    sourcifyChains: [],
     files: [],
     incorrectAddresses: new Set(),
     isValidationError: false,
@@ -27,6 +37,27 @@ const initialState: VerifierState = {
 const Verifier: React.FC = () => {
     const [state, dispatch] = useReducer(verifierReducer, initialState);
     const globalDispatch = useDispatchContext();
+    
+    // Initial fetch
+    useEffect(() => {
+        dispatch({ type: "SET_LOADING", payload: true });
+        getSourcifyChains().then((sourcifyChains) => {
+        dispatch({
+            type: "SET_SOURCIFY_CHAINS",
+            payload: sourcifyChains,
+        });
+        dispatch({ type: "SET_CHAIN", payload: sourcifyChains[0] });
+        const chainMap = sourcifyChains.reduce(function(acc, currentChain) {
+            acc[currentChain.chainId] = currentChain;
+            return acc;
+        }, {});
+        dispatch({
+            type: "SET_SOURCIFY_CHAIN_MAP",
+            payload: chainMap,
+        });
+        dispatch({ type: "SET_LOADING", payload: false });
+        });
+    }, []);
 
     useEffect(() => {
         // reset values
@@ -56,7 +87,7 @@ const Verifier: React.FC = () => {
             dispatch({type: "SET_IS_VALIDATION_ERROR", payload: false})
             dispatch({type: "SET_VERIFY_ADDRESS_LOADING", payload: true});
 
-            checkAddresses(addresses.join(','), CHAIN_IDS_STR).then(data => {
+            checkAddresses(addresses.join(','), state.sourcifyChains.map(c => c.chainId.toString())).then(data => {
                 console.log(data.error)
                 if (data.error) {
                     globalDispatch({
@@ -107,21 +138,41 @@ const Verifier: React.FC = () => {
     }
 
     const checkResultToElement = (checkResult: ServersideAddressCheck) => {
-        return <p key={checkResult.address}>{checkResult.address} is verified on: {
-            intersperse(
-                checkResult.chainIds.map(chainId => chainToLink(chainId, checkResult.address)), 
-                ", "
-            )
-        }</p>
+        const fullMatches = checkResult.chainIds.filter(chain => chain.status === verificationState.PERFECT)
+        const partialMatches = checkResult.chainIds.filter(chain => chain.status === verificationState.PARTIAL)
+        return (
+            <>
+                <p key={checkResult.address}>{checkResult.address}</p>
+                { fullMatches.length > 0 && 
+                    <p>Fully verified on: {
+                        intersperse(
+                            fullMatches.map(chainId => chainToLink(chainId.chainId, checkResult.address)), 
+                            ", "
+                        )
+                    }
+                    </p>
+                }
+                { partialMatches.length > 0 &&
+                    <p key={checkResult.address}>Partially verified on: {
+                        intersperse(
+                            partialMatches.map(chainId => chainToLink(chainId.chainId, checkResult.address, verificationState.PARTIAL)), 
+                            ", "
+                        )
+                    }
+                    </p>
+                }
+            </>
+        )
     }
 
-    const chainToLink = (chainId: string, address: string): JSX.Element => {
-        const chain = ID_TO_CHAIN[chainId];
-        const label = chain ? chain.label : "Unknown chain";
+    const chainToLink = (chainId: string, address: string, type = verificationState.PERFECT): JSX.Element => {
+        const path = type === verificationState.PERFECT ? REPOSITORY_URL_FULL_MATCH : REPOSITORY_URL_PARTIAL_MATCH;
+        const chain = state.sourcifyChainMap && state.sourcifyChainMap[chainId];
+        const label = chain ? (chain.title || chain.name) : "Unknown chain";
         return <a
             target="_blank"
             rel="noopener noreferrer"
-            href={`${REPOSITORY_URL_FULL_MATCH}/${chainId}/${address}`}
+            href={`${path}/${chainId}/${address}`}
             style={ { wordBreak: "break-word" } }
             key={chainId}
         >{label}</a>;
@@ -161,7 +212,7 @@ const Verifier: React.FC = () => {
 
         const formData = new FormData();
         formData.append("address", state.address);
-        formData.append("chain", state.chain.id.toString());
+        formData.append("chain", state.chain.chainId.toString());
         state.chosenContract && formData.append("chosenContract", state.chosenContract);
         
         if (state.files.length > 0) {
@@ -182,14 +233,14 @@ const Verifier: React.FC = () => {
             return;
         }
 
-        if (data.status === 'partial') {
+        if (data.status === verificationState.PARTIAL) {
             globalDispatch({
                 type: "SHOW_NOTIFICATION", payload: {
                     type: "success",
                     content: () => <p>Contract partially verified! View the assets in the <a
                         target="_blank"
                         rel="noopener noreferrer"
-                        href={`${REPOSITORY_URL_PARTIAL_MATCH}/${state.chain.id}/${data.address}`}>file explorer.</a>
+                        href={`${REPOSITORY_URL_PARTIAL_MATCH}/${state.chain.chainId}/${data.address}`}>file explorer.</a>
                     </p>
                 }
             });
@@ -203,7 +254,7 @@ const Verifier: React.FC = () => {
                 content: () => <p>Contract successfully verified! View the assets in the <a
                     target="_blank"
                     rel="noopener noreferrer"
-                    href={`${REPOSITORY_URL_FULL_MATCH}/${state.chain.id}/${data.address}`}>file explorer.</a>
+                    href={`${REPOSITORY_URL_FULL_MATCH}/${state.chain.chainId}/${data.address}`}>file explorer.</a>
                 </p>
             }
         });
@@ -223,7 +274,7 @@ const Verifier: React.FC = () => {
             </div>
             <div className="form-container__middle">
                 <form className="form" onSubmit={onSubmit}>
-                    <Dropdown items={chainOptions} initialValue={chainOptions[0]} onSelect={handleOnSelect}/>
+                    {state.sourcifyChains.length ? <Dropdown items={state.sourcifyChains} initialValue={state.sourcifyChains[0]} onSelect={handleOnSelect}/> : <div style={{height: "40px", textAlign: "center"}}>Fetching Sourcify chains...</div>}
                     <div className="input-wrapper">
                         <AddressInput onChange={handleAddressChange}/>
                         {state.verifyAddressLoading && <Spinner small={true}/>}

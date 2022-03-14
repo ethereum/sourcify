@@ -1,10 +1,14 @@
-import Web3 from "web3";
+import * as dotenv from 'dotenv';
+import path from 'path';
 
-const ETHERSCAN_REGEX = "at txn <a href='/tx/(.*?)'";
+dotenv.config({ path: path.resolve(__dirname, "..", "..", "..", "environments/.env") });
+
+const ETHERSCAN_REGEX = (/at txn\s+<a href='\/tx\/(.*?)'/).source; // save as string to be able to return the txRegex in /chains response. If stored as RegExp returns {}
 const ETHERSCAN_SUFFIX = "address/${ADDRESS}";
 const BLOCKSCOUT_REGEX = "transaction_hash_link\" href=\"${BLOCKSCOUT_PREFIX}/tx/(.*?)\"";
 const BLOCKSCOUT_SUFFIX = "address/${ADDRESS}/transactions";
 const TELOS_SUFFIX = "v2/evm/get_contract?contract=${ADDRESS}";
+const METER_SUFFIX="api/accounts/${ADDRESS}"
 
 type ChainGroup = "eth" | "polygon";
 
@@ -23,19 +27,12 @@ function getCustomURL(chainName: string, chainGroup: ChainGroup, useOwn=false) {
     return `https://${chainGroup}-${chainName}.${domain}/v2/${id}`;
 }
 
-function createArchiveEndpoint(chainName: string, chainGroup: ChainGroup, useOwn=false) {
-    return new Web3(getCustomURL(chainName, chainGroup, useOwn));
-}
-
 function getBlockscoutRegex(blockscoutPrefix="") {
     return BLOCKSCOUT_REGEX.replace("${BLOCKSCOUT_PREFIX}", blockscoutPrefix);
 }
 
 export default {
     "1": {
-        "fullnode": {
-            "dappnode": "http://geth.dappnode:8545"
-        },
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://etherscan.io/" + ETHERSCAN_SUFFIX,
@@ -44,12 +41,8 @@ export default {
             getCustomURL("mainnet", "eth")
         ],
         "txRegex": ETHERSCAN_REGEX,
-        "archiveWeb3": createArchiveEndpoint("mainnet", "eth", true)
     },
     "3": {
-        "fullnode": {
-            "dappnode": "http://ropsten.dappnode:8545"
-        },
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://ropsten.etherscan.io/" + ETHERSCAN_SUFFIX,
@@ -58,12 +51,8 @@ export default {
             getCustomURL("ropsten", "eth")
         ],
         "txRegex": ETHERSCAN_REGEX,
-        "archiveWeb3": createArchiveEndpoint("ropsten", "eth", true)
     },
     "4": {
-        "fullnode": {
-            "dappnode": "http://rinkeby.dappnode:8545"
-        },
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://rinkeby.etherscan.io/" + ETHERSCAN_SUFFIX,
@@ -72,12 +61,8 @@ export default {
             getCustomURL("rinkeby", "eth")
         ],
         "txRegex": ETHERSCAN_REGEX,
-        "archiveWeb3": createArchiveEndpoint("rinkeby", "eth", true)
     },
     "5": {
-        "fullnode": {
-            "dappnode": "http://goerli-geth.dappnode:8545"
-        },
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://goerli.etherscan.io/" + ETHERSCAN_SUFFIX,
@@ -86,12 +71,8 @@ export default {
             getCustomURL("goerli", "eth")
         ],
         "txRegex": ETHERSCAN_REGEX,
-        "archiveWeb3": createArchiveEndpoint("goerli", "eth", true)
     },
     "42": {
-        "fullnode": {
-            "dappnode": "http://kovan.dappnode:8545"
-        },
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://kovan.etherscan.io/" + ETHERSCAN_SUFFIX,
@@ -99,7 +80,6 @@ export default {
             getCustomURL("kovan", "eth")
         ],
         "txRegex": ETHERSCAN_REGEX,
-        "archiveWeb3": createArchiveEndpoint("kovan", "eth"),
     },
     "43": {
         "supported": true,
@@ -124,8 +104,12 @@ export default {
     "82": {
         "supported": true,
         "monitored": false,
-        "contractFetchAddress": "https://scan.meter.io/" + ETHERSCAN_SUFFIX,
-        "txRegex": ETHERSCAN_REGEX
+        "contractFetchAddress": "https://api.meter.io:8000/" + METER_SUFFIX,
+    },
+    "83":{
+        "supported":true,
+        "monitored":false,
+        "contractFetchAddress":"https://api.meter.io:4000/" + METER_SUFFIX,
     },
     "97": {
         "supported": true,
@@ -150,19 +134,19 @@ export default {
     },
     "42220": {
         "supported": true,
-        "monitored": true,
+        "monitored": false,
         "contractFetchAddress": "https://explorer.celo.org/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
     "44787": {
         "supported": true,
-        "monitored": true,
+        "monitored": false,
         "contractFetchAddress": "https://alfajores-blockscout.celo-testnet.org/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
     "62320": {
         "supported": true,
-        "monitored": true,
+        "monitored": false,
         "contractFetchAddress": "https://baklava-blockscout.celo-testnet.org/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
@@ -177,26 +161,32 @@ export default {
     },
     "421611": {
         "supported": true,
-        "monitored": false,
+        "monitored": true,
         "graphQLFetchAddress": "https://rinkeby-indexer.arbitrum.io/graphql"
     },
     "42161": {
         "supported": true,
-        "monitored": false,
-        "contractFetchAddress": "https://arbiscan.io" + ETHERSCAN_SUFFIX,
+        "monitored": true,
+        "contractFetchAddress": "https://arbiscan.io/" + ETHERSCAN_SUFFIX,
         "txRegex": ETHERSCAN_REGEX
     },
     "43113": {
         "supported": true,
-        "monitored": true,
+        "monitored": false,
         "contractFetchAddress": "https://testnet.snowtrace.io/" + ETHERSCAN_SUFFIX,
         "txRegex": ETHERSCAN_REGEX
     },
     "43114": {
         "supported": true,
-        "monitored": true,
+        "monitored": false,
         "contractFetchAddress": "https://snowtrace.io/" + ETHERSCAN_SUFFIX,
         "txRegex": ETHERSCAN_REGEX
+    },
+    "57": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer.syscoin.org/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
     },
     "5700": {
         "supported": true,
@@ -208,13 +198,11 @@ export default {
         "supported": true,
         "monitored": false,
         "contractFetchAddress": "https://mainnet.telos.net/" + TELOS_SUFFIX,
-        "isTelos": true
     },
     "41": {
         "supported": true,
         "monitored": false,
         "contractFetchAddress": "https://testnet.telos.net/" + TELOS_SUFFIX,
-        "isTelos": true
     },
     "8": {
         "supported": true,
@@ -230,25 +218,25 @@ export default {
     },
     "10": {
         "supported": true,
-        "monitored": false,
+        "monitored": true,
         "contractFetchAddress": "https://optimistic.etherscan.io/" + ETHERSCAN_SUFFIX,
         "txRegex": ETHERSCAN_REGEX
     },
     "69": {
         "supported": true,
-        "monitored": false,
+        "monitored": true,
         "contractFetchAddress": "https://kovan-optimistic.etherscan.io/" + ETHERSCAN_SUFFIX,
         "txRegex": ETHERSCAN_REGEX
     },
     "28": {
         "supported": true,
-        "monitored": false,
+        "monitored": true,
         "contractFetchAddress": "https://blockexplorer.rinkeby.boba.network/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
     "288": {
         "supported": true,
-        "monitored": false,
+        "monitored": true,
         "contractFetchAddress": "https://blockexplorer.boba.network/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
@@ -256,6 +244,18 @@ export default {
         "supported": true,
         "monitored": false,
         "contractFetchAddress": "https://evmexplorer.velas.com/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "1313161554": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer.mainnet.aurora.dev/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "1313161555": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer.testnet.aurora.dev/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
 }

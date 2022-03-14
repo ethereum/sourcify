@@ -8,7 +8,7 @@ import { IValidationService } from '@ethereum-sourcify/validation';
 import * as bunyan from 'bunyan';
 import fileUpload from 'express-fileupload';
 import { isValidAddress } from '../../common/validators/validators';
-import { MySession, getSessionJSON, generateId, isVerifiable, SendableContract, ContractWrapperMap, updateUnused, MyRequest } from './VerificationController-util';
+import { MySession, getSessionJSON, generateId, isVerifiable, SendableContract, ContractWrapperMap, updateUnused, MyRequest, addRemoteFile } from './VerificationController-util';
 import { StatusCodes } from 'http-status-codes';
 import { body, query, validationResult } from 'express-validator';
 import web3utils from "web3-utils";
@@ -125,6 +125,36 @@ export default class VerificationController extends BaseController implements IC
         });
     }
 
+    private checkAllByAddresses = async (req: any, res: Response) => {
+        this.validateRequest(req);
+        const map: Map<string, any> = new Map();
+        for (const address of req.addresses) {
+            for (const chainId of req.chainIds) {
+                try {
+                    const found: Match[] = this.verificationService.findAllByAddress(address, chainId);
+                    if (found.length != 0) {
+                        if (!map.has(address)) {
+                            map.set(address, { address, chainIds: [] });
+                        }
+
+
+                        map.get(address).chainIds.push({chainId, status: found[0].status});
+                    }
+                } catch (error) {
+                    // ignore
+                }
+            }
+            if (!map.has(address)) {
+                map.set(address, {
+                    "address": address,
+                    "status": "false"
+                })
+            }
+        }
+        const resultArray = Array.from(map.values());
+        res.send(resultArray)
+    }
+
     private checkByAddresses = async (req: any, res: Response) => {
         this.validateRequest(req);
         const map: Map<string, any> = new Map();
@@ -136,6 +166,7 @@ export default class VerificationController extends BaseController implements IC
                         if (!map.has(address)) {
                             map.set(address, { address, status: "perfect", chainIds: [] });
                         }
+
                         map.get(address).chainIds.push(chainId);
                     }
                 } catch (error) {
@@ -273,12 +304,12 @@ export default class VerificationController extends BaseController implements IC
         }
     }
 
-    private extractFilesFromForm(files: any) {
+    private extractFilesFromForm(files: any): PathBuffer[] {
         const fileArr: fileUpload.UploadedFile[] = [].concat(files); // ensure an array, regardless of how many files received
         return fileArr.map(f => ({ path: f.name, buffer: f.data }));
     }
     
-    private extractFilesFromJSON(files: any) {
+    private extractFilesFromJSON(files: any): PathBuffer[] {
         const inputFiles = [];
         for (const name in files) {
             const file = files[name];
@@ -320,7 +351,12 @@ export default class VerificationController extends BaseController implements IC
 
     private addInputFilesEndpoint = async (req: Request, res: Response) => {
         this.validateRequest(req);
-        const inputFiles = this.extractFiles(req, true);
+        let inputFiles: PathBuffer[];
+        if (req.query.url) {
+            inputFiles = await addRemoteFile(req.query)
+        } else {
+            inputFiles = this.extractFiles(req, true);
+        }
         const pathContents: PathContent[] = inputFiles.map(pb => {
             return { path: pb.path, content: pb.buffer.toString(FILE_ENCODING) }
         });
@@ -377,6 +413,13 @@ export default class VerificationController extends BaseController implements IC
                 this.safeHandler(this.legacyVerifyEndpoint)
             );
 
+        this.router.route(['/check-all-by-addresses', '/checkAllByAddresses'])
+            .get(
+                query("addresses").exists().bail().custom((addresses, { req }) => req.addresses = this.validateAddresses(addresses)),
+                query("chainIds").exists().bail().custom((chainIds, { req }) => req.chainIds = this.validateChainIds(chainIds)),
+                this.safeHandler(this.checkAllByAddresses)
+            );
+
         this.router.route(['/check-by-addresses', '/checkByAddresses'])
             .get(
                 query("addresses").exists().bail().custom((addresses, { req }) => req.addresses = this.validateAddresses(addresses)),
@@ -389,7 +432,7 @@ export default class VerificationController extends BaseController implements IC
         
         this.router.route('/input-files')
             .post(this.safeHandler(this.addInputFilesEndpoint));
-
+        
         this.router.route('/restart-session')
             .post(this.safeHandler(this.restartSessionEndpoint));
 

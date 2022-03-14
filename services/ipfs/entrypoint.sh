@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ipfs init
+ipfs init --profile server
 ipfs config Addresses.Gateway /ip4/0.0.0.0/tcp/8080
 
 ## Build announced address config according to https://docs.ipfs.io/how-to/configure-node/#addresses. Need to announce the public and local IPs in swarm manually since docker does not know these IPs.
@@ -22,15 +22,19 @@ fi
 ANNOUNCED_ADDRESSES=$ANNOUNCED_ADDRESSES']'
 
 ipfs config Addresses.Announce $ANNOUNCED_ADDRESSES --json
-ipfs config --json Experimental.ShardingEnabled true
 ipfs config --json Reprovider.Strategy '"pinned"'
 ipfs config --json Experimental.AcceleratedDHTClient true
+ipfs config --json Experimental.FilestoreEnabled true
+
+# Allow WebUI to be accesible from host
+ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["*"]'
+ipfs config --json Addresses.API '["/ip4/0.0.0.0/tcp/5001"]'
 
 source /app/.env
 
 ipfs key import main /app/ipfs-${TAG}.key 
 
-ipfs daemon --enable-pubsub-experiment --enable-namesys-pubsub &
+ipfs daemon --enable-pubsub-experiment --enable-namesys-pubsub --enable-gc &
 
 # Start the run once job.
 echo "Docker container has been started"

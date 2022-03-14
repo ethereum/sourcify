@@ -1,5 +1,5 @@
 import { SERVER_URL } from "../common/constants";
-import { ContractToChoose } from "../types";
+import { Chain, ChainMap, ContractToChoose } from "../types";
 
 type ResponseBody = {
     error?: string,
@@ -21,10 +21,15 @@ type CheckAddressesResult = {
     error: string
 }
 
+type ChainIdsResponse = {
+    chainId: string,
+    status: string
+}
+
 export type ServersideAddressCheck = {
     address: string,
     status: string,
-    chainIds?: string[]
+    chainIds?: ChainIdsResponse[]
 };
 
 export const verify = async (formData: any): Promise<VerificationResult> => {
@@ -67,12 +72,12 @@ export const checkAddresses = async (addresses: string, chainIds: string): Promi
     }
 
     try {
-        const response = await fetch(`${SERVER_URL}/checkByAddresses?addresses=${addresses}&chainIds=${chainIds}`, {
+        const response = await fetch(`${SERVER_URL}/checkAllByAddresses?addresses=${addresses}&chainIds=${chainIds}`, {
             method: "GET"
-        })
+        }) 
         const body: ServersideAddressCheck[] = await response.json();
 
-        data.successful = body.filter(value => value.status === 'perfect');
+        data.successful = body.filter(value => value?.chainIds?.length >= 0);
         data.unsuccessful = body.filter(value => value.status === 'false').map(e => e.address);
 
     } catch (e) {
@@ -80,4 +85,16 @@ export const checkAddresses = async (addresses: string, chainIds: string): Promi
         data.error = e.message;
     }
     return data;
+}
+
+
+/**
+ * @function to fetch Sourcify's chains array and return as an object with the chainId as keys.
+ * 
+ * The Ethereum networks are placed on top, the rest of the networks are sorted alphabetically.
+ * 
+ */
+export const getSourcifyChains = async (): Promise<Chain[]> => {
+    const chainsArray = await (await fetch(`${SERVER_URL}/chains`)).json();
+    return chainsArray;
 }
