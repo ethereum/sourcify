@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import Header from "../../components/Header";
 import Toast from "../../components/Toast";
 import {
@@ -27,32 +27,31 @@ const Verifier: React.FC = () => {
   );
   const { errorMessage, setErrorMessage } = useContext(Context);
 
-  useEffect(() => {
-    fetchAndUpdate(SESSION_DATA_URL);
-  }, []);
-
-  const fetchAndUpdate = async (URL: string, fetchOptions?: RequestInit) => {
-    try {
-      const rawRes: Response = await fetch(URL, {
-        credentials: "include",
-        method: fetchOptions?.method || "GET", // default GET
-        ...fetchOptions,
-      });
-      if (!rawRes.ok) {
-        const err: IGenericError = await rawRes.json();
-        throw new Error(err.error);
+  const fetchAndUpdate = useCallback(
+    async (URL: string, fetchOptions?: RequestInit) => {
+      try {
+        const rawRes: Response = await fetch(URL, {
+          credentials: "include",
+          method: fetchOptions?.method || "GET", // default GET
+          ...fetchOptions,
+        });
+        if (!rawRes.ok) {
+          const err: IGenericError = await rawRes.json();
+          throw new Error(err.error);
+        }
+        const res: SessionResponse = await rawRes.json();
+        setUnusedFiles([...res.unused]);
+        setCheckedContracts([...res.contracts]);
+        setAddedFiles([...res.files]);
+        setErrorMessage("");
+        return res;
+      } catch (e) {
+        const error = e as IResponseError;
+        setErrorMessage(error.message);
       }
-      const res: SessionResponse = await rawRes.json();
-      setUnusedFiles([...res.unused]);
-      setCheckedContracts([...res.contracts]);
-      setAddedFiles([...res.files]);
-      setErrorMessage("");
-      return res;
-    } catch (e) {
-      const error = e as IResponseError;
-      setErrorMessage(error.message);
-    }
-  };
+    },
+    [setErrorMessage]
+  );
 
   const handleFiles = async (files: DropzoneFile[]) => {
     const formData = new FormData();
@@ -91,6 +90,10 @@ const Verifier: React.FC = () => {
       }),
     });
   };
+
+  useEffect(() => {
+    fetchAndUpdate(SESSION_DATA_URL);
+  }, [fetchAndUpdate]);
 
   return (
     <div className="flex flex-col flex-1 pb-8 px-8 md:px-12 lg:px-24 bg-gray-100">
