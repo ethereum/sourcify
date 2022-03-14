@@ -23,11 +23,11 @@ export default class TestArtifactsController extends BaseController implements I
    */
   findLatestChainTest = async (req: Request, res: Response) => {
     const CIRCLE_PROJECT_ID = process.env.CIRCLE_PROJECT_ID || 183183290;
-    const WORKFLOWS_URL = `https://circleci.com/api/v2/insights/gh/ethereum/sourcify/workflows/test-chains-regularly`;
+    const WORKFLOWS_URL = `https://circleci.com/api/v2/insights/gh/ethereum/sourcify/workflows/test-chains-regularly?all-branches=true`;
     // Fetch last runs of the chain test workflow: https://circleci.com/docs/api/v2/#operation/getProjectWorkflowRuns
     const workflowResponse = await (await fetch(WORKFLOWS_URL)).json();
     if (workflowResponse.items.length === 0) {
-      res.status(StatusCodes.BAD_REQUEST).json({error: "No workflows returned from " + WORKFLOWS_URL})
+      return res.status(StatusCodes.NOT_FOUND).json({error: "No workflows returned from " + WORKFLOWS_URL})
     }
     const workflowId = workflowResponse.items[0].id;
     
@@ -48,7 +48,7 @@ export default class TestArtifactsController extends BaseController implements I
     const ARTIFACT_URL = `https://${jobNumber}-${CIRCLE_PROJECT_ID}-gh.circle-artifacts.com/0/chain-tests-report/report.json`;
     const artifactResponse = await (await fetch(ARTIFACT_URL)).json();
 
-    res.json({
+    return res.json({
       testReport: artifactResponse,
       workflowId,
       pipelineNumber,
