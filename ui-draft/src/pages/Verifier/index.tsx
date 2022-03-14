@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Header from "../../components/Header";
 import Toast from "../../components/Toast";
 import {
@@ -7,6 +7,7 @@ import {
   SESSION_DATA_URL,
   VERIFY_VALIDATED_URL,
 } from "../../constants";
+import { Context } from "../../Context";
 import {
   DropzoneFile,
   IGenericError,
@@ -24,7 +25,7 @@ const Verifier: React.FC = () => {
   const [checkedContracts, setCheckedContracts] = useState<SendableContract[]>(
     []
   );
-  const [errorMessage, setErrorMessage] = useState<string>("");
+  const { errorMessage, setErrorMessage } = useContext(Context);
 
   useEffect(() => {
     fetchAndUpdate(SESSION_DATA_URL);
