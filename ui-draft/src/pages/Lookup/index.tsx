@@ -8,12 +8,11 @@ import Field from "./Field";
 import Result from "./Result";
 
 const Lookup = () => {
-  const [errorMessage, setErrorMessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [response, setResponse] = useState<CheckAllByAddressResult | undefined>(
     undefined
   );
-  const { sourcifyChains } = useContext(Context);
+  const { sourcifyChains, errorMessage, setErrorMessage } = useContext(Context);
 
   const handleRequest = async (address: string) => {
     setLoading(true);

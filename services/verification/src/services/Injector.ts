@@ -159,6 +159,8 @@ export class Injector {
             try {
                 deployedBytecode = await getBytecode(this.chains[chain].web3array, address);
             } catch (err: any) {
+                if (err.errors.length > 0)
+                    err.message = err.errors.map((e: { message: string; }) => e.message)// Avoid uninformative message "All Promises Rejected"
                 this.log.error({ loc: "[MATCH]", address, chain, msg: err.message });
                 throw err;
             }

@@ -9,7 +9,6 @@ ui/node_modules/
 ui/dist/
 ui/.cache/
 source-verify.dab
-nginx.conf
 dist/
 **/.env
 **/.env-backup
@@ -22,3 +21,4 @@ metacoin-source-verify/
 **/.env.secrets
 logs
 **/too_big.txt
+chain-tests-report/
