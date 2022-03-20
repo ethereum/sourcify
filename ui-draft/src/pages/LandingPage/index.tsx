@@ -99,11 +99,11 @@ const LandingPage = () => {
         <section className="grid md:grid-cols-2 gap-8 flex-1">
           {/* Hero left */}
           <div className="flex flex-col justify-center">
-            <h1 className="text-2xl md:text-4xl xl:text-5xl font-bold mb-4 leading-tight">
+            <h1 className="text-2xl md:text-3xl xl:text-4xl font-bold mb-4 leading-tight">
               Source-verified smart contracts for transparency and better UX in
               web3
             </h1>
-            <h2 className="text-xl ">
+            <h2 className="text-lg">
               Sourcify enables transparent and human-readable smart contract
               interactions through automated Solidity contract verification,
               contract metadata, and NatSpec comments.
@@ -129,7 +129,7 @@ const LandingPage = () => {
             >
               {/* Source code visual */}
               <div
-                className="absolute mt-16 mr-16 xl:mt-32 xl:mr-32 z-10 transition-all duration-300 ease-in-out md:text-[0.6rem] lg:text-[0.7rem] xl:text-[0.8rem]"
+                className="absolute mt-16 mr-16 xl:mt-32 xl:mr-32 z-10 transition-all duration-300 ease-in-out md:text-[0.6rem] lg:text-[0.7rem]"
                 id="hero-source-code"
               >
                 <SyntaxHighlighter
@@ -149,7 +149,7 @@ const LandingPage = () => {
               </div>
               {/* Verification visual */}
               <div
-                className="absolute mb-16 ml-16 lg:ml-32 z-0 transition-all duration-300 ease-in-out bg-ceruleanBlue-100 px-4 py-2 rounded-md border-2 border-ceruleanBlue-400 text-sm lg:text-base"
+                className="absolute mb-16 ml-16 lg:ml-32 z-0 transition-all duration-300 ease-in-out bg-ceruleanBlue-100 px-4 py-2 rounded-md border-2 border-ceruleanBlue-400 text-xs lg:text-sm"
                 id="hero-bytecode"
               >
                 <div className="py-4">
@@ -174,8 +174,8 @@ const LandingPage = () => {
                     0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4
                   </a>
                 </div>
-                <div className="mt-4 text-[0.6rem] lg:text-[0.7rem]">
-                  <p className="text-sm text-lg:base">metadata.json</p>
+                <div className="mt-4 text-[0.6rem]">
+                  <p className="text-sm">metadata.json</p>
                   <SyntaxHighlighter
                     language="json"
                     style={lightStyle}

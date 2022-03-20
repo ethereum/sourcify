@@ -7,15 +7,16 @@ import {
   ResponsiveContainer,
   Tooltip,
   XAxis,
-  YAxis
+  YAxis,
 } from "recharts";
 import AppIconName from "../../components/AppIconName";
 import LoadingOverlay from "../../components/LoadingOverlay";
 import { REPOSITORY_URL } from "../../constants";
 import { Context } from "../../Context";
-import featured from '../../featured';
+import featured from "../../featured";
 
-const FEATURE_ISSUE_URL = 'https://github.com/ethereum/sourcify/issues/new?assignees=ogwurujohnson%2Ckuzdogan&labels=feature%2Csupport&template=feature_project.yml&title=%5BFeature+Request%5D%3A+'
+const FEATURE_ISSUE_URL =
+  "https://github.com/ethereum/sourcify/issues/new?assignees=ogwurujohnson%2Ckuzdogan&labels=feature%2Csupport&template=feature_project.yml&title=%5BFeature+Request%5D%3A+";
 
 type statsType = {
   [key: string]: {
@@ -124,13 +125,14 @@ const Featured = () => {
           img={project.logo}
           name={project.name}
           href={project.href}
+          key={`app-icon-${project.name}`}
         />
-      )
+      );
     }
 
-    return null
-  })
-}
+    return null;
+  });
+};
 
 const ChartSection = () => {
   const [stats, setStats] = useState<statsType>();
@@ -152,14 +154,14 @@ const ChartSection = () => {
           {Featured()}
         </div>
         <div className="text-center mt-5 flex justify-center">
-            <a
-              className="link-underline font-semibold text-ceruleanBlue-500"
-              href={FEATURE_ISSUE_URL}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Verified? Add your project
-            </a>
+          <a
+            className="link-underline font-semibold text-ceruleanBlue-500"
+            href={FEATURE_ISSUE_URL}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Verified? Add your project
+          </a>
         </div>
       </div>
     </div>
