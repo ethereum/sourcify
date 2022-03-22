@@ -40,10 +40,11 @@ describe("Server", function () {
     wallet: { totalAccounts: 1 },
     chain: { chainId: 0, networkId: 0 },
   });
-  let web3Provider;
+  let localWeb3Provider;
   let accounts;
   let contractAddress;
   const contractChain = "0";
+  let currentResponse = null; // to log server response when test fails
 
   const sourcePath = path.join(
     "test",
@@ -61,13 +62,13 @@ describe("Server", function () {
     await ganacheServer.listen(GANACHE_PORT);
     console.log("Started ganache local server on port " + GANACHE_PORT);
 
-    web3Provider = new Web3(`http://localhost:${GANACHE_PORT}`);
-    accounts = await web3Provider.eth.getAccounts();
+    localWeb3Provider = new Web3(`http://localhost:${GANACHE_PORT}`);
+    accounts = await localWeb3Provider.eth.getAccounts();
     console.log("Initialized web3 provider");
 
     // Deploy the test contract
     contractAddress = await deployFromAbiAndBytecode(
-      web3Provider,
+      localWeb3Provider,
       artifact.abi,
       artifact.bytecode,
       accounts[0]
@@ -85,6 +86,18 @@ describe("Server", function () {
   after(async () => {
     rimraf.sync(server.repository);
     await ganacheServer.close();
+  });
+
+  // log server response when test fails
+  afterEach(function () {
+    const errorBody = currentResponse && currentResponse.body;
+    if (this.currentTest.state === "failed" && errorBody) {
+      console.log(
+        "Server response of failed test " + this.currentTest.title + ":"
+      );
+      console.log(errorBody);
+    }
+    currentResponse = null;
   });
 
   const ipfsAddress =
@@ -118,6 +131,7 @@ describe("Server", function () {
     expectedAddress = contractAddress,
     expectedStatus = "perfect"
   ) => {
+    currentResponse = res;
     chai.expect(err).to.be.null;
     chai.expect(res.status).to.equal(StatusCodes.OK);
     chai.expect(res.body).to.haveOwnProperty("result");
@@ -531,7 +545,7 @@ describe("Server", function () {
       const metadataBuffer = fs.readFileSync(metadataPath);
       const metadata = JSON.parse(metadataBuffer.toString());
       const address = await deployFromAbiAndBytecode(
-        web3Provider,
+        localWeb3Provider,
         metadata.output.abi,
         bytecode,
         accounts[0]
@@ -551,7 +565,7 @@ describe("Server", function () {
       // Originally https://goerli.etherscan.io/address/0x399B23c75d8fd0b95E81E41e1c7c88937Ee18000#code
       const artifact = require("./sources/artifacts/UsingLibrary.json");
       const address = await deployFromAbiAndBytecode(
-        web3Provider,
+        localWeb3Provider,
         artifact.abi,
         artifact.bytecode,
         accounts[0]
@@ -599,6 +613,35 @@ describe("Server", function () {
               chai.expect(receivedLibraryMap).to.deep.equal(expectedLibraryMap);
             });
         });
+    });
+
+    it("should verify a contract with viaIR:true", async () => {
+      const artifact = require("./testcontracts/Storage/Storage-viaIR.json");
+      const address = await deployFromAbiAndBytecode(
+        localWeb3Provider,
+        artifact.abi,
+        artifact.bytecode,
+        accounts[0]
+      );
+      // metadata is in artifact JSON
+      const metadataBuffer = Buffer.from(artifact.metadata);
+
+      const sourcePath = path.join(
+        "test",
+        "testcontracts",
+        "Storage",
+        "Storage.sol"
+      );
+      const sourceBuffer = fs.readFileSync(sourcePath);
+
+      chai
+        .request(server.app)
+        .post("/")
+        .field("address", address)
+        .field("chain", contractChain)
+        .attach("files", metadataBuffer, "metadata.json")
+        .attach("files", sourceBuffer, "Storage.sol")
+        .end((err, res) => assertions(err, res, null, address));
     });
   });
 
@@ -1058,7 +1101,7 @@ describe("Server", function () {
       );
       before(async function () {
         address = await deployFromAbiAndBytecode(
-          web3Provider,
+          localWeb3Provider,
           MyToken.abi,
           MyToken.evm.bytecode.object,
           accounts[0],
