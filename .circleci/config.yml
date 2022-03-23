@@ -53,7 +53,7 @@ aliases:
           command: ./scripts/monitor_ci.sh
           no_output_timeout: 30m
     docker:
-      - image: cimg/node:14
+      - image: cimg/node:14.19
   - &verification-e2e-base
     working_directory: ~/source-verify
     steps:
@@ -65,7 +65,7 @@ aliases:
           name: verification test
           command: ./scripts/verification-e2e.sh
     docker:
-      - image: cimg/node:14
+      - image: cimg/node:14.19
 
 version: 2
 workflows:
@@ -217,11 +217,11 @@ jobs:
   node-v14:
     <<: *node-base
     docker:
-      - image: cimg/node:14
+      - image: cimg/node:14.19
   node-v12:
     <<: *node-base
     docker:
-      - image: cimg/node:12
+      - image: cimg/node:12.22
     environment:
       run_coveralls: "true"
   test-new-chain:
@@ -238,7 +238,7 @@ jobs:
           name: test new chain PR
           command: ./scripts/test_new_chain_support.sh
     docker:
-      - image: cimg/node:14
+      - image: cimg/node:14.19
   test-chains:
     working_directory: ~/source-verify
     steps:
@@ -252,7 +252,7 @@ jobs:
       - store_artifacts: # Store and publish test results for reference
           path: ./chain-tests-report
     docker:
-      - image: cimg/node:14
+      - image: cimg/node:14.19
   monitor-e2e-ropsten:
     <<: *monitor-e2e-base
     environment:
@@ -286,7 +286,7 @@ jobs:
   npm-publish:
     working_directory: ~/source-verify
     docker:
-      - image: cimg/node:14
+      - image: cimg/node:14.19
     steps:
       - checkout
       - run:
