@@ -126,6 +126,10 @@ const Verifier: React.FC = () => {
           verifyCheckedContract={verifyCheckedContract}
         />
       </div>
+      <div className="text-xs italic mx-2 mt-1 text-gray-400">
+        Once a contract is verified it can't be removed from the Sourcify
+        repository.
+      </div>
     </div>
   );
 };
