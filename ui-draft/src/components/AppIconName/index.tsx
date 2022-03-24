@@ -5,6 +5,7 @@ type AppIconNameProps = {
   rounded?: boolean;
   children?: string;
   Svg?: React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
+  key?: string;
 };
 const AppIconName = ({ img, name, href, rounded, Svg }: AppIconNameProps) => {
   return (

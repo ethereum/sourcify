@@ -13,6 +13,7 @@
     "build": "tsc",
     "pretest": "npm run build:lerna",
     "test": "TESTING=true LOCALCHAIN_URL=http://localhost:8545 DOTENV_CONFIG_PATH=./environments/.env mocha -r dotenv/config  --exit",
+    "test:server": "TESTING=true LOCALCHAIN_URL=http://localhost:8545 DOTENV_CONFIG_PATH=./environments/.env mocha -r dotenv/config test/server.js --exit",
     "test:chains": "TESTING=true mocha test/chains/chain-tests.js --reporter mochawesome --reporter-options reportDir=chain-tests-report,reportFilename=report --exit",
     "lint": "eslint . --ext .ts",
     "coverage": "node ./node_modules/nyc/bin/nyc.js --reporter=lcov --reporter=text-summary ./node_modules/tape/bin/tape ./test/index.js",
@@ -30,7 +31,7 @@
     "monitor:ci": "scripts/monitor_ci.sh",
     "server:build": "npm run clean && npm run build",
     "server:start": "node ./dist/server/server.js",
-    "server:test": "tsc && TESTING=true LOCALCHAIN_URL=http://localhost:8545 SERVER_PORT=2000 node ./dist/server/server.js ./repository",
+    "server:test": "tsc && TESTING=true LOCALCHAIN_URL=http://localhost:8545 node ./dist/server/server.js ./repository",
     "cli:test": "npm run build && ./node_modules/.bin/mocha test/sourcify.js",
     "build:clean": "rm -rf node_modules/ services/verification/node_modules/ services/validation/node_modules/ services/core/node_modules/ && npx lerna bootstrap && npx lerna run build",
     "build:lerna": "lerna run build"

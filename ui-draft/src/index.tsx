@@ -1,20 +1,12 @@
-import { createInstance, MatomoProvider } from "@datapunt/matomo-tracker-react";
 import React from "react";
 import ReactDOM from "react-dom";
 import App from "./App";
 import "./index.css";
 import reportWebVitals from "./reportWebVitals";
 
-const instance = createInstance({
-  urlBase: "https://matomo.ethereum.org/",
-  siteId: 30,
-});
-
 ReactDOM.render(
   <React.StrictMode>
-    <MatomoProvider value={instance}>
-      <App />
-    </MatomoProvider>
+    <App />
   </React.StrictMode>,
   document.getElementById("root")
 );

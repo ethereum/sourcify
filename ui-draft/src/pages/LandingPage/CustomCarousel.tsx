@@ -18,7 +18,10 @@ const CustomCarousel = () => {
       {
         // Pass an array of Elements to Carousel
         [
-          <div className="flex justify-center items-center w-full h-full">
+          <div
+            className="flex justify-center items-center w-full h-full"
+            key="carousel-blockscout"
+          >
             <img
               src={blockscoutSS}
               // className="md:h-[30rem]"
@@ -26,7 +29,10 @@ const CustomCarousel = () => {
               alt="Blockscout screenshot"
             />
           </div>,
-          <div className="flex justify-center items-center w-full h-full">
+          <div
+            className="flex justify-center items-center w-full h-full"
+            key="carousel-hardhat"
+          >
             <img
               src={hardhat}
               // className="md:h-[30rem]"
@@ -35,7 +41,10 @@ const CustomCarousel = () => {
               alt="Hardhat verification GIF"
             />
           </div>,
-          <div className="flex justify-center items-center w-full h-full">
+          <div
+            className="flex justify-center items-center w-full h-full"
+            key="carousel-remix"
+          >
             <img
               src={remix}
               // className="md:h-[24rem]"
@@ -44,7 +53,10 @@ const CustomCarousel = () => {
               alt="Remix verification GIF"
             />
           </div>,
-          <div className="flex justify-center items-center w-full h-full">
+          <div
+            className="flex justify-center items-center w-full h-full"
+            key="carousel-otterscan"
+          >
             <img
               src={otterscan}
               // className="md:h-[24rem]"
@@ -53,7 +65,10 @@ const CustomCarousel = () => {
               alt="Otterscan Verified by Sourcify"
             />
           </div>,
-          <div className="flex justify-center items-center w-full h-full">
+          <div
+            className="flex justify-center items-center w-full h-full"
+            key="carousel-walleth"
+          >
             <img
               src={walleth}
               // className="md:h-[24rem]"
