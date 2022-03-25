@@ -84,6 +84,13 @@ export default {
         ],
         "txRegex": ETHERSCAN_REGEX,
     },
+    "11155111": { // Ethereum Sepolia Testnet
+        "supported": true,
+        "monitored": true,
+        "rpc": [
+            buildAlchemyURL("sepolia", "eth", true),
+        ]
+    },
     "56": {
         "supported": true,
         "monitored": false,
