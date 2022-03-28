@@ -35,10 +35,14 @@ export class Server {
       abortOnLimit: true
     }))
 
-    this.app.use(cors({
-      origin: config.corsAllowedOrigins,
-      credentials: true,
-    }));
+    this.app.use(
+      cors({
+        origin: '*',
+        // Allow follow-up middleware to override this CORS for options. 
+        // v2 API endpoints require non "*" origins because of the session cookies.
+        preflightContinue: true,
+      })
+    );
     this.app.use(bodyParser.json({limit: '2mb'}));
     this.app.use(bodyParser.urlencoded({ limit: '2mb', extended: true }));
     this.app.set('trust proxy', 1) // trust first proxy, required for secure cookies.

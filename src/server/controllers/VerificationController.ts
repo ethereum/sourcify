@@ -12,6 +12,8 @@ import { MySession, getSessionJSON, generateId, isVerifiable, SendableContract, 
 import { StatusCodes } from 'http-status-codes';
 import { body, query, validationResult } from 'express-validator';
 import web3utils from "web3-utils";
+import cors from 'cors';
+import config from '../../config';
 
 const FILE_ENCODING = "base64";
 
@@ -406,6 +408,11 @@ export default class VerificationController extends BaseController implements IC
     }
 
     registerRoutes = (): Router => {
+        const corsOpt = {
+            origin: config.corsAllowedOrigins,
+            credentials: true
+        }
+        
         this.router.route(['/', '/verify'])
             .post(
                 body("address").exists().bail().custom((address, { req }) => req.addresses = this.validateAddresses(address)),
@@ -426,19 +433,21 @@ export default class VerificationController extends BaseController implements IC
                 query("chainIds").exists().bail().custom((chainIds, { req }) => req.chainIds = this.validateChainIds(chainIds)),
                 this.safeHandler(this.checkByAddresses)
             );
-
-        this.router.route('/session-data')
-            .get(this.safeHandler(this.getSessionDataEndpoint));
         
-        this.router.route('/input-files')
-            .post(this.safeHandler(this.addInputFilesEndpoint));
+        // v2 APIs with session cookies require non "*" CORS
+        this.router.route('/session-data').all(cors(corsOpt))
+            .get(cors(corsOpt), this.safeHandler(this.getSessionDataEndpoint));
         
-        this.router.route('/restart-session')
-            .post(this.safeHandler(this.restartSessionEndpoint));
+        this.router.route('/input-files').all(cors(corsOpt))
+            .post(cors(corsOpt), this.safeHandler(this.addInputFilesEndpoint));
+        
+        this.router.route('/restart-session').all(cors(corsOpt))
+            .post(cors(corsOpt), this.safeHandler(this.restartSessionEndpoint));
 
-        this.router.route('/verify-validated')
+        this.router.route('/verify-validated').all(cors(corsOpt))
             .post(
                 body("contracts").isArray(),
+                cors(corsOpt),
                 this.safeHandler(this.verifyValidatedEndpoint)
             );
 
