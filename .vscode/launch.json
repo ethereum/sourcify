@@ -186,7 +186,8 @@
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "env": {
         "TESTING": "true",
-        "LOCALCHAIN_URL": "http://localhost:8545"
+        "LOCALCHAIN_URL": "http://localhost:8545",
+        // "NEW_CHAIN_ID": "11155111"
       },
       "args": [
         "${workspaceFolder}/test/chains/chain-tests.js",
