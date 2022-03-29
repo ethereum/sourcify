@@ -15,7 +15,7 @@ fi
 echo $TAG
 echo $SERVICE
 
-# For variables passed build time in build-ui-draft.yam
+# To pass variables React build time in build-ui.yaml
 cp environments/.env.$TAG environments/.env
 
 docker login --username $DOCKER_USER --password $DOCKER_PASS

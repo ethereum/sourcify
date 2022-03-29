@@ -84,11 +84,8 @@ workflows:
           <<: *filter-base
       - build-push-ui:
           <<: *filter-base
-      - build-push-ui-draft:
-          filters:
-            branches:
-              only:
-                - staging
+      - build-push-ui-legacy:
+          <<: *filter-base
       - deploy:
           <<: *filter-base
           requires:
@@ -98,7 +95,7 @@ workflows:
             - build-push-s3
             - build-push-server
             - build-push-ui
-            - build-push-ui-draft
+            - build-push-ui-legacy
       - monitor-e2e-ropsten:
           <<: *filter-base
           requires:
@@ -195,10 +192,10 @@ jobs:
     <<: *docker-base
     environment:
       SERVICE: "ui"
-  build-push-ui-draft:
+  build-push-ui-legacy:
     <<: *docker-base
     environment:
-      SERVICE: "ui-draft"
+      SERVICE: "ui-legacy"
   deploy:
     docker:
       - image: cimg/base:2021.04

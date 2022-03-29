@@ -11,14 +11,14 @@ x-project-base: &project-base
     - source-verify
 
 services:
-  ui-draft:
+  ui-legacy:
     <<: *project-base
-    image: ethereum/source-verify:ui-draft-${TAG}
-    container_name: ui-draft-${TAG}
+    image: ethereum/source-verify:ui-legacy-${TAG}
+    container_name: ui-legacy-${TAG}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost"]
+      test: ["CMD", "curl", "-f", "http://localhost:${UI_PORT}"]
       interval: 30s
       timeout: 10s
       retries: 10
     ports:
-      - "${UI_DRAFT_EXTERNAL_PORT}:80"
+      - "${UI_LEGACY_EXTERNAL_PORT}:1234"
