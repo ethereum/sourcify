@@ -512,7 +512,7 @@ const LandingPage = () => {
             <ul>
               <FooterItem href="/verifier">Contract Verifier</FooterItem>
               <FooterItem href="/lookup">Contract Lookup</FooterItem>
-              <FooterItem href="/status">Server Status</FooterItem>
+              {/* <FooterItem href="/status">Server Status</FooterItem> */}
             </ul>
           </div>
           <div>
@@ -523,7 +523,9 @@ const LandingPage = () => {
               <FooterItem href="https://docs.sourcify.dev">
                 Documentation
               </FooterItem>
-              <FooterItem href={IPFS_IPNS_GATEWAY_URL}>IPFS Gateway</FooterItem>
+              <FooterItem href={IPFS_IPNS_GATEWAY_URL}>
+                Contract Repository (IPFS)
+              </FooterItem>
               <FooterItem href="https://github.com/sourcifyeth/assets">
                 Brand Resources
               </FooterItem>
