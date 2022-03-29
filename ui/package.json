@@ -1,48 +1,64 @@
 {
-  "name": "sourcify",
-  "author": "",
-  "version": "0.0.1",
-  "description": "",
-  "scripts": {
-    "dev": "webpack-dev-server --config webpack.dev.js",
-    "prebuild": "npm install && rimraf dist",
-    "build": "webpack --config webpack.prod.js",
-    "serve": "serve -l 1234 dist/ --no-clipboard",
-    "start": "npm run build && npm run serve"
-  },
-  "keywords": [],
-  "license": "ISC",
+  "name": "ui-new",
+  "version": "0.1.0",
+  "private": true,
   "dependencies": {
-    "react": "^16.12.0",
-    "react-cool-onclickoutside": "^1.5.4",
-    "react-dom": "^16.12.0",
-    "react-dropzone": "^11.0.1",
-    "web3-utils": "^1.2.11"
+    "@datapunt/matomo-tracker-react": "^0.5.1",
+    "@ethersproject/address": "^5.5.0",
+    "@headlessui/react": "^1.4.2",
+    "@testing-library/jest-dom": "^5.16.1",
+    "@testing-library/react": "^12.1.2",
+    "@testing-library/user-event": "^13.5.0",
+    "@types/jest": "^27.0.3",
+    "@types/node": "^16.11.13",
+    "@types/react": "^17.0.37",
+    "@types/react-dom": "^17.0.11",
+    "@types/react-syntax-highlighter": "^13.5.2",
+    "aos": "^2.3.4",
+    "fuse.js": "^6.5.0",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-dropzone": "^11.4.2",
+    "react-icons": "^4.3.1",
+    "react-responsive-carousel": "^3.2.22",
+    "react-router-dom": "^6.1.1",
+    "react-scripts": "5.0.0",
+    "react-select-search": "^3.0.9",
+    "react-syntax-highlighter": "^15.4.5",
+    "react-tooltip": "^4.2.21",
+    "recharts": "^2.1.8",
+    "typescript": "^4.5.4",
+    "web-vitals": "^2.1.2"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "echo \"Error: no test specified\"",
+    "eject": "react-scripts eject",
+    "lint": "eslint . --ext .ts"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   },
   "devDependencies": {
-    "@babel/core": "^7.5.5",
-    "@babel/plugin-proposal-class-properties": "^7.5.5",
-    "@babel/preset-env": "^7.5.5",
-    "@babel/preset-react": "^7.0.0",
-    "@types/react": "^16.9.2",
-    "@types/react-dom": "^16.9.0",
-    "babel-loader": "^8.0.6",
-    "copy-webpack-plugin": "^6.0.2",
-    "css-loader": "^3.2.0",
-    "dotenv-webpack": "^2.0.0",
-    "html-webpack-plugin": "^4.3.0",
-    "mini-css-extract-plugin": "^0.9.0",
-    "node-sass": "^4.13.0",
-    "rimraf": "^3.0.2",
-    "sass-loader": "^8.0.0",
-    "serve": "^11.1.0",
-    "source-map-loader": "^1.0.0",
-    "style-loader": "^1.0.0",
-    "ts-loader": "^7.0.5",
-    "typescript": "^3.5.3",
-    "webpack": "^4.39.2",
-    "webpack-cli": "^3.3.10",
-    "webpack-dev-server": "^3.8.0",
-    "webpack-merge": "^4.2.2"
+    "@types/aos": "^3.0.4",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.5",
+    "tailwindcss": "^3.0.3"
   }
 }
