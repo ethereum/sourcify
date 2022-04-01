@@ -4,6 +4,7 @@ FROM node:16-alpine AS builder
 ARG SERVER_URL
 ARG REPOSITORY_URL
 ARG IPNS
+ARG TAG
 
 RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
 WORKDIR /home/node/app

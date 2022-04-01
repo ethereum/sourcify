@@ -44,7 +44,7 @@ const Chart = ({ stats }: { stats: statsType | undefined }) => {
   }
   // Filter Ethereum networks only
   const formattedData = Object.keys(stats)
-    .filter((key) => ["1", "3", "4", "5", "42"].includes(key))
+    .filter((key) => ["1", "3", "4", "5", "42", "11155111"].includes(key))
     .map((key) => {
       const keyInt = parseInt(key);
       return {
