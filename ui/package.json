@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@datapunt/matomo-tracker-react": "^0.5.1",
     "@ethersproject/address": "^5.5.0",
     "@headlessui/react": "^1.4.2",
     "@testing-library/jest-dom": "^5.16.1",
