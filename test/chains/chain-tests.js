@@ -687,7 +687,7 @@ describe("Test Supported Chains", function () {
     "122",
     "Fuse Mainnet",
     ["uint256"],
-    [123456],
+    [100000],
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
