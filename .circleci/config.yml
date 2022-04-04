@@ -85,7 +85,10 @@ workflows:
       - build-push-ui:
           <<: *filter-base
       - build-push-ui-legacy:
-          <<: *filter-base
+          filters:
+            branches:
+              only:
+                - master
       - deploy:
           <<: *filter-base
           requires:
