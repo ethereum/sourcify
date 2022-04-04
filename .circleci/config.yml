@@ -149,7 +149,6 @@ workflows:
             branches:
               only:
                 - master
-                - staging
   nightly:
     triggers:
       - schedule:
