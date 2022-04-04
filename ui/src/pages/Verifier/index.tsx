@@ -109,6 +109,22 @@ const Verifier: React.FC = () => {
           Verify smart contracts by recompiling with the Solidity source code
           and metadata.
         </p>
+        {
+          // Show legacy.sourcify.dev URL on production
+          process.env.REACT_APP_TAG === "stable" && (
+            <p className="text-xs mt-2 text-gray-500">
+              Old verifier UI avaiable at{" "}
+              <a
+                href="https://legacy.sourcify.dev"
+                target="_blank"
+                rel="noreferrer"
+                className="hover:underline text-ceruleanBlue-300 hover:text-ceruleanBlue-400"
+              >
+                legacy.sourcify.dev
+              </a>
+            </p>
+          )
+        }
       </div>
       <div className="flex flex-col md:flex-row flex-grow mt-6">
         <FileUpload

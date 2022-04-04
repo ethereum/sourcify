@@ -9,9 +9,6 @@ export default {
     monitor: {
         port: process.env.MONITOR_PORT || 80
     },
-    ui: {
-        port: process.env.UI_PORT || 1234
-    },
     server: {
         port: process.env.SERVER_PORT || 5000,
         url: process.env.SERVER_URL || "http://localhost:5000"

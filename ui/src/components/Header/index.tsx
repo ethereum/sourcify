@@ -103,13 +103,13 @@ const Header = () => {
             <Matrix className="h-6 w-auto fill-gray-700 hover:fill-ceruleanBlue-500" />
           </a>
         </div>
-        <Link
+        {/* <Link
           className="link-underline ml-2 mb-2 mt-6 md:mt-2 md:ml-6 hover:text-ceruleanBlue-500"
           to="/status"
           data-tip="Server status: working"
         >
           <span className="inline md:hidden">Server status: </span> ✅
-        </Link>
+        </Link> */}
       </div>
     </header>
   );

@@ -1,13 +1,19 @@
-FROM node:10-alpine as builder
+FROM node:16-alpine AS builder
 
-RUN apk update && apk upgrade && \
-    apk add --no-cache curl
+# To be injected by create-react-app on build time 
+ARG SERVER_URL
+ARG REPOSITORY_URL
+ARG IPNS
+ARG TAG
 
-ARG WORKSPACE_DIR=/app
-WORKDIR ${WORKSPACE_DIR}
-COPY . ${WORKSPACE_DIR}
-RUN npm ci
+RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
+WORKDIR /home/node/app
+COPY --chown=node:node . ./
 
-EXPOSE 1234
 
-CMD ["npm", "run", "start"]
+RUN npm install 
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=builder /home/node/app/build /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
