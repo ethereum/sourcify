@@ -10,19 +10,21 @@ const BLOCKSCOUT_SUFFIX = "address/${ADDRESS}/transactions";
 const TELOS_SUFFIX = "v2/evm/get_contract?contract=${ADDRESS}";
 const METER_SUFFIX="api/accounts/${ADDRESS}"
 
-type ChainGroup = "eth" | "polygon";
+type ChainGroup = "eth" | "polygon" | "arb" | "opt";
 
 function buildAlchemyURL(chainName: string, chainGroup: ChainGroup, useOwn=false) {
-    if (useOwn && process.env.TESTING !== "true") {
+    if (useOwn) {
         const port = process.env[`NODE_PORT_${chainName.toUpperCase()}`];
         const url = `${process.env.NODE_ADDRESS}:${port}`;
         return url;
     }
 
-    const id = process.env[`ALCHEMY_ID_${chainGroup.toUpperCase()}_${chainName.toUpperCase()}`];
+    const id = process.env["ALCHEMY_ID"];
     const domain = {
         eth: "alchemyapi.io",
-        polygon: "g.alchemy.com"
+        polygon: "g.alchemy.com",
+        arb: "g.alchemy.com",
+        opt: "g.alchemy.com"
     }[chainGroup];
     return `https://${chainGroup}-${chainName}.${domain}/v2/${id}`;
 }
@@ -164,13 +166,19 @@ export default {
     "421611": {
         "supported": true,
         "monitored": true,
-        "graphQLFetchAddress": "https://rinkeby-indexer.arbitrum.io/graphql"
+        "graphQLFetchAddress": "https://rinkeby-indexer.arbitrum.io/graphql",
+        "rpc": [
+            buildAlchemyURL("rinkeby", "arb")
+        ],
     },
     "42161": {
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://arbiscan.io/" + ETHERSCAN_SUFFIX,
-        "txRegex": ETHERSCAN_REGEX
+        "txRegex": ETHERSCAN_REGEX,
+        "rpc": [
+            buildAlchemyURL("mainnet", "arb")
+        ],
     },
     "43113": {
         "supported": true,
@@ -222,13 +230,19 @@ export default {
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://optimistic.etherscan.io/" + ETHERSCAN_SUFFIX,
-        "txRegex": ETHERSCAN_REGEX
+        "txRegex": ETHERSCAN_REGEX,
+        "rpc": [
+            buildAlchemyURL("mainnet", "opt")
+        ],
     },
     "69": {
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://kovan-optimistic.etherscan.io/" + ETHERSCAN_SUFFIX,
-        "txRegex": ETHERSCAN_REGEX
+        "txRegex": ETHERSCAN_REGEX,
+        "rpc": [
+            buildAlchemyURL("kovan", "opt")
+        ],
     },
     "28": {
         "supported": true,
