@@ -22,17 +22,8 @@ export default {
         path: process.env.MOCK_REPOSITORY || path.resolve(__dirname, process.env.REPOSITORY_PATH!) || path.resolve(__dirname, './repository'),
         dbPath: process.env.MOCK_DATABASE || path.resolve(__dirname, process.env.DATABASE_PATH!) || path.resolve(__dirname, './database')
     },
-    mq: {
-        username: process.env.RABBITMQUSERNAME,
-        password: process.env.RABBITMQPASSWORD
-    },
     testing: process.env.TESTING || false,
     tag: process.env.TAG || 'latest',
-    endpoint: {
-        infuraId: process.env.INFURA_ID,
-        alchemyId: process.env.ALCHEMY_ID_ETH_MAINNET,
-        ethereumNode: process.env.ETHEREUM_NODE
-    },
     logging: {
         dir: process.env.LOGGING_DIR || 'logs',
         level: process.env.LOGGING_LEVEL || 'debug'

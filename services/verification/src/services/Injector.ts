@@ -6,7 +6,6 @@ import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata
 const multihashes: any = require('multihashes');
 
 export interface InjectorConfig {
-    alchemyPID?: string,
     silent?: boolean,
     log?: bunyan,
     offline?: boolean,
@@ -60,7 +59,6 @@ class LoggerWrapper {
 export class Injector {
     private log: bunyan;
     private chains: InjectorChainMap;
-    private alchemyPID: string;
     private offline: boolean;
     public fileService: IFileService;
     private web3timeout: number;
@@ -72,7 +70,6 @@ export class Injector {
      */
     private constructor(config: InjectorConfig = {}) {
         this.chains = {};
-        this.alchemyPID = config.alchemyPID;
         this.offline = config.offline || false;
         this.repositoryPath = config.repositoryPath;
         this.log = config.log || Logger("Injector");
@@ -103,18 +100,10 @@ export class Injector {
     }
 
     /**
-     * Instantiates a web3 provider for all public ethereum networks via Infura/Alchemy or regular node.
+     * Instantiates a web3 provider for all supported Sourcify networks via their given RPCs.
      * If environment variable TESTING is set to true, localhost:8545 is also available.
      */
     private async initChains() {
-        if (this.alchemyPID) {
-            this.log.info({loc: "[INIT_CHAINS]"}, "started checking providerPID");
-            await checkEndpoint(this.alchemyPID).catch((err: Error) => {
-                this.log.warn({ providerID: this.alchemyPID }, err.message);
-            })
-            this.log.info({loc: "[INIT_CHAINS]"}, "finished checking providerPID");
-        }
-
         const chainsData = getSupportedChains();
 
         for (const chain of chainsData) {
