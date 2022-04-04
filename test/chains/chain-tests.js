@@ -674,6 +674,23 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
+  // Fuse Mainnet
+  verifyContract(
+    "0xCaFC1F87E4cabD59fAB26d02D09207147Aae3F1E",
+    "122",
+    "Fuse Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x1c1C66cd346c845959ffFD1642395b0adb12349a",
+    "122",
+    "Fuse Mainnet",
+    ["uint256"],
+    [123456],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
   //////////////////////
   // Helper functions //
   //////////////////////

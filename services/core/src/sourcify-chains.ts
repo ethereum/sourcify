@@ -285,5 +285,11 @@ export default {
         "contractFetchAddress": "https://explorer.palm-uat.xyz/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex(),
         "rpc": [replaceInfuraID("https://palm-testnet.infura.io/v3/{INFURA_API_KEY}")]
+    },
+    "122": { // Fuse Mainnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer.fuse.io/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
     }
 }
