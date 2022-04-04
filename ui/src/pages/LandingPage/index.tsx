@@ -350,7 +350,7 @@ const LandingPage = () => {
           />
           <div className="p-1 h-14 w-14 text-xs md:text-base md:h-24 md:w-24 transition-opacity rounded-full mx-4 my-4 text-ceruleanBlue-400 flex justify-center items-center text-center">
             <a
-              href={`${DOCS_URL}/docs/networks`}
+              href={`${DOCS_URL}/docs/chains/`}
               target="_blank"
               rel="noreferrer"
             >
@@ -360,7 +360,7 @@ const LandingPage = () => {
         </div>
         <div className="flex justify-center">
           <a
-            href={`${DOCS_URL}/docs/networks`}
+            href={`${DOCS_URL}/docs/chains/`}
             target="_blank"
             rel="noreferrer"
             // className="underline decoration-lightCoral-500 decoration-2 font-semibold text-ceruleanBlue-500"
