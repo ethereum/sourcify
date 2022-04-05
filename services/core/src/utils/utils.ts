@@ -162,7 +162,12 @@ export function reformatMetadata(
     for (fileName in metadata.settings.compilationTarget) {
         contractName = metadata.settings.compilationTarget[fileName];
     }
-    if (semver.gte('0.8.2' || '0.8.3' || '0.8.4', metadata.compiler.version)) {
+
+    const versions = [ '0.8.2', '0.8.3', '0.8.4' ]
+    const coercedVersion = semver.coerce(metadata.compiler.version).version
+
+    const affectedVersions = versions.filter((version) => semver.eq(version, coercedVersion))
+    if (affectedVersions.length > 0) {
         if (solcJsonInput.settings?.optimizer?.details?.inliner) {
             delete solcJsonInput.settings.optimizer.details.inliner
         }
