@@ -84,6 +84,14 @@ export default {
         ],
         "txRegex": ETHERSCAN_REGEX,
     },
+    "44": {
+        "fullnode": {
+            "dappnode": "https://crab-rpc.darwinia.network"
+        },
+        "rpc": ["https://crab-rpc.darwinia.network"],
+        "supported": true,
+        "monitored": false,
+    },
     "11155111": { // Ethereum Sepolia Testnet
         "supported": true,
         "monitored": true,
