@@ -23,7 +23,7 @@ export default class VerificationController extends BaseController implements IC
     validationService: IValidationService;
     logger: bunyan;
 
-    static readonly MAX_INPUT_SIZE = 10 * 1024 * 1024; // 10 MiB
+    static readonly MAX_INPUT_SIZE = 50 * 1024 * 1024; // 50 MiB
 
     constructor(verificationService: IVerificationService, validationService: IValidationService) {
         super();
