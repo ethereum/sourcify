@@ -1,18 +1,18 @@
 import * as dotenv from 'dotenv';
 import path from 'path';
 
-dotenv.config({ path: path.resolve(__dirname, "..", "..", "..", "environments/.env") });
+dotenv.config({path: path.resolve(__dirname, "..", "..", "..", "environments/.env")});
 
 const ETHERSCAN_REGEX = (/at txn\s+<a href='\/tx\/(.*?)'/).source; // save as string to be able to return the txRegex in /chains response. If stored as RegExp returns {}
 const ETHERSCAN_SUFFIX = "address/${ADDRESS}";
 const BLOCKSCOUT_REGEX = "transaction_hash_link\" href=\"${BLOCKSCOUT_PREFIX}/tx/(.*?)\"";
 const BLOCKSCOUT_SUFFIX = "address/${ADDRESS}/transactions";
 const TELOS_SUFFIX = "v2/evm/get_contract?contract=${ADDRESS}";
-const METER_SUFFIX="api/accounts/${ADDRESS}"
+const METER_SUFFIX = "api/accounts/${ADDRESS}"
 
 type ChainGroup = "eth" | "polygon";
 
-function buildAlchemyURL(chainName: string, chainGroup: ChainGroup, useOwn=false) {
+function buildAlchemyURL(chainName: string, chainGroup: ChainGroup, useOwn = false) {
     if (useOwn && process.env.TESTING !== "true") {
         const port = process.env[`NODE_PORT_${chainName.toUpperCase()}`];
         const url = `${process.env.NODE_ADDRESS}:${port}`;
@@ -30,7 +30,7 @@ function buildAlchemyURL(chainName: string, chainGroup: ChainGroup, useOwn=false
 function replaceInfuraID(infuraURL: string) {
     return infuraURL.replace("{INFURA_API_KEY}", process.env.INFURA_ID)
 }
-function getBlockscoutRegex(blockscoutPrefix="") {
+function getBlockscoutRegex(blockscoutPrefix = "") {
     return BLOCKSCOUT_REGEX.replace("${BLOCKSCOUT_PREFIX}", blockscoutPrefix);
 }
 
@@ -92,6 +92,21 @@ export default {
         "supported": true,
         "monitored": false,
     },
+    "592": {
+        "rpc": ["https://rpc.astar.network:8545"],
+        "supported": true,
+        "monitored": false,
+    },
+    "336": {
+        "rpc": ["https://shiden.api.onfinality.io/public"],
+        "supported": true,
+        "monitored": false,
+    },
+    "81": {
+        "rpc": ["https://rpc.shibuya.astar.network:8545"],
+        "supported": true,
+        "monitored": false,
+    },
     "11155111": { // Ethereum Sepolia Testnet
         "supported": true,
         "monitored": true,
@@ -116,10 +131,10 @@ export default {
         "monitored": false,
         "contractFetchAddress": "https://api.meter.io:8000/" + METER_SUFFIX,
     },
-    "83":{
-        "supported":true,
-        "monitored":false,
-        "contractFetchAddress":"https://api.meter.io:4000/" + METER_SUFFIX,
+    "83": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://api.meter.io:4000/" + METER_SUFFIX,
     },
     "97": {
         "supported": true,

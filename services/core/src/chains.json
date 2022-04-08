@@ -2246,6 +2246,46 @@
     ]
   },
   {
+    "name": "Astar",
+    "chain": "ASTR",
+    "rpc": [
+      "https://rpc.astar.network:8545"
+    ],
+    "faucets": [],
+    "nativeCurrency": { "name": "Astar", "symbol": "ASTR", "decimals": 18 },
+    "infoURL": "https://astar.network/",
+    "shortName": "astar",
+    "chainId": 592,
+    "networkId": 592,
+    "explorers": [
+      {
+        "name": "subscan",
+        "url": "https://astar.subscan.io",
+        "standard": "none"
+      }
+    ]
+  },
+  {
+    "name": "Shibuya",
+    "chain": "Shibuya",
+    "rpc": [
+      "https://rpc.shibuya.astar.network:8545"
+    ],
+    "faucets": [],
+    "nativeCurrency": { "name": "SBY", "symbol": "SBY", "decimals": 18 },
+    "infoURL": "https://astar.network/",
+    "shortName": "Shibuya",
+    "chainId": 81,
+    "networkId": 81,
+    "explorers": [
+      {
+        "name": "subscan",
+        "url": "https://shibuya.subscan.io",
+        "standard": "none"
+      }
+    ]
+  },
+  {
     "name": "Cronos Testnet",
     "chain": "CRO",
     "rpc": [
