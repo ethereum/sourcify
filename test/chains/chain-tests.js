@@ -454,6 +454,23 @@ describe("Test Supported Chains", function () {
     ["8/GameItem.sol"],
     "8/GameItem.json"
   );
+  // Oneledger
+  verifyContract(
+    "0x0d6B4F92A55893EE2856f429531cFfeF0b52f2D2",
+    "311752642",
+    "OneLedger Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x4B8B8eC29859994baD6E66AF13606508AA420161",
+    "311752642",
+    "OneLedger Mainnet",
+    ["uint256"],
+    [1],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
   verifyContract(
     "0x34eC0cBd5E33e7323324333434fe978f1000d9cd",
     "4216137055",
