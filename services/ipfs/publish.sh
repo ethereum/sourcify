@@ -49,8 +49,8 @@ statsHash=$(ipfs add -Q /root/.ipfs/repository/stats.json)
 ipfs files rm /manifest.json
 ipfs files rm /stats.json
 # Link
-ipfs files cp -p /ipfs/$manifestHash /
-ipfs files cp -p /ipfs/$statsHash /
+ipfs files cp -p /ipfs/$manifestHash /manifest.json
+ipfs files cp -p /ipfs/$statsHash /stats.json
 
 # Get the root hash
 rootHash=$(ipfs files stat / | head -n 1)
