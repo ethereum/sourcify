@@ -32,15 +32,25 @@ hash=$(ipfs add -Q -r --fscache --nocopy /root/.ipfs/repository/contracts)
 echo "Finished ipfs add! New ipfs hash: $hash"
 date
 
-# As manifest.json frequently changes, it is not possible to add whole repo with Filestore (i.e. --nocopy).
-# Just add&pin repository/contracts and link the folders full_match, partial_match manually under the MFS directory /contracts.
+# As manifest.json frequently changes, it is not possible to add whole /repository with Filestore (i.e. --nocopy).
+# Just add&pin repository/contracts and link the folders full_match, partial_match manually under the MFS (Mutable File System) directory /contracts.
 echo "Linking under /contracts"
-# rm old CIDs from path
+# rm old CIDs from MFS path
 ipfs files rm -r /contracts/full_match
 ipfs files rm -r /contracts/partial_match
 # Link new CIDs
 ipfs files cp -p /ipfs/$hash/full_match /contracts/
 ipfs files cp -p /ipfs/$hash/partial_match /contracts/
+
+# Add manifest and stats to ipfs (without Filestore)
+manifestHash=$(ipfs add -Q /root/.ipfs/repository/manifest.json)
+statsHash=$(ipfs add -Q /root/.ipfs/repository/stats.json)
+# rm old CIDs from MFS path
+ipfs files rm /manifest.json
+ipfs files rm /stats.json
+# Link
+ipfs files cp -p /ipfs/$manifestHash /manifest.json
+ipfs files cp -p /ipfs/$statsHash /stats.json
 
 # Get the root hash
 rootHash=$(ipfs files stat / | head -n 1)

@@ -444,7 +444,7 @@ const LandingPage = () => {
                 All you need to know about Sourcify
               </ResourceListItem>
               <ResourceListItem
-                href="https://blog.soliditylang.org/2020/06/02/sourcify-towards-safer-contract-interaction-for-humans/"
+                href="https://blog.soliditylang.org/2020/06/02/Sourcify-Towards-Safer-Contract-Interaction-for-Humans/"
                 date="02 June 2020"
               >
                 Sourcify: Towards Safer Contract Interactions for Humans

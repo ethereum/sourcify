@@ -8,5 +8,9 @@ npm ci
 
 # Test WITH providing address and chain
 npm run deploy-with-salt:$CHAIN_NAME || exit 3
+echo "Waiting 30 secs"
+sleep 30 # Leave some buffer for blocks to propogate
+echo "Waited 30 secs"
+
 cd ..
 node scripts/verification-e2e.js $CHAIN_ID || exit 4
