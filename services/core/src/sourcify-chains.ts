@@ -212,6 +212,15 @@ export default {
         "contractFetchAddress": "https://ubiqscan.io/" + ETHERSCAN_SUFFIX,
         "txRegex": ETHERSCAN_REGEX
     },
+    "311752642": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://mainnet-explorer.oneledger.network/" + BLOCKSCOUT_SUFFIX,
+        "rpc": [
+            "https://mainnet-rpc.oneledger.network"
+        ],
+        "txRegex": getBlockscoutRegex()
+    },    
     "4216137055": {
         "supported": true,
         "monitored": false,
