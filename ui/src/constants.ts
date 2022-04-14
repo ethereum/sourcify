@@ -14,5 +14,6 @@ export const SOLIDITY_ETHEREUM_URL = `https://solidity.ethereum.org/2020/06/25/s
 // API 2
 export const SESSION_DATA_URL = `${SERVER_URL}/session-data`;
 export const ADD_FILES_URL = `${SERVER_URL}/input-files`;
+export const REMOVE_FILES_URL = `${SERVER_URL}/remove-files`;
 export const VERIFY_VALIDATED_URL = `${SERVER_URL}/verify-validated`;
 export const RESTART_SESSION_URL = `${SERVER_URL}/restart-session`;
