@@ -29,12 +29,15 @@ export class Server {
 
     this.app = express();
 
-    // TODO: 52MB is the max file size - is this right?
     this.app.use(fileUpload({
-      limits: { fileSize: 50 * 1024 * 1024 },
+      limits: { fileSize: config.server.maxFileSize },
       abortOnLimit: true
     }))
 
+    this.app.use(bodyParser.json({limit: config.server.maxFileSize}));
+    this.app.use(bodyParser.urlencoded({ limit: config.server.maxFileSize, extended: true }));
+    this.app.set('trust proxy', 1) // trust first proxy, required for secure cookies.
+    this.app.use(session(getSessionOptions()));
     this.app.use(
       cors({
         origin: '*',
@@ -43,10 +46,6 @@ export class Server {
         preflightContinue: true,
       })
     );
-    this.app.use(bodyParser.json({limit: '2mb'}));
-    this.app.use(bodyParser.urlencoded({ limit: '2mb', extended: true }));
-    this.app.set('trust proxy', 1) // trust first proxy, required for secure cookies.
-    this.app.use(session(getSessionOptions()));
     this.app.get('/health', (_req, res) => res.status(200).send('Alive and kicking!'))
     this.app.get('/chains', (_req, res) => {
       const sourcifyChains = getSourcifyChains();
