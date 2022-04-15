@@ -1,9 +1,10 @@
 import Web3 from 'web3';
 import * as bunyan from 'bunyan';
-import { Match, InputData, getSupportedChains, Logger, IFileService, FileService, StringMap, cborDecode, CheckedContract, MatchQuality, Chain, Status } from '@ethereum-sourcify/core';
+import { Match, InputData, getSupportedChains, Logger, IFileService, FileService, StringMap, cborDecode, CheckedContract, MatchQuality, Chain, Status, Metadata } from '@ethereum-sourcify/core';
 import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint, getCreationDataFromArchive, getCreationDataByScraping, getCreationDataFromGraphQL, getCreationDataTelos, getCreationDataMeter } from '../utils';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const multihashes: any = require('multihashes');
+import semverSatisfies from 'semver/functions/satisfies';
 
 export interface InjectorConfig {
     silent?: boolean,
@@ -128,7 +129,8 @@ export class Injector {
     private async matchBytecodeToAddress(
         chain: string,
         addresses: string[] = [],
-        recompiled: RecompilationResult
+        recompiled: RecompilationResult,
+        metadata: Metadata
     ): Promise<Match> {
         let match: Match = { address: null, status: null };
         const chainName = this.chains[chain].name || "The chain";
@@ -148,6 +150,7 @@ export class Injector {
             try {
                 deployedBytecode = await getBytecode(this.chains[chain].web3array, address);
             } catch (err: any) {
+                console.log(err)
                 if (err.errors.length > 0)
                     err.message = err.errors.map((e: { message: string; }) => e.message)// Avoid uninformative message "All Promises Rejected"
                 this.log.error({ loc: "[MATCH]", address, chain, msg: err.message });
@@ -169,9 +172,22 @@ export class Injector {
             } else if (addresses.length === 1 && !match.message) {
                 if (!deployedBytecode) {
                     match.message = `${chainName} is temporarily unavailable.`
-                } else if (deployedBytecode === "0x") {
+                }
+                else if (deployedBytecode === "0x") {
                     match.message = `${chainName} does not have a contract deployed at ${address}.`;
-                } else {
+                } 
+                // Case when extra unused files in compiler input cause different bytecode (https://github.com/ethereum/sourcify/issues/618)
+                else if (semverSatisfies(metadata.compiler.version, "=0.6.12 || =0.7.0") && metadata.settings.optimizer.enabled) {
+                    const deployedMetadataHash = this.getMetadataPathFromCborEncoded(deployedBytecode);
+                    const recompiledMetadataHash = this.getMetadataPathFromCborEncoded(recompiled.deployedBytecode);
+                    // Metadata hashes match but bytecodes don't match.
+                    if (deployedMetadataHash === recompiledMetadataHash) {
+                        match.status = "extra-file-input-bug";
+                        match.message = "It seems your contract has either Solidity v0.6.12 or v0.7.0, and the metadata hashes match but not the bytecodes. You should add all the files input the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618"
+                    } else {
+                        match.message = "The deployed and recompiled bytecode don't match.";
+                    }
+            } else {
                     match.message = "The deployed and recompiled bytecode don't match.";
                 }
             }
@@ -435,7 +451,8 @@ export class Injector {
             match = await this.matchBytecodeToAddress(
                 chain,
                 addresses,
-                compilationResult
+                compilationResult,
+                contract.metadata
             );
         }
 
@@ -443,8 +460,8 @@ export class Injector {
         // metadata file (up to json formatting) and exactly the right sources.
         // Now we can store the re-compiled and correctly formatted metadata file
         // and the sources.
-        if (match.address && match.status) {
-            const metadataPath = this.getMetadataPathFromCborEncoded(compilationResult, match.address, chain);
+        if (match.address && (match.status === "perfect" || match.status === "partial")) {
+            const metadataPath = this.getMetadataPathFromCborEncoded(compilationResult.deployedBytecode, match.address, chain);
             if (metadataPath) {
                 this.fileService.save(metadataPath, compilationResult.metadata);
                 this.fileService.deletePartial(chain, match.address);
@@ -464,7 +481,10 @@ export class Injector {
                 this.storeLibraryMap(matchQuality, chain, match.address, match.libraryMap);
             }
 
-        } else {
+        } else if (match.status === "extra-file-input-bug") {
+            return match
+        }
+        else {
             const message = match.message || "Could not match the deployed and recompiled bytecode."
             const err = new Error(`Contract name: ${contract.name}. ${message}`);
 
@@ -495,8 +515,8 @@ export class Injector {
             .replace(/(^|\/)[.]+($|\/)/, '_');
     }
 
-    private getMetadataPathFromCborEncoded(compilationResult: RecompilationResult, address: string, chain: string) {
-        const bytes = Web3.utils.hexToBytes(compilationResult.deployedBytecode);
+    private getMetadataPathFromCborEncoded(bytecode:string, address?: string, chain?: string) {
+        const bytes = Web3.utils.hexToBytes(bytecode);
         const cborData = cborDecode(bytes);
 
         if (cborData['bzzr0']) {

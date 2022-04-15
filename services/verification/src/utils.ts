@@ -1,6 +1,6 @@
 import Web3 from 'web3';
 import fetch from 'node-fetch';
-import { StringMap, reformatMetadata, InfoErrorLogger } from '@ethereum-sourcify/core';
+import { StringMap, createJsonInputFromMetadata, InfoErrorLogger } from '@ethereum-sourcify/core';
 import Path from 'path';
 import fs from 'fs';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -69,7 +69,7 @@ export async function recompile(
         solcJsonInput,
         fileName,
         contractName
-    } = reformatMetadata(metadata, sources, log);
+    } = createJsonInputFromMetadata(metadata, sources, log);
 
     const loc = "[RECOMPILE]";
     const version = metadata.compiler.version;
@@ -82,9 +82,10 @@ export async function recompile(
     const compiled = await useCompiler(version, solcJsonInput, log);
     const output = JSON.parse(compiled);
     if (!output.contracts || !output.contracts[fileName] || !output.contracts[fileName][contractName] || !output.contracts[fileName][contractName].evm || !output.contracts[fileName][contractName].evm.bytecode) {
-        const errors = output.errors.filter((e: any) => e.severity === "error").map((e: any) => e.message);
-        log.error({ loc, fileName, contractName, version, errors });
-        throw new Error(RECOMPILATION_ERR_MSG);
+        const errorMessages = output.errors.filter((e: any) => e.severity === "error").map((e: any) => e.formattedMessage).join("\n");
+        log.error({ loc, fileName, contractName, version, errorMessages });
+        throw new Error("Compiler error:\n " + errorMessages);
+        // throw new Error(RECOMPILATION_ERR_MSG);
     }
     
     const contract: any = output.contracts[fileName][contractName];

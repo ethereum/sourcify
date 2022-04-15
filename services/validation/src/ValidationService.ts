@@ -1,11 +1,9 @@
 import bunyan from 'bunyan';
 import Web3 from 'web3';
-import { StringMap, SourceMap, PathBuffer, PathContent, CheckedContract, InvalidSources } from '@ethereum-sourcify/core';
+import { StringMap, SourceMap, PathBuffer, PathContent, CheckedContract, InvalidSources, MissingSources } from '@ethereum-sourcify/core';
 import AdmZip from 'adm-zip';
 import fs from 'fs';
 import Path from 'path';
-import { MissingSources } from '@ethereum-sourcify/core';
-
 /**
  * Regular expression matching metadata nested within another json.
  */
@@ -47,6 +45,7 @@ export interface IValidationService {
      * @throws Error if no metadata files are found.
      */
     checkFiles(files: PathBuffer[], unused?: string[]): CheckedContract[];
+    useAllSources(contract: CheckedContract, files: PathContent[]): CheckedContract;
 }
 
 export class ValidationService implements IValidationService {
@@ -75,6 +74,16 @@ export class ValidationService implements IValidationService {
 
         return this.checkFiles(files);
     }
+    
+    // Pass all input source files to the CheckedContract, not just those stated in metadata.
+    useAllSources(contract: CheckedContract, files: PathContent[]) {
+        const { sourceFiles } = this.splitFiles(files);
+        const stringMapSourceFiles = this.pathContentArrayToStringMap(sourceFiles)
+        // Files at contract.solidity are already hash matched with the sources in metadata. Use them instead of the user input .sol files.
+        Object.assign(stringMapSourceFiles, contract.solidity)
+        const contractWithAllSources = new CheckedContract(contract.metadata, stringMapSourceFiles, contract.missing, contract.invalid);
+        return contractWithAllSources;
+    }
 
     checkFiles(files: PathBuffer[], unused?: string[]): CheckedContract[] {
         const inputFiles = this.findInputFiles(files);
@@ -91,7 +100,6 @@ export class ValidationService implements IValidationService {
             const { foundSources, missingSources, invalidSources, metadata2provided } = this.rearrangeSources(metadata, byHash);
             const currentUsedFiles = Object.values(metadata2provided);
             usedFiles.push(...currentUsedFiles);
-
             const checkedContract = new CheckedContract(metadata, foundSources, missingSources, invalidSources);
             checkedContracts.push(checkedContract);
             if (!CheckedContract.isValid(checkedContract)) {
@@ -234,22 +242,21 @@ export class ValidationService implements IValidationService {
         const metadata2provided: StringMap = {}; // maps fileName as in metadata to the fileName of the provided file
 
         for (const sourcePath in metadata.sources) {
-            const sourceInfo = metadata.sources[sourcePath];
+            const sourceInfoFromMetadata = metadata.sources[sourcePath];
             let file: PathContent = { content: undefined };
-            file.content = sourceInfo.content;
-            const expectedHash: string = sourceInfo.keccak256;
-            // Check sources.[sourceName].content in metadata 
-            if (file.content) {
+            file.content = sourceInfoFromMetadata.content;
+            const expectedHash: string = sourceInfoFromMetadata.keccak256;
+            if (file.content) { // Source content already in metadata
                 const contentHash = Web3.utils.keccak256(file.content)
                 if (contentHash != expectedHash) {
                     invalidSources[sourcePath] = {
                         expectedHash: expectedHash,
                         calculatedHash: contentHash,
-                        msg: "The calculated and the expected hash values don't match in metadata."
+                        msg: `The keccak256 given in the metadata and the calculated keccak256 of the source content in metadata don't match`
                     }
                     continue;
                 }
-            } else {
+            } else { // Get source from input files by hash
                 const pathContent = byHash.get(expectedHash);
                 if (pathContent) {
                     file = pathContent;
@@ -260,7 +267,7 @@ export class ValidationService implements IValidationService {
             if (file && file.content) {
                 foundSources[sourcePath] = file.content;
             } else {
-                missingSources[sourcePath] = { keccak256: expectedHash, urls: sourceInfo.urls };
+                missingSources[sourcePath] = { keccak256: expectedHash, urls: sourceInfoFromMetadata.urls };
             }
         }
 
@@ -425,5 +432,17 @@ export class ValidationService implements IValidationService {
             }
         }
         return {hardhatMetadataFiles, hardhatSourceFiles}
+    }
+
+    pathContentArrayToStringMap(pathContentArr: PathContent[]) {
+        const stringMapResult: StringMap = {};
+        pathContentArr.forEach((elem, i) => {
+            if (elem.path) {
+                stringMapResult[elem.path] = elem.content;
+            } else {
+                stringMapResult[`path-${i}`] = elem.content;
+            }
+        })
+        return stringMapResult;
     }
 }

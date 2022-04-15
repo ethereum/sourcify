@@ -1,6 +1,6 @@
 import { Request } from 'express';
 import { Session } from 'express-session';
-import { PathContent, CheckedContract, isEmpty, StringMap, PathBuffer } from '@ethereum-sourcify/core';
+import { PathContent, CheckedContract, isEmpty, StringMap, PathBuffer, Status } from '@ethereum-sourcify/core';
 import Web3 from 'web3';
 import { MissingSources } from '@ethereum-sourcify/core';
 import { InvalidSources } from '@ethereum-sourcify/core';
@@ -52,8 +52,6 @@ export type MyRequest =
     chain: string,
     chosenContract: number
 };
-
-export type Status = "perfect" | "partial" | "error";
 
 export type SendableContract =
     ContractMeta & {

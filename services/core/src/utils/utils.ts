@@ -134,7 +134,7 @@ export function isEmpty(obj: object): boolean {
  * @param  {string[]}            sources  solidity sources
  * @return {ReformattedMetadata}
  */
-export function reformatMetadata(
+export function createJsonInputFromMetadata(
     metadata: any,
     sources: StringMap,
     log?: any
