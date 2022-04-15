@@ -314,5 +314,13 @@ export default {
         "monitored": false,
         "contractFetchAddress": "https://explorer.fuse.io/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
+    },
+    "43": { // Darwinia Pangolin Testnet
+        "supported": true,
+        "monitored": false,
+    },
+    "44": { // Darwinia Crab Mainnet
+        "supported": true,
+        "monitored": false,
     }
 }

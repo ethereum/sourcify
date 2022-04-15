@@ -455,7 +455,7 @@ describe("Test Supported Chains", function () {
     "8/GameItem.json"
   );
 
-// Oneledger
+  // Oneledger
   verifyContract(
     "0x774081ECDDb30F96EB5Bb21DcAB17C73F29f5eF3",
     "311752642",
@@ -708,6 +708,22 @@ describe("Test Supported Chains", function () {
     [100000],
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
+  );
+  // Darwinia Pangolin Testnet
+  verifyContract(
+    "0x7de04a7596958D44baB52F4e5D0c9e79cB16ef8B",
+    "43",
+    "Darwinia Pangolin Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  // Darwinia Crab Mainnet
+  verifyContract(
+    "0xE0E78187F01E026bdD0bd901e5Ae2e10C022366D",
+    "44",
+    "Darwinia Pangolin Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
   );
   //////////////////////
   // Helper functions //
