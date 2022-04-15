@@ -35,9 +35,8 @@ const FileUpload: React.FC<FileUploadProps> = ({
   // const dropzoneAcceptedFiles = acceptedFiles as DropzoneFile[]; // Typecast for file.path and file.size
 
   const displayFiles = addedFiles.map((file) => {
-    return <li key={file}>{file}</li>;
+    return <li key={file}>&bull; {file}</li>;
   });
-  console.log(addedFiles);
   return (
     <div className="pt-1 bg-ceruleanBlue-500 flex flex-grow basis-0 rounded-xl mx-2 mb-4 md:mb-0">
       <div className="flex flex-col basis-0 flex-grow rounded-lg px-8 transition-all ease-in-out duration-300 bg-white overflow-hidden shadow-md">
@@ -50,7 +49,9 @@ const FileUpload: React.FC<FileUploadProps> = ({
         </div>
         <div className="flex flex-grow flex-col pb-8">
           <div className="mt-4">
-            <p className="">Import from remote file or zip</p>
+            <p className="">
+              Import from remote file or zip (e.g. Github repo .zip)
+            </p>
             <div className="mt-1">
               <GithubInput
                 fetchAndUpdate={fetchAndUpdate}
@@ -92,7 +93,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
               {displayFiles.length ? (
                 <div>
                   <h2 className="font-bold text-lg">Added Files</h2>
-                  <ul className="flex flex-col">{displayFiles}</ul>
+                  <ul className="flex flex-col break-all">{displayFiles}</ul>
                 </div>
               ) : (
                 <div className="flex flex-col flex-grow justify-center items-center text-center">

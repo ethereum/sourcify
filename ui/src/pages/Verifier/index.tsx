@@ -1,3 +1,4 @@
+import bytes from "bytes";
 import { useCallback, useContext, useEffect, useState } from "react";
 import Header from "../../components/Header";
 import Toast from "../../components/Toast";
@@ -19,6 +20,8 @@ import {
 import CheckedContractsView from "./CheckedContractsView";
 import FileUpload from "./FileUpload";
 
+const UI_MAX_FILE_SIZE = 30 * 1024 * 1024;
+
 const Verifier: React.FC = () => {
   const [addedFiles, setAddedFiles] = useState<string[]>([]);
   const [unusedFiles, setUnusedFiles] = useState<string[]>([]);
@@ -33,8 +36,11 @@ const Verifier: React.FC = () => {
         const rawRes: Response = await fetch(URL, {
           credentials: "include",
           method: fetchOptions?.method || "GET", // default GET
+          // mode: "cors",
           ...fetchOptions,
         });
+        console.log(rawRes);
+
         if (!rawRes.ok) {
           const err: IGenericError = await rawRes.json();
           throw new Error(err.error);
@@ -54,11 +60,27 @@ const Verifier: React.FC = () => {
   );
 
   const handleFiles = async (files: DropzoneFile[]) => {
-    const formData = new FormData();
-    files.forEach((file) => formData.append("files", file));
+    const jsonBody: any = { files: {} };
+    for (const file of files) {
+      if (file.size > UI_MAX_FILE_SIZE) {
+        const humanReadableSize = bytes(file.size);
+        return setErrorMessage(
+          `Added file ${
+            file.name
+          } is ${humanReadableSize} which is more than the maximum single file size of ${bytes(
+            UI_MAX_FILE_SIZE
+          )}`
+        );
+      }
+      let filePath = file.path;
+      // remove absolute path
+      if (file.path.startsWith("/")) filePath = file.path.substring(1);
+      jsonBody.files[filePath] = await file.text();
+    }
     await fetchAndUpdate(ADD_FILES_URL, {
       method: "POST",
-      body: formData,
+      body: JSON.stringify(jsonBody),
+      headers: { "Content-Type": "application/json" },
     });
   };
 

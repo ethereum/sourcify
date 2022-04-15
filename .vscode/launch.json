@@ -17,6 +17,9 @@
         "${workspaceFolder}/services/validation/build/**/*.js",
         "${workspaceFolder}/services/verification/build/**/*.js"
       ],
+      "env": {
+        "DEBUG": "express:*" // Debug all express modules *
+      },
       "smartStep": true,
       "console": "integratedTerminal", 
       "outputCapture": "std",
@@ -159,8 +162,9 @@
       "name": "Mocha - Server",
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "env": {
+        "DEBUG": "express:*", // Debug all express modules *
         "TESTING": "true",
-        "LOCALCHAIN_URL": "http://localhost:8545"
+        "LOCALCHAIN_URL": "http://localhost:8545",
       },
       "args": [
         "${workspaceFolder}/test/server.js",
