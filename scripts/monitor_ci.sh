@@ -10,12 +10,14 @@ npm ci
 # Account key and Infura project ID are Circle CI env variable settings.
 npm run deploy:$CHAIN_NAME || exit 1
 
+echo "Waiting 2 mins"
 # Give monitor a chance to detect and save.
-sleep 600
+sleep 120
+echo "Waited 2 mins"
 
 # Script which verifies repository write
 cd ..
-for i in `seq 1 10`
+for i in `seq 1 20`
 do
     # Give monitor a chance to detect and save.
     sleep 30

@@ -23,30 +23,10 @@ export interface RecompilationResult {
  * @param {string} provider personal project ID from infura.io or real Ethereum node endpoint
  */
 export async function checkEndpoint(provider: string): Promise<void> {
-    if (provider.includes("http")) {
-        const web3 = new Web3(provider);
-        await web3.eth.getNodeInfo().catch(() => {
-            throw new Error("Check your node");
-        })
-    } else if (provider) {
-        await fetch(`https://eth-mainnet.alchemyapi.io/v2/${provider}`, {
-            method: "post",
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ "jsonrpc": "2.0", "id": 1, "method": "eth_blockNumber", "params": [] })
-        })
-            .then((response) => {
-                if (response.status == StatusCodes.UNAUTHORIZED) {
-                    throw new Error("Check your Infura ID");
-                }
-            }).catch(() => {
-                throw new Error("Check your Infura ID");
-            });
-    } else {
-        throw new Error("No provider set");
-    }
+    const web3 = new Web3(provider);
+    await web3.eth.getNodeInfo().catch(() => {
+        throw new Error("Check your node");
+    })
 }
 
 /**
@@ -60,17 +40,15 @@ export async function getBytecode(web3array: Web3[], address: string): Promise<s
     for (const web3 of web3array) {
         rpcPromises.push(web3.eth.getCode(address));
     }
-    try {
+    // Return any of the succesful RPC responses.
+    // If none successful, return the first one of either the RPC responses or a timeout.
+    return Promise.race([
         // Promise.any for Node v15.0.0<
-        return promiseAny([ 
-            ...rpcPromises,
-            new Promise((_resolve, reject) => {
-                setTimeout(() => reject('RPC took too long to respond'), 3e3);
-            })
-        ])
-    } catch (err: any) {
-        throw new Error(err);
-    }
+        promiseAny(rpcPromises),
+        new Promise<string>((_resolve, reject) => {
+            setTimeout(() => reject('RPC took too long to respond'), 3e3);
+        })
+    ])
 }
 
 const RECOMPILATION_ERR_MSG = "Recompilation error (probably caused by invalid metadata)";

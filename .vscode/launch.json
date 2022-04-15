@@ -182,14 +182,15 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Mocha - Networks",
+      "name": "Mocha - Chains",
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "env": {
         "TESTING": "true",
-        "LOCALCHAIN_URL": "http://localhost:8545"
+        "LOCALCHAIN_URL": "http://localhost:8545",
+        // "NEW_CHAIN_ID": "11155111"
       },
       "args": [
-        "${workspaceFolder}/test/networks/network-tests.js",
+        "${workspaceFolder}/test/chains/chain-tests.js",
         "--no-timeout",
         // Run a single test when debugging
         // "--grep=Baklava",

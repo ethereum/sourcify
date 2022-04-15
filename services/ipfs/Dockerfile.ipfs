@@ -1,7 +1,7 @@
 FROM ubuntu:20.04
 RUN apt-get update && apt-get install -y cron curl
 WORKDIR /app
-RUN curl https://dist.ipfs.io/go-ipfs/v0.12.0/go-ipfs_v0.12.0_linux-amd64.tar.gz > go-ipfs.tar.gz && tar xvfz go-ipfs.tar.gz && cd go-ipfs && ./install.sh
+RUN curl https://dist.ipfs.io/go-ipfs/v0.12.1/go-ipfs_v0.12.1_linux-amd64.tar.gz > go-ipfs.tar.gz && tar xvfz go-ipfs.tar.gz && cd go-ipfs && ./install.sh
 ADD ./publish.sh ./publish.sh
 ADD ./entrypoint.sh ./entrypoint.sh
 ADD ./cron.job ./cron.job

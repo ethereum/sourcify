@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=VT323&display=swap");
+
+:root {
+  --color-primary: #2b50aa;
+  --color-secondary: #ff858d;
+}
+body {
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
+
+html {
+  min-height: 100vh;
+  scroll-behavior: smooth;
+}
+
+.font-vt323 {
+  /* Font VT323 is looks smaller in same pt or px setting than others. Try to keep the fonts same size in case it falls back to default monospace font */
+  font-family: "VT323", monospace;
+  font-size-adjust: 0.4;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Hero image animation */
+#hero-image:hover #hero-source-code {
+  z-index: 0;
+  margin-bottom: 8rem;
+  margin-left: 8rem;
+  margin-right: 0;
+  margin-top: 0;
+}
+/* Less margin on smaller screen */
+#hero-image:hover #hero-bytecode {
+  z-index: 10;
+  margin-bottom: 0;
+  margin-left: 0;
+  margin-right: 4rem;
+  margin-top: 8rem;
+}
+@media (min-width: 1024px) {
+  #hero-image:hover #hero-bytecode {
+    z-index: 10;
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 8rem;
+    margin-top: 8rem;
+  }
+}
+
+.logos-container:hover > * {
+  opacity: 50%;
+}
+
+.logos-container > *:hover {
+  opacity: 100%;
+  cursor: pointer;
+}
+
+/* from https://codepen.io/christiancroser/pen/xqrLBm */
+.link-underline {
+  background-image: linear-gradient(
+    transparent calc(100% - 3px),
+    var(--color-secondary) 3px
+  );
+  background-repeat: no-repeat;
+  background-size: 0% 100%;
+  transition: background-size 0.3s;
+}
+
+.link-underline:hover {
+  background-size: 100% 100%;
+}
+
+/* Colored list bullet */
+.colored-bullet::before {
+  content: "\2022"; /* Add content: \2022 is the CSS Code/unicode for a bullet */
+  color: var(--color-primary); /* Change the color */
+  font-weight: bold; /* If you want it to be bold */
+  display: inline-block; /* Needed to add space between the bullet and the text */
+  width: 1em; /* Also needed for space (tweak if needed) */
+  margin-left: -1em; /* Also needed for space (tweak if needed) */
+}
+
+.hover-to-fill:hover > svg {
+  fill: var(--color-primary);
+}
