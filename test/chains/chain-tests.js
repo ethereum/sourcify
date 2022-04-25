@@ -742,7 +742,15 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
-  
+  // MultiVAC Mainnet
+  verifyContract(
+    "0x411925A3B2Ed99cD29DF76822D6419163d80858f",
+    "62621",
+    "MultiVAC Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
   //////////////////////
   // Helper functions //
   //////////////////////

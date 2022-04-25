@@ -328,5 +328,12 @@ export default {
         "monitored": false,
         "contractFetchAddress": "https://evm.evmos.dev/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
+    },
+    "62621": { // MultiVAC Mainnet
+        "supported": true,
+        "monitored": false,
+        "rpc": [
+            "https://rpc.mtv.ac"
+        ]
     }
 }
