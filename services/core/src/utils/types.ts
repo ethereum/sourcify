@@ -23,6 +23,10 @@ export interface InputData {
 export interface CompilationSettings {
   compilationTarget: any;
   outputSelection: any;
+  optimizer?: {
+    enabled: boolean,
+    runs: number
+  }
 }
 
 export interface CompilerInfo {
@@ -75,7 +79,7 @@ export interface Match {
   libraryMap?: StringMap
 }
 
-export type Status = 'perfect' | 'partial' | null;
+export type Status = 'perfect' | 'partial' | "extra-file-input-bug" | "error" | null;
 
 /**
  * A type for specfifying the strictness level of querying (only full or any kind of matches)

@@ -13,9 +13,10 @@ const fs = require("fs");
 const rimraf = require("rimraf");
 const path = require("path");
 const Web3 = require("web3");
-const MAX_INPUT_SIZE =
+const MAX_FILE_SIZE = require("../dist/config").default.server.maxFileSize;
+const MAX_SESSION_SIZE =
   require("../dist/server/controllers/VerificationController").default
-    .MAX_INPUT_SIZE;
+    .MAX_SESSION_SIZE;
 const GANACHE_PORT = process.env.LOCALCHAIN_PORT
   ? parseInt(process.env.LOCALCHAIN_PORT)
   : 8545;
@@ -811,36 +812,40 @@ describe("Server", function () {
         });
     });
 
-    it("should fail if too many files uploaded, but should succeed after deletion", (done) => {
+    it("should fail with HTTP 413 if a file above max server file size is uploaded", (done) => {
       const agent = chai.request.agent(server.app);
-
-      const file = "a".repeat((MAX_INPUT_SIZE * 3) / 4); // because of base64 encoding which increases size by 1/3, making it 4/3 of the original
+      const file = "a".repeat(MAX_FILE_SIZE + 1);
       agent
         .post("/input-files")
         .attach("files", Buffer.from(file))
         .then((res) => {
-          chai.expect(res.status).to.equal(StatusCodes.OK);
-
-          agent
-            .post("/input-files")
-            .attach("files", Buffer.from("a"))
-            .then((res) => {
-              chai.expect(res.status).to.equal(StatusCodes.REQUEST_TOO_LONG);
-              chai.expect(res.body.error).to.exist;
-
-              agent.post("/restart-session").then((res) => {
-                chai.expect(res.status).to.equal(StatusCodes.OK);
-
-                agent
-                  .post("/input-files")
-                  .attach("files", Buffer.from("a"))
-                  .then((res) => {
-                    chai.expect(res.status).to.equal(StatusCodes.OK);
-                    done();
-                  });
-              });
-            });
+          chai.expect(res.status).to.equal(StatusCodes.REQUEST_TOO_LONG);
+          done();
         });
+    });
+
+    it("should fail if too many files uploaded, but should succeed after deletion", async () => {
+      const agent = chai.request.agent(server.app);
+      let res;
+      const maxNumMaxFiles = Math.floor(MAX_SESSION_SIZE / MAX_FILE_SIZE); // Max number of max size files allowed in a session
+      const file = "a".repeat((MAX_FILE_SIZE * 3) / 4); // because of base64 encoding which increases size by 1/3, making it 4/3 of the original
+      for (let i = 0; i < maxNumMaxFiles; i++) {
+        // Should be allowed each time
+        res = await agent
+          .post("/input-files")
+          .attach("files", Buffer.from(file));
+        chai.expect(res.status).to.equal(StatusCodes.OK);
+      }
+      // Should exceed size this time
+      res = await agent.post("/input-files").attach("files", Buffer.from(file));
+      chai.expect(res.status).to.equal(StatusCodes.REQUEST_TOO_LONG);
+      chai.expect(res.body.error).to.exist;
+      // Should be back to normal
+      res = await agent.post("/restart-session");
+      chai.expect(res.status).to.equal(StatusCodes.OK);
+      res = await agent.post("/input-files").attach("files", Buffer.from("a"));
+      chai.expect(res.status).to.equal(StatusCodes.OK);
+      console.log("done");
     });
 
     const assertSingleContractStatus = (

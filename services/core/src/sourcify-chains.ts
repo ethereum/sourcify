@@ -220,6 +220,15 @@ export default {
         "contractFetchAddress": "https://ubiqscan.io/" + ETHERSCAN_SUFFIX,
         "txRegex": ETHERSCAN_REGEX
     },
+    "311752642": {
+        "supported": true,
+        "monitored": true,
+        "contractFetchAddress": "https://mainnet-explorer.oneledger.network/" + BLOCKSCOUT_SUFFIX,
+        "rpc": [
+            "https://mainnet-rpc.oneledger.network"
+        ],
+        "txRegex": getBlockscoutRegex()
+    },
     "4216137055": {
         "supported": true,
         "monitored": false,
@@ -306,6 +315,15 @@ export default {
         "contractFetchAddress": "https://explorer.fuse.io/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
+    "43": { // Darwinia Pangolin Testnet
+        "supported": true,
+        "monitored": false,
+    },
+    "44": { // Darwinia Crab Mainnet
+        "supported": true,
+        "monitored": false,
+    },
+
     "9000": { // Evmos testnet
         "supported": true,
         "monitored": false,
