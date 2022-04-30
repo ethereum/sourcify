@@ -725,6 +725,24 @@ describe("Test Supported Chains", function () {
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
+    // Evmos Testnet
+    verifyContract(
+    "0x4edd809c779cC6aC80882215f499E5FdF90D8Be7",
+    "9000",
+    "Evmos Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0xD3a2577b461C99aEc9593eD3521FEB694F3d55fc",
+    "9000",
+    "Evmos Testnet",
+    ["uint256"],
+    [1],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+  
   //////////////////////
   // Helper functions //
   //////////////////////
