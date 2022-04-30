@@ -305,5 +305,11 @@ export default {
         "monitored": false,
         "contractFetchAddress": "https://explorer.fuse.io/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
+    },
+    "9000": { // Evmos testnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://evm.evmos.dev/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
     }
 }
