@@ -4515,7 +4515,7 @@
   {
     "name": "Evmos Testnet",
     "chain": "Evmos",
-    "rpc": ["https://eth.bd.evmos.org:8545"],
+    "rpc": ["https://eth.bd.evmos.dev:8545"],
     "faucets": ["https://faucet.evmos.dev"],
     "nativeCurrency": {
       "name": "test-Evmos",
