@@ -668,6 +668,104 @@ describe("Server", function () {
         .attach("files", sourceBuffer, "Storage.sol")
         .end((err, res) => assertions(err, res, null, address));
     });
+
+    describe("hardhat build-info file support", function () {
+      this.timeout(EXTENDED_TIME);
+      let address;
+      const mainContractIndex = 5;
+      const hardhatOutputJSON = require("./sources/hardhat-output/output.json");
+      const MyToken =
+        hardhatOutputJSON.output.contracts["contracts/MyToken.sol"].MyToken;
+      const hardhatOutputBuffer = Buffer.from(
+        JSON.stringify(hardhatOutputJSON)
+      );
+      before(async function () {
+        address = await deployFromAbiAndBytecode(
+          localWeb3Provider,
+          MyToken.abi,
+          MyToken.evm.bytecode.object,
+          accounts[0],
+          ["Sourcify Hardhat Test", "TEST"]
+        );
+        console.log(`Contract deployed at ${address}`);
+        await waitSecs(3);
+      });
+
+      it("should detect multiple contracts in the build-info file", (done) => {
+        chai
+          .request(server.app)
+          .post("/")
+          .field("chain", defaultContractChain)
+          .field("address", address)
+          .attach("files", hardhatOutputBuffer)
+          .then((res) => {
+            chai.expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
+            chai.expect(res.body.contractsToChoose.length).to.be.equal(6);
+            chai
+              .expect(res.body.error)
+              .to.be.a("string")
+              .and.satisfy((msg) => msg.startsWith("Detected "));
+            done();
+          });
+      });
+
+      it("should verify the chosen contract in the build-info file", (done) => {
+        chai
+          .request(server.app)
+          .post("/")
+          .field("chain", defaultContractChain)
+          .field("address", address)
+          .field("chosenContract", mainContractIndex)
+          .attach("files", hardhatOutputBuffer)
+          .end((err, res) => {
+            assertions(err, res, done, address, "perfect");
+          });
+      });
+    });
+
+    describe("solc v0.6.12 and v0.7.0 extra files in compilation causing metadata match but bytecode mismatch", function () {
+      // Deploy the test contract locally
+      // Contract from https://explorer.celo.org/address/0x923182024d0Fa5dEe59E3c3db5e2eeD23728D3C3/contracts
+      let contractAddress;
+      const bytecodeMismatchArtifact = require("./sources/artifacts/extraFilesBytecodeMismatch.json");
+
+      before(async () => {
+        contractAddress = await deployFromAbiAndBytecode(
+          localWeb3Provider,
+          bytecodeMismatchArtifact.abi,
+          bytecodeMismatchArtifact.bytecode,
+          accounts[0]
+        );
+      });
+
+      it("should warn the user about the issue when metadata match but not bytecodes", (done) => {
+        const hardhatOutput = require("./sources/hardhat-output/extraFilesBytecodeMismatch-onlyMetadata.json");
+        const hardhatOutputBuffer = Buffer.from(JSON.stringify(hardhatOutput));
+        chai
+          .request(server.app)
+          .post("/")
+          .field("chain", defaultContractChain)
+          .field("address", contractAddress)
+          .attach("files", hardhatOutputBuffer)
+          .end((err, res) => {
+            assertions(err, res, done, contractAddress, "extra-file-input-bug");
+          });
+      });
+
+      it("should verify with all input files and not only those in metadata", (done) => {
+        const hardhatOutput = require("./sources/hardhat-output/extraFilesBytecodeMismatch.json");
+        const hardhatOutputBuffer = Buffer.from(JSON.stringify(hardhatOutput));
+        chai
+          .request(server.app)
+          .post("/")
+          .field("chain", defaultContractChain)
+          .field("address", contractAddress)
+          .attach("files", hardhatOutputBuffer)
+          .end((err, res) => {
+            assertions(err, res, done, contractAddress, "perfect");
+          });
+      });
+    });
   });
 
   describe("verification v2", function () {
@@ -1118,60 +1216,7 @@ describe("Server", function () {
       });
     });
 
-    describe("hardhat build-info file support", function () {
-      this.timeout(EXTENDED_TIME);
-      let address;
-      const mainContractIndex = 5;
-      const hardhatOutputJSON = require("./sources/hardhat-output/output.json");
-      const MyToken =
-        hardhatOutputJSON.output.contracts["contracts/MyToken.sol"].MyToken;
-      const hardhatOutputBuffer = Buffer.from(
-        JSON.stringify(hardhatOutputJSON)
-      );
-      before(async function () {
-        address = await deployFromAbiAndBytecode(
-          localWeb3Provider,
-          MyToken.abi,
-          MyToken.evm.bytecode.object,
-          accounts[0],
-          ["Sourcify Hardhat Test", "TEST"]
-        );
-        console.log(`Contract deployed at ${address}`);
-        await waitSecs(3);
-      });
-
-      it("should detect multiple contracts in the build-info file", (done) => {
-        chai
-          .request(server.app)
-          .post("/")
-          .field("chain", defaultContractChain)
-          .field("address", address)
-          .attach("files", hardhatOutputBuffer)
-          .then((res) => {
-            chai.expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
-            chai.expect(res.body.contractsToChoose.length).to.be.equal(6);
-            chai
-              .expect(res.body.error)
-              .to.be.a("string")
-              .and.satisfy((msg) => msg.startsWith("Detected "));
-            done();
-          });
-      });
-
-      it("should verify the chosen contract in the build-info file", (done) => {
-        chai
-          .request(server.app)
-          .post("/")
-          .field("chain", defaultContractChain)
-          .field("address", address)
-          .field("chosenContract", mainContractIndex)
-          .attach("files", hardhatOutputBuffer)
-          .end((err, res) => {
-            assertions(err, res, done, address, "perfect");
-          });
-      });
-    });
-
+    // Test also extra-file-bytecode-mismatch via v2 API as well since the workaround is at the API level i.e. VerificationController
     describe("solc v0.6.12 and v0.7.0 extra files in compilation causing metadata match but bytecode mismatch", function () {
       // Deploy the test contract locally
       // Contract from https://explorer.celo.org/address/0x923182024d0Fa5dEe59E3c3db5e2eeD23728D3C3/contracts
@@ -1190,28 +1235,44 @@ describe("Server", function () {
       it("should warn the user about the issue when metadata match but not bytecodes", (done) => {
         const hardhatOutput = require("./sources/hardhat-output/extraFilesBytecodeMismatch-onlyMetadata.json");
         const hardhatOutputBuffer = Buffer.from(JSON.stringify(hardhatOutput));
-        chai
-          .request(server.app)
-          .post("/")
-          .field("chain", defaultContractChain)
-          .field("address", contractAddress)
+
+        const agent = chai.request.agent(server.app);
+        agent
+          .post("/input-files")
           .attach("files", hardhatOutputBuffer)
-          .end((err, res) => {
-            assertions(err, res, done, contractAddress, "extra-file-input-bug");
+          .then((res) => {
+            const contracts = res.body.contracts;
+            contracts[0].address = contractAddress;
+            contracts[0].chainId = defaultContractChain;
+            agent
+              .post("/verify-validated")
+              .send({ contracts })
+              .then((res) => {
+                assertSingleContractStatus(res, "extra-file-input-bug");
+                done();
+              });
           });
       });
 
       it("should verify with all input files and not only those in metadata", (done) => {
         const hardhatOutput = require("./sources/hardhat-output/extraFilesBytecodeMismatch.json");
         const hardhatOutputBuffer = Buffer.from(JSON.stringify(hardhatOutput));
-        chai
-          .request(server.app)
-          .post("/")
-          .field("chain", defaultContractChain)
-          .field("address", contractAddress)
+
+        const agent = chai.request.agent(server.app);
+        agent
+          .post("/input-files")
           .attach("files", hardhatOutputBuffer)
-          .end((err, res) => {
-            assertions(err, res, done, contractAddress, "perfect");
+          .then((res) => {
+            const contracts = res.body.contracts;
+            contracts[0].address = contractAddress;
+            contracts[0].chainId = defaultContractChain;
+            agent
+              .post("/verify-validated")
+              .send({ contracts })
+              .then((res) => {
+                assertSingleContractStatus(res, "perfect");
+                done();
+              });
           });
       });
     });
