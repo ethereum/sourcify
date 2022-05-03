@@ -43,8 +43,8 @@ describe("Server", function () {
   });
   let localWeb3Provider;
   let accounts;
-  let contractAddress;
-  const contractChain = "0";
+  let defaultContractAddress;
+  const defaultContractChain = "0";
   let currentResponse = null; // to log server response when test fails
 
   const sourcePath = path.join(
@@ -68,7 +68,7 @@ describe("Server", function () {
     console.log("Initialized web3 provider");
 
     // Deploy the test contract
-    contractAddress = await deployFromAbiAndBytecode(
+    defaultContractAddress = await deployFromAbiAndBytecode(
       localWeb3Provider,
       artifact.abi,
       artifact.bytecode,
@@ -129,7 +129,7 @@ describe("Server", function () {
     err,
     res,
     done,
-    expectedAddress = contractAddress,
+    expectedAddress = defaultContractAddress,
     expectedStatus = "perfect"
   ) => {
     currentResponse = res;
@@ -151,7 +151,7 @@ describe("Server", function () {
       chai
         .request(server.app)
         .get("/check-by-addresses")
-        .query({ addresses: contractAddress })
+        .query({ addresses: defaultContractAddress })
         .end((err, res) => {
           assertError(err, res, "chainIds");
           done();
@@ -175,7 +175,7 @@ describe("Server", function () {
       const resultArray = res.body;
       chai.expect(resultArray).to.have.a.lengthOf(1);
       const result = resultArray[0];
-      chai.expect(result.address).to.equal(contractAddress);
+      chai.expect(result.address).to.equal(defaultContractAddress);
       chai.expect(result.status).to.equal(expectedStatus);
       chai.expect(result.chainIds).to.deep.equal(expectedChainIds);
       if (done) done();
@@ -185,7 +185,10 @@ describe("Server", function () {
       chai
         .request(server.app)
         .get("/check-by-addresses")
-        .query({ chainIds: contractChain, addresses: contractAddress })
+        .query({
+          chainIds: defaultContractChain,
+          addresses: defaultContractAddress,
+        })
         .end((err, res) => assertStatus(err, res, "false", undefined, done));
     });
 
@@ -193,7 +196,7 @@ describe("Server", function () {
       chai
         .request(server.app)
         .get("/check-by-addresses")
-        .query({ chainIds: contractChain, addresses: fakeAddress })
+        .query({ chainIds: defaultContractChain, addresses: fakeAddress })
         .end((err, res) => {
           assertError(err, res, "addresses");
           done();
@@ -204,14 +207,17 @@ describe("Server", function () {
       chai
         .request(server.app)
         .get("/check-by-addresses")
-        .query({ chainIds: contractChain, addresses: contractAddress })
+        .query({
+          chainIds: defaultContractChain,
+          addresses: defaultContractAddress,
+        })
         .end((err, res) => {
           assertStatus(err, res, "false", undefined);
           chai
             .request(server.app)
             .post("/")
-            .field("address", contractAddress)
-            .field("chain", contractChain)
+            .field("address", defaultContractAddress)
+            .field("chain", defaultContractChain)
             .attach("files", metadataBuffer, "metadata.json")
             .attach("files", sourceBuffer)
             .end((err, res) => {
@@ -221,9 +227,18 @@ describe("Server", function () {
               chai
                 .request(server.app)
                 .get("/check-by-addresses")
-                .query({ chainIds: contractChain, addresses: contractAddress })
+                .query({
+                  chainIds: defaultContractChain,
+                  addresses: defaultContractAddress,
+                })
                 .end((err, res) =>
-                  assertStatus(err, res, "perfect", [contractChain], done)
+                  assertStatus(
+                    err,
+                    res,
+                    "perfect",
+                    [defaultContractChain],
+                    done
+                  )
                 );
             });
         });
@@ -234,15 +249,15 @@ describe("Server", function () {
         .request(server.app)
         .get("/check-by-addresses")
         .query({
-          chainIds: contractChain,
-          addresses: contractAddress.toLowerCase(),
+          chainIds: defaultContractChain,
+          addresses: defaultContractAddress.toLowerCase(),
         })
         .end((err, res) => {
           chai.expect(err).to.be.null;
           chai.expect(res.status).to.equal(StatusCodes.OK);
           chai.expect(res.body).to.have.a.lengthOf(1);
           const result = res.body[0];
-          chai.expect(result.address).to.equal(contractAddress);
+          chai.expect(result.address).to.equal(defaultContractAddress);
           chai.expect(result.status).to.equal("false");
           done();
         });
@@ -256,7 +271,7 @@ describe("Server", function () {
       chai
         .request(server.app)
         .get("/check-all-by-addresses")
-        .query({ addresses: contractAddress })
+        .query({ addresses: defaultContractAddress })
         .end((err, res) => {
           assertError(err, res, "chainIds");
           done();
@@ -280,7 +295,7 @@ describe("Server", function () {
       const resultArray = res.body;
       chai.expect(resultArray).to.have.a.lengthOf(1);
       const result = resultArray[0];
-      chai.expect(result.address).to.equal(contractAddress);
+      chai.expect(result.address).to.equal(defaultContractAddress);
       chai.expect(result.status).to.equal(expectedStatus);
       chai.expect(result.chainIds).to.deep.equal(expectedChainIds);
       if (done) done();
@@ -290,7 +305,10 @@ describe("Server", function () {
       chai
         .request(server.app)
         .get("/check-all-by-addresses")
-        .query({ chainIds: contractChain, addresses: contractAddress })
+        .query({
+          chainIds: defaultContractChain,
+          addresses: defaultContractAddress,
+        })
         .end((err, res) => assertStatus(err, res, "false", undefined, done));
     });
 
@@ -298,7 +316,7 @@ describe("Server", function () {
       chai
         .request(server.app)
         .get("/check-all-by-addresses")
-        .query({ chainIds: contractChain, addresses: fakeAddress })
+        .query({ chainIds: defaultContractChain, addresses: fakeAddress })
         .end((err, res) => {
           assertError(err, res, "addresses");
           done();
@@ -309,14 +327,17 @@ describe("Server", function () {
       chai
         .request(server.app)
         .get("/check-all-by-addresses")
-        .query({ chainIds: contractChain, addresses: contractAddress })
+        .query({
+          chainIds: defaultContractChain,
+          addresses: defaultContractAddress,
+        })
         .end((err, res) => {
           assertStatus(err, res, "false", undefined);
           chai
             .request(server.app)
             .post("/")
-            .field("address", contractAddress)
-            .field("chain", contractChain)
+            .field("address", defaultContractAddress)
+            .field("chain", defaultContractChain)
             .attach("files", metadataBuffer, "metadata.json")
             .attach("files", sourceBuffer)
             .end((err, res) => {
@@ -326,13 +347,16 @@ describe("Server", function () {
               chai
                 .request(server.app)
                 .get("/check-all-by-addresses")
-                .query({ chainIds: contractChain, addresses: contractAddress })
+                .query({
+                  chainIds: defaultContractChain,
+                  addresses: defaultContractAddress,
+                })
                 .end((err, res) =>
                   assertStatus(
                     err,
                     res,
                     undefined,
-                    [{ chainId: contractChain, status: "perfect" }],
+                    [{ chainId: defaultContractChain, status: "perfect" }],
                     done
                   )
                 );
@@ -345,15 +369,15 @@ describe("Server", function () {
         .request(server.app)
         .get("/check-all-by-addresses")
         .query({
-          chainIds: contractChain,
-          addresses: contractAddress.toLowerCase(),
+          chainIds: defaultContractChain,
+          addresses: defaultContractAddress.toLowerCase(),
         })
         .end((err, res) => {
           chai.expect(err).to.be.null;
           chai.expect(res.status).to.equal(StatusCodes.OK);
           chai.expect(res.body).to.have.a.lengthOf(1);
           const result = res.body[0];
-          chai.expect(result.address).to.equal(contractAddress);
+          chai.expect(result.address).to.equal(defaultContractAddress);
           chai.expect(result.status).to.equal("false");
           done();
         });
@@ -364,8 +388,8 @@ describe("Server", function () {
     chai
       .request(server.app)
       .post(path)
-      .field("chain", contractChain)
-      .field("address", contractAddress)
+      .field("chain", defaultContractChain)
+      .field("address", defaultContractAddress)
       .end((err, res) => {
         chai.expect(err).to.be.null;
         chai.expect(res.body).to.haveOwnProperty("error");
@@ -389,8 +413,8 @@ describe("Server", function () {
       chai
         .request(server.app)
         .post("/")
-        .field("address", contractAddress)
-        .field("chain", contractChain)
+        .field("address", defaultContractAddress)
+        .field("chain", defaultContractChain)
         .attach("files", metadataBuffer, "metadata.json")
         .attach("files", sourceBuffer, "Storage.sol")
         .end((err, res) => assertions(err, res, done));
@@ -401,8 +425,8 @@ describe("Server", function () {
         .request(server.app)
         .post("/")
         .send({
-          address: contractAddress,
-          chain: contractChain,
+          address: defaultContractAddress,
+          chain: defaultContractChain,
           files: {
             "metadata.json": metadataBuffer.toString(),
             "Storage.sol": sourceBuffer.toString(),
@@ -416,8 +440,8 @@ describe("Server", function () {
         .request(server.app)
         .post("/")
         .send({
-          address: contractAddress,
-          chain: contractChain,
+          address: defaultContractAddress,
+          chain: defaultContractChain,
           files: {
             "metadata.json": metadataBuffer,
             "Storage.sol": sourceBuffer,
@@ -439,8 +463,8 @@ describe("Server", function () {
       chai
         .request(server.app)
         .post("/")
-        .field("address", contractAddress)
-        .field("chain", contractChain)
+        .field("address", defaultContractAddress)
+        .field("chain", defaultContractChain)
         .attach("files", modifiedIpfsMetadataBuffer, "metadata.json")
         .end((err, res) => {
           assertMissingFile(err, res);
@@ -452,8 +476,8 @@ describe("Server", function () {
       chai
         .request(server.app)
         .post("/")
-        .field("address", contractAddress)
-        .field("chain", contractChain)
+        .field("address", defaultContractAddress)
+        .field("chain", defaultContractChain)
         .attach("files", metadataBuffer, "metadata.json")
         .end((err, res) => assertions(err, res, done));
     });
@@ -490,17 +514,17 @@ describe("Server", function () {
       );
       const partialSourceBuffer = fs.readFileSync(partialSourcePath);
 
-      const partialMetadataURL = `/repository/contracts/partial_match/${contractChain}/${contractAddress}/metadata.json`;
+      const partialMetadataURL = `/repository/contracts/partial_match/${defaultContractChain}/${defaultContractAddress}/metadata.json`;
 
       chai
         .request(server.app)
         .post("/")
-        .field("address", contractAddress)
-        .field("chain", contractChain)
+        .field("address", defaultContractAddress)
+        .field("chain", defaultContractChain)
         .attach("files", partialMetadataBuffer, "metadata.json")
         .attach("files", partialSourceBuffer)
         .end((err, res) => {
-          assertions(err, res, null, contractAddress, "partial");
+          assertions(err, res, null, defaultContractAddress, "partial");
 
           chai
             .request(server.app)
@@ -512,12 +536,12 @@ describe("Server", function () {
               chai
                 .request(server.app)
                 .post("/")
-                .field("address", contractAddress)
-                .field("chain", contractChain)
+                .field("address", defaultContractAddress)
+                .field("chain", defaultContractChain)
                 .attach("files", metadataBuffer, "metadata.json")
                 .attach("files", sourceBuffer)
                 .end(async (err, res) => {
-                  assertions(err, res, null, contractAddress);
+                  assertions(err, res, null, defaultContractAddress);
 
                   await waitSecs(2); // allow server some time to execute the deletion (it started *after* the last response)
                   chai
@@ -556,7 +580,7 @@ describe("Server", function () {
         .request(server.app)
         .post("/")
         .field("address", address)
-        .field("chain", contractChain)
+        .field("chain", defaultContractChain)
         .attach("files", metadataBuffer)
         .end((err, res) => assertions(err, res, null, address, "partial"));
       return true;
@@ -591,7 +615,7 @@ describe("Server", function () {
         .request(server.app)
         .post("/")
         .field("address", address)
-        .field("chain", contractChain)
+        .field("chain", defaultContractChain)
         .attach("files", metadataBuffer)
         .attach("files", sourceBuffer)
         .end((err, res) => {
@@ -599,7 +623,7 @@ describe("Server", function () {
           chai
             .request(server.app)
             .get(
-              `/repository/contracts/full_match/${contractChain}/${address}/library-map.json`
+              `/repository/contracts/full_match/${defaultContractChain}/${address}/library-map.json`
             )
             .buffer()
             .parse(binaryParser)
@@ -639,10 +663,108 @@ describe("Server", function () {
         .request(server.app)
         .post("/")
         .field("address", address)
-        .field("chain", contractChain)
+        .field("chain", defaultContractChain)
         .attach("files", metadataBuffer, "metadata.json")
         .attach("files", sourceBuffer, "Storage.sol")
         .end((err, res) => assertions(err, res, null, address));
+    });
+
+    describe("hardhat build-info file support", function () {
+      this.timeout(EXTENDED_TIME);
+      let address;
+      const mainContractIndex = 5;
+      const hardhatOutputJSON = require("./sources/hardhat-output/output.json");
+      const MyToken =
+        hardhatOutputJSON.output.contracts["contracts/MyToken.sol"].MyToken;
+      const hardhatOutputBuffer = Buffer.from(
+        JSON.stringify(hardhatOutputJSON)
+      );
+      before(async function () {
+        address = await deployFromAbiAndBytecode(
+          localWeb3Provider,
+          MyToken.abi,
+          MyToken.evm.bytecode.object,
+          accounts[0],
+          ["Sourcify Hardhat Test", "TEST"]
+        );
+        console.log(`Contract deployed at ${address}`);
+        await waitSecs(3);
+      });
+
+      it("should detect multiple contracts in the build-info file", (done) => {
+        chai
+          .request(server.app)
+          .post("/")
+          .field("chain", defaultContractChain)
+          .field("address", address)
+          .attach("files", hardhatOutputBuffer)
+          .then((res) => {
+            chai.expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
+            chai.expect(res.body.contractsToChoose.length).to.be.equal(6);
+            chai
+              .expect(res.body.error)
+              .to.be.a("string")
+              .and.satisfy((msg) => msg.startsWith("Detected "));
+            done();
+          });
+      });
+
+      it("should verify the chosen contract in the build-info file", (done) => {
+        chai
+          .request(server.app)
+          .post("/")
+          .field("chain", defaultContractChain)
+          .field("address", address)
+          .field("chosenContract", mainContractIndex)
+          .attach("files", hardhatOutputBuffer)
+          .end((err, res) => {
+            assertions(err, res, done, address, "perfect");
+          });
+      });
+    });
+
+    describe("solc v0.6.12 and v0.7.0 extra files in compilation causing metadata match but bytecode mismatch", function () {
+      // Deploy the test contract locally
+      // Contract from https://explorer.celo.org/address/0x923182024d0Fa5dEe59E3c3db5e2eeD23728D3C3/contracts
+      let contractAddress;
+      const bytecodeMismatchArtifact = require("./sources/artifacts/extraFilesBytecodeMismatch.json");
+
+      before(async () => {
+        contractAddress = await deployFromAbiAndBytecode(
+          localWeb3Provider,
+          bytecodeMismatchArtifact.abi,
+          bytecodeMismatchArtifact.bytecode,
+          accounts[0]
+        );
+      });
+
+      it("should warn the user about the issue when metadata match but not bytecodes", (done) => {
+        const hardhatOutput = require("./sources/hardhat-output/extraFilesBytecodeMismatch-onlyMetadata.json");
+        const hardhatOutputBuffer = Buffer.from(JSON.stringify(hardhatOutput));
+        chai
+          .request(server.app)
+          .post("/")
+          .field("chain", defaultContractChain)
+          .field("address", contractAddress)
+          .attach("files", hardhatOutputBuffer)
+          .end((err, res) => {
+            assertions(err, res, done, contractAddress, "extra-file-input-bug");
+          });
+      });
+
+      it("should verify with all input files and not only those in metadata", (done) => {
+        const hardhatOutput = require("./sources/hardhat-output/extraFilesBytecodeMismatch.json");
+        const hardhatOutputBuffer = Buffer.from(JSON.stringify(hardhatOutput));
+        chai
+          .request(server.app)
+          .post("/")
+          .field("chain", defaultContractChain)
+          .field("address", contractAddress)
+          .attach("files", hardhatOutputBuffer)
+          .end((err, res) => {
+            assertions(err, res, done, contractAddress, "perfect");
+          });
+      });
     });
   });
 
@@ -714,8 +836,8 @@ describe("Server", function () {
             ["project:/contracts/Storage.sol"],
             {}
           );
-          contracts[0].address = contractAddress;
-          contracts[0].chainId = contractChain;
+          contracts[0].address = defaultContractAddress;
+          contracts[0].chainId = defaultContractChain;
 
           agent
             .post("/verify-validated")
@@ -797,8 +919,8 @@ describe("Server", function () {
             .post("/input-files")
             .attach("files", sourceBuffer, "Storage.sol")
             .end((err, res) => {
-              contracts[0].chainId = contractChain;
-              contracts[0].address = contractAddress;
+              contracts[0].chainId = defaultContractChain;
+              contracts[0].address = defaultContractAddress;
               assertAllFound(err, res, "error");
 
               agent
@@ -871,14 +993,14 @@ describe("Server", function () {
         .attach("files", metadataBuffer)
         .then((res) => {
           const contracts = assertSingleContractStatus(res, "error");
-          contracts[0].address = contractAddress;
+          contracts[0].address = defaultContractAddress;
 
           agent
             .post("/verify-validated")
             .send({ contracts })
             .then((res) => {
               assertSingleContractStatus(res, "error");
-              contracts[0].chainId = contractChain;
+              contracts[0].chainId = defaultContractChain;
 
               agent
                 .post("/verify-validated")
@@ -944,8 +1066,8 @@ describe("Server", function () {
             ["project:/contracts/Storage.sol"],
             {}
           );
-          contracts[0].address = contractAddress;
-          contracts[0].chainId = contractChain;
+          contracts[0].address = defaultContractAddress;
+          contracts[0].chainId = defaultContractChain;
 
           agent
             .post("/verify-validated")
@@ -1094,56 +1216,63 @@ describe("Server", function () {
       });
     });
 
-    describe("hardhat build-info file support", function () {
-      this.timeout(EXTENDED_TIME);
-      let address;
-      const mainContractIndex = 5;
-      const hardhatOutputJSON = require("./sources/hardhat-output/output.json");
-      const MyToken =
-        hardhatOutputJSON.output.contracts["contracts/MyToken.sol"].MyToken;
-      const hardhatOutputBuffer = Buffer.from(
-        JSON.stringify(hardhatOutputJSON)
-      );
-      before(async function () {
-        address = await deployFromAbiAndBytecode(
+    // Test also extra-file-bytecode-mismatch via v2 API as well since the workaround is at the API level i.e. VerificationController
+    describe("solc v0.6.12 and v0.7.0 extra files in compilation causing metadata match but bytecode mismatch", function () {
+      // Deploy the test contract locally
+      // Contract from https://explorer.celo.org/address/0x923182024d0Fa5dEe59E3c3db5e2eeD23728D3C3/contracts
+      let contractAddress;
+      const bytecodeMismatchArtifact = require("./sources/artifacts/extraFilesBytecodeMismatch.json");
+
+      before(async () => {
+        contractAddress = await deployFromAbiAndBytecode(
           localWeb3Provider,
-          MyToken.abi,
-          MyToken.evm.bytecode.object,
-          accounts[0],
-          ["Sourcify Hardhat Test", "TEST"]
+          bytecodeMismatchArtifact.abi,
+          bytecodeMismatchArtifact.bytecode,
+          accounts[0]
         );
-        console.log(`Contract deployed at ${address}`);
-        await waitSecs(3);
       });
 
-      it("should detect multiple contracts in the build-info file", (done) => {
-        chai
-          .request(server.app)
-          .post("/")
-          .field("chain", contractChain)
-          .field("address", address)
+      it("should warn the user about the issue when metadata match but not bytecodes", (done) => {
+        const hardhatOutput = require("./sources/hardhat-output/extraFilesBytecodeMismatch-onlyMetadata.json");
+        const hardhatOutputBuffer = Buffer.from(JSON.stringify(hardhatOutput));
+
+        const agent = chai.request.agent(server.app);
+        agent
+          .post("/input-files")
           .attach("files", hardhatOutputBuffer)
           .then((res) => {
-            chai.expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
-            chai.expect(res.body.contractsToChoose.length).to.be.equal(6);
-            chai
-              .expect(res.body.error)
-              .to.be.a("string")
-              .and.satisfy((msg) => msg.startsWith("Detected "));
-            done();
+            const contracts = res.body.contracts;
+            contracts[0].address = contractAddress;
+            contracts[0].chainId = defaultContractChain;
+            agent
+              .post("/verify-validated")
+              .send({ contracts })
+              .then((res) => {
+                assertSingleContractStatus(res, "extra-file-input-bug");
+                done();
+              });
           });
       });
 
-      it("should verify the chosen contract in the build-info file", (done) => {
-        chai
-          .request(server.app)
-          .post("/")
-          .field("chain", contractChain)
-          .field("address", address)
-          .field("chosenContract", mainContractIndex)
+      it("should verify with all input files and not only those in metadata", (done) => {
+        const hardhatOutput = require("./sources/hardhat-output/extraFilesBytecodeMismatch.json");
+        const hardhatOutputBuffer = Buffer.from(JSON.stringify(hardhatOutput));
+
+        const agent = chai.request.agent(server.app);
+        agent
+          .post("/input-files")
           .attach("files", hardhatOutputBuffer)
-          .end((err, res) => {
-            assertions(err, res, done, address, "perfect");
+          .then((res) => {
+            const contracts = res.body.contracts;
+            contracts[0].address = contractAddress;
+            contracts[0].chainId = defaultContractChain;
+            agent
+              .post("/verify-validated")
+              .send({ contracts })
+              .then((res) => {
+                assertSingleContractStatus(res, "perfect");
+                done();
+              });
           });
       });
     });

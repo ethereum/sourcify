@@ -124,7 +124,7 @@ export default class VerificationController extends BaseController implements IC
             if (result.status === "extra-file-input-bug") {
                 const pathContentInputFiles = inputFiles.map(pathBuffer => ({ content: pathBuffer.buffer.toString(), path: pathBuffer.path }));
                 const contractWithAllSources = this.validationService.useAllSources(contract, pathContentInputFiles);
-                const tempResult = await this.verificationService.inject({ contract: contractWithAllSources, ...inputData });
+                const tempResult = await this.verificationService.inject({ ...inputData, contract: contractWithAllSources });
                 if (tempResult.status === "perfect") {
                     res.send({result: [tempResult]})
                 }
