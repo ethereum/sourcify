@@ -1,11 +1,14 @@
 import cbor from 'cbor';
+import * as chainsRaw from "../chains.json";
 import sourcifyChainsRaw from "../sourcify-chains";
 import { StringMap, ReformattedMetadata, Chain } from './types';
-import fetch from "node-fetch";
-import * as chainsRaw from "../chains.json";
-
+const chains = chainsRaw as any;
 const sourcifyChains = sourcifyChainsRaw as any;
-const chainMap: ChainMap = {};
+
+type ChainMap = {
+    [chainId: string]: Chain
+};
+
 const TEST_CHAINS: Chain[] = [{
     name: "Localhost",
     shortName: "Localhost",
@@ -20,53 +23,28 @@ const TEST_CHAINS: Chain[] = [{
     monitored: true,
 }];
 
-type ChainMap = {
-    [chainId: string]: Chain
-};
-
-///////////////////////
-//// Main function ////
-///////////////////////
-( async () => {
-    await createChainMap(chainMap);
-})()
-
-
-async function createChainMap(chainMap: ChainMap) {
-    const chains = await fetchChains();
-    // Add test chains too if testing
-    if (process.env.TESTING == "true") {
-        for (const chain of TEST_CHAINS) {
-            chainMap[chain.chainId.toString()] = chain;
-        }
-    }
-
-    for (const i in chains) {
-        const chain = chains[i];
-        const chainId = chain.chainId;
-        if (chainId in chainMap) {
-            const err = `Corrupt chains file (chains.json): multiple chains have the same chainId: ${chainId}`;
-            throw new Error(err);
-        }
-
-        if (chainId in sourcifyChains) {
-            const sourcifyData = sourcifyChains[chainId];
-            Object.assign(chain, sourcifyData);
-        }
-
-        chainMap[chainId] = chain;
+const chainMap: ChainMap = {};
+// Add test chains too if testing
+if (process.env.TESTING == "true") {
+    for (const chain of TEST_CHAINS) {
+        chainMap[chain.chainId.toString()] = chain;
     }
 }
 
-// Dynamically fetch the chainlist
-async function fetchChains() {
-    try {
-        return fetch("https://chainid.network/chains.json").then((res) => res.json())
-    } catch(err: any) {
-        // Fallback to local file
-        console.error(err);
-        return chainsRaw;
+for (const i in chains) {
+    const chain = chains[i];
+    const chainId = chain.chainId;
+    if (chainId in chainMap) {
+        const err = `Corrupt chains file (chains.json): multiple chains have the same chainId: ${chainId}`;
+        throw new Error(err);
     }
+
+    if (chainId in sourcifyChains) {
+        const sourcifyData = sourcifyChains[chainId];
+        Object.assign(chain, sourcifyData);
+    }
+
+    chainMap[chainId] = chain;
 }
 
 function filter(obj: ChainMap, predicate: ((c: any) => boolean)): Chain[] {
