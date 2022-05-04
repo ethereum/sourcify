@@ -12,7 +12,6 @@ describe("Source Fetcher", function () {
   beforeEach(() => {});
 
   it("should fetch metadata from IPFS", (done) => {
-    process.env.IPFS_URL = "http://ipfs.io/ipfs/";
     sourceFetcher = new SourceFetcher();
     sourceAddress = new SourceAddress("ipfs", METADATA_HASH);
     sourceFetcher.subscribe(sourceAddress, (fetchedFileStr) => {

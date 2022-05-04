@@ -170,7 +170,7 @@
         "${workspaceFolder}/test/server.js",
         "--no-timeout",
         // Run a single test when debugging
-        "--grep=v0.6.12",
+        // "--grep=v0.6.12",
         "--exit",
       ],
       "outFiles": [
