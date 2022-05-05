@@ -727,18 +727,18 @@ describe("Test Supported Chains", function () {
   );
     // Evmos Testnet
     verifyContract(
-    "0x4edd809c779cC6aC80882215f499E5FdF90D8Be7",
+    "0x07Eb2490cEfc74bAEb4B13c2dB9119CA0c38959B",
     "9000",
     "Evmos Testnet",
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
   verifyContractWithImmutables(
-    "0xD3a2577b461C99aEc9593eD3521FEB694F3d55fc",
+    "0x5Bd1805B662B611644CF34640190Abb73877450C",
     "9000",
     "Evmos Testnet",
     ["uint256"],
-    [1],
+    [3000],
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
