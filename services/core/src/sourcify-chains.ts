@@ -322,5 +322,11 @@ export default {
     "44": { // Darwinia Crab Mainnet
         "supported": true,
         "monitored": false,
+    },
+    "9000": { // Evmos testnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://evm.evmos.dev/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
     }
 }
