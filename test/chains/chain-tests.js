@@ -734,7 +734,7 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
   verifyContractWithImmutables(
-    "0x5Bd1805B662B611644CF34640190Abb73877450C",
+    "0x697633A48F5832481f570CA6b11d793A5708bA9A",
     "9000",
     "Evmos Testnet",
     ["uint256"],
