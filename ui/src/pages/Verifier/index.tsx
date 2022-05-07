@@ -138,8 +138,6 @@ const Verifier: React.FC = () => {
               Old verifier UI avaiable at{" "}
               <a
                 href="https://legacy.sourcify.dev"
-                target="_blank"
-                rel="noreferrer"
                 className="hover:underline text-ceruleanBlue-300 hover:text-ceruleanBlue-400"
               >
                 legacy.sourcify.dev

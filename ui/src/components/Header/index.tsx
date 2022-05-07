@@ -59,16 +59,12 @@ const Header = () => {
           <a
             className="link-underline mx-2 my-2 md:mx-6 hover:text-ceruleanBlue-500"
             href={DOCS_URL}
-            target="_blank"
-            rel="noreferrer"
           >
             Docs
           </a>
           <a
             className="link-underline mx-2 my-2 md:mx-6 hover:text-ceruleanBlue-500"
             href={PLAYGROUND_URL}
-            target="_blank"
-            rel="noreferrer"
           >
             Playground
           </a>
@@ -78,8 +74,6 @@ const Header = () => {
           <a
             className="px-2 hover-to-fill"
             href="https://github.com/ethereum/sourcify"
-            target="_blank"
-            rel="noreferrer"
             data-tip="Github"
           >
             <Github className="h-6 w-auto fill-gray-700 " />
@@ -87,8 +81,6 @@ const Header = () => {
           <a
             className="px-2 hover-to-fill"
             href="https://twitter.com/sourcifyeth"
-            target="_blank"
-            rel="noreferrer"
             data-tip="Twitter"
           >
             <Twitter className="h-[1.4rem] w-auto fill-gray-700 500" />
@@ -96,8 +88,6 @@ const Header = () => {
           <a
             className="pl-2 hover-to-fill"
             href="https://matrix.to/#/#ethereum_source-verify:gitter.im"
-            target="_blank"
-            rel="noreferrer"
             data-tip="Matrix chat"
           >
             <Matrix className="h-6 w-auto fill-gray-700 hover:fill-ceruleanBlue-500" />

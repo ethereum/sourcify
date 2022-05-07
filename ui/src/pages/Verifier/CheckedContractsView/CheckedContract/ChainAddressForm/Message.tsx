@@ -32,10 +32,8 @@ const RepoLinks = ({ chainIds, status, address }: RepoLinkProps) => {
             {i > 0 && ", "}
             <a
               href={generateRepoLink(chainId, address, status)}
-              target="_blank"
               className="underline"
               key={`${address}-${chainId}-repo-link`}
-              rel="noreferrer"
             >
               {sourcifyChainMap[parseInt(chainId)].title ||
                 sourcifyChainMap[parseInt(chainId)].name}
