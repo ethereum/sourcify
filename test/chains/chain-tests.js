@@ -725,7 +725,7 @@ describe("Test Supported Chains", function () {
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
-    // Evmos Testnet
+  // Evmos Testnet
     verifyContract(
     "0x07Eb2490cEfc74bAEb4B13c2dB9119CA0c38959B",
     "9000",
@@ -737,6 +737,23 @@ describe("Test Supported Chains", function () {
     "0x697633A48F5832481f570CA6b11d793A5708bA9A",
     "9000",
     "Evmos Testnet",
+    ["uint256"],
+    [3000],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+  // Evmos Mainnet
+  verifyContract(
+    "0x1d897A65A4fa98BBdfc2e94ad2357cE051Bf4a21",
+    "9001",
+    "Evmos Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x886035409BCDc11c9824D065143FB5ce981a011a",
+    "9001",
+    "Evmos Mainnet",
     ["uint256"],
     [3000],
     ["shared/WithImmutables.sol"],

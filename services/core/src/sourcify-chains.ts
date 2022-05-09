@@ -323,10 +323,16 @@ export default {
         "supported": true,
         "monitored": false,
     },
-    "9000": { // Evmos testnet
+    "9000": { // Evmos Testnet
         "supported": true,
         "monitored": false,
         "contractFetchAddress": "https://evm.evmos.dev/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "9001": { // Evmos Mainnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://evm.evmos.org/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
     "62621": { // MultiVAC Mainnet
