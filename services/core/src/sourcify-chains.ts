@@ -322,5 +322,24 @@ export default {
     "44": { // Darwinia Crab Mainnet
         "supported": true,
         "monitored": false,
+    },
+    "9000": { // Evmos Testnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://evm.evmos.dev/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "9001": { // Evmos Mainnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://evm.evmos.dev/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "62621": { // MultiVAC Mainnet
+        "supported": true,
+        "monitored": false,
+        "rpc": [
+            "https://rpc.mtv.ac"
+        ]
     }
 }

@@ -725,6 +725,49 @@ describe("Test Supported Chains", function () {
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
+  // Evmos Testnet
+    verifyContract(
+    "0x07Eb2490cEfc74bAEb4B13c2dB9119CA0c38959B",
+    "9000",
+    "Evmos Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x697633A48F5832481f570CA6b11d793A5708bA9A",
+    "9000",
+    "Evmos Testnet",
+    ["uint256"],
+    [3000],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+  // Evmos Mainnet
+  verifyContract(
+    "0x1d897A65A4fa98BBdfc2e94ad2357cE051Bf4a21",
+    "9001",
+    "Evmos Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x31Ab9Ae1d421D06910Db4d4389Fc24A79311C642",
+    "9001",
+    "Evmos Mainnet",
+    ["uint256"],
+    [3000],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+  // MultiVAC Mainnet
+  verifyContract(
+    "0x411925A3B2Ed99cD29DF76822D6419163d80858f",
+    "62621",
+    "MultiVAC Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
   //////////////////////
   // Helper functions //
   //////////////////////
