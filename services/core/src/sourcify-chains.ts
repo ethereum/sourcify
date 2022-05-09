@@ -332,7 +332,7 @@ export default {
     "9001": { // Evmos Mainnet
         "supported": true,
         "monitored": false,
-        "contractFetchAddress": "https://evm.evmos.dev/" + BLOCKSCOUT_SUFFIX,
+        "contractFetchAddress": "https://evm.evmos.org/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
     "62621": { // MultiVAC Mainnet
