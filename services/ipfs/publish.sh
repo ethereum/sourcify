@@ -2,6 +2,7 @@
 # Avoid cron job ipfs command not found.
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
+# Update the contract stats.
 date
 echo "Started find in repository for stats"
 REPOSITORY_PATH=/root/.ipfs/repository
@@ -25,14 +26,22 @@ OUTPUT+="}"
 
 echo "Finished find in repo for stats"
 echo $OUTPUT > $REPOSITORY_PATH/stats.json
-
-date
-echo "Starting ipfs add"
-hash=$(ipfs add -Q -r /root/.ipfs/repository)
-echo "Finished ipfs add! New ipfs hash: $hash"
 date
 
-echo "Publishing hash under ipns key"
-ipfs -D name publish --key=main $hash
-echo "Published hash under ipns key"
+# Update the new manifest and stats in MFS.
+manifestHash=$(ipfs add -Q /root/.ipfs/repository/manifest.json)
+statsHash=$(ipfs add -Q /root/.ipfs/repository/stats.json)
+# rm old CIDs from MFS path
+ipfs files rm /manifest.json
+ipfs files rm /stats.json
+# Link
+ipfs files cp -p /ipfs/$manifestHash /manifest.json
+ipfs files cp -p /ipfs/$statsHash /stats.json
+
+# Publish the new root hash
+rootHash=$(ipfs files stat / | head -n 1)
+
+echo "Publishing rootHash $rootHash under ipns key"
+ipfs -D name publish --key=main $rootHash
+echo "Published rootHash $rootHash under ipns key"
 date

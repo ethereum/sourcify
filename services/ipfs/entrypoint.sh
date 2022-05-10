@@ -35,6 +35,27 @@ ipfs key import main /app/ipfs-${TAG}.key
 
 ipfs daemon --enable-pubsub-experiment --enable-namesys-pubsub --enable-gc &
 
+# Add the whole repo and publish on start
+date
+echo "Starting ipfs add"
+hash=$(ipfs add -Q -r /root/.ipfs/repository)
+echo "Finished ipfs add! New ipfs hash: $hash"
+date
+
+# cp the repo under MFS
+echo "Copying to MFS"
+ipfs files cp -p /ipfs/$hash/ /
+echo "Copied to MFS"
+date
+
+# Get the root hash
+rootHash=$(ipfs files stat / | head -n 1)
+
+echo "Publishing rootHash $rootHash under ipns key"
+ipfs -D name publish --key=main $rootHash
+echo "Published rootHash $rootHash under ipns key"
+date
+
 # Start the run once job.
 echo "Docker container has been started"
 
