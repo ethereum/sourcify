@@ -322,5 +322,14 @@ export default {
     "44": { // Darwinia Crab Mainnet
         "supported": true,
         "monitored": false,
+    },
+    "595": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://blockscout.mandala.acala.network/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex(),
+        "rpc": [
+            "https://tc7-eth.aca-dev.network"
+        ]
     }
 }

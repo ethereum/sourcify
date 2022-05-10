@@ -725,6 +725,23 @@ describe("Test Supported Chains", function () {
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
+  // Acala Mandala Testnet
+  verifyContract(
+    "0x3915e43E15849B883063dCFf54e39533E04055Dd",
+    "595",
+    "Acala Mandala Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x05B401d3A9B2cE2C4B355967a16c8ED4F4D7BA55",
+    "595",
+    "Acala Mandala Testnet",
+    ["uint256"],
+    [595],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
   //////////////////////
   // Helper functions //
   //////////////////////
