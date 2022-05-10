@@ -25,6 +25,14 @@
       "outputCapture": "std",
     },
     {
+      // Make sure the UI webserver is already running with `npm start`
+      "name": "UI",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceRoot}/ui/src",
+    },
+    {
       "type": "node",
       "request": "launch",
       "name": "Monitor",

@@ -157,8 +157,6 @@ const ChartSection = () => {
           <a
             className="link-underline font-semibold text-ceruleanBlue-500"
             href={FEATURE_ISSUE_URL}
-            target="_blank"
-            rel="noreferrer"
           >
             Verified? Add your project
           </a>

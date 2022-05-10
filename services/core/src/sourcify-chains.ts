@@ -323,13 +323,32 @@ export default {
         "supported": true,
         "monitored": false,
     },
-    "595": {
+    "595": { // Acala Mandala Testnet
         "supported": true,
         "monitored": false,
         "contractFetchAddress": "https://blockscout.mandala.acala.network/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex(),
         "rpc": [
             "https://tc7-eth.aca-dev.network"
+        ]
+    },
+    "9000": { // Evmos Testnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://evm.evmos.dev/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "9001": { // Evmos Mainnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://evm.evmos.org/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "62621": { // MultiVAC Mainnet
+        "supported": true,
+        "monitored": false,
+        "rpc": [
+            "https://rpc.mtv.ac"
         ]
     }
 }

@@ -58,8 +58,16 @@ const Verifier: React.FC = () => {
     },
     [setErrorMessage]
   );
-
+  // const handleFiles = async (files: DropzoneFile[]) => {
+  //   const formData = new FormData();
+  //   files.forEach((file) => formData.append("files", file));
+  //   await fetchAndUpdate(ADD_FILES_URL, {
+  //     method: "POST",
+  //     body: formData,
+  //   });
+  // };
   const handleFiles = async (files: DropzoneFile[]) => {
+    // const handleeFiles = async (files: DropzoneFile[]) => {
     const jsonBody: any = { files: {} };
     for (const file of files) {
       if (file.size > UI_MAX_FILE_SIZE) {
@@ -75,13 +83,25 @@ const Verifier: React.FC = () => {
       let filePath = file.path;
       // remove absolute path
       if (file.path.startsWith("/")) filePath = file.path.substring(1);
-      jsonBody.files[filePath] = await file.text();
+      // If a zip, send a seperate request, since there's already no file path
+      if (file.type === "application/zip") {
+        const formData = new FormData();
+        formData.append("files", file);
+        await fetchAndUpdate(ADD_FILES_URL, {
+          method: "POST",
+          body: formData,
+        });
+      } else {
+        jsonBody.files[filePath] = await file.text();
+      }
     }
-    await fetchAndUpdate(ADD_FILES_URL, {
-      method: "POST",
-      body: JSON.stringify(jsonBody),
-      headers: { "Content-Type": "application/json" },
-    });
+    if (Object.keys(jsonBody.files).length > 0) {
+      await fetchAndUpdate(ADD_FILES_URL, {
+        method: "POST",
+        body: JSON.stringify(jsonBody),
+        headers: { "Content-Type": "application/json" },
+      });
+    }
   };
 
   const restartSession = async () => {
@@ -138,8 +158,6 @@ const Verifier: React.FC = () => {
               Old verifier UI avaiable at{" "}
               <a
                 href="https://legacy.sourcify.dev"
-                target="_blank"
-                rel="noreferrer"
                 className="hover:underline text-ceruleanBlue-300 hover:text-ceruleanBlue-400"
               >
                 legacy.sourcify.dev

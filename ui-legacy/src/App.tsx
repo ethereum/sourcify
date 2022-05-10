@@ -43,18 +43,15 @@ const App: React.FC = () => {
                         <div className="bottom">
                             <p>
                                 Browse contract repository <a
-                                href={REPOSITORY_URL} target="_blank" rel="noopener noreferrer">here</a> or
-                                via the <a href={IPFS_IPNS_GATEWAY_URL} target="_blank"
-                                           rel="noopener noreferrer">ipfs/ipns
+                                href={REPOSITORY_URL}>here</a> or
+                                via the <a href={IPFS_IPNS_GATEWAY_URL}>ipfs/ipns
                                     gateway</a>.
                             </p>
                             <p>
                                 Not sure what all of this is for? Learn why source verification
-                                matters <a href={SOLIDITY_ETHEREUM_URL} target="_blank"
-                                           rel="noopener noreferrer">here</a>.
+                                matters <a href={SOLIDITY_ETHEREUM_URL}>here</a>.
                             </p>
-                            <p>Problems or questions? Ask us anything on <a href={GITTER_URL} target="_blank"
-                                                                            rel="noopener noreferrer">Gitter!</a></p>
+                            <p>Problems or questions? Ask us anything on <a href={GITTER_URL}>Gitter!</a></p>
                         </div>
                     </div>
                     <div className="container__right">

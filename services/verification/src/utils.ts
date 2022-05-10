@@ -1,4 +1,5 @@
 import Web3 from 'web3';
+import { HttpProvider } from "web3-core";
 import fetch from 'node-fetch';
 import { StringMap, createJsonInputFromMetadata, InfoErrorLogger } from '@ethereum-sourcify/core';
 import Path from 'path';
@@ -30,25 +31,60 @@ export async function checkEndpoint(provider: string): Promise<void> {
 }
 
 /**
+ * Function to execute promises sequentially and return the first resolved one. Reject if none resolves.
+ * 
+ * @param promiseArray 
+ */
+async function awaitSequentially(promiseArray: Promise<string>[]) {
+    let rejectResponse;
+    for (const p of promiseArray){
+        try {
+            const resolveResponse = await p;
+            return resolveResponse;
+        } catch(err) {
+            rejectResponse = err;
+        }
+    }
+    throw(rejectResponse);
+}
+
+const rejectInMs = (ms: number, host: string) => new Promise<string>((_resolve, reject) => {
+    setTimeout(() => reject(`RPC ${host} took too long to respond`), ms)
+})
+
+/**
  * Wraps eth_getCode
  * @param {Web3}   web3    connected web3 instance
  * @param {string} address contract
  */
 export async function getBytecode(web3array: Web3[], address: string): Promise<string> {
+    const RPC_TIMEOUT = 5000; // ms
+    if (!web3array.length) return;
+
     address = Web3.utils.toChecksumAddress(address);
     const rpcPromises: Promise<string>[] = [];
     for (const web3 of web3array) {
-        rpcPromises.push(web3.eth.getCode(address));
+        // Each rpc request should wait no longer than RPC_TIMEOUT, therefore Promise.race against timeout.
+        const provider = web3.currentProvider as HttpProvider
+        rpcPromises.push(Promise.race([
+            web3.eth.getCode(address),
+            rejectInMs(RPC_TIMEOUT, provider.host)
+        ]));
     }
-    // Return any of the succesful RPC responses.
-    // If none successful, return the first one of either the RPC responses or a timeout.
-    return Promise.race([
+
+    // If getting bytecode via the local nodes (using NODE_ADDRESS), don't waste Alchemy requests by requesting all RPCs in parallel. 
+    // Instead request first the local node and request Alchemy only if it fails.
+    const provider = web3array[0].currentProvider as HttpProvider;
+    if (provider.host.includes(process.env.NODE_ADDRESS)) {
+        return awaitSequentially(rpcPromises);
+    } else { // Request all public RPCs in parallel.
         // Promise.any for Node v15.0.0<
-        promiseAny(rpcPromises),
-        new Promise<string>((_resolve, reject) => {
-            setTimeout(() => reject('RPC took too long to respond'), 3e3);
-        })
-    ])
+        // Don't wait RPCs longer than RPC_TIMEOUT
+        return Promise.race([
+            promiseAny(rpcPromises),
+            rejectInMs(RPC_TIMEOUT, provider.host)
+        ])
+    }
 }
 
 const RECOMPILATION_ERR_MSG = "Recompilation error (probably caused by invalid metadata)";
