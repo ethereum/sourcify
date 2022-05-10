@@ -28,34 +28,11 @@ echo $OUTPUT > $REPOSITORY_PATH/stats.json
 
 date
 echo "Starting ipfs add"
-hash=$(ipfs add -Q -r --fscache --nocopy /root/.ipfs/repository/contracts)
+hash=$(ipfs add -Q -r /root/.ipfs/repository)
 echo "Finished ipfs add! New ipfs hash: $hash"
 date
 
-# As manifest.json frequently changes, it is not possible to add whole /repository with Filestore (i.e. --nocopy).
-# Just add&pin repository/contracts and link the folders full_match, partial_match manually under the MFS (Mutable File System) directory /contracts.
-echo "Linking under /contracts"
-# rm old CIDs from MFS path
-ipfs files rm -r /contracts/full_match
-ipfs files rm -r /contracts/partial_match
-# Link new CIDs
-ipfs files cp -p /ipfs/$hash/full_match /contracts/
-ipfs files cp -p /ipfs/$hash/partial_match /contracts/
-
-# Add manifest and stats to ipfs (without Filestore)
-manifestHash=$(ipfs add -Q /root/.ipfs/repository/manifest.json)
-statsHash=$(ipfs add -Q /root/.ipfs/repository/stats.json)
-# rm old CIDs from MFS path
-ipfs files rm /manifest.json
-ipfs files rm /stats.json
-# Link
-ipfs files cp -p /ipfs/$manifestHash /manifest.json
-ipfs files cp -p /ipfs/$statsHash /stats.json
-
-# Get the root hash
-rootHash=$(ipfs files stat / | head -n 1)
-
 echo "Publishing hash under ipns key"
-ipfs -D name publish --key=main $rootHash
+ipfs -D name publish --key=main $hash
 echo "Published hash under ipns key"
 date
