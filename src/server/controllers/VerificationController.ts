@@ -122,8 +122,7 @@ export default class VerificationController extends BaseController implements IC
             const result = await this.verificationService.inject(inputData);
             // Send to verification again with all source files.
             if (result.status === "extra-file-input-bug") {
-                const pathContentInputFiles = inputFiles.map(pathBuffer => ({ content: pathBuffer.buffer.toString(), path: pathBuffer.path }));
-                const contractWithAllSources = this.validationService.useAllSources(contract, pathContentInputFiles);
+                const contractWithAllSources = this.validationService.useAllSources(contract, inputFiles);
                 const tempResult = await this.verificationService.inject({ ...inputData, contract: contractWithAllSources });
                 if (tempResult.status === "perfect") {
                     res.send({result: [tempResult]})
@@ -279,8 +278,8 @@ export default class VerificationController extends BaseController implements IC
                     // Send to verification again with all source files.
                     if (match.status === "extra-file-input-bug") {
                         // Session inputFiles are encoded base64. Why?
-                        const decodedInputFiles = Object.values(session.inputFiles).map(base64file => ({path: base64file.path, content: Buffer.from(base64file.content, FILE_ENCODING).toString()}));
-                        const contractWithAllSources = this.validationService.useAllSources(contractWrapper.contract, decodedInputFiles);
+                        const pathBufferInputFiles: PathBuffer[] = Object.values(session.inputFiles).map(base64file => ({path: base64file.path, buffer: Buffer.from(base64file.content, FILE_ENCODING)}));
+                        const contractWithAllSources = this.validationService.useAllSources(contractWrapper.contract, pathBufferInputFiles);
                         const tempMatch = await this.verificationService.inject({...inputData, contract: contractWithAllSources });
                         if (tempMatch.status === "perfect" || tempMatch.status === "partial") {
                             match = tempMatch;

@@ -45,7 +45,7 @@ export interface IValidationService {
      * @throws Error if no metadata files are found.
      */
     checkFiles(files: PathBuffer[], unused?: string[]): CheckedContract[];
-    useAllSources(contract: CheckedContract, files: PathContent[]): CheckedContract;
+    useAllSources(contract: CheckedContract, files: PathBuffer[]): CheckedContract;
 }
 
 export class ValidationService implements IValidationService {
@@ -76,8 +76,10 @@ export class ValidationService implements IValidationService {
     }
     
     // Pass all input source files to the CheckedContract, not just those stated in metadata.
-    useAllSources(contract: CheckedContract, files: PathContent[]) {
-        const { sourceFiles } = this.splitFiles(files);
+    useAllSources(contract: CheckedContract, files: PathBuffer[]) {
+        const unzippedFiles = this.traverseAndUnzipFiles(files);
+        const parsedFiles = unzippedFiles.map(pathBuffer => ({ content: pathBuffer.buffer.toString(), path: pathBuffer.path }));
+        const { sourceFiles } = this.splitFiles(parsedFiles);
         const stringMapSourceFiles = this.pathContentArrayToStringMap(sourceFiles)
         // Files at contract.solidity are already hash matched with the sources in metadata. Use them instead of the user input .sol files.
         Object.assign(stringMapSourceFiles, contract.solidity)
@@ -86,8 +88,8 @@ export class ValidationService implements IValidationService {
     }
 
     checkFiles(files: PathBuffer[], unused?: string[]): CheckedContract[] {
-        const inputFiles = this.findInputFiles(files);
-        const parsedFiles = inputFiles.map(pathBuffer => ({ content: pathBuffer.buffer.toString(), path: pathBuffer.path }));
+        const unzippedFiles = this.traverseAndUnzipFiles(files);
+        const parsedFiles = unzippedFiles.map(pathBuffer => ({ content: pathBuffer.buffer.toString(), path: pathBuffer.path }));
         const { metadataFiles, sourceFiles } = this.splitFiles(parsedFiles);
 
         const checkedContracts: CheckedContract[] = [];
@@ -125,7 +127,7 @@ export class ValidationService implements IValidationService {
      * @param files the array containing the files to be checked
      * @returns an array containing the provided files, with any zips being unzipped and returned
      */
-    private findInputFiles(files: PathBuffer[]): PathBuffer[] {
+    private traverseAndUnzipFiles(files: PathBuffer[]): PathBuffer[] {
         const inputFiles: PathBuffer[] = [];
         for (const file of files) {
             if (this.isZip(file.buffer)) {
