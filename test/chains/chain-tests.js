@@ -727,7 +727,7 @@ describe("Test Supported Chains", function () {
   );
   // Acala Mandala Testnet
   verifyContract(
-    "0x3915e43E15849B883063dCFf54e39533E04055Dd",
+    "0x0433B93b7eAd046E7CC33744E95c511cA2677Cb0",
     "595",
     "Acala Mandala Testnet",
     ["shared/1_Storage.sol"],
