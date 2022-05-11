@@ -164,7 +164,10 @@ export class ValidationService implements IValidationService {
         new AdmZip(zippedFile.buffer).extractAllTo(tmpDir);
 
         this.traversePathRecursively(tmpDir, filePath => {
-            const file = {buffer: fs.readFileSync(filePath), content: zippedFile.path};
+            const file = {
+                buffer: fs.readFileSync(filePath),
+                // remove the zip-folder name from the path  e.g. tmp-unzipped-1652274174745-9239260350002245/contracts/Token.sol --> contracts/Token.sol
+                path: filePath.slice(tmpDir.length + 1)};
             files.push(file);
         });
         this.traversePathRecursively(tmpDir, fs.unlinkSync, fs.rmdirSync);
