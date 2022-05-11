@@ -2665,14 +2665,11 @@
       }
     ]
   },
-{
+  {
     "name": "Candle",
     "title": "Candle Mainnet",
     "chain": "Candle",
-    "rpc": [
-      "https://rpc.cndlchain.com",
-      "https://network.cndlchain.com",
-    ],
+    "rpc": ["https://rpc.cndlchain.com", "https://network.cndlchain.com"],
     "faucets": ["https://faucet.cndlchain.com/"],
     "nativeCurrency": { "name": "CNDL", "symbol": "CNDL", "decimals": 18 },
     "infoURL": "https://cndlchain.com/",
