@@ -25,6 +25,25 @@
       "outputCapture": "std",
     },
     {
+      "type": "node",
+      "request": "launch",
+      "name": "Server - without build",
+      "program": "${workspaceFolder}/dist/server/server.js",
+      "envFile": "${workspaceFolder}/environments/.env",
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js",
+        "${workspaceFolder}/services/core/build/**/*.js",
+        "${workspaceFolder}/services/validation/build/**/*.js",
+        "${workspaceFolder}/services/verification/build/**/*.js"
+      ],
+      "env": {
+        "DEBUG": "express:*" // Debug all express modules *
+      },
+      "smartStep": true,
+      "console": "integratedTerminal",
+      "outputCapture": "std",
+    },
+    {
       // Make sure the UI webserver is already running with `npm start`
       "name": "UI",
       "type": "chrome",
