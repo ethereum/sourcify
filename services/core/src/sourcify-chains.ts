@@ -341,5 +341,10 @@ export default {
         "rpc": [
             "https://rpc.mtv.ac"
         ]
-    }
+    },
+    "11111": { // WAGMI Testnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://subnets.avax.network/wagmi/wagmi-chain-testnet/explorer/" + ETHERSCAN_SUFFIX,
+    },
 }
