@@ -52,38 +52,44 @@ const rejectInMs = (ms: number, host: string) => new Promise<string>((_resolve, 
     setTimeout(() => reject(`RPC ${host} took too long to respond`), ms)
 })
 
-/**
- * Wraps eth_getCode
- * @param {Web3}   web3    connected web3 instance
- * @param {string} address contract
- */
-export async function getBytecode(web3array: Web3[], address: string): Promise<string> {
-    const RPC_TIMEOUT = 5000; // ms
-    if (!web3array.length) return;
-
-    address = Web3.utils.toChecksumAddress(address);
-    const rpcPromises: Promise<string>[] = [];
-    for (const web3 of web3array) {
-        // Each rpc request should wait no longer than RPC_TIMEOUT, therefore Promise.race against timeout.
-        const provider = web3.currentProvider as HttpProvider
-        rpcPromises.push(Promise.race([
+// Races the web3.eth.getCode call with a timeout promise. Returns a wrapper Promise that rejects if getCode call takes longer than timeout. 
+function raceWithTimeout(web3: Web3, timeout: number, address: string) {
+    const provider = web3.currentProvider as HttpProvider
+    return Promise.race([
             web3.eth.getCode(address),
-            rejectInMs(RPC_TIMEOUT, provider.host)
-        ]));
-    }
+            rejectInMs(timeout, provider.host)
+        ]) 
+}
+/**
+ * Fetches the contract's deployed bytecode from given web3 providers. 
+ * Tries to fetch sequentially if the first RPC is a local eth node. Fetches in parallel otherwise.
+ * 
+ * @param {Web3[]} web3Array - web3 instances for the chain of the contract
+ * @param {string} address - contract address
+ */
+export async function getBytecode(web3Array: Web3[], address: string): Promise<string> {
+    const RPC_TIMEOUT = 5000; // ms
+    if (!web3Array.length) return;
+    address = Web3.utils.toChecksumAddress(address);
 
-    // If getting bytecode via the local nodes (using NODE_ADDRESS), don't waste Alchemy requests by requesting all RPCs in parallel. 
+    // Check if the first provider is a local node (using NODE_ADDRESS). If so don't waste Alchemy requests by requesting all RPCs in parallel. 
     // Instead request first the local node and request Alchemy only if it fails.
-    const provider = web3array[0].currentProvider as HttpProvider;
-    if (provider.host.includes(process.env.NODE_ADDRESS)) {
-        return awaitSequentially(rpcPromises);
-    } else { // Request all public RPCs in parallel.
-        // Promise.any for Node v15.0.0<
-        // Don't wait RPCs longer than RPC_TIMEOUT
-        return Promise.race([
-            promiseAny(rpcPromises),
-            rejectInMs(RPC_TIMEOUT, provider.host)
-        ])
+    const firstProvider = web3Array[0].currentProvider as HttpProvider;
+    if (firstProvider.host.includes(process.env.NODE_ADDRESS)) {
+        let rejectResponse;
+        for (const web3 of web3Array) {
+            try {
+                const bytecode = await raceWithTimeout(web3, RPC_TIMEOUT, address); // await sequentially
+                return bytecode;
+            } catch(err) {
+                rejectResponse = err;
+            }
+        }
+        throw(rejectResponse); // None resolved
+    } else { // No local node. Request all public RPCs in parallel.
+        const rpcPromises: Promise<string>[] = web3Array.map(web3 => raceWithTimeout(web3, RPC_TIMEOUT, address));
+        // Promise.any for Node v15.0.0<  i.e. return the first one that resolves.
+        return promiseAny(rpcPromises);
     }
 }
 
