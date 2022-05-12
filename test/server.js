@@ -1144,7 +1144,6 @@ describe("Server", function () {
         .then((res) => {
           chai.expect(res.status).to.equal(StatusCodes.OK);
           chai.expect(res.body.contracts).to.have.lengthOf(3);
-          chai.expect(res.body.unused).to.be.empty;
           done();
         });
       it("should correctly handle when uploaded 0/2 and then 1/2 sources", (done) => {
