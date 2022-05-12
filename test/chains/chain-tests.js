@@ -639,7 +639,23 @@ describe("Test Supported Chains", function () {
     ["1287/Incrementer.sol"],
     "1287/metadata.json"
   );
-
+  // Candle
+  verifyContract(
+    "0x6A378398c8073f466A7e8b3e12BbcAaD9AB04511",
+    "534",
+    "Candle Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x35D5BEF8DbeeD715f4f63AD01F0B7F839ECf8A54",
+    "534",
+    "Candle Mainnet",
+    ["uint256"],
+    [666],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
   // Palm
   verifyContract(
     "0xd46fd24ea21F04459407Fb0B518451e54d0b07a1",
