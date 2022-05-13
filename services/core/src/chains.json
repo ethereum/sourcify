@@ -2666,25 +2666,6 @@
     ]
   },
   {
-    "name": "Candle",
-    "title": "Candle Mainnet",
-    "chain": "Candle",
-    "rpc": ["https://rpc.cndlchain.com", "https://network.cndlchain.com"],
-    "faucets": ["https://faucet.cndlchain.com/"],
-    "nativeCurrency": { "name": "CNDL", "symbol": "CNDL", "decimals": 18 },
-    "infoURL": "https://cndlchain.com/",
-    "shortName": "cndl",
-    "chainId": 534,
-    "networkId": 534,
-    "explorers": [
-      {
-        "name": "candlescan",
-        "url": "https://candleexplorer.com",
-        "standard": "EIP3091"
-      }
-    ]
-  },
-  {
     "name": "Vela1 Chain Mainnet",
     "chain": "VELA1",
     "rpc": ["https://rpc.velaverse.io"],
