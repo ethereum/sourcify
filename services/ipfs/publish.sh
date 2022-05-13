@@ -31,10 +31,10 @@ date
 # Update the new manifest and stats in MFS.
 manifestHash=$(ipfs add -Q /root/.ipfs/repository/manifest.json)
 statsHash=$(ipfs add -Q /root/.ipfs/repository/stats.json)
-# rm old CIDs from MFS path
+# rm old files from MFS 
 ipfs files rm /manifest.json
 ipfs files rm /stats.json
-# Link
+# add new manifest and stats
 ipfs files cp -p /ipfs/$manifestHash /manifest.json
 ipfs files cp -p /ipfs/$statsHash /stats.json
 

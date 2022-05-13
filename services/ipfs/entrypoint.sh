@@ -38,18 +38,23 @@ ipfs daemon --enable-pubsub-experiment --enable-namesys-pubsub --enable-gc &
 # Add the whole repo and publish on start
 date
 echo "Starting ipfs add"
-hash=$(ipfs add -Q -r /root/.ipfs/repository)
+hash=$(ipfs add -Q -r /root/.ipfs/repository/contracts)
 echo "Finished ipfs add! New ipfs hash: $hash"
 date
 
 # cp the repo under MFS
 echo "Copying to MFS"
-ipfs files cp -p /ipfs/$hash/ /
+ipfs files cp -p /ipfs/$hash /contracts
 echo "Copied to MFS"
 date
 
-# Get the root hash
-rootHash=$(ipfs files stat / | head -n 1)
+# Add manifest and stats to MFS.
+manifestHash=$(ipfs add -Q /root/.ipfs/repository/manifest.json)
+statsHash=$(ipfs add -Q /root/.ipfs/repository/stats.json)
+ipfs files cp -p /ipfs/$manifestHash /manifest.json
+ipfs files cp -p /ipfs/$statsHash /stats.json
+
+rootHash=$(ipfs files stat / --hash)
 
 echo "Publishing rootHash $rootHash under ipns key"
 ipfs -D name publish --key=main $rootHash
