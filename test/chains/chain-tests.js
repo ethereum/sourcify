@@ -767,6 +767,14 @@ describe("Test Supported Chains", function () {
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
+  // WAGMI Testnet
+  verifyContract(
+    "0x5974BF3196fc03A20cEB196270307707e0158BbD",
+    "11111",
+    "WAGMI",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
 
   //////////////////////
   // Helper functions //
