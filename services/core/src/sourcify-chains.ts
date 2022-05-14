@@ -136,6 +136,12 @@ export default {
         ],
         "txRegex": ETHERSCAN_REGEX
     },
+    "534": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://candleexplorer.com/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
     "42220": {
         "supported": true,
         "monitored": false,
