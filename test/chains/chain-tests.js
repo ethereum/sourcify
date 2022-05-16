@@ -919,7 +919,23 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
-  
+  // Godwoken testnet v1.1
+  verifyContract(
+    "0xc8D69B4D58bb79D03C0b83DbBAE509DAF3135e74",
+    "71401",
+    "Godwoken Testnet (V1.1)",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x61FB9329a6c1E8605856C2a66C29fF692bAe2DAa",
+    "71401",
+    "Godwoken Testnet (V1.1)",
+    ["uint256"],
+    [100000],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
 
 //////////////////////
 // Helper functions //

@@ -413,5 +413,10 @@ export default {
         "contractFetchAddress": "https://explorer.energyweb.org/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
-    
+    "71401": { // Godwoken testnet v1.1
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://gw-explorer.nervosdao.community/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
 }
