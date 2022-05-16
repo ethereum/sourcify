@@ -5,6 +5,8 @@ import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const multihashes: any = require('multihashes');
 import semverSatisfies from 'semver/functions/satisfies';
+import { create, IPFSHTTPClient, globSource } from 'ipfs-http-client'
+import path from 'path';
 
 export interface InjectorConfig {
     silent?: boolean,
@@ -64,6 +66,7 @@ export class Injector {
     public fileService: IFileService;
     private web3timeout: number;
     repositoryPath: string;
+    private ipfsClient: IPFSHTTPClient;
 
     /**
      * Constructor
@@ -77,6 +80,7 @@ export class Injector {
         this.web3timeout = config.web3timeout || 3000;
 
         this.fileService = config.fileService || new FileService(this.repositoryPath, this.log);
+        this.ipfsClient = process.env.IPFS_API ? create({url: process.env.IPFS_API}) : undefined;
     }
 
     /**
@@ -462,6 +466,9 @@ export class Injector {
         // and the sources.
         if (match.address && (match.status === "perfect" || match.status === "partial")) {
             const metadataPath = this.getMetadataPathFromCborEncoded(compilationResult.deployedBytecode, match.address, chain);
+
+            // Saves the metadata file with its ipfs CID under /repository/ipfs/Qmvz....
+            // TODO: Do we need this?
             if (metadataPath) {
                 this.fileService.save(metadataPath, compilationResult.metadata);
                 this.fileService.deletePartial(chain, match.address);
@@ -479,6 +486,10 @@ export class Injector {
 
             if (match.libraryMap && Object.keys(match.libraryMap).length) {
                 this.storeLibraryMap(matchQuality, chain, match.address, match.libraryMap);
+            }
+
+            if (this.ipfsClient) {
+                await this.addToIpfsMfs(matchQuality, chain, match.address);
             }
 
         } else if (match.status === "extra-file-input-bug") {
@@ -613,5 +624,30 @@ export class Injector {
         },
             JSON.stringify(libraryMap, null, indentationSpaces)
         );
+    }
+
+    /**
+     * Adds the verified contract's folder to IPFS via MFS
+     * 
+     * @param matchQuality 
+     * @param chain 
+     * @param address 
+     */
+    private async addToIpfsMfs(matchQuality: MatchQuality, chain: string, address: string) {
+        const contractFolderDir = this.fileService.generateAbsoluteFilePath({matchQuality, chain, address})
+        const ipfsMFSDir = "/" + this.fileService.generateRelativeContractDir({matchQuality, chain, address})
+        const filesAsyncIterable = globSource(contractFolderDir, '**/*');
+        for await (const file of filesAsyncIterable) {
+            if (!file.content) continue; // skip directories
+            const mfsPath = path.join(ipfsMFSDir, file.path);
+            await this.ipfsClient.files.mkdir(path.dirname(mfsPath), { parents: true });
+            // Readstream to Buffers
+            const chunks: Buffer[] = [];
+            for await (const chunk of file.content) {
+                chunks.push(chunk)
+            }
+            const fileBuffer = Buffer.concat(chunks)
+            await this.ipfsClient.files.write(mfsPath, fileBuffer, { create: true }); 
+        }
     }
 }
