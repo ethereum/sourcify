@@ -454,6 +454,24 @@ describe("Test Supported Chains", function () {
     ["8/GameItem.sol"],
     "8/GameItem.json"
   );
+
+  // Oneledger
+  verifyContract(
+    "0x774081ECDDb30F96EB5Bb21DcAB17C73F29f5eF3",
+    "311752642",
+    "OneLedger Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x91c9b838B181A34623B213a4a08acE00edEDe430",
+    "311752642",
+    "OneLedger Mainnet",
+    ["uint256"],
+    [1],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
   verifyContract(
     "0x34eC0cBd5E33e7323324333434fe978f1000d9cd",
     "4216137055",
@@ -707,6 +725,73 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
+  // Darwinia Pangolin Testnet
+  verifyContract(
+    "0x7de04a7596958D44baB52F4e5D0c9e79cB16ef8B",
+    "43",
+    "Darwinia Pangolin Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  // Darwinia Crab Mainnet
+  verifyContract(
+    "0xE0E78187F01E026bdD0bd901e5Ae2e10C022366D",
+    "44",
+    "Darwinia Pangolin Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  // Evmos Testnet
+    verifyContract(
+    "0x07Eb2490cEfc74bAEb4B13c2dB9119CA0c38959B",
+    "9000",
+    "Evmos Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x697633A48F5832481f570CA6b11d793A5708bA9A",
+    "9000",
+    "Evmos Testnet",
+    ["uint256"],
+    [3000],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+  // Evmos Mainnet
+  verifyContract(
+    "0x1d897A65A4fa98BBdfc2e94ad2357cE051Bf4a21",
+    "9001",
+    "Evmos Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x886035409BCDc11c9824D065143FB5ce981a011a",
+    "9001",
+    "Evmos Mainnet",
+    ["uint256"],
+    [3000],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+  // MultiVAC Mainnet
+  verifyContract(
+    "0x411925A3B2Ed99cD29DF76822D6419163d80858f",
+    "62621",
+    "MultiVAC Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  // WAGMI Testnet
+  verifyContract(
+    "0x5974BF3196fc03A20cEB196270307707e0158BbD",
+    "11111",
+    "WAGMI",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
   //////////////////////
   // Helper functions //
   //////////////////////

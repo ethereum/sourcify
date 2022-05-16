@@ -1,6 +1,7 @@
 import Web3 from 'web3';
+import { HttpProvider } from "web3-core";
 import fetch from 'node-fetch';
-import { StringMap, reformatMetadata, InfoErrorLogger } from '@ethereum-sourcify/core';
+import { StringMap, createJsonInputFromMetadata, InfoErrorLogger } from '@ethereum-sourcify/core';
 import Path from 'path';
 import fs from 'fs';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -30,25 +31,66 @@ export async function checkEndpoint(provider: string): Promise<void> {
 }
 
 /**
- * Wraps eth_getCode
- * @param {Web3}   web3    connected web3 instance
- * @param {string} address contract
+ * Function to execute promises sequentially and return the first resolved one. Reject if none resolves.
+ * 
+ * @param promiseArray 
  */
-export async function getBytecode(web3array: Web3[], address: string): Promise<string> {
-    address = Web3.utils.toChecksumAddress(address);
-    const rpcPromises: Promise<string>[] = [];
-    for (const web3 of web3array) {
-        rpcPromises.push(web3.eth.getCode(address));
+async function awaitSequentially(promiseArray: Promise<string>[]) {
+    let rejectResponse;
+    for (const p of promiseArray){
+        try {
+            const resolveResponse = await p;
+            return resolveResponse;
+        } catch(err) {
+            rejectResponse = err;
+        }
     }
-    // Return any of the succesful RPC responses.
-    // If none successful, return the first one of either the RPC responses or a timeout.
+    throw(rejectResponse);
+}
+
+const rejectInMs = (ms: number, host: string) => new Promise<string>((_resolve, reject) => {
+    setTimeout(() => reject(`RPC ${host} took too long to respond`), ms)
+})
+
+// Races the web3.eth.getCode call with a timeout promise. Returns a wrapper Promise that rejects if getCode call takes longer than timeout. 
+function raceWithTimeout(web3: Web3, timeout: number, address: string) {
+    const provider = web3.currentProvider as HttpProvider
     return Promise.race([
-        // Promise.any for Node v15.0.0<
-        promiseAny(rpcPromises),
-        new Promise<string>((_resolve, reject) => {
-            setTimeout(() => reject('RPC took too long to respond'), 3e3);
-        })
-    ])
+            web3.eth.getCode(address),
+            rejectInMs(timeout, provider.host)
+        ]) 
+}
+/**
+ * Fetches the contract's deployed bytecode from given web3 providers. 
+ * Tries to fetch sequentially if the first RPC is a local eth node. Fetches in parallel otherwise.
+ * 
+ * @param {Web3[]} web3Array - web3 instances for the chain of the contract
+ * @param {string} address - contract address
+ */
+export async function getBytecode(web3Array: Web3[], address: string): Promise<string> {
+    const RPC_TIMEOUT = 5000; // ms
+    if (!web3Array.length) return;
+    address = Web3.utils.toChecksumAddress(address);
+
+    // Check if the first provider is a local node (using NODE_ADDRESS). If so don't waste Alchemy requests by requesting all RPCs in parallel. 
+    // Instead request first the local node and request Alchemy only if it fails.
+    const firstProvider = web3Array[0].currentProvider as HttpProvider;
+    if (firstProvider.host.includes(process.env.NODE_ADDRESS)) {
+        let rejectResponse;
+        for (const web3 of web3Array) {
+            try {
+                const bytecode = await raceWithTimeout(web3, RPC_TIMEOUT, address); // await sequentially
+                return bytecode;
+            } catch(err) {
+                rejectResponse = err;
+            }
+        }
+        throw(rejectResponse); // None resolved
+    } else { // No local node. Request all public RPCs in parallel.
+        const rpcPromises: Promise<string>[] = web3Array.map(web3 => raceWithTimeout(web3, RPC_TIMEOUT, address));
+        // Promise.any for Node v15.0.0<  i.e. return the first one that resolves.
+        return promiseAny(rpcPromises);
+    }
 }
 
 const RECOMPILATION_ERR_MSG = "Recompilation error (probably caused by invalid metadata)";
@@ -69,7 +111,7 @@ export async function recompile(
         solcJsonInput,
         fileName,
         contractName
-    } = reformatMetadata(metadata, sources, log);
+    } = createJsonInputFromMetadata(metadata, sources, log);
 
     const loc = "[RECOMPILE]";
     const version = metadata.compiler.version;
@@ -82,9 +124,10 @@ export async function recompile(
     const compiled = await useCompiler(version, solcJsonInput, log);
     const output = JSON.parse(compiled);
     if (!output.contracts || !output.contracts[fileName] || !output.contracts[fileName][contractName] || !output.contracts[fileName][contractName].evm || !output.contracts[fileName][contractName].evm.bytecode) {
-        const errors = output.errors.filter((e: any) => e.severity === "error").map((e: any) => e.message);
-        log.error({ loc, fileName, contractName, version, errors });
-        throw new Error(RECOMPILATION_ERR_MSG);
+        const errorMessages = output.errors.filter((e: any) => e.severity === "error").map((e: any) => e.formattedMessage).join("\n");
+        log.error({ loc, fileName, contractName, version, errorMessages });
+        throw new Error("Compiler error:\n " + errorMessages);
+        // throw new Error(RECOMPILATION_ERR_MSG);
     }
     
     const contract: any = output.contracts[fileName][contractName];

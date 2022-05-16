@@ -1,3 +1,4 @@
+import bytes from "bytes";
 import { useCallback, useContext, useEffect, useState } from "react";
 import Header from "../../components/Header";
 import Toast from "../../components/Toast";
@@ -19,6 +20,8 @@ import {
 import CheckedContractsView from "./CheckedContractsView";
 import FileUpload from "./FileUpload";
 
+const UI_MAX_FILE_SIZE = 30 * 1024 * 1024;
+
 const Verifier: React.FC = () => {
   const [addedFiles, setAddedFiles] = useState<string[]>([]);
   const [unusedFiles, setUnusedFiles] = useState<string[]>([]);
@@ -33,8 +36,11 @@ const Verifier: React.FC = () => {
         const rawRes: Response = await fetch(URL, {
           credentials: "include",
           method: fetchOptions?.method || "GET", // default GET
+          // mode: "cors",
           ...fetchOptions,
         });
+        console.log(rawRes);
+
         if (!rawRes.ok) {
           const err: IGenericError = await rawRes.json();
           throw new Error(err.error);
@@ -52,14 +58,50 @@ const Verifier: React.FC = () => {
     },
     [setErrorMessage]
   );
-
+  // const handleFiles = async (files: DropzoneFile[]) => {
+  //   const formData = new FormData();
+  //   files.forEach((file) => formData.append("files", file));
+  //   await fetchAndUpdate(ADD_FILES_URL, {
+  //     method: "POST",
+  //     body: formData,
+  //   });
+  // };
   const handleFiles = async (files: DropzoneFile[]) => {
-    const formData = new FormData();
-    files.forEach((file) => formData.append("files", file));
-    await fetchAndUpdate(ADD_FILES_URL, {
-      method: "POST",
-      body: formData,
-    });
+    // const handleeFiles = async (files: DropzoneFile[]) => {
+    const jsonBody: any = { files: {} };
+    for (const file of files) {
+      if (file.size > UI_MAX_FILE_SIZE) {
+        const humanReadableSize = bytes(file.size);
+        return setErrorMessage(
+          `Added file ${
+            file.name
+          } is ${humanReadableSize} which is more than the maximum single file size of ${bytes(
+            UI_MAX_FILE_SIZE
+          )}`
+        );
+      }
+      let filePath = file.path;
+      // remove absolute path
+      if (file.path.startsWith("/")) filePath = file.path.substring(1);
+      // If a zip, send a seperate request, since there's already no file path
+      if (file.type === "application/zip") {
+        const formData = new FormData();
+        formData.append("files", file);
+        await fetchAndUpdate(ADD_FILES_URL, {
+          method: "POST",
+          body: formData,
+        });
+      } else {
+        jsonBody.files[filePath] = await file.text();
+      }
+    }
+    if (Object.keys(jsonBody.files).length > 0) {
+      await fetchAndUpdate(ADD_FILES_URL, {
+        method: "POST",
+        body: JSON.stringify(jsonBody),
+        headers: { "Content-Type": "application/json" },
+      });
+    }
   };
 
   const restartSession = async () => {
@@ -116,8 +158,6 @@ const Verifier: React.FC = () => {
               Old verifier UI avaiable at{" "}
               <a
                 href="https://legacy.sourcify.dev"
-                target="_blank"
-                rel="noreferrer"
                 className="hover:underline text-ceruleanBlue-300 hover:text-ceruleanBlue-400"
               >
                 legacy.sourcify.dev

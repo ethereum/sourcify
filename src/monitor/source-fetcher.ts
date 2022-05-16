@@ -42,7 +42,7 @@ declare interface TimestampMap {
  */
 export default class SourceFetcher {
     gatewayFetchers = [
-        new GatewayFetcher(new SimpleGateway("ipfs", process.env.IPFS_URL || "https://ipfs.io/ipfs/", "https://ipfs.ethdevops.io/ipfs/")),
+        new GatewayFetcher(new SimpleGateway("ipfs", process.env.IPFS_URL || "https://ipfs.io/ipfs/", "https://cloudflare-ipfs.com/ipfs/")),
         new GatewayFetcher(new SimpleGateway(["bzzr0", "bzzr1"], "https://swarm-gateways.net/bzz-raw:/"))
     ]
 

@@ -23,7 +23,7 @@ export default class VerificationController extends BaseController implements IC
     validationService: IValidationService;
     logger: bunyan;
 
-    static readonly MAX_INPUT_SIZE = 50 * 1024 * 1024; // 50 MiB
+    static readonly MAX_SESSION_SIZE = 50 * 1024 * 1024; // 50 MiB
 
     constructor(verificationService: IVerificationService, validationService: IValidationService) {
         super();
@@ -112,19 +112,26 @@ export default class VerificationController extends BaseController implements IC
             return res.status(StatusCodes.BAD_REQUEST).send({error: msg, contractsToChoose})
         }
 
-        const contract = req.body.chosenContract ? validatedContracts[req.body.chosenContract] : validatedContracts[0];
+        const contract: CheckedContract = req.body.chosenContract ? validatedContracts[req.body.chosenContract] : validatedContracts[0];
         if (!contract.compilerVersion) {
             throw new BadRequestError("Metadata file not specifying a compiler version.");
         }
 
         const inputData: InputData = { contract, addresses: req.addresses, chain: req.chain };
-
-        const resultPromise = this.verificationService.inject(inputData);
-        resultPromise.then(result => {
+        try {
+            const result = await this.verificationService.inject(inputData);
+            // Send to verification again with all source files.
+            if (result.status === "extra-file-input-bug") {
+                const contractWithAllSources = this.validationService.useAllSources(contract, inputFiles);
+                const tempResult = await this.verificationService.inject({ ...inputData, contract: contractWithAllSources });
+                if (tempResult.status === "perfect") {
+                    res.send({result: [tempResult]})
+                }
+            }
             res.send({ result: [result] }); // array is an old expected behavior (e.g. by frontend)
-        }).catch(error => {
+        } catch(error: any) {
             res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ error: error.message });
-        });
+        }
     }
 
     private checkAllByAddresses = async (req: any, res: Response) => {
@@ -240,18 +247,17 @@ export default class VerificationController extends BaseController implements IC
             if (contractWrapper) {
                 contractWrapper.address = receivedContract.address;
                 contractWrapper.chainId = receivedContract.chainId;
-
                 if (isVerifiable(contractWrapper)) {
                     verifiable[id] = contractWrapper;
                 }
             }
         }
 
-        await this.verifyValidated(verifiable);
+        await this.verifyValidated(verifiable, session);
         res.send(getSessionJSON(session));
     }
 
-    private async verifyValidated(contractWrappers: ContractWrapperMap): Promise<void> {
+    private async verifyValidated(contractWrappers: ContractWrapperMap, session: MySession): Promise<void> {
         for (const id in contractWrappers) {
             const contractWrapper = contractWrappers[id];
 
@@ -266,18 +272,28 @@ export default class VerificationController extends BaseController implements IC
             let match: Match;
             if (found.length) {
                 match = found[0];
-
             } else {
-                const matchPromise = this.verificationService.inject(inputData);
-                match = await matchPromise.catch((error: Error): Match => {
-                    return {
+                try {
+                    match = await this.verificationService.inject(inputData);
+                    // Send to verification again with all source files.
+                    if (match.status === "extra-file-input-bug") {
+                        // Session inputFiles are encoded base64. Why?
+                        const pathBufferInputFiles: PathBuffer[] = Object.values(session.inputFiles).map(base64file => ({path: base64file.path, buffer: Buffer.from(base64file.content, FILE_ENCODING)}));
+                        const contractWithAllSources = this.validationService.useAllSources(contractWrapper.contract, pathBufferInputFiles);
+                        const tempMatch = await this.verificationService.inject({...inputData, contract: contractWithAllSources });
+                        if (tempMatch.status === "perfect" || tempMatch.status === "partial") {
+                            match = tempMatch;
+                        }
+                    }
+                } catch (error: any) {
+                    match = {
                         status: null,
                         address: null,
                         message: error.message,
                     };
-                });
+                }
+                
             }
-
             contractWrapper.status = match.status || "error";
             contractWrapper.statusMessage = match.message;
             contractWrapper.storageTimestamp = match.storageTimestamp;
@@ -334,7 +350,7 @@ export default class VerificationController extends BaseController implements IC
 
         pathContents.forEach(pc => inputSize += pc.content.length);
 
-        if (inputSize > VerificationController.MAX_INPUT_SIZE) {
+        if (inputSize > VerificationController.MAX_SESSION_SIZE) {
             const msg = "Too much session memory used. Delete some files or restart the session.";
             throw new PayloadTooLargeError(msg);
         }
@@ -367,7 +383,7 @@ export default class VerificationController extends BaseController implements IC
         const newFilesCount = this.saveFiles(pathContents, session);
         if (newFilesCount) {
             this.validateContracts(session);
-            await this.verifyValidated(session.contractWrappers);
+            await this.verifyValidated(session.contractWrappers, session);
         }
         res.send(getSessionJSON(session));
     }
@@ -440,7 +456,7 @@ export default class VerificationController extends BaseController implements IC
         
         this.router.route('/input-files').all(cors(corsOpt))
             .post(cors(corsOpt), this.safeHandler(this.addInputFilesEndpoint));
-        
+
         this.router.route('/restart-session').all(cors(corsOpt))
             .post(cors(corsOpt), this.safeHandler(this.restartSessionEndpoint));
 
