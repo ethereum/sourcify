@@ -80,7 +80,7 @@ export class Injector {
         this.web3timeout = config.web3timeout || 3000;
 
         this.fileService = config.fileService || new FileService(this.repositoryPath, this.log);
-        this.ipfsClient = create({url: process.env.IPFS_API});
+        this.ipfsClient = process.env.IPFS_API ? create({url: process.env.IPFS_API}) : undefined;
     }
 
     /**
@@ -488,7 +488,9 @@ export class Injector {
                 this.storeLibraryMap(matchQuality, chain, match.address, match.libraryMap);
             }
 
-            await this.addToIpfsMfs(matchQuality, chain, match.address);
+            if (this.ipfsClient) {
+                await this.addToIpfsMfs(matchQuality, chain, match.address);
+            }
 
         } else if (match.status === "extra-file-input-bug") {
             return match
