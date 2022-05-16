@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ipfs init --profile=server,badgerds
+ipfs init --profile=badgerds
 ipfs config Addresses.Gateway /ip4/0.0.0.0/tcp/8080
 
 ## Build announced address config according to https://docs.ipfs.io/how-to/configure-node/#addresses. Need to announce the public and local IPs in swarm manually since docker does not know these IPs.
