@@ -1,6 +1,6 @@
 import Web3 from 'web3';
 import { StringMap, Metadata, InfoErrorLogger } from './types';
-import { isEmpty, reformatMetadata } from './utils';
+import { isEmpty, createJsonInputFromMetadata } from './utils';
 import fetch from 'node-fetch';
 import { InvalidSources, MissingSources } from '..';
 
@@ -72,7 +72,7 @@ export class CheckedContract {
             this.compilerVersion = metadata.compiler.version;
         }
 
-        const { solcJsonInput, fileName, contractName } = reformatMetadata(metadata, solidity);
+        const { solcJsonInput, fileName, contractName } = createJsonInputFromMetadata(metadata, solidity);
         this.standardJson = solcJsonInput;
         this.compiledPath = fileName;
         this.name = contractName;

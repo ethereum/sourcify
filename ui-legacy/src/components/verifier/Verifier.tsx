@@ -170,8 +170,6 @@ const Verifier: React.FC = () => {
         const chain = state.sourcifyChainMap && state.sourcifyChainMap[chainId];
         const label = chain ? (chain.title || chain.name) : "Unknown chain";
         return <a
-            target="_blank"
-            rel="noopener noreferrer"
             href={`${path}/${chainId}/${address}`}
             style={ { wordBreak: "break-word" } }
             key={chainId}
@@ -238,8 +236,6 @@ const Verifier: React.FC = () => {
                 type: "SHOW_NOTIFICATION", payload: {
                     type: "success",
                     content: () => <p>Contract partially verified! View the assets in the <a
-                        target="_blank"
-                        rel="noopener noreferrer"
                         href={`${REPOSITORY_URL_PARTIAL_MATCH}/${state.chain.chainId}/${data.address}`}>file explorer.</a>
                     </p>
                 }
@@ -252,8 +248,6 @@ const Verifier: React.FC = () => {
             type: "SHOW_NOTIFICATION", payload: {
                 type: "success",
                 content: () => <p>Contract successfully verified! View the assets in the <a
-                    target="_blank"
-                    rel="noopener noreferrer"
                     href={`${REPOSITORY_URL_FULL_MATCH}/${state.chain.chainId}/${data.address}`}>file explorer.</a>
                 </p>
             }

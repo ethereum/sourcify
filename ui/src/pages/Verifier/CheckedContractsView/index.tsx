@@ -22,7 +22,6 @@ const CheckedContractsView: React.FC<CheckedContractsViewProps> = ({
   const [collapsed, setCollapsed] = useState<boolean[]>([]);
 
   useEffect(() => {
-    console.log("effect");
     const diff = checkedContracts.length - collapsed.length;
     if (diff > 0) {
       setCollapsed((prevArr) => prevArr.concat(new Array(diff).fill(true)));
@@ -34,15 +33,12 @@ const CheckedContractsView: React.FC<CheckedContractsViewProps> = ({
   };
 
   const toggleCollapse = (i: number) => {
-    console.log("Collapse " + i);
     setCollapsed((prevCollapsed) => {
       const tempCollapsed = [...prevCollapsed];
       tempCollapsed[i] = !tempCollapsed[i];
-      console.log(tempCollapsed);
       return tempCollapsed;
     });
   };
-  console.log(collapsed);
   if (isHidden) return null;
   return (
     <div className="pt-1 bg-ceruleanBlue-500 flex flex-grow basis-0 rounded-xl mx-2">

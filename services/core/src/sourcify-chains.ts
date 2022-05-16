@@ -220,6 +220,15 @@ export default {
         "contractFetchAddress": "https://ubiqscan.io/" + ETHERSCAN_SUFFIX,
         "txRegex": ETHERSCAN_REGEX
     },
+    "311752642": {
+        "supported": true,
+        "monitored": true,
+        "contractFetchAddress": "https://mainnet-explorer.oneledger.network/" + BLOCKSCOUT_SUFFIX,
+        "rpc": [
+            "https://mainnet-rpc.oneledger.network"
+        ],
+        "txRegex": getBlockscoutRegex()
+    },
     "4216137055": {
         "supported": true,
         "monitored": false,
@@ -305,5 +314,37 @@ export default {
         "monitored": false,
         "contractFetchAddress": "https://explorer.fuse.io/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
-    }
+    },
+    "43": { // Darwinia Pangolin Testnet
+        "supported": true,
+        "monitored": false,
+    },
+    "44": { // Darwinia Crab Mainnet
+        "supported": true,
+        "monitored": false,
+    },
+    "9000": { // Evmos Testnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://evm.evmos.dev/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "9001": { // Evmos Mainnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://evm.evmos.org/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "62621": { // MultiVAC Mainnet
+        "supported": true,
+        "monitored": false,
+        "rpc": [
+            "https://rpc.mtv.ac"
+        ]
+    },
+    "11111": { // WAGMI Testnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://subnets.avax.network/wagmi/wagmi-chain-testnet/explorer/" + ETHERSCAN_SUFFIX,
+    },
 }

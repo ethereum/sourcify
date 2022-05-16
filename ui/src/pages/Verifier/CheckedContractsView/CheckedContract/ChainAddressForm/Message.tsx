@@ -32,10 +32,8 @@ const RepoLinks = ({ chainIds, status, address }: RepoLinkProps) => {
             {i > 0 && ", "}
             <a
               href={generateRepoLink(chainId, address, status)}
-              target="_blank"
               className="underline"
               key={`${address}-${chainId}-repo-link`}
-              rel="noreferrer"
             >
               {sourcifyChainMap[parseInt(chainId)].title ||
                 sourcifyChainMap[parseInt(chainId)].name}
@@ -67,9 +65,10 @@ const Message = ({
   }
   if (customStatus === "error") {
     if (checkedContract.statusMessage) {
+      console.log(checkedContract.statusMessage);
       return (
         <div className="bg-yellow-100 px-4 py-2 rounded-md outline-2 outline-yellow-400 outline">
-          <p className="break-all">
+          <p className="break-all whitespace-pre-wrap">
             <HiExclamation className="text-yellow-500 inline mr-1 align-middle" />
             {checkedContract.statusMessage}
           </p>

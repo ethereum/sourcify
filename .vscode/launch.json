@@ -17,9 +17,39 @@
         "${workspaceFolder}/services/validation/build/**/*.js",
         "${workspaceFolder}/services/verification/build/**/*.js"
       ],
+      "env": {
+        "DEBUG": "express:*" // Debug all express modules *
+      },
       "smartStep": true,
       "console": "integratedTerminal", 
       "outputCapture": "std",
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Server - without build",
+      "program": "${workspaceFolder}/dist/server/server.js",
+      "envFile": "${workspaceFolder}/environments/.env",
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js",
+        "${workspaceFolder}/services/core/build/**/*.js",
+        "${workspaceFolder}/services/validation/build/**/*.js",
+        "${workspaceFolder}/services/verification/build/**/*.js"
+      ],
+      "env": {
+        "DEBUG": "express:*" // Debug all express modules *
+      },
+      "smartStep": true,
+      "console": "integratedTerminal",
+      "outputCapture": "std",
+    },
+    {
+      // Make sure the UI webserver is already running with `npm start`
+      "name": "UI",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceRoot}/ui/src",
     },
     {
       "type": "node",
@@ -159,14 +189,15 @@
       "name": "Mocha - Server",
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "env": {
+        "DEBUG": "express:*", // Debug all express modules *
         "TESTING": "true",
-        "LOCALCHAIN_URL": "http://localhost:8545"
+        "LOCALCHAIN_URL": "http://localhost:8545",
       },
       "args": [
         "${workspaceFolder}/test/server.js",
         "--no-timeout",
         // Run a single test when debugging
-        // "--grep=should return true for",
+        // "--grep=v0.6.12",
         "--exit",
       ],
       "outFiles": [
