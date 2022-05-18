@@ -666,7 +666,7 @@ describe("Test Supported Chains", function () {
      "shared/1_Storage.metadata.json"
    );
    verifyContractWithImmutables(
-     "0x669153A9f1BE934178F055C425e8d527C2a24653",
+     "0x8F7DD12375BffAAc030E16124Fa9Df995d63c050",
      "534",
      "Candle Mainnet",
      ["uint256"],
