@@ -22,4 +22,3 @@ metacoin-source-verify/
 logs
 **/too_big.txt
 chain-tests-report/
-package-lock.json
