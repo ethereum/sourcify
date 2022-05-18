@@ -53,7 +53,7 @@ aliases:
           command: ./scripts/monitor_ci.sh
           no_output_timeout: 30m
     docker:
-      - image: cimg/node:14.19
+      - image: cimg/node:16.15
   - &verification-e2e-base
     working_directory: ~/source-verify
     steps:
@@ -65,7 +65,7 @@ aliases:
           name: verification test
           command: ./scripts/verification-e2e.sh
     docker:
-      - image: cimg/node:14.19
+      - image: cimg/node:16.15
 
 version: 2
 workflows:
@@ -124,18 +124,16 @@ workflows:
           requires:
             - deploy
 
-  node-multi-build:
+  node-build:
     jobs:
-      - node-v14
-      - node-v12
+      - node-v16
       - npm-publish:
           filters:
             branches:
               only:
                 - master
           requires:
-            - node-v14
-            - node-v12
+            - node-v16
   test-new-chain:
     jobs:
       - test-new-chain
@@ -213,16 +211,10 @@ jobs:
           no_output_timeout: 30m
           command: |
             ./scripts/deploy.sh
-  node-v14:
+  node-v16:
     <<: *node-base
     docker:
-      - image: cimg/node:14.19
-  node-v12:
-    <<: *node-base
-    docker:
-      - image: cimg/node:12.22
-    environment:
-      run_coveralls: "true"
+      - image: cimg/node:16.15
   test-new-chain:
     working_directory: ~/source-verify
     steps:
@@ -237,7 +229,7 @@ jobs:
           name: test new chain PR
           command: ./scripts/test_new_chain_support.sh
     docker:
-      - image: cimg/node:14.19
+      - image: cimg/node:16.15
   test-chains:
     working_directory: ~/source-verify
     steps:
@@ -251,7 +243,7 @@ jobs:
       - store_artifacts: # Store and publish test results for reference
           path: ./chain-tests-report
     docker:
-      - image: cimg/node:14.19
+      - image: cimg/node:16.15
   monitor-e2e-ropsten:
     <<: *monitor-e2e-base
     environment:
@@ -285,7 +277,7 @@ jobs:
   npm-publish:
     working_directory: ~/source-verify
     docker:
-      - image: cimg/node:14.19
+      - image: cimg/node:16.15
     steps:
       - checkout
       - run:
