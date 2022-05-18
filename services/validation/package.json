@@ -33,7 +33,7 @@
     "@ethereum-sourcify/core": "*",
     "@types/adm-zip": "^0.4.33",
     "adm-zip": "^0.4.16",
-    "bunyan": "^1.8.14",
+    "bunyan": "^1.8.15",
     "commander": "^6.1.0",
     "web3": "^1.2.11"
   }
