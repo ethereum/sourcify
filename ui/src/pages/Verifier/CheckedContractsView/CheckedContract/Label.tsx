@@ -17,7 +17,7 @@ const LABELS: ILABELS = {
 
 const LABEL_BG: ILABELS = {
   perfect: "bg-green-200",
-  partial: "bg-yellow-200",
+  partial: "bg-partialMatch-200",
   missing: "bg-red-200",
   invalid: "bg-red-200",
   error: "bg-yellow-200",
@@ -25,7 +25,7 @@ const LABEL_BG: ILABELS = {
 
 const LABEL_TEXT: ILABELS = {
   perfect: "text-green-800",
-  partial: "text-yellow-800",
+  partial: "text-partialMatch-800",
   missing: "text-red-800",
   invalid: "text-red-800",
   error: "text-yellow-800",
