@@ -47,6 +47,11 @@ hash=$(ipfs add -Q -r /root/.ipfs/repository/contracts)
 echo "Finished ipfs add! New ipfs hash: $hash"
 date
 
+# Remove /contracts 
+echo "Removing /contracts from MFSc"
+ipfs files rm -r /contracts
+echo "Removed /contracts from MFSc"
+
 # cp the repo under MFS
 echo "Copying $hash to MFS at /contracts"
 ipfs files cp -p /ipfs/$hash /contracts
@@ -59,7 +64,7 @@ manifestHash=$(ipfs add -Q /root/.ipfs/repository/manifest.json)
 statsHash=$(ipfs add -Q /root/.ipfs/repository/stats.json)
 ipfs files cp -p /ipfs/$manifestHash /manifest.json
 ipfs files cp -p /ipfs/$statsHash /stats.json
-echo "Added manifest and stats"
+echo "Added manifest: $manifestHash and stats: $statsHash"
 
 rootHash=$(ipfs files stat / --hash)
 
