@@ -1,7 +1,7 @@
 import Web3 from 'web3';
 import * as bunyan from 'bunyan';
 import { Match, InputData, getSupportedChains, Logger, IFileService, FileService, StringMap, cborDecode, CheckedContract, MatchQuality, Chain, Status, Metadata } from '@ethereum-sourcify/core';
-import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint, getCreationDataFromArchive, getCreationDataByScraping, getCreationDataFromGraphQL, getCreationDataTelos, getCreationDataMeter } from '../utils';
+import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint, getCreationDataFromArchive, getCreationDataByScraping, getCreationDataFromGraphQL, getCreationDataTelos, getCreationDataMeter, getCreationDataAvalancheSubnet } from '../utils';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const multihashes: any = require('multihashes');
 import semverSatisfies from 'semver/functions/satisfies';
@@ -347,6 +347,20 @@ export class Injector {
                     this.log.error({ loc, chain, contractAddress, err: err.message }, "Meter API failed!");
                 }
             }
+        }
+
+        // Avalanche Subnets
+        if (txFetchAddress && ( chain == "11111")) {
+            txFetchAddress = txFetchAddress.replace("${ADDRESS}", contractAddress);
+            for (const web3 of this.chains[chain].web3array) {
+                this.log.info({ loc, chain, contractAddress, fetchAddress: txFetchAddress }, "Querying Avalanche Subnet Explorer API");
+                try {
+                    return await getCreationDataAvalancheSubnet(txFetchAddress, web3);
+                } catch(err: any) {
+                    this.log.error({ loc, chain, contractAddress, err: err.message }, "Avalanche Subnet Explorer API failed!");
+                }
+            }
+
         }
 
         const graphQLFetchAddress = this.chains[chain].graphQLFetchAddress;
