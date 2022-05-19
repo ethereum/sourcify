@@ -52,7 +52,7 @@ const Message = ({
   const { sourcifyChainMap } = useContext(Context);
   const chain = sourcifyChainMap[parseInt(checkedContract.chainId as string)];
   // Show success after successfull verification
-  if (customStatus === "perfect" || customStatus === "partial") {
+  if (chain && (customStatus === "perfect" || customStatus === "partial")) {
     return (
       <div className="bg-green-100 px-4 py-2 rounded-md outline-2 outline-green-400 outline">
         <p className="break-all">

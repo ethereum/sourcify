@@ -3,6 +3,7 @@ import React, {
   ChangeEventHandler,
   FormEventHandler,
   useContext,
+  useRef,
   useState,
 } from "react";
 import Input from "../../../../../components/Input";
@@ -36,6 +37,7 @@ const ChainAddressForm = ({
   const [chainId, setChainId] = useState<string>();
   const [foundMatches, setFoundMatches] = useState<CheckAllByAddressResult>();
   const { sourcifyChains } = useContext(Context);
+  const verifyButtonRef = useRef<HTMLButtonElement>(null);
 
   const handleAddressChange: ChangeEventHandler<HTMLInputElement> = (e) => {
     const tempAddr = e.target.value;
@@ -61,6 +63,7 @@ const ChainAddressForm = ({
   const handleChainIdChange = (newChainId: number) => {
     const newChainIdStr = newChainId.toString();
     setChainId(newChainIdStr);
+    verifyButtonRef.current?.focus();
     console.log(`New id is: ${newChainId}`);
   };
 
@@ -111,6 +114,7 @@ const ChainAddressForm = ({
           />
         </div>
         <button
+          ref={verifyButtonRef}
           type="submit"
           className="mt-4 py-2 px-4 w-full bg-ceruleanBlue-500 hover:bg-ceruleanBlue-130 disabled:hover:bg-ceruleanBlue-500 focus:ring-ceruleanBlue-300 focus:ring-offset-ceruleanBlue-100 text-white transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-default "
           disabled={!address || !chainId || isInvalidAddress}
