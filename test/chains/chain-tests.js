@@ -784,6 +784,23 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
+  // Gather Devnet
+  verifyContract(
+    "0xEeE72e2295E181BaB1ef049bFEAaf5fC348998C5",
+    "486217935",
+    "GTH",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0xE5332e0C5E34187D6030E951Fe791e20864251d4",
+    "486217935",
+    "GTH",
+    ["uint256"],
+    [3000],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
 
   //////////////////////
   // Helper functions //

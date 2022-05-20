@@ -348,4 +348,10 @@ export default {
         "monitored": false,
         "contractFetchAddress": `https://subnet-explorer-api.avax-test.network/v1.1/11111/` + AVALANCHE_SUBNET_SUFFIX,
     },
+    "486217935": { // Gather Devnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://devnet-explorer.gather.network/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
 }
