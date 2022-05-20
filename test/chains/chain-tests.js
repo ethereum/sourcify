@@ -659,18 +659,18 @@ describe("Test Supported Chains", function () {
   );
   // Candle
    verifyContract(
-     "0x6A378398c8073f466A7e8b3e12BbcAaD9AB04511",
+     "0x44C0386c7e79dB5320d491496c52531BE2684F6A",
      "534",
      "Candle Mainnet",
      ["shared/1_Storage.sol"],
      "shared/1_Storage.metadata.json"
    );
    verifyContractWithImmutables(
-     "0x8F7DD12375BffAAc030E16124Fa9Df995d63c050",
+     "0xB1392368b6484Be37c33a0991C70359126F681E4",
      "534",
      "Candle Mainnet",
      ["uint256"],
-     [666],
+     [20],
      ["shared/WithImmutables.sol"],
      "shared/withImmutables.metadata.json"
    );
