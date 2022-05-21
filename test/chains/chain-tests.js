@@ -669,7 +669,7 @@ describe("Test Supported Chains", function () {
       "0x051BE845763C591093d80e86247773c59C3C4035",
       "534",
       "Candle Mainnet",
-      ["uint256"],
+      ["uint256"], 
       [777],
       ["shared/WithImmutables.sol"],
       "shared/withImmutables.metadata.json"
