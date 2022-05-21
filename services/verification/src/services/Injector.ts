@@ -1,10 +1,12 @@
 import Web3 from 'web3';
 import * as bunyan from 'bunyan';
 import { Match, InputData, getSupportedChains, Logger, IFileService, FileService, StringMap, cborDecode, CheckedContract, MatchQuality, Chain, Status, Metadata } from '@ethereum-sourcify/core';
-import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint, getCreationDataFromArchive, getCreationDataByScraping, getCreationDataFromGraphQL, getCreationDataTelos, getCreationDataMeter } from '../utils';
+import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint, getCreationDataFromArchive, getCreationDataByScraping, getCreationDataFromGraphQL, getCreationDataTelos, getCreationDataMeter, getCreationDataAvalancheSubnet } from '../utils';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const multihashes: any = require('multihashes');
 import semverSatisfies from 'semver/functions/satisfies';
+import { create, IPFSHTTPClient, globSource } from 'ipfs-http-client'
+import path from 'path';
 
 export interface InjectorConfig {
     silent?: boolean,
@@ -64,6 +66,7 @@ export class Injector {
     public fileService: IFileService;
     private web3timeout: number;
     repositoryPath: string;
+    private ipfsClient: IPFSHTTPClient;
 
     /**
      * Constructor
@@ -77,6 +80,7 @@ export class Injector {
         this.web3timeout = config.web3timeout || 3000;
 
         this.fileService = config.fileService || new FileService(this.repositoryPath, this.log);
+        this.ipfsClient = process.env.IPFS_API ? create({url: process.env.IPFS_API}) : undefined;
     }
 
     /**
@@ -345,6 +349,20 @@ export class Injector {
             }
         }
 
+        // Avalanche Subnets
+        if (txFetchAddress && ( chain == "11111")) {
+            txFetchAddress = txFetchAddress.replace("${ADDRESS}", contractAddress);
+            for (const web3 of this.chains[chain].web3array) {
+                this.log.info({ loc, chain, contractAddress, fetchAddress: txFetchAddress }, "Querying Avalanche Subnet Explorer API");
+                try {
+                    return await getCreationDataAvalancheSubnet(txFetchAddress, web3);
+                } catch(err: any) {
+                    this.log.error({ loc, chain, contractAddress, err: err.message }, "Avalanche Subnet Explorer API failed!");
+                }
+            }
+
+        }
+
         const graphQLFetchAddress = this.chains[chain].graphQLFetchAddress;
         if (graphQLFetchAddress) { // fetch from graphql node
             for (const web3 of this.chains[chain].web3array) {
@@ -462,6 +480,9 @@ export class Injector {
         // and the sources.
         if (match.address && (match.status === "perfect" || match.status === "partial")) {
             const metadataPath = this.getMetadataPathFromCborEncoded(compilationResult.deployedBytecode, match.address, chain);
+
+            // Saves the metadata file with its ipfs CID under /repository/ipfs/Qmvz....
+            // TODO: Do we need this?
             if (metadataPath) {
                 this.fileService.save(metadataPath, compilationResult.metadata);
                 this.fileService.deletePartial(chain, match.address);
@@ -479,6 +500,10 @@ export class Injector {
 
             if (match.libraryMap && Object.keys(match.libraryMap).length) {
                 this.storeLibraryMap(matchQuality, chain, match.address, match.libraryMap);
+            }
+
+            if (this.ipfsClient) {
+                await this.addToIpfsMfs(matchQuality, chain, match.address);
             }
 
         } else if (match.status === "extra-file-input-bug") {
@@ -613,5 +638,30 @@ export class Injector {
         },
             JSON.stringify(libraryMap, null, indentationSpaces)
         );
+    }
+
+    /**
+     * Adds the verified contract's folder to IPFS via MFS
+     * 
+     * @param matchQuality 
+     * @param chain 
+     * @param address 
+     */
+    private async addToIpfsMfs(matchQuality: MatchQuality, chain: string, address: string) {
+        const contractFolderDir = this.fileService.generateAbsoluteFilePath({matchQuality, chain, address})
+        const ipfsMFSDir = "/" + this.fileService.generateRelativeContractDir({matchQuality, chain, address})
+        const filesAsyncIterable = globSource(contractFolderDir, '**/*');
+        for await (const file of filesAsyncIterable) {
+            if (!file.content) continue; // skip directories
+            const mfsPath = path.join(ipfsMFSDir, file.path);
+            await this.ipfsClient.files.mkdir(path.dirname(mfsPath), { parents: true });
+            // Readstream to Buffers
+            const chunks: Buffer[] = [];
+            for await (const chunk of file.content) {
+                chunks.push(chunk)
+            }
+            const fileBuffer = Buffer.concat(chunks)
+            await this.ipfsClient.files.write(mfsPath, fileBuffer, { create: true }); 
+        }
     }
 }

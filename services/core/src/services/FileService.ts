@@ -12,7 +12,7 @@ type PathConfig = {
     matchQuality: MatchQuality
     chain: string
     address: string
-    fileName: string
+    fileName?: string
     source?: boolean
 };
 
@@ -30,6 +30,9 @@ export interface IFileService {
     getTree(chainId: any, address: string, match: string): Promise<FilesInfo<string>>;
     getContent(chainId: any, address: string, match: string): Promise<FilesInfo<FileObject>>;
     getContracts(chainId: any): Promise<ContractData>;
+    generateAbsoluteFilePath(pathConfig: PathConfig): string;
+    generateRelativeFilePath(pathConfig: PathConfig): string;
+    generateRelativeContractDir(pathConfig: PathConfig): string;
 }
 
 export class FileService implements IFileService {
@@ -113,15 +116,32 @@ export class FileService implements IFileService {
         const contracts = await this.fetchAllContracts(chainId);
         return contracts
     }
-    private generateContractPath(pathConfig: PathConfig) {
+
+
+    // /home/user/sourcify/data/repository/contracts/full_match/5/0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4/sources/filename
+    public generateAbsoluteFilePath(pathConfig: PathConfig) {
         return Path.join(
             this.repositoryPath,
+            this.generateRelativeFilePath(pathConfig)
+        );
+    }
+
+    // contracts/full_match/5/0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4/sources/filename
+    public generateRelativeFilePath(pathConfig: PathConfig) {
+        return Path.join(
+            this.generateRelativeContractDir(pathConfig),
+            pathConfig.source ? "sources" : "",
+            pathConfig.fileName || ""
+        );
+    }
+
+    // contracts/full_match/5/0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4
+    public generateRelativeContractDir(pathConfig: PathConfig) {
+        return Path.join(
             "contracts",
             `${pathConfig.matchQuality}_match`,
             pathConfig.chain,
-            web3.utils.toChecksumAddress(pathConfig.address),
-            pathConfig.source ? "sources" : "",
-            pathConfig.fileName || ""
+            web3.utils.toChecksumAddress(pathConfig.address)
         );
     }
 
@@ -158,7 +178,7 @@ export class FileService implements IFileService {
      * @param repository
      */
     findByAddress(address: string, chain: string): Match[] {
-        const contractPath = this.generateContractPath({
+        const contractPath = this.generateAbsoluteFilePath({
             matchQuality: "full",
             chain,
             address,
@@ -185,14 +205,14 @@ export class FileService implements IFileService {
      * @param repository
      */
     findAllByAddress(address: string, chain: string): Match[] {
-        const fullContractPath = this.generateContractPath({
+        const fullContractPath = this.generateAbsoluteFilePath({
             matchQuality: "full",
             chain,
             address,
             fileName: "metadata.json"
         });
 
-        const partialContractPath = this.generateContractPath({
+        const partialContractPath = this.generateAbsoluteFilePath({
             matchQuality: "partial",
             chain,
             address,
@@ -220,25 +240,24 @@ export class FileService implements IFileService {
      * @param path the path within the repository where the file will be stored
      * @param file the content to be stored
      */
-    save(path: string | PathConfig, file: string): void {
-        const finalPath = (typeof path === "string") ?
-            Path.join(this.repositoryPath, path) : this.generateContractPath(path);
-
-        fs.mkdirSync(Path.dirname(finalPath), { recursive: true });
-        fs.writeFileSync(finalPath, file);
+    save(path: string | PathConfig, file: string) {
+        const abolsutePath = (typeof path === "string") ?
+            Path.join(this.repositoryPath, path) : this.generateAbsoluteFilePath(path);
+        fs.mkdirSync(Path.dirname(abolsutePath), { recursive: true });
+        fs.writeFileSync(abolsutePath, file);
         this.updateRepositoryTag();
     }
 
-    deletePartial(chain: string, address: string): void {
+    deletePartial(chain: string, address: string) {
         const pathConfig: PathConfig = {
             matchQuality: "partial",
             chain,
             address,
             fileName: ""
         };
+        const absolutePath = this.generateAbsoluteFilePath(pathConfig);
 
-        const finalPath = this.generateContractPath(pathConfig);
-        rimraf(finalPath, err => {
+        rimraf(absolutePath, err => {
             if (err) {
                 this.logger.error({
                     loc: "[FILE_SERVICE:DELETE_PARTIAL]",

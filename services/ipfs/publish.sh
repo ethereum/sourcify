@@ -2,6 +2,7 @@
 # Avoid cron job ipfs command not found.
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
+# Update the contract stats.
 date
 echo "Started find in repository for stats"
 REPOSITORY_PATH=/root/.ipfs/repository
@@ -25,37 +26,22 @@ OUTPUT+="}"
 
 echo "Finished find in repo for stats"
 echo $OUTPUT > $REPOSITORY_PATH/stats.json
-
-date
-echo "Starting ipfs add"
-hash=$(ipfs add -Q -r --fscache --nocopy /root/.ipfs/repository/contracts)
-echo "Finished ipfs add! New ipfs hash: $hash"
 date
 
-# As manifest.json frequently changes, it is not possible to add whole /repository with Filestore (i.e. --nocopy).
-# Just add&pin repository/contracts and link the folders full_match, partial_match manually under the MFS (Mutable File System) directory /contracts.
-echo "Linking under /contracts"
-# rm old CIDs from MFS path
-ipfs files rm -r /contracts/full_match
-ipfs files rm -r /contracts/partial_match
-# Link new CIDs
-ipfs files cp -p /ipfs/$hash/full_match /contracts/
-ipfs files cp -p /ipfs/$hash/partial_match /contracts/
-
-# Add manifest and stats to ipfs (without Filestore)
+# Update the new manifest and stats in MFS.
 manifestHash=$(ipfs add -Q /root/.ipfs/repository/manifest.json)
 statsHash=$(ipfs add -Q /root/.ipfs/repository/stats.json)
-# rm old CIDs from MFS path
+# rm old files from MFS 
 ipfs files rm /manifest.json
 ipfs files rm /stats.json
-# Link
+# add new manifest and stats
 ipfs files cp -p /ipfs/$manifestHash /manifest.json
 ipfs files cp -p /ipfs/$statsHash /stats.json
 
-# Get the root hash
+# Publish the new root hash
 rootHash=$(ipfs files stat / | head -n 1)
 
-echo "Publishing hash under ipns key"
+echo "Publishing rootHash $rootHash under ipns key"
 ipfs -D name publish --key=main $rootHash
-echo "Published hash under ipns key"
+echo "Published rootHash $rootHash under ipns key"
 date

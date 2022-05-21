@@ -791,6 +791,15 @@ describe("Test Supported Chains", function () {
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
+  verifyContractWithImmutables(
+    "0x92b7E7Ab420BE84E3A7aE4Fd1d99214138b298Ca",
+    "11111",
+    "WAGMI",
+    ["uint256"],
+    [100000],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
 
   //////////////////////
   // Helper functions //

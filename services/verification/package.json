@@ -32,6 +32,7 @@
   "dependencies": {
     "@ethereum-sourcify/core": "*",
     "bunyan": "^1.8.15",
+    "ipfs-http-client": "^56.0.3",
     "node-fetch": "^2.6.1",
     "promise.any": "^2.0.2",
     "semver": "^7.3.6",

@@ -386,6 +386,20 @@ export async function getCreationDataTelos(fetchAddress: string, web3: Web3): Pr
     throw new Error(`Creation data could not be scraped from ${fetchAddress}`);
 }
 
+export async function getCreationDataAvalancheSubnet(fetchAddress: string, web3: Web3): Promise<string> {
+    const res = await fetch(fetchAddress);
+    if (res.status === StatusCodes.OK) {
+        const response = await res.json();
+        if (response.contract?.creator?.tx) {
+            const txHash = response.contract?.creator?.tx;
+            const tx = await web3.eth.getTransaction(txHash);
+            return tx.input;
+        }
+    }
+
+    throw new Error(`Creation data could not be fetched from ${fetchAddress}`);
+}
+
 export async function getCreationDataMeter(fetchAddress: string, web3: Web3): Promise<string> {
     const res = await fetch(fetchAddress);
     if (res.status === StatusCodes.OK) {

@@ -118,7 +118,7 @@ const MatchStatusBadge = ({ status }: MatchStatusProps) => {
           id="partial-info"
         />
         <span
-          className="text-sm px-3 ml-1 py-1.5 capitalize bg-[#969f19] text-white font-medium rounded-full"
+          className="text-sm px-3 ml-1 py-1.5 capitalize bg-partialMatch-500 text-white font-medium rounded-full"
           data-tip={renderToString(PartialMatchInfoText)}
           data-html={true}
           data-for="partial-info"

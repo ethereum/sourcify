@@ -482,24 +482,6 @@ describe("Server", function () {
         .end((err, res) => assertions(err, res, done));
     });
 
-    it("should verify a contract with immutables on Matic Testnet Mumbai (also with libraries)", (done) => {
-      const address = "0x7c90F0C9Eb46391c93d0545dDF4658d3B8DF1866";
-      const metadataPath = path.join(
-        "test",
-        "sources",
-        "metadata",
-        "with-immutables-and-libraries.meta.object.json"
-      );
-      const metadataBuffer = fs.readFileSync(metadataPath);
-      chai
-        .request(server.app)
-        .post("/")
-        .field("address", address)
-        .field("chain", "80001")
-        .attach("files", metadataBuffer, "metadata.json")
-        .end((err, res) => assertions(err, res, done, address));
-    });
-
     it("should return 'partial', then delete partial when 'full' match", (done) => {
       const partialMetadata = require("./testcontracts/Storage/metadataModified.json");
       const partialMetadataBuffer = Buffer.from(
