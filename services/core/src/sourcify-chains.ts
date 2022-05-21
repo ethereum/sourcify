@@ -139,7 +139,7 @@ export default {
     },
     "534": {
         "supported": true,
-        "monitored": false,
+        "monitored": true,
         "contractFetchAddress": "https://candleexplorer.com/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
