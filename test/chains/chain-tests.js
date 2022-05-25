@@ -817,6 +817,24 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
+  // DFK Chain Testnet
+  verifyContract(
+    "0x276946F2453538E882281d5A36ad6d19BBDfdaA7",
+    "335",
+    "DFK Chain",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x40D843D06dAC98b2586fD1DFC5532145208C909F",
+    "335",
+    "DFK Chain",
+    ["uint256"],
+    [100000],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+  
 
   //////////////////////
   // Helper functions //
