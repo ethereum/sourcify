@@ -657,7 +657,7 @@ describe("Test Supported Chains", function () {
     ["1287/Incrementer.sol"],
     "1287/metadata.json"
   );
-  // chain-tests.js
+  // Candle
   verifyContract(
       "0xaa80bC172F3275B837C0515d3d50AcC4EC0cC96b",
       "534",
