@@ -821,14 +821,14 @@ describe("Test Supported Chains", function () {
   verifyContract(
     "0x276946F2453538E882281d5A36ad6d19BBDfdaA7",
     "335",
-    "DFK Chain",
+    "DFK Chain Testnet",
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
   verifyContractWithImmutables(
     "0x40D843D06dAC98b2586fD1DFC5532145208C909F",
     "335",
-    "DFK Chain",
+    "DFK Chain Testnet",
     ["uint256"],
     [100000],
     ["shared/WithImmutables.sol"],
