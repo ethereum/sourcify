@@ -360,4 +360,9 @@ export default {
         "contractFetchAddress": "https://explorer.gather.network/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
+    "53935": { // WAGMI Testnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": `https://subnet-explorer-api.avax.network/v1.1/53935/` + AVALANCHE_SUBNET_SUFFIX,
+    },
 }
