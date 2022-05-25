@@ -830,7 +830,7 @@ describe("Test Supported Chains", function () {
     "53935",
     "DFK Chain",
     ["uint256"],
-    [100000],
+    [12345],
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
