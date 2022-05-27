@@ -165,9 +165,9 @@ export class Injector {
                 match = await this.compareBytecodes(
                     deployedBytecode, null, recompiled, chain, address
                 );
-            } catch (err) {
+            } catch (err: any) {
                 if (addresses.length === 1) {
-                    match.message = "There were problems during contract verification. Please try again in a minute.";
+                    err?.message ? match.message = err.message : match.message = "There were problems during contract verification. Please try again in a minute.";
                 }
             }
 
@@ -307,11 +307,10 @@ export class Injector {
      */
     private async getCreationData(chain: string, contractAddress: string): Promise<string> {
         const loc = "[GET_CREATION_DATA]";
-        let txFetchAddress = this.chains[chain].contractFetchAddress;
+        const txFetchAddress = this.chains[chain]?.contractFetchAddress.replace("${ADDRESS}", contractAddress);
         const txRegex = this.chains[chain].txRegex;
 
         if (txFetchAddress && txRegex) { // fetch from a block explorer and extract by regex
-            txFetchAddress = txFetchAddress.replace("${ADDRESS}", contractAddress);
             this.log.info({ loc, chain, contractAddress, fetchAddress: txFetchAddress }, "Scraping block explorer");
             for (const web3 of this.chains[chain].web3array) {
                 try {
@@ -324,7 +323,6 @@ export class Injector {
 
         // Telos
         if (txFetchAddress && ( chain == "40" || chain == "41")) {
-            txFetchAddress = txFetchAddress.replace("${ADDRESS}", contractAddress);
             for (const web3 of this.chains[chain].web3array) {
                 this.log.info({ loc, chain, contractAddress, fetchAddress: txFetchAddress }, "Querying Telos API");
                 try {
@@ -338,7 +336,6 @@ export class Injector {
 
         // Meter network
         if (txFetchAddress && (chain == "83" || chain == "82")){
-            txFetchAddress = txFetchAddress.replace("${ADDRESS}", contractAddress);
             for (const web3 of this.chains[chain].web3array){
                 this.log.info({loc, chain, contractAddress, fetchAddress: txFetchAddress}, "Querying Meter API")
                 try{
@@ -350,8 +347,7 @@ export class Injector {
         }
 
         // Avalanche Subnets
-        if (txFetchAddress && ( chain == "11111")) {
-            txFetchAddress = txFetchAddress.replace("${ADDRESS}", contractAddress);
+        if (txFetchAddress && ( ["11111", "335"].includes(chain))) {
             for (const web3 of this.chains[chain].web3array) {
                 this.log.info({ loc, chain, contractAddress, fetchAddress: txFetchAddress }, "Querying Avalanche Subnet Explorer API");
                 try {
@@ -385,7 +381,7 @@ export class Injector {
         //     }
         // }
 
-        const err = "Cannot fetch creation data";
+        const err = `Cannot fetch creation data via ${txFetchAddress} on chainId ${chain} of contract ${contractAddress}`;
         this.log.error({ loc, chain, contractAddress, err });
         throw new Error(err);
     }
