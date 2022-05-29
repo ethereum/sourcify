@@ -360,6 +360,12 @@ export default {
         "contractFetchAddress": "https://explorer.gather.network/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
+    "486217935": { // Gather Devnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://devnet-explorer.gather.network/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
     "335": { // DFK Chain Testnet
         "supported": true,
         "monitored": false,

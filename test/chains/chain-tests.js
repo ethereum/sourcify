@@ -783,62 +783,79 @@ describe("Test Supported Chains", function () {
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
-  // WAGMI Testnet
-  verifyContract(
-    "0x5974BF3196fc03A20cEB196270307707e0158BbD",
-    "11111",
-    "WAGMI",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
-  );
-  verifyContractWithImmutables(
-    "0x92b7E7Ab420BE84E3A7aE4Fd1d99214138b298Ca",
-    "11111",
-    "WAGMI",
-    ["uint256"],
-    [100000],
-    ["shared/WithImmutables.sol"],
-    "shared/withImmutables.metadata.json"
-  );
-  // Gather Mainnet
-  verifyContract(
-    "0x5b470D7B8165D109E3Fd2e2B4E7a30Cb89C051e5",
-    "192837465",
-    "GTH",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
-  );
-  verifyContractWithImmutables(
-    "0xa125948C93bf2cAefdb350e40671b736716144C7",
-    "192837465",
-    "GTH",
-    ["uint256"],
-    [3000],
-    ["shared/WithImmutables.sol"],
-    "shared/withImmutables.metadata.json"
-  );
-  // DFK Chain Testnet
-  verifyContract(
-    "0x276946F2453538E882281d5A36ad6d19BBDfdaA7",
-    "335",
-    "DFK Chain Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
-  );
-  verifyContractWithImmutables(
-    "0x40D843D06dAC98b2586fD1DFC5532145208C909F",
-    "335",
-    "DFK Chain Testnet",
-    ["uint256"],
-    [12345],
-    ["shared/WithImmutables.sol"],
-    "shared/withImmutables.metadata.json"
-  );
-  
+// WAGMI Testnet
+verifyContract(
+  "0x5974BF3196fc03A20cEB196270307707e0158BbD",
+  "11111",
+  "WAGMI",
+  ["shared/1_Storage.sol"],
+  "shared/1_Storage.metadata.json"
+);
+verifyContractWithImmutables(
+  "0x92b7E7Ab420BE84E3A7aE4Fd1d99214138b298Ca",
+  "11111",
+  "WAGMI",
+  ["uint256"],
+  [100000],
+  ["shared/WithImmutables.sol"],
+  "shared/withImmutables.metadata.json"
+);
+// Gather Mainnet
+verifyContract(
+  "0x5b470D7B8165D109E3Fd2e2B4E7a30Cb89C051e5",
+  "192837465",
+  "GTH",
+  ["shared/1_Storage.sol"],
+  "shared/1_Storage.metadata.json"
+);
+verifyContractWithImmutables(
+  "0xa125948C93bf2cAefdb350e40671b736716144C7",
+  "192837465",
+  "GTH",
+  ["uint256"],
+  [3000],
+  ["shared/WithImmutables.sol"],
+  "shared/withImmutables.metadata.json"
+);
+// Gather Devnet
+verifyContract(
+  "0xEeE72e2295E181BaB1ef049bFEAaf5fC348998C5",
+  "486217935",
+  "GTH",
+  ["shared/1_Storage.sol"],
+  "shared/1_Storage.metadata.json"
+);
+verifyContractWithImmutables(
+  "0xE5332e0C5E34187D6030E951Fe791e20864251d4",
+  "486217935",
+  "GTH",
+  ["uint256"],
+  [3000],
+  ["shared/WithImmutables.sol"],
+  "shared/withImmutables.metadata.json"
+);
+// DFK Chain Testnet
+verifyContract(
+  "0x276946F2453538E882281d5A36ad6d19BBDfdaA7",
+  "335",
+  "DFK Chain Testnet",
+  ["shared/1_Storage.sol"],
+  "shared/1_Storage.metadata.json"
+);
+verifyContractWithImmutables(
+  "0x40D843D06dAC98b2586fD1DFC5532145208C909F",
+  "335",
+  "DFK Chain Testnet",
+  ["uint256"],
+  [12345],
+  ["shared/WithImmutables.sol"],
+  "shared/withImmutables.metadata.json"
+);
 
-  //////////////////////
-  // Helper functions //
-  //////////////////////
+
+//////////////////////
+// Helper functions //
+//////////////////////
 
   function verifyContract(
     address,
