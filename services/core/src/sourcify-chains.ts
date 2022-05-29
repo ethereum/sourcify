@@ -137,6 +137,12 @@ export default {
         ],
         "txRegex": ETHERSCAN_REGEX
     },
+    "534": {
+        "supported": true,
+        "monitored": true,
+        "contractFetchAddress": "https://candleexplorer.com/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
     "42220": {
         "supported": true,
         "monitored": false,
@@ -348,10 +354,27 @@ export default {
         "monitored": false,
         "contractFetchAddress": `https://subnet-explorer-api.avax-test.network/v1.1/11111/` + AVALANCHE_SUBNET_SUFFIX,
     },
+    "192837465": { // Gather Mainnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer.gather.network/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "486217935": { // Gather Devnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://devnet-explorer.gather.network/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
     "356256156": { // Gather Testnet
         "supported": true,
         "monitored": false,
         "contractFetchAddress": "https://testnet-explorer.gather.network/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
+    },
+    "335": { // DFK Chain Testnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": `https://subnet-explorer-api.avax-test.network/v1.1/335/` + AVALANCHE_SUBNET_SUFFIX,
     },
 }
