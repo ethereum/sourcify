@@ -19,6 +19,7 @@ import celo from "../../assets/chains/celo.png";
 import ethereum from "../../assets/chains/ethereum.png";
 import optimism from "../../assets/chains/optimism.svg";
 import polygon from "../../assets/chains/polygon.webp";
+import candle from "../../assets/chains/candle.png";
 import xdai from "../../assets/chains/xdai.png";
 import decode from "../../assets/decode.gif";
 import openSourceDecentralized from "../../assets/openSourceDecentralized.svg";
@@ -290,6 +291,12 @@ const LandingPage = () => {
             data-tip="Ethereum"
             className="h-12 md:h-24 transition-opacity mx-4 my-4 "
             alt="Ethereum logo"
+          />
+          <img
+            src={candle}
+            data-tip="Candle"
+            className="h-12 md:h-24 transition-opacity mx-4 my-4"
+            alt="Candle logo"
           />
           <img
             src={arbitrum}
