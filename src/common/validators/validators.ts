@@ -1,4 +1,4 @@
-import { getChainId } from '@ethereum-sourcify/core'
+import { checkChainId } from '@ethereum-sourcify/core'
 import web3 from 'web3';
 
 export function isValidAddress(address: string) {
@@ -7,7 +7,7 @@ export function isValidAddress(address: string) {
 
 export function isValidChain(chain: string): any {
    try {
-      if (getChainId(chain) !== undefined) {
+      if (checkChainId(chain) !== undefined) {
          return true;
       }
    } catch(err: any) { undefined }

@@ -413,7 +413,7 @@ export class Injector {
      */
     private validateChain(chain: string) {
         if (!chain || typeof chain !== 'string') {
-            throw new Error("Missing chain name for submitted sources/metadata");
+            throw new Error("Missing chain for submitted sources/metadata");
         }
     }
 
