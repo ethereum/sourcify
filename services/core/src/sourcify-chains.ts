@@ -9,6 +9,7 @@ const BLOCKSCOUT_REGEX = "transaction_hash_link\" href=\"${BLOCKSCOUT_PREFIX}/tx
 const BLOCKSCOUT_SUFFIX = "address/${ADDRESS}/transactions";
 const TELOS_SUFFIX = "v2/evm/get_contract?contract=${ADDRESS}";
 const METER_SUFFIX="api/accounts/${ADDRESS}"
+const AVALANCHE_SUBNET_SUFFIX='address/${ADDRESS}/contract'
 
 type ChainGroup = "eth" | "polygon" | "arb" | "opt";
 
@@ -135,6 +136,12 @@ export default {
             buildAlchemyURL("mainnet", "polygon")
         ],
         "txRegex": ETHERSCAN_REGEX
+    },
+    "534": {
+        "supported": true,
+        "monitored": true,
+        "contractFetchAddress": "https://candleexplorer.com/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
     },
     "42220": {
         "supported": true,
@@ -345,6 +352,29 @@ export default {
     "11111": { // WAGMI Testnet
         "supported": true,
         "monitored": false,
-        "contractFetchAddress": "https://subnets.avax.network/wagmi/wagmi-chain-testnet/explorer/" + ETHERSCAN_SUFFIX,
+        "contractFetchAddress": `https://subnet-explorer-api.avax-test.network/v1.1/11111/` + AVALANCHE_SUBNET_SUFFIX,
+    },
+    "192837465": { // Gather Mainnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer.gather.network/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "486217935": { // Gather Devnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://devnet-explorer.gather.network/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "356256156": { // Gather Testnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://testnet-explorer.gather.network/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "335": { // DFK Chain Testnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": `https://subnet-explorer-api.avax-test.network/v1.1/335/` + AVALANCHE_SUBNET_SUFFIX,
     },
 }

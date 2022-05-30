@@ -5,7 +5,7 @@ import fetch from 'node-fetch';
 import { InvalidSources, MissingSources } from '..';
 
 const IPFS_PREFIX = "dweb:/ipfs/";
-const IPFS_URL = process.env.IPFS_URL || 'https://ipfs.io/ipfs/';
+const IPFS_GATEWAY = process.env.IPFS_GATEWAY || 'https://ipfs.io/ipfs/';
 const FETCH_TIMEOUT = parseInt(process.env.FETCH_TIMEOUT) || 3000; // ms
 /**
  * Abstraction of a checked solidity contract. With metadata and source (solidity) files.
@@ -175,7 +175,7 @@ export class CheckedContract {
                 for (const url of file.urls) {
                     if (url.startsWith(IPFS_PREFIX)) {
                         const ipfsCode = url.slice(IPFS_PREFIX.length);
-                        const ipfsUrl = IPFS_URL + ipfsCode;
+                        const ipfsUrl = IPFS_GATEWAY + ipfsCode;
                         retrievedContent = await performFetch(ipfsUrl, hash, fileName, log);
                         if (retrievedContent) {
                             break;
