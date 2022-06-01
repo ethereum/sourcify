@@ -69,6 +69,22 @@
       "outputCapture": "std"
     },
     {
+      "type": "node",
+      "request": "launch",
+      "name": "Monitor - without build",
+      "program": "${workspaceFolder}/dist/monitor/monitor.js",
+      "envFile": "${workspaceFolder}/environments/.env",
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js",
+        "${workspaceFolder}/services/core/build/**/*.js",
+        "${workspaceFolder}/services/validation/build/**/*.js",
+        "${workspaceFolder}/services/verification/build/**/*.js"
+      ],
+      "smartStep": true,
+      "console": "integratedTerminal", 
+      "outputCapture": "std"
+    },
+    {
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
       "name": "CLI",

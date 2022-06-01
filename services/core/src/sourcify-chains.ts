@@ -139,7 +139,7 @@ export default {
     },
     "534": {
         "supported": true,
-        "monitored": true,
+        "monitored": false,
         "contractFetchAddress": "https://candleexplorer.com/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
@@ -229,7 +229,7 @@ export default {
     },
     "311752642": {
         "supported": true,
-        "monitored": true,
+        "monitored": false,
         "contractFetchAddress": "https://mainnet-explorer.oneledger.network/" + BLOCKSCOUT_SUFFIX,
         "rpc": [
             "https://mainnet-rpc.oneledger.network"
