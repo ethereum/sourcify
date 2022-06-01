@@ -75,7 +75,7 @@ export async function getBytecode(web3Array: Web3[], address: string): Promise<s
     // Check if the first provider is a local node (using NODE_ADDRESS). If so don't waste Alchemy requests by requesting all RPCs in parallel. 
     // Instead request first the local node and request Alchemy only if it fails.
     const firstProvider = web3Array[0].currentProvider as HttpProvider;
-    if (firstProvider.host.includes(process.env.NODE_ADDRESS)) {
+    if (firstProvider?.host?.includes(process.env.NODE_ADDRESS)) {
         let rejectResponse;
         for (const web3 of web3Array) {
             try {
