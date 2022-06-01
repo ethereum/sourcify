@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { BrowserRouter, HashRouter, Route, Routes } from "react-router-dom";
+import { HashRouter, Route, Routes } from "react-router-dom";
 import { ContextProvider } from "./Context";
 import LandingPage from "./pages/LandingPage";
 import Lookup from "./pages/Lookup";
