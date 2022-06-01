@@ -377,4 +377,10 @@ export default {
         "monitored": false,
         "contractFetchAddress": `https://subnet-explorer-api.avax-test.network/v1.1/335/` + AVALANCHE_SUBNET_SUFFIX,
     },
+    "53935": { // DFK Chain Mainnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": `https://subnet-explorer-api.avax.network/v1.1/53935/` + AVALANCHE_SUBNET_SUFFIX,
+    },
+    
 }
