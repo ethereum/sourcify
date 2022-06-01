@@ -340,12 +340,12 @@ const LandingPage = () => {
             alt="Optimism logo"
           />
           <div className="p-1 h-14 w-14 text-xs md:text-base md:h-24 md:w-24 transition-opacity rounded-full mx-4 my-4 text-ceruleanBlue-400 flex justify-center items-center text-center">
-            <a href={`${DOCS_URL}/docs/networks`}>And many more!</a>
+            <a href={`${DOCS_URL}/docs/chains`}>And many more!</a>
           </div>
         </div>
         <div className="flex justify-center">
           <a
-            href={`${DOCS_URL}/docs/networks`}
+            href={`${DOCS_URL}/docs/chains`}
             // className="underline decoration-lightCoral-500 decoration-2 font-semibold text-ceruleanBlue-500"
             className="link-underline font-semibold text-ceruleanBlue-500"
           >

@@ -11,23 +11,42 @@ const TELOS_SUFFIX = "v2/evm/get_contract?contract=${ADDRESS}";
 const METER_SUFFIX="api/accounts/${ADDRESS}"
 const AVALANCHE_SUBNET_SUFFIX='address/${ADDRESS}/contract'
 
-type ChainGroup = "eth" | "polygon" | "arb" | "opt";
+type ChainName = "eth" | "polygon" | "arb" | "opt";
 
-function buildAlchemyURL(chainName: string, chainGroup: ChainGroup, useOwn=false) {
+/**
+ * 
+ * @param chainName - "eth", "polygon" etc.
+ * @param chainGroup "mainnet", "kovan", "goerli"...
+ * @param useOwn Use the local node
+ * @returns 
+ */
+function buildAlchemyURL(chainSubName: string, chainName: ChainName, useOwn=false) {
     if (useOwn) {
-        const port = process.env[`NODE_PORT_${chainName.toUpperCase()}`];
+        const port = process.env[`NODE_PORT_${chainSubName.toUpperCase()}`];
         const url = `${process.env.NODE_ADDRESS}:${port}`;
         return url;
     }
 
-    const id = process.env["ALCHEMY_ID"];
+    let id;
+    switch (chainName) {
+        case "opt":
+            id = process.env["ALCHEMY_ID_OPTIMISM"];
+            break;
+        case "arb":
+            id = process.env["ALCHEMY_ID_ARBITRUM"];
+            break;
+        default:
+            id = process.env["ALCHEMY_ID"];
+            break;
+    }
+    
     const domain = {
         eth: "alchemyapi.io",
         polygon: "g.alchemy.com",
         arb: "g.alchemy.com",
         opt: "g.alchemy.com"
-    }[chainGroup];
-    return `https://${chainGroup}-${chainName}.${domain}/v2/${id}`;
+    }[chainName];
+    return `https://${chainName}-${chainSubName}.${domain}/v2/${id}`;
 }
 // replaces INFURA_API_KEY in https://networkname.infura.io/v3/{INFURA_API_KEY}
 function replaceInfuraID(infuraURL: string) {
@@ -139,7 +158,7 @@ export default {
     },
     "534": {
         "supported": true,
-        "monitored": true,
+        "monitored": false,
         "contractFetchAddress": "https://candleexplorer.com/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
@@ -229,7 +248,7 @@ export default {
     },
     "311752642": {
         "supported": true,
-        "monitored": true,
+        "monitored": false,
         "contractFetchAddress": "https://mainnet-explorer.oneledger.network/" + BLOCKSCOUT_SUFFIX,
         "rpc": [
             "https://mainnet-rpc.oneledger.network"
@@ -377,4 +396,10 @@ export default {
         "monitored": false,
         "contractFetchAddress": `https://subnet-explorer-api.avax-test.network/v1.1/335/` + AVALANCHE_SUBNET_SUFFIX,
     },
+    "53935": { // DFK Chain Mainnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": `https://subnet-explorer-api.avax.network/v1.1/53935/` + AVALANCHE_SUBNET_SUFFIX,
+    },
+    
 }

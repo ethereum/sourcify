@@ -347,7 +347,7 @@ export class Injector {
         }
 
         // Avalanche Subnets
-        if (txFetchAddress && ( ["11111", "335"].includes(chain))) {
+        if (txFetchAddress && ( ["11111", "335", "53935"].includes(chain))) {
             for (const web3 of this.chains[chain].web3array) {
                 this.log.info({ loc, chain, contractAddress, fetchAddress: txFetchAddress }, "Querying Avalanche Subnet Explorer API");
                 try {
@@ -413,7 +413,7 @@ export class Injector {
      */
     private validateChain(chain: string) {
         if (!chain || typeof chain !== 'string') {
-            throw new Error("Missing chain name for submitted sources/metadata");
+            throw new Error("Missing chain for submitted sources/metadata");
         }
     }
 

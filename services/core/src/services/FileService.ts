@@ -4,7 +4,7 @@ import fs from 'fs';
 import web3 from 'web3';
 import * as bunyan from 'bunyan';
 import { FileObject, Match, Status, Tag, MatchLevel, FilesInfo, MatchQuality, ContractData } from '../utils/types';
-import { getChainId } from '../utils/utils';
+import { checkChainId } from '../utils/utils';
 import { Logger } from '../utils/logger';
 import rimraf from 'rimraf';
 
@@ -44,12 +44,12 @@ export class FileService implements IFileService {
         this.logger = logger || Logger("FileService");
     }
     async getTreeByChainAndAddress(chainId: any, address: string): Promise<string[]> {
-        chainId = getChainId(chainId);
+        chainId = checkChainId(chainId);
         return this.fetchAllFileUrls(chainId, address);
     }
 
     async getByChainAndAddress(chainId: any, address: string): Promise<FileObject[]> {
-        chainId = getChainId(chainId);
+        chainId = checkChainId(chainId);
         return this.fetchAllFileContents(chainId, address);
     }
 
@@ -91,7 +91,7 @@ export class FileService implements IFileService {
     }
     
     getTree = async (chainId: any, address: string, match: MatchLevel): Promise<FilesInfo<string>> => {
-        chainId = getChainId(chainId);
+        chainId = checkChainId(chainId);
         const fullMatchesTree = this.fetchAllFileUrls(chainId, address, "full_match");
         if (fullMatchesTree.length || match === "full_match") {
             return { status: "full", files: fullMatchesTree };
@@ -102,7 +102,7 @@ export class FileService implements IFileService {
     }
 
     getContent = async (chainId: any, address: string, match: MatchLevel): Promise<FilesInfo<FileObject>> => {
-        chainId = getChainId(chainId);
+        chainId = checkChainId(chainId);
         const fullMatchesFiles = this.fetchAllFileContents(chainId, address, "full_match");
         if (fullMatchesFiles.length || match === "full_match") {
             return { status: "full", files: fullMatchesFiles };
