@@ -2,7 +2,7 @@ import { Request, Response, Router } from 'express';
 import BaseController from './BaseController';
 import { IController } from '../../common/interfaces';
 import { IVerificationService } from '@ethereum-sourcify/verification';
-import { InputData, getChainId, Logger, PathBuffer, CheckedContract, isEmpty, PathContent, Match } from '@ethereum-sourcify/core';
+import { InputData, checkChainId, Logger, PathBuffer, CheckedContract, isEmpty, PathContent, Match } from '@ethereum-sourcify/core';
 import { BadRequestError, NotFoundError, PayloadTooLargeError, ValidationError } from '../../common/errors'
 import { IValidationService } from '@ethereum-sourcify/validation';
 import * as bunyan from 'bunyan';
@@ -51,13 +51,17 @@ export default class VerificationController extends BaseController implements IC
         return addressesArray;
     }
 
+    private validateSingleChainId(chainId: string): string {
+        return checkChainId(chainId);
+    }
+
     private validateChainIds(chainIds: string): string[] {
         const chainIdsArray = chainIds.split(",");
         const validChainIds: string[] = [];
         const invalidChainIds: string[] = [];
         for (const chainId of chainIdsArray) {
             try {
-                validChainIds.push(getChainId(chainId));
+                validChainIds.push(checkChainId(chainId));
             } catch (e) {
                 invalidChainIds.push(chainId);
             }
@@ -432,7 +436,7 @@ export default class VerificationController extends BaseController implements IC
         this.router.route(['/', '/verify'])
             .post(
                 body("address").exists().bail().custom((address, { req }) => req.addresses = this.validateAddresses(address)),
-                body("chain").exists().bail().custom((chain, { req }) => req.chain = getChainId(chain)),
+                body("chain").exists().bail().custom((chain, { req }) => req.chain = this.validateSingleChainId(chain)),
                 this.safeHandler(this.legacyVerifyEndpoint)
             );
 

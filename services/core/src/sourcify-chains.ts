@@ -360,9 +360,27 @@ export default {
         "contractFetchAddress": "https://explorer.gather.network/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
+    "486217935": { // Gather Devnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://devnet-explorer.gather.network/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "356256156": { // Gather Testnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://testnet-explorer.gather.network/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "335": { // DFK Chain Testnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": `https://subnet-explorer-api.avax-test.network/v1.1/335/` + AVALANCHE_SUBNET_SUFFIX,
+    },
     "53935": { // DFK Chain Mainnet
         "supported": true,
         "monitored": false,
         "contractFetchAddress": `https://subnet-explorer-api.avax.network/v1.1/53935/` + AVALANCHE_SUBNET_SUFFIX,
     },
+    
 }
