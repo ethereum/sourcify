@@ -26,10 +26,26 @@ if (deploymentChain) {
 const response = spawnSync("curl", args);
 
 const curlOutputRaw = response.stdout.toString();
+console.log("Raw output:");
+console.log(curlOutputRaw);
 assert(curlOutputRaw, `Fetch failed: ${response.stderr.toString()}`);
-const curlJson = JSON.parse(curlOutputRaw);
+let curlJson;
 
-console.log(JSON.stringify(curlJson, null, 2));
+try {
+    curlJson = JSON.parse(curlOutputRaw);
+    console.log(JSON.stringify(curlJson, null, 2));
+} catch (err) {
+    // Workaround when server returns 504 Gateway Timeout nginx. Try again
+    console.error(err);
+    console.log("Failed to parse the server response. Trying again...")
+    const newResponse = spawnSync("curl", args);
+    const newCurlOutputRaw = newResponse.stdout.toString();
+    console.log("Raw output:");
+    console.log(newCurlOutputRaw);
+    assert(newCurlOutputRaw, `Fetch failed: ${newResponse.stderr.toString()}`);
+    curlJson = JSON.parse(newCurlOutputRaw);
+    console.log(JSON.stringify(curlJson, null, 2));
+}
 
 assert(curlJson.result, "No `result` in response");
 const resultArr = curlJson.result;
