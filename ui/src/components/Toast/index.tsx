@@ -1,7 +1,8 @@
+import { ReactElement } from "react";
 import { HiX } from "react-icons/hi";
 
 type ToastProps = {
-  message: string;
+  message: string | ReactElement;
   isShown: boolean;
   dismiss: () => void;
 };
