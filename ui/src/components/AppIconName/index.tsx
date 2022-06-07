@@ -11,8 +11,6 @@ const AppIconName = ({ img, name, href, rounded, Svg }: AppIconNameProps) => {
   return (
     <a
       href={href}
-      target="_blank"
-      rel="noreferrer"
       className="flex flex-col mx-6 my-2 hover:text-ceruleanBlue-500"
     >
       {img && (

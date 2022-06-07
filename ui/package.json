@@ -1,5 +1,5 @@
 {
-  "name": "ui-new",
+  "name": "sourcify-ui",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -62,5 +62,6 @@
     "autoprefixer": "^10.4.0",
     "postcss": "^8.4.5",
     "tailwindcss": "^3.0.3"
-  }
+  },
+  "homepage": "./"
 }

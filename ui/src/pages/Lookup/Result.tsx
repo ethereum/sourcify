@@ -65,8 +65,6 @@ const PerfectMatchInfoText = (
     <a
       href="https://docs.sourcify.dev/docs/full-vs-partial-match"
       className="underline cursor"
-      target="_blank"
-      rel="noreferrer"
     >
       docs
     </a>{" "}
@@ -81,8 +79,6 @@ const PartialMatchInfoText = (
     <a
       href="https://docs.sourcify.dev/docs/full-vs-partial-match"
       className="underline cursor"
-      target="_blank"
-      rel="noreferrer"
     >
       docs
     </a>{" "}
@@ -122,7 +118,7 @@ const MatchStatusBadge = ({ status }: MatchStatusProps) => {
           id="partial-info"
         />
         <span
-          className="text-sm px-3 ml-1 py-1.5 capitalize bg-[#969f19] text-white font-medium rounded-full"
+          className="text-sm px-3 ml-1 py-1.5 capitalize bg-partialMatch-500 text-white font-medium rounded-full"
           data-tip={renderToString(PartialMatchInfoText)}
           data-html={true}
           data-for="partial-info"
@@ -156,8 +152,6 @@ const NetworkRow = ({ address, chainId, status }: NetworkRowProp) => {
         <a
           className="underline"
           href={generateUrl(URL_TYPE.REPO, chainId, address, status)}
-          target="_blank"
-          rel="noreferrer"
         >
           View in Sourcify Repository
         </a>
@@ -166,8 +160,6 @@ const NetworkRow = ({ address, chainId, status }: NetworkRowProp) => {
         <a
           className="underline"
           href={generateUrl(URL_TYPE.REMIX, chainId, address, status)}
-          target="_blank"
-          rel="noreferrer"
         >
           View in Remix
         </a>
@@ -183,8 +175,6 @@ const InfoText = (
     <a
       href="https://docs.sourcify.dev/docs/full-vs-partial-match"
       className="underline cursor"
-      target="_blank"
-      rel="noreferrer"
     >
       docs
     </a>{" "}

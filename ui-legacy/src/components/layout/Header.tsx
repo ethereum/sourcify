@@ -9,16 +9,13 @@ const Header: React.FC = () => {
                 <img src="../../../logo.svg" alt="logo"/>
             </a>
             <div className="header__social-icons">
-                <a href={TWITTER_URL} target="_blank"
-                   rel="noopener noreferrer">
+                <a href={TWITTER_URL}>
                     <TwitterIcon/>
                 </a>
-                <a href={GITHUB_URL} target="_blank"
-                   rel="noopener noreferrer">
+                <a href={GITHUB_URL}>
                     <GithubIcon/>
                 </a>
-                <a href={GITTER_URL} target="_blank"
-                   rel="noopener noreferrer">
+                <a href={GITTER_URL}>
                     <GitterIconOutlined/>
                 </a>
             </div>

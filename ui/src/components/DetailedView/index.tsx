@@ -15,7 +15,6 @@ const DetailedView = ({
 }: DetailedViewProps) => {
   // const { files, address, storageTimestamp, name, compiledPath } =
   const { files, name, compiledPath } = checkedContract;
-  console.log(files);
   const foundCount = files.found.length;
   const missingCount = Object.keys(files.missing).length;
   const invalidCount = Object.keys(files.invalid).length;

@@ -12,7 +12,7 @@ describe("Source Fetcher", function () {
   beforeEach(() => {});
 
   it("should fetch metadata from IPFS", (done) => {
-    process.env.IPFS_URL = "http://ipfs.io/ipfs/";
+    process.env.IPFS_GATEWAY = "http://ipfs.io/ipfs/";
     sourceFetcher = new SourceFetcher();
     sourceAddress = new SourceAddress("ipfs", METADATA_HASH);
     sourceFetcher.subscribe(sourceAddress, (fetchedFileStr) => {
@@ -23,13 +23,13 @@ describe("Source Fetcher", function () {
   });
 
   it("should use the fallback IPFS gateway when primary fails", (done) => {
-    process.env.IPFS_URL = "http://testinginvalidgatewaydomain/";
+    process.env.IPFS_GATEWAY = "http://testinginvalidgatewaydomain/";
     sourceFetcher = new SourceFetcher();
     sourceAddress = new SourceAddress("ipfs", METADATA_HASH);
     sourceFetcher.subscribe(sourceAddress, (fetchedFileStr) => {
       const jsonFile = JSON.parse(fetchedFileStr);
       console.log(jsonFile.settings.compilationTarget);
-      process.env.IPFS_URL = "http://ipfs.io/ipfs/"; // Set back to correct value
+      process.env.IPFS_GATEWAY = "http://ipfs.io/ipfs/"; // Set back to correct value
       done();
     });
   });

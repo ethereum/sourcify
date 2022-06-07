@@ -657,7 +657,23 @@ describe("Test Supported Chains", function () {
     ["1287/Incrementer.sol"],
     "1287/metadata.json"
   );
-
+  // Candle
+  verifyContract(
+      "0xaa80bC172F3275B837C0515d3d50AcC4EC0cC96b",
+      "534",
+      "Candle Mainnet",
+      ["shared/1_Storage.sol"],
+      "shared/1_Storage.metadata.json"
+    );
+    verifyContractWithImmutables(
+      "0xB1392368b6484Be37c33a0991C70359126F681E4",
+      "534",
+      "Candle Mainnet",
+      ["uint256"],
+      [20],
+      ["shared/WithImmutables.sol"],
+      "shared/withImmutables.metadata.json"
+    );
   // Palm
   verifyContract(
     "0xd46fd24ea21F04459407Fb0B518451e54d0b07a1",
@@ -725,9 +741,155 @@ describe("Test Supported Chains", function () {
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
-  //////////////////////
-  // Helper functions //
-  //////////////////////
+  // Evmos Testnet
+    verifyContract(
+    "0x07Eb2490cEfc74bAEb4B13c2dB9119CA0c38959B",
+    "9000",
+    "Evmos Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x697633A48F5832481f570CA6b11d793A5708bA9A",
+    "9000",
+    "Evmos Testnet",
+    ["uint256"],
+    [3000],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+  // Evmos Mainnet
+  verifyContract(
+    "0x1d897A65A4fa98BBdfc2e94ad2357cE051Bf4a21",
+    "9001",
+    "Evmos Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x886035409BCDc11c9824D065143FB5ce981a011a",
+    "9001",
+    "Evmos Mainnet",
+    ["uint256"],
+    [3000],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+  // MultiVAC Mainnet
+  verifyContract(
+    "0x411925A3B2Ed99cD29DF76822D6419163d80858f",
+    "62621",
+    "MultiVAC Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  // WAGMI Testnet
+  verifyContract(
+    "0x5974BF3196fc03A20cEB196270307707e0158BbD",
+    "11111",
+    "WAGMI",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x92b7E7Ab420BE84E3A7aE4Fd1d99214138b298Ca",
+    "11111",
+    "WAGMI",
+    ["uint256"],
+    [100000],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+  // Gather Mainnet
+  verifyContract(
+    "0x5b470D7B8165D109E3Fd2e2B4E7a30Cb89C051e5",
+    "192837465",
+    "GTH",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0xa125948C93bf2cAefdb350e40671b736716144C7",
+    "192837465",
+    "GTH",
+    ["uint256"],
+    [3000],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+  // Gather Testnet
+  verifyContract(
+    "0x08Da5501c22AE1ce2621724Ca1A03383d6C12c4d",
+    "356256156",
+    "GTH",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x83BF67FcD75Da06d8914725cd57116a347a63Cf4",
+    "356256156",
+    "GTH",
+    ["uint256"],
+    [3000],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+  // Gather Devnet
+  verifyContract(
+    "0xEeE72e2295E181BaB1ef049bFEAaf5fC348998C5",
+    "486217935",
+    "GTH",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0xE5332e0C5E34187D6030E951Fe791e20864251d4",
+    "486217935",
+    "GTH",
+    ["uint256"],
+    [3000],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+  // DFK Chain Testnet
+  verifyContract(
+    "0x276946F2453538E882281d5A36ad6d19BBDfdaA7",
+    "335",
+    "DFK Chain Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x40D843D06dAC98b2586fD1DFC5532145208C909F",
+    "335",
+    "DFK Chain Testnet",
+    ["uint256"],
+    [12345],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+  // DFK Chain Mainnet
+  verifyContract(
+    "0xB98EBF39148D39536C7f312E059990Dc59Aa26B5",
+    "53935",
+    "DFK Chain",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x0185447543C4284e362F1dc4B21569Fe75cD4c2A",
+    "53935",
+    "DFK Chain",
+    ["uint256"],
+    [12345],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+  
+
+//////////////////////
+// Helper functions //
+//////////////////////
 
   function verifyContract(
     address,

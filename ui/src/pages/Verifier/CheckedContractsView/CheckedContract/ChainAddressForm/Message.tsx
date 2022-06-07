@@ -32,10 +32,8 @@ const RepoLinks = ({ chainIds, status, address }: RepoLinkProps) => {
             {i > 0 && ", "}
             <a
               href={generateRepoLink(chainId, address, status)}
-              target="_blank"
               className="underline"
               key={`${address}-${chainId}-repo-link`}
-              rel="noreferrer"
             >
               {sourcifyChainMap[parseInt(chainId)].title ||
                 sourcifyChainMap[parseInt(chainId)].name}
@@ -53,14 +51,30 @@ const Message = ({
 }: MessageProps) => {
   const { sourcifyChainMap } = useContext(Context);
   const chain = sourcifyChainMap[parseInt(checkedContract.chainId as string)];
+  const bgColor =
+    customStatus === "perfect" ? "bg-green-100" : "bg-partialMatch-100";
+  const outlineColor =
+    customStatus === "perfect"
+      ? "outline-green-400"
+      : "outline-partialMatch-400";
+  const textColor =
+    customStatus === "perfect" ? "text-green-500" : "text-partialMatch-500";
+  const darkTextColor =
+    customStatus === "perfect" ? "text-green-700" : "text-partialMatch-700";
   // Show success after successfull verification
-  if (customStatus === "perfect" || customStatus === "partial") {
+  if (chain && (customStatus === "perfect" || customStatus === "partial")) {
     return (
-      <div className="bg-green-100 px-4 py-2 rounded-md outline-2 outline-green-400 outline">
+      <div
+        className={`${bgColor} px-4 py-2 rounded-md outline-2 ${outlineColor} outline`}
+      >
         <p className="break-all">
-          <HiCheck className="text-green-500 inline mr-1 align-middle" />
-          Verification successful! {customStatus}ly verified at{" "}
-          <b>{chain.title || chain.name}</b>:{checkedContract.address}
+          <HiCheck className={`${textColor} inline mr-1 align-middle`} />
+          Verification successful!{" "}
+          <span className={`${darkTextColor} font-bold`}>
+            {customStatus}ly
+          </span>{" "}
+          verified at <b>{chain.title || chain.name}</b>:
+          {checkedContract.address}
         </p>
       </div>
     );

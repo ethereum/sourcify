@@ -55,8 +55,6 @@ const ResourceListItem = ({ children, href, date }: ResourceListItemProps) => (
   <li>
     <a
       href={href}
-      target="_blank"
-      rel="noreferrer"
       className="colored-bullet text-gray-600 hover:text-ceruleanBlue-500"
     >
       <span className="link-underline">{children}</span>{" "}
@@ -69,7 +67,7 @@ type FooterItemProps = {
   children: string;
 };
 const FooterItem = ({ href, children }: FooterItemProps) => (
-  <a href={href} target="_blank" rel="noreferrer">
+  <a href={href}>
     <li className="text-ceruleanBlue-300 hover:text-ceruleanBlue-100">
       {children}
     </li>
@@ -77,12 +75,7 @@ const FooterItem = ({ href, children }: FooterItemProps) => (
 );
 
 const A = ({ href, children }: FooterItemProps) => (
-  <a
-    href={href}
-    target="_blank"
-    rel="noreferrer"
-    className="text-ceruleanBlue-500 link-underline"
-  >
+  <a href={href} className="text-ceruleanBlue-500 link-underline">
     {children}
   </a>
 );
@@ -167,8 +160,6 @@ const LandingPage = () => {
                   <a
                     href={`${REPOSITORY_URL_FULL_MATCH}/5/0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4`}
                     className="link-underline break-all"
-                    target="_blank"
-                    rel="noreferrer"
                   >
                     <b>Ethereum Görli</b> <br />
                     0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4
@@ -349,20 +340,12 @@ const LandingPage = () => {
             alt="Optimism logo"
           />
           <div className="p-1 h-14 w-14 text-xs md:text-base md:h-24 md:w-24 transition-opacity rounded-full mx-4 my-4 text-ceruleanBlue-400 flex justify-center items-center text-center">
-            <a
-              href={`${DOCS_URL}/docs/networks`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              And many more!
-            </a>
+            <a href={`${DOCS_URL}/docs/chains`}>And many more!</a>
           </div>
         </div>
         <div className="flex justify-center">
           <a
-            href={`${DOCS_URL}/docs/networks`}
-            target="_blank"
-            rel="noreferrer"
+            href={`${DOCS_URL}/docs/chains`}
             // className="underline decoration-lightCoral-500 decoration-2 font-semibold text-ceruleanBlue-500"
             className="link-underline font-semibold text-ceruleanBlue-500"
           >
@@ -393,14 +376,10 @@ const LandingPage = () => {
             Want to integrate Sourcify into your project?
           </h3>
           <div className="flex justify-center">
-            <a href={DOCS_URL} target="_blank" rel="noreferrer">
+            <a href={DOCS_URL}>
               <Button>Check Docs</Button>
             </a>
-            <a
-              href="https://gitter.im/ethereum/source-verify"
-              target="_blank"
-              rel="noreferrer"
-            >
+            <a href="https://gitter.im/ethereum/source-verify">
               <Button type="secondary" className="ml-4">
                 Get in touch
               </Button>

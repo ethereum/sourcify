@@ -24,6 +24,11 @@ const TEST_CHAINS: Chain[] = [{
 }];
 
 const chainMap: ChainMap = {};
+let chainArray: Chain[] = [];
+let supportedChainArray: Chain[] = [];
+let monitoredChainArray: Chain[] = [];
+
+
 // Add test chains too if testing
 if (process.env.TESTING == "true") {
     for (const chain of TEST_CHAINS) {
@@ -31,6 +36,8 @@ if (process.env.TESTING == "true") {
     }
 }
 
+// iterate over chainid.network's chains.json file and get the chains included in sourcify.
+// Merge the chains.json object with the values from sourcify-chains.ts
 for (const i in chains) {
     const chain = chains[i];
     const chainId = chain.chainId;
@@ -42,45 +49,39 @@ for (const i in chains) {
     if (chainId in sourcifyChains) {
         const sourcifyData = sourcifyChains[chainId];
         Object.assign(chain, sourcifyData);
+        chainMap[chainId] = chain;
     }
-
-    chainMap[chainId] = chain;
 }
 
-function filter(obj: ChainMap, predicate: ((c: any) => boolean)): Chain[] {
-    const arr = [];
-    for (const id in obj) {
-        const value = obj[id];
-        if (predicate(value)) {
-            arr.push(value);
-        }
-    }
-    return arr;
-}
+chainArray = getSortedChainsArray(chainMap);
+supportedChainArray = chainArray.filter(chain => chain.supported);
+monitoredChainArray = chainArray.filter(chain => chain.monitored);
 
-export function getSourcifyChains(): Chain[] {
-    const chainsArray = filter(chainMap, c => c.supported !== undefined);
-    const idToChain = (id: number) => {
-        return chainsArray.find((chain) => chain.chainId == id);
-    };
+// Gets the chainsMap, sorts the chains, returns Chain array.
+export function getSortedChainsArray(chainMap: ChainMap): Chain[] {
+    const chainsArray = Object.values(chainMap);
     // Have Ethereum chains on top.
     const ethereumChainIds = [1, 3, 4, 5, 42, 11155111];
-    const etherumChains = ethereumChainIds.map((id) => idToChain(id));
+    const etherumChains = ethereumChainIds.map((id) => chainMap[id]);
     // Others, sorted alphabetically
     const otherChains = chainsArray
         .filter((chain) => ![1, 3, 4, 5, 42, 11155111].includes(chain.chainId))
         .sort((a, b) => (a.name > b.name ? 1 : b.name > a.name ? -1 : 0));
 
-    const sourcifyChainsSorted = etherumChains.concat(otherChains);
-    return sourcifyChainsSorted;
+    const sortedChains = etherumChains.concat(otherChains);
+    return sortedChains;
+}
+
+export function getSourcifyChains(): Chain[] {
+    return chainArray;
 }
 
 export function getSupportedChains(): Chain[] {
-    return filter(chainMap, c => c.supported);
+    return supportedChainArray;
 }
 
 export function getMonitoredChains(): Chain[] {
-    return filter(chainMap, c => c.monitored);
+    return monitoredChainArray;
 }
 
 export function getTestChains(): Chain[] {
@@ -88,15 +89,15 @@ export function getTestChains(): Chain[] {
 }
 
 /**
- * Checks whether the provided chain identifier is a legal chainId.
+ * Checks whether the provided chain identifier is a legal chainId and is supported.
  * Throws if not.
  * 
  * @returns the same provided chainId if valid
  * @throws Error if not a valid chainId
  * @param chain chain
  */
-export function getChainId(chain: string): string {
-    if (!(chain in chainMap)) {
+export function checkChainId(chain: string): string {
+    if (!(chain in chainMap && chainMap[chain].supported)) {
         throw new Error(`Chain ${chain} not supported!`);
     }
 

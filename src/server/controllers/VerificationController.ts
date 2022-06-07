@@ -2,7 +2,7 @@ import { Request, Response, Router } from 'express';
 import BaseController from './BaseController';
 import { IController } from '../../common/interfaces';
 import { IVerificationService } from '@ethereum-sourcify/verification';
-import { InputData, getChainId, Logger, PathBuffer, CheckedContract, isEmpty, PathContent, Match } from '@ethereum-sourcify/core';
+import { InputData, checkChainId, Logger, PathBuffer, CheckedContract, isEmpty, PathContent, Match } from '@ethereum-sourcify/core';
 import { BadRequestError, NotFoundError, PayloadTooLargeError, ValidationError } from '../../common/errors'
 import { IValidationService } from '@ethereum-sourcify/validation';
 import * as bunyan from 'bunyan';
@@ -51,13 +51,17 @@ export default class VerificationController extends BaseController implements IC
         return addressesArray;
     }
 
+    private validateSingleChainId(chainId: string): string {
+        return checkChainId(chainId);
+    }
+
     private validateChainIds(chainIds: string): string[] {
         const chainIdsArray = chainIds.split(",");
         const validChainIds: string[] = [];
         const invalidChainIds: string[] = [];
         for (const chainId of chainIdsArray) {
             try {
-                validChainIds.push(getChainId(chainId));
+                validChainIds.push(checkChainId(chainId));
             } catch (e) {
                 invalidChainIds.push(chainId);
             }
@@ -122,9 +126,8 @@ export default class VerificationController extends BaseController implements IC
             const result = await this.verificationService.inject(inputData);
             // Send to verification again with all source files.
             if (result.status === "extra-file-input-bug") {
-                const pathContentInputFiles = inputFiles.map(pathBuffer => ({ content: pathBuffer.buffer.toString(), path: pathBuffer.path }));
-                const contractWithAllSources = this.validationService.useAllSources(contract, pathContentInputFiles);
-                const tempResult = await this.verificationService.inject({ contract: contractWithAllSources, ...inputData });
+                const contractWithAllSources = this.validationService.useAllSources(contract, inputFiles);
+                const tempResult = await this.verificationService.inject({ ...inputData, contract: contractWithAllSources });
                 if (tempResult.status === "perfect") {
                     res.send({result: [tempResult]})
                 }
@@ -279,8 +282,8 @@ export default class VerificationController extends BaseController implements IC
                     // Send to verification again with all source files.
                     if (match.status === "extra-file-input-bug") {
                         // Session inputFiles are encoded base64. Why?
-                        const decodedInputFiles = Object.values(session.inputFiles).map(base64file => ({path: base64file.path, content: Buffer.from(base64file.content, FILE_ENCODING).toString()}));
-                        const contractWithAllSources = this.validationService.useAllSources(contractWrapper.contract, decodedInputFiles);
+                        const pathBufferInputFiles: PathBuffer[] = Object.values(session.inputFiles).map(base64file => ({path: base64file.path, buffer: Buffer.from(base64file.content, FILE_ENCODING)}));
+                        const contractWithAllSources = this.validationService.useAllSources(contractWrapper.contract, pathBufferInputFiles);
                         const tempMatch = await this.verificationService.inject({...inputData, contract: contractWithAllSources });
                         if (tempMatch.status === "perfect" || tempMatch.status === "partial") {
                             match = tempMatch;
@@ -433,7 +436,7 @@ export default class VerificationController extends BaseController implements IC
         this.router.route(['/', '/verify'])
             .post(
                 body("address").exists().bail().custom((address, { req }) => req.addresses = this.validateAddresses(address)),
-                body("chain").exists().bail().custom((chain, { req }) => req.chain = getChainId(chain)),
+                body("chain").exists().bail().custom((chain, { req }) => req.chain = this.validateSingleChainId(chain)),
                 this.safeHandler(this.legacyVerifyEndpoint)
             );
 

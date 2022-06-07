@@ -9,24 +9,44 @@ const BLOCKSCOUT_REGEX = "transaction_hash_link\" href=\"${BLOCKSCOUT_PREFIX}/tx
 const BLOCKSCOUT_SUFFIX = "address/${ADDRESS}/transactions";
 const TELOS_SUFFIX = "v2/evm/get_contract?contract=${ADDRESS}";
 const METER_SUFFIX="api/accounts/${ADDRESS}"
+const AVALANCHE_SUBNET_SUFFIX='address/${ADDRESS}/contract'
 
-type ChainGroup = "eth" | "polygon" | "arb" | "opt";
+type ChainName = "eth" | "polygon" | "arb" | "opt";
 
-function buildAlchemyURL(chainName: string, chainGroup: ChainGroup, useOwn=false) {
+/**
+ * 
+ * @param chainName - "eth", "polygon" etc.
+ * @param chainGroup "mainnet", "kovan", "goerli"...
+ * @param useOwn Use the local node
+ * @returns 
+ */
+function buildAlchemyURL(chainSubName: string, chainName: ChainName, useOwn=false) {
     if (useOwn) {
-        const port = process.env[`NODE_PORT_${chainName.toUpperCase()}`];
+        const port = process.env[`NODE_PORT_${chainSubName.toUpperCase()}`];
         const url = `${process.env.NODE_ADDRESS}:${port}`;
         return url;
     }
 
-    const id = process.env["ALCHEMY_ID"];
+    let id;
+    switch (chainName) {
+        case "opt":
+            id = process.env["ALCHEMY_ID_OPTIMISM"];
+            break;
+        case "arb":
+            id = process.env["ALCHEMY_ID_ARBITRUM"];
+            break;
+        default:
+            id = process.env["ALCHEMY_ID"];
+            break;
+    }
+    
     const domain = {
         eth: "alchemyapi.io",
         polygon: "g.alchemy.com",
         arb: "g.alchemy.com",
         opt: "g.alchemy.com"
-    }[chainGroup];
-    return `https://${chainGroup}-${chainName}.${domain}/v2/${id}`;
+    }[chainName];
+    return `https://${chainName}-${chainSubName}.${domain}/v2/${id}`;
 }
 // replaces INFURA_API_KEY in https://networkname.infura.io/v3/{INFURA_API_KEY}
 function replaceInfuraID(infuraURL: string) {
@@ -136,6 +156,12 @@ export default {
         ],
         "txRegex": ETHERSCAN_REGEX
     },
+    "534": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://candleexplorer.com/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
     "42220": {
         "supported": true,
         "monitored": false,
@@ -222,7 +248,7 @@ export default {
     },
     "311752642": {
         "supported": true,
-        "monitored": true,
+        "monitored": false,
         "contractFetchAddress": "https://mainnet-explorer.oneledger.network/" + BLOCKSCOUT_SUFFIX,
         "rpc": [
             "https://mainnet-rpc.oneledger.network"
@@ -322,5 +348,58 @@ export default {
     "44": { // Darwinia Crab Mainnet
         "supported": true,
         "monitored": false,
-    }
+    },
+    "9000": { // Evmos Testnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://evm.evmos.dev/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "9001": { // Evmos Mainnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://evm.evmos.org/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "62621": { // MultiVAC Mainnet
+        "supported": true,
+        "monitored": false,
+        "rpc": [
+            "https://rpc.mtv.ac"
+        ]
+    },
+    "11111": { // WAGMI Testnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": `https://subnet-explorer-api.avax-test.network/v1.1/11111/` + AVALANCHE_SUBNET_SUFFIX,
+    },
+    "192837465": { // Gather Mainnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer.gather.network/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "486217935": { // Gather Devnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://devnet-explorer.gather.network/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "356256156": { // Gather Testnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://testnet-explorer.gather.network/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "335": { // DFK Chain Testnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": `https://subnet-explorer-api.avax-test.network/v1.1/335/` + AVALANCHE_SUBNET_SUFFIX,
+    },
+    "53935": { // DFK Chain Mainnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": `https://subnet-explorer-api.avax.network/v1.1/53935/` + AVALANCHE_SUBNET_SUFFIX,
+    },
+    
 }
