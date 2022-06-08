@@ -48,7 +48,22 @@ export class Server {
     );
     this.app.get('/health', (_req, res) => res.status(200).send('Alive and kicking!'))
     this.app.get('/chains', (_req, res) => {
-      const sourcifyChains = getSourcifyChains();
+      const sourcifyChains = getSourcifyChains().map(({rpc, ...rest}) => {
+        // Don't show Alchemy & Infura IDs
+        rpc = rpc.map(url => {
+          if (url.includes("alchemy"))
+            return url.replace(/\/[^/]*$/, '/{ALCHEMY_ID}')
+          else if (url.includes("infura"))
+            return url.replace(/\/[^/]*$/, '/{INFURA_ID}')
+          else 
+            return url
+        })
+        return {
+          ...rest,
+          rpc
+        }
+      }); 
+
       res.status(200).json(sourcifyChains)
     })
     this.app.use('/repository', express.static(this.repository), serveIndex(this.repository, {'icons': true}))
