@@ -885,6 +885,23 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
+  // Energy Web Volta Testnet
+  verifyContract(
+    "0x4667b7ce62e56B71146885555c68d2DDdf63349A",
+    "73799",
+    "Energy Web Volta Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x2EF8DafA9640cfe902B1229DE63F308E24c59EF7",
+    "73799",
+    "Energy Web Volta Testnet",
+    ["uint256"],
+    [4],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
   
 
 //////////////////////

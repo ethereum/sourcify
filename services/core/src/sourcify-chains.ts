@@ -401,5 +401,11 @@ export default {
         "monitored": false,
         "contractFetchAddress": `https://subnet-explorer-api.avax.network/v1.1/53935/` + AVALANCHE_SUBNET_SUFFIX,
     },
+    "73799": { // Energy Web Volta Testnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://volta-explorer.energyweb.org/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
     
 }
