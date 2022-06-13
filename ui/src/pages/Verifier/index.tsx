@@ -12,7 +12,7 @@ import { Context } from "../../Context";
 import {
   DropzoneFile,
   IGenericError,
-  IResponseError,
+  // IResponseError,
   SendableContract,
   SessionResponse,
   VerificationInput,
