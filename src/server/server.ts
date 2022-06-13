@@ -42,7 +42,7 @@ export class Server {
       cors({
         origin: '*',
         // Allow follow-up middleware to override this CORS for options. 
-        // v2 API endpoints require non "*" origins because of the session cookies.
+        // v2 API endpoints require non "*" origins because of the session cookies
         preflightContinue: true,
       })
     );

@@ -1,291 +1,35 @@
-aliases:
-  - &docker-base
-    docker:
-      - image: cimg/base:2021.04
-    steps:
-      - checkout
-      - run:
-          name: "Pull Submodules"
-          command: |
-            git submodule init
-            git submodule update --remote
-      - setup_remote_docker:
-          version: 20.10.2
-      - run:
-          name: Build and push docker images
-          command: |
-            ./scripts/build_and_publish_docker_images.sh
-  - &filter-base
-    filters:
-      branches:
-        only:
-          - staging
-          - master
-  - &node-base
-    working_directory: ~/source-verify
-    parameters:
-      run_coveralls:
-        type: boolean
-        default: false
-    steps:
-      - run:
-          name: Versions
-          command: npm version
-      - checkout
-      - run:
-          name: install dependencies
-          command: npx lerna bootstrap
-      - run:
-          name: lint
-          command: npm run lint
-      - run:
-          name: tsc and test
-          command: npx lerna run build && npx lerna run test --stream
-  - &monitor-e2e-base
-    working_directory: ~/source-verify
-    steps:
-      - checkout
-      - run:
-          name: install node-fetch dotenv
-          command: npm install node-fetch dotenv
-      - run:
-          name: monitor test
-          command: ./scripts/monitor_ci.sh
-          no_output_timeout: 30m
-    docker:
-      - image: cimg/node:16.15
-  - &verification-e2e-base
-    working_directory: ~/source-verify
-    steps:
-      - checkout
-      - run:
-          name: install dotenv
-          command: npm install dotenv
-      - run:
-          name: verification test
-          command: ./scripts/verification-e2e.sh
-    docker:
-      - image: cimg/node:16.15
+# Config that filters the build jobs: only run new builds for the paths that are changed.
+# Runs the continue_config.yml subsequently.
+version: 2.1
 
-version: 2
+# this allows you to use CircleCI's dynamic configuration feature
+setup: true
+
+# the path-filtering orb is required to continue a pipeline based on
+# the path of an updated fileset see https://circleci.com/docs/2.0/using-dynamic-configuration/
+orbs:
+  path-filtering: circleci/path-filtering@0.1.1
+
 workflows:
-  version: 2
-  build_publish_deploy_docker:
+  filter-builds:
     jobs:
-      - build-push-ipfs:
-          <<: *filter-base
-      - build-push-monitor:
-          <<: *filter-base
-      - build-push-repository:
-          <<: *filter-base
-      - build-push-s3:
-          <<: *filter-base
-      - build-push-server:
-          <<: *filter-base
-      - build-push-ui:
-          <<: *filter-base
-      - build-push-ui-legacy:
-          filters:
-            branches:
-              only:
-                - master
-      - deploy:
-          <<: *filter-base
-          requires:
-            - build-push-ipfs
-            - build-push-monitor
-            - build-push-repository
-            - build-push-s3
-            - build-push-server
-            - build-push-ui
-            - build-push-ui-legacy
-      - monitor-e2e-ropsten:
-          <<: *filter-base
-          requires:
-            - deploy
-      - monitor-e2e-rinkeby:
-          <<: *filter-base
-          requires:
-            - deploy
-      - monitor-e2e-goerli:
-          <<: *filter-base
-          requires:
-            - deploy
-      - verification-e2e-ropsten:
-          <<: *filter-base
-          requires:
-            - deploy
-      - verification-e2e-rinkeby:
-          <<: *filter-base
-          requires:
-            - deploy
-      - verification-e2e-goerli:
-          <<: *filter-base
-          requires:
-            - deploy
-
-  node-build:
-    jobs:
-      - node-v16
-      - npm-publish:
-          filters:
-            branches:
-              only:
-                - master
-          requires:
-            - node-v16
-  test-new-chain:
-    jobs:
-      - test-new-chain
-  test-chains-regularly:
-    jobs:
-      - test-chains
-    triggers:
-      - schedule:
-          cron: "0 9 * * 1" # Every Monday 9 am UTC
-          filters:
-            branches:
-              only:
-                - master
-  nightly:
-    triggers:
-      - schedule:
-          cron: "0 1 * * *" # 1am UTC
-          filters:
-            branches:
-              only:
-                - master
-    jobs:
-      - monitor-e2e-ropsten
-      - monitor-e2e-rinkeby
-      - monitor-e2e-goerli
-      - verification-e2e-ropsten
-      - verification-e2e-rinkeby
-      - verification-e2e-goerli
-
-jobs:
-  build-push-ipfs:
-    <<: *docker-base
-    environment:
-      SERVICE: "ipfs"
-  build-push-localchain:
-    <<: *docker-base
-    environment:
-      SERVICE: "localchain"
-  build-push-monitor:
-    <<: *docker-base
-    environment:
-      SERVICE: "monitor"
-  build-push-repository:
-    <<: *docker-base
-    environment:
-      SERVICE: "repository"
-  build-push-s3:
-    <<: *docker-base
-    environment:
-      SERVICE: "s3"
-  build-push-server:
-    <<: *docker-base
-    environment:
-      SERVICE: "server"
-  build-push-ui:
-    <<: *docker-base
-    environment:
-      SERVICE: "ui"
-  build-push-ui-legacy:
-    <<: *docker-base
-    environment:
-      SERVICE: "ui-legacy"
-  deploy:
-    docker:
-      - image: cimg/base:2021.04
-    steps:
-      - checkout
-      - setup_remote_docker:
-          version: 20.10.2
-      - add_ssh_keys:
-          fingerprints:
-            - "a9:2f:97:c3:64:10:80:c7:8e:2f:db:f7:a3:4a:53:66"
-      - run:
-          name: Deploy
-          no_output_timeout: 30m
-          command: |
-            ./scripts/deploy.sh
-  node-v16:
-    <<: *node-base
-    docker:
-      - image: cimg/node:16.15
-  test-new-chain:
-    working_directory: ~/source-verify
-    steps:
-      - checkout
-      - run:
-          name: install dependencies
-          command: npx lerna bootstrap
-      - run:
-          name: build
-          command: npx lerna run build
-      - run:
-          name: test new chain PR
-          command: ./scripts/test_new_chain_support.sh
-    docker:
-      - image: cimg/node:16.15
-  test-chains:
-    working_directory: ~/source-verify
-    steps:
-      - checkout
-      - run:
-          name: install dependencies
-          command: npx lerna bootstrap
-      - run:
-          name: build and test
-          command: npx lerna run build && npx lerna run test:chains
-      - store_artifacts: # Store and publish test results for reference
-          path: ./chain-tests-report
-    docker:
-      - image: cimg/node:16.15
-  monitor-e2e-ropsten:
-    <<: *monitor-e2e-base
-    environment:
-      CHAIN_ID: 3
-      CHAIN_NAME: ropsten
-  monitor-e2e-rinkeby:
-    <<: *monitor-e2e-base
-    environment:
-      CHAIN_ID: 4
-      CHAIN_NAME: rinkeby
-  monitor-e2e-goerli:
-    <<: *monitor-e2e-base
-    environment:
-      CHAIN_ID: 5
-      CHAIN_NAME: goerli
-  verification-e2e-ropsten:
-    <<: *verification-e2e-base
-    environment:
-      CHAIN_ID: 3
-      CHAIN_NAME: ropsten
-  verification-e2e-rinkeby:
-    <<: *verification-e2e-base
-    environment:
-      CHAIN_ID: 4
-      CHAIN_NAME: rinkeby
-  verification-e2e-goerli:
-    <<: *verification-e2e-base
-    environment:
-      CHAIN_ID: 5
-      CHAIN_NAME: goerli
-  npm-publish:
-    working_directory: ~/source-verify
-    docker:
-      - image: cimg/node:16.15
-    steps:
-      - checkout
-      - run:
-          name: install dependencies
-          command: npx lerna bootstrap
-      - run:
-          name: build everything
-          command: npx lerna run build
-      - run:
-          name: Publish npm package
-          command: ./scripts/publish_to_npm.sh
+      # the path-filtering/filter job determines which pipeline
+      # parameters to update.
+      - path-filtering/filter:
+          name: check-updated-files
+          # TODO: Check if it will work for the repository submodule
+          mapping: |
+            services/ipfs/.* run-build-ipfs true
+            services/s3sync/.* run-build-s3 true
+            h5ai-nginx/.* run-build-repository true
+            src/monitor/.* run-build-monitor true
+            src/server/.* run-build-server true
+            services/core/.* run-build-core true
+            services/verification/.* run-build-verification true
+            services/validation/.* run-build-validation true
+            ui/.* run-build-ui true
+            ui-legacy/.* run-build-ui-legacy true
+          # Compare against the last build of the branch not the default "main" branch
+          # TODO: Check if the correct revision will be taken on both master and staging?
+          base-revision: << pipeline.git.base_revision >>
+          config-path: .circleci/continue_config.yml
