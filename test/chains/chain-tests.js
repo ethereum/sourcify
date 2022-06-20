@@ -902,6 +902,23 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
+  // Energy Web Chain
+  verifyContract(
+    "0xd07BECd1b2FE97924a2d4A0cF2d96e499ce28cA9",
+    "246",
+    "Energy Web Chain",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0xB601dE691956DC2D5A3030Dd64f08C66Be78700E",
+    "246",
+    "Energy Web Chain",
+    ["uint256"],
+    [5],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
   
   verifyContract(
     "0x8Ab612E257534b7d5a6E315444f1C45c434eAaCf",

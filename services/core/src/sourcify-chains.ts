@@ -412,4 +412,11 @@ export default {
         "contractFetchAddress": "https://volta-explorer.energyweb.org/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
+    "246": { // Energy Web Chain
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer.energyweb.org/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    
 }
