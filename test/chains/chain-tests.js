@@ -918,9 +918,8 @@ describe("Test Supported Chains", function () {
     [5],
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
-  );
-<<<<<<< HEAD
-  
+  );  
+  //Crystaleum
   verifyContract(
     "0x8Ab612E257534b7d5a6E315444f1C45c434eAaCf",
     "103090",
@@ -928,14 +927,15 @@ describe("Test Supported Chains", function () {
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
-
   verifyContractWithImmutables(
     "0xE32195beC48Dca3adc89b95a6c2f36e68F1A89A0",
     "103090",
     "Crystaleum",
     ["uint256"],
     [103090],
-=======
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
   // Godwoken testnet v1.1
   verifyContract(
     "0xc8D69B4D58bb79D03C0b83DbBAE509DAF3135e74",
@@ -950,7 +950,6 @@ describe("Test Supported Chains", function () {
     "Godwoken Testnet (V1.1)",
     ["uint256"],
     [100000],
->>>>>>> a2eaa9c (Update Chains, Add godwoken testnet v1.1)
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
