@@ -405,7 +405,11 @@ export default {
         "supported": true,
         "monitored": false,
         "contractFetchAddress": "https://scan.crystaleum.org/" + BLOCKSCOUT_SUFFIX,
+    },
+    "73799": { // Energy Web Volta Testnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://volta-explorer.energyweb.org/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
-    
 }
