@@ -659,21 +659,21 @@ describe("Test Supported Chains", function () {
   );
   // Candle
   verifyContract(
-      "0xaa80bC172F3275B837C0515d3d50AcC4EC0cC96b",
-      "534",
-      "Candle Mainnet",
-      ["shared/1_Storage.sol"],
-      "shared/1_Storage.metadata.json"
-    );
-    verifyContractWithImmutables(
-      "0xB1392368b6484Be37c33a0991C70359126F681E4",
-      "534",
-      "Candle Mainnet",
-      ["uint256"],
-      [20],
-      ["shared/WithImmutables.sol"],
-      "shared/withImmutables.metadata.json"
-    );
+    "0xaa80bC172F3275B837C0515d3d50AcC4EC0cC96b",
+    "534",
+    "Candle Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0xB1392368b6484Be37c33a0991C70359126F681E4",
+    "534",
+    "Candle Mainnet",
+    ["uint256"],
+    [20],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
   // Palm
   verifyContract(
     "0xd46fd24ea21F04459407Fb0B518451e54d0b07a1",
@@ -742,7 +742,7 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
   // Evmos Testnet
-    verifyContract(
+  verifyContract(
     "0x07Eb2490cEfc74bAEb4B13c2dB9119CA0c38959B",
     "9000",
     "Evmos Testnet",
@@ -919,6 +919,7 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
+<<<<<<< HEAD
   
   verifyContract(
     "0x8Ab612E257534b7d5a6E315444f1C45c434eAaCf",
@@ -934,13 +935,29 @@ describe("Test Supported Chains", function () {
     "Crystaleum",
     ["uint256"],
     [103090],
+=======
+  // Godwoken testnet v1.1
+  verifyContract(
+    "0xc8D69B4D58bb79D03C0b83DbBAE509DAF3135e74",
+    "71401",
+    "Godwoken Testnet (V1.1)",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x61FB9329a6c1E8605856C2a66C29fF692bAe2DAa",
+    "71401",
+    "Godwoken Testnet (V1.1)",
+    ["uint256"],
+    [100000],
+>>>>>>> a2eaa9c (Update Chains, Add godwoken testnet v1.1)
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
 
-//////////////////////
-// Helper functions //
-//////////////////////
+  //////////////////////
+  // Helper functions //
+  //////////////////////
 
   function verifyContract(
     address,
