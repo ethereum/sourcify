@@ -422,7 +422,7 @@ export default {
     "432201": { // Dexalot Testnet
         "supported": true,
         "monitored": false,
-        "contractFetchAddress": `https://subnet-explorer-api.avax.network/v1.1/432201/` + AVALANCHE_SUBNET_SUFFIX,
+        "contractFetchAddress": `https://subnet-explorer-api.avax-test.network/v1.1/432201/` + AVALANCHE_SUBNET_SUFFIX,
     },
     
 }
