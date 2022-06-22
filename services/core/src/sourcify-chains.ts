@@ -419,5 +419,10 @@ export default {
         "contractFetchAddress": "https://gw-explorer.nervosdao.community/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
+    "432201": { // Dexalot Testnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": `https://subnet-explorer-api.avax-test.network/v1.1/432201/` + AVALANCHE_SUBNET_SUFFIX,
+    },
     
 }

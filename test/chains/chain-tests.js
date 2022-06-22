@@ -936,6 +936,23 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
+  // Dexalot Testnet
+  verifyContract(
+    "0xfa5a1E7788514Ae2B879377cF08a9CF2901d3A21",
+    "432201",
+    "Dexalot Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x92924A2591345420542A26035be8bcf4552BeD2b",
+    "432201",
+    "Dexalot Testnet",
+    ["uint256"],
+    [100],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
 
   //////////////////////
   // Helper functions //
