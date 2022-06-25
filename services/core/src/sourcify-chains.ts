@@ -428,6 +428,7 @@ export default {
         "supported": true,
         "monitored": false,
         "contractFetchAddress": "https://scan.crystaleum.org/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
     },
     
 }
