@@ -424,5 +424,11 @@ export default {
         "monitored": false,
         "contractFetchAddress": `https://subnet-explorer-api.avax-test.network/v1.1/432201/` + AVALANCHE_SUBNET_SUFFIX,
     },
+    "103090": { // Crystaleum Mainnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://scan.crystaleum.org/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
     
 }

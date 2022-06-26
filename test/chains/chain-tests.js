@@ -953,6 +953,23 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
+  //Crystaleum
+  verifyContract(
+    "0x8Ab612E257534b7d5a6E315444f1C45c434eAaCf",
+    "103090",
+    "Crystaleum",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0xE32195beC48Dca3adc89b95a6c2f36e68F1A89A0",
+    "103090",
+    "Crystaleum",
+    ["uint256"],
+    [103090],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
 
   //////////////////////
   // Helper functions //
