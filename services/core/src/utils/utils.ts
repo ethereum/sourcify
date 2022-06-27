@@ -1,4 +1,5 @@
 import cbor from 'cbor';
+import semver from 'semver';
 import * as chainsRaw from "../chains.json";
 import sourcifyChainsRaw from "../sourcify-chains";
 import { StringMap, ReformattedMetadata, Chain } from './types';
@@ -162,6 +163,16 @@ export function createJsonInputFromMetadata(
 
     delete solcJsonInput.settings.compilationTarget;
 
+    const versions = [ '0.8.2', '0.8.3', '0.8.4' ]
+    const coercedVersion = semver.coerce(metadata.compiler.version).version
+
+    const affectedVersions = versions.filter((version) => semver.eq(version, coercedVersion))
+    if (affectedVersions.length > 0) {
+        if (solcJsonInput.settings?.optimizer?.details?.inliner) {
+            delete solcJsonInput.settings.optimizer.details.inliner
+        }
+    }
+    
     solcJsonInput.sources = {};
     for (const source in sources) {
         solcJsonInput.sources[source] = { content: sources[source] }
