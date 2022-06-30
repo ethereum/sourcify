@@ -16,7 +16,7 @@ type ChainName = "eth" | "polygon" | "arb" | "opt";
 /**
  * 
  * @param chainName - "eth", "polygon" etc.
- * @param chainGroup "mainnet", "kovan", "goerli"...
+ * @param chainGroup "mainnet", "goerli"...
  * @param useOwn Use the local node
  * @returns 
  */

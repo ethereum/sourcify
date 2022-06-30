@@ -73,24 +73,6 @@ describe("Test Supported Chains", function () {
   );
 
   verifyContract(
-    "0x6F28f4eAa7733DD875CC18B236D2d8eC9bBF12aA",
-    "3",
-    "Ropsten",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
-  );
-
-  verifyContractWithImmutables(
-    "0x656d0062eC89c940213E3F3170EA8b2add1c0143",
-    "3",
-    "Ropsten",
-    ["uint256"],
-    [987],
-    ["shared/WithImmutables.sol"],
-    "shared/old.withImmutables.metadata.json"
-  );
-
-  verifyContract(
     "0x1EFFEbE8B0bc20f2Dc504AA16dC76FF1AB2297A3",
     "4",
     "Rinkeby",
@@ -142,24 +124,6 @@ describe("Test Supported Chains", function () {
     [11155111],
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
-  );
-
-  verifyContract(
-    "0x68107Fb54f5f29D8e0B3Ac44a99f4444D1F22a68",
-    "42",
-    "Kovan",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
-  );
-
-  verifyContractWithImmutables(
-    "0x443C64AcC4c6dB358Eb1CA78fdf7577C2a7eA499",
-    "42",
-    "Kovan",
-    ["uint256"],
-    [256],
-    ["shared/WithImmutables.sol"],
-    "shared/old.withImmutables.metadata.json"
   );
 
   verifyContract(

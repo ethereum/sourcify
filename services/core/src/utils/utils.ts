@@ -62,11 +62,11 @@ monitoredChainArray = chainArray.filter(chain => chain.monitored);
 export function getSortedChainsArray(chainMap: ChainMap): Chain[] {
     const chainsArray = Object.values(chainMap);
     // Have Ethereum chains on top.
-    const ethereumChainIds = [1, 3, 4, 5, 42, 11155111];
+    const ethereumChainIds = [1, 4, 5, 11155111];
     const etherumChains = ethereumChainIds.map((id) => chainMap[id]);
     // Others, sorted alphabetically
     const otherChains = chainsArray
-        .filter((chain) => ![1, 3, 4, 5, 42, 11155111].includes(chain.chainId))
+        .filter((chain) => ![1, 4, 5,  11155111].includes(chain.chainId))
         .sort((a, b) => (a.name > b.name ? 1 : b.name > a.name ? -1 : 0));
 
     const sortedChains = etherumChains.concat(otherChains);

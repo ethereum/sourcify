@@ -168,19 +168,11 @@ workflows:
             - build-push-server
             - build-push-ui
             - build-push-ui-legacy
-      - monitor-e2e-ropsten:
-          <<: *filter-base
-          requires:
-            - deploy
       - monitor-e2e-rinkeby:
           <<: *filter-base
           requires:
             - deploy
       - monitor-e2e-goerli:
-          <<: *filter-base
-          requires:
-            - deploy
-      - verification-e2e-ropsten:
           <<: *filter-base
           requires:
             - deploy
@@ -225,10 +217,8 @@ workflows:
               only:
                 - master
     jobs:
-      - monitor-e2e-ropsten
       - monitor-e2e-rinkeby
       - monitor-e2e-goerli
-      - verification-e2e-ropsten
       - verification-e2e-rinkeby
       - verification-e2e-goerli
 
@@ -322,11 +312,6 @@ jobs:
           path: ./chain-tests-report
     docker:
       - image: cimg/node:16.15
-  monitor-e2e-ropsten:
-    <<: *monitor-e2e-base
-    environment:
-      CHAIN_ID: 3
-      CHAIN_NAME: ropsten
   monitor-e2e-rinkeby:
     <<: *monitor-e2e-base
     environment:
@@ -337,11 +322,6 @@ jobs:
     environment:
       CHAIN_ID: 5
       CHAIN_NAME: goerli
-  verification-e2e-ropsten:
-    <<: *verification-e2e-base
-    environment:
-      CHAIN_ID: 3
-      CHAIN_NAME: ropsten
   verification-e2e-rinkeby:
     <<: *verification-e2e-base
     environment:
