@@ -57,7 +57,7 @@ function getBlockscoutRegex(blockscoutPrefix="") {
 }
 
 export default {
-    "1": {
+    "1": { // Ethereum Mainnet
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://etherscan.io/" + ETHERSCAN_SUFFIX,
@@ -67,17 +67,7 @@ export default {
         ],
         "txRegex": ETHERSCAN_REGEX,
     },
-    "3": {
-        "supported": true,
-        "monitored": true,
-        "contractFetchAddress": "https://ropsten.etherscan.io/" + ETHERSCAN_SUFFIX,
-        "rpc": [
-            buildAlchemyURL("ropsten", "eth", true),
-            buildAlchemyURL("ropsten", "eth")
-        ],
-        "txRegex": ETHERSCAN_REGEX,
-    },
-    "4": {
+    "4": { // Ethereum Rinkeby Testnet
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://rinkeby.etherscan.io/" + ETHERSCAN_SUFFIX,
@@ -87,22 +77,13 @@ export default {
         ],
         "txRegex": ETHERSCAN_REGEX,
     },
-    "5": {
+    "5": { // Ethereum Goerli Testnet
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://goerli.etherscan.io/" + ETHERSCAN_SUFFIX,
         "rpc": [
             buildAlchemyURL("goerli", "eth", true),
             buildAlchemyURL("goerli", "eth")
-        ],
-        "txRegex": ETHERSCAN_REGEX,
-    },
-    "42": {
-        "supported": true,
-        "monitored": true,
-        "contractFetchAddress": "https://kovan.etherscan.io/" + ETHERSCAN_SUFFIX,
-        "rpc": [
-            buildAlchemyURL("kovan", "eth")
         ],
         "txRegex": ETHERSCAN_REGEX,
     },
