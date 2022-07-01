@@ -1,0 +1,349 @@
+# Main config for workflows that will be conditionally run according to the parameters set at the initial config.yml. Only runs builds for paths that are changed.
+version: 2.1
+
+# Pipeline parameters to run module builds if related files have been changed
+parameters:
+  run-build-ipfs:
+    type: boolean
+    default: false
+  run-build-s3:
+    type: boolean
+    default: false
+  run-build-repository:
+    type: boolean
+    default: false
+  run-build-monitor:
+    type: boolean
+    default: false
+  run-build-ui:
+    type: boolean
+    default: false
+  run-build-ui-legacy:
+    type: boolean
+    default: false
+  run-build-server:
+    type: boolean
+    default: false
+  run-build-core:
+    type: boolean
+    default: false
+  run-build-verification:
+    type: boolean
+    default: false
+  run-build-validation:
+    type: boolean
+    default: false
+
+aliases:
+  - &build-base
+    docker:
+      - image: cimg/base:2021.04
+    parameters:
+      run-build:
+        type: boolean
+        default: false
+      # Workaround: Since we can't set run-build parameter with a logic or: [run-build-server, run-build-core, run-build-verification, run-build-validation] under workflows.jobs, add three more parameters only for the server build, and OR them here. If any of one-two-three (core-verification-validation respectively) change, a server build is triggered. Other builds uneffected since default is false.
+      run-build-one:
+        type: boolean
+        default: false
+      run-build-two:
+        type: boolean
+        default: false
+      run-build-three:
+        type: boolean
+        default: false
+    steps:
+      - when:
+          condition:
+            or:
+              [
+                << parameters.run-build >>,
+                << parameters.run-build-one >>,
+                << parameters.run-build-two >>,
+                << parameters.run-build-three >>,
+              ]
+          steps:
+            - checkout
+            - run:
+                name: "Pull Submodules"
+                command: |
+                  git submodule init
+                  git submodule update --remote
+            - setup_remote_docker:
+                version: 20.10.2
+            - run:
+                name: Build and push docker images
+                command: |
+                  ./scripts/build_and_publish_docker_images.sh
+      - run: echo 0
+  - &filter-base
+    filters:
+      branches:
+        only:
+          - staging
+          - master
+  - &node-base
+    working_directory: ~/source-verify
+    parameters:
+      run_coveralls:
+        type: boolean
+        default: false
+    steps:
+      - run:
+          name: Versions
+          command: npm version
+      - checkout
+      - run:
+          name: install dependencies
+          command: npx lerna bootstrap
+      - run:
+          name: lint
+          command: npm run lint
+      - run:
+          name: tsc and test
+          command: npx lerna run build && npx lerna run test --stream
+  - &monitor-e2e-base
+    working_directory: ~/source-verify
+    steps:
+      - checkout
+      - run:
+          name: install node-fetch dotenv
+          command: npm install node-fetch dotenv
+      - run:
+          name: monitor test
+          command: ./scripts/monitor_ci.sh
+          no_output_timeout: 30m
+    docker:
+      - image: cimg/node:16.15
+  - &verification-e2e-base
+    working_directory: ~/source-verify
+    steps:
+      - checkout
+      - run:
+          name: install dotenv
+          command: npm install dotenv
+      - run:
+          name: verification test
+          command: ./scripts/verification-e2e.sh
+    docker:
+      - image: cimg/node:16.15
+
+workflows:
+  build_publish_deploy_docker:
+    jobs:
+      - build-push-ipfs:
+          run-build: << pipeline.parameters.run-build-ipfs >>
+          <<: *filter-base
+      - build-push-monitor:
+          run-build: << pipeline.parameters.run-build-monitor >>
+          <<: *filter-base
+      - build-push-repository:
+          run-build: << pipeline.parameters.run-build-repository >>
+          <<: *filter-base
+      - build-push-s3:
+          run-build: << pipeline.parameters.run-build-s3 >>
+          <<: *filter-base
+      - build-push-server:
+          run-build: << pipeline.parameters.run-build-server >>
+          run-build-one: << pipeline.parameters.run-build-core >>
+          run-build-two: << pipeline.parameters.run-build-verification >>
+          run-build-three: << pipeline.parameters.run-build-validation >>
+          <<: *filter-base
+      - build-push-ui:
+          run-build: << pipeline.parameters.run-build-ui >>
+          <<: *filter-base
+      - build-push-ui-legacy:
+          run-build: << pipeline.parameters.run-build-ui-legacy >>
+          filters:
+            branches:
+              only:
+                - master
+      - deploy:
+          <<: *filter-base
+          requires:
+            - build-push-ipfs
+            - build-push-monitor
+            - build-push-repository
+            - build-push-s3
+            - build-push-server
+            - build-push-ui
+            - build-push-ui-legacy
+      - monitor-e2e-rinkeby:
+          <<: *filter-base
+          requires:
+            - deploy
+      - monitor-e2e-goerli:
+          <<: *filter-base
+          requires:
+            - deploy
+      - verification-e2e-rinkeby:
+          <<: *filter-base
+          requires:
+            - deploy
+      - verification-e2e-goerli:
+          <<: *filter-base
+          requires:
+            - deploy
+
+  node-build:
+    jobs:
+      - node-v16
+      - npm-publish:
+          filters:
+            branches:
+              only:
+                - master
+          requires:
+            - node-v16
+  test-new-chain:
+    jobs:
+      - test-new-chain
+  test-chains-regularly:
+    jobs:
+      - test-chains
+    triggers:
+      - schedule:
+          cron: "0 9 * * 1" # Every Monday 9 am UTC
+          filters:
+            branches:
+              only:
+                - master
+  nightly:
+    triggers:
+      - schedule:
+          cron: "0 1 * * *" # 1am UTC
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - monitor-e2e-rinkeby
+      - monitor-e2e-goerli
+      - verification-e2e-rinkeby
+      - verification-e2e-goerli
+
+jobs:
+  build-push-ipfs:
+    <<: *build-base
+    environment:
+      SERVICE: "ipfs"
+  build-push-monitor:
+    <<: *build-base
+    # when: << parameters.run-build-monitor >>
+    environment:
+      SERVICE: "monitor"
+  build-push-repository:
+    <<: *build-base
+    # when: << parameters.run-build-repository >>
+    environment:
+      SERVICE: "repository"
+  build-push-s3:
+    <<: *build-base
+    # when: << parameters.run-build-s3 >>
+    environment:
+      SERVICE: "s3"
+  build-push-server:
+    <<: *build-base
+    # when:
+    # or:
+    #   [
+    #     << parameters.run-build-server >>,
+    #     << parameters.run-build-core >>,
+    #     << parameters.run-build-verification >>,
+    #     << parameters.run-build-validation >>,
+    #   ]
+    environment:
+      SERVICE: "server"
+  build-push-ui:
+    <<: *build-base
+    # when: << parameters.run-build-ui >>
+    environment:
+      SERVICE: "ui"
+  build-push-ui-legacy:
+    <<: *build-base
+    # when: << parameters.run-build-ui-legacy >>
+    environment:
+      SERVICE: "ui-legacy"
+  deploy:
+    docker:
+      - image: cimg/base:2021.04
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 20.10.2
+      - add_ssh_keys:
+          fingerprints:
+            - "a9:2f:97:c3:64:10:80:c7:8e:2f:db:f7:a3:4a:53:66"
+      - run:
+          name: Deploy
+          no_output_timeout: 30m
+          command: |
+            ./scripts/deploy.sh
+  node-v16:
+    <<: *node-base
+    docker:
+      - image: cimg/node:16.15
+  test-new-chain:
+    working_directory: ~/source-verify
+    steps:
+      - checkout
+      - run:
+          name: install dependencies
+          command: npx lerna bootstrap
+      - run:
+          name: build
+          command: npx lerna run build
+      - run:
+          name: test new chain PR
+          command: ./scripts/test_new_chain_support.sh
+    docker:
+      - image: cimg/node:16.15
+  test-chains:
+    working_directory: ~/source-verify
+    steps:
+      - checkout
+      - run:
+          name: install dependencies
+          command: npx lerna bootstrap
+      - run:
+          name: build and test
+          command: npx lerna run build && npx lerna run test:chains
+      - store_artifacts: # Store and publish test results for reference
+          path: ./chain-tests-report
+    docker:
+      - image: cimg/node:16.15
+  monitor-e2e-rinkeby:
+    <<: *monitor-e2e-base
+    environment:
+      CHAIN_ID: 4
+      CHAIN_NAME: rinkeby
+  monitor-e2e-goerli:
+    <<: *monitor-e2e-base
+    environment:
+      CHAIN_ID: 5
+      CHAIN_NAME: goerli
+  verification-e2e-rinkeby:
+    <<: *verification-e2e-base
+    environment:
+      CHAIN_ID: 4
+      CHAIN_NAME: rinkeby
+  verification-e2e-goerli:
+    <<: *verification-e2e-base
+    environment:
+      CHAIN_ID: 5
+      CHAIN_NAME: goerli
+  npm-publish:
+    working_directory: ~/source-verify
+    docker:
+      - image: cimg/node:16.15
+    steps:
+      - checkout
+      - run:
+          name: install dependencies
+          command: npx lerna bootstrap
+      - run:
+          name: build everything
+          command: npx lerna run build
+      - run:
+          name: Publish npm package
+          command: ./scripts/publish_to_npm.sh

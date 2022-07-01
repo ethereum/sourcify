@@ -1,4 +1,5 @@
 import cbor from 'cbor';
+import semver from 'semver';
 import * as chainsRaw from "../chains.json";
 import sourcifyChainsRaw from "../sourcify-chains";
 import { StringMap, ReformattedMetadata, Chain } from './types';
@@ -61,11 +62,11 @@ monitoredChainArray = chainArray.filter(chain => chain.monitored);
 export function getSortedChainsArray(chainMap: ChainMap): Chain[] {
     const chainsArray = Object.values(chainMap);
     // Have Ethereum chains on top.
-    const ethereumChainIds = [1, 3, 4, 5, 42, 11155111];
+    const ethereumChainIds = [1, 4, 5, 11155111];
     const etherumChains = ethereumChainIds.map((id) => chainMap[id]);
     // Others, sorted alphabetically
     const otherChains = chainsArray
-        .filter((chain) => ![1, 3, 4, 5, 42, 11155111].includes(chain.chainId))
+        .filter((chain) => ![1, 4, 5,  11155111].includes(chain.chainId))
         .sort((a, b) => (a.name > b.name ? 1 : b.name > a.name ? -1 : 0));
 
     const sortedChains = etherumChains.concat(otherChains);
@@ -162,6 +163,16 @@ export function createJsonInputFromMetadata(
 
     delete solcJsonInput.settings.compilationTarget;
 
+    const versions = [ '0.8.2', '0.8.3', '0.8.4' ]
+    const coercedVersion = semver.coerce(metadata.compiler.version).version
+
+    const affectedVersions = versions.filter((version) => semver.eq(version, coercedVersion))
+    if (affectedVersions.length > 0) {
+        if (solcJsonInput.settings?.optimizer?.details?.inliner) {
+            delete solcJsonInput.settings.optimizer.details.inliner
+        }
+    }
+    
     solcJsonInput.sources = {};
     for (const source in sources) {
         solcJsonInput.sources[source] = { content: sources[source] }

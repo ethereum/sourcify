@@ -73,24 +73,6 @@ describe("Test Supported Chains", function () {
   );
 
   verifyContract(
-    "0x6F28f4eAa7733DD875CC18B236D2d8eC9bBF12aA",
-    "3",
-    "Ropsten",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
-  );
-
-  verifyContractWithImmutables(
-    "0x656d0062eC89c940213E3F3170EA8b2add1c0143",
-    "3",
-    "Ropsten",
-    ["uint256"],
-    [987],
-    ["shared/WithImmutables.sol"],
-    "shared/old.withImmutables.metadata.json"
-  );
-
-  verifyContract(
     "0x1EFFEbE8B0bc20f2Dc504AA16dC76FF1AB2297A3",
     "4",
     "Rinkeby",
@@ -142,24 +124,6 @@ describe("Test Supported Chains", function () {
     [11155111],
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
-  );
-
-  verifyContract(
-    "0x68107Fb54f5f29D8e0B3Ac44a99f4444D1F22a68",
-    "42",
-    "Kovan",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
-  );
-
-  verifyContractWithImmutables(
-    "0x443C64AcC4c6dB358Eb1CA78fdf7577C2a7eA499",
-    "42",
-    "Kovan",
-    ["uint256"],
-    [256],
-    ["shared/WithImmutables.sol"],
-    "shared/old.withImmutables.metadata.json"
   );
 
   verifyContract(
@@ -659,21 +623,21 @@ describe("Test Supported Chains", function () {
   );
   // Candle
   verifyContract(
-      "0xaa80bC172F3275B837C0515d3d50AcC4EC0cC96b",
-      "534",
-      "Candle Mainnet",
-      ["shared/1_Storage.sol"],
-      "shared/1_Storage.metadata.json"
-    );
-    verifyContractWithImmutables(
-      "0xB1392368b6484Be37c33a0991C70359126F681E4",
-      "534",
-      "Candle Mainnet",
-      ["uint256"],
-      [20],
-      ["shared/WithImmutables.sol"],
-      "shared/withImmutables.metadata.json"
-    );
+    "0xaa80bC172F3275B837C0515d3d50AcC4EC0cC96b",
+    "534",
+    "Candle Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0xB1392368b6484Be37c33a0991C70359126F681E4",
+    "534",
+    "Candle Mainnet",
+    ["uint256"],
+    [20],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
   // Palm
   verifyContract(
     "0xd46fd24ea21F04459407Fb0B518451e54d0b07a1",
@@ -742,7 +706,7 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
   // Evmos Testnet
-    verifyContract(
+  verifyContract(
     "0x07Eb2490cEfc74bAEb4B13c2dB9119CA0c38959B",
     "9000",
     "Evmos Testnet",
@@ -885,11 +849,95 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
-  
+  // Energy Web Volta Testnet
+  verifyContract(
+    "0x4667b7ce62e56B71146885555c68d2DDdf63349A",
+    "73799",
+    "Energy Web Volta Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x2EF8DafA9640cfe902B1229DE63F308E24c59EF7",
+    "73799",
+    "Energy Web Volta Testnet",
+    ["uint256"],
+    [4],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+  // Energy Web Chain
+  verifyContract(
+    "0xd07BECd1b2FE97924a2d4A0cF2d96e499ce28cA9",
+    "246",
+    "Energy Web Chain",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0xB601dE691956DC2D5A3030Dd64f08C66Be78700E",
+    "246",
+    "Energy Web Chain",
+    ["uint256"],
+    [5],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+  // Godwoken testnet v1.1
+  verifyContract(
+    "0xc8D69B4D58bb79D03C0b83DbBAE509DAF3135e74",
+    "71401",
+    "Godwoken Testnet (V1.1)",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x61FB9329a6c1E8605856C2a66C29fF692bAe2DAa",
+    "71401",
+    "Godwoken Testnet (V1.1)",
+    ["uint256"],
+    [100000],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+  // Dexalot Testnet
+  verifyContract(
+    "0xfa5a1E7788514Ae2B879377cF08a9CF2901d3A21",
+    "432201",
+    "Dexalot Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x92924A2591345420542A26035be8bcf4552BeD2b",
+    "432201",
+    "Dexalot Testnet",
+    ["uint256"],
+    [100],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+  //Crystaleum
+  verifyContract(
+    "0x8Ab612E257534b7d5a6E315444f1C45c434eAaCf",
+    "103090",
+    "Crystaleum",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0xE32195beC48Dca3adc89b95a6c2f36e68F1A89A0",
+    "103090",
+    "Crystaleum",
+    ["uint256"],
+    [103090],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
 
-//////////////////////
-// Helper functions //
-//////////////////////
+  //////////////////////
+  // Helper functions //
+  //////////////////////
 
   function verifyContract(
     address,

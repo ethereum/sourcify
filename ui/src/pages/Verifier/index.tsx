@@ -12,7 +12,7 @@ import { Context } from "../../Context";
 import {
   DropzoneFile,
   IGenericError,
-  IResponseError,
+  // IResponseError,
   SendableContract,
   SessionResponse,
   VerificationInput,
@@ -52,8 +52,15 @@ const Verifier: React.FC = () => {
         setErrorMessage("");
         return res;
       } catch (e) {
-        const error = e as IResponseError;
-        setErrorMessage(error.message);
+        // const error = e as IResponseError;
+        const CORSMessage = () => (
+          <div>
+            <div className="mb-2">Failed to fetch</div>
+            <div>Possibly a CORS error, check the browser console.</div>
+            <div>Are you on a different domain than sourcify.dev or sourcify.eth? API v2 is not available except the official UI. See <a className="font-bold" href="https://docs.sourcify.dev/docs/api/#verification-api-v2---session-based">docs</a> for details </div>
+          </div>
+        )
+        setErrorMessage(<CORSMessage/>);
       }
     },
     [setErrorMessage]

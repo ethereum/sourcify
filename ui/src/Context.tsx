@@ -5,8 +5,8 @@ import { getSourcifyChains } from "./utils/api";
 interface ContextInterface {
   sourcifyChains: Chain[];
   sourcifyChainMap: ChainMap;
-  errorMessage: string;
-  setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
+  errorMessage: string | ReactElement;
+  setErrorMessage: React.Dispatch<React.SetStateAction<string | ReactElement>>;
 }
 
 // create context
@@ -20,7 +20,7 @@ const Context = createContext<ContextInterface>({
 const ContextProvider = ({ children }: { children: ReactElement }) => {
   const [sourcifyChains, setSourcifyChains] = useState<Chain[]>([]);
   const [sourcifyChainMap, setSourcifyChainMap] = useState<ChainMap>({});
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string | ReactElement>("");
 
   // Fetch and assign the chains
   useEffect(() => {

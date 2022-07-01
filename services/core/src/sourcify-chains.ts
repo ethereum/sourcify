@@ -16,7 +16,7 @@ type ChainName = "eth" | "polygon" | "arb" | "opt";
 /**
  * 
  * @param chainName - "eth", "polygon" etc.
- * @param chainGroup "mainnet", "kovan", "goerli"...
+ * @param chainGroup "mainnet", "goerli"...
  * @param useOwn Use the local node
  * @returns 
  */
@@ -57,7 +57,7 @@ function getBlockscoutRegex(blockscoutPrefix="") {
 }
 
 export default {
-    "1": {
+    "1": { // Ethereum Mainnet
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://etherscan.io/" + ETHERSCAN_SUFFIX,
@@ -67,17 +67,7 @@ export default {
         ],
         "txRegex": ETHERSCAN_REGEX,
     },
-    "3": {
-        "supported": true,
-        "monitored": true,
-        "contractFetchAddress": "https://ropsten.etherscan.io/" + ETHERSCAN_SUFFIX,
-        "rpc": [
-            buildAlchemyURL("ropsten", "eth", true),
-            buildAlchemyURL("ropsten", "eth")
-        ],
-        "txRegex": ETHERSCAN_REGEX,
-    },
-    "4": {
+    "4": { // Ethereum Rinkeby Testnet
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://rinkeby.etherscan.io/" + ETHERSCAN_SUFFIX,
@@ -87,22 +77,13 @@ export default {
         ],
         "txRegex": ETHERSCAN_REGEX,
     },
-    "5": {
+    "5": { // Ethereum Goerli Testnet
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://goerli.etherscan.io/" + ETHERSCAN_SUFFIX,
         "rpc": [
             buildAlchemyURL("goerli", "eth", true),
             buildAlchemyURL("goerli", "eth")
-        ],
-        "txRegex": ETHERSCAN_REGEX,
-    },
-    "42": {
-        "supported": true,
-        "monitored": true,
-        "contractFetchAddress": "https://kovan.etherscan.io/" + ETHERSCAN_SUFFIX,
-        "rpc": [
-            buildAlchemyURL("kovan", "eth")
         ],
         "txRegex": ETHERSCAN_REGEX,
     },
@@ -400,6 +381,35 @@ export default {
         "supported": true,
         "monitored": false,
         "contractFetchAddress": `https://subnet-explorer-api.avax.network/v1.1/53935/` + AVALANCHE_SUBNET_SUFFIX,
+    },
+    "73799": { // Energy Web Volta Testnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://volta-explorer.energyweb.org/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "246": { // Energy Web Chain
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://explorer.energyweb.org/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "71401": { // Godwoken testnet v1.1
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://gw-explorer.nervosdao.community/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "432201": { // Dexalot Testnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": `https://subnet-explorer-api.avax-test.network/v1.1/432201/` + AVALANCHE_SUBNET_SUFFIX,
+    },
+    "103090": { // Crystaleum Mainnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://scan.crystaleum.org/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
     },
     
 }
