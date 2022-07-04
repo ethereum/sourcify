@@ -1,4 +1,4 @@
-import { isAddress } from "@ethersproject/address";
+import { isAddress, getAddress } from "@ethersproject/address";
 import { ChangeEventHandler, FormEventHandler, useState } from "react";
 import Input from "../../components/Input";
 import LoadingOverlay from "../../components/LoadingOverlay";
@@ -13,32 +13,35 @@ const Field = ({ loading, handleRequest }: FieldProp) => {
   const [address, setAddress] = useState<any>("");
   const [error, setError] = useState<string>("");
 
-  const handleSubmit: FormEventHandler<HTMLFormElement> = (e) => {
-    e.preventDefault();
-    const isValidAddress = isAddress(address);
-    if (!isValidAddress) {
+  const checkAndSendRequest = (address: string) => {
+    setAddress(address)
+    if (!isAddress(address)) {
       setError("Invalid Address");
       return;
     }
-    handleRequest(address);
+    // Get checksummed format
+    const checksummedAddress = getAddress(address);
+    console.log(address)
+    console.log(checksummedAddress)
+    setAddress(checksummedAddress)
+    handleRequest(checksummedAddress);
+  } 
+
+  const handleSubmit: FormEventHandler<HTMLFormElement> = (e) => {
+    e.preventDefault();
+    checkAndSendRequest(address)
   };
 
   const handleChange: ChangeEventHandler<HTMLInputElement> = (e) => {
     const newAddress = e.currentTarget.value;
-    setAddress(newAddress);
-    const isValidAddress = isAddress(newAddress);
-    if (!isValidAddress) {
-      setError("Invalid Address");
-      return;
-    }
-    handleRequest(newAddress);
+    checkAndSendRequest(newAddress)
   };
 
   const handleExample = () => {
     const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984"; // Uniswap
-    setAddress(exampleAddress);
-    handleRequest(exampleAddress);
+    checkAndSendRequest(exampleAddress);
   };
+  
   return (
     <div className="flex flex-col py-16 px-12 flex-grow rounded-lg transition-all ease-in-out duration-300 bg-white overflow-hidden shadow-md">
       <div className="flex flex-col text-left relative">
