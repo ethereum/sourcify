@@ -51,16 +51,24 @@ const Verifier: React.FC = () => {
         setAddedFiles([...res.files]);
         setErrorMessage("");
         return res;
-      } catch (e) {
-        // const error = e as IResponseError;
-        const CORSMessage = () => (
+      } catch (e: any) {
+        console.log(e)
+        const ErrorMessage = ({message} : {message: string}) => (
           <div>
-            <div className="mb-2">Failed to fetch</div>
-            <div>Possibly a CORS error, check the browser console.</div>
-            <div>Are you on a different domain than sourcify.dev or sourcify.eth? API v2 is not available except the official UI. See <a className="font-bold" href="https://docs.sourcify.dev/docs/api/#verification-api-v2---session-based">docs</a> for details </div>
+            {
+              // Show if there's an error message from server. Otherwise possibly CORS.
+              message ? message : 
+                ( 
+                  <>
+                    <div>Possibly a CORS error, check the browser console.</div>
+                    <div>Are you on a different domain than sourcify.dev or sourcify.eth? API v2 is not available except the official UI. See <a className="font-bold" href="https://docs.sourcify.dev/docs/api/#verification-api-v2---session-based">docs</a> for details </div>
+                  </>
+                )
+            }
+
           </div>
         )
-        setErrorMessage(<CORSMessage/>);
+        setErrorMessage(<ErrorMessage message={e?.message as string}/>);
       }
     },
     [setErrorMessage]
