@@ -33,6 +33,12 @@ parameters:
   run-build-validation:
     type: boolean
     default: false
+  run-nightly:
+    type: boolean
+    default: false
+  run-test-chains-regularly:
+    type: boolean
+    default: false
 
 aliases:
   - &build-base
@@ -195,27 +201,18 @@ workflows:
                 - master
           requires:
             - node-v16
+
   test-new-chain:
     jobs:
       - test-new-chain
+
   test-chains-regularly:
+    when: << pipeline.parameters.run-test-chains-regularly >>
     jobs:
       - test-chains
-    triggers:
-      - schedule:
-          cron: "0 9 * * 1" # Every Monday 9 am UTC
-          filters:
-            branches:
-              only:
-                - master
+
   nightly:
-    triggers:
-      - schedule:
-          cron: "0 1 * * *" # 1am UTC
-          filters:
-            branches:
-              only:
-                - master
+    when: < pipeline.parameters.run-nightly >>
     jobs:
       - monitor-e2e-rinkeby
       - monitor-e2e-goerli

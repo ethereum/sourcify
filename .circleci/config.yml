@@ -10,59 +10,8 @@ setup: true
 orbs:
   path-filtering: circleci/path-filtering@0.1.1
 
-# Define the e2e tests here too for nigthly builds. (Can this be refactored?)
-aliases:
-  - &monitor-e2e-base
-    working_directory: ~/source-verify
-    steps:
-      - checkout
-      - run:
-          name: install node-fetch dotenv
-          command: npm install node-fetch dotenv
-      - run:
-          name: monitor test
-          command: ./scripts/monitor_ci.sh
-          no_output_timeout: 30m
-    docker:
-      - image: cimg/node:16.15
-  - &verification-e2e-base
-    working_directory: ~/source-verify
-    steps:
-      - checkout
-      - run:
-          name: install dotenv
-          command: npm install dotenv
-      - run:
-          name: verification test
-          command: ./scripts/verification-e2e.sh
-    docker:
-      - image: cimg/node:16.15
-
-# Define the e2e tests here too for nigthly builds. (Can this be refactored?)
-jobs:
-  monitor-e2e-rinkeby:
-    <<: *monitor-e2e-base
-    environment:
-      CHAIN_ID: 4
-      CHAIN_NAME: rinkeby
-  monitor-e2e-goerli:
-    <<: *monitor-e2e-base
-    environment:
-      CHAIN_ID: 5
-      CHAIN_NAME: goerli
-  verification-e2e-rinkeby:
-    <<: *verification-e2e-base
-    environment:
-      CHAIN_ID: 4
-      CHAIN_NAME: rinkeby
-  verification-e2e-goerli:
-    <<: *verification-e2e-base
-    environment:
-      CHAIN_ID: 5
-      CHAIN_NAME: goerli
-
 workflows:
-  filter-builds:
+  always-run:
     jobs:
       # the path-filtering/filter job determines which pipeline
       # parameters to update.
@@ -81,19 +30,5 @@ workflows:
             ui/.* run-build-ui true
             ui-legacy/.* run-build-ui-legacy true
           # Compare against the last build of the branch not the default "main" branch
-          # TODO: Check if the correct revision will be taken on both master and staging?
           base-revision: << pipeline.git.base_revision >>
           config-path: .circleci/continue_config.yml
-  nightly:
-    triggers:
-      - schedule:
-          cron: "0 1 * * *" # 1am UTC
-          filters:
-            branches:
-              only:
-                - master
-    jobs:
-      - monitor-e2e-rinkeby
-      - monitor-e2e-goerli
-      - verification-e2e-rinkeby
-      - verification-e2e-goerli
