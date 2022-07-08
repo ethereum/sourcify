@@ -41,6 +41,10 @@ parameters:
     default: false
 
 aliases:
+  - &not-on-scheduled-runs
+    and:
+      - not: << pipeline.parameters.run-nightly >>
+      - not: << pipeline.parameters.run-test-chains-regularly >>
   - &build-base
     docker:
       - image: cimg/base:2021.04
@@ -136,6 +140,24 @@ aliases:
 
 workflows:
   build_publish_deploy_docker:
+    # Run when not on scheduled runs, or when one of the modules have changed and something needs to be built and deployed. Can't reuse &not-on-scheduled-runs because YAML can't extend arrays with aliases: https://github.com/yaml/yaml/issues/35
+    when:
+      and:
+        - not: << pipeline.parameters.run-nightly >>
+        - not: << pipeline.parameters.run-test-chains-regularly >>
+        - or:
+            [
+              << pipeline.parameters.run-build-ipfs >>,
+              << pipeline.parameters.run-build-monitor >>,
+              << pipeline.parameters.run-build-repository >>,
+              << pipeline.parameters.run-build-s3 >>,
+              << pipeline.parameters.run-build-server >>,
+              << pipeline.parameters.run-build-core >>,
+              << pipeline.parameters.run-build-verification >>,
+              << pipeline.parameters.run-build-validation >>,
+              << pipeline.parameters.run-build-ui >>,
+              << pipeline.parameters.run-build-ui-legacy >>,
+            ]
     jobs:
       - build-push-ipfs:
           run-build: << pipeline.parameters.run-build-ipfs >>
@@ -192,6 +214,8 @@ workflows:
             - deploy
 
   node-build:
+    when:
+      <<: *not-on-scheduled-runs
     jobs:
       - node-v16
       - npm-publish:
@@ -203,6 +227,8 @@ workflows:
             - node-v16
 
   test-new-chain:
+    when:
+      <<: *not-on-scheduled-runs
     jobs:
       - test-new-chain
 
@@ -212,7 +238,7 @@ workflows:
       - test-chains
 
   nightly:
-    when: < pipeline.parameters.run-nightly >>
+    when: << pipeline.parameters.run-nightly >>
     jobs:
       - monitor-e2e-rinkeby
       - monitor-e2e-goerli
