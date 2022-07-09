@@ -145,6 +145,23 @@ describe("Test Supported Chains", function () {
   );
 
   verifyContract(
+    "0x8D516af7e4E0fbE14895f2587d0C7D8b5798F222",
+    "50",
+    "XinFin Network Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  verifyContractWithImmutables(
+    "0x76556cca4134Dd9EB6Bb835a110E44158fF7c2De",
+    "50",
+    "XinFin Network Mainnet",
+    ["uint256"],
+    [1],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+  verifyContract(
     "0xED5405Ba038587c06979374f8a595F41F5841216",
     "56",
     "Binance Smart Chain Mainnet",
