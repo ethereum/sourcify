@@ -4,7 +4,9 @@ import path from 'path';
 dotenv.config({ path: path.resolve(__dirname, "..", "..", "..", "environments/.env") });
 
 const ETHERSCAN_REGEX = (/at txn\s+<a href='\/tx\/(.*?)'/).source; // save as string to be able to return the txRegex in /chains response. If stored as RegExp returns {}
+const BLOCKSSCAN_REGEX = (/at txn\s+<a href='\/tx\/(.*?)'/).source; // save as string to be able to return the txRegex in /chains response. If stored as RegExp returns {}
 const ETHERSCAN_SUFFIX = "address/${ADDRESS}";
+const BLOCKSSCAN_SUFFIX = "address/${ADDRESS}";
 const BLOCKSCOUT_REGEX = "transaction_hash_link\" href=\"${BLOCKSCOUT_PREFIX}/tx/(.*?)\"";
 const BLOCKSCOUT_SUFFIX = "address/${ADDRESS}/transactions";
 const TELOS_SUFFIX = "v2/evm/get_contract?contract=${ADDRESS}";
@@ -93,6 +95,12 @@ export default {
         "rpc": [
             buildAlchemyURL("sepolia", "eth", true),
         ]
+    },
+    "50": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://apothem.blocksscan.io/" + BLOCKSSCAN_SUFFIX,
+        "txRegex": BLOCKSSCAN_REGEX
     },
     "56": {
         "supported": true,
