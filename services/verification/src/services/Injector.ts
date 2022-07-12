@@ -1,7 +1,7 @@
 import Web3 from 'web3';
 import * as bunyan from 'bunyan';
 import { Match, InputData, getSupportedChains, Logger, IFileService, FileService, StringMap, cborDecode, CheckedContract, MatchQuality, Chain, Status, Metadata } from '@ethereum-sourcify/core';
-import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint, getCreationDataFromArchive, getCreationDataByScraping, getCreationDataFromGraphQL, getCreationDataTelos, getCreationDataMeter, getCreationDataAvalancheSubnet } from '../utils';
+import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint, getCreationDataFromArchive, getCreationDataByScraping, getCreationDataFromGraphQL, getCreationDataTelos, getCreationDataXDC, getCreationDataMeter, getCreationDataAvalancheSubnet } from '../utils';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const multihashes: any = require('multihashes');
 import semverSatisfies from 'semver/functions/satisfies';
@@ -329,6 +329,17 @@ export class Injector {
                     return await getCreationDataTelos(txFetchAddress, web3);
                 } catch(err: any) {
                     this.log.error({ loc, chain, contractAddress, err: err.message }, "Telos API failed!");
+                } 
+            }
+            
+        }
+        if (txFetchAddress && ( chain == "50" || chain == "51")) {
+            for (const web3 of this.chains[chain].web3array) {
+                this.log.info({ loc, chain, contractAddress, fetchAddress: txFetchAddress }, "Querying BlocksScan API");
+                try {
+                    return await getCreationDataXDC(txFetchAddress, web3);
+                } catch(err: any) {
+                    this.log.error({ loc, chain, contractAddress, err: err.message }, "BlocksScan API failed!");
                 } 
             }
             

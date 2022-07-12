@@ -5,6 +5,15 @@ version: 2.1
 # this allows you to use CircleCI's dynamic configuration feature
 setup: true
 
+# Pipeline parameters for nightly and regular test chain triggers.
+parameters:
+  run-nightly:
+    type: boolean
+    default: false
+  run-test-chains-regularly:
+    type: boolean
+    default: false
+
 # the path-filtering orb is required to continue a pipeline based on
 # the path of an updated fileset see https://circleci.com/docs/2.0/using-dynamic-configuration/
 orbs:
