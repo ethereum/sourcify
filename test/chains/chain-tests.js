@@ -143,7 +143,23 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/old.withImmutables.metadata.json"
   );
+  verifyContract(
+    "0x8C3FA94eb5b07c9AF7dBFcC53ea3D2BF7FdF3617",
+    "51",
+    "XinFin Apothem Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
 
+  verifyContractWithImmutables(
+    "0xCbdD8DD32732ce953efcD56D046294260a01C2D1",
+    "51",
+    "XinFin Apothem Testnet",
+    ["uint256"],
+    [1],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
   verifyContract(
     "0xED5405Ba038587c06979374f8a595F41F5841216",
     "56",
