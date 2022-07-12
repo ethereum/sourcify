@@ -252,39 +252,26 @@ jobs:
       SERVICE: "ipfs"
   build-push-monitor:
     <<: *build-base
-    # when: << parameters.run-build-monitor >>
     environment:
       SERVICE: "monitor"
   build-push-repository:
     <<: *build-base
-    # when: << parameters.run-build-repository >>
     environment:
       SERVICE: "repository"
   build-push-s3:
     <<: *build-base
-    # when: << parameters.run-build-s3 >>
     environment:
       SERVICE: "s3"
   build-push-server:
     <<: *build-base
-    # when:
-    # or:
-    #   [
-    #     << parameters.run-build-server >>,
-    #     << parameters.run-build-core >>,
-    #     << parameters.run-build-verification >>,
-    #     << parameters.run-build-validation >>,
-    #   ]
     environment:
       SERVICE: "server"
   build-push-ui:
     <<: *build-base
-    # when: << parameters.run-build-ui >>
     environment:
       SERVICE: "ui"
   build-push-ui-legacy:
     <<: *build-base
-    # when: << parameters.run-build-ui-legacy >>
     environment:
       SERVICE: "ui-legacy"
   deploy:
