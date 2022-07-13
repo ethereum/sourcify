@@ -1,6 +1,9 @@
 version: 2.1
 
-# Parameter that can be passed ins this pipeline have to be defined here too.
+# Must use setup as we use continuation
+setup: true 
+
+# Parameter that can be passed in this pipeline have to be defined here too.
 parameters:
   run-nightly:
     type: boolean

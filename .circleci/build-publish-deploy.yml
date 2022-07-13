@@ -4,6 +4,9 @@ version: 2.1
 orbs:
   continuation: circleci/continuation@0.3.1
 
+# Setup required since we use continuation.
+setup: true
+
 # Pipeline parameters to run module builds if related files have been changed
 parameters:
   run-build-ipfs:
@@ -79,32 +82,6 @@ aliases:
                 command: |
                   ./scripts/build_and_publish_docker_images.sh
       - run: echo 0
-  - &filter-base
-    filters:
-      branches:
-        only:
-          - staging
-          - master
-  - &node-base
-    working_directory: ~/source-verify
-    parameters:
-      run_coveralls:
-        type: boolean
-        default: false
-    steps:
-      - run:
-          name: Versions
-          command: npm version
-      - checkout
-      - run:
-          name: install dependencies
-          command: npx lerna bootstrap
-      - run:
-          name: lint
-          command: npm run lint
-      - run:
-          name: tsc and test
-          command: npx lerna run build && npx lerna run test --stream
 
 workflows:
   build_publish_deploy_docker:
@@ -126,25 +103,19 @@ workflows:
     jobs:
       - build-push-ipfs:
           run-build: << pipeline.parameters.run-build-ipfs >>
-          <<: *filter-base
       - build-push-monitor:
           run-build: << pipeline.parameters.run-build-monitor >>
-          <<: *filter-base
       - build-push-repository:
           run-build: << pipeline.parameters.run-build-repository >>
-          <<: *filter-base
       - build-push-s3:
           run-build: << pipeline.parameters.run-build-s3 >>
-          <<: *filter-base
       - build-push-server:
           run-build: << pipeline.parameters.run-build-server >>
           run-build-one: << pipeline.parameters.run-build-core >>
           run-build-two: << pipeline.parameters.run-build-verification >>
           run-build-three: << pipeline.parameters.run-build-validation >>
-          <<: *filter-base
       - build-push-ui:
           run-build: << pipeline.parameters.run-build-ui >>
-          <<: *filter-base
       - build-push-ui-legacy:
           run-build: << pipeline.parameters.run-build-ui-legacy >>
           filters:
@@ -152,7 +123,6 @@ workflows:
               only:
                 - master
       - deploy:
-          <<: *filter-base
           requires:
             - build-push-ipfs
             - build-push-monitor
@@ -162,25 +132,9 @@ workflows:
             - build-push-ui
             - build-push-ui-legacy
       - continuation/continue:
-          <<: *filter-base
           requires:
             - deploy
           configuration_path: .circleci/e2e-tests.yaml
-
-  node-build:
-    jobs:
-      - node-v16
-      - npm-publish:
-          filters:
-            branches:
-              only:
-                - master
-          requires:
-            - node-v16
-
-  test-new-chain:
-    jobs:
-      - test-new-chain
 
 jobs:
   build-push-ipfs:
@@ -226,38 +180,3 @@ jobs:
           no_output_timeout: 30m
           command: |
             ./scripts/deploy.sh
-  node-v16:
-    <<: *node-base
-    docker:
-      - image: cimg/node:16.15
-  test-new-chain:
-    working_directory: ~/source-verify
-    steps:
-      - checkout
-      - run:
-          name: install dependencies
-          command: npx lerna bootstrap
-      - run:
-          name: build
-          command: npx lerna run build
-      - run:
-          name: test new chain PR
-          command: ./scripts/test_new_chain_support.sh
-    docker:
-      - image: cimg/node:16.15
-
-  npm-publish:
-    working_directory: ~/source-verify
-    docker:
-      - image: cimg/node:16.15
-    steps:
-      - checkout
-      - run:
-          name: install dependencies
-          command: npx lerna bootstrap
-      - run:
-          name: build everything
-          command: npx lerna run build
-      - run:
-          name: Publish npm package
-          command: ./scripts/publish_to_npm.sh

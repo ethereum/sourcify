@@ -21,7 +21,7 @@ orbs:
   continuation: circleci/continuation@0.3.1
 
 workflows:
-  build-changed-modules:
+  continue-build-changed-modules:
     # Don't run on scheduled pipelines.
     when:
       and:
@@ -31,6 +31,11 @@ workflows:
       # the path-filtering/filter job determines which pipeline
       # parameters to update.
       - path-filtering/filter:
+          filters:
+            branches:
+              only:
+                - staging
+                - master
           name: check-updated-files
           # h5ai-nginx without /.* part since it's a submodule. git diff outputs the folder name only, not files under it
           mapping: |
@@ -47,6 +52,18 @@ workflows:
           # Compare against the last build of the branch not the default "main" branch
           base-revision: << pipeline.git.base_revision >>
           config-path: .circleci/build-publish-deploy.yml
+  
+  # Has to run on all branches. Can't regex filter on add-chain-{chainId} branch names see: https://stackoverflow.com/questions/55839004/circleci-regex-filtering-match-within-string
+  continue-test-new-chain:
+    jobs:
+      - continuation/continue:
+          configuration_path: .circleci/test-new-chain.yml
+
+  # Always run
+  continue-node-build-and-test:
+    jobs:
+      - continuation/continue:
+          configuration_path: .circleci/node-build-and-test.yml
 
   continue-run-nightly:
     when: << pipeline.parameters.run-nightly >>
@@ -56,6 +73,6 @@ workflows:
 
   continue-run-test-chains-regularly:
     when: << pipeline.parameters.run-test-chains-regularly >>
-    jobs:
+    jobs: 
       - continuation/continue:
           configuration_path: .circleci/test-chains-regularly.yml

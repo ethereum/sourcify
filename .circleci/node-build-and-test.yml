@@ -1,0 +1,52 @@
+version: 2.1
+
+workflows:
+ node-build-test-publish:
+    jobs:
+      - node-v16
+      - npm-publish:
+          filters:
+            branches:
+              only:
+                - master
+          requires:
+            - node-v16
+
+jobs:
+  node-v16:
+    docker:
+      - image: cimg/node:16.15
+    working_directory: ~/source-verify
+    parameters:
+      run_coveralls:
+        type: boolean
+        default: false
+    steps:
+      - run:
+          name: Versions
+          command: npm version
+      - checkout
+      - run:
+          name: install dependencies
+          command: npx lerna bootstrap
+      - run:
+          name: lint
+          command: npm run lint
+      - run:
+          name: tsc and test
+          command: npx lerna run build && npx lerna run test --stream\
+  npm-publish:
+    working_directory: ~/source-verify
+    docker:
+      - image: cimg/node:16.15
+    steps:
+      - checkout
+      - run:
+          name: install dependencies
+          command: npx lerna bootstrap
+      - run:
+          name: build everything
+          command: npx lerna run build
+      - run:
+          name: Publish npm package
+          command: ./scripts/publish_to_npm.sh

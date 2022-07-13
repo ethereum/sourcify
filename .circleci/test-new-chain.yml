@@ -1,0 +1,23 @@
+version: 2.1
+
+workflows:
+  test-new-chain:
+    jobs:
+      - test-new-chain
+
+jobs:
+  test-new-chain:
+    working_directory: ~/source-verify
+    steps:
+      - checkout
+      - run:
+          name: install dependencies
+          command: npx lerna bootstrap
+      - run:
+          name: build
+          command: npx lerna run build
+      - run:
+          name: test new chain PR
+          command: ./scripts/test_new_chain_support.sh
+    docker:
+      - image: cimg/node:16.15
