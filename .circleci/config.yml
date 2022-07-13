@@ -18,9 +18,15 @@ parameters:
 # the path of an updated fileset see https://circleci.com/docs/2.0/using-dynamic-configuration/
 orbs:
   path-filtering: circleci/path-filtering@0.1.1
+  continuation: circleci/continuation@0.3.1
 
 workflows:
-  always-run:
+  build-changed-modules:
+    # Don't run on scheduled pipelines.
+    when:
+      and:
+        - not: << pipeline.parameters.run-nightly >>
+        - not: << pipeline.parameters.run-test-chains-regularly >>
     jobs:
       # the path-filtering/filter job determines which pipeline
       # parameters to update.
@@ -40,4 +46,16 @@ workflows:
             ui-legacy/.* run-build-ui-legacy true
           # Compare against the last build of the branch not the default "main" branch
           base-revision: << pipeline.git.base_revision >>
-          config-path: .circleci/continue_config.yml
+          config-path: .circleci/build-publish-deploy.yml
+
+  continue-run-nightly:
+    when: << pipeline.parameters.run-nightly >>
+    jobs:
+      - continuation/continue:
+          configuration_path: ./nightly.yml
+
+  continue-run-test-chains-regularly:
+    when: << pipeline.parameters.run-test-chains-regularly >>
+    jobs:
+      - continuation/continue:
+          configuration_path: ./nightly.yml

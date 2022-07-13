@@ -1,0 +1,58 @@
+version: 2.1
+
+aliases:
+  - &monitor-e2e-base
+    working_directory: ~/source-verify
+    steps:
+      - checkout
+      - run:
+          name: install node-fetch dotenv
+          command: npm install node-fetch dotenv
+      - run:
+          name: monitor test
+          command: ./scripts/monitor_ci.sh
+          no_output_timeout: 30m
+    docker:
+      - image: cimg/node:16.15
+  - &verification-e2e-base
+    working_directory: ~/source-verify
+    steps:
+      - checkout
+      - run:
+          name: install dotenv
+          command: npm install dotenv
+      - run:
+          name: verification test
+          command: ./scripts/verification-e2e.sh
+    docker:
+      - image: cimg/node:16.15
+
+workflows:
+  e2e-tests:
+    jobs:
+      - monitor-e2e-rinkeby
+      - monitor-e2e-goerli
+      - verification-e2e-rinkeby
+      - verification-e2e-goerli
+
+jobs:
+  monitor-e2e-rinkeby:
+    <<: *monitor-e2e-base
+    environment:
+      CHAIN_ID: 4
+      CHAIN_NAME: rinkeby
+  monitor-e2e-goerli:
+    <<: *monitor-e2e-base
+    environment:
+      CHAIN_ID: 5
+      CHAIN_NAME: goerli
+  verification-e2e-rinkeby:
+    <<: *verification-e2e-base
+    environment:
+      CHAIN_ID: 4
+      CHAIN_NAME: rinkeby
+  verification-e2e-goerli:
+    <<: *verification-e2e-base
+    environment:
+      CHAIN_ID: 5
+      CHAIN_NAME: goerli
