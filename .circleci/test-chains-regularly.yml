@@ -1,5 +1,11 @@
 version: 2.1
 
+# Parameter that can be passed ins this pipeline have to be defined here too.
+parameters:
+  run-test-chains-regularly:
+    type: boolean
+    default: false
+
 workflows:
   test-chains-regularly:
     jobs:

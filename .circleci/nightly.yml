@@ -1,5 +1,11 @@
 version: 2.1
 
+# Parameter that can be passed ins this pipeline have to be defined here too.
+parameters:
+  run-nightly:
+    type: boolean
+    default: false
+
 orbs:
   continuation: circleci/continuation@0.3.1
 
