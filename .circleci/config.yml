@@ -18,14 +18,20 @@ parameters:
 # the path of an updated fileset see https://circleci.com/docs/2.0/using-dynamic-configuration/
 orbs:
   path-filtering: circleci/path-filtering@0.1.1
+  continuation: circleci/continuation@0.3.1
 
+# Can add multiple workflows in setup since only one of these will run. Otherwise it's not possible: https://support.circleci.com/hc/en-us/articles/360060934851--Max-number-of-workflows-exceeded-error
 workflows:
   always-run:
+    # Don't run on scheduled pipelines.
+    when:
+      and:
+        - not: << pipeline.parameters.run-nightly >>
+        - not: << pipeline.parameters.run-test-chains-regularly >>
     jobs:
-      # the path-filtering/filter job determines which pipeline
-      # parameters to update.
+      # the path-filtering/filter job determines which pipeline parameters to update.
       - path-filtering/filter:
-          name: check-updated-files
+          name: check-updated-modules
           # h5ai-nginx without /.* part since it's a submodule. git diff outputs the folder name only, not files under it
           mapping: |
             services/ipfs/.* run-build-ipfs true
@@ -41,3 +47,17 @@ workflows:
           # Compare against the last build of the branch not the default "main" branch
           base-revision: << pipeline.git.base_revision >>
           config-path: .circleci/continue_config.yml
+
+  nightly:
+    when: << pipeline.parameters.run-nightly >>
+    jobs:
+      - continuation/continue:
+          name: continue-nightly
+          configuration_path: .circleci/nightly.yml
+
+  test-chains-regularly:
+    when: << pipeline.parameters.run-test-chains-regularly >>
+    jobs: 
+      - continuation/continue:
+          name: continue-test-chains-regularly
+          configuration_path: .circleci/test-chains-regularly.yml

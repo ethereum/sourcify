@@ -1,4 +1,5 @@
 # Main config for workflows that will be conditionally run according to the parameters set at the initial config.yml. Only runs builds for paths that are changed.
+# Also contains workflows that will be run on all branches such as node tests and test-new-chain
 version: 2.1
 
 # Pipeline parameters to run module builds if related files have been changed
@@ -33,18 +34,11 @@ parameters:
   run-build-validation:
     type: boolean
     default: false
-  run-nightly:
-    type: boolean
-    default: false
-  run-test-chains-regularly:
-    type: boolean
-    default: false
 
+################
+### ALIASES ####
+################
 aliases:
-  - &not-on-scheduled-runs
-    and:
-      - not: << pipeline.parameters.run-nightly >>
-      - not: << pipeline.parameters.run-test-chains-regularly >>
   - &build-base
     docker:
       - image: cimg/base:2021.04
@@ -92,26 +86,6 @@ aliases:
         only:
           - staging
           - master
-  - &node-base
-    working_directory: ~/source-verify
-    parameters:
-      run_coveralls:
-        type: boolean
-        default: false
-    steps:
-      - run:
-          name: Versions
-          command: npm version
-      - checkout
-      - run:
-          name: install dependencies
-          command: npx lerna bootstrap
-      - run:
-          name: lint
-          command: npm run lint
-      - run:
-          name: tsc and test
-          command: npx lerna run build && npx lerna run test --stream
   - &monitor-e2e-base
     working_directory: ~/source-verify
     steps:
@@ -138,13 +112,18 @@ aliases:
     docker:
       - image: cimg/node:16.15
 
+
+####################
+#### WORKFLOWS #####
+####################
 workflows:
   build_publish_deploy_docker:
-    # Run when not on scheduled runs, or when one of the modules have changed and something needs to be built and deployed. Can't reuse &not-on-scheduled-runs because YAML can't extend arrays with aliases: https://github.com/yaml/yaml/issues/35
+    # Run build_publish_deploy when on staging or master AND when a module is changed and something needs to be built and deployed. 
     when:
       and:
-        - not: << pipeline.parameters.run-nightly >>
-        - not: << pipeline.parameters.run-test-chains-regularly >>
+        - or: 
+          - equal: [ main, << pipeline.git.branch >> ]
+          - equal: [ staging, << pipeline.git.branch >> ]
         - or:
             [
               << pipeline.parameters.run-build-ipfs >>,
@@ -161,25 +140,19 @@ workflows:
     jobs:
       - build-push-ipfs:
           run-build: << pipeline.parameters.run-build-ipfs >>
-          <<: *filter-base
       - build-push-monitor:
           run-build: << pipeline.parameters.run-build-monitor >>
-          <<: *filter-base
       - build-push-repository:
           run-build: << pipeline.parameters.run-build-repository >>
-          <<: *filter-base
       - build-push-s3:
           run-build: << pipeline.parameters.run-build-s3 >>
-          <<: *filter-base
       - build-push-server:
           run-build: << pipeline.parameters.run-build-server >>
           run-build-one: << pipeline.parameters.run-build-core >>
           run-build-two: << pipeline.parameters.run-build-verification >>
           run-build-three: << pipeline.parameters.run-build-validation >>
-          <<: *filter-base
       - build-push-ui:
           run-build: << pipeline.parameters.run-build-ui >>
-          <<: *filter-base
       - build-push-ui-legacy:
           run-build: << pipeline.parameters.run-build-ui-legacy >>
           filters:
@@ -187,7 +160,6 @@ workflows:
               only:
                 - master
       - deploy:
-          <<: *filter-base
           requires:
             - build-push-ipfs
             - build-push-monitor
@@ -197,25 +169,19 @@ workflows:
             - build-push-ui
             - build-push-ui-legacy
       - monitor-e2e-rinkeby:
-          <<: *filter-base
           requires:
             - deploy
       - monitor-e2e-goerli:
-          <<: *filter-base
           requires:
             - deploy
       - verification-e2e-rinkeby:
-          <<: *filter-base
           requires:
             - deploy
       - verification-e2e-goerli:
-          <<: *filter-base
           requires:
             - deploy
-
+  # Always run
   node-build:
-    when:
-      <<: *not-on-scheduled-runs
     jobs:
       - node-v16
       - npm-publish:
@@ -225,26 +191,15 @@ workflows:
                 - master
           requires:
             - node-v16
-
+  # Has to run always. Can't regex filter on add-chain-{chainId} branch names see: https://stackoverflow.com/questions/55839004/circleci-regex-filtering-match-within-string
   test-new-chain:
-    when:
-      <<: *not-on-scheduled-runs
     jobs:
       - test-new-chain
 
-  test-chains-regularly:
-    when: << pipeline.parameters.run-test-chains-regularly >>
-    jobs:
-      - test-chains
 
-  nightly:
-    when: << pipeline.parameters.run-nightly >>
-    jobs:
-      - monitor-e2e-rinkeby
-      - monitor-e2e-goerli
-      - verification-e2e-rinkeby
-      - verification-e2e-goerli
-
+#######################
+### JOB DEFINITIONS ###
+#######################
 jobs:
   build-push-ipfs:
     <<: *build-base
@@ -290,10 +245,30 @@ jobs:
           command: |
             ./scripts/deploy.sh
   node-v16:
-    <<: *node-base
     docker:
       - image: cimg/node:16.15
+    working_directory: ~/source-verify
+    parameters:
+      run_coveralls:
+        type: boolean
+        default: false
+    steps:
+      - run:
+          name: Versions
+          command: npm version
+      - checkout
+      - run:
+          name: install dependencies
+          command: npx lerna bootstrap
+      - run:
+          name: lint
+          command: npm run lint
+      - run:
+          name: tsc and test
+          command: npx lerna run build && npx lerna run test --stream
   test-new-chain:
+    docker:
+      - image: cimg/node:16.15
     working_directory: ~/source-verify
     steps:
       - checkout
@@ -306,22 +281,6 @@ jobs:
       - run:
           name: test new chain PR
           command: ./scripts/test_new_chain_support.sh
-    docker:
-      - image: cimg/node:16.15
-  test-chains:
-    working_directory: ~/source-verify
-    steps:
-      - checkout
-      - run:
-          name: install dependencies
-          command: npx lerna bootstrap
-      - run:
-          name: build and test
-          command: npx lerna run build && npx lerna run test:chains
-      - store_artifacts: # Store and publish test results for reference
-          path: ./chain-tests-report
-    docker:
-      - image: cimg/node:16.15
   monitor-e2e-rinkeby:
     <<: *monitor-e2e-base
     environment:
