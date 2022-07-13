@@ -1,5 +1,11 @@
 version: 2.1
 
+# Parameter that can be passed in this pipeline have to be defined here too. Used with nightly.
+parameters:
+  run-nightly:
+    type: boolean
+    default: false
+
 aliases:
   - &monitor-e2e-base
     working_directory: ~/source-verify

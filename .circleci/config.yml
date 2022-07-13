@@ -37,7 +37,7 @@ workflows:
               only:
                 - staging
                 - master
-          name: check-updated-files
+          name: check-updated-modules
           # h5ai-nginx without /.* part since it's a submodule. git diff outputs the folder name only, not files under it
           mapping: |
             services/ipfs/.* run-build-ipfs true
@@ -53,20 +53,30 @@ workflows:
           # Compare against the last build of the branch not the default "main" branch
           base-revision: << pipeline.git.base_revision >>
           config-path: .circleci/build-publish-deploy.yml
+      # run e2e tests after deploy
+      - continuation/continue:
+          name: continue-e2e-tests
+          configuration_path: .circleci/e2e-tests.yml
+          requires:
+            - check-updated-modules
       # Has to run on all branches. Can't regex filter on add-chain-{chainId} branch names see: https://stackoverflow.com/questions/55839004/circleci-regex-filtering-match-within-string
       - continuation/continue:
+          name: continue-test-new-chain
           configuration_path: .circleci/test-new-chain.yml
       - continuation/continue:
+          name: continue-node-build-test-publish
           configuration_path: .circleci/node-build-and-test.yml
 
-  continue-run-nightly:
+  nightly:
     when: << pipeline.parameters.run-nightly >>
     jobs:
       - continuation/continue:
-          configuration_path: .circleci/nightly.yml
+          name: continue-nightly
+          configuration_path: .circleci/e2e-tests.yml
 
-  continue-run-test-chains-regularly:
+  test-chains-regularly:
     when: << pipeline.parameters.run-test-chains-regularly >>
     jobs: 
       - continuation/continue:
+          name: continue-test-chains-regularly
           configuration_path: .circleci/test-chains-regularly.yml

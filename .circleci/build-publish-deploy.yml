@@ -1,12 +1,6 @@
 # Main config for workflows that will be conditionally run according to the parameters set at the initial config.yml. Only runs builds for paths that are changed.
 version: 2.1
 
-orbs:
-  continuation: circleci/continuation@0.3.1
-
-# Setup required since we use continuation.
-setup: true
-
 # Pipeline parameters to run module builds if related files have been changed
 parameters:
   run-build-ipfs:
@@ -131,10 +125,6 @@ workflows:
             - build-push-server
             - build-push-ui
             - build-push-ui-legacy
-      - continuation/continue:
-          requires:
-            - deploy
-          configuration_path: .circleci/e2e-tests.yaml
 
 jobs:
   build-push-ipfs:
