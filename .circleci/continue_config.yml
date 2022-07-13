@@ -1,4 +1,5 @@
 # Main config for workflows that will be conditionally run according to the parameters set at the initial config.yml. Only runs builds for paths that are changed.
+# Also contains workflows that will be run on all branches such as node tests and test-new-chain
 version: 2.1
 
 # Pipeline parameters to run module builds if related files have been changed
@@ -34,6 +35,9 @@ parameters:
     type: boolean
     default: false
 
+################
+### ALIASES ####
+################
 aliases:
   - &build-base
     docker:
@@ -76,24 +80,63 @@ aliases:
                 command: |
                   ./scripts/build_and_publish_docker_images.sh
       - run: echo 0
+  - &filter-base
+    filters:
+      branches:
+        only:
+          - staging
+          - master
+  - &monitor-e2e-base
+    working_directory: ~/source-verify
+    steps:
+      - checkout
+      - run:
+          name: install node-fetch dotenv
+          command: npm install node-fetch dotenv
+      - run:
+          name: monitor test
+          command: ./scripts/monitor_ci.sh
+          no_output_timeout: 30m
+    docker:
+      - image: cimg/node:16.15
+  - &verification-e2e-base
+    working_directory: ~/source-verify
+    steps:
+      - checkout
+      - run:
+          name: install dotenv
+          command: npm install dotenv
+      - run:
+          name: verification test
+          command: ./scripts/verification-e2e.sh
+    docker:
+      - image: cimg/node:16.15
 
+
+####################
+#### WORKFLOWS #####
+####################
 workflows:
   build_publish_deploy_docker:
-    # Run when one of the modules have changed and something needs to be built and deployed.
+    # Run build_publish_deploy when on staging or master AND when a module is changed and something needs to be built and deployed. 
     when:
-      or:
-        [
-          << pipeline.parameters.run-build-ipfs >>,
-          << pipeline.parameters.run-build-monitor >>,
-          << pipeline.parameters.run-build-repository >>,
-          << pipeline.parameters.run-build-s3 >>,
-          << pipeline.parameters.run-build-server >>,
-          << pipeline.parameters.run-build-core >>,
-          << pipeline.parameters.run-build-verification >>,
-          << pipeline.parameters.run-build-validation >>,
-          << pipeline.parameters.run-build-ui >>,
-          << pipeline.parameters.run-build-ui-legacy >>,
-        ]
+      and:
+        - or: 
+          - equal: [ main, << pipeline.git.branch >> ]
+          - equal: [ staging, << pipeline.git.branch >> ]
+        - or:
+            [
+              << pipeline.parameters.run-build-ipfs >>,
+              << pipeline.parameters.run-build-monitor >>,
+              << pipeline.parameters.run-build-repository >>,
+              << pipeline.parameters.run-build-s3 >>,
+              << pipeline.parameters.run-build-server >>,
+              << pipeline.parameters.run-build-core >>,
+              << pipeline.parameters.run-build-verification >>,
+              << pipeline.parameters.run-build-validation >>,
+              << pipeline.parameters.run-build-ui >>,
+              << pipeline.parameters.run-build-ui-legacy >>,
+            ]
     jobs:
       - build-push-ipfs:
           run-build: << pipeline.parameters.run-build-ipfs >>
@@ -125,7 +168,38 @@ workflows:
             - build-push-server
             - build-push-ui
             - build-push-ui-legacy
+      - monitor-e2e-rinkeby:
+          requires:
+            - deploy
+      - monitor-e2e-goerli:
+          requires:
+            - deploy
+      - verification-e2e-rinkeby:
+          requires:
+            - deploy
+      - verification-e2e-goerli:
+          requires:
+            - deploy
+  # Always run
+  node-build:
+    jobs:
+      - node-v16
+      - npm-publish:
+          filters:
+            branches:
+              only:
+                - master
+          requires:
+            - node-v16
+  # Has to run always. Can't regex filter on add-chain-{chainId} branch names see: https://stackoverflow.com/questions/55839004/circleci-regex-filtering-match-within-string
+  test-new-chain:
+    jobs:
+      - test-new-chain
 
+
+#######################
+### JOB DEFINITIONS ###
+#######################
 jobs:
   build-push-ipfs:
     <<: *build-base
@@ -170,3 +244,75 @@ jobs:
           no_output_timeout: 30m
           command: |
             ./scripts/deploy.sh
+  node-v16:
+    docker:
+      - image: cimg/node:16.15
+    working_directory: ~/source-verify
+    parameters:
+      run_coveralls:
+        type: boolean
+        default: false
+    steps:
+      - run:
+          name: Versions
+          command: npm version
+      - checkout
+      - run:
+          name: install dependencies
+          command: npx lerna bootstrap
+      - run:
+          name: lint
+          command: npm run lint
+      - run:
+          name: tsc and test
+          command: npx lerna run build && npx lerna run test --stream
+  test-new-chain:
+    docker:
+      - image: cimg/node:16.15
+    working_directory: ~/source-verify
+    steps:
+      - checkout
+      - run:
+          name: install dependencies
+          command: npx lerna bootstrap
+      - run:
+          name: build
+          command: npx lerna run build
+      - run:
+          name: test new chain PR
+          command: ./scripts/test_new_chain_support.sh
+  monitor-e2e-rinkeby:
+    <<: *monitor-e2e-base
+    environment:
+      CHAIN_ID: 4
+      CHAIN_NAME: rinkeby
+  monitor-e2e-goerli:
+    <<: *monitor-e2e-base
+    environment:
+      CHAIN_ID: 5
+      CHAIN_NAME: goerli
+  verification-e2e-rinkeby:
+    <<: *verification-e2e-base
+    environment:
+      CHAIN_ID: 4
+      CHAIN_NAME: rinkeby
+  verification-e2e-goerli:
+    <<: *verification-e2e-base
+    environment:
+      CHAIN_ID: 5
+      CHAIN_NAME: goerli
+  npm-publish:
+    working_directory: ~/source-verify
+    docker:
+      - image: cimg/node:16.15
+    steps:
+      - checkout
+      - run:
+          name: install dependencies
+          command: npx lerna bootstrap
+      - run:
+          name: build everything
+          command: npx lerna run build
+      - run:
+          name: Publish npm package
+          command: ./scripts/publish_to_npm.sh
