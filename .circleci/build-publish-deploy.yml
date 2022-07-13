@@ -165,7 +165,7 @@ workflows:
           <<: *filter-base
           requires:
             - deploy
-          configuration_path: ./e2e-tests.yaml
+          configuration_path: .circleci/e2e-tests.yaml
 
   node-build:
     jobs:

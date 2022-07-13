@@ -7,4 +7,4 @@ workflows:
   nightly:
     jobs:
       - continuation/continue:
-          configuration_path: ./e2e-tests.yml
+          configuration_path: .circleci/e2e-tests.yml

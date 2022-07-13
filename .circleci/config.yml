@@ -52,10 +52,10 @@ workflows:
     when: << pipeline.parameters.run-nightly >>
     jobs:
       - continuation/continue:
-          configuration_path: ./nightly.yml
+          configuration_path: .circleci/nightly.yml
 
   continue-run-test-chains-regularly:
     when: << pipeline.parameters.run-test-chains-regularly >>
     jobs:
       - continuation/continue:
-          configuration_path: ./nightly.yml
+          configuration_path: .circleci/test-chains-regularly.yml
