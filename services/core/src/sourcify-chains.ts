@@ -92,6 +92,11 @@ export default {
         "supported": true,
         "monitored": false,
     },
+    "46": {
+        "rpc": ["wss://rpc.darwinia.network/"],
+        "supported": true,
+        "monitored": false,
+    },
     "592": {
         "rpc": ["https://rpc.astar.network:8545"],
         "supported": true,
