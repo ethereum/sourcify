@@ -266,6 +266,15 @@ export default {
             buildAlchemyURL("kovan", "opt")
         ],
     },
+    "420": {
+        "supported": true,
+        "monitored": true,
+        "contractFetchAddress": "https://blockscout.com/optimism/goerli/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex('/optimism/goerli'),
+        "rpc": [
+            buildAlchemyURL("goerli", "opt")
+        ],
+    },
     "28": {
         "supported": true,
         "monitored": true,
