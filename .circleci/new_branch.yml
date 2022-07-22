@@ -1,0 +1,50 @@
+version: 2.1
+
+workflows:
+  # Always run
+  node-build:
+    jobs:
+      - node-v16
+  # Has to run always. Can't regex filter on add-chain-{chainId} branch names see: https://stackoverflow.com/questions/55839004/circleci-regex-filtering-match-within-string
+  test-new-chain:
+    jobs:
+      - test-new-chain
+
+jobs:
+  node-v16:
+    docker:
+      - image: cimg/node:16.15
+    working_directory: ~/source-verify
+    parameters:
+      run_coveralls:
+        type: boolean
+        default: false
+    steps:
+      - run:
+          name: Versions
+          command: npm version
+      - checkout
+      - run:
+          name: install dependencies
+          command: npx lerna bootstrap
+      - run:
+          name: lint
+          command: npm run lint
+      - run:
+          name: tsc and test
+          command: npx lerna run build && npx lerna run test --stream
+  test-new-chain:
+    docker:
+      - image: cimg/node:16.15
+    working_directory: ~/source-verify
+    steps:
+      - checkout
+      - run:
+          name: install dependencies
+          command: npx lerna bootstrap
+      - run:
+          name: build
+          command: npx lerna run build
+      - run:
+          name: test new chain PR
+          command: ./scripts/test_new_chain_support.sh

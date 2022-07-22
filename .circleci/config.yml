@@ -23,11 +23,14 @@ orbs:
 # Can add multiple workflows in setup since only one of these will run. Otherwise it's not possible: https://support.circleci.com/hc/en-us/articles/360060934851--Max-number-of-workflows-exceeded-error
 workflows:
   always-run:
-    # Don't run on scheduled pipelines.
+    # Don't run on scheduled pipelines and only on master or staging.
     when:
       and:
         - not: << pipeline.parameters.run-nightly >>
         - not: << pipeline.parameters.run-test-chains-regularly >>
+        - or: 
+          - equal: [ master, << pipeline.git.branch >> ]
+          - equal: [ staging, << pipeline.git.branch >> ]
     jobs:
       # the path-filtering/filter job determines which pipeline parameters to update.
       - path-filtering/filter:
@@ -47,6 +50,20 @@ workflows:
           # Compare against the last build of the branch not the default "main" branch
           base-revision: << pipeline.git.base_revision >>
           config-path: .circleci/continue_config.yml
+
+  new-branch:
+    when:
+      and:
+          - not: << pipeline.parameters.run-nightly >>
+          - not: << pipeline.parameters.run-test-chains-regularly >>
+          - not:
+              equal: [ master, << pipeline.git.branch >> ]
+          - not:
+              equal: [ staging, << pipeline.git.branch >> ]
+    jobs:
+      - continuation/continue:
+          name: continue-new-branch
+          configuration_path: .circleci/new_branch.yml
 
   nightly:
     when: << pipeline.parameters.run-nightly >>
