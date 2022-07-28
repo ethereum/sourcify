@@ -1,0 +1,28 @@
+version: 2.1
+
+# Parameter that can be passed in this pipeline have to be defined here too.
+parameters:
+  run-test-chains-regularly:
+    type: boolean
+    default: false
+
+workflows:
+  test-chains-regularly:
+    jobs:
+      - test-chains
+
+jobs:
+  test-chains:
+    working_directory: ~/source-verify
+    steps:
+      - checkout
+      - run:
+          name: install dependencies
+          command: npx lerna bootstrap
+      - run:
+          name: build and test
+          command: npx lerna run build && npx lerna run test:chains
+      - store_artifacts: # Store and publish test results for reference
+          path: ./chain-tests-report
+    docker:
+      - image: cimg/node:16.15

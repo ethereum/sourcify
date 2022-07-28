@@ -96,9 +96,14 @@ export default {
         ]
     },
     "50": {
+    "supported": true,
+    "monitored": false,
+    "contractFetchAddress": "https://xdc.blocksscan.io/" + BLOCKSSCAN_SUFFIX,
+    },
+    "51": {
         "supported": true,
         "monitored": false,
-        "contractFetchAddress": "https://xdc.blocksscan.io/" + BLOCKSSCAN_SUFFIX,
+        "contractFetchAddress": "https://apothem.blocksscan.io/" + BLOCKSSCAN_SUFFIX
     },
     "56": {
         "supported": true,
@@ -264,6 +269,15 @@ export default {
         "txRegex": ETHERSCAN_REGEX,
         "rpc": [
             buildAlchemyURL("kovan", "opt")
+        ],
+    },
+    "420": {
+        "supported": true,
+        "monitored": true,
+        "contractFetchAddress": "https://blockscout.com/optimism/goerli/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex('/optimism/goerli'),
+        "rpc": [
+            buildAlchemyURL("goerli", "opt")
         ],
     },
     "28": {

@@ -143,7 +143,23 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/old.withImmutables.metadata.json"
   );
+  verifyContract(
+    "0x8C3FA94eb5b07c9AF7dBFcC53ea3D2BF7FdF3617",
+    "51",
+    "XinFin Apothem Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
 
+  verifyContractWithImmutables(
+    "0xCbdD8DD32732ce953efcD56D046294260a01C2D1",
+    "51",
+    "XinFin Apothem Testnet",
+    ["uint256"],
+    [1],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
   verifyContract(
     "0x142858E44da5A9641696f1AB3eb7eC51551E90bE",
     "50",
@@ -515,6 +531,23 @@ describe("Test Supported Chains", function () {
     "0x68107Fb54f5f29D8e0B3Ac44a99f4444D1F22a68",
     "69",
     "Optimism Kovan Testnet",
+    ["uint256"],
+    [123456],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
+  verifyContract(
+    "0xB5FAD02EbF6edffbdf206d2C1ad815bcDdb380f8",
+    "420",
+    "Optimism Goerli Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x0a835C6dd361790d2A2F173eBf1BCd7fAa804952",
+    "420",
+    "Optimism Goerli Testnet",
     ["uint256"],
     [123456],
     ["shared/WithImmutables.sol"],
