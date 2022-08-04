@@ -1,6 +1,7 @@
 import { InputData, Match, Logger, IFileService } from '@ethereum-sourcify/core';
 import { Injector } from './Injector';
 import * as bunyan from 'bunyan';
+import { findContractPathFromContractName, useCompiler } from '../utils';
 // import MQ from '../services/Queue'; 
 // import { ConfirmChannel } from 'amqplib';
 
@@ -8,6 +9,7 @@ export interface IVerificationService {
     findByAddress(address: string, chain: string): Match[];
     findAllByAddress(address: string, chain: string): Match[];
     inject(inputData: InputData): Promise<Match>;
+    verifyWithJSON(compilerVersion: string, contractName: string, compilerJson: any) : Promise<void>;
 }
 
 export class VerificationService implements IVerificationService {
@@ -18,6 +20,25 @@ export class VerificationService implements IVerificationService {
     constructor(fileService: IFileService, logger?: bunyan) {
         this.fileService = fileService;
         this.logger = logger || Logger("VerificationService");
+    }
+    
+    // TODO: Add compiler JSON interface
+    verifyWithJSON = async (compilerVersion: string, contractName: string, compilerJson: any) : Promise<void> => {
+        const compiled = await useCompiler(compilerVersion, compilerJson, this.logger);
+        const output = JSON.parse(compiled);
+        const contractPath = findContractPathFromContractName(output.contracts, contractName);
+        
+        if (!output.contracts || !output.contracts[contractPath] || !output.contracts[contractPath][contractName] || !output.contracts[contractPath][contractName].metadata) {
+            const errorMessages = output.errors.filter((e: any) => e.severity === "error").map((e: any) => e.formattedMessage).join("\n");
+            this.logger.error({ loc: "[VERIFY-WITH-JSON]", contractPath, contractName, compilerVersion, errorMessages });
+            throw new Error("Compiler error:\n " + errorMessages);
+            // throw new Error(RECOMPILATION_ERR_MSG);
+        }
+        
+        const contract: any = output.contracts[contractPath][contractName];
+        const metadata = contract.metadata.trim();
+        console.log("METADATA is here");
+        console.log(metadata);
     }
 
     findByAddress = (address: string, chain: string): Match[] => {

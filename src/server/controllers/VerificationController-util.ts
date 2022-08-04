@@ -7,7 +7,6 @@ import { InvalidSources } from '@ethereum-sourcify/core';
 import QueryString from 'qs';
 import { BadRequestError } from '../../common/errors';
 import fetch from 'node-fetch';
-
 export interface PathContentMap {
     [id: string]: PathContent;
 }
@@ -137,4 +136,12 @@ export function updateUnused(unused: string[], session: MySession) {
         session.unusedSources = [];
     }
     session.unusedSources = unused;
+}
+
+
+export function contractHasMultipleFiles(sourceCodeObject: string) {
+    if (sourceCodeObject.startsWith('{{')) {
+        return true
+    }
+    return false
 }

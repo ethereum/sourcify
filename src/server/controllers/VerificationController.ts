@@ -8,12 +8,13 @@ import { IValidationService } from '@ethereum-sourcify/validation';
 import * as bunyan from 'bunyan';
 import fileUpload from 'express-fileupload';
 import { isValidAddress } from '../../common/validators/validators';
-import { MySession, getSessionJSON, generateId, isVerifiable, SendableContract, ContractWrapperMap, updateUnused, MyRequest, addRemoteFile } from './VerificationController-util';
+import { MySession, getSessionJSON, generateId, isVerifiable, SendableContract, ContractWrapperMap, updateUnused, MyRequest, addRemoteFile, contractHasMultipleFiles } from './VerificationController-util';
 import { StatusCodes } from 'http-status-codes';
 import { body, query, validationResult } from 'express-validator';
 import web3utils from "web3-utils";
 import cors from 'cors';
 import config from '../../config';
+import fetch from 'node-fetch';
 
 const FILE_ENCODING = "base64";
 
@@ -78,6 +79,63 @@ export default class VerificationController extends BaseController implements IC
         return `${contract.name} (${errors.join(", ")})`;
     }
     
+    private verifyFromEtherscan = async (origReq: Request, res: Response): Promise<void> => {
+        const req = (origReq as MyRequest);
+        this.validateRequest(req);
+
+        // const chainId = req.body.chainId;
+        // const address = req.body.address;
+        const address = "0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4"
+
+        // TODO: Map different chainIds to different Etherscan APIs.
+        const url = `https://api-goerli.etherscan.io/api?module=contract&action=getsourcecode&address=${address}&apikey=${config.server.etherscanAPIKey}`;
+
+        const response = await fetch(url);
+        const resultJson = await response.json();
+        const sourceCodeObject = resultJson.result[0].SourceCode
+        const contractName = resultJson.result[0].ContractName;
+        const contractFileName = resultJson.result[0].ContractName + ".sol";
+        const compilerVersion = resultJson.result[0].CompilerVersion;
+
+        if (contractHasMultipleFiles(sourceCodeObject)) {
+            // Tell compiler to output metadata
+            sourceCodeObject.settings.outputSelection["*"]["*"] = ["metadata"];
+            this.verificationService.verifyWithJSON(compilerVersion, contractName, sourceCodeObject)
+        } else {
+            // format the raw source code into a JSON object
+            const generatedSettings = {
+                "metadata": {
+                    "useLiteralContent": true
+                  },
+                  "optimizer": {
+                    "enabled": resultJson.result[0].OptimizationUsed === "1",
+                    "runs": parseInt(resultJson.result[0].Runs)
+                  },
+                  "outputSelection": {
+                    "*": {
+                      "*": [
+                        "metadata"
+                      ]
+                    }
+                  },
+                  // TODO: Do the default => evmVersion mapping
+                  "evmVersion": "istanbul",
+                //   "evmVersion": resultJson.result[0].EVMVersion.toLowerCase(),
+                  "libraries": {} // TODO: Check the library format
+            };
+            const solcJsonInput = {
+                "language": "Solidity",
+                "sources": {
+                    [contractFileName]: {
+                        "content": sourceCodeObject
+                    }
+                },
+                "settings": generatedSettings
+            }
+            this.verificationService.verifyWithJSON(resultJson.result[0].CompilerVersion, resultJson.result[0].ContractName, solcJsonInput)
+        }
+    }
+
     private legacyVerifyEndpoint = async (origReq: Request, res: Response): Promise<any> => {
         const req = (origReq as MyRequest);
         this.validateRequest(req);
@@ -439,7 +497,12 @@ export default class VerificationController extends BaseController implements IC
                 body("chain").exists().bail().custom((chain, { req }) => req.chain = this.validateSingleChainId(chain)),
                 this.safeHandler(this.legacyVerifyEndpoint)
             );
-
+        
+        this.router.route(['/verify-from-etherscan','/verifyFromEtherscan']).post(
+            // TODO: add validation
+            this.safeHandler(this.verifyFromEtherscan)
+        
+            )
         this.router.route(['/check-all-by-addresses', '/checkAllByAddresses'])
             .get(
                 query("addresses").exists().bail().custom((addresses, { req }) => req.addresses = this.validateAddresses(addresses)),
