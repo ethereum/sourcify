@@ -219,7 +219,7 @@ export class ValidationService implements IValidationService {
             const responsibleFiles =
                 malformedMetadataFiles.every(Boolean) ?
                 malformedMetadataFiles.join(", ") : `${malformedMetadataFiles.length} metadata files`;
-            msg = `Malformed settings.compilationTarget in: ${responsibleFiles}`;
+            msg = `Couldn't parse metadata files or they are malformed. Can't find settings.compilationTarget in: ${responsibleFiles}`;
 
         } else if (!metadataFiles.length) {
             msg = "Metadata file not found. Did you include \"metadata.json\"?";
@@ -345,8 +345,8 @@ export class ValidationService implements IValidationService {
      * @returns true if the provided object is a Solidity metadata file; false otherwise
      */
     private isMetadata(obj: any): boolean {
-        return  (obj.language === "Solidity") &&
-                !!obj.compiler;
+        return  (obj?.language === "Solidity") && !!obj?.settings?.compilationTarget &&
+                !!obj?.version && !!obj?.output?.abi && !!obj?.output?.userdoc && !!obj?.output?.devdoc && !!obj?.sources;
     }
 
     /**
