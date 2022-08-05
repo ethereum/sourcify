@@ -1,4 +1,4 @@
-import { InputData, Match, Logger, IFileService } from '@ethereum-sourcify/core';
+import { InputData, Match, Logger, IFileService, CheckedContract } from '@ethereum-sourcify/core';
 import { Injector } from './Injector';
 import * as bunyan from 'bunyan';
 import { findContractPathFromContractName, useCompiler } from '../utils';
@@ -9,7 +9,7 @@ export interface IVerificationService {
     findByAddress(address: string, chain: string): Match[];
     findAllByAddress(address: string, chain: string): Match[];
     inject(inputData: InputData): Promise<Match>;
-    verifyWithJSON(compilerVersion: string, contractName: string, compilerJson: any) : Promise<void>;
+    verifyWithJSON(compilerVersion: string, contractName: string, compilerJson: any) : Promise<Match>;
 }
 
 export class VerificationService implements IVerificationService {
@@ -23,7 +23,7 @@ export class VerificationService implements IVerificationService {
     }
     
     // TODO: Add compiler JSON interface
-    verifyWithJSON = async (compilerVersion: string, contractName: string, compilerJson: any) : Promise<void> => {
+    verifyWithJSON = async (compilerVersion: string, contractName: string, compilerJson: any) : Promise<Match> => {
         const compiled = await useCompiler(compilerVersion, compilerJson, this.logger);
         const output = JSON.parse(compiled);
         const contractPath = findContractPathFromContractName(output.contracts, contractName);
@@ -36,9 +36,29 @@ export class VerificationService implements IVerificationService {
         }
         
         const contract: any = output.contracts[contractPath][contractName];
-        const metadata = contract.metadata.trim();
-        console.log("METADATA is here");
-        console.log(metadata);
+        const metadata = JSON.parse(contract.metadata.trim())
+
+        // TODO: transform this loop in a function "getStringMapFromMetadata"
+        const fetchedSources: any = {}
+        for (const name in metadata.sources) {
+            const source = metadata.sources[name];
+            source.name = name;
+
+            if (source.content) {
+                fetchedSources[name] = source.content;
+                continue;
+            }
+        }
+
+        // TODO: pass also chain and addresses as a parameter of "verifyWithJSON"
+        const checkedContract = new CheckedContract(metadata, fetchedSources)
+        const inputData: InputData = {
+            chain: '5',
+            addresses: ['0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4'],
+            contract: checkedContract
+        }
+        return await this.inject(inputData)
+
     }
 
     findByAddress = (address: string, chain: string): Match[] => {

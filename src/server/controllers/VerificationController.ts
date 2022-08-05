@@ -97,10 +97,11 @@ export default class VerificationController extends BaseController implements IC
         const contractFileName = resultJson.result[0].ContractName + ".sol";
         const compilerVersion = resultJson.result[0].CompilerVersion;
 
+        let result
         if (contractHasMultipleFiles(sourceCodeObject)) {
             // Tell compiler to output metadata
             sourceCodeObject.settings.outputSelection["*"]["*"] = ["metadata"];
-            this.verificationService.verifyWithJSON(compilerVersion, contractName, sourceCodeObject)
+            result = await this.verificationService.verifyWithJSON(compilerVersion, contractName, sourceCodeObject)
         } else {
             // format the raw source code into a JSON object
             const generatedSettings = {
@@ -132,8 +133,10 @@ export default class VerificationController extends BaseController implements IC
                 },
                 "settings": generatedSettings
             }
-            this.verificationService.verifyWithJSON(resultJson.result[0].CompilerVersion, resultJson.result[0].ContractName, solcJsonInput)
+            // TODO: handle errors
+            result = await this.verificationService.verifyWithJSON(resultJson.result[0].CompilerVersion, resultJson.result[0].ContractName, solcJsonInput)
         }
+        res.send({ result })
     }
 
     private legacyVerifyEndpoint = async (origReq: Request, res: Response): Promise<any> => {
