@@ -521,6 +521,23 @@ describe("Test Supported Chains", function () {
   );
 
   verifyContract(
+    "0xB5FAD02EbF6edffbdf206d2C1ad815bcDdb380f8",
+    "420",
+    "Optimism Goerli Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x0a835C6dd361790d2A2F173eBf1BCd7fAa804952",
+    "420",
+    "Optimism Goerli Testnet",
+    ["uint256"],
+    [123456],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
+  verifyContract(
     "0x43f980475B9eb5D93A19dfA84511ECE7b330c226",
     "288",
     "Boba Network",

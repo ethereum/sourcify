@@ -21,9 +21,9 @@ echo "Finished ipfs add! New ipfs hash: $hash"
 date
 
 # Remove /contracts 
-echo "Removing /contracts from MFSc"
+echo "Removing /contracts from MFS"
 ipfs files rm -r /contracts
-echo "Removed /contracts from MFSc"
+echo "Removed /contracts from MFS"
 
 # cp the repo under MFS
 echo "Copying $hash to MFS at /contracts"
