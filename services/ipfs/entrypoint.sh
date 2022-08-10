@@ -3,6 +3,7 @@
 
 if [ ! -f ~/.ipfs/config ]
 then
+    echo "No config found. Initializing..."
     bash ./init-config.sh
 fi
 
@@ -20,7 +21,7 @@ hash=$(ipfs add -Q -r /root/.ipfs/repository/contracts)
 echo "Finished ipfs add! New ipfs hash: $hash"
 date
 
-# Remove /contracts 
+# Remove the old /contracts in MFS
 echo "Removing /contracts from MFS"
 ipfs files rm -r /contracts
 echo "Removed /contracts from MFS"
@@ -31,23 +32,7 @@ ipfs files cp -p /ipfs/$hash /contracts
 echo "Copied $hash to MFS at /contracts"
 date
 
-# Add manifest and stats to MFS.
-echo "Adding manifest and stats"
-manifestHash=$(ipfs add -Q /root/.ipfs/repository/manifest.json)
-statsHash=$(ipfs add -Q /root/.ipfs/repository/stats.json)
-ipfs files cp -p /ipfs/$manifestHash /manifest.json
-ipfs files cp -p /ipfs/$statsHash /stats.json
-echo "Added manifest: $manifestHash and stats: $statsHash"
-
-rootHash=$(ipfs files stat / --hash)
-
-echo "Publishing rootHash $rootHash under ipns key"
-ipfs -D name publish --key=main $rootHash
-echo "Published rootHash $rootHash under ipns key"
-date
-
-# Start the run once job.
-echo "Successfully added and published the repository"
+bash ./publish.sh
 
 crontab cron.job
 cron -f
