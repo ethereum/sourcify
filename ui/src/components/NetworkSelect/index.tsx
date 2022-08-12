@@ -35,20 +35,31 @@ type NetworkSelectProps = {
   value: string | undefined;
   handleChainIdChange: (chainId: number) => void;
   id?: string;
+  availableChains?: number[];
 };
 
 export default function NetworkSelect({
   value,
   handleChainIdChange,
   id,
+  availableChains,
 }: NetworkSelectProps) {
   const { sourcifyChains } = useContext(Context);
+
+  let filteredChains;
+  if (availableChains) {
+    filteredChains = sourcifyChains.filter((chain) =>
+      availableChains.includes(chain.chainId)
+    );
+  } else {
+    filteredChains = sourcifyChains;
+  }
 
   return (
     <CustomSelectSearch
       onChange={handleChainIdChange}
       value={value}
-      options={sourcifyChains.map((chain) => ({
+      options={filteredChains.map((chain) => ({
         name: `${chain.title || chain.name} (${chain.chainId}) `,
         value: chain.chainId,
       }))}

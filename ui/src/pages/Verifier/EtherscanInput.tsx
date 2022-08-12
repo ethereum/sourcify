@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Input from "../../components/Input";
+import NetworkSelect from "../../components/NetworkSelect";
 import { VERIFY_FROM_ETHERSCAN } from "../../constants";
 import { SessionResponse } from "../../types";
 
@@ -28,12 +29,10 @@ const EtherscanInput = ({
     if (!e.target.value) return setError("");
   };
 
-  const handleChainIdChange: React.ChangeEventHandler<HTMLInputElement> = (
-    e
-  ) => {
-    e.preventDefault();
-    setChainId(e.target.value);
-    if (!e.target.value) return setError("");
+  const handleChainIdChange = (id: number) => {
+    const chainId = `${id}`;
+    setChainId(chainId);
+    if (chainId) return setError("");
   };
 
   useEffect(() => {
@@ -64,11 +63,10 @@ const EtherscanInput = ({
         onChange={handleAddressChange}
         placeholder="0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4"
       />
-      <Input
-        disabled={isLoading}
+      <NetworkSelect
         value={chainId}
-        onChange={handleChainIdChange}
-        placeholder="5"
+        handleChainIdChange={handleChainIdChange}
+        availableChains={[1, 5, 42, 4, 3, 11155111]}
       />
     </>
   );
