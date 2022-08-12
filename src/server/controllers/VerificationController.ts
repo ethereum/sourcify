@@ -232,14 +232,17 @@ export default class VerificationController extends BaseController implements IC
         }
         
         // 4. set the chainid and address for the contract
-        const id: string = Object.keys(session.contractWrappers)[0]
         const verifiable: ContractWrapperMap = {};
-        const contractWrapper = session.contractWrappers[id];
-        if (contractWrapper) {
-            contractWrapper.address = address;
-            contractWrapper.chainId = chain;
-            if (isVerifiable(contractWrapper)) {
-                verifiable[id] = contractWrapper;
+        for (const id of Object.keys(session.contractWrappers)) {
+            const contractWrapper = session.contractWrappers[id];
+            if (contractWrapper) {
+                if (!contractWrapper.address) {
+                    contractWrapper.address = address;
+                    contractWrapper.chainId = chain;
+                }
+                if (isVerifiable(contractWrapper)) {
+                    verifiable[id] = contractWrapper;
+                }
             }
         }
 
@@ -610,17 +613,11 @@ export default class VerificationController extends BaseController implements IC
                 this.safeHandler(this.legacyVerifyEndpoint)
             );
         
-        this.router.route(['/verify-from-etherscan','/verifyFromEtherscan']).post(
-            // TODO: add validation
-            this.safeHandler(this.verifyFromEtherscan)
-        
+        this.router.route(['/verify-from-etherscan-legacy','/verifyFromEtherscanLegacy'])
+            .post(
+                // TODO: add validation
+                this.safeHandler(this.verifyFromEtherscan)
             )
-
-        this.router.route(['/session/verify-from-etherscan','/session/verifyFromEtherscan']).post(
-            // TODO: add validation
-            this.safeHandler(this.verifyFromEtherscanWithSession)
-            );
-            
         
         this.router.route(['/check-all-by-addresses', '/checkAllByAddresses'])
             .get(
@@ -652,6 +649,9 @@ export default class VerificationController extends BaseController implements IC
                 cors(corsOpt),
                 this.safeHandler(this.verifyValidatedEndpoint)
             );
+
+        this.router.route(['/verify-from-etherscan']).all(cors(corsOpt))
+            .post(cors(corsOpt), this.safeHandler(this.verifyFromEtherscanWithSession));
 
         return this.router;
     }

@@ -4,6 +4,7 @@ import { AiFillFileAdd } from "react-icons/ai";
 import { HiOutlineExclamation } from "react-icons/hi";
 import LoadingOverlay from "../../components/LoadingOverlay";
 import { SessionResponse } from "../../types";
+import EtherscanInput from "./EtherscanInput";
 import GithubInput from "./GithubInput";
 
 type FileUploadProps = {
@@ -54,6 +55,18 @@ const FileUpload: React.FC<FileUploadProps> = ({
             </p>
             <div className="mt-1">
               <GithubInput
+                fetchAndUpdate={fetchAndUpdate}
+                setIsLoading={setIsLoading}
+                isLoading={isLoading}
+              />
+            </div>
+          </div>
+          <div className="mt-4">
+            <p className="">
+              Import from Etherscan (contract must be verified)
+            </p>
+            <div className="mt-1">
+              <EtherscanInput
                 fetchAndUpdate={fetchAndUpdate}
                 setIsLoading={setIsLoading}
                 isLoading={isLoading}

@@ -3,6 +3,7 @@ import React, {
   ChangeEventHandler,
   FormEventHandler,
   useContext,
+  useEffect,
   useRef,
   useState,
 } from "react";
@@ -38,6 +39,16 @@ const ChainAddressForm = ({
   const [foundMatches, setFoundMatches] = useState<CheckAllByAddressResult>();
   const { sourcifyChains } = useContext(Context);
   const verifyButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (checkedContract.address) {
+      setAddress(checkedContract.address);
+    }
+
+    if (checkedContract.chainId) {
+      setChainId(checkedContract.chainId);
+    }
+  }, [setAddress, setChainId, checkedContract]);
 
   const handleAddressChange: ChangeEventHandler<HTMLInputElement> = (e) => {
     const tempAddr = e.target.value;
