@@ -2,7 +2,7 @@ import { Request, Response, Router } from 'express';
 import BaseController from './BaseController';
 import { IController } from '../../common/interfaces';
 import { IVerificationService } from '@ethereum-sourcify/verification';
-import { InputData, checkChainId, Logger, PathBuffer, CheckedContract, isEmpty, PathContent, Match } from '@ethereum-sourcify/core';
+import { InputData, checkChainId, Logger, PathBuffer, CheckedContract, isEmpty, PathContent, Match, Metadata, JsonInput } from '@ethereum-sourcify/core';
 import { BadRequestError, NotFoundError, PayloadTooLargeError, ValidationError } from '../../common/errors'
 import { IValidationService } from '@ethereum-sourcify/validation';
 import * as bunyan from 'bunyan';
@@ -78,66 +78,137 @@ export default class VerificationController extends BaseController implements IC
         const errors = Object.keys(contract.invalid).concat(Object.keys(contract.missing));
         return `${contract.name} (${errors.join(", ")})`;
     }
+
+    private getMappedSourcesFromJsonInput = (jsonInput: JsonInput) => {
+        const mappedSources: any = {}
+        for (const name in jsonInput.sources) {
+            const source = jsonInput.sources[name];
+            if (source.content) {
+                mappedSources[name] = source.content;
+            }
+        }
+        return mappedSources
+    }
+
+    private getEtherscanApiHostFromChainId = (chainId: string): string  => {
+        switch(chainId) {
+            case '1': return `https://api.etherscan.io`
+            case '5': return `https://api-goerli.etherscan.io`
+            case '42': return `https://api-kovan.etherscan.io`
+            case '4': return `https://api-rinkeby.etherscan.io`
+            case '3': return `https://api-ropsten.etherscan.io`
+            case '11155111': return `https://api-sepolia.etherscan.io`
+        }
+    }
+
+    private getSolcJsonInputFromEtherscanResult = (etherscanResult: any): JsonInput => {
+        const generatedSettings = {
+            "metadata": {
+                "useLiteralContent": true
+              },
+              "optimizer": {
+                "enabled": etherscanResult.result[0].OptimizationUsed === "1",
+                "runs": parseInt(etherscanResult.result[0].Runs)
+              },
+              "outputSelection": {
+                "*": {
+                  "*": [
+                    "metadata"
+                  ]
+                }
+              },
+              // TODO: Do the default => evmVersion mapping: getDefaultEvmVersionFromVersion(version: string)
+              "evmVersion": "istanbul",
+              "libraries": {} // TODO: Check the library format
+        }; 
+        const solcJsonInput = {
+            "language": "Solidity",
+            "sources": {
+                [etherscanResult.result[0].ContractName + ".sol"]: {
+                    "content": etherscanResult.result[0].SourceCode
+                }
+            },
+            "settings": generatedSettings
+        }
+        return solcJsonInput
+    }
+
+    parseMultipleFilesContract = (sourceCodeObject: string) => {
+        return JSON.parse(sourceCodeObject.slice(1, -1))
+    }
     
     private verifyFromEtherscan = async (origReq: Request, res: Response): Promise<void> => {
         const req = (origReq as MyRequest);
         this.validateRequest(req);
 
-        // const chainId = req.body.chainId;
-        // const address = req.body.address;
-        const address = "0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4"
+        const chain = req.body.chainId as string;
+        const address = req.body.address;
 
-        // TODO: Map different chainIds to different Etherscan APIs.
-        const url = `https://api-goerli.etherscan.io/api?module=contract&action=getsourcecode&address=${address}&apikey=${config.server.etherscanAPIKey}`;
+        const url = `${this.getEtherscanApiHostFromChainId(chain)}/api?module=contract&action=getsourcecode&address=${address}&apikey=${config.server.etherscanAPIKey}`
 
         const response = await fetch(url);
         const resultJson = await response.json();
         const sourceCodeObject = resultJson.result[0].SourceCode
         const contractName = resultJson.result[0].ContractName;
-        const contractFileName = resultJson.result[0].ContractName + ".sol";
         const compilerVersion = resultJson.result[0].CompilerVersion;
 
-        let result
+        let solcJsonInput
         if (contractHasMultipleFiles(sourceCodeObject)) {
+            const sourceCode = this.parseMultipleFilesContract(sourceCodeObject)
             // Tell compiler to output metadata
-            sourceCodeObject.settings.outputSelection["*"]["*"] = ["metadata"];
-            result = await this.verificationService.verifyWithJSON(compilerVersion, contractName, sourceCodeObject)
+            sourceCode.settings.outputSelection["*"]["*"] = ["metadata"];
+            solcJsonInput = sourceCode
         } else {
-            // format the raw source code into a JSON object
-            const generatedSettings = {
-                "metadata": {
-                    "useLiteralContent": true
-                  },
-                  "optimizer": {
-                    "enabled": resultJson.result[0].OptimizationUsed === "1",
-                    "runs": parseInt(resultJson.result[0].Runs)
-                  },
-                  "outputSelection": {
-                    "*": {
-                      "*": [
-                        "metadata"
-                      ]
-                    }
-                  },
-                  // TODO: Do the default => evmVersion mapping
-                  "evmVersion": "istanbul",
-                //   "evmVersion": resultJson.result[0].EVMVersion.toLowerCase(),
-                  "libraries": {} // TODO: Check the library format
-            };
-            const solcJsonInput = {
-                "language": "Solidity",
-                "sources": {
-                    [contractFileName]: {
-                        "content": sourceCodeObject
-                    }
-                },
-                "settings": generatedSettings
-            }
-            // TODO: handle errors
-            result = await this.verificationService.verifyWithJSON(resultJson.result[0].CompilerVersion, resultJson.result[0].ContractName, solcJsonInput)
+            solcJsonInput = this.getSolcJsonInputFromEtherscanResult(resultJson)
         }
+        
+        const metadata = await this.verificationService.getMetadataFromJsonInput(compilerVersion, contractName, solcJsonInput)
+
+        const mappedSources = this.getMappedSourcesFromJsonInput(solcJsonInput)
+        const checkedContract = new CheckedContract(metadata, mappedSources)
+
+        const inputData: InputData = {
+            chain,
+            addresses: [address],
+            contract: checkedContract
+        }
+        const result = await this.verificationService.inject(inputData)
+
         res.send({ result })
     }
+
+/* 
+    // TODO: do verifyFromEtherscan also for UI with session
+    function verifyFromEtherscanWithSession() {
+        // 1. generate metadata
+
+        // 2. save the file in the session
+        const pathContents: PathContent[] = inputFiles.map(pb => {
+            return { path: pb.path, content: pb.buffer.toString(FILE_ENCODING) }
+        });
+        const session = (req.session as MySession);
+        const newFilesCount = this.saveFiles(pathContents, session);
+        
+        // 3. create the contractwrappers from the files
+        this.validateContracts(session);
+
+        // 4. set the chainid and address for the contract
+        const verifiable: ContractWrapperMap = {};
+        for (const receivedContract of receivedContracts) {
+            const id = receivedContract.verificationId;
+            const contractWrapper = session.contractWrappers[id];
+            if (contractWrapper) {
+                contractWrapper.address = receivedContract.address;
+                contractWrapper.chainId = receivedContract.chainId;
+                if (isVerifiable(contractWrapper)) {
+                    verifiable[id] = contractWrapper;
+                }
+            }
+        }
+
+        // 5. verify the contracts
+        this.verifyValidated()
+    } */
 
     private legacyVerifyEndpoint = async (origReq: Request, res: Response): Promise<any> => {
         const req = (origReq as MyRequest);
