@@ -133,16 +133,11 @@ export default class VerificationController extends BaseController implements IC
         return solcJsonInput
     }
 
-    parseMultipleFilesContract = (sourceCodeObject: string) => {
+    private parseMultipleFilesContract = (sourceCodeObject: string) => {
         return JSON.parse(sourceCodeObject.slice(1, -1))
     }
-    
-    private verifyFromEtherscan = async (origReq: Request, res: Response): Promise<void> => {
-        const req = (origReq as MyRequest);
-        this.validateRequest(req);
 
-        const chain = req.body.chainId as string;
-        const address = req.body.address;
+    private processRequestFromEtherscan = async (chain: string, address: string): Promise<any> => {
 
         const url = `${this.getEtherscanApiHostFromChainId(chain)}/api?module=contract&action=getsourcecode&address=${address}&apikey=${config.server.etherscanAPIKey}`
 
@@ -163,6 +158,23 @@ export default class VerificationController extends BaseController implements IC
         }
         
         const metadata = await this.verificationService.getMetadataFromJsonInput(compilerVersion, contractName, solcJsonInput)
+        return {
+            metadata,
+            solcJsonInput
+        }
+    }
+    
+    private verifyFromEtherscan = async (origReq: Request, res: Response): Promise<void> => {
+        const req = (origReq as MyRequest);
+        this.validateRequest(req);
+
+        const chain = req.body.chainId as string;
+        const address = req.body.address;
+
+        const {
+            metadata,
+            solcJsonInput
+        } = await this.processRequestFromEtherscan(chain, address);
 
         const mappedSources = this.getMappedSourcesFromJsonInput(solcJsonInput)
         const checkedContract = new CheckedContract(metadata, mappedSources)
@@ -177,38 +189,64 @@ export default class VerificationController extends BaseController implements IC
         res.send({ result })
     }
 
-/* 
-    // TODO: do verifyFromEtherscan also for UI with session
-    function verifyFromEtherscanWithSession() {
+    private stringToBase64 = (str: string): string => {
+        return Buffer.from(str, 'utf8').toString('base64');
+    }
+
+    private verifyFromEtherscanWithSession = async (origReq: Request, res: Response): Promise<void> => {
+        
         // 1. generate metadata
+        const req = (origReq as MyRequest);
+        this.validateRequest(req);
+
+        const chain = req.body.chainId as string;
+        const address = req.body.address;
+
+        const {
+            metadata,
+            solcJsonInput
+        } = await this.processRequestFromEtherscan(chain, address);
 
         // 2. save the file in the session
-        const pathContents: PathContent[] = inputFiles.map(pb => {
-            return { path: pb.path, content: pb.buffer.toString(FILE_ENCODING) }
+        const pathContents: PathContent[] = Object.keys(solcJsonInput.sources).map(path => {
+            return { path: path, content: this.stringToBase64(solcJsonInput.sources[path].content) }
         });
+        pathContents.push({
+            path: 'metadata.json',
+            content: this.stringToBase64(JSON.stringify(metadata))
+        })
         const session = (req.session as MySession);
         const newFilesCount = this.saveFiles(pathContents, session);
-        
-        // 3. create the contractwrappers from the files
-        this.validateContracts(session);
+        if (newFilesCount === 0) {
+            // TODO: improve this error so the UI can handle it
+            res.send({msg:"error"});
+            return
+        }
 
+        // 3. create the contractwrappers from the files        
+        await this.validateContracts(session);
+        if (!session.contractWrappers) {
+            // TODO: improve this error so the UI can handle it
+            res.send({msg:"error"});
+            return
+        }
+        
         // 4. set the chainid and address for the contract
+        const id: string = Object.keys(session.contractWrappers)[0]
         const verifiable: ContractWrapperMap = {};
-        for (const receivedContract of receivedContracts) {
-            const id = receivedContract.verificationId;
-            const contractWrapper = session.contractWrappers[id];
-            if (contractWrapper) {
-                contractWrapper.address = receivedContract.address;
-                contractWrapper.chainId = receivedContract.chainId;
-                if (isVerifiable(contractWrapper)) {
-                    verifiable[id] = contractWrapper;
-                }
+        const contractWrapper = session.contractWrappers[id];
+        if (contractWrapper) {
+            contractWrapper.address = address;
+            contractWrapper.chainId = chain;
+            if (isVerifiable(contractWrapper)) {
+                verifiable[id] = contractWrapper;
             }
         }
 
-        // 5. verify the contracts
-        this.verifyValidated()
-    } */
+        // 5. verify
+        await this.verifyValidated(verifiable, session);
+        res.send(getSessionJSON(session));
+    }
 
     private legacyVerifyEndpoint = async (origReq: Request, res: Response): Promise<any> => {
         const req = (origReq as MyRequest);
@@ -577,6 +615,13 @@ export default class VerificationController extends BaseController implements IC
             this.safeHandler(this.verifyFromEtherscan)
         
             )
+
+        this.router.route(['/session/verify-from-etherscan','/session/verifyFromEtherscan']).post(
+            // TODO: add validation
+            this.safeHandler(this.verifyFromEtherscanWithSession)
+            );
+            
+        
         this.router.route(['/check-all-by-addresses', '/checkAllByAddresses'])
             .get(
                 query("addresses").exists().bail().custom((addresses, { req }) => req.addresses = this.validateAddresses(addresses)),
