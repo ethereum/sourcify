@@ -26,4 +26,8 @@ ipfs config --json Experimental.AcceleratedDHTClient true
 ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["*"]'
 ipfs config --json Addresses.API '["/ip4/0.0.0.0/tcp/5001"]'
 
+# Add remote pinning services
+ipfs pin remote service add estuary https://api.estuary.tech/pinning $ESTUARY_PINNING_SECRET
+ipfs pin remote service add web3.storage https://api.web3.storage/ $WEB3_STORAGE_PINNING_SECRET
+
 ipfs key import main /app/ipfs-${TAG}.key 

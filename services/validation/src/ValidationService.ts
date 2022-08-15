@@ -219,7 +219,7 @@ export class ValidationService implements IValidationService {
             const responsibleFiles =
                 malformedMetadataFiles.every(Boolean) ?
                 malformedMetadataFiles.join(", ") : `${malformedMetadataFiles.length} metadata files`;
-            msg = `Couldn't parse metadata files or they are malformed. Can't find settings.compilationTarget in: ${responsibleFiles}`;
+            msg = `Couldn't parse metadata files or they are malformed. Can't find settings.compilationTarget or multiple compilationTargets in: ${responsibleFiles}`;
 
         } else if (!metadataFiles.length) {
             msg = "Metadata file not found. Did you include \"metadata.json\"?";

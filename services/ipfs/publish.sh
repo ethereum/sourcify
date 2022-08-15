@@ -44,4 +44,11 @@ rootHash=$(ipfs files stat / | head -n 1)
 echo "Publishing rootHash $rootHash under ipns key"
 ipfs -D name publish --key=main $rootHash
 echo "Published rootHash $rootHash under ipns key"
-date
+
+timestamp=$(date -u +"%Y-%m-%dT%H:%MZ")
+pinName=sourcify-$TAG-$timestamp
+
+echo "Pinning to remote services"
+ipfs pin remote add --service=estuary $rootHash --background --name=$pinName
+ipfs pin remote add --service=web3.storage $rootHash --background --name=$pinName
+echo "Pinned to remote services (running in background)"
