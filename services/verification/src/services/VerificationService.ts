@@ -9,7 +9,7 @@ export interface IVerificationService {
     findByAddress(address: string, chain: string): Match[];
     findAllByAddress(address: string, chain: string): Match[];
     inject(inputData: InputData): Promise<Match>;
-    getMetadataFromJsonInput(compilerVersion: string, contractName: string, compilerJson: any) : Promise<Metadata>;
+    getMetadataFromJsonInput(compilerVersion: string, contractPath: string, contractName: string, compilerJson: any) : Promise<Metadata>;
 }
 
 export class VerificationService implements IVerificationService {
@@ -22,10 +22,9 @@ export class VerificationService implements IVerificationService {
         this.logger = logger || Logger("VerificationService");
     }
     
-    getMetadataFromJsonInput = async (compilerVersion: string, contractName: string, compilerJson: JsonInput) : Promise<Metadata> => {
+    getMetadataFromJsonInput = async (compilerVersion: string, contractPath: string, contractName: string, compilerJson: JsonInput) : Promise<Metadata> => {
         const compiled = await useCompiler(compilerVersion, compilerJson, this.logger);
         const output = JSON.parse(compiled);
-        const contractPath = findContractPathFromContractName(output.contracts, contractName);
         
         if (!output.contracts || !output.contracts[contractPath] || !output.contracts[contractPath][contractName] || !output.contracts[contractPath][contractName].metadata) {
             const errorMessages = output.errors.filter((e: any) => e.severity === "error").map((e: any) => e.formattedMessage).join("\n");
@@ -33,8 +32,7 @@ export class VerificationService implements IVerificationService {
             throw new Error("Compiler error:\n " + errorMessages);
         }
         
-        const contract: any = output.contracts[contractPath][contractName];
-        return JSON.parse(contract.metadata.trim())
+        return JSON.parse(output.contracts[contractPath][contractName].metadata.trim())
     }
 
     findByAddress = (address: string, chain: string): Match[] => {

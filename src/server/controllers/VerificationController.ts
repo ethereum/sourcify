@@ -8,7 +8,7 @@ import { IValidationService } from '@ethereum-sourcify/validation';
 import * as bunyan from 'bunyan';
 import fileUpload from 'express-fileupload';
 import { isValidAddress } from '../../common/validators/validators';
-import { MySession, getSessionJSON, generateId, isVerifiable, SendableContract, ContractWrapperMap, updateUnused, MyRequest, addRemoteFile, contractHasMultipleFiles } from './VerificationController-util';
+import { MySession, getSessionJSON, generateId, isVerifiable, SendableContract, ContractWrapperMap, updateUnused, MyRequest, addRemoteFile, contractHasMultipleFiles, EtherscanResult } from './VerificationController-util';
 import { StatusCodes } from 'http-status-codes';
 import { body, query, validationResult } from 'express-validator';
 import web3utils from "web3-utils";
@@ -101,31 +101,28 @@ export default class VerificationController extends BaseController implements IC
         }
     }
 
-    private getSolcJsonInputFromEtherscanResult = (etherscanResult: any): JsonInput => {
+    private getSolcJsonInputFromEtherscanResult = (etherscanResult: EtherscanResult, contractPath: string): JsonInput => {
         const generatedSettings = {
-            "metadata": {
-                "useLiteralContent": true
-              },
-              "optimizer": {
-                "enabled": etherscanResult.result[0].OptimizationUsed === "1",
-                "runs": parseInt(etherscanResult.result[0].Runs)
-              },
-              "outputSelection": {
-                "*": {
-                  "*": [
-                    "metadata"
-                  ]
-                }
-              },
-              // TODO: Do the default => evmVersion mapping: getDefaultEvmVersionFromVersion(version: string)
-              "evmVersion": "istanbul",
-              "libraries": {} // TODO: Check the library format
+            "optimizer": {
+            "enabled": etherscanResult.OptimizationUsed === "1",
+            "runs": parseInt(etherscanResult.Runs)
+            },
+            "outputSelection": {
+            "*": {
+                "*": [
+                "metadata"
+                ]
+            }
+            },
+            // TODO: Do the default => evmVersion mapping: getDefaultEvmVersionFromVersion(version: string)
+            "evmVersion": "istanbul",
+            "libraries": {} // TODO: Check the library format
         }; 
         const solcJsonInput = {
             "language": "Solidity",
             "sources": {
-                [etherscanResult.result[0].ContractName + ".sol"]: {
-                    "content": etherscanResult.result[0].SourceCode
+                [contractPath]: {
+                    "content": etherscanResult.SourceCode
                 }
             },
             "settings": generatedSettings
@@ -133,6 +130,7 @@ export default class VerificationController extends BaseController implements IC
         return solcJsonInput
     }
 
+    // Output has multiple curly braces {{...}} 
     private parseMultipleFilesContract = (sourceCodeObject: string) => {
         return JSON.parse(sourceCodeObject.slice(1, -1))
     }
@@ -143,21 +141,25 @@ export default class VerificationController extends BaseController implements IC
 
         const response = await fetch(url);
         const resultJson = await response.json();
-        const sourceCodeObject = resultJson.result[0].SourceCode
-        const contractName = resultJson.result[0].ContractName;
-        const compilerVersion = resultJson.result[0].CompilerVersion;
-
+        const contractResultJson = resultJson.result[0];
+        const sourceCodeObject = contractResultJson.SourceCode
+        const compilerVersion = contractResultJson.CompilerVersion;
+        
         let solcJsonInput
+        let contractPath
+        // SourceCode can be the Solidity code if there is only one contract file, or the json object if there are multiple files
         if (contractHasMultipleFiles(sourceCodeObject)) {
-            const sourceCode = this.parseMultipleFilesContract(sourceCodeObject)
+            solcJsonInput = this.parseMultipleFilesContract(sourceCodeObject)
+            // First key of the sources from the etherscan response is the target contract.
+            contractPath = Object.keys(solcJsonInput.sources)[0];
             // Tell compiler to output metadata
-            sourceCode.settings.outputSelection["*"]["*"] = ["metadata"];
-            solcJsonInput = sourceCode
+            solcJsonInput.settings.outputSelection["*"]["*"] = ["metadata"];
         } else {
-            solcJsonInput = this.getSolcJsonInputFromEtherscanResult(resultJson)
+            contractPath = contractResultJson.ContractName + ".sol";
+            solcJsonInput = this.getSolcJsonInputFromEtherscanResult(contractResultJson, contractPath)
         }
         
-        const metadata = await this.verificationService.getMetadataFromJsonInput(compilerVersion, contractName, solcJsonInput)
+        const metadata = await this.verificationService.getMetadataFromJsonInput(compilerVersion, contractPath, contractResultJson.ContractName, solcJsonInput)
         return {
             metadata,
             solcJsonInput
@@ -207,7 +209,7 @@ export default class VerificationController extends BaseController implements IC
             solcJsonInput
         } = await this.processRequestFromEtherscan(chain, address);
 
-        // 2. save the file in the session
+        // 2. save the files in the session
         const pathContents: PathContent[] = Object.keys(solcJsonInput.sources).map(path => {
             return { path: path, content: this.stringToBase64(solcJsonInput.sources[path].content) }
         });
