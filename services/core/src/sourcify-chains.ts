@@ -412,7 +412,13 @@ export default {
     "71401": { // Godwoken testnet v1.1
         "supported": true,
         "monitored": false,
-        "contractFetchAddress": "https://gw-explorer.nervosdao.community/" + BLOCKSCOUT_SUFFIX,
+        "contractFetchAddress": "https://gw-testnet-explorer.nervosdao.community/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "71402": { // Godwoken mainnet v1.1
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://gw-mainnet-explorer.nervosdao.community/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
     "432201": { // Dexalot Testnet
