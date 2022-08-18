@@ -23,7 +23,7 @@ export default class TestArtifactsController extends BaseController implements I
    */
   findLatestChainTest = async (req: Request, res: Response) => {
     const CIRCLE_PROJECT_ID = process.env.CIRCLE_PROJECT_ID || 183183290;
-    const WORKFLOWS_URL = `https://circleci.com/api/v2/insights/gh/ethereum/sourcify/workflows/test-chains-regularly`;
+    const WORKFLOWS_URL = `https://circleci.com/api/v2/insights/gh/ethereum/sourcify/workflows/test-chains-regularly?branch=master`;
     // Fetch last runs of the chain test workflow: https://circleci.com/docs/api/v2/#operation/getProjectWorkflowRuns
     const workflowResponse = await (await fetch(WORKFLOWS_URL)).json();
     if (workflowResponse.items.length === 0) {
@@ -46,10 +46,14 @@ export default class TestArtifactsController extends BaseController implements I
     const jobId = jobResponse.items[0].id;
     // Fetch the test report .json artifact
     const ARTIFACT_URL = `https://dl.circleci.com/private/output/job/${jobId}/artifacts/0/chain-tests-report/report.json`;
-    const artifactResponse = await (await fetch(ARTIFACT_URL)).json();
-
+    const artifactResponse = await fetch(ARTIFACT_URL);
+    const artifactResponseJson = await artifactResponse.json();
+    if (!artifactResponse.ok) {
+      return res.status(artifactResponse.status).json(artifactResponseJson);
+    }
+    
     return res.json({
-      testReport: artifactResponse,
+      testReport: artifactResponseJson,
       workflowId,
       pipelineNumber,
       jobNumber,
