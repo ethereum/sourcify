@@ -86,6 +86,18 @@ export function isVerifiable(contractWrapper: ContractWrapper) {
         && Boolean(contractWrapper.chainId);
 }
 
+// TODO: Check if we already have the full file path or just the file name.
+export function findContractPathFromContractName(contracts: any, contractName: string): string|null {
+    for (const key of Object.keys(contracts))  {
+        const contractsList = contracts[key]
+        if (Object.keys(contractsList).includes(contractName)) {
+            return key
+        }
+    }
+    // Fallback to the first key
+    return Object.keys(contracts.sources)[0];
+}
+
 function getSendableContract(contractWrapper: ContractWrapper, verificationId: string): SendableContract {
     const contract = contractWrapper.contract;
 

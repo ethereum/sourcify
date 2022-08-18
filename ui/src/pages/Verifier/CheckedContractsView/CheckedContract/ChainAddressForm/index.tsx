@@ -8,7 +8,7 @@ import React, {
   useState,
 } from "react";
 import Input from "../../../../../components/Input";
-import NetworkSelect from "../../../../../components/NetworkSelect";
+import ChainSelect from "../../../../../components/ChainSelect";
 import { Context } from "../../../../../Context";
 import {
   CheckAllByAddressResult,
@@ -112,14 +112,15 @@ const ChainAddressForm = ({
             value={address}
             onChange={handleAddressChange}
             placeholder="0x2fabe97..."
+            className="mb-2"
           />
         </div>
         <div>
-          <label className="block" htmlFor="network-select">
-            Network
+          <label className="block" htmlFor="chain-select">
+            Chain
           </label>
-          <NetworkSelect
-            id="network-select"
+          <ChainSelect
+            id="chain-select"
             value={chainId}
             handleChainIdChange={handleChainIdChange}
           />

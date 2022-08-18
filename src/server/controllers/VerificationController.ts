@@ -8,7 +8,7 @@ import { IValidationService } from '@ethereum-sourcify/validation';
 import * as bunyan from 'bunyan';
 import fileUpload from 'express-fileupload';
 import { isValidAddress } from '../../common/validators/validators';
-import { MySession, getSessionJSON, generateId, isVerifiable, SendableContract, ContractWrapperMap, updateUnused, MyRequest, addRemoteFile, contractHasMultipleFiles, EtherscanResult } from './VerificationController-util';
+import { MySession, getSessionJSON, generateId, isVerifiable, SendableContract, ContractWrapperMap, updateUnused, MyRequest, addRemoteFile, contractHasMultipleFiles, EtherscanResult, findContractPathFromContractName } from './VerificationController-util';
 import { StatusCodes } from 'http-status-codes';
 import { body, query, validationResult } from 'express-validator';
 import web3utils from "web3-utils";
@@ -144,14 +144,15 @@ export default class VerificationController extends BaseController implements IC
         const contractResultJson = resultJson.result[0];
         const sourceCodeObject = contractResultJson.SourceCode
         const compilerVersion = contractResultJson.CompilerVersion;
-        
+        const contractName = contractResultJson.ContractName;
+
         let solcJsonInput
         let contractPath
         // SourceCode can be the Solidity code if there is only one contract file, or the json object if there are multiple files
         if (contractHasMultipleFiles(sourceCodeObject)) {
             solcJsonInput = this.parseMultipleFilesContract(sourceCodeObject)
             // First key of the sources from the etherscan response is the target contract.
-            contractPath = Object.keys(solcJsonInput.sources)[0];
+            contractPath = findContractPathFromContractName(solcJsonInput.sources, contractName)
             // Tell compiler to output metadata
             solcJsonInput.settings.outputSelection["*"]["*"] = ["metadata"];
         } else {
@@ -159,7 +160,7 @@ export default class VerificationController extends BaseController implements IC
             solcJsonInput = this.getSolcJsonInputFromEtherscanResult(contractResultJson, contractPath)
         }
         
-        const metadata = await this.verificationService.getMetadataFromJsonInput(compilerVersion, contractPath, contractResultJson.ContractName, solcJsonInput)
+        const metadata = await this.verificationService.getMetadataFromJsonInput(compilerVersion, contractPath, contractName, solcJsonInput)
         return {
             metadata,
             solcJsonInput

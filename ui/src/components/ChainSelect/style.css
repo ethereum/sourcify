@@ -32,26 +32,24 @@
 }
 
 /**
- * Input
+ * Same as Input component
  */
 .select-search__input {
   display: block;
-  height: 36px;
   width: 100%;
-  padding: 0 40px 0 16px;
-  background: #eaeef7;
-  color: #1e3877;
-  border: 1px solid #aab9dd;
-  box-shadow: 0 0.0625rem 0.125rem rgba(0, 0, 0, 0.15);
-  border-radius: 0.5rem;
-  outline: none;
-  font-size: 14px;
-  text-align: left;
-  text-overflow: ellipsis;
-  line-height: 36px;
-  -webkit-appearance: none;
+  border-radius: 0.375rem/* 6px */;
+  border-width: 2px;
+  --tw-border-opacity: 1;
+  border-color: rgb(169 189 238 / var(--tw-border-opacity));
+  --tw-bg-opacity: 1;
+  background-color: rgb(249 250 251 / var(--tw-bg-opacity));
+  padding-left: 1rem/* 16px */;
+  padding-right: 1rem/* 16px */;
+  height: 2.75rem;
 }
-
+.select-search__input:disabled {
+  opacity: 0.3;
+}
 .select-search__input::-webkit-search-decoration,
 .select-search__input::-webkit-search-cancel-button,
 .select-search__input::-webkit-search-results-button,
@@ -94,7 +92,8 @@
   height: 36px;
   width: 100%;
   padding: 0 16px;
-  background: #fff;
+  --tw-bg-opacity: 1;
+  background-color: rgb(249 250 251 / var(--tw-bg-opacity));
   border: none;
   outline: none;
   font-size: 14px;

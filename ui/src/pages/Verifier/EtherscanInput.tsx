@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Input from "../../components/Input";
-import NetworkSelect from "../../components/NetworkSelect";
+import ChainSelect from "../../components/ChainSelect";
 import { VERIFY_FROM_ETHERSCAN } from "../../constants";
 import { SessionResponse } from "../../types";
 
@@ -55,20 +55,21 @@ const EtherscanInput = ({
   }, [address, chainId, fetchAndUpdate, setIsLoading]);
 
   return (
-    <>
+    <div className="mb-2">
       {error && <div className="text-sm text-red-400">{error}</div>}
       <Input
         disabled={isLoading}
         value={address}
         onChange={handleAddressChange}
-        placeholder="0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4"
+        placeholder="0x00878Ac0D6B8d9..."
+        className="mb-2"
       />
-      <NetworkSelect
+      <ChainSelect
         value={chainId}
         handleChainIdChange={handleChainIdChange}
         availableChains={[1, 5, 42, 4, 3, 11155111]}
       />
-    </>
+    </div>
   );
 };
 
