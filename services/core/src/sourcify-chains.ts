@@ -176,7 +176,7 @@ export default {
         ],
         "txRegex": ETHERSCAN_REGEX
     },
-    "421611": {
+    "421611": { // Arbitrum Rinkeby Testnet
         "supported": true,
         "monitored": true,
         "graphQLFetchAddress": "https://rinkeby-indexer.arbitrum.io/graphql",
@@ -184,13 +184,22 @@ export default {
             buildAlchemyURL("rinkeby", "arb")
         ],
     },
-    "42161": {
+    "42161": { // Arbitrum Mainnet
         "supported": true,
         "monitored": true,
         "contractFetchAddress": "https://arbiscan.io/" + ETHERSCAN_SUFFIX,
         "txRegex": ETHERSCAN_REGEX,
         "rpc": [
             buildAlchemyURL("mainnet", "arb")
+        ],
+    },
+    "421613": { // Arbitrum Goerli Testnet
+        "supported": true,
+        "monitored": true,
+        "contractFetchAddress": "https://goerli-rollup-explorer.arbitrum.io/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex(),
+        "rpc": [
+            buildAlchemyURL("goerli", "arb")
         ],
     },
     "43113": {
