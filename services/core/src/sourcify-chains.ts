@@ -93,6 +93,7 @@ export default {
         "monitored": true,
         "rpc": [
             buildAlchemyURL("sepolia", "eth", true),
+            "https://rpc.sepolia.org"
         ]
     },
     "51": {
