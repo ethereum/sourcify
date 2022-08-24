@@ -45,248 +45,43 @@ export default {
         ],
         "txRegex": ETHERSCAN_REGEX,
     },
-    "3": {
-        "supported": true,
-        "monitored": true,
-        "contractFetchAddress": "https://ropsten.etherscan.io/" + ETHERSCAN_SUFFIX,
-        "rpc": [
-            buildAlchemyURL("ropsten", "eth", true),
-            buildAlchemyURL("ropsten", "eth")
-        ],
-        "txRegex": ETHERSCAN_REGEX,
-    },
-    "4": {
-        "supported": true,
-        "monitored": true,
-        "contractFetchAddress": "https://rinkeby.etherscan.io/" + ETHERSCAN_SUFFIX,
-        "rpc": [
-            buildAlchemyURL("rinkeby", "eth", true),
-            buildAlchemyURL("rinkeby", "eth")
-        ],
-        "txRegex": ETHERSCAN_REGEX,
-    },
-    "5": {
-        "supported": true,
-        "monitored": true,
-        "contractFetchAddress": "https://goerli.etherscan.io/" + ETHERSCAN_SUFFIX,
-        "rpc": [
-            buildAlchemyURL("goerli", "eth", true),
-            buildAlchemyURL("goerli", "eth")
-        ],
-        "txRegex": ETHERSCAN_REGEX,
-    },
-    "42": {
-        "supported": true,
-        "monitored": true,
-        "contractFetchAddress": "https://kovan.etherscan.io/" + ETHERSCAN_SUFFIX,
-        "rpc": [
-            buildAlchemyURL("kovan", "eth")
-        ],
-        "txRegex": ETHERSCAN_REGEX,
-    },
     "44": {
         "fullnode": {
             "dappnode": "https://crab-rpc.darwinia.network"
         },
+        "contractFetchAddress": "https://crab.api.subscan.io/api/scan/evm/contract",
+        "subscan":true,
         "rpc": ["https://crab-rpc.darwinia.network"],
         "supported": true,
         "monitored": false,
     },
     "46": {
         "rpc": ["wss://rpc.darwinia.network/"],
+        "contractFetchAddress": "https://darwinia.api.subscan.io/api/scan/evm/contract",
+        "subscan":true,
         "supported": true,
         "monitored": false,
     },
     "592": {
         "rpc": ["https://rpc.astar.network:8545"],
+        "contractFetchAddress": "https://astar.api.subscan.io/api/scan/evm/contract",
+        "subscan":true,
         "supported": true,
         "monitored": false,
     },
     "336": {
         "rpc": ["https://shiden.api.onfinality.io/public"],
+        "contractFetchAddress": "https://shiden.api.subscan.io/api/scan/evm/contract",
+        "subscan":true,
         "supported": true,
         "monitored": false,
     },
     "81": {
         "rpc": ["https://rpc.shibuya.astar.network:8545"],
+        "contractFetchAddress": "https://shibuya.api.subscan.io/api/scan/evm/contract",
+        "subscan":true,
         "supported": true,
         "monitored": false,
-    },
-    "11155111": { // Ethereum Sepolia Testnet
-        "supported": true,
-        "monitored": true,
-        "rpc": [
-            buildAlchemyURL("sepolia", "eth", true),
-        ]
-    },
-    "56": {
-        "supported": true,
-        "monitored": false,
-        "contractFetchAddress": "https://bscscan.com/" + ETHERSCAN_SUFFIX,
-        "txRegex": ETHERSCAN_REGEX
-    },
-    "77": {
-        "supported": true,
-        "monitored": true,
-        "contractFetchAddress": "https://blockscout.com/poa/sokol/" + BLOCKSCOUT_SUFFIX,
-        "txRegex": getBlockscoutRegex("/poa/sokol")
-    },
-    "82": {
-        "supported": true,
-        "monitored": false,
-        "contractFetchAddress": "https://api.meter.io:8000/" + METER_SUFFIX,
-    },
-    "83": {
-        "supported": true,
-        "monitored": false,
-        "contractFetchAddress": "https://api.meter.io:4000/" + METER_SUFFIX,
-    },
-    "97": {
-        "supported": true,
-        "monitored": false,
-        "contractFetchAddress": "https://testnet.bscscan.com/" + ETHERSCAN_SUFFIX,
-        "txRegex": ETHERSCAN_REGEX
-    },
-    "100": {
-        "supported": true,
-        "monitored": true,
-        "contractFetchAddress": "https://blockscout.com/xdai/mainnet/" + BLOCKSCOUT_SUFFIX,
-        "txRegex": getBlockscoutRegex("/xdai/mainnet")
-    },
-    "137": {
-        "supported": true,
-        "monitored": true,
-        "contractFetchAddress": "https://polygonscan.com/" + ETHERSCAN_SUFFIX,
-        "rpc": [
-            buildAlchemyURL("mainnet", "polygon")
-        ],
-        "txRegex": ETHERSCAN_REGEX
-    },
-    "42220": {
-        "supported": true,
-        "monitored": false,
-        "contractFetchAddress": "https://explorer.celo.org/" + BLOCKSCOUT_SUFFIX,
-        "txRegex": getBlockscoutRegex()
-    },
-    "44787": {
-        "supported": true,
-        "monitored": false,
-        "contractFetchAddress": "https://alfajores-blockscout.celo-testnet.org/" + BLOCKSCOUT_SUFFIX,
-        "txRegex": getBlockscoutRegex()
-    },
-    "62320": {
-        "supported": true,
-        "monitored": false,
-        "contractFetchAddress": "https://baklava-blockscout.celo-testnet.org/" + BLOCKSCOUT_SUFFIX,
-        "txRegex": getBlockscoutRegex()
-    },
-    "80001": {
-        "supported": true,
-        "monitored": true,
-        "contractFetchAddress": "https://mumbai.polygonscan.com/" + ETHERSCAN_SUFFIX,
-        "rpc": [
-            buildAlchemyURL("mumbai", "polygon")
-        ],
-        "txRegex": ETHERSCAN_REGEX
-    },
-    "421611": {
-        "supported": true,
-        "monitored": true,
-        "graphQLFetchAddress": "https://rinkeby-indexer.arbitrum.io/graphql"
-    },
-    "42161": {
-        "supported": true,
-        "monitored": true,
-        "contractFetchAddress": "https://arbiscan.io/" + ETHERSCAN_SUFFIX,
-        "txRegex": ETHERSCAN_REGEX
-    },
-    "43113": {
-        "supported": true,
-        "monitored": false,
-        "contractFetchAddress": "https://testnet.snowtrace.io/" + ETHERSCAN_SUFFIX,
-        "txRegex": ETHERSCAN_REGEX
-    },
-    "43114": {
-        "supported": true,
-        "monitored": false,
-        "contractFetchAddress": "https://snowtrace.io/" + ETHERSCAN_SUFFIX,
-        "txRegex": ETHERSCAN_REGEX
-    },
-    "57": {
-        "supported": true,
-        "monitored": false,
-        "contractFetchAddress": "https://explorer.syscoin.org/" + BLOCKSCOUT_SUFFIX,
-        "txRegex": getBlockscoutRegex()
-    },
-    "5700": {
-        "supported": true,
-        "monitored": false,
-        "contractFetchAddress": "https://tanenbaum.io/" + BLOCKSCOUT_SUFFIX,
-        "txRegex": getBlockscoutRegex()
-    },
-    "40": {
-        "supported": true,
-        "monitored": false,
-        "contractFetchAddress": "https://mainnet.telos.net/" + TELOS_SUFFIX,
-    },
-    "41": {
-        "supported": true,
-        "monitored": false,
-        "contractFetchAddress": "https://testnet.telos.net/" + TELOS_SUFFIX,
-    },
-    "8": {
-        "supported": true,
-        "monitored": false,
-        "contractFetchAddress": "https://ubiqscan.io/" + ETHERSCAN_SUFFIX,
-        "txRegex": ETHERSCAN_REGEX
-    },
-    "4216137055": {
-        "supported": true,
-        "monitored": false,
-        "contractFetchAddress": "https://frankenstein-explorer.oneledger.network/" + BLOCKSCOUT_SUFFIX,
-        "txRegex": getBlockscoutRegex()
-    },
-    "10": {
-        "supported": true,
-        "monitored": true,
-        "contractFetchAddress": "https://optimistic.etherscan.io/" + ETHERSCAN_SUFFIX,
-        "txRegex": ETHERSCAN_REGEX
-    },
-    "69": {
-        "supported": true,
-        "monitored": true,
-        "contractFetchAddress": "https://kovan-optimistic.etherscan.io/" + ETHERSCAN_SUFFIX,
-        "txRegex": ETHERSCAN_REGEX
-    },
-    "28": {
-        "supported": true,
-        "monitored": true,
-        "contractFetchAddress": "https://blockexplorer.rinkeby.boba.network/" + BLOCKSCOUT_SUFFIX,
-        "txRegex": getBlockscoutRegex()
-    },
-    "288": {
-        "supported": true,
-        "monitored": true,
-        "contractFetchAddress": "https://blockexplorer.boba.network/" + BLOCKSCOUT_SUFFIX,
-        "txRegex": getBlockscoutRegex()
-    },
-    "106": {
-        "supported": true,
-        "monitored": false,
-        "contractFetchAddress": "https://evmexplorer.velas.com/" + BLOCKSCOUT_SUFFIX,
-        "txRegex": getBlockscoutRegex()
-    },
-    "1313161554": {
-        "supported": true,
-        "monitored": false,
-        "contractFetchAddress": "https://explorer.mainnet.aurora.dev/" + BLOCKSCOUT_SUFFIX,
-        "txRegex": getBlockscoutRegex()
-    },
-    "1313161555": {
-        "supported": true,
-        "monitored": false,
-        "contractFetchAddress": "https://explorer.testnet.aurora.dev/" + BLOCKSCOUT_SUFFIX,
-        "txRegex": getBlockscoutRegex()
     },
     "1284": { // Moonbeam
         "supported": true,
@@ -300,18 +95,4 @@ export default {
         "supported": true,
         "monitored": false
     },
-    "11297108109": { // Palm
-        "supported": true,
-        "monitored": false,
-        "contractFetchAddress": "https://explorer.palm.io/" + BLOCKSCOUT_SUFFIX,
-        "txRegex": getBlockscoutRegex(),
-        "rpc": [replaceInfuraID("https://palm-mainnet.infura.io/v3/{INFURA_API_KEY}")]
-    },
-    "11297108099": { // Palm Testnet
-        "supported": true,
-        "monitored": false,
-        "contractFetchAddress": "https://explorer.palm-uat.xyz/" + BLOCKSCOUT_SUFFIX,
-        "txRegex": getBlockscoutRegex(),
-        "rpc": [replaceInfuraID("https://palm-testnet.infura.io/v3/{INFURA_API_KEY}")]
-    }
 }

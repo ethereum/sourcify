@@ -106,7 +106,7 @@ export async function recompile(
         log.error({ loc, fileName, contractName, version, errors });
         throw new Error(RECOMPILATION_ERR_MSG);
     }
-    
+
     const contract: any = output.contracts[fileName][contractName];
     return {
         creationBytecode: `0x${contract.evm.bytecode.object}`,
@@ -119,7 +119,7 @@ export async function recompile(
  * Searches for a solc: first for a local executable version, then from GitHub
  * and then using the getSolcJs function.
  * Once the compiler is retrieved, it is used, and the stringified solc output is returned.
- * 
+ *
  * @param version the version of solc to be used for compilation
  * @param input a JSON object of the standard-json format compatible with solc
  * @param log the logger
@@ -227,17 +227,17 @@ export function getBytecodeWithoutMetadata(bytecode: string): string {
 /**
  * Fetches the requested version of the Solidity compiler (soljson).
  * First attempts to search locally; if that fails, falls back to downloading it.
- * 
+ *
  * @param version the solc version to retrieve: the expected format is
- * 
+ *
  * "[v]<major>.<minor>.<patch>+commit.<hash>"
- * 
+ *
  * e.g.: "0.6.6+commit.6c089d02"
- * 
+ *
  * defaults to "latest"
- * 
+ *
  * @param log a logger to track the course of events
- * 
+ *
  * @returns the requested solc instance
  */
 export function getSolcJs(version = "latest", log: InfoErrorLogger): Promise<any> {
@@ -301,8 +301,8 @@ export function getSolcJs(version = "latest", log: InfoErrorLogger): Promise<any
 
 /**
  * Modified and optimized version of https://www.shawntabrizi.com/ethereum-find-contract-creator/
- * 
- * @param contractAddress the hexadecimal address of the contract 
+ *
+ * @param contractAddress the hexadecimal address of the contract
  * @param web3 initialized web3 object for chain requests
  * @returns a Promise of the creation data
  */
@@ -325,7 +325,7 @@ export async function getCreationDataFromArchive(contractAddress: string, web3: 
 
 /**
  * Returns the data used for contract creation in the transaction found by the provided regex on the provided page.
- * 
+ *
  * @param fetchAddress the URL from which to fetch the page to be scrapd
  * @param txRegex regex whose first group matches the transaction hash on the page
  * @param web3 initialized web3 object for chain requests
@@ -377,6 +377,21 @@ export async function getCreationDataMeter(fetchAddress: string, web3: Web3): Pr
     throw new Error(`Creation data could not be scraped from ${fetchAddress}`);
 }
 
+
+export async function getCreationDataFromSubscan(fetchAddress: string,contractAddress: string): Promise<string> {
+    const res = await fetch(fetchAddress, {
+        method: 'post',
+        body: JSON.stringify({address: contractAddress}),
+        headers: {'Content-Type': 'application/json'}
+    });
+    if (res.status === StatusCodes.OK) {
+        const response = await res.json();
+        if (response.data?.creation_code) {
+            return response.data.creation_code;
+        }
+    }
+    throw new Error(`Creation data could not be scraped from ${fetchAddress}`);
+}
 
 export async function getCreationDataFromGraphQL(fetchAddress: string, contractAddress: string, web3: Web3): Promise<string> {
     const body = JSON.stringify({ query: `

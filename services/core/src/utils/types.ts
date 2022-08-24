@@ -134,6 +134,7 @@ export type Chain = {
   // archiveWeb3?: Web3,
   supported?: boolean,
   monitored?: boolean
+  subscan?: boolean
 };
 
 export type InfoErrorLogger = {

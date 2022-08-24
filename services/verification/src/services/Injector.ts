@@ -1,7 +1,19 @@
 import Web3 from 'web3';
 import * as bunyan from 'bunyan';
 import { Match, InputData, getSupportedChains, Logger, IFileService, FileService, StringMap, cborDecode, CheckedContract, MatchQuality, Chain, Status } from '@ethereum-sourcify/core';
-import { RecompilationResult, getBytecode, recompile, getBytecodeWithoutMetadata as trimMetadata, checkEndpoint, getCreationDataFromArchive, getCreationDataByScraping, getCreationDataFromGraphQL, getCreationDataTelos, getCreationDataMeter } from '../utils';
+import {
+    RecompilationResult,
+    getBytecode,
+    recompile,
+    getBytecodeWithoutMetadata as trimMetadata,
+    checkEndpoint,
+    getCreationDataFromArchive,
+    getCreationDataByScraping,
+    getCreationDataFromGraphQL,
+    getCreationDataTelos,
+    getCreationDataMeter,
+    getCreationDataFromSubscan
+} from '../utils';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const multihashes: any = require('multihashes');
 
@@ -22,6 +34,7 @@ class InjectorChain {
     contractFetchAddress: string;
     graphQLFetchAddress: string;
     txRegex: string;
+    subscan: boolean;
     // archiveWeb3: Web3;
 
     constructor(chain: Chain) {
@@ -31,6 +44,7 @@ class InjectorChain {
         this.contractFetchAddress = chain.contractFetchAddress;
         this.graphQLFetchAddress = chain.graphQLFetchAddress;
         this.txRegex = chain.txRegex;
+        this.subscan = chain.subscan;
         // this.archiveWeb3 = chain.archiveWeb3;
     }
 }
@@ -84,7 +98,7 @@ export class Injector {
     /**
      * Creates an instance of Injector. Waits for chains to initialize.
      * Await this method to work with an instance that has all chains initialized.
-     * @param config 
+     * @param config
      */
     public static async createAsync(config: InjectorConfig = {}): Promise<Injector> {
         const instance = new Injector(config);
@@ -96,7 +110,7 @@ export class Injector {
 
     /**
      * Creates an instance of Injector. Does not initialize chains.
-     * @param config 
+     * @param config
      */
     public static createOffline(config: InjectorConfig = {}): Injector {
         return new Injector(config);
@@ -122,14 +136,14 @@ export class Injector {
 
             this.chains[chain.chainId].web3array = chain.rpc.map((rpcURL: string) => {
                 const opts = { timeout: this.web3timeout };
-                const web3 = rpcURL.startsWith('http') ? 
+                const web3 = rpcURL.startsWith('http') ?
                     new Web3(new Web3.providers.HttpProvider(rpcURL, opts)) :
                     new Web3(new Web3.providers.WebsocketProvider(rpcURL, opts));
                 return web3;
             });
         }
     }
-    
+
     /**
      * Searches a set of addresses for the one whose deployedBytecode
      * matches a given bytecode string
@@ -292,8 +306,8 @@ export class Injector {
 
     /**
      * Returns the `creationData` from the transaction that created the contract at the provided chain and address.
-     * @param chain 
-     * @param contractAddress 
+     * @param chain
+     * @param contractAddress
      * @returns `creationData` if found, `null` otherwise
      */
     private async getCreationData(chain: string, contractAddress: string): Promise<string> {
@@ -322,9 +336,9 @@ export class Injector {
                     return await getCreationDataTelos(txFetchAddress, web3);
                 } catch(err: any) {
                     this.log.error({ loc, chain, contractAddress, err: err.message }, "Telos API failed!");
-                } 
+                }
             }
-            
+
         }
 
         // Meter network
@@ -337,6 +351,17 @@ export class Injector {
                 }catch(err:any){
                     this.log.error({ loc, chain, contractAddress, err: err.message }, "Meter API failed!");
                 }
+            }
+        }
+
+        // Subscan use
+        if (txFetchAddress && this.chains[chain].subscan) {
+            // txFetchAddress = txFetchAddress.replace("${ADDRESS}", contractAddress);
+            this.log.info({loc, chain, contractAddress, fetchAddress: txFetchAddress}, "Querying SUBSCAN API");
+            try {
+                return await getCreationDataFromSubscan(txFetchAddress,contractAddress);
+            } catch (err: any) {
+                this.log.error({loc, chain, contractAddress, err: err.message}, "SUBSCAN API failed!");
             }
         }
 
@@ -492,7 +517,7 @@ export class Injector {
     /**
      * This method exists because many different people have contributed to this code, which has led to the
      * lack of unanimous nomenclature
-     * @param status 
+     * @param status
      * @returns {MatchQuality} matchQuality
      */
     private statusToMatchQuality(status: Status): MatchQuality {
@@ -530,7 +555,7 @@ export class Injector {
     /**
      * Stores the metadata from compilationResult to the swarm | ipfs subrepo. The exact storage path depends
      * on the swarm | ipfs address extracted from compilationResult.deployedByteode.
-     * 
+     *
      * @param chain used only for logging
      * @param address used only for loggin
      * @param compilationResult should contain deployedBytecode and metadata
@@ -569,10 +594,10 @@ export class Injector {
 
     /**
      * Writes the constructor arguments to the repository.
-     * @param matchQuality 
-     * @param chain 
-     * @param address 
-     * @param encodedConstructorArgs 
+     * @param matchQuality
+     * @param chain
+     * @param address
+     * @param encodedConstructorArgs
      */
     private storeConstructorArgs(matchQuality: MatchQuality, chain: string, address: string, encodedConstructorArgs: string) {
         this.fileService.save({
@@ -588,10 +613,10 @@ export class Injector {
 
     /**
      * Writes the map of library links (pairs of the format <placeholder:address>) to the repository.
-     * @param matchQuality 
-     * @param chain 
-     * @param address 
-     * @param libraryMap 
+     * @param matchQuality
+     * @param chain
+     * @param address
+     * @param libraryMap
      */
     private storeLibraryMap(matchQuality: MatchQuality, chain: string, address: string, libraryMap: StringMap) {
         const indentationSpaces = 2;
