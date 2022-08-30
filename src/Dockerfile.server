@@ -6,6 +6,6 @@ COPY services/validation ./services/validation
 COPY services/verification ./services/verification
 COPY src ./src
 COPY *.json ./
-RUN npx lerna bootstrap && npx lerna run build
+RUN npm config set user 0 && npx lerna bootstrap && npx lerna run build
 
 CMD ["npm", "run", "server:start"]
