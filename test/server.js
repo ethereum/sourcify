@@ -158,12 +158,9 @@ describe("Server", function () {
       chai.expect(contract.storageTimestamp).to.not.exist;
     };
 
-    const assertNotFound = (err, res) => {
+    const assertEtherscanError = (err, res) => {
       chai.expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
-
-      const errors = res.body?.errors
-      chai.expect(errors).to.have.a.lengthOf(1)
-      chai.expect(errors[0].field).to.be.equal('etherscan')
+      chai.expect(res.body?.error).to.exist
     };
     
     this.timeout(EXTENDED_TIME_60);
@@ -197,7 +194,7 @@ describe("Server", function () {
         .field("address", fakeAddress)
         .field("chainId", "1")
         .end((err, res) => {
-          assertNotFound(err, res)
+          assertEtherscanError(err, res)
           done();
         });
     });

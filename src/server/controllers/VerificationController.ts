@@ -209,7 +209,7 @@ export default class VerificationController extends BaseController implements IC
             metadata = processedRequest.metadata
             solcJsonInput = processedRequest.solcJsonInput
         } catch(e) {
-            throw new ValidationError([{ param: "etherscan", msg: "This contract is not verified on Etherscan" }]);
+            throw new BadRequestError("This contract is not verified on Etherscan")
         }
 
         // 2. save the files in the session
@@ -223,13 +223,13 @@ export default class VerificationController extends BaseController implements IC
         const session = (req.session as MySession);
         const newFilesCount = this.saveFiles(pathContents, session);
         if (newFilesCount === 0) {
-            throw new ValidationError([{ param: "etherscan", msg: "The contract has no files" }]);
+            throw new BadRequestError("The contract has no files")
         }
 
         // 3. create the contractwrappers from the files        
         await this.validateContracts(session);
         if (!session.contractWrappers) {
-            throw new ValidationError([{ param: "etherscan", msg: "Unknown error during the Etherscan verification process" }]);
+            throw new BadRequestError("Unknown error during the Etherscan verification process")
             return
         }
         
