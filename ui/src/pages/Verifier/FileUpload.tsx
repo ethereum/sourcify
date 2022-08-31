@@ -1,11 +1,19 @@
 import React, { useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { AiFillFileAdd } from "react-icons/ai";
+import { AiFillFileAdd, AiOutlinePlus } from "react-icons/ai";
 import { HiOutlineExclamation } from "react-icons/hi";
+import Button from "../../components/Button";
 import LoadingOverlay from "../../components/LoadingOverlay";
+import EtherscanLogo from "../../components/EtherscanLogo";
 import { SessionResponse } from "../../types";
 import EtherscanInput from "./EtherscanInput";
 import GithubInput from "./GithubInput";
+
+enum ImportMethods {
+  UPLOAD,
+  REMOTE,
+  ETHERSCAN,
+}
 
 type FileUploadProps = {
   handleFilesAdded: (files: []) => void;
@@ -26,6 +34,8 @@ const FileUpload: React.FC<FileUploadProps> = ({
   fetchAndUpdate,
 }) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [importMethodSelected, setImportMethodSelected] =
+    useState<ImportMethods>(ImportMethods.UPLOAD);
   const { getRootProps, getInputProps } = useDropzone({
     onDrop: async (acceptedFiles: any) => {
       setIsLoading(true);
@@ -34,6 +44,13 @@ const FileUpload: React.FC<FileUploadProps> = ({
     },
   });
   // const dropzoneAcceptedFiles = acceptedFiles as DropzoneFile[]; // Typecast for file.path and file.size
+  const selectImportMethod = (method: ImportMethods) => {
+    if (method === importMethodSelected) {
+      setImportMethodSelected(ImportMethods.UPLOAD);
+    } else {
+      setImportMethodSelected(method);
+    }
+  };
 
   const displayFiles = addedFiles.map((file) => {
     return <li key={file}>&bull; {file}</li>;
@@ -48,31 +65,71 @@ const FileUpload: React.FC<FileUploadProps> = ({
             to verify.
           </p>
         </div>
+        <div className="flex flex-row gap-3">
+          <div className="mt-4">
+            <Button
+              type={
+                importMethodSelected === ImportMethods.REMOTE
+                  ? "primary"
+                  : "secondary"
+              }
+              onClick={() => selectImportMethod(ImportMethods.REMOTE)}
+              className="text-sm"
+            >
+              <>
+                <AiOutlinePlus className="inline align-middle mr-1" />
+                Import from remote
+              </>
+            </Button>
+          </div>
+          <div className="mt-4">
+            <Button
+              type={
+                importMethodSelected === ImportMethods.ETHERSCAN
+                  ? "primary"
+                  : "secondary"
+              }
+              onClick={() => selectImportMethod(ImportMethods.ETHERSCAN)}
+              className="text-sm"
+            >
+              <>
+                <EtherscanLogo
+                  light={importMethodSelected === ImportMethods.ETHERSCAN}
+                />
+                Import from Etherscan
+              </>
+            </Button>
+          </div>
+        </div>
         <div className="flex flex-grow flex-col pb-8">
-          <div className="mt-4">
-            <p className="">
-              Import from remote file or zip (e.g. Github repo .zip)
-            </p>
-            <div className="mt-1">
-              <GithubInput
-                fetchAndUpdate={fetchAndUpdate}
-                setIsLoading={setIsLoading}
-                isLoading={isLoading}
-              />
+          {importMethodSelected === ImportMethods.REMOTE && (
+            <div className="mt-4">
+              <p className="">
+                Import from remote file or zip (e.g. Github repo .zip)
+              </p>
+              <div className="mt-1">
+                <GithubInput
+                  fetchAndUpdate={fetchAndUpdate}
+                  setIsLoading={setIsLoading}
+                  isLoading={isLoading}
+                />
+              </div>
             </div>
-          </div>
-          <div className="mt-4">
-            <p className="">
-              Import from Etherscan (contract must be verified)
-            </p>
-            <div className="mt-1">
-              <EtherscanInput
-                fetchAndUpdate={fetchAndUpdate}
-                setIsLoading={setIsLoading}
-                isLoading={isLoading}
-              />
+          )}
+          {importMethodSelected === ImportMethods.ETHERSCAN && (
+            <div className="mt-4">
+              <p className="">
+                Import from Etherscan (contract must be verified)
+              </p>
+              <div className="mt-1">
+                <EtherscanInput
+                  fetchAndUpdate={fetchAndUpdate}
+                  setIsLoading={setIsLoading}
+                  isLoading={isLoading}
+                />
+              </div>
             </div>
-          </div>
+          )}
           <div className="flex justify-end">
             <button
               onClick={async () => {
