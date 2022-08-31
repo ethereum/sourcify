@@ -34,6 +34,7 @@ const binaryParser = function (res, cb) {
 };
 
 const EXTENDED_TIME = 20000; // 20 seconds
+const EXTENDED_TIME_60 = 60000; // 60 seconds
 
 describe("Server", function () {
   const server = new Server();
@@ -143,6 +144,50 @@ describe("Server", function () {
     chai.expect(result.status).to.equal(expectedStatus);
     if (done) done();
   };
+
+  describe("/verify-from-etherscan", function () {
+    const assertAllFound = (err, res, finalStatus) => {
+      chai.expect(err).to.be.null;
+      chai.expect(res.status).to.equal(StatusCodes.OK);
+
+      const contracts = res.body.contracts;
+      chai.expect(contracts).to.have.a.lengthOf(1);
+      const contract = contracts[0];
+
+      chai.expect(contract.status).to.equal(finalStatus);
+      chai.expect(contract.storageTimestamp).to.not.exist;
+    };
+    
+    this.timeout(EXTENDED_TIME_60);
+
+    it("should import contract information from etherscan (single file) and verify the contract, finding a partial match", (done) => {
+      chai
+        .request(server.app)
+        .post("/verify-from-etherscan")
+        .field("address", "0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4")
+        .field("chainId", "5")
+        .end((err, res) => {
+          assertAllFound(err, res, "partial");
+          done();
+          process.exit()
+        });
+    });
+
+    it("should import contract information from etherscan (multiple files) and verify the contract, finding a partial match", (done) => {
+      chai
+        .request(server.app)
+        .post("/verify-from-etherscan")
+        .field("address", "0x5aa653a076c1dbb47cec8c1b4d152444cad91941")
+        .field("chainId", "1")
+        .end((err, res) => {
+          console.log(res.body)
+          assertAllFound(err, res, "partial");
+          done();
+          process.exit()
+        });
+    });
+
+  })
 
   describe("/check-by-addresses", function () {
     this.timeout(EXTENDED_TIME);
