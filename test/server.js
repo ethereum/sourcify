@@ -169,7 +169,6 @@ describe("Server", function () {
         .end((err, res) => {
           assertAllFound(err, res, "partial");
           done();
-          process.exit()
         });
     });
 
@@ -180,10 +179,8 @@ describe("Server", function () {
         .field("address", "0x5aa653a076c1dbb47cec8c1b4d152444cad91941")
         .field("chainId", "1")
         .end((err, res) => {
-          console.log(res.body)
           assertAllFound(err, res, "partial");
           done();
-          process.exit()
         });
     });
 
