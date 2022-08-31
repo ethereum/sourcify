@@ -6,7 +6,6 @@ import * as bunyan from 'bunyan';
 import { FileObject, Match, Status, Tag, MatchLevel, FilesInfo, MatchQuality, ContractData } from '../utils/types';
 import { checkChainId } from '../utils/utils';
 import { Logger } from '../utils/logger';
-import rimraf from 'rimraf';
 
 type PathConfig = {
     matchQuality: MatchQuality
@@ -25,7 +24,7 @@ export interface IFileService {
     findByAddress(address: string, chain: string): Match[];
     findAllByAddress(address: string, chain: string): Match[];
     save(path: string | PathConfig, file: string): void;
-    deletePartial(chain: string, address: string): void;
+    deletePartialIfExists(chain: string, address: string): void;
     repositoryPath: string;
     getTree(chainId: any, address: string, match: string): Promise<FilesInfo<string>>;
     getContent(chainId: any, address: string, match: string): Promise<FilesInfo<FileObject>>;
@@ -248,7 +247,7 @@ export class FileService implements IFileService {
         this.updateRepositoryTag();
     }
 
-    deletePartial(chain: string, address: string) {
+    deletePartialIfExists(chain: string, address: string) {
         const pathConfig: PathConfig = {
             matchQuality: "partial",
             chain,
@@ -257,16 +256,9 @@ export class FileService implements IFileService {
         };
         const absolutePath = this.generateAbsoluteFilePath(pathConfig);
 
-        rimraf(absolutePath, err => {
-            if (err) {
-                this.logger.error({
-                    loc: "[FILE_SERVICE:DELETE_PARTIAL]",
-                    err: err.message,
-                    chain,
-                    address
-                }, "Failed deleting a partial match");
-            }
-        });
+        if (fs.existsSync(absolutePath)) {
+            fs.rmdirSync(absolutePath, { recursive: true });
+        }
     }
 
     /**

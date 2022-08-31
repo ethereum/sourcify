@@ -3,6 +3,7 @@
 
 if [ ! -f ~/.ipfs/config ]
 then
+    echo "No config found. Initializing..."
     bash ./init-config.sh
 fi
 
@@ -20,10 +21,10 @@ hash=$(ipfs add -Q -r /root/.ipfs/repository/contracts)
 echo "Finished ipfs add! New ipfs hash: $hash"
 date
 
-# Remove /contracts 
-echo "Removing /contracts from MFSc"
+# Remove the old /contracts in MFS
+echo "Removing /contracts from MFS"
 ipfs files rm -r /contracts
-echo "Removed /contracts from MFSc"
+echo "Removed /contracts from MFS"
 
 # cp the repo under MFS
 echo "Copying $hash to MFS at /contracts"
@@ -31,23 +32,10 @@ ipfs files cp -p /ipfs/$hash /contracts
 echo "Copied $hash to MFS at /contracts"
 date
 
-# Add manifest and stats to MFS.
-echo "Adding manifest and stats"
-manifestHash=$(ipfs add -Q /root/.ipfs/repository/manifest.json)
-statsHash=$(ipfs add -Q /root/.ipfs/repository/stats.json)
-ipfs files cp -p /ipfs/$manifestHash /manifest.json
-ipfs files cp -p /ipfs/$statsHash /stats.json
-echo "Added manifest: $manifestHash and stats: $statsHash"
+bash ./publish.sh
 
-rootHash=$(ipfs files stat / --hash)
-
-echo "Publishing rootHash $rootHash under ipns key"
-ipfs -D name publish --key=main $rootHash
-echo "Published rootHash $rootHash under ipns key"
-date
-
-# Start the run once job.
-echo "Successfully added and published the repository"
+# Write the TAG var to /etc/environment so that the crontab can pick up the variable
+echo "TAG=$TAG" > /etc/environment
 
 crontab cron.job
 cron -f

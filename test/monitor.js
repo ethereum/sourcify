@@ -83,15 +83,9 @@ class MonitorWrapper {
     console.log(`Started assertions for ${address}`);
     const pathPrefix = this.getPathPrefix(address);
     const addressMetadataPath = this.getAddressMetadataPath(address);
-    const ipfsMetadataPath = path.join(
-      this.repository,
-      "ipfs",
-      contractWrapper.metadataIpfsHash
-    );
 
     const metadata = contractWrapper.metadata;
     assertEqualityFromPath(metadata, addressMetadataPath, { isJson: true });
-    assertEqualityFromPath(metadata, ipfsMetadataPath, { isJson: true });
 
     if (contractWrapper.argsHex) {
       const constructorArgsPath = this.getConstructorArgsPath(address);

@@ -481,22 +481,13 @@ export class Injector {
             );
         }
 
-        // Since the bytecode matches, we can be sure that we got the right
-        // metadata file (up to json formatting) and exactly the right sources.
-        // Now we can store the re-compiled and correctly formatted metadata file
-        // and the sources.
+
         if (match.address && (match.status === "perfect" || match.status === "partial")) {
-            const metadataPath = this.getMetadataPathFromCborEncoded(compilationResult.deployedBytecode, match.address, chain);
-
-            // Saves the metadata file with its ipfs CID under /repository/ipfs/Qmvz....
-            // TODO: Do we need this?
-            if (metadataPath) {
-                this.fileService.save(metadataPath, compilationResult.metadata);
-                this.fileService.deletePartial(chain, match.address);
-            } else {
-                match.status = "partial";
+            
+            // Delete the partial matches if we now have a perfect match instead.
+            if (match.status === "perfect") {
+                this.fileService.deletePartialIfExists(chain, match.address);
             }
-
             const matchQuality = this.statusToMatchQuality(match.status);
             this.storeSources(matchQuality, chain, match.address, contract.solidity);
             this.storeMetadata(matchQuality, chain, match.address, compilationResult);

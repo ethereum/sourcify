@@ -162,7 +162,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
               )}
               {displayFiles.length ? (
                 <div>
-                  <h2 className="font-bold text-lg">Added Files</h2>
+                  <h2 className="font-bold text-lg">Added Files <span className="font-normal">({displayFiles.length})</span></h2>
                   <ul className="flex flex-col break-all">{displayFiles}</ul>
                 </div>
               ) : (
