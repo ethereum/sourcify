@@ -138,7 +138,6 @@ export async function recompile(
     }
 }
 
-// TODO: Check if we already have the full file path or just the file name.
 export function findContractPathFromContractName(contracts: any, contractName: string): string|null {
     for (const key of Object.keys(contracts))  {
         const contractsList = contracts[key]
