@@ -1,7 +1,7 @@
 // AnimateOnScroll
 import AOS from "aos";
 import "aos/dist/aos.css";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { BsChevronCompactDown } from "react-icons/bs";
 import { HiCheckCircle } from "react-icons/hi";
 import { Link } from "react-router-dom";
@@ -84,6 +84,9 @@ const A = ({ href, children }: FooterItemProps) => (
 //////////////////////////////////
 
 const LandingPage = () => {
+  const [showMoreReadResources, setShowMoreReadResources] = useState(false);
+  const [showMoreWatchResources, setShowMoreWatchResources] = useState(false);
+
   const aboutRef = useRef<HTMLElement>(null);
   return (
     <div>
@@ -405,17 +408,23 @@ const LandingPage = () => {
         <div className="flex flex-col items-center mt-8">
           <iframe
             className="sm:w-full sm:h-auto md:w-[48rem] md:h-[27rem]"
-            src="https://www.youtube.com/embed/z5D613Qt7Kc"
-            title="Next Level Source Code Verification w: Sourcify"
+            src="https://www.youtube.com/embed/cgKrRt6B0Ps"
+            title="Kaan Uzdogan : Human-friendly contract interactions with Sourcify verification"
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
           ></iframe>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-8 lg:mx-32">
             <ul>
               <h3 className="text-ceruleanBlue-500 uppercase text-lg font-semibold">
                 📖 Read
               </h3>
+              <ResourceListItem
+                href="https://docs.sourcify.dev/blog/verify-contracts-perfectly/"
+                date="18 Aug 2022"
+              >
+                Sourcify Blog - Verify Contracts Perrrrrfectly
+              </ResourceListItem>
               <ResourceListItem
                 href="https://blog.soliditylang.org/2020/06/25/sourcify-faq/"
                 date="25 Jun 2020"
@@ -434,49 +443,79 @@ const LandingPage = () => {
               >
                 How Smart Contracts Can Be Automatically Verified
               </ResourceListItem>
-              <ResourceListItem
-                href="https://medium.com/remix-ide/verify-contracts-on-remix-with-sourcify-2912004d9c84"
-                date="26 Jun 2020"
-              >
-                Verify Contracts on Remix with Sourcify
-              </ResourceListItem>
-              <ResourceListItem
-                href="https://soliditydeveloper.com/decentralized-etherscan/"
-                date="21 Nov 2020"
-              >
-                The future of a Decentralized Etherscan
-              </ResourceListItem>
+              {
+                showMoreReadResources ? (
+                  <>
+                  <ResourceListItem
+                    href="https://medium.com/remix-ide/verify-contracts-on-remix-with-sourcify-2912004d9c84"
+                    date="26 Jun 2020"
+                  >
+                    Verify Contracts on Remix with Sourcify
+                  </ResourceListItem>
+                  <ResourceListItem
+                    href="https://soliditydeveloper.com/decentralized-etherscan/"
+                    date="21 Nov 2020"
+                  >
+                    The future of a Decentralized Etherscan
+                  </ResourceListItem>
+                </>
+                ) : (
+                  <button className="text-ceruleanBlue-500" onClick={() => setShowMoreReadResources(true)}>Show more</button>
+                )
+              }
+
             </ul>
             <ul>
               <h3 className="text-ceruleanBlue-500 uppercase text-lg font-semibold">
                 📽 Watch
               </h3>
+              
+              <ResourceListItem
+                href="https://www.youtube.com/watch?v=HOATnus4oL0"
+                date="10 Jun 2022"
+              >
+                Franziska Heintel - Towards Trust-Minimized Transactions and a Transparent Web3
+              </ResourceListItem>
+              <ResourceListItem
+                href="https://www.youtube.com/watch?v=z5D613Qt7Kc"
+                date="10 Oct 2021"
+              >
+                Next Level Source Code Verification w: Sourcify
+              </ResourceListItem>
               <ResourceListItem
                 href="https://vimeo.com/639594632"
                 date="21 Oct 2021"
               >
                 Goodbye YOLO-Signing
               </ResourceListItem>
-              <ResourceListItem
-                href="https://www.youtube.com/watch?v=Zc_fJElIooQ"
-                date="22 Jul 2021"
-              >
-                Franziska Heintel : Sourcify: Towards Safer Contract
-                Interactions for Humans
-              </ResourceListItem>
-              <ResourceListItem
-                href="https://www.youtube.com/watch?v=uYvbBP3GEFk&list=PLaM7G4Llrb7xlGxwlYGTy1T-GHpytE3RC&index=23"
-                date="13 May 2020"
-              >
-                Verify all the sources by Ligi
-              </ResourceListItem>
-              <ResourceListItem
-                href="https://www.youtube.com/watch?v=_73OrDbpxoY&list=PLrtFm7U0BIfUH7g1-blb-eYFgzOYWhvqm&index=13"
-                date="04 Mar 2020"
-              >
-                Christian Reitwiessner: Improving Wallet UX and Security through
-                a Decentralized Metadata and Source Code Repository
-              </ResourceListItem>
+              {
+                showMoreWatchResources ? (
+                <>
+                  <ResourceListItem
+                    href="https://www.youtube.com/watch?v=Zc_fJElIooQ"
+                    date="22 Jul 2021"
+                  >
+                    Franziska Heintel : Sourcify: Towards Safer Contract
+                    Interactions for Humans
+                  </ResourceListItem>
+                  <ResourceListItem
+                    href="https://www.youtube.com/watch?v=uYvbBP3GEFk&list=PLaM7G4Llrb7xlGxwlYGTy1T-GHpytE3RC&index=23"
+                    date="13 May 2020"
+                  >
+                    Verify all the sources by Ligi
+                  </ResourceListItem>
+                  <ResourceListItem
+                    href="https://www.youtube.com/watch?v=_73OrDbpxoY&list=PLrtFm7U0BIfUH7g1-blb-eYFgzOYWhvqm&index=13"
+                    date="04 Mar 2020"
+                  >
+                    Christian Reitwiessner: Improving Wallet UX and Security through
+                    a Decentralized Metadata and Source Code Repository
+                  </ResourceListItem>
+                </>
+                ): (
+                  <button className="text-ceruleanBlue-500" onClick={() => setShowMoreWatchResources(true)}>Show more</button>
+                )
+              }
             </ul>
           </div>
         </div>

@@ -174,10 +174,16 @@ workflows:
       - monitor-e2e-goerli:
           requires:
             - deploy
+      - monitor-e2e-sepolia:
+          requires:
+            - deploy
       - verification-e2e-rinkeby:
           requires:
             - deploy
       - verification-e2e-goerli:
+          requires:
+            - deploy
+      - verification-e2e-sepolia:
           requires:
             - deploy
   # Always run
@@ -291,6 +297,11 @@ jobs:
     environment:
       CHAIN_ID: 5
       CHAIN_NAME: goerli
+  monitor-e2e-sepolia:
+    <<: *monitor-e2e-base
+    environment:
+      CHAIN_ID: '11155111'
+      CHAIN_NAME: sepolia
   verification-e2e-rinkeby:
     <<: *verification-e2e-base
     environment:
@@ -301,6 +312,11 @@ jobs:
     environment:
       CHAIN_ID: 5
       CHAIN_NAME: goerli
+  verification-e2e-sepolia:
+    <<: *verification-e2e-base
+    environment:
+      CHAIN_ID: '11155111'
+      CHAIN_NAME: sepolia
   npm-publish:
     working_directory: ~/source-verify
     docker:

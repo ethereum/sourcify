@@ -45,6 +45,10 @@ if (require.main === module) {
 async function main(chainId, immutableValue, privateKey, type) {
   const chains = getSupportedChains();
   const chain = chains.find((chain) => chain.chainId == chainId);
+  if (!chain) {
+    console.error(`Chain config for chainId "${chainId}" not found in list of supported chains, abort.`);
+    return;
+  }
   let web3;
   console.log("Using rpc: " + chain.rpc[0]);
   try {
