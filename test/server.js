@@ -199,6 +199,25 @@ describe("Server", function () {
         });
     });
 
+    it("should fail by exceeding rate limit on etherscan APIs", (done) => {
+      chai
+        .request(server.app)
+        .post("/verify-from-etherscan")
+        .field("address", fakeAddress)
+        .field("chainId", "1")
+        .end(() => {
+          chai
+            .request(server.app)
+            .post("/verify-from-etherscan")
+            .field("address", fakeAddress)
+            .field("chainId", "1")
+            .end((err, res) => {
+              assertEtherscanError(err, res)
+              done();
+            });
+        });
+    });
+
     it("should import contract information from etherscan (single file) and verify the contract, finding a partial match", (done) => {
       chai
         .request(server.app)

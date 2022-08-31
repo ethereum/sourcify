@@ -141,6 +141,12 @@ export default class VerificationController extends BaseController implements IC
 
         const response = await fetch(url);
         const resultJson = await response.json();
+        if (resultJson.message === "NOTOK" && resultJson.result.includes("Max rate limit reached")) {
+            throw new BadRequestError("Etherscan API rate limit reached, try later")
+        }
+        if (resultJson.result[0].SourceCode === "") {
+            throw new BadRequestError("This contract is not verified on Etherscan")
+        }
         const contractResultJson = resultJson.result[0];
         const sourceCodeObject = contractResultJson.SourceCode
         const compilerVersion = contractResultJson.CompilerVersion;
@@ -202,15 +208,9 @@ export default class VerificationController extends BaseController implements IC
         const chain = req.body.chainId as string;
         const address = req.body.address;
 
-        let metadata
-        let solcJsonInput: JsonInput
-        try {
-            const processedRequest = await this.processRequestFromEtherscan(chain, address);
-            metadata = processedRequest.metadata
-            solcJsonInput = processedRequest.solcJsonInput
-        } catch(e) {
-            throw new BadRequestError("This contract is not verified on Etherscan")
-        }
+        const processedRequest = await this.processRequestFromEtherscan(chain, address);
+        const metadata = processedRequest.metadata
+        const solcJsonInput = processedRequest.solcJsonInput
 
         // 2. save the files in the session
         const pathContents: PathContent[] = Object.keys(solcJsonInput.sources).map(path => {
