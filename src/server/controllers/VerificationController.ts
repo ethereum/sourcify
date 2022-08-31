@@ -202,10 +202,15 @@ export default class VerificationController extends BaseController implements IC
         const chain = req.body.chainId as string;
         const address = req.body.address;
 
-        const {
-            metadata,
-            solcJsonInput
-        } = await this.processRequestFromEtherscan(chain, address);
+        let metadata
+        let solcJsonInput: JsonInput
+        try {
+            const processedRequest = await this.processRequestFromEtherscan(chain, address);
+            metadata = processedRequest.metadata
+            solcJsonInput = processedRequest.solcJsonInput
+        } catch(e) {
+            throw new ValidationError([{ param: "etherscan", msg: "This contract is not verified on Etherscan" }]);
+        }
 
         // 2. save the files in the session
         const pathContents: PathContent[] = Object.keys(solcJsonInput.sources).map(path => {
@@ -218,16 +223,13 @@ export default class VerificationController extends BaseController implements IC
         const session = (req.session as MySession);
         const newFilesCount = this.saveFiles(pathContents, session);
         if (newFilesCount === 0) {
-            // TODO: improve this error so the UI can handle it
-            res.send({msg:"error"});
-            return
+            throw new ValidationError([{ param: "etherscan", msg: "The contract has no files" }]);
         }
 
         // 3. create the contractwrappers from the files        
         await this.validateContracts(session);
         if (!session.contractWrappers) {
-            // TODO: improve this error so the UI can handle it
-            res.send({msg:"error"});
+            throw new ValidationError([{ param: "etherscan", msg: "Unknown error during the Etherscan verification process" }]);
             return
         }
         
@@ -651,7 +653,12 @@ export default class VerificationController extends BaseController implements IC
             );
 
         this.router.route(['/verify-from-etherscan']).all(cors(corsOpt))
-            .post(cors(corsOpt), this.safeHandler(this.verifyFromEtherscanWithSession));
+            .post(
+                body("address").exists(),
+                body("chainId").exists(),
+                cors(corsOpt),
+                this.safeHandler(this.verifyFromEtherscanWithSession)
+            );
 
         return this.router;
     }
