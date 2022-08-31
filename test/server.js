@@ -157,8 +157,50 @@ describe("Server", function () {
       chai.expect(contract.status).to.equal(finalStatus);
       chai.expect(contract.storageTimestamp).to.not.exist;
     };
+
+    const assertNotFound = (err, res) => {
+      chai.expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
+
+      const errors = res.body?.errors
+      chai.expect(errors).to.have.a.lengthOf(1)
+      chai.expect(errors[0].field).to.be.equal('etherscan')
+    };
     
     this.timeout(EXTENDED_TIME_60);
+
+    it("should fail for missing address", (done) => {
+      chai
+        .request(server.app)
+        .post("/verify-from-etherscan")
+        .field("chainId", "1")
+        .end((err, res) => {
+          assertError(err, res, "address");
+          done();
+        });
+    });
+
+    it("should fail for missing chainId", (done) => {
+      chai
+        .request(server.app)
+        .post("/verify-from-etherscan")
+        .field("address", fakeAddress)
+        .end((err, res) => {
+          assertError(err, res, "chainId");
+          done();
+        });
+    });
+
+    it("should fail fetching a non verified contract from etherscan", (done) => {
+      chai
+        .request(server.app)
+        .post("/verify-from-etherscan")
+        .field("address", fakeAddress)
+        .field("chainId", "1")
+        .end((err, res) => {
+          assertNotFound(err, res)
+          done();
+        });
+    });
 
     it("should import contract information from etherscan (single file) and verify the contract, finding a partial match", (done) => {
       chai
