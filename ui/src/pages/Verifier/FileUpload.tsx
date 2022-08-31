@@ -1,18 +1,20 @@
 import React, { useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { AiFillFileAdd, AiOutlinePlus } from "react-icons/ai";
+import { AiFillFileAdd, AiOutlineGithub, AiOutlinePlus } from "react-icons/ai";
 import { HiOutlineExclamation } from "react-icons/hi";
 import Button from "../../components/Button";
 import LoadingOverlay from "../../components/LoadingOverlay";
 import EtherscanLogo from "../../components/EtherscanLogo";
 import { SessionResponse } from "../../types";
 import EtherscanInput from "./EtherscanInput";
-import GithubInput from "./GithubInput";
+import RemoteInput from "./RemoteInput";
+import GitHubInput from "./GitHubInput";
 
 enum ImportMethods {
   UPLOAD,
   REMOTE,
   ETHERSCAN,
+  GITHUB,
 }
 
 type FileUploadProps = {
@@ -100,6 +102,22 @@ const FileUpload: React.FC<FileUploadProps> = ({
               </>
             </Button>
           </div>
+          <div className="mt-4">
+            <Button
+              type={
+                importMethodSelected === ImportMethods.GITHUB
+                  ? "primary"
+                  : "secondary"
+              }
+              onClick={() => selectImportMethod(ImportMethods.GITHUB)}
+              className="text-sm"
+            >
+              <>
+                <AiOutlineGithub className="inline align-middle mr-1" />
+                Import from GitHub
+              </>
+            </Button>
+          </div>
         </div>
         <div className="flex flex-grow flex-col pb-8">
           {importMethodSelected === ImportMethods.REMOTE && (
@@ -108,7 +126,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
                 Import from remote file or zip (e.g. Github repo .zip)
               </p>
               <div className="mt-1">
-                <GithubInput
+                <RemoteInput
                   fetchAndUpdate={fetchAndUpdate}
                   setIsLoading={setIsLoading}
                   isLoading={isLoading}
@@ -123,6 +141,18 @@ const FileUpload: React.FC<FileUploadProps> = ({
               </p>
               <div className="mt-1">
                 <EtherscanInput
+                  fetchAndUpdate={fetchAndUpdate}
+                  setIsLoading={setIsLoading}
+                  isLoading={isLoading}
+                />
+              </div>
+            </div>
+          )}
+          {importMethodSelected === ImportMethods.GITHUB && (
+            <div className="mt-4">
+              <p className="">Import from GitHub</p>
+              <div className="mt-1">
+                <GitHubInput
                   fetchAndUpdate={fetchAndUpdate}
                   setIsLoading={setIsLoading}
                   isLoading={isLoading}
