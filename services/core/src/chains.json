@@ -8735,8 +8735,8 @@
     "networkId": 78110
   },
   {
-    "name": "Mumbai",
-    "title": "Polygon Testnet Mumbai",
+    "name": "Polygon Mumbai Testnet",
+    "title": "Polygon Mumbai Testnet",
     "chain": "Polygon",
     "rpc": [
       "https://matic-mumbai.chainstacklabs.com",
