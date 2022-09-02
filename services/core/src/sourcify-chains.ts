@@ -433,5 +433,11 @@ export default {
         "contractFetchAddress": "https://scan.crystaleum.org/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
+    "420666": { // Kekchain Testnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://testnet-explorer.kekchain.com/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
     
 }
