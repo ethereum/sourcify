@@ -993,7 +993,7 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
   verifyContractWithImmutables(
-    "0xA2647f96390103d5566042d4Acdc359BD3264207",
+    "0x7440273f7C188651df67De168C577f51404C242c",
     "420666",
     "Kekchain",
     ["uint256"],
