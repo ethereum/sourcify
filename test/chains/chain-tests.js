@@ -986,14 +986,14 @@ describe("Test Supported Chains", function () {
   );
   // Kekchain Testnet
   verifyContract(
-    "0xbb2da405fd08E0D9aA908F89a96Bd94e290DCb53",
+    "0x6FCe618B0677EdFCca9d38ed48Af89a8c056C938",
     "420666",
     "Kekchain",
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
   verifyContractWithImmutables(
-    "0xE2d5DA92699A0ad2281dA58689E4f356DD3C34c5",
+    "0xA2647f96390103d5566042d4Acdc359BD3264207",
     "420666",
     "Kekchain",
     ["uint256"],
