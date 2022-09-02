@@ -996,8 +996,8 @@ describe("Test Supported Chains", function () {
     "0x826D556A2cDe2fc20DC02bB6aeEc74f5a141d2D6",
     "420666",
     "Kekchain",
-    ["uint256"],
-    [100],
+    ["address"],
+    ["0x74b9006390BfA657caB68a04501919B72E27f49A"],
     ["420666/immutable/Proof.sol"],
     "420666/immutable/metadata.json"
   );
