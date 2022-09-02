@@ -984,6 +984,23 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
+  // Kekchain Testnet
+  verifyContract(
+    "0xbb2da405fd08E0D9aA908F89a96Bd94e290DCb53",
+    "420666",
+    "Kekchain Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0xE2d5DA92699A0ad2281dA58689E4f356DD3C34c5",
+    "420666",
+    "Kekchain Testnet",
+    ["uint256"],
+    [100],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
 
   //////////////////////
   // Helper functions //
