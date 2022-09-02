@@ -58,7 +58,17 @@ const GitHubInput = ({
   const handleRepoChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     e.preventDefault();
     debounce(() => {
-      setRepo(e.target.value);
+      if (e.target.value !== "" && e.target.value.startsWith("http")) {
+        try {
+          let [, , , username, project] = e.target.value.split("/");
+          if (project.endsWith(".git")) {
+            project = project.replace(".git", "");
+          }
+          setRepo(`${username}/${project}`);
+        } catch (e) {}
+      } else {
+        setRepo(e.target.value);
+      }
     }, 600)();
   };
 
@@ -82,7 +92,7 @@ const GitHubInput = ({
       <Input
         disabled={isLoading}
         onChange={handleRepoChange}
-        placeholder="Repository name (Uniswap/v3-core)"
+        placeholder="Repository name or repository url"
         className="mb-2"
       />
 
