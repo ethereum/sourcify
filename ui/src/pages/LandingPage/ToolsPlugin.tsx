@@ -1,5 +1,6 @@
 import HardhatDeploy from "../../assets/integrations/hardhat-deploy";
 import remix from "../../assets/integrations/remix.png";
+import foundry from "../../assets/integrations/foundry.png";
 import AppIconName from "../../components/AppIconName";
 
 export default function ToolsPlugin() {
@@ -7,9 +8,14 @@ export default function ToolsPlugin() {
     <div className="w-full mt-16">
       {/* Right col: Tools */}
       <h2 className="text-2xl text-ceruleanBlue-500 font-semibold">
-        Verification Plugins
+        Frameworks & Plugins 
       </h2>
       <div className="flex justify-center md:justify-start flex-row mt-8 logos-container">
+        <AppIconName
+          img={foundry}
+          name="Foundry"
+          href="https://twitter.com/r_krasiuk/status/1559225185563205636/photo/1"
+        />
         <AppIconName
           Svg={HardhatDeploy}
           name="hardhat-deploy"

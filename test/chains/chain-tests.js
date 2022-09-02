@@ -933,6 +933,23 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
+  // Godwoken mainnet v1.1
+  verifyContract(
+    "0x0aEF0854bCD792cb37FA0e75c27a1bC326d11725",
+    "71402",
+    "Godwoken Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0xC1FEfe58fA6A60fc34F70d518aF6F192143CAa03",
+    "71402",
+    "Godwoken Mainnet",
+    ["uint256"],
+    [100000],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
   // Dexalot Testnet
   verifyContract(
     "0xfa5a1E7788514Ae2B879377cF08a9CF2901d3A21",
@@ -964,6 +981,23 @@ describe("Test Supported Chains", function () {
     "Crystaleum",
     ["uint256"],
     [103090],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+  //Kekchain (testnet)
+  verifyContract(
+    "0x6FCe618B0677EdFCca9d38ed48Af89a8c056C938",
+    "420666",
+    "Kekchain",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x0E8CebF16c5E8f4b9515C69c38d6dAFa54101b6e",
+    "420666",
+    "Kekchain",
+    ["uint256"],
+    [420666],
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );

@@ -34,5 +34,8 @@ date
 
 bash ./publish.sh
 
+# Write the TAG var to /etc/environment so that the crontab can pick up the variable
+echo "TAG=$TAG" > /etc/environment
+
 crontab cron.job
 cron -f
