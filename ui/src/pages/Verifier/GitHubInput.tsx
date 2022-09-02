@@ -4,6 +4,21 @@ import Input from "../../components/Input";
 import { ADD_FILES_URL } from "../../constants";
 import { SessionResponse } from "../../types";
 
+let timeoutId: any;
+
+function debounce(fn: Function, time: number) {
+  return wrapper;
+  function wrapper(...args: any) {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+    timeoutId = setTimeout(() => {
+      timeoutId = null;
+      fn(...args);
+    }, time);
+  }
+}
+
 type GitHubInputProps = {
   fetchAndUpdate: (
     URL: string,
@@ -19,10 +34,11 @@ const GitHubInput = ({
 }: GitHubInputProps) => {
   const [repo, setRepo] = useState<string>("");
   const [branch, setBranch] = useState<string>("");
+  const [showBranchSelect, setShowBranchSelect] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
 
-  const generateUrlAndSubmit = () => {
-    const url = "ciao";
+  const generateUrlAndSubmit = (branch: string) => {
+    const url = `https://github.com/${repo}/archive/refs/heads/${branch}.zip`;
     let zipUrl;
 
     try {
@@ -41,13 +57,23 @@ const GitHubInput = ({
 
   const handleRepoChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     e.preventDefault();
-    setRepo(e.target.value);
-    if (!e.target.value) return setError("");
+    debounce(() => {
+      setRepo(e.target.value);
+    }, 600)();
   };
 
   const handleBranchChange = (id: string) => {
     setBranch(id);
+    generateUrlAndSubmit(id);
     if (!id) return setError("");
+  };
+
+  const handleBranchesLoaded = (success: boolean) => {
+    if (success) {
+      setShowBranchSelect(true);
+    } else {
+      setShowBranchSelect(false);
+    }
   };
 
   return (
@@ -55,15 +81,19 @@ const GitHubInput = ({
       {error && <div className="text-sm text-red-400">{error}</div>}
       <Input
         disabled={isLoading}
-        value={repo}
         onChange={handleRepoChange}
-        placeholder="Uniswap/v3-core"
+        placeholder="Repository name (Uniswap/v3-core)"
+        className="mb-2"
       />
-      <GitHubBranchSelect
-        repository={repo}
-        value={branch}
-        handleBranchChange={handleBranchChange}
-      />
+
+      <div className={!showBranchSelect ? "hidden" : ""}>
+        <GitHubBranchSelect
+          repository={repo}
+          value={branch}
+          handleBranchChange={handleBranchChange}
+          handleBranchesLoaded={handleBranchesLoaded}
+        />
+      </div>
     </>
   );
 };

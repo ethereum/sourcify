@@ -34,6 +34,7 @@ type GitHubBranchSelectProps = {
   repository: string;
   value: string | undefined;
   handleBranchChange: (branch: string) => void;
+  handleBranchesLoaded: (success: boolean) => void;
   id?: string;
 };
 
@@ -41,6 +42,7 @@ export default function GitHubBranchSelect({
   repository,
   value,
   handleBranchChange,
+  handleBranchesLoaded,
   id,
 }: GitHubBranchSelectProps) {
   const [branches, setBranches] = useState<any[]>([]);
@@ -52,15 +54,25 @@ export default function GitHubBranchSelect({
           `https://api.github.com/repos/${repository}/branches`
         );
         const result = await request.json();
-        setBranches(result);
+        if (Array.isArray(result)) {
+          setBranches(result);
+          handleBranchesLoaded(true);
+        } else {
+          setBranches([]);
+          handleBranchesLoaded(false);
+        }
       } catch (e) {
         setBranches([]);
+        handleBranchesLoaded(false);
       }
     };
     if (repository !== "") {
       fetchBranches();
+    } else {
+      setBranches([]);
+      handleBranchesLoaded(false);
     }
-  }, [repository]);
+  }, [repository, handleBranchesLoaded]);
 
   return (
     <CustomSelectSearch
@@ -73,7 +85,7 @@ export default function GitHubBranchSelect({
       search
       id={id}
       filterOptions={fuzzySearch}
-      emptyMessage={`Couldn't fetch repo ${repository}`}
+      emptyMessage={`Repo '${repository}' doesn't exists`}
       placeholder="Choose branch"
     />
   );
