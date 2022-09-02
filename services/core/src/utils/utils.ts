@@ -58,6 +58,10 @@ chainArray = getSortedChainsArray(chainMap);
 supportedChainArray = chainArray.filter(chain => chain.supported);
 monitoredChainArray = chainArray.filter(chain => chain.monitored);
 
+function getPrimarySortKey(chain: any) {
+    return chain.title || chain.name
+}
+
 // Gets the chainsMap, sorts the chains, returns Chain array.
 export function getSortedChainsArray(chainMap: ChainMap): Chain[] {
     const chainsArray = Object.values(chainMap);
@@ -67,7 +71,7 @@ export function getSortedChainsArray(chainMap: ChainMap): Chain[] {
     // Others, sorted alphabetically
     const otherChains = chainsArray
         .filter((chain) => ![1, 4, 5,  11155111].includes(chain.chainId))
-        .sort((a, b) => (a.name > b.name ? 1 : b.name > a.name ? -1 : 0));
+        .sort((a, b) => (getPrimarySortKey(a) > getPrimarySortKey(b) ? 1 : getPrimarySortKey(b) > getPrimarySortKey(a) ? -1 : 0));
 
     const sortedChains = etherumChains.concat(otherChains);
     return sortedChains;
