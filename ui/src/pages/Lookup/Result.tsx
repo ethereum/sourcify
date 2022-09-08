@@ -217,13 +217,13 @@ const Found = ({ response }: FoundProp) => {
         ))}
       </table>
       <div className="mt-14">
-        <p>Can’t find the network you’re looking for?</p>
+        <p>Not verified on the chain you are looking for?</p>
         <Link to="/verifier">
-          <Button>Verify Contract</Button>
+          <Button className="mt-4 uppercase">Verify Contract</Button>
         </Link>
       </div>
     </div>
-  );
+  );  
 };
 
 const NotFound = ({ address }: NotFoundProp) => {
@@ -238,7 +238,7 @@ const NotFound = ({ address }: NotFoundProp) => {
       <div className="mt-14">
         <p>Do you have the source code and metadata?</p>
         <Link to="/verifier">
-          <Button>Verify Contract</Button>
+          <Button className="mt-4 uppercase">Verify Contract</Button>
         </Link>
       </div>
     </>

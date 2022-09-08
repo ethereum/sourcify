@@ -3,7 +3,7 @@ import Input from "../../components/Input";
 import { ADD_FILES_URL } from "../../constants";
 import { SessionResponse } from "../../types";
 
-type GithubInputProps = {
+type RemoteInputProps = {
   fetchAndUpdate: (
     URL: string,
     fetchOptions?: RequestInit
@@ -11,11 +11,11 @@ type GithubInputProps = {
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   isLoading: boolean;
 };
-const GithubInput = ({
+const RemoteInput = ({
   fetchAndUpdate,
   setIsLoading,
   isLoading,
-}: GithubInputProps) => {
+}: RemoteInputProps) => {
   const [url, setUrl] = useState<string>("");
   const [error, setError] = useState<string>("");
 
@@ -51,4 +51,4 @@ const GithubInput = ({
   );
 };
 
-export default GithubInput;
+export default RemoteInput;

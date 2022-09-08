@@ -15,7 +15,7 @@ const EtherscanLogo: React.FC<EtherscanLogoProps> = ({ light }) => {
   }
   return (
     <img
-      style={{ width: "20px" }}
+      style={{ width: "13px" }}
       className="inline align-middle mr-1"
       alt="Logo"
       src={src}
