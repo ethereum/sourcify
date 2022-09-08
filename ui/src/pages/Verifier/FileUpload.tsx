@@ -67,8 +67,8 @@ const FileUpload: React.FC<FileUploadProps> = ({
             to verify.
           </p>
         </div>
-        <div className="flex flex-row gap-3">
-          <div className="mt-4">
+        <div className="flex flex-row flex-wrap gap-3 mt-4 justify-center md:justify-start">
+          <div className="">
             <Button
               type={
                 importMethodSelected === ImportMethods.REMOTE
@@ -84,7 +84,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
               </>
             </Button>
           </div>
-          <div className="mt-4">
+          <div className="">
             <Button
               type={
                 importMethodSelected === ImportMethods.ETHERSCAN
@@ -102,7 +102,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
               </>
             </Button>
           </div>
-          <div className="mt-4">
+          <div className="">
             <Button
               type={
                 importMethodSelected === ImportMethods.GITHUB
