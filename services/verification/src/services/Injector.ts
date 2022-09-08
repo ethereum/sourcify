@@ -232,6 +232,12 @@ export class Injector {
             recompiled.deployedBytecode = replaced;
             match.libraryMap = libraryMap;
 
+            // if the bytecode doesn't contain metadata then "partial" match
+            if (this.getMetadataPathFromCborEncoded(deployedBytecode) === null) {
+                match.status = "partial";
+                return match;
+            }
+
             if (deployedBytecode === recompiled.deployedBytecode) {
                 match.status = "perfect";
                 return match;

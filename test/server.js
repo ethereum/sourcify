@@ -658,13 +658,15 @@ describe("Server", function () {
         accounts[0]
       );
 
-      chai
+      const res = await chai
         .request(server.app)
         .post("/")
         .field("address", address)
         .field("chain", defaultContractChain)
         .attach("files", metadataBuffer)
-        .end((err, res) => assertions(err, res, null, address, "partial"));
+        .send()
+
+      assertions(null, res, null, address, "partial")
       return true;
     });
 
@@ -693,33 +695,33 @@ describe("Server", function () {
       );
       const sourceBuffer = fs.readFileSync(sourcePath);
 
-      chai
+      const res = await chai
         .request(server.app)
         .post("/")
         .field("address", address)
         .field("chain", defaultContractChain)
         .attach("files", metadataBuffer)
         .attach("files", sourceBuffer)
-        .end((err, res) => {
-          assertions(err, res, null, address, "perfect");
-          chai
-            .request(server.app)
-            .get(
-              `/repository/contracts/full_match/${defaultContractChain}/${address}/library-map.json`
-            )
-            .buffer()
-            .parse(binaryParser)
-            .end((err, res) => {
-              chai.expect(err).to.be.null;
-              chai.expect(res.status).to.equal(StatusCodes.OK);
-              const receivedLibraryMap = JSON.parse(res.body.toString());
-              const expectedLibraryMap = {
-                __$da572ae5e60c838574a0f88b27a0543803$__:
-                  "11fea6722e00ba9f43861a6e4da05fecdf9806b7",
-              };
-              chai.expect(receivedLibraryMap).to.deep.equal(expectedLibraryMap);
-            });
-        });
+        .send()
+
+      assertions(null, res, null, address, "perfect");
+      
+      const res2 = await chai
+        .request(server.app)
+        .get(
+          `/repository/contracts/full_match/${defaultContractChain}/${address}/library-map.json`
+        )
+        .buffer()
+        .parse(binaryParser)
+        .send()
+
+      chai.expect(res2.status).to.equal(StatusCodes.OK);
+      const receivedLibraryMap = JSON.parse(res2.body.toString());
+      const expectedLibraryMap = {
+        __$da572ae5e60c838574a0f88b27a0543803$__:
+          "11fea6722e00ba9f43861a6e4da05fecdf9806b7",
+      };
+      chai.expect(receivedLibraryMap).to.deep.equal(expectedLibraryMap);
     });
 
     it("should verify a contract with viaIR:true", async () => {
@@ -741,14 +743,15 @@ describe("Server", function () {
       );
       const sourceBuffer = fs.readFileSync(sourcePath);
 
-      chai
+      const res = await chai
         .request(server.app)
         .post("/")
         .field("address", address)
         .field("chain", defaultContractChain)
         .attach("files", metadataBuffer, "metadata.json")
         .attach("files", sourceBuffer, "Storage.sol")
-        .end((err, res) => assertions(err, res, null, address));
+        .send()
+      assertions(null, res, null, address)
     });
 
     // https://github.com/ethereum/sourcify/issues/640
@@ -776,14 +779,15 @@ describe("Server", function () {
       );
       const sourceBuffer = fs.readFileSync(sourcePath);
 
-      chai
+      const res = await chai
         .request(server.app)
         .post("/")
         .field("address", address)
         .field("chain", defaultContractChain)
         .attach("files", metadataBuffer, "metadata-inliner.json")
         .attach("files", sourceBuffer, "Storage.sol")
-        .end((err, res) => assertions(err, res, null, address));
+        .send();
+      assertions(null, res, null, address)
     });
 
     describe("hardhat build-info file support", function () {
