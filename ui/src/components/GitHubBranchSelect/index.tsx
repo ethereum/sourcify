@@ -34,9 +34,16 @@ type GitHubBranchSelectProps = {
   repository: string;
   value: string | undefined;
   handleBranchChange: (branch: string) => void;
-  handleBranchesLoaded: (success: boolean) => void;
+  handleBranchesLoaded: (error?: GitHubBranchSelectError) => void;
   id?: string;
 };
+
+export enum GitHubBranchSelectError {
+  RATE_LIMIT,
+  NOT_FOUND,
+  NO_REPO_NAME,
+  UNKNOWN,
+}
 
 export default function GitHubBranchSelect({
   repository,
@@ -56,21 +63,25 @@ export default function GitHubBranchSelect({
         const result = await request.json();
         if (Array.isArray(result)) {
           setBranches(result);
-          handleBranchesLoaded(true);
+          handleBranchesLoaded();
         } else {
           setBranches([]);
-          handleBranchesLoaded(false);
+          if (result.message === "Not Found") {
+            handleBranchesLoaded(GitHubBranchSelectError.NOT_FOUND);
+          } else {
+            handleBranchesLoaded(GitHubBranchSelectError.RATE_LIMIT);
+          }
         }
       } catch (e) {
         setBranches([]);
-        handleBranchesLoaded(false);
+        handleBranchesLoaded(GitHubBranchSelectError.UNKNOWN);
       }
     };
     if (repository !== "") {
       fetchBranches();
     } else {
       setBranches([]);
-      handleBranchesLoaded(false);
+      handleBranchesLoaded(GitHubBranchSelectError.NO_REPO_NAME);
     }
   }, [repository, handleBranchesLoaded]);
 

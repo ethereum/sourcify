@@ -1,5 +1,7 @@
-import { useState } from "react";
-import GitHubBranchSelect from "../../components/GitHubBranchSelect";
+import { useCallback, useState } from "react";
+import GitHubBranchSelect, {
+  GitHubBranchSelectError,
+} from "../../components/GitHubBranchSelect";
 import Input from "../../components/Input";
 import { ADD_FILES_URL } from "../../constants";
 import { SessionResponse } from "../../types";
@@ -68,6 +70,7 @@ const GitHubInput = ({
         } catch (e) {}
       } else {
         setRepo(e.target.value);
+        setError("");
       }
     }, 600)();
   };
@@ -78,13 +81,27 @@ const GitHubInput = ({
     if (!id) return setError("");
   };
 
-  const handleBranchesLoaded = (success: boolean) => {
-    if (success) {
-      setShowBranchSelect(true);
-    } else {
-      setShowBranchSelect(false);
-    }
-  };
+  const handleBranchesLoaded = useCallback(
+    (error?: GitHubBranchSelectError) => {
+      if (error === undefined) {
+        setShowBranchSelect(true);
+        setError("");
+      } else {
+        setShowBranchSelect(false);
+        switch (+error) {
+          case GitHubBranchSelectError.NO_REPO_NAME:
+            return setError("");
+          case GitHubBranchSelectError.NOT_FOUND:
+            return setError("Repository not found");
+          case GitHubBranchSelectError.RATE_LIMIT:
+            return setError("GitHub API Rate limit ");
+          default:
+            return setError("Unknow error fetching the branches");
+        }
+      }
+    },
+    []
+  );
 
   return (
     <>
