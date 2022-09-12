@@ -106,10 +106,12 @@ const LandingPage = () => {
             </h2>
             <div className="flex flex-col items-center sm:flex-row justify-evenly mt-4">
               <Link to="/verifier">
-                <Button>Verify Contract</Button>
+                <Button className="uppercase mt-4">Verify Contract</Button>
               </Link>
               <Link to="/lookup">
-                <Button type="secondary">Lookup Contract</Button>
+                <Button className="uppercase mt-4" type="secondary">
+                  Lookup Contract
+                </Button>
               </Link>
             </div>
           </div>
@@ -380,10 +382,10 @@ const LandingPage = () => {
           </h3>
           <div className="flex justify-center">
             <a href={DOCS_URL}>
-              <Button>Check Docs</Button>
+              <Button className="uppercase mt-4">Check Docs</Button>
             </a>
             <a href="https://gitter.im/ethereum/source-verify">
-              <Button type="secondary" className="ml-4">
+              <Button type="secondary" className="ml-4 uppercase mt-4">
                 Get in touch
               </Button>
             </a>

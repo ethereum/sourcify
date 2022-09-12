@@ -3,11 +3,12 @@ import React, {
   ChangeEventHandler,
   FormEventHandler,
   useContext,
+  useEffect,
   useRef,
   useState,
 } from "react";
 import Input from "../../../../../components/Input";
-import NetworkSelect from "../../../../../components/NetworkSelect";
+import ChainSelect from "../../../../../components/ChainSelect";
 import { Context } from "../../../../../Context";
 import {
   CheckAllByAddressResult,
@@ -38,6 +39,16 @@ const ChainAddressForm = ({
   const [foundMatches, setFoundMatches] = useState<CheckAllByAddressResult>();
   const { sourcifyChains } = useContext(Context);
   const verifyButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (checkedContract.address) {
+      setAddress(checkedContract.address);
+    }
+
+    if (checkedContract.chainId) {
+      setChainId(checkedContract.chainId);
+    }
+  }, [setAddress, setChainId, checkedContract]);
 
   const handleAddressChange: ChangeEventHandler<HTMLInputElement> = (e) => {
     const tempAddr = e.target.value;
@@ -101,14 +112,15 @@ const ChainAddressForm = ({
             value={address}
             onChange={handleAddressChange}
             placeholder="0x2fabe97..."
+            className="mb-2"
           />
         </div>
         <div>
-          <label className="block" htmlFor="network-select">
-            Network
+          <label className="block" htmlFor="chain-select">
+            Chain
           </label>
-          <NetworkSelect
-            id="network-select"
+          <ChainSelect
+            id="chain-select"
             value={chainId}
             handleChainIdChange={handleChainIdChange}
           />

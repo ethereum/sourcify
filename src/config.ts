@@ -12,7 +12,8 @@ export default {
     server: {
         port: process.env.SERVER_PORT || 5000,
         url: process.env.SERVER_URL || "http://localhost:5000",
-        maxFileSize: 30 * 1024 * 1024 // 30 MB
+        maxFileSize: 30 * 1024 * 1024, // 30 MB
+        etherscanAPIKey: process.env.ETHERSCAN_API_KEY
     },
     localchain: {
         port: process.env.LOCALCHAIN_PORT || 8545,

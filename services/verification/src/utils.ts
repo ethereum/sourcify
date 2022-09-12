@@ -14,8 +14,8 @@ import promiseAny = require('promise.any'); // use import require to avoid error
 const GITHUB_SOLC_REPO = "https://github.com/ethereum/solc-bin/raw/gh-pages/linux-amd64/";
 
 export interface RecompilationResult {
-    creationBytecode: string,
-    deployedBytecode: string,
+    creationBytecode?: string,
+    deployedBytecode?: string,
     metadata: string
 }
 
@@ -138,6 +138,16 @@ export async function recompile(
     }
 }
 
+export function findContractPathFromContractName(contracts: any, contractName: string): string|null {
+    for (const key of Object.keys(contracts))  {
+        const contractsList = contracts[key]
+        if (Object.keys(contractsList).includes(contractName)) {
+            return key
+        }
+    }
+    return null
+}
+
 /**
  * Searches for a solc: first for a local executable version, then from GitHub
  * and then using the getSolcJs function.
@@ -148,7 +158,7 @@ export async function recompile(
  * @param log the logger
  * @returns stringified solc output
  */
-async function useCompiler(version: string, solcJsonInput: any, log: InfoErrorLogger) {
+export async function useCompiler(version: string, solcJsonInput: any, log: InfoErrorLogger) {
     const inputStringified = JSON.stringify(solcJsonInput);
     const solcPath = await getSolcExecutable(version, log);
     let compiled: string = null;

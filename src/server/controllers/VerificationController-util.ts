@@ -7,7 +7,6 @@ import { InvalidSources } from '@ethereum-sourcify/core';
 import QueryString from 'qs';
 import { BadRequestError } from '../../common/errors';
 import fetch from 'node-fetch';
-
 export interface PathContentMap {
     [id: string]: PathContent;
 }
@@ -61,6 +60,22 @@ export type SendableContract =
         invalid: InvalidSources
     },
     verificationId?: string
+}
+
+export type EtherscanResult = {
+    SourceCode:  string,
+    ABI: string,
+    ContractName: string,
+    CompilerVersion: string,
+    OptimizationUsed: string,
+    Runs: string,
+    ConstructorArguments: string,
+    EVMVersion: string,
+    Library: string,
+    LicenseType: string,
+    Proxy: string,
+    Implementation: string,
+    SwarmSource: string,
 }
 
 export function isVerifiable(contractWrapper: ContractWrapper) {
@@ -137,4 +152,12 @@ export function updateUnused(unused: string[], session: MySession) {
         session.unusedSources = [];
     }
     session.unusedSources = unused;
+}
+
+
+export function contractHasMultipleFiles(sourceCodeObject: string) {
+    if (sourceCodeObject.startsWith('{{')) {
+        return true
+    }
+    return false
 }
