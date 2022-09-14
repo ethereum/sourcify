@@ -13,6 +13,7 @@
     "build": "tsc",
     "pretest": "npm run build:lerna",
     "test": "TESTING=true LOCALCHAIN_URL=http://localhost:8545 DOTENV_CONFIG_PATH=./environments/.env mocha -r dotenv/config  --exit",
+    "test:monitor": "TESTING=true LOCALCHAIN_URL=http://localhost:8545 DOTENV_CONFIG_PATH=./environments/.env mocha test/monitor.js --exit",
     "test:server": "TESTING=true LOCALCHAIN_URL=http://localhost:8545 DOTENV_CONFIG_PATH=./environments/.env mocha -r dotenv/config test/server.js --exit",
     "test:chains": "TESTING=true mocha test/chains/chain-tests.js --reporter mochawesome --reporter-options reportDir=chain-tests-report,reportFilename=report --exit",
     "lint": "eslint . --ext .ts",

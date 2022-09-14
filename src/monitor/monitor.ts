@@ -202,8 +202,12 @@ export default class Monitor {
     /**
      * Starts the monitor on all the designated chains.
      */
-    start = (): void => {
-        this.chainMonitors.forEach(cm => cm.start());
+    start = async (): Promise<void> => {
+        const promises = []
+        for (const cm of this.chainMonitors) {
+            promises.push(cm.start())
+        }
+        await Promise.all(promises)
     }
 
     /**

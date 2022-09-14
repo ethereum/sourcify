@@ -44,7 +44,7 @@ async function deployFromPrivateKey(web3, abi, bytecode, privateKey, args) {
  * @param  {Number} secs seconds
  * @return {Promise}
  */
-async function waitSecs(secs = 0) {
+function waitSecs(secs = 0) {
   return new Promise((resolve) => setTimeout(resolve, secs * 1000));
 }
 
