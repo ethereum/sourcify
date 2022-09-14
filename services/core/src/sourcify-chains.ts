@@ -94,7 +94,9 @@ export default {
         "rpc": [
             buildAlchemyURL("sepolia", "eth", true),
             "https://rpc.sepolia.org"
-        ]
+        ],
+        "contractFetchAddress": "https://sepolia.etherscan.io/" + ETHERSCAN_SUFFIX,
+        "txRegex": ETHERSCAN_REGEX,
     },
     "51": {
         "supported": true,
