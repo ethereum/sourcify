@@ -131,10 +131,7 @@ function assertEqualityFromPath(obj1, obj2path, options = {}) {
 
 describe("Monitor", function () {
   this.timeout(60 * 1000);
-  const ganacheServer = ganache.server({
-    wallet: { totalAccounts: 5 },
-    chain: { chainId: 0, networkId: 0 },
-  });
+  let ganacheServer
 
   const contractWrappers = {
     simpleWithImport: new ContractWrapper(
@@ -169,14 +166,25 @@ describe("Monitor", function () {
     for (const contractName in contractWrappers) {
       await contractWrappers[contractName].publish(ipfsNode);
     }
+  });
 
+  beforeEach(async () => {
+    ganacheServer = ganache.server({
+      wallet: { totalAccounts: 5 },
+      chain: { chainId: 0, networkId: 0 },
+    });
     await ganacheServer.listen(GANACHE_PORT);
     console.log("Started ganache local server at port " + GANACHE_PORT);
 
     web3Provider = new Web3(`http://localhost:${GANACHE_PORT}`);
     accounts = await web3Provider.eth.getAccounts();
     console.log("Initialized web3 provider");
-  });
+  })
+
+  afterEach(async () => {
+    await ganacheServer.close();
+    ganacheServer = null
+  })
 
   const MONITOR_SECS = 25; // waiting for monitor to do its job
   const GENERATION_SECS = 10; // waiting for extra blocks to be generated
@@ -201,6 +209,10 @@ describe("Monitor", function () {
 
   it("should sourcify if metadata provides only literal content", async function () {
     await sourcifyContract(contractWrappers.simpleLiteral);
+  });
+
+  it("should sourcify a contract with immutables", async function () {
+    await sourcifyContract(contractWrappers.withImmutables);
   });
 
   it("should not resourcify if already sourcified", async function () {
@@ -230,12 +242,12 @@ describe("Monitor", function () {
   });
 
   it("should sourcify the deployed contract after being started with a delay", async function () {
-    const currentBlockNumber = await web3Provider.eth.getBlockNumber();
     const contract = contractWrappers.simpleWithImport;
     const address = await contract.deploy(
       web3Provider,
       accounts[Counter.get()]
-    );
+      );
+    const currentBlockNumber = await web3Provider.eth.getBlockNumber();
 
     await waitSecs(GENERATION_SECS);
 
@@ -247,19 +259,7 @@ describe("Monitor", function () {
     monitorWrapper.stop();
   });
 
-  it("should sourcify a contract with immutables", async function () {
-    await sourcifyContract(contractWrappers.withImmutables);
-  });
-
-  it("should gracefully handle a contract without an embedded metadata hash", async function () {
-    const monitorWrapper = new MonitorWrapper();
-
-    await waitSecs(MONITOR_SECS);
-    monitorWrapper.stop();
-  });
-
   after(async function () {
-    await ganacheServer.close();
     await ipfsNode.stop();
   });
 });
