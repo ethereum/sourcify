@@ -57,3 +57,22 @@ assert(result.address === deploymentAddress, `Address should be ${deploymentAddr
 
 const EXPECTED_STATUS = "perfect";
 assert(result.status === EXPECTED_STATUS, `Status should be ${EXPECTED_STATUS}. Actual: ${result.status}`);
+
+// Store verified contract in the CircleCI artifacts
+const fs = require('fs');
+const verifiedContractPath = './verified-contracts'
+const verifiedContractFile = `${verifiedContractPath}/saved.json`
+
+try {
+    fs.mkdirSync(`${verifiedContractPath}`, { recursive: true })
+    fs.writeFileSync(verifiedContractFile, JSON.stringify({
+        deploymentAddress,
+        deploymentChain,
+    }));
+} catch (err) {
+    console.error("Cannot write artifacts", err);
+}
+
+assert(fs.existsSync(verifiedContractFile), 'Verified contract file was not saved')
+
+console.log(`Verified contract saved in ${verifiedContractFile}.json`)
