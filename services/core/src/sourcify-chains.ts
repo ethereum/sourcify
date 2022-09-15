@@ -137,6 +137,12 @@ export default {
         "contractFetchAddress": "https://blockscout.com/xdai/mainnet/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex("/xdai/mainnet")
     },
+    "300": {
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://blockscout.com/xdai/optimism/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex("/xdai/optimism")
+    },
     "137": {
         "supported": true,
         "monitored": true,
