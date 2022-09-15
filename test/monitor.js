@@ -32,13 +32,13 @@ class MonitorWrapper {
     this.chainId = this.monitor.chainMonitors[0].chainId;
   }
 
-  start(startBlock) {
+  async start(startBlock) {
     const envVar = `MONITOR_START_${this.chainId}`;
     this.envVarStash = process.env[envVar];
     if (startBlock !== undefined) {
       process.env[envVar] = startBlock;
     }
-    this.monitor.start();
+    await this.monitor.start();
   }
 
   stop() {
@@ -184,7 +184,7 @@ describe("Monitor", function () {
 
   const sourcifyContract = async (contractWrapper) => {
     const monitorWrapper = new MonitorWrapper();
-    monitorWrapper.start();
+    await monitorWrapper.start();
     const address = await contractWrapper.deploy(
       web3Provider,
       accounts[Counter.get()]
@@ -216,7 +216,7 @@ describe("Monitor", function () {
       contract.rawMetadata
     );
 
-    monitorWrapper.start();
+    await monitorWrapper.start();
     const deployedAddress = await contract.deploy(web3Provider, from);
     chai.expect(calculatedAddress).to.deep.equal(deployedAddress);
 
@@ -240,7 +240,7 @@ describe("Monitor", function () {
     await waitSecs(GENERATION_SECS);
 
     const monitorWrapper = new MonitorWrapper();
-    monitorWrapper.start(currentBlockNumber - 1);
+    await monitorWrapper.start(currentBlockNumber - 1);
 
     await waitSecs(CATCH_UP_SECS + MONITOR_SECS);
     monitorWrapper.assertFilesStored(address, contract);
