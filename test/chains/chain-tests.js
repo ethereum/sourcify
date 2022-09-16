@@ -540,23 +540,6 @@ describe("Test Supported Chains", function () {
   );
 
   verifyContract(
-    "0xd46fd24ea21F04459407Fb0B518451e54d0b07a1",
-    "69",
-    "Optimism Kovan Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
-  );
-  verifyContractWithImmutables(
-    "0x68107Fb54f5f29D8e0B3Ac44a99f4444D1F22a68",
-    "69",
-    "Optimism Kovan Testnet",
-    ["uint256"],
-    [123456],
-    ["shared/WithImmutables.sol"],
-    "shared/withImmutables.metadata.json"
-  );
-
-  verifyContract(
     "0xB5FAD02EbF6edffbdf206d2C1ad815bcDdb380f8",
     "420",
     "Optimism Goerli Testnet",

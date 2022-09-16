@@ -275,15 +275,6 @@ export default {
             buildAlchemyURL("mainnet", "opt")
         ],
     },
-    "69": {
-        "supported": true,
-        "monitored": true,
-        "contractFetchAddress": "https://kovan-optimistic.etherscan.io/" + ETHERSCAN_SUFFIX,
-        "txRegex": ETHERSCAN_REGEX,
-        "rpc": [
-            buildAlchemyURL("kovan", "opt")
-        ],
-    },
     "420": {
         "supported": true,
         "monitored": true,
