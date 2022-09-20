@@ -1020,6 +1020,23 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
+  // Canto
+  verifyContract(
+    "0x65ec06aF7b8A6cBa7E7226e70dd2eBd117b823Cd",
+    "7700",
+    "Canto",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0xaF7Fd0F59255B96a60Eb53a7c680EC0E32bE397f",
+    "7700",
+    "Canto",
+    ["uint256"],
+    [7700],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
 
   //////////////////////
   // Helper functions //

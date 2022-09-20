@@ -447,5 +447,10 @@ export default {
         "contractFetchAddress": "https://testnet-explorer.kekchain.com/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
-    
+    "7700": { // Canto Mainnet
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://evm.explorer.canto.io/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    }
 }
