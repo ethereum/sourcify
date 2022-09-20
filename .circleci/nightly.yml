@@ -60,7 +60,7 @@ jobs:
   monitor-e2e-sepolia:
     <<: *monitor-e2e-base
     environment:
-      CHAIN_ID: 11155111
+      CHAIN_ID: '11155111'
       CHAIN_NAME: sepolia
   verification-e2e-rinkeby:
     <<: *verification-e2e-base
@@ -75,7 +75,7 @@ jobs:
   verification-e2e-sepolia:
     <<: *verification-e2e-base
     environment:
-      CHAIN_ID: 11155111
+      CHAIN_ID: '11155111'
       CHAIN_NAME: sepolia
   check-s3-backup:
     working_directory: ~/source-verify
