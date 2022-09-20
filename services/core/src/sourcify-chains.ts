@@ -441,10 +441,16 @@ export default {
         "contractFetchAddress": "https://scan.crystaleum.org/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
-    "420666": { // Kekchain Testnet
+    "420666": { // Kekchain Testnet (kektest)
         "supported": true,
         "monitored": false,
         "contractFetchAddress": "https://testnet-explorer.kekchain.com/" + BLOCKSCOUT_SUFFIX,
+        "txRegex": getBlockscoutRegex()
+    },
+    "420420": { // Kekchain Main Net (kekistan)
+        "supported": true,
+        "monitored": false,
+        "contractFetchAddress": "https://mainnet-explorer.kekchain.com/" + BLOCKSCOUT_SUFFIX,
         "txRegex": getBlockscoutRegex()
     },
     "7700": { // Canto Mainnet
