@@ -192,7 +192,7 @@ export default class VerificationController extends BaseController implements IC
         }
         const result = await this.verificationService.inject(inputData)
 
-        res.send({ result })
+        res.send({ result: [result] })
     }
 
     private stringToBase64 = (str: string): string => {
