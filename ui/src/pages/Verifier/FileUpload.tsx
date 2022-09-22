@@ -55,7 +55,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
   };
 
   const displayFiles = addedFiles.map((file) => {
-    return <li key={file}>&bull; {file}</li>;
+    return <li className="mb-1" key={file}>{file}</li>;
   });
   return (
     <div className="pt-1 bg-ceruleanBlue-500 flex flex-grow basis-0 rounded-xl mx-2 mb-4 md:mb-0">
@@ -193,7 +193,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
               {displayFiles.length ? (
                 <div>
                   <h2 className="font-bold text-lg">Added Files <span className="font-normal">({displayFiles.length})</span></h2>
-                  <ul className="flex flex-col break-all">{displayFiles}</ul>
+                  <ul className="flex flex-col break-all list-outside ml-4 list-disc">{displayFiles}</ul>
                 </div>
               ) : (
                 <div className="flex flex-col flex-grow justify-center items-center text-center">

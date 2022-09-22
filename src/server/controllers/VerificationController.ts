@@ -272,7 +272,7 @@ export default class VerificationController extends BaseController implements IC
 
     let validatedContracts: CheckedContract[];
     try {
-      validatedContracts = this.validationService.checkFiles(inputFiles);
+      validatedContracts = await this.validationService.checkFiles(inputFiles);
     } catch(error: any) {
       throw new BadRequestError(error.message);
     }
@@ -301,7 +301,7 @@ export default class VerificationController extends BaseController implements IC
       const result = await this.verificationService.inject(inputData);
       // Send to verification again with all source files.
       if (result.status === "extra-file-input-bug") {
-        const contractWithAllSources = this.validationService.useAllSources(contract, inputFiles);
+        const contractWithAllSources = await this.validationService.useAllSources(contract, inputFiles);
         const tempResult = await this.verificationService.inject({ ...inputData, contract: contractWithAllSources });
         if (tempResult.status === "perfect") {
           res.send({result: [tempResult]})
@@ -372,7 +372,7 @@ export default class VerificationController extends BaseController implements IC
     res.send(resultArray)
   }
 
-  private validateContracts = (session: MySession) => {
+  private validateContracts = async (session: MySession) => {
     const pathBuffers: PathBuffer[] = [];
     for (const id in session.inputFiles) {
       const pathContent = session.inputFiles[id];
@@ -381,7 +381,7 @@ export default class VerificationController extends BaseController implements IC
         
     try {
       const unused: string[] = [];
-      const contracts = this.validationService.checkFiles(pathBuffers, unused);
+      const contracts = await this.validationService.checkFiles(pathBuffers, unused);
 
       const newPendingContracts: ContractWrapperMap = {};
       for (const contract of contracts) {
@@ -458,7 +458,7 @@ export default class VerificationController extends BaseController implements IC
           if (match.status === "extra-file-input-bug") {
             // Session inputFiles are encoded base64. Why?
             const pathBufferInputFiles: PathBuffer[] = Object.values(session.inputFiles).map(base64file => ({path: base64file.path, buffer: Buffer.from(base64file.content, FILE_ENCODING)}));
-            const contractWithAllSources = this.validationService.useAllSources(contractWrapper.contract, pathBufferInputFiles);
+            const contractWithAllSources = await this.validationService.useAllSources(contractWrapper.contract, pathBufferInputFiles);
             const tempMatch = await this.verificationService.inject({...inputData, contract: contractWithAllSources });
             if (tempMatch.status === "perfect" || tempMatch.status === "partial") {
               match = tempMatch;
@@ -561,7 +561,7 @@ export default class VerificationController extends BaseController implements IC
     const session = (req.session as MySession);
     const newFilesCount = this.saveFiles(pathContents, session);
     if (newFilesCount) {
-      this.validateContracts(session);
+      await this.validateContracts(session);
       await this.verifyValidated(session.contractWrappers, session);
     }
     res.send(getSessionJSON(session));
