@@ -90,7 +90,9 @@ if (require.main === module) {
   let checkedContracts: CheckedContract[] = [];
   const ignoring: any[] = [];
   try {
-    checkedContracts = validationService.checkPaths(fileNames, ignoring);
+    validationService.checkPaths(fileNames, ignoring).then((contracts) => {
+      checkedContracts = contracts;
+    });
   } catch (err: any) {
     console.log(err.message);
     process.exitCode = 1;
