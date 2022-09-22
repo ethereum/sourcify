@@ -9,25 +9,25 @@ export declare interface IGateway {
 }
 
 export class SimpleGateway implements IGateway {
-    private origins: SourceOrigin[];
-    baseUrl: string;
-    fallbackUrl: string; // A backup gateway in case the local ipfs node fails.
+  private origins: SourceOrigin[];
+  baseUrl: string;
+  fallbackUrl: string; // A backup gateway in case the local ipfs node fails.
 
-    constructor(origins: SourceOrigin | SourceOrigin[], baseUrl: string, fallbackUrl?: string) {
-        this.origins = [].concat(origins);
-        this.baseUrl = baseUrl;
-        if (fallbackUrl) this.fallbackUrl = fallbackUrl;
-    }
+  constructor(origins: SourceOrigin | SourceOrigin[], baseUrl: string, fallbackUrl?: string) {
+    this.origins = [].concat(origins);
+    this.baseUrl = baseUrl;
+    if (fallbackUrl) this.fallbackUrl = fallbackUrl;
+  }
 
-    worksWith(origin: SourceOrigin): boolean {
-        return this.origins.includes(origin);
-    }
+  worksWith(origin: SourceOrigin): boolean {
+    return this.origins.includes(origin);
+  }
 
-    createUrl(fetchId: string): string {
-        return this.baseUrl + fetchId;
-    }
+  createUrl(fetchId: string): string {
+    return this.baseUrl + fetchId;
+  }
 
-    createFallbackUrl(fetchId: string): string {
-        return this.fallbackUrl && this.fallbackUrl + fetchId;
-    }
+  createFallbackUrl(fetchId: string): string {
+    return this.fallbackUrl && this.fallbackUrl + fetchId;
+  }
 }

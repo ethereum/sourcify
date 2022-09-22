@@ -162,7 +162,7 @@ describe("Server", function () {
       chai.expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
       chai.expect(res.body?.error).to.exist
     };
-    
+
     this.timeout(EXTENDED_TIME_60);
 
     it("should fail for missing address", (done) => {
@@ -705,7 +705,7 @@ describe("Server", function () {
         .send()
 
       assertions(null, res, null, address, "perfect");
-      
+
       const res2 = await chai
         .request(server.app)
         .get(
