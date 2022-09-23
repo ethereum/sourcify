@@ -45,31 +45,31 @@ function logOutput(
   programOptions: any
 ) {
   switch (recompilableContracts.length) {
-    case 0: {
-      console.log(
-        `Could not find the ${OPTION_NAME} target: ${programOptions.prepareJson}`
-      );
-      process.exitCode = 1;
-      break;
-    }
-    case 1: {
-      const standardJson = recompilableContracts[0].standardJson;
-      const prettifiedStandardJson = JSON.stringify(
-        standardJson,
-        null,
-        programOptions.pretty ? 2 : undefined
-      );
-      console.log(prettifiedStandardJson);
-      break;
-    }
-    default: {
-      console.log(
-        `Ambiguous ${OPTION_NAME} target: ${programOptions.prepareJson}`
-      );
-      console.log(`${recompilableContracts.length} instances encountered.`);
-      process.exitCode = 1;
-      break;
-    }
+  case 0: {
+    console.log(
+      `Could not find the ${OPTION_NAME} target: ${programOptions.prepareJson}`
+    );
+    process.exitCode = 1;
+    break;
+  }
+  case 1: {
+    const standardJson = recompilableContracts[0].standardJson;
+    const prettifiedStandardJson = JSON.stringify(
+      standardJson,
+      null,
+      programOptions.pretty ? 2 : undefined
+    );
+    console.log(prettifiedStandardJson);
+    break;
+  }
+  default: {
+    console.log(
+      `Ambiguous ${OPTION_NAME} target: ${programOptions.prepareJson}`
+    );
+    console.log(`${recompilableContracts.length} instances encountered.`);
+    process.exitCode = 1;
+    break;
+  }
   }
 }
 
