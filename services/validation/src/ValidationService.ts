@@ -1,7 +1,7 @@
 import bunyan from 'bunyan';
 import Web3 from 'web3';
+import JSZip from 'jszip'
 import { StringMap, SourceMap, PathBuffer, PathContent, CheckedContract, InvalidSources, MissingSources } from '@ethereum-sourcify/core';
-import AdmZip from 'adm-zip';
 import fs from 'fs';
 import Path from 'path';
 /**
@@ -34,7 +34,7 @@ export interface IValidationService {
      * @returns An array of CheckedContract objects.
      * @throws Error if no metadata files are found.
      */
-    checkPaths(paths: string[], ignoring?: string[]): CheckedContract[];
+    checkPaths(paths: string[], ignoring?: string[]): Promise<CheckedContract[]>;
 
     /**
      * Checks the provided files. Works with zips.
@@ -44,8 +44,8 @@ export interface IValidationService {
      * @returns An array of CheckedContract objets.
      * @throws Error if no metadata files are found.
      */
-    checkFiles(files: PathBuffer[], unused?: string[]): CheckedContract[];
-    useAllSources(contract: CheckedContract, files: PathBuffer[]): CheckedContract;
+    checkFiles(files: PathBuffer[], unused?: string[]): Promise<CheckedContract[]>;
+    useAllSources(contract: CheckedContract, files: PathBuffer[]): Promise<CheckedContract>;
 }
 
 export class ValidationService implements IValidationService {
@@ -58,7 +58,7 @@ export class ValidationService implements IValidationService {
     this.logger = logger;
   }
 
-  checkPaths(paths: string[], ignoring?: string[]): CheckedContract[] {
+  checkPaths(paths: string[], ignoring?: string[]) {
     const files: PathBuffer[] = [];
     paths.forEach(path => {
       if (fs.existsSync(path)) {
@@ -76,9 +76,9 @@ export class ValidationService implements IValidationService {
   }
     
   // Pass all input source files to the CheckedContract, not just those stated in metadata.
-  useAllSources(contract: CheckedContract, files: PathBuffer[]) {
-    const unzippedFiles = this.traverseAndUnzipFiles(files);
-    const parsedFiles = unzippedFiles.map(pathBuffer => ({ content: pathBuffer.buffer.toString(), path: pathBuffer.path }));
+  async useAllSources(contract: CheckedContract, files: PathBuffer[]) {
+    await this.unzipFiles(files);
+    const parsedFiles = files.map(pathBuffer => ({ content: pathBuffer.buffer.toString(), path: pathBuffer.path }));
     const { sourceFiles } = this.splitFiles(parsedFiles);
     const stringMapSourceFiles = this.pathContentArrayToStringMap(sourceFiles)
     // Files at contract.solidity are already hash matched with the sources in metadata. Use them instead of the user input .sol files.
@@ -87,9 +87,9 @@ export class ValidationService implements IValidationService {
     return contractWithAllSources;
   }
 
-  checkFiles(files: PathBuffer[], unused?: string[]): CheckedContract[] {
-    const unzippedFiles = this.traverseAndUnzipFiles(files);
-    const parsedFiles = unzippedFiles.map(pathBuffer => ({ content: pathBuffer.buffer.toString(), path: pathBuffer.path }));
+  async checkFiles(files: PathBuffer[], unused?: string[]) {
+    await this.unzipFiles(files);
+    const parsedFiles = files.map(pathBuffer => ({ content: pathBuffer.buffer.toString(), path: pathBuffer.path }));
     const { metadataFiles, sourceFiles } = this.splitFiles(parsedFiles);
 
     const checkedContracts: CheckedContract[] = [];
@@ -122,35 +122,31 @@ export class ValidationService implements IValidationService {
   }
 
   /**
-     * Traverses the given files, unzipping any zip archive.
+     * Unzips any zip files found in the provided array of files. Modifies the provided array.
      * 
      * @param files the array containing the files to be checked
-     * @returns an array containing the provided files, with any zips being unzipped and returned
      */
-  private traverseAndUnzipFiles(files: PathBuffer[]): PathBuffer[] {
-    const inputFiles: PathBuffer[] = [];
-    for (const file of files) {
+  private async unzipFiles(files: PathBuffer[]) {
+    const allUnzipped: PathBuffer[] = [];
+    for (let i=0; i<files.length; i++) {
+      const file = files[i];
       if (this.isZip(file.buffer)) {
-        this.unzip(file, files);
-      } else {
-        inputFiles.push(file);
+        const unzipped = await this.unzip(file);
+        allUnzipped.push(...unzipped);
+        // Remove the zip file from the array and decrement the index to check the next file.
+        files.splice(i, 1);
+        i--;
       }
     }
-
-    return inputFiles;
+    // Add unzipped at the end to not check again if the extracted files are zips.
+    files.push(...allUnzipped);
   }
 
-  /**
-     * Checks whether the provided file is in fact zipped.
-     * @param file the buffered file to be checked
-     * @returns true if the file is zipped; false otherwise
-     */
   private isZip(file: Buffer): boolean {
-    try {
-      new AdmZip(file);
-      return true;
-    } catch (err) { undefined }
-    return false;
+    // How is-zip-file checks https://github.com/luthraG/is-zip-file/blob/master/index.js
+    // Also according to this: https://stackoverflow.com/a/18194946/6528944
+    const response = (file[0] === 0x50 && file[1] === 0x4b && (file[2] === 0x03 || file[2] === 0x05 || file[2] === 0x07) && (file[3] === 0x04 || file[3] === 0x06 || file[3] === 0x08));
+    return response;
   }
 
   /**
@@ -158,21 +154,24 @@ export class ValidationService implements IValidationService {
      * 
      * @param zippedFile the buffer containin the zipped file to be unpacked
      * @param files the array to be filled with the content of the zip
+     * @returns the unzipped files as an array
      */
-  private unzip(zippedFile: PathBuffer, files: PathBuffer[]): void {
-    const timestamp = Date.now().toString() + "-" + Math.random().toString().slice(2);
-    const tmpDir = `tmp-unzipped-${timestamp}`;
-
-    new AdmZip(zippedFile.buffer).extractAllTo(tmpDir);
-
-    this.traversePathRecursively(tmpDir, filePath => {
-      const file = {
-        buffer: fs.readFileSync(filePath),
-        // remove the zip-folder name from the path  e.g. tmp-unzipped-1652274174745-9239260350002245/contracts/Token.sol --> contracts/Token.sol
-        path: filePath.slice(tmpDir.length + 1)};
-      files.push(file);
-    });
-    this.traversePathRecursively(tmpDir, fs.unlinkSync, fs.rmdirSync);
+  private async unzip(zippedFile: PathBuffer) {
+    const zip = new JSZip();
+    const unzipped: PathBuffer[] = [];
+    try {
+      await zip.loadAsync(zippedFile.buffer);
+      for (const filePath in zip.files) {
+        const buffer = await zip.files[filePath].async("nodebuffer");
+        unzipped.push({
+          path: filePath,
+          buffer
+        })
+      }
+    } catch (e: any) {
+      throw new Error(`Error while unzipping ${zippedFile.path}: ${e.message}`);
+    }
+    return unzipped
   }
 
   /**
