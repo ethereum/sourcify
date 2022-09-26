@@ -16,7 +16,7 @@ else
 fi
 
 if [ "${TAG}" == "stable" ]; then
-    COMPOSE_COMMAND="COMPOSE_PROJECT_NAME=${TAG} docker-compose -f ipfs.yaml -f monitor.yaml -f repository.yaml -f s3.yaml -f server.yaml -f ui.yaml -f ui-legacy.yaml"
+    COMPOSE_COMMAND="COMPOSE_PROJECT_NAME=${TAG} docker-compose -f ipfs.yaml -f monitor.yaml -f repository.yaml -f s3.yaml -f server.yaml -f ui.yaml"
 elif [ "${TAG}" == "latest" ]; then
     COMPOSE_COMMAND="COMPOSE_PROJECT_NAME=${TAG} docker-compose -f ipfs.yaml -f monitor.yaml -f repository.yaml -f s3.yaml -f server.yaml -f ui.yaml"
 else
