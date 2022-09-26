@@ -2,9 +2,7 @@ process.env.TESTING = "true";
 process.env.MOCK_REPOSITORY = "./mockRepository";
 process.env.MOCK_DATABASE = "./mockDatabase";
 process.env.IPFS_GATEWAY = "http://ipfs.io/ipfs/";
-const GANACHE_PORT = process.env.LOCALCHAIN_PORT
-  ? parseInt(process.env.LOCALCHAIN_PORT)
-  : 8545;
+const GANACHE_PORT = 8545;
 const ContractWrapper = require("./helpers/ContractWrapper");
 const ganache = require("ganache");
 const ipfs = require("ipfs-core");
@@ -131,7 +129,7 @@ function assertEqualityFromPath(obj1, obj2path, options = {}) {
 
 describe("Monitor", function () {
   this.timeout(60 * 1000);
-  let ganacheServer
+  let ganacheServer;
 
   const contractWrappers = {
     simpleWithImport: new ContractWrapper(
@@ -179,12 +177,12 @@ describe("Monitor", function () {
     web3Provider = new Web3(`http://localhost:${GANACHE_PORT}`);
     accounts = await web3Provider.eth.getAccounts();
     console.log("Initialized web3 provider");
-  })
+  });
 
   afterEach(async () => {
     await ganacheServer.close();
-    ganacheServer = null
-  })
+    ganacheServer = null;
+  });
 
   const MONITOR_SECS = 25; // waiting for monitor to do its job
   const GENERATION_SECS = 10; // waiting for extra blocks to be generated
@@ -246,7 +244,7 @@ describe("Monitor", function () {
     const address = await contract.deploy(
       web3Provider,
       accounts[Counter.get()]
-      );
+    );
     const currentBlockNumber = await web3Provider.eth.getBlockNumber();
 
     await waitSecs(GENERATION_SECS);
