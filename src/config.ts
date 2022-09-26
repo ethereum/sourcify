@@ -18,7 +18,6 @@ export default {
   repository: {
     port: process.env.REPOSITORY_PORT || 80,
     path: process.env.MOCK_REPOSITORY || path.resolve(__dirname, process.env.REPOSITORY_PATH!) || path.resolve(__dirname, './repository'),
-    dbPath: process.env.MOCK_DATABASE || path.resolve(__dirname, process.env.DATABASE_PATH!) || path.resolve(__dirname, './database')
   },
   testing: process.env.TESTING || false,
   tag: process.env.TAG || 'latest',

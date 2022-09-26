@@ -1,6 +1,5 @@
 process.env.TESTING = true;
 process.env.MOCK_REPOSITORY = "./dist/data/mock-repository";
-process.env.MOCK_DATABASE = "./dist/data/mock-database";
 process.env.SOLC_REPO = "./dist/data/solc-repo";
 process.env.SOLJSON_REPO = "/dist/data/soljson-repo";
 

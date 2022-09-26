@@ -1,6 +1,5 @@
 process.env.TESTING = "true";
 process.env.MOCK_REPOSITORY = "./mockRepository";
-process.env.MOCK_DATABASE = "./mockDatabase";
 process.env.IPFS_GATEWAY = "http://ipfs.io/ipfs/";
 const GANACHE_PORT = 8545;
 const ContractWrapper = require("./helpers/ContractWrapper");
