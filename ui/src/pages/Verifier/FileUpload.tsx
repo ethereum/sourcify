@@ -1,10 +1,21 @@
 import React, { useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { AiFillFileAdd } from "react-icons/ai";
+import { AiFillFileAdd, AiOutlineGithub, AiOutlinePlus } from "react-icons/ai";
 import { HiOutlineExclamation } from "react-icons/hi";
+import Button from "../../components/Button";
 import LoadingOverlay from "../../components/LoadingOverlay";
+import EtherscanLogo from "../../components/EtherscanLogo";
 import { SessionResponse } from "../../types";
-import GithubInput from "./GithubInput";
+import EtherscanInput from "./EtherscanInput";
+import RemoteInput from "./RemoteInput";
+import GitHubInput from "./GitHubInput";
+
+enum ImportMethods {
+  UPLOAD,
+  REMOTE,
+  ETHERSCAN,
+  GITHUB,
+}
 
 type FileUploadProps = {
   handleFilesAdded: (files: []) => void;
@@ -25,6 +36,8 @@ const FileUpload: React.FC<FileUploadProps> = ({
   fetchAndUpdate,
 }) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [importMethodSelected, setImportMethodSelected] =
+    useState<ImportMethods>(ImportMethods.UPLOAD);
   const { getRootProps, getInputProps } = useDropzone({
     onDrop: async (acceptedFiles: any) => {
       setIsLoading(true);
@@ -33,9 +46,16 @@ const FileUpload: React.FC<FileUploadProps> = ({
     },
   });
   // const dropzoneAcceptedFiles = acceptedFiles as DropzoneFile[]; // Typecast for file.path and file.size
+  const selectImportMethod = (method: ImportMethods) => {
+    if (method === importMethodSelected) {
+      setImportMethodSelected(ImportMethods.UPLOAD);
+    } else {
+      setImportMethodSelected(method);
+    }
+  };
 
   const displayFiles = addedFiles.map((file) => {
-    return <li key={file}>&bull; {file}</li>;
+    return <li className="mb-1" key={file}>{file}</li>;
   });
   return (
     <div className="pt-1 bg-ceruleanBlue-500 flex flex-grow basis-0 rounded-xl mx-2 mb-4 md:mb-0">
@@ -47,19 +67,99 @@ const FileUpload: React.FC<FileUploadProps> = ({
             to verify.
           </p>
         </div>
-        <div className="flex flex-grow flex-col pb-8">
-          <div className="mt-4">
-            <p className="">
-              Import from remote file or zip (e.g. Github repo .zip)
-            </p>
-            <div className="mt-1">
-              <GithubInput
-                fetchAndUpdate={fetchAndUpdate}
-                setIsLoading={setIsLoading}
-                isLoading={isLoading}
-              />
-            </div>
+        <div className="flex flex-row flex-wrap gap-3 mt-4 justify-center md:justify-start">
+          <div className="">
+            <Button
+              type={
+                importMethodSelected === ImportMethods.REMOTE
+                  ? "primary"
+                  : "secondary"
+              }
+              onClick={() => selectImportMethod(ImportMethods.REMOTE)}
+              className="text-sm"
+            >
+              <>
+                <AiOutlinePlus className="inline align-middle mr-1" />
+                Import from remote
+              </>
+            </Button>
           </div>
+          <div className="">
+            <Button
+              type={
+                importMethodSelected === ImportMethods.ETHERSCAN
+                  ? "primary"
+                  : "secondary"
+              }
+              onClick={() => selectImportMethod(ImportMethods.ETHERSCAN)}
+              className="text-sm"
+            >
+              <>
+                <EtherscanLogo
+                  light={importMethodSelected === ImportMethods.ETHERSCAN}
+                />
+                Import from Etherscan
+              </>
+            </Button>
+          </div>
+          <div className="">
+            <Button
+              type={
+                importMethodSelected === ImportMethods.GITHUB
+                  ? "primary"
+                  : "secondary"
+              }
+              onClick={() => selectImportMethod(ImportMethods.GITHUB)}
+              className="text-sm"
+            >
+              <>
+                <AiOutlineGithub className="inline align-middle mr-1" />
+                Import from GitHub
+              </>
+            </Button>
+          </div>
+        </div>
+        <div className="flex flex-grow flex-col pb-8">
+          {importMethodSelected === ImportMethods.REMOTE && (
+            <div className="mt-4">
+              <p className="">
+                Import from remote file or zip (e.g. Github repo .zip)
+              </p>
+              <div className="mt-1">
+                <RemoteInput
+                  fetchAndUpdate={fetchAndUpdate}
+                  setIsLoading={setIsLoading}
+                  isLoading={isLoading}
+                />
+              </div>
+            </div>
+          )}
+          {importMethodSelected === ImportMethods.ETHERSCAN && (
+            <div className="mt-4">
+              <p className="">
+                Import from Etherscan (contract must be verified)
+              </p>
+              <div className="mt-1">
+                <EtherscanInput
+                  fetchAndUpdate={fetchAndUpdate}
+                  setIsLoading={setIsLoading}
+                  isLoading={isLoading}
+                />
+              </div>
+            </div>
+          )}
+          {importMethodSelected === ImportMethods.GITHUB && (
+            <div className="mt-4">
+              <p className="">Import from GitHub</p>
+              <div className="mt-1">
+                <GitHubInput
+                  fetchAndUpdate={fetchAndUpdate}
+                  setIsLoading={setIsLoading}
+                  isLoading={isLoading}
+                />
+              </div>
+            </div>
+          )}
           <div className="flex justify-end">
             <button
               onClick={async () => {
@@ -93,7 +193,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
               {displayFiles.length ? (
                 <div>
                   <h2 className="font-bold text-lg">Added Files <span className="font-normal">({displayFiles.length})</span></h2>
-                  <ul className="flex flex-col break-all">{displayFiles}</ul>
+                  <ul className="flex flex-col break-all list-outside ml-4 list-disc">{displayFiles}</ul>
                 </div>
               ) : (
                 <div className="flex flex-col flex-grow justify-center items-center text-center">

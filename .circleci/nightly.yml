@@ -30,6 +30,8 @@ aliases:
       - run:
           name: verification test
           command: ./scripts/verification-e2e.sh
+      - store_artifacts:
+          path: ./verified-contracts
     docker:
       - image: cimg/node:16.15
 
@@ -42,6 +44,7 @@ workflows:
       - verification-e2e-rinkeby
       - verification-e2e-goerli
       - verification-e2e-sepolia
+      - check-s3-backup
 
 jobs:
   monitor-e2e-rinkeby:
@@ -57,7 +60,7 @@ jobs:
   monitor-e2e-sepolia:
     <<: *monitor-e2e-base
     environment:
-      CHAIN_ID: 11155111
+      CHAIN_ID: '11155111'
       CHAIN_NAME: sepolia
   verification-e2e-rinkeby:
     <<: *verification-e2e-base
@@ -72,5 +75,17 @@ jobs:
   verification-e2e-sepolia:
     <<: *verification-e2e-base
     environment:
-      CHAIN_ID: 11155111
+      CHAIN_ID: '11155111'
       CHAIN_NAME: sepolia
+  check-s3-backup:
+    working_directory: ~/source-verify
+    steps:
+      - checkout
+      - run:
+          name: install dependencies
+          command: npm install @aws-sdk/client-s3
+      - run:
+          name: backup test
+          command: node --experimental-fetch ./scripts/check-s3-backup.mjs
+    docker:
+      - image: cimg/node:16.15

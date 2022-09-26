@@ -1,7 +1,7 @@
 export const REPOSITORY_URL = process.env.REACT_APP_REPOSITORY_URL;
 export const SERVER_URL = process.env.REACT_APP_SERVER_URL;
-export const DOCS_URL = "https://docs.sourcify.dev"
-export const PLAYGROUND_URL = "https://playground.sourcify.dev"
+export const DOCS_URL = "https://docs.sourcify.dev";
+export const PLAYGROUND_URL = "https://playground.sourcify.dev";
 
 export const REPOSITORY_URL_FULL_MATCH = `${REPOSITORY_URL}/contracts/full_match`;
 export const REPOSITORY_URL_PARTIAL_MATCH = `${REPOSITORY_URL}/contracts/partial_match`;
@@ -16,4 +16,5 @@ export const SESSION_DATA_URL = `${SERVER_URL}/session-data`;
 export const ADD_FILES_URL = `${SERVER_URL}/input-files`;
 export const REMOVE_FILES_URL = `${SERVER_URL}/remove-files`;
 export const VERIFY_VALIDATED_URL = `${SERVER_URL}/verify-validated`;
+export const VERIFY_FROM_ETHERSCAN = `${SERVER_URL}/verify-from-etherscan`;
 export const RESTART_SESSION_URL = `${SERVER_URL}/restart-session`;

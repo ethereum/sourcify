@@ -46,7 +46,9 @@ async function main(chainId, immutableValue, privateKey, type) {
   const chains = getSupportedChains();
   const chain = chains.find((chain) => chain.chainId == chainId);
   if (!chain) {
-    console.error(`Chain config for chainId "${chainId}" not found in list of supported chains, abort.`);
+    console.error(
+      `Chain config for chainId "${chainId}" not found in list of supported chains, abort.`
+    );
     return;
   }
   let web3;
@@ -75,7 +77,7 @@ async function main(chainId, immutableValue, privateKey, type) {
       [immutableValue]
     );
     console.log(
-      `Contract with immutables deployed at ${contractAddress1} on the chain ${chain.name} (${chain.chainId})`
+      `Contract with immutables deployed at ${contractAddress1} and with the immutable costructor argument ${immutableValue} on the chain ${chain.name} (${chain.chainId})`
     );
   }
 

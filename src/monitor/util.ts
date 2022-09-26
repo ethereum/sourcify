@@ -12,8 +12,8 @@ interface Prefix {
 }
 
 const PREFIXES: Prefix[] = [
-    { origin: "ipfs", regex: /dweb:\/ipfs\/{1,2}/ },
-    { origin: "bzzr1", regex: /bzz-raw:\/{1,2}/ }
+  { origin: "ipfs", regex: /dweb:\/ipfs\/{1,2}/ },
+  { origin: "bzzr1", regex: /bzz-raw:\/{1,2}/ }
 ];
 
 interface CborProcessor {
@@ -22,48 +22,48 @@ interface CborProcessor {
 }
 
 const CBOR_PROCESSORS: CborProcessor[] = [
-    { origin: "ipfs", process: multihashes.toB58String },
-    { origin: "bzzr0", process: (data) => Web3.utils.bytesToHex(data).slice(2) },
-    { origin: "bzzr1", process: (data) => Web3.utils.bytesToHex(data).slice(2) }
+  { origin: "ipfs", process: multihashes.toB58String },
+  { origin: "bzzr0", process: (data) => Web3.utils.bytesToHex(data).slice(2) },
+  { origin: "bzzr1", process: (data) => Web3.utils.bytesToHex(data).slice(2) }
 ]
 
 export class SourceAddress {
-    origin: SourceOrigin;
-    id: string;
+  origin: SourceOrigin;
+  id: string;
 
-    constructor(origin: SourceOrigin, id: string) {
-        this.origin = origin;
-        this.id = id;
-    }
+  constructor(origin: SourceOrigin, id: string) {
+    this.origin = origin;
+    this.id = id;
+  }
 
-    /**
+  /**
      * @returns a unique identifier of this source address of format ipfs-QmawU3NM1WNWkBauRudYCiFvuFE1tTLHB98akyBvb9UWwA
      */
-    getSourceHash(): string {
-        return this.origin + "-" + this.id;
+  getSourceHash(): string {
+    return this.origin + "-" + this.id;
+  }
+
+  static fromUrl(url: string): SourceAddress {
+    for (const prefix of PREFIXES) {
+      const attempt = url.replace(prefix.regex, "");
+      if (attempt !== url) {
+        return new SourceAddress(prefix.origin, attempt);
+      }
     }
 
-    static fromUrl(url: string): SourceAddress {
-        for (const prefix of PREFIXES) {
-            const attempt = url.replace(prefix.regex, "");
-            if (attempt !== url) {
-                return new SourceAddress(prefix.origin, attempt);
-            }
-        }
+    return null;
+  }
 
-        return null;
+  static fromCborData(cborData: any): SourceAddress {
+    for (const cborProcessor of CBOR_PROCESSORS) {
+      const bytes = cborData[cborProcessor.origin];
+      if (bytes) {
+        const metadataId = cborProcessor.process(bytes);
+        return new SourceAddress(cborProcessor.origin, metadataId);
+      }
     }
 
-    static fromCborData(cborData: any): SourceAddress {
-        for (const cborProcessor of CBOR_PROCESSORS) {
-            const bytes = cborData[cborProcessor.origin];
-            if (bytes) {
-                const metadataId = cborProcessor.process(bytes);
-                return new SourceAddress(cborProcessor.origin, metadataId);
-            }
-        }
-
-        const msg = `Unsupported metadata file format: ${Object.keys(cborData)}`;
-        throw new Error(msg);
-    }
+    const msg = `Unsupported metadata file format: ${Object.keys(cborData)}`;
+    throw new Error(msg);
+  }
 }

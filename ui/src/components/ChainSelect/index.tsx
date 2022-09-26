@@ -31,32 +31,43 @@ function fuzzySearch(options: SelectSearchOption[]) {
       .map((res: Fuse.FuseResult<SelectSearchOption>) => res.item);
   };
 }
-type NetworkSelectProps = {
+type ChainSelectProps = {
   value: string | undefined;
   handleChainIdChange: (chainId: number) => void;
   id?: string;
+  availableChains?: number[];
 };
 
-export default function NetworkSelect({
+export default function ChainSelect({
   value,
   handleChainIdChange,
   id,
-}: NetworkSelectProps) {
+  availableChains,
+}: ChainSelectProps) {
   const { sourcifyChains } = useContext(Context);
+
+  let filteredChains;
+  if (availableChains) {
+    filteredChains = sourcifyChains.filter((chain) =>
+      availableChains.includes(chain.chainId)
+    );
+  } else {
+    filteredChains = sourcifyChains;
+  }
 
   return (
     <CustomSelectSearch
       onChange={handleChainIdChange}
       value={value}
-      options={sourcifyChains.map((chain) => ({
+      options={filteredChains.map((chain) => ({
         name: `${chain.title || chain.name} (${chain.chainId}) `,
         value: chain.chainId,
       }))}
       search
       id={id}
       filterOptions={fuzzySearch}
-      emptyMessage="Not found"
-      placeholder="Choose network"
+      emptyMessage="Couldn't fetch Sourcify chains"
+      placeholder="Choose chain"
     />
   );
 }

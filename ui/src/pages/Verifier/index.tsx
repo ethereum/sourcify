@@ -99,7 +99,7 @@ const Verifier: React.FC = () => {
       // remove absolute path
       if (file.path.startsWith("/")) filePath = file.path.substring(1);
       // If a zip, send a seperate request, since there's already no file path
-      if (file.type === "application/zip") {
+      if (file.type === "application/zip" || file.type === "application/x-zip-compressed") {
         const formData = new FormData();
         formData.append("files", file);
         await fetchAndUpdate(ADD_FILES_URL, {

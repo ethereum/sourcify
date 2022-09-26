@@ -34,6 +34,7 @@ const binaryParser = function (res, cb) {
 };
 
 const EXTENDED_TIME = 20000; // 20 seconds
+const EXTENDED_TIME_60 = 60000; // 60 seconds
 
 describe("Server", function () {
   const server = new Server();
@@ -143,6 +144,105 @@ describe("Server", function () {
     chai.expect(result.status).to.equal(expectedStatus);
     if (done) done();
   };
+
+  describe("/verify-from-etherscan", function () {
+    const assertAllFound = (err, res, finalStatus) => {
+      chai.expect(err).to.be.null;
+      chai.expect(res.status).to.equal(StatusCodes.OK);
+
+      const contracts = res.body.contracts;
+      chai.expect(contracts).to.have.a.lengthOf(1);
+      const contract = contracts[0];
+
+      chai.expect(contract.status).to.equal(finalStatus);
+      chai.expect(contract.storageTimestamp).to.not.exist;
+    };
+
+    const assertEtherscanError = (err, res) => {
+      chai.expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
+      chai.expect(res.body?.error).to.exist
+    };
+
+    this.timeout(EXTENDED_TIME_60);
+
+    it("should fail for missing address", (done) => {
+      chai
+        .request(server.app)
+        .post("/verify-from-etherscan")
+        .field("chainId", "1")
+        .end((err, res) => {
+          assertError(err, res, "address");
+          done();
+        });
+    });
+
+    it("should fail for missing chainId", (done) => {
+      chai
+        .request(server.app)
+        .post("/verify-from-etherscan")
+        .field("address", fakeAddress)
+        .end((err, res) => {
+          assertError(err, res, "chainId");
+          done();
+        });
+    });
+
+    it("should fail fetching a non verified contract from etherscan", (done) => {
+      chai
+        .request(server.app)
+        .post("/verify-from-etherscan")
+        .field("address", fakeAddress)
+        .field("chainId", "1")
+        .end((err, res) => {
+          assertEtherscanError(err, res)
+          done();
+        });
+    });
+
+    it("should fail by exceeding rate limit on etherscan APIs", (done) => {
+      chai
+        .request(server.app)
+        .post("/verify-from-etherscan")
+        .field("address", fakeAddress)
+        .field("chainId", "1")
+        .end(() => {
+          chai
+            .request(server.app)
+            .post("/verify-from-etherscan")
+            .field("address", fakeAddress)
+            .field("chainId", "1")
+            .end((err, res) => {
+              assertEtherscanError(err, res)
+              done();
+            });
+        });
+    });
+
+    it("should import contract information from etherscan (single file) and verify the contract, finding a partial match", (done) => {
+      chai
+        .request(server.app)
+        .post("/verify-from-etherscan")
+        .field("address", "0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4")
+        .field("chainId", "5")
+        .end((err, res) => {
+          assertAllFound(err, res, "partial");
+          done();
+        });
+    });
+
+    it("should import contract information from etherscan (multiple files) and verify the contract, finding a partial match", (done) => {
+      chai
+        .request(server.app)
+        .post("/verify-from-etherscan")
+        .field("address", "0x5aa653a076c1dbb47cec8c1b4d152444cad91941")
+        .field("chainId", "1")
+        .end((err, res) => {
+          assertAllFound(err, res, "partial");
+          done();
+        });
+    });
+
+  })
 
   describe("/check-by-addresses", function () {
     this.timeout(EXTENDED_TIME);
@@ -558,13 +658,15 @@ describe("Server", function () {
         accounts[0]
       );
 
-      chai
+      const res = await chai
         .request(server.app)
         .post("/")
         .field("address", address)
         .field("chain", defaultContractChain)
         .attach("files", metadataBuffer)
-        .end((err, res) => assertions(err, res, null, address, "partial"));
+        .send()
+
+      assertions(null, res, null, address, "partial")
       return true;
     });
 
@@ -593,33 +695,33 @@ describe("Server", function () {
       );
       const sourceBuffer = fs.readFileSync(sourcePath);
 
-      chai
+      const res = await chai
         .request(server.app)
         .post("/")
         .field("address", address)
         .field("chain", defaultContractChain)
         .attach("files", metadataBuffer)
         .attach("files", sourceBuffer)
-        .end((err, res) => {
-          assertions(err, res, null, address, "perfect");
-          chai
-            .request(server.app)
-            .get(
-              `/repository/contracts/full_match/${defaultContractChain}/${address}/library-map.json`
-            )
-            .buffer()
-            .parse(binaryParser)
-            .end((err, res) => {
-              chai.expect(err).to.be.null;
-              chai.expect(res.status).to.equal(StatusCodes.OK);
-              const receivedLibraryMap = JSON.parse(res.body.toString());
-              const expectedLibraryMap = {
-                __$da572ae5e60c838574a0f88b27a0543803$__:
-                  "11fea6722e00ba9f43861a6e4da05fecdf9806b7",
-              };
-              chai.expect(receivedLibraryMap).to.deep.equal(expectedLibraryMap);
-            });
-        });
+        .send()
+
+      assertions(null, res, null, address, "perfect");
+
+      const res2 = await chai
+        .request(server.app)
+        .get(
+          `/repository/contracts/full_match/${defaultContractChain}/${address}/library-map.json`
+        )
+        .buffer()
+        .parse(binaryParser)
+        .send()
+
+      chai.expect(res2.status).to.equal(StatusCodes.OK);
+      const receivedLibraryMap = JSON.parse(res2.body.toString());
+      const expectedLibraryMap = {
+        __$da572ae5e60c838574a0f88b27a0543803$__:
+          "11fea6722e00ba9f43861a6e4da05fecdf9806b7",
+      };
+      chai.expect(receivedLibraryMap).to.deep.equal(expectedLibraryMap);
     });
 
     it("should verify a contract with viaIR:true", async () => {
@@ -641,14 +743,15 @@ describe("Server", function () {
       );
       const sourceBuffer = fs.readFileSync(sourcePath);
 
-      chai
+      const res = await chai
         .request(server.app)
         .post("/")
         .field("address", address)
         .field("chain", defaultContractChain)
         .attach("files", metadataBuffer, "metadata.json")
         .attach("files", sourceBuffer, "Storage.sol")
-        .end((err, res) => assertions(err, res, null, address));
+        .send()
+      assertions(null, res, null, address)
     });
 
     // https://github.com/ethereum/sourcify/issues/640
@@ -676,14 +779,15 @@ describe("Server", function () {
       );
       const sourceBuffer = fs.readFileSync(sourcePath);
 
-      chai
+      const res = await chai
         .request(server.app)
         .post("/")
         .field("address", address)
         .field("chain", defaultContractChain)
         .attach("files", metadataBuffer, "metadata-inliner.json")
         .attach("files", sourceBuffer, "Storage.sol")
-        .end((err, res) => assertions(err, res, null, address));
+        .send();
+      assertions(null, res, null, address)
     });
 
     describe("hardhat build-info file support", function () {

@@ -143,6 +143,25 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/old.withImmutables.metadata.json"
   );
+
+  verifyContract(
+    "0x2e4088DcA1aE2e098e322562ab1fEb83b3a303CD",
+    "300",
+    "Optimism on Gnosis",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  verifyContractWithImmutables(
+    "0x70BA4E669259C8f96eCc1aC5D37A91e2413a0173",
+    "300",
+    "Optimism on Gnosis",
+    ["uint256"],
+    [123],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
   verifyContract(
     "0x8C3FA94eb5b07c9AF7dBFcC53ea3D2BF7FdF3617",
     "51",
@@ -428,6 +447,23 @@ describe("Test Supported Chains", function () {
   );
 
   verifyContract(
+    "0xd46fd24ea21F04459407Fb0B518451e54d0b07a1",
+    "421613",
+    "Arbitrum Görli",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x68107Fb54f5f29D8e0B3Ac44a99f4444D1F22a68",
+    "421613",
+    "Arbitrum Görli",
+    ["uint256"],
+    [256],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
+  verifyContract(
     "0xA25b72DADEB96E166D1a225C61b54CA29C45EBD1",
     "8",
     "Ubiq",
@@ -501,23 +537,6 @@ describe("Test Supported Chains", function () {
       "10/immutable/Proprietor.sol",
     ],
     "10/immutable/metadata.json"
-  );
-
-  verifyContract(
-    "0xd46fd24ea21F04459407Fb0B518451e54d0b07a1",
-    "69",
-    "Optimism Kovan Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
-  );
-  verifyContractWithImmutables(
-    "0x68107Fb54f5f29D8e0B3Ac44a99f4444D1F22a68",
-    "69",
-    "Optimism Kovan Testnet",
-    ["uint256"],
-    [123456],
-    ["shared/WithImmutables.sol"],
-    "shared/withImmutables.metadata.json"
   );
 
   verifyContract(
@@ -998,6 +1017,23 @@ describe("Test Supported Chains", function () {
     "Kekchain",
     ["uint256"],
     [420666],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+  // Canto
+  verifyContract(
+    "0x65ec06aF7b8A6cBa7E7226e70dd2eBd117b823Cd",
+    "7700",
+    "Canto",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0xaF7Fd0F59255B96a60Eb53a7c680EC0E32bE397f",
+    "7700",
+    "Canto",
+    ["uint256"],
+    [7700],
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );

@@ -10,11 +10,11 @@ export default class TestArtifactsController extends BaseController implements I
   router: Router;
   
   constructor() {
-      super();
-      this.router = Router();
+    super();
+    this.router = Router();
   }
   
-    /**
+  /**
    * Function to find the latest run of the test-chains-regularly workflow. Fetches the identifiers of the run. Also fetches the artifact .json of the run. Returns the artifact and the identifiers.
    *
    * See API docs: https://circleci.com/docs/api/v2
@@ -68,5 +68,5 @@ export default class TestArtifactsController extends BaseController implements I
         this.safeHandler(this.findLatestChainTest)
       );
     return this.router;
-}
+  }
 }
