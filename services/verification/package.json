@@ -18,7 +18,7 @@
     "build": "rimraf ./build && tsc",
     "start": "npm run build && node build/index.js"
   },
-  "author": "",
+  "author": "sourcifyeth",
   "license": "MIT",
   "devDependencies": {
     "@types/bunyan": "^1.8.6",

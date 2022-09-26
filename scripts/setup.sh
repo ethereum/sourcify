@@ -24,9 +24,11 @@ else
 fi
 
 TAG=$TAG ./scripts/find_replace.sh
-source ./environments/.env
-./scripts/prepare.sh
-cd environments
+
+cd ./environments
+source .env
+mkdir -p $REPOSITORY_PATH
+mkdir -p $DATABASE_PATH
 docker image prune -f
 eval ${COMPOSE_COMMAND} pull
 eval COMPOSE_HTTP_TIMEOUT=1200 ${COMPOSE_COMMAND} up -d
