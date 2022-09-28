@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { HashRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ContextProvider } from "./Context";
 import LandingPage from "./pages/LandingPage";
 import Lookup from "./pages/Lookup";
@@ -15,13 +15,14 @@ function App() {
   return (
     <div className="flex min-h-screen text-gray-800 bg-gray-50">
       <ContextProvider>
-        <HashRouter>
+        <BrowserRouter>
           <Routes>
             <Route path="/verifier" element={<Verifier />} />
             <Route path="/lookup" element={<Lookup />} />
+            <Route path="/lookup/:address" element={<Lookup />} />
             <Route path="/" element={<LandingPage />} />
           </Routes>
-        </HashRouter>
+        </BrowserRouter>
       </ContextProvider>
     </div>
   );
