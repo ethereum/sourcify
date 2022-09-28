@@ -54,7 +54,7 @@ const Lookup = () => {
     if (address && address !== response?.address) {
       handleRequest(address);
     }
-  }, [sourcifyChains, address]);
+  }, [sourcifyChains, address, handleRequest, response]);
 
 
   return (
