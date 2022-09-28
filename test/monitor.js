@@ -16,6 +16,7 @@ const fs = require("fs");
 const path = require("path");
 const Web3 = require("web3");
 const ethers = require("ethers");
+const { EventEmitter } = require("stream");
 
 class Counter {
   static get() {
@@ -24,10 +25,17 @@ class Counter {
 }
 Counter.cnt = 0;
 
-class MonitorWrapper {
+class MonitorWrapper extends EventEmitter {
   constructor() {
+    super()
     this.repository = "./mockRepository" + Math.random().toString().slice(2);
     this.monitor = new Monitor({ repository: this.repository, testing: true });
+    this.monitor.on('contract-verified-successfully', (chainId, address) => {
+      this.emit('contract-verified-successfully', chainId, address)
+    })
+    this.monitor.on('contract-already-verified', (chainId, address) => {
+      this.emit('contract-already-verified', chainId, address)
+    })
     chai.expect(this.monitor.chainMonitors).to.have.a.lengthOf(1); // Number of chains in TEST_CHAINS at services/core/utils/utils.ts
     this.chainId = this.monitor.chainMonitors[0].chainId;
   }
@@ -184,11 +192,11 @@ describe("Monitor", function () {
   afterEach(async () => {
     await ganacheServer.close();
     ganacheServer = null
+    web3Provider = null
+    accounts = null
   })
 
-  const MONITOR_SECS = 25; // waiting for monitor to do its job
   const GENERATION_SECS = 10; // waiting for extra blocks to be generated
-  const CATCH_UP_SECS = 10; // waiting for a delayed monitor to catch up
 
   const sourcifyContract = async (contractWrapper) => {
     const monitorWrapper = new MonitorWrapper();
@@ -198,9 +206,15 @@ describe("Monitor", function () {
       accounts[Counter.get()]
     );
 
-    await waitSecs(MONITOR_SECS);
-    monitorWrapper.assertFilesStored(address, contractWrapper);
-    monitorWrapper.stop();
+    const waitVerifiedContract = new Promise(resolve => {
+      monitorWrapper.on('contract-verified-successfully', () => {
+        monitorWrapper.assertFilesStored(address, contractWrapper);
+        monitorWrapper.stop();
+        resolve()
+      })
+    })
+
+    await waitVerifiedContract
   };
 
   it("should sourcify the deployed contract", async function () {
@@ -232,13 +246,18 @@ describe("Monitor", function () {
     const deployedAddress = await contract.deploy(web3Provider, from);
     chai.expect(calculatedAddress).to.deep.equal(deployedAddress);
 
-    await waitSecs(MONITOR_SECS);
-    monitorWrapper.assertFilesNotStored(
-      deployedAddress,
-      contract,
-      metadataBirthtime
-    );
-    monitorWrapper.stop();
+    const waitVerifiedContract = new Promise(resolve => {
+      monitorWrapper.on('contract-already-verified', () => {
+        monitorWrapper.assertFilesNotStored(
+          deployedAddress,
+          contract,
+          metadataBirthtime
+        );
+        monitorWrapper.stop();
+        resolve()
+      })
+    })
+    await waitVerifiedContract
   });
 
   it("should sourcify the deployed contract after being started with a delay", async function () {
@@ -254,9 +273,15 @@ describe("Monitor", function () {
     const monitorWrapper = new MonitorWrapper();
     await monitorWrapper.start(currentBlockNumber - 1);
 
-    await waitSecs(CATCH_UP_SECS + MONITOR_SECS);
-    monitorWrapper.assertFilesStored(address, contract);
-    monitorWrapper.stop();
+    const waitVerifiedContract = new Promise(resolve => {
+      monitorWrapper.on('contract-verified-successfully', () => {
+        monitorWrapper.assertFilesStored(address, contract);
+        monitorWrapper.stop();
+        resolve()
+      })
+    })
+
+    await waitVerifiedContract
   });
 
   after(async function () {
