@@ -54,7 +54,8 @@ const Lookup = () => {
     if (address && address !== response?.address) {
       handleRequest(address);
     }
-  }, [sourcifyChains, address, handleRequest, response]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sourcifyChains, address]);
 
 
   return (
