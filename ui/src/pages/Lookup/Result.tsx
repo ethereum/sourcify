@@ -18,9 +18,7 @@ import { CheckAllByAddressResult } from "../../types";
 
 type ResultProp = {
   response: CheckAllByAddressResult;
-  setResponse: React.Dispatch<
-    React.SetStateAction<CheckAllByAddressResult | undefined>
-  >;
+  goBack: React.DispatchWithoutAction;
 };
 
 const URL_TYPE = {
@@ -223,7 +221,7 @@ const Found = ({ response }: FoundProp) => {
         </Link>
       </div>
     </div>
-  );  
+  );
 };
 
 const NotFound = ({ address }: NotFoundProp) => {
@@ -252,12 +250,12 @@ const verificationIcon = (status: string | undefined) => {
   return <HiBadgeCheck className="text-8xl text-green-600" />;
 };
 
-const Result = ({ response, setResponse }: ResultProp) => {
+const Result = ({ response, goBack }: ResultProp) => {
   return (
     <div className="flex flex-col basis-0 py-8 flex-grow rounded-lg px-8 transition-all ease-in-out duration-300 bg-white overflow-hidden shadow-md">
       <HiOutlineArrowLeft
         className="h-8 w-8 cursor-pointer"
-        onClick={() => setResponse(undefined)}
+        onClick={() => goBack()}
       />
       <div className="flex flex-col items-center text-center">
         {verificationIcon(response?.status)}

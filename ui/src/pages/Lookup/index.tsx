@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Header from "../../components/Header";
 import Toast from "../../components/Toast";
 import { Context } from "../../Context";
@@ -6,26 +6,33 @@ import { CheckAllByAddressResult } from "../../types";
 import { checkAllByAddresses } from "../../utils/api";
 import Field from "./Field";
 import Result from "./Result";
+import { useParams, useNavigate } from "react-router-dom";
+
 
 const Lookup = () => {
+  const navigate = useNavigate()
   const [loading, setLoading] = useState<boolean>(false);
   const [response, setResponse] = useState<CheckAllByAddressResult | undefined>(
     undefined
   );
+  const { address } = useParams();
   const { sourcifyChains, errorMessage, setErrorMessage } = useContext(Context);
 
-  const handleRequest = async (address: string) => {
+  const handleRequest = async (_address: string) => {
+    if (!sourcifyChains?.length) {
+      return;
+    }
     setLoading(true);
     try {
       const result = await checkAllByAddresses(
-        address,
+        _address,
         sourcifyChains.map((c) => c.chainId.toString()).join(",")
       );
-      console.log(result);
       const currentAddressMatches = result.find(
-        (match) => (match.address = address)
+        (match) => (match.address = _address)
       );
       setResponse(currentAddressMatches);
+      navigate(`/lookup/${_address}`);
     } catch (err: any) {
       setErrorMessage(err.message || "An error occurred, try again!");
       <Toast
@@ -37,6 +44,19 @@ const Lookup = () => {
       setLoading(false);
     }
   };
+
+  const goBack = async () => {
+    setResponse(undefined);
+    navigate(`/lookup`);
+  };
+
+  useEffect(() => {
+    if (address && address !== response?.address) {
+      handleRequest(address);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sourcifyChains, address]);
+
 
   return (
     <div className="flex flex-col flex-grow pb-8 px-8 md:px-12 lg:px-24 bg-gray-100">
@@ -55,7 +75,7 @@ const Lookup = () => {
       <div className="flex flex-col flex-grow items-center justify-center mt-6">
         <div className="pt-1 bg-ceruleanBlue-500 flex w-full rounded-xl mx-2 mb-4 md:mb-0">
           {!!response ? (
-            <Result response={response} setResponse={setResponse} />
+            <Result response={response} goBack={goBack} />
           ) : (
             <Field loading={loading} handleRequest={handleRequest} />
           )}
