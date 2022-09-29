@@ -1,5 +1,5 @@
-import { StatusCodes } from 'http-status-codes';
-import { IResponseError } from '../interfaces';
+import { StatusCodes } from "http-status-codes";
+import { IResponseError } from "../interfaces";
 
 export class PayloadTooLargeError implements IResponseError {
   code: number;
@@ -7,8 +7,8 @@ export class PayloadTooLargeError implements IResponseError {
   log: boolean;
 
   constructor(message?: string, log = true) {
-    this.code = StatusCodes.REQUEST_TOO_LONG,
-    this.message = message || 'Payload too large',
+    this.code = StatusCodes.REQUEST_TOO_LONG;
+    this.message = message || "Payload too large";
     this.log = log;
   }
 }

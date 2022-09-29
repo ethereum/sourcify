@@ -1,18 +1,18 @@
-import { StringMap } from '@ethereum-sourcify/core';
-import SourceFetcher from './source-fetcher';
+import { StringMap } from "@ethereum-sourcify/core";
+import SourceFetcher from "./source-fetcher";
 import { SourceAddress } from "./util";
-import Logger from 'bunyan';
-import Web3 from 'web3';
-import { CheckedContract, isEmpty } from '@ethereum-sourcify/core';
+import Logger from "bunyan";
+import Web3 from "web3";
+import { CheckedContract, isEmpty } from "@ethereum-sourcify/core";
 
 type PendingSource = {
-    keccak256: string,
-    content?: string,
-    urls: string[],
-    name: string
+  keccak256: string;
+  content?: string;
+  urls: string[];
+  name: string;
 };
 interface PendingSourceMap {
-    [keccak256: string]: PendingSource;
+  [keccak256: string]: PendingSource;
 }
 type Metadata = { sources: PendingSourceMap };
 
@@ -24,16 +24,19 @@ export default class PendingContract {
   private callback: (contract: CheckedContract) => void;
   private logger = new Logger({ name: "Pending Contract" });
 
-  constructor(sourceFetcher: SourceFetcher, callback: (checkedContract: CheckedContract) => void) {
+  constructor(
+    sourceFetcher: SourceFetcher,
+    callback: (checkedContract: CheckedContract) => void
+  ) {
     this.sourceFetcher = sourceFetcher;
     this.callback = callback;
   }
 
   /**
-     * Assembles this contract by first fetching its metadata and then fetching all the sources listed in the metadata.
-     * 
-     * @param metadataAddress an object representing the location of the contract metadata
-     */
+   * Assembles this contract by first fetching its metadata and then fetching all the sources listed in the metadata.
+   *
+   * @param metadataAddress an object representing the location of the contract metadata
+   */
   assemble(metadataAddress: SourceAddress) {
     this.sourceFetcher.subscribe(metadataAddress, this.addMetadata);
   }
@@ -64,7 +67,10 @@ export default class PendingContract {
       for (const url of source.urls) {
         const sourceAddress = SourceAddress.fromUrl(url);
         if (!sourceAddress) {
-          this.logger.error({ loc, url, name }, "Could not determine source file location");
+          this.logger.error(
+            { loc, url, name },
+            "Could not determine source file location"
+          );
           continue;
         }
         sourceAddresses.push(sourceAddress);
@@ -83,7 +89,7 @@ export default class PendingContract {
       const contract = new CheckedContract(this.metadata, this.fetchedSources);
       this.callback(contract);
     }
-  }
+  };
 
   private addFetchedSource = (sourceContent: string) => {
     const hash = Web3.utils.keccak256(sourceContent);
@@ -100,5 +106,5 @@ export default class PendingContract {
       const contract = new CheckedContract(this.metadata, this.fetchedSources);
       this.callback(contract);
     }
-  }
+  };
 }

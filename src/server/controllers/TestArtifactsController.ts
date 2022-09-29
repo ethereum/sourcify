@@ -1,19 +1,22 @@
-import { Request, Response, Router } from 'express';
-import BaseController from './BaseController';
-import fetch from 'node-fetch';
-import { IController } from '../../common/interfaces';
-import { StatusCodes } from 'http-status-codes';
+import { Request, Response, Router } from "express";
+import BaseController from "./BaseController";
+import fetch from "node-fetch";
+import { IController } from "../../common/interfaces";
+import { StatusCodes } from "http-status-codes";
 
 // Returns the test artifacts and URLs of the latest test-chains-regularly workflow in CircleCI.
 // Moved server side due to CORS.
-export default class TestArtifactsController extends BaseController implements IController {
+export default class TestArtifactsController
+  extends BaseController
+  implements IController
+{
   router: Router;
-  
+
   constructor() {
     super();
     this.router = Router();
   }
-  
+
   /**
    * Function to find the latest run of the test-chains-regularly workflow. Fetches the identifiers of the run. Also fetches the artifact .json of the run. Returns the artifact and the identifiers.
    *
@@ -27,10 +30,12 @@ export default class TestArtifactsController extends BaseController implements I
     // Fetch last runs of the chain test workflow: https://circleci.com/docs/api/v2/#operation/getProjectWorkflowRuns
     const workflowResponse = await (await fetch(WORKFLOWS_URL)).json();
     if (workflowResponse.items.length === 0) {
-      return res.status(StatusCodes.NOT_FOUND).json({error: "No workflows returned from " + WORKFLOWS_URL})
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ error: "No workflows returned from " + WORKFLOWS_URL });
     }
     const workflowId = workflowResponse.items[0].id;
-    
+
     const LAST_WORKFLOW_URL = `https://circleci.com/api/v2/workflow/${workflowId}`;
     const JOB_URL = `https://circleci.com/api/v2/workflow/${workflowId}/job`;
 
@@ -39,8 +44,8 @@ export default class TestArtifactsController extends BaseController implements I
       // Fetch the last workflow object to get the pipeline number
       (await fetch(LAST_WORKFLOW_URL)).json(),
       // Fetch the job of the last workflow for the job number
-      (await fetch(JOB_URL)).json()
-    ])
+      (await fetch(JOB_URL)).json(),
+    ]);
     const pipelineNumber = lastWorkflowResponse.pipeline_number;
     const jobNumber = jobResponse.items[0].job_number;
     const jobId = jobResponse.items[0].id;
@@ -51,22 +56,19 @@ export default class TestArtifactsController extends BaseController implements I
     if (!artifactResponse.ok) {
       return res.status(artifactResponse.status).json(artifactResponseJson);
     }
-    
+
     return res.json({
       testReport: artifactResponseJson,
       workflowId,
       pipelineNumber,
       jobNumber,
       jobId,
-      CIRCLE_PROJECT_ID
+      CIRCLE_PROJECT_ID,
     });
   };
 
   registerRoutes = (): Router => {
-    this.router.route(['/'])
-      .get(
-        this.safeHandler(this.findLatestChainTest)
-      );
+    this.router.route(["/"]).get(this.safeHandler(this.findLatestChainTest));
     return this.router;
-  }
+  };
 }

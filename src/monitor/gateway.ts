@@ -1,11 +1,11 @@
 import { SourceOrigin } from "./util";
 
 export declare interface IGateway {
-    worksWith: (origin: SourceOrigin) => boolean;
-    createUrl: (fetchId: string) => string;
-    createFallbackUrl: (fetchId: string) => string;
-    baseUrl: string;
-    fallbackUrl?: string;
+  worksWith: (origin: SourceOrigin) => boolean;
+  createUrl: (fetchId: string) => string;
+  createFallbackUrl: (fetchId: string) => string;
+  baseUrl: string;
+  fallbackUrl?: string;
 }
 
 export class SimpleGateway implements IGateway {
@@ -13,7 +13,11 @@ export class SimpleGateway implements IGateway {
   baseUrl: string;
   fallbackUrl: string; // A backup gateway in case the local ipfs node fails.
 
-  constructor(origins: SourceOrigin | SourceOrigin[], baseUrl: string, fallbackUrl?: string) {
+  constructor(
+    origins: SourceOrigin | SourceOrigin[],
+    baseUrl: string,
+    fallbackUrl?: string
+  ) {
     this.origins = [].concat(origins);
     this.baseUrl = baseUrl;
     if (fallbackUrl) this.fallbackUrl = fallbackUrl;

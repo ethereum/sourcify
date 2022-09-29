@@ -1,5 +1,5 @@
 export declare interface StringMap {
-    [key: string]: string;
+  [key: string]: string;
 }
 export type DropzoneFile = File & {
   size: number;
@@ -7,18 +7,18 @@ export type DropzoneFile = File & {
 };
 
 export interface InvalidSources {
-    [key: string]: {
-        expectedHash: string;
-        calculatedHash: string;
-        msg?: string; // Keep msg for compatibilty with legacy UI
-    }
+  [key: string]: {
+    expectedHash: string;
+    calculatedHash: string;
+    msg?: string; // Keep msg for compatibilty with legacy UI
+  };
 }
 
 export interface MissingSources {
   [key: string]: {
     keccak256: string;
     urls: string[];
-  }
+  };
 }
 // Server session
 export type SessionResponse = {
@@ -27,16 +27,15 @@ export type SessionResponse = {
   files: string[];
 };
 export interface IGenericError {
-    error: string
+  error: string;
 }
 
 export interface IResponseError {
-    code: number;
-    message: string;
-    log: boolean;
-    errors?: any[];
+  code: number;
+  message: string;
+  log: boolean;
+  errors?: any[];
 }
-
 
 export type Status = "perfect" | "partial" | "error";
 
@@ -64,36 +63,36 @@ export type VerificationInput = {
   verificationId: string;
   chainId: string;
   address: string;
-}
+};
 export interface Match {
-    address: string | null;
-    status: Status;
-    storageTimestamp?: Date;
-    message?: string;
-    encodedConstructorArgs?: string;
-    libraryMap?: StringMap;
+  address: string | null;
+  status: Status;
+  storageTimestamp?: Date;
+  message?: string;
+  encodedConstructorArgs?: string;
+  libraryMap?: StringMap;
 }
 
 export type CheckAllByAddressResult = {
   address: string;
   status?: string;
   chainIds: {
-    chainId: string,
-    status: string
-  }[]
-}
+    chainId: string;
+    status: string;
+  }[];
+};
 
 export type Chain = {
-  name: string,
-  title?: string, // Longer name for some networks
-  chainId: number,
-  shortName: string,
-  network: string,
-  networkId: number,
-  supported?: boolean,
-  monitored?: boolean
+  name: string;
+  title?: string; // Longer name for some networks
+  chainId: number;
+  shortName: string;
+  network: string;
+  networkId: number;
+  supported?: boolean;
+  monitored?: boolean;
 };
 
 export type ChainMap = {
-    [id: number]: Chain 
-}
+  [id: number]: Chain;
+};
