@@ -38,6 +38,7 @@ describe("Server", function () {
   it.only("should log PR_NAME empty", () => {
     console.log("### PR_REPONAME", process.env.CIRCLE_PR_REPONAME)
     console.log("### PULL_REQUEST", process.env.CIRCLE_PULL_REQUEST)
+
   })
   const server = new Server();
   const ganacheServer = ganache.server({
