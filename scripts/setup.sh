@@ -15,18 +15,13 @@ else
     git reset --hard origin/${CIRCLE_BRANCH}
 fi
 
-if [ "${TAG}" == "stable" ]; then
-    COMPOSE_COMMAND="COMPOSE_PROJECT_NAME=${TAG} docker-compose -f ipfs.yaml -f monitor.yaml -f repository.yaml -f s3.yaml -f server.yaml -f ui.yaml -f ui-legacy.yaml"
-elif [ "${TAG}" == "latest" ]; then
-    COMPOSE_COMMAND="COMPOSE_PROJECT_NAME=${TAG} docker-compose -f ipfs.yaml -f monitor.yaml -f repository.yaml -f s3.yaml -f server.yaml -f ui.yaml"
-else
-    COMPOSE_COMMAND="COMPOSE_PROJECT_NAME=${TAG} docker-compose -f ipfs.yaml -f monitor.yaml -f repository.yaml -f s3.yaml -f server.yaml -f ui.yaml -f localchain.yaml"
-fi
+COMPOSE_COMMAND="COMPOSE_PROJECT_NAME=${TAG} docker-compose -f ipfs.yaml -f monitor.yaml -f repository.yaml -f s3.yaml -f server.yaml -f ui.yaml"
 
 TAG=$TAG ./scripts/find_replace.sh
-source ./environments/.env
-./scripts/prepare.sh
-cd environments
+
+cd ./environments
+source .env
+mkdir -p $REPOSITORY_PATH
 docker image prune -f
 eval ${COMPOSE_COMMAND} pull
 eval COMPOSE_HTTP_TIMEOUT=1200 ${COMPOSE_COMMAND} up -d

@@ -20,13 +20,8 @@ export class Server {
   app: express.Application;
   repository = config.repository.path;
   port = config.server.port;
-  localChainUrl?: string;
 
   constructor() {
-    if (config.testing) {
-      this.localChainUrl = config.localchain.url;
-    }
-
     this.app = express();
 
     this.app.use(fileUpload({

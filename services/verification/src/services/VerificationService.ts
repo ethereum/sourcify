@@ -2,8 +2,6 @@ import { InputData, Match, Logger, IFileService, Metadata, JsonInput } from '@et
 import { Injector } from './Injector';
 import * as bunyan from 'bunyan';
 import { findContractPathFromContractName, useCompiler } from '../utils';
-// import MQ from '../services/Queue'; 
-// import { ConfirmChannel } from 'amqplib';
 
 export interface IVerificationService {
     findByAddress(address: string, chain: string): Match[];
@@ -81,26 +79,6 @@ export class VerificationService implements IVerificationService {
 
     return this.injector.inject(inputData);
 
-    //TODO:
-    // const exchange = "test";
-    // const topic = "test";
-
-    //const channel: ConfirmChannel = await MQ.createChannelAndExchange(exchange, topic);
-    //MQ.publishToExchange(exchange, channel, "inputdata", JSON.stringify(inputData));
-
-
-    // promises.push(injector.inject(inputData));
-
-
-
-    //return injection;
-
-    // // This is so we can have multiple parallel injections, logic still has to be completely implemented
-    // Promise.all(promises).then((result) => {
-    //     res.status(200).send({result});
-    // }).catch(err => {
-    //     next(err); // Just forward it to error middelware
-    // })
   }
 
 }

@@ -1,6 +1,5 @@
 process.env.TESTING = true;
 process.env.MOCK_REPOSITORY = "./dist/data/mock-repository";
-process.env.MOCK_DATABASE = "./dist/data/mock-database";
 process.env.SOLC_REPO = "./dist/data/solc-repo";
 process.env.SOLJSON_REPO = "/dist/data/soljson-repo";
 
@@ -17,9 +16,7 @@ const MAX_FILE_SIZE = require("../dist/config").default.server.maxFileSize;
 const MAX_SESSION_SIZE =
   require("../dist/server/controllers/VerificationController").default
     .MAX_SESSION_SIZE;
-const GANACHE_PORT = process.env.LOCALCHAIN_PORT
-  ? parseInt(process.env.LOCALCHAIN_PORT)
-  : 8545;
+const GANACHE_PORT = 8545;
 const StatusCodes = require("http-status-codes").StatusCodes;
 const { waitSecs } = require("./helpers/helpers");
 const { deployFromAbiAndBytecode } = require("./helpers/helpers");
@@ -160,7 +157,7 @@ describe("Server", function () {
 
     const assertEtherscanError = (err, res) => {
       chai.expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
-      chai.expect(res.body?.error).to.exist
+      chai.expect(res.body?.error).to.exist;
     };
 
     this.timeout(EXTENDED_TIME_60);
@@ -194,7 +191,7 @@ describe("Server", function () {
         .field("address", fakeAddress)
         .field("chainId", "1")
         .end((err, res) => {
-          assertEtherscanError(err, res)
+          assertEtherscanError(err, res);
           done();
         });
     });
@@ -212,7 +209,7 @@ describe("Server", function () {
             .field("address", fakeAddress)
             .field("chainId", "1")
             .end((err, res) => {
-              assertEtherscanError(err, res)
+              assertEtherscanError(err, res);
               done();
             });
         });
@@ -241,8 +238,7 @@ describe("Server", function () {
           done();
         });
     });
-
-  })
+  });
 
   describe("/check-by-addresses", function () {
     this.timeout(EXTENDED_TIME);
@@ -664,9 +660,9 @@ describe("Server", function () {
         .field("address", address)
         .field("chain", defaultContractChain)
         .attach("files", metadataBuffer)
-        .send()
+        .send();
 
-      assertions(null, res, null, address, "partial")
+      assertions(null, res, null, address, "partial");
       return true;
     });
 
@@ -702,7 +698,7 @@ describe("Server", function () {
         .field("chain", defaultContractChain)
         .attach("files", metadataBuffer)
         .attach("files", sourceBuffer)
-        .send()
+        .send();
 
       assertions(null, res, null, address, "perfect");
 
@@ -713,7 +709,7 @@ describe("Server", function () {
         )
         .buffer()
         .parse(binaryParser)
-        .send()
+        .send();
 
       chai.expect(res2.status).to.equal(StatusCodes.OK);
       const receivedLibraryMap = JSON.parse(res2.body.toString());
@@ -750,8 +746,8 @@ describe("Server", function () {
         .field("chain", defaultContractChain)
         .attach("files", metadataBuffer, "metadata.json")
         .attach("files", sourceBuffer, "Storage.sol")
-        .send()
-      assertions(null, res, null, address)
+        .send();
+      assertions(null, res, null, address);
     });
 
     // https://github.com/ethereum/sourcify/issues/640
@@ -787,7 +783,7 @@ describe("Server", function () {
         .attach("files", metadataBuffer, "metadata-inliner.json")
         .attach("files", sourceBuffer, "Storage.sol")
         .send();
-      assertions(null, res, null, address)
+      assertions(null, res, null, address);
     });
 
     describe("hardhat build-info file support", function () {

@@ -19,7 +19,7 @@ const TEST_CHAINS: Chain[] = [{
   nativeCurrency: null,
   network: "testnet",
   networkId: 0,
-  rpc: [ `http://localhost:${process.env.LOCALCHAIN_PORT || 8545}` ],
+  rpc: [ `http://localhost:8545` ],
   supported: true,
   monitored: true,
 }];
