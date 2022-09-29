@@ -157,8 +157,10 @@ export default class VerificationController
           "*": ["metadata"],
         },
       },
-      // TODO: Do the default => evmVersion mapping: getDefaultEvmVersionFromVersion(version: string)
-      evmVersion: "istanbul",
+      evmVersion:
+        etherscanResult.EVMVersion.toLowerCase() !== "default"
+          ? etherscanResult.EVMVersion
+          : undefined,
       libraries: {}, // TODO: Check the library format
     };
     const solcJsonInput = {
@@ -201,7 +203,10 @@ export default class VerificationController
     }
     const contractResultJson = resultJson.result[0];
     const sourceCodeObject = contractResultJson.SourceCode;
-    const compilerVersion = contractResultJson.CompilerVersion;
+    const compilerVersion =
+      contractResultJson.CompilerVersion.charAt(0) === "v"
+        ? contractResultJson.CompilerVersion.slice(1)
+        : contractResultJson.CompilerVersion;
     const contractName = contractResultJson.ContractName;
 
     let solcJsonInput;

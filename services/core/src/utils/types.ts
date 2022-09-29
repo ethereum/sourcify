@@ -231,7 +231,7 @@ interface Settings {
   stopAfter?: string;
   remappings?: string[];
   optimizer?: Optimizer;
-  evmVersion: string;
+  evmVersion?: string;
   viaIR?: boolean;
   debug?: Debug;
   metadata?: SettingsMetadata;
