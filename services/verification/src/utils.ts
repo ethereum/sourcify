@@ -130,8 +130,7 @@ export async function recompile(
 
   log.info({ loc, fileName, contractName, version }, "Recompiling");
 
-  const compiled = await useCompiler(version, solcJsonInput, log);
-  const output = JSON.parse(compiled);
+  const output = await useCompiler(version, solcJsonInput, log);
   if (
     !output.contracts ||
     !output.contracts[fileName] ||
@@ -218,7 +217,16 @@ export async function useCompiler(
     compiled = soljson.compile(inputStringified);
   }
 
-  return compiled;
+  const compiledJSON = JSON.parse(compiled);
+  const errorMessages = compiledJSON?.errors
+    ?.filter((e: any) => e.severity === "error")
+    .map((e: any) => e.formattedMessage)
+    .join("\n");
+  if (errorMessages) {
+    log.error({ loc: "[RECOMPILE]", version }, errorMessages);
+    throw new Error("Compiler error:\n " + errorMessages);
+  }
+  return compiledJSON;
 }
 
 function validateSolcPath(solcPath: string, log: InfoErrorLogger): boolean {
@@ -227,7 +235,10 @@ function validateSolcPath(solcPath: string, log: InfoErrorLogger): boolean {
     return true;
   }
 
-  const error = spawned.error ? spawned.error.message : "Unknown error";
+  const error =
+    spawned?.error?.message ||
+    spawned.stderr.toString() ||
+    "Error running solc, are you on the right platoform? (e.g. x64 vs arm)";
   log.error({ loc: "[VALIDATE_SOLC_PATH]", solcPath, error });
   return false;
 }

@@ -36,12 +36,11 @@ export class VerificationService implements IVerificationService {
     contractName: string,
     compilerJson: JsonInput
   ): Promise<Metadata> => {
-    const compiled = await useCompiler(
+    const output = await useCompiler(
       compilerVersion,
       compilerJson,
       this.logger
     );
-    const output = JSON.parse(compiled);
     const contractPath = findContractPathFromContractName(
       output.contracts,
       contractName
