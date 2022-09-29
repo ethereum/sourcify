@@ -8,6 +8,7 @@ import { ethers } from "ethers";
 import SourceFetcher from "./source-fetcher";
 import SystemConfig from '../config';
 import assert from 'assert';
+import { EventEmitter } from "stream";
 
 const BLOCK_PAUSE_FACTOR = parseInt(process.env.BLOCK_PAUSE_FACTOR) || 1.1;
 assert(BLOCK_PAUSE_FACTOR > 1);
@@ -22,7 +23,7 @@ function createsContract(tx: Transaction): boolean {
 /**
  * A monitor that periodically checks for new contracts on a single chain.
  */
-class ChainMonitor {
+class ChainMonitor extends EventEmitter {
   private chainId: string;
   private web3urls: string[];
   private web3provider: Web3;
@@ -36,6 +37,7 @@ class ChainMonitor {
   private initialGetBytecodeTries: number;
 
   constructor(name: string, chainId: string, web3urls: string[], sourceFetcher: SourceFetcher, verificationService: IVerificationService) {
+    super()
     this.chainId = chainId;
     this.web3urls = web3urls;
     this.sourceFetcher = sourceFetcher;
@@ -102,6 +104,7 @@ class ChainMonitor {
           const address = ethers.utils.getContractAddress(tx);
           if (this.isVerified(address)) {
             this.logger.info({ loc: "[PROCESS_ADDRESS:SKIP]", address }, "Already verified");
+            this.emit('contract-already-verified', this.chainId, address)
           } else {
             this.logger.info({ loc: "[PROCESS_ADDRESS]", address }, "New contract");
             this.processBytecode(tx.input, address, this.initialGetBytecodeTries);
@@ -165,8 +168,10 @@ class ChainMonitor {
       creationData,
       chain: this.chainId,
       addresses: [address]
-    }).then(() => this.logger.info(logObject, "Successfully injected")
-    ).catch(err => this.logger.error(logObject, err.message));
+    }).then(() => {
+      this.logger.info(logObject, "Successfully injected")
+      this.emit('contract-verified-successfully', this.chainId, address)
+    }).catch(err => this.logger.error(logObject, err.message));
   }
 
   private mySetTimeout = (handler: TimerHandler, timeout: number, ...args: any[]) => {
@@ -179,11 +184,12 @@ class ChainMonitor {
 /**
  * A monitor that periodically checks for new contracts on designated chains.
  */
-export default class Monitor {
+export default class Monitor extends EventEmitter {
   private chainMonitors: ChainMonitor[];
   private sourceFetcher = new SourceFetcher();
 
   constructor(config: MonitorConfig = {}) {
+    super();
     const repositoryPath = config.repository || SystemConfig.repository.path;
 
     const chains = config.testing ? getTestChains() :  getMonitoredChains();
@@ -197,6 +203,14 @@ export default class Monitor {
         new Logger({ name: "Monitor" })
       )
     ));
+    this.chainMonitors.forEach(cm => {
+      cm.on('contract-verified-successfully', (chainId, address) => {
+        this.emit('contract-verified-successfully', chainId, address)
+      })
+      cm.on('contract-already-verified', (chainId, address) => {
+        this.emit('contract-already-verified', chainId, address)
+      })
+    })
   }
 
   /**

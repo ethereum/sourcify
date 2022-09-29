@@ -167,7 +167,7 @@ export async function useCompiler(version: string, solcJsonInput: any, log: Info
     const logObject = {loc: "[RECOMPILE]", version, solcPath};
     log.info(logObject, "Compiling with external executable");
 
-    const shellOutputBuffer = spawnSync(solcPath, ["--standard-json"], {input: inputStringified});
+    const shellOutputBuffer = spawnSync(solcPath, ["--standard-json"], {input: inputStringified, maxBuffer: 1000 * 1000 * 10});
 
     // Handle errors.
     if (shellOutputBuffer.error) {
