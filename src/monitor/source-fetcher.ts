@@ -1,7 +1,7 @@
 import { CheckedContract } from "@ethereum-sourcify/core";
 import Logger from "bunyan";
 import { StatusCodes } from "http-status-codes";
-import nodeFetch from 'node-fetch';
+import nodeFetch from "node-fetch";
 import { IGateway, SimpleGateway } from "./gateway";
 import PendingContract from "./pending-contract";
 import { SourceAddress, FetchedFileCallback } from "./util";
@@ -16,23 +16,27 @@ class Subscription {
   beingProcessed = false;
   subscribers: Array<FetchedFileCallback> = [];
 
-  constructor(sourceAddress: SourceAddress, fetchUrl: string, fallbackFetchUrl?: string) {
+  constructor(
+    sourceAddress: SourceAddress,
+    fetchUrl: string,
+    fallbackFetchUrl?: string
+  ) {
     this.sourceAddress = sourceAddress;
     this.fetchUrl = fetchUrl;
     this.fallbackFetchUrl = fallbackFetchUrl;
   }
-    
+
   useFallbackUrl() {
     this.fetchUrl = this.fallbackFetchUrl;
   }
 }
 
 declare interface SubscriptionMap {
-    [hash: string]: Subscription
+  [hash: string]: Subscription;
 }
 
 declare interface TimestampMap {
-    [hash: string]: Date
+  [hash: string]: Date;
 }
 
 /**
@@ -42,15 +46,26 @@ declare interface TimestampMap {
  */
 export default class SourceFetcher {
   gatewayFetchers = [
-    new GatewayFetcher(new SimpleGateway("ipfs", process.env.IPFS_GATEWAY || "https://ipfs.io/ipfs/", "https://cloudflare-ipfs.com/ipfs/")),
-    new GatewayFetcher(new SimpleGateway(["bzzr0", "bzzr1"], "https://swarm-gateways.net/bzz-raw:/"))
-  ]
+    new GatewayFetcher(
+      new SimpleGateway(
+        "ipfs",
+        process.env.IPFS_GATEWAY || "https://ipfs.io/ipfs/",
+        "https://cloudflare-ipfs.com/ipfs/"
+      )
+    ),
+    new GatewayFetcher(
+      new SimpleGateway(
+        ["bzzr0", "bzzr1"],
+        "https://swarm-gateways.net/bzz-raw:/"
+      )
+    ),
+  ];
 
   /**
-     * Tells the fetcher not to make new requests. Does not affect pending requests.
-     */
+   * Tells the fetcher not to make new requests. Does not affect pending requests.
+   */
   stop(): void {
-    this.gatewayFetchers.forEach(gatewayFetcher => gatewayFetcher.stop());
+    this.gatewayFetchers.forEach((gatewayFetcher) => gatewayFetcher.stop());
   }
 
   private findGatewayFetcher(sourceAddress: SourceAddress) {
@@ -64,34 +79,37 @@ export default class SourceFetcher {
   }
 
   /**
-     * Fetches the requested source and executes the callback on the fetched content.
-     * 
-     * @param sourceAddress an object representing the location of the source file
-     * @param callback the callback to be called on the fetched content
-     */
+   * Fetches the requested source and executes the callback on the fetched content.
+   *
+   * @param sourceAddress an object representing the location of the source file
+   * @param callback the callback to be called on the fetched content
+   */
   subscribe(sourceAddress: SourceAddress, callback: FetchedFileCallback): void {
     const gatewayFetcher = this.findGatewayFetcher(sourceAddress);
     gatewayFetcher.subscribe(sourceAddress, callback);
   }
 
   /**
-     * Stop fetching the source specified by the provided sourceAddress.
-     * 
-     * @param sourceAddress
-     */
+   * Stop fetching the source specified by the provided sourceAddress.
+   *
+   * @param sourceAddress
+   */
   unsubscribe(sourceAddress: SourceAddress): void {
     const gatewayFetcher = this.findGatewayFetcher(sourceAddress);
     gatewayFetcher.unsubscribe(sourceAddress);
   }
 
   /**
-     * Begins the process of assembling a contract's sources. This is done by fetching the metadata from the address provided. 
-     * After assembling the contract, the provided callback is called.
-     * 
-     * @param metadataAddress an object representing the location of the contract metadata
-     * @param callback the callback to be called on the contract once it is assembled
-     */
-  assemble(metadataAddress: SourceAddress, callback: (contract: CheckedContract) => void) {
+   * Begins the process of assembling a contract's sources. This is done by fetching the metadata from the address provided.
+   * After assembling the contract, the provided callback is called.
+   *
+   * @param metadataAddress an object representing the location of the contract metadata
+   * @param callback the callback to be called on the contract once it is assembled
+   */
+  assemble(
+    metadataAddress: SourceAddress,
+    callback: (contract: CheckedContract) => void
+  ) {
     const contract = new PendingContract(this, callback);
     contract.assemble(metadataAddress);
   }
@@ -113,9 +131,11 @@ class GatewayFetcher {
 
   constructor(gateway: IGateway) {
     this.gateway = gateway;
-    this.fetchTimeout = parseInt(process.env.MONITOR_FETCH_TIMEOUT) || (5 * 60 * 1000);
-    this.fetchPause = parseInt(process.env.MONITOR_FETCH_PAUSE) || (1 * 1000);
-    this.cleanupTime = parseInt(process.env.MONITOR_CLEANUP_PERIOD) || (30 * 60 * 1000);
+    this.fetchTimeout =
+      parseInt(process.env.MONITOR_FETCH_TIMEOUT) || 5 * 60 * 1000;
+    this.fetchPause = parseInt(process.env.MONITOR_FETCH_PAUSE) || 1 * 1000;
+    this.cleanupTime =
+      parseInt(process.env.MONITOR_CLEANUP_PERIOD) || 30 * 60 * 1000;
     this.fetch([], STARTING_INDEX);
   }
 
@@ -144,69 +164,89 @@ class GatewayFetcher {
 
     subscription.beingProcessed = true;
     nodeFetch(subscription.fetchUrl, { timeout: this.fetchTimeout })
-      .then(resp => {
-        resp.text().then(text => {
+      .then((resp) => {
+        resp.text().then((text) => {
           if (resp.status === StatusCodes.OK) {
             this.notifySubscribers(sourceHash, text);
           } else {
-            this.logger.error({
-              loc: "[SOURCE_FETCHER:FETCH_FAILED]",
-              fetchUrl: subscription.fetchUrl,
-              status: resp.status,
-              statusText: resp.statusText,
-              sourceHash
-            }, text);
+            this.logger.error(
+              {
+                loc: "[SOURCE_FETCHER:FETCH_FAILED]",
+                fetchUrl: subscription.fetchUrl,
+                status: resp.status,
+                statusText: resp.statusText,
+                sourceHash,
+              },
+              text
+            );
           }
         });
       })
-      .catch(err => {
+      .catch((err) => {
         this.logger.error(
-          { loc: "[SOURCE_FETCHER:FETCH_FAILED]", fetchUrl: subscription.fetchUrl },
+          {
+            loc: "[SOURCE_FETCHER:FETCH_FAILED]",
+            fetchUrl: subscription.fetchUrl,
+          },
           err.message
-        )
+        );
         if (!subscription.fallbackFetchUrl) {
           return Promise.resolve();
         }
         // fall back to external ipfs gateway
         subscription.useFallbackUrl();
-        this.logger.info({
-          loc: "[SOURCE_FETCHER:FALLBACK]",
-          fetchUrl: subscription.fetchUrl,
-          id: sourceHash,
-          subscribers: subscription.subscribers.length
-        }, "Using the fallback gateway");
-        return nodeFetch(subscription.fetchUrl, { timeout: this.fetchTimeout }).then(resp => {
-          resp.text().then(text => {
+        this.logger.info(
+          {
+            loc: "[SOURCE_FETCHER:FALLBACK]",
+            fetchUrl: subscription.fetchUrl,
+            id: sourceHash,
+            subscribers: subscription.subscribers.length,
+          },
+          "Using the fallback gateway"
+        );
+        return nodeFetch(subscription.fetchUrl, {
+          timeout: this.fetchTimeout,
+        }).then((resp) => {
+          resp.text().then((text) => {
             if (resp.status === StatusCodes.OK) {
               this.notifySubscribers(sourceHash, text);
             } else {
-              this.logger.error({
-                loc: "[SOURCE_FETCHER:FETCH_FAILED]",
-                fetchUrl: subscription.fetchUrl,
-                status: resp.status,
-                statusText: resp.statusText,
-                sourceHash
-              }, text);
+              this.logger.error(
+                {
+                  loc: "[SOURCE_FETCHER:FETCH_FAILED]",
+                  fetchUrl: subscription.fetchUrl,
+                  status: resp.status,
+                  statusText: resp.statusText,
+                  sourceHash,
+                },
+                text
+              );
             }
           });
-
-        })
+        });
       })
-      .catch(err => this.logger.error(
-        { loc: "[SOURCE_FETCHER]", fetchUrl: subscription.fetchUrl },
-        err.message
-      )).finally(() => {
+      .catch((err) =>
+        this.logger.error(
+          { loc: "[SOURCE_FETCHER]", fetchUrl: subscription.fetchUrl },
+          err.message
+        )
+      )
+      .finally(() => {
         subscription.beingProcessed = false;
       });
 
     this.mySetTimeout(this.fetch, this.fetchPause, sourceHashes, index + 1);
-  }
+  };
 
-  private mySetTimeout = (handler: TimerHandler, timeout: number, ...args: any[]) => {
+  private mySetTimeout = (
+    handler: TimerHandler,
+    timeout: number,
+    ...args: any[]
+  ) => {
     if (this.running) {
       setTimeout(handler, timeout, ...args);
     }
-  }
+  };
 
   private notifySubscribers(id: string, file: string) {
     if (!(id in this.subscriptions)) {
@@ -216,14 +256,17 @@ class GatewayFetcher {
     const subscription = this.subscriptions[id];
     this.cleanup(id);
 
-    this.logger.info({
-      loc: "[SOURCE_FETCHER:NOTIFY]",
-      fetchUrl: subscription.fetchUrl,
-      id,
-      subscribers: subscription.subscribers.length
-    }, "Fetching successful");
+    this.logger.info(
+      {
+        loc: "[SOURCE_FETCHER:NOTIFY]",
+        fetchUrl: subscription.fetchUrl,
+        id,
+        subscribers: subscription.subscribers.length,
+      },
+      "Fetching successful"
+    );
 
-    subscription.subscribers.forEach(callback => callback(file));
+    subscription.subscribers.forEach((callback) => callback(file));
   }
 
   worksWith(sourceAddress: SourceAddress): boolean {
@@ -234,10 +277,14 @@ class GatewayFetcher {
     const sourceHash = sourceAddress.getSourceHash();
     const fetchUrl = this.gateway.createUrl(sourceAddress.id);
     let fallbackFetchUrl;
-    if (this.gateway.fallbackUrl) 
-      fallbackFetchUrl = this.gateway.createFallbackUrl(sourceAddress.id)
+    if (this.gateway.fallbackUrl)
+      fallbackFetchUrl = this.gateway.createFallbackUrl(sourceAddress.id);
     if (!(sourceHash in this.subscriptions)) {
-      this.subscriptions[sourceHash] = new Subscription(sourceAddress, fetchUrl, fallbackFetchUrl);
+      this.subscriptions[sourceHash] = new Subscription(
+        sourceAddress,
+        fetchUrl,
+        fallbackFetchUrl
+      );
       this.fileCounter++;
     }
 
@@ -250,7 +297,7 @@ class GatewayFetcher {
       fetchUrl: this.subscriptions[sourceHash].fetchUrl,
       sourceHash,
       filesPending: this.fileCounter,
-      subscriptions: this.subscriptionCounter
+      subscriptions: this.subscriptionCounter,
     });
   }
 
@@ -279,7 +326,7 @@ class GatewayFetcher {
       fetchUrl: fetchUrl,
       sourceHash,
       filesPending: this.fileCounter,
-      subscriptions: this.subscriptionCounter
+      subscriptions: this.subscriptionCounter,
     });
   }
 
@@ -289,6 +336,6 @@ class GatewayFetcher {
       return false;
     }
     const timestamp = this.timestamps[sourceHash];
-    return timestamp && (timestamp.getTime() + this.cleanupTime < Date.now());
+    return timestamp && timestamp.getTime() + this.cleanupTime < Date.now();
   }
 }

@@ -19,6 +19,7 @@ function App() {
           <Routes>
             <Route path="/verifier" element={<Verifier />} />
             <Route path="/lookup" element={<Lookup />} />
+            <Route path="/lookup/:address" element={<Lookup />} />
             <Route path="/" element={<LandingPage />} />
           </Routes>
         </HashRouter>

@@ -1,73 +1,79 @@
-import express from 'express';
-import serveIndex from 'serve-index';
-import fileUpload from 'express-fileupload';
-import cors from 'cors';
-import routes from './routes';
-import bodyParser from 'body-parser';
-import config from '../config';
-import { Logger, getSourcifyChains } from '@ethereum-sourcify/core';
-import bunyan from 'bunyan';
-import genericErrorHandler from './middlewares/GenericErrorHandler';
-import notFoundHandler from './middlewares/NotFoundError';
-import session from 'express-session';
-import createMemoryStore from 'memorystore';
-import util from 'util';
+import express from "express";
+import serveIndex from "serve-index";
+import fileUpload from "express-fileupload";
+import cors from "cors";
+import routes from "./routes";
+import bodyParser from "body-parser";
+import config from "../config";
+import { Logger, getSourcifyChains } from "@ethereum-sourcify/core";
+import bunyan from "bunyan";
+import genericErrorHandler from "./middlewares/GenericErrorHandler";
+import notFoundHandler from "./middlewares/NotFoundError";
+import session from "express-session";
+import createMemoryStore from "memorystore";
+import util from "util";
 const MemoryStore = createMemoryStore(session);
 
 export const logger: bunyan = Logger("Server");
 export class Server {
-
   app: express.Application;
   repository = config.repository.path;
   port = config.server.port;
-  localChainUrl?: string;
 
   constructor() {
-    if (config.testing) {
-      this.localChainUrl = config.localchain.url;
-    }
-
     this.app = express();
 
-    this.app.use(fileUpload({
-      limits: { fileSize: config.server.maxFileSize },
-      abortOnLimit: true
-    }))
+    this.app.use(
+      fileUpload({
+        limits: { fileSize: config.server.maxFileSize },
+        abortOnLimit: true,
+      })
+    );
 
-    this.app.use(bodyParser.json({limit: config.server.maxFileSize}));
-    this.app.use(bodyParser.urlencoded({ limit: config.server.maxFileSize, extended: true }));
-    this.app.set('trust proxy', 1) // trust first proxy, required for secure cookies.
+    this.app.use(bodyParser.json({ limit: config.server.maxFileSize }));
+    this.app.use(
+      bodyParser.urlencoded({
+        limit: config.server.maxFileSize,
+        extended: true,
+      })
+    );
+    this.app.set("trust proxy", 1); // trust first proxy, required for secure cookies.
     this.app.use(session(getSessionOptions()));
     this.app.use(
       cors({
-        origin: '*',
-        // Allow follow-up middleware to override this CORS for options. 
+        origin: "*",
+        // Allow follow-up middleware to override this CORS for options.
         // v2 API endpoints require non "*" origins because of the session cookies
         preflightContinue: true,
       })
     );
-    this.app.get('/health', (_req, res) => res.status(200).send('Alive and kicking!'))
-    this.app.get('/chains', (_req, res) => {
-      const sourcifyChains = getSourcifyChains().map(({rpc, ...rest}) => {
+    this.app.get("/health", (_req, res) =>
+      res.status(200).send("Alive and kicking!")
+    );
+    this.app.get("/chains", (_req, res) => {
+      const sourcifyChains = getSourcifyChains().map(({ rpc, ...rest }) => {
         // Don't show Alchemy & Infura IDs
-        rpc = rpc.map(url => {
+        rpc = rpc.map((url) => {
           if (url.includes("alchemy"))
-            return url.replace(/\/[^/]*$/, '/{ALCHEMY_ID}')
+            return url.replace(/\/[^/]*$/, "/{ALCHEMY_ID}");
           else if (url.includes("infura"))
-            return url.replace(/\/[^/]*$/, '/{INFURA_ID}')
-          else 
-            return url
-        })
+            return url.replace(/\/[^/]*$/, "/{INFURA_ID}");
+          else return url;
+        });
         return {
           ...rest,
-          rpc
-        }
-      }); 
+          rpc,
+        };
+      });
 
-      res.status(200).json(sourcifyChains)
-    })
-    this.app.use('/repository', express.static(this.repository), serveIndex(this.repository, {'icons': true}))
-    this.app.use('/', routes);
+      res.status(200).json(sourcifyChains);
+    });
+    this.app.use(
+      "/repository",
+      express.static(this.repository),
+      serveIndex(this.repository, { icons: true })
+    );
+    this.app.use("/", routes);
     this.app.use(genericErrorHandler);
     this.app.use(notFoundHandler);
   }
@@ -89,15 +95,20 @@ function getSessionOptions(): session.SessionOptions {
     cookie: {
       maxAge: config.session.maxAge,
       secure: config.session.secure,
-      sameSite: "lax"
+      sameSite: "lax",
     },
     store: new MemoryStore({
-      checkPeriod: config.session.maxAge
+      checkPeriod: config.session.maxAge,
     }),
   };
 }
 
 if (require.main === module) {
   const server = new Server();
-  server.app.listen(server.port, () => logger.info({loc: '[LISTEN]'}, `Injector listening on port ${server.port}!`))
+  server.app.listen(server.port, () =>
+    logger.info(
+      { loc: "[LISTEN]" },
+      `Injector listening on port ${server.port}!`
+    )
+  );
 }

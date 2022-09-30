@@ -1,24 +1,48 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+var __awaiter =
+  (this && this.__awaiter) ||
+  function (thisArg, _arguments, P, generator) {
+    function adopt(value) {
+      return value instanceof P
+        ? value
+        : new P(function (resolve) {
+            resolve(value);
+          });
+    }
     return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
+      function fulfilled(value) {
+        try {
+          step(generator.next(value));
+        } catch (e) {
+          reject(e);
+        }
+      }
+      function rejected(value) {
+        try {
+          step(generator["throw"](value));
+        } catch (e) {
+          reject(e);
+        }
+      }
+      function step(result) {
+        result.done
+          ? resolve(result.value)
+          : adopt(result.value).then(fulfilled, rejected);
+      }
+      step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
-};
-import { evaluate } from '@ethereum-sourcify/radspec';
-import { decodeFirstSync } from 'cbor';
-import { toB58String } from 'multihashes';
-import fetch from 'node-fetch';
-import timeoutSignal from 'timeout-signal';
-import Web3 from 'web3';
-import web3utils from 'web3-utils';
+  };
+import { evaluate } from "@ethereum-sourcify/radspec";
+import { decodeFirstSync } from "cbor";
+import { toB58String } from "multihashes";
+import fetch from "node-fetch";
+import timeoutSignal from "timeout-signal";
+import Web3 from "web3";
+import web3utils from "web3-utils";
 const { hexToBytes, bytesToHex } = web3utils;
 const bytesToHashProcessors = [
-    { origin: "ipfs", process: toB58String },
-    { origin: "bzzr0", process: (data) => bytesToHex([...data]).slice(2) },
-    { origin: "bzzr1", process: (data) => bytesToHex([...data]).slice(2) }
+  { origin: "ipfs", process: toB58String },
+  { origin: "bzzr0", process: (data) => bytesToHex([...data]).slice(2) },
+  { origin: "bzzr1", process: (data) => bytesToHex([...data]).slice(2) },
 ];
 export default class ContractCallDecoder {
   // TODO: Make IPFS argument a callback/promise to let non-http but tcp connections

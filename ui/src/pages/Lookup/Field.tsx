@@ -21,11 +21,9 @@ const Field = ({ loading, handleRequest }: FieldProp) => {
     }
     // Get checksummed format
     const checksummedAddress = getAddress(address);
-    console.log(address)
-    console.log(checksummedAddress)
     setAddress(checksummedAddress)
     handleRequest(checksummedAddress);
-  } 
+  }
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
@@ -41,7 +39,7 @@ const Field = ({ loading, handleRequest }: FieldProp) => {
     const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984"; // Uniswap
     checkAndSendRequest(exampleAddress);
   };
-  
+
   return (
     <div className="flex flex-col py-16 px-12 flex-grow rounded-lg transition-all ease-in-out duration-300 bg-white overflow-hidden shadow-md">
       <div className="flex flex-col text-left relative">

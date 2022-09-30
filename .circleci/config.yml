@@ -46,7 +46,6 @@ workflows:
             services/verification/.* run-build-verification true
             services/validation/.* run-build-validation true
             ui/.* run-build-ui true
-            ui-legacy/.* run-build-ui-legacy true
           # Compare against the last build of the branch not the default "main" branch
           base-revision: << pipeline.git.base_revision >>
           config-path: .circleci/continue_config.yml

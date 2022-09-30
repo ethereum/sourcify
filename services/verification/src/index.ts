@@ -1,2 +1,2 @@
-export * from './services/Injector';
-export * from './services/VerificationService';
+export * from "./services/Injector";
+export * from "./services/VerificationService";

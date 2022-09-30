@@ -19,9 +19,6 @@ parameters:
   run-build-ui:
     type: boolean
     default: false
-  run-build-ui-legacy:
-    type: boolean
-    default: false
   run-build-server:
     type: boolean
     default: false
@@ -135,7 +132,6 @@ workflows:
               << pipeline.parameters.run-build-verification >>,
               << pipeline.parameters.run-build-validation >>,
               << pipeline.parameters.run-build-ui >>,
-              << pipeline.parameters.run-build-ui-legacy >>,
             ]
     jobs:
       - build-push-ipfs:
@@ -153,12 +149,6 @@ workflows:
           run-build-three: << pipeline.parameters.run-build-validation >>
       - build-push-ui:
           run-build: << pipeline.parameters.run-build-ui >>
-      - build-push-ui-legacy:
-          run-build: << pipeline.parameters.run-build-ui-legacy >>
-          filters:
-            branches:
-              only:
-                - master
       - deploy:
           requires:
             - build-push-ipfs
@@ -167,7 +157,6 @@ workflows:
             - build-push-s3
             - build-push-server
             - build-push-ui
-            - build-push-ui-legacy
       - monitor-e2e-rinkeby:
           requires:
             - deploy
@@ -231,10 +220,6 @@ jobs:
     <<: *build-base
     environment:
       SERVICE: "ui"
-  build-push-ui-legacy:
-    <<: *build-base
-    environment:
-      SERVICE: "ui-legacy"
   deploy:
     docker:
       - image: cimg/base:2021.04

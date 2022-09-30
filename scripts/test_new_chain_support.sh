@@ -1,5 +1,6 @@
 #!/bin/bash
 # Script to run tests on new chain support requests.
+# Runs for branches i.e. pull requests that are named add-chain-{chainId}
 
 # from https://stackoverflow.com/questions/55839004/circleci-regex-filtering-match-within-string 
 

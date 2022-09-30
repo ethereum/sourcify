@@ -1,7 +1,0 @@
-version: "3.7"
-services:
-  monitor:
-    logging:
-      driver: loki
-      options:
-        loki-url: ${LOKI_URL}

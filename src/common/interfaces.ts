@@ -1,11 +1,11 @@
-import { Router } from 'express';
+import { Router } from "express";
 
 export interface IController {
-    registerRoutes(): Router;
+  registerRoutes(): Router;
 }
 export interface IResponseError {
-    code: number;
-    message: string;
-    log: boolean;
-    errors?: any[];
+  code: number;
+  message: string;
+  log: boolean;
+  errors?: any[];
 }

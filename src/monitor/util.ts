@@ -7,25 +7,25 @@ export type SourceOrigin = "ipfs" | "bzzr1" | "bzzr0";
 export type FetchedFileCallback = (fetchedFile: string) => any;
 
 interface Prefix {
-    regex: RegExp,
-    origin: SourceOrigin
+  regex: RegExp;
+  origin: SourceOrigin;
 }
 
 const PREFIXES: Prefix[] = [
   { origin: "ipfs", regex: /dweb:\/ipfs\/{1,2}/ },
-  { origin: "bzzr1", regex: /bzz-raw:\/{1,2}/ }
+  { origin: "bzzr1", regex: /bzz-raw:\/{1,2}/ },
 ];
 
 interface CborProcessor {
-    origin: SourceOrigin,
-    process: (bytes: number[]) => string
+  origin: SourceOrigin;
+  process: (bytes: number[]) => string;
 }
 
 const CBOR_PROCESSORS: CborProcessor[] = [
   { origin: "ipfs", process: multihashes.toB58String },
   { origin: "bzzr0", process: (data) => Web3.utils.bytesToHex(data).slice(2) },
-  { origin: "bzzr1", process: (data) => Web3.utils.bytesToHex(data).slice(2) }
-]
+  { origin: "bzzr1", process: (data) => Web3.utils.bytesToHex(data).slice(2) },
+];
 
 export class SourceAddress {
   origin: SourceOrigin;
@@ -37,8 +37,8 @@ export class SourceAddress {
   }
 
   /**
-     * @returns a unique identifier of this source address of format ipfs-QmawU3NM1WNWkBauRudYCiFvuFE1tTLHB98akyBvb9UWwA
-     */
+   * @returns a unique identifier of this source address of format ipfs-QmawU3NM1WNWkBauRudYCiFvuFE1tTLHB98akyBvb9UWwA
+   */
   getSourceHash(): string {
     return this.origin + "-" + this.id;
   }

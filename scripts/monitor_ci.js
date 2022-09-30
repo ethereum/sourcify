@@ -8,9 +8,9 @@
  */
 
 require("dotenv").config({ path: "environments/.env" });
-const assert = require('assert');
-const fetch = require('node-fetch');
-const util = require('util');
+const assert = require("assert");
+const fetch = require("node-fetch");
+const util = require("util");
 const log = console.log;
 
 const chainID = parseInt(process.argv[2]);
@@ -20,10 +20,10 @@ if (!chainID || !chainName) {
   process.exit(1);
 }
 
-const artifact = require('../metacoin-source-verify/build/contracts/MetaCoin.json')
+const artifact = require("../metacoin-source-verify/build/contracts/MetaCoin.json");
 const address = artifact.networks[chainID].address;
 
-async function main(){
+async function main() {
   const url = `${process.env.REPOSITORY_URL}/contracts/full_match/${chainID}/${address}/metadata.json`;
 
   log();
@@ -39,11 +39,11 @@ async function main(){
   try {
     metadata = JSON.parse(text);
   } catch (err) {
-    throw new Error('Metadata not found in repository...');
+    throw new Error("Metadata not found in repository...");
   }
 
   assert(metadata.compiler.version !== undefined);
-  assert(metadata.language === 'Solidity');
+  assert(metadata.language === "Solidity");
 
   log();
   log(`>>>>>>>>`);
@@ -52,11 +52,11 @@ async function main(){
   log();
 
   log(util.inspect(metadata));
-};
+}
 
 main()
   .then(() => process.exit(0))
   .catch((err) => {
     log(err);
     process.exit(1);
-  })
+  });
