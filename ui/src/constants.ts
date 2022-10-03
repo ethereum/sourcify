@@ -11,10 +11,9 @@ export const GITHUB_URL = `https://github.com/ethereum/sourcify`;
 export const TWITTER_URL = `https://twitter.com/sourcifyeth`;
 export const SOLIDITY_ETHEREUM_URL = `https://solidity.ethereum.org/2020/06/25/sourcify-faq/`;
 
-// API 2
-export const SESSION_DATA_URL = `${SERVER_URL}/session-data`;
-export const ADD_FILES_URL = `${SERVER_URL}/input-files`;
-export const REMOVE_FILES_URL = `${SERVER_URL}/remove-files`;
-export const VERIFY_VALIDATED_URL = `${SERVER_URL}/verify-validated`;
-export const VERIFY_FROM_ETHERSCAN = `${SERVER_URL}/verify-from-etherscan`;
-export const RESTART_SESSION_URL = `${SERVER_URL}/restart-session`;
+// SESSION API
+export const SESSION_DATA_URL = `${SERVER_URL}/session/data`;
+export const ADD_FILES_URL = `${SERVER_URL}/session/input-files`;
+export const VERIFY_VALIDATED_URL = `${SERVER_URL}/session/verify-validated`;
+export const VERIFY_FROM_ETHERSCAN = `${SERVER_URL}/session/verify-from-etherscan`;
+export const RESTART_SESSION_URL = `${SERVER_URL}/session/clear`;

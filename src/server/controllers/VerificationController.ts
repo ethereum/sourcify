@@ -777,12 +777,10 @@ export default class VerificationController
       this.safeHandler(this.legacyVerifyEndpoint)
     );
 
-    this.router
-      .route(["/verify-from-etherscan-legacy", "/verifyFromEtherscanLegacy"])
-      .post(
-        // TODO: add validation
-        this.safeHandler(this.verifyFromEtherscan)
-      );
+    this.router.route(["/verify-from-etherscan", "/verifyFromEtherscan"]).post(
+      // TODO: add validation
+      this.safeHandler(this.verifyFromEtherscan)
+    );
 
     this.router.route(["/check-all-by-addresses", "/checkAllByAddresses"]).get(
       query("addresses")
@@ -820,24 +818,24 @@ export default class VerificationController
       this.safeHandler(this.checkByAddresses)
     );
 
-    // v2 APIs with session cookies require non "*" CORS
+    // Session APIs with session cookies require non "*" CORS
     this.router
-      .route("/session-data")
+      .route(["/session-data", "/session/data"])
       .all(cors(corsOpt))
       .get(cors(corsOpt), this.safeHandler(this.getSessionDataEndpoint));
 
     this.router
-      .route("/input-files")
+      .route(["/input-files", "/session/input-files"])
       .all(cors(corsOpt))
       .post(cors(corsOpt), this.safeHandler(this.addInputFilesEndpoint));
 
     this.router
-      .route("/restart-session")
+      .route(["/restart-session", "/session/clear"])
       .all(cors(corsOpt))
       .post(cors(corsOpt), this.safeHandler(this.restartSessionEndpoint));
 
     this.router
-      .route("/verify-validated")
+      .route(["/verify-validated", "/session/verify-validated"])
       .all(cors(corsOpt))
       .post(
         body("contracts").isArray(),
@@ -846,7 +844,7 @@ export default class VerificationController
       );
 
     this.router
-      .route(["/verify-from-etherscan"])
+      .route(["/session/verify-from-etherscan"])
       .all(cors(corsOpt))
       .post(
         body("address").exists(),
