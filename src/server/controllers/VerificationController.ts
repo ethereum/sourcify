@@ -300,7 +300,7 @@ export default class VerificationController
     const session = req.session as MySession;
     const newFilesCount = this.saveFiles(pathContents, session);
     if (newFilesCount === 0) {
-      throw new BadRequestError("The contract has no files");
+      throw new BadRequestError("The contract didn't add any new file");
     }
 
     // 3. create the contractwrappers from the files
