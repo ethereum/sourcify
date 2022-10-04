@@ -680,7 +680,7 @@ export default class VerificationController
 
     if (inputSize > VerificationController.MAX_SESSION_SIZE) {
       const msg =
-        "Too much session memory used. Delete some files or restart the session.";
+        "Too much session memory used. Delete some files or clear the session.";
       throw new PayloadTooLargeError(msg);
     }
 
