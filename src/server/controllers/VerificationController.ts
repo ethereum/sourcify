@@ -729,12 +729,12 @@ export default class VerificationController
       };
       if (error) {
         logMethod = "error";
-        msg = "Error in session restart";
+        msg = "Error in clearing session";
         loggerOptions.err = error.message;
         statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
       } else {
         logMethod = "info";
-        msg = "Session successfully restarted";
+        msg = "Session successfully cleared";
         statusCode = StatusCodes.OK;
       }
 
