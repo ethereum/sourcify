@@ -80,6 +80,7 @@ const Chart = ({ stats }: { stats: statsType | undefined }) => {
             <Tooltip cursor={{ fill: "rgba(232, 239, 255, 0.4)" }} />
             <XAxis dataKey="name" />
             <YAxis
+              width={70}
               dataKey="fullMatch"
               domain={[
                 0,
