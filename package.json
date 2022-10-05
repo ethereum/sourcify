@@ -17,6 +17,7 @@
     "test:server": "TESTING=true DOTENV_CONFIG_PATH=./environments/.env mocha -r dotenv/config test/server.js --exit",
     "test:chains": "TESTING=true mocha test/chains/chain-tests.js --reporter mochawesome --reporter-options reportDir=chain-tests-report,reportFilename=report --exit",
     "lint": "eslint . --ext .ts",
+    "lint-tests": "eslint ./test --ext .js",
     "lint-fix": "eslint . --fix --ext .ts",
     "coverage": "node ./node_modules/nyc/bin/nyc.js --reporter=lcov --reporter=text-summary ./node_modules/tape/bin/tape ./test/index.js",
     "coveralls": "npm run coverage && node ./node_modules/coveralls/bin/coveralls.js <coverage/lcov.info",

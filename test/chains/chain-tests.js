@@ -1163,7 +1163,7 @@ describe("Test Supported Chains", function () {
     err,
     res,
     done,
-    expectedAddress = contractAddress,
+    expectedAddress,
     expectedStatus = "perfect"
   ) {
     currentResponse = res;
