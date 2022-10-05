@@ -503,4 +503,12 @@ export default {
     contractFetchAddress: "https://evm.explorer.canto.io/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
+  "99": {
+    // POA Network Core
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://blockscout.com/poa/core" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex("/poa/core"),
+  },
 };

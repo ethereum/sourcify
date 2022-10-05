@@ -1037,6 +1037,25 @@ describe("Test Supported Chains", function () {
     "shared/withImmutables.metadata.json"
   );
 
+  // POA Network Core
+  verifyContract(
+    "0x3b2e3383AeE77A58f252aFB3635bCBd842BaeCB3",
+    "99",
+    "POA Core",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  verifyContractWithImmutables(
+    "0xA7e70Be8A6563DCe75299c30D1566A83fC63BC37",
+    "99",
+    "POA Core",
+    ["uint256"],
+    [2],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
   //////////////////////
   // Helper functions //
   //////////////////////
