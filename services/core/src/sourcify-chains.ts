@@ -508,7 +508,7 @@ export default {
     supported: true,
     monitored: false,
     contractFetchAddress:
-      "https://blockscout.com/poa/core" + BLOCKSCOUT_SUFFIX,
+      "https://blockscout.com/poa/core/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex("/poa/core"),
   },
 };
