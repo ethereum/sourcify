@@ -510,5 +510,6 @@ export default {
     contractFetchAddress:
       "https://blockscout.com/poa/core/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex("/poa/core"),
+    rpc: ["https://core.poa.network"],
   },
 };
