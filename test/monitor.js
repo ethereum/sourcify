@@ -195,38 +195,37 @@ describe("Monitor", function () {
 
   const GENERATION_SECS = 10; // waiting for extra blocks to be generated
 
-  const sourcifyContract = async (contractWrapper) => {
+  const sourcifyContract = (contractWrapper, done) => {
     const monitorWrapper = new MonitorWrapper();
-    await monitorWrapper.start();
-    const address = await contractWrapper.deploy(
-      web3Provider,
-      accounts[Counter.get()]
-    );
+    monitorWrapper.start().then(() => {
+      let address
 
-    const waitVerifiedContract = new Promise((resolve) => {
       monitorWrapper.on("contract-verified-successfully", () => {
         monitorWrapper.assertFilesStored(address, contractWrapper);
         monitorWrapper.stop();
-        resolve();
+        done()
       });
-    });
 
-    await waitVerifiedContract;
+      contractWrapper.deploy(
+        web3Provider,
+        accounts[Counter.get()]
+      ).then(addr => address = addr)
+    })
   };
 
-  it("should sourcify the deployed contract", async function () {
-    await sourcifyContract(contractWrappers.simpleWithImport);
+  it("should sourcify the deployed contract", function (done) {
+    sourcifyContract(contractWrappers.simpleWithImport, done);
   });
 
-  it("should sourcify if metadata provides only literal content", async function () {
-    await sourcifyContract(contractWrappers.simpleLiteral);
+  it("should sourcify if metadata provides only literal content", function (done) {
+    sourcifyContract(contractWrappers.simpleLiteral, done);
   });
 
-  it("should sourcify a contract with immutables", async function () {
-    await sourcifyContract(contractWrappers.withImmutables);
+  it("should sourcify a contract with immutables", function (done) {
+    sourcifyContract(contractWrappers.withImmutables, done);
   });
 
-  it("should not resourcify if already sourcified", async function () {
+  it("should not resourcify if already sourcified", function (done) {
     const contract = contractWrappers.simpleWithImport;
     const monitorWrapper = new MonitorWrapper();
     const from = accounts[Counter.get()];
@@ -239,11 +238,9 @@ describe("Monitor", function () {
       contract.rawMetadata
     );
 
-    await monitorWrapper.start();
-    const deployedAddress = await contract.deploy(web3Provider, from);
-    chai.expect(calculatedAddress).to.deep.equal(deployedAddress);
+    monitorWrapper.start().then(() => {
+      let deployedAddress
 
-    const waitVerifiedContract = new Promise((resolve) => {
       monitorWrapper.on("contract-already-verified", () => {
         monitorWrapper.assertFilesNotStored(
           deployedAddress,
@@ -251,34 +248,34 @@ describe("Monitor", function () {
           metadataBirthtime
         );
         monitorWrapper.stop();
-        resolve();
+        done();
       });
-    });
-    await waitVerifiedContract;
+      contract.deploy(web3Provider, from).then(addr => {
+        deployedAddress = addr
+        chai.expect(calculatedAddress).to.deep.equal(deployedAddress);
+      })
+    })
   });
 
-  it("should sourcify the deployed contract after being started with a delay", async function () {
+  it("should sourcify the deployed contract after being started with a delay", function (done) {
     const contract = contractWrappers.simpleWithImport;
-    const address = await contract.deploy(
+    contract.deploy(
       web3Provider,
       accounts[Counter.get()]
-    );
-    const currentBlockNumber = await web3Provider.eth.getBlockNumber();
-
-    await waitSecs(GENERATION_SECS);
-
-    const monitorWrapper = new MonitorWrapper();
-    await monitorWrapper.start(currentBlockNumber - 1);
-
-    const waitVerifiedContract = new Promise((resolve) => {
-      monitorWrapper.on("contract-verified-successfully", () => {
-        monitorWrapper.assertFilesStored(address, contract);
-        monitorWrapper.stop();
-        resolve();
-      });
-    });
-
-    await waitVerifiedContract;
+    ).then(address => {
+      web3Provider.eth.getBlockNumber().then(currentBlockNumber => {
+        waitSecs(GENERATION_SECS).then(() => {
+          const monitorWrapper = new MonitorWrapper();
+          monitorWrapper.start(currentBlockNumber - 1).then(() => {
+            monitorWrapper.on("contract-verified-successfully", () => {
+              monitorWrapper.assertFilesStored(address, contract);
+              monitorWrapper.stop();
+              done();
+            });
+          })
+        });
+      })
+    })
   });
 
   after(async function () {
