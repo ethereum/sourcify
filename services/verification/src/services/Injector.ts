@@ -19,7 +19,7 @@ import {
   RecompilationResult,
   getBytecode,
   recompile,
-  getBytecodeWithoutMetadata as trimMetadata,
+  trimAuxdata,
   checkEndpoint,
   getCreationDataFromArchive,
   getCreationDataByScraping,
@@ -292,19 +292,13 @@ export class Injector {
       recompiled.deployedBytecode = replaced;
       match.libraryMap = libraryMap;
 
-      // if the bytecode doesn't contain metadata then "partial" match
-      if (this.getMetadataPathFromCborEncoded(deployedBytecode) === null) {
-        match.status = "partial";
-        return match;
-      }
-
       if (deployedBytecode === recompiled.deployedBytecode) {
         match.status = "perfect";
         return match;
       }
 
-      const trimmedDeployedBytecode = trimMetadata(deployedBytecode);
-      const trimmedCompiledRuntimeBytecode = trimMetadata(
+      const trimmedDeployedBytecode = trimAuxdata(deployedBytecode);
+      const trimmedCompiledRuntimeBytecode = trimAuxdata(
         recompiled.deployedBytecode
       );
       if (trimmedDeployedBytecode === trimmedCompiledRuntimeBytecode) {
@@ -338,7 +332,7 @@ export class Injector {
             return match;
           }
 
-          const trimmedCompiledCreationBytecode = trimMetadata(
+          const trimmedCompiledCreationBytecode = trimAuxdata(
             recompiled.creationBytecode
           );
 
