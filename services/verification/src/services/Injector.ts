@@ -644,7 +644,7 @@ export class Injector {
       }
 
       if (this.ipfsClient) {
-        await this.addToIpfsMfs(matchQuality, chain, match.address);
+        this.addToIpfsMfs(matchQuality, chain, match.address);
       }
     } else if (match.status === "extra-file-input-bug") {
       return match;
