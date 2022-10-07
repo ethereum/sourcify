@@ -310,6 +310,10 @@ async function fetchSolcFromGitHub(
 export function trimAuxdata(bytecode: string): string {
   // Last 4 chars of bytecode specify byte size of metadata component,
   const auxdataSize = parseInt(bytecode.slice(-4), 16) * 2 + 4;
+  // When the length of auxdaha is not appended at the end, it will likely overshoot. There's no auxdata to trim.
+  if (auxdataSize > bytecode.length) {
+    return bytecode;
+  }
   return bytecode.slice(0, bytecode.length - auxdataSize);
 }
 
