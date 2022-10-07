@@ -28,7 +28,7 @@ import Header from "../../components/Header";
 import {
   DOCS_URL,
   IPFS_IPNS_GATEWAY_URL,
-  REPOSITORY_URL_FULL_MATCH,
+  REPOSITORY_SERVER_URL_FULL_MATCH,
 } from "../../constants";
 import ChartSection from "./ChartSection";
 import sourceCode from "./Contract.sol";
@@ -163,7 +163,7 @@ const LandingPage = () => {
                     alt="eth icon"
                   />
                   <a
-                    href={`${REPOSITORY_URL_FULL_MATCH}/5/0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4`}
+                    href={`${REPOSITORY_SERVER_URL_FULL_MATCH}/5/0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4`}
                     className="link-underline break-all"
                   >
                     <b>Ethereum Görli</b> <br />

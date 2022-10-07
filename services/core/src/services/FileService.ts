@@ -94,7 +94,7 @@ export class FileService implements IFileService {
     const urls: Array<string> = [];
     files.forEach((file) => {
       const relativePath = file.path.split("/repository")[1].substr(1);
-      urls.push(`${process.env.REPOSITORY_URL}/${relativePath}`);
+      urls.push(`${process.env.REPOSITORY_SERVER_URL}/${relativePath}`);
     });
     return urls;
   }

@@ -198,19 +198,18 @@ describe("Monitor", function () {
   const sourcifyContract = (contractWrapper, done) => {
     const monitorWrapper = new MonitorWrapper();
     monitorWrapper.start().then(() => {
-      let address
+      let address;
 
       monitorWrapper.on("contract-verified-successfully", () => {
         monitorWrapper.assertFilesStored(address, contractWrapper);
         monitorWrapper.stop();
-        done()
+        done();
       });
 
-      contractWrapper.deploy(
-        web3Provider,
-        accounts[Counter.get()]
-      ).then(addr => address = addr)
-    })
+      contractWrapper
+        .deploy(web3Provider, accounts[Counter.get()])
+        .then((addr) => (address = addr));
+    });
   };
 
   it("should sourcify the deployed contract", function (done) {
@@ -239,7 +238,7 @@ describe("Monitor", function () {
     );
 
     monitorWrapper.start().then(() => {
-      let deployedAddress
+      let deployedAddress;
 
       monitorWrapper.on("contract-already-verified", () => {
         monitorWrapper.assertFilesNotStored(
@@ -250,20 +249,17 @@ describe("Monitor", function () {
         monitorWrapper.stop();
         done();
       });
-      contract.deploy(web3Provider, from).then(addr => {
-        deployedAddress = addr
+      contract.deploy(web3Provider, from).then((addr) => {
+        deployedAddress = addr;
         chai.expect(calculatedAddress).to.deep.equal(deployedAddress);
-      })
-    })
+      });
+    });
   });
 
   it("should sourcify the deployed contract after being started with a delay", function (done) {
     const contract = contractWrappers.simpleWithImport;
-    contract.deploy(
-      web3Provider,
-      accounts[Counter.get()]
-    ).then(address => {
-      web3Provider.eth.getBlockNumber().then(currentBlockNumber => {
+    contract.deploy(web3Provider, accounts[Counter.get()]).then((address) => {
+      web3Provider.eth.getBlockNumber().then((currentBlockNumber) => {
         waitSecs(GENERATION_SECS).then(() => {
           const monitorWrapper = new MonitorWrapper();
           monitorWrapper.start(currentBlockNumber - 1).then(() => {
@@ -272,10 +268,10 @@ describe("Monitor", function () {
               monitorWrapper.stop();
               done();
             });
-          })
+          });
         });
-      })
-    })
+      });
+    });
   });
 
   after(async function () {

@@ -38,10 +38,10 @@ function buildAlchemyURL(
   let id;
   switch (chainName) {
     case "opt":
-      id = process.env["ALCHEMY_ID_OPTIMISM"];
+      id = process.env["ALCHEMY_ID_OPTIMISM"] || process.env["ALCHEMY_ID"];
       break;
     case "arb":
-      id = process.env["ALCHEMY_ID_ARBITRUM"];
+      id = process.env["ALCHEMY_ID_ARBITRUM"] || process.env["ALCHEMY_ID"];
       break;
     default:
       id = process.env["ALCHEMY_ID"];

@@ -11,7 +11,7 @@ import {
 } from "recharts";
 import AppIconName from "../../components/AppIconName";
 import LoadingOverlay from "../../components/LoadingOverlay";
-import { REPOSITORY_URL } from "../../constants";
+import { REPOSITORY_SERVER_URL } from "../../constants";
 import { Context } from "../../Context";
 import featured from "../../featured";
 
@@ -138,7 +138,7 @@ const Featured = () => {
 const ChartSection = () => {
   const [stats, setStats] = useState<statsType>();
   useEffect(() => {
-    fetch(`${REPOSITORY_URL}/stats.json`)
+    fetch(`${REPOSITORY_SERVER_URL}/stats.json`)
       .then((res) => res.json())
       .then((json) => setStats(json));
   }, []);
