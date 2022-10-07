@@ -777,7 +777,7 @@ export default class VerificationController
       this.safeHandler(this.legacyVerifyEndpoint)
     );
 
-    this.router.route(["/verify-from-etherscan", "/verifyFromEtherscan"]).post(
+    this.router.route(["/verify/etherscan"]).post(
       // TODO: add validation
       this.safeHandler(this.verifyFromEtherscan)
     );
@@ -844,7 +844,7 @@ export default class VerificationController
       );
 
     this.router
-      .route(["/session/verify-from-etherscan"])
+      .route(["/session/verify/etherscan"])
       .all(cors(corsOpt))
       .post(
         body("address").exists(),
