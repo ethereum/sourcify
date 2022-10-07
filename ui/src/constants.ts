@@ -15,5 +15,5 @@ export const SOLIDITY_ETHEREUM_URL = `https://solidity.ethereum.org/2020/06/25/s
 export const SESSION_DATA_URL = `${SERVER_URL}/session/data`;
 export const ADD_FILES_URL = `${SERVER_URL}/session/input-files`;
 export const VERIFY_VALIDATED_URL = `${SERVER_URL}/session/verify-validated`;
-export const VERIFY_FROM_ETHERSCAN = `${SERVER_URL}/session/verify-from-etherscan`;
+export const VERIFY_FROM_ETHERSCAN = `${SERVER_URL}/session/verify/etherscan`;
 export const RESTART_SESSION_URL = `${SERVER_URL}/session/clear`;
