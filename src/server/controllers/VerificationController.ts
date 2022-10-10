@@ -258,6 +258,67 @@ export default class VerificationController
     res.send({ result: [result] });
   };
 
+  private verifyCreate2 = async (
+    origReq: Request,
+    res: Response
+  ): Promise<void> => {
+    const req = origReq as MyRequest;
+    this.validateRequest(req);
+
+    const deployerAddress = req.body.deployerAddress;
+    const salt = req.body.salt;
+    const constructorArgs = req.body.constructorArgs || [];
+    const baseContract = req.body.baseContract || null;
+    const files = req.body.files || null;
+
+    if (files !== null) {
+      const inputFiles = this.extractFilesFromJSON(files);
+      if (!inputFiles) {
+        const msg =
+          "The contract at the provided address and chain has not yet been sourcified.";
+        throw new NotFoundError(msg);
+      }
+
+      let validatedContracts: CheckedContract[];
+      try {
+        validatedContracts = await this.validationService.checkFiles(
+          inputFiles
+        );
+      } catch (error: any) {
+        throw new BadRequestError(error.message);
+      }
+
+      const errors = validatedContracts
+        .filter((contract) => !CheckedContract.isValid(contract, true))
+        .map(this.stringifyInvalidAndMissing);
+      if (errors.length) {
+        throw new BadRequestError(
+          "Invalid or missing sources in:\n" + errors.join("\n"),
+          false
+        );
+      }
+
+      const contract: CheckedContract = validatedContracts[0];
+      if (!contract.compilerVersion) {
+        throw new BadRequestError(
+          "Metadata file not specifying a compiler version."
+        );
+      }
+
+      await this.verificationService.verifyCreate2(
+        contract,
+        deployerAddress,
+        salt,
+        constructorArgs
+      );
+      res.send({ result: "ok" });
+    } else if (baseContract !== null) {
+      // TODO: verification with already verified contract
+    } else {
+      res.send({ result: "pass either address or files" });
+    }
+  };
+
   private stringToBase64 = (str: string): string => {
     return Buffer.from(str, "utf8").toString("base64");
   };
@@ -776,6 +837,11 @@ export default class VerificationController
     this.router.route(["/verify/etherscan"]).post(
       // TODO: add validation
       this.safeHandler(this.verifyFromEtherscan)
+    );
+
+    this.router.route(["/verify/create2"]).post(
+      // TODO: add validation
+      this.safeHandler(this.verifyCreate2)
     );
 
     this.router.route(["/check-all-by-addresses", "/checkAllByAddresses"]).get(

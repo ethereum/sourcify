@@ -5,6 +5,7 @@ import {
   IFileService,
   Metadata,
   JsonInput,
+  CheckedContract,
 } from "@ethereum-sourcify/core";
 import { Injector } from "./Injector";
 import * as bunyan from "bunyan";
@@ -19,6 +20,12 @@ export interface IVerificationService {
     contractName: string,
     compilerJson: any
   ): Promise<Metadata>;
+  verifyCreate2(
+    contract: CheckedContract,
+    deployerAddress: string,
+    salt: string,
+    constructorArgs: any
+  ): void;
 }
 
 export class VerificationService implements IVerificationService {
@@ -121,5 +128,31 @@ export class VerificationService implements IVerificationService {
     }
 
     return this.injector.inject(inputData);
+  };
+
+  verifyCreate2 = async (
+    contract: CheckedContract,
+    deployerAddress: string,
+    salt: string,
+    constructorArgs: any
+  ) => {
+    // Injection
+    //const injection: Promise<Match>;
+    //const { repository, chain, addresses, files } = inputData;
+    if (!this.injector) {
+      this.injector = await Injector.createAsync({
+        log: this.logger,
+        repositoryPath: this.fileService.repositoryPath,
+        fileService: this.fileService,
+        web3timeout: parseInt(process.env.WEB3_TIMEOUT),
+      });
+    }
+
+    await this.injector.verifyCreate2(
+      contract,
+      deployerAddress,
+      salt,
+      constructorArgs
+    );
   };
 }
