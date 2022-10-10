@@ -154,14 +154,6 @@ const ChartSection = () => {
         <div className="flex flex-row mt-8 flex-wrap items-center justify-center logos-container">
           {Featured()}
         </div>
-        <div className="text-center mt-5 flex justify-center">
-          <a
-            className="link-underline font-semibold text-ceruleanBlue-500"
-            href={FEATURE_ISSUE_URL}
-          >
-            Verified? Add your project
-          </a>
-        </div>
       </div>
     </div>
   );
