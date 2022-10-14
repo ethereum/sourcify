@@ -1056,6 +1056,24 @@ describe("Test Supported Chains", function () {
     "shared/withImmutables.metadata.json"
   );
 
+  // Astar (EVM)
+  verifyContract(
+    "0xA7e70Be8A6563DCe75299c30D1566A83fC63BC37",
+    "592",
+    "Astar (EVM)",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x571bb36009bB26D5313244B30397D2a2341a2A11",
+    "592",
+    "Astar (EVM)",
+    ["uint256"],
+    [1234],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
   //////////////////////
   // Helper functions //
   //////////////////////
