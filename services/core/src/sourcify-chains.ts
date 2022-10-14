@@ -513,4 +513,12 @@ export default {
     txRegex: getBlockscoutRegex("/poa/core"),
     rpc: ["https://core.poa.network"],
   },
+  "592": {
+    // Astar (EVM) 
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://blockscout.com/astar/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex("/astar"),
+  },
 };
