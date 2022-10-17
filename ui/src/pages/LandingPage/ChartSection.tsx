@@ -15,9 +15,6 @@ import { REPOSITORY_URL } from "../../constants";
 import { Context } from "../../Context";
 import featured from "../../featured";
 
-const FEATURE_ISSUE_URL =
-  "https://github.com/ethereum/sourcify/issues/new?assignees=ogwurujohnson%2Ckuzdogan&labels=feature%2Csupport&template=feature_project.yml&title=%5BFeature+Request%5D%3A+";
-
 type statsType = {
   [key: string]: {
     full_match: number;
