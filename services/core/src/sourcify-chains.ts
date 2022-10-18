@@ -32,6 +32,7 @@ function buildAlchemyURL(
   if (useOwn) {
     const port = process.env[`NODE_PORT_${chainSubName.toUpperCase()}`];
     const url = `${process.env.NODE_ADDRESS}:${port}`;
+    if (!port || !url) return undefined;
     return url;
   }
 

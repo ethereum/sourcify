@@ -152,13 +152,15 @@ export class Injector {
     for (const chain of chainsData) {
       this.chains[chain.chainId] = new InjectorChain(chain);
 
-      this.chains[chain.chainId].web3array = chain.rpc.map((rpcURL: string) => {
-        const opts = { timeout: this.web3timeout };
-        const web3 = rpcURL.startsWith("http")
-          ? new Web3(new Web3.providers.HttpProvider(rpcURL, opts))
-          : new Web3(new Web3.providers.WebsocketProvider(rpcURL, opts));
-        return web3;
-      });
+      this.chains[chain.chainId].web3array = chain.rpc
+        .filter((rpcURL: string) => !!rpcURL)
+        .map((rpcURL: string) => {
+          const opts = { timeout: this.web3timeout };
+          const web3 = rpcURL.startsWith("http")
+            ? new Web3(new Web3.providers.HttpProvider(rpcURL, opts))
+            : new Web3(new Web3.providers.WebsocketProvider(rpcURL, opts));
+          return web3;
+        });
     }
   }
 
