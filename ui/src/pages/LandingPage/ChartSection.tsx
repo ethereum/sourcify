@@ -15,9 +15,6 @@ import { REPOSITORY_SERVER_URL } from "../../constants";
 import { Context } from "../../Context";
 import featured from "../../featured";
 
-const FEATURE_ISSUE_URL =
-  "https://github.com/ethereum/sourcify/issues/new?assignees=ogwurujohnson%2Ckuzdogan&labels=feature%2Csupport&template=feature_project.yml&title=%5BFeature+Request%5D%3A+";
-
 type statsType = {
   [key: string]: {
     full_match: number;
@@ -153,14 +150,6 @@ const ChartSection = () => {
         </h2>
         <div className="flex flex-row mt-8 flex-wrap items-center justify-center logos-container">
           {Featured()}
-        </div>
-        <div className="text-center mt-5 flex justify-center">
-          <a
-            className="link-underline font-semibold text-ceruleanBlue-500"
-            href={FEATURE_ISSUE_URL}
-          >
-            Verified? Add your project
-          </a>
         </div>
       </div>
     </div>

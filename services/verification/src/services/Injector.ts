@@ -19,7 +19,7 @@ import {
   RecompilationResult,
   getBytecode,
   recompile,
-  getBytecodeWithoutMetadata as trimMetadata,
+  trimAuxdata,
   checkEndpoint,
   getCreationDataFromArchive,
   getCreationDataByScraping,
@@ -292,19 +292,18 @@ export class Injector {
       recompiled.deployedBytecode = replaced;
       match.libraryMap = libraryMap;
 
-      // if the bytecode doesn't contain metadata then "partial" match
-      if (this.getMetadataPathFromCborEncoded(deployedBytecode) === null) {
-        match.status = "partial";
-        return match;
-      }
-
       if (deployedBytecode === recompiled.deployedBytecode) {
+        // if the bytecode doesn't contain metadata then "partial" match
+        if (this.getMetadataPathFromCborEncoded(deployedBytecode) === null) {
+          match.status = "partial";
+          return match;
+        }
         match.status = "perfect";
         return match;
       }
 
-      const trimmedDeployedBytecode = trimMetadata(deployedBytecode);
-      const trimmedCompiledRuntimeBytecode = trimMetadata(
+      const trimmedDeployedBytecode = trimAuxdata(deployedBytecode);
+      const trimmedCompiledRuntimeBytecode = trimAuxdata(
         recompiled.deployedBytecode
       );
       if (trimmedDeployedBytecode === trimmedCompiledRuntimeBytecode) {
@@ -338,7 +337,7 @@ export class Injector {
             return match;
           }
 
-          const trimmedCompiledCreationBytecode = trimMetadata(
+          const trimmedCompiledCreationBytecode = trimAuxdata(
             recompiled.creationBytecode
           );
 
@@ -645,7 +644,7 @@ export class Injector {
       }
 
       if (this.ipfsClient) {
-        await this.addToIpfsMfs(matchQuality, chain, match.address);
+        this.addToIpfsMfs(matchQuality, chain, match.address);
       }
     } else if (match.status === "extra-file-input-bug") {
       return match;

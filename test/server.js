@@ -143,7 +143,7 @@ describe("Server", function () {
   };
 
   if (process.env.PR_REPONAME === undefined) {
-    describe("/session/verify-from-etherscan", function () {
+    describe("/session/verify/etherscan", function () {
       const assertAllFound = (err, res, finalStatus) => {
         chai.expect(err).to.be.null;
         chai.expect(res.status).to.equal(StatusCodes.OK);
@@ -166,7 +166,7 @@ describe("Server", function () {
       it("should fail for missing address", (done) => {
         chai
           .request(server.app)
-          .post("/session/verify-from-etherscan")
+          .post("/session/verify/etherscan")
           .field("chainId", "1")
           .end((err, res) => {
             assertError(err, res, "address");
@@ -177,7 +177,7 @@ describe("Server", function () {
       it("should fail for missing chainId", (done) => {
         chai
           .request(server.app)
-          .post("/session/verify-from-etherscan")
+          .post("/session/verify/etherscan")
           .field("address", fakeAddress)
           .end((err, res) => {
             assertError(err, res, "chainId");
@@ -188,7 +188,7 @@ describe("Server", function () {
       it("should fail fetching a non verified contract from etherscan", (done) => {
         chai
           .request(server.app)
-          .post("/session/verify-from-etherscan")
+          .post("/session/verify/etherscan")
           .field("address", fakeAddress)
           .field("chainId", "1")
           .end((err, res) => {
@@ -200,13 +200,13 @@ describe("Server", function () {
       it("should fail by exceeding rate limit on etherscan APIs", (done) => {
         chai
           .request(server.app)
-          .post("/session/verify-from-etherscan")
+          .post("/session/verify/etherscan")
           .field("address", fakeAddress)
           .field("chainId", "1")
           .end(() => {
             chai
               .request(server.app)
-              .post("/session/verify-from-etherscan")
+              .post("/session/verify/etherscan")
               .field("address", fakeAddress)
               .field("chainId", "1")
               .end((err, res) => {
@@ -219,7 +219,7 @@ describe("Server", function () {
       it("should import contract information from etherscan (single file) and verify the contract, finding a partial match", (done) => {
         chai
           .request(server.app)
-          .post("/session/verify-from-etherscan")
+          .post("/session/verify/etherscan")
           .field("address", "0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4")
           .field("chainId", "5")
           .end((err, res) => {
@@ -231,7 +231,7 @@ describe("Server", function () {
       it("should import contract information from etherscan (multiple files) and verify the contract, finding a partial match", (done) => {
         chai
           .request(server.app)
-          .post("/session/verify-from-etherscan")
+          .post("/session/verify/etherscan")
           .field("address", "0x5aa653a076c1dbb47cec8c1b4d152444cad91941")
           .field("chainId", "1")
           .end((err, res) => {
