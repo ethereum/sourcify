@@ -132,12 +132,8 @@ export default class VerificationController
         return `https://api.etherscan.io`;
       case "5":
         return `https://api-goerli.etherscan.io`;
-      case "42":
-        return `https://api-kovan.etherscan.io`;
       case "4":
         return `https://api-rinkeby.etherscan.io`;
-      case "3":
-        return `https://api-ropsten.etherscan.io`;
       case "11155111":
         return `https://api-sepolia.etherscan.io`;
     }
