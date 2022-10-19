@@ -143,7 +143,7 @@ describe("Server", function () {
   };
 
   if (process.env.PR_REPONAME === undefined) {
-    describe("/verify-from-etherscan", function () {
+    describe("/session/verify/etherscan", function () {
       const assertAllFound = (err, res, finalStatus) => {
         chai.expect(err).to.be.null;
         chai.expect(res.status).to.equal(StatusCodes.OK);
@@ -166,7 +166,7 @@ describe("Server", function () {
       it("should fail for missing address", (done) => {
         chai
           .request(server.app)
-          .post("/verify-from-etherscan")
+          .post("/session/verify/etherscan")
           .field("chainId", "1")
           .end((err, res) => {
             assertError(err, res, "address");
@@ -177,7 +177,7 @@ describe("Server", function () {
       it("should fail for missing chainId", (done) => {
         chai
           .request(server.app)
-          .post("/verify-from-etherscan")
+          .post("/session/verify/etherscan")
           .field("address", fakeAddress)
           .end((err, res) => {
             assertError(err, res, "chainId");
@@ -188,7 +188,7 @@ describe("Server", function () {
       it("should fail fetching a non verified contract from etherscan", (done) => {
         chai
           .request(server.app)
-          .post("/verify-from-etherscan")
+          .post("/session/verify/etherscan")
           .field("address", fakeAddress)
           .field("chainId", "1")
           .end((err, res) => {
@@ -200,13 +200,13 @@ describe("Server", function () {
       it("should fail by exceeding rate limit on etherscan APIs", (done) => {
         chai
           .request(server.app)
-          .post("/verify-from-etherscan")
+          .post("/session/verify/etherscan")
           .field("address", fakeAddress)
           .field("chainId", "1")
           .end(() => {
             chai
               .request(server.app)
-              .post("/verify-from-etherscan")
+              .post("/session/verify/etherscan")
               .field("address", fakeAddress)
               .field("chainId", "1")
               .end((err, res) => {
@@ -219,7 +219,7 @@ describe("Server", function () {
       it("should import contract information from etherscan (single file) and verify the contract, finding a partial match", (done) => {
         chai
           .request(server.app)
-          .post("/verify-from-etherscan")
+          .post("/session/verify/etherscan")
           .field("address", "0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4")
           .field("chainId", "5")
           .end((err, res) => {
@@ -231,7 +231,7 @@ describe("Server", function () {
       it("should import contract information from etherscan (multiple files) and verify the contract, finding a partial match", (done) => {
         chai
           .request(server.app)
-          .post("/verify-from-etherscan")
+          .post("/session/verify/etherscan")
           .field("address", "0x5aa653a076c1dbb47cec8c1b4d152444cad91941")
           .field("chainId", "1")
           .end((err, res) => {
@@ -887,13 +887,13 @@ describe("Server", function () {
     });
   });
 
-  describe("verification v2", function () {
+  describe("session api verification", function () {
     this.timeout(EXTENDED_TIME);
 
     it("should inform when no pending contracts", (done) => {
       chai
         .request(server.app)
-        .post("/verify-validated")
+        .post("/session/verify-validated")
         .end((err, res) => {
           chai.expect(err).to.be.null;
           chai.expect(res.body).to.haveOwnProperty("error");
@@ -926,7 +926,7 @@ describe("Server", function () {
     it("should accept file upload in JSON format", (done) => {
       chai
         .request(server.app)
-        .post("/input-files")
+        .post("/session/input-files")
         .send({
           files: {
             "metadata.json": metadataBuffer.toString(),
@@ -946,7 +946,7 @@ describe("Server", function () {
     it("should not verify after addition of metadata+source, but should after providing address+chainId", (done) => {
       const agent = chai.request.agent(server.app);
       agent
-        .post("/input-files")
+        .post("/session/input-files")
         .attach("files", sourceBuffer, "Storage.sol")
         .attach("files", metadataBuffer, "metadata.json")
         .then((res) => {
@@ -959,7 +959,7 @@ describe("Server", function () {
           contracts[0].chainId = defaultContractChain;
 
           agent
-            .post("/verify-validated")
+            .post("/session/verify-validated")
             .send({ contracts })
             .end((err, res) => {
               chai.expect(err).to.be.null;
@@ -991,14 +991,14 @@ describe("Server", function () {
     it("should not verify when session cookie not stored clientside", (done) => {
       chai
         .request(server.app)
-        .post("/input-files")
+        .post("/session/input-files")
         .attach("files", metadataBuffer, "metadata.json")
         .end((err, res) => {
           assertAfterMetadataUpload(err, res);
 
           chai
             .request(server.app)
-            .post("/input-files")
+            .post("/session/input-files")
             .attach("files", sourceBuffer, "Storage.sol")
             .end((err, res) => {
               chai.expect(err).to.be.null;
@@ -1028,14 +1028,14 @@ describe("Server", function () {
     it("should verify when session cookie stored clientside", (done) => {
       const agent = chai.request.agent(server.app);
       agent
-        .post("/input-files")
+        .post("/session/input-files")
         .attach("files", metadataBuffer, "metadata.json")
         .end((err, res) => {
           assertAfterMetadataUpload(err, res);
           const contracts = res.body.contracts;
 
           agent
-            .post("/input-files")
+            .post("/session/input-files")
             .attach("files", sourceBuffer, "Storage.sol")
             .end((err, res) => {
               contracts[0].chainId = defaultContractChain;
@@ -1043,7 +1043,7 @@ describe("Server", function () {
               assertAllFound(err, res, "error");
 
               agent
-                .post("/verify-validated")
+                .post("/session/verify-validated")
                 .send({ contracts })
                 .end((err, res) => {
                   assertAllFound(err, res, "perfect");
@@ -1057,7 +1057,7 @@ describe("Server", function () {
       const agent = chai.request.agent(server.app);
       const file = "a".repeat(MAX_FILE_SIZE + 1);
       agent
-        .post("/input-files")
+        .post("/session/input-files")
         .attach("files", Buffer.from(file))
         .then((res) => {
           chai.expect(res.status).to.equal(StatusCodes.REQUEST_TOO_LONG);
@@ -1073,18 +1073,18 @@ describe("Server", function () {
       for (let i = 0; i < maxNumMaxFiles; i++) {
         // Should be allowed each time
         res = await agent
-          .post("/input-files")
+          .post("/session/input-files")
           .attach("files", Buffer.from(file));
         chai.expect(res.status).to.equal(StatusCodes.OK);
       }
       // Should exceed size this time
-      res = await agent.post("/input-files").attach("files", Buffer.from(file));
+      res = await agent.post("/session/input-files").attach("files", Buffer.from(file));
       chai.expect(res.status).to.equal(StatusCodes.REQUEST_TOO_LONG);
       chai.expect(res.body.error).to.exist;
       // Should be back to normal
-      res = await agent.post("/restart-session");
+      res = await agent.post("/session/clear");
       chai.expect(res.status).to.equal(StatusCodes.OK);
-      res = await agent.post("/input-files").attach("files", Buffer.from("a"));
+      res = await agent.post("/session/input-files").attach("files", Buffer.from("a"));
       chai.expect(res.status).to.equal(StatusCodes.OK);
       console.log("done");
     });
@@ -1107,7 +1107,7 @@ describe("Server", function () {
     it("should verify after providing address and then network; should provide timestamp when verifying again", (done) => {
       const agent = chai.request.agent(server.app);
       agent
-        .post("/input-files")
+        .post("/session/input-files")
         .attach("files", sourceBuffer)
         .attach("files", metadataBuffer)
         .then((res) => {
@@ -1115,20 +1115,20 @@ describe("Server", function () {
           contracts[0].address = defaultContractAddress;
 
           agent
-            .post("/verify-validated")
+            .post("/session/verify-validated")
             .send({ contracts })
             .then((res) => {
               assertSingleContractStatus(res, "error");
               contracts[0].chainId = defaultContractChain;
 
               agent
-                .post("/verify-validated")
+                .post("/session/verify-validated")
                 .send({ contracts })
                 .then((res) => {
                   assertSingleContractStatus(res, "perfect");
 
                   agent
-                    .post("/verify-validated")
+                    .post("/session/verify-validated")
                     .send({ contracts })
                     .then((res) => {
                       assertSingleContractStatus(res, "perfect", true);
@@ -1142,7 +1142,7 @@ describe("Server", function () {
     it("should fail for a source that is missing and unfetchable", (done) => {
       const agent = chai.request.agent(server.app);
       agent
-        .post("/input-files")
+        .post("/session/input-files")
         .attach("files", modifiedIpfsMetadataBuffer)
         .then((res) => {
           assertAddressAndChainMissing(res, [], {
@@ -1162,7 +1162,7 @@ describe("Server", function () {
     it("should fetch missing sources", (done) => {
       const agent = chai.request.agent(server.app);
       agent
-        .post("/input-files")
+        .post("/session/input-files")
         .attach("files", metadataBuffer)
         .then((res) => {
           assertAddressAndChainMissing(
@@ -1177,7 +1177,7 @@ describe("Server", function () {
     it("should verify after fetching and then providing address+chainId", (done) => {
       const agent = chai.request.agent(server.app);
       agent
-        .post("/input-files")
+        .post("/session/input-files")
         .attach("files", metadataBuffer)
         .then((res) => {
           const contracts = assertAddressAndChainMissing(
@@ -1189,7 +1189,7 @@ describe("Server", function () {
           contracts[0].chainId = defaultContractChain;
 
           agent
-            .post("/verify-validated")
+            .post("/session/verify-validated")
             .send({ contracts })
             .then((res) => {
               assertSingleContractStatus(res, "perfect");
@@ -1217,7 +1217,7 @@ describe("Server", function () {
 
       const agent = chai.request.agent(server.app);
       agent
-        .post("/input-files")
+        .post("/session/input-files")
         .attach("files", metadataBuffer)
         .then((res) => {
           chai.expect(res.status).to.equal(StatusCodes.OK);
@@ -1229,7 +1229,7 @@ describe("Server", function () {
           chai.expect(Object.keys(contract.files.missing)).to.have.lengthOf(2);
 
           agent
-            .post("/input-files")
+            .post("/session/input-files")
             .attach("files", parentBuffer)
             .then((res) => {
               chai.expect(res.status).to.equal(StatusCodes.OK);
@@ -1258,7 +1258,7 @@ describe("Server", function () {
       const zippedTruffleBuffer = fs.readFileSync(zippedTrufflePath);
       chai
         .request(server.app)
-        .post("/input-files")
+        .post("/session/input-files")
         .attach("files", zippedTruffleBuffer)
         .then((res) => {
           chai.expect(res.status).to.equal(StatusCodes.OK);
@@ -1284,7 +1284,7 @@ describe("Server", function () {
 
         const agent = chai.request.agent(server.app);
         agent
-          .post("/input-files")
+          .post("/session/input-files")
           .attach("files", metadataBuffer)
           .then((res) => {
             chai.expect(res.status).to.equal(StatusCodes.OK);
@@ -1296,7 +1296,7 @@ describe("Server", function () {
             chai.expect(contract.files.missing).to.have.lengthOf(2);
 
             agent
-              .post("/input-files")
+              .post("/session/input-files")
               .attach("files", parentBuffer)
               .then((res) => {
                 chai.expect(res.status).to.equal(StatusCodes.OK);
@@ -1323,7 +1323,7 @@ describe("Server", function () {
         const zippedTruffleBuffer = fs.readFileSync(zippedTrufflePath);
         chai
           .request(server.app)
-          .post("/input-files")
+          .post("/session/input-files")
           .attach("files", zippedTruffleBuffer)
           .then((res) => {
             chai.expect(res.status).to.equal(StatusCodes.OK);
@@ -1356,14 +1356,14 @@ describe("Server", function () {
 
         const agent = chai.request.agent(server.app);
         agent
-          .post("/input-files")
+          .post("/session/input-files")
           .attach("files", hardhatOutputBuffer)
           .then((res) => {
             const contracts = res.body.contracts;
             contracts[0].address = contractAddress;
             contracts[0].chainId = defaultContractChain;
             agent
-              .post("/verify-validated")
+              .post("/session/verify-validated")
               .send({ contracts })
               .then((res) => {
                 assertSingleContractStatus(res, "extra-file-input-bug");
@@ -1378,14 +1378,14 @@ describe("Server", function () {
 
         const agent = chai.request.agent(server.app);
         agent
-          .post("/input-files")
+          .post("/session/input-files")
           .attach("files", hardhatOutputBuffer)
           .then((res) => {
             const contracts = res.body.contracts;
             contracts[0].address = contractAddress;
             contracts[0].chainId = defaultContractChain;
             agent
-              .post("/verify-validated")
+              .post("/session/verify-validated")
               .send({ contracts })
               .then((res) => {
                 assertSingleContractStatus(res, "perfect");

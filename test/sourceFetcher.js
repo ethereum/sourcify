@@ -1,4 +1,3 @@
-const chai = require("chai");
 const SourceFetcher = require("../dist/monitor/source-fetcher").default;
 const { SourceAddress } = require("../dist/monitor/util");
 const METADATA_HASH = "QmbGXtNqvZYEcbjK6xELyBQGEmzqXPDqyJNoQYjJPrST9S";
@@ -9,7 +8,6 @@ describe("Source Fetcher", function () {
 
   let sourceFetcher;
   let sourceAddress;
-  beforeEach(() => {});
 
   it("should fetch metadata from IPFS", (done) => {
     process.env.IPFS_GATEWAY = "http://ipfs.io/ipfs/";

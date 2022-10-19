@@ -22,4 +22,4 @@ Resulting static assets will be stored at `build/` and ready to be served.
 
 ## Docker
 
-The `Dockerfile` installs,builds and serves the project on a minimal nginx container. When running with Docker, don't forget to pass the environment variables `SERVER_URL` and `REPOSITORY_URL`.
+The `Dockerfile` installs,builds and serves the project on a minimal nginx container. When running with Docker, don't forget to pass the environment variables `SERVER_URL` and `REPOSITORY_SERVER_URL`.

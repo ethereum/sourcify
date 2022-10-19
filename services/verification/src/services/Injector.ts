@@ -19,7 +19,7 @@ import {
   RecompilationResult,
   getBytecode,
   recompile,
-  getBytecodeWithoutMetadata as trimMetadata,
+  trimAuxdata,
   checkEndpoint,
   getCreationDataFromArchive,
   getCreationDataByScraping,
@@ -152,13 +152,15 @@ export class Injector {
     for (const chain of chainsData) {
       this.chains[chain.chainId] = new InjectorChain(chain);
 
-      this.chains[chain.chainId].web3array = chain.rpc.map((rpcURL: string) => {
-        const opts = { timeout: this.web3timeout };
-        const web3 = rpcURL.startsWith("http")
-          ? new Web3(new Web3.providers.HttpProvider(rpcURL, opts))
-          : new Web3(new Web3.providers.WebsocketProvider(rpcURL, opts));
-        return web3;
-      });
+      this.chains[chain.chainId].web3array = chain.rpc
+        .filter((rpcURL: string) => !!rpcURL)
+        .map((rpcURL: string) => {
+          const opts = { timeout: this.web3timeout };
+          const web3 = rpcURL.startsWith("http")
+            ? new Web3(new Web3.providers.HttpProvider(rpcURL, opts))
+            : new Web3(new Web3.providers.WebsocketProvider(rpcURL, opts));
+          return web3;
+        });
     }
   }
 
@@ -292,19 +294,18 @@ export class Injector {
       recompiled.deployedBytecode = replaced;
       match.libraryMap = libraryMap;
 
-      // if the bytecode doesn't contain metadata then "partial" match
-      if (this.getMetadataPathFromCborEncoded(deployedBytecode) === null) {
-        match.status = "partial";
-        return match;
-      }
-
       if (deployedBytecode === recompiled.deployedBytecode) {
+        // if the bytecode doesn't contain metadata then "partial" match
+        if (this.getMetadataPathFromCborEncoded(deployedBytecode) === null) {
+          match.status = "partial";
+          return match;
+        }
         match.status = "perfect";
         return match;
       }
 
-      const trimmedDeployedBytecode = trimMetadata(deployedBytecode);
-      const trimmedCompiledRuntimeBytecode = trimMetadata(
+      const trimmedDeployedBytecode = trimAuxdata(deployedBytecode);
+      const trimmedCompiledRuntimeBytecode = trimAuxdata(
         recompiled.deployedBytecode
       );
       if (trimmedDeployedBytecode === trimmedCompiledRuntimeBytecode) {
@@ -338,7 +339,7 @@ export class Injector {
             return match;
           }
 
-          const trimmedCompiledCreationBytecode = trimMetadata(
+          const trimmedCompiledCreationBytecode = trimAuxdata(
             recompiled.creationBytecode
           );
 
@@ -645,7 +646,7 @@ export class Injector {
       }
 
       if (this.ipfsClient) {
-        await this.addToIpfsMfs(matchQuality, chain, match.address);
+        this.addToIpfsMfs(matchQuality, chain, match.address);
       }
     } else if (match.status === "extra-file-input-bug") {
       return match;

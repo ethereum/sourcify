@@ -11,12 +11,9 @@ import {
 } from "recharts";
 import AppIconName from "../../components/AppIconName";
 import LoadingOverlay from "../../components/LoadingOverlay";
-import { REPOSITORY_URL } from "../../constants";
+import { REPOSITORY_SERVER_URL } from "../../constants";
 import { Context } from "../../Context";
 import featured from "../../featured";
-
-const FEATURE_ISSUE_URL =
-  "https://github.com/ethereum/sourcify/issues/new?assignees=ogwurujohnson%2Ckuzdogan&labels=feature%2Csupport&template=feature_project.yml&title=%5BFeature+Request%5D%3A+";
 
 type statsType = {
   [key: string]: {
@@ -80,6 +77,7 @@ const Chart = ({ stats }: { stats: statsType | undefined }) => {
             <Tooltip cursor={{ fill: "rgba(232, 239, 255, 0.4)" }} />
             <XAxis dataKey="name" />
             <YAxis
+              width={70}
               dataKey="fullMatch"
               domain={[
                 0,
@@ -137,7 +135,7 @@ const Featured = () => {
 const ChartSection = () => {
   const [stats, setStats] = useState<statsType>();
   useEffect(() => {
-    fetch(`${REPOSITORY_URL}/stats.json`)
+    fetch(`${REPOSITORY_SERVER_URL}/stats.json`)
       .then((res) => res.json())
       .then((json) => setStats(json));
   }, []);
@@ -152,14 +150,6 @@ const ChartSection = () => {
         </h2>
         <div className="flex flex-row mt-8 flex-wrap items-center justify-center logos-container">
           {Featured()}
-        </div>
-        <div className="text-center mt-5 flex justify-center">
-          <a
-            className="link-underline font-semibold text-ceruleanBlue-500"
-            href={FEATURE_ISSUE_URL}
-          >
-            Verified? Add your project
-          </a>
         </div>
       </div>
     </div>
