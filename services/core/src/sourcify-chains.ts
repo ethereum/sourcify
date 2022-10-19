@@ -82,10 +82,7 @@ export default {
     supported: true,
     monitored: true,
     contractFetchAddress: "https://rinkeby.etherscan.io/" + ETHERSCAN_SUFFIX,
-    rpc: [
-      buildAlchemyURL("rinkeby", "eth", true),
-      buildAlchemyURL("rinkeby", "eth"),
-    ],
+    rpc: [buildAlchemyURL("rinkeby", "eth", true)],
     txRegex: ETHERSCAN_REGEX,
   },
   "5": {
