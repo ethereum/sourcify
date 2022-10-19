@@ -32,16 +32,17 @@ function buildAlchemyURL(
   if (useOwn) {
     const port = process.env[`NODE_PORT_${chainSubName.toUpperCase()}`];
     const url = `${process.env.NODE_ADDRESS}:${port}`;
+    if (!port || !url) return undefined;
     return url;
   }
 
   let id;
   switch (chainName) {
     case "opt":
-      id = process.env["ALCHEMY_ID_OPTIMISM"];
+      id = process.env["ALCHEMY_ID_OPTIMISM"] || process.env["ALCHEMY_ID"];
       break;
     case "arb":
-      id = process.env["ALCHEMY_ID_ARBITRUM"];
+      id = process.env["ALCHEMY_ID_ARBITRUM"] || process.env["ALCHEMY_ID"];
       break;
     default:
       id = process.env["ALCHEMY_ID"];

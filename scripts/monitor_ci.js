@@ -24,7 +24,7 @@ const artifact = require("../metacoin-source-verify/build/contracts/MetaCoin.jso
 const address = artifact.networks[chainID].address;
 
 async function main() {
-  const url = `${process.env.REPOSITORY_URL}/contracts/full_match/${chainID}/${address}/metadata.json`;
+  const url = `${process.env.REPOSITORY_SERVER_URL}/contracts/full_match/${chainID}/${address}/metadata.json`;
 
   log();
   log(`>>>>>>>>>>>>>>>>>>>>`);

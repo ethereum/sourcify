@@ -5,10 +5,10 @@ services:
     build:
       context: ../ui
       dockerfile: Dockerfile
-      # Pass SERVER_URL and REPOSITORY_URL to be injected build time.
+      # Pass SERVER_URL and REPOSITORY_SERVER_URL to be injected build time.
       # Will be set in .env (see scripts/build_and_publish_docker_images.sh)
       args:
         - SERVER_URL=$SERVER_URL
-        - REPOSITORY_URL=$REPOSITORY_URL
+        - REPOSITORY_SERVER_URL=$REPOSITORY_SERVER_URL
         - IPNS=$IPNS
         - TAG=$TAG

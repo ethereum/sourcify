@@ -10,8 +10,8 @@ import { Link } from "react-router-dom";
 import ReactTooltip from "react-tooltip";
 import Button from "../../components/Button";
 import {
-  REPOSITORY_URL_FULL_MATCH,
-  REPOSITORY_URL_PARTIAL_MATCH,
+  REPOSITORY_SERVER_URL_FULL_MATCH,
+  REPOSITORY_SERVER_URL_PARTIAL_MATCH,
 } from "../../constants";
 import { Context } from "../../Context";
 import { CheckAllByAddressResult } from "../../types";
@@ -34,8 +34,8 @@ const generateUrl = (
 ) => {
   const REPO_URL =
     status === "partial"
-      ? REPOSITORY_URL_PARTIAL_MATCH
-      : REPOSITORY_URL_FULL_MATCH;
+      ? REPOSITORY_SERVER_URL_PARTIAL_MATCH
+      : REPOSITORY_SERVER_URL_FULL_MATCH;
   if (type === URL_TYPE.REMIX)
     return `https://remix.ethereum.org/?#activate=sourcify&call=sourcify//fetchAndSave//${address}//${chainId}`;
   return `${REPO_URL}/${chainId}/${address}/`;
