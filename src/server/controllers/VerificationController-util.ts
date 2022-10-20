@@ -63,6 +63,7 @@ export type SendableContract = ContractMeta & {
     invalid: InvalidSources;
   };
   verificationId?: string;
+  constructorArguments?: any;
 };
 
 export type EtherscanResult = {
@@ -99,6 +100,9 @@ function getSendableContract(
 
   return {
     verificationId,
+    constructorArguments: contract?.metadata?.output?.abi?.find(
+      (abi: any) => abi.type === "constructor"
+    )?.inputs,
     compiledPath: contract.compiledPath,
     name: contract.name,
     address: contractWrapper.address,

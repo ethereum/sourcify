@@ -57,6 +57,7 @@ export type SendableContract = ContractMeta & {
     invalid: InvalidSources;
   };
   verificationId?: string;
+  constructorArguments?: any;
 };
 
 export type VerificationInput = {
@@ -64,6 +65,14 @@ export type VerificationInput = {
   chainId: string;
   address: string;
 };
+
+export type Create2VerificationInput = {
+  verificationId: string;
+  deployerAddress: string;
+  salt: string;
+  constructorArgs: any[];
+};
+
 export interface Match {
   address: string | null;
   status: Status;

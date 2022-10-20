@@ -37,6 +37,7 @@ export interface Metadata {
   sources: any;
   settings: CompilationSettings;
   compiler: CompilerInfo;
+  output: any;
 }
 
 export declare interface StringMap {

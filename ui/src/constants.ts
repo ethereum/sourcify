@@ -17,4 +17,5 @@ export const SESSION_DATA_URL = `${SERVER_URL}/session/data`;
 export const ADD_FILES_URL = `${SERVER_URL}/session/input-files`;
 export const VERIFY_VALIDATED_URL = `${SERVER_URL}/session/verify-validated`;
 export const VERIFY_FROM_ETHERSCAN = `${SERVER_URL}/session/verify/etherscan`;
+export const CREATE2_VERIFY_VALIDATED_URL = `${SERVER_URL}/session/verify/create2`;
 export const RESTART_SESSION_URL = `${SERVER_URL}/session/clear`;

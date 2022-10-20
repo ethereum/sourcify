@@ -1,13 +1,16 @@
 import React, { MouseEventHandler, useState } from "react";
 import { HiChevronDown, HiOutlineExternalLink } from "react-icons/hi";
+import Button from "../../../../components/Button";
 import DetailedView from "../../../../components/DetailedView";
 import LoadingOverlay from "../../../../components/LoadingOverlay";
 import {
   SendableContract,
   SessionResponse,
   VerificationInput,
+  Create2VerificationInput,
 } from "../../../../types";
 import ChainAddressForm from "./ChainAddressForm";
+import CounterfactualForm from "./CounterfactualForm";
 import Invalid from "./Invalid";
 import Label from "./Label";
 import Missing from "./Missing";
@@ -17,16 +20,36 @@ type CheckedContractProps = {
   verifyCheckedContract: (
     sendable: VerificationInput
   ) => Promise<SessionResponse | undefined>;
+  verifyCreate2CheckedContract: (
+    sendable: Create2VerificationInput
+  ) => Promise<SessionResponse | undefined>;
   collapsed: boolean;
   toggleCollapse: () => void;
 };
 
+enum VerifyMethods {
+  DEPLOYED,
+  COUNTERFACTUAL,
+}
+
 const CheckedContract: React.FC<CheckedContractProps> = ({
   checkedContract,
   verifyCheckedContract,
+  verifyCreate2CheckedContract,
   collapsed,
   toggleCollapse,
 }) => {
+  const [verifyMethodSelected, setVerifyMethodSelected] =
+    useState<VerifyMethods>(VerifyMethods.DEPLOYED);
+
+  const selectVerifyMethod = (method: VerifyMethods) => {
+    if (method === verifyMethodSelected) {
+      setVerifyMethodSelected(VerifyMethods.DEPLOYED);
+    } else {
+      setVerifyMethodSelected(method);
+    }
+  };
+
   const [isDetailedViewShown, setIsDetailedViewShown] =
     useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -78,14 +101,52 @@ const CheckedContract: React.FC<CheckedContractProps> = ({
 
       {/* Collapsed section */}
       <div className={`${collapsed ? "hidden" : ""} break-words px-4 p-4`}>
-        {["perfect", "partial", "error"].includes(customStatus) && (
-          <ChainAddressForm
-            checkedContract={checkedContract}
-            customStatus={customStatus}
-            verifyCheckedContract={verifyCheckedContract}
-            setIsLoading={setIsLoading}
-          />
-        )}
+        <div className="flex flex-row flex-wrap gap-3 mt-4 justify-center md:justify-start mb-6">
+          <div className="">
+            <Button
+              type={
+                verifyMethodSelected === VerifyMethods.DEPLOYED
+                  ? "primary"
+                  : "white"
+              }
+              onClick={() => selectVerifyMethod(VerifyMethods.DEPLOYED)}
+              className="text-sm"
+            >
+              Verify deployed contract
+            </Button>
+          </div>
+          <div className="">
+            <Button
+              type={
+                verifyMethodSelected === VerifyMethods.COUNTERFACTUAL
+                  ? "primary"
+                  : "white"
+              }
+              onClick={() => selectVerifyMethod(VerifyMethods.COUNTERFACTUAL)}
+              className="text-sm"
+            >
+              Verify counterfactual contract
+            </Button>
+          </div>
+        </div>
+        {verifyMethodSelected === VerifyMethods.DEPLOYED &&
+          ["perfect", "partial", "error"].includes(customStatus) && (
+            <ChainAddressForm
+              checkedContract={checkedContract}
+              customStatus={customStatus}
+              verifyCheckedContract={verifyCheckedContract}
+              setIsLoading={setIsLoading}
+            />
+          )}
+        {verifyMethodSelected === VerifyMethods.COUNTERFACTUAL &&
+          ["perfect", "partial", "error"].includes(customStatus) && (
+            <CounterfactualForm
+              checkedContract={checkedContract}
+              customStatus={customStatus}
+              verifyCreate2CheckedContract={verifyCreate2CheckedContract}
+              setIsLoading={setIsLoading}
+            />
+          )}
         {customStatus === "missing" && (
           <Missing checkedContract={checkedContract} />
         )}

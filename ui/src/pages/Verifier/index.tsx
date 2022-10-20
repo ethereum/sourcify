@@ -7,9 +7,11 @@ import {
   RESTART_SESSION_URL,
   SESSION_DATA_URL,
   VERIFY_VALIDATED_URL,
+  CREATE2_VERIFY_VALIDATED_URL,
 } from "../../constants";
 import { Context } from "../../Context";
 import {
+  Create2VerificationInput,
   DropzoneFile,
   IGenericError,
   // IResponseError,
@@ -52,23 +54,34 @@ const Verifier: React.FC = () => {
         setErrorMessage("");
         return res;
       } catch (e: any) {
-        console.log(e)
-        const ErrorMessage = ({message} : {message: string}) => (
+        console.log(e);
+        const ErrorMessage = ({ message }: { message: string }) => (
           <div>
             {
               // Show if there's an error message from server. Otherwise possibly CORS.
-              message ? message : 
-                ( 
-                  <>
-                    <div>Possibly a CORS error, check the browser console.</div>
-                    <div>Are you on a different domain than sourcify.dev or sourcify.eth? API v2 is not available except the official UI. See <a className="font-bold" href="https://docs.sourcify.dev/docs/api/#verification-api-v2---session-based">docs</a> for details </div>
-                  </>
-                )
+              message ? (
+                message
+              ) : (
+                <>
+                  <div>Possibly a CORS error, check the browser console.</div>
+                  <div>
+                    Are you on a different domain than sourcify.dev or
+                    sourcify.eth? API v2 is not available except the official
+                    UI. See{" "}
+                    <a
+                      className="font-bold"
+                      href="https://docs.sourcify.dev/docs/api/#verification-api-v2---session-based"
+                    >
+                      docs
+                    </a>{" "}
+                    for details{" "}
+                  </div>
+                </>
+              )
             }
-
           </div>
-        )
-        setErrorMessage(<ErrorMessage message={e?.message as string}/>);
+        );
+        setErrorMessage(<ErrorMessage message={e?.message as string} />);
       }
     },
     [setErrorMessage]
@@ -99,7 +112,10 @@ const Verifier: React.FC = () => {
       // remove absolute path
       if (file.path.startsWith("/")) filePath = file.path.substring(1);
       // If a zip, send a seperate request, since there's already no file path
-      if (file.type === "application/zip" || file.type === "application/x-zip-compressed") {
+      if (
+        file.type === "application/zip" ||
+        file.type === "application/x-zip-compressed"
+      ) {
         const formData = new FormData();
         formData.append("files", file);
         await fetchAndUpdate(ADD_FILES_URL, {
@@ -145,6 +161,24 @@ const Verifier: React.FC = () => {
       body: JSON.stringify({
         contracts: [sendable],
       }),
+    });
+  };
+
+  /**
+   * Function to submit a create2 contract to verification
+   *
+   * @param sendable -
+   */
+  const verifyCreate2CheckedContract = async (
+    sendable: Create2VerificationInput
+  ) => {
+    console.log("Verifying create2 checkedContract " + sendable.verificationId);
+    return fetchAndUpdate(CREATE2_VERIFY_VALIDATED_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(sendable),
     });
   };
 
@@ -195,6 +229,7 @@ const Verifier: React.FC = () => {
           checkedContracts={checkedContracts}
           isHidden={checkedContracts.length < 1}
           verifyCheckedContract={verifyCheckedContract}
+          verifyCreate2CheckedContract={verifyCreate2CheckedContract}
         />
       </div>
       <div className="text-xs italic mx-2 mt-1 text-gray-400">

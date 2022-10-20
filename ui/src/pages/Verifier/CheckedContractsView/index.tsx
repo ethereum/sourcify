@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
+  Create2VerificationInput,
   SendableContract,
   SessionResponse,
   VerificationInput,
@@ -12,12 +13,16 @@ type CheckedContractsViewProps = {
   verifyCheckedContract: (
     sendable: VerificationInput
   ) => Promise<SessionResponse | undefined>;
+  verifyCreate2CheckedContract: (
+    sendable: Create2VerificationInput
+  ) => Promise<SessionResponse | undefined>;
 };
 
 const CheckedContractsView: React.FC<CheckedContractsViewProps> = ({
   checkedContracts,
   isHidden,
   verifyCheckedContract,
+  verifyCreate2CheckedContract,
 }) => {
   const [collapsed, setCollapsed] = useState<boolean[]>([]);
 
@@ -64,6 +69,7 @@ const CheckedContractsView: React.FC<CheckedContractsViewProps> = ({
               toggleCollapse={() => toggleCollapse(i)}
               checkedContract={contract}
               verifyCheckedContract={verifyCheckedContract}
+              verifyCreate2CheckedContract={verifyCreate2CheckedContract}
             />
           ))}
         </div>

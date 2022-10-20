@@ -319,11 +319,49 @@ export default class VerificationController
     }
   };
 
+  private sessionVerifyCreate2 = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    const session = req.session as MySession;
+    if (!session.contractWrappers || isEmpty(session.contractWrappers)) {
+      throw new BadRequestError("There are currently no pending contracts.");
+    }
+
+    const deployerAddress = req.body.deployerAddress;
+    const salt = req.body.salt;
+    const constructorArgs = req.body.constructorArgs || [];
+
+    const verificationId = req.body.verificationId;
+    const contractWrapper = session.contractWrappers[verificationId];
+
+    const contract: CheckedContract = contractWrapper.contract;
+    if (!contract.compilerVersion) {
+      throw new BadRequestError(
+        "Metadata file not specifying a compiler version."
+      );
+    }
+
+    const match = await this.verificationService.verifyCreate2(
+      contract,
+      deployerAddress,
+      salt,
+      constructorArgs
+    );
+
+    contractWrapper.status = match.status || "error";
+    contractWrapper.statusMessage = match.message;
+    contractWrapper.storageTimestamp = match.storageTimestamp;
+    contractWrapper.address = match.address;
+
+    res.send(getSessionJSON(session));
+  };
+
   private stringToBase64 = (str: string): string => {
     return Buffer.from(str, "utf8").toString("base64");
   };
 
-  private verifyFromEtherscanWithSession = async (
+  private sessionVerifyFromEtherscan = async (
     origReq: Request,
     res: Response
   ): Promise<void> => {
@@ -912,8 +950,14 @@ export default class VerificationController
         body("address").exists(),
         body("chainId").exists(),
         cors(corsOpt),
-        this.safeHandler(this.verifyFromEtherscanWithSession)
+        this.safeHandler(this.sessionVerifyFromEtherscan)
       );
+
+    this.router.route(["/session/verify/create2"]).all(cors(corsOpt)).post(
+      // TODO: add exists rules
+      cors(corsOpt),
+      this.safeHandler(this.sessionVerifyCreate2)
+    );
 
     return this.router;
   };
