@@ -685,15 +685,15 @@ export class Injector {
     deployerAddress: string,
     salt: string,
     constructorArgs: any
-  ) {
+  ): Promise<Match> {
+    const wrappedLogger = new LoggerWrapper(this.log);
+
     if (!CheckedContract.isValid(contract)) {
-      await CheckedContract.fetchMissing(contract);
+      await CheckedContract.fetchMissing(contract, wrappedLogger);
     }
 
     const constructorArgsTypes = constructorArgs.map((arg: any) => arg.type);
     const constructorArgsValues = constructorArgs.map((arg: any) => arg.value);
-
-    const wrappedLogger = new LoggerWrapper(this.log);
 
     const compilationResult = await recompile(
       contract.metadata,
@@ -719,13 +719,23 @@ export class Injector {
       compilationResult.deployedBytecode
     );
 
-    await this.storeMatch("0", [computedAddr], contract, compilationResult, {
+    const match: Match = {
       address: computedAddr,
       status: "perfect",
       storageTimestamp: new Date(),
       encodedConstructorArgs: encodedConstructorArgs,
       libraryMap: libraryMap,
-    });
+    };
+
+    await this.storeMatch(
+      "0",
+      [computedAddr],
+      contract,
+      compilationResult,
+      match
+    );
+
+    return match;
   }
 
   /**

@@ -305,13 +305,13 @@ export default class VerificationController
         );
       }
 
-      await this.verificationService.verifyCreate2(
+      const result = await this.verificationService.verifyCreate2(
         contract,
         deployerAddress,
         salt,
         constructorArgs
       );
-      res.send({ result: "ok" });
+      res.send({ result: [result] });
     } else if (baseContract !== null) {
       // TODO: verification with already verified contract
     } else {

@@ -25,7 +25,7 @@ export interface IVerificationService {
     deployerAddress: string,
     salt: string,
     constructorArgs: any
-  ): void;
+  ): Promise<Match>;
 }
 
 export class VerificationService implements IVerificationService {
@@ -135,7 +135,7 @@ export class VerificationService implements IVerificationService {
     deployerAddress: string,
     salt: string,
     constructorArgs: any
-  ) => {
+  ): Promise<Match> => {
     // Injection
     //const injection: Promise<Match>;
     //const { repository, chain, addresses, files } = inputData;
@@ -148,7 +148,7 @@ export class VerificationService implements IVerificationService {
       });
     }
 
-    await this.injector.verifyCreate2(
+    return await this.injector.verifyCreate2(
       contract,
       deployerAddress,
       salt,

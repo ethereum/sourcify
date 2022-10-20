@@ -81,8 +81,16 @@ export class CheckedContract {
       this.compilerVersion = metadata.compiler.version;
     }
 
-    const { solcJsonInput, fileName, contractName } =
-      createJsonInputFromMetadata(metadata, solidity);
+    let solcJsonInput, fileName, contractName;
+    try {
+      ({ solcJsonInput, fileName, contractName } = createJsonInputFromMetadata(
+        metadata,
+        solidity
+      ));
+    } catch (e) {
+      throw new Error("Cannot parse metadata");
+    }
+
     this.standardJson = solcJsonInput;
     this.compiledPath = fileName;
     this.name = contractName;

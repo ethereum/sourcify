@@ -119,11 +119,16 @@ export async function recompile(
   sources: StringMap,
   log: InfoErrorLogger
 ): Promise<RecompilationResult> {
-  const { solcJsonInput, fileName, contractName } = createJsonInputFromMetadata(
-    metadata,
-    sources,
-    log
-  );
+  let solcJsonInput, fileName, contractName;
+  try {
+    ({ solcJsonInput, fileName, contractName } = createJsonInputFromMetadata(
+      metadata,
+      sources,
+      log
+    ));
+  } catch (e) {
+    throw new Error("Cannot parse metadata");
+  }
 
   const loc = "[RECOMPILE]";
   const version = metadata.compiler.version;
