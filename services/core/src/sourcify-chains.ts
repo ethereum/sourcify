@@ -532,6 +532,6 @@ export default {
     contractFetchAddress:
       "https://blockscout.com/shiden/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex("/shiden"),
-    rpc: ["https://rpc.shiden.astar.network:8545"],
+    rpc: ["https://shiden.public.blastapi.io"],
   },
 };
