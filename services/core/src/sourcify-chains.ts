@@ -525,4 +525,12 @@ export default {
     contractFetchAddress: "https://klaytn-mainnet.aws-k8s.blockscout.com/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
+  "336": {
+    // Shiden (EVM) 
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://blockscout.com/shiden/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex("/shiden"),
+  },
 };
