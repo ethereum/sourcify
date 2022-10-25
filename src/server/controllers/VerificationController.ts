@@ -99,7 +99,12 @@ export default class VerificationController
     const invalidChainIds: string[] = [];
     for (const chainId of chainIdsArray) {
       try {
-        validChainIds.push(checkChainId(chainId));
+        if (chainId === "0") {
+          // create2 verified contract
+          validChainIds.push("0");
+        } else {
+          validChainIds.push(checkChainId(chainId));
+        }
       } catch (e) {
         invalidChainIds.push(chainId);
       }

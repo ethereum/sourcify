@@ -193,9 +193,9 @@ const NetworkRow = ({ address, chainId, status }: NetworkRowProp) => {
   );
 };
 
-const InfoText = (
+const InfoText = (isCreate2Verified: boolean) => (
   <span>
-    Sourcify verification means a matching Solidity source code of the deployed
+    Sourcify verification means a matching Solidity source code of the <br />{" "}
     contract is available on the Sourcify repo. <br /> See{" "}
     <a
       href="https://docs.sourcify.dev/docs/full-vs-partial-match"
@@ -204,9 +204,18 @@ const InfoText = (
       docs
     </a>{" "}
     for details.
+    {isCreate2Verified && (
+      <p className="mt-3">
+        This contract was verified with the create2 verification, it may not yet
+        be deployed.
+      </p>
+    )}
   </span>
 );
 const Found = ({ response }: FoundProp) => {
+  const chains = response?.chainIds.filter((chain) => chain.chainId !== "0");
+  const isCreate2Verified =
+    response?.chainIds.findIndex((chain) => chain.chainId === "0") >= 0;
   return (
     <div className="flex flex-col justify-center">
       <ReactTooltip
@@ -221,26 +230,32 @@ const Found = ({ response }: FoundProp) => {
           The contract at address{" "}
           <span className="font-medium break-all">{response?.address}</span> is{" "}
           <span
-            data-tip={renderToString(InfoText)}
+            data-tip={renderToString(InfoText(isCreate2Verified))}
             data-html={true}
             data-for="verified-info"
           >
-            verified
+            {isCreate2Verified && <>create2</>} verified
             <HiOutlineInformationCircle className="inline text-gray-600 text-lg" />
           </span>{" "}
-          on the following networks:
+          {chains.length > 0 && <span>on the following networks:</span>}
         </p>
       </div>
-      <table className="mt-12 mx-4 border-t">
-        {response?.chainIds.map(({ chainId, status }) => (
-          <NetworkRow
-            address={response?.address}
-            chainId={chainId}
-            status={status}
-            key={chainId}
-          />
-        ))}
-      </table>
+      {chains.length > 0 ? (
+        <table className="mt-12 mx-4 border-t">
+          {chains.map(({ chainId, status }) => (
+            <NetworkRow
+              address={response?.address}
+              chainId={chainId}
+              status={status}
+              key={chainId}
+            />
+          ))}
+        </table>
+      ) : (
+        <div className="mx-20 mt-1">
+          This contract has not yet been deployed on any chain
+        </div>
+      )}
       <div className="mt-14">
         <p>Not verified on the chain you are looking for?</p>
         <Link to="/verifier">
