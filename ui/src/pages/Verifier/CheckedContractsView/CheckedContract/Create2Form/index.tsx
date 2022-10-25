@@ -137,7 +137,7 @@ const CounterfactualForm = ({
       a.length === b.length &&
       a.every((v: any, i: number) => v.type === b[i].type);
 
-    const nextConstructorArgs = checkedContract.constructorArguments.map(
+    const nextConstructorArgs = checkedContract?.constructorArguments?.map(
       (arg: any) => ({
         type: arg.type,
         value: "",
@@ -145,8 +145,10 @@ const CounterfactualForm = ({
     );
 
     if (
-      !equals(nextConstructorArgs, constructorArgs) &&
-      checkedContract.constructorArguments
+      checkedContract?.constructorArguments &&
+      nextConstructorArgs &&
+      constructorArgs &&
+      !equals(nextConstructorArgs, constructorArgs)
     ) {
       setConstructorArgs(nextConstructorArgs);
     }
@@ -242,7 +244,7 @@ const CounterfactualForm = ({
               <div className="flex justify-between">
                 <label className="block">Constructor arguments</label>
               </div>
-              {checkedContract.constructorArguments.map((args, index) => (
+              {checkedContract?.constructorArguments?.map((args, index) => (
                 <div className="ml-5" key={`constructor_${index}`}>
                   <div className="flex justify-between">
                     <label className="block" htmlFor={args.name}>
