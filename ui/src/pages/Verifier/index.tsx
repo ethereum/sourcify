@@ -8,6 +8,7 @@ import {
   SESSION_DATA_URL,
   VERIFY_VALIDATED_URL,
   CREATE2_VERIFY_VALIDATED_URL,
+  CREATE2_COMPILE_URL,
 } from "../../constants";
 import { Context } from "../../Context";
 import {
@@ -182,6 +183,22 @@ const Verifier: React.FC = () => {
     });
   };
 
+  /**
+   * Function to compile a create2 contract
+   *
+   * @param sendable -
+   */
+  const verifyCreate2Compile = async (verificationId: string) => {
+    console.log("Compiling create2 checkedContract " + verificationId);
+    return fetchAndUpdate(CREATE2_COMPILE_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ verificationId }),
+    });
+  };
+
   useEffect(() => {
     fetchAndUpdate(SESSION_DATA_URL);
   }, [fetchAndUpdate]);
@@ -230,6 +247,7 @@ const Verifier: React.FC = () => {
           isHidden={checkedContracts.length < 1}
           verifyCheckedContract={verifyCheckedContract}
           verifyCreate2CheckedContract={verifyCreate2CheckedContract}
+          verifyCreate2Compile={verifyCreate2Compile}
         />
       </div>
       <div className="text-xs italic mx-2 mt-1 text-gray-400">

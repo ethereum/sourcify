@@ -16,6 +16,9 @@ type CheckedContractsViewProps = {
   verifyCreate2CheckedContract: (
     sendable: Create2VerificationInput
   ) => Promise<SessionResponse | undefined>;
+  verifyCreate2Compile: (
+    verificationId: string
+  ) => Promise<SessionResponse | undefined>;
 };
 
 const CheckedContractsView: React.FC<CheckedContractsViewProps> = ({
@@ -23,6 +26,7 @@ const CheckedContractsView: React.FC<CheckedContractsViewProps> = ({
   isHidden,
   verifyCheckedContract,
   verifyCreate2CheckedContract,
+  verifyCreate2Compile,
 }) => {
   const [collapsed, setCollapsed] = useState<boolean[]>([]);
 
@@ -70,6 +74,7 @@ const CheckedContractsView: React.FC<CheckedContractsViewProps> = ({
               checkedContract={contract}
               verifyCheckedContract={verifyCheckedContract}
               verifyCreate2CheckedContract={verifyCreate2CheckedContract}
+              verifyCreate2Compile={verifyCreate2Compile}
             />
           ))}
         </div>

@@ -10,7 +10,7 @@ import {
   Create2VerificationInput,
 } from "../../../../types";
 import ChainAddressForm from "./ChainAddressForm";
-import CounterfactualForm from "./CounterfactualForm";
+import Create2Form from "./Create2Form";
 import Invalid from "./Invalid";
 import Label from "./Label";
 import Missing from "./Missing";
@@ -23,19 +23,23 @@ type CheckedContractProps = {
   verifyCreate2CheckedContract: (
     sendable: Create2VerificationInput
   ) => Promise<SessionResponse | undefined>;
+  verifyCreate2Compile: (
+    verificationId: string
+  ) => Promise<SessionResponse | undefined>;
   collapsed: boolean;
   toggleCollapse: () => void;
 };
 
 enum VerifyMethods {
   DEPLOYED,
-  COUNTERFACTUAL,
+  CREATE2,
 }
 
 const CheckedContract: React.FC<CheckedContractProps> = ({
   checkedContract,
   verifyCheckedContract,
   verifyCreate2CheckedContract,
+  verifyCreate2Compile,
   collapsed,
   toggleCollapse,
 }) => {
@@ -46,6 +50,13 @@ const CheckedContract: React.FC<CheckedContractProps> = ({
     if (method === verifyMethodSelected) {
       setVerifyMethodSelected(VerifyMethods.DEPLOYED);
     } else {
+      if (
+        method === VerifyMethods.CREATE2 &&
+        checkedContract.verificationId &&
+        !checkedContract.creationBytecode
+      ) {
+        verifyCreate2Compile(checkedContract.verificationId);
+      }
       setVerifyMethodSelected(method);
     }
   };
@@ -118,14 +129,14 @@ const CheckedContract: React.FC<CheckedContractProps> = ({
           <div className="">
             <Button
               type={
-                verifyMethodSelected === VerifyMethods.COUNTERFACTUAL
+                verifyMethodSelected === VerifyMethods.CREATE2
                   ? "primary"
                   : "white"
               }
-              onClick={() => selectVerifyMethod(VerifyMethods.COUNTERFACTUAL)}
+              onClick={() => selectVerifyMethod(VerifyMethods.CREATE2)}
               className="text-sm"
             >
-              Verify counterfactual contract
+              Verify create2 contract
             </Button>
           </div>
         </div>
@@ -138,9 +149,9 @@ const CheckedContract: React.FC<CheckedContractProps> = ({
               setIsLoading={setIsLoading}
             />
           )}
-        {verifyMethodSelected === VerifyMethods.COUNTERFACTUAL &&
+        {verifyMethodSelected === VerifyMethods.CREATE2 &&
           ["perfect", "partial", "error"].includes(customStatus) && (
-            <CounterfactualForm
+            <Create2Form
               checkedContract={checkedContract}
               customStatus={customStatus}
               verifyCreate2CheckedContract={verifyCreate2CheckedContract}

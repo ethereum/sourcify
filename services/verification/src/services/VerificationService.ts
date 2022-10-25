@@ -24,8 +24,10 @@ export interface IVerificationService {
     contract: CheckedContract,
     deployerAddress: string,
     salt: string,
-    constructorArgs: any
+    constructorArgs: any,
+    create2Address: string
   ): Promise<Match>;
+  recompile(contract: CheckedContract): Promise<any>;
 }
 
 export class VerificationService implements IVerificationService {
@@ -134,7 +136,8 @@ export class VerificationService implements IVerificationService {
     contract: CheckedContract,
     deployerAddress: string,
     salt: string,
-    constructorArgs: any
+    constructorArgs: any,
+    create2Address: string
   ): Promise<Match> => {
     // Injection
     //const injection: Promise<Match>;
@@ -152,7 +155,24 @@ export class VerificationService implements IVerificationService {
       contract,
       deployerAddress,
       salt,
-      constructorArgs
+      constructorArgs,
+      create2Address
     );
+  };
+
+  recompile = async (contract: CheckedContract): Promise<any> => {
+    // Injection
+    //const injection: Promise<Match>;
+    //const { repository, chain, addresses, files } = inputData;
+    if (!this.injector) {
+      this.injector = await Injector.createAsync({
+        log: this.logger,
+        repositoryPath: this.fileService.repositoryPath,
+        fileService: this.fileService,
+        web3timeout: parseInt(process.env.WEB3_TIMEOUT),
+      });
+    }
+
+    return await this.injector.recompile(contract);
   };
 }

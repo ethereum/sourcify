@@ -627,6 +627,26 @@ export class Injector {
    * @param  {string[]}          files
    * @return {Promise<object>}              address & status of successfully verified contract
    */
+  public async recompile(contract: CheckedContract): Promise<any> {
+    const wrappedLogger = new LoggerWrapper(this.log);
+
+    if (!CheckedContract.isValid(contract)) {
+      await CheckedContract.fetchMissing(contract, wrappedLogger);
+    }
+
+    return await recompile(contract.metadata, contract.solidity, wrappedLogger);
+  }
+
+  /**
+   * Used by the front-end. Accepts a set of source files and a metadata string,
+   * recompiles / validates them and stores them in the repository by chain/address
+   * and by swarm | ipfs hash.
+   * @param  {string}            repository repository root (ex: 'repository')
+   * @param  {string}            chain      chain name (ex: 'ropsten')
+   * @param  {string}            address    contract address
+   * @param  {string[]}          files
+   * @return {Promise<object>}              address & status of successfully verified contract
+   */
   public async inject(inputData: InputData): Promise<Match> {
     const { chain, addresses, contract } = inputData;
     this.validateAddresses(addresses);
@@ -684,7 +704,8 @@ export class Injector {
     contract: CheckedContract,
     deployerAddress: string,
     salt: string,
-    constructorArgs: any
+    constructorArgs: any,
+    create2Address: string
   ): Promise<Match> {
     const wrappedLogger = new LoggerWrapper(this.log);
 
@@ -708,6 +729,12 @@ export class Injector {
       constructorTypes: constructorArgsTypes,
       constructorArgs: constructorArgsValues,
     });
+
+    if (create2Address !== computedAddr) {
+      throw new Error(
+        `In-browser generated create2 address doesn't match server's generated one. Expected: ${computedAddr} ; Received: ${create2Address} ;`
+      );
+    }
 
     const encodedConstructorArgs = this.extractEncodedConstructorArgs(
       compilationResult.creationBytecode,

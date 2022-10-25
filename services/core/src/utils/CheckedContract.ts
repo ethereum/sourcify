@@ -39,6 +39,9 @@ export class CheckedContract {
   /** The name of the contract. */
   name: string;
 
+  /** The bytecodes of the contract. */
+  creationBytecode?: string;
+
   /** Checks whether this contract is valid or not.
    *  This is a static method due to persistence issues.
    *

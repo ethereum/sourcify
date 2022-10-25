@@ -18,4 +18,5 @@ export const ADD_FILES_URL = `${SERVER_URL}/session/input-files`;
 export const VERIFY_VALIDATED_URL = `${SERVER_URL}/session/verify-validated`;
 export const VERIFY_FROM_ETHERSCAN = `${SERVER_URL}/session/verify/etherscan`;
 export const CREATE2_VERIFY_VALIDATED_URL = `${SERVER_URL}/session/verify/create2`;
+export const CREATE2_COMPILE_URL = `${SERVER_URL}/session/verify/create2/compile`;
 export const RESTART_SESSION_URL = `${SERVER_URL}/session/clear`;

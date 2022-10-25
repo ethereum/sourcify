@@ -270,6 +270,7 @@ export default class VerificationController
     const constructorArgs = req.body.constructorArgs || [];
     const baseContract = req.body.baseContract || null;
     const files = req.body.files || null;
+    const create2Address = req.body.create2Address;
 
     if (files !== null) {
       const inputFiles = this.extractFilesFromJSON(files);
@@ -309,7 +310,8 @@ export default class VerificationController
         contract,
         deployerAddress,
         salt,
-        constructorArgs
+        constructorArgs,
+        create2Address
       );
       res.send({ result: [result] });
     } else if (baseContract !== null) {
@@ -333,6 +335,7 @@ export default class VerificationController
     const constructorArgs = req.body.constructorArgs || [];
 
     const verificationId = req.body.verificationId;
+    const create2Address = req.body.create2Address;
     const contractWrapper = session.contractWrappers[verificationId];
 
     const contract: CheckedContract = contractWrapper.contract;
@@ -346,13 +349,36 @@ export default class VerificationController
       contract,
       deployerAddress,
       salt,
-      constructorArgs
+      constructorArgs,
+      create2Address
     );
 
     contractWrapper.status = match.status || "error";
     contractWrapper.statusMessage = match.message;
     contractWrapper.storageTimestamp = match.storageTimestamp;
     contractWrapper.address = match.address;
+
+    res.send(getSessionJSON(session));
+  };
+
+  private sessionPrecompileContract = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    const session = req.session as MySession;
+    if (!session.contractWrappers || isEmpty(session.contractWrappers)) {
+      throw new BadRequestError("There are currently no pending contracts.");
+    }
+
+    const verificationId = req.body.verificationId;
+    const contractWrapper = session.contractWrappers[verificationId];
+
+    const compilationResult = await this.verificationService.recompile(
+      contractWrapper.contract
+    );
+
+    contractWrapper.contract.creationBytecode =
+      compilationResult.creationBytecode;
 
     res.send(getSessionJSON(session));
   };
@@ -958,6 +984,15 @@ export default class VerificationController
       cors(corsOpt),
       this.safeHandler(this.sessionVerifyCreate2)
     );
+
+    this.router
+      .route(["/session/verify/create2/compile"])
+      .all(cors(corsOpt))
+      .post(
+        // TODO: add exists rules
+        cors(corsOpt),
+        this.safeHandler(this.sessionPrecompileContract)
+      );
 
     return this.router;
   };
