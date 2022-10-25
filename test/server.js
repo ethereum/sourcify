@@ -242,6 +242,49 @@ describe("Server", function () {
     });
   }
 
+  describe("/session/verify/create2", function () {
+    const assertAllFound = (err, res, finalStatus) => {
+      chai.expect(err).to.be.null;
+      chai.expect(res.status).to.equal(StatusCodes.OK);
+
+      const contracts = res.body.contracts;
+      chai.expect(contracts).to.have.a.lengthOf(1);
+      const contract = contracts[0];
+
+      chai.expect(contract.status).to.equal(finalStatus);
+    };
+
+    this.timeout(EXTENDED_TIME_60);
+
+    const agent = chai.request.agent(server.app);
+
+    it("should input contract and retrieve files", async () => {
+      const res = await agent
+        .post("/session/input-contract")
+        .field("address", "0x00000000219ab540356cBB839Cbe05303d7705Fa")
+        .field("chainId", "1")
+      chai.expect(res.body.contracts).to.have.a.lengthOf(1)
+      const contract = res.body.contracts[0]
+      chai.expect(contract.files.found).to.have.a.lengthOf(1)
+      const retrivedFile = contract.files.found[0]
+      chai.expect(retrivedFile).to.equal('deposit_contract.sol')
+    });
+
+    it("should create2 verify", (done) => {
+      agent
+        .post("/session/verify/create2")
+        .field("constructorArgs", [])
+        .field("create2Address", "0xd77153a483aa0af37c46ad6ab5ce3aa76dfca184")
+        .field("deployerAddress", "0xF64D868cfDb1Ad4C3589452Ac541CB851e2E80e4")
+        .field("salt", "1")
+        .field("verificationId", "0xb9db6720e834b5189d0e49e63a6611f5e35402cbd0222b80526a145c53e10867")
+        .end((err, res) => {
+          assertAllFound(err, res, "perfect");
+          done();
+        });
+    });
+  });
+
   describe("/check-by-addresses", function () {
     this.timeout(EXTENDED_TIME);
 
