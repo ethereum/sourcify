@@ -14,6 +14,8 @@ import {
   Create2VerificationInput,
 } from "../../../../../types";
 import Message from "../ChainAddressForm/Message";
+import LoadingOverlay from "../../../../../components/LoadingOverlay";
+
 const { keccak256 } = require("@ethersproject/keccak256");
 const { isHexString } = require("@ethersproject/bytes");
 const { id } = require("@ethersproject/hash");
@@ -261,7 +263,7 @@ const CounterfactualForm = ({
           </button>
         </form>
       ) : (
-        <span>Loading</span>
+        <LoadingOverlay message="Getting creation bytecode" />
       )}
     </div>
   );
