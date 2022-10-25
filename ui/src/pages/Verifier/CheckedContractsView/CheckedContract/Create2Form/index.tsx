@@ -40,7 +40,6 @@ export const buildBytecode = (
   contractBytecode: string
 ) => {
   try {
-    console.log(contractBytecode);
     return `${contractBytecode}${encodeParams(
       constructorTypes,
       constructorArgs
@@ -146,7 +145,7 @@ const CounterfactualForm = ({
 
   useEffect(() => {
     if (!address || !salt || !checkedContract?.creationBytecode) {
-      return;
+      return setcreate2Address(undefined);
     }
     const create2Address = getCreate2Address({
       factoryAddress: address,
@@ -155,7 +154,11 @@ const CounterfactualForm = ({
       constructorTypes: constructorArgs.map((args) => args.type),
       constructorArgs: constructorArgs.map((args) => args.value),
     });
-    setcreate2Address(`${create2Address}`);
+    if (create2Address) {
+      setcreate2Address(create2Address);
+    } else {
+      setcreate2Address(undefined);
+    }
   }, [address, salt, constructorArgs, checkedContract]);
 
   const handleAddressChange: ChangeEventHandler<HTMLInputElement> = (e) => {
@@ -250,14 +253,16 @@ const CounterfactualForm = ({
               ))}
             </div>
           )}
-          <div className="mt-4">
-            <strong>Address:</strong> {create2Address}
-          </div>
+          {create2Address && (
+            <div className="mt-4 text-sm">
+              <strong>Address:</strong> {create2Address}
+            </div>
+          )}
           <button
             ref={verifyButtonRef}
             type="submit"
             className="mt-4 py-2 px-4 w-full bg-ceruleanBlue-500 hover:bg-ceruleanBlue-130 disabled:hover:bg-ceruleanBlue-500 focus:ring-ceruleanBlue-300 focus:ring-offset-ceruleanBlue-100 text-white transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-default "
-            disabled={!address || isInvalidAddress}
+            disabled={!create2Address}
           >
             Verify
           </button>
