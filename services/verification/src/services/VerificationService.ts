@@ -28,6 +28,7 @@ export interface IVerificationService {
     create2Address: string
   ): Promise<Match>;
   recompile(contract: CheckedContract): Promise<any>;
+  getBytecode(address: string, chain: string): Promise<string>;
 }
 
 export class VerificationService implements IVerificationService {
@@ -174,5 +175,21 @@ export class VerificationService implements IVerificationService {
     }
 
     return await this.injector.recompile(contract);
+  };
+
+  getBytecode = async (address: string, chainId: string): Promise<any> => {
+    // Injection
+    //const injection: Promise<Match>;
+    //const { repository, chain, addresses, files } = inputData;
+    if (!this.injector) {
+      this.injector = await Injector.createAsync({
+        log: this.logger,
+        repositoryPath: this.fileService.repositoryPath,
+        fileService: this.fileService,
+        web3timeout: parseInt(process.env.WEB3_TIMEOUT),
+      });
+    }
+
+    return await this.injector.getBytecode(address, chainId);
   };
 }

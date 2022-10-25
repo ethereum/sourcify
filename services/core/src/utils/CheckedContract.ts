@@ -264,9 +264,9 @@ export class CheckedContract {
  * @param log whether or not to log
  * @returns the fetched file if found; null otherwise
  */
-async function performFetch(
+export async function performFetch(
   url: string,
-  hash: string,
+  hash: string | null,
   fileName: string,
   log?: InfoErrorLogger
 ): Promise<string> {
@@ -279,7 +279,7 @@ async function performFetch(
 
   if (res && res.status === 200) {
     const content = await res.text();
-    if (Web3.utils.keccak256(content) !== hash) {
+    if (hash !== null && Web3.utils.keccak256(content) !== hash) {
       if (log)
         log.error(
           infoObject,

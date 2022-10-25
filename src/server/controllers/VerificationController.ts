@@ -1,4 +1,5 @@
 import { Request, Response, Router } from "express";
+import { decode } from "@marcocastignoli/bytecode-utils";
 import BaseController from "./BaseController";
 import { IController } from "../../common/interfaces";
 import { IVerificationService } from "@ethereum-sourcify/verification";
@@ -8,6 +9,7 @@ import {
   Logger,
   PathBuffer,
   CheckedContract,
+  performFetch,
   isEmpty,
   PathContent,
   Match,
@@ -45,6 +47,7 @@ import config from "../../config";
 import fetch from "node-fetch";
 
 const FILE_ENCODING = "base64";
+const IPFS_GATEWAY = process.env.IPFS_GATEWAY || "https://ipfs.io/ipfs/";
 
 export default class VerificationController
   extends BaseController
@@ -838,6 +841,55 @@ export default class VerificationController
     res.send(getSessionJSON(session));
   };
 
+  private addInputContractEndpoint = async (req: Request, res: Response) => {
+    this.validateRequest(req);
+
+    const address = req.body.address;
+    const chainId = req.body.chainId;
+
+    // TODO: exctract bytecode
+    const bytecode = await this.verificationService.getBytecode(
+      address,
+      chainId
+    );
+
+    const { ipfs: metadataIpfsCid } = decode(bytecode);
+
+    if (!metadataIpfsCid) {
+      throw new BadRequestError(
+        "The contract doesn't have a metadata IPFS CID"
+      );
+    }
+
+    const ipfsUrl = `${IPFS_GATEWAY}${metadataIpfsCid}`;
+    const metadataFileName = "metadata.json";
+    const retrievedMetadataText = await performFetch(
+      ipfsUrl,
+      null,
+      metadataFileName,
+      null
+    );
+
+    const pathContents: PathContent[] = [];
+
+    const retrievedMetadataBase64 = Buffer.from(retrievedMetadataText).toString(
+      "base64"
+    );
+
+    pathContents.push({
+      path: metadataFileName,
+      content: retrievedMetadataBase64,
+    });
+
+    const session = req.session as MySession;
+    const newFilesCount = this.saveFiles(pathContents, session);
+    if (newFilesCount) {
+      await this.validateContracts(session);
+      await this.verifyValidated(session.contractWrappers, session);
+    }
+    res.send(getSessionJSON(session));
+  };
+
   private restartSessionEndpoint = async (req: Request, res: Response) => {
     req.session.destroy((error: Error) => {
       let logMethod: keyof bunyan = null;
@@ -954,6 +1006,11 @@ export default class VerificationController
       .route(["/input-files", "/session/input-files"])
       .all(cors(corsOpt))
       .post(cors(corsOpt), this.safeHandler(this.addInputFilesEndpoint));
+
+    this.router
+      .route(["/session/input-contract"])
+      .all(cors(corsOpt))
+      .post(cors(corsOpt), this.safeHandler(this.addInputContractEndpoint));
 
     this.router
       .route(["/restart-session", "/session/clear"])

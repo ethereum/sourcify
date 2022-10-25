@@ -50,6 +50,7 @@
     "@ethereum-sourcify/core": "*",
     "@ethereum-sourcify/validation": "*",
     "@ethereum-sourcify/verification": "*",
+    "@marcocastignoli/bytecode-utils": "^1.0.3",
     "@types/node-fetch": "^2.5.7",
     "bunyan": "^1.8.12",
     "commander": "^9.0.0",

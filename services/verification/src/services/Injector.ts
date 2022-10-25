@@ -637,6 +637,10 @@ export class Injector {
     return await recompile(contract.metadata, contract.solidity, wrappedLogger);
   }
 
+  public async getBytecode(address: string, chainId: string): Promise<any> {
+    return await getBytecode(this.chains[chainId].web3array, address);
+  }
+
   /**
    * Used by the front-end. Accepts a set of source files and a metadata string,
    * recompiles / validates them and stores them in the repository by chain/address
