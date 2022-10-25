@@ -133,15 +133,24 @@ const CounterfactualForm = ({
   const verifyButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    if (checkedContract.constructorArguments) {
-      setConstructorArgs(
-        checkedContract.constructorArguments.map((arg: any) => ({
-          type: arg.type,
-          value: "",
-        }))
-      );
+    const equals = (a: any, b: any) =>
+      a.length === b.length &&
+      a.every((v: any, i: number) => v.type === b[i].type);
+
+    const nextConstructorArgs = checkedContract.constructorArguments.map(
+      (arg: any) => ({
+        type: arg.type,
+        value: "",
+      })
+    );
+
+    if (
+      !equals(nextConstructorArgs, constructorArgs) &&
+      checkedContract.constructorArguments
+    ) {
+      setConstructorArgs(nextConstructorArgs);
     }
-  }, [setAddress, setConstructorArgs, checkedContract]);
+  }, [setAddress, setConstructorArgs, constructorArgs, checkedContract]);
 
   useEffect(() => {
     if (!address || !salt || !checkedContract?.creationBytecode) {
