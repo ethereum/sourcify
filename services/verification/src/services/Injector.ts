@@ -14,6 +14,7 @@ import {
   Chain,
   Status,
   Metadata,
+  Create2Args,
 } from "@ethereum-sourcify/core";
 import {
   RecompilationResult,
@@ -586,6 +587,15 @@ export class Injector {
         );
       }
 
+      if (match.create2Args) {
+        this.storeCreate2Args(
+          matchQuality,
+          chain,
+          match.address,
+          match.create2Args
+        );
+      }
+
       if (match.libraryMap && Object.keys(match.libraryMap).length) {
         this.storeLibraryMap(
           matchQuality,
@@ -750,11 +760,18 @@ export class Injector {
       compilationResult.deployedBytecode
     );
 
+    const create2Args: Create2Args = {
+      deployerAddress,
+      salt,
+      constructorArgs,
+    };
+
     const match: Match = {
       address: computedAddr,
       status: "perfect",
       storageTimestamp: new Date(),
       encodedConstructorArgs: encodedConstructorArgs,
+      create2Args,
       libraryMap: libraryMap,
     };
 
@@ -889,6 +906,31 @@ export class Injector {
         fileName: "constructor-args.txt",
       },
       encodedConstructorArgs
+    );
+  }
+
+  /**
+   * Writes the create2 arguments to the repository.
+   * @param matchQuality
+   * @param chain
+   * @param address
+   * @param create2Args
+   */
+  private storeCreate2Args(
+    matchQuality: MatchQuality,
+    chain: string,
+    address: string,
+    create2Args: Create2Args
+  ) {
+    this.fileService.save(
+      {
+        matchQuality,
+        chain,
+        address,
+        source: false,
+        fileName: "create2-args.json",
+      },
+      JSON.stringify(create2Args)
     );
   }
 

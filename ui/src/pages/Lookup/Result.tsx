@@ -212,6 +212,56 @@ const InfoText = (isCreate2Verified: boolean) => (
     )}
   </span>
 );
+
+const Create2Info = (response: CheckAllByAddressResult) => {
+  const isCreate2Verified =
+    response?.chainIds.findIndex((chain) => chain.chainId === "0") >= 0;
+  let deployerAddress: string | undefined;
+  let salt: string | undefined;
+  let constructorArgs: any[] | undefined;
+  if (isCreate2Verified) {
+    deployerAddress = response?.create2Args?.deployerAddress;
+    salt = response?.create2Args?.salt;
+    constructorArgs = response?.create2Args?.constructorArgs;
+  }
+  return (
+    <div className="mt-4 mb-4">
+      <div className="flex flex-col w-full">
+        <div className="flex flex-row gap-5">
+          <div className="w-2/5 text-right">
+            <div>Deployer:</div>
+          </div>
+          <div className="w-3/5 text-left break-all">{deployerAddress}</div>
+        </div>
+        <div className="flex flex-row gap-5">
+          <div className="w-2/5 text-right">
+            <div>Salt:</div>
+          </div>
+          <div className="w-3/5 text-left">
+            <div className="break-all">{salt}</div>
+          </div>
+        </div>
+        <div className="flex flex-row gap-5">
+          <div className="w-2/5 text-right">
+            <div>Constructor:</div>
+          </div>
+          <div className="w-3/5 text-left">
+            <div className="break-all">
+              <ul>
+                {constructorArgs?.map((ca, i) => (
+                  <li key={`constructorArgs_${i}`}>
+                    {ca.value} ({ca.type})
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Found = ({ response }: FoundProp) => {
   const chains = response?.chainIds.filter((chain) => chain.chainId !== "0");
   const isCreate2Verified =
@@ -237,8 +287,9 @@ const Found = ({ response }: FoundProp) => {
             {isCreate2Verified && <>create2</>} verified
             <HiOutlineInformationCircle className="inline text-gray-600 text-lg" />
           </span>{" "}
-          {chains.length > 0 && <span>on the following networks:</span>}
         </p>
+        {isCreate2Verified && Create2Info(response)}
+        <p>{chains.length > 0 && <span>on the following networks:</span>}</p>
       </div>
       {chains.length > 0 ? (
         <table className="mt-12 mx-4 border-t">

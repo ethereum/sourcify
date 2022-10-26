@@ -71,12 +71,19 @@ export interface SourceMap {
   [compiledPath: string]: PathContent;
 }
 
+export interface Create2Args {
+  deployerAddress?: string | undefined;
+  salt?: string | undefined;
+  constructorArgs?: any[] | undefined;
+}
+
 export interface Match {
   address: string | null;
   status: Status;
   storageTimestamp?: Date;
   message?: string;
   encodedConstructorArgs?: string;
+  create2Args?: Create2Args;
   libraryMap?: StringMap;
 }
 

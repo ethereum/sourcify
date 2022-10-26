@@ -559,7 +559,11 @@ export default class VerificationController
           );
           if (found.length != 0) {
             if (!map.has(address)) {
-              map.set(address, { address, chainIds: [] });
+              map.set(address, {
+                address,
+                create2Args: found[0].create2Args,
+                chainIds: [],
+              });
             }
 
             map

@@ -91,6 +91,11 @@ export type CheckAllByAddressResult = {
     chainId: string;
     status: string;
   }[];
+  create2Args?: {
+    deployerAddress?: string | undefined;
+    salt?: string | undefined;
+    constructorArgs?: any[] | undefined;
+  };
 };
 
 export type Chain = {
