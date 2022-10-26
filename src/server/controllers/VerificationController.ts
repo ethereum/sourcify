@@ -45,6 +45,7 @@ import web3utils from "web3-utils";
 import cors from "cors";
 import config from "../../config";
 import fetch from "node-fetch";
+import { NextFunction } from "express-serve-static-core";
 
 const FILE_ENCODING = "base64";
 const IPFS_GATEWAY = process.env.IPFS_GATEWAY || "https://ipfs.io/ipfs/";
@@ -936,6 +937,25 @@ export default class VerificationController
     }
   }
 
+  private authenticatedRequest(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    const sourcifyClientTokensRaw = process.env.SOURCIFY_CLIENT_TOKENS;
+    if (sourcifyClientTokensRaw?.length) {
+      const sourcifyClientTokens = sourcifyClientTokensRaw.split(",");
+      const clientToken = req.body.clientToken;
+      if (!clientToken) {
+        throw new BadRequestError("This API is protected by a client token");
+      }
+      if (!sourcifyClientTokens.includes(clientToken)) {
+        throw new BadRequestError("The client token you provided is not valid");
+      }
+    }
+    next();
+  }
+
   registerRoutes = (): Router => {
     const corsOpt = {
       origin: config.corsAllowedOrigins,
@@ -966,6 +986,7 @@ export default class VerificationController
 
     this.router.route(["/verify/create2"]).post(
       // TODO: add validation
+      this.authenticatedRequest,
       this.safeHandler(this.verifyCreate2)
     );
 
@@ -1048,6 +1069,7 @@ export default class VerificationController
     this.router.route(["/session/verify/create2"]).all(cors(corsOpt)).post(
       // TODO: add exists rules
       cors(corsOpt),
+      this.authenticatedRequest,
       this.safeHandler(this.sessionVerifyCreate2)
     );
 

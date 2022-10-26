@@ -73,6 +73,7 @@ export type Create2VerificationInput = {
   salt: string;
   constructorArgs: any[];
   create2Address: string;
+  clientToken: string;
 };
 
 export interface Match {

@@ -109,6 +109,7 @@ const CounterfactualForm = ({
   verifyCreate2CheckedContract,
   setIsLoading,
 }: ChainAddressFormProps) => {
+  const [clientToken, setClientToken] = useState<string>();
   const [address, setAddress] = useState<string>();
   const [salt, setSalt] = useState<string>();
   const [constructorArgs, setConstructorArgs] = useState<ConstructorArgs[]>([]);
@@ -193,6 +194,7 @@ const CounterfactualForm = ({
       salt: salt || "",
       constructorArgs,
       create2Address: create2Address || "",
+      clientToken: clientToken || "",
     }).finally(() => setIsLoading(false));
   };
   return (
@@ -206,6 +208,25 @@ const CounterfactualForm = ({
       </div>
       {checkedContract?.creationBytecode ? (
         <form className="mt-4" onSubmit={handleSubmit}>
+          <div>
+            <div className="flex justify-between">
+              <label className="block" htmlFor="clientToken">
+                Client token
+                <p className="mb-1 text-xs">
+                  This functionality is protected by a client token in order to
+                  prevent spamming. If you are interested please send an email
+                  to <a href="mailto:info@sourcify.dev">info@sourcify.dev</a>
+                </p>
+              </label>
+            </div>
+            <Input
+              id="clientToken"
+              value={clientToken}
+              onChange={(e) => setClientToken(e.target.value)}
+              placeholder="CLIENT_TOKEN"
+              className="mb-2"
+            />
+          </div>
           <div>
             <div className="flex justify-between">
               <label className="block" htmlFor="address">
