@@ -284,7 +284,7 @@ describe("Server", function () {
         .field("deployerAddress", "0xF64D868cfDb1Ad4C3589452Ac541CB851e2E80e4")
         .field("salt", "1")
         .field("verificationId", "0xb9db6720e834b5189d0e49e63a6611f5e35402cbd0222b80526a145c53e10867")
-        .field("clientToken", clientToken)
+        .field("clientToken", clientToken || '')
         .end((err, res) => {
           assertAllFound(err, res, "perfect");
           done();
