@@ -409,23 +409,6 @@ describe("Test Supported Chains", function () {
   );
 
   verifyContract(
-    "0xd46fd24ea21F04459407Fb0B518451e54d0b07a1",
-    "421611",
-    "Arbitrum Rinkeby",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
-  );
-  verifyContractWithImmutables(
-    "0x84d9eF98bF8a66bfB6ed8383F340C402507CfC15",
-    "421611",
-    "Arbitrum Rinkeby",
-    ["uint256"],
-    [42],
-    ["shared/WithImmutables.sol"],
-    "shared/withImmutables.metadata.json"
-  );
-
-  verifyContract(
     "0x0e9b6C08Fe70Aac8fd08a74a076c2B1C9f7c7d14",
     "42161",
     "Arbitrum Mainnet",

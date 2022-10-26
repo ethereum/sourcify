@@ -192,13 +192,6 @@ export default {
     rpc: [buildAlchemyURL("mumbai", "polygon")],
     txRegex: ETHERSCAN_REGEX,
   },
-  "421611": {
-    // Arbitrum Rinkeby Testnet
-    supported: true,
-    monitored: true,
-    graphQLFetchAddress: "https://rinkeby-indexer.arbitrum.io/graphql",
-    rpc: [buildAlchemyURL("rinkeby", "arb")],
-  },
   "42161": {
     // Arbitrum Mainnet
     supported: true,
@@ -511,11 +504,10 @@ export default {
     rpc: ["https://core.poa.network"],
   },
   "592": {
-    // Astar (EVM) 
+    // Astar (EVM)
     supported: true,
     monitored: false,
-    contractFetchAddress:
-      "https://blockscout.com/astar/" + BLOCKSCOUT_SUFFIX,
+    contractFetchAddress: "https://blockscout.com/astar/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex("/astar"),
   },
 };
