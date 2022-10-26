@@ -225,7 +225,7 @@ const Found = ({ response }: FoundProp) => {
         className="max-w-xl"
         id="verified-info"
       />
-      <div className="mx-20 mt-1">
+      <div className="sm:mx-20 mt-1 ">
         <p>
           The contract at address{" "}
           <span className="font-medium break-all">{response?.address}</span> is{" "}
@@ -252,7 +252,7 @@ const Found = ({ response }: FoundProp) => {
           ))}
         </table>
       ) : (
-        <div className="mx-20 mt-1">
+        <div className="sm:mx-20 mt-1">
           This contract has not yet been deployed on any chain
         </div>
       )}
@@ -269,7 +269,7 @@ const Found = ({ response }: FoundProp) => {
 const NotFound = ({ address }: NotFoundProp) => {
   return (
     <>
-      <div className="mx-20 mt-6">
+      <div className="sm:mx-20 mt-6">
         <p>
           The contract at address <span className="font-medium">{address}</span>{" "}
           is not verified on Sourcify.
