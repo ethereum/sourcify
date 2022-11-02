@@ -510,4 +510,11 @@ export default {
     contractFetchAddress: "https://blockscout.com/astar/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex("/astar"),
   },
+  "1001": {
+    // Klaytn Testnet Baobab
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://klaytn-testnet.aws-k8s.blockscout.com/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
 };
