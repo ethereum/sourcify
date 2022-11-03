@@ -15,7 +15,6 @@ const TELOS_SUFFIX = "v2/evm/get_contract?contract=${ADDRESS}";
 const METER_SUFFIX = "api/accounts/${ADDRESS}";
 const AVALANCHE_SUBNET_SUFFIX = "address/${ADDRESS}/contract";
 
-
 type ChainName = "eth" | "polygon" | "arb" | "opt";
 
 /**
