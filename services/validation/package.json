@@ -35,5 +35,8 @@
     "commander": "^6.1.0",
     "jszip": "^3.10.1",
     "web3": "^1.2.11"
+  },
+  "peerDependencies": {
+    "keyv": "4.5.0"
   }
 }
