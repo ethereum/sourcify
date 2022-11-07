@@ -176,7 +176,7 @@ export default {
     monitored: false,
     contractFetchAddress:
       "https://explorer.celo.org/alfajores/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    txRegex: getBlockscoutRegex("/alfajores"),
   },
   "62320": {
     supported: true,
