@@ -1057,14 +1057,32 @@ describe("Test Supported Chains", function () {
     "shared/withImmutables.metadata.json"
   );
 
-  // Gnosis Chiado Testnet
 
+  // Gnosis Chiado Testnet
   verifyContractWithImmutables(
     "0x78f71adAf9601034faC12C80F316ce4c2E95D1ab",
     "10200",
     "Gnosis Chiado Testnet",
     ["uint256"],
     [11],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+  
+  // Klaytn Testnet Baobab
+  verifyContract(
+    "0x662749a392CeB1b5973a90FB2c388a2C18B8812c",
+    "1001",
+    "Klaytn Testnet Baobab",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x9FEc9e780c422916E21845748e001E949A5ddD57",
+    "1001",
+    "Klaytn Testnet Baobab",
+    ["uint256"],
+    [12],
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );

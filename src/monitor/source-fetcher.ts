@@ -62,7 +62,7 @@ export default class SourceFetcher {
   ];
 
   /**
-   * Tells the fetcher not to make new requests. Does not affect pending requests.
+   * Tells the fetcher not to make new requests. Doesn't affect pending requests.
    */
   stop(): void {
     this.gatewayFetchers.forEach((gatewayFetcher) => gatewayFetcher.stop());
