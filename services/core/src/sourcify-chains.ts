@@ -516,6 +516,8 @@ export default {
     monitored: false,
     contractFetchAddress:
       "https://blockscout.chiadochain.net/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
   "1001": {
     // Klaytn Testnet Baobab
     supported: true,
