@@ -142,7 +142,7 @@ describe("Server", function () {
     if (done) done();
   };
 
-  if (process.env.PR_REPONAME === undefined) {
+  if (process.env.CIRCLE_PR_REPONAME === undefined) {
     describe("/session/verify/etherscan", function () {
       const assertAllFound = (err, res, finalStatus) => {
         chai.expect(err).to.be.null;
