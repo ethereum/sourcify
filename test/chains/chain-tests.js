@@ -1057,6 +1057,18 @@ describe("Test Supported Chains", function () {
     "shared/withImmutables.metadata.json"
   );
 
+  // Gnosis Chiado Testnet
+
+  verifyContractWithImmutables(
+    "0x78f71adAf9601034faC12C80F316ce4c2E95D1ab",
+    "10200",
+    "Gnosis Chiado Testnet",
+    ["uint256"],
+    [11],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
   //////////////////////
   // Helper functions //
   //////////////////////
