@@ -72,9 +72,9 @@ export interface SourceMap {
 }
 
 export interface Create2Args {
-  deployerAddress?: string | undefined;
-  salt?: string | undefined;
-  constructorArgs?: any[] | undefined;
+  deployerAddress: string;
+  salt: string;
+  constructorArgs?: any[];
 }
 
 export interface Match {
