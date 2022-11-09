@@ -253,3 +253,8 @@ export interface JsonInput {
   sources: Sources;
   settings?: Settings;
 }
+
+export interface Create2ConstructorArgument {
+  type: string;
+  value: any;
+}

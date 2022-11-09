@@ -15,6 +15,7 @@ import {
   Status,
   Metadata,
   Create2Args,
+  Create2ConstructorArgument,
 } from "@ethereum-sourcify/core";
 import {
   RecompilationResult,
@@ -717,7 +718,7 @@ export class Injector {
     contract: CheckedContract,
     deployerAddress: string,
     salt: string,
-    constructorArgs: any,
+    constructorArgs: Create2ConstructorArgument[],
     create2Address: string
   ): Promise<Match> {
     const wrappedLogger = new LoggerWrapper(this.log);
@@ -726,8 +727,12 @@ export class Injector {
       await CheckedContract.fetchMissing(contract, wrappedLogger);
     }
 
-    const constructorArgsTypes = constructorArgs.map((arg: any) => arg.type);
-    const constructorArgsValues = constructorArgs.map((arg: any) => arg.value);
+    const constructorArgsTypes = constructorArgs.map(
+      (arg: Create2ConstructorArgument) => arg.type
+    );
+    const constructorArgsValues = constructorArgs.map(
+      (arg: Create2ConstructorArgument) => arg.value
+    );
 
     const compilationResult = await recompile(
       contract.metadata,
