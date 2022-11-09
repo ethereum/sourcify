@@ -873,12 +873,7 @@ export default class VerificationController
 
     const ipfsUrl = `${IPFS_GATEWAY}${metadataIpfsCid}`;
     const metadataFileName = "metadata.json";
-    const retrievedMetadataText = await performFetch(
-      ipfsUrl,
-      null,
-      metadataFileName,
-      null
-    );
+    const retrievedMetadataText = await performFetch(ipfsUrl);
 
     const pathContents: PathContent[] = [];
 

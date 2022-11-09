@@ -266,8 +266,8 @@ export class CheckedContract {
  */
 export async function performFetch(
   url: string,
-  hash: string | null,
-  fileName: string,
+  hash?: string,
+  fileName?: string,
   log?: InfoErrorLogger
 ): Promise<string> {
   const infoObject = { loc: "[FETCH]", fileName, url, timeout: FETCH_TIMEOUT };
@@ -279,7 +279,7 @@ export async function performFetch(
 
   if (res && res.status === 200) {
     const content = await res.text();
-    if (Web3.utils.keccak256(content) !== hash) {
+    if (hash && Web3.utils.keccak256(content) !== hash) {
       if (log)
         log.error(
           infoObject,

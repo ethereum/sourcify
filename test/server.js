@@ -272,7 +272,7 @@ describe("Server", function () {
 
     it("should create2 verify", (done) => {
       let clientToken
-      const sourcifyClientTokensRaw = process.env.SOURCIFY_CLIENT_TOKENS;
+      const sourcifyClientTokensRaw = process.env.CREATE2_CLIENT_TOKENS;
       if (sourcifyClientTokensRaw?.length) {
         const sourcifyClientTokens = sourcifyClientTokensRaw.split(",");
         clientToken = sourcifyClientTokens[0]
