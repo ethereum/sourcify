@@ -15,6 +15,7 @@ import {
 } from "../../constants";
 import { Context } from "../../Context";
 import { CheckAllByAddressResult } from "../../types";
+import { isBrowser } from "react-device-detect";
 
 type ResultProp = {
   response: CheckAllByAddressResult;
@@ -136,33 +137,59 @@ const NetworkRow = ({ address, chainId, status }: NetworkRowProp) => {
   };
 
   return (
-    <tr className="border-b hover:bg-gray-100">
-      <td
-        className="flex items-center py-4  
-      pl-4"
-      >
-        <span className="text-lg font-bold">{chainToName(chainId)}</span>{" "}
-      </td>
-      <td>
-        <MatchStatusBadge status={status} />
-      </td>
-      <td className="py-4 text-right">
-        <a
-          className="underline"
-          href={generateUrl(URL_TYPE.REPO, chainId, address, status)}
-        >
-          View in Sourcify Repository
-        </a>
-      </td>
-      <td className="py-4 pr-4 text-right">
-        <a
-          className="underline"
-          href={generateUrl(URL_TYPE.REMIX, chainId, address, status)}
-        >
-          View in Remix
-        </a>
-      </td>
-    </tr>
+    <>
+      {isBrowser ? (
+        <tr className="border-b hover:bg-gray-100">
+          <td className="flex items-center py-4  pl-4">
+            <span className="text-lg font-bold">{chainToName(chainId)}</span>{" "}
+          </td>
+          <td>
+            <MatchStatusBadge status={status} />
+          </td>
+          <td className="py-4 text-right">
+            <a
+              className="underline"
+              href={generateUrl(URL_TYPE.REPO, chainId, address, status)}
+            >
+              View in Sourcify Repository
+            </a>
+          </td>
+          <td className="py-4 pr-4 text-right">
+            <a
+              className="underline"
+              href={generateUrl(URL_TYPE.REMIX, chainId, address, status)}
+            >
+              View in Remix
+            </a>
+          </td>
+        </tr>
+      ) : (
+        <div className="border-b hover:bg-gray-100 flex flex-col">
+          <div className="py-4">
+            <span className="text-lg font-bold">{chainToName(chainId)}</span>{" "}
+          </div>
+          <div>
+            <MatchStatusBadge status={status} />
+          </div>
+          <div className="py-4">
+            <a
+              className="underline"
+              href={generateUrl(URL_TYPE.REPO, chainId, address, status)}
+            >
+              View in Sourcify Repository
+            </a>
+          </div>
+          <div className="pb-4">
+            <a
+              className="underline"
+              href={generateUrl(URL_TYPE.REMIX, chainId, address, status)}
+            >
+              View in Remix
+            </a>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
@@ -192,7 +219,7 @@ const Found = ({ response }: FoundProp) => {
       <div className="mx-20 mt-1">
         <p>
           The contract at address{" "}
-          <span className="font-medium">{response?.address}</span> is{" "}
+          <span className="font-medium break-all">{response?.address}</span> is{" "}
           <span
             data-tip={renderToString(InfoText)}
             data-html={true}

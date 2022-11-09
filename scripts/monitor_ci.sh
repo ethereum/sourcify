@@ -6,7 +6,7 @@ git clone https://github.com/sourcifyeth/metacoin-source-verify.git
 cd metacoin-source-verify
 npm ci
 
-# Publishes sources to IPFS (via Infura) and deploys contracts to Ropsten, Rinkeby, or Goerli
+# Publishes sources to IPFS and deploys contracts to Goerli or Sepolia
 # Account key and Infura project ID are Circle CI env variable settings.
 npm run deploy:$CHAIN_NAME || exit 1
 

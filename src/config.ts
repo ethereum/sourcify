@@ -17,8 +17,7 @@ export default {
   repository: {
     path:
       process.env.MOCK_REPOSITORY ||
-      path.resolve(__dirname, process.env.REPOSITORY_PATH!) ||
-      path.resolve(__dirname, "./repository"),
+      path.resolve(__dirname, process.env.REPOSITORY_PATH),
   },
   testing: process.env.TESTING || false,
   tag: process.env.TAG || "latest",

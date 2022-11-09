@@ -67,7 +67,7 @@ const EtherscanInput = ({
       <ChainSelect
         value={chainId}
         handleChainIdChange={handleChainIdChange}
-        availableChains={[1, 5, 42, 4, 3, 11155111]}
+        availableChains={[1, 4, 5, 11155111]}
       />
     </div>
   );

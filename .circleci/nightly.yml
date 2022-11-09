@@ -38,20 +38,13 @@ aliases:
 workflows:
   e2e-tests:
     jobs:
-      - monitor-e2e-rinkeby
       - monitor-e2e-goerli
       - monitor-e2e-sepolia
-      - verification-e2e-rinkeby
       - verification-e2e-goerli
       - verification-e2e-sepolia
       - check-s3-backup
 
 jobs:
-  monitor-e2e-rinkeby:
-    <<: *monitor-e2e-base
-    environment:
-      CHAIN_ID: 4
-      CHAIN_NAME: rinkeby
   monitor-e2e-goerli:
     <<: *monitor-e2e-base
     environment:
@@ -62,11 +55,6 @@ jobs:
     environment:
       CHAIN_ID: '11155111'
       CHAIN_NAME: sepolia
-  verification-e2e-rinkeby:
-    <<: *verification-e2e-base
-    environment:
-      CHAIN_ID: 4
-      CHAIN_NAME: rinkeby
   verification-e2e-goerli:
     <<: *verification-e2e-base
     environment:

@@ -3,7 +3,7 @@
 /**
  * Part of E2E Monitor test run for staging and master builds
  * Script queries the repository to discover whether a contract
- * published to Rinkeby in CI has been picked up and saved by the
+ * published to {chainID} in CI has been picked up and saved by the
  * monitor.
  */
 

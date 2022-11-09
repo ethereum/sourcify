@@ -1,6 +1,0 @@
-Contracts deployed to Ropsten, March 2, 2020
-
-Contract          Address                                     Transaction
-========          =======                                     ===========
-Simple:           0xEB6Cf7952c666F81f1a5678E80D4fC5Ce3a7bF0b  0x8bd7bf022c5160bb7fb838a49b3a44e0d2fa8dced9443df3458e61f8c857ec23
-SimpleWithImport: 0x4668b709182F41837c4e06C8de1D3568df7778D9  0x87d50d055e5893ae2537e8cb4d12f7db550dd8cd1de0b0f050717095f98e40ab
