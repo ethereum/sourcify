@@ -942,7 +942,7 @@ export default class VerificationController
     res: Response,
     next: NextFunction
   ) {
-    const sourcifyClientTokensRaw = process.env.SOURCIFY_CLIENT_TOKENS;
+    const sourcifyClientTokensRaw = process.env.CREATE2_CLIENT_TOKENS;
     if (sourcifyClientTokensRaw?.length) {
       const sourcifyClientTokens = sourcifyClientTokensRaw.split(",");
       const clientToken = req.body.clientToken;
