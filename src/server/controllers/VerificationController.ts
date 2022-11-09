@@ -857,7 +857,6 @@ export default class VerificationController
     const address = req.body.address;
     const chainId = req.body.chainId;
 
-    // TODO: exctract bytecode
     const bytecode = await this.verificationService.getBytecode(
       address,
       chainId
