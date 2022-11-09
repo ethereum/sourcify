@@ -279,7 +279,7 @@ export async function performFetch(
 
   if (res && res.status === 200) {
     const content = await res.text();
-    if (hash !== null && Web3.utils.keccak256(content) !== hash) {
+    if (Web3.utils.keccak256(content) !== hash) {
       if (log)
         log.error(
           infoObject,
