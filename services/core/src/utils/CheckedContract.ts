@@ -256,7 +256,7 @@ export class CheckedContract {
 }
 
 /**
- * Performs fetch and compares with the hash provided.
+ * Performs fetch and, if provided an hash, compares with the file's the provided one.
  *
  * @param url the url to be used as the file source
  * @param hash the hash of the file to be fetched; used for later comparison
