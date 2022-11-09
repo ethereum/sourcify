@@ -118,9 +118,6 @@ export class VerificationService implements IVerificationService {
   };
 
   inject = async (inputData: InputData): Promise<Match> => {
-    // Injection
-    //const injection: Promise<Match>;
-    //const { repository, chain, addresses, files } = inputData;
     if (!this.injector) {
       this.injector = await Injector.createAsync({
         log: this.logger,
@@ -140,9 +137,6 @@ export class VerificationService implements IVerificationService {
     constructorArgs: any,
     create2Address: string
   ): Promise<Match> => {
-    // Injection
-    //const injection: Promise<Match>;
-    //const { repository, chain, addresses, files } = inputData;
     if (!this.injector) {
       this.injector = await Injector.createAsync({
         log: this.logger,
@@ -162,9 +156,6 @@ export class VerificationService implements IVerificationService {
   };
 
   recompile = async (contract: CheckedContract): Promise<any> => {
-    // Injection
-    //const injection: Promise<Match>;
-    //const { repository, chain, addresses, files } = inputData;
     if (!this.injector) {
       this.injector = await Injector.createAsync({
         log: this.logger,
@@ -178,9 +169,6 @@ export class VerificationService implements IVerificationService {
   };
 
   getBytecode = async (address: string, chainId: string): Promise<any> => {
-    // Injection
-    //const injection: Promise<Match>;
-    //const { repository, chain, addresses, files } = inputData;
     if (!this.injector) {
       this.injector = await Injector.createAsync({
         log: this.logger,
