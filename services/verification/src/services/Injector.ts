@@ -746,7 +746,7 @@ export class Injector {
 
     if (create2Address !== computedAddr) {
       throw new Error(
-        `In-browser generated create2 address doesn't match server's generated one. Expected: ${computedAddr} ; Received: ${create2Address} ;`
+        `The provided create2 address doesn't match server's generated one. Expected: ${computedAddr} ; Received: ${create2Address} ;`
       );
     }
 
