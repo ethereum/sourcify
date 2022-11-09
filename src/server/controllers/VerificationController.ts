@@ -45,7 +45,7 @@ import web3utils from "web3-utils";
 import cors from "cors";
 import config from "../../config";
 import fetch from "node-fetch";
-import { NextFunction } from "express-serve-static-core";
+import { NextFunction } from "express";
 
 const FILE_ENCODING = "base64";
 const IPFS_GATEWAY = process.env.IPFS_GATEWAY || "https://ipfs.io/ipfs/";
