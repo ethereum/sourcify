@@ -561,7 +561,6 @@ export class Injector {
 
   public async storeMatch(
     chain: string,
-    addresses: string[],
     contract: CheckedContract,
     compilationResult: RecompilationResult,
     match: Match
@@ -619,7 +618,7 @@ export class Injector {
       this.log.error({
         loc: "[INJECT]",
         chain,
-        addresses,
+        address: match.address,
         err,
       });
 
@@ -709,7 +708,7 @@ export class Injector {
       );
     }
 
-    await this.storeMatch(chain, addresses, contract, compilationResult, match);
+    await this.storeMatch(chain, contract, compilationResult, match);
 
     return match;
   }
@@ -775,13 +774,7 @@ export class Injector {
       libraryMap: libraryMap,
     };
 
-    await this.storeMatch(
-      "0",
-      [computedAddr],
-      contract,
-      compilationResult,
-      match
-    );
+    await this.storeMatch("0", contract, compilationResult, match);
 
     return match;
   }
