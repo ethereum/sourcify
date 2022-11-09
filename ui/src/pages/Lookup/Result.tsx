@@ -206,8 +206,14 @@ const InfoText = (isCreate2Verified: boolean) => (
     for details.
     {isCreate2Verified && (
       <p className="mt-3">
-        This contract was verified with the create2 verification, it may not yet
-        be deployed.
+        This contract was verified with the{" "}
+        <a
+          href="https://docs.sourcify.dev/docs/create2"
+          className="underline cursor"
+        >
+          create2 verification
+        </a>
+        , it may not yet be deployed.
       </p>
     )}
   </span>
