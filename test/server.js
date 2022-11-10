@@ -254,6 +254,17 @@ describe("Server", function () {
       chai.expect(contract.status).to.equal(finalStatus);
     };
 
+    const assertAPIAllFound = (err, res, finalStatus) => {
+      chai.expect(err).to.be.null;
+      chai.expect(res.status).to.equal(StatusCodes.OK);
+
+      const contracts = res.body.result;
+      chai.expect(contracts).to.have.a.lengthOf(1);
+      const contract = contracts[0];
+
+      chai.expect(contract.status).to.equal(finalStatus);
+    };
+
     this.timeout(EXTENDED_TIME_60);
 
     const agent = chai.request.agent(server.app);
@@ -290,6 +301,38 @@ describe("Server", function () {
           done();
         });
     });
+
+    it("should create2 verify through API", (done) => {
+      const metadata = fs.readFileSync("test/testcontracts/Create2/metadata.json").toString();
+      const source = fs.readFileSync("test/testcontracts/Create2/Account.sol").toString();
+      console.log(source)
+      let clientToken
+      const sourcifyClientTokensRaw = process.env.CREATE2_CLIENT_TOKENS;
+      if (sourcifyClientTokensRaw?.length) {
+        const sourcifyClientTokens = sourcifyClientTokensRaw.split(",");
+        clientToken = sourcifyClientTokens[0]
+      }
+      chai
+        .request(server.app)
+        .post("/verify/create2")
+        .send({
+          "deployerAddress": "0x4a27c059FD7E383854Ea7DE6Be9c390a795f6eE3",
+          "salt": 1,
+          "constructorArgs": [
+            { "type": "address", "value": "0x303de46de694cc75a2f66da93ac86c6a6eee607e" }
+          ],
+          "files": {
+            "metadata.json": metadata,
+            "Account.sol": source,
+          },
+          "clientToken": clientToken || '',
+          "create2Address": "0x7137a4d9e0ce4f965bed3b743083d014d9ef45b6"
+        })
+        .end((err, res) => {
+          assertAPIAllFound(err, res, "perfect");
+          done();
+        });
+    })
   });
 
   describe("/check-by-addresses", function () {

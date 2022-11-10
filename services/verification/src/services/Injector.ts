@@ -628,14 +628,9 @@ export class Injector {
   }
 
   /**
-   * Used by the front-end. Accepts a set of source files and a metadata string,
-   * recompiles / validates them and stores them in the repository by chain/address
-   * and by swarm | ipfs hash.
-   * @param  {string}            repository repository root (ex: 'repository')
-   * @param  {string}            chain      chain name (ex: 'ropsten')
-   * @param  {string}            address    contract address
-   * @param  {string[]}          files
-   * @return {Promise<object>}              address & status of successfully verified contract
+   * Recompiles a checked contract returning
+   * @param  {CheckedContract} contract the checked contract to recompile
+   * @return {Promise<object>} creationBytecode & deployedBytecode & metadata of successfully recompiled contract
    */
   public async recompile(contract: CheckedContract): Promise<any> {
     const wrappedLogger = new LoggerWrapper(this.log);

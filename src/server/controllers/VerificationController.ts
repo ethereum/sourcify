@@ -979,7 +979,24 @@ export default class VerificationController
     );
 
     this.router.route(["/verify/create2"]).post(
-      // TODO: add validation
+      body("deployerAddress")
+        .exists()
+        .bail()
+        .custom((deployerAddress, { req }) => {
+          const addresses = this.validateAddresses(deployerAddress);
+          req.deployerAddress = addresses.length > 0 ? addresses[0] : "";
+          return true;
+        }),
+      body("create2Address")
+        .exists()
+        .bail()
+        .custom((create2Address, { req }) => {
+          const addresses = this.validateAddresses(create2Address);
+          req.create2Address = addresses.length > 0 ? addresses[0] : "";
+          return true;
+        }),
+      body("salt").exists(),
+      body("constructorArgs").exists(),
       this.authenticatedRequest,
       this.safeHandler(this.verifyCreate2)
     );
@@ -1060,18 +1077,37 @@ export default class VerificationController
         this.safeHandler(this.sessionVerifyFromEtherscan)
       );
 
-    this.router.route(["/session/verify/create2"]).all(cors(corsOpt)).post(
-      // TODO: add exists rules
-      cors(corsOpt),
-      this.authenticatedRequest,
-      this.safeHandler(this.sessionVerifyCreate2)
-    );
+    this.router
+      .route(["/session/verify/create2"])
+      .all(cors(corsOpt))
+      .post(
+        body("deployerAddress")
+          .exists()
+          .bail()
+          .custom((deployerAddress, { req }) => {
+            const addresses = this.validateAddresses(deployerAddress);
+            req.deployerAddress = addresses.length > 0 ? addresses[0] : "";
+          }),
+        body("create2Address")
+          .exists()
+          .bail()
+          .custom((create2Address, { req }) => {
+            const addresses = this.validateAddresses(create2Address);
+            req.create2Address = addresses.length > 0 ? addresses[0] : "";
+          }),
+        body("salt").exists(),
+        body("constructorArgs").exists(),
+        body("verificationId").exists(),
+        cors(corsOpt),
+        this.authenticatedRequest,
+        this.safeHandler(this.sessionVerifyCreate2)
+      );
 
     this.router
       .route(["/session/verify/create2/compile"])
       .all(cors(corsOpt))
       .post(
-        // TODO: add exists rules
+        body("verificationId").exists(),
         cors(corsOpt),
         this.safeHandler(this.sessionPrecompileContract)
       );
