@@ -91,7 +91,7 @@ const Message = ({
         </div>
       );
     }
-    return <p>Please provide contract address and network </p>;
+    return <></>;
   }
   // Show existing matches of the address after checkAllByAddress
   if (foundMatches?.chainIds) {
