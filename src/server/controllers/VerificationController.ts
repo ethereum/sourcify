@@ -1,5 +1,5 @@
 import { Request, Response, Router } from "express";
-import { decode } from "@marcocastignoli/bytecode-utils";
+import { decode } from "@ethereum-sourcify/bytecode-utils";
 import BaseController from "./BaseController";
 import { IController } from "../../common/interfaces";
 import { IVerificationService } from "@ethereum-sourcify/verification";
