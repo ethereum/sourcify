@@ -13,7 +13,7 @@ type DecodedObject = {
   cbor: CBOR;
   ipfs?: string;
   solcVersion?: string;
-  [key: string]: string | CBOR | Uint8Array | undefined;
+  [key: string]: string | CBOR | Uint8Array | undefined | boolean;
 };
 
 /**
@@ -33,6 +33,8 @@ export const decode = (bytecode: string): DecodedObject => {
     bytecode.length - 4 - cborLength * 2,
     bytecode.length - 4
   );
+
+  console.log(cborLength);
 
   // cbor decode the object and get a json
   const cborDecodedObject = CBOR.decode(arrayify(`0x${cborRaw}`));
@@ -54,6 +56,10 @@ export const decode = (bytecode: string): DecodedObject => {
       }
       case 'solc': {
         result.solcVersion = cborDecodedObject.solc.join('.');
+        break;
+      }
+      case 'experimental': {
+        result.experimental = cborDecodedObject.experimental;
         break;
       }
       default: {

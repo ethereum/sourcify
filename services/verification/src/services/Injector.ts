@@ -32,6 +32,7 @@ import {
   getCreationDataAvalancheSubnet,
   getCreate2Address,
 } from "../utils";
+import { decode as bytecodeDecode } from "@ethereum-sourcify/bytecode-utils";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const multihashes: any = require("multihashes");
 import semverSatisfies from "semver/functions/satisfies";
@@ -801,19 +802,14 @@ export class Injector {
     address?: string,
     chain?: string
   ) {
-    const bytes = Web3.utils.hexToBytes(bytecode);
-    const cborData = cborDecode(bytes);
+    const cborData = bytecodeDecode(bytecode);
 
     if (cborData["bzzr0"]) {
-      return `/swarm/bzzr0/${Web3.utils
-        .bytesToHex(cborData["bzzr0"])
-        .slice(2)}`;
+      return `/swarm/bzzr0/${cborData["bzzr0"]}`;
     } else if (cborData["bzzr1"]) {
-      return `/swarm/bzzr1/${Web3.utils
-        .bytesToHex(cborData["bzzr1"])
-        .slice(2)}`;
+      return `/swarm/bzzr1/${cborData["bzzr1"]}`;
     } else if (cborData["ipfs"]) {
-      return `/ipfs/${multihashes.toB58String(cborData["ipfs"])}`;
+      return `/ipfs/${cborData["ipfs"]}`;
     }
 
     this.log.error({

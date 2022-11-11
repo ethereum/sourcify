@@ -9,6 +9,9 @@ const BYTECODES_FOLDER = './src/lib/bytecodes';
 const BYTECODE_IPFS = readFileSync(`${BYTECODES_FOLDER}/ipfs.hex`).toString();
 const BYTECODE_BZZR1 = readFileSync(`${BYTECODES_FOLDER}/bzzr1.hex`).toString();
 const BYTECODE_WRONG = readFileSync(`${BYTECODES_FOLDER}/wrong.hex`).toString();
+const BYTECODE_EXPERIMENTAL = readFileSync(
+  `${BYTECODES_FOLDER}/experimental.hex`
+).toString();
 
 test("get contract's bytecode by adderss and provider", async (t) => {
   const ethereumProvider = provider('https://eth-mainnet.public.blastapi.io');
@@ -39,6 +42,10 @@ test('bytecode decode cbor with unknow property (bzzr1)', (t) => {
     decode(BYTECODE_BZZR1).bzzr1,
     '0x71e0c183217ae3e9a1406ae7b58c2f36e09f2b16b10e19d46ceb821f3ee6abad'
   );
+});
+
+test.only('bytecode decode cbor with experimental property', (t) => {
+  t.is(decode(BYTECODE_EXPERIMENTAL).experimental, true);
 });
 
 test('bytecode decode should fail gracefully when input is undefined', (t) => {
