@@ -1087,6 +1087,25 @@ describe("Test Supported Chains", function () {
     "shared/withImmutables.metadata.json"
   );
 
+  // Klaytn Mainnet Cypress
+  verifyContract(
+    "0x3b2e3383AeE77A58f252aFB3635bCBd842BaeCB3",
+    "8217",
+    "Klaytn Mainnet Cypress",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0xA7e70Be8A6563DCe75299c30D1566A83fC63BC37",
+    "8217",
+    "Klaytn Mainnet Cypress",
+    ["uint256"],
+    [12],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
+
   //////////////////////
   // Helper functions //
   //////////////////////

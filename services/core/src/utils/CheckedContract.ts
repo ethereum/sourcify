@@ -39,6 +39,9 @@ export class CheckedContract {
   /** The name of the contract. */
   name: string;
 
+  /** The bytecodes of the contract. */
+  creationBytecode?: string;
+
   /** Checks whether this contract is valid or not.
    *  This is a static method due to persistence issues.
    *
@@ -81,8 +84,16 @@ export class CheckedContract {
       this.compilerVersion = metadata.compiler.version;
     }
 
-    const { solcJsonInput, fileName, contractName } =
-      createJsonInputFromMetadata(metadata, solidity);
+    let solcJsonInput, fileName, contractName;
+    try {
+      ({ solcJsonInput, fileName, contractName } = createJsonInputFromMetadata(
+        metadata,
+        solidity
+      ));
+    } catch (e) {
+      throw new Error("Cannot parse metadata");
+    }
+
     this.standardJson = solcJsonInput;
     this.compiledPath = fileName;
     this.name = contractName;
@@ -245,7 +256,7 @@ export class CheckedContract {
 }
 
 /**
- * Performs fetch and compares with the hash provided.
+ * Performs fetch and, if provided an hash, compares with the file's the provided one.
  *
  * @param url the url to be used as the file source
  * @param hash the hash of the file to be fetched; used for later comparison
@@ -253,10 +264,10 @@ export class CheckedContract {
  * @param log whether or not to log
  * @returns the fetched file if found; null otherwise
  */
-async function performFetch(
+export async function performFetch(
   url: string,
-  hash: string,
-  fileName: string,
+  hash?: string,
+  fileName?: string,
   log?: InfoErrorLogger
 ): Promise<string> {
   const infoObject = { loc: "[FETCH]", fileName, url, timeout: FETCH_TIMEOUT };
@@ -268,7 +279,7 @@ async function performFetch(
 
   if (res && res.status === 200) {
     const content = await res.text();
-    if (Web3.utils.keccak256(content) !== hash) {
+    if (hash && Web3.utils.keccak256(content) !== hash) {
       if (log)
         log.error(
           infoObject,

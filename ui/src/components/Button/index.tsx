@@ -15,6 +15,10 @@ const Button = ({ children, type, className, onClick }: ButtonProps) => {
     bg = "bg-ceruleanBlue-100";
     hoverBg = "hover:bg-ceruleanBlue-200";
     textColor = "text-ceruleanBlue-500";
+  } else if (type === "white") {
+    bg = "bg-slate-50";
+    hoverBg = "hover:bg-slate-200";
+    textColor = "text-slate-900";
   }
 
   return (

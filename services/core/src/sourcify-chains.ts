@@ -50,7 +50,7 @@ function buildAlchemyURL(
   }
 
   const domain = {
-    eth: "alchemyapi.io",
+    eth: "g.alchemy.com",
     polygon: "g.alchemy.com",
     arb: "g.alchemy.com",
     opt: "g.alchemy.com",
@@ -522,7 +522,15 @@ export default {
     // Klaytn Testnet Baobab
     supported: true,
     monitored: false,
-    contractFetchAddress: "https://klaytn-testnet.aws-k8s.blockscout.com/" + BLOCKSCOUT_SUFFIX,
+    contractFetchAddress:
+      "https://klaytn-testnet.aws-k8s.blockscout.com/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
+  "8217": {
+    // Klaytn Mainnet Cypress
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://klaytn-mainnet.aws-k8s.blockscout.com/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
 };

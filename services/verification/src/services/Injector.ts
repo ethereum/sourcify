@@ -14,6 +14,8 @@ import {
   Chain,
   Status,
   Metadata,
+  Create2Args,
+  Create2ConstructorArgument,
 } from "@ethereum-sourcify/core";
 import {
   RecompilationResult,
@@ -28,6 +30,7 @@ import {
   getCreationDataXDC,
   getCreationDataMeter,
   getCreationDataAvalancheSubnet,
+  getCreate2Address,
 } from "../utils";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const multihashes: any = require("multihashes");
@@ -557,6 +560,92 @@ export class Injector {
     }
   }
 
+  public async storeMatch(
+    chain: string,
+    contract: CheckedContract,
+    compilationResult: RecompilationResult,
+    match: Match
+  ) {
+    if (
+      match.address &&
+      (match.status === "perfect" || match.status === "partial")
+    ) {
+      // Delete the partial matches if we now have a perfect match instead.
+      if (match.status === "perfect") {
+        this.fileService.deletePartialIfExists(chain, match.address);
+      }
+      const matchQuality = this.statusToMatchQuality(match.status);
+      this.storeSources(matchQuality, chain, match.address, contract.solidity);
+      this.storeMetadata(matchQuality, chain, match.address, compilationResult);
+
+      if (match.encodedConstructorArgs && match.encodedConstructorArgs.length) {
+        this.storeConstructorArgs(
+          matchQuality,
+          chain,
+          match.address,
+          match.encodedConstructorArgs
+        );
+      }
+
+      if (match.create2Args) {
+        this.storeCreate2Args(
+          matchQuality,
+          chain,
+          match.address,
+          match.create2Args
+        );
+      }
+
+      if (match.libraryMap && Object.keys(match.libraryMap).length) {
+        this.storeLibraryMap(
+          matchQuality,
+          chain,
+          match.address,
+          match.libraryMap
+        );
+      }
+
+      if (this.ipfsClient) {
+        this.addToIpfsMfs(matchQuality, chain, match.address);
+      }
+    } else if (match.status === "extra-file-input-bug") {
+      return match;
+    } else {
+      const message =
+        match.message ||
+        "Could not match the deployed and recompiled bytecode.";
+      const err = new Error(`Contract name: ${contract.name}. ${message}`);
+
+      this.log.error({
+        loc: "[INJECT]",
+        chain,
+        address: match.address,
+        err,
+      });
+
+      throw new Error(err.message);
+    }
+  }
+
+  /**
+   * Recompiles a checked contract returning
+   * @param  {CheckedContract} contract the checked contract to recompile
+   * @return {Promise<object>} creationBytecode & deployedBytecode & metadata of successfully recompiled contract
+   */
+  public async recompile(contract: CheckedContract): Promise<any> {
+    const wrappedLogger = new LoggerWrapper(this.log);
+
+    if (!CheckedContract.isValid(contract)) {
+      await CheckedContract.fetchMissing(contract, wrappedLogger);
+    }
+
+    return await recompile(contract.metadata, contract.solidity, wrappedLogger);
+  }
+
+  public async getBytecode(address: string, chainId: string): Promise<any> {
+    return await getBytecode(this.chains[chainId].web3array, address);
+  }
+
   /**
    * Used by the front-end. Accepts a set of source files and a metadata string,
    * recompiles / validates them and stores them in the repository by chain/address
@@ -615,56 +704,77 @@ export class Injector {
       );
     }
 
-    if (
-      match.address &&
-      (match.status === "perfect" || match.status === "partial")
-    ) {
-      // Delete the partial matches if we now have a perfect match instead.
-      if (match.status === "perfect") {
-        this.fileService.deletePartialIfExists(chain, match.address);
-      }
-      const matchQuality = this.statusToMatchQuality(match.status);
-      this.storeSources(matchQuality, chain, match.address, contract.solidity);
-      this.storeMetadata(matchQuality, chain, match.address, compilationResult);
+    await this.storeMatch(chain, contract, compilationResult, match);
 
-      if (match.encodedConstructorArgs && match.encodedConstructorArgs.length) {
-        this.storeConstructorArgs(
-          matchQuality,
-          chain,
-          match.address,
-          match.encodedConstructorArgs
-        );
-      }
+    return match;
+  }
 
-      if (match.libraryMap && Object.keys(match.libraryMap).length) {
-        this.storeLibraryMap(
-          matchQuality,
-          chain,
-          match.address,
-          match.libraryMap
-        );
-      }
+  public async verifyCreate2(
+    contract: CheckedContract,
+    deployerAddress: string,
+    salt: string,
+    constructorArgs: Create2ConstructorArgument[],
+    create2Address: string
+  ): Promise<Match> {
+    const wrappedLogger = new LoggerWrapper(this.log);
 
-      if (this.ipfsClient) {
-        this.addToIpfsMfs(matchQuality, chain, match.address);
-      }
-    } else if (match.status === "extra-file-input-bug") {
-      return match;
-    } else {
-      const message =
-        match.message ||
-        "Could not match the deployed and recompiled bytecode.";
-      const err = new Error(`Contract name: ${contract.name}. ${message}`);
-
-      this.log.error({
-        loc: "[INJECT]",
-        chain,
-        addresses,
-        err,
-      });
-
-      throw new Error(err.message);
+    if (!CheckedContract.isValid(contract)) {
+      await CheckedContract.fetchMissing(contract, wrappedLogger);
     }
+
+    const constructorArgsTypes = constructorArgs.map(
+      (arg: Create2ConstructorArgument) => arg.type
+    );
+    const constructorArgsValues = constructorArgs.map(
+      (arg: Create2ConstructorArgument) => arg.value
+    );
+
+    const compilationResult = await recompile(
+      contract.metadata,
+      contract.solidity,
+      wrappedLogger
+    );
+
+    const computedAddr = getCreate2Address({
+      factoryAddress: deployerAddress,
+      salt,
+      contractBytecode: compilationResult.creationBytecode,
+      constructorTypes: constructorArgsTypes,
+      constructorArgs: constructorArgsValues,
+    });
+
+    if (create2Address !== computedAddr) {
+      throw new Error(
+        `The provided create2 address doesn't match server's generated one. Expected: ${computedAddr} ; Received: ${create2Address} ;`
+      );
+    }
+
+    const encodedConstructorArgs = this.extractEncodedConstructorArgs(
+      compilationResult.creationBytecode,
+      compilationResult.deployedBytecode
+    );
+
+    const { libraryMap } = this.addLibraryAddresses(
+      compilationResult.deployedBytecode,
+      compilationResult.deployedBytecode
+    );
+
+    const create2Args: Create2Args = {
+      deployerAddress,
+      salt,
+      constructorArgs,
+    };
+
+    const match: Match = {
+      address: computedAddr,
+      status: "perfect",
+      storageTimestamp: new Date(),
+      encodedConstructorArgs: encodedConstructorArgs,
+      create2Args,
+      libraryMap: libraryMap,
+    };
+
+    await this.storeMatch("0", contract, compilationResult, match);
 
     return match;
   }
@@ -789,6 +899,31 @@ export class Injector {
         fileName: "constructor-args.txt",
       },
       encodedConstructorArgs
+    );
+  }
+
+  /**
+   * Writes the create2 arguments to the repository.
+   * @param matchQuality
+   * @param chain
+   * @param address
+   * @param create2Args
+   */
+  private storeCreate2Args(
+    matchQuality: MatchQuality,
+    chain: string,
+    address: string,
+    create2Args: Create2Args
+  ) {
+    this.fileService.save(
+      {
+        matchQuality,
+        chain,
+        address,
+        source: false,
+        fileName: "create2-args.json",
+      },
+      JSON.stringify(create2Args)
     );
   }
 

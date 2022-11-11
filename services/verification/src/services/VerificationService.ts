@@ -5,6 +5,7 @@ import {
   IFileService,
   Metadata,
   JsonInput,
+  CheckedContract,
 } from "@ethereum-sourcify/core";
 import { Injector } from "./Injector";
 import * as bunyan from "bunyan";
@@ -19,6 +20,15 @@ export interface IVerificationService {
     contractName: string,
     compilerJson: any
   ): Promise<Metadata>;
+  verifyCreate2(
+    contract: CheckedContract,
+    deployerAddress: string,
+    salt: string,
+    constructorArgs: any,
+    create2Address: string
+  ): Promise<Match>;
+  recompile(contract: CheckedContract): Promise<any>;
+  getBytecode(address: string, chain: string): Promise<string>;
 }
 
 export class VerificationService implements IVerificationService {
@@ -108,9 +118,6 @@ export class VerificationService implements IVerificationService {
   };
 
   inject = async (inputData: InputData): Promise<Match> => {
-    // Injection
-    //const injection: Promise<Match>;
-    //const { repository, chain, addresses, files } = inputData;
     if (!this.injector) {
       this.injector = await Injector.createAsync({
         log: this.logger,
@@ -121,5 +128,56 @@ export class VerificationService implements IVerificationService {
     }
 
     return this.injector.inject(inputData);
+  };
+
+  verifyCreate2 = async (
+    contract: CheckedContract,
+    deployerAddress: string,
+    salt: string,
+    constructorArgs: any,
+    create2Address: string
+  ): Promise<Match> => {
+    if (!this.injector) {
+      this.injector = await Injector.createAsync({
+        log: this.logger,
+        repositoryPath: this.fileService.repositoryPath,
+        fileService: this.fileService,
+        web3timeout: parseInt(process.env.WEB3_TIMEOUT),
+      });
+    }
+
+    return await this.injector.verifyCreate2(
+      contract,
+      deployerAddress,
+      salt,
+      constructorArgs,
+      create2Address
+    );
+  };
+
+  recompile = async (contract: CheckedContract): Promise<any> => {
+    if (!this.injector) {
+      this.injector = await Injector.createAsync({
+        log: this.logger,
+        repositoryPath: this.fileService.repositoryPath,
+        fileService: this.fileService,
+        web3timeout: parseInt(process.env.WEB3_TIMEOUT),
+      });
+    }
+
+    return await this.injector.recompile(contract);
+  };
+
+  getBytecode = async (address: string, chainId: string): Promise<any> => {
+    if (!this.injector) {
+      this.injector = await Injector.createAsync({
+        log: this.logger,
+        repositoryPath: this.fileService.repositoryPath,
+        fileService: this.fileService,
+        web3timeout: parseInt(process.env.WEB3_TIMEOUT),
+      });
+    }
+
+    return await this.injector.getBytecode(address, chainId);
   };
 }

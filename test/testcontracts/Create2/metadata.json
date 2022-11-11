@@ -1,0 +1,100 @@
+{
+    "compiler": {
+        "version": "0.5.17+commit.d19bba13"
+    },
+    "language": "Solidity",
+    "output": {
+        "abi": [
+            {
+                "inputs": [
+                    {
+                        "internalType": "address payable",
+                        "name": "_owner",
+                        "type": "address"
+                    }
+                ],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "payable": true,
+                "stateMutability": "payable",
+                "type": "fallback"
+            },
+            {
+                "constant": false,
+                "inputs": [
+                    {
+                        "internalType": "address payable",
+                        "name": "recipient",
+                        "type": "address"
+                    }
+                ],
+                "name": "destroy",
+                "outputs": [],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [],
+                "name": "owner",
+                "outputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "_owner",
+                        "type": "address"
+                    }
+                ],
+                "name": "setOwner",
+                "outputs": [],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ],
+        "devdoc": {
+            "methods": {}
+        },
+        "userdoc": {
+            "methods": {}
+        }
+    },
+    "settings": {
+        "compilationTarget": {
+            "contracts/Account.sol": "Account"
+        },
+        "evmVersion": "istanbul",
+        "libraries": {},
+        "optimizer": {
+            "enabled": false,
+            "runs": 200
+        },
+        "remappings": []
+    },
+    "sources": {
+        "contracts/Account.sol": {
+            "keccak256": "0x4a00d81b98c1274ff6c292cf4b74dde58af7ef3f8969cbfd556589a6f51b8f3f",
+            "urls": [
+                "bzz-raw://5f09fe6faf6d44bcaeaed75d6b4e16006f83e1caa634b71e92b20915fbcc2e57",
+                "dweb:/ipfs/QmU4ZgKggu3UCo1xypRJ4119DQJutQgjQPxFWmUvFwRNbe"
+            ]
+        }
+    },
+    "version": 1
+}
