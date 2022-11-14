@@ -268,17 +268,31 @@ describe("Server", function () {
     this.timeout(EXTENDED_TIME_60);
 
     const agent = chai.request.agent(server.app);
+    let verificationId
 
     it("should input contract and retrieve files", async () => {
+      const metadata = fs.readFileSync("test/testcontracts/Create2/metadata.json")
+      const bytecode = fs.readFileSync("test/testcontracts/Create2/bytecode.hex").toString()
+
+      const addressDeployed = await deployFromAbiAndBytecode(
+        localWeb3Provider,
+        JSON.parse(metadata).output.abi,
+        bytecode,
+        accounts[0],
+        [accounts[0]]
+      );
+
       const res = await agent
         .post("/session/input-contract")
-        .field("address", "0x00000000219ab540356cBB839Cbe05303d7705Fa")
-        .field("chainId", "1")
+        .field("address", addressDeployed)
+        .field("chainId", defaultContractChain)
+
+      verificationId = res.body.contracts[0].verificationId
       chai.expect(res.body.contracts).to.have.a.lengthOf(1)
       const contract = res.body.contracts[0]
       chai.expect(contract.files.found).to.have.a.lengthOf(1)
       const retrivedFile = contract.files.found[0]
-      chai.expect(retrivedFile).to.equal('deposit_contract.sol')
+      chai.expect(retrivedFile).to.equal('contracts/Account.sol')
     });
 
     it("should create2 verify", (done) => {
@@ -290,12 +304,16 @@ describe("Server", function () {
       }
       agent
         .post("/session/verify/create2")
-        .field("constructorArgs", [])
-        .field("create2Address", "0xd77153a483aa0af37c46ad6ab5ce3aa76dfca184")
-        .field("deployerAddress", "0xF64D868cfDb1Ad4C3589452Ac541CB851e2E80e4")
-        .field("salt", "1")
-        .field("verificationId", "0xb9db6720e834b5189d0e49e63a6611f5e35402cbd0222b80526a145c53e10867")
-        .field("clientToken", clientToken || '')
+        .send({
+          "deployerAddress": "0x4a27c059FD7E383854Ea7DE6Be9c390a795f6eE3",
+          "salt": 1,
+          "constructorArgs": [
+            { "type": "address", "value": "0x303de46de694cc75a2f66da93ac86c6a6eee607e" }
+          ],
+          "clientToken": clientToken || '',
+          "create2Address": "0xc416de86d3a707ae7c082eed0d8858fcbef076ce",
+          "verificationId": verificationId
+        })
         .end((err, res) => {
           assertAllFound(err, res, "perfect");
           done();
@@ -305,7 +323,6 @@ describe("Server", function () {
     it("should create2 verify through API", (done) => {
       const metadata = fs.readFileSync("test/testcontracts/Create2/metadata.json").toString();
       const source = fs.readFileSync("test/testcontracts/Create2/Account.sol").toString();
-      console.log(source)
       let clientToken
       const sourcifyClientTokensRaw = process.env.CREATE2_CLIENT_TOKENS;
       if (sourcifyClientTokensRaw?.length) {
@@ -326,7 +343,7 @@ describe("Server", function () {
             "Account.sol": source,
           },
           "clientToken": clientToken || '',
-          "create2Address": "0x7137a4d9e0ce4f965bed3b743083d014d9ef45b6"
+          "create2Address": "0xc416de86d3a707ae7c082eed0d8858fcbef076ce"
         })
         .end((err, res) => {
           assertAPIAllFound(err, res, "perfect");
