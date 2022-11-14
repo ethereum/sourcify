@@ -510,6 +510,14 @@ export default {
     contractFetchAddress: "https://blockscout.com/astar/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex("/astar"),
   },
+  "10200": {
+    // Gnosis Chiado Testnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://blockscout.chiadochain.net/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
   "1001": {
     // Klaytn Testnet Baobab
     supported: true,
