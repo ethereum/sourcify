@@ -66,6 +66,7 @@
     "memorystore": "^1.6.7",
     "multihashes": "^3.0.1",
     "node-fetch": "2.6.6",
+    "prettier": "^2.7.1",
     "serve-index": "^1.9.1",
     "web3": "^1.2.11"
   },
