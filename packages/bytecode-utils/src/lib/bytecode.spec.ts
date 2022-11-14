@@ -5,6 +5,10 @@ import provider from 'eth-provider';
 
 import { decode, get } from './bytecode';
 
+type Error = {
+  message: string;
+};
+
 const BYTECODES_FOLDER = './src/lib/bytecodes';
 const BYTECODE_IPFS = readFileSync(`${BYTECODES_FOLDER}/ipfs.hex`).toString();
 const BYTECODE_BZZR1 = readFileSync(`${BYTECODES_FOLDER}/bzzr1.hex`).toString();
@@ -25,8 +29,8 @@ test("should fail getting contract's bytecode by address and provider", async (t
   const ethereumProvider = provider();
   try {
     await get('0x00000000219ab540356cBB839Cbe05303d7705Fa', ethereumProvider);
-  } catch (e: any) {
-    t.is(e.message, 'Not connected');
+  } catch (e) {
+    t.is((e as Error).message, 'Not connected');
   }
 });
 
@@ -51,17 +55,15 @@ test('bytecode decode cbor with experimental property', (t) => {
 test('bytecode decode should fail gracefully when input is undefined', (t) => {
   try {
     decode('');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (e: any) {
-    t.is(e.message, 'Bytecode cannot be null');
+  } catch (e) {
+    t.is((e as Error).message, 'Bytecode cannot be null');
   }
 });
 
 test('bytecode decode should fail gracefully when input is corrupted', (t) => {
   try {
     decode(BYTECODE_WRONG);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (e: any) {
-    t.is(e.message, 'Data read, but end of buffer not reached');
+  } catch (e) {
+    t.is((e as Error).message, 'Data read, but end of buffer not reached');
   }
 });
