@@ -31,7 +31,8 @@
     "server:build": "npm run clean && npm run build",
     "server:start": "node ./dist/server/server.js",
     "build:clean": "rm -rf node_modules/ services/verification/node_modules/ services/validation/node_modules/ services/core/node_modules/ && npx lerna bootstrap && npx lerna run build",
-    "build:lerna": "lerna run build"
+    "build:lerna": "lerna run build",
+    "update-chains": "node --experimental-fetch scripts/updateChains.mjs && prettier --write services/core/src/chains.json"
   },
   "keywords": [
     "ethereum",
@@ -65,6 +66,7 @@
     "memorystore": "^1.6.7",
     "multihashes": "^3.0.1",
     "node-fetch": "2.6.6",
+    "prettier": "^2.7.1",
     "serve-index": "^1.9.1",
     "web3": "^1.2.11"
   },
