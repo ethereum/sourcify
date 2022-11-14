@@ -47,10 +47,10 @@
   },
   "homepage": "https://github.com/ethereum/sourcify#readme",
   "dependencies": {
+    "@ethereum-sourcify/bytecode-utils": "*",
     "@ethereum-sourcify/core": "*",
     "@ethereum-sourcify/validation": "*",
     "@ethereum-sourcify/verification": "*",
-    "@ethereum-sourcify/bytecode-utils": "*",
     "@types/node-fetch": "^2.5.7",
     "bunyan": "^1.8.12",
     "commander": "^9.0.0",
@@ -63,7 +63,6 @@
     "express-validator": "^6.6.1",
     "http-status-codes": "^2.1.4",
     "memorystore": "^1.6.7",
-    "multihashes": "^3.0.1",
     "node-fetch": "2.6.6",
     "serve-index": "^1.9.1",
     "web3": "^1.2.11"

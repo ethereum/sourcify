@@ -8,7 +8,6 @@ import {
   IFileService,
   FileService,
   StringMap,
-  cborDecode,
   CheckedContract,
   MatchQuality,
   Chain,
@@ -33,8 +32,6 @@ import {
   getCreate2Address,
 } from "../utils";
 import { decode as bytecodeDecode } from "@ethereum-sourcify/bytecode-utils";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const multihashes: any = require("multihashes");
 import semverSatisfies from "semver/functions/satisfies";
 import { create, IPFSHTTPClient, globSource } from "ipfs-http-client";
 import path from "path";
