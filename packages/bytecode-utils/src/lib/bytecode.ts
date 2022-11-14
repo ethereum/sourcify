@@ -34,8 +34,6 @@ export const decode = (bytecode: string): DecodedObject => {
     bytecode.length - 4
   );
 
-  console.log(cborLength);
-
   // cbor decode the object and get a json
   const cborDecodedObject = CBOR.decode(arrayify(`0x${cborRaw}`));
 

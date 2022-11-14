@@ -13,7 +13,7 @@ const BYTECODE_EXPERIMENTAL = readFileSync(
   `${BYTECODES_FOLDER}/experimental.hex`
 ).toString();
 
-test("get contract's bytecode by adderss and provider", async (t) => {
+test("get contract's bytecode by address and provider", async (t) => {
   const ethereumProvider = provider('https://eth-mainnet.public.blastapi.io');
   t.is(
     await get('0x00000000219ab540356cBB839Cbe05303d7705Fa', ethereumProvider),
@@ -21,7 +21,7 @@ test("get contract's bytecode by adderss and provider", async (t) => {
   );
 });
 
-test("should fail getting contract's bytecode by adderss and provider", async (t) => {
+test("should fail getting contract's bytecode by address and provider", async (t) => {
   const ethereumProvider = provider();
   try {
     await get('0x00000000219ab540356cBB839Cbe05303d7705Fa', ethereumProvider);
@@ -44,13 +44,13 @@ test('bytecode decode cbor with unknow property (bzzr1)', (t) => {
   );
 });
 
-test.only('bytecode decode cbor with experimental property', (t) => {
+test('bytecode decode cbor with experimental property', (t) => {
   t.is(decode(BYTECODE_EXPERIMENTAL).experimental, true);
 });
 
 test('bytecode decode should fail gracefully when input is undefined', (t) => {
   try {
-    console.log(decode(''));
+    decode('');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (e: any) {
     t.is(e.message, 'Bytecode cannot be null');
@@ -59,7 +59,7 @@ test('bytecode decode should fail gracefully when input is undefined', (t) => {
 
 test('bytecode decode should fail gracefully when input is corrupted', (t) => {
   try {
-    console.log(decode(BYTECODE_WRONG));
+    decode(BYTECODE_WRONG);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (e: any) {
     t.is(e.message, 'Data read, but end of buffer not reached');
