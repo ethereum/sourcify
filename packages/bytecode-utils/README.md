@@ -1,6 +1,6 @@
 # bytecode-utils
 
-Decode a contract's bytecode
+Decode the [CBOR encoded data](https://docs.soliditylang.org/en/latest/metadata.html#encoding-of-the-metadata-hash-in-the-bytecode) at the end of an Ethereum contract's bytecode.
 
 ## Install
 
