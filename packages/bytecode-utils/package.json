@@ -7,7 +7,16 @@
   "module": "build/module/index.js",
   "repository": "https://github.com/ethereum/sourcify",
   "license": "MIT",
-  "keywords": ["sourcify", "ethereum", "cbor", "contract", "smart-contract", "metadata", "solidity", "ipfs"],
+  "keywords": [
+    "sourcify",
+    "ethereum",
+    "cbor",
+    "contract",
+    "smart-contract",
+    "metadata",
+    "solidity",
+    "ipfs"
+  ],
   "scripts": {
     "build": "run-p build:*",
     "build:main": "tsc -p tsconfig.json",
@@ -30,7 +39,7 @@
   },
   "dependencies": {
     "@ethersproject/bytes": "^5.7.0",
-    "@types/node": "^18.11.4",
+    "@types/node": "^18.11.9",
     "bs58": "^5.0.0",
     "cbor-x": "^1.4.1",
     "ethereum-provider": "^0.7.7"
