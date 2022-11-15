@@ -18,13 +18,17 @@ type DecodedObject = {
 
 /**
  * Decode contract's bytecode
- * @param bytecode - hex of the bytecode
+ * @param bytecode - hex of the bytecode with 0x prefix
  * @returns Object describing the contract
  */
 export const decode = (bytecode: string): DecodedObject => {
   if (bytecode.length === 0) {
     throw Error('Bytecode cannot be null');
   }
+  if (bytecode.substring(0, 2) !== '0x') {
+    throw Error('Bytecode should start with 0x');
+  }
+
   // Take latest 2 bytes of the bytecode (length of the cbor object)
   const cborLength = parseInt(`${bytecode.slice(-4)}`, 16);
 
@@ -60,7 +64,8 @@ export const decode = (bytecode: string): DecodedObject => {
         result.experimental = cborDecodedObject.experimental;
         break;
       }
-      // bzzr0 and bzzr1 are handled by the default case since they are hex encoded
+      case 'bzzr0':
+      case 'bzzr1':
       default: {
         result[key] = hexlify(cborDecodedObject[key]);
         break;
