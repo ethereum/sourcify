@@ -28,5 +28,6 @@ decode(bytecodeRaw);
   },
   "ipfs": "QmdD3hpMj6mEFVy9DP4QqjHaoeYbhKsYvApX1YZNfjTVWp",
   "solcVersion": "0.6.11"
+  "experimental": true
 }
 ```

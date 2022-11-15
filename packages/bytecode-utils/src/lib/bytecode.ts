@@ -60,6 +60,7 @@ export const decode = (bytecode: string): DecodedObject => {
         result.experimental = cborDecodedObject.experimental;
         break;
       }
+      // bzzr0 and bzzr1 are handled by the default case since they are hex encoded
       default: {
         result[key] = hexlify(cborDecodedObject[key]);
         break;
