@@ -1068,7 +1068,7 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
-  
+
   // Klaytn Testnet Baobab
   verifyContract(
     "0x662749a392CeB1b5973a90FB2c388a2C18B8812c",
@@ -1120,6 +1120,24 @@ describe("Test Supported Chains", function () {
     "Shiden (EVM)",
     ["uint256"],
     [1234],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
+  // Optimism Bedrock: Goerli Alpha Testnet
+  verifyContract(
+    "0xA7e70Be8A6563DCe75299c30D1566A83fC63BC37",
+    "28528",
+    "Optimism Bedrock: Goerli Alpha Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x571bb36009bB26D5313244B30397D2a2341a2A11",
+    "28528",
+    "Optimism Bedrock: Goerli Alpha Testnet",
+    ["uint256"],
+    [51966],
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
