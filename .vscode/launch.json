@@ -15,7 +15,8 @@
         "${workspaceFolder}/dist/**/*.js",
         "${workspaceFolder}/services/core/build/**/*.js",
         "${workspaceFolder}/services/validation/build/**/*.js",
-        "${workspaceFolder}/services/verification/build/**/*.js"
+        "${workspaceFolder}/services/verification/build/**/*.js",
+        "${workspaceFolder}/packages/bytecode-utils/build/**/*.js"
       ],
       "env": {
         "DEBUG": "express:*" // Debug all express modules *
@@ -63,7 +64,8 @@
         "${workspaceFolder}/dist/**/*.js",
         "${workspaceFolder}/services/core/build/**/*.js",
         "${workspaceFolder}/services/validation/build/**/*.js",
-        "${workspaceFolder}/services/verification/build/**/*.js"
+        "${workspaceFolder}/services/verification/build/**/*.js",
+        "${workspaceFolder}/packages/bytecode-utils/build/**/*.js"
       ],
       "smartStep": true,
       "console": "integratedTerminal", 
@@ -79,7 +81,8 @@
         "${workspaceFolder}/dist/**/*.js",
         "${workspaceFolder}/services/core/build/**/*.js",
         "${workspaceFolder}/services/validation/build/**/*.js",
-        "${workspaceFolder}/services/verification/build/**/*.js"
+        "${workspaceFolder}/services/verification/build/**/*.js",
+        "${workspaceFolder}/packages/bytecode-utils/build/**/*.js"
       ],
       "smartStep": true,
       "console": "integratedTerminal", 
@@ -117,7 +120,8 @@
         "${workspaceFolder}/dist/**/*.js",
         "${workspaceFolder}/services/core/build/**/*.js",
         "${workspaceFolder}/services/validation/build/**/*.js",
-        "${workspaceFolder}/services/verification/build/**/*.js"
+        "${workspaceFolder}/services/verification/build/**/*.js",
+        "${workspaceFolder}/packages/bytecode-utils/build/**/*.js"
       ],
       "smartStep": true,
       "envFile": "${workspaceFolder}/environments/.env",
@@ -146,7 +150,8 @@
         "${workspaceFolder}/dist/**/*.js",
         "${workspaceFolder}/services/core/build/**/*.js",
         "${workspaceFolder}/services/validation/build/**/*.js",
-        "${workspaceFolder}/services/verification/build/**/*.js"
+        "${workspaceFolder}/services/verification/build/**/*.js",
+        "${workspaceFolder}/packages/bytecode-utils/build/**/*.js"
       ],
       "smartStep": true,
       "console": "integratedTerminal",
@@ -168,7 +173,8 @@
         "${workspaceFolder}/dist/**/*.js",
         "${workspaceFolder}/services/core/build/**/*.js",
         "${workspaceFolder}/services/validation/build/**/*.js",
-        "${workspaceFolder}/services/verification/build/**/*.js"
+        "${workspaceFolder}/services/verification/build/**/*.js",
+        "${workspaceFolder}/packages/bytecode-utils/build/**/*.js"
       ],
       "smartStep": true,
       "console": "integratedTerminal",
@@ -190,7 +196,8 @@
         "${workspaceFolder}/dist/**/*.js",
         "${workspaceFolder}/services/core/build/**/*.js",
         "${workspaceFolder}/services/validation/build/**/*.js",
-        "${workspaceFolder}/services/verification/build/**/*.js"
+        "${workspaceFolder}/services/verification/build/**/*.js",
+        "${workspaceFolder}/packages/bytecode-utils/build/**/*.js"
       ],
       "smartStep": true,
       "console": "integratedTerminal",
@@ -244,7 +251,8 @@
         "${workspaceFolder}/dist/**/*.js",
         "${workspaceFolder}/services/core/build/**/*.js",
         "${workspaceFolder}/services/validation/build/**/*.js",
-        "${workspaceFolder}/services/verification/build/**/*.js"
+        "${workspaceFolder}/services/verification/build/**/*.js",
+        "${workspaceFolder}/packages/bytecode-utils/build/**/*.js"
       ],
       "smartStep": true,
       "console": "integratedTerminal",
@@ -269,7 +277,8 @@
         "${workspaceFolder}/dist/**/*.js",
         "${workspaceFolder}/services/core/build/**/*.js",
         "${workspaceFolder}/services/validation/build/**/*.js",
-        "${workspaceFolder}/services/verification/build/**/*.js"
+        "${workspaceFolder}/services/verification/build/**/*.js",
+        "${workspaceFolder}/packages/bytecode-utils/build/**/*.js"
       ],
       "smartStep": true,
       "console": "integratedTerminal",
@@ -291,7 +300,8 @@
         "${workspaceFolder}/dist/**/*.js",
         "${workspaceFolder}/services/core/build/**/*.js",
         "${workspaceFolder}/services/validation/build/**/*.js",
-        "${workspaceFolder}/services/verification/build/**/*.js"
+        "${workspaceFolder}/services/verification/build/**/*.js",
+        "${workspaceFolder}/packages/bytecode-utils/build/**/*.js"
       ],
       "smartStep": true,
       "console": "integratedTerminal",
