@@ -68,9 +68,10 @@ export const decode = (bytecode: string): DecodedObject => {
 };
 
 /**
- * Split bytecode into execution and auxdata
+ * Splits bytecode into execution bytecode and auxdata
+ * If the bytecode has no CBOR encoded part, returns the whole bytecode
  * @param bytecode - hex of the bytecode with 0x prefix
- * @returns array first element is execution bytecode, second element is auxdata
+ * @returns string[] - [ executionBytecode, auxdata?, cborBytesLength?] all as hexStrings
  */
 export const splitAuxdata = (bytecode: string): string[] => {
   if (bytecode.length === 0) {
