@@ -408,14 +408,17 @@ const LandingPage = () => {
       >
         <h1 className="text-3xl text-ceruleanBlue-500 font-bold">Resources</h1>
         <div className="flex flex-col items-center mt-8">
-          <iframe
-            className="sm:w-full sm:h-auto md:w-[48rem] md:h-[27rem]"
-            src="https://www.youtube.com/embed/cgKrRt6B0Ps"
-            title="Kaan Uzdogan : Human-friendly contract interactions with Sourcify verification"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          ></iframe>
+          {/* "aspect" hack from https://github.com/efdevcon/devcon-website/blob/e3565f34838135cf2198a927192cd44365458dcd/src/components/domain/archive/Video.tsx#L172
+            variable height via width percentage padding in a parent element until breakpoint lg, then constant width and height. */}
+          <div className="lg:pb-0 lg:h-auto lg:static h-0 w-full relative overflow-hidden pb-[56.25%] flex justify-center items-center">
+            <iframe
+              src="https://etherna.io/embed/44dc8c325a1c6d9950cb634a984477a6132663f91670fb016848a73b2b3a16c7"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              title="Human-Friendly Contract Interactions"
+              className="w-full h-full left-0 top-0 absolute lg:static md:w-[48rem] md:h-[27rem]"
+            ></iframe>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-8 lg:mx-32">
             <ul>
               <h3 className="text-ceruleanBlue-500 uppercase text-lg font-semibold">
@@ -445,9 +448,8 @@ const LandingPage = () => {
               >
                 How Smart Contracts Can Be Automatically Verified
               </ResourceListItem>
-              {
-                showMoreReadResources ? (
-                  <>
+              {showMoreReadResources ? (
+                <>
                   <ResourceListItem
                     href="https://medium.com/remix-ide/verify-contracts-on-remix-with-sourcify-2912004d9c84"
                     date="26 Jun 2020"
@@ -461,22 +463,26 @@ const LandingPage = () => {
                     The future of a Decentralized Etherscan
                   </ResourceListItem>
                 </>
-                ) : (
-                  <button className="text-ceruleanBlue-500" onClick={() => setShowMoreReadResources(true)}>Show more</button>
-                )
-              }
-
+              ) : (
+                <button
+                  className="text-ceruleanBlue-500"
+                  onClick={() => setShowMoreReadResources(true)}
+                >
+                  Show more
+                </button>
+              )}
             </ul>
             <ul>
               <h3 className="text-ceruleanBlue-500 uppercase text-lg font-semibold">
                 📽 Watch
               </h3>
-              
+
               <ResourceListItem
                 href="https://www.youtube.com/watch?v=HOATnus4oL0"
                 date="10 Jun 2022"
               >
-                Franziska Heintel - Towards Trust-Minimized Transactions and a Transparent Web3
+                Franziska Heintel - Towards Trust-Minimized Transactions and a
+                Transparent Web3
               </ResourceListItem>
               <ResourceListItem
                 href="https://www.youtube.com/watch?v=z5D613Qt7Kc"
@@ -490,8 +496,7 @@ const LandingPage = () => {
               >
                 Goodbye YOLO-Signing
               </ResourceListItem>
-              {
-                showMoreWatchResources ? (
+              {showMoreWatchResources ? (
                 <>
                   <ResourceListItem
                     href="https://www.youtube.com/watch?v=Zc_fJElIooQ"
@@ -510,14 +515,18 @@ const LandingPage = () => {
                     href="https://www.youtube.com/watch?v=_73OrDbpxoY&list=PLrtFm7U0BIfUH7g1-blb-eYFgzOYWhvqm&index=13"
                     date="04 Mar 2020"
                   >
-                    Christian Reitwiessner: Improving Wallet UX and Security through
-                    a Decentralized Metadata and Source Code Repository
+                    Christian Reitwiessner: Improving Wallet UX and Security
+                    through a Decentralized Metadata and Source Code Repository
                   </ResourceListItem>
                 </>
-                ): (
-                  <button className="text-ceruleanBlue-500" onClick={() => setShowMoreWatchResources(true)}>Show more</button>
-                )
-              }
+              ) : (
+                <button
+                  className="text-ceruleanBlue-500"
+                  onClick={() => setShowMoreWatchResources(true)}
+                >
+                  Show more
+                </button>
+              )}
             </ul>
           </div>
         </div>
