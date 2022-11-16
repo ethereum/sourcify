@@ -20,7 +20,6 @@ import {
   RecompilationResult,
   getBytecode,
   recompile,
-  trimAuxdata,
   checkEndpoint,
   getCreationDataFromArchive,
   getCreationDataByScraping,
@@ -31,7 +30,10 @@ import {
   getCreationDataAvalancheSubnet,
   getCreate2Address,
 } from "../utils";
-import { decode as bytecodeDecode } from "@ethereum-sourcify/bytecode-utils";
+import {
+  decode as bytecodeDecode,
+  splitAuxdata,
+} from "@ethereum-sourcify/bytecode-utils";
 import semverSatisfies from "semver/functions/satisfies";
 import { create, IPFSHTTPClient, globSource } from "ipfs-http-client";
 import path from "path";
@@ -305,8 +307,8 @@ export class Injector {
         return match;
       }
 
-      const trimmedDeployedBytecode = trimAuxdata(deployedBytecode);
-      const trimmedCompiledRuntimeBytecode = trimAuxdata(
+      const [trimmedDeployedBytecode] = splitAuxdata(deployedBytecode);
+      const [trimmedCompiledRuntimeBytecode] = splitAuxdata(
         recompiled.deployedBytecode
       );
       if (trimmedDeployedBytecode === trimmedCompiledRuntimeBytecode) {
@@ -340,7 +342,7 @@ export class Injector {
             return match;
           }
 
-          const trimmedCompiledCreationBytecode = trimAuxdata(
+          const [trimmedCompiledCreationBytecode] = splitAuxdata(
             recompiled.creationBytecode
           );
 

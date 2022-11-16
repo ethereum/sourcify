@@ -1,9 +1,8 @@
 import { readFileSync } from 'fs';
 
 import test from 'ava';
-import provider from 'eth-provider';
 
-import { decode, get } from './bytecode';
+import { decode, splitAuxdata } from './bytecode';
 
 type Error = {
   message: string;
@@ -19,22 +18,24 @@ const BYTECODE_EXPERIMENTAL = readFileSync(
 const BYTECODE_WITHOUT0X = readFileSync(
   `${BYTECODES_FOLDER}/without0x.hex`
 ).toString();
+const BYTECODE_WITHOUTAUXDATA = readFileSync(
+  `${BYTECODES_FOLDER}/withoutauxdata.hex`
+).toString();
 
-test("get contract's bytecode by address and provider", async (t) => {
-  const ethereumProvider = provider('https://eth-mainnet.public.blastapi.io');
-  t.is(
-    await get('0x00000000219ab540356cBB839Cbe05303d7705Fa', ethereumProvider),
-    BYTECODE_IPFS
-  );
+test('return bytecode without auxdata while splitting bytecode into execution bytecode and auxadata', (t) => {
+  const [execution, auxadata, length] = splitAuxdata(BYTECODE_WITHOUTAUXDATA);
+  t.is(auxadata, undefined);
+  t.is(length, undefined);
+  t.is(`${execution}`, BYTECODE_WITHOUTAUXDATA);
 });
 
-test("should fail getting contract's bytecode by address and provider", async (t) => {
-  const ethereumProvider = provider();
-  try {
-    await get('0x00000000219ab540356cBB839Cbe05303d7705Fa', ethereumProvider);
-  } catch (e) {
-    t.is((e as Error).message, 'Not connected');
-  }
+test('split succesfully bytecode into execution bytecode and auxadata', (t) => {
+  const [execution, auxadata, length] = splitAuxdata(BYTECODE_IPFS);
+  t.is(
+    auxadata,
+    'a2646970667358221220dceca8706b29e917dacf25fceef95acac8d90d765ac926663ce4096195952b6164736f6c634300060b'
+  );
+  t.is(`${execution}${auxadata}${length}`, BYTECODE_IPFS);
 });
 
 test('bytecode decode cbor with `ipfs` property', (t) => {
@@ -75,6 +76,6 @@ test('bytecode decode should fail gracefully when input is corrupted', (t) => {
   try {
     decode(BYTECODE_WRONG);
   } catch (e) {
-    t.is((e as Error).message, 'Data read, but end of buffer not reached');
+    t.is((e as Error).message, 'Auxdata is not in the execution bytecode');
   }
 });

@@ -1,7 +1,6 @@
 import { arrayify, hexlify } from '@ethersproject/bytes';
 import bs58 from 'bs58';
 import * as CBOR from 'cbor-x';
-import { EthereumProvider } from 'ethereum-provider';
 
 type CBOR = {
   bytes: string;
@@ -10,10 +9,9 @@ type CBOR = {
 
 // eslint-disable-next-line functional/no-mixed-type
 type DecodedObject = {
-  cbor: CBOR;
   ipfs?: string;
   solcVersion?: string;
-  [key: string]: string | CBOR | Uint8Array | undefined | boolean;
+  [key: string]: string | Uint8Array | undefined | boolean;
 };
 
 /**
@@ -29,24 +27,17 @@ export const decode = (bytecode: string): DecodedObject => {
     throw Error('Bytecode should start with 0x');
   }
 
-  // Take latest 2 bytes of the bytecode (length of the cbor object)
-  const cborLength = parseInt(`${bytecode.slice(-4)}`, 16);
+  // split auxdata
+  const [, auxdata] = splitAuxdata(bytecode);
 
-  // Extract the cbor object using the extracted lenght
-  const cborRaw = bytecode.substring(
-    bytecode.length - 4 - cborLength * 2,
-    bytecode.length - 4
-  );
+  if (!auxdata) {
+    throw Error('Auxdata is not in the execution bytecode');
+  }
 
   // cbor decode the object and get a json
-  const cborDecodedObject = CBOR.decode(arrayify(`0x${cborRaw}`));
+  const cborDecodedObject = CBOR.decode(arrayify(`0x${auxdata}`));
 
-  const result: DecodedObject = {
-    cbor: {
-      bytes: `0x${cborRaw}`,
-      length: cborLength,
-    },
-  };
+  const result: DecodedObject = {};
 
   // Decode all the parameters from the json
   Object.keys(cborDecodedObject).forEach((key: string) => {
@@ -77,18 +68,46 @@ export const decode = (bytecode: string): DecodedObject => {
 };
 
 /**
- * Get contract's bytecode given an address and an rpc
- * @param address - contract's address
- * @param provider - provider used to get the bytecode
- * @returns bytecode
+ * Split bytecode into execution and auxdata
+ * @param bytecode - hex of the bytecode with 0x prefix
+ * @returns array first element is execution bytecode, second element is auxdata
  */
-export const get = async (
-  address: string,
-  provider: EthereumProvider
-): Promise<string> => {
-  const bytecode = await provider.request({
-    method: 'eth_getCode',
-    params: [address, 'latest'],
-  });
-  return bytecode as string;
+export const splitAuxdata = (bytecode: string): string[] => {
+  if (bytecode.length === 0) {
+    throw Error('Bytecode cannot be null');
+  }
+  if (bytecode.substring(0, 2) !== '0x') {
+    throw Error('Bytecode should start with 0x');
+  }
+
+  const bytesLength = 4;
+
+  // Take latest 2 bytes of the bytecode (length of the cbor object)
+  const cborLenghtHex = `${bytecode.slice(-bytesLength)}`;
+  const cborLength = parseInt(cborLenghtHex, 16);
+  const cborBytesLength = cborLength * 2;
+
+  // If the length of the cbor is more or equal to the length of the execution bytecode, it means there is no cbor
+  if (bytecode.length - bytesLength - cborBytesLength <= 0) {
+    return [bytecode];
+  }
+  // Extract the cbor object using the extracted lenght
+  const auxdata = bytecode.substring(
+    bytecode.length - bytesLength - cborBytesLength,
+    bytecode.length - bytesLength
+  );
+
+  // Extract exection bytecode
+  const executionBytecode = bytecode.substring(
+    0,
+    bytecode.length - bytesLength - cborBytesLength
+  );
+
+  try {
+    // return the complete array only if the auxdata is actually cbor encoded
+    CBOR.decode(arrayify(`0x${auxdata}`));
+    return [executionBytecode, auxdata, cborLenghtHex];
+  } catch (e) {
+    return [bytecode];
+  }
 };
