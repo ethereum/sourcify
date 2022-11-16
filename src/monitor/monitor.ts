@@ -1,5 +1,4 @@
 import {
-  cborDecode,
   getMonitoredChains,
   getTestChains,
   MonitorConfig,
@@ -20,6 +19,7 @@ import SourceFetcher from "./source-fetcher";
 import SystemConfig from "../config";
 import assert from "assert";
 import { EventEmitter } from "stream";
+import { decode as bytecodeDecode } from "@ethereum-sourcify/bytecode-utils";
 
 const BLOCK_PAUSE_FACTOR = parseInt(process.env.BLOCK_PAUSE_FACTOR) || 1.1;
 assert(BLOCK_PAUSE_FACTOR > 1);
@@ -226,9 +226,8 @@ class ChainMonitor extends EventEmitter {
           return;
         }
 
-        const numericBytecode = Web3.utils.hexToBytes(bytecode);
         try {
-          const cborData = cborDecode(numericBytecode);
+          const cborData = bytecodeDecode(bytecode);
           const metadataAddress = SourceAddress.fromCborData(cborData);
           this.sourceFetcher.assemble(metadataAddress, (contract) =>
             this.inject(contract, bytecode, creationData, address)

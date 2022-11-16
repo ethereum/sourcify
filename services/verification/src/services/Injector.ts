@@ -8,7 +8,6 @@ import {
   IFileService,
   FileService,
   StringMap,
-  cborDecode,
   CheckedContract,
   MatchQuality,
   Chain,
@@ -21,7 +20,6 @@ import {
   RecompilationResult,
   getBytecode,
   recompile,
-  trimAuxdata,
   checkEndpoint,
   getCreationDataFromArchive,
   getCreationDataByScraping,
@@ -32,8 +30,10 @@ import {
   getCreationDataAvalancheSubnet,
   getCreate2Address,
 } from "../utils";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const multihashes: any = require("multihashes");
+import {
+  decode as bytecodeDecode,
+  splitAuxdata,
+} from "@ethereum-sourcify/bytecode-utils";
 import semverSatisfies from "semver/functions/satisfies";
 import { create, IPFSHTTPClient, globSource } from "ipfs-http-client";
 import path from "path";
@@ -308,8 +308,8 @@ export class Injector {
         return match;
       }
 
-      const trimmedDeployedBytecode = trimAuxdata(deployedBytecode);
-      const trimmedCompiledRuntimeBytecode = trimAuxdata(
+      const [trimmedDeployedBytecode] = splitAuxdata(deployedBytecode);
+      const [trimmedCompiledRuntimeBytecode] = splitAuxdata(
         recompiled.deployedBytecode
       );
       if (trimmedDeployedBytecode === trimmedCompiledRuntimeBytecode) {
@@ -343,7 +343,7 @@ export class Injector {
             return match;
           }
 
-          const trimmedCompiledCreationBytecode = trimAuxdata(
+          const [trimmedCompiledCreationBytecode] = splitAuxdata(
             recompiled.creationBytecode
           );
 
@@ -812,19 +812,14 @@ export class Injector {
     address?: string,
     chain?: string
   ) {
-    const bytes = Web3.utils.hexToBytes(bytecode);
-    const cborData = cborDecode(bytes);
+    const cborData = bytecodeDecode(bytecode);
 
     if (cborData["bzzr0"]) {
-      return `/swarm/bzzr0/${Web3.utils
-        .bytesToHex(cborData["bzzr0"])
-        .slice(2)}`;
+      return `/swarm/bzzr0/${cborData["bzzr0"]}`;
     } else if (cborData["bzzr1"]) {
-      return `/swarm/bzzr1/${Web3.utils
-        .bytesToHex(cborData["bzzr1"])
-        .slice(2)}`;
+      return `/swarm/bzzr1/${cborData["bzzr1"]}`;
     } else if (cborData["ipfs"]) {
-      return `/ipfs/${multihashes.toB58String(cborData["ipfs"])}`;
+      return `/ipfs/${cborData["ipfs"]}`;
     }
 
     this.log.error({
