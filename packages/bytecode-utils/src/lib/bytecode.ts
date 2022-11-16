@@ -24,7 +24,7 @@ export const decode = (bytecode: string): DecodedObject => {
     throw Error('Bytecode cannot be null');
   }
   if (bytecode.substring(0, 2) !== '0x') {
-    throw Error('Bytecode should start with 0x');
+    bytecode = '0x' + bytecode;
   }
 
   // split auxdata
@@ -78,7 +78,7 @@ export const splitAuxdata = (bytecode: string): string[] => {
     throw Error('Bytecode cannot be null');
   }
   if (bytecode.substring(0, 2) !== '0x') {
-    throw Error('Bytecode should start with 0x');
+    bytecode = '0x' + bytecode;
   }
 
   const bytesLength = 4;

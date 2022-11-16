@@ -64,12 +64,11 @@ test('bytecode decode should fail gracefully when input is undefined', (t) => {
   }
 });
 
-test('bytecode decode should fail gracefully when input is without 0x', (t) => {
-  try {
-    decode(BYTECODE_WITHOUT0X);
-  } catch (e) {
-    t.is((e as Error).message, 'Bytecode should start with 0x');
-  }
+test('decode a bytecode not starting with 0x', (t) => {
+  t.is(
+    decode(BYTECODE_WITHOUT0X).ipfs,
+    'QmbFc3AoHDC977j2UH2WwYSwsSRrBGj8bsiiyigXhHzyuZ'
+  );
 });
 
 test('bytecode decode should fail gracefully when input is corrupted', (t) => {
