@@ -1,8 +1,12 @@
 import radspec from '@blossom-labs/rosette-radspec';
-import { Transaction } from '@blossom-labs/rosette-radspec/dist/declarations/src/types/web3';
+import { Transaction as TransactionRosette } from '@blossom-labs/rosette-radspec/dist/declarations/src/types/web3';
 import { decode as decodeBytecode } from '@ethereum-sourcify/bytecode-utils';
 import { Interface } from '@ethersproject/abi';
 import { EthereumProvider } from 'ethereum-provider';
+
+type Transaction = TransactionRosette & {
+  readonly chainId?: number;
+};
 
 require('isomorphic-fetch');
 
@@ -95,8 +99,7 @@ export const evaluateCallDataFromTx = async (
     ...defaultGetMetadataOptions,
     ...options,
     address: tx.to,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    chainId: options.chainId || (tx as any).chainId,
+    chainId: options.chainId || tx.chainId,
   };
   const metadata = await getMetadataFromAddress(getMetadataOptions);
 
