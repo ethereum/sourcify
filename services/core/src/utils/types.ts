@@ -79,6 +79,7 @@ export interface Create2Args {
 
 export interface Match {
   address: string | null;
+  chainId: string | null;
   status: Status;
   storageTimestamp?: Date;
   message?: string;

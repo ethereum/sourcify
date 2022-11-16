@@ -78,6 +78,7 @@ export type Create2VerificationInput = {
 
 export interface Match {
   address: string | null;
+  chainId: string | null;
   status: Status;
   storageTimestamp?: Date;
   message?: string;

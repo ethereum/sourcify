@@ -179,7 +179,7 @@ export class Injector {
     recompiled: RecompilationResult,
     metadata: Metadata
   ): Promise<Match> {
-    let match: Match = { address: null, status: null };
+    let match: Match = { address: null, chainId: null, status: null };
     const chainName = this.chains[chain].name || "The chain";
 
     for (let address of addresses) {
@@ -284,6 +284,7 @@ export class Injector {
   ): Promise<Match> {
     const match: Match = {
       address,
+      chainId: chain,
       status: null,
       encodedConstructorArgs: undefined,
       libraryMap: undefined,
@@ -561,7 +562,6 @@ export class Injector {
   }
 
   public async storeMatch(
-    chain: string,
     contract: CheckedContract,
     compilationResult: RecompilationResult,
     match: Match
@@ -572,16 +572,26 @@ export class Injector {
     ) {
       // Delete the partial matches if we now have a perfect match instead.
       if (match.status === "perfect") {
-        this.fileService.deletePartialIfExists(chain, match.address);
+        this.fileService.deletePartialIfExists(match.chainId, match.address);
       }
       const matchQuality = this.statusToMatchQuality(match.status);
-      this.storeSources(matchQuality, chain, match.address, contract.solidity);
-      this.storeMetadata(matchQuality, chain, match.address, compilationResult);
+      this.storeSources(
+        matchQuality,
+        match.chainId,
+        match.address,
+        contract.solidity
+      );
+      this.storeMetadata(
+        matchQuality,
+        match.chainId,
+        match.address,
+        compilationResult
+      );
 
       if (match.encodedConstructorArgs && match.encodedConstructorArgs.length) {
         this.storeConstructorArgs(
           matchQuality,
-          chain,
+          match.chainId,
           match.address,
           match.encodedConstructorArgs
         );
@@ -590,7 +600,7 @@ export class Injector {
       if (match.create2Args) {
         this.storeCreate2Args(
           matchQuality,
-          chain,
+          match.chainId,
           match.address,
           match.create2Args
         );
@@ -599,14 +609,14 @@ export class Injector {
       if (match.libraryMap && Object.keys(match.libraryMap).length) {
         this.storeLibraryMap(
           matchQuality,
-          chain,
+          match.chainId,
           match.address,
           match.libraryMap
         );
       }
 
       if (this.ipfsClient) {
-        this.addToIpfsMfs(matchQuality, chain, match.address);
+        this.addToIpfsMfs(matchQuality, match.chainId, match.address);
       }
     } else if (match.status === "extra-file-input-bug") {
       return match;
@@ -618,7 +628,7 @@ export class Injector {
 
       this.log.error({
         loc: "[INJECT]",
-        chain,
+        chain: match.chainId,
         address: match.address,
         err,
       });
@@ -704,7 +714,7 @@ export class Injector {
       );
     }
 
-    await this.storeMatch(chain, contract, compilationResult, match);
+    await this.storeMatch(contract, compilationResult, match);
 
     return match;
   }
@@ -767,6 +777,7 @@ export class Injector {
 
     const match: Match = {
       address: computedAddr,
+      chainId: "0",
       status: "perfect",
       storageTimestamp: new Date(),
       encodedConstructorArgs: encodedConstructorArgs,
@@ -774,7 +785,7 @@ export class Injector {
       libraryMap: libraryMap,
     };
 
-    await this.storeMatch("0", contract, compilationResult, match);
+    await this.storeMatch(contract, compilationResult, match);
 
     return match;
   }

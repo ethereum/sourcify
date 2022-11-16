@@ -745,6 +745,7 @@ export default class VerificationController
           }
         } catch (error: any) {
           match = {
+            chainId: null,
             status: null,
             address: null,
             message: error.message,

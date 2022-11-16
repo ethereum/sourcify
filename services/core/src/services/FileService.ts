@@ -270,6 +270,7 @@ export class FileService implements IFileService {
       return [
         {
           address,
+          chainId: chain,
           status: "perfect",
           storageTimestamp,
         },
@@ -309,6 +310,7 @@ export class FileService implements IFileService {
       return [
         {
           address,
+          chainId: chain,
           status: storage?.status,
           storageTimestamp: storage?.time,
           create2Args: storage?.create2Args,
