@@ -22,7 +22,7 @@ const BYTECODE_WITHOUTAUXDATA = readFileSync(
   `${BYTECODES_FOLDER}/withoutauxdata.hex`
 ).toString();
 
-test('return the whole bytecode when the bytecode that doesn't contain auxdata', (t) => {
+test("return the whole bytecode when the bytecode that doesn't contain auxdata", (t) => {
   const [execution, auxadata, length] = splitAuxdata(BYTECODE_WITHOUTAUXDATA);
   t.is(auxadata, undefined);
   t.is(length, undefined);
