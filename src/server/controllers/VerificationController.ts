@@ -262,12 +262,9 @@ export default class VerificationController
       addresses: [address],
       contract: checkedContract,
     };
-    try {
-      const result = await this.verificationService.inject(inputData);
-      res.send({ result: [result] });
-    } catch (e) {
-      throw Error("An error occurred while verifying this contract");
-    }
+
+    const result = await this.verificationService.inject(inputData);
+    res.send({ result: [result] });
   };
 
   private verifyCreate2 = async (
