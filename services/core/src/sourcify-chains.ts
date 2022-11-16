@@ -541,4 +541,12 @@ export default {
       "https://blockscout.com/shiden/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex("/shiden"),
   },
+  "28528": {
+    // Optimism Bedrock: Goerli Alpha Testnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://blockscout.com/optimism/bedrock-alpha/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex("/optimism/bedrock-alpha"),
+  },
 };
