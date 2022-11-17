@@ -1,11 +1,16 @@
 FROM ubuntu:20.04
 RUN apt-get update && apt-get install -y cron curl
-WORKDIR /app
-RUN curl https://dist.ipfs.io/go-ipfs/v0.13.0/go-ipfs_v0.13.0_linux-amd64.tar.gz > go-ipfs.tar.gz && tar xvfz go-ipfs.tar.gz && cd go-ipfs && ./install.sh
-ADD ./publish.sh ./publish.sh
-ADD ./init-config.sh ./init-config.sh
-ADD ./entrypoint.sh ./entrypoint.sh
-ADD ./cron.job ./cron.job
+
+RUN mkdir /sourcify
+WORKDIR /sourcify
+
+RUN curl https://dist.ipfs.io/go-ipfs/v0.16.0/go-ipfs_v0.16.0_linux-amd64.tar.gz > go-ipfs.tar.gz && tar xvfz go-ipfs.tar.gz && cd go-ipfs && ./install.sh
+
+ADD publish.sh ./publish.sh
+ADD init-config.sh ./init-config.sh
+ADD entrypoint.sh ./entrypoint.sh
+ADD cron.job ./cron.job
+
 # Terminate and auto-restart container if ipfs daemon crashes
 HEALTHCHECK --interval=2m CMD curl http://localhost:8080 || pkill entrypoint.sh
 ENTRYPOINT ./entrypoint.sh
