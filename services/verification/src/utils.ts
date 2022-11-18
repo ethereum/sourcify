@@ -119,11 +119,16 @@ export async function recompile(
   sources: StringMap,
   log: InfoErrorLogger
 ): Promise<RecompilationResult> {
-  const { solcJsonInput, fileName, contractName } = createJsonInputFromMetadata(
-    metadata,
-    sources,
-    log
-  );
+  let solcJsonInput, fileName, contractName;
+  try {
+    ({ solcJsonInput, fileName, contractName } = createJsonInputFromMetadata(
+      metadata,
+      sources,
+      log
+    ));
+  } catch (e) {
+    throw new Error("Cannot parse metadata");
+  }
 
   const loc = "[RECOMPILE]";
   const version = metadata.compiler.version;
@@ -302,15 +307,19 @@ async function fetchSolcFromGitHub(
 }
 
 /**
- * Removes post-fixed metadata from a bytecode string
+ * Removes the appended CBOR encoded auxdata from a bytecode string
  * (for partial bytecode match comparisons )
  * @param  {string} bytecode
- * @return {string}          bytecode minus metadata
+ * @return {string} bytecode minus auxdata
  */
-export function getBytecodeWithoutMetadata(bytecode: string): string {
+export function trimAuxdata(bytecode: string): string {
   // Last 4 chars of bytecode specify byte size of metadata component,
-  const metadataSize = parseInt(bytecode.slice(-4), 16) * 2 + 4;
-  return bytecode.slice(0, bytecode.length - metadataSize);
+  const auxdataSize = parseInt(bytecode.slice(-4), 16) * 2 + 4;
+  // When the length of auxdaha is not appended at the end, it will likely overshoot. There's no auxdata to trim.
+  if (auxdataSize > bytecode.length) {
+    return bytecode;
+  }
+  return bytecode.slice(0, bytecode.length - auxdataSize);
 }
 
 /**
@@ -575,4 +584,61 @@ export async function getCreationDataFromGraphQL(
       `Creation data could not be fetched from ${fetchAddress}, reason: ${err.message}`
     );
   }
+}
+
+export const buildCreate2Address = (
+  factoryAddress: string,
+  saltHex: string,
+  byteCode: string
+) => {
+  return `0x${ethers.utils
+    .keccak256(
+      `0x${["ff", factoryAddress, saltHex, ethers.utils.keccak256(byteCode)]
+        .map((x) => x.replace(/0x/, ""))
+        .join("")}`
+    )
+    .slice(-40)}`.toLowerCase();
+};
+
+export const saltToHex = (salt: string | number) => {
+  salt = salt.toString();
+  if (ethers.utils.isHexString(salt)) {
+    return salt;
+  }
+
+  return ethers.utils.id(salt);
+};
+
+export const encodeParams = (dataTypes: any[], data: any[]) => {
+  const abiCoder = ethers.utils.defaultAbiCoder;
+  return abiCoder.encode(dataTypes, data);
+};
+
+export const buildBytecode = (
+  constructorTypes: any[],
+  constructorArgs: any[],
+  contractBytecode: string
+) =>
+  `${contractBytecode}${encodeParams(constructorTypes, constructorArgs).slice(
+    2
+  )}`;
+
+export function getCreate2Address({
+  factoryAddress,
+  salt,
+  contractBytecode,
+  constructorTypes = [] as string[],
+  constructorArgs = [] as any[],
+}: {
+  factoryAddress: string;
+  salt: string | number;
+  contractBytecode: string;
+  constructorTypes?: string[];
+  constructorArgs?: any[];
+}) {
+  return buildCreate2Address(
+    factoryAddress,
+    saltToHex(salt),
+    buildBytecode(constructorTypes, constructorArgs, contractBytecode)
+  );
 }

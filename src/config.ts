@@ -11,16 +11,13 @@ export default {
   },
   server: {
     port: process.env.SERVER_PORT || 5000,
-    url: process.env.SERVER_URL || "http://localhost:5000",
     maxFileSize: 30 * 1024 * 1024, // 30 MB
     etherscanAPIKey: process.env.ETHERSCAN_API_KEY,
   },
   repository: {
-    port: process.env.REPOSITORY_PORT || 80,
     path:
       process.env.MOCK_REPOSITORY ||
-      path.resolve(__dirname, process.env.REPOSITORY_PATH!) ||
-      path.resolve(__dirname, "./repository"),
+      path.resolve(__dirname, process.env.REPOSITORY_PATH),
   },
   testing: process.env.TESTING || false,
   tag: process.env.TAG || "latest",

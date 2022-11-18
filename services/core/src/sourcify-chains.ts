@@ -32,16 +32,17 @@ function buildAlchemyURL(
   if (useOwn) {
     const port = process.env[`NODE_PORT_${chainSubName.toUpperCase()}`];
     const url = `${process.env.NODE_ADDRESS}:${port}`;
+    if (!port || !url) return undefined;
     return url;
   }
 
   let id;
   switch (chainName) {
     case "opt":
-      id = process.env["ALCHEMY_ID_OPTIMISM"];
+      id = process.env["ALCHEMY_ID_OPTIMISM"] || process.env["ALCHEMY_ID"];
       break;
     case "arb":
-      id = process.env["ALCHEMY_ID_ARBITRUM"];
+      id = process.env["ALCHEMY_ID_ARBITRUM"] || process.env["ALCHEMY_ID"];
       break;
     default:
       id = process.env["ALCHEMY_ID"];
@@ -49,7 +50,7 @@ function buildAlchemyURL(
   }
 
   const domain = {
-    eth: "alchemyapi.io",
+    eth: "g.alchemy.com",
     polygon: "g.alchemy.com",
     arb: "g.alchemy.com",
     opt: "g.alchemy.com",
@@ -81,10 +82,7 @@ export default {
     supported: true,
     monitored: true,
     contractFetchAddress: "https://rinkeby.etherscan.io/" + ETHERSCAN_SUFFIX,
-    rpc: [
-      buildAlchemyURL("rinkeby", "eth", true),
-      buildAlchemyURL("rinkeby", "eth"),
-    ],
+    rpc: [buildAlchemyURL("rinkeby", "eth", true)],
     txRegex: ETHERSCAN_REGEX,
   },
   "5": {
@@ -177,8 +175,8 @@ export default {
     supported: true,
     monitored: false,
     contractFetchAddress:
-      "https://alfajores-blockscout.celo-testnet.org/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+      "https://explorer.celo.org/alfajores/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex("/alfajores"),
   },
   "62320": {
     supported: true,
@@ -193,13 +191,6 @@ export default {
     contractFetchAddress: "https://mumbai.polygonscan.com/" + ETHERSCAN_SUFFIX,
     rpc: [buildAlchemyURL("mumbai", "polygon")],
     txRegex: ETHERSCAN_REGEX,
-  },
-  "421611": {
-    // Arbitrum Rinkeby Testnet
-    supported: true,
-    monitored: true,
-    graphQLFetchAddress: "https://rinkeby-indexer.arbitrum.io/graphql",
-    rpc: [buildAlchemyURL("rinkeby", "arb")],
   },
   "42161": {
     // Arbitrum Mainnet
@@ -506,5 +497,60 @@ export default {
     monitored: false,
     contractFetchAddress: "https://evm.explorer.canto.io/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
+  },
+  "99": {
+    // POA Network Core
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://blockscout.com/poa/core/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex("/poa/core"),
+    rpc: ["https://core.poa.network"],
+  },
+  "592": {
+    // Astar (EVM)
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://blockscout.com/astar/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex("/astar"),
+  },
+  "10200": {
+    // Gnosis Chiado Testnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://blockscout.chiadochain.net/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
+  "1001": {
+    // Klaytn Testnet Baobab
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://klaytn-testnet.aws-k8s.blockscout.com/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
+  "8217": {
+    // Klaytn Mainnet Cypress
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://klaytn-mainnet.aws-k8s.blockscout.com/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
+  "336": {
+    // Shiden (EVM) 
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://blockscout.com/shiden/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex("/shiden"),
+  },
+  "28528": {
+    // Optimism Bedrock: Goerli Alpha Testnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://blockscout.com/optimism/bedrock-alpha/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex("/optimism/bedrock-alpha"),
   },
 };

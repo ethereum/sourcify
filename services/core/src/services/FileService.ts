@@ -12,6 +12,7 @@ import {
   FilesInfo,
   MatchQuality,
   ContractData,
+  Create2Args,
 } from "../utils/types";
 import { checkChainId } from "../utils/utils";
 import { Logger } from "../utils/logger";
@@ -94,7 +95,7 @@ export class FileService implements IFileService {
     const urls: Array<string> = [];
     files.forEach((file) => {
       const relativePath = file.path.split("/repository")[1].substr(1);
-      urls.push(`${process.env.REPOSITORY_URL}/${relativePath}`);
+      urls.push(`${process.env.REPOSITORY_SERVER_URL}/${relativePath}`);
     });
     return urls;
   }
@@ -207,6 +208,19 @@ export class FileService implements IFileService {
     );
   }
 
+  fetchCreate2Args(fullContractPath: string): Create2Args | undefined {
+    try {
+      return JSON.parse(
+        fs.readFileSync(
+          fullContractPath.replace("metadata.json", "create2-args.json"),
+          "utf8"
+        )
+      );
+    } catch (e) {
+      return undefined;
+    }
+  }
+
   /**
    * Checks if path exists and for a particular chain returns the perfect or partial match
    *
@@ -216,11 +230,13 @@ export class FileService implements IFileService {
   fetchFromStorage(
     fullContractPath: string,
     partialContractPath: string
-  ): { time: Date; status: Status } {
+  ): { time: Date; status: Status; create2Args?: Create2Args } {
     if (fs.existsSync(fullContractPath)) {
+      const create2Args = this.fetchCreate2Args(fullContractPath);
       return {
         time: fs.statSync(fullContractPath).birthtime,
         status: "perfect",
+        create2Args,
       };
     }
 
@@ -254,6 +270,7 @@ export class FileService implements IFileService {
       return [
         {
           address,
+          chainId: chain,
           status: "perfect",
           storageTimestamp,
         },
@@ -293,8 +310,10 @@ export class FileService implements IFileService {
       return [
         {
           address,
+          chainId: chain,
           status: storage?.status,
           storageTimestamp: storage?.time,
+          create2Args: storage?.create2Args,
         },
       ];
     } catch (e) {

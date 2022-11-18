@@ -13,22 +13,10 @@ parameters:
   run-build-repository:
     type: boolean
     default: false
-  run-build-monitor:
-    type: boolean
-    default: false
   run-build-ui:
     type: boolean
     default: false
   run-build-server:
-    type: boolean
-    default: false
-  run-build-core:
-    type: boolean
-    default: false
-  run-build-verification:
-    type: boolean
-    default: false
-  run-build-validation:
     type: boolean
     default: false
 
@@ -43,26 +31,9 @@ aliases:
       run-build:
         type: boolean
         default: false
-      # Workaround: Since we can't set run-build parameter with a logic or: [run-build-server, run-build-core, run-build-verification, run-build-validation] under workflows.jobs, add three more parameters only for the server build, and OR them here. If any of one-two-three (core-verification-validation respectively) change, a server build is triggered. Other builds uneffected since default is false.
-      run-build-one:
-        type: boolean
-        default: false
-      run-build-two:
-        type: boolean
-        default: false
-      run-build-three:
-        type: boolean
-        default: false
     steps:
       - when:
-          condition:
-            or:
-              [
-                << parameters.run-build >>,
-                << parameters.run-build-one >>,
-                << parameters.run-build-two >>,
-                << parameters.run-build-three >>,
-              ]
+          condition: << parameters.run-build >>
           steps:
             - checkout
             - run:
@@ -124,29 +95,23 @@ workflows:
         - or:
             [
               << pipeline.parameters.run-build-ipfs >>,
-              << pipeline.parameters.run-build-monitor >>,
               << pipeline.parameters.run-build-repository >>,
               << pipeline.parameters.run-build-s3 >>,
               << pipeline.parameters.run-build-server >>,
-              << pipeline.parameters.run-build-core >>,
-              << pipeline.parameters.run-build-verification >>,
-              << pipeline.parameters.run-build-validation >>,
               << pipeline.parameters.run-build-ui >>,
             ]
     jobs:
       - build-push-ipfs:
           run-build: << pipeline.parameters.run-build-ipfs >>
+      # Always build monitor if there's a change in the server
       - build-push-monitor:
-          run-build: << pipeline.parameters.run-build-monitor >>
+          run-build: << pipeline.parameters.run-build-server >>
       - build-push-repository:
           run-build: << pipeline.parameters.run-build-repository >>
       - build-push-s3:
           run-build: << pipeline.parameters.run-build-s3 >>
       - build-push-server:
           run-build: << pipeline.parameters.run-build-server >>
-          run-build-one: << pipeline.parameters.run-build-core >>
-          run-build-two: << pipeline.parameters.run-build-verification >>
-          run-build-three: << pipeline.parameters.run-build-validation >>
       - build-push-ui:
           run-build: << pipeline.parameters.run-build-ui >>
       - deploy:
@@ -157,16 +122,10 @@ workflows:
             - build-push-s3
             - build-push-server
             - build-push-ui
-      - monitor-e2e-rinkeby:
-          requires:
-            - deploy
       - monitor-e2e-goerli:
           requires:
             - deploy
       - monitor-e2e-sepolia:
-          requires:
-            - deploy
-      - verification-e2e-rinkeby:
           requires:
             - deploy
       - verification-e2e-goerli:
@@ -272,11 +231,6 @@ jobs:
       - run:
           name: test new chain PR
           command: ./scripts/test_new_chain_support.sh
-  monitor-e2e-rinkeby:
-    <<: *monitor-e2e-base
-    environment:
-      CHAIN_ID: 4
-      CHAIN_NAME: rinkeby
   monitor-e2e-goerli:
     <<: *monitor-e2e-base
     environment:
@@ -287,11 +241,6 @@ jobs:
     environment:
       CHAIN_ID: '11155111'
       CHAIN_NAME: sepolia
-  verification-e2e-rinkeby:
-    <<: *verification-e2e-base
-    environment:
-      CHAIN_ID: 4
-      CHAIN_NAME: rinkeby
   verification-e2e-goerli:
     <<: *verification-e2e-base
     environment:

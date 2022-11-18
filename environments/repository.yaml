@@ -27,4 +27,4 @@ services:
         target: /data
         read_only: true
     ports:
-      - ${REPOSITORY_EXTERNAL_PORT}:${REPOSITORY_PORT}
+      - ${REPOSITORY_SERVER_EXTERNAL_PORT}:80

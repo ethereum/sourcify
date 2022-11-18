@@ -1,4 +1,5 @@
 import { Request, Response, Router } from "express";
+import { decode } from "@ethereum-sourcify/bytecode-utils";
 import BaseController from "./BaseController";
 import { IController } from "../../common/interfaces";
 import { IVerificationService } from "@ethereum-sourcify/verification";
@@ -8,6 +9,7 @@ import {
   Logger,
   PathBuffer,
   CheckedContract,
+  performFetch,
   isEmpty,
   PathContent,
   Match,
@@ -43,8 +45,10 @@ import web3utils from "web3-utils";
 import cors from "cors";
 import config from "../../config";
 import fetch from "node-fetch";
+import { NextFunction } from "express";
 
 const FILE_ENCODING = "base64";
+const IPFS_GATEWAY = process.env.IPFS_GATEWAY || "https://ipfs.io/ipfs/";
 
 export default class VerificationController
   extends BaseController
@@ -96,7 +100,12 @@ export default class VerificationController
     const invalidChainIds: string[] = [];
     for (const chainId of chainIdsArray) {
       try {
-        validChainIds.push(checkChainId(chainId));
+        if (chainId === "0") {
+          // create2 verified contract
+          validChainIds.push("0");
+        } else {
+          validChainIds.push(checkChainId(chainId));
+        }
       } catch (e) {
         invalidChainIds.push(chainId);
       }
@@ -132,12 +141,8 @@ export default class VerificationController
         return `https://api.etherscan.io`;
       case "5":
         return `https://api-goerli.etherscan.io`;
-      case "42":
-        return `https://api-kovan.etherscan.io`;
       case "4":
         return `https://api-rinkeby.etherscan.io`;
-      case "3":
-        return `https://api-ropsten.etherscan.io`;
       case "11155111":
         return `https://api-sepolia.etherscan.io`;
     }
@@ -257,16 +262,141 @@ export default class VerificationController
       addresses: [address],
       contract: checkedContract,
     };
-    const result = await this.verificationService.inject(inputData);
 
+    const result = await this.verificationService.inject(inputData);
     res.send({ result: [result] });
+  };
+
+  private verifyCreate2 = async (
+    origReq: Request,
+    res: Response
+  ): Promise<void> => {
+    const req = origReq as MyRequest;
+    this.validateRequest(req);
+
+    const deployerAddress = req.body.deployerAddress;
+    const salt = req.body.salt;
+    const constructorArgs = req.body.constructorArgs || [];
+    const baseContract = req.body.baseContract || null;
+    const files = req.body.files || null;
+    const create2Address = req.body.create2Address;
+
+    if (files !== null) {
+      const inputFiles = this.extractFilesFromJSON(files);
+      if (!inputFiles) {
+        const msg =
+          "The contract at the provided address and chain has not yet been sourcified.";
+        throw new NotFoundError(msg);
+      }
+
+      let validatedContracts: CheckedContract[];
+      try {
+        validatedContracts = await this.validationService.checkFiles(
+          inputFiles
+        );
+      } catch (error: any) {
+        throw new BadRequestError(error.message);
+      }
+
+      const errors = validatedContracts
+        .filter((contract) => !CheckedContract.isValid(contract, true))
+        .map(this.stringifyInvalidAndMissing);
+      if (errors.length) {
+        throw new BadRequestError(
+          "Invalid or missing sources in:\n" + errors.join("\n"),
+          false
+        );
+      }
+
+      const contract: CheckedContract = validatedContracts[0];
+      if (!contract.compilerVersion) {
+        throw new BadRequestError(
+          "Metadata file not specifying a compiler version."
+        );
+      }
+
+      const result = await this.verificationService.verifyCreate2(
+        contract,
+        deployerAddress,
+        salt,
+        constructorArgs,
+        create2Address
+      );
+      res.send({ result: [result] });
+    } else if (baseContract !== null) {
+      // TODO: verification with already verified contract
+    } else {
+      res.send({ result: "pass either address or files" });
+    }
+  };
+
+  private sessionVerifyCreate2 = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    const session = req.session as MySession;
+    if (!session.contractWrappers || isEmpty(session.contractWrappers)) {
+      throw new BadRequestError("There are currently no pending contracts.");
+    }
+
+    const deployerAddress = req.body.deployerAddress;
+    const salt = req.body.salt;
+    const constructorArgs = req.body.constructorArgs || [];
+
+    const verificationId = req.body.verificationId;
+    const create2Address = req.body.create2Address;
+    const contractWrapper = session.contractWrappers[verificationId];
+
+    const contract: CheckedContract = contractWrapper.contract;
+    if (!contract.compilerVersion) {
+      throw new BadRequestError(
+        "Metadata file not specifying a compiler version."
+      );
+    }
+
+    const match = await this.verificationService.verifyCreate2(
+      contract,
+      deployerAddress,
+      salt,
+      constructorArgs,
+      create2Address
+    );
+
+    contractWrapper.status = match.status || "error";
+    contractWrapper.statusMessage = match.message;
+    contractWrapper.storageTimestamp = match.storageTimestamp;
+    contractWrapper.address = match.address;
+
+    res.send(getSessionJSON(session));
+  };
+
+  private sessionPrecompileContract = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    const session = req.session as MySession;
+    if (!session.contractWrappers || isEmpty(session.contractWrappers)) {
+      throw new BadRequestError("There are currently no pending contracts.");
+    }
+
+    const verificationId = req.body.verificationId;
+    const contractWrapper = session.contractWrappers[verificationId];
+
+    const compilationResult = await this.verificationService.recompile(
+      contractWrapper.contract
+    );
+
+    contractWrapper.contract.creationBytecode =
+      compilationResult.creationBytecode;
+
+    res.send(getSessionJSON(session));
   };
 
   private stringToBase64 = (str: string): string => {
     return Buffer.from(str, "utf8").toString("base64");
   };
 
-  private verifyFromEtherscanWithSession = async (
+  private sessionVerifyFromEtherscan = async (
     origReq: Request,
     res: Response
   ): Promise<void> => {
@@ -300,7 +430,7 @@ export default class VerificationController
     const session = req.session as MySession;
     const newFilesCount = this.saveFiles(pathContents, session);
     if (newFilesCount === 0) {
-      throw new BadRequestError("The contract has no files");
+      throw new BadRequestError("The contract didn't add any new file");
     }
 
     // 3. create the contractwrappers from the files
@@ -430,7 +560,11 @@ export default class VerificationController
           );
           if (found.length != 0) {
             if (!map.has(address)) {
-              map.set(address, { address, chainIds: [] });
+              map.set(address, {
+                address,
+                create2Args: found[0].create2Args,
+                chainIds: [],
+              });
             }
 
             map
@@ -611,6 +745,7 @@ export default class VerificationController
           }
         } catch (error: any) {
           match = {
+            chainId: null,
             status: null,
             address: null,
             message: error.message,
@@ -680,7 +815,7 @@ export default class VerificationController
 
     if (inputSize > VerificationController.MAX_SESSION_SIZE) {
       const msg =
-        "Too much session memory used. Delete some files or restart the session.";
+        "Too much session memory used. Delete some files or clear the session.";
       throw new PayloadTooLargeError(msg);
     }
 
@@ -717,6 +852,49 @@ export default class VerificationController
     res.send(getSessionJSON(session));
   };
 
+  private addInputContractEndpoint = async (req: Request, res: Response) => {
+    this.validateRequest(req);
+
+    const address = req.body.address;
+    const chainId = req.body.chainId;
+
+    const bytecode = await this.verificationService.getBytecode(
+      address,
+      chainId
+    );
+
+    const { ipfs: metadataIpfsCid } = decode(bytecode);
+
+    if (!metadataIpfsCid) {
+      throw new BadRequestError(
+        "The contract doesn't have a metadata IPFS CID"
+      );
+    }
+
+    const ipfsUrl = `${IPFS_GATEWAY}${metadataIpfsCid}`;
+    const metadataFileName = "metadata.json";
+    const retrievedMetadataText = await performFetch(ipfsUrl);
+
+    const pathContents: PathContent[] = [];
+
+    const retrievedMetadataBase64 = Buffer.from(retrievedMetadataText).toString(
+      "base64"
+    );
+
+    pathContents.push({
+      path: metadataFileName,
+      content: retrievedMetadataBase64,
+    });
+
+    const session = req.session as MySession;
+    const newFilesCount = this.saveFiles(pathContents, session);
+    if (newFilesCount) {
+      await this.validateContracts(session);
+      await this.verifyValidated(session.contractWrappers, session);
+    }
+    res.send(getSessionJSON(session));
+  };
+
   private restartSessionEndpoint = async (req: Request, res: Response) => {
     req.session.destroy((error: Error) => {
       let logMethod: keyof bunyan = null;
@@ -729,12 +907,12 @@ export default class VerificationController
       };
       if (error) {
         logMethod = "error";
-        msg = "Error in session restart";
+        msg = "Error in clearing session";
         loggerOptions.err = error.message;
         statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
       } else {
         logMethod = "info";
-        msg = "Session successfully restarted";
+        msg = "Session successfully cleared";
         statusCode = StatusCodes.OK;
       }
 
@@ -752,6 +930,25 @@ export default class VerificationController
     if (!result.isEmpty()) {
       throw new ValidationError(result.array());
     }
+  }
+
+  private authenticatedRequest(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    const sourcifyClientTokensRaw = process.env.CREATE2_CLIENT_TOKENS;
+    if (sourcifyClientTokensRaw?.length) {
+      const sourcifyClientTokens = sourcifyClientTokensRaw.split(",");
+      const clientToken = req.body.clientToken;
+      if (!clientToken) {
+        throw new BadRequestError("This API is protected by a client token");
+      }
+      if (!sourcifyClientTokens.includes(clientToken)) {
+        throw new BadRequestError("The client token you provided is not valid");
+      }
+    }
+    next();
   }
 
   registerRoutes = (): Router => {
@@ -777,12 +974,33 @@ export default class VerificationController
       this.safeHandler(this.legacyVerifyEndpoint)
     );
 
-    this.router
-      .route(["/verify-from-etherscan-legacy", "/verifyFromEtherscanLegacy"])
-      .post(
-        // TODO: add validation
-        this.safeHandler(this.verifyFromEtherscan)
-      );
+    this.router.route(["/verify/etherscan"]).post(
+      // TODO: add validation
+      this.safeHandler(this.verifyFromEtherscan)
+    );
+
+    this.router.route(["/verify/create2"]).post(
+      body("deployerAddress")
+        .exists()
+        .bail()
+        .custom((deployerAddress, { req }) => {
+          const addresses = this.validateAddresses(deployerAddress);
+          req.deployerAddress = addresses.length > 0 ? addresses[0] : "";
+          return true;
+        }),
+      body("create2Address")
+        .exists()
+        .bail()
+        .custom((create2Address, { req }) => {
+          const addresses = this.validateAddresses(create2Address);
+          req.create2Address = addresses.length > 0 ? addresses[0] : "";
+          return true;
+        }),
+      body("salt").exists(),
+      body("constructorArgs").exists(),
+      this.authenticatedRequest,
+      this.safeHandler(this.verifyCreate2)
+    );
 
     this.router.route(["/check-all-by-addresses", "/checkAllByAddresses"]).get(
       query("addresses")
@@ -820,24 +1038,29 @@ export default class VerificationController
       this.safeHandler(this.checkByAddresses)
     );
 
-    // v2 APIs with session cookies require non "*" CORS
+    // Session APIs with session cookies require non "*" CORS
     this.router
-      .route("/session-data")
+      .route(["/session-data", "/session/data"])
       .all(cors(corsOpt))
       .get(cors(corsOpt), this.safeHandler(this.getSessionDataEndpoint));
 
     this.router
-      .route("/input-files")
+      .route(["/input-files", "/session/input-files"])
       .all(cors(corsOpt))
       .post(cors(corsOpt), this.safeHandler(this.addInputFilesEndpoint));
 
     this.router
-      .route("/restart-session")
+      .route(["/session/input-contract"])
+      .all(cors(corsOpt))
+      .post(cors(corsOpt), this.safeHandler(this.addInputContractEndpoint));
+
+    this.router
+      .route(["/restart-session", "/session/clear"])
       .all(cors(corsOpt))
       .post(cors(corsOpt), this.safeHandler(this.restartSessionEndpoint));
 
     this.router
-      .route("/verify-validated")
+      .route(["/verify-validated", "/session/verify-validated"])
       .all(cors(corsOpt))
       .post(
         body("contracts").isArray(),
@@ -846,13 +1069,48 @@ export default class VerificationController
       );
 
     this.router
-      .route(["/verify-from-etherscan"])
+      .route(["/session/verify/etherscan"])
       .all(cors(corsOpt))
       .post(
         body("address").exists(),
         body("chainId").exists(),
         cors(corsOpt),
-        this.safeHandler(this.verifyFromEtherscanWithSession)
+        this.safeHandler(this.sessionVerifyFromEtherscan)
+      );
+
+    this.router
+      .route(["/session/verify/create2"])
+      .all(cors(corsOpt))
+      .post(
+        body("deployerAddress")
+          .exists()
+          .bail()
+          .custom((deployerAddress, { req }) => {
+            const addresses = this.validateAddresses(deployerAddress);
+            req.deployerAddress = addresses.length > 0 ? addresses[0] : "";
+          }),
+        body("create2Address")
+          .exists()
+          .bail()
+          .custom((create2Address, { req }) => {
+            const addresses = this.validateAddresses(create2Address);
+            req.create2Address = addresses.length > 0 ? addresses[0] : "";
+          }),
+        body("salt").exists(),
+        body("constructorArgs").exists(),
+        body("verificationId").exists(),
+        cors(corsOpt),
+        this.authenticatedRequest,
+        this.safeHandler(this.sessionVerifyCreate2)
+      );
+
+    this.router
+      .route(["/session/verify/create2/compile"])
+      .all(cors(corsOpt))
+      .post(
+        body("verificationId").exists(),
+        cors(corsOpt),
+        this.safeHandler(this.sessionPrecompileContract)
       );
 
     return this.router;

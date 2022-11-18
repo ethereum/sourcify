@@ -8,9 +8,8 @@ import Field from "./Field";
 import Result from "./Result";
 import { useParams, useNavigate } from "react-router-dom";
 
-
 const Lookup = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [loading, setLoading] = useState<boolean>(false);
   const [response, setResponse] = useState<CheckAllByAddressResult | undefined>(
     undefined
@@ -26,7 +25,7 @@ const Lookup = () => {
     try {
       const result = await checkAllByAddresses(
         _address,
-        sourcifyChains.map((c) => c.chainId.toString()).join(",")
+        `0,${sourcifyChains.map((c) => c.chainId.toString()).join(",")}`
       );
       const currentAddressMatches = result.find(
         (match) => (match.address = _address)
@@ -56,7 +55,6 @@ const Lookup = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sourcifyChains, address]);
-
 
   return (
     <div className="flex flex-col flex-grow pb-8 px-8 md:px-12 lg:px-24 bg-gray-100">

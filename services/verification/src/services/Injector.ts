@@ -8,18 +8,18 @@ import {
   IFileService,
   FileService,
   StringMap,
-  cborDecode,
   CheckedContract,
   MatchQuality,
   Chain,
   Status,
   Metadata,
+  Create2Args,
+  Create2ConstructorArgument,
 } from "@ethereum-sourcify/core";
 import {
   RecompilationResult,
   getBytecode,
   recompile,
-  getBytecodeWithoutMetadata as trimMetadata,
   checkEndpoint,
   getCreationDataFromArchive,
   getCreationDataByScraping,
@@ -28,9 +28,12 @@ import {
   getCreationDataXDC,
   getCreationDataMeter,
   getCreationDataAvalancheSubnet,
+  getCreate2Address,
 } from "../utils";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const multihashes: any = require("multihashes");
+import {
+  decode as bytecodeDecode,
+  splitAuxdata,
+} from "@ethereum-sourcify/bytecode-utils";
 import semverSatisfies from "semver/functions/satisfies";
 import { create, IPFSHTTPClient, globSource } from "ipfs-http-client";
 import path from "path";
@@ -152,13 +155,15 @@ export class Injector {
     for (const chain of chainsData) {
       this.chains[chain.chainId] = new InjectorChain(chain);
 
-      this.chains[chain.chainId].web3array = chain.rpc.map((rpcURL: string) => {
-        const opts = { timeout: this.web3timeout };
-        const web3 = rpcURL.startsWith("http")
-          ? new Web3(new Web3.providers.HttpProvider(rpcURL, opts))
-          : new Web3(new Web3.providers.WebsocketProvider(rpcURL, opts));
-        return web3;
-      });
+      this.chains[chain.chainId].web3array = chain.rpc
+        .filter((rpcURL: string) => !!rpcURL)
+        .map((rpcURL: string) => {
+          const opts = { timeout: this.web3timeout };
+          const web3 = rpcURL.startsWith("http")
+            ? new Web3(new Web3.providers.HttpProvider(rpcURL, opts))
+            : new Web3(new Web3.providers.WebsocketProvider(rpcURL, opts));
+          return web3;
+        });
     }
   }
 
@@ -174,7 +179,7 @@ export class Injector {
     recompiled: RecompilationResult,
     metadata: Metadata
   ): Promise<Match> {
-    let match: Match = { address: null, status: null };
+    let match: Match = { address: null, chainId: null, status: null };
     const chainName = this.chains[chain].name || "The chain";
 
     for (let address of addresses) {
@@ -279,6 +284,7 @@ export class Injector {
   ): Promise<Match> {
     const match: Match = {
       address,
+      chainId: chain,
       status: null,
       encodedConstructorArgs: undefined,
       libraryMap: undefined,
@@ -292,19 +298,18 @@ export class Injector {
       recompiled.deployedBytecode = replaced;
       match.libraryMap = libraryMap;
 
-      // if the bytecode doesn't contain metadata then "partial" match
-      if (this.getMetadataPathFromCborEncoded(deployedBytecode) === null) {
-        match.status = "partial";
-        return match;
-      }
-
       if (deployedBytecode === recompiled.deployedBytecode) {
+        // if the bytecode doesn't contain metadata then "partial" match
+        if (this.getMetadataPathFromCborEncoded(deployedBytecode) === null) {
+          match.status = "partial";
+          return match;
+        }
         match.status = "perfect";
         return match;
       }
 
-      const trimmedDeployedBytecode = trimMetadata(deployedBytecode);
-      const trimmedCompiledRuntimeBytecode = trimMetadata(
+      const [trimmedDeployedBytecode] = splitAuxdata(deployedBytecode);
+      const [trimmedCompiledRuntimeBytecode] = splitAuxdata(
         recompiled.deployedBytecode
       );
       if (trimmedDeployedBytecode === trimmedCompiledRuntimeBytecode) {
@@ -338,7 +343,7 @@ export class Injector {
             return match;
           }
 
-          const trimmedCompiledCreationBytecode = trimMetadata(
+          const [trimmedCompiledCreationBytecode] = splitAuxdata(
             recompiled.creationBytecode
           );
 
@@ -556,6 +561,101 @@ export class Injector {
     }
   }
 
+  public async storeMatch(
+    contract: CheckedContract,
+    compilationResult: RecompilationResult,
+    match: Match
+  ) {
+    if (
+      match.address &&
+      (match.status === "perfect" || match.status === "partial")
+    ) {
+      // Delete the partial matches if we now have a perfect match instead.
+      if (match.status === "perfect") {
+        this.fileService.deletePartialIfExists(match.chainId, match.address);
+      }
+      const matchQuality = this.statusToMatchQuality(match.status);
+      this.storeSources(
+        matchQuality,
+        match.chainId,
+        match.address,
+        contract.solidity
+      );
+      this.storeMetadata(
+        matchQuality,
+        match.chainId,
+        match.address,
+        compilationResult
+      );
+
+      if (match.encodedConstructorArgs && match.encodedConstructorArgs.length) {
+        this.storeConstructorArgs(
+          matchQuality,
+          match.chainId,
+          match.address,
+          match.encodedConstructorArgs
+        );
+      }
+
+      if (match.create2Args) {
+        this.storeCreate2Args(
+          matchQuality,
+          match.chainId,
+          match.address,
+          match.create2Args
+        );
+      }
+
+      if (match.libraryMap && Object.keys(match.libraryMap).length) {
+        this.storeLibraryMap(
+          matchQuality,
+          match.chainId,
+          match.address,
+          match.libraryMap
+        );
+      }
+
+      if (this.ipfsClient) {
+        this.addToIpfsMfs(matchQuality, match.chainId, match.address);
+      }
+    } else if (match.status === "extra-file-input-bug") {
+      return match;
+    } else {
+      const message =
+        match.message ||
+        "Could not match the deployed and recompiled bytecode.";
+      const err = new Error(`Contract name: ${contract.name}. ${message}`);
+
+      this.log.error({
+        loc: "[INJECT]",
+        chain: match.chainId,
+        address: match.address,
+        err,
+      });
+
+      throw new Error(err.message);
+    }
+  }
+
+  /**
+   * Recompiles a checked contract returning
+   * @param  {CheckedContract} contract the checked contract to recompile
+   * @return {Promise<object>} creationBytecode & deployedBytecode & metadata of successfully recompiled contract
+   */
+  public async recompile(contract: CheckedContract): Promise<any> {
+    const wrappedLogger = new LoggerWrapper(this.log);
+
+    if (!CheckedContract.isValid(contract)) {
+      await CheckedContract.fetchMissing(contract, wrappedLogger);
+    }
+
+    return await recompile(contract.metadata, contract.solidity, wrappedLogger);
+  }
+
+  public async getBytecode(address: string, chainId: string): Promise<any> {
+    return await getBytecode(this.chains[chainId].web3array, address);
+  }
+
   /**
    * Used by the front-end. Accepts a set of source files and a metadata string,
    * recompiles / validates them and stores them in the repository by chain/address
@@ -614,56 +714,78 @@ export class Injector {
       );
     }
 
-    if (
-      match.address &&
-      (match.status === "perfect" || match.status === "partial")
-    ) {
-      // Delete the partial matches if we now have a perfect match instead.
-      if (match.status === "perfect") {
-        this.fileService.deletePartialIfExists(chain, match.address);
-      }
-      const matchQuality = this.statusToMatchQuality(match.status);
-      this.storeSources(matchQuality, chain, match.address, contract.solidity);
-      this.storeMetadata(matchQuality, chain, match.address, compilationResult);
+    await this.storeMatch(contract, compilationResult, match);
 
-      if (match.encodedConstructorArgs && match.encodedConstructorArgs.length) {
-        this.storeConstructorArgs(
-          matchQuality,
-          chain,
-          match.address,
-          match.encodedConstructorArgs
-        );
-      }
+    return match;
+  }
 
-      if (match.libraryMap && Object.keys(match.libraryMap).length) {
-        this.storeLibraryMap(
-          matchQuality,
-          chain,
-          match.address,
-          match.libraryMap
-        );
-      }
+  public async verifyCreate2(
+    contract: CheckedContract,
+    deployerAddress: string,
+    salt: string,
+    constructorArgs: Create2ConstructorArgument[],
+    create2Address: string
+  ): Promise<Match> {
+    const wrappedLogger = new LoggerWrapper(this.log);
 
-      if (this.ipfsClient) {
-        await this.addToIpfsMfs(matchQuality, chain, match.address);
-      }
-    } else if (match.status === "extra-file-input-bug") {
-      return match;
-    } else {
-      const message =
-        match.message ||
-        "Could not match the deployed and recompiled bytecode.";
-      const err = new Error(`Contract name: ${contract.name}. ${message}`);
-
-      this.log.error({
-        loc: "[INJECT]",
-        chain,
-        addresses,
-        err,
-      });
-
-      throw new Error(err.message);
+    if (!CheckedContract.isValid(contract)) {
+      await CheckedContract.fetchMissing(contract, wrappedLogger);
     }
+
+    const constructorArgsTypes = constructorArgs.map(
+      (arg: Create2ConstructorArgument) => arg.type
+    );
+    const constructorArgsValues = constructorArgs.map(
+      (arg: Create2ConstructorArgument) => arg.value
+    );
+
+    const compilationResult = await recompile(
+      contract.metadata,
+      contract.solidity,
+      wrappedLogger
+    );
+
+    const computedAddr = getCreate2Address({
+      factoryAddress: deployerAddress,
+      salt,
+      contractBytecode: compilationResult.creationBytecode,
+      constructorTypes: constructorArgsTypes,
+      constructorArgs: constructorArgsValues,
+    });
+
+    if (create2Address !== computedAddr) {
+      throw new Error(
+        `The provided create2 address doesn't match server's generated one. Expected: ${computedAddr} ; Received: ${create2Address} ;`
+      );
+    }
+
+    const encodedConstructorArgs = this.extractEncodedConstructorArgs(
+      compilationResult.creationBytecode,
+      compilationResult.deployedBytecode
+    );
+
+    const { libraryMap } = this.addLibraryAddresses(
+      compilationResult.deployedBytecode,
+      compilationResult.deployedBytecode
+    );
+
+    const create2Args: Create2Args = {
+      deployerAddress,
+      salt,
+      constructorArgs,
+    };
+
+    const match: Match = {
+      address: computedAddr,
+      chainId: "0",
+      status: "perfect",
+      storageTimestamp: new Date(),
+      encodedConstructorArgs: encodedConstructorArgs,
+      create2Args,
+      libraryMap: libraryMap,
+    };
+
+    await this.storeMatch(contract, compilationResult, match);
 
     return match;
   }
@@ -690,19 +812,14 @@ export class Injector {
     address?: string,
     chain?: string
   ) {
-    const bytes = Web3.utils.hexToBytes(bytecode);
-    const cborData = cborDecode(bytes);
+    const cborData = bytecodeDecode(bytecode);
 
     if (cborData["bzzr0"]) {
-      return `/swarm/bzzr0/${Web3.utils
-        .bytesToHex(cborData["bzzr0"])
-        .slice(2)}`;
+      return `/swarm/bzzr0/${cborData["bzzr0"]}`;
     } else if (cborData["bzzr1"]) {
-      return `/swarm/bzzr1/${Web3.utils
-        .bytesToHex(cborData["bzzr1"])
-        .slice(2)}`;
+      return `/swarm/bzzr1/${cborData["bzzr1"]}`;
     } else if (cborData["ipfs"]) {
-      return `/ipfs/${multihashes.toB58String(cborData["ipfs"])}`;
+      return `/ipfs/${cborData["ipfs"]}`;
     }
 
     this.log.error({
@@ -788,6 +905,31 @@ export class Injector {
         fileName: "constructor-args.txt",
       },
       encodedConstructorArgs
+    );
+  }
+
+  /**
+   * Writes the create2 arguments to the repository.
+   * @param matchQuality
+   * @param chain
+   * @param address
+   * @param create2Args
+   */
+  private storeCreate2Args(
+    matchQuality: MatchQuality,
+    chain: string,
+    address: string,
+    create2Args: Create2Args
+  ) {
+    this.fileService.save(
+      {
+        matchQuality,
+        chain,
+        address,
+        source: false,
+        fileName: "create2-args.json",
+      },
+      JSON.stringify(create2Args)
     );
   }
 

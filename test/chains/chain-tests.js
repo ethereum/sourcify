@@ -409,23 +409,6 @@ describe("Test Supported Chains", function () {
   );
 
   verifyContract(
-    "0xd46fd24ea21F04459407Fb0B518451e54d0b07a1",
-    "421611",
-    "Arbitrum Rinkeby",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
-  );
-  verifyContractWithImmutables(
-    "0x84d9eF98bF8a66bfB6ed8383F340C402507CfC15",
-    "421611",
-    "Arbitrum Rinkeby",
-    ["uint256"],
-    [42],
-    ["shared/WithImmutables.sol"],
-    "shared/withImmutables.metadata.json"
-  );
-
-  verifyContract(
     "0x0e9b6C08Fe70Aac8fd08a74a076c2B1C9f7c7d14",
     "42161",
     "Arbitrum Mainnet",
@@ -1054,6 +1037,129 @@ describe("Test Supported Chains", function () {
     "shared/withImmutables.metadata.json"
   );
 
+  // POA Network Core
+  verifyContract(
+    "0x3b2e3383AeE77A58f252aFB3635bCBd842BaeCB3",
+    "99",
+    "POA Core",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  verifyContractWithImmutables(
+    "0xA7e70Be8A6563DCe75299c30D1566A83fC63BC37",
+    "99",
+    "POA Core",
+    ["uint256"],
+    [2],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
+  // Astar (EVM)
+  verifyContract(
+    "0xA7e70Be8A6563DCe75299c30D1566A83fC63BC37",
+    "592",
+    "Astar (EVM)",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x571bb36009bB26D5313244B30397D2a2341a2A11",
+    "592",
+    "Astar (EVM)",
+    ["uint256"],
+    [1234],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
+
+  // Gnosis Chiado Testnet
+  verifyContractWithImmutables(
+    "0x78f71adAf9601034faC12C80F316ce4c2E95D1ab",
+    "10200",
+    "Gnosis Chiado Testnet",
+    ["uint256"],
+    [11],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
+  // Klaytn Testnet Baobab
+  verifyContract(
+    "0x662749a392CeB1b5973a90FB2c388a2C18B8812c",
+    "1001",
+    "Klaytn Testnet Baobab",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x9FEc9e780c422916E21845748e001E949A5ddD57",
+    "1001",
+    "Klaytn Testnet Baobab",
+    ["uint256"],
+    [12],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
+  // Klaytn Mainnet Cypress
+  verifyContract(
+    "0x3b2e3383AeE77A58f252aFB3635bCBd842BaeCB3",
+    "8217",
+    "Klaytn Mainnet Cypress",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0xA7e70Be8A6563DCe75299c30D1566A83fC63BC37",
+    "8217",
+    "Klaytn Mainnet Cypress",
+    ["uint256"],
+    [12],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
+
+  // Shiden (EVM)
+  verifyContract(
+    "0x3b2e3383AeE77A58f252aFB3635bCBd842BaeCB3",
+    "336",
+    "Shiden (EVM)",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0xA7e70Be8A6563DCe75299c30D1566A83fC63BC37",
+    "336",
+    "Shiden (EVM)",
+    ["uint256"],
+    [1234],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
+  // Optimism Bedrock: Goerli Alpha Testnet
+  verifyContract(
+    "0xA7e70Be8A6563DCe75299c30D1566A83fC63BC37",
+    "28528",
+    "Optimism Bedrock: Goerli Alpha Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x571bb36009bB26D5313244B30397D2a2341a2A11",
+    "28528",
+    "Optimism Bedrock: Goerli Alpha Testnet",
+    ["uint256"],
+    [51966],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
+
   //////////////////////
   // Helper functions //
   //////////////////////
@@ -1180,7 +1286,7 @@ describe("Test Supported Chains", function () {
     err,
     res,
     done,
-    expectedAddress = contractAddress,
+    expectedAddress,
     expectedStatus = "perfect"
   ) {
     currentResponse = res;
