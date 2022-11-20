@@ -17,8 +17,8 @@ interface PendingSourceMap {
 type Metadata = { sources: PendingSourceMap };
 
 export default class PendingContract {
-  private metadata: Metadata;
-  private pendingSources: PendingSourceMap;
+  private metadata: Metadata | undefined;
+  private pendingSources: PendingSourceMap = {};
   private fetchedSources: StringMap = {};
   private sourceFetcher: SourceFetcher;
   private callback: (contract: CheckedContract) => void;
@@ -42,8 +42,7 @@ export default class PendingContract {
   }
 
   private addMetadata = (rawMetadata: string) => {
-    this.metadata = JSON.parse(rawMetadata);
-    this.pendingSources = {};
+    this.metadata = JSON.parse(rawMetadata) as Metadata;
     const loc = "[PENDING_CONTRACT:ADD_METADATA]";
 
     const count = Object.keys(this.metadata.sources).length;

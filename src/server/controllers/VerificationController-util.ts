@@ -62,7 +62,7 @@ export type SendableContract = ContractMeta & {
     missing: MissingSources;
     invalid: InvalidSources;
   };
-  verificationId?: string;
+  verificationId: string;
   constructorArguments?: any;
   creationBytecode?: string;
 };

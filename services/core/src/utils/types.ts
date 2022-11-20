@@ -11,10 +11,10 @@ export declare interface ContractData {
   partial: string[];
 }
 
-export interface InputData {
+export interface InjectorInput {
   chain: string;
   addresses: string[];
-  contract?: CheckedContract;
+  contract: CheckedContract;
   bytecode?: string;
   creationData?: string;
 }
@@ -57,12 +57,12 @@ export interface MissingSources {
   };
 }
 export interface PathBuffer {
-  path?: string;
+  path: string;
   buffer: Buffer;
 }
 
 export interface PathContent {
-  path?: string;
+  path: string;
   content: string;
 }
 
@@ -77,8 +77,8 @@ export interface Create2Args {
 }
 
 export interface Match {
-  address: string | null;
-  chainId: string | null;
+  address: string;
+  chainId: string;
   status: Status;
   storageTimestamp?: Date;
   message?: string;

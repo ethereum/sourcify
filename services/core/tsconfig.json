@@ -6,9 +6,9 @@
     "esModuleInterop": true,
     "strict": true,
     "declaration": true,
+    "declarationMap": true,
     "outDir": "build",
     "resolveJsonModule": true,
-    "strictNullChecks": false,
     "module": "commonjs"
   },
   "include": ["./src"]

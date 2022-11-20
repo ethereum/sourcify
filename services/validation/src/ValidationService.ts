@@ -64,7 +64,7 @@ export interface IValidationService {
 }
 
 export class ValidationService implements IValidationService {
-  logger: bunyan;
+  logger: bunyan | undefined;
 
   /**
    * @param logger a custom logger that logs all errors; undefined or no logger provided turns the logging off
@@ -290,11 +290,14 @@ export class ValidationService implements IValidationService {
 
     for (const sourcePath in metadata.sources) {
       const sourceInfoFromMetadata = metadata.sources[sourcePath];
-      let file: PathContent = { content: undefined };
-      file.content = sourceInfoFromMetadata.content;
+      let file: PathContent | undefined = undefined;
       const expectedHash: string = sourceInfoFromMetadata.keccak256;
-      if (file.content) {
+      if (sourceInfoFromMetadata.content) {
         // Source content already in metadata
+        file = {
+          content: sourceInfoFromMetadata.content,
+          path: sourcePath,
+        };
         const contentHash = Web3.utils.keccak256(file.content);
         if (contentHash != expectedHash) {
           invalidSources[sourcePath] = {
