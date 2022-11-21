@@ -49,7 +49,7 @@ export async function getMetadataFromAddress(options: GetMetadataOptions) {
       method: 'eth_getCode',
       params: [options.address, 'latest'],
     })) as string;
-    if (!bytecode) {
+    if (!bytecode || bytecode === '0x') {
       return false;
     }
     const { ipfs: metadataIpfsCid } = decodeBytecode(bytecode);
