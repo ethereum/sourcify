@@ -478,7 +478,7 @@ export default {
     monitored: false,
     contractFetchAddress: "https://scan.crystaleum.org/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
-  },    
+  },
   "420666": { // Kekchain Testnet (kektest)
     supported: true,
     monitored: false,
@@ -535,7 +535,7 @@ export default {
     supported: true,
     monitored: false,
     contractFetchAddress:
-      "https://klaytn-mainnet.aws-k8s.blockscout.com/" + BLOCKSCOUT_SUFFIX,
+      "https://klaytn-mainnet.blockscout.com/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
   "336": {
