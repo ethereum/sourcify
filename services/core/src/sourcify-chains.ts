@@ -527,7 +527,7 @@ export default {
     supported: true,
     monitored: false,
     contractFetchAddress:
-      "https://klaytn-testnet.aws-k8s.blockscout.com/" + BLOCKSCOUT_SUFFIX,
+      "https://klaytn-testnet.blockscout.com/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
   "8217": {
