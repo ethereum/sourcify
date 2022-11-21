@@ -1002,6 +1002,23 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
+  //Kekchain Main Net (kekistan)
+  verifyContract(
+    "0xbc0103404476AF674756911553b7A45B55e989e5",
+    "420420",
+    "Kekchain",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x1c2e94ca6a475B4fA32327B8bc0AFd0EB2c2d776",
+    "420420",
+    "Kekchain",
+    ["uint256"],
+    [420420],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
   // Canto
   verifyContract(
     "0x65ec06aF7b8A6cBa7E7226e70dd2eBd117b823Cd",
