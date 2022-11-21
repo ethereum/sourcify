@@ -5,10 +5,10 @@
     "sourceMap": true,
     "esModuleInterop": true,
     "declaration": true,
+    "declarationMap": true,
     "strict": true,
     "outDir": "build",
     "resolveJsonModule": true,
-    "strictNullChecks": false,
     "module": "commonjs"
   },
   "include": ["./src"]

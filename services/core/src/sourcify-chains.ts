@@ -59,7 +59,7 @@ function buildAlchemyURL(
 }
 // replaces INFURA_API_KEY in https://networkname.infura.io/v3/{INFURA_API_KEY}
 function replaceInfuraID(infuraURL: string) {
-  return infuraURL.replace("{INFURA_API_KEY}", process.env.INFURA_ID);
+  return infuraURL.replace("{INFURA_API_KEY}", process.env.INFURA_ID || "");
 }
 function getBlockscoutRegex(blockscoutPrefix = "") {
   return BLOCKSCOUT_REGEX.replace("${BLOCKSCOUT_PREFIX}", blockscoutPrefix);
@@ -534,15 +534,15 @@ export default {
     // Klaytn Mainnet Cypress
     supported: true,
     monitored: false,
-    contractFetchAddress: "https://klaytn-mainnet.aws-k8s.blockscout.com/" + BLOCKSCOUT_SUFFIX,
+    contractFetchAddress:
+      "https://klaytn-mainnet.aws-k8s.blockscout.com/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
   "336": {
-    // Shiden (EVM) 
+    // Shiden (EVM)
     supported: true,
     monitored: false,
-    contractFetchAddress:
-      "https://blockscout.com/shiden/" + BLOCKSCOUT_SUFFIX,
+    contractFetchAddress: "https://blockscout.com/shiden/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex("/shiden"),
   },
   "28528": {

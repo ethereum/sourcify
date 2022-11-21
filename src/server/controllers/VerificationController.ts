@@ -4,7 +4,7 @@ import BaseController from "./BaseController";
 import { IController } from "../../common/interfaces";
 import { IVerificationService } from "@ethereum-sourcify/verification";
 import {
-  InputData,
+  InjectorInput,
   checkChainId,
   Logger,
   PathBuffer,
@@ -135,7 +135,7 @@ export default class VerificationController
     return mappedSources;
   };
 
-  private getEtherscanApiHostFromChainId = (chainId: string): string => {
+  private getEtherscanApiHostFromChainId = (chainId: string): string | null => {
     switch (chainId) {
       case "1":
         return `https://api.etherscan.io`;
@@ -145,6 +145,8 @@ export default class VerificationController
         return `https://api-rinkeby.etherscan.io`;
       case "11155111":
         return `https://api-sepolia.etherscan.io`;
+      default:
+        return null;
     }
   };
 
@@ -257,13 +259,13 @@ export default class VerificationController
     const mappedSources = this.getMappedSourcesFromJsonInput(solcJsonInput);
     const checkedContract = new CheckedContract(metadata, mappedSources);
 
-    const inputData: InputData = {
+    const injectorInput: InjectorInput = {
       chain,
       addresses: [address],
       contract: checkedContract,
     };
 
-    const result = await this.verificationService.inject(inputData);
+    const result = await this.verificationService.inject(injectorInput);
     res.send({ result: [result] });
   };
 
@@ -309,11 +311,6 @@ export default class VerificationController
       }
 
       const contract: CheckedContract = validatedContracts[0];
-      if (!contract.compilerVersion) {
-        throw new BadRequestError(
-          "Metadata file not specifying a compiler version."
-        );
-      }
 
       const result = await this.verificationService.verifyCreate2(
         contract,
@@ -348,11 +345,6 @@ export default class VerificationController
     const contractWrapper = session.contractWrappers[verificationId];
 
     const contract: CheckedContract = contractWrapper.contract;
-    if (!contract.compilerVersion) {
-      throw new BadRequestError(
-        "Metadata file not specifying a compiler version."
-      );
-    }
 
     const match = await this.verificationService.verifyCreate2(
       contract,
@@ -515,25 +507,20 @@ export default class VerificationController
     const contract: CheckedContract = req.body.chosenContract
       ? validatedContracts[req.body.chosenContract]
       : validatedContracts[0];
-    if (!contract.compilerVersion) {
-      throw new BadRequestError(
-        "Metadata file not specifying a compiler version."
-      );
-    }
 
-    const inputData: InputData = {
+    const injectorInput: InjectorInput = {
       contract,
       addresses: req.addresses,
       chain: req.chain,
     };
     try {
-      const result = await this.verificationService.inject(inputData);
+      const result = await this.verificationService.inject(injectorInput);
       // Send to verification again with all source files.
       if (result.status === "extra-file-input-bug") {
         const contractWithAllSources =
           await this.validationService.useAllSources(contract, inputFiles);
         const tempResult = await this.verificationService.inject({
-          ...inputData,
+          ...injectorInput,
           contract: contractWithAllSources,
         });
         if (tempResult.status === "perfect") {
@@ -702,22 +689,22 @@ export default class VerificationController
       if (!isVerifiable(contractWrapper)) {
         continue;
       }
-      const inputData: InputData = {
-        addresses: [contractWrapper.address],
-        chain: contractWrapper.chainId,
+      const injectorInput: InjectorInput = {
+        addresses: [contractWrapper.address as string],
+        chain: contractWrapper.chainId as string,
         contract: contractWrapper.contract,
       };
 
       const found = this.verificationService.findByAddress(
-        contractWrapper.address,
-        contractWrapper.chainId
+        contractWrapper.address as string,
+        contractWrapper.chainId as string
       );
       let match: Match;
       if (found.length) {
         match = found[0];
       } else {
         try {
-          match = await this.verificationService.inject(inputData);
+          match = await this.verificationService.inject(injectorInput);
           // Send to verification again with all source files.
           if (match.status === "extra-file-input-bug") {
             // Session inputFiles are encoded base64. Why?
@@ -733,7 +720,7 @@ export default class VerificationController
                 pathBufferInputFiles
               );
             const tempMatch = await this.verificationService.inject({
-              ...inputData,
+              ...injectorInput,
               contract: contractWithAllSources,
             });
             if (
@@ -745,9 +732,9 @@ export default class VerificationController
           }
         } catch (error: any) {
           match = {
-            chainId: null,
+            chainId: contractWrapper.chainId as string,
             status: null,
-            address: null,
+            address: contractWrapper.address as string,
             message: error.message,
           };
         }
@@ -833,12 +820,14 @@ export default class VerificationController
 
   private addInputFilesEndpoint = async (req: Request, res: Response) => {
     this.validateRequest(req);
-    let inputFiles: PathBuffer[];
+    let inputFiles: PathBuffer[] | undefined;
     if (req.query.url) {
       inputFiles = await addRemoteFile(req.query);
     } else {
       inputFiles = this.extractFiles(req, true);
     }
+    if (!inputFiles)
+      throw new ValidationError([{ param: "files", msg: "No files found" }]);
     const pathContents: PathContent[] = inputFiles.map((pb) => {
       return { path: pb.path, content: pb.buffer.toString(FILE_ENCODING) };
     });
@@ -875,6 +864,8 @@ export default class VerificationController
     const metadataFileName = "metadata.json";
     const retrievedMetadataText = await performFetch(ipfsUrl);
 
+    if (!retrievedMetadataText)
+      throw new Error(`Could not retrieve metadata from ${ipfsUrl}`);
     const pathContents: PathContent[] = [];
 
     const retrievedMetadataBase64 = Buffer.from(retrievedMetadataText).toString(
@@ -897,7 +888,7 @@ export default class VerificationController
 
   private restartSessionEndpoint = async (req: Request, res: Response) => {
     req.session.destroy((error: Error) => {
-      let logMethod: keyof bunyan = null;
+      let logMethod: keyof bunyan = "info";
       let msg = "";
       let statusCode = null;
 
@@ -911,7 +902,6 @@ export default class VerificationController
         loggerOptions.err = error.message;
         statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
       } else {
-        logMethod = "info";
         msg = "Session successfully cleared";
         statusCode = StatusCodes.OK;
       }

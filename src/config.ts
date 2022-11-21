@@ -5,6 +5,14 @@ import path from "path";
 
 dotenv.config({ path: path.resolve(__dirname, "..", "environments/.env") });
 
+const setRepositoryPath = () => {
+  if (process.env.MOCK_REPOSITORY) return process.env.MOCK_REPOSITORY;
+  if (process.env.REPOSITORY_PATH)
+    return path.resolve(__dirname, process.env.REPOSITORY_PATH);
+  console.warn("No repository path set, using /tmp/repository");
+  return "/tmp/repository";
+};
+
 export default {
   monitor: {
     port: process.env.MONITOR_PORT || 80,
@@ -15,9 +23,7 @@ export default {
     etherscanAPIKey: process.env.ETHERSCAN_API_KEY,
   },
   repository: {
-    path:
-      process.env.MOCK_REPOSITORY ||
-      path.resolve(__dirname, process.env.REPOSITORY_PATH),
+    path: setRepositoryPath(),
   },
   testing: process.env.TESTING || false,
   tag: process.env.TAG || "latest",
@@ -27,7 +33,9 @@ export default {
   },
   session: {
     secret: process.env.SESSION_SECRET || "session top secret",
-    maxAge: parseInt(process.env.SESSION_MAX_AGE, 10) || 12 * 60 * 60 * 1000, // 12 hrs in millis
+    maxAge:
+      (process.env.SESSION_MAX_AGE && parseInt(process.env.SESSION_MAX_AGE)) ||
+      12 * 60 * 60 * 1000, // 12 hrs in millis
     secure:
       process.env.NODE_ENV === "production" && process.env.TESTING !== "true", // Set Secure in the Set-Cookie header i.e. require https
   },

@@ -1,5 +1,5 @@
 import {
-  InputData,
+  InjectorInput,
   Match,
   Logger,
   IFileService,
@@ -14,7 +14,7 @@ import { findContractPathFromContractName, useCompiler } from "../utils";
 export interface IVerificationService {
   findByAddress(address: string, chain: string): Match[];
   findAllByAddress(address: string, chain: string): Match[];
-  inject(inputData: InputData): Promise<Match>;
+  inject(injectorInput: InjectorInput): Promise<Match>;
   getMetadataFromJsonInput(
     compilerVersion: string,
     contractName: string,
@@ -34,7 +34,7 @@ export interface IVerificationService {
 export class VerificationService implements IVerificationService {
   fileService: IFileService;
   logger: bunyan;
-  private injector: Injector;
+  private injector: Injector | undefined;
 
   constructor(fileService: IFileService, logger?: bunyan) {
     this.fileService = fileService;
@@ -55,6 +55,9 @@ export class VerificationService implements IVerificationService {
       output.contracts,
       contractName
     );
+
+    if (!contractPath)
+      throw new Error(`Contract ${contractName} not found in compiler output`);
 
     if (
       !output.contracts ||
@@ -117,17 +120,17 @@ export class VerificationService implements IVerificationService {
     return matches;
   };
 
-  inject = async (inputData: InputData): Promise<Match> => {
+  inject = async (injectorInput: InjectorInput): Promise<Match> => {
     if (!this.injector) {
       this.injector = await Injector.createAsync({
         log: this.logger,
         repositoryPath: this.fileService.repositoryPath,
         fileService: this.fileService,
-        web3timeout: parseInt(process.env.WEB3_TIMEOUT),
+        web3timeout: parseInt(process.env.WEB3_TIMEOUT || "") || undefined,
       });
     }
 
-    return this.injector.inject(inputData);
+    return this.injector.inject(injectorInput);
   };
 
   verifyCreate2 = async (
@@ -142,7 +145,7 @@ export class VerificationService implements IVerificationService {
         log: this.logger,
         repositoryPath: this.fileService.repositoryPath,
         fileService: this.fileService,
-        web3timeout: parseInt(process.env.WEB3_TIMEOUT),
+        web3timeout: parseInt(process.env.WEB3_TIMEOUT || "") || undefined,
       });
     }
 
@@ -161,7 +164,7 @@ export class VerificationService implements IVerificationService {
         log: this.logger,
         repositoryPath: this.fileService.repositoryPath,
         fileService: this.fileService,
-        web3timeout: parseInt(process.env.WEB3_TIMEOUT),
+        web3timeout: parseInt(process.env.WEB3_TIMEOUT || "") || undefined,
       });
     }
 
@@ -174,7 +177,7 @@ export class VerificationService implements IVerificationService {
         log: this.logger,
         repositoryPath: this.fileService.repositoryPath,
         fileService: this.fileService,
-        web3timeout: parseInt(process.env.WEB3_TIMEOUT),
+        web3timeout: parseInt(process.env.WEB3_TIMEOUT || "") || undefined,
       });
     }
 

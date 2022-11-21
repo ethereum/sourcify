@@ -6,7 +6,7 @@ import { InvalidSources, MissingSources } from "..";
 
 const IPFS_PREFIX = "dweb:/ipfs/";
 const IPFS_GATEWAY = process.env.IPFS_GATEWAY || "https://ipfs.io/ipfs/";
-const FETCH_TIMEOUT = parseInt(process.env.FETCH_TIMEOUT) || 3000; // ms
+const FETCH_TIMEOUT = parseInt(process.env.FETCH_TIMEOUT || "") || 3000; // ms
 /**
  * Abstraction of a checked solidity contract. With metadata and source (solidity) files.
  * The getInfo method returns the information about compilation or errors encountered while validating the metadata.
@@ -34,7 +34,7 @@ export class CheckedContract {
   compiledPath: string;
 
   /** The version of the Solidity compiler to use for compilation. */
-  compilerVersion?: string;
+  compilerVersion: string;
 
   /** The name of the contract. */
   name: string;
@@ -82,6 +82,8 @@ export class CheckedContract {
 
     if (metadata.compiler && metadata.compiler.version) {
       this.compilerVersion = metadata.compiler.version;
+    } else {
+      throw new Error("No compiler version found in metadata");
     }
 
     let solcJsonInput, fileName, contractName;
@@ -235,7 +237,7 @@ export class CheckedContract {
     }
 
     if (missingFiles.length) {
-      log.error({ loc: "[FETCH]", contractName: this.name, missingFiles });
+      log?.error({ loc: "[FETCH]", contractName: this.name, missingFiles });
       throw new Error(
         `Resource missing; unsuccessful fetching: ${missingFiles.join(", ")}`
       );
@@ -269,7 +271,7 @@ export async function performFetch(
   hash?: string,
   fileName?: string,
   log?: InfoErrorLogger
-): Promise<string> {
+): Promise<string | null> {
   const infoObject = { loc: "[FETCH]", fileName, url, timeout: FETCH_TIMEOUT };
   if (log) log.info(infoObject, "Fetch attempt");
 
@@ -302,7 +304,7 @@ export async function performFetch(
  * @param url
  * @returns a GitHub-compatible url if possible; null otherwise
  */
-function getGithubUrl(url: string): string {
+function getGithubUrl(url: string): string | null {
   if (!url.includes("github.com")) {
     return null;
   }
