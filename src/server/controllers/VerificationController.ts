@@ -758,16 +758,18 @@ export default class VerificationController
     }
   }
 
-  private extractFiles = (req: Request) => {
+  private extractFiles = (req: Request, shouldThrow = false) => {
     if (req.is("multipart/form-data") && req.files && req.files.files) {
       return this.extractFilesFromForm(req.files.files);
     } else if (req.is("application/json") && req.body.files) {
       return this.extractFilesFromJSON(req.body.files);
     }
 
-    throw new ValidationError([
-      { param: "files", msg: "There should be files in the <files> field" },
-    ]);
+    if (shouldThrow) {
+      throw new ValidationError([
+        { param: "files", msg: "There should be files in the <files> field" },
+      ]);
+    }
   };
 
   private extractFilesFromForm(files: any): PathBuffer[] {
@@ -818,12 +820,14 @@ export default class VerificationController
 
   private addInputFilesEndpoint = async (req: Request, res: Response) => {
     this.validateRequest(req);
-    let inputFiles: PathBuffer[];
+    let inputFiles: PathBuffer[] | undefined;
     if (req.query.url) {
       inputFiles = await addRemoteFile(req.query);
     } else {
-      inputFiles = this.extractFiles(req);
+      inputFiles = this.extractFiles(req, true);
     }
+    if (!inputFiles)
+      throw new ValidationError([{ param: "files", msg: "No files found" }]);
     const pathContents: PathContent[] = inputFiles.map((pb) => {
       return { path: pb.path, content: pb.buffer.toString(FILE_ENCODING) };
     });
