@@ -1,7 +1,3 @@
-import Web3 from "web3";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const multihashes = require("multihashes");
-
 export type SourceOrigin = "ipfs" | "bzzr1" | "bzzr0";
 
 export type FetchedFileCallback = (fetchedFile: string) => any;
@@ -16,16 +12,7 @@ const PREFIXES: Prefix[] = [
   { origin: "bzzr1", regex: /bzz-raw:\/{1,2}/ },
 ];
 
-interface CborProcessor {
-  origin: SourceOrigin;
-  process: (bytes: number[]) => string;
-}
-
-const CBOR_PROCESSORS: CborProcessor[] = [
-  { origin: "ipfs", process: multihashes.toB58String },
-  { origin: "bzzr0", process: (data) => Web3.utils.bytesToHex(data).slice(2) },
-  { origin: "bzzr1", process: (data) => Web3.utils.bytesToHex(data).slice(2) },
-];
+const CBOR_SOURCES: SourceOrigin[] = ["ipfs", "bzzr0", "bzzr1"];
 
 export class SourceAddress {
   origin: SourceOrigin;
@@ -43,23 +30,21 @@ export class SourceAddress {
     return this.origin + "-" + this.id;
   }
 
-  static fromUrl(url: string): SourceAddress {
+  static fromUrl(url: string): SourceAddress | null {
     for (const prefix of PREFIXES) {
-      const attempt = url.replace(prefix.regex, "");
-      if (attempt !== url) {
-        return new SourceAddress(prefix.origin, attempt);
+      const hash = url.replace(prefix.regex, "");
+      if (hash !== url) {
+        return new SourceAddress(prefix.origin, hash);
       }
     }
-
     return null;
   }
 
   static fromCborData(cborData: any): SourceAddress {
-    for (const cborProcessor of CBOR_PROCESSORS) {
-      const bytes = cborData[cborProcessor.origin];
-      if (bytes) {
-        const metadataId = cborProcessor.process(bytes);
-        return new SourceAddress(cborProcessor.origin, metadataId);
+    for (const cborSource of CBOR_SOURCES) {
+      const metadataId = cborData[cborSource];
+      if (metadataId) {
+        return new SourceAddress(cborSource, metadataId);
       }
     }
 

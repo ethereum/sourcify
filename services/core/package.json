@@ -23,15 +23,13 @@
   "license": "MIT",
   "devDependencies": {
     "@types/bunyan": "^1.8.6",
-    "@types/cbor": "^5.0.1",
     "@types/node-fetch": "^2.5.7",
     "@types/rimraf": "^3.0.2",
     "@types/semver": "^7.3.10",
-    "typescript": "^4.0.2"
+    "typescript": "^4.9.3"
   },
   "dependencies": {
     "bunyan": "^1.8.15",
-    "cbor": "^5.1.0",
     "directory-tree": "^2.2.4",
     "node-fetch": "^2.6.1",
     "rimraf": "^3.0.2",

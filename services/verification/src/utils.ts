@@ -19,8 +19,8 @@ const GITHUB_SOLC_REPO =
   "https://github.com/ethereum/solc-bin/raw/gh-pages/linux-amd64/";
 
 export interface RecompilationResult {
-  creationBytecode?: string;
-  deployedBytecode?: string;
+  creationBytecode: string;
+  deployedBytecode: string;
   metadata: string;
 }
 
@@ -78,13 +78,17 @@ export async function getBytecode(
   address: string
 ): Promise<string> {
   const RPC_TIMEOUT = 5000; // ms
-  if (!web3Array.length) return;
+  if (!web3Array.length)
+    throw new Error("No RPC provider was given for this chain.");
   address = Web3.utils.toChecksumAddress(address);
 
   // Check if the first provider is a local node (using NODE_ADDRESS). If so don't waste Alchemy requests by requesting all RPCs in parallel.
   // Instead request first the local node and request Alchemy only if it fails.
   const firstProvider = web3Array[0].currentProvider as HttpProvider;
-  if (firstProvider?.host?.includes(process.env.NODE_ADDRESS)) {
+  if (
+    process.env.NODE_ADDRESS &&
+    firstProvider?.host?.includes(process.env.NODE_ADDRESS)
+  ) {
     let rejectResponse;
     for (const web3 of web3Array) {
       try {
@@ -119,11 +123,16 @@ export async function recompile(
   sources: StringMap,
   log: InfoErrorLogger
 ): Promise<RecompilationResult> {
-  const { solcJsonInput, fileName, contractName } = createJsonInputFromMetadata(
-    metadata,
-    sources,
-    log
-  );
+  let solcJsonInput, fileName, contractName;
+  try {
+    ({ solcJsonInput, fileName, contractName } = createJsonInputFromMetadata(
+      metadata,
+      sources,
+      log
+    ));
+  } catch (e) {
+    throw new Error("Cannot parse metadata");
+  }
 
   const loc = "[RECOMPILE]";
   const version = metadata.compiler.version;
@@ -185,7 +194,7 @@ export async function useCompiler(
 ) {
   const inputStringified = JSON.stringify(solcJsonInput);
   const solcPath = await getSolcExecutable(version, log);
-  let compiled: string = null;
+  let compiled: string | undefined;
 
   if (solcPath) {
     const logObject = { loc: "[RECOMPILE]", version, solcPath };
@@ -217,6 +226,8 @@ export async function useCompiler(
     compiled = soljson.compile(inputStringified);
   }
 
+  if (!compiled)
+    throw new Error("Compilation failed. No output from the compiler.");
   const compiledJSON = JSON.parse(compiled);
   const errorMessages = compiledJSON?.errors
     ?.filter((e: any) => e.severity === "error")
@@ -246,7 +257,7 @@ function validateSolcPath(solcPath: string, log: InfoErrorLogger): boolean {
 async function getSolcExecutable(
   version: string,
   log: InfoErrorLogger
-): Promise<string> {
+): Promise<string | null> {
   const fileName = `solc-linux-amd64-v${version}`;
   const tmpSolcRepo =
     process.env.SOLC_REPO_TMP || Path.join("/tmp", "solc-repo");
@@ -402,6 +413,7 @@ async function getCreationBlockNumber(
       return highestBlock;
     }
   }
+  throw new Error(`Could not find creation block for ${contractAddress}`);
 }
 
 /**
@@ -579,4 +591,61 @@ export async function getCreationDataFromGraphQL(
       `Creation data could not be fetched from ${fetchAddress}, reason: ${err.message}`
     );
   }
+}
+
+export const buildCreate2Address = (
+  factoryAddress: string,
+  saltHex: string,
+  byteCode: string
+) => {
+  return `0x${ethers.utils
+    .keccak256(
+      `0x${["ff", factoryAddress, saltHex, ethers.utils.keccak256(byteCode)]
+        .map((x) => x.replace(/0x/, ""))
+        .join("")}`
+    )
+    .slice(-40)}`.toLowerCase();
+};
+
+export const saltToHex = (salt: string | number) => {
+  salt = salt.toString();
+  if (ethers.utils.isHexString(salt)) {
+    return salt;
+  }
+
+  return ethers.utils.id(salt);
+};
+
+export const encodeParams = (dataTypes: any[], data: any[]) => {
+  const abiCoder = ethers.utils.defaultAbiCoder;
+  return abiCoder.encode(dataTypes, data);
+};
+
+export const buildBytecode = (
+  constructorTypes: any[],
+  constructorArgs: any[],
+  contractBytecode: string
+) =>
+  `${contractBytecode}${encodeParams(constructorTypes, constructorArgs).slice(
+    2
+  )}`;
+
+export function getCreate2Address({
+  factoryAddress,
+  salt,
+  contractBytecode,
+  constructorTypes = [] as string[],
+  constructorArgs = [] as any[],
+}: {
+  factoryAddress: string;
+  salt: string | number;
+  contractBytecode: string;
+  constructorTypes?: string[];
+  constructorArgs?: any[];
+}) {
+  return buildCreate2Address(
+    factoryAddress,
+    saltToHex(salt),
+    buildBytecode(constructorTypes, constructorArgs, contractBytecode)
+  );
 }

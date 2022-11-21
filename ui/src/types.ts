@@ -56,7 +56,9 @@ export type SendableContract = ContractMeta & {
     missing: MissingSources;
     invalid: InvalidSources;
   };
-  verificationId?: string;
+  verificationId: string;
+  constructorArguments?: any;
+  creationBytecode?: string;
 };
 
 export type VerificationInput = {
@@ -64,8 +66,19 @@ export type VerificationInput = {
   chainId: string;
   address: string;
 };
+
+export type Create2VerificationInput = {
+  verificationId: string;
+  deployerAddress: string;
+  salt: string;
+  constructorArgs: any[];
+  create2Address: string;
+  clientToken: string;
+};
+
 export interface Match {
   address: string | null;
+  chainId: string | null;
   status: Status;
   storageTimestamp?: Date;
   message?: string;
@@ -80,6 +93,11 @@ export type CheckAllByAddressResult = {
     chainId: string;
     status: string;
   }[];
+  create2Args?: {
+    deployerAddress?: string | undefined;
+    salt?: string | undefined;
+    constructorArgs?: any[] | undefined;
+  };
 };
 
 export type Chain = {

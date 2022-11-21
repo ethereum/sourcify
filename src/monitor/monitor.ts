@@ -1,5 +1,4 @@
 import {
-  cborDecode,
   getMonitoredChains,
   getTestChains,
   MonitorConfig,
@@ -20,14 +19,16 @@ import SourceFetcher from "./source-fetcher";
 import SystemConfig from "../config";
 import assert from "assert";
 import { EventEmitter } from "stream";
+import { decode as bytecodeDecode } from "@ethereum-sourcify/bytecode-utils";
 
-const BLOCK_PAUSE_FACTOR = parseInt(process.env.BLOCK_PAUSE_FACTOR) || 1.1;
+const BLOCK_PAUSE_FACTOR =
+  parseInt(process.env.BLOCK_PAUSE_FACTOR || "") || 1.1;
 assert(BLOCK_PAUSE_FACTOR > 1);
 const BLOCK_PAUSE_UPPER_LIMIT =
-  parseInt(process.env.BLOCK_PAUSE_UPPER_LIMIT) || 30 * 1000; // default: 30 seconds
+  parseInt(process.env.BLOCK_PAUSE_UPPER_LIMIT || "") || 30 * 1000; // default: 30 seconds
 const BLOCK_PAUSE_LOWER_LIMIT =
-  parseInt(process.env.BLOCK_PAUSE_LOWER_LIMIT) || 0.5 * 1000; // default: 0.5 seconds
-const WEB3_TIMEOUT = parseInt(process.env.WEB3_TIMEOUT) || 3000;
+  parseInt(process.env.BLOCK_PAUSE_LOWER_LIMIT || "") || 0.5 * 1000; // default: 0.5 seconds
+const WEB3_TIMEOUT = parseInt(process.env.WEB3_TIMEOUT || "") || 3000;
 
 function createsContract(tx: Transaction): boolean {
   return !tx.to;
@@ -39,7 +40,7 @@ function createsContract(tx: Transaction): boolean {
 class ChainMonitor extends EventEmitter {
   private chainId: string;
   private web3urls: string[];
-  private web3provider: Web3;
+  private web3provider: Web3 | undefined;
   private sourceFetcher: SourceFetcher;
   private logger: Logger;
   private verificationService: IVerificationService;
@@ -62,12 +63,14 @@ class ChainMonitor extends EventEmitter {
     this.sourceFetcher = sourceFetcher;
     this.logger = new Logger({ name });
     this.verificationService = verificationService;
+    this.running = false;
 
     this.getBytecodeRetryPause =
-      parseInt(process.env.GET_BYTECODE_RETRY_PAUSE) || 5 * 1000;
-    this.getBlockPause = parseInt(process.env.GET_BLOCK_PAUSE) || 10 * 1000;
+      parseInt(process.env.GET_BYTECODE_RETRY_PAUSE || "") || 5 * 1000;
+    this.getBlockPause =
+      parseInt(process.env.GET_BLOCK_PAUSE || "") || 10 * 1000;
     this.initialGetBytecodeTries =
-      parseInt(process.env.INITIAL_GET_BYTECODE_TRIES) || 3;
+      parseInt(process.env.INITIAL_GET_BYTECODE_TRIES || "") || 3;
   }
 
   start = async (): Promise<void> => {
@@ -130,6 +133,10 @@ class ChainMonitor extends EventEmitter {
   };
 
   private processBlock = (blockNumber: number) => {
+    if (!this.web3provider)
+      throw new Error(
+        `Can't process block ${blockNumber}. Web3 provider not initialized`
+      );
     this.web3provider.eth
       .getBlock(blockNumber, true)
       .then((block) => {
@@ -207,6 +214,8 @@ class ChainMonitor extends EventEmitter {
     if (retriesLeft-- <= 0) {
       return;
     }
+    if (!this.web3provider)
+      throw new Error(`Can't process bytecode. Web3 provider not initialized`);
 
     this.web3provider.eth
       .getCode(address)
@@ -226,9 +235,8 @@ class ChainMonitor extends EventEmitter {
           return;
         }
 
-        const numericBytecode = Web3.utils.hexToBytes(bytecode);
         try {
-          const cborData = cborDecode(numericBytecode);
+          const cborData = bytecodeDecode(bytecode);
           const metadataAddress = SourceAddress.fromCborData(cborData);
           this.sourceFetcher.assemble(metadataAddress, (contract) =>
             this.inject(contract, bytecode, creationData, address)

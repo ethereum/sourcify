@@ -6,7 +6,7 @@ import { InvalidSources, MissingSources } from "..";
 
 const IPFS_PREFIX = "dweb:/ipfs/";
 const IPFS_GATEWAY = process.env.IPFS_GATEWAY || "https://ipfs.io/ipfs/";
-const FETCH_TIMEOUT = parseInt(process.env.FETCH_TIMEOUT) || 3000; // ms
+const FETCH_TIMEOUT = parseInt(process.env.FETCH_TIMEOUT || "") || 3000; // ms
 /**
  * Abstraction of a checked solidity contract. With metadata and source (solidity) files.
  * The getInfo method returns the information about compilation or errors encountered while validating the metadata.
@@ -34,10 +34,13 @@ export class CheckedContract {
   compiledPath: string;
 
   /** The version of the Solidity compiler to use for compilation. */
-  compilerVersion?: string;
+  compilerVersion: string;
 
   /** The name of the contract. */
   name: string;
+
+  /** The bytecodes of the contract. */
+  creationBytecode?: string;
 
   /** Checks whether this contract is valid or not.
    *  This is a static method due to persistence issues.
@@ -79,10 +82,20 @@ export class CheckedContract {
 
     if (metadata.compiler && metadata.compiler.version) {
       this.compilerVersion = metadata.compiler.version;
+    } else {
+      throw new Error("No compiler version found in metadata");
     }
 
-    const { solcJsonInput, fileName, contractName } =
-      createJsonInputFromMetadata(metadata, solidity);
+    let solcJsonInput, fileName, contractName;
+    try {
+      ({ solcJsonInput, fileName, contractName } = createJsonInputFromMetadata(
+        metadata,
+        solidity
+      ));
+    } catch (e) {
+      throw new Error("Cannot parse metadata");
+    }
+
     this.standardJson = solcJsonInput;
     this.compiledPath = fileName;
     this.name = contractName;
@@ -224,7 +237,7 @@ export class CheckedContract {
     }
 
     if (missingFiles.length) {
-      log.error({ loc: "[FETCH]", contractName: this.name, missingFiles });
+      log?.error({ loc: "[FETCH]", contractName: this.name, missingFiles });
       throw new Error(
         `Resource missing; unsuccessful fetching: ${missingFiles.join(", ")}`
       );
@@ -245,7 +258,7 @@ export class CheckedContract {
 }
 
 /**
- * Performs fetch and compares with the hash provided.
+ * Performs fetch and, if provided an hash, compares with the file's the provided one.
  *
  * @param url the url to be used as the file source
  * @param hash the hash of the file to be fetched; used for later comparison
@@ -253,12 +266,12 @@ export class CheckedContract {
  * @param log whether or not to log
  * @returns the fetched file if found; null otherwise
  */
-async function performFetch(
+export async function performFetch(
   url: string,
-  hash: string,
-  fileName: string,
+  hash?: string,
+  fileName?: string,
   log?: InfoErrorLogger
-): Promise<string> {
+): Promise<string | null> {
   const infoObject = { loc: "[FETCH]", fileName, url, timeout: FETCH_TIMEOUT };
   if (log) log.info(infoObject, "Fetch attempt");
 
@@ -268,7 +281,7 @@ async function performFetch(
 
   if (res && res.status === 200) {
     const content = await res.text();
-    if (Web3.utils.keccak256(content) !== hash) {
+    if (hash && Web3.utils.keccak256(content) !== hash) {
       if (log)
         log.error(
           infoObject,
@@ -291,7 +304,7 @@ async function performFetch(
  * @param url
  * @returns a GitHub-compatible url if possible; null otherwise
  */
-function getGithubUrl(url: string): string {
+function getGithubUrl(url: string): string | null {
   if (!url.includes("github.com")) {
     return null;
   }

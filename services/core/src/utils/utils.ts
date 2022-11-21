@@ -1,4 +1,3 @@
-import cbor from "cbor";
 import semver from "semver";
 import * as chainsRaw from "../chains.json";
 import sourcifyChainsRaw from "../sourcify-chains";
@@ -16,8 +15,8 @@ const TEST_CHAINS: Chain[] = [
     shortName: "Localhost",
     chainId: 0,
     faucets: [],
-    infoURL: null,
-    nativeCurrency: null,
+    infoURL: "localhost",
+    nativeCurrency: { name: "localETH", symbol: "localETH", decimals: 18 },
     network: "testnet",
     networkId: 0,
     rpc: [`http://localhost:8545`],
@@ -117,25 +116,6 @@ export function checkChainId(chain: string): string {
 }
 
 /**
- * Extracts cbor encoded segement from bytecode
- * @example
- *   const bytes = Web3.utils.hexToBytes(evm.deployedBytecode);
- *   cborDecode(bytes);
- *   > { ipfs: "QmarHSr9aSNaPSR6G9KFPbuLV9aEqJfTk1y9B8pdwqK4Rq" }
- *
- * @param  {number[]} bytecode
- * @return {any}
- */
-export function cborDecode(bytecode: number[]): any {
-  const cborLength: number =
-    bytecode[bytecode.length - 2] * 0x100 + bytecode[bytecode.length - 1];
-  const bytecodeBuffer = Buffer.from(
-    bytecode.slice(bytecode.length - 2 - cborLength, -2)
-  );
-  return cbor.decodeFirstSync(bytecodeBuffer);
-}
-
-/**
  * Checks whether the provided object contains any keys or not.
  * @param obj The object whose emptiness is tested.
  * @returns true if any keys present; false otherwise
@@ -177,11 +157,12 @@ export function createJsonInputFromMetadata(
 
   delete solcJsonInput.settings.compilationTarget;
 
+  // Check inliner bug for below versions https://github.com/ethereum/sourcify/issues/640
   const versions = ["0.8.2", "0.8.3", "0.8.4"];
-  const coercedVersion = semver.coerce(metadata.compiler.version).version;
+  const coercedVersion = semver.coerce(metadata.compiler.version)?.version;
 
   const affectedVersions = versions.filter((version) =>
-    semver.eq(version, coercedVersion)
+    semver.eq(version, coercedVersion || "")
   );
   if (affectedVersions.length > 0) {
     if (solcJsonInput.settings?.optimizer?.details?.inliner) {

@@ -1002,6 +1002,23 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
+  //Kekchain Main Net (kekistan)
+  verifyContract(
+    "0xbc0103404476AF674756911553b7A45B55e989e5",
+    "420420",
+    "Kekchain",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x1c2e94ca6a475B4fA32327B8bc0AFd0EB2c2d776",
+    "420420",
+    "Kekchain",
+    ["uint256"],
+    [420420],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
   // Canto
   verifyContract(
     "0x65ec06aF7b8A6cBa7E7226e70dd2eBd117b823Cd",
@@ -1057,6 +1074,18 @@ describe("Test Supported Chains", function () {
     "shared/withImmutables.metadata.json"
   );
 
+
+  // Gnosis Chiado Testnet
+  verifyContractWithImmutables(
+    "0x78f71adAf9601034faC12C80F316ce4c2E95D1ab",
+    "10200",
+    "Gnosis Chiado Testnet",
+    ["uint256"],
+    [11],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
   // Klaytn Testnet Baobab
   verifyContract(
     "0x662749a392CeB1b5973a90FB2c388a2C18B8812c",
@@ -1071,6 +1100,61 @@ describe("Test Supported Chains", function () {
     "Klaytn Testnet Baobab",
     ["uint256"],
     [12],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
+  // Klaytn Mainnet Cypress
+  verifyContract(
+    "0x3b2e3383AeE77A58f252aFB3635bCBd842BaeCB3",
+    "8217",
+    "Klaytn Mainnet Cypress",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0xA7e70Be8A6563DCe75299c30D1566A83fC63BC37",
+    "8217",
+    "Klaytn Mainnet Cypress",
+    ["uint256"],
+    [12],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
+
+  // Shiden (EVM)
+  verifyContract(
+    "0x3b2e3383AeE77A58f252aFB3635bCBd842BaeCB3",
+    "336",
+    "Shiden (EVM)",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0xA7e70Be8A6563DCe75299c30D1566A83fC63BC37",
+    "336",
+    "Shiden (EVM)",
+    ["uint256"],
+    [1234],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
+  // Optimism Bedrock: Goerli Alpha Testnet
+  verifyContract(
+    "0xA7e70Be8A6563DCe75299c30D1566A83fC63BC37",
+    "28528",
+    "Optimism Bedrock: Goerli Alpha Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x571bb36009bB26D5313244B30397D2a2341a2A11",
+    "28528",
+    "Optimism Bedrock: Goerli Alpha Testnet",
+    ["uint256"],
+    [51966],
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );

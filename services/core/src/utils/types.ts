@@ -1,5 +1,4 @@
 import { CheckedContract } from "./CheckedContract";
-import Web3 from "web3";
 
 export interface FileObject {
   name: string;
@@ -12,10 +11,10 @@ export declare interface ContractData {
   partial: string[];
 }
 
-export interface InputData {
+export interface InjectorInput {
   chain: string;
   addresses: string[];
-  contract?: CheckedContract;
+  contract: CheckedContract;
   bytecode?: string;
   creationData?: string;
 }
@@ -37,6 +36,7 @@ export interface Metadata {
   sources: any;
   settings: CompilationSettings;
   compiler: CompilerInfo;
+  output: any;
 }
 
 export declare interface StringMap {
@@ -57,12 +57,12 @@ export interface MissingSources {
   };
 }
 export interface PathBuffer {
-  path?: string;
+  path: string;
   buffer: Buffer;
 }
 
 export interface PathContent {
-  path?: string;
+  path: string;
   content: string;
 }
 
@@ -70,12 +70,20 @@ export interface SourceMap {
   [compiledPath: string]: PathContent;
 }
 
+export interface Create2Args {
+  deployerAddress: string;
+  salt: string;
+  constructorArgs?: any[];
+}
+
 export interface Match {
-  address: string | null;
+  address: string;
+  chainId: string;
   status: Status;
   storageTimestamp?: Date;
   message?: string;
   encodedConstructorArgs?: string;
+  create2Args?: Create2Args;
   libraryMap?: StringMap;
 }
 
@@ -244,4 +252,9 @@ export interface JsonInput {
   language: string;
   sources: Sources;
   settings?: Settings;
+}
+
+export interface Create2ConstructorArgument {
+  type: string;
+  value: any;
 }

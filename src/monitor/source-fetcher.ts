@@ -12,7 +12,7 @@ const NO_PAUSE = 0;
 class Subscription {
   sourceAddress: SourceAddress;
   fetchUrl: string;
-  fallbackFetchUrl: string;
+  fallbackFetchUrl: string | undefined;
   beingProcessed = false;
   subscribers: Array<FetchedFileCallback> = [];
 
@@ -27,7 +27,7 @@ class Subscription {
   }
 
   useFallbackUrl() {
-    this.fetchUrl = this.fallbackFetchUrl;
+    this.fetchUrl = this.fallbackFetchUrl || this.fetchUrl;
   }
 }
 
@@ -48,7 +48,7 @@ export default class SourceFetcher {
   gatewayFetchers = [
     new GatewayFetcher(
       new SimpleGateway(
-        "ipfs",
+        ["ipfs"],
         process.env.IPFS_GATEWAY || "https://ipfs.io/ipfs/",
         "https://cloudflare-ipfs.com/ipfs/"
       )
@@ -132,10 +132,11 @@ class GatewayFetcher {
   constructor(gateway: IGateway) {
     this.gateway = gateway;
     this.fetchTimeout =
-      parseInt(process.env.MONITOR_FETCH_TIMEOUT) || 5 * 60 * 1000;
-    this.fetchPause = parseInt(process.env.MONITOR_FETCH_PAUSE) || 1 * 1000;
+      parseInt(process.env.MONITOR_FETCH_TIMEOUT || "") || 5 * 60 * 1000;
+    this.fetchPause =
+      parseInt(process.env.MONITOR_FETCH_PAUSE || "") || 1 * 1000;
     this.cleanupTime =
-      parseInt(process.env.MONITOR_CLEANUP_PERIOD) || 30 * 60 * 1000;
+      parseInt(process.env.MONITOR_CLEANUP_PERIOD || "") || 30 * 60 * 1000;
     this.fetch([], STARTING_INDEX);
   }
 
