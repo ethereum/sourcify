@@ -999,7 +999,10 @@ export class Injector {
         chunks.push(chunk);
       }
       const fileBuffer = Buffer.concat(chunks);
-      await this.ipfsClient.files.write(mfsPath, fileBuffer, { create: true });
+      const addResult = await this.ipfsClient.add(fileBuffer, {
+        pin: false,
+      });
+      await this.ipfsClient.files.cp(addResult.cid, mfsPath, { parents: true });
     }
   }
 }
