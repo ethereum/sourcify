@@ -30,7 +30,7 @@
     "monitor": "rimraf ./dist && tsc && node ./dist/monitor/monitor.js",
     "server:build": "npm run clean && npm run build",
     "server:start": "node ./dist/server/server.js",
-    "build:clean": "rm -rf node_modules/ services/verification/node_modules/ services/validation/node_modules/ services/core/node_modules/ && npx lerna bootstrap && npx lerna run build",
+    "build:clean": "rm -rf node_modules/ services/verification/node_modules/ services/validation/node_modules/ services/core/node_modules/ packages/bytecode-utils/node_modules/ && npx lerna bootstrap && npx lerna run build",
     "build:lerna": "lerna run build",
     "update-chains": "node --experimental-fetch scripts/updateChains.mjs && prettier --write services/core/src/chains.json"
   },

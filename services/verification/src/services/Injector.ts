@@ -994,7 +994,7 @@ export class Injector {
         parents: true,
       });
       // Readstream to Buffers
-      const chunks: Buffer[] = [];
+      const chunks: Uint8Array[] = [];
       for await (const chunk of file.content) {
         chunks.push(chunk);
       }
