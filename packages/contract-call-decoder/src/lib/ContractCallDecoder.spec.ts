@@ -53,8 +53,9 @@ test('find by signature', async (t) => {
   };
   const functionSignatureHash = tx.input.slice(0, 10);
 
-  t.is(
-    findSelectorAndAbiItemFromSignatureHash(functionSignatureHash, [
+  const selectorAndAbi = findSelectorAndAbiItemFromSignatureHash(
+    functionSignatureHash,
+    [
       {
         constant: false,
         inputs: [{ name: 'numYears', type: 'uint256' }],
@@ -64,9 +65,14 @@ test('find by signature', async (t) => {
         stateMutability: 'nonpayable',
         type: 'function',
       },
-    ]).abi.name,
-    'setAge'
+    ]
   );
+
+  if (!selectorAndAbi) {
+    return;
+  }
+
+  t.is(selectorAndAbi.abi.name, 'setAge');
 });
 
 test('evaluate calldata from tx getting metadata from sourcify', async (t) => {

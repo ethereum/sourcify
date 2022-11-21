@@ -78,21 +78,25 @@ export const findSelectorAndAbiItemFromSignatureHash = (
   functionSignatureHash,
   abi
 ) => {
-  const interf = new Interface(abi);
-  const selector = Object.keys(interf.functions).find((selector) => {
-    return interf.getSighash(selector) === functionSignatureHash;
-  });
-  // TODO: handle error
-  return {
-    selector,
-    abi: interf.functions[selector],
-  };
+  try {
+    const interf = new Interface(abi);
+    const selector = Object.keys(interf.functions).find((selector) => {
+      return interf.getSighash(selector) === functionSignatureHash;
+    });
+    // TODO: handle error
+    return {
+      selector,
+      abi: interf.functions[selector],
+    };
+  } catch (e) {
+    return false;
+  }
 };
 
 export const decodeContractCall = async (
   tx: Transaction,
   options: GetMetadataOptions = {}
-): Promise<string> => {
+): Promise<string | boolean> => {
   const getMetadataOptions = {
     ...defaultGetMetadataOptions,
     ...options,
@@ -103,10 +107,14 @@ export const decodeContractCall = async (
 
   const functionSignatureHash = tx.data.slice(0, 10);
 
-  const { selector } = findSelectorAndAbiItemFromSignatureHash(
+  const selectorAndAbi = findSelectorAndAbiItemFromSignatureHash(
     functionSignatureHash,
     metadata.output.abi
   );
+  if (!selectorAndAbi) {
+    return false;
+  }
+  const { selector } = selectorAndAbi;
 
   const evaluatedString = await evaluate(
     metadata.output.userdoc.methods[selector].notice,
