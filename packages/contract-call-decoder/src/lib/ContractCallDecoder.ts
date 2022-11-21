@@ -20,14 +20,14 @@ type GetMetadataOptions = {
   readonly chainId?: number;
   readonly address?: string;
   readonly rpcProvider?: EthereumProvider;
-  readonly ipfsProvider?: string;
+  readonly ipfsGateway?: string;
   readonly sourcifyProvider?: string;
 };
 
 const defaultGetMetadataOptions: GetMetadataOptions = {
   source: MetadataSources.Sourcify,
   sourcifyProvider: 'https://repo.sourcify.dev',
-  ipfsProvider: 'https://cloudflare-ipfs.com/',
+  ipfsGateway: 'https://cloudflare-ipfs.com/',
 };
 
 export async function getMetadataFromAddress(options: GetMetadataOptions) {
@@ -54,9 +54,7 @@ export async function getMetadataFromAddress(options: GetMetadataOptions) {
     }
     const { ipfs: metadataIpfsCid } = decodeBytecode(bytecode);
     try {
-      const req = await fetch(
-        `${options.ipfsProvider}/ipfs/${metadataIpfsCid}`
-      );
+      const req = await fetch(`${options.ipfsGateway}/ipfs/${metadataIpfsCid}`);
       contractMetadataJSON = await req.json();
     } catch (e) {
       console.log(e);
@@ -91,7 +89,7 @@ export const findSelectorAndAbiItemFromSignatureHash = (
   };
 };
 
-export const evaluateCallDataFromTx = async (
+export const decodeContractCall = async (
   tx: Transaction,
   options: GetMetadataOptions = {}
 ): Promise<string> => {

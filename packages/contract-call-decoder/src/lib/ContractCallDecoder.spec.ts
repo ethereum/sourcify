@@ -2,8 +2,8 @@ import test from 'ava';
 import provider from 'eth-provider';
 
 import {
+  decodeContractCall,
   evaluate,
-  evaluateCallDataFromTx,
   findSelectorAndAbiItemFromSignatureHash,
   getMetadataFromAddress,
   MetadataSources,
@@ -74,7 +74,7 @@ test('evaluate calldata from tx getting metadata from sourcify', async (t) => {
     to: '0xD4B081C226Bc8aBdaf111DEf54c09E779ad29428',
     data: '0xcea299370000000000000000000000000000000000000000000000000000000000000002',
   };
-  t.is(await evaluateCallDataFromTx(tx, { chainId: 5 }), 'Set the new vale 4');
+  t.is(await decodeContractCall(tx, { chainId: 5 }), 'Set the new vale 4');
 });
 
 test('evaluate calldata from tx getting metadata from bytecode', async (t) => {
@@ -84,7 +84,7 @@ test('evaluate calldata from tx getting metadata from bytecode', async (t) => {
     data: '0xcea299370000000000000000000000000000000000000000000000000000000000000002',
   };
   t.is(
-    await evaluateCallDataFromTx(tx, {
+    await decodeContractCall(tx, {
       source: MetadataSources.BytecodeMetadata,
       rpcProvider: ethereumProvider,
       chainId: 5,

@@ -1,11 +1,11 @@
 {
   "name": "@ethereum-sourcify/contract-call-decoder",
-  "version": "1.0.5",
+  "version": "0.2.0",
   "description": "-",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
   "module": "build/module/index.js",
-  "repository": "https://github.com/marcocastignoli/contract-call-decoder-2",
+  "repository": "https://github.com/ethereum/sourcify/tree/master/packages/contract-call-decoder",
   "license": "MIT",
   "keywords": [
     "sourcify",
