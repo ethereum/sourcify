@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Avoid cron job ipfs command not found.
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 

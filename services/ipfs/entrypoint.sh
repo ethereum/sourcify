@@ -1,10 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 
 
 if [ ! -f /root/.ipfs/config ]
 then
     echo "No config found. Initializing..."
-    /bin/sh ./init-config.sh
+    bash ./init-config.sh
 fi
 
 if [ -z "$DEBUG" ]
@@ -34,14 +34,14 @@ sleep 30
 echo "Sleeped 30 seconds"
 
 
-sh ./publish.sh
+bash ./publish.sh
 
 # Write the TAG var to /etc/environment so that the crontab can pick up the variable
 echo "TAG=$TAG" > /etc/environment
 
 if [ -z "$DEBUG" ]
 then
-    /opt/bin/crontab cron.job
+    crontab cron.job
     cron -f
 fi
 
