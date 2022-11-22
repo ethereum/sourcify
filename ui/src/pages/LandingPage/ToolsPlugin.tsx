@@ -1,6 +1,7 @@
 import HardhatDeploy from "../../assets/integrations/hardhat-deploy";
 import remix from "../../assets/integrations/remix.png";
 import foundry from "../../assets/integrations/foundry.png";
+import truffle from "../../assets/integrations/truffle.png";
 import AppIconName from "../../components/AppIconName";
 
 export default function ToolsPlugin() {
@@ -8,7 +9,7 @@ export default function ToolsPlugin() {
     <div className="w-full mt-16">
       {/* Right col: Tools */}
       <h2 className="text-2xl text-ceruleanBlue-500 font-semibold">
-        Frameworks & Plugins 
+        Frameworks & Plugins
       </h2>
       <div className="flex justify-center md:justify-start flex-row mt-8 logos-container">
         <AppIconName
@@ -25,6 +26,11 @@ export default function ToolsPlugin() {
           img={remix}
           name="Remix IDE"
           href="https://medium.com/remix-ide/verify-contracts-on-remix-with-sourcify-2912004d9c84"
+        />
+        <AppIconName
+          img={truffle}
+          name="truflle-plugin-verify"
+          href="https://github.com/rkalis/truffle-plugin-verify"
         />
       </div>
     </div>
