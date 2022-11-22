@@ -26,7 +26,7 @@ then
     echo "Copied $hash to MFS at /contracts"
 fi
 
-ipfs daemon --enable-pubsub-experiment --enable-namesys-pubsub --enable-gc &
+ipfs daemon --enable-pubsub-experiment --enable-namesys-pubsub &
 
 # Wait for the daemon to initialize
 echo "Sleeping 30 seconds"
