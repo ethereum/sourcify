@@ -93,10 +93,68 @@ export const findSelectorAndAbiItemFromSignatureHash = (
   }
 };
 
+type CustomField = `@${string}`;
+
+type DecodedContractCall = {
+  readonly contract: {
+    readonly author: string;
+    readonly title: string;
+    readonly details: string;
+    readonly [index: CustomField]: string;
+  };
+  readonly method: {
+    readonly selector: string;
+    readonly details: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    readonly abi: any;
+    readonly returns: string;
+    readonly notice: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    readonly parameters: any;
+    readonly [index: CustomField]: string;
+  };
+};
+
+function isArrayDirty(array): boolean {
+  // eslint-disable-next-line functional/no-let
+  let realLength = 0;
+  // eslint-disable-next-line functional/no-loop-statement
+  for (const _ in array) {
+    realLength++;
+  }
+  return array.length !== realLength;
+}
+
+function cleanNestedArray(array: any) {
+  if (Array.isArray(array) && isArrayDirty(array)) {
+    const newArray = [];
+    // eslint-disable-next-line functional/no-loop-statement
+    for (const prop in array) {
+      if (!(parseInt(prop) >= 0)) {
+        // eslint-disable-next-line functional/immutable-data
+        newArray[prop] = array[prop];
+      }
+    }
+
+    const result = Object.assign({}, newArray);
+    const res = {};
+    // eslint-disable-next-line functional/no-loop-statement
+    for (const property in result) {
+      // eslint-disable-next-line functional/immutable-data
+      res[property] = cleanNestedArray(result[property]);
+    }
+    return res;
+  } else if (Array.isArray(array)) {
+    return array.map((value) => cleanNestedArray(value));
+  } else {
+    return array;
+  }
+}
+
 export const decodeContractCall = async (
   tx: Transaction,
   options: GetMetadataOptions = {}
-): Promise<string | boolean> => {
+): Promise<DecodedContractCall | false> => {
   const getMetadataOptions = {
     ...defaultGetMetadataOptions,
     ...options,
@@ -114,7 +172,7 @@ export const decodeContractCall = async (
   if (!selectorAndAbi) {
     return false;
   }
-  const { selector } = selectorAndAbi;
+  const { selector, abi } = selectorAndAbi;
 
   const evaluatedString = await evaluate(
     metadata.output.userdoc.methods[selector].notice,
@@ -122,5 +180,27 @@ export const decodeContractCall = async (
     tx,
     getMetadataOptions.rpcProvider
   );
-  return evaluatedString;
+
+  const iface = new Interface(metadata.output.abi);
+  const parameters = iface
+    .decodeFunctionData(selector, tx.data)
+    .map((param) => {
+      return cleanNestedArray(param);
+    });
+
+  return {
+    contract: {
+      author: metadata.output.devdoc?.author,
+      title: metadata.output.devdoc?.title,
+      details: metadata.output.devdoc?.details,
+    },
+    method: {
+      selector,
+      details: metadata.output.devdoc.methods[selector]?.details,
+      abi: abi,
+      returns: metadata.output.devdoc.methods[selector]?.returns,
+      notice: evaluatedString,
+      parameters,
+    },
+  };
 };
