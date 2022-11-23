@@ -1,7 +1,7 @@
 import radspec from '@blossom-labs/rosette-radspec';
 import { Transaction as TransactionRosette } from '@blossom-labs/rosette-radspec/dist/declarations/src/types/web3';
 import { decode as decodeBytecode } from '@ethereum-sourcify/bytecode-utils';
-import { Interface } from '@ethersproject/abi';
+import { FunctionFragment, Interface } from '@ethersproject/abi';
 import { EthereumProvider } from 'ethereum-provider';
 
 import { extractCustomFields, getValueFromDecodedFunctionData } from './utils';
@@ -95,6 +95,12 @@ export const findSelectorAndAbiItemFromSignatureHash = (
   }
 };
 
+type DecodedParam =
+  | unknown
+  | {
+      readonly [index: string]: unknown;
+    };
+
 type DecodedContractCall = {
   readonly contract: {
     readonly author: string;
@@ -107,14 +113,11 @@ type DecodedContractCall = {
   readonly method: {
     readonly selector: string;
     readonly details: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    readonly abi: any;
+    readonly abi: FunctionFragment;
     readonly returns: string;
     readonly notice: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    readonly decodedParams: any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    readonly params: any;
+    readonly decodedParams: readonly DecodedParam[];
+    readonly params: { readonly [index: string]: unknown };
     readonly custom: {
       readonly [index: string]: string;
     };

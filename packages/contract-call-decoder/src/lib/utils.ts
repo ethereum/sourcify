@@ -3,14 +3,14 @@ import { BigNumber } from 'ethers';
 function arrayContainsMixedTypeKeys(array): boolean {
   // eslint-disable-next-line functional/no-let
   let realLength = 0;
-  // eslint-disable-next-line functional/no-loop-statement
+  // eslint-disable-next-line functional/no-loop-statement,@typescript-eslint/no-unused-vars
   for (const _ in array) {
     realLength++;
   }
   return array.length !== realLength;
 }
 
-export function getValueFromDecodedFunctionData(decodedFunctionData: any) {
+export function getValueFromDecodedFunctionData(decodedFunctionData) {
   if (
     Array.isArray(decodedFunctionData) &&
     arrayContainsMixedTypeKeys(decodedFunctionData)
@@ -47,7 +47,7 @@ export function getValueFromDecodedFunctionData(decodedFunctionData: any) {
   }
 }
 
-export function extractCustomFields(doc: any) {
+export function extractCustomFields(doc) {
   return Object.keys(doc)
     .filter((key) => key.startsWith('custom:'))
     .reduce((previous, current) => {
