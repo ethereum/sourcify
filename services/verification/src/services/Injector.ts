@@ -618,7 +618,7 @@ export class Injector {
         );
       }
 
-      this.addToIpfsMfs(matchQuality, match.chainId, match.address);
+      await this.addToIpfsMfs(matchQuality, match.chainId, match.address);
     } else if (match.status === "extra-file-input-bug") {
       return match;
     } else {
