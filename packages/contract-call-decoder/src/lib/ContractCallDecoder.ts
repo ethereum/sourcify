@@ -4,7 +4,7 @@ import { decode as decodeBytecode } from '@ethereum-sourcify/bytecode-utils';
 import { Interface } from '@ethersproject/abi';
 import { EthereumProvider } from 'ethereum-provider';
 
-import { getValueFromDecodedFunctionData } from './utils';
+import { extractCustomFields, getValueFromDecodedFunctionData } from './utils';
 
 type Transaction = TransactionRosette & {
   readonly chainId?: number;
@@ -95,14 +95,14 @@ export const findSelectorAndAbiItemFromSignatureHash = (
   }
 };
 
-type CustomField = `@${string}`;
-
 type DecodedContractCall = {
   readonly contract: {
     readonly author: string;
     readonly title: string;
     readonly details: string;
-    readonly [index: CustomField]: string;
+    readonly custom: {
+      readonly [index: string]: string;
+    };
   };
   readonly method: {
     readonly selector: string;
@@ -112,8 +112,12 @@ type DecodedContractCall = {
     readonly returns: string;
     readonly notice: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    readonly parameters: any;
-    readonly [index: CustomField]: string;
+    readonly decodedParams: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    readonly params: any;
+    readonly custom: {
+      readonly [index: string]: string;
+    };
   };
 };
 
@@ -152,25 +156,33 @@ export const decodeContractCall = async (
   }
 
   const iface = new Interface(metadata.output.abi);
-  const parameters = iface
+  const decodedParams = iface
     .decodeFunctionData(selector, tx.data)
     .map((param) => {
       return getValueFromDecodedFunctionData(param);
     });
 
+  const devdoc = metadata.output.devdoc;
+
+  const customFieldsContract = extractCustomFields(devdoc);
+  const customFieldsMethod = extractCustomFields(devdoc.methods[selector]);
+
   return {
     contract: {
-      author: metadata.output.devdoc?.author,
-      title: metadata.output.devdoc?.title,
-      details: metadata.output.devdoc?.details,
+      author: devdoc.author,
+      title: devdoc.title,
+      details: devdoc.details,
+      custom: customFieldsContract,
     },
     method: {
       selector,
-      details: metadata.output.devdoc.methods[selector]?.details,
       abi: abi,
-      returns: metadata.output.devdoc.methods[selector]?.returns,
+      details: devdoc.methods[selector]?.details,
+      params: devdoc.methods[selector]?.params,
+      returns: devdoc.methods[selector]?.returns,
       notice: radspecEvaluatedNotice,
-      parameters,
+      decodedParams,
+      custom: customFieldsMethod,
     },
   };
 };

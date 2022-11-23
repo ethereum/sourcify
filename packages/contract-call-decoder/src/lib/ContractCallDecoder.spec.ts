@@ -108,11 +108,11 @@ test('evaluate calldata can correctly parse addresses, bigints and bytes', async
     return;
   }
   t.is(
-    decodedContractCall.method.parameters[0],
+    decodedContractCall.method.decodedParams[0],
     '0x7dBA08Bdc233B28e2c99723c402Fc8F4e35AB55B'
   );
-  t.is(`${decodedContractCall.method.parameters[2]}`, '1');
-  t.is(`${decodedContractCall.method.parameters[3]}`, '0x010101ff');
+  t.is(`${decodedContractCall.method.decodedParams[2]}`, '1');
+  t.is(`${decodedContractCall.method.decodedParams[3]}`, '0x010101ff');
 });
 
 test('evaluate calldata from tx getting metadata from bytecode', async (t) => {

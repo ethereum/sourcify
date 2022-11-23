@@ -46,3 +46,14 @@ export function getValueFromDecodedFunctionData(decodedFunctionData: any) {
     return decodedFunctionData;
   }
 }
+
+export function extractCustomFields(doc: any) {
+  return Object.keys(doc)
+    .filter((key) => key.startsWith('custom:'))
+    .reduce((previous, current) => {
+      const newValue = {};
+      // eslint-disable-next-line functional/immutable-data
+      newValue[current.replace('custom:', '')] = doc[current];
+      return { ...previous, ...newValue };
+    }, {});
+}
