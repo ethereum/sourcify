@@ -124,7 +124,6 @@ test('evaluate calldata from tx getting metadata from bytecode', async (t) => {
   const decodedContractCall = await decodeContractCall(tx, {
     source: MetadataSources.BytecodeMetadata,
     rpcProvider: ethereumProvider,
-    chainId: 5,
   });
   if (!decodedContractCall) {
     return;
