@@ -4,6 +4,8 @@ import { decode as decodeBytecode } from '@ethereum-sourcify/bytecode-utils';
 import { Interface } from '@ethersproject/abi';
 import { EthereumProvider } from 'ethereum-provider';
 
+import { getValueFromDecodedFunctionData } from './utils';
+
 type Transaction = TransactionRosette & {
   readonly chainId?: number;
 };
@@ -115,42 +117,6 @@ type DecodedContractCall = {
   };
 };
 
-function isArrayDirty(array): boolean {
-  // eslint-disable-next-line functional/no-let
-  let realLength = 0;
-  // eslint-disable-next-line functional/no-loop-statement
-  for (const _ in array) {
-    realLength++;
-  }
-  return array.length !== realLength;
-}
-
-function cleanNestedArray(array: any) {
-  if (Array.isArray(array) && isArrayDirty(array)) {
-    const newArray = [];
-    // eslint-disable-next-line functional/no-loop-statement
-    for (const prop in array) {
-      if (!(parseInt(prop) >= 0)) {
-        // eslint-disable-next-line functional/immutable-data
-        newArray[prop] = array[prop];
-      }
-    }
-
-    const result = Object.assign({}, newArray);
-    const res = {};
-    // eslint-disable-next-line functional/no-loop-statement
-    for (const property in result) {
-      // eslint-disable-next-line functional/immutable-data
-      res[property] = cleanNestedArray(result[property]);
-    }
-    return res;
-  } else if (Array.isArray(array)) {
-    return array.map((value) => cleanNestedArray(value));
-  } else {
-    return array;
-  }
-}
-
 export const decodeContractCall = async (
   tx: Transaction,
   options: GetMetadataOptions = {}
@@ -174,18 +140,22 @@ export const decodeContractCall = async (
   }
   const { selector, abi } = selectorAndAbi;
 
-  const evaluatedString = await evaluate(
-    metadata.output.userdoc.methods[selector].notice,
-    metadata.output.abi,
-    tx,
-    getMetadataOptions.rpcProvider
-  );
+  // eslint-disable-next-line functional/no-let
+  let radspecEvaluatedNotice;
+  if (metadata.output?.userdoc?.methods[selector]?.notice) {
+    radspecEvaluatedNotice = await evaluate(
+      metadata.output.userdoc.methods[selector].notice,
+      metadata.output.abi,
+      tx,
+      getMetadataOptions.rpcProvider
+    );
+  }
 
   const iface = new Interface(metadata.output.abi);
   const parameters = iface
     .decodeFunctionData(selector, tx.data)
     .map((param) => {
-      return cleanNestedArray(param);
+      return getValueFromDecodedFunctionData(param);
     });
 
   return {
@@ -199,7 +169,7 @@ export const decodeContractCall = async (
       details: metadata.output.devdoc.methods[selector]?.details,
       abi: abi,
       returns: metadata.output.devdoc.methods[selector]?.returns,
-      notice: evaluatedString,
+      notice: radspecEvaluatedNotice,
       parameters,
     },
   };
