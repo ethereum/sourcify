@@ -7,6 +7,14 @@ then
     bash ./init-config.sh
 fi
 
+
+ipfs daemon --enable-pubsub-experiment --enable-namesys-pubsub &
+
+# Wait for the daemon to initialize
+echo "Sleeping 30 seconds"
+sleep 30
+echo "Sleeped 30 seconds"
+
 if [ -z "$DEBUG" ]
 then
     date
@@ -25,13 +33,6 @@ then
     ipfs files cp -p /ipfs/$hash /contracts
     echo "Copied $hash to MFS at /contracts"
 fi
-
-ipfs daemon --enable-pubsub-experiment --enable-namesys-pubsub &
-
-# Wait for the daemon to initialize
-echo "Sleeping 30 seconds"
-sleep 30
-echo "Sleeped 30 seconds"
 
 
 bash ./publish.sh
