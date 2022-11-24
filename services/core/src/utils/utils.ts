@@ -1,9 +1,8 @@
 import semver from "semver";
 import * as chainsRaw from "../chains.json";
-import sourcifyChainsRaw from "../sourcify-chains";
+import sourcifyChains from "../sourcify-chains";
 import { StringMap, ReformattedMetadata, Chain } from "./types";
 const chains = chainsRaw as any;
-const sourcifyChains = sourcifyChainsRaw as any;
 
 type ChainMap = {
   [chainId: string]: Chain;

@@ -17,6 +17,17 @@ const AVALANCHE_SUBNET_SUFFIX = "address/${ADDRESS}/contract";
 
 type ChainName = "eth" | "polygon" | "arb" | "opt";
 
+interface SourcifyChain {
+  supported: boolean;
+  monitored: boolean;
+  rpc?: string[];
+  txRegex?: string;
+  contractFetchAddress?: string;
+}
+interface SourcifyChainsObject {
+  [chainId: string]: SourcifyChain;
+}
+
 /**
  *
  * @param chainName - "eth", "polygon" etc.
@@ -24,38 +35,55 @@ type ChainName = "eth" | "polygon" | "arb" | "opt";
  * @param useOwn Use the local node
  * @returns
  */
-function buildAlchemyURL(
+function buildAlchemyAndCustomRpcURLs(
   chainSubName: string,
   chainName: ChainName,
   useOwn = false
 ) {
-  if (useOwn) {
-    const port = process.env[`NODE_PORT_${chainSubName.toUpperCase()}`];
-    const url = `${process.env.NODE_ADDRESS}:${port}`;
-    if (!port || !url) return undefined;
-    return url;
-  }
+  const rpcURLs: string[] = [];
 
-  let id;
+  let alchemyId;
   switch (chainName) {
     case "opt":
-      id = process.env["ALCHEMY_ID_OPTIMISM"] || process.env["ALCHEMY_ID"];
+      alchemyId =
+        process.env["ALCHEMY_ID_OPTIMISM"] || process.env["ALCHEMY_ID"];
       break;
     case "arb":
-      id = process.env["ALCHEMY_ID_ARBITRUM"] || process.env["ALCHEMY_ID"];
+      alchemyId =
+        process.env["ALCHEMY_ID_ARBITRUM"] || process.env["ALCHEMY_ID"];
       break;
     default:
-      id = process.env["ALCHEMY_ID"];
+      alchemyId = process.env["ALCHEMY_ID"];
       break;
   }
 
-  const domain = {
-    eth: "g.alchemy.com",
-    polygon: "g.alchemy.com",
-    arb: "g.alchemy.com",
-    opt: "g.alchemy.com",
-  }[chainName];
-  return `https://${chainName}-${chainSubName}.${domain}/v2/${id}`;
+  if (!alchemyId)
+    console.warn(
+      `Environment variable ALCHEMY_ID not set for ${chainName} ${chainSubName}!`
+    );
+
+  const domain = "g.alchemy.com";
+  // No sepolia support yet
+  if (alchemyId && chainSubName !== "sepolia")
+    rpcURLs.concat(
+      `https://${chainName}-${chainSubName}.${domain}/v2/${alchemyId}`
+    );
+
+  if (useOwn) {
+    const url = process.env[`NODE_URL_${chainSubName.toUpperCase()}`];
+    console.log(url);
+    if (url) {
+      console.log(
+        `Using custom RPC URL for ${chainName} ${chainSubName}: ${url}`
+      );
+      rpcURLs.concat(url);
+    } else {
+      console.warn(
+        `Environment variable NODE_URL_${chainSubName.toUpperCase()} not set!`
+      );
+    }
+  }
+  return rpcURLs;
 }
 // replaces INFURA_API_KEY in https://networkname.infura.io/v3/{INFURA_API_KEY}
 function replaceInfuraID(infuraURL: string) {
@@ -65,16 +93,13 @@ function getBlockscoutRegex(blockscoutPrefix = "") {
   return BLOCKSCOUT_REGEX.replace("${BLOCKSCOUT_PREFIX}", blockscoutPrefix);
 }
 
-export default {
+const sourcifyChains: SourcifyChainsObject = {
   "1": {
     // Ethereum Mainnet
     supported: true,
     monitored: true,
     contractFetchAddress: "https://etherscan.io/" + ETHERSCAN_SUFFIX,
-    rpc: [
-      buildAlchemyURL("mainnet", "eth", true),
-      buildAlchemyURL("mainnet", "eth"),
-    ],
+    rpc: buildAlchemyAndCustomRpcURLs("mainnet", "eth", true),
     txRegex: ETHERSCAN_REGEX,
   },
   "4": {
@@ -82,7 +107,7 @@ export default {
     supported: true,
     monitored: true,
     contractFetchAddress: "https://rinkeby.etherscan.io/" + ETHERSCAN_SUFFIX,
-    rpc: [buildAlchemyURL("rinkeby", "eth", true)],
+    rpc: buildAlchemyAndCustomRpcURLs("rinkeby", "eth", false),
     txRegex: ETHERSCAN_REGEX,
   },
   "5": {
@@ -90,17 +115,16 @@ export default {
     supported: true,
     monitored: true,
     contractFetchAddress: "https://goerli.etherscan.io/" + ETHERSCAN_SUFFIX,
-    rpc: [
-      buildAlchemyURL("goerli", "eth", true),
-      buildAlchemyURL("goerli", "eth"),
-    ],
+    rpc: buildAlchemyAndCustomRpcURLs("goerli", "eth", true),
     txRegex: ETHERSCAN_REGEX,
   },
   "11155111": {
     // Ethereum Sepolia Testnet
     supported: true,
     monitored: true,
-    rpc: [buildAlchemyURL("sepolia", "eth", true), "https://rpc.sepolia.org"],
+    rpc: buildAlchemyAndCustomRpcURLs("sepolia", "eth", true).concat(
+      "https://rpc.sepolia.org"
+    ),
     contractFetchAddress: "https://sepolia.etherscan.io/" + ETHERSCAN_SUFFIX,
     txRegex: ETHERSCAN_REGEX,
   },
@@ -156,7 +180,7 @@ export default {
     supported: true,
     monitored: true,
     contractFetchAddress: "https://polygonscan.com/" + ETHERSCAN_SUFFIX,
-    rpc: [buildAlchemyURL("mainnet", "polygon")],
+    rpc: buildAlchemyAndCustomRpcURLs("mainnet", "polygon"),
     txRegex: ETHERSCAN_REGEX,
   },
   "534": {
@@ -189,7 +213,7 @@ export default {
     supported: true,
     monitored: true,
     contractFetchAddress: "https://mumbai.polygonscan.com/" + ETHERSCAN_SUFFIX,
-    rpc: [buildAlchemyURL("mumbai", "polygon")],
+    rpc: buildAlchemyAndCustomRpcURLs("mumbai", "polygon"),
     txRegex: ETHERSCAN_REGEX,
   },
   "42161": {
@@ -198,7 +222,7 @@ export default {
     monitored: true,
     contractFetchAddress: "https://arbiscan.io/" + ETHERSCAN_SUFFIX,
     txRegex: ETHERSCAN_REGEX,
-    rpc: [buildAlchemyURL("mainnet", "arb")],
+    rpc: buildAlchemyAndCustomRpcURLs("mainnet", "arb"),
   },
   "421613": {
     // Arbitrum Goerli Testnet
@@ -207,7 +231,7 @@ export default {
     contractFetchAddress:
       "https://goerli-rollup-explorer.arbitrum.io/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
-    rpc: [buildAlchemyURL("goerli", "arb")],
+    rpc: buildAlchemyAndCustomRpcURLs("goerli", "arb"),
   },
   "43113": {
     supported: true,
@@ -269,7 +293,7 @@ export default {
     monitored: true,
     contractFetchAddress: "https://optimistic.etherscan.io/" + ETHERSCAN_SUFFIX,
     txRegex: ETHERSCAN_REGEX,
-    rpc: [buildAlchemyURL("mainnet", "opt")],
+    rpc: buildAlchemyAndCustomRpcURLs("mainnet", "opt"),
   },
   "420": {
     supported: true,
@@ -277,7 +301,7 @@ export default {
     contractFetchAddress:
       "https://blockscout.com/optimism/goerli/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex("/optimism/goerli"),
-    rpc: [buildAlchemyURL("goerli", "opt")],
+    rpc: buildAlchemyAndCustomRpcURLs("goerli", "opt"),
   },
   "28": {
     supported: true,
@@ -383,7 +407,6 @@ export default {
     // MultiVAC Mainnet
     supported: true,
     monitored: false,
-    rpc: ["https://rpc.mtv.ac"],
   },
   "11111": {
     // WAGMI Testnet
@@ -479,17 +502,21 @@ export default {
     contractFetchAddress: "https://scan.crystaleum.org/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
-  "420666": { // Kekchain Testnet (kektest)
+  "420666": {
+    // Kekchain Testnet (kektest)
     supported: true,
     monitored: false,
-    contractFetchAddress: "https://testnet-explorer.kekchain.com/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex()
+    contractFetchAddress:
+      "https://testnet-explorer.kekchain.com/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
   },
-  "420420": { // Kekchain Main Net (kekistan)
+  "420420": {
+    // Kekchain Main Net (kekistan)
     supported: true,
     monitored: false,
-    contractFetchAddress: "https://mainnet-explorer.kekchain.com/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex()
+    contractFetchAddress:
+      "https://mainnet-explorer.kekchain.com/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
   },
   "7700": {
     // Canto Mainnet
@@ -554,3 +581,5 @@ export default {
     txRegex: getBlockscoutRegex("/optimism/bedrock-alpha"),
   },
 };
+
+export default sourcifyChains;
