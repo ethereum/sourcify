@@ -1,7 +1,13 @@
 import radspec from '@blossom-labs/rosette-radspec';
 import { Transaction as TransactionRosette } from '@blossom-labs/rosette-radspec/dist/declarations/src/types/web3';
 import { decode as decodeBytecode } from '@ethereum-sourcify/bytecode-utils';
-import { FunctionFragment, Interface } from '@ethersproject/abi';
+import {
+  Fragment,
+  FunctionFragment,
+  Interface,
+  JsonFragment,
+} from '@ethersproject/abi';
+import { Provider } from '@ethersproject/providers';
 import { EthereumProvider } from 'ethereum-provider';
 
 import { extractCustomFields, getValueFromDecodedFunctionData } from './utils';
@@ -47,7 +53,7 @@ export async function getMetadataFromAddress(options: GetMetadataOptions) {
       return false;
     }
   } else if (options.source === MetadataSources.BytecodeMetadata) {
-    const bytecode = (await options.rpcProvider.request({
+    const bytecode = (await options?.rpcProvider?.request({
       method: 'eth_getCode',
       params: [options.address, 'latest'],
     })) as string;
@@ -69,23 +75,25 @@ export async function getMetadataFromAddress(options: GetMetadataOptions) {
 
 export const evaluate = async function name(
   expression: string,
-  abi,
+  abi: string | ReadonlyArray<Fragment | JsonFragment | string>,
   transaction: Transaction,
-  provider?
-): Promise<string> {
+  provider: Provider
+): Promise<string | undefined> {
   return await radspec(expression, abi, transaction, provider);
 };
 
 export const findSelectorAndAbiItemFromSignatureHash = (
-  functionSignatureHash,
-  abi
+  functionSignatureHash: string,
+  abi: string | ReadonlyArray<Fragment | JsonFragment | string>
 ) => {
   try {
     const interf = new Interface(abi);
     const selector = Object.keys(interf.functions).find((selector) => {
       return interf.getSighash(selector) === functionSignatureHash;
     });
-    // TODO: handle error
+    if (!selector) {
+      return false;
+    }
     return {
       selector,
       abi: interf.functions[selector],
@@ -115,7 +123,7 @@ type DecodedContractCall = {
     readonly details: string;
     readonly abi: FunctionFragment;
     readonly returns: string;
-    readonly notice: string;
+    readonly notice?: string;
     readonly decodedParams: readonly DecodedParam[];
     readonly params: { readonly [index: string]: unknown };
     readonly custom: {
@@ -154,7 +162,7 @@ export const decodeContractCall = async (
       metadata.output.userdoc.methods[selector].notice,
       metadata.output.abi,
       tx,
-      getMetadataOptions.rpcProvider
+      getMetadataOptions.rpcProvider as unknown as Provider
     );
   }
 

@@ -1,6 +1,7 @@
+import { Result } from '@ethersproject/abi';
 import { BigNumber } from 'ethers';
 
-function arrayContainsMixedTypeKeys(array): boolean {
+function arrayContainsMixedTypeKeys(array: Result): boolean {
   // eslint-disable-next-line functional/no-let
   let realLength = 0;
   // eslint-disable-next-line functional/no-loop-statement,@typescript-eslint/no-unused-vars
@@ -10,12 +11,22 @@ function arrayContainsMixedTypeKeys(array): boolean {
   return array.length !== realLength;
 }
 
-export function getValueFromDecodedFunctionData(decodedFunctionData) {
+type Mutable<Type> = {
+  -readonly [Key in keyof Type]: Type[Key];
+};
+
+type LocalResult = {
+  readonly [index: string]: unknown;
+};
+
+export function getValueFromDecodedFunctionData(
+  decodedFunctionData: Result
+): unknown {
   if (
     Array.isArray(decodedFunctionData) &&
     arrayContainsMixedTypeKeys(decodedFunctionData)
   ) {
-    const decodedFunctionDataWithoutStringKeys = [];
+    const decodedFunctionDataWithoutStringKeys: Mutable<Result> = [];
     // eslint-disable-next-line functional/no-loop-statement
     for (const prop in decodedFunctionData) {
       if (!(parseInt(prop) >= 0)) {
@@ -25,7 +36,7 @@ export function getValueFromDecodedFunctionData(decodedFunctionData) {
     }
 
     const result = Object.assign({}, decodedFunctionDataWithoutStringKeys);
-    const res = {};
+    const res: Mutable<LocalResult> = {};
     // eslint-disable-next-line functional/no-loop-statement
     for (const property in result) {
       // eslint-disable-next-line functional/immutable-data
@@ -47,11 +58,11 @@ export function getValueFromDecodedFunctionData(decodedFunctionData) {
   }
 }
 
-export function extractCustomFields(doc) {
+export function extractCustomFields(doc: Result) {
   return Object.keys(doc)
     .filter((key) => key.startsWith('custom:'))
     .reduce((previous, current) => {
-      const newValue = {};
+      const newValue: Mutable<LocalResult> = {};
       // eslint-disable-next-line functional/immutable-data
       newValue[current.replace('custom:', '')] = doc[current];
       return { ...previous, ...newValue };

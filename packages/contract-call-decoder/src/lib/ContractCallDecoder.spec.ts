@@ -1,3 +1,4 @@
+import { Provider } from '@ethersproject/providers';
 import test from 'ava';
 import provider from 'eth-provider';
 
@@ -10,6 +11,7 @@ import {
 } from './ContractCallDecoder';
 
 test('can evaluate call data', async (t) => {
+  const ethereumProvider = provider('https://rpc.ankr.com/eth_goerli');
   t.is(
     await evaluate(
       'Set the tree age to `numYears` years',
@@ -27,7 +29,8 @@ test('can evaluate call data', async (t) => {
       {
         to: '0x8521742d3f456bd237e312d6e30724960f72517a',
         data: '0xd5dcf127000000000000000000000000000000000000000000000000000000000000000a',
-      }
+      },
+      ethereumProvider as unknown as Provider
     ),
     'Set the tree age to 10 years'
   );

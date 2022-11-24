@@ -41,6 +41,7 @@
     "@blossom-labs/rosette-radspec": "^0.2.1",
     "@ethereum-sourcify/bytecode-utils": "*",
     "@ethersproject/abi": "^5.7.0",
+    "@ethersproject/providers": "^5.7.2",
     "@ethersproject/transactions": "^5.7.0",
     "ethereum-provider": "^0.7.7",
     "ethers": "^5.7.2",
