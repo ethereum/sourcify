@@ -65,7 +65,7 @@ function buildAlchemyAndCustomRpcURLs(
   const domain = "g.alchemy.com";
   // No sepolia support yet
   if (alchemyId && chainSubName !== "sepolia")
-    rpcURLs.concat(
+    rpcURLs.push(
       `https://${chainName}-${chainSubName}.${domain}/v2/${alchemyId}`
     );
 
@@ -76,7 +76,7 @@ function buildAlchemyAndCustomRpcURLs(
       console.log(
         `Using custom RPC URL for ${chainName} ${chainSubName}: ${url}`
       );
-      rpcURLs.concat(url);
+      rpcURLs.push(url);
     } else {
       console.warn(
         `Environment variable NODE_URL_${chainSubName.toUpperCase()} not set!`
