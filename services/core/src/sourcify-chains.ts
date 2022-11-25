@@ -42,6 +42,17 @@ function buildAlchemyAndCustomRpcURLs(
 ) {
   const rpcURLs: string[] = [];
 
+  if (useOwn) {
+    const url = process.env[`NODE_URL_${chainSubName.toUpperCase()}`];
+    if (url) {
+      rpcURLs.push(url);
+    } else {
+      console.warn(
+        `Environment variable NODE_URL_${chainSubName.toUpperCase()} not set!`
+      );
+    }
+  }
+
   let alchemyId;
   switch (chainName) {
     case "opt":
@@ -69,20 +80,6 @@ function buildAlchemyAndCustomRpcURLs(
       `https://${chainName}-${chainSubName}.${domain}/v2/${alchemyId}`
     );
 
-  if (useOwn) {
-    const url = process.env[`NODE_URL_${chainSubName.toUpperCase()}`];
-    console.log(url);
-    if (url) {
-      console.log(
-        `Using custom RPC URL for ${chainName} ${chainSubName}: ${url}`
-      );
-      rpcURLs.push(url);
-    } else {
-      console.warn(
-        `Environment variable NODE_URL_${chainSubName.toUpperCase()} not set!`
-      );
-    }
-  }
   return rpcURLs;
 }
 // replaces INFURA_API_KEY in https://networkname.infura.io/v3/{INFURA_API_KEY}
@@ -107,7 +104,7 @@ const sourcifyChains: SourcifyChainsObject = {
     supported: true,
     monitored: true,
     contractFetchAddress: "https://rinkeby.etherscan.io/" + ETHERSCAN_SUFFIX,
-    rpc: buildAlchemyAndCustomRpcURLs("rinkeby", "eth", false),
+    rpc: buildAlchemyAndCustomRpcURLs("rinkeby", "eth", true),
     txRegex: ETHERSCAN_REGEX,
   },
   "5": {

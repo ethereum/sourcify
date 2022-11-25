@@ -101,17 +101,29 @@ workflows:
               << pipeline.parameters.run-build-ui >>,
             ]
     jobs:
+      - tests-node-v16
+      - npm-publish:
+          filters:
+            branches:
+              only:
+                - master
+          requires:
+            - tests-node-v16
       - build-push-ipfs:
           run-build: << pipeline.parameters.run-build-ipfs >>
       # Always build monitor if there's a change in the server
       - build-push-monitor:
           run-build: << pipeline.parameters.run-build-server >>
+          requires:
+          - tests-node-v16
       - build-push-repository:
           run-build: << pipeline.parameters.run-build-repository >>
       - build-push-s3:
           run-build: << pipeline.parameters.run-build-s3 >>
       - build-push-server:
           run-build: << pipeline.parameters.run-build-server >>
+          requires:
+          - tests-node-v16
       - build-push-ui:
           run-build: << pipeline.parameters.run-build-ui >>
       - deploy:
@@ -134,17 +146,19 @@ workflows:
       - verification-e2e-sepolia:
           requires:
             - deploy
-  # Always run
-  node-build:
+  
+  # Tests workflow for not staging or master
+  tests:
+    when:
+      and:
+        - or: 
+          - not:
+            equal: [ master, << pipeline.git.branch >> ]
+          - not: 
+            equal: [ staging, << pipeline.git.branch >> ]
     jobs:
-      - node-v16
-      - npm-publish:
-          filters:
-            branches:
-              only:
-                - master
-          requires:
-            - node-v16
+      - tests-node-v16
+
   # Has to run always. Can't regex filter on add-chain-{chainId} branch names see: https://stackoverflow.com/questions/55839004/circleci-regex-filtering-match-within-string
   test-new-chain:
     jobs:
@@ -194,7 +208,7 @@ jobs:
           no_output_timeout: 30m
           command: |
             ./scripts/deploy.sh
-  node-v16:
+  tests-node-v16:
     docker:
       - image: cimg/node:16.15
     working_directory: ~/source-verify

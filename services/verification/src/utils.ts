@@ -13,7 +13,6 @@ const solc = require("solc");
 import { spawnSync } from "child_process";
 import { StatusCodes } from "http-status-codes";
 import { ethers } from "ethers";
-import promiseAny = require("promise.any"); // use import require to avoid error from typescript see: https://github.com/es-shims/Promise.allSettled/issues/5#issuecomment-723485612
 
 const GITHUB_SOLC_REPO =
   "https://github.com/ethereum/solc-bin/raw/gh-pages/linux-amd64/";
@@ -82,31 +81,17 @@ export async function getBytecode(
     throw new Error("No RPC provider was given for this chain.");
   address = Web3.utils.toChecksumAddress(address);
 
-  // Check if the first provider is a local node (using NODE_ADDRESS). If so don't waste Alchemy requests by requesting all RPCs in parallel.
-  // Instead request first the local node and request Alchemy only if it fails.
-  const firstProvider = web3Array[0].currentProvider as HttpProvider;
-  if (
-    process.env.NODE_ADDRESS &&
-    firstProvider?.host?.includes(process.env.NODE_ADDRESS)
-  ) {
-    let rejectResponse;
-    for (const web3 of web3Array) {
-      try {
-        const bytecode = await raceWithTimeout(web3, RPC_TIMEOUT, address); // await sequentially
-        return bytecode;
-      } catch (err) {
-        rejectResponse = err;
-      }
+  // Request sequentially. Custom node is always before ALCHEMY so we don't waste resources if succeeds.
+  // TODO: remove promise-any dependency
+  for (const web3 of web3Array) {
+    try {
+      const bytecode = await raceWithTimeout(web3, RPC_TIMEOUT, address);
+      return bytecode;
+    } catch (err) {
+      console.log(err);
     }
-    throw rejectResponse; // None resolved
-  } else {
-    // No local node. Request all public RPCs in parallel.
-    const rpcPromises: Promise<string>[] = web3Array.map((web3) =>
-      raceWithTimeout(web3, RPC_TIMEOUT, address)
-    );
-    // Promise.any for Node v15.0.0<  i.e. return the first one that resolves.
-    return promiseAny(rpcPromises);
   }
+  throw new Error("None of the RPCs responded");
 }
 
 const RECOMPILATION_ERR_MSG =
