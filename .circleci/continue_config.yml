@@ -150,12 +150,11 @@ workflows:
   # Tests workflow for not staging or master
   tests:
     when:
-      and:
-        - or: 
-          - not:
-            equal: [ master, << pipeline.git.branch >> ]
-          - not: 
-            equal: [ staging, << pipeline.git.branch >> ]
+      or: 
+        - not:
+          equal: [ master, << pipeline.git.branch >> ]
+        - not: 
+          equal: [ staging, << pipeline.git.branch >> ]
     jobs:
       - tests-node-v16
 
