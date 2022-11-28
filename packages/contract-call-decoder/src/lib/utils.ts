@@ -1,6 +1,11 @@
 import { Result } from '@ethersproject/abi';
-import { BigNumber } from 'ethers';
+import { BigNumber } from '@ethersproject/bignumber';
 
+/**
+ * Check if the array contains both string and number as keys
+ * @param array any array
+ * @returns true if the array contains both string and number as keys
+ */
 function arrayContainsMixedTypeKeys(array: Result): boolean {
   // eslint-disable-next-line functional/no-let
   let realLength = 0;
@@ -19,6 +24,11 @@ type LocalResult = {
   readonly [index: string]: unknown;
 };
 
+/**
+ *
+ * @param decodedFunctionData response from ethers Interface.decodeFunctionData (mixed typed index array)
+ * @returns a javascript rappresentation of the arrays / objects / values passed in the calldata
+ */
 export function getValueFromDecodedFunctionData(
   decodedFunctionData: Result
 ): unknown {
