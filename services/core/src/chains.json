@@ -11135,5 +11135,49 @@
         "standard": "none"
       }
     ]
+  },
+  {
+    "name": "Oasis Sapphire",
+    "chain": "Oasis",
+    "rpc": ["https://sapphire.oasis.dev"],
+    "faucets": [],
+    "nativeCurrency": {
+      "name": "ROSE",
+      "symbol": "ROSE",
+      "decimals": 18
+    },
+    "explorers": [
+      {
+        "name": "Oasis Sapphire Explorer",
+	"url": "https://explorer.sapphire.oasis.dev",
+	"standard": "EIP3091"
+      }
+    ],
+    "infoURL": "https://github.com/oasisprotocol",
+    "shortName": "sapphire",
+    "chainId": 23294,
+    "networkId": 23294
+  },
+  {
+    "name": "Oasis Sapphire Testnet",
+    "chain": "Oasis",
+    "rpc": ["https://testnet.sapphire.oasis.dev"],
+    "faucets": [],
+    "nativeCurrency": {
+      "name": "TEST",
+      "symbol": "TEST",
+      "decimals": 18
+    },
+    "explorers": [
+      {
+        "name": "Oasis Sapphire Testnet Explorer",
+	"url": "https://testnet.explorer.sapphire.oasis.dev",
+	"standard": "EIP3091"
+      }
+    ],
+    "infoURL": "https://github.com/oasisprotocol",
+    "shortName": "sapphire-testnet",
+    "chainId": 23295,
+    "networkId": 23295
   }
 ]
