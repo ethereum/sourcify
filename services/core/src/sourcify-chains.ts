@@ -577,6 +577,38 @@ const sourcifyChains: SourcifyChainsObject = {
       "https://blockscout.com/optimism/bedrock-alpha/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex("/optimism/bedrock-alpha"),
   },
+  "42261": {
+    // Oasis Emerald
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://explorer.emerald.oasis.dev/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
+  "42262": {
+    // Oasis Emerald Testnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://testnet.explorer.emerald.oasis.dev/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
+  "23294": {
+    // Oasis Sapphire
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://explorer.sapphire.oasis.dev/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
+  "23295": {
+    // Oasis Sapphire Testnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://testnet.explorer.sapphire.oasis.dev/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
 };
 
 export default sourcifyChains;
