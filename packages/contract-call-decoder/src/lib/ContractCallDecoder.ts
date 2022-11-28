@@ -111,22 +111,22 @@ type DecodedParam =
 
 type DecodedContractCall = {
   readonly contract: {
-    readonly author: string;
-    readonly title: string;
-    readonly details: string;
-    readonly custom: {
+    readonly author?: string;
+    readonly title?: string;
+    readonly details?: string;
+    readonly custom?: {
       readonly [index: string]: string;
     };
   };
   readonly method: {
     readonly selector: string;
-    readonly details: string;
     readonly abi: FunctionFragment;
-    readonly returns: string;
-    readonly notice?: string;
     readonly decodedParams: readonly DecodedParam[];
-    readonly params: { readonly [index: string]: unknown };
-    readonly custom: {
+    readonly details?: string;
+    readonly returns?: string;
+    readonly notice?: string;
+    readonly params?: { readonly [index: string]: unknown };
+    readonly custom?: {
       readonly [index: string]: string;
     };
   };
@@ -166,6 +166,17 @@ export const decodeContractCall = async (
     );
   }
 
+  // eslint-disable-next-line functional/no-let
+  let radspecEvaluatedDetails;
+  if (metadata.output?.devdoc?.methods[selector]?.details) {
+    radspecEvaluatedDetails = await evaluate(
+      metadata.output?.devdoc?.methods[selector]?.details,
+      metadata.output.abi,
+      tx,
+      getMetadataOptions.rpcProvider as unknown as Provider
+    );
+  }
+
   const iface = new Interface(metadata.output.abi);
   const decodedParams = iface
     .decodeFunctionData(selector, tx.data)
@@ -188,7 +199,7 @@ export const decodeContractCall = async (
     method: {
       selector,
       abi: abi,
-      details: devdoc.methods[selector]?.details,
+      details: radspecEvaluatedDetails,
       params: devdoc.methods[selector]?.params,
       returns: devdoc.methods[selector]?.returns,
       notice: radspecEvaluatedNotice,
