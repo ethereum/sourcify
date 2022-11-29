@@ -41,6 +41,14 @@ import {
   globSource,
 } from "ipfs-http-client";
 import path from "path";
+import { EVM } from "@ethereumjs/evm";
+import { EEI } from "@ethereumjs/vm";
+import { Address } from "@ethereumjs/util";
+import { Chain as EthereumChain, Common, Hardfork } from "@ethereumjs/common";
+import { Transaction } from "@ethereumjs/tx";
+import { DefaultStateManager } from "@ethereumjs/statemanager";
+import { Blockchain } from "@ethereumjs/blockchain";
+import { env } from "process";
 
 export interface InjectorConfig {
   silent?: boolean;
@@ -302,7 +310,7 @@ export class Injector {
       match.libraryMap = libraryMap;
 
       if (deployedBytecode === recompiled.deployedBytecode) {
-        // if the bytecode doesn't contain metadata then "partial" match
+        // if the bytecode doesn't contain metadata hash then "partial" match, can't be "perfect"
         if (this.getMetadataPathFromCborEncoded(deployedBytecode) === null) {
           match.status = "partial";
           return match;
@@ -317,12 +325,35 @@ export class Injector {
       );
       if (trimmedDeployedBytecode === trimmedCompiledRuntimeBytecode) {
         match.status = "partial";
-        return match;
       }
 
+      // If same length, highly likely these contracts are a match
       if (
         trimmedDeployedBytecode.length === trimmedCompiledRuntimeBytecode.length
       ) {
+        // TODO: Exmaple
+        const encodedConstructorArgs =
+          "000000000000000000000000c1a5b551edb9617613fec59ad7aea5f6a268d702";
+        // Execute the creation code with the constructor arguments to see if we'll obtain the same runtime bytecode.
+        const simulatedBytecode =
+          "0x" +
+          (await this.simulateCreationBytecode(
+            recompiled.creationBytecode,
+            encodedConstructorArgs
+          ));
+        if (simulatedBytecode === deployedBytecode) {
+          match.status = "perfect";
+          match.encodedConstructorArgs = encodedConstructorArgs;
+          return match;
+        }
+        const [trimmedSimulatedBytecode] = splitAuxdata(simulatedBytecode);
+        const [trimmedDeployedBytecode] = splitAuxdata(deployedBytecode);
+        if (trimmedSimulatedBytecode === trimmedDeployedBytecode) {
+          match.status = "partial";
+          match.encodedConstructorArgs = encodedConstructorArgs;
+          // don't return yet
+        }
+
         creationData =
           creationData || (await this.getCreationData(chain, address));
 
@@ -389,6 +420,50 @@ export class Injector {
       replaced: template,
       libraryMap,
     };
+  }
+
+  // TODO: need to know the evm version
+  private async simulateCreationBytecode(
+    creationBytecode: string,
+    encodedConstructorArgs: string
+  ): Promise<string> {
+    const stateManager = new DefaultStateManager();
+    const blockchain = await Blockchain.create();
+    const common = new Common({
+      chain: EthereumChain.Mainnet,
+      hardfork: Hardfork.Merge,
+    });
+    const eei = new EEI(stateManager, common, blockchain);
+
+    const evm = new EVM({
+      common,
+      eei,
+    });
+    if (creationBytecode.startsWith("0x")) {
+      creationBytecode = creationBytecode.slice(2);
+    }
+    const initcode = Buffer.from(
+      creationBytecode + encodedConstructorArgs,
+      "hex"
+    );
+    const result = await evm.runCall({
+      data: initcode,
+      gasLimit: BigInt(0xffffffffff),
+      caller: new Address(
+        Buffer.from("c1a5b551edb9617613fec59ad7aea5f6a268d702", "hex")
+      ),
+    });
+    return result.execResult.returnValue.toString("hex");
+    // const vm = await VM.create({ common });
+    // const tx = Transaction.fromTxData({
+    //   data: creationBytecode + encodedConstructorArgs,
+    // });
+    // const deploymentResult = await evm.runCode({
+    //   tx,
+    //   skipBalance: true,
+    //   skipNonce: true,
+    // });
+    // return deploymentResult.execResult.returnValue.toString("hex");
   }
 
   /**
