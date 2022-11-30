@@ -577,6 +577,14 @@ const sourcifyChains: SourcifyChainsObject = {
       "https://blockscout.com/optimism/bedrock-alpha/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex("/optimism/bedrock-alpha"),
   },
+  "7001": {
+    // ZetaChain: Athens Testnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://blockscout.athens2.zetachain.com/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+    rpc: ["https://archive.athens2.zetachain.com/evm"],
+  },
 };
 
 export default sourcifyChains;
