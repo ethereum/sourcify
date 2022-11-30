@@ -1,9 +1,8 @@
 import semver from "semver";
 import * as chainsRaw from "../chains.json";
-import sourcifyChainsRaw from "../sourcify-chains";
+import sourcifyChains from "../sourcify-chains";
 import { StringMap, ReformattedMetadata, Chain } from "./types";
 const chains = chainsRaw as any;
-const sourcifyChains = sourcifyChainsRaw as any;
 
 type ChainMap = {
   [chainId: string]: Chain;
@@ -15,8 +14,8 @@ const TEST_CHAINS: Chain[] = [
     shortName: "Localhost",
     chainId: 0,
     faucets: [],
-    infoURL: null,
-    nativeCurrency: null,
+    infoURL: "localhost",
+    nativeCurrency: { name: "localETH", symbol: "localETH", decimals: 18 },
     network: "testnet",
     networkId: 0,
     rpc: [`http://localhost:8545`],
@@ -157,11 +156,12 @@ export function createJsonInputFromMetadata(
 
   delete solcJsonInput.settings.compilationTarget;
 
+  // Check inliner bug for below versions https://github.com/ethereum/sourcify/issues/640
   const versions = ["0.8.2", "0.8.3", "0.8.4"];
-  const coercedVersion = semver.coerce(metadata.compiler.version).version;
+  const coercedVersion = semver.coerce(metadata.compiler.version)?.version;
 
   const affectedVersions = versions.filter((version) =>
-    semver.eq(version, coercedVersion)
+    semver.eq(version, coercedVersion || "")
   );
   if (affectedVersions.length > 0) {
     if (solcJsonInput.settings?.optimizer?.details?.inliner) {

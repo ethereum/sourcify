@@ -30,14 +30,13 @@ export class SourceAddress {
     return this.origin + "-" + this.id;
   }
 
-  static fromUrl(url: string): SourceAddress {
+  static fromUrl(url: string): SourceAddress | null {
     for (const prefix of PREFIXES) {
-      const attempt = url.replace(prefix.regex, "");
-      if (attempt !== url) {
-        return new SourceAddress(prefix.origin, attempt);
+      const hash = url.replace(prefix.regex, "");
+      if (hash !== url) {
+        return new SourceAddress(prefix.origin, hash);
       }
     }
-
     return null;
   }
 

@@ -2,7 +2,7 @@ import Web3 from "web3";
 import * as bunyan from "bunyan";
 import {
   Match,
-  InputData,
+  InjectorInput,
   getSupportedChains,
   Logger,
   IFileService,
@@ -35,14 +35,18 @@ import {
   splitAuxdata,
 } from "@ethereum-sourcify/bytecode-utils";
 import semverSatisfies from "semver/functions/satisfies";
-import { create, IPFSHTTPClient, globSource } from "ipfs-http-client";
+import {
+  create as createIpfsClient,
+  IPFSHTTPClient,
+  globSource,
+} from "ipfs-http-client";
 import path from "path";
 
 export interface InjectorConfig {
   silent?: boolean;
   log?: bunyan;
   offline?: boolean;
-  repositoryPath?: string;
+  repositoryPath: string;
   fileService?: IFileService;
   web3timeout?: number;
 }
@@ -51,9 +55,9 @@ class InjectorChain {
   web3array: Web3[];
   rpc: string[];
   name: string;
-  contractFetchAddress: string;
-  graphQLFetchAddress: string;
-  txRegex: string;
+  contractFetchAddress?: string;
+  graphQLFetchAddress?: string;
+  txRegex?: string;
   // archiveWeb3: Web3;
 
   constructor(chain: Chain) {
@@ -102,13 +106,13 @@ export class Injector {
   public fileService: IFileService;
   private web3timeout: number;
   repositoryPath: string;
-  private ipfsClient: IPFSHTTPClient;
+  private ipfsClient?: IPFSHTTPClient;
 
   /**
    * Constructor
    * @param {InjectorConfig = {}} config
    */
-  private constructor(config: InjectorConfig = {}) {
+  private constructor(config: InjectorConfig) {
     this.chains = {};
     this.offline = config.offline || false;
     this.repositoryPath = config.repositoryPath;
@@ -117,9 +121,11 @@ export class Injector {
 
     this.fileService =
       config.fileService || new FileService(this.repositoryPath, this.log);
-    this.ipfsClient = process.env.IPFS_API
-      ? create({ url: process.env.IPFS_API })
-      : undefined;
+    if (process.env.IPFS_API) {
+      this.ipfsClient = createIpfsClient({ url: process.env.IPFS_API });
+    } else {
+      this.log.warn("IPFS_API not set. Files will not be pinned to IPFS.");
+    }
   }
 
   /**
@@ -127,9 +133,7 @@ export class Injector {
    * Await this method to work with an instance that has all chains initialized.
    * @param config
    */
-  public static async createAsync(
-    config: InjectorConfig = {}
-  ): Promise<Injector> {
+  public static async createAsync(config: InjectorConfig): Promise<Injector> {
     const instance = new Injector(config);
     if (!instance.offline) {
       await instance.initChains();
@@ -141,7 +145,7 @@ export class Injector {
    * Creates an instance of Injector. Does not initialize chains.
    * @param config
    */
-  public static createOffline(config: InjectorConfig = {}): Injector {
+  public static createOffline(config: InjectorConfig): Injector {
     return new Injector(config);
   }
 
@@ -179,7 +183,7 @@ export class Injector {
     recompiled: RecompilationResult,
     metadata: Metadata
   ): Promise<Match> {
-    let match: Match = { address: null, chainId: null, status: null };
+    let match: Match = { address: addresses[0], chainId: chain, status: null };
     const chainName = this.chains[chain].name || "The chain";
 
     for (let address of addresses) {
@@ -214,7 +218,6 @@ export class Injector {
       try {
         match = await this.compareBytecodes(
           deployedBytecode,
-          null,
           recompiled,
           chain,
           address
@@ -239,7 +242,7 @@ export class Injector {
         // Case when extra unused files in compiler input cause different bytecode (https://github.com/ethereum/sourcify/issues/618)
         else if (
           semverSatisfies(metadata.compiler.version, "=0.6.12 || =0.7.0") &&
-          metadata.settings.optimizer.enabled
+          metadata.settings.optimizer?.enabled
         ) {
           const deployedMetadataHash =
             this.getMetadataPathFromCborEncoded(deployedBytecode);
@@ -277,10 +280,10 @@ export class Injector {
    */
   private async compareBytecodes(
     deployedBytecode: string | null,
-    creationData: string,
     recompiled: RecompilationResult,
     chain: string,
-    address: string
+    address: string,
+    creationData?: string
   ): Promise<Match> {
     const match: Match = {
       address,
@@ -399,7 +402,7 @@ export class Injector {
     contractAddress: string
   ): Promise<string> {
     const loc = "[GET_CREATION_DATA]";
-    const txFetchAddress = this.chains[chain]?.contractFetchAddress.replace(
+    const txFetchAddress = this.chains[chain]?.contractFetchAddress?.replace(
       "${ADDRESS}",
       contractAddress
     );
@@ -615,9 +618,7 @@ export class Injector {
         );
       }
 
-      if (this.ipfsClient) {
-        this.addToIpfsMfs(matchQuality, match.chainId, match.address);
-      }
+      await this.addToIpfsMfs(matchQuality, match.chainId, match.address);
     } else if (match.status === "extra-file-input-bug") {
       return match;
     } else {
@@ -666,8 +667,8 @@ export class Injector {
    * @param  {string[]}          files
    * @return {Promise<object>}              address & status of successfully verified contract
    */
-  public async inject(inputData: InputData): Promise<Match> {
-    const { chain, addresses, contract } = inputData;
+  public async inject(injectorInput: InjectorInput): Promise<Match> {
+    const { chain, addresses, contract } = injectorInput;
     this.validateAddresses(addresses);
     this.validateChain(chain);
 
@@ -686,7 +687,7 @@ export class Injector {
 
     // When injector is called by monitor, the bytecode has already been
     // obtained for address and we only need to compare w/ compilation result.
-    if (inputData.bytecode) {
+    if (injectorInput.bytecode) {
       if (addresses.length !== 1) {
         const err =
           "Injector cannot work with multiple addresses if bytecode is provided";
@@ -696,11 +697,11 @@ export class Injector {
       const address = Web3.utils.toChecksumAddress(addresses[0]);
 
       match = await this.compareBytecodes(
-        inputData.bytecode,
-        inputData.creationData,
+        injectorInput.bytecode,
         compilationResult,
         chain,
-        address
+        address,
+        injectorInput.creationData
       );
 
       // For other cases, we need to retrieve the code for specified address
@@ -799,6 +800,7 @@ export class Injector {
   private statusToMatchQuality(status: Status): MatchQuality {
     if (status === "perfect") return "full";
     if (status === "partial") return status;
+    throw new Error(`Invalid match status: ${status}`);
   }
 
   private sanitizePath(originalPath: string): string {
@@ -971,6 +973,7 @@ export class Injector {
     chain: string,
     address: string
   ) {
+    if (!this.ipfsClient) return;
     const contractFolderDir = this.fileService.generateAbsoluteFilePath({
       matchQuality,
       chain,
@@ -991,12 +994,15 @@ export class Injector {
         parents: true,
       });
       // Readstream to Buffers
-      const chunks: Buffer[] = [];
+      const chunks: Uint8Array[] = [];
       for await (const chunk of file.content) {
         chunks.push(chunk as Buffer);
       }
       const fileBuffer = Buffer.concat(chunks);
-      await this.ipfsClient.files.write(mfsPath, fileBuffer, { create: true });
+      const addResult = await this.ipfsClient.add(fileBuffer, {
+        pin: false,
+      });
+      await this.ipfsClient.files.cp(addResult.cid, mfsPath, { parents: true });
     }
   }
 }
