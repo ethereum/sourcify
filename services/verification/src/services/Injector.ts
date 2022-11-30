@@ -476,7 +476,7 @@ export class Injector {
     }
 
     // Avalanche Subnets
-    if (txFetchAddress && ["11111", "335", "53935", "432201"].includes(chain)) {
+    if (txFetchAddress && ["11111", "335", "53935", "432201", "432204"].includes(chain)) {
       for (const web3 of this.chains[chain].web3array) {
         this.log.info(
           { loc, chain, contractAddress, fetchAddress: txFetchAddress },
@@ -993,7 +993,7 @@ export class Injector {
       // Readstream to Buffers
       const chunks: Buffer[] = [];
       for await (const chunk of file.content) {
-        chunks.push(chunk);
+        chunks.push(chunk as Buffer);
       }
       const fileBuffer = Buffer.concat(chunks);
       await this.ipfsClient.files.write(mfsPath, fileBuffer, { create: true });

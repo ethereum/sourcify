@@ -472,13 +472,21 @@ export default {
       `https://subnet-explorer-api.avax-test.network/v1.1/432201/` +
       AVALANCHE_SUBNET_SUFFIX,
   },
+  "432204": {
+    // Dexalot Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      `https://subnet-explorer-api.avax.network/v1.1/432204/` +
+      AVALANCHE_SUBNET_SUFFIX,
+  },
   "103090": {
     // Crystaleum Mainnet
     supported: true,
     monitored: false,
     contractFetchAddress: "https://scan.crystaleum.org/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
-  },    
+  },
   "420666": { // Kekchain Testnet (kektest)
     supported: true,
     monitored: false,
@@ -538,7 +546,7 @@ export default {
     txRegex: getBlockscoutRegex(),
   },
   "336": {
-    // Shiden (EVM) 
+    // Shiden (EVM)
     supported: true,
     monitored: false,
     contractFetchAddress:
