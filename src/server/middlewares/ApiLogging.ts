@@ -11,7 +11,7 @@ export default function notFoundError(express: any): void {
     }
     SourcifyEventManager.trigger("Server.ApiReplied", {
       api: this.req.path,
-      success: true,
+      status: this.statusCode,
       parameters: this.req.body,
       response: parsedResponse,
     });

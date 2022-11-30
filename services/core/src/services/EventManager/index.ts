@@ -2,9 +2,17 @@ import { EventManager, GenericEvents } from "../../utils/EventManager";
 import { Match } from "../../utils/types";
 interface Events extends GenericEvents {
   "*": (event: string, argument: any) => void;
+  "Server.Error": (errorEvent: {
+    message: string;
+    stack: string;
+    request: {
+      api: string;
+      parameters: any;
+    };
+  }) => void;
   "Server.ApiReplied": (apiEvent: {
     api: string;
-    success: boolean;
+    status: number;
     parameters: any;
     response: any;
   }) => void;
@@ -13,6 +21,7 @@ interface Events extends GenericEvents {
 
 export const SourcifyEventManager = new EventManager<Events>({
   "*": [],
+  "Server.Error": [],
   "Server.ApiReplied": [],
   "Injector.MatchStored": [],
 });
