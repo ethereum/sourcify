@@ -9,11 +9,6 @@ export default function notFoundError(
   res: Response,
   _next: any
 ): void {
-  if (err.log) {
-    const logger: bunyan = Logger("Error");
-    logger.error(`Error: ${JSON.stringify(err)}`);
-  }
-
   res.status(HttpStatus.StatusCodes.NOT_FOUND).json({
     error: HttpStatus.getStatusText(err.message),
   });
