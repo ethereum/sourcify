@@ -9,6 +9,7 @@ import { Logger, getSourcifyChains } from "@ethereum-sourcify/core";
 import bunyan from "bunyan";
 import genericErrorHandler from "./middlewares/GenericErrorHandler";
 import notFoundHandler from "./middlewares/NotFoundError";
+import useApiLogging from "./middlewares/ApiLogging";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 import util from "util";
@@ -21,6 +22,8 @@ export class Server {
   port = config.server.port;
 
   constructor() {
+    useApiLogging(express);
+
     this.app = express();
 
     this.app.use(

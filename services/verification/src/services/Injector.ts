@@ -15,6 +15,7 @@ import {
   Metadata,
   Create2Args,
   Create2ConstructorArgument,
+  SourcifyEventManager,
 } from "@ethereum-sourcify/core";
 import {
   RecompilationResult,
@@ -619,6 +620,7 @@ export class Injector {
       }
 
       await this.addToIpfsMfs(matchQuality, match.chainId, match.address);
+      SourcifyEventManager.trigger("Injector.MatchStored", match);
     } else if (match.status === "extra-file-input-bug") {
       return match;
     } else {

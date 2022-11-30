@@ -2,6 +2,7 @@ import * as HttpStatus from "http-status-codes";
 import { Request, Response } from "express";
 import { Logger } from "@ethereum-sourcify/core";
 import * as bunyan from "bunyan";
+import { SourcifyEventManager } from "@ethereum-sourcify/core";
 
 export default function genericErrorHandler(
   err: any,
@@ -12,6 +13,7 @@ export default function genericErrorHandler(
   if (err.log) {
     const logger: bunyan = Logger("Error");
     logger.error(`Error: ${JSON.stringify(err)}`);
+    // TODO: add SourcifyEventManager.trigger("Error")
   }
 
   if (err.errors) {
