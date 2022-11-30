@@ -996,7 +996,7 @@ export class Injector {
       // Readstream to Buffers
       const chunks: Uint8Array[] = [];
       for await (const chunk of file.content) {
-        chunks.push(chunk as Buffer);
+        chunks.push(chunk);
       }
       const fileBuffer = Buffer.concat(chunks);
       const addResult = await this.ipfsClient.add(fileBuffer, {
