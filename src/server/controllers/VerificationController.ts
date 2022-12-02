@@ -512,6 +512,8 @@ export default class VerificationController
       contract,
       addresses: req.addresses,
       chain: req.chain,
+      constructorArguments: req.constructorArguments,
+      msgSender: req.msgSender,
     };
     try {
       const result = await this.verificationService.inject(injectorInput);

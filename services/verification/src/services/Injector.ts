@@ -189,7 +189,9 @@ export class Injector {
     chain: string,
     addresses: string[] = [],
     recompiled: RecompilationResult,
-    metadata: Metadata
+    metadata: Metadata,
+    constructorArguments?: string,
+    msgSender?: string
   ): Promise<Match> {
     let match: Match = { address: addresses[0], chainId: chain, status: null };
     const chainName = this.chains[chain].name || "The chain";
@@ -223,12 +225,20 @@ export class Injector {
         throw err;
       }
 
+      if (!deployedBytecode) {
+        throw new Error(
+          `No bytecode found at address ${address} on ${chainName}`
+        );
+      }
+
       try {
         match = await this.compareBytecodes(
           deployedBytecode,
           recompiled,
           chain,
-          address
+          address,
+          constructorArguments,
+          msgSender
         );
       } catch (err: any) {
         if (addresses.length === 1) {
@@ -287,11 +297,13 @@ export class Injector {
    * @return {Match}  match description ('perfect'|'partial'|null) and possibly constructor args (ABI-encoded) and library links
    */
   private async compareBytecodes(
-    deployedBytecode: string | null,
+    deployedBytecode: string,
     recompiled: RecompilationResult,
     chain: string,
     address: string,
-    creationData?: string
+    creationData?: string,
+    constructorArguments?: string,
+    msgSender?: string
   ): Promise<Match> {
     const match: Match = {
       address,
@@ -301,6 +313,14 @@ export class Injector {
       libraryMap: undefined,
     };
 
+    this.matchOrTrimAndMatch(
+      match,
+      (a, b) => a === b,
+      deployedBytecode,
+      recompiled.deployedBytecode
+    );
+    if (match.status === "perfect") return match;
+
     if (deployedBytecode && deployedBytecode.length > 2) {
       const { replaced, libraryMap } = this.addLibraryAddresses(
         recompiled.deployedBytecode,
@@ -309,49 +329,24 @@ export class Injector {
       recompiled.deployedBytecode = replaced;
       match.libraryMap = libraryMap;
 
-      if (deployedBytecode === recompiled.deployedBytecode) {
-        // if the bytecode doesn't contain metadata hash then "partial" match, can't be "perfect"
-        if (this.getMetadataPathFromCborEncoded(deployedBytecode) === null) {
-          match.status = "partial";
-          return match;
-        }
-        match.status = "perfect";
-        return match;
-      }
-
-      const [trimmedDeployedBytecode] = splitAuxdata(deployedBytecode);
-      const [trimmedCompiledRuntimeBytecode] = splitAuxdata(
-        recompiled.deployedBytecode
-      );
-      if (trimmedDeployedBytecode === trimmedCompiledRuntimeBytecode) {
-        match.status = "partial";
-      }
-
-      // If same length, highly likely these contracts are a match
-      if (
-        trimmedDeployedBytecode.length === trimmedCompiledRuntimeBytecode.length
-      ) {
-        // TODO: Exmaple
-        const encodedConstructorArgs =
-          "000000000000000000000000c1a5b551edb9617613fec59ad7aea5f6a268d702";
-        // Execute the creation code with the constructor arguments to see if we'll obtain the same runtime bytecode.
-        const simulatedBytecode =
-          "0x" +
-          (await this.simulateCreationBytecode(
-            recompiled.creationBytecode,
-            encodedConstructorArgs
-          ));
-        if (simulatedBytecode === deployedBytecode) {
-          match.status = "perfect";
-          match.encodedConstructorArgs = encodedConstructorArgs;
-          return match;
-        }
-        const [trimmedSimulatedBytecode] = splitAuxdata(simulatedBytecode);
-        const [trimmedDeployedBytecode] = splitAuxdata(deployedBytecode);
-        if (trimmedSimulatedBytecode === trimmedDeployedBytecode) {
-          match.status = "partial";
-          match.encodedConstructorArgs = encodedConstructorArgs;
-          // don't return yet
+      // If same length, highly likely these contracts are a match but immutable vars. may be affecting the match
+      if (deployedBytecode.length === recompiled.deployedBytecode.length) {
+        if (constructorArguments) {
+          // Execute the creation code with the constructor arguments to see if we'll obtain the same onchain deployed bytecode.
+          const simulatedBytecode =
+            "0x" +
+            (await this.simulateCreationBytecode(
+              recompiled.creationBytecode,
+              constructorArguments
+            ));
+          this.matchOrTrimAndMatch(
+            match,
+            (a, b) => a === b,
+            simulatedBytecode,
+            deployedBytecode,
+            constructorArguments
+          );
+          if (match.status === "perfect") return match;
         }
 
         creationData =
@@ -365,26 +360,14 @@ export class Injector {
         match.libraryMap = libraryMap;
 
         if (creationData) {
-          if (creationData.startsWith(recompiled.creationBytecode)) {
-            // The reason why this uses `startsWith` instead of `===` is that
-            // creationData may contain constructor arguments at the end part.
-            const encodedConstructorArgs = this.extractEncodedConstructorArgs(
-              creationData,
-              recompiled.creationBytecode
-            );
-            match.status = "perfect";
-            match.encodedConstructorArgs = encodedConstructorArgs;
-            return match;
-          }
-
-          const [trimmedCompiledCreationBytecode] = splitAuxdata(
+          // The reason why this uses `startsWith` instead of `===` is that creationData may contain constructor arguments at the end part
+          this.matchOrTrimAndMatch(
+            match,
+            (a, b) => a.startsWith(b),
+            creationData,
             recompiled.creationBytecode
           );
-
-          if (creationData.startsWith(trimmedCompiledCreationBytecode)) {
-            match.status = "partial";
-            return match;
-          }
+          if (match.status === "perfect") return match;
         }
       }
     }
@@ -464,6 +447,54 @@ export class Injector {
     //   skipNonce: true,
     // });
     // return deploymentResult.execResult.returnValue.toString("hex");
+  }
+
+  /**
+   * Function to compare bytecodes for a match.
+   * Also tries to do a partial match by removing the `auxdata`.
+   * Saves the constructor arguments if given or extracts them from the creation data.
+   *
+   * @param match - Match object to be updated
+   * @param matchFunction - How to compare bytecodes. Defaults to `===`, but creation code comparison needs to use `startsWith`.
+   * @param onchainBytecode
+   * @param recompiledBytecode
+   * @param contructorArguments - in ABI encoding
+   */
+  private matchOrTrimAndMatch(
+    match: Match,
+    matchFunction: (
+      onchainBytecode: string,
+      recompiledBytecode: string
+    ) => boolean = (a, b) => a === b,
+    onchainBytecode: string,
+    recompiledBytecode: string,
+    constructorArguments?: string
+  ) {
+    if (matchFunction(onchainBytecode, recompiledBytecode)) {
+      // if the bytecode doesn't contain any metadata hash then "partial" match, can't be "perfect"
+      if (this.getMetadataPathFromCborEncoded(onchainBytecode) === null) {
+        match.status = "partial";
+      } else {
+        match.status = "perfect";
+      }
+
+      if (constructorArguments)
+        match.encodedConstructorArgs = constructorArguments;
+      else {
+        match.encodedConstructorArgs = this.extractEncodedConstructorArgs(
+          onchainBytecode,
+          recompiledBytecode
+        );
+      }
+    }
+
+    const [trimmedOnchainBytecode] = splitAuxdata(onchainBytecode); // Creation data with constructor args. actually not CBOR encoded, but splitAuxdata returns the whole bytecode if it's not CBOR encoded, so will work with startsWith.
+    const [trimmedRecompiledBytecode] = splitAuxdata(recompiledBytecode);
+    if (matchFunction(trimmedOnchainBytecode, trimmedRecompiledBytecode)) {
+      match.status = "partial";
+      if (constructorArguments)
+        match.encodedConstructorArgs = constructorArguments;
+    }
   }
 
   /**
@@ -604,12 +635,20 @@ export class Injector {
   }
 
   private extractEncodedConstructorArgs(
-    creationData: string,
+    onchainCreationBytecode: string,
     compiledCreationBytecode: string
   ) {
-    const startIndex = creationData.indexOf(compiledCreationBytecode);
+    if (onchainCreationBytecode.length === compiledCreationBytecode.length)
+      return null;
+
+    const startIndex = onchainCreationBytecode.indexOf(
+      compiledCreationBytecode
+    );
     return (
-      "0x" + creationData.slice(startIndex + compiledCreationBytecode.length)
+      "0x" +
+      onchainCreationBytecode.slice(
+        startIndex + compiledCreationBytecode.length
+      )
     );
   }
 
@@ -743,7 +782,8 @@ export class Injector {
    * @return {Promise<object>}              address & status of successfully verified contract
    */
   public async inject(injectorInput: InjectorInput): Promise<Match> {
-    const { chain, addresses, contract } = injectorInput;
+    const { chain, addresses, contract, constructorArguments, msgSender } =
+      injectorInput;
     this.validateAddresses(addresses);
     this.validateChain(chain);
 
@@ -786,7 +826,9 @@ export class Injector {
         chain,
         addresses,
         compilationResult,
-        contract.metadata
+        contract.metadata,
+        constructorArguments,
+        msgSender
       );
     }
 

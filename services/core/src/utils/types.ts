@@ -17,6 +17,8 @@ export interface InjectorInput {
   contract: CheckedContract;
   bytecode?: string;
   creationData?: string;
+  constructorArguments?: string;
+  msgSender?: string;
 }
 
 export interface CompilationSettings {
