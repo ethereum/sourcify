@@ -157,6 +157,7 @@ const ChainAddressForm = ({
         <button
           onClick={() => setIsMoreFieldsOpen((prevValue) => !prevValue)}
           className="py-1 text-ceruleanBlue-600 mt-2"
+          type="button"
         >
           More Inputs
           <HiChevronDown

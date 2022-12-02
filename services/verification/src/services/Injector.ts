@@ -305,7 +305,7 @@ export class Injector {
     constructorArguments?: string,
     msgSender?: string
   ): Promise<Match> {
-    const match: Match = {
+    let match: Match = {
       address,
       chainId: chain,
       status: null,
@@ -313,7 +313,7 @@ export class Injector {
       libraryMap: undefined,
     };
 
-    this.matchOrTrimAndMatch(
+    match = this.matchOrTrimAndMatch(
       match,
       (a, b) => a === b,
       deployedBytecode,
@@ -337,9 +337,12 @@ export class Injector {
             "0x" +
             (await this.simulateCreationBytecode(
               recompiled.creationBytecode,
-              constructorArguments
+              chain,
+              JSON.parse(recompiled.metadata).settings.evmVersion,
+              constructorArguments,
+              msgSender
             ));
-          this.matchOrTrimAndMatch(
+          match = this.matchOrTrimAndMatch(
             match,
             (a, b) => a === b,
             simulatedBytecode,
@@ -361,7 +364,7 @@ export class Injector {
 
         if (creationData) {
           // The reason why this uses `startsWith` instead of `===` is that creationData may contain constructor arguments at the end part
-          this.matchOrTrimAndMatch(
+          match = this.matchOrTrimAndMatch(
             match,
             (a, b) => a.startsWith(b),
             creationData,
@@ -405,16 +408,18 @@ export class Injector {
     };
   }
 
-  // TODO: need to know the evm version
   private async simulateCreationBytecode(
     creationBytecode: string,
-    encodedConstructorArgs: string
+    chainId: string,
+    evmVersion: string,
+    encodedConstructorArgs?: string,
+    msgSender?: string
   ): Promise<string> {
     const stateManager = new DefaultStateManager();
     const blockchain = await Blockchain.create();
     const common = new Common({
-      chain: EthereumChain.Mainnet,
-      hardfork: Hardfork.Merge,
+      chain: chainId,
+      hardfork: evmVersion,
     });
     const eei = new EEI(stateManager, common, blockchain);
 
@@ -432,21 +437,11 @@ export class Injector {
     const result = await evm.runCall({
       data: initcode,
       gasLimit: BigInt(0xffffffffff),
-      caller: new Address(
-        Buffer.from("c1a5b551edb9617613fec59ad7aea5f6a268d702", "hex")
-      ),
+      caller: msgSender
+        ? new Address(Buffer.from(msgSender, "hex")) //TODO: Check 0x prefix
+        : undefined,
     });
     return result.execResult.returnValue.toString("hex");
-    // const vm = await VM.create({ common });
-    // const tx = Transaction.fromTxData({
-    //   data: creationBytecode + encodedConstructorArgs,
-    // });
-    // const deploymentResult = await evm.runCode({
-    //   tx,
-    //   skipBalance: true,
-    //   skipNonce: true,
-    // });
-    // return deploymentResult.execResult.returnValue.toString("hex");
   }
 
   /**
@@ -472,7 +467,7 @@ export class Injector {
   ) {
     if (matchFunction(onchainBytecode, recompiledBytecode)) {
       // if the bytecode doesn't contain any metadata hash then "partial" match, can't be "perfect"
-      if (this.getMetadataPathFromCborEncoded(onchainBytecode) === null) {
+      if (this.getMetadataPathFromCborEncoded(recompiledBytecode) === null) {
         match.status = "partial";
       } else {
         match.status = "perfect";
@@ -486,15 +481,24 @@ export class Injector {
           recompiledBytecode
         );
       }
+      return match;
     }
 
-    const [trimmedOnchainBytecode] = splitAuxdata(onchainBytecode); // Creation data with constructor args. actually not CBOR encoded, but splitAuxdata returns the whole bytecode if it's not CBOR encoded, so will work with startsWith.
+    const [trimmedOnchainBytecode] = splitAuxdata(onchainBytecode); // In the case of creation data and not deployed bytecode it is actually not CBOR encoded, but splitAuxdata returns the whole bytecode if it's not CBOR encoded, so will work with startsWith.
     const [trimmedRecompiledBytecode] = splitAuxdata(recompiledBytecode);
     if (matchFunction(trimmedOnchainBytecode, trimmedRecompiledBytecode)) {
       match.status = "partial";
-      if (constructorArguments)
+      if (constructorArguments) {
         match.encodedConstructorArgs = constructorArguments;
+      } else {
+        match.encodedConstructorArgs = this.extractEncodedConstructorArgs(
+          onchainBytecode,
+          recompiledBytecode
+        );
+      }
     }
+
+    return match;
   }
 
   /**
@@ -639,7 +643,7 @@ export class Injector {
     compiledCreationBytecode: string
   ) {
     if (onchainCreationBytecode.length === compiledCreationBytecode.length)
-      return null;
+      return undefined;
 
     const startIndex = onchainCreationBytecode.indexOf(
       compiledCreationBytecode

@@ -50,10 +50,12 @@ export type MySession = Session &
     unusedSources: string[];
   };
 
-export type MyRequest = Request & {
+export type LegacyVerifyRequest = Request & {
   addresses: string[];
   chain: string;
   chosenContract: number;
+  constructorArguments?: string;
+  msgSender?: string;
 };
 
 export type SendableContract = ContractMeta & {

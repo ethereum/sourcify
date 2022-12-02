@@ -34,7 +34,7 @@ import {
   SendableContract,
   ContractWrapperMap,
   updateUnused,
-  MyRequest,
+  LegacyVerifyRequest,
   addRemoteFile,
   contractHasMultipleFiles,
   EtherscanResult,
@@ -245,7 +245,7 @@ export default class VerificationController
     origReq: Request,
     res: Response
   ): Promise<void> => {
-    const req = origReq as MyRequest;
+    const req = origReq as LegacyVerifyRequest;
     this.validateRequest(req);
 
     const chain = req.body.chainId as string;
@@ -273,7 +273,7 @@ export default class VerificationController
     origReq: Request,
     res: Response
   ): Promise<void> => {
-    const req = origReq as MyRequest;
+    const req = origReq as LegacyVerifyRequest;
     this.validateRequest(req);
 
     const deployerAddress = req.body.deployerAddress;
@@ -393,7 +393,7 @@ export default class VerificationController
     res: Response
   ): Promise<void> => {
     // 1. generate metadata
-    const req = origReq as MyRequest;
+    const req = origReq as LegacyVerifyRequest;
     this.validateRequest(req);
 
     const chain = req.body.chainId as string;
@@ -458,7 +458,7 @@ export default class VerificationController
     origReq: Request,
     res: Response
   ): Promise<any> => {
-    const req = origReq as MyRequest;
+    const req = origReq as LegacyVerifyRequest;
     this.validateRequest(req);
 
     for (const address of req.addresses) {
