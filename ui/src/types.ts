@@ -65,6 +65,8 @@ export type VerificationInput = {
   verificationId: string;
   chainId: string;
   address: string;
+  constructorArguments?: string;
+  msgSender?: string;
 };
 
 export type Create2VerificationInput = {
