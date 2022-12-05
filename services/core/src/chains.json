@@ -11140,7 +11140,10 @@
     "name": "ZetaChain Athens Testnet",
     "chain": "ZetaChain",
     "icon": "Zetachain",
-    "rpc": ["https://api.athens2.zetachain.com/evm"],
+    "rpc": [
+      "https://api.athens2.zetachain.com/evm",
+      "https://archive.athens2.zetachain.com/evm"
+    ],
     "faucets": ["https://labs.zetachain.com/get-zeta"],
     "nativeCurrency": {
       "name": "Zeta",
