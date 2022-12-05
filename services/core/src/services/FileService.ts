@@ -16,6 +16,7 @@ import {
 } from "../utils/types";
 import { checkChainId } from "../utils/utils";
 import { Logger } from "../utils/logger";
+import { SourcifyEventManager } from "./EventManager";
 
 type PathConfig = {
   matchQuality: MatchQuality;
@@ -275,8 +276,17 @@ export class FileService implements IFileService {
           storageTimestamp,
         },
       ];
-    } catch (e) {
-      throw new Error("Address not found in repository");
+    } catch (e: any) {
+      const error = new Error("findByAddress: Address not found in repository");
+      SourcifyEventManager.trigger("Verification.Error", {
+        message: error.message,
+        stack: e.stack,
+        details: {
+          address,
+          chain,
+        },
+      });
+      throw error;
     }
   }
 
@@ -316,8 +326,17 @@ export class FileService implements IFileService {
           create2Args: storage?.create2Args,
         },
       ];
-    } catch (e) {
-      throw new Error("Address not found in repository");
+    } catch (e: any) {
+      const error = new Error("Address not found in repository");
+      SourcifyEventManager.trigger("Verification.Error", {
+        message: error.message,
+        stack: e.stack,
+        details: {
+          address,
+          chain,
+        },
+      });
+      throw error;
     }
   }
 

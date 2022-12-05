@@ -45,9 +45,6 @@ export default class PendingContract {
     this.metadata = JSON.parse(rawMetadata) as Metadata;
     const loc = "[PENDING_CONTRACT:ADD_METADATA]";
 
-    const count = Object.keys(this.metadata.sources).length;
-    this.logger.info({ loc, count }, "New pending files");
-
     for (const name in this.metadata.sources) {
       const source = this.metadata.sources[name];
       source.name = name;

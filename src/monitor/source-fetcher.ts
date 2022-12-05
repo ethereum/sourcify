@@ -1,4 +1,4 @@
-import { CheckedContract } from "@ethereum-sourcify/core";
+import { CheckedContract, SourcifyEventManager } from "@ethereum-sourcify/core";
 import Logger from "bunyan";
 import { StatusCodes } from "http-status-codes";
 import nodeFetch from "node-fetch";
@@ -196,15 +196,6 @@ class GatewayFetcher {
         }
         // fall back to external ipfs gateway
         subscription.useFallbackUrl();
-        this.logger.info(
-          {
-            loc: "[SOURCE_FETCHER:FALLBACK]",
-            fetchUrl: subscription.fetchUrl,
-            id: sourceHash,
-            subscribers: subscription.subscribers.length,
-          },
-          "Using the fallback gateway"
-        );
         return nodeFetch(subscription.fetchUrl, {
           timeout: this.fetchTimeout,
         }).then((resp) => {
@@ -257,15 +248,11 @@ class GatewayFetcher {
     const subscription = this.subscriptions[id];
     this.cleanup(id);
 
-    this.logger.info(
-      {
-        loc: "[SOURCE_FETCHER:NOTIFY]",
-        fetchUrl: subscription.fetchUrl,
-        id,
-        subscribers: subscription.subscribers.length,
-      },
-      "Fetching successful"
-    );
+    SourcifyEventManager.trigger("Monitor.SourceFetcher.FetchingSuccessful", {
+      fetchUrl: subscription.fetchUrl,
+      id,
+      subscribers: subscription.subscribers.length,
+    });
 
     subscription.subscribers.forEach((callback) => callback(file));
   }
@@ -293,8 +280,7 @@ class GatewayFetcher {
     this.subscriptions[sourceHash].subscribers.push(callback);
 
     this.subscriptionCounter++;
-    this.logger.info({
-      loc: "[SOURCE_FETCHER:NEW_SUBSCRIPTION]",
+    SourcifyEventManager.trigger("Monitor.SourceFetcher.NewSubscription", {
       fetchUrl: this.subscriptions[sourceHash].fetchUrl,
       sourceHash,
       filesPending: this.fileCounter,
@@ -322,8 +308,7 @@ class GatewayFetcher {
 
     this.fileCounter--;
     this.subscriptionCounter -= subscriptionsDelta;
-    this.logger.info({
-      loc: "[SOURCE_FETCHER:CLEANUP]",
+    SourcifyEventManager.trigger("Monitor.SourceFetcher.Cleanup", {
       fetchUrl: fetchUrl,
       sourceHash,
       filesPending: this.fileCounter,

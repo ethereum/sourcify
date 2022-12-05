@@ -4,7 +4,7 @@ import { logger } from "../../../utils/loggerLoki";
 SourcifyEventManager.on("*", [
   (event: string, argument: any) => {
     if (event.includes("Error")) {
-      logger.info({
+      logger.error({
         message: argument,
         labels: { type: "errors", event: event },
       });

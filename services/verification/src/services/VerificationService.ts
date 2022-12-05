@@ -6,6 +6,7 @@ import {
   Metadata,
   JsonInput,
   CheckedContract,
+  SourcifyEventManager,
 } from "@ethereum-sourcify/core";
 import { Injector } from "./Injector";
 import * as bunyan from "bunyan";
@@ -46,11 +47,7 @@ export class VerificationService implements IVerificationService {
     contractName: string,
     compilerJson: JsonInput
   ): Promise<Metadata> => {
-    const output = await useCompiler(
-      compilerVersion,
-      compilerJson,
-      this.logger
-    );
+    const output = await useCompiler(compilerVersion, compilerJson);
     const contractPath = findContractPathFromContractName(
       output.contracts,
       contractName
@@ -85,21 +82,7 @@ export class VerificationService implements IVerificationService {
   };
 
   findByAddress = (address: string, chain: string): Match[] => {
-    // Try to find by address, return on success.
-    let matches: Match[] = [];
-    try {
-      matches = this.fileService.findByAddress(address, chain);
-    } catch (err) {
-      const msg = "Could not find file in repository";
-      this.logger.info(
-        {
-          loc: "[POST:VERIFICATION_BY_ADDRESS_FAILED]",
-          address: address,
-        },
-        msg
-      );
-    }
-    return matches;
+    return this.fileService.findByAddress(address, chain);
   };
 
   findAllByAddress = (address: string, chain: string): Match[] => {
@@ -108,14 +91,7 @@ export class VerificationService implements IVerificationService {
     try {
       matches = this.fileService.findAllByAddress(address, chain);
     } catch (err) {
-      const msg = "Could not find file in repository";
-      this.logger.info(
-        {
-          loc: "[POST:VERIFICATION_BY_ADDRESS_FAILED]",
-          address: address,
-        },
-        msg
-      );
+      // Error already logged inside `this.fileService.findAllByAddress`
     }
     return matches;
   };

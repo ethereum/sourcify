@@ -747,14 +747,13 @@ export default class VerificationController
 
   private async checkAndFetchMissing(contract: CheckedContract): Promise<void> {
     if (!CheckedContract.isValid(contract)) {
-      const logObject = {
-        loc: "[VERIFY_VALIDATED_ENDPOINT]",
-        contract: contract.name,
-      };
-      this.logger.info(logObject, "Attempting fetching of missing sources");
-      await CheckedContract.fetchMissing(contract, this.logger).catch((err) => {
-        this.logger.error(logObject, err);
-      });
+      try {
+        // Try to fetch missing files
+        await CheckedContract.fetchMissing(contract);
+      } catch (e) {
+        // Missing files are accessible from the contract.missingFiles array.
+        // No need to throw an error
+      }
     }
   }
 
