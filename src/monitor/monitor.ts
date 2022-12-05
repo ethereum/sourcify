@@ -11,7 +11,6 @@ import {
   VerificationService,
   IVerificationService,
 } from "@ethereum-sourcify/verification";
-import Logger from "bunyan";
 import Web3 from "web3";
 import { Transaction } from "web3-core";
 import { SourceAddress } from "./util";
@@ -43,7 +42,6 @@ class ChainMonitor extends EventEmitter {
   private web3urls: string[];
   private web3provider: Web3 | undefined;
   private sourceFetcher: SourceFetcher;
-  private logger: Logger;
   private verificationService: IVerificationService;
   private running: boolean;
 
@@ -62,7 +60,6 @@ class ChainMonitor extends EventEmitter {
     this.chainId = chainId;
     this.web3urls = web3urls;
     this.sourceFetcher = sourceFetcher;
-    this.logger = new Logger({ name });
     this.verificationService = verificationService;
     this.running = false;
 
@@ -104,18 +101,18 @@ class ChainMonitor extends EventEmitter {
         this.processBlock(startBlock);
         break;
       } catch (err) {
-        this.logger.error({
-          loc: "[MONITOR:START]",
-          err: "Cannot getBlockNumber",
-          web3url,
+        SourcifyEventManager.trigger("Monitor.Error", {
+          message: "Start: Cannot getBlockNumber",
+          details: {
+            web3url,
+          },
         });
       }
     }
 
     if (!found) {
-      this.logger.error({
-        loc: "[MONITOR:START]",
-        err: "No working chains! Exiting!",
+      SourcifyEventManager.trigger("Monitor.Error", {
+        message: "Start: No working chains! Exiting!",
       });
     }
   };
@@ -174,10 +171,10 @@ class ChainMonitor extends EventEmitter {
         blockNumber++;
       })
       .catch((err) => {
-        this.logger.error(
-          { loc: "[PROCESS_BLOCK:FAILED]", blockNumber },
-          err.message
-        );
+        SourcifyEventManager.trigger("Monitor.Error", {
+          message: err.message,
+          stack: err.stack,
+        });
       })
       .finally(() => {
         this.mySetTimeout(this.processBlock, this.getBlockPause, blockNumber);
@@ -232,17 +229,17 @@ class ChainMonitor extends EventEmitter {
             this.inject(contract, bytecode, creationData, address)
           );
         } catch (err: any) {
-          this.logger.error(
-            { loc: "[GET_BYTECODE:METADATA_READING]", address },
-            err.message
-          );
+          SourcifyEventManager.trigger("Monitor.Error", {
+            message: err.message,
+            stack: err.stack,
+          });
         }
       })
       .catch((err) => {
-        this.logger.error(
-          { loc: "[GET_BYTECODE]", address, retriesLeft },
-          err.message
-        );
+        SourcifyEventManager.trigger("Monitor.Error", {
+          message: err.message,
+          stack: err.stack,
+        });
         this.mySetTimeout(
           this.processBytecode,
           this.getBytecodeRetryPause,
@@ -275,7 +272,12 @@ class ChainMonitor extends EventEmitter {
       .then(() => {
         this.emit("contract-verified-successfully", this.chainId, address);
       })
-      .catch((err) => this.logger.error(logObject, err.message));
+      .catch((err) => {
+        SourcifyEventManager.trigger("Monitor.Error", {
+          message: err.message,
+          stack: err.stack,
+        });
+      });
   };
 
   private mySetTimeout = (
@@ -308,10 +310,7 @@ export default class Monitor extends EventEmitter {
           chain.chainId.toString(),
           chain.rpc,
           this.sourceFetcher,
-          new VerificationService(
-            new FileService(repositoryPath),
-            new Logger({ name: "Monitor" })
-          )
+          new VerificationService(new FileService(repositoryPath))
         )
     );
     this.chainMonitors.forEach((cm) => {

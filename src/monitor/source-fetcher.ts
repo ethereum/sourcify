@@ -1,5 +1,4 @@
 import { CheckedContract, SourcifyEventManager } from "@ethereum-sourcify/core";
-import Logger from "bunyan";
 import { StatusCodes } from "http-status-codes";
 import nodeFetch from "node-fetch";
 import { IGateway, SimpleGateway } from "./gateway";
@@ -118,7 +117,6 @@ export default class SourceFetcher {
 class GatewayFetcher {
   private subscriptions: SubscriptionMap = {};
   private timestamps: TimestampMap = {};
-  private logger = new Logger({ name: "SourceFetcher" });
   private fileCounter = 0;
   private subscriptionCounter = 0;
   private running = true;
@@ -170,27 +168,27 @@ class GatewayFetcher {
           if (resp.status === StatusCodes.OK) {
             this.notifySubscribers(sourceHash, text);
           } else {
-            this.logger.error(
-              {
-                loc: "[SOURCE_FETCHER:FETCH_FAILED]",
+            SourcifyEventManager.trigger("Monitor.Error", {
+              message: "SourceFetcher: fetchFailed",
+              details: {
                 fetchUrl: subscription.fetchUrl,
                 status: resp.status,
                 statusText: resp.statusText,
                 sourceHash,
+                response: text,
               },
-              text
-            );
+            });
           }
         });
       })
       .catch((err) => {
-        this.logger.error(
-          {
-            loc: "[SOURCE_FETCHER:FETCH_FAILED]",
+        SourcifyEventManager.trigger("Monitor.Error", {
+          message: err.message,
+          stack: err.stack,
+          details: {
             fetchUrl: subscription.fetchUrl,
           },
-          err.message
-        );
+        });
         if (!subscription.fallbackFetchUrl) {
           return Promise.resolve();
         }
@@ -203,25 +201,28 @@ class GatewayFetcher {
             if (resp.status === StatusCodes.OK) {
               this.notifySubscribers(sourceHash, text);
             } else {
-              this.logger.error(
-                {
-                  loc: "[SOURCE_FETCHER:FETCH_FAILED]",
+              SourcifyEventManager.trigger("Monitor.Error", {
+                message: "SourceFetcher: fetchFailed",
+                details: {
                   fetchUrl: subscription.fetchUrl,
                   status: resp.status,
                   statusText: resp.statusText,
                   sourceHash,
+                  response: text,
                 },
-                text
-              );
+              });
             }
           });
         });
       })
       .catch((err) =>
-        this.logger.error(
-          { loc: "[SOURCE_FETCHER]", fetchUrl: subscription.fetchUrl },
-          err.message
-        )
+        SourcifyEventManager.trigger("Monitor.Error", {
+          message: err.message,
+          stack: err.stack,
+          details: {
+            fetchUrl: subscription.fetchUrl,
+          },
+        })
       )
       .finally(() => {
         subscription.beingProcessed = false;

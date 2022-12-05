@@ -2,7 +2,6 @@ import dirTree from "directory-tree";
 import Path from "path";
 import fs from "fs";
 import web3 from "web3";
-import * as bunyan from "bunyan";
 import {
   FileObject,
   Match,
@@ -15,7 +14,6 @@ import {
   Create2Args,
 } from "../utils/types";
 import { checkChainId } from "../utils/utils";
-import { Logger } from "../utils/logger";
 import { SourcifyEventManager } from "./EventManager";
 
 type PathConfig = {
@@ -60,12 +58,10 @@ export interface IFileService {
 }
 
 export class FileService implements IFileService {
-  logger: bunyan;
   repositoryPath: string;
 
-  constructor(repositoryPath: string, logger?: bunyan) {
+  constructor(repositoryPath: string) {
     this.repositoryPath = repositoryPath;
-    this.logger = logger || Logger("FileService");
   }
   async getTreeByChainAndAddress(
     chainId: any,

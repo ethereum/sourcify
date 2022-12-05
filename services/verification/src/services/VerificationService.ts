@@ -1,7 +1,6 @@
 import {
   InjectorInput,
   Match,
-  Logger,
   IFileService,
   Metadata,
   JsonInput,
@@ -9,7 +8,6 @@ import {
   SourcifyEventManager,
 } from "@ethereum-sourcify/core";
 import { Injector } from "./Injector";
-import * as bunyan from "bunyan";
 import { findContractPathFromContractName, useCompiler } from "../utils";
 
 export interface IVerificationService {
@@ -34,12 +32,10 @@ export interface IVerificationService {
 
 export class VerificationService implements IVerificationService {
   fileService: IFileService;
-  logger: bunyan;
   private injector: Injector | undefined;
 
-  constructor(fileService: IFileService, logger?: bunyan) {
+  constructor(fileService: IFileService) {
     this.fileService = fileService;
-    this.logger = logger || Logger("VerificationService");
   }
 
   getMetadataFromJsonInput = async (
@@ -66,14 +62,18 @@ export class VerificationService implements IVerificationService {
         .filter((e: any) => e.severity === "error")
         .map((e: any) => e.formattedMessage)
         .join("\n");
-      this.logger.error({
-        loc: "[VERIFY-WITH-JSON]",
-        contractPath,
-        contractName,
-        compilerVersion,
-        errorMessages,
+      const error = new Error("Compiler error:\n " + errorMessages);
+      SourcifyEventManager.trigger("Validation.Error", {
+        message: error.message,
+        stack: error.stack,
+        details: {
+          contractPath,
+          contractName,
+          compilerVersion,
+          errorMessages,
+        },
       });
-      throw new Error("Compiler error:\n " + errorMessages);
+      throw error;
     }
 
     return JSON.parse(
@@ -99,7 +99,6 @@ export class VerificationService implements IVerificationService {
   inject = async (injectorInput: InjectorInput): Promise<Match> => {
     if (!this.injector) {
       this.injector = await Injector.createAsync({
-        log: this.logger,
         repositoryPath: this.fileService.repositoryPath,
         fileService: this.fileService,
         web3timeout: parseInt(process.env.WEB3_TIMEOUT || "") || undefined,
@@ -118,7 +117,6 @@ export class VerificationService implements IVerificationService {
   ): Promise<Match> => {
     if (!this.injector) {
       this.injector = await Injector.createAsync({
-        log: this.logger,
         repositoryPath: this.fileService.repositoryPath,
         fileService: this.fileService,
         web3timeout: parseInt(process.env.WEB3_TIMEOUT || "") || undefined,
@@ -137,7 +135,6 @@ export class VerificationService implements IVerificationService {
   recompile = async (contract: CheckedContract): Promise<any> => {
     if (!this.injector) {
       this.injector = await Injector.createAsync({
-        log: this.logger,
         repositoryPath: this.fileService.repositoryPath,
         fileService: this.fileService,
         web3timeout: parseInt(process.env.WEB3_TIMEOUT || "") || undefined,
@@ -150,7 +147,6 @@ export class VerificationService implements IVerificationService {
   getBytecode = async (address: string, chainId: string): Promise<any> => {
     if (!this.injector) {
       this.injector = await Injector.createAsync({
-        log: this.logger,
         repositoryPath: this.fileService.repositoryPath,
         fileService: this.fileService,
         web3timeout: parseInt(process.env.WEB3_TIMEOUT || "") || undefined,

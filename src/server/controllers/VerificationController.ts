@@ -6,7 +6,6 @@ import { IVerificationService } from "@ethereum-sourcify/verification";
 import {
   InjectorInput,
   checkChainId,
-  Logger,
   PathBuffer,
   CheckedContract,
   performFetch,
@@ -23,7 +22,6 @@ import {
   ValidationError,
 } from "../../common/errors";
 import { IValidationService } from "@ethereum-sourcify/validation";
-import * as bunyan from "bunyan";
 import fileUpload from "express-fileupload";
 import { isValidAddress } from "../../common/validators/validators";
 import {
@@ -57,7 +55,6 @@ export default class VerificationController
   router: Router;
   verificationService: IVerificationService;
   validationService: IValidationService;
-  logger: bunyan;
 
   static readonly MAX_SESSION_SIZE = 50 * 1024 * 1024; // 50 MiB
 
@@ -69,7 +66,6 @@ export default class VerificationController
     this.router = Router();
     this.verificationService = verificationService;
     this.validationService = validationService;
-    this.logger = Logger("VerificationService");
   }
 
   private validateAddresses(addresses: string): string[] {
@@ -305,8 +301,7 @@ export default class VerificationController
         .map(this.stringifyInvalidAndMissing);
       if (errors.length) {
         throw new BadRequestError(
-          "Invalid or missing sources in:\n" + errors.join("\n"),
-          false
+          "Invalid or missing sources in:\n" + errors.join("\n")
         );
       }
 
@@ -487,8 +482,7 @@ export default class VerificationController
       .map(this.stringifyInvalidAndMissing);
     if (errors.length) {
       throw new BadRequestError(
-        "Invalid or missing sources in:\n" + errors.join("\n"),
-        false
+        "Invalid or missing sources in:\n" + errors.join("\n")
       );
     }
 
@@ -887,7 +881,6 @@ export default class VerificationController
 
   private restartSessionEndpoint = async (req: Request, res: Response) => {
     req.session.destroy((error: Error) => {
-      let logMethod: keyof bunyan = "info";
       let msg = "";
       let statusCode = null;
 
@@ -896,7 +889,6 @@ export default class VerificationController
         id: req.sessionID,
       };
       if (error) {
-        logMethod = "error";
         msg = "Error in clearing session";
         loggerOptions.err = error.message;
         statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
@@ -905,7 +897,6 @@ export default class VerificationController
         statusCode = StatusCodes.OK;
       }
 
-      this.logger[logMethod](loggerOptions, msg);
       res.status(statusCode).send(msg);
     });
   };

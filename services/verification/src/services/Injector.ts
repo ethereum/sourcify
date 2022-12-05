@@ -1,10 +1,8 @@
 import Web3 from "web3";
-import * as bunyan from "bunyan";
 import {
   Match,
   InjectorInput,
   getSupportedChains,
-  Logger,
   IFileService,
   FileService,
   StringMap,
@@ -45,7 +43,6 @@ import path from "path";
 
 export interface InjectorConfig {
   silent?: boolean;
-  log?: bunyan;
   offline?: boolean;
   repositoryPath: string;
   fileService?: IFileService;
@@ -77,7 +74,6 @@ interface InjectorChainMap {
 }
 
 export class Injector {
-  private log: bunyan;
   private chains: InjectorChainMap;
   private offline: boolean;
   public fileService: IFileService;
@@ -93,15 +89,16 @@ export class Injector {
     this.chains = {};
     this.offline = config.offline || false;
     this.repositoryPath = config.repositoryPath;
-    this.log = config.log || Logger("Injector");
     this.web3timeout = config.web3timeout || 3000;
 
     this.fileService =
-      config.fileService || new FileService(this.repositoryPath, this.log);
+      config.fileService || new FileService(this.repositoryPath);
     if (process.env.IPFS_API) {
       this.ipfsClient = createIpfsClient({ url: process.env.IPFS_API });
     } else {
-      this.log.warn("IPFS_API not set. Files will not be pinned to IPFS.");
+      SourcifyEventManager.trigger("Verification.Error", {
+        message: "IPFS_API not set. Files will not be pinned to IPFS.",
+      });
     }
   }
 
@@ -173,14 +170,11 @@ export class Injector {
           address
         );
       } catch (err: any) {
-        if (err?.errors?.length > 0)
-          err.message = err.errors.map(
-            (e: { message: string }) => e.message || e
-          ); // Avoid uninformative message "All Promises Rejected"
-        this.log.error(
-          { loc: "[MATCH]", address, chain },
-          err.message.toString()
-        );
+        SourcifyEventManager.trigger("Verification.Error", {
+          message: err.message,
+          stack: err.stack,
+          details: err?.errors,
+        });
         throw err;
       }
 
@@ -594,15 +588,15 @@ export class Injector {
         match.message ||
         "Could not match the deployed and recompiled bytecode.";
       const err = new Error(`Contract name: ${contract.name}. ${message}`);
-
-      this.log.error({
-        loc: "[INJECT]",
-        chain: match.chainId,
-        address: match.address,
-        err,
+      SourcifyEventManager.trigger("Verification.Error", {
+        message: err.message,
+        stack: err.stack,
+        details: {
+          chain: match.chainId,
+          address: match.address,
+        },
       });
-
-      throw new Error(err.message);
+      throw err;
     }
   }
 
@@ -655,8 +649,15 @@ export class Injector {
       if (addresses.length !== 1) {
         const err =
           "Injector cannot work with multiple addresses if bytecode is provided";
-        this.log.error({ loc: "[INJECTOR]", addresses, err });
-        throw new Error(err);
+        const error = new Error(err);
+        SourcifyEventManager.trigger("Verification.Error", {
+          message: error.message,
+          stack: error.stack,
+          details: {
+            addresses,
+          },
+        });
+        throw error;
       }
       const address = Web3.utils.toChecksumAddress(addresses[0]);
 
@@ -785,11 +786,13 @@ export class Injector {
       return `/ipfs/${cborData["ipfs"]}`;
     }
 
-    this.log.error({
-      loc: "[INJECTOR:GET_METADATA_PATH]",
-      address,
-      chain,
-      err: "No metadata hash in cbor encoded data.",
+    SourcifyEventManager.trigger("Verification.Error", {
+      message:
+        "getMetadataPathFromCborEncoded: No metadata hash in cbor encoded data.",
+      details: {
+        address,
+        chain,
+      },
     });
     return null;
   }

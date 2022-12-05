@@ -21,6 +21,7 @@ interface Events extends GenericEvents {
     hash?: string;
     fileName?: string;
   }) => void;
+  "Validation.Error": (errorEvent: ErrorEvent) => void;
   "Verification.Error": (errorEvent: ErrorEvent) => void;
   "Verification.GotSolcJS": (getSolcJSEvent: {
     source: "local" | "remote";
@@ -68,6 +69,7 @@ interface Events extends GenericEvents {
     parameters: any;
     response: any;
   }) => void;
+  "Monitor.Error": (errorEvent: ErrorEvent) => void;
   "Monitor.Started": (monitorStartedEvent: {
     web3url: string;
     lastBlockNumber: number;
@@ -109,6 +111,7 @@ export const SourcifyEventManager = new EventManager<Events>({
   "*": [],
   "Core.Error": [],
   "Core.PerformFetch": [],
+  "Validation.Error": [],
   "Verification.Error": [],
   "Verification.GotSolcJS": [],
   "Verification.GotSolcGithub": [],
@@ -120,6 +123,7 @@ export const SourcifyEventManager = new EventManager<Events>({
   "Server.Error": [],
   "Server.Started": [],
   "Server.ApiReplied": [],
+  "Monitor.Error": [],
   "Monitor.Started": [],
   "Monitor.Stopped": [],
   "Monitor.WaitingNewBlocks": [],

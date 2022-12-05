@@ -3,7 +3,6 @@ import BaseController from "./BaseController";
 import { IController } from "../../common/interfaces";
 import { StatusCodes } from "http-status-codes";
 import {
-  Logger,
   IFileService,
   MatchLevel,
   FilesInfo,
@@ -15,7 +14,6 @@ import {
   isValidChain,
 } from "../../common/validators/validators";
 import { NotFoundError, ValidationError } from "../../common/errors";
-import * as bunyan from "bunyan";
 
 type RetrieveMethod = (
   chain: string,
@@ -30,13 +28,11 @@ export default class FileController
 {
   router: Router;
   fileService: IFileService;
-  logger: bunyan;
 
   constructor(fileService: IFileService) {
     super();
     this.router = Router();
     this.fileService = fileService;
-    this.logger = Logger("FileController");
   }
 
   createEndpoint(
