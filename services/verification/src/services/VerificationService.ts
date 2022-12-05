@@ -82,7 +82,14 @@ export class VerificationService implements IVerificationService {
   };
 
   findByAddress = (address: string, chain: string): Match[] => {
-    return this.fileService.findByAddress(address, chain);
+    // Try to find by address, return on success.
+    let matches: Match[] = [];
+    try {
+      matches = this.fileService.findByAddress(address, chain);
+    } catch (err) {
+      // Error already logged inside `this.fileService.findByAddress`
+    }
+    return matches;
   };
 
   findAllByAddress = (address: string, chain: string): Match[] => {
