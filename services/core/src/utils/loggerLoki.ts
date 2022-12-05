@@ -3,7 +3,7 @@ import LokiTransport from "winston-loki";
 
 const loggerInstance = createLogger();
 
-loggerInstance.add(
+/* loggerInstance.add(
   new LokiTransport({
     host: "http://127.0.0.1:3100",
     basicAuth: "username:password",
@@ -16,11 +16,17 @@ loggerInstance.add(
       })()
     ),
   })
-);
+); */
 
 loggerInstance.add(
   new transports.Console({
-    format: format.combine(format.timestamp(), format.json()),
+    format: format.combine(
+      format((info) => {
+        return info.level === "info" ? info : false;
+      })(),
+      format.timestamp(),
+      format.json()
+    ),
   })
 );
 

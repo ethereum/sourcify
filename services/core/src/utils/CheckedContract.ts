@@ -236,7 +236,7 @@ export class CheckedContract {
 
     if (missingFiles.length) {
       const error = new Error(
-        `fetchMissing: resource missing, unsuccessful fetching.`
+        `Resource missing; unsuccessful fetching: ${missingFiles.join(", ")}`
       );
       SourcifyEventManager.trigger("Core.Error", {
         message: error.message,
