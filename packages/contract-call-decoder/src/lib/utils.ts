@@ -7,9 +7,8 @@ import { BigNumber } from '@ethersproject/bignumber';
  * @returns true if the array contains both string and number as keys
  */
 function arrayContainsMixedTypeKeys(array: Result): boolean {
-  // eslint-disable-next-line functional/no-let
   let realLength = 0;
-  // eslint-disable-next-line functional/no-loop-statement,@typescript-eslint/no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   for (const _ in array) {
     realLength++;
   }
@@ -37,19 +36,15 @@ export function getValueFromDecodedFunctionData(
     arrayContainsMixedTypeKeys(decodedFunctionData)
   ) {
     const decodedFunctionDataWithoutStringKeys: Mutable<Result> = [];
-    // eslint-disable-next-line functional/no-loop-statement
     for (const prop in decodedFunctionData) {
       if (!(parseInt(prop) >= 0)) {
-        // eslint-disable-next-line functional/immutable-data
         decodedFunctionDataWithoutStringKeys[prop] = decodedFunctionData[prop];
       }
     }
 
     const result = Object.assign({}, decodedFunctionDataWithoutStringKeys);
     const res: Mutable<LocalResult> = {};
-    // eslint-disable-next-line functional/no-loop-statement
     for (const property in result) {
-      // eslint-disable-next-line functional/immutable-data
       res[property] = getValueFromDecodedFunctionData(result[property]);
     }
     return res;
@@ -73,7 +68,6 @@ export function extractCustomFields(doc: Result) {
     .filter((key) => key.startsWith('custom:'))
     .reduce((previous, current) => {
       const newValue: Mutable<LocalResult> = {};
-      // eslint-disable-next-line functional/immutable-data
       newValue[current.replace('custom:', '')] = doc[current];
       return { ...previous, ...newValue };
     }, {});

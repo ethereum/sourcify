@@ -40,25 +40,35 @@ const defaultGetMetadataOptions: GetMetadataOptions = {
 
 export async function getMetadataFromAddress(options: GetMetadataOptions) {
   options = { ...defaultGetMetadataOptions, ...options };
-  // eslint-disable-next-line functional/no-let
   let contractMetadataJSON;
   if (options.source === MetadataSources.Sourcify) {
+    if (!options.chainId) {
+      throw new Error('Missing chainId while using "MetadataSources.Sourcify"');
+    }
+    if (!options.address) {
+      throw new Error('Missing address while using "MetadataSources.Sourcify"');
+    }
+    const sourcifyUrl = `${options.sourcifyProvider}/contracts/full_match/${options.chainId}/${options.address}/metadata.json`;
     try {
-      const req = await fetch(
-        `${options.sourcifyProvider}/contracts/full_match/${options.chainId}/${options.address}/metadata.json`
-      );
+      const req = await fetch(sourcifyUrl);
       contractMetadataJSON = await req.json();
     } catch (e) {
-      console.log(e);
-      return false;
+      throw new Error(`The contract is not available on "${sourcifyUrl}"`);
     }
   } else if (options.source === MetadataSources.BytecodeMetadata) {
+    if (!options.rpcProvider) {
+      throw new Error(
+        `Missing rpcProvider while using "MetadataSources.BytecodeMetadata"`
+      );
+    }
     const bytecode = (await options?.rpcProvider?.request({
       method: 'eth_getCode',
       params: [options.address, 'latest'],
     })) as string;
     if (!bytecode || bytecode === '0x') {
-      return false;
+      throw new Error(
+        `Bytecode not found while using "MetadataSources.BytecodeMetadata"`
+      );
     }
     const { ipfs: metadataIpfsCid } = decodeBytecode(bytecode);
     try {
@@ -66,14 +76,16 @@ export async function getMetadataFromAddress(options: GetMetadataOptions) {
       contractMetadataJSON = await req.json();
     } catch (e) {
       console.log(e);
-      return false;
+      throw new Error(
+        `Cannot fetch metadata from ipfs while using "MetadataSources.BytecodeMetadata"`
+      );
     }
   }
 
   return contractMetadataJSON;
 }
 
-export const evaluate = async function name(
+export const evaluate = async function (
   expression: string,
   abi: string | ReadonlyArray<Fragment | JsonFragment | string>,
   transaction: Transaction,
@@ -151,11 +163,10 @@ export const decodeContractCall = async (
     metadata.output.abi
   );
   if (!selectorAndAbi) {
-    return false;
+    throw new Error(`Cannot find the function selector in the provided ABI`);
   }
   const { selector, abi } = selectorAndAbi;
 
-  // eslint-disable-next-line functional/no-let
   let radspecEvaluatedNotice;
   if (metadata.output?.userdoc?.methods[selector]?.notice) {
     radspecEvaluatedNotice = await evaluate(
@@ -166,7 +177,6 @@ export const decodeContractCall = async (
     );
   }
 
-  // eslint-disable-next-line functional/no-let
   let radspecEvaluatedDetails;
   if (metadata.output?.devdoc?.methods[selector]?.details) {
     radspecEvaluatedDetails = await evaluate(
