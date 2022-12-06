@@ -22,6 +22,8 @@ import { HiChevronDown } from "react-icons/hi";
 import TextArea from "../../../../../components/TextArea";
 import ReactTooltip from "react-tooltip";
 import { renderToString } from "react-dom/server";
+import Constructorarguments from "../../../../../components/ConstructorArguments";
+import InputToggle from "../../../../../components/InputToggle";
 
 type ChainAddressFormProps = {
   customStatus: string;
@@ -44,9 +46,11 @@ const ChainAddressForm = ({
   const { sourcifyChains } = useContext(Context);
   const verifyButtonRef = useRef<HTMLButtonElement>(null);
   const [isMoreFieldsOpen, setIsMoreFieldsOpen] = useState<boolean>(false);
-  const [constructorArguments, setconstructorArguments] = useState<string>();
+  const [abiEncodedConstructorArguments, setAbiEncodedConstructorArguments] =
+    useState<string>("");
   const [msgSender, setMsgSender] = useState<string>();
   const [isInvalidMsgSender, setIsInvalidMsgSender] = useState<boolean>(false);
+  const [showRawAbiInput, setShowRawAbiInput] = useState(false);
 
   useEffect(() => {
     if (checkedContract.address) {
@@ -86,12 +90,6 @@ const ChainAddressForm = ({
     console.log(`New id is: ${newChainId}`);
   };
 
-  const handleconstructorArgumentsChange: ChangeEventHandler<
-    HTMLTextAreaElement
-  > = (e) => {
-    setconstructorArguments(e.target.value);
-  };
-
   const handleMsgSenderChange: ChangeEventHandler<HTMLInputElement> = (e) => {
     const tempAddr = e.target.value;
     setMsgSender(tempAddr);
@@ -111,7 +109,7 @@ const ChainAddressForm = ({
       verificationId: checkedContract.verificationId || "",
       address: address || "",
       chainId: chainId,
-      constructorArguments: constructorArguments,
+      constructorArguments: abiEncodedConstructorArguments,
       msgSender,
     }).finally(() => setIsLoading(false));
   };
@@ -156,10 +154,10 @@ const ChainAddressForm = ({
 
         <button
           onClick={() => setIsMoreFieldsOpen((prevValue) => !prevValue)}
-          className="py-1 text-ceruleanBlue-600 mt-2"
+          className="py-1 text-ceruleanBlue-600 mt-2 w-full"
           type="button"
         >
-          More Inputs
+          More Inputs (optional)
           <HiChevronDown
             size="1.75em"
             className={"inline transition-transform duration-300 ease-in-out "}
@@ -168,68 +166,60 @@ const ChainAddressForm = ({
         </button>
 
         {/* Constructor arguments, msg.sender etc fields. */}
-        <div className={`${isMoreFieldsOpen ? "flex" : "hidden"} flex-col`}>
+        <div
+          className={`${isMoreFieldsOpen ? "flex" : "hidden"} flex-col mt-2`}
+        >
+          <div className="text-sm text-gray-600 mb-4">
+            Inputs below will be used to simulate the creation of the contract.
+            This helps us verify contracts created by a factory contract. <br />
+            If there are other variables your contract makes use of during
+            creation, please let us know.
+          </div>
           {/* Constructor arguments */}
+          {checkedContract?.constructorArguments && (
+            <div>
+              <InputToggle
+                isChecked={showRawAbiInput}
+                onClick={() => setShowRawAbiInput((prev) => !prev)}
+                label="Raw ABI-Encoded Input"
+              />
+              <Constructorarguments
+                abiEncodedConstructorArguments={abiEncodedConstructorArguments}
+                setAbiEncodedConstructorArguments={
+                  setAbiEncodedConstructorArguments
+                }
+                abiJsonConstructorArguments={
+                  checkedContract.constructorArguments
+                }
+                showRawAbiInput={showRawAbiInput}
+              />
+            </div>
+          )}
+          {/* msg.sender */}
           <div className="mt-2">
-            <label className="flex flex-row items-center " htmlFor="address">
-              ABI-Encoded Constructor Arguments
+            <div className="flex justify-between">
               <ReactTooltip
                 effect="solid"
                 delayHide={500}
                 clickable={true}
                 className="max-w-xl"
-                id="partial-info"
+                id="msg-sender-tooltip"
               />
-              <span
-                className="ml-1 w-5 h-5 text-sm bg-ceruleanBlue-300 text-ceruleanBlue-100 rounded-full flex items-center justify-center"
-                data-tip={renderToString(
-                  <div>
-                    Constructor arguments used when creating the contract in{" "}
-                    <a
-                      href="https://docs.soliditylang.org/en/latest/abi-spec.html"
-                      className="underline"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      ABI-Encoding
-                    </a>
-                    . You can use{" "}
-                    <a
-                      href="https://abi.hashex.org/"
-                      className="underline"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      this online tool
-                    </a>{" "}
-                    to encode the arguments.
-                  </div>
-                )}
-                data-html={true}
-                data-for="partial-info"
-              >
-                ?
-              </span>
-            </label>
-            <TextArea
-              id="contructorArgs"
-              value={constructorArguments}
-              onChange={handleconstructorArgumentsChange}
-              placeholder="00000000000000000000000000000000d41867734bbee4c6863d9255b2b06ac1000000000000000000000000000000000000000000000000000000000001e240..."
-              className="mb-2"
-            />
-          </div>
-
-          {/* msg.sender */}
-          <div className="mt-2">
-            <div className="flex justify-between">
               <label className="block" htmlFor="msgSender">
-                msg.sender
+                msg.sender{" "}
+                <span
+                  className="ml-1 text-ceruleanBlue-200 font-bold"
+                  data-for="msg-sender-tooltip"
+                  data-tip="`msg.sender` will be used if your contract assigns it to an immutable variable such as an `owner`."
+                >
+                  ?
+                </span>
               </label>
               {isInvalidMsgSender && (
                 <span className="text-red-500 text-sm">Invalid Address</span>
               )}
             </div>
+
             <Input
               id="msgSender"
               value={msgSender}

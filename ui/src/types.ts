@@ -1,3 +1,4 @@
+import { ParamType } from "@ethersproject/abi";
 export declare interface StringMap {
   [key: string]: string;
 }
@@ -57,7 +58,7 @@ export type SendableContract = ContractMeta & {
     invalid: InvalidSources;
   };
   verificationId: string;
-  constructorArguments?: any;
+  constructorArguments?: [ParamType];
   creationBytecode?: string;
 };
 
@@ -73,7 +74,7 @@ export type Create2VerificationInput = {
   verificationId: string;
   deployerAddress: string;
   salt: string;
-  constructorArgs: any[];
+  constructorArgs: string;
   create2Address: string;
   clientToken: string;
 };

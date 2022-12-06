@@ -15,11 +15,11 @@ import {
 } from "../../../../../types";
 import Message from "../ChainAddressForm/Message";
 import LoadingOverlay from "../../../../../components/LoadingOverlay";
-
-const { keccak256 } = require("@ethersproject/keccak256");
-const { isHexString } = require("@ethersproject/bytes");
-const { id } = require("@ethersproject/hash");
-const { defaultAbiCoder } = require("@ethersproject/abi");
+import ConstructorArguments from "../../../../../components/ConstructorArguments";
+import { keccak256 } from "@ethersproject/keccak256";
+import { isHexString } from "@ethersproject/bytes";
+import { id } from "@ethersproject/hash";
+import InputToggle from "../../../../../components/InputToggle";
 
 export const saltToHex = (salt: string | number) => {
   salt = salt.toString();
@@ -28,25 +28,6 @@ export const saltToHex = (salt: string | number) => {
   }
 
   return id(salt);
-};
-
-export const encodeParams = (dataTypes: any[], data: any[]) => {
-  return defaultAbiCoder.encode(dataTypes, data);
-};
-
-export const buildBytecode = (
-  constructorTypes: any[],
-  constructorArgs: any[],
-  contractBytecode: string
-) => {
-  try {
-    return `${contractBytecode}${encodeParams(
-      constructorTypes,
-      constructorArgs
-    ).slice(2)}`;
-  } catch (e) {
-    return false;
-  }
 };
 
 const buildCreate2Address = (
@@ -65,23 +46,17 @@ function getCreate2Address({
   factoryAddress,
   salt,
   contractBytecode,
-  constructorTypes = [] as string[],
-  constructorArgs = [] as any[],
+  abiEncodedConstructorArguments,
 }: {
   factoryAddress: string;
   salt: string | number;
   contractBytecode: string;
-  constructorTypes?: string[];
-  constructorArgs?: any[];
+  abiEncodedConstructorArguments?: string;
 }) {
-  const bytecode = buildBytecode(
-    constructorTypes,
-    constructorArgs,
-    contractBytecode
-  );
-  if (bytecode) {
+  const initcode = contractBytecode + (abiEncodedConstructorArguments || "");
+  if (initcode) {
     try {
-      return buildCreate2Address(factoryAddress, saltToHex(salt), bytecode);
+      return buildCreate2Address(factoryAddress, saltToHex(salt), initcode);
     } catch (e) {
       return false;
     }
@@ -89,12 +64,6 @@ function getCreate2Address({
     return false;
   }
 }
-
-type ConstructorArgs = {
-  type: string;
-  value: any;
-};
-
 type ChainAddressFormProps = {
   customStatus: string;
   checkedContract: SendableContract;
@@ -103,7 +72,7 @@ type ChainAddressFormProps = {
   ) => Promise<SessionResponse | undefined>;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 };
-const CounterfactualForm = ({
+const Create2Form = ({
   customStatus,
   checkedContract,
   verifyCreate2CheckedContract,
@@ -112,48 +81,14 @@ const CounterfactualForm = ({
   const [clientToken, setClientToken] = useState<string>();
   const [address, setAddress] = useState<string>();
   const [salt, setSalt] = useState<string>();
-  const [constructorArgs, setConstructorArgs] = useState<ConstructorArgs[]>([]);
+  const [abiEncodedConstructorArguments, setAbiEncodedConstructorArguments] =
+    useState<string>("");
   const [create2Address, setcreate2Address] = useState<string>();
-
-  function setConstructorArgsValue(value: any, index: number) {
-    const nextConstructorArgs = constructorArgs.map((c, i) => {
-      if (i === index) {
-        return {
-          type: c.type,
-          value,
-        };
-      } else {
-        return c;
-      }
-    });
-    setConstructorArgs(nextConstructorArgs);
-  }
 
   const [isInvalidAddress, setIsInvalidAddress] = useState<boolean>(false);
   const [foundMatches, setFoundMatches] = useState<CheckAllByAddressResult>();
   const verifyButtonRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    const equals = (a: any, b: any) =>
-      a.length === b.length &&
-      a.every((v: any, i: number) => v.type === b[i].type);
-
-    const nextConstructorArgs = checkedContract?.constructorArguments?.map(
-      (arg: any) => ({
-        type: arg.type,
-        value: "",
-      })
-    );
-
-    if (
-      checkedContract?.constructorArguments &&
-      nextConstructorArgs &&
-      constructorArgs &&
-      !equals(nextConstructorArgs, constructorArgs)
-    ) {
-      setConstructorArgs(nextConstructorArgs);
-    }
-  }, [setAddress, setConstructorArgs, constructorArgs, checkedContract]);
+  const [showRawAbiInput, setShowRawAbiInput] = useState(false);
 
   useEffect(() => {
     if (!address || !salt || !checkedContract?.creationBytecode) {
@@ -163,15 +98,14 @@ const CounterfactualForm = ({
       factoryAddress: address,
       salt: salt,
       contractBytecode: checkedContract?.creationBytecode,
-      constructorTypes: constructorArgs.map((args) => args.type),
-      constructorArgs: constructorArgs.map((args) => args.value),
+      abiEncodedConstructorArguments,
     });
     if (create2Address) {
       setcreate2Address(create2Address);
     } else {
       setcreate2Address(undefined);
     }
-  }, [address, salt, constructorArgs, checkedContract]);
+  }, [address, salt, checkedContract, abiEncodedConstructorArguments]);
 
   const handleAddressChange: ChangeEventHandler<HTMLInputElement> = (e) => {
     const tempAddr = e.target.value;
@@ -192,7 +126,7 @@ const CounterfactualForm = ({
       verificationId: checkedContract.verificationId || "",
       deployerAddress: address || "",
       salt: salt || "",
-      constructorArgs,
+      constructorArgs: abiEncodedConstructorArguments,
       create2Address: create2Address || "",
       clientToken: clientToken || "",
     }).finally(() => setIsLoading(false));
@@ -259,32 +193,29 @@ const CounterfactualForm = ({
               placeholder="1"
               className="mb-2"
             />
-          </div>
-          {Array.isArray(checkedContract.constructorArguments) && (
-            <div className="flex flex-col">
-              <div className="flex justify-between">
-                <label className="block">Constructor arguments</label>
+            {checkedContract.constructorArguments && (
+              <div className="mt-4">
+                <InputToggle
+                  isChecked={showRawAbiInput}
+                  onClick={() => setShowRawAbiInput((prev) => !prev)}
+                  label="Raw ABI-Encoded Input"
+                />
+                <ConstructorArguments
+                  abiEncodedConstructorArguments={
+                    abiEncodedConstructorArguments
+                  }
+                  setAbiEncodedConstructorArguments={
+                    setAbiEncodedConstructorArguments
+                  }
+                  abiJsonConstructorArguments={
+                    checkedContract.constructorArguments
+                  }
+                  showRawAbiInput={showRawAbiInput}
+                />
               </div>
-              {checkedContract?.constructorArguments?.map((args, index) => (
-                <div className="ml-5" key={`constructor_${index}`}>
-                  <div className="flex justify-between">
-                    <label className="block" htmlFor={args.name}>
-                      {args.name}
-                    </label>
-                  </div>
-                  <Input
-                    id={args.name}
-                    value={constructorArgs[index]?.value}
-                    onChange={(e) =>
-                      setConstructorArgsValue(e.target.value, index)
-                    }
-                    placeholder=""
-                    className="mb-2"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
+            )}
+          </div>
+
           {create2Address && (
             <div className="mt-4 text-sm">
               <strong>Address:</strong> {create2Address}
@@ -306,4 +237,4 @@ const CounterfactualForm = ({
   );
 };
 
-export default CounterfactualForm;
+export default Create2Form;
