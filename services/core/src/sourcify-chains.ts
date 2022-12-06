@@ -583,7 +583,7 @@ const sourcifyChains: SourcifyChainsObject = {
     monitored: false,
     contractFetchAddress: "https://blockscout.athens2.zetachain.com/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
-    rpc: ["https://archive.athens2.zetachain.com/evm"],
+    rpc: [],
   },
 };
 
