@@ -51,6 +51,8 @@ const ChainAddressForm = ({
   const [msgSender, setMsgSender] = useState<string>();
   const [isInvalidMsgSender, setIsInvalidMsgSender] = useState<boolean>(false);
   const [showRawAbiInput, setShowRawAbiInput] = useState(false);
+  const [isInvalidConstructorArguments, setIsInvalidConstructorArguments] =
+    useState(false);
 
   useEffect(() => {
     if (checkedContract.address) {
@@ -192,6 +194,9 @@ const ChainAddressForm = ({
                   checkedContract.constructorArguments
                 }
                 showRawAbiInput={showRawAbiInput}
+                setIsInvalidConstructorArguments={
+                  setIsInvalidConstructorArguments
+                }
               />
             </div>
           )}
@@ -235,7 +240,11 @@ const ChainAddressForm = ({
           type="submit"
           className="mt-4 py-2 px-4 w-full bg-ceruleanBlue-500 hover:bg-ceruleanBlue-130 disabled:hover:bg-ceruleanBlue-500 focus:ring-ceruleanBlue-300 focus:ring-offset-ceruleanBlue-100 text-white transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-default "
           disabled={
-            !address || !chainId || isInvalidAddress || isInvalidMsgSender
+            !address ||
+            !chainId ||
+            isInvalidAddress ||
+            isInvalidMsgSender ||
+            isInvalidConstructorArguments
           }
         >
           Verify

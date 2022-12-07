@@ -42,28 +42,6 @@ const buildCreate2Address = (
   ).slice(-40)}`.toLowerCase();
 };
 
-function getCreate2Address({
-  factoryAddress,
-  salt,
-  contractBytecode,
-  abiEncodedConstructorArguments,
-}: {
-  factoryAddress: string;
-  salt: string | number;
-  contractBytecode: string;
-  abiEncodedConstructorArguments?: string;
-}) {
-  const initcode = contractBytecode + (abiEncodedConstructorArguments || "");
-  if (initcode) {
-    try {
-      return buildCreate2Address(factoryAddress, saltToHex(salt), initcode);
-    } catch (e) {
-      return false;
-    }
-  } else {
-    return false;
-  }
-}
 type ChainAddressFormProps = {
   customStatus: string;
   checkedContract: SendableContract;
@@ -79,52 +57,77 @@ const Create2Form = ({
   setIsLoading,
 }: ChainAddressFormProps) => {
   const [clientToken, setClientToken] = useState<string>();
-  const [address, setAddress] = useState<string>();
+  const [deployerAddress, setDeployerAddress] = useState<string>();
   const [salt, setSalt] = useState<string>();
   const [abiEncodedConstructorArguments, setAbiEncodedConstructorArguments] =
     useState<string>("");
   const [create2Address, setcreate2Address] = useState<string>();
 
-  const [isInvalidAddress, setIsInvalidAddress] = useState<boolean>(false);
+  const [isInvalidDeployerAddress, setIsInvalidDeploylerAddress] =
+    useState<boolean>(false);
   const [foundMatches, setFoundMatches] = useState<CheckAllByAddressResult>();
   const verifyButtonRef = useRef<HTMLButtonElement>(null);
   const [showRawAbiInput, setShowRawAbiInput] = useState(false);
+  const [isInvalidConstructorArguments, setIsInvalidConstructorArguments] =
+    useState(false);
 
   useEffect(() => {
-    if (!address || !salt || !checkedContract?.creationBytecode) {
+    if (
+      !deployerAddress ||
+      !salt ||
+      !checkedContract?.creationBytecode ||
+      isInvalidDeployerAddress ||
+      isInvalidConstructorArguments
+    ) {
       return setcreate2Address(undefined);
     }
-    const create2Address = getCreate2Address({
-      factoryAddress: address,
-      salt: salt,
-      contractBytecode: checkedContract?.creationBytecode,
-      abiEncodedConstructorArguments,
-    });
+    const initcode =
+      checkedContract.creationBytecode +
+      (abiEncodedConstructorArguments.startsWith("0x")
+        ? abiEncodedConstructorArguments.slice(2)
+        : abiEncodedConstructorArguments || "");
+    const create2Address = buildCreate2Address(
+      deployerAddress,
+      saltToHex(salt),
+      initcode
+    );
     if (create2Address) {
       setcreate2Address(create2Address);
     } else {
       setcreate2Address(undefined);
     }
-  }, [address, salt, checkedContract, abiEncodedConstructorArguments]);
+  }, [
+    deployerAddress,
+    salt,
+    checkedContract,
+    abiEncodedConstructorArguments,
+    isInvalidConstructorArguments,
+    isInvalidDeployerAddress,
+  ]);
 
   const handleAddressChange: ChangeEventHandler<HTMLInputElement> = (e) => {
     const tempAddr = e.target.value;
-    setAddress(tempAddr);
+    setDeployerAddress(tempAddr);
     const isValid = isAddress(tempAddr);
     if (!isValid) {
       setFoundMatches(undefined);
-      return setIsInvalidAddress(true);
+      return setIsInvalidDeploylerAddress(true);
     }
-    setIsInvalidAddress(false);
+    setIsInvalidDeploylerAddress(false);
   };
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
-    if (!address || isInvalidAddress) return;
+    if (
+      !deployerAddress ||
+      isInvalidDeployerAddress ||
+      isInvalidConstructorArguments
+    )
+      return;
     setIsLoading(true);
     verifyCreate2CheckedContract({
       verificationId: checkedContract.verificationId || "",
-      deployerAddress: address || "",
+      deployerAddress: deployerAddress || "",
       salt: salt || "",
       constructorArgs: abiEncodedConstructorArguments,
       create2Address: create2Address || "",
@@ -166,7 +169,7 @@ const Create2Form = ({
               <label className="block" htmlFor="address">
                 Deployer Address
               </label>
-              {isInvalidAddress && (
+              {isInvalidDeployerAddress && (
                 <span className="text-red-500 text-sm">
                   Invalid Deployer Address
                 </span>
@@ -174,7 +177,7 @@ const Create2Form = ({
             </div>
             <Input
               id="address"
-              value={address}
+              value={deployerAddress}
               onChange={handleAddressChange}
               placeholder="0x2fabe97..."
               className="mb-2"
@@ -211,13 +214,16 @@ const Create2Form = ({
                     checkedContract.constructorArguments
                   }
                   showRawAbiInput={showRawAbiInput}
+                  setIsInvalidConstructorArguments={
+                    setIsInvalidConstructorArguments
+                  }
                 />
               </div>
             )}
           </div>
 
           {create2Address && (
-            <div className="mt-4 text-sm">
+            <div className="mt-4 text-sm break-all">
               <strong>Address:</strong> {create2Address}
             </div>
           )}

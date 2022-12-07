@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { renderToString } from "react-dom/server";
 import ReactTooltip from "react-tooltip";
 import TextArea from "./TextArea";
@@ -12,6 +12,9 @@ interface ConstructorArgumentsProps {
   abiEncodedConstructorArguments: string;
   abiJsonConstructorArguments: ParamType[];
   showRawAbiInput: boolean;
+  setIsInvalidConstructorArguments: React.Dispatch<
+    React.SetStateAction<boolean>
+  >;
 }
 
 interface ParamTypeWithValue extends ParamType {
@@ -55,10 +58,42 @@ const ConstructorArguments = ({
   abiEncodedConstructorArguments,
   abiJsonConstructorArguments,
   showRawAbiInput,
+  setIsInvalidConstructorArguments,
 }: ConstructorArgumentsProps) => {
   const [userAbiJsonConstructorArguments, setUserAbiJsonConstructorArguments] =
     useState<ParamTypeWithValue[]>(abiJsonConstructorArguments);
   const [abiEncodingError, setAbiEncodingError] = useState<string>("");
+  const [rawAbiError, setRawAbiError] = useState("");
+
+  // should be invalid if there are any errors
+  useEffect(() => {
+    setIsInvalidConstructorArguments(!!abiEncodingError || !!rawAbiError);
+  }, [abiEncodingError, rawAbiError, setIsInvalidConstructorArguments]);
+
+  const handleRawAbiChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newRawAbi = e.target.value;
+    setAbiEncodedConstructorArguments(newRawAbi);
+    // nothing to validate
+    if (newRawAbi === "") return setRawAbiError("");
+
+    const trimmed = newRawAbi.startsWith("0x") ? newRawAbi.slice(2) : newRawAbi;
+
+    // is hex string?
+    if (!/^[A-F0-9]+$/i.test(trimmed)) {
+      setRawAbiError(`Input is not a hex string`);
+      setIsInvalidConstructorArguments(true);
+      return;
+    }
+
+    if (trimmed.length % 64 !== 0) {
+      setRawAbiError(
+        `ABI encoding length must be a multiple of 64 (256 bits). Currently it is ${trimmed.length}`
+      );
+      setIsInvalidConstructorArguments(true);
+      return;
+    }
+    setRawAbiError("");
+  };
 
   const handleAbiJsonChange = (value: string, index: number) => {
     setUserAbiJsonConstructorArguments((prevUserAbiJson) => {
@@ -79,6 +114,7 @@ const ConstructorArguments = ({
       } catch (e: any) {
         console.log(e);
         setAbiEncodingError("Encoding error: " + e.message);
+        setIsInvalidConstructorArguments(true);
       }
       return prevUserAbiJson;
     });
@@ -152,10 +188,15 @@ const ConstructorArguments = ({
             ABI-Encoded Constructor Arguments <InfoTooltip />
           </label>
         </div>
+        {rawAbiError && (
+          <div className="text-lightCoral-600 break-all text-sm mt-2">
+            {rawAbiError}
+          </div>
+        )}
         <TextArea
           id="rawConstructorArgs"
           value={abiEncodedConstructorArguments}
-          onChange={(e) => setAbiEncodedConstructorArguments(e.target.value)}
+          onChange={handleRawAbiChange}
           placeholder="00000000000000000000000000000000d41867734bbee4c6863d9255b2b06ac1000000000000000000000000000000000000000000000000000000000001e240..."
           className="mb-2 h-32"
         />

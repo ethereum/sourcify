@@ -15,6 +15,7 @@ const InputToggle = ({
     <button
       className={`cursor-pointer flex flex-row items-center ${className}`}
       {...props}
+      type="button"
     >
       <div className="relative">
         <div
