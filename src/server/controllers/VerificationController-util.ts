@@ -14,6 +14,7 @@ import { InvalidSources } from "@ethereum-sourcify/core";
 import QueryString from "qs";
 import { BadRequestError } from "../../common/errors";
 import fetch from "node-fetch";
+import { AbiInput } from "web3-utils";
 export interface PathContentMap {
   [id: string]: PathContent;
 }
@@ -23,11 +24,15 @@ export type ContractLocation = {
   address: string;
 };
 
+// Variables apart from the compilation artifacts.
+// CheckedContract contains info from the compilation.
 export type ContractMeta = {
   compiledPath?: string;
   name?: string;
   address?: string;
   chainId?: string;
+  abiEncodedConstructorArguments?: string;
+  msgSender?: string;
   status?: Status;
   statusMessage?: string;
   storageTimestamp?: Date;
@@ -54,10 +59,11 @@ export type LegacyVerifyRequest = Request & {
   addresses: string[];
   chain: string;
   chosenContract: number;
-  constructorArguments?: string;
+  abiEncodedConstructorArguments?: string;
   msgSender?: string;
 };
 
+// Contract object in the server response.
 export type SendableContract = ContractMeta & {
   files: {
     found: string[];
@@ -65,7 +71,7 @@ export type SendableContract = ContractMeta & {
     invalid: InvalidSources;
   };
   verificationId: string;
-  constructorArguments?: any;
+  constructorArgumentsArray?: [AbiInput];
   creationBytecode?: string;
 };
 
@@ -103,7 +109,7 @@ function getSendableContract(
 
   return {
     verificationId,
-    constructorArguments: contract?.metadata?.output?.abi?.find(
+    constructorArgumentsArray: contract?.metadata?.output?.abi?.find(
       (abi: any) => abi.type === "constructor"
     )?.inputs,
     creationBytecode: contract?.creationBytecode,

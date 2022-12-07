@@ -129,7 +129,7 @@ const Create2Form = ({
       verificationId: checkedContract.verificationId || "",
       deployerAddress: deployerAddress || "",
       salt: salt || "",
-      constructorArgs: abiEncodedConstructorArguments,
+      abiEncodedConstructorArguments,
       create2Address: create2Address || "",
       clientToken: clientToken || "",
     }).finally(() => setIsLoading(false));
@@ -196,8 +196,8 @@ const Create2Form = ({
               placeholder="1"
               className="mb-2"
             />
-            {checkedContract.constructorArguments &&
-              checkedContract.constructorArguments.length > 0 && (
+            {checkedContract.constructorArgumentsArray &&
+              checkedContract.constructorArgumentsArray.length > 0 && (
                 <div className="mt-4">
                   <InputToggle
                     isChecked={showRawAbiInput}
@@ -212,7 +212,7 @@ const Create2Form = ({
                       setAbiEncodedConstructorArguments
                     }
                     abiJsonConstructorArguments={
-                      checkedContract.constructorArguments
+                      checkedContract.constructorArgumentsArray
                     }
                     showRawAbiInput={showRawAbiInput}
                     setIsInvalidConstructorArguments={

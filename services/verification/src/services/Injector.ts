@@ -237,6 +237,7 @@ export class Injector {
           recompiled,
           chain,
           address,
+          undefined, //creationData
           constructorArguments,
           msgSender
         );
@@ -313,7 +314,7 @@ export class Injector {
       libraryMap: undefined,
     };
 
-    match = this.matchOrTrimAndMatch(
+    match = this.checkIfMatch(
       match,
       (a, b) => a === b,
       deployedBytecode,
@@ -342,7 +343,7 @@ export class Injector {
               constructorArguments,
               msgSender
             ));
-          match = this.matchOrTrimAndMatch(
+          match = this.checkIfMatch(
             match,
             (a, b) => a === b,
             simulatedBytecode,
@@ -364,7 +365,7 @@ export class Injector {
 
         if (creationData) {
           // The reason why this uses `startsWith` instead of `===` is that creationData may contain constructor arguments at the end part
-          match = this.matchOrTrimAndMatch(
+          match = this.checkIfMatch(
             match,
             (a, b) => a.startsWith(b),
             creationData,
@@ -418,7 +419,7 @@ export class Injector {
     const stateManager = new DefaultStateManager();
     const blockchain = await Blockchain.create();
     const common = new Common({
-      chain: chainId,
+      chain: parseInt(chainId),
       hardfork: evmVersion,
     });
     const eei = new EEI(stateManager, common, blockchain);
@@ -429,6 +430,9 @@ export class Injector {
     });
     if (creationBytecode.startsWith("0x")) {
       creationBytecode = creationBytecode.slice(2);
+    }
+    if (encodedConstructorArgs?.startsWith("0x")) {
+      encodedConstructorArgs = encodedConstructorArgs.slice(2);
     }
     const initcode = Buffer.from(
       creationBytecode + encodedConstructorArgs,
@@ -455,7 +459,7 @@ export class Injector {
    * @param recompiledBytecode
    * @param contructorArguments - in ABI encoding
    */
-  private matchOrTrimAndMatch(
+  private checkIfMatch(
     match: Match,
     matchFunction: (
       onchainBytecode: string,

@@ -50,7 +50,6 @@ export type ContractMeta = {
   storageTimestamp?: Date;
 };
 
-// contracts in the server response
 export type SendableContract = ContractMeta & {
   files: {
     found: string[];
@@ -58,7 +57,7 @@ export type SendableContract = ContractMeta & {
     invalid: InvalidSources;
   };
   verificationId: string;
-  constructorArguments?: [ParamType];
+  constructorArgumentsArray?: [ParamType];
   creationBytecode?: string;
 };
 
@@ -66,7 +65,7 @@ export type VerificationInput = {
   verificationId: string;
   chainId: string;
   address: string;
-  constructorArguments?: string;
+  abiEncodedConstructorArguments?: string;
   msgSender?: string;
 };
 
@@ -74,7 +73,7 @@ export type Create2VerificationInput = {
   verificationId: string;
   deployerAddress: string;
   salt: string;
-  constructorArgs: string;
+  abiEncodedConstructorArguments: string;
   create2Address: string;
   clientToken: string;
 };

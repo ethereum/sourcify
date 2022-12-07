@@ -131,8 +131,8 @@ const ConstructorArguments = ({
               Constructor Arguments
             </label>
             <div className="text-xs text-gray-600">
-              Enter each of the given constructor arguments below to given
-              fields. We will generate the ABI-encoding for you.
+              Enter each of the constructor arguments below to given fields. We
+              will generate the ABI-encoding for you.
             </div>
           </div>
           {abiEncodingError && (

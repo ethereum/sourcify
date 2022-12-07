@@ -512,7 +512,7 @@ export default class VerificationController
       contract,
       addresses: req.addresses,
       chain: req.chain,
-      constructorArguments: req.constructorArguments,
+      constructorArguments: req.abiEncodedConstructorArguments,
       msgSender: req.msgSender,
     };
     try {
@@ -669,6 +669,9 @@ export default class VerificationController
       if (contractWrapper) {
         contractWrapper.address = receivedContract.address;
         contractWrapper.chainId = receivedContract.chainId;
+        contractWrapper.abiEncodedConstructorArguments =
+          receivedContract.abiEncodedConstructorArguments;
+        contractWrapper.msgSender = receivedContract.msgSender;
         if (isVerifiable(contractWrapper)) {
           verifiable[id] = contractWrapper;
         }
@@ -695,6 +698,8 @@ export default class VerificationController
         addresses: [contractWrapper.address as string],
         chain: contractWrapper.chainId as string,
         contract: contractWrapper.contract,
+        constructorArguments: contractWrapper.abiEncodedConstructorArguments,
+        msgSender: contractWrapper.msgSender,
       };
 
       const found = this.verificationService.findByAddress(

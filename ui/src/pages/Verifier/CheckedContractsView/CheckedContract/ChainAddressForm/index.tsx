@@ -111,7 +111,7 @@ const ChainAddressForm = ({
       verificationId: checkedContract.verificationId || "",
       address: address || "",
       chainId: chainId,
-      constructorArguments: abiEncodedConstructorArguments,
+      abiEncodedConstructorArguments,
       msgSender,
     }).finally(() => setIsLoading(false));
   };
@@ -178,8 +178,8 @@ const ChainAddressForm = ({
             creation, please let us know.
           </div>
           {/* Constructor arguments */}
-          {checkedContract?.constructorArguments &&
-            checkedContract?.constructorArguments.length > 0 && (
+          {checkedContract?.constructorArgumentsArray &&
+            checkedContract?.constructorArgumentsArray.length > 0 && (
               <div>
                 <InputToggle
                   isChecked={showRawAbiInput}
@@ -194,7 +194,7 @@ const ChainAddressForm = ({
                     setAbiEncodedConstructorArguments
                   }
                   abiJsonConstructorArguments={
-                    checkedContract.constructorArguments
+                    checkedContract.constructorArgumentsArray
                   }
                   showRawAbiInput={showRawAbiInput}
                   setIsInvalidConstructorArguments={
