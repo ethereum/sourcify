@@ -1,4 +1,4 @@
-import { ButtonHTMLAttributes, useState } from "react";
+import { ButtonHTMLAttributes } from "react";
 
 interface InputToggleProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   label?: string;

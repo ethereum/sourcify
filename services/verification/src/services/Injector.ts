@@ -418,9 +418,9 @@ export class Injector {
   ): Promise<string> {
     const stateManager = new DefaultStateManager();
     const blockchain = await Blockchain.create();
-    const common = new Common({
-      chain: parseInt(chainId),
-      hardfork: evmVersion,
+    const common = Common.custom({
+      chainId: parseInt(chainId),
+      defaultHardfork: evmVersion,
     });
     const eei = new EEI(stateManager, common, blockchain);
 

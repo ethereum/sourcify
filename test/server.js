@@ -18,7 +18,7 @@ const MAX_SESSION_SIZE =
     .MAX_SESSION_SIZE;
 const GANACHE_PORT = 8545;
 const StatusCodes = require("http-status-codes").StatusCodes;
-const { waitSecs } = require("./helpers/helpers");
+const { waitSecs, callContractMethodWithTx } = require("./helpers/helpers");
 const { deployFromAbiAndBytecode } = require("./helpers/helpers");
 
 chai.use(chaiHttp);
@@ -268,11 +268,15 @@ describe("Server", function () {
     this.timeout(EXTENDED_TIME_60);
 
     const agent = chai.request.agent(server.app);
-    let verificationId
+    let verificationId;
 
     it("should input contract and retrieve files", async () => {
-      const metadata = fs.readFileSync("test/testcontracts/Create2/metadata.json")
-      const bytecode = fs.readFileSync("test/testcontracts/Create2/bytecode.hex").toString()
+      const metadata = fs.readFileSync(
+        "test/testcontracts/Create2/metadata.json"
+      );
+      const bytecode = fs
+        .readFileSync("test/testcontracts/Create2/bytecode.hex")
+        .toString();
 
       const addressDeployed = await deployFromAbiAndBytecode(
         localWeb3Provider,
@@ -285,34 +289,37 @@ describe("Server", function () {
       const res = await agent
         .post("/session/input-contract")
         .field("address", addressDeployed)
-        .field("chainId", defaultContractChain)
+        .field("chainId", defaultContractChain);
 
-      verificationId = res.body.contracts[0].verificationId
-      chai.expect(res.body.contracts).to.have.a.lengthOf(1)
-      const contract = res.body.contracts[0]
-      chai.expect(contract.files.found).to.have.a.lengthOf(1)
-      const retrivedFile = contract.files.found[0]
-      chai.expect(retrivedFile).to.equal('contracts/Account.sol')
+      verificationId = res.body.contracts[0].verificationId;
+      chai.expect(res.body.contracts).to.have.a.lengthOf(1);
+      const contract = res.body.contracts[0];
+      chai.expect(contract.files.found).to.have.a.lengthOf(1);
+      const retrivedFile = contract.files.found[0];
+      chai.expect(retrivedFile).to.equal("contracts/Account.sol");
     });
 
     it("should create2 verify", (done) => {
-      let clientToken
+      let clientToken;
       const sourcifyClientTokensRaw = process.env.CREATE2_CLIENT_TOKENS;
       if (sourcifyClientTokensRaw?.length) {
         const sourcifyClientTokens = sourcifyClientTokensRaw.split(",");
-        clientToken = sourcifyClientTokens[0]
+        clientToken = sourcifyClientTokens[0];
       }
       agent
         .post("/session/verify/create2")
         .send({
-          "deployerAddress": "0x4a27c059FD7E383854Ea7DE6Be9c390a795f6eE3",
-          "salt": 1,
-          "constructorArgs": [
-            { "type": "address", "value": "0x303de46de694cc75a2f66da93ac86c6a6eee607e" }
+          deployerAddress: "0x4a27c059FD7E383854Ea7DE6Be9c390a795f6eE3",
+          salt: 1,
+          constructorArgs: [
+            {
+              type: "address",
+              value: "0x303de46de694cc75a2f66da93ac86c6a6eee607e",
+            },
           ],
-          "clientToken": clientToken || '',
-          "create2Address": "0xc416de86d3a707ae7c082eed0d8858fcbef076ce",
-          "verificationId": verificationId
+          clientToken: clientToken || "",
+          create2Address: "0xc416de86d3a707ae7c082eed0d8858fcbef076ce",
+          verificationId: verificationId,
         })
         .end((err, res) => {
           assertAllFound(err, res, "perfect");
@@ -321,35 +328,42 @@ describe("Server", function () {
     });
 
     it("should create2 verify through API", (done) => {
-      const metadata = fs.readFileSync("test/testcontracts/Create2/metadata.json").toString();
-      const source = fs.readFileSync("test/testcontracts/Create2/Account.sol").toString();
-      let clientToken
+      const metadata = fs
+        .readFileSync("test/testcontracts/Create2/metadata.json")
+        .toString();
+      const source = fs
+        .readFileSync("test/testcontracts/Create2/Account.sol")
+        .toString();
+      let clientToken;
       const sourcifyClientTokensRaw = process.env.CREATE2_CLIENT_TOKENS;
       if (sourcifyClientTokensRaw?.length) {
         const sourcifyClientTokens = sourcifyClientTokensRaw.split(",");
-        clientToken = sourcifyClientTokens[0]
+        clientToken = sourcifyClientTokens[0];
       }
       chai
         .request(server.app)
         .post("/verify/create2")
         .send({
-          "deployerAddress": "0x4a27c059FD7E383854Ea7DE6Be9c390a795f6eE3",
-          "salt": 1,
-          "constructorArgs": [
-            { "type": "address", "value": "0x303de46de694cc75a2f66da93ac86c6a6eee607e" }
+          deployerAddress: "0x4a27c059FD7E383854Ea7DE6Be9c390a795f6eE3",
+          salt: 1,
+          constructorArgs: [
+            {
+              type: "address",
+              value: "0x303de46de694cc75a2f66da93ac86c6a6eee607e",
+            },
           ],
-          "files": {
+          files: {
             "metadata.json": metadata,
             "Account.sol": source,
           },
-          "clientToken": clientToken || '',
-          "create2Address": "0xc416de86d3a707ae7c082eed0d8858fcbef076ce"
+          clientToken: clientToken || "",
+          create2Address: "0xc416de86d3a707ae7c082eed0d8858fcbef076ce",
         })
         .end((err, res) => {
           assertAPIAllFound(err, res, "perfect");
           done();
         });
-    })
+    });
   });
 
   describe("/check-by-addresses", function () {
@@ -898,6 +912,54 @@ describe("Server", function () {
       assertions(null, res, null, address);
     });
 
+    it("should verify a contract created by a factory contract and has immutables", async () => {
+      const deployValue = 12345;
+
+      const artifact = require("./testcontracts/FactoryImmutable/Factory.json");
+      const factoryAddress = await deployFromAbiAndBytecode(
+        localWeb3Provider,
+        artifact.abi,
+        artifact.bytecode,
+        accounts[0]
+      );
+
+      // Deploy by calling deploy(uint)
+      const childMetadata = require("./testcontracts/FactoryImmutable/Child_meta.json");
+      const childMetadataBuffer = Buffer.from(JSON.stringify(childMetadata));
+      const txReceipt = await callContractMethodWithTx(
+        localWeb3Provider,
+        artifact.abi,
+        factoryAddress,
+        "deploy",
+        accounts[0],
+        [deployValue]
+      );
+
+      const childAddress = txReceipt.events.Deployment.returnValues[0];
+      const sourcePath = path.join(
+        "test",
+        "testcontracts",
+        "FactoryImmutable",
+        "FactoryTest.sol"
+      );
+      const sourceBuffer = fs.readFileSync(sourcePath);
+
+      const abiEncoded = localWeb3Provider.eth.abi.encodeParameter(
+        "uint",
+        deployValue
+      );
+      const res = await chai
+        .request(server.app)
+        .post("/")
+        .field("address", childAddress)
+        .field("chain", defaultContractChain)
+        .field("abiEncodedConstructorArguments", abiEncoded)
+        .attach("files", childMetadataBuffer, "metadata.json")
+        .attach("files", sourceBuffer, "FactoryTest.sol")
+        .send();
+      assertions(null, res, null, childAddress);
+    });
+
     describe("hardhat build-info file support", function () {
       this.timeout(EXTENDED_TIME);
       let address;
@@ -1188,13 +1250,17 @@ describe("Server", function () {
         chai.expect(res.status).to.equal(StatusCodes.OK);
       }
       // Should exceed size this time
-      res = await agent.post("/session/input-files").attach("files", Buffer.from(file));
+      res = await agent
+        .post("/session/input-files")
+        .attach("files", Buffer.from(file));
       chai.expect(res.status).to.equal(StatusCodes.REQUEST_TOO_LONG);
       chai.expect(res.body.error).to.exist;
       // Should be back to normal
       res = await agent.post("/session/clear");
       chai.expect(res.status).to.equal(StatusCodes.OK);
-      res = await agent.post("/session/input-files").attach("files", Buffer.from("a"));
+      res = await agent
+        .post("/session/input-files")
+        .attach("files", Buffer.from("a"));
       chai.expect(res.status).to.equal(StatusCodes.OK);
       console.log("done");
     });

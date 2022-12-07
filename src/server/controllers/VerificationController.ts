@@ -968,6 +968,16 @@ export default class VerificationController
         .custom(
           (chain, { req }) => (req.chain = this.validateSingleChainId(chain))
         ),
+      body("msgSender")
+        .optional()
+        .custom((msgSender, { req }) => (req.msgSender = msgSender)),
+      body("abiEncodedConstructorArguments")
+        .optional()
+        .custom(
+          (abiEncodedConstructorArguments, { req }) =>
+            (req.abiEncodedConstructorArguments =
+              abiEncodedConstructorArguments)
+        ),
       this.safeHandler(this.legacyVerifyEndpoint)
     );
 
