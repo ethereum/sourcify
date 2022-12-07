@@ -178,28 +178,31 @@ const ChainAddressForm = ({
             creation, please let us know.
           </div>
           {/* Constructor arguments */}
-          {checkedContract?.constructorArguments && (
-            <div>
-              <InputToggle
-                isChecked={showRawAbiInput}
-                onClick={() => setShowRawAbiInput((prev) => !prev)}
-                label="Raw ABI-Encoded Input"
-              />
-              <Constructorarguments
-                abiEncodedConstructorArguments={abiEncodedConstructorArguments}
-                setAbiEncodedConstructorArguments={
-                  setAbiEncodedConstructorArguments
-                }
-                abiJsonConstructorArguments={
-                  checkedContract.constructorArguments
-                }
-                showRawAbiInput={showRawAbiInput}
-                setIsInvalidConstructorArguments={
-                  setIsInvalidConstructorArguments
-                }
-              />
-            </div>
-          )}
+          {checkedContract?.constructorArguments &&
+            checkedContract?.constructorArguments.length > 0 && (
+              <div>
+                <InputToggle
+                  isChecked={showRawAbiInput}
+                  onClick={() => setShowRawAbiInput((prev) => !prev)}
+                  label="Raw ABI-Encoded Input"
+                />
+                <Constructorarguments
+                  abiEncodedConstructorArguments={
+                    abiEncodedConstructorArguments
+                  }
+                  setAbiEncodedConstructorArguments={
+                    setAbiEncodedConstructorArguments
+                  }
+                  abiJsonConstructorArguments={
+                    checkedContract.constructorArguments
+                  }
+                  showRawAbiInput={showRawAbiInput}
+                  setIsInvalidConstructorArguments={
+                    setIsInvalidConstructorArguments
+                  }
+                />
+              </div>
+            )}
           {/* msg.sender */}
           <div className="mt-2">
             <div className="flex justify-between">

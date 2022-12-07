@@ -196,30 +196,31 @@ const Create2Form = ({
               placeholder="1"
               className="mb-2"
             />
-            {checkedContract.constructorArguments && (
-              <div className="mt-4">
-                <InputToggle
-                  isChecked={showRawAbiInput}
-                  onClick={() => setShowRawAbiInput((prev) => !prev)}
-                  label="Raw ABI-Encoded Input"
-                />
-                <ConstructorArguments
-                  abiEncodedConstructorArguments={
-                    abiEncodedConstructorArguments
-                  }
-                  setAbiEncodedConstructorArguments={
-                    setAbiEncodedConstructorArguments
-                  }
-                  abiJsonConstructorArguments={
-                    checkedContract.constructorArguments
-                  }
-                  showRawAbiInput={showRawAbiInput}
-                  setIsInvalidConstructorArguments={
-                    setIsInvalidConstructorArguments
-                  }
-                />
-              </div>
-            )}
+            {checkedContract.constructorArguments &&
+              checkedContract.constructorArguments.length > 0 && (
+                <div className="mt-4">
+                  <InputToggle
+                    isChecked={showRawAbiInput}
+                    onClick={() => setShowRawAbiInput((prev) => !prev)}
+                    label="Raw ABI-Encoded Input"
+                  />
+                  <ConstructorArguments
+                    abiEncodedConstructorArguments={
+                      abiEncodedConstructorArguments
+                    }
+                    setAbiEncodedConstructorArguments={
+                      setAbiEncodedConstructorArguments
+                    }
+                    abiJsonConstructorArguments={
+                      checkedContract.constructorArguments
+                    }
+                    showRawAbiInput={showRawAbiInput}
+                    setIsInvalidConstructorArguments={
+                      setIsInvalidConstructorArguments
+                    }
+                  />
+                </div>
+              )}
           </div>
 
           {create2Address && (
