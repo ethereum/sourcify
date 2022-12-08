@@ -10,10 +10,6 @@ x-project-base: &project-base
 networks:
   source-verify:
 
-volumes:
-  grafana-storage:
-    external: true
-
 services:
   loki:
     container_name: grafana-loki-${TAG}
