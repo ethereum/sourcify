@@ -314,6 +314,13 @@ export class Injector {
       libraryMap: undefined,
     };
 
+    const { replaced, libraryMap } = this.addLibraryAddresses(
+      recompiled.deployedBytecode,
+      deployedBytecode
+    );
+    recompiled.deployedBytecode = replaced;
+    match.libraryMap = libraryMap;
+
     match = this.checkIfMatch(
       match,
       (a, b) => a === b,
@@ -323,13 +330,6 @@ export class Injector {
     if (match.status) return match;
 
     if (deployedBytecode && deployedBytecode.length > 2) {
-      const { replaced, libraryMap } = this.addLibraryAddresses(
-        recompiled.deployedBytecode,
-        deployedBytecode
-      );
-      recompiled.deployedBytecode = replaced;
-      match.libraryMap = libraryMap;
-
       // If same length, highly likely these contracts are a match but immutable vars. may be affecting the match
       if (deployedBytecode.length === recompiled.deployedBytecode.length) {
         if (constructorArguments) {
