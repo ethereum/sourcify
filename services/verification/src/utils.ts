@@ -445,8 +445,8 @@ export async function getCreationDataFromArchive(
 export async function getCreationDataByScraping(
   fetchAddress: string,
   txRegex: string,
-  web3: Web3
-): Promise<string> {
+  web3Array: Web3[]
+): Promise<string | null> {
   const res = await fetch(fetchAddress);
   const buffer = await res.buffer();
   const page = buffer.toString();
@@ -454,16 +454,30 @@ export async function getCreationDataByScraping(
     const matched = page.match(txRegex);
     if (matched && matched[1]) {
       const txHash = matched[1];
-      const tx = await web3.eth.getTransaction(txHash);
-      return tx.input;
+      let tx;
+      const errors: Error[] = [];
+      for (const web3 of web3Array) {
+        try {
+          tx = await web3.eth.getTransaction(txHash);
+          return tx.input;
+        } catch (e) {
+          errors.push(e as Error);
+        }
+      }
+      throw new Error(
+        `Couldn't get the tx.input of the tx with hash ${txHash} from any providers: \n ${JSON.stringify(
+          errors.map((e) => e.message)
+        )}`
+      );
+    } else {
+      if (page.includes("captcha") || page.includes("CAPTCHA")) {
+        throw new Error(
+          "Scraping failed because of CAPTCHA requirement at ${fetchAddress}"
+        );
+      }
     }
   }
-  if (page.includes("captcha") || page.includes("CAPTCHA")) {
-    throw new Error(
-      "Scraping failed because of CAPTCHA requirement at ${fetchAddress}"
-    );
-  }
-  throw new Error(`Creation data could not be scraped from ${fetchAddress}`);
+  return null;
 }
 
 export async function getCreationDataTelos(

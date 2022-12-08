@@ -302,7 +302,7 @@ export class Injector {
     recompiled: RecompilationResult,
     chain: string,
     address: string,
-    creationData?: string,
+    creationData?: string | null,
     constructorArguments?: string,
     msgSender?: string
   ): Promise<Match> {
@@ -320,7 +320,7 @@ export class Injector {
       deployedBytecode,
       recompiled.deployedBytecode
     );
-    if (match.status === "perfect") return match;
+    if (match.status) return match;
 
     if (deployedBytecode && deployedBytecode.length > 2) {
       const { replaced, libraryMap } = this.addLibraryAddresses(
@@ -350,28 +350,28 @@ export class Injector {
             deployedBytecode,
             constructorArguments
           );
-          if (match.status === "perfect") return match;
+          if (match.status) return match;
         }
 
         creationData =
           creationData || (await this.getCreationData(chain, address));
 
-        const { replaced, libraryMap } = this.addLibraryAddresses(
-          recompiled.creationBytecode,
-          creationData
-        );
-        recompiled.creationBytecode = replaced;
-        match.libraryMap = libraryMap;
-
         if (creationData) {
           // The reason why this uses `startsWith` instead of `===` is that creationData may contain constructor arguments at the end part
+          const { replaced, libraryMap } = this.addLibraryAddresses(
+            recompiled.creationBytecode,
+            creationData
+          );
+          recompiled.creationBytecode = replaced;
+          match.libraryMap = libraryMap;
+
           match = this.checkIfMatch(
             match,
             (a, b) => a.startsWith(b),
             creationData,
             recompiled.creationBytecode
           );
-          if (match.status === "perfect") return match;
+          if (match.status) return match;
         }
       }
     }
@@ -514,7 +514,7 @@ export class Injector {
   private async getCreationData(
     chain: string,
     contractAddress: string
-  ): Promise<string> {
+  ): Promise<string | null> {
     const loc = "[GET_CREATION_DATA]";
     const txFetchAddress = this.chains[chain]?.contractFetchAddress?.replace(
       "${ADDRESS}",
@@ -528,15 +528,17 @@ export class Injector {
         { loc, chain, contractAddress, fetchAddress: txFetchAddress },
         "Scraping block explorer"
       );
-      for (const web3 of this.chains[chain].web3array) {
-        try {
-          return await getCreationDataByScraping(txFetchAddress, txRegex, web3);
-        } catch (err: any) {
-          this.log.error(
-            { loc, chain, contractAddress, err: err.message },
-            "Scraping failed!"
-          );
-        }
+      try {
+        return await getCreationDataByScraping(
+          txFetchAddress,
+          txRegex,
+          this.chains[chain].web3array
+        );
+      } catch (err: any) {
+        this.log.error(
+          { loc, chain, contractAddress, err: err.message },
+          "Scraping failed!"
+        );
       }
     }
 
@@ -637,9 +639,7 @@ export class Injector {
     //     }
     // }
 
-    const err = `Cannot fetch creation data via ${txFetchAddress} on chainId ${chain} of contract ${contractAddress}`;
-    this.log.error({ loc, chain, contractAddress, err });
-    throw new Error(err);
+    return null;
   }
 
   private extractEncodedConstructorArgs(
