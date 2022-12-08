@@ -1510,6 +1510,61 @@ describe("Server", function () {
       });
     });
 
+    it("should verify a contract created by a factory contract and has immutables", async () => {
+      const deployValue = 12345;
+
+      const artifact = require("./testcontracts/FactoryImmutable/Factory.json");
+      const factoryAddress = await deployFromAbiAndBytecode(
+        localWeb3Provider,
+        artifact.abi,
+        artifact.bytecode,
+        accounts[0]
+      );
+
+      // Deploy by calling deploy(uint)
+      const childMetadata = require("./testcontracts/FactoryImmutable/Child_meta.json");
+      const childMetadataBuffer = Buffer.from(JSON.stringify(childMetadata));
+      const txReceipt = await callContractMethodWithTx(
+        localWeb3Provider,
+        artifact.abi,
+        factoryAddress,
+        "deploy",
+        accounts[0],
+        [deployValue]
+      );
+
+      const childAddress = txReceipt.events.Deployment.returnValues[0];
+      const sourcePath = path.join(
+        "test",
+        "testcontracts",
+        "FactoryImmutable",
+        "FactoryTest.sol"
+      );
+      const sourceBuffer = fs.readFileSync(sourcePath);
+
+      const abiEncoded = localWeb3Provider.eth.abi.encodeParameter(
+        "uint",
+        deployValue
+      );
+      const agent = chai.request.agent(server.app);
+
+      const res1 = await agent
+        .post("/session/input-files")
+        .attach("files", sourceBuffer)
+        .attach("files", childMetadataBuffer);
+
+      const contracts = assertSingleContractStatus(res1, "error");
+
+      contracts[0].address = childAddress;
+      contracts[0].chainId = defaultContractChain;
+      contracts[0].abiEncodedConstructorArguments = abiEncoded;
+      const res = await agent
+        .post("/session/verify-validated")
+        .send({ contracts });
+      assertSingleContractStatus(res, "perfect");
+      return true;
+    });
+
     // Test also extra-file-bytecode-mismatch via v2 API as well since the workaround is at the API level i.e. VerificationController
     describe("solc v0.6.12 and v0.7.0 extra files in compilation causing metadata match but bytecode mismatch", function () {
       // Deploy the test contract locally
