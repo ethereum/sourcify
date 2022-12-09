@@ -37,7 +37,6 @@
     "@ethereumjs/common": "^3.0.1",
     "@ethereumjs/evm": "^1.2.2",
     "@ethereumjs/statemanager": "^1.0.1",
-    "@ethereumjs/tx": "^4.0.1",
     "@ethereumjs/util": "^8.0.2",
     "@ethereumjs/vm": "^6.2.0",
     "bunyan": "^1.8.15",

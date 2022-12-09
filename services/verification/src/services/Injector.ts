@@ -20,8 +20,6 @@ import {
   RecompilationResult,
   getBytecode,
   recompile,
-  checkEndpoint,
-  getCreationDataFromArchive,
   getCreationDataByScraping,
   getCreationDataFromGraphQL,
   getCreationDataTelos,
@@ -44,11 +42,9 @@ import path from "path";
 import { EVM } from "@ethereumjs/evm";
 import { EEI } from "@ethereumjs/vm";
 import { Address } from "@ethereumjs/util";
-import { Chain as EthereumChain, Common, Hardfork } from "@ethereumjs/common";
-import { Transaction } from "@ethereumjs/tx";
+import { Chain as Common } from "@ethereumjs/common";
 import { DefaultStateManager } from "@ethereumjs/statemanager";
 import { Blockchain } from "@ethereumjs/blockchain";
-import { env } from "process";
 
 export interface InjectorConfig {
   silent?: boolean;
@@ -446,6 +442,8 @@ export class Injector {
     const result = await evm.runCall({
       data: initcode,
       gasLimit: BigInt(0xffffffffff),
+      // prettier vs. eslint indentation conflict here
+      /* eslint-disable indent */
       caller: msgSender
         ? new Address(
             Buffer.from(
@@ -454,6 +452,7 @@ export class Injector {
             )
           )
         : undefined,
+      /* eslint-enable indent */
     });
     return result.execResult.returnValue.toString("hex");
   }

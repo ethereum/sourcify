@@ -275,7 +275,7 @@ export async function performFetch(
   const infoObject = { loc: "[FETCH]", fileName, url, timeout: FETCH_TIMEOUT };
   if (log) log.info(infoObject, "Fetch attempt");
 
-  const res = await fetch(url, { timeout: FETCH_TIMEOUT }).catch((err) => {
+  const res = await fetch(url, { timeout: FETCH_TIMEOUT }).catch(() => {
     if (log) log.error(infoObject, "Fetching timed out");
   });
 
