@@ -312,6 +312,7 @@ export class Injector {
       status: null,
       encodedConstructorArgs: undefined,
       libraryMap: undefined,
+      msgSender: undefined,
     };
 
     const { replaced, libraryMap } = this.addLibraryAddresses(
@@ -350,7 +351,10 @@ export class Injector {
             deployedBytecode,
             constructorArguments
           );
-          if (match.status) return match;
+          if (match.status) {
+            match.msgSender = msgSender;
+            return match;
+          }
         }
 
         creationData =
@@ -438,11 +442,17 @@ export class Injector {
       creationBytecode + encodedConstructorArgs,
       "hex"
     );
+
     const result = await evm.runCall({
       data: initcode,
       gasLimit: BigInt(0xffffffffff),
       caller: msgSender
-        ? new Address(Buffer.from(msgSender, "hex")) //TODO: Check 0x prefix
+        ? new Address(
+            Buffer.from(
+              msgSender.startsWith("0x") ? msgSender.slice(2) : msgSender,
+              "hex"
+            )
+          )
         : undefined,
     });
     return result.execResult.returnValue.toString("hex");
@@ -719,6 +729,15 @@ export class Injector {
           match.chainId,
           match.address,
           match.encodedConstructorArgs
+        );
+      }
+
+      if (match.msgSender) {
+        this.storeMsgSender(
+          matchQuality,
+          match.chainId,
+          match.address,
+          match.msgSender
         );
       }
 
@@ -1032,6 +1051,24 @@ export class Injector {
         fileName: "constructor-args.txt",
       },
       encodedConstructorArgs
+    );
+  }
+
+  private storeMsgSender(
+    matchQuality: MatchQuality,
+    chain: string,
+    address: string,
+    msgSender: string
+  ) {
+    this.fileService.save(
+      {
+        matchQuality,
+        chain,
+        address,
+        source: false,
+        fileName: "msgSender.txt",
+      },
+      msgSender
     );
   }
 

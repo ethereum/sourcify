@@ -216,7 +216,7 @@ const ChainAddressForm = ({
                 <span
                   className="ml-1 text-ceruleanBlue-200 font-bold"
                   data-for="msg-sender-tooltip"
-                  data-tip="`msg.sender` will be used if your contract assigns it to an immutable variable such as an `owner`."
+                  data-tip="`msg.sender` will be used if your contract assigns it to an immutable variable such as an `owner`. In the case of a contract created by a factory, this is the factory address"
                 >
                   ?
                 </span>

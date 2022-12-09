@@ -87,6 +87,7 @@ export interface Match {
   encodedConstructorArgs?: string;
   create2Args?: Create2Args;
   libraryMap?: StringMap;
+  msgSender?: string;
 }
 
 export type Status =

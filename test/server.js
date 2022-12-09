@@ -114,7 +114,7 @@ describe("Server", function () {
 
   const fakeAddress = "0x000000bCB92160f8B7E094998Af6BCaD7fa537ff";
 
-  const assertError = (err, res, field) => {
+  const assertValidationError = (err, res, field) => {
     chai.expect(err).to.be.null;
     chai.expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
     chai.expect(res.body.message.startsWith("Validation Error")).to.be.true;
@@ -122,6 +122,22 @@ describe("Server", function () {
     chai.expect(res.body.errors).to.have.a.lengthOf(1);
     chai.expect(res.body.errors[0].field).to.equal(field);
   };
+
+  const assertBytecodesDontMatch = (err, res, done) => {
+    chai.expect(err).to.be.null;
+    chai.expect(res.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+    chai.expect(res.body).to.haveOwnProperty("error");
+    chai
+      .expect(res.body.error)
+      .to.include("The deployed and recompiled bytecode don't match.");
+    if (done) done();
+  };
+
+  function assertEqualityFromPath(obj1, obj2path, options) {
+    const obj2raw = fs.readFileSync(obj2path).toString();
+    const obj2 = options?.isJson ? JSON.parse(obj2raw) : obj2raw;
+    chai.expect(obj1, `assertFromPath: ${obj2path}`).to.deep.equal(obj2);
+  }
 
   const assertions = (
     err,
@@ -169,7 +185,7 @@ describe("Server", function () {
           .post("/session/verify/etherscan")
           .field("chainId", "1")
           .end((err, res) => {
-            assertError(err, res, "address");
+            assertValidationError(err, res, "address");
             done();
           });
       });
@@ -180,7 +196,7 @@ describe("Server", function () {
           .post("/session/verify/etherscan")
           .field("address", fakeAddress)
           .end((err, res) => {
-            assertError(err, res, "chainId");
+            assertValidationError(err, res, "chainId");
             done();
           });
       });
@@ -375,7 +391,7 @@ describe("Server", function () {
         .get("/check-by-addresses")
         .query({ addresses: defaultContractAddress })
         .end((err, res) => {
-          assertError(err, res, "chainIds");
+          assertValidationError(err, res, "chainIds");
           done();
         });
     });
@@ -386,7 +402,7 @@ describe("Server", function () {
         .get("/check-by-addresses")
         .query({ chainIds: 1 })
         .end((err, res) => {
-          assertError(err, res, "addresses");
+          assertValidationError(err, res, "addresses");
           done();
         });
     });
@@ -420,7 +436,7 @@ describe("Server", function () {
         .get("/check-by-addresses")
         .query({ chainIds: defaultContractChain, addresses: fakeAddress })
         .end((err, res) => {
-          assertError(err, res, "addresses");
+          assertValidationError(err, res, "addresses");
           done();
         });
     });
@@ -495,7 +511,7 @@ describe("Server", function () {
         .get("/check-all-by-addresses")
         .query({ addresses: defaultContractAddress })
         .end((err, res) => {
-          assertError(err, res, "chainIds");
+          assertValidationError(err, res, "chainIds");
           done();
         });
     });
@@ -506,7 +522,7 @@ describe("Server", function () {
         .get("/check-all-by-addresses")
         .query({ chainIds: 1 })
         .end((err, res) => {
-          assertError(err, res, "addresses");
+          assertValidationError(err, res, "addresses");
           done();
         });
     });
@@ -540,7 +556,7 @@ describe("Server", function () {
         .get("/check-all-by-addresses")
         .query({ chainIds: defaultContractChain, addresses: fakeAddress })
         .end((err, res) => {
-          assertError(err, res, "addresses");
+          assertValidationError(err, res, "addresses");
           done();
         });
     });
@@ -789,7 +805,6 @@ describe("Server", function () {
         .send();
 
       assertions(null, res, null, address, "partial");
-      return true;
     });
 
     it("should verify a contract with library placeholders", async () => {
@@ -923,8 +938,8 @@ describe("Server", function () {
         accounts[0]
       );
 
-      // Deploy by calling deploy(uint)
-      const childMetadata = require("./testcontracts/FactoryImmutable/Child_meta.json");
+      // Deploy child by calling deploy(uint)
+      const childMetadata = require("./testcontracts/FactoryImmutable/Child_metadata.json");
       const childMetadataBuffer = Buffer.from(JSON.stringify(childMetadata));
       const txReceipt = await callContractMethodWithTx(
         localWeb3Provider,
@@ -958,6 +973,79 @@ describe("Server", function () {
         .attach("files", sourceBuffer, "FactoryTest.sol")
         .send();
       assertions(null, res, null, childAddress);
+    });
+
+    it("should first fail to verify a contract created by a factory contract and has an immutable set by `msg.sender`. Then suceed with the `msg.sender` input and save the msgSender.txt", async () => {
+      const deployValue = 12345;
+
+      const artifact = require("./testcontracts/FactoryImmutableWithMsgSender/Factory.json");
+      const factoryAddress = await deployFromAbiAndBytecode(
+        localWeb3Provider,
+        artifact.abi,
+        artifact.bytecode,
+        accounts[0]
+      );
+
+      // Deploy child by calling deploy(uint)
+      const childMetadata = require("./testcontracts/FactoryImmutableWithMsgSender/Child_metadata.json");
+      const childMetadataBuffer = Buffer.from(JSON.stringify(childMetadata));
+      const txReceipt = await callContractMethodWithTx(
+        localWeb3Provider,
+        artifact.abi,
+        factoryAddress,
+        "deploy",
+        accounts[0],
+        [deployValue]
+      );
+
+      const childAddress = txReceipt.events.Deployment.returnValues[0];
+      const sourcePath = path.join(
+        "test",
+        "testcontracts",
+        "FactoryImmutableWithMsgSender",
+        "FactoryTest.sol"
+      );
+      const sourceBuffer = fs.readFileSync(sourcePath);
+
+      const abiEncoded = localWeb3Provider.eth.abi.encodeParameter(
+        "uint",
+        deployValue
+      );
+      const res1 = await chai
+        .request(server.app)
+        .post("/")
+        .field("address", childAddress)
+        .field("chain", defaultContractChain)
+        .field("abiEncodedConstructorArguments", abiEncoded)
+        .attach("files", childMetadataBuffer, "metadata.json")
+        .attach("files", sourceBuffer, "FactoryTest.sol")
+        .send();
+      assertBytecodesDontMatch(null, res1);
+
+      const res2 = await chai
+        .request(server.app)
+        .post("/")
+        .field("address", childAddress)
+        .field("chain", defaultContractChain)
+        .field("abiEncodedConstructorArguments", abiEncoded)
+        .field("msgSender", factoryAddress)
+        .attach("files", childMetadataBuffer, "metadata.json")
+        .attach("files", sourceBuffer, "FactoryTest.sol")
+        .send();
+      assertions(null, res2, null, childAddress);
+
+      // Check if msgSender.txt saved correctly
+      assertEqualityFromPath(
+        factoryAddress,
+        path.join(
+          process.env.MOCK_REPOSITORY,
+          "contracts",
+          "full_match",
+          defaultContractChain,
+          childAddress,
+          "msgSender.txt"
+        )
+      );
     });
 
     describe("hardhat build-info file support", function () {
@@ -1521,8 +1609,8 @@ describe("Server", function () {
         accounts[0]
       );
 
-      // Deploy by calling deploy(uint)
-      const childMetadata = require("./testcontracts/FactoryImmutable/Child_meta.json");
+      // Deploy child by calling deploy(uint)
+      const childMetadata = require("./testcontracts/FactoryImmutable/Child_metadata.json");
       const childMetadataBuffer = Buffer.from(JSON.stringify(childMetadata));
       const txReceipt = await callContractMethodWithTx(
         localWeb3Provider,
@@ -1562,7 +1650,79 @@ describe("Server", function () {
         .post("/session/verify-validated")
         .send({ contracts });
       assertSingleContractStatus(res, "perfect");
-      return true;
+    });
+
+    it("should first fail to verify a contract created by a factory contract and has an immutable set by `msg.sender`. Then suceed with the `msg.sender` input.", async () => {
+      const deployValue = 12345;
+
+      const artifact = require("./testcontracts/FactoryImmutableWithMsgSender/Factory.json");
+      const factoryAddress = await deployFromAbiAndBytecode(
+        localWeb3Provider,
+        artifact.abi,
+        artifact.bytecode,
+        accounts[0]
+      );
+
+      // Deploy child by calling deploy(uint)
+      const childMetadata = require("./testcontracts/FactoryImmutableWithMsgSender/Child_metadata.json");
+      const childMetadataBuffer = Buffer.from(JSON.stringify(childMetadata));
+      const txReceipt = await callContractMethodWithTx(
+        localWeb3Provider,
+        artifact.abi,
+        factoryAddress,
+        "deploy",
+        accounts[0],
+        [deployValue]
+      );
+
+      const childAddress = txReceipt.events.Deployment.returnValues[0];
+      const sourcePath = path.join(
+        "test",
+        "testcontracts",
+        "FactoryImmutableWithMsgSender",
+        "FactoryTest.sol"
+      );
+      const sourceBuffer = fs.readFileSync(sourcePath);
+
+      const abiEncoded = localWeb3Provider.eth.abi.encodeParameter(
+        "uint",
+        deployValue
+      );
+      const agent = chai.request.agent(server.app);
+
+      const res1 = await agent
+        .post("/session/input-files")
+        .attach("files", sourceBuffer)
+        .attach("files", childMetadataBuffer);
+
+      const contracts = assertSingleContractStatus(res1, "error");
+
+      contracts[0].address = childAddress;
+      contracts[0].chainId = defaultContractChain;
+      contracts[0].abiEncodedConstructorArguments = abiEncoded;
+      const res2 = await agent
+        .post("/session/verify-validated")
+        .send({ contracts });
+      assertSingleContractStatus(res2, "error");
+
+      contracts[0].msgSender = factoryAddress;
+      const res3 = await agent
+        .post("/session/verify-validated")
+        .send({ contracts });
+      assertSingleContractStatus(res3, "perfect");
+
+      // Check if msgSender.txt saved correctly
+      assertEqualityFromPath(
+        factoryAddress,
+        path.join(
+          process.env.MOCK_REPOSITORY,
+          "contracts",
+          "full_match",
+          defaultContractChain,
+          childAddress,
+          "msgSender.txt"
+        )
+      );
     });
 
     // Test also extra-file-bytecode-mismatch via v2 API as well since the workaround is at the API level i.e. VerificationController
