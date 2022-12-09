@@ -42,7 +42,7 @@ import path from "path";
 import { EVM } from "@ethereumjs/evm";
 import { EEI } from "@ethereumjs/vm";
 import { Address } from "@ethereumjs/util";
-import { Chain as Common } from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import { DefaultStateManager } from "@ethereumjs/statemanager";
 import { Blockchain } from "@ethereumjs/blockchain";
 
