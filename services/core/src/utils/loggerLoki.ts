@@ -9,7 +9,7 @@ const loggerInstance = createLogger();
 if (process.env.GRAFANA_LOKI_EXTERNAL_PORT) {
   loggerInstance.add(
     new LokiTransport({
-      host: `http://127.0.0.1:${process.env.GRAFANA_LOKI_EXTERNAL_PORT}`,
+      host: `http://${process.env.GRAFANA_LOKI_HOST}:${process.env.GRAFANA_LOKI_EXTERNAL_PORT}`,
       json: true,
       format: format.combine(
         format((info) => {
