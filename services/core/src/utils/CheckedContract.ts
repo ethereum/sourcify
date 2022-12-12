@@ -3,6 +3,7 @@ import { StringMap, Metadata, InfoErrorLogger } from "./types";
 import { isEmpty, createJsonInputFromMetadata } from "./utils";
 import fetch from "node-fetch";
 import { InvalidSources, MissingSources } from "..";
+import { SourcifyEventManager } from "../services/EventManager";
 
 const IPFS_PREFIX = "dweb:/ipfs/";
 const IPFS_GATEWAY = process.env.IPFS_GATEWAY || "https://ipfs.io/ipfs/";
@@ -195,10 +196,7 @@ export class CheckedContract {
    *
    * @param log log object
    */
-  public static async fetchMissing(
-    contract: CheckedContract,
-    log?: InfoErrorLogger
-  ): Promise<void> {
+  public static async fetchMissing(contract: CheckedContract): Promise<void> {
     const retrieved: StringMap = {};
     const missingFiles: string[] = [];
     for (const fileName in contract.missing) {
@@ -209,13 +207,13 @@ export class CheckedContract {
 
       const githubUrl = getGithubUrl(fileName);
       if (githubUrl) {
-        retrievedContent = await performFetch(githubUrl, hash, fileName, log);
+        retrievedContent = await performFetch(githubUrl, hash, fileName);
       } else {
         for (const url of file.urls) {
           if (url.startsWith(IPFS_PREFIX)) {
             const ipfsCode = url.slice(IPFS_PREFIX.length);
             const ipfsUrl = IPFS_GATEWAY + ipfsCode;
-            retrievedContent = await performFetch(ipfsUrl, hash, fileName, log);
+            retrievedContent = await performFetch(ipfsUrl, hash, fileName);
             if (retrievedContent) {
               break;
             }
@@ -237,10 +235,18 @@ export class CheckedContract {
     }
 
     if (missingFiles.length) {
-      log?.error({ loc: "[FETCH]", contractName: this.name, missingFiles });
-      throw new Error(
+      const error = new Error(
         `Resource missing; unsuccessful fetching: ${missingFiles.join(", ")}`
       );
+      SourcifyEventManager.trigger("Core.Error", {
+        message: error.message,
+        stack: error.stack,
+        details: {
+          contractName: this.name,
+          missingFiles,
+        },
+      });
+      throw error;
     }
   }
 
@@ -269,31 +275,36 @@ export class CheckedContract {
 export async function performFetch(
   url: string,
   hash?: string,
-  fileName?: string,
-  log?: InfoErrorLogger
+  fileName?: string
 ): Promise<string | null> {
-  const infoObject = { loc: "[FETCH]", fileName, url, timeout: FETCH_TIMEOUT };
-  if (log) log.info(infoObject, "Fetch attempt");
-
   const res = await fetch(url, { timeout: FETCH_TIMEOUT }).catch((err) => {
-    if (log) log.error(infoObject, "Fetching timed out");
+    SourcifyEventManager.trigger("Core.Error", {
+      message: err.message,
+      stack: err.stack,
+    });
   });
 
   if (res && res.status === 200) {
     const content = await res.text();
     if (hash && Web3.utils.keccak256(content) !== hash) {
-      if (log)
-        log.error(
-          infoObject,
-          "The calculated and the provided hash don't match."
-        );
+      SourcifyEventManager.trigger("Core.Error", {
+        message: "The calculated and the provided hash don't match.",
+        details: {
+          url,
+          hash,
+          fileName,
+        },
+      });
       return null;
     }
 
-    if (log) log.info(infoObject, "Fetch successful!");
+    SourcifyEventManager.trigger("Core.PerformFetch", {
+      url,
+      hash,
+      fileName,
+    });
     return content;
   } else {
-    if (log) log.error(infoObject, "Fetch failed!");
     return null;
   }
 }
