@@ -6,5 +6,6 @@ export interface IController {
 export interface IResponseError {
   code: number;
   message: string;
+  log: boolean;
   errors?: any[];
 }

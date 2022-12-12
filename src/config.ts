@@ -1,6 +1,5 @@
 /* eslint-disable no-useless-escape */
 
-import { SourcifyEventManager } from "@ethereum-sourcify/core";
 import * as dotenv from "dotenv";
 import path from "path";
 
@@ -10,9 +9,7 @@ const setRepositoryPath = () => {
   if (process.env.MOCK_REPOSITORY) return process.env.MOCK_REPOSITORY;
   if (process.env.REPOSITORY_PATH)
     return path.resolve(__dirname, process.env.REPOSITORY_PATH);
-  SourcifyEventManager.trigger("Error", {
-    message: "No repository path set, using /tmp/repository",
-  });
+  console.warn("No repository path set, using /tmp/repository");
   return "/tmp/repository";
 };
 

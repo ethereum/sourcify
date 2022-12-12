@@ -1,6 +1,5 @@
 import semver from "semver";
 import * as chainsRaw from "../chains.json";
-import { SourcifyEventManager } from "../services/EventManager";
 import sourcifyChains from "../sourcify-chains";
 import { StringMap, ReformattedMetadata, Chain } from "./types";
 const chains = chainsRaw as any;
@@ -132,7 +131,8 @@ export function isEmpty(obj: object): boolean {
  */
 export function createJsonInputFromMetadata(
   metadata: any,
-  sources: StringMap
+  sources: StringMap,
+  log?: any
 ): ReformattedMetadata {
   const solcJsonInput: any = {};
   let fileName = "";
@@ -145,18 +145,9 @@ export function createJsonInputFromMetadata(
     !metadata.settings.compilationTarget ||
     Object.keys(metadata.settings.compilationTarget).length != 1
   ) {
-    const error = new Error(
-      "createJsonInputFromMetadata: Invalid compilationTarget"
-    );
-    SourcifyEventManager.trigger("Core.Error", {
-      message: error.message,
-      stack: error.stack,
-      details: {
-        metadata,
-        sources,
-      },
-    });
-    throw error;
+    const err = "Invalid compilationTarget";
+    if (log) log.error({ loc: "REFORMAT", err });
+    throw new Error(err);
   }
 
   for (fileName in metadata.settings.compilationTarget) {

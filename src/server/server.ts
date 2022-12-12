@@ -5,26 +5,22 @@ import cors from "cors";
 import routes from "./routes";
 import bodyParser from "body-parser";
 import config from "../config";
-import {
-  getSourcifyChains,
-  SourcifyEventManager,
-} from "@ethereum-sourcify/core";
+import { Logger, getSourcifyChains } from "@ethereum-sourcify/core";
+import bunyan from "bunyan";
 import genericErrorHandler from "./middlewares/GenericErrorHandler";
 import notFoundHandler from "./middlewares/NotFoundError";
-import useApiLogging from "./middlewares/ApiLogging";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 import util from "util";
 const MemoryStore = createMemoryStore(session);
 
+export const logger: bunyan = Logger("Server");
 export class Server {
   app: express.Application;
   repository = config.repository.path;
   port = config.server.port;
 
   constructor() {
-    useApiLogging(express);
-
     this.app = express();
 
     this.app.use(
@@ -110,8 +106,9 @@ function getSessionOptions(): session.SessionOptions {
 if (require.main === module) {
   const server = new Server();
   server.app.listen(server.port, () =>
-    SourcifyEventManager.trigger("Server.Started", {
-      port: server.port,
-    })
+    logger.info(
+      { loc: "[LISTEN]" },
+      `Injector listening on port ${server.port}!`
+    )
   );
 }

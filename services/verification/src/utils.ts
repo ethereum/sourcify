@@ -5,7 +5,6 @@ import {
   StringMap,
   createJsonInputFromMetadata,
   InfoErrorLogger,
-  SourcifyEventManager,
 } from "@ethereum-sourcify/core";
 import Path from "path";
 import fs from "fs";
@@ -87,13 +86,6 @@ export async function getBytecode(
   for (const web3 of web3Array) {
     try {
       const bytecode = await raceWithTimeout(web3, RPC_TIMEOUT, address);
-      if (bytecode) {
-        SourcifyEventManager.trigger("Verification.ExecutionBytecodeFetched", {
-          chain: (await web3.eth.getChainId()).toString(),
-          address: address,
-          executionBytecode: bytecode,
-        });
-      }
       return bytecode;
     } catch (err) {
       console.log(err);
@@ -113,32 +105,26 @@ const RECOMPILATION_ERR_MSG =
  */
 export async function recompile(
   metadata: any,
-  sources: StringMap
+  sources: StringMap,
+  log: InfoErrorLogger
 ): Promise<RecompilationResult> {
   let solcJsonInput, fileName, contractName;
   try {
     ({ solcJsonInput, fileName, contractName } = createJsonInputFromMetadata(
       metadata,
-      sources
+      sources,
+      log
     ));
   } catch (e) {
-    const error = new Error("Cannot parse metadata");
-    SourcifyEventManager.trigger("Verification.Error", {
-      message: error.message,
-      stack: error.stack,
-      details: {
-        metadata,
-        sources,
-        fileName,
-        contractName,
-      },
-    });
-    throw error;
+    throw new Error("Cannot parse metadata");
   }
 
+  const loc = "[RECOMPILE]";
   const version = metadata.compiler.version;
 
-  const output = await useCompiler(version, solcJsonInput);
+  log.info({ loc, fileName, contractName, version }, "Recompiling");
+
+  const output = await useCompiler(version, solcJsonInput, log);
   if (
     !output.contracts ||
     !output.contracts[fileName] ||
@@ -148,22 +134,11 @@ export async function recompile(
   ) {
     const errorMessages = output.errors
       .filter((e: any) => e.severity === "error")
-      .map((e: any) => e.formattedMessage);
-
-    const error = new Error("Compiler error");
-    SourcifyEventManager.trigger("Verification.Error", {
-      message: error.message,
-      stack: error.stack,
-      details: {
-        metadata,
-        sources,
-        fileName,
-        contractName,
-        version,
-        errorMessages,
-      },
-    });
-    throw error;
+      .map((e: any) => e.formattedMessage)
+      .join("\n");
+    log.error({ loc, fileName, contractName, version, errorMessages });
+    throw new Error("Compiler error:\n " + errorMessages);
+    // throw new Error(RECOMPILATION_ERR_MSG);
   }
 
   const contract: any = output.contracts[fileName][contractName];
@@ -197,79 +172,60 @@ export function findContractPathFromContractName(
  * @param log the logger
  * @returns stringified solc output
  */
-export async function useCompiler(version: string, solcJsonInput: any) {
+export async function useCompiler(
+  version: string,
+  solcJsonInput: any,
+  log: InfoErrorLogger
+) {
   const inputStringified = JSON.stringify(solcJsonInput);
-  const solcPath = await getSolcExecutable(version);
+  const solcPath = await getSolcExecutable(version, log);
   let compiled: string | undefined;
 
   if (solcPath) {
+    const logObject = { loc: "[RECOMPILE]", version, solcPath };
+    log.info(logObject, "Compiling with external executable");
+
     const shellOutputBuffer = spawnSync(solcPath, ["--standard-json"], {
       input: inputStringified,
       maxBuffer: 1000 * 1000 * 10,
     });
 
     // Handle errors.
-    let error: false | Error = false;
     if (shellOutputBuffer.error) {
       const typedError: NodeJS.ErrnoException = shellOutputBuffer.error;
       // Handle compilation output size > stdout buffer
       if (typedError.code === "ENOBUFS") {
-        error = new Error("Compilation output size too large");
+        log.error(logObject, shellOutputBuffer.error || RECOMPILATION_ERR_MSG);
+        throw new Error("Compilation output size too large");
       }
-      error = new Error("Compilation Error");
+      log.error(logObject, shellOutputBuffer.error || RECOMPILATION_ERR_MSG);
+      throw new Error("Compilation Error");
     }
     if (!shellOutputBuffer.stdout) {
-      error = new Error(RECOMPILATION_ERR_MSG);
-    }
-    if (error) {
-      SourcifyEventManager.trigger("Verification.Error", {
-        message: error.message,
-        stack: error.stack,
-        details: {
-          version,
-          solcPath,
-          compilationError: shellOutputBuffer.error || RECOMPILATION_ERR_MSG,
-          solcJsonInput,
-        },
-      });
-      throw error;
+      log.error(logObject, shellOutputBuffer.error || RECOMPILATION_ERR_MSG);
+      throw new Error(RECOMPILATION_ERR_MSG);
     }
     compiled = shellOutputBuffer.stdout.toString();
   } else {
-    const soljson = await getSolcJs(version);
+    const soljson = await getSolcJs(version, log);
     compiled = soljson.compile(inputStringified);
   }
 
-  if (!compiled) {
+  if (!compiled)
     throw new Error("Compilation failed. No output from the compiler.");
-  }
   const compiledJSON = JSON.parse(compiled);
-  const errorMessages = compiledJSON?.errors?.filter(
-    (e: any) => e.severity === "error"
-  );
-  if (errorMessages && errorMessages.length > 0) {
-    const error = new Error("Compiler error:\n " + errorMessages);
-    SourcifyEventManager.trigger("Verification.Error", {
-      message: error.message,
-      stack: error.stack,
-      details: {
-        version,
-        solcPath,
-        solcJsonInput,
-        compilationError: errorMessages,
-      },
-    });
-    throw error;
+  const errorMessages = compiledJSON?.errors
+    ?.filter((e: any) => e.severity === "error")
+    .map((e: any) => e.formattedMessage)
+    .join("\n");
+  if (errorMessages) {
+    log.error({ loc: "[RECOMPILE]", version }, errorMessages);
+    throw new Error("Compiler error:\n " + errorMessages);
   }
-  SourcifyEventManager.trigger("Verification.Compiled", {
-    version,
-    solcPath,
-    solcJsonInput,
-  });
   return compiledJSON;
 }
 
-function validateSolcPath(solcPath: string): boolean {
+function validateSolcPath(solcPath: string, log: InfoErrorLogger): boolean {
   const spawned = spawnSync(solcPath, ["--version"]);
   if (spawned.status === 0) {
     return true;
@@ -279,17 +235,14 @@ function validateSolcPath(solcPath: string): boolean {
     spawned?.error?.message ||
     spawned.stderr.toString() ||
     "Error running solc, are you on the right platoform? (e.g. x64 vs arm)";
-
-  SourcifyEventManager.trigger("Verification.Error", {
-    message: error,
-    details: {
-      solcPath,
-    },
-  });
+  log.error({ loc: "[VALIDATE_SOLC_PATH]", solcPath, error });
   return false;
 }
 
-async function getSolcExecutable(version: string): Promise<string | null> {
+async function getSolcExecutable(
+  version: string,
+  log: InfoErrorLogger
+): Promise<string | null> {
   const fileName = `solc-linux-amd64-v${version}`;
   const tmpSolcRepo =
     process.env.SOLC_REPO_TMP || Path.join("/tmp", "solc-repo");
@@ -297,24 +250,34 @@ async function getSolcExecutable(version: string): Promise<string | null> {
   const repoPaths = [tmpSolcRepo, process.env.SOLC_REPO || "solc-repo"];
   for (const repoPath of repoPaths) {
     const solcPath = Path.join(repoPath, fileName);
-    if (fs.existsSync(solcPath) && validateSolcPath(solcPath)) {
+    if (fs.existsSync(solcPath) && validateSolcPath(solcPath, log)) {
       return solcPath;
     }
   }
 
   const tmpSolcPath = Path.join(tmpSolcRepo, fileName);
-  const success = await fetchSolcFromGitHub(tmpSolcPath, version, fileName);
+  const success = await fetchSolcFromGitHub(
+    tmpSolcPath,
+    version,
+    fileName,
+    log
+  );
   return success ? tmpSolcPath : null;
 }
 
 async function fetchSolcFromGitHub(
   solcPath: string,
   version: string,
-  fileName: string
+  fileName: string,
+  log: InfoErrorLogger
 ): Promise<boolean> {
   const githubSolcURI = GITHUB_SOLC_REPO + encodeURIComponent(fileName);
+  const logObject = { loc: "[RECOMPILE]", version, githubSolcURI };
+  log.info(logObject, "Fetching executable solc from GitHub");
+
   const res = await fetch(githubSolcURI);
   if (res.status === StatusCodes.OK) {
+    log.info(logObject, "Successfully fetched executable solc from GitHub");
     fs.mkdirSync(Path.dirname(solcPath), { recursive: true });
     const buffer = await res.buffer();
 
@@ -324,23 +287,11 @@ async function fetchSolcFromGitHub(
       undefined;
     }
     fs.writeFileSync(solcPath, buffer, { mode: 0o755 });
-    if (validateSolcPath(solcPath)) {
-      SourcifyEventManager.trigger("Verification.GotSolcGithub", {
-        source: "remote",
-        version,
-        url: githubSolcURI,
-      });
+    if (validateSolcPath(solcPath, log)) {
       return true;
     }
   } else {
-    SourcifyEventManager.trigger("Verification.Error", {
-      message: "Failed fetching executable solc from GitHub",
-      details: {
-        source: "remote",
-        version,
-        url: githubSolcURI,
-      },
-    });
+    log.error(logObject, "Failed fetching executable solc from GitHub");
   }
 
   return false;
@@ -378,7 +329,10 @@ export function trimAuxdata(bytecode: string): string {
  *
  * @returns the requested solc instance
  */
-export function getSolcJs(version = "latest"): Promise<any> {
+export function getSolcJs(
+  version = "latest",
+  log: InfoErrorLogger
+): Promise<any> {
   // /^\d+\.\d+\.\d+\+commit\.[a-f0-9]{8}$/
   version = version.trim();
   if (version !== "latest" && !version.startsWith("v")) {
@@ -387,12 +341,13 @@ export function getSolcJs(version = "latest"): Promise<any> {
 
   const soljsonRepo = process.env.SOLJSON_REPO || "soljson-repo";
   const soljsonPath = Path.resolve(soljsonRepo, `soljson-${version}.js`);
+  log.info(
+    { loc: "[GET_SOLC]", target: soljsonPath },
+    "Searching for js solc locally"
+  );
 
   if (fs.existsSync(soljsonPath)) {
-    SourcifyEventManager.trigger("Verification.GotSolcJS", {
-      source: "local",
-      version,
-    });
+    log.info({ loc: "[GET_SOLC]" }, "Found js solc locally");
     return new Promise((resolve) => {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const soljson = solc.setupMethods(require(soljsonPath));
@@ -400,23 +355,17 @@ export function getSolcJs(version = "latest"): Promise<any> {
     });
   }
 
+  log.info({ loc: "[GET_SOLC]", version }, "Searching for js solc remotely");
   return new Promise((resolve, reject) => {
     solc.loadRemoteVersion(version, (error: Error, soljson: any) => {
       if (error) {
-        SourcifyEventManager.trigger("Verification.Error", {
-          message: error.message,
-          stack: error.stack,
-          details: {
-            source: "remote",
-            version,
-          },
-        });
+        log.error(
+          { loc: "[GET_SOLC]", version },
+          "Could not find solc remotely"
+        );
         reject(error);
       } else {
-        SourcifyEventManager.trigger("Verification.GotSolcJS", {
-          source: "local",
-          version,
-        });
+        log.info({ loc: "[GET_SOLC]", version }, "Found solc remotely");
         resolve(soljson);
       }
     });

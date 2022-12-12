@@ -1,6 +1,5 @@
 import * as dotenv from "dotenv";
 import path from "path";
-import { SourcifyEventManager } from "./services/EventManager";
 
 dotenv.config({
   path: path.resolve(__dirname, "..", "..", "..", "environments/.env"),
@@ -48,9 +47,9 @@ function buildAlchemyAndCustomRpcURLs(
     if (url) {
       rpcURLs.push(url);
     } else {
-      SourcifyEventManager.trigger("Core.Error", {
-        message: `Environment variable NODE_URL_${chainSubName.toUpperCase()} not set!`,
-      });
+      console.warn(
+        `Environment variable NODE_URL_${chainSubName.toUpperCase()} not set!`
+      );
     }
   }
 
@@ -70,9 +69,9 @@ function buildAlchemyAndCustomRpcURLs(
   }
 
   if (!alchemyId)
-    SourcifyEventManager.trigger("Core.Error", {
-      message: `Environment variable ALCHEMY_ID not set for ${chainName} ${chainSubName}!`,
-    });
+    console.warn(
+      `Environment variable ALCHEMY_ID not set for ${chainName} ${chainSubName}!`
+    );
 
   const domain = "g.alchemy.com";
   // No sepolia support yet

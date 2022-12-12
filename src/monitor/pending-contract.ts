@@ -1,6 +1,7 @@
-import { SourcifyEventManager, StringMap } from "@ethereum-sourcify/core";
+import { StringMap } from "@ethereum-sourcify/core";
 import SourceFetcher from "./source-fetcher";
 import { SourceAddress } from "./util";
+import Logger from "bunyan";
 import Web3 from "web3";
 import { CheckedContract, isEmpty } from "@ethereum-sourcify/core";
 
@@ -21,6 +22,7 @@ export default class PendingContract {
   private fetchedSources: StringMap = {};
   private sourceFetcher: SourceFetcher;
   private callback: (contract: CheckedContract) => void;
+  private logger = new Logger({ name: "Pending Contract" });
 
   constructor(
     sourceFetcher: SourceFetcher,
@@ -41,6 +43,10 @@ export default class PendingContract {
 
   private addMetadata = (rawMetadata: string) => {
     this.metadata = JSON.parse(rawMetadata) as Metadata;
+    const loc = "[PENDING_CONTRACT:ADD_METADATA]";
+
+    const count = Object.keys(this.metadata.sources).length;
+    this.logger.info({ loc, count }, "New pending files");
 
     for (const name in this.metadata.sources) {
       const source = this.metadata.sources[name];
@@ -50,14 +56,8 @@ export default class PendingContract {
         this.fetchedSources[name] = source.content;
         continue;
       } else if (!source.keccak256) {
-        const err =
-          "PendingContract.addMetadata: The source provides neither content nor keccak256";
-        SourcifyEventManager.trigger("Monitor.Error", {
-          message: err,
-          details: {
-            name,
-          },
-        });
+        const err = "The source provides neither content nor keccak256";
+        this.logger.error({ loc, name, err });
         break;
       }
       this.pendingSources[source.keccak256] = source;
@@ -66,14 +66,10 @@ export default class PendingContract {
       for (const url of source.urls) {
         const sourceAddress = SourceAddress.fromUrl(url);
         if (!sourceAddress) {
-          SourcifyEventManager.trigger("Monitor.Error", {
-            message:
-              "PendingContract.addMetadata: Could not determine source file location",
-            details: {
-              name,
-              url,
-            },
-          });
+          this.logger.error(
+            { loc, url, name },
+            "Could not determine source file location"
+          );
           continue;
         }
         sourceAddresses.push(sourceAddress);
