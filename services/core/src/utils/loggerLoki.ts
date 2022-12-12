@@ -6,10 +6,10 @@ dotenv.config();
 
 const loggerInstance = createLogger();
 
-if (process.env.GRAFANA_LOKI_EXTERNAL_PORT) {
+if (process.env.GRAFANA_LOKI_URL) {
   loggerInstance.add(
     new LokiTransport({
-      host: `http://${process.env.GRAFANA_LOKI_HOST}:${process.env.GRAFANA_LOKI_EXTERNAL_PORT}`,
+      host: process.env.GRAFANA_LOKI_URL,
       json: true,
       format: format.combine(
         format((info) => {
