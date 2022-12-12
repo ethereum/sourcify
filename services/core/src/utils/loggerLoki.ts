@@ -6,6 +6,7 @@ dotenv.config();
 
 const loggerInstance = createLogger();
 
+// Enable loki only if GRAFANA_LOKI_URL is defined
 if (process.env.GRAFANA_LOKI_URL) {
   loggerInstance.add(
     new LokiTransport({
