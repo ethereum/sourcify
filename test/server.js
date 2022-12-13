@@ -286,20 +286,15 @@ describe("Server", function () {
     const agent = chai.request.agent(server.app);
     let verificationId;
 
-    it("should input contract and retrieve files", async () => {
-      const metadata = fs.readFileSync(
-        "test/testcontracts/Create2/metadata.json"
-      );
-      const bytecode = fs
-        .readFileSync("test/testcontracts/Create2/bytecode.hex")
-        .toString();
+    it("should input files from existing contract via auxdata ipfs", async () => {
+      const artifacts = require("./testcontracts/Create2/Wallet.json");
 
       const addressDeployed = await deployFromAbiAndBytecode(
         localWeb3Provider,
-        JSON.parse(metadata).output.abi,
-        bytecode,
+        artifacts.abi,
+        artifacts.bytecode,
         accounts[0],
-        [accounts[0]]
+        [accounts[0], accounts[0]]
       );
 
       const res = await agent
@@ -312,7 +307,7 @@ describe("Server", function () {
       const contract = res.body.contracts[0];
       chai.expect(contract.files.found).to.have.a.lengthOf(1);
       const retrivedFile = contract.files.found[0];
-      chai.expect(retrivedFile).to.equal("contracts/Account.sol");
+      chai.expect(retrivedFile).to.equal("contracts/create2/Wallet.sol");
     });
 
     it("should create2 verify", (done) => {
@@ -325,16 +320,12 @@ describe("Server", function () {
       agent
         .post("/session/verify/create2")
         .send({
-          deployerAddress: "0x4a27c059FD7E383854Ea7DE6Be9c390a795f6eE3",
-          salt: 1,
-          constructorArgs: [
-            {
-              type: "address",
-              value: "0x303de46de694cc75a2f66da93ac86c6a6eee607e",
-            },
-          ],
+          deployerAddress: "0xd9145CCE52D386f254917e481eB44e9943F39138",
+          salt: 12345,
+          abiEncodedConstructorArguments:
+            "0x0000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc40000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc4",
           clientToken: clientToken || "",
-          create2Address: "0xc416de86d3a707ae7c082eed0d8858fcbef076ce",
+          create2Address: "0x801B9c0Ee599C3E5ED60e4Ec285C95fC9878Ee64",
           verificationId: verificationId,
         })
         .end((err, res) => {
@@ -345,10 +336,10 @@ describe("Server", function () {
 
     it("should create2 verify through API", (done) => {
       const metadata = fs
-        .readFileSync("test/testcontracts/Create2/metadata.json")
+        .readFileSync("test/testcontracts/Create2/Wallet_metadata.json")
         .toString();
       const source = fs
-        .readFileSync("test/testcontracts/Create2/Account.sol")
+        .readFileSync("test/testcontracts/Create2/Wallet.sol")
         .toString();
       let clientToken;
       const sourcifyClientTokensRaw = process.env.CREATE2_CLIENT_TOKENS;
@@ -360,20 +351,16 @@ describe("Server", function () {
         .request(server.app)
         .post("/verify/create2")
         .send({
-          deployerAddress: "0x4a27c059FD7E383854Ea7DE6Be9c390a795f6eE3",
-          salt: 1,
-          constructorArgs: [
-            {
-              type: "address",
-              value: "0x303de46de694cc75a2f66da93ac86c6a6eee607e",
-            },
-          ],
+          deployerAddress: "0xd9145CCE52D386f254917e481eB44e9943F39138",
+          salt: 12345,
+          abiEncodedConstructorArguments:
+            "0x0000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc40000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc4",
           files: {
             "metadata.json": metadata,
-            "Account.sol": source,
+            "Wallet.sol": source,
           },
           clientToken: clientToken || "",
-          create2Address: "0xc416de86d3a707ae7c082eed0d8858fcbef076ce",
+          create2Address: "0x801B9c0Ee599C3E5ED60e4Ec285C95fC9878Ee64",
         })
         .end((err, res) => {
           assertAPIAllFound(err, res, "perfect");

@@ -14,7 +14,6 @@ import {
   Status,
   Metadata,
   Create2Args,
-  Create2ConstructorArgument,
 } from "@ethereum-sourcify/core";
 import {
   RecompilationResult,
@@ -306,7 +305,7 @@ export class Injector {
       address,
       chainId: chain,
       status: null,
-      encodedConstructorArgs: undefined,
+      abiEncodedConstructorArguments: undefined,
       libraryMap: undefined,
       msgSender: undefined,
     };
@@ -413,7 +412,7 @@ export class Injector {
     creationBytecode: string,
     chainId: string,
     evmVersion: string,
-    encodedConstructorArgs?: string,
+    abiEncodedConstructorArguments?: string,
     msgSender?: string
   ): Promise<string> {
     const stateManager = new DefaultStateManager();
@@ -431,11 +430,11 @@ export class Injector {
     if (creationBytecode.startsWith("0x")) {
       creationBytecode = creationBytecode.slice(2);
     }
-    if (encodedConstructorArgs?.startsWith("0x")) {
-      encodedConstructorArgs = encodedConstructorArgs.slice(2);
+    if (abiEncodedConstructorArguments?.startsWith("0x")) {
+      abiEncodedConstructorArguments = abiEncodedConstructorArguments.slice(2);
     }
     const initcode = Buffer.from(
-      creationBytecode + encodedConstructorArgs,
+      creationBytecode + abiEncodedConstructorArguments,
       "hex"
     );
 
@@ -487,12 +486,13 @@ export class Injector {
       }
 
       if (constructorArguments)
-        match.encodedConstructorArgs = constructorArguments;
+        match.abiEncodedConstructorArguments = constructorArguments;
       else {
-        match.encodedConstructorArgs = this.extractEncodedConstructorArgs(
-          onchainBytecode,
-          recompiledBytecode
-        );
+        match.abiEncodedConstructorArguments =
+          this.extractAbiEncodedConstructorArguments(
+            onchainBytecode,
+            recompiledBytecode
+          );
       }
       return match;
     }
@@ -502,12 +502,13 @@ export class Injector {
     if (matchFunction(trimmedOnchainBytecode, trimmedRecompiledBytecode)) {
       match.status = "partial";
       if (constructorArguments) {
-        match.encodedConstructorArgs = constructorArguments;
+        match.abiEncodedConstructorArguments = constructorArguments;
       } else {
-        match.encodedConstructorArgs = this.extractEncodedConstructorArgs(
-          onchainBytecode,
-          recompiledBytecode
-        );
+        match.abiEncodedConstructorArguments =
+          this.extractAbiEncodedConstructorArguments(
+            onchainBytecode,
+            recompiledBytecode
+          );
       }
     }
 
@@ -651,7 +652,7 @@ export class Injector {
     return null;
   }
 
-  private extractEncodedConstructorArgs(
+  private extractAbiEncodedConstructorArguments(
     onchainCreationBytecode: string,
     compiledCreationBytecode: string
   ) {
@@ -722,12 +723,15 @@ export class Injector {
         compilationResult
       );
 
-      if (match.encodedConstructorArgs && match.encodedConstructorArgs.length) {
+      if (
+        match.abiEncodedConstructorArguments &&
+        match.abiEncodedConstructorArguments.length
+      ) {
         this.storeConstructorArgs(
           matchQuality,
           match.chainId,
           match.address,
-          match.encodedConstructorArgs
+          match.abiEncodedConstructorArguments
         );
       }
 
@@ -867,8 +871,8 @@ export class Injector {
     contract: CheckedContract,
     deployerAddress: string,
     salt: string,
-    constructorArgs: Create2ConstructorArgument[],
-    create2Address: string
+    create2Address: string,
+    abiEncodedConstructorArguments?: string
   ): Promise<Match> {
     const wrappedLogger = new LoggerWrapper(this.log);
 
@@ -876,37 +880,24 @@ export class Injector {
       await CheckedContract.fetchMissing(contract, wrappedLogger);
     }
 
-    const constructorArgsTypes = constructorArgs.map(
-      (arg: Create2ConstructorArgument) => arg.type
-    );
-    const constructorArgsValues = constructorArgs.map(
-      (arg: Create2ConstructorArgument) => arg.value
-    );
-
     const compilationResult = await recompile(
       contract.metadata,
       contract.solidity,
       wrappedLogger
     );
 
-    const computedAddr = getCreate2Address({
-      factoryAddress: deployerAddress,
+    const computedAddr = getCreate2Address(
+      deployerAddress,
       salt,
-      contractBytecode: compilationResult.creationBytecode,
-      constructorTypes: constructorArgsTypes,
-      constructorArgs: constructorArgsValues,
-    });
+      compilationResult.creationBytecode,
+      abiEncodedConstructorArguments
+    );
 
-    if (create2Address !== computedAddr) {
+    if (create2Address.toLowerCase() !== computedAddr.toLowerCase()) {
       throw new Error(
         `The provided create2 address doesn't match server's generated one. Expected: ${computedAddr} ; Received: ${create2Address} ;`
       );
     }
-
-    const encodedConstructorArgs = this.extractEncodedConstructorArgs(
-      compilationResult.creationBytecode,
-      compilationResult.deployedBytecode
-    );
 
     const { libraryMap } = this.addLibraryAddresses(
       compilationResult.deployedBytecode,
@@ -916,7 +907,6 @@ export class Injector {
     const create2Args: Create2Args = {
       deployerAddress,
       salt,
-      constructorArgs,
     };
 
     const match: Match = {
@@ -924,7 +914,7 @@ export class Injector {
       chainId: "0",
       status: "perfect",
       storageTimestamp: new Date(),
-      encodedConstructorArgs: encodedConstructorArgs,
+      abiEncodedConstructorArguments,
       create2Args,
       libraryMap: libraryMap,
     };
@@ -1030,16 +1020,12 @@ export class Injector {
 
   /**
    * Writes the constructor arguments to the repository.
-   * @param matchQuality
-   * @param chain
-   * @param address
-   * @param encodedConstructorArgs
    */
   private storeConstructorArgs(
     matchQuality: MatchQuality,
     chain: string,
     address: string,
-    encodedConstructorArgs: string
+    abiEncodedConstructorArguments: string
   ) {
     this.fileService.save(
       {
@@ -1049,7 +1035,7 @@ export class Injector {
         source: false,
         fileName: "constructor-args.txt",
       },
-      encodedConstructorArgs
+      abiEncodedConstructorArguments
     );
   }
 

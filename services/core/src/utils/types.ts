@@ -75,7 +75,6 @@ export interface SourceMap {
 export interface Create2Args {
   deployerAddress: string;
   salt: string;
-  constructorArgs?: any[];
 }
 
 export interface Match {
@@ -84,7 +83,7 @@ export interface Match {
   status: Status;
   storageTimestamp?: Date;
   message?: string;
-  encodedConstructorArgs?: string;
+  abiEncodedConstructorArguments?: string;
   create2Args?: Create2Args;
   libraryMap?: StringMap;
   msgSender?: string;
@@ -255,9 +254,4 @@ export interface JsonInput {
   language: string;
   sources: Sources;
   settings?: Settings;
-}
-
-export interface Create2ConstructorArgument {
-  type: string;
-  value: any;
 }

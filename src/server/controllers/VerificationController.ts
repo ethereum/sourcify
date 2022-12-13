@@ -13,7 +13,6 @@ import {
   isEmpty,
   PathContent,
   Match,
-  Metadata,
   JsonInput,
 } from "@ethereum-sourcify/core";
 import {
@@ -27,7 +26,6 @@ import * as bunyan from "bunyan";
 import fileUpload from "express-fileupload";
 import { isValidAddress } from "../../common/validators/validators";
 import {
-  MySession,
   getSessionJSON,
   generateId,
   isVerifiable,
@@ -38,6 +36,8 @@ import {
   addRemoteFile,
   contractHasMultipleFiles,
   EtherscanResult,
+  Create2VerifyRequest,
+  SessionCreate2VerifyRequest,
 } from "./VerificationController-util";
 import { StatusCodes } from "http-status-codes";
 import { body, query, validationResult } from "express-validator";
@@ -46,6 +46,7 @@ import cors from "cors";
 import config from "../../config";
 import fetch from "node-fetch";
 import { NextFunction } from "express";
+import { Session } from "express-session";
 
 const FILE_ENCODING = "base64";
 const IPFS_GATEWAY = process.env.IPFS_GATEWAY || "https://ipfs.io/ipfs/";
@@ -270,78 +271,71 @@ export default class VerificationController
   };
 
   private verifyCreate2 = async (
-    origReq: Request,
+    req: Create2VerifyRequest,
     res: Response
   ): Promise<void> => {
-    const req = origReq as LegacyVerifyRequest;
     this.validateRequest(req);
 
-    const deployerAddress = req.body.deployerAddress;
-    const salt = req.body.salt;
-    const constructorArgs = req.body.constructorArgs || [];
-    const baseContract = req.body.baseContract || null;
-    const files = req.body.files || null;
-    const create2Address = req.body.create2Address;
+    const {
+      deployerAddress,
+      salt,
+      abiEncodedConstructorArguments,
+      files,
+      create2Address,
+    } = req.body;
 
-    if (files !== null) {
-      const inputFiles = this.extractFilesFromJSON(files);
-      if (!inputFiles) {
-        const msg =
-          "The contract at the provided address and chain has not yet been sourcified.";
-        throw new NotFoundError(msg);
-      }
-
-      let validatedContracts: CheckedContract[];
-      try {
-        validatedContracts = await this.validationService.checkFiles(
-          inputFiles
-        );
-      } catch (error: any) {
-        throw new BadRequestError(error.message);
-      }
-
-      const errors = validatedContracts
-        .filter((contract) => !CheckedContract.isValid(contract, true))
-        .map(this.stringifyInvalidAndMissing);
-      if (errors.length) {
-        throw new BadRequestError(
-          "Invalid or missing sources in:\n" + errors.join("\n"),
-          false
-        );
-      }
-
-      const contract: CheckedContract = validatedContracts[0];
-
-      const result = await this.verificationService.verifyCreate2(
-        contract,
-        deployerAddress,
-        salt,
-        constructorArgs,
-        create2Address
-      );
-      res.send({ result: [result] });
-    } else if (baseContract !== null) {
-      // TODO: verification with already verified contract
-    } else {
-      res.send({ result: "pass either address or files" });
+    const inputFiles = this.extractFilesFromJSON(files);
+    if (!inputFiles) {
+      throw new BadRequestError("No files found");
     }
+
+    let validatedContracts: CheckedContract[];
+    try {
+      validatedContracts = await this.validationService.checkFiles(inputFiles);
+    } catch (error) {
+      if (error instanceof Error) throw new BadRequestError(error.message);
+      throw error;
+    }
+
+    const errors = validatedContracts
+      .filter((contract) => !CheckedContract.isValid(contract, true))
+      .map(this.stringifyInvalidAndMissing);
+    if (errors.length) {
+      throw new BadRequestError(
+        "Invalid or missing sources in:\n" + errors.join("\n"),
+        false
+      );
+    }
+
+    const contract: CheckedContract = validatedContracts[0];
+
+    const result = await this.verificationService.verifyCreate2(
+      contract,
+      deployerAddress,
+      salt,
+      create2Address,
+      abiEncodedConstructorArguments
+    );
+    res.send({ result: [result] });
   };
 
   private sessionVerifyCreate2 = async (
-    req: Request,
+    req: SessionCreate2VerifyRequest,
     res: Response
   ): Promise<void> => {
-    const session = req.session as MySession;
+    const session = req.session;
     if (!session.contractWrappers || isEmpty(session.contractWrappers)) {
       throw new BadRequestError("There are currently no pending contracts.");
     }
 
-    const deployerAddress = req.body.deployerAddress;
-    const salt = req.body.salt;
-    const constructorArgs = req.body.constructorArgs || [];
+    const {
+      deployerAddress,
+      salt,
+      abiEncodedConstructorArguments,
+      verificationId,
+      create2Address,
+    } = req.body;
 
-    const verificationId = req.body.verificationId;
-    const create2Address = req.body.create2Address;
     const contractWrapper = session.contractWrappers[verificationId];
 
     const contract: CheckedContract = contractWrapper.contract;
@@ -350,8 +344,8 @@ export default class VerificationController
       contract,
       deployerAddress,
       salt,
-      constructorArgs,
-      create2Address
+      create2Address,
+      abiEncodedConstructorArguments
     );
 
     contractWrapper.status = match.status || "error";
@@ -366,7 +360,7 @@ export default class VerificationController
     req: Request,
     res: Response
   ): Promise<void> => {
-    const session = req.session as MySession;
+    const session = req.session;
     if (!session.contractWrappers || isEmpty(session.contractWrappers)) {
       throw new BadRequestError("There are currently no pending contracts.");
     }
@@ -419,7 +413,7 @@ export default class VerificationController
       path: "metadata.json",
       content: this.stringToBase64(JSON.stringify(metadata)),
     });
-    const session = req.session as MySession;
+    const session = req.session;
     const newFilesCount = this.saveFiles(pathContents, session);
     if (newFilesCount === 0) {
       throw new BadRequestError("The contract didn't add any new file");
@@ -607,7 +601,7 @@ export default class VerificationController
     res.send(resultArray);
   };
 
-  private validateContracts = async (session: MySession) => {
+  private validateContracts = async (session: Session) => {
     const pathBuffers: PathBuffer[] = [];
     for (const id in session.inputFiles) {
       const pathContent = session.inputFiles[id];
@@ -655,7 +649,7 @@ export default class VerificationController
   };
 
   private verifyValidatedEndpoint = async (req: Request, res: Response) => {
-    const session = req.session as MySession;
+    const session = req.session;
     if (!session.contractWrappers || isEmpty(session.contractWrappers)) {
       throw new BadRequestError("There are currently no pending contracts.");
     }
@@ -684,7 +678,7 @@ export default class VerificationController
 
   private async verifyValidated(
     contractWrappers: ContractWrapperMap,
-    session: MySession
+    session: Session
   ): Promise<void> {
     for (const id in contractWrappers) {
       const contractWrapper = contractWrappers[id];
@@ -784,7 +778,7 @@ export default class VerificationController
     return fileArr.map((f) => ({ path: f.name, buffer: f.data }));
   }
 
-  private extractFilesFromJSON(files: any): PathBuffer[] {
+  private extractFilesFromJSON(files: { [key: string]: string }): PathBuffer[] {
     const inputFiles = [];
     for (const name in files) {
       const file = files[name];
@@ -794,7 +788,7 @@ export default class VerificationController
     return inputFiles;
   }
 
-  private saveFiles(pathContents: PathContent[], session: MySession): number {
+  private saveFiles(pathContents: PathContent[], session: Session): number {
     if (!session.inputFiles) {
       session.inputFiles = {};
     }
@@ -839,7 +833,7 @@ export default class VerificationController
       return { path: pb.path, content: pb.buffer.toString(FILE_ENCODING) };
     });
 
-    const session = req.session as MySession;
+    const session = req.session;
     const newFilesCount = this.saveFiles(pathContents, session);
     if (newFilesCount) {
       await this.validateContracts(session);
@@ -884,7 +878,8 @@ export default class VerificationController
       content: retrievedMetadataBase64,
     });
 
-    const session = req.session as MySession;
+    const session = req.session;
+
     const newFilesCount = this.saveFiles(pathContents, session);
     if (newFilesCount) {
       await this.validateContracts(session);
@@ -919,7 +914,7 @@ export default class VerificationController
   };
 
   private getSessionDataEndpoint = async (req: Request, res: Response) => {
-    res.send(getSessionJSON(req.session as MySession));
+    res.send(getSessionJSON(req.session));
   };
 
   private validateRequest(req: Request) {
@@ -986,6 +981,7 @@ export default class VerificationController
       this.safeHandler(this.verifyFromEtherscan)
     );
 
+    // TODO: Use schema validation for request validation https://express-validator.github.io/docs/schema-validation.html
     this.router.route(["/verify/create2"]).post(
       body("deployerAddress")
         .exists()
@@ -995,6 +991,9 @@ export default class VerificationController
           req.deployerAddress = addresses.length > 0 ? addresses[0] : "";
           return true;
         }),
+      body("salt").exists().bail(),
+      body("abiEncodedConstructorArguments").optional(),
+      body("files").exists().bail(),
       body("create2Address")
         .exists()
         .bail()
@@ -1003,8 +1002,6 @@ export default class VerificationController
           req.create2Address = addresses.length > 0 ? addresses[0] : "";
           return true;
         }),
-      body("salt").exists(),
-      body("constructorArgs").exists(),
       this.authenticatedRequest,
       this.safeHandler(this.verifyCreate2)
     );
@@ -1091,20 +1088,21 @@ export default class VerificationController
       .post(
         body("deployerAddress")
           .exists()
-          .bail()
           .custom((deployerAddress, { req }) => {
             const addresses = this.validateAddresses(deployerAddress);
             req.deployerAddress = addresses.length > 0 ? addresses[0] : "";
+            return true;
           }),
+        body("salt").exists(),
+        body("abiEncodedConstructorArguments").optional(),
+        body("files").exists(),
         body("create2Address")
           .exists()
-          .bail()
           .custom((create2Address, { req }) => {
             const addresses = this.validateAddresses(create2Address);
             req.create2Address = addresses.length > 0 ? addresses[0] : "";
+            return true;
           }),
-        body("salt").exists(),
-        body("constructorArgs").exists(),
         body("verificationId").exists(),
         cors(corsOpt),
         this.authenticatedRequest,

@@ -12,7 +12,7 @@ import fs from "fs";
 const solc = require("solc");
 import { spawnSync } from "child_process";
 import { StatusCodes } from "http-status-codes";
-import { ethers } from "ethers";
+import { ethers, BigNumber } from "ethers";
 
 const GITHUB_SOLC_REPO =
   "https://github.com/ethereum/solc-bin/raw/gh-pages/linux-amd64/";
@@ -592,59 +592,41 @@ export async function getCreationDataFromGraphQL(
   }
 }
 
-export const buildCreate2Address = (
-  factoryAddress: string,
-  saltHex: string,
-  byteCode: string
-) => {
-  return `0x${ethers.utils
+export const saltToHex = (salt: string) => {
+  if (ethers.utils.isHexString(salt)) {
+    return ethers.utils.hexZeroPad(salt, 32);
+  }
+  const bn = BigNumber.from(salt);
+  const hex = bn.toHexString();
+  const paddedHex = ethers.utils.hexZeroPad(hex, 32);
+  return paddedHex;
+};
+
+export function getCreate2Address(
+  deployerAddress: string,
+  salt: string,
+  creationBytecode: string,
+  abiEncodedConstructorArguments?: string
+) {
+  let initcode = creationBytecode;
+
+  if (abiEncodedConstructorArguments) {
+    initcode += abiEncodedConstructorArguments.startsWith("0x")
+      ? abiEncodedConstructorArguments.slice(2)
+      : abiEncodedConstructorArguments;
+  }
+
+  const address = `0x${ethers.utils
     .keccak256(
-      `0x${["ff", factoryAddress, saltHex, ethers.utils.keccak256(byteCode)]
+      `0x${[
+        "ff",
+        deployerAddress,
+        saltToHex(salt),
+        ethers.utils.keccak256(initcode),
+      ]
         .map((x) => x.replace(/0x/, ""))
         .join("")}`
     )
-    .slice(-40)}`.toLowerCase();
-};
-
-export const saltToHex = (salt: string | number) => {
-  salt = salt.toString();
-  if (ethers.utils.isHexString(salt)) {
-    return salt;
-  }
-
-  return ethers.utils.id(salt);
-};
-
-export const encodeParams = (dataTypes: any[], data: any[]) => {
-  const abiCoder = ethers.utils.defaultAbiCoder;
-  return abiCoder.encode(dataTypes, data);
-};
-
-export const buildBytecode = (
-  constructorTypes: any[],
-  constructorArgs: any[],
-  contractBytecode: string
-) =>
-  `${contractBytecode}${encodeParams(constructorTypes, constructorArgs).slice(
-    2
-  )}`;
-
-export function getCreate2Address({
-  factoryAddress,
-  salt,
-  contractBytecode,
-  constructorTypes = [] as string[],
-  constructorArgs = [] as any[],
-}: {
-  factoryAddress: string;
-  salt: string | number;
-  contractBytecode: string;
-  constructorTypes?: string[];
-  constructorArgs?: any[];
-}) {
-  return buildCreate2Address(
-    factoryAddress,
-    saltToHex(salt),
-    buildBytecode(constructorTypes, constructorArgs, contractBytecode)
-  );
+    .slice(-40)}`; // last 20 bytes
+  return ethers.utils.getAddress(address); // checksum
 }

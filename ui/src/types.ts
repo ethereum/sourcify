@@ -84,7 +84,7 @@ export interface Match {
   status: Status;
   storageTimestamp?: Date;
   message?: string;
-  encodedConstructorArgs?: string;
+  abiEncodedConstructorArguments?: string;
   libraryMap?: StringMap;
 }
 

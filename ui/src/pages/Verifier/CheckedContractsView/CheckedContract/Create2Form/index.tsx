@@ -1,4 +1,4 @@
-import { isAddress } from "@ethersproject/address";
+import { getAddress, isAddress } from "@ethersproject/address";
 import React, {
   ChangeEventHandler,
   FormEventHandler,
@@ -16,18 +16,19 @@ import {
 import Message from "../ChainAddressForm/Message";
 import LoadingOverlay from "../../../../../components/LoadingOverlay";
 import ConstructorArguments from "../../../../../components/ConstructorArguments";
+import { BigNumber } from "@ethersproject/bignumber";
 import { keccak256 } from "@ethersproject/keccak256";
-import { isHexString } from "@ethersproject/bytes";
-import { id } from "@ethersproject/hash";
+import { isHexString, hexZeroPad } from "@ethersproject/bytes";
 import InputToggle from "../../../../../components/InputToggle";
 
-export const saltToHex = (salt: string | number) => {
-  salt = salt.toString();
+export const saltToHex = (salt: string) => {
   if (isHexString(salt)) {
-    return salt;
+    return hexZeroPad(salt, 32);
   }
-
-  return id(salt);
+  const bn = BigNumber.from(salt);
+  const hex = bn.toHexString();
+  const paddedHex = hexZeroPad(hex, 32);
+  return paddedHex;
 };
 
 const buildCreate2Address = (
@@ -35,11 +36,12 @@ const buildCreate2Address = (
   saltHex: string,
   byteCode: string
 ) => {
-  return `0x${keccak256(
+  const address = `0x${keccak256(
     `0x${["ff", factoryAddress, saltHex, keccak256(byteCode)]
       .map((x) => x.replace(/0x/, ""))
       .join("")}`
   ).slice(-40)}`.toLowerCase();
+  return getAddress(address); //checksum
 };
 
 type ChainAddressFormProps = {
