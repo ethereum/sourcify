@@ -874,6 +874,7 @@ export default class VerificationController
     const newFilesCount = this.saveFiles(pathContents, session);
     if (newFilesCount) {
       await this.validateContracts(session);
+      // verifyValidated fetches missing files from the contract
       await this.verifyValidated(session.contractWrappers, session);
     }
     res.send(getSessionJSON(session));
