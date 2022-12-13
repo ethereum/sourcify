@@ -282,6 +282,7 @@ describe("Server", function () {
         [accounts[0]]
       );
 
+      process.env.IPFS_GATEWAY = "https://ipfs.io/ipfs/";
       const res = await agent
         .post("/session/input-contract")
         .field("address", addressDeployed)
