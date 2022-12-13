@@ -962,7 +962,7 @@ describe("Server", function () {
       assertions(null, res, null, childAddress);
     });
 
-    it("should first fail to verify a contract created by a factory contract and has an immutable set by `msg.sender`. Then suceed with the `msg.sender` input and save the msgSender.txt", async () => {
+    it("should first fail to verify a contract created by a factory contract and has an immutable set by `msg.sender`. Then suceed with the `msg.sender` input and save the contextVariables", async () => {
       const deployValue = 12345;
 
       const artifact = require("./testcontracts/FactoryImmutableWithMsgSender/Factory.json");
@@ -1021,17 +1021,21 @@ describe("Server", function () {
         .send();
       assertions(null, res2, null, childAddress);
 
-      // Check if msgSender.txt saved correctly
+      // Check if contextVariables.json saved correctly
       assertEqualityFromPath(
-        factoryAddress,
+        {
+          msgSender: factoryAddress,
+          abiEncodedConstructorArguments: abiEncoded,
+        },
         path.join(
           process.env.MOCK_REPOSITORY,
           "contracts",
           "full_match",
           defaultContractChain,
           childAddress,
-          "msgSender.txt"
-        )
+          "contextVariables.json"
+        ),
+        { isJson: true }
       );
     });
 
@@ -1639,7 +1643,7 @@ describe("Server", function () {
       assertSingleContractStatus(res, "perfect");
     });
 
-    it("should first fail to verify a contract created by a factory contract and has an immutable set by `msg.sender`. Then suceed with the `msg.sender` input.", async () => {
+    it("should first fail to verify a contract created by a factory contract and has an immutable set by `msg.sender`. Then suceed with the `msg.sender` input and save the contextVariables", async () => {
       const deployValue = 12345;
 
       const artifact = require("./testcontracts/FactoryImmutableWithMsgSender/Factory.json");
@@ -1698,17 +1702,21 @@ describe("Server", function () {
         .send({ contracts });
       assertSingleContractStatus(res3, "perfect");
 
-      // Check if msgSender.txt saved correctly
+      // Check if contextVariables.json saved correctly
       assertEqualityFromPath(
-        factoryAddress,
+        {
+          msgSender: factoryAddress,
+          abiEncodedConstructorArguments: abiEncoded,
+        },
         path.join(
           process.env.MOCK_REPOSITORY,
           "contracts",
           "full_match",
           defaultContractChain,
           childAddress,
-          "msgSender.txt"
-        )
+          "contextVariables.json"
+        ),
+        { isJson: true }
       );
     });
 

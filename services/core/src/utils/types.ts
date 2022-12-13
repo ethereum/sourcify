@@ -77,6 +77,11 @@ export interface Create2Args {
   salt: string;
 }
 
+// Variables that will be needed to reproduce a contract verification, particularly via simulateCreationBytecode
+export interface ContextVariables {
+  msgSender?: string;
+  abiEncodedConstructorArguments?: string;
+}
 export interface Match {
   address: string;
   chainId: string;
@@ -86,7 +91,7 @@ export interface Match {
   abiEncodedConstructorArguments?: string;
   create2Args?: Create2Args;
   libraryMap?: StringMap;
-  msgSender?: string;
+  contextVariables?: ContextVariables;
 }
 
 export type Status =

@@ -14,6 +14,7 @@ import {
   Status,
   Metadata,
   Create2Args,
+  ContextVariables,
 } from "@ethereum-sourcify/core";
 import {
   RecompilationResult,
@@ -307,7 +308,7 @@ export class Injector {
       status: null,
       abiEncodedConstructorArguments: undefined,
       libraryMap: undefined,
-      msgSender: undefined,
+      contextVariables: undefined,
     };
 
     const { replaced, libraryMap } = this.addLibraryAddresses(
@@ -347,7 +348,10 @@ export class Injector {
             constructorArguments
           );
           if (match.status) {
-            match.msgSender = msgSender;
+            match.contextVariables = {};
+            match.contextVariables.msgSender = msgSender;
+            match.contextVariables.abiEncodedConstructorArguments =
+              constructorArguments;
             return match;
           }
         }
@@ -735,12 +739,15 @@ export class Injector {
         );
       }
 
-      if (match.msgSender) {
-        this.storeMsgSender(
+      if (
+        match.contextVariables &&
+        Object.keys(match.contextVariables).length > 0
+      ) {
+        this.storeContextVariables(
           matchQuality,
           match.chainId,
           match.address,
-          match.msgSender
+          match.contextVariables
         );
       }
 
@@ -1039,11 +1046,11 @@ export class Injector {
     );
   }
 
-  private storeMsgSender(
+  private storeContextVariables(
     matchQuality: MatchQuality,
     chain: string,
     address: string,
-    msgSender: string
+    contextVariables: ContextVariables
   ) {
     this.fileService.save(
       {
@@ -1051,9 +1058,9 @@ export class Injector {
         chain,
         address,
         source: false,
-        fileName: "msgSender.txt",
+        fileName: "contextVariables.json",
       },
-      msgSender
+      JSON.stringify(contextVariables, undefined, 2)
     );
   }
 

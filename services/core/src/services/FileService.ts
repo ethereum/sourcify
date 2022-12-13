@@ -325,15 +325,15 @@ export class FileService implements IFileService {
    * Save file to repository and update the repository tag. The path may include non-existent parent directories.
    *
    * @param path the path within the repository where the file will be stored
-   * @param file the content to be stored
+   * @param content the content to be stored
    */
-  save(path: string | PathConfig, file: string) {
+  save(path: string | PathConfig, content: string) {
     const abolsutePath =
       typeof path === "string"
         ? Path.join(this.repositoryPath, path)
         : this.generateAbsoluteFilePath(path);
     fs.mkdirSync(Path.dirname(abolsutePath), { recursive: true });
-    fs.writeFileSync(abolsutePath, file);
+    fs.writeFileSync(abolsutePath, content);
     this.updateRepositoryTag();
   }
 
