@@ -1,0 +1,48 @@
+version: "3.7"
+
+x-project-base: &project-base
+  env_file:
+    - .env
+  restart: always
+  networks:
+    - source-verify
+
+networks:
+  source-verify:
+
+services:
+  loki:
+    container_name: grafana-loki-${TAG}
+    image: grafana/loki:2.6.1
+    ports:
+      - "${GRAFANA_LOKI_EXTERNAL_PORT}:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - source-verify
+    restart: always
+
+  promtail:
+    container_name: grafana-promtail-${TAG}
+    image: grafana/promtail:2.6.1
+    volumes:
+      - /var/log:/var/log
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - source-verify
+    restart: always
+
+  grafana:
+    container_name: grafana-grafana-${TAG}
+    image: grafana/grafana:9.3.1
+    ports:
+      - "${GRAFANA_EXTERNAL_PORT}:3000"
+    networks:
+      - source-verify
+    volumes:
+      - type: bind
+        source: ${GRAFANA_PATH}
+        target: /var/lib/grafana
+    environment:
+      - HTTP_USER="${GRAFANA_HTTP_USER}"
+      - HTTP_PASS="${GRAFANA_HTTP_PASS}"
+    restart: always

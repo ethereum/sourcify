@@ -1,10 +1,8 @@
 import Web3 from "web3";
-import * as bunyan from "bunyan";
 import {
   Match,
   InjectorInput,
   getSupportedChains,
-  Logger,
   IFileService,
   FileService,
   StringMap,
@@ -15,6 +13,7 @@ import {
   Metadata,
   Create2Args,
   Create2ConstructorArgument,
+  SourcifyEventManager,
 } from "@ethereum-sourcify/core";
 import {
   RecompilationResult,
@@ -44,7 +43,6 @@ import path from "path";
 
 export interface InjectorConfig {
   silent?: boolean;
-  log?: bunyan;
   offline?: boolean;
   repositoryPath: string;
   fileService?: IFileService;
@@ -75,32 +73,7 @@ interface InjectorChainMap {
   [id: string]: InjectorChain;
 }
 
-class LoggerWrapper {
-  logger: bunyan;
-  logId: string;
-
-  constructor(logger: bunyan) {
-    this.logger = logger;
-    this.logId = Math.random().toString().slice(2);
-  }
-
-  info(obj: any, ...params: any[]): void {
-    return this.logger.info(
-      Object.assign(obj, { verificationId: this.logId }),
-      ...params
-    );
-  }
-
-  error(obj: any, ...params: any[]): void {
-    return this.logger.error(
-      Object.assign(obj, { verificationId: this.logId }),
-      ...params
-    );
-  }
-}
-
 export class Injector {
-  private log: bunyan;
   private chains: InjectorChainMap;
   private offline: boolean;
   public fileService: IFileService;
@@ -116,15 +89,16 @@ export class Injector {
     this.chains = {};
     this.offline = config.offline || false;
     this.repositoryPath = config.repositoryPath;
-    this.log = config.log || Logger("Injector");
     this.web3timeout = config.web3timeout || 3000;
 
     this.fileService =
-      config.fileService || new FileService(this.repositoryPath, this.log);
+      config.fileService || new FileService(this.repositoryPath);
     if (process.env.IPFS_API) {
       this.ipfsClient = createIpfsClient({ url: process.env.IPFS_API });
     } else {
-      this.log.warn("IPFS_API not set. Files will not be pinned to IPFS.");
+      SourcifyEventManager.trigger("Verification.Error", {
+        message: "IPFS_API not set. Files will not be pinned to IPFS.",
+      });
     }
   }
 
@@ -190,28 +164,17 @@ export class Injector {
       address = Web3.utils.toChecksumAddress(address);
 
       let deployedBytecode: string | null = null;
-      this.log.info(
-        {
-          loc: "[MATCH]",
-          chain: chain,
-          address: address,
-        },
-        `Retrieving contract bytecode address`
-      );
       try {
         deployedBytecode = await getBytecode(
           this.chains[chain].web3array,
           address
         );
       } catch (err: any) {
-        if (err?.errors?.length > 0)
-          err.message = err.errors.map(
-            (e: { message: string }) => e.message || e
-          ); // Avoid uninformative message "All Promises Rejected"
-        this.log.error(
-          { loc: "[MATCH]", address, chain },
-          err.message.toString()
-        );
+        SourcifyEventManager.trigger("Verification.Error", {
+          message: err.message,
+          stack: err.stack,
+          details: err?.errors,
+        });
         throw err;
       }
 
@@ -305,59 +268,61 @@ export class Injector {
         // if the bytecode doesn't contain metadata then "partial" match
         if (this.getMetadataPathFromCborEncoded(deployedBytecode) === null) {
           match.status = "partial";
-          return match;
+        } else {
+          match.status = "perfect";
         }
-        match.status = "perfect";
-        return match;
-      }
-
-      const [trimmedDeployedBytecode] = splitAuxdata(deployedBytecode);
-      const [trimmedCompiledRuntimeBytecode] = splitAuxdata(
-        recompiled.deployedBytecode
-      );
-      if (trimmedDeployedBytecode === trimmedCompiledRuntimeBytecode) {
-        match.status = "partial";
-        return match;
-      }
-
-      if (
-        trimmedDeployedBytecode.length === trimmedCompiledRuntimeBytecode.length
-      ) {
-        creationData =
-          creationData || (await this.getCreationData(chain, address));
-
-        const { replaced, libraryMap } = this.addLibraryAddresses(
-          recompiled.creationBytecode,
-          creationData
+      } else {
+        const [trimmedDeployedBytecode] = splitAuxdata(deployedBytecode);
+        const [trimmedCompiledRuntimeBytecode] = splitAuxdata(
+          recompiled.deployedBytecode
         );
-        recompiled.creationBytecode = replaced;
-        match.libraryMap = libraryMap;
+        if (trimmedDeployedBytecode === trimmedCompiledRuntimeBytecode) {
+          match.status = "partial";
+        } else if (
+          trimmedDeployedBytecode.length ===
+          trimmedCompiledRuntimeBytecode.length
+        ) {
+          creationData =
+            creationData || (await this.getCreationData(chain, address));
 
-        if (creationData) {
-          if (creationData.startsWith(recompiled.creationBytecode)) {
-            // The reason why this uses `startsWith` instead of `===` is that
-            // creationData may contain constructor arguments at the end part.
-            const encodedConstructorArgs = this.extractEncodedConstructorArgs(
-              creationData,
-              recompiled.creationBytecode
-            );
-            match.status = "perfect";
-            match.encodedConstructorArgs = encodedConstructorArgs;
-            return match;
-          }
-
-          const [trimmedCompiledCreationBytecode] = splitAuxdata(
-            recompiled.creationBytecode
+          const { replaced, libraryMap } = this.addLibraryAddresses(
+            recompiled.creationBytecode,
+            creationData
           );
+          recompiled.creationBytecode = replaced;
+          match.libraryMap = libraryMap;
 
-          if (creationData.startsWith(trimmedCompiledCreationBytecode)) {
-            match.status = "partial";
-            return match;
+          if (creationData) {
+            if (creationData.startsWith(recompiled.creationBytecode)) {
+              // The reason why this uses `startsWith` instead of `===` is that
+              // creationData may contain constructor arguments at the end part.
+              const encodedConstructorArgs = this.extractEncodedConstructorArgs(
+                creationData,
+                recompiled.creationBytecode
+              );
+              match.status = "perfect";
+              match.encodedConstructorArgs = encodedConstructorArgs;
+            } else {
+              const [trimmedCompiledCreationBytecode] = splitAuxdata(
+                recompiled.creationBytecode
+              );
+
+              if (creationData.startsWith(trimmedCompiledCreationBytecode)) {
+                match.status = "partial";
+              }
+            }
           }
         }
       }
     }
-
+    SourcifyEventManager.trigger("Verification.MatchCompared", {
+      deployedBytecode,
+      recompiled,
+      chain,
+      address,
+      creationData,
+      match,
+    });
     return match;
   }
 
@@ -408,20 +373,19 @@ export class Injector {
     );
     const txRegex = this.chains[chain].txRegex;
 
+    let creationData: false | string = false;
     if (txFetchAddress && txRegex) {
       // fetch from a block explorer and extract by regex
-      this.log.info(
-        { loc, chain, contractAddress, fetchAddress: txFetchAddress },
-        "Scraping block explorer"
-      );
       for (const web3 of this.chains[chain].web3array) {
         try {
-          return await getCreationDataByScraping(txFetchAddress, txRegex, web3);
-        } catch (err: any) {
-          this.log.error(
-            { loc, chain, contractAddress, err: err.message },
-            "Scraping failed!"
+          creationData = await getCreationDataByScraping(
+            txFetchAddress,
+            txRegex,
+            web3
           );
+          break;
+        } catch (err: any) {
+          // Error catched later
         }
       }
     }
@@ -429,33 +393,21 @@ export class Injector {
     // Telos
     if (txFetchAddress && (chain == "40" || chain == "41")) {
       for (const web3 of this.chains[chain].web3array) {
-        this.log.info(
-          { loc, chain, contractAddress, fetchAddress: txFetchAddress },
-          "Querying Telos API"
-        );
         try {
-          return await getCreationDataTelos(txFetchAddress, web3);
+          creationData = await getCreationDataTelos(txFetchAddress, web3);
+          break;
         } catch (err: any) {
-          this.log.error(
-            { loc, chain, contractAddress, err: err.message },
-            "Telos API failed!"
-          );
+          // Error catched later
         }
       }
     }
     if (txFetchAddress && (chain == "50" || chain == "51")) {
       for (const web3 of this.chains[chain].web3array) {
-        this.log.info(
-          { loc, chain, contractAddress, fetchAddress: txFetchAddress },
-          "Querying BlocksScan API"
-        );
         try {
-          return await getCreationDataXDC(txFetchAddress, web3);
+          creationData = await getCreationDataXDC(txFetchAddress, web3);
+          break;
         } catch (err: any) {
-          this.log.error(
-            { loc, chain, contractAddress, err: err.message },
-            "BlocksScan API failed!"
-          );
+          // Error catched later
         }
       }
     }
@@ -463,17 +415,11 @@ export class Injector {
     // Meter network
     if (txFetchAddress && (chain == "83" || chain == "82")) {
       for (const web3 of this.chains[chain].web3array) {
-        this.log.info(
-          { loc, chain, contractAddress, fetchAddress: txFetchAddress },
-          "Querying Meter API"
-        );
         try {
-          return await getCreationDataMeter(txFetchAddress, web3);
+          creationData = await getCreationDataMeter(txFetchAddress, web3);
+          break;
         } catch (err: any) {
-          this.log.error(
-            { loc, chain, contractAddress, err: err.message },
-            "Meter API failed!"
-          );
+          // Error catched later
         }
       }
     }
@@ -481,17 +427,14 @@ export class Injector {
     // Avalanche Subnets
     if (txFetchAddress && ["11111", "335", "53935", "432201"].includes(chain)) {
       for (const web3 of this.chains[chain].web3array) {
-        this.log.info(
-          { loc, chain, contractAddress, fetchAddress: txFetchAddress },
-          "Querying Avalanche Subnet Explorer API"
-        );
         try {
-          return await getCreationDataAvalancheSubnet(txFetchAddress, web3);
-        } catch (err: any) {
-          this.log.error(
-            { loc, chain, contractAddress, err: err.message },
-            "Avalanche Subnet Explorer API failed!"
+          creationData = await getCreationDataAvalancheSubnet(
+            txFetchAddress,
+            web3
           );
+          break;
+        } catch (err: any) {
+          // Error catched later
         }
       }
     }
@@ -501,13 +444,14 @@ export class Injector {
       // fetch from graphql node
       for (const web3 of this.chains[chain].web3array) {
         try {
-          return await getCreationDataFromGraphQL(
+          creationData = await getCreationDataFromGraphQL(
             graphQLFetchAddress,
             contractAddress,
             web3
           );
+          break;
         } catch (err: any) {
-          this.log.error({ loc, chain, contractAddress, err: err.message });
+          // Error catched later
         }
       }
     }
@@ -515,17 +459,34 @@ export class Injector {
     // Commented out for publishing chains in sourcify-chains at /chains endpoint. Also, since all chains with archiveWeb3 (Ethereum networks) already had txRegex and txFetchAddress, this block of code never executes.
     // const archiveWeb3 = this.chains[chain].archiveWeb3;
     // if (archiveWeb3) { // fetch by binary search on chain history
-    //     this.log.info({ loc, chain, contractAddress }, "Fetching archive data");
     //     try {
     //         return await getCreationDataFromArchive(contractAddress, archiveWeb3);
     //     } catch(err: any) {
-    //         this.log.error({ loc, chain, contractAddress, err: err.message }, "Archive search failed!");
     //     }
     // }
 
-    const err = `Cannot fetch creation data via ${txFetchAddress} on chainId ${chain} of contract ${contractAddress}`;
-    this.log.error({ loc, chain, contractAddress, err });
-    throw new Error(err);
+    if (creationData) {
+      SourcifyEventManager.trigger("Verification.CreationBytecodeFetched", {
+        chain,
+        address: contractAddress,
+        creationBytecode: creationData,
+        txFetchAddress,
+      });
+      return creationData;
+    } else {
+      const error = new Error(
+        `Cannot fetch creation data via ${txFetchAddress} on chainId ${chain} of contract ${contractAddress}`
+      );
+      SourcifyEventManager.trigger("Verification.Error", {
+        message: error.message,
+        details: {
+          chain,
+          contractAddress,
+          txFetchAddress,
+        },
+      });
+      throw error;
+    }
   }
 
   private extractEncodedConstructorArgs(
@@ -619,6 +580,7 @@ export class Injector {
       }
 
       await this.addToIpfsMfs(matchQuality, match.chainId, match.address);
+      SourcifyEventManager.trigger("Verification.MatchStored", match);
     } else if (match.status === "extra-file-input-bug") {
       return match;
     } else {
@@ -626,15 +588,15 @@ export class Injector {
         match.message ||
         "Could not match the deployed and recompiled bytecode.";
       const err = new Error(`Contract name: ${contract.name}. ${message}`);
-
-      this.log.error({
-        loc: "[INJECT]",
-        chain: match.chainId,
-        address: match.address,
-        err,
+      SourcifyEventManager.trigger("Verification.Error", {
+        message: err.message,
+        stack: err.stack,
+        details: {
+          chain: match.chainId,
+          address: match.address,
+        },
       });
-
-      throw new Error(err.message);
+      throw err;
     }
   }
 
@@ -644,13 +606,11 @@ export class Injector {
    * @return {Promise<object>} creationBytecode & deployedBytecode & metadata of successfully recompiled contract
    */
   public async recompile(contract: CheckedContract): Promise<any> {
-    const wrappedLogger = new LoggerWrapper(this.log);
-
     if (!CheckedContract.isValid(contract)) {
-      await CheckedContract.fetchMissing(contract, wrappedLogger);
+      await CheckedContract.fetchMissing(contract);
     }
 
-    return await recompile(contract.metadata, contract.solidity, wrappedLogger);
+    return await recompile(contract.metadata, contract.solidity);
   }
 
   public async getBytecode(address: string, chainId: string): Promise<any> {
@@ -673,16 +633,14 @@ export class Injector {
     this.validateChain(chain);
 
     let match: Match;
-    const wrappedLogger = new LoggerWrapper(this.log);
 
     if (!CheckedContract.isValid(contract)) {
-      await CheckedContract.fetchMissing(contract, wrappedLogger);
+      await CheckedContract.fetchMissing(contract);
     }
 
     const compilationResult = await recompile(
       contract.metadata,
-      contract.solidity,
-      wrappedLogger
+      contract.solidity
     );
 
     // When injector is called by monitor, the bytecode has already been
@@ -691,8 +649,15 @@ export class Injector {
       if (addresses.length !== 1) {
         const err =
           "Injector cannot work with multiple addresses if bytecode is provided";
-        this.log.error({ loc: "[INJECTOR]", addresses, err });
-        throw new Error(err);
+        const error = new Error(err);
+        SourcifyEventManager.trigger("Verification.Error", {
+          message: error.message,
+          stack: error.stack,
+          details: {
+            addresses,
+          },
+        });
+        throw error;
       }
       const address = Web3.utils.toChecksumAddress(addresses[0]);
 
@@ -727,10 +692,8 @@ export class Injector {
     constructorArgs: Create2ConstructorArgument[],
     create2Address: string
   ): Promise<Match> {
-    const wrappedLogger = new LoggerWrapper(this.log);
-
     if (!CheckedContract.isValid(contract)) {
-      await CheckedContract.fetchMissing(contract, wrappedLogger);
+      await CheckedContract.fetchMissing(contract);
     }
 
     const constructorArgsTypes = constructorArgs.map(
@@ -742,8 +705,7 @@ export class Injector {
 
     const compilationResult = await recompile(
       contract.metadata,
-      contract.solidity,
-      wrappedLogger
+      contract.solidity
     );
 
     const computedAddr = getCreate2Address({
@@ -824,11 +786,13 @@ export class Injector {
       return `/ipfs/${cborData["ipfs"]}`;
     }
 
-    this.log.error({
-      loc: "[INJECTOR:GET_METADATA_PATH]",
-      address,
-      chain,
-      err: "No metadata hash in cbor encoded data.",
+    SourcifyEventManager.trigger("Verification.Error", {
+      message:
+        "getMetadataPathFromCborEncoded: No metadata hash in cbor encoded data.",
+      details: {
+        address,
+        chain,
+      },
     });
     return null;
   }

@@ -1,6 +1,6 @@
 process.env.TESTING = "true";
 process.env.MOCK_REPOSITORY = "./mockRepository";
-process.env.IPFS_GATEWAY = "http://ipfs.io/ipfs/";
+process.env.IPFS_GATEWAY = "https://ipfs.io/ipfs/";
 const GANACHE_PORT = 8545;
 const ContractWrapper = require("./helpers/ContractWrapper");
 const ganache = require("ganache");
