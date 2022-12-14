@@ -188,14 +188,14 @@ const Create2Form = ({
           <div>
             <div className="flex justify-between">
               <label className="block" htmlFor="salt">
-                Salt
+                Salt (in hex or number)
               </label>
             </div>
             <Input
               id="salt"
               value={salt}
               onChange={(e) => setSalt(e.target.value)}
-              placeholder="1"
+              placeholder="0xb1f2... or 999"
               className="mb-2"
             />
             {checkedContract.constructorArgumentsArray &&
