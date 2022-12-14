@@ -1,6 +1,6 @@
 import { Router } from "express";
 import config from "../config";
-import { Logger, FileService } from "@ethereum-sourcify/core";
+import { FileService } from "@ethereum-sourcify/core";
 import { VerificationService } from "@ethereum-sourcify/verification";
 import { ValidationService } from "@ethereum-sourcify/validation";
 import FileController from "./controllers/FileController";
@@ -10,9 +10,7 @@ import TestArtifactsController from "./controllers/TestArtifactsController";
 const router: Router = Router();
 
 const fileService = new FileService(config.repository.path);
-const validationService: ValidationService = new ValidationService(
-  Logger("ValidationService")
-);
+const validationService: ValidationService = new ValidationService();
 const verificationService = new VerificationService(fileService);
 
 const testArtifactsController = new TestArtifactsController();
