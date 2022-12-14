@@ -13,6 +13,7 @@ const setRepositoryPath = () => {
   return "/tmp/repository";
 };
 
+// TODO: Don't use config.ts at all. Since as a module config is evaluated only once, this can cause changed environment variables not to take effect. E.g. if you run a Monitor and a Server with different REPOSITORY_PATHs, the server will have monitor's repo path since this was already evaluated and won't be run again. Instead these should be put in place in constructors etc.
 export default {
   monitor: {
     port: process.env.MONITOR_PORT || 80,

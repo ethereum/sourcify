@@ -1,4 +1,5 @@
 process.env.TESTING = true;
+// This does not take effect when run with monitor tests. See config.ts note
 process.env.MOCK_REPOSITORY = "./dist/data/mock-repository";
 process.env.SOLC_REPO = "./dist/data/solc-repo";
 process.env.SOLJSON_REPO = "/dist/data/soljson-repo";
@@ -1028,7 +1029,7 @@ describe("Server", function () {
           abiEncodedConstructorArguments: abiEncoded,
         },
         path.join(
-          process.env.MOCK_REPOSITORY,
+          server.repository,
           "contracts",
           "full_match",
           defaultContractChain,
@@ -1709,7 +1710,7 @@ describe("Server", function () {
           abiEncodedConstructorArguments: abiEncoded,
         },
         path.join(
-          process.env.MOCK_REPOSITORY,
+          server.repository,
           "contracts",
           "full_match",
           defaultContractChain,
