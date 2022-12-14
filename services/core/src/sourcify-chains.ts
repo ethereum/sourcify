@@ -1,5 +1,6 @@
 import * as dotenv from "dotenv";
 import path from "path";
+import { SourcifyEventManager } from "./services/EventManager";
 
 dotenv.config({
   path: path.resolve(__dirname, "..", "..", "..", "environments/.env"),
@@ -47,9 +48,9 @@ function buildAlchemyAndCustomRpcURLs(
     if (url) {
       rpcURLs.push(url);
     } else {
-      console.warn(
-        `Environment variable NODE_URL_${chainSubName.toUpperCase()} not set!`
-      );
+      SourcifyEventManager.trigger("Core.Error", {
+        message: `Environment variable NODE_URL_${chainSubName.toUpperCase()} not set!`,
+      });
     }
   }
 
@@ -69,9 +70,9 @@ function buildAlchemyAndCustomRpcURLs(
   }
 
   if (!alchemyId)
-    console.warn(
-      `Environment variable ALCHEMY_ID not set for ${chainName} ${chainSubName}!`
-    );
+    SourcifyEventManager.trigger("Core.Error", {
+      message: `Environment variable ALCHEMY_ID not set for ${chainName} ${chainSubName}!`,
+    });
 
   const domain = "g.alchemy.com";
   // No sepolia support yet
@@ -584,6 +585,13 @@ const sourcifyChains: SourcifyChainsObject = {
     contractFetchAddress:
       "https://blockscout.com/optimism/bedrock-alpha/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex("/optimism/bedrock-alpha"),
+  },
+  "7001": {
+    // ZetaChain: Athens Testnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://blockscout.athens2.zetachain.com/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
   },
 };
 

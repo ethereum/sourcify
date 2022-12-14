@@ -15,7 +15,7 @@ else
     git reset --hard origin/${CIRCLE_BRANCH}
 fi
 
-COMPOSE_COMMAND="COMPOSE_PROJECT_NAME=${TAG} docker-compose -f ipfs.yaml -f monitor.yaml -f repository.yaml -f s3.yaml -f server.yaml -f ui.yaml"
+COMPOSE_COMMAND="COMPOSE_PROJECT_NAME=${TAG} docker-compose -f ipfs.yaml -f monitor.yaml -f repository.yaml -f s3.yaml -f server.yaml -f ui.yaml -f grafana.yaml"
 
 TAG=$TAG ./scripts/find_replace.sh
 

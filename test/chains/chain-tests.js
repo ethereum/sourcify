@@ -1176,6 +1176,24 @@ describe("Test Supported Chains", function () {
     "shared/withImmutables.metadata.json"
   );
 
+  // ZetaChain: Athens Testnet
+  verifyContract(
+    "0x1f42652a86918fd84E74e066db94E3078d25Dd8D",
+    "7001",
+    "ZetaChain Athens Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x7fe7d2F60399913e8ECeb8BAe9adDf9B809E8F6d",
+    "7001",
+    "ZetaChain Athens Testnet",
+    ["uint256"],
+    [7001],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
 
   //////////////////////
   // Helper functions //
