@@ -25,7 +25,7 @@ contract Factory2{
  
 }
 contract Child2{
-    address immutable owner;
+    address immutable public owner;
     constructor(){
        owner = msg.sender;
     }

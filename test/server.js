@@ -964,6 +964,48 @@ describe("Server", function () {
       assertions(null, res, null, childAddress);
     });
 
+    it.only("should verify a contract created by a factory contract and has immutables without constructor arguments but with msg.sender assigned immutable", async () => {
+      const artifact = require("./testcontracts/FactoryImmutableWithoutConstrArg/Factory3.json");
+      const factoryAddress = await deployFromAbiAndBytecode(
+        localWeb3Provider,
+        artifact.abi,
+        artifact.bytecode,
+        accounts[0]
+      );
+
+      // Deploy child by calling createChild()
+      const childMetadata = require("./testcontracts/FactoryImmutableWithoutConstrArg/Child3_metadata.json");
+      const childMetadataBuffer = Buffer.from(JSON.stringify(childMetadata));
+      const txReceipt = await callContractMethodWithTx(
+        localWeb3Provider,
+        artifact.abi,
+        factoryAddress,
+        "createChild",
+        accounts[0],
+        []
+      );
+
+      const childAddress = txReceipt.events.ChildCreated.returnValues[0];
+      const sourcePath = path.join(
+        "test",
+        "testcontracts",
+        "FactoryImmutableWithoutConstrArg",
+        "FactoryTest3.sol"
+      );
+      const sourceBuffer = fs.readFileSync(sourcePath);
+
+      const res = await chai
+        .request(server.app)
+        .post("/")
+        .field("address", childAddress)
+        .field("chain", defaultContractChain)
+        .field("msgSender", factoryAddress)
+        .attach("files", childMetadataBuffer, "metadata.json")
+        .attach("files", sourceBuffer, "FactoryTest3.sol")
+        .send();
+      assertions(null, res, null, childAddress);
+    });
+
     it("should first fail to verify a contract created by a factory contract and has an immutable set by `msg.sender`. Then suceed with the `msg.sender` input and save the contextVariables", async () => {
       const deployValue = 12345;
 
@@ -975,7 +1017,7 @@ describe("Server", function () {
         accounts[0]
       );
 
-      // Deploy child by calling deploy(uint)
+      // Deploy child by calling createChild()
       const childMetadata = require("./testcontracts/FactoryImmutableWithMsgSender/Child_metadata.json");
       const childMetadataBuffer = Buffer.from(JSON.stringify(childMetadata));
       const txReceipt = await callContractMethodWithTx(
@@ -1639,6 +1681,54 @@ describe("Server", function () {
       contracts[0].address = childAddress;
       contracts[0].chainId = defaultContractChain;
       contracts[0].abiEncodedConstructorArguments = abiEncoded;
+      const res = await agent
+        .post("/session/verify-validated")
+        .send({ contracts });
+      assertSingleContractStatus(res, "perfect");
+    });
+
+    it("should verify a contract created by a factory contract and has immutables without constructor arguments but with msg.sender assigned immutable", async () => {
+      const artifact = require("./testcontracts/FactoryImmutableWithoutConstrArg/Factory3.json");
+      const factoryAddress = await deployFromAbiAndBytecode(
+        localWeb3Provider,
+        artifact.abi,
+        artifact.bytecode,
+        accounts[0]
+      );
+
+      // Deploy child by calling deploy(uint)
+      const childMetadata = require("./testcontracts/FactoryImmutableWithoutConstrArg/Child3_metadata.json");
+      const childMetadataBuffer = Buffer.from(JSON.stringify(childMetadata));
+      const txReceipt = await callContractMethodWithTx(
+        localWeb3Provider,
+        artifact.abi,
+        factoryAddress,
+        "createChild",
+        accounts[0],
+        []
+      );
+
+      const childAddress = txReceipt.events.ChildCreated.returnValues[0];
+      const sourcePath = path.join(
+        "test",
+        "testcontracts",
+        "FactoryImmutableWithoutConstrArg",
+        "FactoryTest3.sol"
+      );
+      const sourceBuffer = fs.readFileSync(sourcePath);
+
+      const agent = chai.request.agent(server.app);
+
+      const res1 = await agent
+        .post("/session/input-files")
+        .attach("files", sourceBuffer)
+        .attach("files", childMetadataBuffer);
+
+      const contracts = assertSingleContractStatus(res1, "error");
+
+      contracts[0].address = childAddress;
+      contracts[0].chainId = defaultContractChain;
+      contracts[0].msgSender = factoryAddress;
       const res = await agent
         .post("/session/verify-validated")
         .send({ contracts });
