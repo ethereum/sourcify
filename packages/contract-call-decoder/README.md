@@ -5,8 +5,8 @@ Package to decode Ethereum transactions into human-readable format using the [AB
 The decoder will also evaluate the [NatSpec Dynamic Expressions](https://docs.soliditylang.org/en/develop/natspec-format.html#dynamic-expressions) meaning it will fill in the values of the parameters found in the call. So for the function:
 
 ```solidity
-     /// @dev Has to be called by the owner. The _index value `_index` can't be larger than the people array length.
-    function chooseFavoritePerson(uint256 _index) public returns (Person memory, uint) {
+/// @dev Has to be called by the owner. The _index value `_index` can't be larger than the people array length.
+function chooseFavoritePerson(uint256 _index) public returns (Person memory, uint) {
 ```
 
 the decoding of `chooseFavoritePerson(1)` call will be:
@@ -23,7 +23,7 @@ yarn add @ethereum-sourcify/contract-call-decoder
 
 ## Usage
 
-Example below given for the `chooseFavoritePerson(3)` method of the contract `SimpleStorageNatSpec` (deployed at Sepolia [0x09aFa1879fa654226D522f7099583d54ee8F18f4](https://repo.sourcify.dev/contracts/full_match/11155111/0x09aFa1879fa654226D522f7099583d54ee8F18f4/))
+Example below given for the `chooseFavoritePerson(3)` method of the contract `SimpleStorageNatSpec` (verified at Sepolia [0x09aFa1879fa654226D522f7099583d54ee8F18f4](https://repo.sourcify.dev/contracts/full_match/11155111/0x09aFa1879fa654226D522f7099583d54ee8F18f4/))
 
 ```ts
 import {
@@ -43,10 +43,10 @@ let decodedObj: DecodedContractCall;
 // async function
 decodedObj = await decodeContractCall(tx, { chainId: 5 });
 
-// Using metadata fetched from the embeded IPFS hash inside contract's
+// Using metadata fetched from the embeded IPFS hash inside contract's bytecode
 decodedObj = await decodeContractCall(tx, {
   source: MetadataSources.BytecodeMetadata,
-  rpcProvider: ethereumProvider,
+  rpcProvider: ethereumProvider, // RPC Provider to fetch the contract bytecode
 });
 ```
 
@@ -63,7 +63,7 @@ and grouped under "contract" and the "method" being called.
     "title": "A simple example contract to demonstrate NatSpec",
     // @dev field above the contract
     "details": "This message is intended for contract developers. Add technical details etc. here",
-    // @custom
+    // @custom:experimental
     "custom": {
       "experimental": "This is an experimental tag."
     }
@@ -91,6 +91,7 @@ and grouped under "contract" and the "method" being called.
     "decodedParams": [
       1n,
     ],
+    // @custom:status
     "custom": {
       "status": "production-ready"
     }
@@ -98,4 +99,4 @@ and grouped under "contract" and the "method" being called.
 }
 ```
 
-> Right now the contract-call-decoder uses `@blossom-labs/rosette-radspec` to interpret the notice, but it's experimental. This feature might change in the future.
+Right now the contract-call-decoder uses `@blossom-labs/rosette-radspec` to interpret the notice, but it's experimental. This feature might change in the future.
