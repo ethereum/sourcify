@@ -48,7 +48,12 @@ export const decode = (bytecode: string): DecodedObject => {
         break;
       }
       case 'solc': {
-        result.solcVersion = cborDecodedObject.solc.join('.');
+        // nightly builds are string encoded
+        if (typeof cborDecodedObject.solc === 'string') {
+          result.solcVersion = cborDecodedObject.solc;
+        } else {
+          result.solcVersion = cborDecodedObject.solc.join('.');
+        }
         break;
       }
       case 'experimental': {
