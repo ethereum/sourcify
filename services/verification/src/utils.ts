@@ -198,6 +198,9 @@ export function findContractPathFromContractName(
  * @returns stringified solc output
  */
 export async function useCompiler(version: string, solcJsonInput: any) {
+  // For nightly builds, Solidity version is saved as 0.8.17-ci.2022.8.9+commit.6b60524c instead of 0.8.17-nightly.2022.8.9+commit.6b60524c.
+  // Not possible to retrieve compilers with "-ci.".
+  if (version.includes("-ci.")) version = version.replace("-ci.", "-nightly.");
   const inputStringified = JSON.stringify(solcJsonInput);
   const solcPath = await getSolcExecutable(version);
   let compiled: string | undefined;
