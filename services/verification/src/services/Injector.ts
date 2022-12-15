@@ -292,33 +292,6 @@ export class Injector {
     if (deployedBytecode && deployedBytecode.length > 2) {
       // If same length, highly likely these contracts are a match but immutable vars. may be affecting the match
       if (deployedBytecode.length === recompiled.deployedBytecode.length) {
-        if (constructorArguments) {
-          // Execute the creation code with the constructor arguments to see if we'll obtain the same onchain deployed bytecode.
-          const simulatedBytecode =
-            "0x" +
-            (await this.simulateCreationBytecode(
-              recompiled.creationBytecode,
-              chain,
-              JSON.parse(recompiled.metadata).settings.evmVersion,
-              constructorArguments,
-              msgSender
-            ));
-          match = this.checkIfMatch(
-            match,
-            (a, b) => a === b,
-            simulatedBytecode,
-            deployedBytecode,
-            constructorArguments
-          );
-          if (match.status) {
-            match.contextVariables = {};
-            match.contextVariables.msgSender = msgSender;
-            match.contextVariables.abiEncodedConstructorArguments =
-              constructorArguments;
-            return match;
-          }
-        }
-
         creationData =
           creationData || (await this.getCreationData(chain, address));
 
@@ -338,6 +311,31 @@ export class Injector {
             recompiled.creationBytecode
           );
           if (match.status) return match;
+        }
+
+        // Execute the creation code with the constructor arguments to see if we'll obtain the same onchain deployed bytecode.
+        const simulatedBytecode =
+          "0x" +
+          (await this.simulateCreationBytecode(
+            recompiled.creationBytecode,
+            chain,
+            JSON.parse(recompiled.metadata).settings.evmVersion,
+            constructorArguments,
+            msgSender
+          ));
+        match = this.checkIfMatch(
+          match,
+          (a, b) => a === b,
+          simulatedBytecode,
+          deployedBytecode,
+          constructorArguments
+        );
+        if (match.status) {
+          match.contextVariables = {};
+          match.contextVariables.msgSender = msgSender;
+          match.contextVariables.abiEncodedConstructorArguments =
+            constructorArguments;
+          return match;
         }
       }
     }
@@ -401,7 +399,8 @@ export class Injector {
       abiEncodedConstructorArguments = abiEncodedConstructorArguments.slice(2);
     }
     const initcode = Buffer.from(
-      creationBytecode + abiEncodedConstructorArguments,
+      creationBytecode +
+        (abiEncodedConstructorArguments ? abiEncodedConstructorArguments : ""),
       "hex"
     );
 
@@ -492,13 +491,14 @@ export class Injector {
     chain: string,
     contractAddress: string
   ): Promise<string | null> {
-    const loc = "[GET_CREATION_DATA]";
     const txFetchAddress = this.chains[chain]?.contractFetchAddress?.replace(
       "${ADDRESS}",
       contractAddress
     );
     const txRegex = this.chains[chain].txRegex;
+    const graphQLFetchAddress = this.chains[chain].graphQLFetchAddress;
 
+    if (!txFetchAddress || !graphQLFetchAddress) return null;
     let creationData: string | null = null;
     if (txFetchAddress && txRegex) {
       // fetch from a block explorer and extract by regex
@@ -508,8 +508,8 @@ export class Injector {
           txRegex,
           this.chains[chain].web3array
         );
-        break;
       } catch (err: any) {
+        // TODO: Don't do empty catches.
         // Error catched later
       }
     }
@@ -563,7 +563,6 @@ export class Injector {
       }
     }
 
-    const graphQLFetchAddress = this.chains[chain].graphQLFetchAddress;
     if (graphQLFetchAddress) {
       // fetch from graphql node
       for (const web3 of this.chains[chain].web3array) {

@@ -1,0 +1,98 @@
+{
+	"compiler": {
+		"version": "0.8.17+commit.8df45f5f"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "childAddress",
+						"type": "address"
+					}
+				],
+				"name": "ChildCreated",
+				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "children",
+				"outputs": [
+					{
+						"internalType": "contract Child2",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "createChild",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getChildren",
+				"outputs": [
+					{
+						"internalType": "contract Child2[]",
+						"name": "_children",
+						"type": "address[]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contracts/FactoryTest3.sol": "Factory2"
+		},
+		"evmVersion": "london",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"contracts/FactoryTest3.sol": {
+			"keccak256": "0x56ba40ff103abd21c8d5fb90d2f61b9b8615485ed7e395011f1e525e71c58d28",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://e775ce317e916714fbdb81d143fd998bb8a1ca02b220824d5db25295e1166572",
+				"dweb:/ipfs/QmSjDwDxSirqtUsR1TS3Gxra2UG9vziQcfZR41F7DPeU39"
+			]
+		}
+	},
+	"version": 1
+}

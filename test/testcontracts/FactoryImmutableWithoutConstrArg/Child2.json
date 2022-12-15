@@ -1,0 +1,73 @@
+{
+	"deploy": {
+		"VM:-": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"main:1": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"ropsten:3": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"rinkeby:4": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"kovan:42": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"goerli:5": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"Custom": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		}
+	},
+	"data": {
+		"bytecode": {
+			"functionDebugData": {
+				"@_95": {
+					"entryPoint": null,
+					"id": 95,
+					"parameterSlots": 0,
+					"returnSlots": 0
+				}
+			},
+			"generatedSources": [],
+			"linkReferences": {},
+			"object": "60a0604052348015600f57600080fd5b503373ffffffffffffffffffffffffffffffffffffffff1660808173ffffffffffffffffffffffffffffffffffffffff1681525050608051603f605960003960005050603f6000f3fe6080604052600080fdfea26469706673582212203a10f75f2600c2b902400a2db6bd20bca05d8901a2039822afdc7512c7fdf85c64736f6c63430008110033",
+			"opcodes": "PUSH1 0xA0 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xF JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP CALLER PUSH20 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF AND PUSH1 0x80 DUP2 PUSH20 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF AND DUP2 MSTORE POP POP PUSH1 0x80 MLOAD PUSH1 0x3F PUSH1 0x59 PUSH1 0x0 CODECOPY PUSH1 0x0 POP POP PUSH1 0x3F PUSH1 0x0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 GASPRICE LT 0xF7 0x5F 0x26 STOP 0xC2 0xB9 MUL BLOCKHASH EXP 0x2D 0xB6 0xBD KECCAK256 0xBC LOG0 0x5D DUP10 ADD LOG2 SUB SWAP9 0x22 0xAF 0xDC PUSH22 0x12C7FDF85C64736F6C63430008110033000000000000 ",
+			"sourceMap": "630:99:0:-:0;;;680:47;;;;;;;;;;710:10;702:18;;;;;;;;;;630:99;;;;;;;;;;;"
+		},
+		"deployedBytecode": {
+			"functionDebugData": {},
+			"generatedSources": [],
+			"immutableReferences": {},
+			"linkReferences": {},
+			"object": "6080604052600080fdfea26469706673582212203a10f75f2600c2b902400a2db6bd20bca05d8901a2039822afdc7512c7fdf85c64736f6c63430008110033",
+			"opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 GASPRICE LT 0xF7 0x5F 0x26 STOP 0xC2 0xB9 MUL BLOCKHASH EXP 0x2D 0xB6 0xBD KECCAK256 0xBC LOG0 0x5D DUP10 ADD LOG2 SUB SWAP9 0x22 0xAF 0xDC PUSH22 0x12C7FDF85C64736F6C63430008110033000000000000 ",
+			"sourceMap": "630:99:0:-:0;;;;;"
+		},
+		"gasEstimates": {
+			"creation": {
+				"codeDepositCost": "12600",
+				"executionCost": "infinite",
+				"totalCost": "infinite"
+			}
+		},
+		"methodIdentifiers": {}
+	},
+	"abi": [
+		{
+			"inputs": [],
+			"stateMutability": "nonpayable",
+			"type": "constructor"
+		}
+	]
+}
