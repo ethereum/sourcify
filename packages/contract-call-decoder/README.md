@@ -1,29 +1,19 @@
 # contract-call-decoder
 
-Returns an object containing the evaluated information from the called contract's metadata. See the [NatSpec documentaion](https://docs.soliditylang.org/en/latest/natspec-format.html) for more details.
+Package to decode Ethereum transactions into human-readable format using the [ABI JSON](https://docs.soliditylang.org/en/latest/abi-spec.html#json) and the [NatSpec](https://docs.soliditylang.org/en/latest/natspec-format.html) documentation, which are both found in the [Solidity contract metadata](https://docs.soliditylang.org/en/develop/metadata.html).
 
-```json
-{
-  "contract": {
-    "author": "...",
-    "title": "A simulator for trees",
-    "details": "All function calls are currently implemented without side effects",
-    "custom": {}
-  },
-  "method": {
-    "selector": "multiplyBy(uint256)",
-    "abi": {...},
-    "details": "...",
-    "params: { _n2": "..." },
-    "returns": "",
-    "notice": "Set the new value to 4",
-    "decodedParams": [ 2 ],
-    "custom": {}
-  }
-}
+The decoder will also evaluate the [NatSpec Dynamic Expressions](https://docs.soliditylang.org/en/develop/natspec-format.html#dynamic-expressions) meaning it will fill in the values of the parameters found in the call. So for the function:
+
+```solidity
+     /// @dev Has to be called by the owner. The _index value `_index` can't be larger than the people array length.
+    function chooseFavoritePerson(uint256 _index) public returns (Person memory, uint) {
 ```
 
-> Right now the contract-call-decoder uses `@blossom-labs/rosette-radspec` to interpret the notice, but it's experimental. This feature might change in the future.
+the decoding of `chooseFavoritePerson(1)` call will be:
+
+```
+Has to be called by the owner. The _index value 1 can't be larger than the people array length.
+```
 
 ## Install
 
@@ -33,74 +23,79 @@ yarn add @ethereum-sourcify/contract-call-decoder
 
 ## Usage
 
-First import the library and have a transaction (ethers and web3 transaction artifacts are compatible)
+Example below given for the `chooseFavoritePerson(3)` method of the contract `SimpleStorageNatSpec` (deployed at Sepolia [0x09aFa1879fa654226D522f7099583d54ee8F18f4](https://repo.sourcify.dev/contracts/full_match/11155111/0x09aFa1879fa654226D522f7099583d54ee8F18f4/))
 
 ```ts
-import { evaluateCallDataFromTx } from '@ethereum-sourcify/contract-call-decoder';
+import {
+  decodeContractCall,
+  MetadataSources,
+} from '@ethereum-sourcify/contract-call-decoder';
 
+// ethers and web3 transactions are compatible
 const tx = {
-  to: '0xD4B081C226Bc8aBdaf111DEf54c09E779ad29428',
-  data: '0xcea299370000000000000000000000000000000000000000000000000000000000000002',
+  to: '0x09aFa1879fa654226D522f7099583d54ee8F18f4',
+  data: '0xae7cd3ce0000000000000000000000000000000000000000000000000000000000000001', // chooseFavoritePerson(3)
 };
+
+// Using metadata fetched from Sourcify API https://repo.sourcify.dev...
+let decodedObj: DecodedContractCall;
+
+// async function
+decodedObj = await decodeContractCall(tx, { chainId: 5 });
+
+// Using metadata fetched from the embeded IPFS hash inside contract's
+decodedObj = await decodeContractCall(tx, {
+  source: MetadataSources.BytecodeMetadata,
+  rpcProvider: ethereumProvider,
+});
 ```
 
-### Using metadata taken from Sourcify
+Returned `DecodedContractCall` is slightly different than the `userdoc` and `devdoc` output in the metadata
+and grouped under "contract" and the "method" being called.
 
-```ts
-const decodedContractCall: DecodedContractCall = await evaluateCallDataFromTx(
-  tx,
-  { chainId: 5 }
-);
-```
-
-### Using the metadata IPFS hash from the contract's on-chain bytecode
-
-```ts
-const decodedContractCall: DecodedContractCall = await evaluateCallDataFromTx(
-  tx,
-  {
-    source: MetadataSources.BytecodeMetadata,
-    rpcProvider: ethereumProvider,
+```js
+// Output:
+{
+  "contract": {
+    // @author field above the contract
+    "author": "John Doe",
+    // @title field above the contract
+    "title": "A simple example contract to demonstrate NatSpec",
+    // @dev field above the contract
+    "details": "This message is intended for contract developers. Add technical details etc. here",
+    // @custom
+    "custom": {
+      "experimental": "This is an experimental tag."
+    }
+  },
+  "method": {
+    // Required, Canonical function selector string
+    "selector": "chooseFavoritePerson(uint256)",
+    // Required
+    "abi": {...},
+    // @dev field above the function
+    "details": "Has to be called by the owner. The _index value 1 can't be larger than the people array length.",
+    // @param fields
+    "params": {
+      "_index": "The index of the favorite person"
+    },
+    // @return fields
+    "returns": {
+      "_0": "Newly chosen favorite Person",
+      "_1": "The index of the new favorite Person",
+    },
+    // @notice field
+    "notice": "Chooses the person at index 1 as the favorite person",
+    // TODO: This output is incorrect?
+    // Required
+    "decodedParams": [
+      1n,
+    ],
+    "custom": {
+      "status": "production-ready"
+    }
   }
-);
+}
 ```
 
-### Response evaluateCallDataFromTx
-
-```ts
-type DecodedContractCall = {
-  readonly contract: {
-    readonly author?: string;
-    readonly title?: string;
-    readonly details?: string;
-    readonly custom?: {
-      readonly [index: string]: string;
-    };
-  };
-  readonly method: {
-    readonly selector: string;
-    readonly abi: FunctionFragment;
-    readonly decodedParams: readonly DecodedParam[];
-    readonly details?: string;
-    readonly returns?: string;
-    readonly notice?: string;
-    readonly params?: { readonly [index: string]: unknown };
-    readonly custom?: {
-      readonly [index: string]: string;
-    };
-  };
-};
-```
-
-### evaluateCallDataFromTx options
-
-```ts
-type GetMetadataOptions = {
-  readonly source?: MetadataSources;
-  readonly chainId?: number;
-  readonly address?: string;
-  readonly rpcProvider?: EthereumProvider;
-  readonly ipfsGateway?: string;
-  readonly sourcifyProvider?: string;
-};
-```
+> Right now the contract-call-decoder uses `@blossom-labs/rosette-radspec` to interpret the notice, but it's experimental. This feature might change in the future.
