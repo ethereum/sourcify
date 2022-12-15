@@ -493,6 +493,14 @@ const sourcifyChains: SourcifyChainsObject = {
       `https://subnet-explorer-api.avax-test.network/v1.1/432201/` +
       AVALANCHE_SUBNET_SUFFIX,
   },
+  "432204": {
+    // Dexalot Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      `https://subnet-explorer-api.avax.network/v1.1/432204/` +
+      AVALANCHE_SUBNET_SUFFIX,
+  },
   "103090": {
     // Crystaleum Mainnet
     supported: true,

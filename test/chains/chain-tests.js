@@ -968,6 +968,23 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
+  // Dexalot Mainnet
+  verifyContract(
+    "0x1c799C32a6cF228D0656f3B87D60224afaB45903",
+    "432204",
+    "Dexalot Subnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x5852347f88c0d4D115aFFEc8135b2DB7497e7183",
+    "432204",
+    "Dexalot Subnet",
+    ["uint256"],
+    [100],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
   //Crystaleum
   verifyContract(
     "0x8Ab612E257534b7d5a6E315444f1C45c434eAaCf",

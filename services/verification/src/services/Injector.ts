@@ -425,7 +425,7 @@ export class Injector {
     }
 
     // Avalanche Subnets
-    if (txFetchAddress && ["11111", "335", "53935", "432201"].includes(chain)) {
+    if (txFetchAddress && ["11111", "335", "53935", "432201", "432204"].includes(chain)) {
       for (const web3 of this.chains[chain].web3array) {
         try {
           creationData = await getCreationDataAvalancheSubnet(
