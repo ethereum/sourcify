@@ -100,9 +100,7 @@ export const findSelectorAndAbiItemFromSignatureHash = (
 ) => {
   try {
     const interf = new Interface(abi);
-    const selector = Object.keys(interf.functions).find((selector) => {
-      return interf.getSighash(selector) === functionSignatureHash;
-    });
+    const selector = interf.getFunction(functionSignatureHash);
     if (!selector) {
       return false;
     }
