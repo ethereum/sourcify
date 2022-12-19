@@ -41,12 +41,14 @@ const tx = {
 let decodedObj: DecodedContractCall;
 
 // async function
-decodedObj = await decodeContractCall(tx, { chainId: 5 });
+decodedObj = await decodeContractCall(tx, { chainId: 11155111 });
+
+import provider from 'eth-provider';
 
 // Using metadata fetched from the embeded IPFS hash inside contract's bytecode
 decodedObj = await decodeContractCall(tx, {
   source: MetadataSources.BytecodeMetadata,
-  rpcProvider: ethereumProvider, // RPC Provider to fetch the contract bytecode
+  rpcProvider: provider('https://rpc.sepolia.dev');, // RPC Provider to fetch the contract bytecode
 });
 ```
 
