@@ -31,8 +31,10 @@ export type ContractMeta = {
   name?: string;
   address?: string;
   chainId?: string;
-  abiEncodedConstructorArguments?: string;
-  msgSender?: string;
+  contextVariables?: {
+    abiEncodedConstructorArguments?: string;
+    msgSender?: string;
+  };
   status?: Status;
   statusMessage?: string;
   storageTimestamp?: Date;
@@ -82,8 +84,10 @@ export type LegacyVerifyRequest = Request & {
   addresses: string[];
   chain: string;
   chosenContract: number;
-  abiEncodedConstructorArguments?: string;
-  msgSender?: string;
+  contextVariables?: {
+    abiEncodedConstructorArguments?: string;
+    msgSender?: string;
+  };
 };
 
 // Contract object in the server response.

@@ -37,8 +37,10 @@ interface InjectorInput {
   contracts: CheckedContract[]; // Solidity and metadata files
   bytecode?: string; // If you already have bytecode of the deployed contract
   creationData?: string;
-  constructorArguments?: string;
-  msgSender?: string;
+  contextVariables?: {
+    constructorArguments?: string;
+    msgSender?: string;
+  };
 }
 ```
 

@@ -160,8 +160,10 @@ export class Injector {
     addresses: string[] = [],
     recompiled: RecompilationResult,
     metadata: Metadata,
-    constructorArguments?: string,
-    msgSender?: string
+    contextVariables?: {
+      abiEncodedConstructorArguments?: string;
+      msgSender?: string;
+    }
   ): Promise<Match> {
     let match: Match = { address: addresses[0], chainId: chain, status: null };
     const chainName = this.chains[chain].name || "The chain";
@@ -197,8 +199,7 @@ export class Injector {
           chain,
           address,
           undefined, //creationData
-          constructorArguments,
-          msgSender
+          contextVariables
         );
       } catch (err: any) {
         if (addresses.length === 1) {
@@ -262,8 +263,10 @@ export class Injector {
     chain: string,
     address: string,
     creationData?: string | null,
-    constructorArguments?: string,
-    msgSender?: string
+    contextVariables?: {
+      abiEncodedConstructorArguments?: string;
+      msgSender?: string;
+    }
   ): Promise<Match> {
     let match: Match = {
       address,
@@ -320,21 +323,17 @@ export class Injector {
             recompiled.creationBytecode,
             chain,
             JSON.parse(recompiled.metadata).settings.evmVersion,
-            constructorArguments,
-            msgSender
+            contextVariables
           ));
         match = this.checkIfMatch(
           match,
           (a, b) => a === b,
           simulatedBytecode,
           deployedBytecode,
-          constructorArguments
+          contextVariables?.abiEncodedConstructorArguments
         );
         if (match.status) {
-          match.contextVariables = {};
-          match.contextVariables.msgSender = msgSender;
-          match.contextVariables.abiEncodedConstructorArguments =
-            constructorArguments;
+          match.contextVariables = contextVariables;
           return match;
         }
       }
@@ -377,9 +376,14 @@ export class Injector {
     creationBytecode: string,
     chainId: string,
     evmVersion: string,
-    abiEncodedConstructorArguments?: string,
-    msgSender?: string
+    contextVariables?: {
+      abiEncodedConstructorArguments?: string;
+      msgSender?: string;
+    }
   ): Promise<string> {
+    let { abiEncodedConstructorArguments } = contextVariables || {};
+    const { msgSender } = contextVariables || {};
+
     const stateManager = new DefaultStateManager();
     const blockchain = await Blockchain.create();
     const common = Common.custom({
@@ -774,8 +778,7 @@ export class Injector {
    * @return {Promise<object>}              address & status of successfully verified contract
    */
   public async inject(injectorInput: InjectorInput): Promise<Match> {
-    const { chain, addresses, contract, constructorArguments, msgSender } =
-      injectorInput;
+    const { chain, addresses, contract, contextVariables } = injectorInput;
     this.validateAddresses(addresses);
     this.validateChain(chain);
 
@@ -824,8 +827,7 @@ export class Injector {
         addresses,
         compilationResult,
         contract.metadata,
-        constructorArguments,
-        msgSender
+        contextVariables
       );
     }
 

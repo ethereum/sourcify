@@ -17,8 +17,10 @@ export interface InjectorInput {
   contract: CheckedContract;
   bytecode?: string;
   creationData?: string;
-  constructorArguments?: string;
-  msgSender?: string;
+  contextVariables?: {
+    abiEncodedConstructorArguments?: string;
+    msgSender?: string;
+  };
 }
 
 export interface CompilationSettings {

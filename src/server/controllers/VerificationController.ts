@@ -447,6 +447,7 @@ export default class VerificationController
     origReq: Request,
     res: Response
   ): Promise<any> => {
+    // Typecast here because of the type error: Type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>' is not assignable to type 'LegacyVerifyRequest'.
     const req = origReq as LegacyVerifyRequest;
     this.validateRequest(req);
 
@@ -500,8 +501,7 @@ export default class VerificationController
       contract,
       addresses: req.addresses,
       chain: req.chain,
-      constructorArguments: req.abiEncodedConstructorArguments,
-      msgSender: req.msgSender,
+      contextVariables: req.body.contextVariables,
     };
     try {
       const result = await this.verificationService.inject(injectorInput);
@@ -657,9 +657,7 @@ export default class VerificationController
       if (contractWrapper) {
         contractWrapper.address = receivedContract.address;
         contractWrapper.chainId = receivedContract.chainId;
-        contractWrapper.abiEncodedConstructorArguments =
-          receivedContract.abiEncodedConstructorArguments;
-        contractWrapper.msgSender = receivedContract.msgSender;
+        contractWrapper.contextVariables = receivedContract.contextVariables;
         if (isVerifiable(contractWrapper)) {
           verifiable[id] = contractWrapper;
         }
@@ -682,12 +680,14 @@ export default class VerificationController
       if (!isVerifiable(contractWrapper)) {
         continue;
       }
+
+      const { address, chainId, contract, contextVariables } = contractWrapper;
       const injectorInput: InjectorInput = {
-        addresses: [contractWrapper.address as string],
-        chain: contractWrapper.chainId as string,
-        contract: contractWrapper.contract,
-        constructorArguments: contractWrapper.abiEncodedConstructorArguments,
-        msgSender: contractWrapper.msgSender,
+        // string assertion made with isVerifiable
+        addresses: [address as string],
+        chain: chainId as string,
+        contract,
+        contextVariables,
       };
 
       const found = this.verificationService.findByAddress(
@@ -955,15 +955,26 @@ export default class VerificationController
         .custom(
           (chain, { req }) => (req.chain = this.validateSingleChainId(chain))
         ),
-      body("msgSender")
-        .optional()
-        .custom((msgSender, { req }) => (req.msgSender = msgSender)),
+      body("contextVariables.msgSender").optional(),
+      body("contextVariables.abiEncodedConstructorArguments").optional(),
+      // Handle non-json multipart/form-data requests.
       body("abiEncodedConstructorArguments")
         .optional()
         .custom(
           (abiEncodedConstructorArguments, { req }) =>
-            (req.abiEncodedConstructorArguments =
-              abiEncodedConstructorArguments)
+            (req.body.contextVariables = {
+              abiEncodedConstructorArguments,
+              ...req.body.contextVariables,
+            })
+        ),
+      body("msgSender")
+        .optional()
+        .custom(
+          (msgSender, { req }) =>
+            (req.body.contextVariables = {
+              msgSender,
+              ...req.body.contextVariables,
+            })
         ),
       this.safeHandler(this.legacyVerifyEndpoint)
     );

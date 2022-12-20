@@ -955,16 +955,21 @@ describe("Server", function () {
       const res = await chai
         .request(server.app)
         .post("/")
-        .field("address", childAddress)
-        .field("chain", defaultContractChain)
-        .field("abiEncodedConstructorArguments", abiEncoded)
-        .attach("files", childMetadataBuffer, "metadata.json")
-        .attach("files", sourceBuffer, "FactoryTest.sol")
-        .send();
+        .send({
+          address: childAddress,
+          chain: defaultContractChain,
+          contextVariables: {
+            abiEncodedConstructorArguments: abiEncoded,
+          },
+          files: {
+            "metadata.json": JSON.stringify(childMetadata),
+            "FactoryTest.sol": sourceBuffer.toString(),
+          },
+        });
       assertions(null, res, null, childAddress);
     });
 
-    it.only("should verify a contract created by a factory contract and has immutables without constructor arguments but with msg.sender assigned immutable", async () => {
+    it("should verify a contract created by a factory contract and has immutables without constructor arguments but with msg.sender assigned immutable", async () => {
       const artifact = require("./testcontracts/FactoryImmutableWithoutConstrArg/Factory3.json");
       const factoryAddress = await deployFromAbiAndBytecode(
         localWeb3Provider,
@@ -997,12 +1002,17 @@ describe("Server", function () {
       const res = await chai
         .request(server.app)
         .post("/")
-        .field("address", childAddress)
-        .field("chain", defaultContractChain)
-        .field("msgSender", factoryAddress)
-        .attach("files", childMetadataBuffer, "metadata.json")
-        .attach("files", sourceBuffer, "FactoryTest3.sol")
-        .send();
+        .send({
+          address: childAddress,
+          chain: defaultContractChain,
+          contextVariables: {
+            msgSender: factoryAddress,
+          },
+          files: {
+            "metadata.json": JSON.stringify(childMetadata),
+            "FactoryTest3.sol": sourceBuffer.toString(),
+          },
+        });
       assertions(null, res, null, childAddress);
     });
 
@@ -1045,13 +1055,90 @@ describe("Server", function () {
       const res1 = await chai
         .request(server.app)
         .post("/")
-        .field("address", childAddress)
-        .field("chain", defaultContractChain)
-        .field("abiEncodedConstructorArguments", abiEncoded)
-        .attach("files", childMetadataBuffer, "metadata.json")
-        .attach("files", sourceBuffer, "FactoryTest.sol")
-        .send();
+        .send({
+          address: childAddress,
+          chain: defaultContractChain,
+          contextVariables: {
+            abiEncodedConstructorArguments: abiEncoded,
+          },
+          files: {
+            "metadata.json": JSON.stringify(childMetadata),
+            "FactoryTest.sol": sourceBuffer.toString(),
+          },
+        });
       assertBytecodesDontMatch(null, res1);
+
+      const res2 = await chai
+        .request(server.app)
+        .post("/")
+        .send({
+          address: childAddress,
+          chain: defaultContractChain,
+          contextVariables: {
+            abiEncodedConstructorArguments: abiEncoded,
+            msgSender: factoryAddress,
+          },
+          files: {
+            "metadata.json": JSON.stringify(childMetadata),
+            "FactoryTest.sol": sourceBuffer.toString(),
+          },
+        });
+      assertions(null, res2, null, childAddress);
+
+      // Check if contextVariables.json saved correctly
+      assertEqualityFromPath(
+        {
+          msgSender: factoryAddress,
+          abiEncodedConstructorArguments: abiEncoded,
+        },
+        path.join(
+          server.repository,
+          "contracts",
+          "full_match",
+          defaultContractChain,
+          childAddress,
+          "contextVariables.json"
+        ),
+        { isJson: true }
+      );
+    });
+
+    it("should first fail to verify a contract created by a factory contract using form-data in request and not JSON", async () => {
+      const deployValue = 12345;
+
+      const artifact = require("./testcontracts/FactoryImmutableWithMsgSender/Factory.json");
+      const factoryAddress = await deployFromAbiAndBytecode(
+        localWeb3Provider,
+        artifact.abi,
+        artifact.bytecode,
+        accounts[0]
+      );
+
+      // Deploy child by calling createChild()
+      const childMetadata = require("./testcontracts/FactoryImmutableWithMsgSender/Child_metadata.json");
+      const childMetadataBuffer = Buffer.from(JSON.stringify(childMetadata));
+      const txReceipt = await callContractMethodWithTx(
+        localWeb3Provider,
+        artifact.abi,
+        factoryAddress,
+        "deploy",
+        accounts[0],
+        [deployValue]
+      );
+
+      const childAddress = txReceipt.events.Deployment.returnValues[0];
+      const sourcePath = path.join(
+        "test",
+        "testcontracts",
+        "FactoryImmutableWithMsgSender",
+        "FactoryTest.sol"
+      );
+      const sourceBuffer = fs.readFileSync(sourcePath);
+
+      const abiEncoded = localWeb3Provider.eth.abi.encodeParameter(
+        "uint",
+        deployValue
+      );
 
       const res2 = await chai
         .request(server.app)
@@ -1061,8 +1148,7 @@ describe("Server", function () {
         .field("abiEncodedConstructorArguments", abiEncoded)
         .field("msgSender", factoryAddress)
         .attach("files", childMetadataBuffer, "metadata.json")
-        .attach("files", sourceBuffer, "FactoryTest.sol")
-        .send();
+        .attach("files", sourceBuffer, "FactoryTest.sol");
       assertions(null, res2, null, childAddress);
 
       // Check if contextVariables.json saved correctly
@@ -1680,7 +1766,9 @@ describe("Server", function () {
 
       contracts[0].address = childAddress;
       contracts[0].chainId = defaultContractChain;
-      contracts[0].abiEncodedConstructorArguments = abiEncoded;
+      contracts[0].contextVariables = {
+        abiEncodedConstructorArguments: abiEncoded,
+      };
       const res = await agent
         .post("/session/verify-validated")
         .send({ contracts });
@@ -1728,14 +1816,14 @@ describe("Server", function () {
 
       contracts[0].address = childAddress;
       contracts[0].chainId = defaultContractChain;
-      contracts[0].msgSender = factoryAddress;
+      contracts[0].contextVariables = { msgSender: factoryAddress };
       const res = await agent
         .post("/session/verify-validated")
         .send({ contracts });
       assertSingleContractStatus(res, "perfect");
     });
 
-    it("should first fail to verify a contract created by a factory contract and has an immutable set by `msg.sender`. Then suceed with the `msg.sender` input and save the contextVariables", async () => {
+    it("should first fail to verify a contract created by a factory contract and has an immutable set by `msg.sender`. Then succeed with the `msg.sender` input and save the contextVariables", async () => {
       const deployValue = 12345;
 
       const artifact = require("./testcontracts/FactoryImmutableWithMsgSender/Factory.json");
@@ -1782,13 +1870,18 @@ describe("Server", function () {
 
       contracts[0].address = childAddress;
       contracts[0].chainId = defaultContractChain;
-      contracts[0].abiEncodedConstructorArguments = abiEncoded;
+      contracts[0].contextVariables = {
+        abiEncodedConstructorArguments: abiEncoded,
+      };
       const res2 = await agent
         .post("/session/verify-validated")
         .send({ contracts });
       assertSingleContractStatus(res2, "error");
 
-      contracts[0].msgSender = factoryAddress;
+      contracts[0].contextVariables = {
+        msgSender: factoryAddress,
+        ...contracts[0].contextVariables,
+      };
       const res3 = await agent
         .post("/session/verify-validated")
         .send({ contracts });
