@@ -593,6 +593,13 @@ const sourcifyChains: SourcifyChainsObject = {
     contractFetchAddress: "https://blockscout.athens2.zetachain.com/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
+  "42261": {
+    // Oasis Emerald Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://explorer.emerald.oasis.dev/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
 };
 
 export default sourcifyChains;
