@@ -1212,6 +1212,24 @@ describe("Test Supported Chains", function () {
     "shared/withImmutables.metadata.json"
   );
 
+  // Oasis Emerald Testnet
+  verifyContract(
+    "0x70D7603cAc831A9f23Fc7cAc301db300D55EA921",
+    "42261",
+    "Oasis Emerald Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x78ac8a1A83e31974FC015Bc6d4BE2206bD2fE04c",
+    "42261",
+    "Oasis Emerald Testnet",
+    ["uint256"],
+    [123],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
   //////////////////////
   // Helper functions //
   //////////////////////
