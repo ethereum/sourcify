@@ -600,6 +600,13 @@ const sourcifyChains: SourcifyChainsObject = {
     contractFetchAddress: "https://explorer.emerald.oasis.dev/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
+  "42261": {
+    // Oasis Emerald Testnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://testnet.explorer.emerald.oasis.dev/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
 };
 
 export default sourcifyChains;
