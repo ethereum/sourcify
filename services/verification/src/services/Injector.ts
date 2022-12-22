@@ -12,15 +12,13 @@ import {
   Status,
   Metadata,
   Create2Args,
-  Create2ConstructorArgument,
+  ContextVariables,
   SourcifyEventManager,
 } from "@ethereum-sourcify/core";
 import {
   RecompilationResult,
   getBytecode,
   recompile,
-  checkEndpoint,
-  getCreationDataFromArchive,
   getCreationDataByScraping,
   getCreationDataFromGraphQL,
   getCreationDataTelos,
@@ -40,6 +38,12 @@ import {
   globSource,
 } from "ipfs-http-client";
 import path from "path";
+import { EVM } from "@ethereumjs/evm";
+import { EEI } from "@ethereumjs/vm";
+import { Address } from "@ethereumjs/util";
+import { Common } from "@ethereumjs/common";
+import { DefaultStateManager } from "@ethereumjs/statemanager";
+import { Blockchain } from "@ethereumjs/blockchain";
 
 export interface InjectorConfig {
   silent?: boolean;
@@ -155,7 +159,11 @@ export class Injector {
     chain: string,
     addresses: string[] = [],
     recompiled: RecompilationResult,
-    metadata: Metadata
+    metadata: Metadata,
+    contextVariables?: {
+      abiEncodedConstructorArguments?: string;
+      msgSender?: string;
+    }
   ): Promise<Match> {
     let match: Match = { address: addresses[0], chainId: chain, status: null };
     const chainName = this.chains[chain].name || "The chain";
@@ -178,12 +186,20 @@ export class Injector {
         throw err;
       }
 
+      if (!deployedBytecode) {
+        throw new Error(
+          `No bytecode found at address ${address} on ${chainName}`
+        );
+      }
+
       try {
         match = await this.compareBytecodes(
           deployedBytecode,
           recompiled,
           chain,
-          address
+          address,
+          undefined, //creationData
+          contextVariables
         );
       } catch (err: any) {
         if (addresses.length === 1) {
@@ -242,49 +258,48 @@ export class Injector {
    * @return {Match}  match description ('perfect'|'partial'|null) and possibly constructor args (ABI-encoded) and library links
    */
   private async compareBytecodes(
-    deployedBytecode: string | null,
+    deployedBytecode: string,
     recompiled: RecompilationResult,
     chain: string,
     address: string,
-    creationData?: string
+    creationData?: string | null,
+    contextVariables?: {
+      abiEncodedConstructorArguments?: string;
+      msgSender?: string;
+    }
   ): Promise<Match> {
-    const match: Match = {
+    let match: Match = {
       address,
       chainId: chain,
       status: null,
-      encodedConstructorArgs: undefined,
+      abiEncodedConstructorArguments: undefined,
       libraryMap: undefined,
+      contextVariables: undefined,
     };
 
+    const { replaced, libraryMap } = this.addLibraryAddresses(
+      recompiled.deployedBytecode,
+      deployedBytecode
+    );
+    recompiled.deployedBytecode = replaced;
+    match.libraryMap = libraryMap;
+
+    match = this.checkIfMatch(
+      match,
+      (a, b) => a === b,
+      deployedBytecode,
+      recompiled.deployedBytecode
+    );
+    if (match.status) return match;
+
     if (deployedBytecode && deployedBytecode.length > 2) {
-      const { replaced, libraryMap } = this.addLibraryAddresses(
-        recompiled.deployedBytecode,
-        deployedBytecode
-      );
-      recompiled.deployedBytecode = replaced;
-      match.libraryMap = libraryMap;
+      // If same length, highly likely these contracts are a match but immutable vars. may be affecting the match
+      if (deployedBytecode.length === recompiled.deployedBytecode.length) {
+        creationData =
+          creationData || (await this.getCreationData(chain, address));
 
-      if (deployedBytecode === recompiled.deployedBytecode) {
-        // if the bytecode doesn't contain metadata then "partial" match
-        if (this.getMetadataPathFromCborEncoded(deployedBytecode) === null) {
-          match.status = "partial";
-        } else {
-          match.status = "perfect";
-        }
-      } else {
-        const [trimmedDeployedBytecode] = splitAuxdata(deployedBytecode);
-        const [trimmedCompiledRuntimeBytecode] = splitAuxdata(
-          recompiled.deployedBytecode
-        );
-        if (trimmedDeployedBytecode === trimmedCompiledRuntimeBytecode) {
-          match.status = "partial";
-        } else if (
-          trimmedDeployedBytecode.length ===
-          trimmedCompiledRuntimeBytecode.length
-        ) {
-          creationData =
-            creationData || (await this.getCreationData(chain, address));
-
+        if (creationData) {
+          // The reason why this uses `startsWith` instead of `===` is that creationData may contain constructor arguments at the end part
           const { replaced, libraryMap } = this.addLibraryAddresses(
             recompiled.creationBytecode,
             creationData
@@ -292,37 +307,38 @@ export class Injector {
           recompiled.creationBytecode = replaced;
           match.libraryMap = libraryMap;
 
-          if (creationData) {
-            if (creationData.startsWith(recompiled.creationBytecode)) {
-              // The reason why this uses `startsWith` instead of `===` is that
-              // creationData may contain constructor arguments at the end part.
-              const encodedConstructorArgs = this.extractEncodedConstructorArgs(
-                creationData,
-                recompiled.creationBytecode
-              );
-              match.status = "perfect";
-              match.encodedConstructorArgs = encodedConstructorArgs;
-            } else {
-              const [trimmedCompiledCreationBytecode] = splitAuxdata(
-                recompiled.creationBytecode
-              );
+          match = this.checkIfMatch(
+            match,
+            (a, b) => a.startsWith(b),
+            creationData,
+            recompiled.creationBytecode
+          );
+          if (match.status) return match;
+        }
 
-              if (creationData.startsWith(trimmedCompiledCreationBytecode)) {
-                match.status = "partial";
-              }
-            }
-          }
+        // Execute the creation code with the constructor arguments to see if we'll obtain the same onchain deployed bytecode.
+        const simulatedBytecode =
+          "0x" +
+          (await this.simulateCreationBytecode(
+            recompiled.creationBytecode,
+            chain,
+            JSON.parse(recompiled.metadata).settings.evmVersion,
+            contextVariables
+          ));
+        match = this.checkIfMatch(
+          match,
+          (a, b) => a === b,
+          simulatedBytecode,
+          deployedBytecode,
+          contextVariables?.abiEncodedConstructorArguments
+        );
+        if (match.status) {
+          match.contextVariables = contextVariables;
+          return match;
         }
       }
     }
-    SourcifyEventManager.trigger("Verification.MatchCompared", {
-      deployedBytecode,
-      recompiled,
-      chain,
-      address,
-      creationData,
-      match,
-    });
+
     return match;
   }
 
@@ -356,6 +372,119 @@ export class Injector {
     };
   }
 
+  private async simulateCreationBytecode(
+    creationBytecode: string,
+    chainId: string,
+    evmVersion: string,
+    contextVariables?: {
+      abiEncodedConstructorArguments?: string;
+      msgSender?: string;
+    }
+  ): Promise<string> {
+    let { abiEncodedConstructorArguments } = contextVariables || {};
+    const { msgSender } = contextVariables || {};
+
+    const stateManager = new DefaultStateManager();
+    const blockchain = await Blockchain.create();
+    const common = Common.custom({
+      chainId: parseInt(chainId),
+      defaultHardfork: evmVersion,
+    });
+    const eei = new EEI(stateManager, common, blockchain);
+
+    const evm = new EVM({
+      common,
+      eei,
+    });
+    if (creationBytecode.startsWith("0x")) {
+      creationBytecode = creationBytecode.slice(2);
+    }
+    if (abiEncodedConstructorArguments?.startsWith("0x")) {
+      abiEncodedConstructorArguments = abiEncodedConstructorArguments.slice(2);
+    }
+    const initcode = Buffer.from(
+      creationBytecode +
+        (abiEncodedConstructorArguments ? abiEncodedConstructorArguments : ""),
+      "hex"
+    );
+
+    const result = await evm.runCall({
+      data: initcode,
+      gasLimit: BigInt(0xffffffffff),
+      // prettier vs. eslint indentation conflict here
+      /* eslint-disable indent */
+      caller: msgSender
+        ? new Address(
+            Buffer.from(
+              msgSender.startsWith("0x") ? msgSender.slice(2) : msgSender,
+              "hex"
+            )
+          )
+        : undefined,
+      /* eslint-enable indent */
+    });
+    return result.execResult.returnValue.toString("hex");
+  }
+
+  /**
+   * Function to compare bytecodes for a match.
+   * Also tries to do a partial match by removing the `auxdata`.
+   * Saves the constructor arguments if given or extracts them from the creation data.
+   *
+   * @param match - Match object to be updated
+   * @param matchFunction - How to compare bytecodes. Defaults to `===`, but creation code comparison needs to use `startsWith`.
+   * @param onchainBytecode
+   * @param recompiledBytecode
+   * @param contructorArguments - in ABI encoding
+   */
+  private checkIfMatch(
+    match: Match,
+    matchFunction: (
+      onchainBytecode: string,
+      recompiledBytecode: string
+    ) => boolean = (a, b) => a === b,
+    onchainBytecode: string,
+    recompiledBytecode: string,
+    constructorArguments?: string
+  ) {
+    if (matchFunction(onchainBytecode, recompiledBytecode)) {
+      // if the bytecode doesn't contain any metadata hash then "partial" match, can't be "perfect"
+      if (this.getMetadataPathFromCborEncoded(recompiledBytecode) === null) {
+        match.status = "partial";
+      } else {
+        match.status = "perfect";
+      }
+
+      if (constructorArguments)
+        match.abiEncodedConstructorArguments = constructorArguments;
+      else {
+        match.abiEncodedConstructorArguments =
+          this.extractAbiEncodedConstructorArguments(
+            onchainBytecode,
+            recompiledBytecode
+          );
+      }
+      return match;
+    }
+
+    const [trimmedOnchainBytecode] = splitAuxdata(onchainBytecode); // In the case of creation data and not deployed bytecode it is actually not CBOR encoded, but splitAuxdata returns the whole bytecode if it's not CBOR encoded, so will work with startsWith.
+    const [trimmedRecompiledBytecode] = splitAuxdata(recompiledBytecode);
+    if (matchFunction(trimmedOnchainBytecode, trimmedRecompiledBytecode)) {
+      match.status = "partial";
+      if (constructorArguments) {
+        match.abiEncodedConstructorArguments = constructorArguments;
+      } else {
+        match.abiEncodedConstructorArguments =
+          this.extractAbiEncodedConstructorArguments(
+            onchainBytecode,
+            recompiledBytecode
+          );
+      }
+    }
+
+    return match;
+  }
+
   /**
    * Returns the `creationData` from the transaction that created the contract at the provided chain and address.
    * @param chain
@@ -365,28 +494,27 @@ export class Injector {
   private async getCreationData(
     chain: string,
     contractAddress: string
-  ): Promise<string> {
-    const loc = "[GET_CREATION_DATA]";
+  ): Promise<string | null> {
     const txFetchAddress = this.chains[chain]?.contractFetchAddress?.replace(
       "${ADDRESS}",
       contractAddress
     );
     const txRegex = this.chains[chain].txRegex;
+    const graphQLFetchAddress = this.chains[chain].graphQLFetchAddress;
 
-    let creationData: false | string = false;
+    if (!txFetchAddress || !graphQLFetchAddress) return null;
+    let creationData: string | null = null;
     if (txFetchAddress && txRegex) {
       // fetch from a block explorer and extract by regex
-      for (const web3 of this.chains[chain].web3array) {
-        try {
-          creationData = await getCreationDataByScraping(
-            txFetchAddress,
-            txRegex,
-            web3
-          );
-          break;
-        } catch (err: any) {
-          // Error catched later
-        }
+      try {
+        creationData = await getCreationDataByScraping(
+          txFetchAddress,
+          txRegex,
+          this.chains[chain].web3array
+        );
+      } catch (err: any) {
+        // TODO: Don't do empty catches.
+        // Error catched later
       }
     }
 
@@ -439,7 +567,6 @@ export class Injector {
       }
     }
 
-    const graphQLFetchAddress = this.chains[chain].graphQLFetchAddress;
     if (graphQLFetchAddress) {
       // fetch from graphql node
       for (const web3 of this.chains[chain].web3array) {
@@ -489,13 +616,21 @@ export class Injector {
     }
   }
 
-  private extractEncodedConstructorArgs(
-    creationData: string,
+  private extractAbiEncodedConstructorArguments(
+    onchainCreationBytecode: string,
     compiledCreationBytecode: string
   ) {
-    const startIndex = creationData.indexOf(compiledCreationBytecode);
+    if (onchainCreationBytecode.length === compiledCreationBytecode.length)
+      return undefined;
+
+    const startIndex = onchainCreationBytecode.indexOf(
+      compiledCreationBytecode
+    );
     return (
-      "0x" + creationData.slice(startIndex + compiledCreationBytecode.length)
+      "0x" +
+      onchainCreationBytecode.slice(
+        startIndex + compiledCreationBytecode.length
+      )
     );
   }
 
@@ -552,12 +687,27 @@ export class Injector {
         compilationResult
       );
 
-      if (match.encodedConstructorArgs && match.encodedConstructorArgs.length) {
+      if (
+        match.abiEncodedConstructorArguments &&
+        match.abiEncodedConstructorArguments.length
+      ) {
         this.storeConstructorArgs(
           matchQuality,
           match.chainId,
           match.address,
-          match.encodedConstructorArgs
+          match.abiEncodedConstructorArguments
+        );
+      }
+
+      if (
+        match.contextVariables &&
+        Object.keys(match.contextVariables).length > 0
+      ) {
+        this.storeContextVariables(
+          matchQuality,
+          match.chainId,
+          match.address,
+          match.contextVariables
         );
       }
 
@@ -628,7 +778,7 @@ export class Injector {
    * @return {Promise<object>}              address & status of successfully verified contract
    */
   public async inject(injectorInput: InjectorInput): Promise<Match> {
-    const { chain, addresses, contract } = injectorInput;
+    const { chain, addresses, contract, contextVariables } = injectorInput;
     this.validateAddresses(addresses);
     this.validateChain(chain);
 
@@ -676,7 +826,8 @@ export class Injector {
         chain,
         addresses,
         compilationResult,
-        contract.metadata
+        contract.metadata,
+        contextVariables
       );
     }
 
@@ -689,43 +840,30 @@ export class Injector {
     contract: CheckedContract,
     deployerAddress: string,
     salt: string,
-    constructorArgs: Create2ConstructorArgument[],
-    create2Address: string
+    create2Address: string,
+    abiEncodedConstructorArguments?: string
   ): Promise<Match> {
     if (!CheckedContract.isValid(contract)) {
       await CheckedContract.fetchMissing(contract);
     }
-
-    const constructorArgsTypes = constructorArgs.map(
-      (arg: Create2ConstructorArgument) => arg.type
-    );
-    const constructorArgsValues = constructorArgs.map(
-      (arg: Create2ConstructorArgument) => arg.value
-    );
 
     const compilationResult = await recompile(
       contract.metadata,
       contract.solidity
     );
 
-    const computedAddr = getCreate2Address({
-      factoryAddress: deployerAddress,
+    const computedAddr = getCreate2Address(
+      deployerAddress,
       salt,
-      contractBytecode: compilationResult.creationBytecode,
-      constructorTypes: constructorArgsTypes,
-      constructorArgs: constructorArgsValues,
-    });
+      compilationResult.creationBytecode,
+      abiEncodedConstructorArguments
+    );
 
-    if (create2Address !== computedAddr) {
+    if (create2Address.toLowerCase() !== computedAddr.toLowerCase()) {
       throw new Error(
         `The provided create2 address doesn't match server's generated one. Expected: ${computedAddr} ; Received: ${create2Address} ;`
       );
     }
-
-    const encodedConstructorArgs = this.extractEncodedConstructorArgs(
-      compilationResult.creationBytecode,
-      compilationResult.deployedBytecode
-    );
 
     const { libraryMap } = this.addLibraryAddresses(
       compilationResult.deployedBytecode,
@@ -735,7 +873,6 @@ export class Injector {
     const create2Args: Create2Args = {
       deployerAddress,
       salt,
-      constructorArgs,
     };
 
     const match: Match = {
@@ -743,7 +880,7 @@ export class Injector {
       chainId: "0",
       status: "perfect",
       storageTimestamp: new Date(),
-      encodedConstructorArgs: encodedConstructorArgs,
+      abiEncodedConstructorArguments,
       create2Args,
       libraryMap: libraryMap,
     };
@@ -851,16 +988,12 @@ export class Injector {
 
   /**
    * Writes the constructor arguments to the repository.
-   * @param matchQuality
-   * @param chain
-   * @param address
-   * @param encodedConstructorArgs
    */
   private storeConstructorArgs(
     matchQuality: MatchQuality,
     chain: string,
     address: string,
-    encodedConstructorArgs: string
+    abiEncodedConstructorArguments: string
   ) {
     this.fileService.save(
       {
@@ -870,7 +1003,25 @@ export class Injector {
         source: false,
         fileName: "constructor-args.txt",
       },
-      encodedConstructorArgs
+      abiEncodedConstructorArguments
+    );
+  }
+
+  private storeContextVariables(
+    matchQuality: MatchQuality,
+    chain: string,
+    address: string,
+    contextVariables: ContextVariables
+  ) {
+    this.fileService.save(
+      {
+        matchQuality,
+        chain,
+        address,
+        source: false,
+        fileName: "contextVariables.json",
+      },
+      JSON.stringify(contextVariables, undefined, 2)
     );
   }
 

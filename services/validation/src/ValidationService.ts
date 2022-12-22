@@ -2,7 +2,6 @@ import Web3 from "web3";
 import JSZip from "jszip";
 import {
   StringMap,
-  SourceMap,
   PathBuffer,
   PathContent,
   CheckedContract,

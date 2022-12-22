@@ -13,7 +13,7 @@ import fs from "fs";
 const solc = require("solc");
 import { spawnSync } from "child_process";
 import { StatusCodes } from "http-status-codes";
-import { ethers } from "ethers";
+import { ethers, BigNumber } from "ethers";
 
 const GITHUB_SOLC_REPO =
   "https://github.com/ethereum/solc-bin/raw/gh-pages/linux-amd64/";
@@ -83,7 +83,6 @@ export async function getBytecode(
   address = Web3.utils.toChecksumAddress(address);
 
   // Request sequentially. Custom node is always before ALCHEMY so we don't waste resources if succeeds.
-  // TODO: remove promise-any dependency
   for (const web3 of web3Array) {
     try {
       const bytecode = await raceWithTimeout(web3, RPC_TIMEOUT, address);
@@ -219,9 +218,11 @@ export async function useCompiler(version: string, solcJsonInput: any) {
       if (typedError.code === "ENOBUFS") {
         error = new Error("Compilation output size too large");
       }
+      //TODO: This overwrites the prev. errors
       error = new Error("Compilation Error");
     }
     if (!shellOutputBuffer.stdout) {
+      // TODO: This also overwrites the prev. error
       error = new Error(RECOMPILATION_ERR_MSG);
     }
     if (error) {
@@ -499,8 +500,8 @@ export async function getCreationDataFromArchive(
 export async function getCreationDataByScraping(
   fetchAddress: string,
   txRegex: string,
-  web3: Web3
-): Promise<string> {
+  web3Array: Web3[]
+): Promise<string | null> {
   const res = await fetch(fetchAddress);
   const buffer = await res.buffer();
   const page = buffer.toString();
@@ -508,16 +509,30 @@ export async function getCreationDataByScraping(
     const matched = page.match(txRegex);
     if (matched && matched[1]) {
       const txHash = matched[1];
-      const tx = await web3.eth.getTransaction(txHash);
-      return tx.input;
+      let tx;
+      const errors: Error[] = [];
+      for (const web3 of web3Array) {
+        try {
+          tx = await web3.eth.getTransaction(txHash);
+          return tx.input;
+        } catch (e) {
+          errors.push(e as Error);
+        }
+      }
+      throw new Error(
+        `Couldn't get the tx.input of the tx with hash ${txHash} from any providers: \n ${JSON.stringify(
+          errors.map((e) => e.message)
+        )}`
+      );
+    } else {
+      if (page.includes("captcha") || page.includes("CAPTCHA")) {
+        throw new Error(
+          "Scraping failed because of CAPTCHA requirement at ${fetchAddress}"
+        );
+      }
     }
   }
-  if (page.includes("captcha") || page.includes("CAPTCHA")) {
-    throw new Error(
-      "Scraping failed because of CAPTCHA requirement at ${fetchAddress}"
-    );
-  }
-  throw new Error(`Creation data could not be scraped from ${fetchAddress}`);
+  return null;
 }
 
 export async function getCreationDataTelos(
@@ -632,59 +647,41 @@ export async function getCreationDataFromGraphQL(
   }
 }
 
-export const buildCreate2Address = (
-  factoryAddress: string,
-  saltHex: string,
-  byteCode: string
-) => {
-  return `0x${ethers.utils
+export const saltToHex = (salt: string) => {
+  if (ethers.utils.isHexString(salt)) {
+    return ethers.utils.hexZeroPad(salt, 32);
+  }
+  const bn = BigNumber.from(salt);
+  const hex = bn.toHexString();
+  const paddedHex = ethers.utils.hexZeroPad(hex, 32);
+  return paddedHex;
+};
+
+export function getCreate2Address(
+  deployerAddress: string,
+  salt: string,
+  creationBytecode: string,
+  abiEncodedConstructorArguments?: string
+) {
+  let initcode = creationBytecode;
+
+  if (abiEncodedConstructorArguments) {
+    initcode += abiEncodedConstructorArguments.startsWith("0x")
+      ? abiEncodedConstructorArguments.slice(2)
+      : abiEncodedConstructorArguments;
+  }
+
+  const address = `0x${ethers.utils
     .keccak256(
-      `0x${["ff", factoryAddress, saltHex, ethers.utils.keccak256(byteCode)]
+      `0x${[
+        "ff",
+        deployerAddress,
+        saltToHex(salt),
+        ethers.utils.keccak256(initcode),
+      ]
         .map((x) => x.replace(/0x/, ""))
         .join("")}`
     )
-    .slice(-40)}`.toLowerCase();
-};
-
-export const saltToHex = (salt: string | number) => {
-  salt = salt.toString();
-  if (ethers.utils.isHexString(salt)) {
-    return salt;
-  }
-
-  return ethers.utils.id(salt);
-};
-
-export const encodeParams = (dataTypes: any[], data: any[]) => {
-  const abiCoder = ethers.utils.defaultAbiCoder;
-  return abiCoder.encode(dataTypes, data);
-};
-
-export const buildBytecode = (
-  constructorTypes: any[],
-  constructorArgs: any[],
-  contractBytecode: string
-) =>
-  `${contractBytecode}${encodeParams(constructorTypes, constructorArgs).slice(
-    2
-  )}`;
-
-export function getCreate2Address({
-  factoryAddress,
-  salt,
-  contractBytecode,
-  constructorTypes = [] as string[],
-  constructorArgs = [] as any[],
-}: {
-  factoryAddress: string;
-  salt: string | number;
-  contractBytecode: string;
-  constructorTypes?: string[];
-  constructorArgs?: any[];
-}) {
-  return buildCreate2Address(
-    factoryAddress,
-    saltToHex(salt),
-    buildBytecode(constructorTypes, constructorArgs, contractBytecode)
-  );
+    .slice(-40)}`; // last 20 bytes
+  return ethers.utils.getAddress(address); // checksum
 }

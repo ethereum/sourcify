@@ -17,6 +17,10 @@ export interface InjectorInput {
   contract: CheckedContract;
   bytecode?: string;
   creationData?: string;
+  contextVariables?: {
+    abiEncodedConstructorArguments?: string;
+    msgSender?: string;
+  };
 }
 
 export interface CompilationSettings {
@@ -73,18 +77,23 @@ export interface SourceMap {
 export interface Create2Args {
   deployerAddress: string;
   salt: string;
-  constructorArgs?: any[];
 }
 
+// Variables that will be needed to reproduce a contract verification, particularly via simulateCreationBytecode
+export interface ContextVariables {
+  msgSender?: string;
+  abiEncodedConstructorArguments?: string;
+}
 export interface Match {
   address: string;
   chainId: string;
   status: Status;
   storageTimestamp?: Date;
   message?: string;
-  encodedConstructorArgs?: string;
+  abiEncodedConstructorArguments?: string;
   create2Args?: Create2Args;
   libraryMap?: StringMap;
+  contextVariables?: ContextVariables;
 }
 
 export type Status =
@@ -252,9 +261,4 @@ export interface JsonInput {
   language: string;
   sources: Sources;
   settings?: Settings;
-}
-
-export interface Create2ConstructorArgument {
-  type: string;
-  value: any;
 }

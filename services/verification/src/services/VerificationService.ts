@@ -23,8 +23,8 @@ export interface IVerificationService {
     contract: CheckedContract,
     deployerAddress: string,
     salt: string,
-    constructorArgs: any,
-    create2Address: string
+    create2Address: string,
+    abiEncodedConstructorArguments?: string
   ): Promise<Match>;
   recompile(contract: CheckedContract): Promise<any>;
   getBytecode(address: string, chain: string): Promise<string>;
@@ -119,8 +119,8 @@ export class VerificationService implements IVerificationService {
     contract: CheckedContract,
     deployerAddress: string,
     salt: string,
-    constructorArgs: any,
-    create2Address: string
+    create2Address: string,
+    abiEncodedConstructorArguments?: string
   ): Promise<Match> => {
     if (!this.injector) {
       this.injector = await Injector.createAsync({
@@ -134,8 +134,8 @@ export class VerificationService implements IVerificationService {
       contract,
       deployerAddress,
       salt,
-      constructorArgs,
-      create2Address
+      create2Address,
+      abiEncodedConstructorArguments
     );
   };
 
