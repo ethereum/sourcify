@@ -611,7 +611,7 @@ const sourcifyChains: SourcifyChainsObject = {
     // Oasis Sapphire Mainnet
     supported: true,
     monitored: false,
-    contractFetchAddress: "https://explorer.sapphire.oasis.dev/" + BLOCKSCOUT_SUFFIX,
+    contractFetchAddress: "https://explorer.sapphire.oasis.io/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
   "23295": {
