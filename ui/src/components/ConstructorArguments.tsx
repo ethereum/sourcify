@@ -97,16 +97,21 @@ const ConstructorArguments = ({
 
   const handleAbiJsonChange = (value: string, index: number) => {
     setUserAbiJsonConstructorArguments((prevUserAbiJson) => {
-      prevUserAbiJson[index].value = value;
+      const tempUserAbiJson = [...prevUserAbiJson];
+      tempUserAbiJson[index].value = value;
       // Also update the abi encoding
-      const types = prevUserAbiJson.map((argument) => argument.type);
-      const values = prevUserAbiJson
+      const types = tempUserAbiJson.map((argument) => argument.type);
+      const values = tempUserAbiJson
         .map((argument) => argument.value)
-        .filter((value) => value !== undefined);
+        .filter((value) => !!value);
       try {
+        if (values.length === 0) {
+          setAbiEncodingError("");
+          return tempUserAbiJson;
+        }
         if (types.length !== values.length) {
           setAbiEncodingError("Please fill all the values");
-          return prevUserAbiJson;
+          return tempUserAbiJson;
         }
         const newAbiEncoding = defaultAbiCoder.encode(types, values);
         setAbiEncodingError("");
@@ -116,7 +121,7 @@ const ConstructorArguments = ({
         setAbiEncodingError("Encoding error: " + e.message);
         setIsInvalidConstructorArguments(true);
       }
-      return prevUserAbiJson;
+      return tempUserAbiJson;
     });
   };
 
@@ -150,7 +155,7 @@ const ConstructorArguments = ({
                 </div>
                 <Input
                   id={currentArgument.name}
-                  value={userAbiJsonConstructorArguments[index]?.value}
+                  value={userAbiJsonConstructorArguments[index]?.value || ""}
                   onChange={(e) => handleAbiJsonChange(e.target.value, index)}
                   placeholder={currentArgument.type}
                   className="mb-2"

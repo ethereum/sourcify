@@ -37,7 +37,7 @@ const ChainAddressForm = ({
   verifyCheckedContract,
   setIsLoading,
 }: ChainAddressFormProps) => {
-  const [address, setAddress] = useState<string>();
+  const [address, setAddress] = useState<string>("");
   const [isInvalidAddress, setIsInvalidAddress] = useState<boolean>(false);
   const [chainId, setChainId] = useState<string>();
   const [foundMatches, setFoundMatches] = useState<CheckAllByAddressResult>();
@@ -46,7 +46,7 @@ const ChainAddressForm = ({
   const [isMoreFieldsOpen, setIsMoreFieldsOpen] = useState<boolean>(false);
   const [abiEncodedConstructorArguments, setAbiEncodedConstructorArguments] =
     useState<string>("");
-  const [msgSender, setMsgSender] = useState<string>();
+  const [msgSender, setMsgSender] = useState<string>("");
   const [isInvalidMsgSender, setIsInvalidMsgSender] = useState<boolean>(false);
   const [showRawAbiInput, setShowRawAbiInput] = useState(false);
   const [isInvalidConstructorArguments, setIsInvalidConstructorArguments] =
