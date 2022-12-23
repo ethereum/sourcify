@@ -65,8 +65,10 @@ export type VerificationInput = {
   verificationId: string;
   chainId: string;
   address: string;
-  abiEncodedConstructorArguments?: string;
-  msgSender?: string;
+  contextVariables: {
+    abiEncodedConstructorArguments?: string;
+    msgSender?: string;
+  };
 };
 
 export type Create2VerificationInput = {

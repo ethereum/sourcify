@@ -109,8 +109,10 @@ const ChainAddressForm = ({
       verificationId: checkedContract.verificationId || "",
       address: address || "",
       chainId: chainId,
-      abiEncodedConstructorArguments,
-      msgSender,
+      contextVariables: {
+        abiEncodedConstructorArguments,
+        msgSender,
+      },
     }).finally(() => setIsLoading(false));
   };
 
