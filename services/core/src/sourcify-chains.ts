@@ -190,8 +190,8 @@ const sourcifyChains: SourcifyChainsObject = {
   "42220": {
     supported: true,
     monitored: false,
-    contractFetchAddress: "https://explorer.celo.org/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    contractFetchAddress: "https://explorer.celo.org/mainnet/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex("/mainnet"),
   },
   "44787": {
     supported: true,
