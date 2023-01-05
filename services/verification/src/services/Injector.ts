@@ -502,7 +502,7 @@ export class Injector {
     const txRegex = this.chains[chain].txRegex;
     const graphQLFetchAddress = this.chains[chain].graphQLFetchAddress;
 
-    if (!txFetchAddress || !graphQLFetchAddress) return null;
+    if (!txFetchAddress && !graphQLFetchAddress) return null;
     let creationData: string | null = null;
     if (txFetchAddress && txRegex) {
       // fetch from a block explorer and extract by regex
@@ -553,7 +553,10 @@ export class Injector {
     }
 
     // Avalanche Subnets
-    if (txFetchAddress && ["11111", "335", "53935", "432201", "432204"].includes(chain)) {
+    if (
+      txFetchAddress &&
+      ["11111", "335", "53935", "432201", "432204"].includes(chain)
+    ) {
       for (const web3 of this.chains[chain].web3array) {
         try {
           creationData = await getCreationDataAvalancheSubnet(
