@@ -1,13 +1,17 @@
-import Web3 from "web3";
-import { StringMap, Metadata, InfoErrorLogger } from "./types";
-import { isEmpty, createJsonInputFromMetadata } from "./utils";
-import fetch from "node-fetch";
-import { InvalidSources, MissingSources } from "..";
-import { SourcifyEventManager } from "../services/EventManager";
+import Web3 from 'web3';
+import fetch from 'node-fetch';
+import {
+  InvalidSources,
+  Metadata,
+  MissingSources,
+  ReformattedMetadata,
+  StringMap,
+} from './types';
+import semver from 'semver';
 
-const IPFS_PREFIX = "dweb:/ipfs/";
-const IPFS_GATEWAY = process.env.IPFS_GATEWAY || "https://ipfs.io/ipfs/";
-const FETCH_TIMEOUT = parseInt(process.env.FETCH_TIMEOUT || "") || 3000; // ms
+const IPFS_PREFIX = 'dweb:/ipfs/';
+const IPFS_GATEWAY = process.env.IPFS_GATEWAY || 'https://ipfs.io/ipfs/';
+const FETCH_TIMEOUT = parseInt(process.env.FETCH_TIMEOUT || '') || 3000; // ms
 /**
  * Abstraction of a checked solidity contract. With metadata and source (solidity) files.
  * The getInfo method returns the information about compilation or errors encountered while validating the metadata.
@@ -84,7 +88,7 @@ export class CheckedContract {
     if (metadata.compiler && metadata.compiler.version) {
       this.compilerVersion = metadata.compiler.version;
     } else {
-      throw new Error("No compiler version found in metadata");
+      throw new Error('No compiler version found in metadata');
     }
 
     let solcJsonInput, fileName, contractName;
@@ -94,7 +98,7 @@ export class CheckedContract {
         solidity
       ));
     } catch (e) {
-      throw new Error("Cannot parse metadata");
+      throw new Error('Cannot parse metadata');
     }
 
     this.standardJson = solcJsonInput;
@@ -107,10 +111,10 @@ export class CheckedContract {
    * of source files related to the provided metadata file.
    */
   private composeSuccessMessage(): string {
-    const simpleCompilerVersion = this.compilerVersion.split("+")[0];
+    const simpleCompilerVersion = this.compilerVersion.split('+')[0];
     const msgLines: string[] = [];
     msgLines.push(`${this.name} (${this.compiledPath}):`);
-    msgLines.push("  Success!");
+    msgLines.push('  Success!');
     msgLines.push(`  Compiled with Solidity ${simpleCompilerVersion}`);
     msgLines.push(
       `  https://solc-bin.ethereum.org/wasm/soljson-v${this.compilerVersion}.js`
@@ -118,7 +122,7 @@ export class CheckedContract {
     msgLines.push(
       `  https://solc-bin.ethereum.org/linux-amd64/solc-linux-amd64-v${this.compilerVersion}`
     );
-    return msgLines.join("\n");
+    return msgLines.join('\n');
   }
 
   /**
@@ -138,12 +142,12 @@ export class CheckedContract {
     msgLines.push(`${this.name} (${this.compiledPath}):`);
 
     if (!isEmpty(this.missing)) {
-      msgLines.push("  Error: Missing sources:");
+      msgLines.push('  Error: Missing sources:');
       msgLines.push(
         "  The following files were not provided (or were altered, so their hash doesn't match the one in the metadata)."
       );
       msgLines.push(
-        "  Please retrieve the files (potentially via ipfs) and re-run the script."
+        '  Please retrieve the files (potentially via ipfs) and re-run the script.'
       );
     }
 
@@ -164,7 +168,7 @@ export class CheckedContract {
     }
 
     if (!isEmpty(this.invalid)) {
-      msgLines.push("  Error: Invalid sources:");
+      msgLines.push('  Error: Invalid sources:');
     }
 
     for (const invalidSourceName in this.invalid) {
@@ -185,10 +189,10 @@ export class CheckedContract {
     }
 
     if (!this.compilerVersion) {
-      msgLines.push("  No compiler version provided.");
+      msgLines.push('  No compiler version provided.');
     }
 
-    return msgLines.join("\n");
+    return msgLines.join('\n');
   }
 
   /**
@@ -236,16 +240,8 @@ export class CheckedContract {
 
     if (missingFiles.length) {
       const error = new Error(
-        `Resource missing; unsuccessful fetching: ${missingFiles.join(", ")}`
+        `Resource missing; unsuccessful fetching: ${missingFiles.join(', ')}`
       );
-      SourcifyEventManager.trigger("Core.Error", {
-        message: error.message,
-        stack: error.stack,
-        details: {
-          contractName: this.name,
-          missingFiles,
-        },
-      });
       throw error;
     }
   }
@@ -278,31 +274,17 @@ export async function performFetch(
   fileName?: string
 ): Promise<string | null> {
   const res = await fetch(url, { timeout: FETCH_TIMEOUT }).catch((err) => {
-    SourcifyEventManager.trigger("Core.Error", {
-      message: err.message,
-      stack: err.stack,
-    });
+    console.log("Couldn't fetch: " + url + ' ' + hash + ' ' + fileName);
   });
 
   if (res && res.status === 200) {
     const content = await res.text();
     if (hash && Web3.utils.keccak256(content) !== hash) {
-      SourcifyEventManager.trigger("Core.Error", {
-        message: "The calculated and the provided hash don't match.",
-        details: {
-          url,
-          hash,
-          fileName,
-        },
-      });
+      console.log("The calculated and the provided hash don't match.");
       return null;
     }
 
-    SourcifyEventManager.trigger("Core.PerformFetch", {
-      url,
-      hash,
-      fileName,
-    });
+    console.log('Performing fetch: ' + url + ' ' + hash + ' ' + fileName);
     return content;
   } else {
     return null;
@@ -316,12 +298,12 @@ export async function performFetch(
  * @returns a GitHub-compatible url if possible; null otherwise
  */
 function getGithubUrl(url: string): string | null {
-  if (!url.includes("github.com")) {
+  if (!url.includes('github.com')) {
     return null;
   }
   return url
-    .replace("github.com", "raw.githubusercontent.com")
-    .replace("/blob/", "/");
+    .replace('github.com', 'raw.githubusercontent.com')
+    .replace('/blob/', '/');
 }
 
 /**
@@ -331,4 +313,73 @@ function getGithubUrl(url: string): string | null {
  */
 function isEmpty(obj: object): boolean {
   return !Object.keys(obj).length && obj.constructor === Object;
+}
+
+/**
+ * Formats metadata into an object which can be passed to solc for recompilation
+ * @param  {any}                 metadata solc metadata object
+ * @param  {string[]}            sources  solidity sources
+ * @return {ReformattedMetadata}
+ */
+function createJsonInputFromMetadata(
+  metadata: Metadata,
+  sources: StringMap
+): ReformattedMetadata {
+  const solcJsonInput: any = {};
+  let fileName = '';
+  let contractName = '';
+
+  solcJsonInput.settings = JSON.parse(JSON.stringify(metadata.settings));
+
+  if (
+    !metadata.settings ||
+    !metadata.settings.compilationTarget ||
+    Object.keys(metadata.settings.compilationTarget).length != 1
+  ) {
+    const error = new Error(
+      'createJsonInputFromMetadata: Invalid compilationTarget'
+    );
+    throw error;
+  }
+
+  for (fileName in metadata.settings.compilationTarget) {
+    contractName = metadata.settings.compilationTarget[fileName];
+  }
+
+  delete solcJsonInput.settings.compilationTarget;
+
+  // Check inliner bug for below versions https://github.com/ethereum/sourcify/issues/640
+  const versions = ['0.8.2', '0.8.3', '0.8.4'];
+  const coercedVersion = semver.coerce(metadata.compiler.version)?.version;
+
+  const affectedVersions = versions.filter((version) =>
+    semver.eq(version, coercedVersion || '')
+  );
+  if (affectedVersions.length > 0) {
+    if (solcJsonInput.settings?.optimizer?.details?.inliner) {
+      delete solcJsonInput.settings.optimizer.details.inliner;
+    }
+  }
+
+  solcJsonInput.sources = {};
+  for (const source in sources) {
+    solcJsonInput.sources[source] = { content: sources[source] };
+  }
+
+  solcJsonInput.language = metadata.language;
+  solcJsonInput.settings.metadata = solcJsonInput.settings.metadata || {};
+  solcJsonInput.settings.outputSelection =
+    solcJsonInput.settings.outputSelection || {};
+  solcJsonInput.settings.outputSelection[fileName] =
+    solcJsonInput.settings.outputSelection[fileName] || {};
+
+  solcJsonInput.settings.outputSelection[fileName][contractName] = [
+    'evm.bytecode.object',
+    'evm.deployedBytecode.object',
+    'metadata',
+  ];
+
+  solcJsonInput.settings.libraries = { '': metadata.settings.libraries || {} };
+
+  return { solcJsonInput, fileName, contractName };
 }
