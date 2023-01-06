@@ -41,7 +41,10 @@
     "node": ">=10"
   },
   "dependencies": {
-    "@bitauth/libauth": "^1.17.1"
+    "@bitauth/libauth": "^1.17.1",
+    "jszip": "^3.10.1",
+    "semver": "^7.3.8",
+    "web3": "^1.8.1"
   },
   "devDependencies": {
     "@ava/typescript": "^1.1.1",
