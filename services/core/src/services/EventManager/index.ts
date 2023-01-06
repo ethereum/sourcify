@@ -35,29 +35,19 @@ interface Events extends GenericEvents {
   "Verification.Compiled": (compiledEvent: {
     version: string;
     solcPath: string | null;
-    solcJsonInput: any;
   }) => void;
   "Verification.CreationBytecodeFetched": (creationBytecodeFetchedEvent: {
     chain: string;
     address: string;
-    creationBytecode: string;
     txFetchAddress?: string;
   }) => void;
   "Verification.ExecutionBytecodeFetched": (executionBytecodeFetchedEvent: {
     chain: string;
     address: string;
-    executionBytecode: string;
   }) => void;
   "Verification.MatchCompared": (matchComparedEvent: {
-    deployedBytecode: string | null;
-    recompiled: {
-      creationBytecode: string;
-      deployedBytecode: string;
-      metadata: string;
-    };
     chain: string;
     address: string;
-    creationData?: string;
     match: Match;
   }) => void;
   "Verification.MatchStored": (match: Match) => void;

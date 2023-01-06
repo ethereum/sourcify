@@ -90,7 +90,6 @@ export async function getBytecode(
         SourcifyEventManager.trigger("Verification.ExecutionBytecodeFetched", {
           chain: (await web3.eth.getChainId()).toString(),
           address: address,
-          executionBytecode: bytecode,
         });
       }
       return bytecode;
@@ -268,7 +267,6 @@ export async function useCompiler(version: string, solcJsonInput: any) {
   SourcifyEventManager.trigger("Verification.Compiled", {
     version,
     solcPath,
-    solcJsonInput,
   });
   return compiledJSON;
 }

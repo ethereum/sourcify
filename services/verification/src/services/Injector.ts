@@ -599,7 +599,6 @@ export class Injector {
       SourcifyEventManager.trigger("Verification.CreationBytecodeFetched", {
         chain,
         address: contractAddress,
-        creationBytecode: creationData,
         txFetchAddress,
       });
       return creationData;
