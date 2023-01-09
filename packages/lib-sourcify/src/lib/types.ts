@@ -35,13 +35,20 @@ export interface Metadata {
   language: string;
   output: any;
   settings: {
-    compilationTarget: any;
-    outputSelection: any;
+    compilationTarget: {
+      [sourceName: string]: string;
+    };
+    evmVersion: string;
+    libraries?: any;
+    metadata: {
+      bytecodeHash: 'none' | 'ipfs' | 'bzzr0' | 'bzzr1';
+      useLiteralContent?: boolean;
+    };
     optimizer?: {
       enabled: boolean;
       runs: number;
     };
-    libraries?: any;
+    outputSelection: any;
   };
   sources: any;
 }
@@ -65,9 +72,10 @@ export interface Match {
   status: Status;
   storageTimestamp?: Date;
   message?: string;
-  encodedConstructorArgs?: string;
+  abiEncodedConstructorArguments?: string;
   create2Args?: Create2Args;
   libraryMap?: StringMap;
+  contextVariables?: ContextVariables;
 }
 
 export type Status =
@@ -108,4 +116,9 @@ type Currency = {
   name: string;
   symbol: string;
   decimals: number;
+};
+
+export type ContextVariables = {
+  abiEncodedConstructorArguments?: string;
+  msgSender?: string;
 };
