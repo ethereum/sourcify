@@ -46,7 +46,8 @@
     "jszip": "^3.10.1",
     "semver": "^7.3.8",
     "solc": "^0.8.17",
-    "web3": "^1.8.1"
+    "web3": "^1.8.1",
+    "web3-utils": "^1.8.1"
   },
   "devDependencies": {
     "@ava/typescript": "^1.1.1",
