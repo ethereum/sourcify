@@ -82,3 +82,30 @@ export interface Create2Args {
   salt: string;
   constructorArgs?: any[];
 }
+// a type that extends the Chain type
+export type SourcifyChain = Chain & {
+  contractFetchAddress?: string;
+  graphQLFetchAddress?: string;
+  txRegex?: string;
+  supported?: boolean;
+  monitored?: boolean;
+};
+
+// TODO: Double check against ethereum-lists/chains type
+export type Chain = {
+  name: string;
+  chainId: number;
+  shortName: string;
+  network: string;
+  networkId: number;
+  nativeCurrency: Currency;
+  rpc: string[];
+  faucets: string[];
+  infoURL: string;
+};
+
+type Currency = {
+  name: string;
+  symbol: string;
+  decimals: number;
+};
