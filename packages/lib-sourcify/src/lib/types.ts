@@ -47,8 +47,38 @@ export interface Metadata {
 }
 
 // TODO: Fully define solcJsonInput
-export declare interface ReformattedMetadata {
+export declare interface CompilableMetadata {
   solcJsonInput: any;
-  fileName: string;
+  contractPath: string;
   contractName: string;
+}
+
+export interface RecompilationResult {
+  creationBytecode: string;
+  deployedBytecode: string;
+  metadata: string;
+}
+
+export interface Match {
+  address: string;
+  chainId: string;
+  status: Status;
+  storageTimestamp?: Date;
+  message?: string;
+  encodedConstructorArgs?: string;
+  create2Args?: Create2Args;
+  libraryMap?: StringMap;
+}
+
+export type Status =
+  | 'perfect'
+  | 'partial'
+  | 'extra-file-input-bug'
+  | 'error'
+  | null;
+
+export interface Create2Args {
+  deployerAddress: string;
+  salt: string;
+  constructorArgs?: any[];
 }

@@ -42,8 +42,10 @@
   },
   "dependencies": {
     "@bitauth/libauth": "^1.17.1",
+    "http-status-codes": "^2.2.0",
     "jszip": "^3.10.1",
     "semver": "^7.3.8",
+    "solc": "^0.8.17",
     "web3": "^1.8.1"
   },
   "devDependencies": {
