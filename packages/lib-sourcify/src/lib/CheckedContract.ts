@@ -1,13 +1,15 @@
 import Web3 from 'web3';
 import fetch from 'node-fetch';
 import {
+  CompilableMetadata,
   InvalidSources,
   Metadata,
   MissingSources,
-  ReformattedMetadata,
+  RecompilationResult,
   StringMap,
 } from './types';
 import semver from 'semver';
+import { useCompiler } from './solidityCompiler';
 
 const IPFS_PREFIX = 'dweb:/ipfs/';
 const IPFS_GATEWAY = process.env.IPFS_GATEWAY || 'https://ipfs.io/ipfs/';
@@ -17,9 +19,6 @@ const FETCH_TIMEOUT = parseInt(process.env.FETCH_TIMEOUT || '') || 3000; // ms
  * The getInfo method returns the information about compilation or errors encountered while validating the metadata.
  */
 export class CheckedContract {
-  /** The raw string representation of the contract's metadata. */
-  metadataRaw: string;
-
   /** Object containing contract metadata keys and values. */
   metadata: Metadata;
 
@@ -33,7 +32,7 @@ export class CheckedContract {
   invalid: InvalidSources;
 
   /** Object containing input for solc when used with the --standard-json flag. */
-  standardJson: any;
+  solcJsonInput: any;
 
   /** The path of the contract during compile-time. */
   compiledPath: string;
@@ -64,12 +63,11 @@ export class CheckedContract {
   }
 
   public constructor(
-    metadata: any,
+    metadata: Metadata,
     solidity: StringMap,
     missing: MissingSources = {},
     invalid: InvalidSources = {}
   ) {
-    this.metadataRaw = JSON.stringify(metadata);
     this.metadata = JSON.parse(JSON.stringify(metadata));
     this.solidity = solidity;
     this.missing = missing;
@@ -77,12 +75,11 @@ export class CheckedContract {
 
     const sources = this.metadata.sources;
     for (const compiledPath in sources) {
-      const metadataSource = sources[compiledPath];
       const foundSource = solidity[compiledPath];
-      if (!metadataSource.content && foundSource) {
-        metadataSource.content = foundSource;
+      if (!sources[compiledPath].content && foundSource) {
+        sources[compiledPath].content = foundSource;
       }
-      delete metadataSource.license;
+      delete sources[compiledPath].license;
     }
 
     if (metadata.compiler && metadata.compiler.version) {
@@ -91,19 +88,40 @@ export class CheckedContract {
       throw new Error('No compiler version found in metadata');
     }
 
-    let solcJsonInput, fileName, contractName;
-    try {
-      ({ solcJsonInput, fileName, contractName } = createJsonInputFromMetadata(
-        metadata,
-        solidity
-      ));
-    } catch (e) {
-      throw new Error('Cannot parse metadata');
+    const { solcJsonInput, contractPath, contractName } =
+      createJsonInputFromMetadata(metadata, solidity);
+
+    this.solcJsonInput = solcJsonInput;
+    this.compiledPath = contractPath;
+    this.name = contractName;
+  }
+
+  public async recompile(): Promise<RecompilationResult> {
+    const version = this.metadata.compiler.version;
+
+    const output = await useCompiler(version, this.solcJsonInput);
+    if (
+      !output.contracts ||
+      !output.contracts[this.compiledPath] ||
+      !output.contracts[this.compiledPath][this.name] ||
+      !output.contracts[this.compiledPath][this.name].evm ||
+      !output.contracts[this.compiledPath][this.name].evm.bytecode
+    ) {
+      const errorMessages = output.errors
+        .filter((e: any) => e.severity === 'error')
+        .map((e: any) => e.formattedMessage);
+
+      const error = new Error('Compiler error');
+      console.error(error);
+      throw error;
     }
 
-    this.standardJson = solcJsonInput;
-    this.compiledPath = fileName;
-    this.name = contractName;
+    const contract: any = output.contracts[this.compiledPath][this.name];
+    return {
+      creationBytecode: `0x${contract.evm.bytecode.object}`,
+      deployedBytecode: `0x${contract.evm.deployedBytecode.object}`,
+      metadata: contract.metadata.trim(),
+    };
   }
 
   /**
@@ -324,9 +342,9 @@ function isEmpty(obj: object): boolean {
 function createJsonInputFromMetadata(
   metadata: Metadata,
   sources: StringMap
-): ReformattedMetadata {
+): CompilableMetadata {
   const solcJsonInput: any = {};
-  let fileName = '';
+  let contractPath = '';
   let contractName = '';
 
   solcJsonInput.settings = JSON.parse(JSON.stringify(metadata.settings));
@@ -342,8 +360,8 @@ function createJsonInputFromMetadata(
     throw error;
   }
 
-  for (fileName in metadata.settings.compilationTarget) {
-    contractName = metadata.settings.compilationTarget[fileName];
+  for (contractPath in metadata.settings.compilationTarget) {
+    contractName = metadata.settings.compilationTarget[contractPath];
   }
 
   delete solcJsonInput.settings.compilationTarget;
@@ -370,10 +388,10 @@ function createJsonInputFromMetadata(
   solcJsonInput.settings.metadata = solcJsonInput.settings.metadata || {};
   solcJsonInput.settings.outputSelection =
     solcJsonInput.settings.outputSelection || {};
-  solcJsonInput.settings.outputSelection[fileName] =
-    solcJsonInput.settings.outputSelection[fileName] || {};
+  solcJsonInput.settings.outputSelection[contractPath] =
+    solcJsonInput.settings.outputSelection[contractPath] || {};
 
-  solcJsonInput.settings.outputSelection[fileName][contractName] = [
+  solcJsonInput.settings.outputSelection[contractPath][contractName] = [
     'evm.bytecode.object',
     'evm.deployedBytecode.object',
     'metadata',
@@ -381,5 +399,5 @@ function createJsonInputFromMetadata(
 
   solcJsonInput.settings.libraries = { '': metadata.settings.libraries || {} };
 
-  return { solcJsonInput, fileName, contractName };
+  return { solcJsonInput, contractPath, contractName };
 }
