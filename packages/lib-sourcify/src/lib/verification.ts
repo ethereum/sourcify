@@ -1,23 +1,29 @@
 import { CheckedContract } from './CheckedContract';
-import { Match, SourcifyChain, StringMap } from './types';
+import { ContextVariables, Match, SourcifyChain, StringMap } from './types';
 import { toChecksumAddress } from 'web3-utils';
 import Web3 from 'web3';
-import { HttpProvider, WebsocketProvider } from 'web3-core';
 import {
   decode as bytecodeDecode,
   splitAuxdata,
 } from '@ethereum-sourcify/bytecode-utils';
+import { EVM } from '@ethereumjs/evm';
+import { EEI } from '@ethereumjs/vm';
+import { Address } from '@ethereumjs/util';
+import { Common } from '@ethereumjs/common';
+import { DefaultStateManager } from '@ethereumjs/statemanager';
+import { Blockchain } from '@ethereumjs/blockchain';
 
 export async function verifyDeployed(
   checkedContract: CheckedContract,
   sourcifyChain: SourcifyChain,
-  address: string
+  address: string,
+  contextVariables?: ContextVariables
 ): Promise<Match> {
   const match: Match = {
     address,
     chainId: sourcifyChain.chainId.toString(),
     status: null,
-    encodedConstructorArgs: undefined,
+    abiEncodedConstructorArguments: undefined,
     libraryMap: undefined,
   };
 
@@ -51,7 +57,19 @@ export async function verifyDeployed(
   if (match.status) return match;
 
   // Try to match with simulating the creation bytecode
-  // matchWithSimulation(match, recompiled.creationBytecode, deployedBytecode);
+  matchWithSimulation(
+    match,
+    recompiled.creationBytecode,
+    deployedBytecode,
+    checkedContract.metadata.settings.evmVersion,
+    sourcifyChain.chainId.toString(),
+    contextVariables
+  );
+  if (match.status) {
+    match.contextVariables = contextVariables;
+    return match;
+  }
+  return match;
 }
 
 export async function matchWithDeployedBytecode(
@@ -89,9 +107,64 @@ export async function matchWithDeployedBytecode(
 }
 
 export async function matchWithSimulation(
+  match: Match,
   recompiledCreaionBytecode: string,
-  deployedBytecode: string
-) {}
+  deployedBytecode: string,
+  evmVersion: string,
+  chainId: string,
+  contextVariables?: ContextVariables
+) {
+  let { abiEncodedConstructorArguments } = contextVariables || {};
+  const { msgSender } = contextVariables || {};
+
+  const stateManager = new DefaultStateManager();
+  const blockchain = await Blockchain.create();
+  const common = Common.custom({
+    chainId: parseInt(chainId),
+    defaultHardfork: evmVersion,
+  });
+  const eei = new EEI(stateManager, common, blockchain);
+
+  const evm = new EVM({
+    common,
+    eei,
+  });
+  if (recompiledCreaionBytecode.startsWith('0x')) {
+    recompiledCreaionBytecode = recompiledCreaionBytecode.slice(2);
+  }
+  if (abiEncodedConstructorArguments?.startsWith('0x')) {
+    abiEncodedConstructorArguments = abiEncodedConstructorArguments.slice(2);
+  }
+  const initcode = Buffer.from(
+    recompiledCreaionBytecode +
+      (abiEncodedConstructorArguments ? abiEncodedConstructorArguments : ''),
+    'hex'
+  );
+
+  const result = await evm.runCall({
+    data: initcode,
+    gasLimit: BigInt(0xffffffffff),
+    // prettier vs. eslint indentation conflict here
+    /* eslint-disable indent */
+    caller: msgSender
+      ? new Address(
+          Buffer.from(
+            msgSender.startsWith('0x') ? msgSender.slice(2) : msgSender,
+            'hex'
+          )
+        )
+      : undefined,
+    /* eslint-enable indent */
+  });
+  const simulationDeployedBytecode =
+    result.execResult.returnValue.toString('hex');
+
+  matchWithDeployedBytecode(
+    match,
+    simulationDeployedBytecode,
+    deployedBytecode
+  );
+}
 
 /**
  * Fetches the contract's deployed bytecode from SourcifyChain's rpc's.
