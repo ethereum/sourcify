@@ -48,6 +48,7 @@
     "@ethereumjs/statemanager": "^1.0.2",
     "@ethereumjs/util": "^8.0.3",
     "@ethereumjs/vm": "^6.3.0",
+    "@ethersproject/rlp": "^5.7.0",
     "http-status-codes": "^2.2.0",
     "jszip": "^3.10.1",
     "semver": "^7.3.8",
