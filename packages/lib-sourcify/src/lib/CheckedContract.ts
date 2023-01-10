@@ -97,6 +97,10 @@ export class CheckedContract {
   }
 
   public async recompile(): Promise<RecompilationResult> {
+    if (!CheckedContract.isValid(this)) {
+      await CheckedContract.fetchMissing(this);
+    }
+
     const version = this.metadata.compiler.version;
 
     const output = await useCompiler(version, this.solcJsonInput);

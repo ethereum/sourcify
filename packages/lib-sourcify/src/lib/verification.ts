@@ -1,7 +1,13 @@
 import { CheckedContract } from './CheckedContract';
-import { ContextVariables, Match, SourcifyChain, StringMap } from './types';
+import {
+  ContextVariables,
+  Create2Args,
+  Match,
+  SourcifyChain,
+  StringMap,
+} from './types';
 import { toChecksumAddress } from 'web3-utils';
-import { Transaction } from 'web3-compilers';
+import { Transaction } from 'web3-core';
 import Web3 from 'web3';
 import {
   decode as bytecodeDecode,
@@ -14,6 +20,9 @@ import { Common } from '@ethereumjs/common';
 import { DefaultStateManager } from '@ethereumjs/statemanager';
 import { Blockchain } from '@ethereumjs/blockchain';
 import { encode as rlpEncode } from '@ethersproject/rlp';
+import { hexZeroPad, isHexString } from '@ethersproject/bytes';
+import { BigNumber } from '@ethersproject/bignumber';
+import { getAddress } from '@ethersproject/address';
 
 const RPC_TIMEOUT = 5000;
 
@@ -29,7 +38,6 @@ export async function verifyDeployed(
     chainId: sourcifyChain.chainId.toString(),
     status: null,
   };
-
   const recompiled = await checkedContract.recompile();
 
   const deployedBytecode = await getBytecode(sourcifyChain, address);
@@ -82,6 +90,48 @@ export async function verifyDeployed(
     );
     if (match.status) return match;
   }
+  return match;
+}
+
+export async function verifyCreate2(
+  checkedContract: CheckedContract,
+  deployerAddress: string,
+  salt: string,
+  create2Address: string,
+  abiEncodedConstructorArguments?: string
+): Promise<Match> {
+  const recompiled = await checkedContract.recompile();
+
+  const computedAddr = calculateCreate2Address(
+    deployerAddress,
+    salt,
+    recompiled.creationBytecode,
+    abiEncodedConstructorArguments
+  );
+
+  if (create2Address.toLowerCase() !== computedAddr.toLowerCase()) {
+    throw new Error(
+      `The provided create2 address doesn't match server's generated one. Expected: ${computedAddr} ; Received: ${create2Address} ;`
+    );
+  }
+
+  // TODO: Can create2 have library addresses?
+
+  const create2Args: Create2Args = {
+    deployerAddress,
+    salt,
+  };
+
+  const match: Match = {
+    address: computedAddr,
+    chainId: '0',
+    status: 'perfect',
+    storageTimestamp: new Date(),
+    abiEncodedConstructorArguments,
+    create2Args,
+    // libraryMap: libraryMap,
+  };
+
   return match;
 }
 
@@ -200,7 +250,7 @@ export async function matchWithCreationTx(
   const creatorTxData = creatorTx.input;
 
   // Initially we need to check if this contract creation tx actually yields the same contract address https://github.com/ethereum/sourcify/issues/887
-  const createdContractAddress = calculateCreatedContractAddress(creatorTx);
+  const createdContractAddress = calculateCreateAddress(creatorTx);
   if (createdContractAddress !== address) {
     match.message = `The address being verified ${address} doesn't match the address of the contract ${createdContractAddress} that will be created by the transaction ${creatorTxHash}.`;
     return;
@@ -363,18 +413,66 @@ function extractAbiEncodedConstructorArguments(
 }
 
 /**
- * Calculates the address of the contract that will be created with this tx using `tx.from` and `tx.nonce` according to the yellow paper.
+ * Calculates the address of the contract created with the CREATE opcode using `tx.from` and `tx.nonce`.
  *
  * @param Transaction - creatorTx
  * @returns string -  calculated address
  */
-function calculateCreatedContractAddress(creatorTx: Transaction) {
+function calculateCreateAddress(creatorTx: Transaction) {
   const inputArr = [creatorTx.from, creatorTx.nonce];
   const rlpEncoded = rlpEncode(inputArr);
   const hash = Web3.utils.keccak256(rlpEncoded);
   const address = hash.substring(24);
   return address;
 }
+
+/**
+ * Calculates the address of the contract created with the EIP-1014 CREATE2 opcode.
+ *
+ * @param deployerAddress
+ * @param salt
+ * @param creationBytecode
+ * @param abiEncodedConstructorArguments
+ * @returns Match
+ */
+function calculateCreate2Address(
+  deployerAddress: string,
+  salt: string,
+  creationBytecode: string,
+  abiEncodedConstructorArguments?: string
+) {
+  let initcode = creationBytecode;
+
+  if (abiEncodedConstructorArguments) {
+    initcode += abiEncodedConstructorArguments.startsWith('0x')
+      ? abiEncodedConstructorArguments.slice(2)
+      : abiEncodedConstructorArguments;
+  }
+
+  const address = `0x${Web3.utils
+    .keccak256(
+      `0x${[
+        'ff',
+        deployerAddress,
+        saltToHex(salt),
+        Web3.utils.keccak256(initcode),
+      ]
+        .map((x) => x.replace(/0x/, ''))
+        .join('')}`
+    )
+    .slice(-40)}`; // last 20 bytes
+  return getAddress(address); // checksum
+}
+
+const saltToHex = (salt: string) => {
+  if (isHexString(salt)) {
+    return hexZeroPad(salt, 32);
+  }
+  const bn = BigNumber.from(salt);
+  const hex = bn.toHexString();
+  const paddedHex = hexZeroPad(hex, 32);
+  return paddedHex;
+};
 
 /**
  * Checks if there's a CBOR encoded metadata hash appended to the bytecode.
