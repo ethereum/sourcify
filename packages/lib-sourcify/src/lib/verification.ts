@@ -23,6 +23,7 @@ import { encode as rlpEncode } from '@ethersproject/rlp';
 import { hexZeroPad, isHexString } from '@ethersproject/bytes';
 import { BigNumber } from '@ethersproject/bignumber';
 import { getAddress } from '@ethersproject/address';
+import semverSatisfies from 'semver/functions/satisfies';
 
 const RPC_TIMEOUT = 5000;
 
@@ -90,6 +91,26 @@ export async function verifyDeployed(
     );
     if (match.status) return match;
   }
+
+  // Case when extra unused files in compiler input cause different bytecode (https://github.com/ethereum/sourcify/issues/618)
+  if (
+    semverSatisfies(
+      checkedContract.metadata.compiler.version,
+      '=0.6.12 || =0.7.0'
+    ) &&
+    checkedContract.metadata.settings.optimizer?.enabled
+  ) {
+    const [, deployedAuxdata] = splitAuxdata(deployedBytecode);
+    const [, recompiledAuxdata] = splitAuxdata(recompiled.deployedBytecode);
+    // Metadata hashes match but bytecodes don't match.
+    if (deployedAuxdata === recompiledAuxdata) {
+      match.status = 'extra-file-input-bug';
+      match.message =
+        'It seems your contract has either Solidity v0.6.12 or v0.7.0, and the metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618';
+      return match;
+    }
+  }
+
   return match;
 }
 
