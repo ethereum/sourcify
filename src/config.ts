@@ -1,5 +1,6 @@
 /* eslint-disable no-useless-escape */
 
+import { SourcifyEventManager } from "@ethereum-sourcify/core";
 import * as dotenv from "dotenv";
 import path from "path";
 
@@ -9,10 +10,13 @@ const setRepositoryPath = () => {
   if (process.env.MOCK_REPOSITORY) return process.env.MOCK_REPOSITORY;
   if (process.env.REPOSITORY_PATH)
     return path.resolve(__dirname, process.env.REPOSITORY_PATH);
-  console.warn("No repository path set, using /tmp/repository");
+  SourcifyEventManager.trigger("Error", {
+    message: "No repository path set, using /tmp/repository",
+  });
   return "/tmp/repository";
 };
 
+// TODO: Don't use config.ts at all. Since as a module config is evaluated only once, this can cause changed environment variables not to take effect. E.g. if you run a Monitor and a Server with different REPOSITORY_PATHs, the server will have monitor's repo path since this was already evaluated and won't be run again. Instead these should be put in place in constructors etc.
 export default {
   monitor: {
     port: process.env.MONITOR_PORT || 80,

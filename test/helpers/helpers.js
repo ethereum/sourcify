@@ -42,8 +42,52 @@ function waitSecs(secs = 0) {
   return new Promise((resolve) => setTimeout(resolve, secs * 1000));
 }
 
+// Uses web3.call which does not send a tx i.e. change the state, bit simulates the tx.
+async function callContractMethod(
+  web3,
+  abi,
+  contractAddress,
+  methodName,
+  from,
+  args
+) {
+  const contract = new web3.eth.Contract(abi, contractAddress);
+  const method = contract.methods[methodName](...args);
+  const gas = await method.estimateGas({ from });
+
+  const callResponse = await method.call({
+    from,
+    gas,
+  });
+
+  return callResponse;
+}
+
+// Sends a tx that changes the state
+async function callContractMethodWithTx(
+  web3,
+  abi,
+  contractAddress,
+  methodName,
+  from,
+  args
+) {
+  const contract = new web3.eth.Contract(abi, contractAddress);
+  const method = contract.methods[methodName](...args);
+  const gas = await method.estimateGas({ from });
+
+  const txReceipt = await method.send({
+    from,
+    gas,
+  });
+
+  return txReceipt;
+}
+
 module.exports = {
   deployFromAbiAndBytecode,
   deployFromPrivateKey,
   waitSecs,
+  callContractMethod,
+  callContractMethodWithTx,
 };

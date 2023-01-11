@@ -2,7 +2,6 @@ import dirTree from "directory-tree";
 import Path from "path";
 import fs from "fs";
 import web3 from "web3";
-import * as bunyan from "bunyan";
 import {
   FileObject,
   Match,
@@ -15,7 +14,7 @@ import {
   Create2Args,
 } from "../utils/types";
 import { checkChainId } from "../utils/utils";
-import { Logger } from "../utils/logger";
+import { SourcifyEventManager } from "./EventManager";
 
 type PathConfig = {
   matchQuality: MatchQuality;
@@ -59,12 +58,10 @@ export interface IFileService {
 }
 
 export class FileService implements IFileService {
-  logger: bunyan;
   repositoryPath: string;
 
-  constructor(repositoryPath: string, logger?: bunyan) {
+  constructor(repositoryPath: string) {
     this.repositoryPath = repositoryPath;
-    this.logger = logger || Logger("FileService");
   }
   async getTreeByChainAndAddress(
     chainId: any,
@@ -275,8 +272,17 @@ export class FileService implements IFileService {
           storageTimestamp,
         },
       ];
-    } catch (e) {
-      throw new Error("Address not found in repository");
+    } catch (e: any) {
+      const error = new Error("findByAddress: Address not found in repository");
+      SourcifyEventManager.trigger("Verification.Error", {
+        message: error.message,
+        stack: e.stack,
+        details: {
+          address,
+          chain,
+        },
+      });
+      throw error;
     }
   }
 
@@ -316,8 +322,17 @@ export class FileService implements IFileService {
           create2Args: storage?.create2Args,
         },
       ];
-    } catch (e) {
-      throw new Error("Address not found in repository");
+    } catch (e: any) {
+      const error = new Error("Address not found in repository");
+      SourcifyEventManager.trigger("Verification.Error", {
+        message: error.message,
+        stack: e.stack,
+        details: {
+          address,
+          chain,
+        },
+      });
+      throw error;
     }
   }
 
@@ -325,15 +340,15 @@ export class FileService implements IFileService {
    * Save file to repository and update the repository tag. The path may include non-existent parent directories.
    *
    * @param path the path within the repository where the file will be stored
-   * @param file the content to be stored
+   * @param content the content to be stored
    */
-  save(path: string | PathConfig, file: string) {
+  save(path: string | PathConfig, content: string) {
     const abolsutePath =
       typeof path === "string"
         ? Path.join(this.repositoryPath, path)
         : this.generateAbsoluteFilePath(path);
     fs.mkdirSync(Path.dirname(abolsutePath), { recursive: true });
-    fs.writeFileSync(abolsutePath, file);
+    fs.writeFileSync(abolsutePath, content);
     this.updateRepositoryTag();
   }
 

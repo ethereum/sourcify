@@ -26,7 +26,7 @@ services:
     volumes:
       - type: bind
         source: $REPOSITORY_PATH
-        target: /root/.ipfs/repository
+        target: /repository
       - type: bind
         source: ../services/ipfs/ipfs-${TAG}.key
         target: /app/ipfs-${TAG}.key

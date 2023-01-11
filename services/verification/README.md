@@ -36,6 +36,11 @@ interface InjectorInput {
   addresses: string[]; // For now only one address is supported
   contracts: CheckedContract[]; // Solidity and metadata files
   bytecode?: string; // If you already have bytecode of the deployed contract
+  creationData?: string;
+  contextVariables?: {
+    constructorArguments?: string;
+    msgSender?: string;
+  };
 }
 ```
 

@@ -4,11 +4,9 @@ import { IResponseError } from "../interfaces";
 export class NotFoundError implements IResponseError {
   code: number;
   message: string;
-  log: boolean;
 
-  constructor(message?: string, log = true) {
+  constructor(message?: string) {
     this.code = StatusCodes.NOT_FOUND;
     this.message = message || "Resouce not found";
-    this.log = log;
   }
 }

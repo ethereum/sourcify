@@ -1,7 +1,7 @@
 // AnimateOnScroll
 import AOS from "aos";
 import "aos/dist/aos.css";
-import { useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import { BsChevronCompactDown } from "react-icons/bs";
 import { HiCheckCircle } from "react-icons/hi";
 import { Link } from "react-router-dom";
@@ -36,6 +36,8 @@ import CustomCarousel from "./CustomCarousel";
 import metadata from "./metadata.json";
 import PoweredBySourcify from "./PoweredBySourcify";
 import ToolsPlugin from "./ToolsPlugin";
+import { Context } from "../../Context";
+
 AOS.init({
   duration: 800,
   once: true,
@@ -86,6 +88,7 @@ const A = ({ href, children }: FooterItemProps) => (
 const LandingPage = () => {
   const [showMoreReadResources, setShowMoreReadResources] = useState(false);
   const [showMoreWatchResources, setShowMoreWatchResources] = useState(false);
+  const { sourcifyChains } = useContext(Context);
 
   const aboutRef = useRef<HTMLElement>(null);
   return (
@@ -287,6 +290,12 @@ const LandingPage = () => {
         </h1>
         <div className="mt-8 text-lg">
           <p>Sourcify is multi-chain and works on all EVM based networks.</p>
+          {sourcifyChains.length > 0 && (
+            <p>
+              {" "}
+              Currently we support {sourcifyChains.length} different chains{" "}
+            </p>
+          )}
         </div>
         <ReactTooltip effect="solid" />
         <div className="flex flex-row w-full justify-center py-16 logos-container flex-wrap">
@@ -354,7 +363,7 @@ const LandingPage = () => {
             // className="underline decoration-lightCoral-500 decoration-2 font-semibold text-ceruleanBlue-500"
             className="link-underline font-semibold text-ceruleanBlue-500"
           >
-            See all networks
+            See all {sourcifyChains.length > 0 && sourcifyChains.length} chains
           </a>
         </div>
       </section>

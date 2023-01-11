@@ -1,3 +1,4 @@
+import { ParamType } from "@ethersproject/abi";
 export declare interface StringMap {
   [key: string]: string;
 }
@@ -49,7 +50,6 @@ export type ContractMeta = {
   storageTimestamp?: Date;
 };
 
-// contracts in the server response
 export type SendableContract = ContractMeta & {
   files: {
     found: string[];
@@ -57,7 +57,7 @@ export type SendableContract = ContractMeta & {
     invalid: InvalidSources;
   };
   verificationId: string;
-  constructorArguments?: any;
+  constructorArgumentsArray?: [ParamType];
   creationBytecode?: string;
 };
 
@@ -65,13 +65,17 @@ export type VerificationInput = {
   verificationId: string;
   chainId: string;
   address: string;
+  contextVariables: {
+    abiEncodedConstructorArguments?: string;
+    msgSender?: string;
+  };
 };
 
 export type Create2VerificationInput = {
   verificationId: string;
   deployerAddress: string;
   salt: string;
-  constructorArgs: any[];
+  abiEncodedConstructorArguments: string;
   create2Address: string;
   clientToken: string;
 };
@@ -82,7 +86,7 @@ export interface Match {
   status: Status;
   storageTimestamp?: Date;
   message?: string;
-  encodedConstructorArgs?: string;
+  abiEncodedConstructorArguments?: string;
   libraryMap?: StringMap;
 }
 

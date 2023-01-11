@@ -3,7 +3,6 @@ import BaseController from "./BaseController";
 import { IController } from "../../common/interfaces";
 import { StatusCodes } from "http-status-codes";
 import {
-  Logger,
   IFileService,
   MatchLevel,
   FilesInfo,
@@ -15,7 +14,6 @@ import {
   isValidChain,
 } from "../../common/validators/validators";
 import { NotFoundError, ValidationError } from "../../common/errors";
-import * as bunyan from "bunyan";
 
 type RetrieveMethod = (
   chain: string,
@@ -30,19 +28,16 @@ export default class FileController
 {
   router: Router;
   fileService: IFileService;
-  logger: bunyan;
 
   constructor(fileService: IFileService) {
     super();
     this.router = Router();
     this.fileService = fileService;
-    this.logger = Logger("FileController");
   }
 
   createEndpoint(
     retrieveMethod: RetrieveMethod,
     match: MatchLevel,
-    successMessage: string,
     reportStatus = false
   ) {
     return async (req: Request, res: Response, next: NextFunction) => {
@@ -62,23 +57,13 @@ export default class FileController
       } catch (err: any) {
         return next(new NotFoundError(err.message));
       }
-      this.logger.info(
-        {
-          chainId: req.params.chain,
-          address: req.params.address,
-        },
-        successMessage
-      );
       return res
         .status(StatusCodes.OK)
         .json(reportStatus ? retrieved : retrieved.files);
     };
   }
 
-  createContractEndpoint(
-    contractRetrieveMethod: ConractRetrieveMethod,
-    successMessage: string
-  ) {
+  createContractEndpoint(contractRetrieveMethod: ConractRetrieveMethod) {
     return async (req: Request, res: Response, next: NextFunction) => {
       const validationErrors = validationResult(req);
       if (!validationErrors.isEmpty()) {
@@ -92,12 +77,6 @@ export default class FileController
       } catch (err: any) {
         return next(new NotFoundError(err.message));
       }
-      this.logger.info(
-        {
-          chainId: req.params.chain,
-        },
-        successMessage
-      );
       return res.status(StatusCodes.OK).json(retrieved);
     };
   }
@@ -109,7 +88,6 @@ export default class FileController
         method: this.createEndpoint(
           this.fileService.getTree,
           "any_match",
-          "getTree any_match success",
           true
         ),
       },
@@ -118,32 +96,20 @@ export default class FileController
         method: this.createEndpoint(
           this.fileService.getContent,
           "any_match",
-          "getContent any_match success",
           true
         ),
       },
       {
         prefix: "/tree",
-        method: this.createEndpoint(
-          this.fileService.getTree,
-          "full_match",
-          "getTree full_match success"
-        ),
+        method: this.createEndpoint(this.fileService.getTree, "full_match"),
       },
       {
         prefix: "/contracts",
-        method: this.createContractEndpoint(
-          this.fileService.getContracts,
-          "getContracts success"
-        ),
+        method: this.createContractEndpoint(this.fileService.getContracts),
       },
       {
         prefix: "",
-        method: this.createEndpoint(
-          this.fileService.getContent,
-          "full_match",
-          "getContent full_match success"
-        ),
+        method: this.createEndpoint(this.fileService.getContent, "full_match"),
       },
     ].forEach((pair) => {
       const validators = [param("chain").custom(isValidChain)];

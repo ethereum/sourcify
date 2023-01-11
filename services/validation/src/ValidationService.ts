@@ -1,9 +1,7 @@
-import bunyan from "bunyan";
 import Web3 from "web3";
 import JSZip from "jszip";
 import {
   StringMap,
-  SourceMap,
   PathBuffer,
   PathContent,
   CheckedContract,
@@ -12,6 +10,7 @@ import {
 } from "@ethereum-sourcify/core";
 import fs from "fs";
 import Path from "path";
+import { SourcifyEventManager } from "@ethereum-sourcify/core";
 /**
  * Regular expression matching metadata nested within another json.
  */
@@ -64,15 +63,6 @@ export interface IValidationService {
 }
 
 export class ValidationService implements IValidationService {
-  logger: bunyan | undefined;
-
-  /**
-   * @param logger a custom logger that logs all errors; undefined or no logger provided turns the logging off
-   */
-  constructor(logger?: bunyan) {
-    this.logger = logger;
-  }
-
   checkPaths(paths: string[], ignoring?: string[]) {
     const files: PathBuffer[] = [];
     paths.forEach((path) => {
@@ -147,7 +137,10 @@ export class ValidationService implements IValidationService {
 
     if (errorMsgMaterial.length) {
       const msg = errorMsgMaterial.join("\n");
-      if (this.logger) this.logger.error(msg);
+      SourcifyEventManager.trigger("Validation.Error", {
+        message: msg,
+        details: errorMsgMaterial,
+      });
     }
 
     if (unused) {
@@ -268,8 +261,12 @@ export class ValidationService implements IValidationService {
     }
 
     if (msg) {
-      if (this.logger) this.logger.error(msg);
-      throw new Error(msg);
+      const error = new Error(msg);
+      SourcifyEventManager.trigger("Validation.Error", {
+        message: error.message,
+        stack: error.stack,
+      });
+      throw error;
     }
 
     return { metadataFiles, sourceFiles };
@@ -428,10 +425,12 @@ export class ValidationService implements IValidationService {
   ) {
     if (!fs.existsSync(path)) {
       const msg = `Encountered a nonexistent path: ${path}`;
-      if (this.logger) {
-        this.logger.error(msg);
-      }
-      throw new Error(msg);
+      const error = new Error(msg);
+      SourcifyEventManager.trigger("Validation.Error", {
+        message: error.message,
+        stack: error.stack,
+      });
+      throw error;
     }
 
     const fileStat = fs.lstatSync(path);
@@ -468,10 +467,12 @@ export class ValidationService implements IValidationService {
     }
 
     if (err) {
-      if (this.logger) {
-        this.logger.error({ loc: "[VALIDATION:SIZE_ASSERTION]" }, err);
-      }
-      throw new Error(err);
+      const error = new Error(err);
+      SourcifyEventManager.trigger("Validation.Error", {
+        message: error.message,
+        stack: error.stack,
+      });
+      throw error;
     }
   }
 

@@ -10,7 +10,7 @@ describe("Source Fetcher", function () {
   let sourceAddress;
 
   it("should fetch metadata from IPFS", (done) => {
-    process.env.IPFS_GATEWAY = "http://ipfs.io/ipfs/";
+    process.env.IPFS_GATEWAY = "https://ipfs.io/ipfs/";
     sourceFetcher = new SourceFetcher();
     sourceAddress = new SourceAddress("ipfs", METADATA_HASH);
     sourceFetcher.subscribe(sourceAddress, (fetchedFileStr) => {
@@ -27,7 +27,7 @@ describe("Source Fetcher", function () {
     sourceFetcher.subscribe(sourceAddress, (fetchedFileStr) => {
       const jsonFile = JSON.parse(fetchedFileStr);
       console.log(jsonFile.settings.compilationTarget);
-      process.env.IPFS_GATEWAY = "http://ipfs.io/ipfs/"; // Set back to correct value
+      process.env.IPFS_GATEWAY = "https://ipfs.io/ipfs/"; // Set back to correct value
       done();
     });
   });

@@ -1,5 +1,5 @@
 import { Request } from "express";
-import { Session } from "express-session";
+import session, { Session, SessionData } from "express-session";
 import {
   PathContent,
   CheckedContract,
@@ -14,6 +14,7 @@ import { InvalidSources } from "@ethereum-sourcify/core";
 import QueryString from "qs";
 import { BadRequestError } from "../../common/errors";
 import fetch from "node-fetch";
+import { AbiInput } from "web3-utils";
 export interface PathContentMap {
   [id: string]: PathContent;
 }
@@ -23,11 +24,17 @@ export type ContractLocation = {
   address: string;
 };
 
+// Variables apart from the compilation artifacts.
+// CheckedContract contains info from the compilation.
 export type ContractMeta = {
   compiledPath?: string;
   name?: string;
   address?: string;
   chainId?: string;
+  contextVariables?: {
+    abiEncodedConstructorArguments?: string;
+    msgSender?: string;
+  };
   status?: Status;
   statusMessage?: string;
   storageTimestamp?: Date;
@@ -40,22 +47,50 @@ export interface ContractWrapperMap {
   [id: string]: ContractWrapper;
 }
 
-export type SessionMaps = {
-  inputFiles: PathContentMap;
-  contractWrappers: ContractWrapperMap;
+export type SessionMaps = {};
+
+type Create2RequestBody = {
+  deployerAddress: string;
+  salt: string;
+  abiEncodedConstructorArguments?: string;
+  files: {
+    [key: string]: string;
+  };
+  create2Address: string;
+  clientToken?: string;
 };
 
-export type MySession = Session &
-  SessionMaps & {
+// Use "declaration merging" to add fields into the Session type
+// https://github.com/DefinitelyTyped/DefinitelyTyped/issues/49941
+declare module "express-session" {
+  interface Session {
+    inputFiles: PathContentMap;
+    contractWrappers: ContractWrapperMap;
     unusedSources: string[];
-  };
+  }
+}
+// Override "any" typed Request.body
+export interface Create2VerifyRequest extends Request {
+  body: Create2RequestBody;
+}
 
-export type MyRequest = Request & {
+export interface SessionCreate2VerifyRequest extends Request {
+  body: Create2RequestBody & {
+    verificationId: string;
+  };
+}
+
+export type LegacyVerifyRequest = Request & {
   addresses: string[];
   chain: string;
   chosenContract: number;
+  contextVariables?: {
+    abiEncodedConstructorArguments?: string;
+    msgSender?: string;
+  };
 };
 
+// Contract object in the server response.
 export type SendableContract = ContractMeta & {
   files: {
     found: string[];
@@ -63,7 +98,7 @@ export type SendableContract = ContractMeta & {
     invalid: InvalidSources;
   };
   verificationId: string;
-  constructorArguments?: any;
+  constructorArgumentsArray?: [AbiInput];
   creationBytecode?: string;
 };
 
@@ -101,7 +136,7 @@ function getSendableContract(
 
   return {
     verificationId,
-    constructorArguments: contract?.metadata?.output?.abi?.find(
+    constructorArgumentsArray: contract?.metadata?.output?.abi?.find(
       (abi: any) => abi.type === "constructor"
     )?.inputs,
     creationBytecode: contract?.creationBytecode,
@@ -120,7 +155,7 @@ function getSendableContract(
   };
 }
 
-export function getSessionJSON(session: MySession) {
+export function getSessionJSON(session: Session) {
   const contractWrappers = session.contractWrappers || {};
   const contracts: SendableContract[] = [];
   for (const id in contractWrappers) {
@@ -167,7 +202,7 @@ export function generateId(obj: any): string {
   return Web3.utils.keccak256(JSON.stringify(obj));
 }
 
-export function updateUnused(unused: string[], session: MySession) {
+export function updateUnused(unused: string[], session: Session) {
   if (!session.unusedSources) {
     session.unusedSources = [];
   }

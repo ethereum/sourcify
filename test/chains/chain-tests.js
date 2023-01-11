@@ -968,6 +968,23 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
+  // Dexalot Mainnet
+  verifyContract(
+    "0x1c799C32a6cF228D0656f3B87D60224afaB45903",
+    "432204",
+    "Dexalot Subnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x5852347f88c0d4D115aFFEc8135b2DB7497e7183",
+    "432204",
+    "Dexalot Subnet",
+    ["uint256"],
+    [100],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
   //Crystaleum
   verifyContract(
     "0x8Ab612E257534b7d5a6E315444f1C45c434eAaCf",
@@ -1159,6 +1176,77 @@ describe("Test Supported Chains", function () {
     "shared/withImmutables.metadata.json"
   );
 
+  // ZetaChain: Athens Testnet
+  verifyContract(
+    "0x1f42652a86918fd84E74e066db94E3078d25Dd8D",
+    "7001",
+    "ZetaChain Athens Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x7fe7d2F60399913e8ECeb8BAe9adDf9B809E8F6d",
+    "7001",
+    "ZetaChain Athens Testnet",
+    ["uint256"],
+    [7001],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
+  // Oasis Emerald Mainnet
+  verifyContract(
+    "0x7228Ab1F57e6fFd9F85930b9a9C2E9DD2307E4D0",
+    "42262",
+    "Oasis Emerald Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x5693B3E53f80166C554C85F3c6a7fB3456a052ad",
+    "42262",
+    "Oasis Emerald Mainnet",
+    ["uint256"],
+    [1234],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
+  // Oasis Emerald Testnet
+  verifyContract(
+    "0x70D7603cAc831A9f23Fc7cAc301db300D55EA921",
+    "42261",
+    "Oasis Emerald Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x78ac8a1A83e31974FC015Bc6d4BE2206bD2fE04c",
+    "42261",
+    "Oasis Emerald Testnet",
+    ["uint256"],
+    [123],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
+  // Oasis Sapphire Testnet
+  verifyContract(
+    "0xFBcb580DD6D64fbF7caF57FB0439502412324179",
+    "23295",
+    "Oasis Sapphire Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x6e8e9e0DBCa4EF4a65eBCBe4032e7C2a6fb7C623",
+    "23295",
+    "Oasis Sapphire Testnet",
+    ["uint256"],
+    [123],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
 
   //////////////////////
   // Helper functions //
