@@ -41,8 +41,8 @@ describe('Verify Deployed Contract', () => {
 
   it('should verify a simple contract', async () => {
     // Deploy contract
-    const artifact = require('./testcontracts/Storage/Storage.json');
-    const metadata = require('./testcontracts/Storage/metadata.json');
+    const artifact = require('./sources/simple/Storage/Storage.json');
+    const metadata = require('./sources/simple/Storage/metadata.json');
     const address = await deployFromAbiAndBytecode(
       localWeb3Provider,
       metadata.output.abi,
@@ -51,16 +51,23 @@ describe('Verify Deployed Contract', () => {
     );
 
     // Verify contract
-    const sourcePath = path.join(__dirname, 'sources', 'simple', 'Storage.sol');
+    const sourcePath = path.join(
+      __dirname,
+      'sources',
+      'simple',
+      'Storage',
+      'Storage.sol'
+    );
     const metadataPath = path.join(
       __dirname,
       'sources',
       'simple',
+      'Storage',
       'metadata.json'
     );
     const sourceBuffer = fs.readFileSync(sourcePath);
     const metadataBuffer = fs.readFileSync(metadataPath);
-    const checkedContracts = checkFiles([
+    const checkedContracts = await checkFiles([
       { path: sourcePath, buffer: sourceBuffer },
       { path: metadataPath, buffer: metadataBuffer },
     ]);
