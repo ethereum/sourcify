@@ -108,6 +108,33 @@
       ]
     },
     {
+      "type": "node",
+      "request": "launch",
+      "name": "Mocha - lib-sourcify",
+      "cwd": "${workspaceFolder}/packages/lib-sourcify",
+      "program": "./node_modules/.bin/mocha",
+      "env": {
+        "DEBUG": "express:*", // Debug all express modules *
+        "TESTING": "true",
+      },
+      "args": [
+        "-r",
+        "ts-node/register",
+        "./test/verification.spec.ts",
+        "--no-timeout",
+        // Run a single test when debugging
+        // "--grep=v0.6.12",
+        "--exit",
+      ],
+      "outFiles": [
+        "./**/*.js",
+        "${workspaceFolder}/packages/bytecode-utils/build/**/*.js"
+      ],
+      "smartStep": true,
+      "console": "integratedTerminal",
+      // "internalConsoleOptions": "neverOpen"
+    },
+    {
       "internalConsoleOptions": "openOnSessionStart",
       "name": "Mocha - All",
       "program": "${workspaceFolder}/node_modules/.bin/mocha",
