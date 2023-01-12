@@ -116,7 +116,7 @@ export class CheckedContract {
         .map((e: any) => e.formattedMessage);
 
       const error = new Error('Compiler error');
-      console.error(error);
+      console.error(errorMessages);
       throw error;
     }
 
@@ -297,6 +297,7 @@ export async function performFetch(
 ): Promise<string | null> {
   const res = await fetch(url, { timeout: FETCH_TIMEOUT }).catch((err) => {
     console.log("Couldn't fetch: " + url + ' ' + hash + ' ' + fileName);
+    console.log(err);
   });
 
   if (res && res.status === 200) {
