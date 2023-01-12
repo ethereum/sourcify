@@ -323,12 +323,3 @@ function getGithubUrl(url: string): string | null {
     .replace("github.com", "raw.githubusercontent.com")
     .replace("/blob/", "/");
 }
-
-/**
- * Checks whether the provided object contains any keys or not.
- * @param obj The object whose emptiness is tested.
- * @returns true if any keys present; false otherwise
- */
-function isEmpty(obj: object): boolean {
-  return !Object.keys(obj).length && obj.constructor === Object;
-}
