@@ -95,8 +95,8 @@ export type SourcifyChain = Chain & {
   contractFetchAddress?: string;
   graphQLFetchAddress?: string;
   txRegex?: string;
-  supported?: boolean;
-  monitored?: boolean;
+  supported: boolean;
+  monitored: boolean;
 };
 
 // TODO: Double check against ethereum-lists/chains type
@@ -104,12 +104,12 @@ export type Chain = {
   name: string;
   chainId: number;
   shortName: string;
-  network: string;
+  network?: string;
   networkId: number;
   nativeCurrency: Currency;
   rpc: string[];
-  faucets: string[];
-  infoURL: string;
+  faucets?: string[];
+  infoURL?: string;
 };
 
 type Currency = {
