@@ -7,6 +7,7 @@ import Web3 from 'web3';
 import { expect } from 'chai';
 import Ganache from 'ganache';
 import { deployFromAbiAndBytecode } from './utils';
+import { describe, it, before } from 'mocha';
 
 const ganacheServer = Ganache.server({
   wallet: { totalAccounts: 1 },

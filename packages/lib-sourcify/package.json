@@ -42,6 +42,7 @@
   },
   "dependencies": {
     "@bitauth/libauth": "^1.19.1",
+    "@ethereum-sourcify/bytecode-utils": "*",
     "@ethereumjs/blockchain": "^6.1.0",
     "@ethereumjs/common": "^3.0.2",
     "@ethereumjs/evm": "^1.2.3",
@@ -61,6 +62,7 @@
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
+    "@types/debug": "^4.1.7",
     "@types/lru-cache": "^5.1.1",
     "@types/mocha": "^10.0.1",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
