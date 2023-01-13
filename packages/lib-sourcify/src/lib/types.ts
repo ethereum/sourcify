@@ -90,13 +90,14 @@ export interface Create2Args {
   salt: string;
   constructorArgs?: any[];
 }
-// a type that extends the Chain type
-export type SourcifyChain = Chain & {
+
+export type SourcifyChainExtension = {
+  supported: boolean;
+  monitored: boolean;
   contractFetchAddress?: string;
   graphQLFetchAddress?: string;
   txRegex?: string;
-  supported: boolean;
-  monitored: boolean;
+  rpc?: string[];
 };
 
 // TODO: Double check against ethereum-lists/chains type
@@ -110,6 +111,13 @@ export type Chain = {
   rpc: string[];
   faucets?: string[];
   infoURL?: string;
+};
+
+// a type that extends the Chain type
+export type SourcifyChain = Chain & SourcifyChainExtension;
+
+export type SourcifyChainMap = {
+  [chainId: string]: SourcifyChain;
 };
 
 type Currency = {
