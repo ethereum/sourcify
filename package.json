@@ -50,6 +50,7 @@
   "dependencies": {
     "@ethereum-sourcify/bytecode-utils": "*",
     "@ethereum-sourcify/core": "*",
+    "@ethereum-sourcify/lib-sourcify": "*",
     "@ethereum-sourcify/validation": "*",
     "@ethereum-sourcify/verification": "*",
     "@types/node-fetch": "^2.5.7",
