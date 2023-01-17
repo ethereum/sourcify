@@ -24,7 +24,7 @@ type RetrieveMethod = (
 ) => Promise<FilesInfo<any>>;
 type ConractRetrieveMethod = (chain: string) => Promise<ContractData>;
 
-export default class FileController
+export default class RepositoryController
   extends BaseController
   implements IController
 {
