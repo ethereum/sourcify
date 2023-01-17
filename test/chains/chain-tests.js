@@ -1230,24 +1230,6 @@ describe("Test Supported Chains", function () {
     "shared/withImmutables.metadata.json"
   );
 
-  // Oasis Sapphire Testnet
-  verifyContract(
-    "0xFBcb580DD6D64fbF7caF57FB0439502412324179",
-    "23295",
-    "Oasis Sapphire Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
-  );
-  verifyContractWithImmutables(
-    "0x6e8e9e0DBCa4EF4a65eBCBe4032e7C2a6fb7C623",
-    "23295",
-    "Oasis Sapphire Testnet",
-    ["uint256"],
-    [123],
-    ["shared/WithImmutables.sol"],
-    "shared/withImmutables.metadata.json"
-  );
-
   //////////////////////
   // Helper functions //
   //////////////////////
