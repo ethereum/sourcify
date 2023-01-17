@@ -710,8 +710,24 @@ export function getSortedChainsArray(
   return sortedChains;
 }
 
-export function checkChainId(chain: string): string {
+/**
+ * To check if a chain is supported for verification.
+ * Note that there might be chains not supported for verification anymore but still exist as a SourcifyChain e.g. Ropsten.
+ */
+export function checkSupportedChainId(chain: string): string {
   if (!(chain in sourcifyChainsMap && sourcifyChainsMap[chain].supported)) {
+    throw new Error(`Chain ${chain} not supported for verification!`);
+  }
+
+  return chain;
+}
+
+/**
+ * To check if a chain exists as a SourcifyChain.
+ * Note that there might be chains not supported for verification anymore but still exist as a SourcifyChain e.g. Ropsten.
+ */
+export function checkChainId(chain: string): string {
+  if (!(chain in sourcifyChainsMap && sourcifyChainsMap[chain])) {
     throw new Error(`Chain ${chain} not supported!`);
   }
 

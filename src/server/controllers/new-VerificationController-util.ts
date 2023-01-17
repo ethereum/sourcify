@@ -4,6 +4,8 @@ import { toChecksumAddress } from "web3-utils";
 import { ValidationError } from "../../common/errors";
 import { FileArray, UploadedFile } from "express-fileupload";
 import { CheckedContract } from "@ethereum-sourcify/lib-sourcify";
+import { checkChainId } from "../../sourcify-chains";
+import { validationResult } from "express-validator";
 
 export type LegacyVerifyRequest = Request & {
   addresses: string[];
@@ -78,4 +80,39 @@ export const stringifyInvalidAndMissing = (contract: CheckedContract) => {
     Object.keys(contract.missing)
   );
   return `${contract.name} (${errors.join(", ")})`;
+};
+
+/**
+ * Validation function for multiple chainIds
+ * Note that this checks if a chain exists as a SourcifyChain.
+ * This is different that checking for verification support i.e. supported: true or monitoring support i.e. monitored: true
+ */
+export const validateChainIds = (chainIds: string): string[] => {
+  const chainIdsArray = chainIds.split(",");
+  const validChainIds: string[] = [];
+  const invalidChainIds: string[] = [];
+  for (const chainId of chainIdsArray) {
+    try {
+      if (chainId === "0") {
+        // create2 verified contract
+        validChainIds.push("0");
+      } else {
+        validChainIds.push(checkChainId(chainId));
+      }
+    } catch (e) {
+      invalidChainIds.push(chainId);
+    }
+  }
+
+  if (invalidChainIds.length) {
+    throw new Error(`Invalid chainIds: ${invalidChainIds.join(", ")}`);
+  }
+  return validChainIds;
+};
+
+export const validateRequest = (req: Request) => {
+  const result = validationResult(req);
+  if (!result.isEmpty()) {
+    throw new ValidationError(result.array());
+  }
 };

@@ -57,6 +57,7 @@
     "bunyan": "^1.8.12",
     "commander": "^9.0.0",
     "cors": "^2.8.5",
+    "directory-tree": "^3.5.1",
     "dotenv": "^8.2.0",
     "ethers": "^5.0.14",
     "express": "^4.17.1",

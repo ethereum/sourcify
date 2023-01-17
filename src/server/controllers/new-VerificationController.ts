@@ -13,13 +13,10 @@ import {
   LegacyVerifyRequest,
   stringifyInvalidAndMissing,
   validateAddresses,
+  validateRequest,
 } from "./new-VerificationController-util";
-import { body, validationResult } from "express-validator";
-import {
-  BadRequestError,
-  NotFoundError,
-  ValidationError,
-} from "../../common/errors";
+import { body } from "express-validator";
+import { BadRequestError, NotFoundError } from "../../common/errors";
 import { checkChainId, sourcifyChainsMap } from "../../sourcify-chains";
 import config from "../../config";
 import { StatusCodes } from "http-status-codes";
@@ -47,9 +44,9 @@ export default class VerificationController
   ): Promise<any> => {
     // Typecast here because of the type error: Type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>' is not assignable to type 'LegacyVerifyRequest'.
     const req = origReq as LegacyVerifyRequest;
-    this.validateRequest(req); // TODO: Validate below with route registration.
+    validateRequest(req); // TODO: Validate below with route registration.
 
-    // Check if already verified via RepoService
+    // TODO: Check if already verified via RepoService
     // for (const address of req.addresses) {
     //   const result = this.verificationService.findByAddress(address, req.chain);
     //   if (result.length != 0) {
@@ -126,13 +123,6 @@ export default class VerificationController
         .send({ error: error.message });
     }
   };
-
-  private validateRequest(req: Request) {
-    const result = validationResult(req);
-    if (!result.isEmpty()) {
-      throw new ValidationError(result.array());
-    }
-  }
 
   registerRoutes = (): Router => {
     const corsOpt = {
