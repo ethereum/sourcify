@@ -119,11 +119,11 @@ export default class VerificationController
           req.body.chain
         );
         if (tempMatch.status === "perfect") {
-          // TODO: Save files in repo
+          await this.repositoryService.storeMatch(contract, tempMatch);
           return res.send({ result: [tempMatch] });
         }
       }
-      // TODO: Save files in repo
+      await this.repositoryService.storeMatch(contract, match);
       return res.send({ result: [match] }); // array is an old expected behavior (e.g. by frontend)
     } catch (error: any) {
       res
