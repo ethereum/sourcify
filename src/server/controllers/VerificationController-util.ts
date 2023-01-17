@@ -1,84 +1,11 @@
 import { Request } from "express";
-import session, { Session, SessionData } from "express-session";
-import {
-  PathContent,
-  CheckedContract,
-  isEmpty,
-  StringMap,
-  PathBuffer,
-  Status,
-} from "@ethereum-sourcify/core";
-import Web3 from "web3";
-import { MissingSources } from "@ethereum-sourcify/core";
-import { InvalidSources } from "@ethereum-sourcify/core";
-import QueryString from "qs";
-import { BadRequestError } from "../../common/errors";
-import fetch from "node-fetch";
-import { AbiInput } from "web3-utils";
-export interface PathContentMap {
-  [id: string]: PathContent;
-}
-
-export type ContractLocation = {
-  chain: string;
-  address: string;
-};
-
-// Variables apart from the compilation artifacts.
-// CheckedContract contains info from the compilation.
-export type ContractMeta = {
-  compiledPath?: string;
-  name?: string;
-  address?: string;
-  chainId?: string;
-  contextVariables?: {
-    abiEncodedConstructorArguments?: string;
-    msgSender?: string;
-  };
-  status?: Status;
-  statusMessage?: string;
-  storageTimestamp?: Date;
-};
-
-export type ContractWrapper = ContractMeta & {
-  contract: CheckedContract;
-};
-export interface ContractWrapperMap {
-  [id: string]: ContractWrapper;
-}
-
-export type SessionMaps = {};
-
-type Create2RequestBody = {
-  deployerAddress: string;
-  salt: string;
-  abiEncodedConstructorArguments?: string;
-  files: {
-    [key: string]: string;
-  };
-  create2Address: string;
-  clientToken?: string;
-};
-
-// Use "declaration merging" to add fields into the Session type
-// https://github.com/DefinitelyTyped/DefinitelyTyped/issues/49941
-declare module "express-session" {
-  interface Session {
-    inputFiles: PathContentMap;
-    contractWrappers: ContractWrapperMap;
-    unusedSources: string[];
-  }
-}
-// Override "any" typed Request.body
-export interface Create2VerifyRequest extends Request {
-  body: Create2RequestBody;
-}
-
-export interface SessionCreate2VerifyRequest extends Request {
-  body: Create2RequestBody & {
-    verificationId: string;
-  };
-}
+import { isAddress } from "ethers/lib/utils";
+import { toChecksumAddress } from "web3-utils";
+import { ValidationError } from "../../common/errors";
+import { FileArray, UploadedFile } from "express-fileupload";
+import { CheckedContract } from "@ethereum-sourcify/lib-sourcify";
+import { checkChainId } from "../../sourcify-chains";
+import { validationResult } from "express-validator";
 
 export type LegacyVerifyRequest = Request & {
   addresses: string[];
@@ -90,128 +17,102 @@ export type LegacyVerifyRequest = Request & {
   };
 };
 
-// Contract object in the server response.
-export type SendableContract = ContractMeta & {
-  files: {
-    found: string[];
-    missing: MissingSources;
-    invalid: InvalidSources;
-  };
-  verificationId: string;
-  constructorArgumentsArray?: [AbiInput];
-  creationBytecode?: string;
+type PathBuffer = {
+  path: string;
+  buffer: Buffer;
 };
 
-export type EtherscanResult = {
-  SourceCode: string;
-  ABI: string;
-  ContractName: string;
-  CompilerVersion: string;
-  OptimizationUsed: string;
-  Runs: string;
-  ConstructorArguments: string;
-  EVMVersion: string;
-  Library: string;
-  LicenseType: string;
-  Proxy: string;
-  Implementation: string;
-  SwarmSource: string;
+export const validateAddresses = (addresses: string): string[] => {
+  const addressesArray = addresses.split(",");
+  const invalidAddresses: string[] = [];
+  for (const i in addressesArray) {
+    const address = addressesArray[i];
+    if (!isAddress(address)) {
+      invalidAddresses.push(address);
+    } else {
+      addressesArray[i] = toChecksumAddress(address);
+    }
+  }
+
+  if (invalidAddresses.length) {
+    throw new Error(`Invalid addresses: ${invalidAddresses.join(", ")}`);
+  }
+  return addressesArray;
 };
 
-export function isVerifiable(contractWrapper: ContractWrapper) {
-  const contract = contractWrapper.contract;
-  return (
-    isEmpty(contract.missing) &&
-    isEmpty(contract.invalid) &&
-    Boolean(contractWrapper.address) &&
-    Boolean(contractWrapper.chainId)
+export const extractFiles = (req: Request, shouldThrow = false) => {
+  if (req.is("multipart/form-data") && req.files && req.files.files) {
+    return extractFilesFromForm(req.files.files);
+  } else if (req.is("application/json") && req.body.files) {
+    return extractFilesFromJSON(req.body.files);
+  }
+
+  if (shouldThrow) {
+    throw new ValidationError([
+      { param: "files", msg: "There should be files in the <files> field" },
+    ]);
+  }
+};
+
+const extractFilesFromForm = (
+  files: UploadedFile | UploadedFile[]
+): PathBuffer[] => {
+  if (!Array.isArray(files)) {
+    files = [files];
+  }
+  return files.map((f) => ({ path: f.name, buffer: f.data }));
+};
+
+const extractFilesFromJSON = (files: {
+  [key: string]: string;
+}): PathBuffer[] => {
+  const inputFiles: PathBuffer[] = [];
+  for (const name in files) {
+    const file = files[name];
+    const buffer = Buffer.isBuffer(file) ? file : Buffer.from(file);
+    inputFiles.push({ path: name, buffer });
+  }
+  return inputFiles;
+};
+
+export const stringifyInvalidAndMissing = (contract: CheckedContract) => {
+  const errors = Object.keys(contract.invalid).concat(
+    Object.keys(contract.missing)
   );
-}
+  return `${contract.name} (${errors.join(", ")})`;
+};
 
-function getSendableContract(
-  contractWrapper: ContractWrapper,
-  verificationId: string
-): SendableContract {
-  const contract = contractWrapper.contract;
-
-  return {
-    verificationId,
-    constructorArgumentsArray: contract?.metadata?.output?.abi?.find(
-      (abi: any) => abi.type === "constructor"
-    )?.inputs,
-    creationBytecode: contract?.creationBytecode,
-    compiledPath: contract.compiledPath,
-    name: contract.name,
-    address: contractWrapper.address,
-    chainId: contractWrapper.chainId,
-    files: {
-      found: Object.keys(contract.solidity), // Source paths
-      missing: contract.missing,
-      invalid: contract.invalid,
-    },
-    status: contractWrapper.status || "error",
-    statusMessage: contractWrapper.statusMessage,
-    storageTimestamp: contractWrapper.storageTimestamp,
-  };
-}
-
-export function getSessionJSON(session: Session) {
-  const contractWrappers = session.contractWrappers || {};
-  const contracts: SendableContract[] = [];
-  for (const id in contractWrappers) {
-    const sendableContract = getSendableContract(contractWrappers[id], id);
-    contracts.push(sendableContract);
+/**
+ * Validation function for multiple chainIds
+ * Note that this checks if a chain exists as a SourcifyChain.
+ * This is different that checking for verification support i.e. supported: true or monitoring support i.e. monitored: true
+ */
+export const validateChainIds = (chainIds: string): string[] => {
+  const chainIdsArray = chainIds.split(",");
+  const validChainIds: string[] = [];
+  const invalidChainIds: string[] = [];
+  for (const chainId of chainIdsArray) {
+    try {
+      if (chainId === "0") {
+        // create2 verified contract
+        validChainIds.push("0");
+      } else {
+        validChainIds.push(checkChainId(chainId));
+      }
+    } catch (e) {
+      invalidChainIds.push(chainId);
+    }
   }
 
-  const files: string[] = [];
-  for (const id in session.inputFiles) {
-    files.push(session.inputFiles[id].path);
+  if (invalidChainIds.length) {
+    throw new Error(`Invalid chainIds: ${invalidChainIds.join(", ")}`);
   }
-  const unused = session.unusedSources || [];
-  return { contracts, unused, files };
-}
+  return validChainIds;
+};
 
-export async function addRemoteFile(
-  query: QueryString.ParsedQs
-): Promise<PathBuffer[]> {
-  if (typeof query.url !== "string") {
-    throw new BadRequestError("Query url must be a string");
+export const validateRequest = (req: Request) => {
+  const result = validationResult(req);
+  if (!result.isEmpty()) {
+    throw new ValidationError(result.array());
   }
-  let res;
-  try {
-    res = await fetch(query.url);
-  } catch (err) {
-    throw new BadRequestError("Couldn't fetch from " + query.url);
-  }
-  if (!res.ok) throw new BadRequestError("Couldn't fetch from " + query.url);
-  // Save with the fileName exists on server response header.
-  const fileName =
-    res.headers.get("Content-Disposition")?.split("filename=")[1] ||
-    query.url.substring(query.url.lastIndexOf("/") + 1) ||
-    "file";
-  const buffer = await res.buffer();
-  return [
-    {
-      path: fileName,
-      buffer,
-    },
-  ];
-}
-
-export function generateId(obj: any): string {
-  return Web3.utils.keccak256(JSON.stringify(obj));
-}
-
-export function updateUnused(unused: string[], session: Session) {
-  if (!session.unusedSources) {
-    session.unusedSources = [];
-  }
-  session.unusedSources = unused;
-}
-
-export function contractHasMultipleFiles(sourceCodeObject: string) {
-  if (sourceCodeObject.startsWith("{{")) {
-    return true;
-  }
-  return false;
-}
+};
