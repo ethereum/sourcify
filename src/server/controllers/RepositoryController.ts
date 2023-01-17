@@ -14,7 +14,7 @@ import {
   validateAddresses,
   validateChainIds,
   validateRequest,
-} from "./new-VerificationController-util";
+} from "./VerificationController-util";
 import { Match } from "@ethereum-sourcify/lib-sourcify";
 
 type RetrieveMethod = (
@@ -24,6 +24,7 @@ type RetrieveMethod = (
 ) => Promise<FilesInfo<any>>;
 type ConractRetrieveMethod = (chain: string) => Promise<ContractData>;
 
+const REPOSITORY_CONTROLLER_PREFIX = "/files";
 export default class RepositoryController
   extends BaseController
   implements IController
@@ -199,8 +200,8 @@ export default class RepositoryController
       this.router
         .route(
           pair.prefix != "/contracts"
-            ? pair.prefix + "/:chain/:address"
-            : pair.prefix + "/:chain"
+            ? REPOSITORY_CONTROLLER_PREFIX + pair.prefix + "/:chain/:address"
+            : REPOSITORY_CONTROLLER_PREFIX + pair.prefix + "/:chain"
         )
         .get(validators, this.safeHandler(pair.method));
     });

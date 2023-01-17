@@ -19,7 +19,7 @@ export interface IVerificationService {
 export default class VerificationService implements IVerificationService {
   supportedChainsMap: SourcifyChainMap;
 
-  constructor() {
+  constructor(supportedChainsMap: SourcifyChainMap) {
     this.supportedChainsMap = supportedChainsMap;
   }
 

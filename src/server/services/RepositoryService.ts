@@ -1,10 +1,24 @@
 import dirTree from "directory-tree";
 import Path from "path";
 import fs from "fs";
-import { Match, Status, Create2Args } from "@ethereum-sourcify/lib-sourcify";
+import {
+  Match,
+  Status,
+  Create2Args,
+  StringMap,
+  Metadata,
+  ContextVariables,
+  CheckedContract,
+} from "@ethereum-sourcify/lib-sourcify";
 import { SourcifyEventManager } from "./EventManager";
 import { toChecksumAddress } from "web3-utils";
 import { MatchLevel, RepositoryTag } from "../types";
+import {
+  create as createIpfsClient,
+  IPFSHTTPClient,
+  globSource,
+} from "ipfs-http-client";
+import path from "path";
 
 /**
  * A type for specifying the match quality of files.
@@ -20,7 +34,7 @@ interface FileObject {
 }
 type PathConfig = {
   matchQuality: MatchQuality;
-  chain: string;
+  chainId: string;
   address: string;
   fileName?: string;
   source?: boolean;
@@ -65,9 +79,17 @@ export interface IRepositoryService {
 }
 export default class RepositoryService implements IRepositoryService {
   repositoryPath: string;
+  private ipfsClient?: IPFSHTTPClient;
 
   constructor(repositoryPath: string) {
     this.repositoryPath = repositoryPath;
+    if (process.env.IPFS_API) {
+      this.ipfsClient = createIpfsClient({ url: process.env.IPFS_API });
+    } else {
+      SourcifyEventManager.trigger("Verification.Error", {
+        message: "IPFS_API not set. Files will not be pinned to IPFS.",
+      });
+    }
   }
   // Not used anywhere
   // async getTreeByChainAndAddress(
@@ -223,7 +245,7 @@ export default class RepositoryService implements IRepositoryService {
     return Path.join(
       "contracts",
       `${pathConfig.matchQuality}_match`,
-      pathConfig.chain,
+      pathConfig.chainId,
       toChecksumAddress(pathConfig.address)
     );
   }
@@ -273,10 +295,10 @@ export default class RepositoryService implements IRepositoryService {
   }
 
   // Checks contract existence in repository.
-  checkByChainAndAddress(address: string, chain: string): Match[] {
+  checkByChainAndAddress(address: string, chainId: string): Match[] {
     const contractPath = this.generateAbsoluteFilePath({
       matchQuality: "full",
-      chain,
+      chainId,
       address,
       fileName: "metadata.json",
     });
@@ -286,7 +308,7 @@ export default class RepositoryService implements IRepositoryService {
       return [
         {
           address,
-          chainId: chain,
+          chainId,
           status: "perfect",
           storageTimestamp,
         },
@@ -298,7 +320,7 @@ export default class RepositoryService implements IRepositoryService {
         stack: e.stack,
         details: {
           address,
-          chain,
+          chainId,
         },
       });
       throw error;
@@ -306,17 +328,17 @@ export default class RepositoryService implements IRepositoryService {
   }
 
   // Checks contract existence in repository for full and partial matches.
-  checkAllByChainAndAddress(address: string, chain: string): Match[] {
+  checkAllByChainAndAddress(address: string, chainId: string): Match[] {
     const fullContractPath = this.generateAbsoluteFilePath({
       matchQuality: "full",
-      chain,
+      chainId,
       address,
       fileName: "metadata.json",
     });
 
     const partialContractPath = this.generateAbsoluteFilePath({
       matchQuality: "partial",
-      chain,
+      chainId,
       address,
       fileName: "metadata.json",
     });
@@ -329,7 +351,7 @@ export default class RepositoryService implements IRepositoryService {
       return [
         {
           address,
-          chainId: chain,
+          chainId,
           status: storage?.status,
           storageTimestamp: storage?.time,
           create2Args: storage?.create2Args,
@@ -342,7 +364,7 @@ export default class RepositoryService implements IRepositoryService {
         stack: e.stack,
         details: {
           address,
-          chain,
+          chainId,
         },
       });
       throw error;
@@ -365,10 +387,93 @@ export default class RepositoryService implements IRepositoryService {
     this.updateRepositoryTag();
   }
 
-  deletePartialIfExists(chain: string, address: string) {
+  public async storeMatch(contract: CheckedContract, match: Match) {
+    if (
+      match.address &&
+      (match.status === "perfect" || match.status === "partial")
+    ) {
+      // Delete the partial matches if we now have a perfect match instead.
+      if (match.status === "perfect") {
+        this.deletePartialIfExists(match.chainId, match.address);
+      }
+      const matchQuality = this.statusToMatchQuality(match.status);
+      this.storeSources(
+        matchQuality,
+        match.chainId,
+        match.address,
+        contract.solidity
+      );
+      this.storeMetadata(
+        matchQuality,
+        match.chainId,
+        match.address,
+        contract.metadata
+      );
+
+      if (match.abiEncodedConstructorArguments) {
+        this.storeConstructorArgs(
+          matchQuality,
+          match.chainId,
+          match.address,
+          match.abiEncodedConstructorArguments
+        );
+      }
+
+      if (
+        match.contextVariables &&
+        Object.keys(match.contextVariables).length > 0
+      ) {
+        this.storeContextVariables(
+          matchQuality,
+          match.chainId,
+          match.address,
+          match.contextVariables
+        );
+      }
+
+      if (match.create2Args) {
+        this.storeCreate2Args(
+          matchQuality,
+          match.chainId,
+          match.address,
+          match.create2Args
+        );
+      }
+
+      if (match.libraryMap && Object.keys(match.libraryMap).length) {
+        this.storeLibraryMap(
+          matchQuality,
+          match.chainId,
+          match.address,
+          match.libraryMap
+        );
+      }
+
+      await this.addToIpfsMfs(matchQuality, match.chainId, match.address);
+      SourcifyEventManager.trigger("Verification.MatchStored", match);
+    } else if (match.status === "extra-file-input-bug") {
+      return match;
+    } else {
+      const message =
+        match.message ||
+        "Could not match the deployed and recompiled bytecode.";
+      const err = new Error(`Contract name: ${contract.name}. ${message}`);
+      SourcifyEventManager.trigger("Verification.Error", {
+        message: err.message,
+        stack: err.stack,
+        details: {
+          chain: match.chainId,
+          address: match.address,
+        },
+      });
+      throw err;
+    }
+  }
+
+  deletePartialIfExists(chainId: string, address: string) {
     const pathConfig: PathConfig = {
       matchQuality: "partial",
-      chain,
+      chainId,
       address,
       fileName: "",
     };
@@ -388,5 +493,171 @@ export default class RepositoryService implements IRepositoryService {
       repositoryVersion: repositoryVersion,
     };
     fs.writeFileSync(filePath, JSON.stringify(tag));
+  }
+
+  /**
+   * This method exists because many different people have contributed to this code, which has led to the
+   * lack of unanimous nomenclature
+   * @param status
+   * @returns {MatchQuality} matchQuality
+   */
+  private statusToMatchQuality(status: Status): MatchQuality {
+    if (status === "perfect") return "full";
+    if (status === "partial") return status;
+    throw new Error(`Invalid match status: ${status}`);
+  }
+
+  private storeSources(
+    matchQuality: MatchQuality,
+    chainId: string,
+    address: string,
+    sources: StringMap
+  ) {
+    for (const sourcePath in sources) {
+      this.save(
+        {
+          matchQuality,
+          chainId,
+          address,
+          source: true,
+          fileName: this.sanitizePath(sourcePath),
+        },
+        sources[sourcePath]
+      );
+    }
+  }
+
+  private storeMetadata(
+    matchQuality: MatchQuality,
+    chainId: string,
+    address: string,
+    metadata: Metadata
+  ) {
+    this.save(
+      {
+        matchQuality,
+        chainId,
+        address,
+        fileName: "metadata.json",
+      },
+      JSON.stringify(metadata)
+    );
+  }
+
+  private storeConstructorArgs(
+    matchQuality: MatchQuality,
+    chainId: string,
+    address: string,
+    abiEncodedConstructorArguments: string
+  ) {
+    this.save(
+      {
+        matchQuality,
+        chainId,
+        address,
+        source: false,
+        fileName: "constructor-args.txt",
+      },
+      abiEncodedConstructorArguments
+    );
+  }
+
+  private storeContextVariables(
+    matchQuality: MatchQuality,
+    chainId: string,
+    address: string,
+    contextVariables: ContextVariables
+  ) {
+    this.save(
+      {
+        matchQuality,
+        chainId,
+        address,
+        source: false,
+        fileName: "context-variables.json",
+      },
+      JSON.stringify(contextVariables, undefined, 2)
+    );
+  }
+
+  private storeCreate2Args(
+    matchQuality: MatchQuality,
+    chainId: string,
+    address: string,
+    create2Args: Create2Args
+  ) {
+    this.save(
+      {
+        matchQuality,
+        chainId,
+        address,
+        source: false,
+        fileName: "create2-args.json",
+      },
+      JSON.stringify(create2Args)
+    );
+  }
+
+  private storeLibraryMap(
+    matchQuality: MatchQuality,
+    chainId: string,
+    address: string,
+    libraryMap: StringMap
+  ) {
+    const indentationSpaces = 2;
+    this.save(
+      {
+        matchQuality,
+        chainId,
+        address,
+        source: false,
+        fileName: "library-map.json",
+      },
+      JSON.stringify(libraryMap, null, indentationSpaces)
+    );
+  }
+
+  private async addToIpfsMfs(
+    matchQuality: MatchQuality,
+    chainId: string,
+    address: string
+  ) {
+    if (!this.ipfsClient) return;
+    const contractFolderDir = this.generateAbsoluteFilePath({
+      matchQuality,
+      chainId,
+      address,
+    });
+    const ipfsMFSDir =
+      "/" +
+      this.generateRelativeContractDir({
+        matchQuality,
+        chainId,
+        address,
+      });
+    const filesAsyncIterable = globSource(contractFolderDir, "**/*");
+    for await (const file of filesAsyncIterable) {
+      if (!file.content) continue; // skip directories
+      const mfsPath = path.join(ipfsMFSDir, file.path);
+      await this.ipfsClient.files.mkdir(path.dirname(mfsPath), {
+        parents: true,
+      });
+      // Readstream to Buffers
+      const chunks: Uint8Array[] = [];
+      for await (const chunk of file.content) {
+        chunks.push(chunk);
+      }
+      const fileBuffer = Buffer.concat(chunks);
+      const addResult = await this.ipfsClient.add(fileBuffer, {
+        pin: false,
+      });
+      await this.ipfsClient.files.cp(addResult.cid, mfsPath, { parents: true });
+    }
+  }
+  // This needs to be removed at some point https://github.com/ethereum/sourcify/issues/515
+  private sanitizePath(originalPath: string): string {
+    return originalPath
+      .replace(/[^a-z0-9_./-]/gim, "_")
+      .replace(/(^|\/)[.]+($|\/)/, "_");
   }
 }
