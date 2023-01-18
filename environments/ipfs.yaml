@@ -29,4 +29,4 @@ services:
         target: /repository
       - type: bind
         source: ../services/ipfs/ipfs-${TAG}.key
-        target: /app/ipfs-${TAG}.key
+        target: /sourcify/ipfs-${TAG}.key
