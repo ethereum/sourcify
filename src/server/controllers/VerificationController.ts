@@ -1,22 +1,39 @@
 import { Request, Response, Router } from "express";
+import cors from "cors";
 import {
   SourcifyChainMap,
   CheckedContract,
   checkFiles,
   useAllSources,
+  PathBuffer,
+  PathContent,
+  isEmpty,
 } from "@ethereum-sourcify/lib-sourcify";
 import VerificationService from "../services/VerificationService";
 import BaseController from "./BaseController";
 import { IController } from "../../common/interfaces";
 import {
+  addRemoteFile,
+  checkContractsInSession,
+  ContractWrapperMap,
   extractFiles,
+  FILE_ENCODING,
+  getSessionJSON,
+  isVerifiable,
   LegacyVerifyRequest,
+  saveFiles,
+  SendableContract,
   stringifyInvalidAndMissing,
   validateAddresses,
   validateRequest,
+  verifyValidated,
 } from "./VerificationController-util";
 import { body } from "express-validator";
-import { BadRequestError, NotFoundError } from "../../common/errors";
+import {
+  BadRequestError,
+  NotFoundError,
+  ValidationError,
+} from "../../common/errors";
 import { checkChainId, sourcifyChainsMap } from "../../sourcify-chains";
 import config from "../../config";
 import { StatusCodes } from "http-status-codes";
@@ -30,8 +47,6 @@ export default class VerificationController
   sourcifyChainsMap: SourcifyChainMap;
   verificationService: VerificationService;
   repositoryService: RepositoryService;
-
-  static readonly MAX_SESSION_SIZE = 50 * 1024 * 1024; // 50 MiB
 
   constructor(
     verificationService: VerificationService,
@@ -69,14 +84,14 @@ export default class VerificationController
       throw new NotFoundError(msg);
     }
 
-    let validatedContracts: CheckedContract[];
+    let checkedContracts: CheckedContract[];
     try {
-      validatedContracts = await checkFiles(inputFiles);
+      checkedContracts = await checkFiles(inputFiles);
     } catch (error: any) {
       throw new BadRequestError(error.message);
     }
 
-    const errors = validatedContracts
+    const errors = checkedContracts
       .filter((contract) => !CheckedContract.isValid(contract, true))
       .map(stringifyInvalidAndMissing);
     if (errors.length) {
@@ -85,10 +100,10 @@ export default class VerificationController
       );
     }
 
-    if (validatedContracts.length !== 1 && !req.body.chosenContract) {
-      const contractNames = validatedContracts.map((c) => c.name).join(", ");
-      const msg = `Detected ${validatedContracts.length} contracts (${contractNames}), but can only verify 1 at a time. Please choose a main contract and click Verify again.`;
-      const contractsToChoose = validatedContracts.map((contract) => ({
+    if (checkedContracts.length !== 1 && !req.body.chosenContract) {
+      const contractNames = checkedContracts.map((c) => c.name).join(", ");
+      const msg = `Detected ${checkedContracts.length} contracts (${contractNames}), but can only verify 1 at a time. Please choose a main contract and click Verify again.`;
+      const contractsToChoose = checkedContracts.map((contract) => ({
         name: contract.name,
         path: contract.compiledPath,
       }));
@@ -98,8 +113,8 @@ export default class VerificationController
     }
 
     const contract: CheckedContract = req.body.chosenContract
-      ? validatedContracts[req.body.chosenContract]
-      : validatedContracts[0];
+      ? checkedContracts[req.body.chosenContract]
+      : checkedContracts[0];
 
     try {
       const match = await this.verificationService.verifyDeployed(
@@ -130,6 +145,86 @@ export default class VerificationController
         .status(StatusCodes.INTERNAL_SERVER_ERROR)
         .send({ error: error.message });
     }
+  };
+
+  private getSessionDataEndpoint = async (req: Request, res: Response) => {
+    res.send(getSessionJSON(req.session));
+  };
+
+  private addInputFilesEndpoint = async (req: Request, res: Response) => {
+    validateRequest(req);
+    let inputFiles: PathBuffer[] | undefined;
+    if (req.query.url) {
+      inputFiles = await addRemoteFile(req.query);
+    } else {
+      inputFiles = extractFiles(req, true);
+    }
+    if (!inputFiles)
+      throw new ValidationError([{ param: "files", msg: "No files found" }]);
+    const pathContents: PathContent[] = inputFiles.map((pb) => {
+      return { path: pb.path, content: pb.buffer.toString(FILE_ENCODING) };
+    });
+
+    const session = req.session;
+    const newFilesCount = saveFiles(pathContents, session);
+    if (newFilesCount) {
+      await checkContractsInSession(session);
+      await verifyValidated(
+        session.contractWrappers,
+        session,
+        this.verificationService,
+        this.repositoryService
+      );
+    }
+    res.send(getSessionJSON(session));
+  };
+
+  private restartSessionEndpoint = async (req: Request, res: Response) => {
+    req.session.destroy((error: Error) => {
+      let msg = "";
+      let statusCode = null;
+
+      if (error) {
+        msg = "Error in clearing session";
+        statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
+      } else {
+        msg = "Session successfully cleared";
+        statusCode = StatusCodes.OK;
+      }
+
+      res.status(statusCode).send(msg);
+    });
+  };
+
+  private verifyValidatedEndpoint = async (req: Request, res: Response) => {
+    const session = req.session;
+    if (!session.contractWrappers || isEmpty(session.contractWrappers)) {
+      throw new BadRequestError("There are currently no pending contracts.");
+    }
+
+    const receivedContracts: SendableContract[] = req.body.contracts;
+
+    const verifiable: ContractWrapperMap = {};
+    for (const receivedContract of receivedContracts) {
+      const id = receivedContract.verificationId;
+      const contractWrapper = session.contractWrappers[id];
+      if (contractWrapper) {
+        contractWrapper.address = receivedContract.address;
+        contractWrapper.chainId = receivedContract.chainId;
+        contractWrapper.contextVariables = receivedContract.contextVariables;
+        if (isVerifiable(contractWrapper)) {
+          verifiable[id] = contractWrapper;
+        }
+      }
+    }
+
+    await verifyValidated(
+      verifiable,
+      session,
+      this.verificationService,
+      this.repositoryService
+    );
+    res.send(getSessionJSON(session));
   };
 
   registerRoutes = (): Router => {
@@ -172,6 +267,37 @@ export default class VerificationController
         ),
       this.safeHandler(this.legacyVerifyEndpoint)
     );
+
+    // Session APIs with session cookies require non "*" CORS
+    this.router
+      .route(["/session-data", "/session/data"])
+      .all(cors(corsOpt))
+      .get(cors(corsOpt), this.safeHandler(this.getSessionDataEndpoint));
+
+    this.router
+      .route(["/input-files", "/session/input-files"])
+      .all(cors(corsOpt))
+      .post(cors(corsOpt), this.safeHandler(this.addInputFilesEndpoint));
+
+    /* this.router
+      .route(["/session/input-contract"])
+      .all(cors(corsOpt))
+      .post(cors(corsOpt), this.safeHandler(this.addInputContractEndpoint)); */
+
+    this.router
+      .route(["/restart-session", "/session/clear"])
+      .all(cors(corsOpt))
+      .post(cors(corsOpt), this.safeHandler(this.restartSessionEndpoint));
+
+    this.router
+      .route(["/verify-validated", "/session/verify-validated"])
+      .all(cors(corsOpt))
+      .post(
+        body("contracts").isArray(),
+        cors(corsOpt),
+        this.safeHandler(this.verifyValidatedEndpoint)
+      );
+
     return this.router;
   };
 }

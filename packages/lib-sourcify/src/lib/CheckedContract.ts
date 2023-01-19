@@ -46,6 +46,9 @@ export class CheckedContract {
   /** The bytecodes of the contract. */
   creationBytecode?: string;
 
+  /** The raw string representation of the contract's metadata. Needed to generate a unique session id for the CheckedContract*/
+  metadataRaw: string;
+
   /** Checks whether this contract is valid or not.
    *  This is a static method due to persistence issues.
    *
@@ -68,6 +71,7 @@ export class CheckedContract {
     missing: MissingSources = {},
     invalid: InvalidSources = {}
   ) {
+    this.metadataRaw = JSON.stringify(metadata);
     this.metadata = JSON.parse(JSON.stringify(metadata));
     this.solidity = solidity;
     this.missing = missing;
@@ -75,11 +79,12 @@ export class CheckedContract {
 
     const sources = this.metadata.sources;
     for (const compiledPath in sources) {
+      const metadataSource = sources[compiledPath];
       const foundSource = solidity[compiledPath];
-      if (!sources[compiledPath].content && foundSource) {
-        sources[compiledPath].content = foundSource;
+      if (!metadataSource.content && foundSource) {
+        metadataSource.content = foundSource;
       }
-      delete sources[compiledPath].license;
+      delete metadataSource.license;
     }
 
     if (metadata.compiler && metadata.compiler.version) {
@@ -334,7 +339,7 @@ function getGithubUrl(url: string): string | null {
  * @param obj The object whose emptiness is tested.
  * @returns true if any keys present; false otherwise
  */
-function isEmpty(obj: object): boolean {
+export function isEmpty(obj: object): boolean {
   return !Object.keys(obj).length && obj.constructor === Object;
 }
 
