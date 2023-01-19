@@ -15,8 +15,7 @@ const path = require("path");
 const Web3 = require("web3");
 const MAX_FILE_SIZE = require("../dist/config").default.server.maxFileSize;
 const MAX_SESSION_SIZE =
-  require("../dist/server/controllers/VerificationController").default
-    .MAX_SESSION_SIZE;
+  require("../dist/server/controllers/VerificationController-util").MAX_SESSION_SIZE;
 const GANACHE_PORT = 8545;
 const StatusCodes = require("http-status-codes").StatusCodes;
 const { waitSecs, callContractMethodWithTx } = require("./helpers/helpers");

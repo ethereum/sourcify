@@ -323,7 +323,7 @@ export default class RepositoryService implements IRepositoryService {
           chainId,
         },
       });
-      throw error;
+      return [];
     }
   }
 
