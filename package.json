@@ -65,10 +65,11 @@
     "express-session": "^1.17.1",
     "express-validator": "^6.6.1",
     "http-status-codes": "^2.1.4",
-    "ipfs-http-client": "^60.0.0",
+    "ipfs-http-client": "^56.0.3",
     "memorystore": "^1.6.7",
     "node-fetch": "2.6.6",
     "serve-index": "^1.9.1",
+    "solc": "^0.8.17",
     "web3": "^1.2.11",
     "winston": "^3.8.2",
     "winston-loki": "^6.0.6"

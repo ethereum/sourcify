@@ -1,7 +1,7 @@
 import * as chainsRaw from "./chains.json";
 import * as dotenv from "dotenv";
 import path from "path";
-import { SourcifyEventManager } from "../services/core/src/services/EventManager"; // TODO: Move EventManager to server
+import { SourcifyEventManager } from "@ethereum-sourcify/core"; // TODO: Move EventManager to server
 import {
   SourcifyChain,
   SourcifyChainMap,

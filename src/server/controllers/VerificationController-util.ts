@@ -1,11 +1,44 @@
 import { Request } from "express";
 import { isAddress } from "ethers/lib/utils";
-import { toChecksumAddress } from "web3-utils";
-import { ValidationError } from "../../common/errors";
-import { FileArray, UploadedFile } from "express-fileupload";
-import { CheckedContract } from "@ethereum-sourcify/lib-sourcify";
+import { toChecksumAddress, AbiInput } from "web3-utils";
+import { PayloadTooLargeError, ValidationError } from "../../common/errors";
+import { UploadedFile } from "express-fileupload";
+import {
+  CheckedContract,
+  checkFiles,
+  InvalidSources,
+  isEmpty,
+  Match,
+  MissingSources,
+  PathContent,
+  Status,
+  useAllSources,
+} from "@ethereum-sourcify/lib-sourcify";
 import { checkChainId } from "../../sourcify-chains";
 import { validationResult } from "express-validator";
+import { Session } from "express-session";
+import QueryString from "qs";
+import { BadRequestError } from "../../common/errors";
+import fetch from "node-fetch";
+import Web3 from "web3";
+import VerificationService from "../services/VerificationService";
+import RepositoryService from "../services/RepositoryService";
+
+export interface PathContentMap {
+  [id: string]: PathContent;
+}
+
+export interface ContractWrapperMap {
+  [id: string]: ContractWrapper;
+}
+
+declare module "express-session" {
+  interface Session {
+    inputFiles: PathContentMap;
+    contractWrappers: ContractWrapperMap;
+    unusedSources: string[];
+  }
+}
 
 export type LegacyVerifyRequest = Request & {
   addresses: string[];
@@ -114,5 +147,305 @@ export const validateRequest = (req: Request) => {
   const result = validationResult(req);
   if (!result.isEmpty()) {
     throw new ValidationError(result.array());
+  }
+};
+
+export type ContractMeta = {
+  compiledPath?: string;
+  name?: string;
+  address?: string;
+  chainId?: string;
+  contextVariables?: {
+    abiEncodedConstructorArguments?: string;
+    msgSender?: string;
+  };
+  status?: Status;
+  statusMessage?: string;
+  storageTimestamp?: Date;
+};
+
+export type ContractWrapper = ContractMeta & {
+  contract: CheckedContract;
+};
+
+// Contract object in the server response.
+export type SendableContract = ContractMeta & {
+  files: {
+    found: string[];
+    missing: MissingSources;
+    invalid: InvalidSources;
+  };
+  verificationId: string;
+  constructorArgumentsArray?: [AbiInput];
+  creationBytecode?: string;
+};
+
+function getSendableContract(
+  contractWrapper: ContractWrapper,
+  verificationId: string
+): SendableContract {
+  const contract = contractWrapper.contract;
+
+  return {
+    verificationId,
+    constructorArgumentsArray: contract?.metadata?.output?.abi?.find(
+      (abi: any) => abi.type === "constructor"
+    )?.inputs,
+    creationBytecode: contract?.creationBytecode,
+    compiledPath: contract.compiledPath,
+    name: contract.name,
+    address: contractWrapper.address,
+    chainId: contractWrapper.chainId,
+    files: {
+      found: Object.keys(contract.solidity), // Source paths
+      missing: contract.missing,
+      invalid: contract.invalid,
+    },
+    status: contractWrapper.status || "error",
+    statusMessage: contractWrapper.statusMessage,
+    storageTimestamp: contractWrapper.storageTimestamp,
+  };
+}
+
+export function getSessionJSON(session: Session) {
+  const contractWrappers = session.contractWrappers || {};
+  const contracts: SendableContract[] = [];
+  for (const id in contractWrappers) {
+    const sendableContract = getSendableContract(contractWrappers[id], id);
+    contracts.push(sendableContract);
+  }
+
+  const files: string[] = [];
+  for (const id in session.inputFiles) {
+    files.push(session.inputFiles[id].path);
+  }
+  const unused = session.unusedSources || [];
+  return { contracts, unused, files };
+}
+
+export async function addRemoteFile(
+  query: QueryString.ParsedQs
+): Promise<PathBuffer[]> {
+  if (typeof query.url !== "string") {
+    throw new BadRequestError("Query url must be a string");
+  }
+  let res;
+  try {
+    res = await fetch(query.url);
+  } catch (err) {
+    throw new BadRequestError("Couldn't fetch from " + query.url);
+  }
+  if (!res.ok) throw new BadRequestError("Couldn't fetch from " + query.url);
+  // Save with the fileName exists on server response header.
+  const fileName =
+    res.headers.get("Content-Disposition")?.split("filename=")[1] ||
+    query.url.substring(query.url.lastIndexOf("/") + 1) ||
+    "file";
+  const buffer = await res.buffer();
+  return [
+    {
+      path: fileName,
+      buffer,
+    },
+  ];
+}
+
+export const FILE_ENCODING = "base64";
+export const MAX_SESSION_SIZE = 50 * 1024 * 1024; // 50 MiB
+
+export function generateId(obj: any): string {
+  return Web3.utils.keccak256(JSON.stringify(obj));
+}
+
+export const saveFiles = (
+  pathContents: PathContent[],
+  session: Session
+): number => {
+  if (!session.inputFiles) {
+    session.inputFiles = {};
+  }
+
+  let inputSize = 0; // shall contain old buffer size + new files size
+  for (const id in session.inputFiles) {
+    const pc = session.inputFiles[id];
+    inputSize += pc.content.length;
+  }
+
+  pathContents.forEach((pc) => (inputSize += pc.content.length));
+
+  if (inputSize > MAX_SESSION_SIZE) {
+    const msg =
+      "Too much session memory used. Delete some files or clear the session.";
+    throw new PayloadTooLargeError(msg);
+  }
+
+  let newFilesCount = 0;
+  pathContents.forEach((pc) => {
+    const newId = generateId(pc.content);
+    if (!(newId in session.inputFiles)) {
+      session.inputFiles[newId] = pc;
+      ++newFilesCount;
+    }
+  });
+
+  return newFilesCount;
+};
+
+export function updateUnused(unused: string[], session: Session) {
+  if (!session.unusedSources) {
+    session.unusedSources = [];
+  }
+  session.unusedSources = unused;
+}
+
+export const checkContractsInSession = async (session: Session) => {
+  const pathBuffers: PathBuffer[] = [];
+  for (const id in session.inputFiles) {
+    const pathContent = session.inputFiles[id];
+    pathBuffers.push({
+      path: pathContent.path,
+      buffer: Buffer.from(pathContent.content, FILE_ENCODING),
+    });
+  }
+
+  try {
+    const unused: string[] = [];
+    const contracts = await checkFiles(pathBuffers, unused);
+
+    const newPendingContracts: ContractWrapperMap = {};
+    for (const contract of contracts) {
+      newPendingContracts[generateId(JSON.stringify(contract.metadataRaw))] = {
+        contract,
+      };
+    }
+
+    session.contractWrappers ||= {};
+    for (const newId in newPendingContracts) {
+      const newContractWrapper = newPendingContracts[newId];
+      const oldContractWrapper = session.contractWrappers[newId];
+      if (oldContractWrapper) {
+        for (const path in newContractWrapper.contract.solidity) {
+          oldContractWrapper.contract.solidity[path] =
+            newContractWrapper.contract.solidity[path];
+          delete oldContractWrapper.contract.missing[path];
+        }
+        oldContractWrapper.contract.solidity =
+          newContractWrapper.contract.solidity;
+        oldContractWrapper.contract.missing =
+          newContractWrapper.contract.missing;
+      } else {
+        session.contractWrappers[newId] = newContractWrapper;
+      }
+    }
+    updateUnused(unused, session);
+  } catch (error) {
+    const paths = pathBuffers.map((pb) => pb.path);
+    updateUnused(paths, session);
+  }
+};
+
+export const checkAndFetchMissing = async (
+  contract: CheckedContract
+): Promise<void> => {
+  if (!CheckedContract.isValid(contract)) {
+    try {
+      // Try to fetch missing files
+      await CheckedContract.fetchMissing(contract);
+    } catch (e) {
+      // There's no need to throw inside fetchMissing if we're going to do an empty catch. This would cause not being able to catch other potential errors inside the function. TODO: Don't throw inside `fetchMissing` and remove the try/catch block.
+      // Missing files are accessible from the contract.missingFiles array.
+      // No need to throw an error
+    }
+  }
+};
+
+export function isVerifiable(contractWrapper: ContractWrapper) {
+  const contract = contractWrapper.contract;
+  return (
+    isEmpty(contract.missing) &&
+    isEmpty(contract.invalid) &&
+    Boolean(contractWrapper.address) &&
+    Boolean(contractWrapper.chainId)
+  );
+}
+
+export const verifyValidated = async (
+  contractWrappers: ContractWrapperMap,
+  session: Session,
+  verificationService: VerificationService,
+  repositoryService: RepositoryService
+): Promise<void> => {
+  for (const id in contractWrappers) {
+    const contractWrapper = contractWrappers[id];
+
+    await checkAndFetchMissing(contractWrapper.contract);
+
+    if (!isVerifiable(contractWrapper)) {
+      continue;
+    }
+
+    const { address, chainId, contract, contextVariables } = contractWrapper;
+
+    // The session saves the CheckedContract as a simple object, so we need to reinstantiate it
+    const checkedContract = new CheckedContract(
+      contract.metadata,
+      contract.solidity,
+      contract.missing,
+      contract.invalid
+    );
+
+    const found = repositoryService.checkByChainAndAddress(
+      contractWrapper.address as string,
+      contractWrapper.chainId as string
+    );
+    let match: Match;
+    if (found.length) {
+      match = found[0];
+    } else {
+      try {
+        match = await verificationService.verifyDeployed(
+          checkedContract,
+          chainId as string,
+          address as string,
+          contextVariables
+        );
+        // Send to verification again with all source files.
+        if (match.status === "extra-file-input-bug") {
+          // Session inputFiles are encoded base64. Why?
+          const pathBufferInputFiles: PathBuffer[] = Object.values(
+            session.inputFiles
+          ).map((base64file) => ({
+            path: base64file.path,
+            buffer: Buffer.from(base64file.content, FILE_ENCODING),
+          }));
+          const contractWithAllSources = await useAllSources(
+            contractWrapper.contract,
+            pathBufferInputFiles
+          );
+          const tempMatch = await verificationService.verifyDeployed(
+            contractWithAllSources,
+            chainId as string,
+            address as string,
+            contextVariables
+          );
+          if (
+            tempMatch.status === "perfect" ||
+            tempMatch.status === "partial"
+          ) {
+            match = tempMatch;
+          }
+        }
+      } catch (error: any) {
+        match = {
+          chainId: contractWrapper.chainId as string,
+          status: null,
+          address: contractWrapper.address as string,
+          message: error.message,
+        };
+      }
+    }
+    contractWrapper.status = match.status || "error";
+    contractWrapper.statusMessage = match.message;
+    contractWrapper.storageTimestamp = match.storageTimestamp;
   }
 };

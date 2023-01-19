@@ -22,7 +22,7 @@
         "DEBUG": "express:*" // Debug all express modules *
       },
       "smartStep": true,
-      "console": "integratedTerminal", 
+      "console": "integratedTerminal",
       "outputCapture": "std",
     },
     {
@@ -33,10 +33,7 @@
       "envFile": "${workspaceFolder}/environments/.env",
       "outFiles": [
         "${workspaceFolder}/dist/**/*.js",
-        "${workspaceFolder}/services/core/build/**/*.js",
-        "${workspaceFolder}/services/validation/build/**/*.js",
-        "${workspaceFolder}/services/verification/build/**/*.js",
-        "${workspaceFolder}/packages/bytecode-utils/build/**/*.js"
+        "${workspaceFolder}/packages/**/build/**/*.js"
       ],
       "env": {
         "DEBUG": "express:*" // Debug all express modules *
@@ -68,7 +65,7 @@
         "${workspaceFolder}/packages/bytecode-utils/build/**/*.js"
       ],
       "smartStep": true,
-      "console": "integratedTerminal", 
+      "console": "integratedTerminal",
       "outputCapture": "std"
     },
     {
@@ -85,7 +82,7 @@
         "${workspaceFolder}/packages/bytecode-utils/build/**/*.js"
       ],
       "smartStep": true,
-      "console": "integratedTerminal", 
+      "console": "integratedTerminal",
       "outputCapture": "std"
     },
     {
@@ -250,9 +247,8 @@
       "outFiles": [
         "${workspaceFolder}/dist/**/*.js",
         "${workspaceFolder}/services/core/build/**/*.js",
-        "${workspaceFolder}/services/validation/build/**/*.js",
-        "${workspaceFolder}/services/verification/build/**/*.js",
-        "${workspaceFolder}/packages/bytecode-utils/build/**/*.js"
+        "${workspaceFolder}/packages/bytecode-utils/build/**/*.js",
+        "${workspaceFolder}/packages/lib-sourcify/build/**/*.js"
       ],
       "smartStep": true,
       "console": "integratedTerminal",
