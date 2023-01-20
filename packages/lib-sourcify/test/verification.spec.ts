@@ -4,7 +4,11 @@ import { SourcifyChain } from '../src/lib/types';
 import Web3 from 'web3';
 import { expect } from 'chai';
 import Ganache from 'ganache';
-import { checkAndVerifyDeployed, deployFromAbiAndBytecode } from './utils';
+import {
+  checkAndVerifyDeployed,
+  deployCheckAndVerify,
+  deployFromAbiAndBytecode,
+} from './utils';
 import { describe, it, before } from 'mocha';
 
 const ganacheServer = Ganache.server({
@@ -40,15 +44,11 @@ describe('Verify Deployed Contract', () => {
 
   it('should verify a simple contract', async () => {
     const contractFolderPath = path.join(__dirname, 'sources', 'Storage');
-    const address = await deployFromAbiAndBytecode(
-      localWeb3Provider,
-      contractFolderPath,
-      accounts[0]
-    );
-    const match = await checkAndVerifyDeployed(
+    const match = await deployCheckAndVerify(
       contractFolderPath,
       sourcifyChainGanache,
-      address
+      localWeb3Provider,
+      accounts[0]
     );
     expect(match.status).to.equal('perfect');
   });
@@ -56,15 +56,11 @@ describe('Verify Deployed Contract', () => {
   it('should verify a contract with library placeholders', async () => {
     // Originally https://goerli.etherscan.io/address/0x399B23c75d8fd0b95E81E41e1c7c88937Ee18000#code
     const contractFolderPath = path.join(__dirname, 'sources', 'UsingLibrary');
-    const address = await deployFromAbiAndBytecode(
-      localWeb3Provider,
-      contractFolderPath,
-      accounts[0]
-    );
-    const match = await checkAndVerifyDeployed(
+    const match = await deployCheckAndVerify(
       contractFolderPath,
       sourcifyChainGanache,
-      address
+      localWeb3Provider,
+      accounts[0]
     );
 
     expect(match.status).to.equal('perfect');
