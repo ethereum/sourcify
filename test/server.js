@@ -818,42 +818,6 @@ describe("Server", function () {
       assertions(null, res, null, address, "partial");
     });
 
-    // https://github.com/ethereum/sourcify/issues/640
-    it("should remove the inliner option from metadata for solc >=0.8.2 to <=0.8.4", async () => {
-      const artifact = require("./testcontracts/Storage/Storage.json");
-      const address = await deployFromAbiAndBytecode(
-        localWeb3Provider,
-        artifact.abi,
-        artifact.bytecode,
-        accounts[0]
-      );
-      const metadataPath = path.join(
-        "test",
-        "testcontracts",
-        "Storage",
-        "metadata-inliner.json"
-      );
-      const metadataBuffer = fs.readFileSync(metadataPath);
-
-      const sourcePath = path.join(
-        "test",
-        "testcontracts",
-        "Storage",
-        "Storage.sol"
-      );
-      const sourceBuffer = fs.readFileSync(sourcePath);
-
-      const res = await chai
-        .request(server.app)
-        .post("/")
-        .field("address", address)
-        .field("chain", defaultContractChain)
-        .attach("files", metadataBuffer, "metadata-inliner.json")
-        .attach("files", sourceBuffer, "Storage.sol")
-        .send();
-      assertions(null, res, null, address);
-    });
-
     it("should verify a contract created by a factory contract and has immutables", async () => {
       const deployValue = 12345;
 
