@@ -77,4 +77,20 @@ describe('Verify Deployed Contract', () => {
     );
     expect(match.status).to.equal('perfect');
   });
+
+  // https://github.com/ethereum/sourcify/issues/640
+  it('should remove the inliner option from metadata for solc >=0.8.2 to <=0.8.4 and be able to verify', async () => {
+    const contractFolderPath = path.join(
+      __dirname,
+      'sources',
+      'StorageInliner'
+    );
+    const match = await deployCheckAndVerify(
+      contractFolderPath,
+      sourcifyChainGanache,
+      localWeb3Provider,
+      accounts[0]
+    );
+    expect(match.status).to.equal('perfect');
+  });
 });
