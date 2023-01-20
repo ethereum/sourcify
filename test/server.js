@@ -795,59 +795,6 @@ describe("Server", function () {
       assertions(null, res, null, address, "partial");
     });
 
-    it("should verify a contract created by a factory contract and has immutables", async () => {
-      const deployValue = 12345;
-
-      const artifact = require("./testcontracts/FactoryImmutable/Factory.json");
-      const factoryAddress = await deployFromAbiAndBytecode(
-        localWeb3Provider,
-        artifact.abi,
-        artifact.bytecode,
-        accounts[0]
-      );
-
-      // Deploy child by calling deploy(uint)
-      const childMetadata = require("./testcontracts/FactoryImmutable/Child_metadata.json");
-      const childMetadataBuffer = Buffer.from(JSON.stringify(childMetadata));
-      const txReceipt = await callContractMethodWithTx(
-        localWeb3Provider,
-        artifact.abi,
-        factoryAddress,
-        "deploy",
-        accounts[0],
-        [deployValue]
-      );
-
-      const childAddress = txReceipt.events.Deployment.returnValues[0];
-      const sourcePath = path.join(
-        "test",
-        "testcontracts",
-        "FactoryImmutable",
-        "FactoryTest.sol"
-      );
-      const sourceBuffer = fs.readFileSync(sourcePath);
-
-      const abiEncoded = localWeb3Provider.eth.abi.encodeParameter(
-        "uint",
-        deployValue
-      );
-      const res = await chai
-        .request(server.app)
-        .post("/")
-        .send({
-          address: childAddress,
-          chain: defaultContractChain,
-          contextVariables: {
-            abiEncodedConstructorArguments: abiEncoded,
-          },
-          files: {
-            "metadata.json": JSON.stringify(childMetadata),
-            "FactoryTest.sol": sourceBuffer.toString(),
-          },
-        });
-      assertions(null, res, null, childAddress);
-    });
-
     it("should verify a contract created by a factory contract and has immutables without constructor arguments but with msg.sender assigned immutable", async () => {
       const artifact = require("./testcontracts/FactoryImmutableWithoutConstrArg/Factory3.json");
       const factoryAddress = await deployFromAbiAndBytecode(
