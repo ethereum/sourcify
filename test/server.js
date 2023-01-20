@@ -795,60 +795,6 @@ describe("Server", function () {
       assertions(null, res, null, address, "partial");
     });
 
-    it("should verify a contract with library placeholders", async () => {
-      // Originally https://goerli.etherscan.io/address/0x399B23c75d8fd0b95E81E41e1c7c88937Ee18000#code
-      const artifact = require("./sources/artifacts/UsingLibrary.json");
-      const address = await deployFromAbiAndBytecode(
-        localWeb3Provider,
-        artifact.abi,
-        artifact.bytecode,
-        accounts[0]
-      );
-      const metadataPath = path.join(
-        "test",
-        "sources",
-        "metadata",
-        "using-library.meta.object.json"
-      );
-      const metadataBuffer = fs.readFileSync(metadataPath);
-
-      const sourcePath = path.join(
-        "test",
-        "sources",
-        "contracts",
-        "UsingLibrary.sol"
-      );
-      const sourceBuffer = fs.readFileSync(sourcePath);
-
-      const res = await chai
-        .request(server.app)
-        .post("/")
-        .field("address", address)
-        .field("chain", defaultContractChain)
-        .attach("files", metadataBuffer)
-        .attach("files", sourceBuffer)
-        .send();
-
-      assertions(null, res, null, address, "perfect");
-
-      const res2 = await chai
-        .request(server.app)
-        .get(
-          `/repository/contracts/full_match/${defaultContractChain}/${address}/library-map.json`
-        )
-        .buffer()
-        .parse(binaryParser)
-        .send();
-
-      chai.expect(res2.status).to.equal(StatusCodes.OK);
-      const receivedLibraryMap = JSON.parse(res2.body.toString());
-      const expectedLibraryMap = {
-        __$da572ae5e60c838574a0f88b27a0543803$__:
-          "11fea6722e00ba9f43861a6e4da05fecdf9806b7",
-      };
-      chai.expect(receivedLibraryMap).to.deep.equal(expectedLibraryMap);
-    });
-
     it("should verify a contract with viaIR:true", async () => {
       const artifact = require("./testcontracts/Storage/Storage-viaIR.json");
       const address = await deployFromAbiAndBytecode(

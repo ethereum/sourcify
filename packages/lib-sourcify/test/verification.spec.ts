@@ -1,12 +1,10 @@
-import { verifyDeployed } from '../src';
-import { checkFiles } from '../src';
-import fs from 'fs';
+/* eslint-disable @typescript-eslint/no-var-requires */
 import path from 'path';
 import { SourcifyChain } from '../src/lib/types';
 import Web3 from 'web3';
 import { expect } from 'chai';
 import Ganache from 'ganache';
-import { deployFromAbiAndBytecode } from './utils';
+import { checkAndVerifyDeployed, deployFromAbiAndBytecode } from './utils';
 import { describe, it, before } from 'mocha';
 
 const ganacheServer = Ganache.server({
@@ -41,43 +39,39 @@ describe('Verify Deployed Contract', () => {
   });
 
   it('should verify a simple contract', async () => {
-    // Deploy contract
-    const artifact = require('./sources/simple/Storage/Storage.json');
-    const metadata = require('./sources/simple/Storage/metadata.json');
+    const contractFolderPath = path.join(__dirname, 'sources', 'Storage');
     const address = await deployFromAbiAndBytecode(
       localWeb3Provider,
-      metadata.output.abi,
-      artifact.bytecode,
+      contractFolderPath,
       accounts[0]
     );
+    const match = await checkAndVerifyDeployed(
+      contractFolderPath,
+      sourcifyChainGanache,
+      address
+    );
+    expect(match.status).to.equal('perfect');
+  });
 
-    // Verify contract
-    const sourcePath = path.join(
-      __dirname,
-      'sources',
-      'simple',
-      'Storage',
-      'Storage.sol'
+  it('should verify a contract with library placeholders', async () => {
+    // Originally https://goerli.etherscan.io/address/0x399B23c75d8fd0b95E81E41e1c7c88937Ee18000#code
+    const contractFolderPath = path.join(__dirname, 'sources', 'UsingLibrary');
+    const address = await deployFromAbiAndBytecode(
+      localWeb3Provider,
+      contractFolderPath,
+      accounts[0]
     );
-    const metadataPath = path.join(
-      __dirname,
-      'sources',
-      'simple',
-      'Storage',
-      'metadata.json'
-    );
-    const sourceBuffer = fs.readFileSync(sourcePath);
-    const metadataBuffer = fs.readFileSync(metadataPath);
-    const checkedContracts = await checkFiles([
-      { path: sourcePath, buffer: sourceBuffer },
-      { path: metadataPath, buffer: metadataBuffer },
-    ]);
-    const verified = await verifyDeployed(
-      checkedContracts[0],
+    const match = await checkAndVerifyDeployed(
+      contractFolderPath,
       sourcifyChainGanache,
       address
     );
 
-    expect(verified.status).to.equal('perfect');
+    expect(match.status).to.equal('perfect');
+    const expectedLibraryMap = {
+      __$da572ae5e60c838574a0f88b27a0543803$__:
+        '11fea6722e00ba9f43861a6e4da05fecdf9806b7',
+    };
+    expect(match.libraryMap).to.deep.equal(expectedLibraryMap);
   });
 });
