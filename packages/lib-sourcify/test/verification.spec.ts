@@ -4,11 +4,7 @@ import { SourcifyChain } from '../src/lib/types';
 import Web3 from 'web3';
 import { expect } from 'chai';
 import Ganache from 'ganache';
-import {
-  checkAndVerifyDeployed,
-  deployCheckAndVerify,
-  deployFromAbiAndBytecode,
-} from './utils';
+import { deployCheckAndVerify } from './utils';
 import { describe, it, before } from 'mocha';
 
 const ganacheServer = Ganache.server({
@@ -69,5 +65,16 @@ describe('Verify Deployed Contract', () => {
         '11fea6722e00ba9f43861a6e4da05fecdf9806b7',
     };
     expect(match.libraryMap).to.deep.equal(expectedLibraryMap);
+  });
+
+  it('should verify a contract with viaIR:true', async () => {
+    const contractFolderPath = path.join(__dirname, 'sources', 'StorageViaIR');
+    const match = await deployCheckAndVerify(
+      contractFolderPath,
+      sourcifyChainGanache,
+      localWeb3Provider,
+      accounts[0]
+    );
+    expect(match.status).to.equal('perfect');
   });
 });
