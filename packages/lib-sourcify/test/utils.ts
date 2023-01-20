@@ -1,9 +1,18 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
+// Functions here assume a folder structure like this:
+// - contractFolderPath
+//   - artifact.json
+//   - metadata.json
+//   - sources
+//     - source1.sol
+//     - source2.sol
+
 import path from 'path';
 import Web3 from 'web3';
 import fs from 'fs';
-import { SourcifyChain, verifyDeployed } from '../src';
+import { ContextVariables, Match, SourcifyChain, verifyDeployed } from '../src';
 import { checkFiles } from '../src';
+import { expect } from 'chai';
 
 /**
  *  Function to deploy contracts from provider unlocked accounts
@@ -38,7 +47,9 @@ export async function deployFromAbiAndBytecode(
 export const checkAndVerifyDeployed = async (
   contractFolderPath: string,
   sourcifyChain: SourcifyChain,
-  address: string
+  address: string,
+  contextVariables?: ContextVariables,
+  creatorTxHash?: string
 ) => {
   const metadataPath = path.join(contractFolderPath, 'metadata.json');
   const metadataBuffer = fs.readFileSync(metadataPath);
@@ -60,22 +71,27 @@ export const checkAndVerifyDeployed = async (
   const match = await verifyDeployed(
     checkedContracts[0],
     sourcifyChain,
-    address
+    address,
+    contextVariables,
+    creatorTxHash
   );
   return match;
 };
 
 /**
  * Combines both deploying and verifying a contract in a single function.
+ * Returns the deployed address for assertions on Match.address
  */
 export const deployCheckAndVerify = async (
   contractFolderPath: string,
   sourcifyChain: SourcifyChain,
   web3provider: Web3,
   from: string,
-  args?: any[]
+  args?: any[],
+  contextVariables?: ContextVariables,
+  creatorTxHash?: string
 ) => {
-  const address = await deployFromAbiAndBytecode(
+  const deployedAddress = await deployFromAbiAndBytecode(
     web3provider,
     contractFolderPath,
     from,
@@ -84,7 +100,44 @@ export const deployCheckAndVerify = async (
   const match = await checkAndVerifyDeployed(
     contractFolderPath,
     sourcifyChain,
-    address
+    deployedAddress,
+    contextVariables,
+    creatorTxHash
   );
-  return match;
+  return { match, deployedAddress };
+};
+
+// Sends a tx that changes the state
+export async function callContractMethodWithTx(
+  web3: Web3,
+  contractFolderPath: string,
+  contractAddress: string,
+  methodName: string,
+  from: string,
+  args: any[]
+) {
+  const artifact = require(path.join(contractFolderPath, 'artifact.json'));
+  const contract = new web3.eth.Contract(artifact.abi, contractAddress);
+  const method = contract.methods[methodName](...args);
+  const gas = await method.estimateGas({ from });
+
+  const txReceipt = await method.send({
+    from,
+    gas,
+  });
+
+  return txReceipt;
+}
+
+export const expectMatch = (
+  match: Match,
+  status: string,
+  address: string,
+  libraryMap?: { [key: string]: string }
+) => {
+  expect(match.status).to.equal(status);
+  expect(match.address).to.equal(address);
+  if (libraryMap) {
+    expect(match.libraryMap).to.deep.equal(libraryMap);
+  }
 };
