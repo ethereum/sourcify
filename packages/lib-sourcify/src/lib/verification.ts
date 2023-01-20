@@ -52,11 +52,6 @@ export async function verifyDeployed(
     return match;
   }
 
-  if (deployedBytecode.length !== recompiled.deployedBytecode.length) {
-    match.message = `The deployed and the recompiled bytecode don't match. Deployed bytecode length: ${deployedBytecode.length}, recompiled bytecode length: ${recompiled.deployedBytecode.length}.`;
-    return match;
-  }
-
   // Try to match with deployed bytecode directly
   matchWithDeployedBytecode(
     match,
@@ -241,7 +236,7 @@ export async function matchWithSimulation(
     /* eslint-enable indent */
   });
   const simulationDeployedBytecode =
-    result.execResult.returnValue.toString('hex');
+    '0x' + result.execResult.returnValue.toString('hex');
 
   matchWithDeployedBytecode(
     match,
