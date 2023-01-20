@@ -2,6 +2,7 @@ import optimism from "./assets/chains/optimism.svg";
 import gnosisSafe from "./assets/contracts/gnosisSafe.svg";
 import synthetix from "./assets/contracts/synthetix.png";
 import uniswap from "./assets/contracts/uniswap.png";
+import ens from "./assets/contracts/ens.png";
 
 const featured = [
   {
@@ -26,6 +27,12 @@ const featured = [
     name: "Gnosis Safe",
     href: "https://repo.sourcify.dev/contracts/full_match/1/0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552/",
     logo: gnosisSafe,
+    displayed: true,
+  },
+  {
+    name: "Ethereum Name Service",
+    href: "https://repo.sourcify.dev/contracts/partial_match/1/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/",
+    logo: ens,
     displayed: true,
   },
 ];
