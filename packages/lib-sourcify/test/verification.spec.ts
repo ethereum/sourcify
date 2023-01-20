@@ -97,7 +97,7 @@ describe('Verify Deployed Contract', () => {
     expectMatch(match, 'perfect', deployedAddress);
   });
 
-  it('should verify a contract created by a factory contract and has immutables', async () => {
+  it('should verify a contract created by a factory contract and has immutables without constructor arguments but with msg.sender assigned immutable', async () => {
     const deployValue = 12345;
     const childFolderPath = path.join(
       __dirname,
@@ -138,6 +138,48 @@ describe('Verify Deployed Contract', () => {
       childAddress,
       {
         abiEncodedConstructorArguments: abiEncoded,
+      }
+    );
+
+    expectMatch(match, 'perfect', childAddress);
+  });
+
+  it('should verify a contract created by a factory contract and has immutables', async () => {
+    const childFolderPath = path.join(
+      __dirname,
+      'sources',
+      'FactoryImmutableWithoutConstrArg',
+      'Child'
+    );
+    const factoryFolderPath = path.join(
+      __dirname,
+      'sources',
+      'FactoryImmutableWithoutConstrArg',
+      'Factory'
+    );
+    const factoryAddress = await deployFromAbiAndBytecode(
+      localWeb3Provider,
+      factoryFolderPath,
+      accounts[0],
+      []
+    );
+
+    // Deploy the child by calling the factory
+    const txReceipt = await callContractMethodWithTx(
+      localWeb3Provider,
+      factoryFolderPath,
+      factoryAddress,
+      'createChild',
+      accounts[0],
+      []
+    );
+    const childAddress = txReceipt.events.ChildCreated.returnValues[0];
+    const match = await checkAndVerifyDeployed(
+      childFolderPath,
+      sourcifyChainGanache,
+      childAddress,
+      {
+        msgSender: factoryAddress,
       }
     );
 
