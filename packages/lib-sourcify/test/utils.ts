@@ -64,3 +64,27 @@ export const checkAndVerifyDeployed = async (
   );
   return match;
 };
+
+/**
+ * Combines both deploying and verifying a contract in a single function.
+ */
+export const deployCheckAndVerify = async (
+  contractFolderPath: string,
+  sourcifyChain: SourcifyChain,
+  web3provider: Web3,
+  from: string,
+  args?: any[]
+) => {
+  const address = await deployFromAbiAndBytecode(
+    web3provider,
+    contractFolderPath,
+    from,
+    args
+  );
+  const match = await checkAndVerifyDeployed(
+    contractFolderPath,
+    sourcifyChain,
+    address
+  );
+  return match;
+};
