@@ -1096,7 +1096,7 @@ describe("Server", function () {
           "full_match",
           defaultContractChain,
           childAddress,
-          "contextVariables.json"
+          "context-variables.json"
         ),
         { isJson: true }
       );
@@ -1162,7 +1162,7 @@ describe("Server", function () {
           "full_match",
           defaultContractChain,
           childAddress,
-          "contextVariables.json"
+          "context-variables.json"
         ),
         { isJson: true }
       );
@@ -1898,7 +1898,7 @@ describe("Server", function () {
           "full_match",
           defaultContractChain,
           childAddress,
-          "contextVariables.json"
+          "context-variables.json"
         ),
         { isJson: true }
       );
