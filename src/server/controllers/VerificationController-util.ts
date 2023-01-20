@@ -369,7 +369,7 @@ export function isVerifiable(contractWrapper: ContractWrapper) {
   );
 }
 
-export const verifyValidated = async (
+export const verifyContractsInSession = async (
   contractWrappers: ContractWrapperMap,
   session: Session,
   verificationService: VerificationService,
@@ -447,5 +447,8 @@ export const verifyValidated = async (
     contractWrapper.status = match.status || "error";
     contractWrapper.statusMessage = match.message;
     contractWrapper.storageTimestamp = match.storageTimestamp;
+    if (match.status) {
+      await repositoryService.storeMatch(checkedContract, match);
+    }
   }
 };

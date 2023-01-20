@@ -26,7 +26,7 @@ import {
   stringifyInvalidAndMissing,
   validateAddresses,
   validateRequest,
-  verifyValidated,
+  verifyContractsInSession,
 } from "./VerificationController-util";
 import { body } from "express-validator";
 import {
@@ -169,7 +169,7 @@ export default class VerificationController
     const newFilesCount = saveFiles(pathContents, session);
     if (newFilesCount) {
       await checkContractsInSession(session);
-      await verifyValidated(
+      await verifyContractsInSession(
         session.contractWrappers,
         session,
         this.verificationService,
@@ -196,7 +196,10 @@ export default class VerificationController
     });
   };
 
-  private verifyValidatedEndpoint = async (req: Request, res: Response) => {
+  private verifyContractsInSessionEndpoint = async (
+    req: Request,
+    res: Response
+  ) => {
     const session = req.session;
     if (!session.contractWrappers || isEmpty(session.contractWrappers)) {
       throw new BadRequestError("There are currently no pending contracts.");
@@ -218,7 +221,7 @@ export default class VerificationController
       }
     }
 
-    await verifyValidated(
+    await verifyContractsInSession(
       verifiable,
       session,
       this.verificationService,
@@ -290,12 +293,16 @@ export default class VerificationController
       .post(cors(corsOpt), this.safeHandler(this.restartSessionEndpoint));
 
     this.router
-      .route(["/verify-validated", "/session/verify-validated"])
+      .route([
+        "/verify-validated",
+        "/session/verify-validated",
+        "/session/verify-checked",
+      ])
       .all(cors(corsOpt))
       .post(
         body("contracts").isArray(),
         cors(corsOpt),
-        this.safeHandler(this.verifyValidatedEndpoint)
+        this.safeHandler(this.verifyContractsInSessionEndpoint)
       );
 
     return this.router;
