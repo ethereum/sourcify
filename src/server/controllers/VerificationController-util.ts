@@ -99,7 +99,7 @@ const extractFilesFromForm = (
   return files.map((f) => ({ path: f.name, buffer: f.data }));
 };
 
-const extractFilesFromJSON = (files: {
+export const extractFilesFromJSON = (files: {
   [key: string]: string;
 }): PathBuffer[] => {
   const inputFiles: PathBuffer[] = [];
@@ -624,3 +624,31 @@ export const getMappedSourcesFromJsonInput = (jsonInput: JsonInput) => {
 export const stringToBase64 = (str: string): string => {
   return Buffer.from(str, "utf8").toString("base64");
 };
+
+type Create2RequestBody = {
+  deployerAddress: string;
+  salt: string;
+  abiEncodedConstructorArguments?: string;
+  files: {
+    [key: string]: string;
+  };
+  create2Address: string;
+  clientToken?: string;
+};
+
+// Override "any" typed Request.body
+export interface Create2VerifyRequest extends Request {
+  body: Create2RequestBody;
+}
+
+export interface SessionCreate2VerifyRequest extends Request {
+  body: Create2RequestBody & {
+    verificationId: string;
+  };
+}
+
+export interface SessionCreate2VerifyRequest extends Request {
+  body: Create2RequestBody & {
+    verificationId: string;
+  };
+}
