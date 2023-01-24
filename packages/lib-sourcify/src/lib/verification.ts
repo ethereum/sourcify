@@ -106,7 +106,7 @@ export async function verifyDeployed(
     }
   }
 
-  return match;
+  throw Error("The deployed and recompiled bytecode don't match.");
 }
 
 export async function verifyCreate2(
