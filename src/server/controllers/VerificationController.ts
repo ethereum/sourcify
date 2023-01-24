@@ -130,8 +130,9 @@ export default class VerificationController
     try {
       const match = await this.verificationService.verifyDeployed(
         contract,
+        req.body.chain,
         req.addresses[0], // Due to the old API taking an array of addresses.
-        req.body.chain
+        req.body.contextVariables
       );
       // Send to verification again with all source files.
       if (match.status === "extra-file-input-bug") {
@@ -141,15 +142,18 @@ export default class VerificationController
         );
         const tempMatch = await this.verificationService.verifyDeployed(
           contractWithAllSources,
+          req.body.chain,
           req.addresses[0], // Due to the old API taking an array of addresses.
-          req.body.chain
+          req.body.contextVariables
         );
         if (tempMatch.status === "perfect") {
           await this.repositoryService.storeMatch(contract, tempMatch);
           return res.send({ result: [tempMatch] });
         }
       }
-      await this.repositoryService.storeMatch(contract, match);
+      if (match.status) {
+        await this.repositoryService.storeMatch(contract, match);
+      }
       return res.send({ result: [match] }); // array is an old expected behavior (e.g. by frontend)
     } catch (error: any) {
       res

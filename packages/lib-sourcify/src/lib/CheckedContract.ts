@@ -267,6 +267,13 @@ export class CheckedContract {
       contract.solidity[fileName] = retrieved[fileName];
     }
 
+    const { solcJsonInput, contractPath, contractName } =
+      createJsonInputFromMetadata(contract.metadata, contract.solidity);
+
+    contract.solcJsonInput = solcJsonInput;
+    contract.compiledPath = contractPath;
+    contract.name = contractName;
+
     if (missingFiles.length) {
       const error = new Error(
         `Resource missing; unsuccessful fetching: ${missingFiles.join(', ')}`
