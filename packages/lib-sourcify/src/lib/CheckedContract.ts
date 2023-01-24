@@ -3,6 +3,7 @@ import fetch from 'node-fetch';
 import {
   CompilableMetadata,
   InvalidSources,
+  JsonInput,
   Metadata,
   MissingSources,
   RecompilationResult,
@@ -11,8 +12,9 @@ import {
 import semver from 'semver';
 import { useCompiler } from './solidityCompiler';
 
+// TODO: find a better place for these constants. Reminder: this sould work also in the browser
 const IPFS_PREFIX = 'dweb:/ipfs/';
-const IPFS_GATEWAY = process.env.IPFS_GATEWAY || 'https://ipfs.io/ipfs/';
+export const IPFS_GATEWAY = process.env.IPFS_GATEWAY || 'https://ipfs.io/ipfs/';
 const FETCH_TIMEOUT = parseInt(process.env.FETCH_TIMEOUT || '') || 3000; // ms
 /**
  * Abstraction of a checked solidity contract. With metadata and source (solidity) files.
@@ -353,7 +355,7 @@ function createJsonInputFromMetadata(
   metadata: Metadata,
   sources: StringMap
 ): CompilableMetadata {
-  const solcJsonInput: any = {};
+  const solcJsonInput: Partial<JsonInput> = {};
   let contractPath = '';
   let contractName = '';
 
@@ -374,7 +376,7 @@ function createJsonInputFromMetadata(
     contractName = metadata.settings.compilationTarget[contractPath];
   }
 
-  delete solcJsonInput.settings.compilationTarget;
+  delete solcJsonInput?.settings?.compilationTarget;
 
   // Check inliner bug for below versions https://github.com/ethereum/sourcify/issues/640
   const versions = ['0.8.2', '0.8.3', '0.8.4'];
@@ -395,9 +397,12 @@ function createJsonInputFromMetadata(
   }
 
   solcJsonInput.language = metadata.language;
-  solcJsonInput.settings.metadata = solcJsonInput.settings.metadata || {};
-  solcJsonInput.settings.outputSelection =
-    solcJsonInput.settings.outputSelection || {};
+  solcJsonInput.settings = {
+    ...solcJsonInput.settings,
+    outputSelection: solcJsonInput?.settings?.outputSelection || {},
+    metadata: solcJsonInput?.settings?.metadata || {},
+  };
+
   solcJsonInput.settings.outputSelection[contractPath] =
     solcJsonInput.settings.outputSelection[contractPath] || {};
 
@@ -409,5 +414,9 @@ function createJsonInputFromMetadata(
 
   solcJsonInput.settings.libraries = { '': metadata.settings.libraries || {} };
 
-  return { solcJsonInput, contractPath, contractName };
+  return {
+    solcJsonInput: solcJsonInput as JsonInput,
+    contractPath,
+    contractName,
+  };
 }

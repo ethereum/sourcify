@@ -13,6 +13,8 @@ import {
   PathContent,
   Status,
   useAllSources,
+  useCompiler,
+  JsonInput,
 } from "@ethereum-sourcify/lib-sourcify";
 import { checkChainId } from "../../sourcify-chains";
 import { validationResult } from "express-validator";
@@ -23,6 +25,7 @@ import fetch from "node-fetch";
 import Web3 from "web3";
 import VerificationService from "../services/VerificationService";
 import RepositoryService from "../services/RepositoryService";
+import config from "../../config";
 
 export interface PathContentMap {
   [id: string]: PathContent;
@@ -451,4 +454,173 @@ export const verifyContractsInSession = async (
       await repositoryService.storeMatch(checkedContract, match);
     }
   }
+};
+
+export type EtherscanResult = {
+  SourceCode: string;
+  ABI: string;
+  ContractName: string;
+  CompilerVersion: string;
+  OptimizationUsed: string;
+  Runs: string;
+  ConstructorArguments: string;
+  EVMVersion: string;
+  Library: string;
+  LicenseType: string;
+  Proxy: string;
+  Implementation: string;
+  SwarmSource: string;
+};
+
+export const contractHasMultipleFiles = (sourceCodeObject: string) => {
+  if (sourceCodeObject.startsWith("{{")) {
+    return true;
+  }
+  return false;
+};
+
+export const parseMultipleFilesContract = (sourceCodeObject: string) => {
+  return JSON.parse(sourceCodeObject.slice(1, -1));
+};
+
+export const getEtherscanApiHostFromChainId = (
+  chainId: string
+): string | null => {
+  switch (chainId) {
+    case "1":
+      return `https://api.etherscan.io`;
+    case "5":
+      return `https://api-goerli.etherscan.io`;
+    case "4":
+      return `https://api-rinkeby.etherscan.io`;
+    case "11155111":
+      return `https://api-sepolia.etherscan.io`;
+    default:
+      return null;
+  }
+};
+
+export const getSolcJsonInputFromEtherscanResult = (
+  etherscanResult: EtherscanResult,
+  contractPath: string
+): JsonInput => {
+  const generatedSettings = {
+    optimizer: {
+      enabled: etherscanResult.OptimizationUsed === "1",
+      runs: parseInt(etherscanResult.Runs),
+    },
+    outputSelection: {
+      "*": {
+        "*": ["metadata"],
+      },
+    },
+    evmVersion:
+      etherscanResult.EVMVersion.toLowerCase() !== "default"
+        ? etherscanResult.EVMVersion
+        : undefined,
+    libraries: {}, // TODO: Check the library format
+  };
+  const solcJsonInput = {
+    language: "Solidity",
+    sources: {
+      [contractPath]: {
+        content: etherscanResult.SourceCode,
+      },
+    },
+    settings: generatedSettings,
+  };
+  return solcJsonInput;
+};
+
+export const findContractPathFromContractName = (
+  contracts: any,
+  contractName: string
+): string | null => {
+  for (const key of Object.keys(contracts)) {
+    const contractsList = contracts[key];
+    if (Object.keys(contractsList).includes(contractName)) {
+      return key;
+    }
+  }
+  return null;
+};
+
+export const processRequestFromEtherscan = async (
+  chain: string,
+  address: string
+): Promise<any> => {
+  const url = `${getEtherscanApiHostFromChainId(
+    chain
+  )}/api?module=contract&action=getsourcecode&address=${address}&apikey=${
+    config.server.etherscanAPIKey
+  }`;
+
+  const response = await fetch(url);
+  const resultJson = await response.json();
+  if (
+    resultJson.message === "NOTOK" &&
+    resultJson.result.includes("Max rate limit reached")
+  ) {
+    throw new BadRequestError("Etherscan API rate limit reached, try later");
+  }
+  if (resultJson.result[0].SourceCode === "") {
+    throw new BadRequestError("This contract is not verified on Etherscan");
+  }
+  const contractResultJson = resultJson.result[0];
+  const sourceCodeObject = contractResultJson.SourceCode;
+  const compilerVersion =
+    contractResultJson.CompilerVersion.charAt(0) === "v"
+      ? contractResultJson.CompilerVersion.slice(1)
+      : contractResultJson.CompilerVersion;
+  // TODO: this is not used by lib-sourcify's useCompiler
+  const contractName = contractResultJson.ContractName;
+
+  let solcJsonInput;
+  // SourceCode can be the Solidity code if there is only one contract file, or the json object if there are multiple files
+  if (contractHasMultipleFiles(sourceCodeObject)) {
+    solcJsonInput = parseMultipleFilesContract(sourceCodeObject);
+    // Tell compiler to output metadata
+    solcJsonInput.settings.outputSelection["*"]["*"] = ["metadata"];
+  } else {
+    const contractPath = contractResultJson.ContractName + ".sol";
+    solcJsonInput = getSolcJsonInputFromEtherscanResult(
+      contractResultJson,
+      contractPath
+    );
+  }
+
+  const compilationResult = await useCompiler(compilerVersion, solcJsonInput);
+
+  const contractPath = findContractPathFromContractName(
+    compilationResult.contracts,
+    contractName
+  );
+
+  if (!contractPath) {
+    throw new BadRequestError(
+      "This contract was verified with errors on Etherscan"
+    );
+  }
+
+  return {
+    metadata: JSON.parse(
+      compilationResult.contracts[contractPath][contractName].metadata
+    ),
+    solcJsonInput,
+  };
+};
+
+export const getMappedSourcesFromJsonInput = (jsonInput: JsonInput) => {
+  const mappedSources: any = {};
+  for (const name in jsonInput.sources) {
+    const source = jsonInput.sources[name];
+    if (source.content) {
+      mappedSources[name] = source.content;
+    }
+  }
+  return mappedSources;
+};
+
+export const stringToBase64 = (str: string): string => {
+  return Buffer.from(str, "utf8").toString("base64");
 };
