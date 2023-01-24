@@ -159,7 +159,7 @@ describe("Server", function () {
   };
 
   if (process.env.CIRCLE_PR_REPONAME === undefined) {
-    describe("/session/verify/etherscan", function () {
+    describe.only("Verify with etherscan", function () {
       const assertAllFound = (err, res, finalStatus) => {
         chai.expect(err).to.be.null;
         chai.expect(res.status).to.equal(StatusCodes.OK);
@@ -178,6 +178,24 @@ describe("Server", function () {
       };
 
       this.timeout(EXTENDED_TIME_60);
+
+      it("without session: should import contract information from etherscan (multiple files) and verify the contract, finding a partial match", (done) => {
+        chai
+          .request(server.app)
+          .post("/verify/etherscan")
+          .field("address", "0x5aa653a076c1dbb47cec8c1b4d152444cad91941")
+          .field("chainId", "1")
+          .end((err, res) => {
+            assertions(
+              err,
+              res,
+              false,
+              "0x5aa653a076c1dbb47cec8c1b4d152444cad91941",
+              "partial"
+            );
+            done();
+          });
+      });
 
       it("should fail for missing address", (done) => {
         chai
@@ -213,25 +231,6 @@ describe("Server", function () {
           });
       });
 
-      it("should fail by exceeding rate limit on etherscan APIs", (done) => {
-        chai
-          .request(server.app)
-          .post("/session/verify/etherscan")
-          .field("address", fakeAddress)
-          .field("chainId", "1")
-          .end(() => {
-            chai
-              .request(server.app)
-              .post("/session/verify/etherscan")
-              .field("address", fakeAddress)
-              .field("chainId", "1")
-              .end((err, res) => {
-                assertEtherscanError(err, res);
-                done();
-              });
-          });
-      });
-
       it("should import contract information from etherscan (single file) and verify the contract, finding a partial match", (done) => {
         chai
           .request(server.app)
@@ -253,6 +252,25 @@ describe("Server", function () {
           .end((err, res) => {
             assertAllFound(err, res, "partial");
             done();
+          });
+      });
+
+      it("should fail by exceeding rate limit on etherscan APIs", (done) => {
+        chai
+          .request(server.app)
+          .post("/session/verify/etherscan")
+          .field("address", fakeAddress)
+          .field("chainId", "1")
+          .end(() => {
+            chai
+              .request(server.app)
+              .post("/session/verify/etherscan")
+              .field("address", fakeAddress)
+              .field("chainId", "1")
+              .end((err, res) => {
+                assertEtherscanError(err, res);
+                done();
+              });
           });
       });
     });
