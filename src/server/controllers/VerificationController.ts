@@ -8,7 +8,11 @@ import {
   PathBuffer,
   PathContent,
   isEmpty,
+  getBytecode,
+  IPFS_GATEWAY,
+  performFetch,
 } from "@ethereum-sourcify/lib-sourcify";
+import { decode as bytecodeDecode } from "@ethereum-sourcify/bytecode-utils";
 import VerificationService from "../services/VerificationService";
 import BaseController from "./BaseController";
 import { IController } from "../../common/interfaces";
@@ -27,6 +31,9 @@ import {
   validateAddresses,
   validateRequest,
   verifyContractsInSession,
+  processRequestFromEtherscan,
+  getMappedSourcesFromJsonInput,
+  stringToBase64,
 } from "./VerificationController-util";
 import { body } from "express-validator";
 import {
@@ -230,6 +237,150 @@ export default class VerificationController
     res.send(getSessionJSON(session));
   };
 
+  private addInputContractEndpoint = async (req: Request, res: Response) => {
+    validateRequest(req);
+
+    const address: string = req.body.address;
+    const chainId: string = req.body.chainId;
+
+    const sourcifyChain = this.verificationService.supportedChainsMap[chainId];
+
+    const bytecode = await getBytecode(sourcifyChain, address);
+
+    const { ipfs: metadataIpfsCid } = bytecodeDecode(bytecode);
+
+    if (!metadataIpfsCid) {
+      throw new BadRequestError(
+        "The contract doesn't have a metadata IPFS CID"
+      );
+    }
+
+    const ipfsUrl = `${IPFS_GATEWAY}${metadataIpfsCid}`;
+    const metadataFileName = "metadata.json";
+    const retrievedMetadataText = await performFetch(ipfsUrl);
+
+    if (!retrievedMetadataText)
+      throw new Error(`Could not retrieve metadata from ${ipfsUrl}`);
+    const pathContents: PathContent[] = [];
+
+    const retrievedMetadataBase64 = Buffer.from(retrievedMetadataText).toString(
+      "base64"
+    );
+
+    pathContents.push({
+      path: metadataFileName,
+      content: retrievedMetadataBase64,
+    });
+
+    const session = req.session;
+
+    const newFilesCount = saveFiles(pathContents, session);
+    if (newFilesCount) {
+      await checkContractsInSession(session);
+      // verifyValidated fetches missing files from the contract
+      await verifyContractsInSession(
+        session.contractWrappers,
+        session,
+        this.verificationService,
+        this.repositoryService
+      );
+    }
+    res.send(getSessionJSON(session));
+  };
+
+  private verifyFromEtherscan = async (
+    origReq: Request,
+    res: Response
+  ): Promise<void> => {
+    const req = origReq as LegacyVerifyRequest;
+    validateRequest(req);
+
+    const chain = req.body.chainId as string;
+    const address = req.body.address;
+
+    const { metadata, solcJsonInput } = await processRequestFromEtherscan(
+      chain,
+      address
+    );
+
+    const mappedSources = getMappedSourcesFromJsonInput(solcJsonInput);
+    const checkedContract = new CheckedContract(metadata, mappedSources);
+
+    const match = await this.verificationService.verifyDeployed(
+      checkedContract,
+      chain,
+      address
+    );
+
+    await this.repositoryService.storeMatch(checkedContract, match);
+
+    res.send({ result: [match] });
+  };
+
+  private sessionVerifyFromEtherscan = async (
+    origReq: Request,
+    res: Response
+  ): Promise<void> => {
+    const req = origReq as LegacyVerifyRequest;
+    validateRequest(req);
+
+    const chain = req.body.chainId as string;
+    const address = req.body.address;
+
+    const { metadata, solcJsonInput } = await processRequestFromEtherscan(
+      chain,
+      address
+    );
+
+    const pathContents: PathContent[] = Object.keys(solcJsonInput.sources).map(
+      (path) => {
+        return {
+          path: path,
+          content: stringToBase64(solcJsonInput.sources[path].content),
+        };
+      }
+    );
+    pathContents.push({
+      path: "metadata.json",
+      content: stringToBase64(JSON.stringify(metadata)),
+    });
+    const session = req.session;
+    const newFilesCount = saveFiles(pathContents, session);
+    if (newFilesCount === 0) {
+      throw new BadRequestError("The contract didn't add any new file");
+    }
+
+    await checkContractsInSession(session);
+    if (!session.contractWrappers) {
+      throw new BadRequestError(
+        "Unknown error during the Etherscan verification process"
+      );
+      return;
+    }
+
+    const verifiable: ContractWrapperMap = {};
+    for (const id of Object.keys(session.contractWrappers)) {
+      const contractWrapper = session.contractWrappers[id];
+      if (contractWrapper) {
+        if (!contractWrapper.address) {
+          contractWrapper.address = address;
+          contractWrapper.chainId = chain;
+        }
+        if (isVerifiable(contractWrapper)) {
+          verifiable[id] = contractWrapper;
+        }
+      }
+    }
+
+    await verifyContractsInSession(
+      verifiable,
+      session,
+      this.verificationService,
+      this.repositoryService
+    );
+    res.send(getSessionJSON(session));
+  };
+
   registerRoutes = (): Router => {
     const corsOpt = {
       origin: config.corsAllowedOrigins,
@@ -282,10 +433,10 @@ export default class VerificationController
       .all(cors(corsOpt))
       .post(cors(corsOpt), this.safeHandler(this.addInputFilesEndpoint));
 
-    /* this.router
+    this.router
       .route(["/session/input-contract"])
       .all(cors(corsOpt))
-      .post(cors(corsOpt), this.safeHandler(this.addInputContractEndpoint)); */
+      .post(cors(corsOpt), this.safeHandler(this.addInputContractEndpoint));
 
     this.router
       .route(["/restart-session", "/session/clear"])
@@ -303,6 +454,21 @@ export default class VerificationController
         body("contracts").isArray(),
         cors(corsOpt),
         this.safeHandler(this.verifyContractsInSessionEndpoint)
+      );
+
+    this.router.route(["/verify/etherscan"]).post(
+      // TODO: add validation
+      this.safeHandler(this.verifyFromEtherscan)
+    );
+
+    this.router
+      .route(["/session/verify/etherscan"])
+      .all(cors(corsOpt))
+      .post(
+        body("address").exists(),
+        body("chainId").exists(),
+        cors(corsOpt),
+        this.safeHandler(this.sessionVerifyFromEtherscan)
       );
 
     return this.router;

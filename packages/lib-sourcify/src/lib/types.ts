@@ -55,7 +55,7 @@ export interface Metadata {
 
 // TODO: Fully define solcJsonInput
 export declare interface CompilableMetadata {
-  solcJsonInput: any;
+  solcJsonInput: JsonInput;
   contractPath: string;
   contractName: string;
 }
@@ -130,3 +130,100 @@ export type ContextVariables = {
   abiEncodedConstructorArguments?: string;
   msgSender?: string;
 };
+
+interface File {
+  keccak256?: string;
+  urls?: string[];
+  content?: string;
+}
+
+interface Sources {
+  [key: string]: File;
+}
+
+interface YulDetails {
+  stackAllocation: boolean;
+  optimizerSteps?: string;
+}
+
+interface Details {
+  peephole?: boolean;
+  inliner?: boolean;
+  jumpdestRemover?: boolean;
+  orderLiterals?: boolean;
+  deduplicate?: boolean;
+  cse?: boolean;
+  constantOptimizer?: boolean;
+  yul?: boolean;
+  yulDetails?: YulDetails;
+}
+
+interface Optimizer {
+  enabled?: boolean;
+  runs?: number;
+  details?: Details;
+}
+
+enum DebugInfo {
+  default = 'default',
+  strip = 'strip',
+  debug = 'debug',
+  verboseDebug = 'verboseDebug',
+}
+
+interface Debug {
+  revertStrings: DebugInfo;
+  debugInfo?: string[];
+}
+
+interface SettingsMetadata {
+  useLiteralContent?: boolean;
+  bytecodeHash?: string;
+}
+
+interface MapContractAddress {
+  [key: string]: string;
+}
+
+interface Libraries {
+  [key: string]: MapContractAddress;
+}
+
+interface OutputSelection {
+  [key: string]: any;
+}
+
+interface Contracts {
+  [key: string]: string[];
+}
+
+interface ModelChecker {
+  contracts?: Contracts;
+  divModNoSlacks?: boolean;
+  engine?: string;
+  invariants?: string[];
+  showUnproved?: boolean;
+  solvers?: string[];
+  targets?: string[];
+  timeout?: number;
+}
+
+interface Settings {
+  stopAfter?: string;
+  remappings?: string[];
+  optimizer?: Optimizer;
+  evmVersion?: string;
+  viaIR?: boolean;
+  debug?: Debug;
+  metadata?: SettingsMetadata;
+  libraries?: Libraries;
+  outputSelection: OutputSelection;
+  modelChecker?: ModelChecker;
+  compilationTarget?: string;
+}
+
+export interface JsonInput {
+  language: string;
+  sources: Sources;
+  settings?: Settings;
+}
