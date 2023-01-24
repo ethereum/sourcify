@@ -159,7 +159,7 @@ describe("Server", function () {
   };
 
   if (process.env.CIRCLE_PR_REPONAME === undefined) {
-    describe.only("Verify with etherscan", function () {
+    describe("Verify with etherscan", function () {
       const assertAllFound = (err, res, finalStatus) => {
         chai.expect(err).to.be.null;
         chai.expect(res.status).to.equal(StatusCodes.OK);
@@ -276,7 +276,7 @@ describe("Server", function () {
     });
   }
 
-  describe("/session/verify/create2", function () {
+  describe("Verify create2", function () {
     const assertAllFound = (err, res, finalStatus) => {
       chai.expect(err).to.be.null;
       chai.expect(res.status).to.equal(StatusCodes.OK);
