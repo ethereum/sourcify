@@ -160,6 +160,11 @@ describe("Server", function () {
 
   if (process.env.CIRCLE_PR_REPONAME === undefined) {
     describe("Verify with etherscan", function () {
+      beforeEach(async () => {
+        // Await 2 secs otherwise the API limit is reached
+        await waitSecs(2);
+      });
+
       const assertAllFound = (err, res, finalStatus) => {
         chai.expect(err).to.be.null;
         chai.expect(res.status).to.equal(StatusCodes.OK);
