@@ -10,7 +10,6 @@ import {
   ContextVariables,
   CheckedContract,
 } from "@ethereum-sourcify/lib-sourcify";
-import { SourcifyEventManager } from "./EventManager";
 import { toChecksumAddress } from "web3-utils";
 import { MatchLevel, RepositoryTag } from "../types";
 import {
@@ -19,6 +18,7 @@ import {
   globSource,
 } from "ipfs-http-client";
 import path from "path";
+import { SourcifyEventManager } from "../../common/SourcifyEventManager/SourcifyEventManager";
 
 /**
  * A type for specifying the match quality of files.

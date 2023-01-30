@@ -1,8 +1,7 @@
 /* eslint-disable no-useless-escape */
-
-import { SourcifyEventManager } from "@ethereum-sourcify/core";
 import * as dotenv from "dotenv";
 import path from "path";
+import { SourcifyEventManager } from "./common/SourcifyEventManager/SourcifyEventManager";
 
 dotenv.config({ path: path.resolve(__dirname, "..", "environments/.env") });
 

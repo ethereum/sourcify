@@ -1,8 +1,13 @@
-import { SourcifyEventManager, StringMap } from "@ethereum-sourcify/core";
 import SourceFetcher from "./source-fetcher";
 import { SourceAddress } from "./util";
 import Web3 from "web3";
-import { CheckedContract, isEmpty } from "@ethereum-sourcify/core";
+import {
+  CheckedContract,
+  isEmpty,
+  Metadata,
+  StringMap,
+} from "@ethereum-sourcify/lib-sourcify";
+import { SourcifyEventManager } from "../common/SourcifyEventManager/SourcifyEventManager";
 
 type PendingSource = {
   keccak256: string;
@@ -13,7 +18,6 @@ type PendingSource = {
 interface PendingSourceMap {
   [keccak256: string]: PendingSource;
 }
-type Metadata = { sources: PendingSourceMap };
 
 export default class PendingContract {
   private metadata: Metadata | undefined;
@@ -43,7 +47,7 @@ export default class PendingContract {
     this.metadata = JSON.parse(rawMetadata) as Metadata;
 
     for (const name in this.metadata.sources) {
-      const source = this.metadata.sources[name];
+      const source = JSON.parse(JSON.stringify(this.metadata.sources[name]));
       source.name = name;
 
       if (source.content) {
@@ -105,7 +109,7 @@ export default class PendingContract {
     delete this.pendingSources[hash];
     this.fetchedSources[source.name] = sourceContent;
 
-    if (isEmpty(this.pendingSources)) {
+    if (isEmpty(this.pendingSources) && this.metadata) {
       const contract = new CheckedContract(this.metadata, this.fetchedSources);
       this.callback(contract);
     }

@@ -32,7 +32,7 @@ export async function verifyDeployed(
   sourcifyChain: SourcifyChain,
   address: string,
   contextVariables?: ContextVariables,
-  creatorTxHash?: string
+  creatorTx?: any
 ): Promise<Match> {
   const match: Match = {
     address,
@@ -76,13 +76,13 @@ export async function verifyDeployed(
 
   // If same length, highly likely these contracts are a match but immutable vars. may be affecting the match
   // Try to match with creationTx, if available
-  if (creatorTxHash) {
+  if (creatorTx) {
     await matchWithCreationTx(
       match,
-      creatorTxHash,
       recompiled.creationBytecode,
       sourcifyChain,
-      address
+      address,
+      creatorTx
     );
     if (match.status) return match;
   }
@@ -257,18 +257,27 @@ export async function matchWithSimulation(
  */
 export async function matchWithCreationTx(
   match: Match,
-  creatorTxHash: string,
   recompiledCreationBytecode: string,
   sourcifyChain: SourcifyChain,
-  address: string
+  address: string,
+  creatorTx?: any
 ) {
-  const creatorTx = await getTx(creatorTxHash, sourcifyChain);
-  const creatorTxData = creatorTx.input;
+  let creatorTxData;
+  let creatorTxDerived;
+  if (creatorTx?.input) {
+    creatorTxData = creatorTx?.input;
+    creatorTxDerived = creatorTx;
+  } else if (creatorTx?.hash) {
+    creatorTxDerived = await getTx(creatorTx?.hash, sourcifyChain);
+    creatorTxData = creatorTxDerived.input;
+  } else {
+    throw new Error('creatorTx should provide at least the creatorTxHash');
+  }
 
   // Initially we need to check if this contract creation tx actually yields the same contract address https://github.com/ethereum/sourcify/issues/887
-  const createdContractAddress = calculateCreateAddress(creatorTx);
+  const createdContractAddress = calculateCreateAddress(creatorTxDerived);
   if (createdContractAddress !== address) {
-    match.message = `The address being verified ${address} doesn't match the address of the contract ${createdContractAddress} that will be created by the transaction ${creatorTxHash}.`;
+    match.message = `The address being verified ${address} doesn't match the address of the contract ${createdContractAddress} that will be created by the transaction ${creatorTx.hash}.`;
     return;
   }
 
@@ -384,7 +393,7 @@ const rejectInMs = (ms: number, host: string) =>
     setTimeout(() => reject(`RPC ${host} took too long to respond`), ms);
   });
 
-function addLibraryAddresses(
+export function addLibraryAddresses(
   template: string,
   real: string
 ): {
@@ -428,6 +437,12 @@ function extractAbiEncodedConstructorArguments(
   );
 }
 
+// TODO move this function somewhere else
+function d2h(d: number) {
+  const h = d.toString(16);
+  return h.length % 2 ? '0' + h : h;
+}
+
 /**
  * Calculates the address of the contract created with the CREATE opcode using `tx.from` and `tx.nonce`.
  *
@@ -435,11 +450,21 @@ function extractAbiEncodedConstructorArguments(
  * @returns string -  calculated address
  */
 function calculateCreateAddress(creatorTx: Transaction) {
-  const inputArr = [creatorTx.from, creatorTx.nonce];
+  let nonce = '0x00';
+  if (typeof creatorTx.nonce === 'number') {
+    nonce = `0x${d2h(creatorTx.nonce)}`;
+  } else if (typeof creatorTx.nonce === 'string' && creatorTx.nonce) {
+    if (!(creatorTx.nonce as string).startsWith('0x')) {
+      nonce = `0x${creatorTx.nonce}`;
+    } else {
+      nonce = creatorTx.nonce;
+    }
+  }
+  const inputArr = [creatorTx.from, Buffer.from(nonce, 'hex')];
   const rlpEncoded = rlpEncode(inputArr);
   const hash = Web3.utils.keccak256(rlpEncoded);
-  const address = hash.substring(24);
-  return address;
+  const address = hash.substring(26);
+  return Web3.utils.toChecksumAddress(address);
 }
 
 /**
