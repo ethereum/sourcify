@@ -161,8 +161,8 @@ describe("Server", function () {
   if (process.env.CIRCLE_PR_REPONAME === undefined) {
     describe("Verify with etherscan", function () {
       beforeEach(async () => {
-        // Await 2 secs otherwise the API limit is reached
-        await waitSecs(2);
+        // Await 1.5 secs otherwise the API limit is reached
+        await waitSecs(1.5);
       });
 
       const assertAllFound = (err, res, finalStatus) => {
@@ -278,7 +278,7 @@ describe("Server", function () {
               });
           });
       });
-    }).timeout(EXTENDED_TIME);
+    });
   }
 
   describe("Verify create2", function () {
