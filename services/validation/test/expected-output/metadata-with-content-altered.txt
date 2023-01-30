@@ -1,5 +1,0 @@
-Storage (browser/1_Storage.sol):
-  Error: Invalid sources:
-    browser/1_Storage.sol:
-      expectedHash: 0xbedc7086ad8503907209f50bac1e4dc6c2eca2ed41b15d03740fea748ea3f88e
-      calculatedHash: 0xaedc7086ad8503907209f50bac1e4dc6c2eca2ed41b15d03740fea748ea3f88e

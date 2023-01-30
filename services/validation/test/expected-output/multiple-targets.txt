@@ -1,1 +1,0 @@
-Couldn't parse metadata files or they are malformed. Can't find settings.compilationTarget or multiple compilationTargets in: {0}/test/files/metadata-multiple-targets.json
