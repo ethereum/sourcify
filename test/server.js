@@ -1483,11 +1483,10 @@ describe("Server", function () {
 
     it("should find contracts in a zipped Truffle project", (done) => {
       const zippedTrufflePath = path.join(
-        "services",
-        "validation",
         "test",
-        "files",
-        "truffle-example.zip"
+        "sources",
+        "truffle",
+        "truffle-example.zip",
       );
       const zippedTruffleBuffer = fs.readFileSync(zippedTrufflePath);
       chai
@@ -1548,11 +1547,10 @@ describe("Server", function () {
 
       it("should find contracts in a zipped Truffle project", (done) => {
         const zippedTrufflePath = path.join(
-          "services",
-          "validation",
           "test",
-          "files",
-          "truffle-example.zip"
+          "sources",
+          "truffle",
+          "truffle-example.zip",
         );
         const zippedTruffleBuffer = fs.readFileSync(zippedTrufflePath);
         chai
