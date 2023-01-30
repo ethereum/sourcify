@@ -73,7 +73,7 @@ export const checkAndVerifyDeployed = async (
     sourcifyChain,
     address,
     contextVariables,
-    creatorTxHash
+    { hash: creatorTxHash }
   );
   return match;
 };

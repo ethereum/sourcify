@@ -1,5 +1,5 @@
-import { SourcifyEventManager } from "..";
-import { logger } from "../loggerLoki";
+import { SourcifyEventManager } from "../SourcifyEventManager";
+import { logger } from "../../loggerLoki";
 import { Match } from "@ethereum-sourcify/lib-sourcify";
 
 SourcifyEventManager.on("Verification.MatchStored", [

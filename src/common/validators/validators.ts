@@ -1,4 +1,4 @@
-import { checkChainId } from "@ethereum-sourcify/core";
+import { checkChainId } from "../../sourcify-chains";
 import web3 from "web3";
 
 export function isValidAddress(address: string) {

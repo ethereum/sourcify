@@ -1,6 +1,6 @@
 import * as HttpStatus from "http-status-codes";
 import { Request, Response } from "express";
-import { SourcifyEventManager } from "@ethereum-sourcify/core";
+import { SourcifyEventManager } from "../../common/SourcifyEventManager/SourcifyEventManager";
 
 export default function genericErrorHandler(
   err: any,

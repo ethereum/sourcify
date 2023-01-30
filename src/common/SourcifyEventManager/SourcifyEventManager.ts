@@ -1,5 +1,5 @@
-import { EventManager, GenericEvents } from "./EventManager";
 import { Match } from "@ethereum-sourcify/lib-sourcify";
+import { EventManager, GenericEvents } from "../EventManager";
 
 interface ErrorEvent {
   message: string;
