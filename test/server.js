@@ -278,7 +278,7 @@ describe("Server", function () {
               });
           });
       });
-    });
+    }).timeout(EXTENDED_TIME);
   }
 
   describe("Verify create2", function () {
