@@ -2,7 +2,7 @@ const { deployFromPrivateKey } = require("../helpers/helpers");
 const Web3 = require("web3");
 const ImmutableArtifact = require("./sources/shared/WithImmutables.json");
 const StorageArtifact = require("./sources/shared/1_Storage.json");
-const { getSupportedChains } = require("@ethereum-sourcify/core");
+const { supportedChainsArray } = require("../../dist/sourcify-chains");
 const { program } = require("commander");
 
 program
@@ -43,7 +43,7 @@ if (require.main === module) {
 }
 
 async function main(chainId, immutableValue, privateKey, type) {
-  const chains = getSupportedChains();
+  const chains = supportedChainsArray;
   const chain = chains.find((chain) => chain.chainId == chainId);
   if (!chain) {
     console.error(

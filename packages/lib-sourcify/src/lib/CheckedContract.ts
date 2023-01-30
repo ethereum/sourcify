@@ -79,7 +79,8 @@ export class CheckedContract {
     this.missing = missing;
     this.invalid = invalid;
 
-    const sources = this.metadata.sources;
+    // TODO: discuss with Kaan why this is needed
+    /* const sources = this.metadata.sources;
     for (const compiledPath in sources) {
       const metadataSource = sources[compiledPath];
       const foundSource = solidity[compiledPath];
@@ -87,7 +88,7 @@ export class CheckedContract {
         metadataSource.content = foundSource;
       }
       delete metadataSource.license;
-    }
+    } */
 
     if (metadata.compiler && metadata.compiler.version) {
       this.compilerVersion = metadata.compiler.version;

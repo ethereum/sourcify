@@ -1,5 +1,5 @@
-import { SourcifyEventManager } from "../.";
-import { logger } from "../loggerLoki";
+import { SourcifyEventManager } from "../SourcifyEventManager";
+import { logger } from "../../loggerLoki";
 
 SourcifyEventManager.on("*", [
   (event: string, argument: any) => {

@@ -1,4 +1,4 @@
-import { SourcifyEventManager } from "@ethereum-sourcify/core";
+import { SourcifyEventManager } from "../../common/SourcifyEventManager/SourcifyEventManager";
 
 export default function notFoundError(express: any): void {
   const _send: Function = express.response.send;

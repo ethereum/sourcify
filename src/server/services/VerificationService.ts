@@ -13,7 +13,7 @@ export interface IVerificationService {
     chainId: string,
     address: string,
     contextVariables?: ContextVariables,
-    creatorTxHash?: string
+    creatorTx?: any
   ): Promise<Match>;
 }
 export default class VerificationService implements IVerificationService {
@@ -28,7 +28,7 @@ export default class VerificationService implements IVerificationService {
     chainId: string,
     address: string,
     contextVariables?: ContextVariables,
-    creatorTxHash?: string
+    creatorTx?: any
   ): Promise<Match> {
     const sourcifyChain = this.supportedChainsMap[chainId];
 
@@ -37,7 +37,7 @@ export default class VerificationService implements IVerificationService {
       sourcifyChain,
       address,
       contextVariables,
-      creatorTxHash
+      creatorTx
     );
   }
 }

@@ -195,10 +195,7 @@
       ],
       "outFiles": [
         "${workspaceFolder}/dist/**/*.js",
-        "${workspaceFolder}/services/core/build/**/*.js",
-        "${workspaceFolder}/services/validation/build/**/*.js",
-        "${workspaceFolder}/services/verification/build/**/*.js",
-        "${workspaceFolder}/packages/bytecode-utils/build/**/*.js"
+        "${workspaceFolder}/packages/**/build/**/*.js",
       ],
       "smartStep": true,
       "console": "integratedTerminal",
