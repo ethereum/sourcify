@@ -1,1 +1,0 @@
-Metadata file not found. Did you include "metadata.json"?
