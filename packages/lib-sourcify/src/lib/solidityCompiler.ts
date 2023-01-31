@@ -2,8 +2,7 @@
 import path from 'path';
 import fs from 'fs';
 import { spawnSync } from 'child_process';
-// TODO: Handle nodejs only dependencies
-import fetch from 'node-fetch';
+import { fetchWithTimeout } from './utils';
 import { StatusCodes } from 'http-status-codes';
 import { JsonInput } from './types';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -119,18 +118,18 @@ async function fetchSolcFromGitHub(
   fileName: string
 ): Promise<boolean> {
   const githubSolcURI = GITHUB_SOLC_REPO + encodeURIComponent(fileName);
-  const res = await fetch(githubSolcURI);
+  const res = await fetchWithTimeout(githubSolcURI);
   // TODO: Handle nodejs only dependencies
   if (res.status === StatusCodes.OK) {
     fs.mkdirSync(path.dirname(solcPath), { recursive: true });
-    const buffer = await res.buffer();
+    const buffer = await res.arrayBuffer();
 
     try {
       fs.unlinkSync(solcPath);
     } catch (_e) {
       undefined;
     }
-    fs.writeFileSync(solcPath, buffer, { mode: 0o755 });
+    fs.writeFileSync(solcPath, new DataView(buffer), { mode: 0o755 });
     if (validateSolcPath(solcPath)) {
       console.log(
         `Successfully fetched solc ${version} from GitHub: ${githubSolcURI}`
