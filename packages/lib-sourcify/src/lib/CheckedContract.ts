@@ -1,5 +1,4 @@
 import Web3 from 'web3';
-import fetch from 'node-fetch';
 import {
   CompilableMetadata,
   InvalidSources,
@@ -11,6 +10,7 @@ import {
 } from './types';
 import semver from 'semver';
 import { useCompiler } from './solidityCompiler';
+import { fetchWithTimeout } from './utils';
 
 // TODO: find a better place for these constants. Reminder: this sould work also in the browser
 const IPFS_PREFIX = 'dweb:/ipfs/';
@@ -310,10 +310,12 @@ export async function performFetch(
   hash?: string,
   fileName?: string
 ): Promise<string | null> {
-  const res = await fetch(url, { timeout: FETCH_TIMEOUT }).catch((err) => {
-    console.log("Couldn't fetch: " + url + ' ' + hash + ' ' + fileName);
-    console.log(err);
-  });
+  const res = await fetchWithTimeout(url, { timeout: FETCH_TIMEOUT }).catch(
+    (err) => {
+      console.log("Couldn't fetch: " + url + ' ' + hash + ' ' + fileName);
+      console.log(err);
+    }
+  );
 
   if (res && res.status === 200) {
     const content = await res.text();
