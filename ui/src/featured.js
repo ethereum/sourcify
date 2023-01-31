@@ -30,7 +30,7 @@ const featured = [
     displayed: true,
   },
   {
-    name: "Ethereum Name Service",
+    name: "ENS",
     href: "https://repo.sourcify.dev/contracts/partial_match/1/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/",
     logo: ens,
     displayed: true,
