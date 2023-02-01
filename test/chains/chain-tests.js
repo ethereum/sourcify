@@ -13,7 +13,7 @@ const StatusCodes = require("http-status-codes").StatusCodes;
 const ethers = require("ethers");
 const addContext = require("mochawesome/addContext");
 
-const TEST_TIME = 30000; // 30 seconds
+const TEST_TIME = 60000; // 60 seconds
 
 // Extract the chainId from new chain support pull request, if exists
 const newAddedChainId = process.env.NEW_CHAIN_ID;
@@ -1224,6 +1224,24 @@ describe("Test Supported Chains", function () {
     "0x78ac8a1A83e31974FC015Bc6d4BE2206bD2fE04c",
     "42261",
     "Oasis Emerald Testnet",
+    ["uint256"],
+    [123],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
+  // Flare Mainnet
+  verifyContract(
+    "0xbBc2EdeDc9d2d97970eE20d0Dc7216216a27e635",
+    "14",
+    "Flare Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x05CD7A6fF8E00f8a0c081c182Ec7a2DA3458946e",
+    "14",
+    "Flare Mainnet",
     ["uint256"],
     [123],
     ["shared/WithImmutables.sol"],

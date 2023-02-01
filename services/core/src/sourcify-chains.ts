@@ -607,6 +607,14 @@ const sourcifyChains: SourcifyChainsObject = {
     contractFetchAddress: "https://testnet.explorer.emerald.oasis.dev/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
+  "14": {
+    // Flare Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://flare-explorer.flare.network/" + BLOCKSCOUT_SUFFIX,
+    rpc: ["https://flare-api.flare.network/ext/C/rpc"],
+    txRegex: getBlockscoutRegex(),
+  },
 };
 
 export default sourcifyChains;
