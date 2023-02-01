@@ -1230,6 +1230,24 @@ describe("Test Supported Chains", function () {
     "shared/withImmutables.metadata.json"
   );
 
+  // Songbird Canary Network
+  verifyContract(
+    "0x024829b4A91fB78437A854380c89A3fFc966c2D1",
+    "19",
+    "Songbird Canary Network",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x5Ae4d53004Fd1C1E0C037998E9644fFB0f9A87a9",
+    "19",
+    "Songbird Canary Network",
+    ["uint256"],
+    [123],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
   //////////////////////
   // Helper functions //
   //////////////////////

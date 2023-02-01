@@ -607,6 +607,14 @@ const sourcifyChains: SourcifyChainsObject = {
     contractFetchAddress: "https://testnet.explorer.emerald.oasis.dev/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
+  "19": {
+    //  Songbird Canary Network
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://songbird-explorer.flare.network/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+    rpc: ["https://songbird-api.flare.network/ext/C/rpc"]
+  },
 };
 
 export default sourcifyChains;
