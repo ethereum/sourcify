@@ -13,7 +13,7 @@ const StatusCodes = require("http-status-codes").StatusCodes;
 const ethers = require("ethers");
 const addContext = require("mochawesome/addContext");
 
-const TEST_TIME = 60000; // 60 seconds
+const TEST_TIME = 30000; // 30 seconds
 
 // Extract the chainId from new chain support pull request, if exists
 const newAddedChainId = process.env.NEW_CHAIN_ID;
