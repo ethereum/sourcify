@@ -612,9 +612,10 @@ const sourcifyChains: SourcifyChainsObject = {
     supported: true,
     monitored: false,
     contractFetchAddress: "https://songbird-explorer.flare.network/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
-    rpc: ["https://songbird-api.flare.network/ext/C/rpc"]
-    
+    rpc: ["https://songbird-api.flare.network/ext/C/rpc"],
+    txRegex: getBlockscoutRegex()
+  },
+
   "14": {
     // Flare Mainnet
     supported: true,
