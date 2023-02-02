@@ -1,12 +1,8 @@
 // TODO: Handle nodejs only dependencies
 import path from 'path';
-import fs from 'fs';
-import { spawnSync } from 'child_process';
-import { fetchWithTimeout } from './utils';
+import { fetchWithTimeout, fs, spawnSync, isNode, solc } from './utils';
 import { StatusCodes } from 'http-status-codes';
 import { JsonInput } from './types';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const solc = require('solc');
 
 const GITHUB_SOLC_REPO =
   'https://github.com/ethereum/solc-bin/raw/gh-pages/linux-amd64/';
@@ -25,6 +21,9 @@ const RECOMPILATION_ERR_MSG =
  */
 
 export async function useCompiler(version: string, solcJsonInput: JsonInput) {
+  if (!isNode) {
+    throw new Error('Not supported in browser');
+  }
   // For nightly builds, Solidity version is saved as 0.8.17-ci.2022.8.9+commit.6b60524c instead of 0.8.17-nightly.2022.8.9+commit.6b60524c.
   // Not possible to retrieve compilers with "-ci.".
   if (version.includes('-ci.')) version = version.replace('-ci.', '-nightly.');
@@ -79,6 +78,9 @@ export async function useCompiler(version: string, solcJsonInput: JsonInput) {
 
 // TODO: Handle where and how solc is saved
 async function getSolcExecutable(version: string): Promise<string | null> {
+  if (!isNode) {
+    throw new Error('Not supported in browser');
+  }
   const fileName = `solc-linux-amd64-v${version}`;
   const tmpSolcRepo =
     process.env.SOLC_REPO_TMP || path.join('/tmp', 'solc-repo');
@@ -97,6 +99,9 @@ async function getSolcExecutable(version: string): Promise<string | null> {
 }
 
 function validateSolcPath(solcPath: string): boolean {
+  if (!isNode) {
+    throw new Error('Not supported in browser');
+  }
   // TODO: Handle nodejs only dependencies
   const spawned = spawnSync(solcPath, ['--version']);
   if (spawned.status === 0) {
@@ -117,6 +122,9 @@ async function fetchSolcFromGitHub(
   version: string,
   fileName: string
 ): Promise<boolean> {
+  if (!isNode) {
+    throw new Error('Not supported in browser');
+  }
   const githubSolcURI = GITHUB_SOLC_REPO + encodeURIComponent(fileName);
   const res = await fetchWithTimeout(githubSolcURI);
   // TODO: Handle nodejs only dependencies
@@ -162,6 +170,9 @@ async function fetchSolcFromGitHub(
  * @returns the requested solc instance
  */
 export function getSolcJs(version = 'latest'): Promise<any> {
+  if (!isNode) {
+    throw new Error('Not supported in browser');
+  }
   // /^\d+\.\d+\.\d+\+commit\.[a-f0-9]{8}$/
   version = version.trim();
   if (version !== 'latest' && !version.startsWith('v')) {
