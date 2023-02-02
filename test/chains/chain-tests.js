@@ -1230,6 +1230,24 @@ describe("Test Supported Chains", function () {
     "shared/withImmutables.metadata.json"
   );
 
+  // Flare Mainnet
+  verifyContract(
+    "0xbBc2EdeDc9d2d97970eE20d0Dc7216216a27e635",
+    "14",
+    "Flare Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x05CD7A6fF8E00f8a0c081c182Ec7a2DA3458946e",
+    "14",
+    "Flare Mainnet",
+    ["uint256"],
+    [123],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
   //////////////////////
   // Helper functions //
   //////////////////////
