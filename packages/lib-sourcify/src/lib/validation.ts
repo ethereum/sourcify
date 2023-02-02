@@ -8,9 +8,7 @@ import {
   StringMap,
 } from './types';
 import JSZip from 'jszip';
-// @TODO: Handle compatibility for browser, below are nodejs imports
-import fs from 'fs';
-import Path from 'path';
+import { Path, fs, isNode } from './utils';
 
 /**
  * Regular expression matching metadata nested within another json.
@@ -35,6 +33,9 @@ const ENDING_VARIATORS = [
 ];
 
 export function checkPaths(paths: string[], ignoring?: string[]) {
+  if (!isNode) {
+    throw new Error('Not supported in browser');
+  }
   const files: PathBuffer[] = [];
   paths.forEach((path) => {
     if (fs.existsSync(path)) {
@@ -386,6 +387,9 @@ function traversePathRecursively(
   worker: (filePath: string) => void,
   afterDirectory?: (filePath: string) => void
 ) {
+  if (!isNode) {
+    throw new Error('Not supported in browser');
+  }
   if (!fs.existsSync(path)) {
     const msg = `Encountered a nonexistent path: ${path}`;
     const error = new Error(msg);
@@ -396,7 +400,7 @@ function traversePathRecursively(
   if (fileStat.isFile()) {
     worker(path);
   } else if (fileStat.isDirectory()) {
-    fs.readdirSync(path).forEach((nestedName) => {
+    fs.readdirSync(path).forEach((nestedName: any) => {
       const nestedPath = Path.join(path, nestedName);
       traversePathRecursively(nestedPath, worker, afterDirectory);
     });
