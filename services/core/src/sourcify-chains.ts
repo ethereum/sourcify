@@ -624,6 +624,15 @@ const sourcifyChains: SourcifyChainsObject = {
     rpc: ["https://flare-api.flare.network/ext/C/rpc"],
     txRegex: getBlockscoutRegex(),
   },
+  
+  "641230": {
+    // Bear Network Chain Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://brnkscan.bearnetwork.net/" + BLOCKSCOUT_SUFFIX,
+    rpc: ["https://brnkc-mainnet.bearnetwork.net"],
+    txRegex: getBlockscoutRegex(),
+  },
 };
 
 export default sourcifyChains;
