@@ -574,8 +574,8 @@ export async function getCreationDataAvalancheSubnet(
   const res = await fetch(fetchAddress);
   if (res.status === StatusCodes.OK) {
     const response = await res.json();
-    if (response.contract?.creator?.tx) {
-      const txHash = response.contract?.creator?.tx;
+    if (response.nativeTransaction?.txHash) {
+      const txHash = response.nativeTransaction?.txHash;
       const tx = await web3.eth.getTransaction(txHash);
       return tx.input;
     }
