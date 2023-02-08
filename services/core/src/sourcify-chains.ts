@@ -631,6 +631,14 @@ const sourcifyChains: SourcifyChainsObject = {
     rpc: ["https://flare-api.flare.network/ext/C/rpc"],
     txRegex: getBlockscoutRegex(),
   },
+  "2047": {
+    // Stratos Testnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://web3-testnet-explorer.thestratos.org/" + BLOCKSCOUT_SUFFIX,
+    rpc: ["https://web3-testnet-rpc.thestratos.org"],
+    txRegex: getBlockscoutRegex(),
+  },
 };
 
 export default sourcifyChains;

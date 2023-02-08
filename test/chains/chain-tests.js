@@ -1284,6 +1284,24 @@ describe("Test Supported Chains", function () {
     "shared/withImmutables.metadata.json"
   );
 
+  // Stratos Testnet
+  verifyContract(
+    "0x9082db5F71534984DEAC8E4ed66cFe364d77dd36",
+    "2047",
+    "Stratos Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0xA049F14E503A489E6f72603034CBe4d6835C8393",
+    "2047",
+    "Stratos Testnet",
+    ["uint256"],
+    [101],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
 
   //////////////////////
   // Helper functions //
