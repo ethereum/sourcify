@@ -56,7 +56,7 @@ export default {
         "monitored": false,
     },
     "46": {
-        "rpc": ["wss://rpc.darwinia.network/"],
+        "rpc": ["https://rpc.darwinia.network/"],
         "contractFetchAddress": "https://darwinia.api.subscan.io/api/scan/evm/contract",
         "subscan":true,
         "supported": true,
@@ -96,14 +96,14 @@ export default {
         "monitored": false
     },
     "2043": {
-        "rpc": ["wss://parachain-rpc.origin-trail.network"],
+        "rpc": ["https://astrosat-parachain-rpc.origin-trail.network"],
         "contractFetchAddress": "https://origintrail.api.subscan.io/api/scan/evm/contract",
         "subscan":true,
         "supported": true,
         "monitored": false,
     },
     "20430": {
-        "rpc": ["wss://testnet-archive-rpc.origin-trail.network"],
+        "rpc": ["https://lofar-testnet.origin-trail.network"],
         "contractFetchAddress": "https://origintrail-testnet.api.subscan.io/api/scan/evm/contract",
         "subscan":true,
         "supported": true,
