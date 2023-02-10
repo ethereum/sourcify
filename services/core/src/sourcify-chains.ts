@@ -607,6 +607,13 @@ const sourcifyChains: SourcifyChainsObject = {
     contractFetchAddress: "https://testnet.explorer.emerald.oasis.dev/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
+  "23295": {
+    // Oasis Sapphire Testnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://testnet.explorer.sapphire.oasis.dev/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
   "19": {
     //  Songbird Canary Network
     supported: true,
