@@ -1282,6 +1282,23 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
+    // Bear Network Chain Testnet
+  verifyContract(
+    "0xa790F170241191D4c97a436DB53e3A36646ea04B",
+    "751230",
+    "Bear Network Chain Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x3ac5377c3B16DA9DB992A75a4DbA886Edb74aa25",
+    "751230",
+    "Bear Network Chain Mainnet",
+    ["uint256"],
+    [751230],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
 
 
   //////////////////////
