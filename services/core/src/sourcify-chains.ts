@@ -529,6 +529,7 @@ const sourcifyChains: SourcifyChainsObject = {
     supported: true,
     monitored: false,
     contractFetchAddress: "https://evm.explorer.canto.io/" + BLOCKSCOUT_SUFFIX,
+    rpc: ["https://canto.neobase.one"],
     txRegex: getBlockscoutRegex(),
   },
   "99": {
