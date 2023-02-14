@@ -14710,8 +14710,8 @@
     "nativeCurrency": { "name": "ELA", "symbol": "ELA", "decimals": 18 },
     "infoURL": "https://elastos.info",
     "shortName": "ela",
-    "chainId": 20,
-    "networkId": 20,
+    "chainId": 21,
+    "networkId": 21,
     "explorers": [
       {
         "name": "Elastos Explorer (Testnet)",
