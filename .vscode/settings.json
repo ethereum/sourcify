@@ -1,3 +1,13 @@
 {
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "cSpell.words": [
+        "ARBITRUM",
+        "Chainsafe",
+        "IPFS",
+        "IPNS",
+        "SEPOLIA",
+        "SOLJSON",
+        "sourcify",
+        "yoursessionsecret"
+    ]
 }
