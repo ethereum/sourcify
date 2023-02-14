@@ -14675,5 +14675,49 @@
         "standard": "none"
       }
     ]
+  },
+  {
+    "name": "Elastos",
+    "chain": "ELA",
+    "icon": "ethereum",
+    "rpc": [
+      "https://api.trinity-tech.io/esc",
+      "https://api.elastos.io/eth",
+      "https://api.elastos.io/esc"
+    ],
+    "faucets": [],
+    "nativeCurrency": { "name": "ELA", "symbol": "ELA", "decimals": 18 },
+    "infoURL": "https://elastos.info",
+    "shortName": "ela",
+    "chainId": 20,
+    "networkId": 20,
+    "explorers": [
+      {
+        "name": "Elastos Explorer",
+        "url": "http://eth.elastos.io/",
+        "standard": "none"
+      }
+    ]
+  },
+  {
+    "name": "Elastos Testnet",
+    "chain": "ELA",
+    "icon": "ethereum",
+    "rpc": [
+      "https://api-testnet.elastos.io/eth	"
+    ],
+    "faucets": [],
+    "nativeCurrency": { "name": "ELA", "symbol": "ELA", "decimals": 18 },
+    "infoURL": "https://elastos.info",
+    "shortName": "ela",
+    "chainId": 20,
+    "networkId": 20,
+    "explorers": [
+      {
+        "name": "Elastos Explorer (Testnet)",
+        "url": "https://esc-testnet.elastos.io/",
+        "standard": "none"
+      }
+    ]
   }
 ]
