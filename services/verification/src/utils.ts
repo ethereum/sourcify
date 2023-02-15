@@ -251,7 +251,9 @@ export async function useCompiler(version: string, solcJsonInput: any) {
     (e: any) => e.severity === "error"
   );
   if (errorMessages && errorMessages.length > 0) {
-    const error = new Error("Compiler error:\n " + errorMessages);
+    const error = new Error(
+      "Compiler error:\n " + JSON.stringify(errorMessages)
+    );
     SourcifyEventManager.trigger("Verification.Error", {
       message: error.message,
       stack: error.stack,
