@@ -15,6 +15,6 @@ date
 /usr/local/bin/aws configure set aws_secret_access_key $CHAINSAFE_S3_SECRET_ACCESS_KEY
 date
 echo "Syncing Chainsafe S3 at $BUCKET_NAME"
-/usr/local/bin/aws s3 sync --quiet /app/repository $BUCKET_NAME --endpoint-url https://buckets.chainsafe.io
+/usr/local/bin/aws s3 sync --quiet /app/repository $BUCKET_NAME/$TAG --endpoint-url https://buckets.chainsafe.io
 echo "Syncing Chainsafe S3 complete"
 date

@@ -1230,6 +1230,42 @@ describe("Test Supported Chains", function () {
     "shared/withImmutables.metadata.json"
   );
 
+  // Songbird Canary Network
+  verifyContract(
+    "0x024829b4A91fB78437A854380c89A3fFc966c2D1",
+    "19",
+    "Songbird Canary Network",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x5Ae4d53004Fd1C1E0C037998E9644fFB0f9A87a9",
+    "19",
+    "Songbird Canary Network",
+    ["uint256"],
+    [123],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+   );
+  
+  // Flare Mainnet
+  verifyContract(
+    "0xbBc2EdeDc9d2d97970eE20d0Dc7216216a27e635",
+    "14",
+    "Flare Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+   );  
+  verifyContractWithImmutables(
+    "0x05CD7A6fF8E00f8a0c081c182Ec7a2DA3458946e",
+    "14",
+    "Flare Mainnet",
+    ["uint256"],
+    [123],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+   );
+
   // Oasis Sapphire Testnet
   verifyContract(
     "0xFBcb580DD6D64fbF7caF57FB0439502412324179",
@@ -1239,7 +1275,7 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
   verifyContractWithImmutables(
-    "0x6e8e9e0DBCa4EF4a65eBCBe4032e7C2a6fb7C623",
+    "0x5a1C04012bc233c898aebb8BB4353F80D96f3dD2",
     "23295",
     "Oasis Sapphire Testnet",
     ["uint256"],
@@ -1247,6 +1283,25 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
+
+  // Stratos Testnet
+  verifyContract(
+    "0x9082db5F71534984DEAC8E4ed66cFe364d77dd36",
+    "2047",
+    "Stratos Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0xA049F14E503A489E6f72603034CBe4d6835C8393",
+    "2047",
+    "Stratos Testnet",
+    ["uint256"],
+    [101],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
 
   //////////////////////
   // Helper functions //

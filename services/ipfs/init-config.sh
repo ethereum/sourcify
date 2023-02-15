@@ -32,5 +32,5 @@ then
   ipfs pin remote service add estuary https://api.estuary.tech/pinning $ESTUARY_PINNING_SECRET
   ipfs pin remote service add web3.storage https://api.web3.storage/ $WEB3_STORAGE_PINNING_SECRET
 
-  ipfs key import main /app/ipfs-${TAG}.key 
+  ipfs key import main /sourcify/ipfs-${TAG}.key 
 fi
