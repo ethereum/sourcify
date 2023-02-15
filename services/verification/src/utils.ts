@@ -295,20 +295,13 @@ function validateSolcPath(solcPath: string): boolean {
 
 async function getSolcExecutable(version: string): Promise<string | null> {
   const fileName = `solc-linux-amd64-v${version}`;
-  const tmpSolcRepo =
-    process.env.SOLC_REPO_TMP || Path.join("/tmp", "solc-repo");
-
-  const repoPaths = [tmpSolcRepo, process.env.SOLC_REPO || "solc-repo"];
-  for (const repoPath of repoPaths) {
-    const solcPath = Path.join(repoPath, fileName);
-    if (fs.existsSync(solcPath) && validateSolcPath(solcPath)) {
-      return solcPath;
-    }
+  const repoPath = process.env.SOLC_REPO || Path.join("/tmp", "solc-repo");
+  const solcPath = Path.join(repoPath, fileName);
+  if (fs.existsSync(solcPath) && validateSolcPath(solcPath)) {
+    return solcPath;
   }
-
-  const tmpSolcPath = Path.join(tmpSolcRepo, fileName);
-  const success = await fetchSolcFromGitHub(tmpSolcPath, version, fileName);
-  return success ? tmpSolcPath : null;
+  const success = await fetchSolcFromGitHub(solcPath, version, fileName);
+  return success ? solcPath : null;
 }
 
 async function fetchSolcFromGitHub(
