@@ -460,7 +460,7 @@ function calculateCreateAddress(creatorTx: Transaction) {
       nonce = creatorTx.nonce;
     }
   }
-  const inputArr = [creatorTx.from, Buffer.from(nonce, 'hex')];
+  const inputArr = [creatorTx.from, nonce];
   const rlpEncoded = rlpEncode(inputArr);
   const hash = Web3.utils.keccak256(rlpEncoded);
   const address = hash.substring(26);
