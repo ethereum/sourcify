@@ -84,10 +84,10 @@
 	},
 	"sources": {
 		"contracts/WithImmutables.sol": {
-			"keccak256": "0xbee62e4af99b4199c5b0982f5da15fc58215a4d547724bc574d516df07f66dc2",
+			"keccak256": "0xc03f156db4130059dc7aa22c4a728475f05ded721f7eec94326131ed0dc667ae",
 			"urls": [
-				"bzz-raw://6d83c127e075a149ec14c6af579bc7b24955cdb7578ae7da2f253b7142d267cc",
-				"dweb:/ipfs/QmW6tdCTV7X5dd5LCKDWedbMmkurQTMi4ePx7LY3DNuLn7"
+				"bzz-raw://1428fe9566b7f911e3034f23ce655257370bed1fc663f8ad56398f07515139ce",
+				"dweb:/ipfs/QmZLdqeH1LqMXfuWwepFGNkaL9cmAv12BkGfX64QMhZYMV"
 			]
 		}
 	},
