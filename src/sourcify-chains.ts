@@ -629,6 +629,14 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       "https://testnet.explorer.emerald.oasis.dev/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
+  "23294": {
+    // Oasis Sapphire Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://explorer.sapphire.oasis.io/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
   "23295": {
     // Oasis Sapphire Testnet
     supported: true,
