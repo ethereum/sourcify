@@ -32,7 +32,7 @@ export async function verifyDeployed(
   sourcifyChain: SourcifyChain,
   address: string,
   contextVariables?: ContextVariables,
-  creatorTx?: any
+  creatorTxHash?: string
 ): Promise<Match> {
   const match: Match = {
     address,
@@ -74,15 +74,14 @@ export async function verifyDeployed(
     return match;
   }
 
-  // If same length, highly likely these contracts are a match but immutable vars. may be affecting the match
   // Try to match with creationTx, if available
-  if (creatorTx) {
+  if (creatorTxHash) {
     await matchWithCreationTx(
       match,
       recompiled.creationBytecode,
       sourcifyChain,
       address,
-      creatorTx
+      creatorTxHash
     );
     if (match.status) return match;
   }
@@ -248,36 +247,21 @@ export async function matchWithSimulation(
  * Matches the contract via the transaction that created the contract, if that tx is known.
  * Checks if the tx.input matches the recompiled creation bytecode. Double checks that the contract address matches the address being verified.
  *
- * @param match
- * @param creatorTxHash
- * @param recompiledCreationBytecode
- * @param sourcifyChain
- * @param address
- * @returns
  */
 export async function matchWithCreationTx(
   match: Match,
   recompiledCreationBytecode: string,
   sourcifyChain: SourcifyChain,
   address: string,
-  creatorTx?: any
+  creatorTxHash: string
 ) {
-  let creatorTxData;
-  let creatorTxDerived;
-  if (creatorTx?.input) {
-    creatorTxData = creatorTx?.input;
-    creatorTxDerived = creatorTx;
-  } else if (creatorTx?.hash) {
-    creatorTxDerived = await getTx(creatorTx?.hash, sourcifyChain);
-    creatorTxData = creatorTxDerived.input;
-  } else {
-    throw new Error('creatorTx should provide at least the creatorTxHash');
-  }
+  const creatorTx = await getTx(creatorTxHash, sourcifyChain);
+  const creatorTxData = creatorTx.input;
 
   // Initially we need to check if this contract creation tx actually yields the same contract address https://github.com/ethereum/sourcify/issues/887
-  const createdContractAddress = calculateCreateAddress(creatorTxDerived);
+  const createdContractAddress = calculateCreateAddress(creatorTx);
   if (createdContractAddress !== address) {
-    match.message = `The address being verified ${address} doesn't match the address of the contract ${createdContractAddress} that will be created by the transaction ${creatorTx.hash}.`;
+    match.message = `The address being verified ${address} doesn't match the address of the contract ${createdContractAddress} that will be created by the transaction ${creatorTxHash}.`;
     return;
   }
 

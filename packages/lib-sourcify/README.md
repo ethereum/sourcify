@@ -50,7 +50,7 @@ export async function verifyDeployed(
   sourcifyChain: SourcifyChain,
   address: string,
   contextVariables?: ContextVariables,
-  creatorTx?: any
+  creatorTxHash?: string
 ): Promise<Match>;
 ```
 
