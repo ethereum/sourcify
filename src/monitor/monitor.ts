@@ -168,7 +168,11 @@ class ChainMonitor extends EventEmitter {
                 address,
                 chainId: this.chainId,
               });
-              this.processBytecode(tx, address, this.initialGetBytecodeTries);
+              this.processBytecode(
+                tx.hash,
+                address,
+                this.initialGetBytecodeTries
+              );
             }
           }
         }
@@ -203,7 +207,7 @@ class ChainMonitor extends EventEmitter {
   };
 
   private processBytecode = (
-    creatorTx: any,
+    creatorTxHash: string,
     address: string,
     retriesLeft: number
   ): void => {
@@ -220,7 +224,7 @@ class ChainMonitor extends EventEmitter {
           this.mySetTimeout(
             this.processBytecode,
             this.getBytecodeRetryPause,
-            creatorTx,
+            creatorTxHash,
             address,
             retriesLeft
           );
@@ -233,7 +237,7 @@ class ChainMonitor extends EventEmitter {
           this.sourceFetcher.assemble(
             metadataAddress,
             (contract: CheckedContract) => {
-              this.inject(contract, bytecode, creatorTx, address);
+              this.verifyAndStore(contract, address, creatorTxHash);
             }
           );
         } catch (err: any) {
@@ -251,18 +255,17 @@ class ChainMonitor extends EventEmitter {
         this.mySetTimeout(
           this.processBytecode,
           this.getBytecodeRetryPause,
-          creatorTx,
+          creatorTxHash,
           address,
           retriesLeft
         );
       });
   };
 
-  private inject = async (
+  private verifyAndStore = async (
     contract: CheckedContract,
-    bytecode: string,
-    creatorTx: any,
-    address: string
+    address: string,
+    creatorTxHash: string
   ) => {
     try {
       const match = await this.verificationService.verifyDeployed(
@@ -270,7 +273,7 @@ class ChainMonitor extends EventEmitter {
         this.chainId,
         address,
         undefined,
-        creatorTx
+        creatorTxHash
       );
       await this.repositoryService.storeMatch(contract, match);
       this.emit("contract-verified-successfully", this.chainId, address);
