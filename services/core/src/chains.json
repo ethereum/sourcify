@@ -8307,7 +8307,10 @@
   {
     "name": "Canto",
     "chain": "Canto",
-    "rpc": ["https://canto.slingshot.finance"],
+    "rpc": [
+      "https://canto.slingshot.finance",
+      "https://canto.neobase.one"  
+    ],
     "faucets": [],
     "nativeCurrency": { "name": "Canto", "symbol": "CANTO", "decimals": 18 },
     "infoURL": "https://canto.io",
