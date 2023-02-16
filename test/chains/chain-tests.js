@@ -1328,6 +1328,15 @@ describe("Test Supported Chains", function () {
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
+  verifyContractWithImmutables(
+    "0xC9801C4E7774Ea03D3E59052933e4F954338c6C2",
+    "641230",
+    "Bear Network Chain Mainnet",
+    ["uint256"],
+    [641230],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
 
 
   //////////////////////
