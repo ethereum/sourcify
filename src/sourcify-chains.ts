@@ -22,7 +22,8 @@ const BLOCKSCOUT_REGEX =
 const BLOCKSCOUT_SUFFIX = "address/${ADDRESS}/transactions";
 const TELOS_SUFFIX = "v2/evm/get_contract?contract=${ADDRESS}";
 const METER_SUFFIX = "api/accounts/${ADDRESS}";
-const AVALANCHE_SUBNET_SUFFIX = "address/${ADDRESS}/contract";
+const AVALANCHE_SUBNET_SUFFIX =
+  "contracts/${ADDRESS}/transactions:getDeployment";
 
 type ChainName = "eth" | "polygon" | "arb" | "opt";
 
@@ -429,7 +430,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     supported: true,
     monitored: false,
     contractFetchAddress:
-      `https://subnet-explorer-api.avax-test.network/v1.1/11111/` +
+      `https://glacier-api.avax.network/v1/chains/11111/` +
       AVALANCHE_SUBNET_SUFFIX,
   },
   "192837465": {
@@ -461,7 +462,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     supported: true,
     monitored: false,
     contractFetchAddress:
-      `https://subnet-explorer-api.avax-test.network/v1.1/335/` +
+      `https://glacier-api.avax.network/v1/chains/335/` +
       AVALANCHE_SUBNET_SUFFIX,
   },
   "53935": {
@@ -469,7 +470,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     supported: true,
     monitored: false,
     contractFetchAddress:
-      `https://subnet-explorer-api.avax.network/v1.1/53935/` +
+      `https://glacier-api.avax.network/v1/chains/53935/` +
       AVALANCHE_SUBNET_SUFFIX,
   },
   "73799": {
@@ -508,7 +509,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     supported: true,
     monitored: false,
     contractFetchAddress:
-      `https://subnet-explorer-api.avax-test.network/v1.1/432201/` +
+      `https://glacier-api.avax.network/v1/chains/432201/` +
       AVALANCHE_SUBNET_SUFFIX,
   },
   "432204": {
@@ -516,7 +517,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     supported: true,
     monitored: false,
     contractFetchAddress:
-      `https://subnet-explorer-api.avax.network/v1.1/432204/` +
+      `https://glacier-api.avax.network/v1/chains/432204/` +
       AVALANCHE_SUBNET_SUFFIX,
   },
   "103090": {
@@ -634,6 +635,33 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     monitored: false,
     contractFetchAddress:
       "https://testnet.explorer.sapphire.oasis.dev/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
+  "19": {
+    //  Songbird Canary Network
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://songbird-explorer.flare.network/" + BLOCKSCOUT_SUFFIX,
+    rpc: ["https://songbird-api.flare.network/ext/C/rpc"],
+    txRegex: getBlockscoutRegex(),
+  },
+  "14": {
+    // Flare Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://flare-explorer.flare.network/" + BLOCKSCOUT_SUFFIX,
+    rpc: ["https://flare-api.flare.network/ext/C/rpc"],
+    txRegex: getBlockscoutRegex(),
+  },
+  "2047": {
+    // Stratos Testnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://web3-testnet-explorer.thestratos.org/" + BLOCKSCOUT_SUFFIX,
+    rpc: ["https://web3-testnet-rpc.thestratos.org"],
     txRegex: getBlockscoutRegex(),
   },
 };
