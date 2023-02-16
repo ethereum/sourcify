@@ -36,10 +36,9 @@ interface Events extends GenericEvents {
     version: string;
     solcPath: string | null;
   }) => void;
-  "Verification.CreationBytecodeFetched": (creationBytecodeFetchedEvent: {
-    chain: string;
+  "Verification.CreatorTxFetched": (creatorTxFetchedEvent: {
+    chainId: string;
     address: string;
-    txFetchAddress?: string;
   }) => void;
   "Verification.ExecutionBytecodeFetched": (executionBytecodeFetchedEvent: {
     chain: string;
@@ -106,7 +105,7 @@ export const SourcifyEventManager = new EventManager<Events>({
   "Verification.GotSolcJS": [],
   "Verification.GotSolcGithub": [],
   "Verification.Compiled": [],
-  "Verification.CreationBytecodeFetched": [],
+  "Verification.CreatorTxFetched": [],
   "Verification.ExecutionBytecodeFetched": [],
   "Verification.MatchCompared": [],
   "Verification.MatchStored": [],

@@ -5,7 +5,8 @@ import {
   Match,
   ContextVariables,
 } from "@ethereum-sourcify/lib-sourcify";
-import { supportedChainsMap } from "../../sourcify-chains";
+import { SourcifyEventManager } from "../../common/SourcifyEventManager/SourcifyEventManager";
+import { getCreatorTx } from "./VerificationService-util";
 
 export interface IVerificationService {
   verifyDeployed(
@@ -39,6 +40,24 @@ export default class VerificationService implements IVerificationService {
       contextVariables,
       creatorTxHash
     );
+
+    // Find the creator tx if it wasn't supplied and try verifying again with it.
+    if (!match.status && !creatorTxHash) {
+      const foundCreatorTxHash = await getCreatorTx(sourcifyChain, address);
+      if (foundCreatorTxHash) {
+        SourcifyEventManager.trigger("Verification.CreatorTxFetched", {
+          chainId: sourcifyChain.chainId.toString(),
+          address: address,
+        });
+        match = await verifyDeployed(
+          checkedContract,
+          sourcifyChain,
+          address,
+          contextVariables,
+          foundCreatorTxHash
+        );
+      }
+    }
 
     return match;
   }
