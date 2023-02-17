@@ -324,7 +324,7 @@ export async function performFetch(
       return null;
     }
 
-    console.log('Performing fetch: ' + url + ' ' + hash + ' ' + fileName);
+    console.log('Successful fetch: ' + url + ' ' + hash + ' ' + fileName);
     return content;
   } else {
     return null;
