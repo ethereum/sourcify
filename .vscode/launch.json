@@ -116,7 +116,7 @@
       ],
       "outFiles": [
         "./**/*.js",
-        "${workspaceFolder}/packages/bytecode-utils/build/**/*.js"
+        "${workspaceFolder}/packages/lib-sourcify/build/**/*.js"
       ],
       "smartStep": true,
       "console": "integratedTerminal",
