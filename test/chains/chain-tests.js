@@ -1322,14 +1322,14 @@ describe("Test Supported Chains", function () {
   
   // Bear Network Chain Mainnet
   verifyContract(
-    "0x51A1Ac4cd0F7Ca28Ef548825d10c5F928F914bEe",
+    "0x0f103813fa15CA19b6C4B46a0Afe99440b81d7C3",
     "641230",
     "Bear Network Chain Mainnet",
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
   verifyContractWithImmutables(
-    "0x8c56aa9fab1A11fA14A416b4b074b3C07b5a1aC5",
+    "0x799994F76396F1bCF6E8A55B50D02072D32Cc70D",
     "641230",
     "Bear Network Chain Mainnet",
     ["uint256"],
