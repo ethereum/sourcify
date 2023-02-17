@@ -18,7 +18,6 @@ export const IPFS_GATEWAY = process.env.IPFS_GATEWAY || 'https://ipfs.io/ipfs/';
 const FETCH_TIMEOUT = parseInt(process.env.FETCH_TIMEOUT || '') || 3000; // ms
 /**
  * Abstraction of a checked solidity contract. With metadata and source (solidity) files.
- * The getInfo method returns the information about compilation or errors encountered while validating the metadata.
  */
 export class CheckedContract {
   /** Object containing contract metadata keys and values. */
@@ -79,17 +78,6 @@ export class CheckedContract {
     this.missing = missing;
     this.invalid = invalid;
 
-    // TODO: discuss with Kaan why this is needed
-    /* const sources = this.metadata.sources;
-    for (const compiledPath in sources) {
-      const metadataSource = sources[compiledPath];
-      const foundSource = solidity[compiledPath];
-      if (!metadataSource.content && foundSource) {
-        metadataSource.content = foundSource;
-      }
-      delete metadataSource.license;
-    } */
-
     if (metadata.compiler && metadata.compiler.version) {
       this.compilerVersion = metadata.compiler.version;
     } else {
@@ -134,95 +122,6 @@ export class CheckedContract {
       deployedBytecode: `0x${contract.evm.deployedBytecode.object}`,
       metadata: contract.metadata.trim(),
     };
-  }
-
-  /**
-   * Constructs the message to be displayed in case of a successful finding
-   * of source files related to the provided metadata file.
-   */
-  private composeSuccessMessage(): string {
-    const simpleCompilerVersion = this.compilerVersion.split('+')[0];
-    const msgLines: string[] = [];
-    msgLines.push(`${this.name} (${this.compiledPath}):`);
-    msgLines.push('  Success!');
-    msgLines.push(`  Compiled with Solidity ${simpleCompilerVersion}`);
-    msgLines.push(
-      `  https://solc-bin.ethereum.org/wasm/soljson-v${this.compilerVersion}.js`
-    );
-    msgLines.push(
-      `  https://solc-bin.ethereum.org/linux-amd64/solc-linux-amd64-v${this.compilerVersion}`
-    );
-    return msgLines.join('\n');
-  }
-
-  /**
-   * Constructs the message to be displayed in case the contract is not valid.
-   * The structure of the message is as follows:
-   *
-   * path: name
-   *
-   *   missing sources
-   *
-   *   invalid sources
-   *
-   *   number of found sources
-   */
-  private composeErrorMessage(): string {
-    const msgLines: string[] = [];
-    msgLines.push(`${this.name} (${this.compiledPath}):`);
-
-    if (!isEmpty(this.missing)) {
-      msgLines.push('  Error: Missing sources:');
-      msgLines.push(
-        "  The following files were not provided (or were altered, so their hash doesn't match the one in the metadata)."
-      );
-      msgLines.push(
-        '  Please retrieve the files (potentially via ipfs) and re-run the script.'
-      );
-    }
-
-    for (const missingSourceName in this.missing) {
-      msgLines.push(`    ${missingSourceName}:`);
-      const missingSourceProps = this.missing[missingSourceName];
-      let prop: keyof typeof missingSourceProps;
-      for (prop in missingSourceProps) {
-        const propValue = missingSourceProps[prop];
-        if (Array.isArray(propValue)) {
-          propValue.forEach((elem: string) => {
-            msgLines.push(`      ${elem}`);
-          });
-        } else {
-          msgLines.push(`      ${prop}: ${propValue}`);
-        }
-      }
-    }
-
-    if (!isEmpty(this.invalid)) {
-      msgLines.push('  Error: Invalid sources:');
-    }
-
-    for (const invalidSourceName in this.invalid) {
-      msgLines.push(`    ${invalidSourceName}:`);
-      msgLines.push(
-        `      expectedHash: ${this.invalid[invalidSourceName].expectedHash}`
-      );
-      msgLines.push(
-        `      calculatedHash: ${this.invalid[invalidSourceName].calculatedHash}`
-      );
-    }
-
-    const foundSourcesNumber = Object.keys(this.solidity).length;
-    if (foundSourcesNumber) {
-      msgLines.push(
-        `  ${foundSourcesNumber} other source files found successfully.`
-      );
-    }
-
-    if (!this.compilerVersion) {
-      msgLines.push('  No compiler version provided.');
-    }
-
-    return msgLines.join('\n');
   }
 
   /**
@@ -281,18 +180,6 @@ export class CheckedContract {
       );
       throw error;
     }
-  }
-
-  /**
-   * Returns a message describing the errors encountered while validating the metadata.
-   * Does not include a trailing newline.
-   *
-   * @returns the validation info message
-   */
-  public getInfo() {
-    return CheckedContract.isValid(this)
-      ? this.composeSuccessMessage()
-      : this.composeErrorMessage();
   }
 }
 

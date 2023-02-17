@@ -83,7 +83,6 @@ export async function checkFiles(files: PathBuffer[], unused?: string[]) {
   const { metadataFiles, sourceFiles } = splitFiles(parsedFiles);
 
   const checkedContracts: CheckedContract[] = [];
-  const errorMsgMaterial: string[] = [];
 
   const byHash = storeByHash(sourceFiles);
   const usedFiles: string[] = [];
@@ -100,15 +99,7 @@ export async function checkFiles(files: PathBuffer[], unused?: string[]) {
       invalidSources
     );
     checkedContracts.push(checkedContract);
-    if (!CheckedContract.isValid(checkedContract)) {
-      errorMsgMaterial.push(checkedContract.getInfo());
-    }
   });
-
-  if (errorMsgMaterial.length) {
-    const msg = errorMsgMaterial.join('\n');
-    console.log(msg);
-  }
 
   if (unused) {
     extractUnused(sourceFiles, usedFiles, unused);
