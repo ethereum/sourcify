@@ -33,32 +33,36 @@ export default class VerificationService implements IVerificationService {
   ): Promise<Match> {
     const sourcifyChain = this.supportedChainsMap[chainId];
 
-    let match = await verifyDeployed(
-      checkedContract,
-      sourcifyChain,
-      address,
-      contextVariables,
-      creatorTxHash
-    );
-
-    // Find the creator tx if it wasn't supplied and try verifying again with it.
-    if (!match.status && !creatorTxHash) {
-      const foundCreatorTxHash = await getCreatorTx(sourcifyChain, address);
-      if (foundCreatorTxHash) {
-        SourcifyEventManager.trigger("Verification.CreatorTxFetched", {
-          chainId: sourcifyChain.chainId.toString(),
-          address: address,
-        });
-        match = await verifyDeployed(
-          checkedContract,
-          sourcifyChain,
-          address,
-          contextVariables,
-          foundCreatorTxHash
-        );
+    try {
+      return verifyDeployed(
+        checkedContract,
+        sourcifyChain,
+        address,
+        contextVariables,
+        creatorTxHash
+      );
+    } catch (err) {
+      // Find the creator tx if it wasn't supplied and try verifying again with it.
+      if (
+        err instanceof Error &&
+        err.message === "The deployed and recompiled bytecode don't match."
+      ) {
+        const foundCreatorTxHash = await getCreatorTx(sourcifyChain, address);
+        if (foundCreatorTxHash) {
+          SourcifyEventManager.trigger("Verification.CreatorTxFetched", {
+            chainId: sourcifyChain.chainId.toString(),
+            address: address,
+          });
+          return verifyDeployed(
+            checkedContract,
+            sourcifyChain,
+            address,
+            contextVariables,
+            foundCreatorTxHash
+          );
+        }
       }
+      throw err;
     }
-
-    return match;
   }
 }

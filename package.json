@@ -10,6 +10,8 @@
   "scripts": {
     "prepublishOnly": "npm install && npm run build",
     "build": "tsc",
+    "build:clean": "rm -rf node_modules/ packages/bytecode-utils/node_modules/ packages/contract-call-decoder/node_modules/ packages/lib-sourcify/node_modules/ && npx lerna bootstrap && npx lerna run build",
+    "build:lerna": "lerna run build",
     "pretest": "npm run build:lerna",
     "test": "TESTING=true DOTENV_CONFIG_PATH=./environments/.env mocha -r dotenv/config  --exit",
     "test:monitor": "TESTING=true DOTENV_CONFIG_PATH=./environments/.env mocha test/monitor.js --exit",
@@ -25,8 +27,6 @@
     "monitor": "rimraf ./dist && tsc && node ./dist/monitor/monitor.js",
     "server:build": "npm run clean && npm run build",
     "server:start": "node ./dist/server/server.js",
-    "build:clean": "rm -rf node_modules/ packages/bytecode-utils/node_modules/ packages/contract-call-decoder/node_modules/ packages/lib-sourcify/node_modules/ && npx lerna bootstrap && npx lerna run build",
-    "build:lerna": "lerna run build",
     "update-chains": "node --experimental-fetch scripts/updateChains.mjs && prettier --write services/core/src/chains.json"
   },
   "keywords": [
