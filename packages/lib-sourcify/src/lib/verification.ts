@@ -19,10 +19,9 @@ import { Address } from '@ethereumjs/util';
 import { Common } from '@ethereumjs/common';
 import { DefaultStateManager } from '@ethereumjs/statemanager';
 import { Blockchain } from '@ethereumjs/blockchain';
-import { encode as rlpEncode } from '@ethersproject/rlp';
 import { hexZeroPad, isHexString } from '@ethersproject/bytes';
 import { BigNumber } from '@ethersproject/bignumber';
-import { getAddress } from '@ethersproject/address';
+import { getAddress, getContractAddress } from '@ethersproject/address';
 import semverSatisfies from 'semver/functions/satisfies';
 
 const RPC_TIMEOUT = 5000;
@@ -259,7 +258,10 @@ export async function matchWithCreationTx(
   const creatorTxData = creatorTx.input;
 
   // Initially we need to check if this contract creation tx actually yields the same contract address https://github.com/ethereum/sourcify/issues/887
-  const createdContractAddress = calculateCreateAddress(creatorTx);
+  const createdContractAddress = getContractAddress({
+    from: creatorTx.from,
+    nonce: creatorTx.nonce,
+  });
   if (createdContractAddress !== address) {
     match.message = `The address being verified ${address} doesn't match the address of the contract ${createdContractAddress} that will be created by the transaction ${creatorTxHash}.`;
     return;
@@ -422,10 +424,10 @@ function extractAbiEncodedConstructorArguments(
 }
 
 // TODO move this function somewhere else
-function d2h(d: number) {
-  const h = d.toString(16);
-  return h.length % 2 ? '0' + h : h;
-}
+// function d2h(d: number) {
+//   const h = d.toString(16);
+//   return h.length % 2 ? '0' + h : h;
+// }
 
 /**
  * Calculates the address of the contract created with the CREATE opcode using `tx.from` and `tx.nonce`.
@@ -433,23 +435,23 @@ function d2h(d: number) {
  * @param Transaction - creatorTx
  * @returns string -  calculated address
  */
-function calculateCreateAddress(creatorTx: Transaction) {
-  let nonce = '0x00';
-  if (typeof creatorTx.nonce === 'number') {
-    nonce = `0x${d2h(creatorTx.nonce)}`;
-  } else if (typeof creatorTx.nonce === 'string' && creatorTx.nonce) {
-    if (!(creatorTx.nonce as string).startsWith('0x')) {
-      nonce = `0x${creatorTx.nonce}`;
-    } else {
-      nonce = creatorTx.nonce;
-    }
-  }
-  const inputArr = [creatorTx.from, nonce];
-  const rlpEncoded = rlpEncode(inputArr);
-  const hash = Web3.utils.keccak256(rlpEncoded);
-  const address = hash.substring(26);
-  return Web3.utils.toChecksumAddress(address);
-}
+// function calculateCreateAddress(creatorTx: Transaction) {
+//   let nonce = '0x00';
+//   if (typeof creatorTx.nonce === 'number') {
+//     nonce = `0x${d2h(creatorTx.nonce)}`;
+//   } else if (typeof creatorTx.nonce === 'string' && creatorTx.nonce) {
+//     if (!(creatorTx.nonce as string).startsWith('0x')) {
+//       nonce = `0x${creatorTx.nonce}`;
+//     } else {
+//       nonce = creatorTx.nonce;
+//     }
+//   }
+//   const inputArr = [creatorTx.from, nonce];
+//   const rlpEncoded = rlpEncode(inputArr);
+//   const hash = Web3.utils.keccak256(rlpEncoded);
+//   const address = hash.substring(26);
+//   return Web3.utils.toChecksumAddress(address);
+// }
 
 /**
  * Calculates the address of the contract created with the EIP-1014 CREATE2 opcode.
