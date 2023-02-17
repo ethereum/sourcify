@@ -14,7 +14,7 @@ dotenv.config({
   path: path.resolve(__dirname, "..", "..", "..", "environments/.env"),
 });
 
-const ETHERSCAN_REGEX = /at txn\s+<a href='\/tx\/(.*?)'/.source; // save as string to be able to return the txRegex in /chains response. If stored as RegExp returns {}
+const ETHERSCAN_REGEX = /at txn.*href='\/tx\/(0x.*?)'/.source; // save as string to be able to return the txRegex in /chains response. If stored as RegExp returns {}
 const ETHERSCAN_SUFFIX = "address/${ADDRESS}";
 const BLOCKSSCAN_SUFFIX = "api/accounts/${ADDRESS}";
 const BLOCKSCOUT_REGEX =
