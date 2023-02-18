@@ -646,13 +646,13 @@ const sourcifyChains: SourcifyChainsObject = {
     rpc: ["https://web3-testnet-rpc.thestratos.org"],
     txRegex: getBlockscoutRegex(),
   },
-  
+
   "641230": {
     // Bear Network Chain Mainnet
     supported: true,
     monitored: false,
     contractFetchAddress: "https://brnkscan.bearnetwork.net/" + BLOCKSCOUT_SUFFIX,
-    rpc: ["https://brnkc-mainnet.bearnetwork.net"],
+    rpc: [],
     txRegex: getBlockscoutRegex(),
   },
 };

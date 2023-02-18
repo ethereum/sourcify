@@ -1246,8 +1246,8 @@ describe("Test Supported Chains", function () {
     [123],
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
-   );
-  
+  );
+
   // Flare Mainnet
   verifyContract(
     "0xbBc2EdeDc9d2d97970eE20d0Dc7216216a27e635",
@@ -1255,7 +1255,7 @@ describe("Test Supported Chains", function () {
     "Flare Mainnet",
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
-   );  
+  );
   verifyContractWithImmutables(
     "0x05CD7A6fF8E00f8a0c081c182Ec7a2DA3458946e",
     "14",
@@ -1264,7 +1264,7 @@ describe("Test Supported Chains", function () {
     [123],
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
-   );
+  );
 
   // Oasis Sapphire Mainnet
   verifyContract(
@@ -1319,7 +1319,7 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
-  
+
   // Bear Network Chain Mainnet
   verifyContract(
     "0x0f103813fa15CA19b6C4B46a0Afe99440b81d7C3",
