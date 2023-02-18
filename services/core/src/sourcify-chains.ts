@@ -652,7 +652,7 @@ const sourcifyChains: SourcifyChainsObject = {
     supported: true,
     monitored: false,
     contractFetchAddress: "https://brnkscan.bearnetwork.net/" + BLOCKSCOUT_SUFFIX,
-    rpc: [],
+    rpc: ["https://brnkc-mainnet.bearnetwork.net"],
     txRegex: getBlockscoutRegex(),
   },
 };
