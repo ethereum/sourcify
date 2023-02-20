@@ -14,7 +14,8 @@ const BLOCKSCOUT_REGEX =
 const BLOCKSCOUT_SUFFIX = "address/${ADDRESS}/transactions";
 const TELOS_SUFFIX = "v2/evm/get_contract?contract=${ADDRESS}";
 const METER_SUFFIX = "api/accounts/${ADDRESS}";
-const AVALANCHE_SUBNET_SUFFIX = "contracts/${ADDRESS}/transactions:getDeployment";
+const AVALANCHE_SUBNET_SUFFIX =
+  "contracts/${ADDRESS}/transactions:getDeployment";
 
 type ChainName = "eth" | "polygon" | "arb" | "opt";
 
@@ -190,7 +191,8 @@ const sourcifyChains: SourcifyChainsObject = {
   "42220": {
     supported: true,
     monitored: false,
-    contractFetchAddress: "https://explorer.celo.org/mainnet/" + BLOCKSCOUT_SUFFIX,
+    contractFetchAddress:
+      "https://explorer.celo.org/mainnet/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex("/mainnet"),
   },
   "44787": {
@@ -590,51 +592,58 @@ const sourcifyChains: SourcifyChainsObject = {
     // ZetaChain: Athens Testnet
     supported: true,
     monitored: false,
-    contractFetchAddress: "https://blockscout.athens2.zetachain.com/" + BLOCKSCOUT_SUFFIX,
+    contractFetchAddress:
+      "https://blockscout.athens2.zetachain.com/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
   "42262": {
     // Oasis Emerald Mainnet
     supported: true,
     monitored: false,
-    contractFetchAddress: "https://explorer.emerald.oasis.dev/" + BLOCKSCOUT_SUFFIX,
+    contractFetchAddress:
+      "https://explorer.emerald.oasis.dev/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
   "42261": {
     // Oasis Emerald Testnet
     supported: true,
     monitored: false,
-    contractFetchAddress: "https://testnet.explorer.emerald.oasis.dev/" + BLOCKSCOUT_SUFFIX,
+    contractFetchAddress:
+      "https://testnet.explorer.emerald.oasis.dev/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
   "23294": {
     // Oasis Sapphire Mainnet
     supported: true,
     monitored: false,
-    contractFetchAddress: "https://explorer.sapphire.oasis.io/" + BLOCKSCOUT_SUFFIX,
+    contractFetchAddress:
+      "https://explorer.sapphire.oasis.io/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
   "23295": {
     // Oasis Sapphire Testnet
     supported: true,
     monitored: false,
-    contractFetchAddress: "https://testnet.explorer.sapphire.oasis.dev/" + BLOCKSCOUT_SUFFIX,
+    contractFetchAddress:
+      "https://testnet.explorer.sapphire.oasis.dev/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
   "19": {
     //  Songbird Canary Network
     supported: true,
     monitored: false,
-    contractFetchAddress: "https://songbird-explorer.flare.network/" + BLOCKSCOUT_SUFFIX,
+    contractFetchAddress:
+      "https://songbird-explorer.flare.network/" + BLOCKSCOUT_SUFFIX,
     rpc: ["https://songbird-api.flare.network/ext/C/rpc"],
-    txRegex: getBlockscoutRegex()
+    txRegex: getBlockscoutRegex(),
   },
 
   "14": {
     // Flare Mainnet
     supported: true,
     monitored: false,
-    contractFetchAddress: "https://flare-explorer.flare.network/" + BLOCKSCOUT_SUFFIX,
+    contractFetchAddress:
+      "https://flare-explorer.flare.network/" + BLOCKSCOUT_SUFFIX,
     rpc: ["https://flare-api.flare.network/ext/C/rpc"],
     txRegex: getBlockscoutRegex(),
   },
@@ -642,8 +651,18 @@ const sourcifyChains: SourcifyChainsObject = {
     // Stratos Testnet
     supported: true,
     monitored: false,
-    contractFetchAddress: "https://web3-testnet-explorer.thestratos.org/" + BLOCKSCOUT_SUFFIX,
+    contractFetchAddress:
+      "https://web3-testnet-explorer.thestratos.org/" + BLOCKSCOUT_SUFFIX,
     rpc: ["https://web3-testnet-rpc.thestratos.org"],
+    txRegex: getBlockscoutRegex(),
+  },
+  "641230": {
+    // Bear Network Chain Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://brnkscan.bearnetwork.net/" + BLOCKSCOUT_SUFFIX,
+    rpc: ["https://brnkc-mainnet.bearnetwork.net"],
     txRegex: getBlockscoutRegex(),
   },
 };
