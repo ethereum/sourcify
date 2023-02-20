@@ -1091,7 +1091,6 @@ describe("Test Supported Chains", function () {
     "shared/withImmutables.metadata.json"
   );
 
-
   // Gnosis Chiado Testnet
   verifyContractWithImmutables(
     "0x78f71adAf9601034faC12C80F316ce4c2E95D1ab",
@@ -1138,7 +1137,6 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
-
 
   // Shiden (EVM)
   verifyContract(
@@ -1246,8 +1244,8 @@ describe("Test Supported Chains", function () {
     [123],
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
-   );
-  
+  );
+
   // Flare Mainnet
   verifyContract(
     "0xbBc2EdeDc9d2d97970eE20d0Dc7216216a27e635",
@@ -1255,7 +1253,7 @@ describe("Test Supported Chains", function () {
     "Flare Mainnet",
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
-   );  
+  );
   verifyContractWithImmutables(
     "0x05CD7A6fF8E00f8a0c081c182Ec7a2DA3458946e",
     "14",
@@ -1264,7 +1262,7 @@ describe("Test Supported Chains", function () {
     [123],
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
-   );
+  );
 
   // Oasis Sapphire Mainnet
   verifyContract(
@@ -1320,6 +1318,23 @@ describe("Test Supported Chains", function () {
     "shared/withImmutables.metadata.json"
   );
 
+  // Bear Network Chain Mainnet
+  verifyContract(
+    "0x0f103813fa15CA19b6C4B46a0Afe99440b81d7C3",
+    "641230",
+    "Bear Network Chain Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x799994F76396F1bCF6E8A55B50D02072D32Cc70D",
+    "641230",
+    "Bear Network Chain Mainnet",
+    ["uint256"],
+    [641230],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
 
   //////////////////////
   // Helper functions //
