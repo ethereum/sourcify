@@ -1,3 +1,0 @@
-[default]
-s3 =
-    max_concurrent_requests = 2
