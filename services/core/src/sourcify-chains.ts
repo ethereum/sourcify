@@ -651,7 +651,7 @@ const sourcifyChains: SourcifyChainsObject = {
     // Bear Network Chain Mainnet
     supported: true,
     monitored: false,
-    contractFetchAddress: "https://brnkscan.bearnetwork.net/" + BLOCKSCOUT_SUFFIX,
+    contractFetchAddress: "https://brnkscan.bearnetwork.net/api" + BLOCKSCOUT_SUFFIX,
     rpc: ["https://brnkc-mainnet.bearnetwork.net"],
     txRegex: getBlockscoutRegex(),
   },
