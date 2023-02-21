@@ -1,9 +1,0 @@
-Savings (browser/Savings.sol):
-  Error: Missing sources:
-  The following files were not provided (or were altered, so their hash doesn't match the one in the metadata).
-  Please retrieve the files (potentially via ipfs) and re-run the script.
-    browser/Escrow.sol:
-      keccak256: 0x3685704dbcc97358956da378d8250b4e5062a47ee6ed3090f519ebc50a579a11
-      bzz-raw://7e46a52b71bebeb845d35d4925fb96a5ef4b9f72f5b95ac407ec833731eafb23
-      dweb:/ipfs/QmZ87S4kA9ook24nr8QatoYAaZM12m7DZB6uvM7yMe9SKU
-  4 other source files found successfully.

@@ -1,16 +1,3 @@
-import {
-  getMonitoredChains,
-  getTestChains,
-  MonitorConfig,
-  CheckedContract,
-  FileService,
-  Chain,
-  SourcifyEventManager,
-} from "@ethereum-sourcify/core";
-import {
-  VerificationService,
-  IVerificationService,
-} from "@ethereum-sourcify/verification";
 import Web3 from "web3";
 import { Transaction } from "web3-core";
 import { SourceAddress } from "./util";
@@ -20,6 +7,25 @@ import SystemConfig from "../config";
 import assert from "assert";
 import { EventEmitter } from "stream";
 import { decode as bytecodeDecode } from "@ethereum-sourcify/bytecode-utils";
+import { SourcifyEventManager } from "../common/SourcifyEventManager/SourcifyEventManager";
+import {
+  Chain,
+  CheckedContract,
+  Match,
+  matchWithDeployedBytecode,
+  addLibraryAddresses,
+  verifyDeployed,
+} from "@ethereum-sourcify/lib-sourcify";
+import VerificationService, {
+  IVerificationService,
+} from "../server/services/VerificationService";
+import RepositoryService from "../server/services/RepositoryService";
+import {
+  monitoredChainArray,
+  supportedChainsMap,
+  testChainArray,
+} from "../sourcify-chains";
+import { toChecksumAddress } from "web3-utils";
 
 const BLOCK_PAUSE_FACTOR =
   parseInt(process.env.BLOCK_PAUSE_FACTOR || "") || 1.1;
@@ -42,7 +48,8 @@ class ChainMonitor extends EventEmitter {
   private web3urls: string[];
   private web3provider: Web3 | undefined;
   private sourceFetcher: SourceFetcher;
-  private verificationService: IVerificationService;
+  private verificationService: VerificationService;
+  private repositoryService: RepositoryService;
   private running: boolean;
 
   private getBytecodeRetryPause: number;
@@ -54,13 +61,15 @@ class ChainMonitor extends EventEmitter {
     chainId: string,
     web3urls: string[],
     sourceFetcher: SourceFetcher,
-    verificationService: IVerificationService
+    verificationService: VerificationService,
+    repositoryService: RepositoryService
   ) {
     super();
     this.chainId = chainId;
     this.web3urls = web3urls;
     this.sourceFetcher = sourceFetcher;
     this.verificationService = verificationService;
+    this.repositoryService = repositoryService;
     this.running = false;
 
     this.getBytecodeRetryPause =
@@ -160,7 +169,7 @@ class ChainMonitor extends EventEmitter {
                 chainId: this.chainId,
               });
               this.processBytecode(
-                tx.input,
+                tx.hash,
                 address,
                 this.initialGetBytecodeTries
               );
@@ -182,7 +191,7 @@ class ChainMonitor extends EventEmitter {
   };
 
   private isVerified(address: string): boolean {
-    const foundArr = this.verificationService.findByAddress(
+    const foundArr = this.repositoryService.checkByChainAndAddress(
       address,
       this.chainId
     );
@@ -198,7 +207,7 @@ class ChainMonitor extends EventEmitter {
   };
 
   private processBytecode = (
-    creationData: string,
+    creatorTxHash: string,
     address: string,
     retriesLeft: number
   ): void => {
@@ -215,7 +224,7 @@ class ChainMonitor extends EventEmitter {
           this.mySetTimeout(
             this.processBytecode,
             this.getBytecodeRetryPause,
-            creationData,
+            creatorTxHash,
             address,
             retriesLeft
           );
@@ -225,8 +234,11 @@ class ChainMonitor extends EventEmitter {
         try {
           const cborData = bytecodeDecode(bytecode);
           const metadataAddress = SourceAddress.fromCborData(cborData);
-          this.sourceFetcher.assemble(metadataAddress, (contract) =>
-            this.inject(contract, bytecode, creationData, address)
+          this.sourceFetcher.assemble(
+            metadataAddress,
+            (contract: CheckedContract) => {
+              this.verifyAndStore(contract, address, creatorTxHash);
+            }
           );
         } catch (err: any) {
           SourcifyEventManager.trigger("Monitor.Error", {
@@ -243,41 +255,34 @@ class ChainMonitor extends EventEmitter {
         this.mySetTimeout(
           this.processBytecode,
           this.getBytecodeRetryPause,
-          creationData,
+          creatorTxHash,
           address,
           retriesLeft
         );
       });
   };
 
-  private inject = (
+  private verifyAndStore = async (
     contract: CheckedContract,
-    bytecode: string,
-    creationData: string,
-    address: string
+    address: string,
+    creatorTxHash: string
   ) => {
-    const logObject = {
-      loc: "[MONITOR:INJECT]",
-      contract: contract.name,
-      address,
-    };
-    this.verificationService
-      .inject({
+    try {
+      const match = await this.verificationService.verifyDeployed(
         contract,
-        bytecode,
-        creationData,
-        chain: this.chainId,
-        addresses: [address],
-      })
-      .then(() => {
-        this.emit("contract-verified-successfully", this.chainId, address);
-      })
-      .catch((err) => {
-        SourcifyEventManager.trigger("Monitor.Error", {
-          message: err.message,
-          stack: err.stack,
-        });
+        this.chainId,
+        address,
+        undefined,
+        creatorTxHash
+      );
+      await this.repositoryService.storeMatch(contract, match);
+      this.emit("contract-verified-successfully", this.chainId, address);
+    } catch (err: any) {
+      SourcifyEventManager.trigger("Monitor.Error", {
+        message: err.message,
+        stack: err.stack,
       });
+    }
   };
 
   private mySetTimeout = (
@@ -289,6 +294,10 @@ class ChainMonitor extends EventEmitter {
       setTimeout(handler, timeout, ...args);
     }
   };
+}
+export interface MonitorConfig {
+  repository?: string;
+  testing?: boolean;
 }
 
 /**
@@ -302,7 +311,7 @@ export default class Monitor extends EventEmitter {
     super();
     const repositoryPath = config.repository || SystemConfig.repository.path;
 
-    const chains = config.testing ? getTestChains() : getMonitoredChains();
+    const chains = config.testing ? testChainArray : monitoredChainArray;
     this.chainMonitors = chains.map(
       (chain: Chain) =>
         new ChainMonitor(
@@ -310,7 +319,8 @@ export default class Monitor extends EventEmitter {
           chain.chainId.toString(),
           chain.rpc,
           this.sourceFetcher,
-          new VerificationService(new FileService(repositoryPath))
+          new VerificationService(supportedChainsMap),
+          new RepositoryService(repositoryPath)
         )
     );
     this.chainMonitors.forEach((cm) => {

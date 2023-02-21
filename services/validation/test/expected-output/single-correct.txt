@@ -1,6 +1,0 @@
-Storage (browser/1_Storage.sol):
-  Success!
-  Compiled with Solidity 0.6.6
-  https://solc-bin.ethereum.org/wasm/soljson-v0.6.6+commit.6c089d02.js
-  https://solc-bin.ethereum.org/linux-amd64/solc-linux-amd64-v0.6.6+commit.6c089d02
-  To recompile, use: `sourcify-validation --prepare-json browser/1_Storage.sol:Storage test/files/single | solc --standard-json`

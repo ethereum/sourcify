@@ -13,16 +13,13 @@
       "preLaunchTask": "npm: build:lerna",
       "outFiles": [
         "${workspaceFolder}/dist/**/*.js",
-        "${workspaceFolder}/services/core/build/**/*.js",
-        "${workspaceFolder}/services/validation/build/**/*.js",
-        "${workspaceFolder}/services/verification/build/**/*.js",
-        "${workspaceFolder}/packages/bytecode-utils/build/**/*.js"
+        "${workspaceFolder}/packages/**/build/**/*.js"
       ],
       "env": {
         "DEBUG": "express:*" // Debug all express modules *
       },
       "smartStep": true,
-      "console": "integratedTerminal", 
+      "console": "integratedTerminal",
       "outputCapture": "std",
     },
     {
@@ -33,10 +30,7 @@
       "envFile": "${workspaceFolder}/environments/.env",
       "outFiles": [
         "${workspaceFolder}/dist/**/*.js",
-        "${workspaceFolder}/services/core/build/**/*.js",
-        "${workspaceFolder}/services/validation/build/**/*.js",
-        "${workspaceFolder}/services/verification/build/**/*.js",
-        "${workspaceFolder}/packages/bytecode-utils/build/**/*.js"
+        "${workspaceFolder}/packages/**/build/**/*.js"
       ],
       "env": {
         "DEBUG": "express:*" // Debug all express modules *
@@ -62,13 +56,10 @@
       "preLaunchTask": "npm: build:lerna",
       "outFiles": [
         "${workspaceFolder}/dist/**/*.js",
-        "${workspaceFolder}/services/core/build/**/*.js",
-        "${workspaceFolder}/services/validation/build/**/*.js",
-        "${workspaceFolder}/services/verification/build/**/*.js",
-        "${workspaceFolder}/packages/bytecode-utils/build/**/*.js"
+        "${workspaceFolder}/packages/**/build/**/*.js"
       ],
       "smartStep": true,
-      "console": "integratedTerminal", 
+      "console": "integratedTerminal",
       "outputCapture": "std"
     },
     {
@@ -79,13 +70,10 @@
       "envFile": "${workspaceFolder}/environments/.env",
       "outFiles": [
         "${workspaceFolder}/dist/**/*.js",
-        "${workspaceFolder}/services/core/build/**/*.js",
-        "${workspaceFolder}/services/validation/build/**/*.js",
-        "${workspaceFolder}/services/verification/build/**/*.js",
-        "${workspaceFolder}/packages/bytecode-utils/build/**/*.js"
+        "${workspaceFolder}/packages/**/build/**/*.js"
       ],
       "smartStep": true,
-      "console": "integratedTerminal", 
+      "console": "integratedTerminal",
       "outputCapture": "std"
     },
     {
@@ -108,6 +96,33 @@
       ]
     },
     {
+      "type": "node",
+      "request": "launch",
+      "name": "Mocha - lib-sourcify",
+      "cwd": "${workspaceFolder}/packages/lib-sourcify",
+      "program": "./node_modules/.bin/mocha",
+      "env": {
+        "DEBUG": "express:*", // Debug all express modules *
+        "TESTING": "true",
+      },
+      "args": [
+        "-r",
+        "ts-node/register",
+        "./test/verification.spec.ts",
+        "--no-timeout",
+        // Run a single test when debugging
+        // "--grep=v0.6.12",
+        "--exit",
+      ],
+      "outFiles": [
+        "./**/*.js",
+        "${workspaceFolder}/packages/lib-sourcify/build/**/*.js"
+      ],
+      "smartStep": true,
+      "console": "integratedTerminal",
+      // "internalConsoleOptions": "neverOpen"
+    },
+    {
       "internalConsoleOptions": "openOnSessionStart",
       "name": "Mocha - All",
       "program": "${workspaceFolder}/node_modules/.bin/mocha",
@@ -118,10 +133,7 @@
       ],
       "outFiles": [
         "${workspaceFolder}/dist/**/*.js",
-        "${workspaceFolder}/services/core/build/**/*.js",
-        "${workspaceFolder}/services/validation/build/**/*.js",
-        "${workspaceFolder}/services/verification/build/**/*.js",
-        "${workspaceFolder}/packages/bytecode-utils/build/**/*.js"
+        "${workspaceFolder}/packages/**/build/**/*.js"
       ],
       "smartStep": true,
       "envFile": "${workspaceFolder}/environments/.env",
@@ -148,10 +160,7 @@
       ],
       "outFiles": [
         "${workspaceFolder}/dist/**/*.js",
-        "${workspaceFolder}/services/core/build/**/*.js",
-        "${workspaceFolder}/services/validation/build/**/*.js",
-        "${workspaceFolder}/services/verification/build/**/*.js",
-        "${workspaceFolder}/packages/bytecode-utils/build/**/*.js"
+        "${workspaceFolder}/packages/**/build/**/*.js"
       ],
       "smartStep": true,
       "console": "integratedTerminal",
@@ -171,37 +180,10 @@
       ],
       "outFiles": [
         "${workspaceFolder}/dist/**/*.js",
-        "${workspaceFolder}/services/core/build/**/*.js",
-        "${workspaceFolder}/services/validation/build/**/*.js",
-        "${workspaceFolder}/services/verification/build/**/*.js",
-        "${workspaceFolder}/packages/bytecode-utils/build/**/*.js"
+        "${workspaceFolder}/packages/**/build/**/*.js",
       ],
       "smartStep": true,
       "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Mocha - Validation",
-      "program": "${workspaceRoot}/services/validation/node_modules/.bin/mocha",
-      "env": {
-        "TESTING": "true",
-      },
-      "args": [
-        "${workspaceFolder}/services/validation/test/",
-        "--exit"
-      ],
-      "outFiles": [
-        "${workspaceFolder}/dist/**/*.js",
-        "${workspaceFolder}/services/core/build/**/*.js",
-        "${workspaceFolder}/services/validation/build/**/*.js",
-        "${workspaceFolder}/services/verification/build/**/*.js",
-        "${workspaceFolder}/packages/bytecode-utils/build/**/*.js"
-      ],
-      "smartStep": true,
-      "console": "integratedTerminal",
-      "cwd": "${workspaceFolder}/services/validation",
       "internalConsoleOptions": "neverOpen"
     },
     {
@@ -222,10 +204,7 @@
       ],
       "outFiles": [
         "${workspaceFolder}/dist/**/*.js",
-        "${workspaceFolder}/services/core/build/**/*.js",
-        "${workspaceFolder}/services/validation/build/**/*.js",
-        "${workspaceFolder}/services/verification/build/**/*.js",
-        "${workspaceFolder}/packages/bytecode-utils/build/**/*.js"
+        "${workspaceFolder}/packages/**/build/**/*.js",
       ],
       "smartStep": true,
       "console": "integratedTerminal",
@@ -249,10 +228,7 @@
       ],
       "outFiles": [
         "${workspaceFolder}/dist/**/*.js",
-        "${workspaceFolder}/services/core/build/**/*.js",
-        "${workspaceFolder}/services/validation/build/**/*.js",
-        "${workspaceFolder}/services/verification/build/**/*.js",
-        "${workspaceFolder}/packages/bytecode-utils/build/**/*.js"
+        "${workspaceFolder}/packages/**/build/**/*.js"
       ],
       "smartStep": true,
       "console": "integratedTerminal",
@@ -275,257 +251,11 @@
       ],
       "outFiles": [
         "${workspaceFolder}/dist/**/*.js",
-        "${workspaceFolder}/services/core/build/**/*.js",
-        "${workspaceFolder}/services/validation/build/**/*.js",
-        "${workspaceFolder}/services/verification/build/**/*.js",
-        "${workspaceFolder}/packages/bytecode-utils/build/**/*.js"
+        "${workspaceFolder}/packages/**/build/**/*.js"
       ],
       "smartStep": true,
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
     },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Mocha - Injector",
-      "program": "${workspaceRoot}/node_modules/.bin/mocha",
-      "env": {
-        "TESTING": "true",
-      },
-      "args": [
-        "${workspaceFolder}/test/injector.js",
-        "--no-timeout"
-      ],
-      "outFiles": [
-        "${workspaceFolder}/dist/**/*.js",
-        "${workspaceFolder}/services/core/build/**/*.js",
-        "${workspaceFolder}/services/validation/build/**/*.js",
-        "${workspaceFolder}/services/verification/build/**/*.js",
-        "${workspaceFolder}/packages/bytecode-utils/build/**/*.js"
-      ],
-      "smartStep": true,
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Validation service (single file)",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "program": "${workspaceFolder}/services/validation/build/index.js",
-      "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
-      "outFiles": [
-        "${workspaceFolder}/services/validation/build/**/*.js"
-      ],
-      "smartStep": true,
-      "args": [
-        "services/validation/test/files/single/1_Storage.sol",
-        "services/validation/test/files/single/metadata.json"
-      ]
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Validation service (single file - missing)",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "program": "${workspaceFolder}/services/validation/build/index.js",
-      "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
-      "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/services/validation/build/**/*.js"
-      ],
-      "args": [
-        "services/validation/test/files/single/metadata.json"
-      ]
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Validation service (truffle project - zip)",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "program": "${workspaceFolder}/services/validation/build/index.js",
-      "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
-      "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/services/validation/build/**/*.js"
-      ],
-      "args": [
-        "services/validation/test/files/truffle-example.zip"
-      ]
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Validation service (truffle project - zip - missing source)",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "program": "${workspaceFolder}/services/validation/build/index.js",
-      "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
-      "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/services/validation/build/**/*.js"
-      ],
-      "args": [
-        "services/validation/test/files/truffle-example-missing-source.zip"
-      ]
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Validation service (truffle project - directory)",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "program": "${workspaceFolder}/services/validation/build/index.js",
-      "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
-      "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/services/validation/build/**/*.js"
-      ],
-      "args": [
-        "services/validation/test/files/truffle-example"
-      ]
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Validation service (truffle project - directory - missing source)",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "program": "${workspaceFolder}/services/validation/build/index.js",
-      "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
-      "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/services/validation/build/**/*.js"
-      ],
-      "args": [
-        "services/validation/test/files/truffle-example-missing-source"
-      ]
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Validation service (multiple files)",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "program": "${workspaceFolder}/services/validation/build/index.js",
-      "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
-      "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/services/validation/build/**/*.js"
-      ],
-      "args": [
-        "services/validation/test/files/multiple/Escrow.sol",
-        "services/validation/test/files/multiple/Main.sol",
-        "services/validation/test/files/multiple/Owned.sol",
-        "services/validation/test/files/multiple/provableAPI_0.6.sol",
-        "services/validation/test/files/multiple/Savings.sol",
-        "services/validation/test/files/multiple/metadata.json"
-      ]
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Validation service (multiple files, but missing)",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "program": "${workspaceFolder}/services/validation/build/index.js",
-      "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
-      "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/services/validation/build/**/*.js"
-      ],
-      "args": [
-        "services/validation/test/files/multiple/Main.sol",
-        "services/validation/test/files/multiple/provableAPI_0.6.sol",
-        "services/validation/test/files/multiple/Savings.sol",
-        "services/validation/test/files/multiple/metadata.json"
-      ]
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Validation service (single file, altered code)",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "program": "${workspaceFolder}/services/validation/build/index.js",
-      "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
-      "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/services/validation/build/**/*.js"
-      ],
-      "args": [
-        "services/validation/test/files/single-invalid"
-      ]
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Validation service (single file, prepare json)",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "program": "${workspaceFolder}/services/validation/build/index.js",
-      "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
-      "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/services/validation/build/**/*.js"
-      ],
-      "args": [
-        "--prepare-json",
-        "browser/1_Storage.sol:Storage",
-        "services/validation/test/files/single"
-      ]
-    },
-    // {
-    //   "type": "node",
-    //   "request": "launch",
-    //   "name": "Validation service (standard-json file input)",
-    //   "skipFiles": [
-    //     "<node_internals>/**"
-    //   ],
-    //   "program": "${workspaceFolder}/services/validation/build/index.js",
-    //   "preLaunchTask": "tsc: build - services/validation/tsconfig.json",
-    //   "outFiles": [
-    //     "${workspaceFolder}/services/validation/build/**/*.js"
-    //   ],
-    //   "args": [
-    //     "services/validation/test/expected-output/single.json"
-    //   ]
-    // },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Verification service (single file)",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "program": "${workspaceFolder}/services/verification/build/index.js",
-      "preLaunchTask": "tsc: build - services/verification/tsconfig.json",
-      "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/services/verification/build/**/*.js"
-      ],
-      "args": [
-        "-c",
-        "1",
-        "-a",
-        "0xfff0f5801a9e13426c306455A3BcC5EF3e9BC979",
-        "-f",
-        "services/validation/test/ERC20Standard.sol",
-        "services/validation/test/metadata.json"
-      ]
-    }
   ]
 }

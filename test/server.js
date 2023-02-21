@@ -15,8 +15,7 @@ const path = require("path");
 const Web3 = require("web3");
 const MAX_FILE_SIZE = require("../dist/config").default.server.maxFileSize;
 const MAX_SESSION_SIZE =
-  require("../dist/server/controllers/VerificationController").default
-    .MAX_SESSION_SIZE;
+  require("../dist/server/controllers/VerificationController-util").MAX_SESSION_SIZE;
 const GANACHE_PORT = 8545;
 const StatusCodes = require("http-status-codes").StatusCodes;
 const { waitSecs, callContractMethodWithTx } = require("./helpers/helpers");
@@ -160,7 +159,12 @@ describe("Server", function () {
   };
 
   if (process.env.CIRCLE_PR_REPONAME === undefined) {
-    describe("/session/verify/etherscan", function () {
+    describe("Verify with etherscan", function () {
+      beforeEach(async () => {
+        // Await 1.5 secs otherwise the API limit is reached
+        await waitSecs(1.5);
+      });
+
       const assertAllFound = (err, res, finalStatus) => {
         chai.expect(err).to.be.null;
         chai.expect(res.status).to.equal(StatusCodes.OK);
@@ -179,6 +183,24 @@ describe("Server", function () {
       };
 
       this.timeout(EXTENDED_TIME_60);
+
+      it("without session: should import contract information from etherscan (multiple files) and verify the contract, finding a partial match", (done) => {
+        chai
+          .request(server.app)
+          .post("/verify/etherscan")
+          .field("address", "0x5aa653a076c1dbb47cec8c1b4d152444cad91941")
+          .field("chainId", "1")
+          .end((err, res) => {
+            assertions(
+              err,
+              res,
+              false,
+              "0x5aa653a076c1dbb47cec8c1b4d152444cad91941",
+              "partial"
+            );
+            done();
+          });
+      });
 
       it("should fail for missing address", (done) => {
         chai
@@ -214,25 +236,6 @@ describe("Server", function () {
           });
       });
 
-      it("should fail by exceeding rate limit on etherscan APIs", (done) => {
-        chai
-          .request(server.app)
-          .post("/session/verify/etherscan")
-          .field("address", fakeAddress)
-          .field("chainId", "1")
-          .end(() => {
-            chai
-              .request(server.app)
-              .post("/session/verify/etherscan")
-              .field("address", fakeAddress)
-              .field("chainId", "1")
-              .end((err, res) => {
-                assertEtherscanError(err, res);
-                done();
-              });
-          });
-      });
-
       it("should import contract information from etherscan (single file) and verify the contract, finding a partial match", (done) => {
         chai
           .request(server.app)
@@ -256,10 +259,29 @@ describe("Server", function () {
             done();
           });
       });
+
+      it("should fail by exceeding rate limit on etherscan APIs", (done) => {
+        chai
+          .request(server.app)
+          .post("/session/verify/etherscan")
+          .field("address", fakeAddress)
+          .field("chainId", "1")
+          .end(() => {
+            chai
+              .request(server.app)
+              .post("/session/verify/etherscan")
+              .field("address", fakeAddress)
+              .field("chainId", "1")
+              .end((err, res) => {
+                assertEtherscanError(err, res);
+                done();
+              });
+          });
+      });
     });
   }
 
-  describe("/session/verify/create2", function () {
+  describe("Verify create2", function () {
     const assertAllFound = (err, res, finalStatus) => {
       chai.expect(err).to.be.null;
       chai.expect(res.status).to.equal(StatusCodes.OK);
@@ -796,179 +818,6 @@ describe("Server", function () {
       assertions(null, res, null, address, "partial");
     });
 
-    it("should verify a contract with library placeholders", async () => {
-      // Originally https://goerli.etherscan.io/address/0x399B23c75d8fd0b95E81E41e1c7c88937Ee18000#code
-      const artifact = require("./sources/artifacts/UsingLibrary.json");
-      const address = await deployFromAbiAndBytecode(
-        localWeb3Provider,
-        artifact.abi,
-        artifact.bytecode,
-        accounts[0]
-      );
-      const metadataPath = path.join(
-        "test",
-        "sources",
-        "metadata",
-        "using-library.meta.object.json"
-      );
-      const metadataBuffer = fs.readFileSync(metadataPath);
-
-      const sourcePath = path.join(
-        "test",
-        "sources",
-        "contracts",
-        "UsingLibrary.sol"
-      );
-      const sourceBuffer = fs.readFileSync(sourcePath);
-
-      const res = await chai
-        .request(server.app)
-        .post("/")
-        .field("address", address)
-        .field("chain", defaultContractChain)
-        .attach("files", metadataBuffer)
-        .attach("files", sourceBuffer)
-        .send();
-
-      assertions(null, res, null, address, "perfect");
-
-      const res2 = await chai
-        .request(server.app)
-        .get(
-          `/repository/contracts/full_match/${defaultContractChain}/${address}/library-map.json`
-        )
-        .buffer()
-        .parse(binaryParser)
-        .send();
-
-      chai.expect(res2.status).to.equal(StatusCodes.OK);
-      const receivedLibraryMap = JSON.parse(res2.body.toString());
-      const expectedLibraryMap = {
-        __$da572ae5e60c838574a0f88b27a0543803$__:
-          "11fea6722e00ba9f43861a6e4da05fecdf9806b7",
-      };
-      chai.expect(receivedLibraryMap).to.deep.equal(expectedLibraryMap);
-    });
-
-    it("should verify a contract with viaIR:true", async () => {
-      const artifact = require("./testcontracts/Storage/Storage-viaIR.json");
-      const address = await deployFromAbiAndBytecode(
-        localWeb3Provider,
-        artifact.abi,
-        artifact.bytecode,
-        accounts[0]
-      );
-      // metadata is in artifact JSON
-      const metadataBuffer = Buffer.from(artifact.metadata);
-
-      const sourcePath = path.join(
-        "test",
-        "testcontracts",
-        "Storage",
-        "Storage.sol"
-      );
-      const sourceBuffer = fs.readFileSync(sourcePath);
-
-      const res = await chai
-        .request(server.app)
-        .post("/")
-        .field("address", address)
-        .field("chain", defaultContractChain)
-        .attach("files", metadataBuffer, "metadata.json")
-        .attach("files", sourceBuffer, "Storage.sol")
-        .send();
-      assertions(null, res, null, address);
-    });
-
-    // https://github.com/ethereum/sourcify/issues/640
-    it("should remove the inliner option from metadata for solc >=0.8.2 to <=0.8.4", async () => {
-      const artifact = require("./testcontracts/Storage/Storage.json");
-      const address = await deployFromAbiAndBytecode(
-        localWeb3Provider,
-        artifact.abi,
-        artifact.bytecode,
-        accounts[0]
-      );
-      const metadataPath = path.join(
-        "test",
-        "testcontracts",
-        "Storage",
-        "metadata-inliner.json"
-      );
-      const metadataBuffer = fs.readFileSync(metadataPath);
-
-      const sourcePath = path.join(
-        "test",
-        "testcontracts",
-        "Storage",
-        "Storage.sol"
-      );
-      const sourceBuffer = fs.readFileSync(sourcePath);
-
-      const res = await chai
-        .request(server.app)
-        .post("/")
-        .field("address", address)
-        .field("chain", defaultContractChain)
-        .attach("files", metadataBuffer, "metadata-inliner.json")
-        .attach("files", sourceBuffer, "Storage.sol")
-        .send();
-      assertions(null, res, null, address);
-    });
-
-    it("should verify a contract created by a factory contract and has immutables", async () => {
-      const deployValue = 12345;
-
-      const artifact = require("./testcontracts/FactoryImmutable/Factory.json");
-      const factoryAddress = await deployFromAbiAndBytecode(
-        localWeb3Provider,
-        artifact.abi,
-        artifact.bytecode,
-        accounts[0]
-      );
-
-      // Deploy child by calling deploy(uint)
-      const childMetadata = require("./testcontracts/FactoryImmutable/Child_metadata.json");
-      const childMetadataBuffer = Buffer.from(JSON.stringify(childMetadata));
-      const txReceipt = await callContractMethodWithTx(
-        localWeb3Provider,
-        artifact.abi,
-        factoryAddress,
-        "deploy",
-        accounts[0],
-        [deployValue]
-      );
-
-      const childAddress = txReceipt.events.Deployment.returnValues[0];
-      const sourcePath = path.join(
-        "test",
-        "testcontracts",
-        "FactoryImmutable",
-        "FactoryTest.sol"
-      );
-      const sourceBuffer = fs.readFileSync(sourcePath);
-
-      const abiEncoded = localWeb3Provider.eth.abi.encodeParameter(
-        "uint",
-        deployValue
-      );
-      const res = await chai
-        .request(server.app)
-        .post("/")
-        .send({
-          address: childAddress,
-          chain: defaultContractChain,
-          contextVariables: {
-            abiEncodedConstructorArguments: abiEncoded,
-          },
-          files: {
-            "metadata.json": JSON.stringify(childMetadata),
-            "FactoryTest.sol": sourceBuffer.toString(),
-          },
-        });
-      assertions(null, res, null, childAddress);
-    });
-
     it("should verify a contract created by a factory contract and has immutables without constructor arguments but with msg.sender assigned immutable", async () => {
       const artifact = require("./testcontracts/FactoryImmutableWithoutConstrArg/Factory3.json");
       const factoryAddress = await deployFromAbiAndBytecode(
@@ -1097,7 +946,7 @@ describe("Server", function () {
           "full_match",
           defaultContractChain,
           childAddress,
-          "contextVariables.json"
+          "context-variables.json"
         ),
         { isJson: true }
       );
@@ -1163,7 +1012,7 @@ describe("Server", function () {
           "full_match",
           defaultContractChain,
           childAddress,
-          "contextVariables.json"
+          "context-variables.json"
         ),
         { isJson: true }
       );
@@ -1634,11 +1483,10 @@ describe("Server", function () {
 
     it("should find contracts in a zipped Truffle project", (done) => {
       const zippedTrufflePath = path.join(
-        "services",
-        "validation",
         "test",
-        "files",
-        "truffle-example.zip"
+        "sources",
+        "truffle",
+        "truffle-example.zip",
       );
       const zippedTruffleBuffer = fs.readFileSync(zippedTrufflePath);
       chai
@@ -1699,11 +1547,10 @@ describe("Server", function () {
 
       it("should find contracts in a zipped Truffle project", (done) => {
         const zippedTrufflePath = path.join(
-          "services",
-          "validation",
           "test",
-          "files",
-          "truffle-example.zip"
+          "sources",
+          "truffle",
+          "truffle-example.zip",
         );
         const zippedTruffleBuffer = fs.readFileSync(zippedTrufflePath);
         chai
@@ -1899,7 +1746,7 @@ describe("Server", function () {
           "full_match",
           defaultContractChain,
           childAddress,
-          "contextVariables.json"
+          "context-variables.json"
         ),
         { isJson: true }
       );

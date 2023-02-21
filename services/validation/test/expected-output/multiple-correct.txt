@@ -1,6 +1,0 @@
-Savings (browser/Savings.sol):
-  Success!
-  Compiled with Solidity 0.6.11
-  https://solc-bin.ethereum.org/wasm/soljson-v0.6.11+commit.5ef660b1.js
-  https://solc-bin.ethereum.org/linux-amd64/solc-linux-amd64-v0.6.11+commit.5ef660b1
-  To recompile, use: `sourcify-validation --prepare-json browser/Savings.sol:Savings test/files/multiple | solc --standard-json`
