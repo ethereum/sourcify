@@ -423,36 +423,6 @@ function extractAbiEncodedConstructorArguments(
   );
 }
 
-// TODO move this function somewhere else
-// function d2h(d: number) {
-//   const h = d.toString(16);
-//   return h.length % 2 ? '0' + h : h;
-// }
-
-/**
- * Calculates the address of the contract created with the CREATE opcode using `tx.from` and `tx.nonce`.
- *
- * @param Transaction - creatorTx
- * @returns string -  calculated address
- */
-// function calculateCreateAddress(creatorTx: Transaction) {
-//   let nonce = '0x00';
-//   if (typeof creatorTx.nonce === 'number') {
-//     nonce = `0x${d2h(creatorTx.nonce)}`;
-//   } else if (typeof creatorTx.nonce === 'string' && creatorTx.nonce) {
-//     if (!(creatorTx.nonce as string).startsWith('0x')) {
-//       nonce = `0x${creatorTx.nonce}`;
-//     } else {
-//       nonce = creatorTx.nonce;
-//     }
-//   }
-//   const inputArr = [creatorTx.from, nonce];
-//   const rlpEncoded = rlpEncode(inputArr);
-//   const hash = Web3.utils.keccak256(rlpEncoded);
-//   const address = hash.substring(26);
-//   return Web3.utils.toChecksumAddress(address);
-// }
-
 /**
  * Calculates the address of the contract created with the EIP-1014 CREATE2 opcode.
  *
