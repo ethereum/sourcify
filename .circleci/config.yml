@@ -41,9 +41,7 @@ workflows:
             services/s3sync/.* run-build-s3 true
             h5ai-nginx run-build-repository true 
             src/.* run-build-server true
-            services/core/.* run-build-server true
-            services/verification/.* run-build-server true
-            services/validation/.* run-build-server true
+            packages/.* run-build-server true
             environments/.* run-build-server true
             scripts/.* run-build-server true
             package.json run-build-server true

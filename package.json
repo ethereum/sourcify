@@ -27,7 +27,7 @@
     "monitor": "rimraf ./dist && tsc && node ./dist/monitor/monitor.js",
     "server:build": "npm run clean && npm run build",
     "server:start": "node ./dist/server/server.js",
-    "update-chains": "node --experimental-fetch scripts/updateChains.mjs && prettier --write services/core/src/chains.json"
+    "update-chains": "node --experimental-fetch scripts/updateChains.mjs && prettier --write src/chains.json"
   },
   "keywords": [
     "ethereum",
@@ -44,10 +44,7 @@
   "homepage": "https://github.com/ethereum/sourcify#readme",
   "dependencies": {
     "@ethereum-sourcify/bytecode-utils": "*",
-    "@ethereum-sourcify/core": "*",
     "@ethereum-sourcify/lib-sourcify": "*",
-    "@ethereum-sourcify/validation": "*",
-    "@ethereum-sourcify/verification": "*",
     "@types/node-fetch": "^2.5.7",
     "bunyan": "^1.8.12",
     "commander": "^9.0.0",
