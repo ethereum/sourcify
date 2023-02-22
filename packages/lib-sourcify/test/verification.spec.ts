@@ -97,7 +97,7 @@ describe('Verify Deployed Contract', () => {
     expectMatch(match, 'perfect', deployedAddress);
   });
 
-  it('should verify a contract created by a factory contract and has immutables without constructor arguments but with msg.sender assigned immutable', async () => {
+  it('should verify a contract created by a factory contract and has immutables with contextVariables: abiEncodedConstructorArguments', async () => {
     const deployValue = 12345;
     const childFolderPath = path.join(
       __dirname,
@@ -144,7 +144,7 @@ describe('Verify Deployed Contract', () => {
     expectMatch(match, 'perfect', childAddress);
   });
 
-  it('should verify a contract created by a factory contract and has immutables', async () => {
+  it('should verify a contract created by a factory contract and has immutables without constructor arguments but with msg.sender assigned immutable', async () => {
     const childFolderPath = path.join(
       __dirname,
       'sources',
