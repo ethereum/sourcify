@@ -163,13 +163,15 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: getBlockscoutRegex("/poa/sokol"),
   },
   "82": {
+    // Meter Mainnet
     supported: true,
-    monitored: false,
+    monitored: true,
     contractFetchAddress: "https://api.meter.io:8000/" + METER_SUFFIX,
   },
   "83": {
+    // Meter Testnet
     supported: true,
-    monitored: false,
+    monitored: true,
     contractFetchAddress: "https://api.meter.io:4000/" + METER_SUFFIX,
   },
   "97": {
