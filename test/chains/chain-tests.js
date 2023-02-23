@@ -1336,6 +1336,24 @@ describe("Test Supported Chains", function () {
     "shared/withImmutables.metadata.json"
   );
 
+  // Base Goerli Testnet
+  verifyContract(
+    "0x8F78b9c92a68DdF719849a40702cFBfa4EB60dD0",
+    "84531",
+    "Base Goerli Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0xd46fd24ea21F04459407Fb0B518451e54d0b07a1",
+    "84531",
+    "Base Goerli Testnet",
+    ["uint256"],
+    [12345],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
   //////////////////////
   // Helper functions //
   //////////////////////
