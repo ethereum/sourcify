@@ -257,16 +257,6 @@ export async function matchWithCreationTx(
   const creatorTx = await getTx(creatorTxHash, sourcifyChain);
   const creatorTxData = creatorTx.input;
 
-  // Initially we need to check if this contract creation tx actually yields the same contract address https://github.com/ethereum/sourcify/issues/887
-  const createdContractAddress = getContractAddress({
-    from: creatorTx.from,
-    nonce: creatorTx.nonce,
-  });
-  if (createdContractAddress.toLowerCase() !== address.toLowerCase()) {
-    match.message = `The address being verified ${address} doesn't match the address of the contract ${createdContractAddress} that will be created by the transaction ${creatorTxHash}.`;
-    return;
-  }
-
   // The reason why this uses `startsWith` instead of `===` is that creationTxData may contain constructor arguments at the end part.
   // Replace the library placeholders in the recompiled bytecode with values from the deployed bytecode
   const { replaced, libraryMap } = addLibraryAddresses(
@@ -294,6 +284,16 @@ export async function matchWithCreationTx(
   }
 
   if (match.status) {
+    // we need to check if this contract creation tx actually yields the same contract address https://github.com/ethereum/sourcify/issues/887
+    const createdContractAddress = getContractAddress({
+      from: creatorTx.from,
+      nonce: creatorTx.nonce,
+    });
+    if (createdContractAddress.toLowerCase() !== address.toLowerCase()) {
+      match.status = null;
+      match.message = `The address being verified ${address} doesn't match the expected ddress of the contract ${createdContractAddress} that will be created by the transaction ${creatorTxHash}.`;
+      return;
+    }
     match.libraryMap = libraryMap;
     const abiEncodedConstructorArguments =
       extractAbiEncodedConstructorArguments(
