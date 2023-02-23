@@ -32,15 +32,16 @@ export default class VerificationService implements IVerificationService {
     creatorTxHash?: string
   ): Promise<Match> {
     const sourcifyChain = this.supportedChainsMap[chainId];
-
+    let match;
     try {
-      return verifyDeployed(
+      match = await verifyDeployed(
         checkedContract,
         sourcifyChain,
         address,
         contextVariables,
         creatorTxHash
       );
+      return match;
     } catch (err) {
       // Find the creator tx if it wasn't supplied and try verifying again with it.
       if (
@@ -53,13 +54,14 @@ export default class VerificationService implements IVerificationService {
             chainId: sourcifyChain.chainId.toString(),
             address: address,
           });
-          return verifyDeployed(
+          match = await verifyDeployed(
             checkedContract,
             sourcifyChain,
             address,
             contextVariables,
             foundCreatorTxHash
           );
+          return match;
         }
       }
       throw err;

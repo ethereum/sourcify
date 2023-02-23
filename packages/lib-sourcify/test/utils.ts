@@ -16,6 +16,8 @@ import { expect } from 'chai';
 
 /**
  *  Function to deploy contracts from provider unlocked accounts
+ *
+ * @returns the address of the deployed contract
  */
 // TODO: ABI type definition
 export async function deployFromAbiAndBytecode(
@@ -32,11 +34,37 @@ export async function deployFromAbiAndBytecode(
     arguments: args || [],
   });
   const gas = await deployment.estimateGas({ from });
-  const contractResponse = await deployment.send({
+
+  // If awaited, the send() Promise returns the contract instance.
+  // We also need the tx hash so we need two seperate event listeners.
+  const sendPromiEvent = deployment.send({
     from,
     gas,
   });
-  return contractResponse.options.address;
+
+  const txHashPromise = new Promise<string>((resolve, reject) => {
+    sendPromiEvent.on('transactionHash', (txHash) => {
+      resolve(txHash);
+    });
+    sendPromiEvent.on('error', (error) => {
+      reject(error);
+    });
+  });
+
+  const contractAddressPromise = new Promise<string>((resolve, reject) => {
+    sendPromiEvent.on('receipt', (receipt) => {
+      if (!receipt.contractAddress) {
+        reject(new Error('No contract address in receipt'));
+      } else {
+        resolve(receipt.contractAddress);
+      }
+    });
+    sendPromiEvent.on('error', (error) => {
+      reject(error);
+    });
+  });
+
+  return Promise.all([contractAddressPromise, txHashPromise]);
 }
 
 /**
@@ -87,11 +115,9 @@ export const deployCheckAndVerify = async (
   sourcifyChain: SourcifyChain,
   web3provider: Web3,
   from: string,
-  args?: any[],
-  contextVariables?: ContextVariables,
-  creatorTxHash?: string
+  args?: any[]
 ) => {
-  const deployedAddress = await deployFromAbiAndBytecode(
+  const [deployedAddress] = await deployFromAbiAndBytecode(
     web3provider,
     contractFolderPath,
     from,
@@ -100,9 +126,7 @@ export const deployCheckAndVerify = async (
   const match = await checkAndVerifyDeployed(
     contractFolderPath,
     sourcifyChain,
-    deployedAddress,
-    contextVariables,
-    creatorTxHash
+    deployedAddress
   );
   return { match, deployedAddress };
 };

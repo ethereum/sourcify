@@ -11,6 +11,7 @@ import {
   expectMatch,
 } from './utils';
 import { describe, it, before } from 'mocha';
+import { expect } from 'chai';
 
 const ganacheServer = Ganache.server({
   wallet: { totalAccounts: 1 },
@@ -81,6 +82,43 @@ describe('Verify Deployed Contract', () => {
     expectMatch(match, 'perfect', deployedAddress);
   });
 
+  it('should fail to verify a contract with immutables but succeed using the creatorTx', async () => {
+    const contractFolderPath = path.join(
+      __dirname,
+      'sources',
+      'WithImmutables'
+    );
+    const [deployedAddress, creatorTxHash] = await deployFromAbiAndBytecode(
+      localWeb3Provider,
+      contractFolderPath,
+      accounts[0],
+      ['12345']
+    );
+
+    let error;
+    try {
+      await checkAndVerifyDeployed(
+        contractFolderPath,
+        sourcifyChainGanache,
+        deployedAddress
+      );
+    } catch (e) {
+      error = e as Error;
+    }
+    expect(error?.message).to.be.equal(
+      "The deployed and recompiled bytecode don't match."
+    );
+
+    const match2 = await checkAndVerifyDeployed(
+      contractFolderPath,
+      sourcifyChainGanache,
+      deployedAddress,
+      undefined,
+      creatorTxHash
+    );
+    expectMatch(match2, 'perfect', deployedAddress);
+  });
+
   // https://github.com/ethereum/sourcify/issues/640
   it('should remove the inliner option from metadata for solc >=0.8.2 to <=0.8.4 and be able to verify', async () => {
     const contractFolderPath = path.join(
@@ -111,7 +149,7 @@ describe('Verify Deployed Contract', () => {
       'FactoryImmutable',
       'Factory'
     );
-    const factoryAddress = await deployFromAbiAndBytecode(
+    const [factoryAddress] = await deployFromAbiAndBytecode(
       localWeb3Provider,
       factoryFolderPath,
       accounts[0],
@@ -157,7 +195,7 @@ describe('Verify Deployed Contract', () => {
       'FactoryImmutableWithoutConstrArg',
       'Factory'
     );
-    const factoryAddress = await deployFromAbiAndBytecode(
+    const [factoryAddress] = await deployFromAbiAndBytecode(
       localWeb3Provider,
       factoryFolderPath,
       accounts[0],
