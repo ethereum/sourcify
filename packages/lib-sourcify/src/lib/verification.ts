@@ -262,7 +262,7 @@ export async function matchWithCreationTx(
     from: creatorTx.from,
     nonce: creatorTx.nonce,
   });
-  if (createdContractAddress !== address) {
+  if (createdContractAddress.toLowerCase() !== address.toLowerCase()) {
     match.message = `The address being verified ${address} doesn't match the address of the contract ${createdContractAddress} that will be created by the transaction ${creatorTxHash}.`;
     return;
   }
