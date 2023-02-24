@@ -300,10 +300,10 @@ function createJsonInputFromMetadata(
     metadata: solcJsonInput?.settings?.metadata || {},
   };
 
-  solcJsonInput.settings.outputSelection[contractPath] =
-    solcJsonInput.settings.outputSelection[contractPath] || {};
+  solcJsonInput.settings.outputSelection['*'] =
+    solcJsonInput.settings.outputSelection['*'] || {};
 
-  solcJsonInput.settings.outputSelection[contractPath][contractName] = [
+  solcJsonInput.settings.outputSelection['*'][contractName] = [
     'evm.bytecode.object',
     'evm.deployedBytecode.object',
     'metadata',
