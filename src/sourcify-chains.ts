@@ -683,6 +683,13 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     rpc: ["https://brnkc-mainnet.bearnetwork.net"],
     txRegex: getBlockscoutRegex(),
   },
+  "84531": {
+    // Base Goerli Testnet
+    supported: true,
+    monitored: true,
+    contractFetchAddress: "https://goerli.basescan.org/" + ETHERSCAN_SUFFIX,
+    txRegex: ETHERSCAN_REGEX,
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
