@@ -69,7 +69,9 @@ export async function useCompiler(version: string, solcJsonInput: JsonInput) {
     (e: any) => e.severity === 'error'
   );
   if (errorMessages && errorMessages.length > 0) {
-    const error = new Error('Compiler error:\n ' + errorMessages);
+    const error = new Error(
+      'Compiler error:\n ' + JSON.stringify(errorMessages)
+    );
     console.error(error);
     throw error;
   }
