@@ -495,6 +495,18 @@ export const getEtherscanApiHostFromChainId = (
       return `https://api-rinkeby.etherscan.io`;
     case "11155111":
       return `https://api-sepolia.etherscan.io`;
+    case "42161":
+      return `https://api.arbiscan.io`;
+    case "421613":
+      return `https://api-goerli.arbiscan.io`;
+    case "10":
+      return `https://api-optimistic.etherscan.io`;
+    case "420":
+      return `https://api-goerli-optimism.etherscan.io`;
+    case "43114":
+      return `https://api-snowtrace.io`;
+    case "43113":
+      return `https://api-testnet.snowtrace.io`;
     default:
       return null;
   }

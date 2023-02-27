@@ -236,7 +236,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: ETHERSCAN_REGEX,
   },
   "42161": {
-    // Arbitrum Mainnet
+    // Arbitrum One Mainnet
     supported: true,
     monitored: true,
     contractFetchAddress: "https://arbiscan.io/" + ETHERSCAN_SUFFIX,
@@ -253,12 +253,14 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     rpc: buildAlchemyAndCustomRpcURLs("goerli", "arb"),
   },
   "43113": {
+    // Avalanche Fuji Testnet
     supported: true,
     monitored: false,
     contractFetchAddress: "https://testnet.snowtrace.io/" + ETHERSCAN_SUFFIX,
     txRegex: ETHERSCAN_REGEX,
   },
   "43114": {
+    // Avalanche C-Chain Mainnet
     supported: true,
     monitored: false,
     contractFetchAddress: "https://snowtrace.io/" + ETHERSCAN_SUFFIX,
@@ -308,6 +310,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: getBlockscoutRegex(),
   },
   "10": {
+    // Optimism Mainnet
     supported: true,
     monitored: true,
     contractFetchAddress: "https://optimistic.etherscan.io/" + ETHERSCAN_SUFFIX,
@@ -315,6 +318,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     rpc: buildAlchemyAndCustomRpcURLs("mainnet", "opt"),
   },
   "420": {
+    // Optimism Goerli
     supported: true,
     monitored: true,
     contractFetchAddress:
