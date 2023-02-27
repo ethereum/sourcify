@@ -364,8 +364,8 @@ async function getTx(creatorTxHash: string, sourcifyChain: SourcifyChain) {
       ])) as Transaction;
       if (tx) {
         console.log(`Transaction ${creatorTxHash} fetched via ${rpcURL}`);
+        return tx;
       }
-      return tx;
     } catch (err) {
       // Catch to try the next RPC
       console.log(err);
