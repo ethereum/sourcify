@@ -576,7 +576,7 @@ export default class RepositoryService implements IRepositoryService {
         source: false,
         fileName: "context-variables.json",
       },
-      JSON.stringify(contextVariables, undefined, 2)
+      JSON.stringify(contextVariables)
     );
   }
 
@@ -604,7 +604,6 @@ export default class RepositoryService implements IRepositoryService {
     address: string,
     libraryMap: StringMap
   ) {
-    const indentationSpaces = 2;
     this.save(
       {
         matchQuality,
@@ -613,7 +612,7 @@ export default class RepositoryService implements IRepositoryService {
         source: false,
         fileName: "library-map.json",
       },
-      JSON.stringify(libraryMap, null, indentationSpaces)
+      JSON.stringify(libraryMap)
     );
   }
 
