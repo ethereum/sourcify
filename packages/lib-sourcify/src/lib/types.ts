@@ -76,6 +76,7 @@ export interface Match {
   create2Args?: Create2Args;
   libraryMap?: StringMap;
   contextVariables?: ContextVariables;
+  creatorTxHash?: string;
 }
 
 export type Status =

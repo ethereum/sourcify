@@ -436,6 +436,16 @@ export default class RepositoryService implements IRepositoryService {
         );
       }
 
+      if (match.creatorTxHash) {
+        this.storeTxt(
+          matchQuality,
+          match.chainId,
+          match.address,
+          "creator-tx-hash.txt",
+          match.creatorTxHash
+        );
+      }
+
       if (match.create2Args) {
         this.storeJSON(
           matchQuality,
