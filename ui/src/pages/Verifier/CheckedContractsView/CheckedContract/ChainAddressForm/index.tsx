@@ -1,3 +1,4 @@
+import { isHexString } from "@ethersproject/bytes";
 import { isAddress } from "@ethersproject/address";
 import React, {
   ChangeEventHandler,
@@ -48,6 +49,9 @@ const ChainAddressForm = ({
     useState<string>("");
   const [msgSender, setMsgSender] = useState<string>("");
   const [isInvalidMsgSender, setIsInvalidMsgSender] = useState<boolean>(false);
+  const [creatorTxHash, setCreatorTxHash] = useState<string>("");
+  const [isInvalidCreatorTxHash, setIsInvalidCreatorTxHash] =
+    useState<boolean>(false);
   const [showRawAbiInput, setShowRawAbiInput] = useState(false);
   const [isInvalidConstructorArguments, setIsInvalidConstructorArguments] =
     useState(false);
@@ -101,6 +105,17 @@ const ChainAddressForm = ({
     setIsInvalidMsgSender(false);
   };
 
+  const handleCreatorTxHashChange: ChangeEventHandler<HTMLInputElement> = (
+    e
+  ) => {
+    const tempHash = e.target.value;
+    setCreatorTxHash(tempHash);
+    if (!isHexString(tempHash, 32) && tempHash !== "") {
+      return setIsInvalidCreatorTxHash(true);
+    }
+    setIsInvalidCreatorTxHash(false);
+  };
+
   const handleSubmit: FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
     if (!address || !chainId || isInvalidAddress || isInvalidMsgSender) return;
@@ -113,6 +128,7 @@ const ChainAddressForm = ({
         abiEncodedConstructorArguments,
         msgSender,
       },
+      creatorTxHash,
     }).finally(() => setIsLoading(false));
   };
 
@@ -167,11 +183,46 @@ const ChainAddressForm = ({
           />
         </button>
 
-        {/* Constructor arguments, msg.sender etc fields. */}
+        {/* CreatorTx, Constructor arguments, msg.sender etc fields. */}
         <div
           className={`${isMoreFieldsOpen ? "flex" : "hidden"} flex-col mt-2`}
         >
-          <div className="text-sm text-gray-600 mb-4">
+          {/* Creator Tx Hash */}
+          <div className="">
+            <div className="flex justify-between">
+              <ReactTooltip
+                effect="solid"
+                delayHide={500}
+                clickable={true}
+                className="max-w-xl"
+                id="creator-tx-hash-tooltip"
+              />
+              <label className="block" htmlFor="creatorTxHash">
+                Creator Tx Hash{" "}
+                <span
+                  className="ml-1 text-ceruleanBlue-200 font-bold"
+                  data-for="creator-tx-hash-tooltip"
+                  data-tip="If your contract has immutable variables, we will look for the tx.input of transaction that created the contract to see if it matches the creation bytecode. If you leave this blank and we need it, we will try getting it ourselves from block explorers or APIs that provide this data."
+                >
+                  ?
+                </span>
+              </label>
+              {isInvalidCreatorTxHash && (
+                <span className="text-red-500 text-sm">
+                  Invalid Transaction Hash String
+                </span>
+              )}
+            </div>
+
+            <Input
+              id="creatorTxHash"
+              value={creatorTxHash}
+              onChange={handleCreatorTxHashChange}
+              placeholder="0x2fabe97..."
+              className="mb-2"
+            />
+          </div>
+          <div className="text-sm text-gray-600 mb-4 mt-6">
             Inputs below will be used to simulate the creation of the contract.
             This helps us verify contracts created by a factory contract. <br />
             If there are other variables your contract makes use of during
