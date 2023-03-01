@@ -1638,6 +1638,64 @@ describe("Server", function () {
       });
     });
 
+    it("should fail to verify a contract with immutables but should succeed with creatorTxHash and save creator-tx-hash.txt", async () => {
+      const artifact = require("./testcontracts/WithImmutables/artifact.json");
+      const [address, creatorTxHash] =
+        await deployFromAbiAndBytecodeForCreatorTxHash(
+          localWeb3Provider,
+          artifact.abi,
+          artifact.bytecode,
+          accounts[0],
+          [999]
+        );
+
+      const metadata = require("./testcontracts/WithImmutables/metadata.json");
+      const metadataBuffer = Buffer.from(JSON.stringify(metadata));
+      const sourcePath = path.join(
+        "test",
+        "testcontracts",
+        "WithImmutables",
+        "sources",
+        "WithImmutables.sol"
+      );
+      const sourceBuffer = fs.readFileSync(sourcePath);
+
+      const agent = chai.request.agent(server.app);
+
+      const res1 = await agent
+        .post("/session/input-files")
+        .attach("files", sourceBuffer)
+        .attach("files", metadataBuffer);
+
+      let contracts = assertSingleContractStatus(res1, "error");
+
+      contracts[0].address = address;
+      contracts[0].chainId = defaultContractChain;
+      const res2 = await agent
+        .post("/session/verify-validated")
+        .send({ contracts });
+
+      contracts = assertSingleContractStatus(res2, "error");
+      contracts[0].creatorTxHash = creatorTxHash;
+
+      const res3 = await agent
+        .post("/session/verify-validated")
+        .send({ contracts });
+
+      assertSingleContractStatus(res3, "perfect");
+      assertEqualityFromPath(
+        creatorTxHash,
+        path.join(
+          server.repository,
+          "contracts",
+          "full_match",
+          defaultContractChain,
+          address,
+          "creator-tx-hash.txt"
+        )
+      );
+    });
+
     it("should verify a contract created by a factory contract and has immutables", async () => {
       const deployValue = 12345;
 

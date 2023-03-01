@@ -232,6 +232,7 @@ export default class VerificationController
         contractWrapper.address = receivedContract.address;
         contractWrapper.chainId = receivedContract.chainId;
         contractWrapper.contextVariables = receivedContract.contextVariables;
+        contractWrapper.creatorTxHash = receivedContract.creatorTxHash;
         if (isVerifiable(contractWrapper)) {
           verifiable[id] = contractWrapper;
         }
