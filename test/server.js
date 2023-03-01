@@ -23,7 +23,11 @@ const MAX_SESSION_SIZE =
   require("../dist/server/controllers/VerificationController-util").MAX_SESSION_SIZE;
 const GANACHE_PORT = 8545;
 const StatusCodes = require("http-status-codes").StatusCodes;
-const { waitSecs, callContractMethodWithTx } = require("./helpers/helpers");
+const {
+  waitSecs,
+  callContractMethodWithTx,
+  deployFromAbiAndBytecodeForCreatorTxHash,
+} = require("./helpers/helpers");
 const { deployFromAbiAndBytecode } = require("./helpers/helpers");
 chai.use(chaiHttp);
 
@@ -823,6 +827,67 @@ describe("Server", function () {
         .send();
 
       assertions(null, res, null, address, "partial");
+    });
+
+    it("should fail to verify a contract with immutables but should succeed with creatorTxHash and save creator-tx-hash.txt", async () => {
+      const artifact = require("./testcontracts/WithImmutables/artifact.json");
+      const [address, creatorTxHash] =
+        await deployFromAbiAndBytecodeForCreatorTxHash(
+          localWeb3Provider,
+          artifact.abi,
+          artifact.bytecode,
+          accounts[0],
+          [999]
+        );
+
+      const metadata = require("./testcontracts/WithImmutables/metadata.json");
+      const sourcePath = path.join(
+        "test",
+        "testcontracts",
+        "WithImmutables",
+        "sources",
+        "WithImmutables.sol"
+      );
+      const sourceBuffer = fs.readFileSync(sourcePath);
+
+      const res1 = await chai
+        .request(server.app)
+        .post("/")
+        .send({
+          address: address,
+          chain: defaultContractChain,
+          files: {
+            "metadata.json": JSON.stringify(metadata),
+            "WithImmutables.sol": sourceBuffer.toString(),
+          },
+        });
+      assertBytecodesDontMatch(null, res1);
+
+      // Now pass the creatorTxHash
+      const res2 = await chai
+        .request(server.app)
+        .post("/")
+        .send({
+          address: address,
+          chain: defaultContractChain,
+          files: {
+            "metadata.json": JSON.stringify(metadata),
+            "WithImmutables.sol": sourceBuffer.toString(),
+          },
+          creatorTxHash: creatorTxHash,
+        });
+      assertions(null, res2, null, address);
+      assertEqualityFromPath(
+        creatorTxHash,
+        path.join(
+          server.repository,
+          "contracts",
+          "full_match",
+          defaultContractChain,
+          address,
+          "creator-tx-hash.txt"
+        )
+      );
     });
 
     it("should verify a contract created by a factory contract and has immutables without constructor arguments but with msg.sender assigned immutable", async () => {

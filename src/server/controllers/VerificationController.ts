@@ -132,7 +132,8 @@ export default class VerificationController
         contract,
         req.body.chain,
         req.addresses[0], // Due to the old API taking an array of addresses.
-        req.body.contextVariables
+        req.body.contextVariables,
+        req.body.creatorTxHash
       );
       // Send to verification again with all source files.
       if (match.status === "extra-file-input-bug") {
@@ -144,7 +145,8 @@ export default class VerificationController
           contractWithAllSources,
           req.body.chain,
           req.addresses[0], // Due to the old API taking an array of addresses.
-          req.body.contextVariables
+          req.body.contextVariables,
+          req.body.creatorTxHash
         );
         if (tempMatch.status === "perfect") {
           await this.repositoryService.storeMatch(contract, tempMatch);
@@ -562,6 +564,11 @@ export default class VerificationController
               msgSender,
               ...req.body.contextVariables,
             })
+        ),
+      body("creatorTxHash")
+        .optional()
+        .custom(
+          (creatorTxHash, { req }) => (req.body.creatorTxHash = creatorTxHash)
         ),
       this.safeHandler(this.legacyVerifyEndpoint)
     );
