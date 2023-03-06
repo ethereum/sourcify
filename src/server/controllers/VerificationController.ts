@@ -9,7 +9,7 @@ import {
   PathContent,
   isEmpty,
   getBytecode,
-  IPFS_GATEWAY,
+  getIpfsGateway,
   performFetch,
   verifyCreate2,
 } from "@ethereum-sourcify/lib-sourcify";
@@ -263,7 +263,7 @@ export default class VerificationController
       );
     }
 
-    const ipfsUrl = `${IPFS_GATEWAY}${metadataIpfsCid}`;
+    const ipfsUrl = `${getIpfsGateway()}${metadataIpfsCid}`;
     const metadataFileName = "metadata.json";
     const retrievedMetadataText = await performFetch(ipfsUrl);
 
