@@ -58,6 +58,7 @@
     "express-validator": "^6.6.1",
     "http-status-codes": "^2.1.4",
     "ipfs-http-client": "^56.0.3",
+    "ipfs-http-gateway": "0.9.3",
     "memorystore": "^1.6.7",
     "node-fetch": "2.6.6",
     "serve-index": "^1.9.1",

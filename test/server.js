@@ -3,7 +3,12 @@ process.env.TESTING = true;
 process.env.MOCK_REPOSITORY = "./dist/data/mock-repository";
 process.env.SOLC_REPO = "./dist/data/solc-repo";
 process.env.SOLJSON_REPO = "/dist/data/soljson-repo";
+// ipfs-http-gateway runs on port 9090
+process.env.IPFS_GATEWAY = "http://localhost:9090/ipfs/";
+process.env.FETCH_TIMEOUT = 15000; // instantiated http-gateway takes a little longer
 
+const IPFS = require("ipfs-core");
+const { HttpGateway } = require("ipfs-http-gateway");
 const ganache = require("ganache");
 const chai = require("chai");
 const chaiHttp = require("chai-http");
@@ -20,7 +25,6 @@ const GANACHE_PORT = 8545;
 const StatusCodes = require("http-status-codes").StatusCodes;
 const { waitSecs, callContractMethodWithTx } = require("./helpers/helpers");
 const { deployFromAbiAndBytecode } = require("./helpers/helpers");
-
 chai.use(chaiHttp);
 
 const binaryParser = function (res, cb) {
@@ -59,6 +63,10 @@ describe("Server", function () {
 
   before(async () => {
     await ganacheServer.listen(GANACHE_PORT);
+    const ipfs = await IPFS.create();
+    const httpGateway = new HttpGateway(ipfs);
+    await httpGateway.start();
+
     console.log("Started ganache local server on port " + GANACHE_PORT);
 
     localWeb3Provider = new Web3(`http://localhost:${GANACHE_PORT}`);
@@ -1486,7 +1494,7 @@ describe("Server", function () {
         "test",
         "sources",
         "truffle",
-        "truffle-example.zip",
+        "truffle-example.zip"
       );
       const zippedTruffleBuffer = fs.readFileSync(zippedTrufflePath);
       chai
@@ -1550,7 +1558,7 @@ describe("Server", function () {
           "test",
           "sources",
           "truffle",
-          "truffle-example.zip",
+          "truffle-example.zip"
         );
         const zippedTruffleBuffer = fs.readFileSync(zippedTrufflePath);
         chai
