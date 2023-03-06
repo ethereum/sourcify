@@ -549,7 +549,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // Canto Mainnet
     supported: true,
     monitored: false,
-    contractFetchAddress: "https://evm.explorer.canto.io/" + BLOCKSCOUT_SUFFIX,
+    contractFetchAddress: "https://tuber.build/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
   "99": {
