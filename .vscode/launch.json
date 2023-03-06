@@ -77,23 +77,52 @@
       "outputCapture": "std"
     },
     {
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen",
-      "name": "CLI",
-      "program": "${workspaceFolder}/dist/cli/sourcify.js",
-      "request": "launch",
-      "restart": true,
-      "preLaunchTask": "tsc: build - tsconfig.json",
       "type": "node",
+      "request": "launch",
+      "name": "Mocha - All",
+      "program": "${workspaceFolder}/node_modules/.bin/lerna",
+      "env": {
+        "TESTING": "true",
+      },
       "args": [
-        "-c",
-        "1",
-        "-a",
-        "0xfff0f5801a9e13426c306455A3BcC5EF3e9BC979",
-        "-f",
-        "test/testcontracts/ERC20Standard/ERC20Standard.sol",
-        "test/testcontracts/ERC20Standard/metadata.json"
-      ]
+        "run",
+        "test",
+        "--stream"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js",
+        "${workspaceFolder}/packages/**/build/**/*.js"
+      ],
+      "smartStep": true,
+      "skipFiles": [
+        "<node_internals>/**",
+        "node_modules/**"
+      ],
+      "console": "integratedTerminal",
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Mocha - Server",
+      "program": "${workspaceRoot}/node_modules/.bin/mocha",
+      "env": {
+        "DEBUG": "express:*", // Debug all express modules *
+        "TESTING": "true",
+      },
+      "args": [
+        "${workspaceFolder}/test/server.js",
+        "--no-timeout",
+        // Run a single test when debugging
+        // "--grep=v0.6.12",
+        "--exit",
+      ],
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js",
+        "${workspaceFolder}/packages/**/build/**/*.js",
+      ],
+      "smartStep": true,
+      "console": "integratedTerminal",
+      // "internalConsoleOptions": "neverOpen"
     },
     {
       "type": "node",
@@ -123,50 +152,6 @@
       // "internalConsoleOptions": "neverOpen"
     },
     {
-      "internalConsoleOptions": "openOnSessionStart",
-      "name": "Mocha - All",
-      "program": "${workspaceFolder}/node_modules/.bin/mocha",
-      "request": "launch",
-      "args": [
-        "--no-timeout",
-        "--colors"
-      ],
-      "outFiles": [
-        "${workspaceFolder}/dist/**/*.js",
-        "${workspaceFolder}/packages/**/build/**/*.js"
-      ],
-      "smartStep": true,
-      "envFile": "${workspaceFolder}/environments/.env",
-      "env": {
-        "TESTING": "true",
-      },
-      "skipFiles": [
-        "<node_internals>/**",
-        "node_modules/**"
-      ],
-      "type": "pwa-node",
-      "console": "integratedTerminal",
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Mocha - File",
-      "program": "${workspaceRoot}/node_modules/.bin/mocha",
-      "args": [
-        "--timeout",
-        "999999",
-        "--colors",
-        "${file}"
-      ],
-      "outFiles": [
-        "${workspaceFolder}/dist/**/*.js",
-        "${workspaceFolder}/packages/**/build/**/*.js"
-      ],
-      "smartStep": true,
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen"
-    },
-    {
       "type": "node",
       "request": "launch",
       "name": "Mocha - Monitor",
@@ -185,30 +170,6 @@
       "smartStep": true,
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Mocha - Server",
-      "program": "${workspaceRoot}/node_modules/.bin/mocha",
-      "env": {
-        "DEBUG": "express:*", // Debug all express modules *
-        "TESTING": "true",
-      },
-      "args": [
-        "${workspaceFolder}/test/server.js",
-        "--no-timeout",
-        // Run a single test when debugging
-        // "--grep=v0.6.12",
-        "--exit",
-      ],
-      "outFiles": [
-        "${workspaceFolder}/dist/**/*.js",
-        "${workspaceFolder}/packages/**/build/**/*.js",
-      ],
-      "smartStep": true,
-      "console": "integratedTerminal",
-      // "internalConsoleOptions": "neverOpen"
     },
     {
       "type": "node",
