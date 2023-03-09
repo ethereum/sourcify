@@ -12,6 +12,7 @@ import {
 } from './utils';
 import { describe, it, before } from 'mocha';
 import { expect } from 'chai';
+import { calculateCreate2Address } from '../src';
 
 const ganacheServer = Ganache.server({
   wallet: { totalAccounts: 1 },
@@ -222,5 +223,15 @@ describe('Verify Deployed Contract', () => {
     );
 
     expectMatch(match, 'perfect', childAddress);
+  });
+});
+
+describe('Cover all remaining verification functions', function () {
+  it('Should calculateCreate2Address', async function () {
+    calculateCreate2Address(
+      '0x71CB05EE1b1F506fF321Da3dac38f25c0c9ce6E1',
+      '123',
+      '0x00'
+    );
   });
 });
