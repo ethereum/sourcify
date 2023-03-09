@@ -449,14 +449,19 @@ export default class VerificationController
 
     const contract: CheckedContract = checkedContracts[0];
 
-    const result = await verifyCreate2(
+    const match = await verifyCreate2(
       contract,
       deployerAddress,
       salt,
       create2Address,
       abiEncodedConstructorArguments
     );
-    res.send({ result: [result] });
+
+    if (match.status) {
+      await this.repositoryService.storeMatch(contract, match);
+    }
+
+    res.send({ result: [match] });
   };
 
   private sessionVerifyCreate2 = async (
@@ -497,6 +502,10 @@ export default class VerificationController
     contractWrapper.statusMessage = match.message;
     contractWrapper.storageTimestamp = match.storageTimestamp;
     contractWrapper.address = match.address;
+
+    if (match.status) {
+      await this.repositoryService.storeMatch(contract, match);
+    }
 
     res.send(getSessionJSON(session));
   };

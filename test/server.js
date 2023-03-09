@@ -356,16 +356,28 @@ describe("Server", function () {
         .post("/session/verify/create2")
         .send({
           deployerAddress: "0xd9145CCE52D386f254917e481eB44e9943F39138",
-          salt: 12345,
+          salt: 12344,
           abiEncodedConstructorArguments:
             "0x0000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc40000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc4",
           clientToken: clientToken || "",
-          create2Address: "0x801B9c0Ee599C3E5ED60e4Ec285C95fC9878Ee64",
+          create2Address: "0x65790cc291a234eDCD6F28e1F37B036eD4F01e3B",
           verificationId: verificationId,
         })
         .end((err, res) => {
           assertAllFound(err, res, "perfect");
-          done();
+          chai
+            .request(server.app)
+            .get("/check-all-by-addresses")
+            .query({
+              chainIds: "0",
+              addresses: ["0x65790cc291a234eDCD6F28e1F37B036eD4F01e3B"],
+            })
+            .end((err, res) => {
+              chai.expect(err).to.be.null;
+              chai.expect(res.body).to.have.a.lengthOf(1);
+              chai.expect(res.body[0].chainIds).to.have.a.lengthOf(1);
+              done();
+            });
         });
     });
 
@@ -399,7 +411,19 @@ describe("Server", function () {
         })
         .end((err, res) => {
           assertAPIAllFound(err, res, "perfect");
-          done();
+          chai
+            .request(server.app)
+            .get("/check-all-by-addresses")
+            .query({
+              chainIds: "0",
+              addresses: ["0x801B9c0Ee599C3E5ED60e4Ec285C95fC9878Ee64"],
+            })
+            .end((err, res) => {
+              chai.expect(err).to.be.null;
+              chai.expect(res.body).to.have.a.lengthOf(1);
+              chai.expect(res.body[0].chainIds).to.have.a.lengthOf(1);
+              done();
+            });
         });
     });
   });
