@@ -301,6 +301,7 @@ export async function matchWithCreationTx(
         recompiledCreationBytecode
       );
     match.abiEncodedConstructorArguments = abiEncodedConstructorArguments;
+    match.creatorTxHash = creatorTxHash;
   }
 }
 /**

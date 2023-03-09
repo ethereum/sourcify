@@ -69,6 +69,7 @@ export type VerificationInput = {
     abiEncodedConstructorArguments?: string;
     msgSender?: string;
   };
+  creatorTxHash?: string;
 };
 
 export type Create2VerificationInput = {

@@ -23,7 +23,11 @@ const MAX_SESSION_SIZE =
   require("../dist/server/controllers/VerificationController-util").MAX_SESSION_SIZE;
 const GANACHE_PORT = 8545;
 const StatusCodes = require("http-status-codes").StatusCodes;
-const { waitSecs, callContractMethodWithTx } = require("./helpers/helpers");
+const {
+  waitSecs,
+  callContractMethodWithTx,
+  deployFromAbiAndBytecodeForCreatorTxHash,
+} = require("./helpers/helpers");
 const { deployFromAbiAndBytecode } = require("./helpers/helpers");
 chai.use(chaiHttp);
 
@@ -352,16 +356,28 @@ describe("Server", function () {
         .post("/session/verify/create2")
         .send({
           deployerAddress: "0xd9145CCE52D386f254917e481eB44e9943F39138",
-          salt: 12345,
+          salt: 12344,
           abiEncodedConstructorArguments:
             "0x0000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc40000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc4",
           clientToken: clientToken || "",
-          create2Address: "0x801B9c0Ee599C3E5ED60e4Ec285C95fC9878Ee64",
+          create2Address: "0x65790cc291a234eDCD6F28e1F37B036eD4F01e3B",
           verificationId: verificationId,
         })
         .end((err, res) => {
           assertAllFound(err, res, "perfect");
-          done();
+          chai
+            .request(server.app)
+            .get("/check-all-by-addresses")
+            .query({
+              chainIds: "0",
+              addresses: ["0x65790cc291a234eDCD6F28e1F37B036eD4F01e3B"],
+            })
+            .end((err, res) => {
+              chai.expect(err).to.be.null;
+              chai.expect(res.body).to.have.a.lengthOf(1);
+              chai.expect(res.body[0].chainIds).to.have.a.lengthOf(1);
+              done();
+            });
         });
     });
 
@@ -395,7 +411,19 @@ describe("Server", function () {
         })
         .end((err, res) => {
           assertAPIAllFound(err, res, "perfect");
-          done();
+          chai
+            .request(server.app)
+            .get("/check-all-by-addresses")
+            .query({
+              chainIds: "0",
+              addresses: ["0x801B9c0Ee599C3E5ED60e4Ec285C95fC9878Ee64"],
+            })
+            .end((err, res) => {
+              chai.expect(err).to.be.null;
+              chai.expect(res.body).to.have.a.lengthOf(1);
+              chai.expect(res.body[0].chainIds).to.have.a.lengthOf(1);
+              done();
+            });
         });
     });
   });
@@ -823,6 +851,67 @@ describe("Server", function () {
         .send();
 
       assertions(null, res, null, address, "partial");
+    });
+
+    it("should fail to verify a contract with immutables but should succeed with creatorTxHash and save creator-tx-hash.txt", async () => {
+      const artifact = require("./testcontracts/WithImmutables/artifact.json");
+      const [address, creatorTxHash] =
+        await deployFromAbiAndBytecodeForCreatorTxHash(
+          localWeb3Provider,
+          artifact.abi,
+          artifact.bytecode,
+          accounts[0],
+          [999]
+        );
+
+      const metadata = require("./testcontracts/WithImmutables/metadata.json");
+      const sourcePath = path.join(
+        "test",
+        "testcontracts",
+        "WithImmutables",
+        "sources",
+        "WithImmutables.sol"
+      );
+      const sourceBuffer = fs.readFileSync(sourcePath);
+
+      const res1 = await chai
+        .request(server.app)
+        .post("/")
+        .send({
+          address: address,
+          chain: defaultContractChain,
+          files: {
+            "metadata.json": JSON.stringify(metadata),
+            "WithImmutables.sol": sourceBuffer.toString(),
+          },
+        });
+      assertBytecodesDontMatch(null, res1);
+
+      // Now pass the creatorTxHash
+      const res2 = await chai
+        .request(server.app)
+        .post("/")
+        .send({
+          address: address,
+          chain: defaultContractChain,
+          files: {
+            "metadata.json": JSON.stringify(metadata),
+            "WithImmutables.sol": sourceBuffer.toString(),
+          },
+          creatorTxHash: creatorTxHash,
+        });
+      assertions(null, res2, null, address);
+      assertEqualityFromPath(
+        creatorTxHash,
+        path.join(
+          server.repository,
+          "contracts",
+          "full_match",
+          defaultContractChain,
+          address,
+          "creator-tx-hash.txt"
+        )
+      );
     });
 
     it("should verify a contract created by a factory contract and has immutables without constructor arguments but with msg.sender assigned immutable", async () => {
@@ -1571,6 +1660,64 @@ describe("Server", function () {
             done();
           });
       });
+    });
+
+    it("should fail to verify a contract with immutables but should succeed with creatorTxHash and save creator-tx-hash.txt", async () => {
+      const artifact = require("./testcontracts/WithImmutables/artifact.json");
+      const [address, creatorTxHash] =
+        await deployFromAbiAndBytecodeForCreatorTxHash(
+          localWeb3Provider,
+          artifact.abi,
+          artifact.bytecode,
+          accounts[0],
+          [999]
+        );
+
+      const metadata = require("./testcontracts/WithImmutables/metadata.json");
+      const metadataBuffer = Buffer.from(JSON.stringify(metadata));
+      const sourcePath = path.join(
+        "test",
+        "testcontracts",
+        "WithImmutables",
+        "sources",
+        "WithImmutables.sol"
+      );
+      const sourceBuffer = fs.readFileSync(sourcePath);
+
+      const agent = chai.request.agent(server.app);
+
+      const res1 = await agent
+        .post("/session/input-files")
+        .attach("files", sourceBuffer)
+        .attach("files", metadataBuffer);
+
+      let contracts = assertSingleContractStatus(res1, "error");
+
+      contracts[0].address = address;
+      contracts[0].chainId = defaultContractChain;
+      const res2 = await agent
+        .post("/session/verify-validated")
+        .send({ contracts });
+
+      contracts = assertSingleContractStatus(res2, "error");
+      contracts[0].creatorTxHash = creatorTxHash;
+
+      const res3 = await agent
+        .post("/session/verify-validated")
+        .send({ contracts });
+
+      assertSingleContractStatus(res3, "perfect");
+      assertEqualityFromPath(
+        creatorTxHash,
+        path.join(
+          server.repository,
+          "contracts",
+          "full_match",
+          defaultContractChain,
+          address,
+          "creator-tx-hash.txt"
+        )
+      );
     });
 
     it("should verify a contract created by a factory contract and has immutables", async () => {

@@ -162,6 +162,7 @@ export type ContractMeta = {
     abiEncodedConstructorArguments?: string;
     msgSender?: string;
   };
+  creatorTxHash?: string;
   status?: Status;
   statusMessage?: string;
   storageTimestamp?: Date;
@@ -387,7 +388,8 @@ export const verifyContractsInSession = async (
       continue;
     }
 
-    const { address, chainId, contract, contextVariables } = contractWrapper;
+    const { address, chainId, contract, contextVariables, creatorTxHash } =
+      contractWrapper;
 
     // The session saves the CheckedContract as a simple object, so we need to reinstantiate it
     const checkedContract = new CheckedContract(
@@ -410,7 +412,8 @@ export const verifyContractsInSession = async (
           checkedContract,
           chainId as string,
           address as string,
-          contextVariables
+          contextVariables,
+          creatorTxHash
         );
         // Send to verification again with all source files.
         if (match.status === "extra-file-input-bug") {

@@ -17,7 +17,7 @@ import { expect } from 'chai';
 /**
  *  Function to deploy contracts from provider unlocked accounts
  *
- * @returns the address of the deployed contract
+ * @returns the address of the deployed contract and the creator tx hash
  */
 // TODO: ABI type definition
 export async function deployFromAbiAndBytecode(
