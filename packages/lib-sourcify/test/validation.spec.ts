@@ -198,8 +198,9 @@ describe('Cover all remaining validation functions', function () {
   });
   it('Should unzip', async function () {
     const zippedTrufflePath = path.join(
-      'sources',
-      'truffle',
+      'test',
+      'validation',
+      'files',
       'truffle-example.zip'
     );
     const zippedTruffleBuffer = fs.readFileSync(zippedTrufflePath);
