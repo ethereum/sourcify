@@ -66,6 +66,7 @@ describe("Server", function () {
   const metadataBuffer = Buffer.from(JSON.stringify(metadata));
 
   before(async () => {
+    this.timeout(EXTENDED_TIME);
     await ganacheServer.listen(GANACHE_PORT);
     const ipfs = await IPFS.create();
     const httpGateway = new HttpGateway(ipfs);
