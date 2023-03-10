@@ -97,6 +97,7 @@
     "lerna": "^3.22.1",
     "mocha": "^7.0.0",
     "mochawesome": "^7.1.2",
+    "open-cli": "^7.1.0",
     "prettier": "^2.7.1",
     "rimraf": "^3.0.2",
     "ts-node": "^9.0.0",
