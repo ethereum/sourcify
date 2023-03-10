@@ -84,14 +84,23 @@ export default {
         "monitored": false,
     },
     "1284": { // Moonbeam
+        "rpc": ["https://moonbeam.api.onfinality.io/public"],
+        "contractFetchAddress": "https://moonbeam.api.subscan.io/api/scan/evm/contract",
+        "subscan":true,
         "supported": true,
         "monitored": false
     },
     "1285": { // Moonriver
+        "rpc": ["https://moonriver.api.onfinality.io/public"],
+        "contractFetchAddress": "https://moonriver.api.subscan.io/api/scan/evm/contract",
+        "subscan":true,
         "supported": true,
         "monitored": false
     },
     "1287": { // Moonbase
+        "rpc": ["https://moonbeam-alpha.api.onfinality.io/public"],
+        "contractFetchAddress": "https://moonbase.api.subscan.io/api/scan/evm/contract",
+        "subscan":true,
         "supported": true,
         "monitored": false
     },
