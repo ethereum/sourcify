@@ -65,8 +65,8 @@ describe("Server", function () {
   const metadata = require("./testcontracts/Storage/metadata.json");
   const metadataBuffer = Buffer.from(JSON.stringify(metadata));
 
+  this.timeout(EXTENDED_TIME);
   before(async () => {
-    this.timeout(EXTENDED_TIME);
     await ganacheServer.listen(GANACHE_PORT);
     const ipfs = await IPFS.create();
     const httpGateway = new HttpGateway(ipfs);
