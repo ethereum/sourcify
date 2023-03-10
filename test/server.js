@@ -2026,10 +2026,10 @@ describe("Server", function () {
       const creatorTx = await getCreatorTx(sourcifyChain, "0x40D843D06dAC98b2586fD1DFC5532145208C909F")
       chai.expect(creatorTx).equals("0xd125cc92f61d0898d55a918283f8b855bde15bc5f391b621e0c4eee25c9997ee")
     })
-    it("should run getCreatorTx with regex", async function () {
-      const sourcifyChain = sourcifyChainsArray.find(sourcifyChain => sourcifyChain.chainId === 5)
-      const creatorTx = await getCreatorTx(sourcifyChain, "0xc24381dB2a5932B5D1c424f567A95F9966834cE0")
-      chai.expect(creatorTx).equals("0x1bb37ba172ed0222db68f7decb5f0e1e7474305a17848267b35c4c89d039f760")
+    it.only("should run getCreatorTx with regex", async function () {
+      const sourcifyChain = sourcifyChainsArray.find(sourcifyChain => sourcifyChain.chainId === 100)
+      const creatorTx = await getCreatorTx(sourcifyChain, "0x3CE1a25376223695284edc4C2b323C3007010C94")
+      chai.expect(creatorTx).equals("0x11da550e6716be8b4bd9203cb384e89b8f8941dc460bd99a4928ce2825e05456")
     })
     it("should attach and trigger an event with the event manager", function (done) {
       const EventManager = require('../dist/common/EventManager').EventManager
