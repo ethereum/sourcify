@@ -2,6 +2,7 @@ import HardhatDeploy from "../../assets/integrations/hardhat-deploy";
 import remix from "../../assets/integrations/remix.png";
 import foundry from "../../assets/integrations/foundry.png";
 import truffle from "../../assets/integrations/truffle.png";
+import wagmi from "../../assets/integrations/wagmi.png";
 import AppIconName from "../../components/AppIconName";
 
 export default function ToolsPlugin() {
@@ -11,7 +12,7 @@ export default function ToolsPlugin() {
       <h2 className="text-2xl text-ceruleanBlue-500 font-semibold">
         Frameworks & Plugins
       </h2>
-      <div className="flex justify-center md:justify-start flex-row mt-8 logos-container">
+      <div className="flex justify-center md:justify-start flex-row mt-8 flex-wrap logos-container">
         <AppIconName
           img={foundry}
           name="Foundry"
@@ -31,6 +32,11 @@ export default function ToolsPlugin() {
           img={truffle}
           name="truflle-plugin-verify"
           href="https://github.com/rkalis/truffle-plugin-verify"
+        />
+        <AppIconName
+          img={wagmi}
+          name='Wagmi'
+          href="https://wagmi.sh/cli/plugins/sourcify"
         />
       </div>
     </div>
