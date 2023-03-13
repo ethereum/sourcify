@@ -3,7 +3,12 @@ process.env.TESTING = true;
 process.env.MOCK_REPOSITORY = "./dist/data/mock-repository";
 process.env.SOLC_REPO = "./dist/data/solc-repo";
 process.env.SOLJSON_REPO = "/dist/data/soljson-repo";
+// ipfs-http-gateway runs on port 9090
+process.env.IPFS_GATEWAY = "http://localhost:9090/ipfs/";
+process.env.FETCH_TIMEOUT = 15000; // instantiated http-gateway takes a little longer
 
+const IPFS = require("ipfs-core");
+const { HttpGateway } = require("ipfs-http-gateway");
 const ganache = require("ganache");
 const chai = require("chai");
 const chaiHttp = require("chai-http");
@@ -15,13 +20,15 @@ const path = require("path");
 const Web3 = require("web3");
 const MAX_FILE_SIZE = require("../dist/config").default.server.maxFileSize;
 const MAX_SESSION_SIZE =
-  require("../dist/server/controllers/VerificationController").default
-    .MAX_SESSION_SIZE;
+  require("../dist/server/controllers/VerificationController-util").MAX_SESSION_SIZE;
 const GANACHE_PORT = 8545;
 const StatusCodes = require("http-status-codes").StatusCodes;
-const { waitSecs, callContractMethodWithTx } = require("./helpers/helpers");
+const {
+  waitSecs,
+  callContractMethodWithTx,
+  deployFromAbiAndBytecodeForCreatorTxHash,
+} = require("./helpers/helpers");
 const { deployFromAbiAndBytecode } = require("./helpers/helpers");
-
 chai.use(chaiHttp);
 
 const binaryParser = function (res, cb) {
@@ -60,6 +67,10 @@ describe("Server", function () {
 
   before(async () => {
     await ganacheServer.listen(GANACHE_PORT);
+    const ipfs = await IPFS.create();
+    const httpGateway = new HttpGateway(ipfs);
+    await httpGateway.start();
+
     console.log("Started ganache local server on port " + GANACHE_PORT);
 
     localWeb3Provider = new Web3(`http://localhost:${GANACHE_PORT}`);
@@ -160,7 +171,12 @@ describe("Server", function () {
   };
 
   if (process.env.CIRCLE_PR_REPONAME === undefined) {
-    describe("/session/verify/etherscan", function () {
+    describe("Verify with etherscan", function () {
+      beforeEach(async () => {
+        // Await 1.5 secs otherwise the API limit is reached
+        await waitSecs(1.5);
+      });
+
       const assertAllFound = (err, res, finalStatus) => {
         chai.expect(err).to.be.null;
         chai.expect(res.status).to.equal(StatusCodes.OK);
@@ -179,6 +195,24 @@ describe("Server", function () {
       };
 
       this.timeout(EXTENDED_TIME_60);
+
+      it("without session: should import contract information from etherscan (multiple files) and verify the contract, finding a partial match", (done) => {
+        chai
+          .request(server.app)
+          .post("/verify/etherscan")
+          .field("address", "0x5aa653a076c1dbb47cec8c1b4d152444cad91941")
+          .field("chainId", "1")
+          .end((err, res) => {
+            assertions(
+              err,
+              res,
+              false,
+              "0x5aa653a076c1dbb47cec8c1b4d152444cad91941",
+              "partial"
+            );
+            done();
+          });
+      });
 
       it("should fail for missing address", (done) => {
         chai
@@ -214,25 +248,6 @@ describe("Server", function () {
           });
       });
 
-      it("should fail by exceeding rate limit on etherscan APIs", (done) => {
-        chai
-          .request(server.app)
-          .post("/session/verify/etherscan")
-          .field("address", fakeAddress)
-          .field("chainId", "1")
-          .end(() => {
-            chai
-              .request(server.app)
-              .post("/session/verify/etherscan")
-              .field("address", fakeAddress)
-              .field("chainId", "1")
-              .end((err, res) => {
-                assertEtherscanError(err, res);
-                done();
-              });
-          });
-      });
-
       it("should import contract information from etherscan (single file) and verify the contract, finding a partial match", (done) => {
         chai
           .request(server.app)
@@ -256,10 +271,29 @@ describe("Server", function () {
             done();
           });
       });
+
+      it("should fail by exceeding rate limit on etherscan APIs", (done) => {
+        chai
+          .request(server.app)
+          .post("/session/verify/etherscan")
+          .field("address", fakeAddress)
+          .field("chainId", "1")
+          .end(() => {
+            chai
+              .request(server.app)
+              .post("/session/verify/etherscan")
+              .field("address", fakeAddress)
+              .field("chainId", "1")
+              .end((err, res) => {
+                assertEtherscanError(err, res);
+                done();
+              });
+          });
+      });
     });
   }
 
-  describe("/session/verify/create2", function () {
+  describe("Verify create2", function () {
     const assertAllFound = (err, res, finalStatus) => {
       chai.expect(err).to.be.null;
       chai.expect(res.status).to.equal(StatusCodes.OK);
@@ -298,7 +332,6 @@ describe("Server", function () {
         [accounts[0], accounts[0]]
       );
 
-      process.env.IPFS_GATEWAY = "https://ipfs.io/ipfs/";
       const res = await agent
         .post("/session/input-contract")
         .field("address", addressDeployed)
@@ -323,16 +356,28 @@ describe("Server", function () {
         .post("/session/verify/create2")
         .send({
           deployerAddress: "0xd9145CCE52D386f254917e481eB44e9943F39138",
-          salt: 12345,
+          salt: 12344,
           abiEncodedConstructorArguments:
             "0x0000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc40000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc4",
           clientToken: clientToken || "",
-          create2Address: "0x801B9c0Ee599C3E5ED60e4Ec285C95fC9878Ee64",
+          create2Address: "0x65790cc291a234eDCD6F28e1F37B036eD4F01e3B",
           verificationId: verificationId,
         })
         .end((err, res) => {
           assertAllFound(err, res, "perfect");
-          done();
+          chai
+            .request(server.app)
+            .get("/check-all-by-addresses")
+            .query({
+              chainIds: "0",
+              addresses: ["0x65790cc291a234eDCD6F28e1F37B036eD4F01e3B"],
+            })
+            .end((err, res) => {
+              chai.expect(err).to.be.null;
+              chai.expect(res.body).to.have.a.lengthOf(1);
+              chai.expect(res.body[0].chainIds).to.have.a.lengthOf(1);
+              done();
+            });
         });
     });
 
@@ -366,7 +411,19 @@ describe("Server", function () {
         })
         .end((err, res) => {
           assertAPIAllFound(err, res, "perfect");
-          done();
+          chai
+            .request(server.app)
+            .get("/check-all-by-addresses")
+            .query({
+              chainIds: "0",
+              addresses: ["0x801B9c0Ee599C3E5ED60e4Ec285C95fC9878Ee64"],
+            })
+            .end((err, res) => {
+              chai.expect(err).to.be.null;
+              chai.expect(res.body).to.have.a.lengthOf(1);
+              chai.expect(res.body[0].chainIds).to.have.a.lengthOf(1);
+              done();
+            });
         });
     });
   });
@@ -796,177 +853,65 @@ describe("Server", function () {
       assertions(null, res, null, address, "partial");
     });
 
-    it("should verify a contract with library placeholders", async () => {
-      // Originally https://goerli.etherscan.io/address/0x399B23c75d8fd0b95E81E41e1c7c88937Ee18000#code
-      const artifact = require("./sources/artifacts/UsingLibrary.json");
-      const address = await deployFromAbiAndBytecode(
-        localWeb3Provider,
-        artifact.abi,
-        artifact.bytecode,
-        accounts[0]
-      );
-      const metadataPath = path.join(
+    it("should fail to verify a contract with immutables but should succeed with creatorTxHash and save creator-tx-hash.txt", async () => {
+      const artifact = require("./testcontracts/WithImmutables/artifact.json");
+      const [address, creatorTxHash] =
+        await deployFromAbiAndBytecodeForCreatorTxHash(
+          localWeb3Provider,
+          artifact.abi,
+          artifact.bytecode,
+          accounts[0],
+          [999]
+        );
+
+      const metadata = require("./testcontracts/WithImmutables/metadata.json");
+      const sourcePath = path.join(
         "test",
+        "testcontracts",
+        "WithImmutables",
         "sources",
-        "metadata",
-        "using-library.meta.object.json"
-      );
-      const metadataBuffer = fs.readFileSync(metadataPath);
-
-      const sourcePath = path.join(
-        "test",
-        "sources",
-        "contracts",
-        "UsingLibrary.sol"
+        "WithImmutables.sol"
       );
       const sourceBuffer = fs.readFileSync(sourcePath);
 
-      const res = await chai
-        .request(server.app)
-        .post("/")
-        .field("address", address)
-        .field("chain", defaultContractChain)
-        .attach("files", metadataBuffer)
-        .attach("files", sourceBuffer)
-        .send();
-
-      assertions(null, res, null, address, "perfect");
-
-      const res2 = await chai
-        .request(server.app)
-        .get(
-          `/repository/contracts/full_match/${defaultContractChain}/${address}/library-map.json`
-        )
-        .buffer()
-        .parse(binaryParser)
-        .send();
-
-      chai.expect(res2.status).to.equal(StatusCodes.OK);
-      const receivedLibraryMap = JSON.parse(res2.body.toString());
-      const expectedLibraryMap = {
-        __$da572ae5e60c838574a0f88b27a0543803$__:
-          "11fea6722e00ba9f43861a6e4da05fecdf9806b7",
-      };
-      chai.expect(receivedLibraryMap).to.deep.equal(expectedLibraryMap);
-    });
-
-    it("should verify a contract with viaIR:true", async () => {
-      const artifact = require("./testcontracts/Storage/Storage-viaIR.json");
-      const address = await deployFromAbiAndBytecode(
-        localWeb3Provider,
-        artifact.abi,
-        artifact.bytecode,
-        accounts[0]
-      );
-      // metadata is in artifact JSON
-      const metadataBuffer = Buffer.from(artifact.metadata);
-
-      const sourcePath = path.join(
-        "test",
-        "testcontracts",
-        "Storage",
-        "Storage.sol"
-      );
-      const sourceBuffer = fs.readFileSync(sourcePath);
-
-      const res = await chai
-        .request(server.app)
-        .post("/")
-        .field("address", address)
-        .field("chain", defaultContractChain)
-        .attach("files", metadataBuffer, "metadata.json")
-        .attach("files", sourceBuffer, "Storage.sol")
-        .send();
-      assertions(null, res, null, address);
-    });
-
-    // https://github.com/ethereum/sourcify/issues/640
-    it("should remove the inliner option from metadata for solc >=0.8.2 to <=0.8.4", async () => {
-      const artifact = require("./testcontracts/Storage/Storage.json");
-      const address = await deployFromAbiAndBytecode(
-        localWeb3Provider,
-        artifact.abi,
-        artifact.bytecode,
-        accounts[0]
-      );
-      const metadataPath = path.join(
-        "test",
-        "testcontracts",
-        "Storage",
-        "metadata-inliner.json"
-      );
-      const metadataBuffer = fs.readFileSync(metadataPath);
-
-      const sourcePath = path.join(
-        "test",
-        "testcontracts",
-        "Storage",
-        "Storage.sol"
-      );
-      const sourceBuffer = fs.readFileSync(sourcePath);
-
-      const res = await chai
-        .request(server.app)
-        .post("/")
-        .field("address", address)
-        .field("chain", defaultContractChain)
-        .attach("files", metadataBuffer, "metadata-inliner.json")
-        .attach("files", sourceBuffer, "Storage.sol")
-        .send();
-      assertions(null, res, null, address);
-    });
-
-    it("should verify a contract created by a factory contract and has immutables", async () => {
-      const deployValue = 12345;
-
-      const artifact = require("./testcontracts/FactoryImmutable/Factory.json");
-      const factoryAddress = await deployFromAbiAndBytecode(
-        localWeb3Provider,
-        artifact.abi,
-        artifact.bytecode,
-        accounts[0]
-      );
-
-      // Deploy child by calling deploy(uint)
-      const childMetadata = require("./testcontracts/FactoryImmutable/Child_metadata.json");
-      const childMetadataBuffer = Buffer.from(JSON.stringify(childMetadata));
-      const txReceipt = await callContractMethodWithTx(
-        localWeb3Provider,
-        artifact.abi,
-        factoryAddress,
-        "deploy",
-        accounts[0],
-        [deployValue]
-      );
-
-      const childAddress = txReceipt.events.Deployment.returnValues[0];
-      const sourcePath = path.join(
-        "test",
-        "testcontracts",
-        "FactoryImmutable",
-        "FactoryTest.sol"
-      );
-      const sourceBuffer = fs.readFileSync(sourcePath);
-
-      const abiEncoded = localWeb3Provider.eth.abi.encodeParameter(
-        "uint",
-        deployValue
-      );
-      const res = await chai
+      const res1 = await chai
         .request(server.app)
         .post("/")
         .send({
-          address: childAddress,
+          address: address,
           chain: defaultContractChain,
-          contextVariables: {
-            abiEncodedConstructorArguments: abiEncoded,
-          },
           files: {
-            "metadata.json": JSON.stringify(childMetadata),
-            "FactoryTest.sol": sourceBuffer.toString(),
+            "metadata.json": JSON.stringify(metadata),
+            "WithImmutables.sol": sourceBuffer.toString(),
           },
         });
-      assertions(null, res, null, childAddress);
+      assertBytecodesDontMatch(null, res1);
+
+      // Now pass the creatorTxHash
+      const res2 = await chai
+        .request(server.app)
+        .post("/")
+        .send({
+          address: address,
+          chain: defaultContractChain,
+          files: {
+            "metadata.json": JSON.stringify(metadata),
+            "WithImmutables.sol": sourceBuffer.toString(),
+          },
+          creatorTxHash: creatorTxHash,
+        });
+      assertions(null, res2, null, address);
+      assertEqualityFromPath(
+        creatorTxHash,
+        path.join(
+          server.repository,
+          "contracts",
+          "full_match",
+          defaultContractChain,
+          address,
+          "creator-tx-hash.txt"
+        )
+      );
     });
 
     it("should verify a contract created by a factory contract and has immutables without constructor arguments but with msg.sender assigned immutable", async () => {
@@ -1097,7 +1042,7 @@ describe("Server", function () {
           "full_match",
           defaultContractChain,
           childAddress,
-          "contextVariables.json"
+          "context-variables.json"
         ),
         { isJson: true }
       );
@@ -1163,7 +1108,7 @@ describe("Server", function () {
           "full_match",
           defaultContractChain,
           childAddress,
-          "contextVariables.json"
+          "context-variables.json"
         ),
         { isJson: true }
       );
@@ -1634,10 +1579,9 @@ describe("Server", function () {
 
     it("should find contracts in a zipped Truffle project", (done) => {
       const zippedTrufflePath = path.join(
-        "services",
-        "validation",
         "test",
-        "files",
+        "sources",
+        "truffle",
         "truffle-example.zip"
       );
       const zippedTruffleBuffer = fs.readFileSync(zippedTrufflePath);
@@ -1699,10 +1643,9 @@ describe("Server", function () {
 
       it("should find contracts in a zipped Truffle project", (done) => {
         const zippedTrufflePath = path.join(
-          "services",
-          "validation",
           "test",
-          "files",
+          "sources",
+          "truffle",
           "truffle-example.zip"
         );
         const zippedTruffleBuffer = fs.readFileSync(zippedTrufflePath);
@@ -1717,6 +1660,64 @@ describe("Server", function () {
             done();
           });
       });
+    });
+
+    it("should fail to verify a contract with immutables but should succeed with creatorTxHash and save creator-tx-hash.txt", async () => {
+      const artifact = require("./testcontracts/WithImmutables/artifact.json");
+      const [address, creatorTxHash] =
+        await deployFromAbiAndBytecodeForCreatorTxHash(
+          localWeb3Provider,
+          artifact.abi,
+          artifact.bytecode,
+          accounts[0],
+          [999]
+        );
+
+      const metadata = require("./testcontracts/WithImmutables/metadata.json");
+      const metadataBuffer = Buffer.from(JSON.stringify(metadata));
+      const sourcePath = path.join(
+        "test",
+        "testcontracts",
+        "WithImmutables",
+        "sources",
+        "WithImmutables.sol"
+      );
+      const sourceBuffer = fs.readFileSync(sourcePath);
+
+      const agent = chai.request.agent(server.app);
+
+      const res1 = await agent
+        .post("/session/input-files")
+        .attach("files", sourceBuffer)
+        .attach("files", metadataBuffer);
+
+      let contracts = assertSingleContractStatus(res1, "error");
+
+      contracts[0].address = address;
+      contracts[0].chainId = defaultContractChain;
+      const res2 = await agent
+        .post("/session/verify-validated")
+        .send({ contracts });
+
+      contracts = assertSingleContractStatus(res2, "error");
+      contracts[0].creatorTxHash = creatorTxHash;
+
+      const res3 = await agent
+        .post("/session/verify-validated")
+        .send({ contracts });
+
+      assertSingleContractStatus(res3, "perfect");
+      assertEqualityFromPath(
+        creatorTxHash,
+        path.join(
+          server.repository,
+          "contracts",
+          "full_match",
+          defaultContractChain,
+          address,
+          "creator-tx-hash.txt"
+        )
+      );
     });
 
     it("should verify a contract created by a factory contract and has immutables", async () => {
@@ -1899,7 +1900,7 @@ describe("Server", function () {
           "full_match",
           defaultContractChain,
           childAddress,
-          "contextVariables.json"
+          "context-variables.json"
         ),
         { isJson: true }
       );

@@ -1,6 +1,7 @@
-import { CheckedContract, SourcifyEventManager } from "@ethereum-sourcify/core";
+import { CheckedContract } from "@ethereum-sourcify/lib-sourcify";
 import { StatusCodes } from "http-status-codes";
 import nodeFetch from "node-fetch";
+import { SourcifyEventManager } from "../common/SourcifyEventManager/SourcifyEventManager";
 import { IGateway, SimpleGateway } from "./gateway";
 import PendingContract from "./pending-contract";
 import { SourceAddress, FetchedFileCallback } from "./util";

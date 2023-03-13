@@ -5,16 +5,14 @@ import cors from "cors";
 import routes from "./routes";
 import bodyParser from "body-parser";
 import config from "../config";
-import {
-  getSourcifyChains,
-  SourcifyEventManager,
-} from "@ethereum-sourcify/core";
+import { SourcifyEventManager } from "../common/SourcifyEventManager/SourcifyEventManager";
 import genericErrorHandler from "./middlewares/GenericErrorHandler";
 import notFoundHandler from "./middlewares/NotFoundError";
 import useApiLogging from "./middlewares/ApiLogging";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 import util from "util";
+import { sourcifyChainsArray } from "../sourcify-chains";
 const MemoryStore = createMemoryStore(session);
 
 export class Server {
@@ -55,7 +53,7 @@ export class Server {
       res.status(200).send("Alive and kicking!")
     );
     this.app.get("/chains", (_req, res) => {
-      const sourcifyChains = getSourcifyChains().map(({ rpc, ...rest }) => {
+      const sourcifyChains = sourcifyChainsArray.map(({ rpc, ...rest }) => {
         // Don't show Alchemy & Infura IDs
         rpc = rpc.map((url) => {
           if (url.includes("alchemy"))

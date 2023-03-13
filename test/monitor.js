@@ -33,7 +33,7 @@ class MonitorWrapper extends EventEmitter {
     this.monitor.on("contract-already-verified", (chainId, address) => {
       this.emit("contract-already-verified", chainId, address);
     });
-    chai.expect(this.monitor.chainMonitors).to.have.a.lengthOf(1); // Number of chains in TEST_CHAINS at services/core/utils/utils.ts
+    chai.expect(this.monitor.chainMonitors).to.have.a.lengthOf(1); // Number of chains in TEST_CHAINS at sourcify-chains.ts
     this.chainId = this.monitor.chainMonitors[0].chainId;
   }
 

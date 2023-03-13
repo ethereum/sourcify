@@ -2,7 +2,7 @@ const { deployFromPrivateKey } = require("../helpers/helpers");
 const Web3 = require("web3");
 const ImmutableArtifact = require("./sources/shared/WithImmutables.json");
 const StorageArtifact = require("./sources/shared/1_Storage.json");
-const { getSupportedChains } = require("@ethereum-sourcify/core");
+const { supportedChainsArray } = require("../../dist/sourcify-chains");
 const { program } = require("commander");
 
 program
@@ -13,7 +13,7 @@ program
   .usage("--chainId=<chainId> --privateKey=<privateKey>")
   .requiredOption(
     "--chainId <chainId>",
-    "Chain ID of the chain to deploy the contract. The chain must be added to services/core/sourcify-chains.ts. Also make sure to build typescript after adding the chain with `npx lerna run build`."
+    "Chain ID of the chain to deploy the contract. The chain must be added to src/sourcify-chains.ts. Also make sure to build typescript after adding the chain with `npx lerna run build`."
   )
   .requiredOption(
     "--privateKey <privateKey>",
@@ -43,7 +43,7 @@ if (require.main === module) {
 }
 
 async function main(chainId, immutableValue, privateKey, type) {
-  const chains = getSupportedChains();
+  const chains = supportedChainsArray;
   const chain = chains.find((chain) => chain.chainId == chainId);
   if (!chain) {
     console.error(
@@ -57,7 +57,7 @@ async function main(chainId, immutableValue, privateKey, type) {
     web3 = new Web3(chain.rpc[0]);
   } catch (err) {
     console.log(
-      `Can't initiate a Web3 instance with the chain: ${chain}. \n\nMake sure the chainId is added to services/core/sourcify-chains.ts and built with npx lerna run build`
+      `Can't initiate a Web3 instance with the chain: ${chain}. \n\nMake sure the chainId is added to src/sourcify-chains.ts and built with npx lerna run build`
     );
     throw new Error(err);
   }

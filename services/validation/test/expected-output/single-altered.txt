@@ -1,8 +1,0 @@
-Storage (browser/1_Storage.sol):
-  Error: Missing sources:
-  The following files were not provided (or were altered, so their hash doesn't match the one in the metadata).
-  Please retrieve the files (potentially via ipfs) and re-run the script.
-    browser/1_Storage.sol:
-      keccak256: 0xaedc7086ad8503907209f50bac1e4dc6c2eca2ed41b15d03740fea748ea3f88e
-      bzz-raw://4bc331951c25951321cb29abbd689eb3af669530222c6bb2d45ff45334ee83a7
-      dweb:/ipfs/QmWb1NQ6Pw8ZLMFX8uDjMyftgcEieT9iP2TvWisPhjN3U2

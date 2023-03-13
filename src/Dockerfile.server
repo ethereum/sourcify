@@ -1,12 +1,9 @@
 FROM node:16
 WORKDIR /home/app
 
-COPY packages/bytecode-utils ./packages/bytecode-utils
-COPY services/core ./services/core
-COPY services/validation ./services/validation
-COPY services/verification ./services/verification
+COPY packages ./packages
 COPY src ./src
 COPY *.json ./
-RUN npx lerna bootstrap && npx lerna run build
+RUN npx lerna bootstrap --ci && npx lerna run build
 
 CMD ["npm", "run", "server:start"]
