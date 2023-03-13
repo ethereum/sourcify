@@ -2027,7 +2027,7 @@ describe("Server", function () {
       const creatorTx = await getCreatorTx(sourcifyChain, "0x40D843D06dAC98b2586fD1DFC5532145208C909F")
       chai.expect(creatorTx).equals("0xd125cc92f61d0898d55a918283f8b855bde15bc5f391b621e0c4eee25c9997ee")
     })
-    it.only("should run getCreatorTx with regex", async function () {
+    it("should run getCreatorTx with regex", async function () {
       const sourcifyChain = sourcifyChainsArray.find(sourcifyChain => sourcifyChain.chainId === 100)
       const creatorTx = await getCreatorTx(sourcifyChain, "0x3CE1a25376223695284edc4C2b323C3007010C94")
       chai.expect(creatorTx).equals("0x11da550e6716be8b4bd9203cb384e89b8f8941dc460bd99a4928ce2825e05456")
