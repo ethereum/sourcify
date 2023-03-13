@@ -17,7 +17,7 @@
     "fix:lint": "eslint src --ext .ts --fix",
     "lint": "eslint src --ext .ts",
     "prettier": "prettier \"src/**/*.ts\" --list-different",
-    "test": "mocha -r ts-node/register test/**/*.spec.ts --no-timeout --exit",
+    "test": "nyc --silent mocha -r ts-node/register test/**/*.spec.ts --no-timeout --exit",
     "test:coverage": "nyc npm run test",
     "check-cli": "run-s test diff-integration-tests check-integration-tests",
     "check-integration-tests": "run-s check-integration-test:*",
@@ -122,6 +122,10 @@
       "text",
       "text-summary"
     ],
-    "report-dir": "coverage"
+    "report-dir": "coverage",
+    "lines": 75,
+    "statements": 75,
+    "functions": 75,
+    "branches": 65
   }
 }
