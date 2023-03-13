@@ -35,7 +35,7 @@ jobs:
           command: npx lerna run build && npx lerna run test --stream
       - run:
           name: coverage
-          command: npm run cov:send
+          command: npx lerna run cov:send
   test-new-chain:
     docker:
       - image: cimg/node:16.15
