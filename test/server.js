@@ -260,11 +260,23 @@ describe("Server", function () {
           });
       });
 
-      it("should import contract information from etherscan (multiple files) and verify the contract, finding a partial match", (done) => {
+      it("should import contract information from etherscan (standard-json-input) and verify the contract, finding a partial match", (done) => {
         chai
           .request(server.app)
           .post("/session/verify/etherscan")
           .field("address", "0x5aa653a076c1dbb47cec8c1b4d152444cad91941")
+          .field("chainId", "1")
+          .end((err, res) => {
+            assertAllFound(err, res, "partial");
+            done();
+          });
+      });
+
+      it("should import contract information from etherscan (multiple files) and verify the contract, finding a partial match", (done) => {
+        chai
+          .request(server.app)
+          .post("/session/verify/etherscan")
+          .field("address", "0xB753548F6E010e7e680BA186F9Ca1BdAB2E90cf2")
           .field("chainId", "1")
           .end((err, res) => {
             assertAllFound(err, res, "partial");
