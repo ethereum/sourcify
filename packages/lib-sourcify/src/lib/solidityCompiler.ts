@@ -8,13 +8,24 @@ import { JsonInput } from './types';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const solc = require('solc');
 
-const GITHUB_SOLC_REPO =
-  'https://github.com/ethereum/solc-bin/raw/gh-pages/linux-amd64/';
+const GITHUB_SOLC_REPO = 'https://github.com/ethereum/solc-bin/raw/gh-pages/';
 const GITHUB_SOLCJS_REPO =
-  'https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/';
+  'https://github.com/ethereum/solc-bin/raw/gh-pages/bin/';
 const RECOMPILATION_ERR_MSG =
   'Recompilation error (probably caused by invalid metadata)';
 
+export function findSolcPlatform(): string | false {
+  if (process.platform === 'darwin' && process.arch === 'x64') {
+    return 'macosx-amd64';
+  }
+  if (process.platform === 'linux' && process.arch === 'x64') {
+    return 'linux-amd64';
+  }
+  if (process.platform === 'win32' && process.arch === 'x64') {
+    return 'windows-amd64';
+  }
+  return false;
+}
 /**
  * Searches for a solc: first for a local executable version, then from GitHub
  * and then using the getSolcJs function.
@@ -31,33 +42,36 @@ export async function useCompiler(version: string, solcJsonInput: JsonInput) {
   // Not possible to retrieve compilers with "-ci.".
   if (version.includes('-ci.')) version = version.replace('-ci.', '-nightly.');
   const inputStringified = JSON.stringify(solcJsonInput);
-  const solcPath = await getSolcExecutable(version);
   let compiled: string | undefined;
 
-  if (solcPath) {
-    const shellOutputBuffer = spawnSync(solcPath, ['--standard-json'], {
-      input: inputStringified,
-      maxBuffer: 1000 * 1000 * 10,
-    });
+  const solcPlatform = findSolcPlatform();
+  if (solcPlatform) {
+    const solcPath = await getSolcExecutable(solcPlatform, version);
+    if (solcPath) {
+      const shellOutputBuffer = spawnSync(solcPath, ['--standard-json'], {
+        input: inputStringified,
+        maxBuffer: 1000 * 1000 * 10,
+      });
 
-    // Handle errors.
-    let error: false | Error = false;
-    if (shellOutputBuffer.error) {
-      const typedError: NodeJS.ErrnoException = shellOutputBuffer.error;
-      // Handle compilation output size > stdout buffer
-      if (typedError.code === 'ENOBUFS') {
-        error = new Error('Compilation output size too large');
+      // Handle errors.
+      let error: false | Error = false;
+      if (shellOutputBuffer.error) {
+        const typedError: NodeJS.ErrnoException = shellOutputBuffer.error;
+        // Handle compilation output size > stdout buffer
+        if (typedError.code === 'ENOBUFS') {
+          error = new Error('Compilation output size too large');
+        }
+        error = new Error('Compilation Error');
       }
-      error = new Error('Compilation Error');
+      if (!shellOutputBuffer.stdout) {
+        error = new Error(RECOMPILATION_ERR_MSG);
+      }
+      if (error) {
+        console.error(error);
+        throw error;
+      }
+      compiled = shellOutputBuffer.stdout.toString();
     }
-    if (!shellOutputBuffer.stdout) {
-      error = new Error(RECOMPILATION_ERR_MSG);
-    }
-    if (error) {
-      console.error(error);
-      throw error;
-    }
-    compiled = shellOutputBuffer.stdout.toString();
   } else {
     const soljson = await getSolcJs(version);
     if (soljson) {
@@ -66,7 +80,9 @@ export async function useCompiler(version: string, solcJsonInput: JsonInput) {
   }
 
   if (!compiled) {
-    throw new Error('Compilation failed. No output from the compiler.');
+    throw new Error(
+      'Compilation failed. No output from the compiler. Try using a different compiler.'
+    );
   }
   const compiledJSON = JSON.parse(compiled);
   const errorMessages = compiledJSON?.errors?.filter(
@@ -84,16 +100,22 @@ export async function useCompiler(version: string, solcJsonInput: JsonInput) {
 }
 
 // TODO: Handle where and how solc is saved
-export async function getSolcExecutable(
+async function getSolcExecutable(
+  platform: string,
   version: string
 ): Promise<string | null> {
-  const fileName = `solc-linux-amd64-v${version}`;
+  const fileName = `solc-${platform}-v${version}`;
   const repoPath = process.env.SOLC_REPO || path.join('/tmp', 'solc-repo');
   const solcPath = path.join(repoPath, fileName);
   if (fs.existsSync(solcPath) && validateSolcPath(solcPath)) {
     return solcPath;
   }
-  const success = await fetchSolcFromGitHub(solcPath, version, fileName);
+  const success = await fetchSolcFromGitHub(
+    platform,
+    solcPath,
+    version,
+    fileName
+  );
   return success ? solcPath : null;
 }
 
@@ -114,11 +136,13 @@ function validateSolcPath(solcPath: string): boolean {
 }
 
 async function fetchSolcFromGitHub(
+  platform: string,
   solcPath: string,
   version: string,
   fileName: string
 ): Promise<boolean> {
-  const githubSolcURI = GITHUB_SOLC_REPO + encodeURIComponent(fileName);
+  const encodedURIFilename = encodeURIComponent(fileName);
+  const githubSolcURI = `${GITHUB_SOLC_REPO}${platform}/${encodedURIFilename}`;
   const res = await fetchWithTimeout(githubSolcURI);
   // TODO: Handle nodejs only dependencies
   if (res.status === StatusCodes.OK) {
