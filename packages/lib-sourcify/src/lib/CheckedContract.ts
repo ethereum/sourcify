@@ -223,7 +223,7 @@ export async function performFetch(
  * @param url
  * @returns a GitHub-compatible url if possible; null otherwise
  */
-function getGithubUrl(url: string): string | null {
+export function getGithubUrl(url: string): string | null {
   if (!url.includes('github.com')) {
     return null;
   }

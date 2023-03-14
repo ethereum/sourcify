@@ -65,6 +65,7 @@ describe("Server", function () {
   const metadata = require("./testcontracts/Storage/metadata.json");
   const metadataBuffer = Buffer.from(JSON.stringify(metadata));
 
+  this.timeout(EXTENDED_TIME);
   before(async () => {
     await ganacheServer.listen(GANACHE_PORT);
     const ipfs = await IPFS.create();
@@ -1979,4 +1980,90 @@ describe("Server", function () {
       });
     });
   });
+  describe("Verify repository endpoints", function () {
+    const agent = chai.request.agent(server.app);
+    it("should fetch files of specific address", async function () {
+      await agent
+        .post("/")
+        .field("address", defaultContractAddress)
+        .field("chain", defaultContractChain)
+        .attach("files", metadataBuffer, "metadata.json")
+        .attach("files", sourceBuffer, "Storage.sol")
+      const res0 = await agent.get(`/files/${defaultContractChain}/${defaultContractAddress}`)
+      chai.expect(res0.body).has.a.lengthOf(2)
+      const res1 = await agent.get(`/files/tree/any/${defaultContractChain}/${defaultContractAddress}`)
+      chai.expect(res1.body?.status).equals('full')
+      const res2 = await agent.get(`/files/any/${defaultContractChain}/${defaultContractAddress}`)
+      chai.expect(res2.body?.status).equals('full')
+      const res3 = await agent.get(`/files/tree/${defaultContractChain}/${defaultContractAddress}`)
+      chai.expect(res3.body).has.a.lengthOf(2)
+      const res4 = await agent.get(`/files/contracts/${defaultContractChain}`)
+      chai.expect(res4.body.full).has.a.lengthOf(1)
+    });
+  })
+  describe("Verify server status endpoint", function () {
+    it("should check server's health", async function () {
+      const res = await chai
+        .request(server.app)
+        .get("/health")
+      chai.expect(res.text).equals('Alive and kicking!')
+    })
+    it("should check server's chains", async function () {
+      const res = await chai
+        .request(server.app)
+        .get("/chains")
+      chai.expect(res.body.length).greaterThan(0)
+    })
+  })
+  describe("Unit test functions", function () {
+    this.timeout(EXTENDED_TIME_60);
+    const { sourcifyChainsArray } = require("../dist/sourcify-chains")
+    const { getCreatorTx } = require("../dist/server/services/VerificationService-util")
+    it("should run getCreatorTx with chainId 40", async function () {
+      const sourcifyChain = sourcifyChainsArray.find(sourcifyChain => sourcifyChain.chainId === 40)
+      const creatorTx = await getCreatorTx(sourcifyChain, "0x4c09368a4bccD1675F276D640A0405Efa9CD4944")
+      chai.expect(creatorTx).equals("0xb7efb33c736b1e8ea97e356467f99d99221343f077ce31a3e3ac1d2e0636df1d")
+    })
+    it("should run getCreatorTx with chainId 51", async function () {
+      const sourcifyChain = sourcifyChainsArray.find(sourcifyChain => sourcifyChain.chainId === 51)
+      const creatorTx = await getCreatorTx(sourcifyChain, "0x8C3FA94eb5b07c9AF7dBFcC53ea3D2BF7FdF3617")
+      chai.expect(creatorTx).equals("0xb1af0ec1283551480ae6e6ce374eb4fa7d1803109b06657302623fc65c987420")
+    })
+    it("should run getCreatorTx with chainId 83", async function () {
+      const sourcifyChain = sourcifyChainsArray.find(sourcifyChain => sourcifyChain.chainId === 83)
+      const creatorTx = await getCreatorTx(sourcifyChain, "0x89e772941d94Ef4BDA1e4f68E79B4bc5F6096389")
+      chai.expect(creatorTx).equals("0x8cc7b0fb66eaf7b32bac7b7938aedfcec6d49f9fe607b8008a5541e72d264069")
+    })
+    it("should run getCreatorTx with chainId 335", async function () {
+      const sourcifyChain = sourcifyChainsArray.find(sourcifyChain => sourcifyChain.chainId === 335)
+      const creatorTx = await getCreatorTx(sourcifyChain, "0x40D843D06dAC98b2586fD1DFC5532145208C909F")
+      chai.expect(creatorTx).equals("0xd125cc92f61d0898d55a918283f8b855bde15bc5f391b621e0c4eee25c9997ee")
+    })
+    it("should run getCreatorTx with regex", async function () {
+      const sourcifyChain = sourcifyChainsArray.find(sourcifyChain => sourcifyChain.chainId === 100)
+      const creatorTx = await getCreatorTx(sourcifyChain, "0x3CE1a25376223695284edc4C2b323C3007010C94")
+      chai.expect(creatorTx).equals("0x11da550e6716be8b4bd9203cb384e89b8f8941dc460bd99a4928ce2825e05456")
+    })
+    it("should attach and trigger an event with the event manager", function (done) {
+      const EventManager = require('../dist/common/EventManager').EventManager
+      const em = new EventManager({
+        "*": [],
+        "TestEvent": []
+      })
+      let hitCounter = 0;
+      em.on("*", function () {
+        hitCounter++;
+        if (hitCounter == 2) {
+          done();
+        }
+      })
+      em.on("TestEvent", function () {
+        hitCounter++;
+        if (hitCounter == 2) {
+          done();
+        }
+      })
+      em.trigger("TestEvent")
+    })
+  })
 });

@@ -433,7 +433,7 @@ function extractAbiEncodedConstructorArguments(
  * @param abiEncodedConstructorArguments
  * @returns Match
  */
-function calculateCreate2Address(
+export function calculateCreate2Address(
   deployerAddress: string,
   salt: string,
   creationBytecode: string,
