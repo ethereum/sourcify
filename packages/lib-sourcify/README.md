@@ -1,6 +1,6 @@
 # lib-sourcify
 
-[![codecov](https://codecov.io/gh/ethereum/sourcify/branch/test-coverage/graph/badge.svg?token=eN6XDAwWfV&flag=lib-sourcify)](https://codecov.io/gh/ethereum/sourcify)
+[![codecov](https://codecov.io/gh/ethereum/sourcify/branch/staging/graph/badge.svg?token=eN6XDAwWfV&flag=lib-sourcify)](https://codecov.io/gh/ethereum/sourcify)
 
 lib-sourcify is [Sourcify](https://sourcify.dev)'s reusable backbone library for verifying contracts. Additionally it contains:
 
