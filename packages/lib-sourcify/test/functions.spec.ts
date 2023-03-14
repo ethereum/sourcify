@@ -56,23 +56,30 @@ describe('Checked contract', () => {
     expect(await performFetch('httpx://')).to.equal(null);
   });
   it('Should fail performFetch because mismatching keccak256', async () => {
-    await performFetch(
-      'https://ipfs.io/ipfs/QmTkSBN1QffhGKwx365m5va6Pikz3pUJcAfaSRybkeCCDr',
-      '0x00'
-    );
+    expect(
+      await performFetch(
+        'https://ipfs.io/ipfs/QmTkSBN1QffhGKwx365m5va6Pikz3pUJcAfaSRybkeCCDr',
+        '0x00'
+      )
+    ).equals(null);
   });
   it('Should performFetch', async () => {
-    await performFetch(
-      'https://ipfs.io/ipfs/QmTkSBN1QffhGKwx365m5va6Pikz3pUJcAfaSRybkeCCDr',
-      '0xe76037d6a371fa3a073db88b7b76c371e0ab601be742fa1b089a74b996e360be'
-    );
+    expect(
+      await performFetch(
+        'https://ipfs.io/ipfs/QmTkSBN1QffhGKwx365m5va6Pikz3pUJcAfaSRybkeCCDr',
+        '0xe76037d6a371fa3a073db88b7b76c371e0ab601be742fa1b089a74b996e360be'
+      )
+    ).to.not.equal(null);
   });
   it('Should fail getGithubUrl', async () => {
     expect(await getGithubUrl('github1.com')).to.equal(null);
   });
   it('Should getGithubUrl', async () => {
-    await getGithubUrl(
+    const rawGithubUrl = await getGithubUrl(
       'https://github.com/ethereum/solc-bin/blob/gh-pages/linux-amd64/solc-linux-amd64-v0.8.12%2Bcommit.f00d7308'
+    );
+    expect(rawGithubUrl).equals(
+      'https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/linux-amd64/solc-linux-amd64-v0.8.12%2Bcommit.f00d7308'
     );
   });
   it('Should fetch missing files from checked contract', async () => {
@@ -89,5 +96,8 @@ describe('Checked contract', () => {
       {}
     );
     await CheckedContract.fetchMissing(contract);
+    const sources = Object.keys(contract.solidity);
+    expect(sources).lengthOf(1);
+    expect(sources[0]).equals('Storage.sol');
   });
 });

@@ -7,7 +7,7 @@ import {
 import path from 'path';
 import { CheckedContract } from '../src';
 import fs from 'fs';
-import chai from 'chai';
+import chai, { expect } from 'chai';
 import hardhatOutput from './validation/files/hardhat-output/output.json';
 
 function objectLength(obj: any) {
@@ -185,16 +185,24 @@ describe('ValidationService', function () {
   });
 });
 
-describe('Cover all remaining validation functions', function () {
+describe('Unit tests', function () {
   const pathContent = {
     path: './validation/files/hardhat-output/output.json',
     content: JSON.stringify(hardhatOutput),
   };
   it('Should extractHardhatMetadataAndSources', async function () {
-    extractHardhatMetadataAndSources(pathContent);
+    const { hardhatMetadataFiles, hardhatSourceFiles } =
+      extractHardhatMetadataAndSources(pathContent);
+    expect(hardhatMetadataFiles).lengthOf(6);
+    expect(hardhatSourceFiles).lengthOf(6);
   });
   it('Should pathContentArrayToStringMap', async function () {
-    pathContentArrayToStringMap([pathContent]);
+    const stringMap = pathContentArrayToStringMap([pathContent]);
+    const keysInStringMap = Object.keys(stringMap);
+    expect(keysInStringMap).lengthOf(1);
+    expect(keysInStringMap[0]).equals(
+      './validation/files/hardhat-output/output.json'
+    );
   });
   it('Should unzip', async function () {
     const zippedTrufflePath = path.join(
@@ -204,11 +212,13 @@ describe('Cover all remaining validation functions', function () {
       'truffle-example.zip'
     );
     const zippedTruffleBuffer = fs.readFileSync(zippedTrufflePath);
-    unzipFiles([
+    const files = [
       {
         path: zippedTrufflePath,
         buffer: zippedTruffleBuffer,
       },
-    ]);
+    ];
+    await unzipFiles(files);
+    expect(files).lengthOf(19);
   });
 });

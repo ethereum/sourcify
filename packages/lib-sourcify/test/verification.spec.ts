@@ -226,12 +226,14 @@ describe('Verify Deployed Contract', () => {
   });
 });
 
-describe('Cover all remaining verification functions', function () {
+describe('Unit tests', function () {
   it('Should calculateCreate2Address', async function () {
-    calculateCreate2Address(
-      '0x71CB05EE1b1F506fF321Da3dac38f25c0c9ce6E1',
-      '123',
-      '0x00'
-    );
+    expect(
+      calculateCreate2Address(
+        '0x71CB05EE1b1F506fF321Da3dac38f25c0c9ce6E1',
+        '123',
+        '0x00'
+      )
+    ).equals('0xA0279ea82DF644AFb68FdD4aDa5848C5Df9F116B');
   });
 });
