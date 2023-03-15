@@ -75,7 +75,7 @@ describe('Verify Solidity Compiler', () => {
       });
       expect(compiledJSON?.contracts?.['test.sol']?.C).to.not.equals(undefined);
     } catch (e: any) {
-      expect.fail('Compiler error:');
+      expect.fail(e.message);
     } finally {
       Object.defineProperty(process, 'platform', {
         value: realPlatform,
