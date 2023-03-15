@@ -48,31 +48,29 @@ export async function useCompiler(version: string, solcJsonInput: JsonInput) {
     solcPath = await getSolcExecutable(solcPlatform, version);
   }
   if (solcPath) {
-    if (solcPath) {
-      const shellOutputBuffer = spawnSync(solcPath, ['--standard-json'], {
-        input: inputStringified,
-        maxBuffer: 1000 * 1000 * 10,
-      });
+    const shellOutputBuffer = spawnSync(solcPath, ['--standard-json'], {
+      input: inputStringified,
+      maxBuffer: 1000 * 1000 * 10,
+    });
 
-      // Handle errors.
-      let error: false | Error = false;
-      if (shellOutputBuffer.error) {
-        const typedError: NodeJS.ErrnoException = shellOutputBuffer.error;
-        // Handle compilation output size > stdout buffer
-        if (typedError.code === 'ENOBUFS') {
-          error = new Error('Compilation output size too large');
-        }
-        error = new Error('Compilation Error');
+    // Handle errors.
+    let error: false | Error = false;
+    if (shellOutputBuffer.error) {
+      const typedError: NodeJS.ErrnoException = shellOutputBuffer.error;
+      // Handle compilation output size > stdout buffer
+      if (typedError.code === 'ENOBUFS') {
+        error = new Error('Compilation output size too large');
       }
-      if (!shellOutputBuffer.stdout) {
-        error = new Error(RECOMPILATION_ERR_MSG);
-      }
-      if (error) {
-        console.error(error);
-        throw error;
-      }
-      compiled = shellOutputBuffer.stdout.toString();
+      error = new Error('Compilation Error');
     }
+    if (!shellOutputBuffer.stdout) {
+      error = new Error(RECOMPILATION_ERR_MSG);
+    }
+    if (error) {
+      console.error(error);
+      throw error;
+    }
+    compiled = shellOutputBuffer.stdout.toString();
   } else {
     const soljson = await getSolcJs(version);
     if (soljson) {
@@ -137,6 +135,11 @@ function validateSolcPath(solcPath: string): boolean {
   return false;
 }
 
+/**
+ * Fetches a solc binary from GitHub and saves it to the given path.
+ *
+ * If platform is "bin", it will download the solc-js binary.
+ */
 async function fetchAndSaveSolc(
   platform: string,
   solcPath: string,
