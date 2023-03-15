@@ -24,7 +24,7 @@ describe('Verify Solidity Compiler', () => {
     await getSolcJs('0.8.17+commit.8df45f5f');
   });
   it('Should fetch latest solc from github', async () => {
-    await getSolcExecutable('0.8.9+commit.e5eed63a');
+    await getSolcExecutable('linux-amd64', '0.8.9+commit.e5eed63a');
   });
   it('Should return a compiler error', async () => {
     try {

@@ -103,7 +103,7 @@ export async function useCompiler(version: string, solcJsonInput: JsonInput) {
 }
 
 // TODO: Handle where and how solc is saved
-async function getSolcExecutable(
+export async function getSolcExecutable(
   platform: string,
   version: string
 ): Promise<string | null> {
