@@ -14,7 +14,6 @@ import { fetchWithTimeout } from './utils';
 
 // TODO: find a better place for these constants. Reminder: this sould work also in the browser
 const IPFS_PREFIX = 'dweb:/ipfs/';
-export const IPFS_GATEWAY = process.env.IPFS_GATEWAY || 'https://ipfs.io/ipfs/';
 const FETCH_TIMEOUT = parseInt(process.env.FETCH_TIMEOUT || '') || 3000; // ms
 /**
  * Abstraction of a checked solidity contract. With metadata and source (solidity) files.
@@ -145,7 +144,7 @@ export class CheckedContract {
         for (const url of file.urls) {
           if (url.startsWith(IPFS_PREFIX)) {
             const ipfsCode = url.slice(IPFS_PREFIX.length);
-            const ipfsUrl = IPFS_GATEWAY + ipfsCode;
+            const ipfsUrl = getIpfsGateway() + ipfsCode;
             retrievedContent = await performFetch(ipfsUrl, hash, fileName);
             if (retrievedContent) {
               break;
@@ -224,7 +223,7 @@ export async function performFetch(
  * @param url
  * @returns a GitHub-compatible url if possible; null otherwise
  */
-function getGithubUrl(url: string): string | null {
+export function getGithubUrl(url: string): string | null {
   if (!url.includes('github.com')) {
     return null;
   }
@@ -316,4 +315,14 @@ function createJsonInputFromMetadata(
     contractPath,
     contractName,
   };
+}
+
+/**
+ * Because the gateway might change across tests, don't set it to a variable but look for env variable.
+ * Otherwise fall back to the default ipfs.io.
+ *
+ * This will likely moved to server or somewhere else. But keep it here for now.
+ */
+export function getIpfsGateway(): string {
+  return process.env.IPFS_GATEWAY || 'https://ipfs.io/ipfs/';
 }

@@ -3,7 +3,12 @@ process.env.TESTING = true;
 process.env.MOCK_REPOSITORY = "./dist/data/mock-repository";
 process.env.SOLC_REPO = "./dist/data/solc-repo";
 process.env.SOLJSON_REPO = "/dist/data/soljson-repo";
+// ipfs-http-gateway runs on port 9090
+process.env.IPFS_GATEWAY = "http://localhost:9090/ipfs/";
+process.env.FETCH_TIMEOUT = 15000; // instantiated http-gateway takes a little longer
 
+const IPFS = require("ipfs-core");
+const { HttpGateway } = require("ipfs-http-gateway");
 const ganache = require("ganache");
 const chai = require("chai");
 const chaiHttp = require("chai-http");
@@ -18,9 +23,12 @@ const MAX_SESSION_SIZE =
   require("../dist/server/controllers/VerificationController-util").MAX_SESSION_SIZE;
 const GANACHE_PORT = 8545;
 const StatusCodes = require("http-status-codes").StatusCodes;
-const { waitSecs, callContractMethodWithTx } = require("./helpers/helpers");
+const {
+  waitSecs,
+  callContractMethodWithTx,
+  deployFromAbiAndBytecodeForCreatorTxHash,
+} = require("./helpers/helpers");
 const { deployFromAbiAndBytecode } = require("./helpers/helpers");
-
 chai.use(chaiHttp);
 
 const binaryParser = function (res, cb) {
@@ -57,8 +65,13 @@ describe("Server", function () {
   const metadata = require("./testcontracts/Storage/metadata.json");
   const metadataBuffer = Buffer.from(JSON.stringify(metadata));
 
+  this.timeout(EXTENDED_TIME);
   before(async () => {
     await ganacheServer.listen(GANACHE_PORT);
+    const ipfs = await IPFS.create();
+    const httpGateway = new HttpGateway(ipfs);
+    await httpGateway.start();
+
     console.log("Started ganache local server on port " + GANACHE_PORT);
 
     localWeb3Provider = new Web3(`http://localhost:${GANACHE_PORT}`);
@@ -248,11 +261,23 @@ describe("Server", function () {
           });
       });
 
-      it("should import contract information from etherscan (multiple files) and verify the contract, finding a partial match", (done) => {
+      it("should import contract information from etherscan (standard-json-input) and verify the contract, finding a partial match", (done) => {
         chai
           .request(server.app)
           .post("/session/verify/etherscan")
           .field("address", "0x5aa653a076c1dbb47cec8c1b4d152444cad91941")
+          .field("chainId", "1")
+          .end((err, res) => {
+            assertAllFound(err, res, "partial");
+            done();
+          });
+      });
+
+      it("should import contract information from etherscan (multiple files) and verify the contract, finding a partial match", (done) => {
+        chai
+          .request(server.app)
+          .post("/session/verify/etherscan")
+          .field("address", "0xB753548F6E010e7e680BA186F9Ca1BdAB2E90cf2")
           .field("chainId", "1")
           .end((err, res) => {
             assertAllFound(err, res, "partial");
@@ -320,7 +345,6 @@ describe("Server", function () {
         [accounts[0], accounts[0]]
       );
 
-      process.env.IPFS_GATEWAY = "https://ipfs.io/ipfs/";
       const res = await agent
         .post("/session/input-contract")
         .field("address", addressDeployed)
@@ -345,16 +369,28 @@ describe("Server", function () {
         .post("/session/verify/create2")
         .send({
           deployerAddress: "0xd9145CCE52D386f254917e481eB44e9943F39138",
-          salt: 12345,
+          salt: 12344,
           abiEncodedConstructorArguments:
             "0x0000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc40000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc4",
           clientToken: clientToken || "",
-          create2Address: "0x801B9c0Ee599C3E5ED60e4Ec285C95fC9878Ee64",
+          create2Address: "0x65790cc291a234eDCD6F28e1F37B036eD4F01e3B",
           verificationId: verificationId,
         })
         .end((err, res) => {
           assertAllFound(err, res, "perfect");
-          done();
+          chai
+            .request(server.app)
+            .get("/check-all-by-addresses")
+            .query({
+              chainIds: "0",
+              addresses: ["0x65790cc291a234eDCD6F28e1F37B036eD4F01e3B"],
+            })
+            .end((err, res) => {
+              chai.expect(err).to.be.null;
+              chai.expect(res.body).to.have.a.lengthOf(1);
+              chai.expect(res.body[0].chainIds).to.have.a.lengthOf(1);
+              done();
+            });
         });
     });
 
@@ -388,7 +424,19 @@ describe("Server", function () {
         })
         .end((err, res) => {
           assertAPIAllFound(err, res, "perfect");
-          done();
+          chai
+            .request(server.app)
+            .get("/check-all-by-addresses")
+            .query({
+              chainIds: "0",
+              addresses: ["0x801B9c0Ee599C3E5ED60e4Ec285C95fC9878Ee64"],
+            })
+            .end((err, res) => {
+              chai.expect(err).to.be.null;
+              chai.expect(res.body).to.have.a.lengthOf(1);
+              chai.expect(res.body[0].chainIds).to.have.a.lengthOf(1);
+              done();
+            });
         });
     });
   });
@@ -816,6 +864,67 @@ describe("Server", function () {
         .send();
 
       assertions(null, res, null, address, "partial");
+    });
+
+    it("should fail to verify a contract with immutables but should succeed with creatorTxHash and save creator-tx-hash.txt", async () => {
+      const artifact = require("./testcontracts/WithImmutables/artifact.json");
+      const [address, creatorTxHash] =
+        await deployFromAbiAndBytecodeForCreatorTxHash(
+          localWeb3Provider,
+          artifact.abi,
+          artifact.bytecode,
+          accounts[0],
+          [999]
+        );
+
+      const metadata = require("./testcontracts/WithImmutables/metadata.json");
+      const sourcePath = path.join(
+        "test",
+        "testcontracts",
+        "WithImmutables",
+        "sources",
+        "WithImmutables.sol"
+      );
+      const sourceBuffer = fs.readFileSync(sourcePath);
+
+      const res1 = await chai
+        .request(server.app)
+        .post("/")
+        .send({
+          address: address,
+          chain: defaultContractChain,
+          files: {
+            "metadata.json": JSON.stringify(metadata),
+            "WithImmutables.sol": sourceBuffer.toString(),
+          },
+        });
+      assertBytecodesDontMatch(null, res1);
+
+      // Now pass the creatorTxHash
+      const res2 = await chai
+        .request(server.app)
+        .post("/")
+        .send({
+          address: address,
+          chain: defaultContractChain,
+          files: {
+            "metadata.json": JSON.stringify(metadata),
+            "WithImmutables.sol": sourceBuffer.toString(),
+          },
+          creatorTxHash: creatorTxHash,
+        });
+      assertions(null, res2, null, address);
+      assertEqualityFromPath(
+        creatorTxHash,
+        path.join(
+          server.repository,
+          "contracts",
+          "full_match",
+          defaultContractChain,
+          address,
+          "creator-tx-hash.txt"
+        )
+      );
     });
 
     it("should verify a contract created by a factory contract and has immutables without constructor arguments but with msg.sender assigned immutable", async () => {
@@ -1486,7 +1595,7 @@ describe("Server", function () {
         "test",
         "sources",
         "truffle",
-        "truffle-example.zip",
+        "truffle-example.zip"
       );
       const zippedTruffleBuffer = fs.readFileSync(zippedTrufflePath);
       chai
@@ -1550,7 +1659,7 @@ describe("Server", function () {
           "test",
           "sources",
           "truffle",
-          "truffle-example.zip",
+          "truffle-example.zip"
         );
         const zippedTruffleBuffer = fs.readFileSync(zippedTrufflePath);
         chai
@@ -1564,6 +1673,64 @@ describe("Server", function () {
             done();
           });
       });
+    });
+
+    it("should fail to verify a contract with immutables but should succeed with creatorTxHash and save creator-tx-hash.txt", async () => {
+      const artifact = require("./testcontracts/WithImmutables/artifact.json");
+      const [address, creatorTxHash] =
+        await deployFromAbiAndBytecodeForCreatorTxHash(
+          localWeb3Provider,
+          artifact.abi,
+          artifact.bytecode,
+          accounts[0],
+          [999]
+        );
+
+      const metadata = require("./testcontracts/WithImmutables/metadata.json");
+      const metadataBuffer = Buffer.from(JSON.stringify(metadata));
+      const sourcePath = path.join(
+        "test",
+        "testcontracts",
+        "WithImmutables",
+        "sources",
+        "WithImmutables.sol"
+      );
+      const sourceBuffer = fs.readFileSync(sourcePath);
+
+      const agent = chai.request.agent(server.app);
+
+      const res1 = await agent
+        .post("/session/input-files")
+        .attach("files", sourceBuffer)
+        .attach("files", metadataBuffer);
+
+      let contracts = assertSingleContractStatus(res1, "error");
+
+      contracts[0].address = address;
+      contracts[0].chainId = defaultContractChain;
+      const res2 = await agent
+        .post("/session/verify-validated")
+        .send({ contracts });
+
+      contracts = assertSingleContractStatus(res2, "error");
+      contracts[0].creatorTxHash = creatorTxHash;
+
+      const res3 = await agent
+        .post("/session/verify-validated")
+        .send({ contracts });
+
+      assertSingleContractStatus(res3, "perfect");
+      assertEqualityFromPath(
+        creatorTxHash,
+        path.join(
+          server.repository,
+          "contracts",
+          "full_match",
+          defaultContractChain,
+          address,
+          "creator-tx-hash.txt"
+        )
+      );
     });
 
     it("should verify a contract created by a factory contract and has immutables", async () => {
@@ -1813,4 +1980,90 @@ describe("Server", function () {
       });
     });
   });
+  describe("Verify repository endpoints", function () {
+    const agent = chai.request.agent(server.app);
+    it("should fetch files of specific address", async function () {
+      await agent
+        .post("/")
+        .field("address", defaultContractAddress)
+        .field("chain", defaultContractChain)
+        .attach("files", metadataBuffer, "metadata.json")
+        .attach("files", sourceBuffer, "Storage.sol")
+      const res0 = await agent.get(`/files/${defaultContractChain}/${defaultContractAddress}`)
+      chai.expect(res0.body).has.a.lengthOf(2)
+      const res1 = await agent.get(`/files/tree/any/${defaultContractChain}/${defaultContractAddress}`)
+      chai.expect(res1.body?.status).equals('full')
+      const res2 = await agent.get(`/files/any/${defaultContractChain}/${defaultContractAddress}`)
+      chai.expect(res2.body?.status).equals('full')
+      const res3 = await agent.get(`/files/tree/${defaultContractChain}/${defaultContractAddress}`)
+      chai.expect(res3.body).has.a.lengthOf(2)
+      const res4 = await agent.get(`/files/contracts/${defaultContractChain}`)
+      chai.expect(res4.body.full).has.a.lengthOf(1)
+    });
+  })
+  describe("Verify server status endpoint", function () {
+    it("should check server's health", async function () {
+      const res = await chai
+        .request(server.app)
+        .get("/health")
+      chai.expect(res.text).equals('Alive and kicking!')
+    })
+    it("should check server's chains", async function () {
+      const res = await chai
+        .request(server.app)
+        .get("/chains")
+      chai.expect(res.body.length).greaterThan(0)
+    })
+  })
+  describe("Unit test functions", function () {
+    this.timeout(EXTENDED_TIME_60);
+    const { sourcifyChainsArray } = require("../dist/sourcify-chains")
+    const { getCreatorTx } = require("../dist/server/services/VerificationService-util")
+    it("should run getCreatorTx with chainId 40", async function () {
+      const sourcifyChain = sourcifyChainsArray.find(sourcifyChain => sourcifyChain.chainId === 40)
+      const creatorTx = await getCreatorTx(sourcifyChain, "0x4c09368a4bccD1675F276D640A0405Efa9CD4944")
+      chai.expect(creatorTx).equals("0xb7efb33c736b1e8ea97e356467f99d99221343f077ce31a3e3ac1d2e0636df1d")
+    })
+    it("should run getCreatorTx with chainId 51", async function () {
+      const sourcifyChain = sourcifyChainsArray.find(sourcifyChain => sourcifyChain.chainId === 51)
+      const creatorTx = await getCreatorTx(sourcifyChain, "0x8C3FA94eb5b07c9AF7dBFcC53ea3D2BF7FdF3617")
+      chai.expect(creatorTx).equals("0xb1af0ec1283551480ae6e6ce374eb4fa7d1803109b06657302623fc65c987420")
+    })
+    it("should run getCreatorTx with chainId 83", async function () {
+      const sourcifyChain = sourcifyChainsArray.find(sourcifyChain => sourcifyChain.chainId === 83)
+      const creatorTx = await getCreatorTx(sourcifyChain, "0x89e772941d94Ef4BDA1e4f68E79B4bc5F6096389")
+      chai.expect(creatorTx).equals("0x8cc7b0fb66eaf7b32bac7b7938aedfcec6d49f9fe607b8008a5541e72d264069")
+    })
+    it("should run getCreatorTx with chainId 335", async function () {
+      const sourcifyChain = sourcifyChainsArray.find(sourcifyChain => sourcifyChain.chainId === 335)
+      const creatorTx = await getCreatorTx(sourcifyChain, "0x40D843D06dAC98b2586fD1DFC5532145208C909F")
+      chai.expect(creatorTx).equals("0xd125cc92f61d0898d55a918283f8b855bde15bc5f391b621e0c4eee25c9997ee")
+    })
+    it("should run getCreatorTx with regex", async function () {
+      const sourcifyChain = sourcifyChainsArray.find(sourcifyChain => sourcifyChain.chainId === 100)
+      const creatorTx = await getCreatorTx(sourcifyChain, "0x3CE1a25376223695284edc4C2b323C3007010C94")
+      chai.expect(creatorTx).equals("0x11da550e6716be8b4bd9203cb384e89b8f8941dc460bd99a4928ce2825e05456")
+    })
+    it("should attach and trigger an event with the event manager", function (done) {
+      const EventManager = require('../dist/common/EventManager').EventManager
+      const em = new EventManager({
+        "*": [],
+        "TestEvent": []
+      })
+      let hitCounter = 0;
+      em.on("*", function () {
+        hitCounter++;
+        if (hitCounter == 2) {
+          done();
+        }
+      })
+      em.on("TestEvent", function () {
+        hitCounter++;
+        if (hitCounter == 2) {
+          done();
+        }
+      })
+      em.trigger("TestEvent")
+    })
+  })
 });

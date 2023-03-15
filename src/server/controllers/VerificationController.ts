@@ -9,7 +9,7 @@ import {
   PathContent,
   isEmpty,
   getBytecode,
-  IPFS_GATEWAY,
+  getIpfsGateway,
   performFetch,
   verifyCreate2,
 } from "@ethereum-sourcify/lib-sourcify";
@@ -132,7 +132,8 @@ export default class VerificationController
         contract,
         req.body.chain,
         req.addresses[0], // Due to the old API taking an array of addresses.
-        req.body.contextVariables
+        req.body.contextVariables,
+        req.body.creatorTxHash
       );
       // Send to verification again with all source files.
       if (match.status === "extra-file-input-bug") {
@@ -144,7 +145,8 @@ export default class VerificationController
           contractWithAllSources,
           req.body.chain,
           req.addresses[0], // Due to the old API taking an array of addresses.
-          req.body.contextVariables
+          req.body.contextVariables,
+          req.body.creatorTxHash
         );
         if (tempMatch.status === "perfect") {
           await this.repositoryService.storeMatch(contract, tempMatch);
@@ -230,6 +232,7 @@ export default class VerificationController
         contractWrapper.address = receivedContract.address;
         contractWrapper.chainId = receivedContract.chainId;
         contractWrapper.contextVariables = receivedContract.contextVariables;
+        contractWrapper.creatorTxHash = receivedContract.creatorTxHash;
         if (isVerifiable(contractWrapper)) {
           verifiable[id] = contractWrapper;
         }
@@ -263,7 +266,7 @@ export default class VerificationController
       );
     }
 
-    const ipfsUrl = `${IPFS_GATEWAY}${metadataIpfsCid}`;
+    const ipfsUrl = `${getIpfsGateway()}${metadataIpfsCid}`;
     const metadataFileName = "metadata.json";
     const retrievedMetadataText = await performFetch(ipfsUrl);
 
@@ -446,14 +449,19 @@ export default class VerificationController
 
     const contract: CheckedContract = checkedContracts[0];
 
-    const result = await verifyCreate2(
+    const match = await verifyCreate2(
       contract,
       deployerAddress,
       salt,
       create2Address,
       abiEncodedConstructorArguments
     );
-    res.send({ result: [result] });
+
+    if (match.status) {
+      await this.repositoryService.storeMatch(contract, match);
+    }
+
+    res.send({ result: [match] });
   };
 
   private sessionVerifyCreate2 = async (
@@ -494,6 +502,11 @@ export default class VerificationController
     contractWrapper.statusMessage = match.message;
     contractWrapper.storageTimestamp = match.storageTimestamp;
     contractWrapper.address = match.address;
+    contractWrapper.chainId = "0";
+
+    if (match.status) {
+      await this.repositoryService.storeMatch(contract, match);
+    }
 
     res.send(getSessionJSON(session));
   };
@@ -562,6 +575,11 @@ export default class VerificationController
               msgSender,
               ...req.body.contextVariables,
             })
+        ),
+      body("creatorTxHash")
+        .optional()
+        .custom(
+          (creatorTxHash, { req }) => (req.body.creatorTxHash = creatorTxHash)
         ),
       this.safeHandler(this.legacyVerifyEndpoint)
     );

@@ -13,7 +13,7 @@
     "build:clean": "rm -rf node_modules/ packages/bytecode-utils/node_modules/ packages/contract-call-decoder/node_modules/ packages/lib-sourcify/node_modules/ && npx lerna bootstrap && npx lerna run build",
     "build:lerna": "lerna run build",
     "pretest": "npm run build:lerna",
-    "test": "TESTING=true DOTENV_CONFIG_PATH=./environments/.env mocha -r dotenv/config  --exit",
+    "test": "TESTING=true DOTENV_CONFIG_PATH=./environments/.env nyc --silent mocha -r dotenv/config  --exit",
     "test:monitor": "TESTING=true DOTENV_CONFIG_PATH=./environments/.env mocha test/monitor.js --exit",
     "test:server": "TESTING=true DOTENV_CONFIG_PATH=./environments/.env mocha -r dotenv/config test/server.js --exit",
     "test:chains": "TESTING=true mocha test/chains/chain-tests.js --reporter mochawesome --reporter-options reportDir=chain-tests-report,reportFilename=report --exit",
@@ -27,7 +27,13 @@
     "monitor": "rimraf ./dist && tsc && node ./dist/monitor/monitor.js",
     "server:build": "npm run clean && npm run build",
     "server:start": "node ./dist/server/server.js",
-    "update-chains": "node --experimental-fetch scripts/updateChains.mjs && prettier --write src/chains.json"
+    "update-chains": "node --experimental-fetch scripts/updateChains.mjs && prettier --write src/chains.json",
+    "test:unit": "TESTING=true DOTENV_CONFIG_PATH=./environments/.env nyc --silent mocha -r dotenv/config  --exit",
+    "cov": "run-s -c build test:unit cov:html cov:lcov && open-cli coverage/index.html",
+    "cov:html": "nyc report --reporter=html",
+    "cov:lcov": "nyc report --reporter=lcov",
+    "cov:send": "run-s cov:lcov && codecov -F server -f coverage/lcov.info",
+    "cov:check": "nyc report && nyc check-coverage --lines 100 --functions 100 --branches 100"
   },
   "keywords": [
     "ethereum",
@@ -58,6 +64,7 @@
     "express-validator": "^6.6.1",
     "http-status-codes": "^2.1.4",
     "ipfs-http-client": "^56.0.3",
+    "ipfs-http-gateway": "0.9.3",
     "memorystore": "^1.6.7",
     "node-fetch": "2.6.6",
     "serve-index": "^1.9.1",
@@ -80,6 +87,7 @@
     "@typescript-eslint/parser": "^5.7.0",
     "chai": "^4.2.0",
     "chai-http": "^4.3.0",
+    "codecov": "^3.8.3",
     "eslint": "^8.5.0",
     "eslint-config-prettier": "^8.5.0",
     "ganache": "^7.0.2",
@@ -88,10 +96,25 @@
     "lerna": "^3.22.1",
     "mocha": "^7.0.0",
     "mochawesome": "^7.1.2",
+    "npm-run-all": "^4.1.5",
+    "nyc": "^15.1.0",
+    "open-cli": "^7.1.0",
     "prettier": "^2.7.1",
     "rimraf": "^3.0.2",
     "ts-node": "^9.0.0",
     "typescript": "^4.9.3",
     "typestrict": "^1.0.2"
+  },
+  "nyc": {
+    "exclude": [
+      "test/**/*.*",
+      "packages/**/*.*"
+    ],
+    "reporter": [
+      "html",
+      "lcov",
+      "text",
+      "text-summary"
+    ]
   }
 }

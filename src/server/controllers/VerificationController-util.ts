@@ -162,6 +162,7 @@ export type ContractMeta = {
     abiEncodedConstructorArguments?: string;
     msgSender?: string;
   };
+  creatorTxHash?: string;
   status?: Status;
   statusMessage?: string;
   storageTimestamp?: Date;
@@ -387,7 +388,8 @@ export const verifyContractsInSession = async (
       continue;
     }
 
-    const { address, chainId, contract, contextVariables } = contractWrapper;
+    const { address, chainId, contract, contextVariables, creatorTxHash } =
+      contractWrapper;
 
     // The session saves the CheckedContract as a simple object, so we need to reinstantiate it
     const checkedContract = new CheckedContract(
@@ -410,7 +412,8 @@ export const verifyContractsInSession = async (
           checkedContract,
           chainId as string,
           address as string,
-          contextVariables
+          contextVariables,
+          creatorTxHash
         );
         // Send to verification again with all source files.
         if (match.status === "extra-file-input-bug") {
@@ -472,14 +475,22 @@ export type EtherscanResult = {
   SwarmSource: string;
 };
 
-export const contractHasMultipleFiles = (sourceCodeObject: string) => {
+export const isEtherscanSolcJsonInput = (sourceCodeObject: string) => {
   if (sourceCodeObject.startsWith("{{")) {
     return true;
   }
   return false;
 };
 
-export const parseMultipleFilesContract = (sourceCodeObject: string) => {
+export const isEtherscanMultipleFilesObject = (sourceCodeObject: string) => {
+  try {
+    return Object.keys(JSON.parse(sourceCodeObject)).length > 0;
+  } catch (e) {
+    return false;
+  }
+};
+
+export const parseSolcJsonInput = (sourceCodeObject: string) => {
   return JSON.parse(sourceCodeObject.slice(1, -1));
 };
 
@@ -514,7 +525,7 @@ export const getEtherscanApiHostFromChainId = (
 
 export const getSolcJsonInputFromEtherscanResult = (
   etherscanResult: EtherscanResult,
-  contractPath: string
+  sources: any
 ): JsonInput => {
   const generatedSettings = {
     optimizer: {
@@ -534,11 +545,7 @@ export const getSolcJsonInputFromEtherscanResult = (
   };
   const solcJsonInput = {
     language: "Solidity",
-    sources: {
-      [contractPath]: {
-        content: etherscanResult.SourceCode,
-      },
-    },
+    sources,
     settings: generatedSettings,
   };
   return solcJsonInput;
@@ -589,15 +596,25 @@ export const processRequestFromEtherscan = async (
 
   let solcJsonInput;
   // SourceCode can be the Solidity code if there is only one contract file, or the json object if there are multiple files
-  if (contractHasMultipleFiles(sourceCodeObject)) {
-    solcJsonInput = parseMultipleFilesContract(sourceCodeObject);
+  if (isEtherscanSolcJsonInput(sourceCodeObject)) {
+    solcJsonInput = parseSolcJsonInput(sourceCodeObject);
     // Tell compiler to output metadata
     solcJsonInput.settings.outputSelection["*"]["*"] = ["metadata"];
-  } else {
-    const contractPath = contractResultJson.ContractName + ".sol";
+  } else if (isEtherscanMultipleFilesObject(sourceCodeObject)) {
     solcJsonInput = getSolcJsonInputFromEtherscanResult(
       contractResultJson,
-      contractPath
+      JSON.parse(sourceCodeObject)
+    );
+  } else {
+    const contractPath = contractResultJson.ContractName + ".sol";
+    const sources = {
+      [contractPath]: {
+        content: sourceCodeObject,
+      },
+    };
+    solcJsonInput = getSolcJsonInputFromEtherscanResult(
+      contractResultJson,
+      sources
     );
   }
 

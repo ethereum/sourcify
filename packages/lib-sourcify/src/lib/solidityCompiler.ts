@@ -80,7 +80,9 @@ export async function useCompiler(version: string, solcJsonInput: JsonInput) {
 }
 
 // TODO: Handle where and how solc is saved
-async function getSolcExecutable(version: string): Promise<string | null> {
+export async function getSolcExecutable(
+  version: string
+): Promise<string | null> {
   const fileName = `solc-linux-amd64-v${version}`;
   const repoPath = process.env.SOLC_REPO || path.join('/tmp', 'solc-repo');
   const solcPath = path.join(repoPath, fileName);

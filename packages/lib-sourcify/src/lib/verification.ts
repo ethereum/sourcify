@@ -301,6 +301,7 @@ export async function matchWithCreationTx(
         recompiledCreationBytecode
       );
     match.abiEncodedConstructorArguments = abiEncodedConstructorArguments;
+    match.creatorTxHash = creatorTxHash;
   }
 }
 /**
@@ -364,8 +365,8 @@ async function getTx(creatorTxHash: string, sourcifyChain: SourcifyChain) {
       ])) as Transaction;
       if (tx) {
         console.log(`Transaction ${creatorTxHash} fetched via ${rpcURL}`);
+        return tx;
       }
-      return tx;
     } catch (err) {
       // Catch to try the next RPC
       console.log(err);
@@ -432,7 +433,7 @@ function extractAbiEncodedConstructorArguments(
  * @param abiEncodedConstructorArguments
  * @returns Match
  */
-function calculateCreate2Address(
+export function calculateCreate2Address(
   deployerAddress: string,
   salt: string,
   creationBytecode: string,

@@ -45,6 +45,7 @@ export default class VerificationService implements IVerificationService {
     } catch (err) {
       // Find the creator tx if it wasn't supplied and try verifying again with it.
       if (
+        !creatorTxHash &&
         err instanceof Error &&
         err.message === "The deployed and recompiled bytecode don't match."
       ) {

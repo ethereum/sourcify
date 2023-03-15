@@ -121,7 +121,8 @@ export default class RepositoryService implements IRepositoryService {
     );
     const urls: Array<string> = [];
     files.forEach((file) => {
-      const relativePath = file.path.split("/repository")[1].substr(1);
+      const relativePath =
+        "contracts/" + file.path.split("/contracts")[1].substr(1);
       urls.push(`${process.env.REPOSITORY_SERVER_URL}/${relativePath}`);
     });
     return urls;
@@ -403,18 +404,22 @@ export default class RepositoryService implements IRepositoryService {
         match.address,
         contract.solidity
       );
-      this.storeMetadata(
+
+      // Store metadata
+      this.storeJSON(
         matchQuality,
         match.chainId,
         match.address,
+        "metadata.json",
         contract.metadata
       );
 
       if (match.abiEncodedConstructorArguments) {
-        this.storeConstructorArgs(
+        this.storeTxt(
           matchQuality,
           match.chainId,
           match.address,
+          "constructor-args.txt",
           match.abiEncodedConstructorArguments
         );
       }
@@ -423,28 +428,41 @@ export default class RepositoryService implements IRepositoryService {
         match.contextVariables &&
         Object.keys(match.contextVariables).length > 0
       ) {
-        this.storeContextVariables(
+        this.storeJSON(
           matchQuality,
           match.chainId,
           match.address,
+          "context-variables.json",
           match.contextVariables
         );
       }
 
-      if (match.create2Args) {
-        this.storeCreate2Args(
+      if (match.creatorTxHash) {
+        this.storeTxt(
           matchQuality,
           match.chainId,
           match.address,
+          "creator-tx-hash.txt",
+          match.creatorTxHash
+        );
+      }
+
+      if (match.create2Args) {
+        this.storeJSON(
+          matchQuality,
+          match.chainId,
+          match.address,
+          "create2-args.json",
           match.create2Args
         );
       }
 
       if (match.libraryMap && Object.keys(match.libraryMap).length) {
-        this.storeLibraryMap(
+        this.storeJSON(
           matchQuality,
           match.chainId,
           match.address,
+          "library-map.json",
           match.libraryMap
         );
       }
@@ -527,28 +545,30 @@ export default class RepositoryService implements IRepositoryService {
     }
   }
 
-  private storeMetadata(
+  private storeJSON(
     matchQuality: MatchQuality,
     chainId: string,
     address: string,
-    metadata: Metadata
+    fileName: string,
+    contentJSON: any
   ) {
     this.save(
       {
         matchQuality,
         chainId,
         address,
-        fileName: "metadata.json",
+        fileName,
       },
-      JSON.stringify(metadata)
+      JSON.stringify(contentJSON)
     );
   }
 
-  private storeConstructorArgs(
+  private storeTxt(
     matchQuality: MatchQuality,
     chainId: string,
     address: string,
-    abiEncodedConstructorArguments: string
+    fileName: string,
+    content: string
   ) {
     this.save(
       {
@@ -556,64 +576,9 @@ export default class RepositoryService implements IRepositoryService {
         chainId,
         address,
         source: false,
-        fileName: "constructor-args.txt",
+        fileName,
       },
-      abiEncodedConstructorArguments
-    );
-  }
-
-  private storeContextVariables(
-    matchQuality: MatchQuality,
-    chainId: string,
-    address: string,
-    contextVariables: ContextVariables
-  ) {
-    this.save(
-      {
-        matchQuality,
-        chainId,
-        address,
-        source: false,
-        fileName: "context-variables.json",
-      },
-      JSON.stringify(contextVariables, undefined, 2)
-    );
-  }
-
-  private storeCreate2Args(
-    matchQuality: MatchQuality,
-    chainId: string,
-    address: string,
-    create2Args: Create2Args
-  ) {
-    this.save(
-      {
-        matchQuality,
-        chainId,
-        address,
-        source: false,
-        fileName: "create2-args.json",
-      },
-      JSON.stringify(create2Args)
-    );
-  }
-
-  private storeLibraryMap(
-    matchQuality: MatchQuality,
-    chainId: string,
-    address: string,
-    libraryMap: StringMap
-  ) {
-    const indentationSpaces = 2;
-    this.save(
-      {
-        matchQuality,
-        chainId,
-        address,
-        source: false,
-        fileName: "library-map.json",
-      },
-      JSON.stringify(libraryMap, null, indentationSpaces)
+      content
     );
   }
 

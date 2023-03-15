@@ -79,6 +79,23 @@ const Message = ({
       </div>
     );
   }
+  if (checkedContract.chainId === "0" && (customStatus === "perfect" || customStatus === "partial")) {
+    return (
+      <div
+        className={`${bgColor} px-4 py-2 rounded-md outline-2 ${outlineColor} outline`}
+      >
+        <p className="break-all">
+          <HiCheck className={`${textColor} inline mr-1 align-middle`} />
+          Verification successful!{" "}
+          <span className={`${darkTextColor} font-bold`}>
+            {customStatus}ly
+          </span>{" "}
+          create2 verified:
+          {checkedContract.address}
+        </p>
+      </div>
+    );
+  }
   if (customStatus === "error") {
     if (checkedContract.statusMessage) {
       console.log(checkedContract.statusMessage);
