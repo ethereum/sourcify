@@ -502,6 +502,7 @@ export default class VerificationController
     contractWrapper.statusMessage = match.message;
     contractWrapper.storageTimestamp = match.storageTimestamp;
     contractWrapper.address = match.address;
+    contractWrapper.chainId = "0";
 
     if (match.status) {
       await this.repositoryService.storeMatch(contract, match);
