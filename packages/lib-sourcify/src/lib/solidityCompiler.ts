@@ -9,8 +9,6 @@ import { JsonInput } from './types';
 const solc = require('solc');
 
 const GITHUB_SOLC_REPO = 'https://github.com/ethereum/solc-bin/raw/gh-pages/';
-const GITHUB_SOLCJS_REPO =
-  'https://github.com/ethereum/solc-bin/raw/gh-pages/bin/';
 const RECOMPILATION_ERR_MSG =
   'Recompilation error (probably caused by invalid metadata)';
 
@@ -45,8 +43,11 @@ export async function useCompiler(version: string, solcJsonInput: JsonInput) {
   let compiled: string | undefined;
 
   const solcPlatform = findSolcPlatform();
+  let solcPath;
   if (solcPlatform) {
-    const solcPath = await getSolcExecutable(solcPlatform, version);
+    solcPath = await getSolcExecutable(solcPlatform, version);
+  }
+  if (solcPath) {
     if (solcPath) {
       const shellOutputBuffer = spawnSync(solcPath, ['--standard-json'], {
         input: inputStringified,
@@ -80,9 +81,7 @@ export async function useCompiler(version: string, solcJsonInput: JsonInput) {
   }
 
   if (!compiled) {
-    throw new Error(
-      'Compilation failed. No output from the compiler. Try using a different compiler.'
-    );
+    throw new Error('Compilation failed. No output from the compiler.');
   }
   const compiledJSON = JSON.parse(compiled);
   const errorMessages = compiledJSON?.errors?.filter(
@@ -95,7 +94,11 @@ export async function useCompiler(version: string, solcJsonInput: JsonInput) {
     console.error(error);
     throw error;
   }
-  console.log(`Compiled successfully with solc version ${version}`);
+  console.log(
+    `Compiled successfully with solc platform ${
+      solcPlatform ? solcPlatform : 'solc-js'
+    } version ${version}`
+  );
   return compiledJSON;
 }
 
@@ -110,12 +113,11 @@ async function getSolcExecutable(
   if (fs.existsSync(solcPath) && validateSolcPath(solcPath)) {
     return solcPath;
   }
-  const success = await fetchSolcFromGitHub(
-    platform,
-    solcPath,
-    version,
-    fileName
-  );
+  const success = await fetchAndSaveSolc(platform, solcPath, version, fileName);
+  if (success && !validateSolcPath(solcPath)) {
+    console.log(`Cannot validate solc ${version}.`);
+    return null;
+  }
   return success ? solcPath : null;
 }
 
@@ -135,7 +137,7 @@ function validateSolcPath(solcPath: string): boolean {
   return false;
 }
 
-async function fetchSolcFromGitHub(
+async function fetchAndSaveSolc(
   platform: string,
   solcPath: string,
   version: string,
@@ -155,62 +157,15 @@ async function fetchSolcFromGitHub(
       undefined;
     }
     fs.writeFileSync(solcPath, new DataView(buffer), { mode: 0o755 });
-    if (validateSolcPath(solcPath)) {
-      console.log(
-        `Successfully fetched solc ${version} from GitHub: ${githubSolcURI}`
-      );
-      return true;
-    }
+    console.log(
+      `Successfully fetched solc ${version} from GitHub: ${githubSolcURI}`
+    );
+    return true;
   } else {
     console.log(
       `Failed fetching solc ${version} from GitHub: ${githubSolcURI}`
     );
   }
-
-  return false;
-}
-
-async function validateSolcJsPath(soljsonPath: string): Promise<boolean> {
-  try {
-    const solcjsImports = await import(soljsonPath);
-    const soljson = solc.setupMethods(solcjsImports);
-    if (soljson) {
-      return true;
-    }
-    return false;
-  } catch (e) {
-    return false;
-  }
-}
-
-async function fetchSolcJsFromGitHub(
-  solcJsPath: string,
-  version: string,
-  fileName: string
-): Promise<boolean> {
-  const githubSolcURI = GITHUB_SOLCJS_REPO + encodeURIComponent(fileName);
-  const res = await fetchWithTimeout(githubSolcURI);
-  // TODO: Handle nodejs only dependencies
-  if (res.status === StatusCodes.OK) {
-    fs.mkdirSync(path.dirname(solcJsPath), { recursive: true });
-    const buffer = await res.arrayBuffer();
-
-    try {
-      fs.unlinkSync(solcJsPath);
-    } catch (_e) {
-      undefined;
-    }
-    fs.writeFileSync(solcJsPath, new DataView(buffer), { mode: 0o755 });
-    if (await validateSolcJsPath(solcJsPath)) {
-      console.log(
-        `Successfully fetched solcjs ${version} from GitHub: ${githubSolcURI}`
-      );
-      return true;
-    }
-  }
-  console.log(
-    `Failed fetching solcjs ${version} from GitHub: ${githubSolcURI}`
-  );
 
   return false;
 }
@@ -244,12 +199,12 @@ export async function getSolcJs(version = 'latest'): Promise<any> {
   const soljsonPath = path.resolve(soljsonRepo, fileName);
 
   if (!fs.existsSync(soljsonPath)) {
-    if (!(await fetchSolcJsFromGitHub(soljsonPath, version, fileName))) {
+    if (!(await fetchAndSaveSolc('bin', soljsonPath, version, fileName))) {
       return false;
     }
+  } else {
+    console.log(`Using local solcjs ${version} from ${soljsonPath}`);
   }
-
-  console.log(`Using local solcjs ${version} from ${soljsonPath}`);
   const solcjsImports = await import(soljsonPath);
   return solc.setupMethods(solcjsImports);
 }
