@@ -23,7 +23,6 @@ export default {
   server: {
     port: process.env.SERVER_PORT || 5000,
     maxFileSize: 30 * 1024 * 1024, // 30 MB
-    etherscanAPIKey: process.env.ETHERSCAN_API_KEY,
   },
   repository: {
     path: setRepositoryPath(),
@@ -49,4 +48,94 @@ export default {
     /^https?:\/\/(?:.+\.)?ipfs.dweb.link$/, // dweb links used by Brave browser etc.
     process.env.NODE_ENV === "development" && /^https?:\/\/localhost(?::\d+)?$/, // localhost on any port
   ],
+};
+
+type EtherscanAPIs = {
+  [key: string]: {
+    apiURL: string;
+    apiKey: string | undefined;
+  };
+};
+
+export const etherscanAPIs: EtherscanAPIs = {
+  "1": {
+    apiURL: "https://api.etherscan.io",
+    apiKey: process.env.ETHERSCAN_API_KEY,
+  },
+  "5": {
+    apiURL: "https://api-goerli.etherscan.io",
+    apiKey: process.env.ETHERSCAN_API_KEY,
+  },
+  "11155111": {
+    apiURL: "https://api-sepolia.etherscan.io",
+    apiKey: process.env.ETHERSCAN_API_KEY,
+  },
+  "42161": {
+    apiURL: "https://api.arbiscan.io",
+    apiKey: process.env.ARBISCAN_API_KEY,
+  },
+  "421613": {
+    apiURL: "https://api-goerli.arbiscan.io",
+    apiKey: process.env.ARBISCAN_API_KEY,
+  },
+  "10": {
+    apiURL: "https://api-optimistic.etherscan.io",
+    apiKey: process.env.OPTIMISTIC_ETHERSCAN_API_KEY,
+  },
+  "420": {
+    apiURL: "https://api-goerli-optimism.etherscan.io",
+    apiKey: process.env.OPTIMISTIC_ETHERSCAN_API_KEY,
+  },
+  "43114": {
+    apiURL: "https://api-snowtrace.io",
+    apiKey: process.env.SNOWTRACE_API_KEY,
+  },
+  "43113": {
+    apiURL: "https://api-testnet.snowtrace.io",
+    apiKey: process.env.SNOWTRACE_API_KEY,
+  },
+  "56": {
+    apiURL: "https://api.bscscan.com",
+    apiKey: process.env.BSCSCAN_API_KEY,
+  },
+  "97": {
+    apiURL: "https://api-testnet.bscscan.com",
+    apiKey: process.env.BSCSCAN_API_KEY,
+  },
+  "137": {
+    apiURL: "https://api.polygonscan.com",
+    apiKey: process.env.POLYGONSCAN_API_KEY,
+  },
+  "80001": {
+    apiURL: "https://api-testnet.polygonscan.com",
+    apiKey: process.env.POLYGONSCAN_API_KEY,
+  },
+  "42220": {
+    apiURL: "https://api.celoscan.io",
+    apiKey: process.env.CELOSCAN_API_KEY,
+  },
+  "44787": {
+    apiURL: "https://api-alfajores.celoscan.io",
+    apiKey: process.env.CELOSCAN_API_KEY,
+  },
+  "1284": {
+    apiURL: "https://api-moonbeam.moonscan.io",
+    apiKey: process.env.MOONSCAN_API_KEY,
+  },
+  "1285": {
+    apiURL: "https://api-moonriver.moonscan.io",
+    apiKey: process.env.MOONSCAN_API_KEY,
+  },
+  "1287": {
+    apiURL: "https://api-moonbase.moonscan.io",
+    apiKey: process.env.MOONSCAN_API_KEY,
+  },
+  "288": {
+    apiURL: "https://api.bobascan.com",
+    apiKey: process.env.BOBASCAN_API_KEY,
+  },
+  "100": {
+    apiURL: "https://api.gnosisscan.io",
+    apiKey: process.env.GNOSSISCAN_API_KEY,
+  },
 };
