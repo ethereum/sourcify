@@ -8,6 +8,7 @@ import {
   SourcifyChainExtension,
   Chain,
 } from "@ethereum-sourcify/lib-sourcify";
+import config from "./config";
 const allChains = chainsRaw as Chain[];
 
 dotenv.config({
@@ -16,6 +17,7 @@ dotenv.config({
 
 const ETHERSCAN_REGEX = /at txn.*href='\/tx\/(0x.*?)'/.source; // save as string to be able to return the txRegex in /chains response. If stored as RegExp returns {}
 const ETHERSCAN_SUFFIX = "address/${ADDRESS}";
+const ETHERSCAN_API_SUFFIX = `api?module=contract&action=getcontractcreation&contractaddresses=\${ADDRESS}&apikey=${config.server.etherscanAPIKey}`;
 const BLOCKSSCAN_SUFFIX = "api/accounts/${ADDRESS}";
 const BLOCKSCOUT_REGEX =
   'transaction_hash_link" href="${BLOCKSCOUT_PREFIX}/tx/(.*?)"';
@@ -114,9 +116,8 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // Ethereum Mainnet
     supported: true,
     monitored: true,
-    contractFetchAddress: "https://etherscan.io/" + ETHERSCAN_SUFFIX,
+    contractFetchAddress: "https://api.etherscan.io/" + ETHERSCAN_API_SUFFIX,
     rpc: buildAlchemyAndCustomRpcURLs("mainnet", "eth", true),
-    txRegex: ETHERSCAN_REGEX,
   },
   "4": {
     // Ethereum Rinkeby Testnet

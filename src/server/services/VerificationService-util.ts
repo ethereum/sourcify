@@ -28,6 +28,13 @@ export const getCreatorTx = async (
     if (creatorTx) return creatorTx;
   }
 
+  // Chains using Etherscan API
+  if (sourcifyChain.chainId == 1) {
+    const response = await fetchFromApi(contractFetchAddressFilled);
+    if (response?.result?.[0]?.txHash)
+      return response?.result?.[0]?.txHash as string;
+  }
+
   // Telos
   if (sourcifyChain.chainId == 40 || sourcifyChain.chainId == 41) {
     const response = await fetchFromApi(contractFetchAddressFilled);
