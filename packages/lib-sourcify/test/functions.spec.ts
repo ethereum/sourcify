@@ -29,6 +29,30 @@ describe('Verify Solidity Compiler', () => {
         await getSolcExecutable('linux-amd64', '0.8.9+commit.e5eed63a')
       ).not.equals(null);
     });
+    it('Should compile with solc', async () => {
+      try {
+        const compiledJSON = await useCompiler('0.8.9+commit.e5eed63a', {
+          language: 'Solidity',
+          sources: {
+            'test.sol': {
+              content: 'contract C { function f() public  {} }',
+            },
+          },
+          settings: {
+            outputSelection: {
+              '*': {
+                '*': ['*'],
+              },
+            },
+          },
+        });
+        expect(compiledJSON?.contracts?.['test.sol']?.C).to.not.equals(
+          undefined
+        );
+      } catch (e: any) {
+        expect.fail(e.message);
+      }
+    });
   }
   it('Should return a compiler error', async () => {
     try {
