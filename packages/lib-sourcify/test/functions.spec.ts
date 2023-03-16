@@ -18,17 +18,44 @@ import { Metadata, MissingSources } from '../src/lib/types';
 
 describe('Verify Solidity Compiler', () => {
   it('Should fetch latest SolcJS compiler', async () => {
-    await getSolcJs();
+    expect(await getSolcJs()).not.equals(null);
   });
   it('Should fetch SolcJS compiler passing only version', async () => {
-    await getSolcJs('0.8.17+commit.8df45f5f');
+    expect(await getSolcJs('0.8.17+commit.8df45f5f')).not.equals(false);
   });
-  it('Should fetch latest solc from github', async () => {
-    await getSolcExecutable('0.8.9+commit.e5eed63a');
-  });
+  if (process.platform === 'linux') {
+    it('Should fetch latest solc from github', async () => {
+      expect(
+        await getSolcExecutable('linux-amd64', '0.8.9+commit.e5eed63a')
+      ).not.equals(null);
+    });
+    it('Should compile with solc', async () => {
+      try {
+        const compiledJSON = await useCompiler('0.8.9+commit.e5eed63a', {
+          language: 'Solidity',
+          sources: {
+            'test.sol': {
+              content: 'contract C { function f() public  {} }',
+            },
+          },
+          settings: {
+            outputSelection: {
+              '*': {
+                '*': ['*'],
+              },
+            },
+          },
+        });
+        expect(compiledJSON?.contracts?.['test.sol']?.C).to.not.equals(
+          undefined
+        );
+      } catch (e: any) {
+        expect.fail(e.message);
+      }
+    });
+  }
   it('Should return a compiler error', async () => {
     try {
-      process.env.SOLC_REPO = '/tmp/solc-repo-' + Date.now();
       await useCompiler('0.8.9+commit.e5eed63a', {
         language: 'Solidity',
         sources: {
@@ -44,10 +71,41 @@ describe('Verify Solidity Compiler', () => {
           },
         },
       });
-    } catch (e) {
-      //
+    } catch (e: any) {
+      expect(e.message.startsWith('Compiler error:')).to.be.true;
     }
-    delete process.env.SOLC_REPO;
+  });
+  it('Should compile with solcjs', async () => {
+    const realPlatform = process.platform;
+    Object.defineProperty(process, 'platform', {
+      value: 'not existing platform',
+      writable: false,
+    });
+    try {
+      const compiledJSON = await useCompiler('0.8.9+commit.e5eed63a', {
+        language: 'Solidity',
+        sources: {
+          'test.sol': {
+            content: 'contract C { function f() public  {} }',
+          },
+        },
+        settings: {
+          outputSelection: {
+            '*': {
+              '*': ['*'],
+            },
+          },
+        },
+      });
+      expect(compiledJSON?.contracts?.['test.sol']?.C).to.not.equals(undefined);
+    } catch (e: any) {
+      expect.fail(e.message);
+    } finally {
+      Object.defineProperty(process, 'platform', {
+        value: realPlatform,
+        writable: false,
+      });
+    }
   });
 });
 
