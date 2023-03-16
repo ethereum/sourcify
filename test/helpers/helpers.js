@@ -1,3 +1,5 @@
+const fakeAddress = "0x000000bCB92160f8B7E094998Af6BCaD7fa537ff"; // checksum false
+const unusedAddress = "0xf1Df8172F308e0D47D0E5f9521a5210467408535";
 /**
  *  Function to deploy contracts from provider unlocked accounts
  */
@@ -142,4 +144,6 @@ module.exports = {
   waitSecs,
   callContractMethod,
   callContractMethodWithTx,
+  fakeAddress,
+  unusedAddress,
 };

@@ -140,7 +140,6 @@ export async function verifyCreate2(
     address: computedAddr,
     chainId: '0',
     status: 'perfect',
-    storageTimestamp: new Date(),
     abiEncodedConstructorArguments,
     create2Args,
     // libraryMap: libraryMap,

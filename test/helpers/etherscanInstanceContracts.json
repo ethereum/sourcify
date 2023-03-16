@@ -1,0 +1,21 @@
+{
+  "1": [
+    {
+      "address": "0xB753548F6E010e7e680BA186F9Ca1BdAB2E90cf2",
+      "type": "multiple",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x5aa653a076c1dbb47cec8c1b4d152444cad91941",
+      "type": "standard-json",
+      "expectedStatus": "partial"
+    }
+  ],
+  "5": [
+    {
+      "address": "0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4",
+      "type": "single",
+      "expectedStatus": "partial"
+    }
+  ]
+}

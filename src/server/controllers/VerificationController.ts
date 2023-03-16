@@ -306,7 +306,7 @@ export default class VerificationController
     const req = origReq as LegacyVerifyRequest;
     validateRequest(req);
 
-    const chain = req.body.chainId as string;
+    const chain = req.body.chain as string;
     const address = req.body.address;
 
     const { metadata, solcJsonInput } = await processRequestFromEtherscan(
@@ -619,7 +619,16 @@ export default class VerificationController
       );
 
     this.router.route(["/verify/etherscan"]).post(
-      // TODO: add validation
+      body("address")
+        .exists()
+        .bail()
+        .custom(
+          (address, { req }) => (req.addresses = validateAddresses(address))
+        ),
+      body("chain")
+        .exists()
+        .bail()
+        .custom((chain, { req }) => (req.chain = checkChainId(chain))),
       this.safeHandler(this.verifyFromEtherscan)
     );
 
