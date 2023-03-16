@@ -29,7 +29,17 @@ export const getCreatorTx = async (
   }
 
   // Chains using Etherscan API
-  if (sourcifyChain.chainId == 1) {
+  if (
+    sourcifyChain.chainId == 1 ||
+    sourcifyChain.chainId == 5 ||
+    sourcifyChain.chainId == 11155111 ||
+    sourcifyChain.chainId == 56 ||
+    sourcifyChain.chainId == 137 ||
+    sourcifyChain.chainId == 42161 ||
+    sourcifyChain.chainId == 43114 ||
+    sourcifyChain.chainId == 10 ||
+    sourcifyChain.chainId == 84531
+  ) {
     const response = await fetchFromApi(contractFetchAddressFilled);
     if (response?.result?.[0]?.txHash)
       return response?.result?.[0]?.txHash as string;

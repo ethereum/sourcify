@@ -131,9 +131,9 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // Ethereum Goerli Testnet
     supported: true,
     monitored: true,
-    contractFetchAddress: "https://goerli.etherscan.io/" + ETHERSCAN_SUFFIX,
+    contractFetchAddress:
+      "https://api-goerli.etherscan.io/" + ETHERSCAN_API_SUFFIX,
     rpc: buildAlchemyAndCustomRpcURLs("goerli", "eth", true),
-    txRegex: ETHERSCAN_REGEX,
   },
   "11155111": {
     // Ethereum Sepolia Testnet
@@ -142,8 +142,8 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     rpc: buildAlchemyAndCustomRpcURLs("sepolia", "eth", true).concat(
       "https://rpc.sepolia.org"
     ),
-    contractFetchAddress: "https://sepolia.etherscan.io/" + ETHERSCAN_SUFFIX,
-    txRegex: ETHERSCAN_REGEX,
+    contractFetchAddress:
+      "https://api-sepolia.etherscan.io/" + ETHERSCAN_API_SUFFIX,
   },
   "51": {
     supported: true,
@@ -153,8 +153,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "56": {
     supported: true,
     monitored: false,
-    contractFetchAddress: "https://bscscan.com/" + ETHERSCAN_SUFFIX,
-    txRegex: ETHERSCAN_REGEX,
+    contractFetchAddress: "https://api.bscscan.com/" + ETHERSCAN_API_SUFFIX,
   },
   "77": {
     supported: true,
@@ -198,9 +197,8 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "137": {
     supported: true,
     monitored: true,
-    contractFetchAddress: "https://polygonscan.com/" + ETHERSCAN_SUFFIX,
+    contractFetchAddress: "https://api.polygonscan.com/" + ETHERSCAN_API_SUFFIX,
     rpc: buildAlchemyAndCustomRpcURLs("mainnet", "polygon"),
-    txRegex: ETHERSCAN_REGEX,
   },
   "534": {
     supported: true,
@@ -240,8 +238,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // Arbitrum Mainnet
     supported: true,
     monitored: true,
-    contractFetchAddress: "https://arbiscan.io/" + ETHERSCAN_SUFFIX,
-    txRegex: ETHERSCAN_REGEX,
+    contractFetchAddress: "https://api.arbiscan.io/" + ETHERSCAN_API_SUFFIX,
     rpc: buildAlchemyAndCustomRpcURLs("mainnet", "arb"),
   },
   "421613": {
@@ -262,8 +259,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "43114": {
     supported: true,
     monitored: false,
-    contractFetchAddress: "https://snowtrace.io/" + ETHERSCAN_SUFFIX,
-    txRegex: ETHERSCAN_REGEX,
+    contractFetchAddress: "https://api.snowtrace.io/" + ETHERSCAN_API_SUFFIX,
   },
   "57": {
     supported: true,
@@ -311,8 +307,8 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "10": {
     supported: true,
     monitored: true,
-    contractFetchAddress: "https://optimistic.etherscan.io/" + ETHERSCAN_SUFFIX,
-    txRegex: ETHERSCAN_REGEX,
+    contractFetchAddress:
+      "https://api-optimistic.etherscan.io/" + ETHERSCAN_API_SUFFIX,
     rpc: buildAlchemyAndCustomRpcURLs("mainnet", "opt"),
   },
   "420": {
@@ -688,8 +684,8 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // Base Goerli Testnet
     supported: true,
     monitored: true,
-    contractFetchAddress: "https://goerli.basescan.org/" + ETHERSCAN_SUFFIX,
-    txRegex: ETHERSCAN_REGEX,
+    contractFetchAddress:
+      "https://api-goerli.basescan.org/" + ETHERSCAN_API_SUFFIX,
   },
 };
 
