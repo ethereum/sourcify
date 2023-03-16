@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import Input from "../../components/Input";
 import ChainSelect from "../../components/ChainSelect";
 import { VERIFY_FROM_ETHERSCAN } from "../../constants";
 import { SessionResponse } from "../../types";
+import { Context } from "../../Context";
 
 type EtherscanInputProps = {
   fetchAndUpdate: (
@@ -20,6 +21,10 @@ const EtherscanInput = ({
   const [address, setAddress] = useState<string>("");
   const [chainId, setChainId] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const { sourcifyChains, sourcifyChainMap } = useContext(Context);
+  const chainsIdsWithEtherscanAPI = sourcifyChains
+    .filter((chain) => chain.etherscanAPI)
+    .map((chainId) => chainId.chainId);
 
   const handleAddressChange: React.ChangeEventHandler<HTMLInputElement> = (
     e
@@ -67,10 +72,15 @@ const EtherscanInput = ({
       <ChainSelect
         value={chainId}
         handleChainIdChange={handleChainIdChange}
-        availableChains={[
-          1, 4, 5, 11155111, 42161, 421613, 10, 420, 43114, 43113,
-        ]}
+        availableChains={chainsIdsWithEtherscanAPI}
       />
+      {sourcifyChainMap[parseInt(chainId)]?.etherscanAPI && (
+        <div className="mt-1">
+          <p className="text-xs text-gray-400 text-right">
+            Powered by {sourcifyChainMap[parseInt(chainId)]?.etherscanAPI} APIs
+          </p>
+        </div>
+      )}
     </div>
   );
 };
