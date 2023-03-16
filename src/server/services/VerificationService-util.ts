@@ -84,6 +84,13 @@ async function getCreatorTxByScraping(
       }
     }
   }
+  if (res.status === StatusCodes.FORBIDDEN) {
+    throw new Error(
+      `Scraping the creator tx failed at ${fetchAddress} because of HTTP status code ${res.status} (Forbidden)
+      
+      Try manually putting the creator tx hash in the "Creator tx hash" field.`
+    );
+  }
   return null;
 }
 

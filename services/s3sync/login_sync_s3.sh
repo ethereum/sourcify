@@ -15,5 +15,5 @@ echo "$(date) Sync AWS complete"
 # /usr/local/bin/aws configure set s3.max_concurrent_requests 2 # Chainsafe Storage S3 concurrency is limited
 
 # echo "$(date) Syncing Chainsafe S3 at $BUCKET_NAME"
-# /usr/local/bin/aws s3 sync /app/repository $BUCKET_NAME/$TAG --endpoint-url https://buckets.chainsafe.io > "/app/logs/s3sync-chainsafe-$(date '+%Y-%m-%dZ%H:%M').log 2>&1"
+# /usr/local/bin/aws s3 sync /app/repository $BUCKET_NAME/$TAG --endpoint-url https://buckets.chainsafe.io > "/app/logs/s3sync-chainsafe-$(date '+%Y-%m-%dZ%H:%M').log" 2>&1
 # echo "$(date) Syncing Chainsafe S3 complete"
