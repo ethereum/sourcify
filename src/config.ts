@@ -87,7 +87,7 @@ export const etherscanAPIs: EtherscanAPIs = {
     apiKey: process.env.OPTIMISTIC_ETHERSCAN_API_KEY,
   },
   "43114": {
-    apiURL: "https://api-snowtrace.io",
+    apiURL: "https://api.snowtrace.io",
     apiKey: process.env.SNOWTRACE_API_KEY,
   },
   "43113": {
