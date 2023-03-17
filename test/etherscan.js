@@ -10,17 +10,13 @@ const util = require("util");
 const Server = require("../dist/server/server").Server;
 const { etherscanAPIs } = require("../dist/config");
 const {
-  assertions,
+  assertVerification,
   assertValidationError,
-  assertAllFound,
   assertVerificationSession,
 } = require("./helpers/assertions");
 const { sourcifyChainsMap } = require("../dist/sourcify-chains");
 const testContracts = require("./helpers/etherscanInstanceContracts.json");
-const { waitSecs, unused, unusedAddress } = require("./helpers/helpers");
-const {
-  processRequestFromEtherscan,
-} = require("../dist/server/controllers/VerificationController-util");
+const { waitSecs, unusedAddress } = require("./helpers/helpers");
 const { default: fetch } = require("node-fetch");
 
 chai.use(chaiHttp);
@@ -145,7 +141,7 @@ describe("Import From Etherscan and Verify", function () {
         .field("chain", chainId)
         .end((err, res) => {
           // currentResponse = res;
-          assertions(err, res, done, address, chainId, expectedStatus);
+          assertVerification(err, res, done, address, chainId, expectedStatus);
         });
     });
   }
