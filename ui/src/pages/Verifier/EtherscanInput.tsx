@@ -4,6 +4,7 @@ import ChainSelect from "../../components/ChainSelect";
 import { VERIFY_FROM_ETHERSCAN } from "../../constants";
 import { SessionResponse } from "../../types";
 import { Context } from "../../Context";
+import { isAddress } from "@ethersproject/address";
 
 type EtherscanInputProps = {
   fetchAndUpdate: (
@@ -30,18 +31,19 @@ const EtherscanInput = ({
     e
   ) => {
     e.preventDefault();
+    if (!isAddress(e.target.value)) setError("Invalid address");
+    else setError("");
     setAddress(e.target.value);
-    if (!e.target.value) return setError("");
+    if (!e.target.value) return setError(""); // reset error
   };
 
   const handleChainIdChange = (id: number) => {
     const chainId = `${id}`;
     setChainId(chainId);
-    if (chainId) return setError("");
   };
 
   useEffect(() => {
-    if (address === "" || chainId === "") {
+    if (!address || !chainId || error) {
       return;
     }
     setIsLoading(true);
@@ -57,7 +59,7 @@ const EtherscanInput = ({
       setChainId("");
       setIsLoading(false);
     });
-  }, [address, chainId, fetchAndUpdate, setIsLoading]);
+  }, [address, chainId, fetchAndUpdate, setIsLoading, error]);
 
   return (
     <div className="mb-2">
