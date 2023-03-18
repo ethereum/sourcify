@@ -690,6 +690,14 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: "https://goerli.basescan.org/" + ETHERSCAN_SUFFIX,
     txRegex: ETHERSCAN_REGEX,
   },
+  "13381": {
+    // Phoenix Blockchain Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://phoenixplorer.com/" + BLOCKSCOUT_SUFFIX,
+    rpc: ["https://rpc.phoenixplorer.com"],
+    txRegex: getBlockscoutRegex(),
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
@@ -756,8 +764,8 @@ export function getSortedChainsArray(
       getPrimarySortKey(a) > getPrimarySortKey(b)
         ? 1
         : getPrimarySortKey(b) > getPrimarySortKey(a)
-        ? -1
-        : 0
+          ? -1
+          : 0
     );
 
   const sortedChains = etherumChains.concat(otherChains);
