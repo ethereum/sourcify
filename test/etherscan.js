@@ -135,17 +135,26 @@ describe("Import From Etherscan and Verify", function () {
     }
   });
 
-  function verifyAndAssertEtherscan(chainId, address, expectedStatus, type) {
+  function verifyAndAssertEtherscan(
+    chainId,
+    address,
+    expectedStatus,
+    type,
+    creatorTxHash
+  ) {
     it(`Should import a ${type} contract from  #${chainId} ${sourcifyChainsMap[chainId].name} (${etherscanAPIs[chainId].apiURL}) and verify the contract, finding a ${expectedStatus} match`, (done) => {
-      chai
+      let request = chai
         .request(server.app)
         .post("/verify/etherscan")
         .field("address", address)
-        .field("chain", chainId)
-        .end((err, res) => {
-          // currentResponse = res;
-          assertVerification(err, res, done, address, chainId, expectedStatus);
-        });
+        .field("chain", chainId);
+      if (creatorTxHash) {
+        request = request.field("creatorTxHash", creatorTxHash);
+      }
+      request.end((err, res) => {
+        // currentResponse = res;
+        assertVerification(err, res, done, address, chainId, expectedStatus);
+      });
     });
   }
   function verifyAndAssertEtherscanSession(
