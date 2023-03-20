@@ -18,11 +18,11 @@ const MemoryStore = createMemoryStore(session);
 export class Server {
   app: express.Application;
   repository = config.repository.path;
-  port = config.server.port;
+  port: string | number;
 
-  constructor() {
+  constructor(port?: string | number) {
     useApiLogging(express);
-
+    this.port = port || config.server.port;
     this.app = express();
 
     this.app.use(

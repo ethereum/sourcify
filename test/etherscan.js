@@ -21,13 +21,16 @@ const { default: fetch } = require("node-fetch");
 
 chai.use(chaiHttp);
 
+const CUSTOM_PORT = 5678;
+
 describe("Import From Etherscan and Verify", function () {
   // Don't run if it's an external PR. Etherscan tests need API keys that can't be exposed to external PRs.
   if (process.env.CIRCLE_PR_REPONAME !== undefined) {
     return;
   }
 
-  const server = new Server();
+  this.timeout = 5000;
+  const server = new Server(CUSTOM_PORT);
 
   before(async () => {
     const promisified = util.promisify(server.app.listen);

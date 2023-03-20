@@ -120,6 +120,6 @@ function assertContractSaved(expectedAddress, expectedChain, expectedStatus) {
         "metadata.json"
       )
     );
-    chai.expect(isExist).to.be.true;
+    chai.expect(isExist, "Contract is not saved").to.be.true;
   }
 }
