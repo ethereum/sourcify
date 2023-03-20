@@ -38,11 +38,11 @@ describe("Import From Etherscan and Verify", function () {
     console.log(`Server listening on port ${server.port}!`);
   });
 
-  beforeEach(async () => {
+  beforeEach(() => {
     rimraf.sync(server.repository);
   });
 
-  after(async () => {
+  after(() => {
     rimraf.sync(server.repository);
   });
 
