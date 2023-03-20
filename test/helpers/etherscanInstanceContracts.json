@@ -76,7 +76,7 @@
     {
       "address": "0x46dcAFBb2C9d479827F69BeC9314E13741f21058",
       "type": "standard-json",
-      "expectedStatus": "partial"
+      "expectedStatus": "perfect"
     }
   ],
   "43114": [

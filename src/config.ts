@@ -120,15 +120,16 @@ export const etherscanAPIs: EtherscanAPIs = {
   },
   "1284": {
     apiURL: "https://api-moonbeam.moonscan.io",
-    apiKey: process.env.MOONSCAN_API_KEY,
+    apiKey: process.env.MOONSCAN_MOONBEAM_API_KEY,
   },
   "1285": {
     apiURL: "https://api-moonriver.moonscan.io",
-    apiKey: process.env.MOONSCAN_API_KEY,
+    apiKey: process.env.MOONSCAN_MOONRIVER_API_KEY,
   },
+  // Does not require API key
   "1287": {
     apiURL: "https://api-moonbase.moonscan.io",
-    apiKey: process.env.MOONSCAN_API_KEY,
+    apiKey: "",
   },
   "288": {
     apiURL: "https://api.bobascan.com",

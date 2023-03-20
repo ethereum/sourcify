@@ -21,19 +21,30 @@ exports.assertVerification = (
   expectedChain,
   expectedStatus = "perfect"
 ) => {
-  // currentResponse = res;
-  chai.expect(err).to.be.null;
-  chai.expect(res.status).to.equal(StatusCodes.OK);
-  chai.expect(res.body).to.haveOwnProperty("result");
-  const resultArr = res.body.result;
-  chai.expect(resultArr).to.have.a.lengthOf(1);
-  const result = resultArr[0];
-  chai.expect(result.address).to.equal(expectedAddress);
-  chai.expect(result.chainId).to.equal(expectedChain);
-  chai.expect(result.status).to.equal(expectedStatus);
+  try {
+    // currentResponse = res;
+    chai.expect(err).to.be.null;
+    chai.expect(res.status).to.equal(StatusCodes.OK);
+    chai.expect(res.body).to.haveOwnProperty("result");
+    const resultArr = res.body.result;
+    chai.expect(resultArr).to.have.a.lengthOf(1);
+    const result = resultArr[0];
+    chai.expect(result.address).to.equal(expectedAddress);
+    chai.expect(result.chainId).to.equal(expectedChain);
+    chai.expect(result.status).to.equal(expectedStatus);
 
-  assertContractSaved(expectedAddress, expectedChain, expectedStatus);
-  if (done) done();
+    assertContractSaved(expectedAddress, expectedChain, expectedStatus);
+    if (done) done();
+  } catch (e) {
+    console.log(
+      `Failing verification for ${expectedAddress} on chain #${expectedChain}.`
+    );
+    console.log("Response body:");
+    console.log(JSON.stringify(res.body, null, 2));
+    console.log("Chai Error:");
+    console.log(e);
+    throw e;
+  }
 };
 
 exports.assertVerificationSession = (
