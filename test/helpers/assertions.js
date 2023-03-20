@@ -3,6 +3,7 @@ const chai = require("chai");
 const config = require("../../dist/config").default;
 const path = require("path");
 const fs = require("fs");
+const { getAddress } = require("ethers/lib/utils");
 
 exports.assertValidationError = (err, res, field) => {
   chai.expect(err).to.be.null;
@@ -116,7 +117,7 @@ function assertContractSaved(expectedAddress, expectedChain, expectedStatus) {
         "contracts",
         match,
         expectedChain,
-        expectedAddress,
+        getAddress(expectedAddress),
         "metadata.json"
       )
     );
