@@ -161,7 +161,7 @@
       "args": [
         "-r",
         "ts-node/register",
-        "./test/verification.spec.ts",
+        "./test/**/*.spec.ts",
         "--no-timeout",
         // Run a single test when debugging
         // "--grep=v0.6.12",
