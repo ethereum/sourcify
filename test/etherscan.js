@@ -128,7 +128,8 @@ describe("Import From Etherscan and Verify", function () {
             chainId,
             contract.address,
             contract.expectedStatus,
-            contract.type
+            contract.type,
+            contract?.creatorTxHash
           );
         });
       });
