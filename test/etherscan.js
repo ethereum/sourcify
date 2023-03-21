@@ -2,12 +2,12 @@ process.env.MOCK_REPOSITORY = "./dist/data/mock-repository";
 process.env.SOLC_REPO = "./dist/data/solc-repo";
 process.env.SOLJSON_REPO = "./dist/data/soljson-repo";
 
+const Server = require("../dist/server/server").Server;
 const chai = require("chai");
 const chaiHttp = require("chai-http");
 const { StatusCodes } = require("http-status-codes");
 const rimraf = require("rimraf");
 const util = require("util");
-const Server = require("../dist/server/server").Server;
 const { etherscanAPIs } = require("../dist/config");
 const {
   assertVerification,
@@ -21,6 +21,8 @@ const {
   unusedAddress,
   invalidAddress,
   unsupportedChain,
+  verifyAndAssertEtherscanSession,
+  verifyAndAssertEtherscan,
 } = require("./helpers/helpers");
 const { default: fetch } = require("node-fetch");
 
@@ -162,6 +164,7 @@ describe("Import From Etherscan and Verify", function () {
       // Test with each type "single", "multiple", "standard-json"
       testContracts[tempChainId].forEach((contract) => {
         verifyAndAssertEtherscan(
+          server.app,
           tempChainId,
           contract.address,
           contract.expectedStatus,
@@ -301,6 +304,7 @@ describe("Import From Etherscan and Verify", function () {
       // Test all three types: "single", "multiple", "standard-json"
       testContracts[tempChainId].forEach((contract) => {
         verifyAndAssertEtherscanSession(
+          server.app,
           tempChainId,
           contract.address,
           contract.expectedStatus,
@@ -332,71 +336,4 @@ describe("Import From Etherscan and Verify", function () {
       });
     });
   });
-
-  // describe("Test each Etherscan instance", () => {
-  //   for (const chainId in testContracts) {
-  //     describe(`#${chainId} ${sourcifyChainsMap[chainId].name}`, () => {
-  //       testContracts[chainId].forEach((contract) => {
-  //         verifyAndAssertEtherscan(
-  //           chainId,
-  //           contract.address,
-  //           contract.expectedStatus,
-  //           contract.type,
-  //           contract?.creatorTxHash
-  //         );
-  //       });
-  //     });
-  //   }
-  // });
-
-  function verifyAndAssertEtherscan(
-    chainId,
-    address,
-    expectedStatus,
-    type,
-    creatorTxHash
-  ) {
-    it(`Non-Session: Should import a ${type} contract from  #${chainId} ${sourcifyChainsMap[chainId].name} (${etherscanAPIs[chainId].apiURL}) and verify the contract, finding a ${expectedStatus} match`, (done) => {
-      let request = chai
-        .request(server.app)
-        .post("/verify/etherscan")
-        .field("address", address)
-        .field("chain", chainId);
-      if (creatorTxHash) {
-        request = request.field("creatorTxHash", creatorTxHash);
-      }
-      request.end((err, res) => {
-        // currentResponse = res;
-        assertVerification(err, res, done, address, chainId, expectedStatus);
-      });
-    });
-  }
-
-  function verifyAndAssertEtherscanSession(
-    chainId,
-    address,
-    expectedStatus,
-    type,
-    creatorTxHash
-  ) {
-    it(`Session: Should import a ${type} contract from  #${chainId} ${sourcifyChainsMap[chainId].name} (${etherscanAPIs[chainId].apiURL}) and verify the contract, finding a ${expectedStatus} match`, (done) => {
-      chai
-        .request(server.app)
-        .post("/session/verify/etherscan")
-        .field("address", address)
-        .field("chainId", chainId)
-        .end((err, res) => {
-          // currentResponse = res;
-          assertVerificationSession(
-            err,
-            res,
-            done,
-            address,
-            chainId,
-            expectedStatus,
-            creatorTxHash
-          );
-        });
-    });
-  }
 });

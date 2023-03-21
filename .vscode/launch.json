@@ -151,6 +151,29 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Mocha - Etherscan Instances",
+      "program": "${workspaceRoot}/node_modules/.bin/mocha",
+      "env": {
+        "TESTING": "true",
+      },
+      "args": [
+        "${workspaceFolder}/test/etherscan/etherscanInstances.js",
+        "--no-timeout",
+        // Run a single test when debugging
+        // "--grep=v0.6.12",
+        "--exit",
+      ],
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js",
+        "${workspaceFolder}/packages/**/build/**/*.js",
+      ],
+      "smartStep": true,
+      "console": "integratedTerminal",
+      // "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Mocha - lib-sourcify",
       "cwd": "${workspaceFolder}/packages/lib-sourcify",
       "program": "./node_modules/.bin/mocha",
