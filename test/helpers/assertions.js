@@ -5,7 +5,7 @@ const path = require("path");
 const fs = require("fs");
 const { getAddress } = require("ethers/lib/utils");
 
-exports.assertValidationError = (err, res, field) => {
+exports.assertValidationError = (err, res, field, message) => {
   try {
     chai.expect(err).to.be.null;
     chai.expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
@@ -13,6 +13,7 @@ exports.assertValidationError = (err, res, field) => {
     chai.expect(res.body.errors).to.be.an("array");
     chai.expect(res.body.errors).to.have.a.lengthOf(1);
     chai.expect(res.body.errors[0].field).to.equal(field);
+    if (message) chai.expect(res.body.errors[0].message).to.equal(message);
   } catch (err) {
     console.log("Not validating as expected:");
     console.log(JSON.stringify(res.body, null, 2));
@@ -62,21 +63,33 @@ exports.assertVerificationSession = (
   expectedChain,
   expectedStatus
 ) => {
-  chai.expect(err).to.be.null;
-  chai.expect(res.status).to.equal(StatusCodes.OK);
+  try {
+    chai.expect(err).to.be.null;
+    chai.expect(res.status).to.equal(StatusCodes.OK);
 
-  const contracts = res.body.contracts;
-  chai.expect(contracts).to.have.a.lengthOf(1);
-  const contract = contracts[0];
+    const contracts = res.body.contracts;
+    chai.expect(contracts).to.have.a.lengthOf(1);
+    const contract = contracts[0];
 
-  chai.expect(contract.status).to.equal(expectedStatus);
-  chai.expect(contract.address).to.equal(expectedAddress);
-  chai.expect(contract.chainId).to.equal(expectedChain);
+    chai.expect(contract.status).to.equal(expectedStatus);
+    chai.expect(contract.address).to.equal(expectedAddress);
+    chai.expect(contract.chainId).to.equal(expectedChain);
 
-  chai.expect(contract.storageTimestamp).to.not.exist;
-  chai.expect(res.body.unused).to.be.empty;
-  assertContractSaved(expectedAddress, expectedChain, expectedStatus);
-  if (done) done();
+    chai.expect(contract.storageTimestamp).to.not.exist;
+    chai.expect(contract.files.missing).to.be.empty;
+    chai.expect(contract.files.invalid).to.be.empty;
+    assertContractSaved(expectedAddress, expectedChain, expectedStatus);
+    if (done) done();
+  } catch (e) {
+    console.log(
+      `Failing verification for ${expectedAddress} on chain #${expectedChain}.`
+    );
+    console.log("Response body:");
+    console.log(JSON.stringify(res.body, null, 2));
+    console.log("Chai Error:");
+    console.log(e);
+    throw e;
+  }
 };
 
 /**

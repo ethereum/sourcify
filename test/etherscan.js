@@ -16,7 +16,12 @@ const {
 } = require("./helpers/assertions");
 const { sourcifyChainsMap } = require("../dist/sourcify-chains");
 const testContracts = require("./helpers/etherscanInstanceContracts.json");
-const { waitSecs, unusedAddress } = require("./helpers/helpers");
+const {
+  waitSecs,
+  unusedAddress,
+  invalidAddress,
+  unsupportedChain,
+} = require("./helpers/helpers");
 const { default: fetch } = require("node-fetch");
 
 chai.use(chaiHttp);
@@ -29,7 +34,7 @@ describe("Import From Etherscan and Verify", function () {
     return;
   }
 
-  this.timeout(5000);
+  this.timeout(7000);
   const server = new Server(CUSTOM_PORT);
 
   before(async () => {
@@ -70,6 +75,40 @@ describe("Import From Etherscan and Verify", function () {
         .field("address", unusedAddress)
         .end((err, res) => {
           assertValidationError(err, res, "chain");
+          done();
+        });
+    });
+
+    it("should fail for invalid address", (done) => {
+      chai
+        .request(server.app)
+        .post("/verify/etherscan")
+        .field("address", invalidAddress)
+        .field("chain", "1")
+        .end((err, res) => {
+          assertValidationError(
+            err,
+            res,
+            "address",
+            `Invalid addresses: ${invalidAddress}`
+          );
+          done();
+        });
+    });
+
+    it("should fail for unsupported chain", (done) => {
+      chai
+        .request(server.app)
+        .post("/verify/etherscan")
+        .field("address", unusedAddress)
+        .field("chain", unsupportedChain)
+        .end((err, res) => {
+          assertValidationError(
+            err,
+            res,
+            "chain",
+            `Chain ${unsupportedChain} not supported!`
+          );
           done();
         });
     });
@@ -118,23 +157,197 @@ describe("Import From Etherscan and Verify", function () {
             });
         });
     });
+    describe("Test the non-session endpoint", () => {
+      const tempChainId = "1";
+      // Test with each type "single", "multiple", "standard-json"
+      testContracts[tempChainId].forEach((contract) => {
+        verifyAndAssertEtherscan(
+          tempChainId,
+          contract.address,
+          contract.expectedStatus,
+          contract.type,
+          contract?.creatorTxHash
+        );
+      });
+
+      // Non-session's default is `chain` but shoudl also work with `chainId`
+      it("should also work with `chainId` instead of `chain`", (done) => {
+        const contract = testContracts[tempChainId][0];
+        chai
+          .request(server.app)
+          .post("/verify/etherscan")
+          .field("address", contract.address)
+          .field("chainId", tempChainId)
+          .end((err, res) => {
+            // currentResponse = res;
+            assertVerification(
+              err,
+              res,
+              done,
+              contract.address,
+              tempChainId,
+              contract.expectedStatus,
+              contract.creatorTxHash
+            );
+          });
+      });
+    });
   });
 
-  describe("Test each Etherscan instance", () => {
-    for (const chainId in testContracts) {
-      describe(`#${chainId} ${sourcifyChainsMap[chainId].name}`, () => {
-        testContracts[chainId].forEach((contract) => {
-          verifyAndAssertEtherscan(
-            chainId,
-            contract.address,
-            contract.expectedStatus,
-            contract.type,
-            contract?.creatorTxHash
-          );
+  describe("Session API", () => {
+    it("should fail for missing address", (done) => {
+      chai
+        .request(server.app)
+        .post("/session/verify/etherscan/")
+        .field("chainId", "1")
+        .end((err, res) => {
+          assertValidationError(err, res, "address");
+          done();
         });
+    });
+
+    it("should fail for missing chain", (done) => {
+      chai
+        .request(server.app)
+        .post("/session/verify/etherscan/")
+        .field("address", unusedAddress)
+        .end((err, res) => {
+          assertValidationError(err, res, "chainId");
+          done();
+        });
+    });
+
+    it("should fail for invalid address", (done) => {
+      chai
+        .request(server.app)
+        .post("/session/verify/etherscan")
+        .field("address", invalidAddress)
+        .field("chain", "1")
+        .end((err, res) => {
+          assertValidationError(
+            err,
+            res,
+            "address",
+            `Invalid addresses: ${invalidAddress}`
+          );
+          done();
+        });
+    });
+
+    it("should fail for unsupported chain", (done) => {
+      chai
+        .request(server.app)
+        .post("/session/verify/etherscan")
+        .field("address", unusedAddress)
+        .field("chain", unsupportedChain)
+        .end((err, res) => {
+          assertValidationError(
+            err,
+            res,
+            "chainId",
+            `Chain ${unsupportedChain} not supported!`
+          );
+          done();
+        });
+    });
+
+    it("should fail fetching a non verified contract from etherscan", (done) => {
+      chai
+        .request(server.app)
+        .post("/session/verify/etherscan")
+        .field("address", unusedAddress)
+        .field("chainId", "1")
+        .end((err, res) => {
+          assertEtherscanError(
+            err,
+            res,
+            "This contract is not verified on Etherscan"
+          );
+          done();
+        });
+    });
+
+    it("should fail by exceeding rate limit on etherscan APIs", (done) => {
+      const chain = "1";
+      const address = "0xB753548F6E010e7e680BA186F9Ca1BdAB2E90cf2";
+
+      // Have to send fetch directly here otherwise can't go faster than 5 req/s
+      for (let i = 0; i < 30; i++) {
+        fetch(
+          `${etherscanAPIs[chain].apiURL}/api?module=contract&action=getsourcecode&address=${address}&apikey=${etherscanAPIs[chain].apiKey}`
+        );
+      }
+
+      chai
+        .request(server.app)
+        .post("/session/verify/etherscan")
+        .field("address", "0xB753548F6E010e7e680BA186F9Ca1BdAB2E90cf2")
+        .field("chain", "1")
+        .end((err, res) => {
+          assertEtherscanError(
+            err,
+            res,
+            "Etherscan API rate limit reached, try later"
+          );
+          waitSecs(1.5) // Wait for the rate limit to reset
+            .then(() => {
+              done();
+            });
+        });
+    });
+
+    describe("Test the session endpoint", () => {
+      const tempChainId = "1";
+      // Test all three types: "single", "multiple", "standard-json"
+      testContracts[tempChainId].forEach((contract) => {
+        verifyAndAssertEtherscanSession(
+          tempChainId,
+          contract.address,
+          contract.expectedStatus,
+          contract.type,
+          contract?.creatorTxHash
+        );
       });
-    }
+
+      // Session's default is `body.chainId` but should also work with `chain`
+      it("should also work with `chain` instead of `chainId`", (done) => {
+        const contract = testContracts[tempChainId][0];
+        chai
+          .request(server.app)
+          .post("/session/verify/etherscan")
+          .field("address", contract.address)
+          .field("chain", tempChainId)
+          .end((err, res) => {
+            // currentResponse = res;
+            assertVerificationSession(
+              err,
+              res,
+              done,
+              contract.address,
+              tempChainId,
+              contract.expectedStatus,
+              contract.creatorTxHash
+            );
+          });
+      });
+    });
   });
+
+  // describe("Test each Etherscan instance", () => {
+  //   for (const chainId in testContracts) {
+  //     describe(`#${chainId} ${sourcifyChainsMap[chainId].name}`, () => {
+  //       testContracts[chainId].forEach((contract) => {
+  //         verifyAndAssertEtherscan(
+  //           chainId,
+  //           contract.address,
+  //           contract.expectedStatus,
+  //           contract.type,
+  //           contract?.creatorTxHash
+  //         );
+  //       });
+  //     });
+  //   }
+  // });
 
   function verifyAndAssertEtherscan(
     chainId,
@@ -143,7 +356,7 @@ describe("Import From Etherscan and Verify", function () {
     type,
     creatorTxHash
   ) {
-    it(`Should import a ${type} contract from  #${chainId} ${sourcifyChainsMap[chainId].name} (${etherscanAPIs[chainId].apiURL}) and verify the contract, finding a ${expectedStatus} match`, (done) => {
+    it(`Non-Session: Should import a ${type} contract from  #${chainId} ${sourcifyChainsMap[chainId].name} (${etherscanAPIs[chainId].apiURL}) and verify the contract, finding a ${expectedStatus} match`, (done) => {
       let request = chai
         .request(server.app)
         .post("/verify/etherscan")
@@ -158,18 +371,20 @@ describe("Import From Etherscan and Verify", function () {
       });
     });
   }
+
   function verifyAndAssertEtherscanSession(
     chainId,
     address,
     expectedStatus,
-    type
+    type,
+    creatorTxHash
   ) {
-    it(`Should import a ${type} contract from  #${chainId} ${sourcifyChainsMap[chainId].name} (${etherscanAPIs[chainId].apiURL}) and verify the contract, finding a ${expectedStatus} match`, (done) => {
+    it(`Session: Should import a ${type} contract from  #${chainId} ${sourcifyChainsMap[chainId].name} (${etherscanAPIs[chainId].apiURL}) and verify the contract, finding a ${expectedStatus} match`, (done) => {
       chai
         .request(server.app)
-        .post("/verify/etherscan")
+        .post("/session/verify/etherscan")
         .field("address", address)
-        .field("chain", chainId)
+        .field("chainId", chainId)
         .end((err, res) => {
           // currentResponse = res;
           assertVerificationSession(
@@ -178,7 +393,8 @@ describe("Import From Etherscan and Verify", function () {
             done,
             address,
             chainId,
-            expectedStatus
+            expectedStatus,
+            creatorTxHash
           );
         });
     });

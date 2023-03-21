@@ -625,6 +625,13 @@ export default class VerificationController
         .custom(
           (address, { req }) => (req.addresses = validateAddresses(address))
         ),
+      body("chainId")
+        .optional()
+        .custom(
+          (chainId, { req }) =>
+            // Support both `body.chain` and `body.chainId`
+            (req.body.chain = chainId)
+        ),
       body("chain")
         .exists()
         .bail()
@@ -636,8 +643,24 @@ export default class VerificationController
       .route(["/session/verify/etherscan"])
       .all(cors(corsOpt))
       .post(
-        body("address").exists(),
-        body("chainId").exists(),
+        body("address")
+          .exists()
+          .bail()
+          .custom(
+            (address, { req }) =>
+              (req.body.addresses = validateAddresses(address))
+          ),
+        body("chain")
+          .optional()
+          .custom(
+            (chain, { req }) =>
+              // Support both `body.chain` and `body.chainId`
+              (req.body.chainId = chain)
+          ),
+        body("chainId")
+          .exists()
+          .bail()
+          .custom((chainId) => checkChainId(chainId)),
         cors(corsOpt),
         this.safeHandler(this.sessionVerifyFromEtherscan)
       );

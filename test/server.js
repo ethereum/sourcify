@@ -12,7 +12,7 @@ const {
   assertVerification,
   assertVerificationSession,
   assertLookup,
-  fakeAddress,
+  invalidAddress,
   assertLookupAll,
 } = require("./helpers/assertions");
 const IPFS = require("ipfs-core");
@@ -293,7 +293,7 @@ describe("Server", function () {
       chai
         .request(server.app)
         .get("/check-by-addresses")
-        .query({ chainIds: defaultContractChain, addresses: fakeAddress })
+        .query({ chainIds: defaultContractChain, addresses: invalidAddress })
         .end((err, res) => {
           assertValidationError(err, res, "addresses");
           done();
@@ -397,7 +397,7 @@ describe("Server", function () {
       chai
         .request(server.app)
         .get("/check-all-by-addresses")
-        .query({ chainIds: defaultContractChain, addresses: fakeAddress })
+        .query({ chainIds: defaultContractChain, addresses: invalidAddress })
         .end((err, res) => {
           assertValidationError(err, res, "addresses");
           done();
