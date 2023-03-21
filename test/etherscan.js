@@ -95,7 +95,7 @@ describe("Import From Etherscan and Verify", function () {
       const address = "0xB753548F6E010e7e680BA186F9Ca1BdAB2E90cf2";
 
       // Have to send fetch directly here otherwise can't go faster than 5 req/s
-      for (let i = 0; i < 10; i++) {
+      for (let i = 0; i < 30; i++) {
         fetch(
           `${etherscanAPIs[chain].apiURL}/api?module=contract&action=getsourcecode&address=${address}&apikey=${etherscanAPIs[chain].apiKey}`
         );
