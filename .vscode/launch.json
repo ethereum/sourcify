@@ -201,6 +201,25 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Mocha - Contract Call Decoder",
+      "cwd": "${workspaceFolder}/packages/contract-call-decoder",
+      "program": "./node_modules/ava/cli.js",
+      "env": {
+        "TESTING": "true",
+      },
+      "args": [
+      ],
+      "outFiles": [
+        "./**/*.js",
+        "${workspaceFolder}/packages/contract-call-decoder/build/**/*.js"
+      ],
+      "smartStep": true,
+      "console": "integratedTerminal",
+      // "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Mocha - Monitor",
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "env": {
