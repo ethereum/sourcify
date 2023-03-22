@@ -35,7 +35,7 @@ type GetMetadataOptions = {
 const defaultGetMetadataOptions: GetMetadataOptions = {
   source: MetadataSources.Sourcify,
   sourcifyProvider: 'https://repo.sourcify.dev',
-  ipfsGateway: 'https://cloudflare-ipfs.com/',
+  ipfsGateway: 'https://ipfs.io/',
 };
 
 export async function getMetadataFromAddress(options: GetMetadataOptions) {
