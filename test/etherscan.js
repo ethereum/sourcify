@@ -158,7 +158,7 @@ describe("Import From Etherscan and Verify", function () {
             .then((json) => {
               if (json.result === "Max rate limit reached") resolve();
             });
-        }, 50);
+        }, 25);
       });
 
       console.log("Max rate reached");
@@ -308,7 +308,7 @@ describe("Import From Etherscan and Verify", function () {
             .then((json) => {
               if (json.result === "Max rate limit reached") resolve();
             });
-        }, 50);
+        }, 25);
       });
 
       console.log("Max rate reached");
