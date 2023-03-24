@@ -13,7 +13,7 @@ const { verifyAndAssertEtherscan } = require("../helpers/helpers");
 const CUSTOM_PORT = 5679;
 
 describe("Test each Etherscan instance", function () {
-  this.timeout(7000);
+  this.timeout(10000);
   const server = new Server(CUSTOM_PORT);
 
   before(async () => {
