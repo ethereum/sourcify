@@ -4,7 +4,8 @@ process.env.MOCK_REPOSITORY = "./dist/data/mock-repository";
 process.env.SOLC_REPO = "./dist/data/solc-repo";
 process.env.SOLJSON_REPO = "./dist/data/soljson-repo";
 // ipfs-http-gateway runs on port 9090
-process.env.IPFS_GATEWAY = "http://localhost:9090/ipfs/";
+// process.env.IPFS_GATEWAY = "http://localhost:9090/ipfs/";
+process.env.IPFS_GATEWAY = "http://ipfs.io/ipfs/";
 process.env.FETCH_TIMEOUT = 15000; // instantiated http-gateway takes a little longer
 
 const {
@@ -15,8 +16,8 @@ const {
   invalidAddress,
   assertLookupAll,
 } = require("./helpers/assertions");
-const IPFS = require("ipfs-core");
-const { HttpGateway } = require("ipfs-http-gateway");
+// const IPFS = require("ipfs-core");
+// const { HttpGateway } = require("ipfs-http-gateway");
 const ganache = require("ganache");
 const chai = require("chai");
 const chaiHttp = require("chai-http");
@@ -76,9 +77,9 @@ describe("Server", function () {
   this.timeout(EXTENDED_TIME);
   before(async () => {
     await ganacheServer.listen(GANACHE_PORT);
-    const ipfs = await IPFS.create();
-    const httpGateway = new HttpGateway(ipfs);
-    await httpGateway.start();
+    // const ipfs = await IPFS.create();
+    // const httpGateway = new HttpGateway(ipfs);
+    // await httpGateway.start();
 
     console.log("Started ganache local server on port " + GANACHE_PORT);
 
@@ -778,7 +779,7 @@ describe("Server", function () {
 
       // Deploy child by calling createChild()
       const childMetadata = require("./testcontracts/FactoryImmutableWithoutConstrArg/Child3_metadata.json");
-      const childMetadataBuffer = Buffer.from(JSON.stringify(childMetadata));
+
       const txReceipt = await callContractMethodWithTx(
         localWeb3Provider,
         artifact.abi,
