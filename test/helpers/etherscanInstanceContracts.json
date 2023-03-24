@@ -318,5 +318,22 @@
       "type": "standard-json",
       "expectedStatus": "perfect"
     }
+  ],
+  "84531": [
+    {
+      "address": "0x0571DD2df7Ea9E98fe1eC160D632fEB750794AB7",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x3b122a12344cBcebCf0ED3bd1b27C2B3174759BF",
+      "type": "multiple",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0xD9b02949B6c221134B5De84d08cD7DAb8f9b1E17",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
   ]
 }
