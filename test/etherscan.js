@@ -177,7 +177,7 @@ describe("Import From Etherscan and Verify", function () {
         "Etherscan API rate limit reached, try later"
       );
 
-      await waitSecs(1); // Wait for the rate limit to reset
+      await waitSecs(2); // Wait for the rate limit to reset
       return true;
     });
     describe("Test the non-session endpoint", () => {
@@ -327,7 +327,7 @@ describe("Import From Etherscan and Verify", function () {
         "Etherscan API rate limit reached, try later"
       );
 
-      await waitSecs(1); // Wait for the rate limit to reset
+      await waitSecs(2); // Wait for the rate limit to reset
       return true;
     });
 
