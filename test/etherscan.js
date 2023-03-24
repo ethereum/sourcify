@@ -54,8 +54,14 @@ describe("Import From Etherscan and Verify", function () {
   });
 
   const assertEtherscanError = (err, res, errorMessage) => {
-    chai.expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
-    chai.expect(res.body?.error).to.equal(errorMessage);
+    try {
+      chai.expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
+      chai.expect(res.body?.error).to.equal(errorMessage);
+    } catch (e) {
+      console.log("Error: ", e);
+      console.log("Response: ", res.body);
+      throw e;
+    }
   };
 
   describe("Non-Session API", () => {
@@ -131,33 +137,48 @@ describe("Import From Etherscan and Verify", function () {
         });
     });
 
-    it("should fail by exceeding rate limit on etherscan APIs", (done) => {
+    it("should fail by exceeding rate limit on etherscan APIs", async () => {
       const chain = "1";
       const address = "0xB753548F6E010e7e680BA186F9Ca1BdAB2E90cf2";
 
-      // Have to send fetch directly here otherwise can't go faster than 5 req/s
-      for (let i = 0; i < 30; i++) {
-        fetch(
-          `${etherscanAPIs[chain].apiURL}/api?module=contract&action=getsourcecode&address=${address}&apikey=${etherscanAPIs[chain].apiKey}`
-        );
-      }
+      let interval;
 
-      chai
+      console.time("Requests");
+      let req = 0;
+
+      // Await until we start getting rate limit errors
+      // Interval keeps running after await until cleared
+      await new Promise((resolve) => {
+        interval = setInterval(() => {
+          req++;
+          fetch(
+            `${etherscanAPIs[chain].apiURL}/api?module=contract&action=getsourcecode&address=${address}&apikey=${etherscanAPIs[chain].apiKey}`
+          )
+            .then((res) => res.json())
+            .then((json) => {
+              if (json.result === "Max rate limit reached") resolve();
+            });
+        }, 50);
+      });
+
+      console.log("Max rate reached");
+      const response = await chai
         .request(server.app)
         .post("/verify/etherscan")
         .field("address", "0xB753548F6E010e7e680BA186F9Ca1BdAB2E90cf2")
-        .field("chain", "1")
-        .end((err, res) => {
-          assertEtherscanError(
-            err,
-            res,
-            "Etherscan API rate limit reached, try later"
-          );
-          waitSecs(1.5) // Wait for the rate limit to reset
-            .then(() => {
-              done();
-            });
-        });
+        .field("chain", "1");
+
+      console.timeEnd("Requests");
+      console.log("Total reqs: ", req);
+      clearInterval(interval);
+      assertEtherscanError(
+        null,
+        response,
+        "Etherscan API rate limit reached, try later"
+      );
+
+      await waitSecs(1); // Wait for the rate limit to reset
+      return true;
     });
     describe("Test the non-session endpoint", () => {
       const tempChainId = "1";
@@ -168,8 +189,7 @@ describe("Import From Etherscan and Verify", function () {
           tempChainId,
           contract.address,
           contract.expectedStatus,
-          contract.type,
-          contract?.creatorTxHash
+          contract.type
         );
       });
 
@@ -189,8 +209,7 @@ describe("Import From Etherscan and Verify", function () {
               done,
               contract.address,
               tempChainId,
-              contract.expectedStatus,
-              contract.creatorTxHash
+              contract.expectedStatus
             );
           });
       });
@@ -270,33 +289,46 @@ describe("Import From Etherscan and Verify", function () {
         });
     });
 
-    it("should fail by exceeding rate limit on etherscan APIs", (done) => {
+    it("should fail by exceeding rate limit on etherscan APIs", async () => {
       const chain = "1";
       const address = "0xB753548F6E010e7e680BA186F9Ca1BdAB2E90cf2";
+      console.time("Requests");
+      let req = 0;
+      let interval;
 
-      // Have to send fetch directly here otherwise can't go faster than 5 req/s
-      for (let i = 0; i < 30; i++) {
-        fetch(
-          `${etherscanAPIs[chain].apiURL}/api?module=contract&action=getsourcecode&address=${address}&apikey=${etherscanAPIs[chain].apiKey}`
-        );
-      }
+      // Await until we start getting rate limit errors
+      // Interval keeps running after await until cleared
+      await new Promise((resolve) => {
+        interval = setInterval(() => {
+          req++;
+          fetch(
+            `${etherscanAPIs[chain].apiURL}/api?module=contract&action=getsourcecode&address=${address}&apikey=${etherscanAPIs[chain].apiKey}`
+          )
+            .then((res) => res.json())
+            .then((json) => {
+              if (json.result === "Max rate limit reached") resolve();
+            });
+        }, 50);
+      });
 
-      chai
+      console.log("Max rate reached");
+      const response = await chai
         .request(server.app)
         .post("/session/verify/etherscan")
         .field("address", "0xB753548F6E010e7e680BA186F9Ca1BdAB2E90cf2")
-        .field("chain", "1")
-        .end((err, res) => {
-          assertEtherscanError(
-            err,
-            res,
-            "Etherscan API rate limit reached, try later"
-          );
-          waitSecs(1.5) // Wait for the rate limit to reset
-            .then(() => {
-              done();
-            });
-        });
+        .field("chain", "1");
+
+      console.timeEnd("Requests");
+      console.log("Total reqs: ", req);
+      clearInterval(interval);
+      assertEtherscanError(
+        null,
+        response,
+        "Etherscan API rate limit reached, try later"
+      );
+
+      await waitSecs(1); // Wait for the rate limit to reset
+      return true;
     });
 
     describe("Test the session endpoint", () => {
@@ -308,8 +340,7 @@ describe("Import From Etherscan and Verify", function () {
           tempChainId,
           contract.address,
           contract.expectedStatus,
-          contract.type,
-          contract?.creatorTxHash
+          contract.type
         );
       });
 
@@ -329,8 +360,7 @@ describe("Import From Etherscan and Verify", function () {
               done,
               contract.address,
               tempChainId,
-              contract.expectedStatus,
-              contract.creatorTxHash
+              contract.expectedStatus
             );
           });
       });

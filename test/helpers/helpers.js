@@ -154,8 +154,7 @@ function verifyAndAssertEtherscan(
   chainId,
   address,
   expectedStatus,
-  type,
-  creatorTxHash
+  type
 ) {
   it(`Non-Session: Should import a ${type} contract from  #${chainId} ${sourcifyChainsMap[chainId].name} (${etherscanAPIs[chainId].apiURL}) and verify the contract, finding a ${expectedStatus} match`, (done) => {
     let request = chai
@@ -163,9 +162,6 @@ function verifyAndAssertEtherscan(
       .post("/verify/etherscan")
       .field("address", address)
       .field("chain", chainId);
-    if (creatorTxHash) {
-      request = request.field("creatorTxHash", creatorTxHash);
-    }
     request.end((err, res) => {
       // currentResponse = res;
       assertVerification(err, res, done, address, chainId, expectedStatus);
@@ -178,8 +174,7 @@ function verifyAndAssertEtherscanSession(
   chainId,
   address,
   expectedStatus,
-  type,
-  creatorTxHash
+  type
 ) {
   it(`Session: Should import a ${type} contract from  #${chainId} ${sourcifyChainsMap[chainId].name} (${etherscanAPIs[chainId].apiURL}) and verify the contract, finding a ${expectedStatus} match`, (done) => {
     chai
@@ -195,8 +190,7 @@ function verifyAndAssertEtherscanSession(
           done,
           address,
           chainId,
-          expectedStatus,
-          creatorTxHash
+          expectedStatus
         );
       });
   });

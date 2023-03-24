@@ -30,8 +30,7 @@
     {
       "address": "0xc836440B75e7c573A6069a7Eaf584bd763762dC1",
       "type": "standard-json",
-      "expectedStatus": "perfect",
-      "creatorTxHash": "0xa4e4bb5fc7926fe90bdf79668cddfef50b0a6f37a153c4a2e9fcc19d3bde22b8"
+      "expectedStatus": "perfect"
     }
   ],
   "11155111": [
@@ -48,8 +47,7 @@
     {
       "address": "0x26CD038a0c2c90BB5D791d527D1d9b43222dC1F3",
       "type": "standard-json",
-      "expectedStatus": "perfect",
-      "creatorTxHash": "0x376af5a1eb32896d305c9a14d08dcbe00a8cc0ac53984d206c66e0427b6214dc"
+      "expectedStatus": "perfect"
     }
   ],
   "421613": [
@@ -272,8 +270,7 @@
     {
       "address": "0x8DeaE4e487AF7DF7E3f12fB39E4c81884C4598Bf",
       "type": "standard-json",
-      "expectedStatus": "perfect",
-      "creatorTxHash": "0x082ab795eaad712ead1f6a4f034f9693e2765a4f09b86e4bf9ad085fc497bf00"
+      "expectedStatus": "perfect"
     }
   ],
   "420": [
