@@ -42,7 +42,12 @@ workflows:
       - monitor-e2e-sepolia
       - verification-e2e-goerli
       - verification-e2e-sepolia
+  s3-backup-check:
+    jobs:
       - check-s3-backup
+  etherscan-instances:
+    jobs:
+      - check-etherscan-instances
 
 jobs:
   monitor-e2e-goerli:
@@ -75,5 +80,20 @@ jobs:
       - run:
           name: backup test
           command: node --experimental-fetch ./scripts/check-s3-backup.mjs
+    docker:
+      - image: cimg/node:16.15
+  check-etherscan-instances:
+    working_directory: ~/source-verify
+    steps:
+      - checkout
+      - run:
+          name: install dependencies
+          command: npx lerna bootstrap
+      - run:
+          name: build
+          command: npx lerna run build
+      - run: 
+          name: test
+          command: npx mocha test/etherscan/etherscanInstances.js --exit
     docker:
       - image: cimg/node:16.15

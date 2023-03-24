@@ -9,27 +9,8 @@ workflows:
   test-new-chain:
     jobs:
       - test-new-chain
-  etherscan-instances:
-    jobs:
-      - check-etherscan-instances
-
 
 jobs:
-  check-etherscan-instances:
-    working_directory: ~/source-verify
-    steps:
-      - checkout
-      - run:
-          name: install dependencies
-          command: npx lerna bootstrap
-      - run:
-          name: build
-          command: npx lerna run build
-      - run: 
-          name: test
-          command: npx mocha test/etherscan/etherscanInstances.js --exit
-    docker:
-      - image: cimg/node:16.15
   node-v16:
     docker:
       - image: cimg/node:16.15
