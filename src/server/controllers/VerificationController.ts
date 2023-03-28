@@ -630,12 +630,13 @@ export default class VerificationController
         .custom(
           (chainId, { req }) =>
             // Support both `body.chain` and `body.chainId`
+            // `checkChainId` won't be checked here but in the next `req.body.chain` check below to avoid duplicate error messages
             (req.body.chain = chainId)
         ),
       body("chain")
         .exists()
         .bail()
-        .custom((chain, { req }) => (req.chain = checkChainId(chain))),
+        .custom((chain) => checkChainId(chain)),
       this.safeHandler(this.verifyFromEtherscan)
     );
 

@@ -137,49 +137,6 @@ describe("Import From Etherscan and Verify", function () {
         });
     });
 
-    it("should fail by exceeding rate limit on etherscan APIs", async () => {
-      const chain = "1";
-      const address = "0xB753548F6E010e7e680BA186F9Ca1BdAB2E90cf2";
-
-      let interval;
-
-      console.time("Requests");
-      let req = 0;
-
-      // Await until we start getting rate limit errors
-      // Interval keeps running after await until cleared
-      await new Promise((resolve) => {
-        interval = setInterval(() => {
-          req++;
-          fetch(
-            `${etherscanAPIs[chain].apiURL}/api?module=contract&action=getsourcecode&address=${address}&apikey=${etherscanAPIs[chain].apiKey}`
-          )
-            .then((res) => res.json())
-            .then((json) => {
-              if (json.result === "Max rate limit reached") resolve();
-            });
-        }, 25);
-      });
-
-      console.log("Max rate reached");
-      const response = await chai
-        .request(server.app)
-        .post("/verify/etherscan")
-        .field("address", "0xB753548F6E010e7e680BA186F9Ca1BdAB2E90cf2")
-        .field("chain", "1");
-
-      console.timeEnd("Requests");
-      console.log("Total reqs: ", req);
-      clearInterval(interval);
-      assertEtherscanError(
-        null,
-        response,
-        "Etherscan API rate limit reached, try later"
-      );
-
-      await waitSecs(2); // Wait for the rate limit to reset
-      return true;
-    });
     describe("Test the non-session endpoint", () => {
       const tempChainId = "1";
       // Test with each type "single", "multiple", "standard-json"
@@ -212,6 +169,50 @@ describe("Import From Etherscan and Verify", function () {
               contract.expectedStatus
             );
           });
+      });
+
+      it("should fail by exceeding rate limit on etherscan APIs", async () => {
+        const chain = "1";
+        const address = "0xB753548F6E010e7e680BA186F9Ca1BdAB2E90cf2";
+
+        let interval;
+
+        console.time("Requests");
+        let req = 0;
+
+        // Await until we start getting rate limit errors
+        // Interval keeps running after await until cleared
+        await new Promise((resolve) => {
+          interval = setInterval(() => {
+            req++;
+            fetch(
+              `${etherscanAPIs[chain].apiURL}/api?module=contract&action=getsourcecode&address=${address}&apikey=${etherscanAPIs[chain].apiKey}`
+            )
+              .then((res) => res.json())
+              .then((json) => {
+                if (json.result === "Max rate limit reached") resolve();
+              });
+          }, 25);
+        });
+
+        console.log("Max rate reached");
+        const response = await chai
+          .request(server.app)
+          .post("/verify/etherscan")
+          .field("address", "0xB753548F6E010e7e680BA186F9Ca1BdAB2E90cf2")
+          .field("chain", "1");
+
+        console.timeEnd("Requests");
+        console.log("Total reqs: ", req);
+        clearInterval(interval);
+        assertEtherscanError(
+          null,
+          response,
+          "Etherscan API rate limit reached, try later"
+        );
+
+        await waitSecs(2); // Wait for the rate limit to reset
+        return true;
       });
     });
   });
@@ -289,48 +290,6 @@ describe("Import From Etherscan and Verify", function () {
         });
     });
 
-    it("should fail by exceeding rate limit on etherscan APIs", async () => {
-      const chain = "1";
-      const address = "0xB753548F6E010e7e680BA186F9Ca1BdAB2E90cf2";
-      console.time("Requests");
-      let req = 0;
-      let interval;
-
-      // Await until we start getting rate limit errors
-      // Interval keeps running after await until cleared
-      await new Promise((resolve) => {
-        interval = setInterval(() => {
-          req++;
-          fetch(
-            `${etherscanAPIs[chain].apiURL}/api?module=contract&action=getsourcecode&address=${address}&apikey=${etherscanAPIs[chain].apiKey}`
-          )
-            .then((res) => res.json())
-            .then((json) => {
-              if (json.result === "Max rate limit reached") resolve();
-            });
-        }, 25);
-      });
-
-      console.log("Max rate reached");
-      const response = await chai
-        .request(server.app)
-        .post("/session/verify/etherscan")
-        .field("address", "0xB753548F6E010e7e680BA186F9Ca1BdAB2E90cf2")
-        .field("chain", "1");
-
-      console.timeEnd("Requests");
-      console.log("Total reqs: ", req);
-      clearInterval(interval);
-      assertEtherscanError(
-        null,
-        response,
-        "Etherscan API rate limit reached, try later"
-      );
-
-      await waitSecs(2); // Wait for the rate limit to reset
-      return true;
-    });
-
     describe("Test the session endpoint", () => {
       const tempChainId = "1";
       // Test all three types: "single", "multiple", "standard-json"
@@ -363,6 +322,48 @@ describe("Import From Etherscan and Verify", function () {
               contract.expectedStatus
             );
           });
+      });
+
+      it("should fail by exceeding rate limit on etherscan APIs", async () => {
+        const chain = "1";
+        const address = "0xB753548F6E010e7e680BA186F9Ca1BdAB2E90cf2";
+        console.time("Requests");
+        let req = 0;
+        let interval;
+
+        // Await until we start getting rate limit errors
+        // Interval keeps running after await until cleared
+        await new Promise((resolve) => {
+          interval = setInterval(() => {
+            req++;
+            fetch(
+              `${etherscanAPIs[chain].apiURL}/api?module=contract&action=getsourcecode&address=${address}&apikey=${etherscanAPIs[chain].apiKey}`
+            )
+              .then((res) => res.json())
+              .then((json) => {
+                if (json.result === "Max rate limit reached") resolve();
+              });
+          }, 25);
+        });
+
+        console.log("Max rate reached");
+        const response = await chai
+          .request(server.app)
+          .post("/session/verify/etherscan")
+          .field("address", "0xB753548F6E010e7e680BA186F9Ca1BdAB2E90cf2")
+          .field("chain", "1");
+
+        console.timeEnd("Requests");
+        console.log("Total reqs: ", req);
+        clearInterval(interval);
+        assertEtherscanError(
+          null,
+          response,
+          "Etherscan API rate limit reached, try later"
+        );
+
+        await waitSecs(2); // Wait for the rate limit to reset
+        return true;
       });
     });
   });
