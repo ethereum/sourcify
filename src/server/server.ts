@@ -4,7 +4,7 @@ import fileUpload from "express-fileupload";
 import cors from "cors";
 import routes from "./routes";
 import bodyParser from "body-parser";
-import config from "../config";
+import config, { etherscanAPIs } from "../config";
 import { SourcifyEventManager } from "../common/SourcifyEventManager/SourcifyEventManager";
 import genericErrorHandler from "./middlewares/GenericErrorHandler";
 import notFoundHandler from "./middlewares/NotFoundError";
@@ -18,11 +18,11 @@ const MemoryStore = createMemoryStore(session);
 export class Server {
   app: express.Application;
   repository = config.repository.path;
-  port = config.server.port;
+  port: string | number;
 
-  constructor() {
+  constructor(port?: string | number) {
     useApiLogging(express);
-
+    this.port = port || config.server.port;
     this.app = express();
 
     this.app.use(
@@ -65,11 +65,13 @@ export class Server {
         return {
           ...rest,
           rpc,
+          etherscanAPI: etherscanAPIs[rest.chainId]?.apiURL,
         };
       });
 
       res.status(200).json(sourcifyChains);
     });
+
     this.app.use(
       "/repository",
       express.static(this.repository),

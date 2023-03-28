@@ -19,6 +19,13 @@ export const getCreatorTx = async (
 
   if (!contractFetchAddressFilled) return null;
 
+  // Chains with the new Etherscan API that returns the creation transaction hash
+  if (contractFetchAddressFilled.includes("action=getcontractcreation")) {
+    const response = await fetchFromApi(contractFetchAddressFilled);
+    if (response?.result?.[0]?.txHash)
+      return response?.result?.[0]?.txHash as string;
+  }
+
   // If there's txRegex, scrape block explorers
   if (contractFetchAddressFilled && txRegex) {
     const creatorTx = await getCreatorTxByScraping(
@@ -83,6 +90,13 @@ async function getCreatorTxByScraping(
         );
       }
     }
+  }
+  if (res.status === StatusCodes.FORBIDDEN) {
+    throw new Error(
+      `Scraping the creator tx failed at ${fetchAddress} because of HTTP status code ${res.status} (Forbidden)
+      
+      Try manually putting the creator tx hash in the "Creator tx hash" field.`
+    );
   }
   return null;
 }

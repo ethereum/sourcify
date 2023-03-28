@@ -25,7 +25,7 @@ import fetch from "node-fetch";
 import Web3 from "web3";
 import VerificationService from "../services/VerificationService";
 import RepositoryService from "../services/RepositoryService";
-import config from "../../config";
+import { etherscanAPIs } from "../../config";
 
 export interface PathContentMap {
   [id: string]: PathContent;
@@ -494,23 +494,6 @@ export const parseSolcJsonInput = (sourceCodeObject: string) => {
   return JSON.parse(sourceCodeObject.slice(1, -1));
 };
 
-export const getEtherscanApiHostFromChainId = (
-  chainId: string
-): string | null => {
-  switch (chainId) {
-    case "1":
-      return `https://api.etherscan.io`;
-    case "5":
-      return `https://api-goerli.etherscan.io`;
-    case "4":
-      return `https://api-rinkeby.etherscan.io`;
-    case "11155111":
-      return `https://api-sepolia.etherscan.io`;
-    default:
-      return null;
-  }
-};
-
 export const getSolcJsonInputFromEtherscanResult = (
   etherscanResult: EtherscanResult,
   sources: any
@@ -556,11 +539,13 @@ export const processRequestFromEtherscan = async (
   chain: string,
   address: string
 ): Promise<any> => {
-  const url = `${getEtherscanApiHostFromChainId(
-    chain
-  )}/api?module=contract&action=getsourcecode&address=${address}&apikey=${
-    config.server.etherscanAPIKey
-  }`;
+  if (Object.keys(etherscanAPIs).includes(chain) === false) {
+    throw new BadRequestError(
+      `Requested chain ${chain} is not supported for importing from Etherscan`
+    );
+  }
+
+  const url = `${etherscanAPIs[chain].apiURL}/api?module=contract&action=getsourcecode&address=${address}&apikey=${etherscanAPIs[chain].apiKey}`;
 
   const response = await fetch(url);
   const resultJson = await response.json();

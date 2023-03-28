@@ -306,7 +306,7 @@ export default class VerificationController
     const req = origReq as LegacyVerifyRequest;
     validateRequest(req);
 
-    const chain = req.body.chainId as string;
+    const chain = req.body.chain as string;
     const address = req.body.address;
 
     const { metadata, solcJsonInput } = await processRequestFromEtherscan(
@@ -619,7 +619,24 @@ export default class VerificationController
       );
 
     this.router.route(["/verify/etherscan"]).post(
-      // TODO: add validation
+      body("address")
+        .exists()
+        .bail()
+        .custom(
+          (address, { req }) => (req.addresses = validateAddresses(address))
+        ),
+      body("chainId")
+        .optional()
+        .custom(
+          (chainId, { req }) =>
+            // Support both `body.chain` and `body.chainId`
+            // `checkChainId` won't be checked here but in the next `req.body.chain` check below to avoid duplicate error messages
+            (req.body.chain = chainId)
+        ),
+      body("chain")
+        .exists()
+        .bail()
+        .custom((chain) => checkChainId(chain)),
       this.safeHandler(this.verifyFromEtherscan)
     );
 
@@ -627,8 +644,24 @@ export default class VerificationController
       .route(["/session/verify/etherscan"])
       .all(cors(corsOpt))
       .post(
-        body("address").exists(),
-        body("chainId").exists(),
+        body("address")
+          .exists()
+          .bail()
+          .custom(
+            (address, { req }) =>
+              (req.body.addresses = validateAddresses(address))
+          ),
+        body("chain")
+          .optional()
+          .custom(
+            (chain, { req }) =>
+              // Support both `body.chain` and `body.chainId`
+              (req.body.chainId = chain)
+          ),
+        body("chainId")
+          .exists()
+          .bail()
+          .custom((chainId) => checkChainId(chainId)),
         cors(corsOpt),
         this.safeHandler(this.sessionVerifyFromEtherscan)
       );

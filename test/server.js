@@ -2,13 +2,22 @@ process.env.TESTING = true;
 // This does not take effect when run with monitor tests. See config.ts note
 process.env.MOCK_REPOSITORY = "./dist/data/mock-repository";
 process.env.SOLC_REPO = "./dist/data/solc-repo";
-process.env.SOLJSON_REPO = "/dist/data/soljson-repo";
+process.env.SOLJSON_REPO = "./dist/data/soljson-repo";
 // ipfs-http-gateway runs on port 9090
-process.env.IPFS_GATEWAY = "http://localhost:9090/ipfs/";
+// process.env.IPFS_GATEWAY = "http://localhost:9090/ipfs/";
+process.env.IPFS_GATEWAY = "http://ipfs.io/ipfs/";
 process.env.FETCH_TIMEOUT = 15000; // instantiated http-gateway takes a little longer
 
-const IPFS = require("ipfs-core");
-const { HttpGateway } = require("ipfs-http-gateway");
+const {
+  assertValidationError,
+  assertVerification,
+  assertVerificationSession,
+  assertLookup,
+  invalidAddress,
+  assertLookupAll,
+} = require("./helpers/assertions");
+// const IPFS = require("ipfs-core");
+// const { HttpGateway } = require("ipfs-http-gateway");
 const ganache = require("ganache");
 const chai = require("chai");
 const chaiHttp = require("chai-http");
@@ -68,9 +77,9 @@ describe("Server", function () {
   this.timeout(EXTENDED_TIME);
   before(async () => {
     await ganacheServer.listen(GANACHE_PORT);
-    const ipfs = await IPFS.create();
-    const httpGateway = new HttpGateway(ipfs);
-    await httpGateway.start();
+    // const ipfs = await IPFS.create();
+    // const httpGateway = new HttpGateway(ipfs);
+    // await httpGateway.start();
 
     console.log("Started ganache local server on port " + GANACHE_PORT);
 
@@ -88,7 +97,7 @@ describe("Server", function () {
 
     const promisified = util.promisify(server.app.listen);
     await promisified(server.port);
-    console.log(`Injector listening on port ${server.port}!`);
+    console.log(`Server listening on port ${server.port}!`);
   });
 
   beforeEach(() => {
@@ -125,17 +134,6 @@ describe("Server", function () {
     modifiedIpfsAddress;
   const modifiedIpfsMetadataBuffer = Buffer.from(JSON.stringify(metadata));
 
-  const fakeAddress = "0x000000bCB92160f8B7E094998Af6BCaD7fa537ff";
-
-  const assertValidationError = (err, res, field) => {
-    chai.expect(err).to.be.null;
-    chai.expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
-    chai.expect(res.body.message.startsWith("Validation Error")).to.be.true;
-    chai.expect(res.body.errors).to.be.an("array");
-    chai.expect(res.body.errors).to.have.a.lengthOf(1);
-    chai.expect(res.body.errors[0].field).to.equal(field);
-  };
-
   const assertBytecodesDontMatch = (err, res, done) => {
     chai.expect(err).to.be.null;
     chai.expect(res.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
@@ -152,183 +150,7 @@ describe("Server", function () {
     chai.expect(obj1, `assertFromPath: ${obj2path}`).to.deep.equal(obj2);
   }
 
-  const assertions = (
-    err,
-    res,
-    done,
-    expectedAddress = defaultContractAddress,
-    expectedStatus = "perfect"
-  ) => {
-    currentResponse = res;
-    chai.expect(err).to.be.null;
-    chai.expect(res.status).to.equal(StatusCodes.OK);
-    chai.expect(res.body).to.haveOwnProperty("result");
-    const resultArr = res.body.result;
-    chai.expect(resultArr).to.have.a.lengthOf(1);
-    const result = resultArr[0];
-    chai.expect(result.address).to.equal(expectedAddress);
-    chai.expect(result.status).to.equal(expectedStatus);
-    if (done) done();
-  };
-
-  if (process.env.CIRCLE_PR_REPONAME === undefined) {
-    describe("Verify with etherscan", function () {
-      beforeEach(async () => {
-        // Await 1.5 secs otherwise the API limit is reached
-        await waitSecs(1.5);
-      });
-
-      const assertAllFound = (err, res, finalStatus) => {
-        chai.expect(err).to.be.null;
-        chai.expect(res.status).to.equal(StatusCodes.OK);
-
-        const contracts = res.body.contracts;
-        chai.expect(contracts).to.have.a.lengthOf(1);
-        const contract = contracts[0];
-
-        chai.expect(contract.status).to.equal(finalStatus);
-        chai.expect(contract.storageTimestamp).to.not.exist;
-      };
-
-      const assertEtherscanError = (err, res) => {
-        chai.expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
-        chai.expect(res.body?.error).to.exist;
-      };
-
-      this.timeout(EXTENDED_TIME_60);
-
-      it("without session: should import contract information from etherscan (multiple files) and verify the contract, finding a partial match", (done) => {
-        chai
-          .request(server.app)
-          .post("/verify/etherscan")
-          .field("address", "0x5aa653a076c1dbb47cec8c1b4d152444cad91941")
-          .field("chainId", "1")
-          .end((err, res) => {
-            assertions(
-              err,
-              res,
-              false,
-              "0x5aa653a076c1dbb47cec8c1b4d152444cad91941",
-              "partial"
-            );
-            done();
-          });
-      });
-
-      it("should fail for missing address", (done) => {
-        chai
-          .request(server.app)
-          .post("/session/verify/etherscan")
-          .field("chainId", "1")
-          .end((err, res) => {
-            assertValidationError(err, res, "address");
-            done();
-          });
-      });
-
-      it("should fail for missing chainId", (done) => {
-        chai
-          .request(server.app)
-          .post("/session/verify/etherscan")
-          .field("address", fakeAddress)
-          .end((err, res) => {
-            assertValidationError(err, res, "chainId");
-            done();
-          });
-      });
-
-      it("should fail fetching a non verified contract from etherscan", (done) => {
-        chai
-          .request(server.app)
-          .post("/session/verify/etherscan")
-          .field("address", fakeAddress)
-          .field("chainId", "1")
-          .end((err, res) => {
-            assertEtherscanError(err, res);
-            done();
-          });
-      });
-
-      it("should import contract information from etherscan (single file) and verify the contract, finding a partial match", (done) => {
-        chai
-          .request(server.app)
-          .post("/session/verify/etherscan")
-          .field("address", "0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4")
-          .field("chainId", "5")
-          .end((err, res) => {
-            assertAllFound(err, res, "partial");
-            done();
-          });
-      });
-
-      it("should import contract information from etherscan (standard-json-input) and verify the contract, finding a partial match", (done) => {
-        chai
-          .request(server.app)
-          .post("/session/verify/etherscan")
-          .field("address", "0x5aa653a076c1dbb47cec8c1b4d152444cad91941")
-          .field("chainId", "1")
-          .end((err, res) => {
-            assertAllFound(err, res, "partial");
-            done();
-          });
-      });
-
-      it("should import contract information from etherscan (multiple files) and verify the contract, finding a partial match", (done) => {
-        chai
-          .request(server.app)
-          .post("/session/verify/etherscan")
-          .field("address", "0xB753548F6E010e7e680BA186F9Ca1BdAB2E90cf2")
-          .field("chainId", "1")
-          .end((err, res) => {
-            assertAllFound(err, res, "partial");
-            done();
-          });
-      });
-
-      it("should fail by exceeding rate limit on etherscan APIs", (done) => {
-        chai
-          .request(server.app)
-          .post("/session/verify/etherscan")
-          .field("address", fakeAddress)
-          .field("chainId", "1")
-          .end(() => {
-            chai
-              .request(server.app)
-              .post("/session/verify/etherscan")
-              .field("address", fakeAddress)
-              .field("chainId", "1")
-              .end((err, res) => {
-                assertEtherscanError(err, res);
-                done();
-              });
-          });
-      });
-    });
-  }
-
   describe("Verify create2", function () {
-    const assertAllFound = (err, res, finalStatus) => {
-      chai.expect(err).to.be.null;
-      chai.expect(res.status).to.equal(StatusCodes.OK);
-
-      const contracts = res.body.contracts;
-      chai.expect(contracts).to.have.a.lengthOf(1);
-      const contract = contracts[0];
-
-      chai.expect(contract.status).to.equal(finalStatus);
-    };
-
-    const assertAPIAllFound = (err, res, finalStatus) => {
-      chai.expect(err).to.be.null;
-      chai.expect(res.status).to.equal(StatusCodes.OK);
-
-      const contracts = res.body.result;
-      chai.expect(contracts).to.have.a.lengthOf(1);
-      const contract = contracts[0];
-
-      chai.expect(contract.status).to.equal(finalStatus);
-    };
-
     this.timeout(EXTENDED_TIME_60);
 
     const agent = chai.request.agent(server.app);
@@ -358,7 +180,7 @@ describe("Server", function () {
       chai.expect(retrivedFile).to.equal("contracts/create2/Wallet.sol");
     });
 
-    it("should create2 verify", (done) => {
+    it("should create2 verify with session", (done) => {
       let clientToken;
       const sourcifyClientTokensRaw = process.env.CREATE2_CLIENT_TOKENS;
       if (sourcifyClientTokensRaw?.length) {
@@ -377,24 +199,18 @@ describe("Server", function () {
           verificationId: verificationId,
         })
         .end((err, res) => {
-          assertAllFound(err, res, "perfect");
-          chai
-            .request(server.app)
-            .get("/check-all-by-addresses")
-            .query({
-              chainIds: "0",
-              addresses: ["0x65790cc291a234eDCD6F28e1F37B036eD4F01e3B"],
-            })
-            .end((err, res) => {
-              chai.expect(err).to.be.null;
-              chai.expect(res.body).to.have.a.lengthOf(1);
-              chai.expect(res.body[0].chainIds).to.have.a.lengthOf(1);
-              done();
-            });
+          assertVerificationSession(
+            err,
+            res,
+            done,
+            "0x65790cc291a234eDCD6F28e1F37B036eD4F01e3B",
+            "0",
+            "perfect"
+          );
         });
     });
 
-    it("should create2 verify through API", (done) => {
+    it("should create2 verify non-session", (done) => {
       const metadata = fs
         .readFileSync("test/testcontracts/Create2/Wallet_metadata.json")
         .toString();
@@ -423,20 +239,14 @@ describe("Server", function () {
           create2Address: "0x801B9c0Ee599C3E5ED60e4Ec285C95fC9878Ee64",
         })
         .end((err, res) => {
-          assertAPIAllFound(err, res, "perfect");
-          chai
-            .request(server.app)
-            .get("/check-all-by-addresses")
-            .query({
-              chainIds: "0",
-              addresses: ["0x801B9c0Ee599C3E5ED60e4Ec285C95fC9878Ee64"],
-            })
-            .end((err, res) => {
-              chai.expect(err).to.be.null;
-              chai.expect(res.body).to.have.a.lengthOf(1);
-              chai.expect(res.body[0].chainIds).to.have.a.lengthOf(1);
-              done();
-            });
+          assertVerification(
+            err,
+            res,
+            done,
+            "0x801B9c0Ee599C3E5ED60e4Ec285C95fC9878Ee64",
+            "0",
+            "perfect"
+          );
         });
     });
   });
@@ -466,18 +276,6 @@ describe("Server", function () {
         });
     });
 
-    const assertStatus = (err, res, expectedStatus, expectedChainIds, done) => {
-      chai.expect(err).to.be.null;
-      chai.expect(res.status).to.equal(StatusCodes.OK);
-      const resultArray = res.body;
-      chai.expect(resultArray).to.have.a.lengthOf(1);
-      const result = resultArray[0];
-      chai.expect(result.address).to.equal(defaultContractAddress);
-      chai.expect(result.status).to.equal(expectedStatus);
-      chai.expect(result.chainIds).to.deep.equal(expectedChainIds);
-      if (done) done();
-    };
-
     it("should return false for previously unverified contract", (done) => {
       chai
         .request(server.app)
@@ -486,21 +284,24 @@ describe("Server", function () {
           chainIds: defaultContractChain,
           addresses: defaultContractAddress,
         })
-        .end((err, res) => assertStatus(err, res, "false", undefined, done));
+        .end((err, res) => {
+          assertLookup(err, res, defaultContractAddress, "false");
+          done();
+        });
     });
 
     it("should fail for invalid address", (done) => {
       chai
         .request(server.app)
         .get("/check-by-addresses")
-        .query({ chainIds: defaultContractChain, addresses: fakeAddress })
+        .query({ chainIds: defaultContractChain, addresses: invalidAddress })
         .end((err, res) => {
           assertValidationError(err, res, "addresses");
           done();
         });
     });
 
-    it("should return true for previously verified contract", (done) => {
+    it("should return false for unverified contract but then perfect after verification", (done) => {
       chai
         .request(server.app)
         .get("/check-by-addresses")
@@ -509,7 +310,7 @@ describe("Server", function () {
           addresses: defaultContractAddress,
         })
         .end((err, res) => {
-          assertStatus(err, res, "false", undefined);
+          assertLookup(err, res, defaultContractAddress, "false");
           chai
             .request(server.app)
             .post("/")
@@ -529,11 +330,11 @@ describe("Server", function () {
                   addresses: defaultContractAddress,
                 })
                 .end((err, res) =>
-                  assertStatus(
+                  assertLookup(
                     err,
                     res,
+                    defaultContractAddress,
                     "perfect",
-                    [defaultContractChain],
                     done
                   )
                 );
@@ -550,13 +351,7 @@ describe("Server", function () {
           addresses: defaultContractAddress.toLowerCase(),
         })
         .end((err, res) => {
-          chai.expect(err).to.be.null;
-          chai.expect(res.status).to.equal(StatusCodes.OK);
-          chai.expect(res.body).to.have.a.lengthOf(1);
-          const result = res.body[0];
-          chai.expect(result.address).to.equal(defaultContractAddress);
-          chai.expect(result.status).to.equal("false");
-          done();
+          assertLookup(err, res, defaultContractAddress, "false", done);
         });
     });
   });
@@ -586,18 +381,6 @@ describe("Server", function () {
         });
     });
 
-    const assertStatus = (err, res, expectedStatus, expectedChainIds, done) => {
-      chai.expect(err).to.be.null;
-      chai.expect(res.status).to.equal(StatusCodes.OK);
-      const resultArray = res.body;
-      chai.expect(resultArray).to.have.a.lengthOf(1);
-      const result = resultArray[0];
-      chai.expect(result.address).to.equal(defaultContractAddress);
-      chai.expect(result.status).to.equal(expectedStatus);
-      chai.expect(result.chainIds).to.deep.equal(expectedChainIds);
-      if (done) done();
-    };
-
     it("should return false for previously unverified contract", (done) => {
       chai
         .request(server.app)
@@ -606,21 +389,23 @@ describe("Server", function () {
           chainIds: defaultContractChain,
           addresses: defaultContractAddress,
         })
-        .end((err, res) => assertStatus(err, res, "false", undefined, done));
+        .end((err, res) =>
+          assertLookup(err, res, defaultContractAddress, "false", done)
+        );
     });
 
     it("should fail for invalid address", (done) => {
       chai
         .request(server.app)
         .get("/check-all-by-addresses")
-        .query({ chainIds: defaultContractChain, addresses: fakeAddress })
+        .query({ chainIds: defaultContractChain, addresses: invalidAddress })
         .end((err, res) => {
           assertValidationError(err, res, "addresses");
           done();
         });
     });
 
-    it("should return true for previously verified contract", (done) => {
+    it("should return false for unverified contract but then perfect after verification", (done) => {
       chai
         .request(server.app)
         .get("/check-all-by-addresses")
@@ -629,7 +414,7 @@ describe("Server", function () {
           addresses: defaultContractAddress,
         })
         .end((err, res) => {
-          assertStatus(err, res, "false", undefined);
+          assertLookup(err, res, defaultContractAddress, "false");
           chai
             .request(server.app)
             .post("/")
@@ -649,10 +434,10 @@ describe("Server", function () {
                   addresses: defaultContractAddress,
                 })
                 .end((err, res) =>
-                  assertStatus(
+                  assertLookupAll(
                     err,
                     res,
-                    undefined,
+                    defaultContractAddress,
                     [{ chainId: defaultContractChain, status: "perfect" }],
                     done
                   )
@@ -714,7 +499,16 @@ describe("Server", function () {
         .field("chain", defaultContractChain)
         .attach("files", metadataBuffer, "metadata.json")
         .attach("files", sourceBuffer, "Storage.sol")
-        .end((err, res) => assertions(err, res, done));
+        .end((err, res) =>
+          assertVerification(
+            err,
+            res,
+            done,
+            defaultContractAddress,
+            defaultContractChain,
+            "perfect"
+          )
+        );
     });
 
     it("should verify json upload with string properties", (done) => {
@@ -729,7 +523,16 @@ describe("Server", function () {
             "Storage.sol": sourceBuffer.toString(),
           },
         })
-        .end((err, res) => assertions(err, res, done));
+        .end((err, res) =>
+          assertVerification(
+            err,
+            res,
+            done,
+            defaultContractAddress,
+            defaultContractChain,
+            "perfect"
+          )
+        );
     });
 
     it("should verify json upload with Buffer properties", (done) => {
@@ -744,7 +547,16 @@ describe("Server", function () {
             "Storage.sol": sourceBuffer,
           },
         })
-        .end((err, res) => assertions(err, res, done));
+        .end((err, res) =>
+          assertVerification(
+            err,
+            res,
+            done,
+            defaultContractAddress,
+            defaultContractChain,
+            "perfect"
+          )
+        );
     });
 
     const assertMissingFile = (err, res) => {
@@ -776,7 +588,16 @@ describe("Server", function () {
         .field("address", defaultContractAddress)
         .field("chain", defaultContractChain)
         .attach("files", metadataBuffer, "metadata.json")
-        .end((err, res) => assertions(err, res, done));
+        .end((err, res) =>
+          assertVerification(
+            err,
+            res,
+            done,
+            defaultContractAddress,
+            defaultContractChain,
+            "perfect"
+          )
+        );
     });
 
     it("should return 'partial', then delete partial when 'full' match", (done) => {
@@ -803,7 +624,14 @@ describe("Server", function () {
         .attach("files", partialMetadataBuffer, "metadata.json")
         .attach("files", partialSourceBuffer)
         .end((err, res) => {
-          assertions(err, res, null, defaultContractAddress, "partial");
+          assertVerification(
+            err,
+            res,
+            null,
+            defaultContractAddress,
+            defaultContractChain,
+            "partial"
+          );
 
           chai
             .request(server.app)
@@ -820,7 +648,13 @@ describe("Server", function () {
                 .attach("files", metadataBuffer, "metadata.json")
                 .attach("files", sourceBuffer)
                 .end(async (err, res) => {
-                  assertions(err, res, null, defaultContractAddress);
+                  assertVerification(
+                    err,
+                    res,
+                    null,
+                    defaultContractAddress,
+                    defaultContractChain
+                  );
 
                   await waitSecs(2); // allow server some time to execute the deletion (it started *after* the last response)
                   chai
@@ -863,7 +697,14 @@ describe("Server", function () {
         .attach("files", metadataBuffer)
         .send();
 
-      assertions(null, res, null, address, "partial");
+      assertVerification(
+        null,
+        res,
+        null,
+        address,
+        defaultContractChain,
+        "partial"
+      );
     });
 
     it("should fail to verify a contract with immutables but should succeed with creatorTxHash and save creator-tx-hash.txt", async () => {
@@ -913,7 +754,7 @@ describe("Server", function () {
           },
           creatorTxHash: creatorTxHash,
         });
-      assertions(null, res2, null, address);
+      assertVerification(null, res2, null, address, defaultContractChain);
       assertEqualityFromPath(
         creatorTxHash,
         path.join(
@@ -938,7 +779,7 @@ describe("Server", function () {
 
       // Deploy child by calling createChild()
       const childMetadata = require("./testcontracts/FactoryImmutableWithoutConstrArg/Child3_metadata.json");
-      const childMetadataBuffer = Buffer.from(JSON.stringify(childMetadata));
+
       const txReceipt = await callContractMethodWithTx(
         localWeb3Provider,
         artifact.abi,
@@ -971,7 +812,7 @@ describe("Server", function () {
             "FactoryTest3.sol": sourceBuffer.toString(),
           },
         });
-      assertions(null, res, null, childAddress);
+      assertVerification(null, res, null, childAddress, defaultContractChain);
     });
 
     it("should first fail to verify a contract created by a factory contract and has an immutable set by `msg.sender`. Then suceed with the `msg.sender` input and save the contextVariables", async () => {
@@ -987,7 +828,6 @@ describe("Server", function () {
 
       // Deploy child by calling createChild()
       const childMetadata = require("./testcontracts/FactoryImmutableWithMsgSender/Child_metadata.json");
-      const childMetadataBuffer = Buffer.from(JSON.stringify(childMetadata));
       const txReceipt = await callContractMethodWithTx(
         localWeb3Provider,
         artifact.abi,
@@ -1041,7 +881,7 @@ describe("Server", function () {
             "FactoryTest.sol": sourceBuffer.toString(),
           },
         });
-      assertions(null, res2, null, childAddress);
+      assertVerification(null, res2, null, childAddress, defaultContractChain);
 
       // Check if contextVariables.json saved correctly
       assertEqualityFromPath(
@@ -1107,7 +947,7 @@ describe("Server", function () {
         .field("msgSender", factoryAddress)
         .attach("files", childMetadataBuffer, "metadata.json")
         .attach("files", sourceBuffer, "FactoryTest.sol");
-      assertions(null, res2, null, childAddress);
+      assertVerification(null, res2, null, childAddress, defaultContractChain);
 
       // Check if contextVariables.json saved correctly
       assertEqualityFromPath(
@@ -1176,7 +1016,14 @@ describe("Server", function () {
           .field("chosenContract", mainContractIndex)
           .attach("files", hardhatOutputBuffer)
           .end((err, res) => {
-            assertions(err, res, done, address, "perfect");
+            assertVerification(
+              err,
+              res,
+              done,
+              address,
+              defaultContractChain,
+              "perfect"
+            );
           });
       });
     });
@@ -1206,7 +1053,14 @@ describe("Server", function () {
           .field("address", contractAddress)
           .attach("files", hardhatOutputBuffer)
           .end((err, res) => {
-            assertions(err, res, done, contractAddress, "extra-file-input-bug");
+            assertVerification(
+              err,
+              res,
+              done,
+              contractAddress,
+              defaultContractChain,
+              "extra-file-input-bug"
+            );
           });
       });
 
@@ -1220,7 +1074,14 @@ describe("Server", function () {
           .field("address", contractAddress)
           .attach("files", hardhatOutputBuffer)
           .end((err, res) => {
-            assertions(err, res, done, contractAddress, "perfect");
+            assertVerification(
+              err,
+              res,
+              done,
+              contractAddress,
+              defaultContractChain,
+              "perfect"
+            );
           });
       });
     });
@@ -1301,15 +1162,14 @@ describe("Server", function () {
             .post("/session/verify-validated")
             .send({ contracts })
             .end((err, res) => {
-              chai.expect(err).to.be.null;
-              chai.expect(res.status).to.equal(StatusCodes.OK);
-              const contracts = res.body.contracts;
-              chai.expect(contracts).to.have.a.lengthOf(1);
-              const contract = contracts[0];
-              chai.expect(contract.status).to.equal("perfect");
-              chai.expect(contract.storageTimestamp).to.not.exist;
-              chai.expect(res.body.unused).to.be.empty;
-              done();
+              assertVerificationSession(
+                err,
+                res,
+                done,
+                defaultContractAddress,
+                defaultContractChain,
+                "perfect"
+              );
             });
         });
     });
@@ -1350,20 +1210,6 @@ describe("Server", function () {
         });
     });
 
-    const assertAllFound = (err, res, finalStatus) => {
-      chai.expect(err).to.be.null;
-      chai.expect(res.status).to.equal(StatusCodes.OK);
-      chai.expect(res.body.unused).to.be.empty;
-
-      const contracts = res.body.contracts;
-      chai.expect(contracts).to.have.a.lengthOf(1);
-      const contract = contracts[0];
-
-      chai.expect(contract.name).to.equal("Storage");
-      chai.expect(contract.status).to.equal(finalStatus);
-      chai.expect(contract.storageTimestamp).to.not.exist;
-    };
-
     it("should verify when session cookie stored clientside", (done) => {
       const agent = chai.request.agent(server.app);
       agent
@@ -1379,14 +1225,27 @@ describe("Server", function () {
             .end((err, res) => {
               contracts[0].chainId = defaultContractChain;
               contracts[0].address = defaultContractAddress;
-              assertAllFound(err, res, "error");
+              assertVerificationSession(
+                err,
+                res,
+                null,
+                undefined,
+                undefined,
+                "error"
+              );
 
               agent
                 .post("/session/verify-validated")
                 .send({ contracts })
                 .end((err, res) => {
-                  assertAllFound(err, res, "perfect");
-                  done();
+                  assertVerificationSession(
+                    err,
+                    res,
+                    done,
+                    defaultContractAddress,
+                    defaultContractChain,
+                    "perfect"
+                  );
                 });
             });
         });
@@ -1988,82 +1847,133 @@ describe("Server", function () {
         .field("address", defaultContractAddress)
         .field("chain", defaultContractChain)
         .attach("files", metadataBuffer, "metadata.json")
-        .attach("files", sourceBuffer, "Storage.sol")
-      const res0 = await agent.get(`/files/${defaultContractChain}/${defaultContractAddress}`)
-      chai.expect(res0.body).has.a.lengthOf(2)
-      const res1 = await agent.get(`/files/tree/any/${defaultContractChain}/${defaultContractAddress}`)
-      chai.expect(res1.body?.status).equals('full')
-      const res2 = await agent.get(`/files/any/${defaultContractChain}/${defaultContractAddress}`)
-      chai.expect(res2.body?.status).equals('full')
-      const res3 = await agent.get(`/files/tree/${defaultContractChain}/${defaultContractAddress}`)
-      chai.expect(res3.body).has.a.lengthOf(2)
-      const res4 = await agent.get(`/files/contracts/${defaultContractChain}`)
-      chai.expect(res4.body.full).has.a.lengthOf(1)
+        .attach("files", sourceBuffer, "Storage.sol");
+      const res0 = await agent.get(
+        `/files/${defaultContractChain}/${defaultContractAddress}`
+      );
+      chai.expect(res0.body).has.a.lengthOf(2);
+      const res1 = await agent.get(
+        `/files/tree/any/${defaultContractChain}/${defaultContractAddress}`
+      );
+      chai.expect(res1.body?.status).equals("full");
+      const res2 = await agent.get(
+        `/files/any/${defaultContractChain}/${defaultContractAddress}`
+      );
+      chai.expect(res2.body?.status).equals("full");
+      const res3 = await agent.get(
+        `/files/tree/${defaultContractChain}/${defaultContractAddress}`
+      );
+      chai.expect(res3.body).has.a.lengthOf(2);
+      const res4 = await agent.get(`/files/contracts/${defaultContractChain}`);
+      chai.expect(res4.body.full).has.a.lengthOf(1);
     });
-  })
+  });
   describe("Verify server status endpoint", function () {
     it("should check server's health", async function () {
-      const res = await chai
-        .request(server.app)
-        .get("/health")
-      chai.expect(res.text).equals('Alive and kicking!')
-    })
+      const res = await chai.request(server.app).get("/health");
+      chai.expect(res.text).equals("Alive and kicking!");
+    });
     it("should check server's chains", async function () {
-      const res = await chai
-        .request(server.app)
-        .get("/chains")
-      chai.expect(res.body.length).greaterThan(0)
-    })
-  })
+      const res = await chai.request(server.app).get("/chains");
+      chai.expect(res.body.length).greaterThan(0);
+    });
+  });
   describe("Unit test functions", function () {
     this.timeout(EXTENDED_TIME_60);
-    const { sourcifyChainsArray } = require("../dist/sourcify-chains")
-    const { getCreatorTx } = require("../dist/server/services/VerificationService-util")
+    const { sourcifyChainsArray } = require("../dist/sourcify-chains");
+    const {
+      getCreatorTx,
+    } = require("../dist/server/services/VerificationService-util");
     it("should run getCreatorTx with chainId 40", async function () {
-      const sourcifyChain = sourcifyChainsArray.find(sourcifyChain => sourcifyChain.chainId === 40)
-      const creatorTx = await getCreatorTx(sourcifyChain, "0x4c09368a4bccD1675F276D640A0405Efa9CD4944")
-      chai.expect(creatorTx).equals("0xb7efb33c736b1e8ea97e356467f99d99221343f077ce31a3e3ac1d2e0636df1d")
-    })
+      const sourcifyChain = sourcifyChainsArray.find(
+        (sourcifyChain) => sourcifyChain.chainId === 40
+      );
+      const creatorTx = await getCreatorTx(
+        sourcifyChain,
+        "0x4c09368a4bccD1675F276D640A0405Efa9CD4944"
+      );
+      chai
+        .expect(creatorTx)
+        .equals(
+          "0xb7efb33c736b1e8ea97e356467f99d99221343f077ce31a3e3ac1d2e0636df1d"
+        );
+    });
     it("should run getCreatorTx with chainId 51", async function () {
-      const sourcifyChain = sourcifyChainsArray.find(sourcifyChain => sourcifyChain.chainId === 51)
-      const creatorTx = await getCreatorTx(sourcifyChain, "0x8C3FA94eb5b07c9AF7dBFcC53ea3D2BF7FdF3617")
-      chai.expect(creatorTx).equals("0xb1af0ec1283551480ae6e6ce374eb4fa7d1803109b06657302623fc65c987420")
-    })
+      const sourcifyChain = sourcifyChainsArray.find(
+        (sourcifyChain) => sourcifyChain.chainId === 51
+      );
+      const creatorTx = await getCreatorTx(
+        sourcifyChain,
+        "0x8C3FA94eb5b07c9AF7dBFcC53ea3D2BF7FdF3617"
+      );
+      chai
+        .expect(creatorTx)
+        .equals(
+          "0xb1af0ec1283551480ae6e6ce374eb4fa7d1803109b06657302623fc65c987420"
+        );
+    });
     it("should run getCreatorTx with chainId 83", async function () {
-      const sourcifyChain = sourcifyChainsArray.find(sourcifyChain => sourcifyChain.chainId === 83)
-      const creatorTx = await getCreatorTx(sourcifyChain, "0x89e772941d94Ef4BDA1e4f68E79B4bc5F6096389")
-      chai.expect(creatorTx).equals("0x8cc7b0fb66eaf7b32bac7b7938aedfcec6d49f9fe607b8008a5541e72d264069")
-    })
+      const sourcifyChain = sourcifyChainsArray.find(
+        (sourcifyChain) => sourcifyChain.chainId === 83
+      );
+      const creatorTx = await getCreatorTx(
+        sourcifyChain,
+        "0x89e772941d94Ef4BDA1e4f68E79B4bc5F6096389"
+      );
+      chai
+        .expect(creatorTx)
+        .equals(
+          "0x8cc7b0fb66eaf7b32bac7b7938aedfcec6d49f9fe607b8008a5541e72d264069"
+        );
+    });
     it("should run getCreatorTx with chainId 335", async function () {
-      const sourcifyChain = sourcifyChainsArray.find(sourcifyChain => sourcifyChain.chainId === 335)
-      const creatorTx = await getCreatorTx(sourcifyChain, "0x40D843D06dAC98b2586fD1DFC5532145208C909F")
-      chai.expect(creatorTx).equals("0xd125cc92f61d0898d55a918283f8b855bde15bc5f391b621e0c4eee25c9997ee")
-    })
+      const sourcifyChain = sourcifyChainsArray.find(
+        (sourcifyChain) => sourcifyChain.chainId === 335
+      );
+      const creatorTx = await getCreatorTx(
+        sourcifyChain,
+        "0x40D843D06dAC98b2586fD1DFC5532145208C909F"
+      );
+      chai
+        .expect(creatorTx)
+        .equals(
+          "0xd125cc92f61d0898d55a918283f8b855bde15bc5f391b621e0c4eee25c9997ee"
+        );
+    });
     it("should run getCreatorTx with regex", async function () {
-      const sourcifyChain = sourcifyChainsArray.find(sourcifyChain => sourcifyChain.chainId === 100)
-      const creatorTx = await getCreatorTx(sourcifyChain, "0x3CE1a25376223695284edc4C2b323C3007010C94")
-      chai.expect(creatorTx).equals("0x11da550e6716be8b4bd9203cb384e89b8f8941dc460bd99a4928ce2825e05456")
-    })
+      const sourcifyChain = sourcifyChainsArray.find(
+        (sourcifyChain) => sourcifyChain.chainId === 100
+      );
+      const creatorTx = await getCreatorTx(
+        sourcifyChain,
+        "0x3CE1a25376223695284edc4C2b323C3007010C94"
+      );
+      chai
+        .expect(creatorTx)
+        .equals(
+          "0x11da550e6716be8b4bd9203cb384e89b8f8941dc460bd99a4928ce2825e05456"
+        );
+    });
     it("should attach and trigger an event with the event manager", function (done) {
-      const EventManager = require('../dist/common/EventManager').EventManager
+      const EventManager = require("../dist/common/EventManager").EventManager;
       const em = new EventManager({
         "*": [],
-        "TestEvent": []
-      })
+        TestEvent: [],
+      });
       let hitCounter = 0;
       em.on("*", function () {
         hitCounter++;
         if (hitCounter == 2) {
           done();
         }
-      })
+      });
       em.on("TestEvent", function () {
         hitCounter++;
         if (hitCounter == 2) {
           done();
         }
-      })
-      em.trigger("TestEvent")
-    })
-  })
+      });
+      em.trigger("TestEvent");
+    });
+  });
 });
