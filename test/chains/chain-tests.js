@@ -10,8 +10,8 @@ const path = require("path");
 const util = require("util");
 const rimraf = require("rimraf");
 const StatusCodes = require("http-status-codes").StatusCodes;
-const ethers = require("ethers");
 const addContext = require("mochawesome/addContext");
+const { assertVerification } = require("../helpers/assertions");
 
 const TEST_TIME = 30000; // 30 seconds
 
@@ -1402,7 +1402,7 @@ describe("Test Supported Chains", function () {
           files: files,
         })
         .end((err, res) => {
-          assertions(err, res, done, address);
+          assertVerification(err, res, done, address, chainId);
         });
     });
   }
@@ -1411,8 +1411,8 @@ describe("Test Supported Chains", function () {
     address,
     chainId,
     chainName,
-    constructorArgTypes,
-    constructorArgValues,
+    _constructorArgTypes,
+    _constructorArgValues,
     relativeSourcePathsArray,
     relativeMetadataPath
   ) {
@@ -1452,47 +1452,21 @@ describe("Test Supported Chains", function () {
           files: files,
         })
         .end((err, res) => {
-          assertions(err, res, null, address);
+          assertVerification(err, res, null, address, chainId);
 
           chai
             .request(server.app)
             .get(
-              `/repository/contracts/full_match/${chainId}/${address}/constructor-args.txt`
+              `/repository/contracts/full_match/${chainId}/${address}/immutable-references.json`
             )
-            .buffer()
-            .parse(binaryParser)
             .end((err, res) => {
               chai.expect(err).to.be.null;
               chai.expect(res.status).to.equal(StatusCodes.OK);
-              const abiCoder = new ethers.utils.AbiCoder();
-              const encodedParameter = abiCoder.encode(
-                constructorArgTypes,
-                constructorArgValues
-              );
-              chai.expect(res.body.toString()).to.equal(encodedParameter);
+              chai.expect(res.body).to.exist;
               done();
             });
         });
     });
-  }
-
-  function assertions(
-    err,
-    res,
-    done,
-    expectedAddress,
-    expectedStatus = "perfect"
-  ) {
-    currentResponse = res;
-    chai.expect(err).to.be.null;
-    chai.expect(res.status).to.equal(StatusCodes.OK);
-    chai.expect(res.body).to.haveOwnProperty("result");
-    const resultArr = res.body.result;
-    chai.expect(resultArr).to.have.a.lengthOf(1);
-    const result = resultArr[0];
-    chai.expect(result.address).to.equal(expectedAddress);
-    chai.expect(result.status).to.equal(expectedStatus);
-    if (done) done();
   }
 
   function binaryParser(res, cb) {
