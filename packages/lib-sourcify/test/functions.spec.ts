@@ -7,7 +7,6 @@ import {
   getSolcJs,
   useCompiler,
 } from '../src/lib/solidityCompiler';
-
 import {
   CheckedContract,
   getGithubUrl,
@@ -15,12 +14,16 @@ import {
 } from '../src/lib/CheckedContract';
 import storageMetadata from './sources/Storage/metadata.json';
 import { Metadata, MissingSources } from '../src/lib/types';
+import fs from 'fs';
+import path from 'path';
 
 describe('Verify Solidity Compiler', () => {
   it('Should fetch latest SolcJS compiler', async () => {
+    fs.rmdirSync(process.env.SOLC_REPO || path.join('/tmp', 'solc-repo'));
     expect(await getSolcJs()).not.equals(null);
   });
   it('Should fetch SolcJS compiler passing only version', async () => {
+    fs.rmdirSync(process.env.SOLJSON_REPO || path.join('/tmp', 'soljson-repo'));
     expect(await getSolcJs('0.8.17+commit.8df45f5f')).not.equals(false);
   });
   if (process.platform === 'linux') {

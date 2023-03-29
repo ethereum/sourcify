@@ -79,6 +79,27 @@ export const checkAndVerifyDeployed = async (
   contextVariables?: ContextVariables,
   creatorTxHash?: string
 ) => {
+  const checkedContracts = await checkFilesFromContractFolder(
+    contractFolderPath
+  );
+
+  const match = await verifyDeployed(
+    checkedContracts[0],
+    sourcifyChain,
+    address,
+    contextVariables,
+    creatorTxHash
+  );
+  return match;
+};
+
+/**
+ * Creates a CheckedContract[] from the files under contractFolderPath.
+ * The metadata must be at contractFolderPath/metadata.json and the sources must be under contractFolderPath/sources.
+ */
+export const checkFilesFromContractFolder = async (
+  contractFolderPath: string
+) => {
   const metadataPath = path.join(contractFolderPath, 'metadata.json');
   const metadataBuffer = fs.readFileSync(metadataPath);
   const metadataPathBuffer = { path: metadataPath, buffer: metadataBuffer };
@@ -96,16 +117,8 @@ export const checkAndVerifyDeployed = async (
     metadataPathBuffer,
     ...sourcePathBuffers,
   ]);
-  const match = await verifyDeployed(
-    checkedContracts[0],
-    sourcifyChain,
-    address,
-    contextVariables,
-    creatorTxHash
-  );
-  return match;
+  return checkedContracts;
 };
-
 /**
  * Combines both deploying and verifying a contract in a single function.
  * Returns the deployed address for assertions on Match.address
@@ -155,13 +168,22 @@ export async function callContractMethodWithTx(
 
 export const expectMatch = (
   match: Match,
-  status: string,
+  status: string | null,
   address: string,
-  libraryMap?: { [key: string]: string }
+  libraryMap?: { [key: string]: string },
+  message?: string
 ) => {
-  expect(match.status).to.equal(status);
-  expect(match.address).to.equal(address);
-  if (libraryMap) {
-    expect(match.libraryMap).to.deep.equal(libraryMap);
+  try {
+    expect(match.status).to.equal(status);
+    expect(match.address).to.equal(address);
+    if (libraryMap) {
+      expect(match.libraryMap).to.deep.equal(libraryMap);
+    }
+    if (message) {
+      expect(match.message).to.equal(message);
+    }
+  } catch (e) {
+    console.log('Match: ', match);
+    throw e;
   }
 };
