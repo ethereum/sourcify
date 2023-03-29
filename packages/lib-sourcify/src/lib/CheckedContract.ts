@@ -120,6 +120,7 @@ export class CheckedContract {
       creationBytecode: `0x${contract.evm.bytecode.object}`,
       deployedBytecode: `0x${contract.evm.deployedBytecode.object}`,
       metadata: contract.metadata.trim(),
+      immutableReferences: contract.evm.deployedBytecode.immutableReferences,
     };
   }
 
@@ -305,6 +306,7 @@ function createJsonInputFromMetadata(
   solcJsonInput.settings.outputSelection['*'][contractName] = [
     'evm.bytecode.object',
     'evm.deployedBytecode.object',
+    'evm.deployedBytecode.immutableReferences',
     'metadata',
   ];
 
