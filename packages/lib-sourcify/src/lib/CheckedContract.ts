@@ -120,7 +120,12 @@ export class CheckedContract {
       creationBytecode: `0x${contract.evm.bytecode.object}`,
       deployedBytecode: `0x${contract.evm.deployedBytecode.object}`,
       metadata: contract.metadata.trim(),
-      immutableReferences: contract.evm.deployedBytecode.immutableReferences,
+      // If no immutables, the compiler returns empty object, which is not falsey.
+      immutableReferences:
+        Object.keys(contract.evm.deployedBytecode.immutableReferences).length >
+        0
+          ? contract.evm.deployedBytecode.immutableReferences
+          : undefined,
     };
   }
 
