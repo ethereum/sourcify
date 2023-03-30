@@ -7,6 +7,7 @@ import { checkAllByAddresses } from "../../utils/api";
 import Field from "./Field";
 import Result from "./Result";
 import { useParams, useNavigate } from "react-router-dom";
+import { isAddress, getAddress } from "@ethersproject/address";
 
 const Lookup = () => {
   const navigate = useNavigate();
@@ -51,7 +52,12 @@ const Lookup = () => {
 
   useEffect(() => {
     if (address && address !== response?.address) {
-      handleRequest(address);
+      if (!isAddress(address)) {
+        return;
+      }
+      // Get checksummed format
+      const checksummedAddress = getAddress(address);
+      handleRequest(checksummedAddress);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sourcifyChains, address]);
