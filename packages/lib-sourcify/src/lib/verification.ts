@@ -190,6 +190,8 @@ export async function matchWithSimulation(
   chainId: string,
   contextVariables?: ContextVariables
 ) {
+  // 'paris' is named 'merge' in ethereumjs https://github.com/ethereumjs/ethereumjs-monorepo/issues/2360
+  if (evmVersion === 'paris') evmVersion = 'merge';
   let { abiEncodedConstructorArguments } = contextVariables || {};
   const { msgSender } = contextVariables || {};
 
