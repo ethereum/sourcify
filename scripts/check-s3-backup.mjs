@@ -68,6 +68,7 @@ for (const jobId of jobIds) {
         break;
       }
     } catch (e) {
+      console.log(e);
       console.log(
         `not in backup: stable/repository/contracts/full_match/${deploymentChain}/${deploymentAddress}/metadata.json`
       );
