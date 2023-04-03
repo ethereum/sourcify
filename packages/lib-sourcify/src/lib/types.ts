@@ -60,10 +60,17 @@ export declare interface CompilableMetadata {
   contractName: string;
 }
 
+export interface ImmutableReferences {
+  [key: string]: Array<{
+    length: number;
+    start: number;
+  }>;
+}
 export interface RecompilationResult {
   creationBytecode: string;
   deployedBytecode: string;
   metadata: string;
+  immutableReferences: ImmutableReferences;
 }
 
 export interface Match {
@@ -77,6 +84,7 @@ export interface Match {
   libraryMap?: StringMap;
   contextVariables?: ContextVariables;
   creatorTxHash?: string;
+  immutableReferences?: ImmutableReferences;
 }
 
 export type Status =

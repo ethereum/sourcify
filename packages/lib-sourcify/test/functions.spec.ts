@@ -7,7 +7,6 @@ import {
   getSolcJs,
   useCompiler,
 } from '../src/lib/solidityCompiler';
-
 import {
   CheckedContract,
   getGithubUrl,
