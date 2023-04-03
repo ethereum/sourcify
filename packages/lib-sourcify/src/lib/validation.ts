@@ -286,7 +286,7 @@ function rearrangeSources(metadata: any, byHash: Map<string, PathContent>) {
  * @param  {string[]}  files Array containing sources.
  * @returns Map object that maps hash to PathContent.
  */
-function storeByHash(files: PathContent[]): Map<string, PathContent> {
+export function storeByHash(files: PathContent[]): Map<string, PathContent> {
   const byHash: Map<string, PathContent> = new Map();
 
   for (const pathContent of files) {
@@ -300,18 +300,36 @@ function storeByHash(files: PathContent[]): Map<string, PathContent> {
 }
 
 function generateVariations(pathContent: PathContent): PathContent[] {
-  const variations: string[] = [];
+  const variations: {
+    content: string;
+    contentVariator: number;
+    endingVariator: number;
+  }[] = [];
   const original = pathContent.content;
-  for (const contentVariator of CONTENT_VARIATORS) {
+  for (const [
+    CONTENT_VARIATORS_INDEX,
+    contentVariator,
+  ] of CONTENT_VARIATORS.entries()) {
     const variatedContent = contentVariator(original);
-    for (const endingVariator of ENDING_VARIATORS) {
+    for (const [
+      ENDING_VARIATORS_INDEX,
+      endingVariator,
+    ] of ENDING_VARIATORS.entries()) {
       const variation = endingVariator(variatedContent);
-      variations.push(variation);
+      variations.push({
+        content: variation,
+        contentVariator: CONTENT_VARIATORS_INDEX,
+        endingVariator: ENDING_VARIATORS_INDEX,
+      });
     }
   }
 
-  return variations.map((content) => {
-    return { content, path: pathContent.path };
+  return variations.map(({ content, contentVariator, endingVariator }) => {
+    return {
+      content,
+      path: pathContent.path,
+      variation: contentVariator + '.' + endingVariator,
+    };
   });
 }
 
