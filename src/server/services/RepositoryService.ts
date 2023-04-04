@@ -467,6 +467,16 @@ export default class RepositoryService implements IRepositoryService {
         );
       }
 
+      if (match.immutableReferences) {
+        this.storeJSON(
+          matchQuality,
+          match.chainId,
+          match.address,
+          "immutable-references.json",
+          match.immutableReferences
+        );
+      }
+
       await this.addToIpfsMfs(matchQuality, match.chainId, match.address);
       SourcifyEventManager.trigger("Verification.MatchStored", match);
     } else if (match.status === "extra-file-input-bug") {

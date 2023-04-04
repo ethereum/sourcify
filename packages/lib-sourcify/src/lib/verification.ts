@@ -2,6 +2,7 @@ import { CheckedContract } from './CheckedContract';
 import {
   ContextVariables,
   Create2Args,
+  ImmutableReferences,
   Match,
   SourcifyChain,
   StringMap,
@@ -55,7 +56,8 @@ export async function verifyDeployed(
   matchWithDeployedBytecode(
     match,
     recompiled.deployedBytecode,
-    deployedBytecode
+    deployedBytecode,
+    recompiled.immutableReferences
   );
   if (match.status === 'perfect') return match;
 
@@ -170,7 +172,8 @@ export async function verifyCreate2(
 export function matchWithDeployedBytecode(
   match: Match,
   recompiledDeployedBytecode: string,
-  deployedBytecode: string
+  deployedBytecode: string,
+  immutableReferences?: any
 ) {
   // Replace the library placeholders in the recompiled bytecode with values from the deployed bytecode
   const { replaced, libraryMap } = addLibraryAddresses(
@@ -179,9 +182,16 @@ export function matchWithDeployedBytecode(
   );
   recompiledDeployedBytecode = replaced;
 
+  if (immutableReferences) {
+    deployedBytecode = replaceImmutableReferences(
+      immutableReferences,
+      deployedBytecode
+    );
+  }
+
   if (recompiledDeployedBytecode === deployedBytecode) {
     match.libraryMap = libraryMap;
-
+    match.immutableReferences = immutableReferences;
     // if the bytecode doesn't contain metadata then "partial" match
     if (doesContainMetadataHash(deployedBytecode)) {
       match.status = 'perfect';
@@ -196,6 +206,7 @@ export function matchWithDeployedBytecode(
     );
     if (trimmedDeployedBytecode === trimmedCompiledRuntimeBytecode) {
       match.libraryMap = libraryMap;
+      match.immutableReferences = immutableReferences;
       match.status = 'partial';
     }
   }
@@ -428,6 +439,29 @@ export function addLibraryAddresses(
     replaced: template,
     libraryMap,
   };
+}
+
+/**
+ * Replaces the values of the immutable variables in the (onchain) deployed bytecode with zeros, so that the bytecode can be compared with the (offchain) recompiled bytecode.
+ * Example immutableReferences: {"97":[{"length":32,"start":137}],"99":[{"length":32,"start":421}]} where 97 and 99 are the AST ids
+ */
+export function replaceImmutableReferences(
+  immutableReferences: ImmutableReferences,
+  deployedBytecode: string
+) {
+  deployedBytecode = deployedBytecode.slice(2); // remove "0x"
+
+  Object.keys(immutableReferences).forEach((astId) => {
+    immutableReferences[astId].forEach((reference) => {
+      const { start, length } = reference;
+      const zeros = '0'.repeat(length * 2);
+      deployedBytecode =
+        deployedBytecode.slice(0, start * 2) +
+        zeros +
+        deployedBytecode.slice(start * 2 + length * 2);
+    });
+  });
+  return '0x' + deployedBytecode;
 }
 
 function extractAbiEncodedConstructorArguments(
