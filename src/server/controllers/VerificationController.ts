@@ -345,66 +345,12 @@ export default class VerificationController
     const { compilerVersion, solcJsonInput, contractName } =
       await processRequestFromEtherscan(chain, address);
 
-    // generate all possible files
-
-    let pathContent: PathContent[] = Object.keys(solcJsonInput.sources).map(
-      (path) => {
-        return {
-          path,
-          content: solcJsonInput.sources[path].content || "",
-        };
-      }
-    );
-
-    const groupBy = function (xs: any[], key: string): { index: any[] } {
-      return xs.reduce(function (rv, x) {
-        (rv[x[key]] = rv[x[key]] || []).push(x);
-        return rv;
-      }, {});
-    };
-
-    const byHash = storeByHash(pathContent);
-
-    const byVariation = groupBy(
-      Array.from(byHash, ([, value]) => value),
-      "variation"
-    );
-
-    let realMetadata = "";
-    const sourcifyChain = this.verificationService.supportedChainsMap[chain];
-    const deployedBytecode = await getBytecode(sourcifyChain, address);
-
-    // try to verify till you find a perfect match
-    for (const sources of Object.values(byVariation)) {
-      solcJsonInput.sources = sources.reduce((sources, source) => {
-        sources[source.path] = { content: source.content };
-        return sources;
-      }, {});
-
-      const { metadata, recompiledDeployedBytecode } =
-        await getMetadataAndRecompiledDeployedBytecodeFromCompiler(
-          compilerVersion,
-          solcJsonInput,
-          contractName
-        );
-
-      const match: Match = {
-        address: address,
-        chainId: chain,
-        status: null,
-      };
-      matchWithDeployedBytecode(
-        match,
-        recompiledDeployedBytecode,
-        deployedBytecode
+    const { metadata, recompiledDeployedBytecode } =
+      await getMetadataAndRecompiledDeployedBytecodeFromCompiler(
+        compilerVersion,
+        solcJsonInput,
+        contractName
       );
-      if (match.status === "perfect") {
-        realMetadata = metadata;
-        break;
-      } else if (match.status === "partial") {
-        realMetadata = metadata;
-      }
-    }
 
     const pathContents: PathContent[] = Object.keys(solcJsonInput.sources).map(
       (path) => {
@@ -416,7 +362,7 @@ export default class VerificationController
     );
     pathContents.push({
       path: "metadata.json",
-      content: stringToBase64(JSON.stringify(realMetadata)),
+      content: stringToBase64(JSON.stringify(metadata)),
     });
     const session = req.session;
     const newFilesCount = saveFiles(pathContents, session);
