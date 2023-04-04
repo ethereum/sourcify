@@ -5,12 +5,17 @@ import {
   JsonInput,
   Metadata,
   MissingSources,
+  PathContent,
   RecompilationResult,
   StringMap,
 } from './types';
 import semver from 'semver';
 import { useCompiler } from './solidityCompiler';
 import { fetchWithTimeout } from './utils';
+import { storeByHash } from './validation';
+import { decode as decodeBytecode } from '@ethereum-sourcify/bytecode-utils';
+
+const ipfsHash = require('ipfs-only-hash');
 
 // TODO: find a better place for these constants. Reminder: this sould work also in the browser
 const IPFS_PREFIX = 'dweb:/ipfs/';
@@ -20,10 +25,10 @@ const FETCH_TIMEOUT = parseInt(process.env.FETCH_TIMEOUT || '') || 3000; // ms
  */
 export class CheckedContract {
   /** Object containing contract metadata keys and values. */
-  metadata: Metadata;
+  metadata!: Metadata;
 
   /** SourceMap mapping the original compilation path to PathContent. */
-  solidity: StringMap;
+  solidity!: StringMap;
 
   /** Object containing the information about missing source files. */
   missing: MissingSources;
@@ -35,19 +40,19 @@ export class CheckedContract {
   solcJsonInput: any;
 
   /** The path of the contract during compile-time. */
-  compiledPath: string;
+  compiledPath!: string;
 
   /** The version of the Solidity compiler to use for compilation. */
-  compilerVersion: string;
+  compilerVersion!: string;
 
   /** The name of the contract. */
-  name: string;
+  name!: string;
 
   /** The bytecodes of the contract. */
   creationBytecode?: string;
 
   /** The raw string representation of the contract's metadata. Needed to generate a unique session id for the CheckedContract*/
-  metadataRaw: string;
+  metadataRaw!: string;
 
   /** Checks whether this contract is valid or not.
    *  This is a static method due to persistence issues.
@@ -65,17 +70,10 @@ export class CheckedContract {
     );
   }
 
-  public constructor(
-    metadata: Metadata,
-    solidity: StringMap,
-    missing: MissingSources = {},
-    invalid: InvalidSources = {}
-  ) {
+  initSolcJsonInput(metadata: Metadata, solidity: StringMap) {
     this.metadataRaw = JSON.stringify(metadata);
     this.metadata = JSON.parse(JSON.stringify(metadata));
     this.solidity = solidity;
-    this.missing = missing;
-    this.invalid = invalid;
 
     if (metadata.compiler && metadata.compiler.version) {
       this.compilerVersion = metadata.compiler.version;
@@ -89,6 +87,79 @@ export class CheckedContract {
     this.solcJsonInput = solcJsonInput;
     this.compiledPath = contractPath;
     this.name = contractName;
+  }
+
+  public constructor(
+    metadata: Metadata,
+    solidity: StringMap,
+    missing: MissingSources = {},
+    invalid: InvalidSources = {}
+  ) {
+    this.missing = missing;
+    this.invalid = invalid;
+    this.initSolcJsonInput(metadata, solidity);
+  }
+
+  async tryToFindOriginalMetadata(deployedBytecode: string): Promise<Boolean> {
+    let pathContent: PathContent[] = Object.keys(this.solidity).map((path) => {
+      return {
+        path,
+        content: this.solidity[path] || '',
+      };
+    });
+
+    const byHash = storeByHash(pathContent);
+
+    const byVariation = groupBy(
+      Array.from(byHash, ([, value]) => value),
+      'variation'
+    );
+
+    const solcJsonInput = JSON.parse(JSON.stringify(this.solcJsonInput));
+
+    let realMetadata;
+    let solidity;
+    for (const sources of Object.values(byVariation)) {
+      solcJsonInput.sources = sources.reduce((sources, source) => {
+        sources[source.path] = { content: source.content };
+        return sources;
+      }, {});
+
+      solidity = sources.reduce((sources, source) => {
+        sources[source.path] = source.content;
+        return sources;
+      }, {});
+
+      const compilationResult = await useCompiler(
+        this.compilerVersion,
+        solcJsonInput
+      );
+
+      const contractPath = findContractPathFromContractName(
+        compilationResult.contracts,
+        this.name
+      );
+
+      if (!contractPath) {
+        break;
+      }
+
+      const compiledMetadata =
+        compilationResult.contracts[contractPath][this.name].metadata; // hash metadata
+
+      const compiledMetadataIpfsCID = await getCIDFromFile(compiledMetadata);
+      const decodedAuxdata = decodeBytecode(deployedBytecode);
+
+      if (decodedAuxdata?.ipfs === compiledMetadataIpfsCID) {
+        realMetadata = JSON.parse(compiledMetadata);
+        break;
+      }
+    }
+    if (realMetadata) {
+      this.initSolcJsonInput(realMetadata, solidity);
+      return true;
+    }
+    return false;
   }
 
   public async recompile(): Promise<RecompilationResult> {
@@ -326,3 +397,34 @@ function createJsonInputFromMetadata(
 export function getIpfsGateway(): string {
   return process.env.IPFS_GATEWAY || 'https://ipfs.io/ipfs/';
 }
+
+export const findContractPathFromContractName = (
+  contracts: any,
+  contractName: string
+): string | null => {
+  for (const key of Object.keys(contracts)) {
+    const contractsList = contracts[key];
+    if (Object.keys(contractsList).includes(contractName)) {
+      return key;
+    }
+  }
+  return null;
+};
+
+async function getCIDFromFile(fileContent: string) {
+  try {
+    const fileBuffer = Buffer.from(fileContent);
+    const cid = await ipfsHash.of(fileBuffer);
+    console.log(`CID: ${cid}`);
+    return cid;
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+const groupBy = function (xs: any[], key: string): { index: any[] } {
+  return xs.reduce(function (rv, x) {
+    (rv[x[key]] = rv[x[key]] || []).push(x);
+    return rv;
+  }, {});
+};

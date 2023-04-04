@@ -57,7 +57,26 @@ export async function verifyDeployed(
     recompiled.deployedBytecode,
     deployedBytecode
   );
-  if (match.status) return match;
+  if (match.status === 'perfect') return match;
+
+  if (
+    match.status === 'partial' &&
+    (await checkedContract.tryToFindOriginalMetadata(deployedBytecode))
+  ) {
+    const originalMetadataMatch = { ...match };
+    const recompiled = await checkedContract.recompile();
+
+    matchWithDeployedBytecode(
+      originalMetadataMatch,
+      recompiled.deployedBytecode,
+      deployedBytecode
+    );
+    if (originalMetadataMatch.status === 'perfect') {
+      return originalMetadataMatch;
+    } else {
+      return match;
+    }
+  }
 
   // Try to match with simulating the creation bytecode
   await matchWithSimulation(
