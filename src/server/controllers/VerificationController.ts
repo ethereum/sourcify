@@ -313,10 +313,15 @@ export default class VerificationController
     const chain = req.body.chain as string;
     const address = req.body.address;
 
-    const { metadata, solcJsonInput } = await processRequestFromEtherscan(
-      chain,
-      address
-    );
+    const { compilerVersion, solcJsonInput, contractName } =
+      await processRequestFromEtherscan(chain, address);
+
+    const { metadata } =
+      await getMetadataAndRecompiledDeployedBytecodeFromCompiler(
+        compilerVersion,
+        solcJsonInput,
+        contractName
+      );
 
     const mappedSources = getMappedSourcesFromJsonInput(solcJsonInput);
     const checkedContract = new CheckedContract(metadata, mappedSources);
