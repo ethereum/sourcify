@@ -14,7 +14,7 @@ import { useCompiler } from './solidityCompiler';
 import { fetchWithTimeout } from './utils';
 import { storeByHash } from './validation';
 import { decode as decodeBytecode } from '@ethereum-sourcify/bytecode-utils';
-
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const ipfsHash = require('ipfs-only-hash');
 
 // TODO: find a better place for these constants. Reminder: this sould work also in the browser
@@ -101,12 +101,14 @@ export class CheckedContract {
   }
 
   async tryToFindOriginalMetadata(deployedBytecode: string): Promise<Boolean> {
-    let pathContent: PathContent[] = Object.keys(this.solidity).map((path) => {
-      return {
-        path,
-        content: this.solidity[path] || '',
-      };
-    });
+    const pathContent: PathContent[] = Object.keys(this.solidity).map(
+      (path) => {
+        return {
+          path,
+          content: this.solidity[path] || '',
+        };
+      }
+    );
 
     const byHash = storeByHash(pathContent);
 
