@@ -31,6 +31,10 @@ chai.use(chaiHttp);
 const CUSTOM_PORT = 5678;
 
 describe("Import From Etherscan and Verify", function () {
+  this.beforeEach(async function () {
+    await waitSecs(1);
+  });
+
   // Don't run if it's an external PR. Etherscan tests need API keys that can't be exposed to external PRs.
   if (process.env.CIRCLE_PR_REPONAME !== undefined) {
     return;
