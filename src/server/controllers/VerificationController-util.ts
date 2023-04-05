@@ -15,6 +15,7 @@ import {
   useAllSources,
   useCompiler,
   JsonInput,
+  Metadata,
 } from "@ethereum-sourcify/lib-sourcify";
 import { checkChainId } from "../../sourcify-chains";
 import { validationResult } from "express-validator";
@@ -610,11 +611,11 @@ export const processRequestFromEtherscan = async (
   };
 };
 
-export const getMetadataAndRecompiledDeployedBytecodeFromCompiler = async (
+export const getMetadataFromCompiler = async (
   compilerVersion: string,
   solcJsonInput: JsonInput,
   contractName: string
-): Promise<any> => {
+): Promise<Metadata> => {
   const compilationResult = await useCompiler(compilerVersion, solcJsonInput);
 
   const contractPath = findContractPathFromContractName(
@@ -628,12 +629,9 @@ export const getMetadataAndRecompiledDeployedBytecodeFromCompiler = async (
     );
   }
 
-  return {
-    metadata: JSON.parse(
-      compilationResult.contracts[contractPath][contractName].metadata
-    ),
-    recompiledDeployedBytecode: `0x${compilationResult.contracts[contractPath][contractName].evm.deployedBytecode.object}`,
-  };
+  return JSON.parse(
+    compilationResult.contracts[contractPath][contractName].metadata
+  );
 };
 
 export const getMappedSourcesFromJsonInput = (jsonInput: JsonInput) => {

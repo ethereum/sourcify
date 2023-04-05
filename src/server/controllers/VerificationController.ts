@@ -12,9 +12,6 @@ import {
   getIpfsGateway,
   performFetch,
   verifyCreate2,
-  storeByHash,
-  matchWithDeployedBytecode,
-  Match,
 } from "@ethereum-sourcify/lib-sourcify";
 import { decode as bytecodeDecode } from "@ethereum-sourcify/bytecode-utils";
 import VerificationService from "../services/VerificationService";
@@ -41,7 +38,7 @@ import {
   Create2VerifyRequest,
   extractFilesFromJSON,
   SessionCreate2VerifyRequest,
-  getMetadataAndRecompiledDeployedBytecodeFromCompiler,
+  getMetadataFromCompiler,
 } from "./VerificationController-util";
 import { body } from "express-validator";
 import {
@@ -316,12 +313,11 @@ export default class VerificationController
     const { compilerVersion, solcJsonInput, contractName } =
       await processRequestFromEtherscan(chain, address);
 
-    const { metadata } =
-      await getMetadataAndRecompiledDeployedBytecodeFromCompiler(
-        compilerVersion,
-        solcJsonInput,
-        contractName
-      );
+    const metadata = await getMetadataFromCompiler(
+      compilerVersion,
+      solcJsonInput,
+      contractName
+    );
 
     const mappedSources = getMappedSourcesFromJsonInput(solcJsonInput);
     const checkedContract = new CheckedContract(metadata, mappedSources);
@@ -350,12 +346,11 @@ export default class VerificationController
     const { compilerVersion, solcJsonInput, contractName } =
       await processRequestFromEtherscan(chain, address);
 
-    const { metadata, recompiledDeployedBytecode } =
-      await getMetadataAndRecompiledDeployedBytecodeFromCompiler(
-        compilerVersion,
-        solcJsonInput,
-        contractName
-      );
+    const metadata = await getMetadataFromCompiler(
+      compilerVersion,
+      solcJsonInput,
+      contractName
+    );
 
     const pathContents: PathContent[] = Object.keys(solcJsonInput.sources).map(
       (path) => {
