@@ -116,7 +116,12 @@ export class CheckedContract {
 
     const byHash = storeByHash(pathContent);
 
+    // create an object with all the sources grouped by variation
+    // e.g. {"1.1": [...], "1.2":[...]}
     const byVariation = groupBy(
+      // byHash is a mapping, the second parameter of Array.from
+      // is needed to pass to the groupBy function an array of all
+      // the values of the the mapping, othwerise [key,value] is passed
       Array.from(byHash, ([, value]) => value),
       'variation'
     );
@@ -473,6 +478,12 @@ function getBZZFromFile(file: string) {
   return Array.from(bytes, hexByte).join('');
 }
 
+/**
+ * The groupBy function is a function that takes an
+ * array and a key as input,and returns an object containing
+ * an index of the array elements grouped by the value of
+ * the specified key.
+ */
 const groupBy = function (xs: any[], key: string): { index: any[] } {
   return xs.reduce(function (rv, x) {
     (rv[x[key]] = rv[x[key]] || []).push(x);
