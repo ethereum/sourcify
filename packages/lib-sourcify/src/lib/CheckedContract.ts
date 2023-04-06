@@ -16,6 +16,8 @@ import { storeByHash } from './validation';
 import { decode as decodeBytecode } from '@ethereum-sourcify/bytecode-utils';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const ipfsHash = require('ipfs-only-hash');
+import { TextEncoder } from 'util';
+import { makeChunkedFile } from '@fairdatasociety/bmt-js';
 
 // TODO: find a better place for these constants. Reminder: this sould work also in the browser
 const IPFS_PREFIX = 'dweb:/ipfs/';
@@ -101,6 +103,8 @@ export class CheckedContract {
   }
 
   async tryToFindOriginalMetadata(deployedBytecode: string): Promise<Boolean> {
+    const decodedAuxdata = decodeBytecode(deployedBytecode);
+
     const pathContent: PathContent[] = Object.keys(this.solidity).map(
       (path) => {
         return {
@@ -117,43 +121,60 @@ export class CheckedContract {
       'variation'
     );
 
-    const solcJsonInput = JSON.parse(JSON.stringify(this.solcJsonInput));
-
+    const metadata = JSON.parse(this.metadataRaw);
     let realMetadata;
     let solidity;
+
+    const asyncReduce = async (
+      array: any[],
+      callback: any,
+      initialValue: any
+    ) => {
+      let accumulator = initialValue;
+      for (const item of array) {
+        accumulator = await callback(accumulator, item);
+      }
+      return accumulator;
+    };
+
     for (const sources of Object.values(byVariation)) {
-      solcJsonInput.sources = sources.reduce((sources, source) => {
-        sources[source.path] = { content: source.content };
-        return sources;
-      }, {});
+      metadata.sources = await asyncReduce(
+        sources,
+        async (sources: any, source: any) => {
+          sources[source.path] = metadata.sources[source.path];
+          sources[source.path].keccak256 = Web3.utils.keccak256(source.content);
+          if (sources[source.path].content) {
+            sources[source.path].content = source.content;
+          }
+          if (sources[source.path].urls) {
+            sources[source.path].urls = await Promise.all(
+              sources[source.path].urls.map(async (url: string) => {
+                if (url.includes('dweb:/ipfs/')) {
+                  return `dweb:/ipfs/${await getCIDFromFile(source.content)}`;
+                }
+                if (url.includes('bzz-raw://')) {
+                  return `bzz-raw://${getBZZFromFile(source.content)}`;
+                }
+                return '';
+              })
+            );
+          }
+          return sources;
+        },
+        {}
+      );
 
       solidity = sources.reduce((sources, source) => {
         sources[source.path] = source.content;
         return sources;
       }, {});
 
-      const compilationResult = await useCompiler(
-        this.compilerVersion,
-        solcJsonInput
+      const compiledMetadataIpfsCID = await getCIDFromFile(
+        JSON.stringify(metadata)
       );
-
-      const contractPath = findContractPathFromContractName(
-        compilationResult.contracts,
-        this.name
-      );
-
-      if (!contractPath) {
-        break;
-      }
-
-      const compiledMetadata =
-        compilationResult.contracts[contractPath][this.name].metadata; // hash metadata
-
-      const compiledMetadataIpfsCID = await getCIDFromFile(compiledMetadata);
-      const decodedAuxdata = decodeBytecode(deployedBytecode);
 
       if (decodedAuxdata?.ipfs === compiledMetadataIpfsCID) {
-        realMetadata = JSON.parse(compiledMetadata);
+        realMetadata = metadata;
         break;
       }
     }
@@ -430,6 +451,22 @@ async function getCIDFromFile(fileContent: string) {
   } catch (error) {
     console.error('Error:', error);
   }
+}
+
+function getBZZFromFile(file: string) {
+  // convert file to Uint8Array
+  const encoder = new TextEncoder();
+  const fileBytes = encoder.encode(file);
+
+  // Binary Merkle Tree on the file
+  const chunkedFile = makeChunkedFile(fileBytes);
+
+  // get the address from the chunked file
+  const bytes = chunkedFile.address();
+
+  // convert the address to hex string
+  const hexByte = (n: number) => n.toString(16).padStart(2, '0');
+  return Array.from(bytes, hexByte).join('');
 }
 
 const groupBy = function (xs: any[], key: string): { index: any[] } {

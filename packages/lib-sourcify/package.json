@@ -53,6 +53,7 @@
     "@ethersproject/bignumber": "^5.7.0",
     "@ethersproject/bytes": "^5.7.0",
     "@ethersproject/rlp": "^5.7.0",
+    "@fairdatasociety/bmt-js": "^2.0.1",
     "http-status-codes": "^2.2.0",
     "ipfs-only-hash": "^4.0.0",
     "isomorphic-fetch": "^3.0.0",
