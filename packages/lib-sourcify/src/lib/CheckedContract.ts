@@ -141,23 +141,27 @@ export class CheckedContract {
       metadata.sources = await asyncReduce(
         sources,
         async (sources: any, source: any) => {
-          sources[source.path] = metadata.sources[source.path];
-          sources[source.path].keccak256 = Web3.utils.keccak256(source.content);
-          if (sources[source.path].content) {
-            sources[source.path].content = source.content;
-          }
-          if (sources[source.path].urls) {
-            sources[source.path].urls = await Promise.all(
-              sources[source.path].urls.map(async (url: string) => {
-                if (url.includes('dweb:/ipfs/')) {
-                  return `dweb:/ipfs/${await getCIDFromFile(source.content)}`;
-                }
-                if (url.includes('bzz-raw://')) {
-                  return `bzz-raw://${getBZZFromFile(source.content)}`;
-                }
-                return '';
-              })
+          if (metadata.sources[source.path]) {
+            sources[source.path] = metadata.sources[source.path];
+            sources[source.path].keccak256 = Web3.utils.keccak256(
+              source.content
             );
+            if (sources[source.path].content) {
+              sources[source.path].content = source.content;
+            }
+            if (sources[source.path].urls) {
+              sources[source.path].urls = await Promise.all(
+                sources[source.path].urls.map(async (url: string) => {
+                  if (url.includes('dweb:/ipfs/')) {
+                    return `dweb:/ipfs/${await getCIDFromFile(source.content)}`;
+                  }
+                  if (url.includes('bzz-raw://')) {
+                    return `bzz-raw://${getBZZFromFile(source.content)}`;
+                  }
+                  return '';
+                })
+              );
+            }
           }
           return sources;
         },
