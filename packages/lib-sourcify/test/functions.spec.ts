@@ -14,6 +14,8 @@ import {
 } from '../src/lib/CheckedContract';
 import storageMetadata from './sources/Storage/metadata.json';
 import { Metadata, MissingSources } from '../src/lib/types';
+import WrongMetadata from './sources/WrongMetadata/metadata.json';
+import SimplyLog from './sources/WrongMetadata/SimplyLog.json';
 
 describe('Verify Solidity Compiler', () => {
   it('Should fetch latest SolcJS compiler', async () => {
@@ -156,5 +158,13 @@ describe('Checked contract', () => {
     const sources = Object.keys(contract.solidity);
     expect(sources).lengthOf(1);
     expect(sources[0]).equals('Storage.sol');
+  });
+  it('Should tryToFindOriginalMetadata from checked contract', async () => {
+    const contract = new CheckedContract(WrongMetadata as any, {
+      'SimplyLog.sol': SimplyLog.source,
+    });
+
+    const result = await contract.tryToFindOriginalMetadata(SimplyLog.bytecode);
+    expect(result).equals(true);
   });
 });
