@@ -15,7 +15,7 @@ import { fetchWithTimeout } from './utils';
 import { storeByHash } from './validation';
 import { decode as decodeBytecode } from '@ethereum-sourcify/bytecode-utils';
 import { ipfsHash } from './hashFunctions/ipfsHash';
-import { swarmHash } from './hashFunctions/swarmHash';
+import { swarmBzzr0Hash, swarmBzzr1Hash } from './hashFunctions/swarmHash';
 
 // TODO: find a better place for these constants. Reminder: this sould work also in the browser
 const IPFS_PREFIX = 'dweb:/ipfs/';
@@ -164,7 +164,9 @@ export class CheckedContract {
                   return `dweb:/ipfs/${ipfsHash(source.content)}`;
                 }
                 if (url.includes('bzz-raw://')) {
-                  return `bzz-raw://${swarmHash(source.content)}`;
+                  // Here swarmBzzr1Hash is always used
+                  // https://github.com/ethereum/solidity/blob/eb2f874eac0aa871236bf5ff04b7937c49809c33/libsolidity/interface/CompilerStack.cpp#L1549
+                  return `bzz-raw://${swarmBzzr1Hash(source.content)}`;
                 }
                 return '';
               }
@@ -174,15 +176,38 @@ export class CheckedContract {
         return sources;
       }, {});
 
-      const compiledMetadataIpfsCID = ipfsHash(JSON.stringify(metadata));
-
-      if (decodedAuxdata?.ipfs === compiledMetadataIpfsCID) {
-        realMetadata = metadata;
-        solidity = sources.reduce((sources, source) => {
-          sources[source.path] = source.content;
-          return sources;
-        }, {});
-        break;
+      if (decodedAuxdata?.ipfs) {
+        const compiledMetadataIpfsCID = ipfsHash(JSON.stringify(metadata));
+        if (decodedAuxdata?.ipfs === compiledMetadataIpfsCID) {
+          realMetadata = metadata;
+          solidity = sources.reduce((sources, source) => {
+            sources[source.path] = source.content;
+            return sources;
+          }, {});
+          break;
+        }
+      }
+      if (decodedAuxdata?.bzzr1) {
+        const compiledMetadataBzzr1 = swarmBzzr1Hash(JSON.stringify(metadata));
+        if (decodedAuxdata?.bzzr1 === compiledMetadataBzzr1) {
+          realMetadata = metadata;
+          solidity = sources.reduce((sources, source) => {
+            sources[source.path] = source.content;
+            return sources;
+          }, {});
+          break;
+        }
+      }
+      if (decodedAuxdata?.bzzr0) {
+        const compiledMetadataBzzr0 = swarmBzzr0Hash(JSON.stringify(metadata));
+        if (decodedAuxdata?.bzzr0 === compiledMetadataBzzr0) {
+          realMetadata = metadata;
+          solidity = sources.reduce((sources, source) => {
+            sources[source.path] = source.content;
+            return sources;
+          }, {});
+          break;
+        }
       }
     }
     if (realMetadata) {
