@@ -14,10 +14,8 @@ import { useCompiler } from './solidityCompiler';
 import { fetchWithTimeout } from './utils';
 import { storeByHash } from './validation';
 import { decode as decodeBytecode } from '@ethereum-sourcify/bytecode-utils';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const ipfsHash = require('ipfs-only-hash');
-import { TextEncoder } from 'util';
-import { makeChunkedFile } from '@fairdatasociety/bmt-js';
+import { ipfsHash } from './hashFunctions/ipfsHash';
+import { swarmHash } from './hashFunctions/swarmHash';
 
 // TODO: find a better place for these constants. Reminder: this sould work also in the browser
 const IPFS_PREFIX = 'dweb:/ipfs/';
@@ -116,12 +114,33 @@ export class CheckedContract {
 
     const byHash = storeByHash(pathContent);
 
-    // create an object with all the sources grouped by variation
-    // e.g. {"1.1": [...], "1.2":[...]}
+    /*
+     * storeByHash returns a mapping like this one:
+     * Map({
+     *   Web3.utils.keccak256(variation.content): {
+     *     content,
+     *     path: pathContent.path,
+     *     variation: contentVariator + '.' + endingVariator,
+     *   }
+     * })
+     *
+     * we need to group all the different files by variation:
+     *
+     * {
+     *   "1.1": [
+     *     {
+     *       content,
+     *       path: pathContent.path,
+     *       variation: "1.1",
+     *     },
+     *     ...
+     *   ],
+     *   "1.2": [...]
+     * }
+     */
     const byVariation = groupBy(
-      // byHash is a mapping, the second parameter of Array.from
-      // is needed to pass to the groupBy function an array of all
-      // the values of the the mapping, othwerise [key,value] is passed
+      // the second parameter of Array.from is needed to pass to the groupBy function
+      // an array of all the values of the the mapping, othwerise [key,value] is passed
       Array.from(byHash, ([, value]) => value),
       'variation'
     );
@@ -130,60 +149,39 @@ export class CheckedContract {
     let realMetadata;
     let solidity;
 
-    const asyncReduce = async (
-      array: any[],
-      callback: any,
-      initialValue: any
-    ) => {
-      let accumulator = initialValue;
-      for (const item of array) {
-        accumulator = await callback(accumulator, item);
-      }
-      return accumulator;
-    };
-
     for (const sources of Object.values(byVariation)) {
-      metadata.sources = await asyncReduce(
-        sources,
-        async (sources: any, source: any) => {
-          if (metadata.sources[source.path]) {
-            sources[source.path] = metadata.sources[source.path];
-            sources[source.path].keccak256 = Web3.utils.keccak256(
-              source.content
-            );
-            if (sources[source.path].content) {
-              sources[source.path].content = source.content;
-            }
-            if (sources[source.path].urls) {
-              sources[source.path].urls = await Promise.all(
-                sources[source.path].urls.map(async (url: string) => {
-                  if (url.includes('dweb:/ipfs/')) {
-                    return `dweb:/ipfs/${await getCIDFromFile(source.content)}`;
-                  }
-                  if (url.includes('bzz-raw://')) {
-                    return `bzz-raw://${getBZZFromFile(source.content)}`;
-                  }
-                  return '';
-                })
-              );
-            }
+      metadata.sources = sources.reduce((sources: any, source: any) => {
+        if (metadata.sources[source.path]) {
+          sources[source.path] = metadata.sources[source.path];
+          sources[source.path].keccak256 = Web3.utils.keccak256(source.content);
+          if (sources[source.path].content) {
+            sources[source.path].content = source.content;
           }
-          return sources;
-        },
-        {}
-      );
-
-      solidity = sources.reduce((sources, source) => {
-        sources[source.path] = source.content;
+          if (sources[source.path].urls) {
+            sources[source.path].urls = sources[source.path].urls.map(
+              (url: string) => {
+                if (url.includes('dweb:/ipfs/')) {
+                  return `dweb:/ipfs/${ipfsHash(source.content)}`;
+                }
+                if (url.includes('bzz-raw://')) {
+                  return `bzz-raw://${swarmHash(source.content)}`;
+                }
+                return '';
+              }
+            );
+          }
+        }
         return sources;
       }, {});
 
-      const compiledMetadataIpfsCID = await getCIDFromFile(
-        JSON.stringify(metadata)
-      );
+      const compiledMetadataIpfsCID = ipfsHash(JSON.stringify(metadata));
 
       if (decodedAuxdata?.ipfs === compiledMetadataIpfsCID) {
         realMetadata = metadata;
+        solidity = sources.reduce((sources, source) => {
+          sources[source.path] = source.content;
+          return sources;
+        }, {});
         break;
       }
     }
@@ -450,33 +448,6 @@ export const findContractPathFromContractName = (
   }
   return null;
 };
-
-async function getCIDFromFile(fileContent: string) {
-  try {
-    const fileBuffer = Buffer.from(fileContent);
-    const cid = await ipfsHash.of(fileBuffer);
-    console.log(`CID: ${cid}`);
-    return cid;
-  } catch (error) {
-    console.error('Error:', error);
-  }
-}
-
-function getBZZFromFile(file: string) {
-  // convert file to Uint8Array
-  const encoder = new TextEncoder();
-  const fileBytes = encoder.encode(file);
-
-  // Binary Merkle Tree on the file
-  const chunkedFile = makeChunkedFile(fileBytes);
-
-  // get the address from the chunked file
-  const bytes = chunkedFile.address();
-
-  // convert the address to hex string
-  const hexByte = (n: number) => n.toString(16).padStart(2, '0');
-  return Array.from(bytes, hexByte).join('');
-}
 
 /**
  * The groupBy function is a function that takes an
