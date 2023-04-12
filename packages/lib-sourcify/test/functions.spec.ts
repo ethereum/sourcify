@@ -160,11 +160,18 @@ describe('Checked contract', () => {
     expect(sources[0]).equals('Storage.sol');
   });
   it('Should tryToFindOriginalMetadata from checked contract', async () => {
-    const contract = new CheckedContract(WrongMetadata as any, {
+    const contract = new CheckedContract(WrongMetadata as Metadata, {
       'SimplyLog.sol': SimplyLog.source,
     });
 
-    const result = await contract.tryToFindOriginalMetadata(SimplyLog.bytecode);
-    expect(result).equals(true);
+    const contractWithOriginalMetadata =
+      await contract.tryToFindOriginalMetadata(SimplyLog.bytecode);
+    expect(contractWithOriginalMetadata).is.not.equal(null);
+    expect(
+      contractWithOriginalMetadata?.metadata?.sources['SimplyLog.sol']
+        ?.keccak256
+    ).equals(
+      '0x8e7a1207ba791693fd76c6cf3e99908f53b8c67a5ae9f7b4ab628c74901711c9'
+    );
   });
 });

@@ -61,22 +61,27 @@ export async function verifyDeployed(
   );
   if (match.status === 'perfect') return match;
 
-  if (
-    match.status === 'partial' &&
-    (await checkedContract.tryToFindOriginalMetadata(deployedBytecode))
-  ) {
-    const originalMetadataMatch = { ...match };
-    const recompiled = await checkedContract.recompile();
+  if (match.status === 'partial') {
+    const checkedContractWithOriginalMetadata =
+      await checkedContract.tryToFindOriginalMetadata(deployedBytecode);
+    if (checkedContractWithOriginalMetadata) {
+      const matchWithOriginalMetadata = { ...match };
+      const recompiled = await checkedContractWithOriginalMetadata.recompile();
 
-    matchWithDeployedBytecode(
-      originalMetadataMatch,
-      recompiled.deployedBytecode,
-      deployedBytecode
-    );
-    if (originalMetadataMatch.status === 'perfect') {
-      return originalMetadataMatch;
-    } else {
-      return match;
+      matchWithDeployedBytecode(
+        matchWithOriginalMetadata,
+        recompiled.deployedBytecode,
+        deployedBytecode
+      );
+      if (matchWithOriginalMetadata.status === 'perfect') {
+        checkedContract.initSolcJsonInput(
+          checkedContractWithOriginalMetadata.metadata,
+          checkedContractWithOriginalMetadata.solidity
+        );
+        return matchWithOriginalMetadata;
+      } else {
+        return match;
+      }
     }
   }
 

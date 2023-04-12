@@ -341,6 +341,25 @@ describe('lib-sourcify tests', () => {
 
       expectMatch(match, 'perfect', childAddress);
     });
+    it('should verify a contract passing files with wrong newlines', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        'sources',
+        'WrongMetadata'
+      );
+      const [deployedAddress] = await deployFromAbiAndBytecode(
+        localWeb3Provider,
+        contractFolderPath,
+        accounts[0]
+      );
+
+      const match = await checkAndVerifyDeployed(
+        contractFolderPath,
+        sourcifyChainGanache,
+        deployedAddress
+      );
+      expectMatch(match, 'perfect', deployedAddress);
+    });
   });
 
   describe('Unit tests', function () {

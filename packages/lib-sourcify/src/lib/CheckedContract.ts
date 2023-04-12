@@ -4,6 +4,7 @@ import {
   InvalidSources,
   JsonInput,
   Metadata,
+  MetadataSources,
   MissingSources,
   PathContent,
   RecompilationResult,
@@ -109,7 +110,9 @@ export class CheckedContract {
    * @param deployedBytecode
    * @returns
    */
-  async tryToFindOriginalMetadata(deployedBytecode: string): Promise<Boolean> {
+  async tryToFindOriginalMetadata(
+    deployedBytecode: string
+  ): Promise<CheckedContract | null> {
     const decodedAuxdata = decodeBytecode(deployedBytecode);
 
     const pathContent: PathContent[] = Object.keys(this.solidity).map(
@@ -154,16 +157,14 @@ export class CheckedContract {
       'variation'
     );
 
-    const metadata = JSON.parse(this.metadataRaw);
-    let realMetadata;
-    let solidity;
+    const metadata: Metadata = JSON.parse(this.metadataRaw);
 
     // For each variation
     // 1. replace: "keccak256" and "url" fields in the metadata with the hashes of the variation
     // 2. take the hash of the modified metadata
     // 3. Check if this will match the hash in the bytecode
     for (const sources of Object.values(byVariation)) {
-      metadata.sources = sources.reduce((sources: any, source: any) => {
+      metadata.sources = sources.reduce((sources: MetadataSources, source) => {
         if (metadata.sources[source.path]) {
           sources[source.path] = metadata.sources[source.path];
           sources[source.path].keccak256 = Web3.utils.keccak256(source.content);
@@ -171,7 +172,7 @@ export class CheckedContract {
             sources[source.path].content = source.content;
           }
           if (sources[source.path].urls) {
-            sources[source.path].urls = sources[source.path].urls.map(
+            sources[source.path].urls = sources[source.path].urls?.map(
               (url: string) => {
                 if (url.includes('dweb:/ipfs/')) {
                   return `dweb:/ipfs/${ipfsHash(source.content)}`;
@@ -192,42 +193,32 @@ export class CheckedContract {
       if (decodedAuxdata?.ipfs) {
         const compiledMetadataIpfsCID = ipfsHash(JSON.stringify(metadata));
         if (decodedAuxdata?.ipfs === compiledMetadataIpfsCID) {
-          realMetadata = metadata;
-          solidity = sources.reduce((sources, source) => {
-            sources[source.path] = source.content;
-            return sources;
-          }, {});
-          break;
+          return new CheckedContract(
+            metadata,
+            getSolidityFromPathContents(sources)
+          );
         }
       }
       if (decodedAuxdata?.bzzr1) {
         const compiledMetadataBzzr1 = swarmBzzr1Hash(JSON.stringify(metadata));
         if (decodedAuxdata?.bzzr1 === compiledMetadataBzzr1) {
-          realMetadata = metadata;
-          solidity = sources.reduce((sources, source) => {
-            sources[source.path] = source.content;
-            return sources;
-          }, {});
-          break;
+          return new CheckedContract(
+            metadata,
+            getSolidityFromPathContents(sources)
+          );
         }
       }
       if (decodedAuxdata?.bzzr0) {
         const compiledMetadataBzzr0 = swarmBzzr0Hash(JSON.stringify(metadata));
         if (decodedAuxdata?.bzzr0 === compiledMetadataBzzr0) {
-          realMetadata = metadata;
-          solidity = sources.reduce((sources, source) => {
-            sources[source.path] = source.content;
-            return sources;
-          }, {});
-          break;
+          return new CheckedContract(
+            metadata,
+            getSolidityFromPathContents(sources)
+          );
         }
       }
     }
-    if (realMetadata) {
-      this.initSolcJsonInput(realMetadata, solidity);
-      return true;
-    }
-    return false;
+    return null;
   }
 
   public async recompile(): Promise<RecompilationResult> {
@@ -493,9 +484,19 @@ export const findContractPathFromContractName = (
  * an index of the array elements grouped by the value of
  * the specified key.
  */
-const groupBy = function (xs: any[], key: string): { index: any[] } {
-  return xs.reduce(function (rv, x) {
+const groupBy = function <T extends { [index: string]: any }>(
+  xs: T[],
+  key: string
+): { index?: T[] } {
+  return xs.reduce(function (rv: { [index: string]: T[] }, x: T) {
     (rv[x[key]] = rv[x[key]] || []).push(x);
     return rv;
+  }, {});
+};
+
+const getSolidityFromPathContents = function (sources: PathContent[]) {
+  return sources.reduce((sources: StringMap, source) => {
+    sources[source.path] = source.content;
+    return sources;
   }, {});
 };
