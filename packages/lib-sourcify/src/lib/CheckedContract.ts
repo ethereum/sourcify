@@ -100,6 +100,15 @@ export class CheckedContract {
     this.initSolcJsonInput(metadata, solidity);
   }
 
+  /**
+   * Function to try to generate variations of the metadata of the contract such that it will match the one in the bytecode.
+   * Generates variations of the given source files and replaces the hashes in the metadata with the hashes of the variations.
+   * If found, replaces this.metadata and this.solidity with the found variations.
+   * Useful for finding perfect matches for known types of variations such as different line endings.
+   *
+   * @param deployedBytecode
+   * @returns
+   */
   async tryToFindOriginalMetadata(deployedBytecode: string): Promise<Boolean> {
     const decodedAuxdata = decodeBytecode(deployedBytecode);
 
@@ -149,6 +158,10 @@ export class CheckedContract {
     let realMetadata;
     let solidity;
 
+    // For each variation
+    // 1. replace: "keccak256" and "url" fields in the metadata with the hashes of the variation
+    // 2. take the hash of the modified metadata
+    // 3. Check if this will match the hash in the bytecode
     for (const sources of Object.values(byVariation)) {
       metadata.sources = sources.reduce((sources: any, source: any) => {
         if (metadata.sources[source.path]) {
