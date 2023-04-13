@@ -341,7 +341,7 @@ describe('lib-sourcify tests', () => {
 
       expectMatch(match, 'perfect', childAddress);
     });
-    it('should verify a contract passing files with wrong newlines', async () => {
+    it('should verify a contract with LF eol sources passing sources with CRLF eol', async () => {
       const contractFolderPath = path.join(
         __dirname,
         'sources',
