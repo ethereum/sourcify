@@ -341,7 +341,7 @@ describe('lib-sourcify tests', () => {
 
       expectMatch(match, 'perfect', childAddress);
     });
-    it('should verify a contract with LF eol sources passing sources with CRLF eol', async () => {
+    it('should fully verify a contract which is originally compiled and deployed with Unix style End Of Line (EOL) source code, but being verified with Windows style (CRLF) EOL source code', async () => {
       const contractFolderPath = path.join(
         __dirname,
         'sources',
