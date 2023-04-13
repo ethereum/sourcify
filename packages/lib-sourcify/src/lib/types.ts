@@ -32,6 +32,7 @@ export interface MetadataSources {
     keccak256: string;
     content?: string;
     urls?: string[];
+    license?: string;
   };
 }
 
