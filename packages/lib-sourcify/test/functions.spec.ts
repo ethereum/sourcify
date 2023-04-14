@@ -22,6 +22,9 @@ describe('Verify Solidity Compiler', () => {
   it('Should fetch SolcJS compiler passing only version', async () => {
     expect(await getSolcJs('0.8.17+commit.8df45f5f')).not.equals(false);
   });
+  it('Should fetch SolcJS compiler that is saved as a link in the repo', async () => {
+    expect(await getSolcJs('v0.5.14+commit.1f1aaa4')).not.equals(false);
+  });
   if (process.platform === 'linux') {
     it('Should fetch latest solc from github', async () => {
       expect(
