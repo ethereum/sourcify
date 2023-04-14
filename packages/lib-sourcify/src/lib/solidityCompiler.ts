@@ -148,7 +148,18 @@ async function fetchAndSaveSolc(
 ): Promise<boolean> {
   const encodedURIFilename = encodeURIComponent(fileName);
   const githubSolcURI = `${GITHUB_SOLC_REPO}${platform}/${encodedURIFilename}`;
-  const res = await fetchWithTimeout(githubSolcURI);
+  let res = await fetchWithTimeout(githubSolcURI);
+  try {
+    const responseText = await res.text();
+    // regex to handle the case in which the response is a link to another version
+    if (
+      /^([\w-]+)-v(\d+\.\d+\.\d+)\+commit\.([a-fA-F0-9]+).*$/.test(responseText)
+    ) {
+      const githubSolcURI = `${GITHUB_SOLC_REPO}${platform}/${responseText}`;
+      res = await fetchWithTimeout(githubSolcURI);
+    }
+  } catch {}
+
   // TODO: Handle nodejs only dependencies
   if (res.status === StatusCodes.OK) {
     fs.mkdirSync(path.dirname(solcPath), { recursive: true });
