@@ -5,6 +5,7 @@ import GitHubBranchSelect, {
 import Input from "../../components/Input";
 import { ADD_FILES_URL } from "../../constants";
 import { SessionResponse } from "../../types";
+import { SelectSearchProps, SelectedOptionValue } from "react-select-search";
 
 let timeoutId: any;
 
@@ -75,7 +76,10 @@ const GitHubInput = ({
     }, 600)();
   };
 
-  const handleBranchChange = (id: string) => {
+  const handleBranchChange: SelectSearchProps["onChange"] = (
+    selectedOptionValue
+  ) => {
+    const id = `${selectedOptionValue as SelectedOptionValue}`;
     setBranch(id);
     generateUrlAndSubmit(id);
     if (!id) return setError("");

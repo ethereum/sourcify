@@ -12,6 +12,7 @@ import {
   getIpfsGateway,
   performFetch,
   verifyCreate2,
+  getAllMetadataAndSourcesFromSolcJson,
 } from "@ethereum-sourcify/lib-sourcify";
 import { decode as bytecodeDecode } from "@ethereum-sourcify/bytecode-utils";
 import VerificationService from "../services/VerificationService";
@@ -194,6 +195,44 @@ export default class VerificationController
       );
     }
     res.send(getSessionJSON(session));
+  };
+
+  private addInputSolcJsonEndpoint = async (req: Request, res: Response) => {
+    validateRequest(req);
+    const inputFiles = extractFiles(req, true);
+    if (!inputFiles)
+      throw new ValidationError([{ param: "files", msg: "No files found" }]);
+
+    const compilerVersion = req.body.compilerVersion;
+
+    for (const inputFile of inputFiles) {
+      if (!inputFile.path.endsWith(".json")) {
+        throw new BadRequestError(
+          `File ${inputFile.path} is not a JSON file. Please upload a file with the .json extension.`
+        );
+      }
+
+      let solcJson;
+      try {
+        solcJson = JSON.parse(inputFile.buffer.toString());
+      } catch (error: any) {
+        throw new BadRequestError(
+          `Couldn't parse JSON ${inputFile.path}. Make sure the contents of the file are syntaxed correctly.`
+        );
+      }
+
+      const metadataAndSources = await getAllMetadataAndSourcesFromSolcJson(
+        solcJson,
+        compilerVersion
+      );
+
+      const session = req.session;
+      const newFilesCount = saveFiles(metadataAndSources, session);
+      if (newFilesCount) {
+        await checkContractsInSession(session);
+      }
+      res.send(getSessionJSON(session));
+    }
   };
 
   private restartSessionEndpoint = async (req: Request, res: Response) => {
@@ -587,6 +626,13 @@ export default class VerificationController
     this.router
       .route(["/input-files", "/session/input-files"])
       .post(this.safeHandler(this.addInputFilesEndpoint));
+
+    this.router
+      .route(["/input-files", "/session/input-solc-json"])
+      .post(
+        body("compilerVersion").exists().bail(),
+        this.safeHandler(this.addInputSolcJsonEndpoint)
+      );
 
     this.router
       .route(["/session/input-contract"])

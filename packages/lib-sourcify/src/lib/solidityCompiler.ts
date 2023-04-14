@@ -5,6 +5,7 @@ import { spawnSync } from 'child_process';
 import { fetchWithTimeout } from './utils';
 import { StatusCodes } from 'http-status-codes';
 import { JsonInput } from './types';
+import { PathContent } from './types';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const solc = require('solc');
 
@@ -98,6 +99,40 @@ export async function useCompiler(version: string, solcJsonInput: JsonInput) {
     } version ${version}`
   );
   return compiledJSON;
+}
+
+export async function getAllMetadataAndSourcesFromSolcJson(
+  solcJson: JsonInput,
+  compilerVersion: string
+): Promise<PathContent[]> {
+  const outputSelection = {
+    '*': {
+      '*': ['metadata'],
+    },
+  };
+  if (!solcJson.settings) {
+    solcJson.settings = {
+      outputSelection: outputSelection,
+    };
+  }
+  solcJson.settings.outputSelection = outputSelection;
+  const compiled = await useCompiler(compilerVersion, solcJson);
+  const metadataAndSources: PathContent[] = [];
+  for (const contractPath in compiled.contracts) {
+    for (const contract in compiled.contracts[contractPath]) {
+      const metadata = compiled.contracts[contractPath][contract].metadata;
+      const metadataPath = `${contractPath}-metadata.json`;
+      metadataAndSources.push({
+        path: metadataPath,
+        content: btoa(metadata), //TODO: Don't use btoa. This is there because PathContent requires a base64 encoded strings.
+      });
+      metadataAndSources.push({
+        path: `${contractPath}`,
+        content: solcJson.sources[contractPath].content as string,
+      });
+    }
+  }
+  return metadataAndSources;
 }
 
 // TODO: Handle where and how solc is saved

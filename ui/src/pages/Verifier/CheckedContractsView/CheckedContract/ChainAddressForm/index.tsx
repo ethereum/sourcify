@@ -23,6 +23,7 @@ import { HiChevronDown } from "react-icons/hi";
 import ReactTooltip from "react-tooltip";
 import Constructorarguments from "../../../../../components/ConstructorArguments";
 import InputToggle from "../../../../../components/InputToggle";
+import { SelectedOptionValue } from "react-select-search";
 
 type ChainAddressFormProps = {
   customStatus: string;
@@ -87,11 +88,12 @@ const ChainAddressForm = ({
     });
   };
 
-  const handleChainIdChange = (newChainId: number) => {
-    const newChainIdStr = newChainId.toString();
+  const handleChainIdChange = (
+    selectedOptionValue: SelectedOptionValue | SelectedOptionValue[]
+  ) => {
+    const newChainIdStr = `${selectedOptionValue as SelectedOptionValue}`;
     setChainId(newChainIdStr);
     verifyButtonRef.current?.focus();
-    console.log(`New id is: ${newChainId}`);
   };
 
   const handleMsgSenderChange: ChangeEventHandler<HTMLInputElement> = (e) => {

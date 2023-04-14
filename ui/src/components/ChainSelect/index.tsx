@@ -1,39 +1,12 @@
-import Fuse from "fuse.js";
 import React, { useContext } from "react";
-import SelectSearch, {
-  SelectSearchOption,
-  SelectSearchProps,
-} from "react-select-search";
 import { Context } from "../../Context";
 import "./style.css";
+import { fuzzySearch } from "../fuzzySearch";
+import SelectSearch, { SelectSearchProps } from "react-select-search";
 
-// Fix incorrect value field type of onChange. Should be string and not SelectedOptionValue
-type WithoutOnChange = Omit<SelectSearchProps, "onChange">; // Remove prop
-// Add correct onChange prop type
-type ModifiedSelectSearchProps = WithoutOnChange & {
-  onChange: (value: number) => void;
-};
-// Typecast. Don't cast with "SelectSearch as unknown as FC<Modified>" to not lose the types other than onChange.
-const CustomSelectSearch =
-  SelectSearch as React.FC<WithoutOnChange> as React.FC<ModifiedSelectSearchProps>;
-
-function fuzzySearch(options: SelectSearchOption[]) {
-  const fuse = new Fuse(options, {
-    keys: ["name", "groupName", "items.name"],
-    threshold: 0.6,
-  });
-  return (value: string) => {
-    if (!value.length) {
-      return options;
-    }
-    return fuse
-      .search(value)
-      .map((res: Fuse.FuseResult<SelectSearchOption>) => res.item);
-  };
-}
 type ChainSelectProps = {
   value: string | undefined;
-  handleChainIdChange: (chainId: number) => void;
+  handleChainIdChange: SelectSearchProps["onChange"];
   id?: string;
   availableChains?: number[];
 };
@@ -56,7 +29,7 @@ export default function ChainSelect({
   }
 
   return (
-    <CustomSelectSearch
+    <SelectSearch
       onChange={handleChainIdChange}
       value={value}
       options={filteredChains.map((chain) => ({
