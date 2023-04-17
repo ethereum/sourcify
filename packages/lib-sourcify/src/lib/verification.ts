@@ -399,21 +399,21 @@ export function addLibraryAddresses(
   replaced: string;
   libraryMap: StringMap;
 } {
-  const PLACEHOLDER_START = '__$';
+  const PLACEHOLDER_START = '__';
   const PLACEHOLDER_LENGTH = 40;
 
   const libraryMap: StringMap = {};
 
   let index = template.indexOf(PLACEHOLDER_START);
-  for (; index !== -1; index = template.indexOf(PLACEHOLDER_START)) {
+  while (index !== -1) {
     const placeholder = template.slice(index, index + PLACEHOLDER_LENGTH);
     const address = real.slice(index, index + PLACEHOLDER_LENGTH);
     libraryMap[placeholder] = address;
-    const regexCompatiblePlaceholder = placeholder
-      .replace('__$', '__\\$')
-      .replace('$__', '\\$__');
-    const regex = RegExp(regexCompatiblePlaceholder, 'g');
-    template = template.replace(regex, address);
+
+    // Replace regex with simple string replacement
+    template = template.split(placeholder).join(address);
+
+    index = template.indexOf(PLACEHOLDER_START);
   }
 
   return {
