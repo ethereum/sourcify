@@ -225,9 +225,13 @@ export default class VerificationController
         solcJson,
         compilerVersion
       );
+      const metadataAndSourcesPathContents: PathContent[] =
+        metadataAndSources.map((pb) => {
+          return { path: pb.path, content: pb.buffer.toString(FILE_ENCODING) };
+        });
 
       const session = req.session;
-      const newFilesCount = saveFiles(metadataAndSources, session);
+      const newFilesCount = saveFiles(metadataAndSourcesPathContents, session);
       if (newFilesCount) {
         await checkContractsInSession(session);
       }
