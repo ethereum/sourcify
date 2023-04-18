@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { AiFillFileAdd, AiOutlineGithub, AiOutlinePlus } from "react-icons/ai";
 import { FaEthereum } from "react-icons/fa";
+import { SiSolidity } from "react-icons/si";
 import { HiOutlineExclamation } from "react-icons/hi";
 import Button from "../../components/Button";
 import LoadingOverlay from "../../components/LoadingOverlay";
@@ -145,7 +146,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
             className="text-sm"
           >
             <>
-              <FaEthereum className="inline align-middle mr-1" />
+              <SiSolidity className="inline align-middle mr-1" />
               Import from Solidity JSON
             </>
           </Button>
