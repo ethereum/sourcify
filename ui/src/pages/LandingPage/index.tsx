@@ -92,7 +92,7 @@ const LandingPage = () => {
 
   const aboutRef = useRef<HTMLElement>(null);
 
-  const scrollIntoView = (ref:RefObject<HTMLElement>) => {
+  const scrollIntoView = (ref: RefObject<HTMLElement>) => {
     const el = ref?.current;
     if (!el) {
       return;
@@ -201,9 +201,12 @@ const LandingPage = () => {
             </div>
           </div>
         </section>
-        <div className="my-4 flex justify-center"  onClick={() => scrollIntoView(aboutRef)}>
+        <button
+          className="my-4 flex justify-center"
+          onClick={() => scrollIntoView(aboutRef)}
+        >
           <BsChevronCompactDown className="inline text-4xl animate-bounce text-gray-500" />
-        </div>
+        </button>
       </div>
 
       {/* About section */}
