@@ -1,15 +1,12 @@
-import { useState, useEffect, useContext, useCallback } from "react";
-import Input from "../../components/Input";
-import ChainSelect from "../../components/ChainSelect";
+import { useState, useEffect } from "react";
 import { ADD_SOLC_JSON_URL } from "../../constants";
 import { SessionResponse } from "../../types";
-import { Context } from "../../Context";
-import { isAddress } from "@ethersproject/address";
 import SelectSearch, {
   SelectSearchProps,
   SelectedOptionValue,
 } from "react-select-search";
 import { fuzzySearch } from "react-select-search";
+import InputToggle from "../../components/InputToggle";
 
 const SOLC_VERSIONS_LIST_URL =
   "https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/list.txt";
@@ -118,13 +115,13 @@ const SolcJsonInput = ({
 
   return (
     <div>
-      <input
-        type="checkbox"
+      <InputToggle
         id="nightlies"
-        checked={useNightlies}
-        onChange={() => setUseNightlies(!useNightlies)}
+        label="Use nightlies"
+        isChecked={useNightlies}
+        onClick={() => setUseNightlies(!useNightlies)}
+        className="mb-2"
       />{" "}
-      <label htmlFor="nightlies">Use nightlies</label>
       <SelectSearch
         onChange={handleCompilerVersionChange}
         value={chosenCompilerVersion}
@@ -134,7 +131,7 @@ const SolcJsonInput = ({
         emptyMessage="Couldn't fetch compiler versions"
         placeholder="Choose a compiler version"
       />
-      <input type="file" onChange={handleFileChange} />
+      <input type="file" onChange={handleFileChange} className="mt-2" />
     </div>
   );
 };
