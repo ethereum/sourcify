@@ -1467,6 +1467,56 @@ describe("Server", function () {
       assertSingleContractStatus(res, "perfect");
     });
 
+    it("should return validation error for adding standard input JSON without a compiler version", async () => {
+      const agent = chai.request.agent(server.app);
+
+      const solcJsonPath = path.join(
+        "test",
+        "testcontracts",
+        "Storage",
+        "StorageJsonInput.json"
+      );
+      const solcJsonBuffer = fs.readFileSync(solcJsonPath);
+
+      const res = await agent
+        .post("/session/input-solc-json")
+        .attach("files", solcJsonBuffer);
+
+      assertValidationError(null, res, "compilerVersion");
+    });
+
+    it("should verify a contract with Solidity standard input JSON", async () => {
+      const agent = chai.request.agent(server.app);
+      const address = await deployFromAbiAndBytecode(
+        localWeb3Provider,
+        artifact.abi, // Storage.sol
+        artifact.bytecode,
+        accounts[0]
+      );
+      const solcJsonPath = path.join(
+        "test",
+        "testcontracts",
+        "Storage",
+        "StorageJsonInput.json"
+      );
+      const solcJsonBuffer = fs.readFileSync(solcJsonPath);
+
+      const res = await agent
+        .post("/session/input-solc-json")
+        .field("compilerVersion", "0.8.4+commit.c7e474f2")
+        .attach("files", solcJsonBuffer);
+
+      const contracts = assertSingleContractStatus(res, "error");
+
+      contracts[0].address = address;
+      contracts[0].chainId = defaultContractChain;
+
+      const res2 = await agent
+        .post("/session/verify-validated")
+        .send({ contracts });
+      assertSingleContractStatus(res2, "perfect");
+    });
+
     // Test also extra-file-bytecode-mismatch via v2 API as well since the workaround is at the API level i.e. VerificationController
     describe("solc v0.6.12 and v0.7.0 extra files in compilation causing metadata match but bytecode mismatch", function () {
       // Deploy the test contract locally
