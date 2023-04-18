@@ -206,12 +206,6 @@ export default class VerificationController
     const compilerVersion = req.body.compilerVersion;
 
     for (const inputFile of inputFiles) {
-      if (!inputFile.path.endsWith(".json")) {
-        throw new BadRequestError(
-          `File ${inputFile.path} is not a JSON file. Please upload a file with the .json extension.`
-        );
-      }
-
       let solcJson;
       try {
         solcJson = JSON.parse(inputFile.buffer.toString());
