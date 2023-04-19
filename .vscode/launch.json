@@ -127,6 +127,53 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Mocha - Etherscan",
+      "program": "${workspaceRoot}/node_modules/.bin/mocha",
+      "env": {
+        "DEBUG": "express:*", // Debug all express modules *
+        "TESTING": "true",
+      },
+      "args": [
+        "${workspaceFolder}/test/etherscan.js",
+        "--no-timeout",
+        // Run a single test when debugging
+        // "--grep=v0.6.12",
+        "--exit",
+      ],
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js",
+        "${workspaceFolder}/packages/**/build/**/*.js",
+      ],
+      "smartStep": true,
+      "console": "integratedTerminal",
+      // "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Mocha - Etherscan Instances",
+      "program": "${workspaceRoot}/node_modules/.bin/mocha",
+      "env": {
+        "TESTING": "true",
+      },
+      "args": [
+        "${workspaceFolder}/test/etherscan/etherscanInstances.js",
+        "--no-timeout",
+        // Run a single test when debugging
+        // "--grep=v0.6.12",
+        "--exit",
+      ],
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js",
+        "${workspaceFolder}/packages/**/build/**/*.js",
+      ],
+      "smartStep": true,
+      "console": "integratedTerminal",
+      // "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Mocha - lib-sourcify",
       "cwd": "${workspaceFolder}/packages/lib-sourcify",
       "program": "./node_modules/.bin/mocha",
@@ -137,7 +184,7 @@
       "args": [
         "-r",
         "ts-node/register",
-        "./test/verification.spec.ts",
+        "./test/**/*.spec.ts",
         "--no-timeout",
         // Run a single test when debugging
         // "--grep=v0.6.12",
@@ -146,6 +193,25 @@
       "outFiles": [
         "./**/*.js",
         "${workspaceFolder}/packages/lib-sourcify/build/**/*.js"
+      ],
+      "smartStep": true,
+      "console": "integratedTerminal",
+      // "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Mocha - Contract Call Decoder",
+      "cwd": "${workspaceFolder}/packages/contract-call-decoder",
+      "program": "./node_modules/ava/cli.js",
+      "env": {
+        "TESTING": "true",
+      },
+      "args": [
+      ],
+      "outFiles": [
+        "./**/*.js",
+        "${workspaceFolder}/packages/contract-call-decoder/build/**/*.js"
       ],
       "smartStep": true,
       "console": "integratedTerminal",

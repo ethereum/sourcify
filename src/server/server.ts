@@ -4,7 +4,7 @@ import fileUpload from "express-fileupload";
 import cors from "cors";
 import routes from "./routes";
 import bodyParser from "body-parser";
-import config from "../config";
+import config, { etherscanAPIs } from "../config";
 import { SourcifyEventManager } from "../common/SourcifyEventManager/SourcifyEventManager";
 import genericErrorHandler from "./middlewares/GenericErrorHandler";
 import notFoundHandler from "./middlewares/NotFoundError";
@@ -18,12 +18,34 @@ const MemoryStore = createMemoryStore(session);
 export class Server {
   app: express.Application;
   repository = config.repository.path;
-  port = config.server.port;
+  port: string | number;
 
-  constructor() {
+  constructor(port?: string | number) {
     useApiLogging(express);
-
+    this.port = port || config.server.port;
     this.app = express();
+
+    // Session API endpoints require non "*" origins because of the session cookies
+    const sessionPaths = [
+      "/session", // all paths /session/verify /session/input-files etc.
+      // legacy endpoint naming below
+      "/input-files",
+      "/restart-session",
+      "/verify-validated",
+    ];
+    this.app.use((req, res, next) => {
+      // startsWith to match /session*
+      if (sessionPaths.some((substr) => req.path.startsWith(substr))) {
+        return cors({
+          origin: config.corsAllowedOrigins,
+          credentials: true,
+        })(req, res, next);
+      }
+      // * for all non-session paths
+      return cors({
+        origin: "*",
+      })(req, res, next);
+    });
 
     this.app.use(
       fileUpload({
@@ -41,14 +63,7 @@ export class Server {
     );
     this.app.set("trust proxy", 1); // trust first proxy, required for secure cookies.
     this.app.use(session(getSessionOptions()));
-    this.app.use(
-      cors({
-        origin: "*",
-        // Allow follow-up middleware to override this CORS for options.
-        // Session API endpoints require non "*" origins because of the session cookies
-        preflightContinue: true,
-      })
-    );
+
     this.app.get("/health", (_req, res) =>
       res.status(200).send("Alive and kicking!")
     );
@@ -65,11 +80,13 @@ export class Server {
         return {
           ...rest,
           rpc,
+          etherscanAPI: etherscanAPIs[rest.chainId]?.apiURL,
         };
       });
 
       res.status(200).json(sourcifyChains);
     });
+
     this.app.use(
       "/repository",
       express.static(this.repository),

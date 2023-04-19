@@ -18,14 +18,28 @@ type RepoLinkProps = {
   chainIds: string[];
   status: "perfect" | "partial";
   address: string;
+  overrideLabel?: string;
 };
-const RepoLinks = ({ chainIds, status, address }: RepoLinkProps) => {
+const RepoLinks = ({
+  chainIds,
+  status,
+  address,
+  overrideLabel,
+}: RepoLinkProps) => {
   const { sourcifyChainMap } = useContext(Context);
 
   return (
     <p>
-      {status === "perfect" && "Fully"}
-      {status === "partial" && "Partially"} verified at{" "}
+      {status === "perfect" && !overrideLabel && (
+        <>
+          <b>Fully verified</b> at{" "}
+        </>
+      )}
+      {status === "partial" && !overrideLabel && (
+        <>
+          <b>Partially verified</b> at{" "}
+        </>
+      )}
       {chainIds.map((chainId, i) => {
         return (
           <span>
@@ -35,7 +49,8 @@ const RepoLinks = ({ chainIds, status, address }: RepoLinkProps) => {
               className="underline"
               key={`${address}-${chainId}-repo-link`}
             >
-              {sourcifyChainMap[parseInt(chainId)].title ||
+              {overrideLabel ||
+                sourcifyChainMap[parseInt(chainId)].title ||
                 sourcifyChainMap[parseInt(chainId)].name}
             </a>
           </span>
@@ -75,6 +90,34 @@ const Message = ({
           </span>{" "}
           verified at <b>{chain.title || chain.name}</b>:
           {checkedContract.address}
+          {checkedContract?.address && (
+            <RepoLinks
+              chainIds={[chain.chainId.toString()]}
+              status={customStatus}
+              overrideLabel="View in repository"
+              address={checkedContract.address}
+            />
+          )}
+        </p>
+      </div>
+    );
+  }
+  if (
+    checkedContract.chainId === "0" &&
+    (customStatus === "perfect" || customStatus === "partial")
+  ) {
+    return (
+      <div
+        className={`${bgColor} px-4 py-2 rounded-md outline-2 ${outlineColor} outline`}
+      >
+        <p className="break-all">
+          <HiCheck className={`${textColor} inline mr-1 align-middle`} />
+          Verification successful!{" "}
+          <span className={`${darkTextColor} font-bold`}>
+            {customStatus}ly
+          </span>{" "}
+          create2 verified:
+          {checkedContract.address}
         </p>
       </div>
     );
@@ -91,7 +134,6 @@ const Message = ({
         </div>
       );
     }
-    return <></>;
   }
   // Show existing matches of the address after checkAllByAddress
   if (foundMatches?.chainIds) {
@@ -102,8 +144,12 @@ const Message = ({
       .filter((idMatch) => idMatch.status === "partial")
       .map((idMatch) => idMatch.chainId);
     return (
-      <div>
-        <p>Contract {foundMatches.address} is already verified:</p>
+      <div
+        className={`bg-ceruleanBlue-200 px-4 py-2 rounded-md outline-2 outline-ceruleanBlue-300 outline text-ceruleanBlue-800`}
+      >
+        <p>
+          Contract <b>{foundMatches.address}</b> is already verified:
+        </p>
         {perfectMatchChainIds.length > 0 && (
           <RepoLinks
             chainIds={perfectMatchChainIds}
@@ -113,7 +159,7 @@ const Message = ({
         )}
         {partialMatchChainIds.length > 0 && (
           <RepoLinks
-            chainIds={perfectMatchChainIds}
+            chainIds={partialMatchChainIds}
             status="partial"
             address={foundMatches.address}
           />

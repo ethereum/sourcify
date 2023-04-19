@@ -1,3 +1,17 @@
+const { etherscanAPIs } = require("../../dist/config");
+const { sourcifyChainsMap } = require("../../dist/sourcify-chains");
+const {
+  assertVerificationSession,
+  assertVerification,
+} = require("./assertions");
+const chai = require("chai");
+const chaiHttp = require("chai-http");
+
+chai.use(chaiHttp);
+
+const invalidAddress = "0x000000bCB92160f8B7E094998Af6BCaD7fa537ff"; // checksum false
+const unusedAddress = "0xf1Df8172F308e0D47D0E5f9521a5210467408535";
+const unsupportedChain = "3"; // Ropsten
 /**
  *  Function to deploy contracts from provider unlocked accounts
  */
@@ -135,6 +149,53 @@ async function callContractMethodWithTx(
   return txReceipt;
 }
 
+function verifyAndAssertEtherscan(
+  serverApp,
+  chainId,
+  address,
+  expectedStatus,
+  type
+) {
+  it(`Non-Session: Should import a ${type} contract from  #${chainId} ${sourcifyChainsMap[chainId].name} (${etherscanAPIs[chainId].apiURL}) and verify the contract, finding a ${expectedStatus} match`, (done) => {
+    let request = chai
+      .request(serverApp)
+      .post("/verify/etherscan")
+      .field("address", address)
+      .field("chain", chainId);
+    request.end((err, res) => {
+      // currentResponse = res;
+      assertVerification(err, res, done, address, chainId, expectedStatus);
+    });
+  });
+}
+
+function verifyAndAssertEtherscanSession(
+  serverApp,
+  chainId,
+  address,
+  expectedStatus,
+  type
+) {
+  it(`Session: Should import a ${type} contract from  #${chainId} ${sourcifyChainsMap[chainId].name} (${etherscanAPIs[chainId].apiURL}) and verify the contract, finding a ${expectedStatus} match`, (done) => {
+    chai
+      .request(serverApp)
+      .post("/session/verify/etherscan")
+      .field("address", address)
+      .field("chainId", chainId)
+      .end((err, res) => {
+        // currentResponse = res;
+        assertVerificationSession(
+          err,
+          res,
+          done,
+          address,
+          chainId,
+          expectedStatus
+        );
+      });
+  });
+}
+
 module.exports = {
   deployFromAbiAndBytecode,
   deployFromAbiAndBytecodeForCreatorTxHash,
@@ -142,4 +203,9 @@ module.exports = {
   waitSecs,
   callContractMethod,
   callContractMethodWithTx,
+  invalidAddress,
+  unsupportedChain,
+  unusedAddress,
+  verifyAndAssertEtherscan,
+  verifyAndAssertEtherscanSession,
 };

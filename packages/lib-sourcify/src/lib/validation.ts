@@ -113,7 +113,7 @@ export async function checkFiles(files: PathBuffer[], unused?: string[]) {
  *
  * @param files the array containing the files to be checked
  */
-async function unzipFiles(files: PathBuffer[]) {
+export async function unzipFiles(files: PathBuffer[]) {
   const allUnzipped: PathBuffer[] = [];
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
@@ -429,7 +429,7 @@ function assertObjectSize(object: any, expectedSize: number) {
  * @param hardhatFile
  * @returns - {hardhatMetadataFiles, hardhatSourceFiles}
  */
-function extractHardhatMetadataAndSources(hardhatFile: PathContent) {
+export function extractHardhatMetadataAndSources(hardhatFile: PathContent) {
   const hardhatMetadataFiles: any[] = [];
   const hardhatSourceFiles: PathContent[] = [];
 
@@ -461,7 +461,7 @@ function extractHardhatMetadataAndSources(hardhatFile: PathContent) {
   return { hardhatMetadataFiles, hardhatSourceFiles };
 }
 
-function pathContentArrayToStringMap(pathContentArr: PathContent[]) {
+export function pathContentArrayToStringMap(pathContentArr: PathContent[]) {
   const stringMapResult: StringMap = {};
   pathContentArr.forEach((elem, i) => {
     if (elem.path) {

@@ -121,7 +121,8 @@ export default class RepositoryService implements IRepositoryService {
     );
     const urls: Array<string> = [];
     files.forEach((file) => {
-      const relativePath = file.path.split("/repository")[1].substr(1);
+      const relativePath =
+        "contracts/" + file.path.split("/contracts")[1].substr(1);
       urls.push(`${process.env.REPOSITORY_SERVER_URL}/${relativePath}`);
     });
     return urls;
@@ -463,6 +464,16 @@ export default class RepositoryService implements IRepositoryService {
           match.address,
           "library-map.json",
           match.libraryMap
+        );
+      }
+
+      if (match.immutableReferences) {
+        this.storeJSON(
+          matchQuality,
+          match.chainId,
+          match.address,
+          "immutable-references.json",
+          match.immutableReferences
         );
       }
 

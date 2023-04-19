@@ -71,11 +71,6 @@ class MonitorWrapper extends EventEmitter {
     return path.join(pathPrefix, "metadata.json");
   }
 
-  getConstructorArgsPath(address) {
-    const pathPrefix = this.getPathPrefix(address);
-    return path.join(pathPrefix, "constructor-args.txt");
-  }
-
   assertFilesNotStored(address, contractWrapper, expectedMtime) {
     const addressMetadataPath = this.getAddressMetadataPath(address);
     assertEqualityFromPath(contractWrapper.metadata, addressMetadataPath, {
@@ -91,11 +86,6 @@ class MonitorWrapper extends EventEmitter {
 
     const metadata = contractWrapper.metadata;
     assertEqualityFromPath(metadata, addressMetadataPath, { isJson: true });
-
-    if (contractWrapper.argsHex) {
-      const constructorArgsPath = this.getConstructorArgsPath(address);
-      assertEqualityFromPath(contractWrapper.argsHex, constructorArgsPath);
-    }
 
     for (const sourceName in metadata.sources) {
       const source = metadata.sources[sourceName];

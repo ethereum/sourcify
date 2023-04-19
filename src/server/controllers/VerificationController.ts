@@ -306,7 +306,7 @@ export default class VerificationController
     const req = origReq as LegacyVerifyRequest;
     validateRequest(req);
 
-    const chain = req.body.chainId as string;
+    const chain = req.body.chain as string;
     const address = req.body.address;
 
     const { metadata, solcJsonInput } = await processRequestFromEtherscan(
@@ -502,6 +502,7 @@ export default class VerificationController
     contractWrapper.statusMessage = match.message;
     contractWrapper.storageTimestamp = match.storageTimestamp;
     contractWrapper.address = match.address;
+    contractWrapper.chainId = "0";
 
     if (match.status) {
       await this.repositoryService.storeMatch(contract, match);
@@ -538,11 +539,6 @@ export default class VerificationController
   };
 
   registerRoutes = (): Router => {
-    const corsOpt = {
-      origin: config.corsAllowedOrigins,
-      credentials: true,
-    };
-
     this.router.route(["/", "/verify"]).post(
       body("address")
         .exists()
@@ -586,23 +582,19 @@ export default class VerificationController
     // Session APIs with session cookies require non "*" CORS
     this.router
       .route(["/session-data", "/session/data"])
-      .all(cors(corsOpt))
-      .get(cors(corsOpt), this.safeHandler(this.getSessionDataEndpoint));
+      .get(this.safeHandler(this.getSessionDataEndpoint));
 
     this.router
       .route(["/input-files", "/session/input-files"])
-      .all(cors(corsOpt))
-      .post(cors(corsOpt), this.safeHandler(this.addInputFilesEndpoint));
+      .post(this.safeHandler(this.addInputFilesEndpoint));
 
     this.router
       .route(["/session/input-contract"])
-      .all(cors(corsOpt))
-      .post(cors(corsOpt), this.safeHandler(this.addInputContractEndpoint));
+      .post(this.safeHandler(this.addInputContractEndpoint));
 
     this.router
       .route(["/restart-session", "/session/clear"])
-      .all(cors(corsOpt))
-      .post(cors(corsOpt), this.safeHandler(this.restartSessionEndpoint));
+      .post(this.safeHandler(this.restartSessionEndpoint));
 
     this.router
       .route([
@@ -610,27 +602,54 @@ export default class VerificationController
         "/session/verify-validated",
         "/session/verify-checked",
       ])
-      .all(cors(corsOpt))
       .post(
         body("contracts").isArray(),
-        cors(corsOpt),
         this.safeHandler(this.verifyContractsInSessionEndpoint)
       );
 
     this.router.route(["/verify/etherscan"]).post(
-      // TODO: add validation
+      body("address")
+        .exists()
+        .bail()
+        .custom(
+          (address, { req }) => (req.addresses = validateAddresses(address))
+        ),
+      body("chainId")
+        .optional()
+        .custom(
+          (chainId, { req }) =>
+            // Support both `body.chain` and `body.chainId`
+            // `checkChainId` won't be checked here but in the next `req.body.chain` check below to avoid duplicate error messages
+            (req.body.chain = chainId)
+        ),
+      body("chain")
+        .exists()
+        .bail()
+        .custom((chain) => checkChainId(chain)),
       this.safeHandler(this.verifyFromEtherscan)
     );
 
-    this.router
-      .route(["/session/verify/etherscan"])
-      .all(cors(corsOpt))
-      .post(
-        body("address").exists(),
-        body("chainId").exists(),
-        cors(corsOpt),
-        this.safeHandler(this.sessionVerifyFromEtherscan)
-      );
+    this.router.route(["/session/verify/etherscan"]).post(
+      body("address")
+        .exists()
+        .bail()
+        .custom(
+          (address, { req }) =>
+            (req.body.addresses = validateAddresses(address))
+        ),
+      body("chain")
+        .optional()
+        .custom(
+          (chain, { req }) =>
+            // Support both `body.chain` and `body.chainId`
+            (req.body.chainId = chain)
+        ),
+      body("chainId")
+        .exists()
+        .bail()
+        .custom((chainId) => checkChainId(chainId)),
+      this.safeHandler(this.sessionVerifyFromEtherscan)
+    );
 
     // TODO: Use schema validation for request validation https://express-validator.github.io/docs/schema-validation.html
     this.router.route(["/verify/create2"]).post(
@@ -657,39 +676,33 @@ export default class VerificationController
       this.safeHandler(this.verifyCreate2)
     );
 
-    this.router
-      .route(["/session/verify/create2"])
-      .all(cors(corsOpt))
-      .post(
-        body("deployerAddress")
-          .exists()
-          .custom((deployerAddress, { req }) => {
-            const addresses = validateAddresses(deployerAddress);
-            req.deployerAddress = addresses.length > 0 ? addresses[0] : "";
-            return true;
-          }),
-        body("salt").exists(),
-        body("abiEncodedConstructorArguments").optional(),
-        body("files").exists(),
-        body("create2Address")
-          .exists()
-          .custom((create2Address, { req }) => {
-            const addresses = validateAddresses(create2Address);
-            req.create2Address = addresses.length > 0 ? addresses[0] : "";
-            return true;
-          }),
-        body("verificationId").exists(),
-        cors(corsOpt),
-        this.authenticatedRequest,
-        this.safeHandler(this.sessionVerifyCreate2)
-      );
+    this.router.route(["/session/verify/create2"]).post(
+      body("deployerAddress")
+        .exists()
+        .custom((deployerAddress, { req }) => {
+          const addresses = validateAddresses(deployerAddress);
+          req.deployerAddress = addresses.length > 0 ? addresses[0] : "";
+          return true;
+        }),
+      body("salt").exists(),
+      body("abiEncodedConstructorArguments").optional(),
+      body("files").exists(),
+      body("create2Address")
+        .exists()
+        .custom((create2Address, { req }) => {
+          const addresses = validateAddresses(create2Address);
+          req.create2Address = addresses.length > 0 ? addresses[0] : "";
+          return true;
+        }),
+      body("verificationId").exists(),
+      this.authenticatedRequest,
+      this.safeHandler(this.sessionVerifyCreate2)
+    );
 
     this.router
       .route(["/session/verify/create2/compile"])
-      .all(cors(corsOpt))
       .post(
         body("verificationId").exists(),
-        cors(corsOpt),
         this.safeHandler(this.sessionPrecompileContract)
       );
 

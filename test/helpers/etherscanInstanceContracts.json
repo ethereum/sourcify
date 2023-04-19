@@ -1,0 +1,339 @@
+{
+  "1": [
+    {
+      "address": "0x1f3c21c9d16c5bfc8956a433ec34bfcdeaa9d740",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0xB753548F6E010e7e680BA186F9Ca1BdAB2E90cf2",
+      "type": "multiple",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x5aa653a076c1dbb47cec8c1b4d152444cad91941",
+      "type": "standard-json",
+      "expectedStatus": "partial"
+    }
+  ],
+  "5": [
+    {
+      "address": "0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x0Aa78575E17Ac357294Bb7B5a9ea512bA07669E2",
+      "type": "multiple",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0xc836440B75e7c573A6069a7Eaf584bd763762dC1",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
+  ],
+  "11155111": [
+    {
+      "address": "0x3738D744149713c3BFd514Bc8Fbd420DeDe3D682",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x3c7E44544d11E6D6b5da5754fA589f9426DA5EeB",
+      "type": "multiple",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x26CD038a0c2c90BB5D791d527D1d9b43222dC1F3",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
+  ],
+  "421613": [
+    {
+      "address": "0xaeD14606Da6641a5e9dc9a5Ae4369eBB5Da6613d",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0xb7ae469e8f09fc56d0f2a9e0e949db9a6fcd8203",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
+  ],
+  "42161": [
+    {
+      "address": "0x02f29d508a1d12f78047c95098cabb287d1f4381",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x81635EcF627ff0bC0D9CF30Bc5A963b5aa2F30fE",
+      "type": "multiple",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x46dcAFBb2C9d479827F69BeC9314E13741f21058",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
+  ],
+  "43114": [
+    {
+      "address": "0x4B3B8CFB55C1F07be13055cA94d42ccfc6bE9972",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x8dabd2ce6A593412C5B0a952C7F44351dde222b4",
+      "type": "multiple",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x1b254c7Acab33427562222A13A2EBA27FeA97875",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
+  ],
+  "43113": [
+    {
+      "address": "0x24d7307e5bc032bC4456E998D7DD20369738a3a9",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x79beb0a978443dbc125599170332b3f40d448f63",
+      "type": "multiple",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x28CA70cc5732D042381F9240bf45aB1b493aEFef",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
+  ],
+  "56": [
+    {
+      "address": "0xB46e7Bc077eD62f7E201d63D232E5c5899829FA5",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x237aE7D0BBcc9D66B81887d7eca57184c0494261",
+      "type": "multiple",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x7dAE7AC96D045aCC5F7E23d6aFb5a789D83bd4BC",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
+  ],
+  "97": [
+    {
+      "address": "0x19B14FF4d73c51DBb20D96A391c10AfD1425281e",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0xf2DC315D6591599701d4346c7A8E911C24d79740",
+      "type": "multiple",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0xb68716C87fe8257e6d8C635d33D4c71E5f8833A5",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
+  ],
+  "288": [
+    {
+      "address": "0x02e71Ae9973aE7D4EbA43DB25da5dCa1ED6906c0",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x234f1BA1d8F3dfF904F0E4a6A4D7c12c4C833F91",
+      "type": "multiple",
+      "expectedStatus": "perfect"
+    },
+    {
+      "address": "0xdB633569e3E6c420e06c15544076333504b18b94",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
+  ],
+  "44787": [
+    {
+      "address": "0xfb1bffC9d739B8D520DaF37dF666da4C687191EA",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x1ff8030705dB05DcDEbEA2BF0f8CDAd1966A71C6",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
+  ],
+  "42220": [
+    {
+      "address": "0x8084936982D089130e001b470eDf58faCA445008",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x59A10A4DCE82Cdf233eb2c0ddcDA6E09Eb7F8499",
+      "type": "multiple",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x1C7652919598b32C576D362E74F44C6E34EF7Aba",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
+  ],
+  "100": [
+    {
+      "address": "0x027408f6f7F08bDdb3Ebb88E4eF982C5196fcA74",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x231055A0852D67C7107Ad0d0DFeab60278fE6AdC",
+      "type": "multiple",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x7c6C373190421988fA31E64f369C45205676C1f0",
+      "type": "standard-json",
+      "expectedStatus": "partial"
+    }
+  ],
+  "1287": [
+    {
+      "address": "0x73882eC030823e612496dCCcDCf23DD23dDf7D34",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x75f60b643879f3F76a851853F1A50Dbf2e031fDD",
+      "type": "multiple",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x26633F364ABd4057CacD1915c1Cc9f9ecc2B8dEC",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
+  ],
+  "1284": [
+    {
+      "address": "0x36FdA966CfffF8a9Cdc814f546db0e6378bFef35",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x79Ae25091bB1cb7EC08A25b18b197dBe56DDaD3F",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
+  ],
+  "1285": [
+    {
+      "address": "0x66bc84b4270cA0F056E27e5cD77B2401522191c6",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x00000000000076A84feF008CDAbe6409d2FE638B",
+      "type": "multiple",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0xefCe3bf365aF5b99550f32042007F73BA36A25a7",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
+  ],
+  "10": [
+    {
+      "address": "0x8D2548A5f641b00Cf0f5B693d4A72D8c0aE24d31",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x1f9ca631ae0c4890f99b38634c969b7e4f8719f0",
+      "type": "multiple",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x8DeaE4e487AF7DF7E3f12fB39E4c81884C4598Bf",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
+  ],
+  "420": [
+    {
+      "address": "0xac0aEAea17A0Ae6F2d0B88241191Af59EAd66057",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x0E89D6212B758BB06318571d95aeac6bE1354d0A",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
+  ],
+  "137": [
+    {
+      "address": "0x482158993f55C1D983c5752e007AAD0a06790c7A",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0xc944CAAc3CA629676783446aD1A27e3A89A43B77",
+      "type": "multiple",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0xc3B03145ffb60E251cB71a48Fe8aEe478124FF6D",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
+  ],
+  "80001": [
+    {
+      "address": "0x34F19789eA142911d9DB1B8d0F672B567421a7a8",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x1825a899ef75fd62220f00B352450b93Ee53c664",
+      "type": "multiple",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x5624B3dF5340a1149801910a5902D8A5AE757b41",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
+  ],
+  "84531": [
+    {
+      "address": "0x0571DD2df7Ea9E98fe1eC160D632fEB750794AB7",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x3b122a12344cBcebCf0ED3bd1b27C2B3174759BF",
+      "type": "multiple",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0xD9b02949B6c221134B5De84d08cD7DAb8f9b1E17",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
+  ]
+}

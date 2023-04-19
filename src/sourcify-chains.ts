@@ -8,6 +8,8 @@ import {
   SourcifyChainExtension,
   Chain,
 } from "@ethereum-sourcify/lib-sourcify";
+import { etherscanAPIs } from "./config";
+
 const allChains = chainsRaw as Chain[];
 
 dotenv.config({
@@ -16,6 +18,7 @@ dotenv.config({
 
 const ETHERSCAN_REGEX = /at txn.*href='\/tx\/(0x.*?)'/.source; // save as string to be able to return the txRegex in /chains response. If stored as RegExp returns {}
 const ETHERSCAN_SUFFIX = "address/${ADDRESS}";
+const ETHERSCAN_API_SUFFIX = `/api?module=contract&action=getcontractcreation&contractaddresses=\${ADDRESS}&apikey=`;
 const BLOCKSSCAN_SUFFIX = "api/accounts/${ADDRESS}";
 const BLOCKSCOUT_REGEX =
   'transaction_hash_link" href="${BLOCKSCOUT_PREFIX}/tx/(.*?)"';
@@ -109,14 +112,23 @@ function getBlockscoutRegex(blockscoutPrefix = "") {
   return BLOCKSCOUT_REGEX.replace("${BLOCKSCOUT_PREFIX}", blockscoutPrefix);
 }
 
+// api?module=contract&action=getcontractcreation&contractaddresses=\${ADDRESS}&apikey=
+// For chains with the new Etherscan api that has contract creator tx hash endpoint
+function generateEtherscanCreatorTxAPI(chainId: string) {
+  return (
+    etherscanAPIs[chainId].apiURL +
+    ETHERSCAN_API_SUFFIX +
+    etherscanAPIs[chainId].apiKey
+  );
+}
+
 const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "1": {
     // Ethereum Mainnet
     supported: true,
     monitored: true,
-    contractFetchAddress: "https://etherscan.io/" + ETHERSCAN_SUFFIX,
+    contractFetchAddress: generateEtherscanCreatorTxAPI("1"),
     rpc: buildAlchemyAndCustomRpcURLs("mainnet", "eth", true),
-    txRegex: ETHERSCAN_REGEX,
   },
   "4": {
     // Ethereum Rinkeby Testnet
@@ -130,9 +142,8 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // Ethereum Goerli Testnet
     supported: true,
     monitored: true,
-    contractFetchAddress: "https://goerli.etherscan.io/" + ETHERSCAN_SUFFIX,
+    contractFetchAddress: generateEtherscanCreatorTxAPI("5"),
     rpc: buildAlchemyAndCustomRpcURLs("goerli", "eth", true),
-    txRegex: ETHERSCAN_REGEX,
   },
   "11155111": {
     // Ethereum Sepolia Testnet
@@ -141,8 +152,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     rpc: buildAlchemyAndCustomRpcURLs("sepolia", "eth", true).concat(
       "https://rpc.sepolia.org"
     ),
-    contractFetchAddress: "https://sepolia.etherscan.io/" + ETHERSCAN_SUFFIX,
-    txRegex: ETHERSCAN_REGEX,
+    contractFetchAddress: generateEtherscanCreatorTxAPI("11155111"),
   },
   "51": {
     supported: true,
@@ -152,8 +162,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "56": {
     supported: true,
     monitored: false,
-    contractFetchAddress: "https://bscscan.com/" + ETHERSCAN_SUFFIX,
-    txRegex: ETHERSCAN_REGEX,
+    contractFetchAddress: generateEtherscanCreatorTxAPI("56"),
   },
   "77": {
     supported: true,
@@ -197,9 +206,8 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "137": {
     supported: true,
     monitored: true,
-    contractFetchAddress: "https://polygonscan.com/" + ETHERSCAN_SUFFIX,
+    contractFetchAddress: generateEtherscanCreatorTxAPI("137"),
     rpc: buildAlchemyAndCustomRpcURLs("mainnet", "polygon"),
-    txRegex: ETHERSCAN_REGEX,
   },
   "534": {
     supported: true,
@@ -236,33 +244,31 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: ETHERSCAN_REGEX,
   },
   "42161": {
-    // Arbitrum Mainnet
+    // Arbitrum One Mainnet
     supported: true,
     monitored: true,
-    contractFetchAddress: "https://arbiscan.io/" + ETHERSCAN_SUFFIX,
-    txRegex: ETHERSCAN_REGEX,
+    contractFetchAddress: generateEtherscanCreatorTxAPI("42161"),
     rpc: buildAlchemyAndCustomRpcURLs("mainnet", "arb"),
   },
   "421613": {
     // Arbitrum Goerli Testnet
     supported: true,
     monitored: true,
-    contractFetchAddress:
-      "https://goerli-rollup-explorer.arbitrum.io/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    contractFetchAddress: generateEtherscanCreatorTxAPI("421613"),
     rpc: buildAlchemyAndCustomRpcURLs("goerli", "arb"),
   },
   "43113": {
+    // Avalanche Fuji Testnet
     supported: true,
     monitored: false,
     contractFetchAddress: "https://testnet.snowtrace.io/" + ETHERSCAN_SUFFIX,
     txRegex: ETHERSCAN_REGEX,
   },
   "43114": {
+    // Avalanche C-Chain Mainnet
     supported: true,
     monitored: false,
-    contractFetchAddress: "https://snowtrace.io/" + ETHERSCAN_SUFFIX,
-    txRegex: ETHERSCAN_REGEX,
+    contractFetchAddress: generateEtherscanCreatorTxAPI("43114"),
   },
   "57": {
     supported: true,
@@ -308,13 +314,14 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: getBlockscoutRegex(),
   },
   "10": {
+    // Optimism Mainnet
     supported: true,
     monitored: true,
-    contractFetchAddress: "https://optimistic.etherscan.io/" + ETHERSCAN_SUFFIX,
-    txRegex: ETHERSCAN_REGEX,
+    contractFetchAddress: generateEtherscanCreatorTxAPI("10"),
     rpc: buildAlchemyAndCustomRpcURLs("mainnet", "opt"),
   },
   "420": {
+    // Optimism Goerli
     supported: true,
     monitored: true,
     contractFetchAddress:
@@ -360,11 +367,13 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // Moonbeam
     supported: true,
     monitored: false,
+    contractFetchAddress: generateEtherscanCreatorTxAPI("1284"),
   },
   "1285": {
     // Moonriver
     supported: true,
     monitored: false,
+    contractFetchAddress: generateEtherscanCreatorTxAPI("1285"),
   },
   "1287": {
     // Moonbase
