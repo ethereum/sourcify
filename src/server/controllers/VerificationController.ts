@@ -133,7 +133,7 @@ export default class VerificationController
         contract,
         req.body.chain,
         req.addresses[0], // Due to the old API taking an array of addresses.
-        req.body.contextVariables,
+        /* req.body.contextVariables, */
         req.body.creatorTxHash
       );
       // Send to verification again with all source files.
@@ -146,7 +146,7 @@ export default class VerificationController
           contractWithAllSources,
           req.body.chain,
           req.addresses[0], // Due to the old API taking an array of addresses.
-          req.body.contextVariables,
+          /* req.body.contextVariables, */
           req.body.creatorTxHash
         );
         if (tempMatch.status === "perfect") {
@@ -232,7 +232,7 @@ export default class VerificationController
       if (contractWrapper) {
         contractWrapper.address = receivedContract.address;
         contractWrapper.chainId = receivedContract.chainId;
-        contractWrapper.contextVariables = receivedContract.contextVariables;
+        /* contractWrapper.contextVariables = receivedContract.contextVariables; */
         contractWrapper.creatorTxHash = receivedContract.creatorTxHash;
         if (isVerifiable(contractWrapper)) {
           verifiable[id] = contractWrapper;
@@ -548,11 +548,6 @@ export default class VerificationController
   };
 
   registerRoutes = (): Router => {
-    const corsOpt = {
-      origin: config.corsAllowedOrigins,
-      credentials: true,
-    };
-
     this.router.route(["/", "/verify"]).post(
       body("address")
         .exists()
@@ -564,10 +559,10 @@ export default class VerificationController
         .exists()
         .bail()
         .custom((chain, { req }) => (req.chain = checkChainId(chain))),
-      body("contextVariables.msgSender").optional(),
-      body("contextVariables.abiEncodedConstructorArguments").optional(),
+      /* body("contextVariables.msgSender").optional(),
+      body("contextVariables.abiEncodedConstructorArguments").optional(), */
       // Handle non-json multipart/form-data requests.
-      body("abiEncodedConstructorArguments")
+      /* body("abiEncodedConstructorArguments")
         .optional()
         .custom(
           (abiEncodedConstructorArguments, { req }) =>
@@ -584,7 +579,7 @@ export default class VerificationController
               msgSender,
               ...req.body.contextVariables,
             })
-        ),
+        ), */
       body("creatorTxHash")
         .optional()
         .custom(
@@ -596,23 +591,19 @@ export default class VerificationController
     // Session APIs with session cookies require non "*" CORS
     this.router
       .route(["/session-data", "/session/data"])
-      .all(cors(corsOpt))
-      .get(cors(corsOpt), this.safeHandler(this.getSessionDataEndpoint));
+      .get(this.safeHandler(this.getSessionDataEndpoint));
 
     this.router
       .route(["/input-files", "/session/input-files"])
-      .all(cors(corsOpt))
-      .post(cors(corsOpt), this.safeHandler(this.addInputFilesEndpoint));
+      .post(this.safeHandler(this.addInputFilesEndpoint));
 
     this.router
       .route(["/session/input-contract"])
-      .all(cors(corsOpt))
-      .post(cors(corsOpt), this.safeHandler(this.addInputContractEndpoint));
+      .post(this.safeHandler(this.addInputContractEndpoint));
 
     this.router
       .route(["/restart-session", "/session/clear"])
-      .all(cors(corsOpt))
-      .post(cors(corsOpt), this.safeHandler(this.restartSessionEndpoint));
+      .post(this.safeHandler(this.restartSessionEndpoint));
 
     this.router
       .route([
@@ -620,10 +611,8 @@ export default class VerificationController
         "/session/verify-validated",
         "/session/verify-checked",
       ])
-      .all(cors(corsOpt))
       .post(
         body("contracts").isArray(),
-        cors(corsOpt),
         this.safeHandler(this.verifyContractsInSessionEndpoint)
       );
 
@@ -649,31 +638,27 @@ export default class VerificationController
       this.safeHandler(this.verifyFromEtherscan)
     );
 
-    this.router
-      .route(["/session/verify/etherscan"])
-      .all(cors(corsOpt))
-      .post(
-        body("address")
-          .exists()
-          .bail()
-          .custom(
-            (address, { req }) =>
-              (req.body.addresses = validateAddresses(address))
-          ),
-        body("chain")
-          .optional()
-          .custom(
-            (chain, { req }) =>
-              // Support both `body.chain` and `body.chainId`
-              (req.body.chainId = chain)
-          ),
-        body("chainId")
-          .exists()
-          .bail()
-          .custom((chainId) => checkChainId(chainId)),
-        cors(corsOpt),
-        this.safeHandler(this.sessionVerifyFromEtherscan)
-      );
+    this.router.route(["/session/verify/etherscan"]).post(
+      body("address")
+        .exists()
+        .bail()
+        .custom(
+          (address, { req }) =>
+            (req.body.addresses = validateAddresses(address))
+        ),
+      body("chain")
+        .optional()
+        .custom(
+          (chain, { req }) =>
+            // Support both `body.chain` and `body.chainId`
+            (req.body.chainId = chain)
+        ),
+      body("chainId")
+        .exists()
+        .bail()
+        .custom((chainId) => checkChainId(chainId)),
+      this.safeHandler(this.sessionVerifyFromEtherscan)
+    );
 
     // TODO: Use schema validation for request validation https://express-validator.github.io/docs/schema-validation.html
     this.router.route(["/verify/create2"]).post(
@@ -700,39 +685,33 @@ export default class VerificationController
       this.safeHandler(this.verifyCreate2)
     );
 
-    this.router
-      .route(["/session/verify/create2"])
-      .all(cors(corsOpt))
-      .post(
-        body("deployerAddress")
-          .exists()
-          .custom((deployerAddress, { req }) => {
-            const addresses = validateAddresses(deployerAddress);
-            req.deployerAddress = addresses.length > 0 ? addresses[0] : "";
-            return true;
-          }),
-        body("salt").exists(),
-        body("abiEncodedConstructorArguments").optional(),
-        body("files").exists(),
-        body("create2Address")
-          .exists()
-          .custom((create2Address, { req }) => {
-            const addresses = validateAddresses(create2Address);
-            req.create2Address = addresses.length > 0 ? addresses[0] : "";
-            return true;
-          }),
-        body("verificationId").exists(),
-        cors(corsOpt),
-        this.authenticatedRequest,
-        this.safeHandler(this.sessionVerifyCreate2)
-      );
+    this.router.route(["/session/verify/create2"]).post(
+      body("deployerAddress")
+        .exists()
+        .custom((deployerAddress, { req }) => {
+          const addresses = validateAddresses(deployerAddress);
+          req.deployerAddress = addresses.length > 0 ? addresses[0] : "";
+          return true;
+        }),
+      body("salt").exists(),
+      body("abiEncodedConstructorArguments").optional(),
+      body("files").exists(),
+      body("create2Address")
+        .exists()
+        .custom((create2Address, { req }) => {
+          const addresses = validateAddresses(create2Address);
+          req.create2Address = addresses.length > 0 ? addresses[0] : "";
+          return true;
+        }),
+      body("verificationId").exists(),
+      this.authenticatedRequest,
+      this.safeHandler(this.sessionVerifyCreate2)
+    );
 
     this.router
       .route(["/session/verify/create2/compile"])
-      .all(cors(corsOpt))
       .post(
         body("verificationId").exists(),
-        cors(corsOpt),
         this.safeHandler(this.sessionPrecompileContract)
       );
 

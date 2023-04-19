@@ -48,10 +48,10 @@ export type LegacyVerifyRequest = Request & {
   addresses: string[];
   chain: string;
   chosenContract: number;
-  contextVariables?: {
+  /* contextVariables?: {
     abiEncodedConstructorArguments?: string;
     msgSender?: string;
-  };
+  }; */
 };
 
 type PathBuffer = {
@@ -159,10 +159,10 @@ export type ContractMeta = {
   name?: string;
   address?: string;
   chainId?: string;
-  contextVariables?: {
+  /* contextVariables?: {
     abiEncodedConstructorArguments?: string;
     msgSender?: string;
-  };
+  }; */
   creatorTxHash?: string;
   status?: Status;
   statusMessage?: string;
@@ -389,8 +389,12 @@ export const verifyContractsInSession = async (
       continue;
     }
 
-    const { address, chainId, contract, contextVariables, creatorTxHash } =
-      contractWrapper;
+    const {
+      address,
+      chainId,
+      contract,
+      /* contextVariables, */ creatorTxHash,
+    } = contractWrapper;
 
     // The session saves the CheckedContract as a simple object, so we need to reinstantiate it
     const checkedContract = new CheckedContract(
@@ -413,7 +417,7 @@ export const verifyContractsInSession = async (
           checkedContract,
           chainId as string,
           address as string,
-          contextVariables,
+          /* contextVariables, */
           creatorTxHash
         );
         // Send to verification again with all source files.
@@ -432,8 +436,8 @@ export const verifyContractsInSession = async (
           const tempMatch = await verificationService.verifyDeployed(
             contractWithAllSources,
             chainId as string,
-            address as string,
-            contextVariables
+            address as string
+            /* contextVariables */
           );
           if (
             tempMatch.status === "perfect" ||

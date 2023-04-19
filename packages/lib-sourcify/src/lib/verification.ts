@@ -1,6 +1,6 @@
 import { CheckedContract } from './CheckedContract';
 import {
-  ContextVariables,
+  /* ContextVariables, */
   Create2Args,
   ImmutableReferences,
   Match,
@@ -15,12 +15,14 @@ import {
   decode as bytecodeDecode,
   splitAuxdata,
 } from '@ethereum-sourcify/bytecode-utils';
+/* 
 import { EVM } from '@ethereumjs/evm';
 import { EEI } from '@ethereumjs/vm';
 import { Address } from '@ethereumjs/util';
 import { Common } from '@ethereumjs/common';
 import { DefaultStateManager } from '@ethereumjs/statemanager';
 import { Blockchain } from '@ethereumjs/blockchain';
+*/
 import { hexZeroPad, isHexString } from '@ethersproject/bytes';
 import { BigNumber } from '@ethersproject/bignumber';
 import { getAddress, getContractAddress } from '@ethersproject/address';
@@ -32,7 +34,7 @@ export async function verifyDeployed(
   checkedContract: CheckedContract,
   sourcifyChain: SourcifyChain,
   address: string,
-  contextVariables?: ContextVariables,
+  /* _contextVariables?: ContextVariables, */
   creatorTxHash?: string
 ): Promise<Match> {
   const match: Match = {
@@ -78,6 +80,7 @@ export async function verifyDeployed(
   }
 
   // Try to match with simulating the creation bytecode
+  /* 
   await matchWithSimulation(
     match,
     recompiled.creationBytecode,
@@ -107,6 +110,7 @@ export async function verifyDeployed(
       }
     );
   }
+  */
 
   // Try to match with creationTx, if available
   if (creatorTxHash) {
@@ -270,6 +274,7 @@ export function matchWithDeployedBytecode(
   }
 }
 
+/*
 export async function matchWithSimulation(
   match: Match,
   recompiledCreaionBytecode: string,
@@ -311,7 +316,7 @@ export async function matchWithSimulation(
     data: initcode,
     gasLimit: BigInt(0xffffffffff),
     // prettier vs. eslint indentation conflict here
-    /* eslint-disable indent */
+    // eslint-disable indent
     caller: msgSender
       ? new Address(
           Buffer.from(
@@ -320,7 +325,7 @@ export async function matchWithSimulation(
           )
         )
       : undefined,
-    /* eslint-enable indent */
+    // eslint-disable indent
   });
   const simulationDeployedBytecode =
     '0x' + result.execResult.returnValue.toString('hex');
@@ -330,7 +335,9 @@ export async function matchWithSimulation(
     simulationDeployedBytecode,
     deployedBytecode
   );
-}
+} 
+*/
+
 /**
  * Matches the contract via the transaction that created the contract, if that tx is known.
  * Checks if the tx.input matches the recompiled creation bytecode. Double checks that the contract address matches the address being verified.
@@ -476,21 +483,21 @@ export function addLibraryAddresses(
   replaced: string;
   libraryMap: StringMap;
 } {
-  const PLACEHOLDER_START = '__$';
+  const PLACEHOLDER_START = '__';
   const PLACEHOLDER_LENGTH = 40;
 
   const libraryMap: StringMap = {};
 
   let index = template.indexOf(PLACEHOLDER_START);
-  for (; index !== -1; index = template.indexOf(PLACEHOLDER_START)) {
+  while (index !== -1) {
     const placeholder = template.slice(index, index + PLACEHOLDER_LENGTH);
     const address = real.slice(index, index + PLACEHOLDER_LENGTH);
     libraryMap[placeholder] = address;
-    const regexCompatiblePlaceholder = placeholder
-      .replace('__$', '__\\$')
-      .replace('$__', '\\$__');
-    const regex = RegExp(regexCompatiblePlaceholder, 'g');
-    template = template.replace(regex, address);
+
+    // Replace regex with simple string replacement
+    template = template.split(placeholder).join(address);
+
+    index = template.indexOf(PLACEHOLDER_START);
   }
 
   return {
