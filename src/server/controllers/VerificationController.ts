@@ -233,6 +233,73 @@ export default class VerificationController
     }
   };
 
+  private verifySolcJsonEndpoint = async (req: Request, res: Response) => {
+    validateRequest(req);
+    const inputFiles = extractFiles(req, true);
+    if (!inputFiles)
+      throw new ValidationError([{ param: "files", msg: "No files found" }]);
+    if (inputFiles.length !== 1)
+      throw new BadRequestError(
+        "Only one Solidity JSON Input file at a time is allowed"
+      );
+
+    let solcJson;
+    try {
+      solcJson = JSON.parse(inputFiles[0].buffer.toString());
+    } catch (error: any) {
+      throw new BadRequestError(
+        `Couldn't parse JSON ${inputFiles[0].path}. Make sure the contents of the file are syntaxed correctly.`
+      );
+    }
+    const compilerVersion = req.body.compilerVersion;
+    const contractName = req.body.contractName;
+    const chain = req.body.chain;
+    const address = req.body.address;
+
+    const metadataAndSourcesPathBuffers =
+      await getAllMetadataAndSourcesFromSolcJson(solcJson, compilerVersion);
+
+    const checkedContracts = await checkFiles(metadataAndSourcesPathBuffers);
+    const contractToVerify = checkedContracts.find(
+      (c) => c.name === contractName
+    );
+    if (!contractToVerify) {
+      throw new BadRequestError(
+        `Couldn't find contract ${contractName} in the provided Solidity JSON Input file.`
+      );
+    }
+
+    const match = await this.verificationService.verifyDeployed(
+      contractToVerify,
+      chain,
+      address,
+      req.body.contextVariables,
+      req.body.creatorTxHash
+    );
+    // Send to verification again with all source files.
+    if (match.status === "extra-file-input-bug") {
+      const contractWithAllSources = await useAllSources(
+        contractToVerify,
+        metadataAndSourcesPathBuffers
+      );
+      const tempMatch = await this.verificationService.verifyDeployed(
+        contractWithAllSources,
+        chain,
+        address, // Due to the old API taking an array of addresses.
+        req.body.contextVariables,
+        req.body.creatorTxHash
+      );
+      if (tempMatch.status === "perfect") {
+        await this.repositoryService.storeMatch(contractToVerify, tempMatch);
+        return res.send({ result: [tempMatch] });
+      }
+    }
+    if (match.status) {
+      await this.repositoryService.storeMatch(contractToVerify, match);
+    }
+    return res.send({ result: [match] }); // array is an old expected behavior (e.g. by frontend)
+  };
+
   private restartSessionEndpoint = async (req: Request, res: Response) => {
     req.session.destroy((error: Error) => {
       let msg = "";
@@ -614,6 +681,48 @@ export default class VerificationController
           (creatorTxHash, { req }) => (req.body.creatorTxHash = creatorTxHash)
         ),
       this.safeHandler(this.legacyVerifyEndpoint)
+    );
+
+    this.router.route(["/verify/solc-json"]).post(
+      body("address")
+        .exists()
+        .bail()
+        .custom(
+          (address, { req }) => (req.addresses = validateAddresses(address))
+        ),
+      body("chain")
+        .exists()
+        .bail()
+        .custom((chain, { req }) => (req.chain = checkChainId(chain))),
+      body("compilerVersion").exists().bail(),
+      body("contractName").exists().bail(),
+      body("contextVariables.msgSender").optional(),
+      body("contextVariables.abiEncodedConstructorArguments").optional(),
+      // Handle non-json multipart/form-data requests.
+      body("abiEncodedConstructorArguments")
+        .optional()
+        .custom(
+          (abiEncodedConstructorArguments, { req }) =>
+            (req.body.contextVariables = {
+              abiEncodedConstructorArguments,
+              ...req.body.contextVariables,
+            })
+        ),
+      body("msgSender")
+        .optional()
+        .custom(
+          (msgSender, { req }) =>
+            (req.body.contextVariables = {
+              msgSender,
+              ...req.body.contextVariables,
+            })
+        ),
+      body("creatorTxHash")
+        .optional()
+        .custom(
+          (creatorTxHash, { req }) => (req.body.creatorTxHash = creatorTxHash)
+        ),
+      this.safeHandler(this.verifySolcJsonEndpoint)
     );
 
     // Session APIs with session cookies require non "*" CORS
