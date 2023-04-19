@@ -773,7 +773,8 @@ describe("Server", function () {
         .post("/verify/solc-json")
         .attach("files", solcJsonBuffer)
         .field("address", address)
-        .field("chain", defaultContractChain);
+        .field("chain", defaultContractChain)
+        .field("contractName", "Storage");
 
       assertValidationError(null, res, "compilerVersion");
     });
