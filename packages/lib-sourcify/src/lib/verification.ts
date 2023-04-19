@@ -62,6 +62,7 @@ export async function verifyDeployed(
   if (match.status) return match;
 
   // Try to match with simulating the creation bytecode
+  /* 
   await matchWithSimulation(
     match,
     recompiled.creationBytecode,
@@ -74,6 +75,7 @@ export async function verifyDeployed(
     match.contextVariables = contextVariables;
     return match;
   }
+  */
 
   // Try to match with creationTx, if available
   if (creatorTxHash) {
@@ -193,6 +195,7 @@ export function matchWithDeployedBytecode(
   }
 }
 
+/*
 export async function matchWithSimulation(
   match: Match,
   recompiledCreaionBytecode: string,
@@ -234,7 +237,7 @@ export async function matchWithSimulation(
     data: initcode,
     gasLimit: BigInt(0xffffffffff),
     // prettier vs. eslint indentation conflict here
-    /* eslint-disable indent */
+    // eslint-disable indent
     caller: msgSender
       ? new Address(
           Buffer.from(
@@ -243,7 +246,7 @@ export async function matchWithSimulation(
           )
         )
       : undefined,
-    /* eslint-enable indent */
+    // eslint-disable indent
   });
   const simulationDeployedBytecode =
     '0x' + result.execResult.returnValue.toString('hex');
@@ -253,7 +256,9 @@ export async function matchWithSimulation(
     simulationDeployedBytecode,
     deployedBytecode
   );
-}
+} 
+*/
+
 /**
  * Matches the contract via the transaction that created the contract, if that tx is known.
  * Checks if the tx.input matches the recompiled creation bytecode. Double checks that the contract address matches the address being verified.

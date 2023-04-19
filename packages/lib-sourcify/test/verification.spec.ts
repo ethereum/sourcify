@@ -16,7 +16,7 @@ import { expect } from 'chai';
 import {
   calculateCreate2Address,
   getBytecode,
-  matchWithSimulation,
+  /* matchWithSimulation, */
   matchWithCreationTx,
   replaceImmutableReferences,
   verifyCreate2,
@@ -377,6 +377,7 @@ describe('lib-sourcify tests', () => {
       expect(replacedBytecode).equals(recompiledDeployedBytecode);
     });
 
+    /* 
     it('should matchWithSimulation', async () => {
       const childFolderPath = path.join(
         __dirname,
@@ -436,6 +437,7 @@ describe('lib-sourcify tests', () => {
 
       expectMatch(match, 'perfect', childAddress);
     });
+    */
 
     it('should fail to matchWithCreationTx with wrong creationTxHash', async () => {
       const contractFolderPath = path.join(
