@@ -132,7 +132,7 @@ export default class VerificationController
         contract,
         req.body.chain,
         req.addresses[0], // Due to the old API taking an array of addresses.
-        req.body.contextVariables,
+        /* req.body.contextVariables, */
         req.body.creatorTxHash
       );
       // Send to verification again with all source files.
@@ -145,7 +145,7 @@ export default class VerificationController
           contractWithAllSources,
           req.body.chain,
           req.addresses[0], // Due to the old API taking an array of addresses.
-          req.body.contextVariables,
+          /* req.body.contextVariables, */
           req.body.creatorTxHash
         );
         if (tempMatch.status === "perfect") {
@@ -231,7 +231,7 @@ export default class VerificationController
       if (contractWrapper) {
         contractWrapper.address = receivedContract.address;
         contractWrapper.chainId = receivedContract.chainId;
-        contractWrapper.contextVariables = receivedContract.contextVariables;
+        /* contractWrapper.contextVariables = receivedContract.contextVariables; */
         contractWrapper.creatorTxHash = receivedContract.creatorTxHash;
         if (isVerifiable(contractWrapper)) {
           verifiable[id] = contractWrapper;
@@ -550,10 +550,10 @@ export default class VerificationController
         .exists()
         .bail()
         .custom((chain, { req }) => (req.chain = checkChainId(chain))),
-      body("contextVariables.msgSender").optional(),
-      body("contextVariables.abiEncodedConstructorArguments").optional(),
+      /* body("contextVariables.msgSender").optional(),
+      body("contextVariables.abiEncodedConstructorArguments").optional(), */
       // Handle non-json multipart/form-data requests.
-      body("abiEncodedConstructorArguments")
+      /* body("abiEncodedConstructorArguments")
         .optional()
         .custom(
           (abiEncodedConstructorArguments, { req }) =>
@@ -570,7 +570,7 @@ export default class VerificationController
               msgSender,
               ...req.body.contextVariables,
             })
-        ),
+        ), */
       body("creatorTxHash")
         .optional()
         .custom(

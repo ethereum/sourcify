@@ -1,6 +1,6 @@
 import { CheckedContract } from './CheckedContract';
 import {
-  ContextVariables,
+  /* ContextVariables, */
   Create2Args,
   ImmutableReferences,
   Match,
@@ -14,12 +14,14 @@ import {
   decode as bytecodeDecode,
   splitAuxdata,
 } from '@ethereum-sourcify/bytecode-utils';
+/* 
 import { EVM } from '@ethereumjs/evm';
 import { EEI } from '@ethereumjs/vm';
 import { Address } from '@ethereumjs/util';
 import { Common } from '@ethereumjs/common';
 import { DefaultStateManager } from '@ethereumjs/statemanager';
 import { Blockchain } from '@ethereumjs/blockchain';
+*/
 import { hexZeroPad, isHexString } from '@ethersproject/bytes';
 import { BigNumber } from '@ethersproject/bignumber';
 import { getAddress, getContractAddress } from '@ethersproject/address';
@@ -31,7 +33,7 @@ export async function verifyDeployed(
   checkedContract: CheckedContract,
   sourcifyChain: SourcifyChain,
   address: string,
-  contextVariables?: ContextVariables,
+  /* _contextVariables?: ContextVariables, */
   creatorTxHash?: string
 ): Promise<Match> {
   const match: Match = {

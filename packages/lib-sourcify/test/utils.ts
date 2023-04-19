@@ -10,7 +10,11 @@
 import path from 'path';
 import Web3 from 'web3';
 import fs from 'fs';
-import { ContextVariables, Match, SourcifyChain, verifyDeployed } from '../src';
+import {
+  /* ContextVariables, */ Match,
+  SourcifyChain,
+  verifyDeployed,
+} from '../src';
 import { checkFiles } from '../src';
 import { expect } from 'chai';
 
@@ -76,7 +80,7 @@ export const checkAndVerifyDeployed = async (
   contractFolderPath: string,
   sourcifyChain: SourcifyChain,
   address: string,
-  contextVariables?: ContextVariables,
+  /* contextVariables?: ContextVariables, */
   creatorTxHash?: string
 ) => {
   const checkedContracts = await checkFilesFromContractFolder(
@@ -87,7 +91,7 @@ export const checkAndVerifyDeployed = async (
     checkedContracts[0],
     sourcifyChain,
     address,
-    contextVariables,
+    /* contextVariables, */
     creatorTxHash
   );
   return match;
