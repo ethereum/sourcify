@@ -699,6 +699,12 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: "https://goerli.basescan.org/" + ETHERSCAN_SUFFIX,
     txRegex: ETHERSCAN_REGEX,
   },
+  "999": {
+    supported: true,
+    monitored: false,
+    txRegex: ETHERSCAN_REGEX,
+    rpc: ["https://gwan-ssl.wandevs.org:46891"],
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
@@ -765,8 +771,8 @@ export function getSortedChainsArray(
       getPrimarySortKey(a) > getPrimarySortKey(b)
         ? 1
         : getPrimarySortKey(b) > getPrimarySortKey(a)
-        ? -1
-        : 0
+          ? -1
+          : 0
     );
 
   const sortedChains = etherumChains.concat(otherChains);
