@@ -5,11 +5,7 @@ import { VERIFY_FROM_ETHERSCAN } from "../../constants";
 import { SessionResponse } from "../../types";
 import { Context } from "../../Context";
 import { isAddress } from "@ethersproject/address";
-import {
-  SelectSearchProps,
-  SelectedOption,
-  SelectedOptionValue,
-} from "react-select-search";
+import { SelectSearchProps, SelectedOptionValue } from "react-select-search";
 
 type EtherscanInputProps = {
   fetchAndUpdate: (

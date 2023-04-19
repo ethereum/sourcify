@@ -64,6 +64,7 @@ const SolcJsonInput = ({
       body: formData,
     }).finally(() => {
       setIsLoading(false);
+      setError("");
     });
   }, [chosenCompilerVersion, selectedFile, setIsLoading, fetchAndUpdate]);
 
@@ -86,7 +87,7 @@ const SolcJsonInput = ({
         setIsLoading(false);
         setError("Failed to fetch compiler versions");
       });
-  }, []);
+  }, [setIsLoading]);
 
   const returnCompilerOptions = (): { name: string; value: string }[] => {
     if (useNightlies) {
@@ -132,6 +133,7 @@ const SolcJsonInput = ({
         placeholder="Choose a compiler version"
       />
       <input type="file" onChange={handleFileChange} className="mt-2" />
+      <div className="text-red-400">{error}</div>
     </div>
   );
 };
