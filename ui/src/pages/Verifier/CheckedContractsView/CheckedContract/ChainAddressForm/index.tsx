@@ -21,9 +21,9 @@ import { checkAllByAddresses } from "../../../../../utils/api";
 import Message from "./Message";
 import { HiChevronDown } from "react-icons/hi";
 import ReactTooltip from "react-tooltip";
-import Constructorarguments from "../../../../../components/ConstructorArguments";
-import InputToggle from "../../../../../components/InputToggle";
 import { SelectedOptionValue } from "react-select-search";
+/* import Constructorarguments from "../../../../../components/ConstructorArguments";
+import InputToggle from "../../../../../components/InputToggle"; */
 
 type ChainAddressFormProps = {
   customStatus: string;
@@ -46,16 +46,16 @@ const ChainAddressForm = ({
   const { sourcifyChains } = useContext(Context);
   const verifyButtonRef = useRef<HTMLButtonElement>(null);
   const [isMoreFieldsOpen, setIsMoreFieldsOpen] = useState<boolean>(false);
-  const [abiEncodedConstructorArguments, setAbiEncodedConstructorArguments] =
+  /* const [abiEncodedConstructorArguments, setAbiEncodedConstructorArguments] =
     useState<string>("");
-  const [msgSender, setMsgSender] = useState<string>("");
-  const [isInvalidMsgSender, setIsInvalidMsgSender] = useState<boolean>(false);
+  const [msgSender, setMsgSender] = useState<string>(""); */
+  /* const [isInvalidMsgSender, setIsInvalidMsgSender] = useState<boolean>(false); */
   const [creatorTxHash, setCreatorTxHash] = useState<string>("");
   const [isInvalidCreatorTxHash, setIsInvalidCreatorTxHash] =
     useState<boolean>(false);
-  const [showRawAbiInput, setShowRawAbiInput] = useState(false);
+  /* const [showRawAbiInput, setShowRawAbiInput] = useState(false);
   const [isInvalidConstructorArguments, setIsInvalidConstructorArguments] =
-    useState(false);
+    useState(false); */
 
   useEffect(() => {
     if (checkedContract.address) {
@@ -96,7 +96,7 @@ const ChainAddressForm = ({
     verifyButtonRef.current?.focus();
   };
 
-  const handleMsgSenderChange: ChangeEventHandler<HTMLInputElement> = (e) => {
+  /* const handleMsgSenderChange: ChangeEventHandler<HTMLInputElement> = (e) => {
     const tempAddr = e.target.value;
     setMsgSender(tempAddr);
     const isValid = isAddress(tempAddr);
@@ -105,7 +105,7 @@ const ChainAddressForm = ({
       return setIsInvalidMsgSender(true);
     }
     setIsInvalidMsgSender(false);
-  };
+  }; */
 
   const handleCreatorTxHashChange: ChangeEventHandler<HTMLInputElement> = (
     e
@@ -120,16 +120,17 @@ const ChainAddressForm = ({
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
-    if (!address || !chainId || isInvalidAddress || isInvalidMsgSender) return;
+    if (!address || !chainId || isInvalidAddress /* || isInvalidMsgSender */)
+      return;
     setIsLoading(true);
     verifyCheckedContract({
       verificationId: checkedContract.verificationId || "",
       address: address || "",
       chainId: chainId,
-      contextVariables: {
+      /* contextVariables: {
         abiEncodedConstructorArguments,
         msgSender,
-      },
+      }, */
       creatorTxHash,
     }).finally(() => setIsLoading(false));
   };
@@ -224,13 +225,15 @@ const ChainAddressForm = ({
               className="mb-2"
             />
           </div>
+          {/* Inputs below are used for verification with simulation
+           
           <div className="text-sm text-gray-600 mb-4 mt-6">
             Inputs below will be used to simulate the creation of the contract.
             This helps us verify contracts created by a factory contract. <br />
             If there are other variables your contract makes use of during
             creation, please let us know.
           </div>
-          {/* Constructor arguments */}
+          
           {checkedContract?.constructorArgumentsArray &&
             checkedContract?.constructorArgumentsArray.length > 0 && (
               <div>
@@ -256,7 +259,7 @@ const ChainAddressForm = ({
                 />
               </div>
             )}
-          {/* msg.sender */}
+          
           <div className="mt-2">
             <div className="flex justify-between">
               <ReactTooltip
@@ -289,6 +292,7 @@ const ChainAddressForm = ({
               className="mb-2"
             />
           </div>
+           */}
         </div>
 
         <button
@@ -296,11 +300,9 @@ const ChainAddressForm = ({
           type="submit"
           className="mt-4 py-2 px-4 w-full bg-ceruleanBlue-500 hover:bg-ceruleanBlue-130 disabled:hover:bg-ceruleanBlue-500 focus:ring-ceruleanBlue-300 focus:ring-offset-ceruleanBlue-100 text-white transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-default "
           disabled={
-            !address ||
-            !chainId ||
-            isInvalidAddress ||
+            !address || !chainId || isInvalidAddress /*  ||
             isInvalidMsgSender ||
-            isInvalidConstructorArguments
+            isInvalidConstructorArguments */
           }
         >
           Verify

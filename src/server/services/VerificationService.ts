@@ -3,7 +3,7 @@ import {
   CheckedContract,
   SourcifyChainMap,
   Match,
-  ContextVariables,
+  /* ContextVariables, */
 } from "@ethereum-sourcify/lib-sourcify";
 import { SourcifyEventManager } from "../../common/SourcifyEventManager/SourcifyEventManager";
 import { getCreatorTx } from "./VerificationService-util";
@@ -13,7 +13,7 @@ export interface IVerificationService {
     checkedContract: CheckedContract,
     chainId: string,
     address: string,
-    contextVariables?: ContextVariables,
+    /* contextVariables?: ContextVariables, */
     creatorTxHash?: string
   ): Promise<Match>;
 }
@@ -28,7 +28,7 @@ export default class VerificationService implements IVerificationService {
     checkedContract: CheckedContract,
     chainId: string,
     address: string,
-    contextVariables?: ContextVariables,
+    /* contextVariables?: ContextVariables, */
     creatorTxHash?: string
   ): Promise<Match> {
     const sourcifyChain = this.supportedChainsMap[chainId];
@@ -38,7 +38,7 @@ export default class VerificationService implements IVerificationService {
         checkedContract,
         sourcifyChain,
         address,
-        contextVariables,
+        /* contextVariables, */
         creatorTxHash
       );
       return match;
@@ -59,7 +59,7 @@ export default class VerificationService implements IVerificationService {
             checkedContract,
             sourcifyChain,
             address,
-            contextVariables,
+            /* contextVariables, */
             foundCreatorTxHash
           );
           return match;
