@@ -82,7 +82,7 @@ export interface Match {
   abiEncodedConstructorArguments?: string;
   create2Args?: Create2Args;
   libraryMap?: StringMap;
-  contextVariables?: ContextVariables;
+  /* contextVariables?: ContextVariables; */
   creatorTxHash?: string;
   immutableReferences?: ImmutableReferences;
 }
@@ -135,10 +135,10 @@ type Currency = {
   decimals: number;
 };
 
-export type ContextVariables = {
+/* export type ContextVariables = {
   abiEncodedConstructorArguments?: string;
   msgSender?: string;
-};
+}; */
 
 interface File {
   keccak256?: string;

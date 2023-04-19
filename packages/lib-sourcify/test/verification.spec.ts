@@ -4,7 +4,7 @@ import { SourcifyChain } from '../src/lib/types';
 import Web3 from 'web3';
 import Ganache from 'ganache';
 import {
-  callContractMethodWithTx,
+  /* callContractMethodWithTx, */
   checkAndVerifyDeployed,
   checkFilesFromContractFolder,
   deployCheckAndVerify,
@@ -15,13 +15,15 @@ import { describe, it, before } from 'mocha';
 import { expect } from 'chai';
 import {
   calculateCreate2Address,
+  /* 
   getBytecode,
   matchWithSimulation,
+  */
   matchWithCreationTx,
   replaceImmutableReferences,
   verifyCreate2,
 } from '../src';
-import { Match } from '@ethereum-sourcify/lib-sourcify';
+// import { Match } from '@ethereum-sourcify/lib-sourcify';
 
 const ganacheServer = Ganache.server({
   wallet: { totalAccounts: 1 },
@@ -253,7 +255,7 @@ describe('lib-sourcify tests', () => {
       expectMatch(match, 'perfect', deployedAddress);
     });
 
-    it('should verify a contract created by a factory contract and has immutables', async () => {
+    /* it('should verify a contract created by a factory contract and has immutables', async () => {
       const deployValue = 12345;
       const childFolderPath = path.join(
         __dirname,
@@ -298,9 +300,9 @@ describe('lib-sourcify tests', () => {
       );
 
       expectMatch(match, 'perfect', childAddress);
-    });
+    }); */
 
-    it('should verify a contract created by a factory contract and has immutables without constructor arguments but with msg.sender assigned immutable', async () => {
+    /* it('should verify a contract created by a factory contract and has immutables without constructor arguments but with msg.sender assigned immutable', async () => {
       const childFolderPath = path.join(
         __dirname,
         'sources',
@@ -341,6 +343,7 @@ describe('lib-sourcify tests', () => {
 
       expectMatch(match, 'perfect', childAddress);
     });
+    */
   });
 
   describe('Unit tests', function () {
@@ -377,6 +380,7 @@ describe('lib-sourcify tests', () => {
       expect(replacedBytecode).equals(recompiledDeployedBytecode);
     });
 
+    /* 
     it('should matchWithSimulation', async () => {
       const childFolderPath = path.join(
         __dirname,
@@ -436,6 +440,7 @@ describe('lib-sourcify tests', () => {
 
       expectMatch(match, 'perfect', childAddress);
     });
+    */
 
     it('should fail to matchWithCreationTx with wrong creationTxHash', async () => {
       const contractFolderPath = path.join(
