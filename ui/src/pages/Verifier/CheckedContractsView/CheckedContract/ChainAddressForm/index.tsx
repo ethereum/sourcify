@@ -21,8 +21,8 @@ import { checkAllByAddresses } from "../../../../../utils/api";
 import Message from "./Message";
 import { HiChevronDown } from "react-icons/hi";
 import ReactTooltip from "react-tooltip";
-import Constructorarguments from "../../../../../components/ConstructorArguments";
-import InputToggle from "../../../../../components/InputToggle";
+/* import Constructorarguments from "../../../../../components/ConstructorArguments";
+import InputToggle from "../../../../../components/InputToggle"; */
 
 type ChainAddressFormProps = {
   customStatus: string;
@@ -48,7 +48,7 @@ const ChainAddressForm = ({
   /* const [abiEncodedConstructorArguments, setAbiEncodedConstructorArguments] =
     useState<string>("");
   const [msgSender, setMsgSender] = useState<string>(""); */
-  const [isInvalidMsgSender, setIsInvalidMsgSender] = useState<boolean>(false);
+  /* const [isInvalidMsgSender, setIsInvalidMsgSender] = useState<boolean>(false); */
   const [creatorTxHash, setCreatorTxHash] = useState<string>("");
   const [isInvalidCreatorTxHash, setIsInvalidCreatorTxHash] =
     useState<boolean>(false);
@@ -118,7 +118,8 @@ const ChainAddressForm = ({
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
-    if (!address || !chainId || isInvalidAddress || isInvalidMsgSender) return;
+    if (!address || !chainId || isInvalidAddress /* || isInvalidMsgSender */)
+      return;
     setIsLoading(true);
     verifyCheckedContract({
       verificationId: checkedContract.verificationId || "",
