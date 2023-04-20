@@ -696,27 +696,27 @@ export default class VerificationController
         .custom((chain, { req }) => (req.chain = checkChainId(chain))),
       body("compilerVersion").exists().bail(),
       body("contractName").exists().bail(),
-      body("contextVariables.msgSender").optional(),
-      body("contextVariables.abiEncodedConstructorArguments").optional(),
+      // body("contextVariables.msgSender").optional(),
+      // body("contextVariables.abiEncodedConstructorArguments").optional(),
       // Handle non-json multipart/form-data requests.
-      body("abiEncodedConstructorArguments")
-        .optional()
-        .custom(
-          (abiEncodedConstructorArguments, { req }) =>
-            (req.body.contextVariables = {
-              abiEncodedConstructorArguments,
-              ...req.body.contextVariables,
-            })
-        ),
-      body("msgSender")
-        .optional()
-        .custom(
-          (msgSender, { req }) =>
-            (req.body.contextVariables = {
-              msgSender,
-              ...req.body.contextVariables,
-            })
-        ),
+      // body("abiEncodedConstructorArguments")
+      //   .optional()
+      //   .custom(
+      //     (abiEncodedConstructorArguments, { req }) =>
+      //       (req.body.contextVariables = {
+      //         abiEncodedConstructorArguments,
+      //         ...req.body.contextVariables,
+      //       })
+      //   ),
+      // body("msgSender")
+      //   .optional()
+      //   .custom(
+      //     (msgSender, { req }) =>
+      //       (req.body.contextVariables = {
+      //         msgSender,
+      //         ...req.body.contextVariables,
+      //       })
+      //   ),
       body("creatorTxHash")
         .optional()
         .custom(
