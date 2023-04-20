@@ -4,6 +4,7 @@ import {
   Create2Args,
   ImmutableReferences,
   Match,
+  RecompilationResult,
   SourcifyChain,
   StringMap,
 } from './types';
@@ -61,7 +62,22 @@ export async function verifyDeployed(
     deployedBytecode,
     recompiled.immutableReferences
   );
-  if (match.status) return match;
+  if (isPerfectMatch(match)) {
+    return match;
+  } else if (isPartialMatch(match)) {
+    return await tryToFindOriginalMetadataAndMatch(
+      checkedContract,
+      deployedBytecode,
+      match,
+      async (match, recompiled) => {
+        matchWithDeployedBytecode(
+          match,
+          recompiled.deployedBytecode,
+          deployedBytecode
+        );
+      }
+    );
+  }
 
   // Try to match with simulating the creation bytecode
   /* 
@@ -73,9 +89,26 @@ export async function verifyDeployed(
     sourcifyChain.chainId.toString(),
     contextVariables
   );
-  if (match.status) {
-    match.contextVariables = contextVariables;
+  if (isPerfectMatch(match)) {
+    (match as Match).contextVariables = contextVariables;
     return match;
+  } else if (isPartialMatch(match)) {
+    return await tryToFindOriginalMetadataAndMatch(
+      checkedContract,
+      deployedBytecode,
+      match,
+      async (match, recompiled) => {
+        await matchWithSimulation(
+          match,
+          recompiled.creationBytecode,
+          deployedBytecode,
+          checkedContract.metadata.settings.evmVersion,
+          sourcifyChain.chainId.toString(),
+          contextVariables
+        );
+        match.contextVariables = contextVariables;
+      }
+    );
   }
   */
 
@@ -88,7 +121,24 @@ export async function verifyDeployed(
       address,
       creatorTxHash
     );
-    if (match.status) return match;
+    if (isPerfectMatch(match)) {
+      return match;
+    } else if (isPartialMatch(match)) {
+      return await tryToFindOriginalMetadataAndMatch(
+        checkedContract,
+        deployedBytecode,
+        match,
+        async (match, recompiled) => {
+          await matchWithCreationTx(
+            match,
+            recompiled.creationBytecode,
+            sourcifyChain,
+            address,
+            creatorTxHash
+          );
+        }
+      );
+    }
   }
 
   // Case when extra unused files in compiler input cause different bytecode (https://github.com/ethereum/sourcify/issues/618)
@@ -103,14 +153,41 @@ export async function verifyDeployed(
     const [, recompiledAuxdata] = splitAuxdata(recompiled.deployedBytecode);
     // Metadata hashes match but bytecodes don't match.
     if (deployedAuxdata === recompiledAuxdata) {
-      match.status = 'extra-file-input-bug';
-      match.message =
+      (match as Match).status = 'extra-file-input-bug';
+      (match as Match).message =
         'It seems your contract has either Solidity v0.6.12 or v0.7.0, and the metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618';
       return match;
     }
   }
 
   throw Error("The deployed and recompiled bytecode don't match.");
+}
+
+async function tryToFindOriginalMetadataAndMatch(
+  checkedContract: CheckedContract,
+  deployedBytecode: string,
+  match: Match,
+  matchFunction: (
+    match: Match,
+    recompilationResult: RecompilationResult
+  ) => Promise<void>
+): Promise<Match> {
+  const checkedContractWithOriginalMetadata =
+    await checkedContract.tryToFindOriginalMetadata(deployedBytecode);
+  if (checkedContractWithOriginalMetadata) {
+    const matchWithOriginalMetadata = { ...match };
+    const recompiled = await checkedContractWithOriginalMetadata.recompile();
+
+    await matchFunction(matchWithOriginalMetadata, recompiled);
+    if (isPerfectMatch(matchWithOriginalMetadata)) {
+      checkedContract.initSolcJsonInput(
+        checkedContractWithOriginalMetadata.metadata,
+        checkedContractWithOriginalMetadata.solidity
+      );
+      return matchWithOriginalMetadata;
+    }
+  }
+  return match;
 }
 
 export async function verifyCreate2(
@@ -531,4 +608,12 @@ function doesContainMetadataHash(bytecode: string) {
     containsMetadata = false;
   }
   return containsMetadata;
+}
+
+function isPerfectMatch(match: Match): match is Match {
+  return match.status === 'perfect';
+}
+
+function isPartialMatch(match: Match): match is Match {
+  return match.status === 'partial';
 }

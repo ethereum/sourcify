@@ -27,7 +27,15 @@ export interface MissingSources {
   };
 }
 
-// @TODO: Fully define metadata
+export interface MetadataSources {
+  [index: string]: {
+    keccak256: string;
+    content?: string;
+    urls?: string[];
+    license?: string;
+  };
+}
+
 export interface Metadata {
   compiler: {
     version: string;
@@ -48,9 +56,9 @@ export interface Metadata {
       enabled: boolean;
       runs: number;
     };
-    outputSelection: any;
+    outputSelection?: any;
   };
-  sources: any;
+  sources: MetadataSources;
 }
 
 // TODO: Fully define solcJsonInput

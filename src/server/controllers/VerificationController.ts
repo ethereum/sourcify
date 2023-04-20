@@ -38,6 +38,7 @@ import {
   Create2VerifyRequest,
   extractFilesFromJSON,
   SessionCreate2VerifyRequest,
+  getMetadataFromCompiler,
 } from "./VerificationController-util";
 import { body } from "express-validator";
 import {
@@ -309,9 +310,13 @@ export default class VerificationController
     const chain = req.body.chain as string;
     const address = req.body.address;
 
-    const { metadata, solcJsonInput } = await processRequestFromEtherscan(
-      chain,
-      address
+    const { compilerVersion, solcJsonInput, contractName } =
+      await processRequestFromEtherscan(chain, address);
+
+    const metadata = await getMetadataFromCompiler(
+      compilerVersion,
+      solcJsonInput,
+      contractName
     );
 
     const mappedSources = getMappedSourcesFromJsonInput(solcJsonInput);
@@ -338,9 +343,13 @@ export default class VerificationController
     const chain = req.body.chainId as string;
     const address = req.body.address;
 
-    const { metadata, solcJsonInput } = await processRequestFromEtherscan(
-      chain,
-      address
+    const { compilerVersion, solcJsonInput, contractName } =
+      await processRequestFromEtherscan(chain, address);
+
+    const metadata = await getMetadataFromCompiler(
+      compilerVersion,
+      solcJsonInput,
+      contractName
     );
 
     const pathContents: PathContent[] = Object.keys(solcJsonInput.sources).map(

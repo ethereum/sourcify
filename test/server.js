@@ -707,7 +707,7 @@ describe("Server", function () {
       );
     });
 
-    it("should verify a contract with immutables and save creator-tx-hash.txt", async () => {
+    it("should verify a contract with immutables and save immutable-references.json", async () => {
       const artifact = require("./testcontracts/WithImmutables/artifact.json");
       const [address] = await deployFromAbiAndBytecodeForCreatorTxHash(
         localWeb3Provider,

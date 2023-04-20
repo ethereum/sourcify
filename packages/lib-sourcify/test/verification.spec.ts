@@ -344,6 +344,25 @@ describe('lib-sourcify tests', () => {
       expectMatch(match, 'perfect', childAddress);
     });
     */
+    it('should fully verify a contract which is originally compiled and deployed with Unix style End Of Line (EOL) source code, but being verified with Windows style (CRLF) EOL source code', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        'sources',
+        'WrongMetadata'
+      );
+      const [deployedAddress] = await deployFromAbiAndBytecode(
+        localWeb3Provider,
+        contractFolderPath,
+        accounts[0]
+      );
+
+      const match = await checkAndVerifyDeployed(
+        contractFolderPath,
+        sourcifyChainGanache,
+        deployedAddress
+      );
+      expectMatch(match, 'perfect', deployedAddress);
+    });
   });
 
   describe('Unit tests', function () {
