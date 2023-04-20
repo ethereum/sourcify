@@ -700,6 +700,15 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: ETHERSCAN_REGEX,
   },
 };
+  "13381": {
+    // Phoenix Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://phoenixplorer.com/" + BLOCKSCOUT_SUFFIX,
+    rpc: ["https://rpc.phoenixplorer.com"],
+    txRegex: getBlockscoutRegex(),
+  },
 
 const sourcifyChainsMap: SourcifyChainMap = {};
 
