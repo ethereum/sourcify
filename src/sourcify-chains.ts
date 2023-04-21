@@ -699,6 +699,13 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: "https://goerli.basescan.org/" + ETHERSCAN_SUFFIX,
     txRegex: ETHERSCAN_REGEX,
   },
+  "7672": {
+    // The Root Network Porcini (Testnet)
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://explorer.rootnet.cloud/" + ETHERSCAN_SUFFIX,
+    txRegex: ETHERSCAN_REGEX,
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
