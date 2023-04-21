@@ -1,5 +1,5 @@
 import { isHexString } from "@ethersproject/bytes";
-import { isAddress } from "@ethersproject/address";
+import { getAddress } from "@ethersproject/address";
 import React, {
   ChangeEventHandler,
   FormEventHandler,
@@ -68,20 +68,27 @@ const ChainAddressForm = ({
 
   const handleAddressChange: ChangeEventHandler<HTMLInputElement> = (e) => {
     const tempAddr = e.target.value;
-    setAddress(tempAddr);
-    const isValid = isAddress(tempAddr);
-    if (!isValid) {
+    let checksummedAddress: string;
+    try {
+      // getAddress: returns the checksummed address only if you pass all lowercase
+      // if you pass a wrong checksum then in throws, so I'm converting the address
+      // to lowercase
+      checksummedAddress = getAddress(tempAddr.toLowerCase());
+      setAddress(checksummedAddress);
+      setIsInvalidAddress(false);
+    } catch (e) {
       setFoundMatches(undefined);
+      setAddress(tempAddr);
       return setIsInvalidAddress(true);
     }
-    setIsInvalidAddress(false);
+
     checkAllByAddresses(
-      tempAddr,
+      checksummedAddress,
       sourcifyChains.map((c) => c.chainId.toString()).join(",")
     ).then((res) => {
       // checkAllByAddresses inputs and outptus multiple addresses.
       const currentAddressMatches = res.find(
-        (match) => (match.address = tempAddr)
+        (match) => (match.address = checksummedAddress)
       );
       setFoundMatches(currentAddressMatches);
     });
