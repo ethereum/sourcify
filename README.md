@@ -28,3 +28,4 @@ For more details refer to [docs.sourcify.dev](https://docs.sourcify.dev/docs/int
 ## Adding a new chain
 
 If you'd like to add a new chain support to Sourcify please follow the [chain support instructions](https://docs.sourcify.dev/docs/chain-support/) in docs.
+sdfd
