@@ -27,7 +27,7 @@ export class EventManager<Events extends GenericEvents> {
         listener(event, ...(args as Array<any>))
       );
     }
-    return this.listeners[event].map((listener: any) =>
+    return this.listeners[event]?.map((listener: any) =>
       listener(...(args as Array<any>))
     );
   }

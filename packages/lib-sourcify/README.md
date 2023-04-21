@@ -51,7 +51,6 @@ export async function verifyDeployed(
   checkedContract: CheckedContract,
   sourcifyChain: SourcifyChain,
   address: string,
-  contextVariables?: ContextVariables,
   creatorTxHash?: string
 ): Promise<Match>;
 ```

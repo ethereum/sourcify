@@ -1,7 +1,7 @@
 // AnimateOnScroll
 import AOS from "aos";
 import "aos/dist/aos.css";
-import { useContext, useRef, useState } from "react";
+import { useContext, useRef, useState, RefObject } from "react";
 import { BsChevronCompactDown } from "react-icons/bs";
 import { HiCheckCircle } from "react-icons/hi";
 import { Link } from "react-router-dom";
@@ -91,6 +91,14 @@ const LandingPage = () => {
   const { sourcifyChains } = useContext(Context);
 
   const aboutRef = useRef<HTMLElement>(null);
+
+  const scrollIntoView = (ref: RefObject<HTMLElement>) => {
+    const el = ref?.current;
+    if (!el) {
+      return;
+    }
+    el.scrollIntoView({ behavior: "smooth" });
+  };
   return (
     <div>
       <div className="h-screen flex flex-col  px-8 md:px-12 lg:px-24 bg-gray-100 ">
@@ -193,9 +201,12 @@ const LandingPage = () => {
             </div>
           </div>
         </section>
-        <a className="my-4 flex justify-center" href="/#about">
+        <button
+          className="my-4 flex justify-center"
+          onClick={() => scrollIntoView(aboutRef)}
+        >
           <BsChevronCompactDown className="inline text-4xl animate-bounce text-gray-500" />
-        </a>
+        </button>
       </div>
 
       {/* About section */}

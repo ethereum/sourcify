@@ -15,6 +15,7 @@ import {
   useAllSources,
   useCompiler,
   JsonInput,
+  Metadata,
 } from "@ethereum-sourcify/lib-sourcify";
 import { checkChainId } from "../../sourcify-chains";
 import { validationResult } from "express-validator";
@@ -47,10 +48,10 @@ export type LegacyVerifyRequest = Request & {
   addresses: string[];
   chain: string;
   chosenContract: number;
-  contextVariables?: {
+  /* contextVariables?: {
     abiEncodedConstructorArguments?: string;
     msgSender?: string;
-  };
+  }; */
 };
 
 type PathBuffer = {
@@ -158,10 +159,10 @@ export type ContractMeta = {
   name?: string;
   address?: string;
   chainId?: string;
-  contextVariables?: {
+  /* contextVariables?: {
     abiEncodedConstructorArguments?: string;
     msgSender?: string;
-  };
+  }; */
   creatorTxHash?: string;
   status?: Status;
   statusMessage?: string;
@@ -388,8 +389,12 @@ export const verifyContractsInSession = async (
       continue;
     }
 
-    const { address, chainId, contract, contextVariables, creatorTxHash } =
-      contractWrapper;
+    const {
+      address,
+      chainId,
+      contract,
+      /* contextVariables, */ creatorTxHash,
+    } = contractWrapper;
 
     // The session saves the CheckedContract as a simple object, so we need to reinstantiate it
     const checkedContract = new CheckedContract(
@@ -412,7 +417,7 @@ export const verifyContractsInSession = async (
           checkedContract,
           chainId as string,
           address as string,
-          contextVariables,
+          /* contextVariables, */
           creatorTxHash
         );
         // Send to verification again with all source files.
@@ -431,8 +436,8 @@ export const verifyContractsInSession = async (
           const tempMatch = await verificationService.verifyDeployed(
             contractWithAllSources,
             chainId as string,
-            address as string,
-            contextVariables
+            address as string
+            /* contextVariables */
           );
           if (
             tempMatch.status === "perfect" ||
@@ -505,7 +510,7 @@ export const getSolcJsonInputFromEtherscanResult = (
     },
     outputSelection: {
       "*": {
-        "*": ["metadata"],
+        "*": ["metadata", "evm.deployedBytecode.object"],
       },
     },
     evmVersion:
@@ -567,12 +572,18 @@ export const processRequestFromEtherscan = async (
   // TODO: this is not used by lib-sourcify's useCompiler
   const contractName = contractResultJson.ContractName;
 
-  let solcJsonInput;
+  let solcJsonInput: JsonInput;
   // SourceCode can be the Solidity code if there is only one contract file, or the json object if there are multiple files
   if (isEtherscanSolcJsonInput(sourceCodeObject)) {
     solcJsonInput = parseSolcJsonInput(sourceCodeObject);
-    // Tell compiler to output metadata
-    solcJsonInput.settings.outputSelection["*"]["*"] = ["metadata"];
+
+    if (solcJsonInput?.settings) {
+      // Tell compiler to output metadata and bytecode
+      solcJsonInput.settings.outputSelection["*"]["*"] = [
+        "metadata",
+        "evm.deployedBytecode.object",
+      ];
+    }
   } else if (isEtherscanMultipleFilesObject(sourceCodeObject)) {
     solcJsonInput = getSolcJsonInputFromEtherscanResult(
       contractResultJson,
@@ -591,6 +602,24 @@ export const processRequestFromEtherscan = async (
     );
   }
 
+  if (!solcJsonInput) {
+    throw new BadRequestError(
+      "Sourcify cannot generate the solcJsonInput from Etherscan result"
+    );
+  }
+
+  return {
+    compilerVersion,
+    solcJsonInput,
+    contractName,
+  };
+};
+
+export const getMetadataFromCompiler = async (
+  compilerVersion: string,
+  solcJsonInput: JsonInput,
+  contractName: string
+): Promise<Metadata> => {
   const compilationResult = await useCompiler(compilerVersion, solcJsonInput);
 
   const contractPath = findContractPathFromContractName(
@@ -604,12 +633,9 @@ export const processRequestFromEtherscan = async (
     );
   }
 
-  return {
-    metadata: JSON.parse(
-      compilationResult.contracts[contractPath][contractName].metadata
-    ),
-    solcJsonInput,
-  };
+  return JSON.parse(
+    compilationResult.contracts[contractPath][contractName].metadata
+  );
 };
 
 export const getMappedSourcesFromJsonInput = (jsonInput: JsonInput) => {

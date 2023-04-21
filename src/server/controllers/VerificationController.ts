@@ -38,6 +38,7 @@ import {
   Create2VerifyRequest,
   extractFilesFromJSON,
   SessionCreate2VerifyRequest,
+  getMetadataFromCompiler,
 } from "./VerificationController-util";
 import { body } from "express-validator";
 import {
@@ -132,7 +133,7 @@ export default class VerificationController
         contract,
         req.body.chain,
         req.addresses[0], // Due to the old API taking an array of addresses.
-        req.body.contextVariables,
+        /* req.body.contextVariables, */
         req.body.creatorTxHash
       );
       // Send to verification again with all source files.
@@ -145,7 +146,7 @@ export default class VerificationController
           contractWithAllSources,
           req.body.chain,
           req.addresses[0], // Due to the old API taking an array of addresses.
-          req.body.contextVariables,
+          /* req.body.contextVariables, */
           req.body.creatorTxHash
         );
         if (tempMatch.status === "perfect") {
@@ -231,7 +232,7 @@ export default class VerificationController
       if (contractWrapper) {
         contractWrapper.address = receivedContract.address;
         contractWrapper.chainId = receivedContract.chainId;
-        contractWrapper.contextVariables = receivedContract.contextVariables;
+        /* contractWrapper.contextVariables = receivedContract.contextVariables; */
         contractWrapper.creatorTxHash = receivedContract.creatorTxHash;
         if (isVerifiable(contractWrapper)) {
           verifiable[id] = contractWrapper;
@@ -309,9 +310,13 @@ export default class VerificationController
     const chain = req.body.chain as string;
     const address = req.body.address;
 
-    const { metadata, solcJsonInput } = await processRequestFromEtherscan(
-      chain,
-      address
+    const { compilerVersion, solcJsonInput, contractName } =
+      await processRequestFromEtherscan(chain, address);
+
+    const metadata = await getMetadataFromCompiler(
+      compilerVersion,
+      solcJsonInput,
+      contractName
     );
 
     const mappedSources = getMappedSourcesFromJsonInput(solcJsonInput);
@@ -338,9 +343,13 @@ export default class VerificationController
     const chain = req.body.chainId as string;
     const address = req.body.address;
 
-    const { metadata, solcJsonInput } = await processRequestFromEtherscan(
-      chain,
-      address
+    const { compilerVersion, solcJsonInput, contractName } =
+      await processRequestFromEtherscan(chain, address);
+
+    const metadata = await getMetadataFromCompiler(
+      compilerVersion,
+      solcJsonInput,
+      contractName
     );
 
     const pathContents: PathContent[] = Object.keys(solcJsonInput.sources).map(
@@ -550,10 +559,10 @@ export default class VerificationController
         .exists()
         .bail()
         .custom((chain, { req }) => (req.chain = checkChainId(chain))),
-      body("contextVariables.msgSender").optional(),
-      body("contextVariables.abiEncodedConstructorArguments").optional(),
+      /* body("contextVariables.msgSender").optional(),
+      body("contextVariables.abiEncodedConstructorArguments").optional(), */
       // Handle non-json multipart/form-data requests.
-      body("abiEncodedConstructorArguments")
+      /* body("abiEncodedConstructorArguments")
         .optional()
         .custom(
           (abiEncodedConstructorArguments, { req }) =>
@@ -570,7 +579,7 @@ export default class VerificationController
               msgSender,
               ...req.body.contextVariables,
             })
-        ),
+        ), */
       body("creatorTxHash")
         .optional()
         .custom(
