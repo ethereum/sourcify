@@ -1354,6 +1354,24 @@ describe("Test Supported Chains", function () {
     "shared/withImmutables.metadata.json"
   );
 
+  // The Root Network Porcini (Testnet)
+  verifyContract(
+    "0x225F2cD344c61152F8E7200E62e03dEfD683f2c4",
+    "7672",
+    "The Root Network Porcini",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x451292Aa721F6762bDAa983BC6a6B03940236d0d",
+    "7672",
+    "The Root Network Porcini",
+    ["uint256"],
+    [7672],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
   //////////////////////
   // Helper functions //
   //////////////////////
