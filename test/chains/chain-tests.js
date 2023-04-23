@@ -1354,6 +1354,24 @@ describe("Test Supported Chains", function () {
     "shared/withImmutables.metadata.json"
   );
 
+  // Wanchain Mainnet
+  verifyContract(
+    "0xC3649123BCa36c0c38A71bDbd2F508AB4f939f47",
+    "888",
+    "Wanchain Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0xAc7Df63C447201965222dF9675E8d4A78c3CA315",
+    "888",
+    "Wanchain Mainnet",
+    ["uint256"],
+    [888],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
   //////////////////////
   // Helper functions //
   //////////////////////
