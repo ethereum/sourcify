@@ -7,7 +7,7 @@ import {
   Create2Args,
   StringMap,
   Metadata,
-  ContextVariables,
+  /* ContextVariables, */
   CheckedContract,
 } from "@ethereum-sourcify/lib-sourcify";
 import { toChecksumAddress } from "web3-utils";
@@ -424,7 +424,7 @@ export default class RepositoryService implements IRepositoryService {
         );
       }
 
-      if (
+      /* if (
         match.contextVariables &&
         Object.keys(match.contextVariables).length > 0
       ) {
@@ -435,7 +435,7 @@ export default class RepositoryService implements IRepositoryService {
           "context-variables.json",
           match.contextVariables
         );
-      }
+      } */
 
       if (match.creatorTxHash) {
         this.storeTxt(

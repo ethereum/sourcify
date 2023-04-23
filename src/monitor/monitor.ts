@@ -272,7 +272,7 @@ class ChainMonitor extends EventEmitter {
         contract,
         this.chainId,
         address,
-        undefined,
+        /* undefined, */
         creatorTxHash
       );
       await this.repositoryService.storeMatch(contract, match);

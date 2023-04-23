@@ -4,13 +4,19 @@ import {
   InvalidSources,
   JsonInput,
   Metadata,
+  MetadataSources,
   MissingSources,
+  PathContent,
   RecompilationResult,
   StringMap,
 } from './types';
 import semver from 'semver';
 import { useCompiler } from './solidityCompiler';
 import { fetchWithTimeout } from './utils';
+import { storeByHash } from './validation';
+import { decode as decodeBytecode } from '@ethereum-sourcify/bytecode-utils';
+import { ipfsHash } from './hashFunctions/ipfsHash';
+import { swarmBzzr0Hash, swarmBzzr1Hash } from './hashFunctions/swarmHash';
 
 // TODO: find a better place for these constants. Reminder: this sould work also in the browser
 const IPFS_PREFIX = 'dweb:/ipfs/';
@@ -20,10 +26,10 @@ const FETCH_TIMEOUT = parseInt(process.env.FETCH_TIMEOUT || '') || 3000; // ms
  */
 export class CheckedContract {
   /** Object containing contract metadata keys and values. */
-  metadata: Metadata;
+  metadata!: Metadata;
 
   /** SourceMap mapping the original compilation path to PathContent. */
-  solidity: StringMap;
+  solidity!: StringMap;
 
   /** Object containing the information about missing source files. */
   missing: MissingSources;
@@ -35,19 +41,19 @@ export class CheckedContract {
   solcJsonInput: any;
 
   /** The path of the contract during compile-time. */
-  compiledPath: string;
+  compiledPath!: string;
 
   /** The version of the Solidity compiler to use for compilation. */
-  compilerVersion: string;
+  compilerVersion!: string;
 
   /** The name of the contract. */
-  name: string;
+  name!: string;
 
   /** The bytecodes of the contract. */
   creationBytecode?: string;
 
   /** The raw string representation of the contract's metadata. Needed to generate a unique session id for the CheckedContract*/
-  metadataRaw: string;
+  metadataRaw!: string;
 
   /** Checks whether this contract is valid or not.
    *  This is a static method due to persistence issues.
@@ -65,17 +71,10 @@ export class CheckedContract {
     );
   }
 
-  public constructor(
-    metadata: Metadata,
-    solidity: StringMap,
-    missing: MissingSources = {},
-    invalid: InvalidSources = {}
-  ) {
+  initSolcJsonInput(metadata: Metadata, solidity: StringMap) {
     this.metadataRaw = JSON.stringify(metadata);
     this.metadata = JSON.parse(JSON.stringify(metadata));
     this.solidity = solidity;
-    this.missing = missing;
-    this.invalid = invalid;
 
     if (metadata.compiler && metadata.compiler.version) {
       this.compilerVersion = metadata.compiler.version;
@@ -89,6 +88,137 @@ export class CheckedContract {
     this.solcJsonInput = solcJsonInput;
     this.compiledPath = contractPath;
     this.name = contractName;
+  }
+
+  public constructor(
+    metadata: Metadata,
+    solidity: StringMap,
+    missing: MissingSources = {},
+    invalid: InvalidSources = {}
+  ) {
+    this.missing = missing;
+    this.invalid = invalid;
+    this.initSolcJsonInput(metadata, solidity);
+  }
+
+  /**
+   * Function to try to generate variations of the metadata of the contract such that it will match the one in the bytecode.
+   * Generates variations of the given source files and replaces the hashes in the metadata with the hashes of the variations.
+   * If found, replaces this.metadata and this.solidity with the found variations.
+   * Useful for finding perfect matches for known types of variations such as different line endings.
+   *
+   * @param deployedBytecode
+   * @returns
+   */
+  async tryToFindOriginalMetadata(
+    deployedBytecode: string
+  ): Promise<CheckedContract | null> {
+    const decodedAuxdata = decodeBytecode(deployedBytecode);
+
+    const pathContent: PathContent[] = Object.keys(this.solidity).map(
+      (path) => {
+        return {
+          path,
+          content: this.solidity[path] || '',
+        };
+      }
+    );
+
+    const byHash = storeByHash(pathContent);
+
+    /*
+     * storeByHash returns a mapping like this one:
+     * Map({
+     *   Web3.utils.keccak256(variation.content): {
+     *     content,
+     *     path: pathContent.path,
+     *     variation: contentVariator + '.' + endingVariator,
+     *   }
+     * })
+     *
+     * we need to group all the different files by variation:
+     *
+     * {
+     *   "1.1": [
+     *     {
+     *       content,
+     *       path: pathContent.path,
+     *       variation: "1.1",
+     *     },
+     *     ...
+     *   ],
+     *   "1.2": [...]
+     * }
+     */
+    const byVariation = groupBy(
+      // the second parameter of Array.from is needed to pass to the groupBy function
+      // an array of all the values of the the mapping, othwerise [key,value] is passed
+      Array.from(byHash, ([, value]) => value),
+      'variation'
+    );
+
+    const metadata: Metadata = JSON.parse(this.metadataRaw);
+
+    // For each variation
+    // 1. replace: "keccak256" and "url" fields in the metadata with the hashes of the variation
+    // 2. take the hash of the modified metadata
+    // 3. Check if this will match the hash in the bytecode
+    for (const sources of Object.values(byVariation)) {
+      metadata.sources = sources.reduce((sources: MetadataSources, source) => {
+        if (metadata.sources[source.path]) {
+          sources[source.path] = metadata.sources[source.path];
+          sources[source.path].keccak256 = Web3.utils.keccak256(source.content);
+          if (sources[source.path].content) {
+            sources[source.path].content = source.content;
+          }
+          if (sources[source.path].urls) {
+            sources[source.path].urls = sources[source.path].urls?.map(
+              (url: string) => {
+                if (url.includes('dweb:/ipfs/')) {
+                  return `dweb:/ipfs/${ipfsHash(source.content)}`;
+                }
+                if (url.includes('bzz-raw://')) {
+                  // Here swarmBzzr1Hash is always used
+                  // https://github.com/ethereum/solidity/blob/eb2f874eac0aa871236bf5ff04b7937c49809c33/libsolidity/interface/CompilerStack.cpp#L1549
+                  return `bzz-raw://${swarmBzzr1Hash(source.content)}`;
+                }
+                return '';
+              }
+            );
+          }
+        }
+        return sources;
+      }, {});
+
+      if (decodedAuxdata?.ipfs) {
+        const compiledMetadataIpfsCID = ipfsHash(JSON.stringify(metadata));
+        if (decodedAuxdata?.ipfs === compiledMetadataIpfsCID) {
+          return new CheckedContract(
+            metadata,
+            getSolidityFromPathContents(sources)
+          );
+        }
+      }
+      if (decodedAuxdata?.bzzr1) {
+        const compiledMetadataBzzr1 = swarmBzzr1Hash(JSON.stringify(metadata));
+        if (decodedAuxdata?.bzzr1 === compiledMetadataBzzr1) {
+          return new CheckedContract(
+            metadata,
+            getSolidityFromPathContents(sources)
+          );
+        }
+      }
+      if (decodedAuxdata?.bzzr0) {
+        const compiledMetadataBzzr0 = swarmBzzr0Hash(JSON.stringify(metadata));
+        if (decodedAuxdata?.bzzr0 === compiledMetadataBzzr0) {
+          return new CheckedContract(
+            metadata,
+            getSolidityFromPathContents(sources)
+          );
+        }
+      }
+    }
+    return null;
   }
 
   public async recompile(): Promise<RecompilationResult> {
@@ -334,3 +464,39 @@ function createJsonInputFromMetadata(
 export function getIpfsGateway(): string {
   return process.env.IPFS_GATEWAY || 'https://ipfs.io/ipfs/';
 }
+
+export const findContractPathFromContractName = (
+  contracts: any,
+  contractName: string
+): string | null => {
+  for (const key of Object.keys(contracts)) {
+    const contractsList = contracts[key];
+    if (Object.keys(contractsList).includes(contractName)) {
+      return key;
+    }
+  }
+  return null;
+};
+
+/**
+ * The groupBy function is a function that takes an
+ * array and a key as input,and returns an object containing
+ * an index of the array elements grouped by the value of
+ * the specified key.
+ */
+const groupBy = function <T extends { [index: string]: any }>(
+  xs: T[],
+  key: string
+): { index?: T[] } {
+  return xs.reduce(function (rv: { [index: string]: T[] }, x: T) {
+    (rv[x[key]] = rv[x[key]] || []).push(x);
+    return rv;
+  }, {});
+};
+
+const getSolidityFromPathContents = function (sources: PathContent[]) {
+  return sources.reduce((sources: StringMap, source) => {
+    sources[source.path] = source.content;
+    return sources;
+  }, {});
+};

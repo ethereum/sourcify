@@ -65,10 +65,10 @@ export type VerificationInput = {
   verificationId: string;
   chainId: string;
   address: string;
-  contextVariables: {
+  /* contextVariables: {
     abiEncodedConstructorArguments?: string;
     msgSender?: string;
-  };
+  }; */
   creatorTxHash?: string;
 };
 

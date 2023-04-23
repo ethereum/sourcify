@@ -27,7 +27,15 @@ export interface MissingSources {
   };
 }
 
-// @TODO: Fully define metadata
+export interface MetadataSources {
+  [index: string]: {
+    keccak256: string;
+    content?: string;
+    urls?: string[];
+    license?: string;
+  };
+}
+
 export interface Metadata {
   compiler: {
     version: string;
@@ -48,9 +56,9 @@ export interface Metadata {
       enabled: boolean;
       runs: number;
     };
-    outputSelection: any;
+    outputSelection?: any;
   };
-  sources: any;
+  sources: MetadataSources;
 }
 
 // TODO: Fully define solcJsonInput
@@ -82,7 +90,7 @@ export interface Match {
   abiEncodedConstructorArguments?: string;
   create2Args?: Create2Args;
   libraryMap?: StringMap;
-  contextVariables?: ContextVariables;
+  /* contextVariables?: ContextVariables; */
   creatorTxHash?: string;
   immutableReferences?: ImmutableReferences;
 }
@@ -135,10 +143,10 @@ type Currency = {
   decimals: number;
 };
 
-export type ContextVariables = {
+/* export type ContextVariables = {
   abiEncodedConstructorArguments?: string;
   msgSender?: string;
-};
+}; */
 
 interface File {
   keccak256?: string;
