@@ -2,7 +2,6 @@ import { useState } from "react";
 import { HiMenu } from "react-icons/hi";
 import { Link } from "react-router-dom";
 import ReactTooltip from "react-tooltip";
-import { ReactComponent as Github } from "../../assets/icons/github.svg";
 import { ReactComponent as Matrix } from "../../assets/icons/matrix.svg";
 import { ReactComponent as Twitter } from "../../assets/icons/twitter.svg";
 import logoText from "../../assets/logo-rounded.svg";
@@ -68,16 +67,20 @@ const Header = () => {
           >
             Playground
           </a>
+          <div className="flex items-center ml-2">
+            <iframe
+              src="https://ghbtns.com/github-btn.html?user=ethereum&repo=sourcify&type=star&count=true&size=large"
+              // frameborder="0"
+              scrolling="0"
+              width="135"
+              height="30"
+              title="GitHub"
+              className=""
+            ></iframe>
+          </div>
         </nav>
         {/* Icons */}
-        <div className="flex items-center md:ml-8 mt-6 md:mt-0">
-          <a
-            className="px-2 hover-to-fill"
-            href="https://github.com/ethereum/sourcify"
-            data-tip="Github"
-          >
-            <Github className="h-6 w-auto fill-gray-700 " />
-          </a>
+        <div className="flex items-center ml-2 mt-6 md:mt-0">
           <a
             className="px-2 hover-to-fill"
             href="https://twitter.com/sourcifyeth"
