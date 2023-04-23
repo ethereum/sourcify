@@ -703,7 +703,6 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     supported: true,
     monitored: false,
     txRegex: ETHERSCAN_REGEX,
-    rpc: ["https://gwan-ssl.wandevs.org:46891"],
   },
 };
 
