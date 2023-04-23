@@ -1358,7 +1358,7 @@ describe("Test Supported Chains", function () {
   verifyContract(
     "0x500E12a948E9Fc594bC6Fe86B3B270B5a67332D8",
     "999",
-    "WanchainTestnet",
+    "Wanchain Testnet",
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
@@ -1366,7 +1366,7 @@ describe("Test Supported Chains", function () {
   verifyContractWithImmutables(
     "0x0E23Ac3B13094CDe8667C7B2aAC3900781d7b2c1",
     "999",
-    "WanchainTestnet",
+    "Wanchain Testnet",
     ["uint256"],
     [0x12345678],
     ["shared/WithImmutables.sol"],
