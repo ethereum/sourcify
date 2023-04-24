@@ -705,6 +705,12 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     monitored: false,
     txRegex: ETHERSCAN_REGEX,
   },
+  "999": {
+    // Wanchain Testnet
+    supported: true,
+    monitored: false,
+    txRegex: ETHERSCAN_REGEX,
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
