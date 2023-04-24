@@ -157,7 +157,12 @@ export class CheckedContract {
       'variation'
     );
 
-    const metadata: Metadata = JSON.parse(this.metadataRaw);
+    // We should canonicalize the metadata when we are generation "metadata variations" when we have a partial match.
+    // It could be that the verifier somehow mixed the orderings of the metadata or added whitespaces etc.
+    // For more information read https://github.com/ethereum/sourcify/issues/978
+    const metadata: Metadata = reorderAlphabetically(
+      JSON.parse(this.metadataRaw)
+    ) as Metadata;
 
     // For each variation
     // 1. replace: "keccak256" and "url" fields in the metadata with the hashes of the variation
@@ -500,3 +505,20 @@ const getSolidityFromPathContents = function (sources: PathContent[]) {
     return sources;
   }, {});
 };
+
+function reorderAlphabetically(obj: any): any {
+  // Do not reorder arrays or other types
+  if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
+    return obj;
+  }
+
+  const ordered: any = {};
+
+  Object.keys(obj)
+    .sort((a, b) => a.localeCompare(b))
+    .forEach((key: string) => {
+      ordered[key] = reorderAlphabetically(obj[key]);
+    });
+
+  return ordered;
+}
