@@ -108,7 +108,7 @@
       "expectedStatus": "partial"
     },
     {
-      "address": "0x28CA70cc5732D042381F9240bf45aB1b493aEFef",
+      "address": "0x2F7cD28b85ffA84F62b068f5b586B14Abea5E05c",
       "type": "standard-json",
       "expectedStatus": "perfect"
     }

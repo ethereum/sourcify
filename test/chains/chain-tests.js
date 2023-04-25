@@ -1354,6 +1354,43 @@ describe("Test Supported Chains", function () {
     "shared/withImmutables.metadata.json"
   );
 
+  // Wanchain Mainnet
+  verifyContract(
+    "0xC3649123BCa36c0c38A71bDbd2F508AB4f939f47",
+    "888",
+    "Wanchain Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0xAc7Df63C447201965222dF9675E8d4A78c3CA315",
+    "888",
+    "Wanchain Mainnet",
+    ["uint256"],
+    [888],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
+  // Wanchain Testnet
+  verifyContract(
+    "0x500E12a948E9Fc594bC6Fe86B3B270B5a67332D8",
+    "999",
+    "Wanchain Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  verifyContractWithImmutables(
+    "0x0E23Ac3B13094CDe8667C7B2aAC3900781d7b2c1",
+    "999",
+    "Wanchain Testnet",
+    ["uint256"],
+    [0x12345678],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
   // The Root Network Porcini (Testnet)
   verifyContract(
     "0x225F2cD344c61152F8E7200E62e03dEfD683f2c4",

@@ -699,6 +699,18 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: "https://goerli.basescan.org/" + ETHERSCAN_SUFFIX,
     txRegex: ETHERSCAN_REGEX,
   },
+  "888": {
+    // Wanchain Mainnet
+    supported: true,
+    monitored: false,
+    txRegex: ETHERSCAN_REGEX,
+  },
+  "999": {
+    // Wanchain Testnet
+    supported: true,
+    monitored: false,
+    txRegex: ETHERSCAN_REGEX,
+  },
   "7672": {
     // The Root Network Porcini (Testnet)
     supported: true,
