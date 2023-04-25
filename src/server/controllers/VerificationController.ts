@@ -735,7 +735,7 @@ export default class VerificationController
       .post(this.safeHandler(this.addInputFilesEndpoint));
 
     this.router
-      .route(["/input-files", "/session/input-solc-json"])
+      .route(["/session/input-solc-json"])
       .post(
         body("compilerVersion").exists().bail(),
         this.safeHandler(this.addInputSolcJsonEndpoint)
