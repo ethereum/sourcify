@@ -21,6 +21,7 @@ import { checkAllByAddresses } from "../../../../../utils/api";
 import Message from "./Message";
 import { HiChevronDown } from "react-icons/hi";
 import ReactTooltip from "react-tooltip";
+import { SelectedOptionValue } from "react-select-search";
 /* import Constructorarguments from "../../../../../components/ConstructorArguments";
 import InputToggle from "../../../../../components/InputToggle"; */
 
@@ -94,11 +95,12 @@ const ChainAddressForm = ({
     });
   };
 
-  const handleChainIdChange = (newChainId: number) => {
-    const newChainIdStr = newChainId.toString();
+  const handleChainIdChange = (
+    selectedOptionValue: SelectedOptionValue | SelectedOptionValue[]
+  ) => {
+    const newChainIdStr = `${selectedOptionValue as SelectedOptionValue}`;
     setChainId(newChainIdStr);
     verifyButtonRef.current?.focus();
-    console.log(`New id is: ${newChainId}`);
   };
 
   /* const handleMsgSenderChange: ChangeEventHandler<HTMLInputElement> = (e) => {

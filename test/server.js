@@ -753,6 +753,84 @@ describe("Server", function () {
       chai.expect(isExist, "Immutable references not saved").to.be.true;
     });
 
+    it("should return validation error for adding standard input JSON without a compiler version", async () => {
+      const address = await deployFromAbiAndBytecode(
+        localWeb3Provider,
+        artifact.abi, // Storage.sol
+        artifact.bytecode,
+        accounts[0]
+      );
+      const solcJsonPath = path.join(
+        "test",
+        "testcontracts",
+        "Storage",
+        "StorageJsonInput.json"
+      );
+      const solcJsonBuffer = fs.readFileSync(solcJsonPath);
+
+      const res = await chai
+        .request(server.app)
+        .post("/verify/solc-json")
+        .attach("files", solcJsonBuffer)
+        .field("address", address)
+        .field("chain", defaultContractChain)
+        .field("contractName", "Storage");
+
+      assertValidationError(null, res, "compilerVersion");
+    });
+
+    it("should return validation error for adding standard input JSON without a contract name", async () => {
+      const address = await deployFromAbiAndBytecode(
+        localWeb3Provider,
+        artifact.abi, // Storage.sol
+        artifact.bytecode,
+        accounts[0]
+      );
+      const solcJsonPath = path.join(
+        "test",
+        "testcontracts",
+        "Storage",
+        "StorageJsonInput.json"
+      );
+      const solcJsonBuffer = fs.readFileSync(solcJsonPath);
+
+      const res = await chai
+        .request(server.app)
+        .post("/verify/solc-json")
+        .attach("files", solcJsonBuffer)
+        .field("address", address)
+        .field("chain", defaultContractChain)
+        .field("compilerVersion", "0.8.4+commit.c7e474f2");
+
+      assertValidationError(null, res, "contractName");
+    });
+
+    it("should verify a contract with Solidity standard input JSON", async () => {
+      const address = await deployFromAbiAndBytecode(
+        localWeb3Provider,
+        artifact.abi, // Storage.sol
+        artifact.bytecode,
+        accounts[0]
+      );
+      const solcJsonPath = path.join(
+        "test",
+        "testcontracts",
+        "Storage",
+        "StorageJsonInput.json"
+      );
+      const solcJsonBuffer = fs.readFileSync(solcJsonPath);
+
+      const res = await chai
+        .request(server.app)
+        .post("/verify/solc-json")
+        .attach("files", solcJsonBuffer)
+        .field("address", address)
+        .field("chain", defaultContractChain)
+        .field("compilerVersion", "0.8.4+commit.c7e474f2")
+        .field("contractName", "Storage");
+
+      assertVerification(null, res, null, address, defaultContractChain);
+    });
     describe("hardhat build-info file support", function () {
       this.timeout(EXTENDED_TIME);
       let address;
@@ -1465,6 +1543,56 @@ describe("Server", function () {
         .post("/session/verify-validated")
         .send({ contracts });
       assertSingleContractStatus(res, "perfect");
+    });
+
+    it("should return validation error for adding standard input JSON without a compiler version", async () => {
+      const agent = chai.request.agent(server.app);
+
+      const solcJsonPath = path.join(
+        "test",
+        "testcontracts",
+        "Storage",
+        "StorageJsonInput.json"
+      );
+      const solcJsonBuffer = fs.readFileSync(solcJsonPath);
+
+      const res = await agent
+        .post("/session/input-solc-json")
+        .attach("files", solcJsonBuffer);
+
+      assertValidationError(null, res, "compilerVersion");
+    });
+
+    it("should verify a contract with Solidity standard input JSON", async () => {
+      const agent = chai.request.agent(server.app);
+      const address = await deployFromAbiAndBytecode(
+        localWeb3Provider,
+        artifact.abi, // Storage.sol
+        artifact.bytecode,
+        accounts[0]
+      );
+      const solcJsonPath = path.join(
+        "test",
+        "testcontracts",
+        "Storage",
+        "StorageJsonInput.json"
+      );
+      const solcJsonBuffer = fs.readFileSync(solcJsonPath);
+
+      const res = await agent
+        .post("/session/input-solc-json")
+        .field("compilerVersion", "0.8.4+commit.c7e474f2")
+        .attach("files", solcJsonBuffer);
+
+      const contracts = assertSingleContractStatus(res, "error");
+
+      contracts[0].address = address;
+      contracts[0].chainId = defaultContractChain;
+
+      const res2 = await agent
+        .post("/session/verify-validated")
+        .send({ contracts });
+      assertSingleContractStatus(res2, "perfect");
     });
 
     // Test also extra-file-bytecode-mismatch via v2 API as well since the workaround is at the API level i.e. VerificationController
