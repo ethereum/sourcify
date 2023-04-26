@@ -5,6 +5,7 @@ import { VERIFY_FROM_ETHERSCAN } from "../../constants";
 import { SessionResponse } from "../../types";
 import { Context } from "../../Context";
 import { isAddress } from "@ethersproject/address";
+import { SelectSearchProps, SelectedOptionValue } from "react-select-search";
 
 type EtherscanInputProps = {
   fetchAndUpdate: (
@@ -37,8 +38,10 @@ const EtherscanInput = ({
     if (!e.target.value) return setError(""); // reset error
   };
 
-  const handleChainIdChange = (id: number) => {
-    const chainId = `${id}`;
+  const handleChainIdChange: SelectSearchProps["onChange"] = (
+    selectedValue
+  ) => {
+    const chainId = `${selectedValue as SelectedOptionValue}`;
     setChainId(chainId);
   };
 

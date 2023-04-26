@@ -3,6 +3,7 @@ import Input from "../../components/Input";
 import ChainSelect from "../../components/ChainSelect";
 import { ADD_FILES_FROM_CONTRACT_URL } from "../../constants";
 import { SessionResponse } from "../../types";
+import { SelectedOptionValue } from "react-select-search";
 
 type EtherscanInputProps = {
   fetchAndUpdate: (
@@ -29,8 +30,10 @@ const ContractInput = ({
     if (!e.target.value) return setError("");
   };
 
-  const handleChainIdChange = (id: number) => {
-    const chainId = `${id}`;
+  const handleChainIdChange = (
+    selectedOptionValue: SelectedOptionValue | SelectedOptionValue[]
+  ) => {
+    const chainId = `${selectedOptionValue as SelectedOptionValue}`;
     setChainId(chainId);
     if (chainId) return setError("");
   };

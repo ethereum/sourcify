@@ -22,7 +22,9 @@ import {
   matchWithCreationTx,
   replaceImmutableReferences,
   verifyCreate2,
+  verifyDeployed,
 } from '../src';
+import fs from 'fs';
 // import { Match } from '@ethereum-sourcify/lib-sourcify';
 
 const ganacheServer = Ganache.server({
@@ -358,6 +360,39 @@ describe('lib-sourcify tests', () => {
 
       const match = await checkAndVerifyDeployed(
         contractFolderPath,
+        sourcifyChainGanache,
+        deployedAddress
+      );
+      expectMatch(match, 'perfect', deployedAddress);
+    });
+
+    it('should fully verify a contract when a not alphabetically sorted metadata is provided', async () => {
+      const contractFolderPath = path.join(__dirname, 'sources', 'Storage');
+      const [deployedAddress] = await deployFromAbiAndBytecode(
+        localWeb3Provider,
+        contractFolderPath,
+        accounts[0]
+      );
+
+      const checkedContracts = await checkFilesFromContractFolder(
+        contractFolderPath
+      );
+
+      // Get the unsorted metadata
+      const metadataPath = path.join(
+        path.join(__dirname, 'sources', 'StorageUnsortedMetadata'),
+        'metadata.json'
+      );
+      const metadataBuffer = fs.readFileSync(metadataPath);
+
+      // Replace the metadata witht he unsorted one
+      checkedContracts[0].initSolcJsonInput(
+        JSON.parse(metadataBuffer.toString()),
+        checkedContracts[0].solidity
+      );
+
+      const match = await verifyDeployed(
+        checkedContracts[0],
         sourcifyChainGanache,
         deployedAddress
       );
