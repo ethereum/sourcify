@@ -1400,7 +1400,7 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
   verifyContractWithImmutables(
-    "0xcCd961319b61A5b44c6a9C3e46C53d8a77Fb165B",
+    "0x02d491918df0dC0BDB9974b61e2CDBDaB81d1e48",
     "7672",
     "The Root Network Porcini",
     ["uint256"],
