@@ -51,6 +51,7 @@
     "@ethereum-sourcify/bytecode-utils": "*",
     "@ethereum-sourcify/lib-sourcify": "*",
     "@types/node-fetch": "^2.5.7",
+    "abitype": "^0.8.0",
     "bunyan": "^1.8.12",
     "commander": "^9.0.0",
     "cors": "^2.8.5",

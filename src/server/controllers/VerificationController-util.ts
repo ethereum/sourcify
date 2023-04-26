@@ -1,6 +1,6 @@
 import { Request } from "express";
 import { isAddress } from "ethers/lib/utils";
-import { toChecksumAddress, AbiInput } from "web3-utils";
+import { toChecksumAddress } from "web3-utils";
 import { PayloadTooLargeError, ValidationError } from "../../common/errors";
 import { UploadedFile } from "express-fileupload";
 import {
@@ -27,6 +27,7 @@ import Web3 from "web3";
 import VerificationService from "../services/VerificationService";
 import RepositoryService from "../services/RepositoryService";
 import { etherscanAPIs } from "../../config";
+import { AbiConstructor, AbiParameter } from "abitype";
 
 export interface PathContentMap {
   [id: string]: PathContent;
@@ -173,6 +174,10 @@ export type ContractWrapper = ContractMeta & {
   contract: CheckedContract;
 };
 
+type Mutable<Type> = {
+  -readonly [Key in keyof Type]: Type[Key];
+};
+
 // Contract object in the server response.
 export type SendableContract = ContractMeta & {
   files: {
@@ -181,7 +186,7 @@ export type SendableContract = ContractMeta & {
     invalid: InvalidSources;
   };
   verificationId: string;
-  constructorArgumentsArray?: [AbiInput];
+  constructorArgumentsArray?: Mutable<AbiParameter[]>;
   creationBytecode?: string;
 };
 
@@ -193,9 +198,11 @@ function getSendableContract(
 
   return {
     verificationId,
-    constructorArgumentsArray: contract?.metadata?.output?.abi?.find(
-      (abi: any) => abi.type === "constructor"
-    )?.inputs,
+    constructorArgumentsArray: (
+      contract?.metadata?.output?.abi?.find(
+        (abi) => abi.type === "constructor"
+      ) as AbiConstructor
+    )?.inputs as Mutable<AbiParameter[]>,
     creationBytecode: contract?.creationBytecode,
     compiledPath: contract.compiledPath,
     name: contract.name,
