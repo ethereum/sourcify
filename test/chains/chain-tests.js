@@ -1391,6 +1391,24 @@ describe("Test Supported Chains", function () {
     "shared/withImmutables.metadata.json"
   );
 
+  // The Root Network Mainnet
+  verifyContract(
+    "0x6C0cE8d62F1D81464F6F4DecB62f97aa83B8Df89",
+    "7668",
+    "The Root Network Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x29b64a70B25befd49d929F796E10DEe03ab7CA5D",
+    "7668",
+    "The Root Network Mainnet",
+    ["uint256"],
+    [7668],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
   //////////////////////
   // Helper functions //
   //////////////////////

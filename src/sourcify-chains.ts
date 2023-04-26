@@ -711,6 +711,13 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     monitored: false,
     txRegex: ETHERSCAN_REGEX,
   },
+  "7668": {
+    // The Root Network Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://explorer.rootnet.live/" + ETHERSCAN_SUFFIX,
+    txRegex: ETHERSCAN_REGEX,
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
