@@ -104,6 +104,10 @@ export async function getAllMetadataAndSourcesFromSolcJson(
   solcJson: JsonInput,
   compilerVersion: string
 ): Promise<PathBuffer[]> {
+  if (solcJson.language !== 'Solidity')
+    throw new Error(
+      'Only Solidity is supported, the json has language: ' + solcJson.language
+    );
   const outputSelection = {
     '*': {
       '*': ['metadata'],
@@ -117,6 +121,8 @@ export async function getAllMetadataAndSourcesFromSolcJson(
   solcJson.settings.outputSelection = outputSelection;
   const compiled = await useCompiler(compilerVersion, solcJson);
   const metadataAndSources: PathBuffer[] = [];
+  if (!compiled.contracts)
+    throw new Error('No contracts found in the compiled json output');
   for (const contractPath in compiled.contracts) {
     for (const contract in compiled.contracts[contractPath]) {
       const metadata = compiled.contracts[contractPath][contract].metadata;
