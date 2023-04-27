@@ -49,9 +49,11 @@ type NetworkRowProp = {
 };
 type FoundProp = {
   response: CheckAllByAddressResult;
+  goBack: () => void;
 };
 type NotFoundProp = {
   address: any;
+  goBack: () => void;
 };
 
 type MatchStatusProps = {
@@ -268,7 +270,7 @@ const Create2Info = (response: CheckAllByAddressResult) => {
   );
 };
 
-const Found = ({ response }: FoundProp) => {
+const Found = ({ response, goBack }: FoundProp) => {
   const chains = response?.chainIds.filter((chain) => chain.chainId !== "0");
   const isCreate2Verified =
     response?.chainIds.findIndex((chain) => chain.chainId === "0") >= 0;
@@ -325,12 +327,15 @@ const Found = ({ response }: FoundProp) => {
         <Link to="/verifier">
           <Button className="mt-4 uppercase">Verify Contract</Button>
         </Link>
+        <Button type="secondary" className="ml-4 uppercase" onClick={goBack}>
+          Lookup Another
+        </Button>
       </div>
     </div>
   );
 };
 
-const NotFound = ({ address }: NotFoundProp) => {
+const NotFound = ({ address, goBack }: NotFoundProp) => {
   return (
     <>
       <div className="sm:mx-20 mt-6">
@@ -344,6 +349,9 @@ const NotFound = ({ address }: NotFoundProp) => {
         <Link to="/verifier">
           <Button className="mt-4 uppercase">Verify Contract</Button>
         </Link>
+        <Button type="secondary" className="ml-4 uppercase" onClick={goBack}>
+          Lookup Another
+        </Button>
       </div>
     </>
   );
@@ -366,9 +374,9 @@ const Result = ({ response, goBack }: ResultProp) => {
       <div className="flex flex-col items-center text-center">
         {verificationIcon(response?.status)}
         {!!response && response?.status !== "false" ? (
-          <Found response={response} />
+          <Found response={response} goBack={goBack} />
         ) : (
-          <NotFound address={response?.address} />
+          <NotFound address={response?.address} goBack={goBack} />
         )}
       </div>
     </div>
