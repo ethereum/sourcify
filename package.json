@@ -108,7 +108,8 @@
   "nyc": {
     "exclude": [
       "test/**/*.*",
-      "packages/**/*.*"
+      "packages/**/*.*",
+      "src/common/loggerLoki.ts"
     ],
     "reporter": [
       "html",
