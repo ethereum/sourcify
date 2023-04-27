@@ -711,11 +711,47 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     monitored: false,
     txRegex: ETHERSCAN_REGEX,
   },
+  "7668": {
+    // The Root Network Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://explorer.rootnet.live/" + ETHERSCAN_SUFFIX,
+    txRegex: ETHERSCAN_REGEX,
+  },
   "7672": {
     // The Root Network Porcini (Testnet)
     supported: true,
     monitored: false,
     contractFetchAddress: "https://explorer.rootnet.cloud/" + ETHERSCAN_SUFFIX,
+    txRegex: ETHERSCAN_REGEX,
+  },
+  "421611": {
+    // Arbitrum Rinkeby Testnet
+    supported: false,
+    monitored: false,
+    graphQLFetchAddress: "https://rinkeby-indexer.arbitrum.io/graphql",
+    rpc: buildAlchemyAndCustomRpcURLs("rinkeby", "arb"),
+  },
+  "69": {
+    supported: false,
+    monitored: false,
+    contractFetchAddress:
+      "https://kovan-optimistic.etherscan.io/" + ETHERSCAN_SUFFIX,
+    txRegex: ETHERSCAN_REGEX,
+    rpc: buildAlchemyAndCustomRpcURLs("kovan", "opt"),
+  },
+  "42": {
+    supported: false,
+    monitored: false,
+    contractFetchAddress: "https://kovan.etherscan.io/" + ETHERSCAN_SUFFIX,
+    rpc: buildAlchemyAndCustomRpcURLs("kovan", "eth"),
+    txRegex: ETHERSCAN_REGEX,
+  },
+  "3": {
+    supported: false,
+    monitored: false,
+    contractFetchAddress: "https://ropsten.etherscan.io/" + ETHERSCAN_SUFFIX,
+    rpc: buildAlchemyAndCustomRpcURLs("ropsten", "eth"),
     txRegex: ETHERSCAN_REGEX,
   },
 };
