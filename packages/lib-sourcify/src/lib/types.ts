@@ -38,53 +38,57 @@ export interface MetadataSources {
   };
 }
 
+export interface Devdoc {
+  author?: string;
+  details?: string;
+  errors?: {
+    [index: string]: {
+      details?: string;
+    };
+  };
+  events?: {
+    [index: string]: {
+      details?: string;
+      params?: any;
+    };
+  };
+  kind: 'dev';
+  methods: {
+    [index: string]: {
+      details?: string;
+      params?: any;
+      returns?: any;
+    };
+  };
+  stateVariables?: any;
+  title?: string;
+  version?: number;
+}
+
+export interface Userdoc {
+  errors?: {
+    [index: string]: {
+      notice?: string;
+    }[];
+  };
+  events?: {
+    [index: string]: {
+      notice?: string;
+    };
+  };
+  kind: 'user';
+  methods: {
+    [index: string]: {
+      notice: string;
+    };
+  };
+  version?: number;
+}
+
 export interface MetadataOutput {
   abi: Abi;
-  devdoc: {
-    author?: string;
-    details?: string;
-    errors?: {
-      [index: string]: {
-        details?: string;
-      };
-    };
-    events?: {
-      [index: string]: {
-        details?: string;
-        params?: any;
-      };
-    };
-    kind: 'dev';
-    methods: {
-      [index: string]: {
-        details?: string;
-        params?: any;
-        returns?: any;
-      };
-    };
-    stateVariables?: any;
-    title?: string;
-    version?: number;
-  };
-  userdoc: {
-    errors?: {
-      [index: string]: {
-        notice?: string;
-      }[];
-    };
-    events?: {
-      [index: string]: {
-        notice?: string;
-      };
-    };
-    kind: 'user';
-    methods: {
-      [index: string]: {
-        notice: string;
-      };
-    };
-    version?: number;
-  };
+  devdoc: Devdoc;
+  userdoc: Userdoc;
 }
 
 // Metadata type that reflects the metadata object from
@@ -130,7 +134,7 @@ export interface Metadata {
     outputSelection?: any;
   };
   sources: MetadataSources;
-  version: string | number;
+  version: number;
 }
 
 // TODO: Fully define solcJsonInput
