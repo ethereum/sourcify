@@ -1380,7 +1380,6 @@ describe("Test Supported Chains", function () {
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
-
   verifyContractWithImmutables(
     "0x0E23Ac3B13094CDe8667C7B2aAC3900781d7b2c1",
     "999",
@@ -1405,6 +1404,24 @@ describe("Test Supported Chains", function () {
     "The Root Network Mainnet",
     ["uint256"],
     [7668],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+  
+  // The Root Network Porcini (Testnet)
+  verifyContract(
+    "0x225F2cD344c61152F8E7200E62e03dEfD683f2c4",
+    "7672",
+    "The Root Network Porcini",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x02d491918df0dC0BDB9974b61e2CDBDaB81d1e48",
+    "7672",
+    "The Root Network Porcini",
+    ["uint256"],
+    [7672],
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );

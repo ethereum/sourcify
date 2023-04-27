@@ -718,6 +718,13 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: "https://explorer.rootnet.live/" + ETHERSCAN_SUFFIX,
     txRegex: ETHERSCAN_REGEX,
   },
+  "7672": {
+    // The Root Network Porcini (Testnet)
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://explorer.rootnet.cloud/" + ETHERSCAN_SUFFIX,
+    txRegex: ETHERSCAN_REGEX,
+  },
   "421611": {
     // Arbitrum Rinkeby Testnet
     supported: false,
