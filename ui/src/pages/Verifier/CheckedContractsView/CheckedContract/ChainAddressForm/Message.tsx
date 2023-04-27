@@ -51,7 +51,8 @@ const RepoLinks = ({
             >
               {overrideLabel ||
                 sourcifyChainMap[parseInt(chainId)].title ||
-                sourcifyChainMap[parseInt(chainId)].name}
+                sourcifyChainMap[parseInt(chainId)].name}{" "}
+              (#{chainId})
             </a>
           </span>
         );
@@ -147,7 +148,7 @@ const Message = ({
       <div
         className={`bg-ceruleanBlue-200 px-4 py-2 rounded-md outline-2 outline-ceruleanBlue-300 outline text-ceruleanBlue-800`}
       >
-        <p>
+        <p className="break-all">
           Contract <b>{foundMatches.address}</b> is already verified:
         </p>
         {perfectMatchChainIds.length > 0 && (
