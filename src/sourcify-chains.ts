@@ -718,6 +718,35 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: "https://explorer.rootnet.live/" + ETHERSCAN_SUFFIX,
     txRegex: ETHERSCAN_REGEX,
   },
+  "421611": {
+    // Arbitrum Rinkeby Testnet
+    supported: false,
+    monitored: false,
+    graphQLFetchAddress: "https://rinkeby-indexer.arbitrum.io/graphql",
+    rpc: buildAlchemyAndCustomRpcURLs("rinkeby", "arb"),
+  },
+  "69": {
+    supported: false,
+    monitored: false,
+    contractFetchAddress:
+      "https://kovan-optimistic.etherscan.io/" + ETHERSCAN_SUFFIX,
+    txRegex: ETHERSCAN_REGEX,
+    rpc: buildAlchemyAndCustomRpcURLs("kovan", "opt"),
+  },
+  "42": {
+    supported: false,
+    monitored: false,
+    contractFetchAddress: "https://kovan.etherscan.io/" + ETHERSCAN_SUFFIX,
+    rpc: buildAlchemyAndCustomRpcURLs("kovan", "eth"),
+    txRegex: ETHERSCAN_REGEX,
+  },
+  "3": {
+    supported: false,
+    monitored: false,
+    contractFetchAddress: "https://ropsten.etherscan.io/" + ETHERSCAN_SUFFIX,
+    rpc: buildAlchemyAndCustomRpcURLs("ropsten", "eth"),
+    txRegex: ETHERSCAN_REGEX,
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
@@ -784,8 +813,8 @@ export function getSortedChainsArray(
       getPrimarySortKey(a) > getPrimarySortKey(b)
         ? 1
         : getPrimarySortKey(b) > getPrimarySortKey(a)
-          ? -1
-          : 0
+        ? -1
+        : 0
     );
 
   const sortedChains = etherumChains.concat(otherChains);
