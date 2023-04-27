@@ -10,6 +10,10 @@ x-project-base: &project-base
 networks:
   source-verify:
 
+volumes:
+  prometheus-data:
+    driver: local
+
 services:
   loki:
     container_name: grafana-loki-${TAG}
@@ -46,3 +50,46 @@ services:
       - HTTP_USER="${GRAFANA_HTTP_USER}"
       - HTTP_PASS="${GRAFANA_HTTP_PASS}"
     restart: always
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: grafana-prometheus-${TAG}
+    ports:
+      - "${GRAFANA_PROMETHEUS_EXTERNAL_PORT}:9090"
+    volumes:
+      - /etc/prometheus:/etc/prometheus
+      - prometheus-data:/prometheus
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    networks:
+      - source-verify
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.0
+    container_name: grafana-cadvisor-${TAG}
+    network_mode: host
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    devices:
+      - /dev/kmsg
+    restart: unless-stopped
+    privileged: true
+    networks:
+      - source-verify
+
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: grafana-node_exporter-${TAG}
+    command:
+      - "--path.rootfs=/host"
+    pid: host
+    restart: unless-stopped
+    volumes:
+      - "/:/host:ro,rslave"
+    networks:
+      - source-verify
