@@ -140,7 +140,6 @@ export async function getAllMetadataAndSourcesFromSolcJson(
   return metadataAndSources;
 }
 
-// TODO: Handle where and how solc is saved
 export async function getSolcExecutable(
   platform: string,
   version: string
