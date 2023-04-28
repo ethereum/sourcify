@@ -53,6 +53,24 @@ describe("Test Supported Chains", function () {
     currentResponse = null;
   });
 
+  // Symplexia Smart Chain
+  verifyContract(
+    "0x0C7B4A22af68ace4F954C7E99BE16072C74A9F7b",
+    "1149",
+    "Symplexia Smart Chain",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x50245424Afc53E67Ca1AAD2C90401568C0eFf53A",
+    "1149",
+    "Symplexia Smart Chain",
+    ["uint256"],
+    [3742],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
   verifyContract(
     "0x801f3983c7baBF5E6ae192c84E1257844aDb4b4D",
     "1",
@@ -1407,7 +1425,7 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
-  
+
   // The Root Network Porcini (Testnet)
   verifyContract(
     "0x225F2cD344c61152F8E7200E62e03dEfD683f2c4",
