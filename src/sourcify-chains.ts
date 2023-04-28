@@ -215,12 +215,6 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: "https://candleexplorer.com/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
-  "1149": {
-    supported: true,
-    monitored: false,
-    contractFetchAddress: "https://explorer.plexfinance.us/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
-  },
   "42220": {
     supported: true,
     monitored: false,
@@ -759,6 +753,13 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: "https://ropsten.etherscan.io/" + ETHERSCAN_SUFFIX,
     rpc: buildAlchemyAndCustomRpcURLs("ropsten", "eth"),
     txRegex: ETHERSCAN_REGEX,
+  },
+  "1149": {
+    // Symplexia Smart Chain
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://explorer.plexfinance.us/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
   },
 };
 

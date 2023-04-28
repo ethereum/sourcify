@@ -55,14 +55,14 @@ describe("Test Supported Chains", function () {
 
   // Symplexia Smart Chain
   verifyContract(
-    "0x0C7B4A22af68ace4F954C7E99BE16072C74A9F7b",
+    "0x75bff170bb80a1f4743445c0604FF5E1416d61D9",
     "1149",
     "Symplexia Smart Chain",
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
   verifyContractWithImmutables(
-    "0x50245424Afc53E67Ca1AAD2C90401568C0eFf53A",
+    "0x31A89807b669BD6A69F1A619977aAF4dF981fE6a",
     "1149",
     "Symplexia Smart Chain",
     ["uint256"],
