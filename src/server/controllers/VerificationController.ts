@@ -47,7 +47,10 @@ import {
   NotFoundError,
   ValidationError,
 } from "../../common/errors";
-import { checkChainId, sourcifyChainsMap } from "../../sourcify-chains";
+import {
+  checkSupportedChainId,
+  sourcifyChainsMap,
+} from "../../sourcify-chains";
 import config from "../../config";
 import { StatusCodes } from "http-status-codes";
 import RepositoryService from "../services/RepositoryService";
@@ -662,7 +665,7 @@ export default class VerificationController
       body("chain")
         .exists()
         .bail()
-        .custom((chain, { req }) => (req.chain = checkChainId(chain))),
+        .custom((chain, { req }) => (req.chain = checkSupportedChainId(chain))),
       /* body("contextVariables.msgSender").optional(),
       body("contextVariables.abiEncodedConstructorArguments").optional(), */
       // Handle non-json multipart/form-data requests.
@@ -702,7 +705,7 @@ export default class VerificationController
       body("chain")
         .exists()
         .bail()
-        .custom((chain, { req }) => (req.chain = checkChainId(chain))),
+        .custom((chain, { req }) => (req.chain = checkSupportedChainId(chain))),
       body("compilerVersion").exists().bail(),
       body("contractName").exists().bail(),
       // body("contextVariables.msgSender").optional(),
@@ -787,7 +790,7 @@ export default class VerificationController
       body("chain")
         .exists()
         .bail()
-        .custom((chain) => checkChainId(chain)),
+        .custom((chain) => checkSupportedChainId(chain)),
       this.safeHandler(this.verifyFromEtherscan)
     );
 
@@ -809,7 +812,7 @@ export default class VerificationController
       body("chainId")
         .exists()
         .bail()
-        .custom((chainId) => checkChainId(chainId)),
+        .custom((chainId) => checkSupportedChainId(chainId)),
       this.safeHandler(this.sessionVerifyFromEtherscan)
     );
 
