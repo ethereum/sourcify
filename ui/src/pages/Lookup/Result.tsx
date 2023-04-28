@@ -292,7 +292,14 @@ const Found = ({ response }: FoundProp) => {
           >
             {isCreate2Verified && <>create2</>} verified
             <HiOutlineInformationCircle className="inline text-gray-600 text-lg" />
-          </span>{" "}
+          </span>
+          ,{" "}
+          <a
+            className="underline"
+            href={generateUrl(URL_TYPE.REPO, "0", response?.address, "perfect")}
+          >
+            view in Sourcify Repository
+          </a>
         </p>
         {isCreate2Verified && Create2Info(response)}
         <p>{chains.length > 0 && <span>on the following networks:</span>}</p>
