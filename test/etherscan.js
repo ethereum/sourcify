@@ -119,7 +119,7 @@ describe("Import From Etherscan and Verify", function () {
             err,
             res,
             "chain",
-            `Chain ${unsupportedChain} not supported!`
+            `Chain ${unsupportedChain} not supported for verification!`
           );
           done();
         });
@@ -273,7 +273,7 @@ describe("Import From Etherscan and Verify", function () {
             err,
             res,
             "chainId",
-            `Chain ${unsupportedChain} not supported!`
+            `Chain ${unsupportedChain} not supported for verification!`
           );
           done();
         });

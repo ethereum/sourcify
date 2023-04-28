@@ -845,12 +845,7 @@ export function checkSupportedChainId(chain: string): string {
  * Note that there might be chains not supported for verification anymore but still exist as a SourcifyChain e.g. Ropsten.
  */
 export function checkChainId(chain: string): string {
-  if (
-    // if chain is not in sourcify-chains.ts
-    !(chain in sourcifyChainsMap && sourcifyChainsMap[chain]) ||
-    // or if chain is not supported
-    sourcifyChainsMap[chain].supported === false
-  ) {
+  if (!(chain in sourcifyChainsMap && sourcifyChainsMap[chain])) {
     throw new Error(`Chain ${chain} not supported!`);
   }
 
