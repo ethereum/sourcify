@@ -398,6 +398,46 @@ describe('lib-sourcify tests', () => {
       );
       expectMatch(match, 'perfect', deployedAddress);
     });
+
+    it('should fully verify a library with call protection when viaIR is disabled (legacy compilation placeholder: 0x73 plus 20 zero bytes)', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        'sources',
+        'CallProtectionForLibraries'
+      );
+      const [deployedAddress] = await deployFromAbiAndBytecode(
+        localWeb3Provider,
+        contractFolderPath,
+        accounts[0]
+      );
+
+      const match = await checkAndVerifyDeployed(
+        contractFolderPath,
+        sourcifyChainGanache,
+        deployedAddress
+      );
+      expectMatch(match, 'perfect', deployedAddress);
+    });
+
+    it('should fully verify a library with call protection when viaIR is enabled', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        'sources',
+        'CallProtectionForLibrariesViaIR'
+      );
+      const [deployedAddress] = await deployFromAbiAndBytecode(
+        localWeb3Provider,
+        contractFolderPath,
+        accounts[0]
+      );
+
+      const match = await checkAndVerifyDeployed(
+        contractFolderPath,
+        sourcifyChainGanache,
+        deployedAddress
+      );
+      expectMatch(match, 'perfect', deployedAddress);
+    });
   });
 
   describe('Unit tests', function () {
