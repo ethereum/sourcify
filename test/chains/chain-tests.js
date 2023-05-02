@@ -1407,7 +1407,7 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
-  
+
   // The Root Network Porcini (Testnet)
   verifyContract(
     "0x225F2cD344c61152F8E7200E62e03dEfD683f2c4",
@@ -1424,6 +1424,24 @@ describe("Test Supported Chains", function () {
     [7672],
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
+  );
+
+  // Hedera Testnet
+  verifyContract(
+    "0x000000000000000000000000000000000044fE74",
+    "296",
+    "Hedera Testnet",
+    ["296/1_Storage.sol"],
+    "296/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x000000000000000000000000000000000044ff8E",
+    "296",
+    "Hedera Testnet",
+    ["uint256"],
+    [296],
+    ["296/WithImmutables.sol"],
+    "296/WithImmutables.metadata.json"
   );
 
   //////////////////////
