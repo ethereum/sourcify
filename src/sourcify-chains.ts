@@ -196,6 +196,12 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       "https://blockscout.com/xdai/mainnet/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex("/xdai/mainnet"),
   },
+  "295": {
+    // Hedera Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://hashscan.io/mainnet/" + ETHERSCAN_SUFFIX,
+  },
   "300": {
     supported: true,
     monitored: false,
