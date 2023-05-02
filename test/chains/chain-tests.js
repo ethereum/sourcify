@@ -1439,7 +1439,7 @@ describe("Test Supported Chains", function () {
     "296",
     "Hedera Testnet",
     ["uint256"],
-    [296],
+    [42],
     ["296/WithImmutables.sol"],
     "296/WithImmutables.metadata.json"
   );
