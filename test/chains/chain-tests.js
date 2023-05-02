@@ -1439,7 +1439,7 @@ describe("Test Supported Chains", function () {
     "295",
     "Hedera Mainnet",
     ["uint256"],
-    [296],
+    [42],
     ["295/WithImmutables.sol"],
     "295/WithImmutables.metadata.json"
   );
