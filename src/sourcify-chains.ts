@@ -561,6 +561,13 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: "https://tuber.build/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
+  "7701": {
+    // Canto Testnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://testnet.tuber.build/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
   "99": {
     // POA Network Core
     supported: true,
