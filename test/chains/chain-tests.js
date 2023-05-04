@@ -1053,7 +1053,23 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
-
+  // Canto Testnet
+  verifyContract(
+    "0x37e12c98b4663DcE9ab1460073D9Fe82A7bFD0d8",
+    "7701",
+    "Canto Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x652785B4512F7e664448708852e59eF256D3f478",
+    "7701",
+    "Canto Testnet",
+    ["uint256"],
+    [7700],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
   // POA Network Core
   verifyContract(
     "0x3b2e3383AeE77A58f252aFB3635bCBd842BaeCB3",

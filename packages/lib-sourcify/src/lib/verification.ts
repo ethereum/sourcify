@@ -237,6 +237,13 @@ export function matchWithDeployedBytecode(
   deployedBytecode: string,
   immutableReferences?: any
 ) {
+  // Check if is a library with call protection
+  // See https://docs.soliditylang.org/en/v0.8.19/contracts.html#call-protection-for-libraries
+  recompiledDeployedBytecode = checkCallProtectionAndReplaceAddress(
+    recompiledDeployedBytecode,
+    deployedBytecode
+  );
+
   // Replace the library placeholders in the recompiled bytecode with values from the deployed bytecode
   const { replaced, libraryMap } = addLibraryAddresses(
     recompiledDeployedBytecode,
@@ -504,6 +511,20 @@ export function addLibraryAddresses(
     replaced: template,
     libraryMap,
   };
+}
+
+export function checkCallProtectionAndReplaceAddress(
+  template: string,
+  real: string
+): string {
+  const push20CodeOp = '73';
+  const callProtection = `0x${push20CodeOp}${'00'.repeat(20)}`;
+
+  if (template.startsWith(callProtection)) {
+    const replacedCallProtection = real.slice(0, 0 + callProtection.length);
+    return replacedCallProtection + template.substring(callProtection.length);
+  }
+  return template;
 }
 
 /**
