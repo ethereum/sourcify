@@ -80,11 +80,11 @@ export const etherscanAPIs: EtherscanAPIs = {
   },
   "10": {
     apiURL: "https://api-optimistic.etherscan.io",
-    apiKey: process.env.OPTIMISTIC_ETHERSCAN_API_KEY,
+    apiKey: process.env.OPTIMISMSCAN_API_KEY,
   },
   "420": {
     apiURL: "https://api-goerli-optimism.etherscan.io",
-    apiKey: process.env.OPTIMISTIC_ETHERSCAN_API_KEY,
+    apiKey: process.env.OPTIMISMSCAN_API_KEY,
   },
   "43114": {
     apiURL: "https://api.snowtrace.io",
