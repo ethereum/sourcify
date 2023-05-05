@@ -76,7 +76,8 @@ do
     echo "find_repace.sh: replacing $VAR_NAME"
     VAR_VAL=$(eval "echo \${$VAR_NAME}")
     # Use @ as delimiter instead of / as values may contain / but @ is unlikely
-    sed -i "s@${VAR_NAME}=xxx@${VAR_NAME}=${VAR_VAL}@g" ../environments/.env.$TAG
+    # sed on MacOS has different syntax. Install "gsed" with brew install gnu-sed and replace when developing on MacOS
+    gsed -i "s@${VAR_NAME}=xxx@${VAR_NAME}=${VAR_VAL}@g" ../environments/.env.$TAG
 done
 
 cp ../environments/.env.$TAG ../environments/.env

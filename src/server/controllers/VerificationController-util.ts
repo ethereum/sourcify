@@ -567,6 +567,12 @@ export const processRequestFromEtherscan = async (
   ) {
     throw new BadRequestError("Etherscan API rate limit reached, try later");
   }
+
+  if (resultJson.message === "NOTOK") {
+    throw new BadRequestError(
+      "Error in Etherscan API response. Result message: " + resultJson.message
+    );
+  }
   if (resultJson.result[0].SourceCode === "") {
     throw new BadRequestError("This contract is not verified on Etherscan");
   }
