@@ -1444,20 +1444,20 @@ describe("Test Supported Chains", function () {
 
   // Hedera Mainnet
   verifyContract(
-    "0x000000000000000000000000000000000021D723",
+    "0x00000000000000000000000000000000002265bb",
     "295",
     "Hedera Mainnet",
-    ["295/1_Storage.sol"],
-    "295/1_Storage.metadata.json"
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
   );
   verifyContractWithImmutables(
-    "0x000000000000000000000000000000000021d748",
+    "0x00000000000000000000000000000000002265dd",
     "295",
     "Hedera Mainnet",
     ["uint256"],
     [42],
-    ["295/WithImmutables.sol"],
-    "295/WithImmutables.metadata.json"
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
   );
 
   //////////////////////
