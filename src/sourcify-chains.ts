@@ -827,8 +827,8 @@ export function getSortedChainsArray(
       getPrimarySortKey(a) > getPrimarySortKey(b)
         ? 1
         : getPrimarySortKey(b) > getPrimarySortKey(a)
-          ? -1
-          : 0
+        ? -1
+        : 0
     );
 
   const sortedChains = etherumChains.concat(otherChains);
