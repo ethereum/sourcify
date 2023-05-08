@@ -4,6 +4,7 @@ import {
   Create2Args,
   ImmutableReferences,
   Match,
+  Metadata,
   RecompilationResult,
   SourcifyChain,
   StringMap,
@@ -27,6 +28,8 @@ import { hexZeroPad, isHexString } from '@ethersproject/bytes';
 import { BigNumber } from '@ethersproject/bignumber';
 import { getAddress, getContractAddress } from '@ethersproject/address';
 import semverSatisfies from 'semver/functions/satisfies';
+import { defaultAbiCoder as abiCoder, ParamType } from '@ethersproject/abi';
+import { AbiConstructor } from 'abitype';
 
 const RPC_TIMEOUT = 5000;
 
@@ -114,12 +117,14 @@ export async function verifyDeployed(
 
   // Try to match with creationTx, if available
   if (creatorTxHash) {
+    const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
     await matchWithCreationTx(
       match,
       recompiled.creationBytecode,
       sourcifyChain,
       address,
-      creatorTxHash
+      creatorTxHash,
+      recompiledMetadata
     );
     if (isPerfectMatch(match)) {
       return match;
@@ -134,7 +139,8 @@ export async function verifyDeployed(
             recompiled.creationBytecode,
             sourcifyChain,
             address,
-            creatorTxHash
+            creatorTxHash,
+            recompiledMetadata
           );
         }
       );
@@ -355,7 +361,8 @@ export async function matchWithCreationTx(
   recompiledCreationBytecode: string,
   sourcifyChain: SourcifyChain,
   address: string,
-  creatorTxHash: string
+  creatorTxHash: string,
+  recompiledMetadata: Metadata
 ) {
   const creatorTx = await getTx(creatorTxHash, sourcifyChain);
   const creatorTxData = creatorTx.input;
@@ -387,6 +394,40 @@ export async function matchWithCreationTx(
   }
 
   if (match.status) {
+    const abiEncodedConstructorArguments =
+      extractAbiEncodedConstructorArguments(
+        creatorTxData,
+        recompiledCreationBytecode
+      );
+    let constructorAbiParamInputs = (
+      recompiledMetadata?.output?.abi?.find(
+        (param) => param.type === 'constructor'
+      ) as AbiConstructor
+    )?.inputs as ParamType[];
+    if (abiEncodedConstructorArguments) {
+      if (!constructorAbiParamInputs) {
+        match.status = null;
+        match.message = `Failed to match with creation bytecode: constructor ABI Inputs are missing`;
+        return;
+      }
+      // abiCoder doesn't break if called with a wrong `abiEncodedConstructorArguments`
+      // so in order to successfuly check if the constructor arguments actually match
+      // we need to re-encode it and compare them
+      const decodeResult = abiCoder.decode(
+        constructorAbiParamInputs,
+        abiEncodedConstructorArguments
+      );
+      const encodeResult = abiCoder.encode(
+        constructorAbiParamInputs,
+        decodeResult
+      );
+      if (encodeResult !== abiEncodedConstructorArguments) {
+        match.status = null;
+        match.message = `Failed to match with creation bytecode: constructor arguments ABI decoding failed ${encodeResult} vs ${abiEncodedConstructorArguments}`;
+        return;
+      }
+    }
+
     // we need to check if this contract creation tx actually yields the same contract address https://github.com/ethereum/sourcify/issues/887
     const createdContractAddress = getContractAddress({
       from: creatorTx.from,
@@ -398,11 +439,7 @@ export async function matchWithCreationTx(
       return;
     }
     match.libraryMap = libraryMap;
-    const abiEncodedConstructorArguments =
-      extractAbiEncodedConstructorArguments(
-        creatorTxData,
-        recompiledCreationBytecode
-      );
+
     match.abiEncodedConstructorArguments = abiEncodedConstructorArguments;
     match.creatorTxHash = creatorTxHash;
   }
