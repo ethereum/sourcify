@@ -6,7 +6,6 @@ import {
   Status,
   Create2Args,
   StringMap,
-  Metadata,
   /* ContextVariables, */
   CheckedContract,
 } from "@ethereum-sourcify/lib-sourcify";
