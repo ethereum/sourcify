@@ -190,10 +190,7 @@
         // "--grep=v0.6.12",
         "--exit",
       ],
-      "outFiles": [
-        "./**/*.js",
-        "${workspaceFolder}/packages/lib-sourcify/build/**/*.js"
-      ],
+      "sourceMaps": true,
       "smartStep": true,
       "console": "integratedTerminal",
       // "internalConsoleOptions": "neverOpen"
