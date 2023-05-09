@@ -196,6 +196,12 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       "https://blockscout.com/xdai/mainnet/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex("/xdai/mainnet"),
   },
+  "295": {
+    // Hedera Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://hashscan.io/mainnet/" + ETHERSCAN_SUFFIX,
+  },
   "300": {
     supported: true,
     monitored: false,
@@ -561,6 +567,13 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: "https://tuber.build/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
+  "7701": {
+    // Canto Testnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://testnet.tuber.build/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
   "99": {
     // POA Network Core
     supported: true,
@@ -697,6 +710,61 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     supported: true,
     monitored: true,
     contractFetchAddress: "https://goerli.basescan.org/" + ETHERSCAN_SUFFIX,
+    txRegex: ETHERSCAN_REGEX,
+  },
+  "888": {
+    // Wanchain Mainnet
+    supported: true,
+    monitored: false,
+    txRegex: ETHERSCAN_REGEX,
+  },
+  "999": {
+    // Wanchain Testnet
+    supported: true,
+    monitored: false,
+    txRegex: ETHERSCAN_REGEX,
+  },
+  "7668": {
+    // The Root Network Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://explorer.rootnet.live/" + ETHERSCAN_SUFFIX,
+    txRegex: ETHERSCAN_REGEX,
+  },
+  "7672": {
+    // The Root Network Porcini (Testnet)
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://explorer.rootnet.cloud/" + ETHERSCAN_SUFFIX,
+    txRegex: ETHERSCAN_REGEX,
+  },
+  "421611": {
+    // Arbitrum Rinkeby Testnet
+    supported: false,
+    monitored: false,
+    graphQLFetchAddress: "https://rinkeby-indexer.arbitrum.io/graphql",
+    rpc: buildAlchemyAndCustomRpcURLs("rinkeby", "arb"),
+  },
+  "69": {
+    supported: false,
+    monitored: false,
+    contractFetchAddress:
+      "https://kovan-optimistic.etherscan.io/" + ETHERSCAN_SUFFIX,
+    txRegex: ETHERSCAN_REGEX,
+    rpc: buildAlchemyAndCustomRpcURLs("kovan", "opt"),
+  },
+  "42": {
+    supported: false,
+    monitored: false,
+    contractFetchAddress: "https://kovan.etherscan.io/" + ETHERSCAN_SUFFIX,
+    rpc: buildAlchemyAndCustomRpcURLs("kovan", "eth"),
+    txRegex: ETHERSCAN_REGEX,
+  },
+  "3": {
+    supported: false,
+    monitored: false,
+    contractFetchAddress: "https://ropsten.etherscan.io/" + ETHERSCAN_SUFFIX,
+    rpc: buildAlchemyAndCustomRpcURLs("ropsten", "eth"),
     txRegex: ETHERSCAN_REGEX,
   },
 };

@@ -4,6 +4,8 @@ import {
   Create2Args,
   ImmutableReferences,
   Match,
+  Metadata,
+  RecompilationResult,
   SourcifyChain,
   StringMap,
 } from './types';
@@ -26,6 +28,8 @@ import { hexZeroPad, isHexString } from '@ethersproject/bytes';
 import { BigNumber } from '@ethersproject/bignumber';
 import { getAddress, getContractAddress } from '@ethersproject/address';
 import semverSatisfies from 'semver/functions/satisfies';
+import { defaultAbiCoder as abiCoder, ParamType } from '@ethersproject/abi';
+import { AbiConstructor } from 'abitype';
 
 const RPC_TIMEOUT = 5000;
 
@@ -61,7 +65,22 @@ export async function verifyDeployed(
     deployedBytecode,
     recompiled.immutableReferences
   );
-  if (match.status) return match;
+  if (isPerfectMatch(match)) {
+    return match;
+  } else if (isPartialMatch(match)) {
+    return await tryToFindOriginalMetadataAndMatch(
+      checkedContract,
+      deployedBytecode,
+      match,
+      async (match, recompiled) => {
+        matchWithDeployedBytecode(
+          match,
+          recompiled.deployedBytecode,
+          deployedBytecode
+        );
+      }
+    );
+  }
 
   // Try to match with simulating the creation bytecode
   /* 
@@ -73,22 +92,59 @@ export async function verifyDeployed(
     sourcifyChain.chainId.toString(),
     contextVariables
   );
-  if (match.status) {
-    match.contextVariables = contextVariables;
+  if (isPerfectMatch(match)) {
+    (match as Match).contextVariables = contextVariables;
     return match;
+  } else if (isPartialMatch(match)) {
+    return await tryToFindOriginalMetadataAndMatch(
+      checkedContract,
+      deployedBytecode,
+      match,
+      async (match, recompiled) => {
+        await matchWithSimulation(
+          match,
+          recompiled.creationBytecode,
+          deployedBytecode,
+          checkedContract.metadata.settings.evmVersion,
+          sourcifyChain.chainId.toString(),
+          contextVariables
+        );
+        match.contextVariables = contextVariables;
+      }
+    );
   }
   */
 
   // Try to match with creationTx, if available
   if (creatorTxHash) {
+    const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
     await matchWithCreationTx(
       match,
       recompiled.creationBytecode,
       sourcifyChain,
       address,
-      creatorTxHash
+      creatorTxHash,
+      recompiledMetadata
     );
-    if (match.status) return match;
+    if (isPerfectMatch(match)) {
+      return match;
+    } else if (isPartialMatch(match)) {
+      return await tryToFindOriginalMetadataAndMatch(
+        checkedContract,
+        deployedBytecode,
+        match,
+        async (match, recompiled) => {
+          await matchWithCreationTx(
+            match,
+            recompiled.creationBytecode,
+            sourcifyChain,
+            address,
+            creatorTxHash,
+            recompiledMetadata
+          );
+        }
+      );
+    }
   }
 
   // Case when extra unused files in compiler input cause different bytecode (https://github.com/ethereum/sourcify/issues/618)
@@ -103,14 +159,41 @@ export async function verifyDeployed(
     const [, recompiledAuxdata] = splitAuxdata(recompiled.deployedBytecode);
     // Metadata hashes match but bytecodes don't match.
     if (deployedAuxdata === recompiledAuxdata) {
-      match.status = 'extra-file-input-bug';
-      match.message =
+      (match as Match).status = 'extra-file-input-bug';
+      (match as Match).message =
         'It seems your contract has either Solidity v0.6.12 or v0.7.0, and the metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618';
       return match;
     }
   }
 
   throw Error("The deployed and recompiled bytecode don't match.");
+}
+
+async function tryToFindOriginalMetadataAndMatch(
+  checkedContract: CheckedContract,
+  deployedBytecode: string,
+  match: Match,
+  matchFunction: (
+    match: Match,
+    recompilationResult: RecompilationResult
+  ) => Promise<void>
+): Promise<Match> {
+  const checkedContractWithOriginalMetadata =
+    await checkedContract.tryToFindOriginalMetadata(deployedBytecode);
+  if (checkedContractWithOriginalMetadata) {
+    const matchWithOriginalMetadata = { ...match };
+    const recompiled = await checkedContractWithOriginalMetadata.recompile();
+
+    await matchFunction(matchWithOriginalMetadata, recompiled);
+    if (isPerfectMatch(matchWithOriginalMetadata)) {
+      checkedContract.initSolcJsonInput(
+        checkedContractWithOriginalMetadata.metadata,
+        checkedContractWithOriginalMetadata.solidity
+      );
+      return matchWithOriginalMetadata;
+    }
+  }
+  return match;
 }
 
 export async function verifyCreate2(
@@ -160,6 +243,13 @@ export function matchWithDeployedBytecode(
   deployedBytecode: string,
   immutableReferences?: any
 ) {
+  // Check if is a library with call protection
+  // See https://docs.soliditylang.org/en/v0.8.19/contracts.html#call-protection-for-libraries
+  recompiledDeployedBytecode = checkCallProtectionAndReplaceAddress(
+    recompiledDeployedBytecode,
+    deployedBytecode
+  );
+
   // Replace the library placeholders in the recompiled bytecode with values from the deployed bytecode
   const { replaced, libraryMap } = addLibraryAddresses(
     recompiledDeployedBytecode,
@@ -271,8 +361,14 @@ export async function matchWithCreationTx(
   recompiledCreationBytecode: string,
   sourcifyChain: SourcifyChain,
   address: string,
-  creatorTxHash: string
+  creatorTxHash: string,
+  recompiledMetadata: Metadata
 ) {
+  if (recompiledCreationBytecode === '0x') {
+    match.status = null;
+    match.message = `Failed to match with creation bytecode: recompiled contract's creation bytecode is empty`;
+    return;
+  }
   const creatorTx = await getTx(creatorTxHash, sourcifyChain);
   const creatorTxData = creatorTx.input;
 
@@ -303,6 +399,40 @@ export async function matchWithCreationTx(
   }
 
   if (match.status) {
+    const abiEncodedConstructorArguments =
+      extractAbiEncodedConstructorArguments(
+        creatorTxData,
+        recompiledCreationBytecode
+      );
+    const constructorAbiParamInputs = (
+      recompiledMetadata?.output?.abi?.find(
+        (param) => param.type === 'constructor'
+      ) as AbiConstructor
+    )?.inputs as ParamType[];
+    if (abiEncodedConstructorArguments) {
+      if (!constructorAbiParamInputs) {
+        match.status = null;
+        match.message = `Failed to match with creation bytecode: constructor ABI Inputs are missing`;
+        return;
+      }
+      // abiCoder doesn't break if called with a wrong `abiEncodedConstructorArguments`
+      // so in order to successfuly check if the constructor arguments actually match
+      // we need to re-encode it and compare them
+      const decodeResult = abiCoder.decode(
+        constructorAbiParamInputs,
+        abiEncodedConstructorArguments
+      );
+      const encodeResult = abiCoder.encode(
+        constructorAbiParamInputs,
+        decodeResult
+      );
+      if (encodeResult !== abiEncodedConstructorArguments) {
+        match.status = null;
+        match.message = `Failed to match with creation bytecode: constructor arguments ABI decoding failed ${encodeResult} vs ${abiEncodedConstructorArguments}`;
+        return;
+      }
+    }
+
     // we need to check if this contract creation tx actually yields the same contract address https://github.com/ethereum/sourcify/issues/887
     const createdContractAddress = getContractAddress({
       from: creatorTx.from,
@@ -314,11 +444,7 @@ export async function matchWithCreationTx(
       return;
     }
     match.libraryMap = libraryMap;
-    const abiEncodedConstructorArguments =
-      extractAbiEncodedConstructorArguments(
-        creatorTxData,
-        recompiledCreationBytecode
-      );
+
     match.abiEncodedConstructorArguments = abiEncodedConstructorArguments;
     match.creatorTxHash = creatorTxHash;
   }
@@ -429,6 +555,20 @@ export function addLibraryAddresses(
   };
 }
 
+export function checkCallProtectionAndReplaceAddress(
+  template: string,
+  real: string
+): string {
+  const push20CodeOp = '73';
+  const callProtection = `0x${push20CodeOp}${'00'.repeat(20)}`;
+
+  if (template.startsWith(callProtection)) {
+    const replacedCallProtection = real.slice(0, 0 + callProtection.length);
+    return replacedCallProtection + template.substring(callProtection.length);
+  }
+  return template;
+}
+
 /**
  * Replaces the values of the immutable variables in the (onchain) deployed bytecode with zeros, so that the bytecode can be compared with the (offchain) recompiled bytecode.
  * Example immutableReferences: {"97":[{"length":32,"start":137}],"99":[{"length":32,"start":421}]} where 97 and 99 are the AST ids
@@ -531,4 +671,12 @@ function doesContainMetadataHash(bytecode: string) {
     containsMetadata = false;
   }
   return containsMetadata;
+}
+
+function isPerfectMatch(match: Match): match is Match {
+  return match.status === 'perfect';
+}
+
+function isPartialMatch(match: Match): match is Match {
+  return match.status === 'partial';
 }

@@ -4,7 +4,7 @@ import fs from 'fs';
 import { spawnSync } from 'child_process';
 import { fetchWithTimeout } from './utils';
 import { StatusCodes } from 'http-status-codes';
-import { JsonInput } from './types';
+import { JsonInput, PathBuffer } from './types';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const solc = require('solc');
 
@@ -100,7 +100,46 @@ export async function useCompiler(version: string, solcJsonInput: JsonInput) {
   return compiledJSON;
 }
 
-// TODO: Handle where and how solc is saved
+export async function getAllMetadataAndSourcesFromSolcJson(
+  solcJson: JsonInput,
+  compilerVersion: string
+): Promise<PathBuffer[]> {
+  if (solcJson.language !== 'Solidity')
+    throw new Error(
+      'Only Solidity is supported, the json has language: ' + solcJson.language
+    );
+  const outputSelection = {
+    '*': {
+      '*': ['metadata'],
+    },
+  };
+  if (!solcJson.settings) {
+    solcJson.settings = {
+      outputSelection: outputSelection,
+    };
+  }
+  solcJson.settings.outputSelection = outputSelection;
+  const compiled = await useCompiler(compilerVersion, solcJson);
+  const metadataAndSources: PathBuffer[] = [];
+  if (!compiled.contracts)
+    throw new Error('No contracts found in the compiled json output');
+  for (const contractPath in compiled.contracts) {
+    for (const contract in compiled.contracts[contractPath]) {
+      const metadata = compiled.contracts[contractPath][contract].metadata;
+      const metadataPath = `${contractPath}-metadata.json`;
+      metadataAndSources.push({
+        path: metadataPath,
+        buffer: Buffer.from(metadata),
+      });
+      metadataAndSources.push({
+        path: `${contractPath}`,
+        buffer: Buffer.from(solcJson.sources[contractPath].content as string),
+      });
+    }
+  }
+  return metadataAndSources;
+}
+
 export async function getSolcExecutable(
   platform: string,
   version: string

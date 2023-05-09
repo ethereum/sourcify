@@ -1,6 +1,6 @@
 import { Request } from "express";
 import { isAddress } from "ethers/lib/utils";
-import { toChecksumAddress, AbiInput } from "web3-utils";
+import { toChecksumAddress } from "web3-utils";
 import { PayloadTooLargeError, ValidationError } from "../../common/errors";
 import { UploadedFile } from "express-fileupload";
 import {
@@ -15,6 +15,7 @@ import {
   useAllSources,
   useCompiler,
   JsonInput,
+  Metadata,
 } from "@ethereum-sourcify/lib-sourcify";
 import { checkChainId } from "../../sourcify-chains";
 import { validationResult } from "express-validator";
@@ -26,6 +27,7 @@ import Web3 from "web3";
 import VerificationService from "../services/VerificationService";
 import RepositoryService from "../services/RepositoryService";
 import { etherscanAPIs } from "../../config";
+import { AbiConstructor, AbiParameter } from "abitype";
 
 export interface PathContentMap {
   [id: string]: PathContent;
@@ -172,6 +174,10 @@ export type ContractWrapper = ContractMeta & {
   contract: CheckedContract;
 };
 
+type Mutable<Type> = {
+  -readonly [Key in keyof Type]: Type[Key];
+};
+
 // Contract object in the server response.
 export type SendableContract = ContractMeta & {
   files: {
@@ -180,7 +186,7 @@ export type SendableContract = ContractMeta & {
     invalid: InvalidSources;
   };
   verificationId: string;
-  constructorArgumentsArray?: [AbiInput];
+  constructorArgumentsArray?: Mutable<AbiParameter[]>;
   creationBytecode?: string;
 };
 
@@ -192,9 +198,11 @@ function getSendableContract(
 
   return {
     verificationId,
-    constructorArgumentsArray: contract?.metadata?.output?.abi?.find(
-      (abi: any) => abi.type === "constructor"
-    )?.inputs,
+    constructorArgumentsArray: (
+      contract?.metadata?.output?.abi?.find(
+        (abi) => abi.type === "constructor"
+      ) as AbiConstructor
+    )?.inputs as Mutable<AbiParameter[]>,
     creationBytecode: contract?.creationBytecode,
     compiledPath: contract.compiledPath,
     name: contract.name,
@@ -509,7 +517,7 @@ export const getSolcJsonInputFromEtherscanResult = (
     },
     outputSelection: {
       "*": {
-        "*": ["metadata"],
+        "*": ["metadata", "evm.deployedBytecode.object"],
       },
     },
     evmVersion:
@@ -559,6 +567,12 @@ export const processRequestFromEtherscan = async (
   ) {
     throw new BadRequestError("Etherscan API rate limit reached, try later");
   }
+
+  if (resultJson.message === "NOTOK") {
+    throw new BadRequestError(
+      "Error in Etherscan API response. Result message: " + resultJson.message
+    );
+  }
   if (resultJson.result[0].SourceCode === "") {
     throw new BadRequestError("This contract is not verified on Etherscan");
   }
@@ -571,12 +585,18 @@ export const processRequestFromEtherscan = async (
   // TODO: this is not used by lib-sourcify's useCompiler
   const contractName = contractResultJson.ContractName;
 
-  let solcJsonInput;
+  let solcJsonInput: JsonInput;
   // SourceCode can be the Solidity code if there is only one contract file, or the json object if there are multiple files
   if (isEtherscanSolcJsonInput(sourceCodeObject)) {
     solcJsonInput = parseSolcJsonInput(sourceCodeObject);
-    // Tell compiler to output metadata
-    solcJsonInput.settings.outputSelection["*"]["*"] = ["metadata"];
+
+    if (solcJsonInput?.settings) {
+      // Tell compiler to output metadata and bytecode
+      solcJsonInput.settings.outputSelection["*"]["*"] = [
+        "metadata",
+        "evm.deployedBytecode.object",
+      ];
+    }
   } else if (isEtherscanMultipleFilesObject(sourceCodeObject)) {
     solcJsonInput = getSolcJsonInputFromEtherscanResult(
       contractResultJson,
@@ -595,6 +615,24 @@ export const processRequestFromEtherscan = async (
     );
   }
 
+  if (!solcJsonInput) {
+    throw new BadRequestError(
+      "Sourcify cannot generate the solcJsonInput from Etherscan result"
+    );
+  }
+
+  return {
+    compilerVersion,
+    solcJsonInput,
+    contractName,
+  };
+};
+
+export const getMetadataFromCompiler = async (
+  compilerVersion: string,
+  solcJsonInput: JsonInput,
+  contractName: string
+): Promise<Metadata> => {
   const compilationResult = await useCompiler(compilerVersion, solcJsonInput);
 
   const contractPath = findContractPathFromContractName(
@@ -608,12 +646,9 @@ export const processRequestFromEtherscan = async (
     );
   }
 
-  return {
-    metadata: JSON.parse(
-      compilationResult.contracts[contractPath][contractName].metadata
-    ),
-    solcJsonInput,
-  };
+  return JSON.parse(
+    compilationResult.contracts[contractPath][contractName].metadata
+  );
 };
 
 export const getMappedSourcesFromJsonInput = (jsonInput: JsonInput) => {

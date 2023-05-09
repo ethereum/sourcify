@@ -42,7 +42,6 @@ const Verifier: React.FC = () => {
           // mode: "cors",
           ...fetchOptions,
         });
-        console.log(rawRes);
 
         if (!rawRes.ok) {
           const err: IGenericError = await rawRes.json();
