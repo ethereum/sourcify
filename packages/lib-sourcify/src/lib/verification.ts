@@ -47,6 +47,15 @@ export async function verifyDeployed(
   };
   const recompiled = await checkedContract.recompile();
 
+  if (
+    recompiled.deployedBytecode === '0x' ||
+    recompiled.creationBytecode === '0x'
+  ) {
+    throw new Error(
+      `The compiled contract bytecode is "0x". Are you trying to verify an abstract contract?`
+    );
+  }
+
   const deployedBytecode = await getBytecode(sourcifyChain, address);
 
   // Can't match if there is no deployed bytecode
@@ -364,11 +373,6 @@ export async function matchWithCreationTx(
   creatorTxHash: string,
   recompiledMetadata: Metadata
 ) {
-  if (recompiledCreationBytecode === '0x') {
-    match.status = null;
-    match.message = `Failed to match with creation bytecode: recompiled contract's creation bytecode is empty`;
-    return;
-  }
   const creatorTx = await getTx(creatorTxHash, sourcifyChain);
   const creatorTxData = creatorTx.input;
 
