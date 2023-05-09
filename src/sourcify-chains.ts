@@ -369,6 +369,14 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       "https://explorer.testnet.aurora.dev/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
+  "20000": {
+    // DogeChain Mainnet
+    supported: true,
+    monitored: true,
+    contractFetchAddress:
+      "https://explorer.dogechain.dog/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
   "1284": {
     // Moonbeam
     supported: true,
