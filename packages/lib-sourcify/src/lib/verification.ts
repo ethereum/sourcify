@@ -364,6 +364,11 @@ export async function matchWithCreationTx(
   creatorTxHash: string,
   recompiledMetadata: Metadata
 ) {
+  if (recompiledCreationBytecode === '0x') {
+    match.status = null;
+    match.message = `Failed to match with creation bytecode: recompiled contract's creation bytecode is empty`;
+    return;
+  }
   const creatorTx = await getTx(creatorTxHash, sourcifyChain);
   const creatorTxData = creatorTx.input;
 

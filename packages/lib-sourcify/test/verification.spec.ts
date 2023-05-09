@@ -623,6 +623,47 @@ describe('lib-sourcify tests', () => {
       expectMatch(match, null, deployedAddress, undefined); // status is null
     });
 
+    it('should fail to matchWithCreationTx when passing an abstract contract', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        'sources',
+        'WithImmutables'
+      );
+
+      const [deployedAddress, creatorTxHash] = await deployFromAbiAndBytecode(
+        localWeb3Provider,
+        contractFolderPath,
+        accounts[0],
+        ['12345']
+      );
+
+      const maliciousContractFolderPath = path.join(
+        __dirname,
+        'sources',
+        'AbstractCreationBytecodeAttack'
+      );
+      const checkedContracts = await checkFilesFromContractFolder(
+        maliciousContractFolderPath
+      );
+      const recompiled = await checkedContracts[0].recompile();
+      const match = {
+        address: deployedAddress,
+        chainId: sourcifyChainGanache.chainId.toString(),
+        status: null,
+      };
+      const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
+
+      await matchWithCreationTx(
+        match,
+        recompiled.creationBytecode,
+        sourcifyChainGanache,
+        deployedAddress,
+        creatorTxHash,
+        recompiledMetadata
+      );
+      expectMatch(match, null, deployedAddress, undefined); // status is null
+    });
+
     it('should successfuly verify with matchWithCreationTx with creationTxHash', async () => {
       const contractFolderPath = path.join(
         __dirname,
