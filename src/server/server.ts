@@ -1,6 +1,5 @@
 import express from "express";
 import serveIndex from "serve-index";
-import fileUpload from "express-fileupload";
 import cors from "cors";
 import routes from "./routes";
 import bodyParser from "body-parser";
@@ -15,7 +14,12 @@ import session from "express-session";
 import createMemoryStore from "memorystore";
 import util from "util";
 import { sourcifyChainsArray } from "../sourcify-chains";
+const OpenApiValidator = require("express-openapi-validator");
+const swaggerUi = require("swagger-ui-express");
+const yamljs = require("yamljs");
+const { resolveRefs } = require("json-refs");
 const MemoryStore = createMemoryStore(session);
+const fileUpload = require("express-fileupload");
 
 export class Server {
   app: express.Application;
@@ -26,6 +30,23 @@ export class Server {
     useApiLogging(express);
     this.port = port || config.server.port;
     this.app = express();
+
+    this.app.use(
+      OpenApiValidator.middleware({
+        apiSpec: "openapi.yaml",
+        validateRequests: true,
+        validateResponses: false,
+        ignoreUndocumented: true,
+      })
+    );
+
+    this.app.use((err: any, req: any, res: any, next: any) => {
+      // format error
+      res.status(err.status || 500).json({
+        message: err.message,
+        errors: err.errors,
+      });
+    });
 
     // Session API endpoints require non "*" origins because of the session cookies
     const sessionPaths = [
@@ -104,6 +125,26 @@ export class Server {
     await promisified(this.port);
     if (callback) callback();
   }
+
+  async loadSwagger(root: string) {
+    const options = {
+      filter: ["relative", "remote"],
+      loaderOptions: {
+        processContent: function (res: any, callback: any) {
+          callback(null, yamljs.parse(res.text));
+        },
+      },
+    };
+
+    return resolveRefs(root, options).then(
+      function (results: any) {
+        return results.resolved;
+      },
+      function (err: any) {
+        console.log(err.stack);
+      }
+    );
+  }
 }
 
 function getSessionOptions(): session.SessionOptions {
@@ -126,9 +167,18 @@ function getSessionOptions(): session.SessionOptions {
 
 if (require.main === module) {
   const server = new Server();
-  server.app.listen(server.port, () =>
-    SourcifyEventManager.trigger("Server.Started", {
-      port: server.port,
-    })
-  );
+  server
+    .loadSwagger(yamljs.load("openapi.yaml"))
+    .then((swaggerDocument: any) => {
+      server.app.use(
+        "/api-docs",
+        swaggerUi.serve,
+        swaggerUi.setup(swaggerDocument)
+      );
+      server.app.listen(server.port, () =>
+        SourcifyEventManager.trigger("Server.Started", {
+          port: server.port,
+        })
+      );
+    });
 }

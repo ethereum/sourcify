@@ -1,0 +1,17 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Sourcify API
+  description: APIs to interact with Sourcify
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: http://{base_url}
+    variables:
+      base_url:
+        default: localhost:5555
+        description: server
+paths:
+  /session/data:
+    $ref: "src/server/controllers/verification/create2/session/create2.yaml#/paths/~1session~1data"
