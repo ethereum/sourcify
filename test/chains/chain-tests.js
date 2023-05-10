@@ -1459,6 +1459,23 @@ describe("Test Supported Chains", function () {
     ["shared/WithImmutables.sol"],
     "shared/withImmutables.metadata.json"
   );
+  
+  // DogeChain Mainnet
+  verifyContract(
+    "0x57440eFA9323aD0D34F7D7C84d0e75b739994C53",
+    "20000",
+    "DogeChain Mainnet",
+    ["20000/number.sol"],
+    "20000/numbers_metadata.json"
+  );
+  
+  verifyContractWithImmutables(
+    "0x43DF79752181954a6BA48a82C73313CcFDaedAA7",
+    "20000",
+    "DogeChain Mainnet",
+    ["20000/immutable/fixednumber.sol"],
+    "20000/immutable/fixednumber_metadata.sol"
+    );
 
   //////////////////////
   // Helper functions //
