@@ -2,7 +2,6 @@ import { Request } from "express";
 import { isAddress } from "ethers/lib/utils";
 import { toChecksumAddress } from "web3-utils";
 import { PayloadTooLargeError, ValidationError } from "../../common/errors";
-import { UploadedFile } from "express-fileupload";
 import {
   CheckedContract,
   checkFiles,
@@ -79,8 +78,8 @@ export const validateAddresses = (addresses: string): string[] => {
 };
 
 export const extractFiles = (req: Request, shouldThrow = false) => {
-  if (req.is("multipart/form-data") && req.files && req.files.files) {
-    return extractFilesFromForm(req.files.files);
+  if (req.is("multipart/form-data") && req.files && (req.files as any).files) {
+    return extractFilesFromForm((req.files as any).files);
   } else if (req.is("application/json") && req.body.files) {
     return extractFilesFromJSON(req.body.files);
   }
@@ -92,13 +91,11 @@ export const extractFiles = (req: Request, shouldThrow = false) => {
   }
 };
 
-const extractFilesFromForm = (
-  files: UploadedFile | UploadedFile[]
-): PathBuffer[] => {
+const extractFilesFromForm = (files: any): PathBuffer[] => {
   if (!Array.isArray(files)) {
     files = [files];
   }
-  return files.map((f) => ({ path: f.name, buffer: f.data }));
+  return files.map((f: any) => ({ path: f.name, buffer: f.data }));
 };
 
 export const extractFilesFromJSON = (files: {
