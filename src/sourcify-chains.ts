@@ -369,7 +369,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       "https://explorer.testnet.aurora.dev/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
-  "20000": {
+  "2000": {
     // DogeChain Mainnet
     supported: true,
     monitored: true,
