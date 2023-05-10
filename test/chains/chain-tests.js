@@ -1463,18 +1463,18 @@ describe("Test Supported Chains", function () {
   // DogeChain Mainnet
   verifyContract(
     "0x57440eFA9323aD0D34F7D7C84d0e75b739994C53",
-    "20000",
+    "2000",
     "DogeChain Mainnet",
-    ["20000/number.sol"],
-    "20000/numbers_metadata.json"
+    ["2000/number.sol"],
+    "2000/numbers_metadata.json"
   );
   
   verifyContractWithImmutables(
     "0x43DF79752181954a6BA48a82C73313CcFDaedAA7",
-    "20000",
+    "2000",
     "DogeChain Mainnet",
-    ["20000/immutable/fixednumber.sol"],
-    "20000/immutable/fixednumber_metadata.json"
+    ["2000/immutable/fixednumber.sol"],
+    "2000/immutable/fixednumber_metadata.json"
     );
 
   //////////////////////
