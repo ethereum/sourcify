@@ -1474,7 +1474,7 @@ describe("Test Supported Chains", function () {
     "20000",
     "DogeChain Mainnet",
     ["20000/immutable/fixednumber.sol"],
-    "20000/immutable/fixednumber_metadata.sol"
+    "20000/immutable/fixednumber_metadata.json"
     );
 
   //////////////////////
