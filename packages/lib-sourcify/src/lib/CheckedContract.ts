@@ -102,15 +102,15 @@ export class CheckedContract {
   }
 
   /**
-   * Function to try to generate variations of the metadata of the contract such that it will match the one in the bytecode.
+   * Function to try to generate variations of the metadata of the contract such that it will match to the hash in the onchain bytecode.
    * Generates variations of the given source files and replaces the hashes in the metadata with the hashes of the variations.
    * If found, replaces this.metadata and this.solidity with the found variations.
    * Useful for finding perfect matches for known types of variations such as different line endings.
    *
    * @param deployedBytecode
-   * @returns
+   * @returns the perfectly matching CheckedContract or null otherwise
    */
-  async tryToFindOriginalMetadata(
+  async tryToFindPerfectMetadata(
     deployedBytecode: string
   ): Promise<CheckedContract | null> {
     const decodedAuxdata = decodeBytecode(deployedBytecode);
@@ -157,8 +157,8 @@ export class CheckedContract {
       'variation'
     );
 
-    // We should canonicalize the metadata when we are generation "metadata variations" when we have a partial match.
-    // It could be that the verifier somehow mixed the orderings of the metadata or added whitespaces etc.
+    // We should canonicalize the metadata when we are generating "metadata variations" when we have a partial match.
+    // It could be that the user somehow mixed the orderings of the metadata or added whitespaces etc.
     // For more information read https://github.com/ethereum/sourcify/issues/978
     const metadata: Metadata = reorderAlphabetically(
       JSON.parse(this.metadataRaw)
