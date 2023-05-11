@@ -370,7 +370,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: getBlockscoutRegex(),
   },
   "2000": {
-    // DogeChain Mainnet
+    // DogeChain Mainnet 
     supported: true,
     monitored: true,
     contractFetchAddress:
