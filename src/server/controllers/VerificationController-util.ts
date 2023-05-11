@@ -45,13 +45,15 @@ declare module "express-session" {
 }
 
 export type LegacyVerifyRequest = Request & {
-  addresses: string[];
-  chain: string;
-  chosenContract: number;
-  /* contextVariables?: {
-    abiEncodedConstructorArguments?: string;
-    msgSender?: string;
-  }; */
+  body: {
+    addresses: string[];
+    chain: string;
+    chosenContract: number;
+    /* contextVariables?: {
+      abiEncodedConstructorArguments?: string;
+      msgSender?: string;
+    }; */
+  };
 };
 
 type PathBuffer = {

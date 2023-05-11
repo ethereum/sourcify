@@ -1,0 +1,108 @@
+openapi: "3.0.0"
+
+paths:
+  /verify:
+    post:
+      description: |
+        Sends provided files for verification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - addresses
+                - chain
+              properties:
+                addresses:
+                  type: string
+                  format: validate-addresses
+                chain:
+                  type: string
+                  format: supported-chains
+                creatorTxHash:
+                  type: string
+                chosenContract:
+                  type: string
+      responses:
+        "200":
+          description: The contract has been successfully checked or sourcified
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        address:
+                          type: string
+                          example: "0x00000000219ab540356cBB839Cbe05303d7705Fa"
+                        status:
+                          type: string
+                          example: "perfect"
+                        storageTimestamp:
+                          type: string
+                          format: date-time
+                          nullable: true
+        "400":
+          description: Missing or invalid parameters received
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                        message:
+                          type: string
+        "404":
+          description: Provided valid address and chain input, but no files
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "500":
+          description: Server errors
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "The deployed and recompiled bytecode don't match."
+              examples:
+                bytecodeMismatch:
+                  summary: Bytecode Mismatch
+                  value:
+                    error: "The deployed and recompiled bytecode don't match."
+                contractNotDeployed:
+                  summary: Contract Not Deployed
+                  value:
+                    error: "Contract name: RandomName. Ethereum Mainnet does not have a contract deployed at 0x7c90F0C9Eb46391c93d0545dDF4658d3B8DF1866."
+                chainUnavailable:
+                  summary: Chain Unavailable
+                  value:
+                    error: "Contract name: RandomName. Ethereum Mainnet is temporarily unavailable."
+                resourceMissing:
+                  summary: Resource Missing
+                  value:
+                    error: "Resource missing; unsuccessful fetching: browser/RandomName.sol"
+                immutableVariableVerificationUnsupported:
+                  summary: Immutable Variable Verification Unsupported
+                  value:
+                    error: "Contract name: RandomName. Verifying contracts with immutable variables is not supported for Ethereum Mainnet."

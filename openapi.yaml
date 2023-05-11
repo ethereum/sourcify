@@ -15,3 +15,5 @@ servers:
 paths:
   /session/data:
     $ref: "src/server/controllers/verification/create2/session/create2.yaml#/paths/~1session~1data"
+  /verify:
+    $ref: "src/server/controllers/verification/verify/verify.yaml#/paths/~1verify"
