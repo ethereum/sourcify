@@ -13,7 +13,8 @@ import useApiLogging from "./middlewares/ApiLogging";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 import util from "util";
-import { sourcifyChainsArray } from "../sourcify-chains";
+import { checkSupportedChainId, sourcifyChainsArray } from "../sourcify-chains";
+import { validateAddresses } from "./controllers/VerificationController-util";
 const OpenApiValidator = require("express-openapi-validator");
 const swaggerUi = require("swagger-ui-express");
 const yamljs = require("yamljs");
@@ -31,17 +32,37 @@ export class Server {
     this.port = port || config.server.port;
     this.app = express();
 
+    this.app.use(bodyParser.json({ limit: config.server.maxFileSize }));
+
     this.app.use(
       OpenApiValidator.middleware({
         apiSpec: "openapi.yaml",
         validateRequests: true,
         validateResponses: false,
         ignoreUndocumented: true,
+        serDes: [
+          {
+            format: "validate-addresses",
+            deserialize: (addresses: string): string[] =>
+              validateAddresses(addresses),
+            serialize:
+              () =>
+              (addresses: string[]): string =>
+                addresses.join(","),
+            jsonType: "array",
+          },
+          {
+            format: "supported-chains",
+            deserialize: (chain: string) => checkSupportedChainId(chain),
+            serialize: () => (chain: string) => chain,
+          },
+        ],
       })
     );
 
     this.app.use((err: any, req: any, res: any, next: any) => {
       // format error
+      console.log(err);
       res.status(err.status || 500).json({
         message: err.message,
         errors: err.errors,
@@ -77,7 +98,6 @@ export class Server {
       })
     );
 
-    this.app.use(bodyParser.json({ limit: config.server.maxFileSize }));
     this.app.use(
       bodyParser.urlencoded({
         limit: config.server.maxFileSize,

@@ -83,10 +83,10 @@ export default class VerificationController
     const req = origReq as LegacyVerifyRequest;
     validateRequest(req); // TODO: Validate below with route registration.
 
-    for (const address of req.addresses) {
+    for (const address of req.body.addresses) {
       const result = this.repositoryService.checkByChainAndAddress(
         address,
-        req.chain
+        req.body.chain
       );
       if (result.length != 0) {
         return res.send({ result });
@@ -136,7 +136,7 @@ export default class VerificationController
       const match = await this.verificationService.verifyDeployed(
         contract,
         req.body.chain,
-        req.addresses[0], // Due to the old API taking an array of addresses.
+        req.body.addresses[0], // Due to the old API taking an array of addresses.
         /* req.body.contextVariables, */
         req.body.creatorTxHash
       );
@@ -149,7 +149,7 @@ export default class VerificationController
         const tempMatch = await this.verificationService.verifyDeployed(
           contractWithAllSources,
           req.body.chain,
-          req.addresses[0], // Due to the old API taking an array of addresses.
+          req.body.addresses[0], // Due to the old API taking an array of addresses.
           /* req.body.contextVariables, */
           req.body.creatorTxHash
         );
@@ -656,42 +656,22 @@ export default class VerificationController
 
   registerRoutes = (): Router => {
     this.router.route(["/", "/verify"]).post(
-      body("address")
+      /* body("address")
         .exists()
         .bail()
-        .custom(
-          (address, { req }) => (req.addresses = validateAddresses(address))
-        ),
+        .custom((address, { req }) => {
+          console.log(req.addresses, req.body);
+          return (req.addresses = validateAddresses(address));
+        }),
       body("chain")
         .exists()
         .bail()
         .custom((chain, { req }) => (req.chain = checkSupportedChainId(chain))),
-      /* body("contextVariables.msgSender").optional(),
-      body("contextVariables.abiEncodedConstructorArguments").optional(), */
-      // Handle non-json multipart/form-data requests.
-      /* body("abiEncodedConstructorArguments")
-        .optional()
-        .custom(
-          (abiEncodedConstructorArguments, { req }) =>
-            (req.body.contextVariables = {
-              abiEncodedConstructorArguments,
-              ...req.body.contextVariables,
-            })
-        ),
-      body("msgSender")
-        .optional()
-        .custom(
-          (msgSender, { req }) =>
-            (req.body.contextVariables = {
-              msgSender,
-              ...req.body.contextVariables,
-            })
-        ), */
       body("creatorTxHash")
         .optional()
         .custom(
           (creatorTxHash, { req }) => (req.body.creatorTxHash = creatorTxHash)
-        ),
+        ), */
       this.safeHandler(this.legacyVerifyEndpoint)
     );
 
