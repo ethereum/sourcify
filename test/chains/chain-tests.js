@@ -197,13 +197,13 @@ describe("Test Supported Chains", function () {
     "40/metadata.json"
   );
 
-  verifyContract(
-    "0x68107Fb54f5f29D8e0B3Ac44a99f4444D1F22a68",
-    "77",
-    "Sokol",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
-  );
+  // verifyContract(
+  //   "0x68107Fb54f5f29D8e0B3Ac44a99f4444D1F22a68",
+  //   "77",
+  //   "Sokol",
+  //   ["shared/1_Storage.sol"],
+  //   "shared/1_Storage.metadata.json"
+  // );
 
   verifyContract(
     "0x0e9b6C08Fe70Aac8fd08a74a076c2B1C9f7c7d14",

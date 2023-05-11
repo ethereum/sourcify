@@ -165,8 +165,9 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: generateEtherscanCreatorTxAPI("56"),
   },
   "77": {
-    supported: true,
-    monitored: true,
+    // Turned off as seemingly stale
+    supported: false,
+    monitored: false,
     contractFetchAddress:
       "https://blockscout.com/poa/sokol/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex("/poa/sokol"),
