@@ -1462,11 +1462,11 @@ describe("Test Supported Chains", function () {
   
   // DogeChain Mainnet
   verifyContract(
-    "0x57440eFA9323aD0D34F7D7C84d0e75b739994C53",
+    "0x440579a2390f1c5c4d3aba486226d0fc374c23e9",
     "2000",
     "DogeChain Mainnet",
-    ["2000/number.sol"],
-    "2000/numbers_metadata.json"
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
   );
   
   verifyContractWithImmutables(
