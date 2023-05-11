@@ -646,14 +646,15 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
-  // Optimism Bedrock: Goerli Alpha Testnet
-  verifyContract(
-    "0xA7e70Be8A6563DCe75299c30D1566A83fC63BC37",
-    "28528",
-    "Optimism Bedrock: Goerli Alpha Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
-  );
+  // Chain support turned off
+  // // Optimism Bedrock: Goerli Alpha Testnet
+  // verifyContract(
+  //   "0xA7e70Be8A6563DCe75299c30D1566A83fC63BC37",
+  //   "28528",
+  //   "Optimism Bedrock: Goerli Alpha Testnet",
+  //   ["shared/1_Storage.sol"],
+  //   "shared/1_Storage.metadata.json"
+  // );
 
   // ZetaChain: Athens Testnet
   verifyContract(
