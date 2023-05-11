@@ -444,7 +444,7 @@ function createJsonInputFromMetadata(
   solcJsonInput.settings.outputSelection['*'] =
     solcJsonInput.settings.outputSelection['*'] || {};
 
-  solcJsonInput.settings.outputSelection['*'][contractName] = [
+  solcJsonInput.settings.outputSelection['*']['*'] = [
     'evm.bytecode.object',
     'evm.deployedBytecode.object',
     'evm.deployedBytecode.immutableReferences',
