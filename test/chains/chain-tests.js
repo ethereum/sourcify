@@ -53,6 +53,24 @@ describe("Test Supported Chains", function () {
     currentResponse = null;
   });
 
+  // Symplexia Smart Chain
+  verifyContract(
+    "0xa33a20ba0aC3fe6b94a8e1Eb4614947B9cb51F84",
+    "1149",
+    "Symplexia Smart Chain",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContractWithImmutables(
+    "0x968fd0BADc643B0A7b088f4b6aA2CE5FA65db622",
+    "1149",
+    "Symplexia Smart Chain",
+    ["uint256"],
+    [3742],
+    ["shared/WithImmutables.sol"],
+    "shared/withImmutables.metadata.json"
+  );
+
   verifyContract(
     "0x801f3983c7baBF5E6ae192c84E1257844aDb4b4D",
     "1",

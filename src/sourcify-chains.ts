@@ -775,6 +775,13 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     rpc: buildAlchemyAndCustomRpcURLs("ropsten", "eth"),
     txRegex: ETHERSCAN_REGEX,
   },
+  "1149": {
+    // Symplexia Smart Chain
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://explorer.plexfinance.us/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
