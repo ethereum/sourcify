@@ -238,13 +238,13 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
-  verifyContract(
-    "0x34eC0cBd5E33e7323324333434fe978f1000d9cd",
-    "4216137055",
-    "OneLedger Frankenstein Testnet",
-    ["4216137055/SigmaToken.sol"],
-    "4216137055/SigmaToken.json"
-  );
+  // verifyContract(
+  //   "0x34eC0cBd5E33e7323324333434fe978f1000d9cd",
+  //   "4216137055",
+  //   "OneLedger Frankenstein Testnet",
+  //   ["4216137055/SigmaToken.sol"],
+  //   "4216137055/SigmaToken.json"
+  // );
 
   // Has contracts to be fetched from IPFS
   verifyContract(

@@ -315,7 +315,8 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: getBlockscoutRegex(),
   },
   "4216137055": {
-    supported: true,
+    // Turned off due to inactivity
+    supported: false,
     monitored: false,
     contractFetchAddress:
       "https://frankenstein-explorer.oneledger.network/" + BLOCKSCOUT_SUFFIX,
