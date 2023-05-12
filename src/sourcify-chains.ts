@@ -593,8 +593,9 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     rpc: ["https://core.poa.network"],
   },
   "592": {
+    // Turned off support as RPCs are failing
     // Astar (EVM)
-    supported: true,
+    supported: false,
     monitored: false,
     contractFetchAddress: "https://blockscout.com/astar/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex("/astar"),

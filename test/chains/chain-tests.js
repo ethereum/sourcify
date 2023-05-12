@@ -601,14 +601,14 @@ describe("Test Supported Chains", function () {
   //   "shared/1_Storage.metadata.json"
   // );
 
-  // Astar (EVM)
-  verifyContract(
-    "0xA7e70Be8A6563DCe75299c30D1566A83fC63BC37",
-    "592",
-    "Astar (EVM)",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
-  );
+  // // Astar (EVM)
+  // verifyContract(
+  //   "0xA7e70Be8A6563DCe75299c30D1566A83fC63BC37",
+  //   "592",
+  //   "Astar (EVM)",
+  //   ["shared/1_Storage.sol"],
+  //   "shared/1_Storage.metadata.json"
+  // );
 
   // Gnosis Chiado Testnet
   verifyContract(
