@@ -348,7 +348,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   },
   "288": {
     supported: true,
-    monitored: true,
+    monitored: false,
     contractFetchAddress:
       "https://blockexplorer.boba.network/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
