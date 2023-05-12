@@ -258,6 +258,15 @@ describe("Test Supported Chains", function () {
 
   // Has contracts to be fetched from IPFS
   verifyContract(
+    "0x68107Fb54f5f29D8e0B3Ac44a99f4444D1F22a68",
+    "5700",
+    "Syscoin Tanenbaum Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  // Has contracts to be fetched from IPFS
+  verifyContract(
     "0xB2d0641fc8863514B6533b129fD744200eE17D29",
     "57",
     "Syscoin Tanenbaum Testnet",
