@@ -692,14 +692,14 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
-  // Flare Mainnet
-  verifyContract(
-    "0xbBc2EdeDc9d2d97970eE20d0Dc7216216a27e635",
-    "14",
-    "Flare Mainnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
-  );
+  // // Flare Mainnet
+  // verifyContract(
+  //   "0xbBc2EdeDc9d2d97970eE20d0Dc7216216a27e635",
+  //   "14",
+  //   "Flare Mainnet",
+  //   ["shared/1_Storage.sol"],
+  //   "shared/1_Storage.metadata.json"
+  // );
 
   // Oasis Sapphire Mainnet
   verifyContract(

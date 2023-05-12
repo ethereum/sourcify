@@ -689,12 +689,12 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: getBlockscoutRegex(),
   },
   "14": {
+    // Turned off support as RPCs are failing
     // Flare Mainnet
-    supported: true,
+    supported: false,
     monitored: false,
     contractFetchAddress:
       "https://flare-explorer.flare.network/" + BLOCKSCOUT_SUFFIX,
-    rpc: ["https://flare-api.flare.network/ext/C/rpc"],
     txRegex: getBlockscoutRegex(),
   },
   "2047": {
