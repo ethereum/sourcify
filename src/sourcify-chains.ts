@@ -204,7 +204,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: "https://hashscan.io/mainnet/" + ETHERSCAN_SUFFIX,
   },
   "300": {
-    // Turned off as the this is an Alpha network and is seemingly not used anymore
+    // Turned off as seems to be shut down
     supported: false,
     monitored: false,
     contractFetchAddress:

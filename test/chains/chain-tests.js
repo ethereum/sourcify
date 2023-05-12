@@ -93,13 +93,13 @@ describe("Test Supported Chains", function () {
     "100/metadata.json"
   );
 
-  verifyContract(
-    "0x2e4088DcA1aE2e098e322562ab1fEb83b3a303CD",
-    "300",
-    "Optimism on Gnosis",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
-  );
+  // verifyContract(
+  //   "0x2e4088DcA1aE2e098e322562ab1fEb83b3a303CD",
+  //   "300",
+  //   "Optimism on Gnosis",
+  //   ["shared/1_Storage.sol"],
+  //   "shared/1_Storage.metadata.json"
+  // );
 
   verifyContract(
     "0x8C3FA94eb5b07c9AF7dBFcC53ea3D2BF7FdF3617",
