@@ -339,8 +339,9 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     rpc: buildAlchemyAndCustomRpcURLs("goerli", "opt"),
   },
   "28": {
-    supported: true,
-    monitored: true,
+    // Turned off support as the chains seems shut down
+    supported: false,
+    monitored: false,
     contractFetchAddress:
       "https://blockexplorer.rinkeby.boba.network/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
