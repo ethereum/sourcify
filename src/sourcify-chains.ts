@@ -681,12 +681,11 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: getBlockscoutRegex(),
   },
   "19": {
-    //  Songbird Canary Network
+    // Songbird Canary Network
     supported: true,
     monitored: false,
     contractFetchAddress:
       "https://songbird-explorer.flare.network/" + BLOCKSCOUT_SUFFIX,
-    rpc: ["https://songbird-api.flare.network/ext/C/rpc"],
     txRegex: getBlockscoutRegex(),
   },
   "14": {
