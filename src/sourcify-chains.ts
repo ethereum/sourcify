@@ -583,8 +583,9 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: getBlockscoutRegex(),
   },
   "99": {
+    // Turned off support as the chain seems to be shut down
     // POA Network Core
-    supported: true,
+    supported: false,
     monitored: false,
     contractFetchAddress:
       "https://blockscout.com/poa/core/" + BLOCKSCOUT_SUFFIX,

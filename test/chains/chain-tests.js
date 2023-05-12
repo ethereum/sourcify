@@ -592,14 +592,14 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
-  // POA Network Core
-  verifyContract(
-    "0x3b2e3383AeE77A58f252aFB3635bCBd842BaeCB3",
-    "99",
-    "POA Core",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
-  );
+  // // POA Network Core
+  // verifyContract(
+  //   "0x3b2e3383AeE77A58f252aFB3635bCBd842BaeCB3",
+  //   "99",
+  //   "POA Core",
+  //   ["shared/1_Storage.sol"],
+  //   "shared/1_Storage.metadata.json"
+  // );
 
   // Astar (EVM)
   verifyContract(
