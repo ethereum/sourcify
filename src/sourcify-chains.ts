@@ -218,7 +218,8 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     rpc: buildAlchemyAndCustomRpcURLs("mainnet", "polygon"),
   },
   "534": {
-    supported: true,
+    // Turned off as seems to be stale
+    supported: false,
     monitored: false,
     contractFetchAddress: "https://candleexplorer.com/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
