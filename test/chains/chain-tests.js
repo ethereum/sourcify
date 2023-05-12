@@ -61,13 +61,13 @@ describe("Test Supported Chains", function () {
     "1/metadata.json"
   );
 
-  verifyContract(
-    "0x1EFFEbE8B0bc20f2Dc504AA16dC76FF1AB2297A3",
-    "4",
-    "Rinkeby",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
-  );
+  // verifyContract(
+  //   "0x1EFFEbE8B0bc20f2Dc504AA16dC76FF1AB2297A3",
+  //   "4",
+  //   "Rinkeby",
+  //   ["shared/1_Storage.sol"],
+  //   "shared/1_Storage.metadata.json"
+  // );
 
   verifyContract(
     "0xc24381dB2a5932B5D1c424f567A95F9966834cE0",

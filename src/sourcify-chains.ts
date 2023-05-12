@@ -131,9 +131,10 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     rpc: buildAlchemyAndCustomRpcURLs("mainnet", "eth", true),
   },
   "4": {
+    // Deprecated
     // Ethereum Rinkeby Testnet
-    supported: true,
-    monitored: true,
+    supported: false,
+    monitored: false,
     contractFetchAddress: "https://rinkeby.etherscan.io/" + ETHERSCAN_SUFFIX,
     rpc: buildAlchemyAndCustomRpcURLs("rinkeby", "eth", true),
     txRegex: ETHERSCAN_REGEX,
@@ -764,6 +765,8 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     rpc: buildAlchemyAndCustomRpcURLs("kovan", "opt"),
   },
   "42": {
+    // Deprecated
+    // Ethereum Kovan Testnet
     supported: false,
     monitored: false,
     contractFetchAddress: "https://kovan.etherscan.io/" + ETHERSCAN_SUFFIX,
@@ -771,6 +774,8 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: ETHERSCAN_REGEX,
   },
   "3": {
+    // Deprecated
+    // Ethereum Ropsten Testnet
     supported: false,
     monitored: false,
     contractFetchAddress: "https://ropsten.etherscan.io/" + ETHERSCAN_SUFFIX,
