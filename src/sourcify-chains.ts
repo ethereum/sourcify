@@ -419,8 +419,9 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: getBlockscoutRegex(),
   },
   "43": {
+    // Turned off support
     // Darwinia Pangolin Testnet
-    supported: true,
+    supported: false,
     monitored: false,
   },
   "44": {

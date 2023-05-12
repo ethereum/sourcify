@@ -394,14 +394,14 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
-  // Darwinia Pangolin Testnet
-  verifyContract(
-    "0x7de04a7596958D44baB52F4e5D0c9e79cB16ef8B",
-    "43",
-    "Darwinia Pangolin Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
-  );
+  // // Darwinia Pangolin Testnet
+  // verifyContract(
+  //   "0x7de04a7596958D44baB52F4e5D0c9e79cB16ef8B",
+  //   "43",
+  //   "Darwinia Pangolin Testnet",
+  //   ["shared/1_Storage.sol"],
+  //   "shared/1_Storage.metadata.json"
+  // );
 
   // Darwinia Crab Mainnet
   verifyContract(
