@@ -547,14 +547,14 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
-  //Crystaleum
-  verifyContract(
-    "0x8Ab612E257534b7d5a6E315444f1C45c434eAaCf",
-    "103090",
-    "Crystaleum",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
-  );
+  // //Crystaleum
+  // verifyContract(
+  //   "0x8Ab612E257534b7d5a6E315444f1C45c434eAaCf",
+  //   "103090",
+  //   "Crystaleum",
+  //   ["shared/1_Storage.sol"],
+  //   "shared/1_Storage.metadata.json"
+  // );
 
   //Kekchain (testnet)
   verifyContract(

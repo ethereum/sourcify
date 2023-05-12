@@ -545,8 +545,9 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       AVALANCHE_SUBNET_SUFFIX,
   },
   "103090": {
+    // Turn off support as the chain seems to be shut down
     // Crystaleum Mainnet
-    supported: true,
+    supported: false,
     monitored: false,
     contractFetchAddress: "https://scan.crystaleum.org/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
