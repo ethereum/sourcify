@@ -465,8 +465,9 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: getBlockscoutRegex(),
   },
   "486217935": {
+    // Turn off support as the chain seems to be shut down
     // Gather Devnet
-    supported: true,
+    supported: false,
     monitored: false,
     contractFetchAddress:
       "https://devnet-explorer.gather.network/" + BLOCKSCOUT_SUFFIX,

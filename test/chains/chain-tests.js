@@ -466,14 +466,14 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
-  // Gather Devnet
-  verifyContract(
-    "0xEeE72e2295E181BaB1ef049bFEAaf5fC348998C5",
-    "486217935",
-    "GTH",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
-  );
+  // // Gather Devnet
+  // verifyContract(
+  //   "0xEeE72e2295E181BaB1ef049bFEAaf5fC348998C5",
+  //   "486217935",
+  //   "GTH",
+  //   ["shared/1_Storage.sol"],
+  //   "shared/1_Storage.metadata.json"
+  // );
 
   // DFK Chain Testnet
   verifyContract(
