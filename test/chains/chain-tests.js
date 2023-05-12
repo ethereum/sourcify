@@ -9,7 +9,6 @@ const fs = require("fs");
 const path = require("path");
 const util = require("util");
 const rimraf = require("rimraf");
-const StatusCodes = require("http-status-codes").StatusCodes;
 const addContext = require("mochawesome/addContext");
 const { assertVerification } = require("../helpers/assertions");
 
@@ -26,6 +25,8 @@ describe("Test Supported Chains", function () {
   this.timeout(TEST_TIME);
   const server = new Server();
   let currentResponse = null; // to log server response when test fails
+
+  const testedChains = new Set(); // Track tested chains and make sure all "supported = true" chains are tested
 
   before(async function () {
     const promisified = util.promisify(server.app.listen);
@@ -791,6 +792,37 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
+  // Finally check if all the "supported: true" chains have been tested
+  it("should have tested all supported chains", function (done) {
+    if (newAddedChainId) {
+      // Don't test all chains if it is a pull request for adding new chain support
+      return this.skip();
+    }
+    chai
+      .request(server.app)
+      .get("/chains")
+      .end((err, res) => {
+        chai.assert.equal(err, null);
+        chai.assert.equal(res.status, 200);
+        const supportedChains = res.body.filter((chain) => chain.supported);
+        const untestedChains = [];
+        supportedChains.forEach((chain) => {
+          if (chain.chainId == 0) return; // Skip Localhost
+          if (!testedChains.has(chain.chainId.toString())) {
+            untestedChains.push(chain);
+          }
+        });
+        chai.assert(
+          untestedChains.length == 0,
+          `There are untested chains!: ${untestedChains
+            .map((chain) => `${chain.name} (${chain.chainId})`)
+            .join(",\n")}`
+        );
+
+        done();
+      });
+  });
+
   //////////////////////
   // Helper functions //
   //////////////////////
@@ -842,5 +874,6 @@ describe("Test Supported Chains", function () {
           assertVerification(err, res, done, address, chainId);
         });
     });
+    testedChains.add(chainId);
   }
 });
