@@ -632,8 +632,9 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: getBlockscoutRegex("/shiden"),
   },
   "28528": {
+    // Turned off support as the chain seems to be shut down
     // Optimism Bedrock: Goerli Alpha Testnet
-    supported: true,
+    supported: false,
     monitored: false,
     contractFetchAddress:
       "https://blockscout.com/optimism/bedrock-alpha/" + BLOCKSCOUT_SUFFIX,
