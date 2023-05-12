@@ -612,7 +612,7 @@ describe("Test Supported Chains", function () {
 
   // Gnosis Chiado Testnet
   verifyContract(
-    "0x78f71adAf9601034faC12C80F316ce4c2E95D1ab",
+    "0xd46fd24ea21F04459407Fb0B518451e54d0b07a1",
     "10200",
     "Gnosis Chiado Testnet",
     ["shared/1_Storage.sol"],
