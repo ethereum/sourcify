@@ -1493,7 +1493,7 @@ describe("Test Supported Chains", function () {
     "DogeChain Mainnet",
     ["2000/immutable/fixednumber.sol"],
     "2000/immutable/fixednumber_metadata.json"
-    );
+  );
 
   //////////////////////
   // Helper functions //
