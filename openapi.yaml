@@ -15,8 +15,6 @@ servers:
 paths:
   /session/data:
     $ref: "src/server/controllers/verification/create2/session/create2.yaml#/paths/~1session~1data"
-  /:
-    $ref: "src/server/controllers/verification/verify/stateless/verify.stateless.paths.yaml#/paths/~1"
   /verify:
     $ref: "src/server/controllers/verification/verify/stateless/verify.stateless.paths.yaml#/paths/~1verify"
   /verify/solc-json:
