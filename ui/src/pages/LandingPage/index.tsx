@@ -304,7 +304,9 @@ const LandingPage = () => {
           {sourcifyChains.length > 0 && (
             <p>
               {" "}
-              Currently we support {sourcifyChains.length} different chains{" "}
+              Currently we support{" "}
+              {sourcifyChains.filter((c) => c.supported).length} different
+              chains{" "}
             </p>
           )}
         </div>
