@@ -5,6 +5,8 @@ import { safeHandler } from "../../common";
 const router: Router = Router();
 
 router.route("/verify").post(safeHandler(legacyVerifyEndpoint));
-router.route("/").post(safeHandler(legacyVerifyEndpoint));
+router.route("/").post(function (req, res) {
+  res.redirect(307, "/verify");
+});
 
 export default router;
