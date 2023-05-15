@@ -131,9 +131,10 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     rpc: buildAlchemyAndCustomRpcURLs("mainnet", "eth", true),
   },
   "4": {
+    // Deprecated
     // Ethereum Rinkeby Testnet
-    supported: true,
-    monitored: true,
+    supported: false,
+    monitored: false,
     contractFetchAddress: "https://rinkeby.etherscan.io/" + ETHERSCAN_SUFFIX,
     rpc: buildAlchemyAndCustomRpcURLs("rinkeby", "eth", true),
     txRegex: ETHERSCAN_REGEX,
@@ -165,8 +166,9 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: generateEtherscanCreatorTxAPI("56"),
   },
   "77": {
-    supported: true,
-    monitored: true,
+    // Turned off as seemingly stale
+    supported: false,
+    monitored: false,
     contractFetchAddress:
       "https://blockscout.com/poa/sokol/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex("/poa/sokol"),
@@ -203,7 +205,8 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: "https://hashscan.io/mainnet/" + ETHERSCAN_SUFFIX,
   },
   "300": {
-    supported: true,
+    // Turned off as seems to be shut down
+    supported: false,
     monitored: false,
     contractFetchAddress:
       "https://blockscout.com/xdai/optimism/" + BLOCKSCOUT_SUFFIX,
@@ -216,7 +219,8 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     rpc: buildAlchemyAndCustomRpcURLs("mainnet", "polygon"),
   },
   "534": {
-    supported: true,
+    // Turned off as seems to be stale
+    supported: false,
     monitored: false,
     contractFetchAddress: "https://candleexplorer.com/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
@@ -313,7 +317,8 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: getBlockscoutRegex(),
   },
   "4216137055": {
-    supported: true,
+    // Turned off due to inactivity
+    supported: false,
     monitored: false,
     contractFetchAddress:
       "https://frankenstein-explorer.oneledger.network/" + BLOCKSCOUT_SUFFIX,
@@ -336,15 +341,16 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     rpc: buildAlchemyAndCustomRpcURLs("goerli", "opt"),
   },
   "28": {
-    supported: true,
-    monitored: true,
+    // Turned off support as the chains seems shut down
+    supported: false,
+    monitored: false,
     contractFetchAddress:
       "https://blockexplorer.rinkeby.boba.network/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
   "288": {
     supported: true,
-    monitored: true,
+    monitored: false,
     contractFetchAddress:
       "https://blockexplorer.boba.network/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
@@ -414,8 +420,9 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: getBlockscoutRegex(),
   },
   "43": {
+    // Turned off support
     // Darwinia Pangolin Testnet
-    supported: true,
+    supported: false,
     monitored: false,
   },
   "44": {
@@ -459,8 +466,9 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: getBlockscoutRegex(),
   },
   "486217935": {
+    // Turn off support as the chain seems to be shut down
     // Gather Devnet
-    supported: true,
+    supported: false,
     monitored: false,
     contractFetchAddress:
       "https://devnet-explorer.gather.network/" + BLOCKSCOUT_SUFFIX,
@@ -538,8 +546,9 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       AVALANCHE_SUBNET_SUFFIX,
   },
   "103090": {
+    // Turn off support as the chain seems to be shut down
     // Crystaleum Mainnet
-    supported: true,
+    supported: false,
     monitored: false,
     contractFetchAddress: "https://scan.crystaleum.org/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
@@ -575,8 +584,9 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: getBlockscoutRegex(),
   },
   "99": {
+    // Turned off support as the chain seems to be shut down
     // POA Network Core
-    supported: true,
+    supported: false,
     monitored: false,
     contractFetchAddress:
       "https://blockscout.com/poa/core/" + BLOCKSCOUT_SUFFIX,
@@ -584,8 +594,9 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     rpc: ["https://core.poa.network"],
   },
   "592": {
+    // Turned off support as RPCs are failing
     // Astar (EVM)
-    supported: true,
+    supported: false,
     monitored: false,
     contractFetchAddress: "https://blockscout.com/astar/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex("/astar"),
@@ -622,8 +633,9 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: getBlockscoutRegex("/shiden"),
   },
   "28528": {
+    // Turned off support as the chain seems to be shut down
     // Optimism Bedrock: Goerli Alpha Testnet
-    supported: true,
+    supported: false,
     monitored: false,
     contractFetchAddress:
       "https://blockscout.com/optimism/bedrock-alpha/" + BLOCKSCOUT_SUFFIX,
@@ -670,21 +682,20 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: getBlockscoutRegex(),
   },
   "19": {
-    //  Songbird Canary Network
+    // Songbird Canary Network
     supported: true,
     monitored: false,
     contractFetchAddress:
       "https://songbird-explorer.flare.network/" + BLOCKSCOUT_SUFFIX,
-    rpc: ["https://songbird-api.flare.network/ext/C/rpc"],
     txRegex: getBlockscoutRegex(),
   },
   "14": {
+    // Turned off support as RPCs are failing
     // Flare Mainnet
-    supported: true,
+    supported: false,
     monitored: false,
     contractFetchAddress:
       "https://flare-explorer.flare.network/" + BLOCKSCOUT_SUFFIX,
-    rpc: ["https://flare-api.flare.network/ext/C/rpc"],
     txRegex: getBlockscoutRegex(),
   },
   "2047": {
@@ -754,6 +765,8 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     rpc: buildAlchemyAndCustomRpcURLs("kovan", "opt"),
   },
   "42": {
+    // Deprecated
+    // Ethereum Kovan Testnet
     supported: false,
     monitored: false,
     contractFetchAddress: "https://kovan.etherscan.io/" + ETHERSCAN_SUFFIX,
@@ -761,6 +774,8 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: ETHERSCAN_REGEX,
   },
   "3": {
+    // Deprecated
+    // Ethereum Ropsten Testnet
     supported: false,
     monitored: false,
     contractFetchAddress: "https://ropsten.etherscan.io/" + ETHERSCAN_SUFFIX,
