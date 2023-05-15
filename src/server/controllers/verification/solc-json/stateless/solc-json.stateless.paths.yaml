@@ -1,0 +1,48 @@
+openapi: "3.0.0"
+
+paths:
+  /verify/solc-json:
+    post:
+      summary: Verify solc-json
+      operationId: verifySolcJson
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                address:
+                  type: array
+                  items:
+                    type: string
+                  format: validate-addresses
+                  description: An array of addresses
+                chain:
+                  type: string
+                  format: supported-chains
+                  description: Chain to check
+                files:
+                  type: object
+                  additionalProperties:
+                    type: string
+                  description: 'Files to upload {"path/filename": "content"}'
+                compilerVersion:
+                  type: string
+                  description: Compiler version
+                contractName:
+                  type: string
+                  description: Name of the contract
+                creatorTxHash:
+                  type: string
+                  description: Creator transaction hash
+              required:
+                - address
+                - chain
+                - compilerVersion
+                - contractName
+                - files
+      responses:
+        "200":
+          description: Successful operation
+        "400":
+          description: Invalid input

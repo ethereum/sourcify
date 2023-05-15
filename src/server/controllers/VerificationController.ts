@@ -15,7 +15,7 @@ import {
   getAllMetadataAndSourcesFromSolcJson,
 } from "@ethereum-sourcify/lib-sourcify";
 import { decode as bytecodeDecode } from "@ethereum-sourcify/bytecode-utils";
-import VerificationService from "../services/VerificationService";
+import { IVerificationService } from "../services/VerificationService";
 import BaseController from "./BaseController";
 import { IController } from "../../common/interfaces";
 import {
@@ -53,7 +53,7 @@ import {
 } from "../../sourcify-chains";
 import config from "../../config";
 import { StatusCodes } from "http-status-codes";
-import RepositoryService from "../services/RepositoryService";
+import { IRepositoryService } from "../services/RepositoryService";
 
 export default class VerificationController
   extends BaseController
@@ -61,12 +61,12 @@ export default class VerificationController
 {
   router: Router;
   sourcifyChainsMap: SourcifyChainMap;
-  verificationService: VerificationService;
-  repositoryService: RepositoryService;
+  verificationService: IVerificationService;
+  repositoryService: IRepositoryService;
 
   constructor(
-    verificationService: VerificationService,
-    repositoryService: RepositoryService
+    verificationService: IVerificationService,
+    repositoryService: IRepositoryService
   ) {
     super();
     this.verificationService = verificationService;
@@ -74,100 +74,6 @@ export default class VerificationController
     this.sourcifyChainsMap = sourcifyChainsMap;
     this.router = Router();
   }
-
-  private legacyVerifyEndpoint = async (
-    origReq: Request,
-    res: Response
-  ): Promise<any> => {
-    // Typecast here because of the type error: Type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>' is not assignable to type 'LegacyVerifyRequest'.
-    const req = origReq as LegacyVerifyRequest;
-    validateRequest(req); // TODO: Validate below with route registration.
-
-    for (const address of req.body.addresses) {
-      const result = this.repositoryService.checkByChainAndAddress(
-        address,
-        req.body.chain
-      );
-      if (result.length != 0) {
-        return res.send({ result });
-      }
-    }
-
-    const inputFiles = extractFiles(req);
-    if (!inputFiles) {
-      const msg =
-        "Couldn't extract files from the request. Please make sure you have added files";
-      throw new NotFoundError(msg);
-    }
-
-    let checkedContracts: CheckedContract[];
-    try {
-      checkedContracts = await checkFiles(inputFiles);
-    } catch (error: any) {
-      throw new BadRequestError(error.message);
-    }
-
-    const errors = checkedContracts
-      .filter((contract) => !CheckedContract.isValid(contract, true))
-      .map(stringifyInvalidAndMissing);
-    if (errors.length) {
-      throw new BadRequestError(
-        "Invalid or missing sources in:\n" + errors.join("\n")
-      );
-    }
-
-    if (checkedContracts.length !== 1 && !req.body.chosenContract) {
-      const contractNames = checkedContracts.map((c) => c.name).join(", ");
-      const msg = `Detected ${checkedContracts.length} contracts (${contractNames}), but can only verify 1 at a time. Please choose a main contract and click Verify again.`;
-      const contractsToChoose = checkedContracts.map((contract) => ({
-        name: contract.name,
-        path: contract.compiledPath,
-      }));
-      return res
-        .status(StatusCodes.BAD_REQUEST)
-        .send({ error: msg, contractsToChoose });
-    }
-
-    const contract: CheckedContract = req.body.chosenContract
-      ? checkedContracts[req.body.chosenContract]
-      : checkedContracts[0];
-
-    try {
-      const match = await this.verificationService.verifyDeployed(
-        contract,
-        req.body.chain,
-        req.body.addresses[0], // Due to the old API taking an array of addresses.
-        /* req.body.contextVariables, */
-        req.body.creatorTxHash
-      );
-      // Send to verification again with all source files.
-      if (match.status === "extra-file-input-bug") {
-        const contractWithAllSources = await useAllSources(
-          contract,
-          inputFiles
-        );
-        const tempMatch = await this.verificationService.verifyDeployed(
-          contractWithAllSources,
-          req.body.chain,
-          req.body.addresses[0], // Due to the old API taking an array of addresses.
-          /* req.body.contextVariables, */
-          req.body.creatorTxHash
-        );
-        if (tempMatch.status === "perfect") {
-          await this.repositoryService.storeMatch(contract, tempMatch);
-          return res.send({ result: [tempMatch] });
-        }
-      }
-      if (match.status) {
-        await this.repositoryService.storeMatch(contract, match);
-      }
-      return res.send({ result: [match] }); // array is an old expected behavior (e.g. by frontend)
-    } catch (error: any) {
-      res
-        .status(StatusCodes.INTERNAL_SERVER_ERROR)
-        .send({ error: error.message });
-    }
-  };
 
   private getSessionDataEndpoint = async (req: Request, res: Response) => {
     res.send(getSessionJSON(req.session));
@@ -655,26 +561,6 @@ export default class VerificationController
   };
 
   registerRoutes = (): Router => {
-    this.router.route(["/", "/verify"]).post(
-      /* body("address")
-        .exists()
-        .bail()
-        .custom((address, { req }) => {
-          console.log(req.addresses, req.body);
-          return (req.addresses = validateAddresses(address));
-        }),
-      body("chain")
-        .exists()
-        .bail()
-        .custom((chain, { req }) => (req.chain = checkSupportedChainId(chain))),
-      body("creatorTxHash")
-        .optional()
-        .custom(
-          (creatorTxHash, { req }) => (req.body.creatorTxHash = creatorTxHash)
-        ), */
-      this.safeHandler(this.legacyVerifyEndpoint)
-    );
-
     this.router.route(["/verify/solc-json"]).post(
       body("address")
         .exists()
