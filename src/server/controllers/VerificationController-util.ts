@@ -23,8 +23,8 @@ import QueryString from "qs";
 import { BadRequestError } from "../../common/errors";
 import fetch from "node-fetch";
 import Web3 from "web3";
-import VerificationService from "../services/VerificationService";
-import RepositoryService from "../services/RepositoryService";
+import { IVerificationService } from "../services/VerificationService";
+import { IRepositoryService } from "../services/RepositoryService";
 import { etherscanAPIs } from "../../config";
 import { AbiConstructor, AbiParameter } from "abitype";
 
@@ -383,8 +383,8 @@ export function isVerifiable(contractWrapper: ContractWrapper) {
 export const verifyContractsInSession = async (
   contractWrappers: ContractWrapperMap,
   session: Session,
-  verificationService: VerificationService,
-  repositoryService: RepositoryService
+  verificationService: IVerificationService,
+  repositoryService: IRepositoryService
 ): Promise<void> => {
   for (const id in contractWrappers) {
     const contractWrapper = contractWrappers[id];

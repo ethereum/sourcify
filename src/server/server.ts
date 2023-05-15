@@ -32,6 +32,17 @@ export class Server {
     this.port = port || config.server.port;
     this.app = express();
 
+    this.app.use(
+      bodyParser.urlencoded({
+        limit: config.server.maxFileSize,
+        extended: true,
+      })
+    );
+    /*     this.app.use(
+      bodyParser.text({
+        limit: config.server.maxFileSize,
+      })
+    ); */
     this.app.use(bodyParser.json({ limit: config.server.maxFileSize }));
 
     this.app.use(
@@ -40,6 +51,9 @@ export class Server {
         validateRequests: true,
         validateResponses: false,
         ignoreUndocumented: true,
+        fileUploader: {
+          limits: { fileSize: config.server.maxFileSize },
+        },
         serDes: [
           {
             format: "validate-addresses",
@@ -91,19 +105,6 @@ export class Server {
       })(req, res, next);
     });
 
-    this.app.use(
-      fileUpload({
-        limits: { fileSize: config.server.maxFileSize },
-        abortOnLimit: true,
-      })
-    );
-
-    this.app.use(
-      bodyParser.urlencoded({
-        limit: config.server.maxFileSize,
-        extended: true,
-      })
-    );
     // Need this for secure cookies to work behind a proxy. See https://expressjs.com/en/guide/behind-proxies.html
     // true means the leftmost IP in the X-Forwarded-* header is used.
     // Assuming the client ip is 2.2.2.2, reverse proxy 192.168.1.5
