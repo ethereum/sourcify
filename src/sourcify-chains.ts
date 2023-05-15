@@ -130,15 +130,6 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: generateEtherscanCreatorTxAPI("1"),
     rpc: buildAlchemyAndCustomRpcURLs("mainnet", "eth", true),
   },
-  "4": {
-    // Deprecated
-    // Ethereum Rinkeby Testnet
-    supported: false,
-    monitored: false,
-    contractFetchAddress: "https://rinkeby.etherscan.io/" + ETHERSCAN_SUFFIX,
-    rpc: buildAlchemyAndCustomRpcURLs("rinkeby", "eth", true),
-    txRegex: ETHERSCAN_REGEX,
-  },
   "5": {
     // Ethereum Goerli Testnet
     supported: true,
@@ -154,6 +145,33 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       "https://rpc.sepolia.org"
     ),
     contractFetchAddress: generateEtherscanCreatorTxAPI("11155111"),
+  },
+  "3": {
+    // Deprecated
+    // Ethereum Ropsten Testnet
+    supported: false,
+    monitored: false,
+    contractFetchAddress: "https://ropsten.etherscan.io/" + ETHERSCAN_SUFFIX,
+    rpc: buildAlchemyAndCustomRpcURLs("ropsten", "eth"),
+    txRegex: ETHERSCAN_REGEX,
+  },
+  "4": {
+    // Deprecated
+    // Ethereum Rinkeby Testnet
+    supported: false,
+    monitored: false,
+    contractFetchAddress: "https://rinkeby.etherscan.io/" + ETHERSCAN_SUFFIX,
+    rpc: buildAlchemyAndCustomRpcURLs("rinkeby", "eth", true),
+    txRegex: ETHERSCAN_REGEX,
+  },
+  "42": {
+    // Deprecated
+    // Ethereum Kovan Testnet
+    supported: false,
+    monitored: false,
+    contractFetchAddress: "https://kovan.etherscan.io/" + ETHERSCAN_SUFFIX,
+    rpc: buildAlchemyAndCustomRpcURLs("kovan", "eth"),
+    txRegex: ETHERSCAN_REGEX,
   },
   "51": {
     supported: true,
@@ -764,29 +782,12 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: ETHERSCAN_REGEX,
     rpc: buildAlchemyAndCustomRpcURLs("kovan", "opt"),
   },
-  "42": {
-    // Deprecated
-    // Ethereum Kovan Testnet
-    supported: false,
-    monitored: false,
-    contractFetchAddress: "https://kovan.etherscan.io/" + ETHERSCAN_SUFFIX,
-    rpc: buildAlchemyAndCustomRpcURLs("kovan", "eth"),
-    txRegex: ETHERSCAN_REGEX,
-  },
-  "3": {
-    // Deprecated
-    // Ethereum Ropsten Testnet
-    supported: false,
-    monitored: false,
-    contractFetchAddress: "https://ropsten.etherscan.io/" + ETHERSCAN_SUFFIX,
-    rpc: buildAlchemyAndCustomRpcURLs("ropsten", "eth"),
-    txRegex: ETHERSCAN_REGEX,
-  },
   "1149": {
     // Symplexia Smart Chain
     supported: true,
     monitored: false,
-    contractFetchAddress: "https://explorer.plexfinance.us/" + BLOCKSCOUT_SUFFIX,
+    contractFetchAddress:
+      "https://explorer.plexfinance.us/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
 };
@@ -846,11 +847,11 @@ export function getSortedChainsArray(
 
   const chainsArray = Object.values(chainMap);
   // Have Ethereum chains on top.
-  const ethereumChainIds = [1, 4, 5, 11155111];
+  const ethereumChainIds = [1, 5, 11155111, 3, 4, 42];
   const etherumChains = ethereumChainIds.map((id) => chainMap[id]);
   // Others, sorted alphabetically
   const otherChains = chainsArray
-    .filter((chain) => ![1, 4, 5, 11155111].includes(chain.chainId))
+    .filter((chain) => ![1, 5, 11155111, 3, 4, 42].includes(chain.chainId))
     .sort((a, b) =>
       getPrimarySortKey(a) > getPrimarySortKey(b)
         ? 1
