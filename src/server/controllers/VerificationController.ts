@@ -107,42 +107,6 @@ export default class VerificationController
     res.send(getSessionJSON(session));
   };
 
-  private addInputSolcJsonEndpoint = async (req: Request, res: Response) => {
-    validateRequest(req);
-    const inputFiles = extractFiles(req, true);
-    if (!inputFiles)
-      throw new ValidationError([{ param: "files", msg: "No files found" }]);
-
-    const compilerVersion = req.body.compilerVersion;
-
-    for (const inputFile of inputFiles) {
-      let solcJson;
-      try {
-        solcJson = JSON.parse(inputFile.buffer.toString());
-      } catch (error: any) {
-        throw new BadRequestError(
-          `Couldn't parse JSON ${inputFile.path}. Make sure the contents of the file are syntaxed correctly.`
-        );
-      }
-
-      const metadataAndSources = await getAllMetadataAndSourcesFromSolcJson(
-        solcJson,
-        compilerVersion
-      );
-      const metadataAndSourcesPathContents: PathContent[] =
-        metadataAndSources.map((pb) => {
-          return { path: pb.path, content: pb.buffer.toString(FILE_ENCODING) };
-        });
-
-      const session = req.session;
-      const newFilesCount = saveFiles(metadataAndSourcesPathContents, session);
-      if (newFilesCount) {
-        await checkContractsInSession(session);
-      }
-      res.send(getSessionJSON(session));
-    }
-  };
-
   private restartSessionEndpoint = async (req: Request, res: Response) => {
     req.session.destroy((error: Error) => {
       let msg = "";
@@ -502,13 +466,6 @@ export default class VerificationController
     this.router
       .route(["/input-files", "/session/input-files"])
       .post(this.safeHandler(this.addInputFilesEndpoint));
-
-    this.router
-      .route(["/session/input-solc-json"])
-      .post(
-        body("compilerVersion").exists().bail(),
-        this.safeHandler(this.addInputSolcJsonEndpoint)
-      );
 
     this.router
       .route(["/session/input-contract"])

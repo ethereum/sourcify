@@ -5,6 +5,8 @@ paths:
     post:
       description: |
         Sends provided files for verification
+      tags:
+        - Stateless
       requestBody:
         required: true
         content:

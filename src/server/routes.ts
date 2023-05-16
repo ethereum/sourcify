@@ -4,8 +4,8 @@ import repositoryService from "./services/RepositoryService";
 import VerificationController from "./controllers/VerificationController";
 import TestArtifactsController from "./controllers/TestArtifactsController";
 import RepositoryController from "./controllers/RepositoryController";
-import verifyRoutes from "./controllers/verification/verify/stateless/verify.stateless.routes";
-import solcJsonRoutes from "./controllers/verification/solc-json/stateless/solc-json.stateless.routes";
+import verifyRoutes from "./controllers/verification/verify/verify.routes";
+import solcJsonRoutes from "./controllers/verification/solc-json/solc-json.routes";
 
 const router: Router = Router();
 

@@ -1,4 +1,4 @@
-import { Response, Router } from "express";
+import { Router } from "express";
 import { verifySolcJsonEndpoint } from "./solc-json.stateless.handlers";
 import { safeHandler } from "../../common";
 
