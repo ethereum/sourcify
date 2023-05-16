@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { addInputSolcJsonEndpoint } from "./solc-json.session.handlers";
-import { safeHandler } from "../../verification.common";
+import { safeHandler } from "../../../controllers.common";
 
 const router: Router = Router();
 
