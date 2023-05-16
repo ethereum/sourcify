@@ -3,7 +3,8 @@ import {
   sessionVerifyCreate2,
   sessionPrecompileContract,
 } from "./create2.session.handlers";
-import { safeHandler, authenticatedRequest } from "../../verification.common";
+import { authenticatedRequest } from "../../verification.common";
+import { safeHandler } from "../../../controllers.common";
 
 const router: Router = Router();
 

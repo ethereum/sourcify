@@ -5,7 +5,7 @@ import {
   restartSessionEndpoint,
   addInputContractEndpoint,
 } from "./session-state.handlers";
-import { safeHandler } from "../verification.common";
+import { safeHandler } from "../../controllers.common";
 
 const router: Router = Router();
 
