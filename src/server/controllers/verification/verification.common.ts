@@ -82,16 +82,6 @@ export const stringifyInvalidAndMissing = (contract: CheckedContract) => {
   return `${contract.name} (${errors.join(", ")})`;
 };
 
-export const safeHandler = (requestHandler: RequestHandler) => {
-  return async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      return await requestHandler(req, res as any, next);
-    } catch (err: any) {
-      next(typeof err === "object" ? err : new InternalServerError(err.mesage));
-    }
-  };
-};
-
 export const FILE_ENCODING = "base64";
 export const MAX_SESSION_SIZE = 50 * 1024 * 1024; // 50 MiB
 
