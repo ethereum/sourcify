@@ -6,6 +6,7 @@ import TestArtifactsController from "./controllers/TestArtifactsController";
 import RepositoryController from "./controllers/RepositoryController";
 import verifyRoutes from "./controllers/verification/verify/verify.routes";
 import solcJsonRoutes from "./controllers/verification/solc-json/solc-json.routes";
+import sessionStateRoutes from "./controllers/verification/session-state/session-state.routes";
 
 const router: Router = Router();
 
@@ -18,6 +19,8 @@ const verificationController: VerificationController =
 router.use("/chain-tests", testArtifactsController.registerRoutes());
 router.use("/", repositoryController.registerRoutes()); // Define /files prefix inside repositoryController
 router.use("/", verificationController.registerRoutes());
+
+router.use("/", sessionStateRoutes);
 router.use("/", verifyRoutes);
 router.use("/", solcJsonRoutes);
 

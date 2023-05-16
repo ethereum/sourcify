@@ -1,0 +1,13 @@
+openapi: "3.0.0"
+
+paths:
+  /session/clear:
+    post:
+      summary: Clear session data
+      tags:
+        - Session
+      responses:
+        "200":
+          description: Successful operation
+        "400":
+          description: Invalid input

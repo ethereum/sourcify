@@ -1,0 +1,47 @@
+import { Response, Request } from "express";
+import {
+  ContractWrapperMap,
+  SendableContract,
+  getSessionJSON,
+  isVerifiable,
+  verifyContractsInSession,
+} from "../../common";
+import { isEmpty } from "@ethereum-sourcify/lib-sourcify";
+import { BadRequestError } from "../../../../../common/errors";
+import verificationService from "../../../../services/VerificationService";
+import repositoryService from "../../../../services/RepositoryService";
+
+export async function verifyContractsInSessionEndpoint(
+  req: Request,
+  res: Response
+) {
+  const session = req.session;
+  if (!session.contractWrappers || isEmpty(session.contractWrappers)) {
+    throw new BadRequestError("There are currently no pending contracts.");
+  }
+
+  const receivedContracts: SendableContract[] = req.body.contracts;
+
+  const verifiable: ContractWrapperMap = {};
+  for (const receivedContract of receivedContracts) {
+    const id = receivedContract.verificationId;
+    const contractWrapper = session.contractWrappers[id];
+    if (contractWrapper) {
+      contractWrapper.address = receivedContract.address;
+      contractWrapper.chainId = receivedContract.chainId;
+      /* contractWrapper.contextVariables = receivedContract.contextVariables; */
+      contractWrapper.creatorTxHash = receivedContract.creatorTxHash;
+      if (isVerifiable(contractWrapper)) {
+        verifiable[id] = contractWrapper;
+      }
+    }
+  }
+
+  await verifyContractsInSession(
+    verifiable,
+    session,
+    verificationService,
+    repositoryService
+  );
+  res.send(getSessionJSON(session));
+}

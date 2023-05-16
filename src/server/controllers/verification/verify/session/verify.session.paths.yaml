@@ -1,0 +1,38 @@
+openapi: "3.0.0"
+
+paths:
+  /session/verify-checked:
+    post:
+      summary: Verify checked contract in session
+      tags:
+        - Session
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                contracts:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      address:
+                        type: string
+                        example: "0x656d0062eC89c940213E3F3170EA8b2add1c0143"
+                      chainId:
+                        type: string
+                        example: "100"
+                      creatorTxHash:
+                        type: string
+                        nullable: true
+                      verificationId:
+                        type: string
+                        example: "0x3f67e9f57515bb1e7195c7c5af1eff630091567c0bb65ba3dece57a56da766fe"
+              required:
+                - contracts
+      responses:
+        "200":
+          description: Successful operation
+        "400":
+          description: Invalid input

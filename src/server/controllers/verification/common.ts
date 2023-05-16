@@ -1,5 +1,6 @@
 import { NextFunction, Request, RequestHandler, Response } from "express";
 import {
+  BadRequestError,
   InternalServerError,
   PayloadTooLargeError,
   ValidationError,
@@ -7,14 +8,21 @@ import {
 import {
   CheckedContract,
   InvalidSources,
+  Match,
   MissingSources,
   PathContent,
   Status,
   checkFiles,
+  isEmpty,
+  useAllSources,
 } from "@ethereum-sourcify/lib-sourcify";
 import { Session } from "express-session";
 import Web3 from "web3";
 import { AbiConstructor, AbiParameter } from "abitype";
+import QueryString from "qs";
+import fetch from "node-fetch";
+import { IVerificationService } from "../../services/VerificationService";
+import { IRepositoryService } from "../../services/RepositoryService";
 
 type PathBuffer = {
   path: string;
@@ -257,5 +265,147 @@ export const checkContractsInSession = async (session: Session) => {
   } catch (error) {
     const paths = pathBuffers.map((pb) => pb.path);
     updateUnused(paths, session);
+  }
+};
+
+export async function addRemoteFile(
+  query: QueryString.ParsedQs
+): Promise<PathBuffer[]> {
+  if (typeof query.url !== "string") {
+    throw new BadRequestError("Query url must be a string");
+  }
+  let res;
+  try {
+    res = await fetch(query.url);
+  } catch (err) {
+    throw new BadRequestError("Couldn't fetch from " + query.url);
+  }
+  if (!res.ok) throw new BadRequestError("Couldn't fetch from " + query.url);
+  // Save with the fileName exists on server response header.
+  const fileName =
+    res.headers.get("Content-Disposition")?.split("filename=")[1] ||
+    query.url.substring(query.url.lastIndexOf("/") + 1) ||
+    "file";
+  const buffer = await res.buffer();
+  return [
+    {
+      path: fileName,
+      buffer,
+    },
+  ];
+}
+
+export const checkAndFetchMissing = async (
+  contract: CheckedContract
+): Promise<void> => {
+  if (!CheckedContract.isValid(contract)) {
+    try {
+      // Try to fetch missing files
+      await CheckedContract.fetchMissing(contract);
+    } catch (e) {
+      // There's no need to throw inside fetchMissing if we're going to do an empty catch. This would cause not being able to catch other potential errors inside the function. TODO: Don't throw inside `fetchMissing` and remove the try/catch block.
+      // Missing files are accessible from the contract.missingFiles array.
+      // No need to throw an error
+    }
+  }
+};
+
+export function isVerifiable(contractWrapper: ContractWrapper) {
+  const contract = contractWrapper.contract;
+  return (
+    isEmpty(contract.missing) &&
+    isEmpty(contract.invalid) &&
+    Boolean(contractWrapper.address) &&
+    Boolean(contractWrapper.chainId)
+  );
+}
+
+export const verifyContractsInSession = async (
+  contractWrappers: ContractWrapperMap,
+  session: Session,
+  verificationService: IVerificationService,
+  repositoryService: IRepositoryService
+): Promise<void> => {
+  for (const id in contractWrappers) {
+    const contractWrapper = contractWrappers[id];
+
+    await checkAndFetchMissing(contractWrapper.contract);
+
+    if (!isVerifiable(contractWrapper)) {
+      continue;
+    }
+
+    const {
+      address,
+      chainId,
+      contract,
+      /* contextVariables, */ creatorTxHash,
+    } = contractWrapper;
+
+    // The session saves the CheckedContract as a simple object, so we need to reinstantiate it
+    const checkedContract = new CheckedContract(
+      contract.metadata,
+      contract.solidity,
+      contract.missing,
+      contract.invalid
+    );
+
+    const found = repositoryService.checkByChainAndAddress(
+      contractWrapper.address as string,
+      contractWrapper.chainId as string
+    );
+    let match: Match;
+    if (found.length) {
+      match = found[0];
+    } else {
+      try {
+        match = await verificationService.verifyDeployed(
+          checkedContract,
+          chainId as string,
+          address as string,
+          /* contextVariables, */
+          creatorTxHash
+        );
+        // Send to verification again with all source files.
+        if (match.status === "extra-file-input-bug") {
+          // Session inputFiles are encoded base64. Why?
+          const pathBufferInputFiles: PathBuffer[] = Object.values(
+            session.inputFiles
+          ).map((base64file) => ({
+            path: base64file.path,
+            buffer: Buffer.from(base64file.content, FILE_ENCODING),
+          }));
+          const contractWithAllSources = await useAllSources(
+            contractWrapper.contract,
+            pathBufferInputFiles
+          );
+          const tempMatch = await verificationService.verifyDeployed(
+            contractWithAllSources,
+            chainId as string,
+            address as string
+            /* contextVariables */
+          );
+          if (
+            tempMatch.status === "perfect" ||
+            tempMatch.status === "partial"
+          ) {
+            match = tempMatch;
+          }
+        }
+      } catch (error: any) {
+        match = {
+          chainId: contractWrapper.chainId as string,
+          status: null,
+          address: contractWrapper.address as string,
+          message: error.message,
+        };
+      }
+    }
+    contractWrapper.status = match.status || "error";
+    contractWrapper.statusMessage = match.message;
+    contractWrapper.storageTimestamp = match.storageTimestamp;
+    if (match.status) {
+      await repositoryService.storeMatch(checkedContract, match);
+    }
   }
 };
