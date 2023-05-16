@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { verifyCreate2Handler } from "./create2.stateless.handlers";
-import { safeHandler, authenticatedRequest } from "../../common";
+import { safeHandler, authenticatedRequest } from "../../verification.common";
 
 const router: Router = Router();
 

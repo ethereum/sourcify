@@ -1,6 +1,6 @@
 import { Router, Response } from "express";
 import { verifyContractsInSessionEndpoint } from "./verify.session.handlers";
-import { safeHandler } from "../../common";
+import { safeHandler } from "../../verification.common";
 
 const router: Router = Router();
 

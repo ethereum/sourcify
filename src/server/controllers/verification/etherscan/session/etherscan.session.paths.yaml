@@ -1,0 +1,28 @@
+openapi: "3.0.0"
+
+paths:
+  /session/verify/etherscan:
+    post:
+      summary: Verify create2
+      tags:
+        - Session
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                address:
+                  type: string
+                  format: validate-addresses
+                chainId:
+                  type: string
+                  format: supported-chains
+              required:
+                - address
+                - chainId
+      responses:
+        "200":
+          description: Successful operation
+        "400":
+          description: Invalid input

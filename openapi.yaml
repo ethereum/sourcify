@@ -31,3 +31,7 @@ paths:
     $ref: "src/server/controllers/verification/create2/session/create2.session.paths.yaml#/paths/~1session~1verify~1create2"
   /session/verify/create2/compile:
     $ref: "src/server/controllers/verification/create2/session/compile.create2.session.paths.yaml#/paths/~1session~1verify~1create2~1compile"
+  /verify/etherscan:
+    $ref: "src/server/controllers/verification/etherscan/stateless/etherscan.stateless.paths.yaml#/paths/~1verify~1etherscan"
+  /session/verify/etherscan:
+    $ref: "src/server/controllers/verification/etherscan/session/etherscan.session.paths.yaml#/paths/~1session~1verify~1etherscan"

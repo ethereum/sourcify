@@ -1,6 +1,9 @@
 import { Response } from "express";
 import repositoryService from "../../../../services/RepositoryService";
-import { extractFilesFromJSON, stringifyInvalidAndMissing } from "../../common";
+import {
+  extractFilesFromJSON,
+  stringifyInvalidAndMissing,
+} from "../../verification.common";
 import {
   CheckedContract,
   checkFiles,

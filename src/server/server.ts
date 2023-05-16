@@ -14,7 +14,7 @@ import session from "express-session";
 import createMemoryStore from "memorystore";
 import util from "util";
 import { checkSupportedChainId, sourcifyChainsArray } from "../sourcify-chains";
-import { validateAddresses } from "./controllers/VerificationController-util";
+import { validateAddresses } from "./common";
 const OpenApiValidator = require("express-openapi-validator");
 const swaggerUi = require("swagger-ui-express");
 const yamljs = require("yamljs");

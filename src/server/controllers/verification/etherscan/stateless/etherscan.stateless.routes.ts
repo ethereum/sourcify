@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { verifySolcJsonEndpoint } from "./solc-json.stateless.handlers";
+import { verifyFromEtherscan } from "./etherscan.stateless.handlers";
 import { safeHandler } from "../../verification.common";
 
 const router: Router = Router();
 
-router.route("/verify/solc-json").post(safeHandler(verifySolcJsonEndpoint));
+router.route("/verify/etherscan").post(safeHandler(verifyFromEtherscan));
 
 export default router;

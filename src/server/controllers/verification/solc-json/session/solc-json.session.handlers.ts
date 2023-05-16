@@ -5,7 +5,7 @@ import {
   extractFiles,
   getSessionJSON,
   saveFiles,
-} from "../../common";
+} from "../../verification.common";
 import {
   PathContent,
   getAllMetadataAndSourcesFromSolcJson,
