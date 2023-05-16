@@ -14,9 +14,13 @@ servers:
         description: server
 paths:
   /session/data:
-    $ref: "src/server/controllers/verification/create2/session/create2.yaml#/paths/~1session~1data"
+    $ref: "src/server/controllers/verification/session-state/data.session-state.paths.yaml#/paths/~1session~1data"
+  /session/clear:
+    $ref: "src/server/controllers/verification/session-state/clear.session-state.paths.yaml#/paths/~1session~1clear"
   /verify:
     $ref: "src/server/controllers/verification/verify/stateless/verify.stateless.paths.yaml#/paths/~1verify"
+  /session/verify-checked:
+    $ref: "src/server/controllers/verification/verify/session/verify.session.paths.yaml#/paths/~1session~1verify-checked"
   /verify/solc-json:
     $ref: "src/server/controllers/verification/solc-json/stateless/solc-json.stateless.paths.yaml#/paths/~1verify~1solc-json"
   /session/input-solc-json:

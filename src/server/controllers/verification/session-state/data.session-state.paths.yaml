@@ -1,0 +1,13 @@
+openapi: "3.0.0"
+
+paths:
+  /session/data:
+    get:
+      summary: Get session data
+      tags:
+        - Session
+      responses:
+        "200":
+          description: Successful operation
+        "400":
+          description: Invalid input
