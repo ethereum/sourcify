@@ -1,25 +1,17 @@
 openapi: "3.0.0"
 
 paths:
-  /verify/solc-json:
+  /session/input-solc-json:
     post:
       summary: Verify solc-json
       tags:
-        - Stateless
+        - Session
       requestBody:
         content:
           application/json:
             schema:
               type: object
               properties:
-                address:
-                  type: string
-                  format: validate-addresses
-                  description: An array of addresses
-                chain:
-                  type: string
-                  format: supported-chains
-                  description: Chain to check
                 files:
                   type: object
                   additionalProperties:
@@ -28,17 +20,8 @@ paths:
                 compilerVersion:
                   type: string
                   description: Compiler version
-                contractName:
-                  type: string
-                  description: Name of the contract
-                creatorTxHash:
-                  type: string
-                  description: Creator transaction hash
               required:
-                - address
-                - chain
                 - compilerVersion
-                - contractName
                 - files
       responses:
         "200":
