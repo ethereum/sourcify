@@ -1,0 +1,43 @@
+openapi: "3.0.0"
+
+paths:
+  /verify/create2:
+    post:
+      summary: Verify create2
+      tags:
+        - Stateless
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deployerAddress:
+                  type: string
+                  format: validate-addresses
+                  description: The deployer addresses
+                salt:
+                  type: string
+                  description: Salt
+                abiEncodedConstructorArguments:
+                  type: string
+                  description: ABI encoded constructor arguments
+                files:
+                  type: object
+                  additionalProperties:
+                    type: string
+                  description: An array of files
+                create2Address:
+                  type: string
+                  format: validate-addresses
+                  description: The create2 addresses
+              required:
+                - deployerAddress
+                - salt
+                - files
+                - create2Address
+      responses:
+        "200":
+          description: Successful operation
+        "400":
+          description: Invalid input

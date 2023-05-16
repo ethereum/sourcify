@@ -1,0 +1,41 @@
+openapi: "3.0.0"
+
+paths:
+  /session/verify/create2:
+    post:
+      summary: Verify create2
+      tags:
+        - Session
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deployerAddress:
+                  type: string
+                  format: validate-addresses
+                  description: The deployer addresses
+                salt:
+                  type: string
+                  description: Salt
+                abiEncodedConstructorArguments:
+                  type: string
+                  description: ABI encoded constructor arguments
+                create2Address:
+                  type: string
+                  format: validate-addresses
+                  description: The create2 addresses
+                verificationId:
+                  type: string
+                  description: The verificationId of the checkedContract
+              required:
+                - deployerAddress
+                - salt
+                - verificationId
+                - create2Address
+      responses:
+        "200":
+          description: Successful operation
+        "400":
+          description: Invalid input

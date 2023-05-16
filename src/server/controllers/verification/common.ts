@@ -409,3 +409,22 @@ export const verifyContractsInSession = async (
     }
   }
 };
+
+export function authenticatedRequest(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  const sourcifyClientTokensRaw = process.env.CREATE2_CLIENT_TOKENS;
+  if (sourcifyClientTokensRaw?.length) {
+    const sourcifyClientTokens = sourcifyClientTokensRaw.split(",");
+    const clientToken = req.body.clientToken;
+    if (!clientToken) {
+      throw new BadRequestError("This API is protected by a client token");
+    }
+    if (!sourcifyClientTokens.includes(clientToken)) {
+      throw new BadRequestError("The client token you provided is not valid");
+    }
+  }
+  next();
+}

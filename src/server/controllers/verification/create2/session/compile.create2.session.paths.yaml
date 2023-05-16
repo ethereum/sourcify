@@ -1,0 +1,24 @@
+openapi: "3.0.0"
+
+paths:
+  /session/verify/create2/compile:
+    post:
+      summary: Precompile a checked contract for create2 verification
+      tags:
+        - Session
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                verificationId:
+                  type: string
+                  description: The verificationId of the checkedContract
+              required:
+                - verificationId
+      responses:
+        "200":
+          description: Successful operation
+        "400":
+          description: Invalid input
