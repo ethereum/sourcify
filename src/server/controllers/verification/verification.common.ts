@@ -23,6 +23,7 @@ import QueryString from "qs";
 import fetch from "node-fetch";
 import { IVerificationService } from "../../services/VerificationService";
 import { IRepositoryService } from "../../services/RepositoryService";
+import { ContractMeta, ContractWrapper } from "../../common";
 
 type PathBuffer = {
   path: string;
@@ -129,25 +130,6 @@ export const saveFiles = (
   });
 
   return newFilesCount;
-};
-
-export type ContractMeta = {
-  compiledPath?: string;
-  name?: string;
-  address?: string;
-  chainId?: string;
-  /* contextVariables?: {
-    abiEncodedConstructorArguments?: string;
-    msgSender?: string;
-  }; */
-  creatorTxHash?: string;
-  status?: Status;
-  statusMessage?: string;
-  storageTimestamp?: Date;
-};
-
-export type ContractWrapper = ContractMeta & {
-  contract: CheckedContract;
 };
 
 type Mutable<Type> = {

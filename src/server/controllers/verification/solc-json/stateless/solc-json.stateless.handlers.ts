@@ -1,7 +1,7 @@
 import { Response, Request } from "express";
 import verificationService from "../../../../services/VerificationService";
 import repositoryService from "../../../../services/RepositoryService";
-import { extractFiles } from "../../common";
+import { extractFiles } from "../../verification.common";
 import {
   checkFiles,
   getAllMetadataAndSourcesFromSolcJson,

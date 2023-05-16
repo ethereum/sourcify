@@ -10,7 +10,7 @@ import {
   isVerifiable,
   saveFiles,
   verifyContractsInSession,
-} from "../common";
+} from "../verification.common";
 import {
   PathBuffer,
   PathContent,

@@ -10,12 +10,12 @@ import {
   isValidChain,
 } from "../../common/validators/validators";
 import { NotFoundError, ValidationError } from "../../common/errors";
+import { Match } from "@ethereum-sourcify/lib-sourcify";
 import {
   validateAddresses,
   validateChainIds,
   validateRequest,
-} from "./VerificationController-util";
-import { Match } from "@ethereum-sourcify/lib-sourcify";
+} from "../common";
 
 type RetrieveMethod = (
   chain: string,

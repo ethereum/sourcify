@@ -1,6 +1,6 @@
 import { Response, Router } from "express";
 import { legacyVerifyEndpoint } from "./verify.stateless.handlers";
-import { safeHandler } from "../../common";
+import { safeHandler } from "../../verification.common";
 
 const router: Router = Router();
 

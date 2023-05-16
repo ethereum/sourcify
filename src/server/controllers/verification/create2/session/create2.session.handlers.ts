@@ -1,6 +1,6 @@
 import { Response, Request } from "express";
 import repositoryService from "../../../../services/RepositoryService";
-import { getSessionJSON } from "../../common";
+import { getSessionJSON } from "../../verification.common";
 import {
   CheckedContract,
   isEmpty,

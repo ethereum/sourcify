@@ -5,7 +5,7 @@ import {
   getSessionJSON,
   isVerifiable,
   verifyContractsInSession,
-} from "../../common";
+} from "../../verification.common";
 import { isEmpty } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError } from "../../../../../common/errors";
 import verificationService from "../../../../services/VerificationService";

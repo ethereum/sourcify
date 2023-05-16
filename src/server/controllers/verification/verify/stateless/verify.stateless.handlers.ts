@@ -5,7 +5,7 @@ import {
   LegacyVerifyRequest,
   extractFiles,
   stringifyInvalidAndMissing,
-} from "../../common";
+} from "../../verification.common";
 import {
   CheckedContract,
   checkFiles,
