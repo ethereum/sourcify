@@ -12,6 +12,9 @@ paths:
             schema:
               type: object
               properties:
+                clientToken:
+                  type: string
+                  description: Mandatory client token to call this api
                 deployerAddress:
                   type: string
                   format: validate-addresses
@@ -32,6 +35,7 @@ paths:
                   format: validate-addresses
                   description: The create2 addresses
               required:
+                - clientToken
                 - deployerAddress
                 - salt
                 - files

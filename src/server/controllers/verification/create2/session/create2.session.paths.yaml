@@ -12,6 +12,9 @@ paths:
             schema:
               type: object
               properties:
+                clientToken:
+                  type: string
+                  description: Mandatory client token to call this api
                 deployerAddress:
                   type: string
                   format: validate-addresses
@@ -30,6 +33,7 @@ paths:
                   type: string
                   description: The verificationId of the checkedContract
               required:
+                - clientToken
                 - deployerAddress
                 - salt
                 - verificationId
