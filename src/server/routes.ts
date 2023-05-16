@@ -4,9 +4,10 @@ import repositoryService from "./services/RepositoryService";
 import VerificationController from "./controllers/VerificationController";
 import TestArtifactsController from "./controllers/TestArtifactsController";
 import RepositoryController from "./controllers/RepositoryController";
+import sessionStateRoutes from "./controllers/verification/session-state/session-state.routes";
 import verifyRoutes from "./controllers/verification/verify/verify.routes";
 import solcJsonRoutes from "./controllers/verification/solc-json/solc-json.routes";
-import sessionStateRoutes from "./controllers/verification/session-state/session-state.routes";
+import create2Routes from "./controllers/verification/create2/create2.routes";
 
 const router: Router = Router();
 
@@ -23,5 +24,6 @@ router.use("/", verificationController.registerRoutes());
 router.use("/", sessionStateRoutes);
 router.use("/", verifyRoutes);
 router.use("/", solcJsonRoutes);
+router.use("/", create2Routes);
 
 export default router;

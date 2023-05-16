@@ -25,3 +25,9 @@ paths:
     $ref: "src/server/controllers/verification/solc-json/stateless/solc-json.stateless.paths.yaml#/paths/~1verify~1solc-json"
   /session/input-solc-json:
     $ref: "src/server/controllers/verification/solc-json/session/solc-json.session.paths.yaml#/paths/~1session~1input-solc-json"
+  /verify/create2:
+    $ref: "src/server/controllers/verification/create2/stateless/create2.stateless.paths.yaml#/paths/~1verify~1create2"
+  /session/verify/create2:
+    $ref: "src/server/controllers/verification/create2/session/create2.session.paths.yaml#/paths/~1session~1verify~1create2"
+  /session/verify/create2/compile:
+    $ref: "src/server/controllers/verification/create2/session/compile.create2.session.paths.yaml#/paths/~1session~1verify~1create2~1compile"
