@@ -1,7 +1,9 @@
 import { Router } from "express";
 import repositoryService from "./services/RepositoryService";
-import TestArtifactsController from "./controllers/TestArtifactsController";
 import RepositoryController from "./controllers/RepositoryController";
+
+import testArtifactsRoutes from "./controllers/testartifacts/testartifacts.routes";
+
 import sessionStateRoutes from "./controllers/verification/session-state/session-state.routes";
 import verifyRoutes from "./controllers/verification/verify/verify.routes";
 import solcJsonRoutes from "./controllers/verification/solc-json/solc-json.routes";
@@ -10,11 +12,10 @@ import etherscanRoutes from "./controllers/verification/etherscan/etherscan.rout
 
 const router: Router = Router();
 
-const testArtifactsController = new TestArtifactsController();
-
 const repositoryController = new RepositoryController(repositoryService);
 
-router.use("/chain-tests", testArtifactsController.registerRoutes());
+router.use("/chain-tests", testArtifactsRoutes);
+
 router.use("/", repositoryController.registerRoutes()); // Define /files prefix inside repositoryController
 
 router.use("/", sessionStateRoutes);
