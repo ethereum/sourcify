@@ -17,6 +17,8 @@ paths:
     $ref: "src/server/controllers/verification/session-state/data.session-state.paths.yaml#/paths/~1session~1data"
   /session/clear:
     $ref: "src/server/controllers/verification/session-state/clear.session-state.paths.yaml#/paths/~1session~1clear"
+  /session/input-contract:
+    $ref: "src/server/controllers/verification/session-state/input-contract.session-state.paths.yaml#/paths/~1session~1input-contract"
   /verify:
     $ref: "src/server/controllers/verification/verify/stateless/verify.stateless.paths.yaml#/paths/~1verify"
   /session/verify-checked:
