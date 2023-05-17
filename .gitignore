@@ -24,3 +24,4 @@ logs
 chain-tests-report/
 .nyc_output
 coverage
+!src/server/controllers/repository

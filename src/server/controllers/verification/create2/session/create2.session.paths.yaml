@@ -35,7 +35,6 @@ paths:
               required:
                 - clientToken
                 - deployerAddress
-                - salt
                 - verificationId
                 - create2Address
       responses:
