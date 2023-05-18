@@ -20,8 +20,9 @@ paths:
                   format: validate-addresses
                   description: The deployer addresses
                 salt:
-                  type: string
-                  description: Salt
+                  oneOf:
+                    - type: string
+                    - type: number
                 abiEncodedConstructorArguments:
                   type: string
                   description: ABI encoded constructor arguments
@@ -35,10 +36,10 @@ paths:
                   format: validate-addresses
                   description: The create2 addresses
               required:
-                - clientToken
                 - deployerAddress
                 - files
                 - create2Address
+                - salt
       responses:
         "200":
           description: Successful operation

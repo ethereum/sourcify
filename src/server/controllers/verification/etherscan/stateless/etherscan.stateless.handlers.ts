@@ -1,6 +1,5 @@
 import { Response, Request } from "express";
-import verificationService from "../../../../services/VerificationService";
-import repositoryService from "../../../../services/RepositoryService";
+import { services } from "../../../../services/services";
 import { CheckedContract } from "@ethereum-sourcify/lib-sourcify";
 import {
   getMappedSourcesFromJsonInput,
@@ -27,13 +26,13 @@ export async function verifyFromEtherscan(req: Request, res: Response) {
   const mappedSources = getMappedSourcesFromJsonInput(solcJsonInput);
   const checkedContract = new CheckedContract(metadata, mappedSources);
 
-  const match = await verificationService.verifyDeployed(
+  const match = await services.verification.verifyDeployed(
     checkedContract,
     chain,
     address
   );
 
-  await repositoryService.storeMatch(checkedContract, match);
+  await services.repository.storeMatch(checkedContract, match);
 
   res.send({ result: [match] });
 }

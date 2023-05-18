@@ -1,5 +1,6 @@
 import { Router, Response } from "express";
-import repositoryService from "../../services/RepositoryService";
+import { services } from "../../services/services";
+
 import {
   createEndpoint,
   createContractEndpoint,
@@ -15,23 +16,23 @@ const router: Router = Router();
 [
   {
     prefix: "/tree/any",
-    method: createEndpoint(repositoryService.getTree, "any_match", true),
+    method: createEndpoint(services.repository.getTree, "any_match", true),
   },
   {
     prefix: "/any",
-    method: createEndpoint(repositoryService.getContent, "any_match", true),
+    method: createEndpoint(services.repository.getContent, "any_match", true),
   },
   {
     prefix: "/tree",
-    method: createEndpoint(repositoryService.getTree, "full_match"),
+    method: createEndpoint(services.repository.getTree, "full_match"),
   },
   {
     prefix: "/contracts",
-    method: createContractEndpoint(repositoryService.getContracts),
+    method: createContractEndpoint(services.repository.getContracts),
   },
   {
     prefix: "",
-    method: createEndpoint(repositoryService.getContent, "full_match"),
+    method: createEndpoint(services.repository.getContent, "full_match"),
   },
 ].forEach((pair) => {
   /* const validators = [param("chain").custom(isValidChain)];

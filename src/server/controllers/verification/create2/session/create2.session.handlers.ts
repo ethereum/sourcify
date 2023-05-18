@@ -1,5 +1,5 @@
 import { Response, Request } from "express";
-import repositoryService from "../../../../services/RepositoryService";
+import { services } from "../../../../services/services";
 import { getSessionJSON } from "../../verification.common";
 import {
   CheckedContract,
@@ -37,9 +37,9 @@ export async function sessionVerifyCreate2(
 
   const match = await verifyCreate2(
     contract,
-    deployerAddress,
+    deployerAddress[0],
     salt,
-    create2Address,
+    create2Address[0],
     abiEncodedConstructorArguments
   );
 
@@ -50,7 +50,7 @@ export async function sessionVerifyCreate2(
   contractWrapper.chainId = "0";
 
   if (match.status) {
-    await repositoryService.storeMatch(contract, match);
+    await services.repository.storeMatch(contract, match);
   }
 
   res.send(getSessionJSON(session));

@@ -20,8 +20,8 @@ import {
   performFetch,
 } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError, ValidationError } from "../../../../common/errors";
-import verificationService from "../../../services/VerificationService";
-import repositoryService from "../../../services/RepositoryService";
+import { services } from "../../../services/services";
+
 import { StatusCodes } from "http-status-codes";
 import { decode as bytecodeDecode } from "@ethereum-sourcify/bytecode-utils";
 
@@ -49,8 +49,8 @@ export async function addInputFilesEndpoint(req: Request, res: Response) {
     await verifyContractsInSession(
       session.contractWrappers,
       session,
-      verificationService,
-      repositoryService
+      services.verification,
+      services.repository
     );
   }
   res.send(getSessionJSON(session));
@@ -74,10 +74,10 @@ export async function restartSessionEndpoint(req: Request, res: Response) {
 }
 
 export async function addInputContractEndpoint(req: Request, res: Response) {
-  const address: string = req.body.address;
+  const address: string = req.body.address[0];
   const chainId: string = req.body.chainId;
 
-  const sourcifyChain = verificationService.supportedChainsMap[chainId];
+  const sourcifyChain = services.verification.supportedChainsMap[chainId];
 
   const bytecode = await getBytecode(sourcifyChain, address);
 
@@ -113,8 +113,8 @@ export async function addInputContractEndpoint(req: Request, res: Response) {
     await verifyContractsInSession(
       session.contractWrappers,
       session,
-      verificationService,
-      repositoryService
+      services.verification,
+      services.repository
     );
   }
   res.send(getSessionJSON(session));

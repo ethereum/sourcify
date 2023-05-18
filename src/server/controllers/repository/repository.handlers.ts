@@ -3,7 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { ContractData, FilesInfo, MatchLevel } from "../../types";
 import { NotFoundError } from "../../../common/errors";
 import { Match } from "@ethereum-sourcify/lib-sourcify";
-import repositoryService from "../../services/RepositoryService";
+import { services } from "../../services/services";
 
 type RetrieveMethod = (
   chain: string,
@@ -57,7 +57,7 @@ export function checkAllByChainAndAddressEndpoint(req: any, res: Response) {
   for (const address of req.addresses) {
     for (const chainId of req.chainIds) {
       try {
-        const found: Match[] = repositoryService.checkAllByChainAndAddress(
+        const found: Match[] = services.repository.checkAllByChainAndAddress(
           address,
           chainId
         );
@@ -92,7 +92,7 @@ export function checkByChainAndAddressesEnpoint(req: any, res: Response) {
   for (const address of req.addresses) {
     for (const chainId of req.chainIds) {
       try {
-        const found: Match[] = repositoryService.checkByChainAndAddress(
+        const found: Match[] = services.repository.checkByChainAndAddress(
           address,
           chainId
         );

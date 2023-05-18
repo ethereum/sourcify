@@ -1,5 +1,5 @@
 import { Response, Request } from "express";
-import repositoryService from "../../../../services/RepositoryService";
+import { services } from "../../../../services/services";
 import {
   ContractWrapperMap,
   checkContractsInSession,
@@ -10,7 +10,6 @@ import {
 } from "../../verification.common";
 import { PathContent } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError } from "../../../../../common/errors";
-import verificationService from "../../../../services/VerificationService";
 import {
   getMetadataFromCompiler,
   processRequestFromEtherscan,
@@ -76,8 +75,8 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
   await verifyContractsInSession(
     verifiable,
     session,
-    verificationService,
-    repositoryService
+    services.verification,
+    services.repository
   );
   res.send(getSessionJSON(session));
 }

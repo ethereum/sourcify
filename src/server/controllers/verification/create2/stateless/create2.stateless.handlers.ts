@@ -1,5 +1,5 @@
 import { Response } from "express";
-import repositoryService from "../../../../services/RepositoryService";
+import { services } from "../../../../services/services";
 import {
   extractFilesFromJSON,
   stringifyInvalidAndMissing,
@@ -57,7 +57,7 @@ export async function verifyCreate2Handler(
   );
 
   if (match.status) {
-    await repositoryService.storeMatch(contract, match);
+    await services.repository.storeMatch(contract, match);
   }
 
   res.send({ result: [match] });

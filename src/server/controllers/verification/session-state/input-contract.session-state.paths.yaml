@@ -1,0 +1,42 @@
+openapi: "3.0.0"
+
+paths:
+  /session/input-contract:
+    post:
+      summary: Import deployed contract trying to fetch metadata and files form IPFS
+      tags:
+        - Session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - address
+                - chainId
+              properties:
+                address:
+                  type: string
+                  format: validate-addresses
+                chainId:
+                  type: string
+                  format: supported-chains
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - address
+                - chainId
+              properties:
+                address:
+                  type: string
+                  format: validate-addresses
+                chainId:
+                  type: string
+                  format: supported-chains
+      responses:
+        "200":
+          description: Successful operation
+        "400":
+          description: Invalid input

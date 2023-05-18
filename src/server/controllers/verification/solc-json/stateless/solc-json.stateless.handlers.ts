@@ -1,6 +1,5 @@
 import { Response, Request } from "express";
-import verificationService from "../../../../services/VerificationService";
-import repositoryService from "../../../../services/RepositoryService";
+import { services } from "../../../../services/services";
 import { extractFiles } from "../../verification.common";
 import {
   checkFiles,
@@ -44,7 +43,7 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
     );
   }
 
-  const match = await verificationService.verifyDeployed(
+  const match = await services.verification.verifyDeployed(
     contractToVerify,
     chain,
     address,
@@ -57,7 +56,7 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
       contractToVerify,
       metadataAndSourcesPathBuffers
     );
-    const tempMatch = await verificationService.verifyDeployed(
+    const tempMatch = await services.verification.verifyDeployed(
       contractWithAllSources,
       chain,
       address, // Due to the old API taking an array of addresses.
@@ -65,12 +64,12 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
       req.body.creatorTxHash
     );
     if (tempMatch.status === "perfect") {
-      await repositoryService.storeMatch(contractToVerify, tempMatch);
+      await services.repository.storeMatch(contractToVerify, tempMatch);
       return res.send({ result: [tempMatch] });
     }
   }
   if (match.status) {
-    await repositoryService.storeMatch(contractToVerify, match);
+    await services.repository.storeMatch(contractToVerify, match);
   }
   return res.send({ result: [match] }); // array is an old expected behavior (e.g. by frontend)
 }

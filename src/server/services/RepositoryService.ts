@@ -79,7 +79,7 @@ export interface IRepositoryService {
   storeMatch(contract: CheckedContract, match: Match): Promise<void | Match>;
 }
 
-class RepositoryService implements IRepositoryService {
+export class RepositoryService implements IRepositoryService {
   repositoryPath: string;
   private ipfsClient?: IPFSHTTPClient;
 
@@ -655,5 +655,3 @@ class RepositoryService implements IRepositoryService {
     return path.format(parsedPath);
   }
 }
-
-export default new RepositoryService(config.repository.path);

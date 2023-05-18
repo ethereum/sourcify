@@ -7,6 +7,7 @@ import {
   PathContent,
   Status,
 } from "@ethereum-sourcify/lib-sourcify";
+import { toChecksumAddress } from "web3-utils";
 
 export const validateAddresses = (addresses: string): string[] => {
   const addressesArray = addresses.split(",");
@@ -60,9 +61,6 @@ export const validateChainIds = (chainIds: string): string[] => {
   }
   return validChainIds;
 };
-function toChecksumAddress(address: string): string {
-  throw new Error("Function not implemented.");
-}
 
 export interface PathContentMap {
   [id: string]: PathContent;
