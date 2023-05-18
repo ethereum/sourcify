@@ -1,0 +1,44 @@
+openapi: "3.0.0"
+
+paths:
+  /files/{chain}/{address}:
+    get:
+      summary: Get source files (full match)
+      description: Returns all verified sources from the repository for the desired contract address and chain, including `metadata.json`. Searches only for full matches.
+      parameters:
+        - name: chain
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: address
+          in: path
+          required: true
+          schema:
+            type: string
+            format: validate-addresses
+      responses:
+        "200":
+          description: Successful response. Returns a list of files.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    path:
+                      type: string
+                    content:
+                      type: string
+        "404":
+          description: Contract is not available in the repository.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string

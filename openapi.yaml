@@ -37,3 +37,21 @@ paths:
     $ref: "src/server/controllers/verification/etherscan/stateless/etherscan.stateless.paths.yaml#/paths/~1verify~1etherscan"
   /session/verify/etherscan:
     $ref: "src/server/controllers/verification/etherscan/session/etherscan.session.paths.yaml#/paths/~1session~1verify~1etherscan"
+  /check-all-by-addresses:
+    $ref: "src/server/controllers/repository/check-all-by-addresses.stateless.paths.yaml#/paths/~1check-all-by-addresses"
+  /check-by-addresses:
+    $ref: "src/server/controllers/repository/check-by-addresses.stateless.paths.yaml#/paths/~1check-by-addresses"
+  /files/contracts/{chain}:
+    $ref: "src/server/controllers/repository/get-contract-addresses-all.stateless.paths.yaml#/paths/~1files~1contracts~1{chain}"
+  /repository/contracts/{full_match | partial_match}/{chain}/{address}/{filePath}:
+    $ref: "src/server/controllers/repository/get-file-static.stateless.paths.yaml#/paths/~1repository~1contracts~1{full_match | partial_match}~1{chain}~1{address}~1{filePath}"
+  /files/tree/any/{chain}/{address}:
+    $ref: "src/server/controllers/repository/get-file-tree-all.stateless.paths.yaml#/paths/~1files~1tree~1any~1{chain}~1{address}"
+  /files/tree/{chain}/{address}:
+    $ref: "src/server/controllers/repository/get-file-tree-full.stateless.paths.yaml#/paths/~1files~1tree~1{chain}~1{address}"
+  /files/any/{chain}/{address}:
+    $ref: "src/server/controllers/repository/get-source-files-all.stateless.paths.yaml#/paths/~1files~1any~1{chain}~1{address}"
+  /files/{chain}/{address}:
+    $ref: "src/server/controllers/repository/get-source-files-full.stateless.paths.yaml#/paths/~1files~1{chain}~1{address}"
+  /tree/any/{chain}:
+    $ref: "src/server/controllers/repository/tree-any.stateless.paths.yaml#/paths/~1tree~1any~1{chain}"
