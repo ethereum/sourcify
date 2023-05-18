@@ -5,6 +5,8 @@ paths:
     get:
       summary: Get contract addresses (full or partial match)
       description: Returns all verified contracts from the repository for the desired chain. Searches for full and partial matches.
+      tags:
+        - Repository
       parameters:
         - name: chain
           in: path

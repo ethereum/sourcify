@@ -5,6 +5,8 @@ paths:
     get:
       summary: Check by addresses (full match)
       description: Checks if contract with the desired chain and address is verified and in the repository.
+      tags:
+        - Repository
       parameters:
         - name: addresses
           in: query
