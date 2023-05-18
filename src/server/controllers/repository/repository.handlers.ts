@@ -54,8 +54,8 @@ export function createContractEndpoint(
 
 export function checkAllByChainAndAddressEndpoint(req: any, res: Response) {
   const map: Map<string, any> = new Map();
-  for (const address of req.addresses) {
-    for (const chainId of req.chainIds) {
+  for (const address of req.query.addresses) {
+    for (const chainId of req.query.chainIds) {
       try {
         const found: Match[] = services.repository.checkAllByChainAndAddress(
           address,
@@ -89,8 +89,8 @@ export function checkAllByChainAndAddressEndpoint(req: any, res: Response) {
 
 export function checkByChainAndAddressesEnpoint(req: any, res: Response) {
   const map: Map<string, any> = new Map();
-  for (const address of req.addresses) {
-    for (const chainId of req.chainIds) {
+  for (const address of req.query.addresses) {
+    for (const chainId of req.query.chainIds) {
       try {
         const found: Match[] = services.repository.checkByChainAndAddress(
           address,
