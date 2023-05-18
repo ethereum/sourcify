@@ -53,5 +53,3 @@ paths:
     $ref: "src/server/controllers/repository/get-source-files-all.stateless.paths.yaml#/paths/~1files~1any~1{chain}~1{address}"
   /files/{chain}/{address}:
     $ref: "src/server/controllers/repository/get-source-files-full.stateless.paths.yaml#/paths/~1files~1{chain}~1{address}"
-  /tree/any/{chain}:
-    $ref: "src/server/controllers/repository/tree-any.stateless.paths.yaml#/paths/~1tree~1any~1{chain}"

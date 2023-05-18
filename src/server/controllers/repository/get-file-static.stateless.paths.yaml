@@ -5,6 +5,8 @@ paths:
     get:
       summary: Get file from /repository
       description: Retrieve statically served files over the server.
+      tags:
+        - Repository
       parameters:
         - name: full_match | partial_match
           in: path

@@ -5,6 +5,8 @@ paths:
     get:
       summary: Get source files (full match)
       description: Returns all verified sources from the repository for the desired contract address and chain, including `metadata.json`. Searches only for full matches.
+      tags:
+        - Repository
       parameters:
         - name: chain
           in: path
