@@ -1,0 +1,40 @@
+openapi: "3.0.0"
+
+paths:
+  /files/contracts/{chain}:
+    get:
+      summary: Get contract addresses (full or partial match)
+      description: Returns all verified contracts from the repository for the desired chain. Searches for full and partial matches.
+      parameters:
+        - name: chain
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response. Returns a list of contract addresses in "full" and "partial" match categories.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  full:
+                    type: array
+                    items:
+                      type: string
+                      format: ethereum-address
+                  partial:
+                    type: array
+                    items:
+                      type: string
+                      format: ethereum-address
+        "404":
+          description: Chain is not available as both full match or partial match in the repository.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string

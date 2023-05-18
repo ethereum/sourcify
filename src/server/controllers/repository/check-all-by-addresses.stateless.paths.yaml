@@ -1,0 +1,42 @@
+openapi: "3.0.0"
+
+paths:
+  /check-all-by-addresses:
+    get:
+      summary: Check all by addresses (full or partial match)
+      description: Checks if contract with the desired chain and address is verified and in the repository. It will search for both perfect and partial matches.
+      parameters:
+        - name: addresses
+          in: query
+          description: The addresses of the contracts.
+          required: true
+          schema:
+            type: string
+            format: validate-addresses
+        - name: chainIds
+          in: query
+          description: The IDs of the chains.
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    address:
+                      type: string
+                    chainIds:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          chainId:
+                            type: string
+                          status:
+                            type: string

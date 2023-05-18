@@ -1,0 +1,38 @@
+openapi: "3.0.0"
+
+paths:
+  /files/tree/{chain}/{address}:
+    get:
+      summary: Get file tree (full match)
+      description: Returns repository URLs for every file in the source tree for the desired chain and address. Searches only for full matches.
+      parameters:
+        - name: chain
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: address
+          in: path
+          required: true
+          schema:
+            type: string
+            format: validate-addresses
+      responses:
+        "200":
+          description: Successful response. Returns a list of file URLs.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  format: uri
+        "404":
+          description: Contract is not available in the repository.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string

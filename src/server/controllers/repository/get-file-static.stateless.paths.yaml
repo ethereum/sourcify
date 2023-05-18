@@ -1,0 +1,42 @@
+openapi: "3.0.0"
+
+paths:
+  /repository/contracts/{full_match | partial_match}/{chain}/{address}/{filePath}:
+    get:
+      summary: Get file from /repository
+      description: Retrieve statically served files over the server.
+      parameters:
+        - name: full_match | partial_match
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: chain
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: address
+          in: path
+          required: true
+          schema:
+            type: string
+            format: ethereum-address
+        - name: filePath
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response. Returns the content of the requested file.
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: The file is not found at the path.
+          content:
+            application/json:
+              schema:
+                type: string
