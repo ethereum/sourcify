@@ -8,8 +8,7 @@ import {
 } from "../../verification.common";
 import { isEmpty } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError } from "../../../../../common/errors";
-import verificationService from "../../../../services/VerificationService";
-import repositoryService from "../../../../services/RepositoryService";
+import { services } from "../../../../services/services";
 
 export async function verifyContractsInSessionEndpoint(
   req: Request,
@@ -40,8 +39,8 @@ export async function verifyContractsInSessionEndpoint(
   await verifyContractsInSession(
     verifiable,
     session,
-    verificationService,
-    repositoryService
+    services.verification,
+    services.repository
   );
   res.send(getSessionJSON(session));
 }

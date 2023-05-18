@@ -15,12 +15,9 @@ import {
   addLibraryAddresses,
   verifyDeployed,
 } from "@ethereum-sourcify/lib-sourcify";
-import verificationService, {
-  IVerificationService,
-} from "../server/services/VerificationService";
-import repositoryService, {
-  IRepositoryService,
-} from "../server/services/RepositoryService";
+import { services } from "../server/services/services";
+import { IRepositoryService } from "../server/services/RepositoryService";
+import { IVerificationService } from "../server/services/VerificationService";
 import {
   monitoredChainArray,
   supportedChainsMap,
@@ -318,8 +315,8 @@ export default class Monitor extends EventEmitter {
           chain.chainId.toString(),
           chain.rpc,
           this.sourceFetcher,
-          verificationService,
-          repositoryService
+          services.verification,
+          services.repository
         )
     );
     this.chainMonitors.forEach((cm) => {

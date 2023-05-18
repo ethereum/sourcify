@@ -20,7 +20,9 @@ paths:
                   format: validate-addresses
                   description: The deployer addresses
                 salt:
-                  type: string
+                  oneOf:
+                    - type: string
+                    - type: number
                   description: Salt
                 abiEncodedConstructorArguments:
                   type: string
@@ -33,10 +35,10 @@ paths:
                   type: string
                   description: The verificationId of the checkedContract
               required:
-                - clientToken
                 - deployerAddress
                 - verificationId
                 - create2Address
+                - salt
       responses:
         "200":
           description: Successful operation

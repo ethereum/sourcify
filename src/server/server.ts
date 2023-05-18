@@ -21,6 +21,7 @@ const yamljs = require("yamljs");
 const { resolveRefs } = require("json-refs");
 const MemoryStore = createMemoryStore(session);
 const fileUpload = require("express-fileupload");
+import { services } from "./services/services";
 
 export class Server {
   app: express.Application;

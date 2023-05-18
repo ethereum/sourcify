@@ -1,6 +1,5 @@
 import { Response } from "express";
-import verificationService from "../../../../services/VerificationService";
-import repositoryService from "../../../../services/RepositoryService";
+import { services } from "../../../../services/services";
 import {
   LegacyVerifyRequest,
   extractFiles,
@@ -19,7 +18,7 @@ export async function legacyVerifyEndpoint(
   res: Response
 ): Promise<any> {
   for (const address of req.body.address) {
-    const result = repositoryService.checkByChainAndAddress(
+    const result = services.repository.checkByChainAndAddress(
       address,
       req.body.chain
     );
@@ -68,7 +67,7 @@ export async function legacyVerifyEndpoint(
     : checkedContracts[0];
 
   try {
-    const match = await verificationService.verifyDeployed(
+    const match = await services.verification.verifyDeployed(
       contract,
       req.body.chain,
       req.body.address[0], // Due to the old API taking an array of addresses.
@@ -78,7 +77,7 @@ export async function legacyVerifyEndpoint(
     // Send to verification again with all source files.
     if (match.status === "extra-file-input-bug") {
       const contractWithAllSources = await useAllSources(contract, inputFiles);
-      const tempMatch = await verificationService.verifyDeployed(
+      const tempMatch = await services.verification.verifyDeployed(
         contractWithAllSources,
         req.body.chain,
         req.body.address[0], // Due to the old API taking an array of addresses.
@@ -86,12 +85,12 @@ export async function legacyVerifyEndpoint(
         req.body.creatorTxHash
       );
       if (tempMatch.status === "perfect") {
-        await repositoryService.storeMatch(contract, tempMatch);
+        await services.repository.storeMatch(contract, tempMatch);
         return res.send({ result: [tempMatch] });
       }
     }
     if (match.status) {
-      await repositoryService.storeMatch(contract, match);
+      await services.repository.storeMatch(contract, match);
     }
     return res.send({ result: [match] }); // array is an old expected behavior (e.g. by frontend)
   } catch (error: any) {

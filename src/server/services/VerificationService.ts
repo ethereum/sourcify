@@ -20,7 +20,7 @@ export interface IVerificationService {
   ): Promise<Match>;
 }
 
-class VerificationService implements IVerificationService {
+export class VerificationService implements IVerificationService {
   supportedChainsMap: SourcifyChainMap;
 
   constructor(supportedChainsMap: SourcifyChainMap) {
@@ -72,5 +72,3 @@ class VerificationService implements IVerificationService {
     }
   }
 }
-
-export default new VerificationService(supportedChainsMap);
