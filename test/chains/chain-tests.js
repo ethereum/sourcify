@@ -1478,7 +1478,7 @@ describe("Test Supported Chains", function () {
     "shared/withImmutables.metadata.json"
   );
   
-  // DogeChain Mainnet
+  // DogeChain Mainnet 
   verifyContract(
     "0x531572CDe648D35cD188A860d44a529B5951A813",
     "2000",
