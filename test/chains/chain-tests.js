@@ -115,6 +115,14 @@ describe("Test Supported Chains", function () {
   );
 
   verifyContract(
+    "0x43C0A11653F57a96d1d3b6A5A6be453444558A5E",
+    "369",
+    "PulseChain",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  verifyContract(
     "0x7f185202a630F09e05b6C2b51618b4f6Af728c7B",
     "100",
     "xDai",
