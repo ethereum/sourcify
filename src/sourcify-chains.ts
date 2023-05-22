@@ -146,6 +146,14 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     ),
     contractFetchAddress: generateEtherscanCreatorTxAPI("11155111"),
   },
+  "369": {
+    // PulseChain Mainnet
+    supported: true,
+    monitored: true,
+    contractFetchAddress: "https://scan.pulsechain.com/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+    rpc: ["https://rpc.pulsechain.com"],
+  },
   "3": {
     // Deprecated
     // Ethereum Ropsten Testnet
