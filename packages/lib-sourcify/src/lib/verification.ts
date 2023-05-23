@@ -47,6 +47,15 @@ export async function verifyDeployed(
   };
   const recompiled = await checkedContract.recompile();
 
+  if (
+    recompiled.deployedBytecode === '0x' ||
+    recompiled.creationBytecode === '0x'
+  ) {
+    throw new Error(
+      `The compiled contract bytecode is "0x". Are you trying to verify an abstract contract?`
+    );
+  }
+
   const deployedBytecode = await getBytecode(sourcifyChain, address);
 
   // Can't match if there is no deployed bytecode
@@ -68,7 +77,7 @@ export async function verifyDeployed(
   if (isPerfectMatch(match)) {
     return match;
   } else if (isPartialMatch(match)) {
-    return await tryToFindOriginalMetadataAndMatch(
+    return await tryToFindPerfectMetadataAndMatch(
       checkedContract,
       deployedBytecode,
       match,
@@ -96,7 +105,7 @@ export async function verifyDeployed(
     (match as Match).contextVariables = contextVariables;
     return match;
   } else if (isPartialMatch(match)) {
-    return await tryToFindOriginalMetadataAndMatch(
+    return await tryToFindPerfectMetadataAndMatch(
       checkedContract,
       deployedBytecode,
       match,
@@ -129,7 +138,7 @@ export async function verifyDeployed(
     if (isPerfectMatch(match)) {
       return match;
     } else if (isPartialMatch(match)) {
-      return await tryToFindOriginalMetadataAndMatch(
+      return await tryToFindPerfectMetadataAndMatch(
         checkedContract,
         deployedBytecode,
         match,
@@ -169,7 +178,7 @@ export async function verifyDeployed(
   throw Error("The deployed and recompiled bytecode don't match.");
 }
 
-async function tryToFindOriginalMetadataAndMatch(
+async function tryToFindPerfectMetadataAndMatch(
   checkedContract: CheckedContract,
   deployedBytecode: string,
   match: Match,
@@ -178,19 +187,21 @@ async function tryToFindOriginalMetadataAndMatch(
     recompilationResult: RecompilationResult
   ) => Promise<void>
 ): Promise<Match> {
-  const checkedContractWithOriginalMetadata =
-    await checkedContract.tryToFindOriginalMetadata(deployedBytecode);
-  if (checkedContractWithOriginalMetadata) {
-    const matchWithOriginalMetadata = { ...match };
-    const recompiled = await checkedContractWithOriginalMetadata.recompile();
+  const checkedContractWithPerfectMetadata =
+    await checkedContract.tryToFindPerfectMetadata(deployedBytecode);
+  if (checkedContractWithPerfectMetadata) {
+    // If found try to match again with the passed matchFunction
+    const matchWithPerfectMetadata = { ...match };
+    const recompiled = await checkedContractWithPerfectMetadata.recompile();
 
-    await matchFunction(matchWithOriginalMetadata, recompiled);
-    if (isPerfectMatch(matchWithOriginalMetadata)) {
+    await matchFunction(matchWithPerfectMetadata, recompiled);
+    if (isPerfectMatch(matchWithPerfectMetadata)) {
+      // Replace the metadata and solidity files that will be saved in the repo
       checkedContract.initSolcJsonInput(
-        checkedContractWithOriginalMetadata.metadata,
-        checkedContractWithOriginalMetadata.solidity
+        checkedContractWithPerfectMetadata.metadata,
+        checkedContractWithPerfectMetadata.solidity
       );
-      return matchWithOriginalMetadata;
+      return matchWithPerfectMetadata;
     }
   }
   return match;
@@ -369,6 +380,7 @@ export async function matchWithCreationTx(
     match.message = `Failed to match with creation bytecode: recompiled contract's creation bytecode is empty`;
     return;
   }
+
   const creatorTx = await getTx(creatorTxHash, sourcifyChain);
   const creatorTxData = creatorTx.input;
 

@@ -1,6 +1,5 @@
 const { deployFromPrivateKey } = require("../helpers/helpers");
 const Web3 = require("web3");
-const ImmutableArtifact = require("./sources/shared/WithImmutables.json");
 const StorageArtifact = require("./sources/shared/1_Storage.json");
 const { supportedChainsArray } = require("../../dist/sourcify-chains");
 const { program } = require("commander");
@@ -23,10 +22,6 @@ program
     "--immutableValue <uint256>",
     "Value to be stored as the immutable value. "
   )
-  .option(
-    "--type <contractType>",
-    "Which contract to deploy. Either 'immutable' or 'normal'. If not given, deploys both contracts by default."
-  )
   .showSuggestionAfterError()
   .showHelpAfterError("(add --help for additional information)");
 
@@ -34,15 +29,10 @@ program.parse();
 const options = program.opts();
 
 if (require.main === module) {
-  main(
-    options.chainId,
-    options.immutableValue,
-    options.privateKey,
-    options.type
-  );
+  main(options.chainId, options.privateKey);
 }
 
-async function main(chainId, immutableValue, privateKey, type) {
+async function main(chainId, privateKey) {
   const chains = supportedChainsArray;
   const chain = chains.find((chain) => chain.chainId == chainId);
   if (!chain) {
@@ -62,36 +52,15 @@ async function main(chainId, immutableValue, privateKey, type) {
     throw new Error(err);
   }
 
-  if (type == "immutable" || type == undefined) {
-    if (!immutableValue) {
-      throw new Error(
-        "Must provide an immutable value with option --immutableValue"
-      );
-    }
-    console.log("Deploying contract with immutables...");
-    const contractAddress1 = await deployFromPrivateKey(
-      web3,
-      ImmutableArtifact.abi,
-      ImmutableArtifact.bytecode,
-      privateKey,
-      [immutableValue]
-    );
-    console.log(
-      `Contract with immutables deployed at ${contractAddress1} and with the immutable costructor argument ${immutableValue} on the chain ${chain.name} (${chain.chainId})`
-    );
-  }
-
-  if (type == "normal" || type == undefined) {
-    console.log("Deploying normal contract");
-    const contractAddress2 = await deployFromPrivateKey(
-      web3,
-      StorageArtifact.abi,
-      StorageArtifact.bytecode,
-      privateKey,
-      []
-    );
-    console.log(
-      `Contract deployed at ${contractAddress2} on the chain ${chain.name} (${chain.chainId})`
-    );
-  }
+  console.log("Deploying the contract...");
+  const contractAddress2 = await deployFromPrivateKey(
+    web3,
+    StorageArtifact.abi,
+    StorageArtifact.bytecode,
+    privateKey,
+    []
+  );
+  console.log(
+    `Contract deployed at ${contractAddress2} on the chain ${chain.name} (${chain.chainId})`
+  );
 }
