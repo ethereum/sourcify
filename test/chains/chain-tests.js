@@ -812,7 +812,7 @@ describe("Test Supported Chains", function () {
   
   // DogeChain Mainnet
   verifyContract(
-    "0x531572CDe648D35cD188A860d44a529B5951A813",
+    "0x2a35F4AA0d3e417e8896E972f35dba4b39b6305e",
     "2000",
     "DogeChain Mainnet",
     ["shared/1_Storage.sol"],
