@@ -28,9 +28,13 @@
       _paq.push(["trackPageView"]);
       _paq.push(["enableLinkTracking"]);
       (function () {
-        var u = "https://ethereumfoundation.matomo.cloud/";
+        var u = "https://matomo.ethereum.org/";
         _paq.push(["setTrackerUrl", u + "matomo.php"]);
-        _paq.push(["setSiteId", "15"]);
+        _paq.push(["setSiteId", "30"]);
+        var secondaryTracker =
+          "https://ethereumfoundation.matomo.cloud/matomo.php";
+        var secondaryWebsiteId = "15";
+        _paq.push(["addTracker", secondaryTracker, secondaryWebsiteId]);
         var d = document,
           g = d.createElement("script"),
           s = d.getElementsByTagName("script")[0];
