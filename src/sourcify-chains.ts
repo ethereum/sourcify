@@ -793,7 +793,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "2000": {
     // DogeChain Mainnet
     supported: true,
-    monitored: true,
+    monitored: false,
     contractFetchAddress:
       "https://explorer.dogechain.dog/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
