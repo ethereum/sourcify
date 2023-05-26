@@ -790,6 +790,14 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       "https://explorer.plexfinance.us/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
+  "2000": {
+    // DogeChain Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://explorer.dogechain.dog/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
