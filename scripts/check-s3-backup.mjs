@@ -37,16 +37,19 @@ const jobsWithArtifacts = [
   "verification-e2e-goerli",
 ];
 const circleCIJobsUrl = `https://circleci.com/api/v2/workflow/${workflowId}/job`;
+console.log("Fetching jobs from: ", circleCIJobsUrl);
 const circleCIJobsUrlResult = await fetch(circleCIJobsUrl);
 const circleCIJobsUrlJson = await circleCIJobsUrlResult.json();
-const jobIds = circleCIJobsUrlJson.items
-  .filter((job) => jobsWithArtifacts.includes(job.name))
-  .map((job) => job.id);
+const jobs = circleCIJobsUrlJson.items.filter((job) =>
+  jobsWithArtifacts.includes(job.name)
+);
 
 // for each job id get the artifact and check the existance on s3
 let existance = false;
-for (const jobId of jobIds) {
-  const circleCIArtifactVerifiedContractUrl = `https://dl.circleci.com/private/output/job/${jobId}/artifacts/0/verified-contracts/saved.json`;
+for (const job of jobs) {
+  console.log(`Checking job with name: ${job.name} and id: ${job.id}`);
+  const circleCIArtifactVerifiedContractUrl = `https://dl.circleci.com/private/output/job/${job.id}/artifacts/0/verified-contracts/saved.json`;
+  console.log("Fetching artifact from: ", circleCIArtifactVerifiedContractUrl);
   const circleCIArtifactVerifiedContractResult = await fetch(
     circleCIArtifactVerifiedContractUrl
   );
@@ -54,25 +57,30 @@ for (const jobId of jobIds) {
     await circleCIArtifactVerifiedContractResult.json();
   const { deploymentAddress, deploymentChain } =
     circleCIArtifactVerifiedContractJson;
-  if (deploymentAddress && deploymentChain) {
-    try {
-      const s3Object = await bareBonesS3.send(
-        new GetObjectCommand({
-          Key: `stable/repository/contracts/full_match/${deploymentChain}/${deploymentAddress}/metadata.json`,
-          Bucket: "sourcify-backup-s3",
-        })
-      );
 
-      if (s3Object.ETag?.length > 0) {
-        existance = true;
-        break;
-      }
-    } catch (e) {
-      console.log(e);
-      console.log(
-        `not in backup: stable/repository/contracts/full_match/${deploymentChain}/${deploymentAddress}/metadata.json`
-      );
+  if (!deploymentAddress || !deploymentChain) {
+    throw new Error(
+      `Deployment address or chain not found in job ${job.id} with name ${job.name}. Deployment address: ${deploymentAddress}, Deployment chain: ${deploymentChain}`
+    );
+  }
+
+  try {
+    const s3Object = await bareBonesS3.send(
+      new GetObjectCommand({
+        Key: `stable/repository/contracts/full_match/${deploymentChain}/${deploymentAddress}/metadata.json`,
+        Bucket: "sourcify-backup-s3",
+      })
+    );
+
+    if (s3Object.ETag?.length > 0) {
+      existance = true;
+      break;
     }
+  } catch (e) {
+    console.log(e);
+    console.log(
+      `not in backup: stable/repository/contracts/full_match/${deploymentChain}/${deploymentAddress}/metadata.json`
+    );
   }
 }
 
