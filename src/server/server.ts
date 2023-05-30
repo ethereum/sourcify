@@ -46,15 +46,25 @@ export class Server {
     ); */
     this.app.use(bodyParser.json({ limit: config.server.maxFileSize }));
 
+    this.app.post("/", (req, res, next) => {
+      req.url = "/verify";
+      req.originalUrl = "/verify";
+      next();
+    });
+
+    this.app.use(
+      fileUpload({
+        limits: { fileSize: 50 * 1024 * 1024 },
+      })
+    );
+
     this.app.use(
       OpenApiValidator.middleware({
         apiSpec: "openapi.yaml",
         validateRequests: true,
         validateResponses: false,
         ignoreUndocumented: true,
-        fileUploader: {
-          limits: { fileSize: config.server.maxFileSize },
-        },
+        fileUploader: false,
         serDes: [
           {
             format: "validate-addresses",

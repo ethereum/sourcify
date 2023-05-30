@@ -40,6 +40,41 @@ paths:
                 - compilerVersion
                 - contractName
                 - files
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                address:
+                  type: string
+                  format: validate-addresses
+                  description: An array of addresses
+                chain:
+                  type: string
+                  format: supported-chains
+                  description: Chain to check
+                files:
+                  oneOf:
+                    - type: string
+                      format: binary
+                    - type: array
+                      items:
+                        type: string
+                        format: binary
+                  description: File content for upload
+                compilerVersion:
+                  type: string
+                  description: Compiler version
+                contractName:
+                  type: string
+                  description: Name of the contract
+                creatorTxHash:
+                  type: string
+                  description: Creator transaction hash
+              required:
+                - address
+                - chain
+                - compilerVersion
+                - contractName
       responses:
         "200":
           description: Successful operation

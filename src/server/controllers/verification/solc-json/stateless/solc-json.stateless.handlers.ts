@@ -28,7 +28,7 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
   const compilerVersion = req.body.compilerVersion;
   const contractName = req.body.contractName;
   const chain = req.body.chain;
-  const address = req.body.address;
+  const address = req.body.address[0];
 
   const metadataAndSourcesPathBuffers =
     await getAllMetadataAndSourcesFromSolcJson(solcJson, compilerVersion);

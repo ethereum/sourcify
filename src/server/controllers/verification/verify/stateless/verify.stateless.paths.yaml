@@ -26,8 +26,6 @@ paths:
                   format: supported-chains
                 files:
                   type: object
-                  additionalProperties:
-                    type: string
                 creatorTxHash:
                   type: string
                 chosenContract:
@@ -46,10 +44,17 @@ paths:
                   type: string
                   format: supported-chains
                 files:
-                  type: array
-                  items:
-                    type: string
-                    format: binary
+                  oneOf:
+                    - type: string
+                    - type: array
+                      items:
+                        type: string
+                    - type: string
+                      format: binary
+                    - type: array
+                      items:
+                        type: string
+                        format: binary
                 creatorTxHash:
                   type: string
                 chosenContract:
