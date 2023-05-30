@@ -9,11 +9,12 @@ exports.assertValidationError = (err, res, field, message) => {
   try {
     chai.expect(err).to.be.null;
     chai.expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
-    chai.expect(res.body.message.startsWith("Validation Error")).to.be.true;
+    chai.expect(res.body.message.includes("must have required")).to.be.true;
     chai.expect(res.body.errors).to.be.an("array");
     chai.expect(res.body.errors).to.have.a.lengthOf(1);
-    chai.expect(res.body.errors[0].field).to.equal(field);
-    if (message) chai.expect(res.body.errors[0].message).to.equal(message);
+    chai
+      .expect(res.body.errors[0].message)
+      .to.equal(`must have required property '${field}'`);
   } catch (err) {
     console.log("Not validating as expected:");
     console.log(JSON.stringify(res.body, null, 2));

@@ -43,8 +43,8 @@ export type LegacyVerifyRequest = Request & {
 };
 
 export const extractFiles = (req: Request, shouldThrow = false) => {
-  if (req.is("multipart/form-data") && req.files) {
-    return extractFilesFromForm(req.files);
+  if (req.is("multipart/form-data") && (req.files as any)?.files) {
+    return extractFilesFromForm((req.files as any).files);
   } else if (req.is("application/json") && req.body.files) {
     return extractFilesFromJSON(req.body.files);
   }
@@ -60,7 +60,7 @@ const extractFilesFromForm = (files: any): PathBuffer[] => {
   if (!Array.isArray(files)) {
     files = [files];
   }
-  return files.map((f: any) => ({ path: f.originalname, buffer: f.buffer }));
+  return files.map((f: any) => ({ path: f.name, buffer: f.data }));
 };
 
 export const extractFilesFromJSON = (files: {

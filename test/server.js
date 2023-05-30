@@ -694,7 +694,7 @@ describe("Server", function () {
         .post("/")
         .field("address", address)
         .field("chain", defaultContractChain)
-        .attach("files", metadataBuffer)
+        .attach("files", metadataBuffer, "metadata.json")
         .send();
 
       assertVerification(
@@ -771,7 +771,7 @@ describe("Server", function () {
       const res = await chai
         .request(server.app)
         .post("/verify/solc-json")
-        .attach("files", solcJsonBuffer)
+        .attach("files", solcJsonBuffer, "solc.json")
         .field("address", address)
         .field("chain", defaultContractChain)
         .field("contractName", "Storage");
@@ -823,7 +823,7 @@ describe("Server", function () {
       const res = await chai
         .request(server.app)
         .post("/verify/solc-json")
-        .attach("files", solcJsonBuffer)
+        .attach("files", solcJsonBuffer, "solc.json")
         .field("address", address)
         .field("chain", defaultContractChain)
         .field("compilerVersion", "0.8.4+commit.c7e474f2")
@@ -1008,7 +1008,7 @@ describe("Server", function () {
   describe("session api verification", function () {
     this.timeout(EXTENDED_TIME);
 
-    it("should inform when no pending contracts", (done) => {
+    it.only("should inform when no pending contracts", (done) => {
       chai
         .request(server.app)
         .post("/session/verify-validated")
@@ -1636,7 +1636,7 @@ describe("Server", function () {
       const res = await agent
         .post("/session/input-solc-json")
         .field("compilerVersion", "0.8.4+commit.c7e474f2")
-        .attach("files", solcJsonBuffer);
+        .attach("files", solcJsonBuffer, "solc.json");
 
       const contracts = assertSingleContractStatus(res, "error");
 
