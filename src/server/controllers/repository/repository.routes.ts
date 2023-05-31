@@ -57,8 +57,14 @@ router
   .get(safeHandler(checkByChainAndAddressesEnpoint));
 
 export const deprecatedRoutesRepository = {
-  "/checkAllByAddresses": "/check-all-by-addresses",
-  "/checkByAddresses": "/check-by-addresses",
+  "/checkAllByAddresses": {
+    method: "get",
+    path: "/check-all-by-addresses",
+  },
+  "/checkByAddresses": {
+    method: "get",
+    path: "/check-by-addresses",
+  },
 };
 
 export default router;

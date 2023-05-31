@@ -4,7 +4,18 @@ import { deprecatedRoutesVerifySession } from "./controllers/verification/verify
 import { deprecatedRoutesSessionState } from "./controllers/verification/session-state/session-state.routes";
 import { deprecatedRoutesRepository } from "./controllers/repository/repository.routes";
 
-export const deprecatedRoutes: { [index: string]: string } = {
+type HTTPMethod =
+  | "get"
+  | "post"
+  | "put"
+  | "delete"
+  | "patch"
+  | "options"
+  | "head";
+
+export const deprecatedRoutes: {
+  [index: string]: { path: string; method: string };
+} = {
   ...deprecatedRoutesVerifyStateless,
   ...deprecatedRoutesVerifySession,
   ...deprecatedRoutesSessionState,
@@ -15,11 +26,12 @@ export const deprecatedRoutes: { [index: string]: string } = {
 // otherwise creating an openapi declaration file for each deprecated route is necessary
 export function initDeprecatedRoutes(app: express.Application) {
   Object.keys(deprecatedRoutes).forEach((deprecatedRoute: string) => {
-    app.post(
+    const { path, method } = deprecatedRoutes[deprecatedRoute];
+    app[method as HTTPMethod](
       deprecatedRoute,
       (req: Request, res: Response, next: NextFunction) => {
-        req.url = deprecatedRoutes[deprecatedRoute];
-        req.originalUrl = deprecatedRoutes[deprecatedRoute];
+        req.url = path;
+        req.originalUrl = path;
         next();
       }
     );

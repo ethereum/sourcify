@@ -9,8 +9,14 @@ router
   .post(safeHandler(verifyContractsInSessionEndpoint));
 
 export const deprecatedRoutesVerifySession = {
-  "/session/verify-validated": "/session/verify-checked",
-  "/verify-validated": "/session/verify-checked",
+  "/session/verify-validated": {
+    method: "post",
+    path: "/session/verify-checked",
+  },
+  "/verify-validated": {
+    method: "post",
+    path: "/session/verify-checked",
+  },
 };
 
 export default router;
