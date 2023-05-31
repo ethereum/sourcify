@@ -52,9 +52,19 @@ export class Server {
       next();
     });
 
+    this.app.post(
+      ["/session/verify-validated", "/verify-validated"],
+      (req, res, next) => {
+        req.url = "/session/verify-checked";
+        req.originalUrl = "/session/verify-checked";
+        next();
+      }
+    );
+
     this.app.use(
       fileUpload({
-        limits: { fileSize: 50 * 1024 * 1024 },
+        limits: { fileSize: config.server.maxFileSize },
+        abortOnLimit: true,
       })
     );
 

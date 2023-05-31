@@ -23,6 +23,27 @@ paths:
               required:
                 - compilerVersion
                 - files
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  oneOf:
+                    - type: string
+                    - type: array
+                      items:
+                        type: string
+                    - type: string
+                      format: binary
+                    - type: array
+                      items:
+                        type: string
+                        format: binary
+                compilerVersion:
+                  type: string
+                  description: Compiler version
+              required:
+                - compilerVersion
       responses:
         "200":
           description: Successful operation
