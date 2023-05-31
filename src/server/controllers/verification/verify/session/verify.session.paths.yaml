@@ -29,8 +29,6 @@ paths:
                       verificationId:
                         type: string
                         example: "0x3f67e9f57515bb1e7195c7c5af1eff630091567c0bb65ba3dece57a56da766fe"
-              required:
-                - contracts
       responses:
         "200":
           description: Successful operation
