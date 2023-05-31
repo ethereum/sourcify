@@ -17,9 +17,18 @@ router
   .post(safeHandler(addInputContractEndpoint));
 
 export const deprecatedRoutesSessionState = {
-  "/session-data": "/session/data",
-  "/input-files": "/session/input-files",
-  "/restart-session": "/session/clear",
+  "/session-data": {
+    method: "get",
+    path: "/session/data",
+  },
+  "/input-files": {
+    method: "post",
+    path: "/session/input-files",
+  },
+  "/restart-session": {
+    method: "post",
+    path: "/session/clear",
+  },
 };
 
 export default router;

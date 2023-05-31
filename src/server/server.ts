@@ -39,13 +39,10 @@ export class Server {
         extended: true,
       })
     );
-    /*     this.app.use(
-      bodyParser.text({
-        limit: config.server.maxFileSize,
-      })
-    ); */
     this.app.use(bodyParser.json({ limit: config.server.maxFileSize }));
 
+    // Init deprecated routes before OpenApiValidator so that it can handle the request with the defined paths.
+    // initDeprecatedRoutes is a middleware that replaces the deprecated paths with the real ones.
     initDeprecatedRoutes(this.app);
 
     this.app.use(
