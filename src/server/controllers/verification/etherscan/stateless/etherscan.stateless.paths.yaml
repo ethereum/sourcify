@@ -1,4 +1,4 @@
-openapi: "3.0.0"
+openapi: "3.0"
 
 paths:
   /verify/etherscan:
@@ -21,6 +21,19 @@ paths:
               required:
                 - address
                 - chainId
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                address:
+                  type: string
+                  format: validate-addresses
+                chain:
+                  type: string
+                  format: supported-chains
+              required:
+                - address
+                - chain
       responses:
         "200":
           description: Successful operation

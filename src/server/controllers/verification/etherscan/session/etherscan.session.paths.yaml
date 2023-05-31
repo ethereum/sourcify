@@ -21,6 +21,19 @@ paths:
               required:
                 - address
                 - chainId
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - address
+                - chain
+              properties:
+                address:
+                  type: string
+                  format: validate-addresses
+                chain:
+                  type: string
+                  format: supported-chains
       responses:
         "200":
           description: Successful operation

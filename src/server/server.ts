@@ -54,6 +54,14 @@ export class Server {
       })
     );
 
+    // In every request support both chain and chainId
+    this.app.use((req: any, res: any, next: any) => {
+      if (req.body.chainId) {
+        req.body.chain = req.body.chainId;
+      }
+      next();
+    });
+
     this.app.use(
       OpenApiValidator.middleware({
         apiSpec: "openapi.yaml",
