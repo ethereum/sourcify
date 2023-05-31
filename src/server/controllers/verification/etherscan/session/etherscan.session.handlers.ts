@@ -18,10 +18,10 @@ import {
 import { checkSupportedChainId } from "../../../../../sourcify-chains";
 
 export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
-  checkSupportedChainId(req.body.chainId);
+  checkSupportedChainId(req.body.chain);
 
-  const chain = req.body.chainId as string;
-  const address = req.body.address;
+  const chain = req.body.chain as string;
+  const address = req.body.address[0];
 
   const { compilerVersion, solcJsonInput, contractName } =
     await processRequestFromEtherscan(chain, address);

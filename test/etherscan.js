@@ -240,7 +240,7 @@ describe("Import From Etherscan and Verify", function () {
         .post("/session/verify/etherscan/")
         .field("address", unusedAddress)
         .end((err, res) => {
-          assertValidationError(err, res, "chainId");
+          assertValidationError(err, res, "chain");
           done();
         });
     });
