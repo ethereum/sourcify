@@ -48,38 +48,17 @@ const router: Router = Router();
 });
 
 // check(All)ByAddresses endpoints have different format then the ones above. check(All)ByAddresses take query params instead of path params.
-router.route("/check-all-by-addresses").get(
-  /* query("addresses")
-    .exists()
-    .bail()
-    .custom(
-      (addresses, { req }) => (req.addresses = validateAddresses(addresses))
-    ),
-  query("chainIds")
-    .exists()
-    .bail()
-    .custom((chainIds, { req }) => (req.chainIds = validateChainIds(chainIds))), */
-  safeHandler(checkAllByChainAndAddressEndpoint)
-);
 router
-  .route("/checkAllByAddresses")
-  .post((_, res: Response) => res.redirect(307, "/check-all-by-addresses"));
+  .route("/check-all-by-addresses")
+  .get(safeHandler(checkAllByChainAndAddressEndpoint));
 
-router.route("/check-by-addresses").get(
-  /* query("addresses")
-    .exists()
-    .bail()
-    .custom(
-      (addresses, { req }) => (req.addresses = validateAddresses(addresses))
-    ),
-  query("chainIds")
-    .exists()
-    .bail()
-    .custom((chainIds, { req }) => (req.chainIds = validateChainIds(chainIds))), */
-  safeHandler(checkByChainAndAddressesEnpoint)
-);
 router
-  .route("/checkByAddresses")
-  .post((_, res: Response) => res.redirect(307, "/check-by-addresses"));
+  .route("/check-by-addresses")
+  .get(safeHandler(checkByChainAndAddressesEnpoint));
+
+export const deprecatedRoutesRepository = {
+  "/checkAllByAddresses": "/check-all-by-addresses",
+  "/checkByAddresses": "/check-by-addresses",
+};
 
 export default router;

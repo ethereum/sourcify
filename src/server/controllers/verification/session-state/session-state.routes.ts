@@ -1,4 +1,4 @@
-import { Router, Response } from "express";
+import { Router } from "express";
 import {
   getSessionDataEndpoint,
   addInputFilesEndpoint,
@@ -10,22 +10,16 @@ import { safeHandler } from "../../controllers.common";
 const router: Router = Router();
 
 router.route("/session/data").get(safeHandler(getSessionDataEndpoint));
-router
-  .route("/session-data")
-  .post((_, res: Response) => res.redirect(307, "/session/data"));
-
 router.route("/session/input-files").post(safeHandler(addInputFilesEndpoint));
-router
-  .route("/input-files")
-  .post((_, res: Response) => res.redirect(307, "/session/input-files"));
-
 router.route("/session/clear").post(safeHandler(restartSessionEndpoint));
-router
-  .route("/restart-session")
-  .post((_, res: Response) => res.redirect(307, "/session/clear"));
-
 router
   .route("/session/input-contract")
   .post(safeHandler(addInputContractEndpoint));
+
+export const deprecatedRoutesSessionState = {
+  "/session-data": "/session/data",
+  "/input-files": "/session/input-files",
+  "/restart-session": "/session/clear",
+};
 
 export default router;
