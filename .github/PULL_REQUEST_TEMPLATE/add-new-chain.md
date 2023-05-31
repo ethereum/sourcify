@@ -15,4 +15,4 @@ Please check the following items before submitting your pull request.
   - [ ] I've set `monitored: false`.
   - [ ] I haven't added an `rpc` field but the one in [chains.json](../../src/chains.json) is used (if not, please explain why).
 - [ ] I've added a test in [chain-tests.js](../../test/chains/chains-test.js) file.
-- [ ] `test-new-chain` test is passing.
+- [ ] `test-new-chain` test in Circle CI is passing.
