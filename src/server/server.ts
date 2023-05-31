@@ -15,13 +15,15 @@ import createMemoryStore from "memorystore";
 import util from "util";
 import { checkSupportedChainId, sourcifyChainsArray } from "../sourcify-chains";
 import { validateAddresses } from "./common";
-const OpenApiValidator = require("express-openapi-validator");
-const swaggerUi = require("swagger-ui-express");
-const yamljs = require("yamljs");
-const { resolveRefs } = require("json-refs");
-const MemoryStore = createMemoryStore(session);
-const fileUpload = require("express-fileupload");
+import * as OpenApiValidator from "express-openapi-validator";
+import swaggerUi from "swagger-ui-express";
+import yamljs from "yamljs";
+import { resolveRefs } from "json-refs";
 import { initDeprecatedRoutes } from "./deprecated.routes";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const fileUpload = require("express-fileupload");
+
+const MemoryStore = createMemoryStore(session);
 
 export class Server {
   app: express.Application;
@@ -64,16 +66,14 @@ export class Server {
             format: "validate-addresses",
             deserialize: (addresses: string): string[] =>
               validateAddresses(addresses),
-            serialize:
-              () =>
-              (addresses: string[]): string =>
-                addresses.join(","),
-            jsonType: "array",
+            serialize: (addresses: unknown): string => {
+              return (addresses as string[]).join(",");
+            },
           },
           {
             format: "supported-chains",
             deserialize: (chain: string) => checkSupportedChainId(chain),
-            serialize: () => (chain: string) => chain,
+            serialize: (chain: unknown): string => chain as string,
           },
         ],
       })
@@ -166,7 +166,7 @@ export class Server {
       },
     };
 
-    return resolveRefs(root, options).then(
+    return resolveRefs(root as any, options).then(
       function (results: any) {
         return results.resolved;
       },
