@@ -21,7 +21,7 @@ const yamljs = require("yamljs");
 const { resolveRefs } = require("json-refs");
 const MemoryStore = createMemoryStore(session);
 const fileUpload = require("express-fileupload");
-import { services } from "./services/services";
+import { initDeprecatedRoutes } from "./deprecated.routes";
 
 export class Server {
   app: express.Application;
@@ -46,20 +46,7 @@ export class Server {
     ); */
     this.app.use(bodyParser.json({ limit: config.server.maxFileSize }));
 
-    this.app.post("/", (req, res, next) => {
-      req.url = "/verify";
-      req.originalUrl = "/verify";
-      next();
-    });
-
-    this.app.post(
-      ["/session/verify-validated", "/verify-validated"],
-      (req, res, next) => {
-        req.url = "/session/verify-checked";
-        req.originalUrl = "/session/verify-checked";
-        next();
-      }
-    );
+    initDeprecatedRoutes(this.app);
 
     this.app.use(
       fileUpload({
