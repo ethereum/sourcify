@@ -272,7 +272,7 @@ describe("Import From Etherscan and Verify", function () {
           assertValidationError(
             err,
             res,
-            "chainId",
+            "chain",
             `Chain ${unsupportedChain} not supported for verification!`
           );
           done();
