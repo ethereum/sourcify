@@ -794,8 +794,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // DogeChain Mainnet
     supported: true,
     monitored: false,
-    contractFetchAddress:
-      "https://explorer.dogechain.dog/" + BLOCKSCOUT_SUFFIX,
+    contractFetchAddress: "https://explorer.dogechain.dog/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
 };
@@ -889,7 +888,10 @@ export function checkSupportedChainId(chain: string): string {
  * Note that there might be chains not supported for verification anymore but still exist as a SourcifyChain e.g. Ropsten.
  */
 export function checkChainId(chain: string): string {
-  if (!(chain in sourcifyChainsMap && sourcifyChainsMap[chain])) {
+  if (
+    !(chain in sourcifyChainsMap && sourcifyChainsMap[chain]) &&
+    chain != "0"
+  ) {
     throw new Error(`Chain ${chain} not supported!`);
   }
 
