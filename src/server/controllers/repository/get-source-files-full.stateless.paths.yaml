@@ -21,7 +21,7 @@ paths:
             format: validate-addresses
       responses:
         "200":
-          description: Successful response. Returns a list of files.
+          description: Contract is available in the repository
           content:
             application/json:
               schema:
@@ -31,12 +31,14 @@ paths:
                   properties:
                     name:
                       type: string
+                      example: "metadata.json"
                     path:
                       type: string
+                      example: "/home/data/repository/contracts/full_match/3/0x0000A906D248Cc99FB8CB296C8Ad8C6Df05431c9/metadata.json"
                     content:
                       type: string
         "404":
-          description: Contract is not available in the repository.
+          description: Contract is not available in the repository
           content:
             application/json:
               schema:
@@ -44,3 +46,4 @@ paths:
                 properties:
                   error:
                     type: string
+                    example: "Files have not been found!"

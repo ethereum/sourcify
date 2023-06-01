@@ -21,16 +21,19 @@ paths:
             format: validate-addresses
       responses:
         "200":
-          description: Successful response. Returns a list of file URLs.
+          description: Contract is available
           content:
             application/json:
               schema:
                 type: array
                 items:
                   type: string
-                  format: uri
+                example:
+                  [
+                    "https://repo.sourcify.dev/contracts/full_match/5/0x1fE5d745beABA808AAdF52057Dd7AAA47b42cFD0/metadata.json",
+                  ]
         "404":
-          description: Contract is not available in the repository.
+          description: Contract is not available
           content:
             application/json:
               schema:
@@ -38,3 +41,4 @@ paths:
                 properties:
                   error:
                     type: string
+                    example: "Files have not been found!"

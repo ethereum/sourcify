@@ -36,6 +36,58 @@ paths:
                 - chain
       responses:
         "200":
-          description: Successful operation
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        address:
+                          type: string
+                          example: "0x0001Db7722Fb4211C24d4aC5E1127353116323d3"
+                        status:
+                          type: string
+                          enum: ["perfect", "partial"]
+                        storageTimestamp:
+                          type: string
+                          format: date-time
+                          example: "2020-11-10T14:12:15.665Z"
         "400":
-          description: Invalid input
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Validation Error: address, chain"
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                          example: "address"
+                        message:
+                          type: string
+                          example: "Invalid value"
+                  error:
+                    type: string
+                    example: "Etherscan API rate limit reached, try later"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "The deployed and recompiled bytecode don't match."

@@ -23,7 +23,7 @@ paths:
             type: string
       responses:
         "200":
-          description: Successful Response
+          description: OK
           content:
             application/json:
               schema:
@@ -33,6 +33,7 @@ paths:
                   properties:
                     address:
                       type: string
+                      example: "0xEb30853fc616Bbb8f1444451A3c202cbcd08Fb47"
                     chainIds:
                       type: array
                       items:
@@ -40,5 +41,7 @@ paths:
                         properties:
                           chainId:
                             type: string
+                            example: "43114"
                           status:
                             type: string
+                            example: "perfect"
