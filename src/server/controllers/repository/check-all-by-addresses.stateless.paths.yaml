@@ -21,6 +21,7 @@ paths:
           required: true
           schema:
             type: string
+            format: validate-supported-chains
       responses:
         "200":
           description: OK

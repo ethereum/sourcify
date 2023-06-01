@@ -13,7 +13,11 @@ import useApiLogging from "./middlewares/ApiLogging";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 import util from "util";
-import { checkSupportedChainId, sourcifyChainsArray } from "../sourcify-chains";
+import {
+  checkChainId,
+  checkSupportedChainId,
+  sourcifyChainsArray,
+} from "../sourcify-chains";
 import { validateAddresses } from "./common";
 import * as OpenApiValidator from "express-openapi-validator";
 import swaggerUi from "swagger-ui-express";
@@ -81,6 +85,12 @@ export class Server {
           {
             format: "supported-chains",
             deserialize: (chain: string) => checkSupportedChainId(chain),
+            serialize: (chain: unknown): string => chain as string,
+          },
+          {
+            format: "validate-supported-chains",
+            deserialize: (chains: string) =>
+              chains.split(",").map((chain) => checkChainId(chain)),
             serialize: (chain: unknown): string => chain as string,
           },
         ],
