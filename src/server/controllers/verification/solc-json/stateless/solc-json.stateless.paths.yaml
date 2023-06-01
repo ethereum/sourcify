@@ -77,6 +77,55 @@ paths:
                 - contractName
       responses:
         "200":
-          description: Successful operation
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        address:
+                          type: string
+                          example: "0x0001Db7722Fb4211C24d4aC5E1127353116323d3"
+                        status:
+                          type: string
+                          enum: ["perfect", "partial"]
+                        storageTimestamp:
+                          type: string
+                          format: date-time
+                          example: "2020-11-10T14:12:15.665Z"
         "400":
-          description: Invalid input
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Only one Solidity JSON Input file at a time is allowed"
+        "422":
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "No files found"
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        param:
+                          type: string
+                          example: "files"
+                        msg:
+                          type: string
+                          example: "No files found"

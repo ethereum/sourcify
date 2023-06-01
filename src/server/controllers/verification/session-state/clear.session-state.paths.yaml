@@ -8,6 +8,19 @@ paths:
         - Session
       responses:
         "200":
-          description: Successful operation
-        "400":
-          description: Invalid input
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Session successfully cleared"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Error in clearing session"

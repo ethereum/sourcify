@@ -54,14 +54,13 @@ paths:
                       properties:
                         compiledPath:
                           type: string
+                          example: "browser/1_Storage.sol"
                         name:
                           type: string
+                          example: "Storage"
                         compilerVersion:
                           type: string
-                        verificationId:
-                          type: string
-                        status:
-                          type: string
+                          example: "0.6.6+commit.6c089d02"
                         files:
                           type: object
                           properties:
@@ -73,14 +72,18 @@ paths:
                               type: array
                               items:
                                 type: string
+                        verificationId:
+                          type: string
+                          example: "0x3f67e9f57515bb1e7195c7c5af1eff630091567c0bb65ba3dece57a56da766fe"
+                        status:
+                          type: string
+                          enum: ["perfect", "partial", "error"]
                   unused:
                     type: array
                     items:
                       type: string
         "413":
-          description: |
-            Response is sent when the session already takes up a lot of memory, 
-            cannot hold a single new input file, and a new input file is being uploaded.
+          description: Payload Too Large
           content:
             application/json:
               schema:
@@ -88,3 +91,4 @@ paths:
                 properties:
                   error:
                     type: string
+                    example: "Too much session memory used. Delete some files or clear the session."

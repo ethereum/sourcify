@@ -21,7 +21,7 @@ paths:
             format: validate-addresses
       responses:
         "200":
-          description: Successful response. Returns a list of files and the status of the match (full or partial).
+          description: Contract is available
           content:
             application/json:
               schema:
@@ -29,14 +29,17 @@ paths:
                 properties:
                   status:
                     type: string
-                    enum: [full, partial]
+                    example: "full"
                   files:
                     type: array
                     items:
                       type: string
-                      format: uri
+                    example:
+                      [
+                        "https://contractrepostaging.komputing.org/contracts/full_match/5/0x32a5d2240a60dcF7Af8EfAE6d886ec8BeD5f71bA/metadata.json",
+                      ]
         "404":
-          description: Contract is not available in the repository.
+          description: Contract is not available
           content:
             application/json:
               schema:
@@ -44,3 +47,4 @@ paths:
                 properties:
                   error:
                     type: string
+                    example: "Files have not been found!"

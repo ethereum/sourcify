@@ -15,7 +15,7 @@ paths:
             type: string
       responses:
         "200":
-          description: Successful response. Returns a list of contract addresses in "full" and "partial" match categories.
+          description: Chain is available as a full match or partial match in the repository
           content:
             application/json:
               schema:
@@ -25,14 +25,22 @@ paths:
                     type: array
                     items:
                       type: string
-                      format: ethereum-address
+                    example:
+                      [
+                        "0x1fE5d745beABA808AAdF52057Dd7AAA47b42cFD0",
+                        "0xE9c31091868d68598Ac881738D159A63532d12f9",
+                      ]
                   partial:
                     type: array
                     items:
                       type: string
-                      format: ethereum-address
+                    example:
+                      [
+                        "0x0000A906D248Cc99FB8CB296C8Ad8C6Df05431c9",
+                        "0xE9c31091868d68598Ac881738D159A63532d12f9",
+                      ]
         "404":
-          description: Chain is not available as both full match or partial match in the repository.
+          description: Chain is not available as both full match or partial match in the repository
           content:
             application/json:
               schema:
@@ -40,3 +48,4 @@ paths:
                 properties:
                   error:
                     type: string
+                    example: "Contracts have not been found!"
