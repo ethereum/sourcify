@@ -151,7 +151,7 @@
     {
       "address": "0x02e71Ae9973aE7D4EbA43DB25da5dCa1ED6906c0",
       "type": "single",
-      "expectedStatus": "partial"
+      "expectedStatus": "perfect"
     },
     {
       "address": "0x234f1BA1d8F3dfF904F0E4a6A4D7c12c4C833F91",

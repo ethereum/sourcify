@@ -69,7 +69,7 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"contracts/WithImmutables.sol": "WithImmutables"
+			"test/chains/sources/shared/WithImmutables.sol": "WithImmutables"
 		},
 		"evmVersion": "istanbul",
 		"libraries": {},
@@ -83,7 +83,7 @@
 		"remappings": []
 	},
 	"sources": {
-		"contracts/WithImmutables.sol": {
+		"test/chains/sources/shared/WithImmutables.sol": {
 			"keccak256": "0xbee62e4af99b4199c5b0982f5da15fc58215a4d547724bc574d516df07f66dc2",
 			"urls": [
 				"bzz-raw://6d83c127e075a149ec14c6af579bc7b24955cdb7578ae7da2f253b7142d267cc",
