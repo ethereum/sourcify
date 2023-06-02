@@ -801,7 +801,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // Bitkub Chain Testnet
     supported: true,
     monitored: false,
-    contractFetchAddress: "https://bkcscan.com/" + BLOCKSCOUT_SUFFIX,
+    contractFetchAddress: "https://testnet.bkcscan.com/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
 };
