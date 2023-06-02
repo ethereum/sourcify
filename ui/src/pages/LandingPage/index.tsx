@@ -430,17 +430,12 @@ const LandingPage = () => {
       >
         <h1 className="text-3xl text-ceruleanBlue-500 font-bold">Resources</h1>
         <div className="flex flex-col items-center mt-8">
-          {/* "aspect" hack from https://github.com/efdevcon/devcon-website/blob/e3565f34838135cf2198a927192cd44365458dcd/src/components/domain/archive/Video.tsx#L172
-            variable height via width percentage padding in a parent element until breakpoint lg, then constant width and height. */}
-          <div className="lg:pb-0 lg:h-auto lg:static h-0 w-full relative overflow-hidden pb-[56.25%] flex justify-center items-center">
-            <iframe
-              src="https://etherna.io/embed/44dc8c325a1c6d9950cb634a984477a6132663f91670fb016848a73b2b3a16c7"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              title="Human-Friendly Contract Interactions"
-              className="w-full h-full left-0 top-0 absolute lg:static md:w-[48rem] md:h-[27rem]"
-            ></iframe>
-          </div>
+          <iframe
+            className="sm:w-[560px] sm:h-[315px] w-[280px] h-[157.5px]"
+            src="https://www.youtube.com/embed/Ggm82pnalCI"
+            title="YouTube video player"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          ></iframe>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-8 lg:mx-32">
             <ul>
               <h3 className="text-ceruleanBlue-500 uppercase text-lg font-semibold">
@@ -602,6 +597,7 @@ const LandingPage = () => {
               <FooterItem href="https://github.com/sourcifyeth">
                 GitHub (organization)
               </FooterItem>
+              <FooterItem href="mailto:hello@sourcify.dev">E-Mail</FooterItem>
             </ul>
           </div>
         </nav>
