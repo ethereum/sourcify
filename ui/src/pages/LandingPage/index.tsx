@@ -602,6 +602,7 @@ const LandingPage = () => {
               <FooterItem href="https://github.com/sourcifyeth">
                 GitHub (organization)
               </FooterItem>
+              <FooterItem href="mailto:hello@sourcify.dev">E-Mail</FooterItem>
             </ul>
           </div>
         </nav>
