@@ -31,7 +31,9 @@ import semverSatisfies from 'semver/functions/satisfies';
 import { defaultAbiCoder as abiCoder, ParamType } from '@ethersproject/abi';
 import { AbiConstructor } from 'abitype';
 
-const RPC_TIMEOUT = 5000;
+const RPC_TIMEOUT = process.env.RPC_TIMEOUT
+  ? parseInt(process.env.RPC_TIMEOUT)
+  : 5000;
 
 export async function verifyDeployed(
   checkedContract: CheckedContract,
