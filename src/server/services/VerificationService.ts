@@ -1,3 +1,4 @@
+import { CheckedContract } from "./../../../packages/lib-sourcify/src/lib/CheckedContract";
 import {
   verifyDeployed,
   CheckedContract,
@@ -49,6 +50,7 @@ export default class VerificationService implements IVerificationService {
         err instanceof Error &&
         err.message === "The deployed and recompiled bytecode don't match."
       ) {
+        console.log(CheckedContract);
         const foundCreatorTxHash = await getCreatorTx(sourcifyChain, address);
         if (foundCreatorTxHash) {
           SourcifyEventManager.trigger("Verification.CreatorTxFetched", {

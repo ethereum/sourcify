@@ -27,6 +27,7 @@ const TELOS_SUFFIX = "v2/evm/get_contract?contract=${ADDRESS}";
 const METER_SUFFIX = "api/accounts/${ADDRESS}";
 const AVALANCHE_SUBNET_SUFFIX =
   "contracts/${ADDRESS}/transactions:getDeployment";
+const TRITON_SUFFIX = "/triton/account/${ADDRESS}/transactions";
 
 type ChainName = "eth" | "polygon" | "arb" | "opt";
 
@@ -129,6 +130,12 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     monitored: true,
     contractFetchAddress: generateEtherscanCreatorTxAPI("1"),
     rpc: buildAlchemyAndCustomRpcURLs("mainnet", "eth", true),
+  },
+  "91002": {
+    // DogeChain Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://triton.nautscan.com/" + TRITON_SUFFIX,
   },
   "5": {
     // Ethereum Goerli Testnet
@@ -794,8 +801,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // DogeChain Mainnet
     supported: true,
     monitored: false,
-    contractFetchAddress:
-      "https://explorer.dogechain.dog/" + BLOCKSCOUT_SUFFIX,
+    contractFetchAddress: "https://explorer.dogechain.dog/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
 };

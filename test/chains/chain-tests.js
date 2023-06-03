@@ -53,7 +53,13 @@ describe("Test Supported Chains", function () {
     }
     currentResponse = null;
   });
-
+  verifyContract(
+    "0x90CD9B9f69d1dB3F66DD209784c90b92B0157B40",
+    "91002",
+    "Nautilus Triton Testnet",
+    ["91002/Caldera.sol"],
+    "91002/metadata.json"
+  );
   // Symplexia Smart Chain
   verifyContract(
     "0xa33a20ba0aC3fe6b94a8e1Eb4614947B9cb51F84",
@@ -809,7 +815,7 @@ describe("Test Supported Chains", function () {
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
-  
+
   // DogeChain Mainnet
   verifyContract(
     "0x2a35F4AA0d3e417e8896E972f35dba4b39b6305e",
