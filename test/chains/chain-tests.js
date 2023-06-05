@@ -677,7 +677,7 @@ describe("Test Supported Chains", function () {
 
   // ZetaChain: Athens Testnet
   verifyContract(
-    "0x1f42652a86918fd84E74e066db94E3078d25Dd8D",
+    "0x52ef49D23630EF439a8177E1e966F1953f37473f",
     "7001",
     "ZetaChain Athens Testnet",
     ["shared/1_Storage.sol"],
