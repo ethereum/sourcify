@@ -816,7 +816,6 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     supported: true,
     monitored: false,
     contractFetchAddress: "https://cronoscan.com/" + ETHERSCAN_SUFFIX,
-    rpc: ["https://evm.cronos.org"],
     txRegex: ETHERSCAN_REGEX,
   },
 };
