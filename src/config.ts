@@ -139,6 +139,10 @@ export const etherscanAPIs: EtherscanAPIs = {
     apiURL: "https://api.gnosisscan.io",
     apiKey: process.env.GNOSSISCAN_API_KEY,
   },
+  "25": {
+    apiURL: "https://api.cronoscan.com/",
+    apiKey: process.env.CRONOSCAN_API_KEY,
+  },
   // Does not require API key
   "84531": {
     apiURL: "https://api-goerli.basescan.org/",
