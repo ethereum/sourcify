@@ -837,6 +837,16 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
+  // Cronos Mainnet Beta
+  verifyContract(
+    "0xEdE2053329D203E8261B47A10540Ee4b7a596667",
+    "25",
+    "Cronos Mainnet Beta",
+    ["25/storage.sol"],
+    "25/metadata.json"
+  );
+
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainId) {
