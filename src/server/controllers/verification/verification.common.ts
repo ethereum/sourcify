@@ -50,9 +50,7 @@ export const extractFiles = (req: Request, shouldThrow = false) => {
   }
 
   if (shouldThrow) {
-    throw new ValidationError([
-      { param: "files", msg: "There should be files in the <files> field" },
-    ]);
+    throw new ValidationError("There should be files in the <files> field");
   }
 };
 

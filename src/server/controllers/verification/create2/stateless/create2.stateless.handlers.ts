@@ -50,9 +50,9 @@ export async function verifyCreate2Handler(
 
   const match = await verifyCreate2(
     contract,
-    deployerAddress[0],
+    deployerAddress,
     salt,
-    create2Address[0],
+    create2Address,
     abiEncodedConstructorArguments
   );
 

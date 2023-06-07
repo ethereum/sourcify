@@ -14,11 +14,11 @@ paths:
               properties:
                 address:
                   type: string
-                  format: validate-addresses
-                  description: An array of addresses
+                  format: address
+                  description: Contract address
                 chain:
                   type: string
-                  format: supported-chains
+                  format: supported-chainId
                   description: Chain to check
                 files:
                   type: object
@@ -46,11 +46,11 @@ paths:
               properties:
                 address:
                   type: string
-                  format: validate-addresses
-                  description: An array of addresses
+                  format: address
+                  description: Contract address
                 chain:
                   type: string
-                  format: supported-chains
+                  format: supported-chainId
                   description: Chain to check
                 files:
                   oneOf:

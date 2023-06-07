@@ -35,9 +35,6 @@ const router: Router = Router();
     method: createEndpoint(services.repository.getContent, "full_match"),
   },
 ].forEach((pair) => {
-  /* const validators = [param("chain").custom(isValidChain)];
-  if (pair.prefix != "/contracts")
-    validators.push(param("address").custom(isValidAddress)); */
   router
     .route(
       pair.prefix != "/contracts"

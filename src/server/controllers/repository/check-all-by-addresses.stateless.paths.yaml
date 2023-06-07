@@ -14,14 +14,14 @@ paths:
           required: true
           schema:
             type: string
-            format: validate-addresses
+            format: comma-separated-addresses
         - name: chainIds
           in: query
           description: Comma separated string of chain IDs.
           required: true
           schema:
             type: string
-            format: validate-supported-chains
+            format: comma-separated-sourcify-chainIds
       responses:
         "200":
           description: OK. Also returns `200` with status `false` when not found

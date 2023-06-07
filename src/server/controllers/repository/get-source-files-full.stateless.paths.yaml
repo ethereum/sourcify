@@ -13,12 +13,13 @@ paths:
           required: true
           schema:
             type: string
+            format: sourcify-chainId
         - name: address
           in: path
           required: true
           schema:
             type: string
-            format: validate-addresses
+            format: address
       responses:
         "200":
           description: Contract is available in the repository

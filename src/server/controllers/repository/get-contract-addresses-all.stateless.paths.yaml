@@ -13,6 +13,7 @@ paths:
           required: true
           schema:
             type: string
+            format: sourcify-chainId
       responses:
         "200":
           description: Chain is available as a full match or partial match in the repository
