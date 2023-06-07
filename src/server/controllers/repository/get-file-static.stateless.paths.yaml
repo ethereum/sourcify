@@ -8,22 +8,24 @@ paths:
       tags:
         - Repository
       parameters:
-        - name: full_match | partial_match
+        - name: Match type `full_match` or `partial_match`
           in: path
           required: true
           schema:
             type: string
+            format: match-type
         - name: chain
           in: path
           required: true
           schema:
             type: string
+            format: sourcify-chainId
         - name: address
           in: path
           required: true
           schema:
             type: string
-            format: ethereum-address
+            format: address
         - name: filePath
           in: path
           required: true

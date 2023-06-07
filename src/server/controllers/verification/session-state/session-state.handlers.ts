@@ -36,8 +36,7 @@ export async function addInputFilesEndpoint(req: Request, res: Response) {
   } else {
     inputFiles = extractFiles(req, true);
   }
-  if (!inputFiles)
-    throw new ValidationError([{ param: "files", msg: "No files found" }]);
+  if (!inputFiles) throw new ValidationError("No files found");
   const pathContents: PathContent[] = inputFiles.map((pb) => {
     return { path: pb.path, content: pb.buffer.toString(FILE_ENCODING) };
   });
@@ -74,7 +73,7 @@ export async function restartSessionEndpoint(req: Request, res: Response) {
 }
 
 export async function addInputContractEndpoint(req: Request, res: Response) {
-  const address: string = req.body.address[0];
+  const address: string = req.body.address;
   const chainId: string = req.body.chainId;
 
   const sourcifyChain = services.verification.supportedChainsMap[chainId];

@@ -14,8 +14,7 @@ import { BadRequestError, ValidationError } from "../../../../../common/errors";
 
 export async function addInputSolcJsonEndpoint(req: Request, res: Response) {
   const inputFiles = extractFiles(req, true);
-  if (!inputFiles)
-    throw new ValidationError([{ param: "files", msg: "No files found" }]);
+  if (!inputFiles) throw new ValidationError("No files found");
 
   const compilerVersion = req.body.compilerVersion;
 

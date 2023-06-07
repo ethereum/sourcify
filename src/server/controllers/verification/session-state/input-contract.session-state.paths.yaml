@@ -18,10 +18,10 @@ paths:
               properties:
                 address:
                   type: string
-                  format: validate-addresses
+                  format: address
                 chainId:
                   type: string
-                  format: supported-chains
+                  format: supported-chainId
           multipart/form-data:
             schema:
               type: object
@@ -31,10 +31,10 @@ paths:
               properties:
                 address:
                   type: string
-                  format: validate-addresses
+                  format: address
                 chainId:
                   type: string
-                  format: supported-chains
+                  format: supported-chainId
       responses:
         "200":
           description: Response is sent when the upload is successful under different conditions.

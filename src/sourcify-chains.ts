@@ -9,6 +9,7 @@ import {
   Chain,
 } from "@ethereum-sourcify/lib-sourcify";
 import { etherscanAPIs } from "./config";
+import { ValidationError } from "./common/errors";
 
 const allChains = chainsRaw as Chain[];
 
@@ -875,27 +876,29 @@ export function getSortedChainsArray(
  * To check if a chain is supported for verification.
  * Note that there might be chains not supported for verification anymore but still exist as a SourcifyChain e.g. Ropsten.
  */
-export function checkSupportedChainId(chain: string): string {
-  if (!(chain in sourcifyChainsMap && sourcifyChainsMap[chain].supported)) {
-    throw new Error(`Chain ${chain} not supported for verification!`);
+export function checkSupportedChainId(chainId: string) {
+  if (!(chainId in sourcifyChainsMap && sourcifyChainsMap[chainId].supported)) {
+    throw new ValidationError(
+      `Chain ${chainId} not supported for verification!`
+    );
   }
 
-  return chain;
+  return true;
 }
 
 /**
  * To check if a chain exists as a SourcifyChain.
  * Note that there might be chains not supported for verification anymore but still exist as a SourcifyChain e.g. Ropsten.
  */
-export function checkChainId(chain: string): string {
+export function checkSourcifyChainId(chainId: string) {
   if (
-    !(chain in sourcifyChainsMap && sourcifyChainsMap[chain]) &&
-    chain != "0"
+    !(chainId in sourcifyChainsMap && sourcifyChainsMap[chainId]) &&
+    chainId != "0"
   ) {
-    throw new Error(`Chain ${chain} not supported!`);
+    throw new Error(`Chain ${chainId} is not a Sourcify chain!`);
   }
 
-  return chain;
+  return true;
 }
 
 export {

@@ -20,10 +20,10 @@ paths:
               properties:
                 address:
                   type: string
-                  format: validate-addresses
+                  format: address
                 chain:
                   type: string
-                  format: supported-chains
+                  format: supported-chainId
                 files:
                   type: object
                 creatorTxHash:
@@ -39,10 +39,10 @@ paths:
               properties:
                 address:
                   type: string
-                  format: validate-addresses
+                  format: address
                 chain:
                   type: string
-                  format: supported-chains
+                  format: supported-chainId
                 files:
                   description: This field is required
                   oneOf:

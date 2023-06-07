@@ -62,7 +62,6 @@
     "express-fileupload": "^1.4.0",
     "express-openapi-validator": "^5.0.4",
     "express-session": "^1.17.1",
-    "express-validator": "^6.6.1",
     "http-status-codes": "^2.1.4",
     "ipfs-http-client": "^56.0.3",
     "ipfs-http-gateway": "0.9.3",

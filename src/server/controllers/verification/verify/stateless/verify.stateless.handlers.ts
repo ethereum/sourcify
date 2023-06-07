@@ -17,14 +17,12 @@ export async function legacyVerifyEndpoint(
   req: LegacyVerifyRequest,
   res: Response
 ): Promise<any> {
-  for (const address of req.body.address) {
-    const result = services.repository.checkByChainAndAddress(
-      address,
-      req.body.chain
-    );
-    if (result.length != 0) {
-      return res.send({ result });
-    }
+  const result = services.repository.checkByChainAndAddress(
+    req.body.address,
+    req.body.chain
+  );
+  if (result.length != 0) {
+    return res.send({ result });
   }
 
   const inputFiles = extractFiles(req);
@@ -70,7 +68,7 @@ export async function legacyVerifyEndpoint(
     const match = await services.verification.verifyDeployed(
       contract,
       req.body.chain,
-      req.body.address[0], // Due to the old API taking an array of addresses.
+      req.body.address,
       /* req.body.contextVariables, */
       req.body.creatorTxHash
     );
@@ -80,8 +78,7 @@ export async function legacyVerifyEndpoint(
       const tempMatch = await services.verification.verifyDeployed(
         contractWithAllSources,
         req.body.chain,
-        req.body.address[0], // Due to the old API taking an array of addresses.
-        /* req.body.contextVariables, */
+        req.body.address,
         req.body.creatorTxHash
       );
       if (tempMatch.status === "perfect") {

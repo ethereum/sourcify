@@ -1,7 +1,6 @@
 import { isAddress } from "ethers/lib/utils";
-import { validationResult } from "express-validator";
-import { ValidationError } from "../common/errors";
-import { checkChainId } from "../sourcify-chains";
+import { BadRequestError } from "../common/errors";
+import { checkSourcifyChainId } from "../sourcify-chains";
 import {
   CheckedContract,
   PathContent,
@@ -9,7 +8,14 @@ import {
 } from "@ethereum-sourcify/lib-sourcify";
 import { toChecksumAddress } from "web3-utils";
 
-export const validateAddresses = (addresses: string): string[] => {
+export const validateSingleAddress = (address: string): boolean => {
+  if (!isAddress(address)) {
+    throw new BadRequestError(`Invalid address: ${address}`);
+  }
+  return true; // if it doesn't throw
+};
+
+export const validateAddresses = (addresses: string): boolean => {
   const addressesArray = addresses.split(",");
   const invalidAddresses: string[] = [];
   for (const i in addressesArray) {
@@ -22,16 +28,11 @@ export const validateAddresses = (addresses: string): string[] => {
   }
 
   if (invalidAddresses.length) {
-    throw new Error(`Invalid addresses: ${invalidAddresses.join(", ")}`);
+    throw new BadRequestError(
+      `Invalid addresses: ${invalidAddresses.join(", ")}`
+    );
   }
-  return addressesArray;
-};
-
-export const validateRequest = (req: Request) => {
-  const result = validationResult(req);
-  if (!result.isEmpty()) {
-    throw new ValidationError(result.array());
-  }
+  return true; // if it doesn't throw
 };
 
 /**
@@ -39,7 +40,7 @@ export const validateRequest = (req: Request) => {
  * Note that this checks if a chain exists as a SourcifyChain.
  * This is different that checking for verification support i.e. supported: true or monitoring support i.e. monitored: true
  */
-export const validateChainIds = (chainIds: string): string[] => {
+export const validateSourcifyChainIds = (chainIds: string) => {
   const chainIdsArray = chainIds.split(",");
   const validChainIds: string[] = [];
   const invalidChainIds: string[] = [];
@@ -48,8 +49,9 @@ export const validateChainIds = (chainIds: string): string[] => {
       if (chainId === "0") {
         // create2 verified contract
         validChainIds.push("0");
-      } else {
-        validChainIds.push(checkChainId(chainId));
+      }
+      if (checkSourcifyChainId(chainId)) {
+        validChainIds.push(chainId);
       }
     } catch (e) {
       invalidChainIds.push(chainId);
@@ -59,7 +61,7 @@ export const validateChainIds = (chainIds: string): string[] => {
   if (invalidChainIds.length) {
     throw new Error(`Invalid chainIds: ${invalidChainIds.join(", ")}`);
   }
-  return validChainIds;
+  return true;
 };
 
 export interface PathContentMap {

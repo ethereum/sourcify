@@ -12,7 +12,7 @@ export async function verifyFromEtherscan(req: Request, res: Response) {
   checkSupportedChainId(req.body.chain);
 
   const chain = req.body.chain as string;
-  const address = req.body.address[0];
+  const address = req.body.address;
 
   const { compilerVersion, solcJsonInput, contractName } =
     await processRequestFromEtherscan(chain, address);

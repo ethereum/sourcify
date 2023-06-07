@@ -14,10 +14,10 @@ paths:
               properties:
                 address:
                   type: string
-                  format: validate-addresses
+                  format: address
                 chainId:
                   type: string
-                  format: supported-chains
+                  format: supported-chainId
               required:
                 - address
                 - chainId
@@ -27,10 +27,10 @@ paths:
               properties:
                 address:
                   type: string
-                  format: validate-addresses
+                  format: address
                 chain:
                   type: string
-                  format: supported-chains
+                  format: supported-chainId
               required:
                 - address
                 - chain

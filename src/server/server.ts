@@ -14,16 +14,21 @@ import session from "express-session";
 import createMemoryStore from "memorystore";
 import util from "util";
 import {
-  checkChainId,
+  checkSourcifyChainId,
   checkSupportedChainId,
   sourcifyChainsArray,
 } from "../sourcify-chains";
-import { validateAddresses } from "./common";
+import {
+  validateAddresses,
+  validateSingleAddress,
+  validateSourcifyChainIds,
+} from "./common";
 import * as OpenApiValidator from "express-openapi-validator";
 import swaggerUi from "swagger-ui-express";
 import yamljs from "yamljs";
 import { resolveRefs } from "json-refs";
 import { initDeprecatedRoutes } from "./deprecated.routes";
+import { getAddress, isAddress } from "ethers/lib/utils";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fileUpload = require("express-fileupload");
 
@@ -73,39 +78,73 @@ export class Server {
         validateResponses: false,
         ignoreUndocumented: true,
         fileUploader: false,
-        serDes: [
+        formats: [
           {
-            format: "validate-addresses",
-            deserialize: (addresses: string): string[] =>
-              validateAddresses(addresses),
-            serialize: (addresses: unknown): string => {
-              return (addresses as string[]).join(",");
-            },
+            name: "comma-separated-addresses",
+            type: "string",
+            validate: (addresses: string) => validateAddresses(addresses),
           },
           {
-            format: "supported-chains",
-            deserialize: (chain: string) => checkSupportedChainId(chain),
-            serialize: (chain: unknown): string => chain as string,
+            name: "address",
+            type: "string",
+            validate: (address: string) => validateSingleAddress(address),
           },
           {
-            format: "validate-supported-chains",
-            deserialize: (chains: string) =>
-              chains.split(",").map((chain) => checkChainId(chain)),
-            serialize: (chain: unknown): string => chain as string,
+            name: "comma-separated-sourcify-chainIds",
+            type: "string",
+            validate: (chainIds: string) => validateSourcifyChainIds(chainIds),
+          },
+          {
+            name: "supported-chainId",
+            type: "string",
+            validate: (chainId: string) => checkSupportedChainId(chainId),
+          },
+          {
+            // "Sourcify chainIds" include the chains that are revoked verification support, but can have contracts in the repo.
+            name: "sourcify-chainId",
+            type: "string",
+            validate: (chainId: string) => checkSourcifyChainId(chainId),
+          },
+          {
+            name: "match-type",
+            type: "string",
+            validate: (matchType: string) =>
+              matchType === "full_match" || matchType === "partial_match",
           },
         ],
       })
     );
-
-    this.app.use((err: any, req: any, res: any, next: any) => {
-      // format error
-      console.log(err);
-      res.status(err.status || 500).json({
-        message: err.message,
-        errors: err.errors,
-      });
+    // checksum addresses in every request
+    this.app.use((req: any, res: any, next: any) => {
+      // stateless
+      if (req.body.address) {
+        req.body.address = getAddress(req.body.address);
+      }
+      // session
+      if (req.body.contracts) {
+        req.body.contracts.forEach((contract: any) => {
+          contract.address = getAddress(contract.address);
+        });
+      }
+      if (req.query.addresses) {
+        req.query.addresses = req.query.addresses
+          .split(",")
+          .map((address: string) => getAddress(address))
+          .join(",");
+      }
+      if (req.params.address) {
+        req.params.address = getAddress(req.params.address);
+      }
+      next();
     });
-
+    // this.app.use((err: any, req: any, res: any, next: any) => {
+    //   // format error
+    //   console.log(err);
+    //   res.status(err.status || 500).json({
+    //     message: err.message,
+    //     errors: err.errors,
+    //   });
+    // });
     // Session API endpoints require non "*" origins because of the session cookies
     const sessionPaths = [
       "/session", // all paths /session/verify /session/input-files etc.
