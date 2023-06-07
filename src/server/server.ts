@@ -137,14 +137,7 @@ export class Server {
       }
       next();
     });
-    // this.app.use((err: any, req: any, res: any, next: any) => {
-    //   // format error
-    //   console.log(err);
-    //   res.status(err.status || 500).json({
-    //     message: err.message,
-    //     errors: err.errors,
-    //   });
-    // });
+
     // Session API endpoints require non "*" origins because of the session cookies
     const sessionPaths = [
       "/session", // all paths /session/verify /session/input-files etc.
