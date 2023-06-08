@@ -1,11 +1,20 @@
-Thank you for your contribution to the Sourcify project!
+<!-- If you are opening a chain support request PR please follow the template below. Otherwise you can write your own PR description -->
 
-Please check if your pull request fits one of the categories. If so, please use the templates provided at the links:
+# Add New Chain <chainId>
 
-- Requesting new chain support: Add your username and the branch name to the link below and open:
+Thanks for your pull request to add a new support in Sourcify.
 
-```
-https://github.com/ethereum/sourcify/compare/ethereum:sourcify:staging...<YOUR_USERNAME>:<BRANCH_NAME>?template=add-new-chain.md&title=Add+New+Chain+%3CchainId%3E
-```
+If you haven't done so, please follow the instructions on [how to request chain support](https://docs.sourcify.dev/docs/chain-support/) in docs.
 
-- New release: [release.md](https://github.com/ethereum/sourcify/compare/master...staging?template=release.md&title=Release+%3Cversion%3E)
+Please check the following items before submitting your pull request.
+
+## Checklist
+
+- [ ] The branch is named as `add-chain-<chainId>`.
+- [ ] I haven't modified the [chains.json](../../src/chains.json) file directly.
+- [ ] In [sourcify-chains.ts](../../src/sourcify-chains.ts) file
+  - [ ] I've set `supported: true`.
+  - [ ] I've set `monitored: false`.
+  - [ ] I haven't added an `rpc` field but the one in [chains.json](../../src/chains.json) is used (if not, please explain why).
+- [ ] I've added a test in [chain-tests.js](../../test/chains/chains-test.js) file.
+- [ ] `test-new-chain` test in Circle CI is passing.

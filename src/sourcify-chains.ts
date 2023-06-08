@@ -804,6 +804,20 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: "https://testnet.bkcscan.com/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
+  "96": {
+    // Bitkub Chain
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://bkcscan.com/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
+  "25": {
+    // Cronos Mainnet Beta
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://cronoscan.com/" + ETHERSCAN_SUFFIX,
+    txRegex: ETHERSCAN_REGEX,
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
