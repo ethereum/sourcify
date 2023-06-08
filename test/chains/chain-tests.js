@@ -846,14 +846,16 @@ describe("Test Supported Chains", function () {
     "25/metadata.json"
   );
 
-  // Elysium Mainnet Chain
-  verifyContract(
-    "0xa801b1A7846156d4C81bD188F96bfcb621517611",
-    "1339",
-    "Elysium Mainnet",
-    ["1339/LERC20-role.sol"],
-    "1339/LERC20-role.json"
-  );
+
+
+    // Elysium Mainnet Chain
+    verifyContract(
+      "0x20563837F7423465699D7675BCB82f886a761c25",
+      "1339",
+      "Elysium Mainnet",
+      ["shared/1_Storage.sol"],
+      "shared/1_Storage.metadata.json"
+    );
 
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
