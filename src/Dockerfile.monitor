@@ -4,6 +4,6 @@ WORKDIR /home/app
 COPY packages ./packages
 COPY src ./src
 COPY *.json ./
-RUN npx lerna bootstrap --ci && npx lerna run build
+RUN npm install && npx lerna bootstrap --ci && npx lerna run build
 
 CMD ["npm", "run", "monitor:start"]
