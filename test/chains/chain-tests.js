@@ -848,12 +848,12 @@ describe("Test Supported Chains", function () {
 
   // Elysium Mainnet Chain
   verifyContract(
-      "0x20563837F7423465699D7675BCB82f886a761c25",
-      "1339",
-      "Elysium Mainnet",
-      ["shared/1_Storage.sol"],
-      "shared/1_Storage.metadata.json"
-    );
+    "0x20563837F7423465699D7675BCB82f886a761c25",
+    "1339",
+    "Elysium Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
 
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
