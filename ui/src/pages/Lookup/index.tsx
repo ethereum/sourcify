@@ -45,7 +45,7 @@ const Lookup = () => {
     }
   };
 
-  const goBack = async () => {
+  const goBack = () => {
     setResponse(undefined);
     navigate(`/lookup`);
   };

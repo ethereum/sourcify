@@ -6,7 +6,6 @@ import {
   Status,
   Create2Args,
   StringMap,
-  Metadata,
   /* ContextVariables, */
   CheckedContract,
 } from "@ethereum-sourcify/lib-sourcify";
@@ -631,8 +630,22 @@ export default class RepositoryService implements IRepositoryService {
   }
   // This needs to be removed at some point https://github.com/ethereum/sourcify/issues/515
   private sanitizePath(originalPath: string): string {
-    return originalPath
+    const parsedPath = path.parse(originalPath);
+    const sanitizedDir = parsedPath.dir
+      .split(path.sep)
+      .filter((segment) => segment !== "..")
+      .join(path.sep)
       .replace(/[^a-z0-9_./-]/gim, "_")
       .replace(/(^|\/)[.]+($|\/)/, "_");
+
+    // Force absolute paths to be relative
+    if (parsedPath.root) {
+      parsedPath.root = "";
+      parsedPath.dir = sanitizedDir.slice(parsedPath.root.length);
+    } else {
+      parsedPath.dir = sanitizedDir;
+    }
+
+    return path.format(parsedPath);
   }
 }

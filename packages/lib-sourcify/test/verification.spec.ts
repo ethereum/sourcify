@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import path from 'path';
-import { SourcifyChain } from '../src/lib/types';
+import { Metadata, SourcifyChain } from '../src/lib/types';
 import Web3 from 'web3';
 import Ganache from 'ganache';
 import {
@@ -398,6 +398,46 @@ describe('lib-sourcify tests', () => {
       );
       expectMatch(match, 'perfect', deployedAddress);
     });
+
+    it('should fully verify a library with call protection when viaIR is disabled (legacy compilation placeholder: 0x73 plus 20 zero bytes)', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        'sources',
+        'CallProtectionForLibraries'
+      );
+      const [deployedAddress] = await deployFromAbiAndBytecode(
+        localWeb3Provider,
+        contractFolderPath,
+        accounts[0]
+      );
+
+      const match = await checkAndVerifyDeployed(
+        contractFolderPath,
+        sourcifyChainGanache,
+        deployedAddress
+      );
+      expectMatch(match, 'perfect', deployedAddress);
+    });
+
+    it('should fully verify a library with call protection when viaIR is enabled', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        'sources',
+        'CallProtectionForLibrariesViaIR'
+      );
+      const [deployedAddress] = await deployFromAbiAndBytecode(
+        localWeb3Provider,
+        contractFolderPath,
+        accounts[0]
+      );
+
+      const match = await checkAndVerifyDeployed(
+        contractFolderPath,
+        sourcifyChainGanache,
+        deployedAddress
+      );
+      expectMatch(match, 'perfect', deployedAddress);
+    });
   });
 
   describe('Unit tests', function () {
@@ -524,14 +564,138 @@ describe('lib-sourcify tests', () => {
         chainId: sourcifyChainGanache.chainId.toString(),
         status: null,
       };
+      const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
       await matchWithCreationTx(
         match,
         recompiled.creationBytecode,
         sourcifyChainGanache,
         deployedAddress,
-        wrongCreatorTxHash
+        wrongCreatorTxHash,
+        recompiledMetadata
       );
       expectMatch(match, null, deployedAddress, undefined); // status is null
+    });
+
+    it('should fail to matchWithCreationTx with creatorTxHash having wrong constructor arguments', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        'sources',
+        'WithImmutables'
+      );
+      const maliciousContractFolderPath = path.join(
+        __dirname,
+        'sources',
+        'WithImmutablesCreationBytecodeAttack'
+      );
+
+      const [deployedAddress, wrongCreatorTxHash] =
+        await deployFromAbiAndBytecode(
+          localWeb3Provider,
+          contractFolderPath,
+          accounts[0],
+          ['12345']
+        );
+      const [,] = await deployFromAbiAndBytecode(
+        localWeb3Provider,
+        maliciousContractFolderPath,
+        accounts[0],
+        ['12345']
+      );
+
+      const checkedContracts = await checkFilesFromContractFolder(
+        maliciousContractFolderPath
+      );
+      const recompiled = await checkedContracts[0].recompile();
+      const match = {
+        address: deployedAddress,
+        chainId: sourcifyChainGanache.chainId.toString(),
+        status: null,
+      };
+      const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
+      await matchWithCreationTx(
+        match,
+        '0x60a060405234801561001057600080fd5b506040516103ca', // I force recompiled.creationBytecode because it would take time to generate the right attack,
+        sourcifyChainGanache,
+        deployedAddress,
+        wrongCreatorTxHash,
+        recompiledMetadata
+      );
+      expectMatch(match, null, deployedAddress, undefined); // status is null
+    });
+
+    it('should fail to matchWithCreationTx when passing an abstract contract', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        'sources',
+        'WithImmutables'
+      );
+
+      const [deployedAddress, creatorTxHash] = await deployFromAbiAndBytecode(
+        localWeb3Provider,
+        contractFolderPath,
+        accounts[0],
+        ['12345']
+      );
+
+      const maliciousContractFolderPath = path.join(
+        __dirname,
+        'sources',
+        'AbstractCreationBytecodeAttack'
+      );
+      const checkedContracts = await checkFilesFromContractFolder(
+        maliciousContractFolderPath
+      );
+      const recompiled = await checkedContracts[0].recompile();
+      const match = {
+        address: deployedAddress,
+        chainId: sourcifyChainGanache.chainId.toString(),
+        status: null,
+      };
+      const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
+
+      await matchWithCreationTx(
+        match,
+        recompiled.creationBytecode,
+        sourcifyChainGanache,
+        deployedAddress,
+        creatorTxHash,
+        recompiledMetadata
+      );
+      expectMatch(match, null, deployedAddress, undefined); // status is null
+    });
+
+    it('should successfuly verify with matchWithCreationTx with creationTxHash', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        'sources',
+        'WithImmutables'
+      );
+      const [deployedAddress, creatorTxHash] = await deployFromAbiAndBytecode(
+        localWeb3Provider,
+        contractFolderPath,
+        accounts[0],
+        ['12345']
+      );
+
+      const checkedContracts = await checkFilesFromContractFolder(
+        contractFolderPath
+      );
+      const recompiled = await checkedContracts[0].recompile();
+      const match = {
+        address: deployedAddress,
+        chainId: sourcifyChainGanache.chainId.toString(),
+        status: null,
+      };
+      const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
+      await matchWithCreationTx(
+        match,
+        recompiled.creationBytecode,
+        sourcifyChainGanache,
+        deployedAddress,
+        creatorTxHash,
+        recompiledMetadata
+      );
+      expectMatch(match, 'perfect', deployedAddress, undefined); // status is null
     });
   });
 });

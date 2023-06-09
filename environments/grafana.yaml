@@ -92,3 +92,13 @@ services:
       - "/:/host:ro,rslave"
     networks:
       - source-verify
+
+  nginx_exporter:
+    image: nginx/nginx-prometheus-exporter:0.10.0
+    container_name: grafana-nginx_exporter-${TAG}
+    command:
+      - -nginx.scrape-uri
+      - https://sourcify.dev/nginx_status
+    restart: unless-stopped
+    networks:
+      - source-verify

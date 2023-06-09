@@ -890,6 +890,60 @@ describe("Server", function () {
             );
           });
       });
+
+      it("should store a contract in /contracts/full_match|partial_match/0xADDRESS despite the files paths in the metadata", async () => {
+        const artifact = require("./testcontracts/Storage/Storage.json");
+        const [address] = await deployFromAbiAndBytecodeForCreatorTxHash(
+          localWeb3Provider,
+          artifact.abi,
+          artifact.bytecode,
+          accounts[0],
+          []
+        );
+
+        const metadata = require("./testcontracts/Storage/metadata.upMultipleDirs.json");
+        const sourcePath = path.join(
+          "test",
+          "testcontracts",
+          "Storage",
+          "Storage.sol"
+        );
+        const sourceBuffer = fs.readFileSync(sourcePath);
+
+        // Now pass the creatorTxHash
+        const res = await chai
+          .request(server.app)
+          .post("/")
+          .send({
+            address: address,
+            chain: defaultContractChain,
+            files: {
+              "metadata.json": JSON.stringify(metadata),
+              "Storage.sol": sourceBuffer.toString(),
+            },
+          });
+        assertVerification(
+          null,
+          res,
+          null,
+          address,
+          defaultContractChain,
+          "partial"
+        );
+        const isExist = fs.existsSync(
+          path.join(
+            server.repository,
+            "contracts",
+            "partial_match",
+            defaultContractChain,
+            address,
+            "sources",
+            "..contracts",
+            "Storage.sol"
+          )
+        );
+        chai.expect(isExist, "Files saved in the wrong directory").to.be.true;
+      });
     });
 
     describe("solc v0.6.12 and v0.7.0 extra files in compilation causing metadata match but bytecode mismatch", function () {
