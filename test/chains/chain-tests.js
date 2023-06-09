@@ -846,10 +846,8 @@ describe("Test Supported Chains", function () {
     "25/metadata.json"
   );
 
-
-
-    // Elysium Mainnet Chain
-    verifyContract(
+  // Elysium Mainnet Chain
+  verifyContract(
       "0x20563837F7423465699D7675BCB82f886a761c25",
       "1339",
       "Elysium Mainnet",
