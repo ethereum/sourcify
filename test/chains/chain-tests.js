@@ -855,6 +855,14 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
+  // Taiko Alpha-3 Testnet
+  verifyContract(
+    "0x68107Fb54f5f29D8e0B3Ac44a99f4444D1F22a68",
+    "167005",
+    "Taiko Alpha-3 Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainId) {

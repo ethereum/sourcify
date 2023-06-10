@@ -826,6 +826,11 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       "https://blockscout.elysiumchain.tech/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
+  "167005": {
+    // Taiko Alpha-3
+    supported: true,
+    monitored: false,
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
