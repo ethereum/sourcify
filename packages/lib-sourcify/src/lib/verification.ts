@@ -31,7 +31,9 @@ import semverSatisfies from 'semver/functions/satisfies';
 import { defaultAbiCoder as abiCoder, ParamType } from '@ethersproject/abi';
 import { AbiConstructor } from 'abitype';
 
-const RPC_TIMEOUT = 5000;
+const RPC_TIMEOUT = process.env.RPC_TIMEOUT
+  ? parseInt(process.env.RPC_TIMEOUT)
+  : 5000;
 
 export async function verifyDeployed(
   checkedContract: CheckedContract,
@@ -77,7 +79,7 @@ export async function verifyDeployed(
   if (isPerfectMatch(match)) {
     return match;
   } else if (isPartialMatch(match)) {
-    return await tryToFindOriginalMetadataAndMatch(
+    return await tryToFindPerfectMetadataAndMatch(
       checkedContract,
       deployedBytecode,
       match,
@@ -105,7 +107,7 @@ export async function verifyDeployed(
     (match as Match).contextVariables = contextVariables;
     return match;
   } else if (isPartialMatch(match)) {
-    return await tryToFindOriginalMetadataAndMatch(
+    return await tryToFindPerfectMetadataAndMatch(
       checkedContract,
       deployedBytecode,
       match,
@@ -138,7 +140,7 @@ export async function verifyDeployed(
     if (isPerfectMatch(match)) {
       return match;
     } else if (isPartialMatch(match)) {
-      return await tryToFindOriginalMetadataAndMatch(
+      return await tryToFindPerfectMetadataAndMatch(
         checkedContract,
         deployedBytecode,
         match,
@@ -178,7 +180,7 @@ export async function verifyDeployed(
   throw Error("The deployed and recompiled bytecode don't match.");
 }
 
-async function tryToFindOriginalMetadataAndMatch(
+async function tryToFindPerfectMetadataAndMatch(
   checkedContract: CheckedContract,
   deployedBytecode: string,
   match: Match,
@@ -187,19 +189,21 @@ async function tryToFindOriginalMetadataAndMatch(
     recompilationResult: RecompilationResult
   ) => Promise<void>
 ): Promise<Match> {
-  const checkedContractWithOriginalMetadata =
-    await checkedContract.tryToFindOriginalMetadata(deployedBytecode);
-  if (checkedContractWithOriginalMetadata) {
-    const matchWithOriginalMetadata = { ...match };
-    const recompiled = await checkedContractWithOriginalMetadata.recompile();
+  const checkedContractWithPerfectMetadata =
+    await checkedContract.tryToFindPerfectMetadata(deployedBytecode);
+  if (checkedContractWithPerfectMetadata) {
+    // If found try to match again with the passed matchFunction
+    const matchWithPerfectMetadata = { ...match };
+    const recompiled = await checkedContractWithPerfectMetadata.recompile();
 
-    await matchFunction(matchWithOriginalMetadata, recompiled);
-    if (isPerfectMatch(matchWithOriginalMetadata)) {
+    await matchFunction(matchWithPerfectMetadata, recompiled);
+    if (isPerfectMatch(matchWithPerfectMetadata)) {
+      // Replace the metadata and solidity files that will be saved in the repo
       checkedContract.initSolcJsonInput(
-        checkedContractWithOriginalMetadata.metadata,
-        checkedContractWithOriginalMetadata.solidity
+        checkedContractWithPerfectMetadata.metadata,
+        checkedContractWithPerfectMetadata.solidity
       );
-      return matchWithOriginalMetadata;
+      return matchWithPerfectMetadata;
     }
   }
   return match;

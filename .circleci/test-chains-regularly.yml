@@ -18,7 +18,7 @@ jobs:
       - checkout
       - run:
           name: install dependencies
-          command: npx lerna bootstrap
+          command: npm install && npx lerna bootstrap
       - run:
           name: build and test
           command: npx lerna run build && npx lerna run test:chains
