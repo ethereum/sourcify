@@ -818,6 +818,14 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: "https://cronoscan.com/" + ETHERSCAN_SUFFIX,
     txRegex: ETHERSCAN_REGEX,
   },
+  "1339": {
+    // Elysium Mainnet Chain
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://blockscout.elysiumchain.tech/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
