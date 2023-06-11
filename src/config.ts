@@ -21,7 +21,7 @@ export default {
     port: process.env.MONITOR_PORT || 80,
   },
   server: {
-    port: process.env.SERVER_PORT || 5000,
+    port: 5555,
     maxFileSize: 30 * 1024 * 1024, // 30 MB
   },
   repository: {
