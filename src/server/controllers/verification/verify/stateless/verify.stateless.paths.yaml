@@ -6,7 +6,7 @@ paths:
       description: |
         Sends provided files for verification
       tags:
-        - Stateless
+        - Stateless Verification
       requestBody:
         required: true
         content:

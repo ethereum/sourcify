@@ -2,16 +2,17 @@ openapi: "3.0.0"
 info:
   version: 1.0.0
   title: Sourcify API
-  description: APIs to interact with Sourcify
+  description: API to interact with Sourcify
   license:
-    name: Apache 2.0
-    url: https://www.apache.org/licenses/LICENSE-2.0.html
+    name: MIT
+    url: https://github.com/ethereum/sourcify/blob/master/LICENSE
 servers:
-  - url: http://{base_url}
-    variables:
-      base_url:
-        default: localhost:5555
-        description: server
+  - url: https://sourcify.dev/server
+    description: Production server 
+  - url: https://staging.sourcify.dev/server
+    description: Staging server 
+  - url: http://localhost:5555
+    description: Local development server address on default port 5555.
 paths:
   /session/data:
     $ref: "src/server/controllers/verification/session-state/data.session-state.paths.yaml#/paths/~1session~1data"
