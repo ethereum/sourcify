@@ -63,7 +63,11 @@ export class Server {
         extended: true,
       })
     );
-    this.app.set("trust proxy", 1); // trust first proxy, required for secure cookies.
+    // Need this for secure cookies to work behind a proxy. See https://expressjs.com/en/guide/behind-proxies.html
+    // true means the leftmost IP in the X-Forwarded-* header is used.
+    // Assuming the client ip is 2.2.2.2, reverse proxy 192.168.1.5
+    // for the case "X-Forwarded-For: 2.2.2.2, 192.168.1.5", we want 2.2.2.2 to be used
+    this.app.set("trust proxy", true);
     this.app.use(session(getSessionOptions()));
 
     this.app.get("/health", (_req, res) =>

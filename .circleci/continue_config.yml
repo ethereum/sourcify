@@ -218,7 +218,7 @@ jobs:
       - checkout
       - run:
           name: install dependencies
-          command: npx lerna bootstrap
+          command: npm install && npx lerna bootstrap
       - run:
           name: lint
           command: npm run lint
@@ -236,7 +236,7 @@ jobs:
       - checkout
       - run:
           name: install dependencies
-          command: npx lerna bootstrap
+          command: npm install && npx lerna bootstrap
       - run:
           name: build
           command: npx lerna run build
@@ -271,7 +271,7 @@ jobs:
       - checkout
       - run:
           name: install dependencies
-          command: npx lerna bootstrap
+          command: npm install && npx lerna bootstrap
       - run:
           name: build everything
           command: npx lerna run build

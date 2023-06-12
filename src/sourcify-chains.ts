@@ -794,9 +794,42 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // DogeChain Mainnet
     supported: true,
     monitored: false,
-    contractFetchAddress:
-      "https://explorer.dogechain.dog/" + BLOCKSCOUT_SUFFIX,
+    contractFetchAddress: "https://explorer.dogechain.dog/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
+  },
+  "25925": {
+    // Bitkub Chain Testnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://testnet.bkcscan.com/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
+  "96": {
+    // Bitkub Chain
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://bkcscan.com/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
+  "25": {
+    // Cronos Mainnet Beta
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://cronoscan.com/" + ETHERSCAN_SUFFIX,
+    txRegex: ETHERSCAN_REGEX,
+  },
+  "1339": {
+    // Elysium Mainnet Chain
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://blockscout.elysiumchain.tech/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
+  "167005": {
+    // Taiko Alpha-3
+    supported: true,
+    monitored: false,
   },
 };
 
