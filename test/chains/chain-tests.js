@@ -56,7 +56,7 @@ describe("Test Supported Chains", function () {
 
   // Symplexia Smart Chain
   verifyContract(
-    "0xa33a20ba0aC3fe6b94a8e1Eb4614947B9cb51F84",
+    "0x968fd0BADc643B0A7b088f4b6aA2CE5FA65db622",
     "1149",
     "Symplexia Smart Chain",
     ["shared/1_Storage.sol"],
@@ -846,7 +846,23 @@ describe("Test Supported Chains", function () {
     "25/metadata.json"
   );
 
+  // Elysium Mainnet Chain
+  verifyContract(
+    "0x20563837F7423465699D7675BCB82f886a761c25",
+    "1339",
+    "Elysium Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
 
+  // Taiko Alpha-3 Testnet
+  verifyContract(
+    "0x68107Fb54f5f29D8e0B3Ac44a99f4444D1F22a68",
+    "167005",
+    "Taiko Alpha-3 Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainId) {
