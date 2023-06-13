@@ -30,6 +30,7 @@ services:
     image: grafana/promtail:2.6.1
     volumes:
       - /var/log:/var/log
+      - promtail-config.yml:/etc/promtail/config.yml
     command: -config.file=/etc/promtail/config.yml
     networks:
       - source-verify
