@@ -137,7 +137,3 @@ paths:
                   summary: Resource Missing
                   value:
                     error: "Resource missing; unsuccessful fetching: browser/RandomName.sol"
-                immutableVariableVerificationUnsupported:
-                  summary: Immutable Variable Verification Unsupported
-                  value:
-                    error: "Contract name: RandomName. Verifying contracts with immutable variables is not supported for Ethereum Mainnet."
