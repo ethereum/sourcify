@@ -865,6 +865,14 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: "https://explorer.zora.co/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
+  "6119": {
+    // UPTN Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      `https://glacier-api.avax.network/v1/chains/6119/` +
+      AVALANCHE_SUBNET_SUFFIX,
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
