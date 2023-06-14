@@ -10,7 +10,7 @@
   "scripts": {
     "prepublishOnly": "npm install && npm run build",
     "build": "tsc",
-    "build:clean": "rm -rf node_modules/ packages/bytecode-utils/node_modules/ packages/contract-call-decoder/node_modules/ packages/lib-sourcify/node_modules/ && npx lerna bootstrap && npx lerna run build",
+    "build:clean": "rm -rf node_modules/ packages/bytecode-utils/node_modules/ packages/contract-call-decoder/node_modules/ packages/lib-sourcify/node_modules/ && npm install && npx lerna bootstrap && npx lerna run build",
     "build:lerna": "lerna run build",
     "test": "TESTING=true DOTENV_CONFIG_PATH=./environments/.env nyc --silent mocha -r dotenv/config  --exit",
     "test:monitor": "TESTING=true DOTENV_CONFIG_PATH=./environments/.env mocha test/monitor.js --exit",
