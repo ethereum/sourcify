@@ -4,7 +4,7 @@
 
 # from https://stackoverflow.com/questions/55839004/circleci-regex-filtering-match-within-string 
 
-NEW_CHAIN_REGEX='.*add-chain-(\d+)'
+NEW_CHAIN_REGEX='.*(add|update)-chain-(\d+)'
 
 # if CIRCLE_PR_NUMBER is NOT set (meaning it is not a PR 
 # from a forked repository), then CIRCLE_BRANCH will 

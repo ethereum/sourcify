@@ -56,7 +56,7 @@ describe("Test Supported Chains", function () {
 
   // Symplexia Smart Chain
   verifyContract(
-    "0xa33a20ba0aC3fe6b94a8e1Eb4614947B9cb51F84",
+    "0x968fd0BADc643B0A7b088f4b6aA2CE5FA65db622",
     "1149",
     "Symplexia Smart Chain",
     ["shared/1_Storage.sol"],
@@ -677,7 +677,7 @@ describe("Test Supported Chains", function () {
 
   // ZetaChain: Athens Testnet
   verifyContract(
-    "0x1f42652a86918fd84E74e066db94E3078d25Dd8D",
+    "0x52ef49D23630EF439a8177E1e966F1953f37473f",
     "7001",
     "ZetaChain Athens Testnet",
     ["shared/1_Storage.sol"],
