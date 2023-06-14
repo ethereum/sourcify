@@ -797,6 +797,14 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: "https://explorer.dogechain.dog/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
+  "2044": {
+    // Shrapnel Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      `https://glacier-api.avax.network/v1/chains/2044/` +
+      AVALANCHE_SUBNET_SUFFIX,
+  },
   "25925": {
     // Bitkub Chain Testnet
     supported: true,
