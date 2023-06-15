@@ -253,7 +253,10 @@ if (require.main === module) {
       server.app.use(
         "/api-docs",
         swaggerUi.serve,
-        swaggerUi.setup(swaggerDocument)
+        swaggerUi.setup(swaggerDocument, {
+          customSiteTitle: "Sourcify API",
+          customfavIcon: "https://sourcify.dev/favicon.ico",
+        })
       );
       server.app.listen(server.port, () =>
         SourcifyEventManager.trigger("Server.Started", {
