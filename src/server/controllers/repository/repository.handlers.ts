@@ -15,7 +15,7 @@ type ConractRetrieveMethod = (chain: string) => Promise<ContractData>;
 export function createEndpoint(
   retrieveMethod: RetrieveMethod,
   match: MatchLevel,
-  reportStatus = false
+  reportMatchStatus = false
 ) {
   return async (req: Request, res: Response, next: NextFunction) => {
     let retrieved: FilesInfo<any>;
@@ -32,7 +32,7 @@ export function createEndpoint(
     }
     return res
       .status(StatusCodes.OK)
-      .json(reportStatus ? retrieved : retrieved.files);
+      .json(reportMatchStatus ? retrieved : retrieved.files);
   };
 }
 
