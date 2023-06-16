@@ -16,6 +16,8 @@ const TEST_TIME = 30000; // 30 seconds
 
 // Extract the chainId from new chain support pull request, if exists
 const newAddedChainId = process.env.NEW_CHAIN_ID;
+console.log("newAddedChainId");
+console.log(newAddedChainId);
 
 chai.use(chaiHttp);
 
