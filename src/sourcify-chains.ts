@@ -831,6 +831,13 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     supported: true,
     monitored: false,
   },
+  "7777777": {
+    // ZORA
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://explorer.zora.co/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};

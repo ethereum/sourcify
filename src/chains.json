@@ -2824,6 +2824,25 @@
     "networkId": 163
   },
   {
+    "name": "Omni Testnet 1",
+    "chain": "Omni",
+    "rpc": ["https://testnet-1.omni.network"],
+    "features": [{ "name": "EIP155" }],
+    "faucets": [],
+    "nativeCurrency": { "name": "Omni", "symbol": "OMNI", "decimals": 18 },
+    "infoURL": "https://docs.omni.network/",
+    "shortName": "omni_testnet",
+    "chainId": 165,
+    "networkId": 165,
+    "explorers": [
+      {
+        "name": "Omni Explorer",
+        "url": "https://testnet-1.explorer.omni.network",
+        "standard": "EIP3091"
+      }
+    ]
+  },
+  {
     "name": "Atoshi Testnet",
     "chain": "ATOSHI",
     "icon": "atoshi",
@@ -8150,6 +8169,21 @@
     "networkId": 2043
   },
   {
+    "name": "Shrapnel Subnet",
+    "chain": "shrapnel",
+    "rpc": ["https://subnets.avax.network/shrapnel/mainnet/rpc"],
+    "faucets": [],
+    "nativeCurrency": {
+      "name": "Shrapnel Gas Token",
+      "symbol": "SHRAPG",
+      "decimals": 18
+    },
+    "infoURL": "https://www.shrapnel.com/",
+    "shortName": "Shrapnel",
+    "chainId": 2044,
+    "networkId": 2044
+  },
+  {
     "name": "Stratos Testnet",
     "chain": "STOS",
     "rpc": ["https://web3-testnet-rpc.thestratos.org"],
@@ -9231,19 +9265,19 @@
     ]
   },
   {
-    "name": "Metacodechain",
-    "chain": "metacode",
-    "rpc": ["https://j.blockcoach.com:8503"],
+    "name": "Jouleverse Mainnet",
+    "chain": "Jouleverse",
+    "rpc": ["https://rpc.jnsdao.com:8503"],
     "faucets": [],
     "nativeCurrency": { "name": "J", "symbol": "J", "decimals": 18 },
-    "infoURL": "https://j.blockcoach.com:8089",
-    "shortName": "metacode",
+    "infoURL": "https://jnsdao.com",
+    "shortName": "jouleverse",
     "chainId": 3666,
     "networkId": 3666,
     "explorers": [
       {
-        "name": "meta",
-        "url": "https://j.blockcoach.com:8089",
+        "name": "jscan",
+        "url": "https://jscan.jnsdao.com",
         "standard": "EIP3091"
       }
     ]
@@ -17496,6 +17530,24 @@
     "chainId": 7762959,
     "networkId": 7762959,
     "slip44": 184
+  },
+  {
+    "name": "Zora",
+    "chain": "ETH",
+    "rpc": ["https://rpc.zora.co/"],
+    "faucets": [],
+    "nativeCurrency": { "name": "Ether", "symbol": "ETH", "decimals": 18 },
+    "infoURL": "https://zora.co",
+    "shortName": "zora",
+    "chainId": 7777777,
+    "networkId": 7777777,
+    "explorers": [
+      {
+        "name": "Zora Network Explorer",
+        "url": "https://explorer.zora.co",
+        "standard": "EIP3091"
+      }
+    ]
   },
   {
     "name": "Plian Mainnet Subchain 1",

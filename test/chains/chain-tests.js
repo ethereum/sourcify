@@ -16,8 +16,6 @@ const TEST_TIME = 30000; // 30 seconds
 
 // Extract the chainId from new chain support pull request, if exists
 const newAddedChainId = process.env.NEW_CHAIN_ID;
-console.log("newAddedChainId");
-console.log(newAddedChainId);
 
 chai.use(chaiHttp);
 
@@ -863,6 +861,16 @@ describe("Test Supported Chains", function () {
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
+
+  // ZORA Mainnet
+  verifyContract(
+    "0x090734f94FA67590702421A9B61892509b7CE80A",
+    "7777777",
+    "ZORA MAinnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainId) {
