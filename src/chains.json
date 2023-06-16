@@ -1,24 +1,5 @@
 [
   {
-    "name": "Nautilus Triton Testnet",
-    "chain": "TZBC",
-    "icon": "dogechain",
-    "rpc": ["https://triton.api.nautchain.xyz"],
-    "faucets": ["https://faucet.nautchain.xyz/"],
-    "nativeCurrency": { "name": "tZBC", "symbol": "TZBC", "decimals": 18 },
-    "infoURL": "https://nautchain.xyz/",
-    "shortName": "dct",
-    "chainId": 91002,
-    "networkId": 91002,
-    "explorers": [
-      {
-        "name": " Modular Cloud NautScan",
-        "url": "https://triton.nautscan.com/",
-        "standard": "none"
-      }
-    ]
-  },
-  {
     "name": "Ethereum Mainnet",
     "chain": "ETH",
     "icon": "ethereum",
