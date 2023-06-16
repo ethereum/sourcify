@@ -52,12 +52,6 @@ interface Events extends GenericEvents {
   "Verification.MatchStored": (match: Match) => void;
   "Server.Error": (errorEvent: ServerErrorEvent) => void;
   "Server.Started": (serverStartedEvent: { port: number | string }) => void;
-  "Server.ApiReplied": (apiEvent: {
-    api: string;
-    status: number;
-    parameters: any;
-    response: any;
-  }) => void;
   "Monitor.Error": (errorEvent: ErrorEvent) => void;
   "Monitor.Started": (monitorStartedEvent: {
     web3url: string;
@@ -111,7 +105,6 @@ export const SourcifyEventManager = new EventManager<Events>({
   "Verification.MatchStored": [],
   "Server.Error": [],
   "Server.Started": [],
-  "Server.ApiReplied": [],
   "Monitor.Error": [],
   "Monitor.Started": [],
   "Monitor.Stopped": [],

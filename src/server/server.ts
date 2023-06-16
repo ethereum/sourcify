@@ -9,7 +9,6 @@ import "../common/SourcifyEventManager/listeners/matchStored";
 import "../common/SourcifyEventManager/listeners/logger";
 import genericErrorHandler from "./middlewares/GenericErrorHandler";
 import notFoundHandler from "./middlewares/NotFoundError";
-import useApiLogging from "./middlewares/ApiLogging";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 import util from "util";
@@ -40,7 +39,6 @@ export class Server {
   port: string | number;
 
   constructor(port?: string | number) {
-    useApiLogging(express);
     this.port = port || config.server.port;
     this.app = express();
 
