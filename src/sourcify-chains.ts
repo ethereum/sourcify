@@ -883,13 +883,17 @@ export function getSortedChainsArray(
   chainMap: SourcifyChainMap
 ): SourcifyChain[] {
   function getPrimarySortKey(chain: any) {
-    return chain.title || chain.name;
+    return chain.name || chain.title;
   }
 
   const chainsArray = Object.values(chainMap);
   // Have Ethereum chains on top.
   const ethereumChainIds = [1, 5, 11155111, 3, 4, 42];
-  const etherumChains = ethereumChainIds.map((id) => chainMap[id]);
+  const ethereumChains = ethereumChainIds.map((id) => {
+    // Use long form name for Ethereum netorks e.g. "Ethereum Testnet Goerli" instead of "Goerli"
+    chainMap[id].name = chainMap[id].title;
+    return chainMap[id];
+  });
   // Others, sorted alphabetically
   const otherChains = chainsArray
     .filter((chain) => ![1, 5, 11155111, 3, 4, 42].includes(chain.chainId))
@@ -901,7 +905,7 @@ export function getSortedChainsArray(
         : 0
     );
 
-  const sortedChains = etherumChains.concat(otherChains);
+  const sortedChains = ethereumChains.concat(otherChains);
   return sortedChains;
 }
 
