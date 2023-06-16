@@ -17,9 +17,11 @@ volumes:
 services:
   loki:
     container_name: grafana-loki-${TAG}
-    image: grafana/loki:2.6.1
+    image: grafana/loki:2.8.2
     ports:
       - "${GRAFANA_LOKI_EXTERNAL_PORT}:3100"
+    volumes:
+      - ./loki-config.yaml:/etc/loki/local-config.yaml
     command: -config.file=/etc/loki/local-config.yaml
     networks:
       - source-verify
@@ -27,10 +29,10 @@ services:
 
   promtail:
     container_name: grafana-promtail-${TAG}
-    image: grafana/promtail:2.6.1
+    image: grafana/promtail:2.8.2
     volumes:
       - /var/log:/var/log
-      - ./promtail-config.yml:/etc/promtail/config.yml
+      - ./promtail-config.yaml:/etc/promtail/config.yml
     command: -config.file=/etc/promtail/config.yml
     networks:
       - source-verify
@@ -38,7 +40,7 @@ services:
 
   grafana:
     container_name: grafana-grafana-${TAG}
-    image: grafana/grafana:9.3.1
+    image: grafana/grafana:9.5.3
     ports:
       - "${GRAFANA_EXTERNAL_PORT}:3000"
     networks:
