@@ -1,0 +1,64 @@
+{
+	"compiler": {
+		"version": "0.8.18+commit.87f61d96"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
+				"inputs": [],
+				"name": "speak",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"Caldera.sol": "HelloWorld"
+		},
+		"evmVersion": "paris",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"Caldera.sol": {
+			"keccak256": "0x8f54065335b9a9019f30a20b9e2cb182aeec5d823ded5c67e71c22f42422b892",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://21b5e98caff1f4831c23977aa77c9063fe735d843cb722ebda428715f586dcf2",
+				"dweb:/ipfs/QmSk3zRdU2fxWEaw7em9PJ6LJuupxWgM1snGwqbNZgBB2W"
+			]
+		}
+	},
+	"version": 1
+}
