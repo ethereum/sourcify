@@ -5,7 +5,6 @@ import routes from "./routes";
 import bodyParser from "body-parser";
 import config, { etherscanAPIs } from "../config";
 import { SourcifyEventManager } from "../common/SourcifyEventManager/SourcifyEventManager";
-import "../common/SourcifyEventManager/listeners/matchStored";
 import "../common/SourcifyEventManager/listeners/logger";
 import genericErrorHandler from "./middlewares/GenericErrorHandler";
 import notFoundHandler from "./middlewares/NotFoundError";
