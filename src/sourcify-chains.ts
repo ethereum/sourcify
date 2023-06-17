@@ -804,6 +804,20 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: "https://explorer.dogechain.dog/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
+  "25925": {
+    // Bitkub Chain Testnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://testnet.bkcscan.com/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
+  "96": {
+    // Bitkub Chain
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://bkcscan.com/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};

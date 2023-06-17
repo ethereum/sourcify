@@ -825,6 +825,24 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
+  // Bitkub Chain Testnet
+  verifyContract(
+    "0x58909Ef2F2b167F52cF46575f1582500287cCE48",
+    "25925",
+    "Bitkub Chain Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  // Bitkub Chain
+  verifyContract(
+    "0xC75f4D89A0DdA70Ad613908D9976E90dAb42035c",
+    "96",
+    "Bitkub Chain",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainId) {
