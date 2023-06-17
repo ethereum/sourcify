@@ -53,7 +53,13 @@ describe("Test Supported Chains", function () {
     }
     currentResponse = null;
   });
-
+  verifyContract(
+    "0x90CD9B9f69d1dB3F66DD209784c90b92B0157B40",
+    "91002",
+    "Nautilus Triton Testnet",
+    ["91002/Caldera.sol"],
+    "91002/metadata.json"
+  );
   // Symplexia Smart Chain
   verifyContract(
     "0x968fd0BADc643B0A7b088f4b6aA2CE5FA65db622",
