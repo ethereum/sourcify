@@ -891,7 +891,7 @@ export function getSortedChainsArray(
   const ethereumChainIds = [1, 5, 11155111, 3, 4, 42];
   const ethereumChains = ethereumChainIds.map((id) => {
     // Use long form name for Ethereum netorks e.g. "Ethereum Testnet Goerli" instead of "Goerli"
-    chainMap[id].name = chainMap[id].title;
+    chainMap[id].name = chainMap[id].title || chainMap[id].name;
     return chainMap[id];
   });
   // Others, sorted alphabetically
