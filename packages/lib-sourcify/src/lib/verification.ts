@@ -47,6 +47,11 @@ export async function verifyDeployed(
     chainId: sourcifyChain.chainId.toString(),
     status: null,
   };
+  console.log(
+    `Verifying contract ${
+      checkedContract.name
+    } at address ${address} on chain ${sourcifyChain.chainId.toString()}`
+  );
   const recompiled = await checkedContract.recompile();
 
   if (
@@ -492,11 +497,7 @@ export async function getBytecode(
         web3.eth.getCode(address),
         rejectInMs(RPC_TIMEOUT, rpcURL),
       ]);
-      if (bytecode) {
-        console.log(
-          `Execution bytecode fetched from address ${address} via ${rpcURL}`
-        );
-      }
+
       return bytecode;
     } catch (err) {
       // Catch to try the next RPC
