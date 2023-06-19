@@ -1,0 +1,85 @@
+openapi: "3.0.0"
+
+components:
+  schemas:
+    MetadataNotFound:
+      type: object
+      properties:
+        error:
+          type: string
+          example: 'Metadata file not found. Did you include "metadata.json"?'
+    BadFormattedJson:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Unexpected token ' in JSON at position 107"
+    FilesNotFound:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Couldn't extract files from the request. Please make sure you have added files"
+    ResourceMissing:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Resource missing; unsuccessful fetching: contracts/SingleFile.sol"
+    ContractNoDeploy:
+      type: object
+      properties:
+        result:
+          type: array
+          items:
+            type: object
+            properties:
+              address:
+                type: string
+              chainId:
+                type: string
+              status:
+                type: string
+              message:
+                type: string
+    ContractPerfect:
+      type: object
+      properties:
+        result:
+          type: array
+          items:
+            type: object
+            properties:
+              address:
+                type: string
+              chainId:
+                type: string
+              status:
+                type: string
+              storageTimestamp:
+                type: string
+    ContractPartial:
+      type: object
+      properties:
+        result:
+          type: array
+          items:
+            type: object
+            properties:
+              address:
+                type: string
+              chainId:
+                type: string
+              status:
+                type: string
+              libraryMap:
+                type: object
+    Create2AddressMismatch:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "The provided create2 address doesn't match server's generated one. Expected: 0xcC06e7a66dA666d75870a37B838749894136e0fA ; Received: 0x7dBA08Bdc233B28e2c99723c402Fc8F4e35AB55B ;"
+        message:
+          type: string
+          example: "The provided create2 address doesn't match server's generated one. Expected: 0xcC06e7a66dA666d75870a37B838749894136e0fA ; Received: 0x7dBA08Bdc233B28e2c99723c402Fc8F4e35AB55B ;"

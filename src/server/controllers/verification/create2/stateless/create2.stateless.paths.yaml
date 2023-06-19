@@ -46,74 +46,29 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  result:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        address:
-                          type: string
-                          example: "0x00000000219ab540356cBB839Cbe05303d7705Fa"
-                        status:
-                          type: string
-                          example: "perfect"
-                        storageTimestamp:
-                          type: string
-                          format: date-time
-                          nullable: true
+                oneOf:
+                  - $ref: "../../errors.yaml#/components/schemas/ContractNoDeploy"
+                  - $ref: "../../errors.yaml#/components/schemas/ContractPerfect"
+                  - $ref: "../../errors.yaml#/components/schemas/ContractPartial"
         "400":
-          description: Missing or invalid parameters received
+          description: Bad Request
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        field:
-                          type: string
-                        message:
-                          type: string
+                oneOf:
+                  - $ref: "../../errors.yaml#/components/schemas/MetadataNotFound"
+                  - $ref: "../../errors.yaml#/components/schemas/BadFormattedJson"
         "404":
-          description: Provided valid address and chain input, but no files
+          description: Not Found
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+                $ref: "../../errors.yaml#/components/schemas/FilesNotFound"
         "500":
-          description: Server errors
+          description: Internal Server Error
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "The deployed and recompiled bytecode don't match."
-              examples:
-                bytecodeMismatch:
-                  summary: Bytecode Mismatch
-                  value:
-                    error: "The deployed and recompiled bytecode don't match."
-                contractNotDeployed:
-                  summary: Contract Not Deployed
-                  value:
-                    error: "Contract name: RandomName. Ethereum Mainnet does not have a contract deployed at 0x7c90F0C9Eb46391c93d0545dDF4658d3B8DF1866."
-                chainUnavailable:
-                  summary: Chain Unavailable
-                  value:
-                    error: "Contract name: RandomName. Ethereum Mainnet is temporarily unavailable."
-                resourceMissing:
-                  summary: Resource Missing
-                  value:
-                    error: "Resource missing; unsuccessful fetching: browser/RandomName.sol"
+                oneOf:
+                  - $ref: "../../errors.yaml#/components/schemas/ResourceMissing"
+                  - $ref: "../../errors.yaml#/components/schemas/Create2AddressMismatch"
