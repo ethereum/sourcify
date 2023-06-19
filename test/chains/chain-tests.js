@@ -42,7 +42,7 @@ describe("Test Supported Chains", function () {
 
   after(() => {
     rimraf.sync(server.repository);
-    if (!anyTestsPass) {
+    if (!anyTestsPass && newAddedChainId) {
       throw new Error(
         "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id " +
           newAddedChainId +
