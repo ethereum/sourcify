@@ -196,6 +196,7 @@ export type SourcifyChainExtension = {
 // TODO: Double check against ethereum-lists/chains type
 export type Chain = {
   name: string;
+  title?: string;
   chainId: number;
   shortName: string;
   network?: string;
