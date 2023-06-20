@@ -3,7 +3,6 @@ import { Transaction } from "web3-core";
 import { SourceAddress } from "./util";
 import { ethers } from "ethers";
 import SourceFetcher from "./source-fetcher";
-import SystemConfig from "../config";
 import assert from "assert";
 import { EventEmitter } from "stream";
 import { decode as bytecodeDecode } from "@ethereum-sourcify/bytecode-utils";
@@ -16,10 +15,9 @@ import {
   addLibraryAddresses,
   verifyDeployed,
 } from "@ethereum-sourcify/lib-sourcify";
-import VerificationService, {
-  IVerificationService,
-} from "../server/services/VerificationService";
-import RepositoryService from "../server/services/RepositoryService";
+import { services } from "../server/services/services";
+import { IRepositoryService } from "../server/services/RepositoryService";
+import { IVerificationService } from "../server/services/VerificationService";
 import {
   monitoredChainArray,
   supportedChainsMap,
@@ -48,8 +46,8 @@ class ChainMonitor extends EventEmitter {
   private web3urls: string[];
   private web3provider: Web3 | undefined;
   private sourceFetcher: SourceFetcher;
-  private verificationService: VerificationService;
-  private repositoryService: RepositoryService;
+  private verificationService: IVerificationService;
+  private repositoryService: IRepositoryService;
   private running: boolean;
 
   private getBytecodeRetryPause: number;
@@ -61,8 +59,8 @@ class ChainMonitor extends EventEmitter {
     chainId: string,
     web3urls: string[],
     sourceFetcher: SourceFetcher,
-    verificationService: VerificationService,
-    repositoryService: RepositoryService
+    verificationService: IVerificationService,
+    repositoryService: IRepositoryService
   ) {
     super();
     this.chainId = chainId;
@@ -296,7 +294,6 @@ class ChainMonitor extends EventEmitter {
   };
 }
 export interface MonitorConfig {
-  repository?: string;
   testing?: boolean;
 }
 
@@ -309,7 +306,6 @@ export default class Monitor extends EventEmitter {
 
   constructor(config: MonitorConfig = {}) {
     super();
-    const repositoryPath = config.repository || SystemConfig.repository.path;
 
     const chains = config.testing ? testChainArray : monitoredChainArray;
     this.chainMonitors = chains.map(
@@ -319,8 +315,8 @@ export default class Monitor extends EventEmitter {
           chain.chainId.toString(),
           chain.rpc,
           this.sourceFetcher,
-          new VerificationService(supportedChainsMap),
-          new RepositoryService(repositoryPath)
+          services.verification,
+          services.repository
         )
     );
     this.chainMonitors.forEach((cm) => {

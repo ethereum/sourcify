@@ -75,7 +75,12 @@ describe("Import From Etherscan and Verify", function () {
         .post("/verify/etherscan")
         .field("chain", "1")
         .end((err, res) => {
-          assertValidationError(err, res, "address");
+          assertValidationError(
+            err,
+            res,
+            "address",
+            "request/body must have required property 'address'"
+          );
           done();
         });
     });
@@ -86,7 +91,12 @@ describe("Import From Etherscan and Verify", function () {
         .post("/verify/etherscan")
         .field("address", unusedAddress)
         .end((err, res) => {
-          assertValidationError(err, res, "chain");
+          assertValidationError(
+            err,
+            res,
+            "chain",
+            "request/body must have required property 'chain'"
+          );
           done();
         });
     });
@@ -102,7 +112,7 @@ describe("Import From Etherscan and Verify", function () {
             err,
             res,
             "address",
-            `Invalid addresses: ${invalidAddress}`
+            `Invalid address: ${invalidAddress}`
           );
           done();
         });
@@ -229,7 +239,12 @@ describe("Import From Etherscan and Verify", function () {
         .post("/session/verify/etherscan/")
         .field("chainId", "1")
         .end((err, res) => {
-          assertValidationError(err, res, "address");
+          assertValidationError(
+            err,
+            res,
+            "address",
+            "request/body must have required property 'address'"
+          );
           done();
         });
     });
@@ -240,7 +255,12 @@ describe("Import From Etherscan and Verify", function () {
         .post("/session/verify/etherscan/")
         .field("address", unusedAddress)
         .end((err, res) => {
-          assertValidationError(err, res, "chainId");
+          assertValidationError(
+            err,
+            res,
+            "chain",
+            "request/body must have required property 'chain'"
+          );
           done();
         });
     });
@@ -256,7 +276,7 @@ describe("Import From Etherscan and Verify", function () {
             err,
             res,
             "address",
-            `Invalid addresses: ${invalidAddress}`
+            `Invalid address: ${invalidAddress}`
           );
           done();
         });
@@ -272,7 +292,7 @@ describe("Import From Etherscan and Verify", function () {
           assertValidationError(
             err,
             res,
-            "chainId",
+            "chain",
             `Chain ${unsupportedChain} not supported for verification!`
           );
           done();

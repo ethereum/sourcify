@@ -17,6 +17,7 @@ import {
   globSource,
 } from "ipfs-http-client";
 import path from "path";
+import config from "../../config";
 import { SourcifyEventManager } from "../../common/SourcifyEventManager/SourcifyEventManager";
 
 /**
@@ -75,8 +76,10 @@ export interface IRepositoryService {
   generateAbsoluteFilePath(pathConfig: PathConfig): string;
   generateRelativeFilePath(pathConfig: PathConfig): string;
   generateRelativeContractDir(pathConfig: PathConfig): string;
+  storeMatch(contract: CheckedContract, match: Match): Promise<void | Match>;
 }
-export default class RepositoryService implements IRepositoryService {
+
+export class RepositoryService implements IRepositoryService {
   repositoryPath: string;
   private ipfsClient?: IPFSHTTPClient;
 
@@ -387,7 +390,10 @@ export default class RepositoryService implements IRepositoryService {
     this.updateRepositoryTag();
   }
 
-  public async storeMatch(contract: CheckedContract, match: Match) {
+  public async storeMatch(
+    contract: CheckedContract,
+    match: Match
+  ): Promise<void | Match> {
     if (
       match.address &&
       (match.status === "perfect" || match.status === "partial")

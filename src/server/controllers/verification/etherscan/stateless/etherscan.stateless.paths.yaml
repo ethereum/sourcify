@@ -1,0 +1,119 @@
+openapi: "3.0"
+
+paths:
+  /verify/etherscan:
+    post:
+      summary: Verify an Etherscan verified contract
+      tags:
+        - Stateless Verification
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                address:
+                  type: string
+                  format: address
+                  example: "0x07880D44b0f7b75464ad18fc2b980049c40A8bc3"
+                chainId:
+                  type: string
+                  format: supported-chainId
+                  example: "1"
+              required:
+                - address
+                - chainId
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                address:
+                  type: string
+                  format: address
+                chain:
+                  type: string
+                  format: supported-chainId
+              required:
+                - address
+                - chain
+      responses:
+        "200":
+          description: The contract has been successfully checked or sourcified
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        address:
+                          type: string
+                        chainId:
+                          type: string
+                        status:
+                          type: string
+                        message:
+                          type: string
+                        libraryMap:
+                          type: object
+              examples:
+                Perfect Match:
+                  value:
+                    result:
+                      - address: "0x123f681646d4a755815f9cb19e1acc8565a0c2ac"
+                        chainId: "1"
+                        status: "perfect"
+                        libraryMap:
+                          lib1: "0x3f681646d4a755815f9cb19e1acc8565a0c2ac"
+                          lib2: "0x4f681646d4a755815f9cb19e1acc8565a0c2ac"
+                Partial Match:
+                  value:
+                    result:
+                      - address: "0x123f681646d4a755815f9cb19e1acc8565a0c2ac"
+                        chainId: "1"
+                        status: "partial"
+                        libraryMap:
+                          lib1: "0x3f681646d4a755815f9cb19e1acc8565a0c2ac"
+                          lib2: "0x4f681646d4a755815f9cb19e1acc8565a0c2ac"
+                Not Deployed:
+                  value:
+                    result:
+                      - address: "0x123f681646d4a755815f9cb19e1acc8565a0c2ac"
+                        chainId: "1"
+                        status: "null"
+                        message: "Chain #1 does not have a contract deployed at 0x...."
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                Etherscan API rate:
+                  value:
+                    error: "Etherscan API rate limit reached, try later"
+                Bad Formatted Json:
+                  value:
+                    error: "Unexpected token ' in JSON at position 107"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                Resource Missing:
+                  value:
+                    error: "Resource missing; unsuccessful fetching: contracts/SingleFile.sol"
+                Deployed and recompiled mismatch:
+                  value:
+                    error: "The deployed and recompiled bytecode don't match."
