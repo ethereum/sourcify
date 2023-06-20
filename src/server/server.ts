@@ -1,6 +1,5 @@
 import express from "express";
 import serveIndex from "serve-index";
-import fileUpload from "express-fileupload";
 import cors from "cors";
 import routes from "./routes";
 import bodyParser from "body-parser";
@@ -14,7 +13,25 @@ import useApiLogging from "./middlewares/ApiLogging";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 import util from "util";
-import { sourcifyChainsArray } from "../sourcify-chains";
+import {
+  checkSourcifyChainId,
+  checkSupportedChainId,
+  sourcifyChainsArray,
+} from "../sourcify-chains";
+import {
+  validateAddresses,
+  validateSingleAddress,
+  validateSourcifyChainIds,
+} from "./common";
+import * as OpenApiValidator from "express-openapi-validator";
+import swaggerUi from "swagger-ui-express";
+import yamljs from "yamljs";
+import { resolveRefs } from "json-refs";
+import { initDeprecatedRoutes } from "./deprecated.routes";
+import { getAddress, isAddress } from "ethers/lib/utils";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const fileUpload = require("express-fileupload");
+
 const MemoryStore = createMemoryStore(session);
 
 export class Server {
@@ -26,6 +43,100 @@ export class Server {
     useApiLogging(express);
     this.port = port || config.server.port;
     this.app = express();
+
+    this.app.use(
+      bodyParser.urlencoded({
+        limit: config.server.maxFileSize,
+        extended: true,
+      })
+    );
+    this.app.use(bodyParser.json({ limit: config.server.maxFileSize }));
+
+    // Init deprecated routes before OpenApiValidator so that it can handle the request with the defined paths.
+    // initDeprecatedRoutes is a middleware that replaces the deprecated paths with the real ones.
+    initDeprecatedRoutes(this.app);
+
+    this.app.use(
+      fileUpload({
+        limits: { fileSize: config.server.maxFileSize },
+        abortOnLimit: true,
+      })
+    );
+
+    // In every request support both chain and chainId
+    this.app.use((req: any, res: any, next: any) => {
+      if (req.body.chainId) {
+        req.body.chain = req.body.chainId;
+      }
+      next();
+    });
+
+    this.app.use(
+      OpenApiValidator.middleware({
+        apiSpec: "openapi.yaml",
+        validateRequests: true,
+        validateResponses: false,
+        ignoreUndocumented: true,
+        fileUploader: false,
+        formats: [
+          {
+            name: "comma-separated-addresses",
+            type: "string",
+            validate: (addresses: string) => validateAddresses(addresses),
+          },
+          {
+            name: "address",
+            type: "string",
+            validate: (address: string) => validateSingleAddress(address),
+          },
+          {
+            name: "comma-separated-sourcify-chainIds",
+            type: "string",
+            validate: (chainIds: string) => validateSourcifyChainIds(chainIds),
+          },
+          {
+            name: "supported-chainId",
+            type: "string",
+            validate: (chainId: string) => checkSupportedChainId(chainId),
+          },
+          {
+            // "Sourcify chainIds" include the chains that are revoked verification support, but can have contracts in the repo.
+            name: "sourcify-chainId",
+            type: "string",
+            validate: (chainId: string) => checkSourcifyChainId(chainId),
+          },
+          {
+            name: "match-type",
+            type: "string",
+            validate: (matchType: string) =>
+              matchType === "full_match" || matchType === "partial_match",
+          },
+        ],
+      })
+    );
+    // checksum addresses in every request
+    this.app.use((req: any, res: any, next: any) => {
+      // stateless
+      if (req.body.address) {
+        req.body.address = getAddress(req.body.address);
+      }
+      // session
+      if (req.body.contracts) {
+        req.body.contracts.forEach((contract: any) => {
+          contract.address = getAddress(contract.address);
+        });
+      }
+      if (req.query.addresses) {
+        req.query.addresses = req.query.addresses
+          .split(",")
+          .map((address: string) => getAddress(address))
+          .join(",");
+      }
+      if (req.params.address) {
+        req.params.address = getAddress(req.params.address);
+      }
+      next();
+    });
 
     // Session API endpoints require non "*" origins because of the session cookies
     const sessionPaths = [
@@ -49,20 +160,6 @@ export class Server {
       })(req, res, next);
     });
 
-    this.app.use(
-      fileUpload({
-        limits: { fileSize: config.server.maxFileSize },
-        abortOnLimit: true,
-      })
-    );
-
-    this.app.use(bodyParser.json({ limit: config.server.maxFileSize }));
-    this.app.use(
-      bodyParser.urlencoded({
-        limit: config.server.maxFileSize,
-        extended: true,
-      })
-    );
     // Need this for secure cookies to work behind a proxy. See https://expressjs.com/en/guide/behind-proxies.html
     // true means the leftmost IP in the X-Forwarded-* header is used.
     // Assuming the client ip is 2.2.2.2, reverse proxy 192.168.1.5
@@ -108,6 +205,26 @@ export class Server {
     await promisified(this.port);
     if (callback) callback();
   }
+
+  async loadSwagger(root: string) {
+    const options = {
+      filter: ["relative", "remote"],
+      loaderOptions: {
+        processContent: function (res: any, callback: any) {
+          callback(null, yamljs.parse(res.text));
+        },
+      },
+    };
+
+    return resolveRefs(root as any, options).then(
+      function (results: any) {
+        return results.resolved;
+      },
+      function (err: any) {
+        console.log(err.stack);
+      }
+    );
+  }
 }
 
 function getSessionOptions(): session.SessionOptions {
@@ -130,9 +247,21 @@ function getSessionOptions(): session.SessionOptions {
 
 if (require.main === module) {
   const server = new Server();
-  server.app.listen(server.port, () =>
-    SourcifyEventManager.trigger("Server.Started", {
-      port: server.port,
-    })
-  );
+  server
+    .loadSwagger(yamljs.load("openapi.yaml"))
+    .then((swaggerDocument: any) => {
+      server.app.use(
+        "/api-docs",
+        swaggerUi.serve,
+        swaggerUi.setup(swaggerDocument, {
+          customSiteTitle: "Sourcify API",
+          customfavIcon: "https://sourcify.dev/favicon.ico",
+        })
+      );
+      server.app.listen(server.port, () =>
+        SourcifyEventManager.trigger("Server.Started", {
+          port: server.port,
+        })
+      );
+    });
 }

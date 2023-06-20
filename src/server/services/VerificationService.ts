@@ -7,8 +7,10 @@ import {
 } from "@ethereum-sourcify/lib-sourcify";
 import { SourcifyEventManager } from "../../common/SourcifyEventManager/SourcifyEventManager";
 import { getCreatorTx } from "./VerificationService-util";
+import { supportedChainsMap } from "../../sourcify-chains";
 
 export interface IVerificationService {
+  supportedChainsMap: SourcifyChainMap;
   verifyDeployed(
     checkedContract: CheckedContract,
     chainId: string,
@@ -17,7 +19,8 @@ export interface IVerificationService {
     creatorTxHash?: string
   ): Promise<Match>;
 }
-export default class VerificationService implements IVerificationService {
+
+export class VerificationService implements IVerificationService {
   supportedChainsMap: SourcifyChainMap;
 
   constructor(supportedChainsMap: SourcifyChainMap) {

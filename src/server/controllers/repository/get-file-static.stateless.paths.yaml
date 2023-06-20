@@ -1,0 +1,42 @@
+openapi: "3.0.0"
+
+paths:
+  /contracts/{full_match | partial_match}/{chain}/{address}/{filePath}:
+    get:
+      summary: Get file from /repository
+      description: Retrieve statically served files over the server.
+      tags:
+        - Repository
+      parameters:
+        - name: Match type `full_match` or `partial_match`
+          in: path
+          required: true
+          schema:
+            type: string
+            format: match-type
+        - name: chain
+          in: path
+          required: true
+          schema:
+            type: string
+            format: sourcify-chainId
+        - name: address
+          in: path
+          required: true
+          schema:
+            type: string
+            format: address
+        - name: filePath
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The file is found at the path
+          content:
+            text/plain: {}
+        "404":
+          description: The file is not found at the path
+          content:
+            text/plain: {}
