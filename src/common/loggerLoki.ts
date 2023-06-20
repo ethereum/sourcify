@@ -23,16 +23,27 @@ if (process.env.GRAFANA_LOKI_URL) {
   );
 }
 
-loggerInstance.add(
-  new transports.Console({
-    format: format.combine(
-      format((info) => {
-        return info.level === "info" ? info : false;
-      })(),
-      format.timestamp(),
-      format.json()
-    ),
-  })
+const myFormat = format.printf(
+  (info: {
+    level: string;
+    message: string;
+    timestamp?: string;
+    labels?: { event: string; level: string };
+  }) => {
+    return `${info.timestamp} [${info.level}]: ${
+      info.labels?.event
+        ? `[${info.labels?.event}] - ${JSON.stringify(info.message)}`
+        : info.message
+    }`;
+  }
 );
 
+if (!process.env.GRAFANA_LOKI_URL) {
+  loggerInstance.add(
+    new transports.Console({
+      level: process.env.NODE_ENV === "production" ? "info" : "debug",
+      format: format.combine(format.colorize(), format.timestamp(), myFormat),
+    })
+  );
+}
 export const logger = loggerInstance;
