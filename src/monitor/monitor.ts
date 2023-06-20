@@ -4,6 +4,7 @@ import { SourceAddress } from "./util";
 import { ethers } from "ethers";
 import SourceFetcher from "./source-fetcher";
 import assert from "assert";
+import { EventEmitter } from "stream";
 import { decode as bytecodeDecode } from "@ethereum-sourcify/bytecode-utils";
 import { SourcifyEventManager } from "../common/SourcifyEventManager/SourcifyEventManager";
 import {
@@ -41,7 +42,7 @@ function createsContract(tx: Transaction): boolean {
 /**
  * A monitor that periodically checks for new contracts on a single chain.
  */
-class ChainMonitor {
+class ChainMonitor extends EventEmitter {
   private chainId: string;
   private web3urls: string[];
   private web3provider: Web3 | undefined;
@@ -62,6 +63,7 @@ class ChainMonitor {
     verificationService: IVerificationService,
     repositoryService: IRepositoryService
   ) {
+    super();
     this.chainId = chainId;
     this.web3urls = web3urls;
     this.sourceFetcher = sourceFetcher;
@@ -158,6 +160,7 @@ class ChainMonitor {
                 address,
                 chainId: this.chainId,
               });
+              this.emit("contract-already-verified", this.chainId, address);
             } else {
               SourcifyEventManager.trigger("Monitor.NewContract", {
                 address,
@@ -271,6 +274,7 @@ class ChainMonitor {
         creatorTxHash
       );
       await this.repositoryService.storeMatch(contract, match);
+      this.emit("contract-verified-successfully", this.chainId, address);
     } catch (err: any) {
       SourcifyEventManager.trigger("Monitor.Error", {
         message: err.message,
@@ -296,11 +300,12 @@ export interface MonitorConfig {
 /**
  * A monitor that periodically checks for new contracts on designated chains.
  */
-export default class Monitor {
+export default class Monitor extends EventEmitter {
   private chainMonitors: ChainMonitor[];
   private sourceFetcher = new SourceFetcher();
 
   constructor(config: MonitorConfig = {}) {
+    super();
     const chains = config.testing ? testChainArray : monitoredChainArray;
     this.chainMonitors = chains.map(
       (chain: Chain) =>
@@ -313,6 +318,14 @@ export default class Monitor {
           services.repository
         )
     );
+    this.chainMonitors.forEach((cm) => {
+      cm.on("contract-verified-successfully", (chainId, address) => {
+        this.emit("contract-verified-successfully", chainId, address);
+      });
+      cm.on("contract-already-verified", (chainId, address) => {
+        this.emit("contract-already-verified", chainId, address);
+      });
+    });
   }
 
   /**

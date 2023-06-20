@@ -17,6 +17,7 @@ interface Events extends GenericEvents {
     chainId: string;
     getBlockPause: number;
   }) => void;
+  "Monitor.Verified": (match: Match) => void;
   "Monitor.AlreadyVerified": (obj: {
     address: string;
     chainId: string;
@@ -57,6 +58,7 @@ export const SourcifyEventManager = new EventManager<Events>({
   "Monitor.Started": [],
   "Monitor.Stopped": [],
   "Monitor.ProcessingBlock": [],
+  "Monitor.Verified": [],
   "Monitor.AlreadyVerified": [],
   "Monitor.NewContract": [],
   "Monitor.Error": [],
