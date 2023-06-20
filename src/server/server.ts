@@ -27,6 +27,7 @@ import yamljs from "yamljs";
 import { resolveRefs } from "json-refs";
 import { initDeprecatedRoutes } from "./deprecated.routes";
 import { getAddress, isAddress } from "ethers/lib/utils";
+import { logger } from "../common/loggerLoki";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fileUpload = require("express-fileupload");
 
@@ -256,9 +257,7 @@ if (require.main === module) {
         })
       );
       server.app.listen(server.port, () =>
-        SourcifyEventManager.trigger("Server.Started", {
-          port: server.port,
-        })
+        logger.info(`Server listening on port ${server.port}`)
       );
     });
 }

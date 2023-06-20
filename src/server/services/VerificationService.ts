@@ -54,10 +54,6 @@ export class VerificationService implements IVerificationService {
       ) {
         const foundCreatorTxHash = await getCreatorTx(sourcifyChain, address);
         if (foundCreatorTxHash) {
-          SourcifyEventManager.trigger("Verification.CreatorTxFetched", {
-            chainId: sourcifyChain.chainId.toString(),
-            address: address,
-          });
           match = await verifyDeployed(
             checkedContract,
             sourcifyChain,

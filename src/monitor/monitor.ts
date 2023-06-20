@@ -4,7 +4,6 @@ import { SourceAddress } from "./util";
 import { ethers } from "ethers";
 import SourceFetcher from "./source-fetcher";
 import assert from "assert";
-import { EventEmitter } from "stream";
 import { decode as bytecodeDecode } from "@ethereum-sourcify/bytecode-utils";
 import { SourcifyEventManager } from "../common/SourcifyEventManager/SourcifyEventManager";
 import {
@@ -24,6 +23,7 @@ import {
   testChainArray,
 } from "../sourcify-chains";
 import { toChecksumAddress } from "web3-utils";
+import { logger } from "../common/loggerLoki";
 
 const BLOCK_PAUSE_FACTOR =
   parseInt(process.env.BLOCK_PAUSE_FACTOR || "") || 1.1;
@@ -41,7 +41,7 @@ function createsContract(tx: Transaction): boolean {
 /**
  * A monitor that periodically checks for new contracts on a single chain.
  */
-class ChainMonitor extends EventEmitter {
+class ChainMonitor {
   private chainId: string;
   private web3urls: string[];
   private web3provider: Web3 | undefined;
@@ -62,7 +62,6 @@ class ChainMonitor extends EventEmitter {
     verificationService: IVerificationService,
     repositoryService: IRepositoryService
   ) {
-    super();
     this.chainId = chainId;
     this.web3urls = web3urls;
     this.sourceFetcher = sourceFetcher;
@@ -101,6 +100,7 @@ class ChainMonitor extends EventEmitter {
             : lastBlockNumber;
 
         SourcifyEventManager.trigger("Monitor.Started", {
+          chainId: this.chainId,
           web3url,
           lastBlockNumber,
           startBlock,
@@ -108,18 +108,14 @@ class ChainMonitor extends EventEmitter {
         this.processBlock(startBlock);
         break;
       } catch (err) {
-        SourcifyEventManager.trigger("Monitor.Error", {
-          message: "Start: Cannot getBlockNumber",
-          details: {
-            web3url,
-          },
-        });
+        logger.debug(err);
       }
     }
 
     if (!found) {
-      SourcifyEventManager.trigger("Monitor.Error", {
-        message: "Start: No working chains! Exiting!",
+      SourcifyEventManager.trigger("Monitor.Error.CantStart", {
+        chainId: this.chainId,
+        message: "Couldn't find a working RPC node.",
       });
     }
   };
@@ -128,7 +124,7 @@ class ChainMonitor extends EventEmitter {
    * Stops the monitor after executing all pending requests.
    */
   stop = (): void => {
-    SourcifyEventManager.trigger("Monitor.Stopped");
+    SourcifyEventManager.trigger("Monitor.Stopped", this.chainId);
     this.running = false;
   };
 
@@ -137,20 +133,22 @@ class ChainMonitor extends EventEmitter {
       throw new Error(
         `Can't process block ${blockNumber}. Web3 provider not initialized`
       );
+
     this.web3provider.eth
       .getBlock(blockNumber, true)
       .then((block) => {
         if (!block) {
           this.adaptBlockPause("increase");
-
-          SourcifyEventManager.trigger("Monitor.WaitingNewBlocks", {
-            blockNumber,
-            getBlockPause: this.getBlockPause,
-          });
           return;
         }
 
         this.adaptBlockPause("decrease");
+
+        SourcifyEventManager.trigger("Monitor.ProcessingBlock", {
+          blockNumber,
+          chainId: this.chainId,
+          getBlockPause: this.getBlockPause,
+        });
 
         for (const tx of block.transactions) {
           if (createsContract(tx)) {
@@ -160,7 +158,6 @@ class ChainMonitor extends EventEmitter {
                 address,
                 chainId: this.chainId,
               });
-              this.emit("contract-already-verified", this.chainId, address);
             } else {
               SourcifyEventManager.trigger("Monitor.NewContract", {
                 address,
@@ -274,7 +271,6 @@ class ChainMonitor extends EventEmitter {
         creatorTxHash
       );
       await this.repositoryService.storeMatch(contract, match);
-      this.emit("contract-verified-successfully", this.chainId, address);
     } catch (err: any) {
       SourcifyEventManager.trigger("Monitor.Error", {
         message: err.message,
@@ -300,13 +296,11 @@ export interface MonitorConfig {
 /**
  * A monitor that periodically checks for new contracts on designated chains.
  */
-export default class Monitor extends EventEmitter {
+export default class Monitor {
   private chainMonitors: ChainMonitor[];
   private sourceFetcher = new SourceFetcher();
 
   constructor(config: MonitorConfig = {}) {
-    super();
-
     const chains = config.testing ? testChainArray : monitoredChainArray;
     this.chainMonitors = chains.map(
       (chain: Chain) =>
@@ -319,14 +313,6 @@ export default class Monitor extends EventEmitter {
           services.repository
         )
     );
-    this.chainMonitors.forEach((cm) => {
-      cm.on("contract-verified-successfully", (chainId, address) => {
-        this.emit("contract-verified-successfully", chainId, address);
-      });
-      cm.on("contract-already-verified", (chainId, address) => {
-        this.emit("contract-already-verified", chainId, address);
-      });
-    });
   }
 
   /**

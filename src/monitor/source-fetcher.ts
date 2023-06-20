@@ -168,61 +168,34 @@ class GatewayFetcher {
         resp.text().then((text) => {
           if (resp.status === StatusCodes.OK) {
             this.notifySubscribers(sourceHash, text);
-          } else {
-            SourcifyEventManager.trigger("Monitor.Error", {
-              message: "SourceFetcher: fetchFailed",
-              details: {
-                fetchUrl: subscription.fetchUrl,
-                status: resp.status,
-                statusText: resp.statusText,
-                sourceHash,
-                response: text,
-              },
-            });
           }
         });
       })
       .catch((err) => {
-        SourcifyEventManager.trigger("Monitor.Error", {
-          message: err.message,
-          stack: err.stack,
-          details: {
-            fetchUrl: subscription.fetchUrl,
-          },
-        });
         if (!subscription.fallbackFetchUrl) {
           return Promise.resolve();
         }
+        SourcifyEventManager.trigger("SourceFetcher.UsingFallback", {
+          fetchUrl: subscription.fetchUrl,
+          fallbackUrl: subscription.fallbackFetchUrl,
+        });
         // fall back to external ipfs gateway
         subscription.useFallbackUrl();
+
         return nodeFetch(subscription.fetchUrl, {
           timeout: this.fetchTimeout,
         }).then((resp) => {
           resp.text().then((text) => {
             if (resp.status === StatusCodes.OK) {
               this.notifySubscribers(sourceHash, text);
-            } else {
-              SourcifyEventManager.trigger("Monitor.Error", {
-                message: "SourceFetcher: fetchFailed",
-                details: {
-                  fetchUrl: subscription.fetchUrl,
-                  status: resp.status,
-                  statusText: resp.statusText,
-                  sourceHash,
-                  response: text,
-                },
-              });
             }
           });
         });
       })
       .catch((err) =>
-        SourcifyEventManager.trigger("Monitor.Error", {
-          message: err.message,
-          stack: err.stack,
-          details: {
-            fetchUrl: subscription.fetchUrl,
-          },
+        SourcifyEventManager.trigger("SourceFetcher.FetchFailed", {
+          fetchUrl: subscription.fetchUrl,
+          sourceHash,
         })
       )
       .finally(() => {
@@ -250,10 +223,10 @@ class GatewayFetcher {
     const subscription = this.subscriptions[id];
     this.cleanup(id);
 
-    SourcifyEventManager.trigger("Monitor.SourceFetcher.FetchingSuccessful", {
+    SourcifyEventManager.trigger("SourceFetcher.FetchingSuccessful", {
       fetchUrl: subscription.fetchUrl,
       id,
-      subscribers: subscription.subscribers.length,
+      subscriberCount: subscription.subscribers.length,
     });
 
     subscription.subscribers.forEach((callback) => callback(file));
@@ -282,7 +255,7 @@ class GatewayFetcher {
     this.subscriptions[sourceHash].subscribers.push(callback);
 
     this.subscriptionCounter++;
-    SourcifyEventManager.trigger("Monitor.SourceFetcher.NewSubscription", {
+    SourcifyEventManager.trigger("SourceFetcher.NewSubscription", {
       fetchUrl: this.subscriptions[sourceHash].fetchUrl,
       sourceHash,
       filesPending: this.fileCounter,
@@ -310,7 +283,7 @@ class GatewayFetcher {
 
     this.fileCounter--;
     this.subscriptionCounter -= subscriptionsDelta;
-    SourcifyEventManager.trigger("Monitor.SourceFetcher.Cleanup", {
+    SourcifyEventManager.trigger("SourceFetcher.Cleanup", {
       fetchUrl: fetchUrl,
       sourceHash,
       filesPending: this.fileCounter,
