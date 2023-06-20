@@ -4,6 +4,7 @@ WORKDIR /home/app
 COPY packages ./packages
 COPY src ./src
 COPY *.json ./
+COPY openapi.yaml ./openapi.yaml
 RUN npm install && npx lerna bootstrap --ci && npx lerna run build
 
 CMD ["npm", "run", "server:start"]
