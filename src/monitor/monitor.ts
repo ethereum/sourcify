@@ -24,6 +24,7 @@ import {
   testChainArray,
 } from "../sourcify-chains";
 import { toChecksumAddress } from "web3-utils";
+import { logger } from "../common/loggerLoki";
 
 const BLOCK_PAUSE_FACTOR =
   parseInt(process.env.BLOCK_PAUSE_FACTOR || "") || 1.1;
@@ -101,6 +102,7 @@ class ChainMonitor extends EventEmitter {
             : lastBlockNumber;
 
         SourcifyEventManager.trigger("Monitor.Started", {
+          chainId: this.chainId,
           web3url,
           lastBlockNumber,
           startBlock,
@@ -108,18 +110,14 @@ class ChainMonitor extends EventEmitter {
         this.processBlock(startBlock);
         break;
       } catch (err) {
-        SourcifyEventManager.trigger("Monitor.Error", {
-          message: "Start: Cannot getBlockNumber",
-          details: {
-            web3url,
-          },
-        });
+        logger.debug(err);
       }
     }
 
     if (!found) {
-      SourcifyEventManager.trigger("Monitor.Error", {
-        message: "Start: No working chains! Exiting!",
+      SourcifyEventManager.trigger("Monitor.Error.CantStart", {
+        chainId: this.chainId,
+        message: "Couldn't find a working RPC node.",
       });
     }
   };
@@ -128,7 +126,7 @@ class ChainMonitor extends EventEmitter {
    * Stops the monitor after executing all pending requests.
    */
   stop = (): void => {
-    SourcifyEventManager.trigger("Monitor.Stopped");
+    SourcifyEventManager.trigger("Monitor.Stopped", this.chainId);
     this.running = false;
   };
 
@@ -137,20 +135,22 @@ class ChainMonitor extends EventEmitter {
       throw new Error(
         `Can't process block ${blockNumber}. Web3 provider not initialized`
       );
+
     this.web3provider.eth
       .getBlock(blockNumber, true)
       .then((block) => {
         if (!block) {
           this.adaptBlockPause("increase");
-
-          SourcifyEventManager.trigger("Monitor.WaitingNewBlocks", {
-            blockNumber,
-            getBlockPause: this.getBlockPause,
-          });
           return;
         }
 
         this.adaptBlockPause("decrease");
+
+        SourcifyEventManager.trigger("Monitor.ProcessingBlock", {
+          blockNumber,
+          chainId: this.chainId,
+          getBlockPause: this.getBlockPause,
+        });
 
         for (const tx of block.transactions) {
           if (createsContract(tx)) {
@@ -306,7 +306,6 @@ export default class Monitor extends EventEmitter {
 
   constructor(config: MonitorConfig = {}) {
     super();
-
     const chains = config.testing ? testChainArray : monitoredChainArray;
     this.chainMonitors = chains.map(
       (chain: Chain) =>

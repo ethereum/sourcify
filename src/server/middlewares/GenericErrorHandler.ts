@@ -9,16 +9,6 @@ export default function genericErrorHandler(
   // Next function is required for Express to recognize this as an error handler. Error handlers must have 4 parameters.
   _next: any
 ): void {
-  if (err) {
-    SourcifyEventManager.trigger("Server.Error", {
-      message: err.message,
-      stack: err.stack,
-      request: {
-        api: _req.path,
-        parameters: _req.body,
-      },
-    });
-  }
   const errorCode = +err.code || err.status || 500;
 
   if (err.errors) {

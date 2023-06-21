@@ -54,13 +54,8 @@ export default class PendingContract {
         this.fetchedSources[name] = source.content;
         continue;
       } else if (!source.keccak256) {
-        const err =
-          "PendingContract.addMetadata: The source provides neither content nor keccak256";
         SourcifyEventManager.trigger("Monitor.Error", {
-          message: err,
-          details: {
-            name,
-          },
+          message: `Source ${name} has no keccak256 nor content`,
         });
         break;
       }
@@ -71,12 +66,7 @@ export default class PendingContract {
         const sourceAddress = SourceAddress.fromUrl(url);
         if (!sourceAddress) {
           SourcifyEventManager.trigger("Monitor.Error", {
-            message:
-              "PendingContract.addMetadata: Could not determine source file location",
-            details: {
-              name,
-              url,
-            },
+            message: `Could not determine source file location for ${name} at ${url}`,
           });
           continue;
         }

@@ -6,12 +6,12 @@ SourcifyEventManager.on("*", [
     if (event.includes("Error")) {
       logger.error({
         message: argument,
-        labels: { type: "errors", event: event },
+        labels: { level: "error", event: event },
       });
     } else {
       logger.info({
         message: argument,
-        labels: { type: "logging", event: event },
+        labels: { level: "info", event: event },
       });
     }
   },

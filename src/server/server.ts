@@ -5,11 +5,9 @@ import routes from "./routes";
 import bodyParser from "body-parser";
 import config, { etherscanAPIs } from "../config";
 import { SourcifyEventManager } from "../common/SourcifyEventManager/SourcifyEventManager";
-import "../common/SourcifyEventManager/listeners/matchStored";
 import "../common/SourcifyEventManager/listeners/logger";
 import genericErrorHandler from "./middlewares/GenericErrorHandler";
 import notFoundHandler from "./middlewares/NotFoundError";
-import useApiLogging from "./middlewares/ApiLogging";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 import util from "util";
@@ -29,6 +27,7 @@ import yamljs from "yamljs";
 import { resolveRefs } from "json-refs";
 import { initDeprecatedRoutes } from "./deprecated.routes";
 import { getAddress, isAddress } from "ethers/lib/utils";
+import { logger } from "../common/loggerLoki";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fileUpload = require("express-fileupload");
 
@@ -40,7 +39,6 @@ export class Server {
   port: string | number;
 
   constructor(port?: string | number) {
-    useApiLogging(express);
     this.port = port || config.server.port;
     this.app = express();
 
@@ -259,9 +257,7 @@ if (require.main === module) {
         })
       );
       server.app.listen(server.port, () =>
-        SourcifyEventManager.trigger("Server.Started", {
-          port: server.port,
-        })
+        logger.info(`Server listening on port ${server.port}`)
       );
     });
 }

@@ -10,6 +10,7 @@ import {
 } from "@ethereum-sourcify/lib-sourcify";
 import { etherscanAPIs } from "./config";
 import { ValidationError } from "./common/errors";
+import { logger } from "./common/loggerLoki";
 
 const allChains = chainsRaw as Chain[];
 
@@ -92,9 +93,9 @@ function buildAlchemyAndCustomRpcURLs(
   }
 
   if (!alchemyId)
-    SourcifyEventManager.trigger("Core.Error", {
-      message: `Environment variable ALCHEMY_ID not set for ${chainName} ${chainSubName}!`,
-    });
+    logger.warn(
+      `Environment variable ALCHEMY_ID not set for ${chainName} ${chainSubName}!`
+    );
 
   const domain = "g.alchemy.com";
   // No sepolia support yet
