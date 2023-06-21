@@ -299,16 +299,19 @@ export const verifyContractsInSession = async (
   for (const id in contractWrappers) {
     const contractWrapper = contractWrappers[id];
 
-    const found = repositoryService.checkByChainAndAddress(
-      contractWrapper.address as string,
-      contractWrapper.chainId as string
-    );
+    // Check if contract is already verified
+    if (Boolean(contractWrapper.address) && Boolean(contractWrapper.chainId)) {
+      const found = repositoryService.checkByChainAndAddress(
+        contractWrapper.address as string,
+        contractWrapper.chainId as string
+      );
 
-    if (found.length) {
-      contractWrapper.status = found[0].status || "error";
-      contractWrapper.statusMessage = found[0].message;
-      contractWrapper.storageTimestamp = found[0].storageTimestamp;
-      continue;
+      if (found.length) {
+        contractWrapper.status = found[0].status || "error";
+        contractWrapper.statusMessage = found[0].message;
+        contractWrapper.storageTimestamp = found[0].storageTimestamp;
+        continue;
+      }
     }
 
     await checkAndFetchMissing(contractWrapper.contract);
