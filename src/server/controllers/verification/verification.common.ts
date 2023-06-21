@@ -299,6 +299,18 @@ export const verifyContractsInSession = async (
   for (const id in contractWrappers) {
     const contractWrapper = contractWrappers[id];
 
+    const found = repositoryService.checkByChainAndAddress(
+      contractWrapper.address as string,
+      contractWrapper.chainId as string
+    );
+
+    if (found.length) {
+      contractWrapper.status = found[0].status || "error";
+      contractWrapper.statusMessage = found[0].message;
+      contractWrapper.storageTimestamp = found[0].storageTimestamp;
+      continue;
+    }
+
     await checkAndFetchMissing(contractWrapper.contract);
 
     if (!isVerifiable(contractWrapper)) {
@@ -320,57 +332,47 @@ export const verifyContractsInSession = async (
       contract.invalid
     );
 
-    const found = repositoryService.checkByChainAndAddress(
-      contractWrapper.address as string,
-      contractWrapper.chainId as string
-    );
     let match: Match;
-    if (found.length) {
-      match = found[0];
-    } else {
-      try {
-        match = await verificationService.verifyDeployed(
-          checkedContract,
-          chainId as string,
-          address as string,
-          /* contextVariables, */
-          creatorTxHash
+    try {
+      match = await verificationService.verifyDeployed(
+        checkedContract,
+        chainId as string,
+        address as string,
+        /* contextVariables, */
+        creatorTxHash
+      );
+      // Send to verification again with all source files.
+      if (match.status === "extra-file-input-bug") {
+        // Session inputFiles are encoded base64. Why?
+        const pathBufferInputFiles: PathBuffer[] = Object.values(
+          session.inputFiles
+        ).map((base64file) => ({
+          path: base64file.path,
+          buffer: Buffer.from(base64file.content, FILE_ENCODING),
+        }));
+        const contractWithAllSources = await useAllSources(
+          contractWrapper.contract,
+          pathBufferInputFiles
         );
-        // Send to verification again with all source files.
-        if (match.status === "extra-file-input-bug") {
-          // Session inputFiles are encoded base64. Why?
-          const pathBufferInputFiles: PathBuffer[] = Object.values(
-            session.inputFiles
-          ).map((base64file) => ({
-            path: base64file.path,
-            buffer: Buffer.from(base64file.content, FILE_ENCODING),
-          }));
-          const contractWithAllSources = await useAllSources(
-            contractWrapper.contract,
-            pathBufferInputFiles
-          );
-          const tempMatch = await verificationService.verifyDeployed(
-            contractWithAllSources,
-            chainId as string,
-            address as string
-            /* contextVariables */
-          );
-          if (
-            tempMatch.status === "perfect" ||
-            tempMatch.status === "partial"
-          ) {
-            match = tempMatch;
-          }
+        const tempMatch = await verificationService.verifyDeployed(
+          contractWithAllSources,
+          chainId as string,
+          address as string
+          /* contextVariables */
+        );
+        if (tempMatch.status === "perfect" || tempMatch.status === "partial") {
+          match = tempMatch;
         }
-      } catch (error: any) {
-        match = {
-          chainId: contractWrapper.chainId as string,
-          status: null,
-          address: contractWrapper.address as string,
-          message: error.message,
-        };
       }
+    } catch (error: any) {
+      match = {
+        chainId: contractWrapper.chainId as string,
+        status: null,
+        address: contractWrapper.address as string,
+        message: error.message,
+      };
     }
+
     contractWrapper.status = match.status || "error";
     contractWrapper.statusMessage = match.message;
     contractWrapper.storageTimestamp = match.storageTimestamp;
