@@ -2,6 +2,7 @@
 import * as dotenv from "dotenv";
 import path from "path";
 import { SourcifyEventManager } from "./common/SourcifyEventManager/SourcifyEventManager";
+import { logger } from "./common/loggerLoki";
 
 dotenv.config({ path: path.resolve(__dirname, "..", "environments/.env") });
 
@@ -9,9 +10,7 @@ const setRepositoryPath = () => {
   if (process.env.MOCK_REPOSITORY) return process.env.MOCK_REPOSITORY;
   if (process.env.REPOSITORY_PATH)
     return path.resolve(__dirname, process.env.REPOSITORY_PATH);
-  SourcifyEventManager.trigger("Error", {
-    message: "No repository path set, using /tmp/repository",
-  });
+  logger.warn("REPOSITORY_PATH not set. Using default /tmp/repository.");
   return "/tmp/repository";
 };
 

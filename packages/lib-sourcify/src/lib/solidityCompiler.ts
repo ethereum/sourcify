@@ -47,6 +47,7 @@ export async function useCompiler(version: string, solcJsonInput: JsonInput) {
   if (solcPlatform) {
     solcPath = await getSolcExecutable(solcPlatform, version);
   }
+  console.time('Compilation time');
   if (solcPath) {
     const shellOutputBuffer = spawnSync(solcPath, ['--standard-json'], {
       input: inputStringified,
@@ -78,6 +79,8 @@ export async function useCompiler(version: string, solcJsonInput: JsonInput) {
     }
   }
 
+  console.timeEnd('Compilation time');
+
   if (!compiled) {
     throw new Error('Compilation failed. No output from the compiler.');
   }
@@ -92,11 +95,6 @@ export async function useCompiler(version: string, solcJsonInput: JsonInput) {
     console.error(error);
     throw error;
   }
-  console.log(
-    `Compiled successfully with solc platform ${
-      solcPlatform ? solcPlatform : 'solc-js'
-    } version ${version}`
-  );
   return compiledJSON;
 }
 
@@ -205,7 +203,6 @@ async function fetchAndSaveSolc(
     }
   }
 
-  // TODO: Handle nodejs only dependencies
   if (status === StatusCodes.OK && buffer) {
     fs.mkdirSync(path.dirname(solcPath), { recursive: true });
 
@@ -215,9 +212,7 @@ async function fetchAndSaveSolc(
       undefined;
     }
     fs.writeFileSync(solcPath, new DataView(buffer), { mode: 0o755 });
-    console.log(
-      `Successfully fetched solc ${version} from GitHub: ${githubSolcURI}`
-    );
+
     return true;
   } else {
     console.log(
@@ -260,9 +255,8 @@ export async function getSolcJs(version = 'latest'): Promise<any> {
     if (!(await fetchAndSaveSolc('bin', soljsonPath, version, fileName))) {
       return false;
     }
-  } else {
-    console.log(`Using local solcjs ${version} from ${soljsonPath}`);
   }
+
   const solcjsImports = await import(soljsonPath);
   return solc.setupMethods(solcjsImports);
 }

@@ -33,7 +33,7 @@ export default function ChainSelect({
       onChange={handleChainIdChange}
       value={value}
       options={filteredChains.map((chain) => ({
-        name: `${chain.title || chain.name} (${chain.chainId}) `,
+        name: `${chain.name || chain.title} (${chain.chainId}) `,
         value: chain.chainId,
       }))}
       search

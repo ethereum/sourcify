@@ -338,25 +338,35 @@ export async function performFetch(
   hash?: string,
   fileName?: string
 ): Promise<string | null> {
+  console.log(`Fetching the file ${fileName} from ${url}...}`);
   const res = await fetchWithTimeout(url, { timeout: FETCH_TIMEOUT }).catch(
     (err) => {
-      console.log("Couldn't fetch: " + url + ' ' + hash + ' ' + fileName);
-      console.log(err);
+      if (err.type === 'aborted')
+        console.log(
+          `Fetching the file ${fileName} from ${url} timed out. Timeout: ${FETCH_TIMEOUT}ms}`
+        );
+      else console.log(err);
     }
   );
 
-  if (res && res.status === 200) {
-    const content = await res.text();
-    if (hash && Web3.utils.keccak256(content) !== hash) {
-      console.log("The calculated and the provided hash don't match.");
+  if (res) {
+    if (res.status === 200) {
+      const content = await res.text();
+      if (hash && Web3.utils.keccak256(content) !== hash) {
+        console.log("The calculated and the provided hash don't match.");
+        return null;
+      }
+
+      console.log(`Successfully fetched the file ${fileName}`);
+      return content;
+    } else {
+      console.log(
+        `Fetching the file ${fileName} failed with status: ${res?.status}`
+      );
       return null;
     }
-
-    console.log('Performing fetch: ' + url + ' ' + hash + ' ' + fileName);
-    return content;
-  } else {
-    return null;
   }
+  return null;
 }
 
 /**

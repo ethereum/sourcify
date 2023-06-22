@@ -25,8 +25,8 @@ Counter.cnt = 0;
 class MonitorWrapper extends EventEmitter {
   constructor() {
     super();
-    this.repository = "./mockRepository" + Math.random().toString().slice(2);
-    this.monitor = new Monitor({ repository: this.repository, testing: true });
+    this.repository = process.env.MOCK_REPOSITORY;
+    this.monitor = new Monitor({ testing: true });
     this.monitor.on("contract-verified-successfully", (chainId, address) => {
       this.emit("contract-verified-successfully", chainId, address);
     });

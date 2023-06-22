@@ -16,8 +16,8 @@ const {
   invalidAddress,
   assertLookupAll,
 } = require("./helpers/assertions");
-// const IPFS = require("ipfs-core");
-// const { HttpGateway } = require("ipfs-http-gateway");
+//const IPFS = require("ipfs-core");
+const { HttpGateway } = require("ipfs-http-gateway");
 const ganache = require("ganache");
 const chai = require("chai");
 const chaiHttp = require("chai-http");
@@ -29,7 +29,7 @@ const path = require("path");
 const Web3 = require("web3");
 const MAX_FILE_SIZE = require("../dist/config").default.server.maxFileSize;
 const MAX_SESSION_SIZE =
-  require("../dist/server/controllers/VerificationController-util").MAX_SESSION_SIZE;
+  require("../dist/server/controllers/verification/verification.common").MAX_SESSION_SIZE;
 const GANACHE_PORT = 8545;
 const StatusCodes = require("http-status-codes").StatusCodes;
 const {
@@ -694,7 +694,7 @@ describe("Server", function () {
         .post("/")
         .field("address", address)
         .field("chain", defaultContractChain)
-        .attach("files", metadataBuffer)
+        .attach("files", metadataBuffer, "metadata.json")
         .send();
 
       assertVerification(
@@ -771,7 +771,7 @@ describe("Server", function () {
       const res = await chai
         .request(server.app)
         .post("/verify/solc-json")
-        .attach("files", solcJsonBuffer)
+        .attach("files", solcJsonBuffer, "solc.json")
         .field("address", address)
         .field("chain", defaultContractChain)
         .field("contractName", "Storage");
@@ -823,7 +823,7 @@ describe("Server", function () {
       const res = await chai
         .request(server.app)
         .post("/verify/solc-json")
-        .attach("files", solcJsonBuffer)
+        .attach("files", solcJsonBuffer, "solc.json")
         .field("address", address)
         .field("chain", defaultContractChain)
         .field("compilerVersion", "0.8.4+commit.c7e474f2")
@@ -1012,6 +1012,7 @@ describe("Server", function () {
       chai
         .request(server.app)
         .post("/session/verify-validated")
+        .send({})
         .end((err, res) => {
           chai.expect(err).to.be.null;
           chai.expect(res.body).to.haveOwnProperty("error");
@@ -1636,7 +1637,7 @@ describe("Server", function () {
       const res = await agent
         .post("/session/input-solc-json")
         .field("compilerVersion", "0.8.4+commit.c7e474f2")
-        .attach("files", solcJsonBuffer);
+        .attach("files", solcJsonBuffer, "solc.json");
 
       const contracts = assertSingleContractStatus(res, "error");
 

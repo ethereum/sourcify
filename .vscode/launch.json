@@ -16,7 +16,7 @@
         "${workspaceFolder}/packages/**/build/**/*.js"
       ],
       "env": {
-        "DEBUG": "express:*" // Debug all express modules *
+        // "DEBUG": "express:*" // Debug all express modules *
       },
       "smartStep": true,
       "console": "integratedTerminal",
@@ -33,7 +33,7 @@
         "${workspaceFolder}/packages/**/build/**/*.js"
       ],
       "env": {
-        "DEBUG": "express:*" // Debug all express modules *
+        // "DEBUG": "express:*" // Debug all express modules *
       },
       "smartStep": true,
       "console": "integratedTerminal",
@@ -106,7 +106,7 @@
       "name": "Mocha - Server",
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "env": {
-        "DEBUG": "express:*", // Debug all express modules *
+        // "DEBUG": "express:*", // Debug all express modules *
         "TESTING": "true",
       },
       "args": [
@@ -130,7 +130,7 @@
       "name": "Mocha - Etherscan",
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "env": {
-        "DEBUG": "express:*", // Debug all express modules *
+        // "DEBUG": "express:*", // Debug all express modules *
         "TESTING": "true",
       },
       "args": [
@@ -178,7 +178,7 @@
       "cwd": "${workspaceFolder}/packages/lib-sourcify",
       "program": "./node_modules/.bin/mocha",
       "env": {
-        "DEBUG": "express:*", // Debug all express modules *
+        // "DEBUG": "express:*", // Debug all express modules *
         "TESTING": "true",
       },
       "args": [

@@ -3,7 +3,6 @@ import { Transaction } from "web3-core";
 import { SourceAddress } from "./util";
 import { ethers } from "ethers";
 import SourceFetcher from "./source-fetcher";
-import SystemConfig from "../config";
 import assert from "assert";
 import { EventEmitter } from "stream";
 import { decode as bytecodeDecode } from "@ethereum-sourcify/bytecode-utils";
@@ -16,16 +15,16 @@ import {
   addLibraryAddresses,
   verifyDeployed,
 } from "@ethereum-sourcify/lib-sourcify";
-import VerificationService, {
-  IVerificationService,
-} from "../server/services/VerificationService";
-import RepositoryService from "../server/services/RepositoryService";
+import { services } from "../server/services/services";
+import { IRepositoryService } from "../server/services/RepositoryService";
+import { IVerificationService } from "../server/services/VerificationService";
 import {
   monitoredChainArray,
   supportedChainsMap,
   testChainArray,
 } from "../sourcify-chains";
 import { toChecksumAddress } from "web3-utils";
+import { logger } from "../common/loggerLoki";
 
 const BLOCK_PAUSE_FACTOR =
   parseInt(process.env.BLOCK_PAUSE_FACTOR || "") || 1.1;
@@ -48,8 +47,8 @@ class ChainMonitor extends EventEmitter {
   private web3urls: string[];
   private web3provider: Web3 | undefined;
   private sourceFetcher: SourceFetcher;
-  private verificationService: VerificationService;
-  private repositoryService: RepositoryService;
+  private verificationService: IVerificationService;
+  private repositoryService: IRepositoryService;
   private running: boolean;
 
   private getBytecodeRetryPause: number;
@@ -61,8 +60,8 @@ class ChainMonitor extends EventEmitter {
     chainId: string,
     web3urls: string[],
     sourceFetcher: SourceFetcher,
-    verificationService: VerificationService,
-    repositoryService: RepositoryService
+    verificationService: IVerificationService,
+    repositoryService: IRepositoryService
   ) {
     super();
     this.chainId = chainId;
@@ -103,6 +102,7 @@ class ChainMonitor extends EventEmitter {
             : lastBlockNumber;
 
         SourcifyEventManager.trigger("Monitor.Started", {
+          chainId: this.chainId,
           web3url,
           lastBlockNumber,
           startBlock,
@@ -110,18 +110,14 @@ class ChainMonitor extends EventEmitter {
         this.processBlock(startBlock);
         break;
       } catch (err) {
-        SourcifyEventManager.trigger("Monitor.Error", {
-          message: "Start: Cannot getBlockNumber",
-          details: {
-            web3url,
-          },
-        });
+        logger.debug(err);
       }
     }
 
     if (!found) {
-      SourcifyEventManager.trigger("Monitor.Error", {
-        message: "Start: No working chains! Exiting!",
+      SourcifyEventManager.trigger("Monitor.Error.CantStart", {
+        chainId: this.chainId,
+        message: "Couldn't find a working RPC node.",
       });
     }
   };
@@ -130,7 +126,7 @@ class ChainMonitor extends EventEmitter {
    * Stops the monitor after executing all pending requests.
    */
   stop = (): void => {
-    SourcifyEventManager.trigger("Monitor.Stopped");
+    SourcifyEventManager.trigger("Monitor.Stopped", this.chainId);
     this.running = false;
   };
 
@@ -139,20 +135,22 @@ class ChainMonitor extends EventEmitter {
       throw new Error(
         `Can't process block ${blockNumber}. Web3 provider not initialized`
       );
+
     this.web3provider.eth
       .getBlock(blockNumber, true)
       .then((block) => {
         if (!block) {
           this.adaptBlockPause("increase");
-
-          SourcifyEventManager.trigger("Monitor.WaitingNewBlocks", {
-            blockNumber,
-            getBlockPause: this.getBlockPause,
-          });
           return;
         }
 
         this.adaptBlockPause("decrease");
+
+        SourcifyEventManager.trigger("Monitor.ProcessingBlock", {
+          blockNumber,
+          chainId: this.chainId,
+          getBlockPause: this.getBlockPause,
+        });
 
         for (const tx of block.transactions) {
           if (createsContract(tx)) {
@@ -296,7 +294,6 @@ class ChainMonitor extends EventEmitter {
   };
 }
 export interface MonitorConfig {
-  repository?: string;
   testing?: boolean;
 }
 
@@ -309,8 +306,6 @@ export default class Monitor extends EventEmitter {
 
   constructor(config: MonitorConfig = {}) {
     super();
-    const repositoryPath = config.repository || SystemConfig.repository.path;
-
     const chains = config.testing ? testChainArray : monitoredChainArray;
     this.chainMonitors = chains.map(
       (chain: Chain) =>
@@ -319,8 +314,8 @@ export default class Monitor extends EventEmitter {
           chain.chainId.toString(),
           chain.rpc,
           this.sourceFetcher,
-          new VerificationService(supportedChainsMap),
-          new RepositoryService(repositoryPath)
+          services.verification,
+          services.repository
         )
     );
     this.chainMonitors.forEach((cm) => {

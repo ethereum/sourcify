@@ -9,6 +9,8 @@ import {
   Chain,
 } from "@ethereum-sourcify/lib-sourcify";
 import { etherscanAPIs } from "./config";
+import { ValidationError } from "./common/errors";
+import { logger } from "./common/loggerLoki";
 
 const allChains = chainsRaw as Chain[];
 
@@ -91,9 +93,9 @@ function buildAlchemyAndCustomRpcURLs(
   }
 
   if (!alchemyId)
-    SourcifyEventManager.trigger("Core.Error", {
-      message: `Environment variable ALCHEMY_ID not set for ${chainName} ${chainSubName}!`,
-    });
+    logger.warn(
+      `Environment variable ALCHEMY_ID not set for ${chainName} ${chainSubName}!`
+    );
 
   const domain = "g.alchemy.com";
   // No sepolia support yet
@@ -831,6 +833,13 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     supported: true,
     monitored: false,
   },
+  "7777777": {
+    // ZORA
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://explorer.zora.co/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
@@ -883,13 +892,17 @@ export function getSortedChainsArray(
   chainMap: SourcifyChainMap
 ): SourcifyChain[] {
   function getPrimarySortKey(chain: any) {
-    return chain.title || chain.name;
+    return chain.name || chain.title;
   }
 
   const chainsArray = Object.values(chainMap);
   // Have Ethereum chains on top.
   const ethereumChainIds = [1, 5, 11155111, 3, 4, 42];
-  const etherumChains = ethereumChainIds.map((id) => chainMap[id]);
+  const ethereumChains = ethereumChainIds.map((id) => {
+    // Use long form name for Ethereum netorks e.g. "Ethereum Testnet Goerli" instead of "Goerli"
+    chainMap[id].name = chainMap[id].title || chainMap[id].name;
+    return chainMap[id];
+  });
   // Others, sorted alphabetically
   const otherChains = chainsArray
     .filter((chain) => ![1, 5, 11155111, 3, 4, 42].includes(chain.chainId))
@@ -901,7 +914,7 @@ export function getSortedChainsArray(
         : 0
     );
 
-  const sortedChains = etherumChains.concat(otherChains);
+  const sortedChains = ethereumChains.concat(otherChains);
   return sortedChains;
 }
 
@@ -909,24 +922,29 @@ export function getSortedChainsArray(
  * To check if a chain is supported for verification.
  * Note that there might be chains not supported for verification anymore but still exist as a SourcifyChain e.g. Ropsten.
  */
-export function checkSupportedChainId(chain: string): string {
-  if (!(chain in sourcifyChainsMap && sourcifyChainsMap[chain].supported)) {
-    throw new Error(`Chain ${chain} not supported for verification!`);
+export function checkSupportedChainId(chainId: string) {
+  if (!(chainId in sourcifyChainsMap && sourcifyChainsMap[chainId].supported)) {
+    throw new ValidationError(
+      `Chain ${chainId} not supported for verification!`
+    );
   }
 
-  return chain;
+  return true;
 }
 
 /**
  * To check if a chain exists as a SourcifyChain.
  * Note that there might be chains not supported for verification anymore but still exist as a SourcifyChain e.g. Ropsten.
  */
-export function checkChainId(chain: string): string {
-  if (!(chain in sourcifyChainsMap && sourcifyChainsMap[chain])) {
-    throw new Error(`Chain ${chain} not supported!`);
+export function checkSourcifyChainId(chainId: string) {
+  if (
+    !(chainId in sourcifyChainsMap && sourcifyChainsMap[chainId]) &&
+    chainId != "0"
+  ) {
+    throw new Error(`Chain ${chainId} is not a Sourcify chain!`);
   }
 
-  return chain;
+  return true;
 }
 
 export {

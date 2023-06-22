@@ -17,7 +17,9 @@ import {
   globSource,
 } from "ipfs-http-client";
 import path from "path";
+import config from "../../config";
 import { SourcifyEventManager } from "../../common/SourcifyEventManager/SourcifyEventManager";
+import { logger } from "../../common/loggerLoki";
 
 /**
  * A type for specifying the match quality of files.
@@ -75,8 +77,10 @@ export interface IRepositoryService {
   generateAbsoluteFilePath(pathConfig: PathConfig): string;
   generateRelativeFilePath(pathConfig: PathConfig): string;
   generateRelativeContractDir(pathConfig: PathConfig): string;
+  storeMatch(contract: CheckedContract, match: Match): Promise<void | Match>;
 }
-export default class RepositoryService implements IRepositoryService {
+
+export class RepositoryService implements IRepositoryService {
   repositoryPath: string;
   private ipfsClient?: IPFSHTTPClient;
 
@@ -85,9 +89,7 @@ export default class RepositoryService implements IRepositoryService {
     if (process.env.IPFS_API) {
       this.ipfsClient = createIpfsClient({ url: process.env.IPFS_API });
     } else {
-      SourcifyEventManager.trigger("Verification.Error", {
-        message: "IPFS_API not set. Files will not be pinned to IPFS.",
-      });
+      logger.warn("IPFS_API not set, IPFS MFS will not be updated");
     }
   }
   // Not used anywhere
@@ -314,15 +316,9 @@ export default class RepositoryService implements IRepositoryService {
         },
       ];
     } catch (e: any) {
-      const error = new Error("findByAddress: Address not found in repository");
-      SourcifyEventManager.trigger("Verification.Error", {
-        message: error.message,
-        stack: e.stack,
-        details: {
-          address,
-          chainId,
-        },
-      });
+      logger.debug(
+        `Contract (full_match) not found in repository: ${address} - chain: ${chainId}`
+      );
       return [];
     }
   }
@@ -358,16 +354,10 @@ export default class RepositoryService implements IRepositoryService {
         },
       ];
     } catch (e: any) {
-      const error = new Error("Address not found in repository");
-      SourcifyEventManager.trigger("Verification.Error", {
-        message: error.message,
-        stack: e.stack,
-        details: {
-          address,
-          chainId,
-        },
-      });
-      throw error;
+      logger.debug(
+        `Contract (full & partial match) not found in repository: ${address} - chain: ${chainId}`
+      );
+      return [];
     }
   }
 
@@ -387,7 +377,10 @@ export default class RepositoryService implements IRepositoryService {
     this.updateRepositoryTag();
   }
 
-  public async storeMatch(contract: CheckedContract, match: Match) {
+  public async storeMatch(
+    contract: CheckedContract,
+    match: Match
+  ): Promise<void | Match> {
     if (
       match.address &&
       (match.status === "perfect" || match.status === "partial")
@@ -481,19 +474,7 @@ export default class RepositoryService implements IRepositoryService {
     } else if (match.status === "extra-file-input-bug") {
       return match;
     } else {
-      const message =
-        match.message ||
-        "Could not match the deployed and recompiled bytecode.";
-      const err = new Error(`Contract name: ${contract.name}. ${message}`);
-      SourcifyEventManager.trigger("Verification.Error", {
-        message: err.message,
-        stack: err.stack,
-        details: {
-          chain: match.chainId,
-          address: match.address,
-        },
-      });
-      throw err;
+      throw new Error(`Unknown match status: ${match.status}`);
     }
   }
 

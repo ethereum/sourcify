@@ -19,6 +19,8 @@ const newAddedChainId = process.env.NEW_CHAIN_ID;
 console.log("newAddedChainId");
 console.log(newAddedChainId);
 
+let anyTestsPass = false; // Fail when zero tests passing
+
 chai.use(chaiHttp);
 
 describe("Test Supported Chains", function () {
@@ -40,6 +42,13 @@ describe("Test Supported Chains", function () {
 
   after(() => {
     rimraf.sync(server.repository);
+    if (!anyTestsPass && newAddedChainId) {
+      throw new Error(
+        "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id " +
+          newAddedChainId +
+          "?"
+      );
+    }
   });
 
   // log server response when test fails
@@ -863,6 +872,16 @@ describe("Test Supported Chains", function () {
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
+
+  // ZORA Mainnet
+  verifyContract(
+    "0x090734f94FA67590702421A9B61892509b7CE80A",
+    "7777777",
+    "ZORA MAinnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainId) {
@@ -943,6 +962,7 @@ describe("Test Supported Chains", function () {
         })
         .end((err, res) => {
           assertVerification(err, res, done, address, chainId);
+          anyTestsPass = true;
         });
     });
     testedChains.add(chainId);
