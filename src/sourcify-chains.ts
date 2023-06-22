@@ -32,16 +32,29 @@ const AVALANCHE_SUBNET_SUFFIX =
 
 type ChainName = "eth" | "polygon" | "arb" | "opt";
 
-const TEST_CHAINS: SourcifyChain[] = [
+const LOCAL_CHAINS: SourcifyChain[] = [
   {
-    name: "Localhost",
-    shortName: "Localhost",
-    chainId: 0,
+    name: "Ganache Localhost",
+    shortName: "Ganache",
+    chainId: 1337,
     faucets: [],
     infoURL: "localhost",
     nativeCurrency: { name: "localETH", symbol: "localETH", decimals: 18 },
     network: "testnet",
-    networkId: 0,
+    networkId: 1337,
+    rpc: [`http://localhost:8545`],
+    supported: true,
+    monitored: true,
+  },
+  {
+    name: "Hardhat Network Localhost",
+    shortName: "Hardhat Network",
+    chainId: 31337,
+    faucets: [],
+    infoURL: "localhost",
+    nativeCurrency: { name: "localETH", symbol: "localETH", decimals: 18 },
+    network: "testnet",
+    networkId: 31337,
     rpc: [`http://localhost:8545`],
     supported: true,
     monitored: true,
@@ -844,9 +857,9 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
 
 const sourcifyChainsMap: SourcifyChainMap = {};
 
-// Add test chains too if testing
-if (process.env.TESTING == "true") {
-  for (const chain of TEST_CHAINS) {
+// Add test chains too if developing or testing
+if (process.env.NODE_ENV !== "production") {
+  for (const chain of LOCAL_CHAINS) {
     sourcifyChainsMap[chain.chainId.toString()] = chain;
   }
 }
@@ -858,6 +871,13 @@ for (const i in allChains) {
   const chain = allChains[i];
   const chainId = chain.chainId;
   if (chainId in sourcifyChainsMap) {
+    // Don't throw on local chains in development, override the chain.json item
+    if (
+      process.env.NODE_ENV !== "production" &&
+      LOCAL_CHAINS.map((c) => c.chainId).includes(chainId)
+    ) {
+      continue;
+    }
     const err = `Corrupt chains file (chains.json): multiple chains have the same chainId: ${chainId}`;
     throw new Error(err);
   }
@@ -954,5 +974,5 @@ export {
   supportedChainsArray,
   monitoredChainsMap,
   monitoredChainArray,
-  TEST_CHAINS as testChainArray,
+  LOCAL_CHAINS,
 };

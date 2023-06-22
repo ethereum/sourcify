@@ -44,7 +44,7 @@ else
 fi
 
 if [ $LIB_SOURCIFY_LOCAL_VERSION = $LIB_SOURCIFY_NPM_VERSION ]; then
-    echo "@ethereum-sourcify/contract-call-decoder:"
+    echo "@ethereum-sourcify/lib-sourcify:"
     echo "Latest npm version is equal to current package version. Up the version to publish to npm."
 else
     npm publish packages/lib-sourcify/ --verbose --access=public
