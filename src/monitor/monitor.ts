@@ -21,7 +21,7 @@ import { IVerificationService } from "../server/services/VerificationService";
 import {
   monitoredChainArray,
   supportedChainsMap,
-  testChainArray,
+  LOCAL_CHAINS,
 } from "../sourcify-chains";
 import { toChecksumAddress } from "web3-utils";
 import { logger } from "../common/loggerLoki";
@@ -306,7 +306,7 @@ export default class Monitor extends EventEmitter {
 
   constructor(config: MonitorConfig = {}) {
     super();
-    const chains = config.testing ? testChainArray : monitoredChainArray;
+    const chains = config.testing ? LOCAL_CHAINS : monitoredChainArray;
     this.chainMonitors = chains.map(
       (chain: Chain) =>
         new ChainMonitor(
