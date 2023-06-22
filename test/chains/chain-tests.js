@@ -758,7 +758,7 @@ describe("Test Supported Chains", function () {
 
   // Bear Network Chain Mainnet
   verifyContract(
-    "0x0f103813fa15CA19b6C4B46a0Afe99440b81d7C3",
+    "0xeF54B3B60859Bc9D5E105CeF1E64c2AeADe5B00b",
     "641230",
     "Bear Network Chain Mainnet",
     ["shared/1_Storage.sol"],
