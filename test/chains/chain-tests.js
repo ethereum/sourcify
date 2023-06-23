@@ -284,22 +284,22 @@ describe("Test Supported Chains", function () {
   );
 
   // Rollux Mainnet
-￼ verifyContract(
-￼   "0x1187124eC74e2A2F420540C338186dD702cF6340",
-￼   "570",
-￼   "Rollux Mainnet",
-￼   ["shared/1_Storage.sol"],
-￼   "shared/1_Storage.metadata.json"
-￼ );
+  verifyContract(
+    "0x1187124eC74e2A2F420540C338186dD702cF6340",
+    "570",
+    "Rollux Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
 
   // Rollux Tanenbaum (testnet)
-￼ verifyContract(
-￼   "0x736bfcA6a599bF0C3D499F8a0bC5ab2bA2030AC6",
-￼   "57000",
-￼   "Rollux Tanenbaum",
-￼   ["shared/1_Storage.sol"],
-￼   "shared/1_Storage.metadata.json"
-￼ );
+  verifyContract(
+    "0x736bfcA6a599bF0C3D499F8a0bC5ab2bA2030AC6",
+    "57000",
+    "Rollux Tanenbaum",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
 
   verifyContract(
     "0xE295aD71242373C37C5FdA7B57F26f9eA1088AFe",
