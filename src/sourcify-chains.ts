@@ -204,6 +204,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress:
       "https://blockscout.com/etc/mainnet/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex("/etc/mainnet"),
+    rpc: ["https://etc.rivet.link"],
   },
   "77": {
     // Turned off as seemingly stale

@@ -913,6 +913,15 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
+  // Ethereum Classic Mainnet
+  verifyContract(
+    "0x45a82B987a4e5d7D00eD5aB325DF00850cDAbBAC",
+    "61",
+    "Ethereum Classic Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainId) {
