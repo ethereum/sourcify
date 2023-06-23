@@ -283,13 +283,22 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
-  // Has contracts to be fetched from IPFS
+  // Rollux Mainnet
   verifyContract(
-    "0xB2d0641fc8863514B6533b129fD744200eE17D29",
-    "57",
-    "Syscoin Tanenbaum Testnet",
-    ["57/Token.sol"],
-    "57/TestToken.json"
+    "0x1187124eC74e2A2F420540C338186dD702cF6340",
+    "570",
+    "Rollux Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  // Rollux Tanenbaum (testnet)
+  verifyContract(
+    "0x736bfcA6a599bF0C3D499F8a0bC5ab2bA2030AC6",
+    "57000",
+    "Rollux Tanenbaum",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
   );
 
   verifyContract(
