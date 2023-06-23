@@ -325,6 +325,13 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: "https://tanenbaum.io/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
+  "57000": {
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://rollux.tanenbaum.io/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+    rpc: ["https://rpc-tanenbaum.rollux.com"],
+  },
   "40": {
     supported: true,
     monitored: false,
