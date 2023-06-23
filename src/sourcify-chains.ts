@@ -198,6 +198,13 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     monitored: false,
     contractFetchAddress: generateEtherscanCreatorTxAPI("56"),
   },
+  "61": {
+    supported: true,
+    monitored: true,
+    contractFetchAddress:
+      "https://blockscout.com/etc/mainnet/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex("/etc/mainnet"),
+  },
   "77": {
     // Turned off as seemingly stale
     supported: false,
