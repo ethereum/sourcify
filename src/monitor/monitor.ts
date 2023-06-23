@@ -25,6 +25,7 @@ import {
 } from "../sourcify-chains";
 import { toChecksumAddress } from "web3-utils";
 import { logger } from "../common/loggerLoki";
+import "../common/SourcifyEventManager/listeners/logger";
 
 const BLOCK_PAUSE_FACTOR =
   parseInt(process.env.BLOCK_PAUSE_FACTOR || "") || 1.1;
