@@ -338,12 +338,12 @@ export async function performFetch(
   hash?: string,
   fileName?: string
 ): Promise<string | null> {
-  console.log(`Fetching the file ${fileName} from ${url}...}`);
+  console.log(`Fetching the file ${fileName} from ${url}...`);
   const res = await fetchWithTimeout(url, { timeout: FETCH_TIMEOUT }).catch(
     (err) => {
       if (err.type === 'aborted')
         console.log(
-          `Fetching the file ${fileName} from ${url} timed out. Timeout: ${FETCH_TIMEOUT}ms}`
+          `Fetching the file ${fileName} from ${url} timed out. Timeout: ${FETCH_TIMEOUT}ms`
         );
       else console.log(err);
     }
