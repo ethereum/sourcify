@@ -50,16 +50,20 @@ const binaryParser = function (res, cb) {
 const EXTENDED_TIME = 20000; // 20 seconds
 const EXTENDED_TIME_60 = 60000; // 60 seconds
 
+const defaultContractChain = "1337"; // default 1337
+
 describe("Server", function () {
   const server = new Server();
   const ganacheServer = ganache.server({
     wallet: { totalAccounts: 1 },
-    chain: { chainId: 0, networkId: 0 },
+    chain: {
+      chainId: parseInt(defaultContractChain),
+      networkId: parseInt(defaultContractChain),
+    },
   });
   let localWeb3Provider;
   let accounts;
   let defaultContractAddress;
-  const defaultContractChain = "0";
   let currentResponse = null; // to log server response when test fails
 
   const sourcePath = path.join(

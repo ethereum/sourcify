@@ -22,6 +22,7 @@ services:
       - "${GRAFANA_LOKI_EXTERNAL_PORT}:3100"
     volumes:
       - ./loki-config.yaml:/etc/loki/local-config.yaml
+      - ../../data/loki/:/loki/ # Persist loki filesystem storage, outside the sourcify/ folder
     command: -config.file=/etc/loki/local-config.yaml
     networks:
       - source-verify
@@ -61,7 +62,7 @@ services:
       - "${GRAFANA_PROMETHEUS_EXTERNAL_PORT}:9090"
     volumes:
       - /etc/prometheus:/etc/prometheus
-      - prometheus-data:/prometheus
+      - ../../data/prometheus/:/prometheus
     restart: unless-stopped
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"

@@ -248,6 +248,9 @@ if (require.main === module) {
   server
     .loadSwagger(yamljs.load("openapi.yaml"))
     .then((swaggerDocument: any) => {
+      server.app.get("/api-docs/swagger.json", (req, res) =>
+        res.json(swaggerDocument)
+      );
       server.app.use(
         "/api-docs",
         swaggerUi.serve,

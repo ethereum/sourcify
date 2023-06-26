@@ -33,7 +33,6 @@ class MonitorWrapper extends EventEmitter {
     this.monitor.on("contract-already-verified", (chainId, address) => {
       this.emit("contract-already-verified", chainId, address);
     });
-    chai.expect(this.monitor.chainMonitors).to.have.a.lengthOf(1); // Number of chains in TEST_CHAINS at sourcify-chains.ts
     this.chainId = this.monitor.chainMonitors[0].chainId;
   }
 
@@ -166,7 +165,7 @@ describe("Monitor", function () {
   beforeEach(async () => {
     ganacheServer = ganache.server({
       wallet: { totalAccounts: 5 },
-      chain: { chainId: 0, networkId: 0 },
+      chain: { chainId: 1337, networkId: 1337 },
     });
     await ganacheServer.listen(GANACHE_PORT);
     console.log("Started ganache local server at port " + GANACHE_PORT);

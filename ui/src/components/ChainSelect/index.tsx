@@ -21,11 +21,12 @@ export default function ChainSelect({
 
   let filteredChains;
   if (availableChains) {
+    // Explicitly define which chains to show, like in Etherscan chains
     filteredChains = sourcifyChains.filter((chain) =>
       availableChains.includes(chain.chainId)
     );
   } else {
-    filteredChains = sourcifyChains;
+    filteredChains = sourcifyChains.filter((chain) => chain.supported);
   }
 
   return (
