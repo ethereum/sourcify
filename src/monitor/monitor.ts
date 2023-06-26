@@ -179,9 +179,11 @@ class ChainMonitor extends EventEmitter {
         blockNumber++;
       })
       .catch((err) => {
-        SourcifyEventManager.trigger("Monitor.Error", {
+        SourcifyEventManager.trigger("Monitor.Error.ProcessingBlock", {
           message: err.message,
           stack: err.stack,
+          chainId: this.chainId,
+          blockNumber,
         });
       })
       .finally(() => {
@@ -240,16 +242,20 @@ class ChainMonitor extends EventEmitter {
             }
           );
         } catch (err: any) {
-          SourcifyEventManager.trigger("Monitor.Error", {
+          SourcifyEventManager.trigger("Monitor.Error.ProcessingBytecode", {
             message: err.message,
             stack: err.stack,
+            chainId: this.chainId,
+            address,
           });
         }
       })
       .catch((err) => {
-        SourcifyEventManager.trigger("Monitor.Error", {
+        SourcifyEventManager.trigger("Monitor.Error.GettingBytecode", {
           message: err.message,
           stack: err.stack,
+          chainId: this.chainId,
+          address,
         });
         this.mySetTimeout(
           this.processBytecode,
@@ -277,9 +283,11 @@ class ChainMonitor extends EventEmitter {
       await this.repositoryService.storeMatch(contract, match);
       this.emit("contract-verified-successfully", this.chainId, address);
     } catch (err: any) {
-      SourcifyEventManager.trigger("Monitor.Error", {
+      SourcifyEventManager.trigger("Monitor.Error.VerifyError", {
         message: err.message,
         stack: err.stack,
+        chainId: this.chainId,
+        address,
       });
     }
   };

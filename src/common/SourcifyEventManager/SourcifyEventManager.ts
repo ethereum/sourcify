@@ -24,6 +24,30 @@ interface Events extends GenericEvents {
   }) => void;
   "Monitor.NewContract": (obj: { address: string; chainId: string }) => void;
   "Monitor.Error": (obj: { message: string; stack?: string }) => void;
+  "Monitor.Error.ProcessingBlock": (obj: {
+    message: string;
+    stack: string;
+    blockNumber: number;
+    chainId: string;
+  }) => void;
+  "Monitor.Error.ProcessingBytecode": (obj: {
+    message: string;
+    stack: string;
+    chainId: string;
+    address: string;
+  }) => void;
+  "Monitor.Error.GettingBytecode": (obj: {
+    message: string;
+    stack: string;
+    chainId: string;
+    address: string;
+  }) => void;
+  "Monitor.Error.VerifyError": (obj: {
+    message: string;
+    stack: string;
+    chainId: string;
+    address: string;
+  }) => void;
   "SourceFetcher.UsingFallback": (obj: {
     fetchUrl: string;
     fallbackUrl: string;
@@ -62,6 +86,10 @@ export const SourcifyEventManager = new EventManager<Events>({
   "Monitor.AlreadyVerified": [],
   "Monitor.NewContract": [],
   "Monitor.Error": [],
+  "Monitor.Error.ProcessingBlock": [],
+  "Monitor.Error.ProcessingBytecode": [],
+  "Monitor.Error.GettingBytecode": [],
+  "Monitor.Error.VerifyError": [],
   "SourceFetcher.UsingFallback": [],
   "SourceFetcher.NewSubscription": [],
   "SourceFetcher.Cleanup": [],
