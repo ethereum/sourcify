@@ -13,6 +13,8 @@ networks:
 volumes:
   prometheus-data:
     driver: local
+  loki-data:
+    driver: local
 
 services:
   loki:
@@ -22,7 +24,7 @@ services:
       - "${GRAFANA_LOKI_EXTERNAL_PORT}:3100"
     volumes:
       - ./loki-config.yaml:/etc/loki/local-config.yaml
-      - ../../data/loki/:/loki/ # Persist loki filesystem storage, outside the sourcify/ folder
+      - loki-data:/loki/ # Persist loki filesystem storage, outside the sourcify/ folder
     command: -config.file=/etc/loki/local-config.yaml
     networks:
       - source-verify
