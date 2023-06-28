@@ -6,7 +6,7 @@ export interface ILogger {
 
 // Default logger behavior
 export const DefaultLogger: ILogger = {
-  logLevel: 1,
+  logLevel: 2,
   setLevel(level: number) {
     this.logLevel = level;
   },
