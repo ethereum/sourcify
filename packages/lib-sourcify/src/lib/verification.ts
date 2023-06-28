@@ -9,13 +9,18 @@ import {
   SourcifyChain,
   StringMap,
 } from './types';
-import { toChecksumAddress } from 'web3-utils';
-import { Transaction } from 'web3-core';
-import Web3 from 'web3';
 import {
   decode as bytecodeDecode,
   splitAuxdata,
 } from '@ethereum-sourcify/bytecode-utils';
+import {
+  JsonRpcProvider,
+  TransactionResponse,
+  WebSocketProvider,
+  getAddress,
+  getCreateAddress,
+  keccak256,
+} from 'ethers';
 /* 
 import { EVM } from '@ethereumjs/evm';
 import { EEI } from '@ethereumjs/vm';
@@ -26,7 +31,6 @@ import { Blockchain } from '@ethereumjs/blockchain';
 */
 import { hexZeroPad, isHexString } from '@ethersproject/bytes';
 import { BigNumber } from '@ethersproject/bignumber';
-import { getAddress, getContractAddress } from '@ethersproject/address';
 import semverSatisfies from 'semver/functions/satisfies';
 import { defaultAbiCoder as abiCoder, ParamType } from '@ethersproject/abi';
 import { AbiConstructor } from 'abitype';
@@ -390,7 +394,7 @@ export async function matchWithCreationTx(
   }
 
   const creatorTx = await getTx(creatorTxHash, sourcifyChain);
-  const creatorTxData = creatorTx.input;
+  const creatorTxData = creatorTx.data;
 
   // The reason why this uses `startsWith` instead of `===` is that creationTxData may contain constructor arguments at the end part.
   // Replace the library placeholders in the recompiled bytecode with values from the deployed bytecode
@@ -454,7 +458,7 @@ export async function matchWithCreationTx(
     }
 
     // we need to check if this contract creation tx actually yields the same contract address https://github.com/ethereum/sourcify/issues/887
-    const createdContractAddress = getContractAddress({
+    const createdContractAddress = getCreateAddress({
       from: creatorTx.from,
       nonce: creatorTx.nonce,
     });
@@ -482,27 +486,32 @@ export async function getBytecode(
 ): Promise<string> {
   if (!sourcifyChain?.rpc.length)
     throw new Error('No RPC provider was given for this chain.');
-  address = toChecksumAddress(address);
+  address = getAddress(address);
 
   // Request sequentially. Custom node is always before ALCHEMY so we don't waste resources if succeeds.
   for (const rpcURL of sourcifyChain.rpc) {
     try {
-      const web3 = rpcURL.startsWith('http')
-        ? new Web3(new Web3.providers.HttpProvider(rpcURL))
-        : new Web3(new Web3.providers.WebsocketProvider(rpcURL));
-
-      if (!web3.currentProvider) throw new Error('No provider found');
+      const provider = rpcURL.startsWith('http')
+        ? new JsonRpcProvider(rpcURL)
+        : new WebSocketProvider(rpcURL);
 
       // Race the RPC call with a timeout
       const bytecode = await Promise.race([
-        web3.eth.getCode(address),
+        provider.getCode(address),
         rejectInMs(RPC_TIMEOUT, rpcURL),
       ]);
 
       return bytecode;
     } catch (err) {
       // Catch to try the next RPC
-      logWarn((err as Error).message);
+      if (err instanceof Error) {
+        logWarn(
+          `Can't fetch bytecode from RPC ${rpcURL} and chain ${sourcifyChain.chainId}`
+        );
+        console.log(err.message);
+      } else {
+        throw err;
+      }
     }
   }
   throw new Error('None of the RPCs responded');
@@ -513,31 +522,42 @@ async function getTx(creatorTxHash: string, sourcifyChain: SourcifyChain) {
     throw new Error('No RPC provider was given for this chain.');
   for (const rpcURL of sourcifyChain.rpc) {
     try {
-      const web3 = rpcURL.startsWith('http')
-        ? new Web3(new Web3.providers.HttpProvider(rpcURL))
-        : new Web3(new Web3.providers.WebsocketProvider(rpcURL));
-
-      if (!web3.currentProvider) throw new Error('No provider found');
+      const provider = rpcURL.startsWith('http')
+        ? new JsonRpcProvider(rpcURL)
+        : new WebSocketProvider(rpcURL);
 
       // Race the RPC call with a timeout
-      const tx = (await Promise.race([
-        web3.eth.getTransaction(creatorTxHash),
+      const tx = await Promise.race([
+        provider.getTransaction(creatorTxHash),
         rejectInMs(RPC_TIMEOUT, rpcURL),
-      ])) as Transaction;
-      if (tx) {
-        logInfo(`Transaction ${creatorTxHash} fetched via ${rpcURL}`);
+      ]);
+      if (tx instanceof TransactionResponse) {
+        logInfo(
+          `Transaction ${creatorTxHash} fetched via ${rpcURL} from chain ${sourcifyChain.chainId}`
+        );
         return tx;
+      } else {
+        throw new Error(
+          `Transaction ${creatorTxHash} not found on RPC ${rpcURL} and chain ${sourcifyChain.chainId}`
+        );
       }
     } catch (err) {
       // Catch to try the next RPC
-      logWarn((err as Error).message);
+      if (err instanceof Error) {
+        logWarn(
+          `Can't fetch from RPC ${rpcURL} and chain ${sourcifyChain.chainId}`
+        );
+        logWarn(err.message);
+      } else {
+        throw err;
+      }
     }
   }
   throw new Error('None of the RPCs responded');
 }
 
 const rejectInMs = (ms: number, host: string) =>
-  new Promise<string>((_resolve, reject) => {
+  new Promise<never>((_resolve, reject) => {
     setTimeout(() => reject(`RPC ${host} took too long to respond`), ms);
   });
 
@@ -645,18 +665,11 @@ export function calculateCreate2Address(
       : abiEncodedConstructorArguments;
   }
 
-  const address = `0x${Web3.utils
-    .keccak256(
-      `0x${[
-        'ff',
-        deployerAddress,
-        saltToHex(salt),
-        Web3.utils.keccak256(initcode),
-      ]
-        .map((x) => x.replace(/0x/, ''))
-        .join('')}`
-    )
-    .slice(-40)}`; // last 20 bytes
+  const address = `0x${keccak256(
+    `0x${['ff', deployerAddress, saltToHex(salt), keccak256(initcode)]
+      .map((x) => x.replace(/0x/, ''))
+      .join('')}`
+  ).slice(-40)}`; // last 20 bytes
   return getAddress(address); // checksum
 }
 

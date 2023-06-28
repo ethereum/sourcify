@@ -8,7 +8,6 @@
 //     - source2.sol
 
 import path from 'path';
-import Web3 from 'web3';
 import fs from 'fs';
 import {
   /* ContextVariables, */ Match,
@@ -17,7 +16,7 @@ import {
 } from '../src';
 import { checkFiles } from '../src';
 import { expect } from 'chai';
-
+import { ContractFactory, Signer } from 'ethers';
 /**
  *  Function to deploy contracts from provider unlocked accounts
  *
@@ -25,50 +24,28 @@ import { expect } from 'chai';
  */
 // TODO: ABI type definition
 export async function deployFromAbiAndBytecode(
-  web3: Web3,
+  signer: Signer,
   contractFolderPath: string,
-  from: string,
   args?: any[]
 ) {
   const artifact = require(path.join(contractFolderPath, 'artifact.json'));
   // Deploy contract
-  const contract = new web3.eth.Contract(artifact.abi);
-  const deployment = contract.deploy({
-    data: artifact.bytecode,
-    arguments: args || [],
-  });
-  const gas = await deployment.estimateGas({ from });
+  const contractFactory = new ContractFactory(
+    artifact.abi,
+    artifact.bytecode,
+    signer
+  );
+  const deployment = await contractFactory.deploy(...(args || []));
+  await deployment.waitForDeployment();
 
-  // If awaited, the send() Promise returns the contract instance.
-  // We also need the tx hash so we need two seperate event listeners.
-  const sendPromiEvent = deployment.send({
-    from,
-    gas,
-  });
-
-  const txHashPromise = new Promise<string>((resolve, reject) => {
-    sendPromiEvent.on('transactionHash', (txHash) => {
-      resolve(txHash);
-    });
-    sendPromiEvent.on('error', (error) => {
-      reject(error);
-    });
-  });
-
-  const contractAddressPromise = new Promise<string>((resolve, reject) => {
-    sendPromiEvent.on('receipt', (receipt) => {
-      if (!receipt.contractAddress) {
-        reject(new Error('No contract address in receipt'));
-      } else {
-        resolve(receipt.contractAddress);
-      }
-    });
-    sendPromiEvent.on('error', (error) => {
-      reject(error);
-    });
-  });
-
-  return Promise.all([contractAddressPromise, txHashPromise]);
+  const contractAddress = await deployment.getAddress();
+  const creationTx = deployment.deploymentTransaction();
+  if (!creationTx) {
+    throw new Error(
+      `No deployment transaction found for ${contractAddress} in contract folder ${contractFolderPath}`
+    );
+  }
+  return { contractAddress, txHash: creationTx.hash };
 }
 
 /**
@@ -130,45 +107,21 @@ export const checkFilesFromContractFolder = async (
 export const deployCheckAndVerify = async (
   contractFolderPath: string,
   sourcifyChain: SourcifyChain,
-  web3provider: Web3,
-  from: string,
+  signer: Signer,
   args?: any[]
 ) => {
-  const [deployedAddress] = await deployFromAbiAndBytecode(
-    web3provider,
+  const { contractAddress } = await deployFromAbiAndBytecode(
+    signer,
     contractFolderPath,
-    from,
     args
   );
   const match = await checkAndVerifyDeployed(
     contractFolderPath,
     sourcifyChain,
-    deployedAddress
+    contractAddress
   );
-  return { match, deployedAddress };
+  return { match, contractAddress };
 };
-
-// Sends a tx that changes the state
-export async function callContractMethodWithTx(
-  web3: Web3,
-  contractFolderPath: string,
-  contractAddress: string,
-  methodName: string,
-  from: string,
-  args: any[]
-) {
-  const artifact = require(path.join(contractFolderPath, 'artifact.json'));
-  const contract = new web3.eth.Contract(artifact.abi, contractAddress);
-  const method = contract.methods[methodName](...args);
-  const gas = await method.estimateGas({ from });
-
-  const txReceipt = await method.send({
-    from,
-    gas,
-  });
-
-  return txReceipt;
-}
 
 export const expectMatch = (
   match: Match,
