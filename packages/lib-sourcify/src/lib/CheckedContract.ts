@@ -18,7 +18,6 @@ import { decode as decodeBytecode } from '@ethereum-sourcify/bytecode-utils';
 import { ipfsHash } from './hashFunctions/ipfsHash';
 import { swarmBzzr0Hash, swarmBzzr1Hash } from './hashFunctions/swarmHash';
 import { logError, logInfo, logWarn } from './logger';
-// I used this file as an example of how to use it
 
 // TODO: find a better place for these constants. Reminder: this sould work also in the browser
 const IPFS_PREFIX = 'dweb:/ipfs/';
@@ -248,7 +247,11 @@ export class CheckedContract {
         .map((e: any) => e.formattedMessage);
 
       const error = new Error('Compiler error');
-      console.error(errorMessages);
+      logWarn(
+        `Compiler error in CheckedContract.recompile: \n${errorMessages.join(
+          '\n\t'
+        )}`
+      );
       throw error;
     }
 

@@ -5,6 +5,7 @@ import { spawnSync } from 'child_process';
 import { fetchWithTimeout } from './utils';
 import { StatusCodes } from 'http-status-codes';
 import { JsonInput, PathBuffer } from './types';
+import { logError, logInfo, logWarn } from './logger';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const solc = require('solc');
 
@@ -47,7 +48,7 @@ export async function useCompiler(version: string, solcJsonInput: JsonInput) {
   if (solcPlatform) {
     solcPath = await getSolcExecutable(solcPlatform, version);
   }
-  console.time('Compilation time');
+  const startCompilation = Date.now();
   if (solcPath) {
     const shellOutputBuffer = spawnSync(solcPath, ['--standard-json'], {
       input: inputStringified,
@@ -68,7 +69,7 @@ export async function useCompiler(version: string, solcJsonInput: JsonInput) {
       error = new Error(RECOMPILATION_ERR_MSG);
     }
     if (error) {
-      console.error(error);
+      logWarn(error.message);
       throw error;
     }
     compiled = shellOutputBuffer.stdout.toString();
@@ -79,7 +80,8 @@ export async function useCompiler(version: string, solcJsonInput: JsonInput) {
     }
   }
 
-  console.timeEnd('Compilation time');
+  const endCompilation = Date.now();
+  logInfo(`Compilation time : ${endCompilation - startCompilation}`);
 
   if (!compiled) {
     throw new Error('Compilation failed. No output from the compiler.');
@@ -92,7 +94,7 @@ export async function useCompiler(version: string, solcJsonInput: JsonInput) {
     const error = new Error(
       'Compiler error:\n ' + JSON.stringify(errorMessages)
     );
-    console.error(error);
+    logError(error.message);
     throw error;
   }
   return compiledJSON;
@@ -150,7 +152,7 @@ export async function getSolcExecutable(
   }
   const success = await fetchAndSaveSolc(platform, solcPath, version, fileName);
   if (success && !validateSolcPath(solcPath)) {
-    console.log(`Cannot validate solc ${version}.`);
+    logError(`Cannot validate solc ${version}.`);
     return null;
   }
   return success ? solcPath : null;
@@ -168,7 +170,7 @@ function validateSolcPath(solcPath: string): boolean {
     spawned.stderr.toString() ||
     'Error running solc, are you on the right platoform? (e.g. x64 vs arm)';
 
-  console.log(error);
+  logWarn(error);
   return false;
 }
 
@@ -215,9 +217,7 @@ async function fetchAndSaveSolc(
 
     return true;
   } else {
-    console.log(
-      `Failed fetching solc ${version} from GitHub: ${githubSolcURI}`
-    );
+    logWarn(`Failed fetching solc ${version} from GitHub: ${githubSolcURI}`);
   }
 
   return false;
