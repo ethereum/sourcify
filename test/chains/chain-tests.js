@@ -891,6 +891,19 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
+  // UPTN Chain Mainnet
+  verifyContract(
+    "0x212F6222fB4937978A806b14FB2725169825078F",
+    "6119",
+    "UPTN Chain",
+    [
+      "6119/ERC4906.sol",
+      "6119/UptnNFTsV1.sol",
+      "6119/IUPTNAddressValidator.sol",
+    ],
+    "6119/UptnNFTsV1.metadata.json"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainId) {
