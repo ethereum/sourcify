@@ -564,7 +564,9 @@ describe('lib-sourcify tests', () => {
       expectMatch(match, null, contractAddress, undefined); // status is null
     });
 
-    it('should fail to matchWithCreationTx with creatorTxHash having wrong constructor arguments', async () => {
+    // https://github.com/sourcifyeth/private-issues/issues/16
+    // Shouldn't let the `startsWith` check in `matchWithCreationTx` pass and verify arbitrary contracts with the short constructor code snippet. The attack contract is just a simple constructor. Avoid this by treating the difference of the `startsWith` of the recompiled creation bytecode and the tx.input as constructor arguments.
+    it.only('should fail to matchWithCreationTx with creatorTxHash when trying to maliciously verify with a creation bytecode that startsWith the creatorTx input of the deployed contract', async () => {
       const contractFolderPath = path.join(
         __dirname,
         'sources',
@@ -576,17 +578,13 @@ describe('lib-sourcify tests', () => {
         'WithImmutablesCreationBytecodeAttack'
       );
 
-      const [deployedAddress, wrongCreatorTxHash] =
-        await deployFromAbiAndBytecode(
-          localWeb3Provider,
-          contractFolderPath,
-          accounts[0],
-          ['12345']
-        );
-      const [,] = await deployFromAbiAndBytecode(
-        localWeb3Provider,
+      const maliciousArtifact = require(path.join(
         maliciousContractFolderPath,
-        accounts[0],
+        'artifact.json'
+      ));
+      const { contractAddress, txHash } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath,
         ['12345']
       );
 
@@ -595,20 +593,20 @@ describe('lib-sourcify tests', () => {
       );
       const recompiled = await checkedContracts[0].recompile();
       const match = {
-        address: deployedAddress,
+        address: contractAddress,
         chainId: sourcifyChainGanache.chainId.toString(),
         status: null,
       };
       const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
       await matchWithCreationTx(
         match,
-        '0x60a060405234801561001057600080fd5b506040516103ca', // I force recompiled.creationBytecode because it would take time to generate the right attack,
+        maliciousArtifact.bytecode,
         sourcifyChainGanache,
-        deployedAddress,
-        wrongCreatorTxHash,
+        contractAddress,
+        txHash,
         recompiledMetadata
       );
-      expectMatch(match, null, deployedAddress, undefined); // status is null
+      expectMatch(match, null, contractAddress, undefined); // status is null
     });
 
     it('should fail to matchWithCreationTx when passing an abstract contract', async () => {
@@ -618,12 +616,8 @@ describe('lib-sourcify tests', () => {
         'WithImmutables'
       );
 
-      const [deployedAddress, creatorTxHash] = await deployFromAbiAndBytecode(
-        localWeb3Provider,
-        contractFolderPath,
-        accounts[0],
-        ['12345']
-      );
+      const { contractAddress, txHash: creatorTxHash } =
+        await deployFromAbiAndBytecode(signer, contractFolderPath, ['12345']);
 
       const maliciousContractFolderPath = path.join(
         __dirname,
@@ -635,7 +629,7 @@ describe('lib-sourcify tests', () => {
       );
       const recompiled = await checkedContracts[0].recompile();
       const match = {
-        address: deployedAddress,
+        address: contractAddress,
         chainId: sourcifyChainGanache.chainId.toString(),
         status: null,
       };
@@ -645,11 +639,11 @@ describe('lib-sourcify tests', () => {
         match,
         recompiled.creationBytecode,
         sourcifyChainGanache,
-        deployedAddress,
+        contractAddress,
         creatorTxHash,
         recompiledMetadata
       );
-      expectMatch(match, null, deployedAddress, undefined); // status is null
+      expectMatch(match, null, contractAddress, undefined); // status is null
     });
 
     it('should successfuly verify with matchWithCreationTx with creationTxHash', async () => {
