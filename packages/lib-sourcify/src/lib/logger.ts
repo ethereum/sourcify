@@ -54,5 +54,5 @@ export function logInfo(message: string) {
 }
 
 export function logDebug(message: string) {
-  AppLogger.log(3, message);
+  AppLogger.log(4, message);
 }

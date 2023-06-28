@@ -104,3 +104,49 @@ const match = await verifyCreate2(
 console.log(match.chainId); // '0'. create2 matches return 0 as chainId
 console.log(match.status); // 'perfect'
 ```
+
+## Logging
+
+`lib-sourcify` has a basic logging system.
+
+You can specify the log level using the `setLibSourcifyLoggerLevel(level)` where:
+
+- `0` is nothing
+- `1` is errors _[default]_
+- `2` is warnings
+- `3` is infos
+- `4` is debug
+
+You can override the logger by calling `setLogger(logger: ILibSourcifyLogger)`. This is an example:
+
+```javascript
+const winston = require('winston');
+const logger = winston.createLogger({
+  // ...
+});
+
+setLibSourcifyLogger({
+  logLevel: 4,
+  setLevel(level: number) {
+    this.logLevel = level;
+  },
+  log(level, msg) {
+    if (level <= this.logLevel) {
+      switch (level) {
+        case 1:
+          logger.error(msg);
+          break;
+        case 2:
+          logger.warn(msg);
+          break;
+        case 3:
+          logger.info(msg);
+          break;
+        case 4:
+          logger.debug(msg);
+          break;
+      }
+    }
+  },
+});
+```
