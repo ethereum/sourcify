@@ -17,6 +17,8 @@ import { storeByHash } from './validation';
 import { decode as decodeBytecode } from '@ethereum-sourcify/bytecode-utils';
 import { ipfsHash } from './hashFunctions/ipfsHash';
 import { swarmBzzr0Hash, swarmBzzr1Hash } from './hashFunctions/swarmHash';
+import { logError, logInfo, logWarn } from './logger';
+// I used this file as an example of how to use it
 
 // TODO: find a better place for these constants. Reminder: this sould work also in the browser
 const IPFS_PREFIX = 'dweb:/ipfs/';
@@ -338,14 +340,14 @@ export async function performFetch(
   hash?: string,
   fileName?: string
 ): Promise<string | null> {
-  console.log(`Fetching the file ${fileName} from ${url}...`);
+  logInfo(`Fetching the file ${fileName} from ${url}...`);
   const res = await fetchWithTimeout(url, { timeout: FETCH_TIMEOUT }).catch(
     (err) => {
       if (err.type === 'aborted')
-        console.log(
+        logWarn(
           `Fetching the file ${fileName} from ${url} timed out. Timeout: ${FETCH_TIMEOUT}ms`
         );
-      else console.log(err);
+      else logError(err);
     }
   );
 
@@ -353,14 +355,14 @@ export async function performFetch(
     if (res.status === 200) {
       const content = await res.text();
       if (hash && Web3.utils.keccak256(content) !== hash) {
-        console.log("The calculated and the provided hash don't match.");
+        logError("The calculated and the provided hash don't match.");
         return null;
       }
 
-      console.log(`Successfully fetched the file ${fileName}`);
+      logInfo(`Successfully fetched the file ${fileName}`);
       return content;
     } else {
-      console.log(
+      logError(
         `Fetching the file ${fileName} failed with status: ${res?.status}`
       );
       return null;
