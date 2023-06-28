@@ -32,8 +32,8 @@ describe("Test Supported Chains", function () {
 
   before(async function () {
     const promisified = util.promisify(server.app.listen);
-    await promisified(3000);
-    console.log(`Injector listening on port ${3000}!`);
+    await promisified(server.port);
+    console.log(`Injector listening on port ${server.port}!`);
   });
 
   beforeEach(() => {
@@ -983,7 +983,6 @@ describe("Test Supported Chains", function () {
           files: files,
         })
         .end((err, res) => {
-          // console.log("error", err, "res", res);
           assertVerification(err, res, done, address, chainId);
           anyTestsPass = true;
         });
