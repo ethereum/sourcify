@@ -6,6 +6,7 @@ import {
   findContractPathFromContractName,
   useCompiler,
 } from "@ethereum-sourcify/lib-sourcify";
+import { TooManyRequests } from "../../../../common/errors/TooManyRequests";
 
 export type EtherscanResult = {
   SourceCode: string;
@@ -88,7 +89,7 @@ export const processRequestFromEtherscan = async (
     resultJson.message === "NOTOK" &&
     resultJson.result.includes("Max rate limit reached")
   ) {
-    throw new BadRequestError("Etherscan API rate limit reached, try later");
+    throw new TooManyRequests("Etherscan API rate limit reached, try later");
   }
 
   if (resultJson.message === "NOTOK") {
