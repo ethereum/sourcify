@@ -81,7 +81,7 @@ export async function useCompiler(version: string, solcJsonInput: JsonInput) {
   }
 
   const endCompilation = Date.now();
-  logInfo(`Compilation time : ${endCompilation - startCompilation}`);
+  logInfo(`Compilation time : ${endCompilation - startCompilation} ms`);
 
   if (!compiled) {
     throw new Error('Compilation failed. No output from the compiler.');
