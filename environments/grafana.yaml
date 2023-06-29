@@ -64,7 +64,7 @@ services:
       - "${GRAFANA_PROMETHEUS_EXTERNAL_PORT}:9090"
     volumes:
       - /etc/prometheus:/etc/prometheus
-      - ../../data/prometheus/:/prometheus
+      - prometheus-data:/prometheus
     restart: unless-stopped
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
