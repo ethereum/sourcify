@@ -112,8 +112,8 @@ console.log(match.status); // 'perfect'
 You can specify the log level using the `setLibSourcifyLoggerLevel(level)` where:
 
 - `0` is nothing
-- `1` is errors _[default]_
-- `2` is warnings
+- `1` is errors
+- `2` is warnings _[default]_
 - `3` is infos
 - `4` is debug
 
