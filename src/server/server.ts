@@ -28,10 +28,38 @@ import { resolveRefs } from "json-refs";
 import { initDeprecatedRoutes } from "./deprecated.routes";
 import { getAddress, isAddress } from "ethers/lib/utils";
 import { logger } from "../common/loggerLoki";
+import { setLibSourcifyLogger } from "@ethereum-sourcify/lib-sourcify";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fileUpload = require("express-fileupload");
 
 const MemoryStore = createMemoryStore(session);
+
+// here we override the standard LibSourcify's Logger with a custom one
+setLibSourcifyLogger({
+  // No need to set again the logger level because it's set here
+  logLevel: process.env.NODE_ENV === "production" ? 3 : 4,
+  setLevel(level: number) {
+    this.logLevel = level;
+  },
+  log(level, msg) {
+    if (level <= this.logLevel) {
+      switch (level) {
+        case 1:
+          logger.error(msg);
+          break;
+        case 2:
+          logger.warn(msg);
+          break;
+        case 3:
+          logger.info(msg);
+          break;
+        case 4:
+          logger.debug(msg);
+          break;
+      }
+    }
+  },
+});
 
 export class Server {
   app: express.Application;

@@ -30,6 +30,7 @@ import { getAddress, getContractAddress } from '@ethersproject/address';
 import semverSatisfies from 'semver/functions/satisfies';
 import { defaultAbiCoder as abiCoder, ParamType } from '@ethersproject/abi';
 import { AbiConstructor } from 'abitype';
+import { logInfo, logWarn } from './logger';
 
 const RPC_TIMEOUT = process.env.RPC_TIMEOUT
   ? parseInt(process.env.RPC_TIMEOUT)
@@ -47,7 +48,7 @@ export async function verifyDeployed(
     chainId: sourcifyChain.chainId.toString(),
     status: null,
   };
-  console.log(
+  logInfo(
     `Verifying contract ${
       checkedContract.name
     } at address ${address} on chain ${sourcifyChain.chainId.toString()}`
@@ -501,7 +502,7 @@ export async function getBytecode(
       return bytecode;
     } catch (err) {
       // Catch to try the next RPC
-      console.log(err);
+      logWarn((err as Error).message);
     }
   }
   throw new Error('None of the RPCs responded');
@@ -524,12 +525,12 @@ async function getTx(creatorTxHash: string, sourcifyChain: SourcifyChain) {
         rejectInMs(RPC_TIMEOUT, rpcURL),
       ])) as Transaction;
       if (tx) {
-        console.log(`Transaction ${creatorTxHash} fetched via ${rpcURL}`);
+        logInfo(`Transaction ${creatorTxHash} fetched via ${rpcURL}`);
         return tx;
       }
     } catch (err) {
       // Catch to try the next RPC
-      console.log(err);
+      logWarn((err as Error).message);
     }
   }
   throw new Error('None of the RPCs responded');
@@ -682,7 +683,7 @@ function doesContainMetadataHash(bytecode: string) {
     containsMetadata =
       !!decodedCBOR.ipfs || !!decodedCBOR['bzzr0'] || !!decodedCBOR['bzzr1'];
   } catch (e) {
-    console.log("Can't decode CBOR");
+    logInfo("Can't decode CBOR");
     containsMetadata = false;
   }
   return containsMetadata;
