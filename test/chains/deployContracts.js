@@ -1,5 +1,4 @@
 const { deployFromPrivateKey } = require("../helpers/helpers");
-const Web3 = require("web3");
 const StorageArtifact = require("./sources/shared/1_Storage.json");
 const { supportedChainsArray } = require("../../dist/sourcify-chains");
 const { program } = require("commander");

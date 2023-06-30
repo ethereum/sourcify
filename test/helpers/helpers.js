@@ -16,7 +16,7 @@ const unsupportedChain = "3"; // Ropsten
 
 async function deployFromAbiAndBytecode(signer, abi, bytecode, args) {
   const contractFactory = new ContractFactory(abi, bytecode, signer);
-  console.log(`Deploying contract ${args?.length ? `with args ${args}` : ""}}`);
+  console.log(`Deploying contract ${args?.length ? `with args ${args}` : ""}`);
   const deployment = await contractFactory.deploy(...(args || []));
   await deployment.waitForDeployment();
 
@@ -28,7 +28,6 @@ async function deployFromAbiAndBytecode(signer, abi, bytecode, args) {
 /**
  * Creator tx hash is needed for tests. This function returns the tx hash in addition to the contract address.
  *
- * @returns The contract address and the tx hash
  */
 async function deployFromAbiAndBytecodeForCreatorTxHash(
   signer,
@@ -37,16 +36,14 @@ async function deployFromAbiAndBytecodeForCreatorTxHash(
   args
 ) {
   const contractFactory = new ContractFactory(abi, bytecode, signer);
-  console.log(`Deploying contract ${args?.length ? `with args ${args}` : ""}}`);
+  console.log(`Deploying contract ${args?.length ? `with args ${args}` : ""}`);
   const deployment = await contractFactory.deploy(...(args || []));
   await deployment.waitForDeployment();
 
   const contractAddress = await deployment.getAddress();
   const creationTx = deployment.deploymentTransaction();
   if (!creationTx) {
-    throw new Error(
-      `No deployment transaction found for ${contractAddress} in contract folder ${contractFolderPath}`
-    );
+    throw new Error(`No deployment transaction found for ${contractAddress}`);
   }
   console.log(
     `Deployed contract at ${contractAddress} with tx ${creationTx.hash}`
@@ -60,7 +57,7 @@ async function deployFromAbiAndBytecodeForCreatorTxHash(
 async function deployFromPrivateKey(provider, abi, bytecode, privateKey, args) {
   const signer = new Wallet(privateKey, provider);
   const contractFactory = new ContractFactory(abi, bytecode, signer);
-  console.log(`Deploying contract ${args?.length ? `with args ${args}` : ""}}`);
+  console.log(`Deploying contract ${args?.length ? `with args ${args}` : ""}`);
   const deployment = await contractFactory.deploy(...(args || []));
   await deployment.waitForDeployment();
 
@@ -88,7 +85,7 @@ async function callContractMethod(
   args
 ) {
   const contract = new BaseContract(contractAddress, abi, provider);
-  const callResponse = await contract.interface[methodName].staticCall(...args);
+  const callResponse = await contract[methodName].staticCall(...args);
 
   return callResponse;
 }
@@ -99,12 +96,11 @@ async function callContractMethodWithTx(
   abi,
   contractAddress,
   methodName,
-  from,
   args
 ) {
   const contract = new BaseContract(contractAddress, abi, signer);
-  const txReceipt = await contract.interface[methodName].send(...args);
-
+  const txResponse = await contract[methodName].send(...args);
+  const txReceipt = await txResponse.wait();
   return txReceipt;
 }
 
