@@ -1,7 +1,11 @@
-import Web3 from "web3";
-import { Transaction } from "web3-core";
 import { SourceAddress } from "./util";
-import { ethers } from "ethers";
+import {
+  JsonRpcProvider,
+  Provider,
+  TransactionResponse,
+  WebSocketProvider,
+  getCreateAddress,
+} from "ethers";
 import SourceFetcher from "./source-fetcher";
 import assert from "assert";
 import { EventEmitter } from "stream";
@@ -23,7 +27,6 @@ import {
   supportedChainsMap,
   LOCAL_CHAINS,
 } from "../sourcify-chains";
-import { toChecksumAddress } from "web3-utils";
 import { logger } from "../common/loggerLoki";
 import "../common/SourcifyEventManager/listeners/logger";
 
@@ -34,9 +37,9 @@ const BLOCK_PAUSE_UPPER_LIMIT =
   parseInt(process.env.BLOCK_PAUSE_UPPER_LIMIT || "") || 30 * 1000; // default: 30 seconds
 const BLOCK_PAUSE_LOWER_LIMIT =
   parseInt(process.env.BLOCK_PAUSE_LOWER_LIMIT || "") || 0.5 * 1000; // default: 0.5 seconds
-const WEB3_TIMEOUT = parseInt(process.env.WEB3_TIMEOUT || "") || 3000;
+const PROVIDER_TIMEOUT = parseInt(process.env.PROVIDER_TIMEOUT || "") || 3000;
 
-function createsContract(tx: Transaction): boolean {
+function createsContract(tx: TransactionResponse): boolean {
   return !tx.to;
 }
 
@@ -45,8 +48,8 @@ function createsContract(tx: Transaction): boolean {
  */
 class ChainMonitor extends EventEmitter {
   private chainId: string;
-  private web3urls: string[];
-  private web3provider: Web3 | undefined;
+  private providerURLs: string[];
+  private provider: Provider | undefined;
   private sourceFetcher: SourceFetcher;
   private verificationService: IVerificationService;
   private repositoryService: IRepositoryService;
@@ -59,14 +62,14 @@ class ChainMonitor extends EventEmitter {
   constructor(
     name: string,
     chainId: string,
-    web3urls: string[],
+    providerURLs: string[],
     sourceFetcher: SourceFetcher,
     verificationService: IVerificationService,
     repositoryService: IRepositoryService
   ) {
     super();
     this.chainId = chainId;
-    this.web3urls = web3urls;
+    this.providerURLs = providerURLs;
     this.sourceFetcher = sourceFetcher;
     this.verificationService = verificationService;
     this.repositoryService = repositoryService;
@@ -86,16 +89,24 @@ class ChainMonitor extends EventEmitter {
 
     // iterate over RPCs to find a working one; log the search result
     let found = false;
-    for (const web3url of this.web3urls) {
-      const opts = { timeout: WEB3_TIMEOUT };
-      const web3provider = new Web3(
-        new Web3.providers.HttpProvider(web3url, opts)
-      );
+    for (const providerURL of this.providerURLs) {
+      // const opts = { timeout: PROVIDER_TIMEOUT };
+      // TODO: ethers provider does not support timeout https://github.com/ethers-io/ethers.js/issues/4122
+      const provider = providerURL.startsWith("http")
+        ? // prettier vs. eslint indentation conflict here
+          /* eslint-disable indent*/
+          new JsonRpcProvider(providerURL, {
+            chainId: parseInt(this.chainId),
+          })
+        : new WebSocketProvider(providerURL, {
+            chainId: parseInt(this.chainId),
+          });
+      /* eslint-enable indent*/
       try {
-        const lastBlockNumber = await web3provider.eth.getBlockNumber();
+        const lastBlockNumber = await provider.getBlockNumber();
         found = true;
 
-        this.web3provider = web3provider;
+        this.provider = provider;
 
         const startBlock =
           rawStartBlock !== undefined
@@ -104,14 +115,14 @@ class ChainMonitor extends EventEmitter {
 
         SourcifyEventManager.trigger("Monitor.Started", {
           chainId: this.chainId,
-          web3url,
+          providerURL,
           lastBlockNumber,
           startBlock,
         });
         this.processBlock(startBlock);
         break;
       } catch (err) {
-        logger.debug(err);
+        logger.info(`${providerURL} did not work: \n ${err}`);
       }
     }
 
@@ -132,12 +143,12 @@ class ChainMonitor extends EventEmitter {
   };
 
   private processBlock = (blockNumber: number) => {
-    if (!this.web3provider)
+    if (!this.provider)
       throw new Error(
-        `Can't process block ${blockNumber}. Web3 provider not initialized`
+        `Can't process block ${blockNumber}. Provider not initialized`
       );
 
-    this.web3provider.eth
+    this.provider
       .getBlock(blockNumber, true)
       .then((block) => {
         if (!block) {
@@ -153,9 +164,9 @@ class ChainMonitor extends EventEmitter {
           getBlockPause: this.getBlockPause,
         });
 
-        for (const tx of block.transactions) {
+        for (const tx of block.prefetchedTransactions) {
           if (createsContract(tx)) {
-            const address = ethers.utils.getContractAddress(tx);
+            const address = getCreateAddress(tx);
             if (this.isVerified(address)) {
               SourcifyEventManager.trigger("Monitor.AlreadyVerified", {
                 address,
@@ -215,10 +226,10 @@ class ChainMonitor extends EventEmitter {
     if (retriesLeft-- <= 0) {
       return;
     }
-    if (!this.web3provider)
-      throw new Error(`Can't process bytecode. Web3 provider not initialized`);
+    if (!this.provider)
+      throw new Error(`Can't process bytecode. Provider not initialized`);
 
-    this.web3provider.eth
+    this.provider
       .getCode(address)
       .then((bytecode) => {
         if (bytecode === "0x") {

@@ -1,6 +1,5 @@
 import SourceFetcher from "./source-fetcher";
 import { SourceAddress } from "./util";
-import Web3 from "web3";
 import {
   CheckedContract,
   isEmpty,
@@ -8,6 +7,7 @@ import {
   StringMap,
 } from "@ethereum-sourcify/lib-sourcify";
 import { SourcifyEventManager } from "../common/SourcifyEventManager/SourcifyEventManager";
+import { id as keccak256str } from "ethers";
 
 type PendingSource = {
   keccak256: string;
@@ -89,7 +89,7 @@ export default class PendingContract {
   };
 
   private addFetchedSource = (sourceContent: string) => {
-    const hash = Web3.utils.keccak256(sourceContent);
+    const hash = keccak256str(sourceContent);
     const source = this.pendingSources[hash];
 
     if (!source || source.name in this.fetchedSources) {
