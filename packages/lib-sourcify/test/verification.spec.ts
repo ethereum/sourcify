@@ -566,7 +566,7 @@ describe('lib-sourcify tests', () => {
 
     // https://github.com/sourcifyeth/private-issues/issues/16
     // Shouldn't let the `startsWith` check in `matchWithCreationTx` pass and verify arbitrary contracts with the short constructor code snippet. The attack contract is just a simple constructor. Avoid this by treating the difference of the `startsWith` of the recompiled creation bytecode and the tx.input as constructor arguments.
-    it.only('should fail to matchWithCreationTx with creatorTxHash when trying to maliciously verify with a creation bytecode that startsWith the creatorTx input of the deployed contract', async () => {
+    it('should fail to matchWithCreationTx with creatorTxHash when trying to maliciously verify with a creation bytecode that startsWith the creatorTx input of the deployed contract', async () => {
       const contractFolderPath = path.join(
         __dirname,
         'sources',
