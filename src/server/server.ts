@@ -26,7 +26,7 @@ import swaggerUi from "swagger-ui-express";
 import yamljs from "yamljs";
 import { resolveRefs } from "json-refs";
 import { initDeprecatedRoutes } from "./deprecated.routes";
-import { getAddress, isAddress } from "ethers/lib/utils";
+import { getAddress } from "ethers";
 import { logger } from "../common/loggerLoki";
 import { setLibSourcifyLogger } from "@ethereum-sourcify/lib-sourcify";
 // eslint-disable-next-line @typescript-eslint/no-var-requires

@@ -12,21 +12,13 @@ import { EventEmitter } from "stream";
 import { decode as bytecodeDecode } from "@ethereum-sourcify/bytecode-utils";
 import { SourcifyEventManager } from "../common/SourcifyEventManager/SourcifyEventManager";
 import {
-  Chain,
   CheckedContract,
-  Match,
-  matchWithDeployedBytecode,
-  addLibraryAddresses,
-  verifyDeployed,
+  SourcifyChain,
 } from "@ethereum-sourcify/lib-sourcify";
 import { services } from "../server/services/services";
 import { IRepositoryService } from "../server/services/RepositoryService";
 import { IVerificationService } from "../server/services/VerificationService";
-import {
-  monitoredChainArray,
-  supportedChainsMap,
-  LOCAL_CHAINS,
-} from "../sourcify-chains";
+import { monitoredChainArray } from "../sourcify-chains";
 import { logger } from "../common/loggerLoki";
 import "../common/SourcifyEventManager/listeners/logger";
 
@@ -47,8 +39,7 @@ function createsContract(tx: TransactionResponse): boolean {
  * A monitor that periodically checks for new contracts on a single chain.
  */
 class ChainMonitor extends EventEmitter {
-  private chainId: string;
-  private providerURLs: string[];
+  private sourcifyChain: SourcifyChain;
   private provider: Provider | undefined;
   private sourceFetcher: SourceFetcher;
   private verificationService: IVerificationService;
@@ -60,16 +51,13 @@ class ChainMonitor extends EventEmitter {
   private initialGetBytecodeTries: number;
 
   constructor(
-    name: string,
-    chainId: string,
-    providerURLs: string[],
+    sourcifyChain: SourcifyChain,
     sourceFetcher: SourceFetcher,
     verificationService: IVerificationService,
     repositoryService: IRepositoryService
   ) {
     super();
-    this.chainId = chainId;
-    this.providerURLs = providerURLs;
+    this.sourcifyChain = sourcifyChain;
     this.sourceFetcher = sourceFetcher;
     this.verificationService = verificationService;
     this.repositoryService = repositoryService;
@@ -85,21 +73,24 @@ class ChainMonitor extends EventEmitter {
 
   start = async (): Promise<void> => {
     this.running = true;
-    const rawStartBlock = process.env[`MONITOR_START_${this.chainId}`];
+    const rawStartBlock =
+      process.env[`MONITOR_START_${this.sourcifyChain.chainId}`];
 
     // iterate over RPCs to find a working one; log the search result
     let found = false;
-    for (const providerURL of this.providerURLs) {
+    for (const providerURL of this.sourcifyChain.rpc) {
       // const opts = { timeout: PROVIDER_TIMEOUT };
       // TODO: ethers provider does not support timeout https://github.com/ethers-io/ethers.js/issues/4122
       const provider = providerURL.startsWith("http")
         ? // prettier vs. eslint indentation conflict here
           /* eslint-disable indent*/
           new JsonRpcProvider(providerURL, {
-            chainId: parseInt(this.chainId),
+            name: this.sourcifyChain.name,
+            chainId: this.sourcifyChain.chainId,
           })
         : new WebSocketProvider(providerURL, {
-            chainId: parseInt(this.chainId),
+            name: this.sourcifyChain.name,
+            chainId: this.sourcifyChain.chainId,
           });
       /* eslint-enable indent*/
       try {
@@ -114,7 +105,7 @@ class ChainMonitor extends EventEmitter {
             : lastBlockNumber;
 
         SourcifyEventManager.trigger("Monitor.Started", {
-          chainId: this.chainId,
+          chainId: this.sourcifyChain.chainId,
           providerURL,
           lastBlockNumber,
           startBlock,
@@ -128,7 +119,7 @@ class ChainMonitor extends EventEmitter {
 
     if (!found) {
       SourcifyEventManager.trigger("Monitor.Error.CantStart", {
-        chainId: this.chainId,
+        chainId: this.sourcifyChain.chainId,
         message: "Couldn't find a working RPC node.",
       });
     }
@@ -138,7 +129,7 @@ class ChainMonitor extends EventEmitter {
    * Stops the monitor after executing all pending requests.
    */
   stop = (): void => {
-    SourcifyEventManager.trigger("Monitor.Stopped", this.chainId);
+    SourcifyEventManager.trigger("Monitor.Stopped", this.sourcifyChain.chainId);
     this.running = false;
   };
 
@@ -160,7 +151,7 @@ class ChainMonitor extends EventEmitter {
 
         SourcifyEventManager.trigger("Monitor.ProcessingBlock", {
           blockNumber,
-          chainId: this.chainId,
+          chainId: this.sourcifyChain.chainId,
           getBlockPause: this.getBlockPause,
         });
 
@@ -170,13 +161,17 @@ class ChainMonitor extends EventEmitter {
             if (this.isVerified(address)) {
               SourcifyEventManager.trigger("Monitor.AlreadyVerified", {
                 address,
-                chainId: this.chainId,
+                chainId: this.sourcifyChain.chainId,
               });
-              this.emit("contract-already-verified", this.chainId, address);
+              this.emit(
+                "contract-already-verified",
+                this.sourcifyChain.chainId,
+                address
+              );
             } else {
               SourcifyEventManager.trigger("Monitor.NewContract", {
                 address,
-                chainId: this.chainId,
+                chainId: this.sourcifyChain.chainId,
               });
               this.processBytecode(
                 tx.hash,
@@ -193,7 +188,7 @@ class ChainMonitor extends EventEmitter {
         SourcifyEventManager.trigger("Monitor.Error.ProcessingBlock", {
           message: err.message,
           stack: err.stack,
-          chainId: this.chainId,
+          chainId: this.sourcifyChain.chainId,
           blockNumber,
         });
       })
@@ -205,7 +200,7 @@ class ChainMonitor extends EventEmitter {
   private isVerified(address: string): boolean {
     const foundArr = this.repositoryService.checkByChainAndAddress(
       address,
-      this.chainId
+      this.sourcifyChain.chainId.toString()
     );
     return !!foundArr.length;
   }
@@ -256,7 +251,7 @@ class ChainMonitor extends EventEmitter {
           SourcifyEventManager.trigger("Monitor.Error.ProcessingBytecode", {
             message: err.message,
             stack: err.stack,
-            chainId: this.chainId,
+            chainId: this.sourcifyChain.chainId,
             address,
           });
         }
@@ -265,7 +260,7 @@ class ChainMonitor extends EventEmitter {
         SourcifyEventManager.trigger("Monitor.Error.GettingBytecode", {
           message: err.message,
           stack: err.stack,
-          chainId: this.chainId,
+          chainId: this.sourcifyChain.chainId,
           address,
         });
         this.mySetTimeout(
@@ -286,18 +281,22 @@ class ChainMonitor extends EventEmitter {
     try {
       const match = await this.verificationService.verifyDeployed(
         contract,
-        this.chainId,
+        this.sourcifyChain.chainId.toString(),
         address,
         /* undefined, */
         creatorTxHash
       );
       await this.repositoryService.storeMatch(contract, match);
-      this.emit("contract-verified-successfully", this.chainId, address);
+      this.emit(
+        "contract-verified-successfully",
+        this.sourcifyChain.chainId,
+        address
+      );
     } catch (err: any) {
       SourcifyEventManager.trigger("Monitor.Error.VerifyError", {
         message: err.message,
         stack: err.stack,
-        chainId: this.chainId,
+        chainId: this.sourcifyChain.chainId,
         address,
       });
     }
@@ -313,9 +312,6 @@ class ChainMonitor extends EventEmitter {
     }
   };
 }
-export interface MonitorConfig {
-  testing?: boolean;
-}
 
 /**
  * A monitor that periodically checks for new contracts on designated chains.
@@ -324,15 +320,15 @@ export default class Monitor extends EventEmitter {
   private chainMonitors: ChainMonitor[];
   private sourceFetcher = new SourceFetcher();
 
-  constructor(config: MonitorConfig = {}) {
+  constructor(chainsToMonitor?: SourcifyChain[]) {
     super();
-    const chains = config.testing ? LOCAL_CHAINS : monitoredChainArray;
-    this.chainMonitors = chains.map(
-      (chain: Chain) =>
+    chainsToMonitor = chainsToMonitor?.length
+      ? chainsToMonitor
+      : monitoredChainArray; // default to all monitored chains
+    this.chainMonitors = chainsToMonitor.map(
+      (sourcifyChain) =>
         new ChainMonitor(
-          chain.name,
-          chain.chainId.toString(),
-          chain.rpc,
+          sourcifyChain,
           this.sourceFetcher,
           services.verification,
           services.repository

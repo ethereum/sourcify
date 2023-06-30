@@ -3,6 +3,7 @@ const Web3 = require("web3");
 const StorageArtifact = require("./sources/shared/1_Storage.json");
 const { supportedChainsArray } = require("../../dist/sourcify-chains");
 const { program } = require("commander");
+const { JsonRpcApiProvider } = require("ethers");
 
 program
   .description(
@@ -41,20 +42,20 @@ async function main(chainId, privateKey) {
     );
     return;
   }
-  let web3;
+  let provider;
   console.log("Using rpc: " + chain.rpc[0]);
   try {
-    web3 = new Web3(chain.rpc[0]);
+    provider = new JsonRpcApiProvider(chain.rpc[0]);
   } catch (err) {
     console.log(
-      `Can't initiate a Web3 instance with the chain: ${chain}. \n\nMake sure the chainId is added to src/sourcify-chains.ts and built with npx lerna run build`
+      `Can't initiate a Provider instance with the chain: ${chain}. \n\nMake sure the chainId is added to src/sourcify-chains.ts and built with npx lerna run build`
     );
     throw new Error(err);
   }
 
   console.log("Deploying the contract...");
   const contractAddress2 = await deployFromPrivateKey(
-    web3,
+    provider,
     StorageArtifact.abi,
     StorageArtifact.bytecode,
     privateKey,

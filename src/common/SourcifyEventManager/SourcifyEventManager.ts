@@ -4,48 +4,48 @@ import { EventManager, GenericEvents } from "../EventManager";
 interface Events extends GenericEvents {
   "*": (event: string, argument: any) => void;
   "Verification.MatchStored": (match: Match) => void;
-  "Monitor.Error.CantStart": (e: { chainId: string; message: string }) => void;
+  "Monitor.Error.CantStart": (e: { chainId: number; message: string }) => void;
   "Monitor.Started": (obj: {
-    chainId: string;
+    chainId: number;
     providerURL: string;
     lastBlockNumber: number;
     startBlock: number;
   }) => void;
-  "Monitor.Stopped": (chainId: string) => void;
+  "Monitor.Stopped": (chainId: number) => void;
   "Monitor.ProcessingBlock": (obj: {
     blockNumber: number;
-    chainId: string;
+    chainId: number;
     getBlockPause: number;
   }) => void;
   "Monitor.Verified": (match: Match) => void;
   "Monitor.AlreadyVerified": (obj: {
     address: string;
-    chainId: string;
+    chainId: number;
   }) => void;
-  "Monitor.NewContract": (obj: { address: string; chainId: string }) => void;
+  "Monitor.NewContract": (obj: { address: string; chainId: number }) => void;
   "Monitor.Error": (obj: { message: string; stack?: string }) => void;
   "Monitor.Error.ProcessingBlock": (obj: {
     message: string;
     stack: string;
     blockNumber: number;
-    chainId: string;
+    chainId: number;
   }) => void;
   "Monitor.Error.ProcessingBytecode": (obj: {
     message: string;
     stack: string;
-    chainId: string;
+    chainId: number;
     address: string;
   }) => void;
   "Monitor.Error.GettingBytecode": (obj: {
     message: string;
     stack: string;
-    chainId: string;
+    chainId: number;
     address: string;
   }) => void;
   "Monitor.Error.VerifyError": (obj: {
     message: string;
     stack: string;
-    chainId: string;
+    chainId: number;
     address: string;
   }) => void;
   "SourceFetcher.UsingFallback": (obj: {
