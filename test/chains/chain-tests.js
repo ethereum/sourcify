@@ -919,7 +919,7 @@ describe("Test Supported Chains", function () {
         const supportedChains = res.body.filter((chain) => chain.supported);
         const untestedChains = [];
         supportedChains.forEach((chain) => {
-          if (chain.chainId == 0) return; // Skip Localhost
+          if (chain.chainId == 1337 || chain.chainId == 31337) return; // Skip LOCAL_CHAINS: Ganache and Hardhat
           if (!testedChains.has(chain.chainId.toString())) {
             untestedChains.push(chain);
           }
