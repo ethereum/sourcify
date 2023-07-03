@@ -904,6 +904,15 @@ describe("Test Supported Chains", function () {
     "6119/UptnNFTsV1.metadata.json"
   );
 
+  // KAVA EVM Testnet
+  verifyContract(
+    "0x40b4f95C3bafc8d690B4c3fDD1E8303c4817Cd9C",
+    "2221",
+    "Kava EVM Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainId) {
