@@ -105,7 +105,7 @@ class ChainMonitor extends EventEmitter {
             : lastBlockNumber;
 
         SourcifyEventManager.trigger("Monitor.Started", {
-          chainId: this.sourcifyChain.chainId,
+          chainId: this.sourcifyChain.chainId.toString(),
           providerURL,
           lastBlockNumber,
           startBlock,
@@ -119,7 +119,7 @@ class ChainMonitor extends EventEmitter {
 
     if (!found) {
       SourcifyEventManager.trigger("Monitor.Error.CantStart", {
-        chainId: this.sourcifyChain.chainId,
+        chainId: this.sourcifyChain.chainId.toString(),
         message: "Couldn't find a working RPC node.",
       });
     }
@@ -129,7 +129,10 @@ class ChainMonitor extends EventEmitter {
    * Stops the monitor after executing all pending requests.
    */
   stop = (): void => {
-    SourcifyEventManager.trigger("Monitor.Stopped", this.sourcifyChain.chainId);
+    SourcifyEventManager.trigger(
+      "Monitor.Stopped",
+      this.sourcifyChain.chainId.toString()
+    );
     this.running = false;
   };
 
@@ -151,7 +154,7 @@ class ChainMonitor extends EventEmitter {
 
         SourcifyEventManager.trigger("Monitor.ProcessingBlock", {
           blockNumber,
-          chainId: this.sourcifyChain.chainId,
+          chainId: this.sourcifyChain.chainId.toString(),
           getBlockPause: this.getBlockPause,
         });
 
@@ -161,7 +164,7 @@ class ChainMonitor extends EventEmitter {
             if (this.isVerified(address)) {
               SourcifyEventManager.trigger("Monitor.AlreadyVerified", {
                 address,
-                chainId: this.sourcifyChain.chainId,
+                chainId: this.sourcifyChain.chainId.toString(),
               });
               this.emit(
                 "contract-already-verified",
@@ -171,7 +174,7 @@ class ChainMonitor extends EventEmitter {
             } else {
               SourcifyEventManager.trigger("Monitor.NewContract", {
                 address,
-                chainId: this.sourcifyChain.chainId,
+                chainId: this.sourcifyChain.chainId.toString(),
               });
               this.processBytecode(
                 tx.hash,
@@ -188,7 +191,7 @@ class ChainMonitor extends EventEmitter {
         SourcifyEventManager.trigger("Monitor.Error.ProcessingBlock", {
           message: err.message,
           stack: err.stack,
-          chainId: this.sourcifyChain.chainId,
+          chainId: this.sourcifyChain.chainId.toString(),
           blockNumber,
         });
       })
@@ -251,7 +254,7 @@ class ChainMonitor extends EventEmitter {
           SourcifyEventManager.trigger("Monitor.Error.ProcessingBytecode", {
             message: err.message,
             stack: err.stack,
-            chainId: this.sourcifyChain.chainId,
+            chainId: this.sourcifyChain.chainId.toString(),
             address,
           });
         }
@@ -260,7 +263,7 @@ class ChainMonitor extends EventEmitter {
         SourcifyEventManager.trigger("Monitor.Error.GettingBytecode", {
           message: err.message,
           stack: err.stack,
-          chainId: this.sourcifyChain.chainId,
+          chainId: this.sourcifyChain.chainId.toString(),
           address,
         });
         this.mySetTimeout(
@@ -296,7 +299,7 @@ class ChainMonitor extends EventEmitter {
       SourcifyEventManager.trigger("Monitor.Error.VerifyError", {
         message: err.message,
         stack: err.stack,
-        chainId: this.sourcifyChain.chainId,
+        chainId: this.sourcifyChain.chainId.toString(),
         address,
       });
     }
