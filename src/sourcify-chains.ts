@@ -902,6 +902,14 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     supported: true,
     monitored: false,
   },
+  "2221": {
+    // Kava EVM Testnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://explorer.testnet.kava.io/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
