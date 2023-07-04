@@ -24,7 +24,7 @@ import {
   verifyDeployed,
 } from '../src';
 import fs from 'fs';
-import { JsonRpcProvider, JsonRpcSigner } from 'ethers';
+import { JsonRpcProvider, JsonRpcSigner, Network } from 'ethers';
 // import { Match } from '@ethereum-sourcify/lib-sourcify';
 
 const ganacheServer = Ganache.server({
@@ -56,7 +56,15 @@ let signer: JsonRpcSigner;
 describe('lib-sourcify tests', () => {
   before(async () => {
     await ganacheServer.listen(GANACHE_PORT);
-    localProvider = new JsonRpcProvider(`http://localhost:${GANACHE_PORT}`);
+    const ethersNetwork = new Network(
+      sourcifyChainGanache.rpc[0],
+      sourcifyChainGanache.chainId
+    );
+    localProvider = new JsonRpcProvider(
+      `http://localhost:${GANACHE_PORT}`,
+      ethersNetwork,
+      { staticNetwork: ethersNetwork }
+    );
     signer = await localProvider.getSigner();
   });
 

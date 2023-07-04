@@ -15,6 +15,7 @@ const {
   id: keccak256str,
   JsonRpcProvider,
   getCreateAddress,
+  Network,
 } = require("ethers");
 const { EventEmitter } = require("stream");
 const { LOCAL_CHAINS } = require("../dist/sourcify-chains");
@@ -166,9 +167,15 @@ describe("Monitor", function () {
     });
     await ganacheServer.listen(GANACHE_PORT);
     console.log("Started ganache local server at port " + GANACHE_PORT);
-
+    const sourcifyChainGanache = LOCAL_CHAINS[0];
+    const ethersNetwork = new Network(
+      sourcifyChainGanache.rpc[0],
+      sourcifyChainGanache.chainId
+    );
     signer = await new JsonRpcProvider(
-      `http://localhost:${GANACHE_PORT}`
+      `http://localhost:${GANACHE_PORT}`,
+      ethersNetwork,
+      { staticNetwork: ethersNetwork }
     ).getSigner();
 
     account = await signer.getAddress();

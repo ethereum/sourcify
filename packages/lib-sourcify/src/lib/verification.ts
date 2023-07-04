@@ -15,6 +15,7 @@ import {
 } from '@ethereum-sourcify/bytecode-utils';
 import {
   JsonRpcProvider,
+  Network,
   TransactionResponse,
   WebSocketProvider,
   getAddress,
@@ -490,25 +491,31 @@ export async function getBytecode(
 
   // Request sequentially. Custom node is always before ALCHEMY so we don't waste resources if succeeds.
   for (const rpcURL of sourcifyChain.rpc) {
-    try {
-      const provider = rpcURL.startsWith('http')
-        ? new JsonRpcProvider(rpcURL)
-        : new WebSocketProvider(rpcURL);
+    const ethersNetwork = new Network(
+      sourcifyChain.name,
+      sourcifyChain.chainId
+    );
 
+    const provider = rpcURL.startsWith('http')
+      ? // Use staticNetwork to avoid seding unnecessary eth_chainId requests
+        new JsonRpcProvider(rpcURL, ethersNetwork, {
+          staticNetwork: ethersNetwork,
+        })
+      : new WebSocketProvider(rpcURL);
+
+    try {
       // Race the RPC call with a timeout
       const bytecode = await Promise.race([
         provider.getCode(address),
         rejectInMs(RPC_TIMEOUT, rpcURL),
       ]);
-
       return bytecode;
     } catch (err) {
-      // Catch to try the next RPC
       if (err instanceof Error) {
         logWarn(
           `Can't fetch bytecode from RPC ${rpcURL} and chain ${sourcifyChain.chainId}`
         );
-        console.log(err.message);
+        continue;
       } else {
         throw err;
       }
@@ -520,12 +527,21 @@ export async function getBytecode(
 async function getTx(creatorTxHash: string, sourcifyChain: SourcifyChain) {
   if (!sourcifyChain?.rpc.length)
     throw new Error('No RPC provider was given for this chain.');
-  for (const rpcURL of sourcifyChain.rpc) {
-    try {
-      const provider = rpcURL.startsWith('http')
-        ? new JsonRpcProvider(rpcURL)
-        : new WebSocketProvider(rpcURL);
 
+  for (const rpcURL of sourcifyChain.rpc) {
+    const ethersNetwork = new Network(
+      sourcifyChain.name,
+      sourcifyChain.chainId
+    );
+
+    const provider = rpcURL.startsWith('http')
+      ? // Use staticNetwork to avoid seding unnecessary eth_chainId requests
+        new JsonRpcProvider(rpcURL, ethersNetwork, {
+          staticNetwork: ethersNetwork,
+        })
+      : new WebSocketProvider(rpcURL);
+
+    try {
       // Race the RPC call with a timeout
       const tx = await Promise.race([
         provider.getTransaction(creatorTxHash),
@@ -542,12 +558,11 @@ async function getTx(creatorTxHash: string, sourcifyChain: SourcifyChain) {
         );
       }
     } catch (err) {
-      // Catch to try the next RPC
       if (err instanceof Error) {
         logWarn(
-          `Can't fetch from RPC ${rpcURL} and chain ${sourcifyChain.chainId}`
+          `Can't fetch bytecode from RPC ${rpcURL} and chain ${sourcifyChain.chainId}`
         );
-        logWarn(err.message);
+        continue;
       } else {
         throw err;
       }

@@ -36,7 +36,8 @@ const {
   deployFromAbiAndBytecodeForCreatorTxHash,
 } = require("./helpers/helpers");
 const { deployFromAbiAndBytecode } = require("./helpers/helpers");
-const { JsonRpcProvider } = require("ethers");
+const { JsonRpcProvider, Network } = require("ethers");
+const { LOCAL_CHAINS } = require("../dist/sourcify-chains");
 chai.use(chaiHttp);
 
 const EXTENDED_TIME = 20000; // 20 seconds
@@ -76,11 +77,16 @@ describe("Server", function () {
     // const ipfs = await IPFS.create();
     // const httpGateway = new HttpGateway(ipfs);
     // await httpGateway.start();
-
+    const sourcifyChainGanache = LOCAL_CHAINS[0];
     console.log("Started ganache local server on port " + GANACHE_PORT);
-
+    const ethersNetwork = new Network(
+      sourcifyChainGanache.rpc[0],
+      sourcifyChainGanache.chainId
+    );
     localSigner = await new JsonRpcProvider(
-      `http://localhost:${GANACHE_PORT}`
+      `http://localhost:${GANACHE_PORT}`,
+      ethersNetwork,
+      { staticNetwork: ethersNetwork }
     ).getSigner();
     console.log("Initialized Provider");
 
