@@ -390,16 +390,10 @@ export function authenticatedRequest(
   res: Response,
   next: NextFunction
 ) {
-  const sourcifyClientTokensRaw = process.env.CREATE2_CLIENT_TOKENS;
-  if (sourcifyClientTokensRaw?.length) {
-    const sourcifyClientTokens = sourcifyClientTokensRaw.split(",");
-    const clientToken = req.body.clientToken;
-    if (!clientToken) {
-      throw new BadRequestError("This API is protected by a client token");
-    }
-    if (!sourcifyClientTokens.includes(clientToken)) {
-      throw new BadRequestError("The client token you provided is not valid");
-    }
+  if (!(req.auth?.payload?.permissions as string)?.includes("verify:create2")) {
+    throw new BadRequestError(
+      "This user has no permission to create2 verification"
+    );
   }
   next();
 }
