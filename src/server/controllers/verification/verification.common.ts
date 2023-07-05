@@ -397,7 +397,7 @@ export const jwtCheck = auth({
 export const apiLimiter = (
   windowMs: number,
   max: number,
-  errorMessage: string = "Too many requests, please try again later."
+  errorMessage = "Too many requests, please try again later."
 ) =>
   rateLimit({
     windowMs,
