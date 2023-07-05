@@ -27,6 +27,7 @@ const fs = require("fs");
 const rimraf = require("rimraf");
 const path = require("path");
 const Web3 = require("web3");
+const fetch = require("node-fetch");
 const MAX_FILE_SIZE = require("../dist/config").default.server.maxFileSize;
 const MAX_SESSION_SIZE =
   require("../dist/server/controllers/verification/verification.common").MAX_SESSION_SIZE;
@@ -36,6 +37,7 @@ const {
   waitSecs,
   callContractMethodWithTx,
   deployFromAbiAndBytecodeForCreatorTxHash,
+  callWithAccessToken,
 } = require("./helpers/helpers");
 const { deployFromAbiAndBytecode } = require("./helpers/helpers");
 chai.use(chaiHttp);
@@ -185,33 +187,29 @@ describe("Server", function () {
     });
 
     it("should create2 verify with session", (done) => {
-      let clientToken;
-      const sourcifyClientTokensRaw = process.env.CREATE2_CLIENT_TOKENS;
-      if (sourcifyClientTokensRaw?.length) {
-        const sourcifyClientTokens = sourcifyClientTokensRaw.split(",");
-        clientToken = sourcifyClientTokens[0];
-      }
-      agent
-        .post("/session/verify/create2")
-        .send({
-          deployerAddress: "0xd9145CCE52D386f254917e481eB44e9943F39138",
-          salt: 12344,
-          abiEncodedConstructorArguments:
-            "0x0000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc40000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc4",
-          clientToken: clientToken || "",
-          create2Address: "0x65790cc291a234eDCD6F28e1F37B036eD4F01e3B",
-          verificationId: verificationId,
-        })
-        .end((err, res) => {
-          assertVerificationSession(
-            err,
-            res,
-            done,
-            "0x65790cc291a234eDCD6F28e1F37B036eD4F01e3B",
-            "0",
-            "perfect"
-          );
-        });
+      callWithAccessToken((accessToken) => {
+        agent
+          .post("/session/verify/create2")
+          .set("Authorization", `Bearer ${accessToken}`)
+          .send({
+            deployerAddress: "0xd9145CCE52D386f254917e481eB44e9943F39138",
+            salt: 12344,
+            abiEncodedConstructorArguments:
+              "0x0000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc40000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc4",
+            create2Address: "0x65790cc291a234eDCD6F28e1F37B036eD4F01e3B",
+            verificationId: verificationId,
+          })
+          .end((err, res) => {
+            assertVerificationSession(
+              err,
+              res,
+              done,
+              "0x65790cc291a234eDCD6F28e1F37B036eD4F01e3B",
+              "0",
+              "perfect"
+            );
+          });
+      });
     });
 
     it("should create2 verify non-session", (done) => {
@@ -221,37 +219,34 @@ describe("Server", function () {
       const source = fs
         .readFileSync("test/testcontracts/Create2/Wallet.sol")
         .toString();
-      let clientToken;
-      const sourcifyClientTokensRaw = process.env.CREATE2_CLIENT_TOKENS;
-      if (sourcifyClientTokensRaw?.length) {
-        const sourcifyClientTokens = sourcifyClientTokensRaw.split(",");
-        clientToken = sourcifyClientTokens[0];
-      }
-      chai
-        .request(server.app)
-        .post("/verify/create2")
-        .send({
-          deployerAddress: "0xd9145CCE52D386f254917e481eB44e9943F39138",
-          salt: 12345,
-          abiEncodedConstructorArguments:
-            "0x0000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc40000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc4",
-          files: {
-            "metadata.json": metadata,
-            "Wallet.sol": source,
-          },
-          clientToken: clientToken || "",
-          create2Address: "0x801B9c0Ee599C3E5ED60e4Ec285C95fC9878Ee64",
-        })
-        .end((err, res) => {
-          assertVerification(
-            err,
-            res,
-            done,
-            "0x801B9c0Ee599C3E5ED60e4Ec285C95fC9878Ee64",
-            "0",
-            "perfect"
-          );
-        });
+
+      callWithAccessToken((accessToken) => {
+        chai
+          .request(server.app)
+          .post("/verify/create2")
+          .set("Authorization", `Bearer ${accessToken}`)
+          .send({
+            deployerAddress: "0xd9145CCE52D386f254917e481eB44e9943F39138",
+            salt: 12345,
+            abiEncodedConstructorArguments:
+              "0x0000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc40000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc4",
+            files: {
+              "metadata.json": metadata,
+              "Wallet.sol": source,
+            },
+            create2Address: "0x801B9c0Ee599C3E5ED60e4Ec285C95fC9878Ee64",
+          })
+          .end((err, res) => {
+            assertVerification(
+              err,
+              res,
+              done,
+              "0x801B9c0Ee599C3E5ED60e4Ec285C95fC9878Ee64",
+              "0",
+              "perfect"
+            );
+          });
+      });
     });
   });
 

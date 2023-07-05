@@ -196,6 +196,36 @@ function verifyAndAssertEtherscanSession(
   });
 }
 
+function callWithAccessToken(callback) {
+  const AUTH0_DOMAIN = process.env.AUTH0_ISSUERBASEURL;
+  const CLIENT_ID = process.env.AUTH0_CLIENTID;
+  const AUDIENCE = process.env.AUTH0_AUDIENCE;
+
+  // Define the user's credentials
+  const username = process.env.AUTH0_TESTACCOUNT_USERNAME;
+  const password = process.env.AUTH0_TESTACCOUNT_PASSWORD;
+
+  // Define the headers and data for the POST request
+  const headers = { "content-type": "application/json" };
+  const data = {
+    grant_type: "password",
+    username: username,
+    password: password,
+    audience: AUDIENCE,
+    client_id: CLIENT_ID,
+  };
+
+  fetch(`${AUTH0_DOMAIN}oauth/token`, {
+    method: "POST",
+    headers: headers,
+    body: JSON.stringify(data),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      callback(data.access_token);
+    });
+}
+
 module.exports = {
   deployFromAbiAndBytecode,
   deployFromAbiAndBytecodeForCreatorTxHash,
@@ -208,4 +238,5 @@ module.exports = {
   unusedAddress,
   verifyAndAssertEtherscan,
   verifyAndAssertEtherscanSession,
+  callWithAccessToken,
 };
