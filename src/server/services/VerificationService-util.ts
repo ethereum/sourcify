@@ -86,7 +86,7 @@ async function getCreatorTxByScraping(
     } else {
       if (page.includes("captcha") || page.includes("CAPTCHA")) {
         throw new Error(
-          "Scraping the creator tx failed because of CAPTCHA at ${fetchAddress}"
+          `Scraping the creator tx failed because of CAPTCHA at ${fetchAddress}`
         );
       }
     }
