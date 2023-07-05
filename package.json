@@ -12,7 +12,7 @@
     "build": "tsc",
     "build:clean": "rm -rf node_modules/ packages/bytecode-utils/node_modules/ packages/contract-call-decoder/node_modules/ packages/lib-sourcify/node_modules/ && npm install && npx lerna bootstrap && npx lerna run build",
     "build:lerna": "lerna run build",
-    "test": "TESTING=true DOTENV_CONFIG_PATH=./environments/.env c8 mocha -r dotenv/config --exit",
+    "test": "TESTING=true DOTENV_CONFIG_PATH=./environments/.env c8 --reporter=none mocha -r dotenv/config --exit",
     "test:monitor": "TESTING=true DOTENV_CONFIG_PATH=./environments/.env mocha test/monitor.js --exit",
     "test:server": "TESTING=true DOTENV_CONFIG_PATH=./environments/.env mocha -r dotenv/config test/server.js --exit",
     "test:chains": "TESTING=true mocha test/chains/chain-tests.js --reporter mochawesome --reporter-options reportDir=chain-tests-report,reportFilename=report --exit",
