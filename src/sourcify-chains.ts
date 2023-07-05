@@ -252,6 +252,10 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       "https://blockscout.com/xdai/optimism/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex("/xdai/optimism"),
   },
+  "314": {
+    supported: true,
+    monitored: false,
+  },
   "137": {
     supported: true,
     monitored: true,
