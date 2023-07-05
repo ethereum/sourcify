@@ -68,6 +68,7 @@
     "json-refs": "^3.0.15",
     "memorystore": "^1.6.7",
     "node-fetch": "2.6.6",
+    "puppeteer": "^20.7.4",
     "serve-index": "^1.9.1",
     "solc": "^0.8.17",
     "swagger-ui-express": "^4.6.3",

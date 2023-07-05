@@ -18,12 +18,13 @@ dotenv.config({
   path: path.resolve(__dirname, "..", "..", "..", "environments/.env"),
 });
 
-const ETHERSCAN_REGEX = /at txn.*href='\/tx\/(0x.*?)'/.source; // save as string to be able to return the txRegex in /chains response. If stored as RegExp returns {}
+const ETHERSCAN_REGEX = ["at txn.*href=.*/tx/(0x.{64})"]; // save as string to be able to return the txRegex in /chains response. If stored as RegExp returns {}
 const ETHERSCAN_SUFFIX = "address/${ADDRESS}";
 const ETHERSCAN_API_SUFFIX = `/api?module=contract&action=getcontractcreation&contractaddresses=\${ADDRESS}&apikey=`;
 const BLOCKSSCAN_SUFFIX = "api/accounts/${ADDRESS}";
-const BLOCKSCOUT_REGEX =
+const BLOCKSCOUT_REGEX_OLD =
   'transaction_hash_link" href="${BLOCKSCOUT_PREFIX}/tx/(.*?)"';
+const BLOCKSCOUT_REGEX_NEW = "at txn.*href.*/tx/(0x.{64}?)";
 const BLOCKSCOUT_SUFFIX = "address/${ADDRESS}/transactions";
 const TELOS_SUFFIX = "v2/evm/get_contract?contract=${ADDRESS}";
 const METER_SUFFIX = "api/accounts/${ADDRESS}";
@@ -124,7 +125,11 @@ function replaceInfuraID(infuraURL: string) {
   return infuraURL.replace("{INFURA_API_KEY}", process.env.INFURA_ID || "");
 }
 function getBlockscoutRegex(blockscoutPrefix = "") {
-  return BLOCKSCOUT_REGEX.replace("${BLOCKSCOUT_PREFIX}", blockscoutPrefix);
+  const tempBlockscoutOld = BLOCKSCOUT_REGEX_OLD.replace(
+    "${BLOCKSCOUT_PREFIX}",
+    blockscoutPrefix
+  );
+  return [tempBlockscoutOld, BLOCKSCOUT_REGEX_NEW];
 }
 
 // api?module=contract&action=getcontractcreation&contractaddresses=\${ADDRESS}&apikey=
