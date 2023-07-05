@@ -9,7 +9,6 @@ import {
   /* ContextVariables, */
   CheckedContract,
 } from "@ethereum-sourcify/lib-sourcify";
-import { toChecksumAddress } from "web3-utils";
 import { MatchLevel, RepositoryTag } from "../types";
 import {
   create as createIpfsClient,
@@ -20,6 +19,7 @@ import path from "path";
 import config from "../../config";
 import { SourcifyEventManager } from "../../common/SourcifyEventManager/SourcifyEventManager";
 import { logger } from "../../common/loggerLoki";
+import { getAddress } from "ethers";
 
 /**
  * A type for specifying the match quality of files.
@@ -151,7 +151,7 @@ export class RepositoryService implements IRepositoryService {
   ): Array<FileObject> {
     const fullPath: string =
       this.repositoryPath +
-      `/contracts/${match}/${chain}/${toChecksumAddress(address)}/`;
+      `/contracts/${match}/${chain}/${getAddress(address)}/`;
     const files: Array<FileObject> = [];
     dirTree(fullPath, {}, (item) => {
       files.push({ name: item.name, path: item.path });
@@ -248,7 +248,7 @@ export class RepositoryService implements IRepositoryService {
       "contracts",
       `${pathConfig.matchQuality}_match`,
       pathConfig.chainId,
-      toChecksumAddress(pathConfig.address)
+      getAddress(pathConfig.address)
     );
   }
 

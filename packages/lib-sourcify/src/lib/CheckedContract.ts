@@ -1,4 +1,4 @@
-import Web3 from 'web3';
+import { id as keccak256str } from 'ethers';
 import {
   CompilableMetadata,
   InvalidSources,
@@ -130,7 +130,7 @@ export class CheckedContract {
     /*
      * storeByHash returns a mapping like this one:
      * Map({
-     *   Web3.utils.keccak256(variation.content): {
+     *   keccak256str(variation.content): {
      *     content,
      *     path: pathContent.path,
      *     variation: contentVariator + '.' + endingVariator,
@@ -173,7 +173,7 @@ export class CheckedContract {
       metadata.sources = sources.reduce((sources: MetadataSources, source) => {
         if (metadata.sources[source.path]) {
           sources[source.path] = metadata.sources[source.path];
-          sources[source.path].keccak256 = Web3.utils.keccak256(source.content);
+          sources[source.path].keccak256 = keccak256str(source.content);
           if (sources[source.path].content) {
             sources[source.path].content = source.content;
           }
@@ -357,7 +357,7 @@ export async function performFetch(
   if (res) {
     if (res.status === 200) {
       const content = await res.text();
-      if (hash && Web3.utils.keccak256(content) !== hash) {
+      if (hash && keccak256str(content) !== hash) {
         logError("The calculated and the provided hash don't match.");
         return null;
       }

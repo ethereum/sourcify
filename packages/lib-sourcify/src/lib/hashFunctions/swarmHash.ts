@@ -1,5 +1,5 @@
 import { makeChunkedFile } from '@fairdatasociety/bmt-js';
-import Web3 from 'web3';
+import { keccak256 } from 'ethers';
 
 export function swarmBzzr1Hash(file: string) {
   // convert file to Uint8Array
@@ -27,7 +27,7 @@ function toLittleEndian(size: number): Uint8Array {
 
 function swarmHashSimple(data: Uint8Array, size: number): string {
   const combinedData = new Uint8Array([...toLittleEndian(size), ...data]);
-  return Web3.utils.keccak256(Buffer.from(combinedData.buffer).toString('hex'));
+  return keccak256(Buffer.from(combinedData.buffer));
 }
 
 function swarmHashIntermediate(
