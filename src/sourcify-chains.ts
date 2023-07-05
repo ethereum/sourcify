@@ -247,7 +247,6 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "314": {
     supported: true,
     monitored: false,
-    rpc: ["https://api.node.glif.io/", "https://rpc.ankr.com/filecoin", "https://filecoin-mainnet.chainstacklabs.com/rpc/v1"],
   },
   "137": {
     supported: true,
