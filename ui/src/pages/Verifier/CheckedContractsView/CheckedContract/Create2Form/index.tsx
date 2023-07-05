@@ -21,6 +21,7 @@ import { keccak256 } from "@ethersproject/keccak256";
 import { isHexString, hexZeroPad } from "@ethersproject/bytes";
 import InputToggle from "../../../../../components/InputToggle";
 import { useAuth0 } from "@auth0/auth0-react";
+import { AUTH0_AUDIENCE } from "../../../../../constants";
 
 const LoginButton = () => {
   const { loginWithPopup } = useAuth0();
@@ -160,7 +161,7 @@ const Create2Form = ({
       try {
         const accessToken = await getAccessTokenSilently({
           authorizationParams: {
-            audience: `https://sourcify.dev`,
+            audience: AUTH0_AUDIENCE,
           },
         });
 

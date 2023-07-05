@@ -24,6 +24,9 @@ import fetch from "node-fetch";
 import { IVerificationService } from "../../services/VerificationService";
 import { IRepositoryService } from "../../services/RepositoryService";
 import { ContractMeta, ContractWrapper } from "../../common";
+import { auth } from "express-oauth2-jwt-bearer";
+import rateLimit from "express-rate-limit";
+import config from "../../../config";
 
 type PathBuffer = {
   path: string;
@@ -385,15 +388,32 @@ export const verifyContractsInSession = async (
   }
 };
 
-export function authenticatedRequest(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  if (!(req.auth?.payload?.permissions as string)?.includes("verify:create2")) {
-    throw new BadRequestError(
-      "This user has no permission to create2 verification"
-    );
-  }
-  next();
-}
+export const jwtCheck = auth({
+  audience: config.authentication.jwt.audience,
+  issuerBaseURL: config.authentication.jwt.issuerBaseURL,
+  tokenSigningAlg: config.authentication.jwt.tokenSigningAlg,
+});
+
+export const apiLimiter = (
+  windowMs: number,
+  max: number,
+  errorMessage: string = "Too many requests, please try again later."
+) =>
+  rateLimit({
+    windowMs,
+    max,
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers,
+    message: {
+      error: errorMessage,
+    },
+    keyGenerator: (req: Request) => req.auth?.payload.sub as string,
+  });
+
+export const apiCheckPermission = (permission: string, errorMessage: string) =>
+  function (req: Request, res: Response, next: NextFunction) {
+    if (!(req.auth?.payload?.permissions as string)?.includes(permission)) {
+      throw new BadRequestError(errorMessage);
+    }
+    next();
+  };

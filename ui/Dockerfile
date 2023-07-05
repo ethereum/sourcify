@@ -5,6 +5,9 @@ ARG SERVER_URL
 ARG REPOSITORY_SERVER_URL
 ARG IPNS
 ARG TAG
+ARG AUTH0_ISSUERBASEURL
+ARG AUTH0_CLIENTID
+ARG AUTH0_AUDIENCE
 
 RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
 WORKDIR /home/node/app

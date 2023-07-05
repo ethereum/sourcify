@@ -4,14 +4,15 @@ import { Auth0Provider } from "@auth0/auth0-react";
 import App from "./App";
 import "./index.css";
 import reportWebVitals from "./reportWebVitals";
+import { AUTH0_DOMAIN, AUTH0_CLIENTID, AUTH0_AUDIENCE } from "./constants";
 
 ReactDOM.render(
   <React.StrictMode>
     <Auth0Provider
-      domain="dev-htkreq1l71u1hn5l.us.auth0.com"
-      clientId="vH7MkGal8kajHUgDIg24UlWIWz8v9Y7A"
+      domain={AUTH0_DOMAIN}
+      clientId={AUTH0_CLIENTID}
       authorizationParams={{
-        audience: "https://sourcify.dev",
+        audience: AUTH0_AUDIENCE,
       }}
     >
       <App />
