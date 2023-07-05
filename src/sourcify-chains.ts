@@ -200,7 +200,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   },
   "61": {
     supported: true,
-    monitored: true,
+    monitored: false,
     contractFetchAddress:
       "https://blockscout.com/etc/mainnet/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex("/etc/mainnet"),
