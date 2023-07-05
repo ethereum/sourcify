@@ -99,8 +99,7 @@ const Create2Form = ({
   const [isInvalidConstructorArguments, setIsInvalidConstructorArguments] =
     useState(false);
 
-  const { user, isAuthenticated, isLoading, getAccessTokenSilently } =
-    useAuth0();
+  const { user, isAuthenticated, getAccessTokenSilently } = useAuth0();
 
   useEffect(() => {
     if (
