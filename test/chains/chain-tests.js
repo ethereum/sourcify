@@ -931,6 +931,15 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
+  // Zilliqa EVM
+  verifyContract(
+    "0x6F85669808e20b121980DE8E7a794a0cc90fDc77",
+    "32769",
+    "Zilliqa EVM",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  )
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainId) {

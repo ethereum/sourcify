@@ -892,6 +892,11 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: "https://explorer.kava.io/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
+  "32769": {
+    // Zilliqa EVM
+    supported: true,
+    monitored: false,
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
