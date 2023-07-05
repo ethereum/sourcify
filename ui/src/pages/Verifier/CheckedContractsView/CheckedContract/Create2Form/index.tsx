@@ -134,14 +134,26 @@ const Create2Form = ({
     setIsInvalidDeploylerAddress(false);
   };
 
-  const handleSubmit: FormEventHandler<HTMLFormElement> = (e) => {
+  const handleSubmit: FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
     if (
       !deployerAddress ||
       isInvalidDeployerAddress ||
       isInvalidConstructorArguments
-    )
+    ) {
       return;
+    }
+    if (!isAuthenticated) {
+      return;
+    }
+
+    const accessToken = await getAccessTokenSilently({
+      cacheMode: "off",
+      authorizationParams: {
+        audience: AUTH0_AUDIENCE,
+      },
+    });
+
     setIsLoading(true);
     verifyCreate2CheckedContract({
       verificationId: checkedContract.verificationId || "",
@@ -149,34 +161,9 @@ const Create2Form = ({
       salt: salt || "",
       abiEncodedConstructorArguments,
       create2Address: create2Address || "",
-      clientToken: clientToken || "",
+      clientToken: accessToken || "",
     }).finally(() => setIsLoading(false));
   };
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      return;
-    }
-    const getUserMetadata = async () => {
-      try {
-        const accessToken = await getAccessTokenSilently({
-          authorizationParams: {
-            audience: AUTH0_AUDIENCE,
-          },
-        });
-
-        setClientToken(accessToken);
-      } catch (e: any) {
-        console.log("test", e.message);
-      }
-    };
-
-    getUserMetadata();
-    const interval = setInterval(() => getUserMetadata(), 25 * 1000);
-    return () => {
-      clearInterval(interval);
-    };
-  }, [isAuthenticated]);
 
   return (
     <div className="">
