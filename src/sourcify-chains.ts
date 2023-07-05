@@ -244,6 +244,14 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     monitored: false,
     contractFetchAddress: "https://hashscan.io/mainnet/" + ETHERSCAN_SUFFIX,
   },
+  "300": {
+    // Turned off as seems to be shut down
+    supported: false,
+    monitored: false,
+    contractFetchAddress:
+        "https://blockscout.com/xdai/optimism/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex("/xdai/optimism"),
+  },
   "314": {
     supported: true,
     monitored: false,
