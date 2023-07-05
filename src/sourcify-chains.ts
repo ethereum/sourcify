@@ -249,7 +249,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     supported: false,
     monitored: false,
     contractFetchAddress:
-        "https://blockscout.com/xdai/optimism/" + BLOCKSCOUT_SUFFIX,
+      "https://blockscout.com/xdai/optimism/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex("/xdai/optimism"),
   },
   "314": {
