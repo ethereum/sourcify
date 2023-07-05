@@ -25,13 +25,27 @@ import { AUTH0_AUDIENCE } from "../../../../../constants";
 
 const LoginButton = () => {
   const { loginWithPopup } = useAuth0();
-  return <button onClick={() => loginWithPopup()}>Log In</button>;
+  return (
+    <button
+      className="mt-1 mb-4 py-2 px-4 w-full bg-ceruleanBlue-500 hover:bg-ceruleanBlue-130 disabled:hover:bg-ceruleanBlue-500 focus:ring-ceruleanBlue-300 focus:ring-offset-ceruleanBlue-100 text-white transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-default "
+      onClick={() => loginWithPopup()}
+    >
+      Log In
+    </button>
+  );
 };
 
-const LogoutButton = () => {
+const LogoutButton = ({ name }: { name: string }) => {
   const { logout } = useAuth0();
 
-  return <button onClick={() => logout()}>Log Out</button>;
+  return (
+    <button
+      className="mt-1 mb-4 py-2 px-4 w-full bg-ceruleanBlue-500 hover:bg-ceruleanBlue-130 disabled:hover:bg-ceruleanBlue-500 focus:ring-ceruleanBlue-300 focus:ring-offset-ceruleanBlue-100 text-white transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-default "
+      onClick={() => logout()}
+    >
+      Welcome {name}, click here to logout.
+    </button>
+  );
 };
 
 export const saltToHex = (salt: string) => {
@@ -177,13 +191,11 @@ const Create2Form = ({
         <form className="mt-4" onSubmit={handleSubmit}>
           <div>
             <p className="mb-1 text-xs">
-              This functionality is protected by a client token in order to
-              prevent spamming. If you are interested please send an email to{" "}
-              <a href="mailto:info@sourcify.dev">info@sourcify.dev</a>
+              This functionality is protected by Auth0, please sign-in.
             </p>
             {isAuthenticated ? (
               <div>
-                <LogoutButton /> {user?.nickname}
+                <LogoutButton name={user?.nickname as string} />
                 <div>
                   <div className="flex justify-between">
                     <label className="block" htmlFor="address">
