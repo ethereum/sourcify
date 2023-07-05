@@ -71,7 +71,6 @@ const Create2Form = ({
   verifyCreate2CheckedContract,
   setIsLoading,
 }: ChainAddressFormProps) => {
-  const [clientToken, setClientToken] = useState<string>();
   const [deployerAddress, setDeployerAddress] = useState<string>();
   const [salt, setSalt] = useState<string>();
   const [abiEncodedConstructorArguments, setAbiEncodedConstructorArguments] =
