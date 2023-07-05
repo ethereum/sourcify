@@ -244,13 +244,10 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     monitored: false,
     contractFetchAddress: "https://hashscan.io/mainnet/" + ETHERSCAN_SUFFIX,
   },
-  "300": {
-    // Turned off as seems to be shut down
-    supported: false,
+  "314": {
+    supported: true,
     monitored: false,
-    contractFetchAddress:
-      "https://blockscout.com/xdai/optimism/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex("/xdai/optimism"),
+    rpc: ["https://api.node.glif.io/", "https://rpc.ankr.com/filecoin", "https://filecoin-mainnet.chainstacklabs.com/rpc/v1"],
   },
   "137": {
     supported: true,

@@ -922,6 +922,15 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
+  // Filecoin Mainnet
+  verifyContract(
+    "0x23396626F2C9c0b31cC6C2729172103961Ae2A26",
+    "314",
+    "Filecoin Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainId) {
