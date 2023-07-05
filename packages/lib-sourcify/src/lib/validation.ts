@@ -1,5 +1,5 @@
-import Web3 from 'web3';
 import { CheckedContract } from './CheckedContract';
+import { id as keccak256str } from 'ethers';
 import {
   InvalidSources,
   MissingSources,
@@ -249,7 +249,7 @@ function rearrangeSources(metadata: any, byHash: Map<string, PathContent>) {
         content: sourceInfoFromMetadata.content,
         path: sourcePath,
       };
-      const contentHash = Web3.utils.keccak256(file.content);
+      const contentHash = keccak256str(file.content);
       if (contentHash != expectedHash) {
         invalidSources[sourcePath] = {
           expectedHash: expectedHash,
@@ -291,7 +291,7 @@ export function storeByHash(files: PathContent[]): Map<string, PathContent> {
 
   for (const pathContent of files) {
     for (const variation of generateVariations(pathContent)) {
-      const calculatedHash = Web3.utils.keccak256(variation.content);
+      const calculatedHash = keccak256str(variation.content);
       byHash.set(calculatedHash, variation);
     }
   }

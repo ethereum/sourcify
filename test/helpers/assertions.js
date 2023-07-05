@@ -3,7 +3,7 @@ const chai = require("chai");
 const config = require("../../dist/config").default;
 const path = require("path");
 const fs = require("fs");
-const { getAddress } = require("ethers/lib/utils");
+const { getAddress } = require("ethers");
 
 exports.assertValidationError = (err, res, field, message) => {
   try {

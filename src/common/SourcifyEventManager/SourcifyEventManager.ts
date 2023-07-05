@@ -7,7 +7,7 @@ interface Events extends GenericEvents {
   "Monitor.Error.CantStart": (e: { chainId: string; message: string }) => void;
   "Monitor.Started": (obj: {
     chainId: string;
-    web3url: string;
+    providerURL: string;
     lastBlockNumber: number;
     startBlock: number;
   }) => void;

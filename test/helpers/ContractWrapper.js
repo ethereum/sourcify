@@ -1,5 +1,4 @@
 const { deployFromAbiAndBytecode } = require("./helpers");
-const Web3EthAbi = require("web3-eth-abi");
 /**
  * Wrapper class for the 0x/sol-compiler's contract compilation artifacts.
  * @param artifactObject: The compilation artifact as JSON
@@ -14,21 +13,6 @@ class ContractWrapper {
     this.sources = this.artifact.sourceCodes;
     this.publishOptions = publishOptions;
     this.args = args;
-
-    if (args.length) {
-      this.constructArgsHex();
-    }
-  }
-
-  constructArgsHex() {
-    let ctorSpecInput;
-    for (const methodSpec of this.artifact.compilerOutput.abi) {
-      if (methodSpec.type === "constructor") {
-        ctorSpecInput = methodSpec.inputs;
-      }
-    }
-
-    this.argsHex = Web3EthAbi.encodeParameters(ctorSpecInput, this.args);
   }
 
   async publish(ipfsNode) {
@@ -45,19 +29,17 @@ class ContractWrapper {
 
   /**
    *
-   * @param {Web3} web3Provider: Web3 provider of the network the contract will be deployed at
+   * @param {Signer} signer: Signer object from ethers.js to deploy the contract
    * @param {string} from: address of the deployed account
    * @returns {strong} deployed contract address
    */
-  async deploy(web3Provider, from) {
+  async deploy(signer) {
     const address = await deployFromAbiAndBytecode(
-      web3Provider,
+      signer,
       this.artifact.compilerOutput.abi,
       this.artifact.compilerOutput.evm.bytecode.object,
-      from,
       this.args
     );
-    console.log("Deployed contract at " + address);
     return address;
   }
 }

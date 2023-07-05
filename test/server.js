@@ -17,7 +17,6 @@ const {
   assertLookupAll,
 } = require("./helpers/assertions");
 //const IPFS = require("ipfs-core");
-const { HttpGateway } = require("ipfs-http-gateway");
 const ganache = require("ganache");
 const chai = require("chai");
 const chaiHttp = require("chai-http");
@@ -26,8 +25,8 @@ const util = require("util");
 const fs = require("fs");
 const rimraf = require("rimraf");
 const path = require("path");
-const Web3 = require("web3");
 const fetch = require("node-fetch");
+
 const MAX_FILE_SIZE = require("../dist/config").default.server.maxFileSize;
 const MAX_SESSION_SIZE =
   require("../dist/server/controllers/verification/verification.common").MAX_SESSION_SIZE;
@@ -40,14 +39,9 @@ const {
   callWithAccessToken,
 } = require("./helpers/helpers");
 const { deployFromAbiAndBytecode } = require("./helpers/helpers");
+const { JsonRpcProvider, Network } = require("ethers");
+const { LOCAL_CHAINS } = require("../dist/sourcify-chains");
 chai.use(chaiHttp);
-
-const binaryParser = function (res, cb) {
-  res.setEncoding("binary");
-  res.data = "";
-  res.on("data", (chunk) => (res.data += chunk));
-  res.on("end", () => cb(null, Buffer.from(res.data, "binary")));
-};
 
 const EXTENDED_TIME = 20000; // 20 seconds
 const EXTENDED_TIME_60 = 60000; // 60 seconds
@@ -63,7 +57,7 @@ describe("Server", function () {
       networkId: parseInt(defaultContractChain),
     },
   });
-  let localWeb3Provider;
+  let localSigner;
   let accounts;
   let defaultContractAddress;
   let currentResponse = null; // to log server response when test fails
@@ -86,19 +80,24 @@ describe("Server", function () {
     // const ipfs = await IPFS.create();
     // const httpGateway = new HttpGateway(ipfs);
     // await httpGateway.start();
-
+    const sourcifyChainGanache = LOCAL_CHAINS[0];
     console.log("Started ganache local server on port " + GANACHE_PORT);
-
-    localWeb3Provider = new Web3(`http://localhost:${GANACHE_PORT}`);
-    accounts = await localWeb3Provider.eth.getAccounts();
-    console.log("Initialized web3 provider");
+    const ethersNetwork = new Network(
+      sourcifyChainGanache.rpc[0],
+      sourcifyChainGanache.chainId
+    );
+    localSigner = await new JsonRpcProvider(
+      `http://localhost:${GANACHE_PORT}`,
+      ethersNetwork,
+      { staticNetwork: ethersNetwork }
+    ).getSigner();
+    console.log("Initialized Provider");
 
     // Deploy the test contract
     defaultContractAddress = await deployFromAbiAndBytecode(
-      localWeb3Provider,
+      localSigner,
       artifact.abi,
-      artifact.bytecode,
-      accounts[0]
+      artifact.bytecode
     );
 
     const promisified = util.promisify(server.app.listen);
@@ -165,12 +164,12 @@ describe("Server", function () {
     it("should input files from existing contract via auxdata ipfs", async () => {
       const artifacts = require("./testcontracts/Create2/Wallet.json");
 
+      const account = await localSigner.getAddress();
       const addressDeployed = await deployFromAbiAndBytecode(
-        localWeb3Provider,
+        localSigner,
         artifacts.abi,
         artifacts.bytecode,
-        accounts[0],
-        [accounts[0], accounts[0]]
+        [account, account]
       );
 
       const res = await agent
@@ -682,10 +681,9 @@ describe("Server", function () {
       const metadataBuffer = fs.readFileSync(metadataPath);
       const metadata = JSON.parse(metadataBuffer.toString());
       const address = await deployFromAbiAndBytecode(
-        localWeb3Provider,
+        localSigner,
         metadata.output.abi,
-        bytecode,
-        accounts[0]
+        bytecode
       );
 
       const res = await chai
@@ -708,13 +706,13 @@ describe("Server", function () {
 
     it("should verify a contract with immutables and save immutable-references.json", async () => {
       const artifact = require("./testcontracts/WithImmutables/artifact.json");
-      const [address] = await deployFromAbiAndBytecodeForCreatorTxHash(
-        localWeb3Provider,
-        artifact.abi,
-        artifact.bytecode,
-        accounts[0],
-        [999]
-      );
+      const { contractAddress } =
+        await deployFromAbiAndBytecodeForCreatorTxHash(
+          localSigner,
+          artifact.abi,
+          artifact.bytecode,
+          [999]
+        );
 
       const metadata = require("./testcontracts/WithImmutables/metadata.json");
       const sourcePath = path.join(
@@ -731,21 +729,27 @@ describe("Server", function () {
         .request(server.app)
         .post("/")
         .send({
-          address: address,
+          address: contractAddress,
           chain: defaultContractChain,
           files: {
             "metadata.json": JSON.stringify(metadata),
             "WithImmutables.sol": sourceBuffer.toString(),
           },
         });
-      assertVerification(null, res, null, address, defaultContractChain);
+      assertVerification(
+        null,
+        res,
+        null,
+        contractAddress,
+        defaultContractChain
+      );
       const isExist = fs.existsSync(
         path.join(
           server.repository,
           "contracts",
           "full_match",
           defaultContractChain,
-          address,
+          contractAddress,
           "immutable-references.json"
         )
       );
@@ -754,10 +758,9 @@ describe("Server", function () {
 
     it("should return validation error for adding standard input JSON without a compiler version", async () => {
       const address = await deployFromAbiAndBytecode(
-        localWeb3Provider,
+        localSigner,
         artifact.abi, // Storage.sol
-        artifact.bytecode,
-        accounts[0]
+        artifact.bytecode
       );
       const solcJsonPath = path.join(
         "test",
@@ -780,10 +783,9 @@ describe("Server", function () {
 
     it("should return validation error for adding standard input JSON without a contract name", async () => {
       const address = await deployFromAbiAndBytecode(
-        localWeb3Provider,
+        localSigner,
         artifact.abi, // Storage.sol
-        artifact.bytecode,
-        accounts[0]
+        artifact.bytecode
       );
       const solcJsonPath = path.join(
         "test",
@@ -806,10 +808,9 @@ describe("Server", function () {
 
     it("should verify a contract with Solidity standard input JSON", async () => {
       const address = await deployFromAbiAndBytecode(
-        localWeb3Provider,
+        localSigner,
         artifact.abi, // Storage.sol
-        artifact.bytecode,
-        accounts[0]
+        artifact.bytecode
       );
       const solcJsonPath = path.join(
         "test",
@@ -842,10 +843,9 @@ describe("Server", function () {
       );
       before(async function () {
         address = await deployFromAbiAndBytecode(
-          localWeb3Provider,
+          localSigner,
           MyToken.abi,
           MyToken.evm.bytecode.object,
-          accounts[0],
           ["Sourcify Hardhat Test", "TEST"]
         );
         console.log(`Contract deployed at ${address}`);
@@ -892,13 +892,13 @@ describe("Server", function () {
 
       it("should store a contract in /contracts/full_match|partial_match/0xADDRESS despite the files paths in the metadata", async () => {
         const artifact = require("./testcontracts/Storage/Storage.json");
-        const [address] = await deployFromAbiAndBytecodeForCreatorTxHash(
-          localWeb3Provider,
-          artifact.abi,
-          artifact.bytecode,
-          accounts[0],
-          []
-        );
+        const { contractAddress } =
+          await deployFromAbiAndBytecodeForCreatorTxHash(
+            localSigner,
+            artifact.abi,
+            artifact.bytecode,
+            []
+          );
 
         const metadata = require("./testcontracts/Storage/metadata.upMultipleDirs.json");
         const sourcePath = path.join(
@@ -914,7 +914,7 @@ describe("Server", function () {
           .request(server.app)
           .post("/")
           .send({
-            address: address,
+            address: contractAddress,
             chain: defaultContractChain,
             files: {
               "metadata.json": JSON.stringify(metadata),
@@ -925,7 +925,7 @@ describe("Server", function () {
           null,
           res,
           null,
-          address,
+          contractAddress,
           defaultContractChain,
           "partial"
         );
@@ -935,7 +935,7 @@ describe("Server", function () {
             "contracts",
             "partial_match",
             defaultContractChain,
-            address,
+            contractAddress,
             "sources",
             "..contracts",
             "Storage.sol"
@@ -953,10 +953,9 @@ describe("Server", function () {
 
       before(async () => {
         contractAddress = await deployFromAbiAndBytecode(
-          localWeb3Provider,
+          localSigner,
           bytecodeMismatchArtifact.abi,
-          bytecodeMismatchArtifact.bytecode,
-          accounts[0]
+          bytecodeMismatchArtifact.bytecode
         );
       });
 
@@ -1454,13 +1453,13 @@ describe("Server", function () {
 
     it("should verify a contract with immutables and save immutable-references.json", async () => {
       const artifact = require("./testcontracts/WithImmutables/artifact.json");
-      const [address] = await deployFromAbiAndBytecodeForCreatorTxHash(
-        localWeb3Provider,
-        artifact.abi,
-        artifact.bytecode,
-        accounts[0],
-        [999]
-      );
+      const { contractAddress } =
+        await deployFromAbiAndBytecodeForCreatorTxHash(
+          localSigner,
+          artifact.abi,
+          artifact.bytecode,
+          [999]
+        );
 
       const metadata = require("./testcontracts/WithImmutables/metadata.json");
       const metadataBuffer = Buffer.from(JSON.stringify(metadata));
@@ -1482,7 +1481,7 @@ describe("Server", function () {
 
       let contracts = assertSingleContractStatus(res1, "error");
 
-      contracts[0].address = address;
+      contracts[0].address = contractAddress;
       contracts[0].chainId = defaultContractChain;
       const res2 = await agent
         .post("/session/verify-validated")
@@ -1495,7 +1494,7 @@ describe("Server", function () {
           "contracts",
           "full_match",
           defaultContractChain,
-          address,
+          contractAddress,
           "immutable-references.json"
         )
       );
@@ -1507,25 +1506,23 @@ describe("Server", function () {
 
       const artifact = require("./testcontracts/FactoryImmutable/Factory.json");
       const factoryAddress = await deployFromAbiAndBytecode(
-        localWeb3Provider,
+        localSigner,
         artifact.abi,
-        artifact.bytecode,
-        accounts[0]
+        artifact.bytecode
       );
 
       // Deploy child by calling deploy(uint)
       const childMetadata = require("./testcontracts/FactoryImmutable/Child_metadata.json");
       const childMetadataBuffer = Buffer.from(JSON.stringify(childMetadata));
       const txReceipt = await callContractMethodWithTx(
-        localWeb3Provider,
+        localSigner,
         artifact.abi,
         factoryAddress,
         "deploy",
-        accounts[0],
         [deployValue]
       );
 
-      const childAddress = txReceipt.events.Deployment.returnValues[0];
+      const childAddress = txReceipt.logs[0].args[0];
       const sourcePath = path.join(
         "test",
         "testcontracts",
@@ -1555,25 +1552,23 @@ describe("Server", function () {
     it("should verify a contract created by a factory contract and has immutables without constructor arguments but with msg.sender assigned immutable", async () => {
       const artifact = require("./testcontracts/FactoryImmutableWithoutConstrArg/Factory3.json");
       const factoryAddress = await deployFromAbiAndBytecode(
-        localWeb3Provider,
+        localSigner,
         artifact.abi,
-        artifact.bytecode,
-        accounts[0]
+        artifact.bytecode
       );
 
       // Deploy child by calling deploy(uint)
       const childMetadata = require("./testcontracts/FactoryImmutableWithoutConstrArg/Child3_metadata.json");
       const childMetadataBuffer = Buffer.from(JSON.stringify(childMetadata));
       const txReceipt = await callContractMethodWithTx(
-        localWeb3Provider,
+        localSigner,
         artifact.abi,
         factoryAddress,
         "createChild",
-        accounts[0],
         []
       );
 
-      const childAddress = txReceipt.events.ChildCreated.returnValues[0];
+      const childAddress = txReceipt.logs[0].args[0];
       const sourcePath = path.join(
         "test",
         "testcontracts",
@@ -1620,10 +1615,9 @@ describe("Server", function () {
     it("should verify a contract with Solidity standard input JSON", async () => {
       const agent = chai.request.agent(server.app);
       const address = await deployFromAbiAndBytecode(
-        localWeb3Provider,
+        localSigner,
         artifact.abi, // Storage.sol
-        artifact.bytecode,
-        accounts[0]
+        artifact.bytecode
       );
       const solcJsonPath = path.join(
         "test",
@@ -1658,10 +1652,9 @@ describe("Server", function () {
 
       before(async () => {
         contractAddress = await deployFromAbiAndBytecode(
-          localWeb3Provider,
+          localSigner,
           bytecodeMismatchArtifact.abi,
-          bytecodeMismatchArtifact.bytecode,
-          accounts[0]
+          bytecodeMismatchArtifact.bytecode
         );
       });
 
