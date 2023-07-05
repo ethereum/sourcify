@@ -27,12 +27,12 @@
     "server:build": "npm run clean && npm run build",
     "server:start": "node ./dist/server/server.js",
     "update-chains": "node --experimental-fetch scripts/updateChains.mjs && prettier --write src/chains.json",
-    "test:unit": "TESTING=true DOTENV_CONFIG_PATH=./environments/.env nyc --silent mocha -r dotenv/config  --exit",
+    "test:unit": "TESTING=true DOTENV_CONFIG_PATH=./environments/.env c8 --silent mocha -r dotenv/config  --exit",
     "cov": "run-s -c build test:unit cov:html cov:lcov && open-cli coverage/index.html",
     "cov:html": "c8 report --reporter=html",
     "cov:lcov": "c8 report --reporter=lcov",
     "cov:send": "run-s cov:lcov && codecov -F server -f coverage/lcov.info",
-    "cov:check": "c8 report && nyc check-coverage --lines 100 --functions 100 --branches 100"
+    "cov:check": "c8 report && c8 check-coverage --lines 100 --functions 100 --branches 100"
   },
   "keywords": [
     "ethereum",
