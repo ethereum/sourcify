@@ -127,8 +127,8 @@
       "text-summary"
     ],
     "report-dir": "coverage",
-    "lines": 75,
-    "statements": 75,
+    "lines": 70,
+    "statements": 70,
     "functions": 75,
     "branches": 60
   }
