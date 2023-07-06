@@ -897,6 +897,11 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     supported: true,
     monitored: false,
   },
+  "33101": {
+    // Zilliqa EVM Testnet
+    supported: true,
+    monitored: false,
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
