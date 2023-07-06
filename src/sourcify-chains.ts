@@ -908,6 +908,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     monitored: false,
     contractFetchAddress:
       "https://explorer.testnet.kava.io/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
   },
   "111000": {
     supported: true,
