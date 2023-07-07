@@ -910,6 +910,13 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       "https://explorer.testnet.kava.io/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
+  "111000": {
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://http://explorer.test.siberium.net/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};

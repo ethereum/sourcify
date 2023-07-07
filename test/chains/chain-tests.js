@@ -913,6 +913,15 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
+  // Siberium Testnet
+  verifyContract(
+    "0x60E9b3CD8C160Ce6408dD6E2Fa938895cfF7E087",
+    "111000",
+    "Siberium Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
   // Ethereum Classic Mainnet
   verifyContract(
     "0x45a82B987a4e5d7D00eD5aB325DF00850cDAbBAC",
