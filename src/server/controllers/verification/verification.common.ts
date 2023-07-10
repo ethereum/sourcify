@@ -27,6 +27,7 @@ import { auth } from "express-oauth2-jwt-bearer";
 import rateLimit from "express-rate-limit";
 import config from "../../../config";
 import { id as keccak256str } from "ethers";
+import { ForbiddenError } from "../../../common/errors/ForbiddenError";
 
 type PathBuffer = {
   path: string;
@@ -413,7 +414,7 @@ export const apiLimiter = (
 export const apiCheckPermission = (permission: string, errorMessage: string) =>
   function (req: Request, res: Response, next: NextFunction) {
     if (!(req.auth?.payload?.permissions as string)?.includes(permission)) {
-      throw new BadRequestError(errorMessage);
+      throw new ForbiddenError(errorMessage);
     }
     next();
   };
