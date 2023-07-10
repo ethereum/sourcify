@@ -48,14 +48,18 @@ const LogoutButton = ({ name }: { name: string }) => {
   );
 };
 
-export const saltToHex = (salt: string) => {
+export const saltToHex = (salt: string): string | false => {
   if (isHexString(salt)) {
     return hexZeroPad(salt, 32);
   }
-  const bn = BigNumber.from(salt);
-  const hex = bn.toHexString();
-  const paddedHex = hexZeroPad(hex, 32);
-  return paddedHex;
+  try {
+    const bn = BigNumber.from(salt);
+    const hex = bn.toHexString();
+    const paddedHex = hexZeroPad(hex, 32);
+    return paddedHex;
+  } catch (e) {
+    return false;
+  }
 };
 
 const buildCreate2Address = (
@@ -116,9 +120,15 @@ const Create2Form = ({
       (abiEncodedConstructorArguments.startsWith("0x")
         ? abiEncodedConstructorArguments.slice(2)
         : abiEncodedConstructorArguments || "");
+
+    const saltHex = saltToHex(salt);
+    if (!saltHex) {
+      setSalt("");
+      return;
+    }
     const create2Address = buildCreate2Address(
       deployerAddress,
-      saltToHex(salt),
+      saltHex,
       initcode
     );
     if (create2Address) {
