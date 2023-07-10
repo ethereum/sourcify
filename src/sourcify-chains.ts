@@ -397,18 +397,45 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     rpc: buildAlchemyAndCustomRpcURLs("goerli", "opt"),
   },
   "28": {
-    // Turned off support as the chains seems shut down
-    supported: false,
+    supported: true,
     monitored: false,
     contractFetchAddress:
-      "https://blockexplorer.rinkeby.boba.network/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+        "https://bobascan.com/" + ETHERSCAN_SUFFIX,
+    txRegex: ETHERSCAN_REGEX,
   },
   "288": {
     supported: true,
     monitored: false,
     contractFetchAddress:
-      "https://blockexplorer.boba.network/" + BLOCKSCOUT_SUFFIX,
+        "https://testnet.bobascan.com/" + ETHERSCAN_SUFFIX,
+    txRegex: ETHERSCAN_REGEX,
+  },
+  "56288": {
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+        "https://blockexplorer.bnb.boba.network/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
+  "9728": {
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+        "https://blockexplorer.testnet.bnb.boba.network/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
+  "43288": {
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+        "https://blockexplorer.avax.boba.network/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
+  "4328": {
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+        "https://blockexplorer.testnet.avax.boba.network/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
   "106": {
