@@ -325,13 +325,45 @@ describe("Test Supported Chains", function () {
     "288/metadata.json"
   );
 
-  // verifyContract(
-  //   "0x8F78b9c92a68DdF719849a40702cFBfa4EB60dD0",
-  //   "28",
-  //   "Boba Network Rinkeby Testnet",
-  //   ["shared/1_Storage.sol"],
-  //   "shared/1_Storage.metadata.json"
-  // );
+  verifyContract(
+    "0x8F78b9c92a68DdF719849a40702cFBfa4EB60dD0",
+    "2888",
+    "Boba Network Goerli Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  verifyContract(
+    "0x8F78b9c92a68DdF719849a40702cFBfa4EB60dD0",
+    "56288",
+    "Boba Network BNB",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  verifyContract(
+    "0x8F78b9c92a68DdF719849a40702cFBfa4EB60dD0",
+    "9728",
+    "Boba Network BNB Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  verifyContract(
+    "0x8F78b9c92a68DdF719849a40702cFBfa4EB60dD0",
+    "43288",
+    "Boba Network AVAX",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  verifyContract(
+    "0x8F78b9c92a68DdF719849a40702cFBfa4EB60dD0",
+    "4328",
+    "Boba Network AVAX Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
 
   verifyContract(
     "0xd8A08AFf1B0585Cad0E173Ce0E93551Ac59D3530",

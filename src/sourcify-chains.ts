@@ -396,14 +396,14 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: getBlockscoutRegex("/optimism/goerli"),
     rpc: buildAlchemyAndCustomRpcURLs("goerli", "opt"),
   },
-  "28": {
+  "288": {
     supported: true,
     monitored: false,
     contractFetchAddress:
         "https://bobascan.com/" + ETHERSCAN_SUFFIX,
     txRegex: ETHERSCAN_REGEX,
   },
-  "288": {
+  "2888": {
     supported: true,
     monitored: false,
     contractFetchAddress:
