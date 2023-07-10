@@ -106,17 +106,16 @@ function buildAlchemyAndCustomRpcURLs(
       break;
   }
 
-  if (!alchemyId)
+  if (!alchemyId) {
     logger.warn(
       `Environment variable ALCHEMY_ID not set for ${chainName} ${chainSubName}!`
     );
-
-  const domain = "g.alchemy.com";
-  // No sepolia support yet
-  if (alchemyId && chainSubName !== "sepolia")
+  } else {
+    const domain = "g.alchemy.com";
     rpcURLs.push(
       `https://${chainName}-${chainSubName}.${domain}/v2/${alchemyId}`
     );
+  }
 
   return rpcURLs;
 }
@@ -161,9 +160,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // Ethereum Sepolia Testnet
     supported: true,
     monitored: true,
-    rpc: buildAlchemyAndCustomRpcURLs("sepolia", "eth", true).concat(
-      "https://rpc.sepolia.org"
-    ),
+    rpc: buildAlchemyAndCustomRpcURLs("sepolia", "eth", true),
     contractFetchAddress: generateEtherscanCreatorTxAPI("11155111"),
   },
   "3": {
