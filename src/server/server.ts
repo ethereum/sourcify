@@ -104,6 +104,13 @@ export class Server {
         validateResponses: false,
         ignoreUndocumented: true,
         fileUploader: false,
+        validateSecurity: {
+          handlers: {
+            BearerAuth: async (req, scopes, schema) => {
+              return true;
+            },
+          },
+        },
         formats: [
           {
             name: "comma-separated-addresses",
