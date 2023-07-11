@@ -695,8 +695,7 @@ describe("Server", function () {
         .post("/")
         .field("address", address)
         .field("chain", defaultContractChain)
-        .attach("files", metadataBuffer, "metadata.json")
-        .send();
+        .attach("files", metadataBuffer, "metadata.json");
 
       assertVerification(
         null,
