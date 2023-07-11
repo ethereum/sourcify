@@ -194,7 +194,7 @@ const Create2Form = ({
     };
 
     getUserMetadata();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, getAccessTokenSilently]);
 
   return (
     <div className="">
