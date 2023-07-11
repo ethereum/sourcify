@@ -96,7 +96,7 @@ function buildAlchemyAndCustomRpcURLs(
       );
       rpcURLs.push(ethersFetchReq);
     } else {
-      SourcifyEventManager.trigger("Core.Error", {
+      SourcifyEventManager.trigger("Server.SourcifyChains.Warn", {
         message: `Environment variable NODE_URL_${chainSubName.toUpperCase()} not set!`,
       });
     }
@@ -118,9 +118,9 @@ function buildAlchemyAndCustomRpcURLs(
   }
 
   if (!alchemyId) {
-    logger.warn(
-      `Environment variable ALCHEMY_ID not set for ${chainName} ${chainSubName}!`
-    );
+    SourcifyEventManager.trigger("Server.SourcifyChains.Warn", {
+      message: `Environment variable ALCHEMY_ID not set for ${chainName} ${chainSubName}!`,
+    });
   } else {
     const domain = "g.alchemy.com";
     rpcURLs.push(
