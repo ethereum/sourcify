@@ -913,6 +913,59 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
+  // Siberium Testnet
+  verifyContract(
+    "0x60E9b3CD8C160Ce6408dD6E2Fa938895cfF7E087",
+    "111000",
+    "Siberium Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  // Ethereum Classic Mainnet
+  verifyContract(
+    "0x45a82B987a4e5d7D00eD5aB325DF00850cDAbBAC",
+    "61",
+    "Ethereum Classic Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  // Filecoin Mainnet
+  verifyContract(
+    "0x23396626F2C9c0b31cC6C2729172103961Ae2A26",
+    "314",
+    "Filecoin Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  // Zilliqa EVM
+  verifyContract(
+    "0x6F85669808e20b121980DE8E7a794a0cc90fDc77",
+    "32769",
+    "Zilliqa EVM",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  // Zilliqa EVM Testnet
+  verifyContract(
+    "0xeb6Ea260eDFb9837ed100B09c559081AfA5b0785",
+    "33101",
+    "Zilliqa EVM Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  // KAVA EVM Testnet
+  verifyContract(
+    "0x40b4f95C3bafc8d690B4c3fDD1E8303c4817Cd9C",
+    "2221",
+    "Kava EVM Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainId) {

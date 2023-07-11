@@ -11,29 +11,27 @@ const Monitor = require("../dist/monitor/monitor").default;
 const { waitSecs } = require("./helpers/helpers");
 const fs = require("fs");
 const path = require("path");
-const Web3 = require("web3");
-const ethers = require("ethers");
+const {
+  id: keccak256str,
+  JsonRpcProvider,
+  getCreateAddress,
+  Network,
+} = require("ethers");
 const { EventEmitter } = require("stream");
-
-class Counter {
-  static get() {
-    return Counter.cnt++;
-  }
-}
-Counter.cnt = 0;
+const { LOCAL_CHAINS } = require("../dist/sourcify-chains");
 
 class MonitorWrapper extends EventEmitter {
   constructor() {
     super();
     this.repository = process.env.MOCK_REPOSITORY;
-    this.monitor = new Monitor({ testing: true });
+    this.monitor = new Monitor(LOCAL_CHAINS.slice(0, 1)); // Ganache
     this.monitor.on("contract-verified-successfully", (chainId, address) => {
       this.emit("contract-verified-successfully", chainId, address);
     });
     this.monitor.on("contract-already-verified", (chainId, address) => {
       this.emit("contract-already-verified", chainId, address);
     });
-    this.chainId = this.monitor.chainMonitors[0].chainId;
+    this.chainId = this.monitor.chainMonitors[0].sourcifyChain.chainId;
   }
 
   async start(startBlock) {
@@ -60,7 +58,7 @@ class MonitorWrapper extends EventEmitter {
       this.repository,
       "contracts",
       "full_match",
-      this.chainId,
+      this.chainId.toString(),
       address
     );
   }
@@ -90,9 +88,9 @@ class MonitorWrapper extends EventEmitter {
       const source = metadata.sources[sourceName];
       const sourcePath = path.join(pathPrefix, "sources", sourceName);
       const savedSource = fs.readFileSync(sourcePath).toString();
-      const savedSourceHash = Web3.utils.keccak256(savedSource);
+      const savedSourceHash = keccak256str(savedSource);
       const originalSourceHash =
-        source.keccak256 || Web3.utils.keccak256(source.content);
+        source.keccak256 || keccak256str(source.content);
       chai
         .expect(savedSourceHash, "sourceHash comparison")
         .to.equal(originalSourceHash);
@@ -150,8 +148,8 @@ describe("Monitor", function () {
   };
 
   let ipfsNode;
-  let web3Provider;
-  let accounts;
+  let signer;
+  let account;
 
   before(async function () {
     ipfsNode = await ipfs.create({ offline: true, silent: true });
@@ -169,17 +167,26 @@ describe("Monitor", function () {
     });
     await ganacheServer.listen(GANACHE_PORT);
     console.log("Started ganache local server at port " + GANACHE_PORT);
+    const sourcifyChainGanache = LOCAL_CHAINS[0];
+    const ethersNetwork = new Network(
+      sourcifyChainGanache.rpc[0],
+      sourcifyChainGanache.chainId
+    );
+    signer = await new JsonRpcProvider(
+      `http://localhost:${GANACHE_PORT}`,
+      ethersNetwork,
+      { staticNetwork: ethersNetwork }
+    ).getSigner();
 
-    web3Provider = new Web3(`http://localhost:${GANACHE_PORT}`);
-    accounts = await web3Provider.eth.getAccounts();
-    console.log("Initialized web3 provider");
+    account = await signer.getAddress();
+    console.log("Initialized provider with signer account " + account);
   });
 
   afterEach(async () => {
     await ganacheServer.close();
     ganacheServer = null;
-    web3Provider = null;
-    accounts = null;
+    signer = null;
+    account = null;
   });
 
   const GENERATION_SECS = 10; // waiting for extra blocks to be generated
@@ -187,6 +194,7 @@ describe("Monitor", function () {
   const sourcifyContract = (contractWrapper, done) => {
     const monitorWrapper = new MonitorWrapper();
     monitorWrapper.start().then(() => {
+      console.log("Started monitor for chainId: " + monitorWrapper.chainId);
       let address;
 
       monitorWrapper.on("contract-verified-successfully", () => {
@@ -195,9 +203,7 @@ describe("Monitor", function () {
         done();
       });
 
-      contractWrapper
-        .deploy(web3Provider, accounts[Counter.get()])
-        .then((addr) => (address = addr));
+      contractWrapper.deploy(signer).then((addr) => (address = addr));
     });
   };
 
@@ -216,8 +222,8 @@ describe("Monitor", function () {
   it("should not resourcify if already sourcified", function (done) {
     const contract = contractWrappers.simpleWithImport;
     const monitorWrapper = new MonitorWrapper();
-    const from = accounts[Counter.get()];
-    const calculatedAddress = ethers.utils.getContractAddress({
+    const from = account;
+    const calculatedAddress = getCreateAddress({
       from,
       nonce: 0,
     });
@@ -238,7 +244,7 @@ describe("Monitor", function () {
         monitorWrapper.stop();
         done();
       });
-      contract.deploy(web3Provider, from).then((addr) => {
+      contract.deploy(signer).then((addr) => {
         deployedAddress = addr;
         chai.expect(calculatedAddress).to.deep.equal(deployedAddress);
       });
@@ -247,8 +253,8 @@ describe("Monitor", function () {
 
   it("should sourcify the deployed contract after being started with a delay", function (done) {
     const contract = contractWrappers.simpleWithImport;
-    contract.deploy(web3Provider, accounts[Counter.get()]).then((address) => {
-      web3Provider.eth.getBlockNumber().then((currentBlockNumber) => {
+    contract.deploy(signer).then((address) => {
+      signer.provider.getBlockNumber().then((currentBlockNumber) => {
         waitSecs(GENERATION_SECS).then(() => {
           const monitorWrapper = new MonitorWrapper();
           monitorWrapper.start(currentBlockNumber - 1).then(() => {

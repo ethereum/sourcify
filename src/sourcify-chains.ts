@@ -203,6 +203,13 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     monitored: false,
     contractFetchAddress: generateEtherscanCreatorTxAPI("56"),
   },
+  "61": {
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://blockscout.com/etc/mainnet/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex("/etc/mainnet"),
+  },
   "77": {
     // Turned off as seemingly stale
     supported: false,
@@ -249,6 +256,10 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress:
       "https://blockscout.com/xdai/optimism/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex("/xdai/optimism"),
+  },
+  "314": {
+    supported: true,
+    monitored: false,
   },
   "137": {
     supported: true,
@@ -884,6 +895,31 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     supported: true,
     monitored: false,
     contractFetchAddress: "https://explorer.kava.io/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
+  "32769": {
+    // Zilliqa EVM
+    supported: true,
+    monitored: false,
+  },
+  "33101": {
+    // Zilliqa EVM Testnet
+    supported: true,
+    monitored: false,
+  },
+  "2221": {
+    // Kava EVM Testnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://explorer.testnet.kava.io/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
+  "111000": {
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://http://explorer.test.siberium.net/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
 };

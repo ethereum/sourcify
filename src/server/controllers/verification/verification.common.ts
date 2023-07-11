@@ -17,13 +17,13 @@ import {
   useAllSources,
 } from "@ethereum-sourcify/lib-sourcify";
 import { Session } from "express-session";
-import Web3 from "web3";
 import { AbiConstructor, AbiParameter } from "abitype";
 import QueryString from "qs";
 import fetch from "node-fetch";
 import { IVerificationService } from "../../services/VerificationService";
 import { IRepositoryService } from "../../services/RepositoryService";
 import { ContractMeta, ContractWrapper } from "../../common";
+import { id as keccak256str } from "ethers";
 
 type PathBuffer = {
   path: string;
@@ -84,7 +84,7 @@ export const FILE_ENCODING = "base64";
 export const MAX_SESSION_SIZE = 50 * 1024 * 1024; // 50 MiB
 
 export function generateId(obj: any): string {
-  return Web3.utils.keccak256(JSON.stringify(obj));
+  return keccak256str(JSON.stringify(obj));
 }
 export const saveFiles = (
   pathContents: PathContent[],

@@ -1,3 +1,4 @@
+const { ContractFactory, Wallet, BaseContract } = require("ethers");
 const { etherscanAPIs } = require("../../dist/config");
 const { sourcifyChainsMap } = require("../../dist/sourcify-chains");
 const {
@@ -12,92 +13,59 @@ chai.use(chaiHttp);
 const invalidAddress = "0x000000bCB92160f8B7E094998Af6BCaD7fa537ff"; // checksum false
 const unusedAddress = "0xf1Df8172F308e0D47D0E5f9521a5210467408535";
 const unsupportedChain = "3"; // Ropsten
-/**
- *  Function to deploy contracts from provider unlocked accounts
- */
-async function deployFromAbiAndBytecode(web3, abi, bytecode, from, args) {
-  // Deploy contract
-  const contract = new web3.eth.Contract(abi);
-  const deployment = contract.deploy({
-    data: bytecode,
-    arguments: args || [],
-  });
-  const gas = await deployment.estimateGas({ from });
-  const contractResponse = await deployment.send({
-    from,
-    gas,
-  });
-  return contractResponse.options.address;
+
+async function deployFromAbiAndBytecode(signer, abi, bytecode, args) {
+  const contractFactory = new ContractFactory(abi, bytecode, signer);
+  console.log(`Deploying contract ${args?.length ? `with args ${args}` : ""}`);
+  const deployment = await contractFactory.deploy(...(args || []));
+  await deployment.waitForDeployment();
+
+  const contractAddress = await deployment.getAddress();
+  console.log(`Deployed contract at ${contractAddress}`);
+  return contractAddress;
 }
 
 /**
  * Creator tx hash is needed for tests. This function returns the tx hash in addition to the contract address.
  *
- * @returns The contract address and the tx hash
  */
 async function deployFromAbiAndBytecodeForCreatorTxHash(
-  web3,
+  signer,
   abi,
   bytecode,
-  from,
   args
 ) {
-  // Deploy contract
-  const contract = new web3.eth.Contract(abi);
-  const deployment = contract.deploy({
-    data: bytecode,
-    arguments: args || [],
-  });
-  const gas = await deployment.estimateGas({ from });
+  const contractFactory = new ContractFactory(abi, bytecode, signer);
+  console.log(`Deploying contract ${args?.length ? `with args ${args}` : ""}`);
+  const deployment = await contractFactory.deploy(...(args || []));
+  await deployment.waitForDeployment();
 
-  // If awaited, the send() Promise returns the contract instance.
-  // We also need the tx hash so we need two seperate event listeners.
-  const sendPromiEvent = deployment.send({
-    from,
-    gas,
-  });
+  const contractAddress = await deployment.getAddress();
+  const creationTx = deployment.deploymentTransaction();
+  if (!creationTx) {
+    throw new Error(`No deployment transaction found for ${contractAddress}`);
+  }
+  console.log(
+    `Deployed contract at ${contractAddress} with tx ${creationTx.hash}`
+  );
 
-  const txHashPromise = new Promise((resolve, reject) => {
-    sendPromiEvent.on("transactionHash", (txHash) => {
-      resolve(txHash);
-    });
-    sendPromiEvent.on("error", (error) => {
-      reject(error);
-    });
-  });
-
-  const contractAddressPromise = new Promise((resolve, reject) => {
-    sendPromiEvent.on("receipt", (receipt) => {
-      if (!receipt.contractAddress) {
-        reject(new Error("No contract address in receipt"));
-      } else {
-        resolve(receipt.contractAddress);
-      }
-    });
-    sendPromiEvent.on("error", (error) => {
-      reject(error);
-    });
-  });
-
-  return Promise.all([contractAddressPromise, txHashPromise]);
+  return { contractAddress, txHash: creationTx.hash };
 }
 /**
  * Function to deploy contracts from an external account with private key
  */
-async function deployFromPrivateKey(web3, abi, bytecode, privateKey, args) {
-  const contract = new web3.eth.Contract(abi);
-  const account = web3.eth.accounts.wallet.add(privateKey);
-  const deployment = contract.deploy({
-    data: bytecode,
-    arguments: args || [],
-  });
-  const gas = await deployment.estimateGas({ from: account.address });
-  const contractResponse = await deployment.send({
-    from: account.address,
-    gas,
-  });
-  return contractResponse.options.address;
+async function deployFromPrivateKey(provider, abi, bytecode, privateKey, args) {
+  const signer = new Wallet(privateKey, provider);
+  const contractFactory = new ContractFactory(abi, bytecode, signer);
+  console.log(`Deploying contract ${args?.length ? `with args ${args}` : ""}`);
+  const deployment = await contractFactory.deploy(...(args || []));
+  await deployment.waitForDeployment();
+
+  const contractAddress = await deployment.getAddress();
+  console.log(`Deployed contract at ${contractAddress}`);
+  return contractAddress;
 }
+
 /**
  * Await `secs` seconds
  * @param  {Number} secs seconds
@@ -107,45 +75,32 @@ function waitSecs(secs = 0) {
   return new Promise((resolve) => setTimeout(resolve, secs * 1000));
 }
 
-// Uses web3.call which does not send a tx i.e. change the state, bit simulates the tx.
+// Uses staticCall which does not send a tx i.e. change the state.
 async function callContractMethod(
-  web3,
+  provider,
   abi,
   contractAddress,
   methodName,
   from,
   args
 ) {
-  const contract = new web3.eth.Contract(abi, contractAddress);
-  const method = contract.methods[methodName](...args);
-  const gas = await method.estimateGas({ from });
-
-  const callResponse = await method.call({
-    from,
-    gas,
-  });
+  const contract = new BaseContract(contractAddress, abi, provider);
+  const callResponse = await contract[methodName].staticCall(...args);
 
   return callResponse;
 }
 
 // Sends a tx that changes the state
 async function callContractMethodWithTx(
-  web3,
+  signer,
   abi,
   contractAddress,
   methodName,
-  from,
   args
 ) {
-  const contract = new web3.eth.Contract(abi, contractAddress);
-  const method = contract.methods[methodName](...args);
-  const gas = await method.estimateGas({ from });
-
-  const txReceipt = await method.send({
-    from,
-    gas,
-  });
-
+  const contract = new BaseContract(contractAddress, abi, signer);
+  const txResponse = await contract[methodName].send(...args);
+  const txReceipt = await txResponse.wait();
   return txReceipt;
 }
 

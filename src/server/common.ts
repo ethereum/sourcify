@@ -1,4 +1,3 @@
-import { isAddress } from "ethers/lib/utils";
 import { BadRequestError } from "../common/errors";
 import { checkSourcifyChainId } from "../sourcify-chains";
 import {
@@ -6,7 +5,7 @@ import {
   PathContent,
   Status,
 } from "@ethereum-sourcify/lib-sourcify";
-import { toChecksumAddress } from "web3-utils";
+import { getAddress, isAddress } from "ethers";
 
 export const validateSingleAddress = (address: string): boolean => {
   if (!isAddress(address)) {
@@ -23,7 +22,7 @@ export const validateAddresses = (addresses: string): boolean => {
     if (!isAddress(address)) {
       invalidAddresses.push(address);
     } else {
-      addressesArray[i] = toChecksumAddress(address);
+      addressesArray[i] = getAddress(address);
     }
   }
 
