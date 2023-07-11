@@ -14,7 +14,6 @@ import {
 import {
   PathBuffer,
   PathContent,
-  getBytecode,
   getIpfsGateway,
   isEmpty,
   performFetch,
@@ -78,7 +77,7 @@ export async function addInputContractEndpoint(req: Request, res: Response) {
 
   const sourcifyChain = services.verification.supportedChainsMap[chainId];
 
-  const bytecode = await getBytecode(sourcifyChain, address);
+  const bytecode = await sourcifyChain.getBytecode(address);
 
   const { ipfs: metadataIpfsCid } = bytecodeDecode(bytecode);
 

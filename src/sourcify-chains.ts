@@ -11,6 +11,7 @@ import {
 import { etherscanAPIs } from "./config";
 import { ValidationError } from "./common/errors";
 import { logger } from "./common/loggerLoki";
+import { FetchRequest } from "ethers";
 
 const allChains = chainsRaw as Chain[];
 
@@ -34,7 +35,7 @@ const AVALANCHE_SUBNET_SUFFIX =
 type ChainName = "eth" | "polygon" | "arb" | "opt";
 
 const LOCAL_CHAINS: SourcifyChain[] = [
-  {
+  new SourcifyChain({
     name: "Ganache Localhost",
     shortName: "Ganache",
     chainId: 1337,
@@ -46,8 +47,8 @@ const LOCAL_CHAINS: SourcifyChain[] = [
     rpc: [`http://localhost:8545`],
     supported: true,
     monitored: true,
-  },
-  {
+  }),
+  new SourcifyChain({
     name: "Hardhat Network Localhost",
     shortName: "Hardhat Network",
     chainId: 31337,
@@ -59,7 +60,7 @@ const LOCAL_CHAINS: SourcifyChain[] = [
     rpc: [`http://localhost:8545`],
     supported: true,
     monitored: true,
-  },
+  }),
 ];
 
 interface SourcifyChainsExtensionsObject {
@@ -78,12 +79,22 @@ function buildAlchemyAndCustomRpcURLs(
   chainName: ChainName,
   useOwn = false
 ) {
-  const rpcURLs: string[] = [];
+  const rpcURLs: SourcifyChain["rpc"] = [];
 
   if (useOwn) {
     const url = process.env[`NODE_URL_${chainSubName.toUpperCase()}`];
     if (url) {
-      rpcURLs.push(url);
+      const ethersFetchReq = new FetchRequest(url);
+      ethersFetchReq.setHeader("Content-Type", "application/json");
+      ethersFetchReq.setHeader(
+        "CF-Access-Client-Id",
+        process.env.CF_ACCESS_CLIENT_ID || ""
+      );
+      ethersFetchReq.setHeader(
+        "CF-Access-Client-Secret",
+        process.env.CF_ACCESS_CLIENT_SECRET || ""
+      );
+      rpcURLs.push(ethersFetchReq);
     } else {
       SourcifyEventManager.trigger("Core.Error", {
         message: `Environment variable NODE_URL_${chainSubName.toUpperCase()} not set!`,
@@ -950,7 +961,11 @@ for (const i in allChains) {
 
   if (chainId in sourcifyChainsExtensions) {
     const sourcifyExtension = sourcifyChainsExtensions[chainId];
-    const sourcifyChain = { ...chain, ...sourcifyExtension } as SourcifyChain;
+    // sourcifyExtension is spread later to overwrite chain values, rpc specifically
+    const sourcifyChain = new SourcifyChain({
+      ...chain,
+      ...sourcifyExtension,
+    });
     sourcifyChainsMap[chainId] = sourcifyChain;
   }
 }

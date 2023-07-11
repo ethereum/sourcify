@@ -1,5 +1,6 @@
 import { Abi } from 'abitype';
-
+import { FetchRequest } from 'ethers';
+import SourcifyChain from './SourcifyChain';
 export interface PathBuffer {
   path: string;
   buffer: Buffer;
@@ -190,7 +191,7 @@ export type SourcifyChainExtension = {
   contractFetchAddress?: string;
   graphQLFetchAddress?: string;
   txRegex?: string[];
-  rpc?: string[];
+  rpc?: Array<string | FetchRequest>;
 };
 
 // TODO: Double check against ethereum-lists/chains type
@@ -202,13 +203,10 @@ export type Chain = {
   network?: string;
   networkId: number;
   nativeCurrency: Currency;
-  rpc: string[];
+  rpc: Array<string>;
   faucets?: string[];
   infoURL?: string;
 };
-
-// a type that extends the Chain type
-export type SourcifyChain = Chain & SourcifyChainExtension;
 
 export type SourcifyChainMap = {
   [chainId: string]: SourcifyChain;
