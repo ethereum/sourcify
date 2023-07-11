@@ -28,6 +28,7 @@ import rateLimit from "express-rate-limit";
 import config from "../../../config";
 import { id as keccak256str } from "ethers";
 import { ForbiddenError } from "../../../common/errors/ForbiddenError";
+import { UnauthorizedError } from "../../../common/errors/UnauthorizedError";
 
 type PathBuffer = {
   path: string;
@@ -410,6 +411,35 @@ export const apiLimiter = (
     },
     keyGenerator: (req: Request) => req.auth?.payload.sub as string,
   });
+
+export const isAuth0EnabledUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const userInfoRequest = await fetch(
+    `${config.authentication.jwt.issuerBaseURL}userinfo`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${req.auth?.token}`,
+      },
+    }
+  );
+  if (userInfoRequest.status === 401) {
+    throw new UnauthorizedError();
+  }
+  try {
+    const userInfo = await userInfoRequest.json();
+    if (!userInfo.sub.includes("auth0")) {
+      throw new UnauthorizedError();
+    }
+  } catch (e) {
+    throw new UnauthorizedError();
+  }
+  next();
+};
 
 export const apiCheckPermission = (permission: string, errorMessage: string) =>
   function (req: Request, res: Response, next: NextFunction) {

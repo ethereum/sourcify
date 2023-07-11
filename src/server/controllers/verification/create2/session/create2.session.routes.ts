@@ -4,7 +4,7 @@ import {
   sessionPrecompileContract,
 } from "./create2.session.handlers";
 import { safeHandler } from "../../../controllers.common";
-import { jwtCheck } from "../../verification.common";
+import { isAuth0EnabledUser, jwtCheck } from "../../verification.common";
 import {
   // hasVerifyCreate2Permission,
   apiVerifyCreate2Limiter,
@@ -15,6 +15,7 @@ const router: Router = Router();
 router.route("/session/verify/create2").post(
   jwtCheck,
   // hasVerifyCreate2Permission,
+  isAuth0EnabledUser,
   apiVerifyCreate2Limiter,
   safeHandler(sessionVerifyCreate2)
 );

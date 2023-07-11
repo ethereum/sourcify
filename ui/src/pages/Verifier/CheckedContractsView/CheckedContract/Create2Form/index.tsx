@@ -102,7 +102,7 @@ const Create2Form = ({
   const [showRawAbiInput, setShowRawAbiInput] = useState(false);
   const [isInvalidConstructorArguments, setIsInvalidConstructorArguments] =
     useState(false);
-
+  const [clientToken, setClientToken] = useState<string>();
   const { user, isAuthenticated, getAccessTokenSilently } = useAuth0();
 
   useEffect(() => {
@@ -156,26 +156,14 @@ const Create2Form = ({
     setIsInvalidDeploylerAddress(false);
   };
 
-  const handleSubmit: FormEventHandler<HTMLFormElement> = async (e) => {
+  const handleSubmit: FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
     if (
       !deployerAddress ||
       isInvalidDeployerAddress ||
       isInvalidConstructorArguments
-    ) {
+    )
       return;
-    }
-    if (!isAuthenticated) {
-      return;
-    }
-
-    const accessToken = await getAccessTokenSilently({
-      cacheMode: "off",
-      authorizationParams: {
-        audience: AUTH0_AUDIENCE,
-      },
-    });
-
     setIsLoading(true);
     verifyCreate2CheckedContract({
       verificationId: checkedContract.verificationId || "",
@@ -183,9 +171,30 @@ const Create2Form = ({
       salt: salt || "",
       abiEncodedConstructorArguments,
       create2Address: create2Address || "",
-      clientToken: accessToken || "",
+      clientToken: clientToken || "",
     }).finally(() => setIsLoading(false));
   };
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+    const getUserMetadata = async () => {
+      try {
+        const accessToken = await getAccessTokenSilently({
+          authorizationParams: {
+            audience: AUTH0_AUDIENCE,
+          },
+        });
+
+        setClientToken(accessToken);
+      } catch (e: any) {
+        console.log("test", e.message);
+      }
+    };
+
+    getUserMetadata();
+  }, [isAuthenticated]);
 
   return (
     <div className="">
