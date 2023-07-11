@@ -197,21 +197,29 @@ export class Server {
       res.status(200).send("Alive and kicking!")
     );
     this.app.get("/chains", (_req, res) => {
-      const sourcifyChains = sourcifyChainsArray.map(({ rpc, ...rest }) => {
-        // Don't show Alchemy & Infura IDs
-        rpc = rpc.map((url) => {
-          if (url.includes("alchemy"))
-            return url.replace(/\/[^/]*$/, "/{ALCHEMY_ID}");
-          else if (url.includes("infura"))
-            return url.replace(/\/[^/]*$/, "/{INFURA_ID}");
-          else return url;
-        });
-        return {
-          ...rest,
-          rpc,
-          etherscanAPI: etherscanAPIs[rest.chainId]?.apiURL,
-        };
-      });
+      const sourcifyChains = sourcifyChainsArray.map(
+        ({ rpc, providers, ...rest }) => {
+          // Don't publish providers
+          // Don't show Alchemy & Infura IDs
+          rpc = rpc.map((url) => {
+            if (typeof url === "string") {
+              if (url.includes("alchemy"))
+                return url.replace(/\/[^/]*$/, "/{ALCHEMY_ID}");
+              else if (url.includes("infura"))
+                return url.replace(/\/[^/]*$/, "/{INFURA_ID}");
+              else return url;
+            } else {
+              // FetchRequest
+              return url.url;
+            }
+          });
+          return {
+            ...rest,
+            rpc,
+            etherscanAPI: etherscanAPIs[rest.chainId]?.apiURL,
+          };
+        }
+      );
 
       res.status(200).json(sourcifyChains);
     });

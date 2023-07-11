@@ -6,22 +6,13 @@ import {
   Match,
   Metadata,
   RecompilationResult,
-  SourcifyChain,
   StringMap,
 } from './types';
 import {
   decode as bytecodeDecode,
   splitAuxdata,
 } from '@ethereum-sourcify/bytecode-utils';
-import {
-  JsonRpcProvider,
-  Network,
-  TransactionResponse,
-  WebSocketProvider,
-  getAddress,
-  getCreateAddress,
-  keccak256,
-} from 'ethers';
+import { getAddress, getCreateAddress, keccak256 } from 'ethers';
 /* 
 import { EVM } from '@ethereumjs/evm';
 import { EEI } from '@ethereumjs/vm';
@@ -35,11 +26,8 @@ import { BigNumber } from '@ethersproject/bignumber';
 import semverSatisfies from 'semver/functions/satisfies';
 import { defaultAbiCoder as abiCoder, ParamType } from '@ethersproject/abi';
 import { AbiConstructor } from 'abitype';
-import { logInfo, logWarn } from './logger';
-
-const RPC_TIMEOUT = process.env.RPC_TIMEOUT
-  ? parseInt(process.env.RPC_TIMEOUT)
-  : 5000;
+import { logInfo } from './logger';
+import SourcifyChain from './SourcifyChain';
 
 export async function verifyDeployed(
   checkedContract: CheckedContract,
@@ -69,7 +57,7 @@ export async function verifyDeployed(
     );
   }
 
-  const deployedBytecode = await getBytecode(sourcifyChain, address);
+  const deployedBytecode = await sourcifyChain.getBytecode(address);
 
   // Can't match if there is no deployed bytecode
   if (!deployedBytecode) {
@@ -394,7 +382,7 @@ export async function matchWithCreationTx(
     return;
   }
 
-  const creatorTx = await getTx(creatorTxHash, sourcifyChain);
+  const creatorTx = await sourcifyChain.getTx(creatorTxHash);
   const creatorTxData = creatorTx.data;
 
   // The reason why this uses `startsWith` instead of `===` is that creationTxData may contain constructor arguments at the end part.
@@ -474,107 +462,6 @@ export async function matchWithCreationTx(
     match.creatorTxHash = creatorTxHash;
   }
 }
-/**
- * Fetches the contract's deployed bytecode from SourcifyChain's rpc's.
- * Tries to fetch sequentially if the first RPC is a local eth node. Fetches in parallel otherwise.
- *
- * @param {SourcifyChain} sourcifyChain - chain object with rpc's
- * @param {string} address - contract address
- */
-export async function getBytecode(
-  sourcifyChain: SourcifyChain,
-  address: string
-): Promise<string> {
-  if (!sourcifyChain?.rpc.length)
-    throw new Error('No RPC provider was given for this chain.');
-  address = getAddress(address);
-
-  // Request sequentially. Custom node is always before ALCHEMY so we don't waste resources if succeeds.
-  for (const rpcURL of sourcifyChain.rpc) {
-    const ethersNetwork = new Network(
-      sourcifyChain.name,
-      sourcifyChain.chainId
-    );
-
-    const provider = rpcURL.startsWith('http')
-      ? // Use staticNetwork to avoid seding unnecessary eth_chainId requests
-        new JsonRpcProvider(rpcURL, ethersNetwork, {
-          staticNetwork: ethersNetwork,
-        })
-      : new WebSocketProvider(rpcURL);
-
-    try {
-      // Race the RPC call with a timeout
-      const bytecode = await Promise.race([
-        provider.getCode(address),
-        rejectInMs(RPC_TIMEOUT, rpcURL),
-      ]);
-      return bytecode;
-    } catch (err) {
-      if (err instanceof Error) {
-        logWarn(
-          `Can't fetch bytecode from RPC ${rpcURL} and chain ${sourcifyChain.chainId}`
-        );
-        continue;
-      } else {
-        throw err;
-      }
-    }
-  }
-  throw new Error('None of the RPCs responded');
-}
-
-async function getTx(creatorTxHash: string, sourcifyChain: SourcifyChain) {
-  if (!sourcifyChain?.rpc.length)
-    throw new Error('No RPC provider was given for this chain.');
-
-  for (const rpcURL of sourcifyChain.rpc) {
-    const ethersNetwork = new Network(
-      sourcifyChain.name,
-      sourcifyChain.chainId
-    );
-
-    const provider = rpcURL.startsWith('http')
-      ? // Use staticNetwork to avoid seding unnecessary eth_chainId requests
-        new JsonRpcProvider(rpcURL, ethersNetwork, {
-          staticNetwork: ethersNetwork,
-        })
-      : new WebSocketProvider(rpcURL);
-
-    try {
-      // Race the RPC call with a timeout
-      const tx = await Promise.race([
-        provider.getTransaction(creatorTxHash),
-        rejectInMs(RPC_TIMEOUT, rpcURL),
-      ]);
-      if (tx instanceof TransactionResponse) {
-        logInfo(
-          `Transaction ${creatorTxHash} fetched via ${rpcURL} from chain ${sourcifyChain.chainId}`
-        );
-        return tx;
-      } else {
-        throw new Error(
-          `Transaction ${creatorTxHash} not found on RPC ${rpcURL} and chain ${sourcifyChain.chainId}`
-        );
-      }
-    } catch (err) {
-      if (err instanceof Error) {
-        logWarn(
-          `Can't fetch bytecode from RPC ${rpcURL} and chain ${sourcifyChain.chainId}`
-        );
-        continue;
-      } else {
-        throw err;
-      }
-    }
-  }
-  throw new Error('None of the RPCs responded');
-}
-
-const rejectInMs = (ms: number, host: string) =>
-  new Promise<never>((_resolve, reject) => {
-    setTimeout(() => reject(`RPC ${host} took too long to respond`), ms);
-  });
 
 export function addLibraryAddresses(
   template: string,

@@ -1,11 +1,5 @@
 import { SourceAddress } from "./util";
-import {
-  JsonRpcProvider,
-  Provider,
-  TransactionResponse,
-  WebSocketProvider,
-  getCreateAddress,
-} from "ethers";
+import { TransactionResponse, getCreateAddress } from "ethers";
 import SourceFetcher from "./source-fetcher";
 import assert from "assert";
 import { EventEmitter } from "stream";
@@ -29,7 +23,6 @@ const BLOCK_PAUSE_UPPER_LIMIT =
   parseInt(process.env.BLOCK_PAUSE_UPPER_LIMIT || "") || 30 * 1000; // default: 30 seconds
 const BLOCK_PAUSE_LOWER_LIMIT =
   parseInt(process.env.BLOCK_PAUSE_LOWER_LIMIT || "") || 0.5 * 1000; // default: 0.5 seconds
-const PROVIDER_TIMEOUT = parseInt(process.env.PROVIDER_TIMEOUT || "") || 3000;
 
 function createsContract(tx: TransactionResponse): boolean {
   return !tx.to;
@@ -40,7 +33,6 @@ function createsContract(tx: TransactionResponse): boolean {
  */
 class ChainMonitor extends EventEmitter {
   private sourcifyChain: SourcifyChain;
-  private provider: Provider | undefined;
   private sourceFetcher: SourceFetcher;
   private verificationService: IVerificationService;
   private repositoryService: IRepositoryService;
@@ -76,48 +68,18 @@ class ChainMonitor extends EventEmitter {
     const rawStartBlock =
       process.env[`MONITOR_START_${this.sourcifyChain.chainId}`];
 
-    // iterate over RPCs to find a working one; log the search result
-    let found = false;
-    for (const providerURL of this.sourcifyChain.rpc) {
-      // const opts = { timeout: PROVIDER_TIMEOUT };
-      // TODO: ethers provider does not support timeout https://github.com/ethers-io/ethers.js/issues/4122
-      const provider = providerURL.startsWith("http")
-        ? // prettier vs. eslint indentation conflict here
-          /* eslint-disable indent*/
-          new JsonRpcProvider(providerURL, {
-            name: this.sourcifyChain.name,
-            chainId: this.sourcifyChain.chainId,
-          })
-        : new WebSocketProvider(providerURL, {
-            name: this.sourcifyChain.name,
-            chainId: this.sourcifyChain.chainId,
-          });
-      /* eslint-enable indent*/
-      try {
-        const lastBlockNumber = await provider.getBlockNumber();
-        found = true;
+    try {
+      const lastBlockNumber = await this.sourcifyChain.getBlockNumber();
+      const startBlock =
+        rawStartBlock !== undefined ? parseInt(rawStartBlock) : lastBlockNumber;
 
-        this.provider = provider;
-
-        const startBlock =
-          rawStartBlock !== undefined
-            ? parseInt(rawStartBlock)
-            : lastBlockNumber;
-
-        SourcifyEventManager.trigger("Monitor.Started", {
-          chainId: this.sourcifyChain.chainId.toString(),
-          providerURL,
-          lastBlockNumber,
-          startBlock,
-        });
-        this.processBlock(startBlock);
-        break;
-      } catch (err) {
-        logger.info(`${providerURL} did not work: \n ${err}`);
-      }
-    }
-
-    if (!found) {
+      SourcifyEventManager.trigger("Monitor.Started", {
+        chainId: this.sourcifyChain.chainId.toString(),
+        lastBlockNumber,
+        startBlock,
+      });
+      this.processBlock(startBlock);
+    } catch (err) {
       SourcifyEventManager.trigger("Monitor.Error.CantStart", {
         chainId: this.sourcifyChain.chainId.toString(),
         message: "Couldn't find a working RPC node.",
@@ -137,12 +99,7 @@ class ChainMonitor extends EventEmitter {
   };
 
   private processBlock = (blockNumber: number) => {
-    if (!this.provider)
-      throw new Error(
-        `Can't process block ${blockNumber}. Provider not initialized`
-      );
-
-    this.provider
+    this.sourcifyChain
       .getBlock(blockNumber, true)
       .then((block) => {
         if (!block) {
@@ -224,11 +181,9 @@ class ChainMonitor extends EventEmitter {
     if (retriesLeft-- <= 0) {
       return;
     }
-    if (!this.provider)
-      throw new Error(`Can't process bytecode. Provider not initialized`);
 
-    this.provider
-      .getCode(address)
+    this.sourcifyChain
+      .getBytecode(address)
       .then((bytecode) => {
         if (bytecode === "0x") {
           this.mySetTimeout(
