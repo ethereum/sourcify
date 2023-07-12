@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import path from 'path';
-import { Metadata, SourcifyChain } from '../src/lib/types';
+import { Metadata } from '../src/lib/types';
 import Ganache from 'ganache';
 import {
   /* callContractMethodWithTx, */
@@ -13,6 +13,7 @@ import {
 import { describe, it, before } from 'mocha';
 import { expect } from 'chai';
 import {
+  SourcifyChain,
   calculateCreate2Address,
   /* 
   getBytecode,
@@ -24,8 +25,7 @@ import {
   verifyDeployed,
 } from '../src';
 import fs from 'fs';
-import { JsonRpcProvider, JsonRpcSigner, Network } from 'ethers';
-// import { Match } from '@ethereum-sourcify/lib-sourcify';
+import { JsonRpcSigner } from 'ethers';
 
 const ganacheServer = Ganache.server({
   wallet: { totalAccounts: 1 },
@@ -35,7 +35,7 @@ const GANACHE_PORT = 8545;
 
 const UNUSED_ADDRESS = '0x1F98431c8aD98523631AE4a59f267346ea31F984'; // checksum valid
 
-const sourcifyChainGanache: SourcifyChain = {
+const ganacheChain = {
   name: 'ganache',
   shortName: 'ganache',
   chainId: 0,
@@ -49,23 +49,14 @@ const sourcifyChainGanache: SourcifyChain = {
   monitored: false,
   supported: true,
 };
+const sourcifyChainGanache: SourcifyChain = new SourcifyChain(ganacheChain);
 
-let localProvider: JsonRpcProvider;
 let signer: JsonRpcSigner;
 
 describe('lib-sourcify tests', () => {
   before(async () => {
     await ganacheServer.listen(GANACHE_PORT);
-    const ethersNetwork = new Network(
-      sourcifyChainGanache.rpc[0],
-      sourcifyChainGanache.chainId
-    );
-    localProvider = new JsonRpcProvider(
-      `http://localhost:${GANACHE_PORT}`,
-      ethersNetwork,
-      { staticNetwork: ethersNetwork }
-    );
-    signer = await localProvider.getSigner();
+    signer = await sourcifyChainGanache.providers[0].getSigner();
   });
 
   describe('Verification tests', () => {
@@ -438,6 +429,50 @@ describe('lib-sourcify tests', () => {
   });
 
   describe('Unit tests', function () {
+    describe('SourcifyChain', () => {
+      it("Should fail to instantiate with empty rpc's", function () {
+        const emptyRpc = { ...ganacheChain, rpc: [] };
+        try {
+          new SourcifyChain(emptyRpc);
+          throw new Error('Should have failed');
+        } catch (err) {
+          if (err instanceof Error) {
+            expect(err.message).to.equal(
+              'No RPC provider was given for this chain with id ' +
+                emptyRpc.chainId +
+                ' and name ' +
+                emptyRpc.name
+            );
+          } else {
+            throw err;
+          }
+        }
+      });
+      it('Should getBlock', async function () {
+        const block = await sourcifyChainGanache.getBlock(0);
+        expect(block?.number).equals(0);
+      });
+      it('Should getBlockNumber', async function () {
+        const blockNumber = await sourcifyChainGanache.getBlockNumber();
+        expect(blockNumber > 0);
+      });
+      it('Should fail to get non-existing transaction', async function () {
+        try {
+          await sourcifyChainGanache.getTx(
+            '0x79ab5d59fcb70ca3f290aa39ed3f156a5c4b3897176aebd455cd20b6a30b107a'
+          );
+          throw new Error('Should have failed');
+        } catch (err) {
+          if (err instanceof Error) {
+            expect(err.message).to.equal(
+              'None of the RPCs responded fetching tx 0x79ab5d59fcb70ca3f290aa39ed3f156a5c4b3897176aebd455cd20b6a30b107a on chain 0'
+            );
+          } else {
+            throw err;
+          }
+        }
+      });
+    });
     it('Should calculateCreate2Address', async function () {
       expect(
         calculateCreate2Address(

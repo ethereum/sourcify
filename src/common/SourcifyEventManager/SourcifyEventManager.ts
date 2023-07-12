@@ -4,10 +4,10 @@ import { EventManager, GenericEvents } from "../EventManager";
 interface Events extends GenericEvents {
   "*": (event: string, argument: any) => void;
   "Verification.MatchStored": (match: Match) => void;
+  "Server.SourcifyChains.Warn": (obj: { message: string }) => void;
   "Monitor.Error.CantStart": (e: { chainId: string; message: string }) => void;
   "Monitor.Started": (obj: {
     chainId: string;
-    providerURL: string;
     lastBlockNumber: number;
     startBlock: number;
   }) => void;
@@ -78,6 +78,7 @@ interface Events extends GenericEvents {
 export const SourcifyEventManager = new EventManager<Events>({
   "*": [],
   "Verification.MatchStored": [],
+  "Server.SourcifyChains.Warn": [],
   "Monitor.Error.CantStart": [],
   "Monitor.Started": [],
   "Monitor.Stopped": [],
