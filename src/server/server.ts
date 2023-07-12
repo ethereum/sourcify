@@ -198,7 +198,7 @@ export class Server {
     );
     this.app.get("/chains", (_req, res) => {
       const sourcifyChains = sourcifyChainsArray.map(
-        ({ rpc, providers, ...rest }) => {
+        ({ rpc, name, title, chainId, supported, monitored }) => {
           // Don't publish providers
           // Don't show Alchemy & Infura IDs
           rpc = rpc.map((url) => {
@@ -214,9 +214,13 @@ export class Server {
             }
           });
           return {
-            ...rest,
+            name,
+            title,
+            chainId,
             rpc,
-            etherscanAPI: etherscanAPIs[rest.chainId]?.apiURL,
+            supported,
+            monitored,
+            etherscanAPI: etherscanAPIs[chainId]?.apiURL, // Needed in the UI
           };
         }
       );
