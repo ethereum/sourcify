@@ -891,6 +891,81 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
+  // UPTN Chain Mainnet
+  verifyContract(
+    "0x212F6222fB4937978A806b14FB2725169825078F",
+    "6119",
+    "UPTN Chain",
+    [
+      "6119/ERC4906.sol",
+      "6119/UptnNFTsV1.sol",
+      "6119/IUPTNAddressValidator.sol",
+    ],
+    "6119/UptnNFTsV1.metadata.json"
+  );
+
+  // KAVA EVM
+  verifyContract(
+    "0xAdFa11e737ec8fA6e91091468aEF33a66Ae0044c",
+    "2222",
+    "Kava EVM",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  // Siberium Testnet
+  verifyContract(
+    "0x60E9b3CD8C160Ce6408dD6E2Fa938895cfF7E087",
+    "111000",
+    "Siberium Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  // Ethereum Classic Mainnet
+  verifyContract(
+    "0x45a82B987a4e5d7D00eD5aB325DF00850cDAbBAC",
+    "61",
+    "Ethereum Classic Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  // Filecoin Mainnet
+  verifyContract(
+    "0x23396626F2C9c0b31cC6C2729172103961Ae2A26",
+    "314",
+    "Filecoin Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  // Zilliqa EVM
+  verifyContract(
+    "0x6F85669808e20b121980DE8E7a794a0cc90fDc77",
+    "32769",
+    "Zilliqa EVM",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  // Zilliqa EVM Testnet
+  verifyContract(
+    "0xeb6Ea260eDFb9837ed100B09c559081AfA5b0785",
+    "33101",
+    "Zilliqa EVM Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  // KAVA EVM Testnet
+  verifyContract(
+    "0x40b4f95C3bafc8d690B4c3fDD1E8303c4817Cd9C",
+    "2221",
+    "Kava EVM Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainId) {
@@ -906,7 +981,7 @@ describe("Test Supported Chains", function () {
         const supportedChains = res.body.filter((chain) => chain.supported);
         const untestedChains = [];
         supportedChains.forEach((chain) => {
-          if (chain.chainId == 0) return; // Skip Localhost
+          if (chain.chainId == 1337 || chain.chainId == 31337) return; // Skip LOCAL_CHAINS: Ganache and Hardhat
           if (!testedChains.has(chain.chainId.toString())) {
             untestedChains.push(chain);
           }

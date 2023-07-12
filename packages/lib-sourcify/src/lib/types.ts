@@ -189,7 +189,7 @@ export type SourcifyChainExtension = {
   monitored: boolean;
   contractFetchAddress?: string;
   graphQLFetchAddress?: string;
-  txRegex?: string;
+  txRegex?: string[];
   rpc?: string[];
 };
 

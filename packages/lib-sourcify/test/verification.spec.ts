@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import path from 'path';
 import { Metadata, SourcifyChain } from '../src/lib/types';
-import Web3 from 'web3';
 import Ganache from 'ganache';
 import {
   /* callContractMethodWithTx, */
@@ -25,6 +24,7 @@ import {
   verifyDeployed,
 } from '../src';
 import fs from 'fs';
+import { JsonRpcProvider, JsonRpcSigner, Network } from 'ethers';
 // import { Match } from '@ethereum-sourcify/lib-sourcify';
 
 const ganacheServer = Ganache.server({
@@ -50,26 +50,33 @@ const sourcifyChainGanache: SourcifyChain = {
   supported: true,
 };
 
-let localWeb3Provider: Web3;
-let accounts: string[];
+let localProvider: JsonRpcProvider;
+let signer: JsonRpcSigner;
 
 describe('lib-sourcify tests', () => {
   before(async () => {
     await ganacheServer.listen(GANACHE_PORT);
-    localWeb3Provider = new Web3(`http://localhost:${GANACHE_PORT}`);
-    accounts = await localWeb3Provider.eth.getAccounts();
+    const ethersNetwork = new Network(
+      sourcifyChainGanache.rpc[0],
+      sourcifyChainGanache.chainId
+    );
+    localProvider = new JsonRpcProvider(
+      `http://localhost:${GANACHE_PORT}`,
+      ethersNetwork,
+      { staticNetwork: ethersNetwork }
+    );
+    signer = await localProvider.getSigner();
   });
 
   describe('Verification tests', () => {
     it('should verify a simple contract', async () => {
       const contractFolderPath = path.join(__dirname, 'sources', 'Storage');
-      const { match, deployedAddress } = await deployCheckAndVerify(
+      const { match, contractAddress } = await deployCheckAndVerify(
         contractFolderPath,
         sourcifyChainGanache,
-        localWeb3Provider,
-        accounts[0]
+        signer
       );
-      expectMatch(match, 'perfect', deployedAddress);
+      expectMatch(match, 'perfect', contractAddress);
     });
 
     it('should partially verify a simple contract', async () => {
@@ -79,18 +86,17 @@ describe('lib-sourcify tests', () => {
         'sources',
         'StorageModified'
       );
-      const [deployedAddress] = await deployFromAbiAndBytecode(
-        localWeb3Provider,
-        contractFolderPath,
-        accounts[0]
+      const { contractAddress } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath
       );
       const match = await checkAndVerifyDeployed(
         modifiedContractFolderPath, // Using the modified contract
         sourcifyChainGanache,
-        deployedAddress
+        contractAddress
       );
 
-      expectMatch(match, 'partial', deployedAddress);
+      expectMatch(match, 'partial', contractAddress);
     });
 
     it('should fail to verify a different simple contract', async () => {
@@ -100,16 +106,15 @@ describe('lib-sourcify tests', () => {
         'sources',
         'UsingLibrary'
       );
-      const [deployedAddress] = await deployFromAbiAndBytecode(
-        localWeb3Provider,
-        contractFolderPath,
-        accounts[0]
+      const { contractAddress } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath
       );
       try {
         await checkAndVerifyDeployed(
           wrongContractFolderPath, // Using the wrong contract
           sourcifyChainGanache,
-          deployedAddress
+          contractAddress
         );
         throw new Error('Should have failed');
       } catch (err) {
@@ -146,17 +151,16 @@ describe('lib-sourcify tests', () => {
         'sources',
         'UsingLibrary'
       );
-      const { match, deployedAddress } = await deployCheckAndVerify(
+      const { match, contractAddress } = await deployCheckAndVerify(
         contractFolderPath,
         sourcifyChainGanache,
-        localWeb3Provider,
-        accounts[0]
+        signer
       );
       const expectedLibraryMap = {
         __$da572ae5e60c838574a0f88b27a0543803$__:
           '11fea6722e00ba9f43861a6e4da05fecdf9806b7',
       };
-      expectMatch(match, 'perfect', deployedAddress, expectedLibraryMap);
+      expectMatch(match, 'perfect', contractAddress, expectedLibraryMap);
     });
 
     it('should verify a contract with viaIR:true', async () => {
@@ -165,13 +169,12 @@ describe('lib-sourcify tests', () => {
         'sources',
         'StorageViaIR'
       );
-      const { match, deployedAddress } = await deployCheckAndVerify(
+      const { match, contractAddress } = await deployCheckAndVerify(
         contractFolderPath,
         sourcifyChainGanache,
-        localWeb3Provider,
-        accounts[0]
+        signer
       );
-      expectMatch(match, 'perfect', deployedAddress);
+      expectMatch(match, 'perfect', contractAddress);
     });
 
     it('should verify a contract with immutables', async () => {
@@ -180,19 +183,18 @@ describe('lib-sourcify tests', () => {
         'sources',
         'WithImmutables'
       );
-      const [deployedAddress] = await deployFromAbiAndBytecode(
-        localWeb3Provider,
+      const { contractAddress } = await deployFromAbiAndBytecode(
+        signer,
         contractFolderPath,
-        accounts[0],
         ['12345']
       );
 
       const match = await checkAndVerifyDeployed(
         contractFolderPath,
         sourcifyChainGanache,
-        deployedAddress
+        contractAddress
       );
-      expectMatch(match, 'perfect', deployedAddress);
+      expectMatch(match, 'perfect', contractAddress);
     });
 
     it('should verify a create2 contract', async () => {
@@ -248,13 +250,12 @@ describe('lib-sourcify tests', () => {
         'sources',
         'StorageInliner'
       );
-      const { match, deployedAddress } = await deployCheckAndVerify(
+      const { match, contractAddress } = await deployCheckAndVerify(
         contractFolderPath,
         sourcifyChainGanache,
-        localWeb3Provider,
-        accounts[0]
+        signer
       );
-      expectMatch(match, 'perfect', deployedAddress);
+      expectMatch(match, 'perfect', contractAddress);
     });
 
     /* it('should verify a contract created by a factory contract and has immutables', async () => {
@@ -272,23 +273,23 @@ describe('lib-sourcify tests', () => {
         'Factory'
       );
       const [factoryAddress] = await deployFromAbiAndBytecode(
-        localWeb3Provider,
+        localProvider,
         factoryFolderPath,
-        accounts[0],
+        signer,
         [deployValue]
       );
 
       // Deploy the child by calling the factory
       const txReceipt = await callContractMethodWithTx(
-        localWeb3Provider,
+        localProvider,
         factoryFolderPath,
         factoryAddress,
         'deploy',
-        accounts[0],
+        signer,
         [deployValue]
       );
       const childAddress = txReceipt.events.Deployment.returnValues[0];
-      const abiEncoded = localWeb3Provider.eth.abi.encodeParameter(
+      const abiEncoded = localProvider.eth.abi.encodeParameter(
         'uint',
         deployValue
       );
@@ -318,19 +319,19 @@ describe('lib-sourcify tests', () => {
         'Factory'
       );
       const [factoryAddress] = await deployFromAbiAndBytecode(
-        localWeb3Provider,
+        localProvider,
         factoryFolderPath,
-        accounts[0],
+        signer,
         []
       );
 
       // Deploy the child by calling the factory
       const txReceipt = await callContractMethodWithTx(
-        localWeb3Provider,
+        localProvider,
         factoryFolderPath,
         factoryAddress,
         'createChild',
-        accounts[0],
+        signer,
         []
       );
       const childAddress = txReceipt.events.ChildCreated.returnValues[0];
@@ -352,26 +353,24 @@ describe('lib-sourcify tests', () => {
         'sources',
         'WrongMetadata'
       );
-      const [deployedAddress] = await deployFromAbiAndBytecode(
-        localWeb3Provider,
-        contractFolderPath,
-        accounts[0]
+      const { contractAddress } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath
       );
 
       const match = await checkAndVerifyDeployed(
         contractFolderPath,
         sourcifyChainGanache,
-        deployedAddress
+        contractAddress
       );
-      expectMatch(match, 'perfect', deployedAddress);
+      expectMatch(match, 'perfect', contractAddress);
     });
 
     it('should fully verify a contract when a not alphabetically sorted metadata is provided', async () => {
       const contractFolderPath = path.join(__dirname, 'sources', 'Storage');
-      const [deployedAddress] = await deployFromAbiAndBytecode(
-        localWeb3Provider,
-        contractFolderPath,
-        accounts[0]
+      const { contractAddress } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath
       );
 
       const checkedContracts = await checkFilesFromContractFolder(
@@ -394,9 +393,9 @@ describe('lib-sourcify tests', () => {
       const match = await verifyDeployed(
         checkedContracts[0],
         sourcifyChainGanache,
-        deployedAddress
+        contractAddress
       );
-      expectMatch(match, 'perfect', deployedAddress);
+      expectMatch(match, 'perfect', contractAddress);
     });
 
     it('should fully verify a library with call protection when viaIR is disabled (legacy compilation placeholder: 0x73 plus 20 zero bytes)', async () => {
@@ -405,18 +404,17 @@ describe('lib-sourcify tests', () => {
         'sources',
         'CallProtectionForLibraries'
       );
-      const [deployedAddress] = await deployFromAbiAndBytecode(
-        localWeb3Provider,
-        contractFolderPath,
-        accounts[0]
+      const { contractAddress } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath
       );
 
       const match = await checkAndVerifyDeployed(
         contractFolderPath,
         sourcifyChainGanache,
-        deployedAddress
+        contractAddress
       );
-      expectMatch(match, 'perfect', deployedAddress);
+      expectMatch(match, 'perfect', contractAddress);
     });
 
     it('should fully verify a library with call protection when viaIR is enabled', async () => {
@@ -425,18 +423,17 @@ describe('lib-sourcify tests', () => {
         'sources',
         'CallProtectionForLibrariesViaIR'
       );
-      const [deployedAddress] = await deployFromAbiAndBytecode(
-        localWeb3Provider,
-        contractFolderPath,
-        accounts[0]
+      const { contractAddress } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath
       );
 
       const match = await checkAndVerifyDeployed(
         contractFolderPath,
         sourcifyChainGanache,
-        deployedAddress
+        contractAddress
       );
-      expectMatch(match, 'perfect', deployedAddress);
+      expectMatch(match, 'perfect', contractAddress);
     });
   });
 
@@ -489,19 +486,18 @@ describe('lib-sourcify tests', () => {
         'Factory'
       );
       const [factoryAddress] = await deployFromAbiAndBytecode(
-        localWeb3Provider,
+        signer,
         factoryFolderPath,
-        accounts[0],
         []
       );
 
       // Deploy the child by calling the factory
       const txReceipt = await callContractMethodWithTx(
-        localWeb3Provider,
+        localProvider,
         factoryFolderPath,
         factoryAddress,
         'createChild',
-        accounts[0],
+        signer,
         []
       );
       const childAddress = txReceipt.events.ChildCreated.returnValues[0];
@@ -542,16 +538,16 @@ describe('lib-sourcify tests', () => {
         'sources',
         'WithImmutables'
       );
-      const [deployedAddress] = await deployFromAbiAndBytecode(
-        localWeb3Provider,
+      const { contractAddress } = await deployFromAbiAndBytecode(
+        signer,
         contractFolderPath,
-        accounts[0],
         ['12345']
       );
-      const [, wrongCreatorTxHash] = await deployFromAbiAndBytecode(
-        localWeb3Provider,
+
+      // Get an arbitrary tx hash
+      const { txHash: wrongCreatorTxHash } = await deployFromAbiAndBytecode(
+        signer,
         contractFolderPath,
-        accounts[0],
         ['12345']
       );
 
@@ -560,7 +556,7 @@ describe('lib-sourcify tests', () => {
       );
       const recompiled = await checkedContracts[0].recompile();
       const match = {
-        address: deployedAddress,
+        address: contractAddress,
         chainId: sourcifyChainGanache.chainId.toString(),
         status: null,
       };
@@ -569,14 +565,16 @@ describe('lib-sourcify tests', () => {
         match,
         recompiled.creationBytecode,
         sourcifyChainGanache,
-        deployedAddress,
+        contractAddress,
         wrongCreatorTxHash,
         recompiledMetadata
       );
-      expectMatch(match, null, deployedAddress, undefined); // status is null
+      expectMatch(match, null, contractAddress, undefined); // status is null
     });
 
-    it('should fail to matchWithCreationTx with creatorTxHash having wrong constructor arguments', async () => {
+    // https://github.com/sourcifyeth/private-issues/issues/16
+    // Shouldn't let the `startsWith` check in `matchWithCreationTx` pass and verify arbitrary contracts with the short constructor code snippet. The attack contract is just a simple constructor. Avoid this by treating the difference of the `startsWith` of the recompiled creation bytecode and the tx.input as constructor arguments.
+    it('should fail to matchWithCreationTx with creatorTxHash when trying to maliciously verify with a creation bytecode that startsWith the creatorTx input of the deployed contract', async () => {
       const contractFolderPath = path.join(
         __dirname,
         'sources',
@@ -588,17 +586,13 @@ describe('lib-sourcify tests', () => {
         'WithImmutablesCreationBytecodeAttack'
       );
 
-      const [deployedAddress, wrongCreatorTxHash] =
-        await deployFromAbiAndBytecode(
-          localWeb3Provider,
-          contractFolderPath,
-          accounts[0],
-          ['12345']
-        );
-      const [,] = await deployFromAbiAndBytecode(
-        localWeb3Provider,
+      const maliciousArtifact = require(path.join(
         maliciousContractFolderPath,
-        accounts[0],
+        'artifact.json'
+      ));
+      const { contractAddress, txHash } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath,
         ['12345']
       );
 
@@ -607,20 +601,20 @@ describe('lib-sourcify tests', () => {
       );
       const recompiled = await checkedContracts[0].recompile();
       const match = {
-        address: deployedAddress,
+        address: contractAddress,
         chainId: sourcifyChainGanache.chainId.toString(),
         status: null,
       };
       const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
       await matchWithCreationTx(
         match,
-        '0x60a060405234801561001057600080fd5b506040516103ca', // I force recompiled.creationBytecode because it would take time to generate the right attack,
+        maliciousArtifact.bytecode,
         sourcifyChainGanache,
-        deployedAddress,
-        wrongCreatorTxHash,
+        contractAddress,
+        txHash,
         recompiledMetadata
       );
-      expectMatch(match, null, deployedAddress, undefined); // status is null
+      expectMatch(match, null, contractAddress, undefined); // status is null
     });
 
     it('should fail to matchWithCreationTx when passing an abstract contract', async () => {
@@ -630,12 +624,8 @@ describe('lib-sourcify tests', () => {
         'WithImmutables'
       );
 
-      const [deployedAddress, creatorTxHash] = await deployFromAbiAndBytecode(
-        localWeb3Provider,
-        contractFolderPath,
-        accounts[0],
-        ['12345']
-      );
+      const { contractAddress, txHash: creatorTxHash } =
+        await deployFromAbiAndBytecode(signer, contractFolderPath, ['12345']);
 
       const maliciousContractFolderPath = path.join(
         __dirname,
@@ -647,7 +637,7 @@ describe('lib-sourcify tests', () => {
       );
       const recompiled = await checkedContracts[0].recompile();
       const match = {
-        address: deployedAddress,
+        address: contractAddress,
         chainId: sourcifyChainGanache.chainId.toString(),
         status: null,
       };
@@ -657,11 +647,11 @@ describe('lib-sourcify tests', () => {
         match,
         recompiled.creationBytecode,
         sourcifyChainGanache,
-        deployedAddress,
+        contractAddress,
         creatorTxHash,
         recompiledMetadata
       );
-      expectMatch(match, null, deployedAddress, undefined); // status is null
+      expectMatch(match, null, contractAddress, undefined); // status is null
     });
 
     it('should successfuly verify with matchWithCreationTx with creationTxHash', async () => {
@@ -670,19 +660,15 @@ describe('lib-sourcify tests', () => {
         'sources',
         'WithImmutables'
       );
-      const [deployedAddress, creatorTxHash] = await deployFromAbiAndBytecode(
-        localWeb3Provider,
-        contractFolderPath,
-        accounts[0],
-        ['12345']
-      );
+      const { contractAddress, txHash: creatorTxHash } =
+        await deployFromAbiAndBytecode(signer, contractFolderPath, ['12345']);
 
       const checkedContracts = await checkFilesFromContractFolder(
         contractFolderPath
       );
       const recompiled = await checkedContracts[0].recompile();
       const match = {
-        address: deployedAddress,
+        address: contractAddress,
         chainId: sourcifyChainGanache.chainId.toString(),
         status: null,
       };
@@ -691,11 +677,11 @@ describe('lib-sourcify tests', () => {
         match,
         recompiled.creationBytecode,
         sourcifyChainGanache,
-        deployedAddress,
+        contractAddress,
         creatorTxHash,
         recompiledMetadata
       );
-      expectMatch(match, 'perfect', deployedAddress, undefined); // status is null
+      expectMatch(match, 'perfect', contractAddress, undefined); // status is null
     });
   });
 });

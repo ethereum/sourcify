@@ -1,4 +1,4 @@
-import Web3 from 'web3';
+import { id as keccak256str } from 'ethers';
 import {
   CompilableMetadata,
   InvalidSources,
@@ -17,6 +17,7 @@ import { storeByHash } from './validation';
 import { decode as decodeBytecode } from '@ethereum-sourcify/bytecode-utils';
 import { ipfsHash } from './hashFunctions/ipfsHash';
 import { swarmBzzr0Hash, swarmBzzr1Hash } from './hashFunctions/swarmHash';
+import { logError, logInfo, logWarn } from './logger';
 
 // TODO: find a better place for these constants. Reminder: this sould work also in the browser
 const IPFS_PREFIX = 'dweb:/ipfs/';
@@ -129,7 +130,7 @@ export class CheckedContract {
     /*
      * storeByHash returns a mapping like this one:
      * Map({
-     *   Web3.utils.keccak256(variation.content): {
+     *   keccak256str(variation.content): {
      *     content,
      *     path: pathContent.path,
      *     variation: contentVariator + '.' + endingVariator,
@@ -172,7 +173,7 @@ export class CheckedContract {
       metadata.sources = sources.reduce((sources: MetadataSources, source) => {
         if (metadata.sources[source.path]) {
           sources[source.path] = metadata.sources[source.path];
-          sources[source.path].keccak256 = Web3.utils.keccak256(source.content);
+          sources[source.path].keccak256 = keccak256str(source.content);
           if (sources[source.path].content) {
             sources[source.path].content = source.content;
           }
@@ -246,7 +247,11 @@ export class CheckedContract {
         .map((e: any) => e.formattedMessage);
 
       const error = new Error('Compiler error');
-      console.error(errorMessages);
+      logWarn(
+        `Compiler error in CheckedContract.recompile: \n${errorMessages.join(
+          '\n\t'
+        )}`
+      );
       throw error;
     }
 
@@ -338,29 +343,29 @@ export async function performFetch(
   hash?: string,
   fileName?: string
 ): Promise<string | null> {
-  console.log(`Fetching the file ${fileName} from ${url}...}`);
+  logInfo(`Fetching the file ${fileName} from ${url}...`);
   const res = await fetchWithTimeout(url, { timeout: FETCH_TIMEOUT }).catch(
     (err) => {
       if (err.type === 'aborted')
-        console.log(
-          `Fetching the file ${fileName} from ${url} timed out. Timeout: ${FETCH_TIMEOUT}ms}`
+        logWarn(
+          `Fetching the file ${fileName} from ${url} timed out. Timeout: ${FETCH_TIMEOUT}ms`
         );
-      else console.log(err);
+      else logError(err);
     }
   );
 
   if (res) {
     if (res.status === 200) {
       const content = await res.text();
-      if (hash && Web3.utils.keccak256(content) !== hash) {
-        console.log("The calculated and the provided hash don't match.");
+      if (hash && keccak256str(content) !== hash) {
+        logError("The calculated and the provided hash don't match.");
         return null;
       }
 
-      console.log(`Successfully fetched the file ${fileName}`);
+      logInfo(`Successfully fetched the file ${fileName}`);
       return content;
     } else {
-      console.log(
+      logError(
         `Fetching the file ${fileName} failed with status: ${res?.status}`
       );
       return null;

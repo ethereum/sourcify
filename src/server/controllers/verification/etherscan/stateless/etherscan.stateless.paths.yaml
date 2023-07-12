@@ -85,8 +85,8 @@ paths:
                         chainId: "1"
                         status: "null"
                         message: "Chain #1 does not have a contract deployed at 0x...."
-        "400":
-          description: Bad Request
+        "429":
+          description: Too Many Requests sent through Sourcify's own API key
           content:
             application/json:
               schema:

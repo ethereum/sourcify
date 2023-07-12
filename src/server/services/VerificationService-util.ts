@@ -1,6 +1,7 @@
 import { SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
 import { StatusCodes } from "http-status-codes";
 import fetch from "node-fetch";
+import puppeteer from "puppeteer";
 
 /**
  * Finds the transaction that created the contract by either scraping a block explorer or querying a provided API.
@@ -73,27 +74,38 @@ export const getCreatorTx = async (
  */
 async function getCreatorTxByScraping(
   fetchAddress: string,
-  txRegex: string
+  txRegex: string[]
 ): Promise<string | null> {
-  const res = await fetch(fetchAddress);
-  const buffer = await res.buffer();
-  const page = buffer.toString();
-  if (res.status === StatusCodes.OK) {
-    const matched = page.match(txRegex);
-    if (matched && matched[1]) {
-      const txHash = matched[1];
-      return txHash;
-    } else {
-      if (page.includes("captcha") || page.includes("CAPTCHA")) {
-        throw new Error(
-          "Scraping the creator tx failed because of CAPTCHA at ${fetchAddress}"
-        );
+  const browser = await puppeteer.launch({ headless: "new" });
+  const page = await browser.newPage();
+  const response = await page.goto(fetchAddress);
+  await new Promise((r) => setTimeout(r, 3000)); // Wait for 3 seconds
+
+  const bodyHTML = await page.evaluate(() => document.body.innerHTML);
+  await browser.close();
+
+  if (!response)
+    throw new Error(
+      "Scraping the creator tx failed. No response from " + fetchAddress
+    );
+
+  if (response.status() === StatusCodes.OK) {
+    for (const regex of txRegex) {
+      const matched = bodyHTML.match(regex);
+      if (matched && matched[1]) {
+        const txHash = matched[1];
+        return txHash;
       }
     }
+    if (bodyHTML.includes("captcha") || bodyHTML.includes("CAPTCHA")) {
+      throw new Error(
+        "Scraping the creator tx failed because of CAPTCHA at ${fetchAddress}"
+      );
+    }
   }
-  if (res.status === StatusCodes.FORBIDDEN) {
+  if (response.status() === StatusCodes.FORBIDDEN) {
     throw new Error(
-      `Scraping the creator tx failed at ${fetchAddress} because of HTTP status code ${res.status} (Forbidden)
+      `Scraping the creator tx failed at ${fetchAddress} because of HTTP status code ${response.status()} (Forbidden)
       
       Try manually putting the creator tx hash in the "Creator tx hash" field.`
     );

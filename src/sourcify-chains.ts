@@ -18,12 +18,13 @@ dotenv.config({
   path: path.resolve(__dirname, "..", "..", "..", "environments/.env"),
 });
 
-const ETHERSCAN_REGEX = /at txn.*href='\/tx\/(0x.*?)'/.source; // save as string to be able to return the txRegex in /chains response. If stored as RegExp returns {}
+const ETHERSCAN_REGEX = ["at txn.*href=.*/tx/(0x.{64})"]; // save as string to be able to return the txRegex in /chains response. If stored as RegExp returns {}
 const ETHERSCAN_SUFFIX = "address/${ADDRESS}";
 const ETHERSCAN_API_SUFFIX = `/api?module=contract&action=getcontractcreation&contractaddresses=\${ADDRESS}&apikey=`;
 const BLOCKSSCAN_SUFFIX = "api/accounts/${ADDRESS}";
-const BLOCKSCOUT_REGEX =
+const BLOCKSCOUT_REGEX_OLD =
   'transaction_hash_link" href="${BLOCKSCOUT_PREFIX}/tx/(.*?)"';
+const BLOCKSCOUT_REGEX_NEW = "at txn.*href.*/tx/(0x.{64}?)";
 const BLOCKSCOUT_SUFFIX = "address/${ADDRESS}/transactions";
 const TELOS_SUFFIX = "v2/evm/get_contract?contract=${ADDRESS}";
 const METER_SUFFIX = "api/accounts/${ADDRESS}";
@@ -124,7 +125,11 @@ function replaceInfuraID(infuraURL: string) {
   return infuraURL.replace("{INFURA_API_KEY}", process.env.INFURA_ID || "");
 }
 function getBlockscoutRegex(blockscoutPrefix = "") {
-  return BLOCKSCOUT_REGEX.replace("${BLOCKSCOUT_PREFIX}", blockscoutPrefix);
+  const tempBlockscoutOld = BLOCKSCOUT_REGEX_OLD.replace(
+    "${BLOCKSCOUT_PREFIX}",
+    blockscoutPrefix
+  );
+  return [tempBlockscoutOld, BLOCKSCOUT_REGEX_NEW];
 }
 
 // api?module=contract&action=getcontractcreation&contractaddresses=\${ADDRESS}&apikey=
@@ -198,6 +203,13 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     monitored: false,
     contractFetchAddress: generateEtherscanCreatorTxAPI("56"),
   },
+  "61": {
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://blockscout.com/etc/mainnet/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex("/etc/mainnet"),
+  },
   "77": {
     // Turned off as seemingly stale
     supported: false,
@@ -244,6 +256,10 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress:
       "https://blockscout.com/xdai/optimism/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex("/xdai/optimism"),
+  },
+  "314": {
+    supported: true,
+    monitored: false,
   },
   "137": {
     supported: true,
@@ -744,8 +760,9 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: getBlockscoutRegex(),
   },
   "2047": {
+    // Turned off support as RPCs are failing
     // Stratos Testnet
-    supported: true,
+    supported: false,
     monitored: false,
     contractFetchAddress:
       "https://web3-testnet-explorer.thestratos.org/" + BLOCKSCOUT_SUFFIX,
@@ -863,6 +880,46 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     supported: true,
     monitored: false,
     contractFetchAddress: "https://explorer.zora.co/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
+  "6119": {
+    // UPTN Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      `https://glacier-api.avax.network/v1/chains/6119/` +
+      AVALANCHE_SUBNET_SUFFIX,
+  },
+  "2222": {
+    // Kava EVM
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://explorer.kava.io/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
+  "32769": {
+    // Zilliqa EVM
+    supported: true,
+    monitored: false,
+  },
+  "33101": {
+    // Zilliqa EVM Testnet
+    supported: true,
+    monitored: false,
+  },
+  "2221": {
+    // Kava EVM Testnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://explorer.testnet.kava.io/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
+  "111000": {
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://http://explorer.test.siberium.net/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
 };

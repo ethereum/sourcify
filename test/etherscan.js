@@ -57,9 +57,9 @@ describe("Import From Etherscan and Verify", function () {
     rimraf.sync(server.repository);
   });
 
-  const assertEtherscanError = (err, res, errorMessage) => {
+  const assertEtherscanError = (err, res, errorMessage, status) => {
     try {
-      chai.expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
+      chai.expect(res.status).to.equal(status || StatusCodes.BAD_REQUEST);
       chai.expect(res.body?.error).to.equal(errorMessage);
     } catch (e) {
       console.log("Error: ", e);
@@ -223,7 +223,8 @@ describe("Import From Etherscan and Verify", function () {
         assertEtherscanError(
           null,
           response,
-          "Etherscan API rate limit reached, try later"
+          "Etherscan API rate limit reached, try later",
+          StatusCodes.TOO_MANY_REQUESTS
         );
 
         await waitSecs(2); // Wait for the rate limit to reset
@@ -385,7 +386,8 @@ describe("Import From Etherscan and Verify", function () {
         assertEtherscanError(
           null,
           response,
-          "Etherscan API rate limit reached, try later"
+          "Etherscan API rate limit reached, try later",
+          StatusCodes.TOO_MANY_REQUESTS
         );
 
         await waitSecs(2); // Wait for the rate limit to reset
