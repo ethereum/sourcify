@@ -943,6 +943,14 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       "https://testnet.maposcan.io/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
+  "22776": {
+    // map-relay-chain Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://maposcan.io/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
