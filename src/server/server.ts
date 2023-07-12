@@ -45,16 +45,28 @@ setLibSourcifyLogger({
     if (level <= this.logLevel) {
       switch (level) {
         case 1:
-          logger.error(msg);
+          logger.error({
+            labels: { event: "LibSourcify", level: "error" },
+            message: msg,
+          });
           break;
         case 2:
-          logger.warn(msg);
+          logger.warn({
+            labels: { event: "LibSourcify", level: "warn" },
+            message: msg,
+          });
           break;
         case 3:
-          logger.info(msg);
+          logger.info({
+            labels: { event: "LibSourcify", level: "info" },
+            message: msg,
+          });
           break;
         case 4:
-          logger.debug(msg);
+          logger.debug({
+            labels: { event: "LibSourcify", level: "debug" },
+            message: msg,
+          });
           break;
       }
     }

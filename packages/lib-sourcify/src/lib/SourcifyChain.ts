@@ -143,6 +143,14 @@ export default class SourcifyChain {
           provider.getCode(address),
           this.rejectInMs(RPC_TIMEOUT, provider.url),
         ]);
+        logInfo(
+          'Bytecode fetched from ' +
+            provider.url +
+            ' for ' +
+            address +
+            ' on chain ' +
+            this.chainId
+        );
         return bytecode;
       } catch (err) {
         if (err instanceof Error) {
@@ -172,6 +180,14 @@ export default class SourcifyChain {
           provider.getBlock(blockNumber, preFetchTxs),
           this.rejectInMs(RPC_TIMEOUT, provider.url),
         ]);
+        logInfo(
+          'Block fetched from ' +
+            provider.url +
+            ' for ' +
+            blockNumber +
+            ' on chain ' +
+            this.chainId
+        );
         return block;
       } catch (err) {
         if (err instanceof Error) {
@@ -201,6 +217,12 @@ export default class SourcifyChain {
           provider.getBlockNumber(),
           this.rejectInMs(RPC_TIMEOUT, provider.url),
         ]);
+        logInfo(
+          'Block number fetched from ' +
+            provider.url +
+            ' on chain ' +
+            this.chainId
+        );
         return block;
       } catch (err) {
         if (err instanceof Error) {
