@@ -118,4 +118,11 @@ export default {
         "supported": true,
         "monitored": false,
     },
+    "424242": {
+        "rpc": ["https://erpc-krest.peaq.network/"],
+        "contractFetchAddress": "https://krest.api.subscan.io/api/scan/evm/contract",
+        "subscan":true,
+        "supported": true,
+        "monitored": false,
+    },
 }
