@@ -922,6 +922,14 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       "https://http://explorer.test.siberium.net/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
+  "212": {
+    // MAP Testnet Makalu
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://testnet.maposcan.io/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
@@ -999,8 +1007,8 @@ export function getSortedChainsArray(
       getPrimarySortKey(a) > getPrimarySortKey(b)
         ? 1
         : getPrimarySortKey(b) > getPrimarySortKey(a)
-        ? -1
-        : 0
+          ? -1
+          : 0
     );
 
   const sortedChains = ethereumChains.concat(otherChains);

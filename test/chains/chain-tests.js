@@ -45,8 +45,8 @@ describe("Test Supported Chains", function () {
     if (!anyTestsPass && newAddedChainId) {
       throw new Error(
         "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id " +
-          newAddedChainId +
-          "?"
+        newAddedChainId +
+        "?"
       );
     }
   });
@@ -962,6 +962,14 @@ describe("Test Supported Chains", function () {
     "0x40b4f95C3bafc8d690B4c3fDD1E8303c4817Cd9C",
     "2221",
     "Kava EVM Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  // MAP Testnet Makalu
+  verifyContract(
+    "0xAbdE047dD5861E163830Ad57e1E51990035E1F44",
+    "212",
+    "MAP Testnet Makalu",
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
