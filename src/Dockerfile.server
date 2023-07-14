@@ -1,4 +1,4 @@
-FROM node:14
+FROM node:14.20.1
 WORKDIR /home/app
 
 COPY services/core ./services/core
