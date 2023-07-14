@@ -76,7 +76,10 @@ async function getCreatorTxByScraping(
   fetchAddress: string,
   txRegex: string[]
 ): Promise<string | null> {
-  const browser = await puppeteer.launch({ headless: "new" });
+  const browser = await puppeteer.launch({
+    headless: "new",
+    args: ["--no-sandbox"],
+  });
   const page = await browser.newPage();
   const response = await page.goto(fetchAddress);
   await new Promise((r) => setTimeout(r, 3000)); // Wait for 3 seconds
