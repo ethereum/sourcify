@@ -1,0 +1,17 @@
+# Explicit setting for Mac ARM
+FROM --platform=linux/amd64 ubuntu:20.04 
+RUN apt-get update && apt-get install -y cron curl
+
+RUN mkdir /sourcify
+WORKDIR /sourcify
+
+RUN curl https://dist.ipfs.tech/kubo/v0.21.0/kubo_v0.21.0_linux-amd64.tar.gz > kubo.tar.gz && tar xvfz kubo.tar.gz && cd kubo && ./install.sh
+
+ADD publish.sh ./publish.sh
+ADD init-config.sh ./init-config.sh
+ADD entrypoint.sh ./entrypoint.sh
+ADD cron.job ./cron.job
+
+# Terminate and auto-restart container if ipfs daemon crashes
+HEALTHCHECK --interval=2m CMD curl http://localhost:8080/ipfs/bafybeifx7yeb55armcsxwwitkymga5xf53dxiarykms3ygqic223w5sk3m || ipfs shutdown && pkill entrypoint.sh
+ENTRYPOINT ./entrypoint.sh
