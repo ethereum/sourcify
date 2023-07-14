@@ -11,6 +11,7 @@ import {
 import { etherscanAPIs } from "./config";
 import { ValidationError } from "./common/errors";
 import { logger } from "./common/loggerLoki";
+import { FetchRequest } from "ethers";
 
 const allChains = chainsRaw as Chain[];
 
@@ -18,12 +19,13 @@ dotenv.config({
   path: path.resolve(__dirname, "..", "..", "..", "environments/.env"),
 });
 
-const ETHERSCAN_REGEX = /at txn.*href='\/tx\/(0x.*?)'/.source; // save as string to be able to return the txRegex in /chains response. If stored as RegExp returns {}
+const ETHERSCAN_REGEX = ["at txn.*href=.*/tx/(0x.{64})"]; // save as string to be able to return the txRegex in /chains response. If stored as RegExp returns {}
 const ETHERSCAN_SUFFIX = "address/${ADDRESS}";
 const ETHERSCAN_API_SUFFIX = `/api?module=contract&action=getcontractcreation&contractaddresses=\${ADDRESS}&apikey=`;
 const BLOCKSSCAN_SUFFIX = "api/accounts/${ADDRESS}";
-const BLOCKSCOUT_REGEX =
+const BLOCKSCOUT_REGEX_OLD =
   'transaction_hash_link" href="${BLOCKSCOUT_PREFIX}/tx/(.*?)"';
+const BLOCKSCOUT_REGEX_NEW = "at txn.*href.*/tx/(0x.{64}?)";
 const BLOCKSCOUT_SUFFIX = "address/${ADDRESS}/transactions";
 const TELOS_SUFFIX = "v2/evm/get_contract?contract=${ADDRESS}";
 const METER_SUFFIX = "api/accounts/${ADDRESS}";
@@ -33,7 +35,7 @@ const AVALANCHE_SUBNET_SUFFIX =
 type ChainName = "eth" | "polygon" | "arb" | "opt";
 
 const LOCAL_CHAINS: SourcifyChain[] = [
-  {
+  new SourcifyChain({
     name: "Ganache Localhost",
     shortName: "Ganache",
     chainId: 1337,
@@ -45,8 +47,8 @@ const LOCAL_CHAINS: SourcifyChain[] = [
     rpc: [`http://localhost:8545`],
     supported: true,
     monitored: true,
-  },
-  {
+  }),
+  new SourcifyChain({
     name: "Hardhat Network Localhost",
     shortName: "Hardhat Network",
     chainId: 31337,
@@ -58,7 +60,7 @@ const LOCAL_CHAINS: SourcifyChain[] = [
     rpc: [`http://localhost:8545`],
     supported: true,
     monitored: true,
-  },
+  }),
 ];
 
 interface SourcifyChainsExtensionsObject {
@@ -77,14 +79,24 @@ function buildAlchemyAndCustomRpcURLs(
   chainName: ChainName,
   useOwn = false
 ) {
-  const rpcURLs: string[] = [];
+  const rpcURLs: SourcifyChain["rpc"] = [];
 
   if (useOwn) {
     const url = process.env[`NODE_URL_${chainSubName.toUpperCase()}`];
     if (url) {
-      rpcURLs.push(url);
+      const ethersFetchReq = new FetchRequest(url);
+      ethersFetchReq.setHeader("Content-Type", "application/json");
+      ethersFetchReq.setHeader(
+        "CF-Access-Client-Id",
+        process.env.CF_ACCESS_CLIENT_ID || ""
+      );
+      ethersFetchReq.setHeader(
+        "CF-Access-Client-Secret",
+        process.env.CF_ACCESS_CLIENT_SECRET || ""
+      );
+      rpcURLs.push(ethersFetchReq);
     } else {
-      SourcifyEventManager.trigger("Core.Error", {
+      SourcifyEventManager.trigger("Server.SourcifyChains.Warn", {
         message: `Environment variable NODE_URL_${chainSubName.toUpperCase()} not set!`,
       });
     }
@@ -105,17 +117,16 @@ function buildAlchemyAndCustomRpcURLs(
       break;
   }
 
-  if (!alchemyId)
-    logger.warn(
-      `Environment variable ALCHEMY_ID not set for ${chainName} ${chainSubName}!`
-    );
-
-  const domain = "g.alchemy.com";
-  // No sepolia support yet
-  if (alchemyId && chainSubName !== "sepolia")
+  if (!alchemyId) {
+    SourcifyEventManager.trigger("Server.SourcifyChains.Warn", {
+      message: `Environment variable ALCHEMY_ID not set for ${chainName} ${chainSubName}!`,
+    });
+  } else {
+    const domain = "g.alchemy.com";
     rpcURLs.push(
       `https://${chainName}-${chainSubName}.${domain}/v2/${alchemyId}`
     );
+  }
 
   return rpcURLs;
 }
@@ -124,7 +135,11 @@ function replaceInfuraID(infuraURL: string) {
   return infuraURL.replace("{INFURA_API_KEY}", process.env.INFURA_ID || "");
 }
 function getBlockscoutRegex(blockscoutPrefix = "") {
-  return BLOCKSCOUT_REGEX.replace("${BLOCKSCOUT_PREFIX}", blockscoutPrefix);
+  const tempBlockscoutOld = BLOCKSCOUT_REGEX_OLD.replace(
+    "${BLOCKSCOUT_PREFIX}",
+    blockscoutPrefix
+  );
+  return [tempBlockscoutOld, BLOCKSCOUT_REGEX_NEW];
 }
 
 // api?module=contract&action=getcontractcreation&contractaddresses=\${ADDRESS}&apikey=
@@ -156,9 +171,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // Ethereum Sepolia Testnet
     supported: true,
     monitored: true,
-    rpc: buildAlchemyAndCustomRpcURLs("sepolia", "eth", true).concat(
-      "https://rpc.sepolia.org"
-    ),
+    rpc: buildAlchemyAndCustomRpcURLs("sepolia", "eth", true),
     contractFetchAddress: generateEtherscanCreatorTxAPI("11155111"),
   },
   "3": {
@@ -975,7 +988,11 @@ for (const i in allChains) {
 
   if (chainId in sourcifyChainsExtensions) {
     const sourcifyExtension = sourcifyChainsExtensions[chainId];
-    const sourcifyChain = { ...chain, ...sourcifyExtension } as SourcifyChain;
+    // sourcifyExtension is spread later to overwrite chain values, rpc specifically
+    const sourcifyChain = new SourcifyChain({
+      ...chain,
+      ...sourcifyExtension,
+    });
     sourcifyChainsMap[chainId] = sourcifyChain;
   }
 }

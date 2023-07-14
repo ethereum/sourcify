@@ -22,6 +22,5 @@ metacoin-source-verify/
 logs
 **/too_big.txt
 chain-tests-report/
-.nyc_output
 coverage
 !src/server/controllers/repository

@@ -13,7 +13,7 @@ const { verifyAndAssertEtherscan } = require("../helpers/helpers");
 const CUSTOM_PORT = 5679;
 
 describe("Test each Etherscan instance", function () {
-  this.timeout(10000);
+  this.timeout(30000);
   const server = new Server(CUSTOM_PORT);
 
   before(async () => {
@@ -31,6 +31,7 @@ describe("Test each Etherscan instance", function () {
   });
 
   for (const chainId in testContracts) {
+    if (process.env.TEST_CHAIN && process.env.TEST_CHAIN !== chainId) continue;
     describe(`#${chainId} ${sourcifyChainsMap[chainId].name}`, () => {
       testContracts[chainId].forEach((contract) => {
         verifyAndAssertEtherscan(

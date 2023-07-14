@@ -155,6 +155,7 @@
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "env": {
         "TESTING": "true",
+        "TEST_CHAIN": "100"
       },
       "args": [
         "${workspaceFolder}/test/etherscan/etherscanInstances.js",
