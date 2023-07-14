@@ -45,8 +45,8 @@ describe("Test Supported Chains", function () {
     if (!anyTestsPass && newAddedChainId) {
       throw new Error(
         "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id " +
-        newAddedChainId +
-        "?"
+          newAddedChainId +
+          "?"
       );
     }
   });
