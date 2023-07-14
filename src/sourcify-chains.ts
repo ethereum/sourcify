@@ -793,6 +793,14 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: "https://goerli.basescan.org/" + ETHERSCAN_SUFFIX,
     txRegex: ETHERSCAN_REGEX,
   },
+  "8453": {
+    // Base Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://basescan.org/" + ETHERSCAN_SUFFIX,
+    rpc: ["https://developer-access-mainnet.base.org"],
+    txRegex: ETHERSCAN_REGEX,
+  },
   "888": {
     // Wanchain Mainnet
     supported: true,
