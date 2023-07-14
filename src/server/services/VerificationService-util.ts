@@ -105,10 +105,9 @@ async function getCreatorTxByScraping(
         "Scraping the creator tx failed because of CAPTCHA at ${fetchAddress}"
       );
     }
-  }
-  if (response.status() === StatusCodes.FORBIDDEN) {
+  } else {
     throw new Error(
-      `Scraping the creator tx failed at ${fetchAddress} because of HTTP status code ${response.status()} (Forbidden)
+      `Scraping the creator tx failed at ${fetchAddress} because of HTTP status code ${response.status()}
       
       Try manually putting the creator tx hash in the "Creator tx hash" field.`
     );

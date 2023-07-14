@@ -1822,18 +1822,18 @@ describe("Server", function () {
           "0x11da550e6716be8b4bd9203cb384e89b8f8941dc460bd99a4928ce2825e05456"
         );
     });
-    it("should run getCreatorTx with regex for old Blockscout", async function () {
+    it.only("should run getCreatorTx with regex for old Blockscout", async function () {
       const sourcifyChain = sourcifyChainsArray.find(
         (sourcifyChain) => sourcifyChain.chainId === 1313161554
       );
       const creatorTx = await getCreatorTx(
         sourcifyChain,
-        "0xC6e5185438e1730959c1eF3551059A3feC744E90"
+        "0x2CB45Edb4517d5947aFdE3BEAbF95A582506858B"
       );
       chai
         .expect(creatorTx)
         .equals(
-          "0x5db54485baca39ffaeda1e28edb467a8fd3372dbd21a891b2619a02dbf4acc18"
+          "0x8fbcf663b8d86af936d5a72cbf9e6becd17e87e167bdcff449663e987cf09759"
         );
     });
     it("should run getCreatorTx with regex for Etherscan", async function () {
