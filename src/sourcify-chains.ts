@@ -790,15 +790,13 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // Base Goerli Testnet
     supported: true,
     monitored: true,
-    contractFetchAddress: "https://goerli.basescan.org/" + ETHERSCAN_SUFFIX,
-    txRegex: ETHERSCAN_REGEX,
+    contractFetchAddress: generateEtherscanCreatorTxAPI("84531"),
   },
   "8453": {
     // Base Mainnet
     supported: true,
     monitored: false,
-    contractFetchAddress: "https://basescan.org/" + ETHERSCAN_SUFFIX,
-    txRegex: ETHERSCAN_REGEX,
+    contractFetchAddress: generateEtherscanCreatorTxAPI("8453"),
   },
   "888": {
     // Wanchain Mainnet
