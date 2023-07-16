@@ -783,6 +783,15 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
+  // Base Mainnet
+  verifyContract(
+    "0x5e357053DDa704D059D146444cCC81afC1B2a662",
+    "8453",
+    "Base Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
   // Wanchain Mainnet
   verifyContract(
     "0xC3649123BCa36c0c38A71bDbd2F508AB4f939f47",
