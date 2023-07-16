@@ -965,6 +965,7 @@ for (const i in allChains) {
     const sourcifyChain = new SourcifyChain({
       ...chain,
       ...sourcifyExtension,
+      rpc: sourcifyExtension.rpc ? sourcifyExtension.rpc : chain.rpc, // avoid rpc ending up as undefined
     });
     sourcifyChainsMap[chainId] = sourcifyChain;
   }
