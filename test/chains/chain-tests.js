@@ -974,6 +974,14 @@ describe("Test Supported Chains", function () {
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
+  // MAP Testnet Makalu
+  verifyContract(
+    "0xAbdE047dD5861E163830Ad57e1E51990035E1F44",
+    "212",
+    "MAP Testnet Makalu",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
 
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
