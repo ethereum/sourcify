@@ -128,7 +128,7 @@ function buildAlchemyAndCustomRpcURLs(
     );
   }
 
-  return rpcURLs;
+  return rpcURLs.length ? rpcURLs : undefined;
 }
 // replaces INFURA_API_KEY in https://networkname.infura.io/v3/{INFURA_API_KEY}
 function replaceInfuraID(infuraURL: string) {
@@ -972,6 +972,7 @@ for (const i in allChains) {
     const sourcifyChain = new SourcifyChain({
       ...chain,
       ...sourcifyExtension,
+      rpc: sourcifyExtension.rpc ? sourcifyExtension.rpc : chain.rpc, // avoid rpc ending up as undefined
     });
     sourcifyChainsMap[chainId] = sourcifyChain;
   }

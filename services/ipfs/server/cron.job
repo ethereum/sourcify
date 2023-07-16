@@ -1,0 +1,4 @@
+SHELL=/bin/bash
+
+0 */6 * * * /sourcify/publish.sh >> /var/log/cron.log 2>&1
+# This extra line makes it a valid cron
