@@ -6,6 +6,16 @@ COPY services/validation ./services/validation
 COPY services/verification ./services/verification
 COPY src ./src
 COPY *.json ./
-RUN npm config set user 0 && npx lerna bootstrap && npx lerna run build
+
+#
+RUN npm install
+RUN npx lerna bootstrap || true
+RUN cd /home/app/node_modules/@ethereum-sourcify/core && npm run build
+RUN cd /home/app && npx lerna bootstrap || true
+RUN cd /home/app/node_modules/@ethereum-sourcify/verification && npm run build
+RUN cd /home/app && npx lerna bootstrap || true
+RUN cd /home/app/node_modules/@ethereum-sourcify/validation && npm run build
+RUN cd /home/app && npx lerna bootstrap
+RUN npx lerna run build
 
 CMD ["npm", "run", "server:start"]

@@ -30,7 +30,7 @@
     "typescript": "^4.0.2"
   },
   "dependencies": {
-    "@ethereum-sourcify/core": "*",
+    "@ethereum-sourcify/core": "0.2.10",
     "@types/adm-zip": "^0.4.33",
     "adm-zip": "^0.4.16",
     "bunyan": "^1.8.14",
