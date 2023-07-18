@@ -2,7 +2,7 @@ const { deployFromPrivateKey } = require("../helpers/helpers");
 const StorageArtifact = require("./sources/shared/1_Storage.json");
 const { supportedChainsArray } = require("../../dist/sourcify-chains");
 const { program } = require("commander");
-const { JsonRpcApiProvider } = require("ethers");
+const { JsonRpcProvider } = require("ethers");
 
 program
   .description(
@@ -18,9 +18,10 @@ program
     "--privateKey <privateKey>",
     "Private key of the account that will deploy the contract"
   )
+  // DEPRECATED
   .option(
     "--immutableValue <uint256>",
-    "Value to be stored as the immutable value. "
+    "Value to be stored as the immutable value. (DEPRECATED)"
   )
   .showSuggestionAfterError()
   .showHelpAfterError("(add --help for additional information)");
@@ -44,10 +45,10 @@ async function main(chainId, privateKey) {
   let provider;
   console.log("Using rpc: " + chain.rpc[0]);
   try {
-    provider = new JsonRpcApiProvider(chain.rpc[0]);
+    provider = new JsonRpcProvider(chain.rpc[0]);
   } catch (err) {
     console.log(
-      `Can't initiate a Provider instance with the chain: ${chain}. \n\nMake sure the chainId is added to src/sourcify-chains.ts and built with npx lerna run build`
+      `Can't initiate a Provider instance with the chain: ${JSON.stringify(chain)}. \n\nMake sure the chainId is added to src/sourcify-chains.ts and built with npx lerna run build`
     );
     throw new Error(err);
   }

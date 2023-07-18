@@ -18,7 +18,7 @@ const rimraf = require("rimraf");
 const addContext = require("mochawesome/addContext");
 const { assertVerification } = require("../helpers/assertions");
 
-const TEST_TIME = 30000; // 30 seconds
+const TEST_TIME = process.env.TEST_TIME || 30000; // 30 seconds
 
 // Extract the chainId from new chain support pull request, if exists
 const newAddedChainId = process.env.NEW_CHAIN_ID;
@@ -30,6 +30,7 @@ let anyTestsPass = false; // Fail when zero tests passing
 chai.use(chaiHttp);
 
 describe("Test Supported Chains", function () {
+  console.log(`Set up tests timeout with ${Math.floor(TEST_TIME / 1000)} secs`)
   this.timeout(TEST_TIME);
   const server = new Server();
   let currentResponse = null; // to log server response when test fails
@@ -51,8 +52,8 @@ describe("Test Supported Chains", function () {
     if (!anyTestsPass && newAddedChainId) {
       throw new Error(
         "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id " +
-          newAddedChainId +
-          "?"
+        newAddedChainId +
+        "?"
       );
     }
   });
@@ -764,7 +765,7 @@ describe("Test Supported Chains", function () {
 
   // Stratos Testnet
   verifyContract(
-    "0x9082db5F71534984DEAC8E4ed66cFe364d77dd36",
+    "0x999986dE5D86Ae4bbd4b9AbFBD65352622D11326",
     "2047",
     "Stratos Testnet",
     ["shared/1_Storage.sol"],
