@@ -13,5 +13,5 @@ ADD entrypoint.sh ./entrypoint.sh
 ADD cron.job ./cron.job
 
 # Terminate and auto-restart container if ipfs daemon crashes
-HEALTHCHECK --interval=2m CMD curl http://localhost:8080/ipfs/bafybeifx7yeb55armcsxwwitkymga5xf53dxiarykms3ygqic223w5sk3m || ipfs shutdown && pkill entrypoint.sh
+HEALTHCHECK --interval=2m CMD curl http://localhost:8080/ipfs/bafybeifx7yeb55armcsxwwitkymga5xf53dxiarykms3ygqic223w5sk3m || echo "Healthcheck failed, shutting down" && ipfs shutdown && pkill entrypoint.sh
 ENTRYPOINT ./entrypoint.sh
