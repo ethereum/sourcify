@@ -886,7 +886,12 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: getBlockscoutRegex(),
   },
   "167005": {
-    // Taiko Alpha-3
+    // Taiko Grimsvotn L2
+    supported: true,
+    monitored: false,
+  },
+  "167006": {
+    // Taiko Eldfell L3
     supported: true,
     monitored: false,
   },
@@ -1069,8 +1074,8 @@ export function getSortedChainsArray(
       getPrimarySortKey(a) > getPrimarySortKey(b)
         ? 1
         : getPrimarySortKey(b) > getPrimarySortKey(a)
-        ? -1
-        : 0
+          ? -1
+          : 0
     );
 
   const sortedChains = ethereumChains.concat(otherChains);

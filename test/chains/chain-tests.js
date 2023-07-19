@@ -52,8 +52,8 @@ describe("Test Supported Chains", function () {
     if (!anyTestsPass && newAddedChainId) {
       throw new Error(
         "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id " +
-          newAddedChainId +
-          "?"
+        newAddedChainId +
+        "?"
       );
     }
   });
@@ -889,11 +889,20 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
-  // Taiko Alpha-3 Testnet
+  // Taiko Grimsvotn L2
   verifyContract(
     "0x68107Fb54f5f29D8e0B3Ac44a99f4444D1F22a68",
     "167005",
-    "Taiko Alpha-3 Testnet",
+    "Taiko Grimsvotn L2",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  // Taiko Eldfell L3
+  verifyContract(
+    "0x270a7521B3678784f96848D441fE1B2dc2f040D8",
+    "167006",
+    "Taiko Eldfell L3",
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
