@@ -12,14 +12,14 @@
     "build": "tsc",
     "build:clean": "rm -rf node_modules/ packages/bytecode-utils/node_modules/ packages/contract-call-decoder/node_modules/ packages/lib-sourcify/node_modules/ && npm install && npx lerna bootstrap && npx lerna run build",
     "build:lerna": "lerna run build",
-    "test": "TESTING=true DOTENV_CONFIG_PATH=./environments/.env nyc --silent mocha -r dotenv/config  --exit",
+    "test": "TESTING=true DOTENV_CONFIG_PATH=./environments/.env c8 --reporter=none mocha -r dotenv/config --exit",
     "test:monitor": "TESTING=true DOTENV_CONFIG_PATH=./environments/.env mocha test/monitor.js --exit",
     "test:server": "TESTING=true DOTENV_CONFIG_PATH=./environments/.env mocha -r dotenv/config test/server.js --exit",
     "test:chains": "TESTING=true mocha test/chains/chain-tests.js --reporter mochawesome --reporter-options reportDir=chain-tests-report,reportFilename=report --exit",
     "lint": "eslint . --ext .ts",
     "lint-tests": "eslint ./test --ext .js",
     "lint-fix": "eslint . --fix --ext .ts",
-    "coverage": "node ./node_modules/nyc/bin/nyc.js --reporter=lcov --reporter=text-summary ./node_modules/tape/bin/tape ./test/index.js",
+    "coverage": "node ./node_modules/c8/bin/c8.js --reporter=lcov --reporter=text-summary ./node_modules/tape/bin/tape ./test/index.js",
     "coveralls": "npm run coverage && node ./node_modules/coveralls/bin/coveralls.js <coverage/lcov.info",
     "monitor:build": "npm run clean && npm run build",
     "monitor:start": "node ./dist/monitor/monitor.js",
@@ -27,12 +27,12 @@
     "server:build": "npm run clean && npm run build",
     "server:start": "node ./dist/server/server.js",
     "update-chains": "node --experimental-fetch scripts/updateChains.mjs && prettier --write src/chains.json",
-    "test:unit": "TESTING=true DOTENV_CONFIG_PATH=./environments/.env nyc --silent mocha -r dotenv/config  --exit",
+    "test:unit": "TESTING=true DOTENV_CONFIG_PATH=./environments/.env c8 --silent mocha -r dotenv/config  --exit",
     "cov": "run-s -c build test:unit cov:html cov:lcov && open-cli coverage/index.html",
-    "cov:html": "nyc report --reporter=html",
-    "cov:lcov": "nyc report --reporter=lcov",
+    "cov:html": "c8 report --reporter=html",
+    "cov:lcov": "c8 report --reporter=lcov",
     "cov:send": "run-s cov:lcov && codecov -F server -f coverage/lcov.info",
-    "cov:check": "nyc report && nyc check-coverage --lines 100 --functions 100 --branches 100"
+    "cov:check": "c8 report && c8 check-coverage --lines 100 --functions 100 --branches 100"
   },
   "keywords": [
     "ethereum",
@@ -70,6 +70,7 @@
     "json-refs": "^3.0.15",
     "memorystore": "^1.6.7",
     "node-fetch": "2.6.6",
+    "puppeteer": "^20.7.4",
     "serve-index": "^1.9.1",
     "solc": "^0.8.17",
     "swagger-ui-express": "^4.6.3",
@@ -90,6 +91,7 @@
     "@types/yamljs": "^0.2.31",
     "@typescript-eslint/eslint-plugin": "^5.7.0",
     "@typescript-eslint/parser": "^5.7.0",
+    "c8": "^8.0.0",
     "chai": "^4.2.0",
     "chai-http": "^4.3.0",
     "codecov": "^3.8.3",
@@ -102,7 +104,6 @@
     "mocha": "^7.0.0",
     "mochawesome": "^7.1.2",
     "npm-run-all": "^4.1.5",
-    "nyc": "^15.1.0",
     "open-cli": "^7.1.0",
     "prettier": "^2.7.1",
     "rimraf": "^3.0.2",
@@ -110,7 +111,7 @@
     "typescript": "^4.9.3",
     "typestrict": "^1.0.2"
   },
-  "nyc": {
+  "c8": {
     "exclude": [
       "test/**/*.*",
       "packages/**/*.*",

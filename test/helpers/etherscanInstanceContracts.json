@@ -336,6 +336,18 @@
       "expectedStatus": "perfect"
     }
   ],
+  "8453": [
+    {
+      "address": "0x36e42adAff3C6aa5290b7417eD723dAB024565E7",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x8517d3E3801F69c1F446dd41E71B37E8b8598367",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
+  ],
   "25": [
     {
       "address": "0xE3023cd45E2Bc9Dd0e9a3F0484e4fBf40b4DF108",

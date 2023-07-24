@@ -691,8 +691,7 @@ describe("Server", function () {
         .post("/")
         .field("address", address)
         .field("chain", defaultContractChain)
-        .attach("files", metadataBuffer, "metadata.json")
-        .send();
+        .attach("files", metadataBuffer, "metadata.json");
 
       assertVerification(
         null,
@@ -1805,7 +1804,7 @@ describe("Server", function () {
           "0xd125cc92f61d0898d55a918283f8b855bde15bc5f391b621e0c4eee25c9997ee"
         );
     });
-    it("should run getCreatorTx with regex", async function () {
+    it("should run getCreatorTx with regex for new Blockscout", async function () {
       const sourcifyChain = sourcifyChainsArray.find(
         (sourcifyChain) => sourcifyChain.chainId === 100
       );
@@ -1817,6 +1816,34 @@ describe("Server", function () {
         .expect(creatorTx)
         .equals(
           "0x11da550e6716be8b4bd9203cb384e89b8f8941dc460bd99a4928ce2825e05456"
+        );
+    });
+    it.only("should run getCreatorTx with regex for old Blockscout", async function () {
+      const sourcifyChain = sourcifyChainsArray.find(
+        (sourcifyChain) => sourcifyChain.chainId === 1313161554
+      );
+      const creatorTx = await getCreatorTx(
+        sourcifyChain,
+        "0x2CB45Edb4517d5947aFdE3BEAbF95A582506858B"
+      );
+      chai
+        .expect(creatorTx)
+        .equals(
+          "0x8fbcf663b8d86af936d5a72cbf9e6becd17e87e167bdcff449663e987cf09759"
+        );
+    });
+    it("should run getCreatorTx with regex for Etherscan", async function () {
+      const sourcifyChain = sourcifyChainsArray.find(
+        (sourcifyChain) => sourcifyChain.chainId === 84531
+      );
+      const creatorTx = await getCreatorTx(
+        sourcifyChain,
+        "0xbe92671bdd1a1062e1a9f3be618e399fb5facace"
+      );
+      chai
+        .expect(creatorTx)
+        .equals(
+          "0x15c5208cacbc1e14d9906926b8a991ec986a442f26081fe5ac9de4eb671c5195"
         );
     });
     it("should attach and trigger an event with the event manager", function (done) {

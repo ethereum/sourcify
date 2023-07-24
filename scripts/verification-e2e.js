@@ -4,8 +4,10 @@ const { spawnSync } = require("child_process");
 
 const deploymentChain = process.argv[2];
 assert(deploymentChain, "No chain provided");
-const artifact = require("../metacoin-source-verify/build/contracts/MetaCoinSalted.json");
+const artifact = require("../metacoin-source-verify/MetaCoinSalted.json");
 const deploymentAddress = artifact.networks[deploymentChain].address;
+const buildInfoFilename = artifact.networks[deploymentChain].buildInfoFilename;
+
 assert(
   deploymentAddress,
   `No address found - has the contract been deployed to chain ${deploymentChain}?`
@@ -19,11 +21,9 @@ const args = [
   "POST",
   serverUrl,
   "-F",
-  "files=@metacoin-source-verify/build/contracts/MetaCoinSalted.json",
+  `files=@metacoin-source-verify/artifacts/build-info/${buildInfoFilename}`,
   "-F",
-  "files=@metacoin-source-verify/contracts/MetaCoinSalted.sol",
-  "-F",
-  "files=@metacoin-source-verify/contracts/ConvertLib.sol",
+  "chosenContract=1",
 ];
 
 if (deploymentChain) {

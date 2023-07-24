@@ -3,5 +3,5 @@ services:
   ipfs:
     image: ethereum/source-verify:ipfs-${TAG}
     build:
-      context: ../services/ipfs/
+      context: ../services/ipfs/server/
       dockerfile: ./Dockerfile.ipfs

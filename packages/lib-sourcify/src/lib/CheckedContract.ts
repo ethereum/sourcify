@@ -114,7 +114,13 @@ export class CheckedContract {
   async tryToFindPerfectMetadata(
     deployedBytecode: string
   ): Promise<CheckedContract | null> {
-    const decodedAuxdata = decodeBytecode(deployedBytecode);
+    let decodedAuxdata;
+    try {
+      decodedAuxdata = decodeBytecode(deployedBytecode);
+    } catch (err) {
+      // There is no auxdata at all in this contract
+      return null;
+    }
 
     const pathContent: PathContent[] = Object.keys(this.solidity).map(
       (path) => {

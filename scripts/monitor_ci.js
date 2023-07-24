@@ -20,7 +20,7 @@ if (!chainID || !chainName) {
   process.exit(1);
 }
 
-const artifact = require("../metacoin-source-verify/build/contracts/MetaCoin.json");
+const artifact = require("../metacoin-source-verify/MetaCoin.json");
 const address = artifact.networks[chainID].address;
 
 async function main() {
