@@ -1,12 +1,23 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import { Auth0Provider } from "@auth0/auth0-react";
 import App from "./App";
 import "./index.css";
 import reportWebVitals from "./reportWebVitals";
+import { AUTH0_DOMAIN, AUTH0_CLIENTID, AUTH0_AUDIENCE } from "./constants";
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <Auth0Provider
+      domain={AUTH0_DOMAIN}
+      clientId={AUTH0_CLIENTID}
+      authorizationParams={{
+        audience: AUTH0_AUDIENCE,
+        scope: "openid profile",
+      }}
+    >
+      <App />
+    </Auth0Provider>
   </React.StrictMode>,
   document.getElementById("root")
 );

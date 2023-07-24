@@ -20,15 +20,46 @@ import { BigNumber } from "@ethersproject/bignumber";
 import { keccak256 } from "@ethersproject/keccak256";
 import { isHexString, hexZeroPad } from "@ethersproject/bytes";
 import InputToggle from "../../../../../components/InputToggle";
+import { useAuth0 } from "@auth0/auth0-react";
+import { AUTH0_AUDIENCE } from "../../../../../constants";
 
-export const saltToHex = (salt: string) => {
+const LoginButton = () => {
+  const { loginWithPopup } = useAuth0();
+  return (
+    <button
+      className="mt-1 mb-4 py-2 px-4 w-full bg-ceruleanBlue-500 hover:bg-ceruleanBlue-130 disabled:hover:bg-ceruleanBlue-500 focus:ring-ceruleanBlue-300 focus:ring-offset-ceruleanBlue-100 text-white transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-default "
+      onClick={() => loginWithPopup()}
+    >
+      Log In
+    </button>
+  );
+};
+
+const LogoutButton = ({ name }: { name: string }) => {
+  const { logout } = useAuth0();
+
+  return (
+    <button
+      className="mt-1 mb-4 py-2 px-4 w-full bg-ceruleanBlue-500 hover:bg-ceruleanBlue-130 disabled:hover:bg-ceruleanBlue-500 focus:ring-ceruleanBlue-300 focus:ring-offset-ceruleanBlue-100 text-white transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-default "
+      onClick={() => logout()}
+    >
+      Welcome {name}, click here to logout.
+    </button>
+  );
+};
+
+export const saltToHex = (salt: string): string | false => {
   if (isHexString(salt)) {
     return hexZeroPad(salt, 32);
   }
-  const bn = BigNumber.from(salt);
-  const hex = bn.toHexString();
-  const paddedHex = hexZeroPad(hex, 32);
-  return paddedHex;
+  try {
+    const bn = BigNumber.from(salt);
+    const hex = bn.toHexString();
+    const paddedHex = hexZeroPad(hex, 32);
+    return paddedHex;
+  } catch (e) {
+    return false;
+  }
 };
 
 const buildCreate2Address = (
@@ -58,7 +89,6 @@ const Create2Form = ({
   verifyCreate2CheckedContract,
   setIsLoading,
 }: ChainAddressFormProps) => {
-  const [clientToken, setClientToken] = useState<string>();
   const [deployerAddress, setDeployerAddress] = useState<string>();
   const [salt, setSalt] = useState<string>();
   const [abiEncodedConstructorArguments, setAbiEncodedConstructorArguments] =
@@ -72,6 +102,8 @@ const Create2Form = ({
   const [showRawAbiInput, setShowRawAbiInput] = useState(false);
   const [isInvalidConstructorArguments, setIsInvalidConstructorArguments] =
     useState(false);
+  const [clientToken, setClientToken] = useState<string>();
+  const { user, isAuthenticated, getAccessTokenSilently } = useAuth0();
 
   useEffect(() => {
     if (
@@ -88,9 +120,15 @@ const Create2Form = ({
       (abiEncodedConstructorArguments.startsWith("0x")
         ? abiEncodedConstructorArguments.slice(2)
         : abiEncodedConstructorArguments || "");
+
+    const saltHex = saltToHex(salt);
+    if (!saltHex) {
+      setSalt("");
+      return;
+    }
     const create2Address = buildCreate2Address(
       deployerAddress,
-      saltToHex(salt),
+      saltHex,
       initcode
     );
     if (create2Address) {
@@ -136,6 +174,28 @@ const Create2Form = ({
       clientToken: clientToken || "",
     }).finally(() => setIsLoading(false));
   };
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+    const getUserMetadata = async () => {
+      try {
+        const accessToken = await getAccessTokenSilently({
+          authorizationParams: {
+            audience: AUTH0_AUDIENCE,
+          },
+        });
+
+        setClientToken(accessToken);
+      } catch (e: any) {
+        console.log("test", e.message);
+      }
+    };
+
+    getUserMetadata();
+  }, [isAuthenticated, getAccessTokenSilently]);
+
   return (
     <div className="">
       <div className="">
@@ -148,96 +208,88 @@ const Create2Form = ({
       {checkedContract?.creationBytecode ? (
         <form className="mt-4" onSubmit={handleSubmit}>
           <div>
-            <div className="flex justify-between">
-              <label className="block" htmlFor="clientToken">
-                Client token
-                <p className="mb-1 text-xs">
-                  This functionality is protected by a client token in order to
-                  prevent spamming. If you are interested please send an email
-                  to <a href="mailto:info@sourcify.dev">info@sourcify.dev</a>
-                </p>
-              </label>
-            </div>
-            <Input
-              id="clientToken"
-              value={clientToken}
-              onChange={(e) => setClientToken(e.target.value)}
-              placeholder="CLIENT_TOKEN"
-              className="mb-2"
-            />
-          </div>
-          <div>
-            <div className="flex justify-between">
-              <label className="block" htmlFor="address">
-                Deployer Address
-              </label>
-              {isInvalidDeployerAddress && (
-                <span className="text-red-500 text-sm">
-                  Invalid Deployer Address
-                </span>
-              )}
-            </div>
-            <Input
-              id="address"
-              value={deployerAddress}
-              onChange={handleAddressChange}
-              placeholder="0x2fabe97..."
-              className="mb-2"
-            />
-          </div>
-          <div>
-            <div className="flex justify-between">
-              <label className="block" htmlFor="salt">
-                Salt (in hex or number)
-              </label>
-            </div>
-            <Input
-              id="salt"
-              value={salt}
-              onChange={(e) => setSalt(e.target.value)}
-              placeholder="0xb1f2... or 999"
-              className="mb-2"
-            />
-            {checkedContract.constructorArgumentsArray &&
-              checkedContract.constructorArgumentsArray.length > 0 && (
-                <div className="mt-4">
-                  <InputToggle
-                    isChecked={showRawAbiInput}
-                    onClick={() => setShowRawAbiInput((prev) => !prev)}
-                    label="Raw ABI-Encoded Input"
-                  />
-                  <ConstructorArguments
-                    abiEncodedConstructorArguments={
-                      abiEncodedConstructorArguments
-                    }
-                    setAbiEncodedConstructorArguments={
-                      setAbiEncodedConstructorArguments
-                    }
-                    abiJsonConstructorArguments={
-                      checkedContract.constructorArgumentsArray
-                    }
-                    showRawAbiInput={showRawAbiInput}
-                    setIsInvalidConstructorArguments={
-                      setIsInvalidConstructorArguments
-                    }
+            <p className="mb-1 text-xs">
+              This functionality is protected by Auth0, please sign-in.
+            </p>
+            {isAuthenticated ? (
+              <div>
+                <LogoutButton name={user?.nickname as string} />
+                <div>
+                  <div className="flex justify-between">
+                    <label className="block" htmlFor="address">
+                      Deployer Address
+                    </label>
+                    {isInvalidDeployerAddress && (
+                      <span className="text-red-500 text-sm">
+                        Invalid Deployer Address
+                      </span>
+                    )}
+                  </div>
+                  <Input
+                    id="address"
+                    value={deployerAddress}
+                    onChange={handleAddressChange}
+                    placeholder="0x2fabe97..."
+                    className="mb-2"
                   />
                 </div>
-              )}
+                <div>
+                  <div className="flex justify-between">
+                    <label className="block" htmlFor="salt">
+                      Salt (in hex or number)
+                    </label>
+                  </div>
+                  <Input
+                    id="salt"
+                    value={salt}
+                    onChange={(e) => setSalt(e.target.value)}
+                    placeholder="0xb1f2... or 999"
+                    className="mb-2"
+                  />
+                  {checkedContract.constructorArgumentsArray &&
+                    checkedContract.constructorArgumentsArray.length > 0 && (
+                      <div className="mt-4">
+                        <InputToggle
+                          isChecked={showRawAbiInput}
+                          onClick={() => setShowRawAbiInput((prev) => !prev)}
+                          label="Raw ABI-Encoded Input"
+                        />
+                        <ConstructorArguments
+                          abiEncodedConstructorArguments={
+                            abiEncodedConstructorArguments
+                          }
+                          setAbiEncodedConstructorArguments={
+                            setAbiEncodedConstructorArguments
+                          }
+                          abiJsonConstructorArguments={
+                            checkedContract.constructorArgumentsArray
+                          }
+                          showRawAbiInput={showRawAbiInput}
+                          setIsInvalidConstructorArguments={
+                            setIsInvalidConstructorArguments
+                          }
+                        />
+                      </div>
+                    )}
+                </div>
+                {create2Address && (
+                  <div className="mt-4 text-sm break-all">
+                    <strong>Address:</strong> {create2Address}
+                  </div>
+                )}
+                <button
+                  ref={verifyButtonRef}
+                  type="submit"
+                  className="mt-4 py-2 px-4 w-full bg-ceruleanBlue-500 hover:bg-ceruleanBlue-130 disabled:hover:bg-ceruleanBlue-500 focus:ring-ceruleanBlue-300 focus:ring-offset-ceruleanBlue-100 text-white transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-default "
+                  disabled={!create2Address}
+                >
+                  Verify
+                </button>
+              </div>
+            ) : (
+              <LoginButton />
+            )}
           </div>
-
-          {create2Address && (
-            <div className="mt-4 text-sm break-all">
-              <strong>Address:</strong> {create2Address}
-            </div>
-          )}
-          <button
-            ref={verifyButtonRef}
-            type="submit"
-            className="mt-4 py-2 px-4 w-full bg-ceruleanBlue-500 hover:bg-ceruleanBlue-130 disabled:hover:bg-ceruleanBlue-500 focus:ring-ceruleanBlue-300 focus:ring-offset-ceruleanBlue-100 text-white transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-default "
-            disabled={!create2Address}
-          >
-            Verify
-          </button>
         </form>
       ) : (
         <LoadingOverlay message="Getting creation bytecode" />

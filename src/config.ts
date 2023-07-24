@@ -47,6 +47,13 @@ export default {
     /^https?:\/\/(?:.+\.)?ipfs.dweb.link$/, // dweb links used by Brave browser etc.
     process.env.NODE_ENV === "development" && /^https?:\/\/localhost(?::\d+)?$/, // localhost on any port
   ],
+  authentication: {
+    jwt: {
+      audience: process.env.AUTH0_AUDIENCE,
+      issuerBaseURL: process.env.AUTH0_ISSUERBASEURL,
+      tokenSigningAlg: process.env.AUTH0_TOKENSIGNINGALG || "RS256",
+    },
+  },
 };
 
 type EtherscanAPIs = {

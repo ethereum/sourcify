@@ -22,3 +22,8 @@ export const VERIFY_FROM_ETHERSCAN = `${SERVER_URL}/session/verify/etherscan`;
 export const CREATE2_VERIFY_VALIDATED_URL = `${SERVER_URL}/session/verify/create2`;
 export const CREATE2_COMPILE_URL = `${SERVER_URL}/session/verify/create2/compile`;
 export const RESTART_SESSION_URL = `${SERVER_URL}/session/clear`;
+
+// AUTH0 CONSTANTS
+export const AUTH0_DOMAIN = process.env.REACT_APP_AUTH0_DOMAIN as string;
+export const AUTH0_CLIENTID = process.env.REACT_APP_AUTH0_CLIENTID as string;
+export const AUTH0_AUDIENCE = process.env.REACT_APP_AUTH0_AUDIENCE as string;

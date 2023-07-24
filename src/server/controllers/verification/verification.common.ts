@@ -23,7 +23,12 @@ import fetch from "node-fetch";
 import { IVerificationService } from "../../services/VerificationService";
 import { IRepositoryService } from "../../services/RepositoryService";
 import { ContractMeta, ContractWrapper } from "../../common";
+import { auth } from "express-oauth2-jwt-bearer";
+import rateLimit from "express-rate-limit";
+import config from "../../../config";
 import { id as keccak256str } from "ethers";
+import { ForbiddenError } from "../../../common/errors/ForbiddenError";
+import { UnauthorizedError } from "../../../common/errors/UnauthorizedError";
 
 type PathBuffer = {
   path: string;
@@ -385,21 +390,61 @@ export const verifyContractsInSession = async (
   }
 };
 
-export function authenticatedRequest(
+export const jwtCheck = auth({
+  audience: config.authentication.jwt.audience,
+  issuerBaseURL: config.authentication.jwt.issuerBaseURL,
+  tokenSigningAlg: config.authentication.jwt.tokenSigningAlg,
+});
+
+export const apiLimiter = (
+  windowMs: number,
+  max: number,
+  errorMessage = "Too many requests, please try again later."
+) =>
+  rateLimit({
+    windowMs,
+    max,
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers,
+    message: {
+      error: errorMessage,
+    },
+    keyGenerator: (req: Request) => req.auth?.payload.sub as string,
+  });
+
+export const isAuth0EnabledUser = async (
   req: Request,
   res: Response,
   next: NextFunction
-) {
-  const sourcifyClientTokensRaw = process.env.CREATE2_CLIENT_TOKENS;
-  if (sourcifyClientTokensRaw?.length) {
-    const sourcifyClientTokens = sourcifyClientTokensRaw.split(",");
-    const clientToken = req.body.clientToken;
-    if (!clientToken) {
-      throw new BadRequestError("This API is protected by a client token");
+) => {
+  const userInfoRequest = await fetch(
+    `${config.authentication.jwt.issuerBaseURL}userinfo`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${req.auth?.token}`,
+      },
     }
-    if (!sourcifyClientTokens.includes(clientToken)) {
-      throw new BadRequestError("The client token you provided is not valid");
+  );
+  if (userInfoRequest.status === 401) {
+    throw new UnauthorizedError();
+  }
+  try {
+    const userInfo = await userInfoRequest.json();
+    if (!userInfo.sub.includes("auth0")) {
+      throw new UnauthorizedError();
     }
+  } catch (e) {
+    throw new UnauthorizedError();
   }
   next();
-}
+};
+
+export const apiCheckPermission = (permission: string, errorMessage: string) =>
+  function (req: Request, res: Response, next: NextFunction) {
+    if (!(req.auth?.payload?.permissions as string)?.includes(permission)) {
+      throw new ForbiddenError(errorMessage);
+    }
+    next();
+  };

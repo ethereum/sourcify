@@ -3,19 +3,17 @@ openapi: "3.0.0"
 paths:
   /verify/create2:
     post:
-      summary: Verify create2
+      summary: Verify create2 (requires authentication)
       tags:
         - Stateless Verification
+      security:
+        - BearerAuth: []
       requestBody:
         content:
           application/json:
             schema:
               type: object
               properties:
-                clientToken:
-                  type: string
-                  description: Mandatory client token to call this api
-                  example: ""
                 deployerAddress:
                   type: string
                   format: address
@@ -146,3 +144,19 @@ paths:
                 Deployed and recompiled mismatch:
                   value:
                     error: "The deployed and recompiled bytecode don't match."
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                Authorization header required:
+                  value:
+                    message: "Authorization header required"
+                Bad Formatted Json:
+                  value:
+                    error: "Unexpected token ' in JSON at position 107"
