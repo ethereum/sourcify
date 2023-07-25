@@ -12,9 +12,7 @@ networks:
 
 services:
   ipfs-server:
-    build:
-      context: ../services/ipfs/server
-      dockerfile: Dockerfile.ipfs
+    image: ethereum/source-verify:ipfs-${TAG}
     container_name: ipfs-server-${TAG}
     ports:
       - "${IPFS_LIBP2P_EXTERNAL_PORT}:4001"
