@@ -30,7 +30,7 @@ const LoginButton = () => {
       className="mt-1 mb-4 py-2 px-4 w-full bg-ceruleanBlue-500 hover:bg-ceruleanBlue-130 disabled:hover:bg-ceruleanBlue-500 focus:ring-ceruleanBlue-300 focus:ring-offset-ceruleanBlue-100 text-white transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-default "
       onClick={() => loginWithPopup()}
     >
-      Log In
+      Sign in
     </button>
   );
 };
