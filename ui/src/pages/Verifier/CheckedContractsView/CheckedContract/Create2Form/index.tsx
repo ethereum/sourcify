@@ -209,7 +209,7 @@ const Create2Form = ({
         <form className="mt-4" onSubmit={handleSubmit}>
           <div>
             <p className="mb-1 text-xs">
-              This functionality is protected by Auth0, please sign-in.
+              This functionality is protected by Auth0, please sign-in
             </p>
             {isAuthenticated ? (
               <div>
