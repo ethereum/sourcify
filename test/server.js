@@ -10,7 +10,7 @@ process.env.FETCH_TIMEOUT = 15000; // instantiated http-gateway takes a little l
 
 // Auth0 environemnts
 process.env.AUTH0_AUDIENCE = "https://staging.sourcify.dev";
-process.env.AUTH0_ISSUERBASEURL = "https://dev-cpy28yiw0u88mjsd.us.auth0.com/";
+process.env.AUTH0_ISSUERBASEURL = "https://dev-cpy28yiw0u88mjsd.us.auth0.com";
 process.env.AUTH0_TOKENSIGNINGALG = "RS256";
 process.env.AUTH0_CLIENTID = "epipuQWJL67dVggPvxNmAy40ggzNum9F";
 

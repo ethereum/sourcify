@@ -418,7 +418,7 @@ export const isAuth0EnabledUser = async (
   next: NextFunction
 ) => {
   const userInfoRequest = await fetch(
-    `${config.authentication.jwt.issuerBaseURL}userinfo`,
+    `${config.authentication.jwt.issuerBaseURL}/userinfo`,
     {
       method: "GET",
       headers: {

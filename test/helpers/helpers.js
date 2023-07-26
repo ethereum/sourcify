@@ -171,7 +171,7 @@ function callWithAccessToken(callback) {
     scope: "openid profile",
   };
 
-  fetch(`${AUTH0_DOMAIN}oauth/token`, {
+  fetch(`${AUTH0_DOMAIN}/oauth/token`, {
     method: "POST",
     headers: headers,
     body: JSON.stringify(data),
