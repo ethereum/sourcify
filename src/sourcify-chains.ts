@@ -951,6 +951,14 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       "https://maposcan.io/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
+  "2021": {
+    // Edgeware EdgeEVM Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://edgscan.live/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
