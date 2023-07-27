@@ -256,7 +256,7 @@ export class Server {
     this.app.use(genericErrorHandler);
     this.app.use(notFoundHandler);
 
-    this.app.get("/auth0", (req, res) => {
+    /* this.app.get("/auth0", (req, res) => {
       res.send(`
         <!-- callback-cross-auth.html -->
         <head>
@@ -269,7 +269,7 @@ export class Server {
           </script>
         </head>
       `);
-    });
+    }); */
   }
 
   async listen(callback?: () => void) {
