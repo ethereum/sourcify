@@ -2,7 +2,7 @@ process.env.TESTING = "true";
 process.env.MOCK_REPOSITORY = "./mockRepository";
 process.env.IPFS_GATEWAY = "https://ipfs.io/ipfs/";
 
-// Auth0 environemnts
+// Auth0 environments
 process.env.AUTH0_AUDIENCE = "https://staging.sourcify.dev";
 process.env.AUTH0_ISSUERBASEURL = "https://dev-cpy28yiw0u88mjsd.us.auth0.com";
 process.env.AUTH0_TOKENSIGNINGALG = "RS256";
