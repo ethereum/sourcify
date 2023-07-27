@@ -8,7 +8,7 @@ process.env.SOLJSON_REPO = "./dist/data/soljson-repo";
 process.env.IPFS_GATEWAY = "http://ipfs.io/ipfs/";
 process.env.FETCH_TIMEOUT = 15000; // instantiated http-gateway takes a little longer
 
-// Auth0 environemnts
+// Auth0 environments
 process.env.AUTH0_AUDIENCE = "https://staging.sourcify.dev";
 process.env.AUTH0_ISSUERBASEURL = "https://dev-cpy28yiw0u88mjsd.us.auth0.com";
 process.env.AUTH0_TOKENSIGNINGALG = "RS256";
@@ -1824,7 +1824,7 @@ describe("Server", function () {
           "0x11da550e6716be8b4bd9203cb384e89b8f8941dc460bd99a4928ce2825e05456"
         );
     });
-    it.only("should run getCreatorTx with regex for old Blockscout", async function () {
+    it("should run getCreatorTx with regex for old Blockscout", async function () {
       const sourcifyChain = sourcifyChainsArray.find(
         (sourcifyChain) => sourcifyChain.chainId === 1313161554
       );
