@@ -137,6 +137,12 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     monitored: false,
     contractFetchAddress: "https://triton.nautscan.com/" + TRITON_SUFFIX,
   },
+  "88002": {
+    // Proteus testnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://triton.nautscan.com/" + TRITON_SUFFIX,
+  },
   "5": {
     // Ethereum Goerli Testnet
     supported: true,

@@ -15109,6 +15109,24 @@
     ]
   },
   {
+    "name": "Proteus Chain",
+    "title": "Proteus Testnet",
+    "chain": "ETH",
+    "icon": "nautilus",
+    "rpc": ["https://api.evm.proteus.dev.eclipsenetwork.xyz/solana"],
+    "faucets": ["https://proteusfaucet.nautchain.xyz"],
+    "nativeCurrency": {
+      "name": "Proteus Testnet Tokens",
+      "symbol": "tZBC",
+      "decimals": 18
+    },
+    "infoURL": "https://docs.nautchain.xyz",
+    "shortName": "tZBC",
+    "chainId":  88002,
+    "networkId": 88002,
+    "explorers": []
+  },
+  {
     "name": "Lambda Testnet",
     "chain": "Lambda",
     "rpc": ["https://evm.lambda.top/"],
