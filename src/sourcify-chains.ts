@@ -138,7 +138,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: "https://triton.nautscan.com/" + TRITON_SUFFIX,
   },
   "88002": {
-    // Shrapnel Mainnet
+    // Proteus testnet
     supported: true,
     monitored: false,
     contractFetchAddress: "https://triton.nautscan.com/" + TRITON_SUFFIX,
