@@ -11,11 +11,10 @@ networks:
   source-verify:
 
 services:
-  ipfs:
+  ipfs-server:
     image: ethereum/source-verify:ipfs-${TAG}
-    container_name: ipfs-${TAG}
+    container_name: ipfs-server-${TAG}
     ports:
-      - "${IPFS_GW_EXTERNAL_PORT}:8080"
       - "${IPFS_LIBP2P_EXTERNAL_PORT}:4001"
       - "${IPFS_API_EXTERNAL_PORT}:5001"
     env_file:
@@ -24,9 +23,17 @@ services:
     networks:
       - source-verify
     volumes:
-      - type: bind
-        source: $REPOSITORY_PATH
-        target: /repository
-      - type: bind
-        source: ../services/ipfs/ipfs-${TAG}.key
-        target: /sourcify/ipfs-${TAG}.key
+      - $REPOSITORY_PATH:/repository
+      - ../services/ipfs/server/ipfs-${TAG}.key:/sourcify/ipfs-${TAG}.key
+  ipfs-gateway:
+    image: ipfs/kubo:v0.21.0
+    container_name: ipfs-gateway-${TAG}
+    ports:
+      - "${IPFS_GW_EXTERNAL_PORT}:8080"
+    env_file:
+      - .env
+    restart: always
+    networks:
+      - source-verify
+    volumes:
+      - ../services/ipfs/gateway/:/container-init.d # Will run scripts here alpabetically

@@ -3,6 +3,12 @@ process.env.MOCK_REPOSITORY = "./dist/data/mock-repository";
 process.env.SOLC_REPO = "./dist/data/solc-repo";
 process.env.SOLJSON_REPO = "./dist/data/soljson-repo";
 
+// Auth0 environments
+process.env.AUTH0_AUDIENCE = "https://staging.sourcify.dev";
+process.env.AUTH0_ISSUERBASEURL = "https://dev-cpy28yiw0u88mjsd.us.auth0.com";
+process.env.AUTH0_TOKENSIGNINGALG = "RS256";
+process.env.AUTH0_CLIENTID = "epipuQWJL67dVggPvxNmAy40ggzNum9F";
+
 const Server = require("../../dist/server/server").Server;
 const rimraf = require("rimraf");
 const testContracts = require("../helpers/etherscanInstanceContracts.json");
@@ -13,7 +19,7 @@ const { verifyAndAssertEtherscan } = require("../helpers/helpers");
 const CUSTOM_PORT = 5679;
 
 describe("Test each Etherscan instance", function () {
-  this.timeout(10000);
+  this.timeout(30000);
   const server = new Server(CUSTOM_PORT);
 
   before(async () => {
@@ -31,6 +37,7 @@ describe("Test each Etherscan instance", function () {
   });
 
   for (const chainId in testContracts) {
+    if (process.env.TEST_CHAIN && process.env.TEST_CHAIN !== chainId) continue;
     describe(`#${chainId} ${sourcifyChainsMap[chainId].name}`, () => {
       testContracts[chainId].forEach((contract) => {
         verifyAndAssertEtherscan(

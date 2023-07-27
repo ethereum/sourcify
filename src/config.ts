@@ -147,4 +147,8 @@ export const etherscanAPIs: EtherscanAPIs = {
     apiURL: "https://api-goerli.basescan.org/",
     apiKey: "",
   },
+  "8453": {
+    apiURL: "https://api.basescan.org/",
+    apiKey: process.env.BASESCAN_API_KEY,
+  },
 };
