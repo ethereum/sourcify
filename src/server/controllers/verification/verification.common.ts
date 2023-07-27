@@ -391,9 +391,9 @@ export const verifyContractsInSession = async (
 };
 
 export const jwtCheck = auth({
-  audience: config.authentication.jwt.audience,
-  issuerBaseURL: config.authentication.jwt.issuerBaseURL,
-  tokenSigningAlg: config.authentication.jwt.tokenSigningAlg,
+  audience: process.env.AUTH0_AUDIENCE,
+  issuerBaseURL: process.env.AUTH0_ISSUERBASEURL,
+  tokenSigningAlg: process.env.AUTH0_TOKENSIGNINGALG || "RS256",
 });
 
 export const apiLimiter = (
@@ -418,7 +418,7 @@ export const isAuth0EnabledUser = async (
   next: NextFunction
 ) => {
   const userInfoRequest = await fetch(
-    `${config.authentication.jwt.issuerBaseURL}/userinfo`,
+    `${process.env.AUTH0_ISSUERBASEURL}/userinfo`,
     {
       method: "GET",
       headers: {

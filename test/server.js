@@ -1824,7 +1824,7 @@ describe("Server", function () {
           "0x11da550e6716be8b4bd9203cb384e89b8f8941dc460bd99a4928ce2825e05456"
         );
     });
-    it.only("should run getCreatorTx with regex for old Blockscout", async function () {
+    it("should run getCreatorTx with regex for old Blockscout", async function () {
       const sourcifyChain = sourcifyChainsArray.find(
         (sourcifyChain) => sourcifyChain.chainId === 1313161554
       );
