@@ -10,7 +10,7 @@ import { logInfo, logWarn } from './logger';
 
 const RPC_TIMEOUT = process.env.RPC_TIMEOUT
   ? parseInt(process.env.RPC_TIMEOUT)
-  : 5000;
+  : 10 * 1000;
 
 // It is impossible to get the url from the Provider for logging purposes
 interface JsonRpcProviderWithUrl extends JsonRpcProvider {
@@ -192,7 +192,7 @@ export default class SourcifyChain {
       } catch (err) {
         if (err instanceof Error) {
           logWarn(
-            `Can't fetch block ${blockNumber} from RPC ${provider.url} and chain ${this.chainId}`
+            `Can't fetch block ${blockNumber} from RPC ${provider.url} and chain ${this.chainId}, error: ${err.message}`
           );
           continue;
         } else {
