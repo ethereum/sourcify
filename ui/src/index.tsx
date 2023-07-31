@@ -17,6 +17,8 @@ ReactDOM.render(
         audience: AUTH0_AUDIENCE,
         scope: "openid profile",
       }}
+      useRefreshTokens={true}
+      cacheLocation="localstorage"
     >
       <App />
     </Auth0Provider>
