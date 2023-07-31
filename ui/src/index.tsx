@@ -15,8 +15,10 @@ ReactDOM.render(
       clientId={AUTH0_CLIENTID}
       authorizationParams={{
         audience: AUTH0_AUDIENCE,
-        scope: "openid profile",
+        scope: "openid profile offline_access",
       }}
+      useRefreshTokens={true}
+      cacheLocation="localstorage"
     >
       <App />
     </Auth0Provider>
