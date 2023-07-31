@@ -189,7 +189,7 @@ const Create2Form = ({
 
         setClientToken(accessToken);
       } catch (e: any) {
-        console.log("test", e.message);
+        console.log(e.message);
       }
     };
 
