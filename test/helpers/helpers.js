@@ -168,7 +168,7 @@ function callWithAccessToken(callback) {
     password: password,
     audience: AUDIENCE,
     client_id: CLIENT_ID,
-    scope: "openid profile",
+    scope: "openid profile offline_access",
   };
 
   fetch(`${AUTH0_DOMAIN}/oauth/token`, {
