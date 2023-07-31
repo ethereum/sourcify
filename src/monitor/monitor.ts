@@ -29,6 +29,133 @@ function createsContract(tx: TransactionResponse): boolean {
 }
 
 /**
+ * Interface for CallFrame objects.
+ *
+ * A CallFrame object is used to encapsulate information about a function call in the EVM,
+ * including information about any sub-calls that are made.
+ *
+ * For more details on how these properties are used, see the official Ethereum documentation:
+ * https://geth.ethereum.org/docs/developers/evm-tracing/built-in-tracers#call-tracer
+ *
+ * @interface
+ * @property {string} type - CALL or CREATE
+ * @property {string} from - address
+ * @property {string} to - address
+ * @property {string} value - hex-encoded amount of value transfer
+ * @property {string} gas - hex-encoded gas provided for call
+ * @property {string} gasUsed - hex-encoded gas used during call
+ * @property {string} input - call data
+ * @property {string} output - return data
+ * @property {string} error - error, if any
+ * @property {string} revertReason - Solidity revert reason, if any
+ * @property {CallFrame[]} calls - list of sub-calls
+ */
+interface CallFrame {
+  type: string;
+  from: string;
+  to: string;
+  value: string;
+  gas: string;
+  gasUsed: string;
+  input: string;
+  output: string;
+  error: string;
+  revertReason: string;
+  calls: CallFrame[];
+}
+
+/**
+ * Recursive function to find and accumulate 'CREATE' and 'CREATE2' CallFrames in an array.
+ *
+ * This function checks if a provided CallFrame is of type 'CREATE' or 'CREATE2' and if so,
+ * adds it to the results array. If not, and the CallFrame has sub-calls, it will check each
+ * sub-call in the same manner.
+ *
+ * @param {CallFrame} call - The CallFrame to check.
+ * @param {CallFrame[]} results - The array to accumulate 'CREATE' and 'CREATE2' CallFrames.
+ */
+function findCreateInDebugTraceTransactionCallFrame(
+  call: CallFrame,
+  results: CallFrame[]
+) {
+  if (call?.type === "CREATE" || call?.type === "CREATE2") {
+    results.push(call);
+  } else if (call?.calls?.length > 0) {
+    call.calls.forEach((subCall) => {
+      findCreateInDebugTraceTransactionCallFrame(subCall, results);
+    });
+  }
+}
+
+/**
+ * Interface for TraceAction objects.
+ *
+ * TraceAction object encapsulates information about a transaction or internal call made
+ * during the execution of a transaction.
+ *
+ * @interface
+ * @property {string} from - The address of the sender.
+ * @property {string} callType - The type of method such as call, delegatecall.
+ * @property {string} gas - The gas provided by the sender, encoded as hexadecimal.
+ * @property {string} input - The data sent along with the transaction.
+ * @property {string} to - The address of the receiver.
+ * @property {string} value - The integer of the value sent with this transaction, encoded as hexadecimal.
+ */
+interface TraceAction {
+  from: string;
+  callType: string;
+  gas: string;
+  input: string;
+  to: string;
+  value: string;
+}
+
+/**
+ * Interface for Trace objects.
+ *
+ * Trace object includes information about a single transaction as well as the
+ * associated block information and the result of the transaction execution.
+ *
+ * @interface
+ * @property {TraceAction} action - An object encapsulating information about the transaction or internal call.
+ * @property {string} blockHash - The hash of the block where this transaction was in.
+ * @property {string} blockNumber - The block number where this transaction was in.
+ * @property {{ [index: string]: string; }} result - An object with the total used gas by all transactions in this block and the output of the contract call.
+ * @property {string} subtraces - The traces of contract calls made by the transaction.
+ * @property {string} traceAddress - The list of addresses where the call was executed, the address of the parents, and the order of the current sub call.
+ * @property {string} transactionHash - The hash of the transaction.
+ * @property {string} transactionPosition - The position of the transaction in the block.
+ * @property {string} type - The value of the method such as call or create.
+ */
+interface Trace {
+  action: TraceAction;
+  blockHash: string;
+  blockNumber: string;
+  result: {
+    gasUsed: string;
+    [index: string]: string;
+  };
+  subtraces: string;
+  traceAddress: string;
+  transactionHash: string;
+  transactionPosition: string;
+  type: string;
+}
+
+/**
+ * Function to filter 'create' transactions from an array of Trace objects.
+ *
+ * This function checks each Trace object in the provided array and returns
+ * a new array containing only those with a type of 'create'.
+ *
+ * @param {Trace[]} traces - An array of Trace objects to filter.
+ * @returns {Trace[]} A new array of Trace objects of type 'create'.
+ */
+function findCreateInTraceTransaction(traces: Trace[]) {
+  return traces.filter((trace) => trace.type === "create");
+}
+
+/**
  * A monitor that periodically checks for new contracts on a single chain.
  */
 class ChainMonitor extends EventEmitter {
@@ -139,6 +266,49 @@ class ChainMonitor extends EventEmitter {
                 this.initialGetBytecodeTries
               );
             }
+          } else {
+            // This is the version using debug_traces
+            /* this.sourcifyChain.providers[0]
+              .send("debug_traceTransaction", [tx.hash, { tracer: "callTracer" }])
+              .then((res: CallFrame) => {
+                const result: CallFrame[] = [];
+                findCreateInDebugTraceTransactionCallFrame(res, result);
+                if (result.length > 0) {
+                  result.forEach((call) => {
+                    const address = call.to;
+                    SourcifyEventManager.trigger("Monitor.NewContract", {
+                      address,
+                      chainId: this.sourcifyChain.chainId.toString(),
+                    });
+                    this.processBytecode(
+                      tx.hash,
+                      address,
+                      this.initialGetBytecodeTries
+                    );
+                  });
+                }
+              }); */
+
+            // This is the version using trace_transaction
+            this.sourcifyChain.providers[1]
+              .send("trace_transaction", [tx.hash])
+              .then((res: Trace[]) => {
+                const traces = findCreateInTraceTransaction(res);
+                if (traces.length > 0) {
+                  traces.forEach((trace) => {
+                    const address = trace.result.address;
+                    SourcifyEventManager.trigger("Monitor.NewContract", {
+                      address,
+                      chainId: this.sourcifyChain.chainId.toString(),
+                    });
+                    this.processBytecode(
+                      tx.hash,
+                      address,
+                      this.initialGetBytecodeTries
+                    );
+                  });
+                }
+              });
           }
         }
 
