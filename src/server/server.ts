@@ -256,20 +256,25 @@ export class Server {
     this.app.use(genericErrorHandler);
     this.app.use(notFoundHandler);
 
-    /* this.app.get("/auth0", (req, res) => {
+    this.app.get("/auth0", (req, res) => {
       res.send(`
-        <!-- callback-cross-auth.html -->
-        <head>
-          <script src="https://cdn.auth0.com/js/auth0/9.18/auth0.min.js"></script>
-          <script type="text/javascript">
-            var webAuth = new auth0.WebAuth({
-              domain:       'sourcify-staging.eu.auth0.com',
-              clientID:     'BUtkg8OwkVgfbzyUDH0YlD1R8TO0a0nM'
-            });
-          </script>
-        </head>
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <script src="https://cdn.auth0.com/js/auth0/9.18/auth0.min.js"></script>
+          </head>
+          <body>
+            <script type="text/javascript">
+              var webAuth = new auth0.WebAuth({
+                domain:       'sourcify-staging.eu.auth0.com',
+                clientID:     'BUtkg8OwkVgfbzyUDH0YlD1R8TO0a0nM'
+              });
+              webAuth.crossOriginVerification();
+            </script>
+          </body>
+        </html>
       `);
-    }); */
+    });
   }
 
   async listen(callback?: () => void) {
