@@ -772,13 +772,11 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: getBlockscoutRegex(),
   },
   "2047": {
-    // Turned off support as RPCs are failing
-    // Stratos Testnet
-    supported: false,
+    // Stratos Testnet (Mesos)
+    supported: true,
     monitored: false,
     contractFetchAddress:
-      "https://web3-testnet-explorer.thestratos.org/" + BLOCKSCOUT_SUFFIX,
-    rpc: ["https://web3-testnet-rpc.thestratos.org"],
+      "https://web3-explorer-mesos.thestratos.org/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
   "641230": {
