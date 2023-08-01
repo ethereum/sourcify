@@ -998,6 +998,15 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
+  // Edgeware EdgeEVM Mainnet
+  verifyContract(
+    "0xCc21c38A22918a86d350dF9aB9c5A60314A01e06",
+    "2021",
+    "Edgeware EdgeEVM Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainId) {
