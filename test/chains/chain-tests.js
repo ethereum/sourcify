@@ -955,6 +955,15 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
+  // Filecoin Calibration Testnet
+  verifyContract(
+    "0xB34d5e2Eb6eCFDe11cC63955b43335A2407A4683",
+    "314159",
+    "Filecoin Calibration Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
   // Zilliqa EVM
   verifyContract(
     "0x6F85669808e20b121980DE8E7a794a0cc90fDc77",

@@ -269,6 +269,10 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     supported: true,
     monitored: false,
   },
+  "314159" : {
+    supported: true,
+    monitored: false,
+  },
   "137": {
     supported: true,
     monitored: true,
