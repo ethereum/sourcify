@@ -773,7 +773,6 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     monitored: false,
     contractFetchAddress:
       "https://web3-explorer-mesos.thestratos.org/" + BLOCKSCOUT_SUFFIX,
-    rpc: ["https://web3-rpc-mesos.thestratos.org"],
     txRegex: getBlockscoutRegex(),
   },
   "641230": {
