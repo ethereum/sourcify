@@ -177,8 +177,9 @@ const Verifier: React.FC = () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${sendable.clientToken}`,
       },
-      body: JSON.stringify(sendable),
+      body: JSON.stringify({ ...sendable, clientToken: undefined }),
     });
   };
 

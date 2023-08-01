@@ -3,6 +3,8 @@ openapi: "3.0.0"
 paths:
   /session/verify/create2:
     post:
+      security:
+        - BearerAuth: []
       summary: Verify create2
       tags:
         - Session Verification
@@ -12,9 +14,6 @@ paths:
             schema:
               type: object
               properties:
-                clientToken:
-                  type: string
-                  description: Mandatory client token to call this api
                 deployerAddress:
                   type: string
                   format: address

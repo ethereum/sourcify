@@ -128,7 +128,7 @@ function buildAlchemyAndCustomRpcURLs(
     );
   }
 
-  return rpcURLs;
+  return rpcURLs.length ? rpcURLs : undefined;
 }
 // replaces INFURA_API_KEY in https://networkname.infura.io/v3/{INFURA_API_KEY}
 function replaceInfuraID(infuraURL: string) {
@@ -817,8 +817,13 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // Base Goerli Testnet
     supported: true,
     monitored: true,
-    contractFetchAddress: "https://goerli.basescan.org/" + ETHERSCAN_SUFFIX,
-    txRegex: ETHERSCAN_REGEX,
+    contractFetchAddress: generateEtherscanCreatorTxAPI("84531"),
+  },
+  "8453": {
+    // Base Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: generateEtherscanCreatorTxAPI("8453"),
   },
   "888": {
     // Wanchain Mainnet
@@ -957,6 +962,30 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       "https://http://explorer.test.siberium.net/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
+  "212": {
+    // MAP Testnet Makalu
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://testnet.maposcan.io/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
+  "22776": {
+    // map-relay-chain Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://maposcan.io/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
+  "2021": {
+    // Edgeware EdgeEVM Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://edgscan.live/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
@@ -992,6 +1021,7 @@ for (const i in allChains) {
     const sourcifyChain = new SourcifyChain({
       ...chain,
       ...sourcifyExtension,
+      rpc: sourcifyExtension.rpc ? sourcifyExtension.rpc : chain.rpc, // avoid rpc ending up as undefined
     });
     sourcifyChainsMap[chainId] = sourcifyChain;
   }

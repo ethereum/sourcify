@@ -2,6 +2,12 @@
 process.env.MOCK_REPOSITORY = "./mockRepository";
 process.env.TESTING = "true";
 
+// Auth0 environments
+process.env.AUTH0_AUDIENCE = "https://staging.sourcify.dev";
+process.env.AUTH0_ISSUERBASEURL = "https://dev-cpy28yiw0u88mjsd.us.auth0.com";
+process.env.AUTH0_TOKENSIGNINGALG = "RS256";
+process.env.AUTH0_CLIENTID = "epipuQWJL67dVggPvxNmAy40ggzNum9F";
+
 const chai = require("chai");
 const chaiHttp = require("chai-http");
 const Server = require("../../dist/server/server").Server;
@@ -815,6 +821,15 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
+  // Base Mainnet
+  verifyContract(
+    "0x5e357053DDa704D059D146444cCC81afC1B2a662",
+    "8453",
+    "Base Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
   // Wanchain Mainnet
   verifyContract(
     "0xC3649123BCa36c0c38A71bDbd2F508AB4f939f47",
@@ -994,6 +1009,31 @@ describe("Test Supported Chains", function () {
     "0x40b4f95C3bafc8d690B4c3fDD1E8303c4817Cd9C",
     "2221",
     "Kava EVM Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  // MAP Testnet Makalu
+  verifyContract(
+    "0xAbdE047dD5861E163830Ad57e1E51990035E1F44",
+    "212",
+    "MAP Testnet Makalu",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  // map-relay-chain mainnet
+  verifyContract(
+    "0xAbdE047dD5861E163830Ad57e1E51990035E1F44",
+    "22776",
+    "Map Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  // Edgeware EdgeEVM Mainnet
+  verifyContract(
+    "0xCc21c38A22918a86d350dF9aB9c5A60314A01e06",
+    "2021",
+    "Edgeware EdgeEVM Mainnet",
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
