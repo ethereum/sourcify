@@ -17,7 +17,6 @@ const util = require("util");
 const rimraf = require("rimraf");
 const addContext = require("mochawesome/addContext");
 const { assertVerification } = require("../helpers/assertions");
-const { sourcifyChainsMap } = require("../../dist/sourcify-chains");
 
 const TEST_TIME = 30000; // 30 seconds
 
@@ -1061,11 +1060,6 @@ describe("Test Supported Chains", function () {
     // If it is a pull request for adding new chain support, only test the new chain
     if (newAddedChainId && newAddedChainId != chainId) return;
     it(`should verify a contract on ${chainName} (${chainId})`, function (done) {
-      if (!sourcifyChainsMap[chainId].supported)
-        throw new Error(
-          `Trying to test the chain #${chainId} which is not supported`
-        );
-
       // Context for the test report
       addContext(this, {
         title: "Test identifier",
