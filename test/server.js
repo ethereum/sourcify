@@ -161,99 +161,102 @@ describe("Server", function () {
     chai.expect(obj1, `assertFromPath: ${obj2path}`).to.deep.equal(obj2);
   }
 
-  describe("Verify create2", function () {
-    this.timeout(EXTENDED_TIME_60);
+  // Don't run if it's an external PR.
+  if (process.env.CIRCLE_PR_REPONAME == undefined) {
+    describe("Verify create2", function () {
+      this.timeout(EXTENDED_TIME_60);
 
-    const agent = chai.request.agent(server.app);
-    let verificationId;
+      const agent = chai.request.agent(server.app);
+      let verificationId;
 
-    it("should input files from existing contract via auxdata ipfs", async () => {
-      const artifacts = require("./testcontracts/Create2/Wallet.json");
+      it("should input files from existing contract via auxdata ipfs", async () => {
+        const artifacts = require("./testcontracts/Create2/Wallet.json");
 
-      const account = await localSigner.getAddress();
-      const addressDeployed = await deployFromAbiAndBytecode(
-        localSigner,
-        artifacts.abi,
-        artifacts.bytecode,
-        [account, account]
-      );
+        const account = await localSigner.getAddress();
+        const addressDeployed = await deployFromAbiAndBytecode(
+          localSigner,
+          artifacts.abi,
+          artifacts.bytecode,
+          [account, account]
+        );
 
-      const res = await agent
-        .post("/session/input-contract")
-        .field("address", addressDeployed)
-        .field("chainId", defaultContractChain);
+        const res = await agent
+          .post("/session/input-contract")
+          .field("address", addressDeployed)
+          .field("chainId", defaultContractChain);
 
-      verificationId = res.body.contracts[0].verificationId;
-      chai.expect(res.body.contracts).to.have.a.lengthOf(1);
-      const contract = res.body.contracts[0];
-      chai.expect(contract.files.found).to.have.a.lengthOf(1);
-      const retrivedFile = contract.files.found[0];
-      chai.expect(retrivedFile).to.equal("contracts/create2/Wallet.sol");
-    });
+        verificationId = res.body.contracts[0].verificationId;
+        chai.expect(res.body.contracts).to.have.a.lengthOf(1);
+        const contract = res.body.contracts[0];
+        chai.expect(contract.files.found).to.have.a.lengthOf(1);
+        const retrivedFile = contract.files.found[0];
+        chai.expect(retrivedFile).to.equal("contracts/create2/Wallet.sol");
+      });
 
-    it("should create2 verify with session", (done) => {
-      callWithAccessToken((accessToken) => {
-        agent
-          .post("/session/verify/create2")
-          .set("Authorization", `Bearer ${accessToken}`)
-          .send({
-            deployerAddress: "0xd9145CCE52D386f254917e481eB44e9943F39138",
-            salt: 12344,
-            abiEncodedConstructorArguments:
-              "0x0000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc40000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc4",
-            create2Address: "0x65790cc291a234eDCD6F28e1F37B036eD4F01e3B",
-            verificationId: verificationId,
-          })
-          .end((err, res) => {
-            assertVerificationSession(
-              err,
-              res,
-              done,
-              "0x65790cc291a234eDCD6F28e1F37B036eD4F01e3B",
-              "0",
-              "perfect"
-            );
-          });
+      it("should create2 verify with session", (done) => {
+        callWithAccessToken((accessToken) => {
+          agent
+            .post("/session/verify/create2")
+            .set("Authorization", `Bearer ${accessToken}`)
+            .send({
+              deployerAddress: "0xd9145CCE52D386f254917e481eB44e9943F39138",
+              salt: 12344,
+              abiEncodedConstructorArguments:
+                "0x0000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc40000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc4",
+              create2Address: "0x65790cc291a234eDCD6F28e1F37B036eD4F01e3B",
+              verificationId: verificationId,
+            })
+            .end((err, res) => {
+              assertVerificationSession(
+                err,
+                res,
+                done,
+                "0x65790cc291a234eDCD6F28e1F37B036eD4F01e3B",
+                "0",
+                "perfect"
+              );
+            });
+        });
+      });
+
+      it("should create2 verify non-session", (done) => {
+        const metadata = fs
+          .readFileSync("test/testcontracts/Create2/Wallet_metadata.json")
+          .toString();
+        const source = fs
+          .readFileSync("test/testcontracts/Create2/Wallet.sol")
+          .toString();
+
+        callWithAccessToken((accessToken) => {
+          chai
+            .request(server.app)
+            .post("/verify/create2")
+            .set("Authorization", `Bearer ${accessToken}`)
+            .send({
+              deployerAddress: "0xd9145CCE52D386f254917e481eB44e9943F39138",
+              salt: 12345,
+              abiEncodedConstructorArguments:
+                "0x0000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc40000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc4",
+              files: {
+                "metadata.json": metadata,
+                "Wallet.sol": source,
+              },
+              create2Address: "0x801B9c0Ee599C3E5ED60e4Ec285C95fC9878Ee64",
+            })
+            .end((err, res) => {
+              assertVerification(
+                err,
+                res,
+                done,
+                "0x801B9c0Ee599C3E5ED60e4Ec285C95fC9878Ee64",
+                "0",
+                "perfect"
+              );
+            });
+        });
       });
     });
-
-    it("should create2 verify non-session", (done) => {
-      const metadata = fs
-        .readFileSync("test/testcontracts/Create2/Wallet_metadata.json")
-        .toString();
-      const source = fs
-        .readFileSync("test/testcontracts/Create2/Wallet.sol")
-        .toString();
-
-      callWithAccessToken((accessToken) => {
-        chai
-          .request(server.app)
-          .post("/verify/create2")
-          .set("Authorization", `Bearer ${accessToken}`)
-          .send({
-            deployerAddress: "0xd9145CCE52D386f254917e481eB44e9943F39138",
-            salt: 12345,
-            abiEncodedConstructorArguments:
-              "0x0000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc40000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc4",
-            files: {
-              "metadata.json": metadata,
-              "Wallet.sol": source,
-            },
-            create2Address: "0x801B9c0Ee599C3E5ED60e4Ec285C95fC9878Ee64",
-          })
-          .end((err, res) => {
-            assertVerification(
-              err,
-              res,
-              done,
-              "0x801B9c0Ee599C3E5ED60e4Ec285C95fC9878Ee64",
-              "0",
-              "perfect"
-            );
-          });
-      });
-    });
-  });
+  }
 
   describe("/check-by-addresses", function () {
     this.timeout(EXTENDED_TIME);
