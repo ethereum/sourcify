@@ -5,7 +5,7 @@ import { spawnSync } from 'child_process';
 import { fetchWithTimeout } from './utils';
 import { StatusCodes } from 'http-status-codes';
 import { JsonInput, PathBuffer } from './types';
-import { logError, logInfo, logWarn } from './logger';
+import { logDebug, logError, logInfo, logWarn } from './logger';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const solc = require('solc');
 
@@ -48,8 +48,10 @@ export async function useCompiler(version: string, solcJsonInput: JsonInput) {
   if (solcPlatform) {
     solcPath = await getSolcExecutable(solcPlatform, version);
   }
-  const startCompilation = Date.now();
+  let startCompilation: number;
   if (solcPath) {
+    logDebug(`Compiling with solc binary ${version} at ${solcPath}`);
+    startCompilation = Date.now();
     const shellOutputBuffer = spawnSync(solcPath, ['--standard-json'], {
       input: inputStringified,
       maxBuffer: 1000 * 1000 * 10,
@@ -75,6 +77,8 @@ export async function useCompiler(version: string, solcJsonInput: JsonInput) {
     compiled = shellOutputBuffer.stdout.toString();
   } else {
     const soljson = await getSolcJs(version);
+    startCompilation = Date.now();
+    logDebug(`Compiling with solc-js ${version}`);
     if (soljson) {
       compiled = soljson.compile(inputStringified);
     }
@@ -148,9 +152,17 @@ export async function getSolcExecutable(
   const repoPath = process.env.SOLC_REPO || path.join('/tmp', 'solc-repo');
   const solcPath = path.join(repoPath, fileName);
   if (fs.existsSync(solcPath) && validateSolcPath(solcPath)) {
+    logDebug(`Found solc ${version} with platform ${platform} at ${solcPath}`);
     return solcPath;
   }
+
+  logDebug(
+    `Downloading solc ${version} with platform ${platform} at ${solcPath}`
+  );
   const success = await fetchAndSaveSolc(platform, solcPath, version, fileName);
+  logDebug(
+    `Downloaded solc ${version} with platform ${platform} at ${solcPath}`
+  );
   if (success && !validateSolcPath(solcPath)) {
     logError(`Cannot validate solc ${version}.`);
     return null;
@@ -187,6 +199,9 @@ async function fetchAndSaveSolc(
 ): Promise<boolean> {
   const encodedURIFilename = encodeURIComponent(fileName);
   const githubSolcURI = `${GITHUB_SOLC_REPO}${platform}/${encodedURIFilename}`;
+  logDebug(
+    `Fetching solc ${version} on platform ${platform} from GitHub: ${githubSolcURI}`
+  );
   let res = await fetchWithTimeout(githubSolcURI);
   let status = res.status;
   let buffer;
@@ -206,6 +221,9 @@ async function fetchAndSaveSolc(
   }
 
   if (status === StatusCodes.OK && buffer) {
+    logDebug(
+      `Fetched solc ${version} on platform ${platform} from GitHub: ${githubSolcURI}`
+    );
     fs.mkdirSync(path.dirname(solcPath), { recursive: true });
 
     try {
