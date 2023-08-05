@@ -16,7 +16,8 @@ import storageMetadata from './sources/Storage/metadata.json';
 import { Metadata, MissingSources } from '../src/lib/types';
 import WrongMetadata from './sources/WrongMetadata/metadata.json';
 import SimplyLog from './sources/WrongMetadata/SimplyLog.json';
-
+import earlyCompilerInput from './sources/json-input/pre-v0.4.0/input.json';
+import { keccak256 } from 'ethers';
 describe('Verify Solidity Compiler', () => {
   it('Should fetch latest SolcJS compiler', async () => {
     expect(await getSolcJs()).not.equals(null);
@@ -110,6 +111,24 @@ describe('Verify Solidity Compiler', () => {
         writable: false,
       });
     }
+  });
+
+  // See https://github.com/ethereum/sourcify/issues/1099
+  it(`Should should use a clean compiler context with pre 0.4.0 versions`, async () => {
+    // Run compiler once to change compiler "context"
+    await useCompiler('0.1.5+commit.23865e3', earlyCompilerInput);
+
+    // A second run needs to produce the same result
+    const compilerResult = await useCompiler(
+      '0.1.5+commit.23865e3',
+      earlyCompilerInput
+    );
+    const compiledBytecode = compilerResult.contracts[''].GroveLib.evm
+      .deployedBytecode.object as string;
+    const compiledHash = keccak256('0x' + compiledBytecode);
+    expect(compiledHash).equals(
+      '0xc778f3d42ce4a7ee21a2e93d45265cf771e5970e0e36f882310f4491d0ca889d'
+    );
   });
 });
 
