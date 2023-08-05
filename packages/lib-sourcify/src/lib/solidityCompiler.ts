@@ -71,7 +71,7 @@ export async function useCompiler(version: string, solcJsonInput: JsonInput) {
       // Run Worker for solc versions < 0.4.0 for clean compiler context. See https://github.com/ethereum/sourcify/issues/1099
       if (semver.lt(coercedVersion, '0.4.0')) {
         compiled = await new Promise((resolve, reject) => {
-          let worker = importWorker(
+          const worker = importWorker(
             path.resolve(__dirname, './compilerWorker.ts'),
             {
               workerData: { version, inputStringified },
