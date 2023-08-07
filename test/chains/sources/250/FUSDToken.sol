@@ -6,6 +6,7 @@ import "@openzeppelin/contracts@2.5.0/token/ERC20/ERC20Detailed.sol";
 import "@openzeppelin/contracts@2.5.0/token/ERC20/ERC20Mintable.sol";
 import "@openzeppelin/contracts@2.5.0/token/ERC20/ERC20Burnable.sol";
 import "@openzeppelin/contracts@2.5.0/token/ERC20/ERC20Pausable.sol";
+import "@openzeppelin/contracts@2.5.0/GSN/Context.sol";
 
 /**
  * Implements ERC20 fUSD tokens using OpenZeppelin libraries.
