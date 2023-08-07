@@ -1016,6 +1016,15 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
+  // FTM Fantom Opera Mainnet
+  verifyContract(
+    "0xAd84341756Bf337f5a0164515b1f6F993D194E1f",
+    "250",
+    "Fantom Opera",
+    ["250/FUSDToken.sol"],
+    "250/metadata.json"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainId) {
