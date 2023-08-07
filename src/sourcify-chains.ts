@@ -905,6 +905,14 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       `https://glacier-api.avax.network/v1/chains/6119/` +
       AVALANCHE_SUBNET_SUFFIX,
   },
+  "13337": {
+    // BEAM Testnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      `https://glacier-api.avax.network/v1/chains/13337/` +
+      AVALANCHE_SUBNET_SUFFIX,
+  },
   "2222": {
     // Kava EVM
     supported: true,
