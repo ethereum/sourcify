@@ -30,7 +30,7 @@ let anyTestsPass = false; // Fail when zero tests passing
 chai.use(chaiHttp);
 
 describe("Test Supported Chains", function () {
-  console.log(`Set up tests timeout with ${Math.floor(TEST_TIME / 1000)} secs`)
+  console.log(`Set up tests timeout with ${Math.floor(TEST_TIME / 1000)} secs`);
   this.timeout(TEST_TIME);
   const server = new Server();
   let currentResponse = null; // to log server response when test fails
@@ -52,8 +52,8 @@ describe("Test Supported Chains", function () {
     if (!anyTestsPass && newAddedChainId) {
       throw new Error(
         "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id " +
-        newAddedChainId +
-        "?"
+          newAddedChainId +
+          "?"
       );
     }
   });
@@ -1021,7 +1021,21 @@ describe("Test Supported Chains", function () {
     "0xAd84341756Bf337f5a0164515b1f6F993D194E1f",
     "250",
     "Fantom Opera",
-    ["250/FUSDToken.sol"],
+    [
+      "250/FUSDToken.sol",
+      "250/@openzeppelin/contracts@2.5.0/access/roles/MinterRole.sol",
+      "250/@openzeppelin/contracts@2.5.0/access/roles/PauserRole.sol",
+      "250/@openzeppelin/contracts@2.5.0/access/Roles.sol",
+      "250/@openzeppelin/contracts@2.5.0/GSN/Context.sol",
+      "250/@openzeppelin/contracts@2.5.0/lifecycle/Pausable.sol",
+      "250/@openzeppelin/contracts@2.5.0/math/SafeMath.sol",
+      "250/@openzeppelin/contracts@2.5.0/token/ERC20/ERC20.sol",
+      "250/@openzeppelin/contracts@2.5.0/token/ERC20/ERC20Burnable.sol",
+      "250/@openzeppelin/contracts@2.5.0/token/ERC20/ERC20Detailed.sol",
+      "250/@openzeppelin/contracts@2.5.0/token/ERC20/ERC20Mintable.sol",
+      "250/@openzeppelin/contracts@2.5.0/token/ERC20/ERC20Pausable.sol",
+      "250/@openzeppelin/contracts@2.5.0/token/ERC20/IERC20.sol",
+    ],
     "250/metadata.json"
   );
 
