@@ -334,7 +334,7 @@
     }
   },
   "settings": {
-    "compilationTarget": { "contracts/FUSDToken.sol": "FUSDToken" },
+    "compilationTarget": { "FUSDToken.sol": "FUSDToken" },
     "evmVersion": "byzantium",
     "libraries": {},
     "optimizer": { "enabled": false, "runs": 200 },
@@ -413,7 +413,7 @@
         "bzzr://cf2d583b8dce38d0617fdcd65f2fd9f126fe17b7f683b5a515ea9d2762d8b062"
       ]
     },
-    "contracts/FUSDToken.sol": {
+    "FUSDToken.sol": {
       "keccak256": "0xdffa824eddd8862ee67a57da238b313460ece7e452f8ad360eadba4ca18fccc1",
       "urls": [
         "bzzr://7b23260a6656ad4632e4e820b103d02c5d43ae2ec6f589c110e24b57340505f1"
