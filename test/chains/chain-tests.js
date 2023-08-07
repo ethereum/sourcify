@@ -30,7 +30,7 @@ let anyTestsPass = false; // Fail when zero tests passing
 chai.use(chaiHttp);
 
 describe("Test Supported Chains", function () {
-  console.log(`Set up tests timeout with ${Math.floor(TEST_TIME / 1000)} secs`);
+  console.log(`Set up tests timeout with ${Math.floor(TEST_TIME / 1000)} secs`)
   this.timeout(TEST_TIME);
   const server = new Server();
   let currentResponse = null; // to log server response when test fails
@@ -52,8 +52,8 @@ describe("Test Supported Chains", function () {
     if (!anyTestsPass && newAddedChainId) {
       throw new Error(
         "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id " +
-          newAddedChainId +
-          "?"
+        newAddedChainId +
+        "?"
       );
     }
   });
