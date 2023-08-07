@@ -563,7 +563,7 @@
   },
   "settings": {
     "compilationTarget": {
-      "contracts/FUSDToken.sol": "FUSDToken"
+      "FUSDToken.sol": "FUSDToken"
     },
     "evmVersion": "byzantium",
     "libraries": {},
@@ -574,79 +574,79 @@
     "remappings": []
   },
   "sources": {
-    "contracts/@openzeppelin/contracts@2.5.0/GSN/Context.sol": {
+    "@openzeppelin/contracts@2.5.0/GSN/Context.sol": {
       "keccak256": "0x90a3995645af7562d84b9d69363ffa5ae7217714ab61e951bf7bc450f40e4061",
       "urls": [
         "bzzr://51482c01bddf23793bddee43b60ab9578a62948a4f2082def24ea792a553b055"
       ]
     },
-    "contracts/@openzeppelin/contracts@2.5.0/access/Roles.sol": {
+    "@openzeppelin/contracts@2.5.0/access/Roles.sol": {
       "keccak256": "0xb002c378d7b82a101bd659c341518953ca0919d342c0a400196982c0e7e7bcdb",
       "urls": [
         "bzzr://bd34c1ce05b5b2b3a62fc02e160f6805b1cadd476854664f433c685b2fda8dad"
       ]
     },
-    "contracts/@openzeppelin/contracts@2.5.0/access/roles/MinterRole.sol": {
+    "@openzeppelin/contracts@2.5.0/access/roles/MinterRole.sol": {
       "keccak256": "0xbe8eef6f2cb4e427f5c5d8a76865ccd06e55a4f1d6671ba312d45bfa705aedbf",
       "urls": [
         "bzzr://946a26eebf5d294534471d07c4dc449ce3123e9fc2994bdfcd99dff1d09cc1af"
       ]
     },
-    "contracts/@openzeppelin/contracts@2.5.0/access/roles/PauserRole.sol": {
+    "@openzeppelin/contracts@2.5.0/access/roles/PauserRole.sol": {
       "keccak256": "0xd1b5c934bab36d753c22987ad98c7614cb50ebf641371a83c96f8138619d7c30",
       "urls": [
         "bzzr://39c672e2273e863fd2a6d1bc452e38887b48c113483b0e4c9d7aff60f3337483"
       ]
     },
-    "contracts/@openzeppelin/contracts@2.5.0/lifecycle/Pausable.sol": {
+    "@openzeppelin/contracts@2.5.0/lifecycle/Pausable.sol": {
       "keccak256": "0xd3e5a49edfb74654d122962cc60b917d1c60461e669a7262fd7aba201fac1260",
       "urls": [
         "bzzr://78a64ae8f0f90b1aa83280e0735930a16f416eeda54683d2f6280a67ad3758d6"
       ]
     },
-    "contracts/@openzeppelin/contracts@2.5.0/math/SafeMath.sol": {
+    "@openzeppelin/contracts@2.5.0/math/SafeMath.sol": {
       "keccak256": "0x640b6dee7a4b830bdfd52b5031a07fc2b12209f5b2e29e5d364a7d37f69d8076",
       "urls": [
         "bzzr://292843005e754e752644f767477ec5ad7a1ffc91ddb18c38b8079c62f3993cad"
       ]
     },
-    "contracts/@openzeppelin/contracts@2.5.0/token/ERC20/ERC20.sol": {
+    "@openzeppelin/contracts@2.5.0/token/ERC20/ERC20.sol": {
       "keccak256": "0xb15af804e2bc97db51e4e103f13de9fe13f87e6b835d7a88c897966c0e58506e",
       "urls": [
         "bzzr://6200c125af376381ae6c5415b8f3c1cb83889be20a7a51d67ac607487a10313b"
       ]
     },
-    "contracts/@openzeppelin/contracts@2.5.0/token/ERC20/ERC20Burnable.sol": {
+    "@openzeppelin/contracts@2.5.0/token/ERC20/ERC20Burnable.sol": {
       "keccak256": "0x9b94356691f3cbf90a5d83ae3fdf6a5a662bb004d2bd8b034160d60221807e64",
       "urls": [
         "bzzr://c59f70303d4a8bc640926844c489765661caf274397542a19af7c3930051ce83"
       ]
     },
-    "contracts/@openzeppelin/contracts@2.5.0/token/ERC20/ERC20Detailed.sol": {
+    "@openzeppelin/contracts@2.5.0/token/ERC20/ERC20Detailed.sol": {
       "keccak256": "0x4a3a810b7ebe742e897e1fd428b3eeed2196d3acea58eaf9c566ed10d545d2ed",
       "urls": [
         "bzzr://729aefb3f89f616c954a0735f8b4dd8804bdd0351e96f8e904fdb3e78a109b6c"
       ]
     },
-    "contracts/@openzeppelin/contracts@2.5.0/token/ERC20/ERC20Mintable.sol": {
+    "@openzeppelin/contracts@2.5.0/token/ERC20/ERC20Mintable.sol": {
       "keccak256": "0xa2b957cf89692c504962afb7506999155f83385373f808243246cd5879de5940",
       "urls": [
         "bzzr://812521b94ef1bd30b0a93e14a97a0e79e2bf4cb607aa47c21c8177966a79fd1a"
       ]
     },
-    "contracts/@openzeppelin/contracts@2.5.0/token/ERC20/ERC20Pausable.sol": {
+    "@openzeppelin/contracts@2.5.0/token/ERC20/ERC20Pausable.sol": {
       "keccak256": "0xd5ae72078a1c90af870e1b9b86b0fc05eb14b4034e417bc66d151d3eb4d342ca",
       "urls": [
         "bzzr://8926f6372c7696151349f02f4914dbbc27e7a053472e89bba75087ccefade457"
       ]
     },
-    "contracts/@openzeppelin/contracts@2.5.0/token/ERC20/IERC20.sol": {
+    "@openzeppelin/contracts@2.5.0/token/ERC20/IERC20.sol": {
       "keccak256": "0xe5bb0f57cff3e299f360052ba50f1ea0fff046df2be070b6943e0e3c3fdad8a9",
       "urls": [
         "bzzr://cf2d583b8dce38d0617fdcd65f2fd9f126fe17b7f683b5a515ea9d2762d8b062"
       ]
     },
-    "contracts/FUSDToken.sol": {
+    "FUSDToken.sol": {
       "keccak256": "0x1c79cc93846fc2a8315d87f94c9c3d7930e9e66e125a3341d8acfc09c99bd2f7",
       "urls": [
         "bzzr://610d9ce5c3e017ee5cca4cc74c049d21b6cc60b3eae46f07661d980c93b2794c"
