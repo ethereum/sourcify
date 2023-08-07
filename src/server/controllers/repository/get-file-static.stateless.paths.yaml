@@ -1,7 +1,7 @@
 openapi: "3.0.0"
 
 paths:
-  /contracts/{full_match | partial_match}/{chain}/{address}/{filePath}:
+  /repository/contracts/{full_match | partial_match}/{chain}/{address}/{filePath}:
     get:
       summary: Get file from /repository
       description: Retrieve statically served files over the server.
