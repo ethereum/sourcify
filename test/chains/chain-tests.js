@@ -1015,6 +1015,15 @@ describe("Test Supported Chains", function () {
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
+  
+  // Arbitrum Nova
+  verifyContract(
+    "0xC2141cb30Ef8cE403569D59964eaF3D66848822F",
+    "42170",
+    "Arbitrum Nova",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
 
   // FTM Fantom Opera Mainnet
   verifyContract(
