@@ -1018,25 +1018,11 @@ describe("Test Supported Chains", function () {
 
   // FTM Fantom Opera Mainnet
   verifyContract(
-    "0xAd84341756Bf337f5a0164515b1f6F993D194E1f",
+    "0xc47856bEBCcc2BBB23E7a5E1Ba8bB4Fffa5C5476",
     "250",
     "Fantom Opera",
-    [
-      "250/FUSDToken.sol",
-      "250/@openzeppelin/contracts@2.5.0/access/roles/MinterRole.sol",
-      "250/@openzeppelin/contracts@2.5.0/access/roles/PauserRole.sol",
-      "250/@openzeppelin/contracts@2.5.0/access/Roles.sol",
-      "250/@openzeppelin/contracts@2.5.0/GSN/Context.sol",
-      "250/@openzeppelin/contracts@2.5.0/lifecycle/Pausable.sol",
-      "250/@openzeppelin/contracts@2.5.0/math/SafeMath.sol",
-      "250/@openzeppelin/contracts@2.5.0/token/ERC20/ERC20.sol",
-      "250/@openzeppelin/contracts@2.5.0/token/ERC20/ERC20Burnable.sol",
-      "250/@openzeppelin/contracts@2.5.0/token/ERC20/ERC20Detailed.sol",
-      "250/@openzeppelin/contracts@2.5.0/token/ERC20/ERC20Mintable.sol",
-      "250/@openzeppelin/contracts@2.5.0/token/ERC20/ERC20Pausable.sol",
-      "250/@openzeppelin/contracts@2.5.0/token/ERC20/IERC20.sol",
-    ],
-    "250/metadata.json"
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
   );
 
   // Finally check if all the "supported: true" chains have been tested
