@@ -635,8 +635,6 @@ export class RepositoryService implements IRepositoryService {
       sanitizedPath = sanitizedPath.slice(1);
     }
 
-    sanitizedPath = encodeURI(sanitizedPath);
-
     return { sanitizedPath, originalPath };
   }
 }

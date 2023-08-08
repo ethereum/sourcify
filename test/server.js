@@ -45,7 +45,7 @@ const {
   callWithAccessToken,
 } = require("./helpers/helpers");
 const { deployFromAbiAndBytecode } = require("./helpers/helpers");
-const { JsonRpcProvider, Network } = require("ethers");
+const { JsonRpcProvider, Network, id: keccak256str } = require("ethers");
 const { LOCAL_CHAINS } = require("../dist/sourcify-chains");
 chai.use(chaiHttp);
 
@@ -1708,6 +1708,114 @@ describe("Server", function () {
                 done();
               });
           });
+      });
+    });
+  });
+  describe("E2E test path sanitization", async function () {
+    it.only("should verify a contract with paths containing misc. chars, save the path translation, and be able access the file over the API", async () => {
+      const sanitizeArtifact = require("./testcontracts/path-sanitization/ERC20.json");
+      const sanitizeMetadata = require("./testcontracts/path-sanitization/metadata.json");
+      // read all files under test/testcontracts/path-sanitization/sources/ and put them in an object
+      const sanitizeSourcesObj = {};
+      fs.readdirSync(
+        path.join("test", "testcontracts", "path-sanitization", "sources")
+      ).forEach(
+        (fileName) =>
+          (sanitizeSourcesObj[fileName] = fs.readFileSync(
+            path.join(
+              "test",
+              "testcontracts",
+              "path-sanitization",
+              "sources",
+              fileName
+            )
+          ))
+      );
+
+      const sanitizeMetadataBuffer = Buffer.from(
+        JSON.stringify(sanitizeMetadata)
+      );
+
+      const toBeSanitizedContractAddress = await deployFromAbiAndBytecode(
+        localSigner,
+        sanitizeArtifact.abi,
+        sanitizeArtifact.bytecode,
+        ["TestToken", "TEST", 1000000000]
+      );
+
+      const verificationResponse = await chai
+        .request(server.app)
+        .post("/")
+        .send({
+          address: toBeSanitizedContractAddress,
+          chain: defaultContractChain,
+          files: {
+            "metadata.json": sanitizeMetadataBuffer.toString(),
+            ...sanitizeSourcesObj,
+          },
+        });
+
+      chai.expect(verificationResponse.status).to.equal(StatusCodes.OK);
+      chai
+        .expect(verificationResponse.body.result[0].status)
+        .to.equal("perfect");
+      const contractSavedPath = path.join(
+        server.repository,
+        "contracts",
+        "full_match",
+        defaultContractChain,
+        toBeSanitizedContractAddress
+      );
+      const pathTranslationPath = path.join(
+        contractSavedPath,
+        "path-translation.json"
+      );
+
+      let pathTranslationJSON;
+      try {
+        pathTranslationJSON = JSON.parse(
+          fs.readFileSync(pathTranslationPath).toString()
+        );
+      } catch (e) {
+        throw new Error(
+          `Path translation file not found at ${pathTranslationPath}`
+        );
+      }
+
+      // Get the contract files from the server
+      const res = await chai
+        .request(server.app)
+        .get(`/files/${defaultContractChain}/${toBeSanitizedContractAddress}`);
+      chai.expect(res.status).to.equal(StatusCodes.OK);
+
+      // The translation path must inlude the new translated path
+      const fetchedContractFiles = res.body;
+      Object.keys(pathTranslationJSON).forEach((originalPath) => {
+        // The metadata must have the original path
+        chai
+          .expect(
+            sanitizeMetadata.sources,
+            `Original path ${originalPath} not found in metadata`
+          )
+          .to.include.key(originalPath);
+        // The path from the server response must be translated
+        const translatedContractObject = fetchedContractFiles.find(
+          (obj) =>
+            obj.path ===
+            path.join(
+              contractSavedPath,
+              "sources",
+              pathTranslationJSON[originalPath]
+            )
+        );
+        chai.expect(translatedContractObject).to.exist;
+        // And the saved file must be the same as in the metadata
+        chai
+          .expect(
+            sanitizeMetadata.sources[originalPath].keccak256,
+            `Keccak of ${originalPath} does not match ${translatedContractObject.path}`
+          )
+          .to.equal(keccak256str(translatedContractObject.content));
       });
     });
   });
