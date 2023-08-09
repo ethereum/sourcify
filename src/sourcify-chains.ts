@@ -961,6 +961,13 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       "https://edgscan.live/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
+  "250": {
+    // FTM Fantom Opera Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://fantom.dex.guru/" + ETHERSCAN_SUFFIX,
+    txRegex: ETHERSCAN_REGEX,
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};

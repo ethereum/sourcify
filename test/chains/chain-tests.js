@@ -1016,6 +1016,15 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
+  // FTM Fantom Opera Mainnet
+  verifyContract(
+    "0xc47856bEBCcc2BBB23E7a5E1Ba8bB4Fffa5C5476",
+    "250",
+    "Fantom Opera",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainId) {
