@@ -1002,6 +1002,21 @@ for (const i in allChains) {
   }
 }
 
+// Check if all chains in sourcify-chains.ts are in chains.json
+const missingChains = [];
+for (const chainId in sourcifyChainsExtensions) {
+  if (!sourcifyChainsMap[chainId]) {
+    missingChains.push(chainId);
+  }
+}
+if (missingChains.length > 0) {
+  throw new Error(
+    `Some of the chains in sourcify-chains.ts are not in chains.json: ${missingChains.join(
+      ","
+    )}`
+  );
+}
+
 const sourcifyChainsArray = getSortedChainsArray(sourcifyChainsMap);
 const supportedChainsArray = sourcifyChainsArray.filter(
   (chain) => chain.supported
