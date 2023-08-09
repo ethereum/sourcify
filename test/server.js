@@ -1712,7 +1712,7 @@ describe("Server", function () {
     });
   });
   describe("E2E test path sanitization", async function () {
-    it.only("should verify a contract with paths containing misc. chars, save the path translation, and be able access the file over the API", async () => {
+    it("should verify a contract with paths containing misc. chars, save the path translation, and be able access the file over the API", async () => {
       const sanitizeArtifact = require("./testcontracts/path-sanitization/ERC20.json");
       const sanitizeMetadata = require("./testcontracts/path-sanitization/metadata.json");
       // read all files under test/testcontracts/path-sanitization/sources/ and put them in an object
