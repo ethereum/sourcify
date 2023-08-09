@@ -271,18 +271,28 @@ function asyncExecSolc(
   JSON.parse(inputStringified);
 
   return new Promise((resolve, reject) => {
-    exec(
+    const child = exec(
       `${solcPath} --standard-json`,
       {
         maxBuffer: 1000 * 1000 * 10,
       },
-      (error, stdout, _stderr) => {
+      (error, stdout, stderr) => {
         if (error) {
           reject(error);
+        } else if (stderr) {
+          reject(
+            new Error(`Compiler process returned with errors:\n ${stderr}`)
+          );
         } else {
           resolve(stdout);
         }
       }
-    ).stdin?.write(inputStringified);
+    );
+    if (!child.stdin) {
+      throw new Error('No stdin on child process');
+    }
+    // Write input to child process's stdin
+    child.stdin.write(inputStringified);
+    child.stdin.end();
   });
 }
