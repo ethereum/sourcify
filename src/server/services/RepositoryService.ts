@@ -630,11 +630,22 @@ export class RepositoryService implements IRepositoryService {
     // Clean ../ and ./ from the path. Also collapse multiple slashes into one.
     let sanitizedPath = path.normalize(originalPath);
 
+    // If there are no upper folders to traverse, path.normalize will keep ../ parts. Need to remove any of those.
+    const parsedPath = path.parse(sanitizedPath);
+    const sanitizedDir = parsedPath.dir
+      .split(path.sep)
+      .filter((segment) => segment !== "..")
+      .join(path.sep);
+
     // Force absolute paths to be relative
-    if (sanitizedPath.startsWith("/")) {
-      sanitizedPath = sanitizedPath.slice(1);
+    if (parsedPath.root) {
+      parsedPath.dir = sanitizedDir.slice(parsedPath.root.length);
+      parsedPath.root = "";
+    } else {
+      parsedPath.dir = sanitizedDir;
     }
 
+    sanitizedPath = path.format(parsedPath);
     return { sanitizedPath, originalPath };
   }
 }

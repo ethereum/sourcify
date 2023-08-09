@@ -945,7 +945,6 @@ describe("Server", function () {
             defaultContractChain,
             contractAddress,
             "sources",
-            "..contracts",
             "Storage.sol"
           )
         );

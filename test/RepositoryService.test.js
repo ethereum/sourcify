@@ -25,6 +25,12 @@ describe("RepositoryService", () => {
       expect(result.originalPath).to.equal("/absolute/path/to/file.txt");
     });
 
+    it("should not keep any .. even if there are no upper directories left", () => {
+      const result = instance.sanitizePath("path/../../../../to/file.txt");
+      expect(result.sanitizedPath).to.equal("to/file.txt");
+      expect(result.originalPath).to.equal("path/../../../../to/file.txt");
+    });
+
     it("should sanitize a path containing localhost and directory traversal sequences", () => {
       const result = instance.sanitizePath(
         "localhost/../Users/pc/workspace/remixsrc/openzeppelin-contracts/IOSB/token/ERC20/ERC20Pausable.sol"
