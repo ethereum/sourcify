@@ -269,7 +269,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     supported: true,
     monitored: false,
   },
-  "314159" : {
+  "314159": {
     supported: true,
     monitored: false,
   },
@@ -941,24 +941,21 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // MAP Testnet Makalu
     supported: true,
     monitored: false,
-    contractFetchAddress:
-      "https://testnet.maposcan.io/" + BLOCKSCOUT_SUFFIX,
+    contractFetchAddress: "https://testnet.maposcan.io/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
   "22776": {
     // map-relay-chain Mainnet
     supported: true,
     monitored: false,
-    contractFetchAddress:
-      "https://maposcan.io/" + BLOCKSCOUT_SUFFIX,
+    contractFetchAddress: "https://maposcan.io/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
   "2021": {
     // Edgeware EdgeEVM Mainnet
     supported: true,
     monitored: false,
-    contractFetchAddress:
-      "https://edgscan.live/" + BLOCKSCOUT_SUFFIX,
+    contractFetchAddress: "https://edgscan.live/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
   "250": {
@@ -966,6 +963,13 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     supported: true,
     monitored: false,
     contractFetchAddress: "https://fantom.dex.guru/" + ETHERSCAN_SUFFIX,
+    txRegex: ETHERSCAN_REGEX,
+  },
+  "42170": {
+    // Arbitrum Nova
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://nova.dex.guru/" + ETHERSCAN_SUFFIX,
     txRegex: ETHERSCAN_REGEX,
   },
 };
