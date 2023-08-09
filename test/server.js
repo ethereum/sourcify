@@ -1817,6 +1817,47 @@ describe("Server", function () {
           .to.equal(keccak256str(translatedContractObject.content));
       });
     });
+
+    it("should not save path translation if the path is not sanitized", async () => {
+      const contractAddress = await deployFromAbiAndBytecode(
+        localSigner,
+        artifact.abi,
+        artifact.bytecode
+      );
+      await chai
+        .request(server.app)
+        .post("/")
+        .send({
+          address: defaultContractAddress,
+          chain: defaultContractChain,
+          files: {
+            "metadata.json": metadataBuffer,
+            "Storage.sol": sourceBuffer,
+          },
+        })
+        .end((err, res) =>
+          assertVerification(
+            err,
+            res,
+            null,
+            defaultContractAddress,
+            defaultContractChain,
+            "perfect"
+          )
+        );
+      const contractSavedPath = path.join(
+        server.repository,
+        "contracts",
+        "full_match",
+        defaultContractChain,
+        contractAddress
+      );
+      const pathTranslationPath = path.join(
+        contractSavedPath,
+        "path-translation.json"
+      );
+      chai.expect(fs.existsSync(pathTranslationPath)).to.be.false;
+    });
   });
   describe("Verify repository endpoints", function () {
     const agent = chai.request.agent(server.app);
