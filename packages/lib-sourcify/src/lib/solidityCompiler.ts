@@ -6,6 +6,8 @@ import { fetchWithTimeout } from './utils';
 import { StatusCodes } from 'http-status-codes';
 import { JsonInput, PathBuffer } from './types';
 import { logDebug, logError, logInfo, logWarn } from './logger';
+import semver from 'semver';
+import { Worker, WorkerOptions } from 'worker_threads';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const solc = require('solc');
 
@@ -60,11 +62,31 @@ export async function useCompiler(version: string, solcJsonInput: JsonInput) {
       throw error;
     }
   } else {
-    const soljson = await getSolcJs(version);
+    const solJson = await getSolcJs(version);
     startCompilation = Date.now();
     logDebug(`Compiling with solc-js ${version}`);
-    if (soljson) {
-      compiled = soljson.compile(inputStringified);
+    if (solJson) {
+      const coercedVersion =
+        semver.coerce(new semver.SemVer(version))?.version ?? '';
+      // Run Worker for solc versions < 0.4.0 for clean compiler context. See https://github.com/ethereum/sourcify/issues/1099
+      if (semver.lt(coercedVersion, '0.4.0')) {
+        compiled = await new Promise((resolve, reject) => {
+          const worker = importWorker(
+            path.resolve(__dirname, './compilerWorker.ts'),
+            {
+              workerData: { version, inputStringified },
+            }
+          );
+          worker.once('message', (result) => {
+            resolve(result);
+          });
+          worker.once('error', (error) => {
+            reject(error);
+          });
+        });
+      } else {
+        compiled = solJson.compile(inputStringified);
+      }
     }
   }
 
@@ -96,6 +118,7 @@ export async function getAllMetadataAndSourcesFromSolcJson(
     throw new Error(
       'Only Solidity is supported, the json has language: ' + solcJson.language
     );
+
   const outputSelection = {
     '*': {
       '*': ['metadata'],
@@ -294,5 +317,16 @@ function asyncExecSolc(
     // Write input to child process's stdin
     child.stdin.write(inputStringified);
     child.stdin.end();
+  });
+}
+
+// https://stackoverflow.com/questions/71795469/ts-node-using-worker-thread-cause-cannot-use-import-statement-outside-a-module
+function importWorker(path: string, options: WorkerOptions) {
+  const resolvedPath = require.resolve(path);
+  return new Worker(resolvedPath, {
+    ...options,
+    execArgv: /\.ts$/.test(resolvedPath)
+      ? ['--require', 'ts-node/register']
+      : undefined,
   });
 }
