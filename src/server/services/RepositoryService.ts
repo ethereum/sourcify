@@ -521,18 +521,35 @@ export class RepositoryService implements IRepositoryService {
     address: string,
     sources: StringMap
   ) {
+    const pathTranslation: StringMap = {};
     for (const sourcePath in sources) {
+      const { sanitizedPath, originalPath } = this.sanitizePath(sourcePath);
+      if (sanitizedPath !== originalPath) {
+        pathTranslation[originalPath] = sanitizedPath;
+      }
       this.save(
         {
           matchQuality,
           chainId,
           address,
           source: true,
-          fileName: this.sanitizePath(sourcePath),
+          fileName: sanitizedPath,
         },
         sources[sourcePath]
       );
     }
+    // Finally save the path translation
+    if (Object.keys(pathTranslation).length === 0) return;
+    this.save(
+      {
+        matchQuality,
+        chainId,
+        address,
+        source: false,
+        fileName: "path-translation.json",
+      },
+      JSON.stringify(pathTranslation)
+    );
   }
 
   private storeJSON(
@@ -609,24 +626,26 @@ export class RepositoryService implements IRepositoryService {
       await this.ipfsClient.files.cp(addResult.cid, mfsPath, { parents: true });
     }
   }
-  // This needs to be removed at some point https://github.com/ethereum/sourcify/issues/515
-  private sanitizePath(originalPath: string): string {
-    const parsedPath = path.parse(originalPath);
+  private sanitizePath(originalPath: string) {
+    // Clean ../ and ./ from the path. Also collapse multiple slashes into one.
+    let sanitizedPath = path.normalize(originalPath);
+
+    // If there are no upper folders to traverse, path.normalize will keep ../ parts. Need to remove any of those.
+    const parsedPath = path.parse(sanitizedPath);
     const sanitizedDir = parsedPath.dir
       .split(path.sep)
       .filter((segment) => segment !== "..")
-      .join(path.sep)
-      .replace(/[^a-z0-9_./-]/gim, "_")
-      .replace(/(^|\/)[.]+($|\/)/, "_");
+      .join(path.sep);
 
     // Force absolute paths to be relative
     if (parsedPath.root) {
-      parsedPath.root = "";
       parsedPath.dir = sanitizedDir.slice(parsedPath.root.length);
+      parsedPath.root = "";
     } else {
       parsedPath.dir = sanitizedDir;
     }
 
-    return path.format(parsedPath);
+    sanitizedPath = path.format(parsedPath);
+    return { sanitizedPath, originalPath };
   }
 }
