@@ -1,7 +1,7 @@
 // TODO: Handle nodejs only dependencies
 import path from 'path';
 import fs from 'fs';
-import { spawnSync } from 'child_process';
+import { exec, spawnSync } from 'child_process';
 import { fetchWithTimeout } from './utils';
 import { StatusCodes } from 'http-status-codes';
 import { JsonInput, PathBuffer } from './types';
@@ -10,8 +10,6 @@ import { logDebug, logError, logInfo, logWarn } from './logger';
 const solc = require('solc');
 
 const GITHUB_SOLC_REPO = 'https://github.com/ethereum/solc-bin/raw/gh-pages/';
-const RECOMPILATION_ERR_MSG =
-  'Recompilation error (probably caused by invalid metadata)';
 
 export function findSolcPlatform(): string | false {
   if (process.platform === 'darwin' && process.arch === 'x64') {
@@ -52,29 +50,15 @@ export async function useCompiler(version: string, solcJsonInput: JsonInput) {
   if (solcPath) {
     logDebug(`Compiling with solc binary ${version} at ${solcPath}`);
     startCompilation = Date.now();
-    const shellOutputBuffer = spawnSync(solcPath, ['--standard-json'], {
-      input: inputStringified,
-      maxBuffer: 1000 * 1000 * 10,
-    });
-
-    // Handle errors.
-    let error: false | Error = false;
-    if (shellOutputBuffer.error) {
-      const typedError: NodeJS.ErrnoException = shellOutputBuffer.error;
-      // Handle compilation output size > stdout buffer
-      if (typedError.code === 'ENOBUFS') {
-        error = new Error('Compilation output size too large');
+    try {
+      compiled = await asyncExecSolc(inputStringified, solcPath);
+    } catch (error: any) {
+      if (error?.code === 'ENOBUFS') {
+        throw new Error('Compilation output size too large');
       }
-      error = new Error('Compilation Error');
-    }
-    if (!shellOutputBuffer.stdout) {
-      error = new Error(RECOMPILATION_ERR_MSG);
-    }
-    if (error) {
       logWarn(error.message);
       throw error;
     }
-    compiled = shellOutputBuffer.stdout.toString();
   } else {
     const soljson = await getSolcJs(version);
     startCompilation = Date.now();
@@ -277,4 +261,38 @@ export async function getSolcJs(version = 'latest'): Promise<any> {
 
   const solcjsImports = await import(soljsonPath);
   return solc.setupMethods(solcjsImports);
+}
+
+function asyncExecSolc(
+  inputStringified: string,
+  solcPath: string
+): Promise<string> {
+  // check if input is valid JSON. The input is untrusted and potentially cause arbitrary execution.
+  JSON.parse(inputStringified);
+
+  return new Promise((resolve, reject) => {
+    const child = exec(
+      `${solcPath} --standard-json`,
+      {
+        maxBuffer: 1000 * 1000 * 10,
+      },
+      (error, stdout, stderr) => {
+        if (error) {
+          reject(error);
+        } else if (stderr) {
+          reject(
+            new Error(`Compiler process returned with errors:\n ${stderr}`)
+          );
+        } else {
+          resolve(stdout);
+        }
+      }
+    );
+    if (!child.stdin) {
+      throw new Error('No stdin on child process');
+    }
+    // Write input to child process's stdin
+    child.stdin.write(inputStringified);
+    child.stdin.end();
+  });
 }
