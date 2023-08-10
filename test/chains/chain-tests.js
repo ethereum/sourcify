@@ -52,8 +52,8 @@ describe("Test Supported Chains", function () {
     if (!anyTestsPass && newAddedChainId) {
       throw new Error(
         "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id " +
-        newAddedChainId +
-        "?"
+          newAddedChainId +
+          "?"
       );
     }
   });
@@ -904,7 +904,8 @@ describe("Test Supported Chains", function () {
     "167006",
     "Taiko Eldfell L3",
     ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/1_Storage.metadata.json",
+    "partial"
   );
 
   // ZORA Mainnet
