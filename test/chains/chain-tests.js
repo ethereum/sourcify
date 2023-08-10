@@ -926,7 +926,8 @@ describe("Test Supported Chains", function () {
     "13337",
     "BEAM Chain",
     ["multicall3/Multicall3.sol"],
-    "multicall3/multicall3.metadata.json"
+    "multicall3/multicall3.metadata.json",
+    "partial"
   );
 
   // KAVA EVM
