@@ -940,6 +940,16 @@ describe("Test Supported Chains", function () {
     "partial"
   );
 
+  // Mintara Chain Testnet
+  verifyContract(
+    "0x7DF8414e3d9a018bA14559Ba34772790aCff48b2",
+    "1079",
+    "Mintara Chain",
+    ["multicall3/Multicall3.sol"],
+    "multicall3/multicall3.metadata.json",
+    "partial"
+  );
+
   // KAVA EVM
   verifyContract(
     "0xAdFa11e737ec8fA6e91091468aEF33a66Ae0044c",
