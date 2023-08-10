@@ -918,6 +918,14 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       `https://glacier-api.avax.network/v1/chains/13337/` +
       AVALANCHE_SUBNET_SUFFIX,
   },
+  "333000333": {
+    // MELD
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      `https://glacier-api.avax.network/v1/chains/333000333/` +
+      AVALANCHE_SUBNET_SUFFIX,
+  },
   "2222": {
     // Kava EVM
     supported: true,
@@ -1082,8 +1090,8 @@ export function getSortedChainsArray(
       getPrimarySortKey(a) > getPrimarySortKey(b)
         ? 1
         : getPrimarySortKey(b) > getPrimarySortKey(a)
-          ? -1
-          : 0
+        ? -1
+        : 0
     );
 
   const sortedChains = ethereumChains.concat(otherChains);
