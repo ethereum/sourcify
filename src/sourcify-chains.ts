@@ -269,6 +269,10 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     supported: true,
     monitored: false,
   },
+  "314159": {
+    supported: true,
+    monitored: false,
+  },
   "137": {
     supported: true,
     monitored: true,
@@ -768,13 +772,11 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: getBlockscoutRegex(),
   },
   "2047": {
-    // Turned off support as RPCs are failing
-    // Stratos Testnet
-    supported: false,
+    // Stratos Testnet (Mesos)
+    supported: true,
     monitored: false,
     contractFetchAddress:
-      "https://web3-testnet-explorer.thestratos.org/" + BLOCKSCOUT_SUFFIX,
-    rpc: ["https://web3-testnet-rpc.thestratos.org"],
+      "https://web3-explorer-mesos.thestratos.org/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
   "641230": {
@@ -884,7 +886,12 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: getBlockscoutRegex(),
   },
   "167005": {
-    // Taiko Alpha-3
+    // Taiko Grimsvotn L2
+    supported: true,
+    monitored: false,
+  },
+  "167006": {
+    // Taiko Eldfell L3
     supported: true,
     monitored: false,
   },
@@ -901,6 +908,14 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     monitored: false,
     contractFetchAddress:
       `https://glacier-api.avax.network/v1/chains/6119/` +
+      AVALANCHE_SUBNET_SUFFIX,
+  },
+  "13337": {
+    // BEAM Testnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      `https://glacier-api.avax.network/v1/chains/13337/` +
       AVALANCHE_SUBNET_SUFFIX,
   },
   "2222": {
@@ -939,17 +954,36 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // MAP Testnet Makalu
     supported: true,
     monitored: false,
-    contractFetchAddress:
-      "https://testnet.maposcan.io/" + BLOCKSCOUT_SUFFIX,
+    contractFetchAddress: "https://testnet.maposcan.io/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
   "22776": {
     // map-relay-chain Mainnet
     supported: true,
     monitored: false,
-    contractFetchAddress:
-      "https://maposcan.io/" + BLOCKSCOUT_SUFFIX,
+    contractFetchAddress: "https://maposcan.io/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
+  },
+  "2021": {
+    // Edgeware EdgeEVM Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://edgscan.live/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
+  "250": {
+    // FTM Fantom Opera Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://fantom.dex.guru/" + ETHERSCAN_SUFFIX,
+    txRegex: ETHERSCAN_REGEX,
+  },
+  "42170": {
+    // Arbitrum Nova
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://nova.dex.guru/" + ETHERSCAN_SUFFIX,
+    txRegex: ETHERSCAN_REGEX,
   },
 };
 
@@ -990,6 +1024,21 @@ for (const i in allChains) {
     });
     sourcifyChainsMap[chainId] = sourcifyChain;
   }
+}
+
+// Check if all chains in sourcify-chains.ts are in chains.json
+const missingChains = [];
+for (const chainId in sourcifyChainsExtensions) {
+  if (!sourcifyChainsMap[chainId]) {
+    missingChains.push(chainId);
+  }
+}
+if (missingChains.length > 0) {
+  throw new Error(
+    `Some of the chains in sourcify-chains.ts are not in chains.json: ${missingChains.join(
+      ","
+    )}`
+  );
 }
 
 const sourcifyChainsArray = getSortedChainsArray(sourcifyChainsMap);
@@ -1033,8 +1082,8 @@ export function getSortedChainsArray(
       getPrimarySortKey(a) > getPrimarySortKey(b)
         ? 1
         : getPrimarySortKey(b) > getPrimarySortKey(a)
-        ? -1
-        : 0
+          ? -1
+          : 0
     );
 
   const sortedChains = ethereumChains.concat(otherChains);

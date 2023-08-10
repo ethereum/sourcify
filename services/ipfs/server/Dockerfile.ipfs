@@ -1,6 +1,6 @@
 # Explicit setting for Mac ARM
 FROM --platform=linux/amd64 ubuntu:20.04 
-RUN apt-get update && apt-get install -y cron curl
+RUN apt-get update && apt-get install -y cron curl jq
 
 RUN mkdir /sourcify
 WORKDIR /sourcify

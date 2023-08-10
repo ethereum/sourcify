@@ -18,7 +18,7 @@ const rimraf = require("rimraf");
 const addContext = require("mochawesome/addContext");
 const { assertVerification } = require("../helpers/assertions");
 
-const TEST_TIME = 30000; // 30 seconds
+const TEST_TIME = process.env.TEST_TIME || 30000; // 30 seconds
 
 // Extract the chainId from new chain support pull request, if exists
 const newAddedChainId = process.env.NEW_CHAIN_ID;
@@ -30,6 +30,7 @@ let anyTestsPass = false; // Fail when zero tests passing
 chai.use(chaiHttp);
 
 describe("Test Supported Chains", function () {
+  console.log(`Set up tests timeout with ${Math.floor(TEST_TIME / 1000)} secs`);
   this.timeout(TEST_TIME);
   const server = new Server();
   let currentResponse = null; // to log server response when test fails
@@ -764,7 +765,7 @@ describe("Test Supported Chains", function () {
 
   // Stratos Testnet
   verifyContract(
-    "0x9082db5F71534984DEAC8E4ed66cFe364d77dd36",
+    "0x999986dE5D86Ae4bbd4b9AbFBD65352622D11326",
     "2047",
     "Stratos Testnet",
     ["shared/1_Storage.sol"],
@@ -888,13 +889,23 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
-  // Taiko Alpha-3 Testnet
+  // Taiko Grimsvotn L2
   verifyContract(
     "0x68107Fb54f5f29D8e0B3Ac44a99f4444D1F22a68",
     "167005",
-    "Taiko Alpha-3 Testnet",
+    "Taiko Grimsvotn L2",
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
+  );
+
+  // Taiko Eldfell L3
+  verifyContract(
+    "0x270a7521B3678784f96848D441fE1B2dc2f040D8",
+    "167006",
+    "Taiko Eldfell L3",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json",
+    "partial"
   );
 
   // ZORA Mainnet
@@ -917,6 +928,16 @@ describe("Test Supported Chains", function () {
       "6119/IUPTNAddressValidator.sol",
     ],
     "6119/UptnNFTsV1.metadata.json"
+  );
+
+  // BEAM Chain Testnet
+  verifyContract(
+    "0x9BF49b704EE2A095b95c1f2D4EB9010510c41C9E",
+    "13337",
+    "BEAM Chain",
+    ["multicall3/Multicall3.sol"],
+    "multicall3/multicall3.metadata.json",
+    "partial"
   );
 
   // KAVA EVM
@@ -951,6 +972,15 @@ describe("Test Supported Chains", function () {
     "0x23396626F2C9c0b31cC6C2729172103961Ae2A26",
     "314",
     "Filecoin Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  // Filecoin Calibration Testnet
+  verifyContract(
+    "0xB34d5e2Eb6eCFDe11cC63955b43335A2407A4683",
+    "314159",
+    "Filecoin Calibration Testnet",
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
@@ -997,6 +1027,33 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
+  // Edgeware EdgeEVM Mainnet
+  verifyContract(
+    "0xCc21c38A22918a86d350dF9aB9c5A60314A01e06",
+    "2021",
+    "Edgeware EdgeEVM Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  // Arbitrum Nova
+  verifyContract(
+    "0xC2141cb30Ef8cE403569D59964eaF3D66848822F",
+    "42170",
+    "Arbitrum Nova",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  // FTM Fantom Opera Mainnet
+  verifyContract(
+    "0xc47856bEBCcc2BBB23E7a5E1Ba8bB4Fffa5C5476",
+    "250",
+    "Fantom Opera",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainId) {
@@ -1037,7 +1094,8 @@ describe("Test Supported Chains", function () {
     chainId,
     chainName,
     relativeSourcePathsArray, // Allow multiple source files
-    relativeMetadataPath
+    relativeMetadataPath,
+    expectedStatus = "perfect"
   ) {
     // If it is a pull request for adding new chain support, only test the new chain
     if (newAddedChainId && newAddedChainId != chainId) return;
@@ -1076,7 +1134,7 @@ describe("Test Supported Chains", function () {
           files: files,
         })
         .end((err, res) => {
-          assertVerification(err, res, done, address, chainId);
+          assertVerification(err, res, done, address, chainId, expectedStatus);
           anyTestsPass = true;
         });
     });
