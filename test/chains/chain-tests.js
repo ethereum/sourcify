@@ -946,7 +946,18 @@ describe("Test Supported Chains", function () {
     "222000222",
     "Kanazawa Chain",
     [],
-    "222000222/multicall3.metadata.json"
+    "222000222/multicall3.metadata.json",
+    "partial"
+  );
+
+  // MELD Chain Testnet
+  verifyContract(
+    "0x9BF49b704EE2A095b95c1f2D4EB9010510c41C9E",
+    "333000333",
+    "MELD Chain",
+    ["multicall3/Multicall3.sol"],
+    "multicall3/multicall3.metadata.json",
+    "partial"
   );
 
   // KAVA EVM
