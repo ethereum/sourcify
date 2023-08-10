@@ -22,6 +22,7 @@ paths:
           schema:
             type: string
             format: comma-separated-sourcify-chainIds
+          allowReserved: true
       responses:
         "200":
           description: OK. Also returns `200` with status `false` when not found
