@@ -30,7 +30,7 @@ let anyTestsPass = false; // Fail when zero tests passing
 chai.use(chaiHttp);
 
 describe("Test Supported Chains", function () {
-  console.log(`Set up tests timeout with ${Math.floor(TEST_TIME / 1000)} secs`)
+  console.log(`Set up tests timeout with ${Math.floor(TEST_TIME / 1000)} secs`);
   this.timeout(TEST_TIME);
   const server = new Server();
   let currentResponse = null; // to log server response when test fails
@@ -52,8 +52,8 @@ describe("Test Supported Chains", function () {
     if (!anyTestsPass && newAddedChainId) {
       throw new Error(
         "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id " +
-        newAddedChainId +
-        "?"
+          newAddedChainId +
+          "?"
       );
     }
   });
@@ -1015,7 +1015,7 @@ describe("Test Supported Chains", function () {
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
-  
+
   // Arbitrum Nova
   verifyContract(
     "0xC2141cb30Ef8cE403569D59964eaF3D66848822F",
@@ -1074,7 +1074,8 @@ describe("Test Supported Chains", function () {
     chainId,
     chainName,
     relativeSourcePathsArray, // Allow multiple source files
-    relativeMetadataPath
+    relativeMetadataPath,
+    expectedStatus = "perfect"
   ) {
     // If it is a pull request for adding new chain support, only test the new chain
     if (newAddedChainId && newAddedChainId != chainId) return;
@@ -1113,7 +1114,7 @@ describe("Test Supported Chains", function () {
           files: files,
         })
         .end((err, res) => {
-          assertVerification(err, res, done, address, chainId);
+          assertVerification(err, res, done, address, chainId, expectedStatus);
           anyTestsPass = true;
         });
     });
