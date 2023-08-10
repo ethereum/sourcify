@@ -930,6 +930,16 @@ describe("Test Supported Chains", function () {
     "6119/UptnNFTsV1.metadata.json"
   );
 
+  // BEAM Chain Testnet
+  verifyContract(
+    "0x9BF49b704EE2A095b95c1f2D4EB9010510c41C9E",
+    "13337",
+    "BEAM Chain",
+    ["multicall3/Multicall3.sol"],
+    "multicall3/multicall3.metadata.json",
+    "partial"
+  );
+
   // KAVA EVM
   verifyContract(
     "0xAdFa11e737ec8fA6e91091468aEF33a66Ae0044c",
