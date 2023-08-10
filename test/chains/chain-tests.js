@@ -952,7 +952,7 @@ describe("Test Supported Chains", function () {
 
   // MELD Chain Testnet
   verifyContract(
-    "0x9BF49b704EE2A095b95c1f2D4EB9010510c41C9E",
+    "0x769eE5A8e82C15C1b6E358f62aC8eb6E3AbE8dC5",
     "333000333",
     "MELD Chain",
     ["multicall3/Multicall3.sol"],
