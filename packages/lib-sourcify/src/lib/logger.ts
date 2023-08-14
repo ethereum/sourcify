@@ -6,7 +6,7 @@ export interface ILogger {
 
 // Default logger behavior
 export const DefaultLogger: ILogger = {
-  logLevel: 2,
+  logLevel: process.env.NODE_ENV === 'production' ? 2 : 4,
   setLevel(level: number) {
     this.logLevel = level;
   },

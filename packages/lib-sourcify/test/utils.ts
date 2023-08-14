@@ -19,6 +19,7 @@ import { expect } from 'chai';
 import { ContractFactory, Signer } from 'ethers';
 /**
  *  Function to deploy contracts from provider unlocked accounts
+ *  contractFolderPath must contain an artifact.json file with "abi" and "bytecode" fields
  *
  * @returns the address of the deployed contract and the creator tx hash
  */
@@ -26,7 +27,7 @@ import { ContractFactory, Signer } from 'ethers';
 export async function deployFromAbiAndBytecode(
   signer: Signer,
   contractFolderPath: string,
-  args?: any[]
+  constructorArgs?: any[]
 ) {
   const artifact = require(path.join(contractFolderPath, 'artifact.json'));
   // Deploy contract
@@ -35,7 +36,7 @@ export async function deployFromAbiAndBytecode(
     artifact.bytecode,
     signer
   );
-  const deployment = await contractFactory.deploy(...(args || []));
+  const deployment = await contractFactory.deploy(...(constructorArgs || []));
   await deployment.waitForDeployment();
 
   const contractAddress = await deployment.getAddress();

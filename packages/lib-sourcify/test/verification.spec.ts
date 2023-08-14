@@ -15,6 +15,7 @@ import { expect } from 'chai';
 import {
   SourcifyChain,
   calculateCreate2Address,
+  findSolcPlatform,
   /* 
   getBytecode,
   matchWithSimulation,
@@ -419,6 +420,34 @@ describe('lib-sourcify tests', () => {
         contractFolderPath
       );
 
+      const match = await checkAndVerifyDeployed(
+        contractFolderPath,
+        sourcifyChainGanache,
+        contractAddress
+      );
+      expectMatch(match, 'perfect', contractAddress);
+    });
+
+    // https://github.com/ethereum/sourcify/issues/1088
+    it('should compile again with a different platform binary and verify for contracts --viaIR and optimizer disabled <=v0.8.20', async function () {
+      const contractFolderPath = path.join(
+        __dirname,
+        'sources',
+        'ViaIRUnoptimizedMismatch'
+      );
+      const solcPlatform = findSolcPlatform();
+      // can't really run this if we can't run a platform-native binary but only Emscripten (solc-js)
+      if (!solcPlatform) {
+        console.log(
+          `skipping test as the running machine can't run a platform-native binary. The platform and architechture is ${process.platform} ${process.arch}`
+        );
+        this.skip();
+      }
+      // The artifact has the bytecode from the Emscripten compiler.
+      const { contractAddress } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath
+      );
       const match = await checkAndVerifyDeployed(
         contractFolderPath,
         sourcifyChainGanache,

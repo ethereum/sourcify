@@ -233,14 +233,20 @@ export class CheckedContract {
     return null;
   }
 
-  public async recompile(): Promise<RecompilationResult> {
+  public async recompile(
+    forceEmscripten = false
+  ): Promise<RecompilationResult> {
     if (!CheckedContract.isValid(this)) {
       await CheckedContract.fetchMissing(this);
     }
 
     const version = this.metadata.compiler.version;
 
-    const output = await useCompiler(version, this.solcJsonInput);
+    const output = await useCompiler(
+      version,
+      this.solcJsonInput,
+      forceEmscripten
+    );
     if (
       !output.contracts ||
       !output.contracts[this.compiledPath] ||
