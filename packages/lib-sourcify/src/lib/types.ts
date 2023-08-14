@@ -132,6 +132,7 @@ export interface Metadata {
       enabled: boolean;
       runs: number;
     };
+    viaIR?: boolean;
     outputSelection?: any;
   };
   sources: MetadataSources;

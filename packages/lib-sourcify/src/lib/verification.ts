@@ -28,13 +28,15 @@ import { defaultAbiCoder as abiCoder, ParamType } from '@ethersproject/abi';
 import { AbiConstructor } from 'abitype';
 import { logInfo } from './logger';
 import SourcifyChain from './SourcifyChain';
+import { lt } from 'semver';
 
 export async function verifyDeployed(
   checkedContract: CheckedContract,
   sourcifyChain: SourcifyChain,
   address: string,
   /* _contextVariables?: ContextVariables, */
-  creatorTxHash?: string
+  creatorTxHash?: string,
+  forceEmscripten = false
 ): Promise<Match> {
   const match: Match = {
     address,
@@ -46,7 +48,7 @@ export async function verifyDeployed(
       checkedContract.name
     } at address ${address} on chain ${sourcifyChain.chainId.toString()}`
   );
-  const recompiled = await checkedContract.recompile();
+  const recompiled = await checkedContract.recompile(forceEmscripten);
 
   if (
     recompiled.deployedBytecode === '0x' ||
@@ -174,6 +176,26 @@ export async function verifyDeployed(
         'It seems your contract has either Solidity v0.6.12 or v0.7.0, and the metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618';
       return match;
     }
+  }
+
+  // Handle when <0.8.21 and with viaIR and with optimizer disabled https://github.com/ethereum/sourcify/issues/1088
+  if (
+    lt(checkedContract.metadata.compiler.version, '0.8.21') &&
+    !checkedContract.metadata.settings.optimizer?.enabled &&
+    checkedContract.metadata.settings?.viaIR
+  ) {
+    logInfo(
+      `Forcing compiling with the Emscripten compiler to match the deployed bytecode for ${
+        checkedContract.name
+      } to verify at ${address} on chain ${sourcifyChain.chainId.toString()}`
+    );
+    return verifyDeployed(
+      checkedContract,
+      sourcifyChain,
+      address,
+      creatorTxHash,
+      true // Force compiling with Emscripten compiler
+    );
   }
 
   throw Error("The deployed and recompiled bytecode don't match.");

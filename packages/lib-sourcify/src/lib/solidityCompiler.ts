@@ -36,7 +36,11 @@ export function findSolcPlatform(): string | false {
  * @returns stringified solc output
  */
 
-export async function useCompiler(version: string, solcJsonInput: JsonInput) {
+export async function useCompiler(
+  version: string,
+  solcJsonInput: JsonInput,
+  forceEmscripten = false
+): Promise<any> {
   // For nightly builds, Solidity version is saved as 0.8.17-ci.2022.8.9+commit.6b60524c instead of 0.8.17-nightly.2022.8.9+commit.6b60524c.
   // Not possible to retrieve compilers with "-ci.".
   if (version.includes('-ci.')) version = version.replace('-ci.', '-nightly.');
@@ -45,11 +49,11 @@ export async function useCompiler(version: string, solcJsonInput: JsonInput) {
 
   const solcPlatform = findSolcPlatform();
   let solcPath;
-  if (solcPlatform) {
+  if (solcPlatform && !forceEmscripten) {
     solcPath = await getSolcExecutable(solcPlatform, version);
   }
   let startCompilation: number;
-  if (solcPath) {
+  if (solcPath && !forceEmscripten) {
     logDebug(`Compiling with solc binary ${version} at ${solcPath}`);
     startCompilation = Date.now();
     try {
