@@ -985,6 +985,12 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: "https://nova.dex.guru/" + ETHERSCAN_SUFFIX,
     txRegex: ETHERSCAN_REGEX,
   },
+  "1116": {
+    // Core Blockchain Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: generateEtherscanCreatorTxAPI("1115"),
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};

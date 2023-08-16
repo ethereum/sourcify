@@ -1053,6 +1053,13 @@ describe("Test Supported Chains", function () {
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
+  verifyContract(
+    "0x3A42a7161972e1476c3740f19cA110541F3A37c1",
+    "1116",
+    "Core Blockchain Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
 
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
