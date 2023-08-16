@@ -1027,6 +1027,12 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     monitored: false,
     contractFetchAddress: generateEtherscanCreatorTxAPI("1116"),
   },
+  "1116": {
+    // Core Blockchain Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: generateEtherscanCreatorTxAPI("1116"),
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
@@ -1124,8 +1130,8 @@ export function getSortedChainsArray(
       getPrimarySortKey(a) > getPrimarySortKey(b)
         ? 1
         : getPrimarySortKey(b) > getPrimarySortKey(a)
-        ? -1
-        : 0
+          ? -1
+          : 0
     );
 
   const sortedChains = ethereumChains.concat(otherChains);
