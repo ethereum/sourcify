@@ -955,8 +955,8 @@ describe("Test Supported Chains", function () {
     "0x769eE5A8e82C15C1b6E358f62aC8eb6E3AbE8dC5",
     "333000333",
     "MELD Chain",
-    ["multicall3/Multicall3.sol"],
-    "multicall3/333000333/multicall3.metadata.json"
+    [],
+    "333000333/multicall3.metadata.json"
   );
 
   // KAVA EVM
