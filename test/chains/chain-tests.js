@@ -945,8 +945,8 @@ describe("Test Supported Chains", function () {
     "0x24c456Fb4c450208366B1f8322c3241aA013758e",
     "222000222",
     "Kanazawa Chain",
-    ["multicall3/Multicall3.sol"],
-    "multicall3/222000222/multicall3.metadata.json"
+    [],
+    "222000222/multicall3.metadata.json"
   );
 
   // KAVA EVM
