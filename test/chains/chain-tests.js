@@ -940,6 +940,25 @@ describe("Test Supported Chains", function () {
     "partial"
   );
 
+  // Kanazawa Chain Testnet
+  verifyContract(
+    "0x24c456Fb4c450208366B1f8322c3241aA013758e",
+    "222000222",
+    "Kanazawa Chain",
+    [],
+    "222000222/multicall3.metadata.json",
+    "partial"
+  );
+
+  // MELD Chain Testnet
+  verifyContract(
+    "0x769eE5A8e82C15C1b6E358f62aC8eb6E3AbE8dC5",
+    "333000333",
+    "MELD Chain",
+    [],
+    "333000333/multicall3.metadata.json"
+  );
+
   // KAVA EVM
   verifyContract(
     "0xAdFa11e737ec8fA6e91091468aEF33a66Ae0044c",
