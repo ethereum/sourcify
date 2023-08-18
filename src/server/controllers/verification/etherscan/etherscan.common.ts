@@ -82,7 +82,7 @@ export const processRequestFromEtherscan = async (
     );
   }
 
-  const url = `${etherscanAPIs[chain].apiURL}/api?module=contract&action=getsourcecode&address=${address}`;
+  const url = `${etherscanAPIs[chain].apiURL}d/api?module=contract&action=getsourcecode&address=${address}`;
 
   let response;
   try {
