@@ -7,7 +7,6 @@ import {
   useCompiler,
 } from "@ethereum-sourcify/lib-sourcify";
 import { TooManyRequests } from "../../../../common/errors/TooManyRequests";
-import { BadGatewayError } from "../../../../common/errors/BadGatewayError";
 
 export type EtherscanResult = {
   SourceCode: string;
@@ -82,16 +81,9 @@ export const processRequestFromEtherscan = async (
     );
   }
 
-  const url = `${etherscanAPIs[chain].apiURL}d/api?module=contract&action=getsourcecode&address=${address}`;
+  const url = `${etherscanAPIs[chain].apiURL}/api?module=contract&action=getsourcecode&address=${address}&apikey=${etherscanAPIs[chain].apiKey}`;
 
-  let response;
-  try {
-    response = await fetch(`${url}&apikey=${etherscanAPIs[chain].apiKey}`);
-  } catch (e: any) {
-    throw new BadGatewayError(
-      `Request to ${url}&apiKey=XXX failed with code ${e.code}`
-    );
-  }
+  const response = await fetch(url);
   const resultJson = await response.json();
   if (
     resultJson.message === "NOTOK" &&
@@ -101,12 +93,12 @@ export const processRequestFromEtherscan = async (
   }
 
   if (resultJson.message === "NOTOK") {
-    throw new BadGatewayError(
+    throw new BadRequestError(
       "Error in Etherscan API response. Result message: " + resultJson.message
     );
   }
   if (resultJson.result[0].SourceCode === "") {
-    throw new BadGatewayError("This contract is not verified on Etherscan");
+    throw new BadRequestError("This contract is not verified on Etherscan");
   }
   const contractResultJson = resultJson.result[0];
   const sourceCodeObject = contractResultJson.SourceCode;

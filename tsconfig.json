@@ -9,10 +9,7 @@
     "resolveJsonModule": true,
     "declaration": true,
     "declarationMap": true,
-    "module": "commonjs",
-    "paths": {
-      "ethers": ["./node_modules/ethers"]
-    }
+    "module": "commonjs"
   },
   "include": ["./src"]
 }
