@@ -251,7 +251,7 @@
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "env": {
         "TESTING": "true",
-        "NEW_CHAIN_ID": "333000333"
+        // "NEW_CHAIN_ID": "333000333"
       },
       "args": [
         "${workspaceFolder}/test/chains/chain-tests.js",
