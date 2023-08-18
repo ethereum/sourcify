@@ -185,8 +185,8 @@ export class Server {
     });
 
     const limiter = rateLimit({
-      windowMs: 60 * 1000, // 1 minutes
-      max: 20, // Requests per windowMs
+      windowMs: 5 * 1000,
+      max: 1, // Requests per windowMs
       standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
       legacyHeaders: false, // Disable the `X-RateLimit-*` headers
       message: {
