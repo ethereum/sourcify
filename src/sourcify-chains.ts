@@ -1002,6 +1002,13 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: "https://nova.dex.guru/" + ETHERSCAN_SUFFIX,
     txRegex: ETHERSCAN_REGEX,
   },
+  "2037": {
+    supported: true,
+    monitored: true,
+    contractFetchAddress:
+      "https://glacier-api.avax.network/v1/chains/2037/" +
+      AVALANCHE_SUBNET_SUFFIX,
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
