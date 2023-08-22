@@ -135,7 +135,14 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // DogeChain Mainnet
     supported: true,
     monitored: false,
-    contractFetchAddress: "https://triton.nautscan.com/" + TRITON_SUFFIX,
+    // contractFetchAddress: "https://triton.nautscan.com/" + TRITON_SUFFIX,
+  },
+  "22222": {
+    // Nautilus Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: generateEtherscanCreatorTxAPI("22222"),
+    rpc: buildAlchemyAndCustomRpcURLs("mainnet", "eth", true),
   },
   "88002": {
     // Proteus testnet
