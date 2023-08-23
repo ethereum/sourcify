@@ -65,7 +65,7 @@ describe("Import From Etherscan and Verify", function () {
 
   const assertEtherscanError = (err, res, errorMessage, status) => {
     try {
-      chai.expect(res.status).to.equal(status || StatusCodes.BAD_REQUEST);
+      chai.expect(res.status).to.equal(status || StatusCodes.BAD_GATEWAY);
       chai.expect(res.body?.error).to.equal(errorMessage);
     } catch (e) {
       console.log("Error: ", e);

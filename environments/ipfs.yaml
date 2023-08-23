@@ -25,15 +25,15 @@ services:
     volumes:
       - $REPOSITORY_PATH:/repository
       - ../services/ipfs/server/ipfs-${TAG}.key:/sourcify/ipfs-${TAG}.key
-  ipfs-gateway:
-    image: ipfs/kubo:v0.21.0
-    container_name: ipfs-gateway-${TAG}
-    ports:
-      - "${IPFS_GW_EXTERNAL_PORT}:8080"
-    env_file:
-      - .env
-    restart: always
-    networks:
-      - source-verify
-    volumes:
-      - ../services/ipfs/gateway/:/container-init.d # Will run scripts here alpabetically
+  # ipfs-gateway:
+  #   image: ipfs/kubo:v0.21.0
+  #   container_name: ipfs-gateway-${TAG}
+  #   ports:
+  #     - "${IPFS_GW_EXTERNAL_PORT}:8080"
+  #   env_file:
+  #     - .env
+  #   restart: always
+  #   networks:
+  #     - source-verify
+  #   volumes:
+  #     - ../services/ipfs/gateway/:/container-init.d # Will run scripts here alpabetically
