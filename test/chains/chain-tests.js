@@ -964,9 +964,8 @@ describe("Test Supported Chains", function () {
     "0xe89a85b79e64b35829625A7EEf70F8915d32F75f",
     "2037",
     "Kiwi Subnet",
-    ["multicall3/Multicall3.sol"],
-    "multicall3/multicall3.metadata.json",
-    "partial"
+    [],
+    "2037/multicall3.metadata.json"
   );
 
   // KAVA EVM
