@@ -1004,7 +1004,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   },
   "2037": {
     supported: true,
-    monitored: true,
+    monitored: false,
     contractFetchAddress:
       "https://glacier-api.avax.network/v1/chains/2037/" +
       AVALANCHE_SUBNET_SUFFIX,
