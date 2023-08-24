@@ -1081,6 +1081,14 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
+  verifyContract(
+    "0x4956f15efdc3dc16645e90cc356eafa65ffc65ec",
+    "4337",
+    "Beam Subnet",
+    [],
+    "4337/multicall.metadata.json"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainId) {
