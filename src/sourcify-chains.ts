@@ -142,20 +142,12 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // Nautilus Mainnet
     supported: true,
     monitored: false,
-    contractFetchAddress: generateEtherscanCreatorTxAPI("22222"),
-    rpc: buildAlchemyAndCustomRpcURLs("mainnet", "eth", true),
   },
   "88002": {
     // Proteus testnet
     supported: true,
     monitored: false,
     contractFetchAddress: "https://triton.nautscan.com/" + TRITON_SUFFIX,
-  },
-  "22222": {
-    // Nautilus mainnet
-    supported: true,
-    monitored: false,
-    contractFetchAddress: "https://nautilus.nautscan.com/" + NAUTILUS_SUFFIX,
   },
   "5": {
     // Ethereum Goerli Testnet
