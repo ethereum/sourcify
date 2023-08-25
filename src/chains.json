@@ -19179,8 +19179,11 @@
     "explorers": []
   },
   {
-    "name": "Nautilus Mainnet Chain",
+    "name": "Nautilus Chain",
     "title": "Nautilus Mainnet",
+    "chain": "ETH",
+    "icon": "nautilus",
+    "rpc": ["https://api.nautilus.nautchain.xyz"],
     "chain": "ETH",
     "icon": "nautilus",
     "rpc": [

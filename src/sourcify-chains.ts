@@ -28,6 +28,7 @@ const METER_SUFFIX = "api/accounts/${ADDRESS}";
 const AVALANCHE_SUBNET_SUFFIX =
   "contracts/${ADDRESS}/transactions:getDeployment";
 const TRITON_SUFFIX = "/triton/account/${ADDRESS}/transactions";
+const NAUTILUS_SUFFIX = "/nautilus/account/${ADDRESS}/transactions";
 
 type ChainName = "eth" | "polygon" | "arb" | "opt";
 
@@ -149,6 +150,12 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     supported: true,
     monitored: false,
     contractFetchAddress: "https://triton.nautscan.com/" + TRITON_SUFFIX,
+  },
+  "22222": {
+    // Nautilus mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://nautilus.nautscan.com/" + NAUTILUS_SUFFIX,
   },
   "5": {
     // Ethereum Goerli Testnet
