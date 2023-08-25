@@ -15127,6 +15127,23 @@
     "explorers": []
   },
   {
+    "name": "Nautilus Chain",
+    "title": "Nautilus Mainnet",
+    "chain": "ETH",
+    "icon": "nautilus",
+    "rpc": ["https://api.nautilus.nautchain.xyz"],
+    "nativeCurrency": {
+      "name": "Ethereum",
+      "symbol": "ETH",
+      "decimals": 18
+    },
+    "infoURL": "https://docs.nautchain.xyz",
+    "shortName": "tZBC",
+    "chainId":  88002,
+    "networkId": 88002,
+    "explorers": []
+  },
+  {
     "name": "Lambda Testnet",
     "chain": "Lambda",
     "rpc": ["https://evm.lambda.top/"],
