@@ -1,0 +1,35 @@
+{
+  "name": "sourcify-monitor",
+  "version": "1.0.0",
+  "description": "A monitoring service to listen to chains and send detected new contracts to a Sourcify server",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ethereum/sourcify.git"
+  },
+  "keywords": [
+    "sourcify",
+    "ethereum",
+    "blockchain",
+    "smart-contracts"
+  ],
+  "author": "sourcify",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ethereum/sourcify/issues"
+  },
+  "homepage": "https://github.com/ethereum/sourcify#readme",
+  "dependencies": {
+    "ethers": "^6.7.1",
+    "http-status-codes": "^2.2.0",
+    "winston": "^3.10.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2"
+  }
+}

@@ -1,3 +1,4 @@
+import logger from "./logger";
 import SourceFetcher from "./source-fetcher";
 import { SourceAddress } from "./util";
 import {
@@ -6,7 +7,6 @@ import {
   Metadata,
   StringMap,
 } from "@ethereum-sourcify/lib-sourcify";
-import { SourcifyEventManager } from "../common/SourcifyEventManager/SourcifyEventManager";
 import { id as keccak256str } from "ethers";
 
 type PendingSource = {
@@ -54,9 +54,7 @@ export default class PendingContract {
         this.fetchedSources[name] = source.content;
         continue;
       } else if (!source.keccak256) {
-        SourcifyEventManager.trigger("Monitor.Error", {
-          message: `Source ${name} has no keccak256 nor content`,
-        });
+        logger.info(`Source ${name} has no keccak256 nor content`);
         break;
       }
       this.pendingSources[source.keccak256] = source;
@@ -65,9 +63,9 @@ export default class PendingContract {
       for (const url of source.urls) {
         const sourceAddress = SourceAddress.fromUrl(url);
         if (!sourceAddress) {
-          SourcifyEventManager.trigger("Monitor.Error", {
-            message: `Could not determine source file location for ${name} at ${url}`,
-          });
+          logger.info(
+            `Could not determine source file location for ${name} at ${url}`
+          );
           continue;
         }
         sourceAddresses.push(sourceAddress);

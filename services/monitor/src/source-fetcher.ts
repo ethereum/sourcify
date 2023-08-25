@@ -1,10 +1,10 @@
 import { CheckedContract } from "@ethereum-sourcify/lib-sourcify";
 import { StatusCodes } from "http-status-codes";
 import nodeFetch from "node-fetch";
-import { SourcifyEventManager } from "../common/SourcifyEventManager/SourcifyEventManager";
 import { IGateway, SimpleGateway } from "./gateway";
 import PendingContract from "./pending-contract";
 import { SourceAddress, FetchedFileCallback } from "./util";
+import logger from "./logger";
 
 const STARTING_INDEX = 0;
 const NO_PAUSE = 0;
@@ -175,10 +175,10 @@ class GatewayFetcher {
         if (!subscription.fallbackFetchUrl) {
           return Promise.resolve();
         }
-        SourcifyEventManager.trigger("SourceFetcher.UsingFallback", {
-          fetchUrl: subscription.fetchUrl,
-          fallbackUrl: subscription.fallbackFetchUrl,
-        });
+        logger.info(
+          `Using callback url ${subscription.fetchUrl} and fallback ${subscription.fallbackFetchUrl}`
+        );
+
         // fall back to external ipfs gateway
         subscription.useFallbackUrl();
 
@@ -193,10 +193,9 @@ class GatewayFetcher {
         });
       })
       .catch((err) =>
-        SourcifyEventManager.trigger("SourceFetcher.FetchFailed", {
-          fetchUrl: subscription.fetchUrl,
-          sourceHash,
-        })
+        logger.info(
+          `Fetch failed for ${subscription.fetchUrl}: ${err}, sourceHash: ${sourceHash}`
+        )
       )
       .finally(() => {
         subscription.beingProcessed = false;
@@ -223,11 +222,9 @@ class GatewayFetcher {
     const subscription = this.subscriptions[id];
     this.cleanup(id);
 
-    SourcifyEventManager.trigger("SourceFetcher.FetchingSuccessful", {
-      fetchUrl: subscription.fetchUrl,
-      id,
-      subscriberCount: subscription.subscribers.length,
-    });
+    logger.info(
+      `Fetching successful for ${subscription.fetchUrl}, id: ${id}, subscriberCount: ${subscription.subscribers.length}`
+    );
 
     subscription.subscribers.forEach((callback) => callback(file));
   }
@@ -255,12 +252,9 @@ class GatewayFetcher {
     this.subscriptions[sourceHash].subscribers.push(callback);
 
     this.subscriptionCounter++;
-    SourcifyEventManager.trigger("SourceFetcher.NewSubscription", {
-      fetchUrl: this.subscriptions[sourceHash].fetchUrl,
-      sourceHash,
-      filesPending: this.fileCounter,
-      subscriptions: this.subscriptionCounter,
-    });
+    logger.info(
+      `Subscribed to ${fetchUrl}, sourceHash: ${sourceHash}, subscriberCount: ${this.subscriptions[sourceHash].subscribers.length}`
+    );
   }
 
   unsubscribe(sourceAddress: SourceAddress): void {
@@ -283,12 +277,9 @@ class GatewayFetcher {
 
     this.fileCounter--;
     this.subscriptionCounter -= subscriptionsDelta;
-    SourcifyEventManager.trigger("SourceFetcher.Cleanup", {
-      fetchUrl: fetchUrl,
-      sourceHash,
-      filesPending: this.fileCounter,
-      subscriptions: this.subscriptionCounter,
-    });
+    logger.info(
+      `Unsubscribed from ${fetchUrl}, sourceHash: ${sourceHash}, subscriberCount: ${subscriptionsDelta}`
+    );
   }
 
   private isTimeUp(sourceHash: string): boolean {
