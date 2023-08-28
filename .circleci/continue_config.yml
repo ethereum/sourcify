@@ -19,6 +19,9 @@ parameters:
   run-build-server:
     type: boolean
     default: false
+  run-tests:
+    type: boolean
+    default: false
 
 ################
 ### ALIASES ####
@@ -98,6 +101,7 @@ workflows:
               << pipeline.parameters.run-build-s3 >>,
               << pipeline.parameters.run-build-server >>,
               << pipeline.parameters.run-build-ui >>,
+              << pipeline.parameters.run-tests >>,
             ]
     jobs:
       - tests-node-v16
