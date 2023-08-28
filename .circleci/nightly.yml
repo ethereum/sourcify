@@ -58,7 +58,7 @@ jobs:
   monitor-e2e-sepolia:
     <<: *monitor-e2e-base
     environment:
-      CHAIN_ID: '11155111'
+      CHAIN_ID: "11155111"
       CHAIN_NAME: sepolia
   verification-e2e-goerli:
     <<: *verification-e2e-base
@@ -68,7 +68,7 @@ jobs:
   verification-e2e-sepolia:
     <<: *verification-e2e-base
     environment:
-      CHAIN_ID: '11155111'
+      CHAIN_ID: "11155111"
       CHAIN_NAME: sepolia
   check-s3-backup:
     working_directory: ~/source-verify
@@ -88,11 +88,11 @@ jobs:
       - checkout
       - run:
           name: install dependencies
-          command: npm install && npx lerna bootstrap
+          command: npm install
       - run:
           name: build
           command: npx lerna run build
-      - run: 
+      - run:
           name: test
           command: npx mocha test/etherscan/etherscanInstances.js --exit
     docker:

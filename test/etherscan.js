@@ -2,6 +2,9 @@ process.env.MOCK_REPOSITORY = "./dist/data/mock-repository";
 process.env.SOLC_REPO = "./dist/data/solc-repo";
 process.env.SOLJSON_REPO = "./dist/data/soljson-repo";
 
+// Set the fetch timeout to 20 seconds
+process.env.FETCH_TIMEOUT = 20000;
+
 // Auth0 environments
 process.env.AUTH0_AUDIENCE = "https://staging.sourcify.dev";
 process.env.AUTH0_ISSUERBASEURL = "https://dev-cpy28yiw0u88mjsd.us.auth0.com";
@@ -46,7 +49,7 @@ describe("Import From Etherscan and Verify", function () {
     return;
   }
 
-  this.timeout(7000);
+  this.timeout(30000);
   const server = new Server(CUSTOM_PORT);
 
   before(async () => {

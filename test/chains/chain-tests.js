@@ -935,8 +935,8 @@ describe("Test Supported Chains", function () {
     "0x9BF49b704EE2A095b95c1f2D4EB9010510c41C9E",
     "13337",
     "BEAM Chain",
-    ["multicall3/Multicall3.sol"],
-    "multicall3/multicall3.metadata.json",
+    ["13337/Multicall3.sol"],
+    "13337/multicall3.metadata.json",
     "partial"
   );
 
@@ -946,8 +946,7 @@ describe("Test Supported Chains", function () {
     "222000222",
     "Kanazawa Chain",
     [],
-    "222000222/multicall3.metadata.json",
-    "partial"
+    "222000222/multicall3.metadata.json"
   );
 
   // MELD Chain Testnet
@@ -957,6 +956,15 @@ describe("Test Supported Chains", function () {
     "MELD Chain",
     [],
     "333000333/multicall3.metadata.json"
+  );
+
+  // Kiwi Subnet
+  verifyContract(
+    "0xe89a85b79e64b35829625A7EEf70F8915d32F75f",
+    "2037",
+    "Kiwi Subnet",
+    [],
+    "2037/multicall3.metadata.json"
   );
 
   // KAVA EVM

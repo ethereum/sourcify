@@ -32,7 +32,7 @@ const ganacheServer = Ganache.server({
   wallet: { totalAccounts: 1 },
   chain: { chainId: 0, networkId: 0 },
 });
-const GANACHE_PORT = 8545;
+const GANACHE_PORT = 8544;
 
 const UNUSED_ADDRESS = '0x1F98431c8aD98523631AE4a59f267346ea31F984'; // checksum valid
 
