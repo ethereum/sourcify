@@ -1081,6 +1081,14 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
+  verifyContract(
+    "0xcCb82fa329032CEB287Af1223bA8C70992a41fd9",
+    "78431",
+    "Bulletin Subnet",
+    [],
+    "78431/multicall3.metadata.json"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainId) {
