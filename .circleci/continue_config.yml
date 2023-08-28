@@ -229,7 +229,7 @@ jobs:
           command: npm run lint
       - run:
           name: tsc and test
-          command: npx lerna run build && npx lerna run test --stream
+          command: npx lerna run build && npx lerna run test --stream --concurrency=1
       - run:
           name: coverage
           command: npm run cov:send
