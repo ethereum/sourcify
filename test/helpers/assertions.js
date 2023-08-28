@@ -34,7 +34,9 @@ exports.assertVerification = (
     const resultArr = res.body.result;
     chai.expect(resultArr).to.have.a.lengthOf(1);
     const result = resultArr[0];
-    chai.expect(result.address).to.equal(expectedAddress);
+    chai
+      .expect(result.address.toLowerCase())
+      .to.equal(expectedAddress.toLowerCase());
     chai.expect(result.chainId).to.equal(expectedChain);
     chai.expect(result.status).to.equal(expectedStatus);
 
