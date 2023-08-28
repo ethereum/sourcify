@@ -10,7 +10,7 @@
   "scripts": {
     "prepublishOnly": "npm install && npm run build",
     "build": "tsc",
-    "build:clean": "rm -rf node_modules/ packages/bytecode-utils/node_modules/ packages/contract-call-decoder/node_modules/ packages/lib-sourcify/node_modules/ && npm install && npx lerna bootstrap && npx lerna run build",
+    "build:clean": "rm -rf node_modules/ packages/bytecode-utils/node_modules/ packages/contract-call-decoder/node_modules/ packages/lib-sourcify/node_modules/ && npm install && npx lerna run build",
     "build:lerna": "lerna run build",
     "test": "TESTING=true DOTENV_CONFIG_PATH=./environments/.env c8 --reporter=none mocha -r dotenv/config --exit",
     "test:monitor": "TESTING=true DOTENV_CONFIG_PATH=./environments/.env mocha test/monitor.js --exit",
@@ -34,6 +34,12 @@
     "cov:send": "run-s cov:lcov && codecov -F server -f coverage/lcov.info",
     "cov:check": "c8 report && c8 check-coverage --lines 100 --functions 100 --branches 100"
   },
+  "workspaces": [
+    "packages/bytecode-utils",
+    "packages/contract-call-decoder",
+    "packages/lib-sourcify",
+    "ui"
+  ],
   "keywords": [
     "ethereum",
     "solidity",
@@ -100,7 +106,7 @@
     "ganache": "^7.0.2",
     "ipfs-core": "^0.12.2",
     "ipld-dag-pb": "^0.18.2",
-    "lerna": "^3.22.1",
+    "lerna": "^7.1.5",
     "mocha": "^7.0.0",
     "mochawesome": "^7.1.2",
     "npm-run-all": "^4.1.5",
