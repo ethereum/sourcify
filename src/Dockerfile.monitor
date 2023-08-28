@@ -7,6 +7,6 @@ RUN apt-get update && apt-get -y install xvfb gconf-service libasound2 libatk1.0
 COPY packages ./packages
 COPY src ./src
 COPY *.json ./
-RUN npm install && npx lerna bootstrap --ci && npx lerna run build
+RUN npm install && npx lerna run build
 
 CMD ["npm", "run", "monitor:start"]
