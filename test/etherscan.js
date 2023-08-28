@@ -8,6 +8,8 @@ process.env.AUTH0_ISSUERBASEURL = "https://dev-cpy28yiw0u88mjsd.us.auth0.com";
 process.env.AUTH0_TOKENSIGNINGALG = "RS256";
 process.env.AUTH0_CLIENTID = "epipuQWJL67dVggPvxNmAy40ggzNum9F";
 
+process.env.FETCH_TIMEOUT = 15000;
+
 const Server = require("../dist/server/server").Server;
 const chai = require("chai");
 const chaiHttp = require("chai-http");
@@ -46,7 +48,7 @@ describe("Import From Etherscan and Verify", function () {
     return;
   }
 
-  this.timeout(7000);
+  this.timeout(20000);
   const server = new Server(CUSTOM_PORT);
 
   before(async () => {
