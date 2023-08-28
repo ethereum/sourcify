@@ -1,6 +1,6 @@
 {
   "name": "@ethereum-sourcify/contract-call-decoder",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Library to decode Ethereum smart contract calls into human-readable descriptions using ABI and NatSpec",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "@blossom-labs/rosette-radspec": "^0.2.1",
-    "@ethereum-sourcify/bytecode-utils": "*",
+    "@ethereum-sourcify/bytecode-utils": "^1.1.2",
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/bignumber": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
