@@ -1,5 +1,5 @@
 {
-  "name": "ethereum-sourcify",
+  "name": "sourcify-server",
   "version": "1.0.0",
   "description": "Solidity metadata-based re-compilation and source verification tool",
   "private": true,
