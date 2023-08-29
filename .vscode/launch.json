@@ -60,11 +60,12 @@
       "type": "node",
       "request": "launch",
       "name": "Monitor",
-      "program": "${workspaceFolder}/dist/monitor/monitor.js",
+      "cwd": "${workspaceFolder}/services/monitor",
+      "program": "dist/index.js",
       "envFile": "${workspaceFolder}/environments/.env",
-      "preLaunchTask": "npm: build:lerna",
+      "preLaunchTask": "npm: build",
       "outFiles": [
-        "${workspaceFolder}/dist/**/*.js",
+        "dist/**/*.js",
         "${workspaceFolder}/packages/**/build/**/*.js"
       ],
       "smartStep": true,
@@ -75,10 +76,11 @@
       "type": "node",
       "request": "launch",
       "name": "Monitor - without build",
-      "program": "${workspaceFolder}/dist/monitor/monitor.js",
+      "cwd": "${workspaceFolder}/services/monitor",
+      "program": "dist/index.js",
       "envFile": "${workspaceFolder}/environments/.env",
       "outFiles": [
-        "${workspaceFolder}/dist/**/*.js",
+        "dist/**/*.js",
         "${workspaceFolder}/packages/**/build/**/*.js"
       ],
       "smartStep": true,
