@@ -1083,7 +1083,7 @@ describe("Test Supported Chains", function () {
 
   // Amplify Subnet
   verifyContract(
-    "0xcCb82fa329032CEB287Af1223bA8C70992a41fd9",
+    "0xB19f81cA2141ACd6F2Cc39bAFAD2a613bC4c9592",
     "78430",
     "Amplify Subnet",
     [],
