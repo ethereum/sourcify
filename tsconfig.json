@@ -14,5 +14,5 @@
       "ethers": ["./node_modules/ethers"]
     }
   },
-  "include": ["./src", "services/monitor"]
+  "include": ["./src"]
 }
