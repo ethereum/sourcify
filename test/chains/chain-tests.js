@@ -1088,6 +1088,14 @@ describe("Test Supported Chains", function () {
     "Amplify Subnet",
     [],
     "78430/multicall3.metadata.json"
+   );
+  
+  verifyContract(
+    "0x4956f15efdc3dc16645e90cc356eafa65ffc65ec",
+    "4337",
+    "Beam Subnet",
+    [],
+    "4337/multicall.metadata.json"
   );
 
   // Finally check if all the "supported: true" chains have been tested
