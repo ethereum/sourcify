@@ -1082,7 +1082,7 @@ describe("Test Supported Chains", function () {
   );
 
   verifyContract(
-    "0xcCb82fa329032CEB287Af1223bA8C70992a41fd9",
+    "0x72Ed1E3E3A68DfB7495FAfb19C0de1A0B7Ec5524",
     "78432",
     "Conduit Subnet",
     [],
