@@ -1082,7 +1082,7 @@ describe("Test Supported Chains", function () {
   );
 
   verifyContract(
-    "0xcCb82fa329032CEB287Af1223bA8C70992a41fd9",
+    "0xa785B911a79B0d5d8895c567663c29F0f7B93321",
     "78431",
     "Bulletin Subnet",
     [],
