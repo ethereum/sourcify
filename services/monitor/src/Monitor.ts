@@ -1,10 +1,10 @@
-import SourceFetcher from "./source-fetcher";
+import DecentralizedStorageFetcher from "./DecentralizedStorageFetcher";
 import assert from "assert";
 import { EventEmitter } from "stream";
 import { SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
 import logger from "./logger";
 import { ChainMonitor } from "./ChainMonitor";
-import { KnownSourceFetchers } from "./types";
+import { KnownDecentralizedStorageFetchers } from "./types";
 
 interface DecentralizedStorageConfig {
   ipfs?: {
@@ -19,7 +19,7 @@ interface DecentralizedStorageConfig {
 
 export default class Monitor extends EventEmitter {
   private chainMonitors: ChainMonitor[];
-  private sourceFetchers: KnownSourceFetchers = { ipfs: new SourceFetcher() };
+  private sourceFetchers: KnownDecentralizedStorageFetchers = {};
   private sourcifyServerURLs: string[] = ["https://sourcify.dev/server/"];
 
   constructor(
@@ -34,7 +34,10 @@ export default class Monitor extends EventEmitter {
         decentralizedStorageConfig.ipfs.gateways.length > 0,
         "IPFS gateways must be provided"
       );
-      this.sourceFetchers.ipfs = new SourceFetcher();
+      this.sourceFetchers.ipfs = new DecentralizedStorageFetcher(
+        "ipfs",
+        decentralizedStorageConfig.ipfs.gateways
+      );
       // decentralizedStorageConfig.ipfs.gateways
     }
 

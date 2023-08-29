@@ -1,6 +1,7 @@
-import SourceFetcher from "./source-fetcher";
+import DecentralizedStorageFetcher from "./DecentralizedStorageFetcher";
 
-export type KnownSourceFetchers = {
-  ipfs: SourceFetcher;
-  swarm?: SourceFetcher;
+export type KnownDecentralizedStorageFetchers = {
+  [type in DecentralizedStorageOrigin]?: DecentralizedStorageFetcher;
 };
+
+export type DecentralizedStorageOrigin = "ipfs" | "bzzr1" | "bzzr0";

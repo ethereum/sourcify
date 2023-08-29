@@ -1,10 +1,11 @@
-export type SourceOrigin = "ipfs" | "bzzr1" | "bzzr0";
+import { DecodedObject } from "@ethereum-sourcify/bytecode-utils";
+import { DecentralizedStorageOrigin } from "./types";
 
 export type FetchedFileCallback = (fetchedFile: string) => any;
 
 interface Prefix {
   regex: RegExp;
-  origin: SourceOrigin;
+  origin: DecentralizedStorageOrigin;
 }
 
 const PREFIXES: Prefix[] = [
@@ -12,43 +13,49 @@ const PREFIXES: Prefix[] = [
   { origin: "bzzr1", regex: /bzz-raw:\/{1,2}/ },
 ];
 
-const CBOR_SOURCES: SourceOrigin[] = ["ipfs", "bzzr0", "bzzr1"];
+const KNOWN_CBOR_ORIGINS: DecentralizedStorageOrigin[] = [
+  "ipfs",
+  "bzzr0",
+  "bzzr1",
+];
 
-export class SourceAddress {
-  origin: SourceOrigin;
-  id: string;
+export class FileHash {
+  origin: DecentralizedStorageOrigin;
+  hash: string;
 
-  constructor(origin: SourceOrigin, id: string) {
+  constructor(origin: DecentralizedStorageOrigin, hash: string) {
     this.origin = origin;
-    this.id = id;
+    this.hash = hash;
   }
 
   /**
    * @returns a unique identifier of this source address of format ipfs-QmawU3NM1WNWkBauRudYCiFvuFE1tTLHB98akyBvb9UWwA
    */
   getSourceHash(): string {
-    return this.origin + "-" + this.id;
+    return this.origin + "-" + this.hash;
   }
 
-  static fromUrl(url: string): SourceAddress | null {
+  static fromUrl(url: string): FileHash | null {
     for (const prefix of PREFIXES) {
       const hash = url.replace(prefix.regex, "");
       if (hash !== url) {
-        return new SourceAddress(prefix.origin, hash);
+        return new FileHash(prefix.origin, hash);
       }
     }
     return null;
   }
 
-  static fromCborData(cborData: any): SourceAddress {
-    for (const cborSource of CBOR_SOURCES) {
-      const metadataId = cborData[cborSource];
-      if (metadataId) {
-        return new SourceAddress(cborSource, metadataId);
+  static fromCborData(cborData: DecodedObject): FileHash {
+    for (const origin of KNOWN_CBOR_ORIGINS) {
+      const fileHash = cborData[origin];
+      if (fileHash) {
+        return new FileHash(origin, fileHash);
       }
     }
 
-    const msg = `Unsupported metadata file format: ${Object.keys(cborData)}`;
+    const msg = `None of the keys ${KNOWN_CBOR_ORIGINS.join(
+      ","
+    )} found in the CBOR data. CBOR data: ${Object.keys(cborData)}`;
     throw new Error(msg);
   }
 }

@@ -8,10 +8,10 @@ const myFormat = format.printf(
     message: string;
     timestamp?: string;
     labels?: { event: string; level: string };
-    chainId?: string;
+    prefix?: string;
   }) => {
     return `${info.timestamp} [${info.level}]: ${
-      info.chainId ? `Chain #${info.chainId} -` : ""
+      info.prefix ? `[${info.prefix}] -` : ""
     } ${info.message}`;
   }
 );
