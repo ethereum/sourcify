@@ -712,16 +712,24 @@
     ]
   },
   {
-    "name": "SeedCoin-Network",
-    "chain": "SeedCoin-Network",
-    "rpc": ["https://node.seedcoin.network"],
+    "name": "Xpla Mainnet",
+    "chain": "XPLA",
+    "rpc": ["https://dimension-rpc.xpla.dev"],
     "faucets": [],
-    "nativeCurrency": { "name": "SeedCoin", "symbol": "SEED", "decimals": 18 },
-    "infoURL": "https://www.seedcoin.network/",
-    "shortName": "SEED",
-    "icon": "seedcoin",
+    "nativeCurrency": { "name": "XPLA", "symbol": "XPLA", "decimals": 18 },
+    "infoURL": "https://xpla.io",
+    "shortName": "xpla",
     "chainId": 37,
-    "networkId": 37
+    "networkId": 37,
+    "icon": "xpla",
+    "explorers": [
+      {
+        "name": "XPLA Explorer",
+        "url": "https://explorer.xpla.io",
+        "standard": "none"
+      }
+    ],
+    "redFlags": ["reusedChainId"]
   },
   {
     "name": "Valorbit",
@@ -2773,6 +2781,69 @@
         "icon": "six"
       }
     ]
+  },
+  {
+    "name": "Redbelly Network Mainnet",
+    "shortName": "rbn",
+    "chain": "RBN",
+    "chainId": 151,
+    "networkId": 151,
+    "rpc": [],
+    "faucets": [],
+    "infoURL": "https://redbelly.network",
+    "nativeCurrency": {
+      "name": "Redbelly Network Coin",
+      "symbol": "RBNT",
+      "decimals": 18
+    },
+    "status": "incubating"
+  },
+  {
+    "name": "Redbelly Network Devnet",
+    "shortName": "rbn-devnet",
+    "chain": "RBN",
+    "chainId": 152,
+    "networkId": 152,
+    "rpc": [],
+    "faucets": [],
+    "infoURL": "https://redbelly.network",
+    "nativeCurrency": {
+      "name": "Redbelly Network Coin",
+      "symbol": "RBNT",
+      "decimals": 18
+    },
+    "status": "incubating"
+  },
+  {
+    "name": "Redbelly Network Testnet",
+    "shortName": "rbn-testnet",
+    "chain": "RBN",
+    "chainId": 153,
+    "networkId": 153,
+    "rpc": [],
+    "faucets": [],
+    "infoURL": "https://redbelly.network",
+    "nativeCurrency": {
+      "name": "Redbelly Network Coin",
+      "symbol": "RBNT",
+      "decimals": 18
+    },
+    "status": "incubating"
+  },
+  {
+    "name": "Redbelly Network TGE",
+    "shortName": "rbn-tge",
+    "chain": "RBN",
+    "chainId": 154,
+    "networkId": 154,
+    "rpc": [],
+    "faucets": [],
+    "infoURL": "https://redbelly.network",
+    "nativeCurrency": {
+      "name": "Redbelly Network Coin",
+      "symbol": "RBNT",
+      "decimals": 18
+    }
   },
   {
     "name": "Tenet Testnet",
@@ -5131,6 +5202,32 @@
         "name": "blockscout",
         "url": "https://arrakis.gorengine.com",
         "icon": "laos",
+        "standard": "EIP3091"
+      }
+    ]
+  },
+  {
+    "name": "JuncaGlobal Chain Testnet",
+    "chain": "JuncaGlobal Test Chain",
+    "rpc": [
+      "https://rpc-testnet.juncachain.com",
+      "wss://ws-testnet.juncachain.com"
+    ],
+    "faucets": ["https://faucet-testnet.juncachain.com"],
+    "nativeCurrency": {
+      "name": "JuncaGlobal Chain Testnet Native Token",
+      "symbol": "JGCT",
+      "decimals": 18
+    },
+    "infoURL": "https://junca-cash.world",
+    "shortName": "junca",
+    "chainId": 669,
+    "networkId": 669,
+    "explorers": [
+      {
+        "name": "blockscout",
+        "url": "https://scan-testnet.juncachain.com",
+        "icon": "blockscout",
         "standard": "EIP3091"
       }
     ]
@@ -9736,6 +9833,29 @@
     ]
   },
   {
+    "name": "Morphism Testnet",
+    "chain": "ETH",
+    "rpc": ["https://rpc-testnet.morphism.xyz"],
+    "faucets": [],
+    "nativeCurrency": { "name": "Ether", "symbol": "ETH", "decimals": 18 },
+    "infoURL": "https://morphism.xyz",
+    "shortName": "tmorph",
+    "chainId": 2710,
+    "networkId": 2710,
+    "explorers": [
+      {
+        "name": "Morphism Testnet Explorer",
+        "url": "https://explorer-testnet.morphism.xyz",
+        "standard": "EIP3091"
+      }
+    ],
+    "parent": {
+      "type": "L2",
+      "chain": "eip155-1",
+      "bridges": [{ "url": "https://bridge-testnet.morphism.xyz" }]
+    }
+  },
+  {
     "name": "Boba Network Goerli Testnet",
     "chain": "ETH",
     "rpc": ["https://goerli.boba.network/", "wss://wss.goerli.boba.network/"],
@@ -9912,6 +10032,36 @@
     "networkId": 3141,
     "slip44": 1,
     "explorers": []
+  },
+  {
+    "name": "Dubxcoin network",
+    "chain": "DUBX",
+    "rpc": ["https://rpcmain.arabianchain.org"],
+    "faucets": [],
+    "nativeCurrency": {
+      "name": "Dubxcoin mainnet",
+      "symbol": "DUBX",
+      "decimals": 18
+    },
+    "infoURL": "https://arabianchain.org",
+    "shortName": "dubx",
+    "chainId": 3269,
+    "networkId": 3269
+  },
+  {
+    "name": "Dubxcoin testnet",
+    "chain": "TESTDUBX",
+    "rpc": ["https://rpctestnet.arabianchain.org"],
+    "faucets": ["https://faucet.arabianchain.org/"],
+    "nativeCurrency": {
+      "name": "Dubxcoin testnet",
+      "symbol": "TDUBX",
+      "decimals": 18
+    },
+    "infoURL": "https://arabianchain.org",
+    "shortName": "testdubx",
+    "chainId": 3270,
+    "networkId": 3270
   },
   {
     "name": "Debounce Subnet Testnet",
@@ -10244,13 +10394,13 @@
     ]
   },
   {
-    "name": "Xpla Mainnet",
-    "chain": "XPLA",
+    "name": "Xpla Testnet",
+    "chain": "XPLATest",
     "rpc": ["https://dimension-rpc.xpla.dev"],
-    "faucets": ["https://faucet.xpla.io/"],
+    "faucets": ["https://faucet.xpla.io"],
     "nativeCurrency": { "name": "XPLA", "symbol": "XPLA", "decimals": 18 },
-    "infoURL": "https://xpla.io/",
-    "shortName": "xpla",
+    "infoURL": "https://xpla.io",
+    "shortName": "xplatest",
     "chainId": 3701,
     "networkId": 3701,
     "icon": "xpla",
@@ -10260,7 +10410,8 @@
         "url": "https://explorer.xpla.io",
         "standard": "none"
       }
-    ]
+    ],
+    "redFlags": ["reusedChainId"]
   },
   {
     "name": "Crossbell",
@@ -11854,11 +12005,14 @@
     "status": "incubating"
   },
   {
-    "name": "Horizen EON",
+    "name": "Horizen EON Mainnet",
     "shortName": "EON",
     "chain": "EON",
     "icon": "eon",
-    "rpc": ["https://eon-rpc.horizenlabs.io/ethv1"],
+    "rpc": [
+      "https://eon-rpc.horizenlabs.io/ethv1",
+      "https://rpc.ankr.com/horizen_eon"
+    ],
     "features": [{ "name": "EIP155" }, { "name": "EIP1559" }],
     "faucets": [],
     "nativeCurrency": { "name": "Zencash", "symbol": "ZEN", "decimals": 18 },
@@ -14682,6 +14836,26 @@
     ]
   },
   {
+    "name": "Nautilus Mainnet",
+    "chain": "ETH",
+    "icon": "nautilus",
+    "rpc": ["https://api.nautilus.nautchain.xyz"],
+    "faucets": [],
+    "nativeCurrency": { "name": "Zebec", "symbol": "ZBC", "decimals": 18 },
+    "infoURL": "https://docs.nautchain.xyz",
+    "shortName": "NAUTCHAIN",
+    "chainId": 22222,
+    "networkId": 22222,
+    "explorers": [
+      {
+        "name": "Nautscan",
+        "url": "https://nautscan.com",
+        "standard": "EIP3091",
+        "icon": "nautilus"
+      }
+    ]
+  },
+  {
     "name": "MAP Mainnet",
     "chain": "MAP",
     "icon": "map",
@@ -16682,6 +16856,63 @@
     ]
   },
   {
+    "name": "Amplify Subnet",
+    "chain": "AMPLIFY",
+    "rpc": ["https://subnets.avax.network/amplify/testnet/rpc"],
+    "features": [{ "name": "EIP1559" }],
+    "faucets": [],
+    "nativeCurrency": { "name": "AMP", "symbol": "AMP", "decimals": 18 },
+    "infoURL": "https://www.avax.network",
+    "shortName": "amplify",
+    "chainId": 78430,
+    "networkId": 78430,
+    "explorers": [
+      {
+        "name": "AMPLIFY Explorer",
+        "url": "https://subnets-test.avax.network/amplify",
+        "standard": "EIP3091"
+      }
+    ]
+  },
+  {
+    "name": "Bulletin Subnet",
+    "chain": "BULLETIN",
+    "rpc": ["https://subnets.avax.network/bulletin/testnet/rpc"],
+    "features": [{ "name": "EIP1559" }],
+    "faucets": [],
+    "nativeCurrency": { "name": "BLT", "symbol": "BLT", "decimals": 18 },
+    "infoURL": "https://www.avax.network",
+    "shortName": "bulletin",
+    "chainId": 78431,
+    "networkId": 78431,
+    "explorers": [
+      {
+        "name": "BULLETIN Explorer",
+        "url": "https://subnets-test.avax.network/bulletin",
+        "standard": "EIP3091"
+      }
+    ]
+  },
+  {
+    "name": "Conduit Subnet",
+    "chain": "CONDUIT",
+    "rpc": ["https://subnets.avax.network/conduit/testnet/rpc"],
+    "features": [{ "name": "EIP1559" }],
+    "faucets": [],
+    "nativeCurrency": { "name": "CON", "symbol": "CON", "decimals": 18 },
+    "infoURL": "https://www.avax.network",
+    "shortName": "conduit",
+    "chainId": 78432,
+    "networkId": 78432,
+    "explorers": [
+      {
+        "name": "CONDUIT Explorer",
+        "url": "https://subnets-test.avax.network/conduit",
+        "standard": "EIP3091"
+      }
+    ]
+  },
+  {
     "name": "Gold Smart Chain Testnet",
     "chain": "STAND",
     "icon": "standTestnet",
@@ -16952,6 +17183,30 @@
     "shortName": "Cyber",
     "chainId": 85449,
     "networkId": 48501
+  },
+  {
+    "name": "Nautilus Proteus Testnet",
+    "chain": "ETH",
+    "icon": "nautilus",
+    "rpc": ["https://api.proteus.nautchain.xyz/solana"],
+    "faucets": ["https://proteusfaucet.nautchain.xyz"],
+    "nativeCurrency": {
+      "name": "Zebec Test Token",
+      "symbol": "tZBC",
+      "decimals": 18
+    },
+    "infoURL": "https://docs.nautchain.xyz",
+    "shortName": "NAUTTest",
+    "chainId": 88002,
+    "networkId": 88002,
+    "explorers": [
+      {
+        "name": "Nautscan",
+        "url": "https://proteus.nautscan.com",
+        "standard": "EIP3091",
+        "icon": "nautilus"
+      }
+    ]
   },
   {
     "name": "Chiliz Scoville Testnet",
