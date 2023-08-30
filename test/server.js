@@ -6,7 +6,7 @@ process.env.SOLJSON_REPO = "./dist/data/soljson-repo";
 // ipfs-http-gateway runs on port 9090
 // process.env.IPFS_GATEWAY = "http://localhost:9090/ipfs/";
 process.env.IPFS_GATEWAY = "http://ipfs.io/ipfs/";
-process.env.FETCH_TIMEOUT = 15000; // instantiated http-gateway takes a little longer
+process.env.FETCH_TIMEOUT = 8000; // instantiated http-gateway takes a little longer
 
 // Auth0 environments
 process.env.AUTH0_AUDIENCE = "https://staging.sourcify.dev";

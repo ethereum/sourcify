@@ -50,7 +50,7 @@ export default class SourceFetcher {
       new SimpleGateway(
         ["ipfs"],
         process.env.IPFS_GATEWAY || "https://ipfs.io/ipfs/",
-        process.env.FALLBACK_IPFS_GATEWAY || "https://cloudflare-ipfs.com/ipfs/"
+        process.env.FALLBACK_IPFS_GATEWAY || "https://cf-ipfs.com/ipfs/"
       )
     ),
     new GatewayFetcher(
