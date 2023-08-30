@@ -1089,6 +1089,31 @@ describe("Test Supported Chains", function () {
     "4337/multicall.metadata.json"
   );
 
+  verifyContract(
+    "0x72Ed1E3E3A68DfB7495FAfb19C0de1A0B7Ec5524",
+    "78432",
+    "Conduit Subnet",
+    [],
+    "78432/multicall3.metadata.json"
+  );
+
+  verifyContract(
+    "0xa785B911a79B0d5d8895c567663c29F0f7B93321",
+    "78431",
+    "Bulletin Subnet",
+    [],
+    "78431/multicall3.metadata.json"
+  );
+
+  // Amplify Subnet
+  verifyContract(
+    "0xB19f81cA2141ACd6F2Cc39bAFAD2a613bC4c9592",
+    "78430",
+    "Amplify Subnet",
+    [],
+    "78430/multicall3.metadata.json"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainId) {
