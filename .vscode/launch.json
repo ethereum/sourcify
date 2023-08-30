@@ -65,7 +65,7 @@
       "envFile": "${workspaceFolder}/environments/.env",
       "preLaunchTask": "npm: build",
       "outFiles": [
-        "dist/**/*.js",
+        "${workspaceFolder}/services/monitor/dist/**/*.js",
         "${workspaceFolder}/packages/**/build/**/*.js"
       ],
       "smartStep": true,
@@ -80,7 +80,7 @@
       "program": "dist/index.js",
       "envFile": "${workspaceFolder}/environments/.env",
       "outFiles": [
-        "dist/**/*.js",
+        "${workspaceFolder}/services/monitor/dist/**/*.js",
         "${workspaceFolder}/packages/**/build/**/*.js"
       ],
       "smartStep": true,
