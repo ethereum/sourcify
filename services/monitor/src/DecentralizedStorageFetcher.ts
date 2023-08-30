@@ -28,7 +28,7 @@ export default class DecentralizedStorageFetcher extends EventEmitter {
   fetch = (fileHash: FileHash) => {
     assert(fileHash.origin === this.origin, "Invalid origin");
 
-    return new Promise((resolve, reject) => {
+    return new Promise<string>((resolve, reject) => {
       const cleanupSubscription = () => {
         this.subcriberCounter--;
         this.removeListener(`${fileHash.hash} fetched`, successListener);
@@ -70,18 +70,19 @@ export default class DecentralizedStorageFetcher extends EventEmitter {
           .fetchWithRetries(fileHash.hash)
           .then((file) => {
             logger.info(`Fetched ${fileHash.hash} from ${gatewayFetcher.url}`);
+            this.uniqueFilesCounter--;
+            delete this.uniqueFiles[fileHash.hash];
             // Notify the subscribers
             this.emit(`${fileHash.hash} fetched`, file);
           })
           .catch((err) => {
             logger.info(
-              `Failed to fetch ${fileHash.hash} from ${gatewayFetcher} \n ${err}`
+              `Failed to fetch ${fileHash.hash} from ${gatewayFetcher.url} \n ${err}`
             );
-            this.emit(`${fileHash.hash} fetch failed`);
-          })
-          .finally(() => {
             this.uniqueFilesCounter--;
             delete this.uniqueFiles[fileHash.hash];
+            // Notify the subscribers
+            this.emit(`${fileHash.hash} fetch failed`);
           });
       }
       // Already trying to fetch this file. Don't fetch again. Already listening.
