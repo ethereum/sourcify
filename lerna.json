@@ -9,7 +9,8 @@
       "npmClientArgs": ["--no-package-lock"]
     },
     "version": {
-      "allowBranch": "master"
+      "allowBranch": "master",
+      "message": "bump versions [deploy-master]"
     }
   },
   "packages": [".", "ui", "packages/*"],

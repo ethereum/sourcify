@@ -22,6 +22,9 @@ parameters:
   run-tests:
     type: boolean
     default: false
+  deploy-master:
+    type: boolean
+    default: false
 
 ################
 ### ALIASES ####
@@ -92,8 +95,11 @@ workflows:
     when:
       and:
         - or:
-            - equal: [master, << pipeline.git.branch >>]
+          - equal: [master, << pipeline.git.branch >>]
+          # TODO: Testing [deploy-master] param on staging. Will swap it with master when we're ready 
+          and:
             - equal: [staging, << pipeline.git.branch >>]
+            - << pipeline.parameters.deploy-master >>
         - or:
             [
               << pipeline.parameters.run-build-ipfs >>,
