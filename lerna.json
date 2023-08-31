@@ -10,7 +10,7 @@
     },
     "version": {
       "allowBranch": "master",
-      "message": "bump versions [deploy-master]"
+      "message": "bump versions"
     }
   },
   "packages": [".", "ui", "packages/*"],

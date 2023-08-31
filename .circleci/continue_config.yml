@@ -96,10 +96,11 @@ workflows:
       and:
         - or:
           - equal: [master, << pipeline.git.branch >>]
-          # TODO: Testing [deploy-master] param on staging. Will swap it with master when we're ready 
           and:
             - equal: [staging, << pipeline.git.branch >>]
-            - << pipeline.parameters.deploy-master >>
+            - matches: 
+                pattern: .*@\d\.\d\.\d
+                value: << pipeline.git.tag >>
         - or:
             [
               << pipeline.parameters.run-build-ipfs >>,
