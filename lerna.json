@@ -9,7 +9,7 @@
       "npmClientArgs": ["--no-package-lock"]
     },
     "version": {
-      "allowBranch": "master"
+      "allowBranch": "staging"
     }
   },
   "packages": [".", "ui", "packages/*"],
