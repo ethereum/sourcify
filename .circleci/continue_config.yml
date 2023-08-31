@@ -96,7 +96,7 @@ workflows:
       and:
         - or:
           - equal: [master, << pipeline.git.branch >>]
-          and:
+        - and:
             - equal: [staging, << pipeline.git.branch >>]
             - matches: 
                 pattern: .*@\d\.\d\.\d
