@@ -1,9 +1,6 @@
 # Runs the server in a linux-amd64 container with debug port exposed
 # Used in debugging solidity linux-amd64 binary executables  
 version: "3.7"
-x-project-repository-mount: &project-repository-mount
-  type: bind
-  source: $REPOSITORY_PATH
 
 x-project-base: &project-base
   env_file:
@@ -29,8 +26,9 @@ services:
       - "9229:9229"      # Debug port
     volumes:
       - ../:/home/app
-      - <<: *project-repository-mount
-        target: /home/data/repository
+      - type: bind
+        source: $REPOSITORY_PATH_HOST
+        target: $REPOSITORY_PATH
       - type: bind
         source: $SOLC_REPO_HOST
         target: $SOLC_REPO

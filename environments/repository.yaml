@@ -1,8 +1,4 @@
 version: "3.7"
-x-project-repository-mount: &project-repository-mount
-  type: bind
-  source: $REPOSITORY_PATH
-  read_only: true
 
 x-project-base: &project-base
   env_file:
@@ -23,8 +19,9 @@ services:
     image: ethereum/source-verify:repository-${TAG}
     container_name: repository-${TAG}
     volumes:
-      - <<: *project-repository-mount
-        target: /data
+      - type: bind
+        source: $REPOSITORY_PATH_HOST
+        target: $REPOSITORY_PATH
         read_only: true
     ports:
       - ${REPOSITORY_SERVER_EXTERNAL_PORT}:80

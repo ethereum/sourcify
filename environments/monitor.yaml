@@ -1,8 +1,4 @@
 version: "3.7"
-x-project-repository-mount:
-  &project-repository-mount
-  type: bind
-  source: $REPOSITORY_PATH
 
 x-project-base:
   &project-base
@@ -21,8 +17,9 @@ services:
     image: ethereum/source-verify:monitor-${TAG}
     container_name: monitor-${TAG}
     volumes:
-      - <<: *project-repository-mount
-        target: /home/data/repository
+      - type: bind
+        source: $REPOSITORY_PATH_HOST
+        target: $REPOSITORY_PATH
       - type: bind
         source: $SOLC_REPO_HOST
         target: $SOLC_REPO
