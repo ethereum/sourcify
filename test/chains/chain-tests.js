@@ -935,8 +935,8 @@ describe("Test Supported Chains", function () {
     "0x9BF49b704EE2A095b95c1f2D4EB9010510c41C9E",
     "13337",
     "BEAM Chain",
-    ["multicall3/Multicall3.sol"],
-    "multicall3/multicall3.metadata.json",
+    ["13337/Multicall3.sol"],
+    "13337/multicall3.metadata.json",
     "partial"
   );
 
@@ -946,8 +946,7 @@ describe("Test Supported Chains", function () {
     "222000222",
     "Kanazawa Chain",
     [],
-    "222000222/multicall3.metadata.json",
-    "partial"
+    "222000222/multicall3.metadata.json"
   );
 
   // MELD Chain Testnet
@@ -957,6 +956,15 @@ describe("Test Supported Chains", function () {
     "MELD Chain",
     [],
     "333000333/multicall3.metadata.json"
+  );
+
+  // Kiwi Subnet
+  verifyContract(
+    "0xe89a85b79e64b35829625A7EEf70F8915d32F75f",
+    "2037",
+    "Kiwi Subnet",
+    [],
+    "2037/multicall3.metadata.json"
   );
 
   // KAVA EVM
@@ -1071,6 +1079,39 @@ describe("Test Supported Chains", function () {
     "Fantom Opera",
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
+  );
+
+  verifyContract(
+    "0x4956f15efdc3dc16645e90cc356eafa65ffc65ec",
+    "4337",
+    "Beam Subnet",
+    [],
+    "4337/multicall.metadata.json"
+  );
+
+  verifyContract(
+    "0x72Ed1E3E3A68DfB7495FAfb19C0de1A0B7Ec5524",
+    "78432",
+    "Conduit Subnet",
+    [],
+    "78432/multicall3.metadata.json"
+  );
+
+  verifyContract(
+    "0xa785B911a79B0d5d8895c567663c29F0f7B93321",
+    "78431",
+    "Bulletin Subnet",
+    [],
+    "78431/multicall3.metadata.json"
+  );
+
+  // Amplify Subnet
+  verifyContract(
+    "0xB19f81cA2141ACd6F2Cc39bAFAD2a613bC4c9592",
+    "78430",
+    "Amplify Subnet",
+    [],
+    "78430/multicall3.metadata.json"
   );
 
   // Finally check if all the "supported: true" chains have been tested
