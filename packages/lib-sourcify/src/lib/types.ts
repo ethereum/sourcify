@@ -30,13 +30,15 @@ export interface MissingSources {
   };
 }
 
-export interface MetadataSources {
-  [index: string]: {
-    keccak256: string;
-    content?: string;
-    urls?: string[];
-    license?: string;
-  };
+export interface MetadataSource {
+  keccak256: string;
+  content?: string;
+  urls?: string[];
+  license?: string;
+}
+
+export interface MetadataSourceMap {
+  [index: string]: MetadataSource;
 }
 
 export interface Devdoc {
@@ -135,7 +137,7 @@ export interface Metadata {
     viaIR?: boolean;
     outputSelection?: any;
   };
-  sources: MetadataSources;
+  sources: MetadataSourceMap;
   version: number;
 }
 

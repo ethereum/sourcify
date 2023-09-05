@@ -211,15 +211,17 @@ export class ChainMonitor extends EventEmitter {
 
       const pendingContract = new PendingContract(
         metadataHash,
+        address,
+        this.sourcifyChain.chainId,
         this.sourceFetchers
       );
       this.chainLogger.debug(
         `New pending contract ${address} with hash ${metadataHash.getSourceHash()}`
       );
       await pendingContract.assemble();
-
-      // TODO: send to Sourcify server
-      this.chainLogger.info(`Now sending the contract to Sourcify server`);
+      this.chainLogger.debug(
+        `Contract ${address} assembled. Now sending to Sourcify server`
+      );
     } catch (err: any) {
       this.chainLogger.error(
         `Error processing bytecode for contract ${address}: ${err}`

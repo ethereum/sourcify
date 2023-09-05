@@ -5,48 +5,97 @@ import {
   CheckedContract,
   isEmpty,
   Metadata,
+  MetadataSource,
+  MetadataSourceMap,
   StringMap,
 } from "@ethereum-sourcify/lib-sourcify";
 import { id as keccak256str } from "ethers";
 import { KnownDecentralizedStorageFetchers } from "./types";
 import DecentralizedStorageFetcher from "./DecentralizedStorageFetcher";
-
-type PendingSource = {
-  keccak256: string;
-  content?: string;
-  urls: string[];
-  name: string;
-};
-interface PendingSourceMap {
-  [keccak256: string]: PendingSource;
-}
+import assert from "assert";
 
 export default class PendingContract {
   public metadataHash: FileHash;
+  public address: string;
+  public chainId: number;
   private metadata: Metadata | undefined;
-  private pendingSources: PendingSourceMap = {};
-  private fetchedSources: StringMap = {};
-  private fetcher: DecentralizedStorageFetcher;
+  private pendingSources: MetadataSourceMap = {};
+  private fetchedSources: MetadataSourceMap = {};
+  private decentralizedStorageFetchers: KnownDecentralizedStorageFetchers;
 
   constructor(
     metadataHash: FileHash,
+    address: string,
+    chainId: number,
     decentralizedStorageFetchers: KnownDecentralizedStorageFetchers
   ) {
     this.metadataHash = metadataHash;
-    const origin = metadataHash.origin;
-    const fetcher = decentralizedStorageFetchers[origin];
-    if (!fetcher) {
-      throw new Error(`No fetcher for origin ${origin}`);
-    } else {
-      this.fetcher = fetcher;
-    }
+    this.address = address;
+    this.chainId = chainId;
+    this.decentralizedStorageFetchers = decentralizedStorageFetchers;
   }
 
   /**
    * Assembles this contract by first fetching its metadata and then fetching all the sources listed in the metadata.
    */
   assemble = async () => {
-    const metadataStr = await this.fetcher.fetch(this.metadataHash);
+    const metadataFetcher =
+      this.decentralizedStorageFetchers[this.metadataHash.origin];
+    if (!metadataFetcher) {
+      throw new Error(
+        `No metadata fetcher found for origin ${this.metadataHash.origin}`
+      );
+    }
+    const metadataStr = await metadataFetcher.fetch(this.metadataHash);
+    logger.info(
+      `Fetched metadata for ${this.address} on chain ${this.chainId} from ${this.metadataHash.origin}`
+    );
+    // TODO: check if metadata hash matches this.metadataHash.hash
+    this.metadata = JSON.parse(metadataStr) as Metadata;
+    this.pendingSources = { ...this.metadata.sources }; // Copy, don't mutate original.
+
+    // Try to fetch all sources in parallel.
+    const fetchPromises = Object.keys(this.pendingSources).map(
+      async (sourceUnitName) => {
+        const source = this.pendingSources[sourceUnitName];
+
+        // Source already inline.
+        if (source.content) {
+          this.movePendingToFetchedSources(sourceUnitName);
+          return;
+        }
+
+        let fetchedContent: string | undefined;
+        // There are multiple urls. Can be fetched from any of them.
+        // TODO: Can url be https:// ?
+        for (const url of source.urls || []) {
+          const fileHash = FileHash.fromUrl(url);
+          if (!fileHash) {
+            logger.error(
+              `No file hash found for url ${url} for contract ${this.address}`
+            );
+            continue;
+          }
+          const fetcher = this.decentralizedStorageFetchers[fileHash.origin];
+          if (!fetcher) {
+            logger.debug(
+              `No fetcher found for origin ${fileHash.origin} for contract ${this.address}`
+            );
+            continue;
+          }
+          fetchedContent = await fetcher.fetch(fileHash);
+          source.content = fetchedContent;
+          this.movePendingToFetchedSources(sourceUnitName);
+        }
+      }
+    );
+    await Promise.all(fetchPromises);
+
+    if (!isEmpty(this.pendingSources)) {
+      throw new Error(
+        `Could not fetch all sources for contract ${this.address}`
+      );
+    }
   };
 
   // private addMetadata = (rawMetadata: string) => {
@@ -92,20 +141,21 @@ export default class PendingContract {
   //   }
   // };
 
-  // private addFetchedSource = (sourceContent: string) => {
-  //   const hash = keccak256str(sourceContent);
-  //   const source = this.pendingSources[hash];
+  private movePendingToFetchedSources = (sourceUnitName: string) => {
+    const source = this.pendingSources[sourceUnitName];
+    if (!source) {
+      throw new Error(`Source ${sourceUnitName} not found`);
+    }
+    if (!source.content) {
+      throw new Error(`Source ${sourceUnitName} has no content`);
+    }
+    const calculatedKeccak = keccak256str(source.content);
+    assert(
+      calculatedKeccak === source.keccak256,
+      `Keccak mismatch for ${sourceUnitName}`
+    );
 
-  //   if (!source || source.name in this.fetchedSources) {
-  //     return;
-  //   }
-
-  //   delete this.pendingSources[hash];
-  //   this.fetchedSources[source.name] = sourceContent;
-
-  //   if (isEmpty(this.pendingSources) && this.metadata) {
-  //     const contract = new CheckedContract(this.metadata, this.fetchedSources);
-  //     this.callback(contract);
-  //   }
-  // };
+    this.fetchedSources[sourceUnitName] = { ...source };
+    delete this.pendingSources[sourceUnitName];
+  };
 }
