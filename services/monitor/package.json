@@ -25,6 +25,8 @@
   },
   "homepage": "https://github.com/ethereum/sourcify#readme",
   "dependencies": {
+    "@ethereum-sourcify/bytecode-utils": "*",
+    "@ethereum-sourcify/lib-sourcify": "*",
     "ethers": "^6.7.1",
     "node-fetch": "^2.6.6",
     "winston": "^3.10.0"
