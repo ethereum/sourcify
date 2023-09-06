@@ -218,7 +218,7 @@ jobs:
           name: Trigger Deploy Events
           no_output_timeout: 5m
           command: |
-            ./scripts/deploy.sh
+            ./scripts/trigger_deploy.sh
   tests-node-v16:
     docker:
       - image: cimg/node:16.15
