@@ -34,6 +34,9 @@ aliases:
       run-build:
         type: boolean
         default: false
+      SERVICE:
+        type: string
+        default: ""
     steps:
       - when:
           condition: << parameters.run-build >>
@@ -50,6 +53,13 @@ aliases:
                 name: Build and push docker images
                 command: |
                   ./scripts/build_and_publish_docker_images.sh
+            - run: mkdir -p workspace
+            # Write the image sha to a file so that it can be used in the deploy job
+            - run: echo $(docker images --no-trunc --format "{{.ID}}" ethereum/source-verify:$SERVICE-$TAG | cut -d':' -f 2) > workspace/"$SERVICE"_image_sha.txt
+            - persist_to_workspace:
+                root: workspace
+                paths:
+                  - << parameters.SERVICE >>_image_sha.txt
       - run: echo 0
   - &filter-base
     filters:
@@ -114,17 +124,23 @@ workflows:
             - tests-node-v16
       - build-push-ipfs:
           run-build: << pipeline.parameters.run-build-ipfs >>
+          SERVICE: "ipfs"
       # Always build monitor if there's a change in the server
       - build-push-monitor:
           run-build: << pipeline.parameters.run-build-server >>
+          SERVICE: "monitor"
       - build-push-repository:
           run-build: << pipeline.parameters.run-build-repository >>
+          SERVICE: "repository"
       - build-push-s3:
           run-build: << pipeline.parameters.run-build-s3 >>
+          SERVICE: "s3"
       - build-push-server:
           run-build: << pipeline.parameters.run-build-server >>
+          SERVICE: "server"
       - build-push-ui:
           run-build: << pipeline.parameters.run-build-ui >>
+          SERVICE: "ui"
       - deploy:
           requires:
             - build-push-ipfs
@@ -170,6 +186,7 @@ jobs:
     <<: *build-base
     environment:
       SERVICE: "ipfs"
+    
   build-push-monitor:
     <<: *build-base
     environment:
@@ -195,14 +212,11 @@ jobs:
       - image: cimg/base:2021.04
     steps:
       - checkout
-      - setup_remote_docker:
-          version: 20.10.2
-      - add_ssh_keys:
-          fingerprints:
-            - "a9:2f:97:c3:64:10:80:c7:8e:2f:db:f7:a3:4a:53:66"
+      - attach_workspace:
+          at: workspace
       - run:
-          name: Deploy
-          no_output_timeout: 30m
+          name: Trigger Deploy Events
+          no_output_timeout: 5m
           command: |
             ./scripts/deploy.sh
   tests-node-v16:
