@@ -10,11 +10,8 @@ services=("ui" "server" "monitor" "repository")
 
 if [ "$CIRCLE_BRANCH" == "staging" ]; then 
     ENVIRONMENT='staging'
-fi
-
 elif [ "$CIRCLE_BRANCH" == "master" ]; then
     ENVIRONMENT='production'
-fi
 else
     echo "Invalid branch $CIRCLE_BRANCH. Check your config.yml"
     exit 1
