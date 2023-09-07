@@ -26,10 +26,10 @@ docker login --username $DOCKER_USER --password $DOCKER_PASS
 docker-compose -f environments/build-$SERVICE.yaml build
 docker push ethereum/source-verify:$SERVICE-$TAG
 
-# Get the SHA of the built image
-image_sha=$(docker images --no-trunc --format "{{.ID}}" ethereum/source-verify:$SERVICE-$TAG | cut -d':' -f 2)
-echo "Image SHA: $image_sha"
+# Get the tag of the built image
+image_tag=$(docker images --no-trunc --format "{{.ID}}" ethereum/source-verify:$SERVICE-$TAG)
+echo "Image tag: $image_tag"
 
 mkdir -p workspace
-echo "Writing image SHA $image_sha to workspace/"$SERVICE"_image_sha.txt"
-echo -n $image_sha > workspace/"$SERVICE"_image_sha.txt
+echo "Writing image tag $image_tag to workspace/"$SERVICE"_image_tag.txt"
+echo -n $image_tag > workspace/"$SERVICE"_image_tag.txt

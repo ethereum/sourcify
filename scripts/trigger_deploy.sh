@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Checks the new SHA value of the built image for each service (ui, server, monitor, repository)
-# The SHA value is persisted in worspace/{service}_image_sha.txt by each respective build job
-# If a new image is built with a new SHA, a deploy trigger is sent to the sourcifyeth/infra repo
+# Checks the new tag of the built image for each service (ui, server, monitor, repository)
+# The tag value is persisted in worspace/{service}_image_tag.txt by each respective build job
+# If a new image is built with a new tag, a deploy trigger is sent to the sourcifyeth/infra repo
 
 
 # Define the list of services
@@ -10,8 +10,10 @@ services=("ui" "server" "monitor" "repository")
 
 if [ "$CIRCLE_BRANCH" == "staging" ]; then 
     ENVIRONMENT='staging'
+    TAG='latest'
 elif [ "$CIRCLE_BRANCH" == "master" ]; then
     ENVIRONMENT='production'
+    TAG='stable'
 else
     echo "Invalid branch $CIRCLE_BRANCH. Check your config.yml"
     exit 1
@@ -19,18 +21,18 @@ fi
 
 # Loop through each service
 for service in "${services[@]}"; do
-    filePath="workspace/${service}_image_sha.txt"
+    filePath="workspace/${service}_image_tag.txt"
 
     if [ -f "$filePath" ]; then
         echo "File $filePath exists."
 
-        image_sha_content=$(cat "$filePath")
+        image_tag_content=$(cat "$filePath")
 
         # Check if the content is not an empty string
-        if [ -n "$image_sha_content" ]; then
+        if [ -n "$image_tag_content" ]; then
             echo "File is not empty."
 
-            body="{\"event_type\":\"deploy\",\"client_payload\":{\"environment\":\"$ENVIRONMENT\",\"component\":\"$service\",\"image_tag\":\"$image_sha_content\"}}"
+            body="{\"event_type\":\"deploy\",\"client_payload\":{\"environment\":\"$ENVIRONMENT\",\"component\":\"$service\",\"image_tag\":\""$service"-"$TAG"@"$image_tag_content"\",\"ref\":\"$CIRCLE_BRANCH\",\"sha\":\"$CIRCLE_SHA1\"}}"
 
             echo "Sending deploy trigger with request body $body"
 
