@@ -23,7 +23,7 @@ docker-compose -f environments/build-$SERVICE.yaml build
 docker push ethereum/source-verify:$SERVICE-$TAG
 
 # Get the tag of the built image
-image_tag=$(docker images --no-trunc --format "{{.ID}}" ethereum/source-verify:$SERVICE-$TAG)
+image_tag=$(docker inspect --format='{{index .RepoDigests 0}}' ethereum/source-verify:$SERVICE-$TAG | cut -d'@' -f2)
 echo "Image tag: $image_tag"
 
 mkdir -p workspace
