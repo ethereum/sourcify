@@ -8,6 +8,7 @@ import {
   StringMap,
   /* ContextVariables, */
   CheckedContract,
+  Transformation,
 } from "@ethereum-sourcify/lib-sourcify";
 import { MatchLevel, RepositoryTag } from "../types";
 import {
@@ -20,6 +21,7 @@ import config from "../../config";
 import { SourcifyEventManager } from "../../common/SourcifyEventManager/SourcifyEventManager";
 import { logger } from "../../common/loggerLoki";
 import { getAddress } from "ethers";
+import { id as keccak256str } from "ethers";
 
 /**
  * A type for specifying the match quality of files.
@@ -83,6 +85,7 @@ export interface IRepositoryService {
 export class RepositoryService implements IRepositoryService {
   repositoryPath: string;
   private ipfsClient?: IPFSHTTPClient;
+  private db?: any;
 
   constructor(repositoryPath: string) {
     this.repositoryPath = repositoryPath;
@@ -470,6 +473,7 @@ export class RepositoryService implements IRepositoryService {
       }
 
       await this.addToIpfsMfs(matchQuality, match.chainId, match.address);
+      await this.addToAllianceDatabase(contract, match);
       SourcifyEventManager.trigger("Verification.MatchStored", match);
     } else if (match.status === "extra-file-input-bug") {
       return match;
@@ -647,5 +651,176 @@ export class RepositoryService implements IRepositoryService {
 
     sanitizedPath = path.format(parsedPath);
     return { sanitizedPath, originalPath };
+  }
+
+  /* private async addToAllianceDatabase(contract: CheckedContract, match: Match) {
+    if (contract.deployedBytecode === undefined) {
+      return;
+    }
+    const [rows, fields] = await this.db.query(
+      `
+    SELECT
+      verified_contracts.compilation_id,
+      verified_contracts.contract_id,
+      verified_contracts.creation_match,
+      verified_contracts.creation_metadata,
+      verified_contracts.creation_transformations,
+      verified_contracts.runtime_match,
+      verified_contracts.runtime_metadata,
+      verified_contracts.runtime_transformations,
+      -- contracts.creation_code_hash,
+      -- contracts.runtime_code_hash
+    FROM verified_contracts
+    JOIN contracts ON contracts.id = verified_contracts.contract_id
+    -- JOIN code ON code.code_hash = contracts.runtime_code_hash
+    WHERE runtime_code_hash = ?
+    `,
+      [keccak256str(contract.deployedBytecode)]
+    );
+
+    const { transformations } = match;
+
+    if (rows === 0) {
+      // INSERT INTO code(creation_bytecode) if doesn't exist
+      // INSERT INTO code(runtime_bytecode) if doesn't exist
+      // INSERT INTO contracts(...) if doesn't exist
+      // INSERT INTO contract_deployments(...) if doesn't exist
+      // # do we have transaction_hash,block_number,txindex?
+      // INSERT INTO compiled_contracts(...) if doesn't exist
+      // INSERT INTO verified_contracts(...,transformations)
+    } else {
+      // if we have a better match
+      // INSERT INTO compiled_contracts(...) if doesn't exist
+      // INSERT INTO verified_contracts(...,transformations)
+    }
+  } */
+
+  private async addToAllianceDatabase(contract: CheckedContract, match: Match) {
+    if (
+      contract.deployedBytecode === undefined ||
+      contract.creationBytecode === undefined
+    ) {
+      return;
+    }
+
+    const [rows] = await this.db.query(
+      `
+      SELECT
+        verified_contracts.compilation_id,
+        verified_contracts.contract_id,
+        verified_contracts.creation_match,
+        verified_contracts.creation_metadata,
+        verified_contracts.creation_transformations,
+        verified_contracts.runtime_match,
+        verified_contracts.runtime_metadata,
+        verified_contracts.runtime_transformations,
+        contracts.id as contractId
+      FROM verified_contracts
+      JOIN contracts ON contracts.id = verified_contracts.contract_id
+      WHERE contracts.runtime_code_hash = ?
+      `,
+      [keccak256str(contract.deployedBytecode)]
+    );
+
+    const { deployedTransformations, creationTransformations } = match;
+
+    if (rows.length === 0) {
+      const keccak256CreationBytecode = keccak256str(contract.creationBytecode);
+      const keccak256DeployedBytecode = keccak256str(contract.deployedBytecode);
+
+      // INSERT INTO code(creation_bytecode) if doesn't exist
+      await this.db.query(
+        "INSERT INTO code (code_hash, code) VALUES (?, ?) ON CONFLICT (code_hash) DO NOTHING",
+        [keccak256CreationBytecode, contract.creationBytecode]
+      );
+
+      // INSERT INTO code(runtime_bytecode) if doesn't exist
+      await this.db.query(
+        "INSERT INTO code (code_hash, code) VALUES (?, ?) ON CONFLICT (code_hash) DO NOTHING",
+        [keccak256DeployedBytecode, contract.deployedBytecode]
+      );
+
+      // INSERT INTO contracts(...) if doesn't exist
+      // Assuming values for creationCodeHash and runtimeCodeHash
+      const contractInsertResult = await this.db.query(
+        "INSERT INTO contracts (creation_code_hash, runtime_code_hash) VALUES (?, ?) ON CONFLICT (contracts_pseudo_pkey) DO NOTHING",
+        [keccak256CreationBytecode, keccak256DeployedBytecode]
+      );
+
+      // INSERT INTO contract_deployments(...) if doesn't exist
+      // Assuming values for chainId, address, transactionHash
+      await this.db.query(
+        "INSERT INTO contract_deployments (chain_id, address, transaction_hash, contract_id) VALUES (?, ?, ?, ?) ON CONFLICT (contract_deployments_pseudo_pkey) DO NOTHING",
+        [
+          match.chainId,
+          match.address,
+          match.creatorTxHash,
+          contractInsertResult.insertId,
+        ]
+      );
+
+      // INSERT INTO compiled_contracts(...) if doesn't exist
+      // Assuming values for compiler, version, language, name, etc.
+      const compiledContractsInsertResult = await this.db.query(
+        "INSERT INTO compiled_contracts (compiler, version, language, name, sources, compiler_settings, creation_code_hash, runtime_code_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (compiled_contracts_pseudo_pkey) DO NOTHING",
+        [
+          contract.compiledPath,
+          contract.compilerVersion,
+          "solidity",
+          contract.name,
+          JSON.stringify(contract.solidity),
+          JSON.stringify(contract.metadata.settings),
+          keccak256str(contract.creationBytecode),
+          keccak256str(contract.deployedBytecode),
+        ]
+      );
+
+      // INSERT INTO verified_contracts(...,transformations)
+      // Assuming contractId and compilationId are available somehow
+      await this.db.query(
+        "INSERT INTO verified_contracts (compilation_id, contract_id, creation_transformations, runtime_transformations) VALUES (?, ?, ?, ?)",
+        [
+          compiledContractsInsertResult.insertId,
+          contractInsertResult.insertId,
+          JSON.stringify(creationTransformations),
+          JSON.stringify(deployedTransformations),
+        ]
+      );
+    } else {
+      const result = rows[0];
+      const hasMetadataTransformation = JSON.parse(
+        result.runtime_transformations
+      )?.some((trans: Transformation) => trans.reason === "metadata");
+
+      if (hasMetadataTransformation) {
+        // if we have a better match
+
+        // INSERT INTO compiled_contracts(...)
+        const compiledContractsInsertResult = await this.db.query(
+          "INSERT INTO compiled_contracts (compiler, version, language, name, sources, compiler_settings, creation_code_hash, runtime_code_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (compiled_contracts_pseudo_pkey) DO NOTHING",
+          [
+            contract.compiledPath,
+            contract.compilerVersion,
+            "solidity",
+            contract.name,
+            JSON.stringify(contract.solidity),
+            JSON.stringify(contract.metadata.settings),
+            keccak256str(contract.creationBytecode),
+            keccak256str(contract.deployedBytecode),
+          ]
+        );
+
+        // INSERT INTO verified_contracts(...,transformations)
+        await this.db.query(
+          "INSERT INTO verified_contracts (compilation_id, contract_id, creation_transformations, runtime_transformations) VALUES (?, ?, ?, ?)",
+          [
+            compiledContractsInsertResult.insertId,
+            result.contractId,
+            JSON.stringify(creationTransformations),
+            JSON.stringify(deployedTransformations),
+          ]
+        );
+      }
+    }
   }
 }

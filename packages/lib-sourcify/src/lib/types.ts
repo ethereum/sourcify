@@ -159,6 +159,36 @@ export interface RecompilationResult {
   immutableReferences: ImmutableReferences;
 }
 
+export type Transformation = {
+  type: 'insert' | 'replace';
+  reason: 'constructor' | 'library' | 'immutable' | 'metadata';
+  offset: number;
+  value?: string;
+};
+
+export const ConstructorTransformation = (offset: number): Transformation => ({
+  type: 'insert',
+  reason: 'constructor',
+  offset,
+});
+
+export const MetadataTransformation = (offset: number): Transformation => ({
+  type: 'replace',
+  reason: 'metadata',
+  offset,
+});
+
+export const ImmutablesTransformation = (
+  reason: 'library' | 'immutable',
+  offset: number,
+  value: string
+): Transformation & { value: string } => ({
+  type: 'replace',
+  reason,
+  offset,
+  value,
+});
+
 export interface Match {
   address: string;
   chainId: string;
@@ -171,6 +201,8 @@ export interface Match {
   /* contextVariables?: ContextVariables; */
   creatorTxHash?: string;
   immutableReferences?: ImmutableReferences;
+  deployedTransformations?: Transformation[];
+  creationTransformations?: Transformation[];
 }
 
 export type Status =

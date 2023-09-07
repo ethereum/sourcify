@@ -3,10 +3,13 @@ import {
   /* ContextVariables, */
   Create2Args,
   ImmutableReferences,
+  ImmutablesTransformation,
   Match,
   Metadata,
+  MetadataTransformation,
   RecompilationResult,
   StringMap,
+  Transformation,
 } from './types';
 import {
   decode as bytecodeDecode,
@@ -42,6 +45,8 @@ export async function verifyDeployed(
     address,
     chainId: sourcifyChain.chainId.toString(),
     status: null,
+    deployedTransformations: [],
+    creationTransformations: [],
   };
   logInfo(
     `Verifying contract ${
@@ -265,6 +270,8 @@ export async function verifyCreate2(
     status: 'perfect',
     abiEncodedConstructorArguments,
     create2Args,
+    deployedTransformations: [],
+    creationTransformations: [],
     // libraryMap: libraryMap,
   };
 
@@ -284,17 +291,24 @@ export function matchWithDeployedBytecode(
     deployedBytecode
   );
 
+  // Initialize the transformations array if undefined
+  if (match.deployedTransformations === undefined) {
+    match.deployedTransformations = [];
+  }
+
   // Replace the library placeholders in the recompiled bytecode with values from the deployed bytecode
   const { replaced, libraryMap } = addLibraryAddresses(
     recompiledDeployedBytecode,
-    deployedBytecode
+    deployedBytecode,
+    match.deployedTransformations
   );
   recompiledDeployedBytecode = replaced;
 
   if (immutableReferences) {
     deployedBytecode = replaceImmutableReferences(
       immutableReferences,
-      deployedBytecode
+      deployedBytecode,
+      match.deployedTransformations
     );
   }
 
@@ -317,6 +331,9 @@ export function matchWithDeployedBytecode(
       match.libraryMap = libraryMap;
       match.immutableReferences = immutableReferences;
       match.status = 'partial';
+      match.deployedTransformations?.push(
+        MetadataTransformation(trimmedCompiledRuntimeBytecode.length)
+      );
     }
   }
 }
@@ -407,11 +424,17 @@ export async function matchWithCreationTx(
   const creatorTx = await sourcifyChain.getTx(creatorTxHash);
   const creatorTxData = creatorTx.data;
 
+  // Initialize the transformations array if undefined
+  if (match.creationTransformations === undefined) {
+    match.creationTransformations = [];
+  }
+
   // The reason why this uses `startsWith` instead of `===` is that creationTxData may contain constructor arguments at the end part.
   // Replace the library placeholders in the recompiled bytecode with values from the deployed bytecode
   const { replaced, libraryMap } = addLibraryAddresses(
     recompiledCreationBytecode,
-    creatorTxData
+    creatorTxData,
+    match.creationTransformations
   );
   recompiledCreationBytecode = replaced;
 
@@ -430,6 +453,9 @@ export async function matchWithCreationTx(
     );
     if (trimmedCreatorTxData.startsWith(trimmedRecompiledCreationBytecode)) {
       match.status = 'partial';
+      match.deployedTransformations?.push(
+        MetadataTransformation(trimmedRecompiledCreationBytecode.length)
+      );
     }
   }
 
@@ -487,7 +513,8 @@ export async function matchWithCreationTx(
 
 export function addLibraryAddresses(
   template: string,
-  real: string
+  real: string,
+  transformationsArray: Transformation[]
 ): {
   replaced: string;
   libraryMap: StringMap;
@@ -507,6 +534,10 @@ export function addLibraryAddresses(
     template = template.split(placeholder).join(address);
 
     index = template.indexOf(PLACEHOLDER_START);
+
+    transformationsArray.push(
+      ImmutablesTransformation('library', index, template)
+    );
   }
 
   return {
@@ -535,13 +566,17 @@ export function checkCallProtectionAndReplaceAddress(
  */
 export function replaceImmutableReferences(
   immutableReferences: ImmutableReferences,
-  deployedBytecode: string
+  deployedBytecode: string,
+  transformationsArray: Transformation[]
 ) {
   deployedBytecode = deployedBytecode.slice(2); // remove "0x"
 
   Object.keys(immutableReferences).forEach((astId) => {
     immutableReferences[astId].forEach((reference) => {
       const { start, length } = reference;
+      transformationsArray.push(
+        ImmutablesTransformation('immutable', start * 2, '')
+      );
       const zeros = '0'.repeat(length * 2);
       deployedBytecode =
         deployedBytecode.slice(0, start * 2) +

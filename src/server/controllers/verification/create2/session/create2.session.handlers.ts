@@ -72,10 +72,8 @@ export async function sessionPrecompileContract(req: Request, res: Response) {
     contractWrapper.contract.invalid
   );
 
-  const compilationResult = await checkedContract.recompile();
-
-  contractWrapper.contract.creationBytecode =
-    compilationResult.creationBytecode;
+  // While recompiling it also updates the creationBytecode in checkedContract
+  await checkedContract.recompile();
 
   res.send(getSessionJSON(session));
 }
