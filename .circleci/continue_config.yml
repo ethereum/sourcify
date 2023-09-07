@@ -51,8 +51,9 @@ aliases:
                 version: 20.10.2
             - run:
                 name: Build and push docker images
+                # "source" to persist env vars set
                 command: |
-                  ./scripts/build_and_publish_docker_images.sh
+                  source scripts/build_and_publish_docker_images.sh 
             - run: mkdir -p workspace
             # Write the image sha to a file so that it can be used in the deploy job
             - run: echo $(docker images --no-trunc --format "{{.ID}}" ethereum/source-verify:$SERVICE-$TAG | cut -d':' -f 2) > workspace/"$SERVICE"_image_sha.txt

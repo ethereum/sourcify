@@ -240,7 +240,7 @@ export class Server {
     this.app.use(session(getSessionOptions()));
 
     this.app.get("/health", (_req, res) =>
-      res.status(200).send("Alive and kicking!!")
+      res.status(200).send("Alive and kicking!")
     );
     this.app.get("/chains", (_req, res) => {
       const sourcifyChains = sourcifyChainsArray.map(
