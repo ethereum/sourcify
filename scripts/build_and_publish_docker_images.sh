@@ -31,5 +31,5 @@ image_sha=$(docker images --no-trunc --format "{{.ID}}" ethereum/source-verify:$
 echo "Image SHA: $image_sha"
 
 mkdir -p workspace
-echo "Writing image SHA $image_sha to workspace/$SERVICE_image_sha.txt"
-echo $image_sha > workspace/"$SERVICE"_image_sha.txt
+echo "Writing image SHA $image_sha to workspace/"$SERVICE"_image_sha.txt"
+echo -n $image_sha > workspace/"$SERVICE"_image_sha.txt

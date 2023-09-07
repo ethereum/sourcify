@@ -19,33 +19,36 @@ fi
 
 # Loop through each service
 for service in "${services[@]}"; do
-    filename="workspace/${service}_image_sha.txt"
+    filePath="workspace/${service}_image_sha.txt"
 
-    if [ -f "$filename" ]; then
-        echo "File $filename exists."
+    if [ -f "$filePath" ]; then
+        echo "File $filePath exists."
 
-        image_sha_content=$(cat "$filename")
+        image_sha_content=$(cat "$filePath")
 
         # Check if the content is not an empty string
-        if [ -n "$content" ]; then
+        if [ -n "$image_sha_content" ]; then
             echo "File is not empty."
-            
-            # Save the SHA value to a variable
-            sha_value="$content"
-            # curl -L \
-            #     -X POST \
-            #     -H "Accept: application/vnd.github+json" \
-            #     -H "Authorization: Bearer $GH_DISPATCH_TOKEN" \
-            #     -H "X-GitHub-Api-Version: 2022-11-28" \
-            #     https://api.github.com/repos/sourcifyeth/infra/dispatches \
-            #     -d '{"event_type":"deploy","client_payload":{"environment":$ENVIRONMENT,"component":$service, "image_tag":$image_sha_content }}'
-            echo "Sent deploy trigger for $ENVIRONMENT/$service with SHA $sha_value"
-            echo 'Client payload: {"event_type":"deploy","client_payload":{"environment":$ENVIRONMENT,"component":$service, "image_tag":$image_sha_content }}'
+
+            body="{\"event_type\":\"deploy\",\"client_payload\":{\"environment\":\"$ENVIRONMENT\",\"component\":\"$service\",\"image_tag\":\"$image_sha_content\"}}"
+
+            echo "Sending deploy trigger with request body $body"
+
+            curl -L \
+                -X POST \
+                -H "Accept: application/vnd.github+json" \
+                -H "Authorization: Bearer $GH_DISPATCH_TOKEN" \
+                -H "X-GitHub-Api-Version: 2022-11-28" \
+                "https://api.github.com/repos/sourcifyeth/infra/dispatches" \
+                -d $body
+
+            echo "Sent deploy trigger with request body $body"
+
         else
             echo "File for $service is empty."
         fi
     else
-        echo "File $filename does not exist."
+        echo "File $filePath does not exist."
     fi
 
     # Add a new line for readability
