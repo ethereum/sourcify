@@ -29,3 +29,7 @@ docker push ethereum/source-verify:$SERVICE-$TAG
 # Get the SHA of the built image
 image_sha=$(docker images --no-trunc --format "{{.ID}}" ethereum/source-verify:$SERVICE-$TAG | cut -d':' -f 2)
 echo "Image SHA: $image_sha"
+
+mkdir -p workspace
+echo "Writing image SHA $image_sha to workspace/$SERVICE_image_sha.txt"
+echo $image_sha > workspace/"$SERVICE"_image_sha.txt

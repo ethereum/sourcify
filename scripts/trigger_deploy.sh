@@ -40,6 +40,7 @@ for service in "${services[@]}"; do
             #     https://api.github.com/repos/sourcifyeth/infra/dispatches \
             #     -d '{"event_type":"deploy","client_payload":{"environment":$ENVIRONMENT,"component":$service, "image_tag":$image_sha_content }}'
             echo "Sent deploy trigger for $ENVIRONMENT/$service with SHA $sha_value"
+            echo 'Client payload: {"event_type":"deploy","client_payload":{"environment":$ENVIRONMENT,"component":$service, "image_tag":$image_sha_content }}'
         else
             echo "File for $service is empty."
         fi
