@@ -57,5 +57,10 @@ for service in "${services[@]}"; do
     echo ""
 done
 
-# Wait 5 minutes. TODO: Replace with a check for the status of the deploy
-sleep 300
+# Wait 5 minutes in 1 minute intervals for the deploy to complete. TODO: Replace with a check for the deploy status
+for i in {1..5}
+do
+  echo "Waiting for $i minute(s)..."
+  sleep 60
+done
+echo "Done waiting."
