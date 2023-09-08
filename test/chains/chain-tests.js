@@ -55,8 +55,8 @@ describe("Test Supported Chains", function () {
     if (!anyTestsPass && newAddedChainIds.length) {
       throw new Error(
         "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id(s) " +
-          newAddedChainIds.join(",") +
-          "?"
+        newAddedChainIds.join(",") +
+        "?"
       );
     }
   });
@@ -1115,6 +1115,15 @@ describe("Test Supported Chains", function () {
     "Amplify Subnet",
     [],
     "78430/multicall3.metadata.json"
+  );
+
+  // Pulsechain
+  verifyContract(
+    "0x17BB0D9bb1d4e2bE9FFf96C861143e078D102F75",
+    "369",
+    "PulseChain",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
   );
 
   // Finally check if all the "supported: true" chains have been tested
