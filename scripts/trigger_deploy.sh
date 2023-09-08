@@ -56,3 +56,6 @@ for service in "${services[@]}"; do
     # Add a new line for readability
     echo ""
 done
+
+# Wait 5 minutes. TODO: Replace with a check for the status of the deploy
+sleep 300
