@@ -12,7 +12,7 @@ OUTPUT="{ "
 for chainId in ${CHAINS}; do
    OUTPUT="$OUTPUT  \"$chainId\": {"
    OUTPUT="$OUTPUT    \"full_match\": $(find $REPOSITORY_PATH/contracts/full_match/$chainId/ -mindepth 1 -maxdepth 1 -type d | wc -l),"
-   OUTPUT="$OUTPUT    \"partial_match\": $(find $REPOSITORY_PATH/contracts/partial_match/$chainId/ -mindepth 1 -maxdepth 1 -type d | wc -l)"
+   OUTPUT="$OUTPUT    \"partial_match\": $(find $REPOSITORY_PATH/contracts/partial_match/$chainId/ -mindepth 1 -maxdepth 1 -type d | wc -l || echo '0')"
    
    if [[ $chainId == $(echo $CHAINS | rev | cut -d " " -f1 | rev) ]]
     then
