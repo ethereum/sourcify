@@ -174,6 +174,13 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     rpc: buildAlchemyAndCustomRpcURLs("sepolia", "eth", true),
     contractFetchAddress: generateEtherscanCreatorTxAPI("11155111"),
   },
+  "369": {
+    // PulseChain Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://scan.pulsechain.com/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex()
+  },
   "3": {
     // Deprecated
     // Ethereum Ropsten Testnet
