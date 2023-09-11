@@ -1058,6 +1058,12 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       "https://glacier-api.avax.network/v1/chains/2044/" +
       AVALANCHE_SUBNET_SUFFIX,
   },
+  "1433": {
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://rikscan.com/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
