@@ -189,6 +189,20 @@ export const ImmutablesTransformation = (
   value,
 });
 
+// TODO: change name
+export interface Values {
+  constructorArguments?: string;
+  libraries?: {
+    [index: string]: string;
+  };
+  immutables?: {
+    [index: string]: string;
+  };
+  cborAuxdata?: {
+    [index: string]: string;
+  };
+}
+
 export interface Match {
   address: string;
   chainId: string;
@@ -203,6 +217,8 @@ export interface Match {
   immutableReferences?: ImmutableReferences;
   deployedTransformations?: Transformation[];
   creationTransformations?: Transformation[];
+  deployedValues?: Values;
+  creationValues?: Values;
 }
 
 export type Status =

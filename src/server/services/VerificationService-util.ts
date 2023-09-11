@@ -1,7 +1,46 @@
 import { SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
+import { getAddress } from "ethers";
 import { StatusCodes } from "http-status-codes";
 import fetch from "node-fetch";
 import puppeteer from "puppeteer";
+
+const checkCreatorTx = async (
+  sourcifyChain: SourcifyChain,
+  address: string,
+  txHash: string
+): Promise<string> => {
+  const txRecipt = await sourcifyChain.getTxRecipt(txHash);
+
+  if (txRecipt.contractAddress !== null) {
+    // EOA created
+    if (txRecipt.contractAddress !== address) {
+      throw new Error("TxHash doesn't match the contract.");
+    }
+  } else {
+    // Factory created
+    let traces;
+    try {
+      traces = await sourcifyChain.getTxTraces(txHash);
+    } catch (e) {
+      traces = [];
+    }
+
+    // If traces are available check, otherwise lets just trust
+    if (traces.length > 0) {
+      const createTraces = traces.filter(
+        (trace: any) => trace.type === "create"
+      );
+      const createdContractAddressesInTx = createTraces.map((trace) =>
+        getAddress(trace.result.address)
+      );
+      if (!createdContractAddressesInTx.includes(address)) {
+        throw new Error("TxHash doesn't match the contract.");
+      }
+    }
+  }
+
+  return txHash;
+};
 
 /**
  * Finds the transaction that created the contract by either scraping a block explorer or querying a provided API.
@@ -24,7 +63,11 @@ export const getCreatorTx = async (
   if (contractFetchAddressFilled.includes("action=getcontractcreation")) {
     const response = await fetchFromApi(contractFetchAddressFilled);
     if (response?.result?.[0]?.txHash)
-      return response?.result?.[0]?.txHash as string;
+      return await checkCreatorTx(
+        sourcifyChain,
+        address,
+        response?.result?.[0]?.txHash as string
+      );
   }
 
   // If there's txRegex, scrape block explorers

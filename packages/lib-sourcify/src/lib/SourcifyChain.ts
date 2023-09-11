@@ -2,6 +2,7 @@ import {
   FetchRequest,
   JsonRpcProvider,
   Network,
+  TransactionReceipt,
   TransactionResponse,
   getAddress,
 } from 'ethers';
@@ -117,6 +118,83 @@ export default class SourcifyChain {
         }
       }
     }
+    throw new Error(
+      'None of the RPCs responded fetching tx ' +
+        creatorTxHash +
+        ' on chain ' +
+        this.chainId
+    );
+  };
+
+  getTxRecipt = async (creatorTxHash: string) => {
+    // Try sequentially all providers
+    for (const provider of this.providers) {
+      try {
+        // Race the RPC call with a timeout
+        const tx = await Promise.race([
+          provider.getTransactionReceipt(creatorTxHash),
+          this.rejectInMs(RPC_TIMEOUT, provider.url),
+        ]);
+        if (tx instanceof TransactionReceipt) {
+          logInfo(
+            `Transaction's recipt ${creatorTxHash} fetched via ${provider.url} from chain ${this.chainId}`
+          );
+          return tx;
+        } else {
+          throw new Error(
+            `Transaction's recipt ${creatorTxHash} not found on RPC ${provider.url} and chain ${this.chainId}`
+          );
+        }
+      } catch (err) {
+        if (err instanceof Error) {
+          logWarn(
+            `Can't fetch the transaction's recipt ${creatorTxHash} from RPC ${provider.url} and chain ${this.chainId}\n ${err}`
+          );
+          continue;
+        } else {
+          throw err;
+        }
+      }
+    }
+    throw new Error(
+      'None of the RPCs responded fetching tx ' +
+        creatorTxHash +
+        ' on chain ' +
+        this.chainId
+    );
+  };
+
+  getTxTraces = async (creatorTxHash: string) => {
+    // Try sequentially all providers
+    for (const provider of this.providers) {
+      try {
+        // Race the RPC call with a timeout
+        const traces = await Promise.race([
+          provider.send('trace_transaction', [creatorTxHash]),
+          this.rejectInMs(RPC_TIMEOUT, provider.url),
+        ]);
+        if (traces instanceof Array && traces.length > 0) {
+          logInfo(
+            `Transaction's traces of ${creatorTxHash} fetched via ${provider.url} from chain ${this.chainId}`
+          );
+          return traces;
+        } else {
+          throw new Error(
+            `Transaction's traces of ${creatorTxHash} not found on RPC ${provider.url} and chain ${this.chainId}`
+          );
+        }
+      } catch (err) {
+        if (err instanceof Error) {
+          logWarn(
+            `Can't fetch the transaction's traces of ${creatorTxHash} from RPC ${provider.url} and chain ${this.chainId}\n ${err}`
+          );
+          continue;
+        } else {
+          throw err;
+        }
+      }
+    }
+
     throw new Error(
       'None of the RPCs responded fetching tx ' +
         creatorTxHash +

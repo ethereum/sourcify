@@ -47,6 +47,8 @@ export async function verifyDeployed(
     status: null,
     deployedTransformations: [],
     creationTransformations: [],
+    deployedValues: {},
+    creationValues: {},
   };
   logInfo(
     `Verifying contract ${
@@ -272,6 +274,8 @@ export async function verifyCreate2(
     create2Args,
     deployedTransformations: [],
     creationTransformations: [],
+    deployedValues: {},
+    creationValues: {},
     // libraryMap: libraryMap,
   };
 
@@ -291,9 +295,11 @@ export function matchWithDeployedBytecode(
     deployedBytecode
   );
 
-  // Initialize the transformations array if undefined
   if (match.deployedTransformations === undefined) {
     match.deployedTransformations = [];
+  }
+  if (match.deployedValues === undefined) {
+    match.deployedValues = {};
   }
 
   // Replace the library placeholders in the recompiled bytecode with values from the deployed bytecode
@@ -303,6 +309,7 @@ export function matchWithDeployedBytecode(
     match.deployedTransformations
   );
   recompiledDeployedBytecode = replaced;
+  match.deployedValues.libraries = libraryMap;
 
   if (immutableReferences) {
     deployedBytecode = replaceImmutableReferences(
@@ -310,6 +317,7 @@ export function matchWithDeployedBytecode(
       deployedBytecode,
       match.deployedTransformations
     );
+    match.deployedValues.immutables == immutableReferences;
   }
 
   if (recompiledDeployedBytecode === deployedBytecode) {
@@ -318,12 +326,14 @@ export function matchWithDeployedBytecode(
     // if the bytecode doesn't contain metadata then "partial" match
     if (doesContainMetadataHash(deployedBytecode)) {
       match.status = 'perfect';
+      const [, auxdata] = splitAuxdata(deployedBytecode);
+      match.deployedValues.cborAuxdata = { 0: auxdata };
     } else {
       match.status = 'partial';
     }
   } else {
     // Try to match without the metadata hashes
-    const [trimmedDeployedBytecode] = splitAuxdata(deployedBytecode);
+    const [trimmedDeployedBytecode, auxdata] = splitAuxdata(deployedBytecode);
     const [trimmedCompiledRuntimeBytecode] = splitAuxdata(
       recompiledDeployedBytecode
     );
@@ -334,6 +344,7 @@ export function matchWithDeployedBytecode(
       match.deployedTransformations?.push(
         MetadataTransformation(trimmedCompiledRuntimeBytecode.length)
       );
+      match.deployedValues.cborAuxdata = { 0: auxdata };
     }
   }
 }
@@ -428,6 +439,9 @@ export async function matchWithCreationTx(
   if (match.creationTransformations === undefined) {
     match.creationTransformations = [];
   }
+  if (match.creationValues === undefined) {
+    match.creationValues = {};
+  }
 
   // The reason why this uses `startsWith` instead of `===` is that creationTxData may contain constructor arguments at the end part.
   // Replace the library placeholders in the recompiled bytecode with values from the deployed bytecode
@@ -437,17 +451,20 @@ export async function matchWithCreationTx(
     match.creationTransformations
   );
   recompiledCreationBytecode = replaced;
+  match.creationValues.libraries = libraryMap;
 
   if (creatorTxData.startsWith(recompiledCreationBytecode)) {
     // if the bytecode doesn't contain metadata then "partial" match
     if (doesContainMetadataHash(recompiledCreationBytecode)) {
       match.status = 'perfect';
+      const [, auxdata] = splitAuxdata(recompiledCreationBytecode);
+      match.creationValues.cborAuxdata = { 0: auxdata };
     } else {
       match.status = 'partial';
     }
   } else {
     // Match without metadata hashes
-    const [trimmedCreatorTxData] = splitAuxdata(creatorTxData); // In the case of creationTxData (not deployed bytecode) it is actually not CBOR encoded because of the appended constr. args., but splitAuxdata returns the whole bytecode if it's not CBOR encoded, so will work with startsWith.
+    const [trimmedCreatorTxData, auxdata] = splitAuxdata(creatorTxData); // In the case of creationTxData (not deployed bytecode) it is actually not CBOR encoded because of the appended constr. args., but splitAuxdata returns the whole bytecode if it's not CBOR encoded, so will work with startsWith.
     const [trimmedRecompiledCreationBytecode] = splitAuxdata(
       recompiledCreationBytecode
     );
@@ -456,6 +473,7 @@ export async function matchWithCreationTx(
       match.deployedTransformations?.push(
         MetadataTransformation(trimmedRecompiledCreationBytecode.length)
       );
+      match.creationValues.cborAuxdata = { 0: auxdata };
     }
   }
 
@@ -492,6 +510,9 @@ export async function matchWithCreationTx(
         match.message = `Failed to match with creation bytecode: constructor arguments ABI decoding failed ${encodeResult} vs ${abiEncodedConstructorArguments}`;
         return;
       }
+
+      match.creationValues.constructorArguments =
+        abiEncodedConstructorArguments;
     }
 
     // we need to check if this contract creation tx actually yields the same contract address https://github.com/ethereum/sourcify/issues/887

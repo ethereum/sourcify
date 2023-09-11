@@ -35,15 +35,18 @@ export class VerificationService implements IVerificationService {
     creatorTxHash?: string
   ): Promise<Match> {
     const sourcifyChain = this.supportedChainsMap[chainId];
+    const foundCreatorTxHash = await getCreatorTx(sourcifyChain, address);
     let match;
     try {
+      const creatorTxHash_ = creatorTxHash || foundCreatorTxHash || undefined;
       match = await verifyDeployed(
         checkedContract,
         sourcifyChain,
         address,
         /* contextVariables, */
-        creatorTxHash
+        creatorTxHash_
       );
+      match.creatorTxHash = creatorTxHash_;
       return match;
     } catch (err) {
       // Find the creator tx if it wasn't supplied and try verifying again with it.
@@ -52,7 +55,6 @@ export class VerificationService implements IVerificationService {
         err instanceof Error &&
         err.message === "The deployed and recompiled bytecode don't match."
       ) {
-        const foundCreatorTxHash = await getCreatorTx(sourcifyChain, address);
         if (foundCreatorTxHash) {
           match = await verifyDeployed(
             checkedContract,

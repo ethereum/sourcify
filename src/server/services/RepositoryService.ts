@@ -22,6 +22,7 @@ import { SourcifyEventManager } from "../../common/SourcifyEventManager/Sourcify
 import { logger } from "../../common/loggerLoki";
 import { getAddress } from "ethers";
 import { id as keccak256str } from "ethers";
+import * as AllianceDatabase from "./alliance-database-util";
 
 /**
  * A type for specifying the match quality of files.
@@ -85,7 +86,7 @@ export interface IRepositoryService {
 export class RepositoryService implements IRepositoryService {
   repositoryPath: string;
   private ipfsClient?: IPFSHTTPClient;
-  private db?: any;
+  private allianceDatabasePool?: any;
 
   constructor(repositoryPath: string) {
     this.repositoryPath = repositoryPath;
@@ -653,173 +654,168 @@ export class RepositoryService implements IRepositoryService {
     return { sanitizedPath, originalPath };
   }
 
-  /* private async addToAllianceDatabase(contract: CheckedContract, match: Match) {
-    if (contract.deployedBytecode === undefined) {
-      return;
+  async initAllianceDatabase(): Promise<boolean> {
+    // if the database is already initialized
+    if (this.allianceDatabasePool != undefined) {
+      return true;
     }
-    const [rows, fields] = await this.db.query(
-      `
-    SELECT
-      verified_contracts.compilation_id,
-      verified_contracts.contract_id,
-      verified_contracts.creation_match,
-      verified_contracts.creation_metadata,
-      verified_contracts.creation_transformations,
-      verified_contracts.runtime_match,
-      verified_contracts.runtime_metadata,
-      verified_contracts.runtime_transformations,
-      -- contracts.creation_code_hash,
-      -- contracts.runtime_code_hash
-    FROM verified_contracts
-    JOIN contracts ON contracts.id = verified_contracts.contract_id
-    -- JOIN code ON code.code_hash = contracts.runtime_code_hash
-    WHERE runtime_code_hash = ?
-    `,
-      [keccak256str(contract.deployedBytecode)]
-    );
 
-    const { transformations } = match;
-
-    if (rows === 0) {
-      // INSERT INTO code(creation_bytecode) if doesn't exist
-      // INSERT INTO code(runtime_bytecode) if doesn't exist
-      // INSERT INTO contracts(...) if doesn't exist
-      // INSERT INTO contract_deployments(...) if doesn't exist
-      // # do we have transaction_hash,block_number,txindex?
-      // INSERT INTO compiled_contracts(...) if doesn't exist
-      // INSERT INTO verified_contracts(...,transformations)
-    } else {
-      // if we have a better match
-      // INSERT INTO compiled_contracts(...) if doesn't exist
-      // INSERT INTO verified_contracts(...,transformations)
+    try {
+      this.allianceDatabasePool = await AllianceDatabase.getPool();
+      return true;
+    } catch (e) {
+      return false;
     }
-  } */
+  }
 
   private async addToAllianceDatabase(contract: CheckedContract, match: Match) {
     if (
       contract.deployedBytecode === undefined ||
       contract.creationBytecode === undefined
     ) {
+      // Can only store contracts with both deployedBytecode and creationBytecode
       return;
     }
 
-    const [rows] = await this.db.query(
-      `
-      SELECT
-        verified_contracts.compilation_id,
-        verified_contracts.contract_id,
-        verified_contracts.creation_match,
-        verified_contracts.creation_metadata,
-        verified_contracts.creation_transformations,
-        verified_contracts.runtime_match,
-        verified_contracts.runtime_metadata,
-        verified_contracts.runtime_transformations,
-        contracts.id as contractId
-      FROM verified_contracts
-      JOIN contracts ON contracts.id = verified_contracts.contract_id
-      WHERE contracts.runtime_code_hash = ?
-      `,
-      [keccak256str(contract.deployedBytecode)]
-    );
+    if (match.creatorTxHash === undefined) {
+      // Can only store matches with creatorTxHash
+      return;
+    }
 
-    const { deployedTransformations, creationTransformations } = match;
+    if (!(await this.initAllianceDatabase())) {
+      logger.warn(
+        "Cannot initialize AllianceDatabase, the database will not be updated"
+      );
+      return;
+    }
 
-    if (rows.length === 0) {
-      const keccak256CreationBytecode = keccak256str(contract.creationBytecode);
-      const keccak256DeployedBytecode = keccak256str(contract.deployedBytecode);
+    const keccak256CreationBytecode = keccak256str(contract.creationBytecode);
+    const keccak256DeployedBytecode = keccak256str(contract.deployedBytecode);
 
-      // INSERT INTO code(creation_bytecode) if doesn't exist
-      await this.db.query(
-        "INSERT INTO code (code_hash, code) VALUES (?, ?) ON CONFLICT (code_hash) DO NOTHING",
-        [keccak256CreationBytecode, contract.creationBytecode]
+    const existingVerifiedContract =
+      await AllianceDatabase.getVerifiedContractByRuntimeBytecodeHash(
+        this.allianceDatabasePool,
+        keccak256DeployedBytecode
       );
 
-      // INSERT INTO code(runtime_bytecode) if doesn't exist
-      await this.db.query(
-        "INSERT INTO code (code_hash, code) VALUES (?, ?) ON CONFLICT (code_hash) DO NOTHING",
-        [keccak256DeployedBytecode, contract.deployedBytecode]
-      );
+    const {
+      deployedTransformations,
+      deployedValues,
+      creationTransformations,
+      creationValues,
+    } = match;
 
-      // INSERT INTO contracts(...) if doesn't exist
-      // Assuming values for creationCodeHash and runtimeCodeHash
-      const contractInsertResult = await this.db.query(
-        "INSERT INTO contracts (creation_code_hash, runtime_code_hash) VALUES (?, ?) ON CONFLICT (contracts_pseudo_pkey) DO NOTHING",
-        [keccak256CreationBytecode, keccak256DeployedBytecode]
-      );
+    const compilationTargetPath = Object.keys(
+      contract.metadata.settings.compilationTarget
+    )[0];
+    const compilationTargetName = Object.values(
+      contract.metadata.settings.compilationTarget
+    )[0];
 
-      // INSERT INTO contract_deployments(...) if doesn't exist
-      // Assuming values for chainId, address, transactionHash
-      await this.db.query(
-        "INSERT INTO contract_deployments (chain_id, address, transaction_hash, contract_id) VALUES (?, ?, ?, ?) ON CONFLICT (contract_deployments_pseudo_pkey) DO NOTHING",
-        [
+    const language = "solidity";
+
+    if (existingVerifiedContract.rows.length === 0) {
+      try {
+        await AllianceDatabase.insertCode(
+          this.allianceDatabasePool,
+          keccak256CreationBytecode,
+          contract.creationBytecode
+        );
+
+        await AllianceDatabase.insertCode(
+          this.allianceDatabasePool,
+          keccak256DeployedBytecode,
+          contract.deployedBytecode
+        );
+
+        let contractInsertResult = await AllianceDatabase.insertContract(
+          this.allianceDatabasePool,
+          keccak256CreationBytecode,
+          keccak256DeployedBytecode
+        );
+
+        await AllianceDatabase.insertContractDeployment(
+          this.allianceDatabasePool,
           match.chainId,
           match.address,
           match.creatorTxHash,
-          contractInsertResult.insertId,
-        ]
-      );
+          contractInsertResult.rows[0].id
+        );
 
-      // INSERT INTO compiled_contracts(...) if doesn't exist
-      // Assuming values for compiler, version, language, name, etc.
-      const compiledContractsInsertResult = await this.db.query(
-        "INSERT INTO compiled_contracts (compiler, version, language, name, sources, compiler_settings, creation_code_hash, runtime_code_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (compiled_contracts_pseudo_pkey) DO NOTHING",
-        [
-          contract.compiledPath,
-          contract.compilerVersion,
-          "solidity",
-          contract.name,
-          JSON.stringify(contract.solidity),
-          JSON.stringify(contract.metadata.settings),
-          keccak256str(contract.creationBytecode),
-          keccak256str(contract.deployedBytecode),
-        ]
-      );
-
-      // INSERT INTO verified_contracts(...,transformations)
-      // Assuming contractId and compilationId are available somehow
-      await this.db.query(
-        "INSERT INTO verified_contracts (compilation_id, contract_id, creation_transformations, runtime_transformations) VALUES (?, ?, ?, ?)",
-        [
-          compiledContractsInsertResult.insertId,
-          contractInsertResult.insertId,
-          JSON.stringify(creationTransformations),
-          JSON.stringify(deployedTransformations),
-        ]
-      );
-    } else {
-      const result = rows[0];
-      const hasMetadataTransformation = JSON.parse(
-        result.runtime_transformations
-      )?.some((trans: Transformation) => trans.reason === "metadata");
-
-      if (hasMetadataTransformation) {
-        // if we have a better match
-
-        // INSERT INTO compiled_contracts(...)
-        const compiledContractsInsertResult = await this.db.query(
-          "INSERT INTO compiled_contracts (compiler, version, language, name, sources, compiler_settings, creation_code_hash, runtime_code_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (compiled_contracts_pseudo_pkey) DO NOTHING",
-          [
+        const compiledContractsInsertResult =
+          await AllianceDatabase.insertCompiledContract(
+            this.allianceDatabasePool,
             contract.compiledPath,
             contract.compilerVersion,
-            "solidity",
+            language,
             contract.name,
-            JSON.stringify(contract.solidity),
-            JSON.stringify(contract.metadata.settings),
+            `${compilationTargetPath}:${compilationTargetName}`,
+            {
+              ...contract.metadata.output,
+            },
+            contract.solidity,
+            contract.metadata.settings,
             keccak256str(contract.creationBytecode),
             keccak256str(contract.deployedBytecode),
-          ]
+            {}, // TODO creation_code_artifacts
+            {} // TODO runtime_code_artifacts
+          );
+
+        await AllianceDatabase.insertVerifiedContract(
+          this.allianceDatabasePool,
+          compiledContractsInsertResult.rows[0].id,
+          contractInsertResult.rows[0].id,
+          { creationTransformations },
+          creationValues || {},
+          { deployedTransformations },
+          deployedValues || {},
+          true,
+          true
+        );
+      } catch (e) {
+        throw e;
+      }
+    } else {
+      const hasMetadataTransformation =
+        existingVerifiedContract.rows[0].runtime_transformations.deployedTransformations.some(
+          (trans: Transformation) => trans.reason === "metadata"
         );
 
-        // INSERT INTO verified_contracts(...,transformations)
-        await this.db.query(
-          "INSERT INTO verified_contracts (compilation_id, contract_id, creation_transformations, runtime_transformations) VALUES (?, ?, ?, ?)",
-          [
-            compiledContractsInsertResult.insertId,
-            result.contractId,
-            JSON.stringify(creationTransformations),
-            JSON.stringify(deployedTransformations),
-          ]
-        );
+      if (hasMetadataTransformation && match.status === "perfect") {
+        // if we have a better match
+        try {
+          await AllianceDatabase.insertCompiledContract(
+            this.allianceDatabasePool,
+            contract.compiledPath,
+            contract.compilerVersion,
+            language,
+            contract.name,
+            `${compilationTargetPath}:${compilationTargetName}`,
+            {
+              ...contract.metadata.output,
+            },
+            contract.solidity,
+            contract.metadata.settings,
+            keccak256str(contract.creationBytecode),
+            keccak256str(contract.deployedBytecode),
+            {}, // TODO creation_code_artifacts
+            {} // TODO runtime_code_artifacts
+          );
+
+          await AllianceDatabase.updateVerifiedContract(
+            this.allianceDatabasePool,
+            existingVerifiedContract.rows[0].compilation_id,
+            existingVerifiedContract.rows[0].contract_id,
+            { creationTransformations },
+            creationValues || {},
+            { deployedTransformations },
+            deployedValues || {},
+            true,
+            true
+          );
+        } catch (e) {
+          throw e;
+        }
       }
     }
   }
