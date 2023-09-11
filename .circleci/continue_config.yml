@@ -19,6 +19,9 @@ parameters:
   run-build-server:
     type: boolean
     default: false
+  run-tests:
+    type: boolean
+    default: false
 
 ################
 ### ALIASES ####
@@ -31,6 +34,9 @@ aliases:
       run-build:
         type: boolean
         default: false
+      SERVICE:
+        type: string
+        default: ""
     steps:
       - when:
           condition: << parameters.run-build >>
@@ -45,8 +51,14 @@ aliases:
                 version: 20.10.2
             - run:
                 name: Build and push docker images
+                # "source" to persist env vars set
                 command: |
-                  ./scripts/build_and_publish_docker_images.sh
+                  ./scripts/build_and_publish_docker_images.sh 
+            - persist_to_workspace:
+                root: workspace
+                paths:
+                  - ./*
+      # If no build is needed, echo 0 to run as success 
       - run: echo 0
   - &filter-base
     filters:
@@ -80,18 +92,17 @@ aliases:
     docker:
       - image: cimg/node:16.15
 
-
 ####################
 #### WORKFLOWS #####
 ####################
 workflows:
   build_publish_deploy_docker:
-    # Run build_publish_deploy when on staging or master AND when a module is changed and something needs to be built and deployed. 
+    # Run build_publish_deploy when on staging or master AND when a module is changed and something needs to be built and deployed.
     when:
       and:
-        - or: 
-          - equal: [ master, << pipeline.git.branch >> ]
-          - equal: [ staging, << pipeline.git.branch >> ]
+        - or:
+            - equal: [master, << pipeline.git.branch >>]
+            - equal: [staging, << pipeline.git.branch >>]
         - or:
             [
               << pipeline.parameters.run-build-ipfs >>,
@@ -99,6 +110,7 @@ workflows:
               << pipeline.parameters.run-build-s3 >>,
               << pipeline.parameters.run-build-server >>,
               << pipeline.parameters.run-build-ui >>,
+              << pipeline.parameters.run-tests >>,
             ]
     jobs:
       - tests-node-v16
@@ -111,6 +123,7 @@ workflows:
             - tests-node-v16
       - build-push-ipfs:
           run-build: << pipeline.parameters.run-build-ipfs >>
+          SERVICE: "ipfs"
       # Always build monitor if there's a change in the server
       - build-push-monitor:
           run-build: << pipeline.parameters.run-build-server >>
@@ -142,15 +155,15 @@ workflows:
       - verification-e2e-sepolia:
           requires:
             - deploy
-  
+
   # Tests workflow for not staging or master
   tests:
     when:
-      and: 
+      and:
         - not:
-            equal: [ master, << pipeline.git.branch >> ]
-        - not: 
-            equal: [ staging, << pipeline.git.branch >> ]
+            equal: [master, << pipeline.git.branch >>]
+        - not:
+            equal: [staging, << pipeline.git.branch >>]
     jobs:
       - tests-node-v16
 
@@ -158,7 +171,6 @@ workflows:
   test-new-chain:
     jobs:
       - test-new-chain
-
 
 #######################
 ### JOB DEFINITIONS ###
@@ -168,6 +180,7 @@ jobs:
     <<: *build-base
     environment:
       SERVICE: "ipfs"
+    
   build-push-monitor:
     <<: *build-base
     environment:
@@ -193,16 +206,13 @@ jobs:
       - image: cimg/base:2021.04
     steps:
       - checkout
-      - setup_remote_docker:
-          version: 20.10.2
-      - add_ssh_keys:
-          fingerprints:
-            - "a9:2f:97:c3:64:10:80:c7:8e:2f:db:f7:a3:4a:53:66"
+      - attach_workspace:
+          at: workspace
       - run:
-          name: Deploy
-          no_output_timeout: 30m
+          name: Trigger Deploy Events
+          no_output_timeout: 5m
           command: |
-            ./scripts/deploy.sh
+            ./scripts/trigger_deploy.sh
   tests-node-v16:
     docker:
       - image: cimg/node:16.15
@@ -218,16 +228,16 @@ jobs:
       - checkout
       - run:
           name: install dependencies
-          command: npm install && npx lerna bootstrap
+          command: npm install
       - run:
           name: install puppeteer dependencies
-          command: sudo apt-get update && sudo apt-get -y install xvfb gconf-service libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgbm1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils wget 
+          command: sudo apt-get update && sudo apt-get -y install xvfb gconf-service libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgbm1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils wget
       - run:
           name: lint
           command: npm run lint
       - run:
           name: tsc and test
-          command: npx lerna run build && npx lerna run test --stream
+          command: npx lerna run build && npx lerna run test --stream --concurrency=1
       - run:
           name: coverage
           command: npm run cov:send
@@ -239,7 +249,7 @@ jobs:
       - checkout
       - run:
           name: install dependencies
-          command: npm install && npx lerna bootstrap
+          command: npm install
       - run:
           name: build
           command: npx lerna run build
@@ -254,7 +264,7 @@ jobs:
   monitor-e2e-sepolia:
     <<: *monitor-e2e-base
     environment:
-      CHAIN_ID: '11155111'
+      CHAIN_ID: "11155111"
       CHAIN_NAME: sepolia
   verification-e2e-goerli:
     <<: *verification-e2e-base
@@ -264,7 +274,7 @@ jobs:
   verification-e2e-sepolia:
     <<: *verification-e2e-base
     environment:
-      CHAIN_ID: '11155111'
+      CHAIN_ID: "11155111"
       CHAIN_NAME: sepolia
   npm-publish:
     working_directory: ~/source-verify
@@ -274,7 +284,7 @@ jobs:
       - checkout
       - run:
           name: install dependencies
-          command: npm install && npx lerna bootstrap
+          command: npm install
       - run:
           name: build everything
           command: npx lerna run build

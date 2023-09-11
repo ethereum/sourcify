@@ -98,7 +98,8 @@
       "args": [
         "run",
         "test",
-        "--stream"
+        "--stream",
+        "--concurrency=1"
       ],
       "outFiles": [
         "${workspaceFolder}/dist/**/*.js",

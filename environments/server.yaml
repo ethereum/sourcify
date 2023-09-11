@@ -1,7 +1,4 @@
 version: "3.7"
-x-project-repository-mount: &project-repository-mount
-  type: bind
-  source: $REPOSITORY_PATH
 
 x-project-base: &project-base
   env_file:
@@ -9,6 +6,8 @@ x-project-base: &project-base
   restart: always
   networks:
     - source-verify
+  labels:
+    - "autoheal=true" # Label to trigger autoheal for this service
 
 networks:
   source-verify:
@@ -21,8 +20,9 @@ services:
     ports:
       - "${SERVER_EXTERNAL_PORT}:${SERVER_PORT}"
     volumes:
-      - <<: *project-repository-mount
-        target: /home/data/repository
+      - type: bind
+        source: $REPOSITORY_PATH_HOST
+        target: $REPOSITORY_PATH
       - type: bind
         source: $SOLC_REPO_HOST
         target: $SOLC_REPO
@@ -34,3 +34,10 @@ services:
       interval: 30s
       timeout: 10s
       retries: 10
+
+  autoheal:
+    image: willfarrell/autoheal
+    environment:
+      - AUTOHEAL_CONTAINER_LABEL=autoheal # Set to 'autoheal' to only heal containers with the 'autoheal=true' label
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock

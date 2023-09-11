@@ -174,6 +174,13 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     rpc: buildAlchemyAndCustomRpcURLs("sepolia", "eth", true),
     contractFetchAddress: generateEtherscanCreatorTxAPI("11155111"),
   },
+  "369": {
+    // PulseChain Mainnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://scan.pulsechain.com/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex()
+  },
   "3": {
     // Deprecated
     // Ethereum Ropsten Testnet
@@ -1007,6 +1014,34 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     monitored: false,
     contractFetchAddress:
       "https://glacier-api.avax.network/v1/chains/2037/" +
+      AVALANCHE_SUBNET_SUFFIX,
+  },
+  "4337": {
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://glacier-api.avax.network/v1/chains/4337/" +
+      AVALANCHE_SUBNET_SUFFIX,
+  },
+  "78432": {
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://glacier-api.avax.network/v1/chains/78432/" +
+      AVALANCHE_SUBNET_SUFFIX,
+  },
+  "78431": {
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://glacier-api.avax.network/v1/chains/78431/" +
+      AVALANCHE_SUBNET_SUFFIX,
+  },
+  "78430": {
+    supported: true,
+    monitored: false,
+    contractFetchAddress:
+      "https://glacier-api.avax.network/v1/chains/78430/" +
       AVALANCHE_SUBNET_SUFFIX,
   },
 };

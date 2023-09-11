@@ -46,7 +46,7 @@ describe("Import From Etherscan and Verify", function () {
     return;
   }
 
-  this.timeout(7000);
+  this.timeout(30000);
   const server = new Server(CUSTOM_PORT);
 
   before(async () => {

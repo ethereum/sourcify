@@ -11,7 +11,7 @@ import { Worker, WorkerOptions } from 'worker_threads';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const solc = require('solc');
 
-const GITHUB_SOLC_REPO = 'https://github.com/ethereum/solc-bin/raw/gh-pages/';
+const HOST_SOLC_REPO = ' https://binaries.soliditylang.org/';
 
 export function findSolcPlatform(): string | false {
   if (process.platform === 'darwin' && process.arch === 'x64') {
@@ -26,7 +26,7 @@ export function findSolcPlatform(): string | false {
   return false;
 }
 /**
- * Searches for a solc: first for a local executable version, then from GitHub
+ * Searches for a solc: first for a local executable version, then from HOST_SOLC_REPO
  * and then using the getSolcJs function.
  * Once the compiler is retrieved, it is used, and the stringified solc output is returned.
  *
@@ -198,7 +198,7 @@ function validateSolcPath(solcPath: string): boolean {
 }
 
 /**
- * Fetches a solc binary from GitHub and saves it to the given path.
+ * Fetches a solc binary and saves it to the given path.
  *
  * If platform is "bin", it will download the solc-js binary.
  */
@@ -209,9 +209,9 @@ async function fetchAndSaveSolc(
   fileName: string
 ): Promise<boolean> {
   const encodedURIFilename = encodeURIComponent(fileName);
-  const githubSolcURI = `${GITHUB_SOLC_REPO}${platform}/${encodedURIFilename}`;
+  const githubSolcURI = `${HOST_SOLC_REPO}${platform}/${encodedURIFilename}`;
   logDebug(
-    `Fetching solc ${version} on platform ${platform} from GitHub: ${githubSolcURI}`
+    `Fetching solc ${version} on platform ${platform}: ${githubSolcURI}`
   );
   let res = await fetchWithTimeout(githubSolcURI);
   let status = res.status;
@@ -224,7 +224,7 @@ async function fetchAndSaveSolc(
     if (
       /^([\w-]+)-v(\d+\.\d+\.\d+)\+commit\.([a-fA-F0-9]+).*$/.test(responseText)
     ) {
-      const githubSolcURI = `${GITHUB_SOLC_REPO}${platform}/${responseText}`;
+      const githubSolcURI = `${HOST_SOLC_REPO}${platform}/${responseText}`;
       res = await fetchWithTimeout(githubSolcURI);
       status = res.status;
       buffer = await res.arrayBuffer();
@@ -233,7 +233,7 @@ async function fetchAndSaveSolc(
 
   if (status === StatusCodes.OK && buffer) {
     logDebug(
-      `Fetched solc ${version} on platform ${platform} from GitHub: ${githubSolcURI}`
+      `Fetched solc ${version} on platform ${platform}: ${githubSolcURI}`
     );
     fs.mkdirSync(path.dirname(solcPath), { recursive: true });
 
@@ -246,7 +246,7 @@ async function fetchAndSaveSolc(
 
     return true;
   } else {
-    logWarn(`Failed fetching solc ${version} from GitHub: ${githubSolcURI}`);
+    logWarn(`Failed fetching solc ${version}: ${githubSolcURI}`);
   }
 
   return false;
