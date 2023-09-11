@@ -130,10 +130,6 @@ export const etherscanAPIs: EtherscanAPIs = {
     apiURL: "https://api-moonbase.moonscan.io",
     apiKey: "",
   },
-  "288": {
-    apiURL: "https://api.bobascan.com",
-    apiKey: process.env.BOBASCAN_API_KEY,
-  },
   "100": {
     apiURL: "https://api.gnosisscan.io",
     apiKey: process.env.GNOSSISCAN_API_KEY,
