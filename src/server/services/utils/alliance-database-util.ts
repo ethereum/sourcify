@@ -1,6 +1,47 @@
 import { AuthTypes, Connector } from "@google-cloud/cloud-sql-connector";
 import { Pool } from "pg";
 
+namespace Tables {
+  export interface Code {
+    bytecodeHash: string;
+    bytecode: string;
+  }
+  export interface Contract {
+    creationBytecodeHash: string;
+    runtimeBytecodeHash: string;
+  }
+  export interface ContractDeployment {
+    chainId: string;
+    address: string;
+    transactionHash: string;
+    contractId: string;
+  }
+  export interface CompiledContract {
+    compiler: string;
+    version: string;
+    language: string;
+    name: string;
+    fullyQualifiedName: string;
+    compilationArtifacts: Object;
+    sources: Object;
+    compilerSettings: Object;
+    creationCodeHash: string;
+    runtimeCodeHash: string;
+    creationCodeArtifacts: Object;
+    runtimeCodeArtifacts: Object;
+  }
+  export interface VerifiedContract {
+    compilationId: string;
+    contractId: string;
+    creationTransformations: Object;
+    creationValues: Object;
+    runtimeTransformations: Object;
+    runtimeValues: Object;
+    runtimeMatch: boolean;
+    creationMatch: boolean;
+  }
+}
+
 export async function getPool(): Promise<Pool> {
   if (process.env.GOOGLE_CLOUD_SQL_INSTANCE_NAME) {
     const connector = new Connector();
@@ -35,15 +76,7 @@ export async function getVerifiedContractByRuntimeBytecodeHash(
   return await pool.query(
     `
       SELECT
-        verified_contracts.compilation_id,
-        verified_contracts.contract_id,
-        verified_contracts.creation_match,
-        verified_contracts.creation_values,
-        verified_contracts.creation_transformations,
-        verified_contracts.runtime_match,
-        verified_contracts.runtime_values,
-        verified_contracts.runtime_transformations,
-        contracts.id as contractId
+        verified_contracts.*
       FROM verified_contracts
       JOIN contracts ON contracts.id = verified_contracts.contract_id
       WHERE contracts.runtime_code_hash = $1
@@ -52,12 +85,9 @@ export async function getVerifiedContractByRuntimeBytecodeHash(
   );
 }
 
-// TODO: instead of passing parameters, pass objects for inserts and updates
-
 export async function insertCode(
   pool: Pool,
-  bytecodeHash: string,
-  bytecode: string
+  { bytecodeHash, bytecode }: Tables.Code
 ) {
   await pool.query(
     "INSERT INTO code (code_hash, code) VALUES ($1, $2) ON CONFLICT (code_hash) DO NOTHING",
@@ -67,8 +97,7 @@ export async function insertCode(
 
 export async function insertContract(
   pool: Pool,
-  creationBytecodeHash: string,
-  runtimeBytecodeHash: string
+  { creationBytecodeHash, runtimeBytecodeHash }: Tables.Contract
 ) {
   let contractInsertResult = await pool.query(
     "INSERT INTO contracts (creation_code_hash, runtime_code_hash) VALUES ($1, $2) ON CONFLICT (creation_code_hash, runtime_code_hash) DO NOTHING RETURNING *",
@@ -91,10 +120,7 @@ export async function insertContract(
 
 export async function insertContractDeployment(
   pool: Pool,
-  chainId: string,
-  address: string,
-  transactionHash: string,
-  contractId: string
+  { chainId, address, transactionHash, contractId }: Tables.ContractDeployment
 ) {
   await pool.query(
     "INSERT INTO contract_deployments (chain_id, address, transaction_hash, contract_id) VALUES ($1, $2, $3, $4) ON CONFLICT (chain_id, address, transaction_hash) DO NOTHING",
@@ -104,18 +130,20 @@ export async function insertContractDeployment(
 
 export async function insertCompiledContract(
   pool: Pool,
-  compiler: string,
-  version: string,
-  language: string,
-  name: string,
-  fullyQualifiedName: string,
-  compilationArtifacts: Object,
-  sources: Object,
-  compilerSettings: Object,
-  creationCodeHash: string,
-  runtimeCodeHash: string,
-  creationCodeArtifacts: Object,
-  runtimeCodeArtifacts: Object
+  {
+    compiler,
+    version,
+    language,
+    name,
+    fullyQualifiedName,
+    compilationArtifacts,
+    sources,
+    compilerSettings,
+    creationCodeHash,
+    runtimeCodeHash,
+    creationCodeArtifacts,
+    runtimeCodeArtifacts,
+  }: Tables.CompiledContract
 ) {
   let compiledContractsInsertResult = await pool.query(
     `
@@ -170,14 +198,16 @@ export async function insertCompiledContract(
 
 export async function insertVerifiedContract(
   pool: Pool,
-  compilationId: string,
-  contractId: string,
-  creationTransformations: Object,
-  creationValues: Object,
-  runtimeTransformations: Object,
-  runtimeValues: Object,
-  runtimeMatch: boolean,
-  creationMatch: boolean
+  {
+    compilationId,
+    contractId,
+    creationTransformations,
+    creationValues,
+    runtimeTransformations,
+    runtimeValues,
+    runtimeMatch,
+    creationMatch,
+  }: Tables.VerifiedContract
 ) {
   await pool.query(
     `INSERT INTO verified_contracts (
@@ -205,14 +235,16 @@ export async function insertVerifiedContract(
 
 export async function updateVerifiedContract(
   pool: Pool,
-  compilationId: string,
-  contractId: string,
-  creationTransformations: Object,
-  creationValues: Object,
-  runtimeTransformations: Object,
-  runtimeValues: Object,
-  runtimeMatch: boolean,
-  creationMatch: boolean
+  {
+    compilationId,
+    contractId,
+    creationTransformations,
+    creationValues,
+    runtimeTransformations,
+    runtimeValues,
+    runtimeMatch,
+    creationMatch,
+  }: Tables.VerifiedContract
 ) {
   await pool.query(
     `

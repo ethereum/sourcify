@@ -5,9 +5,7 @@ import {
   Match,
   /* ContextVariables, */
 } from "@ethereum-sourcify/lib-sourcify";
-import { SourcifyEventManager } from "../../common/SourcifyEventManager/SourcifyEventManager";
-import { getCreatorTx } from "./VerificationService-util";
-import { supportedChainsMap } from "../../sourcify-chains";
+import { getCreatorTx } from "./utils/contract-creation-util";
 
 export interface IVerificationService {
   supportedChainsMap: SourcifyChainMap;
