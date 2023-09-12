@@ -769,15 +769,17 @@ export class RepositoryService implements IRepositoryService {
           {
             compilationId: compiledContractsInsertResult.rows[0].id,
             contractId: contractInsertResult.rows[0].id,
-            creationTransformations: { creationTransformations },
+            creationTransformations: JSON.stringify(creationTransformations),
             creationValues: creationValues || {},
-            runtimeTransformations: { deployedTransformations },
+            runtimeTransformations: JSON.stringify(deployedTransformations),
             runtimeValues: deployedValues || {},
             runtimeMatch: true,
             creationMatch: true,
           }
         );
       } catch (e) {
+        // TODO @alliance-database: throw a specific error or
+        // not throw at all
         throw e;
       }
     } else {
@@ -812,9 +814,9 @@ export class RepositoryService implements IRepositoryService {
             {
               compilationId: existingVerifiedContract.rows[0].compilation_id,
               contractId: existingVerifiedContract.rows[0].contract_id,
-              creationTransformations: { creationTransformations },
+              creationTransformations: JSON.stringify(creationTransformations),
               creationValues: creationValues || {},
-              runtimeTransformations: { deployedTransformations },
+              runtimeTransformations: JSON.stringify(deployedTransformations),
               runtimeValues: deployedValues || {},
               runtimeMatch: true,
               creationMatch: true,

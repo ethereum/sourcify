@@ -33,9 +33,9 @@ namespace Tables {
   export interface VerifiedContract {
     compilationId: string;
     contractId: string;
-    creationTransformations: Object;
+    creationTransformations: string;
     creationValues: Object;
-    runtimeTransformations: Object;
+    runtimeTransformations: string;
     runtimeValues: Object;
     runtimeMatch: boolean;
     creationMatch: boolean;
