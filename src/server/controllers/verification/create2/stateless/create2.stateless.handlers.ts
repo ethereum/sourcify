@@ -56,7 +56,7 @@ export async function verifyCreate2Handler(
     abiEncodedConstructorArguments
   );
 
-  if (match.status) {
+  if (match.runtimeMatch || match.creationMatch) {
     await services.repository.storeMatch(contract, match);
   }
 

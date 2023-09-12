@@ -205,7 +205,8 @@ export interface MatchValues {
 export interface Match {
   address: string;
   chainId: string;
-  status: Status;
+  runtimeMatch: Status;
+  creationMatch: Status;
   storageTimestamp?: Date;
   message?: string;
   abiEncodedConstructorArguments?: string;
@@ -214,9 +215,9 @@ export interface Match {
   /* contextVariables?: ContextVariables; */
   creatorTxHash?: string;
   immutableReferences?: ImmutableReferences;
-  deployedTransformations?: Transformation[];
+  runtimeTransformations?: Transformation[];
   creationTransformations?: Transformation[];
-  deployedValues?: MatchValues;
+  runtimeValues?: MatchValues;
   creationValues?: MatchValues;
 }
 

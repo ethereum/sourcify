@@ -72,7 +72,9 @@ export function checkAllByChainAndAddressEndpoint(req: any, res: Response) {
             });
           }
 
-          map.get(address).chainIds.push({ chainId, status: found[0].status });
+          map
+            .get(address)
+            .chainIds.push({ chainId, status: found[0].runtimeMatch });
         }
       } catch (error) {
         // ignore

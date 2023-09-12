@@ -315,7 +315,8 @@ export class RepositoryService implements IRepositoryService {
         {
           address,
           chainId,
-          status: "perfect",
+          runtimeMatch: "perfect",
+          creationMatch: null,
           storageTimestamp,
         },
       ];
@@ -352,7 +353,8 @@ export class RepositoryService implements IRepositoryService {
         {
           address,
           chainId,
-          status: storage?.status,
+          runtimeMatch: storage?.status,
+          creationMatch: null,
           storageTimestamp: storage?.time,
           create2Args: storage?.create2Args,
         },
@@ -387,13 +389,28 @@ export class RepositoryService implements IRepositoryService {
   ): Promise<void | Match> {
     if (
       match.address &&
-      (match.status === "perfect" || match.status === "partial")
+      (match.runtimeMatch === "perfect" ||
+        match.runtimeMatch === "partial" ||
+        match.creationMatch === "perfect" ||
+        match.creationMatch === "partial")
     ) {
       // Delete the partial matches if we now have a perfect match instead.
-      if (match.status === "perfect") {
+      if (
+        match.runtimeMatch === "perfect" ||
+        match.creationMatch === "perfect"
+      ) {
         this.deletePartialIfExists(match.chainId, match.address);
       }
-      const matchQuality = this.statusToMatchQuality(match.status);
+      let matchQuality: MatchQuality = "partial";
+
+      // TODO @alliance-database: can we make this better?
+      if (match.runtimeMatch) {
+        matchQuality = this.statusToMatchQuality(match.runtimeMatch);
+      }
+      if (matchQuality === "partial" && match.creationMatch === "perfect") {
+        matchQuality = this.statusToMatchQuality(match.creationMatch);
+      }
+
       this.storeSources(
         matchQuality,
         match.chainId,
@@ -476,10 +493,10 @@ export class RepositoryService implements IRepositoryService {
       await this.addToIpfsMfs(matchQuality, match.chainId, match.address);
       await this.addToAllianceDatabase(contract, match);
       SourcifyEventManager.trigger("Verification.MatchStored", match);
-    } else if (match.status === "extra-file-input-bug") {
+    } else if (match.runtimeMatch === "extra-file-input-bug") {
       return match;
     } else {
-      throw new Error(`Unknown match status: ${match.status}`);
+      throw new Error(`Unknown match status: ${match.runtimeMatch}`);
     }
   }
 
@@ -700,8 +717,8 @@ export class RepositoryService implements IRepositoryService {
       );
 
     const {
-      deployedTransformations,
-      deployedValues,
+      runtimeTransformations,
+      runtimeValues,
       creationTransformations,
       creationValues,
     } = match;
@@ -732,6 +749,11 @@ export class RepositoryService implements IRepositoryService {
       immutableReferences:
         compiledContract?.evm.deployedBytecode?.immutableReferences || {},
     };
+
+    const runtimeMatch =
+      match.runtimeMatch === "perfect" || match.runtimeMatch === "partial";
+    const creationMatch =
+      match.creationMatch === "perfect" || match.creationMatch === "partial";
 
     if (existingVerifiedContract.rows.length === 0) {
       try {
@@ -789,10 +811,10 @@ export class RepositoryService implements IRepositoryService {
             contractId: contractInsertResult.rows[0].id,
             creationTransformations: JSON.stringify(creationTransformations),
             creationValues: creationValues || {},
-            runtimeTransformations: JSON.stringify(deployedTransformations),
-            runtimeValues: deployedValues || {},
-            runtimeMatch: true,
-            creationMatch: true,
+            runtimeTransformations: JSON.stringify(runtimeTransformations),
+            runtimeValues: runtimeValues || {},
+            runtimeMatch,
+            creationMatch,
           }
         );
       } catch (e) {
@@ -802,11 +824,14 @@ export class RepositoryService implements IRepositoryService {
       }
     } else {
       const hasMetadataTransformation =
-        existingVerifiedContract.rows[0].runtime_transformations.deployedTransformations.some(
+        existingVerifiedContract.rows[0].runtime_transformations.runtimeTransformations.some(
           (trans: Transformation) => trans.reason === "metadata"
         );
 
-      if (hasMetadataTransformation && match.status === "perfect") {
+      if (
+        hasMetadataTransformation &&
+        (match.runtimeMatch === "perfect" || match.creationMatch === "perfect")
+      ) {
         // if we have a better match
         try {
           await AllianceDatabase.insertCode(this.allianceDatabasePool, {
@@ -862,10 +887,10 @@ export class RepositoryService implements IRepositoryService {
               contractId: existingVerifiedContract.rows[0].contract_id,
               creationTransformations: JSON.stringify(creationTransformations),
               creationValues: creationValues || {},
-              runtimeTransformations: JSON.stringify(deployedTransformations),
-              runtimeValues: deployedValues || {},
-              runtimeMatch: true,
-              creationMatch: true,
+              runtimeTransformations: JSON.stringify(runtimeTransformations),
+              runtimeValues: runtimeValues || {},
+              runtimeMatch,
+              creationMatch,
             }
           );
         } catch (e) {

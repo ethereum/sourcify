@@ -50,7 +50,7 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
     req.body.creatorTxHash
   );
   // Send to verification again with all source files.
-  if (match.status === "extra-file-input-bug") {
+  if (match.runtimeMatch === "extra-file-input-bug") {
     const contractWithAllSources = await useAllSources(
       contractToVerify,
       metadataAndSourcesPathBuffers
@@ -62,12 +62,15 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
       // req.body.contextVariables,
       req.body.creatorTxHash
     );
-    if (tempMatch.status === "perfect") {
+    if (
+      tempMatch.runtimeMatch === "perfect" ||
+      tempMatch.creationMatch === "perfect"
+    ) {
       await services.repository.storeMatch(contractToVerify, tempMatch);
       return res.send({ result: [tempMatch] });
     }
   }
-  if (match.status) {
+  if (match.runtimeMatch || match.creationMatch) {
     await services.repository.storeMatch(contractToVerify, match);
   }
   return res.send({ result: [match] }); // array is an old expected behavior (e.g. by frontend)

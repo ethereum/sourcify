@@ -43,13 +43,13 @@ export async function sessionVerifyCreate2(
     abiEncodedConstructorArguments
   );
 
-  contractWrapper.status = match.status || "error";
+  contractWrapper.status = match.runtimeMatch || "error";
   contractWrapper.statusMessage = match.message;
   contractWrapper.storageTimestamp = match.storageTimestamp;
   contractWrapper.address = match.address;
   contractWrapper.chainId = "0";
 
-  if (match.status) {
+  if (match.runtimeMatch) {
     await services.repository.storeMatch(contract, match);
   }
 

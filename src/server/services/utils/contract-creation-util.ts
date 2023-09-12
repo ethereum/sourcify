@@ -8,14 +8,17 @@ const checkCreatorTx = async (
   sourcifyChain: SourcifyChain,
   address: string,
   txHash: string
-): Promise<string> => {
+): Promise<{ txHash: string; data: string }> => {
   const txRecipt = await sourcifyChain.getTxRecipt(txHash);
+  const tx = await sourcifyChain.getTx(txHash);
+  let data = "";
 
   if (txRecipt.contractAddress !== null) {
     // EOA created
     if (txRecipt.contractAddress !== address) {
       throw new Error("TxHash doesn't match the contract.");
     }
+    data = tx.data;
   } else {
     // Factory created
     let traces;
@@ -30,16 +33,17 @@ const checkCreatorTx = async (
       const createTraces = traces.filter(
         (trace: any) => trace.type === "create"
       );
-      const createdContractAddressesInTx = createTraces.map((trace) =>
-        getAddress(trace.result.address)
+      const createdContractAddressesInTx = createTraces.find(
+        (trace) => getAddress(trace.result.address) === address
       );
-      if (!createdContractAddressesInTx.includes(address)) {
+      data = createdContractAddressesInTx.result.code;
+      if (createdContractAddressesInTx === undefined) {
         throw new Error("TxHash doesn't match the contract.");
       }
     }
   }
 
-  return txHash;
+  return { txHash, data };
 };
 
 /**
@@ -63,13 +67,16 @@ export const getCreatorTx = async (
   if (contractFetchAddressFilled.includes("action=getcontractcreation")) {
     const response = await fetchFromApi(contractFetchAddressFilled);
     if (response?.result?.[0]?.txHash)
-      return await checkCreatorTx(
-        sourcifyChain,
-        address,
-        response?.result?.[0]?.txHash as string
-      );
+      return (
+        await checkCreatorTx(
+          sourcifyChain,
+          address,
+          response?.result?.[0]?.txHash as string
+        )
+      ).txHash;
   }
 
+  // TODO @alliance-database: add the `checkCreatorTx` function to all the cases
   // If there's txRegex, scrape block explorers
   if (contractFetchAddressFilled && txRegex) {
     const creatorTx = await getCreatorTxByScraping(
