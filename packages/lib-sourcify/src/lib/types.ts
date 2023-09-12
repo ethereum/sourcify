@@ -189,8 +189,7 @@ export const ImmutablesTransformation = (
   value,
 });
 
-// TODO @alliance-database: change name
-export interface Values {
+export interface MatchValues {
   constructorArguments?: string;
   libraries?: {
     [index: string]: string;
@@ -217,8 +216,8 @@ export interface Match {
   immutableReferences?: ImmutableReferences;
   deployedTransformations?: Transformation[];
   creationTransformations?: Transformation[];
-  deployedValues?: Values;
-  creationValues?: Values;
+  deployedValues?: MatchValues;
+  creationValues?: MatchValues;
 }
 
 export type Status =

@@ -775,8 +775,8 @@ export class RepositoryService implements IRepositoryService {
               compilationArtifacts,
               sources: contract.solidity,
               compilerSettings: contract.metadata.settings,
-              creationCodeHash: keccak256str(contract.creationBytecode),
-              runtimeCodeHash: keccak256str(contract.deployedBytecode),
+              creationCodeHash: keccak256CreationBytecode,
+              runtimeCodeHash: keccak256DeployedBytecode,
               creationCodeArtifacts,
               runtimeCodeArtifacts,
             }
@@ -809,6 +809,34 @@ export class RepositoryService implements IRepositoryService {
       if (hasMetadataTransformation && match.status === "perfect") {
         // if we have a better match
         try {
+          await AllianceDatabase.insertCode(this.allianceDatabasePool, {
+            bytecodeHash: keccak256CreationBytecode,
+            bytecode: contract.creationBytecode,
+          });
+
+          await AllianceDatabase.insertCode(this.allianceDatabasePool, {
+            bytecodeHash: keccak256DeployedBytecode,
+            bytecode: contract.deployedBytecode,
+          });
+
+          let contractInsertResult = await AllianceDatabase.insertContract(
+            this.allianceDatabasePool,
+            {
+              creationBytecodeHash: keccak256CreationBytecode,
+              runtimeBytecodeHash: keccak256DeployedBytecode,
+            }
+          );
+
+          await AllianceDatabase.insertContractDeployment(
+            this.allianceDatabasePool,
+            {
+              chainId: match.chainId,
+              address: match.address,
+              transactionHash: match.creatorTxHash,
+              contractId: contractInsertResult.rows[0].id,
+            }
+          );
+
           await AllianceDatabase.insertCompiledContract(
             this.allianceDatabasePool,
             {
@@ -820,8 +848,8 @@ export class RepositoryService implements IRepositoryService {
               compilationArtifacts,
               sources: contract.solidity,
               compilerSettings: contract.metadata.settings,
-              creationCodeHash: keccak256str(contract.creationBytecode),
-              runtimeCodeHash: keccak256str(contract.deployedBytecode),
+              creationCodeHash: keccak256CreationBytecode,
+              runtimeCodeHash: keccak256DeployedBytecode,
               creationCodeArtifacts,
               runtimeCodeArtifacts,
             }
@@ -836,8 +864,8 @@ export class RepositoryService implements IRepositoryService {
               creationValues: creationValues || {},
               runtimeTransformations: JSON.stringify(deployedTransformations),
               runtimeValues: deployedValues || {},
-              runtimeMatch: true, // TODO @alliance-database: ask
-              creationMatch: true, // TODO @alliance-database: ask
+              runtimeMatch: true,
+              creationMatch: true,
             }
           );
         } catch (e) {
