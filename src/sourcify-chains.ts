@@ -179,7 +179,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     supported: true,
     monitored: false,
     contractFetchAddress: "https://scan.pulsechain.com/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex()
+    txRegex: getBlockscoutRegex(),
   },
   "3": {
     // Deprecated
@@ -236,13 +236,13 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "82": {
     // Meter Mainnet
     supported: true,
-    monitored: true,
+    monitored: false,
     contractFetchAddress: "https://api.meter.io:8000/" + METER_SUFFIX,
   },
   "83": {
     // Meter Testnet
     supported: true,
-    monitored: true,
+    monitored: false,
     contractFetchAddress: "https://api.meter.io:4000/" + METER_SUFFIX,
   },
   "97": {
