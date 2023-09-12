@@ -368,3 +368,84 @@ export interface JsonInput {
   sources: Sources;
   settings?: Settings;
 }
+interface CompilerOutputError {
+  sourceLocation?: {
+    file: string;
+    start: number;
+    end: number;
+  };
+  type: 'TypeError' | 'InternalCompilerError' | 'Exception';
+  component: 'general' | 'ewasm';
+  severity: 'error' | 'warning';
+  message: string;
+  formattedMessage?: string;
+}
+interface CompilerOutputEvmBytecode {
+  object: string;
+  opcodes?: string;
+  sourceMap?: string;
+  linkReferences?:
+    | {}
+    | {
+        [globalName: string]: {
+          [name: string]: { start: number; length: number }[];
+        };
+      };
+}
+
+interface CompilerOutputEvmDeployedBytecode extends CompilerOutputEvmBytecode {
+  immutableReferences?: ImmutableReferences;
+}
+interface CompilerOutputSources {
+  [globalName: string]: {
+    id: number;
+    ast: any;
+    legacyAST: any;
+  };
+}
+interface CompilerOutputContracts {
+  [globalName: string]: {
+    [contractName: string]: {
+      abi: Abi;
+      metadata: string;
+      userdoc?: any;
+      devdoc?: any;
+      ir?: string;
+      irAst?: any;
+      irOptimized?: string;
+      irOptimizedAst?: any;
+      storageLayout?: any;
+      evm: {
+        assembly?: string;
+        legacyAssembly?: any;
+        bytecode: CompilerOutputEvmBytecode;
+        deployedBytecode?: CompilerOutputEvmDeployedBytecode;
+        methodIdentifiers?: {
+          [methodName: string]: string;
+        };
+        gasEstimates?: {
+          creation: {
+            codeDepositCost: string;
+            executionCost: string;
+            totalCost: string;
+          };
+          external: {
+            [functionSignature: string]: string;
+          };
+          internal: {
+            [functionSignature: string]: string;
+          };
+        };
+      };
+      ewasm?: {
+        wast: string;
+        wasm: string;
+      };
+    };
+  };
+}
+export interface CompilerOutput {
+  errors?: CompilerOutputError[];
+  sources?: CompilerOutputSources;
+  contracts: CompilerOutputContracts;
+}

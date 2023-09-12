@@ -705,15 +705,33 @@ export class RepositoryService implements IRepositoryService {
       creationTransformations,
       creationValues,
     } = match;
-
     const compilationTargetPath = Object.keys(
       contract.metadata.settings.compilationTarget
     )[0];
     const compilationTargetName = Object.values(
       contract.metadata.settings.compilationTarget
     )[0];
-
     const language = "solidity";
+    const compiledContract =
+      contract.compilerOuput?.contracts[contract.compiledPath][contract.name];
+
+    const compilationArtifacts = {
+      abi: compiledContract?.abi || {},
+      userdoc: compiledContract?.userdoc || {},
+      devdoc: compiledContract?.devdoc || {},
+      storageLayout: compiledContract?.storageLayout || {},
+    };
+    const creationCodeArtifacts = {
+      sourceMap: compiledContract?.evm.bytecode.sourceMap || "",
+      linkReferences: compiledContract?.evm.bytecode.linkReferences || {},
+    };
+    const runtimeCodeArtifacts = {
+      sourceMap: compiledContract?.evm.deployedBytecode?.sourceMap || "",
+      linkReferences:
+        compiledContract?.evm.deployedBytecode?.linkReferences || {},
+      immutableReferences:
+        compiledContract?.evm.deployedBytecode?.immutableReferences || {},
+    };
 
     if (existingVerifiedContract.rows.length === 0) {
       try {
@@ -751,16 +769,16 @@ export class RepositoryService implements IRepositoryService {
             {
               compiler: contract.compiledPath,
               version: contract.compilerVersion,
-              language: language,
+              language,
               name: contract.name,
               fullyQualifiedName: `${compilationTargetPath}:${compilationTargetName}`,
-              compilationArtifacts: { ...contract.metadata.output },
+              compilationArtifacts,
               sources: contract.solidity,
               compilerSettings: contract.metadata.settings,
               creationCodeHash: keccak256str(contract.creationBytecode),
               runtimeCodeHash: keccak256str(contract.deployedBytecode),
-              creationCodeArtifacts: {}, // TODO @alliance-database: creation_code_artifacts
-              runtimeCodeArtifacts: {}, // TODO @alliance-database: runtime_code_artifacts
+              creationCodeArtifacts,
+              runtimeCodeArtifacts,
             }
           );
 
@@ -796,16 +814,16 @@ export class RepositoryService implements IRepositoryService {
             {
               compiler: contract.compiledPath,
               version: contract.compilerVersion,
-              language: language,
+              language,
               name: contract.name,
               fullyQualifiedName: `${compilationTargetPath}:${compilationTargetName}`,
-              compilationArtifacts: { ...contract.metadata.output },
+              compilationArtifacts,
               sources: contract.solidity,
               compilerSettings: contract.metadata.settings,
               creationCodeHash: keccak256str(contract.creationBytecode),
               runtimeCodeHash: keccak256str(contract.deployedBytecode),
-              creationCodeArtifacts: {}, // TODO @alliance-database: creation_code_artifacts
-              runtimeCodeArtifacts: {}, // TODO @alliance-database: runtime_code_artifacts
+              creationCodeArtifacts,
+              runtimeCodeArtifacts,
             }
           );
 
@@ -818,8 +836,8 @@ export class RepositoryService implements IRepositoryService {
               creationValues: creationValues || {},
               runtimeTransformations: JSON.stringify(deployedTransformations),
               runtimeValues: deployedValues || {},
-              runtimeMatch: true,
-              creationMatch: true,
+              runtimeMatch: true, // TODO @alliance-database: ask
+              creationMatch: true, // TODO @alliance-database: ask
             }
           );
         } catch (e) {

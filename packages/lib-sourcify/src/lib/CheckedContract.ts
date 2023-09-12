@@ -1,6 +1,7 @@
 import { id as keccak256str } from 'ethers';
 import {
   CompilableMetadata,
+  CompilerOutput,
   InvalidSources,
   JsonInput,
   Metadata,
@@ -56,6 +57,9 @@ export class CheckedContract {
 
   /** The raw string representation of the contract's metadata. Needed to generate a unique session id for the CheckedContract*/
   metadataRaw!: string;
+
+  /** The compiler output */
+  compilerOuput?: CompilerOutput;
 
   /** Checks whether this contract is valid or not.
    *  This is a static method due to persistence issues.
@@ -243,21 +247,22 @@ export class CheckedContract {
 
     const version = this.metadata.compiler.version;
 
-    const output = await useCompiler(
+    this.compilerOuput = await useCompiler(
       version,
       this.solcJsonInput,
       forceEmscripten
     );
     if (
-      !output.contracts ||
-      !output.contracts[this.compiledPath] ||
-      !output.contracts[this.compiledPath][this.name] ||
-      !output.contracts[this.compiledPath][this.name].evm ||
-      !output.contracts[this.compiledPath][this.name].evm.bytecode
+      !this.compilerOuput.contracts ||
+      !this.compilerOuput.contracts[this.compiledPath] ||
+      !this.compilerOuput.contracts[this.compiledPath][this.name] ||
+      !this.compilerOuput.contracts[this.compiledPath][this.name].evm ||
+      !this.compilerOuput.contracts[this.compiledPath][this.name].evm.bytecode
     ) {
-      const errorMessages = output.errors
-        .filter((e: any) => e.severity === 'error')
-        .map((e: any) => e.formattedMessage);
+      const errorMessages =
+        this.compilerOuput.errors
+          ?.filter((e: any) => e.severity === 'error')
+          .map((e: any) => e.formattedMessage) || [];
 
       const error = new Error('Compiler error');
       logWarn(
@@ -268,10 +273,10 @@ export class CheckedContract {
       throw error;
     }
 
-    const contract: any = output.contracts[this.compiledPath][this.name];
+    const contract = this.compilerOuput.contracts[this.compiledPath][this.name];
 
     this.creationBytecode = `0x${contract.evm.bytecode.object}`;
-    this.deployedBytecode = `0x${contract.evm.deployedBytecode.object}`;
+    this.deployedBytecode = `0x${contract.evm?.deployedBytecode?.object}`;
 
     return {
       creationBytecode: this.creationBytecode,
@@ -279,11 +284,11 @@ export class CheckedContract {
       metadata: contract.metadata.trim(),
       // Sometimes the compiler returns empty object (not falsey). Convert it to undefined (falsey).
       immutableReferences:
-        contract.evm.deployedBytecode.immutableReferences &&
+        contract.evm?.deployedBytecode?.immutableReferences &&
         Object.keys(contract.evm.deployedBytecode.immutableReferences).length >
           0
           ? contract.evm.deployedBytecode.immutableReferences
-          : undefined,
+          : {},
     };
   }
 
@@ -477,8 +482,16 @@ function createJsonInputFromMetadata(
     solcJsonInput.settings.outputSelection['*'] || {};
 
   solcJsonInput.settings.outputSelection['*']['*'] = [
+    'abi',
+    'devdoc',
+    'userdoc',
+    'storageLayout',
     'evm.bytecode.object',
+    'evm.bytecode.sourceMap',
+    'evm.bytecode.linkReferences',
     'evm.deployedBytecode.object',
+    'evm.deployedBytecode.sourceMap',
+    'evm.deployedBytecode.linkReferences',
     'evm.deployedBytecode.immutableReferences',
     'metadata',
   ];
