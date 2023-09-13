@@ -22,7 +22,7 @@ import QueryString from "qs";
 import fetch from "node-fetch";
 import { IVerificationService } from "../../services/VerificationService";
 import { IRepositoryService } from "../../services/RepositoryService";
-import { ContractMeta, ContractWrapper } from "../../common";
+import { ContractMeta, ContractWrapper, getMatchStatus } from "../../common";
 import { auth } from "express-oauth2-jwt-bearer";
 import rateLimit from "express-rate-limit";
 import config from "../../../config";
@@ -387,7 +387,7 @@ export const verifyContractsInSession = async (
       };
     }
 
-    contractWrapper.status = match.runtimeMatch || "error";
+    contractWrapper.status = getMatchStatus(match) || "error";
     contractWrapper.statusMessage = match.message;
     contractWrapper.storageTimestamp = match.storageTimestamp;
     if (match.runtimeMatch || match.creationMatch) {

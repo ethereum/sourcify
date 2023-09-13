@@ -23,6 +23,7 @@ import { logger } from "../../common/loggerLoki";
 import { getAddress } from "ethers";
 import { id as keccak256str } from "ethers";
 import * as AllianceDatabase from "./utils/alliance-database-util";
+import { getMatchStatus } from "../common";
 
 /**
  * A type for specifying the match quality of files.
@@ -401,15 +402,9 @@ export class RepositoryService implements IRepositoryService {
       ) {
         this.deletePartialIfExists(match.chainId, match.address);
       }
-      let matchQuality: MatchQuality = "partial";
-
-      // TODO @alliance-database: can we make this better?
-      if (match.runtimeMatch) {
-        matchQuality = this.statusToMatchQuality(match.runtimeMatch);
-      }
-      if (matchQuality === "partial" && match.creationMatch === "perfect") {
-        matchQuality = this.statusToMatchQuality(match.creationMatch);
-      }
+      let matchQuality: MatchQuality = this.statusToMatchQuality(
+        getMatchStatus(match)
+      );
 
       this.storeSources(
         matchQuality,

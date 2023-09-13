@@ -7,6 +7,7 @@ import {
   processRequestFromEtherscan,
 } from "../etherscan.common";
 import { checkSupportedChainId } from "../../../../../sourcify-chains";
+import { getResponseMatchFromMatch } from "../../../../common";
 
 export async function verifyFromEtherscan(req: Request, res: Response) {
   checkSupportedChainId(req.body.chain);
@@ -34,5 +35,5 @@ export async function verifyFromEtherscan(req: Request, res: Response) {
 
   await services.repository.storeMatch(checkedContract, match);
 
-  res.send({ result: [match] });
+  res.send({ result: [getResponseMatchFromMatch(match)] });
 }

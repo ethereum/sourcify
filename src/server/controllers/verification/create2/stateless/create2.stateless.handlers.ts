@@ -11,6 +11,7 @@ import {
 } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError } from "../../../../../common/errors";
 import { Create2VerifyRequest } from "../create2.common";
+import { getResponseMatchFromMatch } from "../../../../common";
 
 export async function verifyCreate2Handler(
   req: Create2VerifyRequest,
@@ -60,5 +61,5 @@ export async function verifyCreate2Handler(
     await services.repository.storeMatch(contract, match);
   }
 
-  res.send({ result: [match] });
+  res.send({ result: [getResponseMatchFromMatch(match)] });
 }

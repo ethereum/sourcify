@@ -12,6 +12,7 @@ import {
 } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError, NotFoundError } from "../../../../../common/errors";
 import { StatusCodes } from "http-status-codes";
+import { getResponseMatchFromMatch } from "../../../../common";
 
 export async function legacyVerifyEndpoint(
   req: LegacyVerifyRequest,
@@ -92,7 +93,7 @@ export async function legacyVerifyEndpoint(
     if (match.runtimeMatch || match.creationMatch) {
       await services.repository.storeMatch(contract, match);
     }
-    return res.send({ result: [match] }); // array is an old expected behavior (e.g. by frontend)
+    return res.send({ result: [getResponseMatchFromMatch(match)] }); // array is an old expected behavior (e.g. by frontend)
   } catch (error: any) {
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
