@@ -22,7 +22,6 @@ function createsContract(tx: TransactionResponse): boolean {
 }
 
 const NEW_BLOCK_EVENT = "new-block";
-const VERIFICATION_ENDPOINT = "/verify";
 
 /**
  * A monitor that periodically checks for new contracts on a single chain.
@@ -236,46 +235,9 @@ export class ChainMonitor extends EventEmitter {
 
       this.chainLogger.debug(`Contract successfully ${address} assembled.`);
 
-      // format in { "source1.sol": "Contract A { ...}", "source2.sol": "Contract B { ...}" } format
-      const formattedSources: { [key: string]: string } = {};
-      for (const sourceUnitName of Object.keys(
-        pendingContract.fetchedSources
-      )) {
-        const source = pendingContract.fetchedSources[sourceUnitName];
-        if (!source.content)
-          throw new Error(
-            `Unexpectedly empty source content when sending to Sourcify server. Contract ${address} on chain ${pendingContract.chainId}`
-          );
-        formattedSources[sourceUnitName] = source.content;
-      }
-
       this.sourcifyServerURLs.forEach(async (url) => {
         try {
-          const response = await fetch(url, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              chainId: pendingContract.chainId.toString(),
-              address: pendingContract.address,
-              files: {
-                ...formattedSources,
-                "metadata.json": JSON.stringify(pendingContract.metadata),
-              },
-            }),
-          });
-          if (response.status === 200) {
-            this.chainLogger.info(
-              `Contract ${address} sent to Sourcify server ${url}`
-            );
-          } else {
-            this.chainLogger.error(
-              `Error sending contract ${address} to Sourcify server ${url}: ${
-                response.statusText
-              } ${await response.text()}`
-            );
-          }
+          await pendingContract.sendToSourcifyServer(url, creatorTxHash);
         } catch (err: any) {
           this.chainLogger.error(
             `Error sending contract ${address} to Sourcify server ${url}: ${err.message}`

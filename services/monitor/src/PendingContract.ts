@@ -141,6 +141,54 @@ export default class PendingContract {
   //   }
   // };
 
+  public sendToSourcifyServer = async (
+    sourcifyServerURL: string,
+    creatorTxHash?: string
+  ): Promise<any> => {
+    // format in { "source1.sol": "Contract A { ...}", "source2.sol": "Contract B { ...}" } format
+    const formattedSources: { [key: string]: string } = {};
+    for (const sourceUnitName of Object.keys(this.fetchedSources)) {
+      const source = this.fetchedSources[sourceUnitName];
+      if (!source.content)
+        throw new Error(
+          `Unexpectedly empty source content when sending to Sourcify server. Contract ${this.address} on chain ${this.chainId}`
+        );
+      formattedSources[sourceUnitName] = source.content;
+    }
+
+    // Send to Sourcify server.
+    const response = await fetch(sourcifyServerURL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        chainId: this.chainId.toString(),
+        address: this.address,
+        files: {
+          ...formattedSources,
+          "metadata.json": JSON.stringify(this.metadata),
+        },
+        creatorTxHash,
+      }),
+    });
+
+    if (response.status === 200) {
+      logger.info(
+        `Contract ${this.address} sent to Sourcify server ${sourcifyServerURL}`
+      );
+      return response.json();
+    } else {
+      throw new Error(
+        `Error sending contract ${
+          this.address
+        } to Sourcify server ${sourcifyServerURL}: ${
+          response.statusText
+        } ${await response.text()}`
+      );
+    }
+  };
+
   private movePendingToFetchedSources = (sourceUnitName: string) => {
     const source = this.pendingSources[sourceUnitName];
     if (!source) {
