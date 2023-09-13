@@ -21,7 +21,8 @@ function createsContract(tx: TransactionResponse): boolean {
   return !tx.to;
 }
 
-const EVENT_CONTRACT_CREATED = "contractCreated";
+const NEW_BLOCK_EVENT = "new-block";
+const VERIFICATION_ENDPOINT = "/verify";
 
 /**
  * A monitor that periodically checks for new contracts on a single chain.
@@ -83,7 +84,7 @@ export class ChainMonitor extends EventEmitter {
       this.pollBlocks(startBlock);
 
       // Listen to creations
-      this.on(EVENT_CONTRACT_CREATED, this.processBlockListener);
+      this.on(NEW_BLOCK_EVENT, this.processBlockListener);
     } catch (err: any) {
       this.chainLogger.error(`Error starting monitor: ${err.message}`);
     }
@@ -94,7 +95,7 @@ export class ChainMonitor extends EventEmitter {
    */
   stop = (): void => {
     this.chainLogger.info(`Stopping monitor`);
-    this.off(EVENT_CONTRACT_CREATED, this.processBlockListener);
+    this.off(NEW_BLOCK_EVENT, this.processBlockListener);
     this.running = false;
   };
 
@@ -116,7 +117,7 @@ export class ChainMonitor extends EventEmitter {
         if (block) {
           this.adaptBlockPause("decrease");
           currentBlockNumber++;
-          this.emit(EVENT_CONTRACT_CREATED, block);
+          this.emit(NEW_BLOCK_EVENT, block);
         } else {
           this.adaptBlockPause("increase");
         }
@@ -141,6 +142,7 @@ export class ChainMonitor extends EventEmitter {
     this.chainLogger.info(`Found block ${block.number}. Now processing`);
 
     for (const tx of block.prefetchedTransactions) {
+      // TODO: Check factory contracts with traces
       if (createsContract(tx)) {
         const address = getCreateAddress(tx);
         this.chainLogger.info(
@@ -219,13 +221,75 @@ export class ChainMonitor extends EventEmitter {
         `New pending contract ${address} with hash ${metadataHash.getSourceHash()}`
       );
       await pendingContract.assemble();
-      this.chainLogger.debug(
-        `Contract ${address} assembled. Now sending to Sourcify server`
-      );
+
+      if (!isEmpty(pendingContract.pendingSources)) {
+        logger.warn(
+          `Could not fetch all sources for contract ${
+            pendingContract.address
+          } on ${pendingContract.chainId}. Sources missing: ${Object.keys(
+            pendingContract.pendingSources
+          ).join(",")}
+            `
+        );
+        return;
+      }
+
+      this.chainLogger.debug(`Contract successfully ${address} assembled.`);
+
+      // format in { "source1.sol": "Contract A { ...}", "source2.sol": "Contract B { ...}" } format
+      const formattedSources: { [key: string]: string } = {};
+      for (const sourceUnitName of Object.keys(
+        pendingContract.fetchedSources
+      )) {
+        const source = pendingContract.fetchedSources[sourceUnitName];
+        if (!source.content)
+          throw new Error(
+            `Unexpectedly empty source content when sending to Sourcify server. Contract ${address} on chain ${pendingContract.chainId}`
+          );
+        formattedSources[sourceUnitName] = source.content;
+      }
+
+      this.sourcifyServerURLs.forEach(async (url) => {
+        try {
+          const response = await fetch(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              chainId: pendingContract.chainId.toString(),
+              address: pendingContract.address,
+              files: {
+                ...formattedSources,
+                "metadata.json": JSON.stringify(pendingContract.metadata),
+              },
+            }),
+          });
+          if (response.status === 200) {
+            this.chainLogger.info(
+              `Contract ${address} sent to Sourcify server ${url}`
+            );
+          } else {
+            this.chainLogger.error(
+              `Error sending contract ${address} to Sourcify server ${url}: ${
+                response.statusText
+              } ${await response.text()}`
+            );
+          }
+        } catch (err: any) {
+          this.chainLogger.error(
+            `Error sending contract ${address} to Sourcify server ${url}: ${err.message}`
+          );
+        }
+      });
     } catch (err: any) {
       this.chainLogger.error(
         `Error processing bytecode for contract ${address}: ${err}`
       );
     }
   };
+}
+
+function isEmpty(obj: object): boolean {
+  return !Object.keys(obj).length && obj.constructor === Object;
 }

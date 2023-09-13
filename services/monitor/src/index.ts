@@ -30,7 +30,8 @@ if (require.main === module) {
         enabled: true,
         gateways: ["https://ipfs.io/ipfs/"],
       },
-    }
+    },
+    ["http://localhost:5555/verify/"]
   );
   monitor
     .start()

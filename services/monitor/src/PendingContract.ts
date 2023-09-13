@@ -18,9 +18,9 @@ export default class PendingContract {
   public metadataHash: FileHash;
   public address: string;
   public chainId: number;
-  private metadata: Metadata | undefined;
-  private pendingSources: MetadataSourceMap = {};
-  private fetchedSources: MetadataSourceMap = {};
+  public metadata: Metadata | undefined;
+  public pendingSources: MetadataSourceMap = {};
+  public fetchedSources: MetadataSourceMap = {};
   private decentralizedStorageFetchers: KnownDecentralizedStorageFetchers;
 
   constructor(
@@ -61,6 +61,9 @@ export default class PendingContract {
 
         // Source already inline.
         if (source.content) {
+          logger.info(
+            `Source ${sourceUnitName} of ${this.address} on chain ${this.chainId} has already inline content`
+          );
           this.movePendingToFetchedSources(sourceUnitName);
           return;
         }
@@ -84,18 +87,15 @@ export default class PendingContract {
             continue;
           }
           fetchedContent = await fetcher.fetch(fileHash);
+          logger.info(
+            `Fetched source ${sourceUnitName} for ${this.address} on chain ${this.chainId} from ${fileHash.origin}`
+          );
           source.content = fetchedContent;
           this.movePendingToFetchedSources(sourceUnitName);
         }
       }
     );
-    await Promise.all(fetchPromises);
-
-    if (!isEmpty(this.pendingSources)) {
-      throw new Error(
-        `Could not fetch all sources for contract ${this.address}`
-      );
-    }
+    return Promise.all(fetchPromises);
   };
 
   // private addMetadata = (rawMetadata: string) => {
