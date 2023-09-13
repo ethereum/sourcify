@@ -196,7 +196,6 @@ async function tryToFindPerfectMetadataAndMatch(
     const recompiled = await checkedContractWithPerfectMetadata.recompile();
 
     await matchFunction(matchWithPerfectMetadata, recompiled);
-    // TODO @alliance-database: handle this
     if (matchWithPerfectMetadata[matchType] === 'perfect') {
       // Replace the metadata and solidity files that will be saved in the repo
       checkedContract.initSolcJsonInput(
