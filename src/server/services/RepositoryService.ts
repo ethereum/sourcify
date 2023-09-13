@@ -816,19 +816,30 @@ export class RepositoryService implements IRepositoryService {
           }
         );
       } catch (e) {
-        // TODO @alliance-database: throw a specific error or
-        // not throw at all
-        throw e;
+        logger.error(
+          `Cannot insert verified_contract:
+
+${JSON.stringify({
+  match,
+})}
+
+${e}`
+        );
+        return;
       }
     } else {
-      // TODO @alliance-database: do we need to check also `creation_transformations`?
-      const hasMetadataTransformation =
+      // TODO @alliance-database: decide how to update verified_contract
+      const hasRuntimeAuxdataTransformation =
         existingVerifiedContract.rows[0].runtime_transformations.some(
-          (trans: Transformation) => trans.reason === "metadata"
+          (trans: Transformation) => trans.reason === "auxdata"
+        );
+      const hasCreationAuxdataTransformation =
+        existingVerifiedContract.rows[0].creation_transformations.some(
+          (trans: Transformation) => trans.reason === "auxdata"
         );
 
       if (
-        hasMetadataTransformation &&
+        (hasRuntimeAuxdataTransformation || hasCreationAuxdataTransformation) &&
         (match.runtimeMatch === "perfect" || match.creationMatch === "perfect")
       ) {
         // if we have a better match
@@ -893,7 +904,16 @@ export class RepositoryService implements IRepositoryService {
             }
           );
         } catch (e) {
-          throw e;
+          logger.error(
+            `Cannot update verified_contract:
+
+${JSON.stringify({
+  match,
+})}
+
+${e}`
+          );
+          return;
         }
       }
     }

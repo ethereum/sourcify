@@ -161,9 +161,9 @@ export interface RecompilationResult {
 
 export type Transformation = {
   type: 'insert' | 'replace';
-  reason: 'constructor' | 'library' | 'immutable' | 'metadata';
+  reason: 'constructor' | 'library' | 'immutable' | 'auxdata';
   offset: number;
-  value?: string;
+  id?: string;
 };
 
 export const ConstructorTransformation = (offset: number): Transformation => ({
@@ -172,21 +172,25 @@ export const ConstructorTransformation = (offset: number): Transformation => ({
   offset,
 });
 
-export const MetadataTransformation = (offset: number): Transformation => ({
+export const AuxdataTransformation = (
+  offset: number,
+  id: string
+): Transformation => ({
   type: 'replace',
-  reason: 'metadata',
+  reason: 'auxdata',
   offset,
+  id,
 });
 
 export const ImmutablesTransformation = (
   reason: 'library' | 'immutable',
   offset: number,
-  value: string
-): Transformation & { value: string } => ({
+  id: string
+): Transformation => ({
   type: 'replace',
   reason,
   offset,
-  value,
+  id,
 });
 
 export interface MatchValues {

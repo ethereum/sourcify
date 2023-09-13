@@ -6,7 +6,7 @@ import {
   ImmutablesTransformation,
   Match,
   Metadata,
-  MetadataTransformation,
+  AuxdataTransformation,
   RecompilationResult,
   StringMap,
   Transformation,
@@ -316,9 +316,9 @@ export function matchWithDeployedBytecode(
       match.immutableReferences = immutableReferences;
       match.runtimeMatch = 'partial';
       match.runtimeTransformations?.push(
-        MetadataTransformation(trimmedCompiledRuntimeBytecode.length)
+        AuxdataTransformation(trimmedCompiledRuntimeBytecode.length, '0')
       );
-      match.runtimeValues.cborAuxdata = { 0: auxdata };
+      match.runtimeValues.cborAuxdata = { '0': auxdata };
     }
   }
 }
@@ -451,9 +451,9 @@ export async function matchWithCreationTx(
     if (trimmedCreatorTxData.startsWith(trimmedRecompiledCreationBytecode)) {
       match.creationMatch = 'partial';
       match.runtimeTransformations?.push(
-        MetadataTransformation(trimmedRecompiledCreationBytecode.length)
+        AuxdataTransformation(trimmedRecompiledCreationBytecode.length, '0')
       );
-      match.creationValues.cborAuxdata = { 0: auxdata };
+      match.creationValues.cborAuxdata = { '0': auxdata };
     }
   }
 
