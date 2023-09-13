@@ -475,7 +475,10 @@ export class RepositoryService implements IRepositoryService {
         );
       }
 
-      if (match.immutableReferences) {
+      if (
+        match.immutableReferences &&
+        Object.keys(match.immutableReferences).length > 0
+      ) {
         this.storeJSON(
           matchQuality,
           match.chainId,
@@ -818,8 +821,9 @@ export class RepositoryService implements IRepositoryService {
         throw e;
       }
     } else {
+      // TODO @alliance-database: do we need to check also `creation_transformations`?
       const hasMetadataTransformation =
-        existingVerifiedContract.rows[0].runtime_transformations.runtimeTransformations.some(
+        existingVerifiedContract.rows[0].runtime_transformations.some(
           (trans: Transformation) => trans.reason === "metadata"
         );
 

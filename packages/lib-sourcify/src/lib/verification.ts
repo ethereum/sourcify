@@ -154,6 +154,8 @@ export async function verifyDeployed(
 
   // Handle when <0.8.21 and with viaIR and with optimizer disabled https://github.com/ethereum/sourcify/issues/1088
   if (
+    match.runtimeMatch === null &&
+    match.creationMatch === null &&
     lt(checkedContract.metadata.compiler.version, '0.8.21') &&
     !checkedContract.metadata.settings.optimizer?.enabled &&
     checkedContract.metadata.settings?.viaIR

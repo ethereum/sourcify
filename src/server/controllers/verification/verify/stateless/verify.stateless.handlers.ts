@@ -87,7 +87,7 @@ export async function legacyVerifyEndpoint(
         tempMatch.creationMatch === "perfect"
       ) {
         await services.repository.storeMatch(contract, tempMatch);
-        return res.send({ result: [tempMatch] });
+        return res.send({ result: [getResponseMatchFromMatch(tempMatch)] });
       }
     }
     if (match.runtimeMatch || match.creationMatch) {

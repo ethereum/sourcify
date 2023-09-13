@@ -22,6 +22,12 @@ interface JsonRpcProviderWithUrl extends JsonRpcProvider {
 export type SourcifyChainInstance = Omit<Chain, 'rpc'> &
   Omit<SourcifyChainExtension, 'rpc'> & { rpc: Array<string | FetchRequest> };
 
+class CreatorTransactionMismatchError extends Error {
+  constructor() {
+    super("Creator transaction doesn't match the contract");
+  }
+}
+
 export default class SourcifyChain {
   name: string;
   title?: string | undefined;
@@ -329,7 +335,7 @@ export default class SourcifyChain {
     if (txRecipt.contractAddress !== null) {
       // EOA created
       if (txRecipt.contractAddress !== address) {
-        throw new Error("transactionHash doesn't match the contract.");
+        throw new CreatorTransactionMismatchError();
       }
       creationBytecode = tx.data;
     } else {
@@ -351,7 +357,7 @@ export default class SourcifyChain {
         );
         creationBytecode = createdContractAddressesInTx.result.code;
         if (createdContractAddressesInTx === undefined) {
-          throw new Error("transactionHash doesn't match the contract.");
+          throw new CreatorTransactionMismatchError();
         }
       }
     }

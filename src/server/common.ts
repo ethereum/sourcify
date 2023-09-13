@@ -111,6 +111,9 @@ export function getMatchStatus(match: Match): Status {
   if (match.runtimeMatch === "partial" || match.creationMatch === "partial") {
     return "partial";
   }
+  if (match.runtimeMatch === "extra-file-input-bug") {
+    return "extra-file-input-bug";
+  }
   return null;
 }
 

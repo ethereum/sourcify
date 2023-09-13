@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import path from 'path';
-import { Metadata } from '../src/lib/types';
+import { Match, Metadata } from '../src/lib/types';
 import Ganache from 'ganache';
 import {
   /* callContractMethodWithTx, */
@@ -529,7 +529,8 @@ describe('lib-sourcify tests', () => {
 
       const replacedBytecode = replaceImmutableReferences(
         immutableReferences,
-        deployedBytecode
+        deployedBytecode,
+        []
       );
 
       expect(replacedBytecode).equals(recompiledDeployedBytecode);
@@ -619,21 +620,31 @@ describe('lib-sourcify tests', () => {
         contractFolderPath
       );
       const recompiled = await checkedContracts[0].recompile();
-      const match = {
+      const match: Match = {
         address: contractAddress,
         chainId: sourcifyChainGanache.chainId.toString(),
-        status: null,
+        runtimeMatch: null,
+        creationMatch: null,
       };
       const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
-      await matchWithCreationTx(
-        match,
-        recompiled.creationBytecode,
-        sourcifyChainGanache,
-        contractAddress,
-        wrongCreatorTxHash,
-        recompiledMetadata
-      );
-      expectMatch(match, null, contractAddress, undefined); // status is null
+      try {
+        await matchWithCreationTx(
+          match,
+          recompiled.creationBytecode,
+          sourcifyChainGanache,
+          contractAddress,
+          wrongCreatorTxHash,
+          recompiledMetadata
+        );
+      } catch (err) {
+        if (err instanceof Error) {
+          expect(err.message).to.equal(
+            "Creator transaction doesn't match the contract"
+          );
+        } else {
+          throw err;
+        }
+      }
     });
 
     // https://github.com/sourcifyeth/private-issues/issues/16
@@ -667,7 +678,8 @@ describe('lib-sourcify tests', () => {
       const match = {
         address: contractAddress,
         chainId: sourcifyChainGanache.chainId.toString(),
-        status: null,
+        runtimeMatch: null,
+        creationMatch: null,
       };
       const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
       await matchWithCreationTx(
@@ -703,7 +715,8 @@ describe('lib-sourcify tests', () => {
       const match = {
         address: contractAddress,
         chainId: sourcifyChainGanache.chainId.toString(),
-        status: null,
+        runtimeMatch: null,
+        creationMatch: null,
       };
       const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
 
@@ -734,7 +747,8 @@ describe('lib-sourcify tests', () => {
       const match = {
         address: contractAddress,
         chainId: sourcifyChainGanache.chainId.toString(),
-        status: null,
+        runtimeMatch: null,
+        creationMatch: null,
       };
       const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
       await matchWithCreationTx(
@@ -745,7 +759,13 @@ describe('lib-sourcify tests', () => {
         creatorTxHash,
         recompiledMetadata
       );
-      expectMatch(match, 'perfect', contractAddress, undefined); // status is null
+      try {
+        expect(match.creationMatch).to.equal('perfect');
+        expect(match.address).to.equal(contractAddress);
+      } catch (e) {
+        console.log('Match: ', match);
+        throw e;
+      }
     });
   });
 });
