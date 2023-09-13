@@ -318,4 +318,45 @@ export default class SourcifyChain {
         this.chainId
     );
   };
+
+  getContractCreationBytecode = async (
+    address: string,
+    transactionHash: string
+  ): Promise<string> => {
+    const txRecipt = await this.getTxRecipt(transactionHash);
+    const tx = await this.getTx(transactionHash);
+    let creationBytecode = '';
+
+    if (txRecipt.contractAddress !== null) {
+      // EOA created
+      if (txRecipt.contractAddress !== address) {
+        throw new Error("transactionHash doesn't match the contract.");
+      }
+      creationBytecode = tx.data;
+    } else {
+      // Factory created
+      let traces;
+      try {
+        traces = await this.getTxTraces(transactionHash);
+      } catch (e) {
+        traces = [];
+      }
+
+      // If traces are available check, otherwise lets just trust
+      if (traces.length > 0) {
+        const createTraces = traces.filter(
+          (trace: any) => trace.type === 'create'
+        );
+        const createdContractAddressesInTx = createTraces.find(
+          (trace) => getAddress(trace.result.address) === address
+        );
+        creationBytecode = createdContractAddressesInTx.result.code;
+        if (createdContractAddressesInTx === undefined) {
+          throw new Error("transactionHash doesn't match the contract.");
+        }
+      }
+    }
+
+    return creationBytecode;
+  };
 }

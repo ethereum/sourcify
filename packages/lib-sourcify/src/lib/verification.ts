@@ -33,85 +33,6 @@ import { logInfo } from './logger';
 import SourcifyChain from './SourcifyChain';
 import { lt } from 'semver';
 
-// TODO @alliance-database: move this to lib-sourcify, potentially as a function of SourcifyChain
-async function fetchFromApi(fetchAddress: string) {
-  const res = await fetch(fetchAddress);
-  if (res.status === 200) {
-    const response = await res.json();
-    return response;
-  }
-
-  throw new Error(
-    `Contract creator tx could not be fetched from ${fetchAddress} because of status code ${res.status}`
-  );
-}
-
-const checkCreatorTx = async (
-  sourcifyChain: SourcifyChain,
-  address: string,
-  txHash: string
-): Promise<{ txHash: string; data: string }> => {
-  const txRecipt = await sourcifyChain.getTxRecipt(txHash);
-  const tx = await sourcifyChain.getTx(txHash);
-  let data = '';
-
-  if (txRecipt.contractAddress !== null) {
-    // EOA created
-    if (txRecipt.contractAddress !== address) {
-      throw new Error("TxHash doesn't match the contract.");
-    }
-    data = tx.data;
-  } else {
-    // Factory created
-    let traces;
-    try {
-      traces = await sourcifyChain.getTxTraces(txHash);
-    } catch (e) {
-      traces = [];
-    }
-
-    // If traces are available check, otherwise lets just trust
-    if (traces.length > 0) {
-      const createTraces = traces.filter(
-        (trace: any) => trace.type === 'create'
-      );
-      const createdContractAddressesInTx = createTraces.find(
-        (trace) => getAddress(trace.result.address) === address
-      );
-      data = createdContractAddressesInTx.result.code;
-      if (createdContractAddressesInTx === undefined) {
-        throw new Error("TxHash doesn't match the contract.");
-      }
-    }
-  }
-
-  return { txHash, data };
-};
-
-export const getCreatorTxData = async (
-  sourcifyChain: SourcifyChain,
-  address: string
-): Promise<string | null> => {
-  const contractFetchAddressFilled =
-    sourcifyChain.contractFetchAddress?.replace('${ADDRESS}', address);
-
-  if (!contractFetchAddressFilled) return null;
-
-  // Chains with the new Etherscan API that returns the creation transaction hash
-  if (contractFetchAddressFilled.includes('action=getcontractcreation')) {
-    const response = await fetchFromApi(contractFetchAddressFilled);
-    if (response?.result?.[0]?.txHash)
-      return (
-        await checkCreatorTx(
-          sourcifyChain,
-          address,
-          response?.result?.[0]?.txHash as string
-        )
-      ).data;
-  }
-  return null;
-};
-
 export async function verifyDeployed(
   checkedContract: CheckedContract,
   sourcifyChain: SourcifyChain,
@@ -485,7 +406,12 @@ export async function matchWithCreationTx(
   }
 
   const creatorTx = await sourcifyChain.getTx(creatorTxHash);
-  const creatorTxData = (await getCreatorTxData(sourcifyChain, address)) || '';
+  const creatorTxData =
+    (await sourcifyChain.getContractCreationBytecode(address, creatorTxHash)) ||
+    '';
+
+  // we can assign the creatorTxHash here because `getContractCreationBytecode` verifies that this is really the creatorTxHash or it throws
+  match.creatorTxHash = creatorTxHash;
 
   // Initialize the transformations array if undefined
   if (match.creationTransformations === undefined) {
@@ -581,7 +507,6 @@ export async function matchWithCreationTx(
     match.libraryMap = libraryMap;
 
     match.abiEncodedConstructorArguments = abiEncodedConstructorArguments;
-    match.creatorTxHash = creatorTxHash;
   }
 }
 

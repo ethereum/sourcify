@@ -36,15 +36,13 @@ export class VerificationService implements IVerificationService {
     const foundCreatorTxHash = await getCreatorTx(sourcifyChain, address);
     let match;
     try {
-      const creatorTxHash_ = creatorTxHash || foundCreatorTxHash || undefined;
       match = await verifyDeployed(
         checkedContract,
         sourcifyChain,
         address,
         /* contextVariables, */
-        creatorTxHash_
+        creatorTxHash || foundCreatorTxHash || undefined
       );
-      match.creatorTxHash = creatorTxHash_;
       return match;
     } catch (err) {
       // Find the creator tx if it wasn't supplied and try verifying again with it.
