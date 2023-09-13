@@ -258,15 +258,18 @@ export async function verifyCreate2(
 
 export function matchWithDeployedBytecode(
   match: Match,
-  recompiledDeployedBytecode: string,
-  deployedBytecode: string,
+  recompiledRuntimeBytecode: string,
+  deployedRuntimeBytecode: string,
   immutableReferences?: any
 ) {
+  // Updating the `match.deployedRuntimeBytecode` here so we are sure to always update it
+  match.deployedRuntimeBytecode = deployedRuntimeBytecode;
+
   // Check if is a library with call protection
   // See https://docs.soliditylang.org/en/v0.8.19/contracts.html#call-protection-for-libraries
-  recompiledDeployedBytecode = checkCallProtectionAndReplaceAddress(
-    recompiledDeployedBytecode,
-    deployedBytecode
+  recompiledRuntimeBytecode = checkCallProtectionAndReplaceAddress(
+    recompiledRuntimeBytecode,
+    deployedRuntimeBytecode
   );
 
   if (match.runtimeTransformations === undefined) {
@@ -278,38 +281,40 @@ export function matchWithDeployedBytecode(
 
   // Replace the library placeholders in the recompiled bytecode with values from the deployed bytecode
   const { replaced, libraryMap } = addLibraryAddresses(
-    recompiledDeployedBytecode,
-    deployedBytecode,
+    recompiledRuntimeBytecode,
+    deployedRuntimeBytecode,
     match.runtimeTransformations
   );
-  recompiledDeployedBytecode = replaced;
+  recompiledRuntimeBytecode = replaced;
   match.runtimeValues.libraries = libraryMap;
 
   if (immutableReferences) {
-    deployedBytecode = replaceImmutableReferences(
+    deployedRuntimeBytecode = replaceImmutableReferences(
       immutableReferences,
-      deployedBytecode,
+      deployedRuntimeBytecode,
       match.runtimeTransformations
     );
     match.runtimeValues.immutables == immutableReferences;
   }
 
-  if (recompiledDeployedBytecode === deployedBytecode) {
+  if (recompiledRuntimeBytecode === deployedRuntimeBytecode) {
     match.libraryMap = libraryMap;
     match.immutableReferences = immutableReferences;
     // if the bytecode doesn't contain metadata then "partial" match
-    if (doesContainMetadataHash(deployedBytecode)) {
+    if (doesContainMetadataHash(deployedRuntimeBytecode)) {
       match.runtimeMatch = 'perfect';
-      const [, auxdata] = splitAuxdata(deployedBytecode);
+      const [, auxdata] = splitAuxdata(deployedRuntimeBytecode);
       match.runtimeValues.cborAuxdata = { 0: auxdata };
     } else {
       match.runtimeMatch = 'partial';
     }
   } else {
     // Try to match without the metadata hashes
-    const [trimmedDeployedBytecode, auxdata] = splitAuxdata(deployedBytecode);
+    const [trimmedDeployedBytecode, auxdata] = splitAuxdata(
+      deployedRuntimeBytecode
+    );
     const [trimmedCompiledRuntimeBytecode] = splitAuxdata(
-      recompiledDeployedBytecode
+      recompiledRuntimeBytecode
     );
     if (trimmedDeployedBytecode === trimmedCompiledRuntimeBytecode) {
       match.libraryMap = libraryMap;
@@ -407,12 +412,13 @@ export async function matchWithCreationTx(
   }
 
   const creatorTx = await sourcifyChain.getTx(creatorTxHash);
-  const creatorTxData =
+  const deployedCreationBytecode =
     (await sourcifyChain.getContractCreationBytecode(address, creatorTxHash)) ||
     '';
 
   // we can assign the creatorTxHash here because `getContractCreationBytecode` verifies that this is really the creatorTxHash or it throws
   match.creatorTxHash = creatorTxHash;
+  match.deployedCreationBytecode = deployedCreationBytecode;
 
   // Initialize the transformations array if undefined
   if (match.creationTransformations === undefined) {
@@ -426,13 +432,13 @@ export async function matchWithCreationTx(
   // Replace the library placeholders in the recompiled bytecode with values from the deployed bytecode
   const { replaced, libraryMap } = addLibraryAddresses(
     recompiledCreationBytecode,
-    creatorTxData,
+    deployedCreationBytecode,
     match.creationTransformations
   );
   recompiledCreationBytecode = replaced;
   match.creationValues.libraries = libraryMap;
 
-  if (creatorTxData.startsWith(recompiledCreationBytecode)) {
+  if (deployedCreationBytecode.startsWith(recompiledCreationBytecode)) {
     // if the bytecode doesn't contain metadata then "partial" match
     // TODO: in reality this is endsWithMetadataHash, we should actually check the existance of the metadatahash inside the bytecode in any position
     if (doesContainMetadataHash(recompiledCreationBytecode)) {
@@ -444,11 +450,17 @@ export async function matchWithCreationTx(
     }
   } else {
     // Match without metadata hashes
-    const [trimmedCreatorTxData, auxdata] = splitAuxdata(creatorTxData); // In the case of creationTxData (not deployed bytecode) it is actually not CBOR encoded because of the appended constr. args., but splitAuxdata returns the whole bytecode if it's not CBOR encoded, so will work with startsWith.
+    const [trimmedDeployedCreationBytecode, auxdata] = splitAuxdata(
+      deployedCreationBytecode
+    ); // In the case of creationTxData (not deployed bytecode) it is actually not CBOR encoded because of the appended constr. args., but splitAuxdata returns the whole bytecode if it's not CBOR encoded, so will work with startsWith.
     const [trimmedRecompiledCreationBytecode] = splitAuxdata(
       recompiledCreationBytecode
     );
-    if (trimmedCreatorTxData.startsWith(trimmedRecompiledCreationBytecode)) {
+    if (
+      trimmedDeployedCreationBytecode.startsWith(
+        trimmedRecompiledCreationBytecode
+      )
+    ) {
       match.creationMatch = 'partial';
       match.runtimeTransformations?.push(
         AuxdataTransformation(trimmedRecompiledCreationBytecode.length, '0')
@@ -460,7 +472,7 @@ export async function matchWithCreationTx(
   if (match.creationMatch) {
     const abiEncodedConstructorArguments =
       extractAbiEncodedConstructorArguments(
-        creatorTxData,
+        deployedCreationBytecode,
         recompiledCreationBytecode
       );
     const constructorAbiParamInputs = (

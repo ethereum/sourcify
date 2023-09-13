@@ -223,6 +223,8 @@ export interface Match {
   creationTransformations?: Transformation[];
   runtimeValues?: MatchValues;
   creationValues?: MatchValues;
+  deployedRuntimeBytecode?: string;
+  deployedCreationBytecode?: string;
 }
 
 export type Status =

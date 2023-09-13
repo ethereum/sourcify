@@ -70,9 +70,10 @@ export async function getPool(): Promise<Pool> {
   }
 }
 
-export async function getVerifiedContractByRuntimeBytecodeHash(
+export async function getVerifiedContractByBytecodeHashes(
   pool: Pool,
-  runtimeBytecodeHash: string
+  runtimeBytecodeHash: string,
+  creationBytecodeHash: string
 ) {
   return await pool.query(
     `
@@ -80,9 +81,11 @@ export async function getVerifiedContractByRuntimeBytecodeHash(
         verified_contracts.*
       FROM verified_contracts
       JOIN contracts ON contracts.id = verified_contracts.contract_id
-      WHERE contracts.runtime_code_hash = $1
+      WHERE 1=1
+        AND contracts.runtime_code_hash = $1
+        AND contracts.creation_code_hash = $2
     `,
-    [runtimeBytecodeHash]
+    [runtimeBytecodeHash, creationBytecodeHash]
   );
 }
 

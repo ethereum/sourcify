@@ -682,12 +682,17 @@ export class RepositoryService implements IRepositoryService {
     }
   }
 
-  private async addToAllianceDatabase(contract: CheckedContract, match: Match) {
+  private async addToAllianceDatabase(
+    recompiledContract: CheckedContract,
+    match: Match
+  ) {
     if (
-      contract.deployedBytecode === undefined ||
-      contract.creationBytecode === undefined
+      recompiledContract.runtimeBytecode === undefined ||
+      recompiledContract.creationBytecode === undefined ||
+      match.deployedRuntimeBytecode === undefined ||
+      match.deployedCreationBytecode === undefined
     ) {
-      // Can only store contracts with both deployedBytecode and creationBytecode
+      // Can only store contracts with both runtimeBytecode and creationBytecode
       return;
     }
 
@@ -703,14 +708,26 @@ export class RepositoryService implements IRepositoryService {
       return;
     }
 
-    const keccak256CreationBytecode = keccak256str(contract.creationBytecode);
-    const keccak256DeployedBytecode = keccak256str(contract.deployedBytecode);
+    const keccak256DeployedCreationBytecode = keccak256str(
+      match.deployedCreationBytecode
+    );
+    const keccak256DeployedRuntimeBytecode = keccak256str(
+      match.deployedRuntimeBytecode
+    );
+
+    const keccak256RecompiledCreationBytecode = keccak256str(
+      recompiledContract.creationBytecode
+    );
+    const keccak256RecompiledRuntimeBytecode = keccak256str(
+      recompiledContract.runtimeBytecode
+    );
 
     // TODO @alliance-database: order by best match desc
     const existingVerifiedContract =
-      await AllianceDatabase.getVerifiedContractByRuntimeBytecodeHash(
+      await AllianceDatabase.getVerifiedContractByBytecodeHashes(
         this.allianceDatabasePool,
-        keccak256DeployedBytecode
+        keccak256DeployedRuntimeBytecode,
+        keccak256DeployedCreationBytecode
       );
 
     const {
@@ -720,14 +737,16 @@ export class RepositoryService implements IRepositoryService {
       creationValues,
     } = match;
     const compilationTargetPath = Object.keys(
-      contract.metadata.settings.compilationTarget
+      recompiledContract.metadata.settings.compilationTarget
     )[0];
     const compilationTargetName = Object.values(
-      contract.metadata.settings.compilationTarget
+      recompiledContract.metadata.settings.compilationTarget
     )[0];
     const language = "solidity";
     const compiledContract =
-      contract.compilerOuput?.contracts[contract.compiledPath][contract.name];
+      recompiledContract.compilerOuput?.contracts[
+        recompiledContract.compiledPath
+      ][recompiledContract.name];
 
     const compilationArtifacts = {
       abi: compiledContract?.abi || {},
@@ -754,24 +773,36 @@ export class RepositoryService implements IRepositoryService {
 
     if (existingVerifiedContract.rows.length === 0) {
       try {
+        // Add recompiled bytecodes
         await AllianceDatabase.insertCode(this.allianceDatabasePool, {
-          bytecodeHash: keccak256CreationBytecode,
-          bytecode: contract.creationBytecode,
+          bytecodeHash: keccak256RecompiledCreationBytecode,
+          bytecode: recompiledContract.creationBytecode,
+        });
+        await AllianceDatabase.insertCode(this.allianceDatabasePool, {
+          bytecodeHash: keccak256RecompiledRuntimeBytecode,
+          bytecode: recompiledContract.runtimeBytecode,
         });
 
+        // Add deployed bytecodes
         await AllianceDatabase.insertCode(this.allianceDatabasePool, {
-          bytecodeHash: keccak256DeployedBytecode,
-          bytecode: contract.deployedBytecode,
+          bytecodeHash: keccak256DeployedCreationBytecode,
+          bytecode: match.deployedCreationBytecode,
+        });
+        await AllianceDatabase.insertCode(this.allianceDatabasePool, {
+          bytecodeHash: keccak256DeployedRuntimeBytecode,
+          bytecode: match.deployedRuntimeBytecode,
         });
 
+        // Add the onchain contract in contracts
         const contractInsertResult = await AllianceDatabase.insertContract(
           this.allianceDatabasePool,
           {
-            creationBytecodeHash: keccak256CreationBytecode,
-            runtimeBytecodeHash: keccak256DeployedBytecode,
+            creationBytecodeHash: keccak256DeployedCreationBytecode,
+            runtimeBytecodeHash: keccak256DeployedRuntimeBytecode,
           }
         );
 
+        // add the onchain contract in contract_deployments
         await AllianceDatabase.insertContractDeployment(
           this.allianceDatabasePool,
           {
@@ -782,25 +813,27 @@ export class RepositoryService implements IRepositoryService {
           }
         );
 
+        // insert new recompiled contract
         const compiledContractsInsertResult =
           await AllianceDatabase.insertCompiledContract(
             this.allianceDatabasePool,
             {
-              compiler: contract.compiledPath,
-              version: contract.compilerVersion,
+              compiler: recompiledContract.compiledPath,
+              version: recompiledContract.compilerVersion,
               language,
-              name: contract.name,
+              name: recompiledContract.name,
               fullyQualifiedName: `${compilationTargetPath}:${compilationTargetName}`,
               compilationArtifacts,
-              sources: contract.solidity,
-              compilerSettings: contract.metadata.settings,
-              creationCodeHash: keccak256CreationBytecode,
-              runtimeCodeHash: keccak256DeployedBytecode,
+              sources: recompiledContract.solidity,
+              compilerSettings: recompiledContract.metadata.settings,
+              creationCodeHash: keccak256RecompiledCreationBytecode,
+              runtimeCodeHash: keccak256RecompiledRuntimeBytecode,
               creationCodeArtifacts,
               runtimeCodeArtifacts,
             }
           );
 
+        // insert new recompiled contract with newly added contract and compiledContract
         await AllianceDatabase.insertVerifiedContract(
           this.allianceDatabasePool,
           {
@@ -837,56 +870,41 @@ export class RepositoryService implements IRepositoryService {
       ) {
         // if we have a better match
         try {
+          // Add recompiled bytecodes
           await AllianceDatabase.insertCode(this.allianceDatabasePool, {
-            bytecodeHash: keccak256CreationBytecode,
-            bytecode: contract.creationBytecode,
+            bytecodeHash: keccak256RecompiledCreationBytecode,
+            bytecode: recompiledContract.creationBytecode,
+          });
+          await AllianceDatabase.insertCode(this.allianceDatabasePool, {
+            bytecodeHash: keccak256RecompiledRuntimeBytecode,
+            bytecode: recompiledContract.runtimeBytecode,
           });
 
-          await AllianceDatabase.insertCode(this.allianceDatabasePool, {
-            bytecodeHash: keccak256DeployedBytecode,
-            bytecode: contract.deployedBytecode,
-          });
+          // insert new recompiled contract
+          const compiledContractsInsertResult =
+            await AllianceDatabase.insertCompiledContract(
+              this.allianceDatabasePool,
+              {
+                compiler: recompiledContract.compiledPath,
+                version: recompiledContract.compilerVersion,
+                language,
+                name: recompiledContract.name,
+                fullyQualifiedName: `${compilationTargetPath}:${compilationTargetName}`,
+                compilationArtifacts,
+                sources: recompiledContract.solidity,
+                compilerSettings: recompiledContract.metadata.settings,
+                creationCodeHash: keccak256RecompiledCreationBytecode,
+                runtimeCodeHash: keccak256RecompiledRuntimeBytecode,
+                creationCodeArtifacts,
+                runtimeCodeArtifacts,
+              }
+            );
 
-          const contractInsertResult = await AllianceDatabase.insertContract(
-            this.allianceDatabasePool,
-            {
-              creationBytecodeHash: keccak256CreationBytecode,
-              runtimeBytecodeHash: keccak256DeployedBytecode,
-            }
-          );
-
-          await AllianceDatabase.insertContractDeployment(
-            this.allianceDatabasePool,
-            {
-              chainId: match.chainId,
-              address: match.address,
-              transactionHash: match.creatorTxHash,
-              contractId: contractInsertResult.rows[0].id,
-            }
-          );
-
-          await AllianceDatabase.insertCompiledContract(
-            this.allianceDatabasePool,
-            {
-              compiler: contract.compiledPath,
-              version: contract.compilerVersion,
-              language,
-              name: contract.name,
-              fullyQualifiedName: `${compilationTargetPath}:${compilationTargetName}`,
-              compilationArtifacts,
-              sources: contract.solidity,
-              compilerSettings: contract.metadata.settings,
-              creationCodeHash: keccak256CreationBytecode,
-              runtimeCodeHash: keccak256DeployedBytecode,
-              creationCodeArtifacts,
-              runtimeCodeArtifacts,
-            }
-          );
-
+          // update verified contract with the newly added recompiled contract
           await AllianceDatabase.updateVerifiedContract(
             this.allianceDatabasePool,
             {
-              compilationId: existingVerifiedContract.rows[0].compilation_id,
+              compilationId: compiledContractsInsertResult.rows[0].id,
               contractId: existingVerifiedContract.rows[0].contract_id,
               creationTransformations: JSON.stringify(creationTransformations),
               creationValues: creationValues || {},

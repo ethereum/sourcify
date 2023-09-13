@@ -53,7 +53,7 @@ export class CheckedContract {
 
   /** The bytecodes of the contract. */
   creationBytecode?: string;
-  deployedBytecode?: string;
+  runtimeBytecode?: string;
 
   /** The raw string representation of the contract's metadata. Needed to generate a unique session id for the CheckedContract*/
   metadataRaw!: string;
@@ -276,11 +276,11 @@ export class CheckedContract {
     const contract = this.compilerOuput.contracts[this.compiledPath][this.name];
 
     this.creationBytecode = `0x${contract.evm.bytecode.object}`;
-    this.deployedBytecode = `0x${contract.evm?.deployedBytecode?.object}`;
+    this.runtimeBytecode = `0x${contract.evm?.deployedBytecode?.object}`;
 
     return {
       creationBytecode: this.creationBytecode,
-      deployedBytecode: this.deployedBytecode,
+      deployedBytecode: this.runtimeBytecode,
       metadata: contract.metadata.trim(),
       // Sometimes the compiler returns empty object (not falsey). Convert it to undefined (falsey).
       immutableReferences:
