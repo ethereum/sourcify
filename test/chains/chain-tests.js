@@ -21,9 +21,12 @@ const { assertVerification } = require("../helpers/assertions");
 const TEST_TIME = process.env.TEST_TIME || 30000; // 30 seconds
 
 // Extract the chainId from new chain support pull request, if exists
-const newAddedChainId = process.env.NEW_CHAIN_ID;
-console.log("newAddedChainId");
-console.log(newAddedChainId);
+let newAddedChainIds = [];
+if (process.env.NEW_CHAIN_ID) {
+  newAddedChainIds = process.env.NEW_CHAIN_ID.split(",");
+}
+console.log("newAddedChainIds");
+console.log(newAddedChainIds);
 
 let anyTestsPass = false; // Fail when zero tests passing
 
@@ -49,10 +52,10 @@ describe("Test Supported Chains", function () {
 
   after(() => {
     rimraf.sync(server.repository);
-    if (!anyTestsPass && newAddedChainId) {
+    if (!anyTestsPass && newAddedChainIds.length) {
       throw new Error(
-        "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id " +
-          newAddedChainId +
+        "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id(s) " +
+          newAddedChainIds.join(",") +
           "?"
       );
     }
@@ -107,6 +110,14 @@ describe("Test Supported Chains", function () {
     "0x8F78b9c92a68DdF719849a40702cFBfa4EB60dD0",
     "11155111",
     "Sepolia",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  verifyContract(
+    "0x43C0A11653F57a96d1d3b6A5A6be453444558A5E",
+    "369",
+    "PulseChain",
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
@@ -1116,7 +1127,7 @@ describe("Test Supported Chains", function () {
 
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
-    if (newAddedChainId) {
+    if (newAddedChainIds.length) {
       // Don't test all chains if it is a pull request for adding new chain support
       return this.skip();
     }
@@ -1158,7 +1169,7 @@ describe("Test Supported Chains", function () {
     expectedStatus = "perfect"
   ) {
     // If it is a pull request for adding new chain support, only test the new chain
-    if (newAddedChainId && newAddedChainId != chainId) return;
+    if (newAddedChainIds.length && !newAddedChainIds.includes(chainId)) return;
     it(`should verify a contract on ${chainName} (${chainId})`, function (done) {
       // Context for the test report
       addContext(this, {

@@ -36,9 +36,7 @@
     "version": "lerna version --no-git-tag-version --no-push"
   },
   "workspaces": [
-    "packages/bytecode-utils",
-    "packages/contract-call-decoder",
-    "packages/lib-sourcify",
+    "packages/*",
     "ui"
   ],
   "keywords": [

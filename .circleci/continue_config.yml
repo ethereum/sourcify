@@ -53,14 +53,12 @@ aliases:
                 name: Build and push docker images
                 # "source" to persist env vars set
                 command: |
-                  source scripts/build_and_publish_docker_images.sh 
-            - run: mkdir -p workspace
-            # Write the image sha to a file so that it can be used in the deploy job
-            - run: echo $(docker images --no-trunc --format "{{.ID}}" ethereum/source-verify:$SERVICE-$TAG | cut -d':' -f 2) > workspace/"$SERVICE"_image_sha.txt
+                  ./scripts/build_and_publish_docker_images.sh 
             - persist_to_workspace:
                 root: workspace
                 paths:
-                  - << parameters.SERVICE >>_image_sha.txt
+                  - ./*
+      # If no build is needed, echo 0 to run as success 
       - run: echo 0
   - &filter-base
     filters:
@@ -129,19 +127,14 @@ workflows:
       # Always build monitor if there's a change in the server
       - build-push-monitor:
           run-build: << pipeline.parameters.run-build-server >>
-          SERVICE: "monitor"
       - build-push-repository:
           run-build: << pipeline.parameters.run-build-repository >>
-          SERVICE: "repository"
       - build-push-s3:
           run-build: << pipeline.parameters.run-build-s3 >>
-          SERVICE: "s3"
       - build-push-server:
           run-build: << pipeline.parameters.run-build-server >>
-          SERVICE: "server"
       - build-push-ui:
           run-build: << pipeline.parameters.run-build-ui >>
-          SERVICE: "ui"
       - deploy:
           requires:
             - build-push-ipfs

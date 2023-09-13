@@ -6,14 +6,10 @@ export TAG="$CIRCLE_BRANCH"
 
 if [ "$CIRCLE_BRANCH" == "staging" ]; then
     export TAG="latest"
-    # Must be added to the $BASH_ENV to be available in the next job steps
-    # https://circleci.com/docs/set-environment-variable
-    echo 'export TAG="latest"' >> "$BASH_ENV"
 fi
 
 if [ "$CIRCLE_BRANCH" == "master" ]; then
     export TAG="stable";
-    echo 'export TAG="stable"' >> "$BASH_ENV"
 fi
 
 echo $TAG
@@ -26,6 +22,11 @@ docker login --username $DOCKER_USER --password $DOCKER_PASS
 docker-compose -f environments/build-$SERVICE.yaml build
 docker push ethereum/source-verify:$SERVICE-$TAG
 
-# Get the SHA of the built image
-image_sha=$(docker images --no-trunc --format "{{.ID}}" ethereum/source-verify:$SERVICE-$TAG | cut -d':' -f 2)
-echo "Image SHA: $image_sha"
+# Get the tag of the built image
+image_tag=$(docker inspect --format='{{index .RepoDigests 0}}' ethereum/source-verify:$SERVICE-$TAG | cut -d'@' -f2)
+echo "Image tag: $image_tag"
+
+mkdir -p workspace
+echo "Writing image tag $image_tag to workspace/"$SERVICE"_image_tag.txt"
+echo -n $image_tag > workspace/"$SERVICE"_image_tag.txt
+echo "Written image tag $image_tag to workspace/"$SERVICE"_image_tag.txt"
