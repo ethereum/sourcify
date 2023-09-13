@@ -17,7 +17,6 @@ import {
   globSource,
 } from "ipfs-http-client";
 import path from "path";
-import config from "../../config";
 import { SourcifyEventManager } from "../../common/SourcifyEventManager/SourcifyEventManager";
 import { logger } from "../../common/loggerLoki";
 import { getAddress } from "ethers";
@@ -402,7 +401,7 @@ export class RepositoryService implements IRepositoryService {
       ) {
         this.deletePartialIfExists(match.chainId, match.address);
       }
-      let matchQuality: MatchQuality = this.statusToMatchQuality(
+      const matchQuality: MatchQuality = this.statusToMatchQuality(
         getMatchStatus(match)
       );
 
@@ -765,7 +764,7 @@ export class RepositoryService implements IRepositoryService {
           bytecode: contract.deployedBytecode,
         });
 
-        let contractInsertResult = await AllianceDatabase.insertContract(
+        const contractInsertResult = await AllianceDatabase.insertContract(
           this.allianceDatabasePool,
           {
             creationBytecodeHash: keccak256CreationBytecode,
@@ -817,13 +816,7 @@ export class RepositoryService implements IRepositoryService {
         );
       } catch (e) {
         logger.error(
-          `Cannot insert verified_contract:
-
-${JSON.stringify({
-  match,
-})}
-
-${e}`
+          `Cannot insert verified_contract:\n${JSON.stringify({ match })}\n${e}`
         );
         return;
       }
@@ -854,7 +847,7 @@ ${e}`
             bytecode: contract.deployedBytecode,
           });
 
-          let contractInsertResult = await AllianceDatabase.insertContract(
+          const contractInsertResult = await AllianceDatabase.insertContract(
             this.allianceDatabasePool,
             {
               creationBytecodeHash: keccak256CreationBytecode,
@@ -905,13 +898,9 @@ ${e}`
           );
         } catch (e) {
           logger.error(
-            `Cannot update verified_contract:
-
-${JSON.stringify({
-  match,
-})}
-
-${e}`
+            `Cannot update verified_contract:\n${JSON.stringify({
+              match,
+            })}\n${e}`
           );
           return;
         }

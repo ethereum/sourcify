@@ -4,48 +4,6 @@ import { StatusCodes } from "http-status-codes";
 import fetch from "node-fetch";
 import puppeteer from "puppeteer";
 
-const checkCreatorTx = async (
-  sourcifyChain: SourcifyChain,
-  address: string,
-  txHash: string
-): Promise<{ txHash: string; data: string }> => {
-  const txRecipt = await sourcifyChain.getTxRecipt(txHash);
-  const tx = await sourcifyChain.getTx(txHash);
-  let data = "";
-
-  if (txRecipt.contractAddress !== null) {
-    // EOA created
-    if (txRecipt.contractAddress !== address) {
-      throw new Error("TxHash doesn't match the contract.");
-    }
-    data = tx.data;
-  } else {
-    // Factory created
-    let traces;
-    try {
-      traces = await sourcifyChain.getTxTraces(txHash);
-    } catch (e) {
-      traces = [];
-    }
-
-    // If traces are available check, otherwise lets just trust
-    if (traces.length > 0) {
-      const createTraces = traces.filter(
-        (trace: any) => trace.type === "create"
-      );
-      const createdContractAddressesInTx = createTraces.find(
-        (trace) => getAddress(trace.result.address) === address
-      );
-      data = createdContractAddressesInTx.result.code;
-      if (createdContractAddressesInTx === undefined) {
-        throw new Error("TxHash doesn't match the contract.");
-      }
-    }
-  }
-
-  return { txHash, data };
-};
-
 /**
  * Finds the transaction that created the contract by either scraping a block explorer or querying a provided API.
  *

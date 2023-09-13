@@ -1,6 +1,7 @@
 import { AuthTypes, Connector } from "@google-cloud/cloud-sql-connector";
 import { Pool } from "pg";
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 namespace Tables {
   export interface Code {
     bytecodeHash: string;
