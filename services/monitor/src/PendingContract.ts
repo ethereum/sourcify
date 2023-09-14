@@ -39,7 +39,13 @@ export default class PendingContract {
         `No metadata fetcher found for origin ${this.metadataHash.origin}`
       );
     }
-    const metadataStr = await metadataFetcher.fetch(this.metadataHash);
+    const metadataStr = await metadataFetcher
+      .fetch(this.metadataHash)
+      .catch((err) => {
+        throw new Error(
+          `Can't fetch metadata for ${this.address} ${this.metadataHash.hash}: ${err}`
+        );
+      });
     logger.info(
       `Fetched metadata for ${this.address} on chain ${this.chainId} from ${this.metadataHash.origin}`
     );
@@ -67,7 +73,7 @@ export default class PendingContract {
         for (const url of source.urls || []) {
           const fileHash = FileHash.fromUrl(url);
           if (!fileHash) {
-            logger.error(
+            logger.info(
               `No file hash found for url ${url} for contract ${this.address}`
             );
             continue;
