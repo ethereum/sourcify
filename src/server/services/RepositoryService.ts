@@ -723,7 +723,7 @@ export class RepositoryService implements IRepositoryService {
     );
 
     // TODO @alliance-database: order by best match desc
-    const existingVerifiedContract =
+    const existingVerifiedContractResult =
       await AllianceDatabase.getVerifiedContractByBytecodeHashes(
         this.allianceDatabasePool,
         keccak256DeployedRuntimeBytecode,
@@ -771,7 +771,7 @@ export class RepositoryService implements IRepositoryService {
     const creationMatch =
       match.creationMatch === "perfect" || match.creationMatch === "partial";
 
-    if (existingVerifiedContract.rows.length === 0) {
+    if (existingVerifiedContractResult.rows.length === 0) {
       try {
         // Add recompiled bytecodes
         await AllianceDatabase.insertCode(this.allianceDatabasePool, {
@@ -854,21 +854,42 @@ export class RepositoryService implements IRepositoryService {
         return;
       }
     } else {
-      // TODO @alliance-database: decide how to update verified_contract
+      // if we have a better match
+      let needRuntimeMatchUpdate = false;
+      let needCreationMatchUpdate = false;
+
+      const existingVerifiedContract = existingVerifiedContractResult.rows[0];
+
       const hasRuntimeAuxdataTransformation =
-        existingVerifiedContract.rows[0].runtime_transformations.some(
+        existingVerifiedContract.runtime_transformations.some(
           (trans: Transformation) => trans.reason === "auxdata"
         );
       const hasCreationAuxdataTransformation =
-        existingVerifiedContract.rows[0].creation_transformations.some(
+        existingVerifiedContract.creation_transformations.some(
           (trans: Transformation) => trans.reason === "auxdata"
         );
 
       if (
-        (hasRuntimeAuxdataTransformation || hasCreationAuxdataTransformation) &&
-        (match.runtimeMatch === "perfect" || match.creationMatch === "perfect")
+        (hasRuntimeAuxdataTransformation && match.runtimeMatch === "perfect") ||
+        (existingVerifiedContract.runtime_match === false &&
+          (match.runtimeMatch === "perfect" ||
+            match.runtimeMatch === "partial"))
       ) {
-        // if we have a better match
+        needRuntimeMatchUpdate = true;
+      }
+
+      if (
+        (hasCreationAuxdataTransformation &&
+          match.creationMatch === "perfect") ||
+        (existingVerifiedContract.creation_match === false &&
+          (match.creationMatch === "perfect" ||
+            match.creationMatch === "partial"))
+      ) {
+        needCreationMatchUpdate = true;
+      }
+
+      // TODO @alliance-database: implement the real process to decide what to update/insert
+      if (needRuntimeMatchUpdate || needCreationMatchUpdate) {
         try {
           // Add recompiled bytecodes
           await AllianceDatabase.insertCode(this.allianceDatabasePool, {
@@ -905,7 +926,7 @@ export class RepositoryService implements IRepositoryService {
             this.allianceDatabasePool,
             {
               compilationId: compiledContractsInsertResult.rows[0].id,
-              contractId: existingVerifiedContract.rows[0].contract_id,
+              contractId: existingVerifiedContract.contract_id,
               creationTransformations: JSON.stringify(creationTransformations),
               creationValues: creationValues || {},
               runtimeTransformations: JSON.stringify(runtimeTransformations),
