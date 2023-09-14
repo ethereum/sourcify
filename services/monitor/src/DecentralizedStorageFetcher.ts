@@ -1,7 +1,7 @@
 import { FileHash } from "./util";
 import logger from "./logger";
 import { DecentralizedStorageOrigin } from "./types";
-import assert, { fail } from "assert";
+import assert from "assert";
 import { EventEmitter } from "stream";
 import { GatewayFetcher } from "./GatewayFetcher";
 
@@ -13,15 +13,37 @@ export default class DecentralizedStorageFetcher extends EventEmitter {
   // TODO: Run local js-ipfs.
   public origin: DecentralizedStorageOrigin;
   private gatewayFetchers: GatewayFetcher[];
+  private gatewayTimeout: number;
   private uniqueFiles: { [key: string]: boolean } = {};
   private uniqueFilesCounter = 0;
   private subcriberCounter = 0;
 
-  constructor(origin: DecentralizedStorageOrigin, gateways: string[]) {
+  constructor(
+    origin: DecentralizedStorageOrigin,
+    gateways: string[],
+    gatewayTimeout: number
+  ) {
     super();
     this.origin = origin;
+    this.gatewayTimeout = gatewayTimeout;
+    const fetchTimeout = parseInt(
+      process.env[`${origin.toUpperCase()}_GATEWAY_TIMEOUT`] || "30000"
+    );
+    const fetchInterval = parseInt(
+      process.env[`${origin.toUpperCase()}_GATEWAY_INTERVAL`] || "5000"
+    );
+    const fetchRetries = parseInt(
+      process.env[`${origin.toUpperCase()}_GATEWAY_RETRIES`] || "3"
+    );
+
     this.gatewayFetchers = gateways.map(
-      (gatewayURL) => new GatewayFetcher(gatewayURL)
+      (gatewayURL) =>
+        new GatewayFetcher({
+          url: gatewayURL,
+          fetchTimeout,
+          fetchInterval,
+          fetchRetries,
+        })
     );
   }
 

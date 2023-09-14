@@ -1,7 +1,16 @@
 import { Logger } from "winston";
 import logger from "./logger";
 import nodeFetch from "node-fetch";
+import AbortController from "abort-controller";
 
+const controller = new AbortController();
+
+type GatewayFetcherConfig = {
+  url: string;
+  fetchTimeout: number;
+  fetchInterval: number;
+  fetchRetries: number;
+};
 export class GatewayFetcher {
   public url: string;
 
@@ -10,14 +19,12 @@ export class GatewayFetcher {
   private retries: number; // how much time has to pass before a source is forgotten
   private gwLogger: Logger;
 
-  constructor(url: string) {
-    this.url = url;
+  constructor(config: GatewayFetcherConfig) {
+    this.url = config.url;
+    this.fetchTimeout = config.fetchTimeout;
+    this.fetchInterval = config.fetchInterval;
+    this.retries = config.fetchRetries;
     this.gwLogger = logger.child({ prefix: `GatewayFetcher ${this.url}` });
-    this.fetchTimeout =
-      parseInt(process.env.GATEWAY_FETCH_TIMEOUT || "") || 1 * 30 * 1000;
-    this.fetchInterval =
-      parseInt(process.env.GATEWAY_FETCH_INTERVAL || "") || 3 * 1000;
-    this.retries = parseInt(process.env.MONITOR_FETCH_RETRIES || "") || 5;
   }
 
   fetchWithRetries = async (fileHash: string) => {
@@ -28,7 +35,24 @@ export class GatewayFetcher {
     for (let i = 0; i < this.retries; i++) {
       try {
         this.gwLogger.info(`Fetching ${fetchURL} attempt ${i + 1}`);
-        const response = await nodeFetch(fetchURL);
+
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(
+            () =>
+              reject(
+                new Error(
+                  `Timeout fetching after ${this.fetchTimeout}ms at ${fetchURL}`
+                )
+              ),
+            this.fetchTimeout
+          );
+        });
+
+        // Race with gateway timeout
+        const response = await Promise.race([
+          nodeFetch(fetchURL),
+          timeoutPromise,
+        ]);
         if (response.ok) {
           const file = await response.text(); // or response.text(), response.blob() etc. depending on your use case
           return file;

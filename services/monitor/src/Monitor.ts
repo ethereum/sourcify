@@ -12,6 +12,7 @@ type DecentralizedStorageConfig = {
   [K in DecentralizedStorageTypes]?: {
     enabled: boolean;
     gateways: string[];
+    gatewayTimeout?: number;
   };
 };
 
