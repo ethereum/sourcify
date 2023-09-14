@@ -19,7 +19,12 @@ const myFormat = format.printf(
 logger.add(
   new transports.Console({
     level: process.env.NODE_ENV === "production" ? "info" : "debug",
-    format: format.combine(format.colorize(), format.timestamp(), myFormat),
+    format: format.combine(
+      format.colorize(),
+      format.timestamp(),
+      format.errors({ stack: true }),
+      myFormat
+    ),
   })
 );
 

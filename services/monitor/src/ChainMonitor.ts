@@ -231,9 +231,13 @@ export class ChainMonitor extends EventEmitter {
       this.chainLogger.debug(
         `New pending contract ${address} with hash ${metadataHash.getSourceHash()}`
       );
-
-      await pendingContract.assemble();
-
+      try {
+        await pendingContract.assemble();
+      } catch (err: any) {
+        this.chainLogger.info(`Couldn't assemble the contract ${address}`);
+        this.chainLogger.info(err);
+        return;
+      }
       if (!isEmpty(pendingContract.pendingSources)) {
         logger.warn(
           `Could not fetch all sources for contract ${

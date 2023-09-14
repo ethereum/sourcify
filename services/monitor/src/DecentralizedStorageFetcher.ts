@@ -13,19 +13,13 @@ export default class DecentralizedStorageFetcher extends EventEmitter {
   // TODO: Run local js-ipfs.
   public origin: DecentralizedStorageOrigin;
   private gatewayFetchers: GatewayFetcher[];
-  private gatewayTimeout: number;
   private uniqueFiles: { [key: string]: boolean } = {};
   private uniqueFilesCounter = 0;
   private subcriberCounter = 0;
 
-  constructor(
-    origin: DecentralizedStorageOrigin,
-    gateways: string[],
-    gatewayTimeout: number
-  ) {
+  constructor(origin: DecentralizedStorageOrigin, gateways: string[]) {
     super();
     this.origin = origin;
-    this.gatewayTimeout = gatewayTimeout;
     const fetchTimeout = parseInt(
       process.env[`${origin.toUpperCase()}_GATEWAY_TIMEOUT`] || "30000"
     );

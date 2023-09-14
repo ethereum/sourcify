@@ -12,7 +12,8 @@ if (require.main === module) {
         networkId: 11155111,
         nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
         supported: true,
-        monitored: false,
+        // monitored: false,
+        monitored: true,
       }),
       new SourcifyChain({
         chainId: 5,
@@ -24,7 +25,8 @@ if (require.main === module) {
         networkId: 5,
         nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
         supported: true,
-        monitored: true,
+        monitored: false,
+        // monitored: true,
       }),
       new SourcifyChain({
         chainId: 1337,
