@@ -97,49 +97,6 @@ export default class PendingContract {
     return Promise.all(fetchPromises);
   };
 
-  // private addMetadata = (rawMetadata: string) => {
-  //   this.metadata = JSON.parse(rawMetadata) as Metadata;
-
-  //   for (const name in this.metadata.sources) {
-  //     const source = JSON.parse(JSON.stringify(this.metadata.sources[name]));
-  //     source.name = name;
-
-  //     if (source.content) {
-  //       this.fetchedSources[name] = source.content;
-  //       continue;
-  //     } else if (!source.keccak256) {
-  //       logger.info(`Source ${name} has no keccak256 nor content`);
-  //       break;
-  //     }
-  //     this.pendingSources[source.keccak256] = source;
-
-  //     const sourceAddresses: SourceAddress[] = [];
-  //     for (const url of source.urls) {
-  //       const sourceAddress = SourceAddress.fromUrl(url);
-  //       if (!sourceAddress) {
-  //         logger.info(
-  //           `Could not determine source file location for ${name} at ${url}`
-  //         );
-  //         continue;
-  //       }
-  //       sourceAddresses.push(sourceAddress);
-
-  //       this.sourceFetcher.subscribe(sourceAddress, (sourceContent: string) => {
-  //         this.addFetchedSource(sourceContent);
-  //         // once source is resolved from one endpoint, others don't have to be pinged anymore, so delete them
-  //         for (const deletableSourceAddress of sourceAddresses) {
-  //           this.sourceFetcher.unsubscribe(deletableSourceAddress);
-  //         }
-  //       });
-  //     }
-  //   }
-
-  //   if (isEmpty(this.pendingSources)) {
-  //     const contract = new CheckedContract(this.metadata, this.fetchedSources);
-  //     this.callback(contract);
-  //   }
-  // };
-
   public sendToSourcifyServer = async (
     sourcifyServerURL: string,
     creatorTxHash?: string
