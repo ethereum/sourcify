@@ -9,13 +9,13 @@ import { KnownDecentralizedStorageFetchers } from "./types";
 import { Logger } from "winston";
 import PendingContract from "./PendingContract";
 
-const BLOCK_PAUSE_FACTOR =
-  parseInt(process.env.BLOCK_PAUSE_FACTOR || "") || 1.1;
-assert(BLOCK_PAUSE_FACTOR > 1);
-const BLOCK_PAUSE_UPPER_LIMIT =
-  parseInt(process.env.BLOCK_PAUSE_UPPER_LIMIT || "") || 300 * 1000; // default: 300 seconds
-const BLOCK_PAUSE_LOWER_LIMIT =
-  parseInt(process.env.BLOCK_PAUSE_LOWER_LIMIT || "") || 0.5 * 1000; // default: 0.5 seconds
+const BLOCK_INTERVAL_FACTOR =
+  parseInt(process.env.BLOCK_INTERVAL_FACTOR || "") || 1.1;
+assert(BLOCK_INTERVAL_FACTOR > 1);
+const BLOCK_INTERVAL_UPPER_LIMIT =
+  parseInt(process.env.BLOCK_INTERVAL_UPPER_LIMIT || "") || 300 * 1000; // default: 300 seconds
+const BLOCK_INTERVAL_LOWER_LIMIT =
+  parseInt(process.env.BLOCK_INTERVAL_LOWER_LIMIT || "") || 0.5 * 1000; // default: 0.5 seconds
 
 function createsContract(tx: TransactionResponse): boolean {
   return !tx.to;
@@ -30,13 +30,11 @@ export class ChainMonitor extends EventEmitter {
   private sourcifyChain: SourcifyChain;
   private sourceFetchers: KnownDecentralizedStorageFetchers;
   private sourcifyServerURLs: string[];
-  private running: boolean;
 
   private chainLogger: Logger;
-  private getBytecodeRetryPause: number;
+  private getBytecodeInterval: number;
   private blockPause: number;
   private initialGetBytecodeTries: number;
-  private initialBlockTries: number;
 
   constructor(
     sourcifyChain: SourcifyChain,
@@ -56,19 +54,15 @@ export class ChainMonitor extends EventEmitter {
       ).join(",")}`
     );
     this.sourcifyServerURLs = sourcifyServerURLs;
-    this.running = false;
 
-    this.getBytecodeRetryPause =
-      parseInt(process.env.GET_BYTECODE_RETRY_PAUSE || "") || 5 * 1000;
-    this.blockPause = parseInt(process.env.GET_BLOCK_PAUSE || "") || 10 * 1000;
+    this.getBytecodeInterval =
+      parseInt(process.env.BYTECODE_INTERVAL || "") || 5 * 1000;
+    this.blockPause = parseInt(process.env.BLOCK_INTERVAL || "") || 10 * 1000;
     this.initialGetBytecodeTries =
       parseInt(process.env.INITIAL_GET_BYTECODE_TRIES || "") || 3;
-    this.initialBlockTries =
-      parseInt(process.env.INITIAL_BLOCK_TRIES || "") || 3;
   }
 
   start = async (): Promise<void> => {
-    this.running = true;
     const rawStartBlock =
       process.env[`MONITOR_START_${this.sourcifyChain.chainId}`];
 
@@ -77,7 +71,7 @@ export class ChainMonitor extends EventEmitter {
       const startBlock =
         rawStartBlock !== undefined ? parseInt(rawStartBlock) : lastBlockNumber;
 
-      this.chainLogger.info(`Starting monitor`);
+      this.chainLogger.info(`Starting monitor on block ${startBlock}`);
 
       // Start polling
       this.pollBlocks(startBlock);
@@ -95,7 +89,6 @@ export class ChainMonitor extends EventEmitter {
   stop = (): void => {
     this.chainLogger.info(`Stopping monitor`);
     this.off(NEW_BLOCK_EVENT, this.processBlockListener);
-    this.running = false;
   };
 
   // Tries to get the next block by polling in variable intervals.
@@ -154,10 +147,12 @@ export class ChainMonitor extends EventEmitter {
 
   private adaptBlockPause = (operation: "increase" | "decrease") => {
     const factor =
-      operation === "increase" ? BLOCK_PAUSE_FACTOR : 1 / BLOCK_PAUSE_FACTOR;
+      operation === "increase"
+        ? BLOCK_INTERVAL_FACTOR
+        : 1 / BLOCK_INTERVAL_FACTOR;
     this.blockPause *= factor;
-    this.blockPause = Math.min(this.blockPause, BLOCK_PAUSE_UPPER_LIMIT);
-    this.blockPause = Math.max(this.blockPause, BLOCK_PAUSE_LOWER_LIMIT);
+    this.blockPause = Math.min(this.blockPause, BLOCK_INTERVAL_UPPER_LIMIT);
+    this.blockPause = Math.max(this.blockPause, BLOCK_INTERVAL_LOWER_LIMIT);
     this.chainLogger.info(
       `${operation.toUpperCase()} block pause. New blockPause is ${
         this.blockPause
@@ -182,7 +177,7 @@ export class ChainMonitor extends EventEmitter {
     }
   }
 
-  private async getBytecodeWithRetries(address: string): Promise<string> {
+  private async getBytecodeWithRetries(address: string) {
     for (let i = this.initialGetBytecodeTries; i > 0; i--) {
       const bytecode = await this.fetchBytecode(address);
 
@@ -191,24 +186,41 @@ export class ChainMonitor extends EventEmitter {
       }
 
       this.chainLogger.debug(
-        `Retries left ${i - 1}. Retrying in ${this.getBytecodeRetryPause}ms...`
+        `Retries left ${i - 1} for contract ${address}. Retrying in ${
+          this.getBytecodeInterval
+        }ms...`
       );
       await new Promise((resolve) =>
-        setTimeout(resolve, this.getBytecodeRetryPause)
+        setTimeout(resolve, this.getBytecodeInterval)
       );
     }
 
-    throw new Error(`Maximum retries reached for ${address}`);
+    return null;
   }
 
+  // Function triggered when a new contract is found in a block.
+  // Gets the contract bytecode, decodes the metadata hash, assembles the contract's files from DecentralizedStorage, and sends them to Sourcify servers.
   private processNewContract = async (
     creatorTxHash: string,
     address: string
   ) => {
     try {
       const bytecode = await this.getBytecodeWithRetries(address);
+      if (!bytecode) {
+        this.chainLogger.warn(
+          `Could not fetch bytecode for contract ${address} or the contract's code is 0x. Skipping`
+        );
+        return;
+      }
       const cborData = bytecodeDecode(bytecode);
       const metadataHash = FileHash.fromCborData(cborData);
+
+      if (this.sourceFetchers[metadataHash.origin] === undefined) {
+        this.chainLogger.info(
+          `No source fetcher found for origin ${metadataHash.origin}. Skipping contract ${address}`
+        );
+        return;
+      }
 
       const pendingContract = new PendingContract(
         metadataHash,
@@ -219,6 +231,7 @@ export class ChainMonitor extends EventEmitter {
       this.chainLogger.debug(
         `New pending contract ${address} with hash ${metadataHash.getSourceHash()}`
       );
+
       await pendingContract.assemble();
 
       if (!isEmpty(pendingContract.pendingSources)) {

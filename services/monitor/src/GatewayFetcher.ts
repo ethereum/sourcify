@@ -14,9 +14,9 @@ export class GatewayFetcher {
     this.url = url;
     this.gwLogger = logger.child({ prefix: `GatewayFetcher ${this.url}` });
     this.fetchTimeout =
-      parseInt(process.env.MONITOR_FETCH_TIMEOUT || "") || 1 * 60 * 1000;
+      parseInt(process.env.GATEWAY_FETCH_TIMEOUT || "") || 1 * 30 * 1000;
     this.fetchInterval =
-      parseInt(process.env.MONITOR_FETCH_INTERVAL || "") || 3 * 1000;
+      parseInt(process.env.GATEWAY_FETCH_INTERVAL || "") || 3 * 1000;
     this.retries = parseInt(process.env.MONITOR_FETCH_RETRIES || "") || 5;
   }
 

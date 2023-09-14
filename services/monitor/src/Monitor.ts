@@ -6,29 +6,32 @@ import logger from "./logger";
 import { ChainMonitor } from "./ChainMonitor";
 import { KnownDecentralizedStorageFetchers } from "./types";
 
-interface DecentralizedStorageConfig {
-  ipfs?: {
-    enabled: true;
-    gateways: ["https://ipfs.io/ipfs/"];
+type DecentralizedStorageTypes = "ipfs" | "swarm";
+
+type DecentralizedStorageConfig = {
+  [K in DecentralizedStorageTypes]?: {
+    enabled: boolean;
+    gateways: string[];
   };
-  swarm?: {
-    enabled: false;
-    gateways: [];
-  };
-}
+};
 
 export default class Monitor extends EventEmitter {
   private chainMonitors: ChainMonitor[];
   private sourceFetchers: KnownDecentralizedStorageFetchers = {};
-  private sourcifyServerURLs: string[] = ["https://sourcify.dev/server/"];
+  private sourcifyServerURLs: string[];
 
   constructor(
     chainsToMonitor: SourcifyChain[],
-    decentralizedStorageConfig?: DecentralizedStorageConfig,
-    sourcifyServerURLs?: string[]
+    decentralizedStorageConfig: DecentralizedStorageConfig = {
+      ipfs: {
+        enabled: true,
+        gateways: ["https://ipfs.io/ipfs/"],
+      },
+    },
+    sourcifyServerURLs: string[] = ["https://sourcify.dev/server/"]
   ) {
     super();
-    this.sourcifyServerURLs = sourcifyServerURLs || this.sourcifyServerURLs;
+    this.sourcifyServerURLs = sourcifyServerURLs;
     if (decentralizedStorageConfig?.ipfs?.enabled) {
       assert(
         decentralizedStorageConfig.ipfs.gateways.length > 0,
@@ -38,8 +41,11 @@ export default class Monitor extends EventEmitter {
         "ipfs",
         decentralizedStorageConfig.ipfs.gateways
       );
-      // decentralizedStorageConfig.ipfs.gateways
     }
+
+    // TODO: add support for swarm
+
+    chainsToMonitor = chainsToMonitor.filter((c) => c.monitored && c.supported);
 
     logger.info(
       `Starting ${
@@ -53,14 +59,6 @@ export default class Monitor extends EventEmitter {
       (chain) =>
         new ChainMonitor(chain, this.sourceFetchers, this.sourcifyServerURLs)
     );
-    // this.chainMonitors.forEach((cm) => {
-    //   cm.on("contract-verified-successfully", (chainId, address) => {
-    //     this.emit("contract-verified-successfully", chainId, address);
-    //   });
-    //   cm.on("contract-already-verified", (chainId, address) => {
-    //     this.emit("contract-already-verified", chainId, address);
-    //   });
-    // });
   }
 
   /**

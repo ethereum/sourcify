@@ -1,18 +1,11 @@
 import logger from "./logger";
-import SourceFetcher from "./DecentralizedStorageFetcher";
 import { FileHash } from "./util";
-import {
-  CheckedContract,
-  isEmpty,
-  Metadata,
-  MetadataSource,
-  MetadataSourceMap,
-  StringMap,
-} from "@ethereum-sourcify/lib-sourcify";
+import { Metadata, MetadataSourceMap } from "@ethereum-sourcify/lib-sourcify";
 import { id as keccak256str } from "ethers";
 import { KnownDecentralizedStorageFetchers } from "./types";
-import DecentralizedStorageFetcher from "./DecentralizedStorageFetcher";
 import assert from "assert";
+import dotenv from "dotenv";
+dotenv.config();
 
 export default class PendingContract {
   public metadataHash: FileHash;
