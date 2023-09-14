@@ -1134,6 +1134,15 @@ describe("Test Supported Chains", function () {
     "2038/multicall3.metadata.json"
   );
 
+  // Shrapnel Subnet
+  verifyContract(
+    "0xb9D27a0D61392566b92E08937a6C6E798F197ADF",
+    "2044",
+    "Shrapnel Subnet",
+    [],
+    "2044/multicall3.metadata.json"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainIds.length) {
