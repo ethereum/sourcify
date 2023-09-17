@@ -448,6 +448,18 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       "https://explorer.mainnet.aurora.dev/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
+  "9996": {
+  supported: true,
+  monitored: false,
+  contractFetchAddress: "https://mainnet.mindscan.info/" + BLOCKSCOUT_SUFFIX,
+  txRegex: getBlockscoutRegex(),
+  },
+  "9977": {
+  supported: true,
+  monitored: false,
+  contractFetchAddress: "https://testnet.mindscan.info/" + BLOCKSCOUT_SUFFIX,
+  txRegex: getBlockscoutRegex(),
+  },
   "1313161555": {
     supported: true,
     monitored: false,
