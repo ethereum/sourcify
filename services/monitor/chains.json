@@ -1,0 +1,12 @@
+[
+  {
+    "chainId": 11155111,
+    "rpc": ["https://rpc2.sepolia.org/"],
+    "name": "Ethereum Sepolia"
+  },
+  {
+    "chainId": 1337,
+    "rpc": ["http://localhost:8545/"],
+    "name": "Localhost"
+  }
+]

@@ -27,7 +27,6 @@ export default class SourcifyChain {
   chainId: number;
   rpc: Array<string | FetchRequest>;
   supported: boolean;
-  monitored: boolean;
   contractFetchAddress?: string | undefined;
   graphQLFetchAddress?: string | undefined;
   txRegex?: string[] | undefined;
@@ -39,7 +38,6 @@ export default class SourcifyChain {
     this.chainId = sourcifyChainObj.chainId;
     this.rpc = sourcifyChainObj.rpc;
     this.supported = sourcifyChainObj.supported;
-    this.monitored = sourcifyChainObj.monitored;
     this.contractFetchAddress = sourcifyChainObj.contractFetchAddress;
     this.graphQLFetchAddress = sourcifyChainObj.graphQLFetchAddress;
     this.txRegex = sourcifyChainObj.txRegex;

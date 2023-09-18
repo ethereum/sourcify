@@ -190,7 +190,6 @@ export interface Create2Args {
 
 export type SourcifyChainExtension = {
   supported: boolean;
-  monitored: boolean;
   contractFetchAddress?: string;
   graphQLFetchAddress?: string;
   txRegex?: string[];
@@ -202,10 +201,10 @@ export type Chain = {
   name: string;
   title?: string;
   chainId: number;
-  shortName: string;
+  shortName?: string;
   network?: string;
-  networkId: number;
-  nativeCurrency: Currency;
+  networkId?: number;
+  nativeCurrency?: Currency;
   rpc: Array<string>;
   faucets?: string[];
   infoURL?: string;

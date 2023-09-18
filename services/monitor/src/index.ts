@@ -1,58 +1,69 @@
-import { SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
+import { Command } from "commander";
+import fs from "fs";
 import Monitor from "./Monitor";
+import { MonitorConfig } from "./types";
+import path from "path";
 
-if (require.main === module) {
-  const monitor = new Monitor(
-    [
-      new SourcifyChain({
-        chainId: 11155111,
-        rpc: ["https://rpc2.sepolia.org/"],
-        name: "Ethereum Sepolia",
-        shortName: "sepolia",
-        networkId: 11155111,
-        nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
-        supported: true,
-        // monitored: false,
-        monitored: true,
-      }),
-      new SourcifyChain({
-        chainId: 5,
-        rpc: [
-          "https://eth-goerli.g.alchemy.com/v2/HYwo9i9e5mlOs0d5VEKUdnP-t0Y2n_F2",
-        ],
-        name: "Ethereum Goerli",
-        shortName: "goerli",
-        networkId: 5,
-        nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
-        supported: true,
-        monitored: false,
-        // monitored: true,
-      }),
-      new SourcifyChain({
-        chainId: 1337,
-        rpc: ["http://localhost:8545/"],
-        name: "Localhost",
-        shortName: "Localhost",
-        networkId: 1337,
-        nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
-        supported: true,
-        monitored: false,
-      }),
-    ],
-    {
-      ipfs: {
-        enabled: true,
-        gateways: ["https://ipfs.io/ipfs/"],
-      },
-    },
-    ["http://localhost:5555/verify/"]
+// Initialize a new commander object
+const program = new Command();
+
+// Setup command line flags
+program
+  .option(
+    "--configPath <path>",
+    "Path to the configuration JSON file",
+    "../config.json"
+  )
+  .option(
+    "--chainsPath <path>",
+    "Path to the chains JSON file",
+    "../chains.json"
   );
-  monitor
-    .start()
-    .then(() => {
-      console.log("Monitor started successfully");
-    })
-    .catch((error) => {
-      console.error("Failed to start monitor", error);
-    });
+
+// Parse the arguments
+program.parse(process.argv);
+
+// Access options using program.opts()
+const options = program.opts();
+
+// Load JSON with existence check
+function loadJSON(filePath: string, throws = true) {
+  const absolutePath = path.isAbsolute(filePath)
+    ? filePath
+    : path.join(__dirname, filePath);
+
+  if (fs.existsSync(absolutePath)) {
+    const jsonData = fs.readFileSync(absolutePath, "utf8");
+    if (!jsonData) {
+      if (throws) throw new Error(`File ${absolutePath} exists but is empty.`);
+      console.warn(`File ${absolutePath} exists but is empty.`);
+      return undefined;
+    }
+    return JSON.parse(jsonData);
+  } else {
+    if (throws) throw new Error(`File ${absolutePath} does not exist.`);
+    console.warn(`File ${absolutePath} does not exist. Using default values.`);
+    return undefined;
+  }
+}
+
+const config = loadJSON(options.configPath, false) as MonitorConfig | undefined;
+const monitoredChains = loadJSON(options.chainsPath) as
+  | { chainId: number; rpc: string[]; name: string }[]
+  | undefined;
+
+if (monitoredChains) {
+  if (require.main === module) {
+    const monitor = new Monitor(monitoredChains, config);
+    monitor
+      .start()
+      .then(() => {
+        console.log("Monitor started successfully");
+      })
+      .catch((error) => {
+        console.error("Failed to start monitor", error);
+      });
+  }
+} else {
+  console.error("Failed to load config and/or chains.");
 }

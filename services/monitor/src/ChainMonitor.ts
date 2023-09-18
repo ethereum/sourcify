@@ -5,17 +5,9 @@ import { EventEmitter } from "stream";
 import { decode as bytecodeDecode } from "@ethereum-sourcify/bytecode-utils";
 import { SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
 import logger from "./logger";
-import { KnownDecentralizedStorageFetchers } from "./types";
+import { KnownDecentralizedStorageFetchers, MonitorConfig } from "./types";
 import { Logger } from "winston";
 import PendingContract from "./PendingContract";
-
-const BLOCK_INTERVAL_FACTOR =
-  parseInt(process.env.BLOCK_INTERVAL_FACTOR || "") || 1.1;
-assert(BLOCK_INTERVAL_FACTOR > 1);
-const BLOCK_INTERVAL_UPPER_LIMIT =
-  parseInt(process.env.BLOCK_INTERVAL_UPPER_LIMIT || "") || 300 * 1000; // default: 300 seconds
-const BLOCK_INTERVAL_LOWER_LIMIT =
-  parseInt(process.env.BLOCK_INTERVAL_LOWER_LIMIT || "") || 0.5 * 1000; // default: 0.5 seconds
 
 function createsContract(tx: TransactionResponse): boolean {
   return !tx.to;
@@ -32,14 +24,18 @@ export class ChainMonitor extends EventEmitter {
   private sourcifyServerURLs: string[];
 
   private chainLogger: Logger;
-  private getBytecodeInterval: number;
-  private blockPause: number;
-  private initialGetBytecodeTries: number;
+  private startBlock?: number;
+  private blockInterval: number;
+  private blockIntervalFactor: number;
+  private blockIntervalUpperLimit: number;
+  private blockIntervalLowerLimit: number;
+  private bytecodeInterval: number;
+  private bytecodeNumberOfTries: number;
 
   constructor(
     sourcifyChain: SourcifyChain,
     sourceFetchers: KnownDecentralizedStorageFetchers,
-    sourcifyServerURLs: string[]
+    monitorConfig: MonitorConfig
   ) {
     super();
     this.sourcifyChain = sourcifyChain;
@@ -53,30 +49,35 @@ export class ChainMonitor extends EventEmitter {
         sourceFetchers
       ).join(",")}`
     );
-    this.sourcifyServerURLs = sourcifyServerURLs;
+    this.sourcifyServerURLs = monitorConfig.sourcifyServerURLs;
 
-    this.getBytecodeInterval =
-      parseInt(process.env.BYTECODE_INTERVAL || "") || 5 * 1000;
-    this.blockPause = parseInt(process.env.BLOCK_INTERVAL || "") || 10 * 1000;
-    this.initialGetBytecodeTries =
-      parseInt(process.env.INITIAL_GET_BYTECODE_TRIES || "") || 3;
+    const chainConfig = {
+      ...monitorConfig.defaultChainConfig,
+      ...(monitorConfig.chainConfigs?.[this.sourcifyChain.chainId] || {}),
+    };
+
+    this.startBlock = chainConfig.startBlock;
+    this.bytecodeInterval = chainConfig.bytecodeInterval;
+    this.blockInterval = chainConfig.blockInterval;
+    this.blockIntervalFactor = chainConfig.blockIntervalFactor;
+    assert(this.blockIntervalFactor > 1);
+    this.blockIntervalUpperLimit = chainConfig.blockIntervalUpperLimit;
+    this.blockIntervalLowerLimit = chainConfig.blockIntervalLowerLimit;
+    this.bytecodeNumberOfTries = chainConfig.bytecodeNumberOfTries;
   }
 
   start = async (): Promise<void> => {
-    const rawStartBlock =
-      process.env[`MONITOR_START_${this.sourcifyChain.chainId}`];
-
     try {
       const lastBlockNumber = await this.sourcifyChain.getBlockNumber();
       const startBlock =
-        rawStartBlock !== undefined ? parseInt(rawStartBlock) : lastBlockNumber;
+        this.startBlock !== undefined ? this.startBlock : lastBlockNumber;
 
       this.chainLogger.info(`Starting monitor on block ${startBlock}`);
 
       // Start polling
       this.pollBlocks(startBlock);
 
-      // Listen to creations
+      // Listen to new blocks
       this.on(NEW_BLOCK_EVENT, this.processBlockListener);
     } catch (err: any) {
       this.chainLogger.error(`Error starting monitor: ${err.message}`);
@@ -99,7 +100,7 @@ export class ChainMonitor extends EventEmitter {
     const pollNextBlock = async () => {
       try {
         this.chainLogger.debug(
-          `Polling for block ${currentBlockNumber} with pause ${this.blockPause}...`
+          `Polling for block ${currentBlockNumber} with pause ${this.blockInterval}...`
         );
         const block = await this.sourcifyChain.getBlock(
           currentBlockNumber,
@@ -115,14 +116,14 @@ export class ChainMonitor extends EventEmitter {
         }
 
         // Continue polling
-        setTimeout(pollNextBlock, this.blockPause);
+        setTimeout(pollNextBlock, this.blockInterval);
       } catch (error: any) {
         this.chainLogger.error(
           `Error fetching block ${currentBlockNumber}: ${error?.message}`
         );
         this.adaptBlockPause("increase");
         // Continue polling
-        setTimeout(pollNextBlock, this.blockPause);
+        setTimeout(pollNextBlock, this.blockInterval);
       }
     };
 
@@ -148,14 +149,20 @@ export class ChainMonitor extends EventEmitter {
   private adaptBlockPause = (operation: "increase" | "decrease") => {
     const factor =
       operation === "increase"
-        ? BLOCK_INTERVAL_FACTOR
-        : 1 / BLOCK_INTERVAL_FACTOR;
-    this.blockPause *= factor;
-    this.blockPause = Math.min(this.blockPause, BLOCK_INTERVAL_UPPER_LIMIT);
-    this.blockPause = Math.max(this.blockPause, BLOCK_INTERVAL_LOWER_LIMIT);
+        ? this.blockIntervalFactor
+        : 1 / this.blockIntervalFactor;
+    this.blockInterval *= factor;
+    this.blockInterval = Math.min(
+      this.blockInterval,
+      this.blockIntervalUpperLimit
+    );
+    this.blockInterval = Math.max(
+      this.blockInterval,
+      this.blockIntervalLowerLimit
+    );
     this.chainLogger.info(
       `${operation.toUpperCase()} block pause. New blockPause is ${
-        this.blockPause
+        this.blockInterval
       }`
     );
   };
@@ -178,7 +185,7 @@ export class ChainMonitor extends EventEmitter {
   }
 
   private async getBytecodeWithRetries(address: string) {
-    for (let i = this.initialGetBytecodeTries; i > 0; i--) {
+    for (let i = this.bytecodeNumberOfTries; i > 0; i--) {
       const bytecode = await this.fetchBytecode(address);
 
       if (bytecode !== null) {
@@ -187,11 +194,11 @@ export class ChainMonitor extends EventEmitter {
 
       this.chainLogger.debug(
         `Retries left ${i - 1} for contract ${address}. Retrying in ${
-          this.getBytecodeInterval
+          this.bytecodeInterval
         }ms...`
       );
       await new Promise((resolve) =>
-        setTimeout(resolve, this.getBytecodeInterval)
+        setTimeout(resolve, this.bytecodeInterval)
       );
     }
 
