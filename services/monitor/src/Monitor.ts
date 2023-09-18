@@ -5,6 +5,9 @@ import { SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
 import logger from "./logger";
 import { ChainMonitor } from "./ChainMonitor";
 import { KnownDecentralizedStorageFetchers, MonitorConfig } from "./types";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const defaultConfig = {
   decentralizedStorages: {
@@ -74,7 +77,7 @@ export default class Monitor extends EventEmitter {
       } else {
         return new SourcifyChain({
           chainId: chain.chainId,
-          rpc: chain.rpc,
+          rpc: replaceInfuraAndAlchemy(chain.rpc),
           name: chain.name,
           supported: true,
         });
@@ -138,4 +141,16 @@ export default class Monitor extends EventEmitter {
   stop = (): void => {
     this.chainMonitors.forEach((cm) => cm.stop());
   };
+}
+
+function replaceInfuraAndAlchemy(rpcs: string[]) {
+  return rpcs.map((rpc) => {
+    if (rpc.includes("{INFURA_API_KEY}") && process.env.INFURA_API_KEY) {
+      return rpc.replace("{INFURA_API_KEY}", process.env.INFURA_API_KEY);
+    }
+    if (rpc.includes("{ALCHEMY_API_KEY}") && process.env.ALCHEMY_API_KEY) {
+      return rpc.replace("{ALCHEMY_API_KEY}", process.env.ALCHEMY_API_KEY);
+    }
+    return rpc;
+  });
 }
