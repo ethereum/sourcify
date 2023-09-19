@@ -104,20 +104,22 @@ function buildAlchemyAndCustomRpcURLs(
   switch (chainName) {
     case "opt":
       alchemyId =
-        process.env["ALCHEMY_ID_OPTIMISM"] || process.env["ALCHEMY_ID"];
+        process.env["ALCHEMY_API_KEY_OPTIMISM"] ||
+        process.env["ALCHEMY_API_KEY"];
       break;
     case "arb":
       alchemyId =
-        process.env["ALCHEMY_ID_ARBITRUM"] || process.env["ALCHEMY_ID"];
+        process.env["ALCHEMY_API_KEY_ARBITRUM"] ||
+        process.env["ALCHEMY_API_KEY"];
       break;
     default:
-      alchemyId = process.env["ALCHEMY_ID"];
+      alchemyId = process.env["ALCHEMY_API_KEY"];
       break;
   }
 
   if (!alchemyId) {
     SourcifyEventManager.trigger("Server.SourcifyChains.Warn", {
-      message: `Environment variable ALCHEMY_ID not set for ${chainName} ${chainSubName}!`,
+      message: `Environment variable ALCHEMY_API_KEY not set for ${chainName} ${chainSubName}!`,
     });
   } else {
     const domain = "g.alchemy.com";
@@ -129,8 +131,11 @@ function buildAlchemyAndCustomRpcURLs(
   return rpcURLs.length ? rpcURLs : undefined;
 }
 // replaces INFURA_API_KEY in https://networkname.infura.io/v3/{INFURA_API_KEY}
-function replaceInfuraID(infuraURL: string) {
-  return infuraURL.replace("{INFURA_API_KEY}", process.env.INFURA_ID || "");
+function replaceInfuraApiKey(infuraURL: string) {
+  return infuraURL.replace(
+    "{INFURA_API_KEY}",
+    process.env.INFURA_API_KEY || ""
+  );
 }
 function getBlockscoutRegex(blockscoutPrefix = "") {
   const tempBlockscoutOld = BLOCKSCOUT_REGEX_OLD.replace(
@@ -428,7 +433,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: "https://explorer.palm.io/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
     rpc: [
-      replaceInfuraID("https://palm-mainnet.infura.io/v3/{INFURA_API_KEY}"),
+      replaceInfuraApiKey("https://palm-mainnet.infura.io/v3/{INFURA_API_KEY}"),
     ],
   },
   "11297108099": {
@@ -437,7 +442,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: "https://explorer.palm-uat.xyz/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
     rpc: [
-      replaceInfuraID("https://palm-testnet.infura.io/v3/{INFURA_API_KEY}"),
+      replaceInfuraApiKey("https://palm-testnet.infura.io/v3/{INFURA_API_KEY}"),
     ],
   },
   "122": {
