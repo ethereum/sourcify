@@ -6,6 +6,7 @@ import logger from "./logger";
 import { ChainMonitor } from "./ChainMonitor";
 import { KnownDecentralizedStorageFetchers, MonitorConfig } from "./types";
 import dotenv from "dotenv";
+import { FetchRequest } from "ethers";
 
 dotenv.config();
 
@@ -77,7 +78,7 @@ export default class Monitor extends EventEmitter {
       } else {
         return new SourcifyChain({
           chainId: chain.chainId,
-          rpc: replaceInfuraAndAlchemy(chain.rpc),
+          rpc: authenticateRpcs(chain.rpc),
           name: chain.name,
           supported: true,
         });
@@ -143,14 +144,27 @@ export default class Monitor extends EventEmitter {
   };
 }
 
-function replaceInfuraAndAlchemy(rpcs: string[]) {
-  return rpcs.map((rpc) => {
-    if (rpc.includes("{INFURA_API_KEY}") && process.env.INFURA_API_KEY) {
-      return rpc.replace("{INFURA_API_KEY}", process.env.INFURA_API_KEY);
+function authenticateRpcs(rpcs: string[]) {
+  return rpcs.map((rpcUrl) => {
+    if (rpcUrl.includes("{INFURA_API_KEY}") && process.env.INFURA_API_KEY) {
+      return rpcUrl.replace("{INFURA_API_KEY}", process.env.INFURA_API_KEY);
     }
-    if (rpc.includes("{ALCHEMY_API_KEY}") && process.env.ALCHEMY_API_KEY) {
-      return rpc.replace("{ALCHEMY_API_KEY}", process.env.ALCHEMY_API_KEY);
+    if (rpcUrl.includes("{ALCHEMY_API_KEY}") && process.env.ALCHEMY_API_KEY) {
+      return rpcUrl.replace("{ALCHEMY_API_KEY}", process.env.ALCHEMY_API_KEY);
     }
-    return rpc;
+    if (rpcUrl.includes("ethpandaops.io")) {
+      const ethersFetchReq = new FetchRequest(rpcUrl);
+      ethersFetchReq.setHeader("Content-Type", "application/json");
+      ethersFetchReq.setHeader(
+        "CF-Access-Client-Id",
+        process.env.CF_ACCESS_CLIENT_ID || ""
+      );
+      ethersFetchReq.setHeader(
+        "CF-Access-Client-Secret",
+        process.env.CF_ACCESS_CLIENT_SECRET || ""
+      );
+      return ethersFetchReq;
+    }
+    return rpcUrl;
   });
 }
