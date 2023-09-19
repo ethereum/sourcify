@@ -55,8 +55,8 @@ describe("Test Supported Chains", function () {
     if (!anyTestsPass && newAddedChainIds.length) {
       throw new Error(
         "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id(s) " +
-          newAddedChainIds.join(",") +
-          "?"
+        newAddedChainIds.join(",") +
+        "?"
       );
     }
   });
@@ -547,7 +547,20 @@ describe("Test Supported Chains", function () {
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
-
+  verifyContract(
+    "0xA3b8eB7A6C4EE5902Ef66d455da98973B55B9f8a",
+    "9996",
+    "Mind Smart Chain Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContract(
+    "0x6720b7a5974373C3F6bdE96c09bA4ffdddEEAeD7",
+    "9977",
+    "Mind Smart Chain Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
   // Energy Web Volta Testnet
   verifyContract(
     "0x4667b7ce62e56B71146885555c68d2DDdf63349A",
@@ -1123,6 +1136,24 @@ describe("Test Supported Chains", function () {
     "Amplify Subnet",
     [],
     "78430/multicall3.metadata.json"
+  );
+
+  // Shrapnel Subnet Testnet
+  verifyContract(
+    "0x8Bb9d0Dd48B7a54B248D2d386AfF253DA7856479",
+    "2038",
+    "Shrapnel Testnet",
+    [],
+    "2038/multicall3.metadata.json"
+  );
+
+  // Shrapnel Subnet
+  verifyContract(
+    "0xb9D27a0D61392566b92E08937a6C6E798F197ADF",
+    "2044",
+    "Shrapnel Subnet",
+    [],
+    "2044/multicall3.metadata.json"
   );
 
   // Finally check if all the "supported: true" chains have been tested
