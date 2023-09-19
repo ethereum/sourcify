@@ -1,6 +1,8 @@
 import { id as keccak256str } from 'ethers';
 import {
   CompilableMetadata,
+  CompiledContractArtifacts,
+  CompiledContractArtifactsCborAuxdata,
   CompilerOutput,
   InvalidSources,
   JsonInput,
@@ -59,7 +61,10 @@ export class CheckedContract {
   metadataRaw!: string;
 
   /** The compiler output */
-  compilerOuput?: CompilerOutput;
+  compilerOutput?: CompilerOutput;
+
+  //** Artifacts */
+  artifacts?: CompiledContractArtifacts;
 
   /** Checks whether this contract is valid or not.
    *  This is a static method due to persistence issues.
@@ -238,6 +243,99 @@ export class CheckedContract {
     return null;
   }
 
+  public async generateEditedContract(compilerSettings: {
+    version: string;
+    solcJsonInput: JsonInput;
+    forceEmscripten: boolean;
+  }) {
+    const newCompilerSettings: {
+      version: string;
+      solcJsonInput: JsonInput;
+      forceEmscripten: boolean;
+    } = JSON.parse(JSON.stringify(compilerSettings));
+    Object.values(newCompilerSettings.solcJsonInput.sources).forEach(
+      (source) => (source.content += ' ')
+    );
+    return await useCompiler(
+      newCompilerSettings.version,
+      newCompilerSettings.solcJsonInput,
+      newCompilerSettings.forceEmscripten
+    );
+  }
+
+  public async getCborAuxdataInBytecode(
+    bytecodeType: 'creation' | 'runtime',
+    originalBytecode: string,
+    compilerOutputEditedContract: CompilerOutput,
+    originalAuxdatasList: string[]
+  ): Promise<CompiledContractArtifactsCborAuxdata> {
+    const contract =
+      compilerOutputEditedContract?.contracts[this.compiledPath][this.name];
+
+    let editedBytecode = '';
+    switch (bytecodeType) {
+      case 'creation': {
+        editedBytecode = `0x${contract?.evm.bytecode.object}`;
+        break;
+      }
+      case 'runtime': {
+        editedBytecode = `0x${contract?.evm?.deployedBytecode?.object}`;
+      }
+    }
+
+    const editedAuxdatasList = findAuxdatasInLegacyAssembly(
+      contract.evm.legacyAssembly
+    );
+
+    return findAuxdataPositions(
+      originalBytecode,
+      editedBytecode,
+      originalAuxdatasList,
+      editedAuxdatasList
+    );
+  }
+
+  public async generateArtifacts(forceEmscripten = false) {
+    if (
+      this.creationBytecode === undefined ||
+      this.runtimeBytecode === undefined
+    ) {
+      return false;
+    }
+
+    if (this.compilerOutput === undefined) {
+      return false;
+    }
+
+    const originalAuxdatasList = findAuxdatasInLegacyAssembly(
+      this.compilerOutput.contracts[this.compiledPath][this.name].evm
+        .legacyAssembly
+    );
+
+    const editedContractCompilerOutput = await this.generateEditedContract({
+      version: this.metadata.compiler.version,
+      solcJsonInput: this.solcJsonInput,
+      forceEmscripten,
+    });
+
+    this.artifacts = {
+      creationBytecodeCborAuxdata: await this.getCborAuxdataInBytecode(
+        'creation',
+        this.creationBytecode,
+        editedContractCompilerOutput,
+        originalAuxdatasList
+      ),
+      runtimeBytecodeCborAuxdata: await this.getCborAuxdataInBytecode(
+        'runtime',
+        this.runtimeBytecode,
+        editedContractCompilerOutput,
+        originalAuxdatasList
+      ),
+    };
+
+    return true;
+  }
+
   public async recompile(
     forceEmscripten = false
   ): Promise<RecompilationResult> {
@@ -247,20 +345,21 @@ export class CheckedContract {
 
     const version = this.metadata.compiler.version;
 
-    this.compilerOuput = await useCompiler(
+    this.compilerOutput = await useCompiler(
       version,
       this.solcJsonInput,
       forceEmscripten
     );
+
     if (
-      !this.compilerOuput.contracts ||
-      !this.compilerOuput.contracts[this.compiledPath] ||
-      !this.compilerOuput.contracts[this.compiledPath][this.name] ||
-      !this.compilerOuput.contracts[this.compiledPath][this.name].evm ||
-      !this.compilerOuput.contracts[this.compiledPath][this.name].evm.bytecode
+      !this.compilerOutput.contracts ||
+      !this.compilerOutput.contracts[this.compiledPath] ||
+      !this.compilerOutput.contracts[this.compiledPath][this.name] ||
+      !this.compilerOutput.contracts[this.compiledPath][this.name].evm ||
+      !this.compilerOutput.contracts[this.compiledPath][this.name].evm.bytecode
     ) {
       const errorMessages =
-        this.compilerOuput.errors
+        this.compilerOutput.errors
           ?.filter((e: any) => e.severity === 'error')
           .map((e: any) => e.formattedMessage) || [];
 
@@ -273,7 +372,8 @@ export class CheckedContract {
       throw error;
     }
 
-    const contract = this.compilerOuput.contracts[this.compiledPath][this.name];
+    const contract =
+      this.compilerOutput.contracts[this.compiledPath][this.name];
 
     this.creationBytecode = `0x${contract.evm.bytecode.object}`;
     this.runtimeBytecode = `0x${contract.evm?.deployedBytecode?.object}`;
@@ -486,6 +586,7 @@ function createJsonInputFromMetadata(
     'devdoc',
     'userdoc',
     'storageLayout',
+    'evm.legacyAssembly',
     'evm.bytecode.object',
     'evm.bytecode.sourceMap',
     'evm.bytecode.linkReferences',
@@ -566,4 +667,124 @@ function reorderAlphabetically(obj: any): any {
     });
 
   return ordered;
+}
+
+type Bytecode = string;
+
+function getAuxdataInLegacyAssemblyBranch(
+  legacyAssemblyBranch: any,
+  auxdatas: string[]
+) {
+  if (typeof legacyAssemblyBranch === 'object') {
+    Object.keys(legacyAssemblyBranch).forEach((key) => {
+      switch (key) {
+        case '.auxdata': {
+          auxdatas.push(legacyAssemblyBranch[key]);
+          break;
+        }
+        case '.code': {
+          break;
+        }
+        default: {
+          if (key === '.data' || Number.isInteger(Number(key))) {
+            return getAuxdataInLegacyAssemblyBranch(
+              legacyAssemblyBranch[key],
+              auxdatas
+            );
+          }
+        }
+      }
+    });
+  }
+}
+
+function findAuxdatasInLegacyAssembly(legacyAssembly: any) {
+  let auxdatas: string[] = [];
+  getAuxdataInLegacyAssemblyBranch(legacyAssembly, auxdatas);
+  return auxdatas;
+}
+
+// Given two bytecodes, this function returns an array of differing positions
+function getDiffPositions(original: Bytecode, modified: Bytecode): number[] {
+  const differences: number[] = [];
+  const minLength = Math.min(original.length, modified.length);
+
+  for (let i = 0; i < minLength; i++) {
+    if (original[i] !== modified[i]) {
+      differences.push(i);
+    }
+  }
+
+  return differences;
+}
+
+// Checks if a substring exists in the bytecode at a given position
+function substringExistsAt(
+  bytecode: Bytecode,
+  {
+    real,
+    diff,
+    offsetStart,
+    offsetEnd,
+  }: { real: string; diff: string; offsetStart: number; offsetEnd: number },
+  position: number
+): boolean {
+  const extracted = bytecode.substr(
+    position - offsetStart,
+    offsetStart + diff.length + offsetEnd
+  );
+  return extracted === real;
+}
+
+function getAuxdatasDiff(
+  knownAuxdatas: Bytecode[],
+  editedAuxdatas: Bytecode[]
+) {
+  let auxdatasDiffs = [];
+  for (let i = 0; i < knownAuxdatas.length; i++) {
+    const diffPositions = getDiffPositions(knownAuxdatas[i], editedAuxdatas[i]);
+    auxdatasDiffs.push({
+      offsetStart: diffPositions[0],
+      offsetEnd:
+        knownAuxdatas[i].length - diffPositions[diffPositions.length - 1] - 1,
+      real: knownAuxdatas[i],
+      diff: knownAuxdatas[i].substring(
+        diffPositions[0],
+        diffPositions[diffPositions.length - 1] + 1
+      ),
+    });
+  }
+  return auxdatasDiffs;
+}
+
+function findAuxdataPositions(
+  originalBytecode: Bytecode,
+  editedBytecode: Bytecode,
+  originalAuxdatas: Bytecode[],
+  editedAuxdatas: Bytecode[]
+): CompiledContractArtifactsCborAuxdata {
+  const auxdataDiffs = getAuxdatasDiff(originalAuxdatas, editedAuxdatas);
+
+  const diffPositions = getDiffPositions(originalBytecode, editedBytecode);
+  const auxdataPositions: CompiledContractArtifactsCborAuxdata = {};
+
+  for (const diff of diffPositions) {
+    for (const auxdataDiffIndex in auxdataDiffs) {
+      if (
+        auxdataPositions[auxdataDiffIndex] === undefined &&
+        substringExistsAt(
+          originalBytecode,
+          auxdataDiffs[auxdataDiffIndex],
+          diff
+        )
+      ) {
+        auxdataPositions[auxdataDiffIndex] = {
+          offset: diff,
+          value: auxdataDiffs[auxdataDiffIndex].real,
+        };
+      }
+    }
+  }
+
+  return auxdataPositions;
 }

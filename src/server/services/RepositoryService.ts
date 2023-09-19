@@ -743,27 +743,36 @@ export class RepositoryService implements IRepositoryService {
       recompiledContract.metadata.settings.compilationTarget
     )[0];
     const language = "solidity";
-    const compiledContract =
-      recompiledContract.compilerOuput?.contracts[
+    const compilerOutput =
+      recompiledContract.compilerOutput?.contracts[
         recompiledContract.compiledPath
       ][recompiledContract.name];
 
+    if (!(await recompiledContract.generateArtifacts())) {
+      logger.warn(
+        `Cannot generate contract artifacts for: ${recompiledContract.name} with address ${match.address} on chain ${match.chainId}`
+      );
+      return;
+    }
+
     const compilationArtifacts = {
-      abi: compiledContract?.abi || {},
-      userdoc: compiledContract?.userdoc || {},
-      devdoc: compiledContract?.devdoc || {},
-      storageLayout: compiledContract?.storageLayout || {},
+      abi: compilerOutput?.abi || {},
+      userdoc: compilerOutput?.userdoc || {},
+      devdoc: compilerOutput?.devdoc || {},
+      storageLayout: compilerOutput?.storageLayout || {},
     };
     const creationCodeArtifacts = {
-      sourceMap: compiledContract?.evm.bytecode.sourceMap || "",
-      linkReferences: compiledContract?.evm.bytecode.linkReferences || {},
+      sourceMap: compilerOutput?.evm.bytecode.sourceMap || "",
+      linkReferences: compilerOutput?.evm.bytecode.linkReferences || {},
+      cborAuxdata: recompiledContract?.artifacts?.creationBytecodeCborAuxdata,
     };
     const runtimeCodeArtifacts = {
-      sourceMap: compiledContract?.evm.deployedBytecode?.sourceMap || "",
+      sourceMap: compilerOutput?.evm.deployedBytecode?.sourceMap || "",
       linkReferences:
-        compiledContract?.evm.deployedBytecode?.linkReferences || {},
+        compilerOutput?.evm.deployedBytecode?.linkReferences || {},
       immutableReferences:
-        compiledContract?.evm.deployedBytecode?.immutableReferences || {},
+        compilerOutput?.evm.deployedBytecode?.immutableReferences || {},
+      cborAuxdata: recompiledContract?.artifacts?.runtimeBytecodeCborAuxdata,
     };
 
     const runtimeMatch =

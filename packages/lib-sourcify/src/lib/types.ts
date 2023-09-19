@@ -455,3 +455,15 @@ export interface CompilerOutput {
   sources?: CompilerOutputSources;
   contracts: CompilerOutputContracts;
 }
+
+export interface CompiledContractArtifactsCborAuxdata {
+  [index: string]: {
+    offset: number;
+    value: string;
+  };
+}
+
+export interface CompiledContractArtifacts {
+  creationBytecodeCborAuxdata: CompiledContractArtifactsCborAuxdata;
+  runtimeBytecodeCborAuxdata: CompiledContractArtifactsCborAuxdata;
+}
