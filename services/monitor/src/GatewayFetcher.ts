@@ -1,9 +1,6 @@
 import { Logger } from "winston";
 import logger from "./logger";
 import nodeFetch from "node-fetch";
-import AbortController from "abort-controller";
-
-const controller = new AbortController();
 
 type GatewayFetcherConfig = {
   url: string;
