@@ -3,14 +3,18 @@ import assert from "assert";
 import { EventEmitter } from "stream";
 import { SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
 import logger from "./logger";
-import { ChainMonitor } from "./ChainMonitor";
-import { KnownDecentralizedStorageFetchers, MonitorConfig } from "./types";
+import ChainMonitor from "./ChainMonitor";
+import {
+  KnownDecentralizedStorageFetchers,
+  MonitorConfig,
+  PassedMonitorConfig,
+} from "./types";
 import dotenv from "dotenv";
 import { FetchRequest } from "ethers";
 
 dotenv.config();
 
-const defaultConfig = {
+const defaultConfig: MonitorConfig = {
   decentralizedStorages: {
     ipfs: {
       enabled: true,
@@ -41,7 +45,7 @@ export default class Monitor extends EventEmitter {
     chainsToMonitor:
       | { chainId: number; rpc: string[]; name: string }[]
       | SourcifyChain[],
-    passedConfig?: MonitorConfig
+    passedConfig?: PassedMonitorConfig
   ) {
     super();
 

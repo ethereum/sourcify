@@ -20,6 +20,16 @@ type DecentralizedStorageConfig = {
 
 export type ChainMonitorConfig = {
   startBlock?: number;
+  blockInterval?: number;
+  blockIntervalFactor?: number;
+  blockIntervalUpperLimit?: number;
+  blockIntervalLowerLimit?: number;
+  bytecodeInterval?: number;
+  bytecodeNumberOfTries?: number;
+};
+
+export type DefatultChainMonitorConfig = {
+  startBlock: undefined; // Default to latest block
   blockInterval: number;
   blockIntervalFactor: number;
   blockIntervalUpperLimit: number;
@@ -31,7 +41,16 @@ export type ChainMonitorConfig = {
 export type MonitorConfig = {
   decentralizedStorages: DecentralizedStorageConfig;
   sourcifyServerURLs: string[];
-  defaultChainConfig: ChainMonitorConfig;
+  defaultChainConfig: DefatultChainMonitorConfig;
+  chainConfigs?: {
+    [chainId: number]: ChainMonitorConfig;
+  };
+};
+
+export type PassedMonitorConfig = {
+  decentralizedStorages?: DecentralizedStorageConfig;
+  sourcifyServerURLs?: string[];
+  defaultChainConfig?: DefatultChainMonitorConfig;
   chainConfigs?: {
     [chainId: number]: ChainMonitorConfig;
   };

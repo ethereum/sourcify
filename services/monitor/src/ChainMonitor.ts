@@ -18,7 +18,7 @@ const NEW_BLOCK_EVENT = "new-block";
 /**
  * A monitor that periodically checks for new contracts on a single chain.
  */
-export class ChainMonitor extends EventEmitter {
+export default class ChainMonitor extends EventEmitter {
   private sourcifyChain: SourcifyChain;
   private sourceFetchers: KnownDecentralizedStorageFetchers;
   private sourcifyServerURLs: string[];
