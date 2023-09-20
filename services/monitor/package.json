@@ -4,7 +4,7 @@
   "description": "A monitoring service to listen to chains and send detected new contracts to a Sourcify server",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha -r ts-node/register 'test/**/*.ts'",
     "build": "tsc",
     "start": "node dist/index.js"
   },
@@ -34,8 +34,15 @@
     "winston": "^3.10.0"
   },
   "devDependencies": {
+    "@types/chai": "^4.3.6",
+    "@types/mocha": "^10.0.1",
     "@types/node": "^20.6.2",
     "@types/node-fetch": "^2.6.5",
+    "@types/sinon": "^10.0.16",
+    "chai": "^4.3.8",
+    "mocha": "^10.2.0",
+    "sinon": "^16.0.0",
+    "ts-node": "^10.9.1",
     "typescript": "^5.2.2"
   }
 }
