@@ -19,7 +19,7 @@ const NEW_BLOCK_EVENT = "new-block";
  * A monitor that periodically checks for new contracts on a single chain.
  */
 export default class ChainMonitor extends EventEmitter {
-  private sourcifyChain: SourcifyChain;
+  public sourcifyChain: SourcifyChain;
   private sourceFetchers: KnownDecentralizedStorageFetchers;
   private sourcifyServerURLs: string[];
 
@@ -46,7 +46,7 @@ export default class ChainMonitor extends EventEmitter {
     });
 
     this.chainLogger.info(
-      `Initializing chain monitor for chain with sourceFetchers: ${Object.keys(
+      `Creating ChainMonitor with sourceFetchers: ${Object.keys(
         sourceFetchers
       ).join(",")}`
     );
@@ -68,9 +68,10 @@ export default class ChainMonitor extends EventEmitter {
   }
 
   start = async (): Promise<void> => {
+    this.chainLogger.info(`Starting ChainMonitor`);
     try {
       if (this.running) {
-        this.chainLogger.warn(`Monitor already running`);
+        this.chainLogger.warn(`ChainMonitor already running`);
         return;
       }
       this.running = true;
@@ -81,7 +82,9 @@ export default class ChainMonitor extends EventEmitter {
         this.startBlock = await this.sourcifyChain.getBlockNumber();
       }
 
-      this.chainLogger.info(`Starting monitor on block ${this.startBlock}`);
+      this.chainLogger.info(
+        `Starting ChainMonitor on block ${this.startBlock}`
+      );
 
       // Start polling
       this.pollBlocks(this.startBlock);
@@ -89,7 +92,7 @@ export default class ChainMonitor extends EventEmitter {
       // Listen to new blocks
       this.on(NEW_BLOCK_EVENT, this.processBlockListener);
     } catch (err: any) {
-      this.chainLogger.error(`Error starting monitor: ${err.message}`);
+      this.chainLogger.error(`Error starting ChainMonitor: ${err.message}`);
     }
   };
 
@@ -97,7 +100,7 @@ export default class ChainMonitor extends EventEmitter {
    * Stops the monitor after executing all pending requests.
    */
   stop = (): void => {
-    this.chainLogger.info(`Stopping monitor`);
+    this.chainLogger.info(`Stopping ChainMonitor`);
     this.running = false;
     this.off(NEW_BLOCK_EVENT, this.processBlockListener);
   };

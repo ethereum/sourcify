@@ -4,7 +4,7 @@
   "description": "A monitoring service to listen to chains and send detected new contracts to a Sourcify server",
   "main": "index.js",
   "scripts": {
-    "test": "mocha -r ts-node/register 'test/**/*.ts'",
+    "test": "mocha -r ts-node/register 'test/**/*.ts' --exit",
     "build": "tsc",
     "start": "node dist/index.js"
   },

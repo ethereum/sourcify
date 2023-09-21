@@ -90,7 +90,7 @@ export default class Monitor extends EventEmitter {
     });
 
     logger.info(
-      `Starting ${
+      `Creating ${
         sourcifyChains.length
       } chain monitors for chains: ${sourcifyChains
         .map((c) => c.chainId)
@@ -132,12 +132,17 @@ export default class Monitor extends EventEmitter {
    * Starts the monitor on all the designated chains.
    */
   start = async (): Promise<void> => {
+    logger.info(
+      `Starting Monitor for chains: ${this.chainMonitors
+        .map((cm) => cm.sourcifyChain.chainId)
+        .join(",")}`
+    );
     const promises: Promise<void>[] = [];
     for (const cm of this.chainMonitors) {
       promises.push(cm.start());
     }
     await Promise.all(promises);
-    console.log("All started");
+    logger.info("All ChainMonitors started");
   };
 
   /**
@@ -145,6 +150,7 @@ export default class Monitor extends EventEmitter {
    */
   stop = (): void => {
     this.chainMonitors.forEach((cm) => cm.stop());
+    logger.info("Monitor stopped");
   };
 }
 
