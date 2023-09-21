@@ -10,11 +10,16 @@ import { GatewayFetcher } from "./GatewayFetcher";
  * Will try to fetch from multiple gateways.
  */
 export default class DecentralizedStorageFetcher extends EventEmitter {
-  // TODO: Run local js-ipfs.
+  // TODO: Run local js-ipfs instead of using gateways??
   public origin: DecentralizedStorageOrigin;
   private gatewayFetchers: GatewayFetcher[];
+
+  // A file can be requested for multiple contracts. We only want to fetch it once. This mapping keeps track of the number of unique files.
   private uniqueFiles: { [key: string]: boolean } = {};
+  // Counter to keep track of the number of unique files. Used for logging.
   private uniqueFilesCounter = 0;
+
+  // A file can be requested by multiple contracts. This counter keeps track of the number of subscribers, i.e. contracts that want to receive a file. Used for logging.
   private subcriberCounter = 0;
 
   constructor(origin: DecentralizedStorageOrigin, gateways: string[]) {
@@ -101,7 +106,8 @@ export default class DecentralizedStorageFetcher extends EventEmitter {
             this.emit(`${fileHash.hash} fetch failed`);
           });
       }
-      // Already trying to fetch this file. Don't fetch again. Already listening.
+      // Already trying to fetch this file. Don't fetch again.
+      // The event listener for when the file is fetches is already added above.
       else {
         this.subcriberCounter++;
         logger.info(

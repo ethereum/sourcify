@@ -95,6 +95,7 @@ export class ChainMonitor extends EventEmitter {
   // Tries to get the next block by polling in variable intervals.
   // If the block is fetched, emits a creation event, decreases the pause between blocks, and goes to next block
   // If the block isn't there yet, it increases the pause between blocks.
+  // It should eventually converge to the expected block interval of the chain.
   private pollBlocks = async (startBlockNumber: number) => {
     let currentBlockNumber = startBlockNumber;
     const pollNextBlock = async () => {

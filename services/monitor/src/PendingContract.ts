@@ -51,7 +51,7 @@ export default class PendingContract {
     );
     // TODO: check if metadata hash matches this.metadataHash.hash
     this.metadata = JSON.parse(metadataStr) as Metadata;
-    this.pendingSources = { ...this.metadata.sources }; // Copy, don't mutate original.
+    this.pendingSources = structuredClone(this.metadata.sources); // Copy, don't mutate original.
 
     // Try to fetch all sources in parallel.
     const fetchPromises = Object.keys(this.pendingSources).map(
