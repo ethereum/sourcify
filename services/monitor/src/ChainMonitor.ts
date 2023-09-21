@@ -74,14 +74,17 @@ export default class ChainMonitor extends EventEmitter {
         return;
       }
       this.running = true;
-      const lastBlockNumber = await this.sourcifyChain.getBlockNumber();
-      const startBlock =
-        this.startBlock !== undefined ? this.startBlock : lastBlockNumber;
+      if (this.startBlock === undefined) {
+        this.chainLogger.info(
+          `No start block provided. Starting from last block`
+        );
+        this.startBlock = await this.sourcifyChain.getBlockNumber();
+      }
 
-      this.chainLogger.info(`Starting monitor on block ${startBlock}`);
+      this.chainLogger.info(`Starting monitor on block ${this.startBlock}`);
 
       // Start polling
-      this.pollBlocks(startBlock);
+      this.pollBlocks(this.startBlock);
 
       // Listen to new blocks
       this.on(NEW_BLOCK_EVENT, this.processBlockListener);
