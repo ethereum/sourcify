@@ -8,11 +8,14 @@ import ChainMonitor from "../src/ChainMonitor";
 import logger from "../src/logger";
 import ganache, { Server } from "ganache";
 import { JsonRpcProvider, JsonRpcSigner, Network } from "ethers";
-import { deployFromAbiAndBytecode } from "./helpers";
-// Use nock because sinon can only intercept XMLHttpRequests, which nodejs does not use
-import nock from "nock";
+import {
+  deployFromAbiAndBytecode,
+  nockInterceptorForVerification,
+} from "./helpers";
+import testLogger from "./testLogger";
 
 const GANACHE_PORT = 8545;
+const GANACHE_BLOCK_TIME_IN_SEC = 3;
 const FAKE_SOURCIFY_URL = "http://fakesourcifyserver.dev/server/";
 
 const localChain = {
@@ -28,41 +31,41 @@ describe("Monitor", function () {
   let ganacheServer: Server;
   let signer: JsonRpcSigner;
   let account: string;
+  let monitor: Monitor;
 
-  nock(FAKE_SOURCIFY_URL)
-    .post("/")
-    .reply(function (uri, requestBody: any) {
-      console.log("Received request to Sourcify server: \n " + requestBody);");
-      const { address, chainId } = requestBody;
-      return [200, { address, chainId, status: "perfect" }];
-    });
+  // before(async () => {
+  // });
 
-  before(async () => {
+  // after(() => {
+  //   ganacheServer.close();
+  //   testLogger.info("Stopped ganache local server");
+  // });
+  beforeEach(async () => {
+    sandbox = sinon.createSandbox();
+
     ganacheServer = ganache.server({
       wallet: { totalAccounts: 5 },
       chain: { chainId: 1337, networkId: 1337 },
+      miner: { blockTime: GANACHE_BLOCK_TIME_IN_SEC },
     });
     await ganacheServer.listen(GANACHE_PORT);
-    console.log("Started ganache local server at port " + GANACHE_PORT);
+    testLogger.info("Started ganache local server at port " + GANACHE_PORT);
     const ethersNetwork = new Network(localChain.rpc[0], localChain.chainId);
     signer = await new JsonRpcProvider(
       `http://localhost:${GANACHE_PORT}`,
       ethersNetwork,
       { staticNetwork: ethersNetwork }
     ).getSigner();
+    signer.provider.on("block", (blockNumber) => {
+      testLogger.info("New block mined: " + blockNumber);
+    });
     account = await signer.getAddress();
-    console.log("Initialized provider with signer account " + account);
+    testLogger.info("Initialized provider with signer account " + account);
   });
 
-  after(() => {
-    ganacheServer.close();
-    console.log("Stopped ganache local server");
-  });
-  beforeEach(() => {
-    sandbox = sinon.createSandbox();
-  });
-
-  afterEach(() => {
+  afterEach(async () => {
+    await ganacheServer.close();
+    monitor?.stop();
     sandbox.restore();
   });
 
@@ -98,16 +101,21 @@ describe("Monitor", function () {
     const chainMonitorStub = sandbox
       .stub(ChainMonitor.prototype, "start")
       .resolves();
-    const monitor = new Monitor([localChain]);
+    monitor = new Monitor([localChain]);
     await monitor.start();
     expect(chainMonitorStub.called).to.be.true;
   });
 
   it.only("should successfully catch a deployed contract, assemble, and send to Sourcify", async () => {
-    const monitor = new Monitor([localChain], {
+    monitor = new Monitor([localChain], {
       sourcifyServerURLs: [FAKE_SOURCIFY_URL],
+      chainConfigs: {
+        [localChain.chainId]: {
+          startBlock: 0,
+          blockInterval: GANACHE_BLOCK_TIME_IN_SEC * 1000,
+        },
+      },
     });
-    monitor.start();
 
     const contractAddress = await deployFromAbiAndBytecode(
       signer,
@@ -120,8 +128,21 @@ describe("Monitor", function () {
       []
     );
 
+    const nockInterceptor = nockInterceptorForVerification(
+      FAKE_SOURCIFY_URL,
+      localChain.chainId,
+      contractAddress
+    );
+
+    // start monitor after contract is deployed to avoid sending request before setting up interceptor
+    // Need to know the contract address to set up the interceptor
+    await monitor.start();
     // wait 30 seconds
-    await new Promise((resolve) => setTimeout(resolve, 30000));
+    await new Promise((resolve) =>
+      setTimeout(resolve, 3 * GANACHE_BLOCK_TIME_IN_SEC * 1000)
+    );
+
+    expect(nockInterceptor.isDone(), `Server not called`).to.be.true;
   });
   // Add more test cases as needed
 });
