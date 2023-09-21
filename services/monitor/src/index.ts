@@ -39,7 +39,14 @@ function loadJSON(filePath: string, throws = true) {
       console.warn(`File ${absolutePath} exists but is empty.`);
       return undefined;
     }
-    return JSON.parse(jsonData);
+    let json;
+
+    try {
+      json = JSON.parse(jsonData);
+    } catch (error) {
+      throw new Error(`File ${absolutePath} is not valid JSON.`);
+    }
+    return json;
   } else {
     if (throws) throw new Error(`File ${absolutePath} does not exist.`);
     console.warn(`File ${absolutePath} does not exist. Using default values.`);
