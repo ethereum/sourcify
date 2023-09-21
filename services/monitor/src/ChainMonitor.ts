@@ -31,6 +31,7 @@ export default class ChainMonitor extends EventEmitter {
   private blockIntervalLowerLimit: number;
   private bytecodeInterval: number;
   private bytecodeNumberOfTries: number;
+  private running = false;
 
   constructor(
     sourcifyChain: SourcifyChain,
@@ -68,6 +69,11 @@ export default class ChainMonitor extends EventEmitter {
 
   start = async (): Promise<void> => {
     try {
+      if (this.running) {
+        this.chainLogger.warn(`Monitor already running`);
+        return;
+      }
+      this.running = true;
       const lastBlockNumber = await this.sourcifyChain.getBlockNumber();
       const startBlock =
         this.startBlock !== undefined ? this.startBlock : lastBlockNumber;
@@ -89,6 +95,7 @@ export default class ChainMonitor extends EventEmitter {
    */
   stop = (): void => {
     this.chainLogger.info(`Stopping monitor`);
+    this.running = false;
     this.off(NEW_BLOCK_EVENT, this.processBlockListener);
   };
 
@@ -98,6 +105,9 @@ export default class ChainMonitor extends EventEmitter {
   private pollBlocks = async (startBlockNumber: number) => {
     let currentBlockNumber = startBlockNumber;
     const pollNextBlock = async () => {
+      if (!this.running) {
+        return;
+      }
       try {
         this.chainLogger.debug(
           `Polling for block ${currentBlockNumber} with pause ${this.blockInterval}...`
