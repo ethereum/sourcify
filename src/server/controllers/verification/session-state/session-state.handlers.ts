@@ -23,6 +23,7 @@ import { services } from "../../../services/services";
 
 import { StatusCodes } from "http-status-codes";
 import { decode as bytecodeDecode } from "@ethereum-sourcify/bytecode-utils";
+import { logger } from "../../../../common/loggerLoki";
 
 export async function getSessionDataEndpoint(req: Request, res: Response) {
   res.send(getSessionJSON(req.session));
@@ -89,8 +90,10 @@ export async function addInputContractEndpoint(req: Request, res: Response) {
   const metadataFileName = "metadata.json";
   const retrievedMetadataText = await performFetch(ipfsUrl);
 
-  if (!retrievedMetadataText)
-    throw new Error(`Could not retrieve metadata from ${ipfsUrl}`);
+  if (!retrievedMetadataText) {
+    logger.error(`Could not retrieve metadata from ${ipfsUrl}`);
+    throw new Error(`Could not retrieve metadata`);
+  }
   const pathContents: PathContent[] = [];
 
   const retrievedMetadataBase64 = Buffer.from(retrievedMetadataText).toString(

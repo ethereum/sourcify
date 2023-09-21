@@ -84,7 +84,10 @@ export default class SourcifyChain {
 
   rejectInMs = (ms: number, host?: string) =>
     new Promise<never>((_resolve, reject) => {
-      setTimeout(() => reject(`RPC ${host} took too long to respond`), ms);
+      setTimeout(
+        () => reject(new Error(`RPC ${host} took too long to respond`)),
+        ms
+      );
     });
 
   getTx = async (creatorTxHash: string) => {
@@ -189,15 +192,11 @@ export default class SourcifyChain {
             this.chainId
         );
         return block;
-      } catch (err) {
-        if (err instanceof Error) {
-          logWarn(
-            `Can't fetch block ${blockNumber} from RPC ${provider.url} and chain ${this.chainId}, error: ${err.message}`
-          );
-          continue;
-        } else {
-          throw err;
-        }
+      } catch (err: any) {
+        logWarn(
+          `Can't fetch block ${blockNumber} from RPC ${provider.url} and chain ${this.chainId}, error: ${err.message}`
+        );
+        continue;
       }
     }
     throw new Error(

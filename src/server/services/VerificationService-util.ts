@@ -56,7 +56,7 @@ export const getCreatorTx = async (
   }
 
   // Avalanche Subnets
-  if ([11111, 335, 53935, 432201, 432204].includes(sourcifyChain.chainId)) {
+  if (contractFetchAddressFilled.includes("avax.network")) {
     const response = await fetchFromApi(contractFetchAddressFilled);
     if (response.nativeTransaction?.txHash)
       return response.nativeTransaction.txHash as string;

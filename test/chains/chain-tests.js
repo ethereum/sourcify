@@ -21,9 +21,12 @@ const { assertVerification } = require("../helpers/assertions");
 const TEST_TIME = process.env.TEST_TIME || 30000; // 30 seconds
 
 // Extract the chainId from new chain support pull request, if exists
-const newAddedChainId = process.env.NEW_CHAIN_ID;
-console.log("newAddedChainId");
-console.log(newAddedChainId);
+let newAddedChainIds = [];
+if (process.env.NEW_CHAIN_ID) {
+  newAddedChainIds = process.env.NEW_CHAIN_ID.split(",");
+}
+console.log("newAddedChainIds");
+console.log(newAddedChainIds);
 
 let anyTestsPass = false; // Fail when zero tests passing
 
@@ -49,11 +52,11 @@ describe("Test Supported Chains", function () {
 
   after(() => {
     rimraf.sync(server.repository);
-    if (!anyTestsPass && newAddedChainId) {
+    if (!anyTestsPass && newAddedChainIds.length) {
       throw new Error(
-        "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id " +
-          newAddedChainId +
-          "?"
+        "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id(s) " +
+        newAddedChainIds.join(",") +
+        "?"
       );
     }
   });
@@ -107,6 +110,14 @@ describe("Test Supported Chains", function () {
     "0x8F78b9c92a68DdF719849a40702cFBfa4EB60dD0",
     "11155111",
     "Sepolia",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  verifyContract(
+    "0x43C0A11653F57a96d1d3b6A5A6be453444558A5E",
+    "369",
+    "PulseChain",
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
@@ -536,7 +547,20 @@ describe("Test Supported Chains", function () {
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
-
+  verifyContract(
+    "0xA3b8eB7A6C4EE5902Ef66d455da98973B55B9f8a",
+    "9996",
+    "Mind Smart Chain Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContract(
+    "0x6720b7a5974373C3F6bdE96c09bA4ffdddEEAeD7",
+    "9977",
+    "Mind Smart Chain Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
   // Energy Web Volta Testnet
   verifyContract(
     "0x4667b7ce62e56B71146885555c68d2DDdf63349A",
@@ -935,9 +959,36 @@ describe("Test Supported Chains", function () {
     "0x9BF49b704EE2A095b95c1f2D4EB9010510c41C9E",
     "13337",
     "BEAM Chain",
-    ["multicall3/Multicall3.sol"],
-    "multicall3/multicall3.metadata.json",
+    ["13337/Multicall3.sol"],
+    "13337/multicall3.metadata.json",
     "partial"
+  );
+
+  // Kanazawa Chain Testnet
+  verifyContract(
+    "0x24c456Fb4c450208366B1f8322c3241aA013758e",
+    "222000222",
+    "Kanazawa Chain",
+    [],
+    "222000222/multicall3.metadata.json"
+  );
+
+  // MELD Chain Testnet
+  verifyContract(
+    "0x769eE5A8e82C15C1b6E358f62aC8eb6E3AbE8dC5",
+    "333000333",
+    "MELD Chain",
+    [],
+    "333000333/multicall3.metadata.json"
+  );
+
+  // Kiwi Subnet
+  verifyContract(
+    "0xe89a85b79e64b35829625A7EEf70F8915d32F75f",
+    "2037",
+    "Kiwi Subnet",
+    [],
+    "2037/multicall3.metadata.json"
   );
 
   // KAVA EVM
@@ -1061,9 +1112,60 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
+  verifyContract(
+    "0x4956f15efdc3dc16645e90cc356eafa65ffc65ec",
+    "4337",
+    "Beam Subnet",
+    [],
+    "4337/multicall.metadata.json"
+  );
+
+  verifyContract(
+    "0x72Ed1E3E3A68DfB7495FAfb19C0de1A0B7Ec5524",
+    "78432",
+    "Conduit Subnet",
+    [],
+    "78432/multicall3.metadata.json"
+  );
+
+  verifyContract(
+    "0xa785B911a79B0d5d8895c567663c29F0f7B93321",
+    "78431",
+    "Bulletin Subnet",
+    [],
+    "78431/multicall3.metadata.json"
+  );
+
+  // Amplify Subnet
+  verifyContract(
+    "0xB19f81cA2141ACd6F2Cc39bAFAD2a613bC4c9592",
+    "78430",
+    "Amplify Subnet",
+    [],
+    "78430/multicall3.metadata.json"
+  );
+
+  // Shrapnel Subnet Testnet
+  verifyContract(
+    "0x8Bb9d0Dd48B7a54B248D2d386AfF253DA7856479",
+    "2038",
+    "Shrapnel Testnet",
+    [],
+    "2038/multicall3.metadata.json"
+  );
+
+  // Shrapnel Subnet
+  verifyContract(
+    "0xb9D27a0D61392566b92E08937a6C6E798F197ADF",
+    "2044",
+    "Shrapnel Subnet",
+    [],
+    "2044/multicall3.metadata.json"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
-    if (newAddedChainId) {
+    if (newAddedChainIds.length) {
       // Don't test all chains if it is a pull request for adding new chain support
       return this.skip();
     }
@@ -1105,7 +1207,7 @@ describe("Test Supported Chains", function () {
     expectedStatus = "perfect"
   ) {
     // If it is a pull request for adding new chain support, only test the new chain
-    if (newAddedChainId && newAddedChainId != chainId) return;
+    if (newAddedChainIds.length && !newAddedChainIds.includes(chainId)) return;
     it(`should verify a contract on ${chainName} (${chainId})`, function (done) {
       // Context for the test report
       addContext(this, {

@@ -96,7 +96,8 @@
       "args": [
         "run",
         "test",
-        "--stream"
+        "--stream",
+        "--concurrency=1"
       ],
       "outFiles": [
         "${workspaceFolder}/dist/**/*.js",
@@ -251,7 +252,7 @@
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "env": {
         "TESTING": "true",
-        // "NEW_CHAIN_ID": "11155111"
+        // "NEW_CHAIN_ID": "333000333"
       },
       "args": [
         "${workspaceFolder}/test/chains/chain-tests.js",

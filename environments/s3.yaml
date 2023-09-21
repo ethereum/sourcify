@@ -1,7 +1,4 @@
 version: "3.7"
-x-project-repository-mount: &project-repository-mount
-  type: bind
-  source: $REPOSITORY_PATH
 
 x-project-base: &project-base
   env_file:
@@ -19,5 +16,6 @@ services:
     image: ethereum/source-verify:s3-${TAG}
     container_name: s3-${TAG}
     volumes:
-      - <<: *project-repository-mount
-        target: /app/repository/repository/
+      - type: bind
+        source: $REPOSITORY_PATH_HOST
+        target: $REPOSITORY_PATH

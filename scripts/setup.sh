@@ -21,7 +21,7 @@ TAG=$TAG ./scripts/find_replace.sh
 
 cd ./environments
 source .env
-mkdir -p $REPOSITORY_PATH
+mkdir -p $REPOSITORY_PATH_HOST
 docker image prune -f
 eval ${COMPOSE_COMMAND} pull
 eval COMPOSE_HTTP_TIMEOUT=1200 ${COMPOSE_COMMAND} up -d
