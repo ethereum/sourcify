@@ -1156,6 +1156,14 @@ describe("Test Supported Chains", function () {
     "2044/multicall3.metadata.json"
   );
 
+  verifyContract(
+    "0xa456Ad3DEe140dcC91655ff45ef3103C460201D0",
+    "10243",
+    "Arthera Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainIds.length) {

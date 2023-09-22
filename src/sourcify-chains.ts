@@ -1070,6 +1070,13 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       "https://glacier-api.avax.network/v1/chains/2044/" +
       AVALANCHE_SUBNET_SUFFIX,
   },
+  "10243": {
+    // Arthera Testnet
+    supported: true,
+    monitored: false,
+    contractFetchAddress: "https://explorer-test.arthera.net/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
