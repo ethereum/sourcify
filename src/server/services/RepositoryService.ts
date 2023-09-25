@@ -722,7 +722,6 @@ export class RepositoryService implements IRepositoryService {
       recompiledContract.runtimeBytecode
     );
 
-    // TODO @alliance-database: order by best match desc
     const existingVerifiedContractResult =
       await AllianceDatabase.getVerifiedContractByBytecodeHashes(
         this.allianceDatabasePool,
@@ -863,41 +862,51 @@ export class RepositoryService implements IRepositoryService {
         return;
       }
     } else {
-      // if we have a better match
+      // Until the Alliance will decide a standard process to update:
+      // if we have a "better match" always insert
+      // "better match" = creation_transformations or runtime_transformations is better
+
       let needRuntimeMatchUpdate = false;
       let needCreationMatchUpdate = false;
 
-      const existingVerifiedContract = existingVerifiedContractResult.rows[0];
+      let existingCompiledContractIds: string[] = [];
 
-      const hasRuntimeAuxdataTransformation =
-        existingVerifiedContract.runtime_transformations.some(
-          (trans: Transformation) => trans.reason === "auxdata"
-        );
-      const hasCreationAuxdataTransformation =
-        existingVerifiedContract.creation_transformations.some(
-          (trans: Transformation) => trans.reason === "auxdata"
-        );
+      existingVerifiedContractResult.rows.forEach(
+        (existingVerifiedContract) => {
+          existingCompiledContractIds.push(
+            existingVerifiedContract.compilation_id
+          );
+          const hasRuntimeAuxdataTransformation =
+            existingVerifiedContract.runtime_transformations.some(
+              (trans: Transformation) => trans.reason === "auxdata"
+            );
+          const hasCreationAuxdataTransformation =
+            existingVerifiedContract.creation_transformations.some(
+              (trans: Transformation) => trans.reason === "auxdata"
+            );
 
-      if (
-        (hasRuntimeAuxdataTransformation && match.runtimeMatch === "perfect") ||
-        (existingVerifiedContract.runtime_match === false &&
-          (match.runtimeMatch === "perfect" ||
-            match.runtimeMatch === "partial"))
-      ) {
-        needRuntimeMatchUpdate = true;
-      }
+          if (
+            (hasRuntimeAuxdataTransformation &&
+              match.runtimeMatch === "perfect") ||
+            (existingVerifiedContract.runtime_match === false &&
+              (match.runtimeMatch === "perfect" ||
+                match.runtimeMatch === "partial"))
+          ) {
+            needRuntimeMatchUpdate = true;
+          }
 
-      if (
-        (hasCreationAuxdataTransformation &&
-          match.creationMatch === "perfect") ||
-        (existingVerifiedContract.creation_match === false &&
-          (match.creationMatch === "perfect" ||
-            match.creationMatch === "partial"))
-      ) {
-        needCreationMatchUpdate = true;
-      }
+          if (
+            (hasCreationAuxdataTransformation &&
+              match.creationMatch === "perfect") ||
+            (existingVerifiedContract.creation_match === false &&
+              (match.creationMatch === "perfect" ||
+                match.creationMatch === "partial"))
+          ) {
+            needCreationMatchUpdate = true;
+          }
+        }
+      );
 
-      // TODO @alliance-database: implement the real process to decide what to update/insert
       if (needRuntimeMatchUpdate || needCreationMatchUpdate) {
         try {
           // Add recompiled bytecodes
@@ -930,12 +939,23 @@ export class RepositoryService implements IRepositoryService {
               }
             );
 
+          // Check if we are trying to insert a compiled contract that already exists
+          // It could happen because of the check "needRuntimeMatchUpdate || needCreationMatchUpdate"
+          // When the Alliance will decide a standard process to update this check will be removed
+          if (
+            existingCompiledContractIds.includes(
+              compiledContractsInsertResult.rows[0].id
+            )
+          ) {
+            return;
+          }
+
           // update verified contract with the newly added recompiled contract
-          await AllianceDatabase.updateVerifiedContract(
+          await AllianceDatabase.insertVerifiedContract(
             this.allianceDatabasePool,
             {
               compilationId: compiledContractsInsertResult.rows[0].id,
-              contractId: existingVerifiedContract.contract_id,
+              contractId: existingVerifiedContractResult.rows[0].contract_id,
               creationTransformations: JSON.stringify(creationTransformations),
               creationValues: creationValues || {},
               runtimeTransformations: JSON.stringify(runtimeTransformations),
