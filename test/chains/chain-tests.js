@@ -55,8 +55,8 @@ describe("Test Supported Chains", function () {
     if (!anyTestsPass && newAddedChainIds.length) {
       throw new Error(
         "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id(s) " +
-        newAddedChainIds.join(",") +
-        "?"
+          newAddedChainIds.join(",") +
+          "?"
       );
     }
   });
@@ -1154,6 +1154,13 @@ describe("Test Supported Chains", function () {
     "Shrapnel Subnet",
     [],
     "2044/multicall3.metadata.json"
+  );
+  verifyContract(
+    "0xD5bB0035a178d56Abd23a39fB3666031084b2cb5",
+    "1116",
+    "Core Blockchain Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
   );
 
   verifyContract(
