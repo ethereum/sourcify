@@ -81,30 +81,46 @@ export default class DecentralizedStorageFetcher extends EventEmitter {
         this.subcriberCounter++;
         this.uniqueFilesCounter++;
 
-        // TODO: Handle multiple gateways.
-        const gatewayFetcher = this.gatewayFetchers[0];
+        for (const gatewayFetcher of this.gatewayFetchers) {
+          let shouldBreak = false;
 
-        logger.info(
-          `Fetching ${fileHash.hash} from ${gatewayFetcher.url} \n Unique Files counter: ${this.uniqueFilesCounter} \n Subscriber counter: ${this.subcriberCounter}`
-        );
-        gatewayFetcher
-          .fetchWithRetries(fileHash.hash)
-          .then((file) => {
-            logger.info(`Fetched ${fileHash.hash} from ${gatewayFetcher.url}`);
-            this.uniqueFilesCounter--;
-            delete this.uniqueFiles[fileHash.hash];
-            // Notify the subscribers
-            this.emit(`${fileHash.hash} fetched`, file);
-          })
-          .catch((err) => {
-            logger.info(
-              `Failed to fetch ${fileHash.hash} from ${gatewayFetcher.url} \n ${err}`
-            );
-            this.uniqueFilesCounter--;
-            delete this.uniqueFiles[fileHash.hash];
-            // Notify the subscribers
-            this.emit(`${fileHash.hash} fetch failed`);
-          });
+          logger.info(
+            `Fetching ${fileHash.hash} from ${gatewayFetcher.url} \n Unique Files counter: ${this.uniqueFilesCounter} \n Subscriber counter: ${this.subcriberCounter}`
+          );
+          gatewayFetcher
+            .fetchWithRetries(fileHash.hash)
+            .then((file) => {
+              logger.info(
+                `Fetched ${fileHash.hash} from ${gatewayFetcher.url}`
+              );
+              this.uniqueFilesCounter--;
+              delete this.uniqueFiles[fileHash.hash];
+              // Notify the subscribers
+              this.emit(`${fileHash.hash} fetched`, file);
+            })
+            .catch((err) => {
+              if (err.timeout) {
+                logger.info(
+                  `Timeout fetching ${fileHash.hash} from ${gatewayFetcher.url} \n ${err}`
+                );
+                this.uniqueFilesCounter--;
+                delete this.uniqueFiles[fileHash.hash];
+                // Notify the subscribers
+                this.emit(`${fileHash.hash} fetch failed`);
+                shouldBreak = true; // Don't try to fetch from other gateways
+              } else {
+                // Something's wront with the GW. Use fallback
+                logger.error(
+                  `Error fetching ${fileHash.hash} from ${gatewayFetcher.url} \n ${err}`
+                );
+              }
+            });
+          if (shouldBreak) {
+            break;
+          }
+        }
+        logger.info(`Couldn't fetch ${fileHash.hash} from any gateways.`);
+        this.emit(`${fileHash.hash} fetch failed`);
       }
       // Already trying to fetch this file. Don't fetch again.
       // The event listener for when the file is fetches is already added above.

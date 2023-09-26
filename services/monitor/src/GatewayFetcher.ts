@@ -28,48 +28,64 @@ export class GatewayFetcher {
     const fetchURL = new URL(fileHash, this.url);
     const sleep = (ms: number) =>
       new Promise((resolve) => setTimeout(resolve, ms));
+    let hitTimeout = false;
 
     for (let i = 0; i < this.retries; i++) {
+      this.gwLogger.info(`Fetching ${fetchURL} attempt ${i + 1}`);
+
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(
+          () =>
+            reject(
+              new Error(
+                `Timeout fetching after ${this.fetchTimeout}ms at ${fetchURL}`
+              )
+            ),
+          this.fetchTimeout
+        );
+      });
+
       try {
-        this.gwLogger.info(`Fetching ${fetchURL} attempt ${i + 1}`);
-
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(
-            () =>
-              reject(
-                new Error(
-                  `Timeout fetching after ${this.fetchTimeout}ms at ${fetchURL}`
-                )
-              ),
-            this.fetchTimeout
-          );
-        });
-
         // Race with gateway timeout
         const response = await Promise.race([
           nodeFetch(fetchURL),
           timeoutPromise,
         ]);
+
         if (response.ok) {
-          const file = await response.text(); // or response.text(), response.blob() etc. depending on your use case
+          const file = await response.text();
           return file;
+        } else if (response.status === 504) {
+          // HTTP GW Timeout
+          hitTimeout = true;
         } else {
+          hitTimeout = false;
           throw new Error(
             `Received a non-ok status code while fetching from ${fetchURL}: ${response.status} ${response.statusText}`
           );
         }
       } catch (err) {
+        hitTimeout = false;
         this.gwLogger.info(
           `Failed to fetch ${fileHash} from ${this.url}, attempt ${i + 1}`
         );
         this.gwLogger.info(err);
-        if (i < this.retries - 1) {
-          this.gwLogger.debug(
-            `Waiting ${this.fetchInterval}ms before retrying ${fetchURL}`
-          );
-          await sleep(this.fetchInterval);
-        }
       }
+
+      if (i < this.retries - 1) {
+        this.gwLogger.debug(
+          `Waiting ${this.fetchInterval}ms before retrying ${fetchURL}`
+        );
+        await sleep(this.fetchInterval);
+      }
+    }
+    if (hitTimeout) {
+      throw {
+        timeout: true,
+        ...new Error(
+          `Gateway timeout fetching ${fileHash} from ${this.url} after ${this.retries} attempts`
+        ),
+      };
     }
     throw new Error(
       `Failed to fetch ${fileHash} from ${this.url} after ${this.retries} attempts`

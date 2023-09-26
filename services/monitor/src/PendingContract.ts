@@ -51,7 +51,6 @@ export default class PendingContract {
     logger.info(
       `Fetched metadata for ${this.address} on chain ${this.chainId} from ${this.metadataHash.origin}`
     );
-    // TODO: check if metadata hash matches this.metadataHash.hash
     this.metadata = JSON.parse(metadataStr) as Metadata;
     this.pendingSources = structuredClone(this.metadata.sources); // Copy, don't mutate original.
 
