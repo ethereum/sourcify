@@ -12,12 +12,12 @@ program
   .option(
     "--configPath <path>",
     "Path to the configuration JSON file",
-    "../config.json"
+    path.resolve(__dirname, "../config.json")
   )
   .option(
     "--chainsPath <path>",
     "Path to the chains JSON file",
-    "../chains.json"
+    path.resolve(__dirname, "../chains.json")
   );
 
 // Parse the arguments
@@ -30,7 +30,7 @@ const options = program.opts();
 function loadJSON(filePath: string, throws = true) {
   const absolutePath = path.isAbsolute(filePath)
     ? filePath
-    : path.join(__dirname, filePath);
+    : path.join(process.cwd(), filePath);
 
   if (fs.existsSync(absolutePath)) {
     const jsonData = fs.readFileSync(absolutePath, "utf8");

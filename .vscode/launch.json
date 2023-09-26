@@ -62,7 +62,10 @@
       "name": "Monitor",
       "cwd": "${workspaceFolder}/services/monitor",
       "program": "dist/index.js",
-      "envFile": "${workspaceFolder}/environments/.env",
+      "args": [
+        "--chainsPath=chains-dev.json",
+      ],
+      "envFile": ".env",
       "preLaunchTask": "npm: build",
       "outFiles": [
         "${workspaceFolder}/services/monitor/dist/**/*.js",
@@ -78,7 +81,10 @@
       "name": "Monitor - without build",
       "cwd": "${workspaceFolder}/services/monitor",
       "program": "dist/index.js",
-      "envFile": "${workspaceFolder}/environments/.env",
+      "args": [
+        "--chainsPath=chains-dev.json",
+      ],
+      "envFile": ".env",
       "outFiles": [
         "${workspaceFolder}/services/monitor/dist/**/*.js",
         "${workspaceFolder}/packages/**/build/**/*.js"
