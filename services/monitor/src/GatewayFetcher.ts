@@ -1,6 +1,7 @@
 import { Logger } from "winston";
 import logger from "./logger";
 import nodeFetch from "node-fetch";
+import { TimeoutError } from "./util";
 
 type GatewayFetcherConfig = {
   url: string;
@@ -37,7 +38,7 @@ export class GatewayFetcher {
         setTimeout(
           () =>
             reject(
-              new Error(
+              new TimeoutError(
                 `Timeout fetching after ${this.fetchTimeout}ms at ${fetchURL}`
               )
             ),
@@ -64,8 +65,12 @@ export class GatewayFetcher {
             `Received a non-ok status code while fetching from ${fetchURL}: ${response.status} ${response.statusText}`
           );
         }
-      } catch (err) {
-        hitTimeout = false;
+      } catch (err: any) {
+        if (err.timeout) {
+          hitTimeout = true;
+        } else {
+          hitTimeout = false;
+        }
         this.gwLogger.info(
           `Failed to fetch ${fileHash} from ${this.url}, attempt ${i + 1}`
         );
@@ -79,13 +84,12 @@ export class GatewayFetcher {
         await sleep(this.fetchInterval);
       }
     }
+
+    // Finally after all retries
     if (hitTimeout) {
-      throw {
-        timeout: true,
-        ...new Error(
-          `Gateway timeout fetching ${fileHash} from ${this.url} after ${this.retries} attempts`
-        ),
-      };
+      throw new TimeoutError(
+        `Gateway timeout fetching ${fileHash} from ${this.url} after ${this.retries} attempts`
+      );
     }
     throw new Error(
       `Failed to fetch ${fileHash} from ${this.url} after ${this.retries} attempts`

@@ -52,6 +52,10 @@ export default class DecentralizedStorageFetcher extends EventEmitter {
     return new Promise<string>((resolve, reject) => {
       const cleanupSubscription = () => {
         this.subcriberCounter--;
+        if (this.uniqueFiles[fileHash.hash]) {
+          this.uniqueFilesCounter--;
+          delete this.uniqueFiles[fileHash.hash];
+        }
         this.removeListener(`${fileHash.hash} fetched`, successListener);
         this.removeListener(`${fileHash.hash} fetch failed`, failListener);
         logger.info(
@@ -81,46 +85,7 @@ export default class DecentralizedStorageFetcher extends EventEmitter {
         this.subcriberCounter++;
         this.uniqueFilesCounter++;
 
-        for (const gatewayFetcher of this.gatewayFetchers) {
-          let shouldBreak = false;
-
-          logger.info(
-            `Fetching ${fileHash.hash} from ${gatewayFetcher.url} \n Unique Files counter: ${this.uniqueFilesCounter} \n Subscriber counter: ${this.subcriberCounter}`
-          );
-          gatewayFetcher
-            .fetchWithRetries(fileHash.hash)
-            .then((file) => {
-              logger.info(
-                `Fetched ${fileHash.hash} from ${gatewayFetcher.url}`
-              );
-              this.uniqueFilesCounter--;
-              delete this.uniqueFiles[fileHash.hash];
-              // Notify the subscribers
-              this.emit(`${fileHash.hash} fetched`, file);
-            })
-            .catch((err) => {
-              if (err.timeout) {
-                logger.info(
-                  `Timeout fetching ${fileHash.hash} from ${gatewayFetcher.url} \n ${err}`
-                );
-                this.uniqueFilesCounter--;
-                delete this.uniqueFiles[fileHash.hash];
-                // Notify the subscribers
-                this.emit(`${fileHash.hash} fetch failed`);
-                shouldBreak = true; // Don't try to fetch from other gateways
-              } else {
-                // Something's wront with the GW. Use fallback
-                logger.error(
-                  `Error fetching ${fileHash.hash} from ${gatewayFetcher.url} \n ${err}`
-                );
-              }
-            });
-          if (shouldBreak) {
-            break;
-          }
-        }
-        logger.info(`Couldn't fetch ${fileHash.hash} from any gateways.`);
-        this.emit(`${fileHash.hash} fetch failed`);
+        this.tryGatewaysSequentially(fileHash);
       }
       // Already trying to fetch this file. Don't fetch again.
       // The event listener for when the file is fetches is already added above.
@@ -131,5 +96,39 @@ export default class DecentralizedStorageFetcher extends EventEmitter {
         );
       }
     });
+  };
+
+  // Try to fetch the file from all gateways sequentially.
+  // If a fetch from a gateway times out, don't try others. Probably the file is not pinned.
+  // If a fetch from a gateway fails for another reason, try the next gateway.
+  tryGatewaysSequentially = async (fileHash: FileHash) => {
+    for (const gatewayFetcher of this.gatewayFetchers) {
+      logger.info(
+        `Fetching ${fileHash.hash} from ${gatewayFetcher.url} \n Unique Files counter: ${this.uniqueFilesCounter} \n Subscriber counter: ${this.subcriberCounter}`
+      );
+      try {
+        const file = await gatewayFetcher.fetchWithRetries(fileHash.hash);
+        logger.info(`Fetched ${fileHash.hash} from ${gatewayFetcher.url}`);
+        // Notify the subscribers
+        this.emit(`${fileHash.hash} fetched`, file);
+        return;
+      } catch (err: any) {
+        if (err.timeout) {
+          logger.info(
+            `Timeout fetching ${fileHash.hash} from ${gatewayFetcher.url} \n ${err}`
+          );
+          // Notify the subscribers
+          this.emit(`${fileHash.hash} fetch failed`);
+          return;
+        } else {
+          // Something's wront with the GW. Use fallback
+          logger.error(
+            `Error fetching ${fileHash.hash} from ${gatewayFetcher.url} \n ${err}`
+          );
+        }
+      }
+    }
+    logger.info(`Couldn't fetch ${fileHash.hash} from any gateways.`);
+    this.emit(`${fileHash.hash} fetch failed`);
   };
 }
