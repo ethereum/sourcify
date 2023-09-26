@@ -221,7 +221,15 @@ export class ChainMonitor extends EventEmitter {
         return;
       }
       const cborData = bytecodeDecode(bytecode);
-      const metadataHash = FileHash.fromCborData(cborData);
+      let metadataHash: FileHash;
+      try {
+        metadataHash = FileHash.fromCborData(cborData);
+      } catch (err: any) {
+        this.chainLogger.info(
+          `Error getting the metadatahash for ${address}: ${err.message}`
+        );
+        return;
+      }
 
       if (this.sourceFetchers[metadataHash.origin] === undefined) {
         this.chainLogger.info(
