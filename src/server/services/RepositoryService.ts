@@ -611,6 +611,13 @@ export class RepositoryService implements IRepositoryService {
     for await (const file of filesAsyncIterable) {
       if (!file.content) continue; // skip directories
       const mfsPath = path.join(ipfsMFSDir, file.path);
+      try {
+        // If ipfs.files.stat is successful it means the file already exists so we can skip
+        await this.ipfsClient.files.stat(mfsPath);
+        continue;
+      } catch (e) {
+        // If ipfs.files.stat fails it means the file doesn't exist, so we can add the file
+      }
       await this.ipfsClient.files.mkdir(path.dirname(mfsPath), {
         parents: true,
       });
