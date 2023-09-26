@@ -765,21 +765,25 @@ function findAuxdataPositions(
 ): CompiledContractArtifactsCborAuxdata {
   const auxdataDiffs = getAuxdatasDiff(originalAuxdatas, editedAuxdatas);
 
-  const diffPositions = getDiffPositions(originalBytecode, editedBytecode);
+  const diffPositionsBytecodes = getDiffPositions(
+    originalBytecode,
+    editedBytecode
+  );
   const auxdataPositions: CompiledContractArtifactsCborAuxdata = {};
 
-  for (const diff of diffPositions) {
+  for (const offsetOfDiffInByteocde of diffPositionsBytecodes) {
     for (const auxdataDiffIndex in auxdataDiffs) {
       if (
         auxdataPositions[auxdataDiffIndex] === undefined &&
         substringExistsAt(
           originalBytecode,
           auxdataDiffs[auxdataDiffIndex],
-          diff
+          offsetOfDiffInByteocde
         )
       ) {
         auxdataPositions[auxdataDiffIndex] = {
-          offset: diff,
+          offset:
+            offsetOfDiffInByteocde - auxdataDiffs[auxdataDiffIndex].offsetStart,
           value: auxdataDiffs[auxdataDiffIndex].real,
         };
       }
