@@ -1171,6 +1171,24 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
+  // Q Mainnet
+  verifyContract(
+    "0xc8AeB7206D1AD1DD5fC202945401303b3A7b72e0",
+    "35441",
+    "Q Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  // Q Testnet
+  verifyContract(
+    "0xc8AeB7206D1AD1DD5fC202945401303b3A7b72e0",
+    "35443",
+    "Q Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainIds.length) {
