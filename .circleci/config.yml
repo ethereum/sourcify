@@ -39,9 +39,10 @@ workflows:
           mapping: |
             services/ipfs/.* run-build-ipfs true
             services/s3sync/.* run-build-s3 true
+            services/monitor/.* run-build-monitor true
             h5ai-nginx run-build-repository true 
             src/.* run-build-server true
-            packages/.* run-build-server true
+            packages/.* run-build-packages true
             environments/.* run-build-server true
             scripts/.* run-build-server true
             package.json run-build-server true

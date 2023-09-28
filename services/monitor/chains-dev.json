@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Ethereum Testnet Sepolia",
+    "title": "Ethereum Testnet Sepolia",
+    "chainId": 11155111,
+    "rpc": ["https://rpc2.sepolia.org"]
+  },
+  {
+    "name": "Localhost 8545",
+    "title": "Localhost 8545",
+    "chainId": 1337,
+    "rpc": ["http://localhost:8545"]
+  }
+]

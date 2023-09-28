@@ -19,6 +19,12 @@ parameters:
   run-build-server:
     type: boolean
     default: false
+  run-build-monitor:
+    type: boolean
+    default: false
+  run-build-packages:
+    type: boolean
+    default: false
   run-tests:
     type: boolean
     default: false
@@ -34,12 +40,18 @@ aliases:
       run-build:
         type: boolean
         default: false
+      run-build-2:
+        type: boolean
+        default: false
       SERVICE:
         type: string
         default: ""
     steps:
       - when:
-          condition: << parameters.run-build >>
+          condition: 
+            or: 
+              - << parameters.run-build >>
+              - << parameters.run-build-2 >>
           steps:
             - checkout
             - run:
@@ -109,6 +121,8 @@ workflows:
               << pipeline.parameters.run-build-repository >>,
               << pipeline.parameters.run-build-s3 >>,
               << pipeline.parameters.run-build-server >>,
+              << pipeline.parameters.run-build-monitor >>,
+              << pipeline.parameters.run-build-packages >>,
               << pipeline.parameters.run-build-ui >>,
               << pipeline.parameters.run-tests >>,
             ]
@@ -124,15 +138,16 @@ workflows:
       - build-push-ipfs:
           run-build: << pipeline.parameters.run-build-ipfs >>
           SERVICE: "ipfs"
-      # Always build monitor if there's a change in the server
       - build-push-monitor:
-          run-build: << pipeline.parameters.run-build-server >>
+          run-build: << pipeline.parameters.run-build-monitor >>
+          run-build-2: << pipeline.parameters.run-build-packages >> # monitor depends on packages
       - build-push-repository:
           run-build: << pipeline.parameters.run-build-repository >>
       - build-push-s3:
           run-build: << pipeline.parameters.run-build-s3 >>
       - build-push-server:
           run-build: << pipeline.parameters.run-build-server >>
+          run-build-2: << pipeline.parameters.run-build-packages >> # server depends on packages
       - build-push-ui:
           run-build: << pipeline.parameters.run-build-ui >>
       - deploy:

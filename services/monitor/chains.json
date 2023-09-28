@@ -1,0 +1,117 @@
+[
+  {
+    "name": "Ethereum Mainnet",
+    "chainId": 1,
+    "rpc": [
+      "https://rpc.mainnet.ethpandaops.io",
+      "https://eth-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"
+    ],
+    "etherscanAPI": "https://api.etherscan.io"
+  },
+  {
+    "name": "Ethereum Testnet Goerli",
+    "title": "Ethereum Testnet Goerli",
+    "chainId": 5,
+    "rpc": [
+      "https://rpc.goerli.ethpandaops.io",
+      "https://eth-goerli.g.alchemy.com/v2/{ALCHEMY_API_KEY}"
+    ],
+    "etherscanAPI": "https://api-goerli.etherscan.io"
+  },
+  {
+    "name": "Ethereum Testnet Sepolia",
+    "title": "Ethereum Testnet Sepolia",
+    "chainId": 11155111,
+    "rpc": [
+      "https://rpc.sepolia.ethpandaops.io",
+      "https://eth-sepolia.g.alchemy.com/v2/{ALCHEMY_API_KEY}"
+    ],
+    "etherscanAPI": "https://api-sepolia.etherscan.io"
+  },
+  {
+    "name": "Arbitrum Goerli",
+    "title": "Arbitrum Goerli Rollup Testnet",
+    "chainId": 421613,
+    "rpc": ["https://arb-goerli.g.alchemy.com/v2/{ALCHEMY_API_KEY}"],
+    "etherscanAPI": "https://api-goerli.arbiscan.io"
+  },
+  {
+    "name": "Arbitrum One",
+    "chainId": 42161,
+    "rpc": ["https://arb-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"],
+    "etherscanAPI": "https://api.arbiscan.io"
+  },
+  {
+    "name": "Base Goerli Testnet",
+    "chainId": 84531,
+    "rpc": [
+      "https://goerli.base.org",
+      "https://base-goerli.gateway.tenderly.co",
+      "wss://base-goerli.gateway.tenderly.co",
+      "https://base-goerli.publicnode.com"
+    ],
+    "etherscanAPI": "https://api-goerli.basescan.org/"
+  },
+  {
+    "name": "Ganache Localhost",
+    "chainId": 1337,
+    "rpc": ["http://localhost:8545"]
+  },
+  {
+    "name": "Gnosis",
+    "chainId": 100,
+    "rpc": [
+      "https://rpc.gnosischain.com",
+      "https://rpc.gnosis.gateway.fm",
+      "https://rpc.ankr.com/gnosis",
+      "https://gnosischain-rpc.gateway.pokt.network",
+      "https://gnosis-mainnet.public.blastapi.io",
+      "https://gnosis.api.onfinality.io/public",
+      "https://gnosis.blockpi.network/v1/rpc/public",
+      "https://web3endpoints.com/gnosischain-mainnet",
+      "https://gnosis.oat.farm",
+      "wss://rpc.gnosischain.com/wss"
+    ],
+    "etherscanAPI": "https://api.gnosisscan.io"
+  },
+  {
+    "name": "Hardhat Network Localhost",
+    "chainId": 31337,
+    "rpc": ["http://localhost:8545"]
+  },
+  {
+    "name": "Meter Mainnet",
+    "chainId": 82,
+    "rpc": ["https://rpc.meter.io"]
+  },
+  {
+    "name": "Meter Testnet",
+    "chainId": 83,
+    "rpc": ["https://rpctest.meter.io"]
+  },
+  {
+    "name": "Mumbai",
+    "title": "Polygon Testnet Mumbai",
+    "chainId": 80001,
+    "rpc": ["https://polygon-mumbai.g.alchemy.com/v2/{ALCHEMY_API_KEY}"],
+    "etherscanAPI": "https://api-testnet.polygonscan.com"
+  },
+  {
+    "name": "OP Mainnet",
+    "chainId": 10,
+    "rpc": ["https://opt-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"],
+    "etherscanAPI": "https://api-optimistic.etherscan.io"
+  },
+  {
+    "name": "Optimism Goerli Testnet",
+    "chainId": 420,
+    "rpc": ["https://opt-goerli.g.alchemy.com/v2/{ALCHEMY_API_KEY}"],
+    "etherscanAPI": "https://api-goerli-optimism.etherscan.io"
+  },
+  {
+    "name": "Polygon Mainnet",
+    "chainId": 137,
+    "rpc": ["https://polygon-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"],
+    "etherscanAPI": "https://api.polygonscan.com"
+  }
+]

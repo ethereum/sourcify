@@ -244,15 +244,15 @@ export class Server {
     );
     this.app.get("/chains", (_req, res) => {
       const sourcifyChains = sourcifyChainsArray.map(
-        ({ rpc, name, title, chainId, supported, monitored }) => {
+        ({ rpc, name, title, chainId, supported }) => {
           // Don't publish providers
           // Don't show Alchemy & Infura IDs
           rpc = rpc.map((url) => {
             if (typeof url === "string") {
               if (url.includes("alchemy"))
-                return url.replace(/\/[^/]*$/, "/{ALCHEMY_ID}");
+                return url.replace(/\/[^/]*$/, "/{ALCHEMY_API_KEY}");
               else if (url.includes("infura"))
-                return url.replace(/\/[^/]*$/, "/{INFURA_ID}");
+                return url.replace(/\/[^/]*$/, "/{INFURA_API_KEY}");
               else return url;
             } else {
               // FetchRequest
@@ -265,7 +265,6 @@ export class Server {
             chainId,
             rpc,
             supported,
-            monitored,
             etherscanAPI: etherscanAPIs[chainId]?.apiURL, // Needed in the UI
           };
         }
