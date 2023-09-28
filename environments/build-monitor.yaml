@@ -4,4 +4,4 @@ services:
     image: ethereum/source-verify:monitor-${TAG}
     build:
       context: ../
-      dockerfile: src/Dockerfile.monitor
+      dockerfile: services/monitor/Dockerfile

@@ -28,6 +28,8 @@ First you need to provide which chains to monitor in a json file.
 ]
 ```
 
+Infura and Alchemy keys must be formatted as above in `{}`
+
 See [chains.json](./chains.json) for a full example and to see which chains we monitor ourselves. You can also use the [chainid.network/chains.json](https://chainid.network/chains.json) to find chains.
 
 ### Monitor Config
@@ -81,7 +83,7 @@ By default you can pass the following environment variables in `.env.template` f
 
 ```bash
 # If your RPCs are Alchemy or Infura
-# In the rpc url it must be {INFURA_API_KEY} or {ALCHEMY_API_KEY}
+# In the rpc url it must have {INFURA_API_KEY} or {ALCHEMY_API_KEY}
 ALCHEMY_API_KEY=
 INFURA_API_KEY=
 
