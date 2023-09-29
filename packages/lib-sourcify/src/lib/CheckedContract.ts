@@ -711,16 +711,21 @@ function substringExistsAt(
   return extracted === real;
 }
 
-function getAuxdatasDiff(knownAuxdatas: string[], editedAuxdatas: string[]) {
+function getAuxdatasDiff(originalAuxdatas: string[], editedAuxdatas: string[]) {
   let auxdatasDiffs = [];
-  for (let i = 0; i < knownAuxdatas.length; i++) {
-    const diffPositions = getDiffPositions(knownAuxdatas[i], editedAuxdatas[i]);
+  for (let i = 0; i < originalAuxdatas.length; i++) {
+    const diffPositions = getDiffPositions(
+      originalAuxdatas[i],
+      editedAuxdatas[i]
+    );
     auxdatasDiffs.push({
       offsetStart: diffPositions[0],
       offsetEnd:
-        knownAuxdatas[i].length - diffPositions[diffPositions.length - 1] - 1,
-      real: knownAuxdatas[i],
-      diff: knownAuxdatas[i].substring(
+        originalAuxdatas[i].length -
+        diffPositions[diffPositions.length - 1] -
+        1,
+      real: originalAuxdatas[i],
+      diff: originalAuxdatas[i].substring(
         diffPositions[0],
         diffPositions[diffPositions.length - 1] + 1
       ),
