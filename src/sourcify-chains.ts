@@ -162,6 +162,14 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: generateEtherscanCreatorTxAPI("1"),
     rpc: buildAlchemyAndCustomRpcURLs("mainnet", "eth", true),
   },
+  "17000": {
+    // Ethereum Holesky
+    supported: true,
+    contractFetchAddress: generateEtherscanCreatorTxAPI("17000"),
+    // Temporary rpc until this is fixed: https://github.com/emeraldpay/dshackle/issues/262
+    // rpc: buildAlchemyAndCustomRpcURLs("holesky", "eth", true),
+    rpc: ["https://rpc.teku-geth-001.srv.holesky.ethpandaops.io"],
+  },
   "5": {
     // Ethereum Goerli Testnet
     supported: true,
