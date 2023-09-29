@@ -133,7 +133,7 @@ export default class SourcifyChain {
     );
   };
 
-  getTxRecipt = async (creatorTxHash: string) => {
+  getTxReceipt = async (creatorTxHash: string) => {
     // Try sequentially all providers
     for (const provider of this.providers) {
       try {
@@ -144,18 +144,18 @@ export default class SourcifyChain {
         ]);
         if (tx instanceof TransactionReceipt) {
           logInfo(
-            `Transaction's recipt ${creatorTxHash} fetched via ${provider.url} from chain ${this.chainId}`
+            `Transaction's receipt ${creatorTxHash} fetched via ${provider.url} from chain ${this.chainId}`
           );
           return tx;
         } else {
           throw new Error(
-            `Transaction's recipt ${creatorTxHash} not found on RPC ${provider.url} and chain ${this.chainId}`
+            `Transaction's receipt ${creatorTxHash} not found on RPC ${provider.url} and chain ${this.chainId}`
           );
         }
       } catch (err) {
         if (err instanceof Error) {
           logWarn(
-            `Can't fetch the transaction's recipt ${creatorTxHash} from RPC ${provider.url} and chain ${this.chainId}\n ${err}`
+            `Can't fetch the transaction's receipt ${creatorTxHash} from RPC ${provider.url} and chain ${this.chainId}\n ${err}`
           );
           continue;
         } else {
@@ -328,13 +328,13 @@ export default class SourcifyChain {
     address: string,
     transactionHash: string
   ): Promise<string> => {
-    const txRecipt = await this.getTxRecipt(transactionHash);
+    const txReceipt = await this.getTxReceipt(transactionHash);
     const tx = await this.getTx(transactionHash);
     let creationBytecode = '';
 
-    if (txRecipt.contractAddress !== null) {
+    if (txReceipt.contractAddress !== null) {
       // EOA created
-      if (txRecipt.contractAddress !== address) {
+      if (txReceipt.contractAddress !== address) {
         throw new CreatorTransactionMismatchError();
       }
       creationBytecode = tx.data;
