@@ -35,7 +35,7 @@ parameters:
 aliases:
   - &build-base
     docker:
-      - image: cimg/base:2021.04
+      - image: cimg/base:2023.09
     parameters:
       run-build:
         type: boolean

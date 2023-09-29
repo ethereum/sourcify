@@ -1,4 +1,4 @@
-# Needs to be run from the project root context
+# Needs to be run from the project root context.
 FROM node:18
 WORKDIR /home/app
 
