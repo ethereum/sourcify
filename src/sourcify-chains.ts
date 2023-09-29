@@ -947,7 +947,6 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "10243": {
     // Arthera Testnet
     supported: true,
-    monitored: false,
     contractFetchAddress:
       "https://explorer-test.arthera.net/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
@@ -955,20 +954,17 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "1116": {
     // Core Blockchain Mainnet
     supported: true,
-    monitored: false,
     contractFetchAddress: generateEtherscanCreatorTxAPI("1116"),
   },
   "35441": {
     // Q Mainnet
     supported: true,
-    monitored: false,
     contractFetchAddress: "https://explorer.q.org/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
   "35443": {
     // Q Testnet
     supported: true,
-    monitored: false,
     contractFetchAddress: "https://explorer.qtestnet.org/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
