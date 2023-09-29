@@ -694,7 +694,7 @@ function getDiffPositions(original: string, modified: string): number[] {
 }
 
 // Checks if a substring exists in the bytecode at a given position
-function substringExistsAt(
+function bytecodeIncludesAuxdataDiffAt(
   bytecode: string,
   {
     real,
@@ -752,7 +752,7 @@ function findAuxdataPositions(
     for (const auxdataDiffIndex in auxdataDiffs) {
       if (
         auxdataPositions[auxdataDiffIndex] === undefined &&
-        substringExistsAt(
+        bytecodeIncludesAuxdataDiffAt(
           originalBytecode,
           auxdataDiffs[auxdataDiffIndex],
           offsetOfDiffInByteocde
