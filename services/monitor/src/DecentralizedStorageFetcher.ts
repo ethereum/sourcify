@@ -127,7 +127,9 @@ export default class DecentralizedStorageFetcher extends EventEmitter {
         } else {
           // Something's wront with the GW. Use fallback
           logger.error(
-            `Error fetching ${fileHash.hash} from ${gatewayFetcher.url} \n ${err}`
+            `Error fetching ${fileHash.hash} from ${
+              gatewayFetcher.url
+            } \n Error: ${err.toString()}`
           );
         }
       }
