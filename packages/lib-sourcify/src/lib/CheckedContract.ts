@@ -266,38 +266,6 @@ export class CheckedContract {
     );
   }
 
-  public async getCborAuxdataInBytecode(
-    bytecodeType: 'creation' | 'runtime',
-    originalBytecode: string,
-    compilerOutputEditedContract: CompilerOutput,
-    originalAuxdatasList: string[]
-  ): Promise<CompiledContractArtifactsCborAuxdata> {
-    const contract =
-      compilerOutputEditedContract?.contracts[this.compiledPath][this.name];
-
-    let editedBytecode = '';
-    switch (bytecodeType) {
-      case 'creation': {
-        editedBytecode = `0x${contract?.evm.bytecode.object}`;
-        break;
-      }
-      case 'runtime': {
-        editedBytecode = `0x${contract?.evm?.deployedBytecode?.object}`;
-      }
-    }
-
-    const editedAuxdatasList = findAuxdatasInLegacyAssembly(
-      contract.evm.legacyAssembly
-    );
-
-    return findAuxdataPositions(
-      originalBytecode,
-      editedBytecode,
-      originalAuxdatasList,
-      editedAuxdatasList
-    );
-  }
-
   public async generateArtifacts(forceEmscripten = false) {
     if (
       this.creationBytecode === undefined ||
@@ -310,29 +278,35 @@ export class CheckedContract {
       return false;
     }
 
-    const originalAuxdatasList = findAuxdatasInLegacyAssembly(
-      this.compilerOutput.contracts[this.compiledPath][this.name].evm
-        .legacyAssembly
-    );
-
     const editedContractCompilerOutput = await this.generateEditedContract({
       version: this.metadata.compiler.version,
       solcJsonInput: this.solcJsonInput,
       forceEmscripten,
     });
+    const editedContract =
+      editedContractCompilerOutput?.contracts[this.compiledPath][this.name];
+
+    const originalAuxdatasList = findAuxdatasInLegacyAssembly(
+      this.compilerOutput.contracts[this.compiledPath][this.name].evm
+        .legacyAssembly
+    );
+
+    const editedAuxdatasList = findAuxdatasInLegacyAssembly(
+      editedContract.evm.legacyAssembly
+    );
 
     this.artifacts = {
-      creationBytecodeCborAuxdata: await this.getCborAuxdataInBytecode(
-        'creation',
+      creationBytecodeCborAuxdata: findAuxdataPositions(
         this.creationBytecode,
-        editedContractCompilerOutput,
-        originalAuxdatasList
+        `0x${editedContract?.evm.bytecode.object}`,
+        originalAuxdatasList,
+        editedAuxdatasList
       ),
-      runtimeBytecodeCborAuxdata: await this.getCborAuxdataInBytecode(
-        'runtime',
+      runtimeBytecodeCborAuxdata: findAuxdataPositions(
         this.runtimeBytecode,
-        editedContractCompilerOutput,
-        originalAuxdatasList
+        `0x${editedContract?.evm?.deployedBytecode?.object}`,
+        originalAuxdatasList,
+        editedAuxdatasList
       ),
     };
 
