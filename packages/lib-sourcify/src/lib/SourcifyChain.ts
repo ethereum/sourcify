@@ -186,7 +186,9 @@ export default class SourcifyChain {
             `Block ${blockNumber} fetched from ${provider.url} on chain ${this.chainId}`
           );
         } else {
-          logInfo(`Block ${blockNumber} not published yet`);
+          logInfo(
+            `Block ${blockNumber} not published yet on ${this.chainId} from ${provider.url}`
+          );
         }
         return block;
       } catch (err: any) {
