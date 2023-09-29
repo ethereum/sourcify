@@ -646,8 +646,6 @@ function reorderAlphabetically(obj: any): any {
   return ordered;
 }
 
-type Bytecode = string;
-
 function getAuxdataInLegacyAssemblyBranch(
   legacyAssemblyBranch: any,
   auxdatas: string[]
@@ -682,7 +680,7 @@ function findAuxdatasInLegacyAssembly(legacyAssembly: any) {
 }
 
 // Given two bytecodes, this function returns an array of differing positions
-function getDiffPositions(original: Bytecode, modified: Bytecode): number[] {
+function getDiffPositions(original: string, modified: string): number[] {
   const differences: number[] = [];
   const minLength = Math.min(original.length, modified.length);
 
@@ -697,7 +695,7 @@ function getDiffPositions(original: Bytecode, modified: Bytecode): number[] {
 
 // Checks if a substring exists in the bytecode at a given position
 function substringExistsAt(
-  bytecode: Bytecode,
+  bytecode: string,
   {
     real,
     diff,
@@ -713,10 +711,7 @@ function substringExistsAt(
   return extracted === real;
 }
 
-function getAuxdatasDiff(
-  knownAuxdatas: Bytecode[],
-  editedAuxdatas: Bytecode[]
-) {
+function getAuxdatasDiff(knownAuxdatas: string[], editedAuxdatas: string[]) {
   let auxdatasDiffs = [];
   for (let i = 0; i < knownAuxdatas.length; i++) {
     const diffPositions = getDiffPositions(knownAuxdatas[i], editedAuxdatas[i]);
@@ -735,10 +730,10 @@ function getAuxdatasDiff(
 }
 
 function findAuxdataPositions(
-  originalBytecode: Bytecode,
-  editedBytecode: Bytecode,
-  originalAuxdatas: Bytecode[],
-  editedAuxdatas: Bytecode[]
+  originalBytecode: string,
+  editedBytecode: string,
+  originalAuxdatas: string[],
+  editedAuxdatas: string[]
 ): CompiledContractArtifactsCborAuxdata {
   const auxdataDiffs = getAuxdatasDiff(originalAuxdatas, editedAuxdatas);
 
