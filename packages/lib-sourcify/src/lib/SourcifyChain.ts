@@ -7,7 +7,7 @@ import {
   getAddress,
 } from 'ethers';
 import { Chain, SourcifyChainExtension } from './types';
-import { logInfo, logWarn } from './logger';
+import { logError, logInfo, logWarn } from './logger';
 
 const RPC_TIMEOUT = process.env.RPC_TIMEOUT
   ? parseInt(process.env.RPC_TIMEOUT)
@@ -34,7 +34,6 @@ export default class SourcifyChain {
   chainId: number;
   rpc: Array<string | FetchRequest>;
   supported: boolean;
-  monitored: boolean;
   contractFetchAddress?: string | undefined;
   graphQLFetchAddress?: string | undefined;
   txRegex?: string[] | undefined;
@@ -46,7 +45,6 @@ export default class SourcifyChain {
     this.chainId = sourcifyChainObj.chainId;
     this.rpc = sourcifyChainObj.rpc;
     this.supported = sourcifyChainObj.supported;
-    this.monitored = sourcifyChainObj.monitored;
     this.contractFetchAddress = sourcifyChainObj.contractFetchAddress;
     this.graphQLFetchAddress = sourcifyChainObj.graphQLFetchAddress;
     this.txRegex = sourcifyChainObj.txRegex;
@@ -242,7 +240,7 @@ export default class SourcifyChain {
       } catch (err) {
         if (err instanceof Error) {
           logWarn(
-            `Can't fetch bytecode from RPC ${provider.url} and chain ${this.chainId}`
+            `Can't fetch ${address}'s bytecode from RPC ${provider.url} and chain ${this.chainId}`
           );
           continue;
         } else {
@@ -267,14 +265,13 @@ export default class SourcifyChain {
           provider.getBlock(blockNumber, preFetchTxs),
           this.rejectInMs(RPC_TIMEOUT, provider.url),
         ]);
-        logInfo(
-          'Block fetched from ' +
-            provider.url +
-            ' for ' +
-            blockNumber +
-            ' on chain ' +
-            this.chainId
-        );
+        if (block) {
+          logInfo(
+            `Block ${blockNumber} fetched from ${provider.url} on chain ${this.chainId}`
+          );
+        } else {
+          logInfo(`Block ${blockNumber} not published yet`);
+        }
         return block;
       } catch (err: any) {
         logWarn(
@@ -283,6 +280,9 @@ export default class SourcifyChain {
         continue;
       }
     }
+    logError(
+      `None of the RPCs responded fetching block ${blockNumber} on chain ${this.chainId}`
+    );
     throw new Error(
       'None of the RPCs responded fetching block ' +
         blockNumber +

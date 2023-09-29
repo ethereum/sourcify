@@ -60,11 +60,15 @@
       "type": "node",
       "request": "launch",
       "name": "Monitor",
-      "program": "${workspaceFolder}/dist/monitor/monitor.js",
-      "envFile": "${workspaceFolder}/environments/.env",
-      "preLaunchTask": "npm: build:lerna",
+      "cwd": "${workspaceFolder}/services/monitor",
+      "program": "dist/index.js",
+      "args": [
+        "--chainsPath=chains-dev.json",
+      ],
+      "envFile": ".env",
+      "preLaunchTask": "npm: build",
       "outFiles": [
-        "${workspaceFolder}/dist/**/*.js",
+        "${workspaceFolder}/services/monitor/dist/**/*.js",
         "${workspaceFolder}/packages/**/build/**/*.js"
       ],
       "smartStep": true,
@@ -75,10 +79,14 @@
       "type": "node",
       "request": "launch",
       "name": "Monitor - without build",
-      "program": "${workspaceFolder}/dist/monitor/monitor.js",
-      "envFile": "${workspaceFolder}/environments/.env",
+      "cwd": "${workspaceFolder}/services/monitor",
+      "program": "dist/index.js",
+      "args": [
+        "--chainsPath=chains-dev.json",
+      ],
+      "envFile": ".env",
       "outFiles": [
-        "${workspaceFolder}/dist/**/*.js",
+        "${workspaceFolder}/services/monitor/dist/**/*.js",
         "${workspaceFolder}/packages/**/build/**/*.js"
       ],
       "smartStep": true,

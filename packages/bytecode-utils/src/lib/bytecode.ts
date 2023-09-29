@@ -8,9 +8,14 @@ type CBOR = {
 };
 
 // eslint-disable-next-line functional/no-mixed-type
-type DecodedObject = {
+export type DecodedObject = {
+  // Known CBOR fields that are defined in the spec
   ipfs?: string;
   solcVersion?: string;
+  experimental?: boolean;
+  bzzr0?: string;
+  bzzr1?: string;
+  // Any other CBOR field that is not explicitly defined above. This is a catch-all for future extensions.
   [key: string]: string | Uint8Array | undefined | boolean;
 };
 

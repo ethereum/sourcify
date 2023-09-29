@@ -47,7 +47,6 @@ const ganacheChain = {
     decimals: 18,
   },
   rpc: [`http://localhost:${GANACHE_PORT}`],
-  monitored: false,
   supported: true,
 };
 const sourcifyChainGanache: SourcifyChain = new SourcifyChain(ganacheChain);

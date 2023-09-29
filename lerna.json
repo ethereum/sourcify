@@ -12,6 +12,6 @@
       "allowBranch": "staging"
     }
   },
-  "packages": [".", "ui", "packages/*"],
+  "packages": [".", "ui", "services/*", "packages/*"],
   "version": "independent"
 }

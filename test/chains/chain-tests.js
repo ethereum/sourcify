@@ -107,6 +107,14 @@ describe("Test Supported Chains", function () {
   );
 
   verifyContract(
+    "0x7ecedB5ca848e695ee8aB33cce9Ad1E1fe7865F8",
+    "17000",
+    "Holesky",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  verifyContract(
     "0x8F78b9c92a68DdF719849a40702cFBfa4EB60dD0",
     "11155111",
     "Sepolia",
@@ -547,7 +555,20 @@ describe("Test Supported Chains", function () {
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
-
+  verifyContract(
+    "0xA3b8eB7A6C4EE5902Ef66d455da98973B55B9f8a",
+    "9996",
+    "Mind Smart Chain Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContract(
+    "0x6720b7a5974373C3F6bdE96c09bA4ffdddEEAeD7",
+    "9977",
+    "Mind Smart Chain Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
   // Energy Web Volta Testnet
   verifyContract(
     "0x4667b7ce62e56B71146885555c68d2DDdf63349A",
@@ -1123,6 +1144,57 @@ describe("Test Supported Chains", function () {
     "Amplify Subnet",
     [],
     "78430/multicall3.metadata.json"
+  );
+
+  // Shrapnel Subnet Testnet
+  verifyContract(
+    "0x8Bb9d0Dd48B7a54B248D2d386AfF253DA7856479",
+    "2038",
+    "Shrapnel Testnet",
+    [],
+    "2038/multicall3.metadata.json"
+  );
+
+  // Shrapnel Subnet
+  verifyContract(
+    "0xb9D27a0D61392566b92E08937a6C6E798F197ADF",
+    "2044",
+    "Shrapnel Subnet",
+    [],
+    "2044/multicall3.metadata.json"
+  );
+  verifyContract(
+    "0xD5bB0035a178d56Abd23a39fB3666031084b2cb5",
+    "1116",
+    "Core Blockchain Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  verifyContract(
+    "0xa456Ad3DEe140dcC91655ff45ef3103C460201D0",
+    "10243",
+    "Arthera Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  // Q Mainnet
+  verifyContract(
+    "0xc8AeB7206D1AD1DD5fC202945401303b3A7b72e0",
+    "35441",
+    "Q Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  // Q Testnet
+  verifyContract(
+    "0xc8AeB7206D1AD1DD5fC202945401303b3A7b72e0",
+    "35443",
+    "Q Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
   );
 
   // Finally check if all the "supported: true" chains have been tested

@@ -30,13 +30,15 @@ export interface MissingSources {
   };
 }
 
-export interface MetadataSources {
-  [index: string]: {
-    keccak256: string;
-    content?: string;
-    urls?: string[];
-    license?: string;
-  };
+export interface MetadataSource {
+  keccak256: string;
+  content?: string;
+  urls?: string[];
+  license?: string;
+}
+
+export interface MetadataSourceMap {
+  [index: string]: MetadataSource;
 }
 
 export interface Devdoc {
@@ -135,7 +137,7 @@ export interface Metadata {
     viaIR?: boolean;
     outputSelection?: any;
   };
-  sources: MetadataSources;
+  sources: MetadataSourceMap;
   version: number;
 }
 
@@ -242,7 +244,6 @@ export interface Create2Args {
 
 export type SourcifyChainExtension = {
   supported: boolean;
-  monitored: boolean;
   contractFetchAddress?: string;
   graphQLFetchAddress?: string;
   txRegex?: string[];
@@ -254,10 +255,10 @@ export type Chain = {
   name: string;
   title?: string;
   chainId: number;
-  shortName: string;
+  shortName?: string;
   network?: string;
-  networkId: number;
-  nativeCurrency: Currency;
+  networkId?: number;
+  nativeCurrency?: Currency;
   rpc: Array<string>;
   faucets?: string[];
   infoURL?: string;
