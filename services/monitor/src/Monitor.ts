@@ -30,7 +30,7 @@ export default class Monitor extends EventEmitter {
 
     logger.info("Passed config: " + JSON.stringify(passedConfig, null, 2));
 
-    this.config = deepMerge(defaultConfig, passedConfig);
+    this.config = deepMerge(defaultConfig, passedConfig || {});
 
     logger.info(
       "Starting the monitor using the effective config: " +
