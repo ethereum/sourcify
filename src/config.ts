@@ -61,6 +61,10 @@ export const etherscanAPIs: EtherscanAPIs = {
     apiURL: "https://api.etherscan.io",
     apiKey: process.env.ETHERSCAN_API_KEY,
   },
+  "17000": {
+    apiURL: "https://api-holesky.etherscan.io",
+    apiKey: process.env.ETHERSCAN_API_KEY,
+  },
   "5": {
     apiURL: "https://api-goerli.etherscan.io",
     apiKey: process.env.ETHERSCAN_API_KEY,
