@@ -1,9 +1,13 @@
 import { FileHash } from "./util";
 import logger from "./logger";
-import { DecentralizedStorageOrigin } from "./types";
+import {
+  DecentralizedStorageConfig,
+  DecentralizedStorageOrigin,
+} from "./types";
 import assert from "assert";
 import { EventEmitter } from "stream";
 import { GatewayFetcher } from "./GatewayFetcher";
+import defaultConfig from "./defaultConfig";
 
 /**
  * Fetcher for a certain type of Decentralized Storage (e.g. IPFS)
@@ -22,26 +26,26 @@ export default class DecentralizedStorageFetcher extends EventEmitter {
   // A file can be requested by multiple contracts. This counter keeps track of the number of subscribers, i.e. contracts that want to receive a file. Used for logging.
   private subcriberCounter = 0;
 
-  constructor(origin: DecentralizedStorageOrigin, gateways: string[]) {
+  constructor(
+    origin: DecentralizedStorageOrigin,
+    decentralizedStorageConfig: DecentralizedStorageConfig
+  ) {
     super();
     this.origin = origin;
-    const fetchTimeout = parseInt(
-      process.env[`${origin.toUpperCase()}_GATEWAY_TIMEOUT`] || "30000"
-    );
-    const fetchInterval = parseInt(
-      process.env[`${origin.toUpperCase()}_GATEWAY_INTERVAL`] || "5000"
-    );
-    const fetchRetries = parseInt(
-      process.env[`${origin.toUpperCase()}_GATEWAY_RETRIES`] || "3"
-    );
 
-    this.gatewayFetchers = gateways.map(
+    this.gatewayFetchers = decentralizedStorageConfig.gateways.map(
       (gatewayURL) =>
         new GatewayFetcher({
           url: gatewayURL,
-          fetchTimeout,
-          fetchInterval,
-          fetchRetries,
+          fetchTimeout:
+            decentralizedStorageConfig.timeout ||
+            defaultConfig.decentralizedStorages.ipfs.timeout,
+          fetchInterval:
+            decentralizedStorageConfig.interval ||
+            defaultConfig.decentralizedStorages.ipfs.interval,
+          fetchRetries:
+            decentralizedStorageConfig.retries ||
+            defaultConfig.decentralizedStorages.ipfs.retries,
         })
     );
   }

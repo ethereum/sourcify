@@ -34,7 +34,9 @@ See [chains.json](./chains.json) for a full example and to see which chains we m
 
 ### Monitor Config
 
-Optionally you can pass a monitor config in a `config.json` file. If you don't, the [default config](src/Monitor.ts) will be used. The structure of the file is as such:
+Optionally you can pass a monitor config in a `config.json` file. If you don't, the [default config](src/defaultConfig.js) will be used. If you leave any field blank, it will be filled with the default config.
+
+The structure of the file is as such:
 
 ```js
   decentralizedStorages: {
@@ -44,7 +46,7 @@ Optionally you can pass a monitor config in a `config.json` file. If you don't, 
       // Time when the request to the gateway will timeout i.e. canceled in ms
       timeout: 30000,
       // Time between each request to the gateway in ms
-      interval: 1000,
+      interval: 5000,
       // Number of retries before giving up
       retries: 5,
     },
@@ -102,7 +104,7 @@ You need to pass the `chains.json` and `config.json` files to the container. You
 docker run \
   -v /path/to/chains.json:/home/app/services/monitor/chains.json \
   -v /path/to/config.json:/home/app/services/monitor/config.json \
-  ## TODO: Add the name of the image here
+  ethereum/sourcify-monitor
 ```
 
 ## Development

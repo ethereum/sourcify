@@ -7,30 +7,9 @@ import { ChainMonitor } from "./ChainMonitor";
 import { KnownDecentralizedStorageFetchers, MonitorConfig } from "./types";
 import dotenv from "dotenv";
 import { FetchRequest } from "ethers";
+import defaultConfig from "./defaultConfig";
 
 dotenv.config();
-
-const defaultConfig = {
-  decentralizedStorages: {
-    ipfs: {
-      enabled: true,
-      gateways: ["https://ipfs.io/ipfs/"],
-      timeout: 30000,
-      interval: 1000,
-      retries: 5,
-    },
-  },
-  sourcifyServerURLs: ["https://sourcify.dev/server/"],
-  defaultChainConfig: {
-    startBlock: undefined,
-    blockInterval: 10000,
-    blockIntervalFactor: 1.1,
-    blockIntervalUpperLimit: 300000,
-    blockIntervalLowerLimit: 100,
-    bytecodeInterval: 5000,
-    bytecodeNumberOfTries: 5,
-  },
-};
 
 export default class Monitor extends EventEmitter {
   private chainMonitors: ChainMonitor[];
@@ -51,10 +30,7 @@ export default class Monitor extends EventEmitter {
 
     logger.info("Passed config: " + JSON.stringify(passedConfig, null, 2));
 
-    this.config = {
-      ...defaultConfig,
-      ...(passedConfig || {}),
-    };
+    this.config = deepMerge(defaultConfig, passedConfig);
 
     logger.info(
       "Starting the monitor using the effective config: " +
@@ -68,7 +44,7 @@ export default class Monitor extends EventEmitter {
       );
       this.sourceFetchers.ipfs = new DecentralizedStorageFetcher(
         "ipfs",
-        this.config.decentralizedStorages.ipfs.gateways
+        this.config.decentralizedStorages.ipfs
       );
     }
 
@@ -167,4 +143,16 @@ function authenticateRpcs(rpcs: string[]) {
     }
     return rpcUrl;
   });
+}
+
+function deepMerge(obj1: any, obj2: any): any {
+  const output = { ...obj1 };
+  for (const [key, value] of Object.entries(obj2)) {
+    if (value === Object(value) && !Array.isArray(value)) {
+      output[key] = deepMerge(obj1[key], value);
+    } else {
+      output[key] = value;
+    }
+  }
+  return output;
 }
