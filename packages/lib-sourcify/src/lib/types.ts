@@ -163,7 +163,12 @@ export interface RecompilationResult {
 
 export type Transformation = {
   type: 'insert' | 'replace';
-  reason: 'constructor' | 'library' | 'immutable' | 'auxdata';
+  reason:
+    | 'constructor'
+    | 'library'
+    | 'immutable'
+    | 'auxdata'
+    | 'call-protection';
   offset: number;
   id?: string;
 };

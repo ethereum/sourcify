@@ -265,19 +265,20 @@ export function matchWithDeployedBytecode(
   // Updating the `match.deployedRuntimeBytecode` here so we are sure to always update it
   match.deployedRuntimeBytecode = deployedRuntimeBytecode;
 
-  // Check if is a library with call protection
-  // See https://docs.soliditylang.org/en/v0.8.19/contracts.html#call-protection-for-libraries
-  recompiledRuntimeBytecode = checkCallProtectionAndReplaceAddress(
-    recompiledRuntimeBytecode,
-    deployedRuntimeBytecode
-  );
-
   if (match.runtimeTransformations === undefined) {
     match.runtimeTransformations = [];
   }
   if (match.runtimeValues === undefined) {
     match.runtimeValues = {};
   }
+
+  // Check if is a library with call protection
+  // See https://docs.soliditylang.org/en/v0.8.19/contracts.html#call-protection-for-libraries
+  recompiledRuntimeBytecode = checkCallProtectionAndReplaceAddress(
+    recompiledRuntimeBytecode,
+    deployedRuntimeBytecode,
+    match.runtimeTransformations
+  );
 
   // Replace the library placeholders in the recompiled bytecode with values from the deployed bytecode
   const { replaced, libraryMap } = addLibraryAddresses(
@@ -560,12 +561,18 @@ export function addLibraryAddresses(
 
 export function checkCallProtectionAndReplaceAddress(
   template: string,
-  real: string
+  real: string,
+  transformationsArray: Transformation[]
 ): string {
   const push20CodeOp = '73';
   const callProtection = `0x${push20CodeOp}${'00'.repeat(20)}`;
 
   if (template.startsWith(callProtection)) {
+    transformationsArray.push({
+      type: 'replace',
+      reason: 'call-protection',
+      offset: 0,
+    });
     const replacedCallProtection = real.slice(0, 0 + callProtection.length);
     return replacedCallProtection + template.substring(callProtection.length);
   }
