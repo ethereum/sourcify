@@ -104,8 +104,12 @@ You need to pass the `chains.json` and `config.json` files to the container. You
 docker run \
   -v /path/to/chains.json:/home/app/services/monitor/chains.json \
   -v /path/to/config.json:/home/app/services/monitor/config.json \
-  ethereum/sourcify-monitor
+  -e ALCHEMY_API_KEY=xxx \
+  -e INFURA_API_KEY=xxx \
+  ethereum/source-verify:monitor-stable
 ```
+
+The containers are at [Docker Hub](https://hub.docker.com/r/ethereum/source-verify/tags).
 
 ## Development
 
@@ -120,6 +124,13 @@ Clone the [Sourcify monorepo](https://github.com/ethereum/sourcify)
 ```bash
 git clone git@github.com:ethereum/sourcify.git
 cd sourcify
+```
+
+Add environment variables to `.env.template` and rename it to `.env`
+
+```bash
+ALCHEMY_API_KEY=
+INFURA_API_KEY=
 ```
 
 ```bash
