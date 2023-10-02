@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [@ethereum-sourcify/bytecode-utils@1.2.1] - 2023-10-03
+
+- Define `experimental`, `bzzr0`, and `bzzr1` fields explicitly in `DecodedObject`
+- Remove package-lock.json as it is managed by root package.json by lerna
+
 ## [@ethereum-sourcify/bytecode-utils@1.2.0] - 2023-09-04
 
 No changes this release. This marks the start of the changelog for this module.

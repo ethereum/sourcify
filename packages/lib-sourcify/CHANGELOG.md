@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [@ethereum-sourcify/lib-sourcify@1.4.0] - 2023-10-03
+
+- Bump `ethers` to `6.7.1`
+- Bump `solc` to `0.8.21`
+- Split `MetadataSources` type to `MetadataSourceMap` and `MetadataSource`
+- Remove package-lock.json as it is managed by root package.json by lerna
+
 ## [@ethereum-sourcify/lib-sourcify@1.3.2] - 2023-09-04
 
 - Use `https://binaries.soliditylang.org` instead of `https://github.com/ethereum/solc-bin/raw/gh-pages` for Solidity compiler binaries
