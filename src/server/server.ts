@@ -184,7 +184,7 @@ export class Server {
       next();
     });
 
-    if (
+    /* if (
       process.env.NODE_ENV === "production" &&
       (process.env.TAG === "latest" || process.env.TAG === "stable")
     ) {
@@ -208,7 +208,7 @@ export class Server {
       this.app.all("/session/verify/*", limiter);
       this.app.all("/verify*", limiter);
       this.app.all("/", limiter);
-    }
+    } */
 
     // Session API endpoints require non "*" origins because of the session cookies
     const sessionPaths = [
