@@ -133,7 +133,7 @@ export default class PendingContract {
 
     if (response.status === 200) {
       logger.info(
-        `Contract ${this.address} sent to Sourcify server ${sourcifyServerURL}`
+        `Contract ${this.address} on chain ${this.chainId} sent to Sourcify server ${sourcifyServerURL}`
       );
       return response.json();
     } else {

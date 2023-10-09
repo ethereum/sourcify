@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [sourcify-monitor@1.0.0] - 2023-10-03
+## [sourcify-monitor@1.0.0] - 2023-10-09
 
 No changes this release. This marks the start of the changelog for this module.
 
