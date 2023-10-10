@@ -1,0 +1,43 @@
+{
+  "name": "sourcify-monitor",
+  "version": "1.0.0",
+  "description": "A monitoring service to listen to chains and send detected new contracts to a Sourcify server",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prebuild": "node -p \"'export const LIB_VERSION = ' + JSON.stringify(require('./package.json').name + '@' + require('./package.json').version) + ';'\" > src/version.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "node dist/index.js --chainsPath=chains-dev.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ethereum/sourcify.git"
+  },
+  "keywords": [
+    "sourcify",
+    "ethereum",
+    "blockchain",
+    "smart-contracts"
+  ],
+  "author": "sourcify",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ethereum/sourcify/issues"
+  },
+  "homepage": "https://github.com/ethereum/sourcify#readme",
+  "dependencies": {
+    "@ethereum-sourcify/bytecode-utils": "^1.2.1",
+    "@ethereum-sourcify/lib-sourcify": "^1.4.0",
+    "commander": "^11.0.0",
+    "dotenv": "^16.3.1",
+    "ethers": "^6.7.1",
+    "node-fetch": "^2.6.6",
+    "winston": "^3.10.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.6.2",
+    "@types/node-fetch": "^2.6.5",
+    "typescript": "^5.2.2"
+  }
+}

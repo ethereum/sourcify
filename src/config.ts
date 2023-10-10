@@ -61,6 +61,10 @@ export const etherscanAPIs: EtherscanAPIs = {
     apiURL: "https://api.etherscan.io",
     apiKey: process.env.ETHERSCAN_API_KEY,
   },
+  "17000": {
+    apiURL: "https://api-holesky.etherscan.io",
+    apiKey: process.env.ETHERSCAN_API_KEY,
+  },
   "5": {
     apiURL: "https://api-goerli.etherscan.io",
     apiKey: process.env.ETHERSCAN_API_KEY,
@@ -130,10 +134,6 @@ export const etherscanAPIs: EtherscanAPIs = {
     apiURL: "https://api-moonbase.moonscan.io",
     apiKey: "",
   },
-  "288": {
-    apiURL: "https://api.bobascan.com",
-    apiKey: process.env.BOBASCAN_API_KEY,
-  },
   "100": {
     apiURL: "https://api.gnosisscan.io",
     apiKey: process.env.GNOSSISCAN_API_KEY,
@@ -150,5 +150,9 @@ export const etherscanAPIs: EtherscanAPIs = {
   "8453": {
     apiURL: "https://api.basescan.org/",
     apiKey: process.env.BASESCAN_API_KEY,
+  },
+  "1116": {
+    apiURL: "https://openapi.coredao.org/",
+    apiKey: process.env.COREDAO_API_KEY,
   },
 };

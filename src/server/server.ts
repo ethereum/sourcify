@@ -184,7 +184,7 @@ export class Server {
       next();
     });
 
-    if (
+    /* if (
       process.env.NODE_ENV === "production" &&
       (process.env.TAG === "latest" || process.env.TAG === "stable")
     ) {
@@ -208,7 +208,7 @@ export class Server {
       this.app.all("/session/verify/*", limiter);
       this.app.all("/verify*", limiter);
       this.app.all("/", limiter);
-    }
+    } */
 
     // Session API endpoints require non "*" origins because of the session cookies
     const sessionPaths = [
@@ -233,7 +233,7 @@ export class Server {
     });
 
     // Need this for secure cookies to work behind a proxy. See https://expressjs.com/en/guide/behind-proxies.html
-    // true means the leftmost IP in the X-Forwarded-* header is used.
+    // true means the leftmost IP in the X-Forwarded-* header is used
     // Assuming the client ip is 2.2.2.2, reverse proxy 192.168.1.5
     // for the case "X-Forwarded-For: 2.2.2.2, 192.168.1.5", we want 2.2.2.2 to be used
     this.app.set("trust proxy", true);
@@ -244,15 +244,15 @@ export class Server {
     );
     this.app.get("/chains", (_req, res) => {
       const sourcifyChains = sourcifyChainsArray.map(
-        ({ rpc, name, title, chainId, supported, monitored }) => {
+        ({ rpc, name, title, chainId, supported }) => {
           // Don't publish providers
           // Don't show Alchemy & Infura IDs
           rpc = rpc.map((url) => {
             if (typeof url === "string") {
               if (url.includes("alchemy"))
-                return url.replace(/\/[^/]*$/, "/{ALCHEMY_ID}");
+                return url.replace(/\/[^/]*$/, "/{ALCHEMY_API_KEY}");
               else if (url.includes("infura"))
-                return url.replace(/\/[^/]*$/, "/{INFURA_ID}");
+                return url.replace(/\/[^/]*$/, "/{INFURA_API_KEY}");
               else return url;
             } else {
               // FetchRequest
@@ -265,7 +265,6 @@ export class Server {
             chainId,
             rpc,
             supported,
-            monitored,
             etherscanAPI: etherscanAPIs[chainId]?.apiURL, // Needed in the UI
           };
         }

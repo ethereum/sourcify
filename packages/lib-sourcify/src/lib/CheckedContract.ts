@@ -4,7 +4,7 @@ import {
   InvalidSources,
   JsonInput,
   Metadata,
-  MetadataSources,
+  MetadataSourceMap,
   MissingSources,
   PathContent,
   RecompilationResult,
@@ -176,31 +176,34 @@ export class CheckedContract {
     // 2. take the hash of the modified metadata
     // 3. Check if this will match the hash in the bytecode
     for (const sources of Object.values(byVariation)) {
-      metadata.sources = sources.reduce((sources: MetadataSources, source) => {
-        if (metadata.sources[source.path]) {
-          sources[source.path] = metadata.sources[source.path];
-          sources[source.path].keccak256 = keccak256str(source.content);
-          if (sources[source.path].content) {
-            sources[source.path].content = source.content;
-          }
-          if (sources[source.path].urls) {
-            sources[source.path].urls = sources[source.path].urls?.map(
-              (url: string) => {
-                if (url.includes('dweb:/ipfs/')) {
-                  return `dweb:/ipfs/${ipfsHash(source.content)}`;
+      metadata.sources = sources.reduce(
+        (sources: MetadataSourceMap, source) => {
+          if (metadata.sources[source.path]) {
+            sources[source.path] = metadata.sources[source.path];
+            sources[source.path].keccak256 = keccak256str(source.content);
+            if (sources[source.path].content) {
+              sources[source.path].content = source.content;
+            }
+            if (sources[source.path].urls) {
+              sources[source.path].urls = sources[source.path].urls?.map(
+                (url: string) => {
+                  if (url.includes('dweb:/ipfs/')) {
+                    return `dweb:/ipfs/${ipfsHash(source.content)}`;
+                  }
+                  if (url.includes('bzz-raw://')) {
+                    // Here swarmBzzr1Hash is always used
+                    // https://github.com/ethereum/solidity/blob/eb2f874eac0aa871236bf5ff04b7937c49809c33/libsolidity/interface/CompilerStack.cpp#L1549
+                    return `bzz-raw://${swarmBzzr1Hash(source.content)}`;
+                  }
+                  return '';
                 }
-                if (url.includes('bzz-raw://')) {
-                  // Here swarmBzzr1Hash is always used
-                  // https://github.com/ethereum/solidity/blob/eb2f874eac0aa871236bf5ff04b7937c49809c33/libsolidity/interface/CompilerStack.cpp#L1549
-                  return `bzz-raw://${swarmBzzr1Hash(source.content)}`;
-                }
-                return '';
-              }
-            );
+              );
+            }
           }
-        }
-        return sources;
-      }, {});
+          return sources;
+        },
+        {}
+      );
 
       if (decodedAuxdata?.ipfs) {
         const compiledMetadataIpfsCID = ipfsHash(JSON.stringify(metadata));

@@ -113,7 +113,6 @@ export type Chain = {
   network: string;
   networkId: number;
   supported?: boolean;
-  monitored?: boolean;
   etherscanAPI?: string;
 };
 

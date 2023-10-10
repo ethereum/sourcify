@@ -19,6 +19,12 @@ parameters:
   run-build-server:
     type: boolean
     default: false
+  run-build-monitor:
+    type: boolean
+    default: false
+  run-build-packages:
+    type: boolean
+    default: false
   run-tests:
     type: boolean
     default: false
@@ -29,14 +35,23 @@ parameters:
 aliases:
   - &build-base
     docker:
-      - image: cimg/base:2021.04
+      - image: cimg/base:2023.09
     parameters:
       run-build:
         type: boolean
         default: false
+      run-build-2:
+        type: boolean
+        default: false
+      SERVICE:
+        type: string
+        default: ""
     steps:
       - when:
-          condition: << parameters.run-build >>
+          condition: 
+            or: 
+              - << parameters.run-build >>
+              - << parameters.run-build-2 >>
           steps:
             - checkout
             - run:
@@ -45,11 +60,17 @@ aliases:
                   git submodule init
                   git submodule update --remote
             - setup_remote_docker:
-                version: 20.10.2
+                version: 20.10.23
             - run:
                 name: Build and push docker images
+                # "source" to persist env vars set
                 command: |
-                  ./scripts/build_and_publish_docker_images.sh
+                  ./scripts/build_and_publish_docker_images.sh 
+            - persist_to_workspace:
+                root: workspace
+                paths:
+                  - ./*
+      # If no build is needed, echo 0 to run as success 
       - run: echo 0
   - &filter-base
     filters:
@@ -100,6 +121,8 @@ workflows:
               << pipeline.parameters.run-build-repository >>,
               << pipeline.parameters.run-build-s3 >>,
               << pipeline.parameters.run-build-server >>,
+              << pipeline.parameters.run-build-monitor >>,
+              << pipeline.parameters.run-build-packages >>,
               << pipeline.parameters.run-build-ui >>,
               << pipeline.parameters.run-tests >>,
             ]
@@ -114,15 +137,17 @@ workflows:
             - tests-node-v16
       - build-push-ipfs:
           run-build: << pipeline.parameters.run-build-ipfs >>
-      # Always build monitor if there's a change in the server
+          SERVICE: "ipfs"
       - build-push-monitor:
-          run-build: << pipeline.parameters.run-build-server >>
+          run-build: << pipeline.parameters.run-build-monitor >>
+          run-build-2: << pipeline.parameters.run-build-packages >> # monitor depends on packages
       - build-push-repository:
           run-build: << pipeline.parameters.run-build-repository >>
       - build-push-s3:
           run-build: << pipeline.parameters.run-build-s3 >>
       - build-push-server:
           run-build: << pipeline.parameters.run-build-server >>
+          run-build-2: << pipeline.parameters.run-build-packages >> # server depends on packages
       - build-push-ui:
           run-build: << pipeline.parameters.run-build-ui >>
       - deploy:
@@ -170,6 +195,7 @@ jobs:
     <<: *build-base
     environment:
       SERVICE: "ipfs"
+    
   build-push-monitor:
     <<: *build-base
     environment:
@@ -195,16 +221,13 @@ jobs:
       - image: cimg/base:2021.04
     steps:
       - checkout
-      - setup_remote_docker:
-          version: 20.10.2
-      - add_ssh_keys:
-          fingerprints:
-            - "a9:2f:97:c3:64:10:80:c7:8e:2f:db:f7:a3:4a:53:66"
+      - attach_workspace:
+          at: workspace
       - run:
-          name: Deploy
-          no_output_timeout: 30m
+          name: Trigger Deploy Events
+          no_output_timeout: 5m
           command: |
-            ./scripts/deploy.sh
+            ./scripts/trigger_deploy.sh
   tests-node-v16:
     docker:
       - image: cimg/node:16.15

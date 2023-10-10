@@ -21,9 +21,12 @@ const { assertVerification } = require("../helpers/assertions");
 const TEST_TIME = process.env.TEST_TIME || 30000; // 30 seconds
 
 // Extract the chainId from new chain support pull request, if exists
-const newAddedChainId = process.env.NEW_CHAIN_ID;
-console.log("newAddedChainId");
-console.log(newAddedChainId);
+let newAddedChainIds = [];
+if (process.env.NEW_CHAIN_ID) {
+  newAddedChainIds = process.env.NEW_CHAIN_ID.split(",");
+}
+console.log("newAddedChainIds");
+console.log(newAddedChainIds);
 
 let anyTestsPass = false; // Fail when zero tests passing
 
@@ -49,10 +52,10 @@ describe("Test Supported Chains", function () {
 
   after(() => {
     rimraf.sync(server.repository);
-    if (!anyTestsPass && newAddedChainId) {
+    if (!anyTestsPass && newAddedChainIds.length) {
       throw new Error(
-        "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id " +
-          newAddedChainId +
+        "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id(s) " +
+          newAddedChainIds.join(",") +
           "?"
       );
     }
@@ -104,9 +107,25 @@ describe("Test Supported Chains", function () {
   );
 
   verifyContract(
+    "0x7ecedB5ca848e695ee8aB33cce9Ad1E1fe7865F8",
+    "17000",
+    "Holesky",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  verifyContract(
     "0x8F78b9c92a68DdF719849a40702cFBfa4EB60dD0",
     "11155111",
     "Sepolia",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  verifyContract(
+    "0x43C0A11653F57a96d1d3b6A5A6be453444558A5E",
+    "369",
+    "PulseChain",
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
@@ -536,7 +555,20 @@ describe("Test Supported Chains", function () {
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
-
+  verifyContract(
+    "0xA3b8eB7A6C4EE5902Ef66d455da98973B55B9f8a",
+    "9996",
+    "Mind Smart Chain Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContract(
+    "0x6720b7a5974373C3F6bdE96c09bA4ffdddEEAeD7",
+    "9977",
+    "Mind Smart Chain Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
   // Energy Web Volta Testnet
   verifyContract(
     "0x4667b7ce62e56B71146885555c68d2DDdf63349A",
@@ -1114,9 +1146,76 @@ describe("Test Supported Chains", function () {
     "78430/multicall3.metadata.json"
   );
 
+  // Shrapnel Subnet Testnet
+  verifyContract(
+    "0x8Bb9d0Dd48B7a54B248D2d386AfF253DA7856479",
+    "2038",
+    "Shrapnel Testnet",
+    [],
+    "2038/multicall3.metadata.json"
+  );
+
+  // Shrapnel Subnet
+  verifyContract(
+    "0xb9D27a0D61392566b92E08937a6C6E798F197ADF",
+    "2044",
+    "Shrapnel Subnet",
+    [],
+    "2044/multicall3.metadata.json"
+  );
+  verifyContract(
+    "0xD5bB0035a178d56Abd23a39fB3666031084b2cb5",
+    "1116",
+    "Core Blockchain Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  verifyContract(
+    "0xa456Ad3DEe140dcC91655ff45ef3103C460201D0",
+    "10243",
+    "Arthera Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  // Q Mainnet
+  verifyContract(
+    "0xc8AeB7206D1AD1DD5fC202945401303b3A7b72e0",
+    "35441",
+    "Q Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  // Q Testnet
+  verifyContract(
+    "0xc8AeB7206D1AD1DD5fC202945401303b3A7b72e0",
+    "35443",
+    "Q Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  verifyContract(
+      "0xbF33D2dA0F875D826ce1bA250F66b2785d48C113",
+      "11235",
+      "Haqq Mainnet",
+      ["shared/1_Storage.sol"],
+      "shared/1_Storage.metadata.json"
+  );
+
+  verifyContract(
+      "0xbF33D2dA0F875D826ce1bA250F66b2785d48C113",
+      "54211",
+      "Haqq Testnet",
+      ["shared/1_Storage.sol"],
+      "shared/1_Storage.metadata.json"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
-    if (newAddedChainId) {
+    if (newAddedChainIds.length) {
       // Don't test all chains if it is a pull request for adding new chain support
       return this.skip();
     }
@@ -1158,7 +1257,7 @@ describe("Test Supported Chains", function () {
     expectedStatus = "perfect"
   ) {
     // If it is a pull request for adding new chain support, only test the new chain
-    if (newAddedChainId && newAddedChainId != chainId) return;
+    if (newAddedChainIds.length && !newAddedChainIds.includes(chainId)) return;
     it(`should verify a contract on ${chainName} (${chainId})`, function (done) {
       // Context for the test report
       addContext(this, {

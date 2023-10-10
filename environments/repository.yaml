@@ -21,7 +21,7 @@ services:
     volumes:
       - type: bind
         source: $REPOSITORY_PATH_HOST
-        target: $REPOSITORY_PATH
+        target: /data # our h5ai_nginx assumes this path
         read_only: true
     ports:
       - ${REPOSITORY_SERVER_EXTERNAL_PORT}:80
