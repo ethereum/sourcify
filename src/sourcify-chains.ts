@@ -983,14 +983,12 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "11235": {
     // Haqq Mainnet
     supported: true,
-    monitored: false,
     contractFetchAddress: "https://explorer.haqq.network/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
   "54211": {
     // Haqq Testnet
     supported: true,
-    monitored: false,
     contractFetchAddress: "https://explorer.testedge2.haqq.network/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   }
