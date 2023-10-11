@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [@ethereum-sourcify/lib-sourcify@1.4.0] - 2023-10-03
+## [@ethereum-sourcify/lib-sourcify@1.4.0] - 2023-10-09
 
 - Bump `ethers` to `6.7.1`
 - Bump `solc` to `0.8.21`
