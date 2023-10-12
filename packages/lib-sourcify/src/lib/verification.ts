@@ -303,7 +303,7 @@ export function matchWithDeployedBytecode(
     match.libraryMap = libraryMap;
     match.immutableReferences = immutableReferences;
     // if the bytecode doesn't contain metadata then "partial" match
-    if (doesContainMetadataHash(onchainRuntimeBytecode)) {
+    if (endsWithMetadataHash(onchainRuntimeBytecode)) {
       match.runtimeMatch = 'perfect';
       const [, auxdata] = splitAuxdata(onchainRuntimeBytecode);
       match.runtimeTransformationValues.cborAuxdata = { 0: auxdata };
@@ -453,12 +453,9 @@ export async function matchWithCreationTx(
   match.creationTransformationValues.libraries = libraryMap;
 
   if (onchainCreationBytecode.startsWith(recompiledCreationBytecode)) {
-    // if the bytecode doesn't contain metadata then "partial" match
-    // TODO: in reality this is endsWithMetadataHash, we should actually check the existance of the metadatahash inside the bytecode in any position
-    if (doesContainMetadataHash(recompiledCreationBytecode)) {
+    // if the bytecode doesn't end with metadata then "partial" match
+    if (endsWithMetadataHash(recompiledCreationBytecode)) {
       match.creationMatch = 'perfect';
-      const [, auxdata] = splitAuxdata(recompiledCreationBytecode);
-      match.creationTransformationValues.cborAuxdata = { 0: auxdata };
     } else {
       match.creationMatch = 'partial';
     }
@@ -676,15 +673,15 @@ const saltToHex = (salt: string) => {
  * @param bytecode
  * @returns bool - true if there's a metadata hash
  */
-function doesContainMetadataHash(bytecode: string) {
-  let containsMetadata: boolean;
+function endsWithMetadataHash(bytecode: string) {
+  let endsWithMetadata: boolean;
   try {
     const decodedCBOR = bytecodeDecode(bytecode);
-    containsMetadata =
+    endsWithMetadata =
       !!decodedCBOR.ipfs || !!decodedCBOR['bzzr0'] || !!decodedCBOR['bzzr1'];
   } catch (e) {
     logInfo("Can't decode CBOR");
-    containsMetadata = false;
+    endsWithMetadata = false;
   }
-  return containsMetadata;
+  return endsWithMetadata;
 }
