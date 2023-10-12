@@ -12,6 +12,8 @@ import {
   Transformation,
   LibraryTransformation,
   ConstructorTransformation,
+  CallProtectionTransformation,
+  TransformationValues,
 } from './types';
 import {
   decode as bytecodeDecode,
@@ -262,7 +264,7 @@ export function matchWithRuntimeBytecode(
   match: Match,
   recompiledRuntimeBytecode: string,
   onchainRuntimeBytecode: string,
-  immutableReferences?: any
+  immutableReferences?: ImmutableReferences
 ) {
   // Updating the `match.onchainRuntimeBytecode` here so we are sure to always update it
   match.onchainRuntimeBytecode = onchainRuntimeBytecode;
@@ -297,9 +299,9 @@ export function matchWithRuntimeBytecode(
     onchainRuntimeBytecode = replaceImmutableReferences(
       immutableReferences,
       onchainRuntimeBytecode,
-      match.runtimeTransformations
+      match.runtimeTransformations,
+      match.runtimeTransformationValues
     );
-    match.runtimeTransformationValues.immutables == immutableReferences;
   }
 
   if (recompiledRuntimeBytecode === onchainRuntimeBytecode) {
@@ -603,27 +605,43 @@ export function checkCallProtectionAndReplaceAddress(
 
 /**
  * Replaces the values of the immutable variables in the (onchain) deployed bytecode with zeros, so that the bytecode can be compared with the (offchain) recompiled bytecode.
+ * Easier this way because we can simply replace with zeros
  * Example immutableReferences: {"97":[{"length":32,"start":137}],"99":[{"length":32,"start":421}]} where 97 and 99 are the AST ids
  */
 export function replaceImmutableReferences(
   immutableReferences: ImmutableReferences,
-  runtimeBytecode: string,
-  transformationsArray: Transformation[]
+  onchainRuntimeBytecode: string,
+  transformationsArray: Transformation[],
+  transformationValues: TransformationValues
 ) {
-  runtimeBytecode = runtimeBytecode.slice(2); // remove "0x"
+  onchainRuntimeBytecode = onchainRuntimeBytecode.slice(2); // remove "0x"
 
   Object.keys(immutableReferences).forEach((astId) => {
     immutableReferences[astId].forEach((reference) => {
       const { start, length } = reference;
-      transformationsArray.push(ImmutablesTransformation(start * 2, ''));
+
+      // Save the transformation
+      transformationsArray.push(ImmutablesTransformation(start * 2, astId));
+      const immutableValue = onchainRuntimeBytecode.slice(
+        start * 2,
+        start * 2 + length * 2
+      );
+
+      // Save the transformation value
+      if (transformationValues.immutables === undefined) {
+        transformationValues.immutables = {};
+      }
+      transformationValues.immutables[astId] = immutableValue;
+
+      // Write zeros in the place
       const zeros = '0'.repeat(length * 2);
-      runtimeBytecode =
-        runtimeBytecode.slice(0, start * 2) +
+      onchainRuntimeBytecode =
+        onchainRuntimeBytecode.slice(0, start * 2) +
         zeros +
-        runtimeBytecode.slice(start * 2 + length * 2);
+        onchainRuntimeBytecode.slice(start * 2 + length * 2);
     });
   });
-  return '0x' + runtimeBytecode;
+  return '0x' + onchainRuntimeBytecode;
 }
 
 function extractAbiEncodedConstructorArguments(
