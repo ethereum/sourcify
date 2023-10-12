@@ -10,6 +10,7 @@ import {
   RecompilationResult,
   StringMap,
   Transformation,
+  LibraryTransformation,
 } from './types';
 import {
   decode as bytecodeDecode,
@@ -560,9 +561,7 @@ export function addLibraryAddresses(
 
     index = template.indexOf(PLACEHOLDER_START);
 
-    transformationsArray.push(
-      ImmutablesTransformation('library', index, template)
-    );
+    transformationsArray.push(LibraryTransformation(index, template));
   }
 
   return {
@@ -605,9 +604,7 @@ export function replaceImmutableReferences(
   Object.keys(immutableReferences).forEach((astId) => {
     immutableReferences[astId].forEach((reference) => {
       const { start, length } = reference;
-      transformationsArray.push(
-        ImmutablesTransformation('immutable', start * 2, '')
-      );
+      transformationsArray.push(ImmutablesTransformation(start * 2, ''));
       const zeros = '0'.repeat(length * 2);
       deployedBytecode =
         deployedBytecode.slice(0, start * 2) +

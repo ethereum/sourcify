@@ -189,13 +189,22 @@ export const AuxdataTransformation = (
   id,
 });
 
-export const ImmutablesTransformation = (
-  reason: 'library' | 'immutable',
+export const LibraryTransformation = (
   offset: number,
   id: string
 ): Transformation => ({
   type: 'replace',
-  reason,
+  reason: 'library',
+  offset,
+  id,
+});
+
+export const ImmutablesTransformation = (
+  offset: number,
+  id: string
+): Transformation => ({
+  type: 'replace',
+  reason: 'immutable',
   offset,
   id,
 });
