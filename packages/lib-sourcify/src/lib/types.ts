@@ -173,6 +173,14 @@ export type Transformation = {
   id?: string;
 };
 
+// Call protection is always at the start of the runtime bytecode
+export const CallProtectionTransformation = (): Transformation => ({
+  type: 'replace',
+  reason: 'call-protection',
+  offset: 0,
+});
+
+// TransformationValues only has one ConstructorTransformatino so no id field is needed
 export const ConstructorTransformation = (offset: number): Transformation => ({
   type: 'insert',
   reason: 'constructor',
@@ -211,14 +219,15 @@ export const ImmutablesTransformation = (
 
 export interface TransformationValues {
   constructorArguments?: string;
+  callProtection?: string;
   libraries?: {
-    [index: string]: string;
+    [id: string]: string;
   };
   immutables?: {
-    [index: string]: string;
+    [id: string]: string;
   };
   cborAuxdata?: {
-    [index: string]: string;
+    [id: string]: string;
   };
 }
 
