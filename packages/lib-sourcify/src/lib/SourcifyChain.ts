@@ -187,7 +187,7 @@ export default class SourcifyChain {
           return traces;
         } else {
           throw new Error(
-            `Transaction's traces of ${creatorTxHash} not found on RPC ${provider.url} and chain ${this.chainId}`
+            `Transaction's traces of ${creatorTxHash} on RPC ${provider.url} and chain ${this.chainId} received empty or malformed response`
           );
         }
       } catch (err) {
@@ -332,8 +332,8 @@ export default class SourcifyChain {
     const tx = await this.getTx(transactionHash);
     let creationBytecode = '';
 
+    // Non null txreceipt.contractAddress means that the contract was created with an EOA
     if (txReceipt.contractAddress !== null) {
-      // EOA created
       if (txReceipt.contractAddress !== address) {
         throw new CreatorTransactionMismatchError();
       }
@@ -343,7 +343,8 @@ export default class SourcifyChain {
       let traces;
       try {
         traces = await this.getTxTraces(transactionHash);
-      } catch (e) {
+      } catch (e: any) {
+        logInfo(e.message);
         traces = [];
       }
 
@@ -355,10 +356,10 @@ export default class SourcifyChain {
         const createdContractAddressesInTx = createTraces.find(
           (trace) => getAddress(trace.result.address) === address
         );
-        creationBytecode = createdContractAddressesInTx.result.code;
         if (createdContractAddressesInTx === undefined) {
           throw new CreatorTransactionMismatchError();
         }
+        creationBytecode = createdContractAddressesInTx.result.code;
       }
     }
 

@@ -696,8 +696,8 @@ export class RepositoryService implements IRepositoryService {
     if (
       recompiledContract.runtimeBytecode === undefined ||
       recompiledContract.creationBytecode === undefined ||
-      match.deployedRuntimeBytecode === undefined ||
-      match.deployedCreationBytecode === undefined
+      match.onchainRuntimeBytecode === undefined ||
+      match.onchainCreationBytecode === undefined
     ) {
       // Can only store contracts with both runtimeBytecode and creationBytecode
       return;
@@ -715,11 +715,11 @@ export class RepositoryService implements IRepositoryService {
       return;
     }
 
-    const keccak256DeployedCreationBytecode = keccak256str(
-      match.deployedCreationBytecode
+    const keccak256OnchainCreationBytecode = keccak256str(
+      match.onchainCreationBytecode
     );
-    const keccak256DeployedRuntimeBytecode = keccak256str(
-      match.deployedRuntimeBytecode
+    const keccak256OnchainRuntimeBytecode = keccak256str(
+      match.onchainRuntimeBytecode
     );
 
     const keccak256RecompiledCreationBytecode = keccak256str(
@@ -732,8 +732,8 @@ export class RepositoryService implements IRepositoryService {
     const existingVerifiedContractResult =
       await AllianceDatabase.getVerifiedContractByBytecodeHashes(
         this.allianceDatabasePool,
-        keccak256DeployedRuntimeBytecode,
-        keccak256DeployedCreationBytecode
+        keccak256OnchainRuntimeBytecode,
+        keccak256OnchainCreationBytecode
       );
 
     const {
@@ -800,20 +800,20 @@ export class RepositoryService implements IRepositoryService {
 
         // Add deployed bytecodes
         await AllianceDatabase.insertCode(this.allianceDatabasePool, {
-          bytecodeHash: keccak256DeployedCreationBytecode,
-          bytecode: match.deployedCreationBytecode,
+          bytecodeHash: keccak256OnchainCreationBytecode,
+          bytecode: match.onchainCreationBytecode,
         });
         await AllianceDatabase.insertCode(this.allianceDatabasePool, {
-          bytecodeHash: keccak256DeployedRuntimeBytecode,
-          bytecode: match.deployedRuntimeBytecode,
+          bytecodeHash: keccak256OnchainRuntimeBytecode,
+          bytecode: match.onchainRuntimeBytecode,
         });
 
         // Add the onchain contract in contracts
         const contractInsertResult = await AllianceDatabase.insertContract(
           this.allianceDatabasePool,
           {
-            creationBytecodeHash: keccak256DeployedCreationBytecode,
-            runtimeBytecodeHash: keccak256DeployedRuntimeBytecode,
+            creationBytecodeHash: keccak256OnchainCreationBytecode,
+            runtimeBytecodeHash: keccak256OnchainRuntimeBytecode,
           }
         );
 

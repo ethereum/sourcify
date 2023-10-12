@@ -230,8 +230,8 @@ export interface Match {
   creationTransformations?: Transformation[];
   runtimeTransformationValues?: TransformationValues;
   creationTransformationValues?: TransformationValues;
-  deployedRuntimeBytecode?: string;
-  deployedCreationBytecode?: string;
+  onchainRuntimeBytecode?: string;
+  onchainCreationBytecode?: string;
 }
 
 export type Status =
