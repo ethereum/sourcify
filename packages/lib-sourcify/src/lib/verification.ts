@@ -11,6 +11,7 @@ import {
   StringMap,
   Transformation,
   LibraryTransformation,
+  ConstructorTransformation,
 } from './types';
 import {
   decode as bytecodeDecode,
@@ -461,9 +462,15 @@ export async function matchWithCreationTx(
     }
   } else {
     // Match without metadata hashes
+    // TODO: Handle multiple metadata hashes
+
+    // Assuming the onchain and recompiled auxdata lengths are the same
+    const onchainCreationBytecodeWithoutConstructorArgs =
+      onchainCreationBytecode.slice(0, recompiledCreationBytecode.length);
+
     const [trimmedOnchainCreationBytecode, auxdata] = splitAuxdata(
-      onchainCreationBytecode
-    ); // In the case of creationTxData (not deployed bytecode) it is actually not CBOR encoded because of the appended constr. args., but splitAuxdata returns the whole bytecode if it's not CBOR encoded, so will work with startsWith.
+      onchainCreationBytecodeWithoutConstructorArgs
+    ); // In the case of creationTxData (not runtime bytecode) it is actually not CBOR encoded at the end because of the appended constr. args., but splitAuxdata returns the whole bytecode if it's not CBOR encoded, so will work with startsWith.
     const [trimmedRecompiledCreationBytecode] = splitAuxdata(
       recompiledCreationBytecode
     );
@@ -473,11 +480,13 @@ export async function matchWithCreationTx(
       )
     ) {
       match.creationMatch = 'partial';
-      match.runtimeTransformations?.push(
+      match.creationTransformations?.push(
         AuxdataTransformation(trimmedRecompiledCreationBytecode.length, '0')
       );
       match.creationTransformationValues.cborAuxdata = { '0': auxdata };
     }
+
+    // TODO: If we still don't have a match and we have multiple auxdata in legacyAssembly, try finding the metadata hashes and match with this info.
   }
 
   if (match.creationMatch) {
@@ -514,6 +523,9 @@ export async function matchWithCreationTx(
         return;
       }
 
+      match.creationTransformations?.push(
+        ConstructorTransformation(recompiledCreationBytecode.length)
+      );
       match.creationTransformationValues.constructorArguments =
         abiEncodedConstructorArguments;
     }
@@ -619,11 +631,7 @@ function extractAbiEncodedConstructorArguments(
   if (onchainCreationBytecode.length === compiledCreationBytecode.length)
     return undefined;
 
-  const startIndex = onchainCreationBytecode.indexOf(compiledCreationBytecode);
-  return (
-    '0x' +
-    onchainCreationBytecode.slice(startIndex + compiledCreationBytecode.length)
-  );
+  return '0x' + onchainCreationBytecode.slice(compiledCreationBytecode.length);
 }
 
 /**
