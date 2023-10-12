@@ -33,36 +33,18 @@ export class VerificationService implements IVerificationService {
     creatorTxHash?: string
   ): Promise<Match> {
     const sourcifyChain = this.supportedChainsMap[chainId];
-    const foundCreatorTxHash = await getCreatorTx(sourcifyChain, address);
-    let match;
-    try {
-      match = await verifyDeployed(
-        checkedContract,
-        sourcifyChain,
-        address,
-        /* contextVariables, */
-        creatorTxHash || foundCreatorTxHash || undefined
-      );
-      return match;
-    } catch (err) {
-      // Find the creator tx if it wasn't supplied and try verifying again with it.
-      if (
-        !creatorTxHash &&
-        err instanceof Error &&
-        err.message === "The deployed and recompiled bytecode don't match."
-      ) {
-        if (foundCreatorTxHash) {
-          match = await verifyDeployed(
-            checkedContract,
-            sourcifyChain,
-            address,
-            /* contextVariables, */
-            foundCreatorTxHash
-          );
-          return match;
-        }
-      }
-      throw err;
-    }
+    // lib-sourcify expects the creatorTx hash externally.
+    const foundCreatorTxHash =
+      creatorTxHash ||
+      (await getCreatorTx(sourcifyChain, address)) ||
+      undefined;
+    const match = await verifyDeployed(
+      checkedContract,
+      sourcifyChain,
+      address,
+      /* contextVariables, */
+      foundCreatorTxHash
+    );
+    return match;
   }
 }

@@ -1,5 +1,4 @@
 import { SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
-import { getAddress } from "ethers";
 import { StatusCodes } from "http-status-codes";
 import fetch from "node-fetch";
 import puppeteer from "puppeteer";
@@ -24,8 +23,8 @@ export const getCreatorTx = async (
   // Chains with the new Etherscan API that returns the creation transaction hash
   if (contractFetchAddressFilled.includes("action=getcontractcreation")) {
     const response = await fetchFromApi(contractFetchAddressFilled);
-    const creatorTx = response?.result?.[0]?.txHash;
-    if (creatorTx) return creatorTx;
+    if (response?.result?.[0]?.txHash)
+      return response?.result?.[0]?.txHash as string;
   }
 
   // If there's txRegex, scrape block explorers
