@@ -310,94 +310,28 @@ export function matchWithRuntimeBytecode(
     // if the bytecode doesn't contain metadata then "partial" match
     if (endsWithMetadataHash(onchainRuntimeBytecode)) {
       match.runtimeMatch = 'perfect';
-      const [, auxdata] = splitAuxdata(onchainRuntimeBytecode);
-      match.runtimeTransformationValues.cborAuxdata = { 0: auxdata };
     } else {
       match.runtimeMatch = 'partial';
     }
   } else {
     // Try to match without the metadata hashes
-    const [trimmedRuntimeBytecode, auxdata] = splitAuxdata(
+    const [trimmedOnchainRuntimeBytecode, auxdata] = splitAuxdata(
       onchainRuntimeBytecode
     );
-    const [trimmedCompiledRuntimeBytecode] = splitAuxdata(
+    const [trimmedRecompiledRuntimeBytecode] = splitAuxdata(
       recompiledRuntimeBytecode
     );
-    if (trimmedRuntimeBytecode === trimmedCompiledRuntimeBytecode) {
+    if (trimmedOnchainRuntimeBytecode === trimmedRecompiledRuntimeBytecode) {
       match.libraryMap = libraryMap;
       match.immutableReferences = immutableReferences;
       match.runtimeMatch = 'partial';
       match.runtimeTransformations?.push(
-        AuxdataTransformation(trimmedCompiledRuntimeBytecode.length, '0')
+        AuxdataTransformation(trimmedRecompiledRuntimeBytecode.length, '0')
       );
       match.runtimeTransformationValues.cborAuxdata = { '0': auxdata };
     }
   }
 }
-
-/*
-export async function matchWithSimulation(
-  match: Match,
-  recompiledCreaionBytecode: string,
-  runtimeBytecode: string,
-  evmVersion: string,
-  chainId: string,
-  contextVariables?: ContextVariables
-) {
-  // 'paris' is named 'merge' in ethereumjs https://github.com/ethereumjs/ethereumjs-monorepo/issues/2360
-  if (evmVersion === 'paris') evmVersion = 'merge';
-  let { abiEncodedConstructorArguments } = contextVariables || {};
-  const { msgSender } = contextVariables || {};
-
-  const stateManager = new DefaultStateManager();
-  const blockchain = await Blockchain.create();
-  const common = Common.custom({
-    chainId: parseInt(chainId),
-    defaultHardfork: evmVersion,
-  });
-  const eei = new EEI(stateManager, common, blockchain);
-
-  const evm = new EVM({
-    common,
-    eei,
-  });
-  if (recompiledCreaionBytecode.startsWith('0x')) {
-    recompiledCreaionBytecode = recompiledCreaionBytecode.slice(2);
-  }
-  if (abiEncodedConstructorArguments?.startsWith('0x')) {
-    abiEncodedConstructorArguments = abiEncodedConstructorArguments.slice(2);
-  }
-  const initcode = Buffer.from(
-    recompiledCreaionBytecode +
-      (abiEncodedConstructorArguments ? abiEncodedConstructorArguments : ''),
-    'hex'
-  );
-
-  const result = await evm.runCall({
-    data: initcode,
-    gasLimit: BigInt(0xffffffffff),
-    // prettier vs. eslint indentation conflict here
-    // eslint-disable indent
-    caller: msgSender
-      ? new Address(
-          Buffer.from(
-            msgSender.startsWith('0x') ? msgSender.slice(2) : msgSender,
-            'hex'
-          )
-        )
-      : undefined,
-    // eslint-disable indent
-  });
-  const simulationRuntimeBytecode =
-    '0x' + result.execResult.returnValue.toString('hex');
-
-  matchWithRuntimeBytecode(
-    match,
-    simulationRuntimeBytecode,
-    runtimeBytecode
-  );
-} 
-*/
 
 /**
  * Matches the contract via the transaction that created the contract, if that tx is known.
