@@ -200,7 +200,7 @@ export const ImmutablesTransformation = (
   id,
 });
 
-export interface MatchValues {
+export interface TransformationValues {
   constructorArguments?: string;
   libraries?: {
     [index: string]: string;
@@ -228,8 +228,8 @@ export interface Match {
   immutableReferences?: ImmutableReferences;
   runtimeTransformations?: Transformation[];
   creationTransformations?: Transformation[];
-  runtimeValues?: MatchValues;
-  creationValues?: MatchValues;
+  runtimeTransformationValues?: TransformationValues;
+  creationTransformationValues?: TransformationValues;
   deployedRuntimeBytecode?: string;
   deployedCreationBytecode?: string;
 }

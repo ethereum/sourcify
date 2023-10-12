@@ -738,9 +738,9 @@ export class RepositoryService implements IRepositoryService {
 
     const {
       runtimeTransformations,
-      runtimeValues,
+      runtimeTransformationValues,
       creationTransformations,
-      creationValues,
+      creationTransformationValues,
     } = match;
     const compilationTargetPath = Object.keys(
       recompiledContract.metadata.settings.compilationTarget
@@ -855,9 +855,9 @@ export class RepositoryService implements IRepositoryService {
             compilationId: compiledContractsInsertResult.rows[0].id,
             contractId: contractInsertResult.rows[0].id,
             creationTransformations: JSON.stringify(creationTransformations),
-            creationValues: creationValues || {},
+            creationTransformationValues: creationTransformationValues || {},
             runtimeTransformations: JSON.stringify(runtimeTransformations),
-            runtimeValues: runtimeValues || {},
+            runtimeTransformationValues: runtimeTransformationValues || {},
             runtimeMatch,
             creationMatch,
           }
@@ -964,9 +964,9 @@ export class RepositoryService implements IRepositoryService {
               compilationId: compiledContractsInsertResult.rows[0].id,
               contractId: existingVerifiedContractResult.rows[0].contract_id,
               creationTransformations: JSON.stringify(creationTransformations),
-              creationValues: creationValues || {},
+              creationTransformationValues: creationTransformationValues || {},
               runtimeTransformations: JSON.stringify(runtimeTransformations),
-              runtimeValues: runtimeValues || {},
+              runtimeTransformationValues: runtimeTransformationValues || {},
               runtimeMatch,
               creationMatch,
             }

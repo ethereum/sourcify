@@ -48,8 +48,8 @@ export async function verifyDeployed(
     creationMatch: null,
     runtimeTransformations: [],
     creationTransformations: [],
-    runtimeValues: {},
-    creationValues: {},
+    runtimeTransformationValues: {},
+    creationTransformationValues: {},
   };
   logInfo(
     `Verifying contract ${
@@ -248,8 +248,8 @@ export async function verifyCreate2(
     create2Args,
     runtimeTransformations: [],
     creationTransformations: [],
-    runtimeValues: {},
-    creationValues: {},
+    runtimeTransformationValues: {},
+    creationTransformationValues: {},
     // libraryMap: libraryMap,
   };
 
@@ -268,8 +268,8 @@ export function matchWithDeployedBytecode(
   if (match.runtimeTransformations === undefined) {
     match.runtimeTransformations = [];
   }
-  if (match.runtimeValues === undefined) {
-    match.runtimeValues = {};
+  if (match.runtimeTransformationValues === undefined) {
+    match.runtimeTransformationValues = {};
   }
 
   // Check if is a library with call protection
@@ -287,7 +287,7 @@ export function matchWithDeployedBytecode(
     match.runtimeTransformations
   );
   recompiledRuntimeBytecode = replaced;
-  match.runtimeValues.libraries = libraryMap;
+  match.runtimeTransformationValues.libraries = libraryMap;
 
   if (immutableReferences) {
     deployedRuntimeBytecode = replaceImmutableReferences(
@@ -295,7 +295,7 @@ export function matchWithDeployedBytecode(
       deployedRuntimeBytecode,
       match.runtimeTransformations
     );
-    match.runtimeValues.immutables == immutableReferences;
+    match.runtimeTransformationValues.immutables == immutableReferences;
   }
 
   if (recompiledRuntimeBytecode === deployedRuntimeBytecode) {
@@ -305,7 +305,7 @@ export function matchWithDeployedBytecode(
     if (doesContainMetadataHash(deployedRuntimeBytecode)) {
       match.runtimeMatch = 'perfect';
       const [, auxdata] = splitAuxdata(deployedRuntimeBytecode);
-      match.runtimeValues.cborAuxdata = { 0: auxdata };
+      match.runtimeTransformationValues.cborAuxdata = { 0: auxdata };
     } else {
       match.runtimeMatch = 'partial';
     }
@@ -324,7 +324,7 @@ export function matchWithDeployedBytecode(
       match.runtimeTransformations?.push(
         AuxdataTransformation(trimmedCompiledRuntimeBytecode.length, '0')
       );
-      match.runtimeValues.cborAuxdata = { '0': auxdata };
+      match.runtimeTransformationValues.cborAuxdata = { '0': auxdata };
     }
   }
 }
@@ -425,8 +425,8 @@ export async function matchWithCreationTx(
   if (match.creationTransformations === undefined) {
     match.creationTransformations = [];
   }
-  if (match.creationValues === undefined) {
-    match.creationValues = {};
+  if (match.creationTransformationValues === undefined) {
+    match.creationTransformationValues = {};
   }
 
   // The reason why this uses `startsWith` instead of `===` is that creationTxData may contain constructor arguments at the end part.
@@ -437,7 +437,7 @@ export async function matchWithCreationTx(
     match.creationTransformations
   );
   recompiledCreationBytecode = replaced;
-  match.creationValues.libraries = libraryMap;
+  match.creationTransformationValues.libraries = libraryMap;
 
   if (deployedCreationBytecode.startsWith(recompiledCreationBytecode)) {
     // if the bytecode doesn't contain metadata then "partial" match
@@ -445,7 +445,7 @@ export async function matchWithCreationTx(
     if (doesContainMetadataHash(recompiledCreationBytecode)) {
       match.creationMatch = 'perfect';
       const [, auxdata] = splitAuxdata(recompiledCreationBytecode);
-      match.creationValues.cborAuxdata = { 0: auxdata };
+      match.creationTransformationValues.cborAuxdata = { 0: auxdata };
     } else {
       match.creationMatch = 'partial';
     }
@@ -466,7 +466,7 @@ export async function matchWithCreationTx(
       match.runtimeTransformations?.push(
         AuxdataTransformation(trimmedRecompiledCreationBytecode.length, '0')
       );
-      match.creationValues.cborAuxdata = { '0': auxdata };
+      match.creationTransformationValues.cborAuxdata = { '0': auxdata };
     }
   }
 
@@ -504,7 +504,7 @@ export async function matchWithCreationTx(
         return;
       }
 
-      match.creationValues.constructorArguments =
+      match.creationTransformationValues.constructorArguments =
         abiEncodedConstructorArguments;
     }
 

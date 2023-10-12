@@ -35,9 +35,9 @@ namespace Tables {
     compilationId: string;
     contractId: string;
     creationTransformations: string;
-    creationValues: Object;
+    creationTransformationValues: Object;
     runtimeTransformations: string;
-    runtimeValues: Object;
+    runtimeTransformationValues: Object;
     runtimeMatch: boolean;
     creationMatch: boolean;
   }
@@ -206,9 +206,9 @@ export async function insertVerifiedContract(
     compilationId,
     contractId,
     creationTransformations,
-    creationValues,
+    creationTransformationValues,
     runtimeTransformations,
-    runtimeValues,
+    runtimeTransformationValues,
     runtimeMatch,
     creationMatch,
   }: Tables.VerifiedContract
@@ -228,9 +228,9 @@ export async function insertVerifiedContract(
       compilationId,
       contractId,
       creationTransformations,
-      creationValues,
+      creationTransformationValues,
       runtimeTransformations,
-      runtimeValues,
+      runtimeTransformationValues,
       runtimeMatch,
       creationMatch,
     ]
@@ -243,9 +243,9 @@ export async function updateVerifiedContract(
     compilationId,
     contractId,
     creationTransformations,
-    creationValues,
+    creationTransformationValues,
     runtimeTransformations,
-    runtimeValues,
+    runtimeTransformationValues,
     runtimeMatch,
     creationMatch,
   }: Tables.VerifiedContract
@@ -266,9 +266,9 @@ export async function updateVerifiedContract(
       compilationId,
       contractId,
       creationTransformations,
-      creationValues,
+      creationTransformationValues,
       runtimeTransformations,
-      runtimeValues,
+      runtimeTransformationValues,
       runtimeMatch,
       creationMatch,
     ]
