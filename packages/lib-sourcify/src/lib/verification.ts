@@ -29,7 +29,7 @@ import { BigNumber } from '@ethersproject/bignumber';
 import semverSatisfies from 'semver/functions/satisfies';
 import { defaultAbiCoder as abiCoder, ParamType } from '@ethersproject/abi';
 import { AbiConstructor } from 'abitype';
-import { logInfo } from './logger';
+import { logInfo, logWarn } from './logger';
 import SourcifyChain from './SourcifyChain';
 import { lt } from 'semver';
 
@@ -413,11 +413,23 @@ export async function matchWithCreationTx(
   }
 
   const creatorTx = await sourcifyChain.getTx(creatorTxHash);
-  const onchainCreationBytecode =
-    (await sourcifyChain.getContractCreationBytecode(address, creatorTxHash)) ||
-    '';
-
-  // we can assign the creatorTxHash here because `getContractCreationBytecode` verifies that this is really the creatorTxHash or it throws
+  let onchainCreationBytecode = '';
+  try {
+    onchainCreationBytecode =
+      (await sourcifyChain.getContractCreationBytecode(
+        address,
+        creatorTxHash
+      )) || '';
+  } catch (e: any) {
+    logWarn(
+      `Failed to get contract creation bytecode for ${address} on chain ${sourcifyChain.chainId.toString()}. \n ${
+        e.message
+      }`
+    );
+    match.creationMatch = null;
+    match.message = `Failed to match with creation bytecode: couldn't get the creation bytecode.`;
+    return;
+  }
   match.creatorTxHash = creatorTxHash;
   match.onchainCreationBytecode = onchainCreationBytecode;
 
