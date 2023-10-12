@@ -118,15 +118,15 @@ export class CheckedContract {
    * If found, replaces this.metadata and this.solidity with the found variations.
    * Useful for finding perfect matches for known types of variations such as different line endings.
    *
-   * @param deployedBytecode
+   * @param runtimeBytecode
    * @returns the perfectly matching CheckedContract or null otherwise
    */
   async tryToFindPerfectMetadata(
-    deployedBytecode: string
+    runtimeBytecode: string
   ): Promise<CheckedContract | null> {
     let decodedAuxdata;
     try {
-      decodedAuxdata = decodeBytecode(deployedBytecode);
+      decodedAuxdata = decodeBytecode(runtimeBytecode);
     } catch (err) {
       // There is no auxdata at all in this contract
       return null;

@@ -156,7 +156,7 @@ export interface ImmutableReferences {
 }
 export interface RecompilationResult {
   creationBytecode: string;
-  deployedBytecode: string;
+  runtimeBytecode: string;
   metadata: string;
   immutableReferences: ImmutableReferences;
 }

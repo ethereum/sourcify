@@ -61,7 +61,7 @@ export async function verifyDeployed(
   const recompiled = await checkedContract.recompile(forceEmscripten);
 
   if (
-    recompiled.deployedBytecode === '0x' ||
+    recompiled.runtimeBytecode === '0x' ||
     recompiled.creationBytecode === '0x'
   ) {
     throw new Error(
@@ -69,34 +69,34 @@ export async function verifyDeployed(
     );
   }
 
-  const deployedBytecode = await sourcifyChain.getBytecode(address);
+  const runtimeBytecode = await sourcifyChain.getBytecode(address);
 
   // Can't match if there is no deployed bytecode
-  if (!deployedBytecode) {
+  if (!runtimeBytecode) {
     match.message = `Chain #${sourcifyChain.chainId} is temporarily unavailable.`;
     return match;
-  } else if (deployedBytecode === '0x') {
+  } else if (runtimeBytecode === '0x') {
     match.message = `Chain #${sourcifyChain.chainId} does not have a contract deployed at ${address}.`;
     return match;
   }
 
   // Try to match with deployed bytecode directly
-  matchWithDeployedBytecode(
+  matchWithRuntimeBytecode(
     match,
-    recompiled.deployedBytecode,
-    deployedBytecode,
+    recompiled.runtimeBytecode,
+    runtimeBytecode,
     recompiled.immutableReferences
   );
   if (match.runtimeMatch === 'partial') {
     match = await tryToFindPerfectMetadataAndMatch(
       checkedContract,
-      deployedBytecode,
+      runtimeBytecode,
       match,
       async (match, recompiled) => {
-        matchWithDeployedBytecode(
+        matchWithRuntimeBytecode(
           match,
-          recompiled.deployedBytecode,
-          deployedBytecode
+          recompiled.runtimeBytecode,
+          runtimeBytecode
         );
       },
       'runtimeMatch'
@@ -117,7 +117,7 @@ export async function verifyDeployed(
     if (match.runtimeMatch === 'partial') {
       match = await tryToFindPerfectMetadataAndMatch(
         checkedContract,
-        deployedBytecode,
+        runtimeBytecode,
         match,
         async (match, recompiled) => {
           await matchWithCreationTx(
@@ -144,8 +144,8 @@ export async function verifyDeployed(
     ) &&
     checkedContract.metadata.settings.optimizer?.enabled
   ) {
-    const [, deployedAuxdata] = splitAuxdata(deployedBytecode);
-    const [, recompiledAuxdata] = splitAuxdata(recompiled.deployedBytecode);
+    const [, deployedAuxdata] = splitAuxdata(runtimeBytecode);
+    const [, recompiledAuxdata] = splitAuxdata(recompiled.runtimeBytecode);
     // Metadata hashes match but bytecodes don't match.
     if (deployedAuxdata === recompiledAuxdata) {
       (match as Match).runtimeMatch = 'extra-file-input-bug';
@@ -184,7 +184,7 @@ export async function verifyDeployed(
 
 async function tryToFindPerfectMetadataAndMatch(
   checkedContract: CheckedContract,
-  deployedBytecode: string,
+  runtimeBytecode: string,
   match: Match,
   matchFunction: (
     match: Match,
@@ -193,7 +193,7 @@ async function tryToFindPerfectMetadataAndMatch(
   matchType: 'runtimeMatch' | 'creationMatch'
 ): Promise<Match> {
   const checkedContractWithPerfectMetadata =
-    await checkedContract.tryToFindPerfectMetadata(deployedBytecode);
+    await checkedContract.tryToFindPerfectMetadata(runtimeBytecode);
   if (checkedContractWithPerfectMetadata) {
     // If found try to match again with the passed matchFunction
     const matchWithPerfectMetadata = { ...match };
@@ -258,7 +258,7 @@ export async function verifyCreate2(
   return match;
 }
 
-export function matchWithDeployedBytecode(
+export function matchWithRuntimeBytecode(
   match: Match,
   recompiledRuntimeBytecode: string,
   onchainRuntimeBytecode: string,
@@ -313,13 +313,13 @@ export function matchWithDeployedBytecode(
     }
   } else {
     // Try to match without the metadata hashes
-    const [trimmedDeployedBytecode, auxdata] = splitAuxdata(
+    const [trimmedRuntimeBytecode, auxdata] = splitAuxdata(
       onchainRuntimeBytecode
     );
     const [trimmedCompiledRuntimeBytecode] = splitAuxdata(
       recompiledRuntimeBytecode
     );
-    if (trimmedDeployedBytecode === trimmedCompiledRuntimeBytecode) {
+    if (trimmedRuntimeBytecode === trimmedCompiledRuntimeBytecode) {
       match.libraryMap = libraryMap;
       match.immutableReferences = immutableReferences;
       match.runtimeMatch = 'partial';
@@ -335,7 +335,7 @@ export function matchWithDeployedBytecode(
 export async function matchWithSimulation(
   match: Match,
   recompiledCreaionBytecode: string,
-  deployedBytecode: string,
+  runtimeBytecode: string,
   evmVersion: string,
   chainId: string,
   contextVariables?: ContextVariables
@@ -384,13 +384,13 @@ export async function matchWithSimulation(
       : undefined,
     // eslint-disable indent
   });
-  const simulationDeployedBytecode =
+  const simulationRuntimeBytecode =
     '0x' + result.execResult.returnValue.toString('hex');
 
-  matchWithDeployedBytecode(
+  matchWithRuntimeBytecode(
     match,
-    simulationDeployedBytecode,
-    deployedBytecode
+    simulationRuntimeBytecode,
+    runtimeBytecode
   );
 } 
 */
@@ -605,23 +605,23 @@ export function checkCallProtectionAndReplaceAddress(
  */
 export function replaceImmutableReferences(
   immutableReferences: ImmutableReferences,
-  deployedBytecode: string,
+  runtimeBytecode: string,
   transformationsArray: Transformation[]
 ) {
-  deployedBytecode = deployedBytecode.slice(2); // remove "0x"
+  runtimeBytecode = runtimeBytecode.slice(2); // remove "0x"
 
   Object.keys(immutableReferences).forEach((astId) => {
     immutableReferences[astId].forEach((reference) => {
       const { start, length } = reference;
       transformationsArray.push(ImmutablesTransformation(start * 2, ''));
       const zeros = '0'.repeat(length * 2);
-      deployedBytecode =
-        deployedBytecode.slice(0, start * 2) +
+      runtimeBytecode =
+        runtimeBytecode.slice(0, start * 2) +
         zeros +
-        deployedBytecode.slice(start * 2 + length * 2);
+        runtimeBytecode.slice(start * 2 + length * 2);
     });
   });
-  return '0x' + deployedBytecode;
+  return '0x' + runtimeBytecode;
 }
 
 function extractAbiEncodedConstructorArguments(
