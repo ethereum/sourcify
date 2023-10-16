@@ -357,7 +357,7 @@ export class CheckedContract {
 
     return {
       creationBytecode: this.creationBytecode,
-      deployedBytecode: this.runtimeBytecode,
+      runtimeBytecode: this.runtimeBytecode,
       metadata: contract.metadata.trim(),
       // Sometimes the compiler returns empty object (not falsey). Convert it to undefined (falsey).
       immutableReferences:
