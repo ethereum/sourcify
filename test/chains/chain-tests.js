@@ -55,8 +55,8 @@ describe("Test Supported Chains", function () {
     if (!anyTestsPass && newAddedChainIds.length) {
       throw new Error(
         "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id(s) " +
-        newAddedChainIds.join(",") +
-        "?"
+          newAddedChainIds.join(",") +
+          "?"
       );
     }
   });
@@ -102,6 +102,14 @@ describe("Test Supported Chains", function () {
     "0xc24381dB2a5932B5D1c424f567A95F9966834cE0",
     "5",
     "Goerli",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  verifyContract(
+    "0x7ecedB5ca848e695ee8aB33cce9Ad1E1fe7865F8",
+    "17000",
+    "Holesky",
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
@@ -1154,6 +1162,55 @@ describe("Test Supported Chains", function () {
     "Shrapnel Subnet",
     [],
     "2044/multicall3.metadata.json"
+  );
+  verifyContract(
+    "0xD5bB0035a178d56Abd23a39fB3666031084b2cb5",
+    "1116",
+    "Core Blockchain Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  verifyContract(
+    "0xa456Ad3DEe140dcC91655ff45ef3103C460201D0",
+    "10243",
+    "Arthera Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  // Q Mainnet
+  verifyContract(
+    "0xc8AeB7206D1AD1DD5fC202945401303b3A7b72e0",
+    "35441",
+    "Q Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  // Q Testnet
+  verifyContract(
+    "0xc8AeB7206D1AD1DD5fC202945401303b3A7b72e0",
+    "35443",
+    "Q Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  verifyContract(
+      "0xbF33D2dA0F875D826ce1bA250F66b2785d48C113",
+      "11235",
+      "Haqq Mainnet",
+      ["shared/1_Storage.sol"],
+      "shared/1_Storage.metadata.json"
+  );
+
+  verifyContract(
+      "0xbF33D2dA0F875D826ce1bA250F66b2785d48C113",
+      "54211",
+      "Haqq Testnet",
+      ["shared/1_Storage.sol"],
+      "shared/1_Storage.metadata.json"
   );
 
   // Finally check if all the "supported: true" chains have been tested

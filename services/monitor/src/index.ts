@@ -12,12 +12,12 @@ program
   .option(
     "--configPath <path>",
     "Path to the configuration JSON file",
-    "../config.json"
+    path.resolve(__dirname, "../config.json")
   )
   .option(
     "--chainsPath <path>",
     "Path to the chains JSON file",
-    "../chains.json"
+    path.resolve(__dirname, "../chains.json")
   );
 
 // Parse the arguments
@@ -30,7 +30,7 @@ const options = program.opts();
 function loadJSON(filePath: string, throws = true) {
   const absolutePath = path.isAbsolute(filePath)
     ? filePath
-    : path.join(__dirname, filePath);
+    : path.join(process.cwd(), filePath);
 
   if (fs.existsSync(absolutePath)) {
     const jsonData = fs.readFileSync(absolutePath, "utf8");
@@ -39,7 +39,14 @@ function loadJSON(filePath: string, throws = true) {
       console.warn(`File ${absolutePath} exists but is empty.`);
       return undefined;
     }
-    return JSON.parse(jsonData);
+    let json;
+
+    try {
+      json = JSON.parse(jsonData);
+    } catch (error) {
+      throw new Error(`File ${absolutePath} is not valid JSON.`);
+    }
+    return json;
   } else {
     if (throws) throw new Error(`File ${absolutePath} does not exist.`);
     console.warn(`File ${absolutePath} does not exist. Using default values.`);

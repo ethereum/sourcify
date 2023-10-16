@@ -51,8 +51,11 @@ const GitHubInput = ({
     } catch (_) {
       return setError("Enter a valid URL");
     }
-    fetchAndUpdate(ADD_FILES_URL + "?url=" + zipUrl, {
+    fetchAndUpdate(ADD_FILES_URL + "?url=" + encodeURIComponent(zipUrl), {
       method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
     }).finally(() => {
       setIsLoading(false);
     });

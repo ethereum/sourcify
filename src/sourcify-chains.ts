@@ -162,6 +162,14 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: generateEtherscanCreatorTxAPI("1"),
     rpc: buildAlchemyAndCustomRpcURLs("mainnet", "eth", true),
   },
+  "17000": {
+    // Ethereum Holesky
+    supported: true,
+    contractFetchAddress: generateEtherscanCreatorTxAPI("17000"),
+    // Temporary rpc until this is fixed: https://github.com/emeraldpay/dshackle/issues/262
+    // rpc: buildAlchemyAndCustomRpcURLs("holesky", "eth", true),
+    rpc: ["https://rpc.teku-geth-001.srv.holesky.ethpandaops.io"],
+  },
   "5": {
     // Ethereum Goerli Testnet
     supported: true,
@@ -408,11 +416,13 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: getBlockscoutRegex(),
   },
   "9996": {
+    // Mind Smart Chain Mainnet
     supported: true,
     contractFetchAddress: "https://mainnet.mindscan.info/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
   "9977": {
+    // Mind Smart Chain Testnet
     supported: true,
     contractFetchAddress: "https://testnet.mindscan.info/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
@@ -933,17 +943,55 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       AVALANCHE_SUBNET_SUFFIX,
   },
   "2038": {
+    // Shrapnel Testnet
     supported: true,
     contractFetchAddress:
       "https://glacier-api.avax.network/v1/chains/2038/" +
       AVALANCHE_SUBNET_SUFFIX,
   },
   "2044": {
+    // Shrapnel Subnet
     supported: true,
     contractFetchAddress:
       "https://glacier-api.avax.network/v1/chains/2044/" +
       AVALANCHE_SUBNET_SUFFIX,
   },
+  "10243": {
+    // Arthera Testnet
+    supported: true,
+    contractFetchAddress:
+      "https://explorer-test.arthera.net/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
+  "1116": {
+    // Core Blockchain Mainnet
+    supported: true,
+    contractFetchAddress: generateEtherscanCreatorTxAPI("1116"),
+  },
+  "35441": {
+    // Q Mainnet
+    supported: true,
+    contractFetchAddress: "https://explorer.q.org/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
+  "35443": {
+    // Q Testnet
+    supported: true,
+    contractFetchAddress: "https://explorer.qtestnet.org/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
+  "11235": {
+    // Haqq Mainnet
+    supported: true,
+    contractFetchAddress: "https://explorer.haqq.network/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
+  "54211": {
+    // Haqq Testnet
+    supported: true,
+    contractFetchAddress: "https://explorer.testedge2.haqq.network/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  }
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};

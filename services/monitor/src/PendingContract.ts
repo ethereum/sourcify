@@ -6,6 +6,8 @@ import { KnownDecentralizedStorageFetchers } from "./types";
 import assert from "assert";
 import dotenv from "dotenv";
 import nodeFetch from "node-fetch";
+import { LIB_VERSION } from "./version";
+
 dotenv.config();
 
 export default class PendingContract {
@@ -50,9 +52,8 @@ export default class PendingContract {
     logger.info(
       `Fetched metadata for ${this.address} on chain ${this.chainId} from ${this.metadataHash.origin}`
     );
-    // TODO: check if metadata hash matches this.metadataHash.hash
     this.metadata = JSON.parse(metadataStr) as Metadata;
-    this.pendingSources = { ...this.metadata.sources }; // Copy, don't mutate original.
+    this.pendingSources = structuredClone(this.metadata.sources); // Copy, don't mutate original.
 
     // Try to fetch all sources in parallel.
     const fetchPromises = Object.keys(this.pendingSources).map(
@@ -118,6 +119,7 @@ export default class PendingContract {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "User-Agent": LIB_VERSION,
       },
       body: JSON.stringify({
         chainId: this.chainId.toString(),
@@ -132,7 +134,7 @@ export default class PendingContract {
 
     if (response.status === 200) {
       logger.info(
-        `Contract ${this.address} sent to Sourcify server ${sourcifyServerURL}`
+        `Contract ${this.address} on chain ${this.chainId} sent to Sourcify server ${sourcifyServerURL}`
       );
       return response.json();
     } else {

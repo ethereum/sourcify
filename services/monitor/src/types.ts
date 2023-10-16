@@ -8,14 +8,16 @@ export type DecentralizedStorageOrigin = "ipfs" | "bzzr1" | "bzzr0";
 
 type DecentralizedStorageTypes = "ipfs" | "swarm";
 
-type DecentralizedStorageConfig = {
-  [K in DecentralizedStorageTypes]?: {
-    enabled: boolean;
-    gateways: string[];
-    timeout?: number;
-    interval?: number;
-    retries?: number;
-  };
+export type DecentralizedStorageConfig = {
+  enabled: boolean;
+  gateways: string[];
+  timeout?: number;
+  interval?: number;
+  retries?: number;
+};
+
+export type DecentralizedStorageConfigMap = {
+  [K in DecentralizedStorageTypes]?: DecentralizedStorageConfig;
 };
 
 export type ChainMonitorConfig = {
@@ -39,7 +41,7 @@ export type DefatultChainMonitorConfig = {
 };
 
 export type MonitorConfig = {
-  decentralizedStorages: DecentralizedStorageConfig;
+  decentralizedStorages: DecentralizedStorageConfigMap;
   sourcifyServerURLs: string[];
   defaultChainConfig: DefatultChainMonitorConfig;
   chainConfigs?: {

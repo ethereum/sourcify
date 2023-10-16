@@ -55,7 +55,20 @@ export class FileHash {
 
     const msg = `None of the keys ${KNOWN_CBOR_ORIGINS.join(
       ","
-    )} found in the CBOR data. CBOR data: ${Object.keys(cborData)}`;
+    )} found in the CBOR data. CBOR keys found are: ${Object.keys(cborData)}`;
     throw new Error(msg);
+  }
+}
+
+export class TimeoutError extends Error {
+  timeout: boolean;
+
+  constructor(message: string, timeout = true) {
+    super(message);
+    this.name = "TimeoutError";
+    this.timeout = timeout;
+
+    // This is to make the instanceof operator work with custom errors when using TypeScript
+    Object.setPrototypeOf(this, TimeoutError.prototype);
   }
 }

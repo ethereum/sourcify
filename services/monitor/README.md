@@ -28,11 +28,15 @@ First you need to provide which chains to monitor in a json file.
 ]
 ```
 
+Infura and Alchemy keys must be formatted as above in `{}`
+
 See [chains.json](./chains.json) for a full example and to see which chains we monitor ourselves. You can also use the [chainid.network/chains.json](https://chainid.network/chains.json) to find chains.
 
 ### Monitor Config
 
-Optionally you can pass a monitor config in a `config.json` file. If you don't, the [default config](src/Monitor.ts) will be used. The structure of the file is as such:
+Optionally you can pass a monitor config in a `config.json` file. If you don't, the [default config](src/defaultConfig.js) will be used. If you leave any field blank, it will be filled with the default config.
+
+The structure of the file is as such:
 
 ```js
   decentralizedStorages: {
@@ -42,7 +46,7 @@ Optionally you can pass a monitor config in a `config.json` file. If you don't, 
       // Time when the request to the gateway will timeout i.e. canceled in ms
       timeout: 30000,
       // Time between each request to the gateway in ms
-      interval: 1000,
+      interval: 5000,
       // Number of retries before giving up
       retries: 5,
     },
@@ -81,7 +85,7 @@ By default you can pass the following environment variables in `.env.template` f
 
 ```bash
 # If your RPCs are Alchemy or Infura
-# In the rpc url it must be {INFURA_API_KEY} or {ALCHEMY_API_KEY}
+# In the rpc url it must have {INFURA_API_KEY} or {ALCHEMY_API_KEY}
 ALCHEMY_API_KEY=
 INFURA_API_KEY=
 
@@ -100,8 +104,12 @@ You need to pass the `chains.json` and `config.json` files to the container. You
 docker run \
   -v /path/to/chains.json:/home/app/services/monitor/chains.json \
   -v /path/to/config.json:/home/app/services/monitor/config.json \
-  ## TODO: Add the name of the image here
+  -e ALCHEMY_API_KEY=xxx \
+  -e INFURA_API_KEY=xxx \
+  ethereum/source-verify:monitor-stable
 ```
+
+The containers are at [Docker Hub](https://hub.docker.com/r/ethereum/source-verify/tags).
 
 ## Development
 
@@ -116,6 +124,13 @@ Clone the [Sourcify monorepo](https://github.com/ethereum/sourcify)
 ```bash
 git clone git@github.com:ethereum/sourcify.git
 cd sourcify
+```
+
+Add environment variables to `.env.template` and rename it to `.env`
+
+```bash
+ALCHEMY_API_KEY=
+INFURA_API_KEY=
 ```
 
 ```bash
