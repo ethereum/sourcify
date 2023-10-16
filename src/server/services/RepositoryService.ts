@@ -488,7 +488,7 @@ export class RepositoryService implements IRepositoryService {
       }
 
       await this.addToIpfsMfs(matchQuality, match.chainId, match.address);
-      await this.addToAllianceDatabase(contract, match);
+      // await this.addToAllianceDatabase(contract, match);
       SourcifyEventManager.trigger("Verification.MatchStored", match);
     } else if (match.runtimeMatch === "extra-file-input-bug") {
       return match;
