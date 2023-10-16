@@ -674,7 +674,7 @@ function getAuxdataInLegacyAssemblyBranch(
 }
 
 function findAuxdatasInLegacyAssembly(legacyAssembly: any) {
-  let auxdatas: string[] = [];
+  const auxdatas: string[] = [];
   getAuxdataInLegacyAssemblyBranch(legacyAssembly, auxdatas);
   return auxdatas;
 }
@@ -712,7 +712,7 @@ function bytecodeIncludesAuxdataDiffAt(
 }
 
 function getAuxdatasDiff(originalAuxdatas: string[], editedAuxdatas: string[]) {
-  let auxdatasDiffs = [];
+  const auxdatasDiffs = [];
   for (let i = 0; i < originalAuxdatas.length; i++) {
     const diffPositions = getDiffPositions(
       originalAuxdatas[i],

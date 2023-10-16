@@ -685,6 +685,7 @@ export class RepositoryService implements IRepositoryService {
       this.allianceDatabasePool = await AllianceDatabase.getPool();
       return true;
     } catch (e) {
+      logger.error(e);
       return false;
     }
   }
@@ -729,6 +730,7 @@ export class RepositoryService implements IRepositoryService {
       recompiledContract.runtimeBytecode
     );
 
+    // Get all the verified contracts existing in the Database for these exact onchain bytecodes.
     const existingVerifiedContractResult =
       await AllianceDatabase.getVerifiedContractByBytecodeHashes(
         this.allianceDatabasePool,
@@ -876,7 +878,7 @@ export class RepositoryService implements IRepositoryService {
       let needRuntimeMatchUpdate = false;
       let needCreationMatchUpdate = false;
 
-      let existingCompiledContractIds: string[] = [];
+      const existingCompiledContractIds: string[] = [];
 
       existingVerifiedContractResult.rows.forEach(
         (existingVerifiedContract) => {
