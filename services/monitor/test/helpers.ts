@@ -28,10 +28,6 @@ export const nockInterceptorForVerification = (
   return nock(serverUrl)
     .post("/")
     .reply(function (uri, requestBody: any) {
-      console.log(
-        "Received request to Sourcify server: \n " +
-          JSON.stringify(requestBody, null, 2)
-      );
       expect(requestBody.chainId).to.equal(expectedChainId.toString());
       expect(requestBody.address).to.equal(expectedAddress);
       const { address, chainId } = requestBody;

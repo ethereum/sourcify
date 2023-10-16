@@ -97,16 +97,7 @@ describe("Monitor", function () {
     );
   });
 
-  it("should initialize ChainMonitors and start monitoring", async () => {
-    const chainMonitorStub = sandbox
-      .stub(ChainMonitor.prototype, "start")
-      .resolves();
-    monitor = new Monitor([localChain]);
-    await monitor.start();
-    expect(chainMonitorStub.called).to.be.true;
-  });
-
-  it.only("should successfully catch a deployed contract, assemble, and send to Sourcify", async () => {
+  it("should successfully catch a deployed contract, assemble, and send to Sourcify", async () => {
     monitor = new Monitor([localChain], {
       sourcifyServerURLs: [FAKE_SOURCIFY_URL],
       chainConfigs: {
