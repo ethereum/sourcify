@@ -53,7 +53,8 @@ export default class PendingContract {
       `Fetched metadata for ${this.address} on chain ${this.chainId} from ${this.metadataHash.origin}`
     );
     this.metadata = JSON.parse(metadataStr) as Metadata;
-    this.pendingSources = structuredClone(this.metadata.sources); // Copy, don't mutate original.
+    // TODO: use structuredClone of Node v17+ instead of JSON.parse(JSON.stringify()) after upgrading
+    this.pendingSources = JSON.parse(JSON.stringify(this.metadata.sources)); // Copy, don't mutate original.
 
     // Try to fetch all sources in parallel.
     const fetchPromises = Object.keys(this.pendingSources).map(
