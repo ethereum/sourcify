@@ -159,7 +159,11 @@ function deepMerge(obj1: any, obj2: any): any {
   const output = { ...obj1 };
   for (const [key, value] of Object.entries(obj2)) {
     if (value === Object(value) && !Array.isArray(value)) {
-      output[key] = deepMerge(obj1[key], value);
+      if (Object.prototype.hasOwnProperty.call(obj1, key)) {
+        output[key] = deepMerge(obj1[key], value);
+      } else {
+        output[key] = value;
+      }
     } else {
       output[key] = value;
     }
