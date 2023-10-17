@@ -29,9 +29,8 @@ paths:
                 files:
                   type: object
                   example:
-                    value:
-                      metadata.json: "{...}"
-                      SimpleStorage.sol: "// file"
+                    metadata.json: "{...}"
+                    SimpleStorage.sol: "// file"
                 creatorTxHash:
                   type: string
                 chosenContract:
