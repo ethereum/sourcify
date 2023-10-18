@@ -19,7 +19,11 @@ export const deployFromAbiAndBytecode = async (
   return contractAddress;
 };
 
-// Returns a nock scope that later can be checked with isDone() if it was called.
+/**
+ * Returns a nock scope that later can be checked with isDone() if it was called.
+ *
+ * I.e. check if a request to serverUrl was made with the expected chainId and address.
+ */
 export const nockInterceptorForVerification = (
   serverUrl: string,
   expectedChainId: number,

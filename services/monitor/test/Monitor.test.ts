@@ -16,7 +16,9 @@ import testLogger from "./testLogger";
 
 const GANACHE_PORT = 8545;
 const GANACHE_BLOCK_TIME_IN_SEC = 3;
-const FAKE_SOURCIFY_URL = "http://fakesourcifyserver.dev/server/";
+
+// We'll use a mock server to test if the monitor indeed sends the correct request to Sourcify
+const MOCK_SOURCIFY_SERVER = "http://mocksourcifyserver.dev/server/";
 
 const localChain = {
   chainId: 1337,
@@ -99,7 +101,7 @@ describe("Monitor", function () {
 
   it("should successfully catch a deployed contract, assemble, and send to Sourcify", async () => {
     monitor = new Monitor([localChain], {
-      sourcifyServerURLs: [FAKE_SOURCIFY_URL],
+      sourcifyServerURLs: [MOCK_SOURCIFY_SERVER],
       chainConfigs: {
         [localChain.chainId]: {
           startBlock: 0,
@@ -119,8 +121,9 @@ describe("Monitor", function () {
       []
     );
 
+    // Set up a nock interceptor to intercept the request to MOCK_SOURCIFY_SERVER url.
     const nockInterceptor = nockInterceptorForVerification(
-      FAKE_SOURCIFY_URL,
+      MOCK_SOURCIFY_SERVER,
       localChain.chainId,
       contractAddress
     );
@@ -133,7 +136,10 @@ describe("Monitor", function () {
       setTimeout(resolve, 3 * GANACHE_BLOCK_TIME_IN_SEC * 1000)
     );
 
-    expect(nockInterceptor.isDone(), `Server not called`).to.be.true;
+    expect(
+      nockInterceptor.isDone(),
+      `Server ${MOCK_SOURCIFY_SERVER} not called`
+    ).to.be.true;
   });
   // Add more test cases as needed
 });
