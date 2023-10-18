@@ -311,6 +311,7 @@ const LandingPage = () => {
           >
             <a
               href="https://matrix.to/#/#ethereum_source-verify:gitter.im"
+              rel="noreferrer"
               target="_blank"
               className="bg-white rounded-xl p-4 w-64 mb-4 text-center"
             >
@@ -324,6 +325,7 @@ const LandingPage = () => {
 
             <a
               href="https://discord.gg/6aqd9cfZ9s"
+              rel="noreferrer"
               target="_blank"
               className="bg-white rounded-xl p-4 w-64 mb-4 text-center"
             >
