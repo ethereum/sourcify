@@ -237,21 +237,21 @@
       "type": "node",
       "request": "launch",
       "name": "Mocha - Monitor",
-      "program": "${workspaceRoot}/node_modules/.bin/mocha",
-      "env": {
-        "TESTING": "true",
-      },
+      "cwd": "${workspaceFolder}/services/monitor",
+      "program": "./node_modules/.bin/mocha",
       "args": [
-        "${workspaceFolder}/test/monitor.js",
-        "--no-timeout"
+        "-r",
+        "ts-node/register",
+        "./test/**/*.test.ts",
+        "--no-timeout",
+        // Run a single test when debugging
+        // "--grep=v0.6.12",
+        "--exit",
       ],
-      "outFiles": [
-        "${workspaceFolder}/dist/**/*.js",
-        "${workspaceFolder}/packages/**/build/**/*.js",
-      ],
+      "sourceMaps": true,
       "smartStep": true,
       "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen"
+      // "internalConsoleOptions": "neverOpen"
     },
     {
       "type": "node",

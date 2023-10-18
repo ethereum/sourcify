@@ -23,6 +23,8 @@ import xdai from "../../assets/chains/xdai.png";
 import decode from "../../assets/decode.gif";
 import openSourceDecentralized from "../../assets/openSourceDecentralized.svg";
 import verification from "../../assets/verification.svg";
+import discord from "../../assets/discord.svg";
+import matrix from "../../assets/matrix.svg";
 import Button from "../../components/Button";
 import Header from "../../components/Header";
 import {
@@ -287,6 +289,68 @@ const LandingPage = () => {
                 strings.
               </p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="px-8 md:px-12 lg:px-24 bg-ceruleanBlue-500 py-16">
+        <div className="mt-4 flex flex-col md:flex-row items-center justify-center">
+          <div
+            className="flex-1 mb-8 md:mb-0 md:pr-8 text-center md:text-left"
+            data-aos="fade-right"
+          >
+            <h1 className="text-3xl text-white font-bold">Get in touch</h1>
+            <p className="text-lg text-white mt-4">
+              Join our community using the platform you prefer
+            </p>
+          </div>
+
+          <div
+            className="flex-1 flex flex-col items-center"
+            data-aos="fade-left"
+          >
+            <a
+              href="https://matrix.to/#/#ethereum_source-verify:gitter.im"
+              rel="noreferrer"
+              target="_blank"
+              className="bg-white rounded-xl p-4 w-64 mb-4 text-center"
+            >
+              <img
+                src={matrix}
+                alt="Matrix logo"
+                className="w-28 m-auto"
+                style={{ height: "35px" }}
+              />
+            </a>
+
+            <a
+              href="https://discord.gg/6aqd9cfZ9s"
+              rel="noreferrer"
+              target="_blank"
+              className="bg-white rounded-xl p-4 w-64 mb-4 text-center"
+            >
+              <img
+                src={discord}
+                alt="Discord logo"
+                className="w-28 m-auto"
+                style={{ height: "35px" }}
+              />
+            </a>
+
+            <a
+              href="irc://irc.w3.org:6667/#sourcify"
+              className="bg-white rounded-xl font-bold p-4 w-64 mb-4 text-center"
+              style={{ fontSize: "1.2rem" }}
+            >
+              #IRC
+            </a>
+
+            <a
+              className="bg-white rounded-xl font-bold p-4 w-64 text-center"
+              href="mailto:hello@sourcify.dev"
+            >
+              hello@sourcify.dev
+            </a>
           </div>
         </div>
       </section>

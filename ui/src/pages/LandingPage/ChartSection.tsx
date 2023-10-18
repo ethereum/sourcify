@@ -137,7 +137,8 @@ const ChartSection = () => {
   useEffect(() => {
     fetch(`${REPOSITORY_SERVER_URL}/stats.json`)
       .then((res) => res.json())
-      .then((json) => setStats(json));
+      .then((json) => setStats(json))
+      .catch(() => {});
   }, []);
 
   return (

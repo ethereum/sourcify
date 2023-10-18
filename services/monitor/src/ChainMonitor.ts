@@ -18,8 +18,8 @@ const NEW_BLOCK_EVENT = "new-block";
 /**
  * A monitor that periodically checks for new contracts on a single chain.
  */
-export class ChainMonitor extends EventEmitter {
-  private sourcifyChain: SourcifyChain;
+export default class ChainMonitor extends EventEmitter {
+  public sourcifyChain: SourcifyChain;
   private sourceFetchers: KnownDecentralizedStorageFetchers;
   private sourcifyServerURLs: string[];
 
@@ -31,6 +31,7 @@ export class ChainMonitor extends EventEmitter {
   private blockIntervalLowerLimit: number;
   private bytecodeInterval: number;
   private bytecodeNumberOfTries: number;
+  private running = false;
 
   constructor(
     sourcifyChain: SourcifyChain,
@@ -45,7 +46,7 @@ export class ChainMonitor extends EventEmitter {
     });
 
     this.chainLogger.info(
-      `Initializing chain monitor for chain with sourceFetchers: ${Object.keys(
+      `Creating ChainMonitor with sourceFetchers: ${Object.keys(
         sourceFetchers
       ).join(",")}`
     );
@@ -67,20 +68,31 @@ export class ChainMonitor extends EventEmitter {
   }
 
   start = async (): Promise<void> => {
+    this.chainLogger.info(`Starting ChainMonitor`);
     try {
-      const lastBlockNumber = await this.sourcifyChain.getBlockNumber();
-      const startBlock =
-        this.startBlock !== undefined ? this.startBlock : lastBlockNumber;
+      if (this.running) {
+        this.chainLogger.warn(`ChainMonitor already running`);
+        return;
+      }
+      this.running = true;
+      if (this.startBlock === undefined) {
+        this.chainLogger.info(
+          `No start block provided. Starting from last block`
+        );
+        this.startBlock = await this.sourcifyChain.getBlockNumber();
+      }
 
-      this.chainLogger.info(`Starting monitor on block ${startBlock}`);
+      this.chainLogger.info(
+        `Starting ChainMonitor on block ${this.startBlock}`
+      );
 
       // Start polling
-      this.pollBlocks(startBlock);
+      this.pollBlocks(this.startBlock);
 
       // Listen to new blocks
       this.on(NEW_BLOCK_EVENT, this.processBlockListener);
     } catch (err: any) {
-      this.chainLogger.error(`Error starting monitor: ${err.message}`);
+      this.chainLogger.error(`Error starting ChainMonitor: ${err.message}`);
     }
   };
 
@@ -88,7 +100,8 @@ export class ChainMonitor extends EventEmitter {
    * Stops the monitor after executing all pending requests.
    */
   stop = (): void => {
-    this.chainLogger.info(`Stopping monitor`);
+    this.chainLogger.info(`Stopping ChainMonitor`);
+    this.running = false;
     this.off(NEW_BLOCK_EVENT, this.processBlockListener);
   };
 
@@ -99,6 +112,9 @@ export class ChainMonitor extends EventEmitter {
   private pollBlocks = async (startBlockNumber: number) => {
     let currentBlockNumber = startBlockNumber;
     const pollNextBlock = async () => {
+      if (!this.running) {
+        return;
+      }
       try {
         this.chainLogger.debug(
           `Polling for block ${currentBlockNumber} with pause ${this.blockInterval}...`

@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [sourcify-server@1.1.1] - 2023-10-03
+## [sourcify-server@1.1.1] - 2023-10-09
 
 - Remove monitor code from the server directory `src/`
 - Update chains.json
