@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import fs from "fs";
 import Monitor from "./Monitor";
-import { MonitorConfig } from "./types";
+import { MonitorConfig, PassedMonitorConfig } from "./types";
 import path from "path";
 
 // Initialize a new commander object
@@ -54,7 +54,9 @@ function loadJSON(filePath: string, throws = true) {
   }
 }
 
-const config = loadJSON(options.configPath, false) as MonitorConfig | undefined;
+const config = loadJSON(options.configPath, false) as
+  | PassedMonitorConfig
+  | undefined;
 const monitoredChains = loadJSON(options.chainsPath) as
   | { chainId: number; rpc: string[]; name: string }[]
   | undefined;
