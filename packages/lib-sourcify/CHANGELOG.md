@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [@ethereum-sourcify/lib-sourcify@1.4.1] - 2023-10-18
+
+- Remove `typeRoots` from `tsconfig.json`
+
 ## [@ethereum-sourcify/lib-sourcify@1.4.0] - 2023-10-09
 
 - Bump `ethers` to `6.7.1`
