@@ -33,7 +33,7 @@
     "cov:lcov": "c8 report --reporter=lcov",
     "cov:send": "run-s cov:lcov && codecov -F server -f coverage/lcov.info",
     "cov:check": "c8 report && c8 check-coverage --lines 100 --functions 100 --branches 100",
-    "version": "lerna version --no-git-tag-version --no-push"
+    "version": "lerna version --no-push"
   },
   "workspaces": [
     "packages/*",
