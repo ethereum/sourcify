@@ -5,9 +5,9 @@ import {
   Match,
   /* ContextVariables, */
 } from "@ethereum-sourcify/lib-sourcify";
-import { SourcifyEventManager } from "../../common/SourcifyEventManager/SourcifyEventManager";
 import { getCreatorTx } from "./VerificationService-util";
-import { supportedChainsMap } from "../../sourcify-chains";
+import { ContractIsAlreadyBeingVerifiedError } from "../../common/errors/ContractIsAlreadyBeingVerifiedError";
+import { logger } from "../../common/loggerLoki";
 
 export interface IVerificationService {
   supportedChainsMap: SourcifyChainMap;
@@ -22,9 +22,27 @@ export interface IVerificationService {
 
 export class VerificationService implements IVerificationService {
   supportedChainsMap: SourcifyChainMap;
+  activeVerificationsByChainIdAddress: {
+    [chainIdAndAddress: string]: boolean;
+  } = {};
 
   constructor(supportedChainsMap: SourcifyChainMap) {
     this.supportedChainsMap = supportedChainsMap;
+  }
+
+  private throwIfContractIsAlreadyBeingVerified(
+    chainId: string,
+    address: string
+  ) {
+    if (
+      this.activeVerificationsByChainIdAddress[`${chainId}:${address}`] !==
+      undefined
+    ) {
+      logger.warn(
+        `The contract ${address} on chainId ${chainId} is already being verified, please wait`
+      );
+      throw new ContractIsAlreadyBeingVerifiedError(chainId, address);
+    }
   }
 
   public async verifyDeployed(
@@ -34,6 +52,9 @@ export class VerificationService implements IVerificationService {
     /* contextVariables?: ContextVariables, */
     creatorTxHash?: string
   ): Promise<Match> {
+    this.throwIfContractIsAlreadyBeingVerified(chainId, address);
+    this.activeVerificationsByChainIdAddress[`${chainId}:${address}`] = true;
+
     const sourcifyChain = this.supportedChainsMap[chainId];
     let match;
     try {
@@ -65,6 +86,8 @@ export class VerificationService implements IVerificationService {
         }
       }
       throw err;
+    } finally {
+      delete this.activeVerificationsByChainIdAddress[`${chainId}:${address}`];
     }
   }
 }
