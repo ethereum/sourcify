@@ -6,7 +6,6 @@ import {
   /* ContextVariables, */
 } from "@ethereum-sourcify/lib-sourcify";
 import { getCreatorTx } from "./utils/contract-creation-util";
-import { getCreatorTx } from "./VerificationService-util";
 import { ContractIsAlreadyBeingVerifiedError } from "../../common/errors/ContractIsAlreadyBeingVerifiedError";
 import { logger } from "../../common/loggerLoki";
 
@@ -57,35 +56,20 @@ export class VerificationService implements IVerificationService {
     this.activeVerificationsByChainIdAddress[`${chainId}:${address}`] = true;
 
     const sourcifyChain = this.supportedChainsMap[chainId];
-    let match;
+    const foundCreatorTxHash =
+      creatorTxHash ||
+      (await getCreatorTx(sourcifyChain, address)) ||
+      undefined;
+
     try {
-      match = await verifyDeployed(
+      return await verifyDeployed(
         checkedContract,
         sourcifyChain,
         address,
         /* contextVariables, */
-        creatorTxHash
+        foundCreatorTxHash
       );
-      return match;
     } catch (err) {
-      // Find the creator tx if it wasn't supplied and try verifying again with it.
-      if (
-        !creatorTxHash &&
-        err instanceof Error &&
-        err.message === "The deployed and recompiled bytecode don't match."
-      ) {
-        const foundCreatorTxHash = await getCreatorTx(sourcifyChain, address);
-        if (foundCreatorTxHash) {
-          match = await verifyDeployed(
-            checkedContract,
-            sourcifyChain,
-            address,
-            /* contextVariables, */
-            foundCreatorTxHash
-          );
-          return match;
-        }
-      }
       throw err;
     } finally {
       delete this.activeVerificationsByChainIdAddress[`${chainId}:${address}`];
