@@ -1862,12 +1862,15 @@ describe("Server", function () {
   describe("Verify repository endpoints", function () {
     const agent = chai.request.agent(server.app);
     it("should fetch files of specific address", async function () {
-      await agent
+      // Wait for the server to complete the previous contract verification
+      await waitSecs(1);
+      const res = await agent
         .post("/")
         .field("address", defaultContractAddress)
         .field("chain", defaultContractChain)
         .attach("files", metadataBuffer, "metadata.json")
         .attach("files", sourceBuffer, "Storage.sol");
+      console.log(res.body);
       const res0 = await agent.get(
         `/files/${defaultContractChain}/${defaultContractAddress}`
       );

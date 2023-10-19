@@ -1,10 +1,10 @@
 {
   "name": "sourcify-monitor",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "description": "A monitoring service to listen to chains and send detected new contracts to a Sourcify server",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha -r ts-node/register 'test/**/*.ts' --exit",
     "prebuild": "node -p \"'export const LIB_VERSION = ' + JSON.stringify(require('./package.json').name + '@' + require('./package.json').version) + ';'\" > src/version.ts",
     "build": "tsc",
     "start": "node dist/index.js",
@@ -27,8 +27,8 @@
   },
   "homepage": "https://github.com/ethereum/sourcify#readme",
   "dependencies": {
-    "@ethereum-sourcify/bytecode-utils": "^1.2.0",
-    "@ethereum-sourcify/lib-sourcify": "^1.3.2",
+    "@ethereum-sourcify/bytecode-utils": "^1.2.2",
+    "@ethereum-sourcify/lib-sourcify": "^1.4.2",
     "commander": "^11.0.0",
     "dotenv": "^16.3.1",
     "ethers": "^6.7.1",
@@ -36,8 +36,17 @@
     "winston": "^3.10.0"
   },
   "devDependencies": {
+    "@types/chai": "^4.3.6",
+    "@types/mocha": "^10.0.1",
     "@types/node": "^20.6.2",
     "@types/node-fetch": "^2.6.5",
+    "@types/sinon": "^10.0.16",
+    "chai": "^4.3.8",
+    "ganache": "^7.9.1",
+    "mocha": "^10.2.0",
+    "nock": "^13.3.3",
+    "sinon": "^16.0.0",
+    "ts-node": "^10.9.1",
     "typescript": "^5.2.2"
   }
 }

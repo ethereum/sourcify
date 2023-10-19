@@ -5,6 +5,7 @@ import { id as keccak256str } from "ethers";
 import { KnownDecentralizedStorageFetchers } from "./types";
 import assert from "assert";
 import dotenv from "dotenv";
+import nodeFetch from "node-fetch";
 import { LIB_VERSION } from "./version";
 
 dotenv.config();
@@ -52,7 +53,8 @@ export default class PendingContract {
       `Fetched metadata for ${this.address} on chain ${this.chainId} from ${this.metadataHash.origin}`
     );
     this.metadata = JSON.parse(metadataStr) as Metadata;
-    this.pendingSources = structuredClone(this.metadata.sources); // Copy, don't mutate original.
+    // TODO: use structuredClone of Node v17+ instead of JSON.parse(JSON.stringify()) after upgrading
+    this.pendingSources = JSON.parse(JSON.stringify(this.metadata.sources)); // Copy, don't mutate original.
 
     // Try to fetch all sources in parallel.
     const fetchPromises = Object.keys(this.pendingSources).map(
@@ -114,7 +116,7 @@ export default class PendingContract {
     }
 
     // Send to Sourcify server.
-    const response = await fetch(sourcifyServerURL, {
+    const response = await nodeFetch(sourcifyServerURL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -133,7 +135,7 @@ export default class PendingContract {
 
     if (response.status === 200) {
       logger.info(
-        `Contract ${this.address} sent to Sourcify server ${sourcifyServerURL}`
+        `Contract ${this.address} on chain ${this.chainId} sent to Sourcify server ${sourcifyServerURL}`
       );
       return response.json();
     } else {

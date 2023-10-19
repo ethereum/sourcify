@@ -416,11 +416,13 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     txRegex: getBlockscoutRegex(),
   },
   "9996": {
+    // Mind Smart Chain Mainnet
     supported: true,
     contractFetchAddress: "https://mainnet.mindscan.info/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
   "9977": {
+    // Mind Smart Chain Testnet
     supported: true,
     contractFetchAddress: "https://testnet.mindscan.info/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
@@ -941,12 +943,14 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       AVALANCHE_SUBNET_SUFFIX,
   },
   "2038": {
+    // Shrapnel Testnet
     supported: true,
     contractFetchAddress:
       "https://glacier-api.avax.network/v1/chains/2038/" +
       AVALANCHE_SUBNET_SUFFIX,
   },
   "2044": {
+    // Shrapnel Subnet
     supported: true,
     contractFetchAddress:
       "https://glacier-api.avax.network/v1/chains/2044/" +
@@ -976,6 +980,18 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: "https://explorer.qtestnet.org/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
+  "11235": {
+    // Haqq Mainnet
+    supported: true,
+    contractFetchAddress: "https://explorer.haqq.network/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
+  "54211": {
+    // Haqq Testnet
+    supported: true,
+    contractFetchAddress: "https://explorer.testedge2.haqq.network/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  }
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
