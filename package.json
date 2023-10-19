@@ -1,6 +1,6 @@
 {
   "name": "sourcify-server",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Solidity metadata-based re-compilation and source verification tool",
   "private": true,
   "repository": {
@@ -54,8 +54,8 @@
   },
   "homepage": "https://github.com/ethereum/sourcify#readme",
   "dependencies": {
-    "@ethereum-sourcify/bytecode-utils": "^1.2.1",
-    "@ethereum-sourcify/lib-sourcify": "^1.4.1",
+    "@ethereum-sourcify/bytecode-utils": "^1.2.2",
+    "@ethereum-sourcify/lib-sourcify": "^1.4.2",
     "@types/node-fetch": "^2.5.7",
     "abitype": "0.8.0",
     "bunyan": "^1.8.12",
