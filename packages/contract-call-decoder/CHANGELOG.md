@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [@ethereum-sourcify/contract-call-decoder@0.2.5] - 2023-10-19
+
+- Bump to sync the tags on master
+
 ## [@ethereum-sourcify/contract-call-decoder@0.2.4] - 2023-10-09
 
 - Remove package-lock.json as it is managed by root package.json by lerna

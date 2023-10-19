@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [@ethereum-sourcify/lib-sourcify@1.4.2] - 2023-10-19
+
+- Bump to sync the tags on master
+
 ## [@ethereum-sourcify/lib-sourcify@1.4.1] - 2023-10-18
 
 - Remove `typeRoots` from `tsconfig.json`
