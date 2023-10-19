@@ -153,6 +153,7 @@ export async function verifyDeployed(
       (match as Match).runtimeMatch = 'extra-file-input-bug';
       (match as Match).message =
         'It seems your contract has either Solidity v0.6.12 or v0.7.0, and the metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618';
+      return match;
     }
   }
 
