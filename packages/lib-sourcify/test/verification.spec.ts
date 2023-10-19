@@ -529,7 +529,8 @@ describe('lib-sourcify tests', () => {
       const replacedBytecode = replaceImmutableReferences(
         immutableReferences,
         runtimeBytecode,
-        []
+        [],
+        {}
       );
 
       expect(replacedBytecode).equals(recompiledRuntimeBytecode);
