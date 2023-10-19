@@ -61,6 +61,7 @@ export class VerificationService implements IVerificationService {
       (await getCreatorTx(sourcifyChain, address)) ||
       undefined;
 
+    /* eslint-disable no-useless-catch */
     try {
       return await verifyDeployed(
         checkedContract,
@@ -69,8 +70,11 @@ export class VerificationService implements IVerificationService {
         /* contextVariables, */
         foundCreatorTxHash
       );
+    } catch (e) {
+      throw e;
     } finally {
       delete this.activeVerificationsByChainIdAddress[`${chainId}:${address}`];
     }
   }
+  /* eslint-enable no-useless-catch */
 }
