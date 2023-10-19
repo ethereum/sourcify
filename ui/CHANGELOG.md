@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [@sourcify-ui@1.0.2] - 2023-10-18
+## [sourcify-ui@1.0.2] - 2023-10-18
 
 - Add a "Get in Touch" section to the landing page.
 
