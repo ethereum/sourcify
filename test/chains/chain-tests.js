@@ -1164,6 +1164,13 @@ describe("Test Supported Chains", function () {
     "2044/multicall3.metadata.json"
   );
   verifyContract(
+    "0x612C7dE4039655B9C9aE9A9B41f3A22319F0dF65",
+    "1115",
+    "Core Blockchain Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContract(
     "0xD5bB0035a178d56Abd23a39fB3666031084b2cb5",
     "1116",
     "Core Blockchain Mainnet",
@@ -1198,19 +1205,19 @@ describe("Test Supported Chains", function () {
   );
 
   verifyContract(
-      "0xbF33D2dA0F875D826ce1bA250F66b2785d48C113",
-      "11235",
-      "Haqq Mainnet",
-      ["shared/1_Storage.sol"],
-      "shared/1_Storage.metadata.json"
+    "0xbF33D2dA0F875D826ce1bA250F66b2785d48C113",
+    "11235",
+    "Haqq Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
   );
 
   verifyContract(
-      "0xbF33D2dA0F875D826ce1bA250F66b2785d48C113",
-      "54211",
-      "Haqq Testnet",
-      ["shared/1_Storage.sol"],
-      "shared/1_Storage.metadata.json"
+    "0xbF33D2dA0F875D826ce1bA250F66b2785d48C113",
+    "54211",
+    "Haqq Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
   );
 
   // Finally check if all the "supported: true" chains have been tested

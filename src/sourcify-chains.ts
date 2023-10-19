@@ -963,6 +963,11 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       "https://explorer-test.arthera.net/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
+  "1115": {
+    // Core Blockchain Testnet
+    supported: true,
+    contractFetchAddress: generateEtherscanCreatorTxAPI("1115"),
+  },
   "1116": {
     // Core Blockchain Mainnet
     supported: true,
@@ -1081,8 +1086,8 @@ export function getSortedChainsArray(
       getPrimarySortKey(a) > getPrimarySortKey(b)
         ? 1
         : getPrimarySortKey(b) > getPrimarySortKey(a)
-        ? -1
-        : 0
+          ? -1
+          : 0
     );
 
   const sortedChains = ethereumChains.concat(otherChains);
