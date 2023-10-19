@@ -69,8 +69,6 @@ export class VerificationService implements IVerificationService {
         /* contextVariables, */
         foundCreatorTxHash
       );
-    } catch (err) {
-      throw err;
     } finally {
       delete this.activeVerificationsByChainIdAddress[`${chainId}:${address}`];
     }
