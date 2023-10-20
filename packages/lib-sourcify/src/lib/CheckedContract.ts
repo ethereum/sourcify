@@ -563,7 +563,7 @@ function createJsonInputFromMetadata(
     'devdoc',
     'userdoc',
     'storageLayout',
-    'evm.legacyAssembly',
+    // 'evm.legacyAssembly',
     'evm.bytecode.object',
     'evm.bytecode.sourceMap',
     'evm.bytecode.linkReferences',
