@@ -301,7 +301,7 @@ function asyncExecSolc(
     const child = exec(
       `${solcPath} --standard-json`,
       {
-        maxBuffer: 1000 * 1000 * 10,
+        maxBuffer: 1000 * 1000 * 20,
       },
       (error, stdout, stderr) => {
         if (error) {
