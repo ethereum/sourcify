@@ -43,13 +43,13 @@ export async function sessionVerifyCreate2(
     abiEncodedConstructorArguments
   );
 
-  contractWrapper.status = match.status || "error";
+  contractWrapper.status = match.runtimeMatch || "error";
   contractWrapper.statusMessage = match.message;
   contractWrapper.storageTimestamp = match.storageTimestamp;
   contractWrapper.address = match.address;
   contractWrapper.chainId = "0";
 
-  if (match.status) {
+  if (match.runtimeMatch) {
     await services.repository.storeMatch(contract, match);
   }
 
@@ -72,10 +72,8 @@ export async function sessionPrecompileContract(req: Request, res: Response) {
     contractWrapper.contract.invalid
   );
 
-  const compilationResult = await checkedContract.recompile();
-
-  contractWrapper.contract.creationBytecode =
-    compilationResult.creationBytecode;
+  // While recompiling it also updates the creationBytecode in checkedContract
+  await checkedContract.recompile();
 
   res.send(getSessionJSON(session));
 }

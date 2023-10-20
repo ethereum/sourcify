@@ -1906,7 +1906,7 @@ describe("Server", function () {
     const { sourcifyChainsArray } = require("../dist/sourcify-chains");
     const {
       getCreatorTx,
-    } = require("../dist/server/services/VerificationService-util");
+    } = require("../dist/server/services/utils/contract-creation-util");
     it("should run getCreatorTx with chainId 40", async function () {
       const sourcifyChain = sourcifyChainsArray.find(
         (sourcifyChain) => sourcifyChain.chainId === 40

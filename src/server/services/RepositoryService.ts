@@ -8,6 +8,7 @@ import {
   StringMap,
   /* ContextVariables, */
   CheckedContract,
+  Transformation,
 } from "@ethereum-sourcify/lib-sourcify";
 import { MatchLevel, RepositoryTag } from "../types";
 import {
@@ -16,10 +17,12 @@ import {
   globSource,
 } from "ipfs-http-client";
 import path from "path";
-import config from "../../config";
 import { SourcifyEventManager } from "../../common/SourcifyEventManager/SourcifyEventManager";
 import { logger } from "../../common/loggerLoki";
 import { getAddress } from "ethers";
+import { id as keccak256str } from "ethers";
+import * as AllianceDatabase from "./utils/alliance-database-util";
+import { getMatchStatus } from "../common";
 
 /**
  * A type for specifying the match quality of files.
@@ -83,6 +86,7 @@ export interface IRepositoryService {
 export class RepositoryService implements IRepositoryService {
   repositoryPath: string;
   private ipfsClient?: IPFSHTTPClient;
+  private allianceDatabasePool?: any;
 
   constructor(repositoryPath: string) {
     this.repositoryPath = repositoryPath;
@@ -311,7 +315,8 @@ export class RepositoryService implements IRepositoryService {
         {
           address,
           chainId,
-          status: "perfect",
+          runtimeMatch: "perfect",
+          creationMatch: null,
           storageTimestamp,
         },
       ];
@@ -348,7 +353,8 @@ export class RepositoryService implements IRepositoryService {
         {
           address,
           chainId,
-          status: storage?.status,
+          runtimeMatch: storage?.status,
+          creationMatch: null,
           storageTimestamp: storage?.time,
           create2Args: storage?.create2Args,
         },
@@ -383,13 +389,22 @@ export class RepositoryService implements IRepositoryService {
   ): Promise<void | Match> {
     if (
       match.address &&
-      (match.status === "perfect" || match.status === "partial")
+      (match.runtimeMatch === "perfect" ||
+        match.runtimeMatch === "partial" ||
+        match.creationMatch === "perfect" ||
+        match.creationMatch === "partial")
     ) {
       // Delete the partial matches if we now have a perfect match instead.
-      if (match.status === "perfect") {
+      if (
+        match.runtimeMatch === "perfect" ||
+        match.creationMatch === "perfect"
+      ) {
         this.deletePartialIfExists(match.chainId, match.address);
       }
-      const matchQuality = this.statusToMatchQuality(match.status);
+      const matchQuality: MatchQuality = this.statusToMatchQuality(
+        getMatchStatus(match)
+      );
+
       this.storeSources(
         matchQuality,
         match.chainId,
@@ -459,7 +474,10 @@ export class RepositoryService implements IRepositoryService {
         );
       }
 
-      if (match.immutableReferences) {
+      if (
+        match.immutableReferences &&
+        Object.keys(match.immutableReferences).length > 0
+      ) {
         this.storeJSON(
           matchQuality,
           match.chainId,
@@ -470,11 +488,12 @@ export class RepositoryService implements IRepositoryService {
       }
 
       await this.addToIpfsMfs(matchQuality, match.chainId, match.address);
+      // await this.addToAllianceDatabase(contract, match);
       SourcifyEventManager.trigger("Verification.MatchStored", match);
-    } else if (match.status === "extra-file-input-bug") {
+    } else if (match.runtimeMatch === "extra-file-input-bug") {
       return match;
     } else {
-      throw new Error(`Unknown match status: ${match.status}`);
+      throw new Error(`Unknown match status: ${match.runtimeMatch}`);
     }
   }
 
@@ -654,5 +673,315 @@ export class RepositoryService implements IRepositoryService {
 
     sanitizedPath = path.format(parsedPath);
     return { sanitizedPath, originalPath };
+  }
+
+  async initAllianceDatabase(): Promise<boolean> {
+    // if the database is already initialized
+    if (this.allianceDatabasePool != undefined) {
+      return true;
+    }
+
+    try {
+      this.allianceDatabasePool = await AllianceDatabase.getPool();
+      return true;
+    } catch (e) {
+      logger.error(e);
+      return false;
+    }
+  }
+
+  private async addToAllianceDatabase(
+    recompiledContract: CheckedContract,
+    match: Match
+  ) {
+    if (
+      recompiledContract.runtimeBytecode === undefined ||
+      recompiledContract.creationBytecode === undefined ||
+      match.onchainRuntimeBytecode === undefined ||
+      match.onchainCreationBytecode === undefined
+    ) {
+      // Can only store contracts with both runtimeBytecode and creationBytecode
+      return;
+    }
+
+    if (match.creatorTxHash === undefined) {
+      // Can only store matches with creatorTxHash
+      return;
+    }
+
+    if (!(await this.initAllianceDatabase())) {
+      logger.warn(
+        "Cannot initialize AllianceDatabase, the database will not be updated"
+      );
+      return;
+    }
+
+    const keccak256OnchainCreationBytecode = keccak256str(
+      match.onchainCreationBytecode
+    );
+    const keccak256OnchainRuntimeBytecode = keccak256str(
+      match.onchainRuntimeBytecode
+    );
+
+    const keccak256RecompiledCreationBytecode = keccak256str(
+      recompiledContract.creationBytecode
+    );
+    const keccak256RecompiledRuntimeBytecode = keccak256str(
+      recompiledContract.runtimeBytecode
+    );
+
+    // Get all the verified contracts existing in the Database for these exact onchain bytecodes.
+    const existingVerifiedContractResult =
+      await AllianceDatabase.getVerifiedContractByBytecodeHashes(
+        this.allianceDatabasePool,
+        keccak256OnchainRuntimeBytecode,
+        keccak256OnchainCreationBytecode
+      );
+
+    const {
+      runtimeTransformations,
+      runtimeTransformationValues,
+      creationTransformations,
+      creationTransformationValues,
+    } = match;
+    const compilationTargetPath = Object.keys(
+      recompiledContract.metadata.settings.compilationTarget
+    )[0];
+    const compilationTargetName = Object.values(
+      recompiledContract.metadata.settings.compilationTarget
+    )[0];
+    const language = "solidity";
+    const compilerOutput =
+      recompiledContract.compilerOutput?.contracts[
+        recompiledContract.compiledPath
+      ][recompiledContract.name];
+
+    if (!(await recompiledContract.generateArtifacts())) {
+      logger.warn(
+        `Cannot generate contract artifacts for: ${recompiledContract.name} with address ${match.address} on chain ${match.chainId}`
+      );
+      return;
+    }
+
+    const compilationArtifacts = {
+      abi: compilerOutput?.abi || {},
+      userdoc: compilerOutput?.userdoc || {},
+      devdoc: compilerOutput?.devdoc || {},
+      storageLayout: compilerOutput?.storageLayout || {},
+    };
+    const creationCodeArtifacts = {
+      sourceMap: compilerOutput?.evm.bytecode.sourceMap || "",
+      linkReferences: compilerOutput?.evm.bytecode.linkReferences || {},
+      cborAuxdata: recompiledContract?.artifacts?.creationBytecodeCborAuxdata,
+    };
+    const runtimeCodeArtifacts = {
+      sourceMap: compilerOutput?.evm.deployedBytecode?.sourceMap || "",
+      linkReferences:
+        compilerOutput?.evm.deployedBytecode?.linkReferences || {},
+      immutableReferences:
+        compilerOutput?.evm.deployedBytecode?.immutableReferences || {},
+      cborAuxdata: recompiledContract?.artifacts?.runtimeBytecodeCborAuxdata,
+    };
+
+    const runtimeMatch =
+      match.runtimeMatch === "perfect" || match.runtimeMatch === "partial";
+    const creationMatch =
+      match.creationMatch === "perfect" || match.creationMatch === "partial";
+
+    if (existingVerifiedContractResult.rows.length === 0) {
+      try {
+        // Add recompiled bytecodes
+        await AllianceDatabase.insertCode(this.allianceDatabasePool, {
+          bytecodeHash: keccak256RecompiledCreationBytecode,
+          bytecode: recompiledContract.creationBytecode,
+        });
+        await AllianceDatabase.insertCode(this.allianceDatabasePool, {
+          bytecodeHash: keccak256RecompiledRuntimeBytecode,
+          bytecode: recompiledContract.runtimeBytecode,
+        });
+
+        // Add deployed bytecodes
+        await AllianceDatabase.insertCode(this.allianceDatabasePool, {
+          bytecodeHash: keccak256OnchainCreationBytecode,
+          bytecode: match.onchainCreationBytecode,
+        });
+        await AllianceDatabase.insertCode(this.allianceDatabasePool, {
+          bytecodeHash: keccak256OnchainRuntimeBytecode,
+          bytecode: match.onchainRuntimeBytecode,
+        });
+
+        // Add the onchain contract in contracts
+        const contractInsertResult = await AllianceDatabase.insertContract(
+          this.allianceDatabasePool,
+          {
+            creationBytecodeHash: keccak256OnchainCreationBytecode,
+            runtimeBytecodeHash: keccak256OnchainRuntimeBytecode,
+          }
+        );
+
+        // add the onchain contract in contract_deployments
+        await AllianceDatabase.insertContractDeployment(
+          this.allianceDatabasePool,
+          {
+            chainId: match.chainId,
+            address: match.address,
+            transactionHash: match.creatorTxHash,
+            contractId: contractInsertResult.rows[0].id,
+          }
+        );
+
+        // insert new recompiled contract
+        const compiledContractsInsertResult =
+          await AllianceDatabase.insertCompiledContract(
+            this.allianceDatabasePool,
+            {
+              compiler: recompiledContract.compiledPath,
+              version: recompiledContract.compilerVersion,
+              language,
+              name: recompiledContract.name,
+              fullyQualifiedName: `${compilationTargetPath}:${compilationTargetName}`,
+              compilationArtifacts,
+              sources: recompiledContract.solidity,
+              compilerSettings: recompiledContract.metadata.settings,
+              creationCodeHash: keccak256RecompiledCreationBytecode,
+              runtimeCodeHash: keccak256RecompiledRuntimeBytecode,
+              creationCodeArtifacts,
+              runtimeCodeArtifacts,
+            }
+          );
+
+        // insert new recompiled contract with newly added contract and compiledContract
+        await AllianceDatabase.insertVerifiedContract(
+          this.allianceDatabasePool,
+          {
+            compilationId: compiledContractsInsertResult.rows[0].id,
+            contractId: contractInsertResult.rows[0].id,
+            creationTransformations: JSON.stringify(creationTransformations),
+            creationTransformationValues: creationTransformationValues || {},
+            runtimeTransformations: JSON.stringify(runtimeTransformations),
+            runtimeTransformationValues: runtimeTransformationValues || {},
+            runtimeMatch,
+            creationMatch,
+          }
+        );
+      } catch (e) {
+        logger.error(
+          `Cannot insert verified_contract:\n${JSON.stringify({ match })}\n${e}`
+        );
+        return;
+      }
+    } else {
+      // Until the Alliance will decide a standard process to update:
+      // if we have a "better match" always insert
+      // "better match" = creation_transformations or runtime_transformations is better
+
+      let needRuntimeMatchUpdate = false;
+      let needCreationMatchUpdate = false;
+
+      const existingCompiledContractIds: string[] = [];
+
+      existingVerifiedContractResult.rows.forEach(
+        (existingVerifiedContract) => {
+          existingCompiledContractIds.push(
+            existingVerifiedContract.compilation_id
+          );
+          const hasRuntimeAuxdataTransformation =
+            existingVerifiedContract.runtime_transformations.some(
+              (trans: Transformation) => trans.reason === "auxdata"
+            );
+          const hasCreationAuxdataTransformation =
+            existingVerifiedContract.creation_transformations.some(
+              (trans: Transformation) => trans.reason === "auxdata"
+            );
+
+          if (
+            (hasRuntimeAuxdataTransformation &&
+              match.runtimeMatch === "perfect") ||
+            (existingVerifiedContract.runtime_match === false &&
+              (match.runtimeMatch === "perfect" ||
+                match.runtimeMatch === "partial"))
+          ) {
+            needRuntimeMatchUpdate = true;
+          }
+
+          if (
+            (hasCreationAuxdataTransformation &&
+              match.creationMatch === "perfect") ||
+            (existingVerifiedContract.creation_match === false &&
+              (match.creationMatch === "perfect" ||
+                match.creationMatch === "partial"))
+          ) {
+            needCreationMatchUpdate = true;
+          }
+        }
+      );
+
+      if (needRuntimeMatchUpdate || needCreationMatchUpdate) {
+        try {
+          // Add recompiled bytecodes
+          await AllianceDatabase.insertCode(this.allianceDatabasePool, {
+            bytecodeHash: keccak256RecompiledCreationBytecode,
+            bytecode: recompiledContract.creationBytecode,
+          });
+          await AllianceDatabase.insertCode(this.allianceDatabasePool, {
+            bytecodeHash: keccak256RecompiledRuntimeBytecode,
+            bytecode: recompiledContract.runtimeBytecode,
+          });
+
+          // insert new recompiled contract
+          const compiledContractsInsertResult =
+            await AllianceDatabase.insertCompiledContract(
+              this.allianceDatabasePool,
+              {
+                compiler: recompiledContract.compiledPath,
+                version: recompiledContract.compilerVersion,
+                language,
+                name: recompiledContract.name,
+                fullyQualifiedName: `${compilationTargetPath}:${compilationTargetName}`,
+                compilationArtifacts,
+                sources: recompiledContract.solidity,
+                compilerSettings: recompiledContract.metadata.settings,
+                creationCodeHash: keccak256RecompiledCreationBytecode,
+                runtimeCodeHash: keccak256RecompiledRuntimeBytecode,
+                creationCodeArtifacts,
+                runtimeCodeArtifacts,
+              }
+            );
+
+          // Check if we are trying to insert a compiled contract that already exists
+          // It could happen because of the check "needRuntimeMatchUpdate || needCreationMatchUpdate"
+          // When the Alliance will decide a standard process to update this check will be removed
+          if (
+            existingCompiledContractIds.includes(
+              compiledContractsInsertResult.rows[0].id
+            )
+          ) {
+            return;
+          }
+
+          // update verified contract with the newly added recompiled contract
+          await AllianceDatabase.insertVerifiedContract(
+            this.allianceDatabasePool,
+            {
+              compilationId: compiledContractsInsertResult.rows[0].id,
+              contractId: existingVerifiedContractResult.rows[0].contract_id,
+              creationTransformations: JSON.stringify(creationTransformations),
+              creationTransformationValues: creationTransformationValues || {},
+              runtimeTransformations: JSON.stringify(runtimeTransformations),
+              runtimeTransformationValues: runtimeTransformationValues || {},
+              runtimeMatch,
+              creationMatch,
+            }
+          );
+        } catch (e) {
+          logger.error(
+            `Cannot update verified_contract:\n${JSON.stringify({
+              match,
+            })}\n${e}`
+          );
+          return;
+        }
+      }
+    }
   }
 }
