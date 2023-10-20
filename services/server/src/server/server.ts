@@ -32,6 +32,7 @@ import { setLibSourcifyLogger } from "@ethereum-sourcify/lib-sourcify";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fileUpload = require("express-fileupload");
 import { rateLimit } from "express-rate-limit";
+import path from "path";
 
 const MemoryStore = createMemoryStore(session);
 
@@ -331,7 +332,7 @@ function getSessionOptions(): session.SessionOptions {
 if (require.main === module) {
   const server = new Server();
   server
-    .loadSwagger(yamljs.load("openapi.yaml"))
+    .loadSwagger(yamljs.load(path.join(__dirname, "..", "openapi.yaml")))
     .then((swaggerDocument: any) => {
       server.app.get("/api-docs/swagger.json", (req, res) =>
         res.json(swaggerDocument)

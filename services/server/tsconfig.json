@@ -14,5 +14,6 @@
       "ethers": ["./node_modules/ethers"]
     }
   },
-  "include": ["./src"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules/**"],
 }

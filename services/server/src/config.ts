@@ -4,7 +4,7 @@ import path from "path";
 import { SourcifyEventManager } from "./common/SourcifyEventManager/SourcifyEventManager";
 import { logger } from "./common/loggerLoki";
 
-dotenv.config({ path: path.resolve(__dirname, "..", "environments/.env") });
+dotenv.config({ path: path.resolve(__dirname, "..", ".env") });
 
 const setRepositoryPath = () => {
   if (process.env.MOCK_REPOSITORY) return process.env.MOCK_REPOSITORY;

@@ -16,7 +16,7 @@ import { FetchRequest } from "ethers";
 const allChains = chainsRaw as Chain[];
 
 dotenv.config({
-  path: path.resolve(__dirname, "..", "..", "..", "environments/.env"),
+  path: path.resolve(__dirname, "..", "..", "..", ".env"),
 });
 
 const ETHERSCAN_REGEX = ["at txn.*href=.*/tx/(0x.{64})"]; // save as string to be able to return the txRegex in /chains response. If stored as RegExp returns {}
@@ -989,9 +989,10 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "54211": {
     // Haqq Testnet
     supported: true,
-    contractFetchAddress: "https://explorer.testedge2.haqq.network/" + BLOCKSCOUT_SUFFIX,
+    contractFetchAddress:
+      "https://explorer.testedge2.haqq.network/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
-  }
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};

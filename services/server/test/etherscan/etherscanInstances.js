@@ -9,10 +9,10 @@ process.env.AUTH0_ISSUERBASEURL = "https://dev-cpy28yiw0u88mjsd.us.auth0.com";
 process.env.AUTH0_TOKENSIGNINGALG = "RS256";
 process.env.AUTH0_CLIENTID = "epipuQWJL67dVggPvxNmAy40ggzNum9F";
 
-const Server = require("../../dist/server/server").Server;
+const Server = require("../../../../dist/server/server").Server;
 const rimraf = require("rimraf");
 const testContracts = require("../helpers/etherscanInstanceContracts.json");
-const { sourcifyChainsMap } = require("../../dist/sourcify-chains");
+const { sourcifyChainsMap } = require("../../../../dist/sourcify-chains");
 const util = require("util");
 const { verifyAndAssertEtherscan } = require("../helpers/helpers");
 

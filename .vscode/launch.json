@@ -8,11 +8,11 @@
       "type": "node",
       "request": "launch",
       "name": "Server",
-      "program": "${workspaceFolder}/dist/server/server.js",
-      "envFile": "${workspaceFolder}/environments/.env",
+      "program": "${workspaceFolder}/services/server/dist/server/server.js",
+      "envFile": "${workspaceFolder}/services/server/.env",
       "preLaunchTask": "npm: build:lerna",
       "outFiles": [
-        "${workspaceFolder}/dist/**/*.js",
+        "${workspaceFolder}/services/server/dist/**/*.js",
         "${workspaceFolder}/packages/**/build/**/*.js"
       ],
       "env": {
@@ -26,10 +26,10 @@
       "type": "node",
       "request": "launch",
       "name": "Server - without build",
-      "program": "${workspaceFolder}/dist/server/server.js",
-      "envFile": "${workspaceFolder}/environments/.env",
+      "program": "${workspaceFolder}/services/server/dist/server/server.js",
+      "envFile": "${workspaceFolder}/services/server/.env",
       "outFiles": [
-        "${workspaceFolder}/dist/**/*.js",
+        "${workspaceFolder}/services/server/dist/**/*.js",
         "${workspaceFolder}/packages/**/build/**/*.js"
       ],
       "env": {
