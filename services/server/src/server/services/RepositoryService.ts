@@ -128,6 +128,7 @@ export class RepositoryService implements IRepositoryService {
     files.forEach((file) => {
       const relativePath =
         "contracts/" + file.path.split("/contracts")[1].substr(1);
+      // TODO: Don't use REPOSITORY_SERVER_URL but a relative URL to the server. Requires a breaking chage to the API
       urls.push(`${process.env.REPOSITORY_SERVER_URL}/${relativePath}`);
     });
     return urls;
