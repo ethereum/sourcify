@@ -4,8 +4,6 @@ networks:
   source-verify:
 
 x-project-base: &project-base
-  env_file:
-    - .env
   restart: always
   networks:
     - source-verify
