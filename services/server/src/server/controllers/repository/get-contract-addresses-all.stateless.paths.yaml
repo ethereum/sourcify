@@ -1,0 +1,52 @@
+openapi: "3.0.0"
+
+paths:
+  /files/contracts/{chain}:
+    get:
+      summary: Get contract addresses (full or partial match)
+      description: Returns all verified contracts from the repository for the desired chain. Searches for full and partial matches.
+      tags:
+        - Repository
+      parameters:
+        - name: chain
+          in: path
+          required: true
+          schema:
+            type: string
+            format: sourcify-chainId
+      responses:
+        "200":
+          description: Chain is available as a full match or partial match in the repository
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  full:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      [
+                        "0x1fE5d745beABA808AAdF52057Dd7AAA47b42cFD0",
+                        "0xE9c31091868d68598Ac881738D159A63532d12f9",
+                      ]
+                  partial:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      [
+                        "0x0000A906D248Cc99FB8CB296C8Ad8C6Df05431c9",
+                        "0xE9c31091868d68598Ac881738D159A63532d12f9",
+                      ]
+        "404":
+          description: Chain is not available as both full match or partial match in the repository
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Contracts have not been found!"
