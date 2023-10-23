@@ -58,7 +58,7 @@ export default class Monitor extends EventEmitter {
       } else {
         return new SourcifyChain({
           chainId: chain.chainId,
-          rpc: authenticateRpcs(chain.rpc),
+          rpc: authenticateRpcs(chain.chainId, chain.rpc),
           name: chain.name,
           supported: true,
         });
@@ -130,13 +130,35 @@ export default class Monitor extends EventEmitter {
   };
 }
 
-function authenticateRpcs(rpcs: string[]) {
+function authenticateRpcs(chainId: number, rpcs: string[]) {
   return rpcs.map((rpcUrl) => {
     if (rpcUrl.includes("{INFURA_API_KEY}") && process.env.INFURA_API_KEY) {
       return rpcUrl.replace("{INFURA_API_KEY}", process.env.INFURA_API_KEY);
     }
-    if (rpcUrl.includes("{ALCHEMY_API_KEY}") && process.env.ALCHEMY_API_KEY) {
-      return rpcUrl.replace("{ALCHEMY_API_KEY}", process.env.ALCHEMY_API_KEY);
+    if (rpcUrl.includes("{ALCHEMY_API_KEY}")) {
+      let alchemyApiKey;
+      switch (chainId) {
+        case 10 /** Optimism Mainnet */:
+        case 420 /** Optimism Goerli */:
+        case 69 /** Optimism Kovan */:
+          alchemyApiKey =
+            process.env["ALCHEMY_API_KEY_OPTIMISM"] ||
+            process.env["ALCHEMY_API_KEY"];
+          break;
+        case 42161 /** Arbitrum One Mainnet */:
+        case 421613 /** Arbitrum Goerli Testnet */:
+        case 421611 /** Arbitrum Rinkeby Testnet */:
+          alchemyApiKey =
+            process.env["ALCHEMY_API_KEY_ARBITRUM"] ||
+            process.env["ALCHEMY_API_KEY"];
+          break;
+        default:
+          alchemyApiKey = process.env["ALCHEMY_API_KEY"];
+          break;
+      }
+      if (alchemyApiKey) {
+        return rpcUrl.replace("{ALCHEMY_API_KEY}", alchemyApiKey);
+      }
     }
     if (rpcUrl.includes("ethpandaops.io")) {
       const ethersFetchReq = new FetchRequest(rpcUrl);
