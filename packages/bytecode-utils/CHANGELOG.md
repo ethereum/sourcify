@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [@ethereum-sourcify/bytecode-utils@1.2.2] - 2023-10-19
+
+- Bump to sync the tags on master
+
 ## [@ethereum-sourcify/bytecode-utils@1.2.1] - 2023-10-09
 
 - Define `experimental`, `bzzr0`, and `bzzr1` fields explicitly in `DecodedObject`

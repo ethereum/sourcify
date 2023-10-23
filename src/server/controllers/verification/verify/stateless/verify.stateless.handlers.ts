@@ -12,6 +12,7 @@ import {
 } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError, NotFoundError } from "../../../../../common/errors";
 import { StatusCodes } from "http-status-codes";
+import { getResponseMatchFromMatch } from "../../../../common";
 
 export async function legacyVerifyEndpoint(
   req: LegacyVerifyRequest,
@@ -73,7 +74,7 @@ export async function legacyVerifyEndpoint(
       req.body.creatorTxHash
     );
     // Send to verification again with all source files.
-    if (match.status === "extra-file-input-bug") {
+    if (match.runtimeMatch === "extra-file-input-bug") {
       const contractWithAllSources = await useAllSources(contract, inputFiles);
       const tempMatch = await services.verification.verifyDeployed(
         contractWithAllSources,
@@ -81,15 +82,18 @@ export async function legacyVerifyEndpoint(
         req.body.address,
         req.body.creatorTxHash
       );
-      if (tempMatch.status === "perfect") {
+      if (
+        tempMatch.runtimeMatch === "perfect" ||
+        tempMatch.creationMatch === "perfect"
+      ) {
         await services.repository.storeMatch(contract, tempMatch);
-        return res.send({ result: [tempMatch] });
+        return res.send({ result: [getResponseMatchFromMatch(tempMatch)] });
       }
     }
-    if (match.status) {
+    if (match.runtimeMatch || match.creationMatch) {
       await services.repository.storeMatch(contract, match);
     }
-    return res.send({ result: [match] }); // array is an old expected behavior (e.g. by frontend)
+    return res.send({ result: [getResponseMatchFromMatch(match)] }); // array is an old expected behavior (e.g. by frontend)
   } catch (error: any) {
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)

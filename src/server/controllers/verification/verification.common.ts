@@ -22,7 +22,7 @@ import QueryString from "qs";
 import fetch from "node-fetch";
 import { IVerificationService } from "../../services/VerificationService";
 import { IRepositoryService } from "../../services/RepositoryService";
-import { ContractMeta, ContractWrapper } from "../../common";
+import { ContractMeta, ContractWrapper, getMatchStatus } from "../../common";
 import { auth } from "express-oauth2-jwt-bearer";
 import rateLimit from "express-rate-limit";
 import config from "../../../config";
@@ -312,7 +312,7 @@ export const verifyContractsInSession = async (
       );
 
       if (found.length) {
-        contractWrapper.status = found[0].status || "error";
+        contractWrapper.status = found[0].runtimeMatch || "error";
         contractWrapper.statusMessage = found[0].message;
         contractWrapper.storageTimestamp = found[0].storageTimestamp;
         continue;
@@ -350,7 +350,7 @@ export const verifyContractsInSession = async (
         creatorTxHash
       );
       // Send to verification again with all source files.
-      if (match.status === "extra-file-input-bug") {
+      if (match.runtimeMatch === "extra-file-input-bug") {
         // Session inputFiles are encoded base64. Why?
         const pathBufferInputFiles: PathBuffer[] = Object.values(
           session.inputFiles
@@ -368,23 +368,29 @@ export const verifyContractsInSession = async (
           address as string
           /* contextVariables */
         );
-        if (tempMatch.status === "perfect" || tempMatch.status === "partial") {
+        if (
+          tempMatch.runtimeMatch === "perfect" ||
+          tempMatch.runtimeMatch === "partial" ||
+          tempMatch.creationMatch === "perfect" ||
+          tempMatch.creationMatch === "partial"
+        ) {
           match = tempMatch;
         }
       }
     } catch (error: any) {
       match = {
         chainId: contractWrapper.chainId as string,
-        status: null,
+        runtimeMatch: null,
+        creationMatch: null,
         address: contractWrapper.address as string,
         message: error.message,
       };
     }
 
-    contractWrapper.status = match.status || "error";
+    contractWrapper.status = getMatchStatus(match) || "error";
     contractWrapper.statusMessage = match.message;
     contractWrapper.storageTimestamp = match.storageTimestamp;
-    if (match.status) {
+    if (match.runtimeMatch || match.creationMatch) {
       await repositoryService.storeMatch(checkedContract, match);
     }
   }
