@@ -60,7 +60,19 @@ export async function verifyDeployed(
       checkedContract.name
     } at address ${address} on chain ${sourcifyChain.chainId.toString()}`
   );
-  const recompiled = await checkedContract.recompile(forceEmscripten);
+
+  let useEmscripten = forceEmscripten;
+
+  // See https://github.com/ethereum/sourcify/issues/1159
+  // The nightlies and pre-0.4.10 platform binaries are not available
+  if (
+    lt(checkedContract.metadata.compiler.version, '0.4.10') ||
+    checkedContract.metadata.compiler.version.includes('nightly')
+  ) {
+    useEmscripten = true;
+  }
+
+  const recompiled = await checkedContract.recompile(useEmscripten);
 
   if (
     recompiled.runtimeBytecode === '0x' ||
