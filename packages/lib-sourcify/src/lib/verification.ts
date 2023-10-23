@@ -83,38 +83,12 @@ export async function verifyDeployed(
   }
 
   // Try to match with deployed bytecode directly
-  matchWithRuntimeBytecode(
-    match,
-    recompiled.runtimeBytecode,
-    runtimeBytecode,
-    recompiled.immutableReferences
-  );
-  if (match.runtimeMatch === 'partial') {
-    match = await tryToFindPerfectMetadataAndMatch(
-      checkedContract,
+  try {
+    matchWithRuntimeBytecode(
+      match,
+      recompiled.runtimeBytecode,
       runtimeBytecode,
-      match,
-      async (match, recompiled) => {
-        matchWithRuntimeBytecode(
-          match,
-          recompiled.runtimeBytecode,
-          runtimeBytecode
-        );
-      },
-      'runtimeMatch'
-    );
-  }
-
-  // Try to match with creationTx, if available
-  if (creatorTxHash) {
-    const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
-    await matchWithCreationTx(
-      match,
-      recompiled.creationBytecode,
-      sourcifyChain,
-      address,
-      creatorTxHash,
-      recompiledMetadata
+      recompiled.immutableReferences
     );
     if (match.runtimeMatch === 'partial') {
       match = await tryToFindPerfectMetadataAndMatch(
@@ -122,60 +96,114 @@ export async function verifyDeployed(
         runtimeBytecode,
         match,
         async (match, recompiled) => {
-          await matchWithCreationTx(
+          matchWithRuntimeBytecode(
             match,
-            recompiled.creationBytecode,
-            sourcifyChain,
-            address,
-            creatorTxHash,
-            recompiledMetadata
+            recompiled.runtimeBytecode,
+            runtimeBytecode
           );
         },
-        'creationMatch'
+        'runtimeMatch'
       );
     }
+  } catch (e: any) {
+    logWarn(
+      `Error while matching with runtime bytecode for contract ${address} on chain ${sourcifyChain.chainId}: ` +
+        e.message
+    );
+  }
+
+  try {
+    // Try to match with creationTx, if available
+    if (creatorTxHash) {
+      const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
+      await matchWithCreationTx(
+        match,
+        recompiled.creationBytecode,
+        sourcifyChain,
+        address,
+        creatorTxHash,
+        recompiledMetadata
+      );
+      if (match.runtimeMatch === 'partial') {
+        match = await tryToFindPerfectMetadataAndMatch(
+          checkedContract,
+          runtimeBytecode,
+          match,
+          async (match, recompiled) => {
+            await matchWithCreationTx(
+              match,
+              recompiled.creationBytecode,
+              sourcifyChain,
+              address,
+              creatorTxHash,
+              recompiledMetadata
+            );
+          },
+          'creationMatch'
+        );
+      }
+    }
+  } catch (e: any) {
+    logWarn(
+      `Error while matching with creation tx for contract ${address} on chain ${sourcifyChain.chainId}: ` +
+        e.message
+    );
   }
 
   // Case when extra unused files in compiler input cause different bytecode (https://github.com/ethereum/sourcify/issues/618)
-  if (
-    match.runtimeMatch === null &&
-    match.creationMatch === null &&
-    semverSatisfies(
-      checkedContract.metadata.compiler.version,
-      '=0.6.12 || =0.7.0'
-    ) &&
-    checkedContract.metadata.settings.optimizer?.enabled
-  ) {
-    const [, deployedAuxdata] = splitAuxdata(runtimeBytecode);
-    const [, recompiledAuxdata] = splitAuxdata(recompiled.runtimeBytecode);
-    // Metadata hashes match but bytecodes don't match.
-    if (deployedAuxdata === recompiledAuxdata) {
-      (match as Match).runtimeMatch = 'extra-file-input-bug';
-      (match as Match).message =
-        'It seems your contract has either Solidity v0.6.12 or v0.7.0, and the metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618';
-      return match;
+  try {
+    if (
+      match.runtimeMatch === null &&
+      match.creationMatch === null &&
+      semverSatisfies(
+        checkedContract.metadata.compiler.version,
+        '=0.6.12 || =0.7.0'
+      ) &&
+      checkedContract.metadata.settings.optimizer?.enabled
+    ) {
+      const [, deployedAuxdata] = splitAuxdata(runtimeBytecode);
+      const [, recompiledAuxdata] = splitAuxdata(recompiled.runtimeBytecode);
+      // Metadata hashes match but bytecodes don't match.
+      if (deployedAuxdata === recompiledAuxdata) {
+        (match as Match).runtimeMatch = 'extra-file-input-bug';
+        (match as Match).message =
+          'It seems your contract has either Solidity v0.6.12 or v0.7.0, and the metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618';
+        return match;
+      }
     }
+  } catch (e: any) {
+    logWarn(
+      `Error while checking for extra-file-input-bug for contract ${address} on chain ${sourcifyChain.chainId}: ` +
+        e.message
+    );
   }
 
-  // Handle when <0.8.21 and with viaIR and with optimizer disabled https://github.com/ethereum/sourcify/issues/1088
-  if (
-    match.runtimeMatch === null &&
-    match.creationMatch === null &&
-    lt(checkedContract.metadata.compiler.version, '0.8.21') &&
-    !checkedContract.metadata.settings.optimizer?.enabled &&
-    checkedContract.metadata.settings?.viaIR
-  ) {
-    logInfo(
-      `Forcing compiling with the Emscripten compiler to match the deployed bytecode for ${
-        checkedContract.name
-      } to verify at ${address} on chain ${sourcifyChain.chainId.toString()}`
-    );
-    return verifyDeployed(
-      checkedContract,
-      sourcifyChain,
-      address,
-      creatorTxHash,
-      true // Force compiling with Emscripten compiler
+  try {
+    // Handle when <0.8.21 and with viaIR and with optimizer disabled https://github.com/ethereum/sourcify/issues/1088
+    if (
+      match.runtimeMatch === null &&
+      match.creationMatch === null &&
+      lt(checkedContract.metadata.compiler.version, '0.8.21') &&
+      !checkedContract.metadata.settings.optimizer?.enabled &&
+      checkedContract.metadata.settings?.viaIR
+    ) {
+      logInfo(
+        `Forcing compiling with the Emscripten compiler to match the deployed bytecode for ${
+          checkedContract.name
+        } to verify at ${address} on chain ${sourcifyChain.chainId.toString()}: `
+      );
+      return verifyDeployed(
+        checkedContract,
+        sourcifyChain,
+        address,
+        creatorTxHash,
+        true // Force compiling with Emscripten compiler
+      );
+    }
+  } catch (e: any) {
+    logWarn(
+      `Error while handling "<0.8.21 and viaIR" bug for contract ${address} on chain ${sourcifyChain.chainId}: ` +
+        e.message
     );
   }
 
