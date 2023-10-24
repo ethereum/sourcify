@@ -1,7 +1,0 @@
-version: "3.7"
-services:
-  ipfs:
-    image: ethereum/source-verify:ipfs-${TAG}
-    build:
-      context: ../services/ipfs/server/
-      dockerfile: ./Dockerfile.ipfs

@@ -4,12 +4,6 @@ version: 2.1
 
 # Pipeline parameters to run module builds if related files have been changed
 parameters:
-  run-build-ipfs:
-    type: boolean
-    default: false
-  run-build-s3:
-    type: boolean
-    default: false
   run-build-repository:
     type: boolean
     default: false
@@ -72,12 +66,6 @@ aliases:
                   - ./*
       # If no build is needed, echo 0 to run as success 
       - run: echo 0
-  - &filter-base
-    filters:
-      branches:
-        only:
-          - staging
-          - master
   - &monitor-e2e-base
     working_directory: ~/source-verify
     steps:
@@ -117,9 +105,7 @@ workflows:
             - equal: [staging, << pipeline.git.branch >>]
         - or:
             [
-              << pipeline.parameters.run-build-ipfs >>,
               << pipeline.parameters.run-build-repository >>,
-              << pipeline.parameters.run-build-s3 >>,
               << pipeline.parameters.run-build-server >>,
               << pipeline.parameters.run-build-monitor >>,
               << pipeline.parameters.run-build-packages >>,
@@ -135,16 +121,11 @@ workflows:
                 - master
           requires:
             - tests-node-v16
-      - build-push-ipfs:
-          run-build: << pipeline.parameters.run-build-ipfs >>
-          SERVICE: "ipfs"
       - build-push-monitor:
           run-build: << pipeline.parameters.run-build-monitor >>
           run-build-2: << pipeline.parameters.run-build-packages >> # monitor depends on packages
       - build-push-repository:
           run-build: << pipeline.parameters.run-build-repository >>
-      - build-push-s3:
-          run-build: << pipeline.parameters.run-build-s3 >>
       - build-push-server:
           run-build: << pipeline.parameters.run-build-server >>
           run-build-2: << pipeline.parameters.run-build-packages >> # server depends on packages
@@ -152,10 +133,8 @@ workflows:
           run-build: << pipeline.parameters.run-build-ui >>
       - deploy:
           requires:
-            - build-push-ipfs
             - build-push-monitor
             - build-push-repository
-            - build-push-s3
             - build-push-server
             - build-push-ui
       - monitor-e2e-goerli:
@@ -191,11 +170,6 @@ workflows:
 ### JOB DEFINITIONS ###
 #######################
 jobs:
-  build-push-ipfs:
-    <<: *build-base
-    environment:
-      SERVICE: "ipfs"
-    
   build-push-monitor:
     <<: *build-base
     environment:
@@ -204,10 +178,6 @@ jobs:
     <<: *build-base
     environment:
       SERVICE: "repository"
-  build-push-s3:
-    <<: *build-base
-    environment:
-      SERVICE: "s3"
   build-push-server:
     <<: *build-base
     environment:

@@ -37,8 +37,6 @@ workflows:
           name: check-updated-modules
           # h5ai-nginx without /.* part since it's a submodule. git diff outputs the folder name only, not files under it
           mapping: |
-            services/ipfs/.* run-build-ipfs true
-            services/s3sync/.* run-build-s3 true
             services/monitor/.* run-build-monitor true
             services/server/.* run-build-server true
             h5ai-nginx run-build-repository true 
