@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [sourcify-monitor@1.1.2] - 2023-10-23
+
+- Handles Alchemy API keys for Optimism and Arbitrum
+
 ## [sourcify-monitor@1.1.1] - 2023-10-19
 
 - Bump to sync the tags on master
