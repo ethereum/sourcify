@@ -3,7 +3,6 @@
   "private": true,
   "version": "1.0.0",
   "description": "Monorepo containing all Sourcify packages, and services",
-  "main": "index.js",
   "workspaces": [
     "packages/*",
     "services/*",
