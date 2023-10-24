@@ -2,12 +2,36 @@
 import path from 'path';
 import fs from 'fs';
 import { exec, spawnSync } from 'child_process';
-import { fetchWithTimeout } from './utils';
 import { StatusCodes } from 'http-status-codes';
-import { CompilerOutput, JsonInput, PathBuffer } from './types';
+import { CompilerOutput, JsonInput, PathBuffer } from '../../src';
 import { logDebug, logError, logInfo, logWarn } from './logger';
 import semver from 'semver';
 import { Worker, WorkerOptions } from 'worker_threads';
+
+require('isomorphic-fetch');
+interface RequestInitTimeout extends RequestInit {
+  timeout?: number;
+}
+
+export async function fetchWithTimeout(
+  resource: string,
+  options: RequestInitTimeout = {}
+) {
+  const { timeout = 10000 } = options;
+
+  const controller = new AbortController();
+  const id = setTimeout(() => {
+    logWarn(`Aborting request ${resource} because of timout ${timeout}`);
+    controller.abort();
+  }, timeout);
+  const response = await fetch(resource, {
+    ...options,
+    signal: controller.signal,
+  });
+  clearTimeout(id);
+  return response;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const solc = require('solc');
 

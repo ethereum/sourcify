@@ -14,13 +14,13 @@ import {
   StringMap,
 } from './types';
 import semver from 'semver';
-import { useCompiler } from './solidityCompiler';
 import { fetchWithTimeout } from './utils';
 import { storeByHash } from './validation';
 import { decode as decodeBytecode } from '@ethereum-sourcify/bytecode-utils';
 import { ipfsHash } from './hashFunctions/ipfsHash';
 import { swarmBzzr0Hash, swarmBzzr1Hash } from './hashFunctions/swarmHash';
 import { logError, logInfo, logWarn } from './logger';
+import { ISolidityCompiler } from './ISolidityCompiler';
 
 // TODO: find a better place for these constants. Reminder: this sould work also in the browser
 const IPFS_PREFIX = 'dweb:/ipfs/';
@@ -29,6 +29,9 @@ const FETCH_TIMEOUT = parseInt(process.env.FETCH_TIMEOUT || '') || 3000; // ms
  * Abstraction of a checked solidity contract. With metadata and source (solidity) files.
  */
 export class CheckedContract {
+  /** The solidity compiler used to compile the checked contract */
+  solidityCompiler: ISolidityCompiler;
+
   /** Object containing contract metadata keys and values. */
   metadata!: Metadata;
 
@@ -102,11 +105,13 @@ export class CheckedContract {
   }
 
   public constructor(
+    solidityCompiler: ISolidityCompiler,
     metadata: Metadata,
     solidity: StringMap,
     missing: MissingSources = {},
     invalid: InvalidSources = {}
   ) {
+    this.solidityCompiler = solidityCompiler;
     this.missing = missing;
     this.invalid = invalid;
     this.initSolcJsonInput(metadata, solidity);
@@ -219,6 +224,7 @@ export class CheckedContract {
         const compiledMetadataIpfsCID = ipfsHash(JSON.stringify(metadata));
         if (decodedAuxdata?.ipfs === compiledMetadataIpfsCID) {
           return new CheckedContract(
+            this.solidityCompiler,
             metadata,
             getSolidityFromPathContents(sources)
           );
@@ -228,6 +234,7 @@ export class CheckedContract {
         const compiledMetadataBzzr1 = swarmBzzr1Hash(JSON.stringify(metadata));
         if (decodedAuxdata?.bzzr1 === compiledMetadataBzzr1) {
           return new CheckedContract(
+            this.solidityCompiler,
             metadata,
             getSolidityFromPathContents(sources)
           );
@@ -237,6 +244,7 @@ export class CheckedContract {
         const compiledMetadataBzzr0 = swarmBzzr0Hash(JSON.stringify(metadata));
         if (decodedAuxdata?.bzzr0 === compiledMetadataBzzr0) {
           return new CheckedContract(
+            this.solidityCompiler,
             metadata,
             getSolidityFromPathContents(sources)
           );
@@ -259,7 +267,7 @@ export class CheckedContract {
     Object.values(newCompilerSettings.solcJsonInput.sources).forEach(
       (source) => (source.content += ' ')
     );
-    return await useCompiler(
+    return await this.solidityCompiler.compile(
       newCompilerSettings.version,
       newCompilerSettings.solcJsonInput,
       newCompilerSettings.forceEmscripten
@@ -322,7 +330,7 @@ export class CheckedContract {
 
     const version = this.metadata.compiler.version;
 
-    this.compilerOutput = await useCompiler(
+    this.compilerOutput = await this.solidityCompiler.compile(
       version,
       this.solcJsonInput,
       forceEmscripten
