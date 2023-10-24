@@ -37,6 +37,10 @@
   },
   "homepage": "https://sourcify.dev",
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.9.0",
+    "@typescript-eslint/parser": "^6.9.0",
+    "eslint": "^8.52.0",
+    "eslint-config-prettier": "^9.0.0",
     "lerna": "^7.4.1"
   }
 }
