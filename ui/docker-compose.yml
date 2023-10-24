@@ -3,14 +3,11 @@ version: "3.7"
 networks:
   source-verify:
 
-x-project-base: &project-base
-  restart: always
-  networks:
-    - source-verify
-
 services:
   ui:
-    <<: *project-base
+    restart: always
+    networks:
+      - source-verify
     image: ethereum/source-verify:ui-${TAG}
     container_name: ui-${TAG}
     healthcheck:
