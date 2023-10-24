@@ -15,7 +15,7 @@
     "ui:start": "cd ui && npm run start",
     "monitor:start": "node ./services/monitor/dist/index.js",
     "update-chains": "node --experimental-fetch scripts/updateChains.mjs && prettier --write services/server/src/chains.json",
-    "test": "lerna run test --stream --concurrency 1",
+    "lerna-test": "lerna run test --stream --concurrency 1",
     "lerna-lint": "lerna run lint",
     "lerna-version": "lerna version --no-push"
   },
