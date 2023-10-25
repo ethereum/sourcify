@@ -290,6 +290,7 @@ export class Server {
     if (callback) callback();
   }
 
+  // We need to resolve the $refs in the openapi file ourselves because the SwaggerUI-expresses does not do it
   async loadSwagger(root: string) {
     const options = {
       filter: ["relative", "remote"],
@@ -333,7 +334,7 @@ function getSessionOptions(): session.SessionOptions {
 if (require.main === module) {
   const server = new Server();
   server
-    .loadSwagger(yamljs.load(path.join(__dirname, "..", "openapi.yaml")))
+    .loadSwagger(yamljs.load(path.join(__dirname, "..", "openapi.yaml"))) // load the openapi file with the $refs resolved
     .then((swaggerDocument: any) => {
       server.app.get("/api-docs/swagger.json", (req, res) =>
         res.json(swaggerDocument)
