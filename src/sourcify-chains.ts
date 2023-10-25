@@ -826,6 +826,12 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     contractFetchAddress: "https://explorer.zora.co/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
+  "999999999": {
+    // ZORA Sepolia Testnet
+    supported: true,
+    contractFetchAddress: "https://sepolia.explorer.zora.energy/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
+  },
   "6119": {
     // UPTN Mainnet
     supported: true,

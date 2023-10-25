@@ -944,10 +944,20 @@ describe("Test Supported Chains", function () {
   verifyContract(
     "0x090734f94FA67590702421A9B61892509b7CE80A",
     "7777777",
-    "ZORA MAinnet",
+    "ZORA Mainnet",
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
+
+  // ZORA Sepolia Testnet
+  verifyContract(
+    "0x9788C590bd201b80091Bca6A322BeB903b8190Dd",
+    "999999999",
+    "ZORA Sepolia Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
 
   // UPTN Chain Mainnet
   verifyContract(
