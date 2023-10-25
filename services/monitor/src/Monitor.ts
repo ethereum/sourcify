@@ -1,72 +1,194 @@
-const { expect } = require("chai");
-const sinon = require("sinon");
-const Monitor = require("../dist/Monitor");
-const logger = require("../dist/logger");
-const ganache = require("ganache");
-const { JsonRpcProvider, JsonRpcSigner, Network } = require("ethers");
-const {
-  deployFromAbiAndBytecode,
-  nockInterceptorForVerification,
-} = require("./helpers");
-const testLogger = require("./testLogger");
+import DecentralizedStorageFetcher from "./DecentralizedStorageFetcher";
+import assert from "assert";
+import { EventEmitter } from "stream";
+import { SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
+import logger from "./logger";
+import ChainMonitor from "./ChainMonitor";
+import {
+  KnownDecentralizedStorageFetchers,
+  MonitorConfig,
+  PassedMonitorConfig,
+} from "./types";
+import dotenv from "dotenv";
+import { FetchRequest } from "ethers";
+import defaultConfig from "./defaultConfig";
 
-const GANACHE_PORT = 8545;
-const GANACHE_BLOCK_TIME_IN_SEC = 3;
-const MOCK_SOURCIFY_SERVER = "http://mocksourcifyserver.dev/server/";
-const localChain = {
-  chainId: 1337,
-  rpc: [`http://localhost:${GANACHE_PORT}`],
-  name: "Localhost Ganache",
-};
+dotenv.config();
 
-describe("Monitor", function () {
-  this.timeout(30000);
+export default class Monitor extends EventEmitter {
+  private chainMonitors: ChainMonitor[];
+  private sourceFetchers: KnownDecentralizedStorageFetchers = {};
+  private config: MonitorConfig;
 
-  let sandbox;
-  let ganacheServer;
-  let signer;
-  let account;
-  let monitor;
+  constructor(
+    chainsToMonitor:
+      | { chainId: number; rpc: string[]; name: string }[]
+      | SourcifyChain[],
+    passedConfig?: PassedMonitorConfig
+  ) {
+    super();
 
-  beforeEach(async function () {
-    sandbox = sinon.createSandbox();
+    if (!passedConfig || Object.keys(passedConfig).length === 0) {
+      logger.warn("No config provided, using default config");
+    }
 
-    ganacheServer = ganache.server({
-      wallet: { totalAccounts: 5 },
-      chain: { chainId: 1337, networkId: 1337 },
-      miner: { blockTime: GANACHE_BLOCK_TIME_IN_SEC },
+    logger.info("Passed config: " + JSON.stringify(passedConfig, null, 2));
+
+    this.config = deepMerge(defaultConfig, passedConfig || {});
+
+    logger.info(
+      "Starting the monitor using the effective config: " +
+        JSON.stringify(this.config, null, 2)
+    );
+
+    if (this.config.decentralizedStorages?.ipfs?.enabled) {
+      assert(
+        this.config.decentralizedStorages.ipfs.gateways.length > 0,
+        "IPFS gateways must be provided"
+      );
+      this.sourceFetchers.ipfs = new DecentralizedStorageFetcher(
+        "ipfs",
+        this.config.decentralizedStorages.ipfs
+      );
+    }
+
+    const sourcifyChains = chainsToMonitor.map((chain) => {
+      if (chain instanceof SourcifyChain) {
+        return chain;
+      } else {
+        return new SourcifyChain({
+          chainId: chain.chainId,
+          rpc: authenticateRpcs(chain.chainId, chain.rpc),
+          name: chain.name,
+          supported: true,
+        });
+      }
     });
-    await ganacheServer.listen(GANACHE_PORT);
-    testLogger.info("Started ganache local server at port " + GANACHE_PORT);
-    const ethersNetwork = new Network(localChain.rpc[0], localChain.chainId);
-    signer = await new JsonRpcProvider(
-      `http://localhost:${GANACHE_PORT}`,
-      ethersNetwork,
-      { staticNetwork: ethersNetwork }
-    ).getSigner();
-    signer.provider.on("block", (blockNumber) => {
-      testLogger.info("New block mined: " + blockNumber);
-    });
-    account = await signer.getAddress();
-    testLogger.info("Initialized provider with signer account " + account);
+
+    logger.info(
+      `Creating ${
+        sourcifyChains.length
+      } chain monitors for chains: ${sourcifyChains
+        .map((c) => c.chainId)
+        .join(",")}`
+    );
+
+    if (sourcifyChains.length === 0) {
+      throw new Error("No chains to monitor");
+    }
+
+    // Convert the chainId values to strings for comparison with object keys
+    const chainIdSet = new Set(
+      chainsToMonitor.map((item) => item.chainId.toString())
+    );
+
+    const chainsInConfigButNotChainsToMonitor: string[] = [];
+
+    // Check if there's a chain config for a chain that's not being monitored
+    for (const key in this.config.chainConfigs) {
+      if (!chainIdSet.has(key)) {
+        chainsInConfigButNotChainsToMonitor.push(key);
+      }
+    }
+
+    if (chainsInConfigButNotChainsToMonitor.length > 0) {
+      throw new Error(
+        `Chain configs found for chains that are not being monitored: ${chainsInConfigButNotChainsToMonitor.join(
+          ","
+        )}`
+      );
+    }
+
+    this.chainMonitors = sourcifyChains.map(
+      (chain) => new ChainMonitor(chain, this.sourceFetchers, this.config)
+    );
+  }
+
+  /**
+   * Starts the monitor on all the designated chains.
+   */
+  start = async (): Promise<void> => {
+    logger.info(
+      `Starting Monitor for chains: ${this.chainMonitors
+        .map((cm) => cm.sourcifyChain.chainId)
+        .join(",")}`
+    );
+    const promises: Promise<void>[] = [];
+    for (const cm of this.chainMonitors) {
+      promises.push(cm.start());
+    }
+    await Promise.all(promises);
+    logger.info("All ChainMonitors started");
+  };
+
+  /**
+   * Stops the monitor after executing all the pending requests.
+   */
+  stop = (): void => {
+    this.chainMonitors.forEach((cm) => cm.stop());
+    logger.info("Monitor stopped");
+  };
+}
+
+function authenticateRpcs(chainId: number, rpcs: string[]) {
+  return rpcs.map((rpcUrl) => {
+    if (rpcUrl.includes("{INFURA_API_KEY}") && process.env.INFURA_API_KEY) {
+      return rpcUrl.replace("{INFURA_API_KEY}", process.env.INFURA_API_KEY);
+    }
+    if (rpcUrl.includes("{ALCHEMY_API_KEY}")) {
+      let alchemyApiKey;
+      switch (chainId) {
+        case 10 /** Optimism Mainnet */:
+        case 420 /** Optimism Goerli */:
+        case 69 /** Optimism Kovan */:
+          alchemyApiKey =
+            process.env["ALCHEMY_API_KEY_OPTIMISM"] ||
+            process.env["ALCHEMY_API_KEY"];
+          break;
+        case 42161 /** Arbitrum One Mainnet */:
+        case 421613 /** Arbitrum Goerli Testnet */:
+        case 421611 /** Arbitrum Rinkeby Testnet */:
+          alchemyApiKey =
+            process.env["ALCHEMY_API_KEY_ARBITRUM"] ||
+            process.env["ALCHEMY_API_KEY"];
+          break;
+        default:
+          alchemyApiKey = process.env["ALCHEMY_API_KEY"];
+          break;
+      }
+      if (alchemyApiKey) {
+        return rpcUrl.replace("{ALCHEMY_API_KEY}", alchemyApiKey);
+      }
+    }
+    if (rpcUrl.includes("ethpandaops.io")) {
+      const ethersFetchReq = new FetchRequest(rpcUrl);
+      ethersFetchReq.setHeader("Content-Type", "application/json");
+      ethersFetchReq.setHeader(
+        "CF-Access-Client-Id",
+        process.env.CF_ACCESS_CLIENT_ID || ""
+      );
+      ethersFetchReq.setHeader(
+        "CF-Access-Client-Secret",
+        process.env.CF_ACCESS_CLIENT_SECRET || ""
+      );
+      return ethersFetchReq;
+    }
+    return rpcUrl;
   });
+}
 
-  afterEach(async function () {
-    await ganacheServer.close();
-    if (monitor) monitor.stop();
-    sandbox.restore();
-  });
-
-  it("should use default config when no config is provided", function () {
-    const loggerSpy = sinon.spy(logger, "warn");
-
-    const _monitor = new Monitor([localChain]);
-    expect(
-      loggerSpy.calledWith(
-        sinon.match(/No config provided, using default config/)
-      )
-    ).to.be.true;
-  });
-
-  // ... (rest of the test cases remain the same)
-});
+function deepMerge(obj1: any, obj2: any): any {
+  const output = { ...obj1 };
+  for (const [key, value] of Object.entries(obj2)) {
+    if (value === Object(value) && !Array.isArray(value)) {
+      if (Object.prototype.hasOwnProperty.call(obj1, key)) {
+        output[key] = deepMerge(obj1[key], value);
+      } else {
+        output[key] = value;
+      }
+    } else {
+      output[key] = value;
+    }
+  }
+  return output;
+}
