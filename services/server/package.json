@@ -8,7 +8,8 @@
     "url": "git+https://github.com/ethereum/sourcify.git"
   },
   "scripts": {
-    "build": "tsc && cp ./openapi.yaml ./dist/openapi.yaml",
+    "prebuild": "copyfiles -u 1 src/**/*.yaml dist",
+    "build": "tsc",
     "start": "node ./dist/server/server.js",
     "test": "TESTING=true DOTENV_CONFIG_PATH=./.env c8 --reporter=none mocha -r dotenv/config --exit",
     "test:chains": "TESTING=true mocha test/chains/chain-tests.js --reporter mochawesome --reporter-options reportDir=chain-tests-report,reportFilename=report --exit",
@@ -61,7 +62,7 @@
     "puppeteer": "^20.7.4",
     "serve-index": "^1.9.1",
     "solc": "^0.8.17",
-    "swagger-ui-express": "^4.6.3",
+    "swagger-ui-express": "^5.0.0",
     "winston": "^3.8.2",
     "winston-loki": "^6.0.6",
     "yamljs": "^0.3.0"
@@ -83,6 +84,7 @@
     "chai": "^4.2.0",
     "chai-http": "^4.3.0",
     "codecov": "^3.8.3",
+    "copyfiles": "^2.4.1",
     "ganache": "^7.0.2",
     "ipfs-core": "^0.12.2",
     "ipld-dag-pb": "^0.18.2",

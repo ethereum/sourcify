@@ -113,7 +113,7 @@ export class Server {
 
     this.app.use(
       OpenApiValidator.middleware({
-        apiSpec: "openapi.yaml",
+        apiSpec: path.join(__dirname, "..", "openapi.yaml"),
         validateRequests: true,
         validateResponses: false,
         ignoreUndocumented: true,
@@ -298,6 +298,7 @@ export class Server {
           callback(null, yamljs.parse(res.text));
         },
       },
+      location: __dirname,
     };
 
     return resolveRefs(root as any, options).then(
