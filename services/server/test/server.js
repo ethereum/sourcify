@@ -68,12 +68,7 @@ describe("Server", function () {
   let defaultContractAddress;
   let currentResponse = null; // to log server response when test fails
 
-  const sourcePath = path.join(
-    "test",
-    "testcontracts",
-    "Storage",
-    "Storage.sol"
-  );
+  const sourcePath = path.join("testcontracts", "Storage", "Storage.sol");
   const sourceBuffer = fs.readFileSync(sourcePath);
 
   const artifact = require("./testcontracts/Storage/Storage.json");
@@ -221,10 +216,17 @@ describe("Server", function () {
 
       it("should create2 verify non-session", (done) => {
         const metadata = fs
-          .readFileSync("test/testcontracts/Create2/Wallet_metadata.json")
+          .readFileSync(
+            path.resolve(
+              __dirname,
+              "testcontracts/Create2/Wallet_metadata.json"
+            )
+          )
           .toString();
         const source = fs
-          .readFileSync("test/testcontracts/Create2/Wallet.sol")
+          .readFileSync(
+            path.resolve(__dirname, "testcontracts/Create2/Wallet.sol")
+          )
           .toString();
 
         callWithAccessToken((accessToken) => {
@@ -614,7 +616,6 @@ describe("Server", function () {
       );
 
       const partialSourcePath = path.join(
-        "test",
         "testcontracts",
         "Storage",
         "StorageModified.sol"
@@ -682,7 +683,6 @@ describe("Server", function () {
       const bytecode =
         "0x6080604052348015600f57600080fd5b50601680601d6000396000f3fe6080604052600080fdfea164736f6c6343000700000a";
       const metadataPath = path.join(
-        "test",
         "sources",
         "metadata",
         "withoutMetadataHash.meta.object.json"
@@ -724,7 +724,6 @@ describe("Server", function () {
 
       const metadata = require("./testcontracts/WithImmutables/metadata.json");
       const sourcePath = path.join(
-        "test",
         "testcontracts",
         "WithImmutables",
         "sources",
@@ -771,7 +770,6 @@ describe("Server", function () {
         artifact.bytecode
       );
       const solcJsonPath = path.join(
-        "test",
         "testcontracts",
         "Storage",
         "StorageJsonInput.json"
@@ -796,7 +794,6 @@ describe("Server", function () {
         artifact.bytecode
       );
       const solcJsonPath = path.join(
-        "test",
         "testcontracts",
         "Storage",
         "StorageJsonInput.json"
@@ -821,7 +818,6 @@ describe("Server", function () {
         artifact.bytecode
       );
       const solcJsonPath = path.join(
-        "test",
         "testcontracts",
         "Storage",
         "StorageJsonInput.json"
@@ -910,7 +906,7 @@ describe("Server", function () {
 
         const metadata = require("./testcontracts/Storage/metadata.upMultipleDirs.json");
         const sourcePath = path.join(
-          "test",
+          __dirname,
           "testcontracts",
           "Storage",
           "Storage.sol"
@@ -1326,7 +1322,7 @@ describe("Server", function () {
 
     it("should correctly handle when uploaded 0/2 and then 1/2 sources", (done) => {
       const metadataPath = path.join(
-        "test",
+        __dirname,
         "sources",
         "metadata",
         "child-contract.meta.object.json"
@@ -1334,7 +1330,7 @@ describe("Server", function () {
       const metadataBuffer = fs.readFileSync(metadataPath);
 
       const parentPath = path.join(
-        "test",
+        __dirname,
         "sources",
         "contracts",
         "ParentContract.sol"
@@ -1375,7 +1371,7 @@ describe("Server", function () {
 
     it("should find contracts in a zipped Truffle project", (done) => {
       const zippedTrufflePath = path.join(
-        "test",
+        __dirname,
         "sources",
         "truffle",
         "truffle-example.zip"
@@ -1392,7 +1388,7 @@ describe("Server", function () {
         });
       it("should correctly handle when uploaded 0/2 and then 1/2 sources", (done) => {
         const metadataPath = path.join(
-          "test",
+          __dirname,
           "sources",
           "metadata",
           "child-contract.meta.object.json"
@@ -1400,7 +1396,7 @@ describe("Server", function () {
         const metadataBuffer = fs.readFileSync(metadataPath);
 
         const parentPath = path.join(
-          "test",
+          __dirname,
           "sources",
           "contracts",
           "ParentContract.sol"
@@ -1439,7 +1435,7 @@ describe("Server", function () {
 
       it("should find contracts in a zipped Truffle project", (done) => {
         const zippedTrufflePath = path.join(
-          "test",
+          __dirname,
           "sources",
           "truffle",
           "truffle-example.zip"
@@ -1471,7 +1467,7 @@ describe("Server", function () {
       const metadata = require("./testcontracts/WithImmutables/metadata.json");
       const metadataBuffer = Buffer.from(JSON.stringify(metadata));
       const sourcePath = path.join(
-        "test",
+        __dirname,
         "testcontracts",
         "WithImmutables",
         "sources",
@@ -1531,7 +1527,7 @@ describe("Server", function () {
 
       const childAddress = txReceipt.logs[0].args[0];
       const sourcePath = path.join(
-        "test",
+        __dirname,
         "testcontracts",
         "FactoryImmutable",
         "FactoryTest.sol"
@@ -1577,7 +1573,7 @@ describe("Server", function () {
 
       const childAddress = txReceipt.logs[0].args[0];
       const sourcePath = path.join(
-        "test",
+        __dirname,
         "testcontracts",
         "FactoryImmutableWithoutConstrArg",
         "FactoryTest3.sol"
@@ -1605,7 +1601,7 @@ describe("Server", function () {
       const agent = chai.request.agent(server.app);
 
       const solcJsonPath = path.join(
-        "test",
+        __dirname,
         "testcontracts",
         "Storage",
         "StorageJsonInput.json"
@@ -1627,7 +1623,7 @@ describe("Server", function () {
         artifact.bytecode
       );
       const solcJsonPath = path.join(
-        "test",
+        __dirname,
         "testcontracts",
         "Storage",
         "StorageJsonInput.json"
@@ -1717,12 +1713,12 @@ describe("Server", function () {
       // read all files under test/testcontracts/path-sanitization/sources/ and put them in an object
       const sanitizeSourcesObj = {};
       fs.readdirSync(
-        path.join("test", "testcontracts", "path-sanitization", "sources")
+        path.join(__dirname, "testcontracts", "path-sanitization", "sources")
       ).forEach(
         (fileName) =>
           (sanitizeSourcesObj[fileName] = fs.readFileSync(
             path.join(
-              "test",
+              __dirname,
               "testcontracts",
               "path-sanitization",
               "sources",
