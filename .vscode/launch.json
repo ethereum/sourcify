@@ -96,31 +96,6 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Mocha - All",
-      "program": "${workspaceFolder}/node_modules/.bin/lerna",
-      "env": {
-        "TESTING": "true",
-      },
-      "args": [
-        "run",
-        "test",
-        "--stream",
-        "--concurrency=1"
-      ],
-      "outFiles": [
-        "${workspaceFolder}/dist/**/*.js",
-        "${workspaceFolder}/packages/**/build/**/*.js"
-      ],
-      "smartStep": true,
-      "skipFiles": [
-        "<node_internals>/**",
-        "node_modules/**"
-      ],
-      "console": "integratedTerminal",
-    },
-    {
-      "type": "node",
-      "request": "launch",
       "name": "Mocha - Server",
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "env": {
@@ -128,14 +103,14 @@
         "TESTING": "true",
       },
       "args": [
-        "${workspaceFolder}/test/server.js",
+        "${workspaceFolder}/services/server/test/server.js",
         "--no-timeout",
         // Run a single test when debugging
         // "--grep=v0.6.12",
         "--exit",
       ],
       "outFiles": [
-        "${workspaceFolder}/dist/**/*.js",
+        "${workspaceFolder}/services/server/dist/**/*.js",
         "${workspaceFolder}/packages/**/build/**/*.js",
       ],
       "smartStep": true,
@@ -152,14 +127,14 @@
         "TESTING": "true",
       },
       "args": [
-        "${workspaceFolder}/test/etherscan.js",
+        "${workspaceFolder}/services/server/test/etherscan.js",
         "--no-timeout",
         // Run a single test when debugging
         // "--grep=v0.6.12",
         "--exit",
       ],
       "outFiles": [
-        "${workspaceFolder}/dist/**/*.js",
+        "${workspaceFolder}/services/server/dist/**/*.js",
         "${workspaceFolder}/packages/**/build/**/*.js",
       ],
       "smartStep": true,
@@ -176,14 +151,14 @@
         // "TEST_CHAIN": "100"
       },
       "args": [
-        "${workspaceFolder}/test/etherscan/etherscanInstances.js",
+        "${workspaceFolder}/services/server/test/etherscan/etherscanInstances.js",
         "--no-timeout",
         // Run a single test when debugging
         // "--grep=v0.6.12",
         "--exit",
       ],
       "outFiles": [
-        "${workspaceFolder}/dist/**/*.js",
+        "${workspaceFolder}/services/server/dist/**/*.js",
         "${workspaceFolder}/packages/**/build/**/*.js",
       ],
       "smartStep": true,

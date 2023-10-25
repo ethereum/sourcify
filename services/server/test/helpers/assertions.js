@@ -1,6 +1,6 @@
 const { StatusCodes } = require("http-status-codes");
 const chai = require("chai");
-const config = require("../../../../dist/config").default;
+const config = require("../../dist/config").default;
 const path = require("path");
 const fs = require("fs");
 const { getAddress } = require("ethers");

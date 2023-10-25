@@ -12,7 +12,7 @@
     "module": "commonjs",
     "paths": {
       "ethers": ["./node_modules/ethers"]
-    }
+    },
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules/**"],
