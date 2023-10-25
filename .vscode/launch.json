@@ -213,11 +213,9 @@
       "request": "launch",
       "name": "Mocha - Monitor",
       "cwd": "${workspaceFolder}/services/monitor",
-      "program": "./node_modules/.bin/mocha",
+      "program": "../../node_modules/.bin/mocha",
       "args": [
-        "-r",
-        "ts-node/register",
-        "./test/**/*.test.ts",
+        "./test/**/*.test.js",
         "--no-timeout",
         // Run a single test when debugging
         // "--grep=v0.6.12",

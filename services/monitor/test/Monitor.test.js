@@ -1,25 +1,18 @@
-import { expect } from "chai";
-import sinon from "sinon";
-// import { EventEmitter } from "stream";
-import Monitor from "../src/Monitor";
-// import { SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
-import ChainMonitor from "../src/ChainMonitor";
-// import DecentralizedStorageFetcher from "./DecentralizedStorageFetcher";
-import logger from "../src/logger";
-import ganache, { Server } from "ganache";
-import { JsonRpcProvider, JsonRpcSigner, Network } from "ethers";
-import {
+const { expect } = require("chai");
+const sinon = require("sinon");
+const Monitor = require("../dist/Monitor").default;
+const logger = require("../dist/logger").default;
+const ganache = require("ganache");
+const { JsonRpcProvider, JsonRpcSigner, Network } = require("ethers");
+const {
   deployFromAbiAndBytecode,
   nockInterceptorForVerification,
-} from "./helpers";
-import testLogger from "./testLogger";
+} = require("./helpers");
+const testLogger = require("./testLogger");
 
 const GANACHE_PORT = 8545;
 const GANACHE_BLOCK_TIME_IN_SEC = 3;
-
-// We'll use a mock server to test if the monitor indeed sends the correct request to Sourcify
 const MOCK_SOURCIFY_SERVER = "http://mocksourcifyserver.dev/server/";
-
 const localChain = {
   chainId: 1337,
   rpc: [`http://localhost:${GANACHE_PORT}`],
@@ -29,20 +22,13 @@ const localChain = {
 describe("Monitor", function () {
   this.timeout(30000);
 
-  let sandbox: sinon.SinonSandbox;
-  let ganacheServer: Server;
-  let signer: JsonRpcSigner;
-  let account: string;
-  let monitor: Monitor;
+  let sandbox;
+  let ganacheServer;
+  let signer;
+  let account;
+  let monitor;
 
-  // before(async () => {
-  // });
-
-  // after(() => {
-  //   ganacheServer.close();
-  //   testLogger.info("Stopped ganache local server");
-  // });
-  beforeEach(async () => {
+  beforeEach(async function () {
     sandbox = sinon.createSandbox();
 
     ganacheServer = ganache.server({
@@ -65,15 +51,14 @@ describe("Monitor", function () {
     testLogger.info("Initialized provider with signer account " + account);
   });
 
-  afterEach(async () => {
+  afterEach(async function () {
     await ganacheServer.close();
-    monitor?.stop();
+    if (monitor) monitor.stop();
     sandbox.restore();
   });
 
   it("should use default config when no config is provided", () => {
     const loggerSpy = sinon.spy(logger, "warn");
-
     const _monitor = new Monitor([localChain]);
     expect(
       loggerSpy.calledWith(
@@ -112,12 +97,8 @@ describe("Monitor", function () {
 
     const contractAddress = await deployFromAbiAndBytecode(
       signer,
-      (
-        await import("./sources/Storage/1_Storage.json")
-      ).abi,
-      (
-        await import("./sources/Storage/1_Storage.json")
-      ).bytecode,
+      require("./sources/Storage/1_Storage.json").abi,
+      require("./sources/Storage/1_Storage.json").bytecode,
       []
     );
 

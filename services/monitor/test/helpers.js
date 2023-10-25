@@ -1,14 +1,8 @@
-import { ContractFactory, JsonRpcSigner } from "ethers";
-// Use nock because sinon can only intercept XMLHttpRequests, which nodejs does not use
-import nock from "nock";
-import { expect } from "chai";
+const { ContractFactory } = require("ethers");
+const nock = require("nock");
+const { expect } = require("chai");
 
-export const deployFromAbiAndBytecode = async (
-  signer: JsonRpcSigner,
-  abi: any,
-  bytecode: string,
-  args: any
-) => {
+exports.deployFromAbiAndBytecode = async (signer, abi, bytecode, args) => {
   const contractFactory = new ContractFactory(abi, bytecode, signer);
   console.log(`Deploying contract ${args?.length ? `with args ${args}` : ""}`);
   const deployment = await contractFactory.deploy(...(args || []));
@@ -24,14 +18,14 @@ export const deployFromAbiAndBytecode = async (
  *
  * I.e. check if a request to serverUrl was made with the expected chainId and address.
  */
-export const nockInterceptorForVerification = (
-  serverUrl: string,
-  expectedChainId: number,
-  expectedAddress: string
+exports.nockInterceptorForVerification = (
+  serverUrl,
+  expectedChainId,
+  expectedAddress
 ) => {
   return nock(serverUrl)
     .post("/")
-    .reply(function (uri, requestBody: any) {
+    .reply(function (uri, requestBody) {
       expect(requestBody.chainId).to.equal(expectedChainId.toString());
       expect(requestBody.address).to.equal(expectedAddress);
       const { address, chainId } = requestBody;
