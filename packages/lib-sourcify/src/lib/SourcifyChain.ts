@@ -6,7 +6,11 @@ import {
   TransactionResponse,
   getAddress,
 } from 'ethers';
-import { Chain, SourcifyChainExtension } from './types';
+import {
+  Chain,
+  ContractCreationFetcher,
+  SourcifyChainExtension,
+} from './types';
 import { logError, logInfo, logWarn } from './logger';
 
 const RPC_TIMEOUT = process.env.RPC_TIMEOUT
@@ -34,7 +38,7 @@ export default class SourcifyChain {
   chainId: number;
   rpc: Array<string | FetchRequest>;
   supported: boolean;
-  contractFetchAddress?: string | undefined;
+  contractCreationFetcher?: ContractCreationFetcher;
   graphQLFetchAddress?: string | undefined;
   txRegex?: string[] | undefined;
   providers: JsonRpcProviderWithUrl[];
@@ -45,7 +49,7 @@ export default class SourcifyChain {
     this.chainId = sourcifyChainObj.chainId;
     this.rpc = sourcifyChainObj.rpc;
     this.supported = sourcifyChainObj.supported;
-    this.contractFetchAddress = sourcifyChainObj.contractFetchAddress;
+    this.contractCreationFetcher = sourcifyChainObj.contractCreationFetcher;
     this.graphQLFetchAddress = sourcifyChainObj.graphQLFetchAddress;
     this.txRegex = sourcifyChainObj.txRegex;
     this.providers = [];

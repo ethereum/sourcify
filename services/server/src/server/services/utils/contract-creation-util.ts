@@ -15,61 +15,23 @@ export const getCreatorTx = async (
   sourcifyChain: SourcifyChain,
   address: string
 ): Promise<string | null> => {
+  if (sourcifyChain.contractCreationFetcher === undefined) {
+    return null;
+  }
+
   const contractFetchAddressFilled =
-    sourcifyChain.contractFetchAddress?.replace("${ADDRESS}", address);
-  const txRegex = sourcifyChain?.txRegex;
+    sourcifyChain.contractCreationFetcher?.url.replace("${ADDRESS}", address);
 
   if (!contractFetchAddressFilled) return null;
 
   // Do not throw if we have any error while scraping, but log and return null
   try {
-    // Chains with the new Etherscan API that returns the creation transaction hash
-    if (contractFetchAddressFilled.includes("action=getcontractcreation")) {
-      const response = await fetchFromApi(contractFetchAddressFilled);
-      if (response?.result?.[0]?.txHash)
-        return response?.result?.[0]?.txHash as string;
-    }
-
-    // If there's txRegex, scrape block explorers
-    if (contractFetchAddressFilled && txRegex) {
-      const creatorTx = await getCreatorTxByScraping(
-        contractFetchAddressFilled,
-        txRegex
-      );
-      if (creatorTx) return creatorTx;
-    }
-
-    // Telos
-    if (sourcifyChain.chainId == 40 || sourcifyChain.chainId == 41) {
-      const response = await fetchFromApi(contractFetchAddressFilled);
-      if (response.creation_trx) return response.creation_trx as string;
-    }
-
-    // XDC
-    if (sourcifyChain.chainId == 50 || sourcifyChain.chainId == 51) {
-      const response = await fetchFromApi(contractFetchAddressFilled);
-      if (response.fromTxn) return response.fromTxn as string;
-    }
-
-    // Meter network
-    if (sourcifyChain.chainId == 83 || sourcifyChain.chainId == 82) {
-      const response = await fetchFromApi(contractFetchAddressFilled);
-      if (response?.account?.creationTxHash)
-        return response.account.creationTxHash as string;
-    }
-
-    // Avalanche Subnets
-    if (contractFetchAddressFilled.includes("avax.network")) {
-      const response = await fetchFromApi(contractFetchAddressFilled);
-      if (response.nativeTransaction?.txHash)
-        return response.nativeTransaction.txHash as string;
-    }
+    const response = await fetchFromApi(contractFetchAddressFilled);
+    return sourcifyChain.contractCreationFetcher?.responseParser(response);
   } catch (e: any) {
     logger.warn("Error while getting creation transaction: " + e.message);
     return null;
   }
-
-  return null;
 };
 
 /**

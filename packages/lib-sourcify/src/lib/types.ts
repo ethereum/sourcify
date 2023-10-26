@@ -265,9 +265,14 @@ export interface Create2Args {
   constructorArgs?: any[];
 }
 
+export interface ContractCreationFetcher {
+  url: string;
+  responseParser: Function;
+}
+
 export type SourcifyChainExtension = {
   supported: boolean;
-  contractFetchAddress?: string;
+  contractCreationFetcher?: ContractCreationFetcher;
   graphQLFetchAddress?: string;
   txRegex?: string[];
   rpc?: Array<string | FetchRequest>;
