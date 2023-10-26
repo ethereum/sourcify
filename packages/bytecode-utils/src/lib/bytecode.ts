@@ -7,7 +7,6 @@ type CBOR = {
   length: number;
 };
 
-// eslint-disable-next-line functional/no-mixed-type
 export type DecodedObject = {
   // Known CBOR fields that are defined in the spec
   ipfs?: string;
