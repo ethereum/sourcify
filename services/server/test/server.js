@@ -68,11 +68,26 @@ describe("Server", function () {
   let defaultContractAddress;
   let currentResponse = null; // to log server response when test fails
 
-  const sourcePath = path.join("testcontracts", "Storage", "Storage.sol");
+  const sourcePath = path.join(
+    __dirname,
+    "testcontracts",
+    "Storage",
+    "Storage.sol"
+  );
   const sourceBuffer = fs.readFileSync(sourcePath);
 
-  const artifact = require("./testcontracts/Storage/Storage.json");
-  const metadata = require("./testcontracts/Storage/metadata.json");
+  const artifact = require(path.join(
+    __dirname,
+    "testcontracts",
+    "Storage",
+    "Storage.json"
+  ));
+  const metadata = require(path.join(
+    __dirname,
+    "testcontracts",
+    "Storage",
+    "metadata.json"
+  ));
   const metadataBuffer = Buffer.from(JSON.stringify(metadata));
 
   this.timeout(EXTENDED_TIME);
