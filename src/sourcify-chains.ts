@@ -991,6 +991,12 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     supported: true,
     contractFetchAddress: "https://explorer.testedge2.haqq.network/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
+  },
+  "30": {
+    // Rootstock
+    supported: true,
+    contractFetchAddress: "https://rootstock.blockscout.com/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
   }
 };
 
@@ -1081,8 +1087,8 @@ export function getSortedChainsArray(
       getPrimarySortKey(a) > getPrimarySortKey(b)
         ? 1
         : getPrimarySortKey(b) > getPrimarySortKey(a)
-        ? -1
-        : 0
+          ? -1
+          : 0
     );
 
   const sortedChains = ethereumChains.concat(otherChains);

@@ -55,8 +55,8 @@ describe("Test Supported Chains", function () {
     if (!anyTestsPass && newAddedChainIds.length) {
       throw new Error(
         "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id(s) " +
-          newAddedChainIds.join(",") +
-          "?"
+        newAddedChainIds.join(",") +
+        "?"
       );
     }
   });
@@ -1198,19 +1198,26 @@ describe("Test Supported Chains", function () {
   );
 
   verifyContract(
-      "0xbF33D2dA0F875D826ce1bA250F66b2785d48C113",
-      "11235",
-      "Haqq Mainnet",
-      ["shared/1_Storage.sol"],
-      "shared/1_Storage.metadata.json"
+    "0xbF33D2dA0F875D826ce1bA250F66b2785d48C113",
+    "11235",
+    "Haqq Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
   );
 
   verifyContract(
-      "0xbF33D2dA0F875D826ce1bA250F66b2785d48C113",
-      "54211",
-      "Haqq Testnet",
-      ["shared/1_Storage.sol"],
-      "shared/1_Storage.metadata.json"
+    "0xbF33D2dA0F875D826ce1bA250F66b2785d48C113",
+    "54211",
+    "Haqq Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+  verifyContract(
+    "0xFe392C04b7879f28D9F966239F3e3646fe048863",
+    "30",
+    "Rootstock",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
   );
 
   // Finally check if all the "supported: true" chains have been tested
