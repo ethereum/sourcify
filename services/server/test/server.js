@@ -705,6 +705,7 @@ describe("Server", function () {
       const bytecode =
         "0x6080604052348015600f57600080fd5b50601680601d6000396000f3fe6080604052600080fdfea164736f6c6343000700000a";
       const metadataPath = path.join(
+        __dirname,
         "sources",
         "metadata",
         "withoutMetadataHash.meta.object.json"
