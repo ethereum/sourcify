@@ -180,7 +180,10 @@ describe("Server", function () {
       let verificationId;
 
       it("should input files from existing contract via auxdata ipfs", async () => {
-        const artifacts = require("./testcontracts/Create2/Wallet.json");
+        const artifacts = require(path.join(
+          __dirname,
+          "./testcontracts/Create2/Wallet.json"
+        ));
 
         const account = await localSigner.getAddress();
         const addressDeployed = await deployFromAbiAndBytecode(
@@ -625,12 +628,16 @@ describe("Server", function () {
     });
 
     it("should return 'partial', then delete partial when 'full' match", (done) => {
-      const partialMetadata = require("./testcontracts/Storage/metadataModified.json");
+      const partialMetadata = require(path.join(
+        __dirname,
+        "./testcontracts/Storage/metadataModified.json"
+      ));
       const partialMetadataBuffer = Buffer.from(
         JSON.stringify(partialMetadata)
       );
 
       const partialSourcePath = path.join(
+        __dirname,
         "testcontracts",
         "Storage",
         "StorageModified.sol"
@@ -728,7 +735,10 @@ describe("Server", function () {
     });
 
     it("should verify a contract with immutables and save immutable-references.json", async () => {
-      const artifact = require("./testcontracts/WithImmutables/artifact.json");
+      const artifact = require(path.join(
+        __dirname,
+        "./testcontracts/WithImmutables/artifact.json"
+      ));
       const { contractAddress } =
         await deployFromAbiAndBytecodeForCreatorTxHash(
           localSigner,
@@ -737,8 +747,12 @@ describe("Server", function () {
           [999]
         );
 
-      const metadata = require("./testcontracts/WithImmutables/metadata.json");
+      const metadata = require(path.join(
+        __dirname,
+        "./testcontracts/WithImmutables/metadata.json"
+      ));
       const sourcePath = path.join(
+        __dirname,
         "testcontracts",
         "WithImmutables",
         "sources",
@@ -785,6 +799,7 @@ describe("Server", function () {
         artifact.bytecode
       );
       const solcJsonPath = path.join(
+        __dirname,
         "testcontracts",
         "Storage",
         "StorageJsonInput.json"
@@ -809,6 +824,7 @@ describe("Server", function () {
         artifact.bytecode
       );
       const solcJsonPath = path.join(
+        __dirname,
         "testcontracts",
         "Storage",
         "StorageJsonInput.json"
@@ -833,6 +849,7 @@ describe("Server", function () {
         artifact.bytecode
       );
       const solcJsonPath = path.join(
+        __dirname,
         "testcontracts",
         "Storage",
         "StorageJsonInput.json"
@@ -854,7 +871,10 @@ describe("Server", function () {
       this.timeout(EXTENDED_TIME);
       let address;
       const mainContractIndex = 5;
-      const hardhatOutputJSON = require("./sources/hardhat-output/output.json");
+      const hardhatOutputJSON = require(path.join(
+        __dirname,
+        "./sources/hardhat-output/output.json"
+      ));
       const MyToken =
         hardhatOutputJSON.output.contracts["contracts/MyToken.sol"].MyToken;
       const hardhatOutputBuffer = Buffer.from(
@@ -910,7 +930,10 @@ describe("Server", function () {
       });
 
       it("should store a contract in /contracts/full_match|partial_match/0xADDRESS despite the files paths in the metadata", async () => {
-        const artifact = require("./testcontracts/Storage/Storage.json");
+        const artifact = require(path.join(
+          __dirname,
+          "./testcontracts/Storage/Storage.json"
+        ));
         const { contractAddress } =
           await deployFromAbiAndBytecodeForCreatorTxHash(
             localSigner,
@@ -919,7 +942,10 @@ describe("Server", function () {
             []
           );
 
-        const metadata = require("./testcontracts/Storage/metadata.upMultipleDirs.json");
+        const metadata = require(path.join(
+          __dirname,
+          "./testcontracts/Storage/metadata.upMultipleDirs.json"
+        ));
         const sourcePath = path.join(
           __dirname,
           "testcontracts",
@@ -967,7 +993,10 @@ describe("Server", function () {
       // Deploy the test contract locally
       // Contract from https://explorer.celo.org/address/0x923182024d0Fa5dEe59E3c3db5e2eeD23728D3C3/contracts
       let contractAddress;
-      const bytecodeMismatchArtifact = require("./sources/artifacts/extraFilesBytecodeMismatch.json");
+      const bytecodeMismatchArtifact = require(path.join(
+        __dirname,
+        "./sources/artifacts/extraFilesBytecodeMismatch.json"
+      ));
 
       before(async () => {
         contractAddress = await deployFromAbiAndBytecode(
@@ -978,7 +1007,10 @@ describe("Server", function () {
       });
 
       it("should warn the user about the issue when metadata match but not bytecodes", (done) => {
-        const hardhatOutput = require("./sources/hardhat-output/extraFilesBytecodeMismatch-onlyMetadata.json");
+        const hardhatOutput = require(path.join(
+          __dirname,
+          "./sources/hardhat-output/extraFilesBytecodeMismatch-onlyMetadata.json"
+        ));
         const hardhatOutputBuffer = Buffer.from(JSON.stringify(hardhatOutput));
         chai
           .request(server.app)
@@ -999,7 +1031,10 @@ describe("Server", function () {
       });
 
       it("should verify with all input files and not only those in metadata", (done) => {
-        const hardhatOutput = require("./sources/hardhat-output/extraFilesBytecodeMismatch.json");
+        const hardhatOutput = require(path.join(
+          __dirname,
+          "./sources/hardhat-output/extraFilesBytecodeMismatch.json"
+        ));
         const hardhatOutputBuffer = Buffer.from(JSON.stringify(hardhatOutput));
         chai
           .request(server.app)
@@ -1470,7 +1505,10 @@ describe("Server", function () {
     });
 
     it("should verify a contract with immutables and save immutable-references.json", async () => {
-      const artifact = require("./testcontracts/WithImmutables/artifact.json");
+      const artifact = require(path.join(
+        __dirname,
+        "./testcontracts/WithImmutables/artifact.json"
+      ));
       const { contractAddress } =
         await deployFromAbiAndBytecodeForCreatorTxHash(
           localSigner,
@@ -1479,7 +1517,10 @@ describe("Server", function () {
           [999]
         );
 
-      const metadata = require("./testcontracts/WithImmutables/metadata.json");
+      const metadata = require(path.join(
+        __dirname,
+        "./testcontracts/WithImmutables/metadata.json"
+      ));
       const metadataBuffer = Buffer.from(JSON.stringify(metadata));
       const sourcePath = path.join(
         __dirname,
@@ -1522,7 +1563,10 @@ describe("Server", function () {
     it("should verify a contract created by a factory contract and has immutables", async () => {
       const deployValue = 12345;
 
-      const artifact = require("./testcontracts/FactoryImmutable/Factory.json");
+      const artifact = require(path.join(
+        __dirname,
+        "./testcontracts/FactoryImmutable/Factory.json"
+      ));
       const factoryAddress = await deployFromAbiAndBytecode(
         localSigner,
         artifact.abi,
@@ -1530,7 +1574,10 @@ describe("Server", function () {
       );
 
       // Deploy child by calling deploy(uint)
-      const childMetadata = require("./testcontracts/FactoryImmutable/Child_metadata.json");
+      const childMetadata = require(path.join(
+        __dirname,
+        "./testcontracts/FactoryImmutable/Child_metadata.json"
+      ));
       const childMetadataBuffer = Buffer.from(JSON.stringify(childMetadata));
       const txReceipt = await callContractMethodWithTx(
         localSigner,
@@ -1568,7 +1615,10 @@ describe("Server", function () {
     });
 
     it("should verify a contract created by a factory contract and has immutables without constructor arguments but with msg.sender assigned immutable", async () => {
-      const artifact = require("./testcontracts/FactoryImmutableWithoutConstrArg/Factory3.json");
+      const artifact = require(path.join(
+        __dirname,
+        "./testcontracts/FactoryImmutableWithoutConstrArg/Factory3.json"
+      ));
       const factoryAddress = await deployFromAbiAndBytecode(
         localSigner,
         artifact.abi,
@@ -1576,7 +1626,10 @@ describe("Server", function () {
       );
 
       // Deploy child by calling deploy(uint)
-      const childMetadata = require("./testcontracts/FactoryImmutableWithoutConstrArg/Child3_metadata.json");
+      const childMetadata = require(path.join(
+        __dirname,
+        "./testcontracts/FactoryImmutableWithoutConstrArg/Child3_metadata.json"
+      ));
       const childMetadataBuffer = Buffer.from(JSON.stringify(childMetadata));
       const txReceipt = await callContractMethodWithTx(
         localSigner,
@@ -1666,7 +1719,10 @@ describe("Server", function () {
       // Deploy the test contract locally
       // Contract from https://explorer.celo.org/address/0x923182024d0Fa5dEe59E3c3db5e2eeD23728D3C3/contracts
       let contractAddress;
-      const bytecodeMismatchArtifact = require("./sources/artifacts/extraFilesBytecodeMismatch.json");
+      const bytecodeMismatchArtifact = require(path.join(
+        __dirname,
+        "./sources/artifacts/extraFilesBytecodeMismatch.json"
+      ));
 
       before(async () => {
         contractAddress = await deployFromAbiAndBytecode(
@@ -1677,7 +1733,10 @@ describe("Server", function () {
       });
 
       it("should warn the user about the issue when metadata match but not bytecodes", (done) => {
-        const hardhatOutput = require("./sources/hardhat-output/extraFilesBytecodeMismatch-onlyMetadata.json");
+        const hardhatOutput = require(path.join(
+          __dirname,
+          "./sources/hardhat-output/extraFilesBytecodeMismatch-onlyMetadata.json"
+        ));
         const hardhatOutputBuffer = Buffer.from(JSON.stringify(hardhatOutput));
 
         const agent = chai.request.agent(server.app);
@@ -1699,7 +1758,10 @@ describe("Server", function () {
       });
 
       it("should verify with all input files and not only those in metadata", (done) => {
-        const hardhatOutput = require("./sources/hardhat-output/extraFilesBytecodeMismatch.json");
+        const hardhatOutput = require(path.join(
+          __dirname,
+          "./sources/hardhat-output/extraFilesBytecodeMismatch.json"
+        ));
         const hardhatOutputBuffer = Buffer.from(JSON.stringify(hardhatOutput));
 
         const agent = chai.request.agent(server.app);
@@ -1723,8 +1785,14 @@ describe("Server", function () {
   });
   describe("E2E test path sanitization", async function () {
     it("should verify a contract with paths containing misc. chars, save the path translation, and be able access the file over the API", async () => {
-      const sanitizeArtifact = require("./testcontracts/path-sanitization/ERC20.json");
-      const sanitizeMetadata = require("./testcontracts/path-sanitization/metadata.json");
+      const sanitizeArtifact = require(path.join(
+        __dirname,
+        "./testcontracts/path-sanitization/ERC20.json"
+      ));
+      const sanitizeMetadata = require(path.join(
+        __dirname,
+        "./testcontracts/path-sanitization/metadata.json"
+      ));
       // read all files under test/testcontracts/path-sanitization/sources/ and put them in an object
       const sanitizeSourcesObj = {};
       fs.readdirSync(
