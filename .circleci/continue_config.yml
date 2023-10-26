@@ -67,28 +67,30 @@ aliases:
       # If no build is needed, echo 0 to run as success 
       - run: echo 0
   - &monitor-e2e-base
-    working_directory: ~/source-verify
     steps:
-      - checkout
       - run:
-          name: install node-fetch dotenv
-          command: npm install node-fetch dotenv
+          name: checkout metacoin-source-verify
+          command: git clone git@github.com:sourcifyeth/metacoin-source-verify.git && cd metacoin-source-verify
+      - run:
+          name: install
+          command: npm ci
       - run:
           name: monitor test
-          command: ./scripts/monitor_ci.sh
+          command: ./scripts/monitor_e2e.sh
           no_output_timeout: 30m
     docker:
       - image: cimg/node:16.15
   - &verification-e2e-base
-    working_directory: ~/source-verify
     steps:
-      - checkout
       - run:
-          name: install dotenv
-          command: npm install dotenv
+          name: checkout metacoin-source-verify
+          command: git clone git@github.com:sourcifyeth/metacoin-source-verify.git && cd metacoin-source-verify
+      - run:
+          name: install
+          command: npm ci
       - run:
           name: verification test
-          command: ./scripts/verification-e2e.sh
+          command: ./scripts/verification_e2e.sh
     docker:
       - image: cimg/node:16.15
 
