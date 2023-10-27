@@ -266,15 +266,44 @@ export interface Create2Args {
 }
 
 export interface ContractCreationFetcher {
+  type: 'scrape' | 'api';
   url: string;
-  responseParser: Function;
+  responseParser?: Function;
+  scrapeRegex?: string[];
+}
+
+export interface FetchContractCreationTxMethods {
+  blockscoutApi?: {
+    url: string;
+  };
+  blockscoutScrape?: {
+    url: string;
+    blockscoutPrefix?: string;
+  };
+  etherscanApi?: {
+    url: string;
+    apiKey: string;
+  };
+  etherscanScrape?: {
+    url: string;
+  };
+  blockscanApi?: {
+    url: string;
+  };
+  meterApi?: {
+    url: string;
+  };
+  telosApi?: {
+    url: string;
+  };
+  avalancheApi?: {
+    chainId: string;
+  };
 }
 
 export type SourcifyChainExtension = {
   supported: boolean;
-  contractCreationFetcher?: ContractCreationFetcher;
-  graphQLFetchAddress?: string;
-  txRegex?: string[];
+  fetchContractCreationTxUsing?: FetchContractCreationTxMethods;
   rpc?: Array<string | FetchRequest>;
 };
 

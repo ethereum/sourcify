@@ -8,7 +8,7 @@ import {
 } from 'ethers';
 import {
   Chain,
-  ContractCreationFetcher,
+  FetchContractCreationTxMethods,
   SourcifyChainExtension,
 } from './types';
 import { logError, logInfo, logWarn } from './logger';
@@ -38,10 +38,8 @@ export default class SourcifyChain {
   chainId: number;
   rpc: Array<string | FetchRequest>;
   supported: boolean;
-  contractCreationFetcher?: ContractCreationFetcher;
-  graphQLFetchAddress?: string | undefined;
-  txRegex?: string[] | undefined;
   providers: JsonRpcProviderWithUrl[];
+  fetchContractCreationTxUsing?: FetchContractCreationTxMethods;
 
   constructor(sourcifyChainObj: SourcifyChainInstance) {
     this.name = sourcifyChainObj.name;
@@ -49,10 +47,9 @@ export default class SourcifyChain {
     this.chainId = sourcifyChainObj.chainId;
     this.rpc = sourcifyChainObj.rpc;
     this.supported = sourcifyChainObj.supported;
-    this.contractCreationFetcher = sourcifyChainObj.contractCreationFetcher;
-    this.graphQLFetchAddress = sourcifyChainObj.graphQLFetchAddress;
-    this.txRegex = sourcifyChainObj.txRegex;
     this.providers = [];
+    this.fetchContractCreationTxUsing =
+      sourcifyChainObj.fetchContractCreationTxUsing;
 
     if (!this.supported) return; // Don't create providers if chain is not supported
 

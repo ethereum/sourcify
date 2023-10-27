@@ -25,14 +25,6 @@ dotenv.config({
   path: path.resolve(__dirname, "..", "..", "..", ".env"),
 });
 
-const ETHERSCAN_API_SUFFIX = `/api?module=contract&action=getcontractcreation&contractaddresses=\${ADDRESS}&apikey=`;
-const BLOCKSSCAN_SUFFIX = "api/accounts/${ADDRESS}";
-const BLOCKSCOUT_API_SUFFIX = "/api/v2/addresses/${ADDRESS}";
-const TELOS_SUFFIX = "v2/evm/get_contract?contract=${ADDRESS}";
-const METER_SUFFIX = "api/accounts/${ADDRESS}";
-const AVALANCHE_SUBNET_SUFFIX =
-  "contracts/${ADDRESS}/transactions:getDeployment";
-
 type ChainName = "eth" | "polygon" | "arb" | "opt";
 
 const LOCAL_CHAINS: SourcifyChain[] = [
@@ -139,109 +131,27 @@ function replaceInfuraApiKey(infuraURL: string) {
   );
 }
 
-function getContractCreationFetcher(
-  url: string,
-  responseParser: Function
-): ContractCreationFetcher {
-  return {
-    url,
-    responseParser,
-  };
-}
-
-// api?module=contract&action=getcontractcreation&contractaddresses=\${ADDRESS}&apikey=
-// For chains with the new Etherscan api that has contract creator tx hash endpoint
-function getEtherscanContractCreatorFetcher(
-  chainId: string
-): ContractCreationFetcher | undefined {
-  return getContractCreationFetcher(
-    etherscanAPIs[chainId].apiURL +
-      ETHERSCAN_API_SUFFIX +
-      etherscanAPIs[chainId].apiKey,
-    (response: any) => {
-      if (response?.result?.[0]?.txHash)
-        return response?.result?.[0]?.txHash as string;
-    }
-  );
-}
-
-function getBlockscoutContractCreatorFetcher(
-  chainId: string
-): ContractCreationFetcher | undefined {
-  if (blockscoutAPIs[chainId].supported) {
-    return getContractCreationFetcher(
-      blockscoutAPIs[chainId].apiURL + BLOCKSCOUT_API_SUFFIX,
-      (response: any) => response?.creation_tx_hash
-    );
-  }
-  return undefined;
-}
-
-function getBlockscanContractCreatorFetcher(
-  chainId: string
-): ContractCreationFetcher | undefined {
-  if (blockscanAPIs[chainId]) {
-    return getContractCreationFetcher(
-      blockscanAPIs[chainId].apiURL + BLOCKSSCAN_SUFFIX,
-      (response: any) => {
-        if (response.fromTxn) return response.fromTxn as string;
-      }
-    );
-  }
-  return undefined;
-}
-
-function getMeterContractCreatorFetcher(
-  chainId: string
-): ContractCreationFetcher | undefined {
-  if (meterAPIs[chainId]) {
-    return getContractCreationFetcher(
-      meterAPIs[chainId].apiURL + METER_SUFFIX,
-      (response: any) => {
-        return response.account.creationTxHash as string;
-      }
-    );
-  }
-  return undefined;
-}
-
-function getTelosContractCreatorFetcher(
-  chainId: string
-): ContractCreationFetcher | undefined {
-  if (telosAPIs[chainId]) {
-    return getContractCreationFetcher(
-      telosAPIs[chainId].apiURL + TELOS_SUFFIX,
-      (response: any) => {
-        if (response.creation_trx) return response.creation_trx as string;
-      }
-    );
-  }
-  return undefined;
-}
-
-function getAvalancheContractCreatorFetcher(
-  chainId: string
-): ContractCreationFetcher | undefined {
-  return getContractCreationFetcher(
-    `https://glacier-api.avax.network/v1/chains/${chainId}/${AVALANCHE_SUBNET_SUFFIX}`,
-    (response: any) => {
-      if (response.nativeTransaction?.txHash)
-        return response.nativeTransaction.txHash as string;
-    }
-  );
-}
-
 const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "1": {
     // Ethereum Mainnet
     supported: true,
-    contractCreationFetcher: getEtherscanContractCreatorFetcher("1"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: {
+        url: "https://api.etherscan.io",
+        apiKey: process.env.ETHERSCAN_API_KEY || "",
+      },
+    },
     rpc: buildAlchemyAndCustomRpcURLs("mainnet", "eth", true),
   },
   "17000": {
     // Ethereum Holesky
     supported: true,
-    contractCreationFetcher: getEtherscanContractCreatorFetcher("17000"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: {
+        url: "https://api-holesky.etherscan.io",
+        apiKey: process.env.ETHERSCAN_API_KEY || "",
+      },
+    },
     // Temporary rpc until this is fixed: https://github.com/emeraldpay/dshackle/issues/262
     // rpc: buildAlchemyAndCustomRpcURLs("holesky", "eth", true),
     rpc: ["https://rpc.teku-geth-001.srv.holesky.ethpandaops.io"],
@@ -249,14 +159,24 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "5": {
     // Ethereum Goerli Testnet
     supported: true,
-    contractCreationFetcher: getEtherscanContractCreatorFetcher("5"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: {
+        url: "https://api-goerli.etherscan.io",
+        apiKey: process.env.ETHERSCAN_API_KEY || "",
+      },
+    },
     rpc: buildAlchemyAndCustomRpcURLs("goerli", "eth", true),
   },
   "11155111": {
     // Ethereum Sepolia Testnet
     supported: true,
     rpc: buildAlchemyAndCustomRpcURLs("sepolia", "eth", true),
-    contractCreationFetcher: getEtherscanContractCreatorFetcher("11155111"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: {
+        url: "https://api-sepolia.etherscan.io",
+        apiKey: process.env.ETHERSCAN_API_KEY || "",
+      },
+    },
   },
   "369": {
     // PulseChain Mainnet
@@ -287,7 +207,12 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   },
   "56": {
     supported: true,
-    contractCreationFetcher: getEtherscanContractCreatorFetcher("56"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: {
+        url: "https://api.etherscan.io",
+        apiKey: process.env.ETHERSCAN_API_KEY || "",
+      },
+    },
   },
   "61": {
     supported: true,
@@ -310,7 +235,12 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   },
   "97": {
     supported: true,
-    contractCreationFetcher: getEtherscanContractCreatorFetcher("97"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: {
+        url: "https://api.etherscan.io",
+        apiKey: process.env.ETHERSCAN_API_KEY || "",
+      },
+    },
   },
   "100": {
     supported: true,
@@ -333,7 +263,12 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   },
   "137": {
     supported: true,
-    contractCreationFetcher: getEtherscanContractCreatorFetcher("137"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: {
+        url: "https://api.etherscan.io",
+        apiKey: process.env.ETHERSCAN_API_KEY || "",
+      },
+    },
     rpc: buildAlchemyAndCustomRpcURLs("mainnet", "polygon"),
   },
   "534": {
@@ -355,30 +290,55 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   },
   "80001": {
     supported: true,
-    contractCreationFetcher: getEtherscanContractCreatorFetcher("80001"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: {
+        url: "https://api.etherscan.io",
+        apiKey: process.env.ETHERSCAN_API_KEY || "",
+      },
+    },
     rpc: buildAlchemyAndCustomRpcURLs("mumbai", "polygon"),
   },
   "42161": {
     // Arbitrum One Mainnet
     supported: true,
-    contractCreationFetcher: getEtherscanContractCreatorFetcher("42161"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: {
+        url: "https://api.etherscan.io",
+        apiKey: process.env.ETHERSCAN_API_KEY || "",
+      },
+    },
     rpc: buildAlchemyAndCustomRpcURLs("mainnet", "arb"),
   },
   "421613": {
     // Arbitrum Goerli Testnet
     supported: true,
-    contractCreationFetcher: getEtherscanContractCreatorFetcher("421613"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: {
+        url: "https://api.etherscan.io",
+        apiKey: process.env.ETHERSCAN_API_KEY || "",
+      },
+    },
     rpc: buildAlchemyAndCustomRpcURLs("goerli", "arb"),
   },
   "43113": {
     // Avalanche Fuji Testnet
     supported: true,
-    contractCreationFetcher: getEtherscanContractCreatorFetcher("43113"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: {
+        url: "https://api.etherscan.io",
+        apiKey: process.env.ETHERSCAN_API_KEY || "",
+      },
+    },
   },
   "43114": {
     // Avalanche C-Chain Mainnet
     supported: true,
-    contractCreationFetcher: getEtherscanContractCreatorFetcher("43114"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: {
+        url: "https://api.etherscan.io",
+        apiKey: process.env.ETHERSCAN_API_KEY || "",
+      },
+    },
   },
   "57": {
     supported: true,
@@ -420,7 +380,12 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "10": {
     // Optimism Mainnet
     supported: true,
-    contractCreationFetcher: getEtherscanContractCreatorFetcher("10"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: {
+        url: "https://api.etherscan.io",
+        apiKey: process.env.ETHERSCAN_API_KEY || "",
+      },
+    },
     rpc: buildAlchemyAndCustomRpcURLs("mainnet", "opt"),
   },
   "420": {
@@ -463,12 +428,22 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "1284": {
     // Moonbeam
     supported: true,
-    contractCreationFetcher: getEtherscanContractCreatorFetcher("1284"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: {
+        url: "https://api.etherscan.io",
+        apiKey: process.env.ETHERSCAN_API_KEY || "",
+      },
+    },
   },
   "1285": {
     // Moonriver
     supported: true,
-    contractCreationFetcher: getEtherscanContractCreatorFetcher("1285"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: {
+        url: "https://api.etherscan.io",
+        apiKey: process.env.ETHERSCAN_API_KEY || "",
+      },
+    },
   },
   "1287": {
     // Moonbase
@@ -694,12 +669,22 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "84531": {
     // Base Goerli Testnet
     supported: true,
-    contractCreationFetcher: getEtherscanContractCreatorFetcher("84531"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: {
+        url: "https://api.etherscan.io",
+        apiKey: process.env.ETHERSCAN_API_KEY || "",
+      },
+    },
   },
   "8453": {
     // Base Mainnet
     supported: true,
-    contractCreationFetcher: getEtherscanContractCreatorFetcher("8453"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: {
+        url: "https://api.etherscan.io",
+        apiKey: process.env.ETHERSCAN_API_KEY || "",
+      },
+    },
   },
   "888": {
     // Wanchain Mainnet
@@ -750,7 +735,12 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "25": {
     // Cronos Mainnet Beta
     supported: true,
-    contractCreationFetcher: getEtherscanContractCreatorFetcher("25"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: {
+        url: "https://api.etherscan.io",
+        apiKey: process.env.ETHERSCAN_API_KEY || "",
+      },
+    },
   },
   "1339": {
     // Elysium Mainnet Chain
@@ -874,7 +864,12 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "1116": {
     // Core Blockchain Mainnet
     supported: true,
-    contractCreationFetcher: getEtherscanContractCreatorFetcher("1116"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: {
+        url: "https://api.etherscan.io",
+        apiKey: process.env.ETHERSCAN_API_KEY || "",
+      },
+    },
   },
   "35441": {
     // Q Mainnet
