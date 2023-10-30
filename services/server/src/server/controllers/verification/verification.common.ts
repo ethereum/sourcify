@@ -385,8 +385,14 @@ export const verifyContractsInSession = async (
           path: base64file.path,
           buffer: Buffer.from(base64file.content, FILE_ENCODING),
         }));
+        const checkedContractWithAllSources = createCheckedContract(
+          contractWrapper.contract.metadata,
+          contractWrapper.contract.solidity,
+          contractWrapper.contract.missing,
+          contractWrapper.contract.invalid
+        );
         const contractWithAllSources = await useAllSources(
-          contractWrapper.contract,
+          checkedContractWithAllSources,
           pathBufferInputFiles
         );
         const tempMatch = await verificationService.verifyDeployed(
