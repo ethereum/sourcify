@@ -5,14 +5,3 @@ services:
     build:
       context: ../ui
       dockerfile: Dockerfile
-      # Pass SERVER_URL and REPOSITORY_SERVER_URL to be injected build time.
-      # Pass the AUTH0 variables to be injected build time.
-      # Will be set in .env (see scripts/build_and_publish_docker_images.sh)
-      args:
-        - SERVER_URL=$SERVER_URL
-        - REPOSITORY_SERVER_URL=$REPOSITORY_SERVER_URL
-        - IPNS=$IPNS
-        - TAG=$TAG
-        - AUTH0_ISSUERBASEURL=$AUTH0_ISSUERBASEURL
-        - AUTH0_CLIENTID=$AUTH0_CLIENTID
-        - AUTH0_AUDIENCE=$AUTH0_AUDIENCE

@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "target": "es2017",
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "strict": true,
+    "outDir": "dist",
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "module": "commonjs",
+    "paths": {
+      "ethers": ["./node_modules/ethers"]
+    },
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules/**"],
+}

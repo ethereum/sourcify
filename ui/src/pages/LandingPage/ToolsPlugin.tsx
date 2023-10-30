@@ -4,6 +4,7 @@ import foundry from "../../assets/integrations/foundry.png";
 import truffle from "../../assets/integrations/truffle.png";
 import wagmi from "../../assets/integrations/wagmi.png";
 import AppIconName from "../../components/AppIconName";
+import hardhat from "../../assets/integrations/hardhat.png";
 
 export default function ToolsPlugin() {
   return (
@@ -17,6 +18,11 @@ export default function ToolsPlugin() {
           img={foundry}
           name="Foundry"
           href="https://twitter.com/r_krasiuk/status/1559225185563205636/photo/1"
+        />
+        <AppIconName
+          img={hardhat}
+          name="hardhat-verify"
+          href="https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-verify"
         />
         <AppIconName
           Svg={HardhatDeploy}
@@ -35,7 +41,7 @@ export default function ToolsPlugin() {
         />
         <AppIconName
           img={wagmi}
-          name='Wagmi'
+          name="Wagmi"
           href="https://wagmi.sh/cli/plugins/sourcify"
         />
       </div>

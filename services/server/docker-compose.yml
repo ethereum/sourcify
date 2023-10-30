@@ -1,0 +1,40 @@
+version: "3.7"
+
+networks:
+  source-verify:
+
+services:
+  server:
+    env_file:
+      - .env
+    restart: always
+    networks:
+      - source-verify
+    labels:
+      - "autoheal=true" # Label to trigger autoheal for this service
+    image: ethereum/source-verify:server-${TAG}
+    container_name: server-${TAG}
+    ports:
+      - "${DOCKER_HOST_SERVER_PORT}:${SERVER_PORT}"
+    volumes:
+      - type: bind
+        source: $DOCKER_HOST_REPOSITORY_PATH
+        target: $REPOSITORY_PATH
+      - type: bind
+        source: $DOCKER_HOST_SOLC_REPO
+        target: $SOLC_REPO
+      - type: bind
+        source: $DOCKER_HOST_SOLJSON_REPO
+        target: $SOLJSON_REPO
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+
+  autoheal:
+    image: willfarrell/autoheal
+    environment:
+      - AUTOHEAL_CONTAINER_LABEL=autoheal # Set to 'autoheal' to only heal containers with the 'autoheal=true' label
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock

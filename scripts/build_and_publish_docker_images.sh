@@ -16,7 +16,9 @@ echo $TAG
 echo $SERVICE
 
 # To pass variables React build time in build-ui.yaml
-cp environments/.env.$TAG environments/.env
+if [ "$SERVICE" == "ui" ]; then
+    cp ui/.env.build.$TAG ui/.env
+fi
 
 docker login --username $DOCKER_USER --password $DOCKER_PASS
 docker-compose -f environments/build-$SERVICE.yaml build

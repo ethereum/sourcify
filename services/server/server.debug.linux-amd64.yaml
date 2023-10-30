@@ -1,0 +1,48 @@
+# Runs the server in a linux-amd64 container with debug port exposed
+# Used in debugging solidity linux-amd64 binary executables  
+version: "3.7"
+
+networks:
+  source-verify:
+
+services:
+  server:
+    env_file:
+      - .env
+    restart: always
+    networks:
+      - source-verify
+    labels:
+      - "autoheal=true" # Label to trigger autoheal for this service
+    # image: ethereum/source-verify:server-${TAG}
+    build:
+      context: ../../
+      dockerfile: services/server/Dockerfile.debug
+    container_name: server-${TAG}
+    platform: linux/amd64
+    ports:
+      - "${DOCKER_HOST_SERVER_PORT}:${SERVER_PORT}"
+      - "9229:9229"      # Debug port
+    volumes:
+      - ../../:/home/app
+      - type: bind
+        source: $DOCKER_HOST_REPOSITORY_PATH
+        target: $REPOSITORY_PATH
+      - type: bind
+        source: $DOCKER_HOST_SOLC_REPO
+        target: $SOLC_REPO
+      - type: bind
+        source: $DOCKER_HOST_SOLJSON_REPO
+        target: $SOLJSON_REPO
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+
+  autoheal:
+    image: willfarrell/autoheal
+    environment:
+      - AUTOHEAL_CONTAINER_LABEL=autoheal # Set to 'autoheal' to only heal containers with the 'autoheal=true' label
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
