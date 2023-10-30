@@ -261,7 +261,7 @@ export const getCreatorTx = async (
   }
   if (sourcifyChain.fetchContractCreationTxUsing?.etherscanApi) {
     const fetcher = getEtherscanApiContractCreatorFetcher(
-      sourcifyChain.fetchContractCreationTxUsing?.etherscanApi.url,
+      sourcifyChain.fetchContractCreationTxUsing?.etherscanApi.apiURL,
       sourcifyChain.fetchContractCreationTxUsing?.etherscanApi.apiKey
     );
     const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);

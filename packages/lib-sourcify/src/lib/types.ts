@@ -281,7 +281,7 @@ export interface FetchContractCreationTxMethods {
     blockscoutPrefix?: string;
   };
   etherscanApi?: {
-    url: string;
+    apiURL: string;
     apiKey: string;
   };
   etherscanScrape?: {

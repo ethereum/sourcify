@@ -10,6 +10,7 @@ import {
 } from "@ethereum-sourcify/lib-sourcify";
 import { ValidationError } from "./common/errors";
 import { FetchRequest } from "ethers";
+import { etherscanAPIs } from "./config";
 
 const allChains = chainsRaw as Chain[];
 
@@ -128,10 +129,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // Ethereum Mainnet
     supported: true,
     fetchContractCreationTxUsing: {
-      etherscanApi: {
-        url: "https://api.etherscan.io",
-        apiKey: process.env.ETHERSCAN_API_KEY || "",
-      },
+      etherscanApi: etherscanAPIs["1"],
     },
     rpc: buildAlchemyAndCustomRpcURLs("mainnet", "eth", true),
   },
@@ -139,10 +137,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // Ethereum Holesky
     supported: true,
     fetchContractCreationTxUsing: {
-      etherscanApi: {
-        url: "https://api-holesky.etherscan.io",
-        apiKey: process.env.ETHERSCAN_API_KEY || "",
-      },
+      etherscanApi: etherscanAPIs["17000"],
     },
     // Temporary rpc until this is fixed: https://github.com/emeraldpay/dshackle/issues/262
     // rpc: buildAlchemyAndCustomRpcURLs("holesky", "eth", true),
@@ -152,10 +147,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // Ethereum Goerli Testnet
     supported: true,
     fetchContractCreationTxUsing: {
-      etherscanApi: {
-        url: "https://api-goerli.etherscan.io",
-        apiKey: process.env.ETHERSCAN_API_KEY || "",
-      },
+      etherscanApi: etherscanAPIs["5"],
     },
     rpc: buildAlchemyAndCustomRpcURLs("goerli", "eth", true),
   },
@@ -164,10 +156,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     supported: true,
     rpc: buildAlchemyAndCustomRpcURLs("sepolia", "eth", true),
     fetchContractCreationTxUsing: {
-      etherscanApi: {
-        url: "https://api-sepolia.etherscan.io",
-        apiKey: process.env.ETHERSCAN_API_KEY || "",
-      },
+      etherscanApi: etherscanAPIs["11155111"],
     },
   },
   "369": {
@@ -210,10 +199,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // BNB Smart Chain Mainnet
     supported: true,
     fetchContractCreationTxUsing: {
-      etherscanApi: {
-        url: "https://api.bscscan.com/",
-        apiKey: process.env.BSCSCAN_API_KEY || "",
-      },
+      etherscanApi: etherscanAPIs["56"],
     },
   },
   "61": {
@@ -251,10 +237,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // BNB Smart Chain Testnet
     supported: true,
     fetchContractCreationTxUsing: {
-      etherscanApi: {
-        url: "https://api-testnet.bscscan.com/",
-        apiKey: process.env.BSCSCAN_API_KEY || "",
-      },
+      etherscanApi: etherscanAPIs["97"],
     },
   },
   "100": {
@@ -264,10 +247,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       blockscoutApi: {
         url: "https://gnosis.blockscout.com/",
       },
-      etherscanApi: {
-        url: "https://api.gnosisscan.io",
-        apiKey: process.env.GNOSSISCAN_API_KEY || "",
-      },
+      etherscanApi: etherscanAPIs["100"],
     },
   },
   "295": {
@@ -289,10 +269,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "137": {
     supported: true,
     fetchContractCreationTxUsing: {
-      etherscanApi: {
-        url: "https://api.polygonscan.com",
-        apiKey: process.env.POLYGONSCAN_API_KEY || "",
-      },
+      etherscanApi: etherscanAPIs["137"],
     },
     rpc: buildAlchemyAndCustomRpcURLs("mainnet", "polygon"),
   },
@@ -304,10 +281,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // Celo Mainnet
     supported: true,
     fetchContractCreationTxUsing: {
-      etherscanApi: {
-        url: "https://api.celoscan.io",
-        apiKey: process.env.CELOSCAN_API_KEY || "",
-      },
+      etherscanApi: etherscanAPIs["42220"],
       blockscoutScrape: {
         url: "https://explorer.celo.org/mainnet/",
       },
@@ -317,10 +291,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // Celo Alfajores Testnet
     supported: true,
     fetchContractCreationTxUsing: {
-      etherscanApi: {
-        url: "https://api-alfajores.celoscan.io",
-        apiKey: process.env.CELOSCAN_API_KEY || "",
-      },
+      etherscanApi: etherscanAPIs["44787"],
       blockscoutScrape: {
         url: "https://explorer.celo.org/alfajores/",
       },
@@ -337,10 +308,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // Polygon Mumbai
     supported: true,
     fetchContractCreationTxUsing: {
-      etherscanApi: {
-        url: "https://api-testnet.polygonscan.com",
-        apiKey: process.env.POLYGONSCAN_API_KEY || "",
-      },
+      etherscanApi: etherscanAPIs["80001"],
     },
     rpc: buildAlchemyAndCustomRpcURLs("mumbai", "polygon"),
   },
@@ -348,10 +316,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // Arbitrum One Mainnet
     supported: true,
     fetchContractCreationTxUsing: {
-      etherscanApi: {
-        url: "https://api.arbiscan.io",
-        apiKey: process.env.ARBISCAN_API_KEY || "",
-      },
+      etherscanApi: etherscanAPIs["42161"],
     },
     rpc: buildAlchemyAndCustomRpcURLs("mainnet", "arb"),
   },
@@ -359,10 +324,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // Arbitrum Goerli Testnet
     supported: true,
     fetchContractCreationTxUsing: {
-      etherscanApi: {
-        url: "https://api-goerli.arbiscan.io",
-        apiKey: process.env.ARBISCAN_API_KEY || "",
-      },
+      etherscanApi: etherscanAPIs["421613"],
     },
     rpc: buildAlchemyAndCustomRpcURLs("goerli", "arb"),
   },
@@ -370,20 +332,14 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // Avalanche Fuji Testnet
     supported: true,
     fetchContractCreationTxUsing: {
-      etherscanApi: {
-        url: "https://api-testnet.snowtrace.io",
-        apiKey: process.env.SNOWTRACE_API_KEY || "",
-      },
+      etherscanApi: etherscanAPIs["43113"],
     },
   },
   "43114": {
     // Avalanche C-Chain Mainnet
     supported: true,
     fetchContractCreationTxUsing: {
-      etherscanApi: {
-        url: "https://api.snowtrace.io",
-        apiKey: process.env.SNOWTRACE_API_KEY || "",
-      },
+      etherscanApi: etherscanAPIs["43114"],
     },
   },
   "57": {
@@ -461,10 +417,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // Optimism Mainnet
     supported: true,
     fetchContractCreationTxUsing: {
-      etherscanApi: {
-        url: "https://api-optimistic.etherscan.io/",
-        apiKey: process.env.OPTIMISMSCAN_API_KEY || "",
-      },
+      etherscanApi: etherscanAPIs["10"],
     },
     rpc: buildAlchemyAndCustomRpcURLs("mainnet", "opt"),
   },
@@ -472,10 +425,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // Optimism Goerli
     supported: true,
     fetchContractCreationTxUsing: {
-      etherscanApi: {
-        url: "https://api-goerli-optimism.etherscan.io",
-        apiKey: process.env.OPTIMISMSCAN_API_KEY || "",
-      },
+      etherscanApi: etherscanAPIs["420"],
       blockscoutApi: {
         url: "https://blockscout.com/optimism/goerli/",
       },
@@ -543,30 +493,21 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // Moonbeam
     supported: true,
     fetchContractCreationTxUsing: {
-      etherscanApi: {
-        url: "https://api-moonbeam.moonscan.io",
-        apiKey: process.env.MOONSCAN_MOONBEAM_API_KEY || "",
-      },
+      etherscanApi: etherscanAPIs["1284"],
     },
   },
   "1285": {
     // Moonriver
     supported: true,
     fetchContractCreationTxUsing: {
-      etherscanApi: {
-        url: "https://api-moonriver.moonscan.io",
-        apiKey: process.env.MOONSCAN_MOONRIVER_API_KEY || "",
-      },
+      etherscanApi: etherscanAPIs["1285"],
     },
   },
   "1287": {
     // Moonbase
     supported: true,
     fetchContractCreationTxUsing: {
-      etherscanApi: {
-        url: "https://api-moonbase.moonscan.io",
-        apiKey: "",
-      },
+      etherscanApi: etherscanAPIs["1287"],
     },
   },
   "11297108109": {
@@ -942,20 +883,14 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // Base Goerli Testnet
     supported: true,
     fetchContractCreationTxUsing: {
-      etherscanApi: {
-        url: "https://api-goerli.basescan.org/",
-        apiKey: "",
-      },
+      etherscanApi: etherscanAPIs["84531"],
     },
   },
   "8453": {
     // Base Mainnet
     supported: true,
     fetchContractCreationTxUsing: {
-      etherscanApi: {
-        url: "https://api.basescan.org/",
-        apiKey: process.env.BASESCAN_API_KEY || "",
-      },
+      etherscanApi: etherscanAPIs["8453"],
     },
   },
   "888": {
@@ -1023,10 +958,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // Cronos Mainnet Beta
     supported: true,
     fetchContractCreationTxUsing: {
-      etherscanApi: {
-        url: "https://api.cronoscan.com/",
-        apiKey: process.env.CRONOSCAN_API_KEY || "",
-      },
+      etherscanApi: etherscanAPIs["25"],
     },
   },
   "1339": {
@@ -1232,10 +1164,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // Core Blockchain Mainnet
     supported: true,
     fetchContractCreationTxUsing: {
-      etherscanApi: {
-        url: "https://openapi.coredao.org/",
-        apiKey: process.env.COREDAO_API_KEY || "",
-      },
+      etherscanApi: etherscanAPIs["1116"],
     },
   },
   "35441": {
