@@ -21,17 +21,20 @@ export const checkAllByAddresses = async (
     {
       method: "GET",
     }
-  ).then((res) => {
-    if (!res.ok) {
-      // e.g. HTTP 400 invalid address
-      return res.json().then((json) => {
-        throw new Error(json.message);
-      });
-    }
-    return res.json();
-  });
+  );
 
-  return response;
+  if (!response.ok) {
+    // e.g. HTTP 400 invalid address
+    let jsonError;
+    try {
+      jsonError = await response.json();
+    } catch (e) {
+      throw new Error("Cannot parse the error message");
+    }
+    throw new Error(jsonError.message);
+  }
+
+  return await response.json();
 };
 
 /**
