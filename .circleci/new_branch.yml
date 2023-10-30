@@ -33,7 +33,7 @@ jobs:
 
       - run:
           name: lint
-          command: npm run lint
+          command: npm run lerna-lint
       - run:
           name: tsc and test
           command: npx lerna run build && npx lerna run test --stream --concurrency=1

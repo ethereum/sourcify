@@ -4,12 +4,6 @@ version: 2.1
 
 # Pipeline parameters to run module builds if related files have been changed
 parameters:
-  run-build-ipfs:
-    type: boolean
-    default: false
-  run-build-s3:
-    type: boolean
-    default: false
   run-build-repository:
     type: boolean
     default: false
@@ -72,35 +66,31 @@ aliases:
                   - ./*
       # If no build is needed, echo 0 to run as success 
       - run: echo 0
-  - &filter-base
-    filters:
-      branches:
-        only:
-          - staging
-          - master
   - &monitor-e2e-base
-    working_directory: ~/source-verify
     steps:
-      - checkout
       - run:
-          name: install node-fetch dotenv
-          command: npm install node-fetch dotenv
+          name: checkout metacoin-source-verify
+          command: git clone git@github.com:sourcifyeth/metacoin-source-verify.git && cd metacoin-source-verify
+      - run:
+          name: install
+          command: npm ci
       - run:
           name: monitor test
-          command: ./scripts/monitor_ci.sh
+          command: ./scripts/monitor_e2e.sh
           no_output_timeout: 30m
     docker:
       - image: cimg/node:16.15
   - &verification-e2e-base
-    working_directory: ~/source-verify
     steps:
-      - checkout
       - run:
-          name: install dotenv
-          command: npm install dotenv
+          name: checkout metacoin-source-verify
+          command: git clone git@github.com:sourcifyeth/metacoin-source-verify.git && cd metacoin-source-verify
+      - run:
+          name: install
+          command: npm ci
       - run:
           name: verification test
-          command: ./scripts/verification-e2e.sh
+          command: ./scripts/verification_e2e.sh
     docker:
       - image: cimg/node:16.15
 
@@ -117,9 +107,7 @@ workflows:
             - equal: [staging, << pipeline.git.branch >>]
         - or:
             [
-              << pipeline.parameters.run-build-ipfs >>,
               << pipeline.parameters.run-build-repository >>,
-              << pipeline.parameters.run-build-s3 >>,
               << pipeline.parameters.run-build-server >>,
               << pipeline.parameters.run-build-monitor >>,
               << pipeline.parameters.run-build-packages >>,
@@ -135,16 +123,11 @@ workflows:
                 - master
           requires:
             - tests-node-v16
-      - build-push-ipfs:
-          run-build: << pipeline.parameters.run-build-ipfs >>
-          SERVICE: "ipfs"
       - build-push-monitor:
           run-build: << pipeline.parameters.run-build-monitor >>
           run-build-2: << pipeline.parameters.run-build-packages >> # monitor depends on packages
       - build-push-repository:
           run-build: << pipeline.parameters.run-build-repository >>
-      - build-push-s3:
-          run-build: << pipeline.parameters.run-build-s3 >>
       - build-push-server:
           run-build: << pipeline.parameters.run-build-server >>
           run-build-2: << pipeline.parameters.run-build-packages >> # server depends on packages
@@ -152,10 +135,8 @@ workflows:
           run-build: << pipeline.parameters.run-build-ui >>
       - deploy:
           requires:
-            - build-push-ipfs
             - build-push-monitor
             - build-push-repository
-            - build-push-s3
             - build-push-server
             - build-push-ui
       - monitor-e2e-goerli:
@@ -191,11 +172,6 @@ workflows:
 ### JOB DEFINITIONS ###
 #######################
 jobs:
-  build-push-ipfs:
-    <<: *build-base
-    environment:
-      SERVICE: "ipfs"
-    
   build-push-monitor:
     <<: *build-base
     environment:
@@ -204,10 +180,6 @@ jobs:
     <<: *build-base
     environment:
       SERVICE: "repository"
-  build-push-s3:
-    <<: *build-base
-    environment:
-      SERVICE: "s3"
   build-push-server:
     <<: *build-base
     environment:
@@ -249,13 +221,13 @@ jobs:
           command: sudo apt-get update && sudo apt-get -y install xvfb gconf-service libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgbm1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils wget
       - run:
           name: lint
-          command: npm run lint
+          command: npm run lerna-lint
       - run:
           name: tsc and test
           command: npx lerna run build && npx lerna run test --stream --concurrency=1
       - run:
           name: coverage
-          command: npm run cov:send
+          command: npx lerna run cov:send
   test-new-chain:
     docker:
       - image: cimg/node:16.15
