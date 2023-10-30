@@ -7,11 +7,15 @@ import {
 } from "../../../common/errors";
 import {
   CheckedContract,
+  CompilerOutput,
   InvalidSources,
+  JsonInput,
   Match,
+  Metadata,
   MissingSources,
   PathContent,
   Status,
+  StringMap,
   checkFiles,
   isEmpty,
   useAllSources,
@@ -29,6 +33,29 @@ import config from "../../../config";
 import { id as keccak256str } from "ethers";
 import { ForbiddenError } from "../../../common/errors/ForbiddenError";
 import { UnauthorizedError } from "../../../common/errors/UnauthorizedError";
+import { ISolidityCompiler } from "@ethereum-sourcify/lib-sourcify/build/main/lib/ISolidityCompiler";
+import { useCompiler } from "../../services/compiler/solidityCompiler";
+
+class Solc implements ISolidityCompiler {
+  async compile(
+    version: string,
+    solcJsonInput: JsonInput,
+    forceEmscripten: boolean = false
+  ): Promise<CompilerOutput> {
+    return await useCompiler(version, solcJsonInput, forceEmscripten);
+  }
+}
+
+export const solc = new Solc();
+
+export function createCheckedContract(
+  metadata: Metadata,
+  solidity: StringMap,
+  missing?: MissingSources,
+  invalid?: InvalidSources
+) {
+  return new CheckedContract(solc, metadata, solidity, missing, invalid);
+}
 
 type PathBuffer = {
   path: string;
@@ -209,7 +236,7 @@ export const checkContractsInSession = async (session: Session) => {
 
   try {
     const unused: string[] = [];
-    const contracts = await checkFiles(pathBuffers, unused);
+    const contracts = await checkFiles(solc, pathBuffers, unused);
 
     const newPendingContracts: ContractWrapperMap = {};
     for (const contract of contracts) {
@@ -333,7 +360,7 @@ export const verifyContractsInSession = async (
     } = contractWrapper;
 
     // The session saves the CheckedContract as a simple object, so we need to reinstantiate it
-    const checkedContract = new CheckedContract(
+    const checkedContract = createCheckedContract(
       contract.metadata,
       contract.solidity,
       contract.missing,

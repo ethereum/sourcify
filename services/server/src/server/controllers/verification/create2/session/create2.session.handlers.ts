@@ -1,6 +1,9 @@
 import { Response, Request } from "express";
 import { services } from "../../../../services/services";
-import { getSessionJSON } from "../../verification.common";
+import {
+  createCheckedContract,
+  getSessionJSON,
+} from "../../verification.common";
 import {
   CheckedContract,
   isEmpty,
@@ -28,7 +31,7 @@ export async function sessionVerifyCreate2(
 
   const contractWrapper = session.contractWrappers[verificationId];
 
-  const contract = new CheckedContract(
+  const contract = createCheckedContract(
     contractWrapper.contract.metadata,
     contractWrapper.contract.solidity,
     contractWrapper.contract.missing,
@@ -65,7 +68,7 @@ export async function sessionPrecompileContract(req: Request, res: Response) {
   const verificationId = req.body.verificationId;
   const contractWrapper = session.contractWrappers[verificationId];
 
-  const checkedContract = new CheckedContract(
+  const checkedContract = createCheckedContract(
     contractWrapper.contract.metadata,
     contractWrapper.contract.solidity,
     contractWrapper.contract.missing,
