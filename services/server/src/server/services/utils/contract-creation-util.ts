@@ -193,27 +193,6 @@ export const getCreatorTx = async (
   sourcifyChain: SourcifyChain,
   contractAddress: string
 ): Promise<string | null> => {
-  if (sourcifyChain.fetchContractCreationTxUsing?.etherscanApi) {
-    const fetcher = getEtherscanApiContractCreatorFetcher(
-      sourcifyChain.fetchContractCreationTxUsing?.etherscanApi.url,
-      sourcifyChain.fetchContractCreationTxUsing?.etherscanApi.apiKey
-    );
-    const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
-    if (result) {
-      return result;
-    }
-  }
-  if (sourcifyChain.fetchContractCreationTxUsing?.etherscanScrape) {
-    const fetcher = getEtherscanScrapeContractCreatorFetcher(
-      sourcifyChain.fetchContractCreationTxUsing?.etherscanScrape.url
-    );
-    if (fetcher) {
-      const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
-      if (result) {
-        return result;
-      }
-    }
-  }
   if (sourcifyChain.fetchContractCreationTxUsing?.blockscoutApi) {
     const fetcher = getBlockscoutApiContractCreatorFetcher(
       sourcifyChain.fetchContractCreationTxUsing?.blockscoutApi.url
@@ -270,8 +249,29 @@ export const getCreatorTx = async (
     }
   }
   if (sourcifyChain.fetchContractCreationTxUsing?.avalancheApi) {
-    const fetcher = getTelosApiContractCreatorFetcher(
+    const fetcher = getAvalancheApiContractCreatorFetcher(
       sourcifyChain.fetchContractCreationTxUsing?.avalancheApi.chainId
+    );
+    if (fetcher) {
+      const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
+      if (result) {
+        return result;
+      }
+    }
+  }
+  if (sourcifyChain.fetchContractCreationTxUsing?.etherscanApi) {
+    const fetcher = getEtherscanApiContractCreatorFetcher(
+      sourcifyChain.fetchContractCreationTxUsing?.etherscanApi.url,
+      sourcifyChain.fetchContractCreationTxUsing?.etherscanApi.apiKey
+    );
+    const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
+    if (result) {
+      return result;
+    }
+  }
+  if (sourcifyChain.fetchContractCreationTxUsing?.etherscanScrape) {
+    const fetcher = getEtherscanScrapeContractCreatorFetcher(
+      sourcifyChain.fetchContractCreationTxUsing?.etherscanScrape.url
     );
     if (fetcher) {
       const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);

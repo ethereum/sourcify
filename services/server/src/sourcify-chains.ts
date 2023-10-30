@@ -261,6 +261,9 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // Gnosis Mainnet
     supported: true,
     fetchContractCreationTxUsing: {
+      blockscoutApi: {
+        url: "https://gnosis.blockscout.com/",
+      },
       etherscanApi: {
         url: "https://api.gnosisscan.io",
         apiKey: process.env.GNOSSISCAN_API_KEY || "",
