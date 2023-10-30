@@ -61,7 +61,7 @@
     "pg": "^8.11.3",
     "puppeteer": "^20.7.4",
     "serve-index": "^1.9.1",
-    "solc": "^0.8.17",
+    "solc": "^0.8.22",
     "swagger-ui-express": "^5.0.0",
     "winston": "^3.8.2",
     "winston-loki": "^6.0.6",
