@@ -993,6 +993,11 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       "https://explorer.testedge2.haqq.network/" + BLOCKSCOUT_SUFFIX,
     txRegex: getBlockscoutRegex(),
   },
+  "1115": {
+    // Core Blockchain Testnet
+    supported: true,
+    contractFetchAddress: generateEtherscanCreatorTxAPI("1115"),
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
@@ -1082,8 +1087,8 @@ export function getSortedChainsArray(
       getPrimarySortKey(a) > getPrimarySortKey(b)
         ? 1
         : getPrimarySortKey(b) > getPrimarySortKey(a)
-        ? -1
-        : 0
+          ? -1
+          : 0
     );
 
   const sortedChains = ethereumChains.concat(otherChains);
