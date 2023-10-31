@@ -1,4 +1,3 @@
-import { etherscanAPIs } from "../../../../config";
 import { BadRequestError } from "../../../../common/errors";
 import {
   JsonInput,
@@ -8,6 +7,7 @@ import {
 } from "@ethereum-sourcify/lib-sourcify";
 import { TooManyRequests } from "../../../../common/errors/TooManyRequests";
 import { BadGatewayError } from "../../../../common/errors/BadGatewayError";
+import { etherscanAPIs } from "../../../../common/etherscan-api";
 
 export type EtherscanResult = {
   SourceCode: string;

@@ -10,7 +10,7 @@ import {
 } from "@ethereum-sourcify/lib-sourcify";
 import { ValidationError } from "./common/errors";
 import { FetchRequest } from "ethers";
-import { etherscanAPIs } from "./config";
+import { etherscanAPIs } from "./common/etherscan-api";
 
 const allChains = chainsRaw as Chain[];
 
