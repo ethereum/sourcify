@@ -33,7 +33,7 @@ import config from "../../../config";
 import { id as keccak256str } from "ethers";
 import { ForbiddenError } from "../../../common/errors/ForbiddenError";
 import { UnauthorizedError } from "../../../common/errors/UnauthorizedError";
-import { ISolidityCompiler } from "@ethereum-sourcify/lib-sourcify/build/main/lib/ISolidityCompiler";
+import { ISolidityCompiler } from "@ethereum-sourcify/lib-sourcify";
 import { useCompiler } from "../../services/compiler/solidityCompiler";
 
 class Solc implements ISolidityCompiler {

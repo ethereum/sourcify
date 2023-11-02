@@ -8,3 +8,4 @@ export * from './lib/types';
 export const setLibSourcifyLogger = setLogger;
 export const setLibSourcifyLoggerLevel = setLevel;
 export type ILibSourcifyLogger = ILogger;
+export * from './lib/ISolidityCompiler';
