@@ -94,7 +94,7 @@ function getBlockscoutApiContractCreatorFetcher(
   );
 }
 
-function getBlockscanApiContractCreatorFetcher(
+function getBlocksScanApiContractCreatorFetcher(
   apiURL: string
 ): ContractCreationFetcher {
   return getApiContractCreationFetcher(
@@ -215,9 +215,9 @@ export const getCreatorTx = async (
       }
     }
   }
-  if (sourcifyChain.fetchContractCreationTxUsing?.blockscanApi) {
-    const fetcher = getBlockscanApiContractCreatorFetcher(
-      sourcifyChain.fetchContractCreationTxUsing?.blockscanApi.url
+  if (sourcifyChain.fetchContractCreationTxUsing?.blocksScanApi) {
+    const fetcher = getBlocksScanApiContractCreatorFetcher(
+      sourcifyChain.fetchContractCreationTxUsing?.blocksScanApi.url
     );
     if (fetcher) {
       const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);

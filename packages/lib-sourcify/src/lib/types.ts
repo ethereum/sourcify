@@ -287,7 +287,7 @@ export interface FetchContractCreationTxMethods {
   etherscanScrape?: {
     url: string;
   };
-  blockscanApi?: {
+  blocksScanApi?: {
     url: string;
   };
   meterApi?: {

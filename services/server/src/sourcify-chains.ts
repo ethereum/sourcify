@@ -190,7 +190,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     // Apothem
     supported: true,
     fetchContractCreationTxUsing: {
-      blockscanApi: {
+      blocksScanApi: {
         url: "https://apothem.blocksscan.io/",
       },
     },
