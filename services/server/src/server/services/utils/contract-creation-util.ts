@@ -197,66 +197,54 @@ export const getCreatorTx = async (
     const fetcher = getBlockscoutApiContractCreatorFetcher(
       sourcifyChain.fetchContractCreationTxUsing?.blockscoutApi.url
     );
-    if (fetcher) {
-      const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
-      if (result) {
-        return result;
-      }
+    const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
+    if (result) {
+      return result;
     }
   }
   if (sourcifyChain.fetchContractCreationTxUsing?.blockscoutScrape) {
     const fetcher = getBlockscoutScrapeContractCreatorFetcher(
       sourcifyChain.fetchContractCreationTxUsing?.blockscoutScrape.url
     );
-    if (fetcher) {
-      const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
-      if (result) {
-        return result;
-      }
+    const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
+    if (result) {
+      return result;
     }
   }
   if (sourcifyChain.fetchContractCreationTxUsing?.blocksScanApi) {
     const fetcher = getBlocksScanApiContractCreatorFetcher(
       sourcifyChain.fetchContractCreationTxUsing?.blocksScanApi.url
     );
-    if (fetcher) {
-      const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
-      if (result) {
-        return result;
-      }
+    const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
+    if (result) {
+      return result;
     }
   }
   if (sourcifyChain.fetchContractCreationTxUsing?.meterApi) {
     const fetcher = getMeterApiContractCreatorFetcher(
       sourcifyChain.fetchContractCreationTxUsing?.meterApi.url
     );
-    if (fetcher) {
-      const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
-      if (result) {
-        return result;
-      }
+    const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
+    if (result) {
+      return result;
     }
   }
   if (sourcifyChain.fetchContractCreationTxUsing?.telosApi) {
     const fetcher = getTelosApiContractCreatorFetcher(
       sourcifyChain.fetchContractCreationTxUsing?.telosApi.url
     );
-    if (fetcher) {
-      const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
-      if (result) {
-        return result;
-      }
+    const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
+    if (result) {
+      return result;
     }
   }
   if (sourcifyChain.fetchContractCreationTxUsing?.avalancheApi) {
     const fetcher = getAvalancheApiContractCreatorFetcher(
       sourcifyChain.fetchContractCreationTxUsing?.avalancheApi.chainId
     );
-    if (fetcher) {
-      const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
-      if (result) {
-        return result;
-      }
+    const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
+    if (result) {
+      return result;
     }
   }
   if (sourcifyChain.fetchContractCreationTxUsing?.etherscanApi) {
@@ -273,11 +261,9 @@ export const getCreatorTx = async (
     const fetcher = getEtherscanScrapeContractCreatorFetcher(
       sourcifyChain.fetchContractCreationTxUsing?.etherscanScrape.url
     );
-    if (fetcher) {
-      const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
-      if (result) {
-        return result;
-      }
+    const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
+    if (result) {
+      return result;
     }
   }
   return null;
