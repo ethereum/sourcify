@@ -3,7 +3,7 @@ import serveIndex from "serve-index";
 import cors from "cors";
 import routes from "./routes";
 import bodyParser from "body-parser";
-import config, { etherscanAPIs } from "../config";
+import config from "../config";
 import { SourcifyEventManager } from "../common/SourcifyEventManager/SourcifyEventManager";
 import "../common/SourcifyEventManager/listeners/logger";
 import genericErrorHandler from "./middlewares/GenericErrorHandler";
@@ -33,6 +33,7 @@ import { setLibSourcifyLogger } from "@ethereum-sourcify/lib-sourcify";
 const fileUpload = require("express-fileupload");
 import { rateLimit } from "express-rate-limit";
 import path from "path";
+import { etherscanAPIs } from "../common/etherscan-api";
 
 const MemoryStore = createMemoryStore(session);
 
