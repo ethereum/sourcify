@@ -1051,6 +1051,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     },
   },
   "111000": {
+    // Siberium Test Network
     supported: true,
     fetchContractCreationTxUsing: {
       blockscoutScrape: {
