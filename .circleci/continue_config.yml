@@ -70,7 +70,7 @@ aliases:
     steps:
       - run:
           name: checkout metacoin-source-verify
-          command: git clone git@github.com:sourcifyeth/metacoin-source-verify.git && cd metacoin-source-verify
+          command: ssh-keyscan github.com >> ~/.ssh/known_hosts && git clone git@github.com:sourcifyeth/metacoin-source-verify.git && cd metacoin-source-verify
       - run:
           name: install
           command: npm ci
@@ -84,7 +84,7 @@ aliases:
     steps:
       - run:
           name: checkout metacoin-source-verify
-          command: git clone git@github.com:sourcifyeth/metacoin-source-verify.git && cd metacoin-source-verify
+          command: - ssh-keyscan github.com >> ~/.ssh/known_hosts && git clone git@github.com:sourcifyeth/metacoin-source-verify.git && cd metacoin-source-verify
       - run:
           name: install
           command: npm ci
