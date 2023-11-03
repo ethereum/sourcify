@@ -7,10 +7,11 @@ module.exports = {
     "plugin:@typescript-eslint/recommended",
     "prettier",
   ],
-  ignorePatterns: ["h5ai-nginx"],
+  ignorePatterns: ["h5ai-nginx", "**/node_modules/", "**/build/", "**/dist/"],
   rules: {
     "@typescript-eslint/ban-types": "off",
     "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-unused-vars": ["warn"],
     indent: [
       "error",
       2,

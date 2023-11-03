@@ -156,15 +156,86 @@ export interface ImmutableReferences {
 }
 export interface RecompilationResult {
   creationBytecode: string;
-  deployedBytecode: string;
+  runtimeBytecode: string;
   metadata: string;
   immutableReferences: ImmutableReferences;
+}
+
+export type Transformation = {
+  type: 'insert' | 'replace';
+  reason:
+    | 'constructor'
+    | 'library'
+    | 'immutable'
+    | 'auxdata'
+    | 'call-protection';
+  offset: number;
+  id?: string;
+};
+
+// Call protection is always at the start of the runtime bytecode
+export const CallProtectionTransformation = (): Transformation => ({
+  type: 'replace',
+  reason: 'call-protection',
+  offset: 0,
+});
+
+// TransformationValues only has one ConstructorTransformatino so no id field is needed
+export const ConstructorTransformation = (offset: number): Transformation => ({
+  type: 'insert',
+  reason: 'constructor',
+  offset,
+});
+
+export const AuxdataTransformation = (
+  offset: number,
+  id: string
+): Transformation => ({
+  type: 'replace',
+  reason: 'auxdata',
+  offset,
+  id,
+});
+
+export const LibraryTransformation = (
+  offset: number,
+  id: string
+): Transformation => ({
+  type: 'replace',
+  reason: 'library',
+  offset,
+  id,
+});
+
+export const ImmutablesTransformation = (
+  offset: number,
+  id: string
+): Transformation => ({
+  type: 'replace',
+  reason: 'immutable',
+  offset,
+  id,
+});
+
+export interface TransformationValues {
+  constructorArguments?: string;
+  callProtection?: string;
+  libraries?: {
+    [id: string]: string;
+  };
+  immutables?: {
+    [id: string]: string;
+  };
+  cborAuxdata?: {
+    [id: string]: string;
+  };
 }
 
 export interface Match {
   address: string;
   chainId: string;
-  status: Status;
+  runtimeMatch: Status;
+  creationMatch: Status;
   storageTimestamp?: Date;
   message?: string;
   abiEncodedConstructorArguments?: string;
@@ -173,6 +244,12 @@ export interface Match {
   /* contextVariables?: ContextVariables; */
   creatorTxHash?: string;
   immutableReferences?: ImmutableReferences;
+  runtimeTransformations?: Transformation[];
+  creationTransformations?: Transformation[];
+  runtimeTransformationValues?: TransformationValues;
+  creationTransformationValues?: TransformationValues;
+  onchainRuntimeBytecode?: string;
+  onchainCreationBytecode?: string;
 }
 
 export type Status =
@@ -188,11 +265,45 @@ export interface Create2Args {
   constructorArgs?: any[];
 }
 
+export interface ContractCreationFetcher {
+  type: 'scrape' | 'api';
+  url: string;
+  responseParser?: Function;
+  scrapeRegex?: string[];
+}
+
+export interface FetchContractCreationTxMethods {
+  blockscoutApi?: {
+    url: string;
+  };
+  blockscoutScrape?: {
+    url: string;
+    blockscoutPrefix?: string;
+  };
+  etherscanApi?: {
+    apiURL: string;
+    apiKey: string;
+  };
+  etherscanScrape?: {
+    url: string;
+  };
+  blocksScanApi?: {
+    url: string;
+  };
+  meterApi?: {
+    url: string;
+  };
+  telosApi?: {
+    url: string;
+  };
+  avalancheApi?: {
+    chainId: string;
+  };
+}
+
 export type SourcifyChainExtension = {
   supported: boolean;
-  contractFetchAddress?: string;
-  graphQLFetchAddress?: string;
-  txRegex?: string[];
+  fetchContractCreationTxUsing?: FetchContractCreationTxMethods;
   rpc?: Array<string | FetchRequest>;
 };
 
@@ -320,4 +431,97 @@ export interface JsonInput {
   language: string;
   sources: Sources;
   settings?: Settings;
+}
+interface CompilerOutputError {
+  sourceLocation?: {
+    file: string;
+    start: number;
+    end: number;
+  };
+  type: 'TypeError' | 'InternalCompilerError' | 'Exception';
+  component: 'general' | 'ewasm';
+  severity: 'error' | 'warning';
+  message: string;
+  formattedMessage?: string;
+}
+interface CompilerOutputEvmBytecode {
+  object: string;
+  opcodes?: string;
+  sourceMap?: string;
+  linkReferences?:
+    | {}
+    | {
+        [globalName: string]: {
+          [name: string]: { start: number; length: number }[];
+        };
+      };
+}
+
+interface CompilerOutputEvmDeployedBytecode extends CompilerOutputEvmBytecode {
+  immutableReferences?: ImmutableReferences;
+}
+interface CompilerOutputSources {
+  [globalName: string]: {
+    id: number;
+    ast: any;
+    legacyAST: any;
+  };
+}
+interface CompilerOutputContracts {
+  [globalName: string]: {
+    [contractName: string]: {
+      abi: Abi;
+      metadata: string;
+      userdoc?: any;
+      devdoc?: any;
+      ir?: string;
+      irAst?: any;
+      irOptimized?: string;
+      irOptimizedAst?: any;
+      storageLayout?: any;
+      evm: {
+        assembly?: string;
+        legacyAssembly?: any;
+        bytecode: CompilerOutputEvmBytecode;
+        deployedBytecode?: CompilerOutputEvmDeployedBytecode;
+        methodIdentifiers?: {
+          [methodName: string]: string;
+        };
+        gasEstimates?: {
+          creation: {
+            codeDepositCost: string;
+            executionCost: string;
+            totalCost: string;
+          };
+          external: {
+            [functionSignature: string]: string;
+          };
+          internal: {
+            [functionSignature: string]: string;
+          };
+        };
+      };
+      ewasm?: {
+        wast: string;
+        wasm: string;
+      };
+    };
+  };
+}
+export interface CompilerOutput {
+  errors?: CompilerOutputError[];
+  sources?: CompilerOutputSources;
+  contracts: CompilerOutputContracts;
+}
+
+export interface CompiledContractArtifactsCborAuxdata {
+  [index: string]: {
+    offset: number;
+    value: string;
+  };
+}
+
+export interface CompiledContractArtifacts {
+  creationBytecodeCborAuxdata: CompiledContractArtifactsCborAuxdata;
+  runtimeBytecodeCborAuxdata: CompiledContractArtifactsCborAuxdata;
 }

@@ -123,8 +123,8 @@ describe('Verify Solidity Compiler', () => {
       '0.1.5+commit.23865e3',
       earlyCompilerInput
     );
-    const compiledBytecode = compilerResult.contracts[''].GroveLib.evm
-      .deployedBytecode.object as string;
+    const compiledBytecode = compilerResult?.contracts['']?.GroveLib?.evm
+      ?.deployedBytecode?.object as string;
     const compiledHash = keccak256('0x' + compiledBytecode);
     expect(compiledHash).equals(
       '0xc778f3d42ce4a7ee21a2e93d45265cf771e5970e0e36f882310f4491d0ca889d'

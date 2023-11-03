@@ -1,0 +1,19 @@
+version: "3.7"
+
+networks:
+  source-verify:
+
+services:
+  ui:
+    restart: always
+    networks:
+      - source-verify
+    image: ethereum/source-verify:ui-${TAG}
+    container_name: ui-${TAG}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+    ports:
+      - "${UI_EXTERNAL_PORT}:80"

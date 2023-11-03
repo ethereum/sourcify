@@ -132,7 +132,7 @@ export const expectMatch = (
   message?: string
 ) => {
   try {
-    expect(match.status).to.equal(status);
+    expect(match.runtimeMatch).to.equal(status);
     expect(match.address).to.equal(address);
     if (libraryMap) {
       expect(match.libraryMap).to.deep.equal(libraryMap);

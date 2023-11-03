@@ -1,6 +1,9 @@
 import { id as keccak256str } from 'ethers';
 import {
   CompilableMetadata,
+  CompiledContractArtifacts,
+  CompiledContractArtifactsCborAuxdata,
+  CompilerOutput,
   InvalidSources,
   JsonInput,
   Metadata,
@@ -52,9 +55,16 @@ export class CheckedContract {
 
   /** The bytecodes of the contract. */
   creationBytecode?: string;
+  runtimeBytecode?: string;
 
   /** The raw string representation of the contract's metadata. Needed to generate a unique session id for the CheckedContract*/
   metadataRaw!: string;
+
+  /** The compiler output */
+  compilerOutput?: CompilerOutput;
+
+  //** Artifacts */
+  artifacts?: CompiledContractArtifacts;
 
   /** Checks whether this contract is valid or not.
    *  This is a static method due to persistence issues.
@@ -108,15 +118,15 @@ export class CheckedContract {
    * If found, replaces this.metadata and this.solidity with the found variations.
    * Useful for finding perfect matches for known types of variations such as different line endings.
    *
-   * @param deployedBytecode
+   * @param runtimeBytecode
    * @returns the perfectly matching CheckedContract or null otherwise
    */
   async tryToFindPerfectMetadata(
-    deployedBytecode: string
+    runtimeBytecode: string
   ): Promise<CheckedContract | null> {
     let decodedAuxdata;
     try {
-      decodedAuxdata = decodeBytecode(deployedBytecode);
+      decodedAuxdata = decodeBytecode(runtimeBytecode);
     } catch (err) {
       // There is no auxdata at all in this contract
       return null;
@@ -236,6 +246,73 @@ export class CheckedContract {
     return null;
   }
 
+  public async generateEditedContract(compilerSettings: {
+    version: string;
+    solcJsonInput: JsonInput;
+    forceEmscripten: boolean;
+  }) {
+    const newCompilerSettings: {
+      version: string;
+      solcJsonInput: JsonInput;
+      forceEmscripten: boolean;
+    } = JSON.parse(JSON.stringify(compilerSettings));
+    Object.values(newCompilerSettings.solcJsonInput.sources).forEach(
+      (source) => (source.content += ' ')
+    );
+    return await useCompiler(
+      newCompilerSettings.version,
+      newCompilerSettings.solcJsonInput,
+      newCompilerSettings.forceEmscripten
+    );
+  }
+
+  public async generateArtifacts(forceEmscripten = false) {
+    if (
+      this.creationBytecode === undefined ||
+      this.runtimeBytecode === undefined
+    ) {
+      return false;
+    }
+
+    if (this.compilerOutput === undefined) {
+      return false;
+    }
+
+    const editedContractCompilerOutput = await this.generateEditedContract({
+      version: this.metadata.compiler.version,
+      solcJsonInput: this.solcJsonInput,
+      forceEmscripten,
+    });
+    const editedContract =
+      editedContractCompilerOutput?.contracts[this.compiledPath][this.name];
+
+    const originalAuxdatasList = findAuxdatasInLegacyAssembly(
+      this.compilerOutput.contracts[this.compiledPath][this.name].evm
+        .legacyAssembly
+    );
+
+    const editedAuxdatasList = findAuxdatasInLegacyAssembly(
+      editedContract.evm.legacyAssembly
+    );
+
+    this.artifacts = {
+      creationBytecodeCborAuxdata: findAuxdataPositions(
+        this.creationBytecode,
+        `0x${editedContract?.evm.bytecode.object}`,
+        originalAuxdatasList,
+        editedAuxdatasList
+      ),
+      runtimeBytecodeCborAuxdata: findAuxdataPositions(
+        this.runtimeBytecode,
+        `0x${editedContract?.evm?.deployedBytecode?.object}`,
+        originalAuxdatasList,
+        editedAuxdatasList
+      ),
+    };
+
+    return true;
+  }
+
   public async recompile(
     forceEmscripten = false
   ): Promise<RecompilationResult> {
@@ -245,21 +322,23 @@ export class CheckedContract {
 
     const version = this.metadata.compiler.version;
 
-    const output = await useCompiler(
+    this.compilerOutput = await useCompiler(
       version,
       this.solcJsonInput,
       forceEmscripten
     );
+
     if (
-      !output.contracts ||
-      !output.contracts[this.compiledPath] ||
-      !output.contracts[this.compiledPath][this.name] ||
-      !output.contracts[this.compiledPath][this.name].evm ||
-      !output.contracts[this.compiledPath][this.name].evm.bytecode
+      !this.compilerOutput.contracts ||
+      !this.compilerOutput.contracts[this.compiledPath] ||
+      !this.compilerOutput.contracts[this.compiledPath][this.name] ||
+      !this.compilerOutput.contracts[this.compiledPath][this.name].evm ||
+      !this.compilerOutput.contracts[this.compiledPath][this.name].evm.bytecode
     ) {
-      const errorMessages = output.errors
-        .filter((e: any) => e.severity === 'error')
-        .map((e: any) => e.formattedMessage);
+      const errorMessages =
+        this.compilerOutput.errors
+          ?.filter((e: any) => e.severity === 'error')
+          .map((e: any) => e.formattedMessage) || [];
 
       const error = new Error('Compiler error');
       logWarn(
@@ -270,18 +349,23 @@ export class CheckedContract {
       throw error;
     }
 
-    const contract: any = output.contracts[this.compiledPath][this.name];
+    const contract =
+      this.compilerOutput.contracts[this.compiledPath][this.name];
+
+    this.creationBytecode = `0x${contract.evm.bytecode.object}`;
+    this.runtimeBytecode = `0x${contract.evm?.deployedBytecode?.object}`;
+
     return {
-      creationBytecode: `0x${contract.evm.bytecode.object}`,
-      deployedBytecode: `0x${contract.evm.deployedBytecode.object}`,
+      creationBytecode: this.creationBytecode,
+      runtimeBytecode: this.runtimeBytecode,
       metadata: contract.metadata.trim(),
       // Sometimes the compiler returns empty object (not falsey). Convert it to undefined (falsey).
       immutableReferences:
-        contract.evm.deployedBytecode.immutableReferences &&
+        contract.evm?.deployedBytecode?.immutableReferences &&
         Object.keys(contract.evm.deployedBytecode.immutableReferences).length >
           0
           ? contract.evm.deployedBytecode.immutableReferences
-          : undefined,
+          : {},
     };
   }
 
@@ -475,8 +559,17 @@ function createJsonInputFromMetadata(
     solcJsonInput.settings.outputSelection['*'] || {};
 
   solcJsonInput.settings.outputSelection['*']['*'] = [
+    'abi',
+    'devdoc',
+    'userdoc',
+    'storageLayout',
+    // 'evm.legacyAssembly',
     'evm.bytecode.object',
+    'evm.bytecode.sourceMap',
+    'evm.bytecode.linkReferences',
     'evm.deployedBytecode.object',
+    'evm.deployedBytecode.sourceMap',
+    'evm.deployedBytecode.linkReferences',
     'evm.deployedBytecode.immutableReferences',
     'metadata',
   ];
@@ -551,4 +644,128 @@ function reorderAlphabetically(obj: any): any {
     });
 
   return ordered;
+}
+
+function getAuxdataInLegacyAssemblyBranch(
+  legacyAssemblyBranch: any,
+  auxdatas: string[]
+) {
+  if (typeof legacyAssemblyBranch === 'object') {
+    Object.keys(legacyAssemblyBranch).forEach((key) => {
+      switch (key) {
+        case '.auxdata': {
+          auxdatas.push(legacyAssemblyBranch[key]);
+          break;
+        }
+        case '.code': {
+          break;
+        }
+        default: {
+          if (key === '.data' || Number.isInteger(Number(key))) {
+            return getAuxdataInLegacyAssemblyBranch(
+              legacyAssemblyBranch[key],
+              auxdatas
+            );
+          }
+        }
+      }
+    });
+  }
+}
+
+function findAuxdatasInLegacyAssembly(legacyAssembly: any) {
+  const auxdatas: string[] = [];
+  getAuxdataInLegacyAssemblyBranch(legacyAssembly, auxdatas);
+  return auxdatas;
+}
+
+// Given two bytecodes, this function returns an array of differing positions
+function getDiffPositions(original: string, modified: string): number[] {
+  const differences: number[] = [];
+  const minLength = Math.min(original.length, modified.length);
+
+  for (let i = 0; i < minLength; i++) {
+    if (original[i] !== modified[i]) {
+      differences.push(i);
+    }
+  }
+
+  return differences;
+}
+
+// Checks if a substring exists in the bytecode at a given position
+function bytecodeIncludesAuxdataDiffAt(
+  bytecode: string,
+  {
+    real,
+    diff,
+    offsetStart,
+    offsetEnd,
+  }: { real: string; diff: string; offsetStart: number; offsetEnd: number },
+  position: number
+): boolean {
+  const extracted = bytecode.substr(
+    position - offsetStart,
+    offsetStart + diff.length + offsetEnd
+  );
+  return extracted === real;
+}
+
+function getAuxdatasDiff(originalAuxdatas: string[], editedAuxdatas: string[]) {
+  const auxdatasDiffs = [];
+  for (let i = 0; i < originalAuxdatas.length; i++) {
+    const diffPositions = getDiffPositions(
+      originalAuxdatas[i],
+      editedAuxdatas[i]
+    );
+    auxdatasDiffs.push({
+      offsetStart: diffPositions[0],
+      offsetEnd:
+        originalAuxdatas[i].length -
+        diffPositions[diffPositions.length - 1] -
+        1,
+      real: originalAuxdatas[i],
+      diff: originalAuxdatas[i].substring(
+        diffPositions[0],
+        diffPositions[diffPositions.length - 1] + 1
+      ),
+    });
+  }
+  return auxdatasDiffs;
+}
+
+function findAuxdataPositions(
+  originalBytecode: string,
+  editedBytecode: string,
+  originalAuxdatas: string[],
+  editedAuxdatas: string[]
+): CompiledContractArtifactsCborAuxdata {
+  const auxdataDiffs = getAuxdatasDiff(originalAuxdatas, editedAuxdatas);
+
+  const diffPositionsBytecodes = getDiffPositions(
+    originalBytecode,
+    editedBytecode
+  );
+  const auxdataPositions: CompiledContractArtifactsCborAuxdata = {};
+
+  for (const offsetOfDiffInByteocde of diffPositionsBytecodes) {
+    for (const auxdataDiffIndex in auxdataDiffs) {
+      if (
+        auxdataPositions[auxdataDiffIndex] === undefined &&
+        bytecodeIncludesAuxdataDiffAt(
+          originalBytecode,
+          auxdataDiffs[auxdataDiffIndex],
+          offsetOfDiffInByteocde
+        )
+      ) {
+        auxdataPositions[auxdataDiffIndex] = {
+          offset:
+            offsetOfDiffInByteocde - auxdataDiffs[auxdataDiffIndex].offsetStart,
+          value: auxdataDiffs[auxdataDiffIndex].real,
+        };
+      }
+    }
+  }
+
+  return auxdataPositions;
 }

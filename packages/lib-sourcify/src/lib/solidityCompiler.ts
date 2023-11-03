@@ -4,7 +4,7 @@ import fs from 'fs';
 import { exec, spawnSync } from 'child_process';
 import { fetchWithTimeout } from './utils';
 import { StatusCodes } from 'http-status-codes';
-import { JsonInput, PathBuffer } from './types';
+import { CompilerOutput, JsonInput, PathBuffer } from './types';
 import { logDebug, logError, logInfo, logWarn } from './logger';
 import semver from 'semver';
 import { Worker, WorkerOptions } from 'worker_threads';
@@ -40,7 +40,7 @@ export async function useCompiler(
   version: string,
   solcJsonInput: JsonInput,
   forceEmscripten = false
-): Promise<any> {
+): Promise<CompilerOutput> {
   // For nightly builds, Solidity version is saved as 0.8.17-ci.2022.8.9+commit.6b60524c instead of 0.8.17-nightly.2022.8.9+commit.6b60524c.
   // Not possible to retrieve compilers with "-ci.".
   if (version.includes('-ci.')) version = version.replace('-ci.', '-nightly.');
@@ -301,7 +301,7 @@ function asyncExecSolc(
     const child = exec(
       `${solcPath} --standard-json`,
       {
-        maxBuffer: 1000 * 1000 * 10,
+        maxBuffer: 1000 * 1000 * 20,
       },
       (error, stdout, stderr) => {
         if (error) {

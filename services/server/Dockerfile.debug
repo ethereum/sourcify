@@ -1,0 +1,6 @@
+# Runs the server in a linux-amd64 container with debug port exposed
+# Used in debugging solidity linux-amd64 binary executables  
+FROM node:16
+WORKDIR /home/app/services/server
+
+CMD ["node", "--inspect=0.0.0.0:9229", "./dist/server/server.js"]

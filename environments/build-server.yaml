@@ -4,4 +4,4 @@ services:
     image: ethereum/source-verify:server-${TAG}
     build:
       context: ../
-      dockerfile: src/Dockerfile.server
+      dockerfile: services/server/Dockerfile

@@ -2,10 +2,15 @@ import {
   FetchRequest,
   JsonRpcProvider,
   Network,
+  TransactionReceipt,
   TransactionResponse,
   getAddress,
 } from 'ethers';
-import { Chain, SourcifyChainExtension } from './types';
+import {
+  Chain,
+  FetchContractCreationTxMethods,
+  SourcifyChainExtension,
+} from './types';
 import { logError, logInfo, logWarn } from './logger';
 
 const RPC_TIMEOUT = process.env.RPC_TIMEOUT
@@ -21,16 +26,20 @@ interface JsonRpcProviderWithUrl extends JsonRpcProvider {
 export type SourcifyChainInstance = Omit<Chain, 'rpc'> &
   Omit<SourcifyChainExtension, 'rpc'> & { rpc: Array<string | FetchRequest> };
 
+class CreatorTransactionMismatchError extends Error {
+  constructor() {
+    super("Creator transaction doesn't match the contract");
+  }
+}
+
 export default class SourcifyChain {
   name: string;
   title?: string | undefined;
   chainId: number;
   rpc: Array<string | FetchRequest>;
   supported: boolean;
-  contractFetchAddress?: string | undefined;
-  graphQLFetchAddress?: string | undefined;
-  txRegex?: string[] | undefined;
   providers: JsonRpcProviderWithUrl[];
+  fetchContractCreationTxUsing?: FetchContractCreationTxMethods;
 
   constructor(sourcifyChainObj: SourcifyChainInstance) {
     this.name = sourcifyChainObj.name;
@@ -38,10 +47,9 @@ export default class SourcifyChain {
     this.chainId = sourcifyChainObj.chainId;
     this.rpc = sourcifyChainObj.rpc;
     this.supported = sourcifyChainObj.supported;
-    this.contractFetchAddress = sourcifyChainObj.contractFetchAddress;
-    this.graphQLFetchAddress = sourcifyChainObj.graphQLFetchAddress;
-    this.txRegex = sourcifyChainObj.txRegex;
     this.providers = [];
+    this.fetchContractCreationTxUsing =
+      sourcifyChainObj.fetchContractCreationTxUsing;
 
     if (!this.supported) return; // Don't create providers if chain is not supported
 
@@ -118,6 +126,83 @@ export default class SourcifyChain {
         }
       }
     }
+    throw new Error(
+      'None of the RPCs responded fetching tx ' +
+        creatorTxHash +
+        ' on chain ' +
+        this.chainId
+    );
+  };
+
+  getTxReceipt = async (creatorTxHash: string) => {
+    // Try sequentially all providers
+    for (const provider of this.providers) {
+      try {
+        // Race the RPC call with a timeout
+        const tx = await Promise.race([
+          provider.getTransactionReceipt(creatorTxHash),
+          this.rejectInMs(RPC_TIMEOUT, provider.url),
+        ]);
+        if (tx instanceof TransactionReceipt) {
+          logInfo(
+            `Transaction's receipt ${creatorTxHash} fetched via ${provider.url} from chain ${this.chainId}`
+          );
+          return tx;
+        } else {
+          throw new Error(
+            `Transaction's receipt ${creatorTxHash} not found on RPC ${provider.url} and chain ${this.chainId}`
+          );
+        }
+      } catch (err) {
+        if (err instanceof Error) {
+          logWarn(
+            `Can't fetch the transaction's receipt ${creatorTxHash} from RPC ${provider.url} and chain ${this.chainId}\n ${err}`
+          );
+          continue;
+        } else {
+          throw err;
+        }
+      }
+    }
+    throw new Error(
+      'None of the RPCs responded fetching tx ' +
+        creatorTxHash +
+        ' on chain ' +
+        this.chainId
+    );
+  };
+
+  getTxTraces = async (creatorTxHash: string) => {
+    // Try sequentially all providers
+    for (const provider of this.providers) {
+      try {
+        // Race the RPC call with a timeout
+        const traces = await Promise.race([
+          provider.send('trace_transaction', [creatorTxHash]),
+          this.rejectInMs(RPC_TIMEOUT, provider.url),
+        ]);
+        if (traces instanceof Array && traces.length > 0) {
+          logInfo(
+            `Transaction's traces of ${creatorTxHash} fetched via ${provider.url} from chain ${this.chainId}`
+          );
+          return traces;
+        } else {
+          throw new Error(
+            `Transaction's traces of ${creatorTxHash} on RPC ${provider.url} and chain ${this.chainId} received empty or malformed response`
+          );
+        }
+      } catch (err) {
+        if (err instanceof Error) {
+          logWarn(
+            `Can't fetch the transaction's traces of ${creatorTxHash} from RPC ${provider.url} and chain ${this.chainId}\n ${err}`
+          );
+          continue;
+        } else {
+          throw err;
+        }
+      }
+    }
+
     throw new Error(
       'None of the RPCs responded fetching tx ' +
         creatorTxHash +
@@ -240,5 +325,47 @@ export default class SourcifyChain {
       'None of the RPCs responded fetching the blocknumber on chain ' +
         this.chainId
     );
+  };
+
+  getContractCreationBytecode = async (
+    address: string,
+    transactionHash: string
+  ): Promise<string> => {
+    const txReceipt = await this.getTxReceipt(transactionHash);
+    const tx = await this.getTx(transactionHash);
+    let creationBytecode = '';
+
+    // Non null txreceipt.contractAddress means that the contract was created with an EOA
+    if (txReceipt.contractAddress !== null) {
+      if (txReceipt.contractAddress !== address) {
+        throw new CreatorTransactionMismatchError();
+      }
+      creationBytecode = tx.data;
+    } else {
+      // Factory created
+      let traces;
+      try {
+        traces = await this.getTxTraces(transactionHash);
+      } catch (e: any) {
+        logInfo(e.message);
+        traces = [];
+      }
+
+      // If traces are available check, otherwise lets just trust
+      if (traces.length > 0) {
+        const createTraces = traces.filter(
+          (trace: any) => trace.type === 'create'
+        );
+        const createdContractAddressesInTx = createTraces.find(
+          (trace) => getAddress(trace.result.address) === address
+        );
+        if (createdContractAddressesInTx === undefined) {
+          throw new CreatorTransactionMismatchError();
+        }
+        creationBytecode = createdContractAddressesInTx.result.code;
+      }
+    }
+
+    return creationBytecode;
   };
 }

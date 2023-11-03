@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import path from 'path';
-import { Metadata } from '../src/lib/types';
+import { Match, Metadata } from '../src/lib/types';
 import Ganache from 'ganache';
 import {
   /* callContractMethodWithTx, */
@@ -427,6 +427,30 @@ describe('lib-sourcify tests', () => {
       expectMatch(match, 'perfect', contractAddress);
     });
 
+    // https://github.com/ethereum/sourcify/issues/1159
+    it('should compile nightly using Emscripten', async function () {
+      const contractFolderPath = path.join(__dirname, 'sources', 'Nightly');
+      const solcPlatform = findSolcPlatform();
+      // can't really run this if we can't run a platform-native binary but only Emscripten (solc-js)
+      if (!solcPlatform) {
+        console.log(
+          `skipping test as the running machine can't run a platform-native binary. The platform and architechture is ${process.platform} ${process.arch}`
+        );
+        this.skip();
+      }
+      // The artifact has the bytecode from the Emscripten compiler.
+      const { contractAddress } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath
+      );
+      const match = await checkAndVerifyDeployed(
+        contractFolderPath,
+        sourcifyChainGanache,
+        contractAddress
+      );
+      expectMatch(match, 'perfect', contractAddress);
+    });
+
     // https://github.com/ethereum/sourcify/issues/1088
     it('should compile again with a different platform binary and verify for contracts --viaIR and optimizer disabled <=v0.8.20', async function () {
       const contractFolderPath = path.join(
@@ -512,10 +536,10 @@ describe('lib-sourcify tests', () => {
     });
 
     it('Should replaceImmutableReferences', async function () {
-      const deployedBytecode =
+      const runtimeBytecode =
         '0x608060405234801561001057600080fd5b50600436106100415760003560e01c806357de26a41461004657806379d6348d146100c9578063ced7b2e314610184575b600080fd5b61004e6101a2565b6040518080602001828103825283818151815260200191508051906020019080838360005b8381101561008e578082015181840152602081019050610073565b50505050905090810190601f1680156100bb5780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b610182600480360360208110156100df57600080fd5b81019080803590602001906401000000008111156100fc57600080fd5b82018360208201111561010e57600080fd5b8035906020019184600183028401116401000000008311171561013057600080fd5b91908080601f016020809104026020016040519081016040528093929190818152602001838380828437600081840152601f19601f820116905080830192505050505050509192919290505050610244565b005b61018c61025e565b6040518082815260200191505060405180910390f35b606060008054600181600116156101000203166002900480601f01602080910402602001604051908101604052809291908181526020018280546001816001161561010002031660029004801561023a5780601f1061020f5761010080835404028352916020019161023a565b820191906000526020600020905b81548152906001019060200180831161021d57829003601f168201915b5050505050905090565b806000908051906020019061025a929190610282565b5050565b7f000000000000000000000000000000000000000000000000000000000000000281565b828054600181600116156101000203166002900490600052602060002090601f0160209004810192826102b857600085556102ff565b82601f106102d157805160ff19168380011785556102ff565b828001600101855582156102ff579182015b828111156102fe5782518255916020019190600101906102e3565b5b50905061030c9190610310565b5090565b5b80821115610329576000816000905550600101610311565b509056fea26469706673582212207d766cdc8c3a27e3071e5fbe3fb4327a900c77e0061b473bd4d024da7b147ee564736f6c63430007040033';
 
-      const recompiledDeployedBytecode =
+      const recompiledRuntimeBytecode =
         '0x608060405234801561001057600080fd5b50600436106100415760003560e01c806357de26a41461004657806379d6348d146100c9578063ced7b2e314610184575b600080fd5b61004e6101a2565b6040518080602001828103825283818151815260200191508051906020019080838360005b8381101561008e578082015181840152602081019050610073565b50505050905090810190601f1680156100bb5780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b610182600480360360208110156100df57600080fd5b81019080803590602001906401000000008111156100fc57600080fd5b82018360208201111561010e57600080fd5b8035906020019184600183028401116401000000008311171561013057600080fd5b91908080601f016020809104026020016040519081016040528093929190818152602001838380828437600081840152601f19601f820116905080830192505050505050509192919290505050610244565b005b61018c61025e565b6040518082815260200191505060405180910390f35b606060008054600181600116156101000203166002900480601f01602080910402602001604051908101604052809291908181526020018280546001816001161561010002031660029004801561023a5780601f1061020f5761010080835404028352916020019161023a565b820191906000526020600020905b81548152906001019060200180831161021d57829003601f168201915b5050505050905090565b806000908051906020019061025a929190610282565b5050565b7f000000000000000000000000000000000000000000000000000000000000000081565b828054600181600116156101000203166002900490600052602060002090601f0160209004810192826102b857600085556102ff565b82601f106102d157805160ff19168380011785556102ff565b828001600101855582156102ff579182015b828111156102fe5782518255916020019190600101906102e3565b5b50905061030c9190610310565b5090565b5b80821115610329576000816000905550600101610311565b509056fea26469706673582212207d766cdc8c3a27e3071e5fbe3fb4327a900c77e0061b473bd4d024da7b147ee564736f6c63430007040033';
       const immutableReferences = {
         '3': [
@@ -528,10 +552,12 @@ describe('lib-sourcify tests', () => {
 
       const replacedBytecode = replaceImmutableReferences(
         immutableReferences,
-        deployedBytecode
+        runtimeBytecode,
+        [],
+        {}
       );
 
-      expect(replacedBytecode).equals(recompiledDeployedBytecode);
+      expect(replacedBytecode).equals(recompiledRuntimeBytecode);
     });
 
     /* 
@@ -569,7 +595,7 @@ describe('lib-sourcify tests', () => {
         childFolderPath
       );
       const recompiled = await checkedContracts[0].recompile();
-      const deployedBytecode = await getBytecode(
+      const runtimeBytecode = await getBytecode(
         sourcifyChainGanache,
         childAddress
       );
@@ -583,7 +609,7 @@ describe('lib-sourcify tests', () => {
       await matchWithSimulation(
         match,
         recompiled.creationBytecode,
-        deployedBytecode,
+        runtimeBytecode,
         evmVersion,
         sourcifyChainGanache.chainId.toString(),
         {
@@ -618,21 +644,31 @@ describe('lib-sourcify tests', () => {
         contractFolderPath
       );
       const recompiled = await checkedContracts[0].recompile();
-      const match = {
+      const match: Match = {
         address: contractAddress,
         chainId: sourcifyChainGanache.chainId.toString(),
-        status: null,
+        runtimeMatch: null,
+        creationMatch: null,
       };
       const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
-      await matchWithCreationTx(
-        match,
-        recompiled.creationBytecode,
-        sourcifyChainGanache,
-        contractAddress,
-        wrongCreatorTxHash,
-        recompiledMetadata
-      );
-      expectMatch(match, null, contractAddress, undefined); // status is null
+      try {
+        await matchWithCreationTx(
+          match,
+          recompiled.creationBytecode,
+          sourcifyChainGanache,
+          contractAddress,
+          wrongCreatorTxHash,
+          recompiledMetadata
+        );
+      } catch (err) {
+        if (err instanceof Error) {
+          expect(err.message).to.equal(
+            "Creator transaction doesn't match the contract"
+          );
+        } else {
+          throw err;
+        }
+      }
     });
 
     // https://github.com/sourcifyeth/private-issues/issues/16
@@ -666,7 +702,8 @@ describe('lib-sourcify tests', () => {
       const match = {
         address: contractAddress,
         chainId: sourcifyChainGanache.chainId.toString(),
-        status: null,
+        runtimeMatch: null,
+        creationMatch: null,
       };
       const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
       await matchWithCreationTx(
@@ -702,7 +739,8 @@ describe('lib-sourcify tests', () => {
       const match = {
         address: contractAddress,
         chainId: sourcifyChainGanache.chainId.toString(),
-        status: null,
+        runtimeMatch: null,
+        creationMatch: null,
       };
       const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
 
@@ -733,7 +771,8 @@ describe('lib-sourcify tests', () => {
       const match = {
         address: contractAddress,
         chainId: sourcifyChainGanache.chainId.toString(),
-        status: null,
+        runtimeMatch: null,
+        creationMatch: null,
       };
       const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
       await matchWithCreationTx(
@@ -744,7 +783,13 @@ describe('lib-sourcify tests', () => {
         creatorTxHash,
         recompiledMetadata
       );
-      expectMatch(match, 'perfect', contractAddress, undefined); // status is null
+      try {
+        expect(match.creationMatch).to.equal('perfect');
+        expect(match.address).to.equal(contractAddress);
+      } catch (e) {
+        console.log('Match: ', match);
+        throw e;
+      }
     });
   });
 });
