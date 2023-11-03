@@ -1126,6 +1126,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     },
   },
   "78430": {
+    // Amplify Subnet
     supported: true,
     fetchContractCreationTxUsing: {
       avalancheApi: {
