@@ -1118,6 +1118,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     },
   },
   "78431": {
+    // Bulletin Subnet
     supported: true,
     fetchContractCreationTxUsing: {
       avalancheApi: {
