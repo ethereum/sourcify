@@ -1,6 +1,6 @@
 {
   "name": "sourcify-ui",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "private": true,
   "dependencies": {
     "@auth0/auth0-react": "^2.1.1",
