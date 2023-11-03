@@ -59,7 +59,6 @@
     "memorystore": "^1.6.7",
     "node-fetch": "2.6.6",
     "pg": "^8.11.3",
-    "puppeteer": "^20.7.4",
     "serve-index": "^1.9.1",
     "solc": "^0.8.17",
     "swagger-ui-express": "^5.0.0",
