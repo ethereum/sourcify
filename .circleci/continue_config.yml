@@ -73,9 +73,7 @@ aliases:
           command: mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
       - run:
           name: checkout metacoin-source-verify
-          command: |
-            git clone git@github.com:sourcifyeth/metacoin-source-verify.git &&
-            cd metacoin-source-verify
+          command: git clone git@github.com:sourcifyeth/metacoin-source-verify.git && cd metacoin-source-verify
       - run:
           name: install
           command: npm ci
@@ -92,9 +90,7 @@ aliases:
           command: mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
       - run:
           name: checkout metacoin-source-verify
-          command: |
-            git clone git@github.com:sourcifyeth/metacoin-source-verify.git &&
-            cd metacoin-source-verify
+          command: git clone git@github.com:sourcifyeth/metacoin-source-verify.git && cd metacoin-source-verify
       - run:
           name: install
           command: npm ci

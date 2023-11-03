@@ -1110,6 +1110,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     },
   },
   "78432": {
+    // Conduit Subnet
     supported: true,
     fetchContractCreationTxUsing: {
       avalancheApi: {
