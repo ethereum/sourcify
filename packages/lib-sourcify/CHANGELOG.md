@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [@ethereum-sourcify/lib-sourcify@1.5.0] - 2023-11-03
+
+- Remove solc as a dependency, now the solidity compiler needs to be passed to the functions using it.
+- Rename deployedBytecode into runtimeBytecode
+- Use `fetchContractCreationTxUsing` object to scrape
+- Always compile with emscripten for nightlies and versions <0.4.10
+- Support creationMatch vs runtimeMatch
+
 ## [@ethereum-sourcify/lib-sourcify@1.4.2] - 2023-10-19
 
 - Bump to sync the tags on master

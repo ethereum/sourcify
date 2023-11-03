@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [@ethereum-sourcify/bytecode-utils@1.2.3] - 2023-11-03
+
+- Fix linter
+
 ## [@ethereum-sourcify/bytecode-utils@1.2.2] - 2023-10-19
 
 - Bump to sync the tags on master

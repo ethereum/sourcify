@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [sourcify-server@1.2.0] - 2023-11-03
+
+- Add support for the Verifier Alliance (disabled)
+- Move server under ./services in the monorepo
+- Refactor contract creation transaction fetcher
+- Minor fixes
+
 ## [sourcify-server@1.1.2] - 2023-10-19
 
 - Add a filter to prevent the same contract to be verified simultaneously

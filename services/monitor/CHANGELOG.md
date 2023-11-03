@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [sourcify-monitor@1.1.3] - 2023-11-03
+
+- Monitor tests in js
+- Fix `authenticateRpcs``
+
 ## [sourcify-monitor@1.1.2] - 2023-10-23
 
 - Handles Alchemy API keys for Optimism and Arbitrum
