@@ -1094,6 +1094,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     supported: true,
   },
   "2037": {
+    // Kiwi Subnet
     supported: true,
     fetchContractCreationTxUsing: {
       avalancheApi: {
