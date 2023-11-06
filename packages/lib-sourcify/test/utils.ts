@@ -10,6 +10,8 @@
 import path from 'path';
 import fs from 'fs';
 import {
+  CompilerOutput,
+  JsonInput,
   /* ContextVariables, */ Match,
   SourcifyChain,
   verifyDeployed,
@@ -17,6 +19,8 @@ import {
 import { checkFiles } from '../src';
 import { expect } from 'chai';
 import { ContractFactory, Signer } from 'ethers';
+import { ISolidityCompiler } from '../src/lib/ISolidityCompiler';
+import { useCompiler } from './compiler/solidityCompiler';
 /**
  *  Function to deploy contracts from provider unlocked accounts
  *  contractFolderPath must contain an artifact.json file with "abi" and "bytecode" fields
@@ -48,6 +52,18 @@ export async function deployFromAbiAndBytecode(
   }
   return { contractAddress, txHash: creationTx.hash };
 }
+
+class Solc implements ISolidityCompiler {
+  async compile(
+    version: string,
+    solcJsonInput: JsonInput,
+    forceEmscripten: boolean = false
+  ): Promise<CompilerOutput> {
+    return await useCompiler(version, solcJsonInput, forceEmscripten);
+  }
+}
+
+export const solc = new Solc();
 
 /**
  * Checks the contract from metadata and source files under contractFolderPath and
@@ -95,7 +111,7 @@ export const checkFilesFromContractFolder = async (
     );
     return { path: sourceFilePath, buffer: sourceBuffer };
   });
-  const checkedContracts = await checkFiles([
+  const checkedContracts = await checkFiles(solc, [
     metadataPathBuffer,
     ...sourcePathBuffers,
   ]);

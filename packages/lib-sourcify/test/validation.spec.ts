@@ -9,6 +9,7 @@ import { CheckedContract } from '../src';
 import fs from 'fs';
 import chai, { expect } from 'chai';
 import hardhatOutput from './validation/files/hardhat-output/output.json';
+import { solc } from './utils';
 
 function objectLength(obj: any) {
   return Object.keys(obj).length;
@@ -23,7 +24,7 @@ describe('ValidationService', function () {
     it('should succeed for single source file', async function () {
       const ignoring: string[] = [];
       const paths = [path.join(__dirname, 'validation', 'files', 'single')];
-      const checkedContracts = await checkPaths(paths, ignoring);
+      const checkedContracts = await checkPaths(solc, paths, ignoring);
 
       chai.expect(ignoring).to.be.empty;
       expectationsOfSingle(checkedContracts);
@@ -35,7 +36,7 @@ describe('ValidationService', function () {
         path.join(__dirname, 'validation', 'files', 'single', '1_Storage.sol'),
         path.join(__dirname, 'validation', 'files', 'single', 'metadata.json'),
       ];
-      const checkedContracts = await checkPaths(paths, ignoring);
+      const checkedContracts = await checkPaths(solc, paths, ignoring);
 
       chai.expect(ignoring).to.be.empty;
       expectationsOfSingle(checkedContracts);
@@ -62,7 +63,7 @@ describe('ValidationService', function () {
       const paths = [
         path.join(__dirname, 'validation', 'files', 'single', 'metadata.json'),
       ];
-      const checkedContracts = await checkPaths(paths, ignoring);
+      const checkedContracts = await checkPaths(solc, paths, ignoring);
 
       chai.expect(ignoring).to.be.empty;
       chai.expect(checkedContracts.length).to.equal(1);
@@ -84,7 +85,7 @@ describe('ValidationService', function () {
         path.join(__dirname, 'validation', 'files', 'single', '1_Storage.sol'),
       ];
       try {
-        await checkPaths(paths);
+        await checkPaths(solc, paths);
       } catch (e) {
         if (e instanceof Error) error = e;
       }
@@ -106,7 +107,7 @@ describe('ValidationService', function () {
         path.join(__dirname, 'validation', 'files', 'single'),
         invalidPath,
       ];
-      const checkedContracts = await checkPaths(paths, ignoring);
+      const checkedContracts = await checkPaths(solc, paths, ignoring);
 
       chai.expect(ignoring).to.deep.equal([invalidPath]);
       expectationsOfSingle(checkedContracts);
@@ -140,7 +141,7 @@ describe('ValidationService', function () {
       const fileEnd = content.slice(content.length - endLength);
       chai.expect(fileEnd).to.equal(expectedFileEnd);
 
-      const checkedContracts = await checkPaths([directory], ignoring);
+      const checkedContracts = await checkPaths(solc, [directory], ignoring);
 
       chai.expect(ignoring).to.be.empty;
       chai.expect(checkedContracts).to.have.a.lengthOf(1);
