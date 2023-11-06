@@ -8,30 +8,36 @@ parameters:
 
 aliases:
   - &monitor-e2e-base
-    working_directory: ~/source-verify
     steps:
-      - checkout
       - run:
-          name: install node-fetch dotenv
-          command: npm install node-fetch dotenv
+          name: Avoid hosts unknown for github
+          command: mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+      - run:
+          name: checkout metacoin-source-verify
+          command: cd ~/project && git clone git@github.com:sourcifyeth/metacoin-source-verify.git
+      - run:
+          name: install
+          command: cd ~/project/metacoin-source-verify && npm ci
       - run:
           name: monitor test
-          command: ./scripts/monitor_ci.sh
+          command: cd ~/project/metacoin-source-verify && ./scripts/monitor_e2e.sh
           no_output_timeout: 30m
     docker:
       - image: cimg/node:16.15
   - &verification-e2e-base
-    working_directory: ~/source-verify
     steps:
-      - checkout
       - run:
-          name: install dotenv
-          command: npm install dotenv
+          name: Avoid hosts unknown for github
+          command: mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+      - run:
+          name: checkout metacoin-source-verify
+          command: cd ~/project && git clone git@github.com:sourcifyeth/metacoin-source-verify.git
+      - run:
+          name: install
+          command: cd ~/project/metacoin-source-verify && npm ci
       - run:
           name: verification test
-          command: ./scripts/verification-e2e.sh
-      - store_artifacts:
-          path: ./verified-contracts
+          command: cd ~/project/metacoin-source-verify && ./scripts/verification_e2e.sh
     docker:
       - image: cimg/node:16.15
 
@@ -94,6 +100,6 @@ jobs:
           command: npx lerna run build
       - run:
           name: test
-          command: npx mocha test/etherscan/etherscanInstances.js --exit
+          command: cd ./services/server && npx mocha test/etherscan/etherscanInstances.js --exit
     docker:
       - image: cimg/node:16.15
