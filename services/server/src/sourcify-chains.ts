@@ -1208,6 +1208,13 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       },
     },
   },
+  "1115": {
+    // Core Blockchain Testnet
+    supported: true,
+    fetchContractCreationTxUsing: {
+      etherscanApi: etherscanAPIs["1115"],
+    },
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
