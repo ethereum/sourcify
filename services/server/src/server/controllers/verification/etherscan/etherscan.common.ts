@@ -1,4 +1,3 @@
-import { etherscanAPIs } from "../../../../config";
 import { BadRequestError } from "../../../../common/errors";
 import {
   JsonInput,
@@ -8,6 +7,7 @@ import {
 import { TooManyRequests } from "../../../../common/errors/TooManyRequests";
 import { BadGatewayError } from "../../../../common/errors/BadGatewayError";
 import { useCompiler } from "../../../services/compiler/solidityCompiler";
+import { etherscanAPIs } from "../../../../common/etherscan-api";
 
 export type EtherscanResult = {
   SourceCode: string;

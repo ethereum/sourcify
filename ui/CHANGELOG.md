@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [sourcify-ui@1.0.4] - 2023-11-03
+
+- Minor fixes
+
 ## [sourcify-ui@1.0.3] - 2023-10-19
 
 - Bump to sync the tags on master

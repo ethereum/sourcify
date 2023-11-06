@@ -14,7 +14,7 @@ const chaiHttp = require("chai-http");
 const { StatusCodes } = require("http-status-codes");
 const rimraf = require("rimraf");
 const util = require("util");
-const { etherscanAPIs } = require("../dist/config");
+const { etherscanAPIs } = require("../dist/common/etherscan-api");
 const {
   assertVerification,
   assertValidationError,

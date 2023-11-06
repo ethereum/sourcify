@@ -1,5 +1,5 @@
 const { ContractFactory, Wallet, BaseContract } = require("ethers");
-const { etherscanAPIs } = require("../../dist/config");
+const { etherscanAPIs } = require("../../dist/common/etherscan-api");
 const { sourcifyChainsMap } = require("../../dist/sourcify-chains");
 const {
   assertVerificationSession,

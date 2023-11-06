@@ -8,29 +8,15 @@ import {
   SourcifyChainExtension,
   Chain,
 } from "@ethereum-sourcify/lib-sourcify";
-import { etherscanAPIs } from "./config";
 import { ValidationError } from "./common/errors";
-import { logger } from "./common/loggerLoki";
 import { FetchRequest } from "ethers";
+import { etherscanAPIs } from "./common/etherscan-api";
 
 const allChains = chainsRaw as Chain[];
 
 dotenv.config({
   path: path.resolve(__dirname, "..", "..", "..", ".env"),
 });
-
-const ETHERSCAN_REGEX = ["at txn.*href=.*/tx/(0x.{64})"]; // save as string to be able to return the txRegex in /chains response. If stored as RegExp returns {}
-const ETHERSCAN_SUFFIX = "address/${ADDRESS}";
-const ETHERSCAN_API_SUFFIX = `/api?module=contract&action=getcontractcreation&contractaddresses=\${ADDRESS}&apikey=`;
-const BLOCKSSCAN_SUFFIX = "api/accounts/${ADDRESS}";
-const BLOCKSCOUT_REGEX_OLD =
-  'transaction_hash_link" href="${BLOCKSCOUT_PREFIX}/tx/(.*?)"';
-const BLOCKSCOUT_REGEX_NEW = "at txn.*href.*/tx/(0x.{64}?)";
-const BLOCKSCOUT_SUFFIX = "address/${ADDRESS}/transactions";
-const TELOS_SUFFIX = "v2/evm/get_contract?contract=${ADDRESS}";
-const METER_SUFFIX = "api/accounts/${ADDRESS}";
-const AVALANCHE_SUBNET_SUFFIX =
-  "contracts/${ADDRESS}/transactions:getDeployment";
 
 type ChainName = "eth" | "polygon" | "arb" | "opt";
 
@@ -137,35 +123,22 @@ function replaceInfuraApiKey(infuraURL: string) {
     process.env.INFURA_API_KEY || ""
   );
 }
-function getBlockscoutRegex(blockscoutPrefix = "") {
-  const tempBlockscoutOld = BLOCKSCOUT_REGEX_OLD.replace(
-    "${BLOCKSCOUT_PREFIX}",
-    blockscoutPrefix
-  );
-  return [tempBlockscoutOld, BLOCKSCOUT_REGEX_NEW];
-}
-
-// api?module=contract&action=getcontractcreation&contractaddresses=\${ADDRESS}&apikey=
-// For chains with the new Etherscan api that has contract creator tx hash endpoint
-function generateEtherscanCreatorTxAPI(chainId: string) {
-  return (
-    etherscanAPIs[chainId].apiURL +
-    ETHERSCAN_API_SUFFIX +
-    etherscanAPIs[chainId].apiKey
-  );
-}
 
 const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "1": {
     // Ethereum Mainnet
     supported: true,
-    contractFetchAddress: generateEtherscanCreatorTxAPI("1"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: etherscanAPIs["1"],
+    },
     rpc: buildAlchemyAndCustomRpcURLs("mainnet", "eth", true),
   },
   "17000": {
     // Ethereum Holesky
     supported: true,
-    contractFetchAddress: generateEtherscanCreatorTxAPI("17000"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: etherscanAPIs["17000"],
+    },
     // Temporary rpc until this is fixed: https://github.com/emeraldpay/dshackle/issues/262
     // rpc: buildAlchemyAndCustomRpcURLs("holesky", "eth", true),
     rpc: ["https://rpc.teku-geth-001.srv.holesky.ethpandaops.io"],
@@ -173,285 +146,378 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "5": {
     // Ethereum Goerli Testnet
     supported: true,
-    contractFetchAddress: generateEtherscanCreatorTxAPI("5"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: etherscanAPIs["5"],
+    },
     rpc: buildAlchemyAndCustomRpcURLs("goerli", "eth", true),
   },
   "11155111": {
     // Ethereum Sepolia Testnet
     supported: true,
     rpc: buildAlchemyAndCustomRpcURLs("sepolia", "eth", true),
-    contractFetchAddress: generateEtherscanCreatorTxAPI("11155111"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: etherscanAPIs["11155111"],
+    },
   },
   "369": {
     // PulseChain Mainnet
     supported: true,
-    contractFetchAddress: "https://scan.pulsechain.com/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://scan.pulsechain.com/",
+      },
+    },
   },
   "3": {
     // Deprecated
     // Ethereum Ropsten Testnet
     supported: false,
-    contractFetchAddress: "https://ropsten.etherscan.io/" + ETHERSCAN_SUFFIX,
     rpc: buildAlchemyAndCustomRpcURLs("ropsten", "eth"),
-    txRegex: ETHERSCAN_REGEX,
   },
   "4": {
     // Deprecated
     // Ethereum Rinkeby Testnet
     supported: false,
-    contractFetchAddress: "https://rinkeby.etherscan.io/" + ETHERSCAN_SUFFIX,
     rpc: buildAlchemyAndCustomRpcURLs("rinkeby", "eth", true),
-    txRegex: ETHERSCAN_REGEX,
   },
   "42": {
     // Deprecated
     // Ethereum Kovan Testnet
     supported: false,
-    contractFetchAddress: "https://kovan.etherscan.io/" + ETHERSCAN_SUFFIX,
     rpc: buildAlchemyAndCustomRpcURLs("kovan", "eth"),
-    txRegex: ETHERSCAN_REGEX,
   },
   "51": {
+    // Apothem
     supported: true,
-    contractFetchAddress: "https://apothem.blocksscan.io/" + BLOCKSSCAN_SUFFIX,
+    fetchContractCreationTxUsing: {
+      blocksScanApi: {
+        url: "https://apothem.blocksscan.io/",
+      },
+    },
   },
   "56": {
+    // BNB Smart Chain Mainnet
     supported: true,
-    contractFetchAddress: generateEtherscanCreatorTxAPI("56"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: etherscanAPIs["56"],
+    },
   },
   "61": {
+    // Ethereum Classic Mainnet
     supported: true,
-    contractFetchAddress:
-      "https://blockscout.com/etc/mainnet/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex("/etc/mainnet"),
+    fetchContractCreationTxUsing: {
+      blockscoutApi: {
+        url: "https://etc.blockscout.com/",
+      },
+    },
   },
   "77": {
     // Turned off as seemingly stale
     supported: false,
-    contractFetchAddress:
-      "https://blockscout.com/poa/sokol/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex("/poa/sokol"),
   },
   "82": {
     // Meter Mainnet
     supported: true,
-    contractFetchAddress: "https://api.meter.io:8000/" + METER_SUFFIX,
+    fetchContractCreationTxUsing: {
+      meterApi: {
+        url: "https://api.meter.io:8000/",
+      },
+    },
   },
   "83": {
     // Meter Testnet
     supported: true,
-    contractFetchAddress: "https://api.meter.io:4000/" + METER_SUFFIX,
+    fetchContractCreationTxUsing: {
+      meterApi: {
+        url: "https://api.meter.io:4000/",
+      },
+    },
   },
   "97": {
+    // BNB Smart Chain Testnet
     supported: true,
-    contractFetchAddress: "https://testnet.bscscan.com/" + ETHERSCAN_SUFFIX,
-    txRegex: ETHERSCAN_REGEX,
+    fetchContractCreationTxUsing: {
+      etherscanApi: etherscanAPIs["97"],
+    },
   },
   "100": {
+    // Gnosis Mainnet
     supported: true,
-    contractFetchAddress:
-      "https://blockscout.com/xdai/mainnet/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex("/xdai/mainnet"),
+    fetchContractCreationTxUsing: {
+      blockscoutApi: {
+        url: "https://gnosis.blockscout.com/",
+      },
+      etherscanApi: etherscanAPIs["100"],
+    },
   },
   "295": {
     // Hedera Mainnet
     supported: true,
-    contractFetchAddress: "https://hashscan.io/mainnet/" + ETHERSCAN_SUFFIX,
   },
   "300": {
     // Turned off as seems to be shut down
     supported: false,
-    contractFetchAddress:
-      "https://blockscout.com/xdai/optimism/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex("/xdai/optimism"),
   },
   "314": {
+    // Filecoin - Mainnet
     supported: true,
   },
   "314159": {
+    // Filecoin - Calibration testnet
     supported: true,
   },
   "137": {
     supported: true,
-    contractFetchAddress: generateEtherscanCreatorTxAPI("137"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: etherscanAPIs["137"],
+    },
     rpc: buildAlchemyAndCustomRpcURLs("mainnet", "polygon"),
   },
   "534": {
     // Turned off as seems to be stale
     supported: false,
-    contractFetchAddress: "https://candleexplorer.com/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
   },
   "42220": {
+    // Celo Mainnet
     supported: true,
-    contractFetchAddress:
-      "https://explorer.celo.org/mainnet/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex("/mainnet"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: etherscanAPIs["42220"],
+      blockscoutScrape: {
+        url: "https://explorer.celo.org/mainnet/",
+      },
+    },
   },
   "44787": {
+    // Celo Alfajores Testnet
     supported: true,
-    contractFetchAddress:
-      "https://explorer.celo.org/alfajores/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex("/alfajores"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: etherscanAPIs["44787"],
+      blockscoutScrape: {
+        url: "https://explorer.celo.org/alfajores/",
+      },
+    },
   },
   "62320": {
+    // Celo Baklava Testnet
     supported: true,
-    contractFetchAddress:
-      "https://baklava-blockscout.celo-testnet.org/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: { url: "https://baklava-blockscout.celo-testnet.org/" },
+    },
   },
   "80001": {
+    // Polygon Mumbai
     supported: true,
-    contractFetchAddress: "https://mumbai.polygonscan.com/" + ETHERSCAN_SUFFIX,
+    fetchContractCreationTxUsing: {
+      etherscanApi: etherscanAPIs["80001"],
+    },
     rpc: buildAlchemyAndCustomRpcURLs("mumbai", "polygon"),
-    txRegex: ETHERSCAN_REGEX,
   },
   "42161": {
     // Arbitrum One Mainnet
     supported: true,
-    contractFetchAddress: generateEtherscanCreatorTxAPI("42161"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: etherscanAPIs["42161"],
+    },
     rpc: buildAlchemyAndCustomRpcURLs("mainnet", "arb"),
   },
   "421613": {
     // Arbitrum Goerli Testnet
     supported: true,
-    contractFetchAddress: generateEtherscanCreatorTxAPI("421613"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: etherscanAPIs["421613"],
+    },
     rpc: buildAlchemyAndCustomRpcURLs("goerli", "arb"),
   },
   "43113": {
     // Avalanche Fuji Testnet
     supported: true,
-    contractFetchAddress: "https://testnet.snowtrace.io/" + ETHERSCAN_SUFFIX,
-    txRegex: ETHERSCAN_REGEX,
+    fetchContractCreationTxUsing: {
+      etherscanApi: etherscanAPIs["43113"],
+    },
   },
   "43114": {
     // Avalanche C-Chain Mainnet
     supported: true,
-    contractFetchAddress: generateEtherscanCreatorTxAPI("43114"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: etherscanAPIs["43114"],
+    },
   },
   "57": {
+    // Syscoin Mainnet
     supported: true,
-    contractFetchAddress: "https://explorer.syscoin.org/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://explorer.syscoin.org/",
+      },
+    },
   },
   "5700": {
+    // Syscoin Testnet Tanenbaum
     supported: true,
-    contractFetchAddress: "https://tanenbaum.io/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://tanenbaum.io/",
+      },
+    },
   },
   "570": {
+    // Rollux Mainnet
     supported: true,
-    contractFetchAddress: "https://explorer.rollux.com/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutApi: {
+        url: "https://explorer.rollux.com/",
+      },
+    },
   },
   "57000": {
+    // Rollux Testnet Tanenbaum
     supported: true,
-    contractFetchAddress: "https://rollux.tanenbaum.io/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutApi: {
+        url: "https://rollux.tanenbaum.io/",
+      },
+    },
   },
   "40": {
+    // Telos Mainnet
     supported: true,
-    contractFetchAddress: "https://mainnet.telos.net/" + TELOS_SUFFIX,
+    fetchContractCreationTxUsing: {
+      telosApi: {
+        url: "https://mainnet.telos.net/",
+      },
+    },
   },
   "41": {
+    // Telos Testnet
     supported: true,
-    contractFetchAddress: "https://testnet.telos.net/" + TELOS_SUFFIX,
+    fetchContractCreationTxUsing: {
+      telosApi: {
+        url: "https://testnet.telos.net/",
+      },
+    },
   },
   "8": {
+    // Ubiq Mainnet
     supported: true,
-    contractFetchAddress: "https://ubiqscan.io/" + ETHERSCAN_SUFFIX,
-    txRegex: ETHERSCAN_REGEX,
   },
   "311752642": {
     supported: true,
-    contractFetchAddress:
-      "https://mainnet-explorer.oneledger.network/" + BLOCKSCOUT_SUFFIX,
     rpc: ["https://mainnet-rpc.oneledger.network"],
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://mainnet-explorer.oneledger.network/",
+      },
+    },
   },
   "4216137055": {
     // Turned off due to inactivity
     supported: false,
-    contractFetchAddress:
-      "https://frankenstein-explorer.oneledger.network/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
   },
   "10": {
     // Optimism Mainnet
     supported: true,
-    contractFetchAddress: generateEtherscanCreatorTxAPI("10"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: etherscanAPIs["10"],
+    },
     rpc: buildAlchemyAndCustomRpcURLs("mainnet", "opt"),
   },
   "420": {
     // Optimism Goerli
     supported: true,
-    contractFetchAddress:
-      "https://blockscout.com/optimism/goerli/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex("/optimism/goerli"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: etherscanAPIs["420"],
+      blockscoutApi: {
+        url: "https://blockscout.com/optimism/goerli/",
+      },
+    },
     rpc: buildAlchemyAndCustomRpcURLs("goerli", "opt"),
   },
   "28": {
     // Turned off support as the chains seems shut down
     supported: false,
-    contractFetchAddress:
-      "https://blockexplorer.rinkeby.boba.network/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
   },
   "288": {
+    // Boba Mainnet
     supported: true,
-    contractFetchAddress:
-      "https://blockexplorer.boba.network/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://blockexplorer.boba.network/",
+      },
+    },
   },
   "106": {
+    // Velas Mainnet
     supported: true,
-    contractFetchAddress: "https://evmexplorer.velas.com/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://evmexplorer.velas.com/",
+      },
+    },
   },
   "1313161554": {
+    // Aurora Mainnet
     supported: true,
-    contractFetchAddress:
-      "https://explorer.mainnet.aurora.dev/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutApi: {
+        url: "https://explorer.mainnet.aurora.dev/",
+      },
+    },
   },
   "9996": {
     // Mind Smart Chain Mainnet
     supported: true,
-    contractFetchAddress: "https://mainnet.mindscan.info/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://mainnet.mindscan.info/",
+      },
+    },
   },
   "9977": {
     // Mind Smart Chain Testnet
     supported: true,
-    contractFetchAddress: "https://testnet.mindscan.info/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://testnet.mindscan.info/",
+      },
+    },
   },
   "1313161555": {
     supported: true,
-    contractFetchAddress:
-      "https://explorer.testnet.aurora.dev/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://explorer.testnet.aurora.dev/",
+      },
+    },
   },
   "1284": {
     // Moonbeam
     supported: true,
-    contractFetchAddress: generateEtherscanCreatorTxAPI("1284"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: etherscanAPIs["1284"],
+    },
   },
   "1285": {
     // Moonriver
     supported: true,
-    contractFetchAddress: generateEtherscanCreatorTxAPI("1285"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: etherscanAPIs["1285"],
+    },
   },
   "1287": {
     // Moonbase
     supported: true,
+    fetchContractCreationTxUsing: {
+      etherscanApi: etherscanAPIs["1287"],
+    },
   },
   "11297108109": {
     // Palm
     supported: true,
-    contractFetchAddress: "https://explorer.palm.io/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://explorer.palm.io/",
+      },
+    },
     rpc: [
       replaceInfuraApiKey("https://palm-mainnet.infura.io/v3/{INFURA_API_KEY}"),
     ],
@@ -459,8 +525,11 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "11297108099": {
     // Palm Testnet
     supported: true,
-    contractFetchAddress: "https://explorer.palm-uat.xyz/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://explorer.palm-uat.xyz/",
+      },
+    },
     rpc: [
       replaceInfuraApiKey("https://palm-testnet.infura.io/v3/{INFURA_API_KEY}"),
     ],
@@ -468,8 +537,11 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "122": {
     // Fuse Mainnet
     supported: true,
-    contractFetchAddress: "https://explorer.fuse.io/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutApi: {
+        url: "https://explorer.fuse.io/",
+      },
+    },
   },
   "43": {
     // Turned off support
@@ -483,14 +555,20 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "9000": {
     // Evmos Testnet
     supported: true,
-    contractFetchAddress: "https://evm.evmos.dev/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://evm.evmos.dev/",
+      },
+    },
   },
   "9001": {
     // Evmos Mainnet
     supported: true,
-    contractFetchAddress: "https://evm.evmos.org/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://evm.evmos.org/",
+      },
+    },
   },
   "62621": {
     // MultiVAC Mainnet
@@ -499,318 +577,398 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "11111": {
     // WAGMI Testnet
     supported: true,
-    contractFetchAddress:
-      `https://glacier-api.avax.network/v1/chains/11111/` +
-      AVALANCHE_SUBNET_SUFFIX,
+    fetchContractCreationTxUsing: {
+      avalancheApi: {
+        chainId: "11111",
+      },
+    },
   },
   "192837465": {
     // Gather Mainnet
     supported: true,
-    contractFetchAddress:
-      "https://explorer.gather.network/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://explorer.gather.network/",
+      },
+    },
   },
   "486217935": {
     // Turn off support as the chain seems to be shut down
     // Gather Devnet
     supported: false,
-    contractFetchAddress:
-      "https://devnet-explorer.gather.network/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://devnet-explorer.gather.network/",
+      },
+    },
   },
   "356256156": {
     // Gather Testnet
     supported: true,
-    contractFetchAddress:
-      "https://testnet-explorer.gather.network/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://testnet-explorer.gather.network/",
+      },
+    },
   },
   "335": {
     // DFK Chain Testnet
     supported: true,
-    contractFetchAddress:
-      `https://glacier-api.avax.network/v1/chains/335/` +
-      AVALANCHE_SUBNET_SUFFIX,
+    fetchContractCreationTxUsing: {
+      avalancheApi: {
+        chainId: "335",
+      },
+    },
   },
   "53935": {
     // DFK Chain Mainnet
     supported: true,
-    contractFetchAddress:
-      `https://glacier-api.avax.network/v1/chains/53935/` +
-      AVALANCHE_SUBNET_SUFFIX,
+    fetchContractCreationTxUsing: {
+      avalancheApi: {
+        chainId: "53935",
+      },
+    },
   },
   "73799": {
     // Energy Web Volta Testnet
     supported: true,
-    contractFetchAddress:
-      "https://volta-explorer.energyweb.org/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://volta-explorer.energyweb.org/",
+      },
+    },
   },
   "246": {
     // Energy Web Chain
     supported: true,
-    contractFetchAddress: "https://explorer.energyweb.org/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://explorer.energyweb.org/",
+      },
+    },
   },
   "71401": {
     // Godwoken testnet v1.1
     supported: true,
-    contractFetchAddress:
-      "https://gw-testnet-explorer.nervosdao.community/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://gw-testnet-explorer.nervosdao.community/",
+      },
+    },
   },
   "71402": {
     // Godwoken mainnet v1.1
     supported: true,
-    contractFetchAddress:
-      "https://gw-mainnet-explorer.nervosdao.community/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://gw-mainnet-explorer.nervosdao.community/",
+      },
+    },
   },
   "432201": {
     // Dexalot Testnet
     supported: true,
-    contractFetchAddress:
-      `https://glacier-api.avax.network/v1/chains/432201/` +
-      AVALANCHE_SUBNET_SUFFIX,
+    fetchContractCreationTxUsing: {
+      avalancheApi: {
+        chainId: `432201`,
+      },
+    },
   },
   "432204": {
     // Dexalot Mainnet
     supported: true,
-    contractFetchAddress:
-      `https://glacier-api.avax.network/v1/chains/432204/` +
-      AVALANCHE_SUBNET_SUFFIX,
+    fetchContractCreationTxUsing: {
+      avalancheApi: {
+        chainId: "432204",
+      },
+    },
   },
   "103090": {
     // Turn off support as the chain seems to be shut down
     // Crystaleum Mainnet
     supported: false,
-    contractFetchAddress: "https://scan.crystaleum.org/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://scan.crystaleum.org/",
+      },
+    },
   },
   "420666": {
     // Kekchain Testnet (kektest)
     supported: true,
-    contractFetchAddress:
-      "https://testnet-explorer.kekchain.com/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://testnet-explorer.kekchain.com/",
+      },
+    },
   },
   "420420": {
     // Kekchain Main Net (kekistan)
     supported: true,
-    contractFetchAddress:
-      "https://mainnet-explorer.kekchain.com/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://mainnet-explorer.kekchain.com/",
+      },
+    },
   },
   "7700": {
     // Canto Mainnet
     supported: true,
-    contractFetchAddress: "https://tuber.build/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://tuber.build/",
+      },
+    },
   },
   "7701": {
     // Canto Testnet
     supported: true,
-    contractFetchAddress: "https://testnet.tuber.build/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutApi: {
+        url: "https://testnet.tuber.build/",
+      },
+    },
   },
   "99": {
     // Turned off support as the chain seems to be shut down
     // POA Network Core
     supported: false,
-    contractFetchAddress:
-      "https://blockscout.com/poa/core/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex("/poa/core"),
+    fetchContractCreationTxUsing: {
+      blockscoutApi: {
+        url: "https://blockscout.com/poa/core/",
+      },
+    },
     rpc: ["https://core.poa.network"],
   },
   "592": {
     // Turned off support as RPCs are failing
     // Astar (EVM)
     supported: false,
-    contractFetchAddress: "https://blockscout.com/astar/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex("/astar"),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://blockscout.com/astar/",
+      },
+    },
   },
   "10200": {
     // Gnosis Chiado Testnet
     supported: true,
-    contractFetchAddress:
-      "https://blockscout.chiadochain.net/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutApi: {
+        url: "https://blockscout.chiadochain.net/",
+      },
+    },
   },
   "1001": {
     // Klaytn Testnet Baobab
     supported: true,
-    contractFetchAddress:
-      "https://klaytn-testnet.blockscout.com/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://klaytn-testnet.blockscout.com/",
+      },
+    },
   },
   "8217": {
     // Klaytn Mainnet Cypress
     supported: true,
-    contractFetchAddress:
-      "https://klaytn-mainnet.blockscout.com/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://klaytn-mainnet.blockscout.com/",
+      },
+    },
   },
   "336": {
     // Shiden (EVM)
     supported: true,
-    contractFetchAddress: "https://blockscout.com/shiden/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex("/shiden"),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://blockscout.com/shiden/",
+      },
+    },
   },
   "28528": {
     // Turned off support as the chain seems to be shut down
     // Optimism Bedrock: Goerli Alpha Testnet
     supported: false,
-    contractFetchAddress:
-      "https://blockscout.com/optimism/bedrock-alpha/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex("/optimism/bedrock-alpha"),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://blockscout.com/optimism/bedrock-alpha/",
+      },
+    },
   },
   "7001": {
     // ZetaChain: Athens Testnet
     supported: true,
-    contractFetchAddress:
-      "https://blockscout.athens2.zetachain.com/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://blockscout.athens2.zetachain.com/",
+      },
+    },
   },
   "42262": {
     // Oasis Emerald Mainnet
     supported: true,
-    contractFetchAddress:
-      "https://explorer.emerald.oasis.dev/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://explorer.emerald.oasis.dev/",
+      },
+    },
   },
   "42261": {
     // Oasis Emerald Testnet
     supported: true,
-    contractFetchAddress:
-      "https://testnet.explorer.emerald.oasis.dev/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://testnet.explorer.emerald.oasis.dev/",
+      },
+    },
   },
   "23294": {
     // Oasis Sapphire Mainnet
     supported: true,
-    contractFetchAddress:
-      "https://explorer.sapphire.oasis.io/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://explorer.sapphire.oasis.io/",
+      },
+    },
   },
   "23295": {
     // Oasis Sapphire Testnet
     supported: true,
-    contractFetchAddress:
-      "https://testnet.explorer.sapphire.oasis.dev/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://testnet.explorer.sapphire.oasis.dev/",
+      },
+    },
   },
   "19": {
     // Songbird Canary Network
     supported: true,
-    contractFetchAddress:
-      "https://songbird-explorer.flare.network/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://songbird-explorer.flare.network/",
+      },
+    },
   },
   "14": {
     // Turned off support as RPCs are failing
     // Flare Mainnet
     supported: false,
-    contractFetchAddress:
-      "https://flare-explorer.flare.network/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://flare-explorer.flare.network/",
+      },
+    },
   },
   "2047": {
     // Stratos Testnet (Mesos)
     supported: true,
-    contractFetchAddress:
-      "https://web3-explorer-mesos.thestratos.org/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://web3-explorer-mesos.thestratos.org/",
+      },
+    },
   },
   "641230": {
     // Bear Network Chain Mainnet
     supported: true,
-    contractFetchAddress:
-      "https://brnkscan.bearnetwork.net/" + BLOCKSCOUT_SUFFIX,
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://brnkscan.bearnetwork.net/",
+      },
+    },
     rpc: ["https://brnkc-mainnet.bearnetwork.net"],
-    txRegex: getBlockscoutRegex(),
   },
   "84531": {
     // Base Goerli Testnet
     supported: true,
-    contractFetchAddress: generateEtherscanCreatorTxAPI("84531"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: etherscanAPIs["84531"],
+    },
   },
   "8453": {
     // Base Mainnet
     supported: true,
-    contractFetchAddress: generateEtherscanCreatorTxAPI("8453"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: etherscanAPIs["8453"],
+    },
   },
   "888": {
     // Wanchain Mainnet
     supported: true,
-    txRegex: ETHERSCAN_REGEX,
   },
   "999": {
     // Wanchain Testnet
     supported: true,
-    txRegex: ETHERSCAN_REGEX,
   },
   "7668": {
     // The Root Network Mainnet
     supported: true,
-    contractFetchAddress: "https://explorer.rootnet.live/" + ETHERSCAN_SUFFIX,
-    txRegex: ETHERSCAN_REGEX,
   },
   "7672": {
     // The Root Network Porcini (Testnet)
     supported: true,
-    contractFetchAddress: "https://explorer.rootnet.cloud/" + ETHERSCAN_SUFFIX,
-    txRegex: ETHERSCAN_REGEX,
   },
   "421611": {
     // Arbitrum Rinkeby Testnet
     supported: false,
-    graphQLFetchAddress: "https://rinkeby-indexer.arbitrum.io/graphql",
     rpc: buildAlchemyAndCustomRpcURLs("rinkeby", "arb"),
   },
   "69": {
     supported: false,
-    contractFetchAddress:
-      "https://kovan-optimistic.etherscan.io/" + ETHERSCAN_SUFFIX,
-    txRegex: ETHERSCAN_REGEX,
     rpc: buildAlchemyAndCustomRpcURLs("kovan", "opt"),
   },
   "1149": {
     // Symplexia Smart Chain
     supported: true,
-    contractFetchAddress:
-      "https://explorer.plexfinance.us/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://explorer.plexfinance.us/",
+      },
+    },
   },
   "2000": {
     // DogeChain Mainnet
     supported: true,
-    contractFetchAddress: "https://explorer.dogechain.dog/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://explorer.dogechain.dog/",
+      },
+    },
   },
   "25925": {
     // Bitkub Chain Testnet
     supported: true,
-    contractFetchAddress: "https://testnet.bkcscan.com/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://testnet.bkcscan.com/",
+      },
+    },
   },
   "96": {
     // Bitkub Chain
     supported: true,
-    contractFetchAddress: "https://bkcscan.com/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://bkcscan.com/",
+      },
+    },
   },
   "25": {
     // Cronos Mainnet Beta
     supported: true,
-    contractFetchAddress: "https://cronoscan.com/" + ETHERSCAN_SUFFIX,
-    txRegex: ETHERSCAN_REGEX,
+    fetchContractCreationTxUsing: {
+      etherscanApi: etherscanAPIs["25"],
+    },
   },
   "1339": {
     // Elysium Mainnet Chain
     supported: true,
-    contractFetchAddress:
-      "https://blockscout.elysiumchain.tech/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://blockscout.elysiumchain.tech/",
+      },
+    },
   },
   "167005": {
     // Taiko Grimsvotn L2
@@ -823,43 +981,57 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "7777777": {
     // ZORA
     supported: true,
-    contractFetchAddress: "https://explorer.zora.co/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutApi: {
+        url: "https://explorer.zora.co/",
+      },
+    },
   },
   "6119": {
     // UPTN Mainnet
     supported: true,
-    contractFetchAddress:
-      `https://glacier-api.avax.network/v1/chains/6119/` +
-      AVALANCHE_SUBNET_SUFFIX,
+    fetchContractCreationTxUsing: {
+      avalancheApi: {
+        chainId: "6119",
+      },
+    },
   },
   "13337": {
     // BEAM Testnet
     supported: true,
-    contractFetchAddress:
-      `https://glacier-api.avax.network/v1/chains/13337/` +
-      AVALANCHE_SUBNET_SUFFIX,
+    fetchContractCreationTxUsing: {
+      avalancheApi: {
+        chainId: "13337",
+      },
+    },
   },
   "222000222": {
     // Kanazawa Testnet
     supported: true,
-    contractFetchAddress:
-      `https://glacier-api.avax.network/v1/chains/222000222/` +
-      AVALANCHE_SUBNET_SUFFIX,
+    fetchContractCreationTxUsing: {
+      avalancheApi: {
+        chainId: "222000222",
+      },
+    },
   },
 
   "333000333": {
     // MELD
     supported: true,
-    contractFetchAddress:
-      `https://glacier-api.avax.network/v1/chains/333000333/` +
-      AVALANCHE_SUBNET_SUFFIX,
+    fetchContractCreationTxUsing: {
+      avalancheApi: {
+        chainId: "333000333",
+      },
+    },
   },
   "2222": {
     // Kava EVM
     supported: true,
-    contractFetchAddress: "https://explorer.kava.io/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://explorer.kava.io/",
+      },
+    },
   },
   "32769": {
     // Zilliqa EVM
@@ -872,126 +1044,169 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "2221": {
     // Kava EVM Testnet
     supported: true,
-    contractFetchAddress:
-      "https://explorer.testnet.kava.io/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://explorer.testnet.kava.io/",
+      },
+    },
   },
   "111000": {
+    // Siberium Test Network
     supported: true,
-    contractFetchAddress:
-      "https://http://explorer.test.siberium.net/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://http://explorer.test.siberium.net/",
+      },
+    },
   },
   "212": {
     // MAP Testnet Makalu
     supported: true,
-    contractFetchAddress: "https://testnet.maposcan.io/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://testnet.maposcan.io/",
+      },
+    },
   },
   "22776": {
     // map-relay-chain Mainnet
     supported: true,
-    contractFetchAddress: "https://maposcan.io/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://maposcan.io/",
+      },
+    },
   },
   "2021": {
     // Edgeware EdgeEVM Mainnet
     supported: true,
-    contractFetchAddress: "https://edgscan.live/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://edgscan.live/",
+      },
+    },
   },
   "250": {
     // FTM Fantom Opera Mainnet
     supported: true,
-    contractFetchAddress: "https://fantom.dex.guru/" + ETHERSCAN_SUFFIX,
-    txRegex: ETHERSCAN_REGEX,
   },
   "42170": {
     // Arbitrum Nova
     supported: true,
-    contractFetchAddress: "https://nova.dex.guru/" + ETHERSCAN_SUFFIX,
-    txRegex: ETHERSCAN_REGEX,
   },
   "2037": {
+    // Kiwi Subnet
     supported: true,
-    contractFetchAddress:
-      "https://glacier-api.avax.network/v1/chains/2037/" +
-      AVALANCHE_SUBNET_SUFFIX,
+    fetchContractCreationTxUsing: {
+      avalancheApi: {
+        chainId: "2037",
+      },
+    },
   },
   "4337": {
     supported: true,
-    contractFetchAddress:
-      "https://glacier-api.avax.network/v1/chains/4337/" +
-      AVALANCHE_SUBNET_SUFFIX,
+    fetchContractCreationTxUsing: {
+      avalancheApi: {
+        chainId: "4337",
+      },
+    },
   },
   "78432": {
+    // Conduit Subnet
     supported: true,
-    contractFetchAddress:
-      "https://glacier-api.avax.network/v1/chains/78432/" +
-      AVALANCHE_SUBNET_SUFFIX,
+    fetchContractCreationTxUsing: {
+      avalancheApi: {
+        chainId: "78432",
+      },
+    },
   },
   "78431": {
+    // Bulletin Subnet
     supported: true,
-    contractFetchAddress:
-      "https://glacier-api.avax.network/v1/chains/78431/" +
-      AVALANCHE_SUBNET_SUFFIX,
+    fetchContractCreationTxUsing: {
+      avalancheApi: {
+        chainId: "78431",
+      },
+    },
   },
   "78430": {
+    // Amplify Subnet
     supported: true,
-    contractFetchAddress:
-      "https://glacier-api.avax.network/v1/chains/78430/" +
-      AVALANCHE_SUBNET_SUFFIX,
+    fetchContractCreationTxUsing: {
+      avalancheApi: {
+        chainId: "78430",
+      },
+    },
   },
   "2038": {
     // Shrapnel Testnet
     supported: true,
-    contractFetchAddress:
-      "https://glacier-api.avax.network/v1/chains/2038/" +
-      AVALANCHE_SUBNET_SUFFIX,
+    fetchContractCreationTxUsing: {
+      avalancheApi: {
+        chainId: "2038",
+      },
+    },
   },
   "2044": {
     // Shrapnel Subnet
     supported: true,
-    contractFetchAddress:
-      "https://glacier-api.avax.network/v1/chains/2044/" +
-      AVALANCHE_SUBNET_SUFFIX,
+    fetchContractCreationTxUsing: {
+      avalancheApi: {
+        chainId: "2044",
+      },
+    },
   },
   "10243": {
     // Arthera Testnet
     supported: true,
-    contractFetchAddress:
-      "https://explorer-test.arthera.net/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutApi: {
+        url: "https://explorer-test.arthera.net/",
+      },
+    },
   },
   "1116": {
     // Core Blockchain Mainnet
     supported: true,
-    contractFetchAddress: generateEtherscanCreatorTxAPI("1116"),
+    fetchContractCreationTxUsing: {
+      etherscanApi: etherscanAPIs["1116"],
+    },
   },
   "35441": {
     // Q Mainnet
     supported: true,
-    contractFetchAddress: "https://explorer.q.org/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://explorer.q.org/",
+      },
+    },
   },
   "35443": {
     // Q Testnet
     supported: true,
-    contractFetchAddress: "https://explorer.qtestnet.org/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://explorer.qtestnet.org/",
+      },
+    },
   },
   "11235": {
     // Haqq Mainnet
     supported: true,
-    contractFetchAddress: "https://explorer.haqq.network/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutApi: {
+        url: "https://explorer.haqq.network/",
+      },
+    },
   },
   "54211": {
     // Haqq Testnet
     supported: true,
-    contractFetchAddress:
-      "https://explorer.testedge2.haqq.network/" + BLOCKSCOUT_SUFFIX,
-    txRegex: getBlockscoutRegex(),
+    fetchContractCreationTxUsing: {
+      blockscoutApi: {
+        url: "https://explorer.testedge2.haqq.network/",
+      },
+    },
   },
 };
 

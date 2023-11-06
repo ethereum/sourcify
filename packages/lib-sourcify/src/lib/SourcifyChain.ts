@@ -6,7 +6,11 @@ import {
   TransactionResponse,
   getAddress,
 } from 'ethers';
-import { Chain, SourcifyChainExtension } from './types';
+import {
+  Chain,
+  FetchContractCreationTxMethods,
+  SourcifyChainExtension,
+} from './types';
 import { logError, logInfo, logWarn } from './logger';
 
 const RPC_TIMEOUT = process.env.RPC_TIMEOUT
@@ -34,10 +38,8 @@ export default class SourcifyChain {
   chainId: number;
   rpc: Array<string | FetchRequest>;
   supported: boolean;
-  contractFetchAddress?: string | undefined;
-  graphQLFetchAddress?: string | undefined;
-  txRegex?: string[] | undefined;
   providers: JsonRpcProviderWithUrl[];
+  fetchContractCreationTxUsing?: FetchContractCreationTxMethods;
 
   constructor(sourcifyChainObj: SourcifyChainInstance) {
     this.name = sourcifyChainObj.name;
@@ -45,10 +47,9 @@ export default class SourcifyChain {
     this.chainId = sourcifyChainObj.chainId;
     this.rpc = sourcifyChainObj.rpc;
     this.supported = sourcifyChainObj.supported;
-    this.contractFetchAddress = sourcifyChainObj.contractFetchAddress;
-    this.graphQLFetchAddress = sourcifyChainObj.graphQLFetchAddress;
-    this.txRegex = sourcifyChainObj.txRegex;
     this.providers = [];
+    this.fetchContractCreationTxUsing =
+      sourcifyChainObj.fetchContractCreationTxUsing;
 
     if (!this.supported) return; // Don't create providers if chain is not supported
 

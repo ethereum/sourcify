@@ -69,28 +69,34 @@ aliases:
   - &monitor-e2e-base
     steps:
       - run:
+          name: Avoid hosts unknown for github
+          command: mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+      - run:
           name: checkout metacoin-source-verify
-          command: git clone git@github.com:sourcifyeth/metacoin-source-verify.git && cd metacoin-source-verify
+          command: cd ~/project && git clone git@github.com:sourcifyeth/metacoin-source-verify.git
       - run:
           name: install
-          command: npm ci
+          command: cd ~/project/metacoin-source-verify && npm ci
       - run:
           name: monitor test
-          command: ./scripts/monitor_e2e.sh
+          command: cd ~/project/metacoin-source-verify && ./scripts/monitor_e2e.sh
           no_output_timeout: 30m
     docker:
       - image: cimg/node:16.15
   - &verification-e2e-base
     steps:
       - run:
+          name: Avoid hosts unknown for github
+          command: mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+      - run:
           name: checkout metacoin-source-verify
-          command: git clone git@github.com:sourcifyeth/metacoin-source-verify.git && cd metacoin-source-verify
+          command: cd ~/project && git clone git@github.com:sourcifyeth/metacoin-source-verify.git
       - run:
           name: install
-          command: npm ci
+          command: cd ~/project/metacoin-source-verify && npm ci
       - run:
           name: verification test
-          command: ./scripts/verification_e2e.sh
+          command: cd ~/project/metacoin-source-verify && ./scripts/verification_e2e.sh
     docker:
       - image: cimg/node:16.15
 
