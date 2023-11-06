@@ -1215,6 +1215,15 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       etherscanApi: etherscanAPIs["1115"],
     },
   },
+  "30": {
+    // Rootstock
+    supported: true,
+    fetchContractCreationTxUsing: {
+      blockscoutApi: {
+        url: "https://rootstock.blockscout.com/",
+      },
+    },
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
