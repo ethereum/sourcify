@@ -1224,6 +1224,15 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       },
     },
   },
+  "999999999": {
+    // ZORA Sepolia Testnet
+    supported: true,
+    fetchContractCreationTxUsing: {
+      blockscoutApi: {
+        url: "https://sepolia.explorer.zora.energy/",
+      },
+    },
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
