@@ -124,6 +124,7 @@ function replaceInfuraApiKey(infuraURL: string) {
   );
 }
 
+// TODO transform this object into an external configuration file
 const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "1": {
     // Ethereum Mainnet
