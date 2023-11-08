@@ -67,12 +67,12 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
       tempMatch.runtimeMatch === "perfect" ||
       tempMatch.creationMatch === "perfect"
     ) {
-      await services.repository.storeMatch(contractToVerify, tempMatch);
+      await services.storage.storeMatch(contractToVerify, tempMatch);
       return res.send({ result: [tempMatch] });
     }
   }
   if (match.runtimeMatch || match.creationMatch) {
-    await services.repository.storeMatch(contractToVerify, match);
+    await services.storage.storeMatch(contractToVerify, match);
   }
   return res.send({ result: [getResponseMatchFromMatch(match)] }); // array is an old expected behavior (e.g. by frontend)
 }

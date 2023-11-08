@@ -19,7 +19,7 @@ export async function legacyVerifyEndpoint(
   req: LegacyVerifyRequest,
   res: Response
 ): Promise<any> {
-  const result = services.repository.checkByChainAndAddress(
+  const result = services.storage.checkByChainAndAddress(
     req.body.address,
     req.body.chain
   );
@@ -87,12 +87,12 @@ export async function legacyVerifyEndpoint(
         tempMatch.runtimeMatch === "perfect" ||
         tempMatch.creationMatch === "perfect"
       ) {
-        await services.repository.storeMatch(contract, tempMatch);
+        await services.storage.storeMatch(contract, tempMatch);
         return res.send({ result: [getResponseMatchFromMatch(tempMatch)] });
       }
     }
     if (match.runtimeMatch || match.creationMatch) {
-      await services.repository.storeMatch(contract, match);
+      await services.storage.storeMatch(contract, match);
     }
     return res.send({ result: [getResponseMatchFromMatch(match)] }); // array is an old expected behavior (e.g. by frontend)
   } catch (error: any) {

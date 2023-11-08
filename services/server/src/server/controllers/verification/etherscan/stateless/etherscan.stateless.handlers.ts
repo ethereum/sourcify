@@ -34,7 +34,7 @@ export async function verifyFromEtherscan(req: Request, res: Response) {
     address
   );
 
-  await services.repository.storeMatch(checkedContract, match);
+  await services.storage.storeMatch(checkedContract, match);
 
   res.send({ result: [getResponseMatchFromMatch(match)] });
 }

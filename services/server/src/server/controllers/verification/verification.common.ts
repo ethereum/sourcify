@@ -25,7 +25,6 @@ import { AbiConstructor, AbiParameter } from "abitype";
 import QueryString from "qs";
 import fetch from "node-fetch";
 import { IVerificationService } from "../../services/VerificationService";
-import { IRepositoryService } from "../../services/RepositoryService";
 import { ContractMeta, ContractWrapper, getMatchStatus } from "../../common";
 import { auth } from "express-oauth2-jwt-bearer";
 import rateLimit from "express-rate-limit";
@@ -35,6 +34,7 @@ import { ForbiddenError } from "../../../common/errors/ForbiddenError";
 import { UnauthorizedError } from "../../../common/errors/UnauthorizedError";
 import { ISolidityCompiler } from "@ethereum-sourcify/lib-sourcify";
 import { useCompiler } from "../../services/compiler/solidityCompiler";
+import { StorageService } from "../../services/StorageService";
 
 class Solc implements ISolidityCompiler {
   async compile(
@@ -326,14 +326,14 @@ export const verifyContractsInSession = async (
   contractWrappers: ContractWrapperMap,
   session: Session,
   verificationService: IVerificationService,
-  repositoryService: IRepositoryService
+  storageService: StorageService
 ): Promise<void> => {
   for (const id in contractWrappers) {
     const contractWrapper = contractWrappers[id];
 
     // Check if contract is already verified
     if (Boolean(contractWrapper.address) && Boolean(contractWrapper.chainId)) {
-      const found = repositoryService.checkByChainAndAddress(
+      const found = storageService.checkByChainAndAddress(
         contractWrapper.address as string,
         contractWrapper.chainId as string
       );
@@ -424,7 +424,7 @@ export const verifyContractsInSession = async (
     contractWrapper.statusMessage = match.message;
     contractWrapper.storageTimestamp = match.storageTimestamp;
     if (match.runtimeMatch || match.creationMatch) {
-      await repositoryService.storeMatch(checkedContract, match);
+      await storageService.storeMatch(checkedContract, match);
     }
   }
 };

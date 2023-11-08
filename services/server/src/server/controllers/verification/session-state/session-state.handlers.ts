@@ -49,7 +49,7 @@ export async function addInputFilesEndpoint(req: Request, res: Response) {
       session.contractWrappers,
       session,
       services.verification,
-      services.repository
+      services.storage
     );
   }
   res.send(getSessionJSON(session));
@@ -115,7 +115,7 @@ export async function addInputContractEndpoint(req: Request, res: Response) {
       session.contractWrappers,
       session,
       services.verification,
-      services.repository
+      services.storage
     );
   }
   res.send(getSessionJSON(session));
