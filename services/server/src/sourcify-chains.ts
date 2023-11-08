@@ -1233,6 +1233,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       },
     },
   },
+  // Add here new chain
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
