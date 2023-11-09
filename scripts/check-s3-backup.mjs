@@ -48,7 +48,7 @@ const jobs = circleCIJobsUrlJson.items.filter((job) =>
 let existance = false;
 for (const job of jobs) {
   console.log(`Checking job with name: ${job.name} and id: ${job.id}`);
-  const circleCIArtifactVerifiedContractUrl = `https://dl.circleci.com/private/output/job/${job.id}/artifacts/0/verified-contracts/saved.json`;
+  const circleCIArtifactVerifiedContractUrl = `https://dl.circleci.com/private/output/job/${job.id}/artifacts/0/~/project/metacoin-source-verify/verified-contracts/saved.json`;
   console.log("Fetching artifact from: ", circleCIArtifactVerifiedContractUrl);
   const circleCIArtifactVerifiedContractResult = await fetch(
     circleCIArtifactVerifiedContractUrl
