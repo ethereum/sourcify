@@ -870,6 +870,15 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       },
     },
   },
+  "2048": {
+    // Stratos Mainnet
+    supported: true,
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://web3-explorer.thestratos.org/",
+      },
+    },
+  },
   "641230": {
     // Bear Network Chain Mainnet
     supported: true,

@@ -795,11 +795,20 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
-  // Stratos Testnet
+  // Stratos Testnet (Mesos)
   verifyContract(
-    "0x999986dE5D86Ae4bbd4b9AbFBD65352622D11326",
+    "0xA049F14E503A489E6f72603034CBe4d6835C8393",
     "2047",
     "Stratos Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  // Stratos Mainnet
+  verifyContract(
+    "0x9004804c4306d0eF7687Bce0C193A94C7593013F",
+    "2048",
+    "Stratos Mainnet",
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
