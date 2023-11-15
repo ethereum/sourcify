@@ -8,6 +8,7 @@ import {
 } from "../etherscan.common";
 import { checkSupportedChainId } from "../../../../../sourcify-chains";
 import { getResponseMatchFromMatch } from "../../../../common";
+import { createCheckedContract } from "../../verification.common";
 
 export async function verifyFromEtherscan(req: Request, res: Response) {
   checkSupportedChainId(req.body.chain);
@@ -25,7 +26,7 @@ export async function verifyFromEtherscan(req: Request, res: Response) {
   );
 
   const mappedSources = getMappedSourcesFromJsonInput(solcJsonInput);
-  const checkedContract = new CheckedContract(metadata, mappedSources);
+  const checkedContract = createCheckedContract(metadata, mappedSources);
 
   const match = await services.verification.verifyDeployed(
     checkedContract,

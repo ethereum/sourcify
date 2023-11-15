@@ -6,7 +6,7 @@ import {
   getSolcExecutable,
   getSolcJs,
   useCompiler,
-} from '../src/lib/solidityCompiler';
+} from './compiler/solidityCompiler';
 import {
   CheckedContract,
   getGithubUrl,
@@ -18,6 +18,7 @@ import WrongMetadata from './sources/WrongMetadata/metadata.json';
 import SimplyLog from './sources/WrongMetadata/SimplyLog.json';
 import earlyCompilerInput from './sources/json-input/pre-v0.4.0/input.json';
 import { keccak256 } from 'ethers';
+import { solc } from './utils';
 describe('Verify Solidity Compiler', () => {
   it('Should fetch latest SolcJS compiler', async () => {
     expect(await getSolcJs()).not.equals(null);
@@ -171,6 +172,7 @@ describe('Checked contract', () => {
       urls: ['dweb:/ipfs/QmaFRC9ZtT7y3t9XNWCbDuMTEwKkyaQJzYFzw3NbeohSn5'],
     };
     const contract = new CheckedContract(
+      solc,
       storageMetadata as any as Metadata,
       {},
       missingSources,
@@ -182,7 +184,7 @@ describe('Checked contract', () => {
     expect(sources[0]).equals('Storage.sol');
   });
   it('Should tryToFindPerfectMetadata from checked contract', async () => {
-    const contract = new CheckedContract(WrongMetadata as Metadata, {
+    const contract = new CheckedContract(solc, WrongMetadata as Metadata, {
       'SimplyLog.sol': SimplyLog.source,
     });
 

@@ -124,6 +124,7 @@ function replaceInfuraApiKey(infuraURL: string) {
   );
 }
 
+// TODO transform this object into an external configuration file
 const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "1": {
     // Ethereum Mainnet
@@ -1217,6 +1218,41 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       },
     },
   },
+  "1343": {
+    // Cloudverse Subnet
+    supported: true,
+    fetchContractCreationTxUsing: {
+      avalancheApi: {
+        chainId: "1343",
+      },
+    },
+  },
+  "1115": {
+    // Core Blockchain Testnet
+    supported: true,
+    fetchContractCreationTxUsing: {
+      etherscanApi: etherscanAPIs["1115"],
+    },
+  },
+  "30": {
+    // Rootstock
+    supported: true,
+    fetchContractCreationTxUsing: {
+      blockscoutApi: {
+        url: "https://rootstock.blockscout.com/",
+      },
+    },
+  },
+  "999999999": {
+    // ZORA Sepolia Testnet
+    supported: true,
+    fetchContractCreationTxUsing: {
+      blockscoutApi: {
+        url: "https://sepolia.explorer.zora.energy/",
+      },
+    },
+  },
+  // Add here new chain
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};

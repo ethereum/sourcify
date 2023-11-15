@@ -949,6 +949,15 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
+  // ZORA Sepolia Testnet
+  verifyContract(
+    "0x9788C590bd201b80091Bca6A322BeB903b8190Dd",
+    "999999999",
+    "ZORA Sepolia Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
   // UPTN Chain Mainnet
   verifyContract(
     "0x212F6222fB4937978A806b14FB2725169825078F",
@@ -1227,6 +1236,22 @@ describe("Test Supported Chains", function () {
     "Blitz Test Subnet",
     [],
     "1343/multicall3.metadata.json"
+  );
+
+  verifyContract(
+    "0x612C7dE4039655B9C9aE9A9B41f3A22319F0dF65",
+    "1115",
+    "Core Blockchain Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  verifyContract(
+    "0xFe392C04b7879f28D9F966239F3e3646fe048863",
+    "30",
+    "Rootstock",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
   );
 
   // Finally check if all the "supported: true" chains have been tested
