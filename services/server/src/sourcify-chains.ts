@@ -1208,6 +1208,15 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       },
     },
   },
+  "33210": {
+    // Cloudverse Subnet
+    supported: true,
+    fetchContractCreationTxUsing: {
+      avalancheApi: {
+        chainId: "33210",
+      },
+    },
+  },
 };
 
 const sourcifyChainsMap: SourcifyChainMap = {};
