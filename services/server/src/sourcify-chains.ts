@@ -1234,6 +1234,14 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       },
     },
   },
+  "5000": {
+    supported: true,
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://explorer.mantle.xyz/",
+      },
+    },
+  },
   // Add here new chain
 };
 
