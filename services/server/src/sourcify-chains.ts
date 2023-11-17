@@ -1237,20 +1237,16 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
   "39797": {
     // Energi Mainnet
     supported: true,
-    fetchContractCreationTxUsing: {
-      blockscoutScrape: {
-        url: "https://explorer.energi.network/",
-      },
-    },
+    monitored: false,
+    contractFetchAddress: "https://explorer.energi.network/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
   },
   "49797": {
     // Energi Testnet
     supported: true,
-    fetchContractCreationTxUsing: {
-      blockscoutScrape: {
-        url: "https://explorer.test.energi.network/",
-      },
-    },
+    monitored: false,
+    contractFetchAddress: "https://explorer.test.energi.network/" + BLOCKSCOUT_SUFFIX,
+    txRegex: getBlockscoutRegex(),
   },
   // Add here new chain
 };
