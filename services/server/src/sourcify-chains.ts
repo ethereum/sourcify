@@ -1234,6 +1234,24 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       },
     },
   },
+  "39797": {
+    // Energi Mainnet
+    supported: true,
+    fetchContractCreationTxUsing: {
+      blockscoutApi: {
+        url: "https://explorer.energi.network/",
+      },
+    },
+  },
+  "49797": {
+    // Energi Testnet
+    supported: true,
+    fetchContractCreationTxUsing: {
+      blockscoutApi: {
+        url: "https://explorer.test.energi.network/",
+      },
+    },
+  },
   // Add here new chain
 };
 

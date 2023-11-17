@@ -1238,6 +1238,22 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
+  verifyContract(
+    "0x10fB58BBd3c4F580aC4be0600221850FDF33BEdF",
+    "49797",
+    "Energi Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  verifyContract(
+    "0xA9CD2d159ca8ab30711e9d9331D5229476e8a2d5",
+    "39797",
+    "Energi Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainIds.length) {
