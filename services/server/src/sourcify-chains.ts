@@ -534,6 +534,30 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       replaceInfuraApiKey("https://palm-testnet.infura.io/v3/{INFURA_API_KEY}"),
     ],
   },
+  "424": {
+    // PGN Public Goods Network
+    supported: true,
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://explorer.publicgoods.network/",
+      },
+    },
+    rpc: [
+      "https://rpc.publicgoods.network"
+    ],
+  },
+  "58008": {
+    // Sepolia Public Goods Network
+    supported: true,
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "explorer.sepolia.publicgoods.network",
+      },
+    },
+    rpc: [
+      "https://sepolia.publicgoods.network"
+    ],
+  },
   "122": {
     // Fuse Mainnet
     supported: true,
