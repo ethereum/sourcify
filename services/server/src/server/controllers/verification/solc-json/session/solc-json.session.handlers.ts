@@ -8,7 +8,7 @@ import {
 } from "../../verification.common";
 import { PathContent } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError, ValidationError } from "../../../../../common/errors";
-import { getAllMetadataAndSourcesFromSolcJson } from "../../../../services/compiler/solidityCompiler";
+import { getAllMetadataAndSourcesFromSolcJson } from "../../../../services/compiler/local/solidityCompiler";
 
 export async function addInputSolcJsonEndpoint(req: Request, res: Response) {
   const inputFiles = extractFiles(req, true);
