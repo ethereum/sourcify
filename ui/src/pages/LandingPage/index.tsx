@@ -649,8 +649,8 @@ const LandingPage = () => {
               <FooterItem href="https://twitter.com/sourcifyeth">
                 Twitter
               </FooterItem>
-              <FooterItem href="https://gitter.im/ethereum/source-verify">
-                Gitter
+              <FooterItem href="https://discord.gg/6aqd9cfZ9s">
+                Discord
               </FooterItem>
               <FooterItem href="https://matrix.to/#/#ethereum_source-verify:gitter.im">
                 Matrix
