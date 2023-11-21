@@ -34,15 +34,65 @@ import { id as keccak256str } from "ethers";
 import { ForbiddenError } from "../../../common/errors/ForbiddenError";
 import { UnauthorizedError } from "../../../common/errors/UnauthorizedError";
 import { ISolidityCompiler } from "@ethereum-sourcify/lib-sourcify";
-import { useCompiler } from "../../services/compiler/solidityCompiler";
+import {
+  LambdaClient,
+  InvokeCommand,
+  InvokeCommandInput,
+} from "@aws-sdk/client-lambda";
 
 class Solc implements ISolidityCompiler {
-  async compile(
+  private lambdaClient: LambdaClient;
+
+  constructor() {
+    if (
+      process.env.AWS_REGION === undefined ||
+      process.env.AWS_ACCESS_KEY_ID === undefined ||
+      process.env.AWS_SECRET_ACCESS_KEY === undefined
+    ) {
+      throw new Error("Solc compiler must be configured");
+    }
+    // Initialize Lambda client with environment variables for credentials
+    this.lambdaClient = new LambdaClient({
+      region: process.env.AWS_REGION,
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      },
+    });
+  }
+
+  public async compile(
     version: string,
     solcJsonInput: JsonInput,
     forceEmscripten: boolean = false
   ): Promise<CompilerOutput> {
-    return await useCompiler(version, solcJsonInput, forceEmscripten);
+    const response = await this.invokeLambdaFunction(
+      JSON.stringify({ version, solcJsonInput, forceEmscripten })
+    );
+    return this.parseCompilerOutput(response);
+  }
+
+  private async invokeLambdaFunction(payload: string): Promise<any> {
+    const params: InvokeCommandInput = {
+      FunctionName: "compile",
+      Payload: payload,
+    };
+
+    const command = new InvokeCommand(params);
+    const response = await this.lambdaClient.send(command);
+
+    if (!response.Payload) {
+      throw new Error(
+        "Error: No response payload received from Lambda function"
+      );
+    }
+
+    return response;
+  }
+
+  private parseCompilerOutput(response: any): CompilerOutput {
+    const res = JSON.parse(Buffer.from(response.Payload).toString("utf8"));
+    return res.body as CompilerOutput;
   }
 }
 
