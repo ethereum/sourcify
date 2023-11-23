@@ -43,7 +43,7 @@ export class SolcLambda implements ISolidityCompiler {
 
   private async invokeLambdaFunction(payload: string): Promise<any> {
     const params: InvokeCommandInput = {
-      FunctionName: "compile",
+      FunctionName: process.env.AWS_LAMBDA_FUNCTION || "compile",
       Payload: payload,
     };
 
