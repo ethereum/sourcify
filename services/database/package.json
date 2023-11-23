@@ -1,0 +1,16 @@
+{
+  "name": "sourcify-database",
+  "version": "1.0.0",
+  "description": "The Sourcify database",
+  "main": "index.js",
+  "scripts": {
+    "migrate:up": "db-migrate up",
+    "migrate:create": "db-migrate create "
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "db-migrate": "^0.11.14",
+    "db-migrate-pg": "^1.5.2"
+  }
+}
