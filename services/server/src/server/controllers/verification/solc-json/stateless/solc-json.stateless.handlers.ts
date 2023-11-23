@@ -4,7 +4,7 @@ import { extractFiles, solc } from "../../verification.common";
 import { checkFiles, useAllSources } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError, ValidationError } from "../../../../../common/errors";
 import { getResponseMatchFromMatch } from "../../../../common";
-import { getAllMetadataAndSourcesFromSolcJson } from "../../../../services/compiler/solidityCompiler";
+import { getAllMetadataAndSourcesFromSolcJson } from "../../../../services/compiler/local/solidityCompiler";
 
 export async function verifySolcJsonEndpoint(req: Request, res: Response) {
   const inputFiles = extractFiles(req, true);

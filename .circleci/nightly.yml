@@ -38,6 +38,8 @@ aliases:
       - run:
           name: verification test
           command: cd ~/project/metacoin-source-verify && ./scripts/verification_e2e.sh
+      - store_artifacts:
+          path: ~/project/metacoin-source-verify/verified-contracts
     docker:
       - image: cimg/node:16.15
 

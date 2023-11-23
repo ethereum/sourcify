@@ -30,7 +30,6 @@ import { Blockchain } from '@ethereumjs/blockchain';
 */
 import { hexZeroPad, isHexString } from '@ethersproject/bytes';
 import { BigNumber } from '@ethersproject/bignumber';
-import semverSatisfies from 'semver/functions/satisfies';
 import { defaultAbiCoder as abiCoder, ParamType } from '@ethersproject/abi';
 import { AbiConstructor } from 'abitype';
 import { logInfo, logWarn } from './logger';
@@ -165,12 +164,10 @@ export async function verifyDeployed(
   // Case when extra unused files in compiler input cause different bytecode (https://github.com/ethereum/sourcify/issues/618)
   try {
     if (
+      splitAuxdata(match.onchainRuntimeBytecode || '')[1] ===
+        splitAuxdata(checkedContract.runtimeBytecode || '')[1] &&
       match.runtimeMatch === null &&
       match.creationMatch === null &&
-      semverSatisfies(
-        checkedContract.metadata.compiler.version,
-        '=0.6.12 || =0.7.0'
-      ) &&
       checkedContract.metadata.settings.optimizer?.enabled
     ) {
       const [, deployedAuxdata] = splitAuxdata(runtimeBytecode);

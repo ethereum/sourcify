@@ -33,20 +33,23 @@ import { id as keccak256str } from "ethers";
 import { ForbiddenError } from "../../../common/errors/ForbiddenError";
 import { UnauthorizedError } from "../../../common/errors/UnauthorizedError";
 import { ISolidityCompiler } from "@ethereum-sourcify/lib-sourcify";
-import { useCompiler } from "../../services/compiler/solidityCompiler";
+import { SolcLambda } from "../../services/compiler/lambda/SolcLambda";
+import { SolcLocal } from "../../services/compiler/local/SolcLocal";
 import { StorageService } from "../../services/StorageService";
 
-class Solc implements ISolidityCompiler {
-  async compile(
-    version: string,
-    solcJsonInput: JsonInput,
-    forceEmscripten: boolean = false
-  ): Promise<CompilerOutput> {
-    return await useCompiler(version, solcJsonInput, forceEmscripten);
+let selectedSolidityCompiler: ISolidityCompiler;
+switch (process.env.SOLIDITY_COMPILER) {
+  case "lambda": {
+    selectedSolidityCompiler = new SolcLambda();
+    break;
+  }
+  case "local":
+  default: {
+    selectedSolidityCompiler = new SolcLocal();
   }
 }
 
-export const solc = new Solc();
+export const solc = selectedSolidityCompiler;
 
 export function createCheckedContract(
   metadata: Metadata,
