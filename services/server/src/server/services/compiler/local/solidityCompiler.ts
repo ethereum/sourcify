@@ -1,27 +1,55 @@
 // TODO: Handle nodejs only dependencies
-import path from 'path';
-import fs from 'fs';
-import { exec, spawnSync } from 'child_process';
-import { fetchWithTimeout } from './utils';
-import { StatusCodes } from 'http-status-codes';
-import { CompilerOutput, JsonInput, PathBuffer } from './types';
-import { logDebug, logError, logInfo, logWarn } from './logger';
-import semver from 'semver';
-import { Worker, WorkerOptions } from 'worker_threads';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const solc = require('solc');
+import path from "path";
+import fs from "fs";
+import { exec, spawnSync } from "child_process";
+import { StatusCodes } from "http-status-codes";
+import { logDebug, logError, logInfo, logWarn } from "./logger";
+import semver from "semver";
+import { Worker, WorkerOptions } from "worker_threads";
+import {
+  CompilerOutput,
+  JsonInput,
+  PathBuffer,
+} from "@ethereum-sourcify/lib-sourcify";
 
-const HOST_SOLC_REPO = ' https://binaries.soliditylang.org/';
+require("isomorphic-fetch");
+interface RequestInitTimeout extends RequestInit {
+  timeout?: number;
+}
+
+export async function fetchWithTimeout(
+  resource: string,
+  options: RequestInitTimeout = {}
+) {
+  const { timeout = 10000 } = options;
+
+  const controller = new AbortController();
+  const id = setTimeout(() => {
+    logWarn(`Aborting request ${resource} because of timout ${timeout}`);
+    controller.abort();
+  }, timeout);
+  const response = await fetch(resource, {
+    ...options,
+    signal: controller.signal,
+  });
+  clearTimeout(id);
+  return response;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const solc = require("solc");
+
+const HOST_SOLC_REPO = " https://binaries.soliditylang.org/";
 
 export function findSolcPlatform(): string | false {
-  if (process.platform === 'darwin' && process.arch === 'x64') {
-    return 'macosx-amd64';
+  if (process.platform === "darwin" && process.arch === "x64") {
+    return "macosx-amd64";
   }
-  if (process.platform === 'linux' && process.arch === 'x64') {
-    return 'linux-amd64';
+  if (process.platform === "linux" && process.arch === "x64") {
+    return "linux-amd64";
   }
-  if (process.platform === 'win32' && process.arch === 'x64') {
-    return 'windows-amd64';
+  if (process.platform === "win32" && process.arch === "x64") {
+    return "windows-amd64";
   }
   return false;
 }
@@ -43,7 +71,7 @@ export async function useCompiler(
 ): Promise<CompilerOutput> {
   // For nightly builds, Solidity version is saved as 0.8.17-ci.2022.8.9+commit.6b60524c instead of 0.8.17-nightly.2022.8.9+commit.6b60524c.
   // Not possible to retrieve compilers with "-ci.".
-  if (version.includes('-ci.')) version = version.replace('-ci.', '-nightly.');
+  if (version.includes("-ci.")) version = version.replace("-ci.", "-nightly.");
   const inputStringified = JSON.stringify(solcJsonInput);
   let compiled: string | undefined;
 
@@ -59,8 +87,8 @@ export async function useCompiler(
     try {
       compiled = await asyncExecSolc(inputStringified, solcPath);
     } catch (error: any) {
-      if (error?.code === 'ENOBUFS') {
-        throw new Error('Compilation output size too large');
+      if (error?.code === "ENOBUFS") {
+        throw new Error("Compilation output size too large");
       }
       logWarn(error.message);
       throw error;
@@ -71,20 +99,20 @@ export async function useCompiler(
     logDebug(`Compiling with solc-js ${version}`);
     if (solJson) {
       const coercedVersion =
-        semver.coerce(new semver.SemVer(version))?.version ?? '';
+        semver.coerce(new semver.SemVer(version))?.version ?? "";
       // Run Worker for solc versions < 0.4.0 for clean compiler context. See https://github.com/ethereum/sourcify/issues/1099
-      if (semver.lt(coercedVersion, '0.4.0')) {
+      if (semver.lt(coercedVersion, "0.4.0")) {
         compiled = await new Promise((resolve, reject) => {
           const worker = importWorker(
-            path.resolve(__dirname, './compilerWorker.ts'),
+            path.resolve(__dirname, "./compilerWorker.ts"),
             {
               workerData: { version, inputStringified },
             }
           );
-          worker.once('message', (result) => {
+          worker.once("message", (result) => {
             resolve(result);
           });
-          worker.once('error', (error) => {
+          worker.once("error", (error) => {
             reject(error);
           });
         });
@@ -98,15 +126,15 @@ export async function useCompiler(
   logInfo(`Compilation time : ${endCompilation - startCompilation} ms`);
 
   if (!compiled) {
-    throw new Error('Compilation failed. No output from the compiler.');
+    throw new Error("Compilation failed. No output from the compiler.");
   }
   const compiledJSON = JSON.parse(compiled);
   const errorMessages = compiledJSON?.errors?.filter(
-    (e: any) => e.severity === 'error'
+    (e: any) => e.severity === "error"
   );
   if (errorMessages && errorMessages.length > 0) {
     const error = new Error(
-      'Compiler error:\n ' + JSON.stringify(errorMessages)
+      "Compiler error:\n " + JSON.stringify(errorMessages)
     );
     logError(error.message);
     throw error;
@@ -118,14 +146,14 @@ export async function getAllMetadataAndSourcesFromSolcJson(
   solcJson: JsonInput,
   compilerVersion: string
 ): Promise<PathBuffer[]> {
-  if (solcJson.language !== 'Solidity')
+  if (solcJson.language !== "Solidity")
     throw new Error(
-      'Only Solidity is supported, the json has language: ' + solcJson.language
+      "Only Solidity is supported, the json has language: " + solcJson.language
     );
 
   const outputSelection = {
-    '*': {
-      '*': ['metadata'],
+    "*": {
+      "*": ["metadata"],
     },
   };
   if (!solcJson.settings) {
@@ -137,7 +165,7 @@ export async function getAllMetadataAndSourcesFromSolcJson(
   const compiled = await useCompiler(compilerVersion, solcJson);
   const metadataAndSources: PathBuffer[] = [];
   if (!compiled.contracts)
-    throw new Error('No contracts found in the compiled json output');
+    throw new Error("No contracts found in the compiled json output");
   for (const contractPath in compiled.contracts) {
     for (const contract in compiled.contracts[contractPath]) {
       const metadata = compiled.contracts[contractPath][contract].metadata;
@@ -160,7 +188,7 @@ export async function getSolcExecutable(
   version: string
 ): Promise<string | null> {
   const fileName = `solc-${platform}-v${version}`;
-  const repoPath = process.env.SOLC_REPO || path.join('/tmp', 'solc-repo');
+  const repoPath = process.env.SOLC_REPO || path.join("/tmp", "solc-repo");
   const solcPath = path.join(repoPath, fileName);
   if (fs.existsSync(solcPath) && validateSolcPath(solcPath)) {
     logDebug(`Found solc ${version} with platform ${platform} at ${solcPath}`);
@@ -183,7 +211,7 @@ export async function getSolcExecutable(
 
 function validateSolcPath(solcPath: string): boolean {
   // TODO: Handle nodejs only dependencies
-  const spawned = spawnSync(solcPath, ['--version']);
+  const spawned = spawnSync(solcPath, ["--version"]);
   if (spawned.status === 0) {
     return true;
   }
@@ -191,7 +219,7 @@ function validateSolcPath(solcPath: string): boolean {
   const error =
     spawned?.error?.message ||
     spawned.stderr.toString() ||
-    'Error running solc, are you on the right platoform? (e.g. x64 vs arm)';
+    "Error running solc, are you on the right platoform? (e.g. x64 vs arm)";
 
   logWarn(error);
   return false;
@@ -268,20 +296,20 @@ async function fetchAndSaveSolc(
  *
  * @returns the requested solc instance
  */
-export async function getSolcJs(version = 'latest'): Promise<any> {
+export async function getSolcJs(version = "latest"): Promise<any> {
   // /^\d+\.\d+\.\d+\+commit\.[a-f0-9]{8}$/
   version = version.trim();
-  if (version !== 'latest' && !version.startsWith('v')) {
-    version = 'v' + version;
+  if (version !== "latest" && !version.startsWith("v")) {
+    version = "v" + version;
   }
 
   const soljsonRepo =
-    process.env.SOLJSON_REPO || path.join('/tmp', 'soljson-repo');
+    process.env.SOLJSON_REPO || path.join("/tmp", "soljson-repo");
   const fileName = `soljson-${version}.js`;
   const soljsonPath = path.resolve(soljsonRepo, fileName);
 
   if (!fs.existsSync(soljsonPath)) {
-    if (!(await fetchAndSaveSolc('bin', soljsonPath, version, fileName))) {
+    if (!(await fetchAndSaveSolc("bin", soljsonPath, version, fileName))) {
       return false;
     }
   }
@@ -316,7 +344,7 @@ function asyncExecSolc(
       }
     );
     if (!child.stdin) {
-      throw new Error('No stdin on child process');
+      throw new Error("No stdin on child process");
     }
     // Write input to child process's stdin
     child.stdin.write(inputStringified);
@@ -330,7 +358,7 @@ function importWorker(path: string, options: WorkerOptions) {
   return new Worker(resolvedPath, {
     ...options,
     execArgv: /\.ts$/.test(resolvedPath)
-      ? ['--require', 'ts-node/register']
+      ? ["--require", "ts-node/register"]
       : undefined,
   });
 }

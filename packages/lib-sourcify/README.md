@@ -8,6 +8,42 @@ lib-sourcify is [Sourcify](https://sourcify.dev)'s reusable backbone library for
   - an abstraction for a contract ready to be compiled and verified: fetching and assembling its source files, compiling etc.
 - Sourcify types and interfaces
 
+## Solc Compiler
+
+The `lib-sourcify` library does not come with the Solidity compiler as a dependency. Instead, you need to provide a class that implements the `ISolidityCompiler` interface and pass it to any function that requires a compiler.
+
+```typescript
+// The external Solidity Compiler
+import solidityCompiler from "./compiler/solidityCompiler";
+
+// Include also CompilerOutput and JsonInput as dependncies of ISolidityCompiler
+import {
+  ISolidityCompiler
+  CompilerOutput,
+  JsonInput,
+} from "@ethereum-sourcify/lib-sourcify";
+
+// The custom class implementing ISolidityCompiler
+class Solc implements ISolidityCompiler {
+  async compile(
+    version: string,
+    solcJsonInput: JsonInput,
+    forceEmscripten: boolean = false
+  ): Promise<CompilerOutput> {
+    return await solidityCompiler.compile(version, solcJsonInput, forceEmscripten);
+  }
+}
+const solc = new Solc()
+
+// Pass the class to the functions that needs it
+const checkedContract = new CheckedContract(
+  solc,
+  {/** metadata */},
+  {/** solidity files */},
+)
+
+```
+
 ## Validation
 
 The initial step to verify a contract is to validation, i.e. creating a `CheckedContract`. This can be done with `checkFiles` which takes files in `PathBuffer` as input and outputs a `CheckedContract` array:
@@ -23,7 +59,7 @@ pathBuffers.push({
 For a `CheckedContract` to be valid i.e. compilable, you need to provide a [contract metadata JSON](https://docs.soliditylang.org/en/latest/metadata.html) file identifying the contract and the source files of the contract listed under the `sources` field of the metadata.
 
 ```ts
-const checkedContracts: CheckedContract[] = await checkFiles(pathBuffers);
+const checkedContracts: CheckedContract[] = await checkFiles(solc, pathBuffers);
 ```
 
 Each contract source either has a `content` field containing the Solidity code as a string, or urls to fetch the sources from (Github, IPFS, Swarm etc.). If the contract sources are available, you can fetch them with.

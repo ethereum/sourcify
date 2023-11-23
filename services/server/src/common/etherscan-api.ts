@@ -104,4 +104,8 @@ export const etherscanAPIs: EtherscanAPIs = {
     apiURL: "https://openapi.coredao.org/",
     apiKey: process.env.COREDAO_API_KEY || "",
   },
+  "1115": {
+    apiURL: "https://api.test.btcs.network/",
+    apiKey: process.env.COREDAO_API_KEY || "",
+  },
 };

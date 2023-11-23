@@ -7,11 +7,15 @@ import {
 } from "../../../common/errors";
 import {
   CheckedContract,
+  CompilerOutput,
   InvalidSources,
+  JsonInput,
   Match,
+  Metadata,
   MissingSources,
   PathContent,
   Status,
+  StringMap,
   checkFiles,
   isEmpty,
   useAllSources,
@@ -29,6 +33,32 @@ import config from "../../../config";
 import { id as keccak256str } from "ethers";
 import { ForbiddenError } from "../../../common/errors/ForbiddenError";
 import { UnauthorizedError } from "../../../common/errors/UnauthorizedError";
+import { ISolidityCompiler } from "@ethereum-sourcify/lib-sourcify";
+import { SolcLambda } from "../../services/compiler/lambda/SolcLambda";
+import { SolcLocal } from "../../services/compiler/local/SolcLocal";
+
+let selectedSolidityCompiler: ISolidityCompiler;
+switch (process.env.SOLIDITY_COMPILER) {
+  case "lambda": {
+    selectedSolidityCompiler = new SolcLambda();
+    break;
+  }
+  case "local":
+  default: {
+    selectedSolidityCompiler = new SolcLocal();
+  }
+}
+
+export const solc = selectedSolidityCompiler;
+
+export function createCheckedContract(
+  metadata: Metadata,
+  solidity: StringMap,
+  missing?: MissingSources,
+  invalid?: InvalidSources
+) {
+  return new CheckedContract(solc, metadata, solidity, missing, invalid);
+}
 
 type PathBuffer = {
   path: string;
@@ -209,7 +239,7 @@ export const checkContractsInSession = async (session: Session) => {
 
   try {
     const unused: string[] = [];
-    const contracts = await checkFiles(pathBuffers, unused);
+    const contracts = await checkFiles(solc, pathBuffers, unused);
 
     const newPendingContracts: ContractWrapperMap = {};
     for (const contract of contracts) {
@@ -333,7 +363,7 @@ export const verifyContractsInSession = async (
     } = contractWrapper;
 
     // The session saves the CheckedContract as a simple object, so we need to reinstantiate it
-    const checkedContract = new CheckedContract(
+    const checkedContract = createCheckedContract(
       contract.metadata,
       contract.solidity,
       contract.missing,
@@ -358,8 +388,14 @@ export const verifyContractsInSession = async (
           path: base64file.path,
           buffer: Buffer.from(base64file.content, FILE_ENCODING),
         }));
+        const checkedContractWithAllSources = createCheckedContract(
+          contractWrapper.contract.metadata,
+          contractWrapper.contract.solidity,
+          contractWrapper.contract.missing,
+          contractWrapper.contract.invalid
+        );
         const contractWithAllSources = await useAllSources(
-          contractWrapper.contract,
+          checkedContractWithAllSources,
           pathBufferInputFiles
         );
         const tempMatch = await verificationService.verifyDeployed(

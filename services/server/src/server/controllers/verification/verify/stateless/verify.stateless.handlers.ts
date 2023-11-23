@@ -3,6 +3,7 @@ import { services } from "../../../../services/services";
 import {
   LegacyVerifyRequest,
   extractFiles,
+  solc,
   stringifyInvalidAndMissing,
 } from "../../verification.common";
 import {
@@ -35,7 +36,7 @@ export async function legacyVerifyEndpoint(
 
   let checkedContracts: CheckedContract[];
   try {
-    checkedContracts = await checkFiles(inputFiles);
+    checkedContracts = await checkFiles(solc, inputFiles);
   } catch (error: any) {
     throw new BadRequestError(error.message);
   }

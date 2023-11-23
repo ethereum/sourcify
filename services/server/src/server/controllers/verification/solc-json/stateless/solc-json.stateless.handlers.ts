@@ -1,13 +1,10 @@
 import { Response, Request } from "express";
 import { services } from "../../../../services/services";
-import { extractFiles } from "../../verification.common";
-import {
-  checkFiles,
-  getAllMetadataAndSourcesFromSolcJson,
-  useAllSources,
-} from "@ethereum-sourcify/lib-sourcify";
+import { extractFiles, solc } from "../../verification.common";
+import { checkFiles, useAllSources } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError, ValidationError } from "../../../../../common/errors";
 import { getResponseMatchFromMatch } from "../../../../common";
+import { getAllMetadataAndSourcesFromSolcJson } from "../../../../services/compiler/local/solidityCompiler";
 
 export async function verifySolcJsonEndpoint(req: Request, res: Response) {
   const inputFiles = extractFiles(req, true);
@@ -33,7 +30,10 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
   const metadataAndSourcesPathBuffers =
     await getAllMetadataAndSourcesFromSolcJson(solcJson, compilerVersion);
 
-  const checkedContracts = await checkFiles(metadataAndSourcesPathBuffers);
+  const checkedContracts = await checkFiles(
+    solc,
+    metadataAndSourcesPathBuffers
+  );
   const contractToVerify = checkedContracts.find(
     (c) => c.name === contractName
   );

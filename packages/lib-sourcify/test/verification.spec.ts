@@ -15,7 +15,6 @@ import { expect } from 'chai';
 import {
   SourcifyChain,
   calculateCreate2Address,
-  findSolcPlatform,
   /* 
   getBytecode,
   matchWithSimulation,
@@ -25,8 +24,10 @@ import {
   verifyCreate2,
   verifyDeployed,
 } from '../src';
+
 import fs from 'fs';
 import { JsonRpcSigner } from 'ethers';
+import { findSolcPlatform } from './compiler/solidityCompiler';
 
 const ganacheServer = Ganache.server({
   wallet: { totalAccounts: 1 },

@@ -11,6 +11,7 @@ import JSZip from 'jszip';
 // @TODO: Handle compatibility for browser, below are nodejs imports
 import fs from 'fs';
 import Path from 'path';
+import { ISolidityCompiler } from './ISolidityCompiler';
 
 /**
  * Regular expression matching metadata nested within another json.
@@ -34,7 +35,11 @@ const ENDING_VARIATORS = [
   (content: string) => content + '\r\n',
 ];
 
-export function checkPaths(paths: string[], ignoring?: string[]) {
+export function checkPaths(
+  solidityCompiler: ISolidityCompiler,
+  paths: string[],
+  ignoring?: string[]
+) {
   const files: PathBuffer[] = [];
   paths.forEach((path) => {
     if (fs.existsSync(path)) {
@@ -48,7 +53,7 @@ export function checkPaths(paths: string[], ignoring?: string[]) {
     }
   });
 
-  return checkFiles(files);
+  return checkFiles(solidityCompiler, files);
 }
 
 // Pass all input source files to the CheckedContract, not just those stated in metadata.
@@ -66,6 +71,7 @@ export async function useAllSources(
   // Files at contract.solidity are already hash matched with the sources in metadata. Use them instead of the user input .sol files.
   Object.assign(stringMapSourceFiles, contract.solidity);
   const contractWithAllSources = new CheckedContract(
+    contract.solidityCompiler,
     contract.metadata,
     stringMapSourceFiles,
     contract.missing,
@@ -74,7 +80,11 @@ export async function useAllSources(
   return contractWithAllSources;
 }
 
-export async function checkFiles(files: PathBuffer[], unused?: string[]) {
+export async function checkFiles(
+  solidityCompiler: ISolidityCompiler,
+  files: PathBuffer[],
+  unused?: string[]
+) {
   await unzipFiles(files);
   const parsedFiles = files.map((pathBuffer) => ({
     content: pathBuffer.buffer.toString(),
@@ -93,6 +103,7 @@ export async function checkFiles(files: PathBuffer[], unused?: string[]) {
     const currentUsedFiles = Object.values(metadata2provided);
     usedFiles.push(...currentUsedFiles);
     const checkedContract = new CheckedContract(
+      solidityCompiler,
       metadata,
       foundSources,
       missingSources,
