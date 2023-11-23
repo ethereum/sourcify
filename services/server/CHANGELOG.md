@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [sourcify-server@1.3.1] - 2023-11-23
+
+- Add AWS_LAMBDA_FUNCTION to specify the name of the lambda fucntion
+
 ## [sourcify-server@1.3.0] - 2023-11-23
 
 - Use compiler as a lambda function
