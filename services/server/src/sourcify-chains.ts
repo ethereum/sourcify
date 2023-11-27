@@ -1260,7 +1260,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
         url: "https://explorer.test.energi.network/",
       },
     },
-   },
+  },
   "5000": {
     supported: true,
     fetchContractCreationTxUsing: {
