@@ -63,17 +63,18 @@ export class VerificationService implements IVerificationService {
 
     /* eslint-disable no-useless-catch */
     try {
-      return await verifyDeployed(
+      const res = await verifyDeployed(
         checkedContract,
         sourcifyChain,
         address,
         /* contextVariables, */
         foundCreatorTxHash
       );
-    } catch (e) {
-      throw e;
-    } finally {
       delete this.activeVerificationsByChainIdAddress[`${chainId}:${address}`];
+      return res;
+    } catch (e) {
+      delete this.activeVerificationsByChainIdAddress[`${chainId}:${address}`];
+      throw e;
     }
   }
   /* eslint-enable no-useless-catch */
