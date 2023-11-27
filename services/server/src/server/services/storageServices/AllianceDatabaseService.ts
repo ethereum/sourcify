@@ -193,7 +193,7 @@ export class AllianceDatabaseService implements IStorageService {
           bytecode: recompiledContract.runtimeBytecode,
         });
 
-        // Add deployed bytecodes
+        // Add onchain bytecodes
         await AllianceDatabase.insertCode(this.allianceDatabasePool, {
           bytecodeHash: keccak256OnchainCreationBytecode,
           bytecode: match.onchainCreationBytecode,

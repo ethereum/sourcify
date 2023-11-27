@@ -12,6 +12,8 @@ import {
 export interface IStorageService {
   init(): Promise<boolean>;
   storeMatch(contract: CheckedContract, match: Match): Promise<void | Match>;
+  checkByChainAndAddress?(address: string, chainId: string): Match[];
+  checkAllByChainAndAddress?(address: string, chainId: string): Match[];
 }
 
 interface StorageServiceOptions {
@@ -41,7 +43,7 @@ export class StorageService {
     try {
       await this.ipfsRepository?.init();
     } catch (e: any) {
-      logger.warn("Cannot initialize ipfsRepository: " + e.message);
+      throw new Error("Cannot initialize ipfsRepository: " + e.message);
     }
     try {
       await this.allianceDatabase?.init();
