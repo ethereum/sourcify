@@ -34,7 +34,7 @@ export async function findLatestChainTest(req: Request, res: Response) {
   const jobNumber = jobResponse.items[0].job_number;
   const jobId = jobResponse.items[0].id;
   // Fetch the test report .json artifact
-  const ARTIFACT_URL = `https://dl.circleci.com/private/output/job/${jobId}/artifacts/0/chain-tests-report/report.json`;
+  const ARTIFACT_URL = `https://dl.circleci.com/private/output/job/${jobId}/artifacts/0/services/server/chain-tests-report/report.json`;
   const artifactResponse = await fetch(ARTIFACT_URL);
   const artifactResponseJson = await artifactResponse.json();
   if (!artifactResponse.ok) {
