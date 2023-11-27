@@ -37,11 +37,11 @@ test('can evaluate call data', async (t) => {
 });
 
 test('get metadata of a non-contract address', async (t) => {
-  const ethereumProvider = provider('https://rpc.ankr.com/eth_goerli');
+  const ethereumProvider = provider('https://ethereum-holesky.publicnode.com');
   try {
     await getMetadataFromAddress({
       address: '0x7dBA08Bdc233B28e2c99723c402Fc8F4e35AB53B',
-      chainId: 5,
+      chainId: 17000,
       source: MetadataSources.BytecodeMetadata,
       rpcProvider: ethereumProvider,
     });
