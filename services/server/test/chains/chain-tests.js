@@ -1247,6 +1247,15 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
+  // Mantle Mainnet
+  verifyContract(
+    "0x2977852235B0EcFa27D3Eb045898fFF3575b294B",
+    "5000",
+    "Mantle Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainIds.length) {
