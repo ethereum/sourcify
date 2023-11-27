@@ -870,6 +870,15 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       },
     },
   },
+  "2048": {
+    // Stratos Mainnet
+    supported: true,
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://web3-explorer.thestratos.org/",
+      },
+    },
+  },
   "641230": {
     // Bear Network Chain Mainnet
     supported: true,
@@ -1234,6 +1243,32 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       },
     },
   },
+  "39797": {
+    // Energi Mainnet
+    supported: true,
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://explorer.energi.network/",
+      },
+    },
+  },
+  "49797": {
+    // Energi Testnet
+    supported: true,
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://explorer.test.energi.network/",
+      },
+    },
+  },
+  "5000": {
+    supported: true,
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://explorer.mantle.xyz/",
+      },
+    },
+  },
   // Add here new chain
 };
 
@@ -1311,7 +1346,7 @@ export function getSortedChainsArray(
 
   const chainsArray = Object.values(chainMap);
   // Have Ethereum chains on top.
-  const ethereumChainIds = [1, 5, 11155111, 3, 4, 42];
+  const ethereumChainIds = [1, 17000, 5, 11155111, 3, 4, 42];
   const ethereumChains = ethereumChainIds.map((id) => {
     // Use long form name for Ethereum netorks e.g. "Ethereum Testnet Goerli" instead of "Goerli"
     chainMap[id].name = chainMap[id].title || chainMap[id].name;

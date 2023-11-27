@@ -10,7 +10,7 @@ const {
 } = require("./helpers");
 const testLogger = require("./testLogger");
 
-const GANACHE_PORT = 8545;
+const GANACHE_PORT = 8546;
 const GANACHE_BLOCK_TIME_IN_SEC = 3;
 const MOCK_SOURCIFY_SERVER = "http://mocksourcifyserver.dev/server/";
 const localChain = {

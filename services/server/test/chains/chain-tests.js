@@ -795,11 +795,20 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
-  // Stratos Testnet
+  // Stratos Testnet (Mesos)
   verifyContract(
-    "0x999986dE5D86Ae4bbd4b9AbFBD65352622D11326",
+    "0xA049F14E503A489E6f72603034CBe4d6835C8393",
     "2047",
     "Stratos Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  // Stratos Mainnet
+  verifyContract(
+    "0x9004804c4306d0eF7687Bce0C193A94C7593013F",
+    "2048",
+    "Stratos Mainnet",
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
@@ -1234,6 +1243,31 @@ describe("Test Supported Chains", function () {
     "0xFe392C04b7879f28D9F966239F3e3646fe048863",
     "30",
     "Rootstock",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  verifyContract(
+    "0x10fB58BBd3c4F580aC4be0600221850FDF33BEdF",
+    "49797",
+    "Energi Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  verifyContract(
+    "0xA9CD2d159ca8ab30711e9d9331D5229476e8a2d5",
+    "39797",
+    "Energi Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  // Mantle Mainnet
+  verifyContract(
+    "0x2977852235B0EcFa27D3Eb045898fFF3575b294B",
+    "5000",
+    "Mantle Mainnet",
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );

@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [@ethereum-sourcify/lib-sourcify@1.6.0] - 2023-11-23
+
+- Remove solc as a dependency, now it must be included implementing the `ISolidityCompiler` interface
+- fix `extra-file-input-bug`
+
 ## [@ethereum-sourcify/lib-sourcify@1.5.0] - 2023-11-03
 
 - Remove solc as a dependency, now the solidity compiler needs to be passed to the functions using it.
