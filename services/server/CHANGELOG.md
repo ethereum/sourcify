@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [sourcify-server@1.3.1] - 2023-11-23
+
+- Add AWS_LAMBDA_FUNCTION to specify the name of the lambda fucntion
+
+## [sourcify-server@1.3.0] - 2023-11-23
+
+- Use compiler as a lambda function
+- Custom compiler using SOLIDITY_COMPILER env variable: `local`, `lambda`
+- Run tests in parallel
+- New chains:
+  - Coredao testnet chain (1115)
+  - Rootstock (30)
+  - Zora Sepolia Testnet (999999999)
+
 ## [sourcify-server@1.2.0] - 2023-11-03
 
 - Add support for the Verifier Alliance (disabled)
