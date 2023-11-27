@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [sourcify-ui@1.0.5] - 2023-11-23
+
+- update social links
+
 ## [sourcify-ui@1.0.4] - 2023-11-03
 
 - Minor fixes

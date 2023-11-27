@@ -6,8 +6,8 @@ import {
 } from "@ethereum-sourcify/lib-sourcify";
 import { TooManyRequests } from "../../../../common/errors/TooManyRequests";
 import { BadGatewayError } from "../../../../common/errors/BadGatewayError";
-import { useCompiler } from "../../../services/compiler/solidityCompiler";
 import { etherscanAPIs } from "../../../../common/etherscan-api";
+import { solc } from "../verification.common";
 
 export type EtherscanResult = {
   SourceCode: string;
@@ -165,7 +165,7 @@ export const getMetadataFromCompiler = async (
   solcJsonInput: JsonInput,
   contractName: string
 ): Promise<Metadata> => {
-  const compilationResult = await useCompiler(compilerVersion, solcJsonInput);
+  const compilationResult = await solc.compile(compilerVersion, solcJsonInput);
 
   const contractPath = findContractPathFromContractName(
     compilationResult.contracts,
