@@ -1247,6 +1247,22 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
+  verifyContract(
+    "0x10fB58BBd3c4F580aC4be0600221850FDF33BEdF",
+    "49797",
+    "Energi Testnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
+  verifyContract(
+    "0xA9CD2d159ca8ab30711e9d9331D5229476e8a2d5",
+    "39797",
+    "Energi Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
   // Mantle Mainnet
   verifyContract(
     "0x2977852235B0EcFa27D3Eb045898fFF3575b294B",
