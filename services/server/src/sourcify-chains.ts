@@ -1,4 +1,3 @@
-import * as chainsRaw from "./chains.json";
 import {
   SourcifyChain,
   SourcifyChainMap,
@@ -9,7 +8,8 @@ import {
 } from "@ethereum-sourcify/lib-sourcify";
 import { ValidationError } from "./common/errors";
 import { FetchRequest } from "ethers";
-import * as rawSourcifyChainExtentions from "./sourcify-chains.json";
+import chainsRaw from "./chains.json";
+import rawSourcifyChainExtentions from "./sourcify-chains.json";
 
 // sourcify-chains.json
 const sourcifyChainsExtensions =
