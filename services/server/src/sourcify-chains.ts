@@ -9,7 +9,7 @@ import {
 import { ValidationError } from "./common/errors";
 import { FetchRequest } from "ethers";
 import chainsRaw from "./chains.json";
-import rawSourcifyChainExtentions from "./sourcify-chains.json";
+import rawSourcifyChainExtentions from "../sourcify-chains.json";
 
 // sourcify-chains.json
 const sourcifyChainsExtensions =
