@@ -1274,7 +1274,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     supported: true,
     fetchContractCreationTxUsing: {
       blockscoutScrape: {
-        url: "https://scan.crossbell.io",
+        url: "https://scan.crossbell.io/",
       },
     },
     rpc: [
