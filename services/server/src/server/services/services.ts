@@ -10,7 +10,7 @@ export const services = {
       ipfsApi: process.env.IPFS_API as string,
       repositoryPath: config.repository.path,
       repositoryServerUrl: process.env.REPOSITORY_SERVER_URL as string,
-      repositoryVersion: process.env.REPOSITORY_VERSION as string,
+      repositoryVersion: "0.1",
     },
   }),
 };
