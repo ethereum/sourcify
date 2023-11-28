@@ -1269,6 +1269,18 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       },
     },
   },
+  "3737": {
+    // Crossbell Mainnet
+    supported: true,
+    fetchContractCreationTxUsing: {
+      blockscoutScrape: {
+        url: "https://scan.crossbell.io",
+      },
+    },
+    rpc: [
+      "https://rpc.crossbell.io"
+    ],
+  },
   // Add here new chain
 };
 
