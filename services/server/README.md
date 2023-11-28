@@ -4,7 +4,7 @@ Sourcify's server for verifying contracts.
 
 ## Config
 
-The chains supported by the server are defined in `sourcify-chains.json`. You can change the file content to add or remove chains.
+The chains supported by the server are defined in `src/sourcify-chains.json`. You can change the file content to add or remove chains.
 
 A full example of a chain entry is as follows:
 
@@ -108,7 +108,7 @@ If you want to modify the chains supported by the server, you can mount a custom
 
 ```yaml
 volumes:
-  - /home/app/services/server/dist/sourcify-chains.json:/app/sourcify-chains.json
+  - path/to/custom/sourcify-chains.json:/home/app/services/server/dist/sourcify-chains.json
 ```
 
 Then run:
