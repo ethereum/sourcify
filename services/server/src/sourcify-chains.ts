@@ -61,12 +61,12 @@ function buildCustomRpcs(
     else if (rpc.type === "Alchemy") {
       return rpc.url.replace(
         "{ALCHEMY_API_KEY}",
-        process.env[rpc.apiEnvKeyName] || ""
+        process.env[rpc.apiKeyEnvName] || ""
       );
     } else if (rpc.type === "Infura") {
       return rpc.url.replace(
         "{INFURA_API_KEY}",
-        process.env[rpc.apiEnvKeyName] || ""
+        process.env[rpc.apiKeyEnvName] || ""
       );
     }
     // Build ethers.js FetchRequest object for custom rpcs with auth headers
@@ -75,8 +75,9 @@ function buildCustomRpcs(
       ethersFetchReq.setHeader("Content-Type", "application/json");
       const headers = rpc.headers;
       if (headers) {
-        Object.keys(headers).forEach((headerKey) => {
-          ethersFetchReq.setHeader(headerKey, headers[headerKey]);
+        headers.forEach(({ headerName, headerEnvName }) => {
+          const headerValue = process.env[headerEnvName];
+          ethersFetchReq.setHeader(headerName, headerValue || "");
         });
       }
       return ethersFetchReq;

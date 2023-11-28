@@ -298,15 +298,13 @@ export interface FetchContractCreationTxMethods {
 export type AlchemyInfuraRPC = {
   type: 'Alchemy' | 'Infura';
   url: string;
-  apiEnvKeyName: string;
+  apiKeyEnvName: string;
 };
 
 export type FetchRequestRPC = {
   type: 'FetchRequest';
   url: string;
-  headers?: {
-    [key: string]: string;
-  };
+  headers?: Array<{ headerName: string; headerEnvName: string }>;
 };
 
 export type SourcifyChainExtension = {

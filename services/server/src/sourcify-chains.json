@@ -13,10 +13,16 @@
       {
         "type": "FetchRequest",
         "url": "https://rpc.mainnet.ethpandaops.io",
-        "headers": {
-          "CF-Access-Client-Id": "CF_ACCESS_CLIENT_ID",
-          "CF-Access-Client-Secret": "CF_ACCESS_CLIENT_SECRET"
-        }
+        "headers": [
+          {
+            "headerName": "CF-Access-Client-Id",
+            "headerEnvName": "CF_ACCESS_CLIENT_ID"
+          },
+          {
+            "headerName": "CF-Access-Client-Secret",
+            "headerEnvName": "CF_ACCESS_CLIENT_SECRET"
+          }
+        ]
       },
       {
         "type": "Alchemy",
@@ -51,10 +57,16 @@
       {
         "type": "FetchRequest",
         "url": "https://rpc.goerli.ethpandaops.io",
-        "headers": {
-          "CF-Access-Client-Id": "CF_ACCESS_CLIENT_ID",
-          "CF-Access-Client-Secret": "CF_ACCESS_CLIENT_SECRET"
-        }
+        "headers": [
+          {
+            "headerName": "CF-Access-Client-Id",
+            "headerEnvName": "CF_ACCESS_CLIENT_ID"
+          },
+          {
+            "headerName": "CF-Access-Client-Secret",
+            "headerEnvName": "CF_ACCESS_CLIENT_SECRET"
+          }
+        ]
       },
       {
         "type": "Alchemy",
@@ -74,10 +86,16 @@
       {
         "type": "FetchRequest",
         "url": "https://rpc.sepolia.ethpandaops.io",
-        "headers": {
-          "CF-Access-Client-Id": "CF_ACCESS_CLIENT_ID",
-          "CF-Access-Client-Secret": "CF_ACCESS_CLIENT_SECRET"
-        }
+        "headers": [
+          {
+            "headerName": "CF-Access-Client-Id",
+            "headerEnvName": "CF_ACCESS_CLIENT_ID"
+          },
+          {
+            "headerName": "CF-Access-Client-Secret",
+            "headerEnvName": "CF_ACCESS_CLIENT_SECRET"
+          }
+        ]
       },
       {
         "type": "Alchemy",
