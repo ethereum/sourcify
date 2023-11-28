@@ -14,7 +14,6 @@ const chaiHttp = require("chai-http");
 const { StatusCodes } = require("http-status-codes");
 const rimraf = require("rimraf");
 const util = require("util");
-const { etherscanAPIs } = require("../dist/common/etherscan-api");
 const {
   assertVerification,
   assertValidationError,
@@ -195,7 +194,7 @@ describe("Import From Etherscan and Verify", function () {
       it.skip("should fail by exceeding rate limit on etherscan APIs", async () => {
         const chain = "1";
         const address = "0xB753548F6E010e7e680BA186F9Ca1BdAB2E90cf2";
-
+        const sourcifyChain = sourcifyChainsMap[chain];
         let interval;
 
         console.time("Requests");
@@ -207,7 +206,7 @@ describe("Import From Etherscan and Verify", function () {
           interval = setInterval(() => {
             req++;
             fetch(
-              `${etherscanAPIs[chain].apiURL}/api?module=contract&action=getsourcecode&address=${address}&apikey=${etherscanAPIs[chain].apiKey}`
+              `${sourcifyChain.etherscanApi.apiURL}/api?module=contract&action=getsourcecode&address=${address}&apikey=${sourcifyChain.etherscanApi.apiKey}`
             )
               .then((res) => res.json())
               .then((json) => {
@@ -360,6 +359,7 @@ describe("Import From Etherscan and Verify", function () {
       it.skip("should fail by exceeding rate limit on etherscan APIs", async () => {
         const chain = "1";
         const address = "0xB753548F6E010e7e680BA186F9Ca1BdAB2E90cf2";
+        const sourcifyChain = sourcifyChainsMap[chain];
         console.time("Requests");
         let req = 0;
         let interval;
@@ -370,7 +370,7 @@ describe("Import From Etherscan and Verify", function () {
           interval = setInterval(() => {
             req++;
             fetch(
-              `${etherscanAPIs[chain].apiURL}/api?module=contract&action=getsourcecode&address=${address}&apikey=${etherscanAPIs[chain].apiKey}`
+              `${sourcifyChain.etherscanApi.apiURL}/api?module=contract&action=getsourcecode&address=${address}&apikey=${sourcifyChain.etherscanApi.apiKey}`
             )
               .then((res) => res.json())
               .then((json) => {

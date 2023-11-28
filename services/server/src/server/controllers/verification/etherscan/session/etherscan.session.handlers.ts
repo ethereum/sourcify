@@ -15,16 +15,20 @@ import {
   processRequestFromEtherscan,
   stringToBase64,
 } from "../etherscan.common";
-import { checkSupportedChainId } from "../../../../../sourcify-chains";
+import {
+  checkSupportedChainId,
+  sourcifyChainsMap,
+} from "../../../../../sourcify-chains";
 
 export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
   checkSupportedChainId(req.body.chain);
 
-  const chain = req.body.chain as string;
+  const chain = req.body.chain;
   const address = req.body.address;
+  const sourcifyChain = sourcifyChainsMap[chain];
 
   const { compilerVersion, solcJsonInput, contractName } =
-    await processRequestFromEtherscan(chain, address);
+    await processRequestFromEtherscan(sourcifyChain, address);
 
   const metadata = await getMetadataFromCompiler(
     compilerVersion,

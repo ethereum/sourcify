@@ -239,17 +239,20 @@ export const getCreatorTx = async (
   }
   if (sourcifyChain.fetchContractCreationTxUsing?.avalancheApi) {
     const fetcher = getAvalancheApiContractCreatorFetcher(
-      sourcifyChain.fetchContractCreationTxUsing?.avalancheApi.chainId
+      sourcifyChain.chainId.toString()
     );
     const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
     if (result) {
       return result;
     }
   }
-  if (sourcifyChain.fetchContractCreationTxUsing?.etherscanApi) {
+  if (
+    sourcifyChain.fetchContractCreationTxUsing?.etherscanApi &&
+    sourcifyChain?.etherscanApi?.apiURL
+  ) {
     const fetcher = getEtherscanApiContractCreatorFetcher(
-      sourcifyChain.fetchContractCreationTxUsing?.etherscanApi.apiURL,
-      sourcifyChain.fetchContractCreationTxUsing?.etherscanApi.apiKey
+      sourcifyChain.etherscanApi.apiURL,
+      sourcifyChain.etherscanApi.apiKey || ""
     );
     const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
     if (result) {

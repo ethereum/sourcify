@@ -40,6 +40,10 @@ export default class SourcifyChain {
   supported: boolean;
   providers: JsonRpcProviderWithUrl[];
   fetchContractCreationTxUsing?: FetchContractCreationTxMethods;
+  etherscanApi?: {
+    apiURL: string;
+    apiKey?: string;
+  };
 
   constructor(sourcifyChainObj: SourcifyChainInstance) {
     this.name = sourcifyChainObj.name;
@@ -50,6 +54,7 @@ export default class SourcifyChain {
     this.providers = [];
     this.fetchContractCreationTxUsing =
       sourcifyChainObj.fetchContractCreationTxUsing;
+    this.etherscanApi = sourcifyChainObj.etherscanApi;
 
     if (!this.supported) return; // Don't create providers if chain is not supported
 
