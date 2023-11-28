@@ -48,7 +48,7 @@ export class StorageService {
     try {
       await this.allianceDatabase?.init();
     } catch (e: any) {
-      logger.warn("Cannot initialize allianceDatabase: " + e.message);
+      throw new Error("Cannot initialize allianceDatabase: " + e.message);
     }
     return true;
   }

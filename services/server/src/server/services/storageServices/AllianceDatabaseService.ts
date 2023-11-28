@@ -54,36 +54,33 @@ export class AllianceDatabaseService implements IStorageService {
       return true;
     }
 
-    try {
-      if (this.googleCloudSqlInstanceName) {
-        const connector = new Connector();
-        const clientOpts = await connector.getOptions({
-          instanceConnectionName: this.googleCloudSqlInstanceName, // "verifier-alliance:europe-west3:test-verifier-alliance",
-          authType: AuthTypes.IAM,
-        });
-        this.allianceDatabasePool = new Pool({
-          ...clientOpts,
-          user: this.googleCloudSqlIamAccount, // "marco.castignoli@ethereum.org",
-          database: this.googleCloudSqlDatabase, // "postgres",
-          max: 5,
-        });
-      } else if (this.postgresHost) {
-        this.allianceDatabasePool = new Pool({
-          host: this.postgresHost,
-          port: this.postgresPort,
-          database: this.postgresDatabase,
-          user: this.postgresUser,
-          password: this.postgresPassword,
-          max: 5,
-        });
-      } else {
-        throw new Error("Cannot initialize Alliance Database pool");
-      }
-      return true;
-    } catch (e) {
-      logger.error(e);
+    if (this.googleCloudSqlInstanceName) {
+      const connector = new Connector();
+      const clientOpts = await connector.getOptions({
+        instanceConnectionName: this.googleCloudSqlInstanceName, // "verifier-alliance:europe-west3:test-verifier-alliance",
+        authType: AuthTypes.IAM,
+      });
+      this.allianceDatabasePool = new Pool({
+        ...clientOpts,
+        user: this.googleCloudSqlIamAccount, // "marco.castignoli@ethereum.org",
+        database: this.googleCloudSqlDatabase, // "postgres",
+        max: 5,
+      });
+    } else if (this.postgresHost) {
+      this.allianceDatabasePool = new Pool({
+        host: this.postgresHost,
+        port: this.postgresPort,
+        database: this.postgresDatabase,
+        user: this.postgresUser,
+        password: this.postgresPassword,
+        max: 5,
+      });
+    } else {
+      logger.warn("Alliance Database is disabled");
       return false;
     }
+    logger.warn("Alliance Database is active");
+    return true;
   }
 
   async storeMatch(recompiledContract: CheckedContract, match: Match) {
