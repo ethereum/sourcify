@@ -36,7 +36,7 @@ test('can evaluate call data', async (t) => {
   );
 });
 
-test('get metadata of a non-contract address', async (t) => {
+test.skip('get metadata of a non-contract address', async (t) => {
   const ethereumProvider = provider('https://ethereum-holesky.publicnode.com');
   try {
     await getMetadataFromAddress({
@@ -124,10 +124,10 @@ test('evaluate calldata can correctly parse addresses, bigints and bytes', async
   t.is(`${decodedContractCall.method.decodedParams[3]}`, '0x010101ff');
 });
 
-test('evaluate calldata from tx getting metadata from bytecode', async (t) => {
-  const ethereumProvider = provider('https://rpc.ankr.com/eth_goerli');
+test.skip('evaluate calldata from tx getting metadata from bytecode', async (t) => {
+  const ethereumProvider = provider('https://ethereum-holesky.publicnode.com');
   const tx = {
-    to: '0xD4B081C226Bc8aBdaf111DEf54c09E779ad29428',
+    to: '0x8b3436ba4c7638799ECce03d1a6500A03d71c7C1',
     data: '0xcea299370000000000000000000000000000000000000000000000000000000000000002',
   };
   const decodedContractCall = await decodeContractCall(tx, {
