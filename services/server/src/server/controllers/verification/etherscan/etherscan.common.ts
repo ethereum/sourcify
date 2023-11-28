@@ -83,12 +83,10 @@ export const processRequestFromEtherscan = async (
   }
 
   const url = `${sourcifyChain.etherscanApi.apiURL}/api?module=contract&action=getsourcecode&address=${address}`;
-
+  const apiKey = process.env[sourcifyChain.etherscanApi.apiKeyEnvName || ""];
   let response;
   try {
-    response = await fetch(
-      `${url}&apikey=${sourcifyChain.etherscanApi.apiKey || ""}`
-    );
+    response = await fetch(`${url}&apikey=${apiKey || ""}`);
   } catch (e: any) {
     throw new BadGatewayError(
       `Request to ${url}&apiKey=XXX failed with code ${e.code}`

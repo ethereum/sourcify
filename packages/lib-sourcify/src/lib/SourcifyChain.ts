@@ -45,7 +45,7 @@ export default class SourcifyChain {
   fetchContractCreationTxUsing?: FetchContractCreationTxMethods;
   etherscanApi?: {
     apiURL: string;
-    apiKey?: string;
+    apiKeyEnvName?: string;
   };
 
   constructor(sourcifyChainObj: SourcifyChainInstance) {

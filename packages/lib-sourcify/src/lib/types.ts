@@ -312,7 +312,7 @@ export type SourcifyChainExtension = {
   supported: boolean;
   etherscanApi?: {
     apiURL: string;
-    apiKey?: string;
+    apiKeyEnvName?: string;
   };
   fetchContractCreationTxUsing?: FetchContractCreationTxMethods;
   rpc?: Array<string | AlchemyInfuraRPC | FetchRequestRPC>;
