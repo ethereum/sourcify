@@ -60,7 +60,6 @@ export default class Monitor extends EventEmitter {
           chainId: chain.chainId,
           rpc: authenticateRpcs(chain.chainId, chain.rpc),
           name: chain.name,
-          sourcifyName: chain.name,
           supported: true,
         });
       }

@@ -20,7 +20,6 @@ const allChains = chainsRaw as Chain[];
 
 const LOCAL_CHAINS: SourcifyChain[] = [
   new SourcifyChain({
-    sourcifyName: "Ganache Localhost",
     name: "Ganache Localhost",
     shortName: "Ganache",
     chainId: 1337,
@@ -33,7 +32,6 @@ const LOCAL_CHAINS: SourcifyChain[] = [
     supported: true,
   }),
   new SourcifyChain({
-    sourcifyName: "Hardhat Network Localhost",
     name: "Hardhat Network Localhost",
     shortName: "Hardhat Network",
     chainId: 31337,
