@@ -1,6 +1,4 @@
 import * as chainsRaw from "./chains.json";
-import * as dotenv from "dotenv";
-import path from "path";
 import {
   SourcifyChain,
   SourcifyChainMap,
@@ -13,15 +11,12 @@ import { ValidationError } from "./common/errors";
 import { FetchRequest } from "ethers";
 import * as rawSourcifyChainExtentions from "./sourcify-chains.json";
 
+// sourcify-chains.json
 const sourcifyChainsExtensions =
   rawSourcifyChainExtentions as SourcifyChainsExtensionsObject;
+
+// chains.json from ethereum-lists (chainId.network/chains.json)
 const allChains = chainsRaw as Chain[];
-
-dotenv.config({
-  path: path.resolve(__dirname, "..", "..", "..", ".env"),
-});
-
-type ChainName = "eth" | "polygon" | "arb" | "opt";
 
 const LOCAL_CHAINS: SourcifyChain[] = [
   new SourcifyChain({
@@ -52,13 +47,20 @@ const LOCAL_CHAINS: SourcifyChain[] = [
   }),
 ];
 
+/**
+ * Function to take the rpc format in sourcify-chains.json and convert it to the format SourcifyChain expects.
+ * SourcifyChain expects  url strings or ethers.js FetchRequest objects.
+ */
 function buildCustomRpcs(
   rpc: Array<string | AlchemyInfuraRPC | FetchRequestRPC>
 ) {
   return rpc.map((rpc) => {
+    // simple url
     if (typeof rpc === "string") {
       return rpc;
-    } else if (rpc.type === "Alchemy") {
+    }
+    // Fill in the api keys
+    else if (rpc.type === "Alchemy") {
       return rpc.url.replace(
         "{ALCHEMY_API_KEY}",
         process.env[rpc.apiEnvKeyName] || ""
@@ -68,7 +70,9 @@ function buildCustomRpcs(
         "{INFURA_API_KEY}",
         process.env[rpc.apiEnvKeyName] || ""
       );
-    } else if (rpc.type === "FetchRequest") {
+    }
+    // Build ethers.js FetchRequest object for custom rpcs with auth headers
+    else if (rpc.type === "FetchRequest") {
       const ethersFetchReq = new FetchRequest(rpc.url);
       ethersFetchReq.setHeader("Content-Type", "application/json");
       const headers = rpc.headers;
@@ -92,8 +96,8 @@ if (process.env.NODE_ENV !== "production") {
   }
 }
 
-// iterate over chainid.network's chains.json file and get the chains included in sourcify.
-// Merge the chains.json object with the values from sourcify-chains.ts
+// iterate over chainid.network's chains.json file and get the chains included in sourcify-chains.json.
+// Merge the chains.json object with the values from sourcify-chains.json
 // Must iterate over all chains because it's not a mapping but an array.
 for (const i in allChains) {
   const chain = allChains[i];
@@ -112,7 +116,7 @@ for (const i in allChains) {
 
   if (chainId in sourcifyChainsExtensions) {
     const sourcifyExtension = sourcifyChainsExtensions[chainId];
-    // sourcifyExtension is spread later to overwrite chain values, rpc specifically
+    // sourcifyExtension is spread later to overwrite chains.json values, rpc specifically
     const sourcifyChain = new SourcifyChain({
       ...chain,
       ...sourcifyExtension,
@@ -124,7 +128,7 @@ for (const i in allChains) {
   }
 }
 
-// Check if all chains in sourcify-chains.ts are in chains.json
+// Check if all chains in sourcify-chains.json are in chains.json
 const missingChains = [];
 for (const chainId in sourcifyChainsExtensions) {
   if (!sourcifyChainsMap[chainId]) {
@@ -133,7 +137,7 @@ for (const chainId in sourcifyChainsExtensions) {
 }
 if (missingChains.length > 0) {
   throw new Error(
-    `Some of the chains in sourcify-chains.ts are not in chains.json: ${missingChains.join(
+    `Some of the chains in sourcify-chains.json are not in chains.json: ${missingChains.join(
       ","
     )}`
   );
@@ -149,7 +153,7 @@ const supportedChainsMap = supportedChainsArray.reduce(
   <SourcifyChainMap>{}
 );
 
-// Gets the chainsMap, sorts the chains, returns Chain array.
+// Gets the chainsMap, sorts the chains, returns SourcifyChain array.
 export function getSortedChainsArray(
   chainMap: SourcifyChainMap
 ): SourcifyChain[] {
