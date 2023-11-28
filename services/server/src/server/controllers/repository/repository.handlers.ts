@@ -59,10 +59,11 @@ export function checkAllByChainAndAddressEndpoint(req: any, res: Response) {
   for (const address of addresses) {
     for (const chainId of chainIds) {
       try {
-        const found: Match[] = services.repository.checkAllByChainAndAddress(
-          address,
-          chainId
-        );
+        const found: Match[] =
+          services.storage.ipfsRepository.checkAllByChainAndAddress(
+            address,
+            chainId
+          );
         if (found.length != 0) {
           if (!map.has(address)) {
             map.set(address, {
@@ -98,7 +99,7 @@ export function checkByChainAndAddressesEnpoint(req: any, res: Response) {
   for (const address of addresses) {
     for (const chainId of chainIds) {
       try {
-        const found: Match[] = services.repository.checkByChainAndAddress(
+        const found: Match[] = services.storage.checkByChainAndAddress(
           address,
           chainId
         );

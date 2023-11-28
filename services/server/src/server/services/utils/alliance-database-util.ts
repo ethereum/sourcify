@@ -1,4 +1,3 @@
-import { AuthTypes, Connector } from "@google-cloud/cloud-sql-connector";
 import { Pool } from "pg";
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -40,33 +39,6 @@ namespace Tables {
     runtimeTransformationValues: Object;
     runtimeMatch: boolean;
     creationMatch: boolean;
-  }
-}
-
-export async function getPool(): Promise<Pool> {
-  if (process.env.GOOGLE_CLOUD_SQL_INSTANCE_NAME) {
-    const connector = new Connector();
-    const clientOpts = await connector.getOptions({
-      instanceConnectionName: process.env.GOOGLE_CLOUD_SQL_INSTANCE_NAME, // "verifier-alliance:europe-west3:test-verifier-alliance",
-      authType: AuthTypes.IAM,
-    });
-    return new Pool({
-      ...clientOpts,
-      user: process.env.GOOGLE_CLOUD_SQL_IAM_ACCOUNT, // "marco.castignoli@ethereum.org",
-      database: process.env.GOOGLE_CLOUD_SQL_DATABASE, // "postgres",
-      max: 5,
-    });
-  } else if (process.env.POSTGRES_HOST) {
-    return new Pool({
-      host: process.env.POSTGRES_HOST,
-      port: parseInt(process.env.POSTGRES_PORT as string),
-      database: process.env.POSTGRES_DATABASE,
-      user: process.env.POSTGRES_USER,
-      password: process.env.POSTGRES_PASSWORD,
-      max: 5,
-    });
-  } else {
-    throw new Error("Cannot initialize Alliance Database pool");
   }
 }
 

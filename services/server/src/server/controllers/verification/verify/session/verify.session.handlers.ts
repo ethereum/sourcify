@@ -40,7 +40,7 @@ export async function verifyContractsInSessionEndpoint(
     verifiable,
     session,
     services.verification,
-    services.repository
+    services.storage
   );
   res.send(getSessionJSON(session));
 }

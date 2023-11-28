@@ -53,7 +53,7 @@ export async function sessionVerifyCreate2(
   contractWrapper.chainId = "0";
 
   if (match.runtimeMatch) {
-    await services.repository.storeMatch(contract, match);
+    await services.storage.storeMatch(contract, match);
   }
 
   res.send(getSessionJSON(session));

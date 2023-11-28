@@ -76,7 +76,7 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
     verifiable,
     session,
     services.verification,
-    services.repository
+    services.storage
   );
   res.send(getSessionJSON(session));
 }

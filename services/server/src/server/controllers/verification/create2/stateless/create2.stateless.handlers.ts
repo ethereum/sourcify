@@ -59,7 +59,7 @@ export async function verifyCreate2Handler(
   );
 
   if (match.runtimeMatch || match.creationMatch) {
-    await services.repository.storeMatch(contract, match);
+    await services.storage.storeMatch(contract, match);
   }
 
   res.send({ result: [getResponseMatchFromMatch(match)] });

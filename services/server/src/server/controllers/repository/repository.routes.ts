@@ -16,23 +16,39 @@ const router: Router = Router();
 [
   {
     prefix: "/tree/any",
-    method: createEndpoint(services.repository.getTree, "any_match", true),
+    method: createEndpoint(
+      services.storage.ipfsRepository.getTree,
+      "any_match",
+      true
+    ),
   },
   {
     prefix: "/any",
-    method: createEndpoint(services.repository.getContent, "any_match", true),
+    method: createEndpoint(
+      services.storage.ipfsRepository.getContent,
+      "any_match",
+      true
+    ),
   },
   {
     prefix: "/tree",
-    method: createEndpoint(services.repository.getTree, "full_match"),
+    method: createEndpoint(
+      services.storage.ipfsRepository.getTree,
+      "full_match"
+    ),
   },
   {
     prefix: "/contracts",
-    method: createContractEndpoint(services.repository.getContracts),
+    method: createContractEndpoint(
+      services.storage.ipfsRepository.getContracts
+    ),
   },
   {
     prefix: "",
-    method: createEndpoint(services.repository.getContent, "full_match"),
+    method: createEndpoint(
+      services.storage.ipfsRepository.getContent,
+      "full_match"
+    ),
   },
 ].forEach((pair) => {
   router
