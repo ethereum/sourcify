@@ -4,7 +4,9 @@ Sourcify's server for verifying contracts.
 
 ## Config
 
-The chains supported by the server are defined in `src/sourcify-chains.json`. You can change the file content to add or remove chains.
+The chains supported by the Sourcify server are defined in `src/sourcify-chains-default.json`.
+
+To support a different set of chains, you can create a `src/sourcify-chains.json` file and override the default chains.
 
 A full example of a chain entry is as follows:
 

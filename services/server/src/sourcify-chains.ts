@@ -9,12 +9,30 @@ import {
 import { ValidationError } from "./common/errors";
 import { FetchRequest } from "ethers";
 import chainsRaw from "./chains.json";
-import rawSourcifyChainExtentions from "./sourcify-chains.json";
+import rawSourcifyChainExtentions from "./sourcify-chains-default.json";
 import { logger } from "./common/loggerLoki";
+import fs from "fs";
 
-// sourcify-chains.json
-const sourcifyChainsExtensions =
-  rawSourcifyChainExtentions as SourcifyChainsExtensionsObject;
+let sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {};
+
+// If sourcify-chains.json exists, override sourcify-chains-default.json
+if (fs.existsSync("./sourcify-chains.json")) {
+  logger.warn(
+    "Using sourcify-chains.json instead of sourcify-chains-default.json"
+  );
+  const rawSourcifyChainExtentionsFromFile = fs.readFileSync(
+    "./sourcify-chains.json",
+    "utf8"
+  );
+  sourcifyChainsExtensions = JSON.parse(
+    rawSourcifyChainExtentionsFromFile
+  ) as SourcifyChainsExtensionsObject;
+}
+// sourcify-chains-default.json
+else {
+  sourcifyChainsExtensions =
+    rawSourcifyChainExtentions as SourcifyChainsExtensionsObject;
+}
 
 // chains.json from ethereum-lists (chainId.network/chains.json)
 const allChains = chainsRaw as Chain[];
