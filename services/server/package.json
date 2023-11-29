@@ -8,7 +8,7 @@
     "url": "git+https://github.com/ethereum/sourcify.git"
   },
   "scripts": {
-    "prebuild": "copyfiles -u 1 src/**/*.yaml dist",
+    "prebuild": "copyfiles -u 1 src/**/*.yaml src/*.json dist",
     "build": "tsc",
     "start": "node ./dist/server/server.js",
     "test": "TESTING=true DOTENV_CONFIG_PATH=./.env c8 --reporter=none mocha -r dotenv/config --exit",

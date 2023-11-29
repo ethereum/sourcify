@@ -12,16 +12,17 @@ import chainsRaw from "./chains.json";
 import rawSourcifyChainExtentions from "./sourcify-chains-default.json";
 import { logger } from "./common/loggerLoki";
 import fs from "fs";
+import path from "path";
 
 let sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {};
 
 // If sourcify-chains.json exists, override sourcify-chains-default.json
-if (fs.existsSync("./sourcify-chains.json")) {
+if (fs.existsSync(path.resolve(__dirname, "./sourcify-chains.json"))) {
   logger.warn(
-    "Using sourcify-chains.json instead of sourcify-chains-default.json"
+    "Overriding default chains: using sourcify-chains.json instead of sourcify-chains-default.json"
   );
   const rawSourcifyChainExtentionsFromFile = fs.readFileSync(
-    "./sourcify-chains.json",
+    path.resolve(__dirname, "./sourcify-chains.json"),
     "utf8"
   );
   sourcifyChainsExtensions = JSON.parse(
@@ -199,11 +200,11 @@ const supportedChainsMap = supportedChainsArray.reduce(
 logger.info(
   `Initialized Sourcify chains: \n\t Supported chains (${
     supportedChainsArray.length
-  }): ${supportedChainsArray
+  }): \n\t\t ${supportedChainsArray
     .map((c) => c.chainId)
     .join(", ")} \n\t All chains (${
     sourcifyChainsArray.length
-  }): ${sourcifyChainsArray.map((c) => c.chainId).join(", ")}`
+  }): \n\t\t ${sourcifyChainsArray.map((c) => c.chainId).join(", ")}`
 );
 
 // Gets the chainsMap, sorts the chains, returns SourcifyChain array.
@@ -217,14 +218,19 @@ export function getSortedChainsArray(
   const chainsArray = Object.values(chainMap);
   // Have Ethereum chains on top.
   const ethereumChainIds = [1, 17000, 5, 11155111, 3, 4, 42];
-  const ethereumChains = ethereumChainIds.map((id) => {
+  const ethereumChains = [] as SourcifyChain[];
+  ethereumChainIds.forEach((id) => {
+    // Ethereum chains might not be in a custom chains.json
+    if (chainMap[id] === undefined) {
+      return;
+    }
     // Use long form name for Ethereum netorks e.g. "Ethereum Testnet Goerli" instead of "Goerli"
     chainMap[id].name = chainMap[id].title || chainMap[id].name;
-    return chainMap[id];
+    ethereumChains.push(chainMap[id]);
   });
   // Others, sorted alphabetically
   const otherChains = chainsArray
-    .filter((chain) => ![1, 5, 11155111, 3, 4, 42].includes(chain.chainId))
+    .filter((chain) => !ethereumChainIds.includes(chain.chainId))
     .sort((a, b) =>
       getPrimarySortKey(a) > getPrimarySortKey(b)
         ? 1
