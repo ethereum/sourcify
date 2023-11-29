@@ -186,13 +186,13 @@ export class Server {
       next();
     });
 
-    /* if (
+    if (
       process.env.NODE_ENV === "production" &&
       (process.env.TAG === "latest" || process.env.TAG === "stable")
     ) {
       const limiter = rateLimit({
-        windowMs: 15 * 1000,
-        max: 3, // Requests per windowMs
+        windowMs: 2 * 1000,
+        max: 1, // Requests per windowMs
         standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
         legacyHeaders: false, // Disable the `X-RateLimit-*` headers
         message: {
@@ -209,8 +209,8 @@ export class Server {
 
       this.app.all("/session/verify/*", limiter);
       this.app.all("/verify*", limiter);
-      this.app.all("/", limiter);
-    } */
+      this.app.post("/", limiter);
+    }
 
     // Session API endpoints require non "*" origins because of the session cookies
     const sessionPaths = [
