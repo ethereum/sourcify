@@ -1,5 +1,4 @@
 import { Abi } from 'abitype';
-import { FetchRequest } from 'ethers';
 import SourcifyChain from './SourcifyChain';
 export interface PathBuffer {
   path: string;
@@ -280,10 +279,7 @@ export interface FetchContractCreationTxMethods {
     url: string;
     blockscoutPrefix?: string;
   };
-  etherscanApi?: {
-    apiURL: string;
-    apiKey: string;
-  };
+  etherscanApi?: boolean;
   etherscanScrape?: {
     url: string;
   };
@@ -296,16 +292,35 @@ export interface FetchContractCreationTxMethods {
   telosApi?: {
     url: string;
   };
-  avalancheApi?: {
-    chainId: string;
-  };
+  avalancheApi?: boolean;
 }
 
-export type SourcifyChainExtension = {
-  supported: boolean;
-  fetchContractCreationTxUsing?: FetchContractCreationTxMethods;
-  rpc?: Array<string | FetchRequest>;
+export type AlchemyInfuraRPC = {
+  type: 'Alchemy' | 'Infura';
+  url: string;
+  apiKeyEnvName: string;
 };
+
+export type FetchRequestRPC = {
+  type: 'FetchRequest';
+  url: string;
+  headers?: Array<{ headerName: string; headerEnvName: string }>;
+};
+
+export type SourcifyChainExtension = {
+  sourcifyName: string; // Keep it required to not forget name in sourcify-chains.json
+  supported: boolean;
+  etherscanApi?: {
+    apiURL: string;
+    apiKeyEnvName?: string;
+  };
+  fetchContractCreationTxUsing?: FetchContractCreationTxMethods;
+  rpc?: Array<string | AlchemyInfuraRPC | FetchRequestRPC>;
+};
+
+export interface SourcifyChainsExtensionsObject {
+  [chainId: string]: SourcifyChainExtension;
+}
 
 // TODO: Double check against ethereum-lists/chains type
 export type Chain = {

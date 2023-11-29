@@ -201,6 +201,30 @@ export const getCreatorTx = async (
       return result;
     }
   }
+  if (
+    sourcifyChain.fetchContractCreationTxUsing?.etherscanApi &&
+    sourcifyChain?.etherscanApi?.apiURL
+  ) {
+    const apiKey = process.env[sourcifyChain.etherscanApi.apiKeyEnvName || ""];
+    const fetcher = getEtherscanApiContractCreatorFetcher(
+      sourcifyChain.etherscanApi.apiURL,
+      apiKey || ""
+    );
+    const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
+    if (result) {
+      return result;
+    }
+  }
+  if (sourcifyChain.fetchContractCreationTxUsing?.avalancheApi) {
+    const fetcher = getAvalancheApiContractCreatorFetcher(
+      sourcifyChain.chainId.toString()
+    );
+    const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
+    if (result) {
+      return result;
+    }
+  }
+
   if (sourcifyChain.fetchContractCreationTxUsing?.blockscoutScrape) {
     const fetcher = getBlockscoutScrapeContractCreatorFetcher(
       sourcifyChain.fetchContractCreationTxUsing?.blockscoutScrape.url
@@ -231,25 +255,6 @@ export const getCreatorTx = async (
   if (sourcifyChain.fetchContractCreationTxUsing?.telosApi) {
     const fetcher = getTelosApiContractCreatorFetcher(
       sourcifyChain.fetchContractCreationTxUsing?.telosApi.url
-    );
-    const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
-    if (result) {
-      return result;
-    }
-  }
-  if (sourcifyChain.fetchContractCreationTxUsing?.avalancheApi) {
-    const fetcher = getAvalancheApiContractCreatorFetcher(
-      sourcifyChain.fetchContractCreationTxUsing?.avalancheApi.chainId
-    );
-    const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
-    if (result) {
-      return result;
-    }
-  }
-  if (sourcifyChain.fetchContractCreationTxUsing?.etherscanApi) {
-    const fetcher = getEtherscanApiContractCreatorFetcher(
-      sourcifyChain.fetchContractCreationTxUsing?.etherscanApi.apiURL,
-      sourcifyChain.fetchContractCreationTxUsing?.etherscanApi.apiKey
     );
     const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
     if (result) {

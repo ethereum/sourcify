@@ -79,40 +79,6 @@
       "expectedStatus": "perfect"
     }
   ],
-  "43114": [
-    {
-      "address": "0x4B3B8CFB55C1F07be13055cA94d42ccfc6bE9972",
-      "type": "single",
-      "expectedStatus": "partial"
-    },
-    {
-      "address": "0x8dabd2ce6A593412C5B0a952C7F44351dde222b4",
-      "type": "multiple",
-      "expectedStatus": "partial"
-    },
-    {
-      "address": "0x1b254c7Acab33427562222A13A2EBA27FeA97875",
-      "type": "standard-json",
-      "expectedStatus": "perfect"
-    }
-  ],
-  "43113": [
-    {
-      "address": "0x24d7307e5bc032bC4456E998D7DD20369738a3a9",
-      "type": "single",
-      "expectedStatus": "partial"
-    },
-    {
-      "address": "0x79beb0a978443dBc125599170332b3F40D448F63",
-      "type": "multiple",
-      "expectedStatus": "partial"
-    },
-    {
-      "address": "0x2F7cD28b85ffA84F62b068f5b586B14Abea5E05c",
-      "type": "standard-json",
-      "expectedStatus": "perfect"
-    }
-  ],
   "56": [
     {
       "address": "0xB46e7Bc077eD62f7E201d63D232E5c5899829FA5",

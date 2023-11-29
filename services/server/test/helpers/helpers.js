@@ -1,5 +1,4 @@
 const { ContractFactory, Wallet, BaseContract } = require("ethers");
-const { etherscanAPIs } = require("../../dist/common/etherscan-api");
 const { sourcifyChainsMap } = require("../../dist/sourcify-chains");
 const {
   assertVerificationSession,
@@ -111,7 +110,7 @@ function verifyAndAssertEtherscan(
   expectedStatus,
   type
 ) {
-  it(`Non-Session: Should import a ${type} contract from  #${chainId} ${sourcifyChainsMap[chainId].name} (${etherscanAPIs[chainId].apiURL}) and verify the contract, finding a ${expectedStatus} match`, (done) => {
+  it(`Non-Session: Should import a ${type} contract from  #${chainId} ${sourcifyChainsMap[chainId].name} (${sourcifyChainsMap[chainId].etherscanApi.apiURL}) and verify the contract, finding a ${expectedStatus} match`, (done) => {
     let request = chai
       .request(serverApp)
       .post("/verify/etherscan")
@@ -131,7 +130,7 @@ function verifyAndAssertEtherscanSession(
   expectedStatus,
   type
 ) {
-  it(`Session: Should import a ${type} contract from  #${chainId} ${sourcifyChainsMap[chainId].name} (${etherscanAPIs[chainId].apiURL}) and verify the contract, finding a ${expectedStatus} match`, (done) => {
+  it(`Session: Should import a ${type} contract from  #${chainId} ${sourcifyChainsMap[chainId].name} (${sourcifyChainsMap[chainId].etherscanApi.apiURL}) and verify the contract, finding a ${expectedStatus} match`, (done) => {
     chai
       .request(serverApp)
       .post("/session/verify/etherscan")

@@ -33,7 +33,6 @@ import { setLibSourcifyLogger } from "@ethereum-sourcify/lib-sourcify";
 const fileUpload = require("express-fileupload");
 import { rateLimit } from "express-rate-limit";
 import path from "path";
-import { etherscanAPIs } from "../common/etherscan-api";
 
 const MemoryStore = createMemoryStore(session);
 
@@ -246,7 +245,7 @@ export class Server {
     );
     this.app.get("/chains", (_req, res) => {
       const sourcifyChains = sourcifyChainsArray.map(
-        ({ rpc, name, title, chainId, supported }) => {
+        ({ rpc, name, title, chainId, supported, etherscanApi }) => {
           // Don't publish providers
           // Don't show Alchemy & Infura IDs
           rpc = rpc.map((url) => {
@@ -267,7 +266,7 @@ export class Server {
             chainId,
             rpc,
             supported,
-            etherscanAPI: etherscanAPIs[chainId]?.apiURL, // Needed in the UI
+            etherscanAPI: etherscanApi?.apiURL, // Needed in the UI
           };
         }
       );

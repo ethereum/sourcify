@@ -2,11 +2,11 @@ import { BadRequestError } from "../../../../common/errors";
 import {
   JsonInput,
   Metadata,
+  SourcifyChain,
   findContractPathFromContractName,
 } from "@ethereum-sourcify/lib-sourcify";
 import { TooManyRequests } from "../../../../common/errors/TooManyRequests";
 import { BadGatewayError } from "../../../../common/errors/BadGatewayError";
-import { etherscanAPIs } from "../../../../common/etherscan-api";
 import { solc } from "../verification.common";
 
 export type EtherscanResult = {
@@ -73,20 +73,20 @@ export const getSolcJsonInputFromEtherscanResult = (
 };
 
 export const processRequestFromEtherscan = async (
-  chain: string,
+  sourcifyChain: SourcifyChain,
   address: string
 ): Promise<any> => {
-  if (Object.keys(etherscanAPIs).includes(chain) === false) {
+  if (!sourcifyChain.etherscanApi) {
     throw new BadRequestError(
-      `Requested chain ${chain} is not supported for importing from Etherscan`
+      `Requested chain ${sourcifyChain.chainId} is not supported for importing from Etherscan`
     );
   }
 
-  const url = `${etherscanAPIs[chain].apiURL}/api?module=contract&action=getsourcecode&address=${address}`;
-
+  const url = `${sourcifyChain.etherscanApi.apiURL}/api?module=contract&action=getsourcecode&address=${address}`;
+  const apiKey = process.env[sourcifyChain.etherscanApi.apiKeyEnvName || ""];
   let response;
   try {
-    response = await fetch(`${url}&apikey=${etherscanAPIs[chain].apiKey}`);
+    response = await fetch(`${url}&apikey=${apiKey || ""}`);
   } catch (e: any) {
     throw new BadGatewayError(
       `Request to ${url}&apiKey=XXX failed with code ${e.code}`
