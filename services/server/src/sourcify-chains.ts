@@ -10,6 +10,7 @@ import { ValidationError } from "./common/errors";
 import { FetchRequest } from "ethers";
 import chainsRaw from "./chains.json";
 import rawSourcifyChainExtentions from "./sourcify-chains.json";
+import { logger } from "./common/loggerLoki";
 
 // sourcify-chains.json
 const sourcifyChainsExtensions =
@@ -135,11 +136,36 @@ for (const chainId in sourcifyChainsExtensions) {
   }
 }
 if (missingChains.length > 0) {
-  throw new Error(
-    `Some of the chains in sourcify-chains.json are not in chains.json: ${missingChains.join(
-      ","
-    )}`
-  );
+  // Don't let CircleCI pass for the main repo if sourcify-chains.json has chains that are not in chains.json
+  if (process.env.CIRCLE_PROJECT_REPONAME === "sourcify") {
+    throw new Error(
+      `Some of the chains in sourcify-chains.json are not in chains.json: ${missingChains.join(
+        ","
+      )}`
+    );
+  }
+  // Don't throw for forks or others running Sourcify, instead add them to sourcifyChainsMap
+  else {
+    logger.warn(
+      `Some of the chains in sourcify-chains.json are not in chains.json: ${missingChains.join(
+        ","
+      )}`
+    );
+    missingChains.forEach((chainId) => {
+      const chain = sourcifyChainsExtensions[chainId];
+      if (!chain.rpc) {
+        throw new Error(
+          `Chain ${chainId} is missing rpc in sourcify-chains.json`
+        );
+      }
+      sourcifyChainsMap[chainId] = new SourcifyChain({
+        name: chain.sourcifyName,
+        chainId: parseInt(chainId),
+        supported: chain.supported,
+        rpc: buildCustomRpcs(chain.rpc),
+      });
+    });
+  }
 }
 
 const sourcifyChainsArray = getSortedChainsArray(sourcifyChainsMap);
@@ -150,6 +176,16 @@ const supportedChainsArray = sourcifyChainsArray.filter(
 const supportedChainsMap = supportedChainsArray.reduce(
   (map, chain) => ((map[chain.chainId.toString()] = chain), map),
   <SourcifyChainMap>{}
+);
+
+logger.info(
+  `Initialized Sourcify chains: \n\t Supported chains (${
+    supportedChainsArray.length
+  }): ${supportedChainsArray
+    .map((c) => c.chainId)
+    .join(", ")} \n\t All chains (${
+    sourcifyChainsArray.length
+  }): ${sourcifyChainsArray.map((c) => c.chainId).join(", ")}`
 );
 
 // Gets the chainsMap, sorts the chains, returns SourcifyChain array.
