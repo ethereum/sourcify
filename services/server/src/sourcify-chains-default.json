@@ -336,23 +336,19 @@
   "43113": {
     "sourcifyName": "Avalanche Fuji Testnet",
     "supported": true,
-    "etherscanApi": {
-      "apiURL": "https://api-testnet.snowtrace.io",
-      "apiKeyEnvName": "SNOWTRACE_API_KEY"
-    },
     "fetchContractCreationTxUsing": {
-      "etherscanApi": true
+      "avalancheApi": true
     }
   },
   "43114": {
     "sourcifyName": "Avalanche C-Chain Mainnet",
     "supported": true,
     "etherscanApi": {
-      "apiURL": "https://api.snowtrace.io",
-      "apiKeyEnvName": "SNOWTRACE_API_KEY"
+      "apiURL": "https://api.routescan.io/v2/network/mainnet/evm/43114/etherscan/api"
     },
     "fetchContractCreationTxUsing": {
-      "etherscanApi": true
+      "etherscanApi": true,
+      "avalancheApi": true
     }
   },
   "57": {
