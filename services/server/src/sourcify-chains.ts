@@ -1234,6 +1234,15 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
       },
     },
   },
+  "1127469": {
+    // Tiltyard Subnet
+    supported: true,
+    fetchContractCreationTxUsing: {
+      avalancheApi: {
+        chainId: "1127469",
+      },
+    },
+  },
   // Add here new chain
 };
 
