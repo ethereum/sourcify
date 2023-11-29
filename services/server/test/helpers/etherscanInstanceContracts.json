@@ -79,23 +79,6 @@
       "expectedStatus": "perfect"
     }
   ],
-  "43114": [
-    {
-      "address": "0x4B3B8CFB55C1F07be13055cA94d42ccfc6bE9972",
-      "type": "single",
-      "expectedStatus": "partial"
-    },
-    {
-      "address": "0x8dabd2ce6A593412C5B0a952C7F44351dde222b4",
-      "type": "multiple",
-      "expectedStatus": "partial"
-    },
-    {
-      "address": "0x1b254c7Acab33427562222A13A2EBA27FeA97875",
-      "type": "standard-json",
-      "expectedStatus": "perfect"
-    }
-  ],
   "56": [
     {
       "address": "0xB46e7Bc077eD62f7E201d63D232E5c5899829FA5",

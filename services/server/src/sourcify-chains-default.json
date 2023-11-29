@@ -343,11 +343,7 @@
   "43114": {
     "sourcifyName": "Avalanche C-Chain Mainnet",
     "supported": true,
-    "etherscanApi": {
-      "apiURL": "https://api.routescan.io/v2/network/mainnet/evm/43114/etherscan/api"
-    },
     "fetchContractCreationTxUsing": {
-      "etherscanApi": true,
       "avalancheApi": true
     }
   },
