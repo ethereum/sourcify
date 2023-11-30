@@ -351,12 +351,12 @@ describe("Test Supported Chains", function () {
   //   "shared/1_Storage.metadata.json"
   // );
   // Rikeza Network 
-    verifyContract(
-    "0x85ce14f251d3621e82c8d17ceae8e7b2079c646f",
+  verifyContract(
+    "0xa8c07c66d0458e8c6e442a8827f4bc3fad036407",
     "1433",
     "Rikeza Network",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    ["1433/storage.sol"],
+    "1433/metadata.json"
   );
   verifyContract(
     "0xd8A08AFf1B0585Cad0E173Ce0E93551Ac59D3530",
