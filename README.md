@@ -21,7 +21,7 @@ For more details refer to [docs.sourcify.dev](https://docs.sourcify.dev/docs/int
 
 🔍 Check out docs [F.A.Q.](https://docs.sourcify.dev/docs/faq/) and use search in docs.
 
-💬 Chat with us on [Gitter](https://gitter.im/ethereum/source-verify) or [Matrix chat](https://matrix.to/#/#ethereum_source-verify:gitter.im)
+💬 Chat with us on [Matrix chat](https://matrix.to/#/#ethereum_source-verify:gitter.im) or [Discord](https://discord.gg/6aqd9cfZ9s)
 
 🐦 Follow us and help us spread the word on [Twitter](https://twitter.com/SourcifyEth).
 
