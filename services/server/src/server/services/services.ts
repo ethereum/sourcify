@@ -12,5 +12,14 @@ export const services = {
       repositoryServerUrl: process.env.REPOSITORY_SERVER_URL as string,
       repositoryVersion: "0.1",
     },
+    sourcifyDatabaseServiceOptions: {
+      postgres: {
+        host: process.env.SOURCIFY_POSTGRES_HOST as string,
+        database: process.env.SOURCIFY_POSTGRES_DB as string,
+        user: process.env.SOURCIFY_POSTGRES_USER as string,
+        password: process.env.SOURCIFY_POSTGRES_PASSWORD as string,
+        port: parseInt(process.env.SOURCIFY_POSTGRES_PORT || "0"),
+      },
+    },
   }),
 };

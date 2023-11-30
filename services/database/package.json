@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "migrate:up": "db-migrate up",
+    "migrate:down": "db-migrate down",
     "migrate:create": "db-migrate create "
   },
   "author": "",

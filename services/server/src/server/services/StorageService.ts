@@ -1,9 +1,12 @@
 import { Match, CheckedContract } from "@ethereum-sourcify/lib-sourcify";
-import { logger } from "../../common/loggerLoki";
 import {
   IpfsRepositoryService,
   IpfsRepositoryServiceOptions,
 } from "./storageServices/IpfsRepositoryService";
+import {
+  SourcifyDatabaseService,
+  SourcifyDatabaseServiceOptions,
+} from "./storageServices/SourcifyDatabaseService";
 import {
   AllianceDatabaseService,
   AllianceDatabaseServiceOptions,
@@ -12,23 +15,33 @@ import {
 export interface IStorageService {
   init(): Promise<boolean>;
   storeMatch(contract: CheckedContract, match: Match): Promise<void | Match>;
-  checkByChainAndAddress?(address: string, chainId: string): Match[];
-  checkAllByChainAndAddress?(address: string, chainId: string): Match[];
+  checkByChainAndAddress?(address: string, chainId: string): Promise<Match[]>;
+  checkAllByChainAndAddress?(
+    address: string,
+    chainId: string
+  ): Promise<Match[]>;
 }
 
 interface StorageServiceOptions {
   ipfsRepositoryServiceOptions: IpfsRepositoryServiceOptions;
+  sourcifyDatabaseServiceOptions?: SourcifyDatabaseServiceOptions;
   allianceDatabaseServiceOptions?: AllianceDatabaseServiceOptions;
 }
 
 export class StorageService {
   ipfsRepository: IpfsRepositoryService;
+  sourcifyDatabase?: SourcifyDatabaseService;
   allianceDatabase?: AllianceDatabaseService;
 
   constructor(options: StorageServiceOptions) {
     this.ipfsRepository = new IpfsRepositoryService(
       options.ipfsRepositoryServiceOptions
     );
+    if (options.sourcifyDatabaseServiceOptions?.postgres) {
+      this.sourcifyDatabase = new SourcifyDatabaseService(
+        options.sourcifyDatabaseServiceOptions
+      );
+    }
     if (
       options.allianceDatabaseServiceOptions?.googleCloudSql ||
       options.allianceDatabaseServiceOptions?.postgres
@@ -46,6 +59,11 @@ export class StorageService {
       throw new Error("Cannot initialize ipfsRepository: " + e.message);
     }
     try {
+      await this.sourcifyDatabase?.init();
+    } catch (e: any) {
+      throw new Error("Cannot initialize allianceDatabase: " + e.message);
+    }
+    try {
       await this.allianceDatabase?.init();
     } catch (e: any) {
       throw new Error("Cannot initialize allianceDatabase: " + e.message);
@@ -53,12 +71,23 @@ export class StorageService {
     return true;
   }
 
-  checkByChainAndAddress(address: string, chainId: string): Match[] {
-    return this.ipfsRepository.checkByChainAndAddress(address, chainId);
+  async checkByChainAndAddress(
+    address: string,
+    chainId: string
+  ): Promise<Match[]> {
+    return (
+      (await this.sourcifyDatabase?.checkByChainAndAddress?.(
+        address,
+        chainId
+      )) || []
+    );
   }
 
   storeMatch(contract: CheckedContract, match: Match) {
     // this.allianceDatabase?.storeMatch(contract, match);
-    return this.ipfsRepository.storeMatch(contract, match);
+    try {
+      this.ipfsRepository.storeMatch(contract, match);
+    } catch (e) {}
+    return this.sourcifyDatabase?.storeMatch(contract, match);
   }
 }

@@ -272,7 +272,10 @@ export class IpfsRepositoryService implements IStorageService {
   }
 
   // Checks contract existence in repository.
-  checkByChainAndAddress(address: string, chainId: string): Match[] {
+  async checkByChainAndAddress(
+    address: string,
+    chainId: string
+  ): Promise<Match[]> {
     const contractPath = this.generateAbsoluteFilePath({
       matchQuality: "full",
       chainId,
@@ -300,7 +303,10 @@ export class IpfsRepositoryService implements IStorageService {
   }
 
   // Checks contract existence in repository for full and partial matches.
-  checkAllByChainAndAddress(address: string, chainId: string): Match[] {
+  async checkAllByChainAndAddress(
+    address: string,
+    chainId: string
+  ): Promise<Match[]> {
     const fullContractPath = this.generateAbsoluteFilePath({
       matchQuality: "full",
       chainId,

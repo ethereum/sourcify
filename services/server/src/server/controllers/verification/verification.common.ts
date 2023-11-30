@@ -336,7 +336,7 @@ export const verifyContractsInSession = async (
 
     // Check if contract is already verified
     if (Boolean(contractWrapper.address) && Boolean(contractWrapper.chainId)) {
-      const found = storageService.checkByChainAndAddress(
+      const found = await storageService.checkByChainAndAddress(
         contractWrapper.address as string,
         contractWrapper.chainId as string
       );

@@ -40,6 +40,12 @@ namespace Tables {
     runtimeMatch: boolean;
     creationMatch: boolean;
   }
+
+  export interface SourcifyMatch {
+    verifiedContractId: string;
+    runtimeMatch: string | null;
+    creationMatch: string | null;
+  }
 }
 
 export async function getVerifiedContractByBytecodeHashes(
@@ -58,6 +64,27 @@ export async function getVerifiedContractByBytecodeHashes(
         AND contracts.creation_code_hash = $2
     `,
     [runtimeBytecodeHash, creationBytecodeHash]
+  );
+}
+
+export async function getSourcifyMatchByChainAddress(
+  pool: Pool,
+  chain: number,
+  address: string
+) {
+  return await pool.query(
+    `
+      SELECT
+        sourcify_matches.*
+      FROM sourcify_matches
+      JOIN verified_contracts ON verified_contracts.id = sourcify_matches.verified_contract_id
+      JOIN contracts ON contracts.id = verified_contracts.contract_id
+      JOIN contract_deployments ON 
+        contract_deployments.contract_id = contracts.id 
+        AND contract_deployments.chain_id = $1 
+        AND contract_deployments.address = $2
+    `,
+    [chain, address]
   );
 }
 
@@ -185,7 +212,7 @@ export async function insertVerifiedContract(
     creationMatch,
   }: Tables.VerifiedContract
 ) {
-  await pool.query(
+  let verifiedContractsInsertResult = await pool.query(
     `INSERT INTO verified_contracts (
         compilation_id,
         contract_id,
@@ -195,7 +222,7 @@ export async function insertVerifiedContract(
         runtime_values,
         runtime_match,
         creation_match
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (compilation_id, contract_id) DO NOTHING RETURNING *`,
     [
       compilationId,
       contractId,
@@ -207,6 +234,20 @@ export async function insertVerifiedContract(
       creationMatch,
     ]
   );
+  if (verifiedContractsInsertResult.rows.length === 0) {
+    verifiedContractsInsertResult = await pool.query(
+      `
+        SELECT
+          id
+        FROM verified_contracts
+        WHERE 1=1
+          AND compilationId = $1
+          AND contractId = $2
+        `,
+      [compilationId, contractId]
+    );
+  }
+  return verifiedContractsInsertResult;
 }
 
 export async function updateVerifiedContract(
@@ -244,5 +285,19 @@ export async function updateVerifiedContract(
       runtimeMatch,
       creationMatch,
     ]
+  );
+}
+
+export async function insertSourcifyMatch(
+  pool: Pool,
+  { verifiedContractId, runtimeMatch, creationMatch }: Tables.SourcifyMatch
+) {
+  await pool.query(
+    `INSERT INTO sourcify_matches (
+        verified_contract_id,
+        creation_match,
+        runtime_match
+      ) VALUES ($1, $2, $3)`,
+    [verifiedContractId, runtimeMatch, creationMatch]
   );
 }
