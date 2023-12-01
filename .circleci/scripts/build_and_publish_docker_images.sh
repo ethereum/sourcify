@@ -15,7 +15,7 @@ fi
 NAMESPACE="ghcr.io/ethereum/sourcify"
 IMAGE_NAME="$NAMESPACE/$SERVICE"
 # Login to Github Container Registry
-echo $CR_PAT | docker login ghcr.io --username kuzdogan --password-stdin
+echo $GITHUB_CR_PAT | docker login ghcr.io --username kuzdogan --password-stdin
 
 # Triggered by a branch
 # e.g. sourcify/server:master
