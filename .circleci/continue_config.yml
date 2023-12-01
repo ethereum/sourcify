@@ -94,18 +94,18 @@ workflows:
   build_publish_deploy_docker:
     # Run build_publish_deploy when on staging or master AND when a module is changed and something needs to be built and deployed.
     when:
-      and:
-        - or:
-            - equal: [master, << pipeline.git.branch >>]
-            - equal: [staging, << pipeline.git.branch >>]
-        - or:
-            [
-              << pipeline.parameters.run-build-repository >>,
-              << pipeline.parameters.run-build-server >>,
-              << pipeline.parameters.run-build-monitor >>,
-              << pipeline.parameters.run-build-packages >>,
-              << pipeline.parameters.run-build-ui >>,
-            ]
+      # and:
+      or:
+        - equal: [master, << pipeline.git.branch >>]
+        - equal: [staging, << pipeline.git.branch >>]
+        # - or:
+        #     [
+        #       << pipeline.parameters.run-build-repository >>,
+        #       << pipeline.parameters.run-build-server >>,
+        #       << pipeline.parameters.run-build-monitor >>,
+        #       << pipeline.parameters.run-build-packages >>,
+        #       << pipeline.parameters.run-build-ui >>,
+        #     ]
     jobs:
       - tests-node-v16
       - build-push-monitor:
