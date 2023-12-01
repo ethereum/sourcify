@@ -49,7 +49,8 @@ docker build \
     -f $DOCKERFILE \
     $TAG_COMMAND \
     $DOCKER_BUILD_CONTEXT \
-    --push
+
+docker push $TAGGED_IMAGE_NAME
 
 
 # No need to extract the image tag if the build is triggered by a tag because the deployment will be done by the branch trigger.

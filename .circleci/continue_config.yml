@@ -39,7 +39,8 @@ aliases:
           condition: 
             or: 
               - << parameters.run-build >>
-              - << parameters.run-build-2 >>
+              # - << parameters.run-build-2 >>
+              - true
           steps:
             - checkout
             - run:
