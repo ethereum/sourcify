@@ -294,4 +294,4 @@ jobs:
           command: npx lerna run build
       - run:
           name: Publish npm package
-          command: ./.cirlceci/scripts/publish_to_npm.sh
+          command: ./.circleci/scripts/publish_to_npm.sh
