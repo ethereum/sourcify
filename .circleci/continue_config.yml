@@ -148,22 +148,32 @@ workflows:
           filters:
             tags:
               only: /^sourcify-.*@.*/ # docker image tag format
+            branches:
+              ignore: /.*/
       - build-push-repository:
           filters:
             tags:
               only: /^sourcify-.*@.*/
+            branches:
+              ignore: /.*/
       - build-push-server:
           filters:
             tags:
               only: /^sourcify-.*@.*/
+            branches:
+              ignore: /.*/
       - build-push-ui:
           filters:
             tags:
               only: /^sourcify-.*@.*/
+            branches:
+              ignore: /.*/
       - npm-publish:
           filters:
             tags:
               only: /^@ethereum-sourcify.*@.*/ # npm package tag format
+            branches:
+              ignore: /.*/
   # Tests workflow for not staging or master
   tests:
     when:

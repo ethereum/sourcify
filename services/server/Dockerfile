@@ -10,7 +10,7 @@ COPY *.json ./
 COPY packages ./packages
 COPY services/server ./services/server
 
-RUN npm ci --only=production
+RUN npm ci
 RUN npx lerna run build --scope sourcify-server
 
 # Set default value for ARG
