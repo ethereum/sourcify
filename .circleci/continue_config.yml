@@ -35,29 +35,22 @@ aliases:
         type: boolean
         default: false
     steps:
-      - when:
-          condition: 
-            or: 
-              - << parameters.run-build >>
-              # - << parameters.run-build-2 >>
-              - true
-          steps:
-            - checkout
-            - run:
-                name: "Pull Submodules"
-                command: |
-                  git submodule init
-                  git submodule update --remote
-            - setup_remote_docker:
-                version: 20.10.23
-            - run:
-                name: Build and push docker images
-                command: |
-                  ./.circleci/scripts/build_and_publish_docker_images.sh 
-            - persist_to_workspace:
-                root: workspace
-                paths:
-                  - ./*
+      - checkout
+      - run:
+          name: "Pull Submodules"
+          command: |
+            git submodule init
+            git submodule update --remote
+      - setup_remote_docker:
+          version: 20.10.23
+      - run:
+          name: Build and push docker images
+          command: |
+            ./.circleci/scripts/build_and_publish_docker_images.sh 
+      - persist_to_workspace:
+          root: workspace
+          paths:
+            - ./*
       # If no build is needed, echo 0 to run as success 
       - run: echo 0
   - &monitor-e2e-base
