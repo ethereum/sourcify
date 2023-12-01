@@ -1,12 +1,16 @@
 # Needs to be run from the project root context
-FROM node:18
+FROM node:18.18.2-bullseye-slim
+RUN mkdir -p /home/app
 WORKDIR /home/app
+
+LABEL org.opencontainers.image.source https://github.com/ethereum/sourcify
+LABEL org.opencontainers.image.licenses MIT
 
 COPY *.json ./
 COPY packages ./packages
 COPY services/monitor ./services/monitor
 
-RUN npm install
+RUN npm ci --only=production
 RUN npx lerna run build --scope sourcify-monitor
 
 ARG ALCHEMY_API_KEY

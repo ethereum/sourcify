@@ -50,4 +50,4 @@ jobs:
           command: npx lerna run build
       - run:
           name: test new chain PR
-          command: ./scripts/test_new_chain_support.sh
+          command: ./.circleci/scripts/test_new_chain_support.sh

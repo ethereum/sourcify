@@ -1,7 +1,7 @@
 version: "3.7"
 
 networks:
-  source-verify:
+  sourcify:
 
 services:
   server:
@@ -9,11 +9,11 @@ services:
       - .env
     restart: always
     networks:
-      - source-verify
+      - sourcify
     labels:
       - "autoheal=true" # Label to trigger autoheal for this service
-    image: ethereum/source-verify:server-${TAG}
-    container_name: server-${TAG}
+    image: ghcr.io/ethereum/sourcify/server
+    container_name: ethereum/sourcify/server
     ports:
       - "${DOCKER_HOST_SERVER_PORT}:${SERVER_PORT}"
     volumes:

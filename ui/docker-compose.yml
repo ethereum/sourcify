@@ -8,8 +8,8 @@ services:
     restart: always
     networks:
       - source-verify
-    image: ethereum/source-verify:ui-${TAG}
-    container_name: ui-${TAG}
+    image: ethereum/sourcify/ui
+    container_name: ethereum/sourcify/ui
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost"]
       interval: 30s
