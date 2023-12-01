@@ -36,15 +36,16 @@ fi
 
 # Create a new builder instance
 # Comment out if already created
-docker buildx create --name sourcify-builder --use
+# docker buildx create --name sourcify-builder --use
 
-# Start up the builder instance
-docker buildx inspect --bootstrap
+# # Start up the builder instance
+# docker buildx inspect --bootstrap
 
 # Build the image for multiple platforms with buildx
 # Tag is without "ethereum": "sourcify/$SERVICE:$TAG" but label with the repo url "ethereum/sourcify"
-docker buildx build \
-    --platform linux/arm64,linux/amd64 \
+# docker buildx build \
+#     --platform linux/arm64,linux/amd64 \
+docker build \
     -f $DOCKERFILE \
     $TAG_COMMAND \
     $DOCKER_BUILD_CONTEXT \

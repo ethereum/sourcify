@@ -10,7 +10,7 @@ COPY *.json ./
 COPY packages ./packages
 COPY services/monitor ./services/monitor
 
-RUN npm ci
+RUN npm install
 RUN npx lerna run build --scope sourcify-monitor
 
 ARG ALCHEMY_API_KEY
