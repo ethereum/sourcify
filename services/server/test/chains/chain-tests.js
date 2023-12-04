@@ -55,8 +55,8 @@ describe("Test Supported Chains", function () {
     if (!anyTestsPass && newAddedChainIds.length) {
       throw new Error(
         "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id(s) " +
-          newAddedChainIds.join(",") +
-          "?"
+        newAddedChainIds.join(",") +
+        "?"
       );
     }
   });
@@ -1271,6 +1271,16 @@ describe("Test Supported Chains", function () {
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
+
+  // Zeniq Mainnet
+  verifyContract(
+    "0xCf16669c144989409D439262F2BfBFa31BD6cd2a",
+    "383414847825",
+    "Zeniq",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
 
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
