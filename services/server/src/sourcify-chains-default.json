@@ -1301,5 +1301,14 @@
         "url": "https://scan.crossbell.io/"
       }
     }
+  },
+  "1433": {
+    "sourcifyName": "Rikeza Network",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutScrape": {
+        "url": "https://rikscan.com/"
+      }
+    }
   }
 }

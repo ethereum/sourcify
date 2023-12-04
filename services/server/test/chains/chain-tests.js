@@ -1281,6 +1281,15 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
+  // Rikeza Network
+  verifyContract(
+    "0xa8c07c66d0458e8c6e442a8827f4bc3fad036407",
+    "1433",
+    "Rikeza Network",
+    ["1433/stg.sol"],
+    "1433/metadata.json"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainIds.length) {
