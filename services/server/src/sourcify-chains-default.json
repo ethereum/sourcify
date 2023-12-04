@@ -1292,5 +1292,14 @@
         "url": "https://explorer.mantle.xyz/"
       }
     }
+  },
+  "3737": {
+    "sourcifyName": "Crossball Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutScrape": {
+        "url": "https://scan.crossbell.io/"
+      }
+    }
   }
 }

@@ -1272,6 +1272,15 @@ describe("Test Supported Chains", function () {
     "shared/1_Storage.metadata.json"
   );
 
+  // Crossbell Mainnet
+  verifyContract(
+    "0xaa028312440DFd72A33053932150aE5e35017f6A",
+    "3737",
+    "Crossbell Mainnet",
+    ["shared/1_Storage.sol"],
+    "shared/1_Storage.metadata.json"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainIds.length) {
