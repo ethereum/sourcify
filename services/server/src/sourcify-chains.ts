@@ -217,7 +217,7 @@ export function getSortedChainsArray(
 
   const chainsArray = Object.values(chainMap);
   // Have Ethereum chains on top.
-  const ethereumChainIds = [1, 17000, 5, 11155111, 3, 4, 42];
+  const ethereumChainIds = [1, 17000, 5, 11155111, 3, 4];
   const ethereumChains = [] as SourcifyChain[];
   ethereumChainIds.forEach((id) => {
     // Ethereum chains might not be in a custom chains.json
