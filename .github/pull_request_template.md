@@ -6,13 +6,13 @@ Thanks for your pull request to add a new support in Sourcify.
 
 If you haven't done so, please follow the instructions on [how to request chain support](https://docs.sourcify.dev/docs/chain-support/) in docs.
 
-Please check the following items before submitting your pull request.
+Please check the following items before submitting your pull request for a speedy review.
 
 ## Checklist
 
 - [ ] The branch is named as `add-chain-<chainId>`.
-- [ ] I haven't modified the [chains.json](../../src/chains.json) file directly.
-- [ ] In [sourcify-chains.ts](../../src/sourcify-chains.ts) file
+- [ ] I haven't modified the `chains.json` file directly.
+- [ ] In `sourcify-chains.json` file
   - [ ] I've set `supported: true`.
   - [ ] I haven't added an `rpc` field but the one in [chains.json](../../src/chains.json) is used (if not, please explain why).
 - [ ] I've added a test in [chain-tests.js](../../test/chains/chains-test.js) file.
