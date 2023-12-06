@@ -10,10 +10,8 @@ services=("ui" "server" "monitor" "repository")
 
 if [ "$CIRCLE_BRANCH" == "staging" ]; then 
     ENVIRONMENT='staging'
-    TAG='latest'
 elif [ "$CIRCLE_BRANCH" == "master" ]; then
     ENVIRONMENT='production'
-    TAG='stable'
 else
     echo "Invalid branch $CIRCLE_BRANCH. Check your config.yml"
     exit 1
@@ -32,7 +30,7 @@ for service in "${services[@]}"; do
         if [ -n "$image_tag_content" ]; then
             echo "File is not empty."
 
-            body="{\"event_type\":\"deploy\",\"client_payload\":{\"environment\":\"$ENVIRONMENT\",\"component\":\"$service\",\"image_tag\":\""$service"-"$TAG"@"$image_tag_content"\",\"ref\":\"$CIRCLE_BRANCH\",\"sha\":\"$CIRCLE_SHA1\"}}"
+            body="{\"event_type\":\"deploy\",\"client_payload\":{\"environment\":\"$ENVIRONMENT\",\"component\":\"$service\",\"image_tag\":\""$CIRCLE_BRANCH"@"$image_tag_content"\",\"ref\":\"$CIRCLE_BRANCH\",\"sha\":\"$CIRCLE_SHA1\"}}"
 
             echo "Sending deploy trigger with request body $body"
 
