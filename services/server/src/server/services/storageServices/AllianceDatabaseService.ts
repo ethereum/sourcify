@@ -3,7 +3,7 @@ import {
   CheckedContract,
   Transformation,
 } from "@ethereum-sourcify/lib-sourcify";
-import { logger } from "../../../common/loggerLoki";
+import { logger } from "../../../common/logger";
 import { id as keccak256str } from "ethers";
 import { IStorageService } from "../StorageService";
 import * as AllianceDatabase from "../utils/alliance-database-util";

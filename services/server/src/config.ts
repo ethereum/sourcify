@@ -1,8 +1,7 @@
 /* eslint-disable no-useless-escape */
 import * as dotenv from "dotenv";
 import path from "path";
-import { SourcifyEventManager } from "./common/SourcifyEventManager/SourcifyEventManager";
-import { logger } from "./common/loggerLoki";
+import { logger } from "./common/logger";
 
 dotenv.config({ path: path.resolve(__dirname, "..", ".env") });
 
@@ -27,7 +26,6 @@ export default {
     path: setRepositoryPath(),
   },
   testing: process.env.TESTING || false,
-  tag: process.env.TAG || "latest",
   logging: {
     dir: process.env.LOGGING_DIR || "logs",
     level: process.env.LOGGING_LEVEL || "debug",

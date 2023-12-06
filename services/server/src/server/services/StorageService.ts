@@ -1,5 +1,4 @@
 import { Match, CheckedContract } from "@ethereum-sourcify/lib-sourcify";
-import { logger } from "../../common/loggerLoki";
 import {
   IpfsRepositoryService,
   IpfsRepositoryServiceOptions,

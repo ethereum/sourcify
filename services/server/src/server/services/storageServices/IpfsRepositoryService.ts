@@ -8,7 +8,6 @@ import {
   StringMap,
   /* ContextVariables, */
   CheckedContract,
-  Transformation,
 } from "@ethereum-sourcify/lib-sourcify";
 import { MatchLevel, RepositoryTag } from "../../types";
 import {
@@ -17,10 +16,8 @@ import {
   globSource,
 } from "ipfs-http-client";
 import path from "path";
-import { SourcifyEventManager } from "../../../common/SourcifyEventManager/SourcifyEventManager";
-import { logger } from "../../../common/loggerLoki";
+import { logger } from "../../../common/logger";
 import { getAddress } from "ethers";
-import { id as keccak256str } from "ethers";
 import { getMatchStatus } from "../../common";
 import { IStorageService } from "../StorageService";
 
@@ -459,7 +456,6 @@ export class IpfsRepositoryService implements IStorageService {
       }
 
       await this.addToIpfsMfs(matchQuality, match.chainId, match.address);
-      SourcifyEventManager.trigger("Verification.MatchStored", match);
     } else if (match.runtimeMatch === "extra-file-input-bug") {
       return match;
     } else {

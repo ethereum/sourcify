@@ -11,7 +11,7 @@ const myFormat = format.printf(
     labels?: { event: string; level: string };
     prefix?: string;
   }) => {
-    return `${info.timestamp} [${info.level}]: ${
+    return `${info.timestamp} [${info.level}]: [Monitor] - ${
       info.prefix ? `[${info.prefix}] -` : ""
     } ${info.message}`;
   }

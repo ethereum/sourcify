@@ -4,8 +4,6 @@ import cors from "cors";
 import routes from "./routes";
 import bodyParser from "body-parser";
 import config from "../config";
-import { SourcifyEventManager } from "../common/SourcifyEventManager/SourcifyEventManager";
-import "../common/SourcifyEventManager/listeners/logger";
 import genericErrorHandler from "./middlewares/GenericErrorHandler";
 import notFoundHandler from "./middlewares/NotFoundError";
 import session from "express-session";
@@ -27,7 +25,7 @@ import yamljs from "yamljs";
 import { resolveRefs } from "json-refs";
 import { initDeprecatedRoutes } from "./deprecated.routes";
 import { getAddress } from "ethers";
-import { logger } from "../common/loggerLoki";
+import { logger } from "../common/logger";
 import { setLibSourcifyLogger } from "@ethereum-sourcify/lib-sourcify";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fileUpload = require("express-fileupload");
@@ -48,25 +46,25 @@ setLibSourcifyLogger({
       switch (level) {
         case 1:
           logger.error({
-            labels: { event: "LibSourcify", level: "error" },
+            prefix: "LibSourcify",
             message: msg,
           });
           break;
         case 2:
           logger.warn({
-            labels: { event: "LibSourcify", level: "warn" },
+            prefix: "LibSourcify",
             message: msg,
           });
           break;
         case 3:
           logger.info({
-            labels: { event: "LibSourcify", level: "info" },
+            prefix: "LibSourcify",
             message: msg,
           });
           break;
         case 4:
           logger.debug({
-            labels: { event: "LibSourcify", level: "debug" },
+            prefix: "LibSourcify",
             message: msg,
           });
           break;
@@ -82,7 +80,13 @@ export class Server {
 
   constructor(port?: string | number) {
     this.port = port || config.server.port;
+    logger.info(`Starting Sourcify Server on port ${this.port}`);
     this.app = express();
+
+    this.app.all("*", (req, res, next) => {
+      logger.debug(`Request: ${req.method} ${req.path} \n ${req.body}`);
+      next();
+    });
 
     this.app.use(
       bodyParser.urlencoded({
@@ -197,6 +201,12 @@ export class Server {
         message: {
           error:
             "You are sending too many verification requests, please slow down.",
+        },
+        handler: (req, res, next, options) => {
+          logger.info(
+            `Rate limit hit for ${req.method} ${req.path} from ip ${req.ip}. Used: ${req.rateLimit.}`
+          );
+          res.status(options.statusCode).send(options.message)
         },
         keyGenerator: (req: any) => {
           if (req.headers["x-forwarded-for"]) {
