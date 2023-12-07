@@ -1,6 +1,6 @@
 # Needs to be run from the project root context
 FROM node:18.18.2-bullseye-slim
-RUN mkdir -p /home/node/app && chown -R node:node /home/node/app
+RUN mkdir -p /home/app && chown -R node:node /home/app
 USER node
 WORKDIR /home/app/sourcify
 
