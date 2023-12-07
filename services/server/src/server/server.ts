@@ -29,7 +29,10 @@ import { logger } from "../common/logger";
 import { setLibSourcifyLogger } from "@ethereum-sourcify/lib-sourcify";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fileUpload = require("express-fileupload");
-import { rateLimit } from "express-rate-limit";
+import {
+  MemoryStore as ExpressRateLimitMemoryStore,
+  rateLimit,
+} from "express-rate-limit";
 import path from "path";
 
 const MemoryStore = createMemoryStore(session);
@@ -79,6 +82,9 @@ export class Server {
   port: string | number;
 
   constructor(port?: string | number) {
+    logger.info(
+      `Starting Sourcify Server with config ${JSON.stringify(config, null, 2)}`
+    );
     this.port = port || config.server.port;
     logger.info(`Starting Sourcify Server on port ${this.port}`);
     this.app = express();
@@ -189,46 +195,46 @@ export class Server {
       next();
     });
 
-    if (
-      process.env.NODE_ENV === "production" &&
-      (process.env.TAG === "latest" || process.env.TAG === "stable")
-    ) {
-      const limiter = rateLimit({
-        windowMs: 2 * 1000,
-        max: 1, // Requests per windowMs
-        standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-        legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-        message: {
-          error:
-            "You are sending too many verification requests, please slow down.",
-        },
-        handler: (req, res, next, options) => {
-          logger.info(
-            `Rate limit hit for ${req.method} ${req.path} from ip ${req.ip}. Used: ${req.rateLimit.}`
-          );
-          res.status(options.statusCode).send(options.message)
-        },
-        keyGenerator: (req: any) => {
-          if (req.headers["x-forwarded-for"]) {
-            return req.headers["x-forwarded-for"].toString();
-          }
-          return req.ip;
-        },
-        skip: (req) => {
-          let ip;
-          if (req.headers["x-forwarded-for"]) {
-            ip = req.headers["x-forwarded-for"].toString();
-          } else {
-            ip = req.ip;
-          }
-          return ip?.startsWith("10.244.") || false;
-        },
-      });
+    const limiter = rateLimit({
+      windowMs: 2 * 1000,
+      max: 1, // Requests per windowMs
+      standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+      legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+      message: {
+        error:
+          "You are sending too many verification requests, please slow down.",
+      },
+      handler: (req, res, next, options) => {
+        const store = options.store as ExpressRateLimitMemoryStore;
+        const hits =
+          store.hits[
+            req.ip || req.headers["x-forwarded-for"]?.toString() || ""
+          ];
+        // prettier-ignore
+        logger.info(`Rate limit hit method=${req.method} path=${req.path} ip=${req.ip} x-forwarded-for=${req.headers["x-forwarded-for"] || ""} hits=${hits}`);
+        res.status(options.statusCode).send(options.message);
+      },
+      keyGenerator: (req: any) => {
+        if (req.headers["x-forwarded-for"]) {
+          return req.headers["x-forwarded-for"].toString();
+        }
+        return req.ip;
+      },
+      // Whitelist local IPs i.e. monitor
+      skip: (req) => {
+        let ip;
+        if (req.headers["x-forwarded-for"]) {
+          ip = req.headers["x-forwarded-for"].toString();
+        } else {
+          ip = req.ip;
+        }
+        return ip?.startsWith("10.244.") || false;
+      },
+    });
 
-      this.app.all("/session/verify/*", limiter);
-      this.app.all("/verify*", limiter);
-      this.app.post("/", limiter);
-    }
+    this.app.all("/session/verify/*", limiter);
+    this.app.all("/verify*", limiter);
+    this.app.post("/", limiter);
 
     // Session API endpoints require non "*" origins because of the session cookies
     const sessionPaths = [
