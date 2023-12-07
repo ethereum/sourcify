@@ -1,7 +1,7 @@
 # Needs to be run from the project root context
 FROM node:18.18.2-bullseye-slim
+RUN mkdir -p /home/node/app && chown -R node:node /home/node/app
 USER node
-RUN mkdir -p /home/app/sourcify
 WORKDIR /home/app/sourcify
 
 LABEL org.opencontainers.image.source https://github.com/ethereum/sourcify
