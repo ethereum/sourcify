@@ -48,6 +48,7 @@ export default {
   rateLimitWhiteList: [
     "10.244", // Kubernetes cluster internal IP range
     "127.0.0.1",
+    "::ffff:127.0.0.1",
     "::1",
   ],
 };
