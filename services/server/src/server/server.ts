@@ -90,11 +90,6 @@ export class Server {
     logger.info(`Starting Sourcify Server on port ${this.port}`);
     this.app = express();
 
-    this.app.all("*", (req, res, next) => {
-      logger.debug(`Request: ${req.method} ${req.path} \n ${req.body}`);
-      next();
-    });
-
     this.app.use(
       bodyParser.urlencoded({
         limit: config.server.maxFileSize,
@@ -113,6 +108,26 @@ export class Server {
         abortOnLimit: true,
       })
     );
+
+    this.app.use((req, res, next) => {
+      const contentType = req.headers["content-type"];
+      if (contentType === "application/json") {
+        logger.debug(
+          `Request: ${req.method} ${req.path} \n ${JSON.stringify(
+            req.body,
+            null,
+            2
+          )}`
+        );
+      } else if (contentType && contentType.includes("multipart/form-data")) {
+        logger.debug(`Request: ${req.method} ${req.path}
+        body: ${JSON.stringify(req.body, null, 2)}`);
+        // + `files: ${req?.files.map((file: any) => file.name).join(", ")}` : "");
+        next();
+      } else {
+        next();
+      }
+    });
 
     // In every request support both chain and chainId
     this.app.use((req: any, res: any, next: any) => {
