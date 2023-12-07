@@ -1,7 +1,9 @@
 # Needs to be run from the project root context
 FROM node:16.17.0-bullseye-slim
-RUN mkdir -p /home/app
-WORKDIR /home/app
+USER node
+
+RUN mkdir -p /home/app/sourcify
+WORKDIR /home/app/sourcify
 
 LABEL org.opencontainers.image.source https://github.com/ethereum/sourcify
 LABEL org.opencontainers.image.licenses MIT
@@ -19,7 +21,6 @@ ARG NODE_ENV=production
 # Set environment variable
 ENV NODE_ENV=${NODE_ENV}
 
-WORKDIR /home/app/services/server
+WORKDIR /home/app/sourcify/services/server
 
-USER node
 CMD ["npm", "start"]
