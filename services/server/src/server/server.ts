@@ -109,6 +109,7 @@ export class Server {
       })
     );
 
+    // Log all requests in debugging mode
     this.app.use((req, res, next) => {
       const contentType = req.headers["content-type"];
       if (contentType === "application/json") {
@@ -122,7 +123,6 @@ export class Server {
       } else if (contentType && contentType.includes("multipart/form-data")) {
         logger.debug(`Request: ${req.method} ${req.path}
         body: ${JSON.stringify(req.body, null, 2)}`);
-        // + `files: ${req?.files.map((file: any) => file.name).join(", ")}` : "");
         next();
       } else {
         next();
