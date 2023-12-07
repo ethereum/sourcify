@@ -41,9 +41,7 @@
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
     },
-    "rpc": [
-      "https://rpc.holesky.ethpandaops.io"
-    ]
+    "rpc": ["https://rpc.holesky.ethpandaops.io"]
   },
   "5": {
     "sourcifyName": "Ethereum Goerli Testnet",
@@ -124,10 +122,6 @@
   },
   "4": {
     "sourcifyName": "Ethereum Rinkeby Testnet",
-    "supported": false
-  },
-  "42": {
-    "sourcifyName": "Ethereum Kovan Testnet",
     "supported": false
   },
   "51": {
@@ -410,9 +404,7 @@
   "311752642": {
     "sourcifyName": "Oneledger Mainnet",
     "supported": true,
-    "rpc": [
-      "https://mainnet-rpc.oneledger.network"
-    ],
+    "rpc": ["https://mainnet-rpc.oneledger.network"],
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://mainnet-explorer.oneledger.network/"
