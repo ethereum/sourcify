@@ -34,6 +34,7 @@ import {
   rateLimit,
 } from "express-rate-limit";
 import path from "path";
+import crypto from "crypto";
 
 const MemoryStore = createMemoryStore(session);
 
@@ -205,20 +206,23 @@ export class Server {
           "You are sending too many verification requests, please slow down.",
       },
       handler: (req, res, next, options) => {
+        const ip = req.ip;
+        const ipHash = ip ? hash(ip) : "";
+        const forwardedFor = req.headers["x-forwarded-for"]
+          ? req.headers["x-forwarded-for"].toString()
+          : "";
+        const forwardedForHash = forwardedFor ? hash(forwardedFor) : "";
         const store = options.store as ExpressRateLimitMemoryStore;
-        const hits =
-          store.hits[
-            req.ip || req.headers["x-forwarded-for"]?.toString() || ""
-          ];
+        const hits = store.hits[ipHash || forwardedForHash || ""];
         // prettier-ignore
-        logger.info(`Rate limit hit method=${req.method} path=${req.path} ip=${req.ip} x-forwarded-for=${req.headers["x-forwarded-for"] || ""} hits=${hits}`);
+        logger.info(`Rate limit hit method=${req.method} path=${req.path} ip=${ipHash} x-forwarded-for=${forwardedForHash} hits=${hits}`);
         res.status(options.statusCode).send(options.message);
       },
       keyGenerator: (req: any) => {
         if (req.headers["x-forwarded-for"]) {
-          return req.headers["x-forwarded-for"].toString();
+          return hash(req.headers["x-forwarded-for"].toString());
         }
-        return req.ip;
+        return hash(req.ip);
       },
       // Whitelist local IPs i.e. monitor
       skip: (req) => {
@@ -376,4 +380,8 @@ if (require.main === module) {
         logger.info(`Server listening on port ${server.port}`)
       );
     });
+}
+
+function hash(data: string) {
+  return crypto.createHash("sha256").update(data).digest("hex");
 }
