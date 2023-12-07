@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import { createLogger, transports, format } from "winston";
+import chalk from "chalk";
 
 dotenv.config();
 
@@ -12,7 +13,7 @@ const myFormat = format.printf(
     timestamp?: string;
     prefix?: string;
   }) => {
-    return `${info.timestamp} [${info.level}]: [Server] - ${
+    return `${info.timestamp} ${chalk.cyan("[Server]")} [${info.level}]: ${
       info.prefix ? `[${info.prefix}] -` : ""
     } ${info.message}`;
   }

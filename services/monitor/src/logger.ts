@@ -1,5 +1,6 @@
 import { setLibSourcifyLogger } from "@ethereum-sourcify/lib-sourcify";
 import { createLogger, transports, format } from "winston";
+import chalk from "chalk";
 
 const logger = createLogger();
 
@@ -11,7 +12,7 @@ const myFormat = format.printf(
     labels?: { event: string; level: string };
     prefix?: string;
   }) => {
-    return `${info.timestamp} [${info.level}]: [Monitor] - ${
+    return `${info.timestamp} ${chalk.magenta("[Monitor]")} [${info.level}]: ${
       info.prefix ? `[${info.prefix}] -` : ""
     } ${info.message}`;
   }

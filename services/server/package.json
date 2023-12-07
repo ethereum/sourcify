@@ -42,6 +42,7 @@
     "@google-cloud/cloud-sql-connector": "^0.5.1",
     "abitype": "0.8.0",
     "bunyan": "^1.8.12",
+    "chalk": "^4.1.2",
     "cors": "^2.8.5",
     "directory-tree": "^3.5.1",
     "dotenv": "^8.2.0",
