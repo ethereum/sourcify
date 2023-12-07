@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request } from "express";
 import serveIndex from "serve-index";
 import cors from "cors";
 import routes from "./routes";
@@ -35,6 +35,7 @@ import {
 } from "express-rate-limit";
 import path from "path";
 import crypto from "crypto";
+import { get } from "http";
 
 const MemoryStore = createMemoryStore(session);
 
@@ -218,33 +219,25 @@ export class Server {
           "You are sending too many verification requests, please slow down.",
       },
       handler: (req, res, next, options) => {
-        const ip = req.ip;
+        const ip = getIp(req);
         const ipHash = ip ? hash(ip) : "";
-        const forwardedFor = req.headers["x-forwarded-for"]
-          ? req.headers["x-forwarded-for"].toString()
-          : "";
-        const forwardedForHash = forwardedFor ? hash(forwardedFor) : "";
+        const ipLog = process.env.NODE_ENV === "production" ? ipHash : ip; // Don't log IP in production
         const store = options.store as ExpressRateLimitMemoryStore;
-        const hits = store.hits[ipHash || forwardedForHash || ""];
-        // prettier-ignore
-        logger.info(`Rate limit hit method=${req.method} path=${req.path} ip=${ipHash} x-forwarded-for=${forwardedForHash} hits=${hits}`);
+        const hits = store.hits[ip || ""];
+        logger.info(
+          `Rate limit hit method=${req.method} path=${req.path} ip=${ipLog} hits=${hits}`
+        );
         res.status(options.statusCode).send(options.message);
       },
       keyGenerator: (req: any) => {
-        if (req.headers["x-forwarded-for"]) {
-          return hash(req.headers["x-forwarded-for"].toString());
-        }
-        return hash(req.ip);
+        return getIp(req) || new Date().toISOString();
       },
-      // Whitelist local IPs i.e. monitor
       skip: (req) => {
-        let ip;
-        if (req.headers["x-forwarded-for"]) {
-          ip = req.headers["x-forwarded-for"].toString();
-        } else {
-          ip = req.ip;
+        const ip = getIp(req);
+        for (const ipPrefix of config.rateLimitWhiteList) {
+          if (ip?.startsWith(ipPrefix)) return true;
         }
-        return ip?.startsWith("10.244.") || false;
+        return false;
       },
     });
 
@@ -396,4 +389,11 @@ if (require.main === module) {
 
 function hash(data: string) {
   return crypto.createHash("sha256").update(data).digest("hex");
+}
+
+function getIp(req: Request) {
+  if (req.headers["x-forwarded-for"]) {
+    return req.headers["x-forwarded-for"].toString();
+  }
+  return req.ip;
 }

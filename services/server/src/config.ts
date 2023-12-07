@@ -45,4 +45,9 @@ export default {
     /^https?:\/\/(?:.+\.)?ipfs.dweb.link$/, // dweb links used by Brave browser etc.
     process.env.NODE_ENV === "development" && /^https?:\/\/localhost(?::\d+)?$/, // localhost on any port
   ],
+  rateLimitWhiteList: [
+    "10.244", // Kubernetes cluster internal IP range
+    "127.0.0.1",
+    "::1",
+  ],
 };
