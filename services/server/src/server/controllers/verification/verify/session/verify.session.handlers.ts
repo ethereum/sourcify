@@ -25,6 +25,7 @@ export async function verifyContractsInSessionEndpoint(
   const requestId = req.headers["X-Request-ID"] || "";
   const requestIdMsg = requestId ? `requestId=${requestId} ` : "";
 
+  /* eslint-disable indent */
   logger.info(`${requestIdMsg} /session/verify - \
     ${receivedContracts
       .map(
@@ -32,6 +33,7 @@ export async function verifyContractsInSessionEndpoint(
     address=${c.address} chainId=${c.chainId}`
       )
       .join(", ")})}`);
+  /* eslint-enable indent*/
 
   const verifiable: ContractWrapperMap = {};
   for (const receivedContract of receivedContracts) {
