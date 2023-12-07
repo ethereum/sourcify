@@ -114,15 +114,12 @@ export class Server {
       const contentType = req.headers["content-type"];
       if (contentType === "application/json") {
         logger.debug(
-          `Request: ${req.method} ${req.path} \n ${JSON.stringify(
-            req.body,
-            null,
-            2
-          )}`
+          `Request: ${req.method} ${req.path} chainId=${req.body.chainId} address=${req.body.address}`
         );
       } else if (contentType && contentType.includes("multipart/form-data")) {
-        logger.debug(`Request: ${req.method} ${req.path}
-        body: ${JSON.stringify(req.body, null, 2)}`);
+        logger.debug(
+          `Request: ${req.method} ${req.path} (multipart) chainId=${req.body.chainId} address=${req.body.address}`
+        );
         next();
       } else {
         next();
