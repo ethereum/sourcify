@@ -204,6 +204,15 @@ export class Server {
           }
           return req.ip;
         },
+        skip: (req) => {
+          let ip;
+          if (req.headers["x-forwarded-for"]) {
+            ip = req.headers["x-forwarded-for"].toString();
+          } else {
+            ip = req.ip;
+          }
+          return ip?.startsWith("10.244.") || false;
+        },
       });
 
       this.app.all("/session/verify/*", limiter);
