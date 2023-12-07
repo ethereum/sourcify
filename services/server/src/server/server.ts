@@ -117,6 +117,7 @@ export class Server {
         logger.debug(
           `Request: ${req.method} ${req.path} chainId=${req.body.chainId} address=${req.body.address}`
         );
+        next();
       } else if (contentType && contentType.includes("multipart/form-data")) {
         logger.debug(
           `Request: ${req.method} ${req.path} (multipart) chainId=${req.body.chainId} address=${req.body.address}`
@@ -241,7 +242,7 @@ export class Server {
       },
     });
 
-    this.app.all("/session/verify/*", limiter);
+    this.app.all("/session/verify*", limiter);
     this.app.all("/verify*", limiter);
     this.app.post("/", limiter);
 
