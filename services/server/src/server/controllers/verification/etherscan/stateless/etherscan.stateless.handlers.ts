@@ -10,6 +10,7 @@ import { checkSupportedChainId } from "../../../../../sourcify-chains";
 import { getResponseMatchFromMatch } from "../../../../common";
 import { createCheckedContract } from "../../verification.common";
 import { sourcifyChainsMap } from "../../../../../sourcify-chains";
+import { logger } from "../../../../../common/logger";
 
 export async function verifyFromEtherscan(req: Request, res: Response) {
   checkSupportedChainId(req.body.chain);
@@ -17,6 +18,12 @@ export async function verifyFromEtherscan(req: Request, res: Response) {
   const chain = req.body.chain as string;
   const address = req.body.address;
   const sourcifyChain = sourcifyChainsMap[chain];
+
+  const requestId = req.headers["X-Request-ID"] || "";
+  const requestIdMsg = requestId ? `requestId=${requestId} ` : "";
+
+  logger.info(`${requestIdMsg} /verify - \
+    address=${address} chainId=${chain}`);
 
   const { compilerVersion, solcJsonInput, contractName } =
     await processRequestFromEtherscan(sourcifyChain, address);

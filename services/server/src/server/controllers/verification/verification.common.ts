@@ -1,20 +1,16 @@
-import { NextFunction, Request, RequestHandler, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import {
   BadRequestError,
-  InternalServerError,
   PayloadTooLargeError,
   ValidationError,
 } from "../../../common/errors";
 import {
   CheckedContract,
-  CompilerOutput,
   InvalidSources,
-  JsonInput,
   Match,
   Metadata,
   MissingSources,
   PathContent,
-  Status,
   StringMap,
   checkFiles,
   isEmpty,
@@ -28,7 +24,6 @@ import { IVerificationService } from "../../services/VerificationService";
 import { ContractMeta, ContractWrapper, getMatchStatus } from "../../common";
 import { auth } from "express-oauth2-jwt-bearer";
 import rateLimit from "express-rate-limit";
-import config from "../../../config";
 import { id as keccak256str } from "ethers";
 import { ForbiddenError } from "../../../common/errors/ForbiddenError";
 import { UnauthorizedError } from "../../../common/errors/UnauthorizedError";
@@ -36,15 +31,18 @@ import { ISolidityCompiler } from "@ethereum-sourcify/lib-sourcify";
 import { SolcLambda } from "../../services/compiler/lambda/SolcLambda";
 import { SolcLocal } from "../../services/compiler/local/SolcLocal";
 import { StorageService } from "../../services/StorageService";
+import { logger } from "../../../common/logger";
 
 let selectedSolidityCompiler: ISolidityCompiler;
 switch (process.env.SOLIDITY_COMPILER) {
   case "lambda": {
+    logger.info("Using lambda solidity compiler");
     selectedSolidityCompiler = new SolcLambda();
     break;
   }
   case "local":
   default: {
+    logger.info("Using local solidity compiler");
     selectedSolidityCompiler = new SolcLocal();
   }
 }

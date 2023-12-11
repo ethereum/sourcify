@@ -1,5 +1,4 @@
 import { Match, CheckedContract } from "@ethereum-sourcify/lib-sourcify";
-import { logger } from "../../common/loggerLoki";
 import {
   IpfsRepositoryService,
   IpfsRepositoryServiceOptions,
@@ -8,6 +7,7 @@ import {
   AllianceDatabaseService,
   AllianceDatabaseServiceOptions,
 } from "./storageServices/AllianceDatabaseService";
+import { logger } from "../../common/logger";
 
 export interface IStorageService {
   init(): Promise<boolean>;
@@ -58,6 +58,9 @@ export class StorageService {
   }
 
   storeMatch(contract: CheckedContract, match: Match) {
+    logger.info(
+      `Storing ${contract.name} address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
+    );
     // this.allianceDatabase?.storeMatch(contract, match);
     return this.ipfsRepository.storeMatch(contract, match);
   }

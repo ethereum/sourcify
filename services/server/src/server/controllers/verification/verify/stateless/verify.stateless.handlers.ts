@@ -14,6 +14,7 @@ import {
 import { BadRequestError, NotFoundError } from "../../../../../common/errors";
 import { StatusCodes } from "http-status-codes";
 import { getResponseMatchFromMatch } from "../../../../common";
+import { logger } from "../../../../../common/logger";
 
 export async function legacyVerifyEndpoint(
   req: LegacyVerifyRequest,
@@ -76,6 +77,9 @@ export async function legacyVerifyEndpoint(
     );
     // Send to verification again with all source files.
     if (match.runtimeMatch === "extra-file-input-bug") {
+      logger.info(
+        `Found an extra-file-input-bug for ${contract.name} on ${req.body.chain} at ${req.body.address}. Sending to verification again with all source files.`
+      );
       const contractWithAllSources = await useAllSources(contract, inputFiles);
       const tempMatch = await services.verification.verifyDeployed(
         contractWithAllSources,

@@ -2086,26 +2086,5 @@ describe("Server", function () {
           "0x15c5208cacbc1e14d9906926b8a991ec986a442f26081fe5ac9de4eb671c5195"
         );
     });
-    it("should attach and trigger an event with the event manager", function (done) {
-      const EventManager = require("../dist/common/EventManager").EventManager;
-      const em = new EventManager({
-        "*": [],
-        TestEvent: [],
-      });
-      let hitCounter = 0;
-      em.on("*", function () {
-        hitCounter++;
-        if (hitCounter == 2) {
-          done();
-        }
-      });
-      em.on("TestEvent", function () {
-        hitCounter++;
-        if (hitCounter == 2) {
-          done();
-        }
-      });
-      em.trigger("TestEvent");
-    });
   });
 });

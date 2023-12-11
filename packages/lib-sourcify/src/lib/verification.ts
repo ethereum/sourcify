@@ -217,8 +217,15 @@ export async function verifyDeployed(
   }
 
   if (match.creationMatch !== null || match.runtimeMatch !== null) {
+    logInfo(
+      `Verified contract successfully name=${checkedContract.name} address=${address} chainId=${match.chainId} runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
+    );
     return match;
   }
+
+  logInfo(
+    `Failed to verify contract address=${address} chainId=${sourcifyChain.chainId} message=${match.message}`
+  );
   throw Error("The deployed and recompiled bytecode don't match.");
 }
 
