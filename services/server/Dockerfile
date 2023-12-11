@@ -3,8 +3,8 @@
 # Builder image
 FROM node:16.17.0-bullseye as builder
 
-RUN mkdir -p /home/app/sourcify
-WORKDIR /home/app/sourcify
+RUN mkdir -p /home/app
+WORKDIR /home/app
 
 COPY  . .
 
@@ -16,13 +16,13 @@ RUN npx lerna run build --scope sourcify-server
 ######################
 FROM node:16.17.0-bullseye-slim as production
 
-RUN mkdir -p /home/app/sourcify/services/server
+RUN mkdir -p /home/app/services/server
 
-WORKDIR /home/app/sourcify/services/server
+WORKDIR /home/app/services/server
 COPY services/server/package.json ./package.json
 
 RUN npm install --omit=dev 
-COPY --from=builder /home/app/sourcify/services/server/dist ./dist
+COPY --from=builder /home/app/services/server/dist ./dist
 
 LABEL org.opencontainers.image.source https://github.com/ethereum/sourcify
 LABEL org.opencontainers.image.licenses MIT

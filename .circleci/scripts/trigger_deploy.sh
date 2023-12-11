@@ -53,6 +53,10 @@ for service in "${services[@]}"; do
 
     # Add a new line for readability
     echo ""
+    
+    # Wait 5 seconds between each service to avoid concurrent Github commits
+    echo "Waiting 5 secs..."
+    sleep 5
 done
 
 # Wait 5 minutes in 1 minute intervals for the deploy to complete. TODO: Replace with a check for the deploy status
