@@ -626,6 +626,13 @@ export class IpfsRepositoryService implements IStorageService {
     // Clean ../ and ./ from the path. Also collapse multiple slashes into one.
     let sanitizedPath = path.normalize(originalPath);
 
+    // Replace all unique cases not addressed by `path.normalize`
+    const sanitizeUniqueCases = ["\n"];
+    sanitizedPath = sanitizedPath.replace(
+      new RegExp(`[${sanitizeUniqueCases}]`, "g"),
+      ""
+    );
+
     // If there are no upper folders to traverse, path.normalize will keep ../ parts. Need to remove any of those.
     const parsedPath = path.parse(sanitizedPath);
     const sanitizedDir = parsedPath.dir
