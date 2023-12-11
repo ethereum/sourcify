@@ -1,19 +1,28 @@
 # Needs to be run from the project root context
-FROM node:18.18.2-bullseye-slim
-RUN mkdir -p /home/app/sourcify && chown -R node:node /home/app/sourcify
-USER node
-
+FROM node:18.18.2-bullseye as builder
+RUN mkdir -p /home/app/sourcify
 WORKDIR /home/app/sourcify
+
+COPY  . .
+
+RUN npm ci --workspace=sourcify-monitor --include-workspace-root
+RUN npx lerna run build --scope sourcify-monitor
+
+######################
+## Production image ##
+######################
+FROM node:16.17.0-bullseye-slim as production
+
+RUN mkdir -p /home/app/sourcify/services/monitor
+
+WORKDIR /home/app/sourcify/services/monitor
+COPY services/monitor/package.json ./package.json
+
+RUN npm install --omit=dev 
+COPY --from=builder /home/app/sourcify/services/monitor/dist ./dist
 
 LABEL org.opencontainers.image.source https://github.com/ethereum/sourcify
 LABEL org.opencontainers.image.licenses MIT
-
-COPY --chown=node:node *.json ./
-COPY --chown=node:node packages ./packages
-COPY --chown=node:node services/monitor ./services/monitor
-
-RUN npm install
-RUN npx lerna run build --scope sourcify-monitor
 
 ARG ALCHEMY_API_KEY
 ARG INFURA_API_KEY
