@@ -17,6 +17,7 @@ RUN mkdir -p /home/app/services/monitor
 
 WORKDIR /home/app/services/monitor
 COPY services/monitor/package.json ./package.json
+COPY services/monitor/chains.json ./chains.json
 
 RUN npm install --omit=dev 
 COPY --from=builder /home/app/services/monitor/dist ./dist
@@ -37,4 +38,4 @@ ENV NODE_ENV=${NODE_ENV}
 
 WORKDIR /home/app/services/monitor
 
-CMD ["npm", "start"]
+CMD ["node", "dist/index.js", "--chainsPath", "chains.json" ]
