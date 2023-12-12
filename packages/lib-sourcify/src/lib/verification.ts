@@ -32,7 +32,7 @@ import { hexZeroPad, isHexString } from '@ethersproject/bytes';
 import { BigNumber } from '@ethersproject/bignumber';
 import { defaultAbiCoder as abiCoder, ParamType } from '@ethersproject/abi';
 import { AbiConstructor } from 'abitype';
-import { logInfo, logWarn } from './logger';
+import { logDebug, logInfo, logWarn } from './logger';
 import SourcifyChain from './SourcifyChain';
 import { lt } from 'semver';
 
@@ -687,7 +687,7 @@ function endsWithMetadataHash(bytecode: string) {
     endsWithMetadata =
       !!decodedCBOR.ipfs || !!decodedCBOR['bzzr0'] || !!decodedCBOR['bzzr1'];
   } catch (e) {
-    logInfo("Can't decode CBOR");
+    logDebug("Can't decode CBOR");
     endsWithMetadata = false;
   }
   return endsWithMetadata;
