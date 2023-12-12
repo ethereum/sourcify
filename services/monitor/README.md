@@ -118,10 +118,10 @@ docker run \
   -v /path/to/config.json:/home/app/services/monitor/config.json \
   -e ALCHEMY_API_KEY=xxx \
   -e INFURA_API_KEY=xxx \
-  ethereum/source-verify:monitor-stable
+  ethereum/sourcify:monitor-stable
 ```
 
-The containers are at [Docker Hub](https://hub.docker.com/r/ethereum/source-verify/tags).
+The containers are at [Github](https://github.com/orgs/ethereum/packages?repo_name=sourcify).
 
 ## Development
 

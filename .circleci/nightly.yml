@@ -79,7 +79,7 @@ jobs:
       CHAIN_ID: "11155111"
       CHAIN_NAME: sepolia
   check-s3-backup:
-    working_directory: ~/source-verify
+    working_directory: ~/sourcify
     steps:
       - checkout
       - run:
@@ -91,7 +91,7 @@ jobs:
     docker:
       - image: cimg/node:16.15
   check-etherscan-instances:
-    working_directory: ~/source-verify
+    working_directory: ~/sourcify
     steps:
       - checkout
       - run:

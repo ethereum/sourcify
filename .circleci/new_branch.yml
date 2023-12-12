@@ -14,7 +14,7 @@ jobs:
   node-v16:
     docker:
       - image: cimg/node:16.15
-    working_directory: ~/source-verify
+    working_directory: ~/sourcify
     parameters:
       run_coveralls:
         type: boolean
@@ -39,7 +39,7 @@ jobs:
   test-new-chain:
     docker:
       - image: cimg/node:16.15
-    working_directory: ~/source-verify
+    working_directory: ~/sourcify
     steps:
       - checkout
       - run:

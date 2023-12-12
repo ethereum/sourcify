@@ -1,13 +1,13 @@
 version: "3.7"
 
 networks:
-  source-verify:
+  sourcify:
 
 services:
   ui:
     restart: always
     networks:
-      - source-verify
+      - sourcify
     image: ethereum/sourcify/ui
     container_name: ethereum/sourcify/ui
     healthcheck:

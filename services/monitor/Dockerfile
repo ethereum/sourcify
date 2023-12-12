@@ -11,7 +11,7 @@ RUN npx lerna run build --scope sourcify-monitor
 ######################
 ## Production image ##
 ######################
-FROM node:16.17.0-bullseye-slim as production
+FROM node:18.18.2-bullseye-slim as production
 
 RUN mkdir -p /home/app/services/monitor
 
