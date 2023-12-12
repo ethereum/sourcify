@@ -59,8 +59,8 @@ for service in "${services[@]}"; do
     sleep 5
 done
 
-# Wait 5 minutes in 1 minute intervals for the deploy to complete. TODO: Replace with a check for the deploy status
-for i in {1..5}
+# Wait 6 minutes in 1 minute intervals for the deploy to complete. 6 min is 2x the default 3min polling time of ArgoCD
+for i in {1..6}
 do
   echo "Waiting for $i minute(s)..."
   sleep 60
