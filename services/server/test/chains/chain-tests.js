@@ -55,8 +55,8 @@ describe("Test Supported Chains", function () {
     if (!anyTestsPass && newAddedChainIds.length) {
       throw new Error(
         "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id(s) " +
-        newAddedChainIds.join(",") +
-        "?"
+          newAddedChainIds.join(",") +
+          "?"
       );
     }
   });
@@ -1297,6 +1297,15 @@ describe("Test Supported Chains", function () {
     "Zeniq",
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
+  );
+
+  // Tiltyard Subnet
+  verifyContract(
+    "0xfd52e1A54442aC8d6a7C54713f99D0dc113df220",
+    "1127469",
+    "Tiltyard Subnet",
+    [],
+    "1127469/multicall3.metadata.json"
   );
 
   // Finally check if all the "supported: true" chains have been tested

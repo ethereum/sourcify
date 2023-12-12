@@ -1314,5 +1314,12 @@
         "url": "https://zeniqscan.com/"
       }
     }
+  },
+  "1127469": {
+    "sourcifyName": "Tiltyard Subnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "avalancheApi": true
+    }
   }
 }
