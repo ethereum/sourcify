@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { exec, spawnSync } from 'child_process';
 import { StatusCodes } from 'http-status-codes';
-import { CompilerOutput, JsonInput, PathBuffer } from '../../src';
+import { CompilerOutput, JsonInput } from '../../src';
 import { logDebug, logError, logInfo, logWarn } from './logger';
 import semver from 'semver';
 import { Worker, WorkerOptions } from 'worker_threads';
