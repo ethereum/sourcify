@@ -1,4 +1,7 @@
 import path from "path";
+// First env vars need to be loaded before config
+import dotenv from "dotenv";
+dotenv.config();
 // Make sure config is relative to server.ts and not where the server is run from
 process.env["NODE_CONFIG_DIR"] = path.resolve(__dirname, "../..", "config");
 import config from "config";
