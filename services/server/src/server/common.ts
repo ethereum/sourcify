@@ -46,10 +46,6 @@ export const validateSourcifyChainIds = (chainIds: string) => {
   const invalidChainIds: string[] = [];
   for (const chainId of chainIdsArray) {
     try {
-      if (chainId === "0") {
-        // create2 verified contract
-        validChainIds.push("0");
-      }
       if (checkSourcifyChainId(chainId)) {
         validChainIds.push(chainId);
       }

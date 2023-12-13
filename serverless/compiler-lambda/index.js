@@ -253,8 +253,7 @@ async function getSolcJs(version = "latest") {
     version = "v" + version;
   }
 
-  const soljsonRepo =
-    process.env.SOLJSON_REPO || path.join("/tmp", "soljson-repo");
+  const soljsonRepo = path.join("/tmp", "soljson-repo");
   const fileName = `soljson-${version}.js`;
   const soljsonPath = path.resolve(soljsonRepo, fileName);
 

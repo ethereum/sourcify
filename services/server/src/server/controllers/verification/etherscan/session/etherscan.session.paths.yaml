@@ -3,7 +3,7 @@ openapi: "3.0.0"
 paths:
   /session/verify/etherscan:
     post:
-      summary: Verify create2
+      summary: Verify from Etherscan
       tags:
         - Session Verification
       requestBody:
