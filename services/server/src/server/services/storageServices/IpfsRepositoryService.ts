@@ -455,6 +455,9 @@ export class IpfsRepositoryService implements IStorageService {
         );
       }
 
+      logger.info(
+        `Stored ${contract.name} to filesystem address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
+      );
       await this.addToIpfsMfs(matchQuality, match.chainId, match.address);
     } else if (match.runtimeMatch === "extra-file-input-bug") {
       return match;
@@ -580,6 +583,7 @@ export class IpfsRepositoryService implements IStorageService {
     address: string
   ) {
     if (!this.ipfsClient) return;
+    logger.info(`Adding ${address} on chain ${chainId} to IPFS MFS`);
     const contractFolderDir = this.generateAbsoluteFilePath({
       matchQuality,
       chainId,
@@ -617,6 +621,7 @@ export class IpfsRepositoryService implements IStorageService {
       });
       await this.ipfsClient.files.cp(addResult.cid, mfsPath, { parents: true });
     }
+    logger.info(`Added ${address} on chain ${chainId} to IPFS MFS`);
   }
   private sanitizePath(originalPath: string) {
     // Clean ../ and ./ from the path. Also collapse multiple slashes into one.
