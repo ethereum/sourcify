@@ -108,20 +108,21 @@ The `--chainsPath` and `--configPath` are optional. If not provided, the default
 
 ### 2. Run via Docker
 
+The containers are published in the [Github Container Registry](https://github.com/ethereum/sourcify/pkgs/container/sourcify%2Fmonitor)
+
 The recommended way to run the Sourcify Monitor is via Docker.
 
 You need to pass the `chains.json` and `config.json` files to the container. You can do this by mounting them as volumes:
 
 ```bash
-docker run \
+$ docker pull ghcr.io/ethereum/sourcify/monitor:stable
+$ docker run \
   -v /path/to/chains.json:/home/app/services/monitor/chains.json \
   -v /path/to/config.json:/home/app/services/monitor/config.json \
   -e ALCHEMY_API_KEY=xxx \
   -e INFURA_API_KEY=xxx \
-  ethereum/sourcify:monitor-stable
+  ghcr.io/ethereum/sourcify/monitor:stable
 ```
-
-The containers are at [Github](https://github.com/orgs/ethereum/packages?repo_name=sourcify).
 
 ## Development
 
