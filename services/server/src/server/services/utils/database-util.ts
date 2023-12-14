@@ -1,14 +1,22 @@
+import {
+  CompiledContractArtifactsCborAuxdata,
+  ImmutableReferences,
+  Transformation,
+  TransformationValues,
+} from "@ethereum-sourcify/lib-sourcify";
 import { Pool } from "pg";
 
+type Hash = string;
+
 // eslint-disable-next-line @typescript-eslint/no-namespace
-namespace Tables {
+export namespace Tables {
   export interface Code {
-    bytecodeHash: string;
+    bytecodeHash: Hash;
     bytecode: string;
   }
   export interface Contract {
-    creationBytecodeHash: string;
-    runtimeBytecodeHash: string;
+    creationBytecodeHash: Hash;
+    runtimeBytecodeHash: Hash;
   }
   export interface ContractDeployment {
     chainId: string;
@@ -25,8 +33,8 @@ namespace Tables {
     compilationArtifacts: Object;
     sources: Object;
     compilerSettings: Object;
-    creationCodeHash: string;
-    runtimeCodeHash: string;
+    creationCodeHash: Hash;
+    runtimeCodeHash: Hash;
     creationCodeArtifacts: Object;
     runtimeCodeArtifacts: Object;
   }
@@ -48,10 +56,43 @@ namespace Tables {
   }
 }
 
+export interface DatabaseColumns {
+  keccak256OnchainCreationBytecode: Hash;
+  keccak256OnchainRuntimeBytecode: Hash;
+  keccak256RecompiledCreationBytecode: Hash;
+  keccak256RecompiledRuntimeBytecode: Hash;
+  runtimeTransformations: Transformation[] | undefined;
+  runtimeTransformationValues: TransformationValues | undefined;
+  creationTransformations: Transformation[] | undefined;
+  creationTransformationValues: TransformationValues | undefined;
+  compilationTargetPath: string;
+  compilationTargetName: string;
+  language: string;
+  compilationArtifacts: {
+    abi: {};
+    userdoc: any;
+    devdoc: any;
+    storageLayout: any;
+  };
+  creationCodeArtifacts: {
+    sourceMap: string;
+    linkReferences: {};
+    cborAuxdata: CompiledContractArtifactsCborAuxdata | undefined;
+  };
+  runtimeCodeArtifacts: {
+    sourceMap: string;
+    linkReferences: {};
+    immutableReferences: ImmutableReferences;
+    cborAuxdata: CompiledContractArtifactsCborAuxdata | undefined;
+  };
+  runtimeMatch: boolean;
+  creationMatch: boolean;
+}
+
 export async function getVerifiedContractByBytecodeHashes(
   pool: Pool,
-  runtimeBytecodeHash: string,
-  creationBytecodeHash: string
+  runtimeBytecodeHash: Hash,
+  creationBytecodeHash: Hash
 ) {
   return await pool.query(
     `
@@ -83,6 +124,14 @@ export async function getSourcifyMatchByChainAddress(
         contract_deployments.contract_id = contracts.id 
         AND contract_deployments.chain_id = $1 
         AND contract_deployments.address = $2
+      ORDER BY
+        CASE 
+          WHEN sourcify_matches.creation_match = 'perfect' AND sourcify_matches.runtime_match = 'perfect' THEN 1
+          WHEN sourcify_matches.creation_match = 'perfect' AND sourcify_matches.runtime_match = 'partial' THEN 2
+          WHEN sourcify_matches.creation_match = 'partial' AND sourcify_matches.runtime_match = 'perfect' THEN 3
+          WHEN sourcify_matches.creation_match = 'partial' AND sourcify_matches.runtime_match = 'partial' THEN 4
+          ELSE 4
+        END;
     `,
     [chain, address]
   );
@@ -300,4 +349,20 @@ export async function insertSourcifyMatch(
       ) VALUES ($1, $2, $3)`,
     [verifiedContractId, runtimeMatch, creationMatch]
   );
+}
+
+// Right now we are not updating, we are inserting every time a new match
+export async function updateSourcifyMatch(
+  pool: Pool,
+  { verifiedContractId, runtimeMatch, creationMatch }: Tables.SourcifyMatch
+) {
+  await pool.query(
+    `INSERT INTO sourcify_matches (
+        verified_contract_id,
+        creation_match,
+        runtime_match
+      ) VALUES ($1, $2, $3)`,
+    [verifiedContractId, runtimeMatch, creationMatch]
+  );
+  // Delete previous match?
 }

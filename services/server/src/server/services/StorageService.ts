@@ -11,6 +11,7 @@ import {
   AllianceDatabaseService,
   AllianceDatabaseServiceOptions,
 } from "./storageServices/AllianceDatabaseService";
+import { logger } from "../../common/loggerLoki";
 
 export interface IStorageService {
   init(): Promise<boolean>;
@@ -84,10 +85,12 @@ export class StorageService {
   }
 
   storeMatch(contract: CheckedContract, match: Match) {
-    // this.allianceDatabase?.storeMatch(contract, match);
     try {
-      this.ipfsRepository.storeMatch(contract, match);
-    } catch (e) {}
+      this.allianceDatabase?.storeMatch(contract, match);
+    } catch (e) {
+      logger.warn("Error while storing on the AllianceDatabase: ", e);
+    }
+    this.ipfsRepository.storeMatch(contract, match);
     return this.sourcifyDatabase?.storeMatch(contract, match);
   }
 }

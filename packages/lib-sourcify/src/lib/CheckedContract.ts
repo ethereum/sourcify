@@ -16,7 +16,10 @@ import {
 import semver from 'semver';
 import { fetchWithTimeout } from './utils';
 import { storeByHash } from './validation';
-import { decode as decodeBytecode } from '@ethereum-sourcify/bytecode-utils';
+import {
+  decode as decodeBytecode,
+  splitAuxdata,
+} from '@ethereum-sourcify/bytecode-utils';
 import { ipfsHash } from './hashFunctions/ipfsHash';
 import { swarmBzzr0Hash, swarmBzzr1Hash } from './hashFunctions/swarmHash';
 import { logError, logInfo, logWarn } from './logger';
@@ -286,6 +289,63 @@ export class CheckedContract {
       return false;
     }
 
+    const originalAuxdatasList = findAuxdatasInLegacyAssembly(
+      this.compilerOutput.contracts[this.compiledPath][this.name].evm
+        .legacyAssembly
+    );
+
+    // There is not auxadata
+    if (originalAuxdatasList.length === 0) {
+      this.artifacts = {
+        creationBytecodeCborAuxdata: {},
+        runtimeBytecodeCborAuxdata: {},
+      };
+      return true;
+    }
+
+    // There is only one auxdata, so no need to recompile
+    if (originalAuxdatasList.length === 1) {
+      const [, creationAuxdataCbor, creationCborLenghtHex] = splitAuxdata(
+        this.creationBytecode
+      );
+
+      const [, runtimeAuxdataCbor, runtimeCborLenghtHex] = splitAuxdata(
+        this.runtimeBytecode
+      );
+
+      const creationAuxdata = `${creationAuxdataCbor}${creationCborLenghtHex}`;
+      const runtimeAuxdata = `${runtimeAuxdataCbor}${runtimeCborLenghtHex}`;
+
+      // For some reason the extracted auxdata differs from the legacyAssembly's auxdata
+      if (
+        originalAuxdatasList[0] !== creationAuxdata ||
+        originalAuxdatasList[0] !== runtimeAuxdata
+      ) {
+        return false;
+      }
+
+      this.artifacts = {
+        creationBytecodeCborAuxdata: {
+          '0': {
+            offset:
+              this.creationBytecode.length -
+              (2 + parseInt(creationCborLenghtHex, 16)),
+            value: creationAuxdata,
+          },
+        },
+        runtimeBytecodeCborAuxdata: {
+          '0': {
+            offset:
+              this.runtimeBytecode.length -
+              (2 + parseInt(runtimeCborLenghtHex, 16)),
+            value: runtimeAuxdata,
+          },
+        },
+      };
+      return true;
+    }
+
+    // Multiple auxdatas, we need to recompile with a slightly edited file to check the differences
     const editedContractCompilerOutput = await this.generateEditedContract({
       version: this.metadata.compiler.version,
       solcJsonInput: this.solcJsonInput,
@@ -293,11 +353,6 @@ export class CheckedContract {
     });
     const editedContract =
       editedContractCompilerOutput?.contracts[this.compiledPath][this.name];
-
-    const originalAuxdatasList = findAuxdatasInLegacyAssembly(
-      this.compilerOutput.contracts[this.compiledPath][this.name].evm
-        .legacyAssembly
-    );
 
     const editedAuxdatasList = findAuxdatasInLegacyAssembly(
       editedContract.evm.legacyAssembly
@@ -571,7 +626,7 @@ function createJsonInputFromMetadata(
     'devdoc',
     'userdoc',
     'storageLayout',
-    // 'evm.legacyAssembly',
+    'evm.legacyAssembly',
     'evm.bytecode.object',
     'evm.bytecode.sourceMap',
     'evm.bytecode.linkReferences',

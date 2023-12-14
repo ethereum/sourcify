@@ -278,8 +278,8 @@ exports.up = function (db, callback) {
             mapping: "id",
           },
         },
-        creation_match: { type: "varchar", notNull: true },
-        runtime_match: { type: "varchar", notNull: true },
+        creation_match: { type: "varchar", notNull: false },
+        runtime_match: { type: "varchar", notNull: false },
         created_at: {
           type: "timestamptz",
           notNull: true,
