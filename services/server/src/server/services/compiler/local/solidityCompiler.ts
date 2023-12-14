@@ -3,7 +3,6 @@ import path from "path";
 import fs from "fs";
 import { exec, spawnSync } from "child_process";
 import { StatusCodes } from "http-status-codes";
-import { logDebug, logError, logInfo, logWarn } from "./logger";
 import semver from "semver";
 import { Worker, WorkerOptions } from "worker_threads";
 import {
@@ -11,6 +10,8 @@ import {
   JsonInput,
   PathBuffer,
 } from "@ethereum-sourcify/lib-sourcify";
+import config from "config";
+import { logger } from "../../../../common/logger";
 
 require("isomorphic-fetch");
 interface RequestInitTimeout extends RequestInit {
@@ -25,7 +26,7 @@ export async function fetchWithTimeout(
 
   const controller = new AbortController();
   const id = setTimeout(() => {
-    logWarn(`Aborting request ${resource} because of timout ${timeout}`);
+    logger.warn(`Aborting request ${resource} because of timout ${timeout}`);
     controller.abort();
   }, timeout);
   const response = await fetch(resource, {
@@ -82,7 +83,7 @@ export async function useCompiler(
   }
   let startCompilation: number;
   if (solcPath && !forceEmscripten) {
-    logDebug(`Compiling with solc binary ${version} at ${solcPath}`);
+    logger.debug(`Compiling with solc binary ${version} at ${solcPath}`);
     startCompilation = Date.now();
     try {
       compiled = await asyncExecSolc(inputStringified, solcPath);
@@ -90,13 +91,13 @@ export async function useCompiler(
       if (error?.code === "ENOBUFS") {
         throw new Error("Compilation output size too large");
       }
-      logWarn(error.message);
+      logger.warn(error.message);
       throw error;
     }
   } else {
     const solJson = await getSolcJs(version);
     startCompilation = Date.now();
-    logDebug(`Compiling with solc-js ${version}`);
+    logger.debug(`Compiling with solc-js ${version}`);
     if (solJson) {
       const coercedVersion =
         semver.coerce(new semver.SemVer(version))?.version ?? "";
@@ -123,7 +124,7 @@ export async function useCompiler(
   }
 
   const endCompilation = Date.now();
-  logInfo(`Compilation time : ${endCompilation - startCompilation} ms`);
+  logger.info(`Compilation time : ${endCompilation - startCompilation} ms`);
 
   if (!compiled) {
     throw new Error("Compilation failed. No output from the compiler.");
@@ -136,7 +137,7 @@ export async function useCompiler(
     const error = new Error(
       "Compiler error:\n " + JSON.stringify(errorMessages)
     );
-    logError(error.message);
+    logger.error(error.message);
     throw error;
   }
   return compiledJSON;
@@ -188,22 +189,25 @@ export async function getSolcExecutable(
   version: string
 ): Promise<string | null> {
   const fileName = `solc-${platform}-v${version}`;
-  const repoPath = process.env.SOLC_REPO || path.join("/tmp", "solc-repo");
+  const repoPath =
+    (config.get("solcRepo") as string) || path.join("/tmp", "solc-repo");
   const solcPath = path.join(repoPath, fileName);
   if (fs.existsSync(solcPath) && validateSolcPath(solcPath)) {
-    logDebug(`Found solc ${version} with platform ${platform} at ${solcPath}`);
+    logger.debug(
+      `Found solc ${version} with platform ${platform} at ${solcPath}`
+    );
     return solcPath;
   }
 
-  logDebug(
+  logger.debug(
     `Downloading solc ${version} with platform ${platform} at ${solcPath}`
   );
   const success = await fetchAndSaveSolc(platform, solcPath, version, fileName);
-  logDebug(
+  logger.debug(
     `Downloaded solc ${version} with platform ${platform} at ${solcPath}`
   );
   if (success && !validateSolcPath(solcPath)) {
-    logError(`Cannot validate solc ${version}.`);
+    logger.error(`Cannot validate solc ${version}.`);
     return null;
   }
   return success ? solcPath : null;
@@ -221,7 +225,7 @@ function validateSolcPath(solcPath: string): boolean {
     spawned.stderr.toString() ||
     "Error running solc, are you on the right platoform? (e.g. x64 vs arm)";
 
-  logWarn(error);
+  logger.warn(error);
   return false;
 }
 
@@ -238,7 +242,7 @@ async function fetchAndSaveSolc(
 ): Promise<boolean> {
   const encodedURIFilename = encodeURIComponent(fileName);
   const githubSolcURI = `${HOST_SOLC_REPO}${platform}/${encodedURIFilename}`;
-  logDebug(
+  logger.debug(
     `Fetching solc ${version} on platform ${platform}: ${githubSolcURI}`
   );
   let res = await fetchWithTimeout(githubSolcURI);
@@ -260,7 +264,7 @@ async function fetchAndSaveSolc(
   }
 
   if (status === StatusCodes.OK && buffer) {
-    logDebug(
+    logger.debug(
       `Fetched solc ${version} on platform ${platform}: ${githubSolcURI}`
     );
     fs.mkdirSync(path.dirname(solcPath), { recursive: true });
@@ -274,7 +278,7 @@ async function fetchAndSaveSolc(
 
     return true;
   } else {
-    logWarn(`Failed fetching solc ${version}: ${githubSolcURI}`);
+    logger.warn(`Failed fetching solc ${version}: ${githubSolcURI}`);
   }
 
   return false;
@@ -304,7 +308,7 @@ export async function getSolcJs(version = "latest"): Promise<any> {
   }
 
   const soljsonRepo =
-    process.env.SOLJSON_REPO || path.join("/tmp", "soljson-repo");
+    (config.get("solJsonRepo") as string) || path.join("/tmp", "soljson-repo");
   const fileName = `soljson-${version}.js`;
   const soljsonPath = path.resolve(soljsonRepo, fileName);
 

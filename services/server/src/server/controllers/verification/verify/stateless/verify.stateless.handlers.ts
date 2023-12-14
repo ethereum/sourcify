@@ -25,7 +25,7 @@ export async function legacyVerifyEndpoint(
     req.body.chain
   );
   if (result.length != 0) {
-    return res.send({ result });
+    return res.send({ result: [getResponseMatchFromMatch(result[0])] });
   }
 
   const inputFiles = extractFiles(req);

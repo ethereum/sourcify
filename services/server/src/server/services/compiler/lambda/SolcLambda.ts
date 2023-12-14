@@ -8,6 +8,7 @@ import {
   ISolidityCompiler,
   JsonInput,
 } from "@ethereum-sourcify/lib-sourcify";
+import config from "config";
 
 export class SolcLambda implements ISolidityCompiler {
   private lambdaClient: LambdaClient;
@@ -18,7 +19,9 @@ export class SolcLambda implements ISolidityCompiler {
       process.env.AWS_ACCESS_KEY_ID === undefined ||
       process.env.AWS_SECRET_ACCESS_KEY === undefined
     ) {
-      throw new Error("Solc compiler must be configured");
+      throw new Error(
+        "AWS credentials not set. Please set them to run the compiler on AWS Lambda."
+      );
     }
     // Initialize Lambda client with environment variables for credentials
     this.lambdaClient = new LambdaClient({
@@ -43,7 +46,7 @@ export class SolcLambda implements ISolidityCompiler {
 
   private async invokeLambdaFunction(payload: string): Promise<any> {
     const params: InvokeCommandInput = {
-      FunctionName: process.env.AWS_LAMBDA_FUNCTION || "compile",
+      FunctionName: config.get("lambdaCompiler.functionName") || "compile",
       Payload: payload,
     };
 

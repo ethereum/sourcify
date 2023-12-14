@@ -72,15 +72,6 @@ export type VerificationInput = {
   creatorTxHash?: string;
 };
 
-export type Create2VerificationInput = {
-  verificationId: string;
-  deployerAddress: string;
-  salt: string;
-  abiEncodedConstructorArguments: string;
-  create2Address: string;
-  clientToken: string;
-};
-
 export interface Match {
   address: string | null;
   chainId: string | null;
@@ -98,11 +89,6 @@ export type CheckAllByAddressResult = {
     chainId: string;
     status: string;
   }[];
-  create2Args?: {
-    deployerAddress?: string | undefined;
-    salt?: string | undefined;
-    constructorArgs?: any[] | undefined;
-  };
 };
 
 export type Chain = {
