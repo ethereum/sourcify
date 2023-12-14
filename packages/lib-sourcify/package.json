@@ -72,9 +72,7 @@
     "open-cli": "^6.0.1",
     "prettier": "^2.8.2",
     "solc": "^0.8.21",
-    "ts-node": "^10.9.1",
-    "typedoc": "^0.24.6",
-    "typescript": "^5.3.2"
+    "typedoc": "^0.24.6"
   },
   "files": [
     "build/main",
