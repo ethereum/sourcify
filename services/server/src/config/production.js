@@ -9,6 +9,11 @@ module.exports = {
   session: {
     secure: true, // Set Secure in the Set-Cookie header i.e. require https
   },
+  lambdaCompiler: {
+    enabled: true,
+    functionName: "compiler-production",
+    // credentials as env vars
+  },
   rateLimit: {
     enabled: true,
   },

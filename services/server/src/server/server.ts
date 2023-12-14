@@ -3,7 +3,7 @@ import path from "path";
 import dotenv from "dotenv";
 dotenv.config();
 // Make sure config is relative to server.ts and not where the server is run from
-process.env["NODE_CONFIG_DIR"] = path.resolve(__dirname, "../..", "config");
+process.env["NODE_CONFIG_DIR"] = path.resolve(__dirname, "..", "config");
 import config from "config";
 import express, { Request } from "express";
 import serveIndex from "serve-index";

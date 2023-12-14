@@ -14,6 +14,10 @@ module.exports = {
     maxAge: 12 * 60 * 60 * 1000, // 12 hrs in millis
     secure: false, // Set Secure in the Set-Cookie header i.e. require https
   },
+  // It is possible to outsource the compilation to a lambda function instead of running locally. Turned on in production.
+  lambdaCompiler: {
+    enabled: false,
+  },
   corsAllowedOrigins: [
     /^https?:\/\/(?:.+\.)?sourcify.dev$/, // sourcify.dev and subdomains
     /^https?:\/\/(?:.+\.)?sourcify.eth$/, // sourcify.eth and subdomains
