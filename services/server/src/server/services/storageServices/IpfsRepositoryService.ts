@@ -19,6 +19,7 @@ import { logger } from "../../../common/logger";
 import { getAddress } from "ethers";
 import { getMatchStatus } from "../../common";
 import { IStorageService } from "../StorageService";
+import config from "config";
 
 /**
  * A type for specifying the match quality of files.
@@ -94,8 +95,8 @@ export class IpfsRepositoryService implements IStorageService {
     files.forEach((file) => {
       const relativePath =
         "contracts/" + file.path.split("/contracts")[1].substr(1);
-      // TODO: Don't use REPOSITORY_SERVER_URL but a relative URL to the server. Requires a breaking chage to the API
-      urls.push(`${process.env.REPOSITORY_SERVER_URL}/${relativePath}`);
+      // TODO: Don't use repository.serverUrl but a relative URL to the server. Requires a breaking chage to the API
+      urls.push(`${config.get("repository.serverUrl")}/${relativePath}`);
     });
     return urls;
   }

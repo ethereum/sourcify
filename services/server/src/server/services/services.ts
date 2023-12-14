@@ -9,7 +9,7 @@ export const services = {
     ipfsRepositoryServiceOptions: {
       ipfsApi: process.env.IPFS_API as string,
       repositoryPath: config.get("repository.path"),
-      repositoryServerUrl: process.env.REPOSITORY_SERVER_URL as string,
+      repositoryServerUrl: config.get("repository.serverUrl") as string,
       repositoryVersion: "0.1",
     },
   }),

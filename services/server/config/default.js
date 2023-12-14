@@ -5,7 +5,7 @@ module.exports = {
   },
   repository: {
     path: "/tmp/sourcify/repository",
-    serverUrl: "http://localhost:10000",
+    serverUrl: "http://localhost:10000", // Need to keep this as it's used in IpfsRepositoryService.ts fetchAllFileUrls.
   },
   solcRepo: "/tmp/solc-bin/linux-amd64",
   solJsonRepo: "/tmp/solc-bin/soljson",
