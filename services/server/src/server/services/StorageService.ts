@@ -46,7 +46,7 @@ export class StorageService {
       throw new Error("Cannot initialize ipfsRepository: " + e.message);
     }
     try {
-      await this.allianceDatabase?.init();
+      // await this.allianceDatabase?.init();
     } catch (e: any) {
       throw new Error("Cannot initialize allianceDatabase: " + e.message);
     }
