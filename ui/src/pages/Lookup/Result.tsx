@@ -195,7 +195,7 @@ const NetworkRow = ({ address, chainId, status }: NetworkRowProp) => {
   );
 };
 
-const InfoText = (isCreate2Verified: boolean) => (
+const InfoText = () => (
   <span>
     Sourcify verification means a matching Solidity source code of the <br />{" "}
     contract is available on the Sourcify repo. <br /> See{" "}
@@ -206,74 +206,11 @@ const InfoText = (isCreate2Verified: boolean) => (
       docs
     </a>{" "}
     for details.
-    {isCreate2Verified && (
-      <p className="mt-3">
-        This contract was verified with the{" "}
-        <a
-          href="https://docs.sourcify.dev/docs/create2"
-          className="underline cursor"
-        >
-          create2 verification
-        </a>
-        , it may not yet be deployed.
-      </p>
-    )}
   </span>
 );
 
-const Create2Info = (response: CheckAllByAddressResult) => {
-  const isCreate2Verified =
-    response?.chainIds.findIndex((chain) => chain.chainId === "0") >= 0;
-  let deployerAddress: string | undefined;
-  let salt: string | undefined;
-  let constructorArgs: any[] | undefined;
-  if (isCreate2Verified) {
-    deployerAddress = response?.create2Args?.deployerAddress;
-    salt = response?.create2Args?.salt;
-    constructorArgs = response?.create2Args?.constructorArgs;
-  }
-  return (
-    <div className="mt-4 mb-4">
-      <div className="flex flex-col w-full">
-        <div className="flex flex-row gap-5">
-          <div className="w-2/5 text-right">
-            <div>Deployer:</div>
-          </div>
-          <div className="w-3/5 text-left break-all">{deployerAddress}</div>
-        </div>
-        <div className="flex flex-row gap-5">
-          <div className="w-2/5 text-right">
-            <div>Salt:</div>
-          </div>
-          <div className="w-3/5 text-left">
-            <div className="break-all">{salt}</div>
-          </div>
-        </div>
-        <div className="flex flex-row gap-5">
-          <div className="w-2/5 text-right">
-            <div>Constructor:</div>
-          </div>
-          <div className="w-3/5 text-left">
-            <div className="break-all">
-              <ul>
-                {constructorArgs?.map((ca, i) => (
-                  <li key={`constructorArgs_${i}`}>
-                    {ca.value} ({ca.type})
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const Found = ({ response, goBack }: FoundProp) => {
-  const chains = response?.chainIds.filter((chain) => chain.chainId !== "0");
-  const isCreate2Verified =
-    response?.chainIds.findIndex((chain) => chain.chainId === "0") >= 0;
+  const chains = response?.chainIds;
   return (
     <div className="flex flex-col justify-center">
       <ReactTooltip
@@ -288,31 +225,14 @@ const Found = ({ response, goBack }: FoundProp) => {
           The contract at address{" "}
           <span className="font-medium break-all">{response?.address}</span> is{" "}
           <span
-            data-tip={renderToString(InfoText(isCreate2Verified))}
+            data-tip={renderToString(InfoText())}
             data-html={true}
             data-for="verified-info"
           >
-            {isCreate2Verified && <>create2</>} verified
+            verified
             <HiOutlineInformationCircle className="inline text-gray-600 text-lg" />
           </span>
-          {isCreate2Verified && (
-            <>
-              ,{" "}
-              <a
-                className="underline"
-                href={generateUrl(
-                  URL_TYPE.REPO,
-                  "0",
-                  response?.address,
-                  "perfect"
-                )}
-              >
-                view in Sourcify Repository
-              </a>
-            </>
-          )}
         </p>
-        {isCreate2Verified && Create2Info(response)}
         <p>{chains.length > 0 && <span>on the following networks:</span>}</p>
       </div>
       {chains.length > 0 ? (

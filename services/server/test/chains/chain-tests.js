@@ -1,13 +1,3 @@
-// set env vars before Server init
-process.env.MOCK_REPOSITORY = "./mockRepository";
-process.env.TESTING = "true";
-
-// Auth0 environments
-process.env.AUTH0_AUDIENCE = "https://staging.sourcify.dev";
-process.env.AUTH0_ISSUERBASEURL = "https://dev-cpy28yiw0u88mjsd.us.auth0.com";
-process.env.AUTH0_TOKENSIGNINGALG = "RS256";
-process.env.AUTH0_CLIENTID = "epipuQWJL67dVggPvxNmAy40ggzNum9F";
-
 const chai = require("chai");
 const chaiHttp = require("chai-http");
 const Server = require("../../dist/server/server").Server;

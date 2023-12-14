@@ -1,18 +1,5 @@
-process.env.TESTING = true;
-// This does not take effect when run with monitor tests. See config.ts note
-process.env.MOCK_REPOSITORY = "./dist/data/mock-repository";
-process.env.SOLC_REPO = "./dist/data/solc-repo";
-process.env.SOLJSON_REPO = "./dist/data/soljson-repo";
-// ipfs-http-gateway runs on port 9090
-// process.env.IPFS_GATEWAY = "http://localhost:9090/ipfs/";
 process.env.IPFS_GATEWAY = "http://ipfs.io/ipfs/";
 process.env.FETCH_TIMEOUT = 8000; // instantiated http-gateway takes a little longer
-
-// Auth0 environments
-process.env.AUTH0_AUDIENCE = "https://staging.sourcify.dev";
-process.env.AUTH0_ISSUERBASEURL = "https://dev-cpy28yiw0u88mjsd.us.auth0.com";
-process.env.AUTH0_TOKENSIGNINGALG = "RS256";
-process.env.AUTH0_CLIENTID = "epipuQWJL67dVggPvxNmAy40ggzNum9F";
 
 const {
   assertValidationError,
@@ -31,9 +18,9 @@ const util = require("util");
 const fs = require("fs");
 const rimraf = require("rimraf");
 const path = require("path");
-const fetch = require("node-fetch");
+const config = require("config");
 
-const MAX_FILE_SIZE = require("../dist/config").default.server.maxFileSize;
+const MAX_FILE_SIZE = config.get("server.maxFileSize");
 const MAX_SESSION_SIZE =
   require("../dist/server/controllers/verification/verification.common").MAX_SESSION_SIZE;
 const GANACHE_PORT = 8545;
@@ -42,7 +29,6 @@ const {
   waitSecs,
   callContractMethodWithTx,
   deployFromAbiAndBytecodeForCreatorTxHash,
-  callWithAccessToken,
 } = require("./helpers/helpers");
 const { deployFromAbiAndBytecode } = require("./helpers/helpers");
 const { JsonRpcProvider, Network, id: keccak256str } = require("ethers");
@@ -64,7 +50,6 @@ describe("Server", function () {
     },
   });
   let localSigner;
-  let accounts;
   let defaultContractAddress;
   let currentResponse = null; // to log server response when test fails
 
@@ -169,113 +154,6 @@ describe("Server", function () {
     const obj2raw = fs.readFileSync(obj2path).toString();
     const obj2 = options?.isJson ? JSON.parse(obj2raw) : obj2raw;
     chai.expect(obj1, `assertFromPath: ${obj2path}`).to.deep.equal(obj2);
-  }
-
-  // Don't run if it's an external PR.
-  if (process.env.CIRCLE_PR_REPONAME == undefined) {
-    describe("Verify create2", function () {
-      this.timeout(EXTENDED_TIME_60);
-
-      const agent = chai.request.agent(server.app);
-      let verificationId;
-
-      it("should input files from existing contract via auxdata ipfs", async () => {
-        const artifacts = require(path.join(
-          __dirname,
-          "./testcontracts/Create2/Wallet.json"
-        ));
-
-        const account = await localSigner.getAddress();
-        const addressDeployed = await deployFromAbiAndBytecode(
-          localSigner,
-          artifacts.abi,
-          artifacts.bytecode,
-          [account, account]
-        );
-
-        const res = await agent
-          .post("/session/input-contract")
-          .field("address", addressDeployed)
-          .field("chainId", defaultContractChain);
-
-        verificationId = res.body.contracts[0].verificationId;
-        chai.expect(res.body.contracts).to.have.a.lengthOf(1);
-        const contract = res.body.contracts[0];
-        chai.expect(contract.files.found).to.have.a.lengthOf(1);
-        const retrivedFile = contract.files.found[0];
-        chai.expect(retrivedFile).to.equal("contracts/create2/Wallet.sol");
-      });
-
-      it("should create2 verify with session", (done) => {
-        callWithAccessToken((accessToken) => {
-          agent
-            .post("/session/verify/create2")
-            .set("Authorization", `Bearer ${accessToken}`)
-            .send({
-              deployerAddress: "0xd9145CCE52D386f254917e481eB44e9943F39138",
-              salt: 12344,
-              abiEncodedConstructorArguments:
-                "0x0000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc40000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc4",
-              create2Address: "0x65790cc291a234eDCD6F28e1F37B036eD4F01e3B",
-              verificationId: verificationId,
-            })
-            .end((err, res) => {
-              assertVerificationSession(
-                err,
-                res,
-                done,
-                "0x65790cc291a234eDCD6F28e1F37B036eD4F01e3B",
-                "0",
-                "perfect"
-              );
-            });
-        });
-      });
-
-      it("should create2 verify non-session", (done) => {
-        const metadata = fs
-          .readFileSync(
-            path.resolve(
-              __dirname,
-              "testcontracts/Create2/Wallet_metadata.json"
-            )
-          )
-          .toString();
-        const source = fs
-          .readFileSync(
-            path.resolve(__dirname, "testcontracts/Create2/Wallet.sol")
-          )
-          .toString();
-
-        callWithAccessToken((accessToken) => {
-          chai
-            .request(server.app)
-            .post("/verify/create2")
-            .set("Authorization", `Bearer ${accessToken}`)
-            .send({
-              deployerAddress: "0xd9145CCE52D386f254917e481eB44e9943F39138",
-              salt: 12345,
-              abiEncodedConstructorArguments:
-                "0x0000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc40000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc4",
-              files: {
-                "metadata.json": metadata,
-                "Wallet.sol": source,
-              },
-              create2Address: "0x801B9c0Ee599C3E5ED60e4Ec285C95fC9878Ee64",
-            })
-            .end((err, res) => {
-              assertVerification(
-                err,
-                res,
-                done,
-                "0x801B9c0Ee599C3E5ED60e4Ec285C95fC9878Ee64",
-                "0",
-                "perfect"
-              );
-            });
-        });
-      });
-    });
   }
 
   describe("/check-by-addresses", function () {

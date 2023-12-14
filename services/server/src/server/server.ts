@@ -1,9 +1,15 @@
+import path from "path";
+// First env vars need to be loaded before config
+import dotenv from "dotenv";
+dotenv.config();
+// Make sure config is relative to server.ts and not where the server is run from
+process.env["NODE_CONFIG_DIR"] = path.resolve(__dirname, "../..", "config");
+import config from "config";
 import express, { Request } from "express";
 import serveIndex from "serve-index";
 import cors from "cors";
 import routes from "./routes";
 import bodyParser from "body-parser";
-import config from "../config";
 import genericErrorHandler from "./middlewares/GenericErrorHandler";
 import notFoundHandler from "./middlewares/NotFoundError";
 import session from "express-session";
@@ -33,9 +39,7 @@ import {
   MemoryStore as ExpressRateLimitMemoryStore,
   rateLimit,
 } from "express-rate-limit";
-import path from "path";
 import crypto from "crypto";
-import { get } from "http";
 
 const MemoryStore = createMemoryStore(session);
 
@@ -80,24 +84,29 @@ setLibSourcifyLogger({
 
 export class Server {
   app: express.Application;
-  repository = config.repository.path;
+  repository: string = config.get("repository.path");
   port: string | number;
 
   constructor(port?: string | number) {
+    // To print regexes in the logs
+    Object.defineProperty(RegExp.prototype, "toJSON", {
+      value: RegExp.prototype.toString,
+    });
+
     logger.info(
       `Starting Sourcify Server with config ${JSON.stringify(config, null, 2)}`
     );
-    this.port = port || config.server.port;
+    this.port = port || config.get("server.port");
     logger.info(`Starting Sourcify Server on port ${this.port}`);
     this.app = express();
 
     this.app.use(
       bodyParser.urlencoded({
-        limit: config.server.maxFileSize,
+        limit: config.get("server.maxFileSize"),
         extended: true,
       })
     );
-    this.app.use(bodyParser.json({ limit: config.server.maxFileSize }));
+    this.app.use(bodyParser.json({ limit: config.get("server.maxFileSize") }));
 
     // Init deprecated routes before OpenApiValidator so that it can handle the request with the defined paths.
     // initDeprecatedRoutes is a middleware that replaces the deprecated paths with the real ones.
@@ -105,7 +114,7 @@ export class Server {
 
     this.app.use(
       fileUpload({
-        limits: { fileSize: config.server.maxFileSize },
+        limits: { fileSize: config.get("server.maxFileSize") },
         abortOnLimit: true,
       })
     );
@@ -115,15 +124,20 @@ export class Server {
       const contentType = req.headers["content-type"];
       if (contentType === "application/json") {
         logger.debug(
-          `Request: ${req.method} ${req.path} chainId=${req.body.chainId} address=${req.body.address}`
+          `Request: ${req.method} ${req.path} chainId=${
+            req.body.chainId || req.body.chain
+          } address=${req.body.address}`
         );
         next();
       } else if (contentType && contentType.includes("multipart/form-data")) {
         logger.debug(
-          `Request: ${req.method} ${req.path} (multipart) chainId=${req.body.chainId} address=${req.body.address}`
+          `Request: ${req.method} ${req.path} (multipart) chainId=${
+            req.body.chainId || req.body.chain
+          } address=${req.body.address}`
         );
         next();
       } else {
+        logger.debug(`Request: ${req.method} ${req.path}`);
         next();
       }
     });
@@ -210,42 +224,44 @@ export class Server {
       next();
     });
 
-    const limiter = rateLimit({
-      windowMs: 2 * 1000,
-      max: 1, // Requests per windowMs
-      standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-      legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-      message: {
-        error:
-          "You are sending too many verification requests, please slow down.",
-      },
-      handler: (req, res, next, options) => {
-        const ip = getIp(req);
-        const ipHash = ip ? hash(ip) : "";
-        const ipLog = process.env.NODE_ENV === "production" ? ipHash : ip; // Don't log IP in production
-        const store = options.store as ExpressRateLimitMemoryStore;
-        const hits = store.hits[ip || ""];
-        logger.info(
-          `Rate limit hit method=${req.method} path=${req.path} ip=${ipLog} hits=${hits}`
-        );
-        res.status(options.statusCode).send(options.message);
-      },
-      keyGenerator: (req: any) => {
-        return getIp(req) || new Date().toISOString();
-      },
-      skip: (req) => {
-        const ip = getIp(req);
-        for (const ipPrefix of config.rateLimitWhiteList) {
-          if (ip?.startsWith(ipPrefix)) return true;
-        }
-        return false;
-      },
-    });
+    if (config.get("rateLimit.enabled")) {
+      const limiter = rateLimit({
+        windowMs: 2 * 1000,
+        max: 1, // Requests per windowMs
+        standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+        legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+        message: {
+          error:
+            "You are sending too many verification requests, please slow down.",
+        },
+        handler: (req, res, next, options) => {
+          const ip = getIp(req);
+          const ipHash = ip ? hash(ip) : "";
+          const ipLog = process.env.NODE_ENV === "production" ? ipHash : ip; // Don't log IP in production
+          const store = options.store as ExpressRateLimitMemoryStore;
+          const hits = store.hits[ip || ""];
+          logger.info(
+            `Rate limit hit method=${req.method} path=${req.path} ip=${ipLog} hits=${hits}`
+          );
+          res.status(options.statusCode).send(options.message);
+        },
+        keyGenerator: (req: any) => {
+          return getIp(req) || new Date().toISOString();
+        },
+        skip: (req) => {
+          const ip = getIp(req);
+          const whitelist = config.get("rateLimit.whitelist") as string[];
+          for (const ipPrefix of whitelist) {
+            if (ip?.startsWith(ipPrefix)) return true;
+          }
+          return false;
+        },
+      });
 
-    this.app.all("/session/verify*", limiter);
-    this.app.all("/verify*", limiter);
-    this.app.post("/", limiter);
-
+      this.app.all("/session/verify*", limiter);
+      this.app.all("/verify*", limiter);
+      this.app.post("/", limiter);
+    }
     // Session API endpoints require non "*" origins because of the session cookies
     const sessionPaths = [
       "/session", // all paths /session/verify /session/input-files etc.
@@ -258,7 +274,7 @@ export class Server {
       // startsWith to match /session*
       if (sessionPaths.some((substr) => req.path.startsWith(substr))) {
         return cors({
-          origin: config.corsAllowedOrigins,
+          origin: config.get("corsAllowedOrigins"),
           credentials: true,
         })(req, res, next);
       }
@@ -349,19 +365,24 @@ export class Server {
 }
 
 function getSessionOptions(): session.SessionOptions {
+  if (config.get("session.secret") === "CHANGE_ME") {
+    logger.warn(
+      "The session secret is not set, please set it in the config file"
+    );
+  }
   return {
-    secret: config.session.secret,
+    secret: config.get("session.secret"),
     name: "sourcify_vid",
     rolling: true,
     resave: false,
     saveUninitialized: true,
     cookie: {
-      maxAge: config.session.maxAge,
-      secure: config.session.secure,
+      maxAge: config.get("session.maxAge"),
+      secure: config.get("session.secure"),
       sameSite: "lax",
     },
     store: new MemoryStore({
-      checkPeriod: config.session.maxAge,
+      checkPeriod: config.get("session.maxAge"),
     }),
   };
 }

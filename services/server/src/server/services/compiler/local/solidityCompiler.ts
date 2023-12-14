@@ -11,6 +11,7 @@ import {
   JsonInput,
   PathBuffer,
 } from "@ethereum-sourcify/lib-sourcify";
+import config from "config";
 
 require("isomorphic-fetch");
 interface RequestInitTimeout extends RequestInit {
@@ -188,7 +189,8 @@ export async function getSolcExecutable(
   version: string
 ): Promise<string | null> {
   const fileName = `solc-${platform}-v${version}`;
-  const repoPath = process.env.SOLC_REPO || path.join("/tmp", "solc-repo");
+  const repoPath =
+    (config.get("solcRepo") as string) || path.join("/tmp", "solc-repo");
   const solcPath = path.join(repoPath, fileName);
   if (fs.existsSync(solcPath) && validateSolcPath(solcPath)) {
     logDebug(`Found solc ${version} with platform ${platform} at ${solcPath}`);
@@ -304,7 +306,7 @@ export async function getSolcJs(version = "latest"): Promise<any> {
   }
 
   const soljsonRepo =
-    process.env.SOLJSON_REPO || path.join("/tmp", "soljson-repo");
+    (config.get("solJsonRepo") as string) || path.join("/tmp", "soljson-repo");
   const fileName = `soljson-${version}.js`;
   const soljsonPath = path.resolve(soljsonRepo, fileName);
 
