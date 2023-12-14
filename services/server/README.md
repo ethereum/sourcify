@@ -96,7 +96,7 @@ npm start
 
 ## Docker
 
-You can run the server using Docker and pass in a custom `sourcify-chains.json` and `config.js` file.
+You can run the server using Docker and pass in a custom `sourcify-chains.json` (see above [Chains Config](#chains-config)) and `local.js` (see above [Server Config](#server-config)) config file.
 
 Also set up the environment variables in the `.env` file. You can see the list of required environment variables in the `.env.dev` file. Pass it with the `--env-file` flag or use the `--env` flag to pass individual environment variables.
 
@@ -104,7 +104,7 @@ Also set up the environment variables in the `.env` file. You can see the list o
 docker run \
   -p 5555:5555 \
   -v path/to/custom/sourcify-chains.json:/home/app/services/server/dist/sourcify-chains.json \
-  -v path/to/custom/config.js:/home/app/services/server/dist/config.js \
+  -v path/to/custom/config.js:/home/app/services/server/dist/local.js \
   --env-file .env \
   ghcr.io/sourcifyeth/sourcify-server:latest
 ```
