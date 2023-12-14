@@ -21,6 +21,7 @@ import { getMatchStatus } from "../../common";
 import { IStorageService } from "../StorageService";
 import config from "config";
 
+const REPOSITORY_VERSION = "0.1";
 /**
  * A type for specifying the match quality of files.
  */
@@ -457,10 +458,9 @@ export class IpfsRepositoryService implements IStorageService {
   updateRepositoryTag() {
     const filePath: string = Path.join(this.repositoryPath, "manifest.json");
     const timestamp = new Date().getTime();
-    const repositoryVersion = process.env.REPOSITORY_VERSION || "0.1";
     const tag: RepositoryTag = {
       timestamp: timestamp,
-      repositoryVersion: repositoryVersion,
+      repositoryVersion: REPOSITORY_VERSION,
     };
     fs.writeFileSync(filePath, JSON.stringify(tag));
   }

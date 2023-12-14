@@ -8,6 +8,7 @@ import {
   ISolidityCompiler,
   JsonInput,
 } from "@ethereum-sourcify/lib-sourcify";
+import config from "config";
 
 export class SolcLambda implements ISolidityCompiler {
   private lambdaClient: LambdaClient;
@@ -45,7 +46,7 @@ export class SolcLambda implements ISolidityCompiler {
 
   private async invokeLambdaFunction(payload: string): Promise<any> {
     const params: InvokeCommandInput = {
-      FunctionName: process.env.AWS_LAMBDA_FUNCTION || "compile",
+      FunctionName: config.get("lambdaCompiler.functionName") || "compile",
       Payload: payload,
     };
 
