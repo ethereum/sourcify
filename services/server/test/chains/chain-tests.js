@@ -1298,6 +1298,22 @@ describe("Test Supported Chains", function () {
     "1127469/multicall3.metadata.json"
   );
 
+  verifyContract(
+    "0x4740561b42A59fe5B809C78aF43AC20B3def901F",
+    "33210",
+    "Cloudverse Subnet",
+    [],
+    "33210/multicall3.metadata.json"
+  );
+
+  verifyContract(
+    "0x75239Ae18CEF18b42993f81CCc057dcD0c7467F4",
+    "1343",
+    "Blitz Test Subnet",
+    [],
+    "1343/multicall3.metadata.json"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainIds.length) {

@@ -1321,5 +1321,19 @@
     "fetchContractCreationTxUsing": {
       "avalancheApi": true
     }
+  },
+  "33210": {
+    "sourcifyName": "Cloudverse Subnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "avalancheApi": true
+    }
+  },
+  "1343": {
+    "sourcifyName": "Blitz Testnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "avalancheApi": true
+    }
   }
 }
