@@ -26,7 +26,7 @@ npm run build
 
 Resulting static assets will be stored at `build/` and ready to be served.
 
-## Docker
+## Building with Docker
 
 The `Dockerfile` installs,builds and serves the project on a minimal nginx container.
 
@@ -44,8 +44,28 @@ Run with
 docker run -p 80:80 sourcify-ui
 ```
 
-We also provide a `docker-compose.yml` file for convenience. You can provide the `UI_EXTERNAL_PORT` variable to set the port on your host machine.
+### Running with the published Docker image
+
+The Docker image is published on [Github Container Registry](https://github.com/ethereum/sourcify/pkgs/container/sourcify%2Fui). You can run it with
 
 ```
-UI_EXTERNAL_PORT=3000 docker-compose up
+docker run -p 80:80 ghcr.io/ethereum/sourcify/ui:stable
+```
+
+However pleasse note that the values in the `.env` files are injected on the build time so you won't be able to provide custom values for the environment variables:
+
+```bash
+REACT_APP_SERVER_URL=https://sourcify.dev/server
+REACT_APP_REPOSITORY_SERVER_URL=https://repo.sourcify.dev
+# Use DNSLink for IPNS
+REACT_APP_IPNS=repo.sourcify.dev
+REACT_APP_TAG=stable
+```
+
+If you want to provide custom values for the environment variables you need to build the image yourself.
+
+A workaround could be running a custom find and replace on the files before running the image:
+
+```bash
+find /usr/share/nginx/html/ -type f -exec sed -i 's#docs.sourcify.dev#yourcustomlink.com#g' {} \;;
 ```
