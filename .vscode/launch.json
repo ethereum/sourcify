@@ -100,7 +100,6 @@
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "env": {
         // "DEBUG": "express:*", // Debug all express modules *
-        "TESTING": "true",
       },
       "args": [
         "${workspaceFolder}/services/server/test/server.js",
@@ -124,7 +123,6 @@
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "env": {
         // "DEBUG": "express:*", // Debug all express modules *
-        "TESTING": "true",
       },
       "args": [
         "${workspaceFolder}/services/server/test/etherscan.js",
@@ -147,7 +145,6 @@
       "name": "Mocha - Etherscan Instances",
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "env": {
-        "TESTING": "true",
         // "TEST_CHAIN": "100"
       },
       "args": [
@@ -171,10 +168,6 @@
       "name": "Mocha - lib-sourcify",
       "cwd": "${workspaceFolder}/packages/lib-sourcify",
       "program": "./node_modules/.bin/mocha",
-      "env": {
-        // "DEBUG": "express:*", // Debug all express modules *
-        "TESTING": "true",
-      },
       "args": [
         "-r",
         "ts-node/register",
@@ -195,9 +188,6 @@
       "name": "Mocha - Contract Call Decoder",
       "cwd": "${workspaceFolder}/packages/contract-call-decoder",
       "program": "./node_modules/ava/cli.js",
-      "env": {
-        "TESTING": "true",
-      },
       "args": [
       ],
       "outFiles": [
@@ -232,7 +222,6 @@
       "name": "Mocha - Chains",
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "env": {
-        "TESTING": "true",
         // "NEW_CHAIN_ID": "333000333"
       },
       "args": [
@@ -255,9 +244,6 @@
       "request": "launch",
       "name": "Mocha - Source Fetcher",
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
-      "env": {
-        "TESTING": "true",
-      },
       "args": [
         "${workspaceFolder}/test/sourceFetcher.js",
         "--no-timeout",

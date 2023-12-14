@@ -72,7 +72,6 @@ export async function checkAllByChainAndAddressEndpoint(
           if (!map.has(address)) {
             map.set(address, {
               address,
-              create2Args: found[0].create2Args,
               chainIds: [],
             });
           }

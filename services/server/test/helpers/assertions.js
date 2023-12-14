@@ -1,6 +1,6 @@
 const { StatusCodes } = require("http-status-codes");
 const chai = require("chai");
-const config = require("../../dist/config").default;
+const config = require("config");
 const path = require("path");
 const fs = require("fs");
 const { getAddress } = require("ethers");
@@ -131,7 +131,7 @@ function assertContractSaved(expectedAddress, expectedChain, expectedStatus) {
     const match = expectedStatus === "perfect" ? "full_match" : "partial_match";
     const isExist = fs.existsSync(
       path.join(
-        config.repository.path,
+        config.get("repository.path"),
         "contracts",
         match,
         expectedChain,

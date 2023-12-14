@@ -22,11 +22,7 @@ import QueryString from "qs";
 import fetch from "node-fetch";
 import { IVerificationService } from "../../services/VerificationService";
 import { ContractMeta, ContractWrapper, getMatchStatus } from "../../common";
-import { auth } from "express-oauth2-jwt-bearer";
-import rateLimit from "express-rate-limit";
 import { id as keccak256str } from "ethers";
-import { ForbiddenError } from "../../../common/errors/ForbiddenError";
-import { UnauthorizedError } from "../../../common/errors/UnauthorizedError";
 import { ISolidityCompiler } from "@ethereum-sourcify/lib-sourcify";
 import { SolcLambda } from "../../services/compiler/lambda/SolcLambda";
 import { SolcLocal } from "../../services/compiler/local/SolcLocal";
@@ -429,62 +425,3 @@ export const verifyContractsInSession = async (
     }
   }
 };
-
-export const jwtCheck = auth({
-  audience: process.env.AUTH0_AUDIENCE,
-  issuerBaseURL: process.env.AUTH0_ISSUERBASEURL,
-  tokenSigningAlg: process.env.AUTH0_TOKENSIGNINGALG || "RS256",
-});
-
-export const apiLimiter = (
-  windowMs: number,
-  max: number,
-  errorMessage = "Too many requests, please try again later."
-) =>
-  rateLimit({
-    windowMs,
-    max,
-    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-    legacyHeaders: false, // Disable the `X-RateLimit-*` headers,
-    message: {
-      error: errorMessage,
-    },
-    keyGenerator: (req: Request) => req.auth?.payload.sub as string,
-  });
-
-export const isAuth0EnabledUser = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const userInfoRequest = await fetch(
-    `${process.env.AUTH0_ISSUERBASEURL}/userinfo`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${req.auth?.token}`,
-      },
-    }
-  );
-  if (userInfoRequest.status === 401) {
-    throw new UnauthorizedError();
-  }
-  try {
-    const userInfo = await userInfoRequest.json();
-    if (!userInfo.sub.includes("auth0")) {
-      throw new UnauthorizedError();
-    }
-  } catch (e) {
-    throw new UnauthorizedError();
-  }
-  next();
-};
-
-export const apiCheckPermission = (permission: string, errorMessage: string) =>
-  function (req: Request, res: Response, next: NextFunction) {
-    if (!(req.auth?.payload?.permissions as string)?.includes(permission)) {
-      throw new ForbiddenError(errorMessage);
-    }
-    next();
-  };

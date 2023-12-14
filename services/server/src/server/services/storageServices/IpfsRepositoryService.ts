@@ -4,7 +4,6 @@ import fs from "fs";
 import {
   Match,
   Status,
-  Create2Args,
   StringMap,
   /* ContextVariables, */
   CheckedContract,
@@ -20,6 +19,7 @@ import { logger } from "../../../common/logger";
 import { getAddress } from "ethers";
 import { getMatchStatus } from "../../common";
 import { IStorageService } from "../StorageService";
+import config from "config";
 
 /**
  * A type for specifying the match quality of files.
@@ -95,8 +95,8 @@ export class IpfsRepositoryService implements IStorageService {
     files.forEach((file) => {
       const relativePath =
         "contracts/" + file.path.split("/contracts")[1].substr(1);
-      // TODO: Don't use REPOSITORY_SERVER_URL but a relative URL to the server. Requires a breaking chage to the API
-      urls.push(`${process.env.REPOSITORY_SERVER_URL}/${relativePath}`);
+      // TODO: Don't use repository.serverUrl but a relative URL to the server. Requires a breaking chage to the API
+      urls.push(`${config.get("repository.serverUrl")}/${relativePath}`);
     });
     return urls;
   }
@@ -224,19 +224,6 @@ export class IpfsRepositoryService implements IStorageService {
     );
   }
 
-  fetchCreate2Args(fullContractPath: string): Create2Args | undefined {
-    try {
-      return JSON.parse(
-        fs.readFileSync(
-          fullContractPath.replace("metadata.json", "create2-args.json"),
-          "utf8"
-        )
-      );
-    } catch (e) {
-      return undefined;
-    }
-  }
-
   /**
    * Checks if path exists and for a particular chain returns the perfect or partial match
    *
@@ -246,13 +233,11 @@ export class IpfsRepositoryService implements IStorageService {
   fetchFromStorage(
     fullContractPath: string,
     partialContractPath: string
-  ): { time: Date; status: Status; create2Args?: Create2Args } {
+  ): { time: Date; status: Status } {
     if (fs.existsSync(fullContractPath)) {
-      const create2Args = this.fetchCreate2Args(fullContractPath);
       return {
         time: fs.statSync(fullContractPath).birthtime,
         status: "perfect",
-        create2Args,
       };
     }
 
@@ -330,7 +315,6 @@ export class IpfsRepositoryService implements IStorageService {
           runtimeMatch: storage?.status,
           creationMatch: null,
           storageTimestamp: storage?.time,
-          create2Args: storage?.create2Args,
         },
       ];
     } catch (e: any) {
@@ -425,16 +409,6 @@ export class IpfsRepositoryService implements IStorageService {
           match.address,
           "creator-tx-hash.txt",
           match.creatorTxHash
-        );
-      }
-
-      if (match.create2Args) {
-        this.storeJSON(
-          matchQuality,
-          match.chainId,
-          match.address,
-          "create2-args.json",
-          match.create2Args
         );
       }
 

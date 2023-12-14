@@ -1,16 +1,13 @@
 import React, { MouseEventHandler, useState } from "react";
 import { HiChevronDown, HiOutlineExternalLink } from "react-icons/hi";
-import Button from "../../../../components/Button";
 import DetailedView from "../../../../components/DetailedView";
 import LoadingOverlay from "../../../../components/LoadingOverlay";
 import {
   SendableContract,
   SessionResponse,
   VerificationInput,
-  Create2VerificationInput,
 } from "../../../../types";
 import ChainAddressForm from "./ChainAddressForm";
-import Create2Form from "./Create2Form";
 import Invalid from "./Invalid";
 import Label from "./Label";
 import Missing from "./Missing";
@@ -20,47 +17,16 @@ type CheckedContractProps = {
   verifyCheckedContract: (
     sendable: VerificationInput
   ) => Promise<SessionResponse | undefined>;
-  verifyCreate2CheckedContract: (
-    sendable: Create2VerificationInput
-  ) => Promise<SessionResponse | undefined>;
-  verifyCreate2Compile: (
-    verificationId: string
-  ) => Promise<SessionResponse | undefined>;
   collapsed: boolean;
   toggleCollapse: () => void;
 };
 
-enum VerifyMethods {
-  DEPLOYED,
-  CREATE2,
-}
-
 const CheckedContract: React.FC<CheckedContractProps> = ({
   checkedContract,
   verifyCheckedContract,
-  verifyCreate2CheckedContract,
-  verifyCreate2Compile,
   collapsed,
   toggleCollapse,
 }) => {
-  const [verifyMethodSelected, setVerifyMethodSelected] =
-    useState<VerifyMethods>(VerifyMethods.DEPLOYED);
-
-  const selectVerifyMethod = (method: VerifyMethods) => {
-    if (method === verifyMethodSelected) {
-      setVerifyMethodSelected(VerifyMethods.DEPLOYED);
-    } else {
-      if (
-        method === VerifyMethods.CREATE2 &&
-        checkedContract.verificationId &&
-        !checkedContract.creationBytecode
-      ) {
-        verifyCreate2Compile(checkedContract.verificationId);
-      }
-      setVerifyMethodSelected(method);
-    }
-  };
-
   const [isDetailedViewShown, setIsDetailedViewShown] =
     useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -112,52 +78,14 @@ const CheckedContract: React.FC<CheckedContractProps> = ({
 
       {/* Collapsed section */}
       <div className={`${collapsed ? "hidden" : ""} break-words px-4 p-4`}>
-        <div className="flex flex-row flex-wrap gap-3 mt-4 justify-center md:justify-start mb-6">
-          <div className="">
-            <Button
-              type={
-                verifyMethodSelected === VerifyMethods.DEPLOYED
-                  ? "primary"
-                  : "white"
-              }
-              onClick={() => selectVerifyMethod(VerifyMethods.DEPLOYED)}
-              className="text-sm"
-            >
-              Verify deployed contract
-            </Button>
-          </div>
-          <div className="">
-            <Button
-              type={
-                verifyMethodSelected === VerifyMethods.CREATE2
-                  ? "primary"
-                  : "white"
-              }
-              onClick={() => selectVerifyMethod(VerifyMethods.CREATE2)}
-              className="text-sm"
-            >
-              Verify create2 contract
-            </Button>
-          </div>
-        </div>
-        {verifyMethodSelected === VerifyMethods.DEPLOYED &&
-          ["perfect", "partial", "error"].includes(customStatus) && (
-            <ChainAddressForm
-              checkedContract={checkedContract}
-              customStatus={customStatus}
-              verifyCheckedContract={verifyCheckedContract}
-              setIsLoading={setIsLoading}
-            />
-          )}
-        {verifyMethodSelected === VerifyMethods.CREATE2 &&
-          ["perfect", "partial", "error"].includes(customStatus) && (
-            <Create2Form
-              checkedContract={checkedContract}
-              customStatus={customStatus}
-              verifyCreate2CheckedContract={verifyCreate2CheckedContract}
-              setIsLoading={setIsLoading}
-            />
-          )}
+        {["perfect", "partial", "error"].includes(customStatus) && (
+          <ChainAddressForm
+            checkedContract={checkedContract}
+            customStatus={customStatus}
+            verifyCheckedContract={verifyCheckedContract}
+            setIsLoading={setIsLoading}
+          />
+        )}
         {customStatus === "missing" && (
           <Missing checkedContract={checkedContract} />
         )}
