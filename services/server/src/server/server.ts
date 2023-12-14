@@ -262,6 +262,7 @@ export class Server {
       this.app.all("/verify*", limiter);
       this.app.post("/", limiter);
     }
+
     // Session API endpoints require non "*" origins because of the session cookies
     const sessionPaths = [
       "/session", // all paths /session/verify /session/input-files etc.
