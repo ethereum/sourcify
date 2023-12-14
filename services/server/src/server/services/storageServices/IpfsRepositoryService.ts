@@ -8,7 +8,6 @@ import {
   StringMap,
   /* ContextVariables, */
   CheckedContract,
-  Transformation,
 } from "@ethereum-sourcify/lib-sourcify";
 import { MatchLevel, RepositoryTag } from "../../types";
 import {
@@ -17,10 +16,8 @@ import {
   globSource,
 } from "ipfs-http-client";
 import path from "path";
-import { SourcifyEventManager } from "../../../common/SourcifyEventManager/SourcifyEventManager";
-import { logger } from "../../../common/loggerLoki";
+import { logger } from "../../../common/logger";
 import { getAddress } from "ethers";
-import { id as keccak256str } from "ethers";
 import { getMatchStatus } from "../../common";
 import { IStorageService } from "../StorageService";
 
@@ -464,8 +461,10 @@ export class IpfsRepositoryService implements IStorageService {
         );
       }
 
+      logger.info(
+        `Stored ${contract.name} to filesystem address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
+      );
       await this.addToIpfsMfs(matchQuality, match.chainId, match.address);
-      SourcifyEventManager.trigger("Verification.MatchStored", match);
     } else if (match.runtimeMatch === "extra-file-input-bug") {
       return match;
     } else {
@@ -590,6 +589,7 @@ export class IpfsRepositoryService implements IStorageService {
     address: string
   ) {
     if (!this.ipfsClient) return;
+    logger.info(`Adding ${address} on chain ${chainId} to IPFS MFS`);
     const contractFolderDir = this.generateAbsoluteFilePath({
       matchQuality,
       chainId,
@@ -627,10 +627,14 @@ export class IpfsRepositoryService implements IStorageService {
       });
       await this.ipfsClient.files.cp(addResult.cid, mfsPath, { parents: true });
     }
+    logger.info(`Added ${address} on chain ${chainId} to IPFS MFS`);
   }
   private sanitizePath(originalPath: string) {
     // Clean ../ and ./ from the path. Also collapse multiple slashes into one.
     let sanitizedPath = path.normalize(originalPath);
+
+    // Replace \n case not addressed by `path.normalize`
+    sanitizedPath = sanitizedPath.replace(/\\n/g, "");
 
     // If there are no upper folders to traverse, path.normalize will keep ../ parts. Need to remove any of those.
     const parsedPath = path.parse(sanitizedPath);

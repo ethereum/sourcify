@@ -53,11 +53,6 @@
     "etherscanAPI": "https://api-goerli.basescan.org/"
   },
   {
-    "name": "Ganache Localhost",
-    "chainId": 1337,
-    "rpc": ["http://localhost:8545"]
-  },
-  {
     "name": "Gnosis",
     "chainId": 100,
     "rpc": [
@@ -73,11 +68,6 @@
       "wss://rpc.gnosischain.com/wss"
     ],
     "etherscanAPI": "https://api.gnosisscan.io"
-  },
-  {
-    "name": "Hardhat Network Localhost",
-    "chainId": 31337,
-    "rpc": ["http://localhost:8545"]
   },
   {
     "name": "Meter Mainnet",

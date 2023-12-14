@@ -1,11 +1,9 @@
-import express from "express";
+import express, { Request } from "express";
 import serveIndex from "serve-index";
 import cors from "cors";
 import routes from "./routes";
 import bodyParser from "body-parser";
 import config from "../config";
-import { SourcifyEventManager } from "../common/SourcifyEventManager/SourcifyEventManager";
-import "../common/SourcifyEventManager/listeners/logger";
 import genericErrorHandler from "./middlewares/GenericErrorHandler";
 import notFoundHandler from "./middlewares/NotFoundError";
 import session from "express-session";
@@ -27,12 +25,17 @@ import yamljs from "yamljs";
 import { resolveRefs } from "json-refs";
 import { initDeprecatedRoutes } from "./deprecated.routes";
 import { getAddress } from "ethers";
-import { logger } from "../common/loggerLoki";
+import { logger } from "../common/logger";
 import { setLibSourcifyLogger } from "@ethereum-sourcify/lib-sourcify";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fileUpload = require("express-fileupload");
-import { rateLimit } from "express-rate-limit";
+import {
+  MemoryStore as ExpressRateLimitMemoryStore,
+  rateLimit,
+} from "express-rate-limit";
 import path from "path";
+import crypto from "crypto";
+import { get } from "http";
 
 const MemoryStore = createMemoryStore(session);
 
@@ -48,25 +51,25 @@ setLibSourcifyLogger({
       switch (level) {
         case 1:
           logger.error({
-            labels: { event: "LibSourcify", level: "error" },
+            prefix: "LibSourcify",
             message: msg,
           });
           break;
         case 2:
           logger.warn({
-            labels: { event: "LibSourcify", level: "warn" },
+            prefix: "LibSourcify",
             message: msg,
           });
           break;
         case 3:
           logger.info({
-            labels: { event: "LibSourcify", level: "info" },
+            prefix: "LibSourcify",
             message: msg,
           });
           break;
         case 4:
           logger.debug({
-            labels: { event: "LibSourcify", level: "debug" },
+            prefix: "LibSourcify",
             message: msg,
           });
           break;
@@ -81,7 +84,11 @@ export class Server {
   port: string | number;
 
   constructor(port?: string | number) {
+    logger.info(
+      `Starting Sourcify Server with config ${JSON.stringify(config, null, 2)}`
+    );
     this.port = port || config.server.port;
+    logger.info(`Starting Sourcify Server on port ${this.port}`);
     this.app = express();
 
     this.app.use(
@@ -102,6 +109,24 @@ export class Server {
         abortOnLimit: true,
       })
     );
+
+    // Log all requests in debugging mode
+    this.app.use((req, res, next) => {
+      const contentType = req.headers["content-type"];
+      if (contentType === "application/json") {
+        logger.debug(
+          `Request: ${req.method} ${req.path} chainId=${req.body.chainId} address=${req.body.address}`
+        );
+        next();
+      } else if (contentType && contentType.includes("multipart/form-data")) {
+        logger.debug(
+          `Request: ${req.method} ${req.path} (multipart) chainId=${req.body.chainId} address=${req.body.address}`
+        );
+        next();
+      } else {
+        next();
+      }
+    });
 
     // In every request support both chain and chainId
     this.app.use((req: any, res: any, next: any) => {
@@ -185,31 +210,41 @@ export class Server {
       next();
     });
 
-    if (
-      process.env.NODE_ENV === "production" &&
-      (process.env.TAG === "latest" || process.env.TAG === "stable")
-    ) {
-      const limiter = rateLimit({
-        windowMs: 2 * 1000,
-        max: 1, // Requests per windowMs
-        standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-        legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-        message: {
-          error:
-            "You are sending too many verification requests, please slow down.",
-        },
-        keyGenerator: (req: any) => {
-          if (req.headers["x-forwarded-for"]) {
-            return req.headers["x-forwarded-for"].toString();
-          }
-          return req.ip;
-        },
-      });
+    const limiter = rateLimit({
+      windowMs: 2 * 1000,
+      max: 1, // Requests per windowMs
+      standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+      legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+      message: {
+        error:
+          "You are sending too many verification requests, please slow down.",
+      },
+      handler: (req, res, next, options) => {
+        const ip = getIp(req);
+        const ipHash = ip ? hash(ip) : "";
+        const ipLog = process.env.NODE_ENV === "production" ? ipHash : ip; // Don't log IP in production
+        const store = options.store as ExpressRateLimitMemoryStore;
+        const hits = store.hits[ip || ""];
+        logger.info(
+          `Rate limit hit method=${req.method} path=${req.path} ip=${ipLog} hits=${hits}`
+        );
+        res.status(options.statusCode).send(options.message);
+      },
+      keyGenerator: (req: any) => {
+        return getIp(req) || new Date().toISOString();
+      },
+      skip: (req) => {
+        const ip = getIp(req);
+        for (const ipPrefix of config.rateLimitWhiteList) {
+          if (ip?.startsWith(ipPrefix)) return true;
+        }
+        return false;
+      },
+    });
 
-      this.app.all("/session/verify/*", limiter);
-      this.app.all("/verify*", limiter);
-      this.app.post("/", limiter);
-    }
+    this.app.all("/session/verify*", limiter);
+    this.app.all("/verify*", limiter);
+    this.app.post("/", limiter);
 
     // Session API endpoints require non "*" origins because of the session cookies
     const sessionPaths = [
@@ -351,4 +386,15 @@ if (require.main === module) {
         logger.info(`Server listening on port ${server.port}`)
       );
     });
+}
+
+function hash(data: string) {
+  return crypto.createHash("sha256").update(data).digest("hex");
+}
+
+function getIp(req: Request) {
+  if (req.headers["x-forwarded-for"]) {
+    return req.headers["x-forwarded-for"].toString();
+  }
+  return req.ip;
 }

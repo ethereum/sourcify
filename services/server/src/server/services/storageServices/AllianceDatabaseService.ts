@@ -1,4 +1,4 @@
-import { logger } from "../../../common/loggerLoki";
+import { logger } from "../../../common/logger";
 import { AuthTypes, Connector } from "@google-cloud/cloud-sql-connector";
 import { Pool } from "pg";
 import AbstractDatabaseService from "./AbstractDatabaseService";

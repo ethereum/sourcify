@@ -10,10 +10,8 @@ services=("ui" "server" "monitor" "repository")
 
 if [ "$CIRCLE_BRANCH" == "staging" ]; then 
     ENVIRONMENT='staging'
-    TAG='latest'
 elif [ "$CIRCLE_BRANCH" == "master" ]; then
     ENVIRONMENT='production'
-    TAG='stable'
 else
     echo "Invalid branch $CIRCLE_BRANCH. Check your config.yml"
     exit 1
@@ -32,7 +30,7 @@ for service in "${services[@]}"; do
         if [ -n "$image_tag_content" ]; then
             echo "File is not empty."
 
-            body="{\"event_type\":\"deploy\",\"client_payload\":{\"environment\":\"$ENVIRONMENT\",\"component\":\"$service\",\"image_tag\":\""$service"-"$TAG"@"$image_tag_content"\",\"ref\":\"$CIRCLE_BRANCH\",\"sha\":\"$CIRCLE_SHA1\"}}"
+            body="{\"event_type\":\"deploy\",\"client_payload\":{\"environment\":\"$ENVIRONMENT\",\"component\":\"$service\",\"image_tag\":\""$CIRCLE_BRANCH"@"$image_tag_content"\",\"ref\":\"$CIRCLE_BRANCH\",\"sha\":\"$CIRCLE_SHA1\"}}"
 
             echo "Sending deploy trigger with request body $body"
 
@@ -55,10 +53,14 @@ for service in "${services[@]}"; do
 
     # Add a new line for readability
     echo ""
+    
+    # Wait 5 seconds between each service to avoid concurrent Github commits
+    echo "Waiting 5 secs..."
+    sleep 5
 done
 
-# Wait 5 minutes in 1 minute intervals for the deploy to complete. TODO: Replace with a check for the deploy status
-for i in {1..5}
+# Wait 6 minutes in 1 minute intervals for the deploy to complete. 6 min is 2x the default 3min polling time of ArgoCD
+for i in {1..6}
 do
   echo "Waiting for $i minute(s)..."
   sleep 60

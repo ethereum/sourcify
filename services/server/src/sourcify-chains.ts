@@ -10,7 +10,7 @@ import { ValidationError } from "./common/errors";
 import { FetchRequest } from "ethers";
 import chainsRaw from "./chains.json";
 import rawSourcifyChainExtentions from "./sourcify-chains-default.json";
-import { logger } from "./common/loggerLoki";
+import { logger } from "./common/logger";
 import fs from "fs";
 import path from "path";
 
@@ -211,13 +211,9 @@ logger.info(
 export function getSortedChainsArray(
   chainMap: SourcifyChainMap
 ): SourcifyChain[] {
-  function getPrimarySortKey(chain: any) {
-    return chain.name || chain.title;
-  }
-
   const chainsArray = Object.values(chainMap);
   // Have Ethereum chains on top.
-  const ethereumChainIds = [1, 17000, 5, 11155111, 3, 4, 42];
+  const ethereumChainIds = [1, 17000, 5, 11155111, 3, 4];
   const ethereumChains = [] as SourcifyChain[];
   ethereumChainIds.forEach((id) => {
     // Ethereum chains might not be in a custom chains.json
@@ -228,13 +224,13 @@ export function getSortedChainsArray(
     chainMap[id].name = chainMap[id].title || chainMap[id].name;
     ethereumChains.push(chainMap[id]);
   });
-  // Others, sorted alphabetically
+  // Others, sorted by chainId strings
   const otherChains = chainsArray
     .filter((chain) => !ethereumChainIds.includes(chain.chainId))
     .sort((a, b) =>
-      getPrimarySortKey(a) > getPrimarySortKey(b)
+      a.chainId.toString() > b.chainId.toString()
         ? 1
-        : getPrimarySortKey(b) > getPrimarySortKey(a)
+        : a.chainId.toString() < b.chainId.toString()
         ? -1
         : 0
     );

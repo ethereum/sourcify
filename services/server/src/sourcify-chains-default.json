@@ -124,10 +124,6 @@
     "sourcifyName": "Ethereum Rinkeby Testnet",
     "supported": false
   },
-  "42": {
-    "sourcifyName": "Ethereum Kovan Testnet",
-    "supported": false
-  },
   "51": {
     "sourcifyName": "Apothem",
     "supported": true,
@@ -1054,7 +1050,6 @@
       "avalancheApi": true
     }
   },
-
   "333000333": {
     "sourcifyName": "MELD",
     "supported": true,
@@ -1291,6 +1286,40 @@
       "blockscoutScrape": {
         "url": "https://explorer.mantle.xyz/"
       }
+    }
+  },
+  "3737": {
+    "sourcifyName": "Crossball Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutScrape": {
+        "url": "https://scan.crossbell.io/"
+      }
+    }
+  },
+  "1433": {
+    "sourcifyName": "Rikeza Network",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutScrape": {
+        "url": "https://rikscan.com/"
+      }
+    }
+  },
+  "383414847825": {
+    "sourcifyName": "Zeniq",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutScrape": {
+        "url": "https://zeniqscan.com/"
+      }
+    }
+  },
+  "1127469": {
+    "sourcifyName": "Tiltyard Subnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "avalancheApi": true
     }
   }
 }

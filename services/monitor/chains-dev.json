@@ -6,9 +6,13 @@
     "rpc": ["https://rpc2.sepolia.org"]
   },
   {
-    "name": "Localhost 8545",
-    "title": "Localhost 8545",
+    "name": "Ganache Localhost",
     "chainId": 1337,
+    "rpc": ["http://localhost:8545"]
+  },
+  {
+    "name": "Hardhat Network Localhost",
+    "chainId": 31337,
     "rpc": ["http://localhost:8545"]
   }
 ]

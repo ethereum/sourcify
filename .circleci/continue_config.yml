@@ -19,9 +19,6 @@ parameters:
   run-build-packages:
     type: boolean
     default: false
-  run-tests:
-    type: boolean
-    default: false
 
 ################
 ### ALIASES ####
@@ -37,33 +34,23 @@ aliases:
       run-build-2:
         type: boolean
         default: false
-      SERVICE:
-        type: string
-        default: ""
     steps:
-      - when:
-          condition: 
-            or: 
-              - << parameters.run-build >>
-              - << parameters.run-build-2 >>
-          steps:
-            - checkout
-            - run:
-                name: "Pull Submodules"
-                command: |
-                  git submodule init
-                  git submodule update --remote
-            - setup_remote_docker:
-                version: 20.10.23
-            - run:
-                name: Build and push docker images
-                # "source" to persist env vars set
-                command: |
-                  ./scripts/build_and_publish_docker_images.sh 
-            - persist_to_workspace:
-                root: workspace
-                paths:
-                  - ./*
+      - checkout
+      - run:
+          name: "Pull Submodules"
+          command: |
+            git submodule init
+            git submodule update --remote
+      - setup_remote_docker:
+          version: 20.10.23
+      - run:
+          name: Build and push docker images
+          command: |
+            ./.circleci/scripts/build_and_publish_docker_images.sh 
+      - persist_to_workspace:
+          root: workspace
+          paths:
+            - ./*
       # If no build is needed, echo 0 to run as success 
       - run: echo 0
   - &monitor-e2e-base
@@ -107,28 +94,20 @@ workflows:
   build_publish_deploy_docker:
     # Run build_publish_deploy when on staging or master AND when a module is changed and something needs to be built and deployed.
     when:
-      and:
-        - or:
-            - equal: [master, << pipeline.git.branch >>]
-            - equal: [staging, << pipeline.git.branch >>]
-        - or:
-            [
-              << pipeline.parameters.run-build-repository >>,
-              << pipeline.parameters.run-build-server >>,
-              << pipeline.parameters.run-build-monitor >>,
-              << pipeline.parameters.run-build-packages >>,
-              << pipeline.parameters.run-build-ui >>,
-              << pipeline.parameters.run-tests >>,
-            ]
+      # and:
+      or:
+        - equal: [master, << pipeline.git.branch >>]
+        - equal: [staging, << pipeline.git.branch >>]
+        # - or:
+        #     [
+        #       << pipeline.parameters.run-build-repository >>,
+        #       << pipeline.parameters.run-build-server >>,
+        #       << pipeline.parameters.run-build-monitor >>,
+        #       << pipeline.parameters.run-build-packages >>,
+        #       << pipeline.parameters.run-build-ui >>,
+        #     ]
     jobs:
       - tests-node-v16
-      - npm-publish:
-          filters:
-            branches:
-              only:
-                - master
-          requires:
-            - tests-node-v16
       - build-push-monitor:
           run-build: << pipeline.parameters.run-build-monitor >>
           run-build-2: << pipeline.parameters.run-build-packages >> # monitor depends on packages
@@ -157,7 +136,38 @@ workflows:
       - verification-e2e-sepolia:
           requires:
             - deploy
-
+  tagged_build_and_publish: # Triggered by a tag push
+    jobs:
+      - build-push-monitor:
+          filters:
+            tags:
+              only: /^sourcify-.*@.*/ # docker image tag format
+            branches:
+              ignore: /.*/
+      - build-push-repository:
+          filters:
+            tags:
+              only: /^sourcify-.*@.*/
+            branches:
+              ignore: /.*/
+      - build-push-server:
+          filters:
+            tags:
+              only: /^sourcify-.*@.*/
+            branches:
+              ignore: /.*/
+      - build-push-ui:
+          filters:
+            tags:
+              only: /^sourcify-.*@.*/
+            branches:
+              ignore: /.*/
+      - npm-publish:
+          filters:
+            tags:
+              only: /^@ethereum-sourcify.*@.*/ # npm package tag format
+            branches:
+              ignore: /.*/
   # Tests workflow for not staging or master
   tests:
     when:
@@ -182,18 +192,26 @@ jobs:
     <<: *build-base
     environment:
       SERVICE: "monitor"
+      DOCKER_BUILD_CONTEXT: "."
+      DOCKERFILE: "services/monitor/Dockerfile"
   build-push-repository:
     <<: *build-base
     environment:
       SERVICE: "repository"
+      DOCKER_BUILD_CONTEXT: "./h5ai-nginx"
+      DOCKERFILE: "./h5ai-nginx/Dockerfile"
   build-push-server:
     <<: *build-base
     environment:
       SERVICE: "server"
+      DOCKER_BUILD_CONTEXT: "."
+      DOCKERFILE: "services/server/Dockerfile"
   build-push-ui:
     <<: *build-base
     environment:
       SERVICE: "ui"
+      DOCKER_BUILD_CONTEXT: "./ui"
+      DOCKERFILE: "./ui/Dockerfile"
   deploy:
     docker:
       - image: cimg/base:2021.04
@@ -205,7 +223,7 @@ jobs:
           name: Trigger Deploy Events
           no_output_timeout: 5m
           command: |
-            ./scripts/trigger_deploy.sh
+            ./.circleci/scripts/trigger_deploy.sh
   tests-node-v16:
     docker:
       - image: cimg/node:16.15
@@ -245,7 +263,7 @@ jobs:
           command: npx lerna run build
       - run:
           name: test new chain PR
-          command: ./scripts/test_new_chain_support.sh
+          command: ./.circleci/scripts/test_new_chain_support.sh
   monitor-e2e-goerli:
     <<: *monitor-e2e-base
     environment:
@@ -280,4 +298,4 @@ jobs:
           command: npx lerna run build
       - run:
           name: Publish npm package
-          command: ./scripts/publish_to_npm.sh
+          command: ./.circleci/scripts/publish_to_npm.sh

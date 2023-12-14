@@ -2,8 +2,6 @@
 .vscode
 **/dist
 **/build
-environments
-!environments/.env
 **/node_modules
 **/.cache
 **/tmp

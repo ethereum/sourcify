@@ -11,7 +11,7 @@ import {
   AllianceDatabaseService,
   AllianceDatabaseServiceOptions,
 } from "./storageServices/AllianceDatabaseService";
-import { logger } from "../../common/loggerLoki";
+import { logger } from "../../common/logger";
 
 export interface IStorageService {
   init(): Promise<boolean>;
@@ -85,6 +85,9 @@ export class StorageService {
   }
 
   storeMatch(contract: CheckedContract, match: Match) {
+    logger.info(
+      `Storing ${contract.name} address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
+    );
     try {
       this.allianceDatabase?.storeMatch(contract, match);
     } catch (e) {

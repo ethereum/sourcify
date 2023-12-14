@@ -32,7 +32,7 @@ import { hexZeroPad, isHexString } from '@ethersproject/bytes';
 import { BigNumber } from '@ethersproject/bignumber';
 import { defaultAbiCoder as abiCoder, ParamType } from '@ethersproject/abi';
 import { AbiConstructor } from 'abitype';
-import { logInfo, logWarn } from './logger';
+import { logDebug, logInfo, logWarn } from './logger';
 import SourcifyChain from './SourcifyChain';
 import { lt } from 'semver';
 
@@ -176,7 +176,7 @@ export async function verifyDeployed(
       if (deployedAuxdata === recompiledAuxdata) {
         (match as Match).runtimeMatch = 'extra-file-input-bug';
         (match as Match).message =
-          'It seems your contract has either Solidity v0.6.12 or v0.7.0, and the metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618';
+          "It seems your contract's metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618";
         return match;
       }
     }
@@ -217,8 +217,15 @@ export async function verifyDeployed(
   }
 
   if (match.creationMatch !== null || match.runtimeMatch !== null) {
+    logInfo(
+      `Verified contract successfully name=${checkedContract.name} address=${address} chainId=${match.chainId} runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
+    );
     return match;
   }
+
+  logInfo(
+    `Failed to verify contract address=${address} chainId=${sourcifyChain.chainId} message=${match.message}`
+  );
   throw Error("The deployed and recompiled bytecode don't match.");
 }
 
@@ -680,7 +687,7 @@ function endsWithMetadataHash(bytecode: string) {
     endsWithMetadata =
       !!decodedCBOR.ipfs || !!decodedCBOR['bzzr0'] || !!decodedCBOR['bzzr1'];
   } catch (e) {
-    logInfo("Can't decode CBOR");
+    logDebug("Can't decode CBOR");
     endsWithMetadata = false;
   }
   return endsWithMetadata;

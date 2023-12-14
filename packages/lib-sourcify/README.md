@@ -143,7 +143,7 @@ console.log(match.status); // 'perfect'
 
 ## Logging
 
-`lib-sourcify` has a basic logging system.
+`lib-sourcify` has a basic logging system
 
 You can specify the log level using the `setLibSourcifyLoggerLevel(level)` where:
 

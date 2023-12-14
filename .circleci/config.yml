@@ -41,9 +41,7 @@ workflows:
             services/server/.* run-build-server true
             h5ai-nginx run-build-repository true 
             packages/.* run-build-packages true
-            environments/.* run-build-server true
             ui/.* run-build-ui true
-            test/.* run-tests true
           # Compare against the last build of the branch not the default "main" branch
           base-revision: << pipeline.git.base_revision >>
           config-path: .circleci/continue_config.yml

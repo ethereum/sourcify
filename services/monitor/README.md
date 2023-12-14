@@ -96,6 +96,18 @@ CF_ACCESS_CLIENT_SECRET=
 
 ## Usage
 
+You can run the Sourcify Monitor in two ways:
+
+### 1. Run locally
+
+```bash
+node dist/index.js --chainsPath /path/to/chains.json --configPath /path/to/config.json
+```
+
+The `--chainsPath` and `--configPath` are optional. If not provided, the default paths will be used.
+
+### 2. Run via Docker
+
 The recommended way to run the Sourcify Monitor is via Docker.
 
 You need to pass the `chains.json` and `config.json` files to the container. You can do this by mounting them as volumes:
@@ -106,10 +118,10 @@ docker run \
   -v /path/to/config.json:/home/app/services/monitor/config.json \
   -e ALCHEMY_API_KEY=xxx \
   -e INFURA_API_KEY=xxx \
-  ethereum/source-verify:monitor-stable
+  ethereum/sourcify:monitor-stable
 ```
 
-The containers are at [Docker Hub](https://hub.docker.com/r/ethereum/source-verify/tags).
+The containers are at [Github](https://github.com/orgs/ethereum/packages?repo_name=sourcify).
 
 ## Development
 
@@ -139,5 +151,5 @@ npm install && npx lerna run build
 
 ```bash
 cd services/monitor
-npm start
+node dist/index.js --chainsPath chains-dev.json
 ```

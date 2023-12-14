@@ -9,6 +9,7 @@ import {
 import { isEmpty } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError } from "../../../../../common/errors";
 import { services } from "../../../../services/services";
+import { logger } from "../../../../../common/logger";
 
 export async function verifyContractsInSessionEndpoint(
   req: Request,
@@ -20,6 +21,19 @@ export async function verifyContractsInSessionEndpoint(
   }
 
   const receivedContracts: SendableContract[] = req.body.contracts;
+
+  const requestId = req.headers["X-Request-ID"] || "";
+  const requestIdMsg = requestId ? `requestId=${requestId} ` : "";
+
+  /* eslint-disable indent */
+  logger.info(`${requestIdMsg} /session/verify - \
+    ${receivedContracts
+      .map(
+        (c) => `verificationId=${c.verificationId} \
+    address=${c.address} chainId=${c.chainId}`
+      )
+      .join(", ")})}`);
+  /* eslint-enable indent*/
 
   const verifiable: ContractWrapperMap = {};
   for (const receivedContract of receivedContracts) {

@@ -1,8 +1,7 @@
 /* eslint-disable no-useless-escape */
 import * as dotenv from "dotenv";
 import path from "path";
-import { SourcifyEventManager } from "./common/SourcifyEventManager/SourcifyEventManager";
-import { logger } from "./common/loggerLoki";
+import { logger } from "./common/logger";
 
 dotenv.config({ path: path.resolve(__dirname, "..", ".env") });
 
@@ -27,7 +26,6 @@ export default {
     path: setRepositoryPath(),
   },
   testing: process.env.TESTING || false,
-  tag: process.env.TAG || "latest",
   logging: {
     dir: process.env.LOGGING_DIR || "logs",
     level: process.env.LOGGING_LEVEL || "debug",
@@ -46,5 +44,11 @@ export default {
     /^https?:\/\/(?:.+\.)?sourcify.eth.link$/, // sourcify.eth.link and subdomains
     /^https?:\/\/(?:.+\.)?ipfs.dweb.link$/, // dweb links used by Brave browser etc.
     process.env.NODE_ENV === "development" && /^https?:\/\/localhost(?::\d+)?$/, // localhost on any port
+  ],
+  rateLimitWhiteList: [
+    "10.244", // Kubernetes cluster internal IP range
+    "127.0.0.1",
+    "::ffff:127.0.0.1",
+    "::1",
   ],
 };
