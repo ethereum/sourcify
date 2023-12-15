@@ -13,7 +13,7 @@ module.exports = {
   },
   lambdaCompiler: {
     enabled: true,
-    functionName: "compiler-production",
+    functionName: "compile-production",
     // credentials as env vars
   },
   rateLimit: {
