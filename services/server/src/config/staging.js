@@ -1,5 +1,7 @@
 module.exports = {
-  port: 80,
+  server: {
+    port: 80,
+  },
   repository: {
     path: "/home/app/repository",
     serverUrl: "https://repo.staging.sourcify.dev",
