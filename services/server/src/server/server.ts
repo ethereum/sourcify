@@ -237,7 +237,11 @@ export class Server {
         handler: (req, res, next, options) => {
           const ip = getIp(req);
           const ipHash = ip ? hash(ip) : "";
-          const ipLog = process.env.NODE_ENV === "production" ? ipHash : ip; // Don't log IP in production
+          const ipLog =
+            process.env.NODE_ENV === "production" &&
+            process.env.NODE_CONFIG_ENV === "master"
+              ? ipHash
+              : ip; // Don't log IPs in production master
           const store = options.store as ExpressRateLimitMemoryStore;
           const hits = store.hits[ip || ""];
           logger.info(
