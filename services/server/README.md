@@ -6,11 +6,11 @@ Sourcify's server for verifying contracts.
 
 ### Server Config
 
-The server config is defined in `config/default.js`.
+The server config is defined in `src/config/default.js`.
 
 To override the default config, you can create a `local.js` file and override the default config. The parameters are overridden one by one, so you only need to override the parameters you want to change.
 
-Or if you are running in a deployment you can pass the `NODE_ENV` name as the config file name and it will take precedence. For example, if you are running in a `NODE_ENV=production` environment, you can create a `config/production.js` file and it will be used instead of the default config. Local takes precedence over `NODE_ENV`. The file precedence is defined in [node-config package](https://github.com/node-config/node-config/wiki/Configuration-Files#multi-instance-deployments).
+Or if you are running in a deployment you can pass the `NODE_CONFIG_ENV` name as the config file name and it will take precedence. For example, if you are running in a `NODE_CONFIG_ENV=staging` environment, you can create a `config/staging.js` file and it will be used instead of the default config. Local takes precedence over `NODE_CONFIG_ENV`. The file precedence is defined in [node-config package](https://github.com/node-config/node-config/wiki/Configuration-Files#multi-instance-deployments).
 
 ### Chains Config
 
@@ -103,11 +103,11 @@ You can run the server using Docker and pass in a custom `sourcify-chains.json` 
 Also set up the environment variables in the `.env` file. You can see the list of required environment variables in the `.env.dev` file. Pass it with the `--env-file` flag or use the `--env` flag to pass individual environment variables.
 
 ```bash
-$ docker pull ghcr.io/ethereum/sourcify/server:stable
+$ docker pull ghcr.io/ethereum/sourcify/server:latest
 $ docker run \
   -p 5555:5555 \
   -v path/to/custom/sourcify-chains.json:/home/app/services/server/dist/sourcify-chains.json \
   -v path/to/custom/config.js:/home/app/services/server/dist/local.js \
   --env-file .env \
-  ghcr.io/ethereum/sourcify/server:stable
+  ghcr.io/ethereum/sourcify/server:latest
 ```

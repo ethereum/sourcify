@@ -10,7 +10,7 @@ Set the environment variables in `.env.development` depending on your settings.
 
 The variables `REACT_APP...` will get injected into the build and are available at runtime.
 
-## Run
+### Run
 
 Install with `npm install` and run the development server with `npm start`.
 
@@ -28,7 +28,7 @@ Resulting static assets will be stored at `build/` and ready to be served.
 
 ## Building with Docker
 
-The `Dockerfile` installs,builds and serves the project on a minimal nginx container.
+The `Dockerfile` installs, builds and serves the project on a minimal nginx container.
 
 Again, don't forget to provide the environment variables in `.env.production` or `.env` ([CRA docs on env vars](https://create-react-app.dev/docs/adding-custom-environment-variables/)).
 
@@ -44,12 +44,12 @@ Run with
 docker run -p 80:80 sourcify-ui
 ```
 
-### Running with the published Docker image
+## Running with the published Docker image
 
 The Docker image is published on [Github Container Registry](https://github.com/ethereum/sourcify/pkgs/container/sourcify%2Fui). You can run it with
 
 ```
-docker run -p 80:80 ghcr.io/ethereum/sourcify/ui:stable
+docker run -p 80:80 ghcr.io/ethereum/sourcify/ui:latest
 ```
 
 However pleasse note that the values in the `.env` files are injected on the build time so you won't be able to provide custom values for the environment variables:
