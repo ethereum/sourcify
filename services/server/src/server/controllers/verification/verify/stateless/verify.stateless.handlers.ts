@@ -20,7 +20,7 @@ export async function legacyVerifyEndpoint(
   req: LegacyVerifyRequest,
   res: Response
 ): Promise<any> {
-  const result = services.storage.checkByChainAndAddress(
+  const result = services.storage.checkAllByChainAndAddress(
     req.body.address,
     req.body.chain
   );
