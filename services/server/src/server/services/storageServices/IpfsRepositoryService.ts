@@ -434,10 +434,7 @@ export class IpfsRepositoryService implements IStorageService {
       logger.info(
         `Stored ${contract.name} to filesystem address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
       );
-      await this.addToIpfsMfs(matchQuality, match.chainId, match.address);
-      logger.info(
-        `Stored ${contract.name} to IPFS MFS address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
-      );
+      // await this.addToIpfsMfs(matchQuality, match.chainId, match.address);
     } else if (match.runtimeMatch === "extra-file-input-bug") {
       return match;
     } else {
