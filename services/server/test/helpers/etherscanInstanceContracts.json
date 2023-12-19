@@ -239,14 +239,14 @@
       "expectedStatus": "perfect"
     }
   ],
-  "420": [
+  "11155420": [
     {
-      "address": "0xac0aEAea17A0Ae6F2d0B88241191Af59EAd66057",
+      "address": "0x52e9c5dc93aAc1BF967e697993A3Dd436B827293",
       "type": "single",
       "expectedStatus": "partial"
     },
     {
-      "address": "0x0E89D6212B758BB06318571d95aeac6bE1354d0A",
+      "address": "0x8afE5aeEdf9350Cddc17a60b26581092449e2d65",
       "type": "standard-json",
       "expectedStatus": "perfect"
     }
