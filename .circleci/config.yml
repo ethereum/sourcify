@@ -50,7 +50,7 @@ workflows:
       - npm-publish:
           filters:
             tags:
-              only: /^@ethereum-sourcify.*/ # npm package tag format
+              only: /.*/ # Must always run as required by the build-push-* jobs
             branches:
               ignore: /.*/
       - build-push-monitor:
