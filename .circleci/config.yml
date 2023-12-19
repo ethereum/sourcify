@@ -45,7 +45,46 @@ workflows:
           # Compare against the last build of the branch not the default "main" branch
           base-revision: << pipeline.git.base_revision >>
           config-path: .circleci/continue_config.yml
-
+  tagged_build_and_publish: # Triggered by a tag push
+    jobs:
+      - npm-publish:
+          filters:
+            tags:
+              only: /^@ethereum-sourcify.*/ # npm package tag format
+            branches:
+              ignore: /.*/
+      - build-push-monitor:
+          filters:
+            tags:
+              only: /sourcify-monitor.*/ # docker image tag format
+            branches:
+              ignore: /.*/
+          requires:
+            - npm-publish
+      - build-push-repository:
+          filters:
+            tags:
+              only: /^sourcify-repository.*/
+            branches:
+              ignore: /.*/
+          requires:
+            - npm-publish
+      - build-push-server:
+          filters:
+            tags:
+              only: /^sourcify-server.*/
+            branches:
+              ignore: /.*/
+          requires:
+            - npm-publish
+      - build-push-ui:
+          filters:
+            tags:
+              only: /^sourcify-ui.*/
+            branches:
+              ignore: /.*/
+          requires:
+            - npm-publish
   new-branch:
     when:
       and:
@@ -73,3 +112,79 @@ workflows:
       - continuation/continue:
           name: continue-test-chains-regularly
           configuration_path: .circleci/test-chains-regularly.yml
+
+
+################
+### ALIASES ####
+################
+aliases:
+  - &build-base
+    docker:
+      - image: cimg/base:2023.09
+    parameters:
+      run-build:
+        type: boolean
+        default: false
+      run-build-2:
+        type: boolean
+        default: false
+    steps:
+      - checkout
+      - run:
+          name: "Pull Submodules"
+          command: |
+            git submodule init
+            git submodule update --remote
+      - setup_remote_docker:
+          version: 20.10.23
+      - run:
+          name: Build and push docker images
+          command: |
+            ./.circleci/scripts/build_and_publish_docker_images.sh 
+      - persist_to_workspace:
+          root: workspace
+          paths:
+            - ./*
+      # If no build is needed, echo 0 to run as success 
+      - run: echo 0
+
+jobs:
+  build-push-monitor:
+    <<: *build-base
+    environment:
+      SERVICE: "monitor"
+      DOCKER_BUILD_CONTEXT: "."
+      DOCKERFILE: "services/monitor/Dockerfile"
+  build-push-repository:
+    <<: *build-base
+    environment:
+      SERVICE: "repository"
+      DOCKER_BUILD_CONTEXT: "./h5ai-nginx"
+      DOCKERFILE: "./h5ai-nginx/Dockerfile"
+  build-push-server:
+    <<: *build-base
+    environment:
+      SERVICE: "server"
+      DOCKER_BUILD_CONTEXT: "."
+      DOCKERFILE: "services/server/Dockerfile"
+  build-push-ui:
+    <<: *build-base
+    environment:
+      SERVICE: "ui"
+      DOCKER_BUILD_CONTEXT: "./ui"
+      DOCKERFILE: "./ui/Dockerfile"
+  npm-publish:
+    working_directory: ~/sourcify
+    docker:
+      - image: cimg/node:16.15
+    steps:
+      - checkout
+      - run:
+          name: install dependencies
+          command: npm install
+      - run:
+          name: build everything
+          command: npx lerna run build
+      - run:
+          name: Publish npm package
+          command: ./.circleci/scripts/publish_to_npm.sh

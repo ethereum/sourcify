@@ -135,40 +135,7 @@ workflows:
             - deploy
       - verification-e2e-sepolia:
           requires:
-            - deploy
-  tagged_build_and_publish: # Triggered by a tag push
-    jobs:
-      - build-push-monitor:
-          filters:
-            tags:
-              only: /sourcify-monitor.*/ # docker image tag format
-            branches:
-              ignore: /.*/
-      - build-push-repository:
-          filters:
-            tags:
-              only: /^sourcify-.*@.*/
-            branches:
-              ignore: /.*/
-      - build-push-server:
-          filters:
-            tags:
-              only: /^sourcify-.*@.*/
-            branches:
-              ignore: /.*/
-      - build-push-ui:
-          filters:
-            tags:
-              only: /^sourcify-.*@.*/
-            branches:
-              ignore: /.*/
-      - npm-publish:
-          filters:
-            tags:
-              only: /^@ethereum-sourcify.*@.*/ # npm package tag format
-            branches:
-              ignore: /.*/
-  # Tests workflow for not staging or master
+            - deploy  # Tests workflow for not staging or master
   tests:
     when:
       and:
@@ -227,7 +194,7 @@ jobs:
   tests-node-v16:
     docker:
       - image: cimg/node:16.15
-    working_directory: ~/source-verify
+    working_directory: ~/sourcify
     parameters:
       run_coveralls:
         type: boolean
@@ -252,7 +219,7 @@ jobs:
   test-new-chain:
     docker:
       - image: cimg/node:16.15
-    working_directory: ~/source-verify
+    working_directory: ~/sourcify
     steps:
       - checkout
       - run:
@@ -284,18 +251,3 @@ jobs:
     environment:
       CHAIN_ID: "11155111"
       CHAIN_NAME: sepolia
-  npm-publish:
-    working_directory: ~/source-verify
-    docker:
-      - image: cimg/node:16.15
-    steps:
-      - checkout
-      - run:
-          name: install dependencies
-          command: npm install
-      - run:
-          name: build everything
-          command: npx lerna run build
-      - run:
-          name: Publish npm package
-          command: ./.circleci/scripts/publish_to_npm.sh
