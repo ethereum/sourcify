@@ -114,9 +114,7 @@ workflows:
           configuration_path: .circleci/test-chains-regularly.yml
 
 
-################
-### ALIASES ####
-################
+# Different than the one on continue_config.yml, this one DOES NOT persist the workspace and trigger a deploy job.
 aliases:
   - &build-base
     docker:
@@ -141,10 +139,6 @@ aliases:
           name: Build and push docker images
           command: |
             ./.circleci/scripts/build_and_publish_docker_images.sh 
-      - persist_to_workspace:
-          root: workspace
-          paths:
-            - ./*
       # If no build is needed, echo 0 to run as success 
       - run: echo 0
 
