@@ -141,7 +141,7 @@ workflows:
       - build-push-monitor:
           filters:
             tags:
-              only: /^sourcify-monitor.*/ # docker image tag format
+              only: /sourcify-monitor.*/ # docker image tag format
             branches:
               ignore: /.*/
       - build-push-repository:
