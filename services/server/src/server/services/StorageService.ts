@@ -53,10 +53,6 @@ export class StorageService {
     return true;
   }
 
-  checkAllByChainAndAddress(address: string, chainId: string): Match[] {
-    return this.ipfsRepository.checkAllByChainAndAddress(address, chainId);
-  }
-
   checkByChainAndAddress(address: string, chainId: string): Match[] {
     return this.ipfsRepository.checkByChainAndAddress(address, chainId);
   }
