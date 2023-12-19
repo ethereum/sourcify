@@ -1235,7 +1235,7 @@
     "supported": true,
     "etherscanApi": {
       "apiURL": "https://api.test.btcs.network/",
-      "apiKeyEnvName": "COREDAO_API_KEY"
+      "apiKeyEnvName": "COREDAO_TESTNET_API_KEY"
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true

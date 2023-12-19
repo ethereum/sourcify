@@ -330,5 +330,29 @@
       "type": "standard-json",
       "expectedStatus": "perfect"
     }
+  ],
+  "1116": [
+    {
+      "address": "0x3034802fc4c9a278d0886ed77fd3f79fd789c898",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x732544bb91e6cf23bb02e7b8d61d4a8b9c15b73b",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
+  ],
+  "1115": [
+    {
+      "address": "0x396433f5279972b9c0a0b783e3dc0078fde8571a",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0xd87666942b1b023c5abfabf7f59120c269f8ba02",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
   ]
 }
