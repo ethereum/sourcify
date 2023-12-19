@@ -142,7 +142,7 @@ const sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {
     },
     // Temporary rpc until this is fixed: https://github.com/emeraldpay/dshackle/issues/262
     // rpc: buildAlchemyAndCustomRpcURLs("holesky", "eth", true),
-    rpc: ["https://rpc.teku-geth-001.srv.holesky.ethpandaops.io"],
+    rpc: ["https://rpc.holesky.ethpandaops.io"]
   },
   "5": {
     // Ethereum Goerli Testnet
