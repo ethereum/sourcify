@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@1.4.2 - 2023-12-19
+
+- Revert hotfix in 1.4.1
+
 ## sourcify-server@1.4.1 - 2023-12-19
 
 - Fix already partially verified contracts being verified again instead of retuning the existing verification.
