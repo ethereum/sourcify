@@ -333,6 +333,7 @@ export class IpfsRepositoryService implements IStorageService {
         : this.generateAbsoluteFilePath(path);
     fs.mkdirSync(Path.dirname(abolsutePath), { recursive: true });
     fs.writeFileSync(abolsutePath, content);
+    logger.debug("Saved to repository: " + abolsutePath);
     this.updateRepositoryTag();
   }
 

@@ -25,7 +25,7 @@ const EtherscanInput = ({
   const [error, setError] = useState<string>("");
   const { sourcifyChains, sourcifyChainMap } = useContext(Context);
   const chainsIdsWithEtherscanAPI = sourcifyChains
-    .filter((chain) => chain.etherscanAPI)
+    .filter((chain) => chain.etherscanAPI && chain.supported)
     .map((chainId) => chainId.chainId);
 
   const handleAddressChange: React.ChangeEventHandler<HTMLInputElement> = (

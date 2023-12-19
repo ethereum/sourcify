@@ -43,13 +43,7 @@ exports.assertVerification = (
     assertContractSaved(expectedAddress, expectedChain, expectedStatus);
     if (done) done();
   } catch (e) {
-    console.log(
-      `Failing verification for ${expectedAddress} on chain #${expectedChain}.`
-    );
-    console.log("Response body:");
-    console.log(JSON.stringify(res.body, null, 2));
-    console.log("Chai Error:");
-    console.log(e);
+    e.message += `\nResponse body: ${JSON.stringify(res.body)}`;
     throw e;
   }
 };
