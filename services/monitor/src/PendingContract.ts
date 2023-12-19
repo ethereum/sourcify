@@ -6,7 +6,6 @@ import { KnownDecentralizedStorageFetchers } from "./types";
 import assert from "assert";
 import dotenv from "dotenv";
 import nodeFetch from "node-fetch";
-import { LIB_VERSION } from "./version";
 
 dotenv.config();
 
@@ -120,7 +119,7 @@ export default class PendingContract {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "User-Agent": LIB_VERSION,
+        "User-Agent": "sourcify-monitor",
       },
       body: JSON.stringify({
         chainId: this.chainId.toString(),
