@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@1.4.1 - 2023-12-19
+
+- Fix already partially verified contracts being verified again instead of retuning the existing verification.
+
 ## sourcify-server@1.4.0 - 2023-12-19
 
 - Remove `CREATE2` verification and related code as it is not used and makes the code unnecessarily complex with `AUTH0` etc.

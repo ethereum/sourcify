@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 This CHANGELOG will contain monorepo related changes such as CI configs, shared dependencies and the development setup.
 
+## sourcify-monorepo@1.1.1 - 2023-12-19
+
+- Fix tagged builds not being triggered because they are not in the entrypoint circleci YML file.
+- Fix `latest` tag not being pushed to Docker Hub.
+
 ## sourcify-monorepo@1.1.0 - 2023-12-19
 
 - Move CI scripts to `.circleci/scripts`
