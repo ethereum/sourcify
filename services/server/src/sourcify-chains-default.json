@@ -313,21 +313,18 @@
   },
   "421613": {
     "sourcifyName": "Arbitrum Goerli Testnet",
+    "supported": false
+  },
+  "421614": {
+    "sourcifyName": "Arbitrum Sepolia Testnet",
     "supported": true,
     "etherscanApi": {
-      "apiURL": "https://api-goerli.arbiscan.io",
+      "apiURL": "https://api-sepolia.arbiscan.io",
       "apiKeyEnvName": "ARBISCAN_API_KEY"
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
-    },
-    "rpc": [
-      {
-        "type": "Alchemy",
-        "url": "https://arb-goerli.alchemyapi.io/v2/{ALCHEMY_API_KEY}",
-        "apiKeyEnvName": "ALCHEMY_API_KEY_ARBITRUM"
-      }
-    ]
+    }
   },
   "43113": {
     "sourcifyName": "Avalanche Fuji Testnet",
