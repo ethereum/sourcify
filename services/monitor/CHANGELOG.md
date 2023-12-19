@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-monitor@1.1.6 - 2023-12-19
+
+- Remove `version.ts` as this was causing a versioning loop.
+
 ## sourcify-monitor@1.1.5 - 2023-12-19
 
 - Update monitor docker to use multi-stage builds and use bullseye-slim
