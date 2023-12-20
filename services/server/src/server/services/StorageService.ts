@@ -79,6 +79,19 @@ export class StorageService {
     return (
       (await this.sourcifyDatabase?.checkByChainAndAddress?.(
         address,
+        chainId,
+        true
+      )) || []
+    );
+  }
+
+  async checkAllByChainAndAddress(
+    address: string,
+    chainId: string
+  ): Promise<Match[]> {
+    return (
+      (await this.sourcifyDatabase?.checkByChainAndAddress?.(
+        address,
         chainId
       )) || []
     );

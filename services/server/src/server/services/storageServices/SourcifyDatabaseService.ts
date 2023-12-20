@@ -65,7 +65,8 @@ export class SourcifyDatabaseService
 
   async checkByChainAndAddress(
     address: string,
-    chainId: string
+    chainId: string,
+    onlyPerfectMatches: boolean = false
   ): Promise<Match[]> {
     await this.init();
 
@@ -73,7 +74,8 @@ export class SourcifyDatabaseService
       await Database.getSourcifyMatchByChainAddress(
         this.databasePool,
         parseInt(chainId),
-        address
+        address,
+        onlyPerfectMatches
       );
 
     if (existingVerifiedContractResult.rowCount === 0) {

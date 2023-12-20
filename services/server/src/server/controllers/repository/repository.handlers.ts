@@ -63,11 +63,10 @@ export async function checkAllByChainAndAddressEndpoint(
   for (const address of addresses) {
     for (const chainId of chainIds) {
       try {
-        const found: Match[] =
-          await services.storage.ipfsRepository.checkAllByChainAndAddress(
-            address,
-            chainId
-          );
+        const found: Match[] = await services.storage.checkAllByChainAndAddress(
+          address,
+          chainId
+        );
         if (found.length != 0) {
           if (!map.has(address)) {
             map.set(address, {

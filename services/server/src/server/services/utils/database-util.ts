@@ -111,7 +111,8 @@ export async function getVerifiedContractByBytecodeHashes(
 export async function getSourcifyMatchByChainAddress(
   pool: Pool,
   chain: number,
-  address: string
+  address: string,
+  onlyPerfectMatches: boolean = false
 ) {
   return await pool.query(
     `
@@ -124,6 +125,11 @@ export async function getSourcifyMatchByChainAddress(
         contract_deployments.contract_id = contracts.id 
         AND contract_deployments.chain_id = $1 
         AND contract_deployments.address = $2
+      ${
+        onlyPerfectMatches
+          ? "WHERE sourcify_matches.creation_match = 'perfect' OR sourcify_matches.runtime_match = 'perfect'"
+          : ""
+      }
       ORDER BY
         CASE 
           WHEN sourcify_matches.creation_match = 'perfect' AND sourcify_matches.runtime_match = 'perfect' THEN 1
