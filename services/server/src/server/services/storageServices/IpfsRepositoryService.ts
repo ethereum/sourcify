@@ -21,6 +21,7 @@ import { getMatchStatus } from "../../common";
 import { IStorageService } from "../StorageService";
 import config from "config";
 
+const REPOSITORY_VERSION = "0.1";
 /**
  * A type for specifying the match quality of files.
  */
@@ -338,6 +339,7 @@ export class IpfsRepositoryService implements IStorageService {
         : this.generateAbsoluteFilePath(path);
     fs.mkdirSync(Path.dirname(abolsutePath), { recursive: true });
     fs.writeFileSync(abolsutePath, content);
+    logger.debug("Saved to repository: " + abolsutePath);
     this.updateRepositoryTag();
   }
 
@@ -439,6 +441,9 @@ export class IpfsRepositoryService implements IStorageService {
         `Stored ${contract.name} to filesystem address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
       );
       await this.addToIpfsMfs(matchQuality, match.chainId, match.address);
+      logger.info(
+        `Stored ${contract.name} to IPFS MFS address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
+      );
     } else if (match.runtimeMatch === "extra-file-input-bug") {
       return match;
     } else {
@@ -463,10 +468,9 @@ export class IpfsRepositoryService implements IStorageService {
   updateRepositoryTag() {
     const filePath: string = Path.join(this.repositoryPath, "manifest.json");
     const timestamp = new Date().getTime();
-    const repositoryVersion = process.env.REPOSITORY_VERSION || "0.1";
     const tag: RepositoryTag = {
       timestamp: timestamp,
-      repositoryVersion: repositoryVersion,
+      repositoryVersion: REPOSITORY_VERSION,
     };
     fs.writeFileSync(filePath, JSON.stringify(tag));
   }

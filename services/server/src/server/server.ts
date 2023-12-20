@@ -3,7 +3,7 @@ import path from "path";
 import dotenv from "dotenv";
 dotenv.config();
 // Make sure config is relative to server.ts and not where the server is run from
-process.env["NODE_CONFIG_DIR"] = path.resolve(__dirname, "../..", "config");
+process.env["NODE_CONFIG_DIR"] = path.resolve(__dirname, "..", "config");
 import config from "config";
 import express, { Request } from "express";
 import serveIndex from "serve-index";
@@ -237,7 +237,7 @@ export class Server {
         handler: (req, res, next, options) => {
           const ip = getIp(req);
           const ipHash = ip ? hash(ip) : "";
-          const ipLog = process.env.NODE_ENV === "production" ? ipHash : ip; // Don't log IP in production
+          const ipLog = process.env.NODE_ENV === "production" ? ipHash : ip; // Don't log IPs in production master
           const store = options.store as ExpressRateLimitMemoryStore;
           const hits = store.hits[ip || ""];
           logger.info(

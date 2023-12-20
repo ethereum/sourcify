@@ -7,11 +7,23 @@
 
 [![codecov](https://codecov.io/gh/ethereum/sourcify/branch/staging/graph/badge.svg?token=eN6XDAwWfV&flag=server)](https://codecov.io/gh/ethereum/sourcify)
 
-Sourcify ([sourcify.dev](https://sourcify.dev)) is a Solidity source code and [metadata](https://docs.sourcify.dev/docs/metadata/) verification tool.
+Sourcify ([sourcify.dev](https://sourcify.dev)) is a Solidity source code verification service for Ethereum smart contracts.
 
-The project aims to serve as an infrastructure for other tools with an [open repository](https://docs.sourcify.dev/docs/repository/) of verified contracts as well as an [API](https://docs.sourcify.dev/docs/api/) and other services. The goal is to make contract interactions on the blockchain safer and more user friendly with open sourced contract codes, contract ABI, and [NatSpec](https://docs.soliditylang.org/en/latest/natspec-format.html) comments available via the contract metadata.
+Different than other verification services, Sourcify leverages the [Solidity metadata](https://docs.sourcify.dev/docs/metadata/) file to ["fully verify"](https://docs.sourcify.dev/docs/full-vs-partial-match/) the contracts.
 
-_ℹ️ [This monorepo](https://github.com/ethereum/sourcify) contains the main services and the verification UI. The [sourcifyeth Github organization](https://github.com/sourcifyeth) contains all other auxiliary services and components._
+Sourcify mainly consists of:
+
+- [sourcify-server](/services/server) - an HTTP server to do verifications and store the verified contracts for supported chains through an [API](https://docs.sourcify.dev/docs/api/)
+- [sourcify-ui](/ui) - a web UI to interact with the server, lookup, and verify contracts
+- [sourcify-monitor](/services/monitor) - a standalone service that listens to various EVM chains for new contract creations and automatically submits them to a Sourcify API for verification.
+- Packages:
+  - [@ethereum-sourcify/lib-sourcify]: The core library for Sourcify. It contains the logic to verify contracts.
+  - [@ethereum-sourcify/bytecode-utils]: A library to extract and parse the CBOR encoded metadata from the bytecode.
+  - [@ethereum-sourcify/contract-call-decoder]: A library to decode the contract calls from the transaction data and show human-readable information using NatSpec comments (currently stale).
+
+The project aims to serve as a public good infrastructure with fully open-source development and an [open and accessible contract repository](https://docs.sourcify.dev/docs/repository/) of verified contracts. Anyone can easily run their own Sourcify server and monitor to verify contracts on their own. We also aim to provide tooling to verify contracts easier on different platforms e.g. browers.
+
+_ℹ️ [This monorepo](https://github.com/ethereum/sourcify) the main modules. The [sourcifyeth Github organization](https://github.com/sourcifyeth) contains all other auxiliary services and components._
 
 ## Documentation
 

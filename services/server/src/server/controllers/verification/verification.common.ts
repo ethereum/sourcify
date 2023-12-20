@@ -28,19 +28,15 @@ import { SolcLambda } from "../../services/compiler/lambda/SolcLambda";
 import { SolcLocal } from "../../services/compiler/local/SolcLocal";
 import { StorageService } from "../../services/StorageService";
 import { logger } from "../../../common/logger";
+import config from "config";
 
 let selectedSolidityCompiler: ISolidityCompiler;
-switch (process.env.SOLIDITY_COMPILER) {
-  case "lambda": {
-    logger.info("Using lambda solidity compiler");
-    selectedSolidityCompiler = new SolcLambda();
-    break;
-  }
-  case "local":
-  default: {
-    logger.info("Using local solidity compiler");
-    selectedSolidityCompiler = new SolcLocal();
-  }
+if (config.get("lambdaCompiler.enabled")) {
+  logger.info("Using lambda solidity compiler");
+  selectedSolidityCompiler = new SolcLambda();
+} else {
+  logger.info("Using local solidity compiler");
+  selectedSolidityCompiler = new SolcLocal();
 }
 
 export const solc = selectedSolidityCompiler;

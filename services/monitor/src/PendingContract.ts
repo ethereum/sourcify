@@ -6,7 +6,6 @@ import { KnownDecentralizedStorageFetchers } from "./types";
 import assert from "assert";
 import dotenv from "dotenv";
 import nodeFetch from "node-fetch";
-import { LIB_VERSION } from "./version";
 
 dotenv.config();
 
@@ -39,18 +38,18 @@ export default class PendingContract {
       this.decentralizedStorageFetchers[this.metadataHash.origin];
     if (!metadataFetcher) {
       throw new Error(
-        `No metadata fetcher found for origin ${this.metadataHash.origin}`
+        `No metadata fetcher found origin=${this.metadataHash.origin}`
       );
     }
     const metadataStr = await metadataFetcher
       .fetch(this.metadataHash)
       .catch((err) => {
         throw new Error(
-          `Can't fetch metadata for ${this.address} ${this.metadataHash.hash}: ${err}`
+          `Can't fetch metadata address=${this.address} hash=${this.metadataHash.hash} origin=${this.metadataHash.origin}: ${err}`
         );
       });
     logger.info(
-      `Fetched metadata for ${this.address} on chain ${this.chainId} from ${this.metadataHash.origin}`
+      `Fetched metadata hash=${this.metadataHash.hash} address=${this.address} chainId=${this.chainId} origin=${this.metadataHash.origin}`
     );
     this.metadata = JSON.parse(metadataStr) as Metadata;
     // TODO: use structuredClone of Node v17+ instead of JSON.parse(JSON.stringify()) after upgrading
@@ -64,7 +63,7 @@ export default class PendingContract {
         // Source already inline.
         if (source.content) {
           logger.info(
-            `Source ${sourceUnitName} of ${this.address} on chain ${this.chainId} has already inline content`
+            `Source ${sourceUnitName} has already inline content address=${this.address} chain=${this.chainId} `
           );
           this.movePendingToFetchedSources(sourceUnitName);
           return;
@@ -120,7 +119,7 @@ export default class PendingContract {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "User-Agent": LIB_VERSION,
+        "User-Agent": "sourcify-monitor",
       },
       body: JSON.stringify({
         chainId: this.chainId.toString(),
