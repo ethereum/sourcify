@@ -84,7 +84,7 @@ setLibSourcifyLogger({
 
 export class Server {
   app: express.Application;
-  repository: string = config.get("repository.path");
+  repository: string = config.get("repositoryV1.path");
   port: string | number;
 
   constructor(port?: string | number) {

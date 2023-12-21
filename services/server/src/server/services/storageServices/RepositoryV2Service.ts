@@ -16,7 +16,7 @@ import {
 } from "ipfs-http-client";
 import path from "path";
 import { logger } from "../../../common/logger";
-import { getAddress } from "ethers";
+import { getAddress, id as keccak256 } from "ethers";
 import { getMatchStatus } from "../../common";
 import { IStorageService } from "../StorageService";
 import config from "config";
@@ -47,10 +47,9 @@ declare interface ContractData {
   partial: string[];
 }
 
-export interface IpfsRepositoryServiceOptions {
+export interface RepositoryV2ServiceOptions {
   ipfsApi: string;
   repositoryPath: string;
-  repositoryServerUrl: string;
   repositoryVersion: string;
 }
 
@@ -65,11 +64,11 @@ declare interface ContractData {
   partial: string[];
 }
 
-export class IpfsRepositoryService implements IStorageService {
+export class RepositoryV2Service implements IStorageService {
   repositoryPath: string;
   private ipfsClient?: IPFSHTTPClient;
 
-  constructor(options: IpfsRepositoryServiceOptions) {
+  constructor(options: RepositoryV2ServiceOptions) {
     this.repositoryPath = options.repositoryPath;
     if (options.ipfsApi) {
       this.ipfsClient = createIpfsClient({ url: options.ipfsApi });
@@ -96,8 +95,8 @@ export class IpfsRepositoryService implements IStorageService {
     files.forEach((file) => {
       const relativePath =
         "contracts/" + file.path.split("/contracts")[1].substr(1);
-      // TODO: Don't use repository.serverUrl but a relative URL to the server. Requires a breaking chage to the API
-      urls.push(`${config.get("repository.serverUrl")}/${relativePath}`);
+      // TODO: Don't use repositoryV2.serverUrl but a relative URL to the server. Requires a breaking chage to the API
+      urls.push(`${config.get("repositoryV2.serverUrl")}/${relativePath}`);
     });
     return urls;
   }
@@ -279,7 +278,7 @@ export class IpfsRepositoryService implements IStorageService {
       ];
     } catch (e: any) {
       logger.debug(
-        `Contract (full_match) not found in repository: ${address} - chain: ${chainId}`
+        `Contract (full_match) not found in repositoryV2: ${address} - chain: ${chainId}`
       );
       return [];
     }
@@ -320,7 +319,7 @@ export class IpfsRepositoryService implements IStorageService {
       ];
     } catch (e: any) {
       logger.debug(
-        `Contract (full & partial match) not found in repository: ${address} - chain: ${chainId}`
+        `Contract (full & partial match) not found in repositoryV2: ${address} - chain: ${chainId}`
       );
       return [];
     }
@@ -339,7 +338,7 @@ export class IpfsRepositoryService implements IStorageService {
         : this.generateAbsoluteFilePath(path);
     fs.mkdirSync(Path.dirname(abolsutePath), { recursive: true });
     fs.writeFileSync(abolsutePath, content);
-    logger.debug("Saved to repository: " + abolsutePath);
+    logger.debug("Saved to repositoryV2: " + abolsutePath);
     this.updateRepositoryTag();
   }
 
@@ -390,19 +389,6 @@ export class IpfsRepositoryService implements IStorageService {
           match.abiEncodedConstructorArguments
         );
       }
-
-      /* if (
-        match.contextVariables &&
-        Object.keys(match.contextVariables).length > 0
-      ) {
-        this.storeJSON(
-          matchQuality,
-          match.chainId,
-          match.address,
-          "context-variables.json",
-          match.contextVariables
-        );
-      } */
 
       if (match.creatorTxHash) {
         this.storeTxt(
@@ -493,35 +479,19 @@ export class IpfsRepositoryService implements IStorageService {
     address: string,
     sources: StringMap
   ) {
-    const pathTranslation: StringMap = {};
     for (const sourcePath in sources) {
-      const { sanitizedPath, originalPath } = this.sanitizePath(sourcePath);
-      if (sanitizedPath !== originalPath) {
-        pathTranslation[originalPath] = sanitizedPath;
-      }
       this.save(
         {
           matchQuality,
           chainId,
           address,
           source: true,
-          fileName: sanitizedPath,
+          // Store the file with the keccak as name
+          fileName: `${keccak256(sources[sourcePath])}.sol`,
         },
         sources[sourcePath]
       );
     }
-    // Finally save the path translation
-    if (Object.keys(pathTranslation).length === 0) return;
-    this.save(
-      {
-        matchQuality,
-        chainId,
-        address,
-        source: false,
-        fileName: "path-translation.json",
-      },
-      JSON.stringify(pathTranslation)
-    );
   }
 
   private storeJSON(
@@ -606,30 +576,5 @@ export class IpfsRepositoryService implements IStorageService {
       await this.ipfsClient.files.cp(addResult.cid, mfsPath, { parents: true });
     }
     logger.info(`Added ${address} on chain ${chainId} to IPFS MFS`);
-  }
-  private sanitizePath(originalPath: string) {
-    // Clean ../ and ./ from the path. Also collapse multiple slashes into one.
-    let sanitizedPath = path.normalize(originalPath);
-
-    // Replace \n case not addressed by `path.normalize`
-    sanitizedPath = sanitizedPath.replace(/\\n/g, "");
-
-    // If there are no upper folders to traverse, path.normalize will keep ../ parts. Need to remove any of those.
-    const parsedPath = path.parse(sanitizedPath);
-    const sanitizedDir = parsedPath.dir
-      .split(path.sep)
-      .filter((segment) => segment !== "..")
-      .join(path.sep);
-
-    // Force absolute paths to be relative
-    if (parsedPath.root) {
-      parsedPath.dir = sanitizedDir.slice(parsedPath.root.length);
-      parsedPath.root = "";
-    } else {
-      parsedPath.dir = sanitizedDir;
-    }
-
-    sanitizedPath = path.format(parsedPath);
-    return { sanitizedPath, originalPath };
   }
 }

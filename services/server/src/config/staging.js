@@ -2,9 +2,12 @@ module.exports = {
   server: {
     port: 80,
   },
-  repository: {
+  repositoryV1: {
     path: "/home/app/repository",
     serverUrl: "https://repo.staging.sourcify.dev",
+  },
+  repositoryV2: {
+    path: "/tmp/sourcify/repositoryV2",
   },
   solcRepo: "/home/app/compilers/solc",
   solJsonRepo: "/home/app/compilers/soljson",

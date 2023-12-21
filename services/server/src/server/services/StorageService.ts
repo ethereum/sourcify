@@ -1,8 +1,12 @@
 import { Match, CheckedContract } from "@ethereum-sourcify/lib-sourcify";
 import {
-  IpfsRepositoryService,
-  IpfsRepositoryServiceOptions,
-} from "./storageServices/IpfsRepositoryService";
+  RepositoryV1Service,
+  RepositoryV1ServiceOptions,
+} from "./storageServices/RepositoryV1Service";
+import {
+  RepositoryV2Service,
+  RepositoryV2ServiceOptions,
+} from "./storageServices/RepositoryV2Service";
 import {
   SourcifyDatabaseService,
   SourcifyDatabaseServiceOptions,
@@ -24,19 +28,24 @@ export interface IStorageService {
 }
 
 interface StorageServiceOptions {
-  ipfsRepositoryServiceOptions: IpfsRepositoryServiceOptions;
+  repositoryV1ServiceOptions: RepositoryV1ServiceOptions;
+  repositoryV2ServiceOptions: RepositoryV2ServiceOptions;
   sourcifyDatabaseServiceOptions?: SourcifyDatabaseServiceOptions;
   allianceDatabaseServiceOptions?: AllianceDatabaseServiceOptions;
 }
 
 export class StorageService {
-  ipfsRepository: IpfsRepositoryService;
+  repositoryV1: RepositoryV1Service;
+  repositoryV2: RepositoryV2Service;
   sourcifyDatabase?: SourcifyDatabaseService;
   allianceDatabase?: AllianceDatabaseService;
 
   constructor(options: StorageServiceOptions) {
-    this.ipfsRepository = new IpfsRepositoryService(
-      options.ipfsRepositoryServiceOptions
+    this.repositoryV1 = new RepositoryV1Service(
+      options.repositoryV1ServiceOptions
+    );
+    this.repositoryV2 = new RepositoryV2Service(
+      options.repositoryV2ServiceOptions
     );
     if (options.sourcifyDatabaseServiceOptions?.postgres) {
       this.sourcifyDatabase = new SourcifyDatabaseService(
@@ -55,9 +64,14 @@ export class StorageService {
 
   async init() {
     try {
-      await this.ipfsRepository?.init();
+      await this.repositoryV1?.init();
     } catch (e: any) {
-      throw new Error("Cannot initialize ipfsRepository: " + e.message);
+      throw new Error("Cannot initialize repositoryV1: " + e.message);
+    }
+    try {
+      await this.repositoryV2?.init();
+    } catch (e: any) {
+      throw new Error("Cannot initialize repositoryV2: " + e.message);
     }
     try {
       await this.sourcifyDatabase?.init();
@@ -77,11 +91,8 @@ export class StorageService {
     chainId: string
   ): Promise<Match[]> {
     return (
-      (await this.sourcifyDatabase?.checkByChainAndAddress?.(
-        address,
-        chainId,
-        true
-      )) || []
+      (await this.repositoryV1?.checkByChainAndAddress?.(address, chainId)) ||
+      []
     );
   }
 
@@ -90,10 +101,8 @@ export class StorageService {
     chainId: string
   ): Promise<Match[]> {
     return (
-      (await this.sourcifyDatabase?.checkByChainAndAddress?.(
-        address,
-        chainId
-      )) || []
+      (await this.repositoryV1?.checkByChainAndAddress?.(address, chainId)) ||
+      []
     );
   }
 
@@ -106,7 +115,16 @@ export class StorageService {
     } catch (e) {
       logger.warn("Error while storing on the AllianceDatabase: ", e);
     }
-    this.ipfsRepository.storeMatch(contract, match);
-    return this.sourcifyDatabase?.storeMatch(contract, match);
+    try {
+      this.sourcifyDatabase?.storeMatch(contract, match);
+    } catch (e) {
+      logger.warn("Error while storing on the SourcifyDatabase: ", e);
+    }
+    try {
+      this.repositoryV2.storeMatch(contract, match);
+    } catch (e) {
+      logger.warn("Error while storing on the RepositoryV2: ", e);
+    }
+    return this.repositoryV1.storeMatch(contract, match);
   }
 }

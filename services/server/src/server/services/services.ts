@@ -6,10 +6,15 @@ import config from "config";
 export const services = {
   verification: new VerificationService(supportedChainsMap),
   storage: new StorageService({
-    ipfsRepositoryServiceOptions: {
+    repositoryV1ServiceOptions: {
       ipfsApi: process.env.IPFS_API as string,
-      repositoryPath: config.get("repository.path"),
-      repositoryServerUrl: config.get("repository.serverUrl") as string,
+      repositoryPath: config.get("repositoryV1.path"),
+      repositoryServerUrl: config.get("repositoryV1.serverUrl") as string,
+      repositoryVersion: "0.1",
+    },
+    repositoryV2ServiceOptions: {
+      ipfsApi: process.env.IPFS_API as string,
+      repositoryPath: config.get("repositoryV2.path"),
       repositoryVersion: "0.1",
     },
     sourcifyDatabaseServiceOptions: {
