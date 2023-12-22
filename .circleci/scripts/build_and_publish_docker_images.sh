@@ -15,7 +15,7 @@ fi
 NAMESPACE="ghcr.io/ethereum/sourcify"
 IMAGE_NAME="$NAMESPACE/$SERVICE"
 # Login to Github Container Registry
-echo $GITHUB_CR_PAT | docker login ghcr.io --username kuzdogan --password-stdin
+# echo $GITHUB_CR_PAT | docker login ghcr.io --username kuzdogan --password-stdin
 
 # Triggered by a branch
 # e.g. sourcify/server:master
@@ -41,18 +41,23 @@ fi
 # docker buildx create --name sourcify-builder --use
 
 # # Start up the builder instance
-# docker buildx inspect --bootstrap
+docker buildx inspect --bootstrap
 
 # Build the image for multiple platforms with buildx
 # Tag is without "ethereum": "sourcify/$SERVICE:$TAG" but label with the repo url "ethereum/sourcify"
-# docker buildx build \
-#     --platform linux/arm64,linux/amd64 \
-docker build \
+docker buildx build \
+    --platform linux/arm64,linux/amd64 \
     -f $DOCKERFILE \
     $TAG_COMMAND \
     $DOCKER_BUILD_CONTEXT \
+    --push
 
-docker push --all-tags $IMAGE_NAME
+# docker build \
+#     -f $DOCKERFILE \
+#     $TAG_COMMAND \
+#     $DOCKER_BUILD_CONTEXT \
+
+# docker push --all-tags $IMAGE_NAME
 
 
 # No need to extract the image tag if the build is triggered by a tag because the deployment will be done by the branch trigger.
