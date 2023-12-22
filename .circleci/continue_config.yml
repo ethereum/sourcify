@@ -43,7 +43,6 @@ aliases:
             git submodule init
             git submodule update --remote
       - setup_remote_docker:
-          version: default
           docker_layer_caching: true
       - run:
           name: Build and push docker images
