@@ -27,7 +27,7 @@ aliases:
   - &build-base
     <<: *build-base
     docker:
-      - image: cimg/base:2023.09
+      - image: cimg/base:2023.06
     parameters:
       run-build:
         type: boolean
