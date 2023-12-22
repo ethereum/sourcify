@@ -25,9 +25,8 @@ parameters:
 ################
 aliases:
   - &build-base
-    <<: *build-base
     docker:
-      - image: cimg/base:2023.06
+      - image: cimg/base:2023.09
     parameters:
       run-build:
         type: boolean
@@ -43,6 +42,7 @@ aliases:
             git submodule init
             git submodule update --remote
       - setup_remote_docker:
+          version: default
           docker_layer_caching: true
       - run:
           name: Build and push docker images
