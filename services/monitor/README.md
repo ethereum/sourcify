@@ -28,7 +28,7 @@ First you need to provide which chains to monitor in a json file.
 ]
 ```
 
-Infura and Alchemy keys must be formatted as above in `{}`
+Infura and Alchemy keys must be placed in the url string as above in `{INFURA_API_KEY}`
 
 See [chains.json](./chains.json) for a full example and to see which chains we monitor ourselves. You can also use the [chainid.network/chains.json](https://chainid.network/chains.json) to find chains.
 
@@ -100,6 +100,22 @@ You can run the Sourcify Monitor in two ways:
 
 ### 1. Run locally
 
+Clone the [Sourcify monorepo](https://github.com/ethereum/sourcify)
+
+```bash
+git clone git@github.com:ethereum/sourcify.git
+cd sourcify
+```
+
+Install and build the project:
+
+```bash
+npm install
+npx lerna run build --scope sourcify-monitor
+```
+
+Run
+
 ```bash
 node dist/index.js --chainsPath /path/to/chains.json --configPath /path/to/config.json
 ```
@@ -115,42 +131,11 @@ The recommended way to run the Sourcify Monitor is via Docker.
 You need to pass the `chains.json` and `config.json` files to the container. You can do this by mounting them as volumes:
 
 ```bash
-$ docker pull ghcr.io/ethereum/sourcify/monitor:stable
+$ docker pull ghcr.io/ethereum/sourcify/monitor:latest
 $ docker run \
   -v /path/to/chains.json:/home/app/services/monitor/chains.json \
   -v /path/to/config.json:/home/app/services/monitor/config.json \
   -e ALCHEMY_API_KEY=xxx \
   -e INFURA_API_KEY=xxx \
-  ghcr.io/ethereum/sourcify/monitor:stable
-```
-
-## Development
-
-### Prerequisites
-
-- [Node.js](https://nodejs.org/en/) v18 or higher
-
-### Install dependencies
-
-Clone the [Sourcify monorepo](https://github.com/ethereum/sourcify)
-
-```bash
-git clone git@github.com:ethereum/sourcify.git
-cd sourcify
-```
-
-Add environment variables to `.env.template` and rename it to `.env`
-
-```bash
-ALCHEMY_API_KEY=
-INFURA_API_KEY=
-```
-
-```bash
-npm install && npx lerna run build
-```
-
-```bash
-cd services/monitor
-node dist/index.js --chainsPath chains-dev.json
+  ghcr.io/ethereum/sourcify/monitor:latest
 ```

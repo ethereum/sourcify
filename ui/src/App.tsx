@@ -7,7 +7,7 @@ import Verifier from "./pages/Verifier";
 
 function App() {
   useEffect(() => {
-    if (process.env.REACT_APP_TAG === "latest") {
+    if (process.env.REACT_APP_TAG !== "master") {
       document.title = "(staging) sourcify.eth";
     }
   }, []);

@@ -1,5 +1,7 @@
 module.exports = {
-  port: 80,
+  server: {
+    port: 80,
+  },
   repository: {
     path: "/home/app/repository",
     serverUrl: "https://repo.sourcify.dev",
@@ -11,7 +13,7 @@ module.exports = {
   },
   lambdaCompiler: {
     enabled: true,
-    functionName: "compiler-production",
+    functionName: "compile-production",
     // credentials as env vars
   },
   rateLimit: {

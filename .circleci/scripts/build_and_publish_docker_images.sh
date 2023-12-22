@@ -20,8 +20,8 @@ echo $GITHUB_CR_PAT | docker login ghcr.io --username kuzdogan --password-stdin
 # Triggered by a branch
 # e.g. sourcify/server:master
 if [ -n "$CIRCLE_BRANCH" ]; then
-    TAGGED_IMAGE_NAME="$IMAGE_NAME:$CIRCLE_BRANCH"
-    TAG_COMMAND="-t $TAGGED_IMAGE_NAME"
+    BRANCH_TAG="$IMAGE_NAME:$CIRCLE_BRANCH"
+    TAG_COMMAND="-t $BRANCH_TAG"
 fi
 
 # Triggered by a tag (release)
@@ -30,27 +30,34 @@ if [ -n "$CIRCLE_TAG" ]; then
     # Assuming CIRCLE_TAG is something like "sourcify-monitor@1.1.3"
     # Extract the version number after the last '@'
     VERSION=${CIRCLE_TAG##*@}
-    TAGGED_IMAGE_NAME="$IMAGE_NAME:$VERSION"
-    TAG_COMMAND="-t $IMAGE_NAME:latest -t $TAGGED_IMAGE_NAME"
+    VERSION_TAG="$IMAGE_NAME:$VERSION"
+    LATEST_TAG="$IMAGE_NAME:latest"
+    
+    TAG_COMMAND="-t $LATEST_TAG -t $VERSION_TAG"
 fi
 
 # Create a new builder instance
 # Comment out if already created
-# docker buildx create --name sourcify-builder --use
+docker buildx create --name sourcify-builder --use
 
 # # Start up the builder instance
-# docker buildx inspect --bootstrap
+docker buildx inspect --bootstrap
 
 # Build the image for multiple platforms with buildx
 # Tag is without "ethereum": "sourcify/$SERVICE:$TAG" but label with the repo url "ethereum/sourcify"
-# docker buildx build \
-#     --platform linux/arm64,linux/amd64 \
-docker build \
+docker buildx build \
+    --platform linux/arm64,linux/amd64 \
     -f $DOCKERFILE \
     $TAG_COMMAND \
     $DOCKER_BUILD_CONTEXT \
+    --push
 
-docker push $TAGGED_IMAGE_NAME
+# docker build \
+#     -f $DOCKERFILE \
+#     $TAG_COMMAND \
+#     $DOCKER_BUILD_CONTEXT \
+
+# docker push --all-tags $IMAGE_NAME
 
 
 # No need to extract the image tag if the build is triggered by a tag because the deployment will be done by the branch trigger.

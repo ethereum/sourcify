@@ -81,7 +81,7 @@ function buildCustomRpcs(
     else if (rpc.type === "Alchemy") {
       return rpc.url.replace(
         "{ALCHEMY_API_KEY}",
-        process.env[rpc.apiKeyEnvName] || ""
+        process.env[rpc.apiKeyEnvName] || process.env["ALCHEMY_API_KEY"] || ""
       );
     } else if (rpc.type === "Infura") {
       return rpc.url.replace(

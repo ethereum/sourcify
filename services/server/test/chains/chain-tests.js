@@ -9,6 +9,7 @@ const addContext = require("mochawesome/addContext");
 const { assertVerification } = require("../helpers/assertions");
 
 const TEST_TIME = process.env.TEST_TIME || 30000; // 30 seconds
+const CUSTOM_PORT = 5556;
 
 // Extract the chainId from new chain support pull request, if exists
 let newAddedChainIds = [];
@@ -25,7 +26,7 @@ chai.use(chaiHttp);
 describe("Test Supported Chains", function () {
   console.log(`Set up tests timeout with ${Math.floor(TEST_TIME / 1000)} secs`);
   this.timeout(TEST_TIME);
-  const server = new Server();
+  const server = new Server(CUSTOM_PORT);
   let currentResponse = null; // to log server response when test fails
 
   const testedChains = new Set(); // Track tested chains and make sure all "supported = true" chains are tested
@@ -248,10 +249,18 @@ describe("Test Supported Chains", function () {
     "42161/metadata.json"
   );
 
+  // verifyContract(
+  //   "0xd46fd24ea21F04459407Fb0B518451e54d0b07a1",
+  //   "421613",
+  //   "Arbitrum Görli",
+  //   ["shared/1_Storage.sol"],
+  //   "shared/1_Storage.metadata.json"
+  // );
+
   verifyContract(
-    "0xd46fd24ea21F04459407Fb0B518451e54d0b07a1",
-    "421613",
-    "Arbitrum Görli",
+    "0xaBe8cf2Dacb0053C1ebd5881392BD17Ec2402a4F",
+    "421614",
+    "Arbitrum Sepolia",
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
@@ -325,10 +334,18 @@ describe("Test Supported Chains", function () {
     "10/metadata.json"
   );
 
+  // verifyContract(
+  //   "0xB5FAD02EbF6edffbdf206d2C1ad815bcDdb380f8",
+  //   "420",
+  //   "Optimism Goerli Testnet",
+  //   ["shared/1_Storage.sol"],
+  //   "shared/1_Storage.metadata.json"
+  // );
+
   verifyContract(
     "0xB5FAD02EbF6edffbdf206d2C1ad815bcDdb380f8",
-    "420",
-    "Optimism Goerli Testnet",
+    "11155420",
+    "Optimism Sepolia Testnet",
     ["shared/1_Storage.sol"],
     "shared/1_Storage.metadata.json"
   );
