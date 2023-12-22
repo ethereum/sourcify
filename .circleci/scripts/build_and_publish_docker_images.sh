@@ -15,7 +15,7 @@ fi
 NAMESPACE="ghcr.io/ethereum/sourcify"
 IMAGE_NAME="$NAMESPACE/$SERVICE"
 # Login to Github Container Registry
-# echo $GITHUB_CR_PAT | docker login ghcr.io --username kuzdogan --password-stdin
+echo $GITHUB_CR_PAT | docker login ghcr.io --username kuzdogan --password-stdin
 
 # Triggered by a branch
 # e.g. sourcify/server:master
@@ -38,7 +38,7 @@ fi
 
 # Create a new builder instance
 # Comment out if already created
-# docker buildx create --name sourcify-builder --use
+docker buildx create --name sourcify-builder --use
 
 # # Start up the builder instance
 docker buildx inspect --bootstrap
