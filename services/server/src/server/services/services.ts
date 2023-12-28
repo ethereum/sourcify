@@ -23,7 +23,7 @@ export const services = {
         database: process.env.SOURCIFY_POSTGRES_DB as string,
         user: process.env.SOURCIFY_POSTGRES_USER as string,
         password: process.env.SOURCIFY_POSTGRES_PASSWORD as string,
-        port: parseInt(process.env.SOURCIFY_POSTGRES_PORT || "0"),
+        port: parseInt(process.env.SOURCIFY_POSTGRES_PORT || "5432"),
       },
     },
   }),

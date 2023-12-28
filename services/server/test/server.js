@@ -1,6 +1,7 @@
 process.env.IPFS_GATEWAY = "http://ipfs.io/ipfs/";
 process.env.FETCH_TIMEOUT = 8000; // instantiated http-gateway takes a little longer
 
+const Server = require("../dist/server/server").Server;
 const {
   assertValidationError,
   assertVerification,
@@ -13,7 +14,6 @@ const {
 const ganache = require("ganache");
 const chai = require("chai");
 const chaiHttp = require("chai-http");
-const Server = require("../dist/server/server").Server;
 const util = require("util");
 const fs = require("fs");
 const rimraf = require("rimraf");
