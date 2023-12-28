@@ -540,3 +540,9 @@ export interface CompiledContractArtifacts {
   creationBytecodeCborAuxdata: CompiledContractArtifactsCborAuxdata;
   runtimeBytecodeCborAuxdata: CompiledContractArtifactsCborAuxdata;
 }
+
+export interface AuxdataDiff {
+  real: string;
+  diffStart: number;
+  diff: string;
+}

@@ -6,11 +6,13 @@ Sourcify's server for verifying contracts.
 
 ### Server Config
 
-The server config is defined in `src/config/default.js`.
+The server config is defined in [`src/config/default.js`](src/config/default.js).
 
 To override the default config, you can create a `local.js` file and override the default config. The parameters are overridden one by one, so you only need to override the parameters you want to change.
 
-Or if you are running in a deployment you can pass the `NODE_CONFIG_ENV` name as the config file name and it will take precedence. For example, if you are running in a `NODE_CONFIG_ENV=staging` environment, you can create a `config/staging.js` file and it will be used instead of the default config. Local takes precedence over `NODE_CONFIG_ENV`. The file precedence is defined in [node-config package](https://github.com/node-config/node-config/wiki/Configuration-Files#multi-instance-deployments).
+Or if you are running in a deployment you can pass the `NODE_CONFIG_ENV` name as the config file name and it will take precedence. For example, if you are running in a `NODE_CONFIG_ENV=staging` environment, you can create a [`config/staging.js`](src/config/staging.js) file and it will be used instead of the default config. Local takes precedence over `NODE_CONFIG_ENV`. The file precedence is defined in [node-config package](https://github.com/node-config/node-config/wiki/Configuration-Files#multi-instance-deployments).
+
+Note that this requires building the project. The config files are copied to the `dist` folder during the build process. See [Docker](#docker) for running directly.
 
 ### Chains Config
 
@@ -107,7 +109,7 @@ $ docker pull ghcr.io/ethereum/sourcify/server:latest
 $ docker run \
   -p 5555:5555 \
   -v path/to/custom/sourcify-chains.json:/home/app/services/server/dist/sourcify-chains.json \
-  -v path/to/custom/config.js:/home/app/services/server/dist/local.js \
+  -v path/to/custom/config.js:/home/app/services/server/dist/config/local.js \
   --env-file .env \
   ghcr.io/ethereum/sourcify/server:latest
 ```
