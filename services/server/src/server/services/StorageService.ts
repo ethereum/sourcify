@@ -36,7 +36,7 @@ interface StorageServiceOptions {
 
 export class StorageService {
   repositoryV1: RepositoryV1Service;
-  repositoryV2: RepositoryV2Service;
+  repositoryV2?: RepositoryV2Service;
   sourcifyDatabase?: SourcifyDatabaseService;
   allianceDatabase?: AllianceDatabaseService;
 
@@ -44,9 +44,11 @@ export class StorageService {
     this.repositoryV1 = new RepositoryV1Service(
       options.repositoryV1ServiceOptions
     );
-    this.repositoryV2 = new RepositoryV2Service(
-      options.repositoryV2ServiceOptions
-    );
+    if (options.repositoryV2ServiceOptions) {
+      this.repositoryV2 = new RepositoryV2Service(
+        options.repositoryV2ServiceOptions
+      );
+    }
     if (options.sourcifyDatabaseServiceOptions?.postgres) {
       this.sourcifyDatabase = new SourcifyDatabaseService(
         options.sourcifyDatabaseServiceOptions
@@ -121,7 +123,7 @@ export class StorageService {
       logger.warn("Error while storing on the SourcifyDatabase: ", e);
     }
     try {
-      this.repositoryV2.storeMatch(contract, match);
+      this.repositoryV2?.storeMatch(contract, match);
     } catch (e) {
       logger.warn("Error while storing on the RepositoryV2: ", e);
     }
