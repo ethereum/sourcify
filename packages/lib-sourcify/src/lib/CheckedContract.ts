@@ -780,29 +780,27 @@ function bytecodeIncludesAuxdataDiffAt(
   position: number
 ): boolean {
   const { real, diffStart } = auxdataDiff;
-  // QUESTION: Can't we just use `real` instead of offSetEnd etc.?
   const extracted = bytecode.slice(position - diffStart, real.length);
   return extracted === real;
 }
 
 function getAuxdatasDiff(originalAuxdatas: string[], editedAuxdatas: string[]) {
-  const auxdatasDiffs: AuxdataDiff[] = [];
+  const auxdataDiffs: AuxdataDiff[] = [];
   for (let i = 0; i < originalAuxdatas.length; i++) {
     const diffPositions = getDiffPositions(
       originalAuxdatas[i],
       editedAuxdatas[i]
     );
-    auxdatasDiffs.push({
+    auxdataDiffs.push({
       real: originalAuxdatas[i],
       diffStart: diffPositions[0],
-      // QUESTION: Shouldn't this be editedAuxdatas[i]?
       diff: originalAuxdatas[i].substring(
         diffPositions[0],
         diffPositions[diffPositions.length - 1] + 1
       ),
     });
   }
-  return auxdatasDiffs;
+  return auxdataDiffs;
 }
 
 /**
