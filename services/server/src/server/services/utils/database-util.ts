@@ -125,11 +125,11 @@ export async function getSourcifyMatchByChainAddress(
         contract_deployments.contract_id = contracts.id 
         AND contract_deployments.chain_id = $1 
         AND contract_deployments.address = $2
-      ${
-        onlyPerfectMatches
-          ? "WHERE sourcify_matches.creation_match = 'perfect' OR sourcify_matches.runtime_match = 'perfect'"
-          : ""
-      }
+${
+  onlyPerfectMatches
+    ? "WHERE sourcify_matches.creation_match = 'perfect' OR sourcify_matches.runtime_match = 'perfect'"
+    : ""
+}
       ORDER BY
         CASE 
           WHEN sourcify_matches.creation_match = 'perfect' AND sourcify_matches.runtime_match = 'perfect' THEN 1
