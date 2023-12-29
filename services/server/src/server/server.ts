@@ -1,7 +1,7 @@
 import path from "path";
 // First env vars need to be loaded before config
 import dotenv from "dotenv";
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, "..", "..", ".env") });
 // Make sure config is relative to server.ts and not where the server is run from
 process.env["NODE_CONFIG_DIR"] = path.resolve(__dirname, "..", "config");
 import config from "config";
@@ -131,7 +131,7 @@ export class Server {
         next();
       } else if (contentType && contentType.includes("multipart/form-data")) {
         logger.debug(
-          `Request: ${req.method} ${req.path} (multipart) chainId=${
+          `Request: ${req.method} ${req.path} (multipart/form-data) chainId=${
             req.body.chainId || req.body.chain
           } address=${req.body.address}`
         );
