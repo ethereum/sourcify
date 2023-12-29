@@ -95,6 +95,9 @@ export async function verifyDeployed(
 
   // Try to match with deployed bytecode directly
   try {
+    logDebug(
+      `Matching with deployed bytecode chain=${sourcifyChain.chainId} address=${address}`
+    );
     matchWithRuntimeBytecode(
       match,
       recompiled.runtimeBytecode,
@@ -102,6 +105,9 @@ export async function verifyDeployed(
       recompiled.immutableReferences
     );
     if (match.runtimeMatch === 'partial') {
+      logDebug(
+        `Matched partial with deployed bytecode, tryToFindPerfectMetadataAndMatch chain=${sourcifyChain.chainId} address=${address}`
+      );
       match = await tryToFindPerfectMetadataAndMatch(
         checkedContract,
         runtimeBytecode,
@@ -126,6 +132,9 @@ export async function verifyDeployed(
   try {
     // Try to match with creationTx, if available
     if (creatorTxHash) {
+      logDebug(
+        `Matching with creation tx creatorTxHash=${creatorTxHash} chain=${sourcifyChain.chainId} address=${address}`
+      );
       const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
       await matchWithCreationTx(
         match,
@@ -136,6 +145,9 @@ export async function verifyDeployed(
         recompiledMetadata
       );
       if (match.runtimeMatch === 'partial') {
+        logDebug(
+          `Matched partial with creation tx, tryToFindPerfectMetadataAndMatch creatorTxHash=${creatorTxHash} chain=${sourcifyChain.chainId} address=${address}`
+        );
         match = await tryToFindPerfectMetadataAndMatch(
           checkedContract,
           runtimeBytecode,

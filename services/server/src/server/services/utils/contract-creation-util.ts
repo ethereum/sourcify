@@ -146,6 +146,9 @@ async function getCreatorTxUsingFetcher(
     return null;
   }
 
+  logger.debug(
+    `Fetching creator tx using fetcher fetcher.type=${fetcher.type} fetcher.url=${fetcher.url} contractAddress=${contractAddress}`
+  );
   const contractFetchAddressFilled = fetcher?.url.replace(
     "${ADDRESS}",
     contractAddress
@@ -161,6 +164,9 @@ async function getCreatorTxUsingFetcher(
             contractFetchAddressFilled,
             fetcher?.scrapeRegex
           );
+          logger.debug(
+            `Fetched creator tx using fetcher fetcher.type=${fetcher.type} fetcher.url=${fetcher.url} contractAddress=${contractAddress} creatorTx=${creatorTx}`
+          );
           if (creatorTx) return creatorTx;
         }
         break;
@@ -168,7 +174,11 @@ async function getCreatorTxUsingFetcher(
       case "api": {
         if (fetcher?.responseParser) {
           const response = await fetchFromApi(contractFetchAddressFilled);
-          return fetcher?.responseParser(response);
+          const creatorTx = fetcher?.responseParser(response);
+          logger.debug(
+            `Fetched creator tx using fetcher fetcher.type=${fetcher.type} fetcher.url=${fetcher.url} contractAddress=${contractAddress} creatorTx=${creatorTx}`
+          );
+          if (creatorTx) return creatorTx;
         }
         break;
       }
@@ -295,6 +305,9 @@ async function getCreatorTxByScraping(
         return txHash;
       } else {
         if (page.includes("captcha") || page.includes("CAPTCHA")) {
+          logger.warn(
+            `Scraping the creator tx failed because of CAPTCHA at ${fetchAddress}`
+          );
           throw new Error(
             `Scraping the creator tx failed because of CAPTCHA at ${fetchAddress}`
           );
@@ -303,6 +316,9 @@ async function getCreatorTxByScraping(
     }
   }
   if (res.status === StatusCodes.FORBIDDEN) {
+    logger.warn(
+      `Scraping the creator tx failed at ${fetchAddress} because of HTTP status code ${res.status} (Forbidden)`
+    );
     throw new Error(
       `Scraping the creator tx failed at ${fetchAddress} because of HTTP status code ${res.status} (Forbidden)
       

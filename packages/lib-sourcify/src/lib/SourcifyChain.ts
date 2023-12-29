@@ -108,6 +108,9 @@ export default class SourcifyChain {
     // Try sequentially all providers
     for (const provider of this.providers) {
       try {
+        logInfo(
+          `Fetching tx creatorTxHash=${creatorTxHash} provider.url=${provider.url}`
+        );
         // Race the RPC call with a timeout
         const tx = await Promise.race([
           provider.getTransaction(creatorTxHash),
@@ -115,7 +118,7 @@ export default class SourcifyChain {
         ]);
         if (tx instanceof TransactionResponse) {
           logInfo(
-            `Transaction ${creatorTxHash} fetched via ${provider.url} from chain ${this.chainId}`
+            `Fetched tx creatorTxHash=${creatorTxHash} provider.url=${provider.url}`
           );
           return tx;
         } else {
