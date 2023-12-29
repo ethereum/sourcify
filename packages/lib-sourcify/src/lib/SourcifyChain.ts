@@ -11,7 +11,7 @@ import {
   FetchContractCreationTxMethods,
   SourcifyChainExtension,
 } from './types';
-import { logError, logInfo, logWarn } from './logger';
+import { logDebug, logError, logInfo, logWarn } from './logger';
 
 const RPC_TIMEOUT = process.env.RPC_TIMEOUT
   ? parseInt(process.env.RPC_TIMEOUT)
@@ -340,10 +340,11 @@ export default class SourcifyChain {
 
   getContractCreationBytecode = async (
     address: string,
-    transactionHash: string
+    transactionHash: string,
+    creatorTx?: TransactionResponse
   ): Promise<string> => {
     const txReceipt = await this.getTxReceipt(transactionHash);
-    const tx = await this.getTx(transactionHash);
+    if (!creatorTx) creatorTx = await this.getTx(transactionHash);
     let creationBytecode = '';
 
     // Non null txreceipt.contractAddress means that the contract was created with an EOA
@@ -351,10 +352,12 @@ export default class SourcifyChain {
       if (txReceipt.contractAddress !== address) {
         throw new CreatorTransactionMismatchError();
       }
-      creationBytecode = tx.data;
+      creationBytecode = creatorTx.data;
+      logDebug(`Contract ${address} created with an EOA`);
     } else {
       // Factory created
       let traces;
+      logDebug(`Contract ${address} created with a factory. Fetching traces`);
       try {
         traces = await this.getTxTraces(transactionHash);
       } catch (e: any) {
@@ -373,6 +376,9 @@ export default class SourcifyChain {
         if (createdContractAddressesInTx === undefined) {
           throw new CreatorTransactionMismatchError();
         }
+        logDebug(
+          `Found contract bytecode in traces chain=${this.chainId} address=${address} txHash=${transactionHash}`
+        );
         creationBytecode = createdContractAddressesInTx.result.code;
       }
     }
