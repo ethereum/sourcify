@@ -794,7 +794,7 @@
   },
   "8217": {
     "sourcifyName": "Klaytn Mainnet Cypress",
-    "supported": true,
+    "supported": false,
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://klaytn-mainnet.blockscout.com/"
