@@ -226,8 +226,8 @@ export class Server {
 
     if (config.get("rateLimit.enabled")) {
       const limiter = rateLimit({
-        windowMs: 2 * 1000,
-        max: 1, // Requests per windowMs
+        windowMs: config.get("rateLimit.windowMs"),
+        max: config.get("rateLimit.max"),
         standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
         legacyHeaders: false, // Disable the `X-RateLimit-*` headers
         message: {
@@ -240,7 +240,7 @@ export class Server {
           const ipLog = process.env.NODE_ENV === "production" ? ipHash : ip; // Don't log IPs in production master
           const store = options.store as ExpressRateLimitMemoryStore;
           const hits = store.hits[ip || ""];
-          logger.info(
+          logger.debug(
             `Rate limit hit method=${req.method} path=${req.path} ip=${ipLog} hits=${hits}`
           );
           res.status(options.statusCode).send(options.message);
