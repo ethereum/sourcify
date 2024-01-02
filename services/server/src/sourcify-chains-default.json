@@ -1012,11 +1012,11 @@
   },
   "167005": {
     "sourcifyName": "Taiko Grimsvotn L2",
-    "supported": true
+    "supported": false
   },
   "167006": {
     "sourcifyName": "Taiko Eldfell L3",
-    "supported": true
+    "supported": false
   },
   "7777777": {
     "sourcifyName": "ZORA",
