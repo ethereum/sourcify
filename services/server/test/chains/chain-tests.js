@@ -71,208 +71,186 @@ describe("Test Supported Chains", function () {
     "0x968fd0BADc643B0A7b088f4b6aA2CE5FA65db622",
     "1149",
     "Symplexia Smart Chain",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   verifyContract(
     "0x801f3983c7baBF5E6ae192c84E1257844aDb4b4D",
     "1",
     "Ethereum Mainnet",
-    ["1/airdrop.sol", "1/IERC20.sol"],
-    "1/metadata.json"
+    "1"
   );
 
   // verifyContract(
   //   "0x1EFFEbE8B0bc20f2Dc504AA16dC76FF1AB2297A3",
   //   "4",
   //   "Rinkeby",
-  //   ["shared/1_Storage.sol"],
-  //   "shared/1_Storage.metadata.json"
+  //   "shared/"
+  //
   // );
 
   verifyContract(
     "0xc24381dB2a5932B5D1c424f567A95F9966834cE0",
     "5",
     "Goerli",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   verifyContract(
     "0x7ecedB5ca848e695ee8aB33cce9Ad1E1fe7865F8",
     "17000",
     "Holesky",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   verifyContract(
     "0x8F78b9c92a68DdF719849a40702cFBfa4EB60dD0",
     "11155111",
     "Sepolia",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   verifyContract(
     "0x43C0A11653F57a96d1d3b6A5A6be453444558A5E",
     "369",
     "PulseChain",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   verifyContract(
     "0x7f185202a630F09e05b6C2b51618b4f6Af728c7B",
     "100",
     "xDai",
-    ["100/test.sol"],
-    "100/metadata.json"
+    "100"
   );
 
   // verifyContract(
   //   "0x2e4088DcA1aE2e098e322562ab1fEb83b3a303CD",
   //   "300",
   //   "Optimism on Gnosis",
-  //   ["shared/1_Storage.sol"],
-  //   "shared/1_Storage.metadata.json"
+  //   "shared/"
+  //
   // );
 
   verifyContract(
     "0x8C3FA94eb5b07c9AF7dBFcC53ea3D2BF7FdF3617",
     "51",
     "XinFin Apothem Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   verifyContract(
     "0xED5405Ba038587c06979374f8a595F41F5841216",
     "56",
     "Binance Smart Chain Mainnet",
-    ["56/Index.sol"],
-    "56/metadata.json"
+    "56/"
   );
 
   verifyContract(
     "0x8F78b9c92a68DdF719849a40702cFBfa4EB60dD0",
     "44787",
     "Celo Alfajores Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   verifyContract(
     "0xd46fd24ea21F04459407Fb0B518451e54d0b07a1",
     "97",
     "Binance Smart Chain Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   verifyContract(
     "0x9969150c2AA0140F5109Ae29A51FA109Fe1d1d9C",
     "137",
     "Polygon (Matic)",
-    ["137/tokengenerator.sol"],
-    "137/metadata.json"
+    "137/"
   );
 
   verifyContract(
     "0x5D40b45C202531d040e0CCD51C48554109197cD3",
     "80001",
     "Polygon Mumbai Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   verifyContract(
     "0x03943C3ef00d92e130185CeBC0bcc435Def2cC94",
     "42220",
     "Celo Mainnet",
-    ["42220/FMTLOL.sol"],
-    "42220/metadata.json"
+    "42220/"
   );
 
   verifyContract(
     "0xdd5FFA1DF887D5A42931a746BaAd62574501A5Aa",
     "62320",
     "Celo Baklava Testnet",
-    ["62320/0xdd5FFA1DF887D5A42931a746BaAd62574501A5Aa/AVA.sol"],
-    "62320/0xdd5FFA1DF887D5A42931a746BaAd62574501A5Aa/metadata.json"
+    "62320/"
   );
 
   verifyContract(
     "0x03943C3ef00d92e130185CeBC0bcc435Def2cC94",
     "43114",
     "Avalanche Mainnet",
-    ["42220/FMTLOL.sol"],
-    "42220/metadata.json"
+    "42220/"
   );
 
   verifyContract(
     "0x35C671Ea8e4Fd1e922157D48EABD5ab6b8CC408E",
     "43113",
     "Avalanche Fuji Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   verifyContract(
     "0x8F78b9c92a68DdF719849a40702cFBfa4EB60dD0",
     "41",
     "Telos EVM Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   verifyContract(
     "0x059611daEdBA5Fe0875aC7c76d7cE47FfE5c39C5",
     "40",
     "Telos EVM Testnet",
-    ["40/nano.sol"],
-    "40/metadata.json"
+    "40/"
   );
 
   // verifyContract(
   //   "0x68107Fb54f5f29D8e0B3Ac44a99f4444D1F22a68",
   //   "77",
   //   "Sokol",
-  //   ["shared/1_Storage.sol"],
-  //   "shared/1_Storage.metadata.json"
+  //   "shared/"
+  //
   // );
 
   verifyContract(
     "0x0e9b6C08Fe70Aac8fd08a74a076c2B1C9f7c7d14",
     "42161",
     "Arbitrum Mainnet",
-    ["42161/BalanceFetcher.sol"],
-    "42161/metadata.json"
+    "42161/"
   );
 
   // verifyContract(
   //   "0xd46fd24ea21F04459407Fb0B518451e54d0b07a1",
   //   "421613",
   //   "Arbitrum Görli",
-  //   ["shared/1_Storage.sol"],
-  //   "shared/1_Storage.metadata.json"
+  //   "shared/"
+  //
   // );
 
   verifyContract(
     "0xaBe8cf2Dacb0053C1ebd5881392BD17Ec2402a4F",
     "421614",
     "Arbitrum Sepolia",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   verifyContract(
     "0xA25b72DADEB96E166D1a225C61b54CA29C45EBD1",
     "8",
     "Ubiq",
-    ["8/GameItem.sol"],
-    "8/GameItem.json"
+    "8/"
   );
 
   // Oneledger
@@ -280,8 +258,7 @@ describe("Test Supported Chains", function () {
     "0x774081ECDDb30F96EB5Bb21DcAB17C73F29f5eF3",
     "311752642",
     "OneLedger Mainnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // verifyContract(
@@ -297,8 +274,7 @@ describe("Test Supported Chains", function () {
     "0xB2d0641fc8863514B6533b129fD744200eE17D29",
     "57",
     "Syscoin Mainnet",
-    ["57/Token.sol"],
-    "57/TestToken.json"
+    "57/"
   );
 
   // Has contracts to be fetched from IPFS
@@ -306,8 +282,7 @@ describe("Test Supported Chains", function () {
     "0x68107Fb54f5f29D8e0B3Ac44a99f4444D1F22a68",
     "5700",
     "Syscoin Tanenbaum Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Rollux Mainnet
@@ -315,8 +290,7 @@ describe("Test Supported Chains", function () {
     "0x1187124eC74e2A2F420540C338186dD702cF6340",
     "570",
     "Rollux Mainnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Rollux Tanenbaum (testnet)
@@ -324,110 +298,98 @@ describe("Test Supported Chains", function () {
     "0x736bfcA6a599bF0C3D499F8a0bC5ab2bA2030AC6",
     "57000",
     "Rollux Tanenbaum",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   verifyContract(
     "0xE295aD71242373C37C5FdA7B57F26f9eA1088AFe",
     "10",
     "Optimism Mainnet",
-    ["10/file.sol"],
-    "10/metadata.json"
+    "10/"
   );
 
   // verifyContract(
   //   "0xB5FAD02EbF6edffbdf206d2C1ad815bcDdb380f8",
   //   "420",
   //   "Optimism Goerli Testnet",
-  //   ["shared/1_Storage.sol"],
-  //   "shared/1_Storage.metadata.json"
+  //   "shared/"
+  //
   // );
 
   verifyContract(
-    "0xB5FAD02EbF6edffbdf206d2C1ad815bcDdb380f8",
+    "0xaBe8cf2Dacb0053C1ebd5881392BD17Ec2402a4F",
     "11155420",
     "Optimism Sepolia Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   verifyContract(
     "0x43f980475B9eb5D93A19dfA84511ECE7b330c226",
     "288",
     "Boba Network",
-    ["288/Storage.sol"],
-    "288/metadata.json"
+    "288/"
   );
 
   // verifyContract(
   //   "0x8F78b9c92a68DdF719849a40702cFBfa4EB60dD0",
   //   "28",
   //   "Boba Network Rinkeby Testnet",
-  //   ["shared/1_Storage.sol"],
-  //   "shared/1_Storage.metadata.json"
+  //   "shared/"
+  //
   // );
 
   verifyContract(
     "0xd8A08AFf1B0585Cad0E173Ce0E93551Ac59D3530",
     "106",
     "Velas Mainnet",
-    ["106/MetaCoin.sol", "106/ConvertLib.sol"],
-    "106/MetaCoin.json"
+    "106/"
   );
 
   verifyContract(
     "0x084c77e84853B960aEB0a0BD4Fc6689aC9c6d76E",
     "82",
     "Meter Mainnet",
-    ["82/Storage.sol"],
-    "82/Storage_meta.json"
+    "82/"
   );
 
   verifyContract(
     "0x736D468Bc8F868a80A0F9C4Ca24dacf8a5A3a684",
     "83",
     "Meter Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   verifyContract(
     "0xC9BdeEd33CD01541e1eeD10f90519d2C06Fe3feB",
     "1313161554",
     "Aurora Mainnet",
-    ["1313161554/weth.sol"],
-    "1313161554/metadata.json"
+    "1313161554/"
   );
 
   verifyContract(
     "0xd46fd24ea21F04459407Fb0B518451e54d0b07a1",
     "1313161555",
     "Aurora Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   verifyContract(
     "0x08BB0D7fCe37dD766d13DC19A00c95878ed2E68c",
     "1284",
     "Moonbeam",
-    ["1284/Incrementer.sol"],
-    "1284/metadata.json"
+    "1284/"
   );
   verifyContract(
     "0x460947bD434b4FF90Af62f3F389b39aab0d6A77D",
     "1285",
     "Moonriver",
-    ["1285/Incrementer.sol"],
-    "1285/metadata.json"
+    "1285/"
   );
   verifyContract(
     "0x08BB0D7fCe37dD766d13DC19A00c95878ed2E68c",
     "1287",
     "Moonbase",
-    ["1287/Incrementer.sol"],
-    "1287/metadata.json"
+    "1287/"
   );
 
   // // Candle
@@ -435,8 +397,8 @@ describe("Test Supported Chains", function () {
   //   "0xaa80bC172F3275B837C0515d3d50AcC4EC0cC96b",
   //   "534",
   //   "Candle Mainnet",
-  //   ["shared/1_Storage.sol"],
-  //   "shared/1_Storage.metadata.json"
+  //   "shared/"
+  //
   // );
 
   // Palm
@@ -444,8 +406,7 @@ describe("Test Supported Chains", function () {
     "0xd46fd24ea21F04459407Fb0B518451e54d0b07a1",
     "11297108109",
     "Palm Mainnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Palm Testnet
@@ -453,8 +414,7 @@ describe("Test Supported Chains", function () {
     "0x68107Fb54f5f29D8e0B3Ac44a99f4444D1F22a68",
     "11297108099",
     "Palm Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Fuse Mainnet
@@ -462,8 +422,7 @@ describe("Test Supported Chains", function () {
     "0xCaFC1F87E4cabD59fAB26d02D09207147Aae3F1E",
     "122",
     "Fuse Mainnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // // Darwinia Pangolin Testnet
@@ -471,8 +430,8 @@ describe("Test Supported Chains", function () {
   //   "0x7de04a7596958D44baB52F4e5D0c9e79cB16ef8B",
   //   "43",
   //   "Darwinia Pangolin Testnet",
-  //   ["shared/1_Storage.sol"],
-  //   "shared/1_Storage.metadata.json"
+  //   "shared/"
+  //
   // );
 
   // Darwinia Crab Mainnet
@@ -480,8 +439,7 @@ describe("Test Supported Chains", function () {
     "0xE0E78187F01E026bdD0bd901e5Ae2e10C022366D",
     "44",
     "Darwinia Pangolin Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Evmos Testnet
@@ -489,8 +447,7 @@ describe("Test Supported Chains", function () {
     "0x07Eb2490cEfc74bAEb4B13c2dB9119CA0c38959B",
     "9000",
     "Evmos Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Evmos Mainnet
@@ -498,8 +455,7 @@ describe("Test Supported Chains", function () {
     "0x1d897A65A4fa98BBdfc2e94ad2357cE051Bf4a21",
     "9001",
     "Evmos Mainnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // MultiVAC Mainnet
@@ -507,8 +463,7 @@ describe("Test Supported Chains", function () {
     "0x411925A3B2Ed99cD29DF76822D6419163d80858f",
     "62621",
     "MultiVAC Mainnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // WAGMI Testnet
@@ -516,8 +471,7 @@ describe("Test Supported Chains", function () {
     "0x5974BF3196fc03A20cEB196270307707e0158BbD",
     "11111",
     "WAGMI",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Gather Mainnet
@@ -525,8 +479,7 @@ describe("Test Supported Chains", function () {
     "0x5b470D7B8165D109E3Fd2e2B4E7a30Cb89C051e5",
     "192837465",
     "GTH",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Gather Testnet
@@ -534,8 +487,7 @@ describe("Test Supported Chains", function () {
     "0x08Da5501c22AE1ce2621724Ca1A03383d6C12c4d",
     "356256156",
     "GTH",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // // Gather Devnet
@@ -543,8 +495,8 @@ describe("Test Supported Chains", function () {
   //   "0xEeE72e2295E181BaB1ef049bFEAaf5fC348998C5",
   //   "486217935",
   //   "GTH",
-  //   ["shared/1_Storage.sol"],
-  //   "shared/1_Storage.metadata.json"
+  //   "shared/"
+  //
   // );
 
   // DFK Chain Testnet
@@ -552,8 +504,7 @@ describe("Test Supported Chains", function () {
     "0x276946F2453538E882281d5A36ad6d19BBDfdaA7",
     "335",
     "DFK Chain Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // DFK Chain Mainnet
@@ -561,30 +512,26 @@ describe("Test Supported Chains", function () {
     "0xB98EBF39148D39536C7f312E059990Dc59Aa26B5",
     "53935",
     "DFK Chain",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
   verifyContract(
     "0xA3b8eB7A6C4EE5902Ef66d455da98973B55B9f8a",
     "9996",
     "Mind Smart Chain Mainnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
   verifyContract(
     "0x6720b7a5974373C3F6bdE96c09bA4ffdddEEAeD7",
     "9977",
     "Mind Smart Chain Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
   // Energy Web Volta Testnet
   verifyContract(
     "0x4667b7ce62e56B71146885555c68d2DDdf63349A",
     "73799",
     "Energy Web Volta Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Energy Web Chain
@@ -592,8 +539,7 @@ describe("Test Supported Chains", function () {
     "0xd07BECd1b2FE97924a2d4A0cF2d96e499ce28cA9",
     "246",
     "Energy Web Chain",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Godwoken testnet v1.1
@@ -601,8 +547,7 @@ describe("Test Supported Chains", function () {
     "0xc8D69B4D58bb79D03C0b83DbBAE509DAF3135e74",
     "71401",
     "Godwoken Testnet (V1.1)",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Godwoken mainnet v1.1
@@ -610,8 +555,7 @@ describe("Test Supported Chains", function () {
     "0x0aEF0854bCD792cb37FA0e75c27a1bC326d11725",
     "71402",
     "Godwoken Mainnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Dexalot Testnet
@@ -619,8 +563,7 @@ describe("Test Supported Chains", function () {
     "0xfa5a1E7788514Ae2B879377cF08a9CF2901d3A21",
     "432201",
     "Dexalot Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Dexalot Mainnet
@@ -628,8 +571,7 @@ describe("Test Supported Chains", function () {
     "0x1c799C32a6cF228D0656f3B87D60224afaB45903",
     "432204",
     "Dexalot Subnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // //Crystaleum
@@ -637,8 +579,8 @@ describe("Test Supported Chains", function () {
   //   "0x8Ab612E257534b7d5a6E315444f1C45c434eAaCf",
   //   "103090",
   //   "Crystaleum",
-  //   ["shared/1_Storage.sol"],
-  //   "shared/1_Storage.metadata.json"
+  //   "shared/"
+  //
   // );
 
   //Kekchain (testnet)
@@ -646,8 +588,7 @@ describe("Test Supported Chains", function () {
     "0x6FCe618B0677EdFCca9d38ed48Af89a8c056C938",
     "420666",
     "Kekchain",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   //Kekchain Main Net (kekistan)
@@ -655,8 +596,7 @@ describe("Test Supported Chains", function () {
     "0xbc0103404476AF674756911553b7A45B55e989e5",
     "420420",
     "Kekchain",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Canto
@@ -664,8 +604,7 @@ describe("Test Supported Chains", function () {
     "0x65ec06aF7b8A6cBa7E7226e70dd2eBd117b823Cd",
     "7700",
     "Canto",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Canto Testnet
@@ -673,8 +612,7 @@ describe("Test Supported Chains", function () {
     "0x37e12c98b4663DcE9ab1460073D9Fe82A7bFD0d8",
     "7701",
     "Canto Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // // POA Network Core
@@ -682,8 +620,8 @@ describe("Test Supported Chains", function () {
   //   "0x3b2e3383AeE77A58f252aFB3635bCBd842BaeCB3",
   //   "99",
   //   "POA Core",
-  //   ["shared/1_Storage.sol"],
-  //   "shared/1_Storage.metadata.json"
+  //   "shared/"
+  //
   // );
 
   // // Astar (EVM)
@@ -691,8 +629,8 @@ describe("Test Supported Chains", function () {
   //   "0xA7e70Be8A6563DCe75299c30D1566A83fC63BC37",
   //   "592",
   //   "Astar (EVM)",
-  //   ["shared/1_Storage.sol"],
-  //   "shared/1_Storage.metadata.json"
+  //   "shared/"
+  //
   // );
 
   // Gnosis Chiado Testnet
@@ -700,8 +638,7 @@ describe("Test Supported Chains", function () {
     "0xd46fd24ea21F04459407Fb0B518451e54d0b07a1",
     "10200",
     "Gnosis Chiado Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Klaytn Testnet Baobab
@@ -709,8 +646,7 @@ describe("Test Supported Chains", function () {
     "0x662749a392CeB1b5973a90FB2c388a2C18B8812c",
     "1001",
     "Klaytn Testnet Baobab",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Klaytn Mainnet Cypress
@@ -718,8 +654,7 @@ describe("Test Supported Chains", function () {
     "0x3b2e3383AeE77A58f252aFB3635bCBd842BaeCB3",
     "8217",
     "Klaytn Mainnet Cypress",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Shiden (EVM)
@@ -727,8 +662,7 @@ describe("Test Supported Chains", function () {
     "0x3b2e3383AeE77A58f252aFB3635bCBd842BaeCB3",
     "336",
     "Shiden (EVM)",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Chain support turned off
@@ -737,8 +671,8 @@ describe("Test Supported Chains", function () {
   //   "0xA7e70Be8A6563DCe75299c30D1566A83fC63BC37",
   //   "28528",
   //   "Optimism Bedrock: Goerli Alpha Testnet",
-  //   ["shared/1_Storage.sol"],
-  //   "shared/1_Storage.metadata.json"
+  //   "shared/"
+  //
   // );
 
   // ZetaChain: Athens Testnet
@@ -746,8 +680,7 @@ describe("Test Supported Chains", function () {
     "0x52ef49D23630EF439a8177E1e966F1953f37473f",
     "7001",
     "ZetaChain Athens Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Oasis Emerald Mainnet
@@ -755,8 +688,7 @@ describe("Test Supported Chains", function () {
     "0x7228Ab1F57e6fFd9F85930b9a9C2E9DD2307E4D0",
     "42262",
     "Oasis Emerald Mainnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Oasis Emerald Testnet
@@ -764,8 +696,7 @@ describe("Test Supported Chains", function () {
     "0x70D7603cAc831A9f23Fc7cAc301db300D55EA921",
     "42261",
     "Oasis Emerald Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Songbird Canary Network
@@ -773,8 +704,7 @@ describe("Test Supported Chains", function () {
     "0x024829b4A91fB78437A854380c89A3fFc966c2D1",
     "19",
     "Songbird Canary Network",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // // Flare Mainnet
@@ -782,8 +712,8 @@ describe("Test Supported Chains", function () {
   //   "0xbBc2EdeDc9d2d97970eE20d0Dc7216216a27e635",
   //   "14",
   //   "Flare Mainnet",
-  //   ["shared/1_Storage.sol"],
-  //   "shared/1_Storage.metadata.json"
+  //   "shared/"
+  //
   // );
 
   // Oasis Sapphire Mainnet
@@ -791,8 +721,7 @@ describe("Test Supported Chains", function () {
     "0xFBcb580DD6D64fbF7caF57FB0439502412324179",
     "23294",
     "Oasis Sapphire",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Oasis Sapphire Testnet
@@ -800,8 +729,7 @@ describe("Test Supported Chains", function () {
     "0xFBcb580DD6D64fbF7caF57FB0439502412324179",
     "23295",
     "Oasis Sapphire Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Stratos Testnet (Mesos)
@@ -809,8 +737,7 @@ describe("Test Supported Chains", function () {
     "0xA049F14E503A489E6f72603034CBe4d6835C8393",
     "2047",
     "Stratos Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Stratos Mainnet
@@ -818,8 +745,7 @@ describe("Test Supported Chains", function () {
     "0x9004804c4306d0eF7687Bce0C193A94C7593013F",
     "2048",
     "Stratos Mainnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Bear Network Chain Mainnet
@@ -827,8 +753,7 @@ describe("Test Supported Chains", function () {
     "0x0f103813fa15CA19b6C4B46a0Afe99440b81d7C3",
     "641230",
     "Bear Network Chain Mainnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Base Goerli Testnet
@@ -836,8 +761,7 @@ describe("Test Supported Chains", function () {
     "0x8F78b9c92a68DdF719849a40702cFBfa4EB60dD0",
     "84531",
     "Base Goerli Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Base Mainnet
@@ -845,8 +769,7 @@ describe("Test Supported Chains", function () {
     "0x5e357053DDa704D059D146444cCC81afC1B2a662",
     "8453",
     "Base Mainnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Wanchain Mainnet
@@ -854,8 +777,7 @@ describe("Test Supported Chains", function () {
     "0xC3649123BCa36c0c38A71bDbd2F508AB4f939f47",
     "888",
     "Wanchain Mainnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Wanchain Testnet
@@ -863,8 +785,7 @@ describe("Test Supported Chains", function () {
     "0x500E12a948E9Fc594bC6Fe86B3B270B5a67332D8",
     "999",
     "Wanchain Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // The Root Network Mainnet
@@ -872,8 +793,7 @@ describe("Test Supported Chains", function () {
     "0x6C0cE8d62F1D81464F6F4DecB62f97aa83B8Df89",
     "7668",
     "The Root Network Mainnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // The Root Network Porcini (Testnet)
@@ -881,8 +801,7 @@ describe("Test Supported Chains", function () {
     "0x225F2cD344c61152F8E7200E62e03dEfD683f2c4",
     "7672",
     "The Root Network Porcini",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Hedera Mainnet
@@ -890,8 +809,7 @@ describe("Test Supported Chains", function () {
     "0x00000000000000000000000000000000002265bb",
     "295",
     "Hedera Mainnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // DogeChain Mainnet
@@ -899,8 +817,7 @@ describe("Test Supported Chains", function () {
     "0x2a35F4AA0d3e417e8896E972f35dba4b39b6305e",
     "2000",
     "DogeChain Mainnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Bitkub Chain Testnet
@@ -908,8 +825,7 @@ describe("Test Supported Chains", function () {
     "0x58909Ef2F2b167F52cF46575f1582500287cCE48",
     "25925",
     "Bitkub Chain Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Bitkub Chain
@@ -917,8 +833,7 @@ describe("Test Supported Chains", function () {
     "0xC75f4D89A0DdA70Ad613908D9976E90dAb42035c",
     "96",
     "Bitkub Chain",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Cronos Mainnet Beta
@@ -926,8 +841,7 @@ describe("Test Supported Chains", function () {
     "0xEdE2053329D203E8261B47A10540Ee4b7a596667",
     "25",
     "Cronos Mainnet Beta",
-    ["25/storage.sol"],
-    "25/metadata.json"
+    "25/"
   );
 
   // Elysium Mainnet Chain
@@ -935,8 +849,7 @@ describe("Test Supported Chains", function () {
     "0x20563837F7423465699D7675BCB82f886a761c25",
     "1339",
     "Elysium Mainnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Taiko Grimsvotn L2
@@ -944,8 +857,7 @@ describe("Test Supported Chains", function () {
     "0x68107Fb54f5f29D8e0B3Ac44a99f4444D1F22a68",
     "167005",
     "Taiko Grimsvotn L2",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Taiko Eldfell L3
@@ -953,8 +865,7 @@ describe("Test Supported Chains", function () {
     "0x270a7521B3678784f96848D441fE1B2dc2f040D8",
     "167006",
     "Taiko Eldfell L3",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json",
+    "shared/",
     "partial"
   );
 
@@ -963,8 +874,7 @@ describe("Test Supported Chains", function () {
     "0x090734f94FA67590702421A9B61892509b7CE80A",
     "7777777",
     "ZORA MAinnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // ZORA Sepolia Testnet
@@ -972,8 +882,7 @@ describe("Test Supported Chains", function () {
     "0x9788C590bd201b80091Bca6A322BeB903b8190Dd",
     "999999999",
     "ZORA Sepolia Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // UPTN Chain Mainnet
@@ -981,12 +890,7 @@ describe("Test Supported Chains", function () {
     "0x212F6222fB4937978A806b14FB2725169825078F",
     "6119",
     "UPTN Chain",
-    [
-      "6119/ERC4906.sol",
-      "6119/UptnNFTsV1.sol",
-      "6119/IUPTNAddressValidator.sol",
-    ],
-    "6119/UptnNFTsV1.metadata.json"
+    "6119/"
   );
 
   // BEAM Chain Testnet
@@ -994,9 +898,7 @@ describe("Test Supported Chains", function () {
     "0x9BF49b704EE2A095b95c1f2D4EB9010510c41C9E",
     "13337",
     "BEAM Chain",
-    ["13337/Multicall3.sol"],
-    "13337/multicall3.metadata.json",
-    "partial"
+    "13337/"
   );
 
   // Kanazawa Chain Testnet
@@ -1004,8 +906,7 @@ describe("Test Supported Chains", function () {
     "0x24c456Fb4c450208366B1f8322c3241aA013758e",
     "222000222",
     "Kanazawa Chain",
-    [],
-    "222000222/multicall3.metadata.json"
+    "222000222/"
   );
 
   // MELD Chain Testnet
@@ -1013,8 +914,7 @@ describe("Test Supported Chains", function () {
     "0x769eE5A8e82C15C1b6E358f62aC8eb6E3AbE8dC5",
     "333000333",
     "MELD Chain",
-    [],
-    "333000333/multicall3.metadata.json"
+    "333000333/"
   );
 
   // Kiwi Subnet
@@ -1022,8 +922,7 @@ describe("Test Supported Chains", function () {
     "0xe89a85b79e64b35829625A7EEf70F8915d32F75f",
     "2037",
     "Kiwi Subnet",
-    [],
-    "2037/multicall3.metadata.json"
+    "2037/"
   );
 
   // KAVA EVM
@@ -1031,8 +930,7 @@ describe("Test Supported Chains", function () {
     "0xAdFa11e737ec8fA6e91091468aEF33a66Ae0044c",
     "2222",
     "Kava EVM",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Siberium Testnet
@@ -1040,8 +938,7 @@ describe("Test Supported Chains", function () {
     "0x60E9b3CD8C160Ce6408dD6E2Fa938895cfF7E087",
     "111000",
     "Siberium Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Ethereum Classic Mainnet
@@ -1049,8 +946,7 @@ describe("Test Supported Chains", function () {
     "0x45a82B987a4e5d7D00eD5aB325DF00850cDAbBAC",
     "61",
     "Ethereum Classic Mainnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Filecoin Mainnet
@@ -1058,8 +954,7 @@ describe("Test Supported Chains", function () {
     "0x23396626F2C9c0b31cC6C2729172103961Ae2A26",
     "314",
     "Filecoin Mainnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Filecoin Calibration Testnet
@@ -1067,8 +962,7 @@ describe("Test Supported Chains", function () {
     "0xB34d5e2Eb6eCFDe11cC63955b43335A2407A4683",
     "314159",
     "Filecoin Calibration Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Zilliqa EVM
@@ -1076,16 +970,14 @@ describe("Test Supported Chains", function () {
     "0x6F85669808e20b121980DE8E7a794a0cc90fDc77",
     "32769",
     "Zilliqa EVM",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
   // Zilliqa EVM Testnet
   verifyContract(
     "0xeb6Ea260eDFb9837ed100B09c559081AfA5b0785",
     "33101",
     "Zilliqa EVM Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // KAVA EVM Testnet
@@ -1093,24 +985,21 @@ describe("Test Supported Chains", function () {
     "0x40b4f95C3bafc8d690B4c3fDD1E8303c4817Cd9C",
     "2221",
     "Kava EVM Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
   // MAP Testnet Makalu
   verifyContract(
     "0xAbdE047dD5861E163830Ad57e1E51990035E1F44",
     "212",
     "MAP Testnet Makalu",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
   // map-relay-chain mainnet
   verifyContract(
     "0xAbdE047dD5861E163830Ad57e1E51990035E1F44",
     "22776",
     "Map Mainnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Edgeware EdgeEVM Mainnet
@@ -1118,8 +1007,7 @@ describe("Test Supported Chains", function () {
     "0xCc21c38A22918a86d350dF9aB9c5A60314A01e06",
     "2021",
     "Edgeware EdgeEVM Mainnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Arbitrum Nova
@@ -1127,8 +1015,7 @@ describe("Test Supported Chains", function () {
     "0xC2141cb30Ef8cE403569D59964eaF3D66848822F",
     "42170",
     "Arbitrum Nova",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // FTM Fantom Opera Mainnet
@@ -1136,32 +1023,28 @@ describe("Test Supported Chains", function () {
     "0xc47856bEBCcc2BBB23E7a5E1Ba8bB4Fffa5C5476",
     "250",
     "Fantom Opera",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   verifyContract(
     "0x4956f15efdc3dc16645e90cc356eafa65ffc65ec",
     "4337",
     "Beam Subnet",
-    [],
-    "4337/multicall.metadata.json"
+    "4337/"
   );
 
   verifyContract(
     "0x72Ed1E3E3A68DfB7495FAfb19C0de1A0B7Ec5524",
     "78432",
     "Conduit Subnet",
-    [],
-    "78432/multicall3.metadata.json"
+    "78432/"
   );
 
   verifyContract(
     "0xa785B911a79B0d5d8895c567663c29F0f7B93321",
     "78431",
     "Bulletin Subnet",
-    [],
-    "78431/multicall3.metadata.json"
+    "78431/"
   );
 
   // Amplify Subnet
@@ -1169,8 +1052,7 @@ describe("Test Supported Chains", function () {
     "0xB19f81cA2141ACd6F2Cc39bAFAD2a613bC4c9592",
     "78430",
     "Amplify Subnet",
-    [],
-    "78430/multicall3.metadata.json"
+    "78430/"
   );
 
   // Shrapnel Subnet Testnet
@@ -1178,8 +1060,7 @@ describe("Test Supported Chains", function () {
     "0x8Bb9d0Dd48B7a54B248D2d386AfF253DA7856479",
     "2038",
     "Shrapnel Testnet",
-    [],
-    "2038/multicall3.metadata.json"
+    "2038/"
   );
 
   // Shrapnel Subnet
@@ -1187,23 +1068,20 @@ describe("Test Supported Chains", function () {
     "0xb9D27a0D61392566b92E08937a6C6E798F197ADF",
     "2044",
     "Shrapnel Subnet",
-    [],
-    "2044/multicall3.metadata.json"
+    "2044/"
   );
   verifyContract(
     "0xD5bB0035a178d56Abd23a39fB3666031084b2cb5",
     "1116",
     "Core Blockchain Mainnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   verifyContract(
     "0xa456Ad3DEe140dcC91655ff45ef3103C460201D0",
     "10243",
     "Arthera Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Q Mainnet
@@ -1211,8 +1089,7 @@ describe("Test Supported Chains", function () {
     "0xc8AeB7206D1AD1DD5fC202945401303b3A7b72e0",
     "35441",
     "Q Mainnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Q Testnet
@@ -1220,56 +1097,49 @@ describe("Test Supported Chains", function () {
     "0xc8AeB7206D1AD1DD5fC202945401303b3A7b72e0",
     "35443",
     "Q Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   verifyContract(
     "0xbF33D2dA0F875D826ce1bA250F66b2785d48C113",
     "11235",
     "Haqq Mainnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   verifyContract(
     "0xbF33D2dA0F875D826ce1bA250F66b2785d48C113",
     "54211",
     "Haqq Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   verifyContract(
     "0x612C7dE4039655B9C9aE9A9B41f3A22319F0dF65",
     "1115",
     "Core Blockchain Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   verifyContract(
     "0xFe392C04b7879f28D9F966239F3e3646fe048863",
     "30",
     "Rootstock",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   verifyContract(
     "0x10fB58BBd3c4F580aC4be0600221850FDF33BEdF",
     "49797",
     "Energi Testnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   verifyContract(
     "0xA9CD2d159ca8ab30711e9d9331D5229476e8a2d5",
     "39797",
     "Energi Mainnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Mantle Mainnet
@@ -1277,8 +1147,7 @@ describe("Test Supported Chains", function () {
     "0x2977852235B0EcFa27D3Eb045898fFF3575b294B",
     "5000",
     "Mantle Mainnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Crossbell Mainnet
@@ -1286,8 +1155,7 @@ describe("Test Supported Chains", function () {
     "0xaa028312440DFd72A33053932150aE5e35017f6A",
     "3737",
     "Crossbell Mainnet",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Rikeza Network
@@ -1295,8 +1163,7 @@ describe("Test Supported Chains", function () {
     "0xa8c07c66d0458e8c6e442a8827f4bc3fad036407",
     "1433",
     "Rikeza Network",
-    ["1433/stg.sol"],
-    "1433/metadata.json"
+    "1433/"
   );
 
   // Zeniq Mainnet
@@ -1304,8 +1171,7 @@ describe("Test Supported Chains", function () {
     "0xCf16669c144989409D439262F2BfBFa31BD6cd2a",
     "383414847825",
     "Zeniq",
-    ["shared/1_Storage.sol"],
-    "shared/1_Storage.metadata.json"
+    "shared/"
   );
 
   // Tiltyard Subnet
@@ -1313,8 +1179,7 @@ describe("Test Supported Chains", function () {
     "0xfd52e1A54442aC8d6a7C54713f99D0dc113df220",
     "1127469",
     "Tiltyard Subnet",
-    [],
-    "1127469/multicall3.metadata.json"
+    "1127469/"
   );
 
   // Finally check if all the "supported: true" chains have been tested
@@ -1356,8 +1221,7 @@ describe("Test Supported Chains", function () {
     address,
     chainId,
     chainName,
-    relativeSourcePathsArray, // Allow multiple source files
-    relativeMetadataPath,
+    sourceAndMetadataDir, // folder
     expectedStatus = "perfect"
   ) {
     // If it is a pull request for adding new chain support, only test the new chain
@@ -1372,21 +1236,9 @@ describe("Test Supported Chains", function () {
         },
       });
 
-      const metadataPath = path.join(
-        "test",
-        "chains",
-        "sources",
-        relativeMetadataPath
-      );
-      const sourcePathsArray = relativeSourcePathsArray.map((relSourcePath) =>
-        path.join("test", "chains", "sources", relSourcePath)
-      );
-      const files = {
-        "metadata.json": fs.readFileSync(metadataPath).toString(),
-      };
-      sourcePathsArray.forEach((sourcePath, i) => {
-        files[`Source_${i}.sol`] = fs.readFileSync(sourcePath).toString();
-      });
+      const fullDir = path.join(__dirname, "sources", sourceAndMetadataDir);
+      const files = {};
+      readFilesRecursively(fullDir, files);
 
       chai
         .request(server.app)
@@ -1404,3 +1256,19 @@ describe("Test Supported Chains", function () {
     testedChains.add(chainId);
   }
 });
+
+function readFilesRecursively(directoryPath, files) {
+  const filesInDirectory = fs.readdirSync(directoryPath);
+
+  filesInDirectory.forEach((file) => {
+    const filePath = path.join(directoryPath, file);
+
+    if (fs.statSync(filePath).isDirectory()) {
+      // Recursively call the function for subdirectories
+      readFilesRecursively(filePath, files);
+    } else {
+      // Read and store the content of the file
+      files[file] = fs.readFileSync(filePath).toString();
+    }
+  });
+}
