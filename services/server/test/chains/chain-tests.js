@@ -1,3 +1,5 @@
+process.env.NODE_CONFIG_ENV = "test";
+
 const chai = require("chai");
 const chaiHttp = require("chai-http");
 const Server = require("../../dist/server/server").Server;
