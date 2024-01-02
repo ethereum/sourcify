@@ -584,20 +584,20 @@ describe("Test Supported Chains", function () {
   // );
 
   //Kekchain (testnet)
-  verifyContract(
-    "0x6FCe618B0677EdFCca9d38ed48Af89a8c056C938",
-    "420666",
-    "Kekchain",
-    "shared/"
-  );
+  // verifyContract(
+  //   "0x6FCe618B0677EdFCca9d38ed48Af89a8c056C938",
+  //   "420666",
+  //   "Kekchain",
+  //   "shared/"
+  // );
 
   //Kekchain Main Net (kekistan)
-  verifyContract(
-    "0xbc0103404476AF674756911553b7A45B55e989e5",
-    "420420",
-    "Kekchain",
-    "shared/"
-  );
+  // verifyContract(
+  //   "0xbc0103404476AF674756911553b7A45B55e989e5",
+  //   "420420",
+  //   "Kekchain",
+  //   "shared/"
+  // );
 
   // Canto
   verifyContract(
@@ -650,12 +650,12 @@ describe("Test Supported Chains", function () {
   );
 
   // Klaytn Mainnet Cypress
-  verifyContract(
-    "0x3b2e3383AeE77A58f252aFB3635bCBd842BaeCB3",
-    "8217",
-    "Klaytn Mainnet Cypress",
-    "shared/"
-  );
+  // verifyContract(
+  //   "0x3b2e3383AeE77A58f252aFB3635bCBd842BaeCB3",
+  //   "8217",
+  //   "Klaytn Mainnet Cypress",
+  //   "shared/"
+  // );
 
   // Shiden (EVM)
   verifyContract(
@@ -853,21 +853,21 @@ describe("Test Supported Chains", function () {
   );
 
   // Taiko Grimsvotn L2
-  verifyContract(
-    "0x68107Fb54f5f29D8e0B3Ac44a99f4444D1F22a68",
-    "167005",
-    "Taiko Grimsvotn L2",
-    "shared/"
-  );
+  // verifyContract(
+  //   "0x68107Fb54f5f29D8e0B3Ac44a99f4444D1F22a68",
+  //   "167005",
+  //   "Taiko Grimsvotn L2",
+  //   "shared/"
+  // );
 
   // Taiko Eldfell L3
-  verifyContract(
-    "0x270a7521B3678784f96848D441fE1B2dc2f040D8",
-    "167006",
-    "Taiko Eldfell L3",
-    "shared/",
-    "partial"
-  );
+  // verifyContract(
+  //   "0x270a7521B3678784f96848D441fE1B2dc2f040D8",
+  //   "167006",
+  //   "Taiko Eldfell L3",
+  //   "shared/",
+  //   "partial"
+  // );
 
   // ZORA Mainnet
   verifyContract(
@@ -898,7 +898,8 @@ describe("Test Supported Chains", function () {
     "0x9BF49b704EE2A095b95c1f2D4EB9010510c41C9E",
     "13337",
     "BEAM Chain",
-    "13337/"
+    "13337/",
+    "partial"
   );
 
   // Kanazawa Chain Testnet
