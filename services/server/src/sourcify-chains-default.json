@@ -722,7 +722,7 @@
   },
   "420666": {
     "sourcifyName": "Kekchain Testnet (kektest)",
-    "supported": true,
+    "supported": false,
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://testnet-explorer.kekchain.com/"
@@ -731,7 +731,7 @@
   },
   "420420": {
     "sourcifyName": "Kekchain Main Net (kekistan)",
-    "supported": true,
+    "supported": false,
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://mainnet-explorer.kekchain.com/"
