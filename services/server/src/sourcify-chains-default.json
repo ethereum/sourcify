@@ -596,7 +596,7 @@
     "supported": true,
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
-        "url": "https://evm.evmos.dev/"
+        "url": "https://testnet.evmos.explorers.guru/"
       }
     }
   },
