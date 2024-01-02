@@ -146,12 +146,13 @@ async function getCreatorTxUsingFetcher(
     return null;
   }
 
-  logger.debug(
-    `Fetching creator tx using fetcher fetcher.type=${fetcher.type} fetcher.url=${fetcher.url} contractAddress=${contractAddress}`
-  );
   const contractFetchAddressFilled = fetcher?.url.replace(
     "${ADDRESS}",
     contractAddress
+  );
+
+  logger.debug(
+    `⏳ Fetching creator tx using fetcher fetcher.type=${fetcher.type} contractFetchAddressFilled=${contractFetchAddressFilled} contractAddress=${contractAddress}`
   );
 
   if (!contractFetchAddressFilled) return null;
@@ -165,7 +166,7 @@ async function getCreatorTxUsingFetcher(
             fetcher?.scrapeRegex
           );
           logger.debug(
-            `Fetched creator tx using fetcher fetcher.type=${fetcher.type} fetcher.url=${fetcher.url} contractAddress=${contractAddress} creatorTx=${creatorTx}`
+            `✅ Fetched creator tx using fetcher fetcher.type=${fetcher.type} fetcher.url=${fetcher.url} contractAddress=${contractAddress} creatorTx=${creatorTx}`
           );
           if (creatorTx) return creatorTx;
         }
@@ -176,7 +177,7 @@ async function getCreatorTxUsingFetcher(
           const response = await fetchFromApi(contractFetchAddressFilled);
           const creatorTx = fetcher?.responseParser(response);
           logger.debug(
-            `Fetched creator tx using fetcher fetcher.type=${fetcher.type} fetcher.url=${fetcher.url} contractAddress=${contractAddress} creatorTx=${creatorTx}`
+            `✅ Fetched creator tx using fetcher fetcher.type=${fetcher.type} fetcher.url=${fetcher.url} contractAddress=${contractAddress} creatorTx=${creatorTx}`
           );
           if (creatorTx) return creatorTx;
         }
