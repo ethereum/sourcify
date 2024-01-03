@@ -108,25 +108,25 @@ export class StorageService {
     );
   }
 
-  storeMatch(contract: CheckedContract, match: Match) {
+  async storeMatch(contract: CheckedContract, match: Match) {
     logger.info(
       `Storing ${contract.name} address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
     );
     try {
-      this.allianceDatabase?.storeMatch(contract, match);
+      await this.allianceDatabase?.storeMatch(contract, match);
     } catch (e) {
       logger.warn("Error while storing on the AllianceDatabase: ", e);
     }
     try {
-      this.sourcifyDatabase?.storeMatch(contract, match);
+      await this.sourcifyDatabase?.storeMatch(contract, match);
     } catch (e) {
       logger.warn("Error while storing on the SourcifyDatabase: ", e);
     }
     try {
-      this.repositoryV2?.storeMatch(contract, match);
+      await this.repositoryV2?.storeMatch(contract, match);
     } catch (e) {
       logger.warn("Error while storing on the RepositoryV2: ", e);
     }
-    return this.repositoryV1.storeMatch(contract, match);
+    return await this.repositoryV1.storeMatch(contract, match);
   }
 }
