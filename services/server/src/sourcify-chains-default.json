@@ -1174,6 +1174,16 @@
       "avalancheApi": true
     }
   },
+  "10242": {
+    "sourcifyName": "Arthera Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://explorer.arthera.net/"
+      }
+    },
+    "rpc": ["https://rpc.arthera.net"]
+  },
   "10243": {
     "sourcifyName": "Arthera Testnet",
     "supported": true,
