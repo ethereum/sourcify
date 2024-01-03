@@ -1,5 +1,5 @@
 import {
-  CompiledContractArtifactsCborAuxdata,
+  CompiledContractCborAuxdata,
   ImmutableReferences,
   Transformation,
   TransformationValues,
@@ -77,13 +77,13 @@ export interface DatabaseColumns {
   creationCodeArtifacts: {
     sourceMap: string;
     linkReferences: {};
-    cborAuxdata: CompiledContractArtifactsCborAuxdata | undefined;
+    cborAuxdata: CompiledContractCborAuxdata | undefined;
   };
   runtimeCodeArtifacts: {
     sourceMap: string;
     linkReferences: {};
     immutableReferences: ImmutableReferences;
-    cborAuxdata: CompiledContractArtifactsCborAuxdata | undefined;
+    cborAuxdata: CompiledContractCborAuxdata | undefined;
   };
   runtimeMatch: boolean;
   creationMatch: boolean;
