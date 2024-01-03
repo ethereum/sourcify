@@ -23,11 +23,13 @@ export default abstract class AbstractDatabaseService {
       match.onchainCreationBytecode === undefined
     ) {
       throw new Error(
-        "Can only store contracts with both runtimeBytecode and creationBytecode"
+        `can only store contracts with both runtimeBytecode and creationBytecode address=${match.address} chainId=${match.chainId}`
       );
     }
     if (match.creatorTxHash === undefined) {
-      throw new Error("Can only store matches with creatorTxHash");
+      throw new Error(
+        `can only store matches with creatorTxHash address=${match.address} chainId=${match.chainId}`
+      );
     }
     return true;
   }
@@ -80,7 +82,7 @@ export default abstract class AbstractDatabaseService {
 
     if (!(await recompiledContract.generateCborAuxdataPositions())) {
       throw new Error(
-        `Cannot generate contract artifacts for: ${recompiledContract.name} with address ${match.address} on chain ${match.chainId}`
+        `cannot generate contract artifacts address=${match.address} chainId=${match.chainId}`
       );
     }
 
@@ -211,7 +213,7 @@ export default abstract class AbstractDatabaseService {
       return verifiedContractInsertResult.rows[0].id;
     } catch (e) {
       throw new Error(
-        `Cannot insert verified_contract:\n${JSON.stringify({ match })}\n${e}`
+        `cannot insert verified_contract address=${match.address} chainId=${match.chainId}\n${e}`
       );
     }
   }
@@ -330,9 +332,7 @@ export default abstract class AbstractDatabaseService {
         return verifiedContractInsertResult.rows[0].id;
       } catch (e) {
         throw new Error(
-          `Cannot update verified_contract:\n${JSON.stringify({
-            match,
-          })}\n${e}`
+          `cannot update verified_contract address=${match.address} chainId=${match.chainId}\n${e}`
         );
       }
     }
