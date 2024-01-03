@@ -12,8 +12,9 @@ import {
 import dotenv from "dotenv";
 import { FetchRequest } from "ethers";
 import defaultConfig from "./defaultConfig";
+import path from "path";
 
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, "..", ".env") });
 
 export default class Monitor extends EventEmitter {
   private chainMonitors: ChainMonitor[];

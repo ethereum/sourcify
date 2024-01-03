@@ -1,3 +1,4 @@
+process.env.NODE_CONFIG_ENV = "test";
 process.env.IPFS_GATEWAY = "http://ipfs.io/ipfs/";
 process.env.FETCH_TIMEOUT = 8000; // instantiated http-gateway takes a little longer
 

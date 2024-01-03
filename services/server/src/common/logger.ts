@@ -1,8 +1,5 @@
-import dotenv from "dotenv";
 import { createLogger, transports, format } from "winston";
 import chalk from "chalk";
-
-dotenv.config();
 
 const loggerInstance = createLogger();
 

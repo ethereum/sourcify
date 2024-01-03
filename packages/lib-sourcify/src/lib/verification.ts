@@ -95,6 +95,9 @@ export async function verifyDeployed(
 
   // Try to match with deployed bytecode directly
   try {
+    logDebug(
+      `Matching with deployed bytecode chain=${sourcifyChain.chainId} address=${address}`
+    );
     matchWithRuntimeBytecode(
       match,
       recompiled.runtimeBytecode,
@@ -102,6 +105,9 @@ export async function verifyDeployed(
       recompiled.immutableReferences
     );
     if (match.runtimeMatch === 'partial') {
+      logDebug(
+        `Matched partial with deployed bytecode, tryToFindPerfectMetadataAndMatch chain=${sourcifyChain.chainId} address=${address}`
+      );
       match = await tryToFindPerfectMetadataAndMatch(
         checkedContract,
         runtimeBytecode,
@@ -126,6 +132,9 @@ export async function verifyDeployed(
   try {
     // Try to match with creationTx, if available
     if (creatorTxHash) {
+      logDebug(
+        `Matching with creation tx creatorTxHash=${creatorTxHash} chain=${sourcifyChain.chainId} address=${address}`
+      );
       const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
       await matchWithCreationTx(
         match,
@@ -136,6 +145,9 @@ export async function verifyDeployed(
         recompiledMetadata
       );
       if (match.runtimeMatch === 'partial') {
+        logDebug(
+          `Matched partial with creation tx, tryToFindPerfectMetadataAndMatch creatorTxHash=${creatorTxHash} chain=${sourcifyChain.chainId} address=${address}`
+        );
         match = await tryToFindPerfectMetadataAndMatch(
           checkedContract,
           runtimeBytecode,
@@ -403,7 +415,8 @@ export async function matchWithCreationTx(
     onchainCreationBytecode =
       (await sourcifyChain.getContractCreationBytecode(
         address,
-        creatorTxHash
+        creatorTxHash,
+        creatorTx
       )) || '';
   } catch (e: any) {
     logWarn(
@@ -440,28 +453,41 @@ export async function matchWithCreationTx(
     // if the bytecode doesn't end with metadata then "partial" match
     if (endsWithMetadataHash(recompiledCreationBytecode)) {
       match.creationMatch = 'perfect';
+      logDebug(
+        `'perfect' creationMatch chain=${match.chainId} address=${address}`
+      );
     } else {
       match.creationMatch = 'partial';
+      logDebug(
+        `'partial' creationMatch chain=${match.chainId} address=${address}`
+      );
     }
   } else {
     // Match without metadata hashes
     // TODO: Handle multiple metadata hashes
 
+    logDebug(`Trying to match without metadata hashes`);
     // Assuming the onchain and recompiled auxdata lengths are the same
     const onchainCreationBytecodeWithoutConstructorArgs =
       onchainCreationBytecode.slice(0, recompiledCreationBytecode.length);
 
+    logDebug('Split onchain creation bytecode');
     const [trimmedOnchainCreationBytecode, auxdata] = splitAuxdata(
       onchainCreationBytecodeWithoutConstructorArgs
     ); // In the case of creationTxData (not runtime bytecode) it is actually not CBOR encoded at the end because of the appended constr. args., but splitAuxdata returns the whole bytecode if it's not CBOR encoded, so will work with startsWith.
+    logDebug('Split recompiled creation bytecode');
     const [trimmedRecompiledCreationBytecode] = splitAuxdata(
       recompiledCreationBytecode
     );
+    logDebug(`Split auxdata`);
     if (
       trimmedOnchainCreationBytecode.startsWith(
         trimmedRecompiledCreationBytecode
       )
     ) {
+      logDebug(
+        `'partial' creationMatch (trimmed metadata) chain=${match.chainId} address=${address}`
+      );
       match.creationMatch = 'partial';
       match.creationTransformations?.push(
         AuxdataTransformation(trimmedRecompiledCreationBytecode.length, '0')

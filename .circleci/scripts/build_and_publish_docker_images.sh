@@ -47,6 +47,11 @@ fi
 # Tag is without "ethereum": "sourcify/$SERVICE:$TAG" but label with the repo url "ethereum/sourcify"
 # docker buildx build \
 #     --platform linux/arm64,linux/amd64 \
+#     -f $DOCKERFILE \
+#     $TAG_COMMAND \
+#     $DOCKER_BUILD_CONTEXT \
+#     --push
+
 docker build \
     -f $DOCKERFILE \
     $TAG_COMMAND \
