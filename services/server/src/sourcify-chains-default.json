@@ -596,7 +596,7 @@
     "supported": true,
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
-        "url": "https://evm.evmos.dev/"
+        "url": "https://testnet.evmos.explorers.guru/"
       }
     }
   },
@@ -722,7 +722,7 @@
   },
   "420666": {
     "sourcifyName": "Kekchain Testnet (kektest)",
-    "supported": true,
+    "supported": false,
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://testnet-explorer.kekchain.com/"
@@ -731,7 +731,7 @@
   },
   "420420": {
     "sourcifyName": "Kekchain Main Net (kekistan)",
-    "supported": true,
+    "supported": false,
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://mainnet-explorer.kekchain.com/"
@@ -794,7 +794,7 @@
   },
   "8217": {
     "sourcifyName": "Klaytn Mainnet Cypress",
-    "supported": true,
+    "supported": false,
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://klaytn-mainnet.blockscout.com/"
@@ -1012,11 +1012,11 @@
   },
   "167005": {
     "sourcifyName": "Taiko Grimsvotn L2",
-    "supported": true
+    "supported": false
   },
   "167006": {
     "sourcifyName": "Taiko Eldfell L3",
-    "supported": true
+    "supported": false
   },
   "7777777": {
     "sourcifyName": "ZORA",

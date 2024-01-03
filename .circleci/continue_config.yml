@@ -122,26 +122,26 @@ workflows:
           run-build-2: << pipeline.parameters.run-build-packages >> # server depends on packages
       - build-push-ui:
           run-build: << pipeline.parameters.run-build-ui >>
-      - build-push-monitor-arm64:
-          run-build: << pipeline.parameters.run-build-monitor >>
-          run-build-2: << pipeline.parameters.run-build-packages >> # monitor depends on packages
-      - build-push-repository-arm64:
-          run-build: << pipeline.parameters.run-build-repository >>
-      - build-push-server-arm64:
-          run-build: << pipeline.parameters.run-build-server >>
-          run-build-2: << pipeline.parameters.run-build-packages >> # server depends on packages
-      - build-push-ui-arm64:
-          run-build: << pipeline.parameters.run-build-ui >>
+      # - build-push-monitor-arm64:
+      #     run-build: << pipeline.parameters.run-build-monitor >>
+      #     run-build-2: << pipeline.parameters.run-build-packages >> # monitor depends on packages
+      # - build-push-repository-arm64:
+      #     run-build: << pipeline.parameters.run-build-repository >>
+      # - build-push-server-arm64:
+      #     run-build: << pipeline.parameters.run-build-server >>
+      #     run-build-2: << pipeline.parameters.run-build-packages >> # server depends on packages
+      # - build-push-ui-arm64:
+      #     run-build: << pipeline.parameters.run-build-ui >>
       - deploy:
           requires:
             - build-push-monitor
             - build-push-repository
             - build-push-server
             - build-push-ui
-            - build-push-monitor-arm64
-            - build-push-repository-arm64
-            - build-push-server-arm64
-            - build-push-ui-arm64
+            # - build-push-monitor-arm64
+            # - build-push-repository-arm64
+            # - build-push-server-arm64
+            # - build-push-ui-arm64
       - monitor-e2e-goerli:
           requires:
             - deploy

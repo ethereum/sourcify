@@ -1,7 +1,7 @@
 import path from "path";
 // First env vars need to be loaded before config
 import dotenv from "dotenv";
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, "..", "..", ".env") });
 // Make sure config is relative to server.ts and not where the server is run from
 process.env["NODE_CONFIG_DIR"] = path.resolve(__dirname, "..", "config");
 import config from "config";
@@ -131,7 +131,7 @@ export class Server {
         next();
       } else if (contentType && contentType.includes("multipart/form-data")) {
         logger.debug(
-          `Request: ${req.method} ${req.path} (multipart) chainId=${
+          `Request: ${req.method} ${req.path} (multipart/form-data) chainId=${
             req.body.chainId || req.body.chain
           } address=${req.body.address}`
         );
@@ -226,8 +226,8 @@ export class Server {
 
     if (config.get("rateLimit.enabled")) {
       const limiter = rateLimit({
-        windowMs: 2 * 1000,
-        max: 1, // Requests per windowMs
+        windowMs: config.get("rateLimit.windowMs"),
+        max: config.get("rateLimit.max"),
         standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
         legacyHeaders: false, // Disable the `X-RateLimit-*` headers
         message: {
@@ -240,7 +240,7 @@ export class Server {
           const ipLog = process.env.NODE_ENV === "production" ? ipHash : ip; // Don't log IPs in production master
           const store = options.store as ExpressRateLimitMemoryStore;
           const hits = store.hits[ip || ""];
-          logger.info(
+          logger.debug(
             `Rate limit hit method=${req.method} path=${req.path} ip=${ipLog} hits=${hits}`
           );
           res.status(options.statusCode).send(options.message);
