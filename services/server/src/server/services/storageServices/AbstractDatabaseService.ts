@@ -78,7 +78,7 @@ export default abstract class AbstractDatabaseService {
         recompiledContract.compiledPath
       ][recompiledContract.name];
 
-    if (!(await recompiledContract.generateArtifacts())) {
+    if (!(await recompiledContract.generateCborAuxdataPositions())) {
       throw new Error(
         `Cannot generate contract artifacts for: ${recompiledContract.name} with address ${match.address} on chain ${match.chainId}`
       );
@@ -93,7 +93,7 @@ export default abstract class AbstractDatabaseService {
     const creationCodeArtifacts = {
       sourceMap: compilerOutput?.evm.bytecode.sourceMap || "",
       linkReferences: compilerOutput?.evm.bytecode.linkReferences || {},
-      cborAuxdata: recompiledContract?.artifacts?.creationBytecodeCborAuxdata,
+      cborAuxdata: recompiledContract?.creationBytecodeCborAuxdata,
     };
     const runtimeCodeArtifacts = {
       sourceMap: compilerOutput?.evm.deployedBytecode?.sourceMap || "",
@@ -101,7 +101,7 @@ export default abstract class AbstractDatabaseService {
         compilerOutput?.evm.deployedBytecode?.linkReferences || {},
       immutableReferences:
         compilerOutput?.evm.deployedBytecode?.immutableReferences || {},
-      cborAuxdata: recompiledContract?.artifacts?.runtimeBytecodeCborAuxdata,
+      cborAuxdata: recompiledContract?.runtimeBytecodeCborAuxdata,
     };
 
     const runtimeMatch =
