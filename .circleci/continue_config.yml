@@ -269,6 +269,7 @@ jobs:
     resource_class: small
     working_directory: ~/sourcify
     steps:
+      - checkout
       - run:
           name: check if a new chain PR
           command: ./.circleci/scripts/test_new_chain_support.sh
@@ -279,7 +280,6 @@ jobs:
               echo 'NEW_CHAIN_ID is unset or empty, skipping subsequent steps.'
               circleci-agent step halt
             fi
-      - checkout
       - run:
           name: install build and test
           command: npm install && npx lerna run build --scope=sourcify-server && npm run test:chains
