@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@1.4.3 - 2024-01-03
+
+- Increase "master" rate limit to 2 req/sec
+- Add rate limit to the config file
+- Add `local-test.js` config file for tests. Pass `NODE_CONFIG_ENV=test` to use it.
+- Improved logging
+- Point dotenv to the correct file
+- Pass direcory to `verifyContract` function in `chain-tests.js` instead of each file.
+- Add missing files in few chain tests to avoid IPFS fetching.
+- Deprecated chains:
+  - Klaytn Mainnet Cypress (8217)
+  - Taiko Grimsvotn L2" (167005)
+  - Taiko Eldfell L3 (167006)
+  - Kekchain Main Net (kekistan) (420420)
+  - Kekchain Test Net (kektest) (420666)
+- Updated Evmos `blockscoutScrape` URL
+
 ## sourcify-server@1.4.2 - 2023-12-19
 
 - Revert hotfix in 1.4.1
