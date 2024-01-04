@@ -322,6 +322,9 @@ export class CheckedContract {
         auxdatasFromCompilerOutput[0] !== auxdataFromRawCreationBytecode ||
         auxdatasFromCompilerOutput[0] !== auxdataFromRawRuntimeBytecode
       ) {
+        logWarn(
+          `The auxdata from raw bytecode differs from the legacyAssembly's auxdata name=${this.name}`
+        );
         return false;
       }
 
