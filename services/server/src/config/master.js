@@ -7,7 +7,7 @@ module.exports = {
     serverUrl: "https://repo.sourcify.dev",
   },
   repositoryV2: {
-    path: "/tmp/sourcify/repositoryV2",
+    path: "/home/app/repositoryV2",
   },
   solcRepo: "/data/compilers/solc",
   solJsonRepo: "/data/compilers/soljson",
