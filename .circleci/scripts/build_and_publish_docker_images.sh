@@ -63,7 +63,7 @@ if [ -n "$CIRCLE_BRANCH" ]; then
     MANIFEST=$(docker manifest inspect $BRANCH_TAG)
     SHA=$(echo $MANIFEST | jq -r '.config.digest')
     echo "Branch tag $BRANCH_TAG SHA: $SHA"
-    echo "Writing sha $SHA to workspace/$SERVICE_$ARCH_image_sha.txt"
+    echo 'Writing sha $SHA to workspace/"$SERVICE"_"$ARCH"_image_sha.txt'
     echo -n $SHA > workspace/"$SERVICE"_"$ARCH"_image_sha.txt
 fi
 
