@@ -1,4 +1,10 @@
-import dirTree from "directory-tree";
+/**
+ * This is a temporary service used only during the synchronization process.
+ *
+ * After the synchronization process, this service will be updated to point to
+ * an external Repository Service.
+ */
+
 import Path from "path";
 import fs from "fs";
 import {
@@ -8,7 +14,7 @@ import {
   /* ContextVariables, */
   CheckedContract,
 } from "@ethereum-sourcify/lib-sourcify";
-import { MatchLevel, RepositoryTag } from "../../types";
+import { MatchQuality, RepositoryTag } from "../../types";
 import {
   create as createIpfsClient,
   IPFSHTTPClient,
@@ -19,47 +25,11 @@ import { logger } from "../../../common/logger";
 import { getAddress, id as keccak256 } from "ethers";
 import { getMatchStatus } from "../../common";
 import { IStorageService } from "../StorageService";
-import config from "config";
-
-/**
- * A type for specifying the match quality of files.
- */
-type MatchQuality = "full" | "partial";
-
-type FilesInfo<T> = { status: MatchQuality; files: Array<T> };
-
-interface FileObject {
-  name: string;
-  path: string;
-  content?: string;
-}
-type PathConfig = {
-  matchQuality: MatchQuality;
-  chainId: string;
-  address: string;
-  fileName?: string;
-  source?: boolean;
-};
-
-declare interface ContractData {
-  full: string[];
-  partial: string[];
-}
+import { PathConfig } from "../utils/repository-util";
 
 export interface RepositoryV2ServiceOptions {
   ipfsApi: string;
   repositoryPath: string;
-}
-
-interface FileObject {
-  name: string;
-  path: string;
-  content?: string;
-}
-
-declare interface ContractData {
-  full: string[];
-  partial: string[];
 }
 
 export class RepositoryV2Service implements IStorageService {
@@ -71,129 +41,15 @@ export class RepositoryV2Service implements IStorageService {
     if (options.ipfsApi) {
       this.ipfsClient = createIpfsClient({ url: options.ipfsApi });
     } else {
-      logger.warn("IPFS_API not set, IPFS MFS will not be updated");
+      logger.warn(
+        "RepositoryV2: IPFS_API not set, IPFS MFS will not be updated"
+      );
     }
   }
 
   async init() {
     return true;
   }
-
-  fetchAllFileUrls(
-    chain: string,
-    address: string,
-    match = "full_match"
-  ): Array<string> {
-    const files: Array<FileObject> = this.fetchAllFilePaths(
-      chain,
-      address,
-      match
-    );
-    const urls: Array<string> = [];
-    files.forEach((file) => {
-      const relativePath =
-        "contracts/" + file.path.split("/contracts")[1].substr(1);
-      // TODO: Don't use repositoryV2.serverUrl but a relative URL to the server. Requires a breaking chage to the API
-      urls.push(`${config.get("repositoryV2.serverUrl")}/${relativePath}`);
-    });
-    return urls;
-  }
-
-  /**
-   * Returns all the files under the given chain and address directory.
-   *
-   * @param chain
-   * @param address
-   * @param match
-   * @returns FileObject[]
-   *
-   * @example [
-   *   { name: '0x1234.sol',
-   *     path: '/home/.../repository/contracts/full_match/1/0x1234/0x1234.sol,
-   *     content: "pragma solidity ^0.5.0; contract A { ... }"
-   *   },
-   * ... ]
-   */
-  fetchAllFilePaths(
-    chain: string,
-    address: string,
-    match = "full_match"
-  ): Array<FileObject> {
-    const fullPath: string =
-      this.repositoryPath +
-      `/contracts/${match}/${chain}/${getAddress(address)}/`;
-    const files: Array<FileObject> = [];
-    dirTree(fullPath, {}, (item) => {
-      files.push({ name: item.name, path: item.path });
-    });
-    return files;
-  }
-
-  fetchAllFileContents(
-    chain: string,
-    address: string,
-    match = "full_match"
-  ): Array<FileObject> {
-    const files = this.fetchAllFilePaths(chain, address, match);
-    for (const file in files) {
-      const loadedFile = fs.readFileSync(files[file].path);
-      files[file].content = loadedFile.toString();
-    }
-
-    return files;
-  }
-  fetchAllContracts = async (chain: String): Promise<ContractData> => {
-    const fullPath = this.repositoryPath + `/contracts/full_match/${chain}/`;
-    const partialPath =
-      this.repositoryPath + `/contracts/partial_match/${chain}/`;
-    return {
-      full: fs.existsSync(fullPath) ? fs.readdirSync(fullPath) : [],
-      partial: fs.existsSync(partialPath) ? fs.readdirSync(partialPath) : [],
-    };
-  };
-
-  getTree = async (
-    chainId: string,
-    address: string,
-    match: MatchLevel
-  ): Promise<FilesInfo<string>> => {
-    // chainId = checkChainId(chainId); TODO: Valiadate on the controller
-    const fullMatchesTree = this.fetchAllFileUrls(
-      chainId,
-      address,
-      "full_match"
-    );
-    if (fullMatchesTree.length || match === "full_match") {
-      return { status: "full", files: fullMatchesTree };
-    }
-
-    const files = this.fetchAllFileUrls(chainId, address, "partial_match");
-    return { status: "partial", files };
-  };
-
-  getContent = async (
-    chainId: string,
-    address: string,
-    match: MatchLevel
-  ): Promise<FilesInfo<FileObject>> => {
-    // chainId = checkChainId(chainId); TODO: Valiadate on the controller
-    const fullMatchesFiles = this.fetchAllFileContents(
-      chainId,
-      address,
-      "full_match"
-    );
-    if (fullMatchesFiles.length || match === "full_match") {
-      return { status: "full", files: fullMatchesFiles };
-    }
-
-    const files = this.fetchAllFileContents(chainId, address, "partial_match");
-    return { status: "partial", files };
-  };
-
-  getContracts = async (chainId: string): Promise<ContractData> => {
-    const contracts = await this.fetchAllContracts(chainId);
-    return contracts;
-  };
 
   // /home/user/sourcify/data/repository/contracts/full_match/5/0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4/sources/filename
   public generateAbsoluteFilePath(pathConfig: PathConfig) {
@@ -220,107 +76,6 @@ export class RepositoryV2Service implements IStorageService {
       pathConfig.chainId,
       getAddress(pathConfig.address)
     );
-  }
-
-  /**
-   * Checks if path exists and for a particular chain returns the perfect or partial match
-   *
-   * @param fullContractPath
-   * @param partialContractPath
-   */
-  fetchFromStorage(
-    fullContractPath: string,
-    partialContractPath: string
-  ): { time: Date; status: Status } {
-    if (fs.existsSync(fullContractPath)) {
-      return {
-        time: fs.statSync(fullContractPath).birthtime,
-        status: "perfect",
-      };
-    }
-
-    if (fs.existsSync(partialContractPath)) {
-      return {
-        time: fs.statSync(partialContractPath).birthtime,
-        status: "partial",
-      };
-    }
-
-    throw new Error(
-      `Path not found: ${fullContractPath} or ${partialContractPath}`
-    );
-  }
-
-  // Checks contract existence in repository.
-  async checkByChainAndAddress(
-    address: string,
-    chainId: string
-  ): Promise<Match[]> {
-    const contractPath = this.generateAbsoluteFilePath({
-      matchQuality: "full",
-      chainId,
-      address,
-      fileName: "metadata.json",
-    });
-
-    try {
-      const storageTimestamp = fs.statSync(contractPath).birthtime;
-      return [
-        {
-          address,
-          chainId,
-          runtimeMatch: "perfect",
-          creationMatch: null,
-          storageTimestamp,
-        },
-      ];
-    } catch (e: any) {
-      logger.debug(
-        `Contract (full_match) not found in repositoryV2: ${address} - chain: ${chainId}`
-      );
-      return [];
-    }
-  }
-
-  // Checks contract existence in repository for full and partial matches.
-  async checkAllByChainAndAddress(
-    address: string,
-    chainId: string
-  ): Promise<Match[]> {
-    const fullContractPath = this.generateAbsoluteFilePath({
-      matchQuality: "full",
-      chainId,
-      address,
-      fileName: "metadata.json",
-    });
-
-    const partialContractPath = this.generateAbsoluteFilePath({
-      matchQuality: "partial",
-      chainId,
-      address,
-      fileName: "metadata.json",
-    });
-
-    try {
-      const storage = this.fetchFromStorage(
-        fullContractPath,
-        partialContractPath
-      );
-      return [
-        {
-          address,
-          chainId,
-          runtimeMatch: storage?.status,
-          creationMatch: null,
-          storageTimestamp: storage?.time,
-        },
-      ];
-    } catch (e: any) {
-      logger.debug(
-        `Contract (full & partial match) not found in repositoryV2: ${address} - chain: ${chainId}`
-      );
-      return [];
-    }
   }
 
   /**

@@ -8,7 +8,7 @@ import {
   /* ContextVariables, */
   CheckedContract,
 } from "@ethereum-sourcify/lib-sourcify";
-import { MatchLevel, RepositoryTag } from "../../types";
+import { MatchLevel, MatchQuality, RepositoryTag } from "../../types";
 import {
   create as createIpfsClient,
   IPFSHTTPClient,
@@ -20,11 +20,7 @@ import { getAddress } from "ethers";
 import { getMatchStatus } from "../../common";
 import { IStorageService } from "../StorageService";
 import config from "config";
-
-/**
- * A type for specifying the match quality of files.
- */
-type MatchQuality = "full" | "partial";
+import { PathConfig } from "../utils/repository-util";
 
 type FilesInfo<T> = { status: MatchQuality; files: Array<T> };
 
@@ -33,13 +29,6 @@ interface FileObject {
   path: string;
   content?: string;
 }
-type PathConfig = {
-  matchQuality: MatchQuality;
-  chainId: string;
-  address: string;
-  fileName?: string;
-  source?: boolean;
-};
 
 declare interface ContractData {
   full: string[];
@@ -72,7 +61,9 @@ export class RepositoryV1Service implements IStorageService {
     if (options.ipfsApi) {
       this.ipfsClient = createIpfsClient({ url: options.ipfsApi });
     } else {
-      logger.warn("IPFS_API not set, IPFS MFS will not be updated");
+      logger.warn(
+        "RepositoryV1: IPFS_API not set, IPFS MFS will not be updated"
+      );
     }
   }
 
