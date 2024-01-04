@@ -61,7 +61,7 @@ mkdir -p workspace
 # In branch builds we only need to write to server:master-arm64.txt
 if [ -n "$CIRCLE_BRANCH" ]; then
     # Get the repository digest of the image
-    REPO_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $BRANCH_TAG)
+    REPO_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $BRANCH_TAG | cut -d '@' -f 2)
     echo "Branch tag $BRANCH_TAG SHA: $REPO_DIGEST"
     echo 'Writing sha "$REPO_DIGEST" to workspace/"$SERVICE"_"$ARCH"_image_sha.txt'
     echo -n $REPO_DIGEST > workspace/"$SERVICE"_"$ARCH"_image_sha.txt
