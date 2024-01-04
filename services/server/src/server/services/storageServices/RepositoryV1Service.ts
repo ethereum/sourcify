@@ -231,23 +231,25 @@ export class RepositoryV1Service implements IStorageService {
    * @param fullContractPath
    * @param partialContractPath
    */
-  fetchFromStorage(
+  async fetchFromStorage(
     fullContractPath: string,
     partialContractPath: string
-  ): { time: Date; status: Status } {
-    if (fs.existsSync(fullContractPath)) {
+  ): Promise<{ time: Date; status: Status }> {
+    try {
+      await fs.promises.access(fullContractPath);
       return {
-        time: fs.statSync(fullContractPath).birthtime,
+        time: (await fs.promises.stat(fullContractPath)).birthtime,
         status: "perfect",
       };
-    }
+    } catch (e) {}
 
-    if (fs.existsSync(partialContractPath)) {
+    try {
+      await fs.promises.access(partialContractPath);
       return {
-        time: fs.statSync(partialContractPath).birthtime,
+        time: (await fs.promises.stat(partialContractPath)).birthtime,
         status: "partial",
       };
-    }
+    } catch (e) {}
 
     throw new Error(
       `Path not found: ${fullContractPath} or ${partialContractPath}`
@@ -267,7 +269,7 @@ export class RepositoryV1Service implements IStorageService {
     });
 
     try {
-      const storageTimestamp = fs.statSync(contractPath).birthtime;
+      const storageTimestamp = (await fs.promises.stat(contractPath)).birthtime;
       return [
         {
           address,
@@ -305,7 +307,7 @@ export class RepositoryV1Service implements IStorageService {
     });
 
     try {
-      const storage = this.fetchFromStorage(
+      const storage = await this.fetchFromStorage(
         fullContractPath,
         partialContractPath
       );
