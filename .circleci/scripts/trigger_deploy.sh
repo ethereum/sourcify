@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Checks the new tag of the built image for each service (ui, server, monitor, repository)
-# The tag value is persisted in worspace/{service}_image_tag.txt by each respective build job
+# The tag value is persisted in worspace/{service}_image_sha.txt by each respective build job
 # If a new image is built with a new tag, a deploy trigger is sent to the sourcifyeth/infra repo
 
 
@@ -19,18 +19,20 @@ fi
 
 # Loop through each service
 for service in "${services[@]}"; do
-    filePath="workspace/${service}_image_tag.txt"
+    # Deploy from amd64 image
+    filePath="workspace/${service}_amd64_image_sha.txt"
 
     if [ -f "$filePath" ]; then
         echo "File $filePath exists."
 
-        image_tag_content=$(cat "$filePath")
+        image_sha=$(cat "$filePath")
 
         # Check if the content is not an empty string
         if [ -n "$image_tag_content" ]; then
             echo "File is not empty."
 
-            body="{\"event_type\":\"deploy\",\"client_payload\":{\"environment\":\"$ENVIRONMENT\",\"component\":\"$service\",\"image_tag\":\""$CIRCLE_BRANCH"@"$image_tag_content"\",\"ref\":\"$CIRCLE_BRANCH\",\"sha\":\"$CIRCLE_SHA1\"}}"
+            # sha: Git commit SHA vs. image_sha: Docker image SHA
+            body="{\"event_type\":\"deploy\",\"client_payload\":{\"environment\":\"$ENVIRONMENT\",\"component\":\"$service\",\"image_tag\":\""$CIRCLE_BRANCH"@"$image_sha"\",\"ref\":\"$CIRCLE_BRANCH\",\"sha\":\"$CIRCLE_SHA1\"}}"
 
             echo "Sending deploy trigger with request body $body"
 

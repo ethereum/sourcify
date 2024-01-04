@@ -114,15 +114,15 @@ workflows:
         #     ]
     jobs:
       - tests-node-v16
-      - build-push-monitor:
+      - build-push-monitor-amd64:
           run-build: << pipeline.parameters.run-build-monitor >>
           run-build-2: << pipeline.parameters.run-build-packages >> # monitor depends on packages
-      - build-push-repository:
+      - build-push-repository-amd64:
           run-build: << pipeline.parameters.run-build-repository >>
-      - build-push-server:
+      - build-push-server-amd64:
           run-build: << pipeline.parameters.run-build-server >>
           run-build-2: << pipeline.parameters.run-build-packages >> # server depends on packages
-      - build-push-ui:
+      - build-push-ui-amd64:
           run-build: << pipeline.parameters.run-build-ui >>
       - build-push-monitor-arm64:
           run-build: << pipeline.parameters.run-build-monitor >>
@@ -134,16 +134,19 @@ workflows:
           run-build-2: << pipeline.parameters.run-build-packages >> # server depends on packages
       - build-push-ui-arm64:
           run-build: << pipeline.parameters.run-build-ui >>
-      - deploy:
+      - publish-multiarch-images:
           requires:
-            - build-push-monitor
-            - build-push-repository
-            - build-push-server
-            - build-push-ui
+            - build-push-monitor-amd64
+            - build-push-repository-amd64
+            - build-push-server-amd64
+            - build-push-ui-amd64
             - build-push-monitor-arm64
             - build-push-repository-arm64
             - build-push-server-arm64
             - build-push-ui-arm64
+      - deploy:
+          requires:
+            - publish-multiarch-images
       - monitor-e2e-goerli:
           requires:
             - deploy
@@ -175,25 +178,25 @@ workflows:
 ### JOB DEFINITIONS ###
 #######################
 jobs:
-  build-push-monitor:
+  build-push-monitor-amd64:
     <<: *build-base
     environment:
       SERVICE: "monitor"
       DOCKER_BUILD_CONTEXT: "."
       DOCKERFILE: "services/monitor/Dockerfile"
-  build-push-repository:
+  build-push-repository-amd64:
     <<: *build-base
     environment:
       SERVICE: "repository"
       DOCKER_BUILD_CONTEXT: "./h5ai-nginx"
       DOCKERFILE: "./h5ai-nginx/Dockerfile"
-  build-push-server:
+  build-push-server-amd64:
     <<: *build-base
     environment:
       SERVICE: "server"
       DOCKER_BUILD_CONTEXT: "."
       DOCKERFILE: "services/server/Dockerfile"
-  build-push-ui:
+  build-push-ui-amd64:
     <<: *build-base
     environment:
       SERVICE: "ui"
@@ -224,6 +227,19 @@ jobs:
       SERVICE: "ui"
       DOCKER_BUILD_CONTEXT: "./ui"
       DOCKERFILE: "./ui/Dockerfile"
+  publish-multiarch-images:
+    docker:
+      - image: cimg/base:2021.04
+    resource_class: small
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 20.10.23
+      - run:
+          name: Publish multiarch images
+          no_output_timeout: 5m
+          command: |
+            ./.circleci/scripts/publish_multiarch_images.sh
   deploy:
     docker:
       - image: cimg/base:2021.04
