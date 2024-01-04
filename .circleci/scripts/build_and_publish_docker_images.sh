@@ -63,11 +63,11 @@ if [ -n "$CIRCLE_BRANCH" ]; then
     # Get the repository digest of the image
     REPO_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $BRANCH_TAG | cut -d '@' -f 2)
     echo "Branch tag $BRANCH_TAG SHA: $REPO_DIGEST"
-    echo 'Writing sha "$REPO_DIGEST" to workspace/"$SERVICE"_"$ARCH"_image_sha.txt'
+    echo "Writing sha ${REPO_DIGEST} to workspace/${SERVICE}_${ARCH}_image_sha.txt"
     echo -n $REPO_DIGEST > workspace/"$SERVICE"_"$ARCH"_image_sha.txt
 fi
 
 # No need to extract the image tag if the build is triggered by a tag because the deployment will be done by the branch trigger.
 if [ -n "$CIRCLE_TAG" ]; then
-    echo "CIRCLE_TAG=$CIRCLE_TAG No need to write to workspace/$SERVICE_image_sha.txt for tag builds."
+    echo "CIRCLE_TAG=${CIRCLE_TAG} No need to write to workspace/${SERVICE}_${ARCH}image_sha.txt for tag builds."
 fi

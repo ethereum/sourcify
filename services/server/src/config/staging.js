@@ -18,5 +18,7 @@ module.exports = {
   },
   rateLimit: {
     enabled: true,
+    windowMs: 1 * 1000, // 1 sec
+    max: 2,
   },
 };
