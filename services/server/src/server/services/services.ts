@@ -10,12 +10,10 @@ export const services = {
       ipfsApi: process.env.IPFS_API as string,
       repositoryPath: config.get("repositoryV1.path"),
       repositoryServerUrl: config.get("repositoryV1.serverUrl") as string,
-      repositoryVersion: "0.1",
     },
     repositoryV2ServiceOptions: {
       ipfsApi: process.env.IPFS_API as string,
       repositoryPath: config.get("repositoryV2.path"),
-      repositoryVersion: "0.1",
     },
     sourcifyDatabaseServiceOptions: {
       postgres: {

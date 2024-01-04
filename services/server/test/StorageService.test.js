@@ -8,7 +8,6 @@ describe("StorageService", () => {
       ipfsApi: process.env.IPFS_API,
       repositoryPath: "./dist/data/mock-repository",
       repositoryServerUrl: config.get("repositoryV1.serverUrl"),
-      repositoryVersion: "0.1",
     },
   });
 

@@ -21,7 +21,6 @@ import { getMatchStatus } from "../../common";
 import { IStorageService } from "../StorageService";
 import config from "config";
 
-const REPOSITORY_VERSION = "0.1";
 /**
  * A type for specifying the match quality of files.
  */
@@ -50,7 +49,6 @@ declare interface ContractData {
 export interface RepositoryV2ServiceOptions {
   ipfsApi: string;
   repositoryPath: string;
-  repositoryVersion: string;
 }
 
 interface FileObject {
@@ -456,7 +454,6 @@ export class RepositoryV2Service implements IStorageService {
     const timestamp = new Date().getTime();
     const tag: RepositoryTag = {
       timestamp: timestamp,
-      repositoryVersion: REPOSITORY_VERSION,
     };
     fs.writeFileSync(filePath, JSON.stringify(tag));
   }
