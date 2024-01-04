@@ -60,11 +60,11 @@ mkdir -p workspace
 
 # In branch builds we only need to write to server:master-arm64.txt
 if [ -n "$CIRCLE_BRANCH" ]; then
-    MANIFEST=$(docker manifest inspect $BRANCH_TAG)
-    SHA=$(echo $MANIFEST | jq -r '.config.digest')
-    echo "Branch tag $BRANCH_TAG SHA: $SHA"
-    echo 'Writing sha $SHA to workspace/"$SERVICE"_"$ARCH"_image_sha.txt'
-    echo -n $SHA > workspace/"$SERVICE"_"$ARCH"_image_sha.txt
+    # Get the repository digest of the image
+    REPO_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $BRANCH_TAG)
+    echo "Branch tag $BRANCH_TAG SHA: $REPO_DIGEST"
+    echo 'Writing sha "$REPO_DIGEST" to workspace/"$SERVICE"_"$ARCH"_image_sha.txt'
+    echo -n $REPO_DIGEST > workspace/"$SERVICE"_"$ARCH"_image_sha.txt
 fi
 
 # No need to extract the image tag if the build is triggered by a tag because the deployment will be done by the branch trigger.

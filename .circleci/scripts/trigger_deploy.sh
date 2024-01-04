@@ -28,11 +28,12 @@ for service in "${services[@]}"; do
         image_sha=$(cat "$filePath")
 
         # Check if the content is not an empty string
-        if [ -n "$image_tag_content" ]; then
+        if [ -n "$image_sha" ]; then
             echo "File is not empty."
-
+            
+            image_tag="$CIRCLE_BRANCH"@"$image_sha"
             # sha: Git commit SHA vs. image_sha: Docker image SHA
-            body="{\"event_type\":\"deploy\",\"client_payload\":{\"environment\":\"$ENVIRONMENT\",\"component\":\"$service\",\"image_tag\":\""$CIRCLE_BRANCH"@"$image_sha"\",\"ref\":\"$CIRCLE_BRANCH\",\"sha\":\"$CIRCLE_SHA1\"}}"
+            body="{\"event_type\":\"deploy\",\"client_payload\":{\"environment\":\"$ENVIRONMENT\",\"component\":\"$service\",\"image_tag\":\"$image_tag\",\"ref\":\"$CIRCLE_BRANCH\",\"sha\":\"$CIRCLE_SHA1\"}}"
 
             echo "Sending deploy trigger with request body $body"
 
@@ -48,16 +49,15 @@ for service in "${services[@]}"; do
 
         else
             echo "File for $service is empty."
+            exit 1;
         fi
     else
         echo "File $filePath does not exist."
     fi
 
-    # Add a new line for readability
-    echo ""
-    
     # Wait 5 seconds between each service to avoid concurrent Github commits
     echo "Waiting 5 secs..."
+    echo ""
     sleep 5
 done
 
