@@ -109,8 +109,8 @@ export class SourcifyDatabaseService
     const existingVerifiedContractResult =
       await Database.getVerifiedContractByBytecodeHashes(
         this.databasePool,
-        databaseColumns.keccak256OnchainRuntimeBytecode,
-        databaseColumns.keccak256OnchainCreationBytecode
+        databaseColumns.bytecodeHashes.onchainRuntime,
+        databaseColumns.bytecodeHashes.onchainCreation
       );
 
     if (existingVerifiedContractResult.rowCount === 0) {

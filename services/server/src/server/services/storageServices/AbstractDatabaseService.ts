@@ -112,22 +112,27 @@ export default abstract class AbstractDatabaseService {
       match.creationMatch === "perfect" || match.creationMatch === "partial";
 
     return {
-      keccak256OnchainCreationBytecode,
-      keccak256OnchainRuntimeBytecode,
-      keccak256RecompiledCreationBytecode,
-      keccak256RecompiledRuntimeBytecode,
-      runtimeTransformations,
-      runtimeTransformationValues,
-      creationTransformations,
-      creationTransformationValues,
-      compilationTargetPath,
-      compilationTargetName,
-      language,
-      compilationArtifacts,
-      creationCodeArtifacts,
-      runtimeCodeArtifacts,
-      runtimeMatch,
-      creationMatch,
+      bytecodeHashes: {
+        recompiledCreation: keccak256OnchainCreationBytecode,
+        recompiledRuntime: keccak256OnchainRuntimeBytecode,
+        onchainCreation: keccak256RecompiledCreationBytecode,
+        onchainRuntime: keccak256RecompiledRuntimeBytecode,
+      },
+      compiledContract: {
+        language,
+        fullyQualifiedName: `${compilationTargetPath}:${compilationTargetName}`,
+        compilationArtifacts,
+        creationCodeArtifacts,
+        runtimeCodeArtifacts,
+      },
+      verifiedContract: {
+        runtimeTransformations,
+        creationTransformations,
+        runtimeTransformationValues,
+        creationTransformationValues,
+        runtimeMatch,
+        creationMatch,
+      },
     };
   }
 
@@ -139,21 +144,21 @@ export default abstract class AbstractDatabaseService {
     try {
       // Add recompiled bytecodes
       await Database.insertCode(this.databasePool, {
-        bytecodeHash: databaseColumns.keccak256RecompiledCreationBytecode,
+        bytecodeHash: databaseColumns.bytecodeHashes.recompiledCreation,
         bytecode: recompiledContract.creationBytecode!,
       });
       await Database.insertCode(this.databasePool, {
-        bytecodeHash: databaseColumns.keccak256RecompiledRuntimeBytecode,
+        bytecodeHash: databaseColumns.bytecodeHashes.recompiledRuntime,
         bytecode: recompiledContract.runtimeBytecode!,
       });
 
       // Add onchain bytecodes
       await Database.insertCode(this.databasePool, {
-        bytecodeHash: databaseColumns.keccak256OnchainCreationBytecode,
+        bytecodeHash: databaseColumns.bytecodeHashes.onchainCreation,
         bytecode: match.onchainCreationBytecode!,
       });
       await Database.insertCode(this.databasePool, {
-        bytecodeHash: databaseColumns.keccak256OnchainRuntimeBytecode,
+        bytecodeHash: databaseColumns.bytecodeHashes.onchainRuntime,
         bytecode: match.onchainRuntimeBytecode!,
       });
 
@@ -161,9 +166,8 @@ export default abstract class AbstractDatabaseService {
       const contractInsertResult = await Database.insertContract(
         this.databasePool,
         {
-          creationBytecodeHash:
-            databaseColumns.keccak256OnchainCreationBytecode,
-          runtimeBytecodeHash: databaseColumns.keccak256OnchainRuntimeBytecode,
+          creationBytecodeHash: databaseColumns.bytecodeHashes.onchainCreation,
+          runtimeBytecodeHash: databaseColumns.bytecodeHashes.onchainRuntime,
         }
       );
 
@@ -180,16 +184,20 @@ export default abstract class AbstractDatabaseService {
         await Database.insertCompiledContract(this.databasePool, {
           compiler: recompiledContract.compiledPath,
           version: recompiledContract.compilerVersion,
-          language: databaseColumns.language,
+          language: databaseColumns.compiledContract.language!,
           name: recompiledContract.name,
-          fullyQualifiedName: `${databaseColumns.compilationTargetPath}:${databaseColumns.compilationTargetName}`,
-          compilationArtifacts: databaseColumns.compilationArtifacts,
+          fullyQualifiedName:
+            databaseColumns.compiledContract.fullyQualifiedName!,
+          compilationArtifacts:
+            databaseColumns.compiledContract.compilationArtifacts!,
           sources: recompiledContract.solidity,
           compilerSettings: recompiledContract.metadata.settings,
-          creationCodeHash: databaseColumns.keccak256RecompiledCreationBytecode,
-          runtimeCodeHash: databaseColumns.keccak256RecompiledRuntimeBytecode,
-          creationCodeArtifacts: databaseColumns.creationCodeArtifacts,
-          runtimeCodeArtifacts: databaseColumns.runtimeCodeArtifacts,
+          creationCodeHash: databaseColumns.bytecodeHashes.recompiledCreation,
+          runtimeCodeHash: databaseColumns.bytecodeHashes.recompiledRuntime,
+          creationCodeArtifacts:
+            databaseColumns.compiledContract.creationCodeArtifacts!,
+          runtimeCodeArtifacts:
+            databaseColumns.compiledContract.runtimeCodeArtifacts!,
         });
 
       // insert new recompiled contract with newly added contract and compiledContract
@@ -197,18 +205,16 @@ export default abstract class AbstractDatabaseService {
         await Database.insertVerifiedContract(this.databasePool, {
           compilationId: compiledContractsInsertResult.rows[0].id,
           contractId: contractInsertResult.rows[0].id,
-          creationTransformations: JSON.stringify(
-            databaseColumns.creationTransformations
-          ),
+          creationTransformations:
+            databaseColumns.verifiedContract.creationTransformations,
           creationTransformationValues:
-            databaseColumns.creationTransformationValues || {},
-          runtimeTransformations: JSON.stringify(
-            databaseColumns.runtimeTransformations
-          ),
+            databaseColumns.verifiedContract.creationTransformationValues || {},
+          runtimeTransformations:
+            databaseColumns.verifiedContract.runtimeTransformations,
           runtimeTransformationValues:
-            databaseColumns.runtimeTransformationValues || {},
-          runtimeMatch: databaseColumns.runtimeMatch,
-          creationMatch: databaseColumns.creationMatch,
+            databaseColumns.verifiedContract.runtimeTransformationValues || {},
+          runtimeMatch: databaseColumns.verifiedContract.runtimeMatch!,
+          creationMatch: databaseColumns.verifiedContract.creationMatch!,
         });
       return verifiedContractInsertResult.rows[0].id;
     } catch (e) {
@@ -273,11 +279,11 @@ export default abstract class AbstractDatabaseService {
       try {
         // Add recompiled bytecodes
         await Database.insertCode(this.databasePool, {
-          bytecodeHash: databaseColumns.keccak256RecompiledCreationBytecode,
+          bytecodeHash: databaseColumns.bytecodeHashes.recompiledCreation,
           bytecode: recompiledContract.creationBytecode!,
         });
         await Database.insertCode(this.databasePool, {
-          bytecodeHash: databaseColumns.keccak256RecompiledRuntimeBytecode,
+          bytecodeHash: databaseColumns.bytecodeHashes.recompiledRuntime,
           bytecode: recompiledContract.runtimeBytecode!,
         });
 
@@ -286,17 +292,20 @@ export default abstract class AbstractDatabaseService {
           await Database.insertCompiledContract(this.databasePool, {
             compiler: recompiledContract.compiledPath,
             version: recompiledContract.compilerVersion,
-            language: databaseColumns.language,
+            language: databaseColumns.compiledContract.language!,
             name: recompiledContract.name,
-            fullyQualifiedName: `${databaseColumns.compilationTargetPath}:${databaseColumns.compilationTargetName}`,
-            compilationArtifacts: databaseColumns.compilationArtifacts,
+            fullyQualifiedName:
+              databaseColumns.compiledContract.fullyQualifiedName!,
+            compilationArtifacts:
+              databaseColumns.compiledContract.compilationArtifacts!,
             sources: recompiledContract.solidity,
             compilerSettings: recompiledContract.metadata.settings,
-            creationCodeHash:
-              databaseColumns.keccak256RecompiledCreationBytecode,
-            runtimeCodeHash: databaseColumns.keccak256RecompiledRuntimeBytecode,
-            creationCodeArtifacts: databaseColumns.creationCodeArtifacts,
-            runtimeCodeArtifacts: databaseColumns.runtimeCodeArtifacts,
+            creationCodeHash: databaseColumns.bytecodeHashes.recompiledCreation,
+            runtimeCodeHash: databaseColumns.bytecodeHashes.recompiledRuntime,
+            creationCodeArtifacts:
+              databaseColumns.compiledContract.creationCodeArtifacts!,
+            runtimeCodeArtifacts:
+              databaseColumns.compiledContract.runtimeCodeArtifacts!,
           });
 
         // Check if we are trying to insert a compiled contract that already exists
@@ -315,18 +324,18 @@ export default abstract class AbstractDatabaseService {
           await Database.insertVerifiedContract(this.databasePool, {
             compilationId: compiledContractsInsertResult.rows[0].id,
             contractId: existingVerifiedContractResult.rows[0].contract_id,
-            creationTransformations: JSON.stringify(
-              databaseColumns.creationTransformations
-            ),
+            creationTransformations:
+              databaseColumns.verifiedContract.creationTransformations,
             creationTransformationValues:
-              databaseColumns.creationTransformationValues || {},
-            runtimeTransformations: JSON.stringify(
-              databaseColumns.runtimeTransformations
-            ),
+              databaseColumns.verifiedContract.creationTransformationValues ||
+              {},
+            runtimeTransformations:
+              databaseColumns.verifiedContract.runtimeTransformations,
             runtimeTransformationValues:
-              databaseColumns.runtimeTransformationValues || {},
-            runtimeMatch: databaseColumns.runtimeMatch,
-            creationMatch: databaseColumns.creationMatch,
+              databaseColumns.verifiedContract.runtimeTransformationValues ||
+              {},
+            runtimeMatch: databaseColumns.verifiedContract.runtimeMatch!,
+            creationMatch: databaseColumns.verifiedContract.creationMatch!,
           });
 
         return verifiedContractInsertResult.rows[0].id;
@@ -352,8 +361,8 @@ export default abstract class AbstractDatabaseService {
     const existingVerifiedContractResult =
       await Database.getVerifiedContractByBytecodeHashes(
         this.databasePool,
-        databaseColumns.keccak256OnchainRuntimeBytecode,
-        databaseColumns.keccak256OnchainCreationBytecode
+        databaseColumns.bytecodeHashes.onchainRuntime,
+        databaseColumns.bytecodeHashes.onchainCreation
       );
 
     if (existingVerifiedContractResult.rowCount === 0) {

@@ -30,21 +30,35 @@ export namespace Tables {
     language: string;
     name: string;
     fullyQualifiedName: string;
-    compilationArtifacts: Object;
+    compilationArtifacts: {
+      abi: {};
+      userdoc: any;
+      devdoc: any;
+      storageLayout: any;
+    };
     sources: Object;
     compilerSettings: Object;
     creationCodeHash: Hash;
     runtimeCodeHash: Hash;
-    creationCodeArtifacts: Object;
-    runtimeCodeArtifacts: Object;
+    creationCodeArtifacts: {
+      sourceMap: string;
+      linkReferences: {};
+      cborAuxdata: CompiledContractCborAuxdata | undefined;
+    };
+    runtimeCodeArtifacts: {
+      sourceMap: string;
+      linkReferences: {};
+      immutableReferences: ImmutableReferences;
+      cborAuxdata: CompiledContractCborAuxdata | undefined;
+    };
   }
   export interface VerifiedContract {
     compilationId: string;
     contractId: string;
-    creationTransformations: string;
-    creationTransformationValues: Object;
-    runtimeTransformations: string;
-    runtimeTransformationValues: Object;
+    creationTransformations: Transformation[] | undefined;
+    creationTransformationValues: TransformationValues | undefined;
+    runtimeTransformations: Transformation[] | undefined;
+    runtimeTransformationValues: TransformationValues | undefined;
     runtimeMatch: boolean;
     creationMatch: boolean;
   }
@@ -57,36 +71,14 @@ export namespace Tables {
 }
 
 export interface DatabaseColumns {
-  keccak256OnchainCreationBytecode: Hash;
-  keccak256OnchainRuntimeBytecode: Hash;
-  keccak256RecompiledCreationBytecode: Hash;
-  keccak256RecompiledRuntimeBytecode: Hash;
-  runtimeTransformations: Transformation[] | undefined;
-  runtimeTransformationValues: TransformationValues | undefined;
-  creationTransformations: Transformation[] | undefined;
-  creationTransformationValues: TransformationValues | undefined;
-  compilationTargetPath: string;
-  compilationTargetName: string;
-  language: string;
-  compilationArtifacts: {
-    abi: {};
-    userdoc: any;
-    devdoc: any;
-    storageLayout: any;
+  bytecodeHashes: {
+    recompiledCreation: Hash;
+    recompiledRuntime: Hash;
+    onchainCreation: Hash;
+    onchainRuntime: Hash;
   };
-  creationCodeArtifacts: {
-    sourceMap: string;
-    linkReferences: {};
-    cborAuxdata: CompiledContractCborAuxdata | undefined;
-  };
-  runtimeCodeArtifacts: {
-    sourceMap: string;
-    linkReferences: {};
-    immutableReferences: ImmutableReferences;
-    cborAuxdata: CompiledContractCborAuxdata | undefined;
-  };
-  runtimeMatch: boolean;
-  creationMatch: boolean;
+  compiledContract: Partial<Tables.CompiledContract>;
+  verifiedContract: Partial<Tables.VerifiedContract>;
 }
 
 export async function getVerifiedContractByBytecodeHashes(
@@ -281,9 +273,9 @@ export async function insertVerifiedContract(
     [
       compilationId,
       contractId,
-      creationTransformations,
+      JSON.stringify(creationTransformations),
       creationTransformationValues,
-      runtimeTransformations,
+      JSON.stringify(runtimeTransformations),
       runtimeTransformationValues,
       runtimeMatch,
       creationMatch,
