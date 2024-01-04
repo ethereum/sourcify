@@ -64,7 +64,7 @@ export class StorageService {
     }
   }
 
-  async init() {
+  /* async init() {
     try {
       await this.repositoryV1?.init();
     } catch (e: any) {
@@ -78,7 +78,7 @@ export class StorageService {
     try {
       await this.sourcifyDatabase?.init();
     } catch (e: any) {
-      throw new Error("Cannot initialize allianceDatabase: " + e.message);
+      throw new Error("Cannot initialize sourcifyDatabase: " + e.message);
     }
     try {
       await this.allianceDatabase?.init();
@@ -86,7 +86,7 @@ export class StorageService {
       throw new Error("Cannot initialize allianceDatabase: " + e.message);
     }
     return true;
-  }
+  } */
 
   async checkByChainAndAddress(
     address: string,
@@ -108,25 +108,28 @@ export class StorageService {
     );
   }
 
-  async storeMatch(contract: CheckedContract, match: Match) {
+  storeMatch(contract: CheckedContract, match: Match) {
     logger.info(
       `Storing ${contract.name} address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
     );
-    try {
-      await this.allianceDatabase?.storeMatch(contract, match);
-    } catch (e) {
-      logger.warn("Error while storing on the AllianceDatabase: ", e);
-    }
-    try {
-      await this.sourcifyDatabase?.storeMatch(contract, match);
-    } catch (e) {
-      logger.warn("Error while storing on the SourcifyDatabase: ", e);
-    }
-    try {
-      await this.repositoryV2?.storeMatch(contract, match);
-    } catch (e) {
-      logger.warn("Error while storing on the RepositoryV2: ", e);
-    }
-    return await this.repositoryV1.storeMatch(contract, match);
+    this.allianceDatabase
+      ?.storeMatch(contract, match)
+      .catch((e) =>
+        logger.warn("Error while storing on the AllianceDatabase: ", e)
+      );
+
+    this.sourcifyDatabase
+      ?.storeMatch(contract, match)
+      .catch((e) =>
+        logger.error("Error while storing on the SourcifyDatabase: ", e)
+      );
+
+    this.repositoryV2
+      ?.storeMatch(contract, match)
+      .catch((e) =>
+        logger.error("Error while storing on the RepositoryV2: ", e)
+      );
+
+    return this.repositoryV1.storeMatch(contract, match);
   }
 }
