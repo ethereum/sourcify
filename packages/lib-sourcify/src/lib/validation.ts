@@ -8,9 +8,6 @@ import {
   StringMap,
 } from './types';
 import JSZip from 'jszip';
-// @TODO: Handle compatibility for browser, below are nodejs imports
-import fs from 'fs';
-import Path from 'path';
 import { ISolidityCompiler } from './ISolidityCompiler';
 
 /**
@@ -34,27 +31,6 @@ const ENDING_VARIATORS = [
   (content: string) => content + '\n',
   (content: string) => content + '\r\n',
 ];
-
-export function checkPaths(
-  solidityCompiler: ISolidityCompiler,
-  paths: string[],
-  ignoring?: string[]
-) {
-  const files: PathBuffer[] = [];
-  paths.forEach((path) => {
-    if (fs.existsSync(path)) {
-      traversePathRecursively(path, (filePath) => {
-        const fullPath = Path.resolve(filePath);
-        const file = { buffer: fs.readFileSync(filePath), path: fullPath };
-        files.push(file);
-      });
-    } else if (ignoring) {
-      ignoring.push(path);
-    }
-  });
-
-  return checkFiles(solidityCompiler, files);
-}
 
 // Pass all input source files to the CheckedContract, not just those stated in metadata.
 export async function useAllSources(
@@ -392,39 +368,6 @@ function isMetadata(obj: any): boolean {
     !!obj?.output?.devdoc &&
     !!obj?.sources
   );
-}
-
-/**
- * Applies the provided worker function to the provided path recursively.
- *
- * @param path the path to be traversed
- * @param worker the function to be applied on each file that is not a directory
- * @param afterDir the function to be applied on the directory after traversing its children
- */
-function traversePathRecursively(
-  path: string,
-  worker: (filePath: string) => void,
-  afterDirectory?: (filePath: string) => void
-) {
-  if (!fs.existsSync(path)) {
-    const msg = `Encountered a nonexistent path: ${path}`;
-    const error = new Error(msg);
-    throw error;
-  }
-
-  const fileStat = fs.lstatSync(path);
-  if (fileStat.isFile()) {
-    worker(path);
-  } else if (fileStat.isDirectory()) {
-    fs.readdirSync(path).forEach((nestedName) => {
-      const nestedPath = Path.join(path, nestedName);
-      traversePathRecursively(nestedPath, worker, afterDirectory);
-    });
-
-    if (afterDirectory) {
-      afterDirectory(path);
-    }
-  }
 }
 
 /**

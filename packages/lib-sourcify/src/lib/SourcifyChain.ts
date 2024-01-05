@@ -13,9 +13,8 @@ import {
 } from './types';
 import { logDebug, logError, logInfo, logWarn } from './logger';
 
-const RPC_TIMEOUT = process.env.RPC_TIMEOUT
-  ? parseInt(process.env.RPC_TIMEOUT)
-  : 10 * 1000;
+// TODO: Sholud this be configurable?
+const RPC_TIMEOUT = 10 * 1000;
 
 // It is impossible to get the url from the Provider for logging purposes
 interface JsonRpcProviderWithUrl extends JsonRpcProvider {

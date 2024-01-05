@@ -22,9 +22,9 @@ import { swarmBzzr0Hash, swarmBzzr1Hash } from './hashFunctions/swarmHash';
 import { logError, logInfo, logWarn } from './logger';
 import { ISolidityCompiler } from './ISolidityCompiler';
 
-// TODO: find a better place for these constants. Reminder: this sould work also in the browser
 const IPFS_PREFIX = 'dweb:/ipfs/';
-const FETCH_TIMEOUT = parseInt(process.env.FETCH_TIMEOUT || '') || 3000; // ms
+// TODO: find a better place for these constants. Reminder: this sould work also in the browser
+const FETCH_TIMEOUT = 3000; // ms
 /**
  * Abstraction of a checked solidity contract. With metadata and source (solidity) files.
  */
@@ -598,7 +598,9 @@ function createJsonInputFromMetadata(
  * This will likely moved to server or somewhere else. But keep it here for now.
  */
 export function getIpfsGateway(): string {
-  return process.env.IPFS_GATEWAY || 'https://ipfs.io/ipfs/';
+  // TODO: Make this configurable, potentially a new LibSourcify class and a constructor parameter.
+  // Depends if we have other things to configure. If not, not worth to createa a new class.
+  return 'https://ipfs.io/ipfs/';
 }
 
 export const findContractPathFromContractName = (
