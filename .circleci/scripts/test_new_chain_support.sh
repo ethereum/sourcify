@@ -28,5 +28,7 @@ if [ -z "${NEW_CHAIN_ID}" ]; then
 
 # if it is a new chain PR, persist NEW_CHAIN_ID for the next steps
 else
-    echo 'export NEW_CHAIN_ID="$NEW_CHAIN_ID"' >> $BASH_ENV
+    echo "Saving NEW_CHAIN_ID=${NEW_CHAIN_ID}"
+    echo BASH_ENV=$BASH_ENV
+    echo 'export NEW_CHAIN_ID=${NEW_CHAIN_ID}' >> "$BASH_ENV"
 fi
