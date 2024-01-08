@@ -46,7 +46,7 @@ exports.up = function (db, callback) {
             name: "contracts_creation_code_hash_fk",
             table: "code",
             rules: {
-              onDelete: "CASCADE",
+              onDelete: "RESTRICT",
               onUpdate: "RESTRICT",
             },
             mapping: "code_hash",
@@ -59,7 +59,7 @@ exports.up = function (db, callback) {
             name: "contracts_runtime_code_hash_fk",
             table: "code",
             rules: {
-              onDelete: "CASCADE",
+              onDelete: "RESTRICT",
               onUpdate: "RESTRICT",
             },
             mapping: "code_hash",
@@ -101,7 +101,7 @@ exports.up = function (db, callback) {
             name: "contract_deployments_contract_id_fk",
             table: "contracts",
             rules: {
-              onDelete: "CASCADE",
+              onDelete: "RESTRICT",
               onUpdate: "RESTRICT",
             },
             mapping: "id",
@@ -148,7 +148,7 @@ exports.up = function (db, callback) {
             name: "compiled_contracts_creation_code_hash_fk",
             table: "code",
             rules: {
-              onDelete: "CASCADE",
+              onDelete: "RESTRICT",
               onUpdate: "RESTRICT",
             },
             mapping: "code_hash",
@@ -162,7 +162,7 @@ exports.up = function (db, callback) {
             name: "compiled_contracts_runtime_code_hash_fk",
             table: "code",
             rules: {
-              onDelete: "CASCADE",
+              onDelete: "RESTRICT",
               onUpdate: "RESTRICT",
             },
             mapping: "code_hash",
@@ -208,7 +208,7 @@ exports.up = function (db, callback) {
             name: "verified_contracts_compilation_id_fk",
             table: "compiled_contracts",
             rules: {
-              onDelete: "CASCADE",
+              onDelete: "RESTRICT",
               onUpdate: "RESTRICT",
             },
             mapping: "id",
@@ -221,7 +221,7 @@ exports.up = function (db, callback) {
             name: "verified_contracts_contract_id_fk",
             table: "contracts",
             rules: {
-              onDelete: "CASCADE",
+              onDelete: "RESTRICT",
               onUpdate: "RESTRICT",
             },
             mapping: "id",
@@ -272,7 +272,7 @@ exports.up = function (db, callback) {
             name: "sourcify_matches_verified_contract_id_fk",
             table: "verified_contracts",
             rules: {
-              onDelete: "CASCADE",
+              onDelete: "RESTRICT",
               onUpdate: "RESTRICT",
             },
             mapping: "id",
