@@ -1079,6 +1079,13 @@ describe("Test Supported Chains", function () {
   );
 
   verifyContract(
+    "0xfABd9a36bF07A3190859f819638E0A49adEa6C41",
+    "10242",
+    "Arthera Mainnet",
+    "shared/"
+  );
+
+  verifyContract(
     "0xa456Ad3DEe140dcC91655ff45ef3103C460201D0",
     "10243",
     "Arthera Testnet",
