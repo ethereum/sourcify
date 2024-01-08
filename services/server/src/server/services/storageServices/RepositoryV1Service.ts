@@ -230,7 +230,9 @@ export class RepositoryV1Service implements IStorageService {
         time: (await fs.promises.stat(fullContractPath)).birthtime,
         status: "perfect",
       };
-    } catch (e) {}
+    } catch (e) {
+      // Do nothing
+    }
 
     try {
       await fs.promises.access(partialContractPath);
@@ -238,7 +240,9 @@ export class RepositoryV1Service implements IStorageService {
         time: (await fs.promises.stat(partialContractPath)).birthtime,
         status: "partial",
       };
-    } catch (e) {}
+    } catch (e) {
+      // Do nothing
+    }
 
     throw new Error(
       `Path not found: ${fullContractPath} or ${partialContractPath}`

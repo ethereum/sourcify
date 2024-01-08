@@ -3,6 +3,7 @@ import { AuthTypes, Connector } from "@google-cloud/cloud-sql-connector";
 import { Pool } from "pg";
 import AbstractDatabaseService from "./AbstractDatabaseService";
 import { IStorageService } from "../StorageService";
+import { CheckedContract, Match } from "@ethereum-sourcify/lib-sourcify";
 
 export interface AllianceDatabaseServiceOptions {
   googleCloudSql: {
@@ -77,5 +78,9 @@ export class AllianceDatabaseService
       throw new Error("Alliance Database is disabled");
     }
     throw new Error("Alliance Database is active");
+  }
+
+  async storeMatch(contract: CheckedContract, match: Match) {
+    await this.insertOrUpdateVerifiedContract(contract, match);
   }
 }

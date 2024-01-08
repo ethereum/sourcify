@@ -11,41 +11,41 @@ type Hash = string;
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Tables {
   export interface Code {
-    bytecodeHash: Hash;
+    bytecode_hash: Hash;
     bytecode: string;
   }
   export interface Contract {
-    creationBytecodeHash: Hash;
-    runtimeBytecodeHash: Hash;
+    creation_bytecode_hash: Hash;
+    runtime_bytecode_hash: Hash;
   }
   export interface ContractDeployment {
-    chainId: string;
+    chain_id: string;
     address: string;
-    transactionHash: string;
-    contractId: string;
+    transaction_hash: string;
+    contract_id: string;
   }
   export interface CompiledContract {
     compiler: string;
     version: string;
     language: string;
     name: string;
-    fullyQualifiedName: string;
-    compilationArtifacts: {
+    fully_qualified_name: string;
+    compilation_artifacts: {
       abi: {};
       userdoc: any;
       devdoc: any;
       storageLayout: any;
     };
     sources: Object;
-    compilerSettings: Object;
-    creationCodeHash: Hash;
-    runtimeCodeHash: Hash;
-    creationCodeArtifacts: {
+    compiler_settings: Object;
+    creation_code_hash: Hash;
+    runtime_code_hash: Hash;
+    creation_code_artifacts: {
       sourceMap: string;
       linkReferences: {};
       cborAuxdata: CompiledContractCborAuxdata | undefined;
     };
-    runtimeCodeArtifacts: {
+    runtime_code_artifacts: {
       sourceMap: string;
       linkReferences: {};
       immutableReferences: ImmutableReferences;
@@ -53,20 +53,20 @@ export namespace Tables {
     };
   }
   export interface VerifiedContract {
-    compilationId: string;
-    contractId: string;
-    creationTransformations: Transformation[] | undefined;
-    creationTransformationValues: TransformationValues | undefined;
-    runtimeTransformations: Transformation[] | undefined;
-    runtimeTransformationValues: TransformationValues | undefined;
-    runtimeMatch: boolean;
-    creationMatch: boolean;
+    compilation_id: string;
+    contract_id: string;
+    creation_transformations: Transformation[] | undefined;
+    creation_transformation_values: TransformationValues | undefined;
+    runtime_transformations: Transformation[] | undefined;
+    runtime_transformation_values: TransformationValues | undefined;
+    runtime_match: boolean;
+    creation_match: boolean;
   }
 
   export interface SourcifyMatch {
-    verifiedContractId: string;
-    runtimeMatch: string | null;
-    creationMatch: string | null;
+    verified_contract_id: string;
+    runtime_match: string | null;
+    creation_match: string | null;
   }
 }
 
@@ -83,8 +83,8 @@ export interface DatabaseColumns {
 
 export async function getVerifiedContractByBytecodeHashes(
   pool: Pool,
-  runtimeBytecodeHash: Hash,
-  creationBytecodeHash: Hash
+  runtime_bytecode_hash: Hash,
+  creation_bytecode_hash: Hash
 ) {
   return await pool.query(
     `
@@ -96,7 +96,7 @@ export async function getVerifiedContractByBytecodeHashes(
         AND contracts.runtime_code_hash = $1
         AND contracts.creation_code_hash = $2
     `,
-    [runtimeBytecodeHash, creationBytecodeHash]
+    [runtime_bytecode_hash, creation_bytecode_hash]
   );
 }
 
@@ -137,21 +137,21 @@ ${
 
 export async function insertCode(
   pool: Pool,
-  { bytecodeHash, bytecode }: Tables.Code
+  { bytecode_hash, bytecode }: Tables.Code
 ) {
   await pool.query(
     "INSERT INTO code (code_hash, code) VALUES ($1, $2) ON CONFLICT (code_hash) DO NOTHING",
-    [bytecodeHash, bytecode]
+    [bytecode_hash, bytecode]
   );
 }
 
 export async function insertContract(
   pool: Pool,
-  { creationBytecodeHash, runtimeBytecodeHash }: Tables.Contract
+  { creation_bytecode_hash, runtime_bytecode_hash }: Tables.Contract
 ) {
   let contractInsertResult = await pool.query(
     "INSERT INTO contracts (creation_code_hash, runtime_code_hash) VALUES ($1, $2) ON CONFLICT (creation_code_hash, runtime_code_hash) DO NOTHING RETURNING *",
-    [creationBytecodeHash, runtimeBytecodeHash]
+    [creation_bytecode_hash, runtime_bytecode_hash]
   );
 
   if (contractInsertResult.rows.length === 0) {
@@ -162,7 +162,7 @@ export async function insertContract(
       FROM contracts
       WHERE creation_code_hash = $1 AND runtime_code_hash = $2
       `,
-      [creationBytecodeHash, runtimeBytecodeHash]
+      [creation_bytecode_hash, runtime_bytecode_hash]
     );
   }
   return contractInsertResult;
@@ -170,11 +170,16 @@ export async function insertContract(
 
 export async function insertContractDeployment(
   pool: Pool,
-  { chainId, address, transactionHash, contractId }: Tables.ContractDeployment
+  {
+    chain_id,
+    address,
+    transaction_hash,
+    contract_id,
+  }: Tables.ContractDeployment
 ) {
   await pool.query(
     "INSERT INTO contract_deployments (chain_id, address, transaction_hash, contract_id) VALUES ($1, $2, $3, $4) ON CONFLICT (chain_id, address, transaction_hash) DO NOTHING",
-    [chainId, address, transactionHash, contractId]
+    [chain_id, address, transaction_hash, contract_id]
   );
 }
 
@@ -185,14 +190,14 @@ export async function insertCompiledContract(
     version,
     language,
     name,
-    fullyQualifiedName,
-    compilationArtifacts,
+    fully_qualified_name,
+    compilation_artifacts,
     sources,
-    compilerSettings,
-    creationCodeHash,
-    runtimeCodeHash,
-    creationCodeArtifacts,
-    runtimeCodeArtifacts,
+    compiler_settings,
+    creation_code_hash,
+    runtime_code_hash,
+    creation_code_artifacts,
+    runtime_code_artifacts,
   }: Tables.CompiledContract
 ) {
   let compiledContractsInsertResult = await pool.query(
@@ -217,14 +222,14 @@ export async function insertCompiledContract(
       version,
       language,
       name,
-      fullyQualifiedName,
-      compilationArtifacts,
+      fully_qualified_name,
+      compilation_artifacts,
       sources,
-      compilerSettings,
-      creationCodeHash,
-      runtimeCodeHash,
-      creationCodeArtifacts,
-      runtimeCodeArtifacts,
+      compiler_settings,
+      creation_code_hash,
+      runtime_code_hash,
+      creation_code_artifacts,
+      runtime_code_artifacts,
     ]
   );
 
@@ -240,7 +245,7 @@ export async function insertCompiledContract(
           AND creation_code_hash = $3
           AND runtime_code_hash = $4
         `,
-      [compiler, language, creationCodeHash, runtimeCodeHash]
+      [compiler, language, creation_code_hash, runtime_code_hash]
     );
   }
   return compiledContractsInsertResult;
@@ -249,14 +254,14 @@ export async function insertCompiledContract(
 export async function insertVerifiedContract(
   pool: Pool,
   {
-    compilationId,
-    contractId,
-    creationTransformations,
-    creationTransformationValues,
-    runtimeTransformations,
-    runtimeTransformationValues,
-    runtimeMatch,
-    creationMatch,
+    compilation_id,
+    contract_id,
+    creation_transformations,
+    creation_transformation_values,
+    runtime_transformations,
+    runtime_transformation_values,
+    runtime_match,
+    creation_match,
   }: Tables.VerifiedContract
 ) {
   let verifiedContractsInsertResult = await pool.query(
@@ -271,14 +276,14 @@ export async function insertVerifiedContract(
         creation_match
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (compilation_id, contract_id) DO NOTHING RETURNING *`,
     [
-      compilationId,
-      contractId,
-      JSON.stringify(creationTransformations),
-      creationTransformationValues,
-      JSON.stringify(runtimeTransformations),
-      runtimeTransformationValues,
-      runtimeMatch,
-      creationMatch,
+      compilation_id,
+      contract_id,
+      JSON.stringify(creation_transformations),
+      creation_transformation_values,
+      JSON.stringify(runtime_transformations),
+      runtime_transformation_values,
+      runtime_match,
+      creation_match,
     ]
   );
   if (verifiedContractsInsertResult.rows.length === 0) {
@@ -288,10 +293,10 @@ export async function insertVerifiedContract(
           id
         FROM verified_contracts
         WHERE 1=1
-          AND compilationId = $1
-          AND contractId = $2
+          AND compilation_id = $1
+          AND contract_id = $2
         `,
-      [compilationId, contractId]
+      [compilation_id, contract_id]
     );
   }
   return verifiedContractsInsertResult;
@@ -300,14 +305,14 @@ export async function insertVerifiedContract(
 export async function updateVerifiedContract(
   pool: Pool,
   {
-    compilationId,
-    contractId,
-    creationTransformations,
-    creationTransformationValues,
-    runtimeTransformations,
-    runtimeTransformationValues,
-    runtimeMatch,
-    creationMatch,
+    compilation_id,
+    contract_id,
+    creation_transformations,
+    creation_transformation_values,
+    runtime_transformations,
+    runtime_transformation_values,
+    runtime_match,
+    creation_match,
   }: Tables.VerifiedContract
 ) {
   await pool.query(
@@ -323,21 +328,21 @@ export async function updateVerifiedContract(
       WHERE compilation_id = $1 AND contract_id = $2
     `,
     [
-      compilationId,
-      contractId,
-      creationTransformations,
-      creationTransformationValues,
-      runtimeTransformations,
-      runtimeTransformationValues,
-      runtimeMatch,
-      creationMatch,
+      compilation_id,
+      contract_id,
+      creation_transformations,
+      creation_transformation_values,
+      runtime_transformations,
+      runtime_transformation_values,
+      runtime_match,
+      creation_match,
     ]
   );
 }
 
 export async function insertSourcifyMatch(
   pool: Pool,
-  { verifiedContractId, runtimeMatch, creationMatch }: Tables.SourcifyMatch
+  { verified_contract_id, runtime_match, creation_match }: Tables.SourcifyMatch
 ) {
   await pool.query(
     `INSERT INTO sourcify_matches (
@@ -345,14 +350,14 @@ export async function insertSourcifyMatch(
         creation_match,
         runtime_match
       ) VALUES ($1, $2, $3)`,
-    [verifiedContractId, runtimeMatch, creationMatch]
+    [verified_contract_id, runtime_match, creation_match]
   );
 }
 
 // Right now we are not updating, we are inserting every time a new match
 export async function updateSourcifyMatch(
   pool: Pool,
-  { verifiedContractId, runtimeMatch, creationMatch }: Tables.SourcifyMatch
+  { verified_contract_id, runtime_match, creation_match }: Tables.SourcifyMatch
 ) {
   await pool.query(
     `INSERT INTO sourcify_matches (
@@ -360,7 +365,7 @@ export async function updateSourcifyMatch(
         creation_match,
         runtime_match
       ) VALUES ($1, $2, $3)`,
-    [verifiedContractId, runtimeMatch, creationMatch]
+    [verified_contract_id, runtime_match, creation_match]
   );
   // Delete previous match?
 }

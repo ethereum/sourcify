@@ -1,7 +1,4 @@
-/**
- * A type for specifying the match quality of files.
- */
-export type MatchQuality = "full" | "partial";
+import { MatchQuality } from "../../types";
 
 export type PathConfig = {
   matchQuality: MatchQuality;

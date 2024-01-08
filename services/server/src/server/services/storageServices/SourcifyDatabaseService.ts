@@ -97,49 +97,26 @@ export class SourcifyDatabaseService
 
   // Override this method to include the SourcifyMatch
   async storeMatch(recompiledContract: CheckedContract, match: Match) {
-    this.validateBeforeStoring(recompiledContract, match);
-    await this.init();
+    const { type, verifiedContractId } =
+      await super.insertOrUpdateVerifiedContract(recompiledContract, match);
 
-    const databaseColumns = await this.getDatabaseColumns(
-      recompiledContract,
-      match
-    );
-
-    // Get all the verified contracts existing in the Database for these exact onchain bytecodes.
-    const existingVerifiedContractResult =
-      await Database.getVerifiedContractByBytecodeHashes(
-        this.databasePool,
-        databaseColumns.bytecodeHashes.onchainRuntime,
-        databaseColumns.bytecodeHashes.onchainCreation
-      );
-
-    if (existingVerifiedContractResult.rowCount === 0) {
-      const verifiedContractId = await this.insertNewVerifiedContract(
-        recompiledContract,
-        match,
-        databaseColumns
-      );
+    if (!verifiedContractId) {
+      throw new Error();
+    }
+    if (type === "insert") {
       await Database.insertSourcifyMatch(this.databasePool, {
-        verifiedContractId: verifiedContractId,
-        creationMatch: match.creationMatch,
-        runtimeMatch: match.runtimeMatch,
+        verified_contract_id: verifiedContractId,
+        creation_match: match.creationMatch,
+        runtime_match: match.runtimeMatch,
+      });
+    } else if (type === "update") {
+      await Database.updateSourcifyMatch(this.databasePool, {
+        verified_contract_id: verifiedContractId,
+        creation_match: match.creationMatch,
+        runtime_match: match.runtimeMatch,
       });
     } else {
-      const verifiedContractId =
-        // Right now we are not updating, we are inserting every time a new verified contract
-        await await this.updateExistingVerifiedContract(
-          existingVerifiedContractResult,
-          recompiledContract,
-          match,
-          databaseColumns
-        );
-      if (verifiedContractId) {
-        await Database.updateSourcifyMatch(this.databasePool, {
-          verifiedContractId: verifiedContractId,
-          creationMatch: match.creationMatch,
-          runtimeMatch: match.runtimeMatch,
-        });
-      }
+      throw new Error();
     }
   }
 }
