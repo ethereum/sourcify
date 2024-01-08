@@ -24,9 +24,9 @@ NEW_CHAIN_ID=$(echo "${REAL_BRANCH_NAME}" | awk -F'add-chain-' '{print $2}' | aw
 # if the ticket number regex does not match, then it's not 
 # a feature branch, and we shouldn't upload to JIRA.
 if [ -z "${NEW_CHAIN_ID}" ]; then
-    echo 'Not testing since its not a new chain PR.'
+    echo 'Not saving NEW_CHAIN_ID since its not a new chain PR.'
 
-# if it is a new chain PR, test it
+# if it is a new chain PR, persist NEW_CHAIN_ID for the next steps
 else
-    NEW_CHAIN_ID=${NEW_CHAIN_ID} npm run test:chains
+    echo 'export NEW_CHAIN_ID="$NEW_CHAIN_ID"' >> $BASH_ENV
 fi

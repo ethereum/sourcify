@@ -1,6 +1,6 @@
 {
   "name": "sourcify-server",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "description": "Solidity metadata-based re-compilation and source verification tool",
   "private": true,
   "repository": {

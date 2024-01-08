@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Checks the new tag of the built image for each service (ui, server, monitor, repository)
-# The tag value is persisted in worspace/{service}_image_tag.txt by each respective build job
+# The tag value is persisted in worspace/{service}_image_sha.txt by each respective build job
 # If a new image is built with a new tag, a deploy trigger is sent to the sourcifyeth/infra repo
 
 
@@ -19,18 +19,21 @@ fi
 
 # Loop through each service
 for service in "${services[@]}"; do
-    filePath="workspace/${service}_image_tag.txt"
+    # Deploy from amd64 image
+    filePath="workspace/${service}_amd64_image_sha.txt"
 
     if [ -f "$filePath" ]; then
         echo "File $filePath exists."
 
-        image_tag_content=$(cat "$filePath")
+        image_sha=$(cat "$filePath")
 
         # Check if the content is not an empty string
-        if [ -n "$image_tag_content" ]; then
+        if [ -n "$image_sha" ]; then
             echo "File is not empty."
-
-            body="{\"event_type\":\"deploy\",\"client_payload\":{\"environment\":\"$ENVIRONMENT\",\"component\":\"$service\",\"image_tag\":\""$CIRCLE_BRANCH"@"$image_tag_content"\",\"ref\":\"$CIRCLE_BRANCH\",\"sha\":\"$CIRCLE_SHA1\"}}"
+            
+            image_tag="$CIRCLE_BRANCH"@"$image_sha"
+            # sha: Git commit SHA vs. image_sha: Docker image SHA
+            body="{\"event_type\":\"deploy\",\"client_payload\":{\"environment\":\"$ENVIRONMENT\",\"component\":\"$service\",\"image_tag\":\"$image_tag\",\"ref\":\"$CIRCLE_BRANCH\",\"sha\":\"$CIRCLE_SHA1\"}}"
 
             echo "Sending deploy trigger with request body $body"
 
@@ -46,16 +49,15 @@ for service in "${services[@]}"; do
 
         else
             echo "File for $service is empty."
+            exit 1;
         fi
     else
         echo "File $filePath does not exist."
     fi
 
-    # Add a new line for readability
-    echo ""
-    
     # Wait 5 seconds between each service to avoid concurrent Github commits
     echo "Waiting 5 secs..."
+    echo ""
     sleep 5
 done
 
