@@ -30,5 +30,5 @@ if [ -z "${NEW_CHAIN_ID}" ]; then
 else
     echo "Saving NEW_CHAIN_ID=${NEW_CHAIN_ID}"
     echo BASH_ENV=$BASH_ENV
-    echo 'export NEW_CHAIN_ID=${NEW_CHAIN_ID}' >> "$BASH_ENV"
+    echo "export NEW_CHAIN_ID=${NEW_CHAIN_ID}" >> "$BASH_ENV"
 fi
