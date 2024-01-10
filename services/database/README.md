@@ -32,5 +32,5 @@ npm run sourcify:database import-repo /Users/marcocastignoli/Projects/repository
 ## 2. Start synchronization from `sourcify_sync` to a Sourcify instance
 
 ```
-npm run sourcify:database sync https://sourcify.dev/server /Users/marcocastignoli/Projects/repository --  -c 0 -l 2
+npm run sourcify:database sync https://sourcify.dev/server /Users/marcocastignoli/Projects/repository/contracts --  --chains 1,5,11155111 --limit 2 --start-from <timestamp> --until <timestamp>
 ```
