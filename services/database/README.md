@@ -26,7 +26,7 @@ The synchronization process takes two steps, in the first one we are going to st
 ## 1. Import the repository in the `sourcify_sync` table
 
 ```
-npm run sourcify:database import-repo /Users/marcocastignoli/Projects/repository/
+npm run sourcify:database import-repo /Users/marcocastignoli/Projects/repository/contracts
 ```
 
 ## 2. Start synchronization from `sourcify_sync` to a Sourcify instance
