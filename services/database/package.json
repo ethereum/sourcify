@@ -7,7 +7,7 @@
     "migrate:up": "db-migrate up",
     "migrate:reset": "db-migrate reset",
     "migrate:create": "db-migrate create ",
-    "sourcify:database": "node scripts.js "
+    "sourcify:database": "node scripts.mjs "
   },
   "author": "",
   "license": "MIT",

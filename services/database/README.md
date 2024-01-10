@@ -18,7 +18,7 @@ The Sourcify Database is a postgres database using `db-migrate` to update its sc
 
 # Synchronization process
 
-The synchronization process takes two steps, in the first one we are going to store all the contracts from the repov1 into a `sourcify_sync` table. In the second step we are using the `sourcify_sync` table to re-verify all the contracts on a new sourcify instance.
+The synchronization process takes two steps, in the first one we are going to store all the contracts from the repov1 into `sourcify_sync`, a table used to keep track of the to-be-synced contracts. In the second step we are using the `sourcify_sync` table to re-verify all the contracts on a new sourcify instance marking every successful synced contract into `sourcify_sync` as `synced`.
 
 > **Note**
 > Use `npm run sourcify:database --  --help` for a full list of options and parameters
