@@ -27,17 +27,28 @@ if (
 program
   .command("import-repo")
   .description("Import repository_v1 to Sourcify's sourcify_sync table")
-  .argument("<string>", "Path to repository v1") // TODO: add example /Users/marcocastignoli/Projects/repository/contracts
-  .option("-sf, --start-from [number]", "Start from a specific timestamp")
-  .option("-un, --until [number]", "Stop at a specific timestamp") // TODO: until-at
+  .argument(
+    "<string>",
+    "Path to repository v1 contracts folder (e.g. /Users/user/sourcify/repository/contracts)"
+  )
+  .option("-sf, --start-from [number]", "Start from a specific timestamp (ms)")
+  .option("-un, --until [number]", "Stop at a specific timestamp (ms)")
   .action(async (repositoryV1Path, options) => {
+    if (
+      repositoryV1Path.split("/")[repositoryV1Path.length - 1] !== "contracts"
+    ) {
+      console.error(
+        "Passed repositoryV1 path is not correct: " + repositoryV1Path
+      );
+      process.exit(4);
+    }
+
     let contractsSorted;
 
     // 1. Read contracts from repository
     try {
       let contracts = [];
 
-      // TODO: check if you pass the contracts
       for await (const entry of readdirp(repositoryV1Path, {
         alwaysStat: true,
         depth: 2,
@@ -65,6 +76,12 @@ program
       if (options.startFrom) {
         contractsSorted = contractsSorted.filter(
           (obj) => obj.timestamp.getTime() > options.startFrom
+        );
+      }
+
+      if (options.until) {
+        contractsSorted = contractsSorted.filter(
+          (obj) => obj.timestamp.getTime() < options.until
         );
       }
     } catch (e) {
@@ -122,11 +139,26 @@ program
     "<string>",
     "Sourcify instance url: e.g. https://sourcify.dev/server"
   )
-  .argument("<string>", "Path to repository v1") // TODO: example
-  .option("-c, --chains [items]", "List of chains") // TODO: example
-  .option("-sf, --start-from [number]", "Start from a specific timestamp")
-  .option("-l, --limit [number]", "Limit of concurrent verifications")
+  .argument(
+    "<string>",
+    "Path to repository v1 contracts folder (e.g. /Users/user/sourcify/repository/contracts)"
+  )
+  .option(
+    "-c, --chains [items]",
+    "List of chains separated by comma (e.g. 1,5,...)"
+  )
+  .option("-sf, --start-from [number]", "Start from a specific timestamp (ms)")
+  .option("-l, --limit [number]", "Limit of concurrent verifications (ms)")
   .action(async (sourcifyInstance, repositoryV1Path, options) => {
+    if (
+      repositoryV1Path.split("/")[repositoryV1Path.length - 1] !== "contracts"
+    ) {
+      console.error(
+        "Passed repositoryV1 path is not correct: " + repositoryV1Path
+      );
+      process.exit(4);
+    }
+
     const databasePool = new Pool({
       host: process.env.POSTGRES_HOST,
       port: process.env.POSTGRES_PORT,
