@@ -297,6 +297,27 @@ exports.up = function (db, callback) {
         db,
         "ALTER TABLE sourcify_matches ADD CONSTRAINT sourcify_matches_pseudo_pkey UNIQUE (verified_contract_id)"
       ),
+      db.createTable.bind(db, "sourcify_sync", {
+        id: {
+          type: "uuid",
+          notNull: true,
+          defaultValue: new String("gen_random_uuid()"),
+        },
+        chain_id: { type: "numeric", notNull: true },
+        address: { type: "bytea", notNull: true },
+        match_type: { type: "varchar", notNull: true },
+        synced: { type: "boolean", notNull: true, defaultValue: false },
+        created_at: {
+          type: "timestamptz",
+          notNull: true,
+          defaultValue: new String("NOW()"),
+        },
+      }),
+      db.runSql.bind(db, "ALTER TABLE sourcify_sync ADD PRIMARY KEY (id);"),
+      db.runSql.bind(
+        db,
+        "ALTER TABLE sourcify_sync ADD CONSTRAINT sourcify_sync_pseudo_pkey UNIQUE (chain_id,address)"
+      ),
     ],
     callback
   );
@@ -305,6 +326,7 @@ exports.up = function (db, callback) {
 exports.down = function (db, callback) {
   async.series(
     [
+      db.dropTable.bind(db, "sourcify_sync"),
       db.dropTable.bind(db, "sourcify_matches"),
       db.dropTable.bind(db, "verified_contracts"),
       db.dropTable.bind(db, "compiled_contracts"),
