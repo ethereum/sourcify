@@ -34,9 +34,7 @@ program
   .option("-sf, --start-from [number]", "Start from a specific timestamp (ms)")
   .option("-un, --until [number]", "Stop at a specific timestamp (ms)")
   .action(async (repositoryV1Path, options) => {
-    if (
-      repositoryV1Path.split("/")[repositoryV1Path.length - 1] !== "contracts"
-    ) {
+    if (path.parse(repositoryV1Path).base !== "contracts") {
       console.error(
         "Passed repositoryV1 path is not correct: " + repositoryV1Path
       );
@@ -150,9 +148,7 @@ program
   .option("-sf, --start-from [number]", "Start from a specific timestamp (ms)")
   .option("-l, --limit [number]", "Limit of concurrent verifications (ms)")
   .action(async (sourcifyInstance, repositoryV1Path, options) => {
-    if (
-      repositoryV1Path.split("/")[repositoryV1Path.length - 1] !== "contracts"
-    ) {
+    if (path.parse(repositoryV1Path).base !== "contracts") {
       console.error(
         "Passed repositoryV1 path is not correct: " + repositoryV1Path
       );
@@ -294,26 +290,33 @@ const processContract = async (
 };
 
 const fetchNextContract = async (databasePool, options) => {
+  const chains = options.chains?.split(",") || [];
   try {
-    const contractResult = await databasePool.query(
-      `
-          SELECT
-            *
-          FROM sourcify_sync
-          WHERE 1=1
-            AND chain_id IN ($1)
-            AND created_at > $2
-            AND synced = false
-          ORDER BY chain_id ASC, created_at ASC
-          LIMIT 1
-        `,
-      [
-        options.chains,
-        options.startFrom
-          ? new Date(options.startFrom)
-          : "1970-01-01 00:00:00.0000 +0000",
-      ]
-    );
+    const query = `
+      SELECT
+        *
+      FROM sourcify_sync
+      WHERE 1=1
+        AND created_at > $1
+        ${
+          // This is needed because the `pg` package needs $n parameters in the queries where n is the index of the second array
+          chains?.length > 0
+            ? "AND (1=0 " +
+              chains.map((_, i) => "OR chain_id = $" + (i + 2)).join(" ") +
+              ")"
+            : ""
+        }
+        AND synced = false
+      ORDER BY chain_id ASC, created_at ASC
+      LIMIT 1
+    `;
+    const queryParameter = [
+      options.startFrom
+        ? new Date(options.startFrom)
+        : "1970-01-01 00:00:00.0000 +0000",
+      ...chains,
+    ];
+    const contractResult = await databasePool.query(query, queryParameter);
     if (contractResult.rowCount > 0) {
       return contractResult.rows[0];
     } else {
