@@ -4,6 +4,7 @@ import { ContextProvider } from "./Context";
 import LandingPage from "./pages/LandingPage";
 import Lookup from "./pages/Lookup";
 import Verifier from "./pages/Verifier";
+import BrowserVerifier from "./pages/BrowserVerifier";
 
 function App() {
   useEffect(() => {
@@ -18,6 +19,7 @@ function App() {
         <HashRouter>
           <Routes>
             <Route path="/verifier" element={<Verifier />} />
+            <Route path="/browserVerifier" element={<BrowserVerifier />} />
             <Route path="/lookup" element={<Lookup />} />
             <Route path="/lookup/:address" element={<Lookup />} />
             <Route path="/" element={<LandingPage />} />

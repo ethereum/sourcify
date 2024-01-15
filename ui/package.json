@@ -17,8 +17,10 @@
     "@types/react-syntax-highlighter": "^13.5.2",
     "aos": "^2.3.4",
     "bytes": "^3.1.2",
+    "debug": "^4.3.4",
     "fuse.js": "^6.5.0",
     "http-status-codes": "^2.2.0",
+    "https-browserify": "^1.0.0",
     "react": "^17.0.2",
     "react-device-detect": "^2.2.2",
     "react-dom": "^17.0.2",
@@ -31,6 +33,10 @@
     "react-syntax-highlighter": "^15.4.5",
     "react-tooltip": "^4.2.21",
     "recharts": "^2.1.8",
+    "solc": "0.8.22",
+    "stream-browserify": "^3.0.0",
+    "stream-http": "^3.2.0",
+    "util": "^0.12.5",
     "web-vitals": "^2.1.2"
   },
   "overrides": {
@@ -39,10 +45,10 @@
     }
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "start": "craco start",
+    "build": "craco build",
     "test": "echo \"Error: no test specified\"",
-    "eject": "react-scripts eject",
+    "eject": "craco eject",
     "lint": "eslint . --ext .ts"
   },
   "eslintConfig": {
@@ -63,11 +69,13 @@
     ]
   },
   "devDependencies": {
+    "@craco/craco": "^7.1.0",
     "@types/aos": "^3.0.4",
     "@types/bytes": "^3.1.1",
     "autoprefixer": "^10.4.0",
     "postcss": "^8.4.5",
     "tailwindcss": "^3.0.3"
   },
-  "homepage": "./"
+  "homepage": "./",
+  "cracoConfig": "./craco.config.js"
 }

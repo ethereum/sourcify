@@ -2,10 +2,10 @@ import { ParamType } from "@ethersproject/abi";
 export declare interface StringMap {
   [key: string]: string;
 }
-export type DropzoneFile = File & {
+export interface DropzoneFile extends File {
   size: number;
-  path: string;
-};
+  path?: string;
+}
 
 export interface InvalidSources {
   [key: string]: {
