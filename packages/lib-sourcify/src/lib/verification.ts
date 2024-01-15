@@ -471,15 +471,12 @@ export async function matchWithCreationTx(
     const onchainCreationBytecodeWithoutConstructorArgs =
       onchainCreationBytecode.slice(0, recompiledCreationBytecode.length);
 
-    logDebug('Split onchain creation bytecode');
     const [trimmedOnchainCreationBytecode, auxdata] = splitAuxdata(
       onchainCreationBytecodeWithoutConstructorArgs
     ); // In the case of creationTxData (not runtime bytecode) it is actually not CBOR encoded at the end because of the appended constr. args., but splitAuxdata returns the whole bytecode if it's not CBOR encoded, so will work with startsWith.
-    logDebug('Split recompiled creation bytecode');
     const [trimmedRecompiledCreationBytecode] = splitAuxdata(
       recompiledCreationBytecode
     );
-    logDebug(`Split auxdata`);
     if (
       trimmedOnchainCreationBytecode.startsWith(
         trimmedRecompiledCreationBytecode

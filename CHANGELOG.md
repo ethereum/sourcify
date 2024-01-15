@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 This CHANGELOG will contain monorepo related changes such as CI configs, shared dependencies and the development setup.
 
+## sourcify-monorepo@1.2.0 - 2024-01-04
+
+- Add multiarch image builds
+- Adjust resources for CI builds. This should speed up the builds and reduce the usage for unnecessary resources.
+- Optimize some runs by not install and building unless necessary
+
+## sourcify-monorepo@1.1.2 - 2024-01-03
+
+- Update `FUNDING.json`
+- Add arm64 build runs to CI but turn them off for now
+
 ## sourcify-monorepo@1.1.1 - 2023-12-19
 
 - Fix tagged builds not being triggered because they are not in the entrypoint circleci YML file.

@@ -39,15 +39,24 @@ jobs:
   test-new-chain:
     docker:
       - image: cimg/node:16.15
+    resource_class: small
     working_directory: ~/sourcify
     steps:
       - checkout
       - run:
-          name: install dependencies
-          command: npm install
-      - run:
-          name: build
-          command: npx lerna run build
-      - run:
-          name: test new chain PR
+          name: check if a new chain PR
           command: ./.circleci/scripts/test_new_chain_support.sh
+      - run:
+          name: Check NEW_CHAIN_ID existence
+          command: |
+            echo "Before sourcing BASH_ENV, NEW_CHAIN_ID=$NEW_CHAIN_ID"
+            cat $BASH_ENV
+            source $BASH_ENV
+            echo "After sourcing BASH_ENV, NEW_CHAIN_ID=$NEW_CHAIN_ID"
+            if [ -z "${NEW_CHAIN_ID}" ]; then
+              echo 'NEW_CHAIN_ID is unset or empty, skipping subsequent steps.'
+              circleci-agent step halt
+            fi
+      - run:
+          name: install build and test
+          command: npm install && npx lerna run build --scope=sourcify-server && npm run test:chains

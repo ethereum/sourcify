@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## @ethereum-sourcify/bytecode-utils@1.2.5 - 2024-01-03
+
+- Update cbor-x to fix "Segmentation Fault" errors.
+
 ## @ethereum-sourcify/bytecode-utils@1.2.4 - 2023-12-19
 
 - Bump Typscript version and move the dependency to project root.

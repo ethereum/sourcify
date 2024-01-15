@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## @ethereum-sourcify/lib-sourcify@1.6.2 - 2023-01-03
+
+- Don't fetch `creationTx` twice
+- More detailed debug logging.
+
 ## @ethereum-sourcify/lib-sourcify@1.6.1 - 2023-12-19
 
 - Bump Typscript version and move the dependency to project root.
