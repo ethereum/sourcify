@@ -125,7 +125,7 @@ function assertContractSaved(expectedAddress, expectedChain, expectedStatus) {
     const match = expectedStatus === "perfect" ? "full_match" : "partial_match";
     const isExist = fs.existsSync(
       path.join(
-        config.get("repository.path"),
+        config.get("repositoryV1.path"),
         "contracts",
         match,
         expectedChain,

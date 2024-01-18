@@ -1,8 +1,8 @@
 import { id as keccak256str } from 'ethers';
 import {
+  AuxdataDiff,
   CompilableMetadata,
-  CompiledContractArtifacts,
-  CompiledContractArtifactsCborAuxdata,
+  CompiledContractCborAuxdata,
   CompilerOutput,
   InvalidSources,
   JsonInput,
@@ -16,7 +16,10 @@ import {
 import semver from 'semver';
 import { fetchWithTimeout } from './utils';
 import { storeByHash } from './validation';
-import { decode as decodeBytecode } from '@ethereum-sourcify/bytecode-utils';
+import {
+  decode as decodeBytecode,
+  splitAuxdata,
+} from '@ethereum-sourcify/bytecode-utils';
 import { ipfsHash } from './hashFunctions/ipfsHash';
 import { swarmBzzr0Hash, swarmBzzr1Hash } from './hashFunctions/swarmHash';
 import { logError, logInfo, logWarn } from './logger';
@@ -31,8 +34,6 @@ const FETCH_TIMEOUT = parseInt(process.env.FETCH_TIMEOUT || '') || 3000; // ms
 export class CheckedContract {
   /** The solidity compiler used to compile the checked contract */
   solidityCompiler: ISolidityCompiler;
-
-  /** Object containing contract metadata keys and values. */
   metadata!: Metadata;
 
   /** SourceMap mapping the original compilation path to PathContent. */
@@ -52,22 +53,17 @@ export class CheckedContract {
 
   /** The version of the Solidity compiler to use for compilation. */
   compilerVersion!: string;
-
-  /** The name of the contract. */
   name!: string;
-
-  /** The bytecodes of the contract. */
   creationBytecode?: string;
   runtimeBytecode?: string;
 
   /** The raw string representation of the contract's metadata. Needed to generate a unique session id for the CheckedContract*/
   metadataRaw!: string;
-
-  /** The compiler output */
   compilerOutput?: CompilerOutput;
 
-  //** Artifacts */
-  artifacts?: CompiledContractArtifacts;
+  /** Marks the positions of the CborAuxdata parts in the bytecode */
+  creationBytecodeCborAuxdata?: CompiledContractCborAuxdata;
+  runtimeBytecodeCborAuxdata?: CompiledContractCborAuxdata;
 
   /** Checks whether this contract is valid or not.
    *  This is a static method due to persistence issues.
@@ -254,6 +250,9 @@ export class CheckedContract {
     return null;
   }
 
+  /** Generates an edited contract with a space at the end of each source file to create a different source file hash and consequently a different metadata hash.
+   * This differenence is then used to determine the positions of the auxdata in the raw bytecode.
+   */
   public async generateEditedContract(compilerSettings: {
     version: string;
     solcJsonInput: JsonInput;
@@ -274,7 +273,12 @@ export class CheckedContract {
     );
   }
 
-  public async generateArtifacts(forceEmscripten = false) {
+  /**
+   * Finds the positions of the auxdata in the runtime and creation bytecodes.
+   * Saves the CborAuxdata position (offset) and value in the runtime- and creationBytecodeCborAuxdata fields.
+   *
+   */
+  public async generateCborAuxdataPositions(forceEmscripten = false) {
     if (
       this.creationBytecode === undefined ||
       this.runtimeBytecode === undefined
@@ -286,6 +290,64 @@ export class CheckedContract {
       return false;
     }
 
+    // Auxdata array extracted from the compiler's `legacyAssembly` field
+    const auxdatasFromCompilerOutput = findAuxdatasInLegacyAssembly(
+      this.compilerOutput.contracts[this.compiledPath][this.name].evm
+        .legacyAssembly
+    );
+
+    // There is not auxadata
+    if (auxdatasFromCompilerOutput.length === 0) {
+      this.creationBytecodeCborAuxdata = {};
+      this.runtimeBytecodeCborAuxdata = {};
+      return true;
+    }
+
+    // There is only one auxdata, so no need to recompile
+    if (auxdatasFromCompilerOutput.length === 1) {
+      // TODO: We can't assume that the auxdata is always at the end of the bytecode
+      const [, creationAuxdataCbor, creationCborLenghtHex] = splitAuxdata(
+        this.creationBytecode
+      );
+
+      const [, runtimeAuxdataCbor, runtimeCborLenghtHex] = splitAuxdata(
+        this.runtimeBytecode
+      );
+
+      const auxdataFromRawCreationBytecode = `${creationAuxdataCbor}${creationCborLenghtHex}`;
+      const auxdataFromRawRuntimeBytecode = `${runtimeAuxdataCbor}${runtimeCborLenghtHex}`;
+
+      // For some reason the auxdata from raw bytecode differs from the legacyAssembly's auxdata
+      if (
+        auxdatasFromCompilerOutput[0] !== auxdataFromRawCreationBytecode ||
+        auxdatasFromCompilerOutput[0] !== auxdataFromRawRuntimeBytecode
+      ) {
+        logWarn(
+          `The auxdata from raw bytecode differs from the legacyAssembly's auxdata name=${this.name}`
+        );
+        return false;
+      }
+
+      this.creationBytecodeCborAuxdata = {
+        '0': {
+          offset:
+            this.creationBytecode.length -
+            (2 + parseInt(creationCborLenghtHex, 16)),
+          value: auxdataFromRawCreationBytecode,
+        },
+      };
+      this.runtimeBytecodeCborAuxdata = {
+        '0': {
+          offset:
+            this.runtimeBytecode.length -
+            (2 + parseInt(runtimeCborLenghtHex, 16)),
+          value: auxdataFromRawRuntimeBytecode,
+        },
+      };
+      return true;
+    }
+
+    // Multiple auxdatas, we need to recompile with a slightly edited file to check the differences
     const editedContractCompilerOutput = await this.generateEditedContract({
       version: this.metadata.compiler.version,
       solcJsonInput: this.solcJsonInput,
@@ -294,29 +356,21 @@ export class CheckedContract {
     const editedContract =
       editedContractCompilerOutput?.contracts[this.compiledPath][this.name];
 
-    const originalAuxdatasList = findAuxdatasInLegacyAssembly(
-      this.compilerOutput.contracts[this.compiledPath][this.name].evm
-        .legacyAssembly
-    );
+    const editedContractAuxdatasFromCompilerOutput =
+      findAuxdatasInLegacyAssembly(editedContract.evm.legacyAssembly);
 
-    const editedAuxdatasList = findAuxdatasInLegacyAssembly(
-      editedContract.evm.legacyAssembly
+    this.creationBytecodeCborAuxdata = findAuxdataPositions(
+      this.creationBytecode,
+      `0x${editedContract?.evm.bytecode.object}`,
+      auxdatasFromCompilerOutput,
+      editedContractAuxdatasFromCompilerOutput
     );
-
-    this.artifacts = {
-      creationBytecodeCborAuxdata: findAuxdataPositions(
-        this.creationBytecode,
-        `0x${editedContract?.evm.bytecode.object}`,
-        originalAuxdatasList,
-        editedAuxdatasList
-      ),
-      runtimeBytecodeCborAuxdata: findAuxdataPositions(
-        this.runtimeBytecode,
-        `0x${editedContract?.evm?.deployedBytecode?.object}`,
-        originalAuxdatasList,
-        editedAuxdatasList
-      ),
-    };
+    this.runtimeBytecodeCborAuxdata = findAuxdataPositions(
+      this.runtimeBytecode,
+      `0x${editedContract?.evm?.deployedBytecode?.object}`,
+      auxdatasFromCompilerOutput,
+      editedContractAuxdatasFromCompilerOutput
+    );
 
     return true;
   }
@@ -571,7 +625,7 @@ function createJsonInputFromMetadata(
     'devdoc',
     'userdoc',
     'storageLayout',
-    // 'evm.legacyAssembly',
+    'evm.legacyAssembly',
     'evm.bytecode.object',
     'evm.bytecode.sourceMap',
     'evm.bytecode.linkReferences',
@@ -687,7 +741,11 @@ function findAuxdatasInLegacyAssembly(legacyAssembly: any) {
   return auxdatas;
 }
 
-// Given two bytecodes, this function returns an array of differing positions
+/**
+ * Given two bytecodes, this function returns an array of ALL differing indexes.
+ * @example getDiffPositions(['A', 'b', 'c', 'A', 'd'], ['A', 'x', 'y', 'A', 'z']) => [1, 2, 4]
+ *
+ */
 function getDiffPositions(original: string, modified: string): number[] {
   const differences: number[] = [];
   const minLength = Math.min(original.length, modified.length);
@@ -701,78 +759,82 @@ function getDiffPositions(original: string, modified: string): number[] {
   return differences;
 }
 
-// Checks if a substring exists in the bytecode at a given position
+/**
+ *   Checks the raw bytecode indeed includes the auxdata diff at the given position
+ */
 function bytecodeIncludesAuxdataDiffAt(
   bytecode: string,
-  {
-    real,
-    diff,
-    offsetStart,
-    offsetEnd,
-  }: { real: string; diff: string; offsetStart: number; offsetEnd: number },
+  auxdataDiff: AuxdataDiff,
   position: number
 ): boolean {
-  const extracted = bytecode.substr(
-    position - offsetStart,
-    offsetStart + diff.length + offsetEnd
-  );
+  const { real, diffStart } = auxdataDiff;
+  const extracted = bytecode.slice(position - diffStart, real.length);
   return extracted === real;
 }
 
 function getAuxdatasDiff(originalAuxdatas: string[], editedAuxdatas: string[]) {
-  const auxdatasDiffs = [];
+  const auxdataDiffs: AuxdataDiff[] = [];
   for (let i = 0; i < originalAuxdatas.length; i++) {
     const diffPositions = getDiffPositions(
       originalAuxdatas[i],
       editedAuxdatas[i]
     );
-    auxdatasDiffs.push({
-      offsetStart: diffPositions[0],
-      offsetEnd:
-        originalAuxdatas[i].length -
-        diffPositions[diffPositions.length - 1] -
-        1,
+    auxdataDiffs.push({
       real: originalAuxdatas[i],
+      diffStart: diffPositions[0],
       diff: originalAuxdatas[i].substring(
         diffPositions[0],
         diffPositions[diffPositions.length - 1] + 1
       ),
     });
   }
-  return auxdatasDiffs;
+  return auxdataDiffs;
 }
 
+/**
+ * Finds the positions of the auxdata in the bytecode.
+ * The compiler outputs the auxdata values in the `legacyAssembly` field. However we can't use these values to do a simple string search on the compiled bytecode because an attacker can embed these values in the compiled contract code and cause the correspoding field in the onchain bytecode to be ignored falsely during verification.
+ * A way to find the *metadata hashes* in the bytecode is to recompile the contract with a slightly edited source code and compare the differences in the raw bytecodes. However, this will only give us the positions of the metadata hashes in the bytecode. We need to find the positions of the whole *auxdata* in the bytecode.
+ * So we go through each of the differences in the raw bytecode and check if an auxdata diff value from the legacyAssembly is included in that difference. If it is, we have found the position of the auxdata in the bytecode.
+ */
 function findAuxdataPositions(
   originalBytecode: string,
   editedBytecode: string,
   originalAuxdatas: string[],
   editedAuxdatas: string[]
-): CompiledContractArtifactsCborAuxdata {
-  const auxdataDiffs = getAuxdatasDiff(originalAuxdatas, editedAuxdatas);
+): CompiledContractCborAuxdata {
+  const auxdataDiffObjects = getAuxdatasDiff(originalAuxdatas, editedAuxdatas);
 
   const diffPositionsBytecodes = getDiffPositions(
     originalBytecode,
     editedBytecode
   );
-  const auxdataPositions: CompiledContractArtifactsCborAuxdata = {};
+  const auxdataPositions: CompiledContractCborAuxdata = {};
 
-  for (const offsetOfDiffInByteocde of diffPositionsBytecodes) {
-    for (const auxdataDiffIndex in auxdataDiffs) {
+  let prevDiffPosition = -99;
+  for (const diffPosition of diffPositionsBytecodes) {
+    // Don't check consecutive diffs like 55, 56, 57... , only if there's a gap like 55, 57, 58, then 78, 79, 80...
+    if (prevDiffPosition + 1 === diffPosition) {
+      prevDiffPosition = diffPosition;
+      continue;
+    }
+    // New diff position
+    for (const auxdataDiffIndex in auxdataDiffObjects) {
       if (
         auxdataPositions[auxdataDiffIndex] === undefined &&
         bytecodeIncludesAuxdataDiffAt(
           originalBytecode,
-          auxdataDiffs[auxdataDiffIndex],
-          offsetOfDiffInByteocde
+          auxdataDiffObjects[auxdataDiffIndex],
+          diffPosition
         )
       ) {
         auxdataPositions[auxdataDiffIndex] = {
-          offset:
-            offsetOfDiffInByteocde - auxdataDiffs[auxdataDiffIndex].offsetStart,
-          value: auxdataDiffs[auxdataDiffIndex].real,
+          offset: diffPosition - auxdataDiffObjects[auxdataDiffIndex].diffStart,
+          value: auxdataDiffObjects[auxdataDiffIndex].real,
         };
       }
     }
+    prevDiffPosition = diffPosition;
   }
 
   return auxdataPositions;
