@@ -529,14 +529,15 @@ export interface CompilerOutput {
   contracts: CompilerOutputContracts;
 }
 
-export interface CompiledContractArtifactsCborAuxdata {
+export interface CompiledContractCborAuxdata {
   [index: string]: {
     offset: number;
     value: string;
   };
 }
 
-export interface CompiledContractArtifacts {
-  creationBytecodeCborAuxdata: CompiledContractArtifactsCborAuxdata;
-  runtimeBytecodeCborAuxdata: CompiledContractArtifactsCborAuxdata;
+export interface AuxdataDiff {
+  real: string;
+  diffStart: number;
+  diff: string;
 }

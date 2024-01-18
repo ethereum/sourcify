@@ -53,18 +53,20 @@ export function createContractEndpoint(
   };
 }
 
-export function checkAllByChainAndAddressEndpoint(req: any, res: Response) {
+export async function checkAllByChainAndAddressEndpoint(
+  req: any,
+  res: Response
+) {
   const map: Map<string, any> = new Map();
   const addresses = req.query.addresses.split(",");
   const chainIds = req.query.chainIds.split(",");
   for (const address of addresses) {
     for (const chainId of chainIds) {
       try {
-        const found: Match[] =
-          services.storage.ipfsRepository.checkAllByChainAndAddress(
-            address,
-            chainId
-          );
+        const found: Match[] = await services.storage.checkAllByChainAndAddress(
+          address,
+          chainId
+        );
         if (found.length != 0) {
           if (!map.has(address)) {
             map.set(address, {
@@ -92,14 +94,14 @@ export function checkAllByChainAndAddressEndpoint(req: any, res: Response) {
   res.send(resultArray);
 }
 
-export function checkByChainAndAddressesEnpoint(req: any, res: Response) {
+export async function checkByChainAndAddressesEnpoint(req: any, res: Response) {
   const map: Map<string, any> = new Map();
   const addresses = req.query.addresses.split(",");
   const chainIds = req.query.chainIds.split(",");
   for (const address of addresses) {
     for (const chainId of chainIds) {
       try {
-        const found: Match[] = services.storage.checkByChainAndAddress(
+        const found: Match[] = await services.storage.checkByChainAndAddress(
           address,
           chainId
         );

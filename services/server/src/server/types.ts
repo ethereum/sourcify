@@ -22,5 +22,4 @@ export declare interface ContractData {
 
 export type RepositoryTag = {
   timestamp: any;
-  repositoryVersion: string;
 };

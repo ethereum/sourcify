@@ -8,7 +8,7 @@ import {
   /* ContextVariables, */
   CheckedContract,
 } from "@ethereum-sourcify/lib-sourcify";
-import { MatchLevel, RepositoryTag } from "../../types";
+import { MatchLevel, MatchQuality, RepositoryTag } from "../../types";
 import {
   create as createIpfsClient,
   IPFSHTTPClient,
@@ -20,12 +20,7 @@ import { getAddress } from "ethers";
 import { getMatchStatus } from "../../common";
 import { IStorageService } from "../StorageService";
 import config from "config";
-
-const REPOSITORY_VERSION = "0.1";
-/**
- * A type for specifying the match quality of files.
- */
-type MatchQuality = "full" | "partial";
+import { PathConfig } from "../utils/repository-util";
 
 type FilesInfo<T> = { status: MatchQuality; files: Array<T> };
 
@@ -34,24 +29,16 @@ interface FileObject {
   path: string;
   content?: string;
 }
-type PathConfig = {
-  matchQuality: MatchQuality;
-  chainId: string;
-  address: string;
-  fileName?: string;
-  source?: boolean;
-};
 
 declare interface ContractData {
   full: string[];
   partial: string[];
 }
 
-export interface IpfsRepositoryServiceOptions {
+export interface RepositoryV1ServiceOptions {
   ipfsApi: string;
   repositoryPath: string;
   repositoryServerUrl: string;
-  repositoryVersion: string;
 }
 
 interface FileObject {
@@ -65,16 +52,18 @@ declare interface ContractData {
   partial: string[];
 }
 
-export class IpfsRepositoryService implements IStorageService {
+export class RepositoryV1Service implements IStorageService {
   repositoryPath: string;
   private ipfsClient?: IPFSHTTPClient;
 
-  constructor(options: IpfsRepositoryServiceOptions) {
+  constructor(options: RepositoryV1ServiceOptions) {
     this.repositoryPath = options.repositoryPath;
     if (options.ipfsApi) {
       this.ipfsClient = createIpfsClient({ url: options.ipfsApi });
     } else {
-      logger.warn("IPFS_API not set, IPFS MFS will not be updated");
+      logger.warn(
+        "RepositoryV1: IPFS_API not set, IPFS MFS will not be updated"
+      );
     }
   }
 
@@ -96,8 +85,8 @@ export class IpfsRepositoryService implements IStorageService {
     files.forEach((file) => {
       const relativePath =
         "contracts/" + file.path.split("/contracts")[1].substr(1);
-      // TODO: Don't use repository.serverUrl but a relative URL to the server. Requires a breaking chage to the API
-      urls.push(`${config.get("repository.serverUrl")}/${relativePath}`);
+      // TODO: Don't use repositoryV1.serverUrl but a relative URL to the server. Requires a breaking chage to the API
+      urls.push(`${config.get("repositoryV1.serverUrl")}/${relativePath}`);
     });
     return urls;
   }
@@ -231,22 +220,28 @@ export class IpfsRepositoryService implements IStorageService {
    * @param fullContractPath
    * @param partialContractPath
    */
-  fetchFromStorage(
+  async fetchFromStorage(
     fullContractPath: string,
     partialContractPath: string
-  ): { time: Date; status: Status } {
-    if (fs.existsSync(fullContractPath)) {
+  ): Promise<{ time: Date; status: Status }> {
+    try {
+      await fs.promises.access(fullContractPath);
       return {
-        time: fs.statSync(fullContractPath).birthtime,
+        time: (await fs.promises.stat(fullContractPath)).birthtime,
         status: "perfect",
       };
+    } catch (e) {
+      // Do nothing
     }
 
-    if (fs.existsSync(partialContractPath)) {
+    try {
+      await fs.promises.access(partialContractPath);
       return {
-        time: fs.statSync(partialContractPath).birthtime,
+        time: (await fs.promises.stat(partialContractPath)).birthtime,
         status: "partial",
       };
+    } catch (e) {
+      // Do nothing
     }
 
     throw new Error(
@@ -255,7 +250,10 @@ export class IpfsRepositoryService implements IStorageService {
   }
 
   // Checks contract existence in repository.
-  checkByChainAndAddress(address: string, chainId: string): Match[] {
+  async checkByChainAndAddress(
+    address: string,
+    chainId: string
+  ): Promise<Match[]> {
     const contractPath = this.generateAbsoluteFilePath({
       matchQuality: "full",
       chainId,
@@ -264,7 +262,7 @@ export class IpfsRepositoryService implements IStorageService {
     });
 
     try {
-      const storageTimestamp = fs.statSync(contractPath).birthtime;
+      const storageTimestamp = (await fs.promises.stat(contractPath)).birthtime;
       return [
         {
           address,
@@ -276,14 +274,17 @@ export class IpfsRepositoryService implements IStorageService {
       ];
     } catch (e: any) {
       logger.debug(
-        `Contract (full_match) not found in repository: ${address} - chain: ${chainId}`
+        `Contract (full_match) not found in repositoryV1: ${address} - chain: ${chainId}`
       );
       return [];
     }
   }
 
   // Checks contract existence in repository for full and partial matches.
-  checkAllByChainAndAddress(address: string, chainId: string): Match[] {
+  async checkAllByChainAndAddress(
+    address: string,
+    chainId: string
+  ): Promise<Match[]> {
     const fullContractPath = this.generateAbsoluteFilePath({
       matchQuality: "full",
       chainId,
@@ -299,7 +300,7 @@ export class IpfsRepositoryService implements IStorageService {
     });
 
     try {
-      const storage = this.fetchFromStorage(
+      const storage = await this.fetchFromStorage(
         fullContractPath,
         partialContractPath
       );
@@ -314,7 +315,7 @@ export class IpfsRepositoryService implements IStorageService {
       ];
     } catch (e: any) {
       logger.debug(
-        `Contract (full & partial match) not found in repository: ${address} - chain: ${chainId}`
+        `Contract (full & partial match) not found in repositoryV1: ${address} - chain: ${chainId}`
       );
       return [];
     }
@@ -333,7 +334,7 @@ export class IpfsRepositoryService implements IStorageService {
         : this.generateAbsoluteFilePath(path);
     fs.mkdirSync(Path.dirname(abolsutePath), { recursive: true });
     fs.writeFileSync(abolsutePath, content);
-    logger.debug("Saved to repository: " + abolsutePath);
+    logger.debug("Saved to repositoryV1: " + abolsutePath);
     this.updateRepositoryTag();
   }
 
@@ -435,6 +436,9 @@ export class IpfsRepositoryService implements IStorageService {
         `Stored ${contract.name} to filesystem address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
       );
       // await this.addToIpfsMfs(matchQuality, match.chainId, match.address);
+      // logger.info(
+      //   `Stored ${contract.name} to IPFS MFS address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
+      // );
     } else if (match.runtimeMatch === "extra-file-input-bug") {
       return match;
     } else {
@@ -461,7 +465,6 @@ export class IpfsRepositoryService implements IStorageService {
     const timestamp = new Date().getTime();
     const tag: RepositoryTag = {
       timestamp: timestamp,
-      repositoryVersion: REPOSITORY_VERSION,
     };
     fs.writeFileSync(filePath, JSON.stringify(tag));
   }

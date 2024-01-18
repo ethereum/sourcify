@@ -17,7 +17,7 @@ const router: Router = Router();
   {
     prefix: "/tree/any",
     method: createEndpoint(
-      services.storage.ipfsRepository.getTree,
+      services.storage.repositoryV1.getTree,
       "any_match",
       true
     ),
@@ -25,28 +25,23 @@ const router: Router = Router();
   {
     prefix: "/any",
     method: createEndpoint(
-      services.storage.ipfsRepository.getContent,
+      services.storage.repositoryV1.getContent,
       "any_match",
       true
     ),
   },
   {
     prefix: "/tree",
-    method: createEndpoint(
-      services.storage.ipfsRepository.getTree,
-      "full_match"
-    ),
+    method: createEndpoint(services.storage.repositoryV1.getTree, "full_match"),
   },
   {
     prefix: "/contracts",
-    method: createContractEndpoint(
-      services.storage.ipfsRepository.getContracts
-    ),
+    method: createContractEndpoint(services.storage.repositoryV1.getContracts),
   },
   {
     prefix: "",
     method: createEndpoint(
-      services.storage.ipfsRepository.getContent,
+      services.storage.repositoryV1.getContent,
       "full_match"
     ),
   },
