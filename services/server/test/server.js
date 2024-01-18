@@ -1212,18 +1212,20 @@ describe("Server", function () {
     });
 
     it("should fetch missing sources", (done) => {
-      chai
-        .request(server.app)
-        .post("/session/input-files")
-        .attach("files", metadataBuffer)
-        .then((res) => {
-          assertAddressAndChainMissing(
-            res,
-            ["project:/contracts/Storage.sol"],
-            {}
-          );
-          done();
-        });
+      const agent = chai.request.agent(server.app);
+      agent.post("/session/clear").then((res) => {
+        agent
+          .post("/session/input-files")
+          .attach("files", metadataBuffer)
+          .then((res) => {
+            assertAddressAndChainMissing(
+              res,
+              ["project:/contracts/Storage.sol"],
+              {}
+            );
+            done();
+          });
+      });
     });
 
     it("should verify after fetching and then providing address+chainId", (done) => {
