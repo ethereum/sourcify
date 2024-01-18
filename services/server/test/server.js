@@ -1212,8 +1212,8 @@ describe("Server", function () {
     });
 
     it("should fetch missing sources", (done) => {
-      const agent = chai.request.agent(server.app);
-      agent
+      chai
+        .request(server.app)
         .post("/session/input-files")
         .attach("files", metadataBuffer)
         .then((res) => {
