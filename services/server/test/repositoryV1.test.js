@@ -2,11 +2,11 @@ const { expect } = require("chai");
 const { StorageService } = require("../dist/server/services/StorageService");
 const config = require("config");
 
-describe("StorageService", () => {
+describe("RepositoryV1", () => {
   const instance = new StorageService({
     repositoryV1ServiceOptions: {
       ipfsApi: process.env.IPFS_API,
-      repositoryPath: "./dist/data/mock-repository",
+      repositoryPath: "./dist/data/mock-repositoryV1",
       repositoryServerUrl: config.get("repositoryV1.serverUrl"),
     },
   });
