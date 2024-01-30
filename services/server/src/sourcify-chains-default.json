@@ -640,7 +640,7 @@
   },
   "356256156": {
     "sourcifyName": "Gather Testnet",
-    "supported": true,
+    "supported": false,
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://testnet-explorer.gather.network/"
