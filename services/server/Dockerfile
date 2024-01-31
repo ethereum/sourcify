@@ -8,6 +8,7 @@ WORKDIR /home/app
 
 COPY  . .
 
+# Install server's dependencies and build the server
 RUN npm ci --workspace=sourcify-server --include-workspace-root
 RUN npx lerna run build --scope sourcify-server
 
@@ -18,11 +19,16 @@ FROM node:16.17.0-bullseye-slim as production
 
 RUN mkdir -p /home/app/services/server
 
-WORKDIR /home/app/services/server
-COPY services/server/package.json ./package.json
+WORKDIR /home/app/
+COPY package.json ./package.json
+COPY package-lock.json ./package-lock.json
+COPY lerna.json ./lerna.json
+COPY nx.json ./nx.json
 
-RUN npm install --omit=dev 
-COPY --from=builder /home/app/services/server/dist ./dist
+COPY --from=builder /home/app/packages/ ./packages/
+COPY --from=builder /home/app/services/server/ ./services/server/
+
+RUN npm ci --workspace=sourcify-server --include-workspace-root --omit=dev
 
 LABEL org.opencontainers.image.source https://github.com/ethereum/sourcify
 LABEL org.opencontainers.image.licenses MIT
@@ -33,4 +39,5 @@ ARG NODE_ENV=production
 # Set environment variable
 ENV NODE_ENV=${NODE_ENV}
 
+WORKDIR /home/app/services/server
 CMD ["npm", "start"]
