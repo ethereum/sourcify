@@ -909,6 +909,15 @@
       }
     }
   },
+  "957": {
+    "sourcifyName": "Lyra Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://explorer.lyra.finance/"
+      }
+    }
+  },
   "84531": {
     "sourcifyName": "Base Goerli Testnet",
     "supported": true,
