@@ -195,7 +195,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
           {importMethodSelected === ImportMethods.CONTRACT && (
             <div className="mt-4">
               <p className="">
-                Import from contract's metadata (files should be avaiable on
+                Import from contract's metadata (files should be available on
                 IPFS)
               </p>
               <div className="mt-1">
