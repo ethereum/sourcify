@@ -49,7 +49,12 @@ export class StorageService {
         options.repositoryV2ServiceOptions
       );
     }
-    if (options.sourcifyDatabaseServiceOptions?.postgres) {
+    if (
+      options.sourcifyDatabaseServiceOptions?.postgres?.host &&
+      options.sourcifyDatabaseServiceOptions?.postgres?.database &&
+      options.sourcifyDatabaseServiceOptions?.postgres?.user &&
+      options.sourcifyDatabaseServiceOptions?.postgres?.password
+    ) {
       this.sourcifyDatabase = new SourcifyDatabaseService(
         options.sourcifyDatabaseServiceOptions
       );
@@ -108,28 +113,54 @@ export class StorageService {
     );
   }
 
-  storeMatch(contract: CheckedContract, match: Match) {
+  async storeMatch(contract: CheckedContract, match: Match) {
     logger.info(
       `Storing ${contract.name} address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
     );
-    this.allianceDatabase
-      ?.storeMatch(contract, match)
-      .catch((e) =>
-        logger.warn("Error while storing on the AllianceDatabase: ", e)
-      );
 
-    this.sourcifyDatabase
-      ?.storeMatch(contract, match)
-      .catch((e) =>
-        logger.error("Error while storing on the SourcifyDatabase: ", e)
-      );
+    // Initialize an array to hold active service promises
+    const promises = [];
 
-    this.repositoryV2
-      ?.storeMatch(contract, match)
-      .catch((e) =>
-        logger.error("Error while storing on the RepositoryV2: ", e)
+    // Conditionally push promises to the array based on service availability
+    if (this.allianceDatabase) {
+      promises.push(
+        this.allianceDatabase
+          .storeMatch(contract, match)
+          .catch((e) =>
+            logger.warn("Error while storing on the AllianceDatabase: ", e)
+          )
       );
+    }
 
-    return this.repositoryV1.storeMatch(contract, match);
+    if (this.sourcifyDatabase) {
+      promises.push(
+        this.sourcifyDatabase
+          .storeMatch(contract, match)
+          .catch((e) =>
+            logger.error("Error while storing on the SourcifyDatabase: ", e)
+          )
+      );
+    }
+
+    if (this.repositoryV2) {
+      promises.push(
+        this.repositoryV2
+          .storeMatch(contract, match)
+          .catch((e) =>
+            logger.error("Error while storing on the RepositoryV2: ", e)
+          )
+      );
+    }
+
+    // Always include repositoryV1
+    promises.push(
+      this.repositoryV1.storeMatch(contract, match).catch((e) => {
+        logger.error("Error while storing on the RepositoryV1: ", e);
+        // For repositoryV1 we throw
+        throw e;
+      })
+    );
+
+    return await Promise.all(promises);
   }
 }

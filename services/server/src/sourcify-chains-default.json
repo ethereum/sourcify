@@ -640,7 +640,7 @@
   },
   "356256156": {
     "sourcifyName": "Gather Testnet",
-    "supported": true,
+    "supported": false,
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://testnet-explorer.gather.network/"
@@ -906,6 +906,15 @@
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://brnkscan.bearnetwork.net/"
+      }
+    }
+  },
+  "957": {
+    "sourcifyName": "Lyra Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://explorer.lyra.finance/"
       }
     }
   },
