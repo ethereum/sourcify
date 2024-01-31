@@ -108,7 +108,7 @@ const Verifier: React.FC = () => {
       let filePath = file.path;
       // remove absolute path
       if (file.path.startsWith("/")) filePath = file.path.substring(1);
-      // If a zip, send a seperate request, since there's already no file path
+      // If a zip, send a separate request, since there's already no file path
       if (
         file.type === "application/zip" ||
         file.type === "application/x-zip-compressed"
