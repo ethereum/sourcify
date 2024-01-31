@@ -21,6 +21,13 @@ const rimraf = require("rimraf");
 const path = require("path");
 const config = require("config");
 
+const { StorageService } = require("../dist/server/services/StorageService");
+const {
+  createCheckedContract,
+} = require("../dist/server/controllers/verification/verification.common");
+const _checkedContract = require("./testcontracts/Database/CheckedContract.json");
+const match = require("./testcontracts/Database/Match.json");
+
 const MAX_FILE_SIZE = config.get("server.maxFileSize");
 const MAX_SESSION_SIZE =
   require("../dist/server/controllers/verification/verification.common").MAX_SESSION_SIZE;
@@ -1966,6 +1973,54 @@ describe("Server", function () {
         .equals(
           "0x15c5208cacbc1e14d9906926b8a991ec986a442f26081fe5ac9de4eb671c5195"
         );
+    });
+  });
+
+  describe("Database", function () {
+    this.timeout(20000);
+    const storageService = new StorageService({
+      repositoryV1ServiceOptions: {
+        ipfsApi: process.env.IPFS_API,
+        repositoryPath: "./dist/data/mock-repositoryV1",
+        repositoryServerUrl: config.get("repositoryV1.serverUrl"),
+      },
+      sourcifyDatabaseServiceOptions: {
+        postgres: {
+          host: "localhost",
+          database: "sourcify",
+          user: "sourcify",
+          password: "sourcify",
+          port: process.env.DOCKER_HOST_POSTGRES_TEST_PORT || 5431,
+        },
+      },
+    });
+
+    it.only("storeMatch", async () => {
+      // Prepare the CheckedContract
+      const checkedContract = createCheckedContract(
+        _checkedContract.metadata,
+        _checkedContract.solidity,
+        _checkedContract.missing,
+        _checkedContract.invalid
+      );
+      checkedContract.creationBytecode = _checkedContract.creationBytecode;
+      checkedContract.runtimeBytecode = _checkedContract.runtimeBytecode;
+      checkedContract.compilerOutput = _checkedContract.compilerOutput;
+      checkedContract.creationBytecodeCborAuxdata =
+        _checkedContract.creationBytecodeCborAuxdata;
+      checkedContract.runtimeBytecodeCborAuxdata =
+        _checkedContract.runtimeBytecodeCborAuxdata;
+
+      // Call storeMatch
+      await storageService.storeMatch(checkedContract, match);
+
+      const res = await storageService.sourcifyDatabase.databasePool.query(
+        "SELECT * FROM sourcify_matches"
+      );
+
+      if (res.rowCount === 1) {
+        chai.expect(res.rows[0].creation_match).to.equal("partial");
+      }
     });
   });
 });
