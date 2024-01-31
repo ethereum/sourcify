@@ -49,7 +49,12 @@ export class StorageService {
         options.repositoryV2ServiceOptions
       );
     }
-    if (options.sourcifyDatabaseServiceOptions?.postgres) {
+    if (
+      options.sourcifyDatabaseServiceOptions?.postgres?.host &&
+      options.sourcifyDatabaseServiceOptions?.postgres?.database &&
+      options.sourcifyDatabaseServiceOptions?.postgres?.user &&
+      options.sourcifyDatabaseServiceOptions?.postgres?.password
+    ) {
       this.sourcifyDatabase = new SourcifyDatabaseService(
         options.sourcifyDatabaseServiceOptions
       );
