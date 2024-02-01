@@ -354,5 +354,17 @@
       "type": "standard-json",
       "expectedStatus": "perfect"
     }
+  ],
+  "1101": [
+    {
+      "address": "0xe10Add2ad591A7AC3CA46788a06290De017b9fB4",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0xbcDd6935D5B849D564a39fD776860e17eDAECf3E",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
   ]
 }

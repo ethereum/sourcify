@@ -1337,5 +1337,16 @@
     "fetchContractCreationTxUsing": {
       "avalancheApi": true
     }
+  },
+  "1101": {
+    "sourcifyName": "Polygon zkEVM",
+    "supported": true,
+    "etherscanApi": {
+      "apiURL": "https://api-zkevm.polygonscan.com",
+      "apiKeyEnvName": "ZKEVM_POLYGONSCAN_API_KEY"
+    },
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true
+    }
   }
 }
