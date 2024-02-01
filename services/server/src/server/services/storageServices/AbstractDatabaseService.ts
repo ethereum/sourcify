@@ -173,12 +173,13 @@ export default abstract class AbstractDatabaseService {
       );
 
       // add the onchain contract in contract_deployments
-      await Database.insertContractDeployment(this.databasePool, {
-        chain_id: match.chainId,
-        address: match.address,
-        transaction_hash: match.creatorTxHash!,
-        contract_id: contractInsertResult.rows[0].id,
-      });
+      const contractDeploymentInsertResult =
+        await Database.insertContractDeployment(this.databasePool, {
+          chain_id: match.chainId,
+          address: match.address,
+          transaction_hash: match.creatorTxHash!,
+          contract_id: contractInsertResult.rows[0].id,
+        });
 
       // insert new recompiled contract
       const compiledContractsInsertResult =
@@ -205,7 +206,7 @@ export default abstract class AbstractDatabaseService {
       const verifiedContractInsertResult =
         await Database.insertVerifiedContract(this.databasePool, {
           compilation_id: compiledContractsInsertResult.rows[0].id,
-          contract_id: contractInsertResult.rows[0].id,
+          deployment_id: contractDeploymentInsertResult.rows[0].id,
           creation_transformations:
             databaseColumns.verifiedContract.creation_transformations,
           creation_transformation_values:
@@ -323,7 +324,7 @@ export default abstract class AbstractDatabaseService {
       const verifiedContractInsertResult =
         await Database.insertVerifiedContract(this.databasePool, {
           compilation_id: compiledContractsInsertResult.rows[0].id,
-          contract_id: existingVerifiedContractResult[0].contract_id,
+          deployment_id: existingVerifiedContractResult[0].deployment_id,
           creation_transformations:
             databaseColumns.verifiedContract.creation_transformations,
           creation_transformation_values:

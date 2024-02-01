@@ -214,12 +214,12 @@ exports.up = function (db, callback) {
             mapping: "id",
           },
         },
-        contract_id: {
+        deployment_id: {
           type: "uuid",
           notNull: true,
           foreignKey: {
-            name: "verified_contracts_contract_id_fk",
-            table: "contracts",
+            name: "verified_contracts_deployment_id_fk",
+            table: "contract_deployments",
             rules: {
               onDelete: "RESTRICT",
               onUpdate: "RESTRICT",
@@ -246,8 +246,8 @@ exports.up = function (db, callback) {
       db.addIndex.bind(
         db,
         "verified_contracts",
-        "verified_contracts_contract_id_idx",
-        ["contract_id"]
+        "verified_contracts_deployment_id_idx",
+        ["deployment_id"]
       ),
       db.addIndex.bind(
         db,
@@ -257,7 +257,7 @@ exports.up = function (db, callback) {
       ),
       db.runSql.bind(
         db,
-        "ALTER TABLE verified_contracts ADD CONSTRAINT verified_contracts_pseudo_pkey UNIQUE (compilation_id, contract_id)"
+        "ALTER TABLE verified_contracts ADD CONSTRAINT verified_contracts_pseudo_pkey UNIQUE (compilation_id, deployment_id)"
       ),
       db.createTable.bind(db, "sourcify_matches", {
         id: {
