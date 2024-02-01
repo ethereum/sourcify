@@ -428,7 +428,15 @@ export async function matchWithCreationTx(
     match.message = `Failed to match with creation bytecode: couldn't get the creation bytecode.`;
     return;
   }
+
+  // txIndex is available only in the receipt
+  const txReceipt = await sourcifyChain.getTxReceipt(creatorTxHash);
+  match.txIndex = txReceipt.index;
+
   match.creatorTxHash = creatorTxHash;
+  match.blockNumber = creatorTx.blockNumber;
+  match.deployer = creatorTx.from;
+
   match.onchainCreationBytecode = onchainCreationBytecode;
 
   // Initialize the transformations array if undefined

@@ -179,6 +179,9 @@ export default abstract class AbstractDatabaseService {
           address: match.address,
           transaction_hash: match.creatorTxHash!,
           contract_id: contractInsertResult.rows[0].id,
+          block_number: match.blockNumber,
+          txindex: match.txIndex,
+          deployer: match.deployer,
         });
 
       // insert new recompiled contract
