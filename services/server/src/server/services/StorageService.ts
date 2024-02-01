@@ -61,7 +61,10 @@ export class StorageService {
     }
     if (
       options.allianceDatabaseServiceOptions?.googleCloudSql ||
-      options.allianceDatabaseServiceOptions?.postgres
+      (options.allianceDatabaseServiceOptions?.postgres?.host &&
+        options.allianceDatabaseServiceOptions?.postgres?.database &&
+        options.allianceDatabaseServiceOptions?.postgres?.user &&
+        options.allianceDatabaseServiceOptions?.postgres?.password)
     ) {
       this.allianceDatabase = new AllianceDatabaseService(
         options.allianceDatabaseServiceOptions
