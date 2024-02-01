@@ -1343,7 +1343,7 @@
     "supported": true,
     "etherscanApi": {
       "apiURL": "https://api-zkevm.polygonscan.com/api",
-      "apiKeyEnvName": "ETHERSCAN_API_KEY"
+      "apiKeyEnvName": "POLYGONSCAN_API_KEY"
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
