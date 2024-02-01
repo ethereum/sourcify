@@ -9,7 +9,7 @@
   },
   "test": {
     "driver": "pg",
-    "host": "localhost",
+    "host": "0.0.0.0",
     "user": "sourcify",
     "password": "sourcify",
     "database": "sourcify",
