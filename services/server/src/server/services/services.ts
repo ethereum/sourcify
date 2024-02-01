@@ -24,5 +24,14 @@ export const services = {
         port: parseInt(process.env.SOURCIFY_POSTGRES_PORT || "5432"),
       },
     },
+    allianceDatabaseServiceOptions: {
+      postgres: {
+        host: process.env.ALLIANCE_POSTGRES_HOST as string,
+        database: process.env.ALLIANCE_POSTGRES_DB as string,
+        user: process.env.ALLIANCE_POSTGRES_USER as string,
+        password: process.env.ALLIANCE_POSTGRES_PASSWORD as string,
+        port: parseInt(process.env.ALLIANCE_POSTGRES_PORT || "5432"),
+      },
+    },
   }),
 };

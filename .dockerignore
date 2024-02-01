@@ -6,3 +6,4 @@
 **/.cache
 **/tmp
 **/Dockerfile*
+**/.DS_Store

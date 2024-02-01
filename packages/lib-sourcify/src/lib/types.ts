@@ -249,6 +249,9 @@ export interface Match {
   creationTransformationValues?: TransformationValues;
   onchainRuntimeBytecode?: string;
   onchainCreationBytecode?: string;
+  blockNumber?: number | null;
+  txIndex?: number;
+  deployer?: string;
 }
 
 export type Status =
