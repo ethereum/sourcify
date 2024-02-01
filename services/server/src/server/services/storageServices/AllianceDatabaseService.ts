@@ -6,12 +6,12 @@ import { IStorageService } from "../StorageService";
 import { CheckedContract, Match } from "@ethereum-sourcify/lib-sourcify";
 
 export interface AllianceDatabaseServiceOptions {
-  googleCloudSql: {
+  googleCloudSql?: {
     instanceName: string;
     iamAccount: string;
     database: string;
   };
-  postgres: {
+  postgres?: {
     host: string;
     port: number;
     database: string;
@@ -37,14 +37,14 @@ export class AllianceDatabaseService
 
   constructor(options: AllianceDatabaseServiceOptions) {
     super();
-    this.googleCloudSqlInstanceName = options.googleCloudSql.instanceName;
-    this.googleCloudSqlIamAccount = options.googleCloudSql.iamAccount;
-    this.googleCloudSqlDatabase = options.googleCloudSql.database;
-    this.postgresHost = options.postgres.host;
-    this.postgresPort = options.postgres.port;
-    this.postgresDatabase = options.postgres.database;
-    this.postgresUser = options.postgres.user;
-    this.postgresPassword = options.postgres.password;
+    this.googleCloudSqlInstanceName = options.googleCloudSql?.instanceName;
+    this.googleCloudSqlIamAccount = options.googleCloudSql?.iamAccount;
+    this.googleCloudSqlDatabase = options.googleCloudSql?.database;
+    this.postgresHost = options.postgres?.host;
+    this.postgresPort = options.postgres?.port;
+    this.postgresDatabase = options.postgres?.database;
+    this.postgresUser = options.postgres?.user;
+    this.postgresPassword = options.postgres?.password;
   }
 
   async init(): Promise<boolean> {
@@ -77,7 +77,7 @@ export class AllianceDatabaseService
     } else {
       throw new Error("Alliance Database is disabled");
     }
-    throw new Error("Alliance Database is active");
+    return true;
   }
 
   async storeMatch(contract: CheckedContract, match: Match) {

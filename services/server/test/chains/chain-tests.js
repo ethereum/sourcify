@@ -1206,6 +1206,14 @@ describe("Test Supported Chains", function () {
     "1127469/"
   );
 
+    // Polygon zkEVM Mainnet
+    verifyContract(
+      "0xaa50c265da4552db6e8983317e3b5510727db132",
+      "1101",
+      "Polygon zkEVM",
+      "shared/"
+    );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainIds.length) {

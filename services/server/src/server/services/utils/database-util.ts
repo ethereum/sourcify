@@ -23,6 +23,9 @@ export namespace Tables {
     address: string;
     transaction_hash: string;
     contract_id: string;
+    block_number?: number | null;
+    txindex?: number;
+    deployer?: string;
   }
   export interface CompiledContract {
     compiler: string;
@@ -54,7 +57,7 @@ export namespace Tables {
   }
   export interface VerifiedContract {
     compilation_id: string;
-    contract_id: string;
+    deployment_id: string;
     creation_transformations: Transformation[] | undefined;
     creation_transformation_values: TransformationValues | undefined;
     runtime_transformations: Transformation[] | undefined;
@@ -91,7 +94,8 @@ export async function getVerifiedContractByBytecodeHashes(
       SELECT
         verified_contracts.*
       FROM verified_contracts
-      JOIN contracts ON contracts.id = verified_contracts.contract_id
+      JOIN contract_deployments ON contract_deployments.id = verified_contracts.deployment_id
+      JOIN contracts ON contracts.id = contract_deployments.contract_id
       WHERE 1=1
         AND contracts.runtime_code_hash = $1
         AND contracts.creation_code_hash = $2
@@ -112,9 +116,8 @@ export async function getSourcifyMatchByChainAddress(
         sourcify_matches.*
       FROM sourcify_matches
       JOIN verified_contracts ON verified_contracts.id = sourcify_matches.verified_contract_id
-      JOIN contracts ON contracts.id = verified_contracts.contract_id
       JOIN contract_deployments ON 
-        contract_deployments.contract_id = contracts.id 
+        contract_deployments.id = verified_contracts.deployment_id 
         AND contract_deployments.chain_id = $1 
         AND contract_deployments.address = $2
 ${
@@ -175,12 +178,48 @@ export async function insertContractDeployment(
     address,
     transaction_hash,
     contract_id,
+    block_number,
+    txindex,
+    deployer,
   }: Tables.ContractDeployment
 ) {
-  await pool.query(
-    "INSERT INTO contract_deployments (chain_id, address, transaction_hash, contract_id) VALUES ($1, $2, $3, $4) ON CONFLICT (chain_id, address, transaction_hash) DO NOTHING",
-    [chain_id, address, transaction_hash, contract_id]
+  let contractDeploymentInsertResult = await pool.query(
+    `INSERT INTO 
+      contract_deployments (
+        chain_id,
+        address,
+        transaction_hash,
+        contract_id,
+        block_number,
+        txindex,
+        deployer
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (chain_id, address, transaction_hash) DO NOTHING RETURNING *`,
+    [
+      chain_id,
+      address,
+      transaction_hash,
+      contract_id,
+      block_number,
+      txindex,
+      deployer,
+    ]
   );
+
+  if (contractDeploymentInsertResult.rows.length === 0) {
+    contractDeploymentInsertResult = await pool.query(
+      `
+      SELECT
+        id
+      FROM contract_deployments
+      WHERE 1=1 
+        AND chain_id = $1
+        AND address = $2
+        AND transaction_hash = $3
+      `,
+      [chain_id, address, transaction_hash]
+    );
+  }
+  return contractDeploymentInsertResult;
 }
 
 export async function insertCompiledContract(
@@ -255,7 +294,7 @@ export async function insertVerifiedContract(
   pool: Pool,
   {
     compilation_id,
-    contract_id,
+    deployment_id,
     creation_transformations,
     creation_transformation_values,
     runtime_transformations,
@@ -267,17 +306,17 @@ export async function insertVerifiedContract(
   let verifiedContractsInsertResult = await pool.query(
     `INSERT INTO verified_contracts (
         compilation_id,
-        contract_id,
+        deployment_id,
         creation_transformations,
         creation_values,
         runtime_transformations,
         runtime_values,
         runtime_match,
         creation_match
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (compilation_id, contract_id) DO NOTHING RETURNING *`,
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (compilation_id, deployment_id) DO NOTHING RETURNING *`,
     [
       compilation_id,
-      contract_id,
+      deployment_id,
       JSON.stringify(creation_transformations),
       creation_transformation_values,
       JSON.stringify(runtime_transformations),
@@ -294,9 +333,9 @@ export async function insertVerifiedContract(
         FROM verified_contracts
         WHERE 1=1
           AND compilation_id = $1
-          AND contract_id = $2
+          AND deployment_id = $2
         `,
-      [compilation_id, contract_id]
+      [compilation_id, deployment_id]
     );
   }
   return verifiedContractsInsertResult;
@@ -306,7 +345,7 @@ export async function updateVerifiedContract(
   pool: Pool,
   {
     compilation_id,
-    contract_id,
+    deployment_id,
     creation_transformations,
     creation_transformation_values,
     runtime_transformations,
@@ -325,11 +364,11 @@ export async function updateVerifiedContract(
         runtime_values = $6,
         runtime_match = $7,
         creation_match = $8
-      WHERE compilation_id = $1 AND contract_id = $2
+      WHERE compilation_id = $1 AND deployment_id = $2
     `,
     [
       compilation_id,
-      contract_id,
+      deployment_id,
       creation_transformations,
       creation_transformation_values,
       runtime_transformations,

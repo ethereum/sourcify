@@ -100,7 +100,20 @@ export const processRequestFromEtherscan = async (
   logger.debug(
     `Fetched from Etherscan secretUrl=${secretUrl} chainId=${sourcifyChain.chainId} address=${address}`
   );
+
+  if (!response.ok) {
+    logger.info(
+      `Etherscan API error secretUrl=${secretUrl} chainId=${
+        sourcifyChain.chainId
+      } address=${address} response=${JSON.stringify(response)}`
+    );
+    throw new BadRequestError(
+      "Error in Etherscan API response. Status code: " + response.status
+    );
+  }
+
   const resultJson = await response.json();
+
   if (
     resultJson.message === "NOTOK" &&
     resultJson.result.includes("Max rate limit reached")

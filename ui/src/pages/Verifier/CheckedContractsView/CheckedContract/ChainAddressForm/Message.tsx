@@ -77,7 +77,7 @@ const Message = ({
     customStatus === "perfect" ? "text-green-500" : "text-partialMatch-500";
   const darkTextColor =
     customStatus === "perfect" ? "text-green-700" : "text-partialMatch-700";
-  // Show success after successfull verification
+  // Show success after successful verification
   if (chain && (customStatus === "perfect" || customStatus === "partial")) {
     return (
       <div
