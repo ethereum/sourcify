@@ -77,7 +77,7 @@ export class AllianceDatabaseService
     } else {
       throw new Error("Alliance Database is disabled");
     }
-    throw new Error("Alliance Database is active");
+    return true;
   }
 
   async storeMatch(contract: CheckedContract, match: Match) {

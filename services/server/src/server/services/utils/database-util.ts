@@ -23,6 +23,9 @@ export namespace Tables {
     address: string;
     transaction_hash: string;
     contract_id: string;
+    block_number?: number | null;
+    txindex?: number;
+    deployer?: string;
   }
   export interface CompiledContract {
     compiler: string;
@@ -175,11 +178,31 @@ export async function insertContractDeployment(
     address,
     transaction_hash,
     contract_id,
+    block_number,
+    txindex,
+    deployer,
   }: Tables.ContractDeployment
 ) {
   let contractDeploymentInsertResult = await pool.query(
-    "INSERT INTO contract_deployments (chain_id, address, transaction_hash, contract_id) VALUES ($1, $2, $3, $4) ON CONFLICT (chain_id, address, transaction_hash) DO NOTHING RETURNING *",
-    [chain_id, address, transaction_hash, contract_id]
+    `INSERT INTO 
+      contract_deployments (
+        chain_id,
+        address,
+        transaction_hash,
+        contract_id,
+        block_number,
+        txindex,
+        deployer
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (chain_id, address, transaction_hash) DO NOTHING RETURNING *`,
+    [
+      chain_id,
+      address,
+      transaction_hash,
+      contract_id,
+      block_number,
+      txindex,
+      deployer,
+    ]
   );
 
   if (contractDeploymentInsertResult.rows.length === 0) {
