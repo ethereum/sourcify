@@ -8,5 +8,4 @@ services:
       POSTGRES_USER: "sourcify"
       POSTGRES_PASSWORD: "sourcify"
     ports:
-      - 5431:5432
-    # - ${DOCKER_HOST_POSTGRES_TEST_PORT}:5432
+      - ${DOCKER_HOST_POSTGRES_TEST_PORT}:5432
