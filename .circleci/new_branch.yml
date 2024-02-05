@@ -19,8 +19,6 @@ jobs:
           POSTGRES_DB: postgres
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-        ports:
-          - 5431:5432
 
     working_directory: ~/sourcify
     parameters:
