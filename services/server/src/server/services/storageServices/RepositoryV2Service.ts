@@ -177,7 +177,7 @@ export class RepositoryV2Service implements IStorageService {
       }
 
       logger.info(
-        `Stored ${contract.name} to filesystem address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
+        `Stored ${contract.name} to RepositoryV2 address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
       );
     } else if (match.runtimeMatch === "extra-file-input-bug") {
       return match;

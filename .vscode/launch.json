@@ -20,7 +20,7 @@
       },
       "smartStep": true,
       "console": "integratedTerminal",
-      "outputCapture": "std",
+      "outputCapture": "std"
     },
     {
       "type": "node",
@@ -37,7 +37,7 @@
       },
       "smartStep": true,
       "console": "integratedTerminal",
-      "outputCapture": "std",
+      "outputCapture": "std"
     },
     {
       "type": "node",
@@ -46,7 +46,7 @@
       "remoteRoot": "/home/app",
       "localRoot": "${workspaceFolder}",
       "port": 9229,
-      "address": "localhost",
+      "address": "localhost"
     },
     {
       // Make sure the UI webserver is already running with `npm start`
@@ -54,7 +54,7 @@
       "type": "chrome",
       "request": "launch",
       "url": "http://localhost:3000",
-      "webRoot": "${workspaceRoot}/ui/src",
+      "webRoot": "${workspaceRoot}/ui/src"
     },
     {
       "type": "node",
@@ -62,9 +62,7 @@
       "name": "Monitor",
       "cwd": "${workspaceFolder}/services/monitor",
       "program": "dist/index.js",
-      "args": [
-        "--chainsPath=chains-dev.json",
-      ],
+      "args": ["--chainsPath=chains-dev.json"],
       "envFile": ".env",
       "preLaunchTask": "npm: build",
       "outFiles": [
@@ -81,9 +79,7 @@
       "name": "Monitor - without build",
       "cwd": "${workspaceFolder}/services/monitor",
       "program": "dist/index.js",
-      "args": [
-        "--chainsPath=chains-dev.json",
-      ],
+      "args": ["--chainsPath=chains-dev.json"],
       "envFile": ".env",
       "outFiles": [
         "${workspaceFolder}/services/monitor/dist/**/*.js",
@@ -101,19 +97,21 @@
       "env": {
         // "DEBUG": "express:*", // Debug all express modules *
       },
+      "preLaunchTask": "database-test:up",
+      "postDebugTask": "database-test:down",
       "args": [
         "${workspaceFolder}/services/server/test/server.js",
         "--no-timeout",
         // Run a single test when debugging
         // "--grep=v0.6.12",
-        "--exit",
+        "--exit"
       ],
       "outFiles": [
         "${workspaceFolder}/services/server/dist/**/*.js",
-        "${workspaceFolder}/packages/**/build/**/*.js",
+        "${workspaceFolder}/packages/**/build/**/*.js"
       ],
       "smartStep": true,
-      "console": "integratedTerminal",
+      "console": "integratedTerminal"
       // "internalConsoleOptions": "neverOpen"
     },
     {
@@ -129,14 +127,14 @@
         "--no-timeout",
         // Run a single test when debugging
         // "--grep=v0.6.12",
-        "--exit",
+        "--exit"
       ],
       "outFiles": [
         "${workspaceFolder}/services/server/dist/**/*.js",
-        "${workspaceFolder}/packages/**/build/**/*.js",
+        "${workspaceFolder}/packages/**/build/**/*.js"
       ],
       "smartStep": true,
-      "console": "integratedTerminal",
+      "console": "integratedTerminal"
       // "internalConsoleOptions": "neverOpen"
     },
     {
@@ -152,14 +150,14 @@
         "--no-timeout",
         // Run a single test when debugging
         // "--grep=v0.6.12",
-        "--exit",
+        "--exit"
       ],
       "outFiles": [
         "${workspaceFolder}/services/server/dist/**/*.js",
-        "${workspaceFolder}/packages/**/build/**/*.js",
+        "${workspaceFolder}/packages/**/build/**/*.js"
       ],
       "smartStep": true,
-      "console": "integratedTerminal",
+      "console": "integratedTerminal"
       // "internalConsoleOptions": "neverOpen"
     },
     {
@@ -175,11 +173,11 @@
         "--no-timeout",
         // Run a single test when debugging
         // "--grep=v0.6.12",
-        "--exit",
+        "--exit"
       ],
       "sourceMaps": true,
       "smartStep": true,
-      "console": "integratedTerminal",
+      "console": "integratedTerminal"
       // "internalConsoleOptions": "neverOpen"
     },
     {
@@ -188,14 +186,13 @@
       "name": "Mocha - Contract Call Decoder",
       "cwd": "${workspaceFolder}/packages/contract-call-decoder",
       "program": "./node_modules/ava/cli.js",
-      "args": [
-      ],
+      "args": [],
       "outFiles": [
         "./**/*.js",
         "${workspaceFolder}/packages/contract-call-decoder/build/**/*.js"
       ],
       "smartStep": true,
-      "console": "integratedTerminal",
+      "console": "integratedTerminal"
       // "internalConsoleOptions": "neverOpen"
     },
     {
@@ -209,11 +206,11 @@
         "--no-timeout",
         // Run a single test when debugging
         // "--grep=v0.6.12",
-        "--exit",
+        "--exit"
       ],
       "sourceMaps": true,
       "smartStep": true,
-      "console": "integratedTerminal",
+      "console": "integratedTerminal"
       // "internalConsoleOptions": "neverOpen"
     },
     {
@@ -230,7 +227,7 @@
         "--no-timeout",
         // Run a single test when debugging
         // "--grep=Optimism",
-        "--exit",
+        "--exit"
       ],
       "outFiles": [
         "${workspaceFolder}/services/server/dist/**/*.js",
@@ -250,7 +247,7 @@
         "--no-timeout",
         // Run a single test when debugging
         // "--grep=fallback",
-        "--exit",
+        "--exit"
       ],
       "outFiles": [
         "${workspaceFolder}/dist/**/*.js",
@@ -259,6 +256,6 @@
       "smartStep": true,
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
-    },
+    }
   ]
 }

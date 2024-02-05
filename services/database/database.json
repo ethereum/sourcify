@@ -6,5 +6,13 @@
     "password": { "ENV": "POSTGRES_PASSWORD" },
     "database": { "ENV": "POSTGRES_DB" },
     "port": { "ENV": "POSTGRES_PORT" }
+  },
+  "test": {
+    "driver": "pg",
+    "host": "0.0.0.0",
+    "user": "sourcify",
+    "password": "sourcify",
+    "database": "sourcify",
+    "port": { "ENV": "DOCKER_HOST_POSTGRES_TEST_PORT" }
   }
 }
