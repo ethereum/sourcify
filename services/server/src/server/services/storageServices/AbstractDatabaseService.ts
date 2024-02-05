@@ -187,7 +187,7 @@ export default abstract class AbstractDatabaseService {
       // insert new recompiled contract
       const compiledContractsInsertResult =
         await Database.insertCompiledContract(this.databasePool, {
-          compiler: recompiledContract.compiledPath,
+          compiler: "solc",
           version: recompiledContract.compilerVersion,
           language: databaseColumns.compiledContract.language!,
           name: recompiledContract.name,
