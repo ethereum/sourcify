@@ -16,9 +16,9 @@ jobs:
       - image: cimg/node:16.15
       - image: postgres:16-alpine
         environment:
-          POSTGRES_DB: postgres
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: sourcify
+          POSTGRES_USER: sourcify
+          POSTGRES_PASSWORD: sourcify
 
     working_directory: ~/sourcify
     parameters:
