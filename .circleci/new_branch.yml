@@ -26,7 +26,6 @@ jobs:
         type: boolean
         default: false
     steps:
-      - setup_remote_docker
       - run:
           name: Versions
           command: npm version
