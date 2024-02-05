@@ -109,12 +109,18 @@ export class SourcifyDatabaseService
         creation_match: match.creationMatch,
         runtime_match: match.runtimeMatch,
       });
+      logger.info(
+        `Stored ${recompiledContract.name} to SourcifyDatabase address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
+      );
     } else if (type === "update") {
       await Database.updateSourcifyMatch(this.databasePool, {
         verified_contract_id: verifiedContractId,
         creation_match: match.creationMatch,
         runtime_match: match.runtimeMatch,
       });
+      logger.info(
+        `Updated ${recompiledContract.name} to SourcifyDatabase address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
+      );
     } else {
       throw new Error();
     }
