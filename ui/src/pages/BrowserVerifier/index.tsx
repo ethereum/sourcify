@@ -7,8 +7,8 @@ import debug from "debug";
 const log = debug("BrowserVerifier");
 log.enabled = !process.env.NODE_ENV || process.env.NODE_ENV !== "production";
 
-const SOLC_BIN_URL = "https://solc-bin.ethereum.org/bin";
-const CompilerWorker = new Worker(
+const SOLC_BIN_URL = "https://binaries.soliditylang.org/bin";
+let CompilerWorker = new Worker(
   new URL("./browserCompilerWorker", import.meta.url)
 );
 
@@ -43,6 +43,10 @@ const BrowserVerifier: React.FC = () => {
   };
 
   const handleCompilerSelect = async (e: any) => {
+    CompilerWorker.terminate();
+    CompilerWorker = new Worker(
+      new URL("./browserCompilerWorker", import.meta.url)
+    );
     setSelectedCompiler(e.target.value);
     if (e.target.value) {
       log(`Compiler selected: ${e.target.value}`);
@@ -57,9 +61,13 @@ const BrowserVerifier: React.FC = () => {
     });
   };
 
+  const handleCompileFile = async (file: DropzoneFile) => {
+    const text = await file.text();
+    CompilerWorker.postMessage({ type: "compile", text });
+  };
+
   const { getRootProps, getInputProps } = useDropzone({
     onDrop: async (files: DropzoneFile[]) => {
-      alert(files.map((file) => file.name));
       await handleFilesAdded(files);
       setIsLoading(true);
       setAddedFiles(files);
@@ -70,7 +78,13 @@ const BrowserVerifier: React.FC = () => {
   const displayFiles = addedFiles.map((file) => {
     return (
       <li className="mb-1" key={file}>
-        {file.name}
+        <span>{file.name}</span>
+        <button
+          className="bg-ceruleanBlue-500 text-white py-1 px-2 rounded ml-2 hover:bg-ceruleanBlue-700"
+          onClick={() => handleCompileFile(file)}
+        >
+          Compile
+        </button>
       </li>
     );
   });
@@ -107,6 +121,22 @@ const BrowserVerifier: React.FC = () => {
                 </option>
               ))}
             </select>
+          </div>
+          <div>
+            <h2>Files</h2>
+            <div>
+              {displayFiles.length && (
+                <div>
+                  <h2 className="font-bold text-lg">
+                    Added Files{" "}
+                    <span className="font-normal">({displayFiles.length})</span>
+                  </h2>
+                  <ul className="flex flex-col break-all list-outside ml-4 list-disc">
+                    {displayFiles}
+                  </ul>
+                </div>
+              )}
+            </div>
           </div>
 
           <div
