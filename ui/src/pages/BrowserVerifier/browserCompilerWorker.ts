@@ -16,6 +16,12 @@ interface LoadCompilerMessage extends CompilerMessage {
   url: string;
 }
 
+interface CompileCompilerMessage extends CompilerMessage {
+  text: string;
+}
+
+let compiler: any;
+
 self.onmessage = (e: WorkerMessageEvent) => {
   log(`Received message from main thread: ${e.data.type}`);
   switch (e.data.type) {
@@ -23,10 +29,23 @@ self.onmessage = (e: WorkerMessageEvent) => {
       const data = e.data as LoadCompilerMessage;
       log("Loading compiler from ", data.url);
       self.importScripts(data.url);
-      const compiler = wrapper(self);
-      log(`Solc version: ${compiler.version()}`);
+      log("importScripts done");
+      compiler = wrapper((self as any).Module);
+      log("Compiler loaded");
 
       self.postMessage({ type: "compilerLoaded" });
+      break;
+    }
+    case "compile": {
+      if (!compiler) {
+        console.error("Compiler not loaded");
+        return;
+      }
+      const data = e.data as CompileCompilerMessage;
+      log("Compiling: ", data.text);
+      const result = compiler.compile(data.text);
+      log("Compilation result: ", result);
+      self.postMessage({ type: "compilationResult", result });
       break;
     }
     default: {

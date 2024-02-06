@@ -8,7 +8,7 @@ module.exports = {
         https: require.resolve("https-browserify"),
         stream: require.resolve("stream-browserify"),
         url: false,
-        assert: false,
+        assert: require.resolve("assert"),
         util: require.resolve("util"),
       };
       return webpackConfig;
