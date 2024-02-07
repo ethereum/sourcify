@@ -1208,6 +1208,22 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // Scroll
+  verifyContract(
+    "0x9d9a1679d4F2740A573A83014c0C9754DaB92cD3",
+    "534352",
+    "Scroll Mainnet",
+    "534352/"
+  );
+
+  // Scroll Sepolia Testnet
+  verifyContract(
+    "0x7ecedB5ca848e695ee8aB33cce9Ad1E1fe7865F8",
+    "534351",
+    "Scroll Sepolia Testnet",
+    "shared/"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainIds.length) {

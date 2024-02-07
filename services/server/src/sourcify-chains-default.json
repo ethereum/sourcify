@@ -1348,5 +1348,27 @@
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
     }
+  },
+  "534352": {
+    "sourcifyName": "Scroll Mainnet",
+    "supported": true,
+    "etherscanApi": {
+      "apiURL": "https://api.scrollscan.com",
+      "apiKeyEnvName": "SCROLLSCAN_API_KEY"
+    },
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true
+    }
+  },
+  "534351": {
+    "sourcifyName": "Scroll Sepolia Testnet",
+    "supported": true,
+    "etherscanApi": {
+      "apiURL": "https://api-sepolia.scrollscan.com/",
+      "apiKeyEnvName": "SCROLLSCAN_API_KEY"
+    },
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true
+    }
   }
 }
