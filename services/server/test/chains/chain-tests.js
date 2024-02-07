@@ -1224,6 +1224,14 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // ZetaChain Mainnet
+  verifyContract(
+    "0x4d5f06cC2A7d3a625C95D04Cfaec5AEb5eCfA33D",
+    "7000",
+    "ZetaChain Mainnet",
+    "shared/"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainIds.length) {

@@ -1380,5 +1380,14 @@
         "url": "https://sepolia-blockscout.scroll.io"
       }
     }
+  },
+  "7000": {
+    "sourcifyName": "ZetaChain Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://zetachain.blockscout.com/"
+      }
+    }
   }
 }
