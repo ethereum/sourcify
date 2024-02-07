@@ -1380,5 +1380,16 @@
         "url": "https://sepolia-blockscout.scroll.io"
       }
     }
+  },
+  "1030": {
+    "sourcifyName": "Conflux eSpace",
+    "supported": true,
+    "etherscanApi": {
+      "apiURL": "https://evmapi.confluxscan.net",
+      "apiKeyEnvName": "CONFLUXSCAN_API_KEY"
+    },
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true
+    }
   }
 }

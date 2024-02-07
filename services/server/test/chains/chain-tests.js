@@ -1224,6 +1224,14 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // Conflux eSpace
+  verifyContract(
+    "0x4d5f06cc2a7d3a625c95d04cfaec5aeb5ecfa33d",
+    "1030",
+    "Conflux eSpace",
+    "shared/"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainIds.length) {
