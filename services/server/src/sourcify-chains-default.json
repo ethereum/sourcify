@@ -1380,5 +1380,23 @@
         "url": "https://sepolia-blockscout.scroll.io"
       }
     }
+  },
+  "34443": {
+    "sourcifyName": "Mode",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutScrape": {
+        "url": "https://explorer.mode.network/"
+      }
+    }
+  },
+  "919": {
+    "sourcifyName": "Mode Testnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://sepolia.explorer.mode.network/"
+      }
+    }
   }
 }

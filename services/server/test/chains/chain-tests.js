@@ -1224,6 +1224,22 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // Mode Testnet
+  verifyContract(
+    "0x4d5f06cC2A7d3a625C95D04Cfaec5AEb5eCfA33D",
+    "919",
+    "Mode Testnet",
+    "shared/"
+  );
+
+  // Mode
+  verifyContract(
+    "0x4d5f06cC2A7d3a625C95D04Cfaec5AEb5eCfA33D",
+    "34443",
+    "Mode",
+    "shared/"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainIds.length) {
