@@ -1224,6 +1224,22 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // Lightlink Pegasus Testnet
+  verifyContract(
+    "0x948a02ABB83ED54D8908F6725d2a9cEE6B6B582a",
+    "1891",
+    "Lightlink Pegasus Testnet",
+    "shared/"
+  );
+
+  // Lightlink Phoenix Mainnet
+  verifyContract(
+    "0x948a02ABB83ED54D8908F6725d2a9cEE6B6B582a",
+    "1890",
+    "Lightlink Phoenix Mainnet",
+    "shared/"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainIds.length) {

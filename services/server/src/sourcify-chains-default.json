@@ -1380,5 +1380,23 @@
         "url": "https://sepolia-blockscout.scroll.io"
       }
     }
+  },
+  "1890": {
+    "sourcifyName": "Lightlink Phoenix Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://phoenix.lightlink.io/"
+      }
+    }
+  },
+  "1891": {
+    "sourcifyName": "Lightlink Pegasus Testnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://pegasus.lightlink.io/"
+      }
+    }
   }
 }
