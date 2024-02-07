@@ -1380,5 +1380,15 @@
         "url": "https://sepolia-blockscout.scroll.io"
       }
     }
+  },
+  "42766": {
+    "sourcifyName": "ZKFair Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true,
+      "blockscoutApi": {
+        "url": "https://scan.zkfair.io/"
+      }
+    }
   }
 }

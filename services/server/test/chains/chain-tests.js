@@ -1224,6 +1224,14 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // ZKFair Mainnet
+  verifyContract(
+    "0xc3a9766e07754cC1894E5c0A2459d23A676dDD0D",
+    "42766",
+    "ZKFair Mainnet",
+    "shared/"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainIds.length) {
