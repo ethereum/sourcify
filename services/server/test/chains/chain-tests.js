@@ -50,8 +50,8 @@ describe("Test Supported Chains", function () {
     if (!anyTestsPass && newAddedChainIds.length) {
       throw new Error(
         "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id(s) " +
-          newAddedChainIds.join(",") +
-          "?"
+        newAddedChainIds.join(",") +
+        "?"
       );
     }
   });
@@ -1205,6 +1205,22 @@ describe("Test Supported Chains", function () {
     "0xaa50c265da4552db6e8983317e3b5510727db132",
     "1101",
     "Polygon zkEVM",
+    "shared/"
+  );
+
+  // Scroll Sepolia Testnet
+  verifyContract(
+    "0xce478ef16eb34438463513c48da4f31269fa8b6a",
+    "534351",
+    "Scroll Sepolia Testnet",
+    "shared/"
+  );
+
+  // Scroll
+  verifyContract(
+    "0x1685d11a2EDce8d2C8015f4cB0Cd197839b761f5",
+    "534352",
+    "Scroll",
     "shared/"
   );
 
