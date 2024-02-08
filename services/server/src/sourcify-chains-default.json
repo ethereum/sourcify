@@ -1398,5 +1398,33 @@
         "url": "https://sepolia.explorer.mode.network/"
       }
     }
+  },
+  "255": {
+    "sourcifyName": "Kroma",
+    "supported": true,
+    "etherscanApi": {
+      "apiURL": "https://api.kromascan.com",
+      "apiKeyEnvName": "KROMASCAN_API_KEY"
+    },
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true,
+      "blockscoutApi": {
+        "url": "https://blockscout.kroma.network/"
+      }
+    }
+  },
+  "2358": {
+    "sourcifyName": "Kroma Sepolia",
+    "supported": true,
+    "etherscanApi": {
+      "apiURL": "https://api-sepolia.kromascan.com",
+      "apiKeyEnvName": "KROMASCAN_API_KEY"
+    },
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true,
+      "blockscoutApi": {
+        "url": "https://blockscout.sepolia.kroma.network/"
+      }
+    }
   }
 }
