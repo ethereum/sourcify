@@ -13,27 +13,20 @@ servers:
     description: Staging server
   - url: http://localhost:5555
     description: Local development server address on default port 5555.
+tags:
+  - name: Stateless Verification
+    description: Main verification endpoints
+  - name: Repository
+    description: Access to already verified contracts and files
+  - name: Session Verification
+    description: Used by the Sourcify UI to verify contracts. Not intended for external usage. Will require CORS.
 paths:
-  /session/data:
-    $ref: "server/controllers/verification/session-state/data.session-state.paths.yaml#/paths/~1session~1data"
-  /session/clear:
-    $ref: "server/controllers/verification/session-state/clear.session-state.paths.yaml#/paths/~1session~1clear"
-  /session/input-files:
-    $ref: "server/controllers/verification/session-state/input-files.session-state.paths.yaml#/paths/~1session~1input-files"
-  /session/input-contract:
-    $ref: "server/controllers/verification/session-state/input-contract.session-state.paths.yaml#/paths/~1session~1input-contract"
   /verify:
     $ref: "server/controllers/verification/verify/stateless/verify.stateless.paths.yaml#/paths/~1verify"
-  /session/verify-checked:
-    $ref: "server/controllers/verification/verify/session/verify.session.paths.yaml#/paths/~1session~1verify-checked"
-  /verify/solc-json:
-    $ref: "server/controllers/verification/solc-json/stateless/solc-json.stateless.paths.yaml#/paths/~1verify~1solc-json"
-  /session/input-solc-json:
-    $ref: "server/controllers/verification/solc-json/session/solc-json.session.paths.yaml#/paths/~1session~1input-solc-json"
   /verify/etherscan:
     $ref: "server/controllers/verification/etherscan/stateless/etherscan.stateless.paths.yaml#/paths/~1verify~1etherscan"
-  /session/verify/etherscan:
-    $ref: "server/controllers/verification/etherscan/session/etherscan.session.paths.yaml#/paths/~1session~1verify~1etherscan"
+  /verify/solc-json:
+    $ref: "server/controllers/verification/solc-json/stateless/solc-json.stateless.paths.yaml#/paths/~1verify~1solc-json"
   /check-all-by-addresses:
     $ref: "server/controllers/repository/check-all-by-addresses.stateless.paths.yaml#/paths/~1check-all-by-addresses"
   /check-by-addresses:
@@ -50,8 +43,17 @@ paths:
     $ref: "server/controllers/repository/get-source-files-all.stateless.paths.yaml#/paths/~1files~1any~1{chain}~1{address}"
   /files/{chain}/{address}:
     $ref: "server/controllers/repository/get-source-files-full.stateless.paths.yaml#/paths/~1files~1{chain}~1{address}"
-components:
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
+  /session/data:
+    $ref: "server/controllers/verification/session-state/data.session-state.paths.yaml#/paths/~1session~1data"
+  /session/clear:
+    $ref: "server/controllers/verification/session-state/clear.session-state.paths.yaml#/paths/~1session~1clear"
+  /session/input-files:
+    $ref: "server/controllers/verification/session-state/input-files.session-state.paths.yaml#/paths/~1session~1input-files"
+  /session/input-contract:
+    $ref: "server/controllers/verification/session-state/input-contract.session-state.paths.yaml#/paths/~1session~1input-contract"
+  /session/verify-checked:
+    $ref: "server/controllers/verification/verify/session/verify.session.paths.yaml#/paths/~1session~1verify-checked"
+  /session/input-solc-json:
+    $ref: "server/controllers/verification/solc-json/session/solc-json.session.paths.yaml#/paths/~1session~1input-solc-json"
+  /session/verify/etherscan:
+    $ref: "server/controllers/verification/etherscan/session/etherscan.session.paths.yaml#/paths/~1session~1verify~1etherscan"
