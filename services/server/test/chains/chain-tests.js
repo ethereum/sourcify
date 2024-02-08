@@ -1231,6 +1231,22 @@ describe("Test Supported Chains", function () {
     "ZKFair Mainnet",
     "shared/"
   );
+  
+  // Kroma Sepolia
+  verifyContract(
+    "0x4d5f06cC2A7d3a625C95D04Cfaec5AEb5eCfA33D",
+    "2358",
+    "Kroma Sepolia",
+    "shared/"
+  );
+
+  // Kroma
+  verifyContract(
+    "0x270236c25d28a2cd85ed9a1ef0b31835fb9e4ff6",
+    "255",
+    "Kroma",
+    "shared/"
+  );
 
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
