@@ -1229,6 +1229,8 @@ describe("Test Supported Chains", function () {
     "0x4d5f06cc2a7d3a625c95d04cfaec5aeb5ecfa33d",
     "1030",
     "Conflux eSpace",
+    "shared/"
+  );
 
   // Kroma Sepolia
   verifyContract(
