@@ -107,11 +107,6 @@ export class SourcifyDatabaseService
         `can only store contracts with at least runtimeBytecode or creationBytecode address=${match.address} chainId=${match.chainId}`
       );
     }
-    if (match.creatorTxHash === undefined) {
-      throw new Error(
-        `can only store matches with creatorTxHash address=${match.address} chainId=${match.chainId}`
-      );
-    }
     return true;
   }
 
