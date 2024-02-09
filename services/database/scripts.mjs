@@ -197,7 +197,7 @@ program
           });
       } else {
         // Wait for an active promise to complete
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 200));
       }
     }
     console.log(`Synced ${processedContracts} contracts`);
