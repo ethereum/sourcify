@@ -99,6 +99,7 @@ export class SourcifyDatabaseService
     recompiledContract: CheckedContract,
     match: Match
   ): boolean {
+    // Prevent storing matches only if they don't have both onchainRuntimeBytecode and onchainCreationBytecode
     if (
       match.onchainRuntimeBytecode === undefined &&
       match.onchainCreationBytecode === undefined
