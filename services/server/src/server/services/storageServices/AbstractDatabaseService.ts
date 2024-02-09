@@ -36,15 +36,15 @@ export default abstract class AbstractDatabaseService {
 
   getKeccak256Bytecodes(recompiledContract: CheckedContract, match: Match) {
     return {
-      keccak256OnchainCreationBytecode: keccak256str(
-        match.onchainCreationBytecode!
-      ),
+      keccak256OnchainCreationBytecode: match.onchainCreationBytecode
+        ? keccak256str(match.onchainCreationBytecode)
+        : undefined,
       keccak256OnchainRuntimeBytecode: keccak256str(
         match.onchainRuntimeBytecode!
       ),
-      keccak256RecompiledCreationBytecode: keccak256str(
-        recompiledContract.creationBytecode!
-      ),
+      keccak256RecompiledCreationBytecode: recompiledContract.creationBytecode
+        ? keccak256str(recompiledContract.creationBytecode)
+        : undefined,
       keccak256RecompiledRuntimeBytecode: keccak256str(
         recompiledContract.runtimeBytecode!
       ),
@@ -143,20 +143,24 @@ export default abstract class AbstractDatabaseService {
   ): Promise<string> {
     try {
       // Add recompiled bytecodes
-      await Database.insertCode(this.databasePool, {
-        bytecode_hash: databaseColumns.bytecodeHashes.recompiledCreation,
-        bytecode: recompiledContract.creationBytecode!,
-      });
+      if (databaseColumns.bytecodeHashes.recompiledCreation) {
+        await Database.insertCode(this.databasePool, {
+          bytecode_hash: databaseColumns.bytecodeHashes.recompiledCreation,
+          bytecode: recompiledContract.creationBytecode!,
+        });
+      }
       await Database.insertCode(this.databasePool, {
         bytecode_hash: databaseColumns.bytecodeHashes.recompiledRuntime,
         bytecode: recompiledContract.runtimeBytecode!,
       });
 
       // Add onchain bytecodes
-      await Database.insertCode(this.databasePool, {
-        bytecode_hash: databaseColumns.bytecodeHashes.onchainCreation,
-        bytecode: match.onchainCreationBytecode!,
-      });
+      if (databaseColumns.bytecodeHashes.onchainCreation) {
+        await Database.insertCode(this.databasePool, {
+          bytecode_hash: databaseColumns.bytecodeHashes.onchainCreation,
+          bytecode: match.onchainCreationBytecode!,
+        });
+      }
       await Database.insertCode(this.databasePool, {
         bytecode_hash: databaseColumns.bytecodeHashes.onchainRuntime,
         bytecode: match.onchainRuntimeBytecode!,
@@ -282,10 +286,12 @@ export default abstract class AbstractDatabaseService {
     }
     try {
       // Add recompiled bytecodes
-      await Database.insertCode(this.databasePool, {
-        bytecode_hash: databaseColumns.bytecodeHashes.recompiledCreation,
-        bytecode: recompiledContract.creationBytecode!,
-      });
+      if (databaseColumns.bytecodeHashes.recompiledCreation) {
+        await Database.insertCode(this.databasePool, {
+          bytecode_hash: databaseColumns.bytecodeHashes.recompiledCreation,
+          bytecode: recompiledContract.creationBytecode!,
+        });
+      }
       await Database.insertCode(this.databasePool, {
         bytecode_hash: databaseColumns.bytecodeHashes.recompiledRuntime,
         bytecode: recompiledContract.runtimeBytecode!,
