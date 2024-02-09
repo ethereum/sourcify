@@ -15,7 +15,7 @@ export namespace Tables {
     bytecode: string;
   }
   export interface Contract {
-    creation_bytecode_hash: Hash;
+    creation_bytecode_hash?: Hash;
     runtime_bytecode_hash: Hash;
   }
   export interface ContractDeployment {
@@ -41,7 +41,7 @@ export namespace Tables {
     };
     sources: Object;
     compiler_settings: Object;
-    creation_code_hash: Hash;
+    creation_code_hash?: Hash;
     runtime_code_hash: Hash;
     creation_code_artifacts: {
       sourceMap: string;
@@ -75,9 +75,9 @@ export namespace Tables {
 
 export interface DatabaseColumns {
   bytecodeHashes: {
-    recompiledCreation: Hash;
+    recompiledCreation?: Hash;
     recompiledRuntime: Hash;
-    onchainCreation: Hash;
+    onchainCreation?: Hash;
     onchainRuntime: Hash;
   };
   compiledContract: Partial<Tables.CompiledContract>;
@@ -87,7 +87,7 @@ export interface DatabaseColumns {
 export async function getVerifiedContractByBytecodeHashes(
   pool: Pool,
   runtime_bytecode_hash: Hash,
-  creation_bytecode_hash: Hash
+  creation_bytecode_hash?: Hash
 ) {
   return await pool.query(
     `
@@ -191,7 +191,7 @@ export async function insertContractDeployment(
         transaction_hash,
         contract_id,
         block_number,
-        txindex,
+        transaction_index,
         deployer
       ) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (chain_id, address, transaction_hash) DO NOTHING RETURNING *`,
     [
@@ -389,7 +389,7 @@ export async function insertSourcifyMatch(
         creation_match,
         runtime_match
       ) VALUES ($1, $2, $3)`,
-    [verified_contract_id, runtime_match, creation_match]
+    [verified_contract_id, creation_match, runtime_match]
   );
 }
 
@@ -404,7 +404,7 @@ export async function updateSourcifyMatch(
         creation_match,
         runtime_match
       ) VALUES ($1, $2, $3)`,
-    [verified_contract_id, runtime_match, creation_match]
+    [verified_contract_id, creation_match, runtime_match]
   );
   // Delete previous match?
 }
