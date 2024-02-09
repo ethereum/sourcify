@@ -310,22 +310,27 @@ export class CheckedContract {
         const [, creationAuxdataCbor, creationCborLenghtHex] = splitAuxdata(
           this.creationBytecode
         );
-        const auxdataFromRawCreationBytecode = `${creationAuxdataCbor}${creationCborLenghtHex}`;
-        if (auxdatasFromCompilerOutput[0] !== auxdataFromRawCreationBytecode) {
-          logWarn(
-            `The creation auxdata from raw bytecode differs from the legacyAssembly's auxdata name=${this.name}`
-          );
-          return false;
+        if (creationAuxdataCbor) {
+          const auxdataFromRawCreationBytecode = `${creationAuxdataCbor}${creationCborLenghtHex}`;
+          if (
+            auxdatasFromCompilerOutput[0] === auxdataFromRawCreationBytecode
+          ) {
+            this.creationBytecodeCborAuxdata = {
+              '0': {
+                offset:
+                  this.creationBytecode.length -
+                  (2 + parseInt(creationCborLenghtHex, 16)),
+                value: auxdataFromRawCreationBytecode,
+              },
+            };
+          } else {
+            logWarn(
+              `The creation auxdata from raw bytecode differs from the legacyAssembly's auxdata name=${this.name}`
+            );
+          }
+        } else {
+          logWarn(`Cannot extract the auxdata in the creationBytecode`);
         }
-
-        this.creationBytecodeCborAuxdata = {
-          '0': {
-            offset:
-              this.creationBytecode.length -
-              (2 + parseInt(creationCborLenghtHex, 16)),
-            value: auxdataFromRawCreationBytecode,
-          },
-        };
       }
 
       const [, runtimeAuxdataCbor, runtimeCborLenghtHex] = splitAuxdata(
