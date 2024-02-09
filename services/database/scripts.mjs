@@ -171,7 +171,7 @@ program
     while (true) {
       // Fetch next contract
       let nextContract = await fetchNextContract(databasePool, options);
-      if (!nextContract) break; // Exit loop if no more contracts
+      if (!nextContract && activePromises === 0) break; // Exit loop if no more contracts
       options.startFrom = new Date(nextContract.created_at).getTime();
 
       // Process contract if within activePromises limit
