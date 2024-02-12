@@ -52,7 +52,7 @@ exports.up = function (db, callback) {
       db.runSql.bind(
         db,
         `CREATE TABLE sourcify_sync (
-            id uuid NOT NULL DEFAULT gen_random_uuid(),
+            id BIGSERIAL NOT NULL,
             chain_id numeric NOT NULL,
             address bytea NOT NULL,
             match_type varchar NOT NULL,
