@@ -170,7 +170,8 @@ program
     let processedContracts = 0;
     while (true) {
       // Fetch next contract
-      let nextContract = await fetchNextContract(databasePool, options);
+      let optionsSafe = JSON.parse(JSON.stringify(options));
+      let nextContract = await fetchNextContract(databasePool, optionsSafe);
       if (!nextContract && activePromises === 0) break; // Exit loop if no more contracts
       if (!nextContract) {
         // Wait until all contracts in the queue are processed
