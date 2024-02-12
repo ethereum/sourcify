@@ -1381,6 +1381,24 @@
       }
     }
   },
+  "1890": {
+    "sourcifyName": "Lightlink Phoenix Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://phoenix.lightlink.io/"
+      }
+    }
+  },
+  "1891": {
+    "sourcifyName": "Lightlink Pegasus Testnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://pegasus.lightlink.io/"
+      }
+    }
+  },
   "255": {
     "sourcifyName": "Kroma",
     "supported": true,
