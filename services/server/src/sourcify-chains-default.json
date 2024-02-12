@@ -832,6 +832,15 @@
       }
     }
   },
+  "7000": {
+    "sourcifyName": "ZetaChain: Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutScrape": {
+        "url": "https://zetachain.blockscout.com/"
+      }
+    }
+  },
   "42262": {
     "sourcifyName": "Oasis Emerald Mainnet",
     "supported": true,
