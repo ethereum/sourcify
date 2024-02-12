@@ -169,42 +169,39 @@ program
 
     let processedContracts = 0;
     while (true) {
+      while (activePromises >= limit) {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      }
       // Fetch next contract
       let optionsSafe = JSON.parse(JSON.stringify(options));
       let nextContract = await fetchNextContract(databasePool, optionsSafe);
       if (!nextContract && activePromises === 0) break; // Exit loop if no more contracts
       if (!nextContract) {
-        // Wait until all contracts in the queue are processed
-        await new Promise((resolve) => setTimeout(resolve, 1000));
         continue;
       }
       options.startFrom = nextContract.id;
 
       // Process contract if within activePromises limit
-      if (activePromises < limit) {
-        activePromises++;
-        processContract(
-          sourcifyInstance,
-          repositoryV1Path,
-          databasePool,
-          nextContract
-        )
-          .then((res) => {
-            if (res[0]) {
-              console.log(`Successfully sync: ${[res[1]]}`);
-            } else {
-              console.error(`Failed to sync ${[res[1]]}`);
-            }
-            activePromises--;
-            processedContracts++;
-          })
-          .catch((e) => {
-            console.error(e);
-          });
-      } else {
-        // Wait for an active promise to complete
-        await new Promise((resolve) => setTimeout(resolve, 200));
-      }
+
+      activePromises++;
+      processContract(
+        sourcifyInstance,
+        repositoryV1Path,
+        databasePool,
+        nextContract
+      )
+        .then((res) => {
+          if (res[0]) {
+            console.log(`Successfully sync: ${[res[1]]}`);
+          } else {
+            console.error(`Failed to sync ${[res[1]]}`);
+          }
+          activePromises--;
+          processedContracts++;
+        })
+        .catch((e) => {
+          console.error(e);
+        });
     }
     console.log(`Synced ${processedContracts} contracts`);
     databasePool.end();
