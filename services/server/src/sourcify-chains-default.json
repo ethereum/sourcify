@@ -41,9 +41,7 @@
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
     },
-    "rpc": [
-      "https://rpc.holesky.ethpandaops.io"
-    ]
+    "rpc": ["https://rpc.holesky.ethpandaops.io"]
   },
   "5": {
     "sourcifyName": "Ethereum Goerli Testnet",
@@ -403,9 +401,7 @@
   "311752642": {
     "sourcifyName": "Oneledger Mainnet",
     "supported": true,
-    "rpc": [
-      "https://mainnet-rpc.oneledger.network"
-    ],
+    "rpc": ["https://mainnet-rpc.oneledger.network"],
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://mainnet-explorer.oneledger.network/"
@@ -829,6 +825,15 @@
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://blockscout.athens2.zetachain.com/"
+      }
+    }
+  },
+  "7000": {
+    "sourcifyName": "ZetaChain: Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutScrape": {
+        "url": "https://zetachain.blockscout.com/"
       }
     }
   },
@@ -1396,6 +1401,34 @@
     "fetchContractCreationTxUsing": {
       "blockscoutApi": {
         "url": "https://sepolia.explorer.mode.network/"
+      }
+    }
+  },
+  "42766": {
+    "sourcifyName": "ZKFair Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true,
+      "blockscoutApi": {
+        "url": "https://scan.zkfair.io/"
+      }
+    }
+  },
+  "1890": {
+    "sourcifyName": "Lightlink Phoenix Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://phoenix.lightlink.io/"
+      }
+    }
+  },
+  "1891": {
+    "sourcifyName": "Lightlink Pegasus Testnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://pegasus.lightlink.io/"
       }
     }
   },

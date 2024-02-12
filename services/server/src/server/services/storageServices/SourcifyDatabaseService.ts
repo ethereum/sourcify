@@ -95,6 +95,22 @@ export class SourcifyDatabaseService
     ];
   }
 
+  validateBeforeStoring(
+    recompiledContract: CheckedContract,
+    match: Match
+  ): boolean {
+    // Prevent storing matches only if they don't have both onchainRuntimeBytecode and onchainCreationBytecode
+    if (
+      match.onchainRuntimeBytecode === undefined &&
+      match.onchainCreationBytecode === undefined
+    ) {
+      throw new Error(
+        `can only store contracts with at least runtimeBytecode or creationBytecode address=${match.address} chainId=${match.chainId}`
+      );
+    }
+    return true;
+  }
+
   // Override this method to include the SourcifyMatch
   async storeMatch(recompiledContract: CheckedContract, match: Match) {
     const { type, verifiedContractId } =
