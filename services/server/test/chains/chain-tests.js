@@ -50,8 +50,8 @@ describe("Test Supported Chains", function () {
     if (!anyTestsPass && newAddedChainIds.length) {
       throw new Error(
         "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id(s) " +
-        newAddedChainIds.join(",") +
-        "?"
+          newAddedChainIds.join(",") +
+          "?"
       );
     }
   });
@@ -1247,7 +1247,15 @@ describe("Test Supported Chains", function () {
     "Lightlink Phoenix Mainnet",
     "shared/"
   );
-  
+
+  // ZKFair Mainnet
+  verifyContract(
+    "0xc3a9766e07754cC1894E5c0A2459d23A676dDD0D",
+    "42766",
+    "ZKFair Mainnet",
+    "shared/"
+  );
+
   // Kroma Sepolia
   verifyContract(
     "0x4d5f06cC2A7d3a625C95D04Cfaec5AEb5eCfA33D",
