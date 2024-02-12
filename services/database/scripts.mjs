@@ -177,7 +177,7 @@ program
         await new Promise((resolve) => setTimeout(resolve, 1000));
         continue;
       }
-      options.startFrom = new Date(nextContract.created_at).getTime();
+      options.startFrom = nextContract.id;
 
       // Process contract if within activePromises limit
       if (activePromises < limit) {
@@ -302,7 +302,7 @@ const fetchNextContract = async (databasePool, options) => {
         *
       FROM sourcify_sync
       WHERE 1=1
-        AND created_at > $1
+        AND id > $1
         ${
           // This is needed because the `pg` package needs $n parameters in the queries where n is the index of the second array
           chains?.length > 0
@@ -312,13 +312,11 @@ const fetchNextContract = async (databasePool, options) => {
             : ""
         }
         AND synced = false
-      ORDER BY chain_id ASC, created_at ASC
+      ORDER BY chain_id ASC, id ASC
       LIMIT 1
     `;
     const queryParameter = [
-      options.startFrom
-        ? new Date(options.startFrom)
-        : "1970-01-01 00:00:00.0000 +0000",
+      options.startFrom ? options.startFrom : 0,
       ...chains,
     ];
     const contractResult = await databasePool.query(query, queryParameter);
