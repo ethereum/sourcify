@@ -171,7 +171,12 @@ program
     while (true) {
       // Fetch next contract
       let nextContract = await fetchNextContract(databasePool, options);
-      if (!nextContract) break; // Exit loop if no more contracts
+      if (!nextContract && activePromises === 0) break; // Exit loop if no more contracts
+      if (!nextContract) {
+        // Wait until all contracts in the queue are processed
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        continue;
+      }
       options.startFrom = new Date(nextContract.created_at).getTime();
 
       // Process contract if within activePromises limit
@@ -197,7 +202,7 @@ program
           });
       } else {
         // Wait for an active promise to complete
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 200));
       }
     }
     console.log(`Synced ${processedContracts} contracts`);

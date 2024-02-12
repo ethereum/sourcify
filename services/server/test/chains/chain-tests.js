@@ -50,8 +50,8 @@ describe("Test Supported Chains", function () {
     if (!anyTestsPass && newAddedChainIds.length) {
       throw new Error(
         "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id(s) " +
-        newAddedChainIds.join(",") +
-        "?"
+          newAddedChainIds.join(",") +
+          "?"
       );
     }
   });
@@ -685,6 +685,14 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // ZetaChain: Athens Mainnet
+  verifyContract(
+    "0x5f5a064761A416919A60939DB85AeFD487e6cB3A",
+    "7000",
+    "ZetaChain Athens Mainnet",
+    "shared/"
+  );
+
   // Oasis Emerald Mainnet
   verifyContract(
     "0x7228Ab1F57e6fFd9F85930b9a9C2E9DD2307E4D0",
@@ -1224,6 +1232,22 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // Lightlink Pegasus Testnet
+  verifyContract(
+    "0x948a02ABB83ED54D8908F6725d2a9cEE6B6B582a",
+    "1891",
+    "Lightlink Pegasus Testnet",
+    "shared/"
+  );
+
+  // Lightlink Phoenix Mainnet
+  verifyContract(
+    "0x948a02ABB83ED54D8908F6725d2a9cEE6B6B582a",
+    "1890",
+    "Lightlink Phoenix Mainnet",
+    "shared/"
+  );
+
   // ZKFair Mainnet
   verifyContract(
     "0xc3a9766e07754cC1894E5c0A2459d23A676dDD0D",
@@ -1231,7 +1255,7 @@ describe("Test Supported Chains", function () {
     "ZKFair Mainnet",
     "shared/"
   );
-  
+
   // Kroma Sepolia
   verifyContract(
     "0x4d5f06cC2A7d3a625C95D04Cfaec5AEb5eCfA33D",

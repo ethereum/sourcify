@@ -306,36 +306,47 @@ export class CheckedContract {
     // There is only one auxdata, so no need to recompile
     if (auxdatasFromCompilerOutput.length === 1) {
       // TODO: We can't assume that the auxdata is always at the end of the bytecode
-      const [, creationAuxdataCbor, creationCborLenghtHex] = splitAuxdata(
-        this.creationBytecode
-      );
+      if (this.creationBytecode) {
+        const [, creationAuxdataCbor, creationCborLenghtHex] = splitAuxdata(
+          this.creationBytecode
+        );
+        if (creationAuxdataCbor) {
+          const auxdataFromRawCreationBytecode = `${creationAuxdataCbor}${creationCborLenghtHex}`;
+          if (
+            auxdatasFromCompilerOutput[0] === auxdataFromRawCreationBytecode
+          ) {
+            this.creationBytecodeCborAuxdata = {
+              '0': {
+                offset:
+                  this.creationBytecode.length -
+                  (2 + parseInt(creationCborLenghtHex, 16)),
+                value: auxdataFromRawCreationBytecode,
+              },
+            };
+          } else {
+            logWarn(
+              `The creation auxdata from raw bytecode differs from the legacyAssembly's auxdata name=${this.name}`
+            );
+          }
+        } else {
+          logWarn(`Cannot extract the auxdata in the creationBytecode`);
+        }
+      }
 
       const [, runtimeAuxdataCbor, runtimeCborLenghtHex] = splitAuxdata(
         this.runtimeBytecode
       );
 
-      const auxdataFromRawCreationBytecode = `${creationAuxdataCbor}${creationCborLenghtHex}`;
       const auxdataFromRawRuntimeBytecode = `${runtimeAuxdataCbor}${runtimeCborLenghtHex}`;
 
       // For some reason the auxdata from raw bytecode differs from the legacyAssembly's auxdata
-      if (
-        auxdatasFromCompilerOutput[0] !== auxdataFromRawCreationBytecode ||
-        auxdatasFromCompilerOutput[0] !== auxdataFromRawRuntimeBytecode
-      ) {
+      if (auxdatasFromCompilerOutput[0] !== auxdataFromRawRuntimeBytecode) {
         logWarn(
           `The auxdata from raw bytecode differs from the legacyAssembly's auxdata name=${this.name}`
         );
         return false;
       }
 
-      this.creationBytecodeCborAuxdata = {
-        '0': {
-          offset:
-            this.creationBytecode.length -
-            (2 + parseInt(creationCborLenghtHex, 16)),
-          value: auxdataFromRawCreationBytecode,
-        },
-      };
       this.runtimeBytecodeCborAuxdata = {
         '0': {
           offset:
@@ -359,12 +370,14 @@ export class CheckedContract {
     const editedContractAuxdatasFromCompilerOutput =
       findAuxdatasInLegacyAssembly(editedContract.evm.legacyAssembly);
 
-    this.creationBytecodeCborAuxdata = findAuxdataPositions(
-      this.creationBytecode,
-      `0x${editedContract?.evm.bytecode.object}`,
-      auxdatasFromCompilerOutput,
-      editedContractAuxdatasFromCompilerOutput
-    );
+    if (this.creationBytecode) {
+      this.creationBytecodeCborAuxdata = findAuxdataPositions(
+        this.creationBytecode,
+        `0x${editedContract?.evm.bytecode.object}`,
+        auxdatasFromCompilerOutput,
+        editedContractAuxdatasFromCompilerOutput
+      );
+    }
     this.runtimeBytecodeCborAuxdata = findAuxdataPositions(
       this.runtimeBytecode,
       `0x${editedContract?.evm?.deployedBytecode?.object}`,
