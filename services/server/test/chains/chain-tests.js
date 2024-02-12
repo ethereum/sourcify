@@ -685,6 +685,14 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // ZetaChain: Athens Mainnet
+  verifyContract(
+    "0x5f5a064761A416919A60939DB85AeFD487e6cB3A",
+    "7000",
+    "ZetaChain Athens Mainnet",
+    "shared/"
+  );
+
   // Oasis Emerald Mainnet
   verifyContract(
     "0x7228Ab1F57e6fFd9F85930b9a9C2E9DD2307E4D0",
