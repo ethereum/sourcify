@@ -41,9 +41,7 @@
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
     },
-    "rpc": [
-      "https://rpc.holesky.ethpandaops.io"
-    ]
+    "rpc": ["https://rpc.holesky.ethpandaops.io"]
   },
   "5": {
     "sourcifyName": "Ethereum Goerli Testnet",
@@ -403,9 +401,7 @@
   "311752642": {
     "sourcifyName": "Oneledger Mainnet",
     "supported": true,
-    "rpc": [
-      "https://mainnet-rpc.oneledger.network"
-    ],
+    "rpc": ["https://mainnet-rpc.oneledger.network"],
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://mainnet-explorer.oneledger.network/"
@@ -1387,6 +1383,16 @@
       "etherscanApi": true,
       "blockscoutScrape": {
         "url": "https://sepolia-blockscout.scroll.io"
+      }
+    }
+  },
+  "42766": {
+    "sourcifyName": "ZKFair Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true,
+      "blockscoutApi": {
+        "url": "https://scan.zkfair.io/"
       }
     }
   },
