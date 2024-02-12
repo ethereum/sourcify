@@ -1,4 +1,6 @@
 process.env.NODE_CONFIG_ENV = "test";
+process.env.SOURCIFY_POSTGRES_HOST = undefined;
+process.env.ALLIANCE_POSTGRES_HOST = undefined;
 
 const chai = require("chai");
 const chaiHttp = require("chai-http");
@@ -48,8 +50,8 @@ describe("Test Supported Chains", function () {
     if (!anyTestsPass && newAddedChainIds.length) {
       throw new Error(
         "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id(s) " +
-          newAddedChainIds.join(",") +
-          "?"
+        newAddedChainIds.join(",") +
+        "?"
       );
     }
   });
@@ -1206,13 +1208,45 @@ describe("Test Supported Chains", function () {
     "1127469/"
   );
 
-    // Polygon zkEVM Mainnet
-    verifyContract(
-      "0xaa50c265da4552db6e8983317e3b5510727db132",
-      "1101",
-      "Polygon zkEVM",
-      "shared/"
-    );
+  // Polygon zkEVM Mainnet
+  verifyContract(
+    "0xaa50c265da4552db6e8983317e3b5510727db132",
+    "1101",
+    "Polygon zkEVM",
+    "shared/"
+  );
+
+  // Scroll Sepolia Testnet
+  verifyContract(
+    "0xce478ef16eb34438463513c48da4f31269fa8b6a",
+    "534351",
+    "Scroll Sepolia Testnet",
+    "shared/"
+  );
+
+  // Scroll
+  verifyContract(
+    "0x1685d11a2EDce8d2C8015f4cB0Cd197839b761f5",
+    "534352",
+    "Scroll",
+    "shared/"
+  );
+
+  // Kroma Sepolia
+  verifyContract(
+    "0x4d5f06cC2A7d3a625C95D04Cfaec5AEb5eCfA33D",
+    "2358",
+    "Kroma Sepolia",
+    "shared/"
+  );
+
+  // Kroma
+  verifyContract(
+    "0x270236c25d28a2cd85ed9a1ef0b31835fb9e4ff6",
+    "255",
+    "Kroma",
+    "shared/"
+  );
 
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {

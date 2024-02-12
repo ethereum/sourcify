@@ -41,7 +41,9 @@
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
     },
-    "rpc": ["https://rpc.holesky.ethpandaops.io"]
+    "rpc": [
+      "https://rpc.holesky.ethpandaops.io"
+    ]
   },
   "5": {
     "sourcifyName": "Ethereum Goerli Testnet",
@@ -401,7 +403,9 @@
   "311752642": {
     "sourcifyName": "Oneledger Mainnet",
     "supported": true,
-    "rpc": ["https://mainnet-rpc.oneledger.network"],
+    "rpc": [
+      "https://mainnet-rpc.oneledger.network"
+    ],
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://mainnet-explorer.oneledger.network/"
@@ -1356,6 +1360,62 @@
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
+    }
+  },
+  "534352": {
+    "sourcifyName": "Scroll",
+    "supported": true,
+    "etherscanApi": {
+      "apiURL": "https://api.scrollscan.com",
+      "apiKeyEnvName": "SCROLLSCAN_API_KEY"
+    },
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true,
+      "blockscoutScrape": {
+        "url": "https://blockscout.scroll.io/"
+      }
+    }
+  },
+  "534351": {
+    "sourcifyName": "Scroll Sepolia Testnet",
+    "supported": true,
+    "etherscanApi": {
+      "apiURL": "https://api-sepolia.scrollscan.com",
+      "apiKeyEnvName": "SCROLLSCAN_API_KEY"
+    },
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true,
+      "blockscoutScrape": {
+        "url": "https://sepolia-blockscout.scroll.io"
+      }
+    }
+  },
+  "255": {
+    "sourcifyName": "Kroma",
+    "supported": true,
+    "etherscanApi": {
+      "apiURL": "https://api.kromascan.com",
+      "apiKeyEnvName": "KROMASCAN_API_KEY"
+    },
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true,
+      "blockscoutApi": {
+        "url": "https://blockscout.kroma.network/"
+      }
+    }
+  },
+  "2358": {
+    "sourcifyName": "Kroma Sepolia",
+    "supported": true,
+    "etherscanApi": {
+      "apiURL": "https://api-sepolia.kromascan.com",
+      "apiKeyEnvName": "KROMASCAN_API_KEY"
+    },
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true,
+      "blockscoutApi": {
+        "url": "https://blockscout.sepolia.kroma.network/"
+      }
     }
   }
 }
