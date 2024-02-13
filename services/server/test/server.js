@@ -1,8 +1,8 @@
 process.env.NODE_CONFIG_ENV = "test";
 process.env.IPFS_GATEWAY = "http://gateway.pinata.cloud/ipfs/";
 process.env.FETCH_TIMEOUT = 8000; // instantiated http-gateway takes a little longer
-process.env.SOURCIFY_POSTGRES_HOST = undefined;
-process.env.ALLIANCE_POSTGRES_HOST = undefined;
+process.env.SOURCIFY_POSTGRES_HOST = "";
+process.env.ALLIANCE_POSTGRES_HOST = "";
 
 const Server = require("../dist/server/server").Server;
 const {

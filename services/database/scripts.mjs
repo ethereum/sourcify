@@ -169,36 +169,39 @@ program
 
     let processedContracts = 0;
     while (true) {
+      while (activePromises >= limit) {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      }
       // Fetch next contract
-      let nextContract = await fetchNextContract(databasePool, options);
-      if (!nextContract) break; // Exit loop if no more contracts
-      options.startFrom = new Date(nextContract.created_at).getTime();
+      let optionsSafe = JSON.parse(JSON.stringify(options));
+      let nextContract = await fetchNextContract(databasePool, optionsSafe);
+      if (!nextContract && activePromises === 0) break; // Exit loop if no more contracts
+      if (!nextContract) {
+        continue;
+      }
+      options.startFrom = nextContract.id;
 
       // Process contract if within activePromises limit
-      if (activePromises < limit) {
-        activePromises++;
-        processContract(
-          sourcifyInstance,
-          repositoryV1Path,
-          databasePool,
-          nextContract
-        )
-          .then((res) => {
-            if (res[0]) {
-              console.log(`Successfully sync: ${[res[1]]}`);
-            } else {
-              console.error(`Failed to sync ${[res[1]]}`);
-            }
-            activePromises--;
-            processedContracts++;
-          })
-          .catch((e) => {
-            console.error(e);
-          });
-      } else {
-        // Wait for an active promise to complete
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
+
+      activePromises++;
+      processContract(
+        sourcifyInstance,
+        repositoryV1Path,
+        databasePool,
+        nextContract
+      )
+        .then((res) => {
+          if (res[0]) {
+            console.log(`Successfully sync: ${[res[1]]}`);
+          } else {
+            console.error(`Failed to sync ${[res[1]]}`);
+          }
+          activePromises--;
+          processedContracts++;
+        })
+        .catch((e) => {
+          console.error(e);
+        });
     }
     console.log(`Synced ${processedContracts} contracts`);
     databasePool.end();
@@ -297,7 +300,7 @@ const fetchNextContract = async (databasePool, options) => {
         *
       FROM sourcify_sync
       WHERE 1=1
-        AND created_at > $1
+        AND id > $1
         ${
           // This is needed because the `pg` package needs $n parameters in the queries where n is the index of the second array
           chains?.length > 0
@@ -307,13 +310,11 @@ const fetchNextContract = async (databasePool, options) => {
             : ""
         }
         AND synced = false
-      ORDER BY chain_id ASC, created_at ASC
+      ORDER BY chain_id ASC, id ASC
       LIMIT 1
     `;
     const queryParameter = [
-      options.startFrom
-        ? new Date(options.startFrom)
-        : "1970-01-01 00:00:00.0000 +0000",
+      options.startFrom ? options.startFrom : 0,
       ...chains,
     ];
     const contractResult = await databasePool.query(query, queryParameter);
