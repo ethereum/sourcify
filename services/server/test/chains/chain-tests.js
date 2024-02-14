@@ -1232,6 +1232,22 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // Mode Testnet
+  verifyContract(
+    "0x4d5f06cC2A7d3a625C95D04Cfaec5AEb5eCfA33D",
+    "919",
+    "Mode Testnet",
+    "shared/"
+  );
+
+  // Mode
+  verifyContract(
+    "0x4d5f06cC2A7d3a625C95D04Cfaec5AEb5eCfA33D",
+    "34443",
+    "Mode",
+    "shared/"
+  );
+
   // Conflux eSpace
   verifyContract(
     "0x4d5f06cc2a7d3a625c95d04cfaec5aeb5ecfa33d",
