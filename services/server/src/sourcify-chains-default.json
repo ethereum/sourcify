@@ -1386,6 +1386,24 @@
       }
     }
   },
+  "34443": {
+    "sourcifyName": "Mode",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutScrape": {
+        "url": "https://explorer.mode.network/"
+      }
+    }
+  },
+  "919": {
+    "sourcifyName": "Mode Testnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://sepolia.explorer.mode.network/"
+      }
+    }
+  },
   "1030": {
     "sourcifyName": "Conflux eSpace",
     "supported": true,
