@@ -119,18 +119,24 @@ program
             contract.chainId,
             contract.address,
             contract.matchType,
-            contract.timestamp,
+            contract.timestamp.getTime(),
           ]}`
         );
       }
+
+      console.log(
+        "successfuly imported from '" +
+          repositoryV1Path +
+          "' " +
+          contractsSorted.length +
+          " contracts."
+      );
+      databasePool.end();
     } catch (e) {
       console.error("Error while storing contract in the database");
       console.error(e);
       process.exit(3);
     }
-
-    console.log("successfuly imported contracts from" + repositoryV1Path);
-    databasePool.end();
   });
 
 program
