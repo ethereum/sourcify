@@ -17,9 +17,9 @@ else
 fi
 
 echo "Real branch name: ${REAL_BRANCH_NAME}"
-# Put add-chain-111-222-333 into NEW_CHAIN_ID=111,222,333
+# Put add-chain-111-222-333 into NEW_CHAIN_ID=111,222,333. Also works for add-chains-... with "s"
 # Made with ChatGPT
-NEW_CHAIN_ID=$(echo "${REAL_BRANCH_NAME}" | awk -F'add-chain-' '{print $2}' | awk 'BEGIN {FS="-"; OFS=","} {$1=$1; print $0}')
+NEW_CHAIN_ID=$(echo "${REAL_BRANCH_NAME}" | awk -F'add-chains?-' '{print $2}' | awk 'BEGIN {FS="-"; OFS=","} {$1=$1; print $0}')
 
 # if the ticket number regex does not match, then it's not 
 # a feature branch, and we shouldn't upload to JIRA.
