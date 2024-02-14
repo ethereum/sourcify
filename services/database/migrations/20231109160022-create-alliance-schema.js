@@ -19,6 +19,7 @@ exports.setup = function (options, seedLink) {
 exports.up = function (db, callback) {
   async.series(
     [
+      // TODO: add date commit here once the alliance repo is public
       db.runSql.bind(
         db,
         `

@@ -1404,6 +1404,16 @@
       }
     }
   },
+  "1030": {
+    "sourcifyName": "Conflux eSpace",
+    "supported": true,
+    "etherscanApi": {
+      "apiURL": "https://evmapi.confluxscan.net"
+    },
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true
+    }
+  },
   "42766": {
     "sourcifyName": "ZKFair Mainnet",
     "supported": true,
