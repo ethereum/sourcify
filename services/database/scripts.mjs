@@ -57,7 +57,10 @@ program
         const chainId = pathParts.pop();
         const matchType = pathParts.pop();
 
-        if (matchType === "full_match" || matchType === "partial_match") {
+        if (
+          (matchType === "full_match" || matchType === "partial_match") &&
+          isNumber(chainId)
+        ) {
           contracts.push({
             chainId,
             address,
@@ -329,5 +332,9 @@ const fetchNextContract = async (databasePool, options) => {
     process.exit(3);
   }
 };
+
+function isNumber(value) {
+  return !isNaN(parseFloat(value)) && isFinite(value);
+}
 
 program.parse(process.argv);
