@@ -1469,5 +1469,19 @@
         "url": "https://blockscout.sepolia.kroma.network/"
       }
     }
+  },
+  "1343": {
+    "sourcifyName": "Blitz Subnet Testnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "avalancheApi": true
+    }
+  },
+  "17172": {
+    "sourcifyName": "Eclipse Subnet Testnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "avalancheApi": true
+    }
   }
 }
