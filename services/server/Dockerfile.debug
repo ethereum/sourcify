@@ -3,7 +3,7 @@
 
 # From project root: docker build --platform=linux/amd64 --file ./services/server/Dockerfile.debug -t sourcify-server-debug ./services/server 
 # Assuming server is running on port 5555
-# Run with: docker run -it -p 9229:9229 -p 5555:5555 --volume /Users/YOURUSERNAME/repos/sourcify:/home/app sourcify-server-debug
+# Run with: docker run -it -p 9229:9229 -p 5555:5555 --volume /path/to/local/sourcify/git/repo:/home/app sourcify-server-debug
 # Finally run "Docker: Attach to Server" in VSCode debugger
 FROM node:16.17.0-bullseye
 WORKDIR /home/app/services/server
