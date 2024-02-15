@@ -104,6 +104,25 @@ export async function getVerifiedContractByBytecodeHashes(
   );
 }
 
+export async function getVerifiedContractByChainAndAddress(
+  pool: Pool,
+  chain: number,
+  address?: string
+) {
+  return await pool.query(
+    `
+      SELECT
+        verified_contracts.*
+      FROM verified_contracts
+      JOIN contract_deployments ON contract_deployments.id = verified_contracts.deployment_id
+      WHERE 1=1
+        AND contract_deployments.chain_id = $1
+        AND contract_deployments.address = $2
+    `,
+    [chain, address]
+  );
+}
+
 export async function getSourcifyMatchByChainAddress(
   pool: Pool,
   chain: number,
