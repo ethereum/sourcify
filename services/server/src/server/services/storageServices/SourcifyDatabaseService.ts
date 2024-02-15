@@ -117,7 +117,9 @@ export class SourcifyDatabaseService
       await super.insertOrUpdateVerifiedContract(recompiledContract, match);
 
     if (!verifiedContractId) {
-      throw new Error();
+      throw new Error(
+        "VerifiedContractId undefined before inserting sourcify match"
+      );
     }
     if (type === "insert") {
       await Database.insertSourcifyMatch(this.databasePool, {

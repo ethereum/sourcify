@@ -374,10 +374,10 @@ export default abstract class AbstractDatabaseService {
 
     // Get all the verified contracts existing in the Database for these exact onchain bytecodes.
     const existingVerifiedContractResult =
-      await Database.getVerifiedContractByBytecodeHashes(
+      await Database.getVerifiedContractByChainAndAddress(
         this.databasePool,
-        databaseColumns.bytecodeHashes.onchainRuntime,
-        databaseColumns.bytecodeHashes.onchainCreation
+        parseInt(match.chainId),
+        match.address
       );
 
     if (existingVerifiedContractResult.rowCount === 0) {
