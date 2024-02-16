@@ -22,13 +22,13 @@ import QueryString from "qs";
 import fetch from "node-fetch";
 import { IVerificationService } from "../../services/VerificationService";
 import { ContractMeta, ContractWrapper, getMatchStatus } from "../../common";
-import { id as keccak256str } from "ethers";
 import { ISolidityCompiler } from "@ethereum-sourcify/lib-sourcify";
 import { SolcLambda } from "../../services/compiler/lambda/SolcLambda";
 import { SolcLocal } from "../../services/compiler/local/SolcLocal";
 import { StorageService } from "../../services/StorageService";
 import { logger } from "../../../common/logger";
 import config from "config";
+import { createHash } from "crypto";
 
 let selectedSolidityCompiler: ISolidityCompiler;
 if (config.get("lambdaCompiler.enabled")) {
@@ -109,8 +109,11 @@ export const FILE_ENCODING = "base64";
 export const MAX_SESSION_SIZE = 50 * 1024 * 1024; // 50 MiB
 
 export function generateId(obj: any): string {
-  return keccak256str(JSON.stringify(obj));
+  const objString = JSON.stringify(obj);
+  const hash = createHash("sha1").update(objString).digest("hex");
+  return hash;
 }
+
 export const saveFiles = (
   pathContents: PathContent[],
   session: Session
