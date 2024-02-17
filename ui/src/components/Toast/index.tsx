@@ -33,7 +33,7 @@ const Toast = ({ message, isShown, dismiss }: ToastProps) => {
           </button>
         </div>
       </div>
-      <div className="p-3 bg-red-400 rounded-b-lg break-words text-white overflow-y-scroll max-h-96">
+      <div className="p-3 bg-red-400 rounded-b-lg break-words text-white overflow-y-auto max-h-96">
         {message}
       </div>
     </div>
