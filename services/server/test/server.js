@@ -1,5 +1,5 @@
 process.env.NODE_CONFIG_ENV = "test";
-process.env.IPFS_GATEWAY = "http://gateway.pinata.cloud/ipfs/";
+process.env.IPFS_GATEWAY = "http://ipfs-mock/ipfs/";
 process.env.FETCH_TIMEOUT = 8000; // instantiated http-gateway takes a little longer
 process.env.SOURCIFY_POSTGRES_HOST = "";
 process.env.ALLIANCE_POSTGRES_HOST = "";
@@ -13,7 +13,6 @@ const {
   invalidAddress,
   assertLookupAll,
 } = require("./helpers/assertions");
-//const IPFS = require("ipfs-core");
 const ganache = require("ganache");
 const chai = require("chai");
 const chaiHttp = require("chai-http");
@@ -39,10 +38,13 @@ const {
   waitSecs,
   callContractMethodWithTx,
   deployFromAbiAndBytecodeForCreatorTxHash,
+  readFilesFromDirectory,
 } = require("./helpers/helpers");
 const { deployFromAbiAndBytecode } = require("./helpers/helpers");
 const { JsonRpcProvider, Network, id: keccak256str } = require("ethers");
 const { LOCAL_CHAINS } = require("../dist/sourcify-chains");
+const nock = require("nock");
+
 chai.use(chaiHttp);
 
 const EXTENDED_TIME = 20000; // 20 seconds
@@ -88,9 +90,20 @@ describe("Server", function () {
   this.timeout(EXTENDED_TIME);
   before(async () => {
     await ganacheServer.listen(GANACHE_PORT);
-    // const ipfs = await IPFS.create();
-    // const httpGateway = new HttpGateway(ipfs);
-    // await httpGateway.start();
+
+    // Init IPFS mock with all the necessary pinned files
+    const mockContent = await readFilesFromDirectory(
+      path.join(__dirname, "mocks", "ipfs")
+    );
+    for (let ipfsKey of Object.keys(mockContent)) {
+      nock(process.env.IPFS_GATEWAY)
+        .persist()
+        .get("/" + ipfsKey)
+        .reply(function (uri, requestBody) {
+          return [200, mockContent[ipfsKey]];
+        });
+    }
+
     const sourcifyChainGanache = LOCAL_CHAINS[0];
     console.log("Started ganache local server on port " + GANACHE_PORT);
     const ethersNetwork = new Network(
