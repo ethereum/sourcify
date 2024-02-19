@@ -2021,7 +2021,7 @@ describe("Server", function () {
       );
 
       if (res.rowCount === 1) {
-        chai.expect(res.rows[0].creation_match).to.equal("partial");
+        chai.expect(res.rows[0].runtime_match).to.equal("partial");
       }
     });
   });
