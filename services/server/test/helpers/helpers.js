@@ -6,6 +6,8 @@ const {
 } = require("./assertions");
 const chai = require("chai");
 const chaiHttp = require("chai-http");
+const path = require("path");
+const fs = require("fs").promises;
 
 chai.use(chaiHttp);
 
@@ -150,6 +152,25 @@ function verifyAndAssertEtherscanSession(
   });
 }
 
+async function readFilesFromDirectory(dirPath) {
+  try {
+    const filesContent = {};
+    const files = await fs.readdir(dirPath);
+    for (const file of files) {
+      const filePath = path.join(dirPath, file);
+      const stat = await fs.stat(filePath);
+      if (stat.isFile()) {
+        const content = await fs.readFile(filePath, "utf8");
+        filesContent[file] = content;
+      }
+    }
+    return filesContent;
+  } catch (error) {
+    console.error("Error reading files from directory:", error);
+    throw error;
+  }
+}
+
 module.exports = {
   deployFromAbiAndBytecode,
   deployFromAbiAndBytecodeForCreatorTxHash,
@@ -162,4 +183,5 @@ module.exports = {
   unusedAddress,
   verifyAndAssertEtherscan,
   verifyAndAssertEtherscanSession,
+  readFilesFromDirectory,
 };
