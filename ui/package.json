@@ -33,6 +33,9 @@
     "recharts": "^2.1.8",
     "web-vitals": "^2.1.2"
   },
+  "optionalDependencies": {
+    "fsevents": "^2.3.2"
+  },
   "overrides": {
     "react-scripts": {
       "typescript": "^5"
