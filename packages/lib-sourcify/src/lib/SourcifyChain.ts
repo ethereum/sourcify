@@ -252,7 +252,7 @@ export default class SourcifyChain {
       } catch (err) {
         if (err instanceof Error) {
           logWarn(
-            `Can't fetch ${address}'s bytecode from RPC ${provider.url} and chain ${this.chainId}`
+            `Can't fetch ${address}'s bytecode from RPC ${provider.url} and chain ${this.chainId}: ${err.message}`
           );
           continue;
         } else {
