@@ -41,7 +41,15 @@ const Verifier: React.FC = () => {
         });
 
         if (!rawRes.ok) {
-          const err: IGenericError = await rawRes.json();
+          let err: IGenericError;
+          const contentType = rawRes.headers.get("Content-Type");
+          if (!contentType || !contentType.includes("application/json")) {
+            err = {
+              error: `Error: ${rawRes.status} ${rawRes.statusText}`,
+            };
+          } else {
+            err = await rawRes.json();
+          }
           throw new Error(err.error);
         }
         const res: SessionResponse = await rawRes.json();
