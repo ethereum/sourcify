@@ -56,7 +56,7 @@
     "rpc": [
       {
         "type": "FetchRequest",
-        "url": "https://rpc.goerli.ethpandaops.io",
+        "url": "https://rpc.goerli.eu1.ethpandaops.io",
         "headers": [
           {
             "headerName": "CF-Access-Client-Id",

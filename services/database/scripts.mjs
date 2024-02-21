@@ -181,6 +181,10 @@ program
       while (activePromises >= limit) {
         await new Promise((resolve) => setTimeout(resolve, 200));
       }
+
+      // Helps to reduce the rpc hit limit error
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
       // Fetch next contract
       let optionsSafe = JSON.parse(JSON.stringify(options));
       let nextContract = await fetchNextContract(databasePool, optionsSafe);
