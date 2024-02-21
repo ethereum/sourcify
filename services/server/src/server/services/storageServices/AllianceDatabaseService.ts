@@ -82,5 +82,8 @@ export class AllianceDatabaseService
 
   async storeMatch(contract: CheckedContract, match: Match) {
     await this.insertOrUpdateVerifiedContract(contract, match);
+    logger.info(
+      `Stored ${contract.name} to database address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
+    );
   }
 }
