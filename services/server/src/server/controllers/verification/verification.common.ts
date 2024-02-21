@@ -404,6 +404,10 @@ export const verifyContractsInSession = async (
           tempMatch.creationMatch === "partial"
         ) {
           match = tempMatch;
+        } else if (tempMatch.runtimeMatch === "extra-file-input-bug") {
+          throw new ValidationError(
+            "It seems your contract's metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618"
+          );
         }
       }
     } catch (error: any) {
