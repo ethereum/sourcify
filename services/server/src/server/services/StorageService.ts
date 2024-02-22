@@ -44,7 +44,7 @@ export class StorageService {
     this.repositoryV1 = new RepositoryV1Service(
       options.repositoryV1ServiceOptions
     );
-    if (options.repositoryV2ServiceOptions) {
+    if (options.repositoryV2ServiceOptions?.repositoryPath) {
       this.repositoryV2 = new RepositoryV2Service(
         options.repositoryV2ServiceOptions
       );
