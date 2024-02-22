@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## @ethereum-sourcify/lib-sourcify@1.7.0 - 2023-02-22
+
+- Support verification for bytecode containing multiple auxdatas.
+  - Use `generateCborAuxdataPositions` to locate the auxdata positions in the bytecode and ignore them for a partial match.
+- Add `blockNumber`, `txIndex`, and `deployer` to the `Match` type
+
 ## @ethereum-sourcify/lib-sourcify@1.6.2 - 2023-01-03
 
 - Don't fetch `creationTx` twice
