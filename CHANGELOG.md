@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 This CHANGELOG will contain monorepo related changes such as CI configs, shared dependencies and the development setup.
 
+## sourcify-monorepo@1.2.1 - 2024-02-22
+
+- Assign resources to CI jobs for faster runs (when 100% CPU) or cheaper runs
+- Add a DB container to the tests
+- Don't run full tests in `test-new-chains` if no `NEW_CHAIN_ID` is set
+- Support both `add-new-chain-{chainIds}` and `add-new-chains-{chainIds}` as branch names for new chains
+- Add `fsevents` as an optional dependency for Linux builds
+
 ## sourcify-monorepo@1.2.0 - 2024-01-04
 
 - Add multiarch image builds
