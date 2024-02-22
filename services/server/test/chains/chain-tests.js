@@ -1296,6 +1296,24 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // Blitz Subnet Testnet
+  verifyContract(
+    "0x75239Ae18CEF18b42993f81CCc057dcD0c7467F4",
+    "1343",
+    "Blitz Subnet Testnet",
+    "1343/",
+    "partial"
+  );
+
+  // Eclipse Subnet Testnet
+  verifyContract(
+    "0xA21AEaBFF51B972aBFa131e18Ce54619422565A3",
+    "17172",
+    "Eclipse Subnet Testnet",
+    "17172/",
+    "partial"
+  );
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainIds.length) {

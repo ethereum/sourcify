@@ -1,0 +1,597 @@
+{
+  "output": {
+    "abi": [
+      {
+        "name": "aggregate",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "calls",
+            "type": "tuple[]",
+            "components": [
+              {
+                "name": "target",
+                "type": "address",
+                "internalType": "address"
+              },
+              {
+                "name": "callData",
+                "type": "bytes",
+                "internalType": "bytes"
+              }
+            ],
+            "internalType": "struct Multicall3.Call[]"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "blockNumber",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "returnData",
+            "type": "bytes[]",
+            "internalType": "bytes[]"
+          }
+        ],
+        "stateMutability": "payable"
+      },
+      {
+        "name": "aggregate3",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "calls",
+            "type": "tuple[]",
+            "components": [
+              {
+                "name": "target",
+                "type": "address",
+                "internalType": "address"
+              },
+              {
+                "name": "allowFailure",
+                "type": "bool",
+                "internalType": "bool"
+              },
+              {
+                "name": "callData",
+                "type": "bytes",
+                "internalType": "bytes"
+              }
+            ],
+            "internalType": "struct Multicall3.Call3[]"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "returnData",
+            "type": "tuple[]",
+            "components": [
+              {
+                "name": "success",
+                "type": "bool",
+                "internalType": "bool"
+              },
+              {
+                "name": "returnData",
+                "type": "bytes",
+                "internalType": "bytes"
+              }
+            ],
+            "internalType": "struct Multicall3.Result[]"
+          }
+        ],
+        "stateMutability": "payable"
+      },
+      {
+        "name": "aggregate3Value",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "calls",
+            "type": "tuple[]",
+            "components": [
+              {
+                "name": "target",
+                "type": "address",
+                "internalType": "address"
+              },
+              {
+                "name": "allowFailure",
+                "type": "bool",
+                "internalType": "bool"
+              },
+              {
+                "name": "value",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "callData",
+                "type": "bytes",
+                "internalType": "bytes"
+              }
+            ],
+            "internalType": "struct Multicall3.Call3Value[]"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "returnData",
+            "type": "tuple[]",
+            "components": [
+              {
+                "name": "success",
+                "type": "bool",
+                "internalType": "bool"
+              },
+              {
+                "name": "returnData",
+                "type": "bytes",
+                "internalType": "bytes"
+              }
+            ],
+            "internalType": "struct Multicall3.Result[]"
+          }
+        ],
+        "stateMutability": "payable"
+      },
+      {
+        "name": "blockAndAggregate",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "calls",
+            "type": "tuple[]",
+            "components": [
+              {
+                "name": "target",
+                "type": "address",
+                "internalType": "address"
+              },
+              {
+                "name": "callData",
+                "type": "bytes",
+                "internalType": "bytes"
+              }
+            ],
+            "internalType": "struct Multicall3.Call[]"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "blockNumber",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "blockHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "returnData",
+            "type": "tuple[]",
+            "components": [
+              {
+                "name": "success",
+                "type": "bool",
+                "internalType": "bool"
+              },
+              {
+                "name": "returnData",
+                "type": "bytes",
+                "internalType": "bytes"
+              }
+            ],
+            "internalType": "struct Multicall3.Result[]"
+          }
+        ],
+        "stateMutability": "payable"
+      },
+      {
+        "name": "getBasefee",
+        "type": "function",
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "basefee",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ],
+        "stateMutability": "view"
+      },
+      {
+        "name": "getBlockHash",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "blockNumber",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "blockHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          }
+        ],
+        "stateMutability": "view"
+      },
+      {
+        "name": "getBlockNumber",
+        "type": "function",
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "blockNumber",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ],
+        "stateMutability": "view"
+      },
+      {
+        "name": "getChainId",
+        "type": "function",
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "chainid",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ],
+        "stateMutability": "view"
+      },
+      {
+        "name": "getCurrentBlockCoinbase",
+        "type": "function",
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "coinbase",
+            "type": "address",
+            "internalType": "address"
+          }
+        ],
+        "stateMutability": "view"
+      },
+      {
+        "name": "getCurrentBlockDifficulty",
+        "type": "function",
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "difficulty",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ],
+        "stateMutability": "view"
+      },
+      {
+        "name": "getCurrentBlockGasLimit",
+        "type": "function",
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "gaslimit",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ],
+        "stateMutability": "view"
+      },
+      {
+        "name": "getCurrentBlockTimestamp",
+        "type": "function",
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "timestamp",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ],
+        "stateMutability": "view"
+      },
+      {
+        "name": "getEthBalance",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "addr",
+            "type": "address",
+            "internalType": "address"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "balance",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ],
+        "stateMutability": "view"
+      },
+      {
+        "name": "getLastBlockHash",
+        "type": "function",
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "blockHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          }
+        ],
+        "stateMutability": "view"
+      },
+      {
+        "name": "tryAggregate",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "requireSuccess",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "calls",
+            "type": "tuple[]",
+            "components": [
+              {
+                "name": "target",
+                "type": "address",
+                "internalType": "address"
+              },
+              {
+                "name": "callData",
+                "type": "bytes",
+                "internalType": "bytes"
+              }
+            ],
+            "internalType": "struct Multicall3.Call[]"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "returnData",
+            "type": "tuple[]",
+            "components": [
+              {
+                "name": "success",
+                "type": "bool",
+                "internalType": "bool"
+              },
+              {
+                "name": "returnData",
+                "type": "bytes",
+                "internalType": "bytes"
+              }
+            ],
+            "internalType": "struct Multicall3.Result[]"
+          }
+        ],
+        "stateMutability": "payable"
+      },
+      {
+        "name": "tryBlockAndAggregate",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "requireSuccess",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "calls",
+            "type": "tuple[]",
+            "components": [
+              {
+                "name": "target",
+                "type": "address",
+                "internalType": "address"
+              },
+              {
+                "name": "callData",
+                "type": "bytes",
+                "internalType": "bytes"
+              }
+            ],
+            "internalType": "struct Multicall3.Call[]"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "blockNumber",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "blockHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "returnData",
+            "type": "tuple[]",
+            "components": [
+              {
+                "name": "success",
+                "type": "bool",
+                "internalType": "bool"
+              },
+              {
+                "name": "returnData",
+                "type": "bytes",
+                "internalType": "bytes"
+              }
+            ],
+            "internalType": "struct Multicall3.Result[]"
+          }
+        ],
+        "stateMutability": "payable"
+      }
+    ],
+    "devdoc": {
+      "kind": "dev",
+      "title": "Multicall3",
+      "author": "Michael Elliot <mike@makerdao.com>Joshua Levine <joshua@makerdao.com>Nick Johnson <arachnid@notdot.net>Andreas Bigger <andreas@nascent.xyz>Matt Solomon <matt@mattsolomon.dev>",
+      "details": "Multicall & Multicall2 backwards-compatibleAggregate methods are marked `payable` to save 24 gas per call",
+      "methods": {
+        "getBlockHash(uint256)": {
+          "params": {
+            "blockNumber": "The block number"
+          }
+        },
+        "aggregate((address,bytes)[])": {
+          "params": {
+            "calls": "An array of Call structs"
+          },
+          "returns": {
+            "returnData": "An array of bytes containing the responses",
+            "blockNumber": "The block number where the calls were executed"
+          }
+        },
+        "aggregate3((address,bool,bytes)[])": {
+          "params": {
+            "calls": "An array of Call3 structs"
+          },
+          "returns": {
+            "returnData": "An array of Result structs"
+          }
+        },
+        "blockAndAggregate((address,bytes)[])": {
+          "params": {
+            "calls": "An array of Call structs"
+          },
+          "returns": {
+            "blockHash": "The hash of the block where the calls were executed",
+            "returnData": "An array of Result structs",
+            "blockNumber": "The block number where the calls were executed"
+          }
+        },
+        "tryAggregate(bool,(address,bytes)[])": {
+          "params": {
+            "calls": "An array of Call structs",
+            "requireSuccess": "If true, require all calls to succeed"
+          },
+          "returns": {
+            "returnData": "An array of Result structs"
+          }
+        },
+        "tryBlockAndAggregate(bool,(address,bytes)[])": {
+          "params": {
+            "calls": "An array of Call structs"
+          },
+          "returns": {
+            "blockHash": "The hash of the block where the calls were executed",
+            "returnData": "An array of Result structs",
+            "blockNumber": "The block number where the calls were executed"
+          }
+        },
+        "aggregate3Value((address,bool,uint256,bytes)[])": {
+          "params": {
+            "calls": "An array of Call3Value structs"
+          },
+          "returns": {
+            "returnData": "An array of Result structs"
+          }
+        }
+      },
+      "version": 1
+    },
+    "userdoc": {
+      "kind": "user",
+      "notice": "Aggregate results from multiple function calls",
+      "methods": {
+        "getBasefee()": {
+          "notice": "Gets the base fee of the given blockCan revert if the BASEFEE opcode is not implemented by the given chain"
+        },
+        "getChainId()": {
+          "notice": "Returns the chain id"
+        },
+        "getBlockNumber()": {
+          "notice": "Returns the block number"
+        },
+        "getLastBlockHash()": {
+          "notice": "Returns the block hash of the last block"
+        },
+        "getBlockHash(uint256)": {
+          "notice": "Returns the block hash for the given block number"
+        },
+        "getEthBalance(address)": {
+          "notice": "Returns the (ETH) balance of a given address"
+        },
+        "getCurrentBlockCoinbase()": {
+          "notice": "Returns the block coinbase"
+        },
+        "getCurrentBlockGasLimit()": {
+          "notice": "Returns the block gas limit"
+        },
+        "getCurrentBlockTimestamp()": {
+          "notice": "Returns the block timestamp"
+        },
+        "getCurrentBlockDifficulty()": {
+          "notice": "Returns the block difficulty"
+        },
+        "aggregate((address,bytes)[])": {
+          "notice": "Backwards-compatible call aggregation with Multicall"
+        },
+        "aggregate3((address,bool,bytes)[])": {
+          "notice": "Aggregate calls, ensuring each returns success if required"
+        },
+        "blockAndAggregate((address,bytes)[])": {
+          "notice": "Backwards-compatible with Multicall2Aggregate calls and allow failures using tryAggregate"
+        },
+        "tryAggregate(bool,(address,bytes)[])": {
+          "notice": "Backwards-compatible with Multicall2Aggregate calls without requiring success"
+        },
+        "tryBlockAndAggregate(bool,(address,bytes)[])": {
+          "notice": "Backwards-compatible with Multicall2Aggregate calls and allow failures using tryAggregate"
+        },
+        "aggregate3Value((address,bool,uint256,bytes)[])": {
+          "notice": "Aggregate calls with a msg valueReverts if msg.value is less than the sum of the call values"
+        }
+      },
+      "version": 1
+    }
+  },
+  "sources": {
+    "contracts/multicall.sol": {
+      "urls": [
+        "bzz-raw://ee740643f08a62aa1d6175e914ce581c3dfb73ef4d9152fbeda6c001236d3335",
+        "dweb:/ipfs/QmTerrVm2M5TwtVzeTghSandw53pqsYKprvYARz5KqTQhv"
+      ],
+      "license": "MIT",
+      "keccak256": "0xccd3a2d98095724a5cedd2cfd540829dce3614483f860b7e4612cd5019b7ac88"
+    }
+  },
+  "version": 1,
+  "compiler": {
+    "version": "0.8.12+commit.f00d7308"
+  },
+  "language": "Solidity",
+  "settings": {
+    "metadata": {
+      "bytecodeHash": "ipfs"
+    },
+    "libraries": {},
+    "optimizer": {
+      "runs": 200,
+      "enabled": false
+    },
+    "evmVersion": "london",
+    "remappings": [],
+    "compilationTarget": {
+      "contracts/multicall.sol": "Multicall3"
+    }
+  }
+}
