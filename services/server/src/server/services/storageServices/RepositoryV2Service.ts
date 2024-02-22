@@ -29,7 +29,7 @@ import { PathConfig } from "../utils/repository-util";
 
 export interface RepositoryV2ServiceOptions {
   ipfsApi: string;
-  repositoryPath: string;
+  repositoryPath?: string;
 }
 
 export class RepositoryV2Service implements IStorageService {
@@ -37,7 +37,7 @@ export class RepositoryV2Service implements IStorageService {
   private ipfsClient?: IPFSHTTPClient;
 
   constructor(options: RepositoryV2ServiceOptions) {
-    this.repositoryPath = options.repositoryPath;
+    this.repositoryPath = options.repositoryPath!;
     if (options.ipfsApi) {
       this.ipfsClient = createIpfsClient({ url: options.ipfsApi });
     } else {
