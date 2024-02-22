@@ -31,18 +31,18 @@ paths:
     $ref: "server/controllers/repository/check-all-by-addresses.stateless.paths.yaml#/paths/~1check-all-by-addresses"
   /check-by-addresses:
     $ref: "server/controllers/repository/check-by-addresses.stateless.paths.yaml#/paths/~1check-by-addresses"
-  /files/contracts/{chain}:
-    $ref: "server/controllers/repository/get-contract-addresses-all.stateless.paths.yaml#/paths/~1files~1contracts~1{chain}"
-  /contracts/{full_match | partial_match}/{chain}/{address}/{filePath}:
-    $ref: "server/controllers/repository/get-file-static.stateless.paths.yaml#/paths/~1repository~1contracts~1{full_match | partial_match}~1{chain}~1{address}~1{filePath}"
-  /files/tree/any/{chain}/{address}:
-    $ref: "server/controllers/repository/get-file-tree-all.stateless.paths.yaml#/paths/~1files~1tree~1any~1{chain}~1{address}"
-  /files/tree/{chain}/{address}:
-    $ref: "server/controllers/repository/get-file-tree-full.stateless.paths.yaml#/paths/~1files~1tree~1{chain}~1{address}"
   /files/any/{chain}/{address}:
     $ref: "server/controllers/repository/get-source-files-all.stateless.paths.yaml#/paths/~1files~1any~1{chain}~1{address}"
   /files/{chain}/{address}:
     $ref: "server/controllers/repository/get-source-files-full.stateless.paths.yaml#/paths/~1files~1{chain}~1{address}"
+  /repository/contracts/{full_match | partial_match}/{chain}/{address}/{filePath}:
+    $ref: "server/controllers/repository/get-file-static.stateless.paths.yaml#/paths/~1repository~1contracts~1{full_match | partial_match}~1{chain}~1{address}~1{filePath}"
+  /files/contracts/{chain}:
+    $ref: "server/controllers/repository/get-contract-addresses-all.stateless.paths.yaml#/paths/~1files~1contracts~1{chain}"
+  /files/tree/any/{chain}/{address}:
+    $ref: "server/controllers/repository/get-file-tree-all.stateless.paths.yaml#/paths/~1files~1tree~1any~1{chain}~1{address}"
+  /files/tree/{chain}/{address}:
+    $ref: "server/controllers/repository/get-file-tree-full.stateless.paths.yaml#/paths/~1files~1tree~1{chain}~1{address}"
   /session/data:
     $ref: "server/controllers/verification/session-state/data.session-state.paths.yaml#/paths/~1session~1data"
   /session/clear:

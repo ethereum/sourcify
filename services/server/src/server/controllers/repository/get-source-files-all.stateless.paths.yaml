@@ -3,8 +3,8 @@ openapi: "3.0.0"
 paths:
   /files/any/{chain}/{address}:
     get:
-      summary: Get file tree
-      description: Returns repository URLs for every file in the source tree for the desired chain and address. Searches for full and partial matches.
+      summary: Get all files of a contract (full and partial match)
+      description: Returns all files for the desired contract with the address and chain. Searches both full and partial matches.
       tags:
         - Repository
       parameters:
