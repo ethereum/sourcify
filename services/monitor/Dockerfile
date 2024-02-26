@@ -15,13 +15,16 @@ FROM node:18.18.2-bullseye-slim as production
 
 RUN mkdir -p /home/app/services/monitor
 
-WORKDIR /home/app/services/monitor
-COPY services/monitor/package.json ./package.json
-COPY services/monitor/chains.json ./chains.json
+WORKDIR /home/app/
+COPY package.json ./package.json
+COPY package-lock.json ./package-lock.json
+COPY lerna.json ./lerna.json
+COPY nx.json ./nx.json
 
-RUN npm install --omit=dev 
-COPY --from=builder /home/app/services/monitor/dist ./dist
+COPY --from=builder /home/app/packages/ ./packages/
+COPY --from=builder /home/app/services/monitor/ ./services/monitor/
 
+RUN npm ci --workspace=sourcify-monitor --include-workspace-root --omit=dev
 LABEL org.opencontainers.image.source https://github.com/ethereum/sourcify
 LABEL org.opencontainers.image.licenses MIT
 

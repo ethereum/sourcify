@@ -54,7 +54,7 @@
     "prettier": "^2.1.1"
   },
   "optionalDependencies": {
-    "fsevents": "^2.3.2"
+    "fsevents": "*"
   },
   "files": [
     "build/main",

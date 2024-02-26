@@ -32,10 +32,11 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
 
   const chain = req.body.chain;
   const address = req.body.address;
+  const apiKey = req.body.apiKey;
   const sourcifyChain = sourcifyChainsMap[chain];
 
   const { compilerVersion, solcJsonInput, contractName } =
-    await processRequestFromEtherscan(sourcifyChain, address);
+    await processRequestFromEtherscan(sourcifyChain, address, apiKey);
 
   const metadata = await getMetadataFromCompiler(
     compilerVersion,
