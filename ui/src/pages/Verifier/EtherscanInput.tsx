@@ -78,6 +78,13 @@ const EtherscanInput = ({
       {error && <div className="text-sm text-red-400">{error}</div>}
       <Input
         disabled={isLoading}
+        value={apiKey}
+        onChange={handleApiKeyChange}
+        placeholder="Etherscan API Key (Optional)"
+        className="mb-2"
+      />
+      <Input
+        disabled={isLoading}
         value={address}
         onChange={handleAddressChange}
         placeholder="0x00878Ac0D6B8d9..."
@@ -87,13 +94,6 @@ const EtherscanInput = ({
         value={chainId}
         handleChainIdChange={handleChainIdChange}
         availableChains={chainsIdsWithEtherscanAPI}
-      />
-      <Input
-        disabled={isLoading}
-        value={apiKey}
-        onChange={handleApiKeyChange}
-        placeholder="Etherscan API Key (Optional)"
-        className="mt-2"
       />
       {sourcifyChainMap[parseInt(chainId)]?.etherscanAPI && (
         <div className="mt-1">
