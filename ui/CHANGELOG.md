@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-ui@1.1.2 - 2023-02-26
+
+- Allow passing Etherscan API key as parameter in import from Etherscon
+
 ## sourcify-ui@1.1.1 - 2023-02-22
 
 - Bump versions

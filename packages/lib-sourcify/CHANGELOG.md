@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## @ethereum-sourcify/lib-sourcify@1.7.1 - 2023-02-26
+
+- Fix `fsevents` to the `optionalDependencies` for Linux builds.
+
 ## @ethereum-sourcify/lib-sourcify@1.7.0 - 2023-02-22
 
 - Support verification for bytecode containing multiple auxdatas.

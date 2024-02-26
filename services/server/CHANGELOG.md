@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@1.5.1 - 2024-02-26
+
+- Allow passing Etherscan API key as parameter in import from Etherscon
+- Hot fix checkAllByChainAndAddress was calling checkByChainAndAddress
+
 ## sourcify-server@1.5.0 - 2024-02-22
 
 - Readies the server for the new database based architechture (but does not write yet because the env's are not set as of deployment.)
