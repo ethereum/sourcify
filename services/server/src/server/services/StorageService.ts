@@ -111,8 +111,10 @@ export class StorageService {
     chainId: string
   ): Promise<Match[]> {
     return (
-      (await this.repositoryV1?.checkByChainAndAddress?.(address, chainId)) ||
-      []
+      (await this.repositoryV1?.checkAllByChainAndAddress?.(
+        address,
+        chainId
+      )) || []
     );
   }
 
