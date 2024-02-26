@@ -20,6 +20,9 @@ paths:
                   type: string
                   format: supported-chainId
                   example: "1"
+                apiKey:
+                  type: string
+                  example: "*********************************"
               required:
                 - address
                 - chainId
@@ -33,6 +36,9 @@ paths:
                 chain:
                   type: string
                   format: supported-chainId
+                apiKey:
+                  type: string
+                  example: "*********************************"
               required:
                 - address
                 - chain

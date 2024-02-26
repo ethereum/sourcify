@@ -22,6 +22,7 @@ const EtherscanInput = ({
 }: EtherscanInputProps) => {
   const [address, setAddress] = useState<string>("");
   const [chainId, setChainId] = useState<string>("");
+  const [apiKey, setApiKey] = useState<string>("");
   const [error, setError] = useState<string>("");
   const { sourcifyChains, sourcifyChainMap } = useContext(Context);
   const chainsIdsWithEtherscanAPI = sourcifyChains
@@ -45,6 +46,13 @@ const EtherscanInput = ({
     setChainId(chainId);
   };
 
+  const handleApiKeyChange: React.ChangeEventHandler<HTMLInputElement> = (
+    e
+  ) => {
+    e.preventDefault();
+    setApiKey(e.target.value);
+  };
+
   useEffect(() => {
     if (!address || !chainId || error) {
       return;
@@ -53,6 +61,7 @@ const EtherscanInput = ({
     const formData = new FormData();
     formData.append("address", address);
     formData.append("chainId", chainId);
+    formData.append("apiKey", apiKey);
 
     fetchAndUpdate(VERIFY_FROM_ETHERSCAN, {
       method: "POST",
@@ -62,11 +71,18 @@ const EtherscanInput = ({
       setChainId("");
       setIsLoading(false);
     });
-  }, [address, chainId, fetchAndUpdate, setIsLoading, error]);
+  }, [address, chainId, apiKey, fetchAndUpdate, setIsLoading, error]);
 
   return (
     <div className="mb-2">
       {error && <div className="text-sm text-red-400">{error}</div>}
+      <Input
+        disabled={isLoading}
+        value={apiKey}
+        onChange={handleApiKeyChange}
+        placeholder="Etherscan API Key (Optional)"
+        className="mb-2"
+      />
       <Input
         disabled={isLoading}
         value={address}

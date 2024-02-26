@@ -18,6 +18,9 @@ paths:
                 chainId:
                   type: string
                   format: supported-chainId
+                apiKey:
+                  type: string
+                  example: "*********************************"
               required:
                 - address
                 - chainId
@@ -34,6 +37,9 @@ paths:
                 chain:
                   type: string
                   format: supported-chainId
+                apiKey:
+                  type: string
+                  example: "*********************************"
       responses:
         "200":
           description: OK

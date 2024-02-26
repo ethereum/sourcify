@@ -75,7 +75,8 @@ export const getSolcJsonInputFromEtherscanResult = (
 
 export const processRequestFromEtherscan = async (
   sourcifyChain: SourcifyChain,
-  address: string
+  address: string,
+  apiKey?: string
 ): Promise<any> => {
   if (!sourcifyChain.etherscanApi) {
     throw new BadRequestError(
@@ -84,9 +85,10 @@ export const processRequestFromEtherscan = async (
   }
 
   const url = `${sourcifyChain.etherscanApi.apiURL}/api?module=contract&action=getsourcecode&address=${address}`;
-  const apiKey = process.env[sourcifyChain.etherscanApi.apiKeyEnvName || ""];
+  const usedApiKey =
+    apiKey || process.env[sourcifyChain.etherscanApi.apiKeyEnvName || ""];
   let response;
-  const secretUrl = `${url}&apikey=${apiKey || ""}`;
+  const secretUrl = `${url}&apikey=${usedApiKey || ""}`;
   logger.debug(
     `Fetching from Etherscan secretUrl=${secretUrl} chainId=${sourcifyChain.chainId} address=${address}`
   );
@@ -133,7 +135,7 @@ export const processRequestFromEtherscan = async (
       } address=${address} resultJson=${JSON.stringify(resultJson)}`
     );
     throw new BadGatewayError(
-      "Error in Etherscan API response. Result message: " + resultJson.message
+      "Error in Etherscan API response. Result message: " + resultJson.result
     );
   }
   if (resultJson.result[0].SourceCode === "") {
