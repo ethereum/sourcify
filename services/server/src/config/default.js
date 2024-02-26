@@ -3,13 +3,15 @@ module.exports = {
     port: 5555,
     maxFileSize: 30 * 1024 * 1024, // 30 MB
   },
+  // Deprecated repository
   repositoryV1: {
     path: "/tmp/sourcify/repository",
     serverUrl: "http://localhost:10000", // Need to keep this as it's used in IpfsRepositoryService.ts fetchAllFileUrls.
   },
-  repositoryV2: {
-    path: "/tmp/sourcify/repositoryV2",
-  },
+  // Disable repositoryV2 by default for now, we will enable it once we start the synchronization script
+  // repositoryV2: {
+  //   path: "/tmp/sourcify/repositoryV2",
+  // },
   solcRepo: "/tmp/solc-bin/linux-amd64",
   solJsonRepo: "/tmp/solc-bin/soljson",
   session: {

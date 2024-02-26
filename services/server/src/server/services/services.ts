@@ -13,7 +13,9 @@ export const services = {
     },
     repositoryV2ServiceOptions: {
       ipfsApi: process.env.IPFS_API as string,
-      repositoryPath: config.get("repositoryV2.path"),
+      repositoryPath: config.has("repositoryV2.path")
+        ? config.get("repositoryV2.path")
+        : undefined,
     },
     sourcifyDatabaseServiceOptions: {
       postgres: {

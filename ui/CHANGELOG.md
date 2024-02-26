@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-ui@1.1.1 - 2023-02-22
+
+- Bump versions
+
 ## sourcify-ui@1.1.0 - 2023-12-19
 
 - Remove CREATE2 verification and related code such as AUTH0
