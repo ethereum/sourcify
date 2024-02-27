@@ -41,7 +41,9 @@
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
     },
-    "rpc": ["https://rpc.holesky.ethpandaops.io"]
+    "rpc": [
+      "https://rpc.holesky.ethpandaops.io"
+    ]
   },
   "5": {
     "sourcifyName": "Ethereum Goerli Testnet",
@@ -401,7 +403,9 @@
   "311752642": {
     "sourcifyName": "Oneledger Mainnet",
     "supported": true,
-    "rpc": ["https://mainnet-rpc.oneledger.network"],
+    "rpc": [
+      "https://mainnet-rpc.oneledger.network"
+    ],
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://mainnet-explorer.oneledger.network/"
@@ -947,6 +951,34 @@
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
     }
+  },
+  "252": {
+    "sourcifyName": "Fraxtal",
+    "supported": true,
+    "etherscanApi": {
+      "apiURL": "https://api.fraxscan.com",
+      "apiKeyEnvName": "FRAXSCAN_API_KEY"
+    },
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true
+    },
+    "rpc": [
+      "https://rpc.frax.com"
+    ]
+  },
+  "2522": {
+    "sourcifyName": "Fraxtal Testnet",
+    "supported": true,
+    "etherscanApi": {
+      "apiURL": "https://api-holesky.fraxscan.com",
+      "apiKeyEnvName": "FRAXSCAN_API_KEY"
+    },
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true
+    },
+    "rpc": [
+      "https://rpc.testnet.frax.com"
+    ]
   },
   "888": {
     "sourcifyName": "Wanchain Mainnet",
