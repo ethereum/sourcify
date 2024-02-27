@@ -11,6 +11,7 @@ const util = require("util");
 const rimraf = require("rimraf");
 const addContext = require("mochawesome/addContext");
 const { assertVerification } = require("../helpers/assertions");
+const testEtherscanContracts = require("../helpers/etherscanInstanceContracts.json");
 
 const TEST_TIME = process.env.TEST_TIME || 30000; // 30 seconds
 const CUSTOM_PORT = 5556;
@@ -34,11 +35,21 @@ describe("Test Supported Chains", function () {
   let currentResponse = null; // to log server response when test fails
 
   const testedChains = new Set(); // Track tested chains and make sure all "supported = true" chains are tested
-
+  let supportedChains;
   before(async function () {
     const promisified = util.promisify(server.app.listen);
     await promisified(server.port);
     console.log(`Injector listening on port ${server.port}!`);
+
+    chai
+      .request(server.app)
+      .get("/chains")
+      .end((err, res) => {
+        if (err !== null) {
+          throw new Error("Cannot fetch supportedChains");
+        }
+        supportedChains = res.body.filter((chain) => chain.supported);
+      });
   });
 
   beforeEach(() => {
@@ -1296,35 +1307,52 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
+    const missingEtherscanTests = [];
+    supportedChains
+      .filter((chain) => testedChains.has(`${chain.chainId}`))
+      .forEach((chain) => {
+        if (chain.chainId == 1337 || chain.chainId == 31337) return; // Skip LOCAL_CHAINS: Ganache and Hardhat
+        if (
+          chain.etherscanAPI &&
+          testEtherscanContracts[chain.chainId] === undefined
+        ) {
+          missingEtherscanTests.push(chain);
+        }
+      });
+
+    chai.assert(
+      missingEtherscanTests.length == 0,
+      `There are missing Etherscan tests for chains: ${missingEtherscanTests
+        .map((chain) => `${chain.name} (${chain.chainId})`)
+        .join(",\n")}`
+    );
+
+    done();
+  });
+
   // Finally check if all the "supported: true" chains have been tested
   it("should have tested all supported chains", function (done) {
     if (newAddedChainIds.length) {
       // Don't test all chains if it is a pull request for adding new chain support
       return this.skip();
     }
-    chai
-      .request(server.app)
-      .get("/chains")
-      .end((err, res) => {
-        chai.assert.equal(err, null);
-        chai.assert.equal(res.status, 200);
-        const supportedChains = res.body.filter((chain) => chain.supported);
-        const untestedChains = [];
-        supportedChains.forEach((chain) => {
-          if (chain.chainId == 1337 || chain.chainId == 31337) return; // Skip LOCAL_CHAINS: Ganache and Hardhat
-          if (!testedChains.has(chain.chainId.toString())) {
-            untestedChains.push(chain);
-          }
-        });
-        chai.assert(
-          untestedChains.length == 0,
-          `There are untested chains!: ${untestedChains
-            .map((chain) => `${chain.name} (${chain.chainId})`)
-            .join(",\n")}`
-        );
 
-        done();
-      });
+    const untestedChains = [];
+    supportedChains.forEach((chain) => {
+      if (chain.chainId == 1337 || chain.chainId == 31337) return; // Skip LOCAL_CHAINS: Ganache and Hardhat
+      if (!testedChains.has(chain.chainId.toString())) {
+        untestedChains.push(chain);
+      }
+    });
+    chai.assert(
+      untestedChains.length == 0,
+      `There are untested chains!: ${untestedChains
+        .map((chain) => `${chain.name} (${chain.chainId})`)
+        .join(",\n")}`
+    );
+
+    done();
   });
 
   //////////////////////
