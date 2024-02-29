@@ -1115,7 +1115,7 @@ describe("Test Supported Chains", function () {
   );
 
   verifyContract(
-    "0xa456Ad3DEe140dcC91655ff45ef3103C460201D0",
+    "0xE115Ef16e46bbF46591170D712140eC553C43553",
     "10243",
     "Arthera Testnet",
     "shared/"
