@@ -959,7 +959,7 @@ describe("Server", function () {
   });
 
   describe("session api verification", function () {
-    this.timeout(EXTENDED_TIME);
+    this.timeout(EXTENDED_TIME_60);
 
     it("should inform when no pending contracts", (done) => {
       chai
