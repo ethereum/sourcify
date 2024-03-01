@@ -331,6 +331,20 @@
       "expectedStatus": "perfect"
     }
   ],
+  "252": [
+    {
+      "address": "0xEe44D634f97d8eE09850Ed04559E068D30276FE7",
+      "type": "single",
+      "expectedStatus": "partial"
+    }
+  ],
+  "2522": [
+    {
+      "address": "0x31D982ebd82Ad900358984bd049207A4c2468640",
+      "type": "single",
+      "expectedStatus": "partial"
+    }
+  ],
   "1116": [
     {
       "address": "0x3034802fc4c9a278d0886ed77fd3f79fd789c898",
