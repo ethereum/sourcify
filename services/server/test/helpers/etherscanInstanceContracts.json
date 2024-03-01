@@ -424,7 +424,7 @@
       "expectedStatus": "partial"
     },
     {
-      "address": "0xBc5b9F493c9dEA4C46DF6F3243df716D6973EaD3",
+      "address": "0xfD9B8B1B7e44b39DFA04D66159Ac21B68141eD38",
       "type": "standard-json",
       "expectedStatus": "perfect"
     }
