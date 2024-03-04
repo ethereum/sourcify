@@ -577,7 +577,7 @@ export function addLibraryAddresses(
   while (index !== -1) {
     const placeholder = template.slice(index, index + PLACEHOLDER_LENGTH);
     const address = real.slice(index, index + PLACEHOLDER_LENGTH);
-    libraryMap[placeholder] = address;
+    libraryMap[placeholder] = `0x${address}`;
 
     // Replace regex with simple string replacement
     template = template.split(placeholder).join(address);

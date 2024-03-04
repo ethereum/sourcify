@@ -1,7 +1,13 @@
 process.env.NODE_CONFIG_ENV = "test";
 process.env.IPFS_GATEWAY = "http://ipfs-mock/ipfs/";
 process.env.FETCH_TIMEOUT = 8000; // instantiated http-gateway takes a little longer
-process.env.SOURCIFY_POSTGRES_HOST = "";
+
+process.env.SOURCIFY_POSTGRES_HOST = "localhost";
+process.env.SOURCIFY_POSTGRES_DB = "sourcify";
+process.env.SOURCIFY_POSTGRES_USER = "sourcify";
+process.env.SOURCIFY_POSTGRES_PASSWORD = "sourcify";
+process.env.SOURCIFY_POSTGRES_PORT =
+  process.env.DOCKER_HOST_POSTGRES_TEST_PORT || 5431;
 process.env.ALLIANCE_POSTGRES_HOST = "";
 
 const Server = require("../dist/server/server").Server;
@@ -21,6 +27,7 @@ const fs = require("fs");
 const rimraf = require("rimraf");
 const path = require("path");
 const config = require("config");
+const verifierAllianceLibrariesManuallyLinkedTest = require("./verifier-alliance/libraries_manually_linked.json");
 
 const { StorageService } = require("../dist/server/services/StorageService");
 const {
@@ -2036,6 +2043,59 @@ describe("Server", function () {
       if (res.rowCount === 1) {
         chai.expect(res.rows[0].runtime_match).to.equal("partial");
       }
+    });
+
+    it(verifierAllianceLibrariesManuallyLinkedTest._comment, async () => {
+      const address = await deployFromAbiAndBytecode(
+        localSigner,
+        verifierAllianceLibrariesManuallyLinkedTest.compilation_artifacts.abi,
+        verifierAllianceLibrariesManuallyLinkedTest.deployed_creation_code
+      );
+
+      const compilationTarget = {};
+      const fullyQualifiedName =
+        verifierAllianceLibrariesManuallyLinkedTest.fully_qualified_name.split(
+          ":"
+        );
+      compilationTarget[fullyQualifiedName[0]] = fullyQualifiedName[1];
+      const sources = {};
+      Object.keys(verifierAllianceLibrariesManuallyLinkedTest.sources).forEach(
+        (path) => {
+          sources[path] = {
+            content: verifierAllianceLibrariesManuallyLinkedTest.sources[path],
+            keccak256: keccak256str(
+              verifierAllianceLibrariesManuallyLinkedTest.sources[path]
+            ),
+            urls: [],
+          };
+        }
+      );
+      const result = await chai
+        .request(server.app)
+        .post("/")
+        .send({
+          address: address,
+          chain: defaultContractChain,
+          files: {
+            "metadata.json": JSON.stringify({
+              compiler: { version: "0.8.18+commit.87f61d96" },
+              language: "Solidity",
+              output: {
+                abi: [],
+                devdoc: {},
+                userdoc: {},
+              },
+              settings: {
+                ...verifierAllianceLibrariesManuallyLinkedTest.compiler_settings,
+                compilationTarget,
+              },
+              sources,
+              version: 1,
+            }),
+            ...verifierAllianceLibrariesManuallyLinkedTest.sources,
+          },
+        });
+      console.log(result);
     });
   });
 });
