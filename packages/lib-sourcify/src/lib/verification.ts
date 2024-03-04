@@ -582,9 +582,9 @@ export function addLibraryAddresses(
     // Replace regex with simple string replacement
     template = template.split(placeholder).join(address);
 
-    index = template.indexOf(PLACEHOLDER_START);
+    transformationsArray.push(LibraryTransformation(index, placeholder));
 
-    transformationsArray.push(LibraryTransformation(index, template));
+    index = template.indexOf(PLACEHOLDER_START);
   }
 
   return {
