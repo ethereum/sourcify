@@ -3,8 +3,12 @@ import {
   CheckedContract,
   Transformation,
 } from "@ethereum-sourcify/lib-sourcify";
-import { id as keccak256str } from "ethers";
+import { keccak256 } from "ethers";
 import * as Database from "../utils/database-util";
+import {
+  bytesFromString,
+  normalizeRecompiledBytecodes,
+} from "../utils/database-util";
 import { Pool } from "pg";
 
 export default abstract class AbstractDatabaseService {
@@ -37,16 +41,19 @@ export default abstract class AbstractDatabaseService {
   getKeccak256Bytecodes(recompiledContract: CheckedContract, match: Match) {
     return {
       keccak256OnchainCreationBytecode: match.onchainCreationBytecode
-        ? keccak256str(match.onchainCreationBytecode)
+        ? keccak256(bytesFromString(match.onchainCreationBytecode)!)
         : undefined,
-      keccak256OnchainRuntimeBytecode: keccak256str(
-        match.onchainRuntimeBytecode!
+      keccak256OnchainRuntimeBytecode: keccak256(
+        bytesFromString(match.onchainRuntimeBytecode!)!
       ),
-      keccak256RecompiledCreationBytecode: recompiledContract.creationBytecode
-        ? keccak256str(recompiledContract.creationBytecode)
-        : undefined,
-      keccak256RecompiledRuntimeBytecode: keccak256str(
-        recompiledContract.runtimeBytecode!
+      keccak256RecompiledCreationBytecode:
+        recompiledContract.normalizedCreationBytecode
+          ? keccak256(
+              bytesFromString(recompiledContract.normalizedCreationBytecode)!
+            ) // eslint-disable-line indent
+          : undefined,
+      keccak256RecompiledRuntimeBytecode: keccak256(
+        bytesFromString(recompiledContract.normalizedRuntimeBytecode!)!
       ),
     };
   }
@@ -113,10 +120,10 @@ export default abstract class AbstractDatabaseService {
 
     return {
       bytecodeHashes: {
-        recompiledCreation: keccak256OnchainCreationBytecode,
-        recompiledRuntime: keccak256OnchainRuntimeBytecode,
-        onchainCreation: keccak256RecompiledCreationBytecode,
-        onchainRuntime: keccak256RecompiledRuntimeBytecode,
+        recompiledCreation: bytesFromString(keccak256OnchainCreationBytecode),
+        recompiledRuntime: bytesFromString(keccak256OnchainRuntimeBytecode)!,
+        onchainCreation: bytesFromString(keccak256RecompiledCreationBytecode),
+        onchainRuntime: bytesFromString(keccak256RecompiledRuntimeBytecode)!,
       },
       compiledContract: {
         language,
@@ -146,24 +153,28 @@ export default abstract class AbstractDatabaseService {
       if (databaseColumns.bytecodeHashes.recompiledCreation) {
         await Database.insertCode(this.databasePool, {
           bytecode_hash: databaseColumns.bytecodeHashes.recompiledCreation,
-          bytecode: recompiledContract.creationBytecode!,
+          bytecode: bytesFromString(
+            recompiledContract.normalizedCreationBytecode
+          )!,
         });
       }
       await Database.insertCode(this.databasePool, {
         bytecode_hash: databaseColumns.bytecodeHashes.recompiledRuntime,
-        bytecode: recompiledContract.runtimeBytecode!,
+        bytecode: bytesFromString(
+          recompiledContract.normalizedRuntimeBytecode
+        )!,
       });
 
       // Add onchain bytecodes
       if (databaseColumns.bytecodeHashes.onchainCreation) {
         await Database.insertCode(this.databasePool, {
           bytecode_hash: databaseColumns.bytecodeHashes.onchainCreation,
-          bytecode: match.onchainCreationBytecode!,
+          bytecode: bytesFromString(match.onchainCreationBytecode)!,
         });
       }
       await Database.insertCode(this.databasePool, {
         bytecode_hash: databaseColumns.bytecodeHashes.onchainRuntime,
-        bytecode: match.onchainRuntimeBytecode!,
+        bytecode: bytesFromString(match.onchainRuntimeBytecode)!,
       });
 
       // Add the onchain contract in contracts
@@ -180,12 +191,12 @@ export default abstract class AbstractDatabaseService {
       const contractDeploymentInsertResult =
         await Database.insertContractDeployment(this.databasePool, {
           chain_id: match.chainId,
-          address: match.address,
-          transaction_hash: match.creatorTxHash!,
+          address: bytesFromString(match.address)!,
+          transaction_hash: bytesFromString(match.creatorTxHash)!,
           contract_id: contractInsertResult.rows[0].id,
           block_number: match.blockNumber,
           txindex: match.txIndex,
-          deployer: match.deployer,
+          deployer: bytesFromString(match.deployer),
         });
 
       // insert new recompiled contract
@@ -289,12 +300,16 @@ export default abstract class AbstractDatabaseService {
       if (databaseColumns.bytecodeHashes.recompiledCreation) {
         await Database.insertCode(this.databasePool, {
           bytecode_hash: databaseColumns.bytecodeHashes.recompiledCreation,
-          bytecode: recompiledContract.creationBytecode!,
+          bytecode: bytesFromString(
+            recompiledContract.normalizedCreationBytecode
+          )!,
         });
       }
       await Database.insertCode(this.databasePool, {
         bytecode_hash: databaseColumns.bytecodeHashes.recompiledRuntime,
-        bytecode: recompiledContract.runtimeBytecode!,
+        bytecode: bytesFromString(
+          recompiledContract.normalizedRuntimeBytecode
+        )!,
       });
 
       // insert new recompiled contract
@@ -367,6 +382,9 @@ export default abstract class AbstractDatabaseService {
 
     await this.init();
 
+    // Normalize both creation and runtime recompiled bytecodes before storing them to the database
+    normalizeRecompiledBytecodes(recompiledContract, match);
+
     const databaseColumns = await this.getDatabaseColumns(
       recompiledContract,
       match
@@ -377,7 +395,7 @@ export default abstract class AbstractDatabaseService {
       await Database.getVerifiedContractByChainAndAddress(
         this.databasePool,
         parseInt(match.chainId),
-        match.address
+        bytesFromString(match.address)
       );
 
     if (existingVerifiedContractResult.rowCount === 0) {

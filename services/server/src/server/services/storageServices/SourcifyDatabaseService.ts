@@ -8,6 +8,7 @@ import * as Database from "../utils/database-util";
 import { Pool } from "pg";
 import AbstractDatabaseService from "./AbstractDatabaseService";
 import { IStorageService } from "../StorageService";
+import { bytesFromString } from "../utils/database-util";
 
 export interface SourcifyDatabaseServiceOptions {
   postgres: {
@@ -74,7 +75,7 @@ export class SourcifyDatabaseService
       await Database.getSourcifyMatchByChainAddress(
         this.databasePool,
         parseInt(chainId),
-        address,
+        bytesFromString(address)!,
         onlyPerfectMatches
       );
 
