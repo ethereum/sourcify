@@ -50,7 +50,7 @@ export default abstract class AbstractDatabaseService {
         recompiledContract.normalizedCreationBytecode
           ? keccak256(
               bytesFromString(recompiledContract.normalizedCreationBytecode)!
-            )
+            ) // eslint-disable-line indent
           : undefined,
       keccak256RecompiledRuntimeBytecode: keccak256(
         bytesFromString(recompiledContract.normalizedRuntimeBytecode!)!
