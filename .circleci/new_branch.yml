@@ -39,6 +39,8 @@ jobs:
       - run:
           name: tsc and test
           command: npx lerna run build && npx lerna run lerna-test
+          environment:
+            DOCKER_HOST_POSTGRES_TEST_PORT: 5432
       - run:
           name: coverage
           command: npx lerna run cov:send

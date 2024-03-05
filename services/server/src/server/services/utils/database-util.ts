@@ -1,18 +1,20 @@
 import {
+  CheckedContract,
   CompiledContractCborAuxdata,
   ImmutableReferences,
+  Match,
   Transformation,
   TransformationValues,
 } from "@ethereum-sourcify/lib-sourcify";
 import { Pool } from "pg";
 
-type Hash = string;
+type Hash = Buffer;
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Tables {
   export interface Code {
     bytecode_hash: Hash;
-    bytecode: string;
+    bytecode: Buffer;
   }
   export interface Contract {
     creation_bytecode_hash?: Hash;
@@ -20,12 +22,12 @@ export namespace Tables {
   }
   export interface ContractDeployment {
     chain_id: string;
-    address: string;
-    transaction_hash: string;
+    address: Buffer;
+    transaction_hash: Buffer;
     contract_id: string;
     block_number?: number | null;
     txindex?: number;
-    deployer?: string;
+    deployer?: Buffer;
   }
   export interface CompiledContract {
     compiler: string;
@@ -107,7 +109,7 @@ export async function getVerifiedContractByBytecodeHashes(
 export async function getVerifiedContractByChainAndAddress(
   pool: Pool,
   chain: number,
-  address?: string
+  address?: Buffer
 ) {
   return await pool.query(
     `
@@ -126,7 +128,7 @@ export async function getVerifiedContractByChainAndAddress(
 export async function getSourcifyMatchByChainAddress(
   pool: Pool,
   chain: number,
-  address: string,
+  address: Buffer,
   onlyPerfectMatches: boolean = false
 ) {
   return await pool.query(
@@ -426,4 +428,65 @@ export async function updateSourcifyMatch(
     [verified_contract_id, creation_match, runtime_match]
   );
   // Delete previous match?
+}
+
+export function bytesFromString(str: string | undefined): Buffer | undefined {
+  if (str === undefined) {
+    return undefined;
+  }
+  let stringWithout0x;
+  if (str.substring(0, 2) === "0x") {
+    stringWithout0x = str.substring(2);
+  } else {
+    stringWithout0x = str;
+  }
+  return Buffer.from(stringWithout0x, "hex");
+}
+
+// Use the transformations array to normalize the library transformations in both runtime and creation recompiled bytecodes
+export function normalizeRecompiledBytecodes(
+  recompiledContract: CheckedContract,
+  match: Match
+) {
+  recompiledContract.normalizedRuntimeBytecode =
+    recompiledContract.runtimeBytecode;
+  match.runtimeTransformations?.forEach((transformation) => {
+    if (
+      transformation.reason === "library" &&
+      recompiledContract.normalizedRuntimeBytecode
+    ) {
+      const placeholder = "0".repeat(40);
+      const before = recompiledContract.normalizedRuntimeBytecode.substring(
+        0,
+        transformation.offset
+      );
+      const after = recompiledContract.normalizedRuntimeBytecode.substring(
+        transformation.offset + 40
+      );
+      recompiledContract.normalizedRuntimeBytecode =
+        before + placeholder + after;
+    }
+  });
+  if (recompiledContract.creationBytecode) {
+    recompiledContract.normalizedCreationBytecode =
+      recompiledContract.creationBytecode;
+    match.creationTransformations?.forEach((transformation) => {
+      if (
+        transformation.reason === "library" &&
+        recompiledContract.normalizedCreationBytecode
+      ) {
+        const PLACEHOLDER_LENGTH = 40;
+        const placeholder = "0".repeat(PLACEHOLDER_LENGTH);
+        const before = recompiledContract.normalizedCreationBytecode.substring(
+          0,
+          transformation.offset
+        );
+        const after = recompiledContract.normalizedCreationBytecode.substring(
+          transformation.offset + PLACEHOLDER_LENGTH
+        );
+        recompiledContract.normalizedCreationBytecode =
+          before + placeholder + after;
+      }
+    });
+  }
 }

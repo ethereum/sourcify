@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## @ethereum-sourcify/contract-call-decoder@0.2.10 - 2024-02-26
+
+- Fix `fsevents` to the `optionalDependencies` for Linux builds.
+
+## @ethereum-sourcify/contract-call-decoder@0.2.9 - 2024-02-22
+
+- Bump `@ethereum-sourcify/bytecode-utils` to `1.2.6`
+
 ## @ethereum-sourcify/contract-call-decoder@0.2.8 - 2023-12-19
 
 - Bump `@ethereum-sourcify/bytecode-utils` to `1.2.5`

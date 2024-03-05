@@ -366,5 +366,60 @@
       "type": "standard-json",
       "expectedStatus": "perfect"
     }
+  ],
+  "2358": [
+    {
+      "address": "0xa1CBa9Fe0b212237D96f6a3DA49949990c27919c",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x6fE4439Ae7F93e4aa7989a057109d36Fbcd98bA9",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
+  ],
+  "255": [
+    {
+      "address": "0x88A7cEF051B427B75cB473715B550E56E958992e",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0xC4782aDc7D2836fa23542E9E79391580E958500e",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
+  ],
+  "534351": [
+    {
+      "address": "0xFc2bfE03d07eC96F62D6F209667A660e4BF65D74",
+      "type": "single",
+      "expectedStatus": "perfect"
+    },
+    {
+      "address": "0xc6b011774FE1393AE254d19456e76F0f1b5B09Eb",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
+  ],
+  "534352": [
+    {
+      "address": "0xAcb2d53fC723628A39eab07C40796a61f411F92a",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0xfD9B8B1B7e44b39DFA04D66159Ac21B68141eD38",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
+  ],
+  "1030": [
+    {
+      "address": "0x14b2D3bC65e74DAE1030EAFd8ac30c533c976A9b",
+      "type": "single",
+      "expectedStatus": "partial"
+    }
   ]
 }

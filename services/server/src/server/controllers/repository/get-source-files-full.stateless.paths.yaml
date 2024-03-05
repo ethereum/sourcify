@@ -3,8 +3,8 @@ openapi: "3.0.0"
 paths:
   /files/{chain}/{address}:
     get:
-      summary: Get source files (full match)
-      description: Returns all verified sources from the repository for the desired contract address and chain, including `metadata.json`. Searches only for full matches.
+      summary: Get all files of a contract (full match)
+      description: Returns all files for the desired contract with the address and chain. Searches only for full matches.
       tags:
         - Repository
       parameters:

@@ -251,7 +251,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-          version: 20.10.23
+          version: docker23
       - run:
           name: Publish multiarch images
           no_output_timeout: 5m

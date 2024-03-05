@@ -65,6 +65,9 @@ export class CheckedContract {
   creationBytecodeCborAuxdata?: CompiledContractCborAuxdata;
   runtimeBytecodeCborAuxdata?: CompiledContractCborAuxdata;
 
+  normalizedRuntimeBytecode?: string;
+  normalizedCreationBytecode?: string;
+
   /** Checks whether this contract is valid or not.
    *  This is a static method due to persistence issues.
    *

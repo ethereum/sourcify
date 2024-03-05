@@ -3,7 +3,7 @@ openapi: "3.0.0"
 paths:
   /files/contracts/{chain}:
     get:
-      summary: Get contract addresses (full or partial match)
+      summary: Get all contract addresses verified on a chain (full or partial match)
       description: Returns all verified contracts from the repository for the desired chain. Searches for full and partial matches.
       tags:
         - Repository

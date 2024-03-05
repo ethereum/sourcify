@@ -80,10 +80,10 @@ export class AllianceDatabaseService
     return true;
   }
 
-  async storeMatch(contract: CheckedContract, match: Match) {
-    await this.insertOrUpdateVerifiedContract(contract, match);
+  async storeMatch(recompiledContract: CheckedContract, match: Match) {
+    await this.insertOrUpdateVerifiedContract(recompiledContract, match);
     logger.info(
-      `Stored ${contract.name} to database address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
+      `Stored ${recompiledContract.name} to AllianceDatabase address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
     );
   }
 }

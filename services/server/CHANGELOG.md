@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@1.5.1 - 2024-02-26
+
+- Allow passing Etherscan API key as parameter in import from Etherscon
+- Hot fix checkAllByChainAndAddress was calling checkByChainAndAddress
+
+## sourcify-server@1.5.0 - 2024-02-22
+
+- Readies the server for the new database based architechture (but does not write yet because the env's are not set as of deployment.)
+  - Currently Sourcify is based on a filesystem. This release prepares the server to be able to use a database instead of the filesystem. DB gives us more flexibility and other things like querying, scalability, and lets us support other languages because the filesystem assumes metadata.json
+  - The database is based on the Verifier Alliance database schema, plus an additional DB for sourcify needed information
+  - We'll write to the DB and FS simulatanously for a while. Still, the FS is the source of truth until full migration.
+  - Scripts available to migrate the DB.
+  - repository (filesystem) is now repositoryV1. We keep it for backwards compatibility but we'll remove it soon.
+  - We'll have repository V2 will be here long term and will replace V1. The main purpose is to serve files on IPFS. Here we normalize the file names with their hashes which should solve the name problems [#515](https://github.com/ethereum/sourcify/issues/515).
+- Replace the keccak256 identifier generation in the session with a lightweight hash (node crypto's sha1)
+- New chains:
+  - ZetaChain Mainnet (7000)
+  - Lyra Mainnet (957)
+  - Arthera Mainnet (10242)
+  - Polygon zkEVM (1101)
+  - Scroll (534352)
+  - Scroll Sepolia Testnet (534351)
+  - Mode (34443)
+  - Mode Testnet (919)
+  - Conflux eSpace (1030)
+  - ZKFair Mainnet (42766)
+  - Ligtlink Phoenix Mainnet (1890)
+  - Lightlink Pegasus Testnet (1891)
+  - Kroma (255)
+  - Kroma Sepolia (2358)
+- Deprecated chains:
+  - Gather Testnet (356256156)
+
 ## sourcify-server@1.4.4 - 2024-01-04
 
 - Fix staging `rateLimit` config that is missing

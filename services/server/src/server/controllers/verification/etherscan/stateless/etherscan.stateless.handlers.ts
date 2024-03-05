@@ -17,6 +17,7 @@ export async function verifyFromEtherscan(req: Request, res: Response) {
 
   const chain = req.body.chain as string;
   const address = req.body.address;
+  const apiKey = req.body.apiKey;
   const sourcifyChain = sourcifyChainsMap[chain];
 
   const requestId = req.headers["X-Request-ID"] || "";
@@ -26,7 +27,7 @@ export async function verifyFromEtherscan(req: Request, res: Response) {
     address=${address} chainId=${chain}`);
 
   const { compilerVersion, solcJsonInput, contractName } =
-    await processRequestFromEtherscan(sourcifyChain, address);
+    await processRequestFromEtherscan(sourcifyChain, address, apiKey);
 
   const metadata = await getMetadataFromCompiler(
     compilerVersion,

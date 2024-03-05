@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## @ethereum-sourcify/bytecode-utils@1.2.7 - 2024-02-26
+
+- Fix `fsevents` to the `optionalDependencies` for Linux builds.
+
+## @ethereum-sourcify/bytecode-utils@1.2.6 - 2024-02-22
+
+- Add `fsevents` to the `optionalDependencies` for Linux builds.
+
 ## @ethereum-sourcify/bytecode-utils@1.2.5 - 2024-01-03
 
 - Update cbor-x to fix "Segmentation Fault" errors.

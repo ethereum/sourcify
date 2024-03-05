@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-monitor@1.1.9 - 2024-02-26
+
+- Make monitor Dockerfiles similar to server
+
+## sourcify-monitor@1.1.8 - 2024-02-22
+
+- Remove ethpandaops RPCs for Sepolia and Goerli temporarily.
+
 ## sourcify-monitor@1.1.7 - 2024-01-03
 
 - Point dotenv to the correct file
