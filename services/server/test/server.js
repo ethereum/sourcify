@@ -2136,5 +2136,23 @@ describe("Server", function () {
         verifierAllianceTestPartialMatch
       );
     });
+
+    const verifierAllianceTestConstructorArguments = require("./verifier-alliance/constructor_arguments.json");
+    it(verifierAllianceTestConstructorArguments._comment, async () => {
+      await verifierAllianceTest(
+        server,
+        chai,
+        storageService,
+        localSigner,
+        defaultContractChain,
+        verifierAllianceTestConstructorArguments,
+        { deployWithConstructorArguments: true }
+      );
+    });
+
+    // Tests to be implemented:
+    // - genesis: right now not supported,
+    // - partial_match_2: I don't know why we have this test
+    // - partial_match_double_auxdata: right now not supported
   });
 });

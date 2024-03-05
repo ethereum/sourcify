@@ -561,7 +561,9 @@ export async function matchWithCreationTx(
       }
 
       match.creationTransformations?.push(
-        ConstructorTransformation(recompiledCreationBytecode.length)
+        ConstructorTransformation(
+          recompiledCreationBytecode.substring(2).length / 2
+        )
       );
       match.creationTransformationValues.constructorArguments =
         abiEncodedConstructorArguments;

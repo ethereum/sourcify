@@ -13,14 +13,31 @@ const verifierAllianceTest = async (
   storageService,
   localSigner,
   defaultContractChain,
-  testCase
+  testCase,
+  { deployWithConstructorArguments } = { deployWithConstructorArguments: false }
 ) => {
-  const { contractAddress: address, txHash } =
-    await deployFromAbiAndBytecodeForCreatorTxHash(
-      localSigner,
-      testCase.compilation_artifacts.abi,
-      testCase.deployed_creation_code
-    );
+  let address;
+  let txHash;
+  if (!deployWithConstructorArguments) {
+    const { contractAddress, txHash: txCreationHash } =
+      await deployFromAbiAndBytecodeForCreatorTxHash(
+        localSigner,
+        testCase.compilation_artifacts.abi,
+        testCase.deployed_creation_code
+      );
+    address = contractAddress;
+    txHash = txCreationHash;
+  } else {
+    const { contractAddress, txHash: txCreationHash } =
+      await deployFromAbiAndBytecodeForCreatorTxHash(
+        localSigner,
+        testCase.compilation_artifacts.abi,
+        testCase.compiled_creation_code,
+        [testCase.creation_values.constructorArguments]
+      );
+    address = contractAddress;
+    txHash = txCreationHash;
+  }
 
   const compilationTarget = {};
   const fullyQualifiedName = testCase.fully_qualified_name.split(":");
