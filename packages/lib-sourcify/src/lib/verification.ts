@@ -350,7 +350,15 @@ export function matchWithRuntimeBytecode(
     match.runtimeTransformations
   );
   recompiledRuntimeBytecode = replaced;
-  match.runtimeTransformationValues.libraries = libraryMap;
+  if (Object.keys(libraryMap).length > 0) {
+    // Prepend the library addresses with "0x", this is the format for the DB. FS library-map is without "0x"
+    match.runtimeTransformationValues.libraries = Object.keys(
+      libraryMap
+    ).reduce((libMap: any, lib) => {
+      libMap[lib] = `0x${libraryMap[lib]}`;
+      return libMap;
+    }, {});
+  }
 
   if (immutableReferences) {
     onchainRuntimeBytecode = replaceImmutableReferences(
@@ -372,9 +380,8 @@ export function matchWithRuntimeBytecode(
     }
   } else {
     // Try to match without the metadata hashes
-    const [trimmedOnchainRuntimeBytecode, auxdata] = splitAuxdata(
-      onchainRuntimeBytecode
-    );
+    const [trimmedOnchainRuntimeBytecode, auxdata, cborLenghtHex] =
+      splitAuxdata(onchainRuntimeBytecode);
     const [trimmedRecompiledRuntimeBytecode] = splitAuxdata(
       recompiledRuntimeBytecode
     );
@@ -383,9 +390,15 @@ export function matchWithRuntimeBytecode(
       match.immutableReferences = immutableReferences;
       match.runtimeMatch = 'partial';
       match.runtimeTransformations?.push(
-        AuxdataTransformation(trimmedRecompiledRuntimeBytecode.length, '0')
+        // we divide by 2 because we store the length in bytes (without 0x)
+        AuxdataTransformation(
+          trimmedRecompiledRuntimeBytecode.substring(2).length / 2,
+          '1'
+        )
       );
-      match.runtimeTransformationValues.cborAuxdata = { '0': auxdata };
+      match.runtimeTransformationValues.cborAuxdata = {
+        '1': `0x${auxdata}${cborLenghtHex}`,
+      };
     }
   }
 }
@@ -455,7 +468,15 @@ export async function matchWithCreationTx(
     match.creationTransformations
   );
   recompiledCreationBytecode = replaced;
-  match.creationTransformationValues.libraries = libraryMap;
+  if (Object.keys(libraryMap).length > 0) {
+    // Prepend the library addresses with "0x", this is the format for the DB. FS library-map is without "0x"
+    match.creationTransformationValues.libraries = Object.keys(
+      libraryMap
+    ).reduce((libMap: any, lib) => {
+      libMap[lib] = `0x${libraryMap[lib]}`;
+      return libMap;
+    }, {});
+  }
 
   if (onchainCreationBytecode.startsWith(recompiledCreationBytecode)) {
     // if the bytecode doesn't end with metadata then "partial" match
@@ -479,9 +500,8 @@ export async function matchWithCreationTx(
     const onchainCreationBytecodeWithoutConstructorArgs =
       onchainCreationBytecode.slice(0, recompiledCreationBytecode.length);
 
-    const [trimmedOnchainCreationBytecode, auxdata] = splitAuxdata(
-      onchainCreationBytecodeWithoutConstructorArgs
-    ); // In the case of creationTxData (not runtime bytecode) it is actually not CBOR encoded at the end because of the appended constr. args., but splitAuxdata returns the whole bytecode if it's not CBOR encoded, so will work with startsWith.
+    const [trimmedOnchainCreationBytecode, auxdata, cborLenghtHex] =
+      splitAuxdata(onchainCreationBytecodeWithoutConstructorArgs); // In the case of creationTxData (not runtime bytecode) it is actually not CBOR encoded at the end because of the appended constr. args., but splitAuxdata returns the whole bytecode if it's not CBOR encoded, so will work with startsWith.
     const [trimmedRecompiledCreationBytecode] = splitAuxdata(
       recompiledCreationBytecode
     );
@@ -495,9 +515,14 @@ export async function matchWithCreationTx(
       );
       match.creationMatch = 'partial';
       match.creationTransformations?.push(
-        AuxdataTransformation(trimmedRecompiledCreationBytecode.length, '0')
+        AuxdataTransformation(
+          trimmedRecompiledCreationBytecode.substring(2).length / 2,
+          '1'
+        )
       );
-      match.creationTransformationValues.cborAuxdata = { '0': auxdata };
+      match.creationTransformationValues.cborAuxdata = {
+        '1': `0x${auxdata}${cborLenghtHex}`,
+      };
     }
 
     // TODO: If we still don't have a match and we have multiple auxdata in legacyAssembly, try finding the metadata hashes and match with this info.
@@ -538,7 +563,9 @@ export async function matchWithCreationTx(
       }
 
       match.creationTransformations?.push(
-        ConstructorTransformation(recompiledCreationBytecode.length)
+        ConstructorTransformation(
+          recompiledCreationBytecode.substring(2).length / 2
+        )
       );
       match.creationTransformationValues.constructorArguments =
         abiEncodedConstructorArguments;
@@ -582,7 +609,10 @@ export function addLibraryAddresses(
     // Replace regex with simple string replacement
     template = template.split(placeholder).join(address);
 
-    transformationsArray.push(LibraryTransformation(index, placeholder));
+    transformationsArray.push(
+      // we divide by 2 because we store the length in bytes (without 0x)
+      LibraryTransformation((index - 2) / 2, placeholder)
+    );
 
     index = template.indexOf(PLACEHOLDER_START);
   }
@@ -631,7 +661,7 @@ export function replaceImmutableReferences(
       const { start, length } = reference;
 
       // Save the transformation
-      transformationsArray.push(ImmutablesTransformation(start * 2, astId));
+      transformationsArray.push(ImmutablesTransformation(start, astId));
       const immutableValue = onchainRuntimeBytecode.slice(
         start * 2,
         start * 2 + length * 2
@@ -641,7 +671,7 @@ export function replaceImmutableReferences(
       if (transformationValues.immutables === undefined) {
         transformationValues.immutables = {};
       }
-      transformationValues.immutables[astId] = immutableValue;
+      transformationValues.immutables[astId] = `0x${immutableValue}`;
 
       // Write zeros in the place
       const zeros = '0'.repeat(length * 2);
