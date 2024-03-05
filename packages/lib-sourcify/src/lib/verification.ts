@@ -351,6 +351,7 @@ export function matchWithRuntimeBytecode(
   );
   recompiledRuntimeBytecode = replaced;
   if (Object.keys(libraryMap).length > 0) {
+    // Prepend the library addresses with "0x", this is the format for the DB. FS library-map is without "0x"
     match.runtimeTransformationValues.libraries = Object.keys(
       libraryMap
     ).reduce((libMap: any, lib) => {
@@ -468,6 +469,7 @@ export async function matchWithCreationTx(
   );
   recompiledCreationBytecode = replaced;
   if (Object.keys(libraryMap).length > 0) {
+    // Prepend the library addresses with "0x", this is the format for the DB. FS library-map is without "0x"
     match.creationTransformationValues.libraries = Object.keys(
       libraryMap
     ).reduce((libMap: any, lib) => {
