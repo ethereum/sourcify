@@ -98,6 +98,7 @@ export default abstract class AbstractDatabaseService {
       userdoc: compilerOutput?.userdoc || {},
       devdoc: compilerOutput?.devdoc || {},
       storageLayout: compilerOutput?.storageLayout || {},
+      sources: recompiledContract.compilerOutput?.sources || {},
     };
     const creationCodeArtifacts = {
       sourceMap: compilerOutput?.evm.bytecode.sourceMap || "",

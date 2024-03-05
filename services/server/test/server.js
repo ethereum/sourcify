@@ -1,7 +1,13 @@
 process.env.NODE_CONFIG_ENV = "test";
 process.env.IPFS_GATEWAY = "http://ipfs-mock/ipfs/";
 process.env.FETCH_TIMEOUT = 8000; // instantiated http-gateway takes a little longer
-process.env.SOURCIFY_POSTGRES_HOST = "";
+
+process.env.SOURCIFY_POSTGRES_HOST = "localhost";
+process.env.SOURCIFY_POSTGRES_DB = "sourcify";
+process.env.SOURCIFY_POSTGRES_USER = "sourcify";
+process.env.SOURCIFY_POSTGRES_PASSWORD = "sourcify";
+process.env.SOURCIFY_POSTGRES_PORT =
+  process.env.DOCKER_HOST_POSTGRES_TEST_PORT || 5431;
 process.env.ALLIANCE_POSTGRES_HOST = "";
 
 const Server = require("../dist/server/server").Server;
@@ -21,7 +27,6 @@ const fs = require("fs");
 const rimraf = require("rimraf");
 const path = require("path");
 const config = require("config");
-
 const { StorageService } = require("../dist/server/services/StorageService");
 const {
   createCheckedContract,
@@ -41,6 +46,7 @@ const {
   readFilesFromDirectory,
 } = require("./helpers/helpers");
 const { deployFromAbiAndBytecode } = require("./helpers/helpers");
+const { verifierAllianceTest } = require("./helpers/verifierAlliance");
 const { JsonRpcProvider, Network, id: keccak256str } = require("ethers");
 const { LOCAL_CHAINS } = require("../dist/sourcify-chains");
 const nock = require("nock");
@@ -2009,6 +2015,27 @@ describe("Server", function () {
         },
       },
     });
+    this.beforeEach(async () => {
+      await storageService.sourcifyDatabase.init();
+      await storageService.sourcifyDatabase.databasePool.query(
+        "DELETE FROM sourcify_matches"
+      );
+      await storageService.sourcifyDatabase.databasePool.query(
+        "DELETE FROM verified_contracts"
+      );
+      await storageService.sourcifyDatabase.databasePool.query(
+        "DELETE FROM contract_deployments"
+      );
+      await storageService.sourcifyDatabase.databasePool.query(
+        "DELETE FROM compiled_contracts"
+      );
+      await storageService.sourcifyDatabase.databasePool.query(
+        "DELETE FROM contracts"
+      );
+      await storageService.sourcifyDatabase.databasePool.query(
+        "DELETE FROM code"
+      );
+    });
 
     it("storeMatch", async () => {
       // Prepare the CheckedContract
@@ -2037,5 +2064,95 @@ describe("Server", function () {
         chai.expect(res.rows[0].runtime_match).to.equal("partial");
       }
     });
+
+    const verifierAllianceTestLibrariesManuallyLinked = require("./verifier-alliance/libraries_manually_linked.json");
+    it(verifierAllianceTestLibrariesManuallyLinked._comment, async () => {
+      await verifierAllianceTest(
+        server,
+        chai,
+        storageService,
+        localSigner,
+        defaultContractChain,
+        verifierAllianceTestLibrariesManuallyLinked
+      );
+    });
+
+    const verifierAllianceTestFullMatch = require("./verifier-alliance/full_match.json");
+    it(verifierAllianceTestFullMatch._comment, async () => {
+      await verifierAllianceTest(
+        server,
+        chai,
+        storageService,
+        localSigner,
+        defaultContractChain,
+        verifierAllianceTestFullMatch
+      );
+    });
+
+    const verifierAllianceTestImmutables = require("./verifier-alliance/immutables.json");
+    it(verifierAllianceTestImmutables._comment, async () => {
+      await verifierAllianceTest(
+        server,
+        chai,
+        storageService,
+        localSigner,
+        defaultContractChain,
+        verifierAllianceTestImmutables
+      );
+    });
+
+    const verifierAllianceTestLibrariesLinkedByCompiler = require("./verifier-alliance/libraries_linked_by_compiler.json");
+    it(verifierAllianceTestLibrariesLinkedByCompiler._comment, async () => {
+      await verifierAllianceTest(
+        server,
+        chai,
+        storageService,
+        localSigner,
+        defaultContractChain,
+        verifierAllianceTestLibrariesLinkedByCompiler
+      );
+    });
+
+    const verifierAllianceTestMetadataHashAbsent = require("./verifier-alliance/metadata_hash_absent.json");
+    it(verifierAllianceTestMetadataHashAbsent._comment, async () => {
+      await verifierAllianceTest(
+        server,
+        chai,
+        storageService,
+        localSigner,
+        defaultContractChain,
+        verifierAllianceTestMetadataHashAbsent
+      );
+    });
+
+    const verifierAllianceTestPartialMatch = require("./verifier-alliance/partial_match.json");
+    it(verifierAllianceTestPartialMatch._comment, async () => {
+      await verifierAllianceTest(
+        server,
+        chai,
+        storageService,
+        localSigner,
+        defaultContractChain,
+        verifierAllianceTestPartialMatch
+      );
+    });
+
+    const verifierAllianceTestConstructorArguments = require("./verifier-alliance/constructor_arguments.json");
+    it(verifierAllianceTestConstructorArguments._comment, async () => {
+      await verifierAllianceTest(
+        server,
+        chai,
+        storageService,
+        localSigner,
+        defaultContractChain,
+        verifierAllianceTestConstructorArguments,
+        { deployWithConstructorArguments: true }
+      );
+    });
+
+    // Tests to be implemented:
+    // - genesis: right now not supported,
+    // - partial_match_2: I don't know why we have this test
+    // - partial_match_double_auxdata: right now not supported
   });
 });

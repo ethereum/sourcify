@@ -323,12 +323,14 @@ export class CheckedContract {
         return false;
       }
 
+      // we divide by 2 because we store the length in bytes (without 0x)
       this.runtimeBytecodeCborAuxdata = {
-        '0': {
+        '1': {
           offset:
-            this.runtimeBytecode.length -
-            (2 + parseInt(runtimeCborLenghtHex, 16)),
-          value: auxdataFromRawRuntimeBytecode,
+            this.runtimeBytecode.substring(2).length / 2 -
+            parseInt(runtimeCborLenghtHex, 16) -
+            2,
+          value: `0x${auxdataFromRawRuntimeBytecode}`,
         },
       };
 
@@ -341,12 +343,14 @@ export class CheckedContract {
       if (creationAuxdataCbor) {
         const auxdataFromRawCreationBytecode = `${creationAuxdataCbor}${creationCborLenghtHex}`;
         if (auxdatasFromCompilerOutput[0] === auxdataFromRawCreationBytecode) {
+          // we divide by 2 because we store the length in bytes (without 0x)
           this.creationBytecodeCborAuxdata = {
-            '0': {
+            '1': {
               offset:
-                this.creationBytecode.length -
-                (2 + parseInt(creationCborLenghtHex, 16)),
-              value: auxdataFromRawCreationBytecode,
+                this.creationBytecode.substring(2).length / 2 -
+                parseInt(creationCborLenghtHex, 16) -
+                2,
+              value: `0x${auxdataFromRawCreationBytecode}`,
             },
           };
           return true;
@@ -647,6 +651,7 @@ function createJsonInputFromMetadata(
     'evm.bytecode.object',
     'evm.bytecode.sourceMap',
     'evm.bytecode.linkReferences',
+    'evm.bytecode.generatedSources',
     'evm.deployedBytecode.object',
     'evm.deployedBytecode.sourceMap',
     'evm.deployedBytecode.linkReferences',
