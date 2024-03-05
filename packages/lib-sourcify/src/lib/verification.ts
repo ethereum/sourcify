@@ -350,7 +350,9 @@ export function matchWithRuntimeBytecode(
     match.runtimeTransformations
   );
   recompiledRuntimeBytecode = replaced;
-  match.runtimeTransformationValues.libraries = libraryMap;
+  if (Object.keys(libraryMap).length > 0) {
+    match.runtimeTransformationValues.libraries = libraryMap;
+  }
 
   if (immutableReferences) {
     onchainRuntimeBytecode = replaceImmutableReferences(
@@ -372,9 +374,8 @@ export function matchWithRuntimeBytecode(
     }
   } else {
     // Try to match without the metadata hashes
-    const [trimmedOnchainRuntimeBytecode, auxdata] = splitAuxdata(
-      onchainRuntimeBytecode
-    );
+    const [trimmedOnchainRuntimeBytecode, auxdata, cborLenghtHex] =
+      splitAuxdata(onchainRuntimeBytecode);
     const [trimmedRecompiledRuntimeBytecode] = splitAuxdata(
       recompiledRuntimeBytecode
     );
@@ -383,9 +384,15 @@ export function matchWithRuntimeBytecode(
       match.immutableReferences = immutableReferences;
       match.runtimeMatch = 'partial';
       match.runtimeTransformations?.push(
-        AuxdataTransformation(trimmedRecompiledRuntimeBytecode.length, '0')
+        // we divide by 2 because we store the length in bytes (without 0x)
+        AuxdataTransformation(
+          trimmedRecompiledRuntimeBytecode.substring(2).length / 2,
+          '1'
+        )
       );
-      match.runtimeTransformationValues.cborAuxdata = { '0': auxdata };
+      match.runtimeTransformationValues.cborAuxdata = {
+        '1': `0x${auxdata}${cborLenghtHex}`,
+      };
     }
   }
 }
@@ -455,7 +462,9 @@ export async function matchWithCreationTx(
     match.creationTransformations
   );
   recompiledCreationBytecode = replaced;
-  match.creationTransformationValues.libraries = libraryMap;
+  if (Object.keys(libraryMap).length > 0) {
+    match.creationTransformationValues.libraries = libraryMap;
+  }
 
   if (onchainCreationBytecode.startsWith(recompiledCreationBytecode)) {
     // if the bytecode doesn't end with metadata then "partial" match
@@ -582,7 +591,10 @@ export function addLibraryAddresses(
     // Replace regex with simple string replacement
     template = template.split(placeholder).join(address);
 
-    transformationsArray.push(LibraryTransformation(index, placeholder));
+    transformationsArray.push(
+      // we divide by 2 because we store the length in bytes (without 0x)
+      LibraryTransformation((index - 2) / 2, placeholder)
+    );
 
     index = template.indexOf(PLACEHOLDER_START);
   }
@@ -631,7 +643,7 @@ export function replaceImmutableReferences(
       const { start, length } = reference;
 
       // Save the transformation
-      transformationsArray.push(ImmutablesTransformation(start * 2, astId));
+      transformationsArray.push(ImmutablesTransformation(start, astId));
       const immutableValue = onchainRuntimeBytecode.slice(
         start * 2,
         start * 2 + length * 2
@@ -641,7 +653,7 @@ export function replaceImmutableReferences(
       if (transformationValues.immutables === undefined) {
         transformationValues.immutables = {};
       }
-      transformationValues.immutables[astId] = immutableValue;
+      transformationValues.immutables[astId] = `0x${immutableValue}`;
 
       // Write zeros in the place
       const zeros = '0'.repeat(length * 2);

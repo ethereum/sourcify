@@ -40,6 +40,7 @@ export namespace Tables {
       userdoc: any;
       devdoc: any;
       storageLayout: any;
+      sources: any;
     };
     sources: Object;
     compiler_settings: Object;
@@ -450,21 +451,26 @@ export function normalizeRecompiledBytecodes(
 ) {
   recompiledContract.normalizedRuntimeBytecode =
     recompiledContract.runtimeBytecode;
+  const PLACEHOLDER_LENGTH = 40;
   match.runtimeTransformations?.forEach((transformation) => {
     if (
       transformation.reason === "library" &&
       recompiledContract.normalizedRuntimeBytecode
     ) {
-      const placeholder = "0".repeat(40);
-      const before = recompiledContract.normalizedRuntimeBytecode.substring(
+      const placeholder = "0".repeat(PLACEHOLDER_LENGTH);
+      const normalizedRuntimeBytecode =
+        recompiledContract.normalizedRuntimeBytecode.substring(2);
+      // we multiply by 2 because transformation.offset is stored as the length in bytes
+      const before = normalizedRuntimeBytecode.substring(
         0,
-        transformation.offset
+        transformation.offset * 2
       );
-      const after = recompiledContract.normalizedRuntimeBytecode.substring(
-        transformation.offset + 40
+      const after = normalizedRuntimeBytecode.substring(
+        transformation.offset * 2 + PLACEHOLDER_LENGTH
       );
-      recompiledContract.normalizedRuntimeBytecode =
-        before + placeholder + after;
+      recompiledContract.normalizedRuntimeBytecode = `0x${
+        before + placeholder + after
+      }`;
     }
   });
   if (recompiledContract.creationBytecode) {
@@ -475,17 +481,20 @@ export function normalizeRecompiledBytecodes(
         transformation.reason === "library" &&
         recompiledContract.normalizedCreationBytecode
       ) {
-        const PLACEHOLDER_LENGTH = 40;
         const placeholder = "0".repeat(PLACEHOLDER_LENGTH);
-        const before = recompiledContract.normalizedCreationBytecode.substring(
+        const normalizedCreationBytecode =
+          recompiledContract.normalizedCreationBytecode.substring(2);
+        // we multiply by 2 because transformation.offset is stored as the length in bytes
+        const before = normalizedCreationBytecode.substring(
           0,
-          transformation.offset
+          transformation.offset * 2
         );
-        const after = recompiledContract.normalizedCreationBytecode.substring(
-          transformation.offset + PLACEHOLDER_LENGTH
+        const after = normalizedCreationBytecode.substring(
+          transformation.offset * 2 + PLACEHOLDER_LENGTH
         );
-        recompiledContract.normalizedCreationBytecode =
-          before + placeholder + after;
+        recompiledContract.normalizedCreationBytecode = `0x${
+          before + placeholder + after
+        }`;
       }
     });
   }

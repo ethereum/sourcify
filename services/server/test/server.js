@@ -27,8 +27,6 @@ const fs = require("fs");
 const rimraf = require("rimraf");
 const path = require("path");
 const config = require("config");
-const verifierAllianceLibrariesManuallyLinkedTest = require("./verifier-alliance/libraries_manually_linked.json");
-
 const { StorageService } = require("../dist/server/services/StorageService");
 const {
   createCheckedContract,
@@ -48,6 +46,7 @@ const {
   readFilesFromDirectory,
 } = require("./helpers/helpers");
 const { deployFromAbiAndBytecode } = require("./helpers/helpers");
+const { verifierAllianceTest } = require("./helpers/verifierAlliance");
 const { JsonRpcProvider, Network, id: keccak256str } = require("ethers");
 const { LOCAL_CHAINS } = require("../dist/sourcify-chains");
 const nock = require("nock");
@@ -2016,6 +2015,27 @@ describe("Server", function () {
         },
       },
     });
+    this.beforeEach(async () => {
+      await storageService.sourcifyDatabase.init();
+      await storageService.sourcifyDatabase.databasePool.query(
+        "DELETE FROM sourcify_matches"
+      );
+      await storageService.sourcifyDatabase.databasePool.query(
+        "DELETE FROM verified_contracts"
+      );
+      await storageService.sourcifyDatabase.databasePool.query(
+        "DELETE FROM contract_deployments"
+      );
+      await storageService.sourcifyDatabase.databasePool.query(
+        "DELETE FROM compiled_contracts"
+      );
+      await storageService.sourcifyDatabase.databasePool.query(
+        "DELETE FROM contracts"
+      );
+      await storageService.sourcifyDatabase.databasePool.query(
+        "DELETE FROM code"
+      );
+    });
 
     it("storeMatch", async () => {
       // Prepare the CheckedContract
@@ -2045,57 +2065,76 @@ describe("Server", function () {
       }
     });
 
-    it(verifierAllianceLibrariesManuallyLinkedTest._comment, async () => {
-      const address = await deployFromAbiAndBytecode(
+    const verifierAllianceTestLibrariesManuallyLinked = require("./verifier-alliance/libraries_manually_linked.json");
+    it(verifierAllianceTestLibrariesManuallyLinked._comment, async () => {
+      await verifierAllianceTest(
+        server,
+        chai,
+        storageService,
         localSigner,
-        verifierAllianceLibrariesManuallyLinkedTest.compilation_artifacts.abi,
-        verifierAllianceLibrariesManuallyLinkedTest.deployed_creation_code
+        defaultContractChain,
+        verifierAllianceTestLibrariesManuallyLinked
       );
+    });
 
-      const compilationTarget = {};
-      const fullyQualifiedName =
-        verifierAllianceLibrariesManuallyLinkedTest.fully_qualified_name.split(
-          ":"
-        );
-      compilationTarget[fullyQualifiedName[0]] = fullyQualifiedName[1];
-      const sources = {};
-      Object.keys(verifierAllianceLibrariesManuallyLinkedTest.sources).forEach(
-        (path) => {
-          sources[path] = {
-            content: verifierAllianceLibrariesManuallyLinkedTest.sources[path],
-            keccak256: keccak256str(
-              verifierAllianceLibrariesManuallyLinkedTest.sources[path]
-            ),
-            urls: [],
-          };
-        }
+    const verifierAllianceTestFullMatch = require("./verifier-alliance/full_match.json");
+    it(verifierAllianceTestFullMatch._comment, async () => {
+      await verifierAllianceTest(
+        server,
+        chai,
+        storageService,
+        localSigner,
+        defaultContractChain,
+        verifierAllianceTestFullMatch
       );
-      const result = await chai
-        .request(server.app)
-        .post("/")
-        .send({
-          address: address,
-          chain: defaultContractChain,
-          files: {
-            "metadata.json": JSON.stringify({
-              compiler: { version: "0.8.18+commit.87f61d96" },
-              language: "Solidity",
-              output: {
-                abi: [],
-                devdoc: {},
-                userdoc: {},
-              },
-              settings: {
-                ...verifierAllianceLibrariesManuallyLinkedTest.compiler_settings,
-                compilationTarget,
-              },
-              sources,
-              version: 1,
-            }),
-            ...verifierAllianceLibrariesManuallyLinkedTest.sources,
-          },
-        });
-      console.log(result);
+    });
+
+    const verifierAllianceTestImmutables = require("./verifier-alliance/immutables.json");
+    it(verifierAllianceTestImmutables._comment, async () => {
+      await verifierAllianceTest(
+        server,
+        chai,
+        storageService,
+        localSigner,
+        defaultContractChain,
+        verifierAllianceTestImmutables
+      );
+    });
+
+    const verifierAllianceTestLibrariesLinkedByCompiler = require("./verifier-alliance/libraries_linked_by_compiler.json");
+    it(verifierAllianceTestLibrariesLinkedByCompiler._comment, async () => {
+      await verifierAllianceTest(
+        server,
+        chai,
+        storageService,
+        localSigner,
+        defaultContractChain,
+        verifierAllianceTestLibrariesLinkedByCompiler
+      );
+    });
+
+    const verifierAllianceTestMetadataHashAbsent = require("./verifier-alliance/metadata_hash_absent.json");
+    it(verifierAllianceTestMetadataHashAbsent._comment, async () => {
+      await verifierAllianceTest(
+        server,
+        chai,
+        storageService,
+        localSigner,
+        defaultContractChain,
+        verifierAllianceTestMetadataHashAbsent
+      );
+    });
+
+    const verifierAllianceTestPartialMatch = require("./verifier-alliance/partial_match.json");
+    it(verifierAllianceTestPartialMatch._comment, async () => {
+      await verifierAllianceTest(
+        server,
+        chai,
+        storageService,
+        localSigner,
+        defaultContractChain,
+        verifierAllianceTestPartialMatch
+      );
     });
   });
 });
