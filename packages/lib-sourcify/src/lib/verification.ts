@@ -351,7 +351,12 @@ export function matchWithRuntimeBytecode(
   );
   recompiledRuntimeBytecode = replaced;
   if (Object.keys(libraryMap).length > 0) {
-    match.runtimeTransformationValues.libraries = libraryMap;
+    match.runtimeTransformationValues.libraries = Object.keys(
+      libraryMap
+    ).reduce((libMap: any, lib) => {
+      libMap[lib] = `0x${libraryMap[lib]}`;
+      return libMap;
+    }, {});
   }
 
   if (immutableReferences) {
@@ -463,7 +468,12 @@ export async function matchWithCreationTx(
   );
   recompiledCreationBytecode = replaced;
   if (Object.keys(libraryMap).length > 0) {
-    match.creationTransformationValues.libraries = libraryMap;
+    match.creationTransformationValues.libraries = Object.keys(
+      libraryMap
+    ).reduce((libMap: any, lib) => {
+      libMap[lib] = `0x${libraryMap[lib]}`;
+      return libMap;
+    }, {});
   }
 
   if (onchainCreationBytecode.startsWith(recompiledCreationBytecode)) {
@@ -586,7 +596,7 @@ export function addLibraryAddresses(
   while (index !== -1) {
     const placeholder = template.slice(index, index + PLACEHOLDER_LENGTH);
     const address = real.slice(index, index + PLACEHOLDER_LENGTH);
-    libraryMap[placeholder] = `0x${address}`;
+    libraryMap[placeholder] = address;
 
     // Replace regex with simple string replacement
     template = template.split(placeholder).join(address);
