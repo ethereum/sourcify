@@ -1469,5 +1469,15 @@
         "url": "https://blockscout.sepolia.kroma.network/"
       }
     }
+  },
+    "13381": {
+    "sourcifyName": "Phoenix",
+    "supported": true,
+    "rpc": ["https://rpc.phoenixplorer.com"],
+    "fetchContractCreationTxUsing": {
+      "blockscoutScrape": {
+        "url": "https://phoenixplorer.com/"
+      }
+    }
   }
 }
