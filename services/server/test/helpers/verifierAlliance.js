@@ -1,4 +1,4 @@
-const { deployFromAbiAndBytecode } = require("./helpers");
+const { deployFromAbiAndBytecodeForCreatorTxHash } = require("./helpers");
 const { id: keccak256str } = require("ethers");
 
 function toHexString(byteArray) {
@@ -15,11 +15,12 @@ const verifierAllianceTest = async (
   defaultContractChain,
   testCase
 ) => {
-  const address = await deployFromAbiAndBytecode(
-    localSigner,
-    testCase.compilation_artifacts.abi,
-    testCase.deployed_creation_code
-  );
+  const { contractAddress: address, txHash } =
+    await deployFromAbiAndBytecodeForCreatorTxHash(
+      localSigner,
+      testCase.compilation_artifacts.abi,
+      testCase.deployed_creation_code
+    );
 
   const compilationTarget = {};
   const fullyQualifiedName = testCase.fully_qualified_name.split(":");
@@ -38,6 +39,7 @@ const verifierAllianceTest = async (
     .send({
       address: address,
       chain: defaultContractChain,
+      creatorTxHash: txHash,
       files: {
         "metadata.json": JSON.stringify({
           compiler: {
@@ -103,21 +105,21 @@ const verifierAllianceTest = async (
       .to.deep.equal(testCase.runtime_transformations);
 
     // For now disable the creation tests
-    // chai
-    //   .expect(`0x${toHexString(res.rows[0].compiled_creation_code)}`)
-    //   .to.equal(testCase.compiled_creation_code);
-    // chai
-    //   .expect(res.rows[0].creation_code_artifacts)
-    //   .to.deep.equal(testCase.creation_code_artifacts);
-    // chai
-    //   .expect(res.rows[0].creation_match)
-    //   .to.deep.equal(testCase.creation_match);
-    // chai
-    //   .expect(res.rows[0].creation_values)
-    //   .to.deep.equal(testCase.creation_values);
-    // chai
-    //   .expect(res.rows[0].creation_transformations)
-    //   .to.deep.equal(testCase.creation_transformations);
+    chai
+      .expect(`0x${toHexString(res.rows[0].compiled_creation_code)}`)
+      .to.equal(testCase.compiled_creation_code);
+    chai
+      .expect(res.rows[0].creation_code_artifacts)
+      .to.deep.equal(testCase.creation_code_artifacts);
+    chai
+      .expect(res.rows[0].creation_match)
+      .to.deep.equal(testCase.creation_match);
+    chai
+      .expect(res.rows[0].creation_values)
+      .to.deep.equal(testCase.creation_values);
+    chai
+      .expect(res.rows[0].creation_transformations)
+      .to.deep.equal(testCase.creation_transformations);
   }
 };
 module.exports = {

@@ -498,9 +498,8 @@ export async function matchWithCreationTx(
     const onchainCreationBytecodeWithoutConstructorArgs =
       onchainCreationBytecode.slice(0, recompiledCreationBytecode.length);
 
-    const [trimmedOnchainCreationBytecode, auxdata] = splitAuxdata(
-      onchainCreationBytecodeWithoutConstructorArgs
-    ); // In the case of creationTxData (not runtime bytecode) it is actually not CBOR encoded at the end because of the appended constr. args., but splitAuxdata returns the whole bytecode if it's not CBOR encoded, so will work with startsWith.
+    const [trimmedOnchainCreationBytecode, auxdata, cborLenghtHex] =
+      splitAuxdata(onchainCreationBytecodeWithoutConstructorArgs); // In the case of creationTxData (not runtime bytecode) it is actually not CBOR encoded at the end because of the appended constr. args., but splitAuxdata returns the whole bytecode if it's not CBOR encoded, so will work with startsWith.
     const [trimmedRecompiledCreationBytecode] = splitAuxdata(
       recompiledCreationBytecode
     );
@@ -514,9 +513,14 @@ export async function matchWithCreationTx(
       );
       match.creationMatch = 'partial';
       match.creationTransformations?.push(
-        AuxdataTransformation(trimmedRecompiledCreationBytecode.length, '0')
+        AuxdataTransformation(
+          trimmedRecompiledCreationBytecode.substring(2).length / 2,
+          '1'
+        )
       );
-      match.creationTransformationValues.cborAuxdata = { '0': auxdata };
+      match.creationTransformationValues.cborAuxdata = {
+        '1': `0x${auxdata}${cborLenghtHex}`,
+      };
     }
 
     // TODO: If we still don't have a match and we have multiple auxdata in legacyAssembly, try finding the metadata hashes and match with this info.
