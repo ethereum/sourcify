@@ -8,13 +8,29 @@ import config from "config";
 import express, { Request } from "express";
 import serveIndex from "serve-index";
 import cors from "cors";
-import routes from "./routes";
-import bodyParser from "body-parser";
-import genericErrorHandler from "./middlewares/GenericErrorHandler";
-import notFoundHandler from "./middlewares/NotFoundError";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 import util from "util";
+import * as OpenApiValidator from "express-openapi-validator";
+import swaggerUi from "swagger-ui-express";
+import yamljs from "yamljs";
+import { resolveRefs } from "json-refs";
+import { getAddress } from "ethers";
+import bodyParser from "body-parser";
+import { setLibSourcifyLogger } from "@ethereum-sourcify/lib-sourcify";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const fileUpload = require("express-fileupload");
+import {
+  MemoryStore as ExpressRateLimitMemoryStore,
+  rateLimit,
+} from "express-rate-limit";
+import crypto from "crypto";
+
+// local imports
+import { logger } from "../common/logger";
+import routes from "./routes";
+import genericErrorHandler from "./middlewares/GenericErrorHandler";
+import notFoundHandler from "./middlewares/NotFoundError";
 import {
   checkSourcifyChainId,
   checkSupportedChainId,
@@ -25,21 +41,7 @@ import {
   validateSingleAddress,
   validateSourcifyChainIds,
 } from "./common";
-import * as OpenApiValidator from "express-openapi-validator";
-import swaggerUi from "swagger-ui-express";
-import yamljs from "yamljs";
-import { resolveRefs } from "json-refs";
 import { initDeprecatedRoutes } from "./deprecated.routes";
-import { getAddress } from "ethers";
-import { logger } from "../common/logger";
-import { setLibSourcifyLogger } from "@ethereum-sourcify/lib-sourcify";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const fileUpload = require("express-fileupload");
-import {
-  MemoryStore as ExpressRateLimitMemoryStore,
-  rateLimit,
-} from "express-rate-limit";
-import crypto from "crypto";
 
 const MemoryStore = createMemoryStore(session);
 
