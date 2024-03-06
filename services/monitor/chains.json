@@ -29,6 +29,16 @@
     "etherscanAPI": "https://api-sepolia.etherscan.io"
   },
   {
+    "name": "Ethereum Testnet Holesky",
+    "title": "Ethereum Testnet Holesky",
+    "chainId": 17000,
+    "rpc": [
+      "https://rpc.holesky.ethpandaops.io",
+      "https://ethereum-holesky.publicnode.com"
+    ],
+    "etherscanAPI": "https://api-holesky.etherscan.io"
+  },
+  {
     "name": "Arbitrum Goerli",
     "title": "Arbitrum Goerli Rollup Testnet",
     "chainId": 421613,
