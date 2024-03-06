@@ -89,9 +89,11 @@ export const processRequestFromEtherscan = async (
     apiKey || process.env[sourcifyChain.etherscanApi.apiKeyEnvName || ""];
   let response;
   const secretUrl = `${url}&apikey=${usedApiKey || ""}`;
-  logger.debug(
-    `Fetching from Etherscan secretUrl=${secretUrl} chainId=${sourcifyChain.chainId} address=${address}`
-  );
+  logger.debug("Fetching from Etherscan", {
+    secretUrl,
+    chainId: sourcifyChain.chainId,
+    address,
+  });
   try {
     response = await fetch(secretUrl);
   } catch (e: any) {
@@ -99,16 +101,19 @@ export const processRequestFromEtherscan = async (
       `Request to ${url}&apiKey=XXX failed with code ${e.code}`
     );
   }
-  logger.debug(
-    `Fetched from Etherscan secretUrl=${secretUrl} chainId=${sourcifyChain.chainId} address=${address}`
-  );
+  logger.debug("Fetched from Etherscan", {
+    secretUrl,
+    chainId: sourcifyChain.chainId,
+    address,
+  });
 
   if (!response.ok) {
-    logger.info(
-      `Etherscan API error secretUrl=${secretUrl} chainId=${
-        sourcifyChain.chainId
-      } address=${address} response=${JSON.stringify(response)}`
-    );
+    logger.info("Etherscan API error", {
+      secretUrl,
+      chainId: sourcifyChain.chainId,
+      address,
+      response: JSON.stringify(response),
+    });
     throw new BadRequestError(
       "Error in Etherscan API response. Status code: " + response.status
     );
@@ -120,28 +125,32 @@ export const processRequestFromEtherscan = async (
     resultJson.message === "NOTOK" &&
     resultJson.result.includes("Max rate limit reached")
   ) {
-    logger.info(
-      `Etherscan API rate limit reached secretUrl=${secretUrl} chainId=${
-        sourcifyChain.chainId
-      } address=${address} resultJson=${JSON.stringify(resultJson)}`
-    );
+    logger.info("Etherscan Rate Limit", {
+      secretUrl,
+      chainId: sourcifyChain.chainId,
+      address,
+      resultJson: JSON.stringify(resultJson),
+    });
     throw new TooManyRequests("Etherscan API rate limit reached, try later");
   }
 
   if (resultJson.message === "NOTOK") {
-    logger.info(
-      `Etherscan API error secretUrl=${secretUrl} chainId=${
-        sourcifyChain.chainId
-      } address=${address} resultJson=${JSON.stringify(resultJson)}`
-    );
+    logger.info("Etherscan API error", {
+      secretUrl,
+      chainId: sourcifyChain.chainId,
+      address,
+      resultJson: JSON.stringify(resultJson),
+    });
     throw new BadGatewayError(
       "Error in Etherscan API response. Result message: " + resultJson.result
     );
   }
   if (resultJson.result[0].SourceCode === "") {
-    logger.debug(
-      `Etherscan API - not found on Etherscan chainId=${sourcifyChain.chainId} address=${address} secretUrl=${secretUrl}`
-    );
+    logger.debug("Not found on Etherscan", {
+      chainId: sourcifyChain.chainId,
+      address,
+      secretUrl,
+    });
     throw new BadGatewayError("This contract is not verified on Etherscan");
   }
   const contractResultJson = resultJson.result[0];
@@ -156,9 +165,11 @@ export const processRequestFromEtherscan = async (
   let solcJsonInput: JsonInput;
   // SourceCode can be the Solidity code if there is only one contract file, or the json object if there are multiple files
   if (isEtherscanSolcJsonInput(sourceCodeObject)) {
-    logger.debug(
-      `Etherscan API found solcJsonInput contract chainId=${sourcifyChain.chainId} address=${address} secretUrl=${secretUrl}`
-    );
+    logger.debug("Etherscan solcJsonInput contract found", {
+      chainId: sourcifyChain.chainId,
+      address,
+      secretUrl,
+    });
     solcJsonInput = parseSolcJsonInput(sourceCodeObject);
 
     if (solcJsonInput?.settings) {
@@ -169,17 +180,21 @@ export const processRequestFromEtherscan = async (
       ];
     }
   } else if (isEtherscanMultipleFilesObject(sourceCodeObject)) {
-    logger.debug(
-      `Etherscan API found multiple files contract chainId=${sourcifyChain.chainId} address=${address} secretUrl=${secretUrl}`
-    );
+    logger.debug("Etherscan multiple file contract found", {
+      chainId: sourcifyChain.chainId,
+      address,
+      secretUrl,
+    });
     solcJsonInput = getSolcJsonInputFromEtherscanResult(
       contractResultJson,
       JSON.parse(sourceCodeObject)
     );
   } else {
-    logger.debug(
-      `Etherscan API found single file contract chainId=${sourcifyChain.chainId} address=${address} secretUrl=${secretUrl}`
-    );
+    logger.debug("Etherscan single file contract found", {
+      chainId: sourcifyChain.chainId,
+      address,
+      secretUrl,
+    });
     const contractPath = contractResultJson.ContractName + ".sol";
     const sources = {
       [contractPath]: {
@@ -193,9 +208,11 @@ export const processRequestFromEtherscan = async (
   }
 
   if (!solcJsonInput) {
-    logger.info(
-      `Etherscan API - no solcJsonInput chainId=${sourcifyChain.chainId} address=${address} secretUrl=${secretUrl}`
-    );
+    logger.info("Etherscan API - no solcJsonInput", {
+      chainId: sourcifyChain.chainId,
+      address,
+      secretUrl,
+    });
     throw new BadRequestError(
       "Sourcify cannot generate the solcJsonInput from Etherscan result"
     );

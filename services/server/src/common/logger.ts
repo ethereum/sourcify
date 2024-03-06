@@ -1,11 +1,13 @@
-import { log } from "console";
 import { createLogger, transports, format, Logger } from "winston";
 
 const loggerInstance: Logger = createLogger();
 
+// 2024-03-06T17:04:16.375Z [warn]: [RepositoryV2Service] Storing contract address=0x5FbDB2315678afecb367f032d93F642f64180aa3, chainId=1337, matchQuality=0.5
 const rawlineFormat = format.printf(
-  ({ level, message, timestamp, ...metadata }: any) => {
-    let msg = `${timestamp} [${level}]: ${message} `;
+  ({ level, message, timestamp, module, ...metadata }: any) => {
+    let msg = `${timestamp} [${level}]: ${
+      module ? `[${module}] ` : ""
+    }${message} `;
     if (Object.keys(metadata).length > 0) {
       msg += Object.entries(metadata)
         .map(([key, value]) => {

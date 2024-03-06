@@ -81,9 +81,11 @@ export async function legacyVerifyEndpoint(
     );
     // Send to verification again with all source files.
     if (match.runtimeMatch === "extra-file-input-bug") {
-      logger.info(
-        `Found an extra-file-input-bug for ${contract.name} on ${req.body.chain} at ${req.body.address}. Sending to verification again with all source files.`
-      );
+      logger.info("Found extra-file-input-bug", {
+        contract: contract.name,
+        chain: req.body.chain,
+        address: req.body.address,
+      });
       const contractWithAllSources = await useAllSources(contract, inputFiles);
       const tempMatch = await services.verification.verifyDeployed(
         contractWithAllSources,

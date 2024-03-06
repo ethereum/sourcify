@@ -23,10 +23,12 @@ import { logger } from "../../../../../common/logger";
 
 export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
   const requestId = req.headers["X-Request-ID"] || "";
-  const requestIdMsg = requestId ? `requestId=${requestId} ` : "";
 
-  logger.info(`${requestIdMsg} /session/verify - \
-    address=${req.body.address} chainId=${req.body.chain}`);
+  logger.info("sessionVerifyFromEtherscan", {
+    requestId,
+    chainId: req.body.chain,
+    address: req.body.address,
+  });
 
   checkSupportedChainId(req.body.chain);
 

@@ -273,9 +273,11 @@ export class RepositoryV1Service implements IStorageService {
         },
       ];
     } catch (e: any) {
-      logger.debug(
-        `Contract (full_match) not found in repositoryV1: ${address} - chain: ${chainId}`
-      );
+      logger.debug("Contract (full_match) not found in repositoryV1", {
+        address,
+        chainId,
+        error: e.message,
+      });
       return [];
     }
   }
@@ -315,7 +317,8 @@ export class RepositoryV1Service implements IStorageService {
       ];
     } catch (e: any) {
       logger.debug(
-        `Contract (full & partial match) not found in repositoryV1: ${address} - chain: ${chainId}`
+        "Contract (full & partial match) not found in repositoryV1",
+        { address, chainId, error: e.message }
       );
       return [];
     }
@@ -334,7 +337,7 @@ export class RepositoryV1Service implements IStorageService {
         : this.generateAbsoluteFilePath(path);
     fs.mkdirSync(Path.dirname(abolsutePath), { recursive: true });
     fs.writeFileSync(abolsutePath, content);
-    logger.debug("Saved to repositoryV1: " + abolsutePath);
+    logger.debug("Saved to repositoryV1", { abolsutePath });
     this.updateRepositoryTag();
   }
 
@@ -432,9 +435,13 @@ export class RepositoryV1Service implements IStorageService {
         );
       }
 
-      logger.info(
-        `Stored ${contract.name} to RepositoryV1 address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
-      );
+      logger.info("Stored contract to RepositoryV1", {
+        address: match.address,
+        chainId: match.chainId,
+        name: contract.name,
+        runtimeMatch: match.runtimeMatch,
+        creationMatch: match.creationMatch,
+      });
       // await this.addToIpfsMfs(matchQuality, match.chainId, match.address);
       // logger.info(
       //   `Stored ${contract.name} to IPFS MFS address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
@@ -561,7 +568,7 @@ export class RepositoryV1Service implements IStorageService {
     address: string
   ) {
     if (!this.ipfsClient) return;
-    logger.info(`Adding ${address} on chain ${chainId} to IPFS MFS`);
+    logger.info("Adding to IPFS MFS", { matchQuality, chainId, address });
     const contractFolderDir = this.generateAbsoluteFilePath({
       matchQuality,
       chainId,
@@ -599,7 +606,7 @@ export class RepositoryV1Service implements IStorageService {
       });
       await this.ipfsClient.files.cp(addResult.cid, mfsPath, { parents: true });
     }
-    logger.info(`Added ${address} on chain ${chainId} to IPFS MFS`);
+    logger.info("Added to IPFS MFS", { matchQuality, chainId, address });
   }
   private sanitizePath(originalPath: string) {
     // Clean ../ and ./ from the path. Also collapse multiple slashes into one.

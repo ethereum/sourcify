@@ -151,9 +151,11 @@ async function getCreatorTxUsingFetcher(
     contractAddress
   );
 
-  logger.debug(
-    `⏳ Fetching creator tx using fetcher fetcher.type=${fetcher.type} contractFetchAddressFilled=${contractFetchAddressFilled} contractAddress=${contractAddress}`
-  );
+  logger.debug("⌛ Fetching Creator Tx", {
+    fetcher,
+    contractFetchAddressFilled,
+    contractAddress,
+  });
 
   if (!contractFetchAddressFilled) return null;
 
@@ -165,9 +167,12 @@ async function getCreatorTxUsingFetcher(
             contractFetchAddressFilled,
             fetcher?.scrapeRegex
           );
-          logger.debug(
-            `✅ Fetched creator tx using fetcher fetcher.type=${fetcher.type} fetcher.url=${fetcher.url} contractAddress=${contractAddress} creatorTx=${creatorTx}`
-          );
+          logger.debug("✅ Fetched Creator Tx", {
+            fetcher,
+            contractFetchAddressFilled,
+            contractAddress,
+            creatorTx,
+          });
           if (creatorTx) return creatorTx;
         }
         break;
@@ -176,16 +181,21 @@ async function getCreatorTxUsingFetcher(
         if (fetcher?.responseParser) {
           const response = await fetchFromApi(contractFetchAddressFilled);
           const creatorTx = fetcher?.responseParser(response);
-          logger.debug(
-            `✅ Fetched creator tx using fetcher fetcher.type=${fetcher.type} fetcher.url=${fetcher.url} contractAddress=${contractAddress} creatorTx=${creatorTx}`
-          );
+          logger.debug("✅ Fetched Creator Tx", {
+            fetcher,
+            contractFetchAddressFilled,
+            contractAddress,
+            creatorTx,
+          });
           if (creatorTx) return creatorTx;
         }
         break;
       }
     }
   } catch (e: any) {
-    logger.warn("Error while getting creation transaction: " + e.message);
+    logger.warn("Error while getting creation transaction", {
+      error: e.message,
+    });
     return null;
   }
 
@@ -306,9 +316,9 @@ async function getCreatorTxByScraping(
         return txHash;
       } else {
         if (page.includes("captcha") || page.includes("CAPTCHA")) {
-          logger.warn(
-            `Scraping the creator tx failed because of CAPTCHA at ${fetchAddress}`
-          );
+          logger.warn("Scraping the creator tx failed because of CAPTCHA", {
+            fetchAddress,
+          });
           throw new Error(
             `Scraping the creator tx failed because of CAPTCHA at ${fetchAddress}`
           );
@@ -317,9 +327,10 @@ async function getCreatorTxByScraping(
     }
   }
   if (res.status === StatusCodes.FORBIDDEN) {
-    logger.warn(
-      `Scraping the creator tx failed at ${fetchAddress} because of HTTP status code ${res.status} (Forbidden)`
-    );
+    logger.warn("Scraping the creator tx failed", {
+      fetchAddress,
+      status: res.status,
+    });
     throw new Error(
       `Scraping the creator tx failed at ${fetchAddress} because of HTTP status code ${res.status} (Forbidden)
       

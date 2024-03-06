@@ -38,9 +38,7 @@ export class VerificationService implements IVerificationService {
       this.activeVerificationsByChainIdAddress[`${chainId}:${address}`] !==
       undefined
     ) {
-      logger.warn(
-        `The contract ${address} on chainId ${chainId} is already being verified, please wait`
-      );
+      logger.warn("Contract already being verified", { chainId, address });
       throw new ContractIsAlreadyBeingVerifiedError(chainId, address);
     }
   }

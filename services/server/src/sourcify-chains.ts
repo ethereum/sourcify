@@ -166,9 +166,8 @@ if (missingChains.length > 0) {
   // Don't throw for forks or others running Sourcify, instead add them to sourcifyChainsMap
   else {
     logger.warn(
-      `Some of the chains in sourcify-chains.json are not in chains.json: ${missingChains.join(
-        ","
-      )}`
+      `Some of the chains in sourcify-chains.json are not in chains.json`,
+      missingChains
     );
     missingChains.forEach((chainId) => {
       const chain = sourcifyChainsExtensions[chainId];
@@ -197,15 +196,12 @@ const supportedChainsMap = supportedChainsArray.reduce(
   <SourcifyChainMap>{}
 );
 
-logger.info(
-  `Initialized Sourcify chains: \n\t Supported chains (${
-    supportedChainsArray.length
-  }): \n\t\t ${supportedChainsArray
-    .map((c) => c.chainId)
-    .join(", ")} \n\t All chains (${
-    sourcifyChainsArray.length
-  }): \n\t\t ${sourcifyChainsArray.map((c) => c.chainId).join(", ")}`
-);
+logger.info("SourcifyChains.Initialized", {
+  supportedChainsCount: supportedChainsArray.length,
+  allChainsCount: sourcifyChainsArray.length,
+  supportedChains: supportedChainsArray.map((c) => c.chainId),
+  allChains: sourcifyChainsArray.map((c) => c.chainId),
+});
 
 // Gets the chainsMap, sorts the chains, returns SourcifyChain array.
 export function getSortedChainsArray(

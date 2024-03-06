@@ -119,9 +119,13 @@ export class StorageService {
   }
 
   async storeMatch(contract: CheckedContract, match: Match) {
-    logger.info(
-      `Storing ${contract.name} address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
-    );
+    logger.info("Storing on StorageService", {
+      name: contract.name,
+      address: match.address,
+      chainId: match.chainId,
+      runtimeMatch: match.runtimeMatch,
+      creationMatch: match.creationMatch,
+    });
 
     // Initialize an array to hold active service promises
     const promises = [];
@@ -132,7 +136,9 @@ export class StorageService {
         this.allianceDatabase
           .storeMatch(contract, match)
           .catch((e) =>
-            logger.warn("Error while storing on the AllianceDatabase: ", e)
+            logger.warn("Error while storing on the AllianceDatabase: ", {
+              error: e,
+            })
           )
       );
     }
@@ -142,7 +148,9 @@ export class StorageService {
         this.sourcifyDatabase
           .storeMatch(contract, match)
           .catch((e) =>
-            logger.error("Error while storing on the SourcifyDatabase: ", e)
+            logger.error("Error while storing on the SourcifyDatabase: ", {
+              error: e,
+            })
           )
       );
     }
@@ -152,7 +160,9 @@ export class StorageService {
         this.repositoryV2
           .storeMatch(contract, match)
           .catch((e) =>
-            logger.error("Error while storing on the RepositoryV2: ", e)
+            logger.error("Error while storing on the RepositoryV2: ", {
+              error: e,
+            })
           )
       );
     }
@@ -160,7 +170,7 @@ export class StorageService {
     // Always include repositoryV1
     promises.push(
       this.repositoryV1.storeMatch(contract, match).catch((e) => {
-        logger.error("Error while storing on the RepositoryV1: ", e);
+        logger.error("Error while storing on the RepositoryV1: ", { error: e });
         // For repositoryV1 we throw
         throw e;
       })

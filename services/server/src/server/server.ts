@@ -95,11 +95,12 @@ export class Server {
       value: RegExp.prototype.toString,
     });
 
-    logger.info(
-      `Starting Sourcify Server with config ${JSON.stringify(config, null, 2)}`
-    );
+    logger.info("Starting server with config", {
+      config: JSON.stringify(config, null, 2),
+    });
+
     this.port = port || config.get("server.port");
-    logger.info(`Starting Sourcify Server on port ${this.port}`);
+    logger.info("Server port set", { port: this.port });
     this.app = express();
 
     this.app.use(
@@ -121,27 +122,11 @@ export class Server {
       })
     );
 
-    // Log all requests in debugging mode
+    // Log all requests in trace mode
     this.app.use((req, res, next) => {
-      const contentType = req.headers["content-type"];
-      if (contentType === "application/json") {
-        logger.debug(
-          `Request: ${req.method} ${req.path} chainId=${
-            req.body.chainId || req.body.chain
-          } address=${req.body.address}`
-        );
-        next();
-      } else if (contentType && contentType.includes("multipart/form-data")) {
-        logger.debug(
-          `Request: ${req.method} ${req.path} (multipart/form-data) chainId=${
-            req.body.chainId || req.body.chain
-          } address=${req.body.address}`
-        );
-        next();
-      } else {
-        logger.debug(`Request: ${req.method} ${req.path}`);
-        next();
-      }
+      const { method, path, params, headers, body } = req;
+      logger.silly("Request", { method, path, params, headers, body });
+      next();
     });
 
     // In every request support both chain and chainId
@@ -244,9 +229,12 @@ export class Server {
           const ipLog = process.env.NODE_ENV === "production" ? ipHash : ip; // Don't log IPs in production master
           const store = options.store as ExpressRateLimitMemoryStore;
           const hits = store.hits[ip || ""];
-          logger.debug(
-            `Rate limit hit method=${req.method} path=${req.path} ip=${ipLog} hits=${hits}`
-          );
+          logger.debug("Rate limit hit", {
+            method: req.method,
+            path: req.path,
+            ip: ipLog,
+            hits,
+          });
           res.status(options.statusCode).send(options.message);
         },
         keyGenerator: (req: any) => {
@@ -408,9 +396,9 @@ if (require.main === module) {
           customfavIcon: "https://sourcify.dev/favicon.ico",
         })
       );
-      server.app.listen(server.port, () =>
-        logger.info(`Server listening on port ${server.port}`)
-      );
+      server.app.listen(server.port, () => {
+        logger.info("Server listening", { port: server.port });
+      });
     });
 }
 

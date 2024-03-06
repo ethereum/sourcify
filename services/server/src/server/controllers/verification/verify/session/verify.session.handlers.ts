@@ -23,16 +23,18 @@ export async function verifyContractsInSessionEndpoint(
   const receivedContracts: SendableContract[] = req.body.contracts;
 
   const requestId = req.headers["X-Request-ID"] || "";
-  const requestIdMsg = requestId ? `requestId=${requestId} ` : "";
 
   /* eslint-disable indent */
-  logger.info(`${requestIdMsg} /session/verify - \
-    ${receivedContracts
-      .map(
-        (c) => `verificationId=${c.verificationId} \
-    address=${c.address} chainId=${c.chainId}`
-      )
-      .join(", ")})}`);
+  logger.info("verifyContractsInSession", {
+    requestId,
+    receivedContracts: receivedContracts.map(
+      ({ verificationId, chainId, address }) => ({
+        verificationId,
+        chainId,
+        address,
+      })
+    ),
+  });
   /* eslint-enable indent*/
 
   const verifiable: ContractWrapperMap = {};

@@ -21,10 +21,8 @@ export async function verifyFromEtherscan(req: Request, res: Response) {
   const sourcifyChain = sourcifyChainsMap[chain];
 
   const requestId = req.headers["X-Request-ID"] || "";
-  const requestIdMsg = requestId ? `requestId=${requestId} ` : "";
 
-  logger.info(`${requestIdMsg} /verify - \
-    address=${address} chainId=${chain}`);
+  logger.info("verifyFromEtherscan", { requestId, chain, address, apiKey });
 
   const { compilerVersion, solcJsonInput, contractName } =
     await processRequestFromEtherscan(sourcifyChain, address, apiKey);
