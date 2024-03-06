@@ -165,7 +165,7 @@ workflows:
 aliases:
   - &build-base
     docker:
-      - image: cimg/base:2023.09
+      - image: cimg/base:2024.02
     resource_class: large
     parameters:
       run-build:
@@ -246,7 +246,7 @@ jobs:
       DOCKERFILE: "./ui/Dockerfile"
   publish-multiarch-images:
     docker:
-      - image: cimg/base:2021.04
+      - image: cimg/base:2024.02
     resource_class: small
     steps:
       - checkout
