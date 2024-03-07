@@ -1,13 +1,12 @@
 import { createLogger, transports, format, Logger } from "winston";
+import chalk from "chalk";
 
 const loggerInstance: Logger = createLogger();
 
 // 2024-03-06T17:04:16.375Z [warn]: [RepositoryV2Service] Storing contract address=0x5FbDB2315678afecb367f032d93F642f64180aa3, chainId=1337, matchQuality=0.5
 const rawlineFormat = format.printf(
-  ({ level, message, timestamp, module, ...metadata }: any) => {
-    let msg = `${timestamp} [${level}]: ${
-      module ? `[${module}] ` : ""
-    }${message} `;
+  ({ level, message, timestamp, service, ...metadata }: any) => {
+    let msg = `${timestamp} [${level}]: ${service ? service : ""} ${message} `;
     if (Object.keys(metadata).length > 0) {
       msg += Object.entries(metadata)
         .map(([key, value]) => {
@@ -44,8 +43,11 @@ const consoleTransport = new transports.Console({
 
 console.log(consoleTransport.level);
 loggerInstance.add(consoleTransport);
+const serverLoggerInstance = loggerInstance.child({
+  service: chalk.blue("[Server]"),
+});
 
-export const logger = loggerInstance;
+export const logger = serverLoggerInstance;
 
 // Function to change the log level dynamically
 export function setLogLevel(level: string): void {

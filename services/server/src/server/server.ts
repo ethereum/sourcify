@@ -42,6 +42,7 @@ import {
   validateSourcifyChainIds,
 } from "./common";
 import { initDeprecatedRoutes } from "./deprecated.routes";
+import chalk from "chalk";
 
 const MemoryStore = createMemoryStore(session);
 
@@ -53,31 +54,23 @@ setLibSourcifyLogger({
     this.logLevel = level;
   },
   log(level, msg) {
+    const lobObject = {
+      service: chalk.cyan("[LibSourcify]"),
+      message: msg,
+    };
     if (level <= this.logLevel) {
       switch (level) {
         case 1:
-          logger.error({
-            prefix: "LibSourcify",
-            message: msg,
-          });
+          logger.error(lobObject);
           break;
         case 2:
-          logger.warn({
-            prefix: "LibSourcify",
-            message: msg,
-          });
+          logger.warn(lobObject);
           break;
         case 3:
-          logger.info({
-            prefix: "LibSourcify",
-            message: msg,
-          });
+          logger.info(lobObject);
           break;
         case 4:
-          logger.debug({
-            prefix: "LibSourcify",
-            message: msg,
-          });
+          logger.debug(lobObject);
           break;
       }
     }
