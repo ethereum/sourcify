@@ -144,7 +144,7 @@ export async function verifyDeployed(
         creatorTxHash,
         recompiledMetadata
       );
-      if (match.runtimeMatch === 'partial') {
+      if (match.creationMatch === 'partial') {
         logDebug(
           `Matched partial with creation tx, tryToFindPerfectMetadataAndMatch creatorTxHash=${creatorTxHash} chain=${sourcifyChain.chainId} address=${address}`
         );
