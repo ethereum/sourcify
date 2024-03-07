@@ -1469,5 +1469,10 @@
         "url": "https://blockscout.sepolia.kroma.network/"
       }
     }
+  },
+  "202401": {
+    "sourcifyName": "YMTECH Testnet",
+    "supported": true,
+    "rpc": ["http://39.119.118.216:8545"]
   }
 }
