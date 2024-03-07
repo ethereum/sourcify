@@ -17,7 +17,6 @@ import yamljs from "yamljs";
 import { resolveRefs } from "json-refs";
 import { getAddress } from "ethers";
 import bodyParser from "body-parser";
-import { setLibSourcifyLogger } from "@ethereum-sourcify/lib-sourcify";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fileUpload = require("express-fileupload");
 import {
@@ -25,51 +24,9 @@ import {
   rateLimit,
 } from "express-rate-limit";
 import crypto from "crypto";
-import chalk from "chalk";
 
 // local imports
 import { logger } from "../common/logger";
-
-// here we override the standard LibSourcify's Logger with a custom one
-setLibSourcifyLogger({
-  // No need to set again the logger level because it's set here
-  logLevel: process.env.NODE_ENV === "production" ? 3 : 4,
-  setLevel(level: number) {
-    this.logLevel = level;
-  },
-  log(level, msg, metadata) {
-    const logObject = {
-      service: chalk.cyan("[LibSourcify]"),
-      message: msg,
-      ...metadata,
-    };
-    if (level <= this.logLevel) {
-      switch (level) {
-        case 0:
-          logger.error(logObject);
-          break;
-        case 1:
-          logger.warn(logObject);
-          break;
-        case 2:
-          logger.info(logObject);
-          break;
-        // Use winston's log levels https://github.com/winstonjs/winston?tab=readme-ov-file#logging-levels
-        // We don't use http (3) and verbose (4)
-        case 5:
-          logger.debug(logObject);
-          break;
-        case 6:
-          logger.silly(logObject);
-          break;
-        default:
-          logger.info(logObject);
-          break;
-      }
-    }
-  },
-});
-
 import routes from "./routes";
 import genericErrorHandler from "./middlewares/GenericErrorHandler";
 import notFoundHandler from "./middlewares/NotFoundError";
