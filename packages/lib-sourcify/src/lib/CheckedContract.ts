@@ -318,7 +318,10 @@ export class CheckedContract {
       // For some reason the auxdata from raw bytecode differs from the legacyAssembly's auxdata
       if (auxdatasFromCompilerOutput[0] !== auxdataFromRawRuntimeBytecode) {
         logWarn(
-          `The auxdata from raw bytecode differs from the legacyAssembly's auxdata name=${this.name}`
+          "The auxdata from raw bytecode differs from the legacyAssembly's auxdata",
+          {
+            name: this.name,
+          }
         );
         return false;
       }
@@ -356,7 +359,8 @@ export class CheckedContract {
           return true;
         } else {
           logWarn(
-            `The creation auxdata from raw bytecode differs from the legacyAssembly's auxdata name=${this.name}`
+            "The creation auxdata from raw bytecode differs from the legacyAssembly's auxdata",
+            { name: this.name }
           );
           return false;
         }
@@ -425,11 +429,9 @@ export class CheckedContract {
           .map((e: any) => e.formattedMessage) || [];
 
       const error = new Error('Compiler error');
-      logWarn(
-        `Compiler error in CheckedContract.recompile: \n${errorMessages.join(
-          '\n\t'
-        )}`
-      );
+      logWarn('Compiler error', {
+        errorMessages,
+      });
       throw error;
     }
 
@@ -526,13 +528,20 @@ export async function performFetch(
   hash?: string,
   fileName?: string
 ): Promise<string | null> {
-  logInfo(`Fetching the file ${fileName} from ${url}...`);
+  logInfo('Fetching file', {
+    url,
+    hash,
+    fileName,
+  });
   const res = await fetchWithTimeout(url, { timeout: FETCH_TIMEOUT }).catch(
     (err) => {
       if (err.type === 'aborted')
-        logWarn(
-          `Fetching the file ${fileName} from ${url} timed out. Timeout: ${FETCH_TIMEOUT}ms`
-        );
+        logWarn('Timeout fetching the file', {
+          url,
+          hash,
+          fileName,
+          timeout: FETCH_TIMEOUT,
+        });
       else logError(err);
     }
   );
@@ -545,12 +554,19 @@ export async function performFetch(
         return null;
       }
 
-      logInfo(`Successfully fetched the file ${fileName}`);
+      logInfo('Fetched the file', {
+        fileName,
+        url,
+        hash,
+      });
       return content;
     } else {
-      logError(
-        `Fetching the file ${fileName} failed with status: ${res?.status}`
-      );
+      logError('Failed to fetch the file', {
+        url,
+        hash,
+        fileName,
+        status: res.status,
+      });
       return null;
     }
   }

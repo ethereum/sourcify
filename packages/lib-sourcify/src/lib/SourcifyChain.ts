@@ -82,7 +82,7 @@ export default class SourcifyChain {
         } else {
           // Do not use WebSockets because of not being able to catch errors on websocket initialization. Most networks don't support WebSockets anyway. See https://github.com/ethers-io/ethers.js/discussions/2896
           // provider = new WebSocketProvider(rpc);
-          logInfo(`Won't create a WebSocketProvider for ${rpc}`);
+          logInfo("Won't create a WebSocketProvider", { rpc });
         }
       } else {
         provider = new JsonRpcProvider(rpc, ethersNetwork, {
@@ -108,18 +108,17 @@ export default class SourcifyChain {
     // Try sequentially all providers
     for (const provider of this.providers) {
       try {
-        logInfo(
-          `Fetching tx creatorTxHash=${creatorTxHash} provider.url=${provider.url}`
-        );
+        logInfo('Fetching tx', {
+          creatorTxHash,
+          providerUrl: provider.url,
+        });
         // Race the RPC call with a timeout
         const tx = await Promise.race([
           provider.getTransaction(creatorTxHash),
           this.rejectInMs(RPC_TIMEOUT, provider.url),
         ]);
         if (tx instanceof TransactionResponse) {
-          logInfo(
-            `Fetched tx creatorTxHash=${creatorTxHash} provider.url=${provider.url}`
-          );
+          logInfo('Fetched tx', { creatorTxHash, providerUrl: provider.url });
           return tx;
         } else {
           throw new Error(
@@ -128,9 +127,12 @@ export default class SourcifyChain {
         }
       } catch (err) {
         if (err instanceof Error) {
-          logWarn(
-            `Can't fetch the transaction ${creatorTxHash} from RPC ${provider.url} and chain ${this.chainId}\n ${err}`
-          );
+          logWarn('Failed to fetch tx', {
+            creatorTxHash,
+            providerUrl: provider.url,
+            chainId: this.chainId,
+            error: err.message,
+          });
           continue;
         } else {
           throw err;
@@ -155,9 +157,11 @@ export default class SourcifyChain {
           this.rejectInMs(RPC_TIMEOUT, provider.url),
         ]);
         if (tx instanceof TransactionReceipt) {
-          logInfo(
-            `Transaction's receipt ${creatorTxHash} fetched via ${provider.url} from chain ${this.chainId}`
-          );
+          logInfo('Fetched tx receipt', {
+            creatorTxHash,
+            providerUrl: provider.url,
+            chainId: this.chainId,
+          });
           return tx;
         } else {
           throw new Error(
@@ -166,9 +170,12 @@ export default class SourcifyChain {
         }
       } catch (err) {
         if (err instanceof Error) {
-          logWarn(
-            `Can't fetch the transaction's receipt ${creatorTxHash} from RPC ${provider.url} and chain ${this.chainId}\n ${err}`
-          );
+          logWarn('Failed to fetch tx receipt', {
+            creatorTxHash,
+            providerUrl: provider.url,
+            chainId: this.chainId,
+            error: err.message,
+          });
           continue;
         } else {
           throw err;
@@ -193,9 +200,11 @@ export default class SourcifyChain {
           this.rejectInMs(RPC_TIMEOUT, provider.url),
         ]);
         if (traces instanceof Array && traces.length > 0) {
-          logInfo(
-            `Transaction's traces of ${creatorTxHash} fetched via ${provider.url} from chain ${this.chainId}`
-          );
+          logInfo('Fetched tx traces', {
+            creatorTxHash,
+            providerUrl: provider.url,
+            chainId: this.chainId,
+          });
           return traces;
         } else {
           throw new Error(
@@ -204,9 +213,12 @@ export default class SourcifyChain {
         }
       } catch (err) {
         if (err instanceof Error) {
-          logWarn(
-            `Can't fetch the transaction's traces of ${creatorTxHash} from RPC ${provider.url} and chain ${this.chainId}\n ${err}`
-          );
+          logWarn('Failed to fetch tx traces', {
+            creatorTxHash,
+            providerUrl: provider.url,
+            chainId: this.chainId,
+            error: err.message,
+          });
           continue;
         } else {
           throw err;
@@ -240,20 +252,20 @@ export default class SourcifyChain {
           provider.getCode(address),
           this.rejectInMs(RPC_TIMEOUT, provider.url),
         ]);
-        logInfo(
-          'Bytecode fetched from ' +
-            provider.url +
-            ' for ' +
-            address +
-            ' on chain ' +
-            this.chainId
-        );
+        logInfo('Fetched bytecode', {
+          address,
+          providerUrl: provider.url,
+          chainId: this.chainId,
+        });
         return bytecode;
       } catch (err) {
         if (err instanceof Error) {
-          logWarn(
-            `Can't fetch ${address}'s bytecode from RPC ${provider.url} and chain ${this.chainId}: ${err.message}`
-          );
+          logWarn('Failed to fetch bytecode', {
+            address,
+            providerUrl: provider.url,
+            chainId: this.chainId,
+            error: err.message,
+          });
           continue;
         } else {
           throw err;
@@ -278,25 +290,34 @@ export default class SourcifyChain {
           this.rejectInMs(RPC_TIMEOUT, provider.url),
         ]);
         if (block) {
-          logInfo(
-            `Block ${blockNumber} fetched from ${provider.url} on chain ${this.chainId}`
-          );
+          logInfo('Fetched block', {
+            blockNumber,
+            providerUrl: provider.url,
+            chainId: this.chainId,
+          });
         } else {
-          logInfo(
-            `Block ${blockNumber} not published yet on ${this.chainId} from ${provider.url}`
-          );
+          logInfo('Block not published yet', {
+            blockNumber,
+            providerUrl: provider.url,
+            chainId: this.chainId,
+          });
         }
         return block;
       } catch (err: any) {
-        logWarn(
-          `Can't fetch block ${blockNumber} from RPC ${provider.url} and chain ${this.chainId}, error: ${err.message}`
-        );
+        logWarn('Failed to fetch the block', {
+          blockNumber,
+          providerUrl: provider.url,
+          chainId: this.chainId,
+          error: err.message,
+        });
         continue;
       }
     }
-    logError(
-      `None of the RPCs responded fetching block ${blockNumber} on chain ${this.chainId}`
-    );
+    logError('None of the RPCs responded for fetching block', {
+      blockNumber,
+      providers: this.providers.map((p) => p.url),
+      chainId: this.chainId,
+    });
     throw new Error(
       'None of the RPCs responded fetching block ' +
         blockNumber +
@@ -314,18 +335,18 @@ export default class SourcifyChain {
           provider.getBlockNumber(),
           this.rejectInMs(RPC_TIMEOUT, provider.url),
         ]);
-        logInfo(
-          'Block number fetched from ' +
-            provider.url +
-            ' on chain ' +
-            this.chainId
-        );
+        logInfo('Fetched current block number', {
+          providerUrl: provider.url,
+          chainId: this.chainId,
+        });
         return block;
       } catch (err) {
         if (err instanceof Error) {
-          logWarn(
-            `Can't fetch the current block number from RPC ${provider.url} and chain ${this.chainId}`
-          );
+          logWarn('Failed to fetch the current block number', {
+            providerUrl: provider.url,
+            chainId: this.chainId,
+            error: err.message,
+          });
           continue;
         } else {
           throw err;
@@ -376,9 +397,11 @@ export default class SourcifyChain {
         if (createdContractAddressesInTx === undefined) {
           throw new CreatorTransactionMismatchError();
         }
-        logDebug(
-          `Found contract bytecode in traces chain=${this.chainId} address=${address} txHash=${transactionHash}`
-        );
+        logDebug('Found contract bytecode in traces', {
+          address,
+          transactionHash,
+          chainId: this.chainId,
+        });
         creationBytecode = createdContractAddressesInTx.result.code;
       }
     }

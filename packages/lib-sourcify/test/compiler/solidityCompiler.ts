@@ -4,7 +4,7 @@ import fs from 'fs';
 import { exec, spawnSync } from 'child_process';
 import { StatusCodes } from 'http-status-codes';
 import { CompilerOutput, JsonInput } from '../../src';
-import { logDebug, logError, logInfo, logWarn } from './logger';
+import { logDebug, logError, logInfo, logWarn } from '../../src/lib/logger';
 import semver from 'semver';
 import { Worker, WorkerOptions } from 'worker_threads';
 
@@ -21,7 +21,7 @@ export async function fetchWithTimeout(
 
   const controller = new AbortController();
   const id = setTimeout(() => {
-    logWarn(`Aborting request ${resource} because of timout ${timeout}`);
+    logWarn('Aborting request' { resource, timeout });
     controller.abort();
   }, timeout);
   const response = await fetch(resource, {
@@ -78,7 +78,10 @@ export async function useCompiler(
   }
   let startCompilation: number;
   if (solcPath && !forceEmscripten) {
-    logDebug(`Compiling with solc binary ${version} at ${solcPath}`);
+    logDebug('Compiling with solc binary', {
+      version,
+      solcPath,
+    });
     startCompilation = Date.now();
     try {
       compiled = await asyncExecSolc(inputStringified, solcPath);
@@ -92,7 +95,7 @@ export async function useCompiler(
   } else {
     const solJson = await getSolcJs(version);
     startCompilation = Date.now();
-    logDebug(`Compiling with solc-js ${version}`);
+    logDebug('Compiling with solc-js', { version, solJsonPath: solJson.path });
     if (solJson) {
       const coercedVersion =
         semver.coerce(new semver.SemVer(version))?.version ?? '';
@@ -119,7 +122,7 @@ export async function useCompiler(
   }
 
   const endCompilation = Date.now();
-  logInfo(`Compilation time : ${endCompilation - startCompilation} ms`);
+  logInfo('Compilation ended', { timeInMs: endCompilation - startCompilation });
 
   if (!compiled) {
     throw new Error('Compilation failed. No output from the compiler.');
@@ -146,19 +149,31 @@ export async function getSolcExecutable(
   const repoPath = path.join('/tmp', 'solc-repo');
   const solcPath = path.join(repoPath, fileName);
   if (fs.existsSync(solcPath) && validateSolcPath(solcPath)) {
-    logDebug(`Found solc ${version} with platform ${platform} at ${solcPath}`);
+    logDebug('Found solc binary', {
+      version,
+      solcPath,
+      platform,
+    });
     return solcPath;
   }
 
-  logDebug(
-    `Downloading solc ${version} with platform ${platform} at ${solcPath}`
-  );
+  logDebug('Downloading solc', {
+    version,
+    solcPath,
+    platform,
+  });
   const success = await fetchAndSaveSolc(platform, solcPath, version, fileName);
-  logDebug(
-    `Downloaded solc ${version} with platform ${platform} at ${solcPath}`
-  );
+  logDebug('Downloaded solc', {
+    version,
+    solcPath,
+    platform,
+  });
   if (success && !validateSolcPath(solcPath)) {
-    logError(`Cannot validate solc ${version}.`);
+    logError('Cannot validate solc', {
+      version,
+      solcPath,
+      platform,
+    });
     return null;
   }
   return success ? solcPath : null;
@@ -193,9 +208,12 @@ async function fetchAndSaveSolc(
 ): Promise<boolean> {
   const encodedURIFilename = encodeURIComponent(fileName);
   const githubSolcURI = `${HOST_SOLC_REPO}${platform}/${encodedURIFilename}`;
-  logDebug(
-    `Fetching solc ${version} on platform ${platform}: ${githubSolcURI}`
-  );
+  logDebug('Fetching solc', {
+    version,
+    platform,
+    solcPath,
+    githubSolcURI,
+  });
   let res = await fetchWithTimeout(githubSolcURI);
   let status = res.status;
   let buffer;
@@ -215,9 +233,7 @@ async function fetchAndSaveSolc(
   }
 
   if (status === StatusCodes.OK && buffer) {
-    logDebug(
-      `Fetched solc ${version} on platform ${platform}: ${githubSolcURI}`
-    );
+    logDebug('Fetched solc', { version, platform, solcPath });
     fs.mkdirSync(path.dirname(solcPath), { recursive: true });
 
     try {
@@ -229,7 +245,7 @@ async function fetchAndSaveSolc(
 
     return true;
   } else {
-    logWarn(`Failed fetching solc ${version}: ${githubSolcURI}`);
+    logWarn('Failed fetching solc' { version, platform, solcPath });
   }
 
   return false;
