@@ -148,7 +148,7 @@ export default abstract class AbstractDatabaseService {
     recompiledContract: CheckedContract,
     match: Match,
     databaseColumns: Database.DatabaseColumns
-  ): Promise<string> {
+  ): Promise<number> {
     try {
       // Add recompiled bytecodes
       if (databaseColumns.bytecodeHashes.recompiledCreation) {
@@ -252,7 +252,7 @@ export default abstract class AbstractDatabaseService {
     recompiledContract: CheckedContract,
     match: Match,
     databaseColumns: Database.DatabaseColumns
-  ): Promise<string | false> {
+  ): Promise<number | false> {
     // Until the Sourcify will decide a standard process to update:
     // if we have a "better match" always insert
     // "better match" = creation_transformations or runtime_transformations is better
@@ -377,7 +377,7 @@ export default abstract class AbstractDatabaseService {
     match: Match
   ): Promise<{
     type: "update" | "insert";
-    verifiedContractId: string | false;
+    verifiedContractId: number | false;
   }> {
     this.validateBeforeStoring(recompiledContract, match);
 

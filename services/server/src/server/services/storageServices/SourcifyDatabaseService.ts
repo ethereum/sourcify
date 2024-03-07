@@ -117,12 +117,12 @@ export class SourcifyDatabaseService
     const { type, verifiedContractId } =
       await super.insertOrUpdateVerifiedContract(recompiledContract, match);
 
-    if (!verifiedContractId) {
-      throw new Error(
-        "VerifiedContractId undefined before inserting sourcify match"
-      );
-    }
     if (type === "insert") {
+      if (!verifiedContractId) {
+        throw new Error(
+          "VerifiedContractId undefined before inserting sourcify match"
+        );
+      }
       await Database.insertSourcifyMatch(this.databasePool, {
         verified_contract_id: verifiedContractId,
         creation_match: match.creationMatch,
@@ -132,11 +132,13 @@ export class SourcifyDatabaseService
         `Stored ${recompiledContract.name} to SourcifyDatabase address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
       );
     } else if (type === "update") {
-      await Database.updateSourcifyMatch(this.databasePool, {
-        verified_contract_id: verifiedContractId,
-        creation_match: match.creationMatch,
-        runtime_match: match.runtimeMatch,
-      });
+      if (verifiedContractId) {
+        await Database.updateSourcifyMatch(this.databasePool, {
+          verified_contract_id: verifiedContractId,
+          creation_match: match.creationMatch,
+          runtime_match: match.runtimeMatch,
+        });
+      }
       logger.info(
         `Updated ${recompiledContract.name} to SourcifyDatabase address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
       );
