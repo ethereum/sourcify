@@ -1309,7 +1309,7 @@ describe("Test Supported Chains", function () {
 
   // YMTECH Testnet
   verifyContract(
-    "0x7FC629c5F26cf7cB2fBF77FE7Ed1BA535D2561f7",
+    "0xe46BEA45Ba7bF3764F16F81ab4F07Fd9494998A5",
     "202401",
     "YMTECH Testnet",
     "shared/"
