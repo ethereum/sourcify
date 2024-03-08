@@ -63,18 +63,6 @@ const LOCAL_CHAINS: SourcifyChain[] = [
     rpc: [`http://localhost:8545`],
     supported: true,
   }),
-  new SourcifyChain({
-    name: "YMTECH Testnet",
-    shortName: "YMTECH Testnet",
-    chainId: 202401,
-    faucets: [],
-    infoURL: "localhost",
-    nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
-    network: "testnet",
-    networkId: 202401,
-    rpc: [`http://39.119.118.216:8545`],
-    supported: true,
-  }),
 ];
 
 /**
