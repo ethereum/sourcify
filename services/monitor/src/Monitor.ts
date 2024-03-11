@@ -29,17 +29,17 @@ export default class Monitor extends EventEmitter {
   ) {
     super();
 
+    logger.info("Passed config", passedConfig);
+
     if (!passedConfig || Object.keys(passedConfig).length === 0) {
       logger.warn("No config provided, using default config");
     }
-
-    logger.info("Passed config: " + JSON.stringify(passedConfig, null, 2));
 
     this.config = deepMerge(defaultConfig, passedConfig || {});
 
     logger.info(
       "Starting the monitor using the effective config: " +
-        JSON.stringify(this.config, null, 2)
+        JSON.stringify(this.config, null, 2) // Stringify here to see the full config clearly
     );
 
     if (this.config.decentralizedStorages?.ipfs?.enabled) {
@@ -66,13 +66,10 @@ export default class Monitor extends EventEmitter {
       }
     });
 
-    logger.info(
-      `Creating ${
-        sourcifyChains.length
-      } chain monitors for chains: ${sourcifyChains
-        .map((c) => c.chainId)
-        .join(",")}`
-    );
+    logger.info("Creating ChainMonitors", {
+      numberOfChains: sourcifyChains.length,
+      chains: sourcifyChains.map((c) => c.chainId),
+    });
 
     if (sourcifyChains.length === 0) {
       throw new Error("No chains to monitor");
@@ -109,11 +106,10 @@ export default class Monitor extends EventEmitter {
    * Starts the monitor on all the designated chains.
    */
   start = async (): Promise<void> => {
-    logger.info(
-      `Starting Monitor for chains: ${this.chainMonitors
-        .map((cm) => cm.sourcifyChain.chainId)
-        .join(",")}`
-    );
+    logger.info("Starting Monitor for chains", {
+      numberOfChains: this.chainMonitors.length,
+      chains: this.chainMonitors.map((cm) => cm.sourcifyChain.chainId),
+    });
     const promises: Promise<void>[] = [];
     for (const cm of this.chainMonitors) {
       promises.push(cm.start());
