@@ -225,7 +225,7 @@ describe("Test Supported Chains", function () {
   verifyContract(
     "0x059611daEdBA5Fe0875aC7c76d7cE47FfE5c39C5",
     "40",
-    "Telos EVM Testnet",
+    "Telos EVM Mainnet",
     "40/"
   );
 
