@@ -9,6 +9,7 @@ import { Pool } from "pg";
 import AbstractDatabaseService from "./AbstractDatabaseService";
 import { IStorageService } from "../StorageService";
 import { bytesFromString } from "../utils/database-util";
+import { getMatchStatus } from "../../common";
 
 export interface SourcifyDatabaseServiceOptions {
   postgres: {
@@ -128,6 +129,14 @@ export class SourcifyDatabaseService
         creation_match: match.creationMatch,
         runtime_match: match.runtimeMatch,
       });
+      // Prevent running this on the migration server
+      if (process.env.NODE_CONFIG_ENV !== "migration") {
+        await Database.insertSourcifySync(this.databasePool, {
+          chain_id: parseInt(match.chainId),
+          address: match.address,
+          match_type: getMatchStatus(match)!,
+        });
+      }
       logger.info(
         `Stored ${recompiledContract.name} to SourcifyDatabase address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
       );
@@ -137,6 +146,14 @@ export class SourcifyDatabaseService
           verified_contract_id: verifiedContractId,
           creation_match: match.creationMatch,
           runtime_match: match.runtimeMatch,
+        });
+      }
+      // Prevent running this on the migration server
+      if (process.env.NODE_CONFIG_ENV !== "migration") {
+        await Database.updateSourcifySync(this.databasePool, {
+          chain_id: parseInt(match.chainId),
+          address: match.address,
+          match_type: getMatchStatus(match)!,
         });
       }
       logger.info(
