@@ -335,14 +335,15 @@ export default class SourcifyChain {
           provider.getBlockNumber(),
           this.rejectInMs(RPC_TIMEOUT, provider.url),
         ]);
-        logInfo('Fetched current block number', {
+        logInfo('Fetched eth_blockNumber', {
+          blockNumber: block,
           providerUrl: provider.url,
           chainId: this.chainId,
         });
         return block;
       } catch (err) {
         if (err instanceof Error) {
-          logWarn('Failed to fetch the current block number', {
+          logWarn('Failed to fetch eth_blockNumber', {
             providerUrl: provider.url,
             chainId: this.chainId,
             error: err.message,
