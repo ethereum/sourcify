@@ -28,7 +28,11 @@ const rawlineFormat = format.printf(
         " - " +
         Object.entries(metadata)
           .map(([key, value]) => {
-            if (typeof value === "object") {
+            if (value instanceof Error) {
+              // JSON.stringify will give a "{}" on Error objects becuase message and stack properties are non-enumberable.
+              // Instead do it manually
+              value = JSON.stringify(value, Object.getOwnPropertyNames(value));
+            } else if (typeof value === "object") {
               try {
                 value = JSON.stringify(value);
               } catch (e) {
