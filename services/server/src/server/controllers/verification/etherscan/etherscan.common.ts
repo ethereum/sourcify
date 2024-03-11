@@ -8,7 +8,7 @@ import {
 import { TooManyRequests } from "../../../../common/errors/TooManyRequests";
 import { BadGatewayError } from "../../../../common/errors/BadGatewayError";
 import { solc } from "../verification.common";
-import { logger } from "../../../../common/logger";
+import logger from "../../../../common/logger";
 
 export type EtherscanResult = {
   SourceCode: string;

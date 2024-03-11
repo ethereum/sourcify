@@ -4,7 +4,7 @@ import {
 } from "@ethereum-sourcify/lib-sourcify";
 import { StatusCodes } from "http-status-codes";
 import fetch from "node-fetch";
-import { logger } from "../../../common/logger";
+import logger from "../../../common/logger";
 
 const ETHERSCAN_REGEX = ["at txn.*href=.*/tx/(0x.{64})"]; // save as string to be able to return the txRegex in /chains response. If stored as RegExp returns {}
 const ETHERSCAN_SUFFIX = "address/${ADDRESS}";

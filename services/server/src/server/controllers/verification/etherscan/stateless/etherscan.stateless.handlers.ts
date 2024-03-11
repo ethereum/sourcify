@@ -10,7 +10,7 @@ import { checkSupportedChainId } from "../../../../../sourcify-chains";
 import { getResponseMatchFromMatch } from "../../../../common";
 import { createCheckedContract } from "../../verification.common";
 import { sourcifyChainsMap } from "../../../../../sourcify-chains";
-import { logger } from "../../../../../common/logger";
+import logger from "../../../../../common/logger";
 
 export async function verifyFromEtherscan(req: Request, res: Response) {
   checkSupportedChainId(req.body.chain);

@@ -15,7 +15,7 @@ import {
   AllianceDatabaseService,
   AllianceDatabaseServiceOptions,
 } from "./storageServices/AllianceDatabaseService";
-import { logger } from "../../common/logger";
+import logger from "../../common/logger";
 
 export interface IStorageService {
   init(): Promise<boolean>;
@@ -133,37 +133,31 @@ export class StorageService {
     // Conditionally push promises to the array based on service availability
     if (this.allianceDatabase) {
       promises.push(
-        this.allianceDatabase
-          .storeMatch(contract, match)
-          .catch((e) =>
-            logger.warn("Error while storing on the AllianceDatabase: ", {
-              error: e,
-            })
-          )
+        this.allianceDatabase.storeMatch(contract, match).catch((e) =>
+          logger.warn("Error while storing on the AllianceDatabase: ", {
+            error: e,
+          })
+        )
       );
     }
 
     if (this.sourcifyDatabase) {
       promises.push(
-        this.sourcifyDatabase
-          .storeMatch(contract, match)
-          .catch((e) =>
-            logger.error("Error while storing on the SourcifyDatabase: ", {
-              error: e,
-            })
-          )
+        this.sourcifyDatabase.storeMatch(contract, match).catch((e) =>
+          logger.error("Error while storing on the SourcifyDatabase: ", {
+            error: e,
+          })
+        )
       );
     }
 
     if (this.repositoryV2) {
       promises.push(
-        this.repositoryV2
-          .storeMatch(contract, match)
-          .catch((e) =>
-            logger.error("Error while storing on the RepositoryV2: ", {
-              error: e,
-            })
-          )
+        this.repositoryV2.storeMatch(contract, match).catch((e) =>
+          logger.error("Error while storing on the RepositoryV2: ", {
+            error: e,
+          })
+        )
       );
     }
 

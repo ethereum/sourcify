@@ -10,7 +10,7 @@ import { ValidationError } from "./common/errors";
 import { FetchRequest } from "ethers";
 import chainsRaw from "./chains.json";
 import rawSourcifyChainExtentions from "./sourcify-chains-default.json";
-import { logger } from "./common/logger";
+import logger from "./common/logger";
 import fs from "fs";
 import path from "path";
 

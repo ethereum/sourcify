@@ -3,7 +3,7 @@ import {
   CheckedContract,
   Status,
 } from "@ethereum-sourcify/lib-sourcify";
-import { logger } from "../../../common/logger";
+import logger from "../../../common/logger";
 import * as Database from "../utils/database-util";
 import { Pool } from "pg";
 import AbstractDatabaseService from "./AbstractDatabaseService";

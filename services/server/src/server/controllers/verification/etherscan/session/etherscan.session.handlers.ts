@@ -19,7 +19,7 @@ import {
   checkSupportedChainId,
   sourcifyChainsMap,
 } from "../../../../../sourcify-chains";
-import { logger } from "../../../../../common/logger";
+import logger from "../../../../../common/logger";
 
 export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
   const requestId = req.headers["X-Request-ID"] || "";

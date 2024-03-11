@@ -23,7 +23,7 @@ import { services } from "../../../services/services";
 
 import { StatusCodes } from "http-status-codes";
 import { decode as bytecodeDecode } from "@ethereum-sourcify/bytecode-utils";
-import { logger } from "../../../../common/logger";
+import logger from "../../../../common/logger";
 
 export async function getSessionDataEndpoint(req: Request, res: Response) {
   res.send(getSessionJSON(req.session));

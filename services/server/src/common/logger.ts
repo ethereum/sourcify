@@ -62,7 +62,7 @@ const serverLoggerInstance = loggerInstance.child({
     process.env.NODE_ENV === "production" ? "server" : chalk.blue("[Server]"),
 });
 
-export const logger = serverLoggerInstance;
+export default serverLoggerInstance;
 
 export const logLevelStringToNumber = (level: string): number => {
   switch (level) {
@@ -84,7 +84,7 @@ export const logLevelStringToNumber = (level: string): number => {
 // Function to change the log level dynamically
 export function setLogLevel(level: string): void {
   console.log(`Setting log level to: ${level}`);
-  logger.warn(`Setting log level to: ${level}`);
+  serverLoggerInstance.warn(`Setting log level to: ${level}`);
   consoleTransport.level = level;
   // Also set lib-sourcify's logger level
   setLibSourcifyLoggerLevel(logLevelStringToNumber(level));
@@ -92,7 +92,7 @@ export function setLogLevel(level: string): void {
 
 // here we override the standard LibSourcify's Logger with a custom one
 setLibSourcifyLogger({
-  logLevel: logLevelStringToNumber(logger.level), // same as the server
+  logLevel: logLevelStringToNumber(serverLoggerInstance.level), // same as the server
   setLevel(level: number) {
     this.logLevel = level;
   },
@@ -108,24 +108,24 @@ setLibSourcifyLogger({
     if (level <= this.logLevel) {
       switch (level) {
         case 0:
-          logger.error(logObject);
+          serverLoggerInstance.error(logObject);
           break;
         case 1:
-          logger.warn(logObject);
+          serverLoggerInstance.warn(logObject);
           break;
         case 2:
-          logger.info(logObject);
+          serverLoggerInstance.info(logObject);
           break;
         // Use winston's log levels https://github.com/winstonjs/winston?tab=readme-ov-file#logging-levels
         // We don't use http (3) and verbose (4)
         case 5:
-          logger.debug(logObject);
+          serverLoggerInstance.debug(logObject);
           break;
         case 6:
-          logger.silly(logObject);
+          serverLoggerInstance.silly(logObject);
           break;
         default:
-          logger.info(logObject);
+          serverLoggerInstance.info(logObject);
           break;
       }
     }

@@ -18,7 +18,7 @@ import {
 } from "../../../../../common/errors";
 import { StatusCodes } from "http-status-codes";
 import { getResponseMatchFromMatch } from "../../../../common";
-import { logger } from "../../../../../common/logger";
+import logger from "../../../../../common/logger";
 
 export async function legacyVerifyEndpoint(
   req: LegacyVerifyRequest,

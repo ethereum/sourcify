@@ -26,7 +26,7 @@ import { ISolidityCompiler } from "@ethereum-sourcify/lib-sourcify";
 import { SolcLambda } from "../../services/compiler/lambda/SolcLambda";
 import { SolcLocal } from "../../services/compiler/local/SolcLocal";
 import { StorageService } from "../../services/StorageService";
-import { logger } from "../../../common/logger";
+import logger from "../../../common/logger";
 import config from "config";
 import { createHash } from "crypto";
 

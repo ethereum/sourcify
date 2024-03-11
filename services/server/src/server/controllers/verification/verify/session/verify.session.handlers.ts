@@ -9,7 +9,7 @@ import {
 import { isEmpty } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError } from "../../../../../common/errors";
 import { services } from "../../../../services/services";
-import { logger } from "../../../../../common/logger";
+import logger from "../../../../../common/logger";
 
 export async function verifyContractsInSessionEndpoint(
   req: Request,

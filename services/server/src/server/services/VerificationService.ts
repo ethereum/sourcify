@@ -7,7 +7,7 @@ import {
 } from "@ethereum-sourcify/lib-sourcify";
 import { getCreatorTx } from "./utils/contract-creation-util";
 import { ContractIsAlreadyBeingVerifiedError } from "../../common/errors/ContractIsAlreadyBeingVerifiedError";
-import { logger } from "../../common/logger";
+import logger from "../../common/logger";
 
 export interface IVerificationService {
   supportedChainsMap: SourcifyChainMap;

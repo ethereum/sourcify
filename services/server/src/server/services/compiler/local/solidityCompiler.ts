@@ -11,7 +11,7 @@ import {
   PathBuffer,
 } from "@ethereum-sourcify/lib-sourcify";
 import config from "config";
-import { logger } from "../../../../common/logger";
+import logger from "../../../../common/logger";
 
 require("isomorphic-fetch");
 interface RequestInitTimeout extends RequestInit {

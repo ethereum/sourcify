@@ -26,7 +26,7 @@ import {
 import crypto from "crypto";
 
 // local imports
-import { logger } from "../common/logger";
+import logger from "../common/logger";
 import routes from "./routes";
 import genericErrorHandler from "./middlewares/GenericErrorHandler";
 import notFoundHandler from "./middlewares/NotFoundError";

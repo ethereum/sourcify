@@ -15,7 +15,7 @@ import {
   globSource,
 } from "ipfs-http-client";
 import path from "path";
-import { logger } from "../../../common/logger";
+import logger from "../../../common/logger";
 import { getAddress } from "ethers";
 import { getMatchStatus } from "../../common";
 import { IStorageService } from "../StorageService";

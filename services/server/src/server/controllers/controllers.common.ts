@@ -1,6 +1,6 @@
 import { NextFunction, RequestHandler, Request, Response } from "express";
 import { InternalServerError } from "../../common/errors";
-import { logger } from "../../common/logger";
+import logger from "../../common/logger";
 
 export const safeHandler = (requestHandler: RequestHandler) => {
   return async (req: Request, res: Response, next: NextFunction) => {

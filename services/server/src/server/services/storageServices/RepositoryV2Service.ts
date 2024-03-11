@@ -20,7 +20,7 @@ import {
   IPFSHTTPClient,
   globSource,
 } from "ipfs-http-client";
-import { logger } from "../../../common/logger";
+import logger from "../../../common/logger";
 import { getAddress, id as keccak256 } from "ethers";
 import { getMatchStatus } from "../../common";
 import { IStorageService } from "../StorageService";

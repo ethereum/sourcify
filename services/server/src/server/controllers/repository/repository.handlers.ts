@@ -4,7 +4,7 @@ import { ContractData, FilesInfo, MatchLevel } from "../../types";
 import { NotFoundError } from "../../../common/errors";
 import { Match } from "@ethereum-sourcify/lib-sourcify";
 import { services } from "../../services/services";
-import { logger } from "../../../common/logger";
+import logger from "../../../common/logger";
 
 type RetrieveMethod = (
   chain: string,
