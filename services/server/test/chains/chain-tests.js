@@ -61,8 +61,8 @@ describe("Test Supported Chains", function () {
     if (!anyTestsPass && newAddedChainIds.length) {
       throw new Error(
         "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id(s) " +
-          newAddedChainIds.join(",") +
-          "?"
+        newAddedChainIds.join(",") +
+        "?"
       );
     }
   });
@@ -1304,6 +1304,14 @@ describe("Test Supported Chains", function () {
     "0x270236c25d28a2cd85ed9a1ef0b31835fb9e4ff6",
     "255",
     "Kroma",
+    "shared/"
+  );
+
+  // Ozone Chain Mainnet
+  verifyContract(
+    "0x50A9B085260F80CFEb1Af8c7131980fC11238ccB",
+    "4000",
+    "Ozone Chain Mainnet",
     "shared/"
   );
 
