@@ -107,8 +107,12 @@ export class Server {
         fileUploader: false,
         validateSecurity: {
           handlers: {
-            BearerAuth: async (req, scopes, schema) => {
-              return true;
+            BearerAuth: (req) => {
+              const authHeader = req.headers["authorization"];
+              // This is a placeholder token. In a real application, use a more secure method for managing and validating tokens.
+              const token = authHeader && authHeader.split(" ")[1];
+
+              return token === process.env.SETLOGGING_TOKEN;
             },
           },
         },

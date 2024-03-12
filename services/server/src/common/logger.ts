@@ -87,9 +87,14 @@ export const logLevelStringToNumber = (level: string): number => {
 
 // Function to change the log level dynamically
 export function setLogLevel(level: string): void {
-  console.log(`Setting log level to: ${level}`);
-  serverLoggerInstance.warn(`Setting log level to: ${level}`);
+  if (!["error", "warn", "info", "debug", "silly"].includes(level)) {
+    throw new Error(
+      `Invalid log level: ${level}. level can take: error, warn, info, debug, silly`
+    );
+  }
+  console.warn(`Setting log level to: ${level}`);
   consoleTransport.level = level;
+  process.env.NODE_LOG_LEVEL = level;
   // Also set lib-sourcify's logger level
   setLibSourcifyLoggerLevel(logLevelStringToNumber(level));
 }
