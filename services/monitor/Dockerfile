@@ -41,4 +41,4 @@ ENV NODE_ENV=${NODE_ENV}
 
 WORKDIR /home/app/services/monitor
 
-CMD ["node", "dist/index.js", "--chainsPath", "chains.json" ]
+CMD ["node", "dist/index.js", "--chainsPath", "monitorChains.json" ]

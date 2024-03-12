@@ -30,7 +30,7 @@ First you need to provide which chains to monitor in a json file.
 
 Infura and Alchemy keys must be placed in the url string as above in `{INFURA_API_KEY}`
 
-See [chains.json](./chains.json) for a full example and to see which chains we monitor ourselves. You can also use the [chainid.network/chains.json](https://chainid.network/chains.json) to find chains.
+See [monitorChains.json](./monitorChains.json) for a full example and to see which chains we monitor ourselves. You can also use the [chainid.network/chains.json](https://chainid.network/chains.json) to find chains.
 
 ### Monitor Config
 
@@ -117,7 +117,7 @@ npx lerna run build --scope sourcify-monitor
 Run
 
 ```bash
-node dist/index.js --chainsPath /path/to/chains.json --configPath /path/to/config.json
+node dist/index.js --chainsPath /path/to/your-chains.json --configPath /path/to/config.json
 ```
 
 The `--chainsPath` and `--configPath` are optional. If not provided, the default paths will be used.
@@ -128,12 +128,12 @@ The containers are published in the [Github Container Registry](https://github.c
 
 The recommended way to run the Sourcify Monitor is via Docker.
 
-You need to pass the `chains.json` and `config.json` files to the container. You can do this by mounting them as volumes:
+You need to pass the `monitorChains.json` and `config.json` files to the container. You can do this by mounting them as volumes:
 
 ```bash
 $ docker pull ghcr.io/ethereum/sourcify/monitor:latest
 $ docker run \
-  -v /path/to/chains.json:/home/app/services/monitor/chains.json \
+  -v /path/to/chains.json:/home/app/services/monitor/monitorChains.json \
   -v /path/to/config.json:/home/app/services/monitor/config.json \
   -e ALCHEMY_API_KEY=xxx \
   -e INFURA_API_KEY=xxx \

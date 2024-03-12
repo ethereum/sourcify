@@ -17,7 +17,7 @@ program
   .option(
     "--chainsPath <path>",
     "Path to the chains JSON file",
-    path.resolve(__dirname, "../chains.json")
+    path.resolve(__dirname, "../monitorChains.json")
   );
 
 // Parse the arguments
