@@ -3,6 +3,7 @@ import assert from "assert";
 import { EventEmitter } from "stream";
 import { SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
 import logger from "./logger";
+import "./loggerServer"; // Start the dynamic log level server
 import ChainMonitor from "./ChainMonitor";
 import {
   KnownDecentralizedStorageFetchers,

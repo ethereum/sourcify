@@ -5,7 +5,7 @@ import {
   setLibSourcifyLoggerLevel,
 } from "@ethereum-sourcify/lib-sourcify";
 
-enum LogLevels {
+export enum LogLevels {
   error = 0,
   warn = 1,
   info = 2,
@@ -13,7 +13,7 @@ enum LogLevels {
   silly = 6,
 }
 
-const validLogLevels = Object.values(LogLevels);
+export const validLogLevels = Object.values(LogLevels);
 
 if (
   process.env.NODE_LOG_LEVEL &&
@@ -96,9 +96,11 @@ export const logLevelStringToNumber = (level: string): number => {
 
 // Function to change the log level dynamically
 export function setLogLevel(level: string): void {
-  if (!["error", "warn", "info", "debug", "silly"].includes(level)) {
+  if (!validLogLevels.includes(level)) {
     throw new Error(
-      `Invalid log level: ${level}. level can take: error, warn, info, debug, silly`
+      `Invalid log level: ${level}. level can take: ${validLogLevels.join(
+        ", "
+      )}`
     );
   }
   console.warn(`Setting log level to: ${level}`);
