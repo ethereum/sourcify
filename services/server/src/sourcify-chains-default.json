@@ -1159,21 +1159,21 @@
   },
   "78432": {
     "sourcifyName": "Conduit Subnet",
-    "supported": true,
+    "supported": false,
     "fetchContractCreationTxUsing": {
       "avalancheApi": true
     }
   },
   "78431": {
     "sourcifyName": "Bulletin Subnet",
-    "supported": true,
+    "supported": false,
     "fetchContractCreationTxUsing": {
       "avalancheApi": true
     }
   },
   "78430": {
     "sourcifyName": "Amplify Subnet",
-    "supported": true,
+    "supported": false,
     "fetchContractCreationTxUsing": {
       "avalancheApi": true
     }
