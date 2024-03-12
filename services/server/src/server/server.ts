@@ -6,7 +6,6 @@ dotenv.config({ path: path.resolve(__dirname, "..", "..", ".env") });
 process.env["NODE_CONFIG_DIR"] = path.resolve(__dirname, "..", "config");
 import config from "config";
 import express, { Request } from "express";
-import serveIndex from "serve-index";
 import cors from "cors";
 import session from "express-session";
 import createMemoryStore from "memorystore";
@@ -24,6 +23,7 @@ import {
   rateLimit,
 } from "express-rate-limit";
 import crypto from "crypto";
+import serveIndex from "serve-index";
 
 // local imports
 import logger from "../common/logger";
@@ -33,7 +33,6 @@ import notFoundHandler from "./middlewares/NotFoundError";
 import {
   checkSourcifyChainId,
   checkSupportedChainId,
-  sourcifyChainsArray,
 } from "../sourcify-chains";
 import {
   validateAddresses,
@@ -244,45 +243,12 @@ export class Server {
     this.app.set("trust proxy", true);
     this.app.use(session(getSessionOptions()));
 
-    this.app.get("/health", (_req, res) =>
-      res.status(200).send("Alive and kicking!")
-    );
-    this.app.get("/chains", (_req, res) => {
-      const sourcifyChains = sourcifyChainsArray.map(
-        ({ rpc, name, title, chainId, supported, etherscanApi }) => {
-          // Don't publish providers
-          // Don't show Alchemy & Infura IDs
-          rpc = rpc.map((url) => {
-            if (typeof url === "string") {
-              if (url.includes("alchemy"))
-                return url.replace(/\/[^/]*$/, "/{ALCHEMY_API_KEY}");
-              else if (url.includes("infura"))
-                return url.replace(/\/[^/]*$/, "/{INFURA_API_KEY}");
-              else return url;
-            } else {
-              // FetchRequest
-              return url.url;
-            }
-          });
-          return {
-            name,
-            title,
-            chainId,
-            rpc,
-            supported,
-            etherscanAPI: etherscanApi?.apiURL, // Needed in the UI
-          };
-        }
-      );
-
-      res.status(200).json(sourcifyChains);
-    });
-
     this.app.use(
       "/repository",
       express.static(this.repository),
       serveIndex(this.repository, { icons: true })
     );
+
     this.app.use("/", routes);
     this.app.use(genericErrorHandler);
     this.app.use(notFoundHandler);
