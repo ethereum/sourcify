@@ -1315,6 +1315,14 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // YMTECH Testnet
+  verifyContract(
+    "0x58185fD36ef0550D9A833E1aA7d5DfFA5ABeBA6d",
+    "202401",
+    "YMTECH Testnet",
+    "shared/"
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests = [];
     supportedChains
