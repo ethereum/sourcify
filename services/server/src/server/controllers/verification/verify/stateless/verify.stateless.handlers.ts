@@ -71,6 +71,13 @@ export async function legacyVerifyEndpoint(
     ? checkedContracts[req.body.chosenContract]
     : checkedContracts[0];
 
+  if (!contract) {
+    throw new NotFoundError(
+      "Chosen contract not found. Received chosenContract: " +
+        req.body.chosenContract
+    );
+  }
+
   try {
     const match = await services.verification.verifyDeployed(
       contract,
