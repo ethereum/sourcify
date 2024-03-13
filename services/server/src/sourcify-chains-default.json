@@ -1482,5 +1482,14 @@
         "url": "https://ozonescan.io/"
       }
     }
+  },
+  "648": {
+    "sourcifyName": "Endurance Smart Chain Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://explorer-endurance.fusionist.io/"
+      }
+    }
   }
 }

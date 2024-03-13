@@ -1315,6 +1315,14 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // Endurance Smart Chain Mainnet
+  verifyContract(
+    "0x9e5b6c4F1080a4cb5bFD84816375c25E3B26d11A",
+    "648",
+    "Endurance Smart Chain Mainnet",
+    "shared/"
+  );
+·
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests = [];
     supportedChains
