@@ -22,7 +22,7 @@ export const validLogLevels = Object.values(LogLevels);
 
 if (
   process.env.NODE_LOG_LEVEL &&
-  !validLogLevels.includes(parseInt(process.env.NODE_LOG_LEVEL))
+  !validLogLevels.includes(process.env.NODE_LOG_LEVEL)
 ) {
   throw new Error(`Invalid log level: ${process.env.NODE_LOG_LEVEL}`);
 }
