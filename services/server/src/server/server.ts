@@ -24,6 +24,8 @@ import {
 } from "express-rate-limit";
 import crypto from "crypto";
 import serveIndex from "serve-index";
+import { v4 as uuidv4 } from "uuid";
+import { asyncLocalStorage } from "../common/async-context";
 
 // local imports
 import logger from "../common/logger";
@@ -80,6 +82,25 @@ export class Server {
         abortOnLimit: true,
       })
     );
+
+    // Inject the requestId to the AsyncLocalStorage to be logged.
+    this.app.use((req, res, next) => {
+      // create a new id if it doesn't exist. Should be assigned by the nginx in production.
+      if (!req.headers["x-request-id"]) {
+        req.headers["x-request-id"] = uuidv4();
+      }
+
+      // Apparently req.headers can be an array
+      const requestId = Array.isArray(req.headers["x-request-id"])
+        ? req.headers["x-request-id"][0]
+        : req.headers["x-request-id"];
+
+      const context = { requestId };
+      // Run the rest of the request stack in the context of the requestId
+      asyncLocalStorage.run(context, () => {
+        next();
+      });
+    });
 
     // Log all requests in trace mode
     this.app.use((req, res, next) => {

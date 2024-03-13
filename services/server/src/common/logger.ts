@@ -4,6 +4,7 @@ import {
   setLibSourcifyLogger,
   setLibSourcifyLoggerLevel,
 } from "@ethereum-sourcify/lib-sourcify";
+import { asyncLocalStorage } from "./async-context";
 
 export enum LogLevels {
   error = 0,
@@ -30,8 +31,12 @@ const loggerInstance: Logger = createLogger({
 
 // 2024-03-06T17:04:16.375Z [warn]: [RepositoryV2Service] Storing contract address=0x5FbDB2315678afecb367f032d93F642f64180aa3, chainId=1337, matchQuality=0.5
 const rawlineFormat = format.printf(
-  ({ level, message, timestamp, service, ...metadata }: any) => {
-    let msg = `${timestamp} [${level}]: ${service ? service : ""} ${message}`;
+  ({ level, message, timestamp, service, requestId, ...metadata }: any) => {
+    const requestIdMsg = requestId ? chalk.red(`[requestId=${requestId}]`) : "";
+
+    let msg = `${timestamp} [${level}] ${
+      service ? service : ""
+    } ${requestIdMsg} ${message}`;
     if (metadata && Object.keys(metadata).length > 0) {
       msg +=
         " - " +
@@ -56,13 +61,24 @@ const rawlineFormat = format.printf(
   }
 );
 
+// Inject the requestId into the log message
+const injectRequestId = format((info) => {
+  const requestId = asyncLocalStorage.getStore()?.requestId;
+  return requestId ? { ...info, requestId } : info;
+});
+
 const lineFormat = format.combine(
+  injectRequestId(),
   format.timestamp(),
   format.colorize(),
   rawlineFormat
 );
 
-const jsonFormat = format.combine(format.timestamp(), format.json());
+const jsonFormat = format.combine(
+  format.timestamp(),
+  injectRequestId(),
+  format.json()
+);
 
 const consoleTransport = new transports.Console({
   // NODE_LOG_LEVEL is takes precedence, otherwise use "info" if in production, "debug" otherwise
