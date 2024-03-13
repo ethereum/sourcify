@@ -57,7 +57,7 @@ const rawlineFormat = format.printf(
             }
             return `${key}=${value}`;
           })
-          .join("\t");
+          .join(" | ");
     }
     return msg;
   }

@@ -32,7 +32,9 @@ const loggerInstance: Logger = createLogger({
 // 2024-03-06T17:04:16.375Z [warn]: [RepositoryV2Service] Storing contract address=0x5FbDB2315678afecb367f032d93F642f64180aa3, chainId=1337, matchQuality=0.5
 const rawlineFormat = format.printf(
   ({ level, message, timestamp, service, requestId, ...metadata }: any) => {
-    const requestIdMsg = requestId ? chalk.red(`[requestId=${requestId}]`) : "";
+    const requestIdMsg = requestId
+      ? chalk.rgb(217, 132, 132)(`[requestId=${requestId}]`)
+      : "";
 
     let msg = `${timestamp} [${level}] ${
       service ? service : ""
@@ -55,7 +57,7 @@ const rawlineFormat = format.printf(
             }
             return `${key}=${value}`;
           })
-          .join("\t");
+          .join(" | ");
     }
     return msg;
   }
