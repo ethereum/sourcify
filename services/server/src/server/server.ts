@@ -127,6 +127,7 @@ export class Server {
         fileUploader: false,
         validateSecurity: {
           handlers: {
+            // Auth Handler for the /change-log-level endpoint
             BearerAuth: (req) => {
               const authHeader = req.headers["authorization"];
               // This is a placeholder token. In a real application, use a more secure method for managing and validating tokens.
@@ -308,9 +309,11 @@ export class Server {
 
 function getSessionOptions(): session.SessionOptions {
   if (config.get("session.secret") === "CHANGE_ME") {
-    logger.warn(
-      "The session secret is not set, please set it in the config file"
-    );
+    const msg =
+      "The session secret is not set, please set it in the config file";
+    process.env.NODE_ENV === "production"
+      ? logger.error(msg)
+      : logger.warn(msg);
   }
   return {
     secret: config.get("session.secret"),

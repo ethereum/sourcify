@@ -22,10 +22,7 @@ import {
 import logger from "../../../../../common/logger";
 
 export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
-  const requestId = req.headers["X-Request-ID"] || "";
-
   logger.info("sessionVerifyFromEtherscan", {
-    requestId,
     chainId: req.body.chain,
     address: req.body.address,
   });

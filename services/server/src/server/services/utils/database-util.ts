@@ -498,13 +498,21 @@ export function bytesFromString(str: string | undefined): Buffer | undefined {
 }
 
 // Use the transformations array to normalize the library transformations in both runtime and creation recompiled bytecodes
+// Normalization for recompiled bytecodes means:
+//   Runtime bytecode:
+//     1. Replace library address placeholders ("__$53aea86b7d70b31448b230b20ae141a537$__") with zeros
+//     2. Immutables are already set to zeros
+//   Creation bytecode:
+//     1. Replace library address placeholders ("__$53aea86b7d70b31448b230b20ae141a537$__") with zeros
+//     2. Immutables are already set to zeros
+
 export function normalizeRecompiledBytecodes(
   recompiledContract: CheckedContract,
   match: Match
 ) {
-  recompiledContract.normalizedRuntimeBytecode =
-    recompiledContract.runtimeBytecode;
   const PLACEHOLDER_LENGTH = 40;
+
+  // Runtime bytecode normalzations
   match.runtimeTransformations?.forEach((transformation) => {
     if (
       transformation.reason === "library" &&
@@ -526,6 +534,8 @@ export function normalizeRecompiledBytecodes(
       }`;
     }
   });
+
+  // Creation bytecode normalizations
   if (recompiledContract.creationBytecode) {
     recompiledContract.normalizedCreationBytecode =
       recompiledContract.creationBytecode;

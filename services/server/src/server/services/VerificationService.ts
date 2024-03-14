@@ -1,5 +1,5 @@
 import {
-  verifyDeployed,
+  verifyDeployed as libSourcifyVerifyDeployed,
   CheckedContract,
   SourcifyChainMap,
   Match,
@@ -47,6 +47,10 @@ export class VerificationService implements IVerificationService {
     address: string,
     creatorTxHash?: string
   ): Promise<Match> {
+    logger.debug("VerificationService.verifyDeployed", {
+      chainId,
+      address,
+    });
     this.throwIfContractIsAlreadyBeingVerified(chainId, address);
     this.activeVerificationsByChainIdAddress[`${chainId}:${address}`] = true;
 
@@ -58,7 +62,7 @@ export class VerificationService implements IVerificationService {
 
     /* eslint-disable no-useless-catch */
     try {
-      const res = await verifyDeployed(
+      const res = await libSourcifyVerifyDeployed(
         checkedContract,
         sourcifyChain,
         address,

@@ -1,6 +1,5 @@
 import { Response, Request } from "express";
 import { services } from "../../../../services/services";
-import { CheckedContract } from "@ethereum-sourcify/lib-sourcify";
 import {
   getMappedSourcesFromJsonInput,
   getMetadataFromCompiler,
@@ -20,9 +19,7 @@ export async function verifyFromEtherscan(req: Request, res: Response) {
   const apiKey = req.body.apiKey;
   const sourcifyChain = sourcifyChainsMap[chain];
 
-  const requestId = req.headers["X-Request-ID"] || "";
-
-  logger.info("verifyFromEtherscan", { requestId, chain, address, apiKey });
+  logger.info("verifyFromEtherscan", { chain, address, apiKey });
 
   const { compilerVersion, solcJsonInput, contractName } =
     await processRequestFromEtherscan(sourcifyChain, address, apiKey);

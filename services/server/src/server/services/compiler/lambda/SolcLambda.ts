@@ -9,6 +9,7 @@ import {
   JsonInput,
 } from "@ethereum-sourcify/lib-sourcify";
 import config from "config";
+import logger from "../../../../common/logger";
 
 export class SolcLambda implements ISolidityCompiler {
   private lambdaClient: LambdaClient;
@@ -38,10 +39,12 @@ export class SolcLambda implements ISolidityCompiler {
     solcJsonInput: JsonInput,
     forceEmscripten: boolean = false
   ): Promise<CompilerOutput> {
-    const response = await this.invokeLambdaFunction(
-      JSON.stringify({ version, solcJsonInput, forceEmscripten })
-    );
-    return this.parseCompilerOutput(response);
+    const param = JSON.stringify({ version, solcJsonInput, forceEmscripten });
+    logger.debug("Invoking Lambda function", { param });
+    const response = await this.invokeLambdaFunction(param);
+    const responseObj = this.parseCompilerOutput(response);
+    logger.debug("Lambda function response", { responseObj });
+    return responseObj;
   }
 
   private async invokeLambdaFunction(payload: string): Promise<any> {

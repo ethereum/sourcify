@@ -6,7 +6,7 @@ import verifyRoutes from "./controllers/verification/verify/verify.routes";
 import solcJsonRoutes from "./controllers/verification/solc-json/solc-json.routes";
 import etherscanRoutes from "./controllers/verification/etherscan/etherscan.routes";
 import { sourcifyChainsArray } from "../sourcify-chains";
-import serverLoggerInstance, { setLogLevel } from "../common/logger";
+import logger, { setLogLevel } from "../common/logger";
 
 const router: Router = Router();
 
@@ -19,13 +19,12 @@ router.get("/health", (_req, res) =>
 // Authenticated route to change the logging level.
 // Authentication handled by the express-openapi-validator middleware
 router.post("/change-log-level", (req, res) => {
-  console.log("Secure: " + req.secure);
   const { level } = req.body;
   try {
     setLogLevel(level);
     res.status(200).send(`Logging level changed to: ${level}`);
   } catch (error) {
-    serverLoggerInstance.error({
+    logger.error({
       message: "Failed to change logging level",
       error,
     });
@@ -61,6 +60,7 @@ router.get("/chains", (_req, res) => {
     }
   );
 
+  logger.debug("Sending Sourcify chains", sourcifyChains);
   res.status(200).json(sourcifyChains);
 });
 

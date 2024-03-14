@@ -251,6 +251,11 @@ export class RepositoryV1Service implements IStorageService {
     address: string,
     chainId: string
   ): Promise<Match[]> {
+    logger.debug("RepositoryV1.checkByChainAndAddress", {
+      chainId,
+      address,
+    });
+
     const contractPath = this.generateAbsoluteFilePath({
       matchQuality: "full",
       chainId,
@@ -260,6 +265,11 @@ export class RepositoryV1Service implements IStorageService {
 
     try {
       const storageTimestamp = (await fs.promises.stat(contractPath)).birthtime;
+      logger.debug("Found full match in RepositoryV1", {
+        chainId,
+        address,
+        storageTimestamp,
+      });
       return [
         {
           address,
@@ -270,7 +280,7 @@ export class RepositoryV1Service implements IStorageService {
         },
       ];
     } catch (e: any) {
-      logger.debug("Contract (full_match) not found in repositoryV1", {
+      logger.debug("Couldn't find full match in RepositoryV1", {
         address,
         chainId,
         error: e.message,
@@ -284,6 +294,11 @@ export class RepositoryV1Service implements IStorageService {
     address: string,
     chainId: string
   ): Promise<Match[]> {
+    logger.debug("RepositoryV1.checkAllByChainAndAddress", {
+      chainId,
+      address,
+    });
+
     const fullContractPath = this.generateAbsoluteFilePath({
       matchQuality: "full",
       chainId,
@@ -303,6 +318,13 @@ export class RepositoryV1Service implements IStorageService {
         fullContractPath,
         partialContractPath
       );
+
+      logger.debug("Found full or partial match in RepositoryV1", {
+        chainId,
+        address,
+        storageTimestamp: storage.time,
+        storageStatus: storage.status,
+      });
       return [
         {
           address,
@@ -313,10 +335,11 @@ export class RepositoryV1Service implements IStorageService {
         },
       ];
     } catch (e: any) {
-      logger.debug(
-        "Contract (full & partial match) not found in repositoryV1",
-        { address, chainId, error: e.message }
-      );
+      logger.debug("Couldn't find full or partial match in RepositoryV1", {
+        address,
+        chainId,
+        error: e.message,
+      });
       return [];
     }
   }
@@ -334,7 +357,7 @@ export class RepositoryV1Service implements IStorageService {
         : this.generateAbsoluteFilePath(path);
     fs.mkdirSync(Path.dirname(abolsutePath), { recursive: true });
     fs.writeFileSync(abolsutePath, content);
-    logger.debug("Saved to repositoryV1", { abolsutePath });
+    logger.debug("Saved file to repositoryV1", { abolsutePath });
     this.updateRepositoryTag();
   }
 

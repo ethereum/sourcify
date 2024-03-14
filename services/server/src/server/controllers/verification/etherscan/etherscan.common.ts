@@ -1,4 +1,4 @@
-import { BadRequestError } from "../../../../common/errors";
+import { BadRequestError, NotFoundError } from "../../../../common/errors";
 import {
   JsonInput,
   Metadata,
@@ -108,7 +108,7 @@ export const processRequestFromEtherscan = async (
   });
 
   if (!response.ok) {
-    logger.info("Etherscan API error", {
+    logger.error("Etherscan API error", {
       secretUrl,
       chainId: sourcifyChain.chainId,
       address,
@@ -135,7 +135,7 @@ export const processRequestFromEtherscan = async (
   }
 
   if (resultJson.message === "NOTOK") {
-    logger.info("Etherscan API error", {
+    logger.error("Etherscan API error", {
       secretUrl,
       chainId: sourcifyChain.chainId,
       address,
@@ -146,12 +146,12 @@ export const processRequestFromEtherscan = async (
     );
   }
   if (resultJson.result[0].SourceCode === "") {
-    logger.debug("Not found on Etherscan", {
+    logger.info("Not found on Etherscan", {
       chainId: sourcifyChain.chainId,
       address,
       secretUrl,
     });
-    throw new BadGatewayError("This contract is not verified on Etherscan");
+    throw new NotFoundError("This contract is not verified on Etherscan");
   }
   const contractResultJson = resultJson.result[0];
   const sourceCodeObject = contractResultJson.SourceCode;
