@@ -30,8 +30,7 @@ import { asyncLocalStorage } from "../common/async-context";
 // local imports
 import logger from "../common/logger";
 import routes from "./routes";
-import genericErrorHandler from "./middlewares/GenericErrorHandler";
-import notFoundHandler from "./middlewares/NotFoundError";
+import genericErrorHandler from "../common/errors/GenericErrorHandler";
 import {
   checkSourcifyChainId,
   checkSupportedChainId,
@@ -276,7 +275,6 @@ export class Server {
 
     this.app.use("/", routes);
     this.app.use(genericErrorHandler);
-    this.app.use(notFoundHandler);
   }
 
   async listen(callback?: () => void) {
