@@ -1484,7 +1484,6 @@
     "supported": true,
     "fetchContractCreationTxUsing": {
       "avalancheApi": true
-    },
-    "rpc": ["https://subnets.avax.network/tiltyard/mainnet/rpc"]
+    }
   }
 }
