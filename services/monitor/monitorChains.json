@@ -12,15 +12,31 @@
     "name": "Ethereum Testnet Goerli",
     "title": "Ethereum Testnet Goerli",
     "chainId": 5,
-    "rpc": ["https://eth-goerli.g.alchemy.com/v2/{ALCHEMY_API_KEY}"],
+    "rpc": [
+      "https://rpc.goerli.ethpandaops.io",
+      "https://eth-goerli.g.alchemy.com/v2/{ALCHEMY_API_KEY}"
+    ],
     "etherscanAPI": "https://api-goerli.etherscan.io"
   },
   {
     "name": "Ethereum Testnet Sepolia",
     "title": "Ethereum Testnet Sepolia",
     "chainId": 11155111,
-    "rpc": ["https://eth-sepolia.g.alchemy.com/v2/{ALCHEMY_API_KEY}"],
+    "rpc": [
+      "https://rpc.sepolia.ethpandaops.io",
+      "https://eth-sepolia.g.alchemy.com/v2/{ALCHEMY_API_KEY}"
+    ],
     "etherscanAPI": "https://api-sepolia.etherscan.io"
+  },
+  {
+    "name": "Ethereum Testnet Holesky",
+    "title": "Ethereum Testnet Holesky",
+    "chainId": 17000,
+    "rpc": [
+      "https://rpc.holesky.ethpandaops.io",
+      "https://ethereum-holesky.publicnode.com"
+    ],
+    "etherscanAPI": "https://api-holesky.etherscan.io"
   },
   {
     "name": "Arbitrum Goerli",

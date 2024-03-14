@@ -1,18 +1,20 @@
 import {
+  CheckedContract,
   CompiledContractCborAuxdata,
   ImmutableReferences,
+  Match,
   Transformation,
   TransformationValues,
 } from "@ethereum-sourcify/lib-sourcify";
 import { Pool } from "pg";
 
-type Hash = string;
+type Hash = Buffer;
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Tables {
   export interface Code {
     bytecode_hash: Hash;
-    bytecode: string;
+    bytecode: Buffer;
   }
   export interface Contract {
     creation_bytecode_hash?: Hash;
@@ -20,12 +22,12 @@ export namespace Tables {
   }
   export interface ContractDeployment {
     chain_id: string;
-    address: string;
-    transaction_hash: string;
+    address: Buffer;
+    transaction_hash: Buffer;
     contract_id: string;
     block_number?: number | null;
     txindex?: number;
-    deployer?: string;
+    deployer?: Buffer;
   }
   export interface CompiledContract {
     compiler: string;
@@ -38,6 +40,7 @@ export namespace Tables {
       userdoc: any;
       devdoc: any;
       storageLayout: any;
+      sources: any;
     };
     sources: Object;
     compiler_settings: Object;
@@ -56,6 +59,7 @@ export namespace Tables {
     };
   }
   export interface VerifiedContract {
+    id?: number;
     compilation_id: string;
     deployment_id: string;
     creation_transformations: Transformation[] | undefined;
@@ -67,9 +71,15 @@ export namespace Tables {
   }
 
   export interface SourcifyMatch {
-    verified_contract_id: string;
+    verified_contract_id: number;
     runtime_match: string | null;
     creation_match: string | null;
+  }
+
+  export interface SourcifySync {
+    chain_id: number;
+    address: string;
+    match_type: string;
   }
 }
 
@@ -107,7 +117,7 @@ export async function getVerifiedContractByBytecodeHashes(
 export async function getVerifiedContractByChainAndAddress(
   pool: Pool,
   chain: number,
-  address?: string
+  address?: Buffer
 ) {
   return await pool.query(
     `
@@ -126,7 +136,7 @@ export async function getVerifiedContractByChainAndAddress(
 export async function getSourcifyMatchByChainAddress(
   pool: Pool,
   chain: number,
-  address: string,
+  address: Buffer,
   onlyPerfectMatches: boolean = false
 ) {
   return await pool.query(
@@ -412,6 +422,52 @@ export async function insertSourcifyMatch(
   );
 }
 
+export async function insertSourcifySync(
+  pool: Pool,
+  { chain_id, address, match_type }: Tables.SourcifySync
+) {
+  // I'm doing this because before passing the match_type I'm calling getMatchStatus(match)
+  // but then I need to convert the status to full_match | partial_match
+  let matchType;
+  switch (match_type) {
+    case "perfect":
+      matchType = "full_match";
+      break;
+    case "partial":
+      matchType = "partial_match";
+      break;
+  }
+  await pool.query(
+    `INSERT INTO sourcify_sync 
+      (chain_id, address, match_type, synced)
+      VALUES ($1, $2, $3, true)`,
+    [chain_id, address, match_type]
+  );
+}
+
+export async function updateSourcifySync(
+  pool: Pool,
+  { chain_id, address, match_type }: Tables.SourcifySync
+) {
+  // I'm doing this because before passing the match_type I'm calling getMatchStatus(match)
+  // but then I need to convert the status to full_match | partial_match
+  let matchType;
+  switch (match_type) {
+    case "perfect":
+      matchType = "full_match";
+      break;
+    case "partial":
+      matchType = "partial_match";
+      break;
+  }
+  await pool.query(
+    `UPDATE sourcify_sync SET
+      match_type=$3
+    WHERE chain_id=$1 AND address=$2;`,
+    [chain_id, address, match_type]
+  );
+}
+
 // Right now we are not updating, we are inserting every time a new match
 export async function updateSourcifyMatch(
   pool: Pool,
@@ -426,4 +482,73 @@ export async function updateSourcifyMatch(
     [verified_contract_id, creation_match, runtime_match]
   );
   // Delete previous match?
+}
+
+export function bytesFromString(str: string | undefined): Buffer | undefined {
+  if (str === undefined) {
+    return undefined;
+  }
+  let stringWithout0x;
+  if (str.substring(0, 2) === "0x") {
+    stringWithout0x = str.substring(2);
+  } else {
+    stringWithout0x = str;
+  }
+  return Buffer.from(stringWithout0x, "hex");
+}
+
+// Use the transformations array to normalize the library transformations in both runtime and creation recompiled bytecodes
+export function normalizeRecompiledBytecodes(
+  recompiledContract: CheckedContract,
+  match: Match
+) {
+  recompiledContract.normalizedRuntimeBytecode =
+    recompiledContract.runtimeBytecode;
+  const PLACEHOLDER_LENGTH = 40;
+  match.runtimeTransformations?.forEach((transformation) => {
+    if (
+      transformation.reason === "library" &&
+      recompiledContract.normalizedRuntimeBytecode
+    ) {
+      const placeholder = "0".repeat(PLACEHOLDER_LENGTH);
+      const normalizedRuntimeBytecode =
+        recompiledContract.normalizedRuntimeBytecode.substring(2);
+      // we multiply by 2 because transformation.offset is stored as the length in bytes
+      const before = normalizedRuntimeBytecode.substring(
+        0,
+        transformation.offset * 2
+      );
+      const after = normalizedRuntimeBytecode.substring(
+        transformation.offset * 2 + PLACEHOLDER_LENGTH
+      );
+      recompiledContract.normalizedRuntimeBytecode = `0x${
+        before + placeholder + after
+      }`;
+    }
+  });
+  if (recompiledContract.creationBytecode) {
+    recompiledContract.normalizedCreationBytecode =
+      recompiledContract.creationBytecode;
+    match.creationTransformations?.forEach((transformation) => {
+      if (
+        transformation.reason === "library" &&
+        recompiledContract.normalizedCreationBytecode
+      ) {
+        const placeholder = "0".repeat(PLACEHOLDER_LENGTH);
+        const normalizedCreationBytecode =
+          recompiledContract.normalizedCreationBytecode.substring(2);
+        // we multiply by 2 because transformation.offset is stored as the length in bytes
+        const before = normalizedCreationBytecode.substring(
+          0,
+          transformation.offset * 2
+        );
+        const after = normalizedCreationBytecode.substring(
+          transformation.offset * 2 + PLACEHOLDER_LENGTH
+        );
+        recompiledContract.normalizedCreationBytecode = `0x${
+          before + placeholder + after
+        }`;
+      }
+    });
+  }
 }

@@ -153,7 +153,9 @@ export class Server {
     this.app.use(
       OpenApiValidator.middleware({
         apiSpec: path.join(__dirname, "..", "openapi.yaml"),
-        validateRequests: true,
+        validateRequests: {
+          allowUnknownQueryParameters: false,
+        },
         validateResponses: false,
         ignoreUndocumented: true,
         fileUploader: false,

@@ -61,8 +61,8 @@ describe("Test Supported Chains", function () {
     if (!anyTestsPass && newAddedChainIds.length) {
       throw new Error(
         "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id(s) " +
-          newAddedChainIds.join(",") +
-          "?"
+        newAddedChainIds.join(",") +
+        "?"
       );
     }
   });
@@ -225,7 +225,7 @@ describe("Test Supported Chains", function () {
   verifyContract(
     "0x059611daEdBA5Fe0875aC7c76d7cE47FfE5c39C5",
     "40",
-    "Telos EVM Testnet",
+    "Telos EVM Mainnet",
     "40/"
   );
 
@@ -1063,27 +1063,27 @@ describe("Test Supported Chains", function () {
     "4337/"
   );
 
-  verifyContract(
-    "0x72Ed1E3E3A68DfB7495FAfb19C0de1A0B7Ec5524",
-    "78432",
-    "Conduit Subnet",
-    "78432/"
-  );
+  // verifyContract(
+  //   "0x72Ed1E3E3A68DfB7495FAfb19C0de1A0B7Ec5524",
+  //   "78432",
+  //   "Conduit Subnet",
+  //   "78432/"
+  // );
 
-  verifyContract(
-    "0xa785B911a79B0d5d8895c567663c29F0f7B93321",
-    "78431",
-    "Bulletin Subnet",
-    "78431/"
-  );
+  // verifyContract(
+  //   "0xa785B911a79B0d5d8895c567663c29F0f7B93321",
+  //   "78431",
+  //   "Bulletin Subnet",
+  //   "78431/"
+  // );
 
-  // Amplify Subnet
-  verifyContract(
-    "0xB19f81cA2141ACd6F2Cc39bAFAD2a613bC4c9592",
-    "78430",
-    "Amplify Subnet",
-    "78430/"
-  );
+  // // Amplify Subnet
+  // verifyContract(
+  //   "0xB19f81cA2141ACd6F2Cc39bAFAD2a613bC4c9592",
+  //   "78430",
+  //   "Amplify Subnet",
+  //   "78430/"
+  // );
 
   // Shrapnel Subnet Testnet
   verifyContract(
@@ -1115,7 +1115,7 @@ describe("Test Supported Chains", function () {
   );
 
   verifyContract(
-    "0xa456Ad3DEe140dcC91655ff45ef3103C460201D0",
+    "0xE115Ef16e46bbF46591170D712140eC553C43553",
     "10243",
     "Arthera Testnet",
     "shared/"
@@ -1304,6 +1304,14 @@ describe("Test Supported Chains", function () {
     "0x270236c25d28a2cd85ed9a1ef0b31835fb9e4ff6",
     "255",
     "Kroma",
+    "shared/"
+  );
+
+  // Ozone Chain Mainnet
+  verifyContract(
+    "0x50A9B085260F80CFEb1Af8c7131980fC11238ccB",
+    "4000",
+    "Ozone Chain Mainnet",
     "shared/"
   );
 

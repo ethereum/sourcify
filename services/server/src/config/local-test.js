@@ -1,5 +1,5 @@
 module.exports = {
-  repository: {
+  repositoryV1: {
     path: "/tmp/repository-test/",
   },
 };
