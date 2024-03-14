@@ -1315,6 +1315,15 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+
+  // CrossFi Chain Testnet
+  verifyContract(
+    "0x684F57Dd731EB2F7Bab0f9b077C41C256CB4eb17",
+    "4157",
+    "CrossFi Chain Testnet",
+    "shared/"
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests = [];
     supportedChains

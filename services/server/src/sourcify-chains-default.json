@@ -1478,5 +1478,9 @@
         "url": "https://ozonescan.io/"
       }
     }
+  },
+  "4157": {
+    "sourcifyName": "CrossFi Chain Testnet",
+    "supported": true
   }
 }
