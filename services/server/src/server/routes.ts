@@ -60,7 +60,6 @@ router.get("/chains", (_req, res) => {
     }
   );
 
-  logger.debug("Sending Sourcify chains", sourcifyChains);
   res.status(200).json(sourcifyChains);
 });
 
