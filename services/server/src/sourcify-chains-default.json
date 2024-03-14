@@ -41,9 +41,7 @@
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
     },
-    "rpc": [
-      "https://rpc.holesky.ethpandaops.io"
-    ]
+    "rpc": ["https://rpc.holesky.ethpandaops.io"]
   },
   "5": {
     "sourcifyName": "Ethereum Goerli Testnet",
@@ -58,7 +56,7 @@
     "rpc": [
       {
         "type": "FetchRequest",
-        "url": "https://rpc.goerli.eu1.ethpandaops.io",
+        "url": "https://rpc.goerli.ethpandaops.io",
         "headers": [
           {
             "headerName": "CF-Access-Client-Id",
@@ -403,9 +401,7 @@
   "311752642": {
     "sourcifyName": "Oneledger Mainnet",
     "supported": true,
-    "rpc": [
-      "https://mainnet-rpc.oneledger.network"
-    ],
+    "rpc": ["https://mainnet-rpc.oneledger.network"],
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://mainnet-explorer.oneledger.network/"
