@@ -5,7 +5,6 @@ import {
   Match,
   Status,
   StringMap,
-  /* ContextVariables, */
   CheckedContract,
 } from "@ethereum-sourcify/lib-sourcify";
 import { MatchLevel, MatchQuality, RepositoryTag } from "../../types";
@@ -149,7 +148,6 @@ export class RepositoryV1Service implements IStorageService {
     address: string,
     match: MatchLevel
   ): Promise<FilesInfo<string>> => {
-    // chainId = checkChainId(chainId); TODO: Valiadate on the controller
     const fullMatchesTree = this.fetchAllFileUrls(
       chainId,
       address,
@@ -168,7 +166,6 @@ export class RepositoryV1Service implements IStorageService {
     address: string,
     match: MatchLevel
   ): Promise<FilesInfo<FileObject>> => {
-    // chainId = checkChainId(chainId); TODO: Valiadate on the controller
     const fullMatchesFiles = this.fetchAllFileContents(
       chainId,
       address,
@@ -388,19 +385,6 @@ export class RepositoryV1Service implements IStorageService {
           match.abiEncodedConstructorArguments
         );
       }
-
-      /* if (
-        match.contextVariables &&
-        Object.keys(match.contextVariables).length > 0
-      ) {
-        this.storeJSON(
-          matchQuality,
-          match.chainId,
-          match.address,
-          "context-variables.json",
-          match.contextVariables
-        );
-      } */
 
       if (match.creatorTxHash) {
         this.storeTxt(

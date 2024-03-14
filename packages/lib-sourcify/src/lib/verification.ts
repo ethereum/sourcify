@@ -1,6 +1,5 @@
 import { CheckedContract } from './CheckedContract';
 import {
-  /* ContextVariables, */
   Create2Args,
   ImmutableReferences,
   ImmutablesTransformation,
@@ -20,14 +19,6 @@ import {
   splitAuxdata,
 } from '@ethereum-sourcify/bytecode-utils';
 import { getAddress, getCreateAddress, keccak256 } from 'ethers';
-/* 
-import { EVM } from '@ethereumjs/evm';
-import { EEI } from '@ethereumjs/vm';
-import { Address } from '@ethereumjs/util';
-import { Common } from '@ethereumjs/common';
-import { DefaultStateManager } from '@ethereumjs/statemanager';
-import { Blockchain } from '@ethereumjs/blockchain';
-*/
 import { hexZeroPad, isHexString } from '@ethersproject/bytes';
 import { BigNumber } from '@ethersproject/bignumber';
 import { defaultAbiCoder as abiCoder, ParamType } from '@ethersproject/abi';
@@ -40,7 +31,6 @@ export async function verifyDeployed(
   checkedContract: CheckedContract,
   sourcifyChain: SourcifyChain,
   address: string,
-  /* _contextVariables?: ContextVariables, */
   creatorTxHash?: string,
   forceEmscripten = false
 ): Promise<Match> {

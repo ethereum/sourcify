@@ -83,7 +83,6 @@ export async function legacyVerifyEndpoint(
       contract,
       req.body.chain,
       req.body.address,
-      /* req.body.contextVariables, */
       req.body.creatorTxHash
     );
     // Send to verification again with all source files.

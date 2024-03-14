@@ -44,7 +44,6 @@ export async function verifyContractsInSessionEndpoint(
     if (contractWrapper) {
       contractWrapper.address = receivedContract.address;
       contractWrapper.chainId = receivedContract.chainId;
-      /* contractWrapper.contextVariables = receivedContract.contextVariables; */
       contractWrapper.creatorTxHash = receivedContract.creatorTxHash;
       if (isVerifiable(contractWrapper)) {
         verifiable[id] = contractWrapper;

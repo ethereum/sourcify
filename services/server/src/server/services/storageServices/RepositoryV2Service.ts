@@ -11,7 +11,6 @@ import {
   Match,
   Status,
   StringMap,
-  /* ContextVariables, */
   CheckedContract,
 } from "@ethereum-sourcify/lib-sourcify";
 import { MatchQuality, RepositoryTag } from "../../types";

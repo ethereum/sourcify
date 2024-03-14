@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import { Request } from "express";
 import {
   BadRequestError,
   PayloadTooLargeError,
@@ -60,10 +60,6 @@ export type LegacyVerifyRequest = Request & {
     addresses: string[];
     chain: string;
     chosenContract: number;
-    /* contextVariables?: {
-        abiEncodedConstructorArguments?: string;
-        msgSender?: string;
-      }; */
   };
 };
 
@@ -348,12 +344,7 @@ export const verifyContractsInSession = async (
       continue;
     }
 
-    const {
-      address,
-      chainId,
-      contract,
-      /* contextVariables, */ creatorTxHash,
-    } = contractWrapper;
+    const { address, chainId, contract, creatorTxHash } = contractWrapper;
 
     // The session saves the CheckedContract as a simple object, so we need to reinstantiate it
     const checkedContract = createCheckedContract(
@@ -369,7 +360,6 @@ export const verifyContractsInSession = async (
         checkedContract,
         chainId as string,
         address as string,
-        /* contextVariables, */
         creatorTxHash
       );
       // Send to verification again with all source files.
@@ -395,7 +385,6 @@ export const verifyContractsInSession = async (
           contractWithAllSources,
           chainId as string,
           address as string
-          /* contextVariables */
         );
         if (
           tempMatch.runtimeMatch === "perfect" ||

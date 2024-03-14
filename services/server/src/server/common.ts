@@ -69,10 +69,6 @@ export type ContractMeta = {
   name?: string;
   address?: string;
   chainId?: string;
-  /* contextVariables?: {
-      abiEncodedConstructorArguments?: string;
-      msgSender?: string;
-    }; */
   creatorTxHash?: string;
   status?: Status;
   statusMessage?: string;

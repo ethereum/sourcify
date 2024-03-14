@@ -3,7 +3,6 @@ import {
   CheckedContract,
   SourcifyChainMap,
   Match,
-  /* ContextVariables, */
 } from "@ethereum-sourcify/lib-sourcify";
 import { getCreatorTx } from "./utils/contract-creation-util";
 import { ContractIsAlreadyBeingVerifiedError } from "../../common/errors/ContractIsAlreadyBeingVerifiedError";
@@ -15,7 +14,6 @@ export interface IVerificationService {
     checkedContract: CheckedContract,
     chainId: string,
     address: string,
-    /* contextVariables?: ContextVariables, */
     creatorTxHash?: string
   ): Promise<Match>;
 }
@@ -47,7 +45,6 @@ export class VerificationService implements IVerificationService {
     checkedContract: CheckedContract,
     chainId: string,
     address: string,
-    /* contextVariables?: ContextVariables, */
     creatorTxHash?: string
   ): Promise<Match> {
     this.throwIfContractIsAlreadyBeingVerified(chainId, address);
@@ -65,7 +62,6 @@ export class VerificationService implements IVerificationService {
         checkedContract,
         sourcifyChain,
         address,
-        /* contextVariables, */
         foundCreatorTxHash
       );
       delete this.activeVerificationsByChainIdAddress[`${chainId}:${address}`];
