@@ -22,7 +22,7 @@ import {
 } from '@ethereum-sourcify/bytecode-utils';
 import { ipfsHash } from './hashFunctions/ipfsHash';
 import { swarmBzzr0Hash, swarmBzzr1Hash } from './hashFunctions/swarmHash';
-import { logDebug, logError, logInfo, logWarn } from './logger';
+import { logError, logInfo, logSilly, logWarn } from './logger';
 import { ISolidityCompiler } from './ISolidityCompiler';
 
 // TODO: find a better place for these constants. Reminder: this sould work also in the browser
@@ -417,7 +417,7 @@ export class CheckedContract {
       path: this.compiledPath,
       forceEmscripten,
     });
-    logDebug('Compilation input', { solcJsonInput: this.solcJsonInput });
+    logSilly('Compilation input', { solcJsonInput: this.solcJsonInput });
     this.compilerOutput = await this.solidityCompiler.compile(
       version,
       this.solcJsonInput,
@@ -425,7 +425,7 @@ export class CheckedContract {
     );
     const compilationEndTime = Date.now();
     const compilationDuration = compilationEndTime - compilationStartTime;
-    logDebug('Compilation output', { compilerOutput: this.compilerOutput });
+    logSilly('Compilation output', { compilerOutput: this.compilerOutput });
     logInfo('Compiled contract', {
       version,
       contract: this.name,

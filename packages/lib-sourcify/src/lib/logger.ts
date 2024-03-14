@@ -80,6 +80,6 @@ export function logDebug(message: string, metadata?: any) {
   AppLogger.log(5, message, metadata);
 }
 
-export function logSilly(message: string) {
-  AppLogger.log(6, message);
+export function logSilly(message: string, metadata?: any) {
+  AppLogger.log(6, message, metadata);
 }

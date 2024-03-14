@@ -763,7 +763,7 @@ function endsWithMetadataHash(bytecode: string) {
     endsWithMetadata =
       !!decodedCBOR.ipfs || !!decodedCBOR['bzzr0'] || !!decodedCBOR['bzzr1'];
   } catch (e) {
-    logDebug("Can't decode CBOR");
+    logDebug("Can't decode CBOR, contract does not end with CBOR metadata");
     endsWithMetadata = false;
   }
   return endsWithMetadata;
