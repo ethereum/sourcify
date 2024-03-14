@@ -125,7 +125,7 @@ export async function useCompiler(
   }
 
   const endCompilation = Date.now();
-  logger.info("Compilation done", {
+  logger.info("Local compiler - Compilation done", {
     timeInMs: endCompilation - startCompilation,
   });
 

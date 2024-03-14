@@ -5,7 +5,7 @@ import {
   checkContractsInSession,
   getSessionJSON,
   isVerifiable,
-  saveFiles,
+  saveFilesToSession,
   verifyContractsInSession,
 } from "../../verification.common";
 import { PathContent } from "@ethereum-sourcify/lib-sourcify";
@@ -56,7 +56,7 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
     content: stringToBase64(JSON.stringify(metadata)),
   });
   const session = req.session;
-  const newFilesCount = saveFiles(pathContents, session);
+  const newFilesCount = saveFilesToSession(pathContents, session);
   if (newFilesCount === 0) {
     throw new BadRequestError("The contract didn't add any new file");
   }

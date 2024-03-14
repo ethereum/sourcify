@@ -251,7 +251,7 @@ export class RepositoryV1Service implements IStorageService {
     address: string,
     chainId: string
   ): Promise<Match[]> {
-    logger.debug("RepositoryV1.checkByChainAndAddress", {
+    logger.silly("RepositoryV1.checkByChainAndAddress", {
       chainId,
       address,
     });
@@ -280,7 +280,7 @@ export class RepositoryV1Service implements IStorageService {
         },
       ];
     } catch (e: any) {
-      logger.debug("Couldn't find full match in RepositoryV1", {
+      logger.silly("Couldn't find full match in RepositoryV1", {
         address,
         chainId,
         error: e.message,
@@ -294,7 +294,7 @@ export class RepositoryV1Service implements IStorageService {
     address: string,
     chainId: string
   ): Promise<Match[]> {
-    logger.debug("RepositoryV1.checkAllByChainAndAddress", {
+    logger.silly("RepositoryV1.checkAllByChainAndAddress", {
       chainId,
       address,
     });
@@ -335,7 +335,7 @@ export class RepositoryV1Service implements IStorageService {
         },
       ];
     } catch (e: any) {
-      logger.debug("Couldn't find full or partial match in RepositoryV1", {
+      logger.silly("Couldn't find full or partial match in RepositoryV1", {
         address,
         chainId,
         error: e.message,
