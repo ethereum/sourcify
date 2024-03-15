@@ -1478,5 +1478,12 @@
         "url": "https://ozonescan.io/"
       }
     }
+  },
+  "710420": {
+    "sourcifyName": "Tiltyard Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "avalancheApi": true
+    }
   }
 }
