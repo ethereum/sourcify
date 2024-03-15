@@ -76,10 +76,20 @@ export async function verifyDeployed(
 
   // Can't match if there is no deployed bytecode
   if (!runtimeBytecode) {
-    match.message = `Chain #${sourcifyChain.chainId} is temporarily unavailable.`;
+    match.message = `Chain #${sourcifyChain.chainId} is temporarily unavailable`;
+    logDebug('Unable to verify', {
+      address,
+      chainId: sourcifyChain.chainId,
+      matchMessage: match.message,
+    });
     return match;
   } else if (runtimeBytecode === '0x') {
-    match.message = `Chain #${sourcifyChain.chainId} does not have a contract deployed at ${address}.`;
+    match.message = `Chain #${sourcifyChain.chainId} does not have a contract deployed at ${address}`;
+    logDebug('Unable to verify', {
+      address,
+      chainId: sourcifyChain.chainId,
+      matchMessage: match.message,
+    });
     return match;
   }
 

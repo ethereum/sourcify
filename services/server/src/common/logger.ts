@@ -33,31 +33,32 @@ const loggerInstance: Logger = createLogger({
 const rawlineFormat = format.printf(
   ({ level, message, timestamp, service, requestId, ...metadata }: any) => {
     const requestIdMsg = requestId
-      ? chalk.rgb(217, 132, 132)(`[requestId=${requestId}]`)
+      ? chalk.grey(`[requestId=${requestId}]`)
       : "";
 
-    let msg = `${timestamp} [${level}] ${
-      service ? service : ""
-    } ${requestIdMsg} ${message}`;
+    let msg = `${timestamp} [${level}] ${service ? service : ""} ${chalk.bold(
+      message
+    )}`;
     if (metadata && Object.keys(metadata).length > 0) {
-      msg +=
-        " - " +
-        Object.entries(metadata)
-          .map(([key, value]) => {
-            if (value instanceof Error) {
-              // JSON.stringify will give a "{}" on Error objects becuase message and stack properties are non-enumberable.
-              // Instead do it manually
-              value = JSON.stringify(value, Object.getOwnPropertyNames(value));
-            } else if (typeof value === "object") {
-              try {
-                value = JSON.stringify(value);
-              } catch (e) {
-                value = "SerializationError: Unable to serialize object";
-              }
+      msg += " - ";
+      const metadataMsg = Object.entries(metadata)
+        .map(([key, value]) => {
+          if (value instanceof Error) {
+            // JSON.stringify will give a "{}" on Error objects becuase message and stack properties are non-enumberable.
+            // Instead do it manually
+            value = JSON.stringify(value, Object.getOwnPropertyNames(value));
+          } else if (typeof value === "object") {
+            try {
+              value = JSON.stringify(value);
+            } catch (e) {
+              value = "SerializationError: Unable to serialize object";
             }
-            return `${key}=${value}`;
-          })
-          .join(" | ");
+          }
+          return `${key}=${value}`;
+        })
+        .join(" | ");
+      msg += chalk.grey(metadataMsg);
+      msg += requestIdMsg && " - " + requestIdMsg;
     }
     return msg;
   }
@@ -90,7 +91,9 @@ const consoleTransport = new transports.Console({
 loggerInstance.add(consoleTransport);
 const serverLoggerInstance = loggerInstance.child({
   service:
-    process.env.NODE_ENV === "production" ? "server" : chalk.blue("[Server]"),
+    process.env.NODE_ENV === "production"
+      ? "server"
+      : chalk.magenta("[Server]"),
 });
 
 export default serverLoggerInstance;

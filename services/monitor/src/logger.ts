@@ -38,26 +38,26 @@ const rawlineFormat = format.printf(
   ({ level, message, timestamp, service, moduleName, ...metadata }: any) => {
     let msg = `${timestamp} [${level}]: ${service ? service : ""} ${
       moduleName ? chalk.magenta(`[${moduleName}]`) : ""
-    } ${message}`;
+    } ${chalk.bold(message)}`;
     if (metadata && Object.keys(metadata).length > 0) {
-      msg +=
-        " - " +
-        Object.entries(metadata)
-          .map(([key, value]) => {
-            if (value instanceof Error) {
-              // JSON.stringify will give a "{}" on Error objects becuase message and stack properties are non-enumberable.
-              // Instead do it manually
-              value = JSON.stringify(value, Object.getOwnPropertyNames(value));
-            } else if (typeof value === "object") {
-              try {
-                value = JSON.stringify(value);
-              } catch (e) {
-                value = "SerializationError: Unable to serialize object";
-              }
+      msg += " - ";
+      const metadataMsg = Object.entries(metadata)
+        .map(([key, value]) => {
+          if (value instanceof Error) {
+            // JSON.stringify will give a "{}" on Error objects becuase message and stack properties are non-enumberable.
+            // Instead do it manually
+            value = JSON.stringify(value, Object.getOwnPropertyNames(value));
+          } else if (typeof value === "object") {
+            try {
+              value = JSON.stringify(value);
+            } catch (e) {
+              value = "SerializationError: Unable to serialize object";
             }
-            return `${key}=${value}`;
-          })
-          .join(" | ");
+          }
+          return `${key}=${value}`;
+        })
+        .join(" | ");
+      msg += chalk.grey(metadataMsg);
     }
     return msg;
   }

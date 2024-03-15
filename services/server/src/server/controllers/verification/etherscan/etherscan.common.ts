@@ -146,7 +146,7 @@ export const processRequestFromEtherscan = async (
     );
   }
   if (resultJson.result[0].SourceCode === "") {
-    logger.info("Not found on Etherscan", {
+    logger.info("Contract not found on Etherscan", {
       chainId: sourcifyChain.chainId,
       address,
       secretUrl,

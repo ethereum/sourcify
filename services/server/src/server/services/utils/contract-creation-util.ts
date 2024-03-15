@@ -167,13 +167,20 @@ async function getCreatorTxUsingFetcher(
             contractFetchAddressFilled,
             fetcher?.scrapeRegex
           );
-          logger.debug("✅ Fetched Creator Tx", {
+          if (creatorTx) {
+            logger.debug("✅ Fetched and found creator Tx", {
+              fetcher,
+              contractFetchAddressFilled,
+              contractAddress,
+              creatorTx,
+            });
+            return creatorTx;
+          }
+          logger.debug("🤔 Fetched but transaction not found", {
             fetcher,
             contractFetchAddressFilled,
-            contractAddress,
             creatorTx,
           });
-          if (creatorTx) return creatorTx;
         }
         break;
       }
@@ -187,7 +194,9 @@ async function getCreatorTxUsingFetcher(
             contractAddress,
             creatorTx,
           });
-          if (creatorTx) return creatorTx;
+          if (creatorTx) {
+            return creatorTx;
+          }
         }
         break;
       }

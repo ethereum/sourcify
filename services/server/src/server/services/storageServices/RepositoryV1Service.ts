@@ -357,7 +357,7 @@ export class RepositoryV1Service implements IStorageService {
         : this.generateAbsoluteFilePath(path);
     fs.mkdirSync(Path.dirname(abolsutePath), { recursive: true });
     fs.writeFileSync(abolsutePath, content);
-    logger.debug("Saved file to repositoryV1", { abolsutePath });
+    logger.silly("Saved file to repositoryV1", { abolsutePath });
     this.updateRepositoryTag();
   }
 
