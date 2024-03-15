@@ -1488,6 +1488,10 @@
       }
     }
   },
+  "4157": {
+    "sourcifyName": "CrossFi Chain Testnet",
+    "supported": true
+  },
   "710420": {
     "sourcifyName": "Tiltyard Mainnet",
     "supported": true,

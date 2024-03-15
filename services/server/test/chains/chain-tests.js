@@ -1323,6 +1323,14 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // CrossFi Chain Testnet
+  verifyContract(
+    "0x684F57Dd731EB2F7Bab0f9b077C41C256CB4eb17",
+    "4157",
+    "CrossFi Chain Testnet",
+    "shared/"
+  );
+
   // Tiltyard Mainnet
   verifyContract(
     "0xbBB3e01361604EB1884b3f1Cf3524b73966E8Ef9",
