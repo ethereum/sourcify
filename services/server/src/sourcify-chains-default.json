@@ -1479,6 +1479,15 @@
       }
     }
   },
+  "648": {
+    "sourcifyName": "Endurance Smart Chain Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://explorer-endurance.fusionist.io/"
+      }
+    }
+  },
   "4157": {
     "sourcifyName": "CrossFi Chain Testnet",
     "supported": true

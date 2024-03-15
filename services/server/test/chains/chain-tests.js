@@ -1315,6 +1315,14 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // Endurance Smart Chain Mainnet
+  verifyContract(
+    "0x9e5b6c4F1080a4cb5bFD84816375c25E3B26d11A",
+    "648",
+    "Endurance Smart Chain Mainnet",
+    "shared/"
+  );
+
   // CrossFi Chain Testnet
   verifyContract(
     "0x684F57Dd731EB2F7Bab0f9b077C41C256CB4eb17",
