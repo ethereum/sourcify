@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@1.5.3 - 2024-03-15
+
+- New chains:
+  - Endurance Smart Chain Mainnet (648)
+  - CrossFi Chain Testnet (4157)
+  - Tiltyard Mainnet (710420)
+- Deprecated chains:
+  - Base Goerli Testnet (84531)
+
 ## sourcify-server@1.5.2 - 2024-03-14
 
 - Update address for chain 534352 with standard-json
