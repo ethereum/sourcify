@@ -929,7 +929,7 @@
   },
   "84531": {
     "sourcifyName": "Base Goerli Testnet",
-    "supported": true,
+    "supported": false,
     "etherscanApi": {
       "apiURL": "https://api-goerli.basescan.org/"
     },
@@ -1482,5 +1482,12 @@
   "4157": {
     "sourcifyName": "CrossFi Chain Testnet",
     "supported": true
+  },
+  "710420": {
+    "sourcifyName": "Tiltyard Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "avalancheApi": true
+    }
   }
 }
