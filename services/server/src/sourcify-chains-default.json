@@ -929,7 +929,7 @@
   },
   "84531": {
     "sourcifyName": "Base Goerli Testnet",
-    "supported": true,
+    "supported": false,
     "etherscanApi": {
       "apiURL": "https://api-goerli.basescan.org/"
     },
