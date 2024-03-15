@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@1.5.2 - 2024-03-14
+
+- Update address for chain 534352 with standard-json
+- Fix repository key name in local-test.js
+- Update test contract address for Arthera Testnet
+- Increase session api tests timeout
+- Fix library transformation, use bytea instead of string for bytea
+- Bug/fixed issue 1271 files stored with incorrect runtime match
+- Implement verifier alliance tests
+- Oasis chains: Use new fetchContractCreationTxUsing URLs
+- Fix tests after new extra-file-input-bug responses
+- Fix #1288 add unexpected field validation
+- Fix wrong runtimeMatch check after creation match
+- #1293 insert sync row in sourcify_sync for each match until sync ends
+- Fix Telos chain name in tests
+- Turn off chains: 78430, 78431, 78432
+- Add Ozone Chain Mainnet (#1292)
+- Update migration script
+- Add repositoryV2 in master config
+- Remove goerli e2e tests
+- New chains:
+  - Ozone Chain Mainnet
+
 ## sourcify-server@1.5.1 - 2024-02-26
 
 - Allow passing Etherscan API key as parameter in import from Etherscon

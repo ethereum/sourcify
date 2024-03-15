@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 This CHANGELOG will contain monorepo related changes such as CI configs, shared dependencies and the development setup.
 
+## sourcify-monorepo@1.2.3 - 2024-03-14
+
+- Update dependencies
+
 ## sourcify-monorepo@1.2.2 - 2024-02-26
 
 - Fix `fsevents` as an optional dependency for Linux builds

@@ -147,16 +147,10 @@ workflows:
       - deploy:
           requires:
             - publish-multiarch-images
-      - monitor-e2e-goerli:
-          requires:
-            - deploy
       - monitor-e2e-sepolia:
           requires:
             - deploy
       - monitor-e2e-holesky:
-          requires:
-            - deploy
-      - verification-e2e-goerli:
           requires:
             - deploy
       - verification-e2e-sepolia:
@@ -287,11 +281,6 @@ jobs:
       - run:
           name: coverage
           command: npx lerna run cov:send
-  monitor-e2e-goerli:
-    <<: *monitor-e2e-base
-    environment:
-      CHAIN_ID: 5
-      CHAIN_NAME: goerli
   monitor-e2e-sepolia:
     <<: *monitor-e2e-base
     environment:
@@ -302,11 +291,6 @@ jobs:
     environment:
       CHAIN_ID: "17000"
       CHAIN_NAME: holesky
-  verification-e2e-goerli:
-    <<: *verification-e2e-base
-    environment:
-      CHAIN_ID: 5
-      CHAIN_NAME: goerli
   verification-e2e-sepolia:
     <<: *verification-e2e-base
     environment:

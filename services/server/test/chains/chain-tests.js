@@ -1323,6 +1323,14 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // Tiltyard Mainnet
+  verifyContract(
+    "0xbBB3e01361604EB1884b3f1Cf3524b73966E8Ef9",
+    "710420",
+    "Tiltyard Mainnet",
+    "shared/"
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests = [];
     supportedChains
