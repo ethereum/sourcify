@@ -49,7 +49,7 @@ This CHANGELOG will contain monorepo related changes such as CI configs, shared 
   - build_and_publish_docker_images accroding to the new container and versioning setup
 - Remove `environments` folder
 - Remove unused env vars from `.vscode/launch.json`
-- Move Typscript to root `package.json` and remove it from all subpackages
+- Move Typescript to root `package.json` and remove it from all subpackages
 - Add `printWidth` to `.prettierrc`
 
 ## Older releases
