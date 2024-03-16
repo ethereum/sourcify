@@ -1498,5 +1498,14 @@
     "fetchContractCreationTxUsing": {
       "avalancheApi": true
     }
+  },
+  "13381": {
+    "sourcifyName": "Phoenix Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutScrape": {
+        "url": "https://phoenixplorer.com/"
+      }
+    }
   }
 }

@@ -1339,6 +1339,14 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // Phoenix Mainnet
+  verifyContract(
+    "0x4aE9a333D2Bfb5754fEa6aA24c17026EbD411e2f",
+    "13381",
+    "Phoenix Mainnet",
+    "shared/"
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests = [];
     supportedChains
