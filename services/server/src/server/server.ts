@@ -368,7 +368,7 @@ export class Server {
 }
 
 function getSessionOptions(): session.SessionOptions {
-  if (config.get("session.secret") === "add-chain-13381") {
+  if (config.get("session.secret") === "CHANGE_ME") {
     logger.warn(
       "The session secret is not set, please set it in the config file"
     );
