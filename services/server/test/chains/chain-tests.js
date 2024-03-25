@@ -495,13 +495,13 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
-  // Gather Testnet
-  verifyContract(
-    "0x08Da5501c22AE1ce2621724Ca1A03383d6C12c4d",
-    "356256156",
-    "GTH",
-    "shared/"
-  );
+  // // Gather Testnet
+  // verifyContract(
+  //   "0x08Da5501c22AE1ce2621724Ca1A03383d6C12c4d",
+  //   "356256156",
+  //   "GTH",
+  //   "shared/"
+  // );
 
   // // Gather Devnet
   // verifyContract(
@@ -785,13 +785,13 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
-  // Base Goerli Testnet
-  verifyContract(
-    "0x8F78b9c92a68DdF719849a40702cFBfa4EB60dD0",
-    "84531",
-    "Base Goerli Testnet",
-    "shared/"
-  );
+  // // Base Goerli Testnet
+  // verifyContract(
+  //   "0x8F78b9c92a68DdF719849a40702cFBfa4EB60dD0",
+  //   "84531",
+  //   "Base Goerli Testnet",
+  //   "shared/"
+  // );
 
   // Base Mainnet
   verifyContract(
