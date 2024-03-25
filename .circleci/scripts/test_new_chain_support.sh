@@ -21,13 +21,11 @@ echo "Real branch name: ${REAL_BRANCH_NAME}"
 # Made with ChatGPT
 NEW_CHAIN_ID=$(echo "${REAL_BRANCH_NAME}" | awk -F'add-chains?-' '{print $2}' | awk 'BEGIN {FS="-"; OFS=","} {$1=$1; print $0}')
 
-# if the ticket number regex does not match, then it's not 
-# a feature branch, and we shouldn't upload to JIRA.
 if [ -z "${NEW_CHAIN_ID}" ]; then
     echo 'Not saving NEW_CHAIN_ID since its not a new chain PR.'
     exit 1
 
-# if it is a new chain PR, persist NEW_CHAIN_ID for the next steps
+# if it is a new chain PR, persist NEW_CHAIN_ID for the next CircleCI steps
 else
     echo "Saving NEW_CHAIN_ID=${NEW_CHAIN_ID}"
     echo BASH_ENV=$BASH_ENV
