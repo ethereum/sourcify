@@ -143,7 +143,7 @@
       "name": "Mocha - Etherscan Instances",
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "env": {
-        // "TEST_CHAIN": "100"
+        "TEST_CHAIN": "100"
       },
       "args": [
         "${workspaceFolder}/services/server/test/etherscan/etherscanInstances.js",
