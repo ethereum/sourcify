@@ -44,6 +44,7 @@ const {
   callContractMethodWithTx,
   deployFromAbiAndBytecodeForCreatorTxHash,
   readFilesFromDirectory,
+  resetDatabase,
 } = require("./helpers/helpers");
 const { deployFromAbiAndBytecode } = require("./helpers/helpers");
 const { verifierAllianceTest } = require("./helpers/verifierAlliance");
@@ -57,6 +58,23 @@ const EXTENDED_TIME = 20000; // 20 seconds
 const EXTENDED_TIME_60 = 60000; // 60 seconds
 
 const defaultContractChain = "1337"; // default 1337
+
+const storageService = new StorageService({
+  repositoryV1ServiceOptions: {
+    ipfsApi: process.env.IPFS_API,
+    repositoryPath: "./dist/data/mock-repositoryV1",
+    repositoryServerUrl: config.get("repositoryV1.serverUrl"),
+  },
+  sourcifyDatabaseServiceOptions: {
+    postgres: {
+      host: process.env.SOURCIFY_POSTGRES_HOST,
+      database: process.env.SOURCIFY_POSTGRES_DB,
+      user: process.env.SOURCIFY_POSTGRES_USER,
+      password: process.env.SOURCIFY_POSTGRES_PASSWORD,
+      port: process.env.SOURCIFY_POSTGRES_PORT,
+    },
+  },
+});
 
 describe("Server", function () {
   const server = new Server();
@@ -135,8 +153,9 @@ describe("Server", function () {
     console.log(`Server listening on port ${server.port}!`);
   });
 
-  beforeEach(() => {
+  beforeEach(async () => {
     rimraf.sync(server.repository);
+    await resetDatabase(storageService);
   });
 
   after(async () => {
@@ -433,15 +452,17 @@ describe("Server", function () {
         .field("chain", defaultContractChain)
         .attach("files", metadataBuffer, "metadata.json")
         .attach("files", sourceBuffer, "Storage.sol")
-        .end((err, res) =>
-          assertVerification(
-            err,
-            res,
-            done,
-            defaultContractAddress,
-            defaultContractChain,
-            "perfect"
-          )
+        .end(
+          async (err, res) =>
+            await assertVerification(
+              storageService,
+              err,
+              res,
+              done,
+              defaultContractAddress,
+              defaultContractChain,
+              "perfect"
+            )
         );
     });
 
@@ -457,15 +478,17 @@ describe("Server", function () {
             "Storage.sol": sourceBuffer.toString(),
           },
         })
-        .end((err, res) =>
-          assertVerification(
-            err,
-            res,
-            done,
-            defaultContractAddress,
-            defaultContractChain,
-            "perfect"
-          )
+        .end(
+          async (err, res) =>
+            await assertVerification(
+              storageService,
+              err,
+              res,
+              done,
+              defaultContractAddress,
+              defaultContractChain,
+              "perfect"
+            )
         );
     });
 
@@ -481,15 +504,17 @@ describe("Server", function () {
             "Storage.sol": sourceBuffer,
           },
         })
-        .end((err, res) =>
-          assertVerification(
-            err,
-            res,
-            done,
-            defaultContractAddress,
-            defaultContractChain,
-            "perfect"
-          )
+        .end(
+          async (err, res) =>
+            await assertVerification(
+              storageService,
+              err,
+              res,
+              done,
+              defaultContractAddress,
+              defaultContractChain,
+              "perfect"
+            )
         );
     });
 
@@ -522,19 +547,21 @@ describe("Server", function () {
         .field("address", defaultContractAddress)
         .field("chain", defaultContractChain)
         .attach("files", metadataBuffer, "metadata.json")
-        .end((err, res) =>
-          assertVerification(
-            err,
-            res,
-            done,
-            defaultContractAddress,
-            defaultContractChain,
-            "perfect"
-          )
+        .end(
+          async (err, res) =>
+            await assertVerification(
+              storageService,
+              err,
+              res,
+              done,
+              defaultContractAddress,
+              defaultContractChain,
+              "perfect"
+            )
         );
     });
 
-    it("should return 'partial', then delete partial when 'full' match", (done) => {
+    it("should return 'partial', then delete partial when 'full' match", async () => {
       const partialMetadata = require(path.join(
         __dirname,
         "./testcontracts/Storage/metadataModified.json"
@@ -553,58 +580,46 @@ describe("Server", function () {
 
       const partialMetadataURL = `/repository/contracts/partial_match/${defaultContractChain}/${defaultContractAddress}/metadata.json`;
 
-      chai
+      let res = await chai
         .request(server.app)
         .post("/")
         .field("address", defaultContractAddress)
         .field("chain", defaultContractChain)
         .attach("files", partialMetadataBuffer, "metadata.json")
-        .attach("files", partialSourceBuffer)
-        .end((err, res) => {
-          assertVerification(
-            err,
-            res,
-            null,
-            defaultContractAddress,
-            defaultContractChain,
-            "partial"
-          );
+        .attach("files", partialSourceBuffer);
+      await assertVerification(
+        storageService,
+        null,
+        res,
+        null,
+        defaultContractAddress,
+        defaultContractChain,
+        "partial"
+      );
 
-          chai
-            .request(server.app)
-            .get(partialMetadataURL)
-            .end((err, res) => {
-              chai.expect(err).to.be.null;
-              chai.expect(res.body).to.deep.equal(partialMetadata);
+      res = await chai.request(server.app).get(partialMetadataURL);
+      chai.expect(res.body).to.deep.equal(partialMetadata);
 
-              chai
-                .request(server.app)
-                .post("/")
-                .field("address", defaultContractAddress)
-                .field("chain", defaultContractChain)
-                .attach("files", metadataBuffer, "metadata.json")
-                .attach("files", sourceBuffer)
-                .end(async (err, res) => {
-                  assertVerification(
-                    err,
-                    res,
-                    null,
-                    defaultContractAddress,
-                    defaultContractChain
-                  );
+      res = await chai
+        .request(server.app)
+        .post("/")
+        .field("address", defaultContractAddress)
+        .field("chain", defaultContractChain)
+        .attach("files", metadataBuffer, "metadata.json")
+        .attach("files", sourceBuffer);
+      await assertVerification(
+        storageService,
+        null,
+        res,
+        null,
+        defaultContractAddress,
+        defaultContractChain
+      );
 
-                  await waitSecs(2); // allow server some time to execute the deletion (it started *after* the last response)
-                  chai
-                    .request(server.app)
-                    .get(partialMetadataURL)
-                    .end((err, res) => {
-                      chai.expect(err).to.be.null;
-                      chai.expect(res.status).to.equal(StatusCodes.NOT_FOUND);
-                      done();
-                    });
-                });
-            });
-        });
+      await waitSecs(2); // allow server some time to execute the deletion (it started *after* the last response)
+
+      res = await chai.request(server.app).get(partialMetadataURL);
+      chai.expect(res.status).to.equal(StatusCodes.NOT_FOUND);
     });
 
     it("should mark contracts without an embedded metadata hash as a 'partial' match", async () => {
@@ -632,7 +647,8 @@ describe("Server", function () {
         .field("chain", defaultContractChain)
         .attach("files", metadataBuffer, "metadata.json");
 
-      assertVerification(
+      await assertVerification(
+        storageService,
         null,
         res,
         null,
@@ -680,7 +696,8 @@ describe("Server", function () {
             "WithImmutables.sol": sourceBuffer.toString(),
           },
         });
-      assertVerification(
+      await assertVerification(
+        storageService,
         null,
         res,
         null,
@@ -773,7 +790,14 @@ describe("Server", function () {
         .field("compilerVersion", "0.8.4+commit.c7e474f2")
         .field("contractName", "Storage");
 
-      assertVerification(null, res, null, address, defaultContractChain);
+      await assertVerification(
+        storageService,
+        null,
+        res,
+        null,
+        address,
+        defaultContractChain
+      );
     });
     describe("hardhat build-info file support", function () {
       this.timeout(EXTENDED_TIME);
@@ -825,8 +849,9 @@ describe("Server", function () {
           .field("address", address)
           .field("chosenContract", mainContractIndex)
           .attach("files", hardhatOutputBuffer)
-          .end((err, res) => {
-            assertVerification(
+          .end(async (err, res) => {
+            await assertVerification(
+              storageService,
               err,
               res,
               done,
@@ -874,7 +899,8 @@ describe("Server", function () {
               "Storage.sol": sourceBuffer.toString(),
             },
           });
-        assertVerification(
+        await assertVerification(
+          storageService,
           null,
           res,
           null,
@@ -948,8 +974,9 @@ describe("Server", function () {
           .field("chain", defaultContractChain)
           .field("address", contractAddress)
           .attach("files", hardhatOutputBuffer)
-          .end((err, res) => {
-            assertVerification(
+          .end(async (err, res) => {
+            await assertVerification(
+              storageService,
               err,
               res,
               done,
@@ -1037,8 +1064,9 @@ describe("Server", function () {
           agent
             .post("/session/verify-validated")
             .send({ contracts })
-            .end((err, res) => {
-              assertVerificationSession(
+            .end(async (err, res) => {
+              await assertVerificationSession(
+                storageService,
                 err,
                 res,
                 done,
@@ -1102,27 +1130,29 @@ describe("Server", function () {
               contracts[0].chainId = defaultContractChain;
               contracts[0].address = defaultContractAddress;
               assertVerificationSession(
+                storageService,
                 err,
                 res,
                 null,
                 undefined,
                 undefined,
                 "error"
-              );
-
-              agent
-                .post("/session/verify-validated")
-                .send({ contracts })
-                .end((err, res) => {
-                  assertVerificationSession(
-                    err,
-                    res,
-                    done,
-                    defaultContractAddress,
-                    defaultContractChain,
-                    "perfect"
-                  );
-                });
+              ).then(() => {
+                agent
+                  .post("/session/verify-validated")
+                  .send({ contracts })
+                  .end(async (err, res) => {
+                    await assertVerificationSession(
+                      storageService,
+                      err,
+                      res,
+                      done,
+                      defaultContractAddress,
+                      defaultContractChain,
+                      "perfect"
+                    );
+                  });
+              });
             });
         });
     });
@@ -1822,15 +1852,17 @@ describe("Server", function () {
             "Storage.sol": sourceBuffer,
           },
         })
-        .end((err, res) =>
-          assertVerification(
-            err,
-            res,
-            null,
-            defaultContractAddress,
-            defaultContractChain,
-            "perfect"
-          )
+        .end(
+          async (err, res) =>
+            await assertVerification(
+              storageService,
+              err,
+              res,
+              null,
+              defaultContractAddress,
+              defaultContractChain,
+              "perfect"
+            )
         );
       const contractSavedPath = path.join(
         server.repository,
@@ -1997,42 +2029,9 @@ describe("Server", function () {
 
   describe("Database", function () {
     this.timeout(20000);
-    const storageService = new StorageService({
-      repositoryV1ServiceOptions: {
-        ipfsApi: process.env.IPFS_API,
-        repositoryPath: "./dist/data/mock-repositoryV1",
-        repositoryServerUrl: config.get("repositoryV1.serverUrl"),
-      },
-      sourcifyDatabaseServiceOptions: {
-        postgres: {
-          host: "localhost",
-          database: "sourcify",
-          user: "sourcify",
-          password: "sourcify",
-          port: process.env.DOCKER_HOST_POSTGRES_TEST_PORT || 5431,
-        },
-      },
-    });
+
     this.beforeEach(async () => {
-      await storageService.sourcifyDatabase.init();
-      await storageService.sourcifyDatabase.databasePool.query(
-        "DELETE FROM sourcify_matches"
-      );
-      await storageService.sourcifyDatabase.databasePool.query(
-        "DELETE FROM verified_contracts"
-      );
-      await storageService.sourcifyDatabase.databasePool.query(
-        "DELETE FROM contract_deployments"
-      );
-      await storageService.sourcifyDatabase.databasePool.query(
-        "DELETE FROM compiled_contracts"
-      );
-      await storageService.sourcifyDatabase.databasePool.query(
-        "DELETE FROM contracts"
-      );
-      await storageService.sourcifyDatabase.databasePool.query(
-        "DELETE FROM code"
-      );
+      await resetDatabase(storageService);
     });
 
     it("storeMatch", async () => {

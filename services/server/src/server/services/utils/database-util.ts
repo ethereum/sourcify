@@ -468,20 +468,22 @@ export async function updateSourcifySync(
   );
 }
 
-// Right now we are not updating, we are inserting every time a new match
+// Update sourcify_matches to the latest (and better) match in verified_contracts,
+// you need to pass the old verified_contract_id to be updated.
+// The old verified_contracts are not deleted from the verified_contracts table.
 export async function updateSourcifyMatch(
   pool: Pool,
-  { verified_contract_id, runtime_match, creation_match }: Tables.SourcifyMatch
+  { verified_contract_id, runtime_match, creation_match }: Tables.SourcifyMatch,
+  oldVerifiedContractId: number
 ) {
   await pool.query(
-    `INSERT INTO sourcify_matches (
-        verified_contract_id,
-        creation_match,
-        runtime_match
-      ) VALUES ($1, $2, $3)`,
-    [verified_contract_id, creation_match, runtime_match]
+    `UPDATE sourcify_matches SET 
+      verified_contract_id = $1,
+      creation_match=$2,
+      runtime_match=$3
+    WHERE  verified_contract_id = $4`,
+    [verified_contract_id, creation_match, runtime_match, oldVerifiedContractId]
   );
-  // Delete previous match?
 }
 
 export function bytesFromString(str: string | undefined): Buffer | undefined {

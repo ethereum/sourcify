@@ -171,9 +171,10 @@ describe("Import From Etherscan and Verify", function () {
           .post("/verify/etherscan")
           .field("address", contract.address)
           .field("chainId", tempChainId)
-          .end((err, res) => {
+          .end(async (err, res) => {
             // currentResponse = res;
-            assertVerification(
+            await assertVerification(
+              false,
               err,
               res,
               done,
@@ -373,9 +374,10 @@ describe("Import From Etherscan and Verify", function () {
           .post("/session/verify/etherscan")
           .field("address", contract.address)
           .field("chain", tempChainId)
-          .end((err, res) => {
+          .end(async (err, res) => {
             // currentResponse = res;
-            assertVerificationSession(
+            await assertVerificationSession(
+              false,
               err,
               res,
               done,

@@ -118,9 +118,17 @@ function verifyAndAssertEtherscan(
       .post("/verify/etherscan")
       .field("address", address)
       .field("chain", chainId);
-    request.end((err, res) => {
+    request.end(async (err, res) => {
       // currentResponse = res;
-      assertVerification(err, res, done, address, chainId, expectedStatus);
+      await assertVerification(
+        false,
+        err,
+        res,
+        done,
+        address,
+        chainId,
+        expectedStatus
+      );
     });
   });
 }
@@ -138,9 +146,10 @@ function verifyAndAssertEtherscanSession(
       .post("/session/verify/etherscan")
       .field("address", address)
       .field("chainId", chainId)
-      .end((err, res) => {
+      .end(async (err, res) => {
         // currentResponse = res;
-        assertVerificationSession(
+        await assertVerificationSession(
+          false,
           err,
           res,
           done,
@@ -171,6 +180,29 @@ async function readFilesFromDirectory(dirPath) {
   }
 }
 
+async function resetDatabase(storageService) {
+  await storageService.sourcifyDatabase.init();
+  await storageService.sourcifyDatabase.databasePool.query(
+    "DELETE FROM sourcify_sync"
+  );
+  await storageService.sourcifyDatabase.databasePool.query(
+    "DELETE FROM sourcify_matches"
+  );
+  await storageService.sourcifyDatabase.databasePool.query(
+    "DELETE FROM verified_contracts"
+  );
+  await storageService.sourcifyDatabase.databasePool.query(
+    "DELETE FROM contract_deployments"
+  );
+  await storageService.sourcifyDatabase.databasePool.query(
+    "DELETE FROM compiled_contracts"
+  );
+  await storageService.sourcifyDatabase.databasePool.query(
+    "DELETE FROM contracts"
+  );
+  await storageService.sourcifyDatabase.databasePool.query("DELETE FROM code");
+}
+
 module.exports = {
   deployFromAbiAndBytecode,
   deployFromAbiAndBytecodeForCreatorTxHash,
@@ -184,4 +216,5 @@ module.exports = {
   verifyAndAssertEtherscan,
   verifyAndAssertEtherscanSession,
   readFilesFromDirectory,
+  resetDatabase,
 };

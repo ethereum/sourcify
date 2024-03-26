@@ -1422,8 +1422,16 @@ describe("Test Supported Chains", function () {
           chain: chainId,
           files: files,
         })
-        .end((err, res) => {
-          assertVerification(err, res, done, address, chainId, expectedStatus);
+        .end(async (err, res) => {
+          await assertVerification(
+            false,
+            err,
+            res,
+            done,
+            address,
+            chainId,
+            expectedStatus
+          );
           anyTestsPass = true;
         });
     });
