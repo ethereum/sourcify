@@ -18,6 +18,7 @@ const TELOS_SUFFIX = "v1/contract/${ADDRESS}";
 const METER_SUFFIX = "api/accounts/${ADDRESS}";
 const AVALANCHE_SUBNET_SUFFIX =
   "contracts/${ADDRESS}/transactions:getDeployment";
+const NEXUS_SUFFIX = "v1/${RUNTIME}/accounts/${ADDRESS}";
 
 function getApiContractCreationFetcher(
   url: string,
@@ -134,6 +135,19 @@ function getAvalancheApiContractCreatorFetcher(
     (response: any) => {
       if (response.nativeTransaction?.txHash)
         return response.nativeTransaction.txHash as string;
+    },
+  );
+}
+
+function getNexusApiContractCreatorFetcher(
+  apiURL: string,
+  runtime: string,
+): ContractCreationFetcher {
+  return getApiContractCreationFetcher(
+    apiURL + NEXUS_SUFFIX.replace("${RUNTIME}", runtime),
+    (response: any) => {
+      if (response.evm_contract?.eth_creation_tx)
+        return `0x${response.evm_contract.eth_creation_tx}`;
     },
   );
 }
@@ -294,6 +308,16 @@ export const getCreatorTx = async (
   if (sourcifyChain.fetchContractCreationTxUsing?.etherscanScrape) {
     const fetcher = getEtherscanScrapeContractCreatorFetcher(
       sourcifyChain.fetchContractCreationTxUsing?.etherscanScrape.url,
+    );
+    const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
+    if (result) {
+      return result;
+    }
+  }
+  if (sourcifyChain.fetchContractCreationTxUsing?.nexusApi) {
+    const fetcher = getNexusApiContractCreatorFetcher(
+      sourcifyChain.fetchContractCreationTxUsing?.nexusApi.url,
+      sourcifyChain.fetchContractCreationTxUsing?.nexusApi.runtime,
     );
     const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
     if (result) {

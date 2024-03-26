@@ -295,6 +295,10 @@ export interface FetchContractCreationTxMethods {
     url: string;
   };
   avalancheApi?: boolean;
+  nexusApi?: {
+    url: string;
+    runtime: string;
+  };
 }
 
 export type AlchemyInfuraRPC = {
