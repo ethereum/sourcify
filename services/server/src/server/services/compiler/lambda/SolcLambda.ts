@@ -40,10 +40,10 @@ export class SolcLambda implements ISolidityCompiler {
     forceEmscripten: boolean = false
   ): Promise<CompilerOutput> {
     const param = JSON.stringify({ version, solcJsonInput, forceEmscripten });
-    logger.debug("Invoking Lambda function", { param });
+    logger.silly("Invoking Lambda function", { param });
     const response = await this.invokeLambdaFunction(param);
     const responseObj = this.parseCompilerOutput(response);
-    logger.debug("Lambda function response", { responseObj });
+    logger.silly("Lambda function response", { responseObj });
     return responseObj;
   }
 

@@ -43,7 +43,7 @@ export const DefaultLogger: ILogger = {
           console.debug(msg + ' - ' + metadataMsg);
           break;
         case 6:
-          console.trace(msg + ' - ' + metadataMsg);
+          console.log(msg + ' - ' + metadataMsg);
           break;
         default:
           console.log(msg + ' - ' + metadataMsg);

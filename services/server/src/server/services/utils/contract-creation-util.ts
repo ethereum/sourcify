@@ -168,7 +168,7 @@ async function getCreatorTxUsingFetcher(
             fetcher?.scrapeRegex
           );
           if (creatorTx) {
-            logger.debug("✅ Fetched and found creator Tx", {
+            logger.debug("Fetched and found creator Tx", {
               fetcher,
               contractFetchAddressFilled,
               contractAddress,
@@ -188,7 +188,7 @@ async function getCreatorTxUsingFetcher(
         if (fetcher?.responseParser) {
           const response = await fetchFromApi(contractFetchAddressFilled);
           const creatorTx = fetcher?.responseParser(response);
-          logger.debug("✅ Fetched Creator Tx", {
+          logger.debug("Fetched Creator Tx", {
             fetcher,
             contractFetchAddressFilled,
             contractAddress,
