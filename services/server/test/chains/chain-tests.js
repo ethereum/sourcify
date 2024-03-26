@@ -1,5 +1,5 @@
 process.env.NODE_CONFIG_ENV = "test";
-process.env.SOURCIFY_POSTGRES_HOST = "";
+// process.env.SOURCIFY_POSTGRES_HOST = "";
 process.env.ALLIANCE_POSTGRES_HOST = "";
 
 const chai = require("chai");
