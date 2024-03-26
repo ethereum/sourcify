@@ -175,6 +175,7 @@ async function assertContractSaved(
       );
 
       const contract = res.rows[0];
+      chai.expect(contract).to.not.be.null;
       chai
         .expect("0x" + contract.address.toString("hex"))
         .to.equal(expectedAddress.toLowerCase());
