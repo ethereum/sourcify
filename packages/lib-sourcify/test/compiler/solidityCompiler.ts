@@ -21,7 +21,7 @@ export async function fetchWithTimeout(
 
   const controller = new AbortController();
   const id = setTimeout(() => {
-    logWarn('Aborting request' { resource, timeout });
+    logWarn('Aborting request', { resource, timeout });
     controller.abort();
   }, timeout);
   const response = await fetch(resource, {
@@ -245,7 +245,7 @@ async function fetchAndSaveSolc(
 
     return true;
   } else {
-    logWarn('Failed fetching solc' { version, platform, solcPath });
+    logWarn('Failed fetching solc', { version, platform, solcPath });
   }
 
   return false;
