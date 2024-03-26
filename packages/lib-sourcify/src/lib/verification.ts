@@ -84,7 +84,7 @@ export async function verifyDeployed(
     });
     return match;
   } else if (runtimeBytecode === '0x') {
-    match.message = `Chain #${sourcifyChain.chainId} does not have a contract deployed at ${address}`;
+    match.message = `Chain #${sourcifyChain.chainId} does not have a contract deployed at ${address}.`;
     logDebug('Unable to verify', {
       address,
       chainId: sourcifyChain.chainId,
