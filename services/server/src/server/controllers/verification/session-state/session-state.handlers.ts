@@ -8,7 +8,7 @@ import {
   extractFiles,
   getSessionJSON,
   isVerifiable,
-  saveFiles,
+  saveFilesToSession,
   verifyContractsInSession,
 } from "../verification.common";
 import {
@@ -23,13 +23,14 @@ import { services } from "../../../services/services";
 
 import { StatusCodes } from "http-status-codes";
 import { decode as bytecodeDecode } from "@ethereum-sourcify/bytecode-utils";
-import { logger } from "../../../../common/logger";
+import logger from "../../../../common/logger";
 
 export async function getSessionDataEndpoint(req: Request, res: Response) {
   res.send(getSessionJSON(req.session));
 }
 
 export async function addInputFilesEndpoint(req: Request, res: Response) {
+  logger.debug("addInputFilesEndpoint");
   let inputFiles: PathBuffer[] | undefined;
   if (req.query.url) {
     inputFiles = await addRemoteFile(req.query);
@@ -42,7 +43,7 @@ export async function addInputFilesEndpoint(req: Request, res: Response) {
   });
 
   const session = req.session;
-  const newFilesCount = saveFiles(pathContents, session);
+  const newFilesCount = saveFilesToSession(pathContents, session);
   if (newFilesCount) {
     await checkContractsInSession(session);
     await verifyContractsInSession(
@@ -56,6 +57,7 @@ export async function addInputFilesEndpoint(req: Request, res: Response) {
 }
 
 export async function restartSessionEndpoint(req: Request, res: Response) {
+  logger.debug("Restarting session", { sessionId: req.session.id });
   req.session.destroy((error: Error) => {
     let msg = "";
     let statusCode = null;
@@ -91,7 +93,7 @@ export async function addInputContractEndpoint(req: Request, res: Response) {
   const retrievedMetadataText = await performFetch(ipfsUrl);
 
   if (!retrievedMetadataText) {
-    logger.error(`Could not retrieve metadata from ${ipfsUrl}`);
+    logger.error("Could not retrieve metadata", { ipfsUrl });
     throw new Error(`Could not retrieve metadata`);
   }
   const pathContents: PathContent[] = [];
@@ -107,7 +109,7 @@ export async function addInputContractEndpoint(req: Request, res: Response) {
 
   const session = req.session;
 
-  const newFilesCount = saveFiles(pathContents, session);
+  const newFilesCount = saveFilesToSession(pathContents, session);
   if (newFilesCount) {
     await checkContractsInSession(session);
     // verifyValidated fetches missing files from the contract

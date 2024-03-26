@@ -4,7 +4,7 @@ import {
   checkContractsInSession,
   extractFiles,
   getSessionJSON,
-  saveFiles,
+  saveFilesToSession,
 } from "../../verification.common";
 import { PathContent } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError, ValidationError } from "../../../../../common/errors";
@@ -36,7 +36,10 @@ export async function addInputSolcJsonEndpoint(req: Request, res: Response) {
       });
 
     const session = req.session;
-    const newFilesCount = saveFiles(metadataAndSourcesPathContents, session);
+    const newFilesCount = saveFilesToSession(
+      metadataAndSourcesPathContents,
+      session
+    );
     if (newFilesCount) {
       await checkContractsInSession(session);
     }

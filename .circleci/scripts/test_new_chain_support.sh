@@ -23,7 +23,6 @@ NEW_CHAIN_ID=$(echo "${REAL_BRANCH_NAME}" | awk -F'add-chains?-' '{print $2}' | 
 
 if [ -z "${NEW_CHAIN_ID}" ]; then
     echo 'Not saving NEW_CHAIN_ID since its not a new chain PR.'
-    exit 1
 
 # if it is a new chain PR, persist NEW_CHAIN_ID for the next CircleCI steps
 else

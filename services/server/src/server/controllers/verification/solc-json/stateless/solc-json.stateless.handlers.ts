@@ -47,7 +47,6 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
     contractToVerify,
     chain,
     address,
-    // req.body.contextVariables,
     req.body.creatorTxHash
   );
   // Send to verification again with all source files.
@@ -60,7 +59,6 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
       contractWithAllSources,
       chain,
       address, // Due to the old API taking an array of addresses.
-      // req.body.contextVariables,
       req.body.creatorTxHash
     );
     if (

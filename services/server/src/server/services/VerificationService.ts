@@ -1,13 +1,12 @@
 import {
-  verifyDeployed,
+  verifyDeployed as libSourcifyVerifyDeployed,
   CheckedContract,
   SourcifyChainMap,
   Match,
-  /* ContextVariables, */
 } from "@ethereum-sourcify/lib-sourcify";
 import { getCreatorTx } from "./utils/contract-creation-util";
 import { ContractIsAlreadyBeingVerifiedError } from "../../common/errors/ContractIsAlreadyBeingVerifiedError";
-import { logger } from "../../common/logger";
+import logger from "../../common/logger";
 
 export interface IVerificationService {
   supportedChainsMap: SourcifyChainMap;
@@ -15,7 +14,6 @@ export interface IVerificationService {
     checkedContract: CheckedContract,
     chainId: string,
     address: string,
-    /* contextVariables?: ContextVariables, */
     creatorTxHash?: string
   ): Promise<Match>;
 }
@@ -38,9 +36,7 @@ export class VerificationService implements IVerificationService {
       this.activeVerificationsByChainIdAddress[`${chainId}:${address}`] !==
       undefined
     ) {
-      logger.warn(
-        `The contract ${address} on chainId ${chainId} is already being verified, please wait`
-      );
+      logger.warn("Contract already being verified", { chainId, address });
       throw new ContractIsAlreadyBeingVerifiedError(chainId, address);
     }
   }
@@ -49,9 +45,12 @@ export class VerificationService implements IVerificationService {
     checkedContract: CheckedContract,
     chainId: string,
     address: string,
-    /* contextVariables?: ContextVariables, */
     creatorTxHash?: string
   ): Promise<Match> {
+    logger.debug("VerificationService.verifyDeployed", {
+      chainId,
+      address,
+    });
     this.throwIfContractIsAlreadyBeingVerified(chainId, address);
     this.activeVerificationsByChainIdAddress[`${chainId}:${address}`] = true;
 
@@ -63,11 +62,10 @@ export class VerificationService implements IVerificationService {
 
     /* eslint-disable no-useless-catch */
     try {
-      const res = await verifyDeployed(
+      const res = await libSourcifyVerifyDeployed(
         checkedContract,
         sourcifyChain,
         address,
-        /* contextVariables, */
         foundCreatorTxHash
       );
       delete this.activeVerificationsByChainIdAddress[`${chainId}:${address}`];

@@ -113,3 +113,11 @@ $ docker run \
   --env-file .env \
   ghcr.io/ethereum/sourcify/server:latest
 ```
+
+## Logging
+
+By default the server logs `info` level when `NODE_ENV=production` and `debug` otherwise.
+
+It is possible to set a custom logging level with the environment variable `NODE_LOG_LEVEL` when starting the server.
+
+Another possibility is the authenticated endpoint `/change-log-level`. Sending a `POST` with `{ "level": "debug" }` will set the new logging level dynamically, given the `SETLOGGING_TOKEN` matches the header `authorization = Bearer <token-value>`. This is particularly useful in production for debugging and tracing purposes.

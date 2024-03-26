@@ -8,6 +8,7 @@ import assert from "assert";
 import { EventEmitter } from "stream";
 import { GatewayFetcher } from "./GatewayFetcher";
 import defaultConfig from "./defaultConfig";
+import { Logger } from "winston";
 
 /**
  * Fetcher for a certain type of Decentralized Storage (e.g. IPFS)
@@ -25,6 +26,7 @@ export default class DecentralizedStorageFetcher extends EventEmitter {
 
   // A file can be requested by multiple contracts. This counter keeps track of the number of subscribers, i.e. contracts that want to receive a file. Used for logging.
   private subcriberCounter = 0;
+  private storageFetcherLogger: Logger;
 
   constructor(
     origin: DecentralizedStorageOrigin,
@@ -32,7 +34,9 @@ export default class DecentralizedStorageFetcher extends EventEmitter {
   ) {
     super();
     this.origin = origin;
-
+    this.storageFetcherLogger = logger.child({
+      moduleName: "DecentralizedStorageFetcher " + origin,
+    });
     this.gatewayFetchers = decentralizedStorageConfig.gateways.map(
       (gatewayURL) =>
         new GatewayFetcher({
@@ -62,9 +66,12 @@ export default class DecentralizedStorageFetcher extends EventEmitter {
         }
         this.removeListener(`${fileHash.hash} fetched`, successListener);
         this.removeListener(`${fileHash.hash} fetch failed`, failListener);
-        logger.info(
-          `Removed listener for ${fileHash.hash}. \n Unique Files counter: ${this.uniqueFilesCounter} \n Subscriber counter: ${this.subcriberCounter}`
-        );
+        this.storageFetcherLogger.info("Removed file listener", {
+          fileHash,
+          origin: this.origin,
+          subscriberCounter: this.subcriberCounter,
+          uniqueFilesCounter: this.uniqueFilesCounter,
+        });
       };
 
       // Only resolve on success or failure
@@ -95,9 +102,12 @@ export default class DecentralizedStorageFetcher extends EventEmitter {
       // The event listener for when the file is fetches is already added above.
       else {
         this.subcriberCounter++;
-        logger.info(
-          `Received a fetch for ${fileHash.hash}. There's already a fetch in progress. \n Unique Files counter: ${this.uniqueFilesCounter} \n Subscriber counter: ${this.subcriberCounter}`
-        );
+        this.storageFetcherLogger.info("Fetch already exists", {
+          fileHash,
+          origin: this.origin,
+          subscriberCounter: this.subcriberCounter,
+          uniqueFilesCounter: this.uniqueFilesCounter,
+        });
       }
     });
   };
@@ -106,48 +116,57 @@ export default class DecentralizedStorageFetcher extends EventEmitter {
   // If a fetch from a gateway times out, don't try others. Probably the file is not pinned.
   // If a fetch from a gateway fails for another reason, try the next gateway.
   tryGatewaysSequentially = async (fileHash: FileHash) => {
-    logger.debug(
-      `[tryGatewaysSequentially] hash=${
-        fileHash.hash
-      } gateways=${this.gatewayFetchers.map((gw) => gw.url).join(",")}`
-    );
+    this.storageFetcherLogger.debug("tryGatewaysSequentially", {
+      fileHash,
+      gateways: this.gatewayFetchers.map((gw) => gw.url),
+    });
     for (let gwIndex = 0; gwIndex < this.gatewayFetchers.length; gwIndex++) {
       const gatewayFetcher = this.gatewayFetchers[gwIndex];
-      logger.info(
-        `Fetching ${fileHash.hash} from ${gatewayFetcher.url} \n Unique Files counter: ${this.uniqueFilesCounter} \n Subscriber counter: ${this.subcriberCounter}`
-      );
+      this.storageFetcherLogger.info("Fetching from gateway", {
+        fileHash,
+        origin: this.origin,
+        subscriberCounter: this.subcriberCounter,
+        uniqueFilesCounter: this.uniqueFilesCounter,
+      });
       try {
         const file = await gatewayFetcher.fetchWithRetries(fileHash.hash);
-        logger.info(`Fetched ${fileHash.hash} from ${gatewayFetcher.url}`);
+        this.storageFetcherLogger.info("Fetched from gateway", {
+          fileHash,
+          origin: this.origin,
+          subscriberCounter: this.subcriberCounter,
+          uniqueFilesCounter: this.uniqueFilesCounter,
+        });
         // Log if we had to use a fallback gateway
         if (gwIndex > 0) {
-          logger.info(
-            `[FallbackGatewayUsed] url=${gatewayFetcher.url} hash=${fileHash.hash} `
-          );
+          this.storageFetcherLogger.info("Used FallbackGateway", {
+            fileHash,
+            gatewayFetcherUrl: gatewayFetcher.url,
+          });
         }
         // Notify the subscribers
         this.emit(`${fileHash.hash} fetched`, file);
         return;
       } catch (err: any) {
         if (err.timeout) {
-          logger.info(
-            `Timeout fetching ${fileHash.hash} from ${gatewayFetcher.url} \n ${err}`
-          );
+          this.storageFetcherLogger.info("Timeout fetching from gateway", {
+            fileHash,
+            gatewayFetcherUrl: gatewayFetcher.url,
+            err,
+          });
         } else {
           // Something's wront with the GW. Use fallback
-          logger.error(
-            `Error fetching ${fileHash.hash} from ${
-              gatewayFetcher.url
-            } \n Error: ${err.toString()}`
-          );
+          this.storageFetcherLogger.error("Error fetching from gateway", {
+            fileHash,
+            gatewayFetcherUrl: gatewayFetcher.url,
+            err,
+          });
         }
       }
     }
-    logger.info(
-      `Couldn't fetch ${fileHash.hash} from any gateways ${this.gatewayFetchers
-        .map((gw) => gw.url)
-        .join(",")}`
-    );
+    this.storageFetcherLogger.info("Couldn't fetch from any gateways", {
+      fileHash,
+      gateways: this.gatewayFetchers.map((gw) => gw.url),
+    });
     this.emit(`${fileHash.hash} fetch failed`);
   };
 }

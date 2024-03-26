@@ -11,7 +11,6 @@ import {
   Match,
   Status,
   StringMap,
-  /* ContextVariables, */
   CheckedContract,
 } from "@ethereum-sourcify/lib-sourcify";
 import { MatchQuality, RepositoryTag } from "../../types";
@@ -20,8 +19,7 @@ import {
   IPFSHTTPClient,
   globSource,
 } from "ipfs-http-client";
-import path from "path";
-import { logger } from "../../../common/logger";
+import logger from "../../../common/logger";
 import { getAddress, id as keccak256 } from "ethers";
 import { getMatchStatus } from "../../common";
 import { IStorageService } from "../StorageService";
@@ -91,7 +89,7 @@ export class RepositoryV2Service implements IStorageService {
         : this.generateAbsoluteFilePath(path);
     fs.mkdirSync(Path.dirname(abolsutePath), { recursive: true });
     fs.writeFileSync(abolsutePath, content);
-    logger.debug("Saved to repositoryV2: " + abolsutePath);
+    logger.silly("Saved file to repositoryV2", { abolsutePath });
     this.updateRepositoryTag();
   }
 
@@ -176,9 +174,13 @@ export class RepositoryV2Service implements IStorageService {
         );
       }
 
-      logger.info(
-        `Stored ${contract.name} to RepositoryV2 address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
-      );
+      logger.info("Stored contract to RepositoryV2", {
+        address: match.address,
+        chainId: match.chainId,
+        runtimeMatch: match.runtimeMatch,
+        creationMatch: match.creationMatch,
+        name: contract.name,
+      });
     } else if (match.runtimeMatch === "extra-file-input-bug") {
       return match;
     } else {

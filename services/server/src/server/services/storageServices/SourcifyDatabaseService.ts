@@ -3,7 +3,7 @@ import {
   CheckedContract,
   Status,
 } from "@ethereum-sourcify/lib-sourcify";
-import { logger } from "../../../common/logger";
+import logger from "../../../common/logger";
 import * as Database from "../utils/database-util";
 import { Pool } from "pg";
 import AbstractDatabaseService from "./AbstractDatabaseService";
@@ -61,7 +61,7 @@ export class SourcifyDatabaseService
     } else {
       throw new Error(`${this.databaseName} is disabled`);
     }
-    logger.info(`${this.databaseName} is active`);
+    logger.info(`SourcifyDatabase initialized`, { name: this.databaseName });
     return true;
   }
 
@@ -137,9 +137,12 @@ export class SourcifyDatabaseService
           match_type: getMatchStatus(match)!,
         });
       }
-      logger.info(
-        `Stored ${recompiledContract.name} to SourcifyDatabase address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
-      );
+      logger.info("Stored to SourcifyDatabase", {
+        address: match.address,
+        chainId: match.chainId,
+        runtimeMatch: match.runtimeMatch,
+        creationMatch: match.creationMatch,
+      });
     } else if (type === "update") {
       if (verifiedContractId) {
         await Database.updateSourcifyMatch(this.databasePool, {
@@ -156,9 +159,12 @@ export class SourcifyDatabaseService
           match_type: getMatchStatus(match)!,
         });
       }
-      logger.info(
-        `Updated ${recompiledContract.name} to SourcifyDatabase address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
-      );
+      logger.info("Updated in SourcifyDatabase", {
+        address: match.address,
+        chainId: match.chainId,
+        runtimeMatch: match.runtimeMatch,
+        creationMatch: match.creationMatch,
+      });
     } else {
       throw new Error();
     }

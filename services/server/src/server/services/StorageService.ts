@@ -15,7 +15,7 @@ import {
   AllianceDatabaseService,
   AllianceDatabaseServiceOptions,
 } from "./storageServices/AllianceDatabaseService";
-import { logger } from "../../common/logger";
+import logger from "../../common/logger";
 
 export interface IStorageService {
   init(): Promise<boolean>;
@@ -41,14 +41,24 @@ export class StorageService {
   allianceDatabase?: AllianceDatabaseService;
 
   constructor(options: StorageServiceOptions) {
+    // repositoryV1
     this.repositoryV1 = new RepositoryV1Service(
       options.repositoryV1ServiceOptions
     );
+
+    // repositoryV2
     if (options.repositoryV2ServiceOptions?.repositoryPath) {
       this.repositoryV2 = new RepositoryV2Service(
         options.repositoryV2ServiceOptions
       );
+    } else {
+      logger.warn(
+        "Won't use RepositoryV2, path not set",
+        options.repositoryV2ServiceOptions
+      );
     }
+
+    // SourcifyDatabase
     if (
       options.sourcifyDatabaseServiceOptions?.postgres?.host &&
       options.sourcifyDatabaseServiceOptions?.postgres?.database &&
@@ -58,7 +68,14 @@ export class StorageService {
       this.sourcifyDatabase = new SourcifyDatabaseService(
         options.sourcifyDatabaseServiceOptions
       );
+    } else {
+      logger.warn(
+        "Won't use SourcifyDatabase, options not complete",
+        options.sourcifyDatabaseServiceOptions
+      );
     }
+
+    // AllianceDatabase
     if (
       options.allianceDatabaseServiceOptions?.googleCloudSql ||
       (options.allianceDatabaseServiceOptions?.postgres?.host &&
@@ -67,6 +84,11 @@ export class StorageService {
         options.allianceDatabaseServiceOptions?.postgres?.password)
     ) {
       this.allianceDatabase = new AllianceDatabaseService(
+        options.allianceDatabaseServiceOptions
+      );
+    } else {
+      logger.warn(
+        "Won't use AllianceDatabase, options not complete",
         options.allianceDatabaseServiceOptions
       );
     }
@@ -119,9 +141,13 @@ export class StorageService {
   }
 
   async storeMatch(contract: CheckedContract, match: Match) {
-    logger.info(
-      `Storing ${contract.name} address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
-    );
+    logger.info("Storing match on StorageService", {
+      name: contract.name,
+      address: match.address,
+      chainId: match.chainId,
+      runtimeMatch: match.runtimeMatch,
+      creationMatch: match.creationMatch,
+    });
 
     // Initialize an array to hold active service promises
     const promises = [];
@@ -129,38 +155,38 @@ export class StorageService {
     // Conditionally push promises to the array based on service availability
     if (this.allianceDatabase) {
       promises.push(
-        this.allianceDatabase
-          .storeMatch(contract, match)
-          .catch((e) =>
-            logger.warn("Error while storing on the AllianceDatabase: ", e)
-          )
+        this.allianceDatabase.storeMatch(contract, match).catch((e) =>
+          logger.error("Error storing to AllianceDatabase: ", {
+            error: e,
+          })
+        )
       );
     }
 
     if (this.sourcifyDatabase) {
       promises.push(
-        this.sourcifyDatabase
-          .storeMatch(contract, match)
-          .catch((e) =>
-            logger.error("Error while storing on the SourcifyDatabase: ", e)
-          )
+        this.sourcifyDatabase.storeMatch(contract, match).catch((e) =>
+          logger.error("Error storing to SourcifyDatabase: ", {
+            error: e,
+          })
+        )
       );
     }
 
     if (this.repositoryV2) {
       promises.push(
-        this.repositoryV2
-          .storeMatch(contract, match)
-          .catch((e) =>
-            logger.error("Error while storing on the RepositoryV2: ", e)
-          )
+        this.repositoryV2.storeMatch(contract, match).catch((e) =>
+          logger.error("Error storing to RepositoryV2: ", {
+            error: e,
+          })
+        )
       );
     }
 
     // Always include repositoryV1
     promises.push(
       this.repositoryV1.storeMatch(contract, match).catch((e) => {
-        logger.error("Error while storing on the RepositoryV1: ", e);
+        logger.error("Error storing to RepositoryV1: ", { error: e });
         // For repositoryV1 we throw
         throw e;
       })
