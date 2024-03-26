@@ -176,7 +176,7 @@ async function getCreatorTxUsingFetcher(
             });
             return creatorTx;
           }
-          logger.debug("🤔 Fetched but transaction not found", {
+          logger.debug("Fetched but transaction not found", {
             fetcher,
             contractFetchAddressFilled,
             creatorTx,
