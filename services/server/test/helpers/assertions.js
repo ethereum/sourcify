@@ -43,14 +43,12 @@ exports.assertVerification = async (
     chai.expect(result.chainId).to.equal(expectedChain);
     chai.expect(result.status).to.equal(expectedStatus);
 
-    if (storageService) {
-      await assertContractSaved(
-        storageService,
-        expectedAddress,
-        expectedChain,
-        expectedStatus
-      );
-    }
+    await assertContractSaved(
+      storageService,
+      expectedAddress,
+      expectedChain,
+      expectedStatus
+    );
     if (done) done();
   } catch (e) {
     e.message += `\nResponse body: ${JSON.stringify(res.body)}`;
@@ -157,10 +155,11 @@ async function assertContractSaved(
     );
     chai.expect(isExist, "Contract is not saved").to.be.true;
 
-    // Check if saved to the database
-    await storageService.sourcifyDatabase.init();
-    const res = await storageService.sourcifyDatabase.databasePool.query(
-      `SELECT
+    if (storageService) {
+      // Check if saved to the database
+      await storageService.sourcifyDatabase.init();
+      const res = await storageService.sourcifyDatabase.databasePool.query(
+        `SELECT
         cd.address,
         cd.chain_id,
         sm.creation_match,
@@ -172,22 +171,23 @@ async function assertContractSaved(
       LEFT JOIN code compiled_runtime_code ON compiled_runtime_code.code_hash = cc.runtime_code_hash
       LEFT JOIN code compiled_creation_code ON compiled_creation_code.code_hash = cc.creation_code_hash
       WHERE cd.address = $1 AND cd.chain_id = $2`,
-      [Buffer.from(expectedAddress.substring(2), "hex"), expectedChain]
-    );
+        [Buffer.from(expectedAddress.substring(2), "hex"), expectedChain]
+      );
 
-    const contract = res.rows[0];
-    chai
-      .expect("0x" + contract.address.toString("hex"))
-      .to.equal(expectedAddress.toLowerCase());
-    chai.expect(contract.chain_id).to.equal(expectedChain);
-    // When we'll support runtime_match and creation_match as different statuses we can refine this statement
-    chai
-      .expect(
-        getMatchStatus({
-          runtimeMatch: contract.runtime_match,
-          creationMatch: contract.creation_match,
-        })
-      )
-      .to.equal(expectedStatus);
+      const contract = res.rows[0];
+      chai
+        .expect("0x" + contract.address.toString("hex"))
+        .to.equal(expectedAddress.toLowerCase());
+      chai.expect(contract.chain_id).to.equal(expectedChain);
+      // When we'll support runtime_match and creation_match as different statuses we can refine this statement
+      chai
+        .expect(
+          getMatchStatus({
+            runtimeMatch: contract.runtime_match,
+            creationMatch: contract.creation_match,
+          })
+        )
+        .to.equal(expectedStatus);
+    }
   }
 }
