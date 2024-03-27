@@ -6,6 +6,7 @@ import { KnownDecentralizedStorageFetchers } from "./types";
 import assert from "assert";
 import dotenv from "dotenv";
 import nodeFetch from "node-fetch";
+import { Logger } from "winston";
 
 dotenv.config();
 
@@ -17,6 +18,9 @@ export default class PendingContract {
   public pendingSources: MetadataSourceMap = {};
   public fetchedSources: MetadataSourceMap = {};
   private decentralizedStorageFetchers: KnownDecentralizedStorageFetchers;
+  private contractLogger: Logger = logger.child({
+    moduleName: "PendingContract",
+  });
 
   constructor(
     metadataHash: FileHash,
@@ -48,9 +52,12 @@ export default class PendingContract {
           `Can't fetch metadata address=${this.address} hash=${this.metadataHash.hash} origin=${this.metadataHash.origin}: ${err}`
         );
       });
-    logger.info(
-      `Fetched metadata hash=${this.metadataHash.hash} address=${this.address} chainId=${this.chainId} origin=${this.metadataHash.origin}`
-    );
+    this.contractLogger.info("[PendingContract.assemble] Fetched metadata", {
+      metadataHash: this.metadataHash,
+      address: this.address,
+      chainId: this.chainId,
+      origin: this.metadataHash.origin,
+    });
     this.metadata = JSON.parse(metadataStr) as Metadata;
     // TODO: use structuredClone of Node v17+ instead of JSON.parse(JSON.stringify()) after upgrading
     this.pendingSources = JSON.parse(JSON.stringify(this.metadata.sources)); // Copy, don't mutate original.
@@ -62,8 +69,13 @@ export default class PendingContract {
 
         // Source already inline.
         if (source.content) {
-          logger.info(
-            `Source ${sourceUnitName} has already inline content address=${this.address} chain=${this.chainId} `
+          this.contractLogger.info(
+            "[PendingContract.assemble] Source has inline content",
+            {
+              sourceUnitName,
+              address: this.address,
+              chainId: this.chainId,
+            }
           );
           this.movePendingToFetchedSources(sourceUnitName);
           return;
@@ -75,21 +87,37 @@ export default class PendingContract {
         for (const url of source.urls || []) {
           const fileHash = FileHash.fromUrl(url);
           if (!fileHash) {
-            logger.info(
-              `No file hash found for url ${url} for contract ${this.address}`
+            this.contractLogger.info(
+              "[PendingContract.assemble] No hash found for url",
+              {
+                url,
+                address: this.address,
+                chainId: this.chainId,
+              }
             );
             continue;
           }
           const fetcher = this.decentralizedStorageFetchers[fileHash.origin];
           if (!fetcher) {
-            logger.debug(
-              `No fetcher found for origin ${fileHash.origin} for contract ${this.address}`
+            this.contractLogger.debug(
+              "[PendingContract.assemble] No fetcher found for origin",
+              {
+                fileHash,
+                address: this.address,
+                chainId: this.chainId,
+              }
             );
             continue;
           }
           fetchedContent = await fetcher.fetch(fileHash);
-          logger.info(
-            `Fetched source ${sourceUnitName} for ${this.address} on chain ${this.chainId} from ${fileHash.origin}`
+          this.contractLogger.info(
+            "[PendingContract.assemble] Fetched source",
+            {
+              sourceUnitName,
+              address: this.address,
+              chainId: this.chainId,
+              fileHash,
+            }
           );
           source.content = fetchedContent;
           this.movePendingToFetchedSources(sourceUnitName);
@@ -133,8 +161,13 @@ export default class PendingContract {
     });
 
     if (response.status === 200) {
-      logger.info(
-        `Contract ${this.address} on chain ${this.chainId} sent to Sourcify server ${sourcifyServerURL}`
+      this.contractLogger.info(
+        "[PendingContract.sendToSourcifyServer] Contract sent",
+        {
+          address: this.address,
+          chainId: this.chainId,
+          sourcifyServerURL,
+        }
       );
       return response.json();
     } else {

@@ -57,3 +57,49 @@ paths:
     $ref: "server/controllers/verification/solc-json/session/solc-json.session.paths.yaml#/paths/~1session~1input-solc-json"
   /session/verify/etherscan:
     $ref: "server/controllers/verification/etherscan/session/etherscan.session.paths.yaml#/paths/~1session~1verify~1etherscan"
+  /change-log-level:
+    post:
+      summary: Change the logging level of the application
+      description: Allows changing the logging level dynamically at runtime for the application. Requires Basic Authentication.
+      tags:
+        - Logging
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - level
+              properties:
+                level:
+                  type: string
+                  description: The new logging level to set.
+                  enum: [error, warn, info, debug, silly]
+            examples:
+              change to debug:
+                value: 
+                  level: "debug"
+              change to info:
+                value: 
+                  level: "info"
+      responses:
+        "200":
+          description: The logging level was successfully changed.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Logging level changed to: debug"
+        "400":
+          description: Bad request (e.g., invalid logging level provided).
+        "401":
+          description: Unauthorized (missing or invalid Basic Authentication credentials).
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer

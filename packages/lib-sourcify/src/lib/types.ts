@@ -240,7 +240,6 @@ export interface Match {
   abiEncodedConstructorArguments?: string;
   create2Args?: Create2Args;
   libraryMap?: StringMap;
-  /* contextVariables?: ContextVariables; */
   creatorTxHash?: string;
   immutableReferences?: ImmutableReferences;
   runtimeTransformations?: Transformation[];
@@ -348,11 +347,6 @@ type Currency = {
   symbol: string;
   decimals: number;
 };
-
-/* export type ContextVariables = {
-  abiEncodedConstructorArguments?: string;
-  msgSender?: string;
-}; */
 
 interface File {
   keccak256?: string;

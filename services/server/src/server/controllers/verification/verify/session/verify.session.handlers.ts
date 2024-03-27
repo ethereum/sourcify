@@ -9,7 +9,7 @@ import {
 import { isEmpty } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError } from "../../../../../common/errors";
 import { services } from "../../../../services/services";
-import { logger } from "../../../../../common/logger";
+import logger from "../../../../../common/logger";
 
 export async function verifyContractsInSessionEndpoint(
   req: Request,
@@ -22,17 +22,16 @@ export async function verifyContractsInSessionEndpoint(
 
   const receivedContracts: SendableContract[] = req.body.contracts;
 
-  const requestId = req.headers["X-Request-ID"] || "";
-  const requestIdMsg = requestId ? `requestId=${requestId} ` : "";
-
   /* eslint-disable indent */
-  logger.info(`${requestIdMsg} /session/verify - \
-    ${receivedContracts
-      .map(
-        (c) => `verificationId=${c.verificationId} \
-    address=${c.address} chainId=${c.chainId}`
-      )
-      .join(", ")})}`);
+  logger.info("verifyContractsInSession", {
+    receivedContracts: receivedContracts.map(
+      ({ verificationId, chainId, address }) => ({
+        verificationId,
+        chainId,
+        address,
+      })
+    ),
+  });
   /* eslint-enable indent*/
 
   const verifiable: ContractWrapperMap = {};
@@ -42,7 +41,6 @@ export async function verifyContractsInSessionEndpoint(
     if (contractWrapper) {
       contractWrapper.address = receivedContract.address;
       contractWrapper.chainId = receivedContract.chainId;
-      /* contractWrapper.contextVariables = receivedContract.contextVariables; */
       contractWrapper.creatorTxHash = receivedContract.creatorTxHash;
       if (isVerifiable(contractWrapper)) {
         verifiable[id] = contractWrapper;

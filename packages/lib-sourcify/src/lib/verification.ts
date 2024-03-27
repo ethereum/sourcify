@@ -1,6 +1,5 @@
 import { CheckedContract } from './CheckedContract';
 import {
-  /* ContextVariables, */
   Create2Args,
   ImmutableReferences,
   ImmutablesTransformation,
@@ -20,14 +19,6 @@ import {
   splitAuxdata,
 } from '@ethereum-sourcify/bytecode-utils';
 import { getAddress, getCreateAddress, keccak256 } from 'ethers';
-/* 
-import { EVM } from '@ethereumjs/evm';
-import { EEI } from '@ethereumjs/vm';
-import { Address } from '@ethereumjs/util';
-import { Common } from '@ethereumjs/common';
-import { DefaultStateManager } from '@ethereumjs/statemanager';
-import { Blockchain } from '@ethereumjs/blockchain';
-*/
 import { hexZeroPad, isHexString } from '@ethersproject/bytes';
 import { BigNumber } from '@ethersproject/bignumber';
 import { defaultAbiCoder as abiCoder, ParamType } from '@ethersproject/abi';
@@ -40,7 +31,6 @@ export async function verifyDeployed(
   checkedContract: CheckedContract,
   sourcifyChain: SourcifyChain,
   address: string,
-  /* _contextVariables?: ContextVariables, */
   creatorTxHash?: string,
   forceEmscripten = false
 ): Promise<Match> {
@@ -54,11 +44,11 @@ export async function verifyDeployed(
     runtimeTransformationValues: {},
     creationTransformationValues: {},
   };
-  logInfo(
-    `Verifying contract ${
-      checkedContract.name
-    } at address ${address} on chain ${sourcifyChain.chainId.toString()}`
-  );
+  logInfo('Verifying contract', {
+    name: checkedContract.name,
+    address,
+    chainId: sourcifyChain.chainId,
+  });
 
   let useEmscripten = forceEmscripten;
 
@@ -86,18 +76,29 @@ export async function verifyDeployed(
 
   // Can't match if there is no deployed bytecode
   if (!runtimeBytecode) {
-    match.message = `Chain #${sourcifyChain.chainId} is temporarily unavailable.`;
+    match.message = `Chain #${sourcifyChain.chainId} is temporarily unavailable`;
+    logDebug('Unable to verify', {
+      address,
+      chainId: sourcifyChain.chainId,
+      matchMessage: match.message,
+    });
     return match;
   } else if (runtimeBytecode === '0x') {
     match.message = `Chain #${sourcifyChain.chainId} does not have a contract deployed at ${address}.`;
+    logDebug('Unable to verify', {
+      address,
+      chainId: sourcifyChain.chainId,
+      matchMessage: match.message,
+    });
     return match;
   }
 
   // Try to match with deployed bytecode directly
   try {
-    logDebug(
-      `Matching with deployed bytecode chain=${sourcifyChain.chainId} address=${address}`
-    );
+    logDebug('Matching with deployed bytecode', {
+      chain: sourcifyChain.chainId,
+      address,
+    });
     matchWithRuntimeBytecode(
       match,
       recompiled.runtimeBytecode,
@@ -105,9 +106,11 @@ export async function verifyDeployed(
       recompiled.immutableReferences
     );
     if (match.runtimeMatch === 'partial') {
-      logDebug(
-        `Matched partial with deployed bytecode, tryToFindPerfectMetadataAndMatch chain=${sourcifyChain.chainId} address=${address}`
-      );
+      logDebug('Matched with deployed bytecode', {
+        chain: sourcifyChain.chainId,
+        address,
+        runtimeMatch: match.runtimeMatch,
+      });
       match = await tryToFindPerfectMetadataAndMatch(
         checkedContract,
         runtimeBytecode,
@@ -123,18 +126,21 @@ export async function verifyDeployed(
       );
     }
   } catch (e: any) {
-    logWarn(
-      `Error while matching with runtime bytecode for contract ${address} on chain ${sourcifyChain.chainId}: ` +
-        e.message
-    );
+    logWarn('Error matching with runtime bytecode', {
+      chain: sourcifyChain.chainId,
+      address,
+      error: e.message,
+    });
   }
 
   try {
     // Try to match with creationTx, if available
     if (creatorTxHash) {
-      logDebug(
-        `Matching with creation tx creatorTxHash=${creatorTxHash} chain=${sourcifyChain.chainId} address=${address}`
-      );
+      logDebug('Matching with creation tx', {
+        chain: sourcifyChain.chainId,
+        address,
+        creatorTxHash,
+      });
       const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
       await matchWithCreationTx(
         match,
@@ -144,10 +150,13 @@ export async function verifyDeployed(
         creatorTxHash,
         recompiledMetadata
       );
-      if (match.creationMatch === 'partial') {
-        logDebug(
-          `Matched partial with creation tx, tryToFindPerfectMetadataAndMatch creatorTxHash=${creatorTxHash} chain=${sourcifyChain.chainId} address=${address}`
-        );
+      if (match.runtimeMatch === 'partial') {
+        logDebug('Matched partial with creation tx', {
+          chain: sourcifyChain.chainId,
+          address,
+          runtimeMatch: match.runtimeMatch,
+          creatorTxHash,
+        });
         match = await tryToFindPerfectMetadataAndMatch(
           checkedContract,
           runtimeBytecode,
@@ -167,10 +176,12 @@ export async function verifyDeployed(
       }
     }
   } catch (e: any) {
-    logWarn(
-      `Error while matching with creation tx for contract ${address} on chain ${sourcifyChain.chainId}: ` +
-        e.message
-    );
+    logWarn('Error matching with creation tx', {
+      chain: sourcifyChain.chainId,
+      address,
+      creatorTxHash,
+      error: e.message,
+    });
   }
 
   // Case when extra unused files in compiler input cause different bytecode (https://github.com/ethereum/sourcify/issues/618)
@@ -193,10 +204,12 @@ export async function verifyDeployed(
       }
     }
   } catch (e: any) {
-    logWarn(
-      `Error while checking for extra-file-input-bug for contract ${address} on chain ${sourcifyChain.chainId}: ` +
-        e.message
-    );
+    logWarn('Error checking for extra-file-input-bug', {
+      name: checkedContract.name,
+      address,
+      chainId: sourcifyChain.chainId,
+      error: e.message,
+    });
   }
 
   try {
@@ -208,11 +221,11 @@ export async function verifyDeployed(
       !checkedContract.metadata.settings.optimizer?.enabled &&
       checkedContract.metadata.settings?.viaIR
     ) {
-      logInfo(
-        `Forcing compiling with the Emscripten compiler to match the deployed bytecode for ${
-          checkedContract.name
-        } to verify at ${address} on chain ${sourcifyChain.chainId.toString()}: `
-      );
+      logInfo('Force Emscripten compiler', {
+        name: checkedContract.name,
+        address,
+        chainId: sourcifyChain.chainId,
+      });
       return verifyDeployed(
         checkedContract,
         sourcifyChain,
@@ -222,22 +235,30 @@ export async function verifyDeployed(
       );
     }
   } catch (e: any) {
-    logWarn(
-      `Error while handling "<0.8.21 and viaIR" bug for contract ${address} on chain ${sourcifyChain.chainId}: ` +
-        e.message
-    );
+    logWarn('Error handling "<0.8.21 and viaIR" bug', {
+      name: checkedContract.name,
+      address,
+      chainId: sourcifyChain.chainId,
+      error: e.message,
+    });
   }
 
   if (match.creationMatch !== null || match.runtimeMatch !== null) {
-    logInfo(
-      `Verified contract successfully name=${checkedContract.name} address=${address} chainId=${match.chainId} runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
-    );
+    logInfo('Verified contract', {
+      name: checkedContract.name,
+      address,
+      chainId: sourcifyChain.chainId,
+      runtimeMatch: match.runtimeMatch,
+      creationMatch: match.creationMatch,
+    });
     return match;
   }
 
-  logInfo(
-    `Failed to verify contract address=${address} chainId=${sourcifyChain.chainId} message=${match.message}`
-  );
+  logInfo('Failed to verify contract', {
+    name: checkedContract.name,
+    address,
+    chainId: sourcifyChain.chainId,
+  });
   throw Error("The deployed and recompiled bytecode don't match.");
 }
 
@@ -432,11 +453,11 @@ export async function matchWithCreationTx(
         creatorTx
       )) || '';
   } catch (e: any) {
-    logWarn(
-      `Failed to get contract creation bytecode for ${address} on chain ${sourcifyChain.chainId.toString()}. \n ${
-        e.message
-      }`
-    );
+    logWarn('Failed to fetch creation bytecode', {
+      address,
+      txHash: creatorTxHash,
+      chainId: sourcifyChain.chainId.toString(),
+    });
     match.creationMatch = null;
     match.message = `Failed to match with creation bytecode: couldn't get the creation bytecode.`;
     return;
@@ -482,20 +503,22 @@ export async function matchWithCreationTx(
     // if the bytecode doesn't end with metadata then "partial" match
     if (endsWithMetadataHash(recompiledCreationBytecode)) {
       match.creationMatch = 'perfect';
-      logDebug(
-        `'perfect' creationMatch chain=${match.chainId} address=${address}`
-      );
     } else {
       match.creationMatch = 'partial';
-      logDebug(
-        `'partial' creationMatch chain=${match.chainId} address=${address}`
-      );
     }
+    logDebug('Found creation match', {
+      chainId: match.chainId,
+      address,
+      creationMatch: match.creationMatch,
+    });
   } else {
     // Match without metadata hashes
     // TODO: Handle multiple metadata hashes
 
-    logDebug(`Trying to match without metadata hashes`);
+    logDebug('Matching with trimmed creation bytecode', {
+      chainId: match.chainId,
+      address,
+    });
     // Assuming the onchain and recompiled auxdata lengths are the same
     const onchainCreationBytecodeWithoutConstructorArgs =
       onchainCreationBytecode.slice(0, recompiledCreationBytecode.length);
@@ -510,10 +533,12 @@ export async function matchWithCreationTx(
         trimmedRecompiledCreationBytecode
       )
     ) {
-      logDebug(
-        `'partial' creationMatch (trimmed metadata) chain=${match.chainId} address=${address}`
-      );
       match.creationMatch = 'partial';
+      logDebug('Found match with trimmed creation bytecode', {
+        chainId: match.chainId,
+        address,
+        creationMatch: match.creationMatch,
+      });
       match.creationTransformations?.push(
         AuxdataTransformation(
           trimmedRecompiledCreationBytecode.substring(2).length / 2,
@@ -748,7 +773,7 @@ function endsWithMetadataHash(bytecode: string) {
     endsWithMetadata =
       !!decodedCBOR.ipfs || !!decodedCBOR['bzzr0'] || !!decodedCBOR['bzzr1'];
   } catch (e) {
-    logDebug("Can't decode CBOR");
+    logDebug("Can't decode CBOR, contract does not end with CBOR metadata");
     endsWithMetadata = false;
   }
   return endsWithMetadata;

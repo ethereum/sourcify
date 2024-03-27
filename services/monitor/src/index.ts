@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import fs from "fs";
 import Monitor from "./Monitor";
-import { MonitorConfig, PassedMonitorConfig } from "./types";
+import { PassedMonitorConfig } from "./types";
 import path from "path";
 
 // Initialize a new commander object

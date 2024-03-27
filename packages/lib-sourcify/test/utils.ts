@@ -12,7 +12,7 @@ import fs from 'fs';
 import {
   CompilerOutput,
   JsonInput,
-  /* ContextVariables, */ Match,
+  Match,
   SourcifyChain,
   verifyDeployed,
 } from '../src';
@@ -74,7 +74,6 @@ export const checkAndVerifyDeployed = async (
   contractFolderPath: string,
   sourcifyChain: SourcifyChain,
   address: string,
-  /* contextVariables?: ContextVariables, */
   creatorTxHash?: string
 ) => {
   const checkedContracts = await checkFilesFromContractFolder(
@@ -85,7 +84,6 @@ export const checkAndVerifyDeployed = async (
     checkedContracts[0],
     sourcifyChain,
     address,
-    /* contextVariables, */
     creatorTxHash
   );
   return match;

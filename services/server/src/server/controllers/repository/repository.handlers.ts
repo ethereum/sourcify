@@ -4,7 +4,7 @@ import { ContractData, FilesInfo, MatchLevel } from "../../types";
 import { NotFoundError } from "../../../common/errors";
 import { Match } from "@ethereum-sourcify/lib-sourcify";
 import { services } from "../../services/services";
-import { logger } from "../../../common/logger";
+import logger from "../../../common/logger";
 
 type RetrieveMethod = (
   chain: string,
@@ -60,6 +60,7 @@ export async function checkAllByChainAndAddressEndpoint(
   const map: Map<string, any> = new Map();
   const addresses = req.query.addresses.split(",");
   const chainIds = req.query.chainIds.split(",");
+  logger.debug("checkAllByChainAndAddresses", { chainIds, addresses });
   for (const address of addresses) {
     for (const chainId of chainIds) {
       try {
@@ -91,6 +92,7 @@ export async function checkAllByChainAndAddressEndpoint(
     }
   }
   const resultArray = Array.from(map.values());
+  logger.debug("Result checkAllByChainAndAddresses", { resultArray });
   res.send(resultArray);
 }
 
@@ -98,6 +100,7 @@ export async function checkByChainAndAddressesEnpoint(req: any, res: Response) {
   const map: Map<string, any> = new Map();
   const addresses = req.query.addresses.split(",");
   const chainIds = req.query.chainIds.split(",");
+  logger.debug("checkByChainAndAddresses", { chainIds, addresses });
   for (const address of addresses) {
     for (const chainId of chainIds) {
       try {
@@ -124,5 +127,6 @@ export async function checkByChainAndAddressesEnpoint(req: any, res: Response) {
     }
   }
   const resultArray = Array.from(map.values());
+  logger.debug("Result checkByChainAndAddresses", { resultArray });
   res.send(resultArray);
 }

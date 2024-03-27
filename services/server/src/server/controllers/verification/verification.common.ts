@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import { Request } from "express";
 import {
   BadRequestError,
   PayloadTooLargeError,
@@ -26,7 +26,7 @@ import { ISolidityCompiler } from "@ethereum-sourcify/lib-sourcify";
 import { SolcLambda } from "../../services/compiler/lambda/SolcLambda";
 import { SolcLocal } from "../../services/compiler/local/SolcLocal";
 import { StorageService } from "../../services/StorageService";
-import { logger } from "../../../common/logger";
+import logger from "../../../common/logger";
 import config from "config";
 import { createHash } from "crypto";
 
@@ -60,10 +60,6 @@ export type LegacyVerifyRequest = Request & {
     addresses: string[];
     chain: string;
     chosenContract: number;
-    /* contextVariables?: {
-        abiEncodedConstructorArguments?: string;
-        msgSender?: string;
-      }; */
   };
 };
 
@@ -83,12 +79,16 @@ const extractFilesFromForm = (files: any): PathBuffer[] => {
   if (!Array.isArray(files)) {
     files = [files];
   }
+  logger.debug("extractFilesFromForm", {
+    files: files.map((f: any) => f.name),
+  });
   return files.map((f: any) => ({ path: f.name, buffer: f.data }));
 };
 
 export const extractFilesFromJSON = (files: {
   [key: string]: string;
 }): PathBuffer[] => {
+  logger.debug("extractFilesFromJSON", { files: Object.keys(files) });
   const inputFiles: PathBuffer[] = [];
   for (const name in files) {
     const file = files[name];
@@ -114,7 +114,7 @@ export function generateId(obj: any): string {
   return hash;
 }
 
-export const saveFiles = (
+export const saveFilesToSession = (
   pathContents: PathContent[],
   session: Session
 ): number => {
@@ -143,6 +143,13 @@ export const saveFiles = (
       session.inputFiles[newId] = pc;
       ++newFilesCount;
     }
+  });
+
+  logger.info("Saved files to session", {
+    newFilesCount,
+    inputSize,
+    sessionInputFilesLength: Object.keys(session.inputFiles).length,
+    sessionId: session.id,
   });
 
   return newFilesCount;
@@ -260,6 +267,12 @@ export const checkContractsInSession = async (session: Session) => {
       }
     }
     updateUnused(unused, session);
+    logger.debug("Updated session", {
+      sessionId: session.id,
+      contracts: Object.keys(session.contractWrappers).map(
+        (id) => session.contractWrappers[id].contract.name
+      ),
+    });
   } catch (error) {
     const paths = pathBuffers.map((pb) => pb.path);
     updateUnused(paths, session);
@@ -269,16 +282,24 @@ export const checkContractsInSession = async (session: Session) => {
 export async function addRemoteFile(
   query: QueryString.ParsedQs
 ): Promise<PathBuffer[]> {
+  logger.debug("addRemoteFile", { query });
   if (typeof query.url !== "string") {
     throw new BadRequestError("Query url must be a string");
   }
   let res;
   try {
+    logger.debug("addRemoteFile Fetching", query.url);
     res = await fetch(query.url);
   } catch (err) {
     throw new BadRequestError("Couldn't fetch from " + query.url);
   }
-  if (!res.ok) throw new BadRequestError("Couldn't fetch from " + query.url);
+  if (!res.ok) {
+    logger.warn("addRemoteFile Failed Fetching", query.url, {
+      status: res.status,
+    });
+    throw new BadRequestError("Couldn't fetch from " + query.url);
+  }
+  logger.debug("addRemoteFile Fetched", query.url, { status: res.status });
   // Save with the fileName exists on server response header.
   const fileName =
     res.headers.get("Content-Disposition")?.split("filename=")[1] ||
@@ -348,12 +369,7 @@ export const verifyContractsInSession = async (
       continue;
     }
 
-    const {
-      address,
-      chainId,
-      contract,
-      /* contextVariables, */ creatorTxHash,
-    } = contractWrapper;
+    const { address, chainId, contract, creatorTxHash } = contractWrapper;
 
     // The session saves the CheckedContract as a simple object, so we need to reinstantiate it
     const checkedContract = createCheckedContract(
@@ -369,7 +385,6 @@ export const verifyContractsInSession = async (
         checkedContract,
         chainId as string,
         address as string,
-        /* contextVariables, */
         creatorTxHash
       );
       // Send to verification again with all source files.
@@ -395,7 +410,6 @@ export const verifyContractsInSession = async (
           contractWithAllSources,
           chainId as string,
           address as string
-          /* contextVariables */
         );
         if (
           tempMatch.runtimeMatch === "perfect" ||

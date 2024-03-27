@@ -13,7 +13,7 @@ export async function fetchWithTimeout(
 
   const controller = new AbortController();
   const id = setTimeout(() => {
-    logWarn(`Aborting request ${resource} because of timout ${timeout}`);
+    logWarn('Aborting request', { resource, timeout });
     controller.abort();
   }, timeout);
   const response = await fetch(resource, {

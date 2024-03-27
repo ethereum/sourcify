@@ -6,33 +6,16 @@ dotenv.config({ path: path.resolve(__dirname, "..", "..", ".env") });
 process.env["NODE_CONFIG_DIR"] = path.resolve(__dirname, "..", "config");
 import config from "config";
 import express, { Request } from "express";
-import serveIndex from "serve-index";
 import cors from "cors";
-import routes from "./routes";
-import bodyParser from "body-parser";
-import genericErrorHandler from "./middlewares/GenericErrorHandler";
-import notFoundHandler from "./middlewares/NotFoundError";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 import util from "util";
-import {
-  checkSourcifyChainId,
-  checkSupportedChainId,
-  sourcifyChainsArray,
-} from "../sourcify-chains";
-import {
-  validateAddresses,
-  validateSingleAddress,
-  validateSourcifyChainIds,
-} from "./common";
 import * as OpenApiValidator from "express-openapi-validator";
 import swaggerUi from "swagger-ui-express";
 import yamljs from "yamljs";
 import { resolveRefs } from "json-refs";
-import { initDeprecatedRoutes } from "./deprecated.routes";
 import { getAddress } from "ethers";
-import { logger } from "../common/logger";
-import { setLibSourcifyLogger } from "@ethereum-sourcify/lib-sourcify";
+import bodyParser from "body-parser";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fileUpload = require("express-fileupload");
 import {
@@ -40,47 +23,26 @@ import {
   rateLimit,
 } from "express-rate-limit";
 import crypto from "crypto";
+import serveIndex from "serve-index";
+import { v4 as uuidv4 } from "uuid";
+import { asyncLocalStorage } from "../common/async-context";
+
+// local imports
+import logger from "../common/logger";
+import routes from "./routes";
+import genericErrorHandler from "../common/errors/GenericErrorHandler";
+import {
+  checkSourcifyChainId,
+  checkSupportedChainId,
+} from "../sourcify-chains";
+import {
+  validateAddresses,
+  validateSingleAddress,
+  validateSourcifyChainIds,
+} from "./common";
+import { initDeprecatedRoutes } from "./deprecated.routes";
 
 const MemoryStore = createMemoryStore(session);
-
-// here we override the standard LibSourcify's Logger with a custom one
-setLibSourcifyLogger({
-  // No need to set again the logger level because it's set here
-  logLevel: process.env.NODE_ENV === "production" ? 3 : 4,
-  setLevel(level: number) {
-    this.logLevel = level;
-  },
-  log(level, msg) {
-    if (level <= this.logLevel) {
-      switch (level) {
-        case 1:
-          logger.error({
-            prefix: "LibSourcify",
-            message: msg,
-          });
-          break;
-        case 2:
-          logger.warn({
-            prefix: "LibSourcify",
-            message: msg,
-          });
-          break;
-        case 3:
-          logger.info({
-            prefix: "LibSourcify",
-            message: msg,
-          });
-          break;
-        case 4:
-          logger.debug({
-            prefix: "LibSourcify",
-            message: msg,
-          });
-          break;
-      }
-    }
-  },
-});
 
 export class Server {
   app: express.Application;
@@ -93,11 +55,12 @@ export class Server {
       value: RegExp.prototype.toString,
     });
 
-    logger.info(
-      `Starting Sourcify Server with config ${JSON.stringify(config, null, 2)}`
-    );
+    logger.info("Starting server with config", {
+      config: JSON.stringify(config, null, 2),
+    });
+
     this.port = port || config.get("server.port");
-    logger.info(`Starting Sourcify Server on port ${this.port}`);
+    logger.info("Server port set", { port: this.port });
     this.app = express();
 
     this.app.use(
@@ -119,27 +82,30 @@ export class Server {
       })
     );
 
-    // Log all requests in debugging mode
+    // Inject the requestId to the AsyncLocalStorage to be logged.
     this.app.use((req, res, next) => {
-      const contentType = req.headers["content-type"];
-      if (contentType === "application/json") {
-        logger.debug(
-          `Request: ${req.method} ${req.path} chainId=${
-            req.body.chainId || req.body.chain
-          } address=${req.body.address}`
-        );
-        next();
-      } else if (contentType && contentType.includes("multipart/form-data")) {
-        logger.debug(
-          `Request: ${req.method} ${req.path} (multipart/form-data) chainId=${
-            req.body.chainId || req.body.chain
-          } address=${req.body.address}`
-        );
-        next();
-      } else {
-        logger.debug(`Request: ${req.method} ${req.path}`);
-        next();
+      // create a new id if it doesn't exist. Should be assigned by the nginx in production.
+      if (!req.headers["x-request-id"]) {
+        req.headers["x-request-id"] = uuidv4();
       }
+
+      // Apparently req.headers can be an array
+      const requestId = Array.isArray(req.headers["x-request-id"])
+        ? req.headers["x-request-id"][0]
+        : req.headers["x-request-id"];
+
+      const context = { requestId };
+      // Run the rest of the request stack in the context of the requestId
+      asyncLocalStorage.run(context, () => {
+        next();
+      });
+    });
+
+    // Log all requests in trace mode
+    this.app.use((req, res, next) => {
+      const { method, path, params, headers, body } = req;
+      logger.silly("Request", { method, path, params, headers, body });
+      next();
     });
 
     // In every request support both chain and chainId
@@ -161,8 +127,13 @@ export class Server {
         fileUploader: false,
         validateSecurity: {
           handlers: {
-            BearerAuth: async (req, scopes, schema) => {
-              return true;
+            // Auth Handler for the /change-log-level endpoint
+            BearerAuth: (req) => {
+              const authHeader = req.headers["authorization"];
+              // This is a placeholder token. In a real application, use a more secure method for managing and validating tokens.
+              const token = authHeader && authHeader.split(" ")[1];
+
+              return token === process.env.SETLOGGING_TOKEN;
             },
           },
         },
@@ -242,9 +213,12 @@ export class Server {
           const ipLog = process.env.NODE_ENV === "production" ? ipHash : ip; // Don't log IPs in production master
           const store = options.store as ExpressRateLimitMemoryStore;
           const hits = store.hits[ip || ""];
-          logger.debug(
-            `Rate limit hit method=${req.method} path=${req.path} ip=${ipLog} hits=${hits}`
-          );
+          logger.debug("Rate limit hit", {
+            method: req.method,
+            path: req.path,
+            ip: ipLog,
+            hits,
+          });
           res.status(options.statusCode).send(options.message);
         },
         keyGenerator: (req: any) => {
@@ -294,48 +268,14 @@ export class Server {
     this.app.set("trust proxy", true);
     this.app.use(session(getSessionOptions()));
 
-    this.app.get("/health", (_req, res) =>
-      res.status(200).send("Alive and kicking!")
-    );
-    this.app.get("/chains", (_req, res) => {
-      const sourcifyChains = sourcifyChainsArray.map(
-        ({ rpc, name, title, chainId, supported, etherscanApi }) => {
-          // Don't publish providers
-          // Don't show Alchemy & Infura IDs
-          rpc = rpc.map((url) => {
-            if (typeof url === "string") {
-              if (url.includes("alchemy"))
-                return url.replace(/\/[^/]*$/, "/{ALCHEMY_API_KEY}");
-              else if (url.includes("infura"))
-                return url.replace(/\/[^/]*$/, "/{INFURA_API_KEY}");
-              else return url;
-            } else {
-              // FetchRequest
-              return url.url;
-            }
-          });
-          return {
-            name,
-            title,
-            chainId,
-            rpc,
-            supported,
-            etherscanAPI: etherscanApi?.apiURL, // Needed in the UI
-          };
-        }
-      );
-
-      res.status(200).json(sourcifyChains);
-    });
-
     this.app.use(
       "/repository",
       express.static(this.repository),
       serveIndex(this.repository, { icons: true })
     );
+
     this.app.use("/", routes);
     this.app.use(genericErrorHandler);
-    this.app.use(notFoundHandler);
   }
 
   async listen(callback?: () => void) {
@@ -369,9 +309,11 @@ export class Server {
 
 function getSessionOptions(): session.SessionOptions {
   if (config.get("session.secret") === "CHANGE_ME") {
-    logger.warn(
-      "The session secret is not set, please set it in the config file"
-    );
+    const msg =
+      "The session secret is not set, please set it in the config file";
+    process.env.NODE_ENV === "production"
+      ? logger.error(msg)
+      : logger.warn(msg);
   }
   return {
     secret: config.get("session.secret"),
@@ -406,9 +348,9 @@ if (require.main === module) {
           customfavIcon: "https://sourcify.dev/favicon.ico",
         })
       );
-      server.app.listen(server.port, () =>
-        logger.info(`Server listening on port ${server.port}`)
-      );
+      server.app.listen(server.port, () => {
+        logger.info("Server listening", { port: server.port });
+      });
     });
 }
 

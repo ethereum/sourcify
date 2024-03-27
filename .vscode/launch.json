@@ -34,6 +34,8 @@
       ],
       "env": {
         // "DEBUG": "express:*" // Debug all express modules *
+        // "NODE_ENV": "production"
+        // "NODE_LOG_LEVEL": "debug"
       },
       "smartStep": true,
       "console": "integratedTerminal",

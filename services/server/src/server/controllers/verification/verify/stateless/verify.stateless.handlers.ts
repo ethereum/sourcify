@@ -18,7 +18,7 @@ import {
 } from "../../../../../common/errors";
 import { StatusCodes } from "http-status-codes";
 import { getResponseMatchFromMatch } from "../../../../common";
-import { logger } from "../../../../../common/logger";
+import logger from "../../../../../common/logger";
 
 export async function legacyVerifyEndpoint(
   req: LegacyVerifyRequest,
@@ -71,19 +71,27 @@ export async function legacyVerifyEndpoint(
     ? checkedContracts[req.body.chosenContract]
     : checkedContracts[0];
 
+  if (!contract) {
+    throw new NotFoundError(
+      "Chosen contract not found. Received chosenContract: " +
+        req.body.chosenContract
+    );
+  }
+
   try {
     const match = await services.verification.verifyDeployed(
       contract,
       req.body.chain,
       req.body.address,
-      /* req.body.contextVariables, */
       req.body.creatorTxHash
     );
     // Send to verification again with all source files.
     if (match.runtimeMatch === "extra-file-input-bug") {
-      logger.info(
-        `Found an extra-file-input-bug for ${contract.name} on ${req.body.chain} at ${req.body.address}. Sending to verification again with all source files.`
-      );
+      logger.info("Found extra-file-input-bug", {
+        contract: contract.name,
+        chain: req.body.chain,
+        address: req.body.address,
+      });
       const contractWithAllSources = await useAllSources(contract, inputFiles);
       const tempMatch = await services.verification.verifyDeployed(
         contractWithAllSources,
