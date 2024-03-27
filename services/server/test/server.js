@@ -1692,6 +1692,63 @@ describe("Server", function () {
     });
   });
   describe("E2E test path sanitization", async function () {
+    it("should sanitize the path of a source file with new line character \\n", async () => {
+      const artifact = require(path.join(
+        __dirname,
+        "./testcontracts/path-sanitization-new-line/artifact.json"
+      ));
+      const { contractAddress } =
+        await deployFromAbiAndBytecodeForCreatorTxHash(
+          localSigner,
+          artifact.abi,
+          artifact.bytecode
+        );
+
+      const metadata = require(path.join(
+        __dirname,
+        "./testcontracts/path-sanitization-new-line/metadata.json"
+      ));
+      const sourcePath = path.join(
+        __dirname,
+        "testcontracts",
+        "path-sanitization-new-line",
+        "sources",
+        "DFrostGeckoToken\n.sol" // with new line
+      );
+      const sourceBuffer = fs.readFileSync(sourcePath);
+
+      const res = await chai
+        .request(server.app)
+        .post("/")
+        .send({
+          address: contractAddress,
+          chain: defaultContractChain,
+          files: {
+            "metadata.json": JSON.stringify(metadata),
+            "DFrostGeckoToken\n.sol": sourceBuffer.toString(),
+          },
+        });
+      assertVerification(
+        null,
+        res,
+        null,
+        contractAddress,
+        defaultContractChain
+      );
+      const isExist = fs.existsSync(
+        path.join(
+          server.repository,
+          "contracts",
+          "full_match",
+          defaultContractChain,
+          contractAddress,
+          "sources/contracts",
+          "DFrostGeckoToken.sol" // without new line
+        )
+      );
+      chai.expect(isExist, "Path not sanitized").to.be.true;
+    });
+
     it("should verify a contract with paths containing misc. chars, save the path translation, and be able access the file over the API", async () => {
       const sanitizeArtifact = require(path.join(
         __dirname,
