@@ -92,6 +92,11 @@ INFURA_API_KEY=
 # ethpandaops.io authentication
 CF_ACCESS_CLIENT_ID=
 CF_ACCESS_CLIENT_SECRET=
+
+# Overrides the log level. Normally, if NODE_ENV production set to "info", otherwise "debug". Values can be silly, debug, info, warn, error
+NODE_LOG_LEVEL=
+# Port of the HTTP server to change the log level dynamically while the monitor is running
+NODE_LOG_LEVEL_SERVER_PORT=3333
 ```
 
 ## Usage
@@ -138,4 +143,14 @@ $ docker run \
   -e ALCHEMY_API_KEY=xxx \
   -e INFURA_API_KEY=xxx \
   ghcr.io/ethereum/sourcify/monitor:latest
+```
+
+## Setting log levels dynamically
+
+The default log level of the monitor is set to "info". You can change the default value by setting the env var `NODE_LOG_LEVEL` on start.
+
+You can also change the log level dynamically while the monitor is running through a simple (unauthenticated) HTTP server endpoint. The server port is set in `NODE_LOG_LEVEL_SERVER_PORT` env var (default: `3333`). Simply call:
+
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"level": "debug"}' http://localhost:3333
 ```
