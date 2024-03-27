@@ -512,6 +512,9 @@ export function normalizeRecompiledBytecodes(
   recompiledContract: CheckedContract,
   match: Match
 ) {
+  recompiledContract.normalizedRuntimeBytecode =
+    recompiledContract.runtimeBytecode;
+
   const PLACEHOLDER_LENGTH = 40;
 
   // Runtime bytecode normalzations
