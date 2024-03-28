@@ -948,6 +948,28 @@
       "etherscanApi": true
     }
   },
+  "252": {
+    "sourcifyName": "Fraxtal",
+    "supported": true,
+    "etherscanApi": {
+      "apiURL": "https://api.fraxscan.com",
+      "apiKeyEnvName": "FRAXSCAN_API_KEY"
+    },
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true
+    }
+  },
+  "2522": {
+    "sourcifyName": "Fraxtal Testnet",
+    "supported": true,
+    "etherscanApi": {
+      "apiURL": "https://api-holesky.fraxscan.com",
+      "apiKeyEnvName": "FRAXSCAN_API_KEY"
+    },
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true
+    }
+  },
   "888": {
     "sourcifyName": "Wanchain Mainnet",
     "supported": true

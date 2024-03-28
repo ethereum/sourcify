@@ -801,6 +801,23 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // Fraxtal
+  verifyContract(
+    "0xEe44D634f97d8eE09850Ed04559E068D30276FE7",
+    "252",
+    "Fraxtal",
+    "252/",
+    "partial"
+  );
+
+  verifyContract(
+    "0x31D982ebd82Ad900358984bd049207A4c2468640",
+    "2522",
+    "Fraxtal Testnet",
+    "252/",
+    "partial"
+  );
+
   // Wanchain Mainnet
   verifyContract(
     "0xC3649123BCa36c0c38A71bDbd2F508AB4f939f47",
