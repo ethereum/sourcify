@@ -4,7 +4,7 @@ Sourcify Monitor is a standalone service that listens to various EVM chains for 
 
 This is only possible for Solidity contracts that has its metadata hash published in a DecentralizedStorage (IPFS, Swarm, etc). Currently only IPFS is supported.
 
-Learn more about the contract metadata in the [Solidity docs](https://docs.soliditylang.org/en/latest/metadata.html) and [Sourcify docs](https://docs.sourcify.dev/docs/metadata/). We also have a nice playground showing everthing in action at [playground.sourcify.dev](https://playground.sourcify.dev).
+Learn more about the contract metadata in the [Solidity docs](https://docs.soliditylang.org/en/latest/metadata.html) and [Sourcify docs](https://docs.sourcify.dev/docs/metadata/). We also have a nice playground showing everything in action at [playground.sourcify.dev](https://playground.sourcify.dev).
 
 ## Config
 

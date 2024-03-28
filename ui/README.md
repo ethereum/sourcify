@@ -52,7 +52,7 @@ The Docker image is published on [Github Container Registry](https://github.com/
 docker run -p 80:80 ghcr.io/ethereum/sourcify/ui:latest
 ```
 
-However pleasse note that the values in the `.env` files are injected on the build time so you won't be able to provide custom values for the environment variables:
+However pleases note that the values in the `.env` files are injected on the build time so you won't be able to provide custom values for the environment variables:
 
 ```bash
 REACT_APP_SERVER_URL=https://sourcify.dev/server

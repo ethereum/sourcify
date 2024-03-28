@@ -189,7 +189,7 @@ function validateSolcPath(solcPath: string): boolean {
   const error =
     spawned?.error?.message ||
     spawned.stderr.toString() ||
-    'Error running solc, are you on the right platoform? (e.g. x64 vs arm)';
+    'Error running solc, are you on the right platform? (e.g. x64 vs arm)';
 
   logWarn(error);
   return false;
