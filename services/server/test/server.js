@@ -1,7 +1,13 @@
 process.env.NODE_CONFIG_ENV = "test";
 process.env.IPFS_GATEWAY = "http://ipfs-mock/ipfs/";
 process.env.FETCH_TIMEOUT = 8000; // instantiated http-gateway takes a little longer
-process.env.SOURCIFY_POSTGRES_HOST = "";
+
+process.env.SOURCIFY_POSTGRES_HOST = "localhost";
+process.env.SOURCIFY_POSTGRES_DB = "sourcify";
+process.env.SOURCIFY_POSTGRES_USER = "sourcify";
+process.env.SOURCIFY_POSTGRES_PASSWORD = "sourcify";
+process.env.SOURCIFY_POSTGRES_PORT =
+  process.env.DOCKER_HOST_POSTGRES_TEST_PORT || 5431;
 process.env.ALLIANCE_POSTGRES_HOST = "";
 
 const Server = require("../dist/server/server").Server;
@@ -21,7 +27,6 @@ const fs = require("fs");
 const rimraf = require("rimraf");
 const path = require("path");
 const config = require("config");
-
 const { StorageService } = require("../dist/server/services/StorageService");
 const {
   createCheckedContract,
@@ -39,8 +44,10 @@ const {
   callContractMethodWithTx,
   deployFromAbiAndBytecodeForCreatorTxHash,
   readFilesFromDirectory,
+  resetDatabase,
 } = require("./helpers/helpers");
 const { deployFromAbiAndBytecode } = require("./helpers/helpers");
+const { verifierAllianceTest } = require("./helpers/verifierAlliance");
 const { JsonRpcProvider, Network, id: keccak256str } = require("ethers");
 const { LOCAL_CHAINS } = require("../dist/sourcify-chains");
 const nock = require("nock");
@@ -51,6 +58,23 @@ const EXTENDED_TIME = 20000; // 20 seconds
 const EXTENDED_TIME_60 = 60000; // 60 seconds
 
 const defaultContractChain = "1337"; // default 1337
+
+const storageService = new StorageService({
+  repositoryV1ServiceOptions: {
+    ipfsApi: process.env.IPFS_API,
+    repositoryPath: "./dist/data/mock-repositoryV1",
+    repositoryServerUrl: config.get("repositoryV1.serverUrl"),
+  },
+  sourcifyDatabaseServiceOptions: {
+    postgres: {
+      host: process.env.SOURCIFY_POSTGRES_HOST,
+      database: process.env.SOURCIFY_POSTGRES_DB,
+      user: process.env.SOURCIFY_POSTGRES_USER,
+      password: process.env.SOURCIFY_POSTGRES_PASSWORD,
+      port: process.env.SOURCIFY_POSTGRES_PORT,
+    },
+  },
+});
 
 describe("Server", function () {
   const server = new Server();
@@ -129,8 +153,9 @@ describe("Server", function () {
     console.log(`Server listening on port ${server.port}!`);
   });
 
-  beforeEach(() => {
+  beforeEach(async () => {
     rimraf.sync(server.repository);
+    await resetDatabase(storageService);
   });
 
   after(async () => {
@@ -427,15 +452,17 @@ describe("Server", function () {
         .field("chain", defaultContractChain)
         .attach("files", metadataBuffer, "metadata.json")
         .attach("files", sourceBuffer, "Storage.sol")
-        .end((err, res) =>
-          assertVerification(
-            err,
-            res,
-            done,
-            defaultContractAddress,
-            defaultContractChain,
-            "perfect"
-          )
+        .end(
+          async (err, res) =>
+            await assertVerification(
+              storageService,
+              err,
+              res,
+              done,
+              defaultContractAddress,
+              defaultContractChain,
+              "perfect"
+            )
         );
     });
 
@@ -451,15 +478,17 @@ describe("Server", function () {
             "Storage.sol": sourceBuffer.toString(),
           },
         })
-        .end((err, res) =>
-          assertVerification(
-            err,
-            res,
-            done,
-            defaultContractAddress,
-            defaultContractChain,
-            "perfect"
-          )
+        .end(
+          async (err, res) =>
+            await assertVerification(
+              storageService,
+              err,
+              res,
+              done,
+              defaultContractAddress,
+              defaultContractChain,
+              "perfect"
+            )
         );
     });
 
@@ -475,15 +504,17 @@ describe("Server", function () {
             "Storage.sol": sourceBuffer,
           },
         })
-        .end((err, res) =>
-          assertVerification(
-            err,
-            res,
-            done,
-            defaultContractAddress,
-            defaultContractChain,
-            "perfect"
-          )
+        .end(
+          async (err, res) =>
+            await assertVerification(
+              storageService,
+              err,
+              res,
+              done,
+              defaultContractAddress,
+              defaultContractChain,
+              "perfect"
+            )
         );
     });
 
@@ -516,19 +547,21 @@ describe("Server", function () {
         .field("address", defaultContractAddress)
         .field("chain", defaultContractChain)
         .attach("files", metadataBuffer, "metadata.json")
-        .end((err, res) =>
-          assertVerification(
-            err,
-            res,
-            done,
-            defaultContractAddress,
-            defaultContractChain,
-            "perfect"
-          )
+        .end(
+          async (err, res) =>
+            await assertVerification(
+              storageService,
+              err,
+              res,
+              done,
+              defaultContractAddress,
+              defaultContractChain,
+              "perfect"
+            )
         );
     });
 
-    it("should return 'partial', then delete partial when 'full' match", (done) => {
+    it("should return 'partial', then delete partial when 'full' match", async () => {
       const partialMetadata = require(path.join(
         __dirname,
         "./testcontracts/Storage/metadataModified.json"
@@ -547,58 +580,46 @@ describe("Server", function () {
 
       const partialMetadataURL = `/repository/contracts/partial_match/${defaultContractChain}/${defaultContractAddress}/metadata.json`;
 
-      chai
+      let res = await chai
         .request(server.app)
         .post("/")
         .field("address", defaultContractAddress)
         .field("chain", defaultContractChain)
         .attach("files", partialMetadataBuffer, "metadata.json")
-        .attach("files", partialSourceBuffer)
-        .end((err, res) => {
-          assertVerification(
-            err,
-            res,
-            null,
-            defaultContractAddress,
-            defaultContractChain,
-            "partial"
-          );
+        .attach("files", partialSourceBuffer);
+      await assertVerification(
+        storageService,
+        null,
+        res,
+        null,
+        defaultContractAddress,
+        defaultContractChain,
+        "partial"
+      );
 
-          chai
-            .request(server.app)
-            .get(partialMetadataURL)
-            .end((err, res) => {
-              chai.expect(err).to.be.null;
-              chai.expect(res.body).to.deep.equal(partialMetadata);
+      res = await chai.request(server.app).get(partialMetadataURL);
+      chai.expect(res.body).to.deep.equal(partialMetadata);
 
-              chai
-                .request(server.app)
-                .post("/")
-                .field("address", defaultContractAddress)
-                .field("chain", defaultContractChain)
-                .attach("files", metadataBuffer, "metadata.json")
-                .attach("files", sourceBuffer)
-                .end(async (err, res) => {
-                  assertVerification(
-                    err,
-                    res,
-                    null,
-                    defaultContractAddress,
-                    defaultContractChain
-                  );
+      res = await chai
+        .request(server.app)
+        .post("/")
+        .field("address", defaultContractAddress)
+        .field("chain", defaultContractChain)
+        .attach("files", metadataBuffer, "metadata.json")
+        .attach("files", sourceBuffer);
+      await assertVerification(
+        storageService,
+        null,
+        res,
+        null,
+        defaultContractAddress,
+        defaultContractChain
+      );
 
-                  await waitSecs(2); // allow server some time to execute the deletion (it started *after* the last response)
-                  chai
-                    .request(server.app)
-                    .get(partialMetadataURL)
-                    .end((err, res) => {
-                      chai.expect(err).to.be.null;
-                      chai.expect(res.status).to.equal(StatusCodes.NOT_FOUND);
-                      done();
-                    });
-                });
-            });
-        });
+      await waitSecs(2); // allow server some time to execute the deletion (it started *after* the last response)
+
+      res = await chai.request(server.app).get(partialMetadataURL);
+      chai.expect(res.status).to.equal(StatusCodes.NOT_FOUND);
     });
 
     it("should mark contracts without an embedded metadata hash as a 'partial' match", async () => {
@@ -626,7 +647,8 @@ describe("Server", function () {
         .field("chain", defaultContractChain)
         .attach("files", metadataBuffer, "metadata.json");
 
-      assertVerification(
+      await assertVerification(
+        storageService,
         null,
         res,
         null,
@@ -674,7 +696,8 @@ describe("Server", function () {
             "WithImmutables.sol": sourceBuffer.toString(),
           },
         });
-      assertVerification(
+      await assertVerification(
+        storageService,
         null,
         res,
         null,
@@ -767,7 +790,14 @@ describe("Server", function () {
         .field("compilerVersion", "0.8.4+commit.c7e474f2")
         .field("contractName", "Storage");
 
-      assertVerification(null, res, null, address, defaultContractChain);
+      await assertVerification(
+        storageService,
+        null,
+        res,
+        null,
+        address,
+        defaultContractChain
+      );
     });
     describe("hardhat build-info file support", function () {
       this.timeout(EXTENDED_TIME);
@@ -819,8 +849,9 @@ describe("Server", function () {
           .field("address", address)
           .field("chosenContract", mainContractIndex)
           .attach("files", hardhatOutputBuffer)
-          .end((err, res) => {
-            assertVerification(
+          .end(async (err, res) => {
+            await assertVerification(
+              storageService,
               err,
               res,
               done,
@@ -868,7 +899,8 @@ describe("Server", function () {
               "Storage.sol": sourceBuffer.toString(),
             },
           });
-        assertVerification(
+        await assertVerification(
+          storageService,
           null,
           res,
           null,
@@ -921,14 +953,12 @@ describe("Server", function () {
           .field("address", contractAddress)
           .attach("files", hardhatOutputBuffer)
           .end((err, res) => {
-            assertVerification(
-              err,
-              res,
-              done,
-              contractAddress,
-              defaultContractChain,
-              "extra-file-input-bug"
-            );
+            chai.expect(res.status).to.equal(500);
+            chai.expect(res.body).to.deep.equal({
+              error:
+                "It seems your contract's metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618",
+            });
+            done();
           });
       });
 
@@ -944,8 +974,9 @@ describe("Server", function () {
           .field("chain", defaultContractChain)
           .field("address", contractAddress)
           .attach("files", hardhatOutputBuffer)
-          .end((err, res) => {
-            assertVerification(
+          .end(async (err, res) => {
+            await assertVerification(
+              storageService,
               err,
               res,
               done,
@@ -959,7 +990,7 @@ describe("Server", function () {
   });
 
   describe("session api verification", function () {
-    this.timeout(EXTENDED_TIME);
+    this.timeout(EXTENDED_TIME_60);
 
     it("should inform when no pending contracts", (done) => {
       chai
@@ -1033,8 +1064,9 @@ describe("Server", function () {
           agent
             .post("/session/verify-validated")
             .send({ contracts })
-            .end((err, res) => {
-              assertVerificationSession(
+            .end(async (err, res) => {
+              await assertVerificationSession(
+                storageService,
                 err,
                 res,
                 done,
@@ -1098,27 +1130,29 @@ describe("Server", function () {
               contracts[0].chainId = defaultContractChain;
               contracts[0].address = defaultContractAddress;
               assertVerificationSession(
+                storageService,
                 err,
                 res,
                 null,
                 undefined,
                 undefined,
                 "error"
-              );
-
-              agent
-                .post("/session/verify-validated")
-                .send({ contracts })
-                .end((err, res) => {
-                  assertVerificationSession(
-                    err,
-                    res,
-                    done,
-                    defaultContractAddress,
-                    defaultContractChain,
-                    "perfect"
-                  );
-                });
+              ).then(() => {
+                agent
+                  .post("/session/verify-validated")
+                  .send({ contracts })
+                  .end(async (err, res) => {
+                    await assertVerificationSession(
+                      storageService,
+                      err,
+                      res,
+                      done,
+                      defaultContractAddress,
+                      defaultContractChain,
+                      "perfect"
+                    );
+                  });
+              });
             });
         });
     });
@@ -1655,7 +1689,7 @@ describe("Server", function () {
               .post("/session/verify-validated")
               .send({ contracts })
               .then((res) => {
-                assertSingleContractStatus(res, "extra-file-input-bug");
+                assertSingleContractStatus(res, "error");
                 done();
               });
           });
@@ -1688,6 +1722,64 @@ describe("Server", function () {
     });
   });
   describe("E2E test path sanitization", async function () {
+    it("should sanitize the path of a source file with new line character \\n", async () => {
+      const artifact = require(path.join(
+        __dirname,
+        "./testcontracts/path-sanitization-new-line/artifact.json"
+      ));
+      const { contractAddress } =
+        await deployFromAbiAndBytecodeForCreatorTxHash(
+          localSigner,
+          artifact.abi,
+          artifact.bytecode
+        );
+
+      const metadata = require(path.join(
+        __dirname,
+        "./testcontracts/path-sanitization-new-line/metadata.json"
+      ));
+      const sourcePath = path.join(
+        __dirname,
+        "testcontracts",
+        "path-sanitization-new-line",
+        "sources",
+        "DFrostGeckoToken\n.sol" // with new line
+      );
+      const sourceBuffer = fs.readFileSync(sourcePath);
+
+      const res = await chai
+        .request(server.app)
+        .post("/")
+        .send({
+          address: contractAddress,
+          chain: defaultContractChain,
+          files: {
+            "metadata.json": JSON.stringify(metadata),
+            "DFrostGeckoToken\n.sol": sourceBuffer.toString(),
+          },
+        });
+      await assertVerification(
+        storageService,
+        null,
+        res,
+        null,
+        contractAddress,
+        defaultContractChain
+      );
+      const isExist = fs.existsSync(
+        path.join(
+          server.repository,
+          "contracts",
+          "full_match",
+          defaultContractChain,
+          contractAddress,
+          "sources/contracts",
+          "DFrostGeckoToken.sol" // without new line
+        )
+      );
+      chai.expect(isExist, "Path not sanitized").to.be.true;
+    });
+
     it("should verify a contract with paths containing misc. chars, save the path translation, and be able access the file over the API", async () => {
       const sanitizeArtifact = require(path.join(
         __dirname,
@@ -1818,15 +1910,17 @@ describe("Server", function () {
             "Storage.sol": sourceBuffer,
           },
         })
-        .end((err, res) =>
-          assertVerification(
-            err,
-            res,
-            null,
-            defaultContractAddress,
-            defaultContractChain,
-            "perfect"
-          )
+        .end(
+          async (err, res) =>
+            await assertVerification(
+              storageService,
+              err,
+              res,
+              null,
+              defaultContractAddress,
+              defaultContractChain,
+              "perfect"
+            )
         );
       const contractSavedPath = path.join(
         server.repository,
@@ -1993,21 +2087,9 @@ describe("Server", function () {
 
   describe("Database", function () {
     this.timeout(20000);
-    const storageService = new StorageService({
-      repositoryV1ServiceOptions: {
-        ipfsApi: process.env.IPFS_API,
-        repositoryPath: "./dist/data/mock-repositoryV1",
-        repositoryServerUrl: config.get("repositoryV1.serverUrl"),
-      },
-      sourcifyDatabaseServiceOptions: {
-        postgres: {
-          host: "localhost",
-          database: "sourcify",
-          user: "sourcify",
-          password: "sourcify",
-          port: process.env.DOCKER_HOST_POSTGRES_TEST_PORT || 5431,
-        },
-      },
+
+    this.beforeEach(async () => {
+      await resetDatabase(storageService);
     });
 
     it("storeMatch", async () => {
@@ -2037,5 +2119,95 @@ describe("Server", function () {
         chai.expect(res.rows[0].runtime_match).to.equal("partial");
       }
     });
+
+    const verifierAllianceTestLibrariesManuallyLinked = require("./verifier-alliance/libraries_manually_linked.json");
+    it(verifierAllianceTestLibrariesManuallyLinked._comment, async () => {
+      await verifierAllianceTest(
+        server,
+        chai,
+        storageService,
+        localSigner,
+        defaultContractChain,
+        verifierAllianceTestLibrariesManuallyLinked
+      );
+    });
+
+    const verifierAllianceTestFullMatch = require("./verifier-alliance/full_match.json");
+    it(verifierAllianceTestFullMatch._comment, async () => {
+      await verifierAllianceTest(
+        server,
+        chai,
+        storageService,
+        localSigner,
+        defaultContractChain,
+        verifierAllianceTestFullMatch
+      );
+    });
+
+    const verifierAllianceTestImmutables = require("./verifier-alliance/immutables.json");
+    it(verifierAllianceTestImmutables._comment, async () => {
+      await verifierAllianceTest(
+        server,
+        chai,
+        storageService,
+        localSigner,
+        defaultContractChain,
+        verifierAllianceTestImmutables
+      );
+    });
+
+    const verifierAllianceTestLibrariesLinkedByCompiler = require("./verifier-alliance/libraries_linked_by_compiler.json");
+    it(verifierAllianceTestLibrariesLinkedByCompiler._comment, async () => {
+      await verifierAllianceTest(
+        server,
+        chai,
+        storageService,
+        localSigner,
+        defaultContractChain,
+        verifierAllianceTestLibrariesLinkedByCompiler
+      );
+    });
+
+    const verifierAllianceTestMetadataHashAbsent = require("./verifier-alliance/metadata_hash_absent.json");
+    it(verifierAllianceTestMetadataHashAbsent._comment, async () => {
+      await verifierAllianceTest(
+        server,
+        chai,
+        storageService,
+        localSigner,
+        defaultContractChain,
+        verifierAllianceTestMetadataHashAbsent
+      );
+    });
+
+    const verifierAllianceTestPartialMatch = require("./verifier-alliance/partial_match.json");
+    it(verifierAllianceTestPartialMatch._comment, async () => {
+      await verifierAllianceTest(
+        server,
+        chai,
+        storageService,
+        localSigner,
+        defaultContractChain,
+        verifierAllianceTestPartialMatch
+      );
+    });
+
+    const verifierAllianceTestConstructorArguments = require("./verifier-alliance/constructor_arguments.json");
+    it(verifierAllianceTestConstructorArguments._comment, async () => {
+      await verifierAllianceTest(
+        server,
+        chai,
+        storageService,
+        localSigner,
+        defaultContractChain,
+        verifierAllianceTestConstructorArguments,
+        { deployWithConstructorArguments: true }
+      );
+    });
+
+    // Tests to be implemented:
+    // - genesis: right now not supported,
+    // - partial_match_2: I don't know why we have this test
+    // - partial_match_double_auxdata: right now not supported
   });
 });

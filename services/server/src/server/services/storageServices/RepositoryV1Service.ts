@@ -5,7 +5,6 @@ import {
   Match,
   Status,
   StringMap,
-  /* ContextVariables, */
   CheckedContract,
 } from "@ethereum-sourcify/lib-sourcify";
 import { MatchLevel, MatchQuality, RepositoryTag } from "../../types";
@@ -15,7 +14,7 @@ import {
   globSource,
 } from "ipfs-http-client";
 import path from "path";
-import { logger } from "../../../common/logger";
+import logger from "../../../common/logger";
 import { getAddress } from "ethers";
 import { getMatchStatus } from "../../common";
 import { IStorageService } from "../StorageService";
@@ -149,7 +148,6 @@ export class RepositoryV1Service implements IStorageService {
     address: string,
     match: MatchLevel
   ): Promise<FilesInfo<string>> => {
-    // chainId = checkChainId(chainId); TODO: Valiadate on the controller
     const fullMatchesTree = this.fetchAllFileUrls(
       chainId,
       address,
@@ -168,7 +166,6 @@ export class RepositoryV1Service implements IStorageService {
     address: string,
     match: MatchLevel
   ): Promise<FilesInfo<FileObject>> => {
-    // chainId = checkChainId(chainId); TODO: Valiadate on the controller
     const fullMatchesFiles = this.fetchAllFileContents(
       chainId,
       address,
@@ -254,6 +251,11 @@ export class RepositoryV1Service implements IStorageService {
     address: string,
     chainId: string
   ): Promise<Match[]> {
+    logger.silly("RepositoryV1.checkByChainAndAddress", {
+      chainId,
+      address,
+    });
+
     const contractPath = this.generateAbsoluteFilePath({
       matchQuality: "full",
       chainId,
@@ -263,6 +265,11 @@ export class RepositoryV1Service implements IStorageService {
 
     try {
       const storageTimestamp = (await fs.promises.stat(contractPath)).birthtime;
+      logger.debug("Found full match in RepositoryV1", {
+        chainId,
+        address,
+        storageTimestamp,
+      });
       return [
         {
           address,
@@ -273,9 +280,11 @@ export class RepositoryV1Service implements IStorageService {
         },
       ];
     } catch (e: any) {
-      logger.debug(
-        `Contract (full_match) not found in repositoryV1: ${address} - chain: ${chainId}`
-      );
+      logger.silly("Couldn't find full match in RepositoryV1", {
+        address,
+        chainId,
+        error: e.message,
+      });
       return [];
     }
   }
@@ -285,6 +294,11 @@ export class RepositoryV1Service implements IStorageService {
     address: string,
     chainId: string
   ): Promise<Match[]> {
+    logger.silly("RepositoryV1.checkAllByChainAndAddress", {
+      chainId,
+      address,
+    });
+
     const fullContractPath = this.generateAbsoluteFilePath({
       matchQuality: "full",
       chainId,
@@ -304,6 +318,13 @@ export class RepositoryV1Service implements IStorageService {
         fullContractPath,
         partialContractPath
       );
+
+      logger.debug("Found full or partial match in RepositoryV1", {
+        chainId,
+        address,
+        storageTimestamp: storage.time,
+        storageStatus: storage.status,
+      });
       return [
         {
           address,
@@ -314,9 +335,11 @@ export class RepositoryV1Service implements IStorageService {
         },
       ];
     } catch (e: any) {
-      logger.debug(
-        `Contract (full & partial match) not found in repositoryV1: ${address} - chain: ${chainId}`
-      );
+      logger.silly("Couldn't find full or partial match in RepositoryV1", {
+        address,
+        chainId,
+        error: e.message,
+      });
       return [];
     }
   }
@@ -334,7 +357,7 @@ export class RepositoryV1Service implements IStorageService {
         : this.generateAbsoluteFilePath(path);
     fs.mkdirSync(Path.dirname(abolsutePath), { recursive: true });
     fs.writeFileSync(abolsutePath, content);
-    logger.debug("Saved to repositoryV1: " + abolsutePath);
+    logger.silly("Saved file to repositoryV1", { abolsutePath });
     this.updateRepositoryTag();
   }
 
@@ -386,19 +409,6 @@ export class RepositoryV1Service implements IStorageService {
         );
       }
 
-      /* if (
-        match.contextVariables &&
-        Object.keys(match.contextVariables).length > 0
-      ) {
-        this.storeJSON(
-          matchQuality,
-          match.chainId,
-          match.address,
-          "context-variables.json",
-          match.contextVariables
-        );
-      } */
-
       if (match.creatorTxHash) {
         this.storeTxt(
           matchQuality,
@@ -432,9 +442,13 @@ export class RepositoryV1Service implements IStorageService {
         );
       }
 
-      logger.info(
-        `Stored ${contract.name} to RepositoryV1 address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
-      );
+      logger.info("Stored contract to RepositoryV1", {
+        address: match.address,
+        chainId: match.chainId,
+        name: contract.name,
+        runtimeMatch: match.runtimeMatch,
+        creationMatch: match.creationMatch,
+      });
       // await this.addToIpfsMfs(matchQuality, match.chainId, match.address);
       // logger.info(
       //   `Stored ${contract.name} to IPFS MFS address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
@@ -561,7 +575,7 @@ export class RepositoryV1Service implements IStorageService {
     address: string
   ) {
     if (!this.ipfsClient) return;
-    logger.info(`Adding ${address} on chain ${chainId} to IPFS MFS`);
+    logger.info("Adding to IPFS MFS", { matchQuality, chainId, address });
     const contractFolderDir = this.generateAbsoluteFilePath({
       matchQuality,
       chainId,
@@ -599,14 +613,14 @@ export class RepositoryV1Service implements IStorageService {
       });
       await this.ipfsClient.files.cp(addResult.cid, mfsPath, { parents: true });
     }
-    logger.info(`Added ${address} on chain ${chainId} to IPFS MFS`);
+    logger.info("Added to IPFS MFS", { matchQuality, chainId, address });
   }
   private sanitizePath(originalPath: string) {
     // Clean ../ and ./ from the path. Also collapse multiple slashes into one.
     let sanitizedPath = path.normalize(originalPath);
 
     // Replace \n case not addressed by `path.normalize`
-    sanitizedPath = sanitizedPath.replace(/\\n/g, "");
+    sanitizedPath = sanitizedPath.replace(/\n/g, "");
 
     // If there are no upper folders to traverse, path.normalize will keep ../ parts. Need to remove any of those.
     const parsedPath = path.parse(sanitizedPath);

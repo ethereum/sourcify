@@ -3,11 +3,13 @@ import {
   CheckedContract,
   Status,
 } from "@ethereum-sourcify/lib-sourcify";
-import { logger } from "../../../common/logger";
+import logger from "../../../common/logger";
 import * as Database from "../utils/database-util";
 import { Pool } from "pg";
 import AbstractDatabaseService from "./AbstractDatabaseService";
 import { IStorageService } from "../StorageService";
+import { bytesFromString } from "../utils/database-util";
+import { getMatchStatus } from "../../common";
 
 export interface SourcifyDatabaseServiceOptions {
   postgres: {
@@ -59,7 +61,7 @@ export class SourcifyDatabaseService
     } else {
       throw new Error(`${this.databaseName} is disabled`);
     }
-    logger.info(`${this.databaseName} is active`);
+    logger.info(`SourcifyDatabase initialized`, { name: this.databaseName });
     return true;
   }
 
@@ -74,7 +76,7 @@ export class SourcifyDatabaseService
       await Database.getSourcifyMatchByChainAddress(
         this.databasePool,
         parseInt(chainId),
-        address,
+        bytesFromString(address)!,
         onlyPerfectMatches
       );
 
@@ -113,34 +115,72 @@ export class SourcifyDatabaseService
 
   // Override this method to include the SourcifyMatch
   async storeMatch(recompiledContract: CheckedContract, match: Match) {
-    const { type, verifiedContractId } =
+    const { type, verifiedContractId, oldVerifiedContractId } =
       await super.insertOrUpdateVerifiedContract(recompiledContract, match);
 
-    if (!verifiedContractId) {
-      throw new Error(
-        "VerifiedContractId undefined before inserting sourcify match"
-      );
-    }
     if (type === "insert") {
+      if (!verifiedContractId) {
+        throw new Error(
+          "VerifiedContractId undefined before inserting sourcify match"
+        );
+      }
       await Database.insertSourcifyMatch(this.databasePool, {
         verified_contract_id: verifiedContractId,
         creation_match: match.creationMatch,
         runtime_match: match.runtimeMatch,
       });
-      logger.info(
-        `Stored ${recompiledContract.name} to SourcifyDatabase address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
-      );
-    } else if (type === "update") {
-      await Database.updateSourcifyMatch(this.databasePool, {
-        verified_contract_id: verifiedContractId,
-        creation_match: match.creationMatch,
-        runtime_match: match.runtimeMatch,
+      // Prevent running this on the migration server
+      if (process.env.NODE_CONFIG_ENV !== "migration") {
+        await Database.insertSourcifySync(this.databasePool, {
+          chain_id: parseInt(match.chainId),
+          address: match.address,
+          match_type: getMatchStatus(match)!,
+        });
+      }
+      logger.info("Stored to SourcifyDatabase", {
+        address: match.address,
+        chainId: match.chainId,
+        runtimeMatch: match.runtimeMatch,
+        creationMatch: match.creationMatch,
       });
-      logger.info(
-        `Updated ${recompiledContract.name} to SourcifyDatabase address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
+    } else if (type === "update") {
+      if (!verifiedContractId) {
+        throw new Error(
+          "VerifiedContractId undefined before updating sourcify match"
+        );
+      }
+      if (!oldVerifiedContractId) {
+        throw new Error(
+          "oldVerifiedContractId undefined before updating sourcify match"
+        );
+      }
+      await Database.updateSourcifyMatch(
+        this.databasePool,
+        {
+          verified_contract_id: verifiedContractId,
+          creation_match: match.creationMatch,
+          runtime_match: match.runtimeMatch,
+        },
+        oldVerifiedContractId
       );
+      // Prevent running this on the migration server
+      if (process.env.NODE_CONFIG_ENV !== "migration") {
+        await Database.updateSourcifySync(this.databasePool, {
+          chain_id: parseInt(match.chainId),
+          address: match.address,
+          match_type: getMatchStatus(match)!,
+        });
+      }
+      logger.info("Updated in SourcifyDatabase", {
+        address: match.address,
+        chainId: match.chainId,
+        runtimeMatch: match.runtimeMatch,
+        creationMatch: match.creationMatch,
+      });
     } else {
-      throw new Error();
+      throw new Error(
+        "insertOrUpdateVerifiedContract returned a type that doesn't exist"
+      );
     }
   }
 }

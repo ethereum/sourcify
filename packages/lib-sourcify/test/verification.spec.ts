@@ -756,7 +756,7 @@ describe('lib-sourcify tests', () => {
       expectMatch(match, null, contractAddress, undefined); // status is null
     });
 
-    it('should successfuly verify with matchWithCreationTx with creationTxHash', async () => {
+    it('should successfully verify with matchWithCreationTx with creationTxHash', async () => {
       const contractFolderPath = path.join(
         __dirname,
         'sources',

@@ -47,7 +47,6 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
     contractToVerify,
     chain,
     address,
-    // req.body.contextVariables,
     req.body.creatorTxHash
   );
   // Send to verification again with all source files.
@@ -60,7 +59,6 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
       contractWithAllSources,
       chain,
       address, // Due to the old API taking an array of addresses.
-      // req.body.contextVariables,
       req.body.creatorTxHash
     );
     if (
@@ -69,6 +67,10 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
     ) {
       await services.storage.storeMatch(contractToVerify, tempMatch);
       return res.send({ result: [tempMatch] });
+    } else if (tempMatch.runtimeMatch === "extra-file-input-bug") {
+      throw new ValidationError(
+        "It seems your contract's metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618"
+      );
     }
   }
   if (match.runtimeMatch || match.creationMatch) {

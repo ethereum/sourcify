@@ -22,7 +22,7 @@ import {
 } from '@ethereum-sourcify/bytecode-utils';
 import { ipfsHash } from './hashFunctions/ipfsHash';
 import { swarmBzzr0Hash, swarmBzzr1Hash } from './hashFunctions/swarmHash';
-import { logError, logInfo, logWarn } from './logger';
+import { logError, logInfo, logSilly, logWarn } from './logger';
 import { ISolidityCompiler } from './ISolidityCompiler';
 
 // TODO: find a better place for these constants. Reminder: this sould work also in the browser
@@ -64,6 +64,9 @@ export class CheckedContract {
   /** Marks the positions of the CborAuxdata parts in the bytecode */
   creationBytecodeCborAuxdata?: CompiledContractCborAuxdata;
   runtimeBytecodeCborAuxdata?: CompiledContractCborAuxdata;
+
+  normalizedRuntimeBytecode?: string;
+  normalizedCreationBytecode?: string;
 
   /** Checks whether this contract is valid or not.
    *  This is a static method due to persistence issues.
@@ -315,17 +318,22 @@ export class CheckedContract {
       // For some reason the auxdata from raw bytecode differs from the legacyAssembly's auxdata
       if (auxdatasFromCompilerOutput[0] !== auxdataFromRawRuntimeBytecode) {
         logWarn(
-          `The auxdata from raw bytecode differs from the legacyAssembly's auxdata name=${this.name}`
+          "The auxdata from raw bytecode differs from the legacyAssembly's auxdata",
+          {
+            name: this.name,
+          }
         );
         return false;
       }
 
+      // we divide by 2 because we store the length in bytes (without 0x)
       this.runtimeBytecodeCborAuxdata = {
-        '0': {
+        '1': {
           offset:
-            this.runtimeBytecode.length -
-            (2 + parseInt(runtimeCborLenghtHex, 16)),
-          value: auxdataFromRawRuntimeBytecode,
+            this.runtimeBytecode.substring(2).length / 2 -
+            parseInt(runtimeCborLenghtHex, 16) -
+            2,
+          value: `0x${auxdataFromRawRuntimeBytecode}`,
         },
       };
 
@@ -338,18 +346,21 @@ export class CheckedContract {
       if (creationAuxdataCbor) {
         const auxdataFromRawCreationBytecode = `${creationAuxdataCbor}${creationCborLenghtHex}`;
         if (auxdatasFromCompilerOutput[0] === auxdataFromRawCreationBytecode) {
+          // we divide by 2 because we store the length in bytes (without 0x)
           this.creationBytecodeCborAuxdata = {
-            '0': {
+            '1': {
               offset:
-                this.creationBytecode.length -
-                (2 + parseInt(creationCborLenghtHex, 16)),
-              value: auxdataFromRawCreationBytecode,
+                this.creationBytecode.substring(2).length / 2 -
+                parseInt(creationCborLenghtHex, 16) -
+                2,
+              value: `0x${auxdataFromRawCreationBytecode}`,
             },
           };
           return true;
         } else {
           logWarn(
-            `The creation auxdata from raw bytecode differs from the legacyAssembly's auxdata name=${this.name}`
+            "The creation auxdata from raw bytecode differs from the legacyAssembly's auxdata",
+            { name: this.name }
           );
           return false;
         }
@@ -399,11 +410,29 @@ export class CheckedContract {
 
     const version = this.metadata.compiler.version;
 
+    const compilationStartTime = Date.now();
+    logInfo('Compiling contract', {
+      version,
+      contract: this.name,
+      path: this.compiledPath,
+      forceEmscripten,
+    });
+    logSilly('Compilation input', { solcJsonInput: this.solcJsonInput });
     this.compilerOutput = await this.solidityCompiler.compile(
       version,
       this.solcJsonInput,
       forceEmscripten
     );
+    const compilationEndTime = Date.now();
+    const compilationDuration = compilationEndTime - compilationStartTime;
+    logSilly('Compilation output', { compilerOutput: this.compilerOutput });
+    logInfo('Compiled contract', {
+      version,
+      contract: this.name,
+      path: this.compiledPath,
+      forceEmscripten,
+      compilationDuration: `${compilationDuration}ms`,
+    });
 
     if (
       !this.compilerOutput.contracts ||
@@ -418,11 +447,9 @@ export class CheckedContract {
           .map((e: any) => e.formattedMessage) || [];
 
       const error = new Error('Compiler error');
-      logWarn(
-        `Compiler error in CheckedContract.recompile: \n${errorMessages.join(
-          '\n\t'
-        )}`
-      );
+      logWarn('Compiler error', {
+        errorMessages,
+      });
       throw error;
     }
 
@@ -519,13 +546,20 @@ export async function performFetch(
   hash?: string,
   fileName?: string
 ): Promise<string | null> {
-  logInfo(`Fetching the file ${fileName} from ${url}...`);
+  logInfo('Fetching file', {
+    url,
+    hash,
+    fileName,
+  });
   const res = await fetchWithTimeout(url, { timeout: FETCH_TIMEOUT }).catch(
     (err) => {
       if (err.type === 'aborted')
-        logWarn(
-          `Fetching the file ${fileName} from ${url} timed out. Timeout: ${FETCH_TIMEOUT}ms`
-        );
+        logWarn('Timeout fetching the file', {
+          url,
+          hash,
+          fileName,
+          timeout: FETCH_TIMEOUT,
+        });
       else logError(err);
     }
   );
@@ -538,12 +572,19 @@ export async function performFetch(
         return null;
       }
 
-      logInfo(`Successfully fetched the file ${fileName}`);
+      logInfo('Fetched the file', {
+        fileName,
+        url,
+        hash,
+      });
       return content;
     } else {
-      logError(
-        `Fetching the file ${fileName} failed with status: ${res?.status}`
-      );
+      logError('Failed to fetch the file', {
+        url,
+        hash,
+        fileName,
+        status: res.status,
+      });
       return null;
     }
   }
@@ -644,6 +685,7 @@ function createJsonInputFromMetadata(
     'evm.bytecode.object',
     'evm.bytecode.sourceMap',
     'evm.bytecode.linkReferences',
+    'evm.bytecode.generatedSources',
     'evm.deployedBytecode.object',
     'evm.deployedBytecode.sourceMap',
     'evm.deployedBytecode.linkReferences',

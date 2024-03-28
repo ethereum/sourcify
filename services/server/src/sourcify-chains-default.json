@@ -58,7 +58,7 @@
     "rpc": [
       {
         "type": "FetchRequest",
-        "url": "https://rpc.goerli.eu1.ethpandaops.io",
+        "url": "https://rpc.goerli.ethpandaops.io",
         "headers": [
           {
             "headerName": "CF-Access-Client-Id",
@@ -846,7 +846,7 @@
     "supported": true,
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
-        "url": "https://explorer.emerald.oasis.dev/"
+        "url": "https://old-explorer.emerald.oasis.dev/"
       }
     }
   },
@@ -855,7 +855,7 @@
     "supported": true,
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
-        "url": "https://testnet.explorer.emerald.oasis.dev/"
+        "url": "https://testnet.old-explorer.emerald.oasis.dev/"
       }
     }
   },
@@ -864,7 +864,7 @@
     "supported": true,
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
-        "url": "https://explorer.sapphire.oasis.io/"
+        "url": "https://old-explorer.sapphire.oasis.io/"
       }
     }
   },
@@ -873,7 +873,7 @@
     "supported": true,
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
-        "url": "https://testnet.explorer.sapphire.oasis.dev/"
+        "url": "https://testnet.old-explorer.sapphire.oasis.io/"
       }
     }
   },
@@ -933,7 +933,7 @@
   },
   "84531": {
     "sourcifyName": "Base Goerli Testnet",
-    "supported": true,
+    "supported": false,
     "etherscanApi": {
       "apiURL": "https://api-goerli.basescan.org/"
     },
@@ -1191,21 +1191,21 @@
   },
   "78432": {
     "sourcifyName": "Conduit Subnet",
-    "supported": true,
+    "supported": false,
     "fetchContractCreationTxUsing": {
       "avalancheApi": true
     }
   },
   "78431": {
     "sourcifyName": "Bulletin Subnet",
-    "supported": true,
+    "supported": false,
     "fetchContractCreationTxUsing": {
       "avalancheApi": true
     }
   },
   "78430": {
     "sourcifyName": "Amplify Subnet",
-    "supported": true,
+    "supported": false,
     "fetchContractCreationTxUsing": {
       "avalancheApi": true
     }
@@ -1499,6 +1499,44 @@
       "etherscanApi": true,
       "blockscoutApi": {
         "url": "https://blockscout.sepolia.kroma.network/"
+      }
+    }
+  },
+  "4000": {
+    "sourcifyName": "Ozone Chain Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutScrape": {
+        "url": "https://ozonescan.io/"
+      }
+    }
+  },
+  "648": {
+    "sourcifyName": "Endurance Smart Chain Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://explorer-endurance.fusionist.io/"
+      }
+    }
+  },
+  "4157": {
+    "sourcifyName": "CrossFi Chain Testnet",
+    "supported": true
+  },
+  "710420": {
+    "sourcifyName": "Tiltyard Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "avalancheApi": true
+    }
+  },
+  "13381": {
+    "sourcifyName": "Phoenix Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutScrape": {
+        "url": "https://phoenixplorer.com/"
       }
     }
   }

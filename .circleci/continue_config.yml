@@ -1,5 +1,5 @@
 # Main config for workflows that will be conditionally run according to the parameters set at the initial config.yml. Only runs builds for paths that are changed.
-# Also contains workflows that will be run on all branches such as node tests 
+# Also contains workflows that will be run on all branches such as node tests
 version: 2.1
 
 # Pipeline parameters to run module builds if related files have been changed
@@ -26,7 +26,7 @@ parameters:
 aliases:
   - &build-base
     docker:
-      - image: cimg/base:2023.09
+      - image: cimg/base:2024.02
     resource_class: large
     parameters:
       run-build:
@@ -48,12 +48,12 @@ aliases:
       - run:
           name: Build and push docker images
           command: |
-            ./.circleci/scripts/build_and_publish_docker_images.sh 
+            ./.circleci/scripts/build_and_publish_docker_images.sh
       - persist_to_workspace:
           root: workspace
           paths:
             - ./*
-      # If no build is needed, echo 0 to run as success 
+      # If no build is needed, echo 0 to run as success
       - run: echo 0
   - &build-base-arm64
     <<: *build-base
@@ -147,18 +147,18 @@ workflows:
       - deploy:
           requires:
             - publish-multiarch-images
-      - monitor-e2e-goerli:
-          requires:
-            - deploy
       - monitor-e2e-sepolia:
           requires:
             - deploy
-      - verification-e2e-goerli:
+      - monitor-e2e-holesky:
           requires:
             - deploy
       - verification-e2e-sepolia:
           requires:
-            - deploy  # Tests workflow for not staging or master
+            - deploy
+      - verification-e2e-holesky:
+          requires:
+            - deploy # Tests workflow for not staging or master
   tests:
     when:
       and:
@@ -224,12 +224,12 @@ jobs:
       DOCKERFILE: "./ui/Dockerfile"
   publish-multiarch-images:
     docker:
-      - image: cimg/base:2021.04
+      - image: cimg/base:2024.02
     resource_class: small
     steps:
       - checkout
       - setup_remote_docker:
-          version: 20.10.23
+          version: docker23
       - run:
           name: Publish multiarch images
           no_output_timeout: 5m
@@ -237,7 +237,7 @@ jobs:
             ./.circleci/scripts/publish_multiarch_images.sh
   deploy:
     docker:
-      - image: cimg/base:2021.04
+      - image: cimg/base:2024.02
     resource_class: small
     steps:
       - checkout
@@ -276,26 +276,33 @@ jobs:
       - run:
           name: tsc and test
           command: npx lerna run build && npx lerna run lerna-test
+          environment:
+            DOCKER_HOST_POSTGRES_TEST_PORT: 5432
+            SOURCIFY_POSTGRES_HOST: "localhost"
+            SOURCIFY_POSTGRES_DB: "sourcify"
+            SOURCIFY_POSTGRES_USER: "sourcify"
+            SOURCIFY_POSTGRES_PASSWORD: "sourcify"
+            SOURCIFY_POSTGRES_PORT: 5432
       - run:
           name: coverage
           command: npx lerna run cov:send
-  monitor-e2e-goerli:
-    <<: *monitor-e2e-base
-    environment:
-      CHAIN_ID: 5
-      CHAIN_NAME: goerli
   monitor-e2e-sepolia:
     <<: *monitor-e2e-base
     environment:
       CHAIN_ID: "11155111"
       CHAIN_NAME: sepolia
-  verification-e2e-goerli:
-    <<: *verification-e2e-base
+  monitor-e2e-holesky:
+    <<: *monitor-e2e-base
     environment:
-      CHAIN_ID: 5
-      CHAIN_NAME: goerli
+      CHAIN_ID: "17000"
+      CHAIN_NAME: holesky
   verification-e2e-sepolia:
     <<: *verification-e2e-base
     environment:
       CHAIN_ID: "11155111"
       CHAIN_NAME: sepolia
+  verification-e2e-holesky:
+    <<: *verification-e2e-base
+    environment:
+      CHAIN_ID: "17000"
+      CHAIN_NAME: holesky

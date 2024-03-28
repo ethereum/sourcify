@@ -1,4 +1,4 @@
-import { logger } from "../../../common/logger";
+import logger from "../../../common/logger";
 import { AuthTypes, Connector } from "@google-cloud/cloud-sql-connector";
 import { Pool } from "pg";
 import AbstractDatabaseService from "./AbstractDatabaseService";
@@ -82,8 +82,12 @@ export class AllianceDatabaseService
 
   async storeMatch(recompiledContract: CheckedContract, match: Match) {
     await this.insertOrUpdateVerifiedContract(recompiledContract, match);
-    logger.info(
-      `Stored ${recompiledContract.name} to AllianceDatabase address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
-    );
+    logger.info("Stored to AllianceDatabase", {
+      name: recompiledContract.name,
+      address: match.address,
+      chainId: match.chainId,
+      runtimeMatch: match.runtimeMatch,
+      creationMatch: match.creationMatch,
+    });
   }
 }

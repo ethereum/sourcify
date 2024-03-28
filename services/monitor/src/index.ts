@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import fs from "fs";
 import Monitor from "./Monitor";
-import { MonitorConfig, PassedMonitorConfig } from "./types";
+import { PassedMonitorConfig } from "./types";
 import path from "path";
 
 // Initialize a new commander object
@@ -17,7 +17,7 @@ program
   .option(
     "--chainsPath <path>",
     "Path to the chains JSON file",
-    path.resolve(__dirname, "../chains.json")
+    path.resolve(__dirname, "../monitorChains.json")
   );
 
 // Parse the arguments

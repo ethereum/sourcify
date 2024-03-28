@@ -22,7 +22,7 @@ export class GatewayFetcher {
     this.fetchTimeout = config.fetchTimeout;
     this.fetchInterval = config.fetchInterval;
     this.retries = config.fetchRetries;
-    this.gwLogger = logger.child({ prefix: `GatewayFetcher ${this.url}` });
+    this.gwLogger = logger.child({ moduleName: `GatewayFetcher ${this.url}` });
   }
 
   fetchWithRetries = async (fileHash: string) => {
@@ -32,7 +32,11 @@ export class GatewayFetcher {
     let hitTimeout = false;
 
     for (let i = 0; i < this.retries; i++) {
-      this.gwLogger.info(`Fetching ${fetchURL} attempt ${i + 1}`);
+      this.gwLogger.info("Fetching attempt", {
+        attempt: i + 1,
+        url: this.url,
+        fileHash,
+      });
 
       const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(
@@ -71,16 +75,21 @@ export class GatewayFetcher {
         } else {
           hitTimeout = false;
         }
-        this.gwLogger.info(
-          `Failed to fetch ${fileHash} from ${this.url}, attempt ${i + 1}`
-        );
-        this.gwLogger.info(err);
+        this.gwLogger.info("Failed to fetch", {
+          fileHash,
+          url: this.url,
+          attempt: i + 1,
+          err,
+        });
       }
 
       if (i < this.retries - 1) {
-        this.gwLogger.debug(
-          `Waiting ${this.fetchInterval}ms before retrying ${fetchURL}`
-        );
+        this.gwLogger.debug("Waiting before retrying", {
+          fileHash,
+          url: this.url,
+          attempt: i + 1,
+          fetchInterval: this.fetchInterval,
+        });
         await sleep(this.fetchInterval);
       }
     }

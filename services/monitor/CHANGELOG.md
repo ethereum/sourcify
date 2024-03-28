@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-monitor@1.1.10 - 2024-03-14
+
+- Rename chains.json to monitorChains.json
+
 ## sourcify-monitor@1.1.9 - 2024-02-26
 
 - Make monitor Dockerfiles similar to server

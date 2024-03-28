@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 This CHANGELOG will contain monorepo related changes such as CI configs, shared dependencies and the development setup.
 
+## sourcify-monorepo@1.2.4 - 2024-03-15
+
+- Update sourcify-server
+
+## sourcify-monorepo@1.2.3 - 2024-03-14
+
+- Update dependencies
+
 ## sourcify-monorepo@1.2.2 - 2024-02-26
 
 - Fix `fsevents` as an optional dependency for Linux builds
@@ -41,7 +49,7 @@ This CHANGELOG will contain monorepo related changes such as CI configs, shared 
   - build_and_publish_docker_images accroding to the new container and versioning setup
 - Remove `environments` folder
 - Remove unused env vars from `.vscode/launch.json`
-- Move Typscript to root `package.json` and remove it from all subpackages
+- Move Typescript to root `package.json` and remove it from all subpackages
 - Add `printWidth` to `.prettierrc`
 
 ## Older releases

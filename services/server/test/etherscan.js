@@ -1,5 +1,4 @@
 process.env.NODE_CONFIG_ENV = "test";
-process.env.SOURCIFY_POSTGRES_HOST = "";
 process.env.ALLIANCE_POSTGRES_HOST = "";
 
 const Server = require("../dist/server/server").Server;
@@ -58,7 +57,7 @@ describe("Import From Etherscan and Verify", function () {
 
   const assertEtherscanError = (err, res, errorMessage, status) => {
     try {
-      chai.expect(res.status).to.equal(status || StatusCodes.BAD_GATEWAY);
+      chai.expect(res.status).to.equal(status || StatusCodes.NOT_FOUND);
       chai.expect(res.body?.error).to.equal(errorMessage);
     } catch (e) {
       console.log("Error: ", e);
@@ -171,9 +170,10 @@ describe("Import From Etherscan and Verify", function () {
           .post("/verify/etherscan")
           .field("address", contract.address)
           .field("chainId", tempChainId)
-          .end((err, res) => {
+          .end(async (err, res) => {
             // currentResponse = res;
-            assertVerification(
+            await assertVerification(
+              false,
               err,
               res,
               done,
@@ -373,9 +373,10 @@ describe("Import From Etherscan and Verify", function () {
           .post("/session/verify/etherscan")
           .field("address", contract.address)
           .field("chain", tempChainId)
-          .end((err, res) => {
+          .end(async (err, res) => {
             // currentResponse = res;
-            assertVerificationSession(
+            await assertVerificationSession(
+              false,
               err,
               res,
               done,

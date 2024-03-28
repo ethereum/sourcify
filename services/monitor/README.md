@@ -4,7 +4,7 @@ Sourcify Monitor is a standalone service that listens to various EVM chains for 
 
 This is only possible for Solidity contracts that has its metadata hash published in a DecentralizedStorage (IPFS, Swarm, etc). Currently only IPFS is supported.
 
-Learn more about the contract metadata in the [Solidity docs](https://docs.soliditylang.org/en/latest/metadata.html) and [Sourcify docs](https://docs.sourcify.dev/docs/metadata/). We also have a nice playground showing everthing in action at [playground.sourcify.dev](https://playground.sourcify.dev).
+Learn more about the contract metadata in the [Solidity docs](https://docs.soliditylang.org/en/latest/metadata.html) and [Sourcify docs](https://docs.sourcify.dev/docs/metadata/). We also have a nice playground showing everything in action at [playground.sourcify.dev](https://playground.sourcify.dev).
 
 ## Config
 
@@ -30,7 +30,7 @@ First you need to provide which chains to monitor in a json file.
 
 Infura and Alchemy keys must be placed in the url string as above in `{INFURA_API_KEY}`
 
-See [chains.json](./chains.json) for a full example and to see which chains we monitor ourselves. You can also use the [chainid.network/chains.json](https://chainid.network/chains.json) to find chains.
+See [monitorChains.json](./monitorChains.json) for a full example and to see which chains we monitor ourselves. You can also use the [chainid.network/chains.json](https://chainid.network/chains.json) to find chains.
 
 ### Monitor Config
 
@@ -92,6 +92,11 @@ INFURA_API_KEY=
 # ethpandaops.io authentication
 CF_ACCESS_CLIENT_ID=
 CF_ACCESS_CLIENT_SECRET=
+
+# Overrides the log level. Normally, if NODE_ENV production set to "info", otherwise "debug". Values can be silly, debug, info, warn, error
+NODE_LOG_LEVEL=
+# Port of the HTTP server to change the log level dynamically while the monitor is running
+NODE_LOG_LEVEL_SERVER_PORT=3333
 ```
 
 ## Usage
@@ -117,7 +122,7 @@ npx lerna run build --scope sourcify-monitor
 Run
 
 ```bash
-node dist/index.js --chainsPath /path/to/chains.json --configPath /path/to/config.json
+node dist/index.js --chainsPath /path/to/your-chains.json --configPath /path/to/config.json
 ```
 
 The `--chainsPath` and `--configPath` are optional. If not provided, the default paths will be used.
@@ -128,14 +133,24 @@ The containers are published in the [Github Container Registry](https://github.c
 
 The recommended way to run the Sourcify Monitor is via Docker.
 
-You need to pass the `chains.json` and `config.json` files to the container. You can do this by mounting them as volumes:
+You need to pass the `monitorChains.json` and `config.json` files to the container. You can do this by mounting them as volumes:
 
 ```bash
 $ docker pull ghcr.io/ethereum/sourcify/monitor:latest
 $ docker run \
-  -v /path/to/chains.json:/home/app/services/monitor/chains.json \
+  -v /path/to/chains.json:/home/app/services/monitor/monitorChains.json \
   -v /path/to/config.json:/home/app/services/monitor/config.json \
   -e ALCHEMY_API_KEY=xxx \
   -e INFURA_API_KEY=xxx \
   ghcr.io/ethereum/sourcify/monitor:latest
+```
+
+## Setting log levels dynamically
+
+The default log level of the monitor is set to "info". You can change the default value by setting the env var `NODE_LOG_LEVEL` on start.
+
+You can also change the log level dynamically while the monitor is running through a simple (unauthenticated) HTTP server endpoint. The server port is set in `NODE_LOG_LEVEL_SERVER_PORT` env var (default: `3333`). Simply call:
+
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"level": "debug"}' http://localhost:3333
 ```

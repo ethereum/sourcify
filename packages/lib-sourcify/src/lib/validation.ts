@@ -12,6 +12,7 @@ import JSZip from 'jszip';
 import fs from 'fs';
 import Path from 'path';
 import { ISolidityCompiler } from './ISolidityCompiler';
+import { logDebug, logInfo } from './logger';
 
 /**
  * Regular expression matching metadata nested within another json.
@@ -85,6 +86,7 @@ export async function checkFiles(
   files: PathBuffer[],
   unused?: string[]
 ) {
+  logInfo('Checking files', { numberOfFiles: files.length });
   await unzipFiles(files);
   const parsedFiles = files.map((pathBuffer) => ({
     content: pathBuffer.buffer.toString(),
@@ -116,6 +118,9 @@ export async function checkFiles(
     extractUnused(sourceFiles, usedFiles, unused);
   }
 
+  logInfo('Checked contracts', {
+    checkedContracts: checkedContracts.map((c) => c.name),
+  });
   return checkedContracts;
 }
 
@@ -129,8 +134,19 @@ export async function unzipFiles(files: PathBuffer[]) {
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
     if (isZip(file.buffer)) {
+      logDebug('Unzipping file', {
+        path: file.path,
+        size: file.buffer.length,
+        unzippedFilesCount: allUnzipped.length,
+      });
       const unzipped = await unzip(file);
       allUnzipped.push(...unzipped);
+
+      logDebug('Unzipped file', {
+        path: file.path,
+        size: file.buffer.length,
+        unzippedFilesCount: allUnzipped.length,
+      });
       // Remove the zip file from the array and decrement the index to check the next file.
       files.splice(i, 1);
       i--;
@@ -192,6 +208,7 @@ function splitFiles(files: PathContent[]): {
   for (const file of files) {
     // If hardhat output file, extract source and metadatas.
     if (file.content.match(HARDHAT_OUTPUT_FORMAT_REGEX)) {
+      logDebug('Found a hardhat output file', { path: file.path });
       const { hardhatMetadataFiles, hardhatSourceFiles } =
         extractHardhatMetadataAndSources(file);
       sourceFiles.push(...hardhatSourceFiles);
@@ -233,6 +250,11 @@ function splitFiles(files: PathContent[]): {
     const error = new Error(msg);
     throw error;
   }
+
+  logDebug('Split files', {
+    metadataFilesCount: metadataFiles.length,
+    sourceFilesCount: sourceFiles.length,
+  });
 
   return { metadataFiles, sourceFiles };
 }
@@ -462,7 +484,13 @@ export function extractHardhatMetadataAndSources(hardhatFile: PathContent) {
   const hardhatMetadataFiles: any[] = [];
   const hardhatSourceFiles: PathContent[] = [];
 
+  logDebug('Processing Hardhat file', {
+    hardhatFileSize: new TextEncoder().encode(hardhatFile.content).length,
+  });
+  const startTime = Date.now();
   const hardhatJson = JSON.parse(hardhatFile.content);
+  const endTime = Date.now();
+  logDebug(`Parsing hardhat file took ${endTime - startTime} milliseconds.`);
 
   // Extract source files
   const hardhatSourceFilesObject = hardhatJson.input.sources;
@@ -487,6 +515,11 @@ export function extractHardhatMetadataAndSources(hardhatFile: PathContent) {
       }
     }
   }
+
+  logDebug('Extracted metadata and sources from hardhat file', {
+    metadataFilesCount: hardhatMetadataFiles.length,
+    sourceFilesCount: hardhatSourceFiles.length,
+  });
   return { hardhatMetadataFiles, hardhatSourceFiles };
 }
 

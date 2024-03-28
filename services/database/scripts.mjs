@@ -151,8 +151,8 @@ program
     "Path to repository v1 contracts folder (e.g. /Users/user/sourcify/repository/contracts)"
   )
   .option(
-    "-c, --chains [items]",
-    "List of chains separated by comma (e.g. 1,5,...)"
+    "-c, --chainsExceptions [items]",
+    "List of chains exceptions separated by comma (e.g. 1,5,...)"
   )
   .option("-sf, --start-from [number]", "Start from a specific timestamp (ms)")
   .option("-l, --limit [number]", "Limit of concurrent verifications (ms)")
@@ -173,52 +173,102 @@ program
       max: 5,
     });
 
-    let activePromises = 0;
-    let limit = options.limit ? options.limit : 1;
-
-    let processedContracts = 0;
-    while (true) {
-      while (activePromises >= limit) {
-        await new Promise((resolve) => setTimeout(resolve, 200));
-      }
-
-      // Helps to reduce the rpc hit limit error
-      await new Promise((resolve) => setTimeout(resolve, 200));
-
-      // Fetch next contract
-      let optionsSafe = JSON.parse(JSON.stringify(options));
-      let nextContract = await fetchNextContract(databasePool, optionsSafe);
-      if (!nextContract && activePromises === 0) break; // Exit loop if no more contracts
-      if (!nextContract) {
-        continue;
-      }
-      options.startFrom = nextContract.id;
-
-      // Process contract if within activePromises limit
-
-      activePromises++;
-      processContract(
-        sourcifyInstance,
-        repositoryV1Path,
-        databasePool,
-        nextContract
-      )
-        .then((res) => {
-          if (res[0]) {
-            console.log(`Successfully sync: ${[res[1]]}`);
-          } else {
-            console.error(`Failed to sync ${[res[1]]}`);
-          }
-          activePromises--;
-          processedContracts++;
-        })
-        .catch((e) => {
-          console.error(e);
-        });
+    // Get chains from database
+    let chains = [];
+    const query = "SELECT DISTINCT chain_id FROM sourcify_sync";
+    const chainsResult = await databasePool.query(query);
+    if (chainsResult.rowCount > 0) {
+      chains = chainsResult.rows.map(({ chain_id }) => chain_id);
     }
-    console.log(`Synced ${processedContracts} contracts`);
+
+    // Remove exceptions using --chainsException and 0
+    chains = chains.filter(
+      (chain) => !options.chainsExceptions?.split(",").includes(`${chain}`)
+    );
+
+    let monitoring = {
+      totalSynced: 0,
+      startedAt: Date.now(),
+    };
+    // For each chain start a parallel process
+    await Promise.all(
+      chains.map((chainId) =>
+        startSyncChain(
+          sourcifyInstance,
+          repositoryV1Path,
+          chainId,
+          JSON.parse(JSON.stringify(options)),
+          databasePool,
+          monitoring
+        )
+      )
+    );
+
     databasePool.end();
   });
+
+const startSyncChain = async (
+  sourcifyInstance,
+  repositoryV1Path,
+  chainId,
+  options,
+  databasePool,
+  monitoring
+) => {
+  let activePromises = 0;
+  let limit = options.limit ? options.limit : 1;
+
+  let processedContracts = 0;
+  while (true) {
+    while (activePromises >= limit) {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+
+    // Helps to reduce the rpc hit limit error
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // Fetch next contract
+    let optionsSafe = JSON.parse(JSON.stringify(options));
+    let nextContract = await fetchNextContract(
+      databasePool,
+      optionsSafe,
+      chainId
+    );
+    if (!nextContract && activePromises === 0) break; // Exit loop if no more contracts
+    if (!nextContract) {
+      continue;
+    }
+    options.startFrom = nextContract.id;
+
+    // Process contract if within activePromises limit
+
+    activePromises++;
+    processContract(sourcifyInstance, repositoryV1Path, databasePool, {
+      address: nextContract.address.toString(),
+      chain_id: nextContract.chain_id,
+      match_type: nextContract.match_type,
+    })
+      .then((res) => {
+        if (res[0]) {
+          monitoring.totalSynced++;
+          console.log(
+            `Successfully sync: ${[res[1]]}. Currently running at ${(
+              (1000 * monitoring.totalSynced) /
+              (Date.now() - monitoring.startedAt)
+            ).toFixed(2)} v/s`
+          );
+        } else {
+          console.error(`Failed to sync ${[res[1]]}`);
+        }
+        activePromises--;
+        processedContracts++;
+      })
+      .catch((e) => {
+        console.error(e);
+      });
+  }
+  console.log(`Synced ${processedContracts} contracts for chainId ${chainId}`);
+};
 
 // Utils functions
 const processContract = async (
@@ -229,7 +279,7 @@ const processContract = async (
 ) => {
   return new Promise(async (resolve) => {
     try {
-      const address = contract.address.toString();
+      const address = contract.address;
       const chainId = contract.chain_id;
       const matchType = contract.match_type;
 
@@ -305,8 +355,7 @@ const processContract = async (
   });
 };
 
-const fetchNextContract = async (databasePool, options) => {
-  const chains = options.chains?.split(",") || [];
+const fetchNextContract = async (databasePool, options, chainId) => {
   try {
     const query = `
       SELECT
@@ -314,23 +363,15 @@ const fetchNextContract = async (databasePool, options) => {
       FROM sourcify_sync
       WHERE 1=1
         AND id > $1
-        ${
-          // This is needed because the `pg` package needs $n parameters in the queries where n is the index of the second array
-          chains?.length > 0
-            ? "AND (1=0 " +
-              chains.map((_, i) => "OR chain_id = $" + (i + 2)).join(" ") +
-              ")"
-            : ""
-        }
+        AND chain_id = $2
         AND synced = false
-      ORDER BY chain_id ASC, id ASC
+      ORDER BY id ASC
       LIMIT 1
     `;
-    const queryParameter = [
+    const contractResult = await databasePool.query(query, [
       options.startFrom ? options.startFrom : 0,
-      ...chains,
-    ];
-    const contractResult = await databasePool.query(query, queryParameter);
+      chainId,
+    ]);
     if (contractResult.rowCount > 0) {
       return contractResult.rows[0];
     } else {

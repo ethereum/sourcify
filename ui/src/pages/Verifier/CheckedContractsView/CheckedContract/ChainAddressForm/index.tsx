@@ -22,8 +22,6 @@ import Message from "./Message";
 import { HiChevronDown } from "react-icons/hi";
 import ReactTooltip from "react-tooltip";
 import { SelectedOptionValue } from "react-select-search";
-/* import Constructorarguments from "../../../../../components/ConstructorArguments";
-import InputToggle from "../../../../../components/InputToggle"; */
 
 type ChainAddressFormProps = {
   customStatus: string;
@@ -134,10 +132,6 @@ const ChainAddressForm = ({
       verificationId: checkedContract.verificationId || "",
       address: address || "",
       chainId: chainId,
-      /* contextVariables: {
-        abiEncodedConstructorArguments,
-        msgSender,
-      }, */
       creatorTxHash,
     }).finally(() => setIsLoading(false));
   };

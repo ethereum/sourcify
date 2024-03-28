@@ -1,5 +1,5 @@
 process.env.NODE_CONFIG_ENV = "test";
-process.env.SOURCIFY_POSTGRES_HOST = "";
+// process.env.SOURCIFY_POSTGRES_HOST = "";
 process.env.ALLIANCE_POSTGRES_HOST = "";
 
 const chai = require("chai");
@@ -225,7 +225,7 @@ describe("Test Supported Chains", function () {
   verifyContract(
     "0x059611daEdBA5Fe0875aC7c76d7cE47FfE5c39C5",
     "40",
-    "Telos EVM Testnet",
+    "Telos EVM Mainnet",
     "40/"
   );
 
@@ -495,13 +495,13 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
-  // Gather Testnet
-  verifyContract(
-    "0x08Da5501c22AE1ce2621724Ca1A03383d6C12c4d",
-    "356256156",
-    "GTH",
-    "shared/"
-  );
+  // // Gather Testnet
+  // verifyContract(
+  //   "0x08Da5501c22AE1ce2621724Ca1A03383d6C12c4d",
+  //   "356256156",
+  //   "GTH",
+  //   "shared/"
+  // );
 
   // // Gather Devnet
   // verifyContract(
@@ -785,13 +785,13 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
-  // Base Goerli Testnet
-  verifyContract(
-    "0x8F78b9c92a68DdF719849a40702cFBfa4EB60dD0",
-    "84531",
-    "Base Goerli Testnet",
-    "shared/"
-  );
+  // // Base Goerli Testnet
+  // verifyContract(
+  //   "0x8F78b9c92a68DdF719849a40702cFBfa4EB60dD0",
+  //   "84531",
+  //   "Base Goerli Testnet",
+  //   "shared/"
+  // );
 
   // Base Mainnet
   verifyContract(
@@ -1078,27 +1078,27 @@ describe("Test Supported Chains", function () {
     "4337/"
   );
 
-  verifyContract(
-    "0x72Ed1E3E3A68DfB7495FAfb19C0de1A0B7Ec5524",
-    "78432",
-    "Conduit Subnet",
-    "78432/"
-  );
+  // verifyContract(
+  //   "0x72Ed1E3E3A68DfB7495FAfb19C0de1A0B7Ec5524",
+  //   "78432",
+  //   "Conduit Subnet",
+  //   "78432/"
+  // );
 
-  verifyContract(
-    "0xa785B911a79B0d5d8895c567663c29F0f7B93321",
-    "78431",
-    "Bulletin Subnet",
-    "78431/"
-  );
+  // verifyContract(
+  //   "0xa785B911a79B0d5d8895c567663c29F0f7B93321",
+  //   "78431",
+  //   "Bulletin Subnet",
+  //   "78431/"
+  // );
 
-  // Amplify Subnet
-  verifyContract(
-    "0xB19f81cA2141ACd6F2Cc39bAFAD2a613bC4c9592",
-    "78430",
-    "Amplify Subnet",
-    "78430/"
-  );
+  // // Amplify Subnet
+  // verifyContract(
+  //   "0xB19f81cA2141ACd6F2Cc39bAFAD2a613bC4c9592",
+  //   "78430",
+  //   "Amplify Subnet",
+  //   "78430/"
+  // );
 
   // Shrapnel Subnet Testnet
   verifyContract(
@@ -1322,6 +1322,46 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // Ozone Chain Mainnet
+  verifyContract(
+    "0x50A9B085260F80CFEb1Af8c7131980fC11238ccB",
+    "4000",
+    "Ozone Chain Mainnet",
+    "shared/"
+  );
+
+  // Endurance Smart Chain Mainnet
+  verifyContract(
+    "0x9e5b6c4F1080a4cb5bFD84816375c25E3B26d11A",
+    "648",
+    "Endurance Smart Chain Mainnet",
+    "shared/"
+  );
+
+  // CrossFi Chain Testnet
+  verifyContract(
+    "0x684F57Dd731EB2F7Bab0f9b077C41C256CB4eb17",
+    "4157",
+    "CrossFi Chain Testnet",
+    "shared/"
+  );
+
+  // Tiltyard Mainnet
+  verifyContract(
+    "0xbBB3e01361604EB1884b3f1Cf3524b73966E8Ef9",
+    "710420",
+    "Tiltyard Mainnet",
+    "shared/"
+  );
+
+  // Phoenix Mainnet
+  verifyContract(
+    "0x4aE9a333D2Bfb5754fEa6aA24c17026EbD411e2f",
+    "13381",
+    "Phoenix Mainnet",
+    "shared/"
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests = [];
     supportedChains
@@ -1405,8 +1445,16 @@ describe("Test Supported Chains", function () {
           chain: chainId,
           files: files,
         })
-        .end((err, res) => {
-          assertVerification(err, res, done, address, chainId, expectedStatus);
+        .end(async (err, res) => {
+          await assertVerification(
+            false,
+            err,
+            res,
+            done,
+            address,
+            chainId,
+            expectedStatus
+          );
           anyTestsPass = true;
         });
     });

@@ -5,7 +5,7 @@ import {
   checkContractsInSession,
   getSessionJSON,
   isVerifiable,
-  saveFiles,
+  saveFilesToSession,
   verifyContractsInSession,
 } from "../../verification.common";
 import { PathContent } from "@ethereum-sourcify/lib-sourcify";
@@ -19,14 +19,13 @@ import {
   checkSupportedChainId,
   sourcifyChainsMap,
 } from "../../../../../sourcify-chains";
-import { logger } from "../../../../../common/logger";
+import logger from "../../../../../common/logger";
 
 export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
-  const requestId = req.headers["X-Request-ID"] || "";
-  const requestIdMsg = requestId ? `requestId=${requestId} ` : "";
-
-  logger.info(`${requestIdMsg} /session/verify - \
-    address=${req.body.address} chainId=${req.body.chain}`);
+  logger.info("sessionVerifyFromEtherscan", {
+    chainId: req.body.chain,
+    address: req.body.address,
+  });
 
   checkSupportedChainId(req.body.chain);
 
@@ -57,7 +56,7 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
     content: stringToBase64(JSON.stringify(metadata)),
   });
   const session = req.session;
-  const newFilesCount = saveFiles(pathContents, session);
+  const newFilesCount = saveFilesToSession(pathContents, session);
   if (newFilesCount === 0) {
     throw new BadRequestError("The contract didn't add any new file");
   }

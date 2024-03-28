@@ -11,10 +11,14 @@ import {
   checkFiles,
   useAllSources,
 } from "@ethereum-sourcify/lib-sourcify";
-import { BadRequestError, NotFoundError } from "../../../../../common/errors";
+import {
+  BadRequestError,
+  NotFoundError,
+  ValidationError,
+} from "../../../../../common/errors";
 import { StatusCodes } from "http-status-codes";
 import { getResponseMatchFromMatch } from "../../../../common";
-import { logger } from "../../../../../common/logger";
+import logger from "../../../../../common/logger";
 
 export async function legacyVerifyEndpoint(
   req: LegacyVerifyRequest,
@@ -67,19 +71,27 @@ export async function legacyVerifyEndpoint(
     ? checkedContracts[req.body.chosenContract]
     : checkedContracts[0];
 
+  if (!contract) {
+    throw new NotFoundError(
+      "Chosen contract not found. Received chosenContract: " +
+        req.body.chosenContract
+    );
+  }
+
   try {
     const match = await services.verification.verifyDeployed(
       contract,
       req.body.chain,
       req.body.address,
-      /* req.body.contextVariables, */
       req.body.creatorTxHash
     );
     // Send to verification again with all source files.
     if (match.runtimeMatch === "extra-file-input-bug") {
-      logger.info(
-        `Found an extra-file-input-bug for ${contract.name} on ${req.body.chain} at ${req.body.address}. Sending to verification again with all source files.`
-      );
+      logger.info("Found extra-file-input-bug", {
+        contract: contract.name,
+        chain: req.body.chain,
+        address: req.body.address,
+      });
       const contractWithAllSources = await useAllSources(contract, inputFiles);
       const tempMatch = await services.verification.verifyDeployed(
         contractWithAllSources,
@@ -93,6 +105,10 @@ export async function legacyVerifyEndpoint(
       ) {
         await services.storage.storeMatch(contract, tempMatch);
         return res.send({ result: [getResponseMatchFromMatch(tempMatch)] });
+      } else if (tempMatch.runtimeMatch === "extra-file-input-bug") {
+        throw new ValidationError(
+          "It seems your contract's metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618"
+        );
       }
     }
     if (match.runtimeMatch || match.creationMatch) {
