@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-monitor@1.1.11 - 2024-03-28
+
+- Improved logging:
+  - Log nicely formatted line logs in development and JSON logs in production
+  - Added `NODE_LOG_LEVEL` env variable
+  - Enable dynamic log level chaning through a simple web server. Just send:
+  ```bash
+  curl -X POST -H "Content-Type: application/json" -d '{"level": "debug"}' http://localhost:3333
+  ```
+
 ## sourcify-monitor@1.1.10 - 2024-03-14
 
 - Rename chains.json to monitorChains.json

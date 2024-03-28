@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 This CHANGELOG will contain monorepo related changes such as CI configs, shared dependencies and the development setup.
 
+## sourcify-monorepo@1.2.5 - 2024-03-28
+
+- Update dependencies
+- Add Postgres DB env vars to the CI
+
 ## sourcify-monorepo@1.2.4 - 2024-03-15
 
 - Update sourcify-server

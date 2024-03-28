@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@1.5.4 - 2024-03-28
+
+- Improved logging:
+  - Log nicely formatted line logs in development and JSON logs in production
+  - Added `NODE_LOG_LEVEL` env variable
+  - Enable dynamic log level chaning through an authenticaed endpoint `/change-log-level`. The auth token is set at `SETLOGGING_TOKEN`
+- Fix path sanitization not sanitizing new lines `\n`.
+- Updating verified contract in the DB. Previously it was just inserting.
+- Add tests for Database
+- New chains:
+  - Fraxtal (252)
+  - Fraxtal Testnet (2522)
+  - Phoenix Mainnet (13381)
+
 ## sourcify-server@1.5.3 - 2024-03-15
 
 - New chains:
