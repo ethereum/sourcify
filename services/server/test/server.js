@@ -1758,7 +1758,8 @@ describe("Server", function () {
             "DFrostGeckoToken\n.sol": sourceBuffer.toString(),
           },
         });
-      assertVerification(
+      await assertVerification(
+        storageService,
         null,
         res,
         null,
