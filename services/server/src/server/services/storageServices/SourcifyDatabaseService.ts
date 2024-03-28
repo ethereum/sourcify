@@ -115,7 +115,7 @@ export class SourcifyDatabaseService
 
   // Override this method to include the SourcifyMatch
   async storeMatch(recompiledContract: CheckedContract, match: Match) {
-    const { type, verifiedContractId } =
+    const { type, verifiedContractId, oldVerifiedContractId } =
       await super.insertOrUpdateVerifiedContract(recompiledContract, match);
 
     if (type === "insert") {
@@ -144,13 +144,25 @@ export class SourcifyDatabaseService
         creationMatch: match.creationMatch,
       });
     } else if (type === "update") {
-      if (verifiedContractId) {
-        await Database.updateSourcifyMatch(this.databasePool, {
+      if (!verifiedContractId) {
+        throw new Error(
+          "VerifiedContractId undefined before updating sourcify match"
+        );
+      }
+      if (!oldVerifiedContractId) {
+        throw new Error(
+          "oldVerifiedContractId undefined before updating sourcify match"
+        );
+      }
+      await Database.updateSourcifyMatch(
+        this.databasePool,
+        {
           verified_contract_id: verifiedContractId,
           creation_match: match.creationMatch,
           runtime_match: match.runtimeMatch,
-        });
-      }
+        },
+        oldVerifiedContractId
+      );
       // Prevent running this on the migration server
       if (process.env.NODE_CONFIG_ENV !== "migration") {
         await Database.updateSourcifySync(this.databasePool, {
@@ -166,7 +178,9 @@ export class SourcifyDatabaseService
         creationMatch: match.creationMatch,
       });
     } else {
-      throw new Error();
+      throw new Error(
+        "insertOrUpdateVerifiedContract returned a type that doesn't exist"
+      );
     }
   }
 }

@@ -378,6 +378,7 @@ export default abstract class AbstractDatabaseService {
   ): Promise<{
     type: "update" | "insert";
     verifiedContractId: number | false;
+    oldVerifiedContractId?: number;
   }> {
     this.validateBeforeStoring(recompiledContract, match);
 
@@ -417,6 +418,7 @@ export default abstract class AbstractDatabaseService {
           match,
           databaseColumns
         ),
+        oldVerifiedContractId: existingVerifiedContractResult.rows[0].id,
       };
     }
   }

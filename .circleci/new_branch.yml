@@ -41,6 +41,11 @@ jobs:
           command: npx lerna run build && npx lerna run lerna-test
           environment:
             DOCKER_HOST_POSTGRES_TEST_PORT: 5432
+            SOURCIFY_POSTGRES_HOST: "localhost"
+            SOURCIFY_POSTGRES_DB: "sourcify"
+            SOURCIFY_POSTGRES_USER: "sourcify"
+            SOURCIFY_POSTGRES_PASSWORD: "sourcify"
+            SOURCIFY_POSTGRES_PORT: 5432
       - run:
           name: coverage
           command: npx lerna run cov:send

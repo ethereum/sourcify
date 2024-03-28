@@ -1,5 +1,5 @@
 process.env.NODE_CONFIG_ENV = "test";
-process.env.SOURCIFY_POSTGRES_HOST = "";
+// process.env.SOURCIFY_POSTGRES_HOST = "";
 process.env.ALLIANCE_POSTGRES_HOST = "";
 
 const chai = require("chai");
@@ -1422,8 +1422,16 @@ describe("Test Supported Chains", function () {
           chain: chainId,
           files: files,
         })
-        .end((err, res) => {
-          assertVerification(err, res, done, address, chainId, expectedStatus);
+        .end(async (err, res) => {
+          await assertVerification(
+            false,
+            err,
+            res,
+            done,
+            address,
+            chainId,
+            expectedStatus
+          );
           anyTestsPass = true;
         });
     });
