@@ -620,7 +620,7 @@ export class RepositoryV1Service implements IStorageService {
     let sanitizedPath = path.normalize(originalPath);
 
     // Replace \n case not addressed by `path.normalize`
-    sanitizedPath = sanitizedPath.replace(/\\n/g, "");
+    sanitizedPath = sanitizedPath.replace(/\n/g, "");
 
     // If there are no upper folders to traverse, path.normalize will keep ../ parts. Need to remove any of those.
     const parsedPath = path.parse(sanitizedPath);

@@ -3,6 +3,8 @@ import monitorLoggerInstance, { setLogLevel, validLogLevels } from "./logger";
 
 const port = process.env.NODE_LOG_LEVEL_SERVER_PORT || 3333;
 
+// Simple server to set the log level dynamically.
+// UNAUTHENTICATED
 const server = http.createServer((req, res) => {
   if (req.method === "POST") {
     let body = "";
