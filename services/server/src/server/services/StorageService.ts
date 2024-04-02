@@ -154,13 +154,23 @@ export class StorageService {
 
     // Conditionally push promises to the array based on service availability
     if (this.allianceDatabase) {
-      promises.push(
-        this.allianceDatabase.storeMatch(contract, match).catch((e) =>
-          logger.error("Error storing to AllianceDatabase: ", {
-            error: e,
-          })
-        )
-      );
+      if (!match.creationMatch) {
+        logger.warn(`Can't store to AllianceDatabase without creationMatch`, {
+          name: contract.name,
+          address: match.address,
+          chainId: match.chainId,
+          runtimeMatch: match.runtimeMatch,
+          creationMatch: match.creationMatch,
+        });
+      } else {
+        promises.push(
+          this.allianceDatabase.storeMatch(contract, match).catch((e) =>
+            logger.error("Error storing to AllianceDatabase: ", {
+              error: e,
+            })
+          )
+        );
+      }
     }
 
     if (this.sourcifyDatabase) {
