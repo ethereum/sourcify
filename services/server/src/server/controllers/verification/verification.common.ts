@@ -345,9 +345,23 @@ export const verifyContractsInSession = async (
   verificationService: IVerificationService,
   storageService: StorageService
 ): Promise<void> => {
+  logger.debug("verifyContractsInSession", {
+    sessionId: session.id,
+    contracts: Object.keys(contractWrappers).map((id) => ({
+      id,
+      address: contractWrappers[id].address,
+      chainId: contractWrappers[id].chainId,
+    })),
+  });
   for (const id in contractWrappers) {
     const contractWrapper = contractWrappers[id];
 
+    logger.debug("verifyContractsInSession: iterate contract", {
+      contractId: id,
+      contract: contractWrapper.contract.name,
+      address: contractWrapper.address,
+      chainId: contractWrapper.chainId,
+    });
     // Check if contract is already verified
     if (Boolean(contractWrapper.address) && Boolean(contractWrapper.chainId)) {
       const found = await storageService.checkByChainAndAddress(
@@ -366,6 +380,9 @@ export const verifyContractsInSession = async (
     await checkAndFetchMissing(contractWrapper.contract);
 
     if (!isVerifiable(contractWrapper)) {
+      logger.debug("verifyContractsInSession: not verifiable", {
+        contractId: id,
+      });
       continue;
     }
 

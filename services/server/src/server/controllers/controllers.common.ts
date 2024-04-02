@@ -7,7 +7,10 @@ export const safeHandler = (requestHandler: RequestHandler) => {
     try {
       return await requestHandler(req, res as any, next);
     } catch (err: any) {
-      logger.info("safeHandler", { errorMessage: err.message });
+      logger.info("safeHandler", {
+        errorMessage: err.message,
+        errorStack: err.stack,
+      });
       next(typeof err === "object" ? err : new InternalServerError(err.mesage));
     }
   };
