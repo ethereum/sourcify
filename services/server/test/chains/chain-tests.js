@@ -1364,6 +1364,14 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // YMTECH-BESU Testnet
+  verifyContract(
+    "0x37A01685de21e2d459fE3c6AEDe86A94B4bb8d9C",
+    "202401",
+    "YMTECH-BESU Testnet",
+    "shared/"
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests = [];
     supportedChains

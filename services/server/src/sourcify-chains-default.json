@@ -1529,5 +1529,14 @@
         "url": "https://phoenixplorer.com/"
       }
     }
+  },
+  "202401": {
+    "sourcifyName": "YMTECH-BESU Testnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "http://39.119.118.198/"
+      }
+    }
   }
 }
