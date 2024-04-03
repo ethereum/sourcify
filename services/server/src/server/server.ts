@@ -266,7 +266,8 @@ export class Server {
     // Assuming the client ip is 2.2.2.2, reverse proxy 192.168.1.5
     // for the case "X-Forwarded-For: 2.2.2.2, 192.168.1.5", we want 2.2.2.2 to be used
     this.app.set("trust proxy", true);
-    this.app.use(session(getSessionOptions()));
+    // Enable session only for session endpoints
+    this.app.use("/*session*", session(getSessionOptions()));
 
     this.app.use(
       "/repository",
