@@ -340,7 +340,7 @@ export function isVerifiable(contractWrapper: ContractWrapper) {
 }
 
 export const verifyContractsInSession = async (
-  contractWrappers: ContractWrapperMap,
+  contractWrappers: ContractWrapperMap = {},
   session: Session,
   verificationService: IVerificationService,
   storageService: StorageService
