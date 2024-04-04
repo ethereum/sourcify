@@ -244,7 +244,7 @@ export const checkContractsInSession = async (session: Session) => {
     const newPendingContracts: ContractWrapperMap = {};
     for (const contract of contracts) {
       newPendingContracts[generateId(JSON.stringify(contract.metadataRaw))] = {
-        contract,
+        contract: contract.exportConstructorArguments(),
       };
     }
 
@@ -377,8 +377,6 @@ export const verifyContractsInSession = async (
       }
     }
 
-    await checkAndFetchMissing(contractWrapper.contract);
-
     if (!isVerifiable(contractWrapper)) {
       logger.debug("verifyContractsInSession: not verifiable", {
         contractId: id,
@@ -395,6 +393,8 @@ export const verifyContractsInSession = async (
       contract.missing,
       contract.invalid
     );
+
+    await checkAndFetchMissing(checkedContract);
 
     let match: Match;
     try {

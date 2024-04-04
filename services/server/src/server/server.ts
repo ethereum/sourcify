@@ -45,19 +45,16 @@ import genFunc from "connect-pg-simple";
 
 const MemoryStore = createMemoryStore(session);
 
-const PostgresqlStore = genFunc(session);
-
-const host = process.env.SOURCIFY_POSTGRES_HOST;
-const database = process.env.SOURCIFY_POSTGRES_DB;
-const user = process.env.SOURCIFY_POSTGRES_USER;
-const password = process.env.SOURCIFY_POSTGRES_PASSWORD;
-const port = process.env.SOURCIFY_POSTGRES_PORT;
-
-const conString = `postgresql://${user}:${password}@${host}:${port}/${database}`;
-
-const sessionStore = new PostgresqlStore({
-  conString,
-});
+// const host = process.env.SOURCIFY_POSTGRES_HOST;
+// const database = process.env.SOURCIFY_POSTGRES_DB;
+// const user = process.env.SOURCIFY_POSTGRES_USER;
+// const password = process.env.SOURCIFY_POSTGRES_PASSWORD;
+// const port = process.env.SOURCIFY_POSTGRES_PORT;
+// const conString = `postgresql://${user}:${password}@${host}:${port}/${database}`;
+// const PostgresqlStore = genFunc(session);
+// const sessionStore = new PostgresqlStore({
+//   conString,
+// });
 
 export class Server {
   app: express.Application;
@@ -342,9 +339,9 @@ function getSessionOptions(): session.SessionOptions {
       secure: config.get("session.secure"),
       sameSite: "lax",
     },
-    store: sessionStore /* new MemoryStore({
+    store: new MemoryStore({
       checkPeriod: config.get("session.maxAge"),
-    }), */,
+    }), // sessionStore,
   };
 }
 
