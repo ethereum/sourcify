@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@1.5.6 - 2024-04-04
+
+- Fix checkAndFetchMissing failing in session API
+
 ## sourcify-server@1.5.5 - 2024-04-04
 
 - Update dependencies
