@@ -308,8 +308,13 @@
   "43114": {
     "sourcifyName": "Avalanche C-Chain Mainnet",
     "supported": true,
+    "etherscanApi": {
+      "apiURL": "https://api.snowscan.xyz",
+      "apiKeyEnvName": "SNOWSCAN_API_KEY"
+    },
     "fetchContractCreationTxUsing": {
-      "avalancheApi": true
+      "avalancheApi": true,
+      "etherscanApi": true
     }
   },
   "57": {
