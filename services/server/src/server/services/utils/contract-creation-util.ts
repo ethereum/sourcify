@@ -151,7 +151,7 @@ async function getCreatorTxUsingFetcher(
     contractAddress
   );
 
-  logger.debug("⌛ Fetching Creator Tx", {
+  logger.debug("Fetching Creator Tx", {
     fetcher,
     contractFetchAddressFilled,
     contractAddress,
