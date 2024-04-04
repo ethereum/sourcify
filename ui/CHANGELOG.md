@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-ui@1.1.3 - 2023-04-04
+
+- Add custom error message for session time out issue in Verifier component #1317
+
 ## sourcify-ui@1.1.2 - 2023-02-26
 
 - Allow passing Etherscan API key as parameter in import from Etherscon

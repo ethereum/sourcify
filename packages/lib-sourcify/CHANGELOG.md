@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## @ethereum-sourcify/lib-sourcify@1.7.4 - 2023-04-04
+
+- Add function to export the minimum information to reconstruct the CheckedContract
+
 ## @ethereum-sourcify/lib-sourcify@1.7.3 - 2023-03-28
 
 - Update logging

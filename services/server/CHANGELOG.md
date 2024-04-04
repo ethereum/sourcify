@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@1.5.5 - 2024-04-04
+
+- Update dependencies
+- Fix session API takes too long to respond on production (#1289)
+- Improve logging
+- New chains:
+  - YMTECH-BESU Testnet (202401)
+- Deprecated chains:
+  - Ethereum Goerli Testnet (5)
+
 ## sourcify-server@1.5.4 - 2024-03-28
 
 - Improved logging:
