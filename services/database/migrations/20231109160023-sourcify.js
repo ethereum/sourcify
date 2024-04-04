@@ -62,7 +62,6 @@ exports.up = function (db, callback) {
             CONSTRAINT sourcify_sync_pseudo_pkey UNIQUE (chain_id, address)
         );`
       ),
-      db.runSql.bind(
       // db.runSql.bind(
       //   db,
       //   `CREATE TABLE session (
