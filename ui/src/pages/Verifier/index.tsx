@@ -48,7 +48,16 @@ const Verifier: React.FC = () => {
               error: `Error: ${rawRes.status} ${rawRes.statusText}`,
             };
           } else {
-            err = await rawRes.json();
+            if (rawRes.status === 504) {
+              err = {
+                error: `Quick Notice 🔔
+                While we address a session delay issue (Issue #1289), 
+                please use a Private/Incognito window for verification purposes. 
+                Your patience is appreciated!`,
+              };
+            } else {
+              err = await rawRes.json();
+            }
           }
           throw new Error(err.error);
         }

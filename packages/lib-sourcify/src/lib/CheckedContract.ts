@@ -423,6 +423,14 @@ export class CheckedContract {
       this.solcJsonInput,
       forceEmscripten
     );
+    if (this.compilerOutput === undefined) {
+      const error = new Error('Compiler error');
+      logWarn('Compiler error', {
+        errorMessages: ['compilerOutput is undefined'],
+      });
+      throw error;
+    }
+
     const compilationEndTime = Date.now();
     const compilationDuration = compilationEndTime - compilationStartTime;
     logSilly('Compilation output', { compilerOutput: this.compilerOutput });
@@ -529,6 +537,19 @@ export class CheckedContract {
       );
       throw error;
     }
+  }
+
+  // Function to export the minimum information to reconstruct the CheckedContract
+  exportConstructorArguments() {
+    return {
+      metadata: this.metadata,
+      solidity: this.solidity,
+      missing: this.missing,
+      invalid: this.invalid,
+      // creationBytecode: this.creationBytecode, // Not needed without create2
+      compiledPath: this.compiledPath,
+      name: this.name,
+    };
   }
 }
 

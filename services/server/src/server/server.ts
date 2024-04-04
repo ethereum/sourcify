@@ -41,8 +41,20 @@ import {
   validateSourcifyChainIds,
 } from "./common";
 import { initDeprecatedRoutes } from "./deprecated.routes";
+// import genFunc from "connect-pg-simple";
 
 const MemoryStore = createMemoryStore(session);
+
+// const host = process.env.SOURCIFY_POSTGRES_HOST;
+// const database = process.env.SOURCIFY_POSTGRES_DB;
+// const user = process.env.SOURCIFY_POSTGRES_USER;
+// const password = process.env.SOURCIFY_POSTGRES_PASSWORD;
+// const port = process.env.SOURCIFY_POSTGRES_PORT;
+// const conString = `postgresql://${user}:${password}@${host}:${port}/${database}`;
+// const PostgresqlStore = genFunc(session);
+// const sessionStore = new PostgresqlStore({
+//   conString,
+// });
 
 export class Server {
   app: express.Application;
@@ -266,7 +278,8 @@ export class Server {
     // Assuming the client ip is 2.2.2.2, reverse proxy 192.168.1.5
     // for the case "X-Forwarded-For: 2.2.2.2, 192.168.1.5", we want 2.2.2.2 to be used
     this.app.set("trust proxy", true);
-    this.app.use(session(getSessionOptions()));
+    // Enable session only for session endpoints
+    this.app.use("/*session*", session(getSessionOptions()));
 
     this.app.use(
       "/repository",
@@ -328,7 +341,7 @@ function getSessionOptions(): session.SessionOptions {
     },
     store: new MemoryStore({
       checkPeriod: config.get("session.maxAge"),
-    }),
+    }), // sessionStore,
   };
 }
 

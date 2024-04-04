@@ -2,9 +2,13 @@ import { BadRequestError } from "../common/errors";
 import { checkSourcifyChainId } from "../sourcify-chains";
 import {
   CheckedContract,
+  InvalidSources,
   Match,
+  Metadata,
+  MissingSources,
   PathContent,
   Status,
+  StringMap,
 } from "@ethereum-sourcify/lib-sourcify";
 import { getAddress, isAddress } from "ethers";
 
@@ -76,7 +80,15 @@ export type ContractMeta = {
 };
 
 export type ContractWrapper = ContractMeta & {
-  contract: CheckedContract;
+  contract: {
+    metadata: Metadata;
+    solidity: StringMap;
+    missing: MissingSources;
+    invalid: InvalidSources;
+    creationBytecode?: string;
+    compiledPath?: string;
+    name?: string;
+  };
 };
 
 export interface ContractWrapperMap {

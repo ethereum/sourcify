@@ -168,7 +168,7 @@ export type SendableContract = ContractMeta & {
   };
   verificationId: string;
   constructorArgumentsArray?: Mutable<AbiParameter[]>;
-  creationBytecode?: string;
+  // creationBytecode?: string; // Not needed without create2
 };
 
 function getSendableContract(
@@ -184,7 +184,7 @@ function getSendableContract(
         (abi) => abi.type === "constructor"
       ) as AbiConstructor
     )?.inputs as Mutable<AbiParameter[]>,
-    creationBytecode: contract?.creationBytecode,
+    // : contract?.creationBytecode, // Not needed without create2
     compiledPath: contract.compiledPath,
     name: contract.name,
     address: contractWrapper.address,
@@ -244,7 +244,8 @@ export const checkContractsInSession = async (session: Session) => {
     const newPendingContracts: ContractWrapperMap = {};
     for (const contract of contracts) {
       newPendingContracts[generateId(JSON.stringify(contract.metadataRaw))] = {
-        contract,
+        // Remove large (e.g. bytecodes) and unnecessary (e.g. `solidityCompiler`) fields in CheckedContract before saving to the session. Essentially a CheckedContract only needs a few fields to be generated.
+        contract: contract.exportConstructorArguments(),
       };
     }
 
@@ -340,14 +341,28 @@ export function isVerifiable(contractWrapper: ContractWrapper) {
 }
 
 export const verifyContractsInSession = async (
-  contractWrappers: ContractWrapperMap,
+  contractWrappers: ContractWrapperMap = {},
   session: Session,
   verificationService: IVerificationService,
   storageService: StorageService
 ): Promise<void> => {
+  logger.debug("verifyContractsInSession", {
+    sessionId: session.id,
+    contracts: Object.keys(contractWrappers).map((id) => ({
+      id,
+      address: contractWrappers[id].address,
+      chainId: contractWrappers[id].chainId,
+    })),
+  });
   for (const id in contractWrappers) {
     const contractWrapper = contractWrappers[id];
 
+    logger.debug("verifyContractsInSession: iterate contract", {
+      contractId: id,
+      contract: contractWrapper.contract.name,
+      address: contractWrapper.address,
+      chainId: contractWrapper.chainId,
+    });
     // Check if contract is already verified
     if (Boolean(contractWrapper.address) && Boolean(contractWrapper.chainId)) {
       const found = await storageService.checkByChainAndAddress(
@@ -363,9 +378,10 @@ export const verifyContractsInSession = async (
       }
     }
 
-    await checkAndFetchMissing(contractWrapper.contract);
-
     if (!isVerifiable(contractWrapper)) {
+      logger.debug("verifyContractsInSession: not verifiable", {
+        contractId: id,
+      });
       continue;
     }
 
@@ -378,6 +394,8 @@ export const verifyContractsInSession = async (
       contract.missing,
       contract.invalid
     );
+
+    await checkAndFetchMissing(checkedContract);
 
     let match: Match;
     try {

@@ -418,5 +418,22 @@
       "type": "single",
       "expectedStatus": "partial"
     }
+  ],
+  "43114": [
+    {
+      "address": "0xdd1BA7Ae77875dD783F4168c7a10B900395Eec6d",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x9ca7BE16070477CB29D124E1bf34edd597926E05",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    },
+    {
+      "address": "0xf585f75552923dc0dedaaa8484ce5c70440f5ec5",
+      "type": "multiple",
+      "expectedStatus": "perfect"
+    }
   ]
 }

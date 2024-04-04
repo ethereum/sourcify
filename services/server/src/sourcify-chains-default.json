@@ -45,35 +45,7 @@
   },
   "5": {
     "sourcifyName": "Ethereum Goerli Testnet",
-    "supported": true,
-    "etherscanApi": {
-      "apiURL": "https://api-goerli.etherscan.io",
-      "apiKeyEnvName": "ETHERSCAN_API_KEY"
-    },
-    "fetchContractCreationTxUsing": {
-      "etherscanApi": true
-    },
-    "rpc": [
-      {
-        "type": "FetchRequest",
-        "url": "https://rpc.goerli.ethpandaops.io",
-        "headers": [
-          {
-            "headerName": "CF-Access-Client-Id",
-            "headerEnvName": "CF_ACCESS_CLIENT_ID"
-          },
-          {
-            "headerName": "CF-Access-Client-Secret",
-            "headerEnvName": "CF_ACCESS_CLIENT_SECRET"
-          }
-        ]
-      },
-      {
-        "type": "Alchemy",
-        "url": "https://eth-goerli.g.alchemy.com/v2/{ALCHEMY_API_KEY}",
-        "apiKeyEnvName": "ALCHEMY_API_KEY"
-      }
-    ]
+    "supported": false
   },
   "11155111": {
     "sourcifyName": "Ethereum Sepolia Testnet",
@@ -336,8 +308,13 @@
   "43114": {
     "sourcifyName": "Avalanche C-Chain Mainnet",
     "supported": true,
+    "etherscanApi": {
+      "apiURL": "https://api.snowscan.xyz",
+      "apiKeyEnvName": "SNOWSCAN_API_KEY"
+    },
     "fetchContractCreationTxUsing": {
-      "avalancheApi": true
+      "avalancheApi": true,
+      "etherscanApi": true
     }
   },
   "57": {
@@ -1527,6 +1504,15 @@
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://phoenixplorer.com/"
+      }
+    }
+  },
+  "202401": {
+    "sourcifyName": "YMTECH-BESU Testnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "http://39.119.118.198/"
       }
     }
   }
