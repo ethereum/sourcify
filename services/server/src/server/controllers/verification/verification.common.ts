@@ -378,13 +378,6 @@ export const verifyContractsInSession = async (
       }
     }
 
-    if (!isVerifiable(contractWrapper)) {
-      logger.debug("verifyContractsInSession: not verifiable", {
-        contractId: id,
-      });
-      continue;
-    }
-
     const { address, chainId, contract, creatorTxHash } = contractWrapper;
 
     // The session saves the CheckedContract as a simple object, so we need to reinstantiate it
@@ -396,6 +389,13 @@ export const verifyContractsInSession = async (
     );
 
     await checkAndFetchMissing(checkedContract);
+
+    if (!isVerifiable(contractWrapper)) {
+      logger.debug("verifyContractsInSession: not verifiable", {
+        contractId: id,
+      });
+      continue;
+    }
 
     let match: Match;
     try {
