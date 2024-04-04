@@ -63,14 +63,15 @@ exports.up = function (db, callback) {
         );`
       ),
       db.runSql.bind(
-        db,
-        `CREATE TABLE session (
-          sid character varying NOT NULL,
-          sess json NOT NULL,
-          expire timestamp with time zone NOT NULL,
-          CONSTRAINT session_pk PRIMARY KEY (sid)
-        );`
-      ),
+      // db.runSql.bind(
+      //   db,
+      //   `CREATE TABLE session (
+      //     sid character varying NOT NULL,
+      //     sess json NOT NULL,
+      //     expire timestamp with time zone NOT NULL,
+      //     CONSTRAINT session_pk PRIMARY KEY (sid)
+      //   );`
+      // ),
     ],
     callback
   );
