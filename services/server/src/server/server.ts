@@ -41,7 +41,7 @@ import {
   validateSourcifyChainIds,
 } from "./common";
 import { initDeprecatedRoutes } from "./deprecated.routes";
-import genFunc from "connect-pg-simple";
+// import genFunc from "connect-pg-simple";
 
 const MemoryStore = createMemoryStore(session);
 
