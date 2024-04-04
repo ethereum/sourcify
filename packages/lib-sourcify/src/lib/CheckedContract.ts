@@ -539,13 +539,14 @@ export class CheckedContract {
     }
   }
 
+  // Function to export the minimum information to reconstruct the CheckedContract
   exportConstructorArguments() {
     return {
       metadata: this.metadata,
       solidity: this.solidity,
       missing: this.missing,
       invalid: this.invalid,
-      creationBytecode: this.creationBytecode,
+      // creationBytecode: this.creationBytecode, // Not needed without create2
       compiledPath: this.compiledPath,
       name: this.name,
     };
