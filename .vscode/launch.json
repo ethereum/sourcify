@@ -167,7 +167,7 @@
       "request": "launch",
       "name": "Mocha - lib-sourcify",
       "cwd": "${workspaceFolder}/packages/lib-sourcify",
-      "program": "./node_modules/.bin/mocha",
+      "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "args": [
         "-r",
         "ts-node/register",
