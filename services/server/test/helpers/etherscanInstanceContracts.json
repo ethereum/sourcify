@@ -16,23 +16,6 @@
       "expectedStatus": "partial"
     }
   ],
-  "5": [
-    {
-      "address": "0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4",
-      "type": "single",
-      "expectedStatus": "partial"
-    },
-    {
-      "address": "0x0Aa78575E17Ac357294Bb7B5a9ea512bA07669E2",
-      "type": "multiple",
-      "expectedStatus": "partial"
-    },
-    {
-      "address": "0xc836440B75e7c573A6069a7Eaf584bd763762dC1",
-      "type": "standard-json",
-      "expectedStatus": "perfect"
-    }
-  ],
   "17000": [
     {
       "address": "0x27557505A0702A61C29A34a527c8886C97Df10c2",

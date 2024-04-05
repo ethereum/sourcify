@@ -33,7 +33,10 @@ describe("Test each Etherscan instance", function () {
 
   let testedChains = [];
   for (const chainId in testContracts) {
-    if (process.env.TEST_CHAIN && process.env.TEST_CHAIN !== chainId) continue;
+    if (process.env.TEST_CHAIN && process.env.TEST_CHAIN !== chainId ||
+      !sourcifyChainsMap[chainId].supported) {
+      continue;
+    }
     testedChains.push(parseInt(chainId));
     describe(`#${chainId} ${sourcifyChainsMap[chainId].name}`, () => {
       testContracts[chainId].forEach((contract) => {
