@@ -41,7 +41,9 @@ export class SolcLambda implements ISolidityCompiler {
   ): Promise<CompilerOutput> {
     const param = JSON.stringify({ version, solcJsonInput, forceEmscripten });
     logger.silly("Invoking Lambda function", { param });
+    logger.debug("Compiling with Lambda", { version });
     const response = await this.invokeLambdaFunction(param);
+    logger.debug("Compiled with Lambda", { version });
     const responseObj = this.parseCompilerOutput(response);
     logger.silly("Lambda function response", { responseObj });
     return responseObj;
@@ -59,6 +61,20 @@ export class SolcLambda implements ISolidityCompiler {
     if (!response.Payload) {
       throw new Error(
         "Error: No response payload received from Lambda function"
+      );
+    }
+
+    if (response.FunctionError) {
+      const errorObj: { errorMessage: string; errorType: string } = JSON.parse(
+        Buffer.from(response.Payload).toString("utf8")
+      );
+      logger.error("Error invoking Lambda function", {
+        errorObj,
+        lambdaRequestId: response.$metadata.requestId,
+        functionError: response.FunctionError,
+      });
+      throw new Error(
+        `AWS Lambda error: ${errorObj.errorType} - ${errorObj.errorMessage} - lamdbaRequestId: ${response.$metadata.requestId}`
       );
     }
 
