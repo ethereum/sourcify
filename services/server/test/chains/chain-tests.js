@@ -61,8 +61,8 @@ describe("Test Supported Chains", function () {
     if (!anyTestsPass && newAddedChainIds.length) {
       throw new Error(
         "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id(s) " +
-          newAddedChainIds.join(",") +
-          "?"
+        newAddedChainIds.join(",") +
+        "?"
       );
     }
   });
@@ -383,6 +383,12 @@ describe("Test Supported Chains", function () {
     "0xd46fd24ea21F04459407Fb0B518451e54d0b07a1",
     "1313161555",
     "Aurora Testnet",
+    "shared/"
+  );
+  verifyContract(
+    "0xd46fd24ea21F04459407Fb0B518451e54d0b07a1",
+    "3799",
+    "Tangle Testnet",
     "shared/"
   );
 
