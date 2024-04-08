@@ -61,8 +61,8 @@ describe("Test Supported Chains", function () {
     if (!anyTestsPass && newAddedChainIds.length) {
       throw new Error(
         "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id(s) " +
-          newAddedChainIds.join(",") +
-          "?"
+        newAddedChainIds.join(",") +
+        "?"
       );
     }
   });
@@ -127,6 +127,13 @@ describe("Test Supported Chains", function () {
     "0x43C0A11653F57a96d1d3b6A5A6be453444558A5E",
     "369",
     "PulseChain",
+    "shared/"
+  );
+
+  verifyContract(
+    "0x70499adEBB11Efd915E3b69E700c331778628707",
+    "943",
+    "PulseChain Testnet V4",
     "shared/"
   );
 

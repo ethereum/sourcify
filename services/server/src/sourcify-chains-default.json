@@ -41,7 +41,9 @@
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
     },
-    "rpc": ["https://rpc.holesky.ethpandaops.io"]
+    "rpc": [
+      "https://rpc.holesky.ethpandaops.io"
+    ]
   },
   "5": {
     "sourcifyName": "Ethereum Goerli Testnet",
@@ -85,6 +87,15 @@
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://scan.pulsechain.com/"
+      }
+    }
+  },
+  "943": {
+    "sourcifyName": "PulseChain Testnet V4",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutScrape": {
+        "url": "https://scan.v4.testnet.pulsechain.com/"
       }
     }
   },
@@ -383,7 +394,9 @@
   "311752642": {
     "sourcifyName": "Oneledger Mainnet",
     "supported": true,
-    "rpc": ["https://mainnet-rpc.oneledger.network"],
+    "rpc": [
+      "https://mainnet-rpc.oneledger.network"
+    ],
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://mainnet-explorer.oneledger.network/"
