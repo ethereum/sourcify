@@ -801,7 +801,7 @@
     "supported": true,
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
-        "url": "https://blockscout.athens2.zetachain.com/"
+        "url": "https://zetachain-athens-3.blockscout.com/"
       }
     }
   },
