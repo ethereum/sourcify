@@ -2069,18 +2069,18 @@ describe("Server", function () {
           "0x8fbcf663b8d86af936d5a72cbf9e6becd17e87e167bdcff449663e987cf09759"
         );
     });
-    it("should run getCreatorTx with regex for Etherscan", async function () {
+    it("should run getCreatorTx with etherscanApi for Etherscan", async function () {
       const sourcifyChain = sourcifyChainsArray.find(
-        (sourcifyChain) => sourcifyChain.chainId === 84531
+        (sourcifyChain) => sourcifyChain.chainId === 1
       );
       const creatorTx = await getCreatorTx(
         sourcifyChain,
-        "0xbe92671bdd1a1062e1a9f3be618e399fb5facace"
+        "0x00000000219ab540356cBB839Cbe05303d7705Fa"
       );
       chai
         .expect(creatorTx)
         .equals(
-          "0x15c5208cacbc1e14d9906926b8a991ec986a442f26081fe5ac9de4eb671c5195"
+          "0xe75fb554e433e03763a1560646ee22dcb74e5274b34c5ad644e7c0f619a7e1d0"
         );
     });
   });
