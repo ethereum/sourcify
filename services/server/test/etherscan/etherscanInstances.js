@@ -33,6 +33,9 @@ describe("Test each Etherscan instance", function () {
 
   let testedChains = [];
   for (const chainId in testContracts) {
+    if (!sourcifyChainsMap[chainId].supported) {
+      throw new Error(`Unsupported chain (${chainId}) found in test configuration`);
+    }
     if (process.env.TEST_CHAIN && process.env.TEST_CHAIN !== chainId) continue;
     testedChains.push(parseInt(chainId));
     describe(`#${chainId} ${sourcifyChainsMap[chainId].name}`, () => {
