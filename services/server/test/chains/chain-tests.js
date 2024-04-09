@@ -1372,6 +1372,14 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // Polygon Amoy Testnet
+  verifyContract(
+    "0x8A4eBAEB1319623Aebda7c0F77b22263893f286B",
+    "80002",
+    "Polygon Amoy Testnet",
+    "shared/"
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests = [];
     supportedChains

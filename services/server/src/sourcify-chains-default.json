@@ -1520,5 +1520,9 @@
         "url": "http://39.119.118.198/"
       }
     }
+  },
+  "80002": {
+    "sourcifyName": "Polygon Amoy Testnet",
+    "supported": true
   }
 }
