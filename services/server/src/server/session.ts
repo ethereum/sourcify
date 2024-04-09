@@ -8,39 +8,59 @@ import session from "express-session";
 import logger from "../common/logger";
 import { NextFunction, Request, Response } from "express";
 
+function initMemoryStore() {
+  const MemoryStore = createMemoryStore(expressSession);
+  return new MemoryStore({
+    checkPeriod: config.get("session.maxAge"),
+  });
+}
+
+function initDatabaseStore() {
+  const pool = new Pool({
+    host: process.env.SOURCIFY_POSTGRES_HOST,
+    database: process.env.SOURCIFY_POSTGRES_DB,
+    user: process.env.SOURCIFY_POSTGRES_USER,
+    password: process.env.SOURCIFY_POSTGRES_PASSWORD,
+    port: parseInt(process.env.SOURCIFY_POSTGRES_PORT || "5432"),
+  });
+
+  // This listener is necessary otherwise the sourcify process crashes if the database is closed
+  pool.prependListener("error", () => {
+    logger.error("Database connection lost for session pool");
+  });
+
+  const PostgresqlStore = genFunc(expressSession);
+
+  return new PostgresqlStore({
+    pool: pool,
+  });
+}
+
 function getSessionStore() {
   const sessionStoreType = config.get("session.storeType");
 
   switch (sessionStoreType) {
     case "database": {
-      const pool = new Pool({
-        host: process.env.SOURCIFY_POSTGRES_HOST,
-        database: process.env.SOURCIFY_POSTGRES_DB,
-        user: process.env.SOURCIFY_POSTGRES_USER,
-        password: process.env.SOURCIFY_POSTGRES_PASSWORD_1 || "a",
-        port: parseInt(process.env.SOURCIFY_POSTGRES_PORT || "5432"),
-      });
-
-      // This listener is necessary otherwise the sourcify process crashes if the database is closed
-      pool.prependListener("error", () => {
-        logger.error("Database connection lost for session pool");
-      });
-
-      const PostgresqlStore = genFunc(expressSession);
-
-      return new PostgresqlStore({
-        pool: pool,
-      });
+      if (
+        process.env.SOURCIFY_POSTGRES_HOST &&
+        process.env.SOURCIFY_POSTGRES_DB &&
+        process.env.SOURCIFY_POSTGRES_USER &&
+        process.env.SOURCIFY_POSTGRES_PASSWORD
+      ) {
+        return initDatabaseStore();
+      } else {
+        // Log the error but continue with the memory session
+        // This is needed because tests all use the same local-test.js file but not all the tests have the database enabled
+        logger.error(
+          "Database session enabled in config but the environemnt variables are not specified"
+        );
+        return initMemoryStore();
+      }
     }
 
     case "memory": {
-      // Initialize the memory store if 'memory' is selected
-      const MemoryStore = createMemoryStore(expressSession);
-      return new MemoryStore({
-        checkPeriod: config.get("session.maxAge"),
-      });
+      return initMemoryStore();
     }
-
     default:
       // Throw an error if an unrecognized session storage type is selected
       throw new Error(

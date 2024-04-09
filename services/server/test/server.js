@@ -992,6 +992,17 @@ describe("Server", function () {
   describe("session api verification", function () {
     this.timeout(EXTENDED_TIME_60);
 
+    it("should store session in database", async () => {
+      await storageService.sourcifyDatabase.databasePool.query(
+        "TRUNCATE TABLE session;"
+      );
+      await chai.request(server.app).post("/session/data").send({});
+      const res = await storageService.sourcifyDatabase.databasePool.query(
+        "SELECT * FROM session;"
+      );
+      chai.expect(res.rowCount).to.equal(1);
+    });
+
     it("should inform when no pending contracts", (done) => {
       chai
         .request(server.app)
