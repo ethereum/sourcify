@@ -98,10 +98,10 @@ export default function getSessionMiddleware() {
   return (req: Request, res: Response, next: NextFunction) => {
     sessionMiddleware(req, res, (error) => {
       if (error) {
-        logger.error("Cannot store session in database", {
+        logger.error("Cannot store session", {
           error,
         });
-        res.status(500).send("Cannot store session in database");
+        res.status(500).send("Cannot store session");
       } else {
         next();
       }
