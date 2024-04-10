@@ -11,7 +11,7 @@ import { NextFunction, Request, Response } from "express";
 function initMemoryStore() {
   const MemoryStore = createMemoryStore(expressSession);
 
-  logger.warn("Using memory based session");
+  logger.info("Using memory based session");
   return new MemoryStore({
     checkPeriod: config.get("session.maxAge"),
   });
@@ -33,7 +33,7 @@ function initDatabaseStore() {
 
   const PostgresqlStore = genFunc(expressSession);
 
-  logger.warn("Using database based session");
+  logger.info("Using database based session");
   return new PostgresqlStore({
     pool: pool,
     // Pruning expired sessions every 15 minutes
