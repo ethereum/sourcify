@@ -1521,6 +1521,16 @@
       }
     }
   },
+  "1291": {
+    "sourcifyName": "Swisstronik Testnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://explorer-evm.testnet.swisstronik.com/"
+      }
+    },
+    "rpc": ["https://json-rpc.testnet.swisstronik.com"]
+  },
   "80002": {
     "sourcifyName": "Polygon Amoy Testnet",
     "supported": true

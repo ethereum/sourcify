@@ -1372,6 +1372,14 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // Swisstronik Testnet
+  verifyContract(
+    "0xd9FeCAb5f83F381c15Fa1420DB7F1647a966016E",
+    "1291",
+    "Swisstronik Testnet",
+    "shared/"
+  );
+
   // Polygon Amoy Testnet
   verifyContract(
     "0x8A4eBAEB1319623Aebda7c0F77b22263893f286B",
