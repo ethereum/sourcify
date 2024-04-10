@@ -1520,5 +1520,15 @@
         "url": "http://39.119.118.198/"
       }
     }
+  },
+  "1291": {
+    "sourcifyName": "Swisstronik Testnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://explorer-evm.testnet.swisstronik.com/"
+      }
+    },
+    "rpc": ["https://json-rpc.testnet.swisstronik.com"]
   }
 }

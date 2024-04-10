@@ -1372,6 +1372,14 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // Swisstronik Testnet
+  verifyContract(
+    "0xd9FeCAb5f83F381c15Fa1420DB7F1647a966016E",
+    "1291",
+    "Swisstronik Testnet",
+    "shared/"
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests = [];
     supportedChains
