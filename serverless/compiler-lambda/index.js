@@ -5,6 +5,8 @@ const { exec, spawnSync } = require("child_process");
 const solc = require("solc");
 const fetch = (...args) =>
   import("node-fetch").then(({ default: fetch }) => fetch(...args));
+const pipeline = require("util").promisify(require("stream").pipeline);
+const { Blob } = require('buffer');
 
 async function fetchWithTimeout(resource, options = {}) {
   const { timeout = 30000 } = options;
@@ -298,23 +300,22 @@ function asyncExecSolc(inputStringified, solcPath) {
   });
 }
 
-exports.handler = async (event) => {
+exports.handler = awslambda.streamifyResponse(async (event, responseStream, _context) => {
+  let output;
   try {
-    return {
-      success: true,
-      body: await useCompiler(
-        event.version,
-        event.solcJsonInput,
-        event.forceEmscripten
-      ),
-    };
+    output = await useCompiler(
+      event.version,
+      event.solcJsonInput,
+      event.forceEmscripten
+    );
   } catch (e) {
-    return {
-      success: true,
-      body: e.message,
-    };
+    output = { error: e.message };
   }
-};
+  console.debug("Compilation output: ", output);
+
+  const outputBlob = new Blob([JSON.stringify(output)]);
+  await pipeline(outputBlob.stream(), responseStream);
+});
 
 /* exports
   .handler({
