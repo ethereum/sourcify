@@ -52,7 +52,7 @@ function getSessionStore() {
         // Log the error but continue with the memory session
         // This is needed because tests all use the same local-test.js file but not all the tests have the database enabled
         logger.error(
-          "Database session enabled in config but the environemnt variables are not specified"
+          "Database session enabled in config but the environment variables are not specified"
         );
         return initMemoryStore();
       }
