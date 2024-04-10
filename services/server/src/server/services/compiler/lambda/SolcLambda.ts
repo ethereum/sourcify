@@ -83,7 +83,19 @@ export class SolcLambda implements ISolidityCompiler {
     }
     logger.silly("Received stream response", { streamResult });
 
-    const output = JSON.parse(streamResult);
+    let output;
+    try {
+      output = JSON.parse(streamResult);
+    } catch (e) {
+      logger.error("Error parsing Lambda function result", {
+        error: e,
+        lambdaRequestId: response.$metadata.requestId,
+      });
+      throw new Error(
+        `AWS Lambda error: ${e} - lamdbaRequestId: ${response.$metadata.requestId}`
+      );
+    }
+
     if (output.error) {
       logger.error("Error received from Lambda function", {
         error: output.error,
