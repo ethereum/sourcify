@@ -367,8 +367,8 @@ export function normalizeBytecodesAuxdata(
   try {
     let normalizedRecompiledBytecode = recompiledBytecode;
     let normalizedOnchainBytecode = onchainBytecode;
-    let transformations: Transformation[] = [];
-    let transformationsValuesCborAuxdata = {} as any;
+    const transformations: Transformation[] = [];
+    const transformationsValuesCborAuxdata = {} as any;
     Object.values(cborAuxdataPositions).forEach((auxdataValues, index) => {
       const offsetStart = auxdataValues.offset * 2 + 2;
       const offsetEnd =
