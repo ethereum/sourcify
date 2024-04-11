@@ -31,6 +31,14 @@ paths:
                       verificationId:
                         type: string
                         example: "0x3f67e9f57515bb1e7195c7c5af1eff630091567c0bb65ba3dece57a56da766fe"
+      parameters:
+        - name: dryrun
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Dry-run flag. When present and set to true, a successful verification result will not be stored in the repository.
+          required: false
       responses:
         "200":
           description: OK
