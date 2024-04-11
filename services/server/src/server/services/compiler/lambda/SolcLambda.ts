@@ -101,11 +101,18 @@ export class SolcLambda implements ISolidityCompiler {
         error: output.error,
         lambdaRequestId: response.$metadata.requestId,
       });
-      throw new Error(
-        `AWS Lambda error: ${output.error} - lamdbaRequestId: ${response.$metadata.requestId}`
-      );
+      const errorMessage = `AWS Lambda error: ${output.error} - lamdbaRequestId: ${response.$metadata.requestId}`;
+      if (output.error === "Stream response limit exceeded") {
+        throw new LambdaResponseLimitExceeded(errorMessage);
+      } else {
+        throw new Error(errorMessage);
+      }
     }
 
     return output;
   }
+}
+
+export class LambdaResponseLimitExceeded extends Error {
+  name = "LambdaResponseLimitExceeded";
 }

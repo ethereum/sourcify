@@ -6,7 +6,7 @@ const solc = require("solc");
 const fetch = (...args) =>
   import("node-fetch").then(({ default: fetch }) => fetch(...args));
 const pipeline = require("util").promisify(require("stream").pipeline);
-const { Blob } = require('buffer');
+const { Blob } = require("buffer");
 
 async function fetchWithTimeout(resource, options = {}) {
   const { timeout = 30000 } = options;
@@ -300,22 +300,36 @@ function asyncExecSolc(inputStringified, solcPath) {
   });
 }
 
-exports.handler = awslambda.streamifyResponse(async (event, responseStream, _context) => {
-  let output;
-  try {
-    output = await useCompiler(
-      event.version,
-      event.solcJsonInput,
-      event.forceEmscripten
-    );
-  } catch (e) {
-    output = { error: e.message };
-  }
-  console.debug("Compilation output: ", output);
+function getOutputBlob(responseObject) {
+  return new Blob([JSON.stringify(responseObject)]);
+}
 
-  const outputBlob = new Blob([JSON.stringify(output)]);
-  await pipeline(outputBlob.stream(), responseStream);
-});
+exports.handler = awslambda.streamifyResponse(
+  async (event, responseStream, _context) => {
+    let output;
+    try {
+      output = await useCompiler(
+        event.version,
+        event.solcJsonInput,
+        event.forceEmscripten
+      );
+    } catch (e) {
+      output = { error: e.message };
+    }
+    console.debug("Compilation output: ", output);
+
+    let outputBlob = getOutputBlob(output);
+
+    // Handle AWS lambda's max stream response size of 20 MiB
+    if (outputBlob.size > 20 * 2 ** 20) {
+      console.error("Compilation output exceeded 20 MiB");
+      output = { error: "Stream response limit exceeded" };
+      outputBlob = getOutputBlob(output);
+    }
+
+    await pipeline(outputBlob.stream(), responseStream);
+  }
+);
 
 /* exports
   .handler({

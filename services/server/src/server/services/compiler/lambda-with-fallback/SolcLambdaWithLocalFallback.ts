@@ -4,7 +4,7 @@ import {
   JsonInput,
 } from "@ethereum-sourcify/lib-sourcify";
 import logger from "../../../../common/logger";
-import { SolcLambda } from "../lambda/SolcLambda";
+import { SolcLambda, LambdaResponseLimitExceeded } from "../lambda/SolcLambda";
 import { SolcLocal } from "../local/SolcLocal";
 
 export class SolcLambdaWithLocalFallback implements ISolidityCompiler {
@@ -24,14 +24,18 @@ export class SolcLambdaWithLocalFallback implements ISolidityCompiler {
         forceEmscripten
       );
     } catch (e) {
-      logger.error(
-        "Lambda compilation error - Falling back to local compilation"
-      );
-      compilerOutput = await this.solcLocal.compile(
-        version,
-        solcJsonInput,
-        forceEmscripten
-      );
+      if (e instanceof LambdaResponseLimitExceeded) {
+        logger.error(
+          "Lambda compilation exceeded stream response limit - Falling back to local compilation"
+        );
+        compilerOutput = await this.solcLocal.compile(
+          version,
+          solcJsonInput,
+          forceEmscripten
+        );
+      } else {
+        throw e;
+      }
     }
     return compilerOutput;
   }
