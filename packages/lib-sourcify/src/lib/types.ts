@@ -108,7 +108,9 @@ export interface Metadata {
     };
     evmVersion: string;
     libraries?: {
-      [index: string]: string;
+      [index: string]: {
+        [index: string]: string;
+      };
     };
     metadata?: {
       appendCBOR?: boolean;

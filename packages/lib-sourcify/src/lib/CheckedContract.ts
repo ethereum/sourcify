@@ -714,7 +714,7 @@ function createJsonInputFromMetadata(
     'metadata',
   ];
 
-  solcJsonInput.settings.libraries = { '': metadata.settings.libraries || {} };
+  solcJsonInput.settings.libraries = metadata.settings.libraries || {};
 
   return {
     solcJsonInput: solcJsonInput as JsonInput,
@@ -846,7 +846,15 @@ function bytecodeIncludesAuxdataDiffAt(
   position: number
 ): boolean {
   const { real, diffStart } = auxdataDiff;
-  const extracted = bytecode.slice(position - diffStart, real.length);
+  // We already compared the legacyAssembly's contract auxdata vs edited contract auxdata
+  // This difference is inside AuxdataDiff
+  // 1909117905579a2646970667358221220dceca8706b29e917dacf25fceef95acac8d90d765ac926663ce4096195952b6164736f6c6343000700003352565b5f6a636f6e736f6c652e6c6
+  //              └──────────────────┘↑
+  //                 diffStart        position
+  const extracted = bytecode.slice(
+    position - diffStart,
+    position - diffStart + real.length
+  );
   return extracted === real;
 }
 
@@ -898,17 +906,22 @@ function findAuxdataPositions(
     }
     // New diff position
     for (const auxdataDiffIndex in auxdataDiffObjects) {
+      const auxdataPositionsIndex = parseInt(auxdataDiffIndex) + 1;
       if (
-        auxdataPositions[auxdataDiffIndex] === undefined &&
+        auxdataPositions[auxdataPositionsIndex] === undefined &&
         bytecodeIncludesAuxdataDiffAt(
           originalBytecode,
           auxdataDiffObjects[auxdataDiffIndex],
           diffPosition
         )
       ) {
-        auxdataPositions[auxdataDiffIndex] = {
-          offset: diffPosition - auxdataDiffObjects[auxdataDiffIndex].diffStart,
-          value: auxdataDiffObjects[auxdataDiffIndex].real,
+        auxdataPositions[auxdataPositionsIndex] = {
+          offset:
+            (diffPosition -
+              auxdataDiffObjects[auxdataDiffIndex].diffStart -
+              2) /
+            2,
+          value: `0x${auxdataDiffObjects[auxdataDiffIndex].real}`,
         };
       }
     }
