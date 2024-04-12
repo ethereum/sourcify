@@ -41,7 +41,9 @@
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
     },
-    "rpc": ["https://rpc.holesky.ethpandaops.io"]
+    "rpc": [
+      "https://rpc.holesky.ethpandaops.io"
+    ]
   },
   "5": {
     "sourcifyName": "Ethereum Goerli Testnet",
@@ -182,6 +184,14 @@
   },
   "314": {
     "sourcifyName": "Filecoin - Mainnet",
+    "supported": true
+  },
+  "404": {
+    "sourcifyName": "Syndr L3",
+    "supported": true
+  },
+  "444444": {
+    "sourcifyName": "Syndr L3 Sepolia",
     "supported": true
   },
   "314159": {
@@ -383,7 +393,9 @@
   "311752642": {
     "sourcifyName": "Oneledger Mainnet",
     "supported": true,
-    "rpc": ["https://mainnet-rpc.oneledger.network"],
+    "rpc": [
+      "https://mainnet-rpc.oneledger.network"
+    ],
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://mainnet-explorer.oneledger.network/"
@@ -1529,7 +1541,9 @@
         "url": "https://explorer-evm.testnet.swisstronik.com/"
       }
     },
-    "rpc": ["https://json-rpc.testnet.swisstronik.com"]
+    "rpc": [
+      "https://json-rpc.testnet.swisstronik.com"
+    ]
   },
   "80002": {
     "sourcifyName": "Polygon Amoy Testnet",

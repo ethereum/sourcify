@@ -123,6 +123,22 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // Syndr L3 Mainnet
+  verifyContract(
+    "0x97BCca2a0B62Ca74fD5D56e0BF57895801ACCb95",
+    "404",
+    "Syndr L3",
+    "shared/"
+  );
+
+  // Syndr L3 Sepolia Testnet
+  verifyContract(
+    "0xfde082Db7AF4290C7696E1747126AbB90C46fBBb",
+    "444444",
+    "Syndr L3 Sepolia",
+    "shared/"
+  );
+
   verifyContract(
     "0x43C0A11653F57a96d1d3b6A5A6be453444558A5E",
     "369",
