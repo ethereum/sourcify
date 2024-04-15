@@ -25,7 +25,7 @@ export class SolcLambdaWithLocalFallback implements ISolidityCompiler {
       );
     } catch (e) {
       if (e instanceof LambdaResponseLimitExceeded) {
-        logger.error(
+        logger.warn(
           "Lambda compilation exceeded stream response limit - Falling back to local compilation"
         );
         compilerOutput = await this.solcLocal.compile(
