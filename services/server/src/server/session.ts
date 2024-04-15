@@ -11,7 +11,7 @@ import { NextFunction, Request, Response } from "express";
 function initMemoryStore() {
   const MemoryStore = createMemoryStore(expressSession);
 
-  logger.info("Using memory based session");
+  logger.warn("Using memory based session. Don't use memory session in production!");
   return new MemoryStore({
     checkPeriod: config.get("session.maxAge"),
   });
