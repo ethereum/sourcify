@@ -1284,6 +1284,55 @@ describe("Server", function () {
       });
     });
 
+    it("should run with dryRun, returning a successfull match but not storing it", function (done) {
+      const agent = chai.request.agent(server.app);
+      agent
+        .post("/session/input-files")
+        .attach("files", metadataBuffer)
+        .then((res) => {
+          const contracts = assertAddressAndChainMissing(
+            res,
+            ["project:/contracts/Storage.sol"],
+            {}
+          );
+          contracts[0].address = defaultContractAddress;
+          contracts[0].chainId = defaultContractChain;
+
+          const isExist = fs.existsSync(
+            path.join(
+              server.repository,
+              "contracts",
+              "full_match",
+              defaultContractChain,
+              defaultContractAddress,
+              "metadata.json"
+            )
+          );
+          chai.expect(isExist, "File is saved before calling /verify-validated")
+            .to.be.false;
+
+          agent
+            .post("/session/verify-validated/?dryrun=true")
+            .send({ contracts })
+            .then((res) => {
+              assertSingleContractStatus(res, "perfect");
+              const isExist = fs.existsSync(
+                path.join(
+                  server.repository,
+                  "contracts",
+                  "full_match",
+                  defaultContractChain,
+                  defaultContractAddress,
+                  "metadata.json"
+                )
+              );
+              chai.expect(isExist, "File is saved even despite dryRun").to.be
+                .false;
+              done();
+            });
+        });
+    });
+
     it("should verify after fetching and then providing address+chainId", (done) => {
       const agent = chai.request.agent(server.app);
       agent
