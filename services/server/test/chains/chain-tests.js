@@ -373,6 +373,13 @@ describe("Test Supported Chains", function () {
   );
 
   verifyContract(
+    "0x7c423a32a7DFBA7490809EE361D9d89325fCF044",
+    "268",
+    "Neura Devnet",
+    "shared/"
+  );
+
+  verifyContract(
     "0xC9BdeEd33CD01541e1eeD10f90519d2C06Fe3feB",
     "1313161554",
     "Aurora Mainnet",
