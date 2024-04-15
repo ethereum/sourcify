@@ -652,6 +652,13 @@ describe('lib-sourcify tests', () => {
         creationMatch: null,
       };
       const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
+
+      const generateCreationCborAuxdataPositions = async () => {
+        if (!checkedContracts[0].creationBytecodeCborAuxdata) {
+          await checkedContracts[0].generateCborAuxdataPositions();
+        }
+        return checkedContracts[0].creationBytecodeCborAuxdata || {};
+      };
       try {
         await matchWithCreationTx(
           match,
@@ -659,7 +666,8 @@ describe('lib-sourcify tests', () => {
           sourcifyChainGanache,
           contractAddress,
           wrongCreatorTxHash,
-          recompiledMetadata
+          recompiledMetadata,
+          generateCreationCborAuxdataPositions
         );
       } catch (err) {
         if (err instanceof Error) {
@@ -707,13 +715,21 @@ describe('lib-sourcify tests', () => {
         creationMatch: null,
       };
       const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
+
+      const generateCreationCborAuxdataPositions = async () => {
+        if (!checkedContracts[0].creationBytecodeCborAuxdata) {
+          await checkedContracts[0].generateCborAuxdataPositions();
+        }
+        return checkedContracts[0].creationBytecodeCborAuxdata || {};
+      };
       await matchWithCreationTx(
         match,
         maliciousArtifact.bytecode,
         sourcifyChainGanache,
         contractAddress,
         txHash,
-        recompiledMetadata
+        recompiledMetadata,
+        generateCreationCborAuxdataPositions
       );
       expectMatch(match, null, contractAddress, undefined); // status is null
     });
@@ -745,13 +761,20 @@ describe('lib-sourcify tests', () => {
       };
       const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
 
+      const generateCreationCborAuxdataPositions = async () => {
+        if (!checkedContracts[0].creationBytecodeCborAuxdata) {
+          await checkedContracts[0].generateCborAuxdataPositions();
+        }
+        return checkedContracts[0].creationBytecodeCborAuxdata || {};
+      };
       await matchWithCreationTx(
         match,
         recompiled.creationBytecode,
         sourcifyChainGanache,
         contractAddress,
         creatorTxHash,
-        recompiledMetadata
+        recompiledMetadata,
+        generateCreationCborAuxdataPositions
       );
       expectMatch(match, null, contractAddress, undefined); // status is null
     });
@@ -776,17 +799,98 @@ describe('lib-sourcify tests', () => {
         creationMatch: null,
       };
       const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
+      const generateCreationCborAuxdataPositions = async () => {
+        if (!checkedContracts[0].creationBytecodeCborAuxdata) {
+          await checkedContracts[0].generateCborAuxdataPositions();
+        }
+        return checkedContracts[0].creationBytecodeCborAuxdata || {};
+      };
       await matchWithCreationTx(
         match,
         recompiled.creationBytecode,
         sourcifyChainGanache,
         contractAddress,
         creatorTxHash,
-        recompiledMetadata
+        recompiledMetadata,
+        generateCreationCborAuxdataPositions
       );
       try {
         expect(match.creationMatch).to.equal('perfect');
         expect(match.address).to.equal(contractAddress);
+      } catch (e) {
+        console.log('Match: ', match);
+        throw e;
+      }
+    });
+
+    it('find a partial match for a contract with multiple auxdatas and one of the "subcontract" was modified', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        'sources',
+        'WithMultipleAuxdatas'
+      );
+      const { contractAddress, txHash: creatorTxHash } =
+        await deployFromAbiAndBytecode(signer, contractFolderPath, []);
+
+      const checkedContracts = await checkFilesFromContractFolder(
+        contractFolderPath
+      );
+      const recompiled = await checkedContracts[0].recompile();
+      const match: Match = {
+        address: contractAddress,
+        chainId: sourcifyChainGanache.chainId.toString(),
+        runtimeMatch: null,
+        creationMatch: null,
+      };
+      const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
+      const generateCreationCborAuxdataPositions = async () => {
+        if (!checkedContracts[0].creationBytecodeCborAuxdata) {
+          await checkedContracts[0].generateCborAuxdataPositions();
+        }
+        return checkedContracts[0].creationBytecodeCborAuxdata || {};
+      };
+      await matchWithCreationTx(
+        match,
+        recompiled.creationBytecode,
+        sourcifyChainGanache,
+        contractAddress,
+        creatorTxHash,
+        recompiledMetadata,
+        generateCreationCborAuxdataPositions
+      );
+      try {
+        expect(match.creationMatch).to.equal('partial');
+        expect(match.address).to.equal(contractAddress);
+        // expect every creationTransformationValues
+        expect(match.creationTransformationValues?.cborAuxdata?.['1']).to.equal(
+          '0xa2646970667358221220fe338e4778c1623b5865cd4121849802c8ed68e688def4d95b606f2f02ec563e64736f6c63430008090033'
+        );
+        expect(match.creationTransformationValues?.cborAuxdata?.['2']).to.equal(
+          '0xa2646970667358221220bc654cadfb13b9ef229b6a2db4424f95dc4c52e3ae9b60648aa276f8eb0b3f8464736f6c63430008090033'
+        );
+        expect(match.creationTransformationValues?.cborAuxdata?.['3']).to.equal(
+          '0xa2646970667358221220eb4312065a8c0fb940ef11ef5853554a447a5325095ee0f8fbbbbfc43dbb1b7464736f6c63430008090033'
+        );
+
+        // expect every creationTransformations
+        expect(match.creationTransformations).to.deep.include({
+          type: 'replace',
+          reason: 'auxdata',
+          offset: 4148,
+          id: '1',
+        });
+        expect(match.creationTransformations).to.deep.include({
+          type: 'replace',
+          reason: 'auxdata',
+          offset: 2775,
+          id: '2',
+        });
+        expect(match.creationTransformations).to.deep.include({
+          type: 'replace',
+          reason: 'auxdata',
+          offset: 4095,
+          id: '3',
+        });
       } catch (e) {
         console.log('Match: ', match);
         throw e;
