@@ -1534,5 +1534,12 @@
   "80002": {
     "sourcifyName": "Polygon Amoy Testnet",
     "supported": true
+  },
+  "268": {
+    "sourcifyName": "Neura Devnet",
+    "supported": true,
+    "rpc": [
+      "https://lon3-109-123-108-62.ankr.com/neura_devnet_full_http_1"
+    ]
   }
 }
