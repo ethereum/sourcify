@@ -245,8 +245,17 @@ export default class SourcifyChain {
     address = getAddress(address);
 
     // Request sequentially. Custom node is always before ALCHEMY so we don't waste resources if succeeds.
+    let currentProviderIndex = 0;
     for (const provider of this.providers) {
+      currentProviderIndex++;
       try {
+        logDebug('Fetching bytecode', {
+          address,
+          providerUrl: provider.url,
+          chainId: this.chainId,
+          currentProviderIndex,
+          providersLength: this.providers.length,
+        });
         // Race the RPC call with a timeout
         const bytecode = await Promise.race([
           provider.getCode(address),

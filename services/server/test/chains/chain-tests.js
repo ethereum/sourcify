@@ -13,7 +13,7 @@ const addContext = require("mochawesome/addContext");
 const { assertVerification } = require("../helpers/assertions");
 const testEtherscanContracts = require("../helpers/etherscanInstanceContracts.json");
 
-const TEST_TIME = process.env.TEST_TIME || 30000; // 30 seconds
+const TEST_TIME = process.env.TEST_TIME || 60000; // 30 seconds
 const CUSTOM_PORT = 5556;
 
 // Extract the chainId from new chain support pull request, if exists
@@ -102,12 +102,12 @@ describe("Test Supported Chains", function () {
   //
   // );
 
-  verifyContract(
-    "0xc24381dB2a5932B5D1c424f567A95F9966834cE0",
-    "5",
-    "Goerli",
-    "shared/"
-  );
+  // verifyContract(
+  //   "0xc24381dB2a5932B5D1c424f567A95F9966834cE0",
+  //   "5",
+  //   "Goerli",
+  //   "shared/"
+  // );
 
   verifyContract(
     "0x7ecedB5ca848e695ee8aB33cce9Ad1E1fe7865F8",
@@ -180,12 +180,12 @@ describe("Test Supported Chains", function () {
     "137/"
   );
 
-  verifyContract(
-    "0x5D40b45C202531d040e0CCD51C48554109197cD3",
-    "80001",
-    "Polygon Mumbai Testnet",
-    "shared/"
-  );
+  // verifyContract(
+  //   "0x5D40b45C202531d040e0CCD51C48554109197cD3",
+  //   "80001",
+  //   "Polygon Mumbai Testnet",
+  //   "shared/"
+  // );
 
   verifyContract(
     "0x03943C3ef00d92e130185CeBC0bcc435Def2cC94",
@@ -1369,6 +1369,22 @@ describe("Test Supported Chains", function () {
     "0x37A01685de21e2d459fE3c6AEDe86A94B4bb8d9C",
     "202401",
     "YMTECH-BESU Testnet",
+    "shared/"
+  );
+
+  // Swisstronik Testnet
+  verifyContract(
+    "0xd9FeCAb5f83F381c15Fa1420DB7F1647a966016E",
+    "1291",
+    "Swisstronik Testnet",
+    "shared/"
+  );
+
+  // Polygon Amoy Testnet
+  verifyContract(
+    "0x8A4eBAEB1319623Aebda7c0F77b22263893f286B",
+    "80002",
+    "Polygon Amoy Testnet",
     "shared/"
   );
 

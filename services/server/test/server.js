@@ -2068,16 +2068,16 @@ describe("Server", function () {
     });
     it("should run getCreatorTx with regex for old Blockscout", async function () {
       const sourcifyChain = sourcifyChainsArray.find(
-        (sourcifyChain) => sourcifyChain.chainId === 1313161554
+        (sourcifyChain) => sourcifyChain.chainId === 57
       );
       const creatorTx = await getCreatorTx(
         sourcifyChain,
-        "0x2CB45Edb4517d5947aFdE3BEAbF95A582506858B"
+        "0x43e9f7ca4AEAcd67A7AC4a275cee7BC8AF601bE4"
       );
       chai
         .expect(creatorTx)
         .equals(
-          "0x8fbcf663b8d86af936d5a72cbf9e6becd17e87e167bdcff449663e987cf09759"
+          "0x89a8c2ac5f93b91a8a551bf4c676755e1ad5272e0a7193b894aa8ba14c43c5ea"
         );
     });
     it("should run getCreatorTx with etherscanApi for Etherscan", async function () {
