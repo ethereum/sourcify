@@ -390,7 +390,7 @@ describe("Test Supported Chains", function () {
     "0xc975C9C57641E6Ac3ca32c1ceaE9A88135Fe9C30",
     "5845",
     "Tangle",
-    "5845/"
+    "shared/"
   );
 
   verifyContract(
