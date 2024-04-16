@@ -11,7 +11,9 @@ import { NextFunction, Request, Response } from "express";
 function initMemoryStore() {
   const MemoryStore = createMemoryStore(expressSession);
 
-  logger.warn("Using memory based session. Don't use memory session in production!");
+  logger.warn(
+    "Using memory based session. Don't use memory session in production!"
+  );
   return new MemoryStore({
     checkPeriod: config.get("session.maxAge"),
   });
@@ -27,8 +29,11 @@ function initDatabaseStore() {
   });
 
   // This listener is necessary otherwise the sourcify process crashes if the database is closed
-  pool.prependListener("error", () => {
-    logger.error("Database connection lost for session pool");
+  pool.prependListener("error", (e) => {
+    logger.error("Database connection lost for session pool", {
+      error: e,
+    });
+    throw new Error("Database connection lost for session pool");
   });
 
   const PostgresqlStore = genFunc(expressSession);
@@ -36,8 +41,8 @@ function initDatabaseStore() {
   logger.info("Using database based session");
   return new PostgresqlStore({
     pool: pool,
-    // Pruning expired sessions every 15 minutes
-    pruneSessionInterval: 900,
+    // Pruning expired sessions every 12 hours
+    pruneSessionInterval: 12 * 60 * 60,
   });
 }
 
@@ -54,12 +59,12 @@ function getSessionStore() {
       ) {
         return initDatabaseStore();
       } else {
-        // Log the error but continue with the memory session
-        // This is needed because tests all use the same local-test.js file but not all the tests have the database enabled
         logger.error(
           "Database session enabled in config but the environment variables are not specified"
         );
-        return initMemoryStore();
+        throw new Error(
+          "Database session enabled in config but the environment variables are not specified"
+        );
       }
     }
 
