@@ -1520,5 +1520,14 @@
   "80002": {
     "sourcifyName": "Polygon Amoy Testnet",
     "supported": true
+  },
+  "666666666": {
+    "sourcifyName": "DEGEN Chain",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://explorer.degen.tips/"
+      }
+    }
   }
 }
