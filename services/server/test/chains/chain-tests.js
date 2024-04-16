@@ -1388,6 +1388,14 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // DEGEN chain
+  verifyContract(
+    "0x61A4Bc8a6F81f3A6B0677dd1e5CB4671d0734Cb3",
+    "666666666",
+    "DEGEN chain",
+    "shared/"
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests = [];
     supportedChains
