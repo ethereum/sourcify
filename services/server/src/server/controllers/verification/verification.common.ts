@@ -345,7 +345,7 @@ export const verifyContractsInSession = async (
   session: Session,
   verificationService: IVerificationService,
   storageService: StorageService,
-  dryRun: boolean = false,
+  dryRun: boolean = false
 ): Promise<void> => {
   logger.debug("verifyContractsInSession", {
     sessionId: session.id,
@@ -456,7 +456,13 @@ export const verifyContractsInSession = async (
     contractWrapper.status = getMatchStatus(match) || "error";
     contractWrapper.statusMessage = match.message;
     contractWrapper.storageTimestamp = match.storageTimestamp;
-    if ((match.runtimeMatch || match.creationMatch) && !dryRun) {
+    if (dryRun) {
+      logger.info("dryRun verification", {
+        sessionId: session.id,
+      });
+      return;
+    }
+    if (match.runtimeMatch || match.creationMatch) {
       await storageService.storeMatch(checkedContract, match);
     }
   }
