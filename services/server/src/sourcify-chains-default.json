@@ -478,6 +478,15 @@
       }
     }
   },
+  "5845": {
+    "sourcifyName": "Tangle",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutScrape": {
+        "url": "https://explorer.tangle.tools"
+      }
+    }
+  },
   "1284": {
     "sourcifyName": "Moonbeam",
     "supported": true,
