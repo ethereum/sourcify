@@ -117,7 +117,7 @@ export async function getVerifiedContractByBytecodeHashes(
 export async function getVerifiedContractByChainAndAddress(
   pool: Pool,
   chain: number,
-  address?: Buffer
+  address: Buffer
 ) {
   return await pool.query(
     `

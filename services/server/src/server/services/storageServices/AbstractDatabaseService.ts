@@ -334,17 +334,6 @@ export default abstract class AbstractDatabaseService {
             databaseColumns.compiledContract.runtime_code_artifacts!,
         });
 
-      // Check if we are trying to insert a compiled contract that already exists
-      // It could happen because of the check "needRuntimeMatchUpdate || needCreationMatchUpdate"
-      // When the Sourcify will decide a standard process to update this check will be removed
-      if (
-        existingCompiledContractIds.includes(
-          compiledContractsInsertResult.rows[0].id
-        )
-      ) {
-        return false;
-      }
-
       // update verified contract with the newly added recompiled contract
       const verifiedContractInsertResult =
         await Database.insertVerifiedContract(this.databasePool, {
@@ -397,7 +386,7 @@ export default abstract class AbstractDatabaseService {
       await Database.getVerifiedContractByChainAndAddress(
         this.databasePool,
         parseInt(match.chainId),
-        bytesFromString(match.address)
+        bytesFromString(match.address)!
       );
 
     if (existingVerifiedContractResult.rowCount === 0) {
