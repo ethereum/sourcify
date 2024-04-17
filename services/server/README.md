@@ -2,6 +2,25 @@
 
 Sourcify's server for verifying contracts.
 
+## Development
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/en/) (v16)
+- Install the monorepo: `npm install` in the root of the repo
+- Build the monorepo's packages: `npx lerna run build`
+
+### Environment Variables
+
+Copy the `.env.dev` file into a file named `.env` and fill in the values.
+
+### Running
+
+```bash
+cd services/server
+npm start
+```
+
 ## Config
 
 ### Server Config
@@ -77,23 +96,6 @@ A full example of a chain entry is as follows:
     ]
   }
 }
-```
-
-## Development
-
-### Prerequisites
-
-- [Node.js](https://nodejs.org/en/) (v16)
-
-### Environment Variables
-
-Copy the `.env.dev` file into a file named `.env` and fill in the values.
-
-### Running
-
-```bash
-npm install
-npm start
 ```
 
 ## Docker
