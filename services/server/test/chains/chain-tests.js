@@ -387,6 +387,13 @@ describe("Test Supported Chains", function () {
   );
 
   verifyContract(
+    "0xc975C9C57641E6Ac3ca32c1ceaE9A88135Fe9C30",
+    "5845",
+    "Tangle",
+    "shared/"
+  );
+
+  verifyContract(
     "0x08BB0D7fCe37dD766d13DC19A00c95878ed2E68c",
     "1284",
     "Moonbeam",
