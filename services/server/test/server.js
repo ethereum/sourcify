@@ -62,7 +62,7 @@ const defaultContractChain = "1337"; // default 1337
 const storageService = new StorageService({
   repositoryV1ServiceOptions: {
     ipfsApi: process.env.IPFS_API,
-    repositoryPath: "./dist/data/mock-repositoryV1",
+    repositoryPath: config.get("repositoryV1.path"),
     repositoryServerUrl: config.get("repositoryV1.serverUrl"),
   },
   sourcifyDatabaseServiceOptions: {
@@ -620,6 +620,61 @@ describe("Server", function () {
 
       res = await chai.request(server.app).get(partialMetadataURL);
       chai.expect(res.status).to.equal(StatusCodes.NOT_FOUND);
+    });
+
+    it("should return 'partial', then throw when another 'partial' match is received", async () => {
+      const partialMetadata = require(path.join(
+        __dirname,
+        "./testcontracts/Storage/metadataModified.json"
+      ));
+      const partialMetadataBuffer = Buffer.from(
+        JSON.stringify(partialMetadata)
+      );
+
+      const partialSourcePath = path.join(
+        __dirname,
+        "testcontracts",
+        "Storage",
+        "StorageModified.sol"
+      );
+      const partialSourceBuffer = fs.readFileSync(partialSourcePath);
+
+      const partialMetadataURL = `/repository/contracts/partial_match/${defaultContractChain}/${defaultContractAddress}/metadata.json`;
+
+      let res = await chai
+        .request(server.app)
+        .post("/")
+        .field("address", defaultContractAddress)
+        .field("chain", defaultContractChain)
+        .attach("files", partialMetadataBuffer, "metadata.json")
+        .attach("files", partialSourceBuffer);
+      await assertVerification(
+        storageService,
+        null,
+        res,
+        null,
+        defaultContractAddress,
+        defaultContractChain,
+        "partial"
+      );
+
+      res = await chai.request(server.app).get(partialMetadataURL);
+      chai.expect(res.body).to.deep.equal(partialMetadata);
+
+      res = await chai
+        .request(server.app)
+        .post("/")
+        .field("address", defaultContractAddress)
+        .field("chain", defaultContractChain)
+        .attach("files", partialMetadataBuffer, "metadata.json")
+        .attach("files", partialSourceBuffer);
+
+      chai.expect(res.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+      chai
+        .expect(res.body.error)
+        .to.equal(
+          `The contract ${defaultContractAddress} on chainId ${defaultContractChain} is already partially verified. The provided new source code also yielded a partial match and will not be stored unless it's a full match`
+        );
     });
 
     it("should mark contracts without an embedded metadata hash as a 'partial' match", async () => {
