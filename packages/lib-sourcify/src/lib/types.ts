@@ -108,9 +108,7 @@ export interface Metadata {
     };
     evmVersion: string;
     libraries?: {
-      [index: string]: {
-        [index: string]: string;
-      };
+      [index: string]: string;
     };
     metadata?: {
       appendCBOR?: boolean;
@@ -404,7 +402,7 @@ interface MapContractAddress {
   [key: string]: string;
 }
 
-interface Libraries {
+export interface Libraries {
   [key: string]: MapContractAddress;
 }
 

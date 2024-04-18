@@ -50,6 +50,23 @@ const verifierAllianceTest = async (
       urls: [],
     };
   });
+  const metadataCompilerSettings = {
+    ...testCase.compiler_settings,
+    // Convert the libraries from the compiler_settings format to the metadata format
+    libraries: Object.keys(testCase.compiler_settings.libraries || {}).reduce(
+      (libraries, contractPath) => {
+        Object.keys(testCase.compiler_settings.libraries[contractPath]).forEach(
+          (contractName) => {
+            libraries[`${contractPath}:${contractName}`] =
+              testCase.compiler_settings.libraries[contractPath][contractName];
+          }
+        );
+
+        return libraries;
+      },
+      {}
+    ),
+  };
   await chai
     .request(server.app)
     .post("/")
@@ -69,7 +86,7 @@ const verifierAllianceTest = async (
             userdoc: {},
           },
           settings: {
-            ...testCase.compiler_settings,
+            ...metadataCompilerSettings,
             compilationTarget,
           },
           sources,
