@@ -93,8 +93,8 @@ export async function addInputContractEndpoint(req: Request, res: Response) {
   const retrievedMetadataText = await performFetch(ipfsUrl);
 
   if (!retrievedMetadataText) {
-    logger.error("Could not retrieve metadata", { ipfsUrl });
-    throw new Error(`Could not retrieve metadata`);
+    logger.info("Could not retrieve metadata", { ipfsUrl });
+    throw new Error(`Could not retrieve metadata from ${metadataIpfsCid}`);
   }
   const pathContents: PathContent[] = [];
 
