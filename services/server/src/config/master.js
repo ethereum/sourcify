@@ -13,6 +13,7 @@ module.exports = {
   solJsonRepo: "/data/compilers/soljson",
   session: {
     secure: true, // Set Secure in the Set-Cookie header i.e. require https
+    storeType: "database",
   },
   lambdaCompiler: {
     enabled: true,
