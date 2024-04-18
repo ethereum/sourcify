@@ -862,11 +862,7 @@ function bytecodeIncludesAuxdataDiffAt(
   position: number
 ): boolean {
   const { real, diffStart } = auxdataDiff;
-  // We already compared the legacyAssembly's contract auxdata vs edited contract auxdata
-  // This difference is inside AuxdataDiff
-  // 1909117905579a2646970667358221220dceca8706b29e917dacf25fceef95acac8d90d765ac926663ce4096195952b6164736f6c6343000700003352565b5f6a636f6e736f6c652e6c6
-  //              └──────────────────┘↑
-  //                 diffStart        position
+  // the difference (i.e metadata hash) starts from "position". To get the whole auxdata instead of metadata go back "diffStart" and until + "real.length" of the auxdata.
   const extracted = bytecode.slice(
     position - diffStart,
     position - diffStart + real.length
