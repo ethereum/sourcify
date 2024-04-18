@@ -41,7 +41,9 @@
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
     },
-    "rpc": ["https://rpc.holesky.ethpandaops.io"]
+    "rpc": [
+      "https://rpc.holesky.ethpandaops.io"
+    ]
   },
   "5": {
     "sourcifyName": "Ethereum Goerli Testnet",
@@ -383,7 +385,9 @@
   "311752642": {
     "sourcifyName": "Oneledger Mainnet",
     "supported": true,
-    "rpc": ["https://mainnet-rpc.oneledger.network"],
+    "rpc": [
+      "https://mainnet-rpc.oneledger.network"
+    ],
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://mainnet-explorer.oneledger.network/"
@@ -1529,7 +1533,9 @@
         "url": "https://explorer-evm.testnet.swisstronik.com/"
       }
     },
-    "rpc": ["https://json-rpc.testnet.swisstronik.com"]
+    "rpc": [
+      "https://json-rpc.testnet.swisstronik.com"
+    ]
   },
   "80002": {
     "sourcifyName": "Polygon Amoy Testnet",
@@ -1540,6 +1546,13 @@
     "supported": true,
     "rpc": [
       "https://lon3-109-123-108-62.ankr.com/neura_devnet_full_http_1"
+    ]
+  },
+  "267": {
+    "sourcifyName": "Neura Testnet",
+    "supported": true,
+    "rpc": [
+      "https://dallas-maxihost-207-188-6-94.ankr.com/neura_testnet_full_http_1"
     ]
   }
 }

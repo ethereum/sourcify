@@ -1395,6 +1395,14 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // Polygon Amoy Testnet
+  verifyContract(
+    "0x6Eb1bf30df35AeD800159A14a8C30cE1DB17134d",
+    "267",
+    "Neura Testnet",
+    "shared/"
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests = [];
     supportedChains
