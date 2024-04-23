@@ -3,7 +3,7 @@ module.exports = {
     port: 80,
   },
   repositoryV1: {
-    path: "/home/app/repository",
+    path: "/home/app/repositoryV1",
     serverUrl: "https://repo.staging.sourcify.dev",
   },
   repositoryV2: {
@@ -13,6 +13,7 @@ module.exports = {
   solJsonRepo: "/home/app/compilers/soljson",
   session: {
     secure: true, // Set Secure in the Set-Cookie header i.e. require https
+    storeType: "database",
   },
   lambdaCompiler: {
     enabled: true,

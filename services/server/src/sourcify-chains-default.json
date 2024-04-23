@@ -478,6 +478,15 @@
       }
     }
   },
+  "5845": {
+    "sourcifyName": "Tangle",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutScrape": {
+        "url": "https://explorer.tangle.tools"
+      }
+    }
+  },
   "1284": {
     "sourcifyName": "Moonbeam",
     "supported": true,
@@ -1519,6 +1528,21 @@
   },
   "80002": {
     "sourcifyName": "Polygon Amoy Testnet",
-    "supported": true
+    "supported": true,
+    "etherscanApi": {
+      "apiURL": "https://api-amoy.polygonscan.com/"
+    },
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true
+    }
+  },
+  "666666666": {
+    "sourcifyName": "DEGEN Chain",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://explorer.degen.tips/"
+      }
+    }
   }
 }

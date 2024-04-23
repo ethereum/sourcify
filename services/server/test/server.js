@@ -62,7 +62,7 @@ const defaultContractChain = "1337"; // default 1337
 const storageService = new StorageService({
   repositoryV1ServiceOptions: {
     ipfsApi: process.env.IPFS_API,
-    repositoryPath: "./dist/data/mock-repositoryV1",
+    repositoryPath: config.get("repositoryV1.path"),
     repositoryServerUrl: config.get("repositoryV1.serverUrl"),
   },
   sourcifyDatabaseServiceOptions: {
@@ -622,6 +622,61 @@ describe("Server", function () {
       chai.expect(res.status).to.equal(StatusCodes.NOT_FOUND);
     });
 
+    it("should return 'partial', then throw when another 'partial' match is received", async () => {
+      const partialMetadata = require(path.join(
+        __dirname,
+        "./testcontracts/Storage/metadataModified.json"
+      ));
+      const partialMetadataBuffer = Buffer.from(
+        JSON.stringify(partialMetadata)
+      );
+
+      const partialSourcePath = path.join(
+        __dirname,
+        "testcontracts",
+        "Storage",
+        "StorageModified.sol"
+      );
+      const partialSourceBuffer = fs.readFileSync(partialSourcePath);
+
+      const partialMetadataURL = `/repository/contracts/partial_match/${defaultContractChain}/${defaultContractAddress}/metadata.json`;
+
+      let res = await chai
+        .request(server.app)
+        .post("/")
+        .field("address", defaultContractAddress)
+        .field("chain", defaultContractChain)
+        .attach("files", partialMetadataBuffer, "metadata.json")
+        .attach("files", partialSourceBuffer);
+      await assertVerification(
+        storageService,
+        null,
+        res,
+        null,
+        defaultContractAddress,
+        defaultContractChain,
+        "partial"
+      );
+
+      res = await chai.request(server.app).get(partialMetadataURL);
+      chai.expect(res.body).to.deep.equal(partialMetadata);
+
+      res = await chai
+        .request(server.app)
+        .post("/")
+        .field("address", defaultContractAddress)
+        .field("chain", defaultContractChain)
+        .attach("files", partialMetadataBuffer, "metadata.json")
+        .attach("files", partialSourceBuffer);
+
+      chai.expect(res.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+      chai
+        .expect(res.body.error)
+        .to.equal(
+          `The contract ${defaultContractAddress} on chainId ${defaultContractChain} is already partially verified. The provided new source code also yielded a partial match and will not be stored unless it's a full match`
+        );
+    });
+
     it("should mark contracts without an embedded metadata hash as a 'partial' match", async () => {
       // Simple contract without bytecode at https://goerli.etherscan.io/address/0x093203902B71Cdb1dAA83153b3Df284CD1a2f88d
       const bytecode =
@@ -992,6 +1047,17 @@ describe("Server", function () {
   describe("session api verification", function () {
     this.timeout(EXTENDED_TIME_60);
 
+    it("should store session in database", async () => {
+      await storageService.sourcifyDatabase.databasePool.query(
+        "TRUNCATE TABLE session;"
+      );
+      await chai.request(server.app).post("/session/data").send({});
+      const res = await storageService.sourcifyDatabase.databasePool.query(
+        "SELECT * FROM session;"
+      );
+      chai.expect(res.rowCount).to.equal(1);
+    });
+
     it("should inform when no pending contracts", (done) => {
       chai
         .request(server.app)
@@ -1282,6 +1348,55 @@ describe("Server", function () {
             done();
           });
       });
+    });
+
+    it("should run with dryRun, returning a successfull match but not storing it", function (done) {
+      const agent = chai.request.agent(server.app);
+      agent
+        .post("/session/input-files")
+        .attach("files", metadataBuffer)
+        .then((res) => {
+          const contracts = assertAddressAndChainMissing(
+            res,
+            ["project:/contracts/Storage.sol"],
+            {}
+          );
+          contracts[0].address = defaultContractAddress;
+          contracts[0].chainId = defaultContractChain;
+
+          const isExist = fs.existsSync(
+            path.join(
+              server.repository,
+              "contracts",
+              "full_match",
+              defaultContractChain,
+              defaultContractAddress,
+              "metadata.json"
+            )
+          );
+          chai.expect(isExist, "File is saved before calling /verify-validated")
+            .to.be.false;
+
+          agent
+            .post("/session/verify-validated/?dryrun=true")
+            .send({ contracts })
+            .then((res) => {
+              assertSingleContractStatus(res, "perfect");
+              const isExist = fs.existsSync(
+                path.join(
+                  server.repository,
+                  "contracts",
+                  "full_match",
+                  defaultContractChain,
+                  defaultContractAddress,
+                  "metadata.json"
+                )
+              );
+              chai.expect(isExist, "File is saved even despite dryRun").to.be
+                .false;
+              done();
+            });
+        });
     });
 
     it("should verify after fetching and then providing address+chainId", (done) => {

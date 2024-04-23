@@ -108,7 +108,7 @@ export const processRequestFromEtherscan = async (
   });
 
   if (!response.ok) {
-    logger.error("Etherscan API error", {
+    logger.warn("Etherscan API error", {
       secretUrl,
       chainId: sourcifyChain.chainId,
       address,

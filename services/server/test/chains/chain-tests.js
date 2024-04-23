@@ -387,6 +387,13 @@ describe("Test Supported Chains", function () {
   );
 
   verifyContract(
+    "0xc975C9C57641E6Ac3ca32c1ceaE9A88135Fe9C30",
+    "5845",
+    "Tangle",
+    "shared/"
+  );
+
+  verifyContract(
     "0x08BB0D7fCe37dD766d13DC19A00c95878ed2E68c",
     "1284",
     "Moonbeam",
@@ -1385,6 +1392,14 @@ describe("Test Supported Chains", function () {
     "0x8A4eBAEB1319623Aebda7c0F77b22263893f286B",
     "80002",
     "Polygon Amoy Testnet",
+    "shared/"
+  );
+
+  // DEGEN chain
+  verifyContract(
+    "0x61A4Bc8a6F81f3A6B0677dd1e5CB4671d0734Cb3",
+    "666666666",
+    "DEGEN chain",
     "shared/"
   );
 
