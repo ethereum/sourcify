@@ -846,7 +846,11 @@ function bytecodeIncludesAuxdataDiffAt(
   position: number
 ): boolean {
   const { real, diffStart } = auxdataDiff;
-  const extracted = bytecode.slice(position - diffStart, real.length);
+  // the difference (i.e metadata hash) starts from "position". To get the whole auxdata instead of metadata go back "diffStart" and until + "real.length" of the auxdata.
+  const extracted = bytecode.slice(
+    position - diffStart,
+    position - diffStart + real.length
+  );
   return extracted === real;
 }
 
@@ -898,17 +902,22 @@ function findAuxdataPositions(
     }
     // New diff position
     for (const auxdataDiffIndex in auxdataDiffObjects) {
+      const auxdataPositionsIndex = parseInt(auxdataDiffIndex) + 1;
       if (
-        auxdataPositions[auxdataDiffIndex] === undefined &&
+        auxdataPositions[auxdataPositionsIndex] === undefined &&
         bytecodeIncludesAuxdataDiffAt(
           originalBytecode,
           auxdataDiffObjects[auxdataDiffIndex],
           diffPosition
         )
       ) {
-        auxdataPositions[auxdataDiffIndex] = {
-          offset: diffPosition - auxdataDiffObjects[auxdataDiffIndex].diffStart,
-          value: auxdataDiffObjects[auxdataDiffIndex].real,
+        auxdataPositions[auxdataPositionsIndex] = {
+          offset:
+            (diffPosition -
+              auxdataDiffObjects[auxdataDiffIndex].diffStart -
+              2) /
+            2,
+          value: `0x${auxdataDiffObjects[auxdataDiffIndex].real}`,
         };
       }
     }

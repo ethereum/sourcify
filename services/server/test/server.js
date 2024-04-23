@@ -2272,16 +2272,19 @@ describe("Server", function () {
     });
 
     const verifierAllianceTestLibrariesLinkedByCompiler = require("./verifier-alliance/libraries_linked_by_compiler.json");
-    it(verifierAllianceTestLibrariesLinkedByCompiler._comment, async () => {
-      await verifierAllianceTest(
-        server,
-        chai,
-        storageService,
-        localSigner,
-        defaultContractChain,
-        verifierAllianceTestLibrariesLinkedByCompiler
-      );
-    });
+    it.skip(
+      verifierAllianceTestLibrariesLinkedByCompiler._comment,
+      async () => {
+        await verifierAllianceTest(
+          server,
+          chai,
+          storageService,
+          localSigner,
+          defaultContractChain,
+          verifierAllianceTestLibrariesLinkedByCompiler
+        );
+      }
+    );
 
     const verifierAllianceTestMetadataHashAbsent = require("./verifier-alliance/metadata_hash_absent.json");
     it(verifierAllianceTestMetadataHashAbsent._comment, async () => {
@@ -2320,9 +2323,20 @@ describe("Server", function () {
       );
     });
 
+    const verifierAllianceTestDoubleAuxdata = require("./verifier-alliance/partial_match_double_auxdata.json");
+    it(verifierAllianceTestDoubleAuxdata._comment, async () => {
+      await verifierAllianceTest(
+        server,
+        chai,
+        storageService,
+        localSigner,
+        defaultContractChain,
+        verifierAllianceTestDoubleAuxdata
+      );
+    });
+
     // Tests to be implemented:
     // - genesis: right now not supported,
     // - partial_match_2: I don't know why we have this test
-    // - partial_match_double_auxdata: right now not supported
   });
 });

@@ -13,6 +13,7 @@ import {
   ConstructorTransformation,
   CallProtectionTransformation,
   TransformationValues,
+  CompiledContractCborAuxdata,
 } from './types';
 import {
   decode as bytecodeDecode,
@@ -23,9 +24,10 @@ import { hexZeroPad, isHexString } from '@ethersproject/bytes';
 import { BigNumber } from '@ethersproject/bignumber';
 import { defaultAbiCoder as abiCoder, ParamType } from '@ethersproject/abi';
 import { AbiConstructor } from 'abitype';
-import { logDebug, logInfo, logWarn } from './logger';
+import { logDebug, logError, logInfo, logWarn } from './logger';
 import SourcifyChain from './SourcifyChain';
 import { lt } from 'semver';
+import { replaceBytecodeAuxdatasWithZeros } from './utils';
 
 export async function verifyDeployed(
   checkedContract: CheckedContract,
@@ -93,16 +95,24 @@ export async function verifyDeployed(
     return match;
   }
 
+  const generateRuntimeCborAuxdataPositions = async () => {
+    if (!checkedContract.runtimeBytecodeCborAuxdata) {
+      await checkedContract.generateCborAuxdataPositions();
+    }
+    return checkedContract.runtimeBytecodeCborAuxdata || {};
+  };
+
   // Try to match with deployed bytecode directly
   try {
     logDebug('Matching with deployed bytecode', {
       chain: sourcifyChain.chainId,
       address,
     });
-    matchWithRuntimeBytecode(
+    await matchWithRuntimeBytecode(
       match,
       recompiled.runtimeBytecode,
       runtimeBytecode,
+      generateRuntimeCborAuxdataPositions,
       recompiled.immutableReferences
     );
     if (match.runtimeMatch === 'partial') {
@@ -116,10 +126,12 @@ export async function verifyDeployed(
         runtimeBytecode,
         match,
         async (match, recompiled) => {
-          matchWithRuntimeBytecode(
+          await matchWithRuntimeBytecode(
             match,
             recompiled.runtimeBytecode,
-            runtimeBytecode
+            runtimeBytecode,
+            generateRuntimeCborAuxdataPositions,
+            recompiled.immutableReferences
           );
         },
         'runtimeMatch'
@@ -132,6 +144,13 @@ export async function verifyDeployed(
       error: e.message,
     });
   }
+
+  const generateCreationCborAuxdataPositions = async () => {
+    if (!checkedContract.creationBytecodeCborAuxdata) {
+      await checkedContract.generateCborAuxdataPositions();
+    }
+    return checkedContract.creationBytecodeCborAuxdata || {};
+  };
 
   try {
     // Try to match with creationTx, if available
@@ -148,7 +167,8 @@ export async function verifyDeployed(
         sourcifyChain,
         address,
         creatorTxHash,
-        recompiledMetadata
+        recompiledMetadata,
+        generateCreationCborAuxdataPositions
       );
       if (match.runtimeMatch === 'partial') {
         logDebug('Matched partial with creation tx', {
@@ -168,7 +188,8 @@ export async function verifyDeployed(
               sourcifyChain,
               address,
               creatorTxHash,
-              recompiledMetadata
+              recompiledMetadata,
+              generateCreationCborAuxdataPositions
             );
           },
           'creationMatch'
@@ -338,10 +359,61 @@ export async function verifyCreate2(
   return match;
 }
 
-export function matchWithRuntimeBytecode(
+export function normalizeBytecodesAuxdata(
+  recompiledBytecode: string,
+  onchainBytecode: string,
+  cborAuxdataPositions: CompiledContractCborAuxdata
+) {
+  try {
+    let normalizedRecompiledBytecode = recompiledBytecode;
+    let normalizedOnchainBytecode = onchainBytecode;
+    const transformations: Transformation[] = [];
+    const transformationsValuesCborAuxdata = {} as any;
+    Object.values(cborAuxdataPositions).forEach((auxdataValues, index) => {
+      const offsetStart = auxdataValues.offset * 2 + 2;
+      const offsetEnd =
+        auxdataValues.offset * 2 + 2 + auxdataValues.value.length - 2;
+      normalizedRecompiledBytecode = replaceBytecodeAuxdatasWithZeros(
+        normalizedRecompiledBytecode,
+        offsetStart,
+        offsetEnd
+      );
+      const originalAuxdata = normalizedOnchainBytecode.slice(
+        offsetStart,
+        offsetEnd
+      );
+      normalizedOnchainBytecode = replaceBytecodeAuxdatasWithZeros(
+        normalizedOnchainBytecode,
+        offsetStart,
+        offsetEnd
+      );
+      const transformationIndex = `${index + 1}`;
+      transformations.push(
+        AuxdataTransformation(auxdataValues.offset, transformationIndex)
+      );
+      transformationsValuesCborAuxdata[
+        transformationIndex
+      ] = `0x${originalAuxdata}`;
+    });
+    return {
+      normalizedRecompiledBytecode,
+      normalizedOnchainBytecode,
+      transformations,
+      transformationsValuesCborAuxdata,
+    };
+  } catch (error: any) {
+    logError('Cannot normalize bytecodes with the auxdata', {
+      error,
+    });
+    throw new Error('Cannot normalize bytecodes with the auxdata');
+  }
+}
+
+export async function matchWithRuntimeBytecode(
   match: Match,
   recompiledRuntimeBytecode: string,
   onchainRuntimeBytecode: string,
+  generateCborAuxdataPositions: () => Promise<CompiledContractCborAuxdata>,
   immutableReferences?: ImmutableReferences
 ) {
   // Updating the `match.onchainRuntimeBytecode` here so we are sure to always update it
@@ -390,6 +462,7 @@ export function matchWithRuntimeBytecode(
     );
   }
 
+  // If onchain bytecode is equal to recompiled bytecode
   if (recompiledRuntimeBytecode === onchainRuntimeBytecode) {
     match.libraryMap = libraryMap;
     match.immutableReferences = immutableReferences;
@@ -399,28 +472,44 @@ export function matchWithRuntimeBytecode(
     } else {
       match.runtimeMatch = 'partial';
     }
-  } else {
-    // Try to match without the metadata hashes
-    const [trimmedOnchainRuntimeBytecode, auxdata, cborLenghtHex] =
-      splitAuxdata(onchainRuntimeBytecode);
-    const [trimmedRecompiledRuntimeBytecode] = splitAuxdata(
-      recompiledRuntimeBytecode
-    );
-    if (trimmedOnchainRuntimeBytecode === trimmedRecompiledRuntimeBytecode) {
-      match.libraryMap = libraryMap;
-      match.immutableReferences = immutableReferences;
-      match.runtimeMatch = 'partial';
-      match.runtimeTransformations?.push(
-        // we divide by 2 because we store the length in bytes (without 0x)
-        AuxdataTransformation(
-          trimmedRecompiledRuntimeBytecode.substring(2).length / 2,
-          '1'
-        )
-      );
-      match.runtimeTransformationValues.cborAuxdata = {
-        '1': `0x${auxdata}${cborLenghtHex}`,
-      };
+    return;
+  }
+
+  // If onchain bytecode is not the same as recompiled bytecode try to match without the auxdatas
+
+  // We call generateCborAuxdataPositions only here because in the case of double auxdata it will
+  // trigger a second compilation. We don't want to run the compiler twice if not strictly needed
+  const cborAuxdataPositions = await generateCborAuxdataPositions().catch(
+    (error) => {
+      logError('cannot generate contract artifacts', error);
+      throw new Error('cannot generate contract artifacts');
     }
+  );
+
+  // We use normalizeBytecodesAuxdata to replace all the auxdatas in both bytecodes with zeros
+  const {
+    normalizedRecompiledBytecode: normalizedRecompiledRuntimeBytecode,
+    normalizedOnchainBytecode: normalizedOnchainRuntimeBytecode,
+    transformations: runtimeAuxdataTransformations,
+    transformationsValuesCborAuxdata: runtimeTransformationsValuesCborAuxdata,
+  } = normalizeBytecodesAuxdata(
+    recompiledRuntimeBytecode,
+    onchainRuntimeBytecode,
+    cborAuxdataPositions
+  )!;
+
+  // If after the normalization the bytecodes are the same, we have a partial match
+  if (normalizedRecompiledRuntimeBytecode == normalizedOnchainRuntimeBytecode) {
+    match.libraryMap = libraryMap;
+    match.immutableReferences = immutableReferences;
+    match.runtimeMatch = 'partial';
+    match.runtimeTransformations = [
+      ...match.runtimeTransformations,
+      ...runtimeAuxdataTransformations,
+    ];
+    match.runtimeTransformationValues.cborAuxdata =
+      runtimeTransformationsValuesCborAuxdata;
+    return;
   }
 }
 
@@ -435,7 +524,8 @@ export async function matchWithCreationTx(
   sourcifyChain: SourcifyChain,
   address: string,
   creatorTxHash: string,
-  recompiledMetadata: Metadata
+  recompiledMetadata: Metadata,
+  generateCborAuxdataPositions: () => Promise<CompiledContractCborAuxdata>
 ) {
   if (recompiledCreationBytecode === '0x') {
     match.creationMatch = null;
@@ -512,45 +602,47 @@ export async function matchWithCreationTx(
       creationMatch: match.creationMatch,
     });
   } else {
-    // Match without metadata hashes
-    // TODO: Handle multiple metadata hashes
-
+    // If onchain bytecode is not the same as recompiled bytecode try to match without the auxdatas
     logDebug('Matching with trimmed creation bytecode', {
       chainId: match.chainId,
       address,
     });
-    // Assuming the onchain and recompiled auxdata lengths are the same
-    const onchainCreationBytecodeWithoutConstructorArgs =
-      onchainCreationBytecode.slice(0, recompiledCreationBytecode.length);
 
-    const [trimmedOnchainCreationBytecode, auxdata, cborLenghtHex] =
-      splitAuxdata(onchainCreationBytecodeWithoutConstructorArgs); // In the case of creationTxData (not runtime bytecode) it is actually not CBOR encoded at the end because of the appended constr. args., but splitAuxdata returns the whole bytecode if it's not CBOR encoded, so will work with startsWith.
-    const [trimmedRecompiledCreationBytecode] = splitAuxdata(
-      recompiledCreationBytecode
+    // We call generateCborAuxdataPositions only here because in the case of double auxdata it will
+    // trigger a second compilation. We don't want to run the compiler twice if not strictly needed
+    const cborAuxdataPositions = await generateCborAuxdataPositions().catch(
+      (error) => {
+        logError('cannot generate contract artifacts', error);
+        throw new Error('cannot generate contract artifacts');
+      }
     );
-    if (
-      trimmedOnchainCreationBytecode.startsWith(
-        trimmedRecompiledCreationBytecode
-      )
-    ) {
-      match.creationMatch = 'partial';
-      logDebug('Found match with trimmed creation bytecode', {
-        chainId: match.chainId,
-        address,
-        creationMatch: match.creationMatch,
-      });
-      match.creationTransformations?.push(
-        AuxdataTransformation(
-          trimmedRecompiledCreationBytecode.substring(2).length / 2,
-          '1'
-        )
-      );
-      match.creationTransformationValues.cborAuxdata = {
-        '1': `0x${auxdata}${cborLenghtHex}`,
-      };
-    }
 
-    // TODO: If we still don't have a match and we have multiple auxdata in legacyAssembly, try finding the metadata hashes and match with this info.
+    // We use normalizeBytecodesAuxdata to replace all the auxdatas in both bytecodes with zeros
+    const {
+      normalizedRecompiledBytecode: normalizedRecompiledCreationBytecode,
+      normalizedOnchainBytecode: normalizedOnchainCreationBytecode,
+      transformations: creationAuxdataTransformations,
+      transformationsValuesCborAuxdata:
+        creationTransformationsValuesCborAuxdata,
+    } = normalizeBytecodesAuxdata(
+      recompiledCreationBytecode,
+      onchainCreationBytecode,
+      cborAuxdataPositions
+    )!;
+
+    // If after the normalization the bytecodes are the same, we have a partial match
+    if (
+      normalizedRecompiledCreationBytecode == normalizedOnchainCreationBytecode
+    ) {
+      match.libraryMap = libraryMap;
+      match.creationMatch = 'partial';
+      match.creationTransformations = [
+        ...match.creationTransformations,
+        ...creationAuxdataTransformations,
+      ];
+      match.creationTransformationValues.cborAuxdata =
+        creationTransformationsValuesCborAuxdata;
+    }
   }
 
   if (match.creationMatch) {

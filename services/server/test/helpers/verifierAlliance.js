@@ -50,6 +50,23 @@ const verifierAllianceTest = async (
       urls: [],
     };
   });
+  const metadataCompilerSettings = {
+    ...testCase.compiler_settings,
+    // Convert the libraries from the compiler_settings format to the metadata format
+    libraries: Object.keys(testCase.compiler_settings.libraries || {}).reduce(
+      (libraries, contractPath) => {
+        Object.keys(testCase.compiler_settings.libraries[contractPath]).forEach(
+          (contractName) => {
+            libraries[`${contractPath}:${contractName}`] =
+              testCase.compiler_settings.libraries[contractPath][contractName];
+          }
+        );
+
+        return libraries;
+      },
+      {}
+    ),
+  };
   await chai
     .request(server.app)
     .post("/")
@@ -69,7 +86,7 @@ const verifierAllianceTest = async (
             userdoc: {},
           },
           settings: {
-            ...testCase.compiler_settings,
+            ...metadataCompilerSettings,
             compilationTarget,
           },
           sources,
@@ -100,44 +117,40 @@ const verifierAllianceTest = async (
       where cd.address = $1`,
     [Buffer.from(address.substring(2), "hex")]
   );
+  chai.expect(res.rowCount).to.equal(1);
+  chai
+    .expect(res.rows[0].compilation_artifacts)
+    .to.deep.equal(testCase.compilation_artifacts);
+  chai
+    .expect(`0x${toHexString(res.rows[0].compiled_runtime_code)}`)
+    .to.equal(testCase.compiled_runtime_code);
+  chai
+    .expect(res.rows[0].runtime_code_artifacts)
+    .to.deep.equal(testCase.runtime_code_artifacts);
+  chai.expect(res.rows[0].runtime_match).to.deep.equal(testCase.runtime_match);
+  chai
+    .expect(res.rows[0].runtime_values)
+    .to.deep.equal(testCase.runtime_values);
+  chai
+    .expect(res.rows[0].runtime_transformations)
+    .to.deep.equal(testCase.runtime_transformations);
 
-  if (res.rowCount === 1) {
-    chai
-      .expect(res.rows[0].compilation_artifacts)
-      .to.deep.equal(testCase.compilation_artifacts);
-    chai
-      .expect(`0x${toHexString(res.rows[0].compiled_runtime_code)}`)
-      .to.equal(testCase.compiled_runtime_code);
-    chai
-      .expect(res.rows[0].runtime_code_artifacts)
-      .to.deep.equal(testCase.runtime_code_artifacts);
-    chai
-      .expect(res.rows[0].runtime_match)
-      .to.deep.equal(testCase.runtime_match);
-    chai
-      .expect(res.rows[0].runtime_values)
-      .to.deep.equal(testCase.runtime_values);
-    chai
-      .expect(res.rows[0].runtime_transformations)
-      .to.deep.equal(testCase.runtime_transformations);
-
-    // For now disable the creation tests
-    chai
-      .expect(`0x${toHexString(res.rows[0].compiled_creation_code)}`)
-      .to.equal(testCase.compiled_creation_code);
-    chai
-      .expect(res.rows[0].creation_code_artifacts)
-      .to.deep.equal(testCase.creation_code_artifacts);
-    chai
-      .expect(res.rows[0].creation_match)
-      .to.deep.equal(testCase.creation_match);
-    chai
-      .expect(res.rows[0].creation_values)
-      .to.deep.equal(testCase.creation_values);
-    chai
-      .expect(res.rows[0].creation_transformations)
-      .to.deep.equal(testCase.creation_transformations);
-  }
+  // For now disable the creation tests
+  chai
+    .expect(`0x${toHexString(res.rows[0].compiled_creation_code)}`)
+    .to.equal(testCase.compiled_creation_code);
+  chai
+    .expect(res.rows[0].creation_code_artifacts)
+    .to.deep.equal(testCase.creation_code_artifacts);
+  chai
+    .expect(res.rows[0].creation_match)
+    .to.deep.equal(testCase.creation_match);
+  chai
+    .expect(res.rows[0].creation_values)
+    .to.deep.equal(testCase.creation_values);
+  chai
+    .expect(res.rows[0].creation_transformations)
+    .to.deep.equal(testCase.creation_transformations);
 };
 module.exports = {
   verifierAllianceTest,
