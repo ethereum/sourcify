@@ -1042,6 +1042,54 @@ describe("Server", function () {
           });
       });
     });
+
+    it("should verify a contract compiled with Solidity < 0.7.5 and libraries have been linked using compiler settings", async () => {
+      const artifact = require(path.join(
+        __dirname,
+        "testcontracts",
+        "LibrariesSolidity075",
+        "LibrariesSolidity075.json"
+      ));
+      const address = await deployFromAbiAndBytecode(
+        localSigner,
+        artifact.abi,
+        artifact.bytecode
+      );
+
+      const metadata = require(path.join(
+        __dirname,
+        "testcontracts",
+        "LibrariesSolidity075",
+        "metadata.json"
+      ));
+
+      const file = fs.readFileSync(
+        path.join(
+          __dirname,
+          "testcontracts",
+          "LibrariesSolidity075",
+          "Example.sol"
+        )
+      );
+
+      const res = await chai
+        .request(server.app)
+        .post("/")
+        .field("address", address)
+        .field("chain", defaultContractChain)
+        .attach("files", Buffer.from(JSON.stringify(metadata)), "metadata.json")
+        .attach("files", file, "Example.sol");
+
+      await assertVerification(
+        storageService,
+        null,
+        res,
+        undefined,
+        address,
+        defaultContractChain,
+        "perfect"
+      );
+    });
   });
 
   describe("session api verification", function () {
@@ -2272,19 +2320,16 @@ describe("Server", function () {
     });
 
     const verifierAllianceTestLibrariesLinkedByCompiler = require("./verifier-alliance/libraries_linked_by_compiler.json");
-    it.skip(
-      verifierAllianceTestLibrariesLinkedByCompiler._comment,
-      async () => {
-        await verifierAllianceTest(
-          server,
-          chai,
-          storageService,
-          localSigner,
-          defaultContractChain,
-          verifierAllianceTestLibrariesLinkedByCompiler
-        );
-      }
-    );
+    it(verifierAllianceTestLibrariesLinkedByCompiler._comment, async () => {
+      await verifierAllianceTest(
+        server,
+        chai,
+        storageService,
+        localSigner,
+        defaultContractChain,
+        verifierAllianceTestLibrariesLinkedByCompiler
+      );
+    });
 
     const verifierAllianceTestMetadataHashAbsent = require("./verifier-alliance/metadata_hash_absent.json");
     it(verifierAllianceTestMetadataHashAbsent._comment, async () => {
