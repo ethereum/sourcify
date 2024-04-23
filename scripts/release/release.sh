@@ -174,8 +174,6 @@ push_tag() {
   local tag=$1
   echo "Pushing tag $tag..."
   git push origin "$tag"
-  echo "Waiting 5 seconds"
-  sleep 5 # Delay of 5 seconds
 }
 
 # Main function to handle ordered tag pushing
@@ -196,15 +194,8 @@ push_tags_in_order() {
     if [[ ! " ${priority_packages[*]} " =~ "$pkg_name" ]]; then
       tag="$pkg_name@${selected_versions[$pkg_name]}"
 
-      read -p "Next step is to push the tag $tag. Do you want to continue? (Y/n) " answer
-      case ${answer:0:1} in
-      n | N)
-        echo "Skipping pushing the tag $tag."
-        ;;
-      *)
-        prompt_execute_or_skip "Pushing tag $tag to GitHub" push_tag "$tag"
-        ;;
-      esac
+      prompt_execute_or_skip "Pushing tag $tag to GitHub" push_tag "$tag"
+
     fi
   done
 }
