@@ -1,6 +1,7 @@
 {
   "name": "sourcify-monitor",
   "version": "1.1.12",
+  "private": true,
   "description": "A monitoring service to listen to chains and send detected new contracts to a Sourcify server",
   "main": "index.js",
   "scripts": {
