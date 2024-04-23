@@ -6,6 +6,7 @@ import {
   CompilerOutput,
   InvalidSources,
   JsonInput,
+  Libraries,
   Metadata,
   MetadataSourceMap,
   MissingSources,
@@ -714,7 +715,31 @@ function createJsonInputFromMetadata(
     'metadata',
   ];
 
-  solcJsonInput.settings.libraries = { '': metadata.settings.libraries || {} };
+  // Convert the libraries from the metadata format to the compiler_settings format
+  // metadata format: "contracts/1_Storage.sol:Journal": "0x7d53f102f4d4aa014db4e10d6deec2009b3cda6b"
+  // settings format: "contracts/1_Storage.sol": { Journal: "0x7d53f102f4d4aa014db4e10d6deec2009b3cda6b" }
+  const metadataLibraries = metadata.settings?.libraries || {};
+  solcJsonInput.settings.libraries = Object.keys(
+    metadataLibraries || {}
+  ).reduce((libraries, libraryKey) => {
+    // Before Solidity v0.7.5: { "ERC20": "0x..."}
+    if (!libraryKey.includes(':')) {
+      if (!libraries['']) {
+        libraries[''] = {};
+      }
+      // try using the global method, available for pre 0.7.5 versions
+      libraries[''][libraryKey] = metadataLibraries[libraryKey];
+      return libraries;
+    }
+
+    // After Solidity v0.7.5: { "ERC20.sol:ERC20": "0x..."}
+    const [contractPath, contractName] = libraryKey.split(':');
+    if (!libraries[contractPath]) {
+      libraries[contractPath] = {};
+    }
+    libraries[contractPath][contractName] = metadataLibraries[libraryKey];
+    return libraries;
+  }, {} as Libraries);
 
   return {
     solcJsonInput: solcJsonInput as JsonInput,
