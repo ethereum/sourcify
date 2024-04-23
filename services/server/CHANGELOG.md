@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@1.6.0 - 2024-04-23
+
+- Use Postgres session table for session instead of memory only
+- Add dry run parameter for the session verify endpoint
+- Increase lambda function max response size by swithching to streaming
+- Add fallback to the local compiler when the lambda response is too large
+- Don't store contract once again if it's already partial and the result is partial
+- New chains:
+  - Tangle (5845)
+  - Swisstronik (1291)
+  - Polygon Amoy Testnet (80002)
+  - DEGEN (666666666)
+- Deprecated chains:
+  - Polygon Mumbai Testnet (80001)
+
 ## sourcify-server@1.5.6 - 2024-04-04
 
 - Fix checkAndFetchMissing failing in session API
