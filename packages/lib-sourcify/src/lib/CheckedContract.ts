@@ -6,7 +6,6 @@ import {
   CompilerOutput,
   InvalidSources,
   JsonInput,
-  Libraries,
   Metadata,
   MetadataSourceMap,
   MissingSources,

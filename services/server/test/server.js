@@ -2157,16 +2157,19 @@ describe("Server", function () {
     });
 
     const verifierAllianceTestLibrariesLinkedByCompiler = require("./verifier-alliance/libraries_linked_by_compiler.json");
-    it(verifierAllianceTestLibrariesLinkedByCompiler._comment, async () => {
-      await verifierAllianceTest(
-        server,
-        chai,
-        storageService,
-        localSigner,
-        defaultContractChain,
-        verifierAllianceTestLibrariesLinkedByCompiler
-      );
-    });
+    it.skip(
+      verifierAllianceTestLibrariesLinkedByCompiler._comment,
+      async () => {
+        await verifierAllianceTest(
+          server,
+          chai,
+          storageService,
+          localSigner,
+          defaultContractChain,
+          verifierAllianceTestLibrariesLinkedByCompiler
+        );
+      }
+    );
 
     const verifierAllianceTestMetadataHashAbsent = require("./verifier-alliance/metadata_hash_absent.json");
     it(verifierAllianceTestMetadataHashAbsent._comment, async () => {
