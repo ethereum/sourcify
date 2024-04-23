@@ -715,22 +715,7 @@ function createJsonInputFromMetadata(
     'metadata',
   ];
 
-  // Convert the libraries from the metadata format to the compiler_settings format
-  // metadata format: { "contracts/1_Storage.sol:Journal": "0x7d53f102f4d4aa014db4e10d6deec2009b3cda6b" }
-  // compiler settings format: { "contracts/1_Storage.sol": { Journal: "0x7d53f102f4d4aa014db4e10d6deec2009b3cda6b" } }
-  const metadataLibraries = metadata.settings?.libraries || {};
-  solcJsonInput.settings.libraries = Object.keys(
-    metadataLibraries || {}
-  ).reduce((libraries, libraryKey) => {
-    const [contractPath, contractName] = libraryKey.split(':');
-    const libraryKeyPath = contractName ? contractPath : '';
-    const libraryKeyName = contractName ? contractName : contractPath;
-    if (!libraries[libraryKeyPath]) {
-      libraries[libraryKeyPath] = {};
-    }
-    libraries[libraryKeyPath][libraryKeyName] = metadataLibraries[libraryKey];
-    return libraries;
-  }, {} as Libraries);
+  solcJsonInput.settings.libraries = { '': metadata.settings.libraries || {} };
 
   return {
     solcJsonInput: solcJsonInput as JsonInput,
