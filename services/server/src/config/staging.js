@@ -3,7 +3,7 @@ module.exports = {
     port: 80,
   },
   repositoryV1: {
-    path: "/home/app/repository",
+    path: "/home/app/repositoryV1",
     serverUrl: "https://repo.staging.sourcify.dev",
   },
   repositoryV2: {
