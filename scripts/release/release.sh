@@ -50,14 +50,15 @@ check_packages_for_update() {
     packageNames+=("$packageName")
     versions+=("$version")
   done < <(echo "$OUTPUT")
-}
 
-# For each directory/package to be updated decide on patch, minor, or major, and then ask for changelog input
-update_packages_and_changelog() {
   echo "Packages to be updated:"
   for index in "${!directories[@]}"; do
     echo "${packageNames[$index]} at ${directories[$index]} (current version: ${versions[$index]})"
   done
+}
+
+# For each directory/package to be updated decide on patch, minor, or major, and then ask for changelog input
+update_packages_and_changelog() {
 
   for index in "${!directories[@]}"; do
     pkg_name="${packageNames[$index]}"
@@ -83,8 +84,8 @@ select_new_version() {
   echo "Review changes at: $GITHUB_PR_URL_FILES"
   echo "=============================="
   echo "Select a new version for $pkg_name (currently $current_version)"
-  PS3="Choose the new version for $pkg_name (1, 2, or 3): "
-  select version_type in "Patch ($new_patch)" "Minor ($new_minor)" "Major ($new_major)"; do
+  PS3="Choose the new version for $pkg_name (1, 2, 3, or 4): "
+  select version_type in "Patch ($new_patch)" "Minor ($new_minor)" "Major ($new_major)" "Current ($current_version)"; do
     case $version_type in
     "Patch ($new_patch)")
       echo "You selected $version_type"
@@ -99,6 +100,11 @@ select_new_version() {
     "Major ($new_major)")
       echo "You selected $version_type"
       selected_versions["$pkg_name"]=$new_major
+      break
+      ;;
+    "Current ($current_version)")
+      echo "You selected $version_type"
+      selected_versions["$pkg_name"]=$current_version
       break
       ;;
     *)

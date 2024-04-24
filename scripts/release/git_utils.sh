@@ -91,7 +91,7 @@ push_to_master_and_staging() {
   echo "Switching to staging..."
   git checkout staging
   echo "Merging master into staging..."
-  git merge --ff-only master
+  git merge master
   echo "Pushing to staging..."
   git push origin staging
 }
