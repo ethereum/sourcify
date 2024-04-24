@@ -17,6 +17,7 @@ module.exports = {
       2,
       { SwitchCase: 1, ignoredNodes: ["ConditionalExpression"] },
     ],
+    "@typescript-eslint/ban-ts-comment": "off"
   },
   env: {
     node: true,

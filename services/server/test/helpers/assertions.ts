@@ -1,12 +1,20 @@
-const { StatusCodes } = require("http-status-codes");
-const chai = require("chai");
-const config = require("config");
-const path = require("path");
-const fs = require("fs");
-const { getAddress } = require("ethers");
-const { getMatchStatus } = require("../../dist/server/common");
+import { StatusCodes } from "http-status-codes";
+import chai from "chai";
+import config from "config";
+import path from "path";
+import fs from "fs";
+import { getAddress } from "ethers";
+import { getMatchStatus } from "../../src/server/common";
+import type { Response } from "superagent";
+import type { Done } from "mocha";
+import type { StorageService } from "../../src/server/services/StorageService";
 
-exports.assertValidationError = (err, res, field, message) => {
+export const assertValidationError = (
+  err: Error | null,
+  res: Response,
+  field: string,
+  message?: string
+) => {
   try {
     chai.expect(err).to.be.null;
     chai.expect(res.body.message.toLowerCase()).to.include(field.toLowerCase());
@@ -20,17 +28,16 @@ exports.assertValidationError = (err, res, field, message) => {
 };
 
 // If you pass storageService = false, then the match will not be compared to the database
-exports.assertVerification = async (
-  storageService,
-  err,
-  res,
-  done,
-  expectedAddress,
-  expectedChain,
+export const assertVerification = async (
+  storageService: StorageService | null,
+  err: Error | null,
+  res: Response,
+  done: Done | null,
+  expectedAddress: string,
+  expectedChain: string,
   expectedStatus = "perfect"
 ) => {
   try {
-    // currentResponse = res;
     chai.expect(err).to.be.null;
     chai.expect(res.status).to.equal(StatusCodes.OK);
     chai.expect(res.body).to.haveOwnProperty("result");
@@ -51,19 +58,20 @@ exports.assertVerification = async (
     );
     if (done) done();
   } catch (e) {
-    e.message += `\nResponse body: ${JSON.stringify(res.body)}`;
-    throw e;
+    throw new Error(
+      `${(e as Error).message}\nResponse body: ${JSON.stringify(res.body)}`
+    );
   }
 };
 
-exports.assertVerificationSession = async (
-  storageService,
-  err,
-  res,
-  done,
-  expectedAddress,
-  expectedChain,
-  expectedStatus
+export const assertVerificationSession = async (
+  storageService: StorageService | null,
+  err: Error | null,
+  res: Response,
+  done: Done | null,
+  expectedAddress: string | undefined,
+  expectedChain: string | undefined,
+  expectedStatus: string
 ) => {
   try {
     chai.expect(err).to.be.null;
@@ -103,7 +111,13 @@ exports.assertVerificationSession = async (
 /**
  * Lookup (check-by-address etc.) doesn't return chainId, otherwise same as assertVerification
  */
-exports.assertLookup = (err, res, expectedAddress, expectedStatus, done) => {
+export const assertLookup = (
+  err: Error | null,
+  res: Response,
+  expectedAddress: string,
+  expectedStatus: string,
+  done?: Done
+) => {
   chai.expect(err).to.be.null;
   chai.expect(res.status).to.equal(StatusCodes.OK);
   const resultArray = res.body;
@@ -117,12 +131,12 @@ exports.assertLookup = (err, res, expectedAddress, expectedStatus, done) => {
 /**
  * check-all-by-address returns chain and status objects in an array.
  */
-exports.assertLookupAll = (
-  err,
-  res,
-  expectedAddress,
-  expectedChainIds, // Array of { chainId, status }
-  done
+export const assertLookupAll = (
+  err: Error | null,
+  res: Response,
+  expectedAddress: string,
+  expectedChainIds: { chainId: string; status: string }[],
+  done?: Done
 ) => {
   chai.expect(err).to.be.null;
   chai.expect(res.status).to.equal(StatusCodes.OK);
@@ -135,10 +149,10 @@ exports.assertLookupAll = (
 };
 
 async function assertContractSaved(
-  storageService,
-  expectedAddress,
-  expectedChain,
-  expectedStatus
+  storageService: StorageService | null,
+  expectedAddress: string | undefined,
+  expectedChain: string | undefined,
+  expectedStatus: string
 ) {
   if (expectedStatus === "perfect" || expectedStatus === "partial") {
     // Check if saved to fs repository
@@ -148,14 +162,14 @@ async function assertContractSaved(
         config.get("repositoryV1.path"),
         "contracts",
         match,
-        expectedChain,
-        getAddress(expectedAddress),
+        expectedChain ?? "",
+        getAddress(expectedAddress ?? ""),
         "metadata.json"
       )
     );
     chai.expect(isExist, "Contract is not saved").to.be.true;
 
-    if (storageService) {
+    if (storageService?.sourcifyDatabase) {
       // Check if saved to the database
       await storageService.sourcifyDatabase.init();
       const res = await storageService.sourcifyDatabase.databasePool.query(
@@ -171,14 +185,14 @@ async function assertContractSaved(
       LEFT JOIN code compiled_runtime_code ON compiled_runtime_code.code_hash = cc.runtime_code_hash
       LEFT JOIN code compiled_creation_code ON compiled_creation_code.code_hash = cc.creation_code_hash
       WHERE cd.address = $1 AND cd.chain_id = $2`,
-        [Buffer.from(expectedAddress.substring(2), "hex"), expectedChain]
+        [Buffer.from(expectedAddress?.substring(2) ?? "", "hex"), expectedChain]
       );
 
       const contract = res.rows[0];
       chai.expect(contract).to.not.be.null;
       chai
         .expect("0x" + contract.address.toString("hex"))
-        .to.equal(expectedAddress.toLowerCase());
+        .to.equal(expectedAddress?.toLowerCase());
       chai.expect(contract.chain_id).to.equal(expectedChain);
       // When we'll support runtime_match and creation_match as different statuses we can refine this statement
       chai
@@ -186,6 +200,8 @@ async function assertContractSaved(
           getMatchStatus({
             runtimeMatch: contract.runtime_match,
             creationMatch: contract.creation_match,
+            address: "0x" + contract.address.toString("hex"),
+            chainId: contract.chain_id,
           })
         )
         .to.equal(expectedStatus);

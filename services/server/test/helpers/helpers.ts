@@ -1,21 +1,33 @@
-const { ContractFactory, Wallet, BaseContract } = require("ethers");
-const { sourcifyChainsMap } = require("../../dist/sourcify-chains");
-const {
-  assertVerificationSession,
-  assertVerification,
-} = require("./assertions");
-const chai = require("chai");
-const chaiHttp = require("chai-http");
-const path = require("path");
-const fs = require("fs").promises;
+import {
+  ContractFactory,
+  Wallet,
+  JsonRpcSigner,
+  Interface,
+  InterfaceAbi,
+  JsonRpcProvider,
+  BytesLike,
+  Contract,
+} from "ethers";
+import { sourcifyChainsMap } from "../../src/sourcify-chains";
+import { assertVerificationSession, assertVerification } from "./assertions";
+import chai from "chai";
+import chaiHttp from "chai-http";
+import path from "path";
+import { promises as fs } from "fs";
+import { StorageService } from "../../src/server/services/StorageService";
 
 chai.use(chaiHttp);
 
-const invalidAddress = "0x000000bCB92160f8B7E094998Af6BCaD7fa537ff"; // checksum false
-const unusedAddress = "0xf1Df8172F308e0D47D0E5f9521a5210467408535";
-const unsupportedChain = "3"; // Ropsten
+export const invalidAddress = "0x000000bCB92160f8B7E094998Af6BCaD7fa537ff"; // checksum false
+export const unusedAddress = "0xf1Df8172F308e0D47D0E5f9521a5210467408535";
+export const unsupportedChain = "3"; // Ropsten
 
-async function deployFromAbiAndBytecode(signer, abi, bytecode, args) {
+export async function deployFromAbiAndBytecode(
+  signer: JsonRpcSigner,
+  abi: Interface | InterfaceAbi,
+  bytecode: BytesLike | { object: string },
+  args?: any[]
+) {
   const contractFactory = new ContractFactory(abi, bytecode, signer);
   console.log(`Deploying contract ${args?.length ? `with args ${args}` : ""}`);
   const deployment = await contractFactory.deploy(...(args || []));
@@ -30,11 +42,11 @@ async function deployFromAbiAndBytecode(signer, abi, bytecode, args) {
  * Creator tx hash is needed for tests. This function returns the tx hash in addition to the contract address.
  *
  */
-async function deployFromAbiAndBytecodeForCreatorTxHash(
-  signer,
-  abi,
-  bytecode,
-  args
+export async function deployFromAbiAndBytecodeForCreatorTxHash(
+  signer: JsonRpcSigner,
+  abi: Interface | InterfaceAbi,
+  bytecode: BytesLike | { object: string },
+  args?: any[]
 ) {
   const contractFactory = new ContractFactory(abi, bytecode, signer);
   console.log(`Deploying contract ${args?.length ? `with args ${args}` : ""}`);
@@ -55,7 +67,13 @@ async function deployFromAbiAndBytecodeForCreatorTxHash(
 /**
  * Function to deploy contracts from an external account with private key
  */
-async function deployFromPrivateKey(provider, abi, bytecode, privateKey, args) {
+export async function deployFromPrivateKey(
+  provider: JsonRpcProvider,
+  abi: Interface | InterfaceAbi,
+  bytecode: BytesLike | { object: string },
+  privateKey: string,
+  args?: any[]
+) {
   const signer = new Wallet(privateKey, provider);
   const contractFactory = new ContractFactory(abi, bytecode, signer);
   console.log(`Deploying contract ${args?.length ? `with args ${args}` : ""}`);
@@ -72,56 +90,54 @@ async function deployFromPrivateKey(provider, abi, bytecode, privateKey, args) {
  * @param  {Number} secs seconds
  * @return {Promise}
  */
-function waitSecs(secs = 0) {
+export function waitSecs(secs = 0) {
   return new Promise((resolve) => setTimeout(resolve, secs * 1000));
 }
 
 // Uses staticCall which does not send a tx i.e. change the state.
-async function callContractMethod(
-  provider,
-  abi,
-  contractAddress,
-  methodName,
-  from,
-  args
+export async function callContractMethod(
+  provider: JsonRpcProvider,
+  abi: Interface | InterfaceAbi,
+  contractAddress: string,
+  methodName: string,
+  args: any[]
 ) {
-  const contract = new BaseContract(contractAddress, abi, provider);
+  const contract = new Contract(contractAddress, abi, provider);
   const callResponse = await contract[methodName].staticCall(...args);
 
   return callResponse;
 }
 
 // Sends a tx that changes the state
-async function callContractMethodWithTx(
-  signer,
-  abi,
-  contractAddress,
-  methodName,
-  args
+export async function callContractMethodWithTx(
+  signer: JsonRpcSigner,
+  abi: Interface | InterfaceAbi,
+  contractAddress: string,
+  methodName: string,
+  args: any[]
 ) {
-  const contract = new BaseContract(contractAddress, abi, signer);
+  const contract = new Contract(contractAddress, abi, signer);
   const txResponse = await contract[methodName].send(...args);
   const txReceipt = await txResponse.wait();
   return txReceipt;
 }
 
-function verifyAndAssertEtherscan(
-  serverApp,
-  chainId,
-  address,
-  expectedStatus,
-  type
+export function verifyAndAssertEtherscan(
+  serverApp: Express.Application,
+  chainId: string,
+  address: string,
+  expectedStatus: string,
+  type: string
 ) {
-  it(`Non-Session: Should import a ${type} contract from  #${chainId} ${sourcifyChainsMap[chainId].name} (${sourcifyChainsMap[chainId].etherscanApi.apiURL}) and verify the contract, finding a ${expectedStatus} match`, (done) => {
-    let request = chai
+  it(`Non-Session: Should import a ${type} contract from  #${chainId} ${sourcifyChainsMap[chainId].name} (${sourcifyChainsMap[chainId].etherscanApi?.apiURL}) and verify the contract, finding a ${expectedStatus} match`, (done) => {
+    const request = chai
       .request(serverApp)
       .post("/verify/etherscan")
       .field("address", address)
       .field("chain", chainId);
     request.end(async (err, res) => {
-      // currentResponse = res;
       await assertVerification(
-        false,
+        null,
         err,
         res,
         done,
@@ -133,23 +149,22 @@ function verifyAndAssertEtherscan(
   });
 }
 
-function verifyAndAssertEtherscanSession(
-  serverApp,
-  chainId,
-  address,
-  expectedStatus,
-  type
+export function verifyAndAssertEtherscanSession(
+  serverApp: Express.Application,
+  chainId: string,
+  address: string,
+  expectedStatus: string,
+  type: string
 ) {
-  it(`Session: Should import a ${type} contract from  #${chainId} ${sourcifyChainsMap[chainId].name} (${sourcifyChainsMap[chainId].etherscanApi.apiURL}) and verify the contract, finding a ${expectedStatus} match`, (done) => {
+  it(`Session: Should import a ${type} contract from  #${chainId} ${sourcifyChainsMap[chainId].name} (${sourcifyChainsMap[chainId].etherscanApi?.apiURL}) and verify the contract, finding a ${expectedStatus} match`, (done) => {
     chai
       .request(serverApp)
       .post("/session/verify/etherscan")
       .field("address", address)
       .field("chainId", chainId)
       .end(async (err, res) => {
-        // currentResponse = res;
         await assertVerificationSession(
-          false,
+          null,
           err,
           res,
           done,
@@ -161,9 +176,9 @@ function verifyAndAssertEtherscanSession(
   });
 }
 
-async function readFilesFromDirectory(dirPath) {
+export async function readFilesFromDirectory(dirPath: string) {
   try {
-    const filesContent = {};
+    const filesContent: Record<string, string> = {};
     const files = await fs.readdir(dirPath);
     for (const file of files) {
       const filePath = path.join(dirPath, file);
@@ -180,7 +195,10 @@ async function readFilesFromDirectory(dirPath) {
   }
 }
 
-async function resetDatabase(storageService) {
+export async function resetDatabase(storageService: StorageService) {
+  if (!storageService.sourcifyDatabase) {
+    chai.assert.fail("No database on StorageService");
+  }
   await storageService.sourcifyDatabase.init();
   await storageService.sourcifyDatabase.databasePool.query(
     "DELETE FROM sourcify_sync"
@@ -202,19 +220,3 @@ async function resetDatabase(storageService) {
   );
   await storageService.sourcifyDatabase.databasePool.query("DELETE FROM code");
 }
-
-module.exports = {
-  deployFromAbiAndBytecode,
-  deployFromAbiAndBytecodeForCreatorTxHash,
-  deployFromPrivateKey,
-  waitSecs,
-  callContractMethod,
-  callContractMethodWithTx,
-  invalidAddress,
-  unsupportedChain,
-  unusedAddress,
-  verifyAndAssertEtherscan,
-  verifyAndAssertEtherscanSession,
-  readFilesFromDirectory,
-  resetDatabase,
-};

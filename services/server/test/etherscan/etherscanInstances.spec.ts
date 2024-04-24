@@ -1,15 +1,15 @@
 // Periodical tests of Import from Etherscan for each instance e.g. Arbiscan, Etherscan, Bscscan, etc.
 
-const Server = require("../../dist/server/server").Server;
-const rimraf = require("rimraf");
-const testContracts = require("../helpers/etherscanInstanceContracts.json");
-const {
+import { Server } from "../../src/server/server";
+import rimraf from "rimraf";
+import testContracts from "../helpers/etherscanInstanceContracts.json";
+import {
   sourcifyChainsMap,
   sourcifyChainsArray,
-} = require("../../dist/sourcify-chains");
-const util = require("util");
-const { verifyAndAssertEtherscan } = require("../helpers/helpers");
-const chai = require("chai");
+} from "../../src/sourcify-chains";
+import util from "util";
+import { verifyAndAssertEtherscan } from "../helpers/helpers";
+import chai from "chai";
 
 const CUSTOM_PORT = 5679;
 
@@ -18,7 +18,7 @@ describe("Test each Etherscan instance", function () {
   const server = new Server(CUSTOM_PORT);
 
   before(async () => {
-    const promisified = util.promisify(server.app.listen);
+    const promisified: any = util.promisify(server.app.listen);
     await promisified(server.port);
     console.log(`Server listening on port ${server.port}!`);
   });
@@ -31,10 +31,13 @@ describe("Test each Etherscan instance", function () {
     rimraf.sync(server.repository);
   });
 
-  let testedChains = [];
-  for (const chainId in testContracts) {
+  const testedChains: number[] = [];
+  let chainId: keyof typeof testContracts;
+  for (chainId in testContracts) {
     if (!sourcifyChainsMap[chainId].supported) {
-      throw new Error(`Unsupported chain (${chainId}) found in test configuration`);
+      throw new Error(
+        `Unsupported chain (${chainId}) found in test configuration`
+      );
     }
     if (process.env.TEST_CHAIN && process.env.TEST_CHAIN !== chainId) continue;
     testedChains.push(parseInt(chainId));
@@ -45,8 +48,7 @@ describe("Test each Etherscan instance", function () {
           chainId,
           contract.address,
           contract.expectedStatus,
-          contract.type,
-          contract?.creatorTxHash
+          contract.type
         );
       });
     });
