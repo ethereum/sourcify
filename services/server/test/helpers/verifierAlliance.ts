@@ -1,19 +1,25 @@
-const { deployFromAbiAndBytecodeForCreatorTxHash } = require("./helpers");
-const { id: keccak256str } = require("ethers");
+import { deployFromAbiAndBytecodeForCreatorTxHash } from "./helpers";
+import { JsonRpcSigner, id as keccak256str } from "ethers";
+import type { Server } from "../../src/server/server";
+import type { StorageService } from "../../src/server/services/StorageService";
+import chai from "chai";
+import chaiHttp from "chai-http";
+import type { MetadataSourceMap } from "@ethereum-sourcify/lib-sourcify";
 
-function toHexString(byteArray) {
+chai.use(chaiHttp);
+
+function toHexString(byteArray: number[]) {
   return Array.from(byteArray, function (byte) {
     return ("0" + (byte & 0xff).toString(16)).slice(-2);
   }).join("");
 }
 
-const verifierAllianceTest = async (
-  server,
-  chai,
-  storageService,
-  localSigner,
-  defaultContractChain,
-  testCase,
+export const verifierAllianceTest = async (
+  server: Server,
+  storageService: StorageService,
+  localSigner: JsonRpcSigner,
+  defaultContractChain: string,
+  testCase: any,
   { deployWithConstructorArguments } = { deployWithConstructorArguments: false }
 ) => {
   let address;
@@ -39,10 +45,10 @@ const verifierAllianceTest = async (
     txHash = txCreationHash;
   }
 
-  const compilationTarget = {};
-  const fullyQualifiedName = testCase.fully_qualified_name.split(":");
+  const compilationTarget: Record<string, string> = {};
+  const fullyQualifiedName: string[] = testCase.fully_qualified_name.split(":");
   compilationTarget[fullyQualifiedName[0]] = fullyQualifiedName[1];
-  const sources = {};
+  const sources: MetadataSourceMap = {};
   Object.keys(testCase.sources).forEach((path) => {
     sources[path] = {
       content: testCase.sources[path],
@@ -54,7 +60,7 @@ const verifierAllianceTest = async (
     ...testCase.compiler_settings,
     // Convert the libraries from the compiler_settings format to the metadata format
     libraries: Object.keys(testCase.compiler_settings.libraries || {}).reduce(
-      (libraries, contractPath) => {
+      (libraries: Record<string, string>, contractPath) => {
         Object.keys(testCase.compiler_settings.libraries[contractPath]).forEach(
           (contractName) => {
             libraries[`${contractPath}:${contractName}`] =
@@ -95,6 +101,9 @@ const verifierAllianceTest = async (
         ...testCase.sources,
       },
     });
+  if (!storageService.sourcifyDatabase) {
+    chai.assert.fail("No database on StorageService");
+  }
   await storageService.sourcifyDatabase.init();
   const res = await storageService.sourcifyDatabase.databasePool.query(
     `SELECT 
@@ -151,7 +160,4 @@ const verifierAllianceTest = async (
   chai
     .expect(res.rows[0].creation_transformations)
     .to.deep.equal(testCase.creation_transformations);
-};
-module.exports = {
-  verifierAllianceTest,
 };
