@@ -1388,6 +1388,22 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // Stratis Mainnet
+  verifyContract(
+    "0x2FaCD0B78210f27B70d75a2F17dcE133C07C0Ab4",
+    "105105",
+    "Stratis Mainnet",
+    "shared/"
+  );
+
+  // Auroria Testnet
+  verifyContract(
+    "0x317306CE2b9CE1C8f419bfB2E480b4f000FB6B09",
+    "205205",
+    "Auroria Testnet",
+    "shared/"
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests = [];
     supportedChains
