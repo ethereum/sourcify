@@ -23,3 +23,12 @@ export async function fetchWithTimeout(
   clearTimeout(id);
   return response;
 }
+
+export const replaceBytecodeAuxdatasWithZeros = (
+  bytecode: string,
+  offsetStart: number,
+  offsetEnd: number
+) =>
+  bytecode.slice(0, offsetStart) +
+  '0'.repeat(offsetEnd - offsetStart) +
+  bytecode.slice(offsetEnd);

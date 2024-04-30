@@ -23,7 +23,7 @@ import fetch from "node-fetch";
 import { IVerificationService } from "../../services/VerificationService";
 import { ContractMeta, ContractWrapper, getMatchStatus } from "../../common";
 import { ISolidityCompiler } from "@ethereum-sourcify/lib-sourcify";
-import { SolcLambda } from "../../services/compiler/lambda/SolcLambda";
+import { SolcLambdaWithLocalFallback } from "../../services/compiler/lambda-with-fallback/SolcLambdaWithLocalFallback";
 import { SolcLocal } from "../../services/compiler/local/SolcLocal";
 import { StorageService } from "../../services/StorageService";
 import logger from "../../../common/logger";
@@ -32,8 +32,8 @@ import { createHash } from "crypto";
 
 let selectedSolidityCompiler: ISolidityCompiler;
 if (config.get("lambdaCompiler.enabled")) {
-  logger.info("Using lambda solidity compiler");
-  selectedSolidityCompiler = new SolcLambda();
+  logger.info("Using lambda solidity compiler with local fallback");
+  selectedSolidityCompiler = new SolcLambdaWithLocalFallback();
 } else {
   logger.info("Using local solidity compiler");
   selectedSolidityCompiler = new SolcLocal();
@@ -344,7 +344,8 @@ export const verifyContractsInSession = async (
   contractWrappers: ContractWrapperMap = {},
   session: Session,
   verificationService: IVerificationService,
-  storageService: StorageService
+  storageService: StorageService,
+  dryRun: boolean = false
 ): Promise<void> => {
   logger.debug("verifyContractsInSession", {
     sessionId: session.id,
@@ -455,6 +456,12 @@ export const verifyContractsInSession = async (
     contractWrapper.status = getMatchStatus(match) || "error";
     contractWrapper.statusMessage = match.message;
     contractWrapper.storageTimestamp = match.storageTimestamp;
+    if (dryRun) {
+      logger.info("dryRun verification", {
+        sessionId: session.id,
+      });
+      return;
+    }
     if (match.runtimeMatch || match.creationMatch) {
       await storageService.storeMatch(checkedContract, match);
     }

@@ -42,6 +42,7 @@ export async function addInputFilesEndpoint(req: Request, res: Response) {
     return { path: pb.path, content: pb.buffer.toString(FILE_ENCODING) };
   });
 
+  const dryRun = Boolean(req.query.dryrun);
   const session = req.session;
   const newFilesCount = saveFilesToSession(pathContents, session);
   if (newFilesCount) {
@@ -50,7 +51,8 @@ export async function addInputFilesEndpoint(req: Request, res: Response) {
       session.contractWrappers,
       session,
       services.verification,
-      services.storage
+      services.storage,
+      dryRun,
     );
   }
   res.send(getSessionJSON(session));
@@ -93,8 +95,8 @@ export async function addInputContractEndpoint(req: Request, res: Response) {
   const retrievedMetadataText = await performFetch(ipfsUrl);
 
   if (!retrievedMetadataText) {
-    logger.error("Could not retrieve metadata", { ipfsUrl });
-    throw new Error(`Could not retrieve metadata`);
+    logger.info("Could not retrieve metadata", { ipfsUrl });
+    throw new Error(`Could not retrieve metadata from ${metadataIpfsCid}`);
   }
   const pathContents: PathContent[] = [];
 

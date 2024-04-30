@@ -2,22 +2,28 @@ process.env.NODE_CONFIG_ENV = "test";
 // process.env.SOURCIFY_POSTGRES_HOST = "";
 process.env.ALLIANCE_POSTGRES_HOST = "";
 
-const chai = require("chai");
-const chaiHttp = require("chai-http");
-const Server = require("../../dist/server/server").Server;
-const fs = require("fs");
-const path = require("path");
-const util = require("util");
-const rimraf = require("rimraf");
-const addContext = require("mochawesome/addContext");
-const { assertVerification } = require("../helpers/assertions");
-const testEtherscanContracts = require("../helpers/etherscanInstanceContracts.json");
+import chai from "chai";
+import chaiHttp from "chai-http";
+import { Server } from "../../src/server/server";
+import fs from "fs";
+import path from "path";
+import util from "util";
+import rimraf from "rimraf";
+import addContext from "mochawesome/addContext";
+import { assertVerification } from "../helpers/assertions";
+import testEtherscanContracts from "../helpers/etherscanInstanceContracts.json";
+import type { SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
 
-const TEST_TIME = process.env.TEST_TIME || 30000; // 30 seconds
+type ChainApiResponse = Pick<
+  SourcifyChain,
+  "name" | "title" | "chainId" | "rpc" | "supported"
+> & { etherscanAPI: string };
+
+const TEST_TIME = process.env.TEST_TIME || "60000"; // 30 seconds
 const CUSTOM_PORT = 5556;
 
 // Extract the chainId from new chain support pull request, if exists
-let newAddedChainIds = [];
+let newAddedChainIds: string[] = [];
 if (process.env.NEW_CHAIN_ID) {
   newAddedChainIds = process.env.NEW_CHAIN_ID.split(",");
 }
@@ -29,15 +35,16 @@ let anyTestsPass = false; // Fail when zero tests passing
 chai.use(chaiHttp);
 
 describe("Test Supported Chains", function () {
-  console.log(`Set up tests timeout with ${Math.floor(TEST_TIME / 1000)} secs`);
+  console.log(
+    `Set up tests timeout with ${Math.floor(parseInt(TEST_TIME) / 1000)} secs`
+  );
   this.timeout(TEST_TIME);
   const server = new Server(CUSTOM_PORT);
-  let currentResponse = null; // to log server response when test fails
 
   const testedChains = new Set(); // Track tested chains and make sure all "supported = true" chains are tested
-  let supportedChains;
+  let supportedChains: ChainApiResponse[];
   before(async function () {
-    const promisified = util.promisify(server.app.listen);
+    const promisified: any = util.promisify(server.app.listen);
     await promisified(server.port);
     console.log(`Injector listening on port ${server.port}!`);
 
@@ -48,7 +55,9 @@ describe("Test Supported Chains", function () {
         if (err !== null) {
           throw new Error("Cannot fetch supportedChains");
         }
-        supportedChains = res.body.filter((chain) => chain.supported);
+        supportedChains = res.body.filter(
+          (chain: ChainApiResponse) => chain.supported
+        );
       });
   });
 
@@ -65,18 +74,6 @@ describe("Test Supported Chains", function () {
           "?"
       );
     }
-  });
-
-  // log server response when test fails
-  afterEach(function () {
-    const errorBody = currentResponse && currentResponse.body;
-    if (this.currentTest.state === "failed" && errorBody) {
-      console.log(
-        "Server response of failed test " + this.currentTest.title + ":"
-      );
-      console.log(errorBody);
-    }
-    currentResponse = null;
   });
 
   // Symplexia Smart Chain
@@ -102,12 +99,12 @@ describe("Test Supported Chains", function () {
   //
   // );
 
-  verifyContract(
-    "0xc24381dB2a5932B5D1c424f567A95F9966834cE0",
-    "5",
-    "Goerli",
-    "shared/"
-  );
+  // verifyContract(
+  //   "0xc24381dB2a5932B5D1c424f567A95F9966834cE0",
+  //   "5",
+  //   "Goerli",
+  //   "shared/"
+  // );
 
   verifyContract(
     "0x7ecedB5ca848e695ee8aB33cce9Ad1E1fe7865F8",
@@ -180,12 +177,12 @@ describe("Test Supported Chains", function () {
     "137/"
   );
 
-  verifyContract(
-    "0x5D40b45C202531d040e0CCD51C48554109197cD3",
-    "80001",
-    "Polygon Mumbai Testnet",
-    "shared/"
-  );
+  // verifyContract(
+  //   "0x5D40b45C202531d040e0CCD51C48554109197cD3",
+  //   "80001",
+  //   "Polygon Mumbai Testnet",
+  //   "shared/"
+  // );
 
   verifyContract(
     "0x03943C3ef00d92e130185CeBC0bcc435Def2cC94",
@@ -383,6 +380,13 @@ describe("Test Supported Chains", function () {
     "0xd46fd24ea21F04459407Fb0B518451e54d0b07a1",
     "1313161555",
     "Aurora Testnet",
+    "shared/"
+  );
+
+  verifyContract(
+    "0xc975C9C57641E6Ac3ca32c1ceaE9A88135Fe9C30",
+    "5845",
+    "Tangle",
     "shared/"
   );
 
@@ -1388,6 +1392,14 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // DEGEN chain
+  verifyContract(
+    "0x61A4Bc8a6F81f3A6B0677dd1e5CB4671d0734Cb3",
+    "666666666",
+    "DEGEN chain",
+    "shared/"
+  );
+
   // Stratis Mainnet
   verifyContract(
     "0x2FaCD0B78210f27B70d75a2F17dcE133C07C0Ab4",
@@ -1405,14 +1417,17 @@ describe("Test Supported Chains", function () {
   );
 
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
-    const missingEtherscanTests = [];
+    const missingEtherscanTests: ChainApiResponse[] = [];
     supportedChains
       .filter((chain) => testedChains.has(`${chain.chainId}`))
       .forEach((chain) => {
         if (chain.chainId == 1337 || chain.chainId == 31337) return; // Skip LOCAL_CHAINS: Ganache and Hardhat
         if (
           chain.etherscanAPI &&
-          testEtherscanContracts[chain.chainId] === undefined
+          !Object.prototype.hasOwnProperty.call(
+            testEtherscanContracts,
+            chain.chainId.toString()
+          )
         ) {
           missingEtherscanTests.push(chain);
         }
@@ -1435,7 +1450,7 @@ describe("Test Supported Chains", function () {
       return this.skip();
     }
 
-    const untestedChains = [];
+    const untestedChains: ChainApiResponse[] = [];
     supportedChains.forEach((chain) => {
       if (chain.chainId == 1337 || chain.chainId == 31337) return; // Skip LOCAL_CHAINS: Ganache and Hardhat
       if (!testedChains.has(chain.chainId.toString())) {
@@ -1457,10 +1472,10 @@ describe("Test Supported Chains", function () {
   //////////////////////
 
   function verifyContract(
-    address,
-    chainId,
-    chainName,
-    sourceAndMetadataDir, // folder
+    address: string,
+    chainId: string,
+    chainName: string,
+    sourceAndMetadataDir: string, // folder
     expectedStatus = "perfect"
   ) {
     // If it is a pull request for adding new chain support, only test the new chain
@@ -1489,7 +1504,7 @@ describe("Test Supported Chains", function () {
         })
         .end(async (err, res) => {
           await assertVerification(
-            false,
+            null,
             err,
             res,
             done,
@@ -1504,7 +1519,10 @@ describe("Test Supported Chains", function () {
   }
 });
 
-function readFilesRecursively(directoryPath, files) {
+function readFilesRecursively(
+  directoryPath: string,
+  files: Record<string, string>
+) {
   const filesInDirectory = fs.readdirSync(directoryPath);
 
   filesInDirectory.forEach((file) => {

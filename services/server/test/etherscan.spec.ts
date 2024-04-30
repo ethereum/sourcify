@@ -1,28 +1,29 @@
 process.env.NODE_CONFIG_ENV = "test";
 process.env.ALLIANCE_POSTGRES_HOST = "";
 
-const Server = require("../dist/server/server").Server;
-const chai = require("chai");
-const chaiHttp = require("chai-http");
-const { StatusCodes } = require("http-status-codes");
-const rimraf = require("rimraf");
-const util = require("util");
-const {
+import { Server } from "../src/server/server";
+import chai from "chai";
+import chaiHttp from "chai-http";
+import { StatusCodes } from "http-status-codes";
+import rimraf from "rimraf";
+import util from "util";
+import {
   assertVerification,
   assertValidationError,
   assertVerificationSession,
-} = require("./helpers/assertions");
-const { sourcifyChainsMap } = require("../dist/sourcify-chains");
-const testContracts = require("./helpers/etherscanInstanceContracts.json");
-const {
+} from "./helpers/assertions";
+import { sourcifyChainsMap } from "../src/sourcify-chains";
+import testContracts from "./helpers/etherscanInstanceContracts.json";
+import {
   waitSecs,
   unusedAddress,
   invalidAddress,
   unsupportedChain,
   verifyAndAssertEtherscanSession,
   verifyAndAssertEtherscan,
-} = require("./helpers/helpers");
-const { default: fetch } = require("node-fetch");
+} from "./helpers/helpers";
+import { default as fetch } from "node-fetch";
+import type { Response } from "superagent";
 
 chai.use(chaiHttp);
 
@@ -42,7 +43,7 @@ describe("Import From Etherscan and Verify", function () {
   const server = new Server(CUSTOM_PORT);
 
   before(async () => {
-    const promisified = util.promisify(server.app.listen);
+    const promisified: any = util.promisify(server.app.listen);
     await promisified(server.port);
     console.log(`Server listening on port ${server.port}!`);
   });
@@ -55,7 +56,12 @@ describe("Import From Etherscan and Verify", function () {
     rimraf.sync(server.repository);
   });
 
-  const assertEtherscanError = (err, res, errorMessage, status) => {
+  const assertEtherscanError = (
+    err: Error | null,
+    res: Response,
+    errorMessage: string,
+    status?: number
+  ) => {
     try {
       chai.expect(res.status).to.equal(status || StatusCodes.NOT_FOUND);
       chai.expect(res.body?.error).to.equal(errorMessage);
@@ -171,9 +177,8 @@ describe("Import From Etherscan and Verify", function () {
           .field("address", contract.address)
           .field("chainId", tempChainId)
           .end(async (err, res) => {
-            // currentResponse = res;
             await assertVerification(
-              false,
+              null,
               err,
               res,
               done,
@@ -193,7 +198,6 @@ describe("Import From Etherscan and Verify", function () {
           .field("chainId", tempChainId)
           .field("apiKey", "TEST")
           .end((err, res) => {
-            // currentResponse = res;
             chai
               .expect(res.body.error)
               .to.equal(
@@ -215,11 +219,15 @@ describe("Import From Etherscan and Verify", function () {
 
         // Await until we start getting rate limit errors
         // Interval keeps running after await until cleared
-        await new Promise((resolve) => {
+        await new Promise<void>((resolve) => {
           interval = setInterval(() => {
             req++;
             fetch(
-              `${sourcifyChain.etherscanApi.apiURL}/api?module=contract&action=getsourcecode&address=${address}&apikey=${sourcifyChain.etherscanApi.apiKey}`
+              `${
+                sourcifyChain.etherscanApi?.apiURL
+              }/api?module=contract&action=getsourcecode&address=${address}&apikey=${
+                process.env[sourcifyChain.etherscanApi?.apiKeyEnvName || ""]
+              }`
             )
               .then((res) => res.json())
               .then((json) => {
@@ -342,7 +350,6 @@ describe("Import From Etherscan and Verify", function () {
         .field("chainId", "1")
         .field("apiKey", "TEST")
         .end((err, res) => {
-          // currentResponse = res;
           chai
             .expect(res.body.error)
             .to.equal(
@@ -374,9 +381,8 @@ describe("Import From Etherscan and Verify", function () {
           .field("address", contract.address)
           .field("chain", tempChainId)
           .end(async (err, res) => {
-            // currentResponse = res;
             await assertVerificationSession(
-              false,
+              null,
               err,
               res,
               done,
@@ -398,11 +404,15 @@ describe("Import From Etherscan and Verify", function () {
 
         // Await until we start getting rate limit errors
         // Interval keeps running after await until cleared
-        await new Promise((resolve) => {
+        await new Promise<void>((resolve) => {
           interval = setInterval(() => {
             req++;
             fetch(
-              `${sourcifyChain.etherscanApi.apiURL}/api?module=contract&action=getsourcecode&address=${address}&apikey=${sourcifyChain.etherscanApi.apiKey}`
+              `${
+                sourcifyChain.etherscanApi?.apiURL
+              }/api?module=contract&action=getsourcecode&address=${address}&apikey=${
+                process.env[sourcifyChain.etherscanApi?.apiKeyEnvName || ""]
+              }`
             )
               .then((res) => res.json())
               .then((json) => {

@@ -7,8 +7,6 @@ process.env["NODE_CONFIG_DIR"] = path.resolve(__dirname, "..", "config");
 import config from "config";
 import express, { Request } from "express";
 import cors from "cors";
-import session from "express-session";
-import createMemoryStore from "memorystore";
 import util from "util";
 import * as OpenApiValidator from "express-openapi-validator";
 import swaggerUi from "swagger-ui-express";
@@ -41,20 +39,7 @@ import {
   validateSourcifyChainIds,
 } from "./common";
 import { initDeprecatedRoutes } from "./deprecated.routes";
-// import genFunc from "connect-pg-simple";
-
-const MemoryStore = createMemoryStore(session);
-
-// const host = process.env.SOURCIFY_POSTGRES_HOST;
-// const database = process.env.SOURCIFY_POSTGRES_DB;
-// const user = process.env.SOURCIFY_POSTGRES_USER;
-// const password = process.env.SOURCIFY_POSTGRES_PASSWORD;
-// const port = process.env.SOURCIFY_POSTGRES_PORT;
-// const conString = `postgresql://${user}:${password}@${host}:${port}/${database}`;
-// const PostgresqlStore = genFunc(session);
-// const sessionStore = new PostgresqlStore({
-//   conString,
-// });
+import getSessionMiddleware from "./session";
 
 export class Server {
   app: express.Application;
@@ -279,7 +264,7 @@ export class Server {
     // for the case "X-Forwarded-For: 2.2.2.2, 192.168.1.5", we want 2.2.2.2 to be used
     this.app.set("trust proxy", true);
     // Enable session only for session endpoints
-    this.app.use("/*session*", session(getSessionOptions()));
+    this.app.use("/*session*", getSessionMiddleware());
 
     this.app.use(
       "/repository",
@@ -318,31 +303,6 @@ export class Server {
       }
     );
   }
-}
-
-function getSessionOptions(): session.SessionOptions {
-  if (config.get("session.secret") === "CHANGE_ME") {
-    const msg =
-      "The session secret is not set, please set it in the config file";
-    process.env.NODE_ENV === "production"
-      ? logger.error(msg)
-      : logger.warn(msg);
-  }
-  return {
-    secret: config.get("session.secret"),
-    name: "sourcify_vid",
-    rolling: true,
-    resave: false,
-    saveUninitialized: true,
-    cookie: {
-      maxAge: config.get("session.maxAge"),
-      secure: config.get("session.secure"),
-      sameSite: "lax",
-    },
-    store: new MemoryStore({
-      checkPeriod: config.get("session.maxAge"),
-    }), // sessionStore,
-  };
 }
 
 if (require.main === module) {

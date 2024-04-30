@@ -6,6 +6,7 @@ import {
   CompilerOutput,
   InvalidSources,
   JsonInput,
+  Libraries,
   Metadata,
   MetadataSourceMap,
   MissingSources,
@@ -714,7 +715,31 @@ function createJsonInputFromMetadata(
     'metadata',
   ];
 
-  solcJsonInput.settings.libraries = { '': metadata.settings.libraries || {} };
+  // Convert the libraries from the metadata format to the compiler_settings format
+  // metadata format: "contracts/1_Storage.sol:Journal": "0x7d53f102f4d4aa014db4e10d6deec2009b3cda6b"
+  // settings format: "contracts/1_Storage.sol": { Journal: "0x7d53f102f4d4aa014db4e10d6deec2009b3cda6b" }
+  const metadataLibraries = metadata.settings?.libraries || {};
+  solcJsonInput.settings.libraries = Object.keys(
+    metadataLibraries || {}
+  ).reduce((libraries, libraryKey) => {
+    // Before Solidity v0.7.5: { "ERC20": "0x..."}
+    if (!libraryKey.includes(':')) {
+      if (!libraries['']) {
+        libraries[''] = {};
+      }
+      // try using the global method, available for pre 0.7.5 versions
+      libraries[''][libraryKey] = metadataLibraries[libraryKey];
+      return libraries;
+    }
+
+    // After Solidity v0.7.5: { "ERC20.sol:ERC20": "0x..."}
+    const [contractPath, contractName] = libraryKey.split(':');
+    if (!libraries[contractPath]) {
+      libraries[contractPath] = {};
+    }
+    libraries[contractPath][contractName] = metadataLibraries[libraryKey];
+    return libraries;
+  }, {} as Libraries);
 
   return {
     solcJsonInput: solcJsonInput as JsonInput,
@@ -846,7 +871,11 @@ function bytecodeIncludesAuxdataDiffAt(
   position: number
 ): boolean {
   const { real, diffStart } = auxdataDiff;
-  const extracted = bytecode.slice(position - diffStart, real.length);
+  // the difference (i.e metadata hash) starts from "position". To get the whole auxdata instead of metadata go back "diffStart" and until + "real.length" of the auxdata.
+  const extracted = bytecode.slice(
+    position - diffStart,
+    position - diffStart + real.length
+  );
   return extracted === real;
 }
 
@@ -898,17 +927,22 @@ function findAuxdataPositions(
     }
     // New diff position
     for (const auxdataDiffIndex in auxdataDiffObjects) {
+      const auxdataPositionsIndex = parseInt(auxdataDiffIndex) + 1;
       if (
-        auxdataPositions[auxdataDiffIndex] === undefined &&
+        auxdataPositions[auxdataPositionsIndex] === undefined &&
         bytecodeIncludesAuxdataDiffAt(
           originalBytecode,
           auxdataDiffObjects[auxdataDiffIndex],
           diffPosition
         )
       ) {
-        auxdataPositions[auxdataDiffIndex] = {
-          offset: diffPosition - auxdataDiffObjects[auxdataDiffIndex].diffStart,
-          value: auxdataDiffObjects[auxdataDiffIndex].real,
+        auxdataPositions[auxdataPositionsIndex] = {
+          offset:
+            (diffPosition -
+              auxdataDiffObjects[auxdataDiffIndex].diffStart -
+              2) /
+            2,
+          value: `0x${auxdataDiffObjects[auxdataDiffIndex].real}`,
         };
       }
     }

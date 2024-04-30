@@ -96,13 +96,14 @@
       "request": "launch",
       "name": "Mocha - Server",
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
+      "cwd": "${workspaceFolder}/services/server",
       "env": {
         // "DEBUG": "express:*", // Debug all express modules *
       },
       "preLaunchTask": "database-test:up",
       "postDebugTask": "database-test:down",
       "args": [
-        "${workspaceFolder}/services/server/test/server.js",
+        "${workspaceFolder}/services/server/test/server.spec.ts",
         "--no-timeout",
         // Run a single test when debugging
         // "--grep=v0.6.12",
@@ -121,11 +122,12 @@
       "request": "launch",
       "name": "Mocha - Etherscan",
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
+      "cwd": "${workspaceFolder}/services/server",
       "env": {
         // "DEBUG": "express:*", // Debug all express modules *
       },
       "args": [
-        "${workspaceFolder}/services/server/test/etherscan.js",
+        "${workspaceFolder}/services/server/test/etherscan.spec.ts",
         "--no-timeout",
         // Run a single test when debugging
         // "--grep=v0.6.12",
@@ -144,11 +146,12 @@
       "request": "launch",
       "name": "Mocha - Etherscan Instances",
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
+      "cwd": "${workspaceFolder}/services/server",
       "env": {
         "TEST_CHAIN": "100"
       },
       "args": [
-        "${workspaceFolder}/services/server/test/etherscan/etherscanInstances.js",
+        "${workspaceFolder}/services/server/test/etherscan/etherscanInstances.spec.ts",
         "--no-timeout",
         // Run a single test when debugging
         // "--grep=v0.6.12",
@@ -225,7 +228,7 @@
         // "NEW_CHAIN_ID": "333000333"
       },
       "args": [
-        "${workspaceFolder}/services/server/test/chains/chain-tests.js",
+        "${workspaceFolder}/services/server/test/chains/chain-tests.spec.ts",
         "--no-timeout",
         // Run a single test when debugging
         // "--grep=Optimism",

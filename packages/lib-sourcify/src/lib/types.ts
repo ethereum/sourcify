@@ -402,7 +402,7 @@ interface MapContractAddress {
   [key: string]: string;
 }
 
-interface Libraries {
+export interface Libraries {
   [key: string]: MapContractAddress;
 }
 

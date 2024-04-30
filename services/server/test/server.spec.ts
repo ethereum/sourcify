@@ -1,56 +1,71 @@
 process.env.NODE_CONFIG_ENV = "test";
 process.env.IPFS_GATEWAY = "http://ipfs-mock/ipfs/";
-process.env.FETCH_TIMEOUT = 8000; // instantiated http-gateway takes a little longer
+process.env.FETCH_TIMEOUT = "8000"; // instantiated http-gateway takes a little longer
 
 process.env.SOURCIFY_POSTGRES_HOST = "localhost";
 process.env.SOURCIFY_POSTGRES_DB = "sourcify";
 process.env.SOURCIFY_POSTGRES_USER = "sourcify";
 process.env.SOURCIFY_POSTGRES_PASSWORD = "sourcify";
 process.env.SOURCIFY_POSTGRES_PORT =
-  process.env.DOCKER_HOST_POSTGRES_TEST_PORT || 5431;
+  process.env.DOCKER_HOST_POSTGRES_TEST_PORT || "5431";
 process.env.ALLIANCE_POSTGRES_HOST = "";
 
-const Server = require("../dist/server/server").Server;
-const {
+import { Server } from "../src/server/server";
+import {
   assertValidationError,
   assertVerification,
   assertVerificationSession,
   assertLookup,
-  invalidAddress,
   assertLookupAll,
-} = require("./helpers/assertions");
-const ganache = require("ganache");
-const chai = require("chai");
-const chaiHttp = require("chai-http");
-const util = require("util");
-const fs = require("fs");
-const rimraf = require("rimraf");
-const path = require("path");
-const config = require("config");
-const { StorageService } = require("../dist/server/services/StorageService");
-const {
-  createCheckedContract,
-} = require("../dist/server/controllers/verification/verification.common");
-const _checkedContract = require("./testcontracts/Database/CheckedContract.json");
-const match = require("./testcontracts/Database/Match.json");
+} from "./helpers/assertions";
+import ganache from "ganache";
+import chai from "chai";
+import chaiHttp from "chai-http";
+import util from "util";
+import fs from "fs";
+import rimraf from "rimraf";
+import path from "path";
+import config from "config";
+import { StorageService } from "../src/server/services/StorageService";
+import { createCheckedContract } from "../src/server/controllers/verification/verification.common";
+import _checkedContract from "./testcontracts/Database/CheckedContract.json";
+import match from "./testcontracts/Database/Match.json";
+import { getCreatorTx } from "../src/server/services/utils/contract-creation-util";
 
-const MAX_FILE_SIZE = config.get("server.maxFileSize");
-const MAX_SESSION_SIZE =
-  require("../dist/server/controllers/verification/verification.common").MAX_SESSION_SIZE;
+const MAX_FILE_SIZE = config.get<number>("server.maxFileSize");
+import { MAX_SESSION_SIZE } from "../src/server/controllers/verification/verification.common";
 const GANACHE_PORT = 8545;
-const StatusCodes = require("http-status-codes").StatusCodes;
-const {
+import { StatusCodes } from "http-status-codes";
+import {
   waitSecs,
   callContractMethodWithTx,
   deployFromAbiAndBytecodeForCreatorTxHash,
   readFilesFromDirectory,
   resetDatabase,
-} = require("./helpers/helpers");
-const { deployFromAbiAndBytecode } = require("./helpers/helpers");
-const { verifierAllianceTest } = require("./helpers/verifierAlliance");
-const { JsonRpcProvider, Network, id: keccak256str } = require("ethers");
-const { LOCAL_CHAINS } = require("../dist/sourcify-chains");
-const nock = require("nock");
+  invalidAddress,
+} from "./helpers/helpers";
+import { deployFromAbiAndBytecode } from "./helpers/helpers";
+import { verifierAllianceTest } from "./helpers/verifierAlliance";
+import {
+  JsonRpcProvider,
+  JsonRpcSigner,
+  Network,
+  id as keccak256str,
+} from "ethers";
+import { LOCAL_CHAINS, sourcifyChainsArray } from "../src/sourcify-chains";
+import nock from "nock";
+import type { Done } from "mocha";
+import type { Response } from "superagent";
+import { MissingSources } from "@ethereum-sourcify/lib-sourcify";
+
+import verifierAllianceTestLibrariesManuallyLinked from "./verifier-alliance/libraries_manually_linked.json";
+import verifierAllianceTestFullMatch from "./verifier-alliance/full_match.json";
+import verifierAllianceTestImmutables from "./verifier-alliance/immutables.json";
+import verifierAllianceTestLibrariesLinkedByCompiler from "./verifier-alliance/libraries_linked_by_compiler.json";
+import verifierAllianceTestMetadataHashAbsent from "./verifier-alliance/metadata_hash_absent.json";
+import verifierAllianceTestPartialMatch from "./verifier-alliance/partial_match.json";
+import verifierAllianceTestConstructorArguments from "./verifier-alliance/constructor_arguments.json";
+import verifierAllianceTestDoubleAuxdata from "./verifier-alliance/partial_match_double_auxdata.json";
 
 chai.use(chaiHttp);
 
@@ -61,9 +76,12 @@ const defaultContractChain = "1337"; // default 1337
 
 const storageService = new StorageService({
   repositoryV1ServiceOptions: {
-    ipfsApi: process.env.IPFS_API,
-    repositoryPath: "./dist/data/mock-repositoryV1",
+    ipfsApi: process.env.IPFS_API || "",
+    repositoryPath: config.get("repositoryV1.path"),
     repositoryServerUrl: config.get("repositoryV1.serverUrl"),
+  },
+  repositoryV2ServiceOptions: {
+    ipfsApi: process.env.IPFS_API || "",
   },
   sourcifyDatabaseServiceOptions: {
     postgres: {
@@ -71,12 +89,12 @@ const storageService = new StorageService({
       database: process.env.SOURCIFY_POSTGRES_DB,
       user: process.env.SOURCIFY_POSTGRES_USER,
       password: process.env.SOURCIFY_POSTGRES_PASSWORD,
-      port: process.env.SOURCIFY_POSTGRES_PORT,
+      port: parseInt(process.env.SOURCIFY_POSTGRES_PORT),
     },
   },
 });
 
-describe("Server", function () {
+describe("Server", async function () {
   const server = new Server();
   const ganacheServer = ganache.server({
     wallet: { totalAccounts: 1 },
@@ -85,9 +103,8 @@ describe("Server", function () {
       networkId: parseInt(defaultContractChain),
     },
   });
-  let localSigner;
-  let defaultContractAddress;
-  let currentResponse = null; // to log server response when test fails
+  let localSigner: JsonRpcSigner;
+  let defaultContractAddress: string;
 
   const sourcePath = path.join(
     __dirname,
@@ -97,18 +114,12 @@ describe("Server", function () {
   );
   const sourceBuffer = fs.readFileSync(sourcePath);
 
-  const artifact = require(path.join(
-    __dirname,
-    "testcontracts",
-    "Storage",
-    "Storage.json"
-  ));
-  const metadata = require(path.join(
-    __dirname,
-    "testcontracts",
-    "Storage",
-    "metadata.json"
-  ));
+  const artifact = await import(
+    path.join(__dirname, "testcontracts", "Storage", "Storage.json")
+  );
+  const metadata = await import(
+    path.join(__dirname, "testcontracts", "Storage", "metadata.json")
+  );
   const metadataBuffer = Buffer.from(JSON.stringify(metadata));
 
   this.timeout(EXTENDED_TIME);
@@ -119,8 +130,8 @@ describe("Server", function () {
     const mockContent = await readFilesFromDirectory(
       path.join(__dirname, "mocks", "ipfs")
     );
-    for (let ipfsKey of Object.keys(mockContent)) {
-      nock(process.env.IPFS_GATEWAY)
+    for (const ipfsKey of Object.keys(mockContent)) {
+      nock(process.env.IPFS_GATEWAY || "")
         .persist()
         .get("/" + ipfsKey)
         .reply(function (uri, requestBody) {
@@ -131,7 +142,7 @@ describe("Server", function () {
     const sourcifyChainGanache = LOCAL_CHAINS[0];
     console.log("Started ganache local server on port " + GANACHE_PORT);
     const ethersNetwork = new Network(
-      sourcifyChainGanache.rpc[0],
+      sourcifyChainGanache.rpc[0] as string,
       sourcifyChainGanache.chainId
     );
     localSigner = await new JsonRpcProvider(
@@ -148,7 +159,7 @@ describe("Server", function () {
       artifact.bytecode
     );
 
-    const promisified = util.promisify(server.app.listen);
+    const promisified: any = util.promisify(server.app.listen);
     await promisified(server.port);
     console.log(`Server listening on port ${server.port}!`);
   });
@@ -163,18 +174,6 @@ describe("Server", function () {
     await ganacheServer.close();
   });
 
-  // log server response when test fails
-  afterEach(function () {
-    const errorBody = currentResponse && currentResponse.body;
-    if (this.currentTest.state === "failed" && errorBody) {
-      console.log(
-        "Server response of failed test " + this.currentTest.title + ":"
-      );
-      console.log(errorBody);
-    }
-    currentResponse = null;
-  });
-
   const ipfsAddress =
     metadata.sources["project:/contracts/Storage.sol"].urls[1];
 
@@ -187,22 +186,6 @@ describe("Server", function () {
   modifiedIpfsMetadata.sources["project:/contracts/Storage.sol"].urls[1] =
     modifiedIpfsAddress;
   const modifiedIpfsMetadataBuffer = Buffer.from(JSON.stringify(metadata));
-
-  const assertBytecodesDontMatch = (err, res, done) => {
-    chai.expect(err).to.be.null;
-    chai.expect(res.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
-    chai.expect(res.body).to.haveOwnProperty("error");
-    chai
-      .expect(res.body.error)
-      .to.include("The deployed and recompiled bytecode don't match.");
-    if (done) done();
-  };
-
-  function assertEqualityFromPath(obj1, obj2path, options) {
-    const obj2raw = fs.readFileSync(obj2path).toString();
-    const obj2 = options?.isJson ? JSON.parse(obj2raw) : obj2raw;
-    chai.expect(obj1, `assertFromPath: ${obj2path}`).to.deep.equal(obj2);
-  }
 
   describe("/check-by-addresses", function () {
     this.timeout(EXTENDED_TIME);
@@ -419,7 +402,7 @@ describe("Server", function () {
     });
   });
 
-  const checkNonVerified = (path, done) => {
+  const checkNonVerified = (path: string, done: Done) => {
     chai
       .request(server.app)
       .post(path)
@@ -518,7 +501,7 @@ describe("Server", function () {
         );
     });
 
-    const assertMissingFile = (err, res) => {
+    const assertMissingFile = (err: Error, res: Response) => {
       chai.expect(err).to.be.null;
       chai.expect(res.body).to.haveOwnProperty("error");
       const errorMessage = res.body.error.toLowerCase();
@@ -562,10 +545,9 @@ describe("Server", function () {
     });
 
     it("should return 'partial', then delete partial when 'full' match", async () => {
-      const partialMetadata = require(path.join(
-        __dirname,
-        "./testcontracts/Storage/metadataModified.json"
-      ));
+      const partialMetadata = await import(
+        path.join(__dirname, "./testcontracts/Storage/metadataModified.json")
+      );
       const partialMetadataBuffer = Buffer.from(
         JSON.stringify(partialMetadata)
       );
@@ -622,6 +604,60 @@ describe("Server", function () {
       chai.expect(res.status).to.equal(StatusCodes.NOT_FOUND);
     });
 
+    it("should return 'partial', then throw when another 'partial' match is received", async () => {
+      const partialMetadata = await import(
+        path.join(__dirname, "./testcontracts/Storage/metadataModified.json")
+      );
+      const partialMetadataBuffer = Buffer.from(
+        JSON.stringify(partialMetadata)
+      );
+
+      const partialSourcePath = path.join(
+        __dirname,
+        "testcontracts",
+        "Storage",
+        "StorageModified.sol"
+      );
+      const partialSourceBuffer = fs.readFileSync(partialSourcePath);
+
+      const partialMetadataURL = `/repository/contracts/partial_match/${defaultContractChain}/${defaultContractAddress}/metadata.json`;
+
+      let res = await chai
+        .request(server.app)
+        .post("/")
+        .field("address", defaultContractAddress)
+        .field("chain", defaultContractChain)
+        .attach("files", partialMetadataBuffer, "metadata.json")
+        .attach("files", partialSourceBuffer);
+      await assertVerification(
+        storageService,
+        null,
+        res,
+        null,
+        defaultContractAddress,
+        defaultContractChain,
+        "partial"
+      );
+
+      res = await chai.request(server.app).get(partialMetadataURL);
+      chai.expect(res.body).to.deep.equal(partialMetadata);
+
+      res = await chai
+        .request(server.app)
+        .post("/")
+        .field("address", defaultContractAddress)
+        .field("chain", defaultContractChain)
+        .attach("files", partialMetadataBuffer, "metadata.json")
+        .attach("files", partialSourceBuffer);
+
+      chai.expect(res.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+      chai
+        .expect(res.body.error)
+        .to.equal(
+          `The contract ${defaultContractAddress} on chainId ${defaultContractChain} is already partially verified. The provided new source code also yielded a partial match and will not be stored unless it's a full match`
+        );
+    });
+
     it("should mark contracts without an embedded metadata hash as a 'partial' match", async () => {
       // Simple contract without bytecode at https://goerli.etherscan.io/address/0x093203902B71Cdb1dAA83153b3Df284CD1a2f88d
       const bytecode =
@@ -659,10 +695,9 @@ describe("Server", function () {
     });
 
     it("should verify a contract with immutables and save immutable-references.json", async () => {
-      const artifact = require(path.join(
-        __dirname,
-        "./testcontracts/WithImmutables/artifact.json"
-      ));
+      const artifact = await import(
+        path.join(__dirname, "./testcontracts/WithImmutables/artifact.json")
+      );
       const { contractAddress } =
         await deployFromAbiAndBytecodeForCreatorTxHash(
           localSigner,
@@ -671,10 +706,9 @@ describe("Server", function () {
           [999]
         );
 
-      const metadata = require(path.join(
-        __dirname,
-        "./testcontracts/WithImmutables/metadata.json"
-      ));
+      const metadata = await import(
+        path.join(__dirname, "./testcontracts/WithImmutables/metadata.json")
+      );
       const sourcePath = path.join(
         __dirname,
         "testcontracts",
@@ -799,14 +833,13 @@ describe("Server", function () {
         defaultContractChain
       );
     });
-    describe("hardhat build-info file support", function () {
+    describe("hardhat build-info file support", async function () {
       this.timeout(EXTENDED_TIME);
-      let address;
+      let address: string;
       const mainContractIndex = 5;
-      const hardhatOutputJSON = require(path.join(
-        __dirname,
-        "./sources/hardhat-output/output.json"
-      ));
+      const hardhatOutputJSON = await import(
+        path.join(__dirname, "./sources/hardhat-output/output.json")
+      );
       const MyToken =
         hardhatOutputJSON.output.contracts["contracts/MyToken.sol"].MyToken;
       const hardhatOutputBuffer = Buffer.from(
@@ -836,7 +869,7 @@ describe("Server", function () {
             chai
               .expect(res.body.error)
               .to.be.a("string")
-              .and.satisfy((msg) => msg.startsWith("Detected "));
+              .and.satisfy((msg: string) => msg.startsWith("Detected "));
             done();
           });
       });
@@ -863,10 +896,9 @@ describe("Server", function () {
       });
 
       it("should store a contract in /contracts/full_match|partial_match/0xADDRESS despite the files paths in the metadata", async () => {
-        const artifact = require(path.join(
-          __dirname,
-          "./testcontracts/Storage/Storage.json"
-        ));
+        const artifact = await import(
+          path.join(__dirname, "./testcontracts/Storage/Storage.json")
+        );
         const { contractAddress } =
           await deployFromAbiAndBytecodeForCreatorTxHash(
             localSigner,
@@ -875,10 +907,12 @@ describe("Server", function () {
             []
           );
 
-        const metadata = require(path.join(
-          __dirname,
-          "./testcontracts/Storage/metadata.upMultipleDirs.json"
-        ));
+        const metadata = await import(
+          path.join(
+            __dirname,
+            "./testcontracts/Storage/metadata.upMultipleDirs.json"
+          )
+        );
         const sourcePath = path.join(
           __dirname,
           "testcontracts",
@@ -923,14 +957,16 @@ describe("Server", function () {
       });
     });
 
-    describe("solc v0.6.12 and v0.7.0 extra files in compilation causing metadata match but bytecode mismatch", function () {
+    describe("solc v0.6.12 and v0.7.0 extra files in compilation causing metadata match but bytecode mismatch", async function () {
       // Deploy the test contract locally
       // Contract from https://explorer.celo.org/address/0x923182024d0Fa5dEe59E3c3db5e2eeD23728D3C3/contracts
-      let contractAddress;
-      const bytecodeMismatchArtifact = require(path.join(
-        __dirname,
-        "./sources/artifacts/extraFilesBytecodeMismatch.json"
-      ));
+      let contractAddress: string;
+      const bytecodeMismatchArtifact = await import(
+        path.join(
+          __dirname,
+          "./sources/artifacts/extraFilesBytecodeMismatch.json"
+        )
+      );
 
       before(async () => {
         contractAddress = await deployFromAbiAndBytecode(
@@ -941,56 +977,129 @@ describe("Server", function () {
       });
 
       it("should warn the user about the issue when metadata match but not bytecodes", (done) => {
-        const hardhatOutput = require(path.join(
-          __dirname,
-          "./sources/hardhat-output/extraFilesBytecodeMismatch-onlyMetadata.json"
-        ));
-        const hardhatOutputBuffer = Buffer.from(JSON.stringify(hardhatOutput));
-        chai
-          .request(server.app)
-          .post("/")
-          .field("chain", defaultContractChain)
-          .field("address", contractAddress)
-          .attach("files", hardhatOutputBuffer)
-          .end((err, res) => {
-            chai.expect(res.status).to.equal(500);
-            chai.expect(res.body).to.deep.equal({
-              error:
-                "It seems your contract's metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618",
+        import(
+          path.join(
+            __dirname,
+            "./sources/hardhat-output/extraFilesBytecodeMismatch-onlyMetadata.json"
+          )
+        ).then((hardhatOutput) => {
+          const hardhatOutputBuffer = Buffer.from(
+            JSON.stringify(hardhatOutput)
+          );
+          chai
+            .request(server.app)
+            .post("/")
+            .field("chain", defaultContractChain)
+            .field("address", contractAddress)
+            .attach("files", hardhatOutputBuffer)
+            .end((err, res) => {
+              chai.expect(res.status).to.equal(500);
+              chai.expect(res.body).to.deep.equal({
+                error:
+                  "It seems your contract's metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618",
+              });
+              done();
             });
-            done();
-          });
+        });
       });
 
       it("should verify with all input files and not only those in metadata", (done) => {
-        const hardhatOutput = require(path.join(
-          __dirname,
-          "./sources/hardhat-output/extraFilesBytecodeMismatch.json"
-        ));
-        const hardhatOutputBuffer = Buffer.from(JSON.stringify(hardhatOutput));
-        chai
-          .request(server.app)
-          .post("/")
-          .field("chain", defaultContractChain)
-          .field("address", contractAddress)
-          .attach("files", hardhatOutputBuffer)
-          .end(async (err, res) => {
-            await assertVerification(
-              storageService,
-              err,
-              res,
-              done,
-              contractAddress,
-              defaultContractChain,
-              "perfect"
-            );
-          });
+        import(
+          path.join(
+            __dirname,
+            "./sources/hardhat-output/extraFilesBytecodeMismatch.json"
+          )
+        ).then((hardhatOutput) => {
+          const hardhatOutputBuffer = Buffer.from(
+            JSON.stringify(hardhatOutput)
+          );
+          chai
+            .request(server.app)
+            .post("/")
+            .field("chain", defaultContractChain)
+            .field("address", contractAddress)
+            .attach("files", hardhatOutputBuffer)
+            .end(async (err, res) => {
+              await assertVerification(
+                storageService,
+                err,
+                res,
+                done,
+                contractAddress,
+                defaultContractChain,
+                "perfect"
+              );
+            });
+        });
       });
+    });
+
+    it("should verify a contract compiled with Solidity < 0.7.5 and libraries have been linked using compiler settings", async () => {
+      const artifact = await import(
+        path.join(
+          __dirname,
+          "testcontracts",
+          "LibrariesSolidity075",
+          "LibrariesSolidity075.json"
+        )
+      );
+      const address = await deployFromAbiAndBytecode(
+        localSigner,
+        artifact.abi,
+        artifact.bytecode
+      );
+
+      const metadata = await import(
+        path.join(
+          __dirname,
+          "testcontracts",
+          "LibrariesSolidity075",
+          "metadata.json"
+        )
+      );
+
+      const file = fs.readFileSync(
+        path.join(
+          __dirname,
+          "testcontracts",
+          "LibrariesSolidity075",
+          "Example.sol"
+        )
+      );
+
+      const res = await chai
+        .request(server.app)
+        .post("/")
+        .field("address", address)
+        .field("chain", defaultContractChain)
+        .attach("files", Buffer.from(JSON.stringify(metadata)), "metadata.json")
+        .attach("files", file, "Example.sol");
+
+      await assertVerification(
+        storageService,
+        null,
+        res,
+        null,
+        address,
+        defaultContractChain,
+        "perfect"
+      );
     });
   });
 
   describe("session api verification", function () {
     this.timeout(EXTENDED_TIME_60);
+
+    it("should store session in database", async () => {
+      await storageService.sourcifyDatabase?.databasePool.query(
+        "TRUNCATE TABLE session;"
+      );
+      await chai.request(server.app).post("/session/data").send({});
+      const res = await storageService.sourcifyDatabase?.databasePool.query(
+        "SELECT * FROM session;"
+      );
+      chai.expect(res?.rowCount).to.equal(1);
+    });
 
     it("should inform when no pending contracts", (done) => {
       chai
@@ -1009,9 +1118,9 @@ describe("Server", function () {
     });
 
     const assertAddressAndChainMissing = (
-      res,
-      expectedFound,
-      expectedMissing
+      res: Response,
+      expectedFound: string[],
+      expectedMissing: MissingSources
     ) => {
       chai.expect(res.status).to.equal(StatusCodes.OK);
       const contracts = res.body.contracts;
@@ -1078,7 +1187,7 @@ describe("Server", function () {
         });
     });
 
-    const assertAfterMetadataUpload = (err, res) => {
+    const assertAfterMetadataUpload = (err: Error | null, res: Response) => {
       chai.expect(err).to.be.null;
       chai.expect(res.status).to.equal(StatusCodes.OK);
       chai.expect(res.body.unused).to.be.empty;
@@ -1198,9 +1307,9 @@ describe("Server", function () {
     });
 
     const assertSingleContractStatus = (
-      res,
-      expectedStatus,
-      shouldHaveTimestamp
+      res: Response,
+      expectedStatus: string,
+      shouldHaveTimestamp?: boolean
     ) => {
       chai.expect(res.status).to.equal(StatusCodes.OK);
       chai.expect(res.body).to.haveOwnProperty("contracts");
@@ -1282,6 +1391,55 @@ describe("Server", function () {
             done();
           });
       });
+    });
+
+    it("should run with dryRun, returning a successfull match but not storing it", function (done) {
+      const agent = chai.request.agent(server.app);
+      agent
+        .post("/session/input-files")
+        .attach("files", metadataBuffer)
+        .then((res) => {
+          const contracts = assertAddressAndChainMissing(
+            res,
+            ["project:/contracts/Storage.sol"],
+            {}
+          );
+          contracts[0].address = defaultContractAddress;
+          contracts[0].chainId = defaultContractChain;
+
+          const isExist = fs.existsSync(
+            path.join(
+              server.repository,
+              "contracts",
+              "full_match",
+              defaultContractChain,
+              defaultContractAddress,
+              "metadata.json"
+            )
+          );
+          chai.expect(isExist, "File is saved before calling /verify-validated")
+            .to.be.false;
+
+          agent
+            .post("/session/verify-validated/?dryrun=true")
+            .send({ contracts })
+            .then((res) => {
+              assertSingleContractStatus(res, "perfect");
+              const isExist = fs.existsSync(
+                path.join(
+                  server.repository,
+                  "contracts",
+                  "full_match",
+                  defaultContractChain,
+                  defaultContractAddress,
+                  "metadata.json"
+                )
+              );
+              chai.expect(isExist, "File is saved even despite dryRun").to.be
+                .false;
+              done();
+            });
+        });
     });
 
     it("should verify after fetching and then providing address+chainId", (done) => {
@@ -1443,10 +1601,9 @@ describe("Server", function () {
     });
 
     it("should verify a contract with immutables and save immutable-references.json", async () => {
-      const artifact = require(path.join(
-        __dirname,
-        "./testcontracts/WithImmutables/artifact.json"
-      ));
+      const artifact = await import(
+        path.join(__dirname, "./testcontracts/WithImmutables/artifact.json")
+      );
       const { contractAddress } =
         await deployFromAbiAndBytecodeForCreatorTxHash(
           localSigner,
@@ -1455,10 +1612,9 @@ describe("Server", function () {
           [999]
         );
 
-      const metadata = require(path.join(
-        __dirname,
-        "./testcontracts/WithImmutables/metadata.json"
-      ));
+      const metadata = await import(
+        path.join(__dirname, "./testcontracts/WithImmutables/metadata.json")
+      );
       const metadataBuffer = Buffer.from(JSON.stringify(metadata));
       const sourcePath = path.join(
         __dirname,
@@ -1476,7 +1632,7 @@ describe("Server", function () {
         .attach("files", sourceBuffer)
         .attach("files", metadataBuffer);
 
-      let contracts = assertSingleContractStatus(res1, "error");
+      const contracts = assertSingleContractStatus(res1, "error");
 
       contracts[0].address = contractAddress;
       contracts[0].chainId = defaultContractChain;
@@ -1501,10 +1657,9 @@ describe("Server", function () {
     it("should verify a contract created by a factory contract and has immutables", async () => {
       const deployValue = 12345;
 
-      const artifact = require(path.join(
-        __dirname,
-        "./testcontracts/FactoryImmutable/Factory.json"
-      ));
+      const artifact = await import(
+        path.join(__dirname, "./testcontracts/FactoryImmutable/Factory.json")
+      );
       const factoryAddress = await deployFromAbiAndBytecode(
         localSigner,
         artifact.abi,
@@ -1512,10 +1667,12 @@ describe("Server", function () {
       );
 
       // Deploy child by calling deploy(uint)
-      const childMetadata = require(path.join(
-        __dirname,
-        "./testcontracts/FactoryImmutable/Child_metadata.json"
-      ));
+      const childMetadata = await import(
+        path.join(
+          __dirname,
+          "./testcontracts/FactoryImmutable/Child_metadata.json"
+        )
+      );
       const childMetadataBuffer = Buffer.from(JSON.stringify(childMetadata));
       const txReceipt = await callContractMethodWithTx(
         localSigner,
@@ -1525,6 +1682,10 @@ describe("Server", function () {
         [deployValue]
       );
 
+      if (!txReceipt) {
+        chai.assert.fail("Didn't get a txReceipt from factory contract call");
+      }
+      // @ts-ignore
       const childAddress = txReceipt.logs[0].args[0];
       const sourcePath = path.join(
         __dirname,
@@ -1553,10 +1714,12 @@ describe("Server", function () {
     });
 
     it("should verify a contract created by a factory contract and has immutables without constructor arguments but with msg.sender assigned immutable", async () => {
-      const artifact = require(path.join(
-        __dirname,
-        "./testcontracts/FactoryImmutableWithoutConstrArg/Factory3.json"
-      ));
+      const artifact = await import(
+        path.join(
+          __dirname,
+          "./testcontracts/FactoryImmutableWithoutConstrArg/Factory3.json"
+        )
+      );
       const factoryAddress = await deployFromAbiAndBytecode(
         localSigner,
         artifact.abi,
@@ -1564,10 +1727,12 @@ describe("Server", function () {
       );
 
       // Deploy child by calling deploy(uint)
-      const childMetadata = require(path.join(
-        __dirname,
-        "./testcontracts/FactoryImmutableWithoutConstrArg/Child3_metadata.json"
-      ));
+      const childMetadata = await import(
+        path.join(
+          __dirname,
+          "./testcontracts/FactoryImmutableWithoutConstrArg/Child3_metadata.json"
+        )
+      );
       const childMetadataBuffer = Buffer.from(JSON.stringify(childMetadata));
       const txReceipt = await callContractMethodWithTx(
         localSigner,
@@ -1577,6 +1742,10 @@ describe("Server", function () {
         []
       );
 
+      if (!txReceipt) {
+        chai.assert.fail("Didn't get a txReceipt from factory contract call");
+      }
+      // @ts-ignore
       const childAddress = txReceipt.logs[0].args[0];
       const sourcePath = path.join(
         __dirname,
@@ -1653,14 +1822,16 @@ describe("Server", function () {
     });
 
     // Test also extra-file-bytecode-mismatch via v2 API as well since the workaround is at the API level i.e. VerificationController
-    describe("solc v0.6.12 and v0.7.0 extra files in compilation causing metadata match but bytecode mismatch", function () {
+    describe("solc v0.6.12 and v0.7.0 extra files in compilation causing metadata match but bytecode mismatch", async function () {
       // Deploy the test contract locally
       // Contract from https://explorer.celo.org/address/0x923182024d0Fa5dEe59E3c3db5e2eeD23728D3C3/contracts
-      let contractAddress;
-      const bytecodeMismatchArtifact = require(path.join(
-        __dirname,
-        "./sources/artifacts/extraFilesBytecodeMismatch.json"
-      ));
+      let contractAddress: string;
+      const bytecodeMismatchArtifact = await import(
+        path.join(
+          __dirname,
+          "./sources/artifacts/extraFilesBytecodeMismatch.json"
+        )
+      );
 
       before(async () => {
         contractAddress = await deployFromAbiAndBytecode(
@@ -1671,62 +1842,73 @@ describe("Server", function () {
       });
 
       it("should warn the user about the issue when metadata match but not bytecodes", (done) => {
-        const hardhatOutput = require(path.join(
-          __dirname,
-          "./sources/hardhat-output/extraFilesBytecodeMismatch-onlyMetadata.json"
-        ));
-        const hardhatOutputBuffer = Buffer.from(JSON.stringify(hardhatOutput));
-
-        const agent = chai.request.agent(server.app);
-        agent
-          .post("/session/input-files")
-          .attach("files", hardhatOutputBuffer)
-          .then((res) => {
-            const contracts = res.body.contracts;
-            contracts[0].address = contractAddress;
-            contracts[0].chainId = defaultContractChain;
-            agent
-              .post("/session/verify-validated")
-              .send({ contracts })
-              .then((res) => {
-                assertSingleContractStatus(res, "error");
-                done();
-              });
-          });
+        import(
+          path.join(
+            __dirname,
+            "./sources/hardhat-output/extraFilesBytecodeMismatch-onlyMetadata.json"
+          )
+        ).then((hardhatOutput) => {
+          const hardhatOutputBuffer = Buffer.from(
+            JSON.stringify(hardhatOutput)
+          );
+          const agent = chai.request.agent(server.app);
+          agent
+            .post("/session/input-files")
+            .attach("files", hardhatOutputBuffer)
+            .then((res) => {
+              const contracts = res.body.contracts;
+              contracts[0].address = contractAddress;
+              contracts[0].chainId = defaultContractChain;
+              agent
+                .post("/session/verify-validated")
+                .send({ contracts })
+                .then((res) => {
+                  assertSingleContractStatus(res, "error");
+                  done();
+                });
+            });
+        });
       });
 
       it("should verify with all input files and not only those in metadata", (done) => {
-        const hardhatOutput = require(path.join(
-          __dirname,
-          "./sources/hardhat-output/extraFilesBytecodeMismatch.json"
-        ));
-        const hardhatOutputBuffer = Buffer.from(JSON.stringify(hardhatOutput));
+        import(
+          path.join(
+            __dirname,
+            "./sources/hardhat-output/extraFilesBytecodeMismatch.json"
+          )
+        ).then((hardhatOutput) => {
+          const hardhatOutputBuffer = Buffer.from(
+            JSON.stringify(hardhatOutput)
+          );
 
-        const agent = chai.request.agent(server.app);
-        agent
-          .post("/session/input-files")
-          .attach("files", hardhatOutputBuffer)
-          .then((res) => {
-            const contracts = res.body.contracts;
-            contracts[0].address = contractAddress;
-            contracts[0].chainId = defaultContractChain;
-            agent
-              .post("/session/verify-validated")
-              .send({ contracts })
-              .then((res) => {
-                assertSingleContractStatus(res, "perfect");
-                done();
-              });
-          });
+          const agent = chai.request.agent(server.app);
+          agent
+            .post("/session/input-files")
+            .attach("files", hardhatOutputBuffer)
+            .then((res) => {
+              const contracts = res.body.contracts;
+              contracts[0].address = contractAddress;
+              contracts[0].chainId = defaultContractChain;
+              agent
+                .post("/session/verify-validated")
+                .send({ contracts })
+                .then((res) => {
+                  assertSingleContractStatus(res, "perfect");
+                  done();
+                });
+            });
+        });
       });
     });
   });
   describe("E2E test path sanitization", async function () {
     it("should sanitize the path of a source file with new line character \\n", async () => {
-      const artifact = require(path.join(
-        __dirname,
-        "./testcontracts/path-sanitization-new-line/artifact.json"
-      ));
+      const artifact = await import(
+        path.join(
+          __dirname,
+          "./testcontracts/path-sanitization-new-line/artifact.json"
+        )
+      );
       const { contractAddress } =
         await deployFromAbiAndBytecodeForCreatorTxHash(
           localSigner,
@@ -1734,10 +1916,12 @@ describe("Server", function () {
           artifact.bytecode
         );
 
-      const metadata = require(path.join(
-        __dirname,
-        "./testcontracts/path-sanitization-new-line/metadata.json"
-      ));
+      const metadata = await import(
+        path.join(
+          __dirname,
+          "./testcontracts/path-sanitization-new-line/metadata.json"
+        )
+      );
       const sourcePath = path.join(
         __dirname,
         "testcontracts",
@@ -1781,16 +1965,14 @@ describe("Server", function () {
     });
 
     it("should verify a contract with paths containing misc. chars, save the path translation, and be able access the file over the API", async () => {
-      const sanitizeArtifact = require(path.join(
-        __dirname,
-        "./testcontracts/path-sanitization/ERC20.json"
-      ));
-      const sanitizeMetadata = require(path.join(
-        __dirname,
-        "./testcontracts/path-sanitization/metadata.json"
-      ));
+      const sanitizeArtifact = await import(
+        path.join(__dirname, "./testcontracts/path-sanitization/ERC20.json")
+      );
+      const sanitizeMetadata = await import(
+        path.join(__dirname, "./testcontracts/path-sanitization/metadata.json")
+      );
       // read all files under test/testcontracts/path-sanitization/sources/ and put them in an object
-      const sanitizeSourcesObj = {};
+      const sanitizeSourcesObj: Record<string, Buffer> = {};
       fs.readdirSync(
         path.join(__dirname, "testcontracts", "path-sanitization", "sources")
       ).forEach(
@@ -1845,7 +2027,7 @@ describe("Server", function () {
         "path-translation.json"
       );
 
-      let pathTranslationJSON;
+      let pathTranslationJSON: any;
       try {
         pathTranslationJSON = JSON.parse(
           fs.readFileSync(pathTranslationPath).toString()
@@ -1871,10 +2053,10 @@ describe("Server", function () {
             sanitizeMetadata.sources,
             `Original path ${originalPath} not found in metadata`
           )
-          .to.include.key(originalPath);
+          .to.include.keys(originalPath);
         // The path from the server response must be translated
         const translatedContractObject = fetchedContractFiles.find(
-          (obj) =>
+          (obj: any) =>
             obj.path ===
             path.join(
               contractSavedPath,
@@ -1980,14 +2162,13 @@ describe("Server", function () {
   });
   describe("Unit test functions", function () {
     this.timeout(EXTENDED_TIME_60);
-    const { sourcifyChainsArray } = require("../dist/sourcify-chains");
-    const {
-      getCreatorTx,
-    } = require("../dist/server/services/utils/contract-creation-util");
     it("should run getCreatorTx with chainId 40", async function () {
       const sourcifyChain = sourcifyChainsArray.find(
         (sourcifyChain) => sourcifyChain.chainId === 40
       );
+      if (!sourcifyChain) {
+        chai.assert.fail("No chain for chainId 40 configured");
+      }
       const creatorTx = await getCreatorTx(
         sourcifyChain,
         "0x4c09368a4bccD1675F276D640A0405Efa9CD4944"
@@ -2017,6 +2198,9 @@ describe("Server", function () {
       const sourcifyChain = sourcifyChainsArray.find(
         (sourcifyChain) => sourcifyChain.chainId === 83
       );
+      if (!sourcifyChain) {
+        chai.assert.fail("No chain for chainId 83 configured");
+      }
       const creatorTx = await getCreatorTx(
         sourcifyChain,
         "0x89e772941d94Ef4BDA1e4f68E79B4bc5F6096389"
@@ -2031,6 +2215,9 @@ describe("Server", function () {
       const sourcifyChain = sourcifyChainsArray.find(
         (sourcifyChain) => sourcifyChain.chainId === 335
       );
+      if (!sourcifyChain) {
+        chai.assert.fail("No chain for chainId 335 configured");
+      }
       const creatorTx = await getCreatorTx(
         sourcifyChain,
         "0x40D843D06dAC98b2586fD1DFC5532145208C909F"
@@ -2045,6 +2232,9 @@ describe("Server", function () {
       const sourcifyChain = sourcifyChainsArray.find(
         (sourcifyChain) => sourcifyChain.chainId === 100
       );
+      if (!sourcifyChain) {
+        chai.assert.fail("No chain for chainId 100 configured");
+      }
       const creatorTx = await getCreatorTx(
         sourcifyChain,
         "0x3CE1a25376223695284edc4C2b323C3007010C94"
@@ -2057,22 +2247,28 @@ describe("Server", function () {
     });
     it("should run getCreatorTx with regex for old Blockscout", async function () {
       const sourcifyChain = sourcifyChainsArray.find(
-        (sourcifyChain) => sourcifyChain.chainId === 1313161554
+        (sourcifyChain) => sourcifyChain.chainId === 57
       );
+      if (!sourcifyChain) {
+        chai.assert.fail("No chain for chainId 57 configured");
+      }
       const creatorTx = await getCreatorTx(
         sourcifyChain,
-        "0x2CB45Edb4517d5947aFdE3BEAbF95A582506858B"
+        "0x43e9f7ca4AEAcd67A7AC4a275cee7BC8AF601bE4"
       );
       chai
         .expect(creatorTx)
         .equals(
-          "0x8fbcf663b8d86af936d5a72cbf9e6becd17e87e167bdcff449663e987cf09759"
+          "0x89a8c2ac5f93b91a8a551bf4c676755e1ad5272e0a7193b894aa8ba14c43c5ea"
         );
     });
     it("should run getCreatorTx with etherscanApi for Etherscan", async function () {
       const sourcifyChain = sourcifyChainsArray.find(
         (sourcifyChain) => sourcifyChain.chainId === 1
       );
+      if (!sourcifyChain) {
+        chai.assert.fail("No chain for chainId 1 configured");
+      }
       const creatorTx = await getCreatorTx(
         sourcifyChain,
         "0x00000000219ab540356cBB839Cbe05303d7705Fa"
@@ -2092,9 +2288,11 @@ describe("Server", function () {
       await resetDatabase(storageService);
     });
 
+    // TODO The metadata seems to have wrong typing. Remove the @ts-ignore comments!
     it("storeMatch", async () => {
       // Prepare the CheckedContract
       const checkedContract = createCheckedContract(
+        // @ts-ignore
         _checkedContract.metadata,
         _checkedContract.solidity,
         _checkedContract.missing,
@@ -2102,15 +2300,19 @@ describe("Server", function () {
       );
       checkedContract.creationBytecode = _checkedContract.creationBytecode;
       checkedContract.runtimeBytecode = _checkedContract.runtimeBytecode;
+      // @ts-ignore
       checkedContract.compilerOutput = _checkedContract.compilerOutput;
-      checkedContract.creationBytecodeCborAuxdata =
+
+      checkedContract.creationBytecodeCborAuxdata = // @ts-ignore
         _checkedContract.creationBytecodeCborAuxdata;
-      checkedContract.runtimeBytecodeCborAuxdata =
+      checkedContract.runtimeBytecodeCborAuxdata = // @ts-ignore
         _checkedContract.runtimeBytecodeCborAuxdata;
 
       // Call storeMatch
+      // @ts-ignore
       await storageService.storeMatch(checkedContract, match);
 
+      // @ts-ignore
       const res = await storageService.sourcifyDatabase.databasePool.query(
         "SELECT * FROM sourcify_matches"
       );
@@ -2120,11 +2322,9 @@ describe("Server", function () {
       }
     });
 
-    const verifierAllianceTestLibrariesManuallyLinked = require("./verifier-alliance/libraries_manually_linked.json");
     it(verifierAllianceTestLibrariesManuallyLinked._comment, async () => {
       await verifierAllianceTest(
         server,
-        chai,
         storageService,
         localSigner,
         defaultContractChain,
@@ -2132,11 +2332,9 @@ describe("Server", function () {
       );
     });
 
-    const verifierAllianceTestFullMatch = require("./verifier-alliance/full_match.json");
     it(verifierAllianceTestFullMatch._comment, async () => {
       await verifierAllianceTest(
         server,
-        chai,
         storageService,
         localSigner,
         defaultContractChain,
@@ -2144,11 +2342,9 @@ describe("Server", function () {
       );
     });
 
-    const verifierAllianceTestImmutables = require("./verifier-alliance/immutables.json");
     it(verifierAllianceTestImmutables._comment, async () => {
       await verifierAllianceTest(
         server,
-        chai,
         storageService,
         localSigner,
         defaultContractChain,
@@ -2156,11 +2352,9 @@ describe("Server", function () {
       );
     });
 
-    const verifierAllianceTestLibrariesLinkedByCompiler = require("./verifier-alliance/libraries_linked_by_compiler.json");
     it(verifierAllianceTestLibrariesLinkedByCompiler._comment, async () => {
       await verifierAllianceTest(
         server,
-        chai,
         storageService,
         localSigner,
         defaultContractChain,
@@ -2168,11 +2362,9 @@ describe("Server", function () {
       );
     });
 
-    const verifierAllianceTestMetadataHashAbsent = require("./verifier-alliance/metadata_hash_absent.json");
     it(verifierAllianceTestMetadataHashAbsent._comment, async () => {
       await verifierAllianceTest(
         server,
-        chai,
         storageService,
         localSigner,
         defaultContractChain,
@@ -2180,11 +2372,9 @@ describe("Server", function () {
       );
     });
 
-    const verifierAllianceTestPartialMatch = require("./verifier-alliance/partial_match.json");
     it(verifierAllianceTestPartialMatch._comment, async () => {
       await verifierAllianceTest(
         server,
-        chai,
         storageService,
         localSigner,
         defaultContractChain,
@@ -2192,11 +2382,9 @@ describe("Server", function () {
       );
     });
 
-    const verifierAllianceTestConstructorArguments = require("./verifier-alliance/constructor_arguments.json");
     it(verifierAllianceTestConstructorArguments._comment, async () => {
       await verifierAllianceTest(
         server,
-        chai,
         storageService,
         localSigner,
         defaultContractChain,
@@ -2205,9 +2393,18 @@ describe("Server", function () {
       );
     });
 
+    it(verifierAllianceTestDoubleAuxdata._comment, async () => {
+      await verifierAllianceTest(
+        server,
+        storageService,
+        localSigner,
+        defaultContractChain,
+        verifierAllianceTestDoubleAuxdata
+      );
+    });
+
     // Tests to be implemented:
     // - genesis: right now not supported,
     // - partial_match_2: I don't know why we have this test
-    // - partial_match_double_auxdata: right now not supported
   });
 });

@@ -1,7 +1,7 @@
 import {
   LambdaClient,
-  InvokeCommand,
-  InvokeCommandInput,
+  InvokeWithResponseStreamCommand,
+  InvokeWithResponseStreamCommandInput,
 } from "@aws-sdk/client-lambda";
 import {
   CompilerOutput,
@@ -44,45 +44,75 @@ export class SolcLambda implements ISolidityCompiler {
     logger.debug("Compiling with Lambda", { version });
     const response = await this.invokeLambdaFunction(param);
     logger.debug("Compiled with Lambda", { version });
-    const responseObj = this.parseCompilerOutput(response);
-    logger.silly("Lambda function response", { responseObj });
-    return responseObj;
+    logger.silly("Lambda function response", { response });
+    return response;
   }
 
-  private async invokeLambdaFunction(payload: string): Promise<any> {
-    const params: InvokeCommandInput = {
+  private async invokeLambdaFunction(payload: string): Promise<CompilerOutput> {
+    const params: InvokeWithResponseStreamCommandInput = {
       FunctionName: config.get("lambdaCompiler.functionName") || "compile",
       Payload: payload,
     };
 
-    const command = new InvokeCommand(params);
+    const command = new InvokeWithResponseStreamCommand(params);
     const response = await this.lambdaClient.send(command);
 
-    if (!response.Payload) {
+    if (!response.EventStream) {
       throw new Error(
-        "Error: No response payload received from Lambda function"
+        "Error: No response stream received from Lambda function"
       );
     }
 
-    if (response.FunctionError) {
-      const errorObj: { errorMessage: string; errorType: string } = JSON.parse(
-        Buffer.from(response.Payload).toString("utf8")
-      );
-      logger.error("Error invoking Lambda function", {
-        errorObj,
+    let streamResult = "";
+    for await (const event of response.EventStream) {
+      if (event.InvokeComplete?.ErrorCode) {
+        logger.error("Error invoking Lambda function", {
+          errorCode: event.InvokeComplete.ErrorCode,
+          errorDetails: event.InvokeComplete.ErrorDetails,
+          logResult: event.InvokeComplete.LogResult,
+          lambdaRequestId: response.$metadata.requestId,
+        });
+        throw new Error(
+          `AWS Lambda error: ${event.InvokeComplete.ErrorCode} - ${event.InvokeComplete.ErrorDetails} - lamdbaRequestId: ${response.$metadata.requestId}`
+        );
+      } else if (event.PayloadChunk?.Payload) {
+        streamResult += Buffer.from(event.PayloadChunk.Payload).toString(
+          "utf8"
+        );
+      }
+    }
+    logger.silly("Received stream response", { streamResult });
+
+    let output;
+    try {
+      output = JSON.parse(streamResult);
+    } catch (e) {
+      logger.error("Error parsing Lambda function result", {
+        error: e,
         lambdaRequestId: response.$metadata.requestId,
-        functionError: response.FunctionError,
       });
       throw new Error(
-        `AWS Lambda error: ${errorObj.errorType} - ${errorObj.errorMessage} - lamdbaRequestId: ${response.$metadata.requestId}`
+        `AWS Lambda error: ${e} - lamdbaRequestId: ${response.$metadata.requestId}`
       );
     }
 
-    return response;
-  }
+    if (output.error) {
+      logger.error("Error received from Lambda function", {
+        error: output.error,
+        lambdaRequestId: response.$metadata.requestId,
+      });
+      const errorMessage = `AWS Lambda error: ${output.error} - lamdbaRequestId: ${response.$metadata.requestId}`;
+      if (output.error === "Stream response limit exceeded") {
+        throw new LambdaResponseLimitExceeded(errorMessage);
+      } else {
+        throw new Error(errorMessage);
+      }
+    }
 
-  private parseCompilerOutput(response: any): CompilerOutput {
-    const res = JSON.parse(Buffer.from(response.Payload).toString("utf8"));
-    return res.body as CompilerOutput;
+    return output;
   }
+}
+
+export class LambdaResponseLimitExceeded extends Error {
+  name = "LambdaResponseLimitExceeded";
 }

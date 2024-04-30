@@ -16,6 +16,7 @@ import {
   AllianceDatabaseServiceOptions,
 } from "./storageServices/AllianceDatabaseService";
 import logger from "../../common/logger";
+import { getMatchStatus } from "../common";
 
 export interface IStorageService {
   init(): Promise<boolean>;
@@ -148,6 +149,24 @@ export class StorageService {
       runtimeMatch: match.runtimeMatch,
       creationMatch: match.creationMatch,
     });
+
+    const existingMatch = await this.checkAllByChainAndAddress(
+      match.address,
+      match.chainId
+    );
+    if (
+      existingMatch.length > 0 &&
+      getMatchStatus(existingMatch[0]) === "partial" &&
+      getMatchStatus(match) === "partial"
+    ) {
+      logger.error("Partial match already exists", {
+        chain: match.chainId,
+        address: match.address,
+      });
+      throw new Error(
+        `The contract ${match.address} on chainId ${match.chainId} is already partially verified. The provided new source code also yielded a partial match and will not be stored unless it's a full match`
+      );
+    }
 
     // Initialize an array to hold active service promises
     const promises = [];

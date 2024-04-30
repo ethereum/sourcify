@@ -1,8 +1,8 @@
-const { deployFromPrivateKey } = require("../helpers/helpers");
-const StorageArtifact = require("./sources/shared/1_Storage.json");
-const { supportedChainsArray } = require("../../dist/sourcify-chains");
-const { program } = require("commander");
-const { JsonRpcProvider } = require("ethers");
+import { deployFromPrivateKey } from "../helpers/helpers";
+import StorageArtifact from "./sources/shared/1_Storage.json";
+import { supportedChainsArray } from "../../src/sourcify-chains";
+import { program } from "commander";
+import { JsonRpcProvider } from "ethers";
 
 program
   .description(
@@ -33,7 +33,7 @@ if (require.main === module) {
   main(options.chainId, options.privateKey);
 }
 
-async function main(chainId, privateKey) {
+async function main(chainId: number, privateKey: string) {
   const chains = supportedChainsArray;
   const chain = chains.find((chain) => chain.chainId == chainId);
   if (!chain) {
@@ -50,7 +50,7 @@ async function main(chainId, privateKey) {
     console.log(
       `Can't initiate a Provider instance with the chain: ${JSON.stringify(chain)}. \n\nMake sure the chainId is added to src/sourcify-chains.ts and built with npx lerna run build`
     );
-    throw new Error(err);
+    throw err;
   }
 
   console.log("Deploying the contract...");

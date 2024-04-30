@@ -1,5 +1,9 @@
 # Changelog for `sourcify-database`
 
+## sourcify-database@1.1.0 - 2024-04-23
+
+- Add session table to migrations 
+
 ## sourcify-database@1.0.3 - 2024-04-04
 
 - Add schema to support postgresql based session (commented)

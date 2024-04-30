@@ -144,10 +144,16 @@ export class SourcifyDatabaseService
         creationMatch: match.creationMatch,
       });
     } else if (type === "update") {
-      if (!verifiedContractId) {
-        throw new Error(
-          "VerifiedContractId undefined before updating sourcify match"
-        );
+      // If insertOrUpdateVerifiedContract returned an update with verifiedContractId=false
+      // it means that the new match wasn't better (perfect > partial) than the existing one
+      if (verifiedContractId === false) {
+        logger.info("Not Updated in SourcifyDatabase", {
+          address: match.address,
+          chainId: match.chainId,
+          runtimeMatch: match.runtimeMatch,
+          creationMatch: match.creationMatch,
+        });
+        return;
       }
       if (!oldVerifiedContractId) {
         throw new Error(
