@@ -1,3 +1,4 @@
+process.env.ALLOW_CONFIG_MUTATIONS = "true";
 process.env.NODE_CONFIG_ENV = "test";
 // process.env.SOURCIFY_POSTGRES_HOST = "";
 process.env.ALLIANCE_POSTGRES_HOST = "";
@@ -13,6 +14,9 @@ import addContext from "mochawesome/addContext";
 import { assertVerification } from "../helpers/assertions";
 import testEtherscanContracts from "../helpers/etherscanInstanceContracts.json";
 import type { SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
+import config from "config";
+// @ts-ignore
+config["session"].storeType = "memory";
 
 type ChainApiResponse = Pick<
   SourcifyChain,
