@@ -1544,5 +1544,23 @@
         "url": "https://explorer.degen.tips/"
       }
     }
+  },
+  "105105": {
+    "sourcifyName": "Stratis Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://explorer.stratisevm.com/"
+      }
+    }
+  },
+  "205205": {
+    "sourcifyName": "Auroria Testnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://auroria.explorer.stratisevm.com/"
+      }
+    }
   }
 }
