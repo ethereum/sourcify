@@ -16,6 +16,7 @@
     "postgres-test:migrate": "cd ../database && npm run migrate:up -- --env test",
     "test": "npm run postgres-test:migrate && NODE_CONFIG_DIR=./dist/config DOTENV_CONFIG_PATH=./.env c8 --reporter=none mocha -r dotenv/config --exit",
     "test-local": "export DOCKER_HOST_POSTGRES_TEST_PORT=${DOCKER_HOST_POSTGRES_TEST_PORT:-5431} && npm run postgres-test:start && echo \"Sleeping 5 seconds to wait for the container to start\" && sleep 5 && npm run postgres-test:migrate && NODE_CONFIG_DIR=./dist/config DOTENV_CONFIG_PATH=./.env c8 --reporter=none mocha -r dotenv/config --exit; status=$?; npm run postgres-test:stop; exit $status",
+    "test-local:repository": "export DOCKER_HOST_POSTGRES_TEST_PORT=${DOCKER_HOST_POSTGRES_TEST_PORT:-5431} && npm run postgres-test:start && echo \"Sleeping 5 seconds to wait for the container to start\" && sleep 5 && npm run postgres-test:migrate && NODE_CONFIG_DIR=./dist/config DOTENV_CONFIG_PATH=./.env.test c8 --reporter=none mocha -r dotenv/config --exit test/integration/handlers/repository.spec.ts; status=$?; npm run postgres-test:stop; exit $status",
     "test:chains": "mocha test/chains/chain-tests.spec.ts --reporter mochawesome --reporter-options reportDir=chain-tests-report,reportFilename=report --exit",
     "lint": "eslint . --ext .ts",
     "coverage": "node ./node_modules/c8/bin/c8.js --reporter=lcov --reporter=text-summary ./node_modules/tape/bin/tape ./test/index.js",
