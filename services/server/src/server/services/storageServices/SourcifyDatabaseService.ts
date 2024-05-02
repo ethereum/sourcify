@@ -129,14 +129,6 @@ export class SourcifyDatabaseService
         creation_match: match.creationMatch,
         runtime_match: match.runtimeMatch,
       });
-      // Prevent running this on the migration server
-      if (process.env.NODE_CONFIG_ENV !== "migration") {
-        await Database.insertSourcifySync(this.databasePool, {
-          chain_id: parseInt(match.chainId),
-          address: match.address,
-          match_type: getMatchStatus(match)!,
-        });
-      }
       logger.info("Stored to SourcifyDatabase", {
         address: match.address,
         chainId: match.chainId,
@@ -169,14 +161,6 @@ export class SourcifyDatabaseService
         },
         oldVerifiedContractId
       );
-      // Prevent running this on the migration server
-      if (process.env.NODE_CONFIG_ENV !== "migration") {
-        await Database.updateSourcifySync(this.databasePool, {
-          chain_id: parseInt(match.chainId),
-          address: match.address,
-          match_type: getMatchStatus(match)!,
-        });
-      }
       logger.info("Updated in SourcifyDatabase", {
         address: match.address,
         chainId: match.chainId,
