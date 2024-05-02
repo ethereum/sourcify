@@ -15,7 +15,7 @@ const BLOCKSCOUT_SUFFIX = "address/${ADDRESS}/transactions";
 const ETHERSCAN_API_SUFFIX = `/api?module=contract&action=getcontractcreation&contractaddresses=\${ADDRESS}&apikey=`;
 const BLOCKSSCAN_SUFFIX = "api/accounts/${ADDRESS}";
 const BLOCKSCOUT_API_SUFFIX = "/api/v2/addresses/${ADDRESS}";
-const TELOS_SUFFIX = "v2/evm/get_contract?contract=${ADDRESS}";
+const TELOS_SUFFIX = "v1/contract/${ADDRESS}";
 const METER_SUFFIX = "api/accounts/${ADDRESS}";
 const AVALANCHE_SUBNET_SUFFIX =
   "contracts/${ADDRESS}/transactions:getDeployment";
@@ -121,7 +121,8 @@ function getTelosApiContractCreatorFetcher(
   return getApiContractCreationFetcher(
     apiURL + TELOS_SUFFIX,
     (response: any) => {
-      if (response.creation_trx) return response.creation_trx as string;
+      if (response?.results?.[0]?.transaction)
+        return response.results[0].transaction as string;
     }
   );
 }

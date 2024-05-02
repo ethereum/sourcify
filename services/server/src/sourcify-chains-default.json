@@ -349,7 +349,7 @@
     "supported": true,
     "fetchContractCreationTxUsing": {
       "telosApi": {
-        "url": "https://mainnet.telos.net/"
+        "url": "https://api.teloscan.io/"
       }
     }
   },
@@ -358,7 +358,7 @@
     "supported": true,
     "fetchContractCreationTxUsing": {
       "telosApi": {
-        "url": "https://testnet.telos.net/"
+        "url": "https://api.testnet.teloscan.io/"
       }
     }
   },
