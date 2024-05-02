@@ -104,6 +104,6 @@ jobs:
           command: npx lerna run build
       - run:
           name: test
-          command: cd ./services/server && npx mocha test/etherscan/etherscanInstances.js --exit
+          command: cd ./services/server && npx mocha test/etherscan/etherscanInstances.spec.ts --exit
     docker:
       - image: cimg/node:16.15
