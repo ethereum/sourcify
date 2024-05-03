@@ -896,6 +896,26 @@
       }
     }
   },
+  "660279": {
+    "sourcifyName": "Xai Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://explorer.xai-chain.net/"
+      }
+    },
+    "rpc": ["https://xai-chain.net/rpc"]
+  },
+  "37714555429": {
+    "sourcifyName": "Xai Testnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://testnet-explorer-v2.xai-chain.net/"
+      }
+    },
+    "rpc": ["https://testnet-v2.xai-chain.net/rpc"]
+  },
   "957": {
     "sourcifyName": "Lyra Mainnet",
     "supported": true,
