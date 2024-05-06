@@ -1563,5 +1563,10 @@
         "url": "https://auroria.explorer.stratisevm.com/"
       }
     }
+  },
+  "6321": {
+    "sourcifyName": "Aura Euphoria Testnet",
+    "supported": true,
+    "rpc": ["https://jsonrpc.euphoria.aura.network"]
   }
 }

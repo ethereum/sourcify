@@ -1420,6 +1420,14 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // Aura Euphoria Testnet
+  verifyContract(
+    "0xF24b6C8a9A658260F2BF019E85BB081fFAf2e590",
+    "6321",
+    "Aura Euphoria Testnet",
+    "shared/"
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests: ChainApiResponse[] = [];
     supportedChains
