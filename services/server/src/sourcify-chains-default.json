@@ -1563,5 +1563,14 @@
         "url": "https://auroria.explorer.stratisevm.com/"
       }
     }
+  },
+  "4200": {
+    "sourcifyName": "Merlin Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://scan.merlinchain.io/api/"
+      }
+    }
   }
 }
