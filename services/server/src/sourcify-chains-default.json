@@ -1566,7 +1566,6 @@
   },
   "6321": {
     "sourcifyName": "Aura Euphoria Testnet",
-    "supported": true,
-    "rpc": ["https://jsonrpc.euphoria.aura.network"]
+    "supported": true
   }
 }
