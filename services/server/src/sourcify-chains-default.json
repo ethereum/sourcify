@@ -1572,5 +1572,9 @@
         "url": "https://scan.merlinchain.io/api/"
       }
     }
+  },
+  "6321": {
+    "sourcifyName": "Aura Euphoria Testnet",
+    "supported": true
   }
 }
