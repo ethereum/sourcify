@@ -1564,6 +1564,15 @@
       }
     }
   },
+  "4200": {
+    "sourcifyName": "Merlin Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://scan.merlinchain.io/api/"
+      }
+    }
+  },
   "6321": {
     "sourcifyName": "Aura Euphoria Testnet",
     "supported": true

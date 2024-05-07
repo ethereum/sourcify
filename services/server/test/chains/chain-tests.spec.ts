@@ -1419,6 +1419,14 @@ describe("Test Supported Chains", function () {
     "Auroria Testnet",
     "shared/"
   );
+  
+  // Merlin Mainnet
+  verifyContract(
+    "0x5C45f386FD1346FE80a1A0dA6c889384372E4580",
+    "4200",
+    "Merlin Mainnet",
+    "shared/"
+  );
 
   // Aura Euphoria Testnet
   verifyContract(
