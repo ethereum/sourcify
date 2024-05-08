@@ -159,7 +159,7 @@ export class StorageService {
       getMatchStatus(existingMatch[0]) === "partial" &&
       getMatchStatus(match) === "partial"
     ) {
-      logger.error("Partial match already exists", {
+      logger.info("Partial match already exists", {
         chain: match.chainId,
         address: match.address,
       });
