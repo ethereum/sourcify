@@ -109,10 +109,6 @@
         // "--grep=v0.6.12",
         "--exit"
       ],
-      "outFiles": [
-        "${workspaceFolder}/services/server/dist/**/*.js",
-        "${workspaceFolder}/packages/**/build/**/*.js"
-      ],
       "smartStep": true,
       "console": "integratedTerminal"
       // "internalConsoleOptions": "neverOpen"
@@ -133,10 +129,6 @@
         // "--grep=v0.6.12",
         "--exit"
       ],
-      "outFiles": [
-        "${workspaceFolder}/services/server/dist/**/*.js",
-        "${workspaceFolder}/packages/**/build/**/*.js"
-      ],
       "smartStep": true,
       "console": "integratedTerminal"
       // "internalConsoleOptions": "neverOpen"
@@ -156,10 +148,6 @@
         // Run a single test when debugging
         // "--grep=v0.6.12",
         "--exit"
-      ],
-      "outFiles": [
-        "${workspaceFolder}/services/server/dist/**/*.js",
-        "${workspaceFolder}/packages/**/build/**/*.js"
       ],
       "smartStep": true,
       "console": "integratedTerminal"
@@ -233,10 +221,6 @@
         // Run a single test when debugging
         // "--grep=Optimism",
         "--exit"
-      ],
-      "outFiles": [
-        "${workspaceFolder}/services/server/dist/**/*.js",
-        "${workspaceFolder}/packages/**/build/**/*.js"
       ],
       "smartStep": true,
       "console": "integratedTerminal",
