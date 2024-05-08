@@ -177,6 +177,11 @@ export class SourcifyDatabaseService
     return res;
   };
 
+  /**
+   * getFiles extracts the files from the database `compiled_contracts.sources`
+   * and store them into FilesInfo.files, this object is then going to be formatted
+   * by getTree, getContent and getFile.
+   */
   getFiles = async (
     chainId: string,
     address: string
@@ -222,6 +227,9 @@ export class SourcifyDatabaseService
     return files[path];
   };
 
+  /**
+   * getTree returns FilesInfo in which files contains for each source its repository url
+   */
   getTree = async (
     chainId: string,
     address: string,
@@ -231,6 +239,14 @@ export class SourcifyDatabaseService
       chainId,
       address
     );
+
+    // If "full_match" files are requested but the contractStatus if partial return empty
+    if (match === "full_match" && contractStatus === "partial") {
+      return {
+        status: "full",
+        files: [],
+      };
+    }
 
     // Calculate the the repository's url for each file
     const files = Object.keys(filesRaw).map((file) => {
@@ -243,25 +259,30 @@ export class SourcifyDatabaseService
       return `${config.get("repositoryV1.serverUrl")}/${relativePath}`;
     });
 
-    if (contractStatus === "full" || match === "full_match") {
-      return {
-        status: "full",
-        files,
-      };
-    }
-
-    return { status: "partial", files };
+    return { status: contractStatus, files };
   };
 
+  /**
+   * getContent returns FilesInfo in which files contains for each source its FileObject,
+   * an object that includes the content of the file.
+   */
   getContent = async (
     chainId: string,
     address: string,
     match: MatchLevel
-  ): Promise<FilesInfo<FileObject[]>> => {
+  ): Promise<FilesInfo<Array<FileObject>>> => {
     const { status: contractStatus, files: filesRaw } = await this.getFiles(
       chainId,
       address
     );
+
+    // If "full_match" files are requestd but the contractStatus if partial return empty
+    if (match === "full_match" && contractStatus === "partial") {
+      return {
+        status: "full",
+        files: [],
+      };
+    }
 
     // Calculate the the repository's url for each file
     const files = Object.keys(filesRaw).map((file) => {
@@ -279,14 +300,7 @@ export class SourcifyDatabaseService
       } as FileObject;
     });
 
-    if (contractStatus === "full" || match === "full_match") {
-      return {
-        status: "full",
-        files,
-      };
-    }
-
-    return { status: "partial", files };
+    return { status: contractStatus, files };
   };
 
   validateBeforeStoring(

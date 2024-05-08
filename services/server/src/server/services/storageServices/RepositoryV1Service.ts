@@ -58,7 +58,11 @@ export class RepositoryV1Service implements IStorageService {
     address: string,
     match = "full_match"
   ): Array<string> {
-    const files: FileObject[] = this.fetchAllFilePaths(chain, address, match);
+    const files: Array<FileObject> = this.fetchAllFilePaths(
+      chain,
+      address,
+      match
+    );
     const urls: Array<string> = [];
     files.forEach((file) => {
       const relativePath =
@@ -79,7 +83,7 @@ export class RepositoryV1Service implements IStorageService {
    *
    * @example [
    *   { name: '0x1234.sol',
-   *     path: '/home/.../repository/contracts/full_match/1/0x1234/0x1234.sol,
+   *     path: '/contracts/full_match/1/0x1234/0x1234.sol,
    *     content: "pragma solidity ^0.5.0; contract A { ... }"
    *   },
    * ... ]
@@ -88,11 +92,11 @@ export class RepositoryV1Service implements IStorageService {
     chain: string,
     address: string,
     match = "full_match"
-  ): FileObject[] {
+  ): Array<FileObject> {
     const fullPath: string =
       this.repositoryPath +
       `/contracts/${match}/${chain}/${getAddress(address)}/`;
-    const files: FileObject[] = [];
+    const files: Array<FileObject> = [];
     dirTree(fullPath, {}, (item) => {
       files.push({ name: item.name, path: item.path });
     });
@@ -103,7 +107,7 @@ export class RepositoryV1Service implements IStorageService {
     chain: string,
     address: string,
     match = "full_match"
-  ): FileObject[] {
+  ): Array<FileObject> {
     const files = this.fetchAllFilePaths(chain, address, match);
     for (const file in files) {
       const loadedFile = fs.readFileSync(files[file].path);
@@ -151,7 +155,7 @@ export class RepositoryV1Service implements IStorageService {
     chainId: string,
     address: string,
     match: MatchLevel
-  ): Promise<FilesInfo<FileObject[]>> => {
+  ): Promise<FilesInfo<Array<FileObject>>> => {
     const fullMatchesFiles = this.fetchAllFileContents(
       chainId,
       address,

@@ -106,14 +106,17 @@ export class StorageService {
     return this.repositoryV2!.getMetadata(chainId, address, match);
   };
 
-  pushMetadataInFilesInfo = async <T>(
+  /**
+   * This function inject the metadata file in FilesInfo<T[]>
+   * SourcifyDatabase.getTree and SourcifyDatabase.getContent read files from
+   * `compiled_contracts.sources` where the metadata file is not available
+   */
+  pushMetadataInFilesInfo = async <T extends string | FileObject>(
     responseWithoutMetadata: FilesInfo<T[]>,
     chainId: string,
     address: string,
     match: MatchLevel
   ) => {
-    // files doesn't contain metadata because it's not available in database
-    // we have to push the metadata (from RepositoryV2) into files
     const metadata = await this.getMetadata(
       chainId,
       address,
@@ -139,12 +142,13 @@ export class StorageService {
     );
 
     if (typeof responseWithoutMetadata.files[0] === "string") {
-      // push the repository url
+      // If this function is called with T == string
       responseWithoutMetadata.files.push(
         (config.get("repositoryV1.serverUrl") + relativePath) as T
       );
     } else {
-      // push the object
+      // If this function is called with T === FileObject
+      // It's safe to handle this case in the else because of <T extends string | FileObject>
       responseWithoutMetadata.files.push({
         name: "metadata.json",
         path: relativePath,
@@ -192,7 +196,7 @@ export class StorageService {
     chainId: string,
     address: string,
     match: MatchLevel
-  ): Promise<FilesInfo<FileObject[]>> => {
+  ): Promise<FilesInfo<Array<FileObject>>> => {
     const responseWithoutMetadata = await this.sourcifyDatabase!.getContent(
       chainId,
       address,

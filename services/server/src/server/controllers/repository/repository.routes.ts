@@ -51,10 +51,18 @@ router
   .route("/check-all-by-addresses")
   .get(safeHandler(checkAllByChainAndAddressEndpoint));
 
+/**
+ * The following two routes are the replacement for the removed static file route that exposed RepositoryV1
+ * The function getFileEndpoint get the sources from compiled_contracts.sources
+ * We need both of these routes because compiled_contracts.sources doesn't contain the metadata file
+ */
+
+// This route covers the metadata.json files, fetching them from RepositoryV2
 router
   .route("/repository/contracts/:match/:chain/:address/metadata.json")
   .get(safeHandler(getMetadataEndpoint));
 
+// This route covers the the sources files, fetching them from SourcifyDatabase.compiled_contracts.sources
 router
   .route("/repository/contracts/:match/:chain/:address/sources/*")
   .get(safeHandler(getFileEndpoint));
