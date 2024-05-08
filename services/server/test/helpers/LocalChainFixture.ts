@@ -30,8 +30,8 @@ export class LocalChainFixture {
   defaultContractMetadata = Buffer.from(
     JSON.stringify(storageContractMetadata)
   );
-  defaultContractIpfsAddress =
-    storageContractMetadata.sources["project:/contracts/Storage.sol"].urls[1];
+  defaultContractModifiedIpfsMetadata = getModifiedIpfsMetadata();
+  defaultContractArtifact = storageContractArtifact;
 
   private _chainId?: string;
   private _localSigner?: JsonRpcSigner;
@@ -106,6 +106,25 @@ export class LocalChainFixture {
 
     after(async () => {
       await ganacheServer.close();
+      nock.cleanAll();
     });
   }
+}
+
+function getModifiedIpfsMetadata(): Buffer {
+  const ipfsAddress =
+    storageContractMetadata.sources["project:/contracts/Storage.sol"].urls[1];
+  // change the last char in ipfs hash of the source file
+  const lastChar = ipfsAddress.charAt(ipfsAddress.length - 1);
+  const modifiedLastChar = lastChar === "a" ? "b" : "a";
+  const modifiedIpfsAddress =
+    ipfsAddress.slice(0, ipfsAddress.length - 1) + modifiedLastChar;
+  // the metadata needs to be deeply cloned here
+  // unfortunately `structuredClone` is not available in Node 16
+  const modifiedIpfsMetadata = JSON.parse(
+    JSON.stringify(storageContractMetadata)
+  );
+  modifiedIpfsMetadata.sources["project:/contracts/Storage.sol"].urls[1] =
+    modifiedIpfsAddress;
+  return Buffer.from(JSON.stringify(modifiedIpfsMetadata));
 }

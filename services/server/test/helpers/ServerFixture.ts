@@ -10,6 +10,8 @@ export type ServerFixtureOptions = {
 };
 
 export class ServerFixture {
+  readonly maxFileSize = config.get<number>("server.maxFileSize");
+
   private _storageService?: StorageService;
   private _server?: Server;
 
