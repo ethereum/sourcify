@@ -7,7 +7,15 @@ import {
   StringMap,
   CheckedContract,
 } from "@ethereum-sourcify/lib-sourcify";
-import { MatchLevel, MatchQuality, RepositoryTag } from "../../types";
+import {
+  ContractData,
+  FileObject,
+  FilesInfo,
+  MatchLevel,
+  MatchQuality,
+  PathConfig,
+  RepositoryTag,
+} from "../../types";
 import {
   create as createIpfsClient,
   IPFSHTTPClient,
@@ -19,36 +27,11 @@ import { getAddress } from "ethers";
 import { getMatchStatus } from "../../common";
 import { IStorageService } from "../StorageService";
 import config from "config";
-import { PathConfig } from "../utils/repository-util";
-
-type FilesInfo<T> = { status: MatchQuality; files: Array<T> };
-
-interface FileObject {
-  name: string;
-  path: string;
-  content?: string;
-}
-
-declare interface ContractData {
-  full: string[];
-  partial: string[];
-}
 
 export interface RepositoryV1ServiceOptions {
   ipfsApi: string;
   repositoryPath: string;
   repositoryServerUrl: string;
-}
-
-interface FileObject {
-  name: string;
-  path: string;
-  content?: string;
-}
-
-declare interface ContractData {
-  full: string[];
-  partial: string[];
 }
 
 export class RepositoryV1Service implements IStorageService {
@@ -75,11 +58,7 @@ export class RepositoryV1Service implements IStorageService {
     address: string,
     match = "full_match"
   ): Array<string> {
-    const files: Array<FileObject> = this.fetchAllFilePaths(
-      chain,
-      address,
-      match
-    );
+    const files: FileObject[] = this.fetchAllFilePaths(chain, address, match);
     const urls: Array<string> = [];
     files.forEach((file) => {
       const relativePath =
@@ -109,11 +88,11 @@ export class RepositoryV1Service implements IStorageService {
     chain: string,
     address: string,
     match = "full_match"
-  ): Array<FileObject> {
+  ): FileObject[] {
     const fullPath: string =
       this.repositoryPath +
       `/contracts/${match}/${chain}/${getAddress(address)}/`;
-    const files: Array<FileObject> = [];
+    const files: FileObject[] = [];
     dirTree(fullPath, {}, (item) => {
       files.push({ name: item.name, path: item.path });
     });
@@ -124,7 +103,7 @@ export class RepositoryV1Service implements IStorageService {
     chain: string,
     address: string,
     match = "full_match"
-  ): Array<FileObject> {
+  ): FileObject[] {
     const files = this.fetchAllFilePaths(chain, address, match);
     for (const file in files) {
       const loadedFile = fs.readFileSync(files[file].path);
@@ -137,9 +116,16 @@ export class RepositoryV1Service implements IStorageService {
     const fullPath = this.repositoryPath + `/contracts/full_match/${chain}/`;
     const partialPath =
       this.repositoryPath + `/contracts/partial_match/${chain}/`;
+
+    const full = fs.existsSync(fullPath) ? fs.readdirSync(fullPath) : [];
+    const partial = fs.existsSync(partialPath)
+      ? fs.readdirSync(partialPath)
+      : [];
     return {
-      full: fs.existsSync(fullPath) ? fs.readdirSync(fullPath) : [],
-      partial: fs.existsSync(partialPath) ? fs.readdirSync(partialPath) : [],
+      full,
+      partialTotal: partial.length,
+      partial,
+      fullTotal: full.length,
     };
   };
 
@@ -147,7 +133,7 @@ export class RepositoryV1Service implements IStorageService {
     chainId: string,
     address: string,
     match: MatchLevel
-  ): Promise<FilesInfo<string>> => {
+  ): Promise<FilesInfo<string[]>> => {
     const fullMatchesTree = this.fetchAllFileUrls(
       chainId,
       address,
@@ -165,7 +151,7 @@ export class RepositoryV1Service implements IStorageService {
     chainId: string,
     address: string,
     match: MatchLevel
-  ): Promise<FilesInfo<FileObject>> => {
+  ): Promise<FilesInfo<FileObject[]>> => {
     const fullMatchesFiles = this.fetchAllFileContents(
       chainId,
       address,

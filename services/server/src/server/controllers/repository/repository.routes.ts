@@ -6,6 +6,8 @@ import {
   createContractEndpoint,
   checkAllByChainAndAddressEndpoint,
   checkByChainAndAddressesEnpoint,
+  getFileEndpoint,
+  getMetadataEndpoint,
 } from "./repository.handlers";
 import { safeHandler } from "../controllers.common";
 
@@ -16,34 +18,23 @@ const router: Router = Router();
 [
   {
     prefix: "/tree/any",
-    method: createEndpoint(
-      services.storage.repositoryV1.getTree,
-      "any_match",
-      true
-    ),
+    method: createEndpoint(services.storage.getTree, "any_match", true),
   },
   {
     prefix: "/any",
-    method: createEndpoint(
-      services.storage.repositoryV1.getContent,
-      "any_match",
-      true
-    ),
+    method: createEndpoint(services.storage.getContent, "any_match", true),
   },
   {
     prefix: "/tree",
-    method: createEndpoint(services.storage.repositoryV1.getTree, "full_match"),
+    method: createEndpoint(services.storage.getTree, "full_match"),
   },
   {
     prefix: "/contracts",
-    method: createContractEndpoint(services.storage.repositoryV1.getContracts),
+    method: createContractEndpoint(services.storage.getContracts),
   },
   {
     prefix: "",
-    method: createEndpoint(
-      services.storage.repositoryV1.getContent,
-      "full_match"
-    ),
+    method: createEndpoint(services.storage.getContent, "full_match"),
   },
 ].forEach((pair) => {
   router
@@ -59,6 +50,14 @@ const router: Router = Router();
 router
   .route("/check-all-by-addresses")
   .get(safeHandler(checkAllByChainAndAddressEndpoint));
+
+router
+  .route("/repository/contracts/:match/:chain/:address/metadata.json")
+  .get(safeHandler(getMetadataEndpoint));
+
+router
+  .route("/repository/contracts/:match/:chain/:address/sources/*")
+  .get(safeHandler(getFileEndpoint));
 
 router
   .route("/check-by-addresses")

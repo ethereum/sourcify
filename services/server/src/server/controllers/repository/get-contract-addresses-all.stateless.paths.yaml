@@ -3,8 +3,8 @@ openapi: "3.0.0"
 paths:
   /files/contracts/{chain}:
     get:
-      summary: Get all contract addresses verified on a chain (full or partial match)
-      description: Returns all verified contracts from the repository for the desired chain. Searches for full and partial matches.
+      summary: Get the first 100 contract addresses verified on a chain (full or partial match)
+      description: Returns the first 100 verified contracts from the repository for the desired chain. Searches for full and partial matches.
       tags:
         - Repository
       parameters:
@@ -14,6 +14,11 @@ paths:
           schema:
             type: string
             format: sourcify-chainId
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: number
       responses:
         "200":
           description: Chain is available as a full match or partial match in the repository

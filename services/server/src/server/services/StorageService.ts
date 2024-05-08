@@ -17,6 +17,9 @@ import {
 } from "./storageServices/AllianceDatabaseService";
 import logger from "../../common/logger";
 import { getMatchStatus } from "../common";
+import { ContractData, FileObject, FilesInfo, MatchLevel } from "../types";
+import { getFileRelativePath } from "./utils/util";
+import config from "config";
 
 export interface IStorageService {
   init(): Promise<boolean>;
@@ -95,6 +98,130 @@ export class StorageService {
     }
   }
 
+  getMetadata = async (
+    chainId: string,
+    address: string,
+    match: MatchLevel
+  ): Promise<string | false> => {
+    return this.repositoryV2!.getMetadata(chainId, address, match);
+  };
+
+  pushMetadataInFilesInfo = async <T>(
+    responseWithoutMetadata: FilesInfo<T[]>,
+    chainId: string,
+    address: string,
+    match: MatchLevel
+  ) => {
+    // files doesn't contain metadata because it's not available in database
+    // we have to push the metadata (from RepositoryV2) into files
+    const metadata = await this.getMetadata(
+      chainId,
+      address,
+      responseWithoutMetadata.status === "full" ? "full_match" : "any_match"
+    );
+
+    if (!metadata) {
+      logger.error("Contract exists in the database but not in RepositoryV2", {
+        chainId,
+        address,
+        match,
+      });
+      throw new Error(
+        "Contract exists in the database but not in RepositoryV2"
+      );
+    }
+
+    const relativePath = getFileRelativePath(
+      chainId,
+      address,
+      match === "full_match" ? "full" : "partial",
+      "metadata.json"
+    );
+
+    if (typeof responseWithoutMetadata.files[0] === "string") {
+      // push the repository url
+      responseWithoutMetadata.files.push(
+        (config.get("repositoryV1.serverUrl") + relativePath) as T
+      );
+    } else {
+      // push the object
+      responseWithoutMetadata.files.push({
+        name: "metadata.json",
+        path: relativePath,
+        content: metadata,
+      } as T);
+    }
+  };
+
+  getFile = async (
+    chainId: string,
+    address: string,
+    match: MatchLevel,
+    path: string
+  ): Promise<string | false> => {
+    return this.sourcifyDatabase!.getFile(chainId, address, match, path);
+  };
+
+  getTree = async (
+    chainId: string,
+    address: string,
+    match: MatchLevel
+  ): Promise<FilesInfo<string[]>> => {
+    const responseWithoutMetadata = await this.sourcifyDatabase!.getTree(
+      chainId,
+      address,
+      match
+    );
+
+    // if files is empty it means that the contract doesn't exist
+    if (responseWithoutMetadata.files.length === 0) {
+      return responseWithoutMetadata;
+    }
+
+    await this.pushMetadataInFilesInfo<string>(
+      responseWithoutMetadata,
+      chainId,
+      address,
+      match
+    );
+
+    return responseWithoutMetadata;
+  };
+
+  getContent = async (
+    chainId: string,
+    address: string,
+    match: MatchLevel
+  ): Promise<FilesInfo<FileObject[]>> => {
+    const responseWithoutMetadata = await this.sourcifyDatabase!.getContent(
+      chainId,
+      address,
+      match
+    );
+
+    // if files is empty it means that the contract doesn't exist
+    if (responseWithoutMetadata.files.length === 0) {
+      return responseWithoutMetadata;
+    }
+
+    await this.pushMetadataInFilesInfo<FileObject>(
+      responseWithoutMetadata,
+      chainId,
+      address,
+      match
+    );
+
+    return responseWithoutMetadata;
+  };
+
+  getContracts = async (
+    chainId: string,
+    offset: number,
+    paginationSize: number
+  ): Promise<ContractData> => {
+    return this.sourcifyDatabase!.getContracts(chainId, offset, paginationSize);
+  };
+
   /* async init() {
     try {
       await this.repositoryV1?.init();
@@ -124,8 +251,11 @@ export class StorageService {
     chainId: string
   ): Promise<Match[]> {
     return (
-      (await this.repositoryV1?.checkByChainAndAddress?.(address, chainId)) ||
-      []
+      (await this.sourcifyDatabase?.checkByChainAndAddress?.(
+        address,
+        chainId,
+        true
+      )) || []
     );
   }
 
@@ -134,9 +264,10 @@ export class StorageService {
     chainId: string
   ): Promise<Match[]> {
     return (
-      (await this.repositoryV1?.checkAllByChainAndAddress?.(
+      (await this.sourcifyDatabase?.checkByChainAndAddress?.(
         address,
-        chainId
+        chainId,
+        false
       )) || []
     );
   }

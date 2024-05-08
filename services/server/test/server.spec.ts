@@ -2054,15 +2054,18 @@ describe("Server", async function () {
             `Original path ${originalPath} not found in metadata`
           )
           .to.include.keys(originalPath);
+
+        const relativeFilePath = path.join(
+          "contracts",
+          "full_match",
+          defaultContractChain,
+          toBeSanitizedContractAddress,
+          "sources",
+          pathTranslationJSON[originalPath]
+        );
         // The path from the server response must be translated
         const translatedContractObject = fetchedContractFiles.find(
-          (obj: any) =>
-            obj.path ===
-            path.join(
-              contractSavedPath,
-              "sources",
-              pathTranslationJSON[originalPath]
-            )
+          (obj: any) => obj.path === relativeFilePath
         );
         chai.expect(translatedContractObject).to.exist;
         // And the saved file must be the same as in the metadata
@@ -2129,7 +2132,6 @@ describe("Server", async function () {
         .field("chain", defaultContractChain)
         .attach("files", metadataBuffer, "metadata.json")
         .attach("files", sourceBuffer, "Storage.sol");
-      console.log(res.body);
       const res0 = await agent.get(
         `/files/${defaultContractChain}/${defaultContractAddress}`
       );

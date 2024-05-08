@@ -11,7 +11,11 @@ type RetrieveMethod = (
   address: string,
   match: MatchLevel
 ) => Promise<FilesInfo<any>>;
-type ConractRetrieveMethod = (chain: string) => Promise<ContractData>;
+type ConractRetrieveMethod = (
+  chain: string,
+  offset: number,
+  paginationSize: number
+) => Promise<ContractData>;
 
 export function createEndpoint(
   retrieveMethod: RetrieveMethod,
@@ -43,7 +47,11 @@ export function createContractEndpoint(
   return async (req: Request, res: Response, next: NextFunction) => {
     let retrieved: ContractData;
     try {
-      retrieved = await contractRetrieveMethod(req.params.chain);
+      retrieved = await contractRetrieveMethod(
+        req.params.chain,
+        req.query.offset ? parseInt(req.query.offset as string) : 0,
+        100
+      );
       if (retrieved.full.length === 0 && retrieved.partial.length === 0)
         return next(new NotFoundError("Contracts have not been found!"));
     } catch (err: any) {
@@ -94,6 +102,29 @@ export async function checkAllByChainAndAddressEndpoint(
   const resultArray = Array.from(map.values());
   logger.debug("Result checkAllByChainAndAddresses", { resultArray });
   res.send(resultArray);
+}
+
+export async function getMetadataEndpoint(req: any, res: Response) {
+  const { match, chain, address } = req.params;
+  const file = await services.storage.getMetadata(chain, address, match);
+  if (file === false) {
+    res.status(404).send();
+  }
+  res.json(JSON.parse(file as string));
+}
+
+export async function getFileEndpoint(req: any, res: Response) {
+  const { match, chain, address } = req.params;
+  const file = await services.storage.getFile(
+    chain,
+    address,
+    match,
+    req.params[0]
+  );
+  if (!file) {
+    res.status(404).send();
+  }
+  res.send(file);
 }
 
 export async function checkByChainAndAddressesEnpoint(req: any, res: Response) {
