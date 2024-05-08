@@ -261,6 +261,20 @@ describe("Test Supported Chains", function () {
   );
 
   verifyContract(
+    "0x34626f85F7Ff1B8546E3d0A2b3c84B9e0aA44dCF",
+    "37714555429",
+    "Xai Testnet",
+    "shared/"
+  );
+
+  verifyContract(
+    "0x46151F59ED4d2021E3946B1d8Ab75780A1FDA2c6",
+    "660279",
+    "Xai Mainnet",
+    "shared/"
+  );
+
+  verifyContract(
     "0xA25b72DADEB96E166D1a225C61b54CA29C45EBD1",
     "8",
     "Ubiq",
