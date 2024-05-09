@@ -594,7 +594,7 @@ export async function getSourcifyMatchAddressesByChainAndMatch(
   pool: Pool,
   chain: number,
   match: "full_match" | "partial_match" | "any_match",
-  offset: number,
+  page: number,
   paginationSize: number
 ) {
   let queryWhere = "";
@@ -629,6 +629,6 @@ export async function getSourcifyMatchAddressesByChainAndMatch(
     ${queryWhere}
     OFFSET $2 LIMIT $3
     `,
-    [chain, offset, paginationSize]
+    [chain, page * paginationSize, paginationSize]
   );
 }

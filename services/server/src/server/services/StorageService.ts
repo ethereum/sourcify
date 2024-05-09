@@ -231,13 +231,13 @@ export class StorageService {
   getPaginatedContracts = (
     chain: string,
     match: MatchLevel,
-    offset: number,
+    page: number,
     limit: number
   ): Promise<PaginatedContractData> => {
     return this.sourcifyDatabase!.getPaginatedContracts(
       chain,
       match,
-      offset,
+      page,
       limit
     );
   };

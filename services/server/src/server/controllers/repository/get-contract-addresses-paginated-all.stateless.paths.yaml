@@ -14,7 +14,7 @@ paths:
           schema:
             type: string
             format: sourcify-chainId
-        - name: offset
+        - name: page
           in: query
           required: false
           schema:

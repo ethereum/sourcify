@@ -20,7 +20,7 @@ type ConractRetrieveMethod = (chain: string) => Promise<ContractData>;
 type PaginatedConractRetrieveMethod = (
   chain: string,
   match: MatchLevel,
-  offset: number,
+  page: number,
   limit: number
 ) => Promise<PaginatedContractData>;
 
@@ -74,7 +74,7 @@ export function createPaginatedContractEndpoint(
       retrieved = await paginatedContractRetrieveMethod(
         req.params.chain,
         match,
-        parseInt((req.query.offset as string) || "0"),
+        parseInt((req.query.page as string) || "0"),
         parseInt((req.query.limit as string) || "200")
       );
     } catch (err: any) {

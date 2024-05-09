@@ -2151,6 +2151,44 @@ describe("Server", async function () {
       const res4 = await agent.get(`/files/contracts/${defaultContractChain}`);
       chai.expect(res4.body.full).has.a.lengthOf(1);
     });
+    it("should handle pagination in /files/contracts/{chain}", async function () {
+      for (let i = 0; i < 5; i++) {
+        const { contractAddress } =
+          await deployFromAbiAndBytecodeForCreatorTxHash(
+            localSigner,
+            artifact.abi,
+            artifact.bytecode,
+            []
+          );
+        await chai
+          .request(server.app)
+          .post("/")
+          .field("address", contractAddress)
+          .field("chain", defaultContractChain)
+          .attach("files", metadataBuffer, "metadata.json")
+          .attach("files", sourceBuffer);
+      }
+      const res0 = await chai
+        .request(server.app)
+        .get(`/files/contracts/any/${defaultContractChain}?page=1&limit=2`);
+      chai.expect(res0.body.pagination.currentPage).to.equal(1);
+      chai.expect(res0.body.pagination.hasNextPage).to.equal(true);
+      chai.expect(res0.body.pagination.hasPreviousPage).to.equal(true);
+      chai.expect(res0.body.pagination.resultsCurrentPage).to.equal(2);
+      chai.expect(res0.body.pagination.resultsPerPage).to.equal(2);
+      chai.expect(res0.body.pagination.totalPages).to.equal(3);
+      chai.expect(res0.body.pagination.totalResults).to.equal(5);
+      const res1 = await chai
+        .request(server.app)
+        .get(`/files/contracts/any/${defaultContractChain}?limit=5`);
+      chai.expect(res1.body.pagination.currentPage).to.equal(0);
+      chai.expect(res1.body.pagination.hasNextPage).to.equal(false);
+      chai.expect(res1.body.pagination.hasPreviousPage).to.equal(false);
+      chai.expect(res1.body.pagination.resultsCurrentPage).to.equal(5);
+      chai.expect(res1.body.pagination.resultsPerPage).to.equal(5);
+      chai.expect(res1.body.pagination.totalPages).to.equal(1);
+      chai.expect(res1.body.pagination.totalResults).to.equal(5);
+    });
   });
   describe("Verify server status endpoint", function () {
     it("should check server's health", async function () {

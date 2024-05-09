@@ -189,7 +189,7 @@ export class SourcifyDatabaseService
   getPaginatedContracts = async (
     chainId: string,
     match: MatchLevel,
-    offset: number,
+    page: number,
     limit: number
   ): Promise<PaginatedContractData> => {
     await this.init();
@@ -198,7 +198,7 @@ export class SourcifyDatabaseService
     const res: PaginatedContractData = {
       results: [],
       pagination: {
-        currentPage: offset,
+        currentPage: page,
         resultsPerPage: limit,
         resultsCurrentPage: 0,
         totalResults: 0,
@@ -246,7 +246,7 @@ export class SourcifyDatabaseService
         this.databasePool,
         parseInt(chainId),
         match,
-        offset,
+        page,
         limit
       );
 
