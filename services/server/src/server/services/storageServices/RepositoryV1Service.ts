@@ -127,9 +127,7 @@ export class RepositoryV1Service implements IStorageService {
       : [];
     return {
       full,
-      partialTotal: partial.length,
       partial,
-      fullTotal: full.length,
     };
   };
 

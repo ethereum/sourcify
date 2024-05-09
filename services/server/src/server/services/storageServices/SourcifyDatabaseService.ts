@@ -17,6 +17,7 @@ import {
   FilesRaw,
   MatchLevel,
   MatchQuality,
+  PaginatedContractData,
 } from "../../types";
 import config from "config";
 import Path from "path";
@@ -32,6 +33,8 @@ export interface SourcifyDatabaseServiceOptions {
     password: string;
   };
 }
+
+const MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS = 200;
 
 export class SourcifyDatabaseService
   extends AbstractDatabaseService
@@ -109,41 +112,51 @@ export class SourcifyDatabaseService
     ];
   }
 
-  getContracts = async (
-    chainId: string,
-    offset: number,
-    paginationSize: number
-  ): Promise<ContractData> => {
+  getContracts = async (chainId: string): Promise<ContractData> => {
     await this.init();
 
     const res: ContractData = {
       full: [],
-      fullTotal: 0,
       partial: [],
-      partialTotal: 0,
     };
-    const perfectMatchAddressesCountResult =
+    const matchAddressesCountResult =
       await Database.countSourcifyMatchAddresses(
         this.databasePool,
         parseInt(chainId)
       );
 
-    if (perfectMatchAddressesCountResult.rowCount === 0) {
+    if (matchAddressesCountResult.rowCount === 0) {
       return res;
     }
 
-    const fullTotal = parseInt(
-      perfectMatchAddressesCountResult.rows[0].full_total
+    const fullTotal = parseInt(matchAddressesCountResult.rows[0].full_total);
+    const partialTotal = parseInt(
+      matchAddressesCountResult.rows[0].partial_total
     );
+    if (
+      fullTotal > MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS ||
+      partialTotal > MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS
+    ) {
+      logger.error(
+        "Requested more than MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS contracts",
+        {
+          maxReturnedContracts: MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS,
+          chainId,
+        }
+      );
+      throw new Error(
+        `Cannot fetch more than ${MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS} contracts, please use /contracts/{full|any}/${chainId} with pagination`
+      );
+    }
+
     if (fullTotal > 0) {
-      res.fullTotal = fullTotal;
       const perfectMatchAddressesResult =
         await Database.getSourcifyMatchAddressesByChainAndMatch(
           this.databasePool,
           parseInt(chainId),
-          "perfect",
-          offset,
-          paginationSize
+          "full_match",
+          0,
+          MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS
         );
 
       if (perfectMatchAddressesResult.rowCount > 0) {
@@ -153,18 +166,14 @@ export class SourcifyDatabaseService
       }
     }
 
-    const partialTotal = parseInt(
-      perfectMatchAddressesCountResult.rows[0].partial_total
-    );
     if (partialTotal > 0) {
-      res.partialTotal = partialTotal;
       const partialMatchAddressesResult =
         await Database.getSourcifyMatchAddressesByChainAndMatch(
           this.databasePool,
           parseInt(chainId),
-          "partial",
-          offset,
-          paginationSize
+          "partial_match",
+          0,
+          MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS
         );
 
       if (partialMatchAddressesResult.rowCount > 0) {
@@ -172,6 +181,86 @@ export class SourcifyDatabaseService
           getAddress(row.address)
         );
       }
+    }
+
+    return res;
+  };
+
+  getPaginatedContracts = async (
+    chainId: string,
+    match: MatchLevel,
+    offset: number,
+    limit: number
+  ): Promise<PaginatedContractData> => {
+    await this.init();
+
+    // Initialize empty result
+    const res: PaginatedContractData = {
+      results: [],
+      pagination: {
+        currentPage: offset,
+        resultsPerPage: limit,
+        resultsCurrentPage: 0,
+        totalResults: 0,
+        totalPages: 0,
+        hasNextPage: false,
+        hasPreviousPage: false,
+      },
+    };
+
+    // Count perfect and partial matches
+    const matchAddressesCountResult =
+      await Database.countSourcifyMatchAddresses(
+        this.databasePool,
+        parseInt(chainId)
+      );
+
+    if (matchAddressesCountResult.rowCount === 0) {
+      return res;
+    }
+
+    // Calculate totalResults, return empty res if there are no contracts
+    const fullTotal = parseInt(matchAddressesCountResult.rows[0].full_total);
+    const partialTotal = parseInt(
+      matchAddressesCountResult.rows[0].partial_total
+    );
+    const anyTotal = fullTotal + partialTotal;
+    if (match === "full_match") {
+      if (fullTotal === 0) {
+        return res;
+      }
+      res.pagination.totalResults = fullTotal;
+    } else if (match === "any_match") {
+      if (anyTotal === 0) {
+        return res;
+      }
+      res.pagination.totalResults = anyTotal;
+    }
+
+    res.pagination.totalPages = Math.ceil(
+      res.pagination.totalResults / res.pagination.resultsPerPage
+    );
+
+    const matchAddressesResult =
+      await Database.getSourcifyMatchAddressesByChainAndMatch(
+        this.databasePool,
+        parseInt(chainId),
+        match,
+        offset,
+        limit
+      );
+
+    if (matchAddressesResult.rowCount > 0) {
+      res.pagination.resultsCurrentPage = matchAddressesResult.rowCount;
+      res.pagination.hasNextPage =
+        res.pagination.currentPage * res.pagination.resultsPerPage +
+          matchAddressesResult.rowCount <
+        res.pagination.totalResults;
+      res.pagination.hasPreviousPage =
+        res.pagination.currentPage === 0 ? false : true;
+      res.results = matchAddressesResult.rows.map((row) =>
+        getAddress(row.address)
+      );
     }
 
     return res;

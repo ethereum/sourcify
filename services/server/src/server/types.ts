@@ -18,8 +18,19 @@ export type MatchQuality = "full" | "partial";
 export declare interface ContractData {
   full: string[];
   partial: string[];
-  fullTotal: number;
-  partialTotal: number;
+}
+
+export declare interface PaginatedContractData {
+  results: string[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    resultsCurrentPage: number;
+    resultsPerPage: number;
+    totalResults: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
 }
 
 export type RepositoryTag = {

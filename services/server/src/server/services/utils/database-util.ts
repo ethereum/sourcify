@@ -593,10 +593,30 @@ export async function countSourcifyMatchAddresses(pool: Pool, chain: number) {
 export async function getSourcifyMatchAddressesByChainAndMatch(
   pool: Pool,
   chain: number,
-  match: "perfect" | "partial",
+  match: "full_match" | "partial_match" | "any_match",
   offset: number,
   paginationSize: number
 ) {
+  let queryWhere = "";
+  switch (match) {
+    case "full_match": {
+      queryWhere =
+        "WHERE sourcify_matches.creation_match = 'perfect' OR sourcify_matches.runtime_match = 'perfect'";
+      break;
+    }
+    case "partial_match": {
+      queryWhere =
+        "WHERE sourcify_matches.creation_match != 'perfect' AND sourcify_matches.runtime_match != 'perfect'";
+      break;
+    }
+    case "any_match": {
+      queryWhere = "";
+      break;
+    }
+    default: {
+      throw new Error("Match type not supported");
+    }
+  }
   return await pool.query(
     `
     SELECT
@@ -606,11 +626,7 @@ export async function getSourcifyMatchAddressesByChainAndMatch(
     JOIN contract_deployments ON 
         contract_deployments.id = verified_contracts.deployment_id
         AND contract_deployments.chain_id = $1
-${
-  match === "perfect"
-    ? "WHERE sourcify_matches.creation_match = 'perfect' OR sourcify_matches.runtime_match = 'perfect'"
-    : "WHERE sourcify_matches.creation_match != 'perfect' AND sourcify_matches.runtime_match != 'perfect'"
-}
+    ${queryWhere}
     OFFSET $2 LIMIT $3
     `,
     [chain, offset, paginationSize]

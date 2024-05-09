@@ -8,6 +8,7 @@ import {
   checkByChainAndAddressesEnpoint,
   getFileEndpoint,
   getMetadataEndpoint,
+  createPaginatedContractEndpoint,
 } from "./repository.handlers";
 import { safeHandler } from "../controllers.common";
 
@@ -33,13 +34,27 @@ const router: Router = Router();
     method: createContractEndpoint(services.storage.getContracts),
   },
   {
+    prefix: "/contracts/full",
+    method: createPaginatedContractEndpoint(
+      services.storage.getPaginatedContracts,
+      "full_match"
+    ),
+  },
+  {
+    prefix: "/contracts/any",
+    method: createPaginatedContractEndpoint(
+      services.storage.getPaginatedContracts,
+      "any_match"
+    ),
+  },
+  {
     prefix: "",
     method: createEndpoint(services.storage.getContent, "full_match"),
   },
 ].forEach((pair) => {
   router
     .route(
-      pair.prefix != "/contracts"
+      !pair.prefix.startsWith("/contracts")
         ? REPOSITORY_CONTROLLER_PREFIX + pair.prefix + "/:chain/:address"
         : REPOSITORY_CONTROLLER_PREFIX + pair.prefix + "/:chain"
     )

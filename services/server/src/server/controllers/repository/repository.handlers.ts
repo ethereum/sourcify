@@ -1,6 +1,11 @@
 import { Response, Request, NextFunction } from "express";
 import { StatusCodes } from "http-status-codes";
-import { ContractData, FilesInfo, MatchLevel } from "../../types";
+import {
+  ContractData,
+  FilesInfo,
+  MatchLevel,
+  PaginatedContractData,
+} from "../../types";
 import { NotFoundError } from "../../../common/errors";
 import { Match } from "@ethereum-sourcify/lib-sourcify";
 import { services } from "../../services/services";
@@ -11,11 +16,13 @@ type RetrieveMethod = (
   address: string,
   match: MatchLevel
 ) => Promise<FilesInfo<any>>;
-type ConractRetrieveMethod = (
+type ConractRetrieveMethod = (chain: string) => Promise<ContractData>;
+type PaginatedConractRetrieveMethod = (
   chain: string,
+  match: MatchLevel,
   offset: number,
-  paginationSize: number
-) => Promise<ContractData>;
+  limit: number
+) => Promise<PaginatedContractData>;
 
 export function createEndpoint(
   retrieveMethod: RetrieveMethod,
@@ -47,13 +54,29 @@ export function createContractEndpoint(
   return async (req: Request, res: Response, next: NextFunction) => {
     let retrieved: ContractData;
     try {
-      retrieved = await contractRetrieveMethod(
-        req.params.chain,
-        req.query.offset ? parseInt(req.query.offset as string) : 0,
-        100
-      );
+      retrieved = await contractRetrieveMethod(req.params.chain);
       if (retrieved.full.length === 0 && retrieved.partial.length === 0)
         return next(new NotFoundError("Contracts have not been found!"));
+    } catch (err: any) {
+      return next(new NotFoundError(err.message));
+    }
+    return res.status(StatusCodes.OK).json(retrieved);
+  };
+}
+
+export function createPaginatedContractEndpoint(
+  paginatedContractRetrieveMethod: PaginatedConractRetrieveMethod,
+  match: MatchLevel
+) {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    let retrieved: PaginatedContractData;
+    try {
+      retrieved = await paginatedContractRetrieveMethod(
+        req.params.chain,
+        match,
+        parseInt((req.query.offset as string) || "0"),
+        parseInt((req.query.limit as string) || "200")
+      );
     } catch (err: any) {
       return next(new NotFoundError(err.message));
     }

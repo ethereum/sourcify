@@ -17,7 +17,13 @@ import {
 } from "./storageServices/AllianceDatabaseService";
 import logger from "../../common/logger";
 import { getMatchStatus } from "../common";
-import { ContractData, FileObject, FilesInfo, MatchLevel } from "../types";
+import {
+  ContractData,
+  FileObject,
+  FilesInfo,
+  MatchLevel,
+  PaginatedContractData,
+} from "../types";
 import { getFileRelativePath } from "./utils/util";
 import config from "config";
 
@@ -218,12 +224,22 @@ export class StorageService {
     return responseWithoutMetadata;
   };
 
-  getContracts = async (
-    chainId: string,
+  getContracts = async (chainId: string): Promise<ContractData> => {
+    return this.sourcifyDatabase!.getContracts(chainId);
+  };
+
+  getPaginatedContracts = (
+    chain: string,
+    match: MatchLevel,
     offset: number,
-    paginationSize: number
-  ): Promise<ContractData> => {
-    return this.sourcifyDatabase!.getContracts(chainId, offset, paginationSize);
+    limit: number
+  ): Promise<PaginatedContractData> => {
+    return this.sourcifyDatabase!.getPaginatedContracts(
+      chain,
+      match,
+      offset,
+      limit
+    );
   };
 
   /* async init() {

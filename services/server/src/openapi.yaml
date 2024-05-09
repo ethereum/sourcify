@@ -34,6 +34,10 @@ paths:
     $ref: "server/controllers/repository/get-file-static.stateless.paths.yaml#/paths/~1repository~1contracts~1{full_match | partial_match}~1{chain}~1{address}~1{filePath}"
   /files/contracts/{chain}:
     $ref: "server/controllers/repository/get-contract-addresses-all.stateless.paths.yaml#/paths/~1files~1contracts~1{chain}"
+  /files/contracts/any/{chain}:
+    $ref: "server/controllers/repository/get-contract-addresses-paginated-all.stateless.paths.yaml#/paths/~1files~1contracts~1any~1{chain}"
+  /files/contracts/full/{chain}:
+    $ref: "server/controllers/repository/get-contract-addresses-paginated-full.stateless.paths.yaml#/paths/~1files~1contracts~1full~1{chain}"
   /files/tree/any/{chain}/{address}:
     $ref: "server/controllers/repository/get-file-tree-all.stateless.paths.yaml#/paths/~1files~1tree~1any~1{chain}~1{address}"
   /files/tree/{chain}/{address}:
@@ -75,10 +79,10 @@ paths:
                   enum: [error, warn, info, debug, silly]
             examples:
               change to debug:
-                value: 
+                value:
                   level: "debug"
               change to info:
-                value: 
+                value:
                   level: "info"
       responses:
         "200":
