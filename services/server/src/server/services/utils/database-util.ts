@@ -142,12 +142,10 @@ export async function getSourcifyMatchByChainAddress(
   return await pool.query(
     `
       SELECT
-        sourcify_matches.*,
+        sourcify_matches.created_at,
         sourcify_matches.creation_match as creation_match_status,
         sourcify_matches.runtime_match as runtime_match_status,
-        verified_contracts.*,
-        contract_deployments.*,
-        compiled_contracts.*
+        compiled_contracts.sources
       FROM sourcify_matches
       JOIN verified_contracts ON verified_contracts.id = sourcify_matches.verified_contract_id
       JOIN compiled_contracts ON compiled_contracts.id = verified_contracts.compilation_id
