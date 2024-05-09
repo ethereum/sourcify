@@ -155,6 +155,11 @@ export const processRequestFromEtherscan = async (
   }
   const contractResultJson = resultJson.result[0];
   const sourceCodeObject = contractResultJson.SourceCode;
+
+  if (contractResultJson.CompilerVersion.startsWith("vyper")) {
+    throw new Error("Sourcify currently cannot verify Vyper contracts");
+  }
+
   const compilerVersion =
     contractResultJson.CompilerVersion.charAt(0) === "v"
       ? contractResultJson.CompilerVersion.slice(1)
