@@ -1594,5 +1594,13 @@
   "6321": {
     "sourcifyName": "Aura Euphoria Testnet",
     "supported": true
+  },
+  "200901": {
+    "sourcifyName": "Bitlayer Mainnet",
+    "supported": true
+  },
+  "200810": {
+    "sourcifyName": "Bitlayer Testnet",
+    "supported": true
   }
 }

@@ -1450,6 +1450,22 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // Bitlayer Mainnet
+  verifyContract(
+    "0x3eBC948d4E3E1dACAd8fcAB719937b6264222718",
+    "200901",
+    "Bitlayer Mainnet",
+    "shared/"
+  );
+
+  // Bitlayer Testnet
+  verifyContract(
+    "0x0E05574850f8a70B40df4A665Eb438EA9a359615",
+    "200810",
+    "Bitlayer Testnet",
+    "shared/"
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests: ChainApiResponse[] = [];
     supportedChains
