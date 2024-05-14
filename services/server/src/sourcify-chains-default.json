@@ -1602,5 +1602,23 @@
   "200810": {
     "sourcifyName": "Bitlayer Testnet",
     "supported": true
+  },
+  "690": {
+    "sourcifyName": "Redstone",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://explorer.redstone.xyz/api"
+      }
+    }
+  },
+  "17069": {
+    "sourcifyName": "Garnet Holesky",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://explorer.garnetchain.com/api"
+      }
+    }
   }
 }
