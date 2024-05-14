@@ -2171,23 +2171,27 @@ describe("Server", async function () {
       const res0 = await chai
         .request(server.app)
         .get(`/files/contracts/any/${defaultContractChain}?page=1&limit=2`);
-      chai.expect(res0.body.pagination.currentPage).to.equal(1);
-      chai.expect(res0.body.pagination.hasNextPage).to.equal(true);
-      chai.expect(res0.body.pagination.hasPreviousPage).to.equal(true);
-      chai.expect(res0.body.pagination.resultsCurrentPage).to.equal(2);
-      chai.expect(res0.body.pagination.resultsPerPage).to.equal(2);
-      chai.expect(res0.body.pagination.totalPages).to.equal(3);
-      chai.expect(res0.body.pagination.totalResults).to.equal(5);
+      chai.expect(res0.body.pagination).to.deep.equal({
+        currentPage: 1,
+        hasNextPage: true,
+        hasPreviousPage: true,
+        resultsCurrentPage: 2,
+        resultsPerPage: 2,
+        totalPages: 3,
+        totalResults: 5,
+      });
       const res1 = await chai
         .request(server.app)
         .get(`/files/contracts/any/${defaultContractChain}?limit=5`);
-      chai.expect(res1.body.pagination.currentPage).to.equal(0);
-      chai.expect(res1.body.pagination.hasNextPage).to.equal(false);
-      chai.expect(res1.body.pagination.hasPreviousPage).to.equal(false);
-      chai.expect(res1.body.pagination.resultsCurrentPage).to.equal(5);
-      chai.expect(res1.body.pagination.resultsPerPage).to.equal(5);
-      chai.expect(res1.body.pagination.totalPages).to.equal(1);
-      chai.expect(res1.body.pagination.totalResults).to.equal(5);
+      chai.expect(res1.body.pagination).to.deep.equal({
+        currentPage: 0,
+        hasNextPage: false,
+        hasPreviousPage: false,
+        resultsCurrentPage: 5,
+        resultsPerPage: 5,
+        totalPages: 1,
+        totalResults: 5,
+      });
     });
   });
   describe("Verify server status endpoint", function () {
