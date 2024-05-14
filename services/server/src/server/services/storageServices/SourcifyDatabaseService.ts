@@ -145,7 +145,7 @@ export class SourcifyDatabaseService
         }
       );
       throw new Error(
-        `Cannot fetch more than ${MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS} contracts, please use /contracts/{full|any}/${chainId} with pagination`
+        `Cannot fetch more than ${MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS} contracts (${fullTotal} full matches, ${partialTotal} partial matches), please use /contracts/{full|any}/${chainId} with pagination`
       );
     }
 
