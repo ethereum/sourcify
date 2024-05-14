@@ -1,7 +1,7 @@
 {
   "name": "sourcify-monorepo",
   "private": true,
-  "version": "1.2.8",
+  "version": "1.2.9",
   "description": "Monorepo containing all Sourcify packages, and services",
   "workspaces": [
     "packages/*",
