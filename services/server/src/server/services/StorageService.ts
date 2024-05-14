@@ -301,6 +301,14 @@ export class StorageService {
       creationMatch: match.creationMatch,
     });
 
+    // Sourcify Database and RepositoryV2 must be enabled
+    if (!this.sourcifyDatabase) {
+      throw new Error("SourcifyDatabase must be enabled");
+    }
+    if (!this.repositoryV2) {
+      throw new Error("RepositoryV2 must be enabled");
+    }
+
     const existingMatch = await this.checkAllByChainAndAddress(
       match.address,
       match.chainId
@@ -343,31 +351,32 @@ export class StorageService {
       }
     }
 
-    if (this.sourcifyDatabase) {
+    // @deprecated
+    if (this.repositoryV1) {
       promises.push(
-        this.sourcifyDatabase.storeMatch(contract, match).catch((e) =>
-          logger.error("Error storing to SourcifyDatabase: ", {
-            error: e,
-          })
-        )
+        this.repositoryV1
+          .storeMatch(contract, match)
+          .catch((e) =>
+            logger.error("Error storing to RepositoryV1: ", { error: e })
+          )
       );
     }
 
-    if (this.repositoryV2) {
-      promises.push(
-        this.repositoryV2.storeMatch(contract, match).catch((e) =>
-          logger.error("Error storing to RepositoryV2: ", {
-            error: e,
-          })
-        )
-      );
-    }
-
-    // Always include repositoryV1
+    // Add by default both sourcifyDatabase and repositoryV2
     promises.push(
-      this.repositoryV1.storeMatch(contract, match).catch((e) => {
-        logger.error("Error storing to RepositoryV1: ", { error: e });
-        // For repositoryV1 we throw
+      this.sourcifyDatabase.storeMatch(contract, match).catch((e) => {
+        logger.error("Error storing to SourcifyDatabase: ", {
+          error: e,
+        });
+        throw e;
+      })
+    );
+
+    promises.push(
+      this.repositoryV2.storeMatch(contract, match).catch((e) => {
+        logger.error("Error storing to RepositoryV2: ", {
+          error: e,
+        });
         throw e;
       })
     );

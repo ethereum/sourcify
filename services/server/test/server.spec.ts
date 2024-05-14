@@ -82,6 +82,7 @@ const storageService = new StorageService({
   },
   repositoryV2ServiceOptions: {
     ipfsApi: process.env.IPFS_API || "",
+    repositoryPath: config.get("repositoryV2.path"),
   },
   sourcifyDatabaseServiceOptions: {
     postgres: {
