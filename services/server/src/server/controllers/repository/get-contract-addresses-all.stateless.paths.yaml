@@ -50,7 +50,7 @@ paths:
                   error:
                     type: string
                     example: "Contracts have not been found!"
-        "500":
+        "400":
           description: Cannot use this API if there are more than 200 contracts
           content:
             application/json:

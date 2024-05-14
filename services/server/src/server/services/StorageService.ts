@@ -26,6 +26,7 @@ import {
 } from "../types";
 import { getFileRelativePath } from "./utils/util";
 import config from "config";
+import { BadRequestError } from "../../common/errors";
 
 export interface IStorageService {
   init(): Promise<boolean>;
@@ -169,7 +170,18 @@ export class StorageService {
     match: MatchLevel,
     path: string
   ): Promise<string | false> => {
-    return this.sourcifyDatabase!.getFile(chainId, address, match, path);
+    try {
+      return this.sourcifyDatabase!.getFile(chainId, address, match, path);
+    } catch (error) {
+      logger.error("Error while getting file from database", {
+        chainId,
+        address,
+        match,
+        path,
+        error,
+      });
+      throw new Error("Error while getting file from database");
+    }
   };
 
   getTree = async (
@@ -177,11 +189,22 @@ export class StorageService {
     address: string,
     match: MatchLevel
   ): Promise<FilesInfo<string[]>> => {
-    const responseWithoutMetadata = await this.sourcifyDatabase!.getTree(
-      chainId,
-      address,
-      match
-    );
+    let responseWithoutMetadata;
+    try {
+      responseWithoutMetadata = await this.sourcifyDatabase!.getTree(
+        chainId,
+        address,
+        match
+      );
+    } catch (error) {
+      logger.error("Error while getting tree from database", {
+        chainId,
+        address,
+        match,
+        error,
+      });
+      throw new Error("Error while getting tree from database");
+    }
 
     // if files is empty it means that the contract doesn't exist
     if (responseWithoutMetadata.files.length === 0) {
@@ -203,11 +226,22 @@ export class StorageService {
     address: string,
     match: MatchLevel
   ): Promise<FilesInfo<Array<FileObject>>> => {
-    const responseWithoutMetadata = await this.sourcifyDatabase!.getContent(
-      chainId,
-      address,
-      match
-    );
+    let responseWithoutMetadata;
+    try {
+      responseWithoutMetadata = await this.sourcifyDatabase!.getContent(
+        chainId,
+        address,
+        match
+      );
+    } catch (error) {
+      logger.error("Error while getting content from database", {
+        chainId,
+        address,
+        match,
+        error,
+      });
+      throw new Error("Error while getting content from database");
+    }
 
     // if files is empty it means that the contract doesn't exist
     if (responseWithoutMetadata.files.length === 0) {
@@ -225,21 +259,43 @@ export class StorageService {
   };
 
   getContracts = async (chainId: string): Promise<ContractData> => {
-    return this.sourcifyDatabase!.getContracts(chainId);
+    try {
+      return this.sourcifyDatabase!.getContracts(chainId);
+    } catch (error) {
+      if (error instanceof BadRequestError) {
+        throw error;
+      }
+      logger.error("Error while getting contracts from database", {
+        chainId,
+        error,
+      });
+      throw new Error("Error while getting contracts from database");
+    }
   };
 
   getPaginatedContracts = (
-    chain: string,
+    chainId: string,
     match: MatchLevel,
     page: number,
     limit: number
   ): Promise<PaginatedContractData> => {
-    return this.sourcifyDatabase!.getPaginatedContracts(
-      chain,
-      match,
-      page,
-      limit
-    );
+    try {
+      return this.sourcifyDatabase!.getPaginatedContracts(
+        chainId,
+        match,
+        page,
+        limit
+      );
+    } catch (error) {
+      logger.error("Error while getting paginated contracts from database", {
+        chainId,
+        match,
+        page,
+        limit,
+        error,
+      });
+      throw new Error("Error while getting paginated contracts from database");
+    }
   };
 
   /* async init() {

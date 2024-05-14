@@ -23,6 +23,7 @@ import config from "config";
 import Path from "path";
 import { getFileRelativePath } from "../utils/util";
 import { getAddress } from "ethers";
+import { BadRequestError } from "../../../common/errors";
 
 export interface SourcifyDatabaseServiceOptions {
   postgres: {
@@ -144,7 +145,7 @@ export class SourcifyDatabaseService
           chainId,
         }
       );
-      throw new Error(
+      throw new BadRequestError(
         `Cannot fetch more than ${MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS} contracts (${fullTotal} full matches, ${partialTotal} partial matches), please use /contracts/{full|any}/${chainId} with pagination`
       );
     }
