@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@1.7.0 - 2024-05-14
+
+- Support for multiple auxdata contracts
+- Refactoring the tests into Typescript
+- Fix error level logs to info
+- Fix Vyper contracts from Etherscan
+- New chains:
+  - Xai Mainnet (660279)
+  - Xai Testnet (37714555429)
+  - Stratis Mainnet (105105)
+  - Auroria Testnet (205205)
+  - Merlin Mainnet (4200)
+  - Aura Euphoria Testnet (6321)
+  - Bitlayer Mainnet (200901)
+  - Bitlayer Testnet (200810)
+
 ## sourcify-server@1.6.0 - 2024-04-23
 
 - Use Postgres session table for session instead of memory only

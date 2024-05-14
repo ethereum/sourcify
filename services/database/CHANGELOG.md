@@ -1,5 +1,9 @@
 # Changelog for `sourcify-database`
 
+## sourcify-database@1.1.1 - 2024-05-14
+
+- bump version
+
 ## sourcify-database@1.1.0 - 2024-04-23
 
 - Add session table to migrations 

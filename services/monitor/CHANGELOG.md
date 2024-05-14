@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-monitor@1.1.14 - 2024-05-14
+
+- bump version
+
 ## sourcify-monitor@1.1.13 - 2024-04-23
 
 - Make package private

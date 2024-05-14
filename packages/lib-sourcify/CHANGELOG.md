@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## @ethereum-sourcify/lib-sourcify@1.8.0 - 2024-05-14
+
+- Support for verification with double metadata hash (auxdata)
+- Added test for multiple auxdata
+- Change error logs to info level
+
 ## @ethereum-sourcify/lib-sourcify@1.7.5 - 2024-04-23
 
 - Add log to fetching bytecode

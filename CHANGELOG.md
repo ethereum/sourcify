@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This CHANGELOG will contain monorepo related changes such as CI configs, shared dependencies and the development setup.
 
+## sourcify-monorepo@1.2.9 - 2024-05-14
+
+- fix .vscode/launch.json 
+- update package-lock.json
+- update h5ai-nginx
+
 ## sourcify-monorepo@1.2.8 - 2024-04-23
 
 - Skip npm-publish if not a package

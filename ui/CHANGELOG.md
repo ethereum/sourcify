@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-ui@1.1.6 - 2024-05-14
+
+- bump version
+
 ## sourcify-ui@1.1.5 - 2024-04-23
 
 - Use chain.title before chain.name

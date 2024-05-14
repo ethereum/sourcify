@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## @ethereum-sourcify/contract-call-decoder@0.2.12 - 2024-05-14
+
+- fix tests
+
 ## @ethereum-sourcify/contract-call-decoder@0.2.11 - 2024-03-28
 
 - Bump `@ethereum-sourcify/bytecode-utils` to `1.2.7`
