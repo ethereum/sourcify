@@ -137,7 +137,7 @@ export class SourcifyDatabaseService
       fullTotal > MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS ||
       partialTotal > MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS
     ) {
-      logger.error(
+      logger.info(
         "Requested more than MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS contracts",
         {
           maxReturnedContracts: MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS,
