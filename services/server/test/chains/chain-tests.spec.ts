@@ -1433,7 +1433,7 @@ describe("Test Supported Chains", function () {
     "Auroria Testnet",
     "shared/"
   );
-  
+
   // Merlin Mainnet
   verifyContract(
     "0x5C45f386FD1346FE80a1A0dA6c889384372E4580",
@@ -1463,6 +1463,22 @@ describe("Test Supported Chains", function () {
     "0x0E05574850f8a70B40df4A665Eb438EA9a359615",
     "200810",
     "Bitlayer Testnet",
+    "shared/"
+  );
+
+  // Redstone
+  verifyContract(
+    "0x81EbbEDEd806Dbaa6ccD5a9D6D88D0d90B70dfc9",
+    "690",
+    "Redstone",
+    "shared/"
+  );
+
+  // Garnet Holesky
+  verifyContract(
+    "0x81EbbEDEd806Dbaa6ccD5a9D6D88D0d90B70dfc9",
+    "17069",
+    "Garnet Holesky",
     "shared/"
   );
 
