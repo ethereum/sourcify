@@ -59,4 +59,4 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "`Cannot fetch more than 200 contracts (1521 full matches, 3453 partial matches), please use /contracts/{full|any}/4 with pagination`"
+                    example: "Cannot fetch more than 200 contracts (1521 full matches, 3453 partial matches), please use /contracts/{full|any}/4 with pagination"
