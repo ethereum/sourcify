@@ -3,8 +3,8 @@ openapi: "3.0.0"
 paths:
   /files/contracts/{chain}:
     get:
-      summary: Get all contract addresses verified on a chain (full or partial match)
-      description: Returns all verified contracts from the repository for the desired chain. Searches for full and partial matches.
+      summary: (Deprecated) Get the first 200 contract addresses verified on a chain (full or partial match)
+      description: Returns the first 200 verified contracts from the repository for the desired chain. Searches for full and partial matches. This endpoint is deprecated and only retuns 200 addresses. Use `/files/contracts/any/` and `/files/contracts/full/` instead
       tags:
         - Repository
       parameters:
@@ -50,3 +50,13 @@ paths:
                   error:
                     type: string
                     example: "Contracts have not been found!"
+        "400":
+          description: Cannot use this API if there are more than 200 contracts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Cannot fetch more than 200 contracts (1521 full matches, 3453 partial matches), please use /contracts/{full|any}/4 with pagination"

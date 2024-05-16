@@ -17,6 +17,16 @@ import {
 } from "./storageServices/AllianceDatabaseService";
 import logger from "../../common/logger";
 import { getMatchStatus } from "../common";
+import {
+  ContractData,
+  FileObject,
+  FilesInfo,
+  MatchLevel,
+  PaginatedContractData,
+} from "../types";
+import { getFileRelativePath } from "./utils/util";
+import config from "config";
+import { BadRequestError } from "../../common/errors";
 
 export interface IStorageService {
   init(): Promise<boolean>;
@@ -95,6 +105,199 @@ export class StorageService {
     }
   }
 
+  getMetadata = async (
+    chainId: string,
+    address: string,
+    match: MatchLevel
+  ): Promise<string | false> => {
+    return this.repositoryV2!.getMetadata(chainId, address, match);
+  };
+
+  /**
+   * This function inject the metadata file in FilesInfo<T[]>
+   * SourcifyDatabase.getTree and SourcifyDatabase.getContent read files from
+   * `compiled_contracts.sources` where the metadata file is not available
+   */
+  pushMetadataInFilesInfo = async <T extends string | FileObject>(
+    responseWithoutMetadata: FilesInfo<T[]>,
+    chainId: string,
+    address: string,
+    match: MatchLevel
+  ) => {
+    const metadata = await this.getMetadata(
+      chainId,
+      address,
+      responseWithoutMetadata.status === "full" ? "full_match" : "any_match"
+    );
+
+    if (!metadata) {
+      logger.error("Contract exists in the database but not in RepositoryV2", {
+        chainId,
+        address,
+        match,
+      });
+      throw new Error(
+        "Contract exists in the database but not in RepositoryV2"
+      );
+    }
+
+    const relativePath = getFileRelativePath(
+      chainId,
+      address,
+      match === "full_match" ? "full" : "partial",
+      "metadata.json"
+    );
+
+    if (typeof responseWithoutMetadata.files[0] === "string") {
+      // If this function is called with T == string
+      responseWithoutMetadata.files.push(
+        (config.get("repositoryV1.serverUrl") + relativePath) as T
+      );
+    } else {
+      // If this function is called with T === FileObject
+      // It's safe to handle this case in the else because of <T extends string | FileObject>
+      responseWithoutMetadata.files.push({
+        name: "metadata.json",
+        path: relativePath,
+        content: metadata,
+      } as T);
+    }
+  };
+
+  getFile = async (
+    chainId: string,
+    address: string,
+    match: MatchLevel,
+    path: string
+  ): Promise<string | false> => {
+    try {
+      return this.sourcifyDatabase!.getFile(chainId, address, match, path);
+    } catch (error) {
+      logger.error("Error while getting file from database", {
+        chainId,
+        address,
+        match,
+        path,
+        error,
+      });
+      throw new Error("Error while getting file from database");
+    }
+  };
+
+  getTree = async (
+    chainId: string,
+    address: string,
+    match: MatchLevel
+  ): Promise<FilesInfo<string[]>> => {
+    let responseWithoutMetadata;
+    try {
+      responseWithoutMetadata = await this.sourcifyDatabase!.getTree(
+        chainId,
+        address,
+        match
+      );
+    } catch (error) {
+      logger.error("Error while getting tree from database", {
+        chainId,
+        address,
+        match,
+        error,
+      });
+      throw new Error("Error while getting tree from database");
+    }
+
+    // if files is empty it means that the contract doesn't exist
+    if (responseWithoutMetadata.files.length === 0) {
+      return responseWithoutMetadata;
+    }
+
+    await this.pushMetadataInFilesInfo<string>(
+      responseWithoutMetadata,
+      chainId,
+      address,
+      match
+    );
+
+    return responseWithoutMetadata;
+  };
+
+  getContent = async (
+    chainId: string,
+    address: string,
+    match: MatchLevel
+  ): Promise<FilesInfo<Array<FileObject>>> => {
+    let responseWithoutMetadata;
+    try {
+      responseWithoutMetadata = await this.sourcifyDatabase!.getContent(
+        chainId,
+        address,
+        match
+      );
+    } catch (error) {
+      logger.error("Error while getting content from database", {
+        chainId,
+        address,
+        match,
+        error,
+      });
+      throw new Error("Error while getting content from database");
+    }
+
+    // if files is empty it means that the contract doesn't exist
+    if (responseWithoutMetadata.files.length === 0) {
+      return responseWithoutMetadata;
+    }
+
+    await this.pushMetadataInFilesInfo<FileObject>(
+      responseWithoutMetadata,
+      chainId,
+      address,
+      match
+    );
+
+    return responseWithoutMetadata;
+  };
+
+  getContracts = async (chainId: string): Promise<ContractData> => {
+    try {
+      return this.sourcifyDatabase!.getContracts(chainId);
+    } catch (error) {
+      if (error instanceof BadRequestError) {
+        throw error;
+      }
+      logger.error("Error while getting contracts from database", {
+        chainId,
+        error,
+      });
+      throw new Error("Error while getting contracts from database");
+    }
+  };
+
+  getPaginatedContracts = (
+    chainId: string,
+    match: MatchLevel,
+    page: number,
+    limit: number
+  ): Promise<PaginatedContractData> => {
+    try {
+      return this.sourcifyDatabase!.getPaginatedContracts(
+        chainId,
+        match,
+        page,
+        limit
+      );
+    } catch (error) {
+      logger.error("Error while getting paginated contracts from database", {
+        chainId,
+        match,
+        page,
+        limit,
+        error,
+      });
+      throw new Error("Error while getting paginated contracts from database");
+    }
+  };
+
   /* async init() {
     try {
       await this.repositoryV1?.init();
@@ -124,8 +327,11 @@ export class StorageService {
     chainId: string
   ): Promise<Match[]> {
     return (
-      (await this.repositoryV1?.checkByChainAndAddress?.(address, chainId)) ||
-      []
+      (await this.sourcifyDatabase?.checkByChainAndAddress?.(
+        address,
+        chainId,
+        true
+      )) || []
     );
   }
 
@@ -134,9 +340,10 @@ export class StorageService {
     chainId: string
   ): Promise<Match[]> {
     return (
-      (await this.repositoryV1?.checkAllByChainAndAddress?.(
+      (await this.sourcifyDatabase?.checkByChainAndAddress?.(
         address,
-        chainId
+        chainId,
+        false
       )) || []
     );
   }
@@ -149,6 +356,14 @@ export class StorageService {
       runtimeMatch: match.runtimeMatch,
       creationMatch: match.creationMatch,
     });
+
+    // Sourcify Database and RepositoryV2 must be enabled
+    if (!this.sourcifyDatabase) {
+      throw new Error("SourcifyDatabase must be enabled");
+    }
+    if (!this.repositoryV2) {
+      throw new Error("RepositoryV2 must be enabled");
+    }
 
     const existingMatch = await this.checkAllByChainAndAddress(
       match.address,
@@ -192,31 +407,32 @@ export class StorageService {
       }
     }
 
-    if (this.sourcifyDatabase) {
+    // @deprecated
+    if (this.repositoryV1) {
       promises.push(
-        this.sourcifyDatabase.storeMatch(contract, match).catch((e) =>
-          logger.error("Error storing to SourcifyDatabase: ", {
-            error: e,
-          })
-        )
+        this.repositoryV1
+          .storeMatch(contract, match)
+          .catch((e) =>
+            logger.error("Error storing to RepositoryV1: ", { error: e })
+          )
       );
     }
 
-    if (this.repositoryV2) {
-      promises.push(
-        this.repositoryV2.storeMatch(contract, match).catch((e) =>
-          logger.error("Error storing to RepositoryV2: ", {
-            error: e,
-          })
-        )
-      );
-    }
-
-    // Always include repositoryV1
+    // Add by default both sourcifyDatabase and repositoryV2
     promises.push(
-      this.repositoryV1.storeMatch(contract, match).catch((e) => {
-        logger.error("Error storing to RepositoryV1: ", { error: e });
-        // For repositoryV1 we throw
+      this.sourcifyDatabase.storeMatch(contract, match).catch((e) => {
+        logger.error("Error storing to SourcifyDatabase: ", {
+          error: e,
+        });
+        throw e;
+      })
+    );
+
+    promises.push(
+      this.repositoryV2.storeMatch(contract, match).catch((e) => {
+        logger.error("Error storing to RepositoryV2: ", {
+          error: e,
+        });
         throw e;
       })
     );

@@ -142,9 +142,13 @@ export async function getSourcifyMatchByChainAddress(
   return await pool.query(
     `
       SELECT
-        sourcify_matches.*
+        sourcify_matches.created_at,
+        sourcify_matches.creation_match as creation_match_status,
+        sourcify_matches.runtime_match as runtime_match_status,
+        compiled_contracts.sources
       FROM sourcify_matches
       JOIN verified_contracts ON verified_contracts.id = sourcify_matches.verified_contract_id
+      JOIN compiled_contracts ON compiled_contracts.id = verified_contracts.compilation_id
       JOIN contract_deployments ON 
         contract_deployments.id = verified_contracts.deployment_id 
         AND contract_deployments.chain_id = $1 
@@ -566,4 +570,65 @@ export function normalizeRecompiledBytecodes(
       }
     });
   }
+}
+
+export async function countSourcifyMatchAddresses(pool: Pool, chain: number) {
+  return await pool.query(
+    `
+    SELECT
+        contract_deployments.chain_id,
+        SUM(CASE WHEN sourcify_matches.creation_match = 'perfect' OR sourcify_matches.runtime_match = 'perfect' THEN 1 ELSE 0 END) AS full_total,
+        SUM(CASE WHEN sourcify_matches.creation_match != 'perfect' AND sourcify_matches.runtime_match != 'perfect' THEN 1 ELSE 0 END) AS partial_total
+    FROM sourcify_matches
+    JOIN verified_contracts ON verified_contracts.id = sourcify_matches.verified_contract_id
+    JOIN contract_deployments ON 
+        contract_deployments.id = verified_contracts.deployment_id
+        AND contract_deployments.chain_id = $1
+    GROUP BY contract_deployments.chain_id;
+    `,
+    [chain]
+  );
+}
+
+export async function getSourcifyMatchAddressesByChainAndMatch(
+  pool: Pool,
+  chain: number,
+  match: "full_match" | "partial_match" | "any_match",
+  page: number,
+  paginationSize: number
+) {
+  let queryWhere = "";
+  switch (match) {
+    case "full_match": {
+      queryWhere =
+        "WHERE sourcify_matches.creation_match = 'perfect' OR sourcify_matches.runtime_match = 'perfect'";
+      break;
+    }
+    case "partial_match": {
+      queryWhere =
+        "WHERE sourcify_matches.creation_match != 'perfect' AND sourcify_matches.runtime_match != 'perfect'";
+      break;
+    }
+    case "any_match": {
+      queryWhere = "";
+      break;
+    }
+    default: {
+      throw new Error("Match type not supported");
+    }
+  }
+  return await pool.query(
+    `
+    SELECT
+      concat('0x',encode(contract_deployments.address, 'hex')) as address
+    FROM sourcify_matches
+    JOIN verified_contracts ON verified_contracts.id = sourcify_matches.verified_contract_id
+    JOIN contract_deployments ON 
+        contract_deployments.id = verified_contracts.deployment_id
+        AND contract_deployments.chain_id = $1
+    ${queryWhere}
+    OFFSET $2 LIMIT $3
+    `,
+    [chain, page * paginationSize, paginationSize]
+  );
 }

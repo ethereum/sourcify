@@ -1,6 +1,11 @@
 import { Response, Request, NextFunction } from "express";
 import { StatusCodes } from "http-status-codes";
-import { ContractData, FilesInfo, MatchLevel } from "../../types";
+import {
+  ContractData,
+  FilesInfo,
+  MatchLevel,
+  PaginatedContractData,
+} from "../../types";
 import { NotFoundError } from "../../../common/errors";
 import { Match } from "@ethereum-sourcify/lib-sourcify";
 import { services } from "../../services/services";
@@ -12,6 +17,12 @@ type RetrieveMethod = (
   match: MatchLevel
 ) => Promise<FilesInfo<any>>;
 type ConractRetrieveMethod = (chain: string) => Promise<ContractData>;
+type PaginatedConractRetrieveMethod = (
+  chain: string,
+  match: MatchLevel,
+  page: number,
+  limit: number
+) => Promise<PaginatedContractData>;
 
 export function createEndpoint(
   retrieveMethod: RetrieveMethod,
@@ -46,6 +57,26 @@ export function createContractEndpoint(
       retrieved = await contractRetrieveMethod(req.params.chain);
       if (retrieved.full.length === 0 && retrieved.partial.length === 0)
         return next(new NotFoundError("Contracts have not been found!"));
+    } catch (err: any) {
+      return next(new NotFoundError(err.message));
+    }
+    return res.status(StatusCodes.OK).json(retrieved);
+  };
+}
+
+export function createPaginatedContractEndpoint(
+  paginatedContractRetrieveMethod: PaginatedConractRetrieveMethod,
+  match: MatchLevel
+) {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    let retrieved: PaginatedContractData;
+    try {
+      retrieved = await paginatedContractRetrieveMethod(
+        req.params.chain,
+        match,
+        parseInt((req.query.page as string) || "0"),
+        parseInt((req.query.limit as string) || "200")
+      );
     } catch (err: any) {
       return next(new NotFoundError(err.message));
     }
@@ -94,6 +125,29 @@ export async function checkAllByChainAndAddressEndpoint(
   const resultArray = Array.from(map.values());
   logger.debug("Result checkAllByChainAndAddresses", { resultArray });
   res.send(resultArray);
+}
+
+export async function getMetadataEndpoint(req: any, res: Response) {
+  const { match, chain, address } = req.params;
+  const file = await services.storage.getMetadata(chain, address, match);
+  if (file === false) {
+    res.status(404).send();
+  }
+  res.json(JSON.parse(file as string));
+}
+
+export async function getFileEndpoint(req: any, res: Response) {
+  const { match, chain, address } = req.params;
+  const file = await services.storage.getFile(
+    chain,
+    address,
+    match,
+    req.params[0]
+  );
+  if (!file) {
+    res.status(404).send();
+  }
+  res.send(file);
 }
 
 export async function checkByChainAndAddressesEnpoint(req: any, res: Response) {

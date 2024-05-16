@@ -13,7 +13,14 @@ import {
   StringMap,
   CheckedContract,
 } from "@ethereum-sourcify/lib-sourcify";
-import { MatchQuality, RepositoryTag } from "../../types";
+import {
+  FileObject,
+  FilesInfo,
+  MatchLevel,
+  MatchQuality,
+  PathConfig,
+  RepositoryTag,
+} from "../../types";
 import {
   create as createIpfsClient,
   IPFSHTTPClient,
@@ -23,7 +30,6 @@ import logger from "../../../common/logger";
 import { getAddress, id as keccak256 } from "ethers";
 import { getMatchStatus } from "../../common";
 import { IStorageService } from "../StorageService";
-import { PathConfig } from "../utils/repository-util";
 
 export interface RepositoryV2ServiceOptions {
   ipfsApi: string;
@@ -48,6 +54,26 @@ export class RepositoryV2Service implements IStorageService {
   async init() {
     return true;
   }
+
+  getMetadata = async (
+    chainId: string,
+    address: string,
+    match: MatchLevel
+  ): Promise<string | false> => {
+    try {
+      return fs.readFileSync(
+        this.generateAbsoluteFilePath({
+          matchQuality: match === "full_match" ? "full" : "partial",
+          chainId: chainId,
+          address: address,
+          fileName: "metadata.json",
+        }),
+        { encoding: "utf-8" }
+      );
+    } catch (e) {
+      return false;
+    }
+  };
 
   // /home/user/sourcify/data/repository/contracts/full_match/5/0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4/sources/filename
   public generateAbsoluteFilePath(pathConfig: PathConfig) {
