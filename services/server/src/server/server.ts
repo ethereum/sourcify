@@ -266,12 +266,6 @@ export class Server {
     // Enable session only for session endpoints
     this.app.use("/*session*", getSessionMiddleware());
 
-    this.app.use(
-      "/repository",
-      express.static(this.repository),
-      serveIndex(this.repository, { icons: true })
-    );
-
     this.app.use("/", routes);
     this.app.use(genericErrorHandler);
   }

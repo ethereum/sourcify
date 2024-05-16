@@ -82,6 +82,7 @@ const storageService = new StorageService({
   },
   repositoryV2ServiceOptions: {
     ipfsApi: process.env.IPFS_API || "",
+    repositoryPath: config.get("repositoryV2.path"),
   },
   sourcifyDatabaseServiceOptions: {
     postgres: {
@@ -2054,15 +2055,18 @@ describe("Server", async function () {
             `Original path ${originalPath} not found in metadata`
           )
           .to.include.keys(originalPath);
+
+        const relativeFilePath = path.join(
+          "contracts",
+          "full_match",
+          defaultContractChain,
+          toBeSanitizedContractAddress,
+          "sources",
+          pathTranslationJSON[originalPath]
+        );
         // The path from the server response must be translated
         const translatedContractObject = fetchedContractFiles.find(
-          (obj: any) =>
-            obj.path ===
-            path.join(
-              contractSavedPath,
-              "sources",
-              pathTranslationJSON[originalPath]
-            )
+          (obj: any) => obj.path === relativeFilePath
         );
         chai.expect(translatedContractObject).to.exist;
         // And the saved file must be the same as in the metadata
@@ -2129,7 +2133,6 @@ describe("Server", async function () {
         .field("chain", defaultContractChain)
         .attach("files", metadataBuffer, "metadata.json")
         .attach("files", sourceBuffer, "Storage.sol");
-      console.log(res.body);
       const res0 = await agent.get(
         `/files/${defaultContractChain}/${defaultContractAddress}`
       );
@@ -2148,6 +2151,48 @@ describe("Server", async function () {
       chai.expect(res3.body).has.a.lengthOf(2);
       const res4 = await agent.get(`/files/contracts/${defaultContractChain}`);
       chai.expect(res4.body.full).has.a.lengthOf(1);
+    });
+    it("should handle pagination in /files/contracts/{chain}", async function () {
+      for (let i = 0; i < 5; i++) {
+        const { contractAddress } =
+          await deployFromAbiAndBytecodeForCreatorTxHash(
+            localSigner,
+            artifact.abi,
+            artifact.bytecode,
+            []
+          );
+        await chai
+          .request(server.app)
+          .post("/")
+          .field("address", contractAddress)
+          .field("chain", defaultContractChain)
+          .attach("files", metadataBuffer, "metadata.json")
+          .attach("files", sourceBuffer);
+      }
+      const res0 = await chai
+        .request(server.app)
+        .get(`/files/contracts/any/${defaultContractChain}?page=1&limit=2`);
+      chai.expect(res0.body.pagination).to.deep.equal({
+        currentPage: 1,
+        hasNextPage: true,
+        hasPreviousPage: true,
+        resultsCurrentPage: 2,
+        resultsPerPage: 2,
+        totalPages: 3,
+        totalResults: 5,
+      });
+      const res1 = await chai
+        .request(server.app)
+        .get(`/files/contracts/any/${defaultContractChain}?limit=5`);
+      chai.expect(res1.body.pagination).to.deep.equal({
+        currentPage: 0,
+        hasNextPage: false,
+        hasPreviousPage: false,
+        resultsCurrentPage: 5,
+        resultsPerPage: 5,
+        totalPages: 1,
+        totalResults: 5,
+      });
     });
   });
   describe("Verify server status endpoint", function () {
