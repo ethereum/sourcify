@@ -20,6 +20,7 @@
     "test-local:integration": "export DOCKER_HOST_POSTGRES_TEST_PORT=${DOCKER_HOST_POSTGRES_TEST_PORT:-5431} && npm run postgres-test:start && echo \"Sleeping 5 seconds to wait for the container to start\" && sleep 5 && npm run test:integration; status=$?; npm run postgres-test:stop; exit $status",
     "test-local": "npm run test:unit && npm run test-local:integration",
     "test:chains": "mocha test/chains/chain-tests.spec.ts --reporter mochawesome --reporter-options reportDir=chain-tests-report,reportFilename=report --exit",
+    "test:etherscan-instances": "NODE_CONFIG_DIR=./src/config DOTENV_CONFIG_PATH=./.env mocha -r dotenv/config --exit test/chains/etherscan-instances.spec.ts ",
     "lint": "eslint . --ext .ts",
     "coverage": "node ./node_modules/c8/bin/c8.js --reporter=lcov --reporter=text-summary ./node_modules/tape/bin/tape ./test/index.js",
     "coveralls": "npm run coverage && node ./node_modules/coveralls/bin/coveralls.js <coverage/lcov.info",
