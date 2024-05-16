@@ -1,19 +1,13 @@
-process.env.NODE_CONFIG_ENV = "test";
-process.env.ALLIANCE_POSTGRES_HOST = "";
-
-import { Server } from "../src/server/server";
 import chai from "chai";
 import chaiHttp from "chai-http";
 import { StatusCodes } from "http-status-codes";
-import rimraf from "rimraf";
-import util from "util";
 import {
   assertVerification,
   assertValidationError,
   assertVerificationSession,
-} from "./helpers/assertions";
-import { sourcifyChainsMap } from "../src/sourcify-chains";
-import testContracts from "./helpers/etherscanInstanceContracts.json";
+} from "../helpers/assertions";
+import { sourcifyChainsMap } from "../../src/sourcify-chains";
+import testContracts from "../helpers/etherscanInstanceContracts.json";
 import {
   waitSecs,
   unusedAddress,
@@ -21,39 +15,25 @@ import {
   unsupportedChain,
   verifyAndAssertEtherscanSession,
   verifyAndAssertEtherscan,
-} from "./helpers/helpers";
+} from "../helpers/helpers";
 import { default as fetch } from "node-fetch";
 import type { Response } from "superagent";
+import { ServerFixture } from "../helpers/ServerFixture";
 
 chai.use(chaiHttp);
 
 const CUSTOM_PORT = 5678;
 
 describe("Import From Etherscan and Verify", function () {
-  this.beforeEach(async function () {
-    await waitSecs(1);
-  });
-
   // Don't run if it's an external PR. Etherscan tests need API keys that can't be exposed to external PRs.
   if (process.env.CIRCLE_PR_REPONAME !== undefined) {
     return;
   }
 
-  this.timeout(30000);
-  const server = new Server(CUSTOM_PORT);
+  const serverFixture = new ServerFixture({ port: CUSTOM_PORT });
 
-  before(async () => {
-    const promisified: any = util.promisify(server.app.listen);
-    await promisified(server.port);
-    console.log(`Server listening on port ${server.port}!`);
-  });
-
-  beforeEach(() => {
-    rimraf.sync(server.repository);
-  });
-
-  after(() => {
-    rimraf.sync(server.repository);
+  beforeEach(async () => {
+    await waitSecs(1);
   });
 
   const assertEtherscanError = (
@@ -75,7 +55,7 @@ describe("Import From Etherscan and Verify", function () {
   describe("Non-Session API", () => {
     it("should fail for missing address", (done) => {
       chai
-        .request(server.app)
+        .request(serverFixture.server.app)
         .post("/verify/etherscan")
         .field("chain", "1")
         .end((err, res) => {
@@ -91,7 +71,7 @@ describe("Import From Etherscan and Verify", function () {
 
     it("should fail for missing chain", (done) => {
       chai
-        .request(server.app)
+        .request(serverFixture.server.app)
         .post("/verify/etherscan")
         .field("address", unusedAddress)
         .end((err, res) => {
@@ -107,7 +87,7 @@ describe("Import From Etherscan and Verify", function () {
 
     it("should fail for invalid address", (done) => {
       chai
-        .request(server.app)
+        .request(serverFixture.server.app)
         .post("/verify/etherscan")
         .field("address", invalidAddress)
         .field("chain", "1")
@@ -124,7 +104,7 @@ describe("Import From Etherscan and Verify", function () {
 
     it("should fail for unsupported chain", (done) => {
       chai
-        .request(server.app)
+        .request(serverFixture.server.app)
         .post("/verify/etherscan")
         .field("address", unusedAddress)
         .field("chain", unsupportedChain)
@@ -141,7 +121,7 @@ describe("Import From Etherscan and Verify", function () {
 
     it("should fail fetching a non verified contract from etherscan", (done) => {
       chai
-        .request(server.app)
+        .request(serverFixture.server.app)
         .post("/verify/etherscan")
         .field("address", unusedAddress)
         .field("chain", "1")
@@ -160,7 +140,7 @@ describe("Import From Etherscan and Verify", function () {
       // Test with each type "single", "multiple", "standard-json"
       testContracts[tempChainId].forEach((contract) => {
         verifyAndAssertEtherscan(
-          server.app,
+          serverFixture,
           tempChainId,
           contract.address,
           contract.expectedStatus,
@@ -172,7 +152,7 @@ describe("Import From Etherscan and Verify", function () {
       it("should also work with `chainId` instead of `chain`", (done) => {
         const contract = testContracts[tempChainId][0];
         chai
-          .request(server.app)
+          .request(serverFixture.server.app)
           .post("/verify/etherscan")
           .field("address", contract.address)
           .field("chainId", tempChainId)
@@ -192,7 +172,7 @@ describe("Import From Etherscan and Verify", function () {
       it("should support a custom api key", (done) => {
         const contract = testContracts[tempChainId][0];
         chai
-          .request(server.app)
+          .request(serverFixture.server.app)
           .post("/verify/etherscan")
           .field("address", contract.address)
           .field("chainId", tempChainId)
@@ -238,7 +218,7 @@ describe("Import From Etherscan and Verify", function () {
 
         console.log("Max rate reached");
         const response = await chai
-          .request(server.app)
+          .request(serverFixture.server.app)
           .post("/verify/etherscan")
           .field("address", "0xB753548F6E010e7e680BA186F9Ca1BdAB2E90cf2")
           .field("chain", "1");
@@ -262,7 +242,7 @@ describe("Import From Etherscan and Verify", function () {
   describe("Session API", () => {
     it("should fail for missing address", (done) => {
       chai
-        .request(server.app)
+        .request(serverFixture.server.app)
         .post("/session/verify/etherscan/")
         .field("chainId", "1")
         .end((err, res) => {
@@ -278,7 +258,7 @@ describe("Import From Etherscan and Verify", function () {
 
     it("should fail for missing chain", (done) => {
       chai
-        .request(server.app)
+        .request(serverFixture.server.app)
         .post("/session/verify/etherscan/")
         .field("address", unusedAddress)
         .end((err, res) => {
@@ -294,7 +274,7 @@ describe("Import From Etherscan and Verify", function () {
 
     it("should fail for invalid address", (done) => {
       chai
-        .request(server.app)
+        .request(serverFixture.server.app)
         .post("/session/verify/etherscan")
         .field("address", invalidAddress)
         .field("chain", "1")
@@ -311,7 +291,7 @@ describe("Import From Etherscan and Verify", function () {
 
     it("should fail for unsupported chain", (done) => {
       chai
-        .request(server.app)
+        .request(serverFixture.server.app)
         .post("/session/verify/etherscan")
         .field("address", unusedAddress)
         .field("chain", unsupportedChain)
@@ -328,7 +308,7 @@ describe("Import From Etherscan and Verify", function () {
 
     it("should fail fetching a non verified contract from etherscan", (done) => {
       chai
-        .request(server.app)
+        .request(serverFixture.server.app)
         .post("/session/verify/etherscan")
         .field("address", unusedAddress)
         .field("chainId", "1")
@@ -344,7 +324,7 @@ describe("Import From Etherscan and Verify", function () {
 
     it("should support a custom api key", (done) => {
       chai
-        .request(server.app)
+        .request(serverFixture.server.app)
         .post("/session/verify/etherscan")
         .field("address", unusedAddress)
         .field("chainId", "1")
@@ -364,7 +344,7 @@ describe("Import From Etherscan and Verify", function () {
       // Test all three types: "single", "multiple", "standard-json"
       testContracts[tempChainId].forEach((contract) => {
         verifyAndAssertEtherscanSession(
-          server.app,
+          serverFixture,
           tempChainId,
           contract.address,
           contract.expectedStatus,
@@ -376,7 +356,7 @@ describe("Import From Etherscan and Verify", function () {
       it("should also work with `chain` instead of `chainId`", (done) => {
         const contract = testContracts[tempChainId][0];
         chai
-          .request(server.app)
+          .request(serverFixture.server.app)
           .post("/session/verify/etherscan")
           .field("address", contract.address)
           .field("chain", tempChainId)
@@ -423,7 +403,7 @@ describe("Import From Etherscan and Verify", function () {
 
         console.log("Max rate reached");
         const response = await chai
-          .request(server.app)
+          .request(serverFixture.server.app)
           .post("/session/verify/etherscan")
           .field("address", "0xB753548F6E010e7e680BA186F9Ca1BdAB2E90cf2")
           .field("chain", "1");

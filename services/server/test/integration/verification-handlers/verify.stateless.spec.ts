@@ -146,7 +146,7 @@ describe("/", function () {
       });
   });
 
-  it("should fetch a missing file that is accessible via ipfs", (done) => {// TODO
+  it("should fetch a missing file that is accessible via ipfs", (done) => {
     chai
       .request(serverFixture.server.app)
       .post("/")

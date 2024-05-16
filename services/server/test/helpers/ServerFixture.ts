@@ -7,6 +7,7 @@ import http from "http";
 import { services } from "../../src/server/services/services";
 
 export type ServerFixtureOptions = {
+  port?: number;
 };
 
 export class ServerFixture {
@@ -71,7 +72,7 @@ export class ServerFixture {
       });
 
       services["initialize"]();
-      this._server = new Server();
+      this._server = new Server(options.port);
       await new Promise<void>((resolve, reject) => {
         httpServer = this.server.app.listen(this.server.port, resolve);
         httpServer.on("error", reject);
