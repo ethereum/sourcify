@@ -22,7 +22,7 @@ chai.use(chaiHttp);
 
 describe("/", function () {
   const chainFixture = new LocalChainFixture();
-  const serverFixture = new ServerFixture();
+  const serverFixture = new ServerFixture({ usePostgresDocker: true });
 
   const checkNonVerified = (path: string, done: Done) => {
     chai

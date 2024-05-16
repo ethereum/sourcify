@@ -10,7 +10,7 @@ chai.use(chaiHttp);
 
 describe("Verify repository endpoints", function () {
   const chainFixture = new LocalChainFixture();
-  const serverFixture = new ServerFixture();
+  const serverFixture = new ServerFixture({ usePostgresDocker: true });
 
   it("should fetch files of specific address", async function () {
     const agent = chai.request.agent(serverFixture.server.app);

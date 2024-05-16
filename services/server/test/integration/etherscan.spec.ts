@@ -30,7 +30,7 @@ describe("Import From Etherscan and Verify", function () {
     return;
   }
 
-  const serverFixture = new ServerFixture({ port: CUSTOM_PORT });
+  const serverFixture = new ServerFixture({ port: CUSTOM_PORT, usePostgresDocker: true });
 
   beforeEach(async () => {
     await waitSecs(1);

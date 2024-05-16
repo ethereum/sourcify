@@ -16,7 +16,7 @@ chai.use(chaiHttp);
 
 describe("E2E test path sanitization", function () {
   const chainFixture = new LocalChainFixture();
-  const serverFixture = new ServerFixture();
+  const serverFixture = new ServerFixture({ usePostgresDocker: true });
 
   it("should sanitize the path of a source file with new line character \\n", async () => {
     const artifact = await import(

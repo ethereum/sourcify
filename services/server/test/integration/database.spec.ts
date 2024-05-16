@@ -24,7 +24,7 @@ function toHexString(byteArray: number[]) {
 
 describe("Verifier Alliance database", function () {
   const chainFixture = new LocalChainFixture();
-  const serverFixture = new ServerFixture();
+  const serverFixture = new ServerFixture({ usePostgresDocker: true });
 
   const verifierAllianceTest = async (
     testCase: any,

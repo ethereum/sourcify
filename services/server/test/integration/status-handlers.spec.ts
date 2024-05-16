@@ -5,7 +5,7 @@ import { ServerFixture } from "../helpers/ServerFixture";
 chai.use(chaiHttp);
 
 describe("Verify server status endpoint", function () {
-  const serverFixture = new ServerFixture();
+  const serverFixture = new ServerFixture({ usePostgresDocker: true });
 
   it("should check server's health", async function () {
     const res = await chai.request(serverFixture.server.app).get("/health");

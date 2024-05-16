@@ -12,7 +12,10 @@ import { ServerFixture } from "../helpers/ServerFixture";
 const CUSTOM_PORT = 5679;
 
 describe("Test each Etherscan instance", function () {
-  const serverFixture = new ServerFixture({ port: CUSTOM_PORT });
+  const serverFixture = new ServerFixture({
+    port: CUSTOM_PORT,
+    usePostgresDocker: false,
+  });
 
   const testedChains: number[] = [];
   let chainId: keyof typeof testContracts;

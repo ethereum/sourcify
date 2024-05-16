@@ -8,6 +8,7 @@ import { services } from "../../src/server/services/services";
 
 export type ServerFixtureOptions = {
   port?: number;
+  usePostgresDocker?: boolean;
 };
 
 export class ServerFixture {
@@ -38,9 +39,14 @@ export class ServerFixture {
     let httpServer: http.Server;
 
     before(async () => {
-      process.env.SOURCIFY_POSTGRES_PORT =
-        process.env.DOCKER_HOST_POSTGRES_TEST_PORT ||
-        process.env.SOURCIFY_POSTGRES_PORT;
+      if (options.usePostgresDocker) {
+        process.env.SOURCIFY_POSTGRES_HOST = "localhost";
+        process.env.SOURCIFY_POSTGRES_DB = "sourcify";
+        process.env.SOURCIFY_POSTGRES_USER = "sourcify";
+        process.env.SOURCIFY_POSTGRES_PASSWORD = "sourcify";
+        process.env.SOURCIFY_POSTGRES_PORT =
+          process.env.DOCKER_HOST_POSTGRES_TEST_PORT || "5431";
+      }
 
       if (
         !process.env.SOURCIFY_POSTGRES_HOST ||

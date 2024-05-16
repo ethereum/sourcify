@@ -52,7 +52,7 @@ const assertLookupAll = (
 
 describe("/check-by-addresses", function () {
   const chainFixture = new LocalChainFixture();
-  const serverFixture = new ServerFixture();
+  const serverFixture = new ServerFixture({ usePostgresDocker: true });
 
   it("should fail for missing chainIds", (done) => {
     chai
@@ -168,7 +168,7 @@ describe("/check-by-addresses", function () {
 
 describe("/check-all-by-addresses", function () {
   const chainFixture = new LocalChainFixture();
-  const serverFixture = new ServerFixture();
+  const serverFixture = new ServerFixture({ usePostgresDocker: true });
 
   it("should fail for missing chainIds", (done) => {
     chai

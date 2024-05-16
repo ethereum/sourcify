@@ -1,15 +1,8 @@
-process.env.ALLOW_CONFIG_MUTATIONS = "true";
-process.env.NODE_CONFIG_ENV = "test";
-// process.env.SOURCIFY_POSTGRES_HOST = "";
-process.env.ALLIANCE_POSTGRES_HOST = "";
-
+import { ServerFixture } from "../helpers/ServerFixture";
 import chai from "chai";
 import chaiHttp from "chai-http";
-import { Server } from "../../src/server/server";
 import fs from "fs";
 import path from "path";
-import util from "util";
-import rimraf from "rimraf";
 import addContext from "mochawesome/addContext";
 import { assertVerification } from "../helpers/assertions";
 import testEtherscanContracts from "../helpers/etherscanInstanceContracts.json";
@@ -43,17 +36,16 @@ describe("Test Supported Chains", function () {
     `Set up tests timeout with ${Math.floor(parseInt(TEST_TIME) / 1000)} secs`
   );
   this.timeout(TEST_TIME);
-  const server = new Server(CUSTOM_PORT);
+  const serverFixture = new ServerFixture({
+    port: CUSTOM_PORT,
+    usePostgresDocker: false,
+  });
 
   const testedChains = new Set(); // Track tested chains and make sure all "supported = true" chains are tested
   let supportedChains: ChainApiResponse[];
   before(async function () {
-    const promisified: any = util.promisify(server.app.listen);
-    await promisified(server.port);
-    console.log(`Injector listening on port ${server.port}!`);
-
     chai
-      .request(server.app)
+      .request(serverFixture.server.app)
       .get("/chains")
       .end((err, res) => {
         if (err !== null) {
@@ -65,12 +57,7 @@ describe("Test Supported Chains", function () {
       });
   });
 
-  beforeEach(() => {
-    rimraf.sync(server.repository);
-  });
-
   after(() => {
-    rimraf.sync(server.repository);
     if (!anyTestsPass && newAddedChainIds.length) {
       throw new Error(
         "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id(s) " +
@@ -1561,7 +1548,7 @@ describe("Test Supported Chains", function () {
       readFilesRecursively(fullDir, files);
 
       chai
-        .request(server.app)
+        .request(serverFixture.server.app)
         .post("/")
         .send({
           address: address,
