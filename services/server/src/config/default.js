@@ -8,10 +8,9 @@ module.exports = {
     path: "/tmp/sourcify/repository",
     serverUrl: "http://localhost:10000", // Need to keep this as it's used in IpfsRepositoryService.ts fetchAllFileUrls.
   },
-  // Disable repositoryV2 by default for now, we will enable it once we start the synchronization script
-  // repositoryV2: {
-  //   path: "/tmp/sourcify/repositoryV2",
-  // },
+  repositoryV2: {
+    path: "/tmp/sourcify/repositoryV2",
+  },
   solcRepo: "/tmp/solc-bin/linux-amd64",
   solJsonRepo: "/tmp/solc-bin/soljson",
   session: {
