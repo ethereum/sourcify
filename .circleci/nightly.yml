@@ -104,6 +104,18 @@ jobs:
           command: npx lerna run build
       - run:
           name: test
-          command: cd ./services/server && npx mocha test/etherscan/etherscanInstances.spec.ts --exit
+          command: cd ./services/server && npm run postgres-test:migrate && npx mocha test/etherscan/etherscanInstances.spec.ts --exit
+          environment:
+            DOCKER_HOST_POSTGRES_TEST_PORT: 5432
+            SOURCIFY_POSTGRES_HOST: "localhost"
+            SOURCIFY_POSTGRES_DB: "sourcify"
+            SOURCIFY_POSTGRES_USER: "sourcify"
+            SOURCIFY_POSTGRES_PASSWORD: "sourcify"
+            SOURCIFY_POSTGRES_PORT: 5432
     docker:
       - image: cimg/node:16.15
+      - image: postgres:16-alpine
+        environment:
+          POSTGRES_DB: sourcify
+          POSTGRES_USER: sourcify
+          POSTGRES_PASSWORD: sourcify

@@ -10,6 +10,20 @@ import AbstractDatabaseService from "./AbstractDatabaseService";
 import { IStorageService } from "../StorageService";
 import { bytesFromString } from "../utils/database-util";
 import { getMatchStatus } from "../../common";
+import {
+  ContractData,
+  FileObject,
+  FilesInfo,
+  FilesRaw,
+  MatchLevel,
+  MatchQuality,
+  PaginatedContractData,
+} from "../../types";
+import config from "config";
+import Path from "path";
+import { getFileRelativePath } from "../utils/util";
+import { getAddress } from "ethers";
+import { BadRequestError } from "../../../common/errors";
 
 export interface SourcifyDatabaseServiceOptions {
   postgres: {
@@ -20,6 +34,8 @@ export interface SourcifyDatabaseServiceOptions {
     password: string;
   };
 }
+
+const MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS = 200;
 
 export class SourcifyDatabaseService
   extends AbstractDatabaseService
@@ -88,14 +104,294 @@ export class SourcifyDatabaseService
         address,
         chainId,
         runtimeMatch: existingVerifiedContractResult.rows[0]
-          .runtime_match as Status,
+          .runtime_match_status as Status,
         creationMatch: existingVerifiedContractResult.rows[0]
-          .creation_match as Status,
+          .creation_match_status as Status,
         storageTimestamp: existingVerifiedContractResult.rows[0]
           .created_at as Date,
       },
     ];
   }
+
+  getContracts = async (chainId: string): Promise<ContractData> => {
+    await this.init();
+
+    const res: ContractData = {
+      full: [],
+      partial: [],
+    };
+    const matchAddressesCountResult =
+      await Database.countSourcifyMatchAddresses(
+        this.databasePool,
+        parseInt(chainId)
+      );
+
+    if (matchAddressesCountResult.rowCount === 0) {
+      return res;
+    }
+
+    const fullTotal = parseInt(matchAddressesCountResult.rows[0].full_total);
+    const partialTotal = parseInt(
+      matchAddressesCountResult.rows[0].partial_total
+    );
+    if (
+      fullTotal > MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS ||
+      partialTotal > MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS
+    ) {
+      logger.info(
+        "Requested more than MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS contracts",
+        {
+          maxReturnedContracts: MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS,
+          chainId,
+        }
+      );
+      throw new BadRequestError(
+        `Cannot fetch more than ${MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS} contracts (${fullTotal} full matches, ${partialTotal} partial matches), please use /contracts/{full|any}/${chainId} with pagination`
+      );
+    }
+
+    if (fullTotal > 0) {
+      const perfectMatchAddressesResult =
+        await Database.getSourcifyMatchAddressesByChainAndMatch(
+          this.databasePool,
+          parseInt(chainId),
+          "full_match",
+          0,
+          MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS
+        );
+
+      if (perfectMatchAddressesResult.rowCount > 0) {
+        res.full = perfectMatchAddressesResult.rows.map((row) =>
+          getAddress(row.address)
+        );
+      }
+    }
+
+    if (partialTotal > 0) {
+      const partialMatchAddressesResult =
+        await Database.getSourcifyMatchAddressesByChainAndMatch(
+          this.databasePool,
+          parseInt(chainId),
+          "partial_match",
+          0,
+          MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS
+        );
+
+      if (partialMatchAddressesResult.rowCount > 0) {
+        res.partial = partialMatchAddressesResult.rows.map((row) =>
+          getAddress(row.address)
+        );
+      }
+    }
+
+    return res;
+  };
+
+  getPaginatedContracts = async (
+    chainId: string,
+    match: MatchLevel,
+    page: number,
+    limit: number
+  ): Promise<PaginatedContractData> => {
+    await this.init();
+
+    // Initialize empty result
+    const res: PaginatedContractData = {
+      results: [],
+      pagination: {
+        currentPage: page,
+        resultsPerPage: limit,
+        resultsCurrentPage: 0,
+        totalResults: 0,
+        totalPages: 0,
+        hasNextPage: false,
+        hasPreviousPage: false,
+      },
+    };
+
+    // Count perfect and partial matches
+    const matchAddressesCountResult =
+      await Database.countSourcifyMatchAddresses(
+        this.databasePool,
+        parseInt(chainId)
+      );
+
+    if (matchAddressesCountResult.rowCount === 0) {
+      return res;
+    }
+
+    // Calculate totalResults, return empty res if there are no contracts
+    const fullTotal = parseInt(matchAddressesCountResult.rows[0].full_total);
+    const partialTotal = parseInt(
+      matchAddressesCountResult.rows[0].partial_total
+    );
+    const anyTotal = fullTotal + partialTotal;
+    if (match === "full_match") {
+      if (fullTotal === 0) {
+        return res;
+      }
+      res.pagination.totalResults = fullTotal;
+    } else if (match === "any_match") {
+      if (anyTotal === 0) {
+        return res;
+      }
+      res.pagination.totalResults = anyTotal;
+    }
+
+    res.pagination.totalPages = Math.ceil(
+      res.pagination.totalResults / res.pagination.resultsPerPage
+    );
+
+    const matchAddressesResult =
+      await Database.getSourcifyMatchAddressesByChainAndMatch(
+        this.databasePool,
+        parseInt(chainId),
+        match,
+        page,
+        limit
+      );
+
+    if (matchAddressesResult.rowCount > 0) {
+      res.pagination.resultsCurrentPage = matchAddressesResult.rowCount;
+      res.pagination.hasNextPage =
+        res.pagination.currentPage * res.pagination.resultsPerPage +
+          matchAddressesResult.rowCount <
+        res.pagination.totalResults;
+      res.pagination.hasPreviousPage =
+        res.pagination.currentPage === 0 ? false : true;
+      res.results = matchAddressesResult.rows.map((row) =>
+        getAddress(row.address)
+      );
+    }
+
+    return res;
+  };
+
+  /**
+   * getFiles extracts the files from the database `compiled_contracts.sources`
+   * and store them into FilesInfo.files, this object is then going to be formatted
+   * by getTree, getContent and getFile.
+   */
+  getFiles = async (
+    chainId: string,
+    address: string
+  ): Promise<FilesInfo<FilesRaw>> => {
+    await this.init();
+
+    const sourcifyMatchResult = await Database.getSourcifyMatchByChainAddress(
+      this.databasePool,
+      parseInt(chainId),
+      bytesFromString(address)!
+    );
+
+    if (sourcifyMatchResult.rowCount === 0) {
+      // This is how you handle a non existing contract
+      return { status: "partial", files: {} };
+    }
+
+    const sourcifyMatch = sourcifyMatchResult.rows[0];
+
+    // If either one of sourcify_matches.creation_match or sourcify_matches.runtime_match is perfect then "full" status
+    const contractStatus =
+      sourcifyMatch.creation_match_status === "perfect" ||
+      sourcifyMatch.runtime_match_status === "perfect"
+        ? "full"
+        : "partial";
+
+    return { status: contractStatus, files: sourcifyMatch.sources };
+  };
+
+  getFile = async (
+    chainId: string,
+    address: string,
+    match: MatchLevel,
+    path: string
+  ): Promise<string | false> => {
+    const { status, files } = await this.getFiles(chainId, address);
+    if (Object.keys(files).length === 0) {
+      return false;
+    }
+    if (match === "full_match" && status === "partial") {
+      return false;
+    }
+    return files[path];
+  };
+
+  /**
+   * getTree returns FilesInfo in which files contains for each source its repository url
+   */
+  getTree = async (
+    chainId: string,
+    address: string,
+    match: MatchLevel
+  ): Promise<FilesInfo<string[]>> => {
+    const { status: contractStatus, files: filesRaw } = await this.getFiles(
+      chainId,
+      address
+    );
+
+    // If "full_match" files are requested but the contractStatus if partial return empty
+    if (match === "full_match" && contractStatus === "partial") {
+      return {
+        status: "full",
+        files: [],
+      };
+    }
+
+    // Calculate the the repository's url for each file
+    const files = Object.keys(filesRaw).map((file) => {
+      const relativePath = getFileRelativePath(
+        chainId,
+        address,
+        contractStatus,
+        file
+      );
+      return `${config.get("repositoryV1.serverUrl")}/${relativePath}`;
+    });
+
+    return { status: contractStatus, files };
+  };
+
+  /**
+   * getContent returns FilesInfo in which files contains for each source its FileObject,
+   * an object that includes the content of the file.
+   */
+  getContent = async (
+    chainId: string,
+    address: string,
+    match: MatchLevel
+  ): Promise<FilesInfo<Array<FileObject>>> => {
+    const { status: contractStatus, files: filesRaw } = await this.getFiles(
+      chainId,
+      address
+    );
+
+    // If "full_match" files are requestd but the contractStatus if partial return empty
+    if (match === "full_match" && contractStatus === "partial") {
+      return {
+        status: "full",
+        files: [],
+      };
+    }
+
+    // Calculate the the repository's url for each file
+    const files = Object.keys(filesRaw).map((file) => {
+      const relativePath = getFileRelativePath(
+        chainId,
+        address,
+        contractStatus,
+        file
+      );
+
+      return {
+        name: Path.basename(file),
+        path: relativePath,
+        content: filesRaw[file],
+      } as FileObject;
+    });
+
+    return { status: contractStatus, files };
+  };
 
   validateBeforeStoring(
     recompiledContract: CheckedContract,

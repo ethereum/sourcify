@@ -172,15 +172,18 @@ describe("E2E test path sanitization", function () {
           `Original path ${originalPath} not found in metadata`
         )
         .to.include.keys(originalPath);
+
+      const relativeFilePath = path.join(
+        "contracts",
+        "full_match",
+        chainFixture.chainId,
+        toBeSanitizedContractAddress,
+        "sources",
+        pathTranslationJSON[originalPath]
+      );
       // The path from the server response must be translated
       const translatedContractObject = fetchedContractFiles.find(
-        (obj: any) =>
-          obj.path ===
-          path.join(
-            contractSavedPath,
-            "sources",
-            pathTranslationJSON[originalPath]
-          )
+        (obj: any) => obj.path === relativeFilePath
       );
       chai.expect(translatedContractObject).to.exist;
       // And the saved file must be the same as in the metadata

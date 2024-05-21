@@ -7,7 +7,15 @@ import {
   StringMap,
   CheckedContract,
 } from "@ethereum-sourcify/lib-sourcify";
-import { MatchLevel, MatchQuality, RepositoryTag } from "../../types";
+import {
+  ContractData,
+  FileObject,
+  FilesInfo,
+  MatchLevel,
+  MatchQuality,
+  PathConfig,
+  RepositoryTag,
+} from "../../types";
 import {
   create as createIpfsClient,
   IPFSHTTPClient,
@@ -19,36 +27,11 @@ import { getAddress } from "ethers";
 import { getMatchStatus } from "../../common";
 import { IStorageService } from "../StorageService";
 import config from "config";
-import { PathConfig } from "../utils/repository-util";
-
-type FilesInfo<T> = { status: MatchQuality; files: Array<T> };
-
-interface FileObject {
-  name: string;
-  path: string;
-  content?: string;
-}
-
-declare interface ContractData {
-  full: string[];
-  partial: string[];
-}
 
 export interface RepositoryV1ServiceOptions {
   ipfsApi: string;
   repositoryPath: string;
   repositoryServerUrl: string;
-}
-
-interface FileObject {
-  name: string;
-  path: string;
-  content?: string;
-}
-
-declare interface ContractData {
-  full: string[];
-  partial: string[];
 }
 
 export class RepositoryV1Service implements IStorageService {
@@ -100,7 +83,7 @@ export class RepositoryV1Service implements IStorageService {
    *
    * @example [
    *   { name: '0x1234.sol',
-   *     path: '/home/.../repository/contracts/full_match/1/0x1234/0x1234.sol,
+   *     path: '/contracts/full_match/1/0x1234/0x1234.sol,
    *     content: "pragma solidity ^0.5.0; contract A { ... }"
    *   },
    * ... ]
@@ -137,9 +120,14 @@ export class RepositoryV1Service implements IStorageService {
     const fullPath = this.repositoryPath + `/contracts/full_match/${chain}/`;
     const partialPath =
       this.repositoryPath + `/contracts/partial_match/${chain}/`;
+
+    const full = fs.existsSync(fullPath) ? fs.readdirSync(fullPath) : [];
+    const partial = fs.existsSync(partialPath)
+      ? fs.readdirSync(partialPath)
+      : [];
     return {
-      full: fs.existsSync(fullPath) ? fs.readdirSync(fullPath) : [],
-      partial: fs.existsSync(partialPath) ? fs.readdirSync(partialPath) : [],
+      full,
+      partial,
     };
   };
 
@@ -147,7 +135,7 @@ export class RepositoryV1Service implements IStorageService {
     chainId: string,
     address: string,
     match: MatchLevel
-  ): Promise<FilesInfo<string>> => {
+  ): Promise<FilesInfo<string[]>> => {
     const fullMatchesTree = this.fetchAllFileUrls(
       chainId,
       address,
@@ -165,7 +153,7 @@ export class RepositoryV1Service implements IStorageService {
     chainId: string,
     address: string,
     match: MatchLevel
-  ): Promise<FilesInfo<FileObject>> => {
+  ): Promise<FilesInfo<Array<FileObject>>> => {
     const fullMatchesFiles = this.fetchAllFileContents(
       chainId,
       address,
