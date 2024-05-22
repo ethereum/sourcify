@@ -5,11 +5,14 @@
   "description": "This script is needed to push all verified_contracts from one database to another. The receipient database is a live database in which other entities are writing while the script is running",
   "main": "index.js",
   "scripts": {
-    "start": "node main.mjs"
+    "vera:push": "node ./pushToVera.mjs",
+    "vera:pull": "node ./pullFromVera.mjs"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "pg": "^8.11.3"
+    "node-fetch": "^3.3.2",
+    "pg": "^8.11.3",
+    "pg-listen": "^1.7.0"
   }
 }
