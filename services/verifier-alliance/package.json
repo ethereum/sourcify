@@ -1,0 +1,15 @@
+{
+  "name": "verifier-alliance",
+  "private": true,
+  "version": "1.0.0",
+  "description": "This script is needed to push all verified_contracts from one database to another. The receipient database is a live database in which other entities are writing while the script is running",
+  "main": "index.js",
+  "scripts": {
+    "start": "node main.mjs"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "pg": "^8.11.3"
+  }
+}
