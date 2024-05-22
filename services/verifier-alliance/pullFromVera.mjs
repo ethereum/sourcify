@@ -62,21 +62,24 @@ async function main() {
       settingsJson
     );
     try {
-      const res = await fetch("http://localhost:5555/verify/solc-json", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          compilerVersion: compilation.version,
-          contractName: compilation.name,
-          address: "0x" + deployment.address.toString("hex"),
-          chainId: deployment.chain_id,
-          files: {
-            "settings.json": settingsJson,
+      const res = await fetch(
+        `${process.env.SOURCIFY_SERVER_HOST}/verify/solc-json`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
           },
-        }),
-      });
+          body: JSON.stringify({
+            compilerVersion: compilation.version,
+            contractName: compilation.name,
+            address: "0x" + deployment.address.toString("hex"),
+            chainId: deployment.chain_id,
+            files: {
+              "settings.json": settingsJson,
+            },
+          }),
+        }
+      );
 
       console.log(await res.json());
     } catch (e) {
