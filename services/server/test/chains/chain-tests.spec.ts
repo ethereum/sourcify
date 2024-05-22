@@ -1490,6 +1490,7 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests: ChainApiResponse[] = [];
     supportedChains
