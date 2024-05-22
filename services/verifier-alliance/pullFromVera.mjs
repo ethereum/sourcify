@@ -27,6 +27,11 @@ async function main() {
 
   subscriber.notifications.on("new_verified_contract", async (payload) => {
     console.log("Received notification in 'new_verified_contract':", payload);
+
+    // Skip verified_contracts pushed by sourcify
+    if (payload.created_by === "sourcify") {
+      return;
+    }
     // Get all FK information
     const {
       rows: [deployment],
