@@ -14,7 +14,6 @@ const CUSTOM_PORT = 5679;
 describe("Test each Etherscan instance", function () {
   const serverFixture = new ServerFixture({
     port: CUSTOM_PORT,
-    usePostgresDocker: false,
   });
 
   const testedChains: number[] = [];

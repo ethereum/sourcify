@@ -38,7 +38,6 @@ describe("Test Supported Chains", function () {
   this.timeout(TEST_TIME);
   const serverFixture = new ServerFixture({
     port: CUSTOM_PORT,
-    usePostgresDocker: false,
   });
 
   const testedChains = new Set(); // Track tested chains and make sure all "supported = true" chains are tested

@@ -40,7 +40,7 @@ const assertAddressAndChainMissing = (
 
 describe("/session", function () {
   const chainFixture = new LocalChainFixture();
-  const serverFixture = new ServerFixture({ usePostgresDocker: true });
+  const serverFixture = new ServerFixture();
 
   it("should store session in database", async () => {
     await serverFixture.storageService.sourcifyDatabase?.databasePool.query(

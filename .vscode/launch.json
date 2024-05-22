@@ -114,7 +114,6 @@
       "cwd": "${workspaceFolder}/services/server",
       "env": {
         // "DEBUG": "express:*", // Debug all express modules *
-        "NODE_CONFIG_DIR": "${workspaceFolder}/services/server/src/config"
       },
       "preLaunchTask": "database-test:up",
       "postDebugTask": "database-test:down",
@@ -139,8 +138,9 @@
       "cwd": "${workspaceFolder}/services/server",
       "env": {
         "TEST_CHAIN": "100",
-        "NODE_CONFIG_DIR": "${workspaceFolder}/services/server/src/config"
       },
+      "preLaunchTask": "database-test:up",
+      "postDebugTask": "database-test:down",
       "args": [
         "${workspaceFolder}/services/server/test/chains/etherscan-instances.spec.ts",
         "-r",
@@ -211,9 +211,10 @@
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "cwd": "${workspaceFolder}/services/server",
       "env": {
-        "NODE_CONFIG_DIR": "${workspaceFolder}/services/server/src/config"
         // "NEW_CHAIN_ID": "333000333"
       },
+      "preLaunchTask": "database-test:up",
+      "postDebugTask": "database-test:down",
       "args": [
         "${workspaceFolder}/services/server/test/chains/chain-tests.spec.ts",
         "-r",
