@@ -52,6 +52,11 @@ jobs:
   test-new-chain:
     docker:
       - image: cimg/node:16.15
+      - image: postgres:16-alpine
+        environment:
+          POSTGRES_DB: sourcify
+          POSTGRES_USER: sourcify
+          POSTGRES_PASSWORD: sourcify
     resource_class: small
     working_directory: ~/sourcify
     steps:
@@ -72,4 +77,11 @@ jobs:
             fi
       - run:
           name: install build and test
-          command: npm install && npx lerna run build --scope=sourcify-server && npm run test:chains
+          command: npm install && npx lerna run build --scope=sourcify-server && cd services/server && npm run postgres-test:migrate && npm run test:chains
+          environment:
+            DOCKER_HOST_POSTGRES_TEST_PORT: 5432
+            SOURCIFY_POSTGRES_HOST: "localhost"
+            SOURCIFY_POSTGRES_DB: "sourcify"
+            SOURCIFY_POSTGRES_USER: "sourcify"
+            SOURCIFY_POSTGRES_PASSWORD: "sourcify"
+            SOURCIFY_POSTGRES_PORT: 5432
