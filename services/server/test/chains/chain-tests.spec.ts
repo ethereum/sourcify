@@ -1482,6 +1482,14 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // PlayFair Testnet Subnet
+  verifyContract(
+    "0x9be71dB4693657625F92359d046c513Bb35F96db",
+    "12898",
+    "PlayFair Testnet Subnet",
+    "shared/"
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests: ChainApiResponse[] = [];
     supportedChains
