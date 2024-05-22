@@ -94,36 +94,34 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Mocha - Server",
+      "name": "Mocha - Server Unit",
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "cwd": "${workspaceFolder}/services/server",
-      "env": {
-        // "DEBUG": "express:*", // Debug all express modules *
-      },
-      "preLaunchTask": "database-test:up",
-      "postDebugTask": "database-test:down",
       "args": [
-        "${workspaceFolder}/services/server/test/server.spec.ts",
-        "--no-timeout",
-        // Run a single test when debugging
-        // "--grep=v0.6.12",
+        "${workspaceFolder}/services/server/test/unit/**",
+        "-r",
+        "${workspaceFolder}/services/server/test/load-env.js",
         "--exit"
       ],
       "smartStep": true,
       "console": "integratedTerminal"
-      // "internalConsoleOptions": "neverOpen"
     },
     {
       "type": "node",
       "request": "launch",
-      "name": "Mocha - Etherscan",
+      "name": "Mocha - Server Integration",
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "cwd": "${workspaceFolder}/services/server",
       "env": {
         // "DEBUG": "express:*", // Debug all express modules *
+        "NODE_CONFIG_DIR": "${workspaceFolder}/services/server/src/config"
       },
+      "preLaunchTask": "database-test:up",
+      "postDebugTask": "database-test:down",
       "args": [
-        "${workspaceFolder}/services/server/test/etherscan.spec.ts",
+        "${workspaceFolder}/services/server/test/integration/**",
+        "-r",
+        "${workspaceFolder}/services/server/test/load-env.js",
         "--no-timeout",
         // Run a single test when debugging
         // "--grep=v0.6.12",
@@ -140,13 +138,13 @@
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "cwd": "${workspaceFolder}/services/server",
       "env": {
-        "TEST_CHAIN": "100"
+        "TEST_CHAIN": "100",
+        "NODE_CONFIG_DIR": "${workspaceFolder}/services/server/src/config"
       },
       "args": [
-        "${workspaceFolder}/services/server/test/etherscan/etherscanInstances.spec.ts",
-        "--no-timeout",
-        // Run a single test when debugging
-        // "--grep=v0.6.12",
+        "${workspaceFolder}/services/server/test/chains/etherscan-instances.spec.ts",
+        "-r",
+        "${workspaceFolder}/services/server/test/load-env.js",
         "--exit"
       ],
       "smartStep": true,
@@ -213,13 +211,13 @@
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "cwd": "${workspaceFolder}/services/server",
       "env": {
+        "NODE_CONFIG_DIR": "${workspaceFolder}/services/server/src/config"
         // "NEW_CHAIN_ID": "333000333"
       },
       "args": [
         "${workspaceFolder}/services/server/test/chains/chain-tests.spec.ts",
-        "--no-timeout",
-        // Run a single test when debugging
-        // "--grep=Optimism",
+        "-r",
+        "${workspaceFolder}/services/server/test/load-env.js",
         "--exit"
       ],
       "smartStep": true,
