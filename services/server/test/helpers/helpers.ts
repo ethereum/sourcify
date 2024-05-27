@@ -16,6 +16,7 @@ import path from "path";
 import { promises as fs } from "fs";
 import { StorageService } from "../../src/server/services/StorageService";
 import { ServerFixture } from "./ServerFixture";
+import type { Done } from "mocha";
 
 chai.use(chaiHttp);
 
@@ -128,16 +129,40 @@ export function verifyAndAssertEtherscan(
   chainId: string,
   address: string,
   expectedStatus: string,
-  type: string
+  done: Done
 ) {
-  it(`Non-Session: Should import a ${type} contract from  #${chainId} ${sourcifyChainsMap[chainId].name} (${sourcifyChainsMap[chainId].etherscanApi?.apiURL}) and verify the contract, finding a ${expectedStatus} match`, (done) => {
-    const request = chai
-      .request(serverFixture.server.app)
-      .post("/verify/etherscan")
-      .field("address", address)
-      .field("chain", chainId);
-    request.end(async (err, res) => {
-      await assertVerification(
+  const request = chai
+    .request(serverFixture.server.app)
+    .post("/verify/etherscan")
+    .field("address", address)
+    .field("chain", chainId);
+  request.end(async (err, res) => {
+    await assertVerification(
+      null,
+      err,
+      res,
+      done,
+      address,
+      chainId,
+      expectedStatus
+    );
+  });
+}
+
+export function verifyAndAssertEtherscanSession(
+  serverFixture: ServerFixture,
+  chainId: string,
+  address: string,
+  expectedStatus: string,
+  done: Done
+) {
+  chai
+    .request(serverFixture.server.app)
+    .post("/session/verify/etherscan")
+    .field("address", address)
+    .field("chainId", chainId)
+    .end(async (err, res) => {
+      await assertVerificationSession(
         null,
         err,
         res,
@@ -147,34 +172,6 @@ export function verifyAndAssertEtherscan(
         expectedStatus
       );
     });
-  });
-}
-
-export function verifyAndAssertEtherscanSession(
-  serverFixture: ServerFixture,
-  chainId: string,
-  address: string,
-  expectedStatus: string,
-  type: string
-) {
-  it(`Session: Should import a ${type} contract from  #${chainId} ${sourcifyChainsMap[chainId].name} (${sourcifyChainsMap[chainId].etherscanApi?.apiURL}) and verify the contract, finding a ${expectedStatus} match`, (done) => {
-    chai
-      .request(serverFixture.server.app)
-      .post("/session/verify/etherscan")
-      .field("address", address)
-      .field("chainId", chainId)
-      .end(async (err, res) => {
-        await assertVerificationSession(
-          null,
-          err,
-          res,
-          done,
-          address,
-          chainId,
-          expectedStatus
-        );
-      });
-  });
 }
 
 export async function readFilesFromDirectory(dirPath: string) {
