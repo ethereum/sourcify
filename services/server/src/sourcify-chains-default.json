@@ -1620,5 +1620,12 @@
         "url": "https://explorer.garnetchain.com/api"
       }
     }
+  },
+  "12898": {
+    "sourcifyName": "PlayFair Testnet Subnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "avalancheApi": true
+    }
   }
 }
