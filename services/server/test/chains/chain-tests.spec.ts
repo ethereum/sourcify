@@ -1,7 +1,12 @@
 process.env.ALLOW_CONFIG_MUTATIONS = "true";
 process.env.NODE_CONFIG_ENV = "test";
-// process.env.SOURCIFY_POSTGRES_HOST = "";
 process.env.ALLIANCE_POSTGRES_HOST = "";
+process.env.SOURCIFY_POSTGRES_HOST = "localhost";
+process.env.SOURCIFY_POSTGRES_DB = "sourcify";
+process.env.SOURCIFY_POSTGRES_USER = "sourcify";
+process.env.SOURCIFY_POSTGRES_PASSWORD = "sourcify";
+process.env.SOURCIFY_POSTGRES_PORT =
+  process.env.DOCKER_HOST_POSTGRES_TEST_PORT || "5431";
 
 import chai from "chai";
 import chaiHttp from "chai-http";
