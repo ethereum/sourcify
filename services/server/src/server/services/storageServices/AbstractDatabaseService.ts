@@ -121,10 +121,12 @@ export default abstract class AbstractDatabaseService {
 
     return {
       bytecodeHashes: {
-        recompiledCreation: bytesFromString(keccak256OnchainCreationBytecode),
-        recompiledRuntime: bytesFromString(keccak256OnchainRuntimeBytecode)!,
-        onchainCreation: bytesFromString(keccak256RecompiledCreationBytecode),
-        onchainRuntime: bytesFromString(keccak256RecompiledRuntimeBytecode)!,
+        recompiledCreation: bytesFromString(
+          keccak256RecompiledCreationBytecode
+        ),
+        recompiledRuntime: bytesFromString(keccak256RecompiledRuntimeBytecode)!,
+        onchainCreation: bytesFromString(keccak256OnchainCreationBytecode),
+        onchainRuntime: bytesFromString(keccak256OnchainRuntimeBytecode)!,
       },
       compiledContract: {
         language,

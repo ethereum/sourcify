@@ -1,5 +1,5 @@
 import { deployFromAbiAndBytecodeForCreatorTxHash } from "./helpers";
-import { JsonRpcSigner, id as keccak256str } from "ethers";
+import { JsonRpcSigner, keccak256, id as keccak256str } from "ethers";
 import type { Server } from "../../src/server/server";
 import type { StorageService } from "../../src/server/services/StorageService";
 import chai from "chai";
@@ -117,12 +117,21 @@ export const verifierAllianceTest = async (
         runtime_values,
         runtime_transformations,
         compiled_runtime_code.code as compiled_runtime_code,
-        compiled_creation_code.code as compiled_creation_code
+        compiled_creation_code.code as compiled_creation_code,
+        compiled_runtime_code.code_hash as compiled_runtime_code_hash,
+        compiled_creation_code.code_hash as compiled_creation_code_hash,
+        onchain_runtime_code.code as onchain_runtime_code,
+        onchain_creation_code.code as onchain_creation_code,
+        onchain_runtime_code.code_hash as onchain_runtime_code_hash,
+        onchain_creation_code.code_hash as onchain_creation_code_hash
       FROM verified_contracts vc
       LEFT JOIN contract_deployments cd ON cd.id = vc.deployment_id
+      LEFT JOIN contracts c ON c.id = cd.contract_id
       LEFT JOIN compiled_contracts cc ON cc.id = vc.compilation_id 
       LEFT JOIN code compiled_runtime_code ON compiled_runtime_code.code_hash = cc.runtime_code_hash
       LEFT JOIN code compiled_creation_code ON compiled_creation_code.code_hash = cc.creation_code_hash
+      LEFT JOIN code onchain_runtime_code ON onchain_runtime_code.code_hash = c.runtime_code_hash
+      LEFT JOIN code onchain_creation_code ON onchain_creation_code.code_hash = c.creation_code_hash
       where cd.address = $1`,
     [Buffer.from(address.substring(2), "hex")]
   );
@@ -133,6 +142,15 @@ export const verifierAllianceTest = async (
   chai
     .expect(`0x${toHexString(res.rows[0].compiled_runtime_code)}`)
     .to.equal(testCase.compiled_runtime_code);
+  chai
+    .expect(`0x${toHexString(res.rows[0].compiled_runtime_code_hash)}`)
+    .to.equal(keccak256(testCase.compiled_runtime_code));
+  chai
+    .expect(`0x${toHexString(res.rows[0].onchain_runtime_code_hash)}`)
+    .to.equal(keccak256(testCase.deployed_runtime_code));
+  chai
+    .expect(`0x${toHexString(res.rows[0].onchain_runtime_code)}`)
+    .to.equal(testCase.deployed_runtime_code);
   chai
     .expect(res.rows[0].runtime_code_artifacts)
     .to.deep.equal(testCase.runtime_code_artifacts);
@@ -146,8 +164,17 @@ export const verifierAllianceTest = async (
 
   // For now disable the creation tests
   chai
+    .expect(`0x${toHexString(res.rows[0].compiled_creation_code_hash)}`)
+    .to.equal(keccak256(testCase.compiled_creation_code));
+  chai
     .expect(`0x${toHexString(res.rows[0].compiled_creation_code)}`)
     .to.equal(testCase.compiled_creation_code);
+  chai
+    .expect(`0x${toHexString(res.rows[0].onchain_creation_code_hash)}`)
+    .to.equal(keccak256(testCase.deployed_creation_code));
+  chai
+    .expect(`0x${toHexString(res.rows[0].onchain_creation_code)}`)
+    .to.equal(testCase.deployed_creation_code);
   chai
     .expect(res.rows[0].creation_code_artifacts)
     .to.deep.equal(testCase.creation_code_artifacts);
