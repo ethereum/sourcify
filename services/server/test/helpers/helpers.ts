@@ -216,7 +216,16 @@ export async function resetDatabase(storageService: StorageService) {
     "DELETE FROM compiled_contracts"
   );
   await storageService.sourcifyDatabase.databasePool.query(
+    "DELETE FROM compiled_contracts_new"
+  );
+  await storageService.sourcifyDatabase.databasePool.query(
     "DELETE FROM contracts"
   );
+  await storageService.sourcifyDatabase.databasePool.query(
+    "DELETE FROM contracts_new"
+  );
   await storageService.sourcifyDatabase.databasePool.query("DELETE FROM code");
+  await storageService.sourcifyDatabase.databasePool.query(
+    "DELETE FROM code_new"
+  );
 }

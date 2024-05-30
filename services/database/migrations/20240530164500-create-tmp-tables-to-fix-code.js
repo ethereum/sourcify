@@ -32,8 +32,8 @@ exports.up = function (db, callback) {
         `CREATE TABLE contracts_new
         (
             id  uuid NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
-            creation_code_hash  bytea NOT NULL REFERENCES code (code_hash),
-            runtime_code_hash   bytea NOT NULL REFERENCES code (code_hash),
+            creation_code_hash  bytea REFERENCES code_new (code_hash),
+            runtime_code_hash   bytea NOT NULL REFERENCES code_new (code_hash),
             CONSTRAINT contracts_new_pseudo_pkey UNIQUE (creation_code_hash, runtime_code_hash)
         );
         
@@ -59,9 +59,9 @@ exports.up = function (db, callback) {
             sources                 jsonb NOT NULL,
             compiler_settings       jsonb NOT NULL,
             compilation_artifacts   jsonb NOT NULL,
-            creation_code_hash      bytea NOT NULL REFERENCES code (code_hash),
+            creation_code_hash      bytea REFERENCES code_new (code_hash),
             creation_code_artifacts jsonb NOT NULL,
-            runtime_code_hash       bytea NOT NULL REFERENCES code (code_hash),
+            runtime_code_hash       bytea NOT NULL REFERENCES code_new (code_hash),
             runtime_code_artifacts  jsonb NOT NULL,
             CONSTRAINT compiled_contracts_new_pseudo_pkey UNIQUE (compiler, language, creation_code_hash, runtime_code_hash)
         );
