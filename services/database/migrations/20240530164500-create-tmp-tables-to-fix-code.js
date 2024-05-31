@@ -60,7 +60,7 @@ exports.up = function (db, callback) {
             compiler_settings       jsonb NOT NULL,
             compilation_artifacts   jsonb NOT NULL,
             creation_code_hash      bytea REFERENCES code_new (code_hash),
-            creation_code_artifacts jsonb NOT NULL,
+            creation_code_artifacts jsonb,
             runtime_code_hash       bytea NOT NULL REFERENCES code_new (code_hash),
             runtime_code_artifacts  jsonb NOT NULL,
             CONSTRAINT compiled_contracts_new_pseudo_pkey UNIQUE (compiler, language, creation_code_hash, runtime_code_hash)
@@ -71,20 +71,20 @@ exports.up = function (db, callback) {
       ),
       db.runSql.bind(
         db,
-        `CREATE OR REPLACE FUNCTION replicate_code_after_insert()
+        `CREATE OR REPLACE FUNCTION replicate_code_before_insert()
         RETURNS TRIGGER AS $$
         BEGIN
             INSERT INTO code_new (code_hash, code)
-            VALUES (NEW.code_hash, NEW.code);
+            VALUES (NEW.code_hash, NEW.code) ON CONFLICT (code_hash) DO NOTHING;
             RETURN NEW;
         END;
         $$ LANGUAGE plpgsql;
-        
-        
-        CREATE TRIGGER after_insert_code_trigger_replicate
-        AFTER INSERT ON code
+                
+                
+        CREATE TRIGGER before_insert_code_trigger_replicate
+        BEFORE INSERT ON code
         FOR EACH ROW
-        EXECUTE FUNCTION replicate_code_after_insert();`
+        EXECUTE FUNCTION replicate_code_before_insert();`
       ),
       db.runSql.bind(
         db,
@@ -128,7 +128,7 @@ exports.up = function (db, callback) {
               NEW.creation_code_artifacts,
               NEW.runtime_code_hash,
               NEW.runtime_code_artifacts
-            );
+            ) ON CONFLICT (compiler, language, creation_code_hash, runtime_code_hash) DO NOTHING;
             RETURN NEW;
           END;
           $$ LANGUAGE plpgsql;
@@ -152,7 +152,7 @@ exports.up = function (db, callback) {
             NEW.id,
             NEW.creation_code_hash,
             NEW.runtime_code_hash
-          );
+          )  ON CONFLICT (creation_code_hash, runtime_code_hash) DO NOTHING;
             RETURN NEW;
         END;
         $$ LANGUAGE plpgsql;
@@ -176,11 +176,11 @@ exports.down = function (db, callback) {
       db.dropTable.bind(db, "compiled_contracts_new"),
       db.runSql.bind(
         db,
-        "DROP TRIGGER IF EXISTS after_insert_code_trigger_replicate ON code"
+        "DROP TRIGGER IF EXISTS before_insert_code_trigger_replicate ON code"
       ),
       db.runSql.bind(
         db,
-        'DROP FUNCTION IF EXISTS "replicate_code_after_insert"'
+        'DROP FUNCTION IF EXISTS "replicate_code_before_insert"'
       ),
       db.runSql.bind(
         db,
