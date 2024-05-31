@@ -475,78 +475,81 @@ describe("/session", function () {
         chai.expect(res.body.contracts).to.have.lengthOf(3);
         done();
       });
-    it("should correctly handle when uploaded 0/2 and then 1/2 sources", (done) => {
-      const metadataPath = path.join(
-        __dirname,
-        "..",
-        "..",
-        "sources",
-        "metadata",
-        "child-contract.meta.object.json"
-      );
-      const metadataBuffer = fs.readFileSync(metadataPath);
+  });
 
-      const parentPath = path.join(
-        __dirname,
-        "..",
-        "..",
-        "sources",
-        "contracts",
-        "ParentContract.sol"
-      );
-      const parentBuffer = fs.readFileSync(parentPath);
+  it("should correctly handle when uploaded 0/2 and then 1/2 sources", (done) => {
+    const metadataPath = path.join(
+      __dirname,
+      "..",
+      "..",
+      "sources",
+      "metadata",
+      "child-contract.meta.object.json"
+    );
+    const metadataBuffer = fs.readFileSync(metadataPath);
 
-      const agent = chai.request.agent(serverFixture.server.app);
-      agent
-        .post("/session/input-files")
-        .attach("files", metadataBuffer)
-        .then((res) => {
-          chai.expect(res.status).to.equal(StatusCodes.OK);
-          chai.expect(res.body.contracts).to.have.lengthOf(1);
-          chai.expect(res.body.unused).to.be.empty;
+    const parentPath = path.join(
+      __dirname,
+      "..",
+      "..",
+      "sources",
+      "contracts",
+      "ParentContract.sol"
+    );
+    const parentBuffer = fs.readFileSync(parentPath);
 
-          const contract = res.body.contracts[0];
-          chai.expect(contract.files.found).to.have.lengthOf(0);
-          chai.expect(contract.files.missing).to.have.lengthOf(2);
+    const agent = chai.request.agent(serverFixture.server.app);
+    agent
+      .post("/session/input-files")
+      .attach("files", metadataBuffer)
+      .then((res) => {
+        chai.expect(res.status).to.equal(StatusCodes.OK);
+        chai.expect(res.body.contracts).to.have.lengthOf(1);
+        chai.expect(res.body.unused).to.be.empty;
 
-          agent
-            .post("/session/input-files")
-            .attach("files", parentBuffer)
-            .then((res) => {
-              chai.expect(res.status).to.equal(StatusCodes.OK);
-              chai.expect(res.body.contracts).to.have.lengthOf(1);
-              chai.expect(res.body.unused).to.be.empty;
+        const contract = res.body.contracts[0];
+        chai.expect(contract.files.found).to.have.lengthOf(0);
+        chai.expect(Object.keys(contract.files.missing)).to.have.lengthOf(2);
 
-              const contract = res.body.contracts[0];
-              chai.expect(contract.files.found).to.have.lengthOf(1);
-              chai.expect(contract.files.missing).to.have.lengthOf(1);
+        agent
+          .post("/session/input-files")
+          .attach("files", parentBuffer)
+          .then((res) => {
+            chai.expect(res.status).to.equal(StatusCodes.OK);
+            chai.expect(res.body.contracts).to.have.lengthOf(1);
+            chai.expect(res.body.unused).to.be.empty;
 
-              done();
-            });
-        });
-    });
+            const contract = res.body.contracts[0];
+            chai.expect(contract.files.found).to.have.lengthOf(1);
+            chai
+              .expect(Object.keys(contract.files.missing))
+              .to.have.lengthOf(1);
 
-    it("should find contracts in a zipped Truffle project", (done) => {
-      const zippedTrufflePath = path.join(
-        __dirname,
-        "..",
-        "..",
-        "sources",
-        "truffle",
-        "truffle-example.zip"
-      );
-      const zippedTruffleBuffer = fs.readFileSync(zippedTrufflePath);
-      chai
-        .request(serverFixture.server.app)
-        .post("/session/input-files")
-        .attach("files", zippedTruffleBuffer)
-        .then((res) => {
-          chai.expect(res.status).to.equal(StatusCodes.OK);
-          chai.expect(res.body.contracts).to.have.lengthOf(3);
-          chai.expect(res.body.unused).to.be.empty;
-          done();
-        });
-    });
+            done();
+          });
+      });
+  });
+
+  it("should find contracts in a zipped Truffle project", (done) => {
+    const zippedTrufflePath = path.join(
+      __dirname,
+      "..",
+      "..",
+      "sources",
+      "truffle",
+      "truffle-example.zip"
+    );
+    const zippedTruffleBuffer = fs.readFileSync(zippedTrufflePath);
+    chai
+      .request(serverFixture.server.app)
+      .post("/session/input-files")
+      .attach("files", zippedTruffleBuffer)
+      .then((res) => {
+        chai.expect(res.status).to.equal(StatusCodes.OK);
+        chai.expect(res.body.contracts).to.have.lengthOf(3);
+        chai.expect(res.body.unused).not.to.be.empty;
+        done();
+      });
   });
 
   it("should verify a contract with immutables and save immutable-references.json", async () => {
