@@ -1326,7 +1326,7 @@
     "sourcifyName": "Mantle Mainnet",
     "supported": true,
     "etherscanApi": {
-      "apiURL": "https://api.mantlescan.xyz/api",
+      "apiURL": "https://api.mantlescan.xyz/",
       "apiKeyEnvName": "MANTLESCAN_API_KEY"
     },
     "fetchContractCreationTxUsing": {
@@ -1340,7 +1340,7 @@
     "sourcifyName": "Mantle Sepolia Testnet",
     "supported": true,
     "etherscanApi": {
-      "apiURL": "https://api-sepolia.mantlescan.xyz/api",
+      "apiURL": "https://api-sepolia.mantlescan.xyz/",
       "apiKeyEnvName": "MANTLESCAN_API_KEY"
     },
     "fetchContractCreationTxUsing": {
