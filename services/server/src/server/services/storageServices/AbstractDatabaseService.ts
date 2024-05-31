@@ -312,12 +312,15 @@ export default abstract class AbstractDatabaseService {
         });
 
         // Add the onchain contract in contracts
-        await Database.updateContract(this.databasePool, {
-          creation_bytecode_hash:
-            databaseColumns.bytecodeHashes.onchainCreation,
-          runtime_bytecode_hash: databaseColumns.bytecodeHashes.onchainRuntime,
-          id: existingVerifiedContractResult[0].contract_id,
-        });
+        const contractInsertResult = await Database.insertContract(
+          this.databasePool,
+          {
+            creation_bytecode_hash:
+              databaseColumns.bytecodeHashes.onchainCreation,
+            runtime_bytecode_hash:
+              databaseColumns.bytecodeHashes.onchainRuntime,
+          }
+        );
 
         // add the onchain contract in contract_deployments
         await Database.updateContractDeployment(this.databasePool, {
@@ -325,7 +328,7 @@ export default abstract class AbstractDatabaseService {
           block_number: match.blockNumber,
           txindex: match.txIndex,
           deployer: bytesFromString(match.deployer),
-          id: existingVerifiedContractResult[0].deployment_id,
+          id: contractInsertResult.rows[0].id,
         });
       }
 
