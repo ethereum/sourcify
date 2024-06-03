@@ -303,7 +303,7 @@ export default abstract class AbstractDatabaseService {
       // Check if contracts_deployed needs to be updated
       if (
         existingVerifiedContractResult[0].transaction_hash === null &&
-        match.creatorTxHash !== null &&
+        match.creatorTxHash != null &&
         databaseColumns.bytecodeHashes.onchainCreation
       ) {
         await Database.insertCode(this.databasePool, {
@@ -328,7 +328,8 @@ export default abstract class AbstractDatabaseService {
           block_number: match.blockNumber,
           txindex: match.txIndex,
           deployer: bytesFromString(match.deployer),
-          id: contractInsertResult.rows[0].id,
+          contract_id: contractInsertResult.rows[0].id,
+          id: existingVerifiedContractResult[0].deployment_id,
         });
       }
 

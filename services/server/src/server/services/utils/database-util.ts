@@ -656,7 +656,8 @@ export async function updateContractDeployment(
     block_number,
     txindex,
     deployer,
-  }: Omit<Tables.ContractDeployment, "chain_id" | "address" | "contract_id">
+    contract_id,
+  }: Omit<Tables.ContractDeployment, "chain_id" | "address">
 ) {
   let contractDeploymentUpdateResult = await pool.query(
     `UPDATE contract_deployments 
@@ -664,10 +665,11 @@ export async function updateContractDeployment(
        transaction_hash = $2,
        block_number = $3,
        transaction_index = $4,
-       deployer = $5
+       deployer = $5,
+       contract_id = $6
      WHERE id = $1
      RETURNING *`,
-    [id, transaction_hash, block_number, txindex, deployer]
+    [id, transaction_hash, block_number, txindex, deployer, contract_id]
   );
   return contractDeploymentUpdateResult;
 }
