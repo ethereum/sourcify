@@ -71,7 +71,8 @@ export async function deployFromAbiAndBytecodeForCreatorTxHash(
 export async function deployAndVerifyContract(
   chai: Chai.ChaiStatic,
   chainFixture: LocalChainFixture,
-  serverFixture: ServerFixture
+  serverFixture: ServerFixture,
+  partial: boolean = false
 ) {
   const contractAddress = await deployFromAbiAndBytecode(
     chainFixture.localSigner,
@@ -84,7 +85,13 @@ export async function deployAndVerifyContract(
     .post("/")
     .field("address", contractAddress)
     .field("chain", chainFixture.chainId)
-    .attach("files", chainFixture.defaultContractMetadata, "metadata.json")
+    .attach(
+      "files",
+      partial
+        ? chainFixture.defaultContractModifiedMetadata
+        : chainFixture.defaultContractMetadata,
+      "metadata.json"
+    )
     .attach("files", chainFixture.defaultContractSource);
   return contractAddress;
 }

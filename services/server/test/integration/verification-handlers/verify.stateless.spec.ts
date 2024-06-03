@@ -137,7 +137,7 @@ describe("/", function () {
       .field("chain", chainFixture.chainId)
       .attach(
         "files",
-        chainFixture.defaultContractModifiedIpfsMetadata,
+        chainFixture.defaultContractModifiedSourceIpfs,
         "metadata.json"
       )
       .end((err, res) => {

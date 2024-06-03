@@ -83,6 +83,7 @@ export class ServerFixture {
     beforeEach(async () => {
       rimraf.sync(this.server.repository);
       await resetDatabase(this.storageService);
+      console.log("Resetting the StorageService");
     });
 
     after(() => {
