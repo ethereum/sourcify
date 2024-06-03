@@ -637,16 +637,6 @@ export async function getSourcifyMatchAddressesByChainAndMatch(
   );
 }
 
-export async function updateContract(
-  pool: Pool,
-  { id, creation_bytecode_hash, runtime_bytecode_hash }: Tables.Contract
-) {
-  return await pool.query(
-    "UPDATE contracts SET creation_code_hash = $2, runtime_code_hash = $3 WHERE id = $1 RETURNING *",
-    [id, creation_bytecode_hash, runtime_bytecode_hash]
-  );
-}
-
 export async function updateContractDeployment(
   pool: Pool,
   {

@@ -221,7 +221,6 @@ describe("/", function () {
         contract_id: contractIdWithoutCreatorTransactionHash,
       });
 
-    console.log(contractDeploymentWithoutCreatorTransactionHash?.rows[0]);
     res = await chai
       .request(serverFixture.server.app)
       .post("/")
