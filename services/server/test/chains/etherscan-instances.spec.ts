@@ -28,13 +28,19 @@ describe("Test each Etherscan instance", function () {
     testedChains.push(parseInt(chainId));
     describe(`#${chainId} ${sourcifyChainsMap[chainId].name}`, () => {
       testContracts[chainId].forEach((contract) => {
-        verifyAndAssertEtherscan(
-          serverFixture,
-          chainId,
-          contract.address,
-          contract.expectedStatus,
-          contract.type
-        );
+        const address = contract.address;
+        const expectedStatus = contract.expectedStatus;
+        const type = contract.type;
+        const chain = chainId;
+        it(`Non-Session: Should import a ${type} contract from ${sourcifyChainsMap[chain].etherscanApi?.apiURL} and verify the contract, finding a ${expectedStatus} match`, (done) => {
+          verifyAndAssertEtherscan(
+            serverFixture,
+            chain,
+            address,
+            expectedStatus,
+            done
+          );
+        });
       });
     });
   }
