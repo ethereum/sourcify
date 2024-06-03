@@ -1206,9 +1206,16 @@ describe("Test Supported Chains", function () {
 
   // Mantle Mainnet
   verifyContract(
-    "0x2977852235B0EcFa27D3Eb045898fFF3575b294B",
+    "0x77cD62e4D8d7b9dA83A2B6a15Ca6c702E83eCE44",
     "5000",
     "Mantle Mainnet",
+    "shared/"
+  );
+  // Mantle Sepolia Testnet
+  verifyContract(
+    "0xd8EFfb6C21e926E1d71440A2b6e8E1566fAf62D6",
+    "5003",
+    "Mantle Sepolia Testnet",
     "shared/"
   );
 
@@ -1465,6 +1472,14 @@ describe("Test Supported Chains", function () {
     "0x81EbbEDEd806Dbaa6ccD5a9D6D88D0d90B70dfc9",
     "17069",
     "Garnet Holesky",
+    "shared/"
+  );
+
+  // PlayFair Testnet Subnet
+  verifyContract(
+    "0x9be71dB4693657625F92359d046c513Bb35F96db",
+    "12898",
+    "PlayFair Testnet Subnet",
     "shared/"
   );
 

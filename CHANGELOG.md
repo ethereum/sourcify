@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 This CHANGELOG will contain monorepo related changes such as CI configs, shared dependencies and the development setup.
 
+## sourcify-monorepo@1.2.10 - 2024-05-28
+
+- fix CircleCI new_branch and nightly scripts to support database
+
 ## sourcify-monorepo@1.2.9 - 2024-05-14
 
 - fix .vscode/launch.json 

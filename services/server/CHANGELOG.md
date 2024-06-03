@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@2.0.0 - 2024-05-28
+
+- Use Sourcify Database as source of truth #1328, from now on existance of verified contracts will be checked from the Sourcify PostgreSQL database and not filesystem based RepositoryV1
+- New chains:
+  - Redstone (690)
+  - Garnet Holesky (17069)
+  - PlayFair Testnet Subnet (12898)
+
 ## sourcify-server@1.7.0 - 2024-05-14
 
 - Support for multiple auxdata contracts
