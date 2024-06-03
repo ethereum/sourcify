@@ -26,6 +26,14 @@ paths:
             type: number
             minimum: 1
             maximum: 200
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+          description: Order of the results. Default is "asc" (earliest verified contract first)
+
       responses:
         "200":
           description: Chain is available as a full match in the repository

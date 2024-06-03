@@ -153,7 +153,7 @@ export class SourcifyDatabaseService
         }
       );
       throw new BadRequestError(
-        `Cannot fetch more than ${MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS} contracts (${fullTotal} full matches, ${partialTotal} partial matches), please use /contracts/{full|any}/${chainId} with pagination`
+        `Cannot fetch more than ${MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS} contracts (${fullTotal} full matches, ${partialTotal} partial matches), please use /contracts/{full|any|partial}/${chainId} with pagination`
       );
     }
 
@@ -198,7 +198,8 @@ export class SourcifyDatabaseService
     chainId: string,
     match: MatchLevel,
     page: number,
-    limit: number
+    limit: number,
+    descending: boolean = false
   ): Promise<PaginatedContractData> => {
     await this.init();
 
@@ -233,29 +234,31 @@ export class SourcifyDatabaseService
       matchAddressesCountResult.rows[0].partial_total
     );
     const anyTotal = fullTotal + partialTotal;
-    if (match === "full_match") {
-      if (fullTotal === 0) {
-        return res;
-      }
-      res.pagination.totalResults = fullTotal;
-    } else if (match === "any_match") {
-      if (anyTotal === 0) {
-        return res;
-      }
-      res.pagination.totalResults = anyTotal;
+    const matchTotals: Record<MatchLevel, number> = {
+      full_match: fullTotal,
+      partial_match: partialTotal,
+      any_match: anyTotal,
+    };
+
+    // return empty res if requested `match` total is zero
+    if (matchTotals[match] === 0) {
+      return res;
     }
+    res.pagination.totalResults = matchTotals[match];
 
     res.pagination.totalPages = Math.ceil(
       res.pagination.totalResults / res.pagination.resultsPerPage
     );
 
+    // Now make the real query for addresses
     const matchAddressesResult =
       await Database.getSourcifyMatchAddressesByChainAndMatch(
         this.databasePool,
         parseInt(chainId),
         match,
         page,
-        limit
+        limit,
+        descending
       );
 
     if (matchAddressesResult.rowCount > 0) {

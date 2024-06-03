@@ -1,9 +1,6 @@
 import chai from "chai";
 import chaiHttp from "chai-http";
-import {
-  deployFromAbiAndBytecodeForCreatorTxHash,
-  waitSecs,
-} from "../../helpers/helpers";
+import { deployAndVerifyContract, waitSecs } from "../../helpers/helpers";
 import { LocalChainFixture } from "../../helpers/LocalChainFixture";
 import { ServerFixture } from "../../helpers/ServerFixture";
 
@@ -43,23 +40,19 @@ describe("Verify repository endpoints", function () {
     chai.expect(res4.body.full).has.a.lengthOf(1);
   });
 
-  it("should handle pagination in /files/contracts/{chain}", async function () {
+  it("should handle pagination in /files/contracts/any/{chain}", async function () {
+    // Deploy 5 contracts
+    const contractAddresses: string[] = [];
     for (let i = 0; i < 5; i++) {
-      const { contractAddress } =
-        await deployFromAbiAndBytecodeForCreatorTxHash(
-          chainFixture.localSigner,
-          chainFixture.defaultContractArtifact.abi,
-          chainFixture.defaultContractArtifact.bytecode,
-          []
-        );
-      await chai
-        .request(serverFixture.server.app)
-        .post("/")
-        .field("address", contractAddress)
-        .field("chain", chainFixture.chainId)
-        .attach("files", chainFixture.defaultContractMetadata, "metadata.json")
-        .attach("files", chainFixture.defaultContractSource);
+      const address = await deployAndVerifyContract(
+        chai,
+        chainFixture,
+        serverFixture
+      );
+      contractAddresses.push(address);
     }
+
+    // Verify pagination
     const res0 = await chai
       .request(serverFixture.server.app)
       .get(`/files/contracts/any/${chainFixture.chainId}?page=1&limit=2`);
@@ -84,5 +77,27 @@ describe("Verify repository endpoints", function () {
       totalPages: 1,
       totalResults: 5,
     });
+
+    // Verify ascending order
+    const resAsc = await chai
+      .request(serverFixture.server.app)
+      .get(`/files/contracts/any/${chainFixture.chainId}?order=asc`);
+    chai
+      .expect(resAsc.body.results)
+      .to.deep.equal(
+        contractAddresses,
+        "Contract addresses are not in ascending order"
+      );
+
+    // Verify descending order
+    const resDesc = await chai
+      .request(serverFixture.server.app)
+      .get(`/files/contracts/any/${chainFixture.chainId}?order=desc`);
+    chai
+      .expect(resDesc.body.results)
+      .to.deep.equal(
+        contractAddresses.reverse(),
+        "Contract addresses are not in reverse order"
+      );
   });
 });

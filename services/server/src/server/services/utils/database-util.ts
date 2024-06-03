@@ -595,7 +595,8 @@ export async function getSourcifyMatchAddressesByChainAndMatch(
   chain: number,
   match: "full_match" | "partial_match" | "any_match",
   page: number,
-  paginationSize: number
+  paginationSize: number,
+  descending: boolean = false
 ) {
   let queryWhere = "";
   switch (match) {
@@ -617,6 +618,13 @@ export async function getSourcifyMatchAddressesByChainAndMatch(
       throw new Error("Match type not supported");
     }
   }
+
+  if (descending) {
+    queryWhere += " ORDER BY verified_contracts.id DESC";
+  } else {
+    queryWhere += " ORDER BY verified_contracts.id ASC";
+  }
+
   return await pool.query(
     `
     SELECT
