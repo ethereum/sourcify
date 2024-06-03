@@ -1,15 +1,8 @@
-process.env.ALLOW_CONFIG_MUTATIONS = "true";
-process.env.NODE_CONFIG_ENV = "test";
-// process.env.SOURCIFY_POSTGRES_HOST = "";
-process.env.ALLIANCE_POSTGRES_HOST = "";
-
+import { ServerFixture } from "../helpers/ServerFixture";
 import chai from "chai";
 import chaiHttp from "chai-http";
-import { Server } from "../../src/server/server";
 import fs from "fs";
 import path from "path";
-import util from "util";
-import rimraf from "rimraf";
 import addContext from "mochawesome/addContext";
 import { assertVerification } from "../helpers/assertions";
 import testEtherscanContracts from "../helpers/etherscanInstanceContracts.json";
@@ -43,17 +36,15 @@ describe("Test Supported Chains", function () {
     `Set up tests timeout with ${Math.floor(parseInt(TEST_TIME) / 1000)} secs`
   );
   this.timeout(TEST_TIME);
-  const server = new Server(CUSTOM_PORT);
+  const serverFixture = new ServerFixture({
+    port: CUSTOM_PORT,
+  });
 
   const testedChains = new Set(); // Track tested chains and make sure all "supported = true" chains are tested
   let supportedChains: ChainApiResponse[];
   before(async function () {
-    const promisified: any = util.promisify(server.app.listen);
-    await promisified(server.port);
-    console.log(`Injector listening on port ${server.port}!`);
-
     chai
-      .request(server.app)
+      .request(serverFixture.server.app)
       .get("/chains")
       .end((err, res) => {
         if (err !== null) {
@@ -65,12 +56,7 @@ describe("Test Supported Chains", function () {
       });
   });
 
-  beforeEach(() => {
-    rimraf.sync(server.repository);
-  });
-
   after(() => {
-    rimraf.sync(server.repository);
     if (!anyTestsPass && newAddedChainIds.length) {
       throw new Error(
         "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id(s) " +
@@ -1220,9 +1206,16 @@ describe("Test Supported Chains", function () {
 
   // Mantle Mainnet
   verifyContract(
-    "0x2977852235B0EcFa27D3Eb045898fFF3575b294B",
+    "0x77cD62e4D8d7b9dA83A2B6a15Ca6c702E83eCE44",
     "5000",
     "Mantle Mainnet",
+    "shared/"
+  );
+  // Mantle Sepolia Testnet
+  verifyContract(
+    "0xd8EFfb6C21e926E1d71440A2b6e8E1566fAf62D6",
+    "5003",
+    "Mantle Sepolia Testnet",
     "shared/"
   );
 
@@ -1482,6 +1475,14 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // PlayFair Testnet Subnet
+  verifyContract(
+    "0x9be71dB4693657625F92359d046c513Bb35F96db",
+    "12898",
+    "PlayFair Testnet Subnet",
+    "shared/"
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests: ChainApiResponse[] = [];
     supportedChains
@@ -1561,7 +1562,7 @@ describe("Test Supported Chains", function () {
       readFilesRecursively(fullDir, files);
 
       chai
-        .request(server.app)
+        .request(serverFixture.server.app)
         .post("/")
         .send({
           address: address,

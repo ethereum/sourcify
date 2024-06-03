@@ -17,7 +17,7 @@ module.exports = {
   },
   lambdaCompiler: {
     enabled: true,
-    functionName: "compile:2",
+    functionName: "compile:3",
     // credentials as env vars
   },
   rateLimit: {

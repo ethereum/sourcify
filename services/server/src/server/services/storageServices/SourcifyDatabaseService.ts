@@ -9,14 +9,12 @@ import { Pool } from "pg";
 import AbstractDatabaseService from "./AbstractDatabaseService";
 import { IStorageService } from "../StorageService";
 import { bytesFromString } from "../utils/database-util";
-import { getMatchStatus } from "../../common";
 import {
   ContractData,
   FileObject,
   FilesInfo,
   FilesRaw,
   MatchLevel,
-  MatchQuality,
   PaginatedContractData,
 } from "../../types";
 import config from "config";
@@ -57,6 +55,11 @@ export class SourcifyDatabaseService
     this.postgresDatabase = options.postgres.database;
     this.postgresUser = options.postgres.user;
     this.postgresPassword = options.postgres.password;
+    logger.debug(`SourcifyDatabaseService created`, {
+      name: this.databaseName,
+      host: this.postgresHost,
+      port: this.postgresPort,
+    });
   }
 
   async init(): Promise<boolean> {
@@ -77,7 +80,11 @@ export class SourcifyDatabaseService
     } else {
       throw new Error(`${this.databaseName} is disabled`);
     }
-    logger.info(`SourcifyDatabase initialized`, { name: this.databaseName });
+    logger.info(`SourcifyDatabase initialized`, {
+      name: this.databaseName,
+      host: this.postgresHost,
+      port: this.postgresPort,
+    });
     return true;
   }
 

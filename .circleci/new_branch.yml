@@ -49,6 +49,7 @@ jobs:
       - run:
           name: coverage
           command: npx lerna run cov:send
+    resource_class: large
   test-new-chain:
     docker:
       - image: cimg/node:16.15

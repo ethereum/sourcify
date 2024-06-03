@@ -108,46 +108,6 @@ export const assertVerificationSession = async (
   }
 };
 
-/**
- * Lookup (check-by-address etc.) doesn't return chainId, otherwise same as assertVerification
- */
-export const assertLookup = (
-  err: Error | null,
-  res: Response,
-  expectedAddress: string,
-  expectedStatus: string,
-  done?: Done
-) => {
-  chai.expect(err).to.be.null;
-  chai.expect(res.status).to.equal(StatusCodes.OK);
-  const resultArray = res.body;
-  chai.expect(resultArray).to.have.a.lengthOf(1);
-  const result = resultArray[0];
-  chai.expect(result.status).to.equal(expectedStatus);
-  chai.expect(result.address).to.equal(expectedAddress);
-  if (done) done();
-};
-
-/**
- * check-all-by-address returns chain and status objects in an array.
- */
-export const assertLookupAll = (
-  err: Error | null,
-  res: Response,
-  expectedAddress: string,
-  expectedChainIds: { chainId: string; status: string }[],
-  done?: Done
-) => {
-  chai.expect(err).to.be.null;
-  chai.expect(res.status).to.equal(StatusCodes.OK);
-  const resultArray = res.body;
-  chai.expect(resultArray).to.have.a.lengthOf(1);
-  const result = resultArray[0];
-  chai.expect(result.address).to.equal(expectedAddress);
-  chai.expect(result.chainIds).to.deep.equal(expectedChainIds);
-  if (done) done();
-};
-
 async function assertContractSaved(
   storageService: StorageService | null,
   expectedAddress: string | undefined,

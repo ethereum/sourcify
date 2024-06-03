@@ -1,34 +1,19 @@
 // Periodical tests of Import from Etherscan for each instance e.g. Arbiscan, Etherscan, Bscscan, etc.
 
-import { Server } from "../../src/server/server";
-import rimraf from "rimraf";
 import testContracts from "../helpers/etherscanInstanceContracts.json";
 import {
   sourcifyChainsMap,
   sourcifyChainsArray,
 } from "../../src/sourcify-chains";
-import util from "util";
 import { verifyAndAssertEtherscan } from "../helpers/helpers";
 import chai from "chai";
+import { ServerFixture } from "../helpers/ServerFixture";
 
 const CUSTOM_PORT = 5679;
 
 describe("Test each Etherscan instance", function () {
-  this.timeout(30000);
-  const server = new Server(CUSTOM_PORT);
-
-  before(async () => {
-    const promisified: any = util.promisify(server.app.listen);
-    await promisified(server.port);
-    console.log(`Server listening on port ${server.port}!`);
-  });
-
-  beforeEach(() => {
-    rimraf.sync(server.repository);
-  });
-
-  after(() => {
-    rimraf.sync(server.repository);
+  const serverFixture = new ServerFixture({
+    port: CUSTOM_PORT,
   });
 
   const testedChains: number[] = [];
@@ -44,7 +29,7 @@ describe("Test each Etherscan instance", function () {
     describe(`#${chainId} ${sourcifyChainsMap[chainId].name}`, () => {
       testContracts[chainId].forEach((contract) => {
         verifyAndAssertEtherscan(
-          server.app,
+          serverFixture,
           chainId,
           contract.address,
           contract.expectedStatus,
