@@ -244,7 +244,7 @@ describe("/", function () {
         "SELECT encode(transaction_hash, 'hex') as transaction_hash, block_number, transaction_index, contract_id FROM contract_deployments"
       );
 
-    let contractIdWithCreatorTransactionHash =
+    const contractIdWithCreatorTransactionHash =
       contractDeploymentWithCreatorTransactionHash?.rows[0].contract_id;
 
     // There should be a new contract_id

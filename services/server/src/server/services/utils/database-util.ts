@@ -641,11 +641,10 @@ export async function updateContract(
   pool: Pool,
   { id, creation_bytecode_hash, runtime_bytecode_hash }: Tables.Contract
 ) {
-  let contractUpdateResult = await pool.query(
+  return await pool.query(
     "UPDATE contracts SET creation_code_hash = $2, runtime_code_hash = $3 WHERE id = $1 RETURNING *",
     [id, creation_bytecode_hash, runtime_bytecode_hash]
   );
-  return contractUpdateResult;
 }
 
 export async function updateContractDeployment(
@@ -659,7 +658,7 @@ export async function updateContractDeployment(
     contract_id,
   }: Omit<Tables.ContractDeployment, "chain_id" | "address">
 ) {
-  let contractDeploymentUpdateResult = await pool.query(
+  return await pool.query(
     `UPDATE contract_deployments 
      SET 
        transaction_hash = $2,
@@ -671,5 +670,4 @@ export async function updateContractDeployment(
      RETURNING *`,
     [id, transaction_hash, block_number, txindex, deployer, contract_id]
   );
-  return contractDeploymentUpdateResult;
 }
