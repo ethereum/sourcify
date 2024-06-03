@@ -15,6 +15,7 @@ import chaiHttp from "chai-http";
 import path from "path";
 import { promises as fs } from "fs";
 import { StorageService } from "../../src/server/services/StorageService";
+import { ServerFixture } from "./ServerFixture";
 
 chai.use(chaiHttp);
 
@@ -123,7 +124,7 @@ export async function callContractMethodWithTx(
 }
 
 export function verifyAndAssertEtherscan(
-  serverApp: Express.Application,
+  serverFixture: ServerFixture,
   chainId: string,
   address: string,
   expectedStatus: string,
@@ -131,7 +132,7 @@ export function verifyAndAssertEtherscan(
 ) {
   it(`Non-Session: Should import a ${type} contract from  #${chainId} ${sourcifyChainsMap[chainId].name} (${sourcifyChainsMap[chainId].etherscanApi?.apiURL}) and verify the contract, finding a ${expectedStatus} match`, (done) => {
     const request = chai
-      .request(serverApp)
+      .request(serverFixture.server.app)
       .post("/verify/etherscan")
       .field("address", address)
       .field("chain", chainId);
@@ -150,7 +151,7 @@ export function verifyAndAssertEtherscan(
 }
 
 export function verifyAndAssertEtherscanSession(
-  serverApp: Express.Application,
+  serverFixture: ServerFixture,
   chainId: string,
   address: string,
   expectedStatus: string,
@@ -158,7 +159,7 @@ export function verifyAndAssertEtherscanSession(
 ) {
   it(`Session: Should import a ${type} contract from  #${chainId} ${sourcifyChainsMap[chainId].name} (${sourcifyChainsMap[chainId].etherscanApi?.apiURL}) and verify the contract, finding a ${expectedStatus} match`, (done) => {
     chai
-      .request(serverApp)
+      .request(serverFixture.server.app)
       .post("/session/verify/etherscan")
       .field("address", address)
       .field("chainId", chainId)

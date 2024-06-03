@@ -19,37 +19,56 @@ const router: Router = Router();
 [
   {
     prefix: "/tree/any",
-    method: createEndpoint(services.storage.getTree, "any_match", true),
+    method: createEndpoint(
+      (chain, address, match) =>
+        services.storage.getTree(chain, address, match),
+      "any_match",
+      true
+    ),
   },
   {
     prefix: "/any",
-    method: createEndpoint(services.storage.getContent, "any_match", true),
+    method: createEndpoint(
+      (chain, address, match) =>
+        services.storage.getContent(chain, address, match),
+      "any_match",
+      true
+    ),
   },
   {
     prefix: "/tree",
-    method: createEndpoint(services.storage.getTree, "full_match"),
+    method: createEndpoint(
+      (chain, address, match) =>
+        services.storage.getTree(chain, address, match),
+      "full_match"
+    ),
   },
   {
     prefix: "/contracts",
-    method: createContractEndpoint(services.storage.getContracts),
+    method: createContractEndpoint((chain) =>
+      services.storage.getContracts(chain)
+    ),
   },
   {
     prefix: "/contracts/full",
     method: createPaginatedContractEndpoint(
-      services.storage.getPaginatedContracts,
+      (chain, match, page, limit) =>
+        services.storage.getPaginatedContracts(chain, match, page, limit),
       "full_match"
     ),
   },
   {
     prefix: "/contracts/any",
     method: createPaginatedContractEndpoint(
-      services.storage.getPaginatedContracts,
+      (chain, match, page, limit) =>
+        services.storage.getPaginatedContracts(chain, match, page, limit),
       "any_match"
     ),
   },
   {
     prefix: "",
-    method: createEndpoint(services.storage.getContent, "full_match"),
+    method: createEndpoint(
+      (chain, address, match) => services.storage.getContent(chain, address, match), "full_match"),
   },
 ].forEach((pair) => {
   router
