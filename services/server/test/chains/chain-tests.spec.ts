@@ -1443,6 +1443,14 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // Aura Xstaxy Mainnet
+  verifyContract(
+    "0x6Da592Fb9E71342050511AC50E610EA24004F3ec",
+    "6322",
+    "Aura Xstaxy Mainnet",
+    "shared/"
+  );
+
   // Bitlayer Mainnet
   verifyContract(
     "0x3eBC948d4E3E1dACAd8fcAB719937b6264222718",
