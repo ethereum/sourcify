@@ -40,7 +40,7 @@ describe("Verify repository endpoints", function () {
     chai.expect(res4.body.full).has.a.lengthOf(1);
   });
 
-  describe.only(`Pagination in /files/contracts/{full|any|partial}/${chainFixture.chainId}`, async function () {
+  describe(`Pagination in /files/contracts/{full|any|partial}/${chainFixture.chainId}`, async function () {
     const endpointMatchTypes = ["full", "any", "partial"];
     for (const endpointMatchType of endpointMatchTypes) {
       it(`should handle pagination in /files/contracts/${endpointMatchType}/${chainFixture.chainId}`, async function () {
