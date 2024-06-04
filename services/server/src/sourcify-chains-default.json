@@ -1323,11 +1323,30 @@
     }
   },
   "5000": {
-    "sourcifyName": "Mantle",
+    "sourcifyName": "Mantle Mainnet",
     "supported": true,
+    "etherscanApi": {
+      "apiURL": "https://api.mantlescan.xyz/",
+      "apiKeyEnvName": "MANTLESCAN_API_KEY"
+    },
     "fetchContractCreationTxUsing": {
+      "etherscanApi": true,
       "blockscoutScrape": {
         "url": "https://explorer.mantle.xyz/"
+      }
+    }
+  },
+  "5003": {
+    "sourcifyName": "Mantle Sepolia Testnet",
+    "supported": true,
+    "etherscanApi": {
+      "apiURL": "https://api-sepolia.mantlescan.xyz/",
+      "apiKeyEnvName": "MANTLESCAN_API_KEY"
+    },
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true,
+      "blockscoutScrape": {
+        "url": "https://explorer.sepolia.mantle.xyz/"
       }
     }
   },
