@@ -17,10 +17,12 @@ export namespace Tables {
     bytecode: Buffer;
   }
   export interface Contract {
+    id?: string;
     creation_bytecode_hash?: Hash;
     runtime_bytecode_hash: Hash;
   }
   export interface ContractDeployment {
+    id?: string;
     chain_id: string;
     address: Buffer;
     transaction_hash: Buffer;
@@ -122,7 +124,9 @@ export async function getVerifiedContractByChainAndAddress(
   return await pool.query(
     `
       SELECT
-        verified_contracts.*
+        verified_contracts.*,
+        contract_deployments.transaction_hash,
+        contract_deployments.contract_id
       FROM verified_contracts
       JOIN contract_deployments ON contract_deployments.id = verified_contracts.deployment_id
       WHERE 1=1
@@ -630,5 +634,30 @@ export async function getSourcifyMatchAddressesByChainAndMatch(
     OFFSET $2 LIMIT $3
     `,
     [chain, page * paginationSize, paginationSize]
+  );
+}
+
+export async function updateContractDeployment(
+  pool: Pool,
+  {
+    id,
+    transaction_hash,
+    block_number,
+    txindex,
+    deployer,
+    contract_id,
+  }: Omit<Tables.ContractDeployment, "chain_id" | "address">
+) {
+  return await pool.query(
+    `UPDATE contract_deployments 
+     SET 
+       transaction_hash = $2,
+       block_number = $3,
+       transaction_index = $4,
+       deployer = $5,
+       contract_id = $6
+     WHERE id = $1
+     RETURNING *`,
+    [id, transaction_hash, block_number, txindex, deployer, contract_id]
   );
 }

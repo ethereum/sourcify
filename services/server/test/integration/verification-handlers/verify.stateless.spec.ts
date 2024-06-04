@@ -167,7 +167,7 @@ describe("/", function () {
       );
   });
 
-  it("should return 'partial', then delete partial when 'full' match", async () => {
+  it("Should upgrade match from 'partial' to 'full', delete partial from repository and update creationTx information in database", async () => {
     const partialMetadata = await import(
       "../../testcontracts/Storage/metadataModified.json"
     );
@@ -205,11 +205,28 @@ describe("/", function () {
     res = await chai.request(serverFixture.server.app).get(partialMetadataURL);
     chai.expect(res.body).to.deep.equal(partialMetadata);
 
+    const contractDeploymentWithoutCreatorTransactionHash =
+      await serverFixture.storageService.sourcifyDatabase?.databasePool.query(
+        "SELECT transaction_hash, block_number, transaction_index, contract_id FROM contract_deployments"
+      );
+
+    const contractIdWithoutCreatorTransactionHash =
+      contractDeploymentWithoutCreatorTransactionHash?.rows[0].contract_id;
+    chai
+      .expect(contractDeploymentWithoutCreatorTransactionHash?.rows[0])
+      .to.deep.equal({
+        transaction_hash: null,
+        block_number: null,
+        transaction_index: null,
+        contract_id: contractIdWithoutCreatorTransactionHash,
+      });
+
     res = await chai
       .request(serverFixture.server.app)
       .post("/")
       .field("address", chainFixture.defaultContractAddress)
       .field("chain", chainFixture.chainId)
+      .field("creatorTxHash", chainFixture.defaultContractCreatorTx)
       .attach("files", chainFixture.defaultContractMetadata, "metadata.json")
       .attach("files", chainFixture.defaultContractSource);
     await assertVerification(
@@ -220,6 +237,29 @@ describe("/", function () {
       chainFixture.defaultContractAddress,
       chainFixture.chainId
     );
+
+    const contractDeploymentWithCreatorTransactionHash =
+      await serverFixture.storageService.sourcifyDatabase?.databasePool.query(
+        "SELECT encode(transaction_hash, 'hex') as transaction_hash, block_number, transaction_index, contract_id FROM contract_deployments"
+      );
+
+    const contractIdWithCreatorTransactionHash =
+      contractDeploymentWithCreatorTransactionHash?.rows[0].contract_id;
+
+    // There should be a new contract_id
+    chai
+      .expect(contractIdWithCreatorTransactionHash)
+      .to.not.equal(contractIdWithoutCreatorTransactionHash);
+
+    // Creator transaction information must be used after update
+    chai
+      .expect(contractDeploymentWithCreatorTransactionHash?.rows[0])
+      .to.deep.equal({
+        transaction_hash: chainFixture.defaultContractCreatorTx.substring(2),
+        block_number: "1",
+        transaction_index: "0",
+        contract_id: contractIdWithCreatorTransactionHash,
+      });
 
     await waitSecs(2); // allow server some time to execute the deletion (it started *after* the last response)
 

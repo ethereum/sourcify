@@ -248,7 +248,10 @@ export default abstract class AbstractDatabaseService {
   }
 
   async updateExistingVerifiedContract(
-    existingVerifiedContractResult: Database.Tables.VerifiedContract[],
+    existingVerifiedContractResult: (Database.Tables.VerifiedContract & {
+      transaction_hash: Buffer | null;
+      contract_id: string;
+    })[],
     recompiledContract: CheckedContract,
     match: Match,
     databaseColumns: Database.DatabaseColumns
@@ -297,6 +300,39 @@ export default abstract class AbstractDatabaseService {
       return false;
     }
     try {
+      // Check if contracts_deployed needs to be updated
+      if (
+        existingVerifiedContractResult[0].transaction_hash === null &&
+        match.creatorTxHash != null &&
+        databaseColumns.bytecodeHashes.onchainCreation
+      ) {
+        await Database.insertCode(this.databasePool, {
+          bytecode_hash: databaseColumns.bytecodeHashes.onchainCreation,
+          bytecode: bytesFromString(match.onchainCreationBytecode)!,
+        });
+
+        // Add the onchain contract in contracts
+        const contractInsertResult = await Database.insertContract(
+          this.databasePool,
+          {
+            creation_bytecode_hash:
+              databaseColumns.bytecodeHashes.onchainCreation,
+            runtime_bytecode_hash:
+              databaseColumns.bytecodeHashes.onchainRuntime,
+          }
+        );
+
+        // add the onchain contract in contract_deployments
+        await Database.updateContractDeployment(this.databasePool, {
+          transaction_hash: bytesFromString(match.creatorTxHash)!,
+          block_number: match.blockNumber,
+          txindex: match.txIndex,
+          deployer: bytesFromString(match.deployer),
+          contract_id: contractInsertResult.rows[0].id,
+          id: existingVerifiedContractResult[0].deployment_id,
+        });
+      }
+
       // Add recompiled bytecodes
       if (databaseColumns.bytecodeHashes.recompiledCreation) {
         await Database.insertCode(this.databasePool, {

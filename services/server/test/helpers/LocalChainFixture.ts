@@ -1,7 +1,10 @@
 import ganache from "ganache";
 import path from "path";
 import fs from "fs";
-import { readFilesFromDirectory } from "./helpers";
+import {
+  deployFromAbiAndBytecodeForCreatorTxHash,
+  readFilesFromDirectory,
+} from "./helpers";
 import { deployFromAbiAndBytecode } from "../helpers/helpers";
 import { JsonRpcProvider, JsonRpcSigner, Network } from "ethers";
 import { LOCAL_CHAINS } from "../../src/sourcify-chains";
@@ -36,6 +39,7 @@ export class LocalChainFixture {
   private _chainId?: string;
   private _localSigner?: JsonRpcSigner;
   private _defaultContractAddress?: string;
+  private _defaultContractCreatorTx?: string;
 
   // Getters for type safety
   // Can be safely accessed in "it" blocks
@@ -51,6 +55,11 @@ export class LocalChainFixture {
     if (!this._defaultContractAddress)
       throw new Error("defaultContractAddress not initialized!");
     return this._defaultContractAddress;
+  }
+  get defaultContractCreatorTx(): string {
+    if (!this._defaultContractCreatorTx)
+      throw new Error("defaultContractCreatorTx not initialized!");
+    return this._defaultContractCreatorTx;
   }
 
   /**
@@ -97,11 +106,15 @@ export class LocalChainFixture {
       console.log("Initialized Provider");
 
       // Deploy the test contract
-      this._defaultContractAddress = await deployFromAbiAndBytecode(
-        this._localSigner,
-        storageContractArtifact.abi,
-        storageContractArtifact.bytecode
-      );
+      const { contractAddress, txHash } =
+        await deployFromAbiAndBytecodeForCreatorTxHash(
+          this._localSigner,
+          storageContractArtifact.abi,
+          storageContractArtifact.bytecode
+        );
+
+      this._defaultContractAddress = contractAddress;
+      this._defaultContractCreatorTx = txHash;
     });
 
     after(async () => {
