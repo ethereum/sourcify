@@ -426,52 +426,6 @@ export async function insertSourcifyMatch(
   );
 }
 
-export async function insertSourcifySync(
-  pool: Pool,
-  { chain_id, address, match_type }: Tables.SourcifySync
-) {
-  // I'm doing this because before passing the match_type I'm calling getMatchStatus(match)
-  // but then I need to convert the status to full_match | partial_match
-  let matchType;
-  switch (match_type) {
-    case "perfect":
-      matchType = "full_match";
-      break;
-    case "partial":
-      matchType = "partial_match";
-      break;
-  }
-  await pool.query(
-    `INSERT INTO sourcify_sync 
-      (chain_id, address, match_type, synced)
-      VALUES ($1, $2, $3, true)`,
-    [chain_id, address, match_type]
-  );
-}
-
-export async function updateSourcifySync(
-  pool: Pool,
-  { chain_id, address, match_type }: Tables.SourcifySync
-) {
-  // I'm doing this because before passing the match_type I'm calling getMatchStatus(match)
-  // but then I need to convert the status to full_match | partial_match
-  let matchType;
-  switch (match_type) {
-    case "perfect":
-      matchType = "full_match";
-      break;
-    case "partial":
-      matchType = "partial_match";
-      break;
-  }
-  await pool.query(
-    `UPDATE sourcify_sync SET
-      match_type=$3
-    WHERE chain_id=$1 AND address=$2;`,
-    [chain_id, address, match_type]
-  );
-}
-
 // Update sourcify_matches to the latest (and better) match in verified_contracts,
 // you need to pass the old verified_contract_id to be updated.
 // The old verified_contracts are not deleted from the verified_contracts table.
