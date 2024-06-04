@@ -52,23 +52,52 @@ const router: Router = Router();
   {
     prefix: "/contracts/full",
     method: createPaginatedContractEndpoint(
-      (chain, match, page, limit) =>
-        services.storage.getPaginatedContracts(chain, match, page, limit),
+      (chain, match, page, limit, descending) =>
+        services.storage.getPaginatedContracts(
+          chain,
+          match,
+          page,
+          limit,
+          descending
+        ),
       "full_match"
+    ),
+  },
+  {
+    prefix: "/contracts/partial",
+    method: createPaginatedContractEndpoint(
+      (chain, match, page, limit, descending) =>
+        services.storage.getPaginatedContracts(
+          chain,
+          match,
+          page,
+          limit,
+          descending
+        ),
+      "partial_match"
     ),
   },
   {
     prefix: "/contracts/any",
     method: createPaginatedContractEndpoint(
-      (chain, match, page, limit) =>
-        services.storage.getPaginatedContracts(chain, match, page, limit),
+      (chain, match, page, limit, descending) =>
+        services.storage.getPaginatedContracts(
+          chain,
+          match,
+          page,
+          limit,
+          descending
+        ),
       "any_match"
     ),
   },
   {
     prefix: "",
     method: createEndpoint(
-      (chain, address, match) => services.storage.getContent(chain, address, match), "full_match"),
+      (chain, address, match) =>
+        services.storage.getContent(chain, address, match),
+      "full_match"
+    ),
   },
 ].forEach((pair) => {
   router

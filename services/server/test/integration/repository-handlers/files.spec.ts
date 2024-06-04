@@ -1,9 +1,6 @@
 import chai from "chai";
 import chaiHttp from "chai-http";
-import {
-  deployFromAbiAndBytecodeForCreatorTxHash,
-  waitSecs,
-} from "../../helpers/helpers";
+import { deployAndVerifyContract, waitSecs } from "../../helpers/helpers";
 import { LocalChainFixture } from "../../helpers/LocalChainFixture";
 import { ServerFixture } from "../../helpers/ServerFixture";
 
@@ -43,46 +40,84 @@ describe("Verify repository endpoints", function () {
     chai.expect(res4.body.full).has.a.lengthOf(1);
   });
 
-  it("should handle pagination in /files/contracts/{chain}", async function () {
-    for (let i = 0; i < 5; i++) {
-      const { contractAddress } =
-        await deployFromAbiAndBytecodeForCreatorTxHash(
-          chainFixture.localSigner,
-          chainFixture.defaultContractArtifact.abi,
-          chainFixture.defaultContractArtifact.bytecode,
-          []
-        );
-      await chai
-        .request(serverFixture.server.app)
-        .post("/")
-        .field("address", contractAddress)
-        .field("chain", chainFixture.chainId)
-        .attach("files", chainFixture.defaultContractMetadata, "metadata.json")
-        .attach("files", chainFixture.defaultContractSource);
+  describe(`Pagination in /files/contracts/{full|any|partial}/${chainFixture.chainId}`, async function () {
+    const endpointMatchTypes = ["full", "any", "partial"];
+    for (const endpointMatchType of endpointMatchTypes) {
+      it(`should handle pagination in /files/contracts/${endpointMatchType}/${chainFixture.chainId}`, async function () {
+        const contractAddresses: string[] = [];
+
+        // Deploy 5 contracts
+        for (let i = 0; i < 5; i++) {
+          // Deploy partial matching contract if endpoint is partial or choose randomly if endpointMachtype is any. 'any' endpoint results should be consistent regardless.
+          const shouldDeployPartial =
+            endpointMatchType === "partial" ||
+            (endpointMatchType === "any" && Math.random() > 0.5);
+
+          const address = await deployAndVerifyContract(
+            chai,
+            chainFixture,
+            serverFixture,
+            shouldDeployPartial
+          );
+          contractAddresses.push(address);
+        }
+
+        // Test pagination
+        const res0 = await chai
+          .request(serverFixture.server.app)
+          .get(
+            `/files/contracts/${endpointMatchType}/${chainFixture.chainId}?page=1&limit=2`
+          );
+        chai.expect(res0.body.pagination).to.deep.equal({
+          currentPage: 1,
+          hasNextPage: true,
+          hasPreviousPage: true,
+          resultsCurrentPage: 2,
+          resultsPerPage: 2,
+          totalPages: 3,
+          totalResults: 5,
+        });
+        const res1 = await chai
+          .request(serverFixture.server.app)
+          .get(
+            `/files/contracts/${endpointMatchType}/${chainFixture.chainId}?limit=5`
+          );
+        chai.expect(res1.body.pagination).to.deep.equal({
+          currentPage: 0,
+          hasNextPage: false,
+          hasPreviousPage: false,
+          resultsCurrentPage: 5,
+          resultsPerPage: 5,
+          totalPages: 1,
+          totalResults: 5,
+        });
+
+        // Test ascending order
+        const resAsc = await chai
+          .request(serverFixture.server.app)
+          .get(
+            `/files/contracts/${endpointMatchType}/${chainFixture.chainId}?order=asc`
+          );
+        chai
+          .expect(resAsc.body.results)
+          .to.deep.equal(
+            contractAddresses,
+            "Contract addresses are not in ascending order"
+          );
+
+        // Test descending order
+        const resDesc = await chai
+          .request(serverFixture.server.app)
+          .get(
+            `/files/contracts/${endpointMatchType}/${chainFixture.chainId}?order=desc`
+          );
+        chai
+          .expect(resDesc.body.results)
+          .to.deep.equal(
+            contractAddresses.reverse(),
+            "Contract addresses are not in reverse order"
+          );
+      });
     }
-    const res0 = await chai
-      .request(serverFixture.server.app)
-      .get(`/files/contracts/any/${chainFixture.chainId}?page=1&limit=2`);
-    chai.expect(res0.body.pagination).to.deep.equal({
-      currentPage: 1,
-      hasNextPage: true,
-      hasPreviousPage: true,
-      resultsCurrentPage: 2,
-      resultsPerPage: 2,
-      totalPages: 3,
-      totalResults: 5,
-    });
-    const res1 = await chai
-      .request(serverFixture.server.app)
-      .get(`/files/contracts/any/${chainFixture.chainId}?limit=5`);
-    chai.expect(res1.body.pagination).to.deep.equal({
-      currentPage: 0,
-      hasNextPage: false,
-      hasPreviousPage: false,
-      resultsCurrentPage: 5,
-      resultsPerPage: 5,
-      totalPages: 1,
-      totalResults: 5,
-    });
   });
 });

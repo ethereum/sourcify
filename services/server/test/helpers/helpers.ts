@@ -17,6 +17,7 @@ import { promises as fs } from "fs";
 import { StorageService } from "../../src/server/services/StorageService";
 import { ServerFixture } from "./ServerFixture";
 import type { Done } from "mocha";
+import { LocalChainFixture } from "./LocalChainFixture";
 
 chai.use(chaiHttp);
 
@@ -66,6 +67,35 @@ export async function deployFromAbiAndBytecodeForCreatorTxHash(
 
   return { contractAddress, txHash: creationTx.hash };
 }
+
+export async function deployAndVerifyContract(
+  chai: Chai.ChaiStatic,
+  chainFixture: LocalChainFixture,
+  serverFixture: ServerFixture,
+  partial: boolean = false
+) {
+  const contractAddress = await deployFromAbiAndBytecode(
+    chainFixture.localSigner,
+    chainFixture.defaultContractArtifact.abi,
+    chainFixture.defaultContractArtifact.bytecode,
+    []
+  );
+  await chai
+    .request(serverFixture.server.app)
+    .post("/")
+    .field("address", contractAddress)
+    .field("chain", chainFixture.chainId)
+    .attach(
+      "files",
+      partial
+        ? chainFixture.defaultContractModifiedMetadata
+        : chainFixture.defaultContractMetadata,
+      "metadata.json"
+    )
+    .attach("files", chainFixture.defaultContractSource);
+  return contractAddress;
+}
+
 /**
  * Function to deploy contracts from an external account with private key
  */

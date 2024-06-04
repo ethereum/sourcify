@@ -297,7 +297,7 @@ describe("/session", function () {
     const agent = chai.request.agent(serverFixture.server.app);
     agent
       .post("/session/input-files")
-      .attach("files", chainFixture.defaultContractModifiedIpfsMetadata)
+      .attach("files", chainFixture.defaultContractModifiedSourceIpfs)
       .then((res) => {
         assertAddressAndChainMissing(res, [], {
           "project:/contracts/Storage.sol": {

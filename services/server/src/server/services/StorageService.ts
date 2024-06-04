@@ -277,14 +277,16 @@ export class StorageService {
     chainId: string,
     match: MatchLevel,
     page: number,
-    limit: number
+    limit: number,
+    descending: boolean = false
   ): Promise<PaginatedContractData> => {
     try {
       return this.sourcifyDatabase!.getPaginatedContracts(
         chainId,
         match,
         page,
-        limit
+        limit,
+        descending
       );
     } catch (error) {
       logger.error("Error while getting paginated contracts from database", {
@@ -292,6 +294,7 @@ export class StorageService {
         match,
         page,
         limit,
+        descending,
         error,
       });
       throw new Error("Error while getting paginated contracts from database");

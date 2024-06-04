@@ -430,52 +430,6 @@ export async function insertSourcifyMatch(
   );
 }
 
-export async function insertSourcifySync(
-  pool: Pool,
-  { chain_id, address, match_type }: Tables.SourcifySync
-) {
-  // I'm doing this because before passing the match_type I'm calling getMatchStatus(match)
-  // but then I need to convert the status to full_match | partial_match
-  let matchType;
-  switch (match_type) {
-    case "perfect":
-      matchType = "full_match";
-      break;
-    case "partial":
-      matchType = "partial_match";
-      break;
-  }
-  await pool.query(
-    `INSERT INTO sourcify_sync 
-      (chain_id, address, match_type, synced)
-      VALUES ($1, $2, $3, true)`,
-    [chain_id, address, match_type]
-  );
-}
-
-export async function updateSourcifySync(
-  pool: Pool,
-  { chain_id, address, match_type }: Tables.SourcifySync
-) {
-  // I'm doing this because before passing the match_type I'm calling getMatchStatus(match)
-  // but then I need to convert the status to full_match | partial_match
-  let matchType;
-  switch (match_type) {
-    case "perfect":
-      matchType = "full_match";
-      break;
-    case "partial":
-      matchType = "partial_match";
-      break;
-  }
-  await pool.query(
-    `UPDATE sourcify_sync SET
-      match_type=$3
-    WHERE chain_id=$1 AND address=$2;`,
-    [chain_id, address, match_type]
-  );
-}
-
 // Update sourcify_matches to the latest (and better) match in verified_contracts,
 // you need to pass the old verified_contract_id to be updated.
 // The old verified_contracts are not deleted from the verified_contracts table.
@@ -579,17 +533,17 @@ export function normalizeRecompiledBytecodes(
 export async function countSourcifyMatchAddresses(pool: Pool, chain: number) {
   return await pool.query(
     `
-    SELECT
-        contract_deployments.chain_id,
-        SUM(CASE WHEN sourcify_matches.creation_match = 'perfect' OR sourcify_matches.runtime_match = 'perfect' THEN 1 ELSE 0 END) AS full_total,
-        SUM(CASE WHEN sourcify_matches.creation_match != 'perfect' AND sourcify_matches.runtime_match != 'perfect' THEN 1 ELSE 0 END) AS partial_total
-    FROM sourcify_matches
-    JOIN verified_contracts ON verified_contracts.id = sourcify_matches.verified_contract_id
-    JOIN contract_deployments ON 
-        contract_deployments.id = verified_contracts.deployment_id
-        AND contract_deployments.chain_id = $1
-    GROUP BY contract_deployments.chain_id;
-    `,
+  SELECT
+  contract_deployments.chain_id,
+  SUM(CASE 
+    WHEN COALESCE(sourcify_matches.creation_match, '') = 'perfect' OR sourcify_matches.runtime_match = 'perfect' THEN 1 ELSE 0 END) AS full_total,
+  SUM(CASE 
+    WHEN COALESCE(sourcify_matches.creation_match, '') != 'perfect' AND sourcify_matches.runtime_match != 'perfect' THEN 1 ELSE 0 END) AS partial_total
+  FROM sourcify_matches
+  JOIN verified_contracts ON verified_contracts.id = sourcify_matches.verified_contract_id
+  JOIN contract_deployments ON contract_deployments.id = verified_contracts.deployment_id
+  WHERE contract_deployments.chain_id = $1
+  GROUP BY contract_deployments.chain_id;`,
     [chain]
   );
 }
@@ -599,18 +553,19 @@ export async function getSourcifyMatchAddressesByChainAndMatch(
   chain: number,
   match: "full_match" | "partial_match" | "any_match",
   page: number,
-  paginationSize: number
+  paginationSize: number,
+  descending: boolean = false
 ) {
   let queryWhere = "";
   switch (match) {
     case "full_match": {
       queryWhere =
-        "WHERE sourcify_matches.creation_match = 'perfect' OR sourcify_matches.runtime_match = 'perfect'";
+        "WHERE COALESCE(sourcify_matches.creation_match, '') = 'perfect' OR sourcify_matches.runtime_match = 'perfect'";
       break;
     }
     case "partial_match": {
       queryWhere =
-        "WHERE sourcify_matches.creation_match != 'perfect' AND sourcify_matches.runtime_match != 'perfect'";
+        "WHERE COALESCE(sourcify_matches.creation_match, '') != 'perfect' AND sourcify_matches.runtime_match != 'perfect'";
       break;
     }
     case "any_match": {
@@ -621,6 +576,11 @@ export async function getSourcifyMatchAddressesByChainAndMatch(
       throw new Error("Match type not supported");
     }
   }
+
+  const orderBy = descending
+    ? "ORDER BY verified_contracts.id DESC"
+    : "ORDER BY verified_contracts.id ASC";
+
   return await pool.query(
     `
     SELECT
@@ -631,6 +591,7 @@ export async function getSourcifyMatchAddressesByChainAndMatch(
         contract_deployments.id = verified_contracts.deployment_id
         AND contract_deployments.chain_id = $1
     ${queryWhere}
+    ${orderBy}
     OFFSET $2 LIMIT $3
     `,
     [chain, page * paginationSize, paginationSize]
