@@ -419,7 +419,7 @@ export default class SourcifyChain {
       }
     }
 
-    if (!creationBytecode || creationBytecode === '') {
+    if (!creationBytecode) {
       throw new Error('Cannot get creation bytecode');
     }
 
