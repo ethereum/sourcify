@@ -1651,6 +1651,10 @@
       "avalancheApi": true
     }
   },
+  "19011": {
+    "sourcifyName": "HOME Verse Mainnet",
+    "supported": true
+  },
   "10849": {
     "sourcifyName": "Lamina1",
     "supported": true,
