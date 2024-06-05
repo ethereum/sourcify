@@ -24,9 +24,9 @@ import {
   MatchLevel,
   PaginatedContractData,
 } from "../types";
-import { getFileRelativePath } from "./utils/util";
 import config from "config";
 import { BadRequestError } from "../../common/errors";
+import path from "path";
 
 export interface IStorageService {
   init(): Promise<boolean>;
@@ -141,10 +141,13 @@ export class StorageService {
       );
     }
 
-    const relativePath = getFileRelativePath(
+    const relativePath = path.join(
+      "contracts",
+      responseWithoutMetadata.status === "full"
+        ? "full_match"
+        : "partial_match",
       chainId,
       address,
-      responseWithoutMetadata.status,
       "metadata.json"
     );
 
