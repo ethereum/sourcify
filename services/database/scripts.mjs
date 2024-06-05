@@ -105,7 +105,8 @@ program
       });
 
       for (const contract of contractsSorted) {
-        await databasePool.query(
+        await executeQueryWithRetry(
+          databasePool,
           `INSERT INTO sourcify_sync (chain_id, address, match_type, created_at) VALUES ($1, $2, $3, $4) ON CONFLICT (chain_id, address) DO NOTHING`,
           [
             contract.chainId,
@@ -151,7 +152,11 @@ program
     "Path to repository v1 contracts folder (e.g. /Users/user/sourcify/repository/contracts)"
   )
   .option(
-    "-c, --chainsExceptions [items]",
+    "-c, --chains [items]",
+    "List of chains to sync separated by comma (e.g. 1,5,...)"
+  )
+  .option(
+    "-ce, --chainsExceptions [items]",
     "List of chains exceptions separated by comma (e.g. 1,5,...)"
   )
   .option("-sf, --start-from [number]", "Start from a specific timestamp (ms)")
@@ -176,15 +181,24 @@ program
     // Get chains from database
     let chains = [];
     const query = "SELECT DISTINCT chain_id FROM sourcify_sync";
-    const chainsResult = await databasePool.query(query);
+    const chainsResult = await executeQueryWithRetry(databasePool, query);
     if (chainsResult.rowCount > 0) {
       chains = chainsResult.rows.map(({ chain_id }) => chain_id);
     }
 
+    // Specify which chain to sync
+    if (options.chains) {
+      chains = chains.filter((chain) =>
+        options.chains.split(",").includes(`${chain}`)
+      );
+    }
+
     // Remove exceptions using --chainsException and 0
-    chains = chains.filter(
-      (chain) => !options.chainsExceptions?.split(",").includes(`${chain}`)
-    );
+    if (options.chainsExceptions) {
+      chains = chains.filter(
+        (chain) => !options.chainsExceptions.split(",").includes(`${chain}`)
+      );
+    }
 
     let monitoring = {
       totalSynced: 0,
@@ -315,7 +329,8 @@ const processContract = async (
       if (request.status === 200) {
         const response = await request.json();
         if (response.result[0].status !== null) {
-          await databasePool.query(
+          await executeQueryWithRetry(
+            databasePool,
             `
           UPDATE sourcify_sync
           SET 
@@ -368,7 +383,7 @@ const fetchNextContract = async (databasePool, options, chainId) => {
       ORDER BY id ASC
       LIMIT 1
     `;
-    const contractResult = await databasePool.query(query, [
+    const contractResult = await executeQueryWithRetry(databasePool, query, [
       options.startFrom ? options.startFrom : 0,
       chainId,
     ]);
@@ -387,5 +402,30 @@ const fetchNextContract = async (databasePool, options, chainId) => {
 function isNumber(value) {
   return !isNaN(parseFloat(value)) && isFinite(value);
 }
+
+const executeQueryWithRetry = async (
+  databasePool,
+  query,
+  params,
+  maxRetries = 5,
+  delay = 5000
+) => {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const result = await databasePool.query(query, params);
+      return result;
+    } catch (error) {
+      if (error.code === "ECONNREFUSED" || error.code === "ETIMEDOUT") {
+        console.error(
+          `Database connection error. Retrying attempt ${attempt + 1}...`
+        );
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      } else {
+        throw error;
+      }
+    }
+  }
+  throw new Error("Max retries reached. Could not connect to the database.");
+};
 
 program.parse(process.argv);
