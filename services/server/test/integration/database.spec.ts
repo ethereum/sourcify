@@ -176,7 +176,6 @@ describe("Verifier Alliance database", function () {
       .expect(res.rows[0].runtime_transformations)
       .to.deep.equal(testCase.runtime_transformations);
 
-    // For now disable the creation tests
     chai
       .expect(`0x${toHexString(res.rows[0].compiled_creation_code_hash)}`)
       .to.equal(keccak256(testCase.compiled_creation_code));
