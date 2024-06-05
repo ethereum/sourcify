@@ -5,11 +5,15 @@
   "description": "A monitoring service to listen to chains and send detected new contracts to a Sourcify server",
   "main": "index.js",
   "scripts": {
-    "test": "mocha 'test/**/*.test.js' --exit",
+    "test": "c8 --reporter=none mocha 'test/**/*.test.js' --exit",
     "build": "tsc",
     "start": "node dist/index.js",
     "lint": "eslint --ext .ts src/",
-    "dev": "node dist/index.js --chainsPath=chains-dev.json"
+    "dev": "node dist/index.js --chainsPath=chains-dev.json",
+    "cov": "run-s -c build test cov:html cov:lcov && open-cli coverage/index.html",
+    "cov:html": "c8 report --reporter=html",
+    "cov:lcov": "c8 report --reporter=lcov",
+    "cov:check": "c8 report && c8 check-coverage --lines 100 --functions 100 --branches 100"
   },
   "repository": {
     "type": "git",
@@ -43,9 +47,22 @@
     "@types/node": "^20.6.2",
     "@types/node-fetch": "^2.6.5",
     "@types/sinon": "^10.0.16",
+    "c8": "^8.0.0",
     "chai": "^4.3.8",
     "mocha": "^10.2.0",
     "nock": "^13.3.3",
+    "open-cli": "^7.1.0",
     "sinon": "^16.0.0"
+  },
+  "c8": {
+    "exclude": [
+      "**/*.spec.js"
+    ],
+    "reporter": [
+      "html",
+      "lcov",
+      "text",
+      "text-summary"
+    ]
   }
 }

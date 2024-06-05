@@ -1498,6 +1498,38 @@ describe("Test Supported Chains", function () {
     "HOME Verse Mainnet",
     "shared/"
   );
+  
+  // Lamina1
+  verifyContract(
+    "0x61ACA050011D091A5790de774190cCdD42Ab882F",
+    "10849",
+    "Lamina1",
+    "shared/"
+  );
+
+  // Lamina1 Identity
+  verifyContract(
+    "0x61ACA050011D091A5790de774190cCdD42Ab882F",
+    "10850",
+    "Lamina1 Identity",
+    "shared/"
+  );
+
+  // Lamina1 Testnet
+  verifyContract(
+    "0x61ACA050011D091A5790de774190cCdD42Ab882F",
+    "764984",
+    "Lamina1 Testnet",
+    "shared/"
+  );
+
+  // Lamina1 Identity Testnet
+  verifyContract(
+    "0x61ACA050011D091A5790de774190cCdD42Ab882F",
+    "767368",
+    "Lamina1 Identity Testnet",
+    "shared/"
+  );
 
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests: ChainApiResponse[] = [];

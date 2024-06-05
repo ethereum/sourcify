@@ -144,7 +144,7 @@ export class StorageService {
     const relativePath = getFileRelativePath(
       chainId,
       address,
-      match === "full_match" ? "full" : "partial",
+      responseWithoutMetadata.status,
       "metadata.json"
     );
 
