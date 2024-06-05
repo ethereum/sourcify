@@ -1,8 +1,15 @@
 import chai from "chai";
 import chaiHttp from "chai-http";
-import { deployAndVerifyContract, waitSecs } from "../../helpers/helpers";
+import {
+  deployAndVerifyContract,
+  deployFromAbiAndBytecode,
+  deployFromAbiAndBytecodeForCreatorTxHash,
+  waitSecs,
+} from "../../helpers/helpers";
 import { LocalChainFixture } from "../../helpers/LocalChainFixture";
 import { ServerFixture } from "../../helpers/ServerFixture";
+import path from "path";
+import fs from "fs";
 
 chai.use(chaiHttp);
 
@@ -38,6 +45,174 @@ describe("Verify repository endpoints", function () {
     chai.expect(res3.body).has.a.lengthOf(2);
     const res4 = await agent.get(`/files/contracts/${chainFixture.chainId}`);
     chai.expect(res4.body.full).has.a.lengthOf(1);
+  });
+
+  it("should fetch immutable-references.json of specific address", async function () {
+    const artifact = await import(
+      "../../testcontracts/WithImmutables/artifact.json"
+    );
+
+    const metadata = await import(
+      "../../testcontracts/WithImmutables/metadata.json"
+    );
+    const metadataBuffer = Buffer.from(JSON.stringify(metadata));
+    const sourcePath = path.join(
+      __dirname,
+      "..",
+      "..",
+      "testcontracts",
+      "WithImmutables",
+      "sources",
+      "WithImmutables.sol"
+    );
+    const sourceBuffer = fs.readFileSync(sourcePath);
+
+    const contractAddress = await deployFromAbiAndBytecode(
+      chainFixture.localSigner,
+      artifact.abi,
+      artifact.bytecode,
+      [999]
+    );
+    await chai
+      .request(serverFixture.server.app)
+      .post("/")
+      .field("address", contractAddress)
+      .field("chain", chainFixture.chainId)
+      .attach("files", metadataBuffer, "metadata.json")
+      .attach("files", sourceBuffer);
+
+    const res = await chai
+      .request(serverFixture.server.app)
+      .get(
+        `/repository/contracts/full_match/${chainFixture.chainId}/${contractAddress}/immutable-references.json`
+      );
+
+    chai.expect(res.body).to.deep.equal({
+      "3": [
+        {
+          length: 32,
+          start: 608,
+        },
+      ],
+    });
+  });
+
+  it("should fetch library-map.json of specific address", async function () {
+    const artifact = await import(
+      "../../testcontracts/LibrariesLinkedByCompiler/LibrariesLinkedByCompiler.json"
+    );
+
+    const metadata = await import(
+      "../../testcontracts/LibrariesLinkedByCompiler/metadata.json"
+    );
+    const metadataBuffer = Buffer.from(JSON.stringify(metadata));
+
+    const sourceBuffer = fs.readFileSync(
+      path.join(
+        __dirname,
+        "..",
+        "..",
+        "testcontracts",
+        "LibrariesLinkedByCompiler",
+        "1_Storage.sol"
+      )
+    );
+
+    const contractAddress = await deployFromAbiAndBytecode(
+      chainFixture.localSigner,
+      artifact.abi,
+      artifact.bytecode
+    );
+    await chai
+      .request(serverFixture.server.app)
+      .post("/")
+      .field("address", contractAddress)
+      .field("chain", chainFixture.chainId)
+      .attach("files", metadataBuffer, "metadata.json")
+      .attach("files", sourceBuffer);
+
+    const res = await chai
+      .request(serverFixture.server.app)
+      .get(
+        `/repository/contracts/full_match/${chainFixture.chainId}/${contractAddress}/library-map.json`
+      );
+
+    chai.expect(res.body).to.deep.equal({
+      __$b8833469cd54bfd61b3a18436a18bad1f3$__:
+        "0x7d53f102f4d4aa014db4e10d6deec2009b3cda6b",
+    });
+  });
+
+  it("should fetch creator-tx-hash.txt of specific address", async function () {
+    await chai
+      .request(serverFixture.server.app)
+      .post("/")
+      .field("address", chainFixture.defaultContractAddress)
+      .field("chain", chainFixture.chainId)
+      .field("creatorTxHash", chainFixture.defaultContractCreatorTx)
+      .attach("files", chainFixture.defaultContractMetadata, "metadata.json")
+      .attach("files", chainFixture.defaultContractSource);
+
+    const resCreatorTxHash = await chai
+      .request(serverFixture.server.app)
+      .get(
+        `/repository/contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/creator-tx-hash.txt`
+      );
+
+    chai.expect(resCreatorTxHash.status).to.equal(200);
+    chai
+      .expect(resCreatorTxHash.text)
+      .to.equal(chainFixture.defaultContractCreatorTx);
+  });
+
+  it("should fetch constructor-args.txt of specific address", async function () {
+    const artifact = await import(
+      "../../testcontracts/WithImmutables/artifact.json"
+    );
+
+    const metadata = await import(
+      "../../testcontracts/WithImmutables/metadata.json"
+    );
+    const metadataBuffer = Buffer.from(JSON.stringify(metadata));
+    const sourcePath = path.join(
+      __dirname,
+      "..",
+      "..",
+      "testcontracts",
+      "WithImmutables",
+      "sources",
+      "WithImmutables.sol"
+    );
+    const sourceBuffer = fs.readFileSync(sourcePath);
+
+    const { contractAddress, txHash } =
+      await deployFromAbiAndBytecodeForCreatorTxHash(
+        chainFixture.localSigner,
+        artifact.abi,
+        artifact.bytecode,
+        [999]
+      );
+    await chai
+      .request(serverFixture.server.app)
+      .post("/")
+      .field("address", contractAddress)
+      .field("chain", chainFixture.chainId)
+      .field("creatorTxHash", txHash)
+      .attach("files", metadataBuffer, "metadata.json")
+      .attach("files", sourceBuffer);
+
+    const resConstructorArguments = await chai
+      .request(serverFixture.server.app)
+      .get(
+        `/repository/contracts/full_match/${chainFixture.chainId}/${contractAddress}/constructor-args.txt`
+      );
+
+    chai.expect(resConstructorArguments.status).to.equal(200);
+    chai
+      .expect(resConstructorArguments.text)
+      .to.equal(
+        "0x00000000000000000000000000000000000000000000000000000000000003e7"
+      );
   });
 
   describe(`Pagination in /files/contracts/{full|any|partial}/${chainFixture.chainId}`, async function () {

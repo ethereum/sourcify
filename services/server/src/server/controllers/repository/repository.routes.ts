@@ -9,6 +9,10 @@ import {
   getFileEndpoint,
   getMetadataEndpoint,
   createPaginatedContractEndpoint,
+  getConstructorArgsEndpoint,
+  getCreatorTxHashEndpoint,
+  getLibraryMapEndpoint,
+  getImmutableReferencesEndpoint,
 } from "./repository.handlers";
 import { safeHandler } from "../controllers.common";
 
@@ -124,6 +128,28 @@ router
 router
   .route("/repository/contracts/:match/:chain/:address/metadata.json")
   .get(safeHandler(getMetadataEndpoint));
+
+// This route covers the constructor-args.txt files, fetching them from SourcifyDatabase.verified_contracts.creation_values.constructorArguments
+router
+  .route("/repository/contracts/:match/:chain/:address/constructor-args.txt")
+  .get(safeHandler(getConstructorArgsEndpoint));
+
+// This route covers the creator-tx-hash.txt files, fetching them from SourcifyDatabase.contracts_deployment.transaction_hash
+router
+  .route("/repository/contracts/:match/:chain/:address/creator-tx-hash.txt")
+  .get(safeHandler(getCreatorTxHashEndpoint));
+
+// This route covers the library-map.json files, fetching them from SourcifyDatabase.verified_contracts.runtime_values.libraries
+router
+  .route("/repository/contracts/:match/:chain/:address/library-map.json")
+  .get(safeHandler(getLibraryMapEndpoint));
+
+// This route covers the immutable-references.json files, fetching them from SourcifyDatabase.compiled_contracts.runtime_code_artifacts.immutableReferences
+router
+  .route(
+    "/repository/contracts/:match/:chain/:address/immutable-references.json"
+  )
+  .get(safeHandler(getImmutableReferencesEndpoint));
 
 // This route covers the the sources files, fetching them from SourcifyDatabase.compiled_contracts.sources
 router

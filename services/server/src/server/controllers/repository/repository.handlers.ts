@@ -138,6 +138,58 @@ export async function getMetadataEndpoint(req: any, res: Response) {
   res.json(JSON.parse(file as string));
 }
 
+export async function getConstructorArgsEndpoint(req: any, res: Response) {
+  const { match, chain, address } = req.params;
+  const constructorArgs = await services.storage.getConstructorArgs(
+    chain,
+    address,
+    match
+  );
+  if (constructorArgs === false) {
+    res.status(404).send();
+  }
+  res.send(constructorArgs);
+}
+
+export async function getCreatorTxHashEndpoint(req: any, res: Response) {
+  const { match, chain, address } = req.params;
+  const creatorTxHash = await services.storage.getCreatorTxHash(
+    chain,
+    address,
+    match
+  );
+  if (creatorTxHash === false) {
+    res.status(404).send();
+  }
+  res.send(creatorTxHash);
+}
+
+export async function getLibraryMapEndpoint(req: any, res: Response) {
+  const { match, chain, address } = req.params;
+  const libraryMap = await services.storage.getLibraryMap(
+    chain,
+    address,
+    match
+  );
+  if (libraryMap === false) {
+    res.status(404).send();
+  }
+  res.json(libraryMap);
+}
+
+export async function getImmutableReferencesEndpoint(req: any, res: Response) {
+  const { match, chain, address } = req.params;
+  const immutableReferences = await services.storage.getImmutableReferences(
+    chain,
+    address,
+    match
+  );
+  if (immutableReferences === false) {
+    res.status(404).send();
+  }
+  res.json(immutableReferences);
+}
+
 export async function getFileEndpoint(req: any, res: Response) {
   const { match, chain, address } = req.params;
   const file = await services.storage.getFile(
