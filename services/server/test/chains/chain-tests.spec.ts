@@ -1491,6 +1491,14 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // HOME Verse Mainnet
+  verifyContract(
+    "0x988d819a6103f0a9a693BE7Ffd90fe7b499592f5",
+    "19011",
+    "HOME Verse Mainnet",
+    "shared/"
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests: ChainApiResponse[] = [];
     supportedChains

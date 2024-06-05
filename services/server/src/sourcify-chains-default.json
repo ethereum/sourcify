@@ -1650,5 +1650,9 @@
     "fetchContractCreationTxUsing": {
       "avalancheApi": true
     }
+  },
+  "19011": {
+    "sourcifyName": "HOME Verse Mainnet",
+    "supported": true
   }
 }
