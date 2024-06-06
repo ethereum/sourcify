@@ -460,7 +460,7 @@ export const verifyContractsInSession = async (
       logger.info("dryRun verification", {
         sessionId: session.id,
       });
-      return;
+      continue;
     }
     if (match.runtimeMatch || match.creationMatch) {
       await storageService.storeMatch(checkedContract, match);

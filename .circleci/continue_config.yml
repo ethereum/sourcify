@@ -2,6 +2,9 @@
 # Also contains workflows that will be run on all branches such as node tests
 version: 2.1
 
+orbs:
+  codecov: codecov/codecov@4.1.0
+
 # Pipeline parameters to run module builds if related files have been changed
 parameters:
   run-build-repository:
@@ -284,8 +287,9 @@ jobs:
             SOURCIFY_POSTGRES_PASSWORD: "sourcify"
             SOURCIFY_POSTGRES_PORT: 5432
       - run:
-          name: coverage
-          command: npx lerna run cov:send
+          name: create lcov reports
+          command: npx lerna run cov:lcov
+      - codecov/upload
   monitor-e2e-sepolia:
     <<: *monitor-e2e-base
     environment:

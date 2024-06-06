@@ -1,10 +1,10 @@
 openapi: "3.0.0"
 
 paths:
-  /files/contracts/any/{chain}:
+  /files/contracts/partial/{chain}:
     get:
-      summary: Get the contract addresses verified on a chain (full or partial match)
-      description: Returns the verified contracts from the repository for the desired chain. Searches for full and partial matches. API is paginated. Limit must be a number between 1 and 200.
+      summary: Get the contract addresses partially verified on a chain
+      description: Returns the partially verified contracts from the repository for the desired chain. API is paginated. Limit must be a number between 1 and 200.
       tags:
         - Repository
       parameters:
@@ -35,7 +35,7 @@ paths:
           description: Order of the results. Default is "asc" (earliest verified contract first)
       responses:
         "200":
-          description: Chain is available as a full match or partial match in the repository
+          description: Chain is available as a full match in the repository
           content:
             application/json:
               schema:

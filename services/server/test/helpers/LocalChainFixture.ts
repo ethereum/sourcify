@@ -11,6 +11,7 @@ import { LOCAL_CHAINS } from "../../src/sourcify-chains";
 import nock from "nock";
 import storageContractArtifact from "../testcontracts/Storage/Storage.json";
 import storageContractMetadata from "../testcontracts/Storage/metadata.json";
+import storageContractMetadataModified from "../testcontracts/Storage/metadataModified.json";
 
 const storageContractSourcePath = path.join(
   __dirname,
@@ -33,7 +34,10 @@ export class LocalChainFixture {
   defaultContractMetadata = Buffer.from(
     JSON.stringify(storageContractMetadata)
   );
-  defaultContractModifiedIpfsMetadata = getModifiedIpfsMetadata();
+  defaultContractModifiedMetadata = Buffer.from(
+    JSON.stringify(storageContractMetadataModified)
+  );
+  defaultContractModifiedSourceIpfs = getModifiedSourceIpfs();
   defaultContractArtifact = storageContractArtifact;
 
   private _chainId?: string;
@@ -124,7 +128,8 @@ export class LocalChainFixture {
   }
 }
 
-function getModifiedIpfsMetadata(): Buffer {
+// Changes the IPFS hash inside the metadata file to make the source unfetchable
+function getModifiedSourceIpfs(): Buffer {
   const ipfsAddress =
     storageContractMetadata.sources["project:/contracts/Storage.sol"].urls[1];
   // change the last char in ipfs hash of the source file

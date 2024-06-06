@@ -1614,6 +1614,10 @@
     "sourcifyName": "Aura Euphoria Testnet",
     "supported": true
   },
+  "6322": {
+    "sourcifyName": "Aura Xstaxy Mainnet",
+    "supported": true
+  },
   "200901": {
     "sourcifyName": "Bitlayer Mainnet",
     "supported": true
@@ -1642,6 +1646,38 @@
   },
   "12898": {
     "sourcifyName": "PlayFair Testnet Subnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "avalancheApi": true
+    }
+  },
+  "19011": {
+    "sourcifyName": "HOME Verse Mainnet",
+    "supported": true
+  },
+  "10849": {
+    "sourcifyName": "Lamina1",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "avalancheApi": true
+    }
+  },
+  "10850": {
+    "sourcifyName": "Lamina1 Identity",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "avalancheApi": true
+    }
+  },
+  "764984": {
+    "sourcifyName": "Lamina1 Testnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "avalancheApi": true
+    }
+  },
+  "767368": {
+    "sourcifyName": "Lamina1 Identity Testnet",
     "supported": true,
     "fetchContractCreationTxUsing": {
       "avalancheApi": true

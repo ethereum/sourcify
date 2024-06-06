@@ -21,7 +21,8 @@ type PaginatedConractRetrieveMethod = (
   chain: string,
   match: MatchLevel,
   page: number,
-  limit: number
+  limit: number,
+  descending: boolean
 ) => Promise<PaginatedContractData>;
 
 export function createEndpoint(
@@ -75,7 +76,8 @@ export function createPaginatedContractEndpoint(
         req.params.chain,
         match,
         parseInt((req.query.page as string) || "0"),
-        parseInt((req.query.limit as string) || "200")
+        parseInt((req.query.limit as string) || "200"),
+        req.query.order === "desc" // default is asc
       );
     } catch (err: any) {
       return next(new NotFoundError(err.message));

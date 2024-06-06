@@ -24,9 +24,9 @@ import {
   MatchLevel,
   PaginatedContractData,
 } from "../types";
-import { getFileRelativePath } from "./utils/util";
 import config from "config";
 import { BadRequestError } from "../../common/errors";
+import path from "path";
 
 export interface IStorageService {
   init(): Promise<boolean>;
@@ -160,10 +160,13 @@ export class StorageService {
       );
     }
 
-    const relativePath = getFileRelativePath(
+    const relativePath = path.join(
+      "contracts",
+      responseWithoutMetadata.status === "full"
+        ? "full_match"
+        : "partial_match",
       chainId,
       address,
-      match === "full_match" ? "full" : "partial",
       "metadata.json"
     );
 
@@ -296,14 +299,16 @@ export class StorageService {
     chainId: string,
     match: MatchLevel,
     page: number,
-    limit: number
+    limit: number,
+    descending: boolean = false
   ): Promise<PaginatedContractData> => {
     try {
       return this.sourcifyDatabase!.getPaginatedContracts(
         chainId,
         match,
         page,
-        limit
+        limit,
+        descending
       );
     } catch (error) {
       logger.error("Error while getting paginated contracts from database", {
@@ -311,6 +316,7 @@ export class StorageService {
         match,
         page,
         limit,
+        descending,
         error,
       });
       throw new Error("Error while getting paginated contracts from database");

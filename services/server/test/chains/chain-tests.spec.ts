@@ -1443,6 +1443,14 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // Aura Xstaxy Mainnet
+  verifyContract(
+    "0x6Da592Fb9E71342050511AC50E610EA24004F3ec",
+    "6322",
+    "Aura Xstaxy Mainnet",
+    "shared/"
+  );
+
   // Bitlayer Mainnet
   verifyContract(
     "0x3eBC948d4E3E1dACAd8fcAB719937b6264222718",
@@ -1480,6 +1488,46 @@ describe("Test Supported Chains", function () {
     "0x9be71dB4693657625F92359d046c513Bb35F96db",
     "12898",
     "PlayFair Testnet Subnet",
+    "shared/"
+  );
+
+  // HOME Verse Mainnet
+  verifyContract(
+    "0x988d819a6103f0a9a693BE7Ffd90fe7b499592f5",
+    "19011",
+    "HOME Verse Mainnet",
+    "shared/"
+  );
+  
+  // Lamina1
+  verifyContract(
+    "0x61ACA050011D091A5790de774190cCdD42Ab882F",
+    "10849",
+    "Lamina1",
+    "shared/"
+  );
+
+  // Lamina1 Identity
+  verifyContract(
+    "0x61ACA050011D091A5790de774190cCdD42Ab882F",
+    "10850",
+    "Lamina1 Identity",
+    "shared/"
+  );
+
+  // Lamina1 Testnet
+  verifyContract(
+    "0x61ACA050011D091A5790de774190cCdD42Ab882F",
+    "764984",
+    "Lamina1 Testnet",
+    "shared/"
+  );
+
+  // Lamina1 Identity Testnet
+  verifyContract(
+    "0x61ACA050011D091A5790de774190cCdD42Ab882F",
+    "767368",
+    "Lamina1 Identity Testnet",
     "shared/"
   );
 
