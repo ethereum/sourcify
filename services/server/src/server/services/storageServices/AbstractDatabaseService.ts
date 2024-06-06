@@ -214,7 +214,8 @@ export default abstract class AbstractDatabaseService {
           compilation_artifacts:
             databaseColumns.compiledContract.compilation_artifacts!,
           sources: recompiledContract.solidity,
-          compiler_settings: recompiledContract.metadata.settings,
+          compiler_settings:
+            Database.prepareCompilerSettings(recompiledContract),
           creation_code_hash: databaseColumns.bytecodeHashes.recompiledCreation,
           runtime_code_hash: databaseColumns.bytecodeHashes.recompiledRuntime,
           creation_code_artifacts:
