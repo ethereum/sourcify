@@ -126,7 +126,7 @@ describe("Verify repository endpoints", function () {
       .to.equal(chainFixture.defaultContractMetadata.toString());
   });
 
-  it("should fetch immutable-references.json of specific address, and it should be available in /files/tree", async function () {
+  it("should fetch immutable-references.json of specific address, and it should be available in /files/any", async function () {
     const artifact = await import(
       "../../testcontracts/WithImmutables/artifact.json"
     );
@@ -166,27 +166,32 @@ describe("Verify repository endpoints", function () {
         `/repository/contracts/full_match/${chainFixture.chainId}/${contractAddress}/immutable-references.json`
       );
 
-    chai.expect(res.body).to.deep.equal({
+    const expectedContent = {
       "3": [
         {
           length: 32,
           start: 608,
         },
       ],
-    });
+    };
+    chai.expect(res.body).to.deep.equal(expectedContent);
 
     const res1 = await chai
       .request(serverFixture.server.app)
-      .get(`/files/tree/any/${chainFixture.chainId}/${contractAddress}`);
+      .get(`/files/any/${chainFixture.chainId}/${contractAddress}`);
 
+    const fileToCheck = res1.body.files.find(
+      (file: any) => file.name === "immutable-references.json"
+    );
     chai
-      .expect(res1.body.files)
-      .to.include.members([
-        `http://localhost:10000/contracts/full_match/${chainFixture.chainId}/${contractAddress}/immutable-references.json`,
-      ]);
+      .expect(fileToCheck.path)
+      .to.equal(
+        `contracts/full_match/${chainFixture.chainId}/${contractAddress}/immutable-references.json`
+      );
+    chai.expect(fileToCheck.content).to.deep.equal(expectedContent);
   });
 
-  it("should fetch library-map.json of specific address", async function () {
+  it("should fetch library-map.json of specific address, and it should be available in /files/any", async function () {
     const artifact = await import(
       "../../testcontracts/LibrariesLinkedManually/LibrariesLinkedManually.json"
     );
@@ -226,23 +231,28 @@ describe("Verify repository endpoints", function () {
         `/repository/contracts/full_match/${chainFixture.chainId}/${contractAddress}/library-map.json`
       );
 
-    chai.expect(res.body).to.deep.equal({
+    const expectedContent = {
       __$b8833469cd54bfd61b3a18436a18bad1f3$__:
         "0x7d53f102f4d4aa014db4e10d6deec2009b3cda6b",
-    });
+    };
+    chai.expect(res.body).to.deep.equal(expectedContent);
 
     const res1 = await chai
       .request(serverFixture.server.app)
-      .get(`/files/tree/any/${chainFixture.chainId}/${contractAddress}`);
+      .get(`/files/any/${chainFixture.chainId}/${contractAddress}`);
 
+    const fileToCheck = res1.body.files.find(
+      (file: any) => file.name === "library-map.json"
+    );
     chai
-      .expect(res1.body.files)
-      .to.include.members([
-        `http://localhost:10000/contracts/full_match/${chainFixture.chainId}/${contractAddress}/library-map.json`,
-      ]);
+      .expect(fileToCheck.path)
+      .to.equal(
+        `contracts/full_match/${chainFixture.chainId}/${contractAddress}/library-map.json`
+      );
+    chai.expect(fileToCheck.content).to.deep.equal(expectedContent);
   });
 
-  it("should fetch creator-tx-hash.txt of specific address", async function () {
+  it("should fetch creator-tx-hash.txt of specific address, and it should be available in /files/any", async function () {
     await chai
       .request(serverFixture.server.app)
       .post("/")
@@ -258,25 +268,28 @@ describe("Verify repository endpoints", function () {
         `/repository/contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/creator-tx-hash.txt`
       );
 
+    const expectedContent = chainFixture.defaultContractCreatorTx;
     chai.expect(resCreatorTxHash.status).to.equal(200);
-    chai
-      .expect(resCreatorTxHash.text)
-      .to.equal(chainFixture.defaultContractCreatorTx);
+    chai.expect(resCreatorTxHash.text).to.equal(expectedContent);
 
     const res1 = await chai
       .request(serverFixture.server.app)
       .get(
-        `/files/tree/any/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`
+        `/files/any/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`
       );
 
+    const fileToCheck = res1.body.files.find(
+      (file: any) => file.name === "creator-tx-hash.txt"
+    );
     chai
-      .expect(res1.body.files)
-      .to.include.members([
-        `http://localhost:10000/contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/creator-tx-hash.txt`,
-      ]);
+      .expect(fileToCheck.path)
+      .to.equal(
+        `contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/creator-tx-hash.txt`
+      );
+    chai.expect(fileToCheck.content).to.equal(expectedContent);
   });
 
-  it("should fetch constructor-args.txt of specific address", async function () {
+  it("should fetch constructor-args.txt of specific address, and it should be available in /files/any", async function () {
     const artifact = await import(
       "../../testcontracts/WithImmutables/artifact.json"
     );
@@ -318,22 +331,24 @@ describe("Verify repository endpoints", function () {
         `/repository/contracts/full_match/${chainFixture.chainId}/${contractAddress}/constructor-args.txt`
       );
 
+    const expectedContent =
+      "0x00000000000000000000000000000000000000000000000000000000000003e7";
     chai.expect(resConstructorArguments.status).to.equal(200);
-    chai
-      .expect(resConstructorArguments.text)
-      .to.equal(
-        "0x00000000000000000000000000000000000000000000000000000000000003e7"
-      );
+    chai.expect(resConstructorArguments.text).to.equal(expectedContent);
 
     const res1 = await chai
       .request(serverFixture.server.app)
-      .get(`/files/tree/any/${chainFixture.chainId}/${contractAddress}`);
+      .get(`/files/any/${chainFixture.chainId}/${contractAddress}`);
 
+    const fileToCheck = res1.body.files.find(
+      (file: any) => file.name === "constructor-args.txt"
+    );
     chai
-      .expect(res1.body.files)
-      .to.include.members([
-        `http://localhost:10000/contracts/full_match/${chainFixture.chainId}/${contractAddress}/constructor-args.txt`,
-      ]);
+      .expect(fileToCheck.path)
+      .to.equal(
+        `contracts/full_match/${chainFixture.chainId}/${contractAddress}/constructor-args.txt`
+      );
+    chai.expect(fileToCheck.content).to.equal(expectedContent);
   });
 
   describe(`Pagination in /files/contracts/{full|any|partial}/${chainFixture.chainId}`, async function () {
