@@ -30,24 +30,103 @@ describe("Verify repository endpoints", function () {
     const res0 = await agent.get(
       `/files/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`
     );
-    chai.expect(res0.body).has.a.lengthOf(2);
+    chai.expect(res0.body).to.deep.equal([
+      {
+        name: "Storage.sol",
+        path: `contracts/full_match/1337/${chainFixture.defaultContractAddress}/sources/project:/contracts/Storage.sol`,
+        content: res0.body[0].content,
+      },
+      {
+        name: "metadata.json",
+        path: `contracts/full_match/1337/${chainFixture.defaultContractAddress}/metadata.json`,
+        content: res0.body[1].content,
+      },
+    ]);
     const res1 = await agent.get(
       `/files/tree/any/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`
     );
-    chai.expect(res1.body?.status).equals("full");
+    chai.expect(res1.body).to.deep.equal({
+      status: "full",
+      files: [
+        `http://localhost:10000/contracts/full_match/1337/${chainFixture.defaultContractAddress}/sources/project:/contracts/Storage.sol`,
+        `http://localhost:10000contracts/full_match/1337/${chainFixture.defaultContractAddress}/metadata.json`,
+      ],
+    });
     const res2 = await agent.get(
       `/files/any/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`
     );
-    chai.expect(res2.body?.status).equals("full");
+    chai.expect(res2.body).to.deep.equal({
+      status: "full",
+      files: [
+        {
+          name: "Storage.sol",
+          path: `contracts/full_match/1337/${chainFixture.defaultContractAddress}/sources/project:/contracts/Storage.sol`,
+          content: res2.body.files[0].content,
+        },
+        {
+          name: "metadata.json",
+          path: `contracts/full_match/1337/${chainFixture.defaultContractAddress}/metadata.json`,
+          content: res2.body.files[1].content,
+        },
+      ],
+    });
     const res3 = await agent.get(
       `/files/tree/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`
     );
-    chai.expect(res3.body).has.a.lengthOf(2);
+    chai
+      .expect(res3.body)
+      .to.deep.equal([
+        `http://localhost:10000/contracts/full_match/1337/${chainFixture.defaultContractAddress}/sources/project:/contracts/Storage.sol`,
+        `http://localhost:10000contracts/full_match/1337/${chainFixture.defaultContractAddress}/metadata.json`,
+      ]);
     const res4 = await agent.get(`/files/contracts/${chainFixture.chainId}`);
-    chai.expect(res4.body.full).has.a.lengthOf(1);
+    chai.expect(res4.body).to.deep.equal({
+      full: [chainFixture.defaultContractAddress],
+      partial: [],
+    });
   });
 
-  it("should fetch immutable-references.json of specific address", async function () {
+  it("should fetch a .sol file of specific address", async function () {
+    const agent = chai.request.agent(serverFixture.server.app);
+    // Wait for the server to complete the previous contract verification
+    await waitSecs(1);
+    await agent
+      .post("/")
+      .field("address", chainFixture.defaultContractAddress)
+      .field("chain", chainFixture.chainId)
+      .attach("files", chainFixture.defaultContractMetadata, "metadata.json")
+      .attach("files", chainFixture.defaultContractSource, "Storage.sol");
+    const res = await chai
+      .request(serverFixture.server.app)
+      .get(
+        `/repository/contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/sources/project:/contracts/Storage.sol`
+      );
+    chai
+      .expect(res.text)
+      .to.equal(chainFixture.defaultContractSource.toString());
+  });
+
+  it("should fetch metadata.json of specific address", async function () {
+    const agent = chai.request.agent(serverFixture.server.app);
+    // Wait for the server to complete the previous contract verification
+    await waitSecs(1);
+    await agent
+      .post("/")
+      .field("address", chainFixture.defaultContractAddress)
+      .field("chain", chainFixture.chainId)
+      .attach("files", chainFixture.defaultContractMetadata, "metadata.json")
+      .attach("files", chainFixture.defaultContractSource, "Storage.sol");
+    const res = await chai
+      .request(serverFixture.server.app)
+      .get(
+        `/repository/contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/metadata.json`
+      );
+    chai
+      .expect(res.text)
+      .to.equal(chainFixture.defaultContractMetadata.toString());
+  });
+
+  it("should fetch immutable-references.json of specific address, and it should be available in /files/tree", async function () {
     const artifact = await import(
       "../../testcontracts/WithImmutables/artifact.json"
     );
@@ -95,6 +174,16 @@ describe("Verify repository endpoints", function () {
         },
       ],
     });
+
+    const res1 = await chai
+      .request(serverFixture.server.app)
+      .get(`/files/tree/any/${chainFixture.chainId}/${contractAddress}`);
+
+    chai
+      .expect(res1.body.files)
+      .to.include.members([
+        `http://localhost:10000/contracts/full_match/${chainFixture.chainId}/${contractAddress}/immutable-references.json`,
+      ]);
   });
 
   it("should fetch library-map.json of specific address", async function () {
@@ -141,6 +230,16 @@ describe("Verify repository endpoints", function () {
       __$b8833469cd54bfd61b3a18436a18bad1f3$__:
         "0x7d53f102f4d4aa014db4e10d6deec2009b3cda6b",
     });
+
+    const res1 = await chai
+      .request(serverFixture.server.app)
+      .get(`/files/tree/any/${chainFixture.chainId}/${contractAddress}`);
+
+    chai
+      .expect(res1.body.files)
+      .to.include.members([
+        `http://localhost:10000/contracts/full_match/${chainFixture.chainId}/${contractAddress}/library-map.json`,
+      ]);
   });
 
   it("should fetch creator-tx-hash.txt of specific address", async function () {
@@ -163,6 +262,18 @@ describe("Verify repository endpoints", function () {
     chai
       .expect(resCreatorTxHash.text)
       .to.equal(chainFixture.defaultContractCreatorTx);
+
+    const res1 = await chai
+      .request(serverFixture.server.app)
+      .get(
+        `/files/tree/any/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`
+      );
+
+    chai
+      .expect(res1.body.files)
+      .to.include.members([
+        `http://localhost:10000/contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/creator-tx-hash.txt`,
+      ]);
   });
 
   it("should fetch constructor-args.txt of specific address", async function () {
@@ -213,6 +324,16 @@ describe("Verify repository endpoints", function () {
       .to.equal(
         "0x00000000000000000000000000000000000000000000000000000000000003e7"
       );
+
+    const res1 = await chai
+      .request(serverFixture.server.app)
+      .get(`/files/tree/any/${chainFixture.chainId}/${contractAddress}`);
+
+    chai
+      .expect(res1.body.files)
+      .to.include.members([
+        `http://localhost:10000/contracts/full_match/${chainFixture.chainId}/${contractAddress}/constructor-args.txt`,
+      ]);
   });
 
   describe(`Pagination in /files/contracts/{full|any|partial}/${chainFixture.chainId}`, async function () {

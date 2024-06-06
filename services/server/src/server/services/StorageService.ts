@@ -24,9 +24,9 @@ import {
   MatchLevel,
   PaginatedContractData,
 } from "../types";
+import { getFileRelativePath } from "./utils/util";
 import config from "config";
 import { BadRequestError } from "../../common/errors";
-import path from "path";
 
 export interface IStorageService {
   init(): Promise<boolean>;
@@ -113,86 +113,6 @@ export class StorageService {
     return this.repositoryV2!.getMetadata(chainId, address, match);
   };
 
-  getConstructorArgs = async (
-    chainId: string,
-    address: string,
-    match: MatchLevel
-  ): Promise<string | false> => {
-    try {
-      return this.sourcifyDatabase!.getConstructorArgs(chainId, address, match);
-    } catch (error) {
-      logger.error("Error while getting constructor arguments from database", {
-        chainId,
-        address,
-        match,
-        error,
-      });
-      throw new Error(
-        "Error while getting constructor arguments from database"
-      );
-    }
-  };
-  getCreatorTxHash = async (
-    chainId: string,
-    address: string,
-    match: MatchLevel
-  ): Promise<string | false> => {
-    try {
-      return this.sourcifyDatabase!.getCreatorTxHash(chainId, address, match);
-    } catch (error) {
-      logger.error(
-        "Error while getting creator transaction hash from database",
-        {
-          chainId,
-          address,
-          match,
-          error,
-        }
-      );
-      throw new Error(
-        "Error while getting creator transaction hash from database"
-      );
-    }
-  };
-  getLibraryMap = async (
-    chainId: string,
-    address: string,
-    match: MatchLevel
-  ): Promise<any | false> => {
-    try {
-      return this.sourcifyDatabase!.getLibraryMap(chainId, address, match);
-    } catch (error) {
-      logger.error("Error while getting library map from database", {
-        chainId,
-        address,
-        match,
-        error,
-      });
-      throw new Error("Error while getting library map from database");
-    }
-  };
-  getImmutableReferences = async (
-    chainId: string,
-    address: string,
-    match: MatchLevel
-  ): Promise<any | false> => {
-    try {
-      return this.sourcifyDatabase!.getImmutableReferences(
-        chainId,
-        address,
-        match
-      );
-    } catch (error) {
-      logger.error("Error while getting immutable references from database", {
-        chainId,
-        address,
-        match,
-        error,
-      });
-      throw new Error("Error while getting immutable references from database");
-    }
-  };
-
   /**
    * This function inject the metadata file in FilesInfo<T[]>
    * SourcifyDatabase.getTree and SourcifyDatabase.getContent read files from
@@ -221,13 +141,10 @@ export class StorageService {
       );
     }
 
-    const relativePath = path.join(
-      "contracts",
-      responseWithoutMetadata.status === "full"
-        ? "full_match"
-        : "partial_match",
+    const relativePath = getFileRelativePath(
       chainId,
       address,
+      responseWithoutMetadata.status,
       "metadata.json"
     );
 
