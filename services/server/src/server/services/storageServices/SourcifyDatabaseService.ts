@@ -14,6 +14,7 @@ import {
   FileObject,
   FilesInfo,
   FilesRaw,
+  FilesRawValue,
   MatchLevel,
   PaginatedContractData,
 } from "../../types";
@@ -282,10 +283,7 @@ export class SourcifyDatabaseService
    * and store them into FilesInfo.files, this object is then going to be formatted
    * by getTree, getContent and getFile.
    */
-  getFiles = async (
-    chainId: string,
-    address: string
-  ): Promise<FilesInfo<FilesRaw>> => {
+  getFiles = async (chainId: string, address: string): Promise<FilesRaw> => {
     await this.init();
 
     const sourcifyMatchResult = await Database.getSourcifyMatchByChainAddress(
@@ -296,7 +294,7 @@ export class SourcifyDatabaseService
 
     if (sourcifyMatchResult.rowCount === 0) {
       // This is how you handle a non existing contract
-      return { status: "partial", files: {} };
+      return { status: "partial", files: {}, sources: {} };
     }
 
     const sourcifyMatch = sourcifyMatchResult.rows[0];
@@ -308,7 +306,38 @@ export class SourcifyDatabaseService
         ? "full"
         : "partial";
 
-    return { status: contractStatus, files: sourcifyMatch.sources };
+    const sources = sourcifyMatch.sources;
+    const files: FilesRawValue = {};
+
+    if (sourcifyMatch?.creation_values?.constructorArguments) {
+      files["constructor-args.txt"] =
+        sourcifyMatch.creation_values.constructorArguments;
+    }
+
+    if (sourcifyMatch?.transaction_hash) {
+      const creatorTxHash = sourcifyMatch.transaction_hash.toString("hex");
+      if (creatorTxHash) {
+        files["creator-tx-hash.txt"] = `0x${creatorTxHash}`;
+      }
+    }
+
+    if (
+      sourcifyMatch?.runtime_values?.libraries &&
+      Object.keys(sourcifyMatch.runtime_values.libraries).length > 0
+    ) {
+      files["library-map.json"] = sourcifyMatch.runtime_values.libraries;
+    }
+
+    if (
+      sourcifyMatch?.runtime_code_artifacts?.immutableReferences &&
+      Object.keys(sourcifyMatch.runtime_code_artifacts.immutableReferences)
+        .length > 0
+    ) {
+      files["immutable-references.json"] =
+        sourcifyMatch.runtime_code_artifacts.immutableReferences;
+    }
+
+    return { status: contractStatus, sources, files };
   };
 
   getFile = async (
@@ -316,15 +345,16 @@ export class SourcifyDatabaseService
     address: string,
     match: MatchLevel,
     path: string
-  ): Promise<string | false> => {
-    const { status, files } = await this.getFiles(chainId, address);
-    if (Object.keys(files).length === 0) {
+  ): Promise<any | false> => {
+    const { status, files, sources } = await this.getFiles(chainId, address);
+    if (Object.keys(sources).length === 0) {
       return false;
     }
     if (match === "full_match" && status === "partial") {
       return false;
     }
-    return files[path];
+    const allFiles = { ...files, ...sources };
+    return allFiles[path];
   };
 
   /**
@@ -335,10 +365,11 @@ export class SourcifyDatabaseService
     address: string,
     match: MatchLevel
   ): Promise<FilesInfo<string[]>> => {
-    const { status: contractStatus, files: filesRaw } = await this.getFiles(
-      chainId,
-      address
-    );
+    const {
+      status: contractStatus,
+      sources: sourcesRaw,
+      files: filesRaw,
+    } = await this.getFiles(chainId, address);
 
     // If "full_match" files are requested but the contractStatus if partial return empty
     if (match === "full_match" && contractStatus === "partial") {
@@ -349,7 +380,18 @@ export class SourcifyDatabaseService
     }
 
     // Calculate the the repository's url for each file
-    const files = Object.keys(filesRaw).map((file) => {
+    const sourcesWithUrl = Object.keys(sourcesRaw).map((source) => {
+      const relativePath = getFileRelativePath(
+        chainId,
+        address,
+        contractStatus,
+        source,
+        { isSource: true }
+      );
+      return `${config.get("repositoryV1.serverUrl")}/${relativePath}`;
+    });
+
+    const filesWithUrl = Object.keys(filesRaw).map((file) => {
       const relativePath = getFileRelativePath(
         chainId,
         address,
@@ -359,7 +401,10 @@ export class SourcifyDatabaseService
       return `${config.get("repositoryV1.serverUrl")}/${relativePath}`;
     });
 
-    return { status: contractStatus, files };
+    return {
+      status: contractStatus,
+      files: [...sourcesWithUrl, ...filesWithUrl],
+    };
   };
 
   /**
@@ -371,10 +416,11 @@ export class SourcifyDatabaseService
     address: string,
     match: MatchLevel
   ): Promise<FilesInfo<Array<FileObject>>> => {
-    const { status: contractStatus, files: filesRaw } = await this.getFiles(
-      chainId,
-      address
-    );
+    const {
+      status: contractStatus,
+      sources: sourcesRaw,
+      files: filesRaw,
+    } = await this.getFiles(chainId, address);
 
     // If "full_match" files are requestd but the contractStatus if partial return empty
     if (match === "full_match" && contractStatus === "partial") {
@@ -385,7 +431,23 @@ export class SourcifyDatabaseService
     }
 
     // Calculate the the repository's url for each file
-    const files = Object.keys(filesRaw).map((file) => {
+    const sourcesWithUrl = Object.keys(sourcesRaw).map((source) => {
+      const relativePath = getFileRelativePath(
+        chainId,
+        address,
+        contractStatus,
+        source,
+        { isSource: true }
+      );
+
+      return {
+        name: Path.basename(source),
+        path: relativePath,
+        content: sourcesRaw[source],
+      } as FileObject;
+    });
+
+    const filesWithUrl = Object.keys(filesRaw).map((file) => {
       const relativePath = getFileRelativePath(
         chainId,
         address,
@@ -400,7 +462,10 @@ export class SourcifyDatabaseService
       } as FileObject;
     });
 
-    return { status: contractStatus, files };
+    return {
+      status: contractStatus,
+      files: [...sourcesWithUrl, ...filesWithUrl],
+    };
   };
 
   validateBeforeStoring(

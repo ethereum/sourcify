@@ -150,7 +150,11 @@ export async function getSourcifyMatchByChainAddress(
         sourcify_matches.created_at,
         sourcify_matches.creation_match as creation_match_status,
         sourcify_matches.runtime_match as runtime_match_status,
-        compiled_contracts.sources
+        compiled_contracts.sources,
+        verified_contracts.creation_values,
+        verified_contracts.runtime_values,
+        compiled_contracts.runtime_code_artifacts,
+        contract_deployments.transaction_hash
       FROM sourcify_matches
       JOIN verified_contracts ON verified_contracts.id = sourcify_matches.verified_contract_id
       JOIN compiled_contracts ON compiled_contracts.id = verified_contracts.compilation_id
