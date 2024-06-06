@@ -278,40 +278,6 @@ export class SourcifyDatabaseService
     return res;
   };
 
-  getSafeSourcifyMatch = async (
-    chainId: string,
-    address: string,
-    match: MatchLevel
-  ): Promise<any | false> => {
-    await this.init();
-
-    const sourcifyMatchResult = await Database.getSourcifyMatchByChainAddress(
-      this.databasePool,
-      parseInt(chainId),
-      bytesFromString(address)!
-    );
-
-    if (sourcifyMatchResult.rowCount === 0) {
-      // This is how you handle a non existing contract
-      return false;
-    }
-
-    const sourcifyMatch = sourcifyMatchResult.rows[0];
-
-    // If either creation match or runtime match is perfect, then perfect match
-    const contractStatus =
-      sourcifyMatch.creation_match_status === "perfect" ||
-      sourcifyMatch.runtime_match_status === "perfect"
-        ? "full"
-        : "partial";
-
-    if (match === "full_match" && contractStatus === "partial") {
-      return false;
-    }
-
-    return sourcifyMatch;
-  };
-
   /**
    * getFiles extracts the files from the database `compiled_contracts.sources`
    * and store them into FilesInfo.files, this object is then going to be formatted
