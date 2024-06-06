@@ -10,6 +10,14 @@ export type MatchLevel = "full_match" | "partial_match" | "any_match";
  */
 export type FilesInfo<T> = { status: MatchQuality; files: T };
 
+export type FilesRawValue = { [index: string]: string };
+
+export type FilesRaw = {
+  status: MatchQuality;
+  files: FilesRawValue;
+  sources: FilesRawValue;
+};
+
 /**
  * A type for specifying the match quality of files.
  */
@@ -43,10 +51,6 @@ export type PathConfig = {
   address: string;
   fileName?: string;
   source?: boolean;
-};
-
-export type FilesRaw = {
-  [path: string]: string;
 };
 
 export type FileObject = {

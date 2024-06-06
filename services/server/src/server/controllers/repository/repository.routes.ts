@@ -130,6 +130,11 @@ router
   .route("/repository/contracts/:match/:chain/:address/sources/*")
   .get(safeHandler(getFileEndpoint));
 
+// This route covers constructor-args.txt, creator-tx-hash.txt, library-map.json, immutable-references.json files
+router
+  .route("/repository/contracts/:match/:chain/:address/*")
+  .get(safeHandler(getFileEndpoint));
+
 router
   .route("/check-by-addresses")
   .get(safeHandler(checkByChainAndAddressesEnpoint));

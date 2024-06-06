@@ -5,14 +5,17 @@ export const getFileRelativePath = (
   chainId: string,
   address: string,
   contractStatus: MatchQuality,
-  file: string
+  file: string,
+  { isSource } = { isSource: false }
 ): string => {
-  return Path.join(
+  const baseDir = Path.join(
     "contracts",
     contractStatus === "full" ? "full_match" : "partial_match",
     chainId,
-    address,
-    "sources",
-    file
+    address
   );
+
+  return isSource
+    ? Path.join(baseDir, "sources", file)
+    : Path.join(baseDir, file);
 };
