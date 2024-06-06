@@ -99,11 +99,11 @@ describe("Verify repository endpoints", function () {
 
   it("should fetch library-map.json of specific address", async function () {
     const artifact = await import(
-      "../../testcontracts/LibrariesLinkedByCompiler/LibrariesLinkedByCompiler.json"
+      "../../testcontracts/LibrariesLinkedManually/LibrariesLinkedManually.json"
     );
 
     const metadata = await import(
-      "../../testcontracts/LibrariesLinkedByCompiler/metadata.json"
+      "../../testcontracts/LibrariesLinkedManually/metadata.json"
     );
     const metadataBuffer = Buffer.from(JSON.stringify(metadata));
 
@@ -113,7 +113,7 @@ describe("Verify repository endpoints", function () {
         "..",
         "..",
         "testcontracts",
-        "LibrariesLinkedByCompiler",
+        "LibrariesLinkedManually",
         "1_Storage.sol"
       )
     );
