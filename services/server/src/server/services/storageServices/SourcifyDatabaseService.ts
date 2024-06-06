@@ -379,7 +379,7 @@ export class SourcifyDatabaseService
     address: string,
     match: MatchLevel,
     path: string
-  ): Promise<string | false> => {
+  ): Promise<any | false> => {
     const { status, files, sources } = await this.getFiles(chainId, address);
     if (Object.keys(sources).length === 0) {
       return false;
