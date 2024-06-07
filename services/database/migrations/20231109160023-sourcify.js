@@ -33,7 +33,9 @@ exports.up = function (db, callback) {
       db.runSql.bind(
         db,
         `ALTER TABLE compiled_contracts ALTER COLUMN creation_code_hash DROP NOT NULL;
-        ALTER TABLE compiled_contracts ALTER COLUMN creation_code_artifacts DROP NOT NULL;`
+        ALTER TABLE compiled_contracts ALTER COLUMN creation_code_artifacts DROP NOT NULL;
+        ALTER TABLE compiled_contracts DROP CONSTRAINT compiled_contracts_pseudo_pkey;
+        ALTER TABLE compiled_contracts ADD CONSTRAINT compiled_contracts_pseudo_pkey UNIQUE NULLS NOT DISTINCT (compiler, language, creation_code_hash, runtime_code_hash);`
       ),
       db.runSql.bind(
         db,
@@ -80,8 +82,27 @@ exports.up = function (db, callback) {
 exports.down = function (db, callback) {
   async.series(
     [
+      db.dropTable.bind(db, "session"),
       db.dropTable.bind(db, "sourcify_sync"),
       db.dropTable.bind(db, "sourcify_matches"),
+      db.runSql.bind(
+        db,
+        `ALTER TABLE compiled_contracts DROP CONSTRAINT compiled_contracts_pseudo_pkey;
+        ALTER TABLE compiled_contracts ADD CONSTRAINT compiled_contracts_pseudo_pkey UNIQUE (compiler, language, creation_code_hash, runtime_code_hash);
+        ALTER TABLE compiled_contracts ALTER COLUMN creation_code_artifacts SET NOT NULL;
+        ALTER TABLE compiled_contracts ALTER COLUMN creation_code_hash SET NOT NULL;`
+      ),
+      db.runSql.bind(
+        db,
+        `ALTER TABLE contract_deployments ALTER COLUMN deployer SET NOT NULL;
+        ALTER TABLE contract_deployments ALTER COLUMN transaction_index SET NOT NULL;
+        ALTER TABLE contract_deployments ALTER COLUMN block_number SET NOT NULL;
+        ALTER TABLE contract_deployments ALTER COLUMN transaction_hash SET NOT NULL;`
+      ),
+      db.runSql.bind(
+        db,
+        `ALTER TABLE contracts ALTER COLUMN creation_code_hash SET NOT NULL;`
+      ),
     ],
     callback
   );
