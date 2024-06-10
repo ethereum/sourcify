@@ -111,7 +111,7 @@ export async function getVerifiedContractByBytecodeHashes(
       JOIN contracts ON contracts.id = contract_deployments.contract_id
       WHERE 1=1
         AND contracts.runtime_code_hash = $1
-        AND contracts.creation_code_hash = $2
+        AND (contracts.creation_code_hash = $2 OR (contracts.creation_code_hash IS NULL AND $2 IS NULL))
     `,
     [runtime_bytecode_hash, creation_bytecode_hash]
   );
@@ -323,7 +323,7 @@ export async function insertCompiledContract(
         WHERE 1=1
           AND compiler = $1
           AND language = $2
-          AND creation_code_hash = $3
+          AND (creation_code_hash = $3 OR (creation_code_hash IS NULL AND $3 IS NULL))
           AND runtime_code_hash = $4
         `,
       [compiler, language, creation_code_hash, runtime_code_hash]
