@@ -1544,7 +1544,7 @@ describe("Test Supported Chains", function () {
     "0x368ef7513d327c591865da35f3893f29770f9f86",
     "8227",
     "Space Subnet",
-    "8227/"
+    "2044/"
   );
 
   // Jirtsu Subnet Testnet
