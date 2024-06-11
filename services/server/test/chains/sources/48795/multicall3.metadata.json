@@ -569,9 +569,7 @@
         }
     },
     "settings": {
-        "compilationTarget": {
-            "contracts/Multicall3.sol": "Multicall3"
-        },
+        "compilationTarget":{"Multicall3.sol":"Multicall3"},
         "evmVersion": "london",
         "libraries": {},
         "metadata": {
