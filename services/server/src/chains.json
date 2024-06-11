@@ -27626,9 +27626,7 @@
   {
     "name": "VeChain",
     "chain": "VeChain",
-    "rpc": [
-      "https://rpc-mainnet.vechain.energy"
-    ],
+    "rpc": [],
     "faucets": [],
     "nativeCurrency": { "name": "VeChain", "symbol": "VET", "decimals": 18 },
     "infoURL": "https://vechain.org",
@@ -27651,9 +27649,7 @@
   {
     "name": "VeChain Testnet",
     "chain": "VeChain",
-    "rpc": [
-      "https://rpc-testnet.vechain.energy"
-    ],
+    "rpc": [],
     "faucets": ["https://faucet.vecha.in"],
     "nativeCurrency": { "name": "VeChain", "symbol": "VET", "decimals": 18 },
     "infoURL": "https://vechain.org",
