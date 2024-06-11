@@ -570,7 +570,7 @@
     },
     "settings": {
         "compilationTarget": {
-            "Multicall3.sol": "Multicall3"
+            "contracts/Multicall3.sol": "Multicall3"
         },
         "evmVersion": "london",
         "libraries": {},
@@ -584,7 +584,7 @@
         "remappings": []
     },
     "sources": {
-        "Multicall3.sol": {
+        "contracts/Multicall3.sol": {
             "keccak256": "0xccd3a2d98095724a5cedd2cfd540829dce3614483f860b7e4612cd5019b7ac88",
             "license": "MIT",
             "urls": [
