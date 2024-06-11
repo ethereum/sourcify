@@ -1691,7 +1691,7 @@
     ]
   },
   "100010": {
-    "sourcifyName": "VeChain MainNet",
+    "sourcifyName": "VeChain TestNet",
     "supported": true,
     "rpc": [
       "https://rpc-testnet.vechain.energy"
