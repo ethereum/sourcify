@@ -42,7 +42,6 @@
     "@typescript-eslint/parser": "^6.9.0",
     "eslint": "^8.52.0",
     "eslint-config-prettier": "^9.0.0",
-    "ganache": "^7.9.1",
     "lerna": "^7.4.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.2"
