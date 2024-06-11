@@ -1531,6 +1531,30 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // Space Subnet Testnet
+  verifyContract(
+    "0x368ef7513d327c591865da35f3893f29770f9f86",
+    "48795",
+    "Space Subnet Testnet",
+    "shared/"
+  );
+
+  // Space Subnet
+  verifyContract(
+    "0x368ef7513d327c591865da35f3893f29770f9f86",
+    "8227",
+    "Space Subnet",
+    "shared/"
+  );
+
+  // Jirtsu Subnet Testnet
+  verifyContract(
+    "0xd0bb2f670f8743e5eda59c4ab746c5cc5132c7bb",
+    "11227",
+    "Jirtsu Subnet Testnet",
+    "shared/"
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests: ChainApiResponse[] = [];
     supportedChains
