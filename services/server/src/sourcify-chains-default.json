@@ -1683,8 +1683,6 @@
       "avalancheApi": true
     }
   },
-  
-  {
   "100009": {
     "sourcifyName": "VeChain MainNet",
     "supported": true,
@@ -1692,12 +1690,11 @@
       "https://rpc-mainnet.vechain.energy"
     ]
   },
-  {
   "100010": {
     "sourcifyName": "VeChain MainNet",
     "supported": true,
     "rpc": [
       "https://rpc-testnet.vechain.energy"
     ]
-  }  
+  }
 }
