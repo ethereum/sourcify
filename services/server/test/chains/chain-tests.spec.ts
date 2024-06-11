@@ -1533,7 +1533,7 @@ describe("Test Supported Chains", function () {
 
   // Space Subnet Testnet
   verifyContract(
-    "0x368ef7513d327c591865da35f3893f29770f9f86",
+    "0x29Db3134bb05CDd4fe5f95665F6301B810522197",
     "48795",
     "Space Subnet Testnet",
     "shared/"
@@ -1541,7 +1541,7 @@ describe("Test Supported Chains", function () {
 
   // Space Subnet
   verifyContract(
-    "0x368ef7513d327c591865da35f3893f29770f9f86",
+    "0x0200000000000000000000000000000000000001",
     "8227",
     "Space Subnet",
     "shared/"
@@ -1549,7 +1549,7 @@ describe("Test Supported Chains", function () {
 
   // Jirtsu Subnet Testnet
   verifyContract(
-    "0xd0bb2f670f8743e5eda59c4ab746c5cc5132c7bb",
+    "0xEb266e584cDa38426683880B6f32542C01F39F41",
     "11227",
     "Jirtsu Subnet Testnet",
     "shared/"
