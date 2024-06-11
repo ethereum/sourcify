@@ -2,8 +2,16 @@ import logger from "../../../common/logger";
 import { AuthTypes, Connector } from "@google-cloud/cloud-sql-connector";
 import { Pool } from "pg";
 import AbstractDatabaseService from "./AbstractDatabaseService";
-import { IStorageService } from "../StorageService";
+import { IStorageService, StorageService } from "../StorageService";
 import { CheckedContract, Match } from "@ethereum-sourcify/lib-sourcify";
+import {
+  MatchLevel,
+  FilesInfo,
+  FileObject,
+  ContractData,
+  PaginatedContractData,
+} from "../../types";
+import { hostname } from "os";
 
 export interface AllianceDatabaseServiceOptions {
   googleCloudSql?: {
@@ -19,11 +27,15 @@ export interface AllianceDatabaseServiceOptions {
     password: string;
   };
 }
+
+export const AllianceDatabaseIdentifier = "VerifierAllianceDatabase";
+
 export class AllianceDatabaseService
   extends AbstractDatabaseService
   implements IStorageService
 {
-  databaseName = "AllianceDatabase";
+  storageService: StorageService;
+  IDENTIFIER = AllianceDatabaseIdentifier;
   databasePool!: Pool;
 
   googleCloudSqlInstanceName?: string;
@@ -35,8 +47,12 @@ export class AllianceDatabaseService
   postgresUser?: string;
   postgresPassword?: string;
 
-  constructor(options: AllianceDatabaseServiceOptions) {
+  constructor(
+    storageService_: StorageService,
+    options: AllianceDatabaseServiceOptions
+  ) {
     super();
+    this.storageService = storageService_;
     this.googleCloudSqlInstanceName = options.googleCloudSql?.instanceName;
     this.googleCloudSqlIamAccount = options.googleCloudSql?.iamAccount;
     this.googleCloudSqlDatabase = options.googleCloudSql?.database;
@@ -47,7 +63,45 @@ export class AllianceDatabaseService
     this.postgresPassword = options.postgres?.password;
   }
 
-  async init(): Promise<boolean> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  getMetadata(..._: any): Promise<string | false> {
+    throw new Error("Method not implemented.");
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  getFile(..._: any): Promise<string | false> {
+    throw new Error("Method not implemented.");
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  getTree(..._: any): Promise<FilesInfo<string[]>> {
+    throw new Error("Method not implemented.");
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  getContent(..._: any): Promise<FilesInfo<FileObject[]>> {
+    throw new Error("Method not implemented.");
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  getContracts(..._: any): Promise<ContractData> {
+    throw new Error("Method not implemented.");
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  getPaginatedContracts(..._: any): Promise<PaginatedContractData> {
+    throw new Error("Method not implemented.");
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  checkByChainAndAddress?(..._: any): Promise<Match[]> {
+    throw new Error("Method not implemented.");
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  checkAllByChainAndAddress?(..._: any): Promise<Match[]> {
+    throw new Error("Method not implemented.");
+  }
+
+  async init() {
+    return await this.initDatabasePool();
+  }
+
+  async initDatabasePool(): Promise<boolean> {
     // if the database is already initialized
     if (this.databasePool != undefined) {
       return true;
@@ -77,10 +131,40 @@ export class AllianceDatabaseService
     } else {
       throw new Error("Alliance Database is disabled");
     }
+
+    // Checking pool health before continuing
+    try {
+      await this.databasePool.query("SELECT 1;");
+    } catch (error) {
+      logger.error(`Cannot connect to ${this.IDENTIFIER}`, {
+        host: this.postgresHost,
+        port: this.postgresPort,
+        database: this.postgresDatabase,
+        user: this.postgresUser,
+        error,
+      });
+      throw new Error(`Cannot connect to ${this.IDENTIFIER}`);
+    }
+
+    logger.info(`${this.IDENTIFIER} initialized`, {
+      host: this.postgresHost,
+      port: this.postgresPort,
+      database: this.postgresDatabase,
+    });
     return true;
   }
 
   async storeMatch(recompiledContract: CheckedContract, match: Match) {
+    if (!match.creationMatch) {
+      logger.warn(`Can't store to AllianceDatabase without creationMatch`, {
+        name: recompiledContract.name,
+        address: match.address,
+        chainId: match.chainId,
+        runtimeMatch: match.runtimeMatch,
+        creationMatch: match.creationMatch,
+      });
+      return;
+    }
     await this.insertOrUpdateVerifiedContract(recompiledContract, match);
     logger.info("Stored to AllianceDatabase", {
       name: recompiledContract.name,

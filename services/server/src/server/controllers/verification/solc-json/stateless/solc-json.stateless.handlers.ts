@@ -1,5 +1,4 @@
 import { Response, Request } from "express";
-import { services } from "../../../../services/services";
 import { extractFiles, solc } from "../../verification.common";
 import { checkFiles, useAllSources } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError, ValidationError } from "../../../../../common/errors";
@@ -43,7 +42,7 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
     );
   }
 
-  const match = await services.verification.verifyDeployed(
+  const match = await req.services.verification.verifyDeployed(
     contractToVerify,
     chain,
     address,
@@ -55,7 +54,7 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
       contractToVerify,
       metadataAndSourcesPathBuffers
     );
-    const tempMatch = await services.verification.verifyDeployed(
+    const tempMatch = await req.services.verification.verifyDeployed(
       contractWithAllSources,
       chain,
       address, // Due to the old API taking an array of addresses.
@@ -65,7 +64,7 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
       tempMatch.runtimeMatch === "perfect" ||
       tempMatch.creationMatch === "perfect"
     ) {
-      await services.storage.storeMatch(contractToVerify, tempMatch);
+      await req.services.storage.storeMatch(contractToVerify, tempMatch);
       return res.send({ result: [tempMatch] });
     } else if (tempMatch.runtimeMatch === "extra-file-input-bug") {
       throw new ValidationError(
@@ -74,7 +73,7 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
     }
   }
   if (match.runtimeMatch || match.creationMatch) {
-    await services.storage.storeMatch(contractToVerify, match);
+    await req.services.storage.storeMatch(contractToVerify, match);
   }
   return res.send({ result: [getResponseMatchFromMatch(match)] }); // array is an old expected behavior (e.g. by frontend)
 }

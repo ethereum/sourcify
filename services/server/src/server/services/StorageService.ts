@@ -15,6 +15,7 @@ import {
   AllianceDatabaseService,
   AllianceDatabaseServiceOptions,
 } from "./storageServices/AllianceDatabaseService";
+import { SourcifyFixedDatabaseIdentifier } from "./storageServices/SourcifyFixedDatabaseService";
 import logger from "../../common/logger";
 import { getMatchStatus } from "../common";
 import {
@@ -24,21 +25,51 @@ import {
   MatchLevel,
   PaginatedContractData,
 } from "../types";
-import { getFileRelativePath } from "./utils/util";
-import config from "config";
 import { BadRequestError } from "../../common/errors";
+import config from "config";
 
 export interface IStorageService {
+  IDENTIFIER: string;
+  storageService: StorageService;
   init(): Promise<boolean>;
-  storeMatch(contract: CheckedContract, match: Match): Promise<void | Match>;
+  getMetadata(
+    chainId: string,
+    address: string,
+    match: MatchLevel
+  ): Promise<string | false>;
+  getFile(
+    chainId: string,
+    address: string,
+    match: MatchLevel,
+    path: string
+  ): Promise<string | false>;
+  getTree(
+    chainId: string,
+    address: string,
+    match: MatchLevel
+  ): Promise<FilesInfo<string[]>>;
+  getContent(
+    chainId: string,
+    address: string,
+    match: MatchLevel
+  ): Promise<FilesInfo<Array<FileObject>>>;
+  getContracts(chainId: string): Promise<ContractData>;
+  getPaginatedContracts(
+    chainId: string,
+    match: MatchLevel,
+    page: number,
+    limit: number,
+    descending: boolean
+  ): Promise<PaginatedContractData>;
   checkByChainAndAddress?(address: string, chainId: string): Promise<Match[]>;
   checkAllByChainAndAddress?(
     address: string,
     chainId: string
   ): Promise<Match[]>;
+  storeMatch(contract: CheckedContract, match: Match): Promise<void | Match>;
 }
 
-interface StorageServiceOptions {
+export interface StorageServiceOptions {
   repositoryV1ServiceOptions: RepositoryV1ServiceOptions;
   repositoryV2ServiceOptions: RepositoryV2ServiceOptions;
   sourcifyDatabaseServiceOptions?: SourcifyDatabaseServiceOptions;
@@ -47,23 +78,30 @@ interface StorageServiceOptions {
 }
 
 export class StorageService {
-  repositoryV1: RepositoryV1Service;
-  repositoryV2?: RepositoryV2Service;
-  sourcifyDatabase?: SourcifyDatabaseService;
-  sourcifyFixedDatabase?: SourcifyDatabaseService;
-  allianceDatabase?: AllianceDatabaseService;
+  services: { [index: string]: IStorageService } = {};
 
   constructor(options: StorageServiceOptions) {
     // repositoryV1
-    this.repositoryV1 = new RepositoryV1Service(
-      options.repositoryV1ServiceOptions
-    );
+    if (options.repositoryV1ServiceOptions?.repositoryPath) {
+      const repositoryV1 = new RepositoryV1Service(
+        this,
+        options.repositoryV1ServiceOptions
+      );
+      this.services[repositoryV1.IDENTIFIER] = repositoryV1;
+    } else {
+      logger.warn(
+        "Won't use RepositoryV1, path not set",
+        options.repositoryV2ServiceOptions
+      );
+    }
 
     // repositoryV2
     if (options.repositoryV2ServiceOptions?.repositoryPath) {
-      this.repositoryV2 = new RepositoryV2Service(
+      const repositoryV2 = new RepositoryV2Service(
+        this,
         options.repositoryV2ServiceOptions
       );
+      this.services[repositoryV2.IDENTIFIER] = repositoryV2;
     } else {
       logger.warn(
         "Won't use RepositoryV2, path not set",
@@ -78,9 +116,11 @@ export class StorageService {
       options.sourcifyDatabaseServiceOptions?.postgres?.user &&
       options.sourcifyDatabaseServiceOptions?.postgres?.password
     ) {
-      this.sourcifyDatabase = new SourcifyDatabaseService(
+      const sourcifyDatabase = new SourcifyDatabaseService(
+        this,
         options.sourcifyDatabaseServiceOptions
       );
+      this.services[sourcifyDatabase.IDENTIFIER] = sourcifyDatabase;
     } else {
       logger.warn(
         "Won't use SourcifyDatabase, options not complete",
@@ -95,9 +135,12 @@ export class StorageService {
       options.sourcifyFixedDatabaseServiceOptions?.postgres?.user &&
       options.sourcifyFixedDatabaseServiceOptions?.postgres?.password
     ) {
-      this.sourcifyFixedDatabase = new SourcifyDatabaseService(
+      const sourcifyFixedDatabase = new SourcifyDatabaseService(
+        this,
         options.sourcifyFixedDatabaseServiceOptions
       );
+      sourcifyFixedDatabase.IDENTIFIER = SourcifyFixedDatabaseIdentifier;
+      this.services[sourcifyFixedDatabase.IDENTIFIER] = sourcifyFixedDatabase;
     } else {
       logger.warn(
         "Won't use SourcifyFixedDatabase, options not complete",
@@ -113,9 +156,11 @@ export class StorageService {
         options.allianceDatabaseServiceOptions?.postgres?.user &&
         options.allianceDatabaseServiceOptions?.postgres?.password)
     ) {
-      this.allianceDatabase = new AllianceDatabaseService(
+      const allianceDatabase = new AllianceDatabaseService(
+        this,
         options.allianceDatabaseServiceOptions
       );
+      this.services[allianceDatabase.IDENTIFIER] = allianceDatabase;
     } else {
       logger.warn(
         "Won't use AllianceDatabase, options not complete",
@@ -124,183 +169,214 @@ export class StorageService {
     }
   }
 
-  getMetadata = async (
+  getServiceByConfigKey(configKey: string): IStorageService | undefined {
+    return this.services[configKey];
+  }
+
+  getDefaultReadService(): IStorageService {
+    const storageService = this.getServiceByConfigKey(
+      config.get("storage.read")
+    );
+    if (storageService === undefined) {
+      logger.error("Default read storage service not enabled");
+      throw new Error("Default read storage service not enabled");
+    }
+    return storageService;
+  }
+
+  getWriteOrWarnServices(): (IStorageService | undefined)[] {
+    const writeOrWarnServices = (
+      (config.get("storage.writeOrWarn") as []) || []
+    ).map((serviceKey) => {
+      const storageService = this.getServiceByConfigKey(serviceKey);
+      if (storageService === undefined) {
+        logger.warn("Storage service not enabled", {
+          storageService: serviceKey,
+        });
+      }
+      return storageService;
+    });
+
+    return writeOrWarnServices;
+  }
+
+  getWriteOrErrServices(): IStorageService[] {
+    const writeOrErr = ((config.get("storage.writeOrErr") as []) || []).map(
+      (serviceKey) => {
+        const storageService = this.getServiceByConfigKey(serviceKey);
+        if (storageService === undefined) {
+          logger.error("Write storage service not enabled", {
+            storageService: serviceKey,
+          });
+          throw new Error(`Write storage service not enabled: ${serviceKey}`);
+        }
+        return storageService;
+      }
+    );
+
+    return writeOrErr;
+  }
+
+  async init() {
+    // Initialized only the used storage services
+
+    // Get list of used storage services
+    const enabledServicesArray = [
+      this.getDefaultReadService(),
+      ...this.getWriteOrWarnServices(),
+      ...this.getWriteOrErrServices(),
+    ].filter((service) => service !== undefined) as IStorageService[];
+
+    // Create object: StorageIdentifier => Storage
+    const enabledServices = enabledServicesArray.reduce(
+      (
+        services: { [index: string]: IStorageService },
+        service: IStorageService
+      ) => {
+        services[service.IDENTIFIER] = service;
+        return services;
+      },
+      {}
+    );
+
+    logger.debug("Initializing used storage services", {
+      storageServices: Object.keys(enabledServices),
+    });
+
+    // Try to initialize used storage services
+    for (const serviceIdentifier of Object.keys(enabledServices)) {
+      if (!(await this.services[serviceIdentifier].init())) {
+        throw new Error(
+          "Cannot initialize default storage service: " + serviceIdentifier
+        );
+      }
+    }
+  }
+
+  async getMetadata(
     chainId: string,
     address: string,
     match: MatchLevel
-  ): Promise<string | false> => {
-    return this.repositoryV2!.getMetadata(chainId, address, match);
-  };
+  ): Promise<string | false> {
+    return this.getDefaultReadService().getMetadata(chainId, address, match);
+  }
 
-  /**
-   * This function inject the metadata file in FilesInfo<T[]>
-   * SourcifyDatabase.getTree and SourcifyDatabase.getContent read files from
-   * `compiled_contracts.sources` where the metadata file is not available
-   */
-  pushMetadataInFilesInfo = async <T extends string | FileObject>(
-    responseWithoutMetadata: FilesInfo<T[]>,
-    chainId: string,
-    address: string,
-    match: MatchLevel
-  ) => {
-    const metadata = await this.getMetadata(
-      chainId,
-      address,
-      responseWithoutMetadata.status === "full" ? "full_match" : "any_match"
-    );
-
-    if (!metadata) {
-      logger.error("Contract exists in the database but not in RepositoryV2", {
-        chainId,
-        address,
-        match,
-      });
-      throw new Error(
-        "Contract exists in the database but not in RepositoryV2"
-      );
-    }
-
-    const relativePath = getFileRelativePath(
-      chainId,
-      address,
-      responseWithoutMetadata.status,
-      "metadata.json"
-    );
-
-    if (typeof responseWithoutMetadata.files[0] === "string") {
-      // If this function is called with T == string
-      responseWithoutMetadata.files.push(
-        (config.get("repositoryV1.serverUrl") + relativePath) as T
-      );
-    } else {
-      // If this function is called with T === FileObject
-      // It's safe to handle this case in the else because of <T extends string | FileObject>
-      responseWithoutMetadata.files.push({
-        name: "metadata.json",
-        path: relativePath,
-        content: metadata,
-      } as T);
-    }
-  };
-
-  getFile = async (
+  async getFile(
     chainId: string,
     address: string,
     match: MatchLevel,
     path: string
-  ): Promise<string | false> => {
+  ): Promise<string | false> {
     try {
-      return this.sourcifyDatabase!.getFile(chainId, address, match, path);
-    } catch (error) {
-      logger.error("Error while getting file from database", {
+      return this.getDefaultReadService().getFile(
         chainId,
         address,
         match,
-        path,
-        error,
-      });
-      throw new Error("Error while getting file from database");
+        path
+      );
+    } catch (error) {
+      logger.error(
+        "Error while getting file from default read storage service",
+        {
+          defaultStorageService: this.getDefaultReadService().IDENTIFIER,
+          address,
+          match,
+          path,
+          error,
+        }
+      );
+      throw new Error(
+        "Error while getting file from default read storage service"
+      );
     }
-  };
+  }
 
-  getTree = async (
+  async getTree(
     chainId: string,
     address: string,
     match: MatchLevel
-  ): Promise<FilesInfo<string[]>> => {
-    let responseWithoutMetadata;
+  ): Promise<FilesInfo<string[]>> {
     try {
-      responseWithoutMetadata = await this.sourcifyDatabase!.getTree(
+      return await this.getDefaultReadService().getTree(
         chainId,
         address,
         match
       );
     } catch (error) {
-      logger.error("Error while getting tree from database", {
-        chainId,
-        address,
-        match,
-        error,
-      });
-      throw new Error("Error while getting tree from database");
+      logger.error(
+        "Error while getting tree from default read storage service",
+        {
+          defaultStorageService: this.getDefaultReadService().IDENTIFIER,
+          chainId,
+          address,
+          match,
+          error,
+        }
+      );
+      throw new Error(
+        "Error while getting tree from default read storage service"
+      );
     }
+  }
 
-    // if files is empty it means that the contract doesn't exist
-    if (responseWithoutMetadata.files.length === 0) {
-      return responseWithoutMetadata;
-    }
-
-    await this.pushMetadataInFilesInfo<string>(
-      responseWithoutMetadata,
-      chainId,
-      address,
-      match
-    );
-
-    return responseWithoutMetadata;
-  };
-
-  getContent = async (
+  async getContent(
     chainId: string,
     address: string,
     match: MatchLevel
-  ): Promise<FilesInfo<Array<FileObject>>> => {
-    let responseWithoutMetadata;
+  ): Promise<FilesInfo<Array<FileObject>>> {
     try {
-      responseWithoutMetadata = await this.sourcifyDatabase!.getContent(
+      return await this.getDefaultReadService().getContent(
         chainId,
         address,
         match
       );
     } catch (error) {
-      logger.error("Error while getting content from database", {
-        chainId,
-        address,
-        match,
-        error,
-      });
-      throw new Error("Error while getting content from database");
+      logger.error(
+        "Error while getting content from default read storage service",
+        {
+          defaultStorageService: this.getDefaultReadService().IDENTIFIER,
+          chainId,
+          address,
+          match,
+          error,
+        }
+      );
+      throw new Error(
+        "Error while getting content from default read storage service"
+      );
     }
+  }
 
-    // if files is empty it means that the contract doesn't exist
-    if (responseWithoutMetadata.files.length === 0) {
-      return responseWithoutMetadata;
-    }
-
-    await this.pushMetadataInFilesInfo<FileObject>(
-      responseWithoutMetadata,
-      chainId,
-      address,
-      match
-    );
-
-    return responseWithoutMetadata;
-  };
-
-  getContracts = async (chainId: string): Promise<ContractData> => {
+  async getContracts(chainId: string): Promise<ContractData> {
     try {
-      return this.sourcifyDatabase!.getContracts(chainId);
+      return this.getDefaultReadService().getContracts(chainId);
     } catch (error) {
       if (error instanceof BadRequestError) {
         throw error;
       }
-      logger.error("Error while getting contracts from database", {
-        chainId,
-        error,
-      });
-      throw new Error("Error while getting contracts from database");
+      logger.error(
+        "Error while getting contracts from default read storage service",
+        {
+          defaultStorageService: this.getDefaultReadService().IDENTIFIER,
+          chainId,
+          error,
+        }
+      );
+      throw new Error(
+        "Error while getting contracts from default read storage service"
+      );
     }
-  };
+  }
 
-  getPaginatedContracts = (
+  getPaginatedContracts(
     chainId: string,
     match: MatchLevel,
     page: number,
     limit: number,
     descending: boolean = false
-  ): Promise<PaginatedContractData> => {
+  ): Promise<PaginatedContractData> {
     try {
-      return this.sourcifyDatabase!.getPaginatedContracts(
+      return this.getDefaultReadService().getPaginatedContracts(
         chainId,
         match,
         page,
@@ -308,51 +384,32 @@ export class StorageService {
         descending
       );
     } catch (error) {
-      logger.error("Error while getting paginated contracts from database", {
-        chainId,
-        match,
-        page,
-        limit,
-        descending,
-        error,
-      });
-      throw new Error("Error while getting paginated contracts from database");
+      logger.error(
+        "Error while getting paginated contracts from default read storage service",
+        {
+          defaultStorageService: this.getDefaultReadService().IDENTIFIER,
+          chainId,
+          match,
+          page,
+          limit,
+          descending,
+          error,
+        }
+      );
+      throw new Error(
+        "Error while getting paginated contracts from default read storage service"
+      );
     }
-  };
-
-  /* async init() {
-    try {
-      await this.repositoryV1?.init();
-    } catch (e: any) {
-      throw new Error("Cannot initialize repositoryV1: " + e.message);
-    }
-    try {
-      await this.repositoryV2?.init();
-    } catch (e: any) {
-      throw new Error("Cannot initialize repositoryV2: " + e.message);
-    }
-    try {
-      await this.sourcifyDatabase?.init();
-    } catch (e: any) {
-      throw new Error("Cannot initialize sourcifyDatabase: " + e.message);
-    }
-    try {
-      await this.allianceDatabase?.init();
-    } catch (e: any) {
-      throw new Error("Cannot initialize allianceDatabase: " + e.message);
-    }
-    return true;
-  } */
+  }
 
   async checkByChainAndAddress(
     address: string,
     chainId: string
   ): Promise<Match[]> {
     return (
-      (await this.sourcifyDatabase?.checkByChainAndAddress?.(
+      (await this.getDefaultReadService().checkByChainAndAddress?.(
         address,
-        chainId,
-        true
+        chainId
       )) || []
     );
   }
@@ -362,10 +419,9 @@ export class StorageService {
     chainId: string
   ): Promise<Match[]> {
     return (
-      (await this.sourcifyDatabase?.checkByChainAndAddress?.(
+      (await this.getDefaultReadService().checkAllByChainAndAddress?.(
         address,
-        chainId,
-        false
+        chainId
       )) || []
     );
   }
@@ -378,14 +434,6 @@ export class StorageService {
       runtimeMatch: match.runtimeMatch,
       creationMatch: match.creationMatch,
     });
-
-    // Sourcify Database and RepositoryV2 must be enabled
-    if (!this.sourcifyDatabase) {
-      throw new Error("SourcifyDatabase must be enabled");
-    }
-    if (!this.repositoryV2) {
-      throw new Error("RepositoryV2 must be enabled");
-    }
 
     const existingMatch = await this.checkAllByChainAndAddress(
       match.address,
@@ -406,69 +454,30 @@ export class StorageService {
     }
 
     // Initialize an array to hold active service promises
-    const promises = [];
+    const promises: Promise<Match | void>[] = [];
 
-    // Conditionally push promises to the array based on service availability
-    if (this.allianceDatabase) {
-      if (!match.creationMatch) {
-        logger.warn(`Can't store to AllianceDatabase without creationMatch`, {
-          name: contract.name,
-          address: match.address,
-          chainId: match.chainId,
-          runtimeMatch: match.runtimeMatch,
-          creationMatch: match.creationMatch,
-        });
-      } else {
-        promises.push(
-          this.allianceDatabase.storeMatch(contract, match).catch((e) =>
-            logger.error("Error storing to AllianceDatabase: ", {
-              error: e,
-            })
-          )
-        );
-      }
-    }
-
-    // @deprecated
-    if (this.repositoryV1) {
+    this.getWriteOrErrServices().forEach((service) =>
       promises.push(
-        this.repositoryV1
-          .storeMatch(contract, match)
-          .catch((e) =>
-            logger.error("Error storing to RepositoryV1: ", { error: e })
-          )
-      );
-    }
-
-    // Add by default both sourcifyDatabase and repositoryV2
-    promises.push(
-      this.sourcifyDatabase.storeMatch(contract, match).catch((e) => {
-        logger.error("Error storing to SourcifyDatabase: ", {
-          error: e,
-        });
-        throw e;
-      })
-    );
-
-    if (this.sourcifyFixedDatabase) {
-      promises.push(
-        this.sourcifyFixedDatabase.storeMatch(contract, match).catch((e) => {
-          logger.error("Error storing to SourcifyFixedDatabase: ", {
+        service.storeMatch(contract, match).catch((e) => {
+          logger.error(`Error storing to ${service.IDENTIFIER}`, {
             error: e,
           });
           throw e;
         })
-      );
-    }
-
-    promises.push(
-      this.repositoryV2.storeMatch(contract, match).catch((e) => {
-        logger.error("Error storing to RepositoryV2: ", {
-          error: e,
-        });
-        throw e;
-      })
+      )
     );
+
+    this.getWriteOrWarnServices().forEach((service) => {
+      if (service) {
+        promises.push(
+          service.storeMatch(contract, match).catch((e) => {
+            logger.error(`Error storing to ${service.IDENTIFIER}`, {
+              error: e,
+            });
+          })
+        );
+      }
+    });
 
     return await Promise.all(promises);
   }

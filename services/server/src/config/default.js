@@ -1,7 +1,32 @@
+const {
+  AllianceDatabaseIdentifier,
+} = require("../server/services/storageServices/AllianceDatabaseService");
+const {
+  RepositoryV1Identifier,
+} = require("../server/services/storageServices/RepositoryV1Service");
+const {
+  RepositoryV2Identifier,
+} = require("../server/services/storageServices/RepositoryV2Service");
+const {
+  SourcifyDatabaseIdentifier,
+} = require("../server/services/storageServices/SourcifyDatabaseService");
+const {
+  SourcifyFixedDatabaseIdentifier,
+} = require("../server/services/storageServices/SourcifyFixedDatabaseService");
+
 module.exports = {
   server: {
     port: 5555,
     maxFileSize: 30 * 1024 * 1024, // 30 MB
+  },
+  storage: {
+    read: SourcifyDatabaseIdentifier,
+    writeOrWarn: [AllianceDatabaseIdentifier, RepositoryV1Identifier],
+    writeOrErr: [
+      RepositoryV2Identifier,
+      SourcifyDatabaseIdentifier,
+      SourcifyFixedDatabaseIdentifier,
+    ],
   },
   // Deprecated repository
   repositoryV1: {

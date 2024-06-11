@@ -40,11 +40,20 @@ import {
 } from "./common";
 import { initDeprecatedRoutes } from "./deprecated.routes";
 import getSessionMiddleware from "./session";
+import { Services } from "./services/services";
+import { supportedChainsMap } from "../sourcify-chains";
+
+declare module "express-serve-static-core" {
+  interface Request {
+    services: Services;
+  }
+}
 
 export class Server {
   app: express.Application;
   repository: string = config.get("repositoryV1.path");
   port: string | number;
+  services: Services;
 
   constructor(port?: string | number) {
     // To print regexes in the logs
@@ -59,6 +68,50 @@ export class Server {
     this.port = port || config.get("server.port");
     logger.info("Server port set", { port: this.port });
     this.app = express();
+
+    this.services = new Services(supportedChainsMap, {
+      repositoryV1ServiceOptions: {
+        ipfsApi: process.env.IPFS_API as string,
+        repositoryPath: config.get("repositoryV1.path"),
+        repositoryServerUrl: config.get("repositoryV1.serverUrl") as string,
+      },
+      repositoryV2ServiceOptions: {
+        ipfsApi: process.env.IPFS_API as string,
+        repositoryPath: config.has("repositoryV2.path")
+          ? config.get("repositoryV2.path")
+          : undefined,
+      },
+      sourcifyDatabaseServiceOptions: {
+        postgres: {
+          host: process.env.SOURCIFY_POSTGRES_HOST as string,
+          database: process.env.SOURCIFY_POSTGRES_DB as string,
+          user: process.env.SOURCIFY_POSTGRES_USER as string,
+          password: process.env.SOURCIFY_POSTGRES_PASSWORD as string,
+          port: parseInt(process.env.SOURCIFY_POSTGRES_PORT || "5432"),
+        },
+      },
+      sourcifyFixedDatabaseServiceOptions: {
+        postgres: {
+          host: process.env.SOURCIFY_FIXED_POSTGRES_HOST as string,
+          database: process.env.SOURCIFY_FIXED_POSTGRES_DB as string,
+          user: process.env.SOURCIFY_FIXED_POSTGRES_USER as string,
+          password: process.env.SOURCIFY_FIXED_POSTGRES_PASSWORD as string,
+          port: parseInt(process.env.SOURCIFY_FIXED_POSTGRES_PORT || "5432"),
+        },
+      },
+      allianceDatabaseServiceOptions: {
+        postgres: {
+          host: process.env.ALLIANCE_POSTGRES_HOST as string,
+          database: process.env.ALLIANCE_POSTGRES_DB as string,
+          user: process.env.ALLIANCE_POSTGRES_USER as string,
+          password: process.env.ALLIANCE_POSTGRES_PASSWORD as string,
+          port: parseInt(process.env.ALLIANCE_POSTGRES_PORT || "5432"),
+        },
+      },
+    });
+    this.app.use((req) => {
+      req.services = this.services;
+    });
 
     this.app.use(
       bodyParser.urlencoded({
@@ -318,6 +371,9 @@ if (require.main === module) {
       server.app.listen(server.port, () => {
         logger.info("Server listening", { port: server.port });
       });
+    })
+    .then(async () => {
+      await server.services.init();
     });
 }
 

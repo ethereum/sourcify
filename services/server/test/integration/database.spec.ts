@@ -13,6 +13,7 @@ import type {
 import { createCheckedContract } from "../../src/server/controllers/verification/verification.common";
 import _checkedContract from "../testcontracts/Database/CheckedContract.json";
 import match from "../testcontracts/Database/Match.json";
+import { SourcifyDatabaseIdentifier } from "../../src/server/services/storageServices/SourcifyDatabaseService";
 
 chai.use(chaiHttp);
 
@@ -126,13 +127,12 @@ describe("Verifier Alliance database", function () {
           ...testCase.sources,
         },
       });
-    if (!serverFixture.storageService.sourcifyDatabase) {
+    if (!serverFixture.sourcifyDatabase) {
       chai.assert.fail("No database on StorageService");
     }
-    await serverFixture.storageService.sourcifyDatabase.init();
-    const res =
-      await serverFixture.storageService.sourcifyDatabase.databasePool.query(
-        `SELECT 
+    await serverFixture.sourcifyDatabase.initDatabasePool();
+    const res = await serverFixture.sourcifyDatabase.databasePool.query(
+      `SELECT 
           compilation_artifacts,
           creation_code_artifacts,
           runtime_code_artifacts,
@@ -172,8 +172,8 @@ describe("Verifier Alliance database", function () {
         LEFT JOIN code onchain_runtime_code ON onchain_runtime_code.code_hash = c.runtime_code_hash
         LEFT JOIN code onchain_creation_code ON onchain_creation_code.code_hash = c.creation_code_hash
         where cd.address = $1`,
-        [Buffer.from(address.substring(2), "hex")]
-      );
+      [Buffer.from(address.substring(2), "hex")]
+    );
     chai.expect(res.rowCount).to.equal(1);
 
     const row = res.rows[0];
@@ -270,18 +270,17 @@ describe("Verifier Alliance database", function () {
     checkedContract.runtimeBytecodeCborAuxdata = undefined;
 
     // Call storeMatch
-    await serverFixture.storageService.storeMatch(
+    await serverFixture.sourcifyDatabase.storeMatch(
       checkedContract,
       match as Match
     );
 
-    if (!serverFixture.storageService.sourcifyDatabase) {
+    if (!serverFixture.sourcifyDatabase) {
       chai.assert.fail("No database on StorageService");
     }
-    const res =
-      await serverFixture.storageService.sourcifyDatabase.databasePool.query(
-        "SELECT * FROM sourcify_matches"
-      );
+    const res = await serverFixture.sourcifyDatabase.databasePool.query(
+      "SELECT * FROM sourcify_matches"
+    );
 
     if (res.rowCount === 1) {
       chai.expect(res.rows[0].runtime_match).to.equal("partial");

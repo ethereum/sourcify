@@ -8,7 +8,6 @@ import {
   BytesLike,
   Contract,
 } from "ethers";
-import { sourcifyChainsMap } from "../../src/sourcify-chains";
 import { assertVerificationSession, assertVerification } from "./assertions";
 import chai from "chai";
 import chaiHttp from "chai-http";
@@ -18,6 +17,7 @@ import { StorageService } from "../../src/server/services/StorageService";
 import { ServerFixture } from "./ServerFixture";
 import type { Done } from "mocha";
 import { LocalChainFixture } from "./LocalChainFixture";
+import { SourcifyDatabaseService } from "../../src/server/services/storageServices/SourcifyDatabaseService";
 
 chai.use(chaiHttp);
 
@@ -232,28 +232,16 @@ export async function readFilesFromDirectory(dirPath: string) {
   }
 }
 
-export async function resetDatabase(storageService: StorageService) {
-  if (!storageService.sourcifyDatabase) {
+export async function resetDatabase(sourcifyDatabase: SourcifyDatabaseService) {
+  if (!sourcifyDatabase) {
     chai.assert.fail("No database on StorageService");
   }
-  await storageService.sourcifyDatabase.init();
-  await storageService.sourcifyDatabase.databasePool.query(
-    "DELETE FROM sourcify_sync"
-  );
-  await storageService.sourcifyDatabase.databasePool.query(
-    "DELETE FROM sourcify_matches"
-  );
-  await storageService.sourcifyDatabase.databasePool.query(
-    "DELETE FROM verified_contracts"
-  );
-  await storageService.sourcifyDatabase.databasePool.query(
-    "DELETE FROM contract_deployments"
-  );
-  await storageService.sourcifyDatabase.databasePool.query(
-    "DELETE FROM compiled_contracts"
-  );
-  await storageService.sourcifyDatabase.databasePool.query(
-    "DELETE FROM contracts"
-  );
-  await storageService.sourcifyDatabase.databasePool.query("DELETE FROM code");
+  await sourcifyDatabase.initDatabasePool();
+  await sourcifyDatabase.databasePool.query("DELETE FROM sourcify_sync");
+  await sourcifyDatabase.databasePool.query("DELETE FROM sourcify_matches");
+  await sourcifyDatabase.databasePool.query("DELETE FROM verified_contracts");
+  await sourcifyDatabase.databasePool.query("DELETE FROM contract_deployments");
+  await sourcifyDatabase.databasePool.query("DELETE FROM compiled_contracts");
+  await sourcifyDatabase.databasePool.query("DELETE FROM contracts");
+  await sourcifyDatabase.databasePool.query("DELETE FROM code");
 }

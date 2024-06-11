@@ -4,7 +4,10 @@ import { StorageService } from "../../src/server/services/StorageService";
 import { Server } from "../../src/server/server";
 import config from "config";
 import http from "http";
-import { services } from "../../src/server/services/services";
+import {
+  SourcifyDatabaseIdentifier,
+  SourcifyDatabaseService,
+} from "../../src/server/services/storageServices/SourcifyDatabaseService";
 
 export type ServerFixtureOptions = {
   port?: number;
@@ -13,15 +16,15 @@ export type ServerFixtureOptions = {
 export class ServerFixture {
   readonly maxFileSize = config.get<number>("server.maxFileSize");
 
-  private _storageService?: StorageService;
+  private _sourcifyDatabase?: SourcifyDatabaseService;
   private _server?: Server;
 
   // Getters for type safety
   // Can be safely accessed in "it" blocks
-  get storageService(): StorageService {
-    if (!this._storageService)
+  get sourcifyDatabase(): SourcifyDatabaseService {
+    if (!this._sourcifyDatabase)
       throw new Error("storageService not initialized!");
-    return this._storageService;
+    return this._sourcifyDatabase;
   }
   get server(): Server {
     if (!this._server) throw new Error("server not initialized!");
@@ -50,7 +53,7 @@ export class ServerFixture {
       ) {
         throw new Error("Not all required environment variables set");
       }
-      this._storageService = new StorageService({
+      const storageService = new StorageService({
         repositoryV1ServiceOptions: {
           ipfsApi: process.env.IPFS_API || "",
           repositoryPath: config.get("repositoryV1.path"),
@@ -71,8 +74,16 @@ export class ServerFixture {
         },
       });
 
-      services["initialize"]();
+      await storageService.init();
+      this._sourcifyDatabase = storageService.services[
+        SourcifyDatabaseIdentifier
+      ] as SourcifyDatabaseService;
+
       this._server = new Server(options.port);
+
+      // TODO: fix this
+      this._server.services["initialize"]();
+
       await new Promise<void>((resolve, reject) => {
         httpServer = this.server.app.listen(this.server.port, resolve);
         httpServer.on("error", reject);
@@ -82,8 +93,8 @@ export class ServerFixture {
 
     beforeEach(async () => {
       rimraf.sync(this.server.repository);
-      await resetDatabase(this.storageService);
-      console.log("Resetting the StorageService");
+      await resetDatabase(this.sourcifyDatabase);
+      console.log("Resetting SourcifyDatabase");
     });
 
     after(() => {

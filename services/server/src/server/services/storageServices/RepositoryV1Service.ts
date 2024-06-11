@@ -13,6 +13,7 @@ import {
   FilesInfo,
   MatchLevel,
   MatchQuality,
+  PaginatedContractData,
   PathConfig,
   RepositoryTag,
 } from "../../types";
@@ -25,7 +26,7 @@ import path from "path";
 import logger from "../../../common/logger";
 import { getAddress } from "ethers";
 import { getMatchStatus } from "../../common";
-import { IStorageService } from "../StorageService";
+import { IStorageService, StorageService } from "../StorageService";
 import config from "config";
 
 export interface RepositoryV1ServiceOptions {
@@ -34,12 +35,20 @@ export interface RepositoryV1ServiceOptions {
   repositoryServerUrl: string;
 }
 
+export const RepositoryV1Identifier = "RepositoryV1";
+
 export class RepositoryV1Service implements IStorageService {
+  IDENTIFIER = RepositoryV1Identifier;
+  storageService: StorageService;
   repositoryPath: string;
   private ipfsClient?: IPFSHTTPClient;
 
-  constructor(options: RepositoryV1ServiceOptions) {
+  constructor(
+    storageService_: StorageService,
+    options: RepositoryV1ServiceOptions
+  ) {
     this.repositoryPath = options.repositoryPath;
+    this.storageService = storageService_;
     if (options.ipfsApi) {
       this.ipfsClient = createIpfsClient({ url: options.ipfsApi });
     } else {
@@ -48,8 +57,52 @@ export class RepositoryV1Service implements IStorageService {
       );
     }
   }
+  getMetadata(
+    chainId: string,
+    address: string,
+    match: MatchLevel
+  ): Promise<string | false> {
+    return this.getFile(chainId, address, match, "metadata.json");
+  }
+
+  getPaginatedContracts(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    ..._: any
+  ): Promise<PaginatedContractData> {
+    throw new Error("Method not implemented.");
+  }
+
+  async getFile(
+    chainId: string,
+    address: string,
+    match: MatchLevel,
+    path: string
+  ): Promise<string | false> {
+    const fullPathFullMatch: string =
+      this.repositoryPath +
+      `/contracts/full_match/${chainId}/${getAddress(address)}/${path}`;
+
+    const loadedFileFullMatch = await fs.promises.readFile(fullPathFullMatch);
+
+    if (loadedFileFullMatch || match === "full_match") {
+      return loadedFileFullMatch.toString() || false;
+    }
+
+    const fullPathPartialMatch: string =
+      this.repositoryPath +
+      `/contracts/partial_match/${chainId}/${getAddress(address)}/${path}`;
+
+    const loadedFilePartialMatch = await fs.promises.readFile(
+      fullPathPartialMatch
+    );
+
+    return loadedFilePartialMatch.toString() || false;
+  }
 
   async init() {
+    logger.info(`${this.IDENTIFIER} initialized`, {
+      repositoryPath: this.repositoryPath,
+    });
     return true;
   }
 

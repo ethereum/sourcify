@@ -12,9 +12,9 @@ import {
 import { Pool } from "pg";
 
 export default abstract class AbstractDatabaseService {
-  abstract init(): Promise<boolean>;
+  abstract initDatabasePool(): Promise<boolean>;
   abstract databasePool: Pool;
-  abstract databaseName: string;
+  abstract IDENTIFIER: string;
 
   validateBeforeStoring(
     recompiledContract: CheckedContract,
@@ -410,7 +410,7 @@ export default abstract class AbstractDatabaseService {
   }> {
     this.validateBeforeStoring(recompiledContract, match);
 
-    await this.init();
+    await this.initDatabasePool();
 
     // Normalize both creation and runtime recompiled bytecodes before storing them to the database
     normalizeRecompiledBytecodes(recompiledContract, match);

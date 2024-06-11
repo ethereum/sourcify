@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { services } from "../../services/services";
 
 import {
   createEndpoint,
@@ -9,6 +8,7 @@ import {
   getFileEndpoint,
   getMetadataEndpoint,
   createPaginatedContractEndpoint,
+  CheckAllByChainAndAddressEndpointRequest,
 } from "./repository.handlers";
 import { safeHandler } from "../controllers.common";
 
@@ -20,7 +20,7 @@ const router: Router = Router();
   {
     prefix: "/tree/any",
     method: createEndpoint(
-      (chain, address, match) =>
+      (services, chain, address, match) =>
         services.storage.getTree(chain, address, match),
       "any_match",
       true
@@ -29,7 +29,7 @@ const router: Router = Router();
   {
     prefix: "/any",
     method: createEndpoint(
-      (chain, address, match) =>
+      (services, chain, address, match) =>
         services.storage.getContent(chain, address, match),
       "any_match",
       true
@@ -38,21 +38,21 @@ const router: Router = Router();
   {
     prefix: "/tree",
     method: createEndpoint(
-      (chain, address, match) =>
+      (services, chain, address, match) =>
         services.storage.getTree(chain, address, match),
       "full_match"
     ),
   },
   {
     prefix: "/contracts",
-    method: createContractEndpoint((chain) =>
+    method: createContractEndpoint((services, chain) =>
       services.storage.getContracts(chain)
     ),
   },
   {
     prefix: "/contracts/full",
     method: createPaginatedContractEndpoint(
-      (chain, match, page, limit, descending) =>
+      (services, chain, match, page, limit, descending) =>
         services.storage.getPaginatedContracts(
           chain,
           match,
@@ -66,7 +66,7 @@ const router: Router = Router();
   {
     prefix: "/contracts/partial",
     method: createPaginatedContractEndpoint(
-      (chain, match, page, limit, descending) =>
+      (services, chain, match, page, limit, descending) =>
         services.storage.getPaginatedContracts(
           chain,
           match,
@@ -80,7 +80,7 @@ const router: Router = Router();
   {
     prefix: "/contracts/any",
     method: createPaginatedContractEndpoint(
-      (chain, match, page, limit, descending) =>
+      (services, chain, match, page, limit, descending) =>
         services.storage.getPaginatedContracts(
           chain,
           match,
@@ -94,7 +94,7 @@ const router: Router = Router();
   {
     prefix: "",
     method: createEndpoint(
-      (chain, address, match) =>
+      (services, chain, address, match) =>
         services.storage.getContent(chain, address, match),
       "full_match"
     ),
@@ -112,7 +112,11 @@ const router: Router = Router();
 // check(All)ByAddresses endpoints have different format then the ones above. check(All)ByAddresses take query params instead of path params.
 router
   .route("/check-all-by-addresses")
-  .get(safeHandler(checkAllByChainAndAddressEndpoint));
+  .get(
+    safeHandler<CheckAllByChainAndAddressEndpointRequest>(
+      checkAllByChainAndAddressEndpoint
+    )
+  );
 
 /**
  * The following two routes are the replacement for the removed static file route that exposed RepositoryV1
