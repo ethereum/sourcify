@@ -1536,7 +1536,7 @@ describe("Test Supported Chains", function () {
     "0x368ef7513d327c591865da35f3893f29770f9f86",
     "48795",
     "Space Subnet Testnet",
-    "2044/"
+    "48795/"
   );
 
   // Space Subnet
