@@ -1544,7 +1544,7 @@ describe("Test Supported Chains", function () {
     "0x368ef7513d327c591865da35f3893f29770f9f86",
     "8227",
     "Space Subnet",
-    "2044/"
+    "8227/"
   );
 
   // Jirtsu Subnet Testnet
@@ -1552,7 +1552,7 @@ describe("Test Supported Chains", function () {
     "0xd0bb2f670f8743e5eda59c4ab746c5cc5132c7bb",
     "11227",
     "Jirtsu Subnet Testnet",
-    "2044/"
+    "11227/"
   );
 
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
