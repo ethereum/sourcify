@@ -6,6 +6,10 @@ module.exports = {
       accounts: {
         count: 1,
       },
+      mining: {
+        auto: false,
+        interval: 3000
+      }
     },
   },
 };
