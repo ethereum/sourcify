@@ -1682,7 +1682,6 @@
     "fetchContractCreationTxUsing": {
       "avalancheApi": true
     }
-  },
   "48795": {
     "sourcifyName": "Space Subnet Testnet",
     "supported": true,
@@ -1702,6 +1701,14 @@
     "supported": true,
     "fetchContractCreationTxUsing": {
       "avalancheApi": true
+  "84532": {
+    "sourcifyName": "Base Sepolia Tesnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true
+    },
+    "etherscanApi": {
+      "apiURL": "https://api-sepolia.basescan.org/"
     }
   }
 }

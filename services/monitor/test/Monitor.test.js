@@ -2,28 +2,32 @@ const { expect } = require("chai");
 const sinon = require("sinon");
 const Monitor = require("../dist/Monitor").default;
 const logger = require("../dist/logger").default;
-const ganache = require("ganache");
-const { JsonRpcProvider, JsonRpcSigner, Network } = require("ethers");
+const { JsonRpcProvider, Network } = require("ethers");
 const {
   deployFromAbiAndBytecode,
   nockInterceptorForVerification,
 } = require("./helpers");
 const testLogger = require("./testLogger");
+const {
+  startHardhatNetwork,
+  stopHardhatNetwork,
+} = require("./hardhat-network-helper");
 
-const GANACHE_PORT = 8546;
-const GANACHE_BLOCK_TIME_IN_SEC = 3;
+const HARDHAT_PORT = 8546;
+// Configured in hardhat.config.js
+const HARDHAT_BLOCK_TIME_IN_SEC = 3;
 const MOCK_SOURCIFY_SERVER = "http://mocksourcifyserver.dev/server/";
 const localChain = {
   chainId: 1337,
-  rpc: [`http://localhost:${GANACHE_PORT}`],
-  name: "Localhost Ganache",
+  rpc: [`http://localhost:${HARDHAT_PORT}`],
+  name: "Localhost Hardhat Network",
 };
 
 describe("Monitor", function () {
   this.timeout(30000);
 
   let sandbox;
-  let ganacheServer;
+  let hardhatNodeProcess;
   let signer;
   let account;
   let monitor;
@@ -31,16 +35,11 @@ describe("Monitor", function () {
   beforeEach(async function () {
     sandbox = sinon.createSandbox();
 
-    ganacheServer = ganache.server({
-      wallet: { totalAccounts: 5 },
-      chain: { chainId: 1337, networkId: 1337 },
-      miner: { blockTime: GANACHE_BLOCK_TIME_IN_SEC },
-    });
-    await ganacheServer.listen(GANACHE_PORT);
-    testLogger.info("Started ganache local server at port " + GANACHE_PORT);
+    hardhatNodeProcess = await startHardhatNetwork(HARDHAT_PORT);
+    testLogger.info("Started hardhat node at port " + HARDHAT_PORT);
     const ethersNetwork = new Network(localChain.rpc[0], localChain.chainId);
     signer = await new JsonRpcProvider(
-      `http://localhost:${GANACHE_PORT}`,
+      `http://localhost:${HARDHAT_PORT}`,
       ethersNetwork,
       { staticNetwork: ethersNetwork }
     ).getSigner();
@@ -52,7 +51,7 @@ describe("Monitor", function () {
   });
 
   afterEach(async function () {
-    await ganacheServer.close();
+    await stopHardhatNetwork(hardhatNodeProcess);
     if (monitor) monitor.stop();
     sandbox.restore();
   });
@@ -90,7 +89,7 @@ describe("Monitor", function () {
       chainConfigs: {
         [localChain.chainId]: {
           startBlock: 0,
-          blockInterval: GANACHE_BLOCK_TIME_IN_SEC * 1000,
+          blockInterval: HARDHAT_BLOCK_TIME_IN_SEC * 1000,
         },
       },
     });
@@ -114,7 +113,7 @@ describe("Monitor", function () {
     await monitor.start();
     // wait 30 seconds
     await new Promise((resolve) =>
-      setTimeout(resolve, 3 * GANACHE_BLOCK_TIME_IN_SEC * 1000)
+      setTimeout(resolve, 3 * HARDHAT_BLOCK_TIME_IN_SEC * 1000)
     );
 
     expect(
