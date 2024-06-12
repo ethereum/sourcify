@@ -1498,7 +1498,7 @@ describe("Test Supported Chains", function () {
     "HOME Verse Mainnet",
     "shared/"
   );
-  
+
   // Lamina1
   verifyContract(
     "0x61ACA050011D091A5790de774190cCdD42Ab882F",
@@ -1528,6 +1528,14 @@ describe("Test Supported Chains", function () {
     "0x61ACA050011D091A5790de774190cCdD42Ab882F",
     "767368",
     "Lamina1 Identity Testnet",
+    "shared/"
+  );
+
+  // Base Sepolia Testnet
+  verifyContract(
+    "0xaBe8cf2Dacb0053C1ebd5881392BD17Ec2402a4F",
+    "84532",
+    "Base Sepolia Testnet",
     "shared/"
   );
 

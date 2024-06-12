@@ -33,12 +33,12 @@ describe("Verify repository endpoints", function () {
     chai.expect(res0.body).to.deep.equal([
       {
         name: "Storage.sol",
-        path: `contracts/full_match/1337/${chainFixture.defaultContractAddress}/sources/project:/contracts/Storage.sol`,
+        path: `contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/sources/project:/contracts/Storage.sol`,
         content: res0.body[0].content,
       },
       {
         name: "metadata.json",
-        path: `contracts/full_match/1337/${chainFixture.defaultContractAddress}/metadata.json`,
+        path: `contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/metadata.json`,
         content: res0.body[1].content,
       },
     ]);
@@ -48,8 +48,8 @@ describe("Verify repository endpoints", function () {
     chai.expect(res1.body).to.deep.equal({
       status: "full",
       files: [
-        `http://localhost:10000/contracts/full_match/1337/${chainFixture.defaultContractAddress}/sources/project:/contracts/Storage.sol`,
-        `http://localhost:10000contracts/full_match/1337/${chainFixture.defaultContractAddress}/metadata.json`,
+        `http://localhost:10000/contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/sources/project:/contracts/Storage.sol`,
+        `http://localhost:10000contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/metadata.json`,
       ],
     });
     const res2 = await agent.get(
@@ -60,12 +60,12 @@ describe("Verify repository endpoints", function () {
       files: [
         {
           name: "Storage.sol",
-          path: `contracts/full_match/1337/${chainFixture.defaultContractAddress}/sources/project:/contracts/Storage.sol`,
+          path: `contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/sources/project:/contracts/Storage.sol`,
           content: res2.body.files[0].content,
         },
         {
           name: "metadata.json",
-          path: `contracts/full_match/1337/${chainFixture.defaultContractAddress}/metadata.json`,
+          path: `contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/metadata.json`,
           content: res2.body.files[1].content,
         },
       ],
@@ -76,8 +76,8 @@ describe("Verify repository endpoints", function () {
     chai
       .expect(res3.body)
       .to.deep.equal([
-        `http://localhost:10000/contracts/full_match/1337/${chainFixture.defaultContractAddress}/sources/project:/contracts/Storage.sol`,
-        `http://localhost:10000contracts/full_match/1337/${chainFixture.defaultContractAddress}/metadata.json`,
+        `http://localhost:10000/contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/sources/project:/contracts/Storage.sol`,
+        `http://localhost:10000contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/metadata.json`,
       ]);
     const res4 = await agent.get(`/files/contracts/${chainFixture.chainId}`);
     chai.expect(res4.body).to.deep.equal({
