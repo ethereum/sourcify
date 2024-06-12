@@ -10,7 +10,8 @@ export class Services {
     verificationServiceOption: SourcifyChainMap,
     storageServiceOptions: StorageServiceOptions
   ) {
-    this.initialize(verificationServiceOption, storageServiceOptions);
+    this._verification = new VerificationService(verificationServiceOption);
+    this._storage = new StorageService(storageServiceOptions);
   }
 
   // Getters for type safety
@@ -21,15 +22,6 @@ export class Services {
   get storage(): StorageService {
     if (!this._storage) throw new Error("storage not initialized!");
     return this._storage;
-  }
-
-  // This function allows for reloading the configuration parameters in the tests
-  private initialize(
-    verificationServiceOption: SourcifyChainMap,
-    storageServiceOptions: StorageServiceOptions
-  ) {
-    this._verification = new VerificationService(verificationServiceOption);
-    this._storage = new StorageService(storageServiceOptions);
   }
 
   public async init() {

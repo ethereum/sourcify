@@ -5,13 +5,12 @@ import AbstractDatabaseService from "./AbstractDatabaseService";
 import { IStorageService, StorageService } from "../StorageService";
 import { CheckedContract, Match } from "@ethereum-sourcify/lib-sourcify";
 import {
-  MatchLevel,
   FilesInfo,
   FileObject,
   ContractData,
   PaginatedContractData,
 } from "../../types";
-import { hostname } from "os";
+import { AllianceDatabaseIdentifier } from "./identifiers";
 
 export interface AllianceDatabaseServiceOptions {
   googleCloudSql?: {
@@ -27,8 +26,6 @@ export interface AllianceDatabaseServiceOptions {
     password: string;
   };
 }
-
-export const AllianceDatabaseIdentifier = "VerifierAllianceDatabase";
 
 export class AllianceDatabaseService
   extends AbstractDatabaseService

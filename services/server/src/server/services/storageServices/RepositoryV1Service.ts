@@ -28,14 +28,13 @@ import { getAddress } from "ethers";
 import { getMatchStatus } from "../../common";
 import { IStorageService, StorageService } from "../StorageService";
 import config from "config";
+import { RepositoryV1Identifier } from "./identifiers";
 
 export interface RepositoryV1ServiceOptions {
   ipfsApi: string;
   repositoryPath: string;
   repositoryServerUrl: string;
 }
-
-export const RepositoryV1Identifier = "RepositoryV1";
 
 export class RepositoryV1Service implements IStorageService {
   IDENTIFIER = RepositoryV1Identifier;

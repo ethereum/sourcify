@@ -1,1 +1,0 @@
-export const SourcifyFixedDatabaseIdentifier = "SourcifyFixedDatabase";

@@ -43,14 +43,13 @@ describe("/session", function () {
   const serverFixture = new ServerFixture();
 
   it("should store session in database", async () => {
-    await serverFixture.storageService.sourcifyDatabase?.databasePool.query(
+    await serverFixture.sourcifyDatabase?.databasePool.query(
       "TRUNCATE TABLE session;"
     );
     await chai.request(serverFixture.server.app).post("/session/data").send({});
-    const res =
-      await serverFixture.storageService.sourcifyDatabase?.databasePool.query(
-        "SELECT * FROM session;"
-      );
+    const res = await serverFixture.sourcifyDatabase?.databasePool.query(
+      "SELECT * FROM session;"
+    );
     chai.expect(res?.rowCount).to.equal(1);
   });
 
@@ -110,7 +109,7 @@ describe("/session", function () {
           .send({ contracts })
           .end(async (err, res) => {
             await assertVerificationSession(
-              serverFixture.storageService,
+              serverFixture.sourcifyDatabase,
               err,
               res,
               done,
@@ -174,7 +173,7 @@ describe("/session", function () {
             contracts[0].chainId = chainFixture.chainId;
             contracts[0].address = chainFixture.defaultContractAddress;
             assertVerificationSession(
-              serverFixture.storageService,
+              serverFixture.sourcifyDatabase,
               err,
               res,
               null,
@@ -187,7 +186,7 @@ describe("/session", function () {
                 .send({ contracts })
                 .end(async (err, res) => {
                   await assertVerificationSession(
-                    serverFixture.storageService,
+                    serverFixture.sourcifyDatabase,
                     err,
                     res,
                     done,

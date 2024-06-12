@@ -42,6 +42,8 @@ import { initDeprecatedRoutes } from "./deprecated.routes";
 import getSessionMiddleware from "./session";
 import { Services } from "./services/services";
 import { supportedChainsMap } from "../sourcify-chains";
+import { SourcifyChainMap } from "@ethereum-sourcify/lib-sourcify";
+import { StorageServiceOptions } from "./services/StorageService";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -55,7 +57,12 @@ export class Server {
   port: string | number;
   services: Services;
 
-  constructor(port?: string | number) {
+  // TODO: pass options as object
+  constructor(
+    port: string | number,
+    verificationServiceOption: SourcifyChainMap,
+    storageServiceOptions: StorageServiceOptions
+  ) {
     // To print regexes in the logs
     Object.defineProperty(RegExp.prototype, "toJSON", {
       value: RegExp.prototype.toString,
@@ -65,52 +72,17 @@ export class Server {
       config: JSON.stringify(config, null, 2),
     });
 
-    this.port = port || config.get("server.port");
+    this.port = port;
     logger.info("Server port set", { port: this.port });
     this.app = express();
 
-    this.services = new Services(supportedChainsMap, {
-      repositoryV1ServiceOptions: {
-        ipfsApi: process.env.IPFS_API as string,
-        repositoryPath: config.get("repositoryV1.path"),
-        repositoryServerUrl: config.get("repositoryV1.serverUrl") as string,
-      },
-      repositoryV2ServiceOptions: {
-        ipfsApi: process.env.IPFS_API as string,
-        repositoryPath: config.has("repositoryV2.path")
-          ? config.get("repositoryV2.path")
-          : undefined,
-      },
-      sourcifyDatabaseServiceOptions: {
-        postgres: {
-          host: process.env.SOURCIFY_POSTGRES_HOST as string,
-          database: process.env.SOURCIFY_POSTGRES_DB as string,
-          user: process.env.SOURCIFY_POSTGRES_USER as string,
-          password: process.env.SOURCIFY_POSTGRES_PASSWORD as string,
-          port: parseInt(process.env.SOURCIFY_POSTGRES_PORT || "5432"),
-        },
-      },
-      sourcifyFixedDatabaseServiceOptions: {
-        postgres: {
-          host: process.env.SOURCIFY_FIXED_POSTGRES_HOST as string,
-          database: process.env.SOURCIFY_FIXED_POSTGRES_DB as string,
-          user: process.env.SOURCIFY_FIXED_POSTGRES_USER as string,
-          password: process.env.SOURCIFY_FIXED_POSTGRES_PASSWORD as string,
-          port: parseInt(process.env.SOURCIFY_FIXED_POSTGRES_PORT || "5432"),
-        },
-      },
-      allianceDatabaseServiceOptions: {
-        postgres: {
-          host: process.env.ALLIANCE_POSTGRES_HOST as string,
-          database: process.env.ALLIANCE_POSTGRES_DB as string,
-          user: process.env.ALLIANCE_POSTGRES_USER as string,
-          password: process.env.ALLIANCE_POSTGRES_PASSWORD as string,
-          port: parseInt(process.env.ALLIANCE_POSTGRES_PORT || "5432"),
-        },
-      },
-    });
-    this.app.use((req) => {
+    this.services = new Services(
+      verificationServiceOption,
+      storageServiceOptions
+    );
+    this.app.use((req, res, next) => {
       req.services = this.services;
+      next();
     });
 
     this.app.use(
@@ -353,7 +325,46 @@ export class Server {
 }
 
 if (require.main === module) {
-  const server = new Server();
+  const server = new Server(config.get("server.port"), supportedChainsMap, {
+    repositoryV1ServiceOptions: {
+      ipfsApi: process.env.IPFS_API as string,
+      repositoryPath: config.get("repositoryV1.path"),
+      repositoryServerUrl: config.get("repositoryV1.serverUrl") as string,
+    },
+    repositoryV2ServiceOptions: {
+      ipfsApi: process.env.IPFS_API as string,
+      repositoryPath: config.has("repositoryV2.path")
+        ? config.get("repositoryV2.path")
+        : undefined,
+    },
+    sourcifyDatabaseServiceOptions: {
+      postgres: {
+        host: process.env.SOURCIFY_POSTGRES_HOST as string,
+        database: process.env.SOURCIFY_POSTGRES_DB as string,
+        user: process.env.SOURCIFY_POSTGRES_USER as string,
+        password: process.env.SOURCIFY_POSTGRES_PASSWORD as string,
+        port: parseInt(process.env.SOURCIFY_POSTGRES_PORT || "5432"),
+      },
+    },
+    sourcifyFixedDatabaseServiceOptions: {
+      postgres: {
+        host: process.env.SOURCIFY_FIXED_POSTGRES_HOST as string,
+        database: process.env.SOURCIFY_FIXED_POSTGRES_DB as string,
+        user: process.env.SOURCIFY_FIXED_POSTGRES_USER as string,
+        password: process.env.SOURCIFY_FIXED_POSTGRES_PASSWORD as string,
+        port: parseInt(process.env.SOURCIFY_FIXED_POSTGRES_PORT || "5432"),
+      },
+    },
+    allianceDatabaseServiceOptions: {
+      postgres: {
+        host: process.env.ALLIANCE_POSTGRES_HOST as string,
+        database: process.env.ALLIANCE_POSTGRES_DB as string,
+        user: process.env.ALLIANCE_POSTGRES_USER as string,
+        password: process.env.ALLIANCE_POSTGRES_PASSWORD as string,
+        port: parseInt(process.env.ALLIANCE_POSTGRES_PORT || "5432"),
+      },
+    },
+  });
   server
     .loadSwagger(yamljs.load(path.join(__dirname, "..", "openapi.yaml"))) // load the openapi file with the $refs resolved
     .then((swaggerDocument: any) => {

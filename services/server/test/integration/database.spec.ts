@@ -13,7 +13,6 @@ import type {
 import { createCheckedContract } from "../../src/server/controllers/verification/verification.common";
 import _checkedContract from "../testcontracts/Database/CheckedContract.json";
 import match from "../testcontracts/Database/Match.json";
-import { SourcifyDatabaseIdentifier } from "../../src/server/services/storageServices/SourcifyDatabaseService";
 
 chai.use(chaiHttp);
 

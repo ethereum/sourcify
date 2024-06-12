@@ -15,7 +15,6 @@ import {
   AllianceDatabaseService,
   AllianceDatabaseServiceOptions,
 } from "./storageServices/AllianceDatabaseService";
-import { SourcifyFixedDatabaseIdentifier } from "./storageServices/SourcifyFixedDatabaseService";
 import logger from "../../common/logger";
 import { getMatchStatus } from "../common";
 import {
@@ -27,6 +26,7 @@ import {
 } from "../types";
 import { BadRequestError } from "../../common/errors";
 import config from "config";
+import { SourcifyFixedDatabaseIdentifier } from "./storageServices/identifiers";
 
 export interface IStorageService {
   IDENTIFIER: string;

@@ -32,13 +32,12 @@ import logger from "../../../common/logger";
 import { getAddress, id as keccak256 } from "ethers";
 import { getMatchStatus } from "../../common";
 import { IStorageService, StorageService } from "../StorageService";
+import { RepositoryV2Identifier } from "./identifiers";
 
 export interface RepositoryV2ServiceOptions {
   ipfsApi: string;
   repositoryPath?: string;
 }
-
-export const RepositoryV2Identifier = "RepositoryV2";
 
 export class RepositoryV2Service implements IStorageService {
   IDENTIFIER = RepositoryV2Identifier;

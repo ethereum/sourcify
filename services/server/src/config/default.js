@@ -1,18 +1,10 @@
 const {
-  AllianceDatabaseIdentifier,
-} = require("../server/services/storageServices/AllianceDatabaseService");
-const {
-  RepositoryV1Identifier,
-} = require("../server/services/storageServices/RepositoryV1Service");
-const {
-  RepositoryV2Identifier,
-} = require("../server/services/storageServices/RepositoryV2Service");
-const {
   SourcifyDatabaseIdentifier,
-} = require("../server/services/storageServices/SourcifyDatabaseService");
-const {
+  AllianceDatabaseIdentifier,
+  RepositoryV1Identifier,
+  RepositoryV2Identifier,
   SourcifyFixedDatabaseIdentifier,
-} = require("../server/services/storageServices/SourcifyFixedDatabaseService");
+} = require("../server/services/storageServices/identifiers");
 
 module.exports = {
   server: {

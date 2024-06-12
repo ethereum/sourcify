@@ -23,7 +23,10 @@ import Path from "path";
 import { getFileRelativePath } from "../utils/util";
 import { getAddress } from "ethers";
 import { BadRequestError } from "../../../common/errors";
-import { RepositoryV2Identifier } from "./RepositoryV2Service";
+import {
+  SourcifyDatabaseIdentifier,
+  RepositoryV2Identifier,
+} from "./identifiers";
 
 export interface SourcifyDatabaseServiceOptions {
   postgres: {
@@ -36,8 +39,6 @@ export interface SourcifyDatabaseServiceOptions {
 }
 
 const MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS = 200;
-
-export const SourcifyDatabaseIdentifier = "SourcifyDatabase";
 
 export class SourcifyDatabaseService
   extends AbstractDatabaseService

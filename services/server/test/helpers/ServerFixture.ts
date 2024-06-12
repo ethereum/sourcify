@@ -4,13 +4,12 @@ import { StorageService } from "../../src/server/services/StorageService";
 import { Server } from "../../src/server/server";
 import config from "config";
 import http from "http";
-import {
-  SourcifyDatabaseIdentifier,
-  SourcifyDatabaseService,
-} from "../../src/server/services/storageServices/SourcifyDatabaseService";
+import { SourcifyDatabaseService } from "../../src/server/services/storageServices/SourcifyDatabaseService";
+import { supportedChainsMap } from "../../src/sourcify-chains";
+import { SourcifyDatabaseIdentifier } from "../../src/server/services/storageServices/identifiers";
 
 export type ServerFixtureOptions = {
-  port?: number;
+  port: number;
 };
 
 export class ServerFixture {
@@ -37,7 +36,9 @@ export class ServerFixture {
    * Any tests that may need a different server configuration can be written
    * in a different "describe" block.
    */
-  constructor(options: ServerFixtureOptions = {}) {
+  constructor(
+    options: ServerFixtureOptions = { port: config.get("server.port") }
+  ) {
     let httpServer: http.Server;
 
     before(async () => {
@@ -79,10 +80,30 @@ export class ServerFixture {
         SourcifyDatabaseIdentifier
       ] as SourcifyDatabaseService;
 
-      this._server = new Server(options.port);
+      this._server = new Server(options.port, supportedChainsMap, {
+        repositoryV1ServiceOptions: {
+          ipfsApi: process.env.IPFS_API as string,
+          repositoryPath: config.get("repositoryV1.path"),
+          repositoryServerUrl: config.get("repositoryV1.serverUrl") as string,
+        },
+        repositoryV2ServiceOptions: {
+          ipfsApi: process.env.IPFS_API as string,
+          repositoryPath: config.has("repositoryV2.path")
+            ? config.get("repositoryV2.path")
+            : undefined,
+        },
+        sourcifyDatabaseServiceOptions: {
+          postgres: {
+            host: process.env.SOURCIFY_POSTGRES_HOST as string,
+            database: process.env.SOURCIFY_POSTGRES_DB as string,
+            user: process.env.SOURCIFY_POSTGRES_USER as string,
+            password: process.env.SOURCIFY_POSTGRES_PASSWORD as string,
+            port: parseInt(process.env.SOURCIFY_POSTGRES_PORT),
+          },
+        },
+      });
 
-      // TODO: fix this
-      this._server.services["initialize"]();
+      await this._server.services.init();
 
       await new Promise<void>((resolve, reject) => {
         httpServer = this.server.app.listen(this.server.port, resolve);
