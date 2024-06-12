@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import path from 'path';
 import { Match, Metadata } from '../src/lib/types';
-import Ganache from 'ganache';
 import {
   /* callContractMethodWithTx, */
   checkAndVerifyDeployed,
@@ -28,36 +27,41 @@ import {
 import fs from 'fs';
 import { JsonRpcSigner } from 'ethers';
 import { findSolcPlatform } from './compiler/solidityCompiler';
+import { ChildProcess } from 'child_process';
+import {
+  startHardhatNetwork,
+  stopHardhatNetwork,
+} from './hardhat-network-helper';
 
-const ganacheServer = Ganache.server({
-  wallet: { totalAccounts: 1 },
-  chain: { chainId: 0, networkId: 0 },
-});
-const GANACHE_PORT = 8544;
+const HARDHAT_PORT = 8544;
 
 const UNUSED_ADDRESS = '0x1F98431c8aD98523631AE4a59f267346ea31F984'; // checksum valid
 
-const ganacheChain = {
-  name: 'ganache',
-  shortName: 'ganache',
-  chainId: 0,
-  networkId: 0,
-  nativeCurrency: {
-    name: 'Ether',
-    symbol: 'ETH',
-    decimals: 18,
-  },
-  rpc: [`http://localhost:${GANACHE_PORT}`],
+const hardhatChain = {
+  name: 'Hardhat Network Localhost',
+  shortName: 'Hardhat Network',
+  chainId: 31337,
+  faucets: [],
+  infoURL: 'localhost',
+  nativeCurrency: { name: 'localETH', symbol: 'localETH', decimals: 18 },
+  network: 'testnet',
+  networkId: 31337,
+  rpc: [`http://localhost:${HARDHAT_PORT}`],
   supported: true,
 };
-const sourcifyChainGanache: SourcifyChain = new SourcifyChain(ganacheChain);
+const sourcifyChainHardhat: SourcifyChain = new SourcifyChain(hardhatChain);
 
+let hardhatNodeProcess: ChildProcess;
 let signer: JsonRpcSigner;
 
 describe('lib-sourcify tests', () => {
   before(async () => {
-    await ganacheServer.listen(GANACHE_PORT);
-    signer = await sourcifyChainGanache.providers[0].getSigner();
+    hardhatNodeProcess = await startHardhatNetwork(HARDHAT_PORT);
+    signer = await sourcifyChainHardhat.providers[0].getSigner();
+  });
+
+  after(async () => {
+    await stopHardhatNetwork(hardhatNodeProcess);
   });
 
   describe('Verification tests', () => {
@@ -65,7 +69,7 @@ describe('lib-sourcify tests', () => {
       const contractFolderPath = path.join(__dirname, 'sources', 'Storage');
       const { match, contractAddress } = await deployCheckAndVerify(
         contractFolderPath,
-        sourcifyChainGanache,
+        sourcifyChainHardhat,
         signer
       );
       expectMatch(match, 'perfect', contractAddress);
@@ -84,7 +88,7 @@ describe('lib-sourcify tests', () => {
       );
       const match = await checkAndVerifyDeployed(
         modifiedContractFolderPath, // Using the modified contract
-        sourcifyChainGanache,
+        sourcifyChainHardhat,
         contractAddress
       );
 
@@ -105,7 +109,7 @@ describe('lib-sourcify tests', () => {
       try {
         await checkAndVerifyDeployed(
           wrongContractFolderPath, // Using the wrong contract
-          sourcifyChainGanache,
+          sourcifyChainHardhat,
           contractAddress
         );
         throw new Error('Should have failed');
@@ -124,7 +128,7 @@ describe('lib-sourcify tests', () => {
       const contractFolderPath = path.join(__dirname, 'sources', 'Storage');
       const match = await checkAndVerifyDeployed(
         contractFolderPath, // Using the wrong contract
-        sourcifyChainGanache,
+        sourcifyChainHardhat,
         UNUSED_ADDRESS
       );
       expectMatch(
@@ -132,7 +136,7 @@ describe('lib-sourcify tests', () => {
         null,
         UNUSED_ADDRESS,
         undefined,
-        `Chain #${sourcifyChainGanache.chainId} does not have a contract deployed at ${UNUSED_ADDRESS}.`
+        `Chain #${sourcifyChainHardhat.chainId} does not have a contract deployed at ${UNUSED_ADDRESS}.`
       );
     });
 
@@ -145,7 +149,7 @@ describe('lib-sourcify tests', () => {
       );
       const { match, contractAddress } = await deployCheckAndVerify(
         contractFolderPath,
-        sourcifyChainGanache,
+        sourcifyChainHardhat,
         signer
       );
       const expectedLibraryMap = {
@@ -163,7 +167,7 @@ describe('lib-sourcify tests', () => {
       );
       const { match, contractAddress } = await deployCheckAndVerify(
         contractFolderPath,
-        sourcifyChainGanache,
+        sourcifyChainHardhat,
         signer
       );
       expectMatch(match, 'perfect', contractAddress);
@@ -183,7 +187,7 @@ describe('lib-sourcify tests', () => {
 
       const match = await checkAndVerifyDeployed(
         contractFolderPath,
-        sourcifyChainGanache,
+        sourcifyChainHardhat,
         contractAddress
       );
       expectMatch(match, 'perfect', contractAddress);
@@ -244,7 +248,7 @@ describe('lib-sourcify tests', () => {
       );
       const { match, contractAddress } = await deployCheckAndVerify(
         contractFolderPath,
-        sourcifyChainGanache,
+        sourcifyChainHardhat,
         signer
       );
       expectMatch(match, 'perfect', contractAddress);
@@ -352,7 +356,7 @@ describe('lib-sourcify tests', () => {
 
       const match = await checkAndVerifyDeployed(
         contractFolderPath,
-        sourcifyChainGanache,
+        sourcifyChainHardhat,
         contractAddress
       );
       expectMatch(match, 'perfect', contractAddress);
@@ -384,7 +388,7 @@ describe('lib-sourcify tests', () => {
 
       const match = await verifyDeployed(
         checkedContracts[0],
-        sourcifyChainGanache,
+        sourcifyChainHardhat,
         contractAddress
       );
       expectMatch(match, 'perfect', contractAddress);
@@ -403,7 +407,7 @@ describe('lib-sourcify tests', () => {
 
       const match = await checkAndVerifyDeployed(
         contractFolderPath,
-        sourcifyChainGanache,
+        sourcifyChainHardhat,
         contractAddress
       );
       expectMatch(match, 'perfect', contractAddress);
@@ -422,7 +426,7 @@ describe('lib-sourcify tests', () => {
 
       const match = await checkAndVerifyDeployed(
         contractFolderPath,
-        sourcifyChainGanache,
+        sourcifyChainHardhat,
         contractAddress
       );
       expectMatch(match, 'perfect', contractAddress);
@@ -446,7 +450,7 @@ describe('lib-sourcify tests', () => {
       );
       const match = await checkAndVerifyDeployed(
         contractFolderPath,
-        sourcifyChainGanache,
+        sourcifyChainHardhat,
         contractAddress
       );
       expectMatch(match, 'perfect', contractAddress);
@@ -474,7 +478,7 @@ describe('lib-sourcify tests', () => {
       );
       const match = await checkAndVerifyDeployed(
         contractFolderPath,
-        sourcifyChainGanache,
+        sourcifyChainHardhat,
         contractAddress
       );
       expectMatch(match, 'perfect', contractAddress);
@@ -484,7 +488,7 @@ describe('lib-sourcify tests', () => {
   describe('Unit tests', function () {
     describe('SourcifyChain', () => {
       it("Should fail to instantiate with empty rpc's", function () {
-        const emptyRpc = { ...ganacheChain, rpc: [] };
+        const emptyRpc = { ...hardhatChain, rpc: [] };
         try {
           new SourcifyChain(emptyRpc);
           throw new Error('Should have failed');
@@ -502,23 +506,23 @@ describe('lib-sourcify tests', () => {
         }
       });
       it('Should getBlock', async function () {
-        const block = await sourcifyChainGanache.getBlock(0);
+        const block = await sourcifyChainHardhat.getBlock(0);
         expect(block?.number).equals(0);
       });
       it('Should getBlockNumber', async function () {
-        const blockNumber = await sourcifyChainGanache.getBlockNumber();
+        const blockNumber = await sourcifyChainHardhat.getBlockNumber();
         expect(blockNumber > 0);
       });
       it('Should fail to get non-existing transaction', async function () {
         try {
-          await sourcifyChainGanache.getTx(
+          await sourcifyChainHardhat.getTx(
             '0x79ab5d59fcb70ca3f290aa39ed3f156a5c4b3897176aebd455cd20b6a30b107a'
           );
           throw new Error('Should have failed');
         } catch (err) {
           if (err instanceof Error) {
             expect(err.message).to.equal(
-              'None of the RPCs responded fetching tx 0x79ab5d59fcb70ca3f290aa39ed3f156a5c4b3897176aebd455cd20b6a30b107a on chain 0'
+              `None of the RPCs responded fetching tx 0x79ab5d59fcb70ca3f290aa39ed3f156a5c4b3897176aebd455cd20b6a30b107a on chain ${hardhatChain.chainId}`
             );
           } else {
             throw err;
@@ -647,7 +651,7 @@ describe('lib-sourcify tests', () => {
       const recompiled = await checkedContracts[0].recompile();
       const match: Match = {
         address: contractAddress,
-        chainId: sourcifyChainGanache.chainId.toString(),
+        chainId: sourcifyChainHardhat.chainId.toString(),
         runtimeMatch: null,
         creationMatch: null,
       };
@@ -663,7 +667,7 @@ describe('lib-sourcify tests', () => {
         await matchWithCreationTx(
           match,
           recompiled.creationBytecode,
-          sourcifyChainGanache,
+          sourcifyChainHardhat,
           contractAddress,
           wrongCreatorTxHash,
           recompiledMetadata,
@@ -710,7 +714,7 @@ describe('lib-sourcify tests', () => {
       const recompiled = await checkedContracts[0].recompile();
       const match = {
         address: contractAddress,
-        chainId: sourcifyChainGanache.chainId.toString(),
+        chainId: sourcifyChainHardhat.chainId.toString(),
         runtimeMatch: null,
         creationMatch: null,
       };
@@ -725,7 +729,7 @@ describe('lib-sourcify tests', () => {
       await matchWithCreationTx(
         match,
         maliciousArtifact.bytecode,
-        sourcifyChainGanache,
+        sourcifyChainHardhat,
         contractAddress,
         txHash,
         recompiledMetadata,
@@ -755,7 +759,7 @@ describe('lib-sourcify tests', () => {
       const recompiled = await checkedContracts[0].recompile();
       const match = {
         address: contractAddress,
-        chainId: sourcifyChainGanache.chainId.toString(),
+        chainId: sourcifyChainHardhat.chainId.toString(),
         runtimeMatch: null,
         creationMatch: null,
       };
@@ -770,7 +774,7 @@ describe('lib-sourcify tests', () => {
       await matchWithCreationTx(
         match,
         recompiled.creationBytecode,
-        sourcifyChainGanache,
+        sourcifyChainHardhat,
         contractAddress,
         creatorTxHash,
         recompiledMetadata,
@@ -794,7 +798,7 @@ describe('lib-sourcify tests', () => {
       const recompiled = await checkedContracts[0].recompile();
       const match = {
         address: contractAddress,
-        chainId: sourcifyChainGanache.chainId.toString(),
+        chainId: sourcifyChainHardhat.chainId.toString(),
         runtimeMatch: null,
         creationMatch: null,
       };
@@ -808,7 +812,7 @@ describe('lib-sourcify tests', () => {
       await matchWithCreationTx(
         match,
         recompiled.creationBytecode,
-        sourcifyChainGanache,
+        sourcifyChainHardhat,
         contractAddress,
         creatorTxHash,
         recompiledMetadata,
@@ -838,7 +842,7 @@ describe('lib-sourcify tests', () => {
       const recompiled = await checkedContracts[0].recompile();
       const match: Match = {
         address: contractAddress,
-        chainId: sourcifyChainGanache.chainId.toString(),
+        chainId: sourcifyChainHardhat.chainId.toString(),
         runtimeMatch: null,
         creationMatch: null,
       };
@@ -852,7 +856,7 @@ describe('lib-sourcify tests', () => {
       await matchWithCreationTx(
         match,
         recompiled.creationBytecode,
-        sourcifyChainGanache,
+        sourcifyChainHardhat,
         contractAddress,
         creatorTxHash,
         recompiledMetadata,

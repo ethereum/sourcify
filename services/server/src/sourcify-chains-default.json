@@ -1682,5 +1682,15 @@
     "fetchContractCreationTxUsing": {
       "avalancheApi": true
     }
+  },
+  "84532": {
+    "sourcifyName": "Base Sepolia Tesnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true
+    },
+    "etherscanApi": {
+      "apiURL": "https://api-sepolia.basescan.org/"
+    }
   }
 }
