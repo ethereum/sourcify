@@ -1553,6 +1553,7 @@ describe("Test Supported Chains", function () {
     "11227",
     "Jirtsu Subnet Testnet",
     "11227/"
+  )
   // Base Sepolia Testnet
   verifyContract(
     "0xaBe8cf2Dacb0053C1ebd5881392BD17Ec2402a4F",
