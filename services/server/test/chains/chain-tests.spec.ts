@@ -1532,7 +1532,7 @@ describe("Test Supported Chains", function () {
   );
 
 
-  // Vechain Mainet
+  // Vechain Mainnet
   verifyContract(
     "0x85D2b3129aA0b6BB215734efC92a2c8f1cC9B3Aa",
     "100009",
