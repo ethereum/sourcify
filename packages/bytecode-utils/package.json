@@ -21,12 +21,11 @@
     "build": "run-p build:*",
     "build:main": "tsc -p tsconfig.json",
     "build:module": "tsc -p tsconfig.module.json",
-    "test": "run-s build test:*",
+    "test": "run-s test:*",
     "lint": "eslint src --ext .ts",
     "test:prettier": "prettier \"src/**/*.ts\" --list-different",
-    "test:unit": "c8 --reporter=none ava",
+    "test:unit": "c8 --reporter=none mocha --exit test/**",
     "watch:build": "tsc -p tsconfig.json -w",
-    "watch:test": "c8 ava --watch",
     "cov": "run-s build test:unit cov:html cov:lcov && open-cli coverage/index.html",
     "cov:html": "c8 report --reporter=html",
     "cov:lcov": "c8 report --reporter=lcov",
@@ -43,12 +42,13 @@
     "cbor-x": "^1.5.7"
   },
   "devDependencies": {
-    "@ava/typescript": "^1.1.1",
+    "@types/mocha": "^10.0.6",
     "@types/node": "^20.10.0",
-    "ava": "^3.12.1",
     "c8": "^8.0.0",
+    "chai": "^4.2.0",
     "cz-conventional-changelog": "^3.3.0",
     "eslint": "^7.8.0",
+    "mocha": "^7.0.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.1.1"
   },
@@ -63,18 +63,6 @@
     "LICENSE",
     "README.md"
   ],
-  "ava": {
-    "failFast": true,
-    "timeout": "60s",
-    "typescript": {
-      "rewritePaths": {
-        "src/": "build/main/"
-      }
-    },
-    "files": [
-      "!build/module/**"
-    ]
-  },
   "prettier": {
     "singleQuote": true
   },
