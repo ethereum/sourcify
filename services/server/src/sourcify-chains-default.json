@@ -1701,6 +1701,8 @@
     "supported": true,
     "fetchContractCreationTxUsing": {
       "avalancheApi": true
+    }
+  },
   "84532": {
     "sourcifyName": "Base Sepolia Tesnet",
     "supported": true,
