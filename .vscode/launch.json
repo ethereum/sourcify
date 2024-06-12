@@ -137,7 +137,7 @@
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "cwd": "${workspaceFolder}/services/server",
       "env": {
-        "TEST_CHAIN": "100",
+        // "TEST_CHAIN": "84532",
       },
       "preLaunchTask": "database-test:up",
       "postDebugTask": "database-test:down",
@@ -145,6 +145,7 @@
         "${workspaceFolder}/services/server/test/chains/etherscan-instances.spec.ts",
         "-r",
         "${workspaceFolder}/services/server/test/load-env.js",
+        "--no-timeout",
         "--exit"
       ],
       "smartStep": true,
