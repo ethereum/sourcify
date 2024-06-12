@@ -1682,6 +1682,7 @@
     "fetchContractCreationTxUsing": {
       "avalancheApi": true
     }
+  },
   "48795": {
     "sourcifyName": "Space Subnet Testnet",
     "supported": true,
