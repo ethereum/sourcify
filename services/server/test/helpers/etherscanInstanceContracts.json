@@ -459,5 +459,17 @@
       "type": "standard-json",
       "expectedStatus": "perfect"
     }
+  ],
+  "84532": [
+    {
+      "address": "0xeff2A458E464b07088bDB441C21A42AB4b61e07E",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0xF873413AA072BFcdD97e81f74B190FFFB9110f42",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
   ]
 }
