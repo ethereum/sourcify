@@ -292,7 +292,7 @@ describe("/session", function () {
       });
   });
 
-  it.only("should import a contract using /session/input-contract", async () => {
+  it("should import a contract using /session/input-contract", async () => {
     const agent = chai.request.agent(serverFixture.server.app);
     try {
       const res = await agent.post("/session/input-contract").send({
