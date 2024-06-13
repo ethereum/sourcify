@@ -213,9 +213,6 @@ export class Server {
           .map((address: string) => getAddress(address))
           .join(",");
       }
-      if (req.params.address) {
-        req.params.address = getAddress(req.params.address);
-      }
       next();
     });
 
