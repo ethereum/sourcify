@@ -124,7 +124,7 @@ export class LocalChainFixture {
 }
 
 function startHardhatNetwork(port: number) {
-  return new Promise<ChildProcess>((resolve, reject) => {
+  return new Promise<ChildProcess>((resolve) => {
     const hardhatNodeProcess = spawn("npx", [
       "hardhat",
       "node",
