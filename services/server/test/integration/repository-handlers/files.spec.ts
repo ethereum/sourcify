@@ -124,6 +124,20 @@ describe("Verify repository endpoints", function () {
     chai
       .expect(res.text)
       .to.equal(chainFixture.defaultContractMetadata.toString());
+
+    const res1 = await chai
+      .request(serverFixture.server.app)
+      .get(
+        `/files/any/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`
+      );
+
+    const fileToCheck = res1.body.files.find(
+      (file: any) => file.name === "metadata.json"
+    );
+    chai.expect(fileToCheck.content).to.be.a("string");
+    chai
+      .expect(fileToCheck.content)
+      .to.equal(chainFixture.defaultContractMetadata.toString());
   });
 
   it("should fetch immutable-references.json of specific address, and it should be available in /files/any", async function () {
@@ -188,7 +202,8 @@ describe("Verify repository endpoints", function () {
       .to.equal(
         `contracts/full_match/${chainFixture.chainId}/${contractAddress}/immutable-references.json`
       );
-    chai.expect(fileToCheck.content).to.deep.equal(expectedContent);
+    chai.expect(fileToCheck.content).to.be.a("string");
+    chai.expect(JSON.parse(fileToCheck.content)).to.deep.equal(expectedContent);
   });
 
   it("should fetch library-map.json of specific address, and it should be available in /files/any", async function () {
@@ -249,7 +264,8 @@ describe("Verify repository endpoints", function () {
       .to.equal(
         `contracts/full_match/${chainFixture.chainId}/${contractAddress}/library-map.json`
       );
-    chai.expect(fileToCheck.content).to.deep.equal(expectedContent);
+    chai.expect(fileToCheck.content).to.be.a("string");
+    chai.expect(JSON.parse(fileToCheck.content)).to.deep.equal(expectedContent);
   });
 
   it("should fetch creator-tx-hash.txt of specific address, and it should be available in /files/any", async function () {
