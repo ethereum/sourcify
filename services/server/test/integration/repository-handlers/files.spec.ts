@@ -17,7 +17,7 @@ describe("Verify repository endpoints", function () {
   const chainFixture = new LocalChainFixture();
   const serverFixture = new ServerFixture();
 
-  it("should fetch files of specific address", async function () {
+  it("should fetch files of specific address, using a non-checksummed address", async function () {
     const agent = chai.request.agent(serverFixture.server.app);
     // Wait for the server to complete the previous contract verification
     await waitSecs(1);
@@ -28,7 +28,9 @@ describe("Verify repository endpoints", function () {
       .attach("files", chainFixture.defaultContractMetadata, "metadata.json")
       .attach("files", chainFixture.defaultContractSource, "Storage.sol");
     const res0 = await agent.get(
-      `/files/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`
+      `/files/${
+        chainFixture.chainId
+      }/${chainFixture.defaultContractAddress.toLocaleLowerCase()}`
     );
     chai.expect(res0.body).to.deep.equal([
       {
@@ -43,7 +45,9 @@ describe("Verify repository endpoints", function () {
       },
     ]);
     const res1 = await agent.get(
-      `/files/tree/any/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`
+      `/files/tree/any/${
+        chainFixture.chainId
+      }/${chainFixture.defaultContractAddress.toLocaleLowerCase()}`
     );
     chai.expect(res1.body).to.deep.equal({
       status: "full",
@@ -53,7 +57,9 @@ describe("Verify repository endpoints", function () {
       ],
     });
     const res2 = await agent.get(
-      `/files/any/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`
+      `/files/any/${
+        chainFixture.chainId
+      }/${chainFixture.defaultContractAddress.toLocaleLowerCase()}`
     );
     chai.expect(res2.body).to.deep.equal({
       status: "full",
@@ -71,7 +77,9 @@ describe("Verify repository endpoints", function () {
       ],
     });
     const res3 = await agent.get(
-      `/files/tree/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`
+      `/files/tree/${
+        chainFixture.chainId
+      }/${chainFixture.defaultContractAddress.toLocaleLowerCase()}`
     );
     chai
       .expect(res3.body)
