@@ -124,7 +124,7 @@ export class LocalChainFixture {
 }
 
 function startHardhatNetwork(port: number) {
-  return new Promise<ChildProcess>((resolve, reject) => {
+  return new Promise<ChildProcess>((resolve) => {
     const hardhatNodeProcess = spawn("npx", [
       "hardhat",
       "node",
@@ -132,12 +132,11 @@ function startHardhatNetwork(port: number) {
       port.toString(),
     ]);
 
-    hardhatNodeProcess.stderr.on("data", (data) => {
-      console.error(`stderr: ${data.toString()}`);
-      reject(data);
+    hardhatNodeProcess.stderr.on("data", (data: Buffer) => {
+      console.error(`Hardhat Network Error: ${data.toString()}`);
     });
 
-    hardhatNodeProcess.stdout.on("data", (data) => {
+    hardhatNodeProcess.stdout.on("data", (data: Buffer) => {
       console.log(data.toString());
       if (
         data
