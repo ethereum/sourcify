@@ -292,6 +292,35 @@ describe("/session", function () {
       });
   });
 
+  it.only("should import a contract using /session/input-contract", async () => {
+    const agent = chai.request.agent(serverFixture.server.app);
+    try {
+      const res = await agent.post("/session/input-contract").send({
+        address: chainFixture.defaultContractAddress,
+        chainId: chainFixture.chainId,
+      });
+      chai.expect(res.body).to.deep.equal({
+        contracts: [
+          {
+            verificationId: res.body.contracts[0].verificationId,
+            compiledPath: "project:/contracts/Storage.sol",
+            name: "Storage",
+            files: {
+              found: ["project:/contracts/Storage.sol"],
+              missing: {},
+              invalid: {},
+            },
+            status: "error",
+          },
+        ],
+        unused: [],
+        files: ["metadata.json"],
+      });
+    } catch (e) {
+      console.log(e);
+    }
+  });
+
   it("should fail for a source that is missing and unfetchable", (done) => {
     const agent = chai.request.agent(serverFixture.server.app);
     agent
