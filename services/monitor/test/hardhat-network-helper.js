@@ -11,8 +11,7 @@ exports.startHardhatNetwork = async function (port) {
     ]);
 
     hardhatNodeProcess.stderr.on("data", (data) => {
-      console.error(`stderr: ${data.toString()}`);
-      reject(data);
+      console.error(`Hardhat Network Error: ${data.toString()}`);
     });
 
     hardhatNodeProcess.stdout.on("data", (data) => {
