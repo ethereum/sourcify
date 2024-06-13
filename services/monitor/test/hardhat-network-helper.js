@@ -2,7 +2,7 @@ const treeKill = require("tree-kill");
 const { spawn } = require("child_process");
 
 exports.startHardhatNetwork = async function (port) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const hardhatNodeProcess = spawn("npx", [
       "hardhat",
       "node",
@@ -11,8 +11,7 @@ exports.startHardhatNetwork = async function (port) {
     ]);
 
     hardhatNodeProcess.stderr.on("data", (data) => {
-      console.error(`stderr: ${data.toString()}`);
-      reject(data);
+      console.error(`Hardhat Network Error: ${data.toString()}`);
     });
 
     hardhatNodeProcess.stdout.on("data", (data) => {
