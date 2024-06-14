@@ -19,7 +19,6 @@ import {
 import { Session } from "express-session";
 import { AbiConstructor, AbiParameter } from "abitype";
 import QueryString from "qs";
-import fetch from "node-fetch";
 import { IVerificationService } from "../../services/VerificationService";
 import { ContractMeta, ContractWrapper, getMatchStatus } from "../../common";
 import { ISolidityCompiler } from "@ethereum-sourcify/lib-sourcify";
@@ -306,7 +305,8 @@ export async function addRemoteFile(
     res.headers.get("Content-Disposition")?.split("filename=")[1] ||
     query.url.substring(query.url.lastIndexOf("/") + 1) ||
     "file";
-  const buffer = await res.buffer();
+  const arrayBuffer = await res.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
   return [
     {
       path: fileName,

@@ -3,7 +3,6 @@ import {
   SourcifyChain,
 } from "@ethereum-sourcify/lib-sourcify";
 import { StatusCodes } from "http-status-codes";
-import fetch from "node-fetch";
 import logger from "../../../common/logger";
 
 const ETHERSCAN_REGEX = ["at txn.*href=.*/tx/(0x.{64})"]; // save as string to be able to return the txRegex in /chains response. If stored as RegExp returns {}
@@ -316,8 +315,8 @@ async function getCreatorTxByScraping(
   txRegexs: string[]
 ): Promise<string | null> {
   const res = await fetch(fetchAddress);
-  const buffer = await res.buffer();
-  const page = buffer.toString();
+  const arrayBuffer = await res.arrayBuffer();
+  const page = Buffer.from(arrayBuffer).toString();
   if (res.status === StatusCodes.OK) {
     for (const txRegex of txRegexs) {
       const matched = page.match(txRegex);

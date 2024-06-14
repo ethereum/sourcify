@@ -1,6 +1,5 @@
 import { Logger } from "winston";
 import logger from "./logger";
-import nodeFetch from "node-fetch";
 import { TimeoutError } from "./util";
 
 type GatewayFetcherConfig = {
@@ -52,10 +51,7 @@ export class GatewayFetcher {
 
       try {
         // Race with gateway timeout
-        const response = await Promise.race([
-          nodeFetch(fetchURL),
-          timeoutPromise,
-        ]);
+        const response = await Promise.race([fetch(fetchURL), timeoutPromise]);
 
         if (response.ok) {
           const file = await response.text();

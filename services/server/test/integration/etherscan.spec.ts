@@ -16,7 +16,6 @@ import {
   verifyAndAssertEtherscanSession,
   verifyAndAssertEtherscan,
 } from "../helpers/helpers";
-import { default as fetch } from "node-fetch";
 import type { Response } from "superagent";
 import { ServerFixture } from "../helpers/ServerFixture";
 import nock from "nock";

@@ -5,7 +5,6 @@ import { id as keccak256str } from "ethers";
 import { KnownDecentralizedStorageFetchers } from "./types";
 import assert from "assert";
 import dotenv from "dotenv";
-import nodeFetch from "node-fetch";
 import { Logger } from "winston";
 
 dotenv.config();
@@ -143,7 +142,7 @@ export default class PendingContract {
     }
 
     // Send to Sourcify server.
-    const response = await nodeFetch(sourcifyServerURL, {
+    const response = await fetch(sourcifyServerURL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -38,14 +38,12 @@
     "commander": "^11.0.0",
     "dotenv": "^16.3.1",
     "ethers": "^6.7.1",
-    "node-fetch": "^2.6.6",
     "winston": "^3.10.0"
   },
   "devDependencies": {
     "@types/chai": "^4.3.6",
     "@types/mocha": "^10.0.1",
-    "@types/node": "^20.6.2",
-    "@types/node-fetch": "^2.6.5",
+    "@types/node": "^20.10.0",
     "@types/sinon": "^10.0.16",
     "c8": "^8.0.0",
     "chai": "^4.3.8",
