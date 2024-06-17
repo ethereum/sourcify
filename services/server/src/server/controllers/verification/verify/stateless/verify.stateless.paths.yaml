@@ -69,8 +69,8 @@ paths:
                 creatorTxHash:
                   type: string
                 chosenContract:
-                  type: string
-                  description: "Optional identifier for the contract if multiple contracts are present."
+                  type: number
+                  description: "Optional identifier for the contract if multiple contracts (i.e. metadata.json files) are present."
       responses:
         "200":
           description: The contract has been successfully checked or sourcified
