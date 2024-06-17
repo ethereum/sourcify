@@ -1,9 +1,9 @@
-# Needs to be run from the project root context
+# Needs to be run from the project root context e.g. `cd sourcify/ && docker build -f services/monitor/Dockerfile .`
 FROM node:18.18.2-bullseye as builder
 RUN mkdir -p /home/app
 WORKDIR /home/app
 
-COPY  . .
+COPY . .
 
 RUN npm ci --workspace=sourcify-monitor --include-workspace-root
 RUN npx lerna run build --scope sourcify-monitor
