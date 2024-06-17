@@ -6,7 +6,7 @@ import config from "config";
 import http from "http";
 import { SourcifyDatabaseService } from "../../src/server/services/storageServices/SourcifyDatabaseService";
 import { supportedChainsMap } from "../../src/sourcify-chains";
-import { SourcifyDatabaseIdentifier } from "../../src/server/services/storageServices/identifiers";
+import { StorageIdentifiers } from "../../src/server/services/storageServices/identifiers";
 
 export type ServerFixtureOptions = {
   port: number;
@@ -55,6 +55,11 @@ export class ServerFixture {
         throw new Error("Not all required environment variables set");
       }
       const storageService = new StorageService({
+        enabledServices: {
+          read: config.get("storage.read"),
+          writeOrWarn: config.get("storage.writeOrWarn"),
+          writeOrErr: config.get("storage.writeOrErr"),
+        },
         repositoryV1ServiceOptions: {
           ipfsApi: process.env.IPFS_API || "",
           repositoryPath: config.get("repositoryV1.path"),
@@ -77,10 +82,15 @@ export class ServerFixture {
 
       await storageService.init();
       this._sourcifyDatabase = storageService.services[
-        SourcifyDatabaseIdentifier
+        StorageIdentifiers.SourcifyDatabase
       ] as SourcifyDatabaseService;
 
       this._server = new Server(options.port, supportedChainsMap, {
+        enabledServices: {
+          read: config.get("storage.read"),
+          writeOrWarn: config.get("storage.writeOrWarn"),
+          writeOrErr: config.get("storage.writeOrErr"),
+        },
         repositoryV1ServiceOptions: {
           ipfsApi: process.env.IPFS_API as string,
           repositoryPath: config.get("repositoryV1.path"),

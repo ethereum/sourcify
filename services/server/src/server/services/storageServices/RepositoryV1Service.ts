@@ -28,7 +28,7 @@ import { getAddress } from "ethers";
 import { getMatchStatus } from "../../common";
 import { IStorageService, StorageService } from "../StorageService";
 import config from "config";
-import { RepositoryV1Identifier } from "./identifiers";
+import { StorageIdentifiers } from "./identifiers";
 
 export interface RepositoryV1ServiceOptions {
   ipfsApi: string;
@@ -37,7 +37,7 @@ export interface RepositoryV1ServiceOptions {
 }
 
 export class RepositoryV1Service implements IStorageService {
-  IDENTIFIER = RepositoryV1Identifier;
+  IDENTIFIER = StorageIdentifiers.RepositoryV1;
   storageService: StorageService;
   repositoryPath: string;
   private ipfsClient?: IPFSHTTPClient;

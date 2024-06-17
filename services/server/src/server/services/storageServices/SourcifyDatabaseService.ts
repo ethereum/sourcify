@@ -23,10 +23,7 @@ import Path from "path";
 import { getFileRelativePath } from "../utils/util";
 import { getAddress } from "ethers";
 import { BadRequestError } from "../../../common/errors";
-import {
-  SourcifyDatabaseIdentifier,
-  RepositoryV2Identifier,
-} from "./identifiers";
+import { StorageIdentifiers } from "./identifiers";
 
 export interface SourcifyDatabaseServiceOptions {
   postgres: {
@@ -45,7 +42,7 @@ export class SourcifyDatabaseService
   implements IStorageService
 {
   storageService: StorageService;
-  IDENTIFIER = SourcifyDatabaseIdentifier;
+  IDENTIFIER = StorageIdentifiers.SourcifyDatabase;
   databasePool!: Pool;
 
   postgresHost?: string;
@@ -320,11 +317,9 @@ export class SourcifyDatabaseService
     address: string,
     match: MatchLevel
   ): Promise<string | false> {
-    return this.storageService.services[RepositoryV2Identifier].getMetadata(
-      chainId,
-      address,
-      match
-    );
+    return this.storageService.services[
+      StorageIdentifiers.RepositoryV2
+    ].getMetadata(chainId, address, match);
   }
 
   /**

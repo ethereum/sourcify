@@ -1,9 +1,5 @@
 const {
-  SourcifyDatabaseIdentifier,
-  AllianceDatabaseIdentifier,
-  RepositoryV1Identifier,
-  RepositoryV2Identifier,
-  SourcifyFixedDatabaseIdentifier,
+  StorageIdentifiers,
 } = require("../server/services/storageServices/identifiers");
 
 module.exports = {
@@ -12,12 +8,15 @@ module.exports = {
     maxFileSize: 30 * 1024 * 1024, // 30 MB
   },
   storage: {
-    read: SourcifyDatabaseIdentifier,
-    writeOrWarn: [AllianceDatabaseIdentifier, RepositoryV1Identifier],
+    read: StorageIdentifiers.SourcifyDatabase,
+    writeOrWarn: [
+      StorageIdentifiers.AllianceDatabase,
+      StorageIdentifiers.RepositoryV1,
+    ],
     writeOrErr: [
-      RepositoryV2Identifier,
-      SourcifyDatabaseIdentifier,
-      SourcifyFixedDatabaseIdentifier,
+      StorageIdentifiers.RepositoryV2,
+      StorageIdentifiers.SourcifyDatabase,
+      StorageIdentifiers.SourcifyFixedDatabase,
     ],
   },
   // Deprecated repository

@@ -10,7 +10,7 @@ import {
   ContractData,
   PaginatedContractData,
 } from "../../types";
-import { AllianceDatabaseIdentifier } from "./identifiers";
+import { StorageIdentifiers } from "./identifiers";
 
 export interface AllianceDatabaseServiceOptions {
   googleCloudSql?: {
@@ -32,7 +32,7 @@ export class AllianceDatabaseService
   implements IStorageService
 {
   storageService: StorageService;
-  IDENTIFIER = AllianceDatabaseIdentifier;
+  IDENTIFIER = StorageIdentifiers.AllianceDatabase;
   databasePool!: Pool;
 
   googleCloudSqlInstanceName?: string;

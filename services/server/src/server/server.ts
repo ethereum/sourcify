@@ -323,6 +323,11 @@ export class Server {
 
 if (require.main === module) {
   const server = new Server(config.get("server.port"), supportedChainsMap, {
+    enabledServices: {
+      read: config.get("storage.read"),
+      writeOrWarn: config.get("storage.writeOrWarn"),
+      writeOrErr: config.get("storage.writeOrErr"),
+    },
     repositoryV1ServiceOptions: {
       ipfsApi: process.env.IPFS_API as string,
       repositoryPath: config.get("repositoryV1.path"),

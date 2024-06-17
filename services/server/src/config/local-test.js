@@ -1,7 +1,5 @@
 const {
-  SourcifyDatabaseIdentifier,
-  RepositoryV1Identifier,
-  RepositoryV2Identifier,
+  StorageIdentifiers,
 } = require("../server/services/storageServices/identifiers");
 
 module.exports = {
@@ -15,8 +13,11 @@ module.exports = {
     storeType: "database",
   },
   storage: {
-    read: SourcifyDatabaseIdentifier,
-    writeOrWarn: [RepositoryV1Identifier],
-    writeOrErr: [RepositoryV2Identifier, SourcifyDatabaseIdentifier],
+    read: StorageIdentifiers.SourcifyDatabase,
+    writeOrWarn: [StorageIdentifiers.RepositoryV1],
+    writeOrErr: [
+      StorageIdentifiers.RepositoryV2,
+      StorageIdentifiers.SourcifyDatabase,
+    ],
   },
 };

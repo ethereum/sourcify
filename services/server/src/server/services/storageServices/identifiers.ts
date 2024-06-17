@@ -1,5 +1,7 @@
-export const AllianceDatabaseIdentifier = "VerifierAllianceDatabase";
-export const SourcifyDatabaseIdentifier = "SourcifyDatabase";
-export const RepositoryV1Identifier = "RepositoryV1";
-export const RepositoryV2Identifier = "RepositoryV2";
-export const SourcifyFixedDatabaseIdentifier = "SourcifyFixedDatabase";
+export enum StorageIdentifiers {
+  AllianceDatabase = "VerifierAllianceDatabase",
+  SourcifyDatabase = "SourcifyDatabase",
+  RepositoryV1 = "RepositoryV1",
+  RepositoryV2 = "RepositoryV2",
+  SourcifyFixedDatabase = "SourcifyFixedDatabase",
+}

@@ -25,8 +25,7 @@ import {
   PaginatedContractData,
 } from "../types";
 import { BadRequestError } from "../../common/errors";
-import config from "config";
-import { SourcifyFixedDatabaseIdentifier } from "./storageServices/identifiers";
+import { StorageIdentifiers } from "./storageServices/identifiers";
 
 export interface IStorageService {
   IDENTIFIER: string;
@@ -69,7 +68,14 @@ export interface IStorageService {
   storeMatch(contract: CheckedContract, match: Match): Promise<void | Match>;
 }
 
+export interface EnabledServices {
+  read: StorageIdentifiers;
+  writeOrWarn: StorageIdentifiers[];
+  writeOrErr: StorageIdentifiers[];
+}
+
 export interface StorageServiceOptions {
+  enabledServices: EnabledServices;
   repositoryV1ServiceOptions: RepositoryV1ServiceOptions;
   repositoryV2ServiceOptions: RepositoryV2ServiceOptions;
   sourcifyDatabaseServiceOptions?: SourcifyDatabaseServiceOptions;
@@ -78,9 +84,12 @@ export interface StorageServiceOptions {
 }
 
 export class StorageService {
+  enabledServices: EnabledServices;
   services: { [index: string]: IStorageService } = {};
 
   constructor(options: StorageServiceOptions) {
+    this.enabledServices = options.enabledServices;
+
     // repositoryV1
     if (options.repositoryV1ServiceOptions?.repositoryPath) {
       const repositoryV1 = new RepositoryV1Service(
@@ -139,7 +148,8 @@ export class StorageService {
         this,
         options.sourcifyFixedDatabaseServiceOptions
       );
-      sourcifyFixedDatabase.IDENTIFIER = SourcifyFixedDatabaseIdentifier;
+      sourcifyFixedDatabase.IDENTIFIER =
+        StorageIdentifiers.SourcifyFixedDatabase;
       this.services[sourcifyFixedDatabase.IDENTIFIER] = sourcifyFixedDatabase;
     } else {
       logger.warn(
@@ -175,7 +185,7 @@ export class StorageService {
 
   getDefaultReadService(): IStorageService {
     const storageService = this.getServiceByConfigKey(
-      config.get("storage.read")
+      this.enabledServices.read
     );
     if (storageService === undefined) {
       logger.error("Default read storage service not enabled");
@@ -186,7 +196,7 @@ export class StorageService {
 
   getWriteOrWarnServices(): (IStorageService | undefined)[] {
     const writeOrWarnServices = (
-      (config.get("storage.writeOrWarn") as []) || []
+      (this.enabledServices.writeOrWarn as []) || []
     ).map((serviceKey) => {
       const storageService = this.getServiceByConfigKey(serviceKey);
       if (storageService === undefined) {
@@ -201,7 +211,7 @@ export class StorageService {
   }
 
   getWriteOrErrServices(): IStorageService[] {
-    const writeOrErr = ((config.get("storage.writeOrErr") as []) || []).map(
+    const writeOrErr = ((this.enabledServices.writeOrErr as []) || []).map(
       (serviceKey) => {
         const storageService = this.getServiceByConfigKey(serviceKey);
         if (storageService === undefined) {

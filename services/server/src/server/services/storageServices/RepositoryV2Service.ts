@@ -32,7 +32,7 @@ import logger from "../../../common/logger";
 import { getAddress, id as keccak256 } from "ethers";
 import { getMatchStatus } from "../../common";
 import { IStorageService, StorageService } from "../StorageService";
-import { RepositoryV2Identifier } from "./identifiers";
+import { StorageIdentifiers } from "./identifiers";
 
 export interface RepositoryV2ServiceOptions {
   ipfsApi: string;
@@ -40,7 +40,7 @@ export interface RepositoryV2ServiceOptions {
 }
 
 export class RepositoryV2Service implements IStorageService {
-  IDENTIFIER = RepositoryV2Identifier;
+  IDENTIFIER = StorageIdentifiers.RepositoryV2;
   storageService: StorageService;
   repositoryPath: string;
   private ipfsClient?: IPFSHTTPClient;
