@@ -153,6 +153,14 @@ export async function getMetadataEndpoint(req: any, res: Response) {
   res.json(JSON.parse(file as string));
 }
 
+function jsonOrString(str: string): object | string {
+  try {
+    return JSON.parse(str);
+  } catch (e) {
+    return str;
+  }
+}
+
 export async function getFileEndpoint(req: any, res: Response) {
   const { match, chain, address } = req.params;
   const file = await req.services.storage.getFile(
@@ -164,7 +172,7 @@ export async function getFileEndpoint(req: any, res: Response) {
   if (!file) {
     res.status(404).send();
   }
-  res.send(file);
+  res.send(jsonOrString(file));
 }
 
 export async function checkByChainAndAddressesEnpoint(req: any, res: Response) {

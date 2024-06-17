@@ -360,7 +360,7 @@ export class SourcifyDatabaseService
     if (typeof responseWithoutMetadata.files[0] === "string") {
       // If this function is called with T == string
       responseWithoutMetadata.files.push(
-        (config.get("repositoryV1.serverUrl") + relativePath) as T
+        (config.get("repositoryV1.serverUrl") + "/" + relativePath) as T
       );
     } else {
       // If this function is called with T === FileObject
@@ -401,7 +401,11 @@ export class SourcifyDatabaseService
         ? "full"
         : "partial";
 
-    const sources = sourcifyMatch.sources;
+    const sources: { [index: string]: string } = {};
+
+    for (const path of Object.keys(sourcifyMatch.sources)) {
+      sources[`sources/${path}`] = sourcifyMatch.sources[path];
+    }
     const files: FilesRawValue = {};
 
     if (sourcifyMatch?.creation_values?.constructorArguments) {
@@ -482,8 +486,7 @@ export class SourcifyDatabaseService
         chainId,
         address,
         contractStatus,
-        source,
-        { isSource: true }
+        source
       );
       return `${config.get("repositoryV1.serverUrl")}/${relativePath}`;
     });
@@ -549,8 +552,7 @@ export class SourcifyDatabaseService
         chainId,
         address,
         contractStatus,
-        source,
-        { isSource: true }
+        source
       );
 
       return {

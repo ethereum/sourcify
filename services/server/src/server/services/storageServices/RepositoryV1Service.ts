@@ -117,8 +117,7 @@ export class RepositoryV1Service implements IStorageService {
     );
     const urls: Array<string> = [];
     files.forEach((file) => {
-      const relativePath =
-        "contracts/" + file.path.split("/contracts")[1].substr(1);
+      const relativePath = file.path.replace(this.repositoryPath, "");
       // TODO: Don't use repositoryV1.serverUrl but a relative URL to the server. Requires a breaking chage to the API
       urls.push(`${config.get("repositoryV1.serverUrl")}/${relativePath}`);
     });
@@ -164,6 +163,7 @@ export class RepositoryV1Service implements IStorageService {
     for (const file in files) {
       const loadedFile = fs.readFileSync(files[file].path);
       files[file].content = loadedFile.toString();
+      files[file].path = files[file].path.replace(this.repositoryPath, "");
     }
 
     return files;

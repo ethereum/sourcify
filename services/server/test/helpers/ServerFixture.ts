@@ -10,9 +10,13 @@ import { StorageIdentifiers } from "../../src/server/services/storageServices/id
 
 export type ServerFixtureOptions = {
   port: number;
+  read: StorageIdentifiers;
+  writeOrWarn: StorageIdentifiers[];
+  writeOrErr: StorageIdentifiers[];
 };
 
 export class ServerFixture {
+  identifier: StorageIdentifiers | undefined;
   readonly maxFileSize = config.get<number>("server.maxFileSize");
 
   private _sourcifyDatabase?: SourcifyDatabaseService;
@@ -36,10 +40,18 @@ export class ServerFixture {
    * Any tests that may need a different server configuration can be written
    * in a different "describe" block.
    */
-  constructor(
-    options: ServerFixtureOptions = { port: config.get("server.port") }
-  ) {
+  constructor(options_?: Partial<ServerFixtureOptions>) {
     let httpServer: http.Server;
+
+    const options: ServerFixtureOptions = {
+      ...{
+        port: config.get("server.port"),
+        read: config.get("storage.read"),
+        writeOrWarn: config.get("storage.writeOrWarn"),
+        writeOrErr: config.get("storage.writeOrErr"),
+      },
+      ...options_,
+    };
 
     before(async () => {
       process.env.SOURCIFY_POSTGRES_PORT =
@@ -85,11 +97,11 @@ export class ServerFixture {
         StorageIdentifiers.SourcifyDatabase
       ] as SourcifyDatabaseService;
 
-      this._server = new Server(options.port, supportedChainsMap, {
+      this._server = new Server(options.port!, supportedChainsMap, {
         enabledServices: {
-          read: config.get("storage.read"),
-          writeOrWarn: config.get("storage.writeOrWarn"),
-          writeOrErr: config.get("storage.writeOrErr"),
+          read: options.read,
+          writeOrWarn: options.writeOrWarn,
+          writeOrErr: options.writeOrErr,
         },
         repositoryV1ServiceOptions: {
           ipfsApi: process.env.IPFS_API as string,
