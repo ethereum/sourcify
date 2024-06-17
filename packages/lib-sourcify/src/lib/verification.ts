@@ -533,35 +533,34 @@ export async function matchWithCreationTx(
     return;
   }
 
-  const creatorTx = await sourcifyChain.getTx(creatorTxHash);
-  let onchainCreationBytecode = '';
+  // Call rpc to find creatorTx, txReceipt and onchainContractCreationBytecode
+  // return null creationMatch if fail
+  let creatorTx;
   try {
-    onchainCreationBytecode =
-      (await sourcifyChain.getContractCreationBytecode(
+    creatorTx = await sourcifyChain.getTx(creatorTxHash);
+    match.creatorTxHash = creatorTxHash;
+    match.blockNumber = creatorTx.blockNumber;
+    match.deployer = creatorTx.from;
+
+    const { creationBytecode, txReceipt } =
+      await sourcifyChain.getContractCreationBytecodeAndReceipt(
         address,
         creatorTxHash,
         creatorTx
-      )) || '';
+      );
+    match.onchainCreationBytecode = creationBytecode;
+    match.txIndex = txReceipt.index;
   } catch (e: any) {
     logWarn('Failed to fetch creation bytecode', {
       address,
       txHash: creatorTxHash,
       chainId: sourcifyChain.chainId.toString(),
+      error: e,
     });
     match.creationMatch = null;
     match.message = `Failed to match with creation bytecode: couldn't get the creation bytecode.`;
     return;
   }
-
-  // txIndex is available only in the receipt
-  const txReceipt = await sourcifyChain.getTxReceipt(creatorTxHash);
-  match.txIndex = txReceipt.index;
-
-  match.creatorTxHash = creatorTxHash;
-  match.blockNumber = creatorTx.blockNumber;
-  match.deployer = creatorTx.from;
-
-  match.onchainCreationBytecode = onchainCreationBytecode;
 
   // Initialize the transformations array if undefined
   if (match.creationTransformations === undefined) {
@@ -575,7 +574,7 @@ export async function matchWithCreationTx(
   // Replace the library placeholders in the recompiled bytecode with values from the deployed bytecode
   const { replaced, libraryMap } = addLibraryAddresses(
     recompiledCreationBytecode,
-    onchainCreationBytecode,
+    match.onchainCreationBytecode,
     match.creationTransformations
   );
   recompiledCreationBytecode = replaced;
@@ -589,7 +588,7 @@ export async function matchWithCreationTx(
     }, {});
   }
 
-  if (onchainCreationBytecode.startsWith(recompiledCreationBytecode)) {
+  if (match.onchainCreationBytecode.startsWith(recompiledCreationBytecode)) {
     // if the bytecode doesn't end with metadata then "partial" match
     if (endsWithMetadataHash(recompiledCreationBytecode)) {
       match.creationMatch = 'perfect';
@@ -626,7 +625,7 @@ export async function matchWithCreationTx(
         creationTransformationsValuesCborAuxdata,
     } = normalizeBytecodesAuxdata(
       recompiledCreationBytecode,
-      onchainCreationBytecode,
+      match.onchainCreationBytecode,
       cborAuxdataPositions
     )!;
 
@@ -648,7 +647,7 @@ export async function matchWithCreationTx(
   if (match.creationMatch) {
     const abiEncodedConstructorArguments =
       extractAbiEncodedConstructorArguments(
-        onchainCreationBytecode,
+        match.onchainCreationBytecode,
         recompiledCreationBytecode
       );
     const constructorAbiParamInputs = (

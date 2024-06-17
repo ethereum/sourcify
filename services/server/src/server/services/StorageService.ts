@@ -42,6 +42,7 @@ interface StorageServiceOptions {
   repositoryV1ServiceOptions: RepositoryV1ServiceOptions;
   repositoryV2ServiceOptions: RepositoryV2ServiceOptions;
   sourcifyDatabaseServiceOptions?: SourcifyDatabaseServiceOptions;
+  sourcifyFixedDatabaseServiceOptions?: SourcifyDatabaseServiceOptions;
   allianceDatabaseServiceOptions?: AllianceDatabaseServiceOptions;
 }
 
@@ -49,6 +50,7 @@ export class StorageService {
   repositoryV1: RepositoryV1Service;
   repositoryV2?: RepositoryV2Service;
   sourcifyDatabase?: SourcifyDatabaseService;
+  sourcifyFixedDatabase?: SourcifyDatabaseService;
   allianceDatabase?: AllianceDatabaseService;
 
   constructor(options: StorageServiceOptions) {
@@ -83,6 +85,23 @@ export class StorageService {
       logger.warn(
         "Won't use SourcifyDatabase, options not complete",
         options.sourcifyDatabaseServiceOptions
+      );
+    }
+
+    // SourcifyFixedDatabase
+    if (
+      options.sourcifyFixedDatabaseServiceOptions?.postgres?.host &&
+      options.sourcifyFixedDatabaseServiceOptions?.postgres?.database &&
+      options.sourcifyFixedDatabaseServiceOptions?.postgres?.user &&
+      options.sourcifyFixedDatabaseServiceOptions?.postgres?.password
+    ) {
+      this.sourcifyFixedDatabase = new SourcifyDatabaseService(
+        options.sourcifyFixedDatabaseServiceOptions
+      );
+    } else {
+      logger.warn(
+        "Won't use SourcifyFixedDatabase, options not complete",
+        options.sourcifyFixedDatabaseServiceOptions
       );
     }
 
@@ -430,6 +449,17 @@ export class StorageService {
         throw e;
       })
     );
+
+    if (this.sourcifyFixedDatabase) {
+      promises.push(
+        this.sourcifyFixedDatabase.storeMatch(contract, match).catch((e) => {
+          logger.error("Error storing to SourcifyFixedDatabase: ", {
+            error: e,
+          });
+          throw e;
+        })
+      );
+    }
 
     promises.push(
       this.repositoryV2.storeMatch(contract, match).catch((e) => {

@@ -2,6 +2,7 @@ import {
   CheckedContract,
   CompiledContractCborAuxdata,
   ImmutableReferences,
+  Libraries,
   Match,
   Transformation,
   TransformationValues,
@@ -532,6 +533,40 @@ export function normalizeRecompiledBytecodes(
       }
     });
   }
+}
+
+export function prepareCompilerSettings(recompiledContract: CheckedContract) {
+  // The metadata.settings contains recompiledContract that is not a field of compiler input
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { compilationTarget, ...restSettings } =
+    recompiledContract.metadata.settings;
+
+  const metadataLibraries =
+    recompiledContract.metadata.settings?.libraries || {};
+  restSettings.libraries = Object.keys(metadataLibraries || {}).reduce(
+    (libraries, libraryKey) => {
+      // Before Solidity v0.7.5: { "ERC20": "0x..."}
+      if (!libraryKey.includes(":")) {
+        if (!libraries[""]) {
+          libraries[""] = {};
+        }
+        // try using the global method, available for pre 0.7.5 versions
+        libraries[""][libraryKey] = metadataLibraries[libraryKey];
+        return libraries;
+      }
+
+      // After Solidity v0.7.5: { "ERC20.sol:ERC20": "0x..."}
+      const [contractPath, contractName] = libraryKey.split(":");
+      if (!libraries[contractPath]) {
+        libraries[contractPath] = {};
+      }
+      libraries[contractPath][contractName] = metadataLibraries[libraryKey];
+      return libraries;
+    },
+    {} as Libraries
+  ) as any;
+
+  return restSettings;
 }
 
 export async function countSourcifyMatchAddresses(pool: Pool, chain: number) {

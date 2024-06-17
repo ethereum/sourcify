@@ -65,7 +65,16 @@ export async function deployFromAbiAndBytecodeForCreatorTxHash(
     `Deployed contract at ${contractAddress} with tx ${creationTx.hash}`
   );
 
-  return { contractAddress, txHash: creationTx.hash };
+  const txReceipt = await signer.provider.getTransactionReceipt(
+    creationTx.hash
+  );
+
+  return {
+    contractAddress,
+    txHash: creationTx.hash,
+    blockNumber: creationTx.blockNumber,
+    txIndex: txReceipt?.index,
+  };
 }
 
 export async function deployAndVerifyContract(
