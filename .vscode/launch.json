@@ -194,15 +194,12 @@
       "cwd": "${workspaceFolder}/services/monitor",
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "args": [
-        "-r",
-        "ts-node/register",
-        "${workspaceFolder}/services/monitor/test/**",
+        "${workspaceFolder}/services/monitor/test/**.spec.ts",
         "--no-timeout",
         // Run a single test when debugging
         // "--grep=v0.6.12",
         "--exit"
       ],
-      "sourceMaps": true,
       "smartStep": true,
       "console": "integratedTerminal"
       // "internalConsoleOptions": "neverOpen"
