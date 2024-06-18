@@ -37,9 +37,9 @@ paths:
                   type: string
                   example: "0xbc2f0848023b6a4b89dd049dadc551428a8e95153bc70d9eee6c14ec843f0a98"
                 chosenContract:
-                  type: number
-                  description: "Optional identifier for the contract if multiple contracts (i.e. metadata.json files) are present."
-                  example: 0 
+                  type: string
+                  description: "Optional index for the contract if multiple contracts (i.e. metadata.json files) are present."
+                  example: "0" 
           multipart/form-data:
             schema:
               type: object
@@ -69,8 +69,8 @@ paths:
                 creatorTxHash:
                   type: string
                 chosenContract:
-                  type: number
-                  description: "Optional identifier for the contract if multiple contracts (i.e. metadata.json files) are present."
+                  type: string
+                  description: "Optional index for the contract if multiple contracts (i.e. metadata.json files) are present."
       responses:
         "200":
           description: The contract has been successfully checked or sourcified
