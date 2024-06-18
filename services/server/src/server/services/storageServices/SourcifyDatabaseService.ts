@@ -424,7 +424,9 @@ export class SourcifyDatabaseService
       sourcifyMatch?.runtime_values?.libraries &&
       Object.keys(sourcifyMatch.runtime_values.libraries).length > 0
     ) {
-      files["library-map.json"] = sourcifyMatch.runtime_values.libraries;
+      files["library-map.json"] = JSON.stringify(
+        sourcifyMatch.runtime_values.libraries
+      );
     }
 
     if (
@@ -432,8 +434,9 @@ export class SourcifyDatabaseService
       Object.keys(sourcifyMatch.runtime_code_artifacts.immutableReferences)
         .length > 0
     ) {
-      files["immutable-references.json"] =
-        sourcifyMatch.runtime_code_artifacts.immutableReferences;
+      files["immutable-references.json"] = JSON.stringify(
+        sourcifyMatch.runtime_code_artifacts.immutableReferences
+      );
     }
 
     return { status: contractStatus, sources, files };
@@ -444,7 +447,7 @@ export class SourcifyDatabaseService
     address: string,
     match: MatchLevel,
     path: string
-  ): Promise<any | false> => {
+  ): Promise<string | false> => {
     const { status, files, sources } = await this.getFiles(chainId, address);
     if (Object.keys(sources).length === 0) {
       return false;
@@ -570,21 +573,10 @@ export class SourcifyDatabaseService
         file
       );
 
-      // Convert json files to string
-      let content = "";
-      if (typeof filesRaw[file] === "string") {
-        content = filesRaw[file];
-      } else if (
-        typeof filesRaw[file] === "object" &&
-        filesRaw[file] !== null
-      ) {
-        content = JSON.stringify(filesRaw[file]);
-      }
-
       return {
         name: Path.basename(file),
         path: relativePath,
-        content,
+        content: filesRaw[file],
       } as FileObject;
     });
 
