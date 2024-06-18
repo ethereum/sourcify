@@ -100,6 +100,12 @@ A full example of a chain entry is as follows:
 
 ## Docker
 
+If you want to build yourself, the builds need to be run from the project root context, e.g.:
+
+```bash
+cd sourcify/ && docker build -f services/server/Dockerfile .
+```
+
 The containers are published in the [Github Container Registry](https://github.com/ethereum/sourcify/pkgs/container/sourcify%2Fserver)
 
 You can run the server using Docker and pass in a custom `sourcify-chains.json` (see above [Chains Config](#chains-config)) and `local.js` (see above [Server Config](#server-config)) config file.

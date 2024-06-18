@@ -68,7 +68,8 @@
   },
   "c8": {
     "exclude": [
-      "**/*.spec.js"
+      "**/*.spec.js",
+      "**/*.spec.ts"
     ],
     "reporter": [
       "html",

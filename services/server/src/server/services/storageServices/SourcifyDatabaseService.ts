@@ -455,10 +455,21 @@ export class SourcifyDatabaseService
         file
       );
 
+      // Convert json files to string
+      let content = "";
+      if (typeof filesRaw[file] === "string") {
+        content = filesRaw[file];
+      } else if (
+        typeof filesRaw[file] === "object" &&
+        filesRaw[file] !== null
+      ) {
+        content = JSON.stringify(filesRaw[file]);
+      }
+
       return {
         name: Path.basename(file),
         path: relativePath,
-        content: filesRaw[file],
+        content,
       } as FileObject;
     });
 

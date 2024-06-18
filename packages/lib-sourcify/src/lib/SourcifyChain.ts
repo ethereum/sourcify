@@ -369,15 +369,18 @@ export default class SourcifyChain {
     );
   };
 
-  getContractCreationBytecode = async (
+  getContractCreationBytecodeAndReceipt = async (
     address: string,
     transactionHash: string,
     creatorTx?: TransactionResponse
-  ): Promise<string> => {
+  ): Promise<{
+    creationBytecode: string;
+    txReceipt: TransactionReceipt;
+  }> => {
     const txReceipt = await this.getTxReceipt(transactionHash);
     if (!creatorTx) creatorTx = await this.getTx(transactionHash);
-    let creationBytecode = '';
 
+    let creationBytecode;
     // Non null txreceipt.contractAddress means that the contract was created with an EOA
     if (txReceipt.contractAddress !== null) {
       if (txReceipt.contractAddress !== address) {
@@ -416,6 +419,13 @@ export default class SourcifyChain {
       }
     }
 
-    return creationBytecode;
+    if (!creationBytecode) {
+      throw new Error('Cannot get creation bytecode');
+    }
+
+    return {
+      creationBytecode,
+      txReceipt,
+    };
   };
 }

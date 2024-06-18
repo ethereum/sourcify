@@ -121,10 +121,12 @@ export default abstract class AbstractDatabaseService {
 
     return {
       bytecodeHashes: {
-        recompiledCreation: bytesFromString(keccak256OnchainCreationBytecode),
-        recompiledRuntime: bytesFromString(keccak256OnchainRuntimeBytecode)!,
-        onchainCreation: bytesFromString(keccak256RecompiledCreationBytecode),
-        onchainRuntime: bytesFromString(keccak256RecompiledRuntimeBytecode)!,
+        recompiledCreation: bytesFromString(
+          keccak256RecompiledCreationBytecode
+        ),
+        recompiledRuntime: bytesFromString(keccak256RecompiledRuntimeBytecode)!,
+        onchainCreation: bytesFromString(keccak256OnchainCreationBytecode),
+        onchainRuntime: bytesFromString(keccak256OnchainRuntimeBytecode)!,
       },
       compiledContract: {
         language,
@@ -212,7 +214,8 @@ export default abstract class AbstractDatabaseService {
           compilation_artifacts:
             databaseColumns.compiledContract.compilation_artifacts!,
           sources: recompiledContract.solidity,
-          compiler_settings: recompiledContract.metadata.settings,
+          compiler_settings:
+            Database.prepareCompilerSettings(recompiledContract),
           creation_code_hash: databaseColumns.bytecodeHashes.recompiledCreation,
           runtime_code_hash: databaseColumns.bytecodeHashes.recompiledRuntime,
           creation_code_artifacts:
