@@ -34,25 +34,25 @@
   "dependencies": {
     "@ethereum-sourcify/bytecode-utils": "^1.2.8",
     "@ethereum-sourcify/lib-sourcify": "^1.8.0",
-    "chalk": "^4.1.2",
-    "commander": "^11.0.0",
-    "dotenv": "^16.3.1",
-    "ethers": "^6.7.1",
-    "winston": "^3.10.0"
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "dotenv": "^16.4.5",
+    "ethers": "^6.13.0",
+    "winston": "^3.13.0"
   },
   "devDependencies": {
-    "@types/chai": "^4.3.6",
-    "@types/mocha": "^10.0.1",
-    "@types/node": "^20.10.0",
-    "@types/sinon": "^10.0.16",
-    "c8": "^8.0.0",
-    "chai": "^4.3.8",
-    "hardhat": "2.19.5",
-    "mocha": "^10.2.0",
-    "nock": "^13.3.3",
-    "open-cli": "^7.1.0",
+    "@types/chai": "^4.3.16",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.14.2",
+    "@types/sinon": "^17.0.3",
+    "c8": "^10.1.2",
+    "chai": "^5.1.1",
+    "hardhat": "2.22.5",
+    "mocha": "^10.4.0",
+    "nock": "^13.5.4",
+    "open-cli": "^8.0.0",
     "tree-kill": "^1.2.2",
-    "sinon": "^16.0.0"
+    "sinon": "^18.0.0"
   },
   "c8": {
     "exclude": [

@@ -13,11 +13,11 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "commander": "^11.1.0",
+    "commander": "^12.1.0",
     "db-migrate": "^0.11.14",
     "db-migrate-pg": "^1.5.2",
-    "dotenv": "^16.3.1",
-    "pg": "^8.11.3",
+    "dotenv": "^16.4.5",
+    "pg": "^8.12.0",
     "readdirp": "^3.6.0"
   }
 }
