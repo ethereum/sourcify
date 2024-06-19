@@ -38,16 +38,11 @@ export interface RepositoryV1ServiceOptions {
 
 export class RepositoryV1Service implements RWStorageService {
   IDENTIFIER = RWStorageIdentifiers.RepositoryV1;
-  storageService: StorageService;
   repositoryPath: string;
   private ipfsClient?: IPFSHTTPClient;
 
-  constructor(
-    storageService_: StorageService,
-    options: RepositoryV1ServiceOptions
-  ) {
+  constructor(options: RepositoryV1ServiceOptions) {
     this.repositoryPath = options.repositoryPath;
-    this.storageService = storageService_;
     if (options.ipfsApi) {
       this.ipfsClient = createIpfsClient({ url: options.ipfsApi });
     } else {

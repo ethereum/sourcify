@@ -40,7 +40,6 @@ type MethodArgs<T, K extends keyof T> = T[K] extends (...args: infer A) => any
 
 export interface WStorageService {
   IDENTIFIER: StorageIdentifiers;
-  storageService: StorageService;
   init(): Promise<boolean>;
   storeMatch(contract: CheckedContract, match: Match): Promise<void | Match>;
 }
@@ -117,7 +116,6 @@ export class StorageService {
     if (enabledServicesArray.includes(RWStorageIdentifiers.RepositoryV1)) {
       if (options.repositoryV1ServiceOptions?.repositoryPath) {
         const repositoryV1 = new RepositoryV1Service(
-          this,
           options.repositoryV1ServiceOptions
         );
         this.rwServices[repositoryV1.IDENTIFIER] = repositoryV1;
@@ -134,7 +132,6 @@ export class StorageService {
     if (enabledServicesArray.includes(WStorageIdentifiers.RepositoryV2)) {
       if (options.repositoryV2ServiceOptions?.repositoryPath) {
         const repositoryV2 = new RepositoryV2Service(
-          this,
           options.repositoryV2ServiceOptions
         );
         this.wServices[repositoryV2.IDENTIFIER] = repositoryV2;
@@ -210,7 +207,6 @@ export class StorageService {
           options.allianceDatabaseServiceOptions?.postgres?.password)
       ) {
         const allianceDatabase = new AllianceDatabaseService(
-          this,
           options.allianceDatabaseServiceOptions
         );
         this.wServices[allianceDatabase.IDENTIFIER] = allianceDatabase;

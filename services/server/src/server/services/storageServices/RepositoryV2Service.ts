@@ -33,15 +33,10 @@ export interface RepositoryV2ServiceOptions {
 
 export class RepositoryV2Service implements WStorageService {
   IDENTIFIER = WStorageIdentifiers.RepositoryV2;
-  storageService: StorageService;
   repositoryPath: string;
   private ipfsClient?: IPFSHTTPClient;
 
-  constructor(
-    storageService_: StorageService,
-    options: RepositoryV2ServiceOptions
-  ) {
-    this.storageService = storageService_;
+  constructor(options: RepositoryV2ServiceOptions) {
     this.repositoryPath = options.repositoryPath!;
     if (options.ipfsApi) {
       this.ipfsClient = createIpfsClient({ url: options.ipfsApi });

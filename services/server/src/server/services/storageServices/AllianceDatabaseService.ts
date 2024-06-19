@@ -25,7 +25,6 @@ export class AllianceDatabaseService
   extends AbstractDatabaseService
   implements WStorageService
 {
-  storageService: StorageService;
   IDENTIFIER = WStorageIdentifiers.AllianceDatabase;
   databasePool!: Pool;
 
@@ -38,12 +37,8 @@ export class AllianceDatabaseService
   postgresUser?: string;
   postgresPassword?: string;
 
-  constructor(
-    storageService_: StorageService,
-    options: AllianceDatabaseServiceOptions
-  ) {
+  constructor(options: AllianceDatabaseServiceOptions) {
     super();
-    this.storageService = storageService_;
     this.googleCloudSqlInstanceName = options.googleCloudSql?.instanceName;
     this.googleCloudSqlIamAccount = options.googleCloudSql?.iamAccount;
     this.googleCloudSqlDatabase = options.googleCloudSql?.database;
