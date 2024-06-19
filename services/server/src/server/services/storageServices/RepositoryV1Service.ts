@@ -26,9 +26,9 @@ import path from "path";
 import logger from "../../../common/logger";
 import { getAddress } from "ethers";
 import { getMatchStatus } from "../../common";
-import { IStorageService, StorageService } from "../StorageService";
+import { RWStorageService, StorageService } from "../StorageService";
 import config from "config";
-import { StorageIdentifiers } from "./identifiers";
+import { RWStorageIdentifiers } from "./identifiers";
 
 export interface RepositoryV1ServiceOptions {
   ipfsApi: string;
@@ -36,8 +36,8 @@ export interface RepositoryV1ServiceOptions {
   repositoryServerUrl: string;
 }
 
-export class RepositoryV1Service implements IStorageService {
-  IDENTIFIER = StorageIdentifiers.RepositoryV1;
+export class RepositoryV1Service implements RWStorageService {
+  IDENTIFIER = RWStorageIdentifiers.RepositoryV1;
   storageService: StorageService;
   repositoryPath: string;
   private ipfsClient?: IPFSHTTPClient;

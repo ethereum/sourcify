@@ -6,11 +6,14 @@ import config from "config";
 import http from "http";
 import { SourcifyDatabaseService } from "../../src/server/services/storageServices/SourcifyDatabaseService";
 import { supportedChainsMap } from "../../src/sourcify-chains";
-import { StorageIdentifiers } from "../../src/server/services/storageServices/identifiers";
+import {
+  RWStorageIdentifiers,
+  StorageIdentifiers,
+} from "../../src/server/services/storageServices/identifiers";
 
 export type ServerFixtureOptions = {
   port: number;
-  read: StorageIdentifiers;
+  read: RWStorageIdentifiers;
   writeOrWarn: StorageIdentifiers[];
   writeOrErr: StorageIdentifiers[];
 };
@@ -93,8 +96,8 @@ export class ServerFixture {
       });
 
       await storageService.init();
-      this._sourcifyDatabase = storageService.services[
-        StorageIdentifiers.SourcifyDatabase
+      this._sourcifyDatabase = storageService.rwServices[
+        RWStorageIdentifiers.SourcifyDatabase
       ] as SourcifyDatabaseService;
 
       this._server = new Server(options.port!, supportedChainsMap, {

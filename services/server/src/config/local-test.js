@@ -1,5 +1,6 @@
 const {
-  StorageIdentifiers,
+  WStorageIdentifiers,
+  RWStorageIdentifiers,
 } = require("../server/services/storageServices/identifiers");
 
 module.exports = {
@@ -13,11 +14,11 @@ module.exports = {
     storeType: "database",
   },
   storage: {
-    read: StorageIdentifiers.SourcifyDatabase,
-    writeOrWarn: [StorageIdentifiers.RepositoryV1],
+    read: RWStorageIdentifiers.SourcifyDatabase,
+    writeOrWarn: [RWStorageIdentifiers.RepositoryV1],
     writeOrErr: [
-      StorageIdentifiers.RepositoryV2,
-      StorageIdentifiers.SourcifyDatabase,
+      WStorageIdentifiers.RepositoryV2,
+      RWStorageIdentifiers.SourcifyDatabase,
     ],
   },
 };

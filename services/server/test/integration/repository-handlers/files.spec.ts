@@ -10,20 +10,20 @@ import { LocalChainFixture } from "../../helpers/LocalChainFixture";
 import { ServerFixture } from "../../helpers/ServerFixture";
 import path from "path";
 import fs from "fs";
-import { StorageIdentifiers } from "../../../src/server/services/storageServices/identifiers";
+import { RWStorageIdentifiers } from "../../../src/server/services/storageServices/identifiers";
 
 chai.use(chaiHttp);
 
 describe("Verify repository endpoints", function () {
   const chainFixture = new LocalChainFixture();
   const serverFixtureWithDatabase = new ServerFixture();
-  serverFixtureWithDatabase.identifier = StorageIdentifiers.SourcifyDatabase;
+  serverFixtureWithDatabase.identifier = RWStorageIdentifiers.SourcifyDatabase;
   const serverFixtureWithRepositoryV1 = new ServerFixture({
     port: 5556, // use a different port
-    read: StorageIdentifiers.RepositoryV1,
-    writeOrErr: [StorageIdentifiers.RepositoryV1],
+    read: RWStorageIdentifiers.RepositoryV1,
+    writeOrErr: [RWStorageIdentifiers.RepositoryV1],
   });
-  serverFixtureWithRepositoryV1.identifier = StorageIdentifiers.RepositoryV1;
+  serverFixtureWithRepositoryV1.identifier = RWStorageIdentifiers.RepositoryV1;
 
   [serverFixtureWithDatabase, serverFixtureWithRepositoryV1].forEach(
     (serverFixture) => {
@@ -285,7 +285,7 @@ describe("Verify repository endpoints", function () {
 
         const expectedContent = {
           __$b8833469cd54bfd61b3a18436a18bad1f3$__:
-            serverFixture.identifier === StorageIdentifiers.SourcifyDatabase
+            serverFixture.identifier === RWStorageIdentifiers.SourcifyDatabase
               ? "0x7d53f102f4d4aa014db4e10d6deec2009b3cda6b"
               : "7d53f102f4d4aa014db4e10d6deec2009b3cda6b",
         };

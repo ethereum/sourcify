@@ -14,33 +14,25 @@ import {
   CheckedContract,
 } from "@ethereum-sourcify/lib-sourcify";
 import {
-  ContractData,
-  FileObject,
-  FilesInfo,
   MatchLevel,
   MatchQuality,
-  PaginatedContractData,
   PathConfig,
   RepositoryTag,
 } from "../../types";
-import {
-  create as createIpfsClient,
-  IPFSHTTPClient,
-  globSource,
-} from "ipfs-http-client";
+import { create as createIpfsClient, IPFSHTTPClient } from "ipfs-http-client";
 import logger from "../../../common/logger";
 import { getAddress, id as keccak256 } from "ethers";
 import { getMatchStatus } from "../../common";
-import { IStorageService, StorageService } from "../StorageService";
-import { StorageIdentifiers } from "./identifiers";
+import { WStorageService, StorageService } from "../StorageService";
+import { WStorageIdentifiers } from "./identifiers";
 
 export interface RepositoryV2ServiceOptions {
   ipfsApi: string;
   repositoryPath?: string;
 }
 
-export class RepositoryV2Service implements IStorageService {
-  IDENTIFIER = StorageIdentifiers.RepositoryV2;
+export class RepositoryV2Service implements WStorageService {
+  IDENTIFIER = WStorageIdentifiers.RepositoryV2;
   storageService: StorageService;
   repositoryPath: string;
   private ipfsClient?: IPFSHTTPClient;
@@ -58,35 +50,6 @@ export class RepositoryV2Service implements IStorageService {
         "RepositoryV2: IPFS_API not set, IPFS MFS will not be updated"
       );
     }
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getFile(..._: any): Promise<string | false> {
-    throw new Error("Method not implemented.");
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getTree(..._: any): Promise<FilesInfo<string[]>> {
-    throw new Error("Method not implemented.");
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getContent(..._: any): Promise<FilesInfo<FileObject[]>> {
-    throw new Error("Method not implemented.");
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getContracts(..._: any): Promise<ContractData> {
-    throw new Error("Method not implemented.");
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getPaginatedContracts(..._: any): Promise<PaginatedContractData> {
-    throw new Error("Method not implemented.");
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  checkByChainAndAddress(..._: any): Promise<Match[]> {
-    throw new Error("Method not implemented.");
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  checkAllByChainAndAddress(..._: any): Promise<Match[]> {
-    throw new Error("Method not implemented.");
   }
 
   async init() {

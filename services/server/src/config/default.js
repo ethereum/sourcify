@@ -1,5 +1,6 @@
 const {
-  StorageIdentifiers,
+  WStorageIdentifiers,
+  RWStorageIdentifiers,
 } = require("../server/services/storageServices/identifiers");
 
 module.exports = {
@@ -10,17 +11,17 @@ module.exports = {
   // The storage services where the verified contract be saved and read from
   storage: {
     // read option will be the "source of truth" where the contracts read from for the API requests.
-    read: StorageIdentifiers.SourcifyDatabase,
+    read: RWStorageIdentifiers.SourcifyDatabase,
     // User request will NOT fail if saving to these fail, but only log a warning
     writeOrWarn: [
-      StorageIdentifiers.AllianceDatabase,
-      StorageIdentifiers.RepositoryV1,
+      WStorageIdentifiers.AllianceDatabase,
+      RWStorageIdentifiers.RepositoryV1,
     ],
     // The user request will fail if saving to these fail
     writeOrErr: [
-      StorageIdentifiers.RepositoryV2,
-      StorageIdentifiers.SourcifyDatabase,
-      StorageIdentifiers.SourcifyFixedDatabase,
+      WStorageIdentifiers.RepositoryV2,
+      RWStorageIdentifiers.SourcifyDatabase,
+      RWStorageIdentifiers.SourcifyFixedDatabase,
     ],
   },
   // Legacy repository

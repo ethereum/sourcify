@@ -7,7 +7,7 @@ import logger from "../../../common/logger";
 import * as Database from "../utils/database-util";
 import { Pool } from "pg";
 import AbstractDatabaseService from "./AbstractDatabaseService";
-import { IStorageService, StorageService } from "../StorageService";
+import { RWStorageService, StorageService } from "../StorageService";
 import { bytesFromString } from "../utils/database-util";
 import {
   ContractData,
@@ -23,7 +23,8 @@ import Path from "path";
 import { getFileRelativePath } from "../utils/util";
 import { getAddress } from "ethers";
 import { BadRequestError } from "../../../common/errors";
-import { StorageIdentifiers } from "./identifiers";
+import { RWStorageIdentifiers, WStorageIdentifiers } from "./identifiers";
+import { RepositoryV2Service } from "./RepositoryV2Service";
 
 export interface SourcifyDatabaseServiceOptions {
   postgres: {
@@ -39,10 +40,10 @@ const MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS = 200;
 
 export class SourcifyDatabaseService
   extends AbstractDatabaseService
-  implements IStorageService
+  implements RWStorageService
 {
   storageService: StorageService;
-  IDENTIFIER = StorageIdentifiers.SourcifyDatabase;
+  IDENTIFIER = RWStorageIdentifiers.SourcifyDatabase;
   databasePool!: Pool;
 
   postgresHost?: string;
@@ -317,9 +318,11 @@ export class SourcifyDatabaseService
     address: string,
     match: MatchLevel
   ): Promise<string | false> {
-    return this.storageService.services[
-      StorageIdentifiers.RepositoryV2
-    ].getMetadata(chainId, address, match);
+    return (
+      this.storageService.wServices[
+        WStorageIdentifiers.RepositoryV2
+      ] as RepositoryV2Service
+    ).getMetadata(chainId, address, match);
   }
 
   /**

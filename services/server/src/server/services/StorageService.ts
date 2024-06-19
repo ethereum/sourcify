@@ -24,7 +24,11 @@ import {
   MatchLevel,
   PaginatedContractData,
 } from "../types";
-import { StorageIdentifiers } from "./storageServices/identifiers";
+import {
+  RWStorageIdentifiers,
+  StorageIdentifiers,
+  WStorageIdentifiers,
+} from "./storageServices/identifiers";
 
 type MethodNames<T> = {
   [K in keyof T]: T[K] extends (...args: any) => any ? K : never;
@@ -34,10 +38,14 @@ type MethodArgs<T, K extends keyof T> = T[K] extends (...args: infer A) => any
   ? A
   : never;
 
-export interface IStorageService {
+export interface WStorageService {
   IDENTIFIER: StorageIdentifiers;
   storageService: StorageService;
   init(): Promise<boolean>;
+  storeMatch(contract: CheckedContract, match: Match): Promise<void | Match>;
+}
+
+export interface RWStorageService extends WStorageService {
   getMetadata(
     chainId: string,
     address: string,
@@ -69,11 +77,10 @@ export interface IStorageService {
   ): Promise<PaginatedContractData>;
   checkByChainAndAddress(address: string, chainId: string): Promise<Match[]>;
   checkAllByChainAndAddress(address: string, chainId: string): Promise<Match[]>;
-  storeMatch(contract: CheckedContract, match: Match): Promise<void | Match>;
 }
 
 export interface EnabledServices {
-  read: StorageIdentifiers;
+  read: RWStorageIdentifiers;
   writeOrWarn: StorageIdentifiers[];
   writeOrErr: StorageIdentifiers[];
 }
@@ -89,8 +96,12 @@ export interface StorageServiceOptions {
 
 export class StorageService {
   enabledServices: EnabledServices;
-  services: { [key in StorageIdentifiers]: IStorageService } = {} as {
-    [key in StorageIdentifiers]: IStorageService;
+
+  rwServices: { [key in RWStorageIdentifiers]: RWStorageService } = {} as {
+    [key in RWStorageIdentifiers]: RWStorageService;
+  };
+  wServices: { [key in StorageIdentifiers]: WStorageService } = {} as {
+    [key in StorageIdentifiers]: WStorageService;
   };
 
   constructor(options: StorageServiceOptions) {
@@ -103,13 +114,13 @@ export class StorageService {
     ];
 
     // repositoryV1
-    if (enabledServicesArray.includes(StorageIdentifiers.RepositoryV1)) {
+    if (enabledServicesArray.includes(RWStorageIdentifiers.RepositoryV1)) {
       if (options.repositoryV1ServiceOptions?.repositoryPath) {
         const repositoryV1 = new RepositoryV1Service(
           this,
           options.repositoryV1ServiceOptions
         );
-        this.services[repositoryV1.IDENTIFIER] = repositoryV1;
+        this.rwServices[repositoryV1.IDENTIFIER] = repositoryV1;
       } else {
         logger.error(
           "RepositoryV1 enabled, but path not set",
@@ -120,13 +131,13 @@ export class StorageService {
     }
 
     // repositoryV2
-    if (enabledServicesArray.includes(StorageIdentifiers.RepositoryV2)) {
+    if (enabledServicesArray.includes(WStorageIdentifiers.RepositoryV2)) {
       if (options.repositoryV2ServiceOptions?.repositoryPath) {
         const repositoryV2 = new RepositoryV2Service(
           this,
           options.repositoryV2ServiceOptions
         );
-        this.services[repositoryV2.IDENTIFIER] = repositoryV2;
+        this.wServices[repositoryV2.IDENTIFIER] = repositoryV2;
       } else {
         logger.error(
           "RepositoryV2 enabled, but path not set",
@@ -137,7 +148,7 @@ export class StorageService {
     }
 
     // SourcifyDatabase
-    if (enabledServicesArray.includes(StorageIdentifiers.SourcifyDatabase)) {
+    if (enabledServicesArray.includes(RWStorageIdentifiers.SourcifyDatabase)) {
       if (
         options.sourcifyDatabaseServiceOptions?.postgres?.host &&
         options.sourcifyDatabaseServiceOptions?.postgres?.database &&
@@ -148,7 +159,7 @@ export class StorageService {
           this,
           options.sourcifyDatabaseServiceOptions
         );
-        this.services[sourcifyDatabase.IDENTIFIER] = sourcifyDatabase;
+        this.rwServices[sourcifyDatabase.IDENTIFIER] = sourcifyDatabase;
       } else {
         logger.error(
           "SourcifyDatabase enabled, but options are not complete",
@@ -162,7 +173,7 @@ export class StorageService {
 
     // SourcifyFixedDatabase
     if (
-      enabledServicesArray.includes(StorageIdentifiers.SourcifyFixedDatabase)
+      enabledServicesArray.includes(RWStorageIdentifiers.SourcifyFixedDatabase)
     ) {
       if (
         options.sourcifyFixedDatabaseServiceOptions?.postgres?.host &&
@@ -175,8 +186,9 @@ export class StorageService {
           options.sourcifyFixedDatabaseServiceOptions
         );
         sourcifyFixedDatabase.IDENTIFIER =
-          StorageIdentifiers.SourcifyFixedDatabase;
-        this.services[sourcifyFixedDatabase.IDENTIFIER] = sourcifyFixedDatabase;
+          RWStorageIdentifiers.SourcifyFixedDatabase;
+        this.rwServices[sourcifyFixedDatabase.IDENTIFIER] =
+          sourcifyFixedDatabase;
       } else {
         logger.error(
           "SourcifyFixedDatabase enabled, but options are not complete",
@@ -189,7 +201,7 @@ export class StorageService {
     }
 
     // AllianceDatabase
-    if (enabledServicesArray.includes(StorageIdentifiers.AllianceDatabase)) {
+    if (enabledServicesArray.includes(WStorageIdentifiers.AllianceDatabase)) {
       if (
         options.allianceDatabaseServiceOptions?.googleCloudSql ||
         (options.allianceDatabaseServiceOptions?.postgres?.host &&
@@ -201,7 +213,7 @@ export class StorageService {
           this,
           options.allianceDatabaseServiceOptions
         );
-        this.services[allianceDatabase.IDENTIFIER] = allianceDatabase;
+        this.wServices[allianceDatabase.IDENTIFIER] = allianceDatabase;
       } else {
         logger.error(
           "AllianceDatabase enabled, but options are not complete",
@@ -214,23 +226,27 @@ export class StorageService {
     }
   }
 
-  getServiceByConfigKey(configKey: StorageIdentifiers): IStorageService {
-    return this.services[configKey];
+  getRWServiceByConfigKey(configKey: RWStorageIdentifiers): RWStorageService {
+    return this.rwServices[configKey];
   }
 
-  getDefaultReadService(): IStorageService {
-    return this.getServiceByConfigKey(this.enabledServices.read);
+  getWServiceByConfigKey(configKey: StorageIdentifiers): WStorageService {
+    return { ...this.rwServices, ...this.wServices }[configKey];
   }
 
-  getWriteOrWarnServices(): IStorageService[] {
+  getDefaultReadService(): RWStorageService {
+    return this.getRWServiceByConfigKey(this.enabledServices.read);
+  }
+
+  getWriteOrWarnServices(): WStorageService[] {
     return this.enabledServices.writeOrWarn.map((serviceKey) =>
-      this.getServiceByConfigKey(serviceKey)
+      this.getWServiceByConfigKey(serviceKey)
     );
   }
 
-  getWriteOrErrServices(): IStorageService[] {
+  getWriteOrErrServices(): WStorageService[] {
     return this.enabledServices.writeOrErr.map((serviceKey) =>
-      this.getServiceByConfigKey(serviceKey)
+      this.getWServiceByConfigKey(serviceKey)
     );
   }
 
@@ -242,18 +258,18 @@ export class StorageService {
       this.getDefaultReadService(),
       ...this.getWriteOrWarnServices(),
       ...this.getWriteOrErrServices(),
-    ].filter((service) => service !== undefined) as IStorageService[];
+    ].filter((service) => service !== undefined) as WStorageService[];
 
     // Create object: StorageIdentifier => Storage
     const enabledServices = enabledServicesArray.reduce(
       (
-        services: { [key in StorageIdentifiers]: IStorageService },
-        service: IStorageService
+        services: { [key in StorageIdentifiers]: WStorageService },
+        service: WStorageService
       ) => {
         services[service.IDENTIFIER] = service;
         return services;
       },
-      {} as { [key in StorageIdentifiers]: IStorageService }
+      {} as { [key in StorageIdentifiers]: WStorageService }
     );
 
     logger.debug("Initializing used storage services", {
@@ -263,8 +279,12 @@ export class StorageService {
     // Try to initialize used storage services
     for (const serviceIdentifier of Object.keys(
       enabledServices
-    ) as StorageIdentifiers[]) {
-      if (!(await this.services[serviceIdentifier].init())) {
+    ) as RWStorageIdentifiers[]) {
+      if (
+        !(await { ...this.rwServices, ...this.wServices }[
+          serviceIdentifier
+        ].init())
+      ) {
         throw new Error(
           "Cannot initialize default storage service: " + serviceIdentifier
         );
@@ -330,7 +350,7 @@ export class StorageService {
   }
 
   async performServiceOperation<
-    T extends IStorageService,
+    T extends RWStorageService,
     K extends MethodNames<T> // MethodNames extracts T's methods
   >(
     methodName: K,

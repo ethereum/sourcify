@@ -2,15 +2,9 @@ import logger from "../../../common/logger";
 import { AuthTypes, Connector } from "@google-cloud/cloud-sql-connector";
 import { Pool } from "pg";
 import AbstractDatabaseService from "./AbstractDatabaseService";
-import { IStorageService, StorageService } from "../StorageService";
+import { WStorageService, StorageService } from "../StorageService";
 import { CheckedContract, Match } from "@ethereum-sourcify/lib-sourcify";
-import {
-  FilesInfo,
-  FileObject,
-  ContractData,
-  PaginatedContractData,
-} from "../../types";
-import { StorageIdentifiers } from "./identifiers";
+import { WStorageIdentifiers } from "./identifiers";
 
 export interface AllianceDatabaseServiceOptions {
   googleCloudSql?: {
@@ -29,10 +23,10 @@ export interface AllianceDatabaseServiceOptions {
 
 export class AllianceDatabaseService
   extends AbstractDatabaseService
-  implements IStorageService
+  implements WStorageService
 {
   storageService: StorageService;
-  IDENTIFIER = StorageIdentifiers.AllianceDatabase;
+  IDENTIFIER = WStorageIdentifiers.AllianceDatabase;
   databasePool!: Pool;
 
   googleCloudSqlInstanceName?: string;
@@ -58,40 +52,6 @@ export class AllianceDatabaseService
     this.postgresDatabase = options.postgres?.database;
     this.postgresUser = options.postgres?.user;
     this.postgresPassword = options.postgres?.password;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getMetadata(..._: any): Promise<string | false> {
-    throw new Error("Method not implemented.");
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getFile(..._: any): Promise<string | false> {
-    throw new Error("Method not implemented.");
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getTree(..._: any): Promise<FilesInfo<string[]>> {
-    throw new Error("Method not implemented.");
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getContent(..._: any): Promise<FilesInfo<FileObject[]>> {
-    throw new Error("Method not implemented.");
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getContracts(..._: any): Promise<ContractData> {
-    throw new Error("Method not implemented.");
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getPaginatedContracts(..._: any): Promise<PaginatedContractData> {
-    throw new Error("Method not implemented.");
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  checkByChainAndAddress(..._: any): Promise<Match[]> {
-    throw new Error("Method not implemented.");
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  checkAllByChainAndAddress(..._: any): Promise<Match[]> {
-    throw new Error("Method not implemented.");
   }
 
   async init() {
