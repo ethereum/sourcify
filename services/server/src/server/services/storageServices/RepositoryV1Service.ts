@@ -13,7 +13,6 @@ import {
   FilesInfo,
   MatchLevel,
   MatchQuality,
-  PaginatedContractData,
   PathConfig,
   RepositoryTag,
 } from "../../types";
@@ -26,9 +25,10 @@ import path from "path";
 import logger from "../../../common/logger";
 import { getAddress } from "ethers";
 import { getMatchStatus } from "../../common";
-import { RWStorageService, StorageService } from "../StorageService";
+import { RWStorageService } from "../StorageService";
 import config from "config";
 import { RWStorageIdentifiers } from "./identifiers";
+import { exists } from "../utils/util";
 
 export interface RepositoryV1ServiceOptions {
   ipfsApi: string;
@@ -57,13 +57,6 @@ export class RepositoryV1Service implements RWStorageService {
     match: MatchLevel
   ): Promise<string | false> {
     return this.getFile(chainId, address, match, "metadata.json");
-  }
-
-  getPaginatedContracts(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    ..._: any
-  ): Promise<PaginatedContractData> {
-    throw new Error("Method not implemented.");
   }
 
   async getFile(
@@ -163,20 +156,21 @@ export class RepositoryV1Service implements RWStorageService {
     return files;
   }
 
-  fetchAllFileContents(
+  async fetchAllFileContents(
     chain: string,
     address: string,
     match = "full_match"
-  ): Array<FileObject> {
+  ): Promise<Array<FileObject>> {
     const files = this.fetchAllFilePaths(chain, address, match);
     for (const file in files) {
-      const loadedFile = fs.readFileSync(files[file].path);
+      const loadedFile = await fs.promises.readFile(files[file].path);
       files[file].content = loadedFile.toString();
       files[file].path = files[file].path.replace(this.repositoryPath, "");
     }
 
     return files;
   }
+
   fetchAllContracts = async (chain: string): Promise<ContractData> => {
     const fullPath = Path.join(
       this.repositoryPath,
@@ -192,9 +186,11 @@ export class RepositoryV1Service implements RWStorageService {
       chain
     );
 
-    const full = fs.existsSync(fullPath) ? fs.readdirSync(fullPath) : [];
-    const partial = fs.existsSync(partialPath)
-      ? fs.readdirSync(partialPath)
+    const full = (await exists(fullPath))
+      ? await fs.promises.readdir(fullPath)
+      : [];
+    const partial = (await exists(partialPath))
+      ? await fs.promises.readdir(partialPath)
       : [];
     return {
       full,
@@ -225,7 +221,7 @@ export class RepositoryV1Service implements RWStorageService {
     address: string,
     match: MatchLevel
   ): Promise<FilesInfo<Array<FileObject>>> => {
-    const fullMatchesFiles = this.fetchAllFileContents(
+    const fullMatchesFiles = await this.fetchAllFileContents(
       chainId,
       address,
       "full_match"
@@ -234,7 +230,11 @@ export class RepositoryV1Service implements RWStorageService {
       return { status: "full", files: fullMatchesFiles };
     }
 
-    const files = this.fetchAllFileContents(chainId, address, "partial_match");
+    const files = await this.fetchAllFileContents(
+      chainId,
+      address,
+      "partial_match"
+    );
     return { status: "partial", files };
   };
 
@@ -409,15 +409,15 @@ export class RepositoryV1Service implements RWStorageService {
    * @param path the path within the repository where the file will be stored
    * @param content the content to be stored
    */
-  save(path: string | PathConfig, content: string) {
+  async save(path: string | PathConfig, content: string) {
     const abolsutePath =
       typeof path === "string"
         ? Path.join(this.repositoryPath, path)
         : this.generateAbsoluteFilePath(path);
-    fs.mkdirSync(Path.dirname(abolsutePath), { recursive: true });
-    fs.writeFileSync(abolsutePath, content);
+    await fs.promises.mkdir(Path.dirname(abolsutePath), { recursive: true });
+    await fs.promises.writeFile(abolsutePath, content);
     logger.silly("Saved file to repositoryV1", { abolsutePath });
-    this.updateRepositoryTag();
+    await this.updateRepositoryTag();
   }
 
   public async storeMatch(
@@ -436,13 +436,13 @@ export class RepositoryV1Service implements RWStorageService {
         match.runtimeMatch === "perfect" ||
         match.creationMatch === "perfect"
       ) {
-        this.deletePartialIfExists(match.chainId, match.address);
+        await this.deletePartialIfExists(match.chainId, match.address);
       }
       const matchQuality: MatchQuality = this.statusToMatchQuality(
         getMatchStatus(match)
       );
 
-      this.storeSources(
+      await this.storeSources(
         matchQuality,
         match.chainId,
         match.address,
@@ -450,7 +450,7 @@ export class RepositoryV1Service implements RWStorageService {
       );
 
       // Store metadata
-      this.storeJSON(
+      await this.storeJSON(
         matchQuality,
         match.chainId,
         match.address,
@@ -459,7 +459,7 @@ export class RepositoryV1Service implements RWStorageService {
       );
 
       if (match.abiEncodedConstructorArguments) {
-        this.storeTxt(
+        await this.storeTxt(
           matchQuality,
           match.chainId,
           match.address,
@@ -469,7 +469,7 @@ export class RepositoryV1Service implements RWStorageService {
       }
 
       if (match.creatorTxHash) {
-        this.storeTxt(
+        await this.storeTxt(
           matchQuality,
           match.chainId,
           match.address,
@@ -479,7 +479,7 @@ export class RepositoryV1Service implements RWStorageService {
       }
 
       if (match.libraryMap && Object.keys(match.libraryMap).length) {
-        this.storeJSON(
+        await this.storeJSON(
           matchQuality,
           match.chainId,
           match.address,
@@ -492,7 +492,7 @@ export class RepositoryV1Service implements RWStorageService {
         match.immutableReferences &&
         Object.keys(match.immutableReferences).length > 0
       ) {
-        this.storeJSON(
+        await this.storeJSON(
           matchQuality,
           match.chainId,
           match.address,
@@ -519,7 +519,7 @@ export class RepositoryV1Service implements RWStorageService {
     }
   }
 
-  deletePartialIfExists(chainId: string, address: string) {
+  async deletePartialIfExists(chainId: string, address: string) {
     const pathConfig: PathConfig = {
       matchQuality: "partial",
       chainId,
@@ -528,18 +528,18 @@ export class RepositoryV1Service implements RWStorageService {
     };
     const absolutePath = this.generateAbsoluteFilePath(pathConfig);
 
-    if (fs.existsSync(absolutePath)) {
-      fs.rmdirSync(absolutePath, { recursive: true });
+    if (await exists(absolutePath)) {
+      await fs.promises.rmdir(absolutePath, { recursive: true });
     }
   }
 
-  updateRepositoryTag() {
+  async updateRepositoryTag() {
     const filePath: string = Path.join(this.repositoryPath, "manifest.json");
     const timestamp = new Date().getTime();
     const tag: RepositoryTag = {
       timestamp: timestamp,
     };
-    fs.writeFileSync(filePath, JSON.stringify(tag));
+    await fs.promises.writeFile(filePath, JSON.stringify(tag));
   }
 
   /**
@@ -554,7 +554,7 @@ export class RepositoryV1Service implements RWStorageService {
     throw new Error(`Invalid match status: ${status}`);
   }
 
-  private storeSources(
+  private async storeSources(
     matchQuality: MatchQuality,
     chainId: string,
     address: string,
@@ -566,7 +566,7 @@ export class RepositoryV1Service implements RWStorageService {
       if (sanitizedPath !== originalPath) {
         pathTranslation[originalPath] = sanitizedPath;
       }
-      this.save(
+      await this.save(
         {
           matchQuality,
           chainId,
@@ -579,7 +579,7 @@ export class RepositoryV1Service implements RWStorageService {
     }
     // Finally save the path translation
     if (Object.keys(pathTranslation).length === 0) return;
-    this.save(
+    await this.save(
       {
         matchQuality,
         chainId,
@@ -591,14 +591,14 @@ export class RepositoryV1Service implements RWStorageService {
     );
   }
 
-  private storeJSON(
+  private async storeJSON(
     matchQuality: MatchQuality,
     chainId: string,
     address: string,
     fileName: string,
     contentJSON: any
   ) {
-    this.save(
+    await this.save(
       {
         matchQuality,
         chainId,
@@ -609,14 +609,14 @@ export class RepositoryV1Service implements RWStorageService {
     );
   }
 
-  private storeTxt(
+  private async storeTxt(
     matchQuality: MatchQuality,
     chainId: string,
     address: string,
     fileName: string,
     content: string
   ) {
-    this.save(
+    await this.save(
       {
         matchQuality,
         chainId,

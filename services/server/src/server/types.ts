@@ -58,3 +58,17 @@ export type FileObject = {
   path: string;
   content?: string;
 };
+
+export type MethodNames<T> = {
+  [K in keyof T]: T[K] extends (...args: any) => any ? K : never;
+}[keyof T];
+
+export type MethodArgs<T, K extends keyof T> = T[K] extends (
+  ...args: infer A
+) => any
+  ? A
+  : never;
+
+export type Mandatory<T> = {
+  [P in keyof T]-?: T[P];
+};

@@ -1,4 +1,5 @@
 import Path from "path";
+import fs from "fs";
 import { MatchQuality } from "../../types";
 
 export const getFileRelativePath = (
@@ -19,3 +20,12 @@ export const getFileRelativePath = (
     ? Path.join(baseDir, "sources", file)
     : Path.join(baseDir, file);
 };
+
+export async function exists(path: string): Promise<boolean> {
+  try {
+    await fs.promises.access(path);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}

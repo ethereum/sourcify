@@ -23,8 +23,9 @@ import { create as createIpfsClient, IPFSHTTPClient } from "ipfs-http-client";
 import logger from "../../../common/logger";
 import { getAddress, id as keccak256 } from "ethers";
 import { getMatchStatus } from "../../common";
-import { WStorageService, StorageService } from "../StorageService";
+import { WStorageService } from "../StorageService";
 import { WStorageIdentifiers } from "./identifiers";
+import { exists } from "../utils/util";
 
 export interface RepositoryV2ServiceOptions {
   ipfsApi: string;
@@ -60,7 +61,7 @@ export class RepositoryV2Service implements WStorageService {
     match: MatchLevel
   ): Promise<string | false> => {
     try {
-      return fs.readFileSync(
+      return await fs.promises.readFile(
         this.generateAbsoluteFilePath({
           matchQuality: match === "full_match" ? "full" : "partial",
           chainId: chainId,
@@ -107,13 +108,13 @@ export class RepositoryV2Service implements WStorageService {
    * @param path the path within the repository where the file will be stored
    * @param content the content to be stored
    */
-  save(path: string | PathConfig, content: string) {
+  async save(path: string | PathConfig, content: string) {
     const abolsutePath =
       typeof path === "string"
         ? Path.join(this.repositoryPath, path)
         : this.generateAbsoluteFilePath(path);
-    fs.mkdirSync(Path.dirname(abolsutePath), { recursive: true });
-    fs.writeFileSync(abolsutePath, content);
+    await fs.promises.mkdir(Path.dirname(abolsutePath), { recursive: true });
+    await fs.promises.writeFile(abolsutePath, content);
     logger.silly("Saved file to repositoryV2", { abolsutePath });
     this.updateRepositoryTag();
   }
@@ -140,7 +141,7 @@ export class RepositoryV2Service implements WStorageService {
         getMatchStatus(match)
       );
 
-      this.storeSources(
+      await this.storeSources(
         matchQuality,
         match.chainId,
         match.address,
@@ -148,7 +149,7 @@ export class RepositoryV2Service implements WStorageService {
       );
 
       // Store metadata
-      this.storeJSON(
+      await this.storeJSON(
         matchQuality,
         match.chainId,
         match.address,
@@ -157,7 +158,7 @@ export class RepositoryV2Service implements WStorageService {
       );
 
       if (match.abiEncodedConstructorArguments) {
-        this.storeTxt(
+        await this.storeTxt(
           matchQuality,
           match.chainId,
           match.address,
@@ -167,7 +168,7 @@ export class RepositoryV2Service implements WStorageService {
       }
 
       if (match.creatorTxHash) {
-        this.storeTxt(
+        await this.storeTxt(
           matchQuality,
           match.chainId,
           match.address,
@@ -177,7 +178,7 @@ export class RepositoryV2Service implements WStorageService {
       }
 
       if (match.libraryMap && Object.keys(match.libraryMap).length) {
-        this.storeJSON(
+        await this.storeJSON(
           matchQuality,
           match.chainId,
           match.address,
@@ -190,7 +191,7 @@ export class RepositoryV2Service implements WStorageService {
         match.immutableReferences &&
         Object.keys(match.immutableReferences).length > 0
       ) {
-        this.storeJSON(
+        await this.storeJSON(
           matchQuality,
           match.chainId,
           match.address,
@@ -213,7 +214,7 @@ export class RepositoryV2Service implements WStorageService {
     }
   }
 
-  deletePartialIfExists(chainId: string, address: string) {
+  async deletePartialIfExists(chainId: string, address: string) {
     const pathConfig: PathConfig = {
       matchQuality: "partial",
       chainId,
@@ -222,18 +223,18 @@ export class RepositoryV2Service implements WStorageService {
     };
     const absolutePath = this.generateAbsoluteFilePath(pathConfig);
 
-    if (fs.existsSync(absolutePath)) {
-      fs.rmdirSync(absolutePath, { recursive: true });
+    if (await exists(absolutePath)) {
+      await fs.promises.rmdir(absolutePath, { recursive: true });
     }
   }
 
-  updateRepositoryTag() {
+  async updateRepositoryTag() {
     const filePath: string = Path.join(this.repositoryPath, "manifest.json");
     const timestamp = new Date().getTime();
     const tag: RepositoryTag = {
       timestamp: timestamp,
     };
-    fs.writeFileSync(filePath, JSON.stringify(tag));
+    await fs.promises.writeFile(filePath, JSON.stringify(tag));
   }
 
   /**
@@ -248,14 +249,14 @@ export class RepositoryV2Service implements WStorageService {
     throw new Error(`Invalid match status: ${status}`);
   }
 
-  private storeSources(
+  private async storeSources(
     matchQuality: MatchQuality,
     chainId: string,
     address: string,
     sources: StringMap
   ) {
     for (const sourcePath in sources) {
-      this.save(
+      await this.save(
         {
           matchQuality,
           chainId,
@@ -269,14 +270,14 @@ export class RepositoryV2Service implements WStorageService {
     }
   }
 
-  private storeJSON(
+  private async storeJSON(
     matchQuality: MatchQuality,
     chainId: string,
     address: string,
     fileName: string,
     contentJSON: any
   ) {
-    this.save(
+    await this.save(
       {
         matchQuality,
         chainId,
@@ -287,14 +288,14 @@ export class RepositoryV2Service implements WStorageService {
     );
   }
 
-  private storeTxt(
+  private async storeTxt(
     matchQuality: MatchQuality,
     chainId: string,
     address: string,
     fileName: string,
     content: string
   ) {
-    this.save(
+    await this.save(
       {
         matchQuality,
         chainId,

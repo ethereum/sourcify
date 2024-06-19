@@ -2,7 +2,7 @@ import logger from "../../../common/logger";
 import { AuthTypes, Connector } from "@google-cloud/cloud-sql-connector";
 import { Pool } from "pg";
 import AbstractDatabaseService from "./AbstractDatabaseService";
-import { WStorageService, StorageService } from "../StorageService";
+import { WStorageService } from "../StorageService";
 import { CheckedContract, Match } from "@ethereum-sourcify/lib-sourcify";
 import { WStorageIdentifiers } from "./identifiers";
 

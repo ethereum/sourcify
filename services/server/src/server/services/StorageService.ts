@@ -21,7 +21,10 @@ import {
   ContractData,
   FileObject,
   FilesInfo,
+  Mandatory,
   MatchLevel,
+  MethodArgs,
+  MethodNames,
   PaginatedContractData,
 } from "../types";
 import {
@@ -29,14 +32,6 @@ import {
   StorageIdentifiers,
   WStorageIdentifiers,
 } from "./storageServices/identifiers";
-
-type MethodNames<T> = {
-  [K in keyof T]: T[K] extends (...args: any) => any ? K : never;
-}[keyof T];
-
-type MethodArgs<T, K extends keyof T> = T[K] extends (...args: infer A) => any
-  ? A
-  : never;
 
 export interface WStorageService {
   IDENTIFIER: StorageIdentifiers;
@@ -67,7 +62,7 @@ export interface RWStorageService extends WStorageService {
     match: MatchLevel
   ): Promise<FilesInfo<Array<FileObject>>>;
   getContracts(chainId: string): Promise<ContractData>;
-  getPaginatedContracts(
+  getPaginatedContracts?(
     chainId: string,
     match: MatchLevel,
     page: number,
@@ -346,7 +341,7 @@ export class StorageService {
   }
 
   async performServiceOperation<
-    T extends RWStorageService,
+    T extends Mandatory<RWStorageService>, // Mandatory is used to allow optional functions like getPaginatedContracts
     K extends MethodNames<T> // MethodNames extracts T's methods
   >(
     methodName: K,
