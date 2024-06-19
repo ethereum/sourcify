@@ -24,8 +24,15 @@ import {
   MatchLevel,
   PaginatedContractData,
 } from "../types";
-import { BadRequestError } from "../../common/errors";
 import { StorageIdentifiers } from "./storageServices/identifiers";
+
+type MethodNames<T> = {
+  [K in keyof T]: T[K] extends (...args: any) => any ? K : never;
+}[keyof T];
+
+type MethodArgs<T, K extends keyof T> = T[K] extends (...args: infer A) => any
+  ? A
+  : never;
 
 export interface IStorageService {
   IDENTIFIER: StorageIdentifiers;
@@ -60,11 +67,8 @@ export interface IStorageService {
     limit: number,
     descending: boolean
   ): Promise<PaginatedContractData>;
-  checkByChainAndAddress?(address: string, chainId: string): Promise<Match[]>;
-  checkAllByChainAndAddress?(
-    address: string,
-    chainId: string
-  ): Promise<Match[]>;
+  checkByChainAndAddress(address: string, chainId: string): Promise<Match[]>;
+  checkAllByChainAndAddress(address: string, chainId: string): Promise<Match[]>;
   storeMatch(contract: CheckedContract, match: Match): Promise<void | Match>;
 }
 
@@ -268,179 +272,6 @@ export class StorageService {
     }
   }
 
-  async getMetadata(
-    chainId: string,
-    address: string,
-    match: MatchLevel
-  ): Promise<string | false> {
-    return this.getDefaultReadService().getMetadata(chainId, address, match);
-  }
-
-  async getFile(
-    chainId: string,
-    address: string,
-    match: MatchLevel,
-    path: string
-  ): Promise<string | false> {
-    try {
-      return this.getDefaultReadService().getFile(
-        chainId,
-        address,
-        match,
-        path
-      );
-    } catch (error) {
-      logger.error(
-        "Error while getting file from default read storage service",
-        {
-          defaultStorageService: this.getDefaultReadService().IDENTIFIER,
-          address,
-          match,
-          path,
-          error,
-        }
-      );
-      throw new Error(
-        "Error while getting file from default read storage service"
-      );
-    }
-  }
-
-  async getTree(
-    chainId: string,
-    address: string,
-    match: MatchLevel
-  ): Promise<FilesInfo<string[]>> {
-    try {
-      return await this.getDefaultReadService().getTree(
-        chainId,
-        address,
-        match
-      );
-    } catch (error) {
-      logger.error(
-        "Error while getting tree from default read storage service",
-        {
-          defaultStorageService: this.getDefaultReadService().IDENTIFIER,
-          chainId,
-          address,
-          match,
-          error,
-        }
-      );
-      throw new Error(
-        "Error while getting tree from default read storage service"
-      );
-    }
-  }
-
-  async getContent(
-    chainId: string,
-    address: string,
-    match: MatchLevel
-  ): Promise<FilesInfo<Array<FileObject>>> {
-    try {
-      return await this.getDefaultReadService().getContent(
-        chainId,
-        address,
-        match
-      );
-    } catch (error) {
-      logger.error(
-        "Error while getting content from default read storage service",
-        {
-          defaultStorageService: this.getDefaultReadService().IDENTIFIER,
-          chainId,
-          address,
-          match,
-          error,
-        }
-      );
-      throw new Error(
-        "Error while getting content from default read storage service"
-      );
-    }
-  }
-
-  async getContracts(chainId: string): Promise<ContractData> {
-    try {
-      return this.getDefaultReadService().getContracts(chainId);
-    } catch (error) {
-      if (error instanceof BadRequestError) {
-        throw error;
-      }
-      logger.error(
-        "Error while getting contracts from default read storage service",
-        {
-          defaultStorageService: this.getDefaultReadService().IDENTIFIER,
-          chainId,
-          error,
-        }
-      );
-      throw new Error(
-        "Error while getting contracts from default read storage service"
-      );
-    }
-  }
-
-  getPaginatedContracts(
-    chainId: string,
-    match: MatchLevel,
-    page: number,
-    limit: number,
-    descending: boolean = false
-  ): Promise<PaginatedContractData> {
-    try {
-      return this.getDefaultReadService().getPaginatedContracts(
-        chainId,
-        match,
-        page,
-        limit,
-        descending
-      );
-    } catch (error) {
-      logger.error(
-        "Error while getting paginated contracts from default read storage service",
-        {
-          defaultStorageService: this.getDefaultReadService().IDENTIFIER,
-          chainId,
-          match,
-          page,
-          limit,
-          descending,
-          error,
-        }
-      );
-      throw new Error(
-        "Error while getting paginated contracts from default read storage service"
-      );
-    }
-  }
-
-  async checkByChainAndAddress(
-    address: string,
-    chainId: string
-  ): Promise<Match[]> {
-    return (
-      (await this.getDefaultReadService().checkByChainAndAddress?.(
-        address,
-        chainId
-      )) || []
-    );
-  }
-
-  async checkAllByChainAndAddress(
-    address: string,
-    chainId: string
-  ): Promise<Match[]> {
-    return (
-      (await this.getDefaultReadService().checkAllByChainAndAddress?.(
-        address,
-        chainId
-      )) || []
-    );
-  }
-
   async storeMatch(contract: CheckedContract, match: Match) {
     logger.info("Storing match on StorageService", {
       name: contract.name,
@@ -450,9 +281,10 @@ export class StorageService {
       creationMatch: match.creationMatch,
     });
 
-    const existingMatch = await this.checkAllByChainAndAddress(
-      match.address,
-      match.chainId
+    const existingMatch = await this.performServiceOperation(
+      "checkAllByChainAndAddress",
+      [match.address, match.chainId],
+      "Error while calling checkAllByChainAndAddress from default read storage service"
     );
     if (
       existingMatch.length > 0 &&
@@ -495,5 +327,34 @@ export class StorageService {
     });
 
     return await Promise.all(promises);
+  }
+
+  async performServiceOperation<
+    T extends IStorageService,
+    K extends MethodNames<T> // MethodNames extracts T's methods
+  >(
+    methodName: K,
+    // MethodArgs gets the parameters types of method K from T
+    args: MethodArgs<T, K>,
+    logMessage: string
+  ) {
+    try {
+      const service = this.getDefaultReadService() as T;
+      const method = service[methodName];
+
+      if (typeof method !== "function") {
+        throw new Error(
+          `The method ${String(methodName)} doesn't exist or is not a function`
+        );
+      }
+
+      return await method.apply(service, args);
+    } catch (error) {
+      logger.error(logMessage, {
+        defaultStorageService: this.getDefaultReadService().IDENTIFIER,
+        error,
+      });
+      throw error;
+    }
   }
 }

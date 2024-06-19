@@ -112,9 +112,10 @@ export async function checkAllByChainAndAddressEndpoint(
     for (const chainId of chainIds) {
       try {
         const found: Match[] =
-          await req.services.storage.checkAllByChainAndAddress(
-            address,
-            chainId
+          await req.services.storage.performServiceOperation(
+            "checkAllByChainAndAddress",
+            [address, chainId],
+            "Error while calling checkAllByChainAndAddress from default read storage service"
           );
         if (found.length != 0) {
           if (!map.has(address)) {
@@ -144,9 +145,13 @@ export async function checkAllByChainAndAddressEndpoint(
   res.send(resultArray);
 }
 
-export async function getMetadataEndpoint(req: any, res: Response) {
+export async function getMetadataEndpoint(req: Request, res: Response) {
   const { match, chain, address } = req.params;
-  const file = await req.services.storage.getMetadata(chain, address, match);
+  const file = await req.services.storage.performServiceOperation(
+    "getMetadata",
+    [chain, address, match as MatchLevel],
+    "Error while getting metadata from default read storage service"
+  );
   if (file === false) {
     res.status(404).send();
   }
@@ -161,13 +166,12 @@ function jsonOrString(str: string): object | string {
   }
 }
 
-export async function getFileEndpoint(req: any, res: Response) {
+export async function getFileEndpoint(req: Request, res: Response) {
   const { match, chain, address } = req.params;
-  const file = await req.services.storage.getFile(
-    chain,
-    address,
-    match,
-    req.params[0]
+  const file = await req.services.storage.performServiceOperation(
+    "getFile",
+    [chain, address, match as MatchLevel, req.params[0]],
+    "Error while getting file from default read storage service"
   );
   if (!file) {
     res.status(404).send();
@@ -175,16 +179,23 @@ export async function getFileEndpoint(req: any, res: Response) {
   res.send(jsonOrString(file));
 }
 
-export async function checkByChainAndAddressesEnpoint(req: any, res: Response) {
+export async function checkByChainAndAddressesEnpoint(
+  req: Request,
+  res: Response
+) {
   const map: Map<string, any> = new Map();
-  const addresses = req.query.addresses.split(",");
-  const chainIds = req.query.chainIds.split(",");
+  const addresses = (req.query.addresses as string).split(",");
+  const chainIds = (req.query.chainIds as string).split(",");
   logger.debug("checkByChainAndAddresses", { chainIds, addresses });
   for (const address of addresses) {
     for (const chainId of chainIds) {
       try {
         const found: Match[] =
-          await req.services.storage.checkByChainAndAddress(address, chainId);
+          await req.services.storage.performServiceOperation(
+            "checkByChainAndAddress",
+            [address, chainId],
+            "Error while calling checkByChainAndAddress from default read storage service"
+          );
         if (found.length != 0) {
           if (!map.has(address)) {
             map.set(address, { address, status: "perfect", chainIds: [] });

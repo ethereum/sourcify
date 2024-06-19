@@ -23,9 +23,10 @@ export async function legacyVerifyEndpoint(
   req: LegacyVerifyRequest,
   res: Response
 ): Promise<any> {
-  const result = await req.services.storage.checkByChainAndAddress(
-    req.body.address,
-    req.body.chain
+  const result = await req.services.storage.performServiceOperation(
+    "checkByChainAndAddress",
+    [req.body.address, req.body.chain],
+    "Error while calling checkByChainAndAddress from default read storage service"
   );
   if (result.length != 0) {
     return res.send({ result: [getResponseMatchFromMatch(result[0])] });

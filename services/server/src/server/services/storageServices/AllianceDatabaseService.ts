@@ -86,11 +86,11 @@ export class AllianceDatabaseService
     throw new Error("Method not implemented.");
   }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  checkByChainAndAddress?(..._: any): Promise<Match[]> {
+  checkByChainAndAddress(..._: any): Promise<Match[]> {
     throw new Error("Method not implemented.");
   }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  checkAllByChainAndAddress?(..._: any): Promise<Match[]> {
+  checkAllByChainAndAddress(..._: any): Promise<Match[]> {
     throw new Error("Method not implemented.");
   }
 
