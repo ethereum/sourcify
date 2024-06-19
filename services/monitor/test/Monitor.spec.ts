@@ -111,15 +111,15 @@ describe("Monitor", function () {
     // start monitor after contract is deployed to avoid sending request before setting up interceptor
     // Need to know the contract address to set up the interceptor
     await monitor.start();
-    // wait 30 seconds
-    await new Promise((resolve) =>
-      setTimeout(resolve, 3 * HARDHAT_BLOCK_TIME_IN_SEC * 1000)
-    );
-
-    expect(
-      nockInterceptor.isDone(),
-      `Server ${MOCK_SOURCIFY_SERVER} not called`
-    ).to.be.true;
+    await new Promise<void>((resolve) => {
+      nockInterceptor.on("replied", () => {
+        expect(
+          nockInterceptor.isDone(),
+          `Server ${MOCK_SOURCIFY_SERVER} not called`
+        ).to.be.true;
+        resolve();
+      });
+    });
   });
   // Add more test cases as needed
 });
