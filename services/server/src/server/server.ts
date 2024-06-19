@@ -369,27 +369,26 @@ if (require.main === module) {
   });
 
   // Generate the swagger.json and serve it with SwaggerUI at /api-docs
-  server
-    .loadSwagger(yamljs.load(path.join(__dirname, "..", "openapi.yaml"))) // load the openapi file with the $refs resolved
-    .then((swaggerDocument: any) => {
-      server.app.get("/api-docs/swagger.json", (req, res) =>
-        res.json(swaggerDocument)
-      );
-      server.app.use(
-        "/api-docs",
-        swaggerUi.serve,
-        swaggerUi.setup(swaggerDocument, {
-          customSiteTitle: "Sourcify API",
-          customfavIcon: "https://sourcify.dev/favicon.ico",
-        })
-      );
-      server.app.listen(server.port, () => {
-        logger.info("Server listening", { port: server.port });
+  server.services.init().then(() => {
+    server
+      .loadSwagger(yamljs.load(path.join(__dirname, "..", "openapi.yaml"))) // load the openapi file with the $refs resolved
+      .then((swaggerDocument: any) => {
+        server.app.get("/api-docs/swagger.json", (req, res) =>
+          res.json(swaggerDocument)
+        );
+        server.app.use(
+          "/api-docs",
+          swaggerUi.serve,
+          swaggerUi.setup(swaggerDocument, {
+            customSiteTitle: "Sourcify API",
+            customfavIcon: "https://sourcify.dev/favicon.ico",
+          })
+        );
+        server.app.listen(server.port, () => {
+          logger.info("Server listening", { port: server.port });
+        });
       });
-    })
-    .then(async () => {
-      await server.services.init();
-    });
+  });
 }
 
 function hash(data: string) {

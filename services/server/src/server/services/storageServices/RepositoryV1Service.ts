@@ -77,9 +77,14 @@ export class RepositoryV1Service implements IStorageService {
     match: MatchLevel,
     path: string
   ): Promise<string | false> {
-    const fullPathFullMatch: string =
-      this.repositoryPath +
-      `/contracts/full_match/${chainId}/${getAddress(address)}/${path}`;
+    const fullPathFullMatch = Path.join(
+      this.repositoryPath,
+      "contracts",
+      "full_match",
+      chainId,
+      getAddress(address),
+      path
+    );
 
     const loadedFileFullMatch = await fs.promises.readFile(fullPathFullMatch);
 
@@ -87,9 +92,14 @@ export class RepositoryV1Service implements IStorageService {
       return loadedFileFullMatch.toString() || false;
     }
 
-    const fullPathPartialMatch: string =
-      this.repositoryPath +
-      `/contracts/partial_match/${chainId}/${getAddress(address)}/${path}`;
+    const fullPathPartialMatch = Path.join(
+      this.repositoryPath,
+      "contracts",
+      "partial_match",
+      chainId,
+      getAddress(address),
+      path
+    );
 
     const loadedFilePartialMatch = await fs.promises.readFile(
       fullPathPartialMatch
@@ -144,9 +154,13 @@ export class RepositoryV1Service implements IStorageService {
     address: string,
     match = "full_match"
   ): Array<FileObject> {
-    const fullPath: string =
-      this.repositoryPath +
-      `/contracts/${match}/${chain}/${getAddress(address)}/`;
+    const fullPath = Path.join(
+      this.repositoryPath,
+      "contracts",
+      match,
+      chain,
+      getAddress(address)
+    );
     const files: Array<FileObject> = [];
     dirTree(fullPath, {}, (item) => {
       files.push({ name: item.name, path: item.path });
@@ -168,10 +182,20 @@ export class RepositoryV1Service implements IStorageService {
 
     return files;
   }
-  fetchAllContracts = async (chain: String): Promise<ContractData> => {
-    const fullPath = this.repositoryPath + `/contracts/full_match/${chain}/`;
-    const partialPath =
-      this.repositoryPath + `/contracts/partial_match/${chain}/`;
+  fetchAllContracts = async (chain: string): Promise<ContractData> => {
+    const fullPath = Path.join(
+      this.repositoryPath,
+      "contracts",
+      "full_match",
+      chain
+    );
+
+    const partialPath = Path.join(
+      this.repositoryPath,
+      "contracts",
+      "partial_match",
+      chain
+    );
 
     const full = fs.existsSync(fullPath) ? fs.readdirSync(fullPath) : [];
     const partial = fs.existsSync(partialPath)

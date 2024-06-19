@@ -160,7 +160,7 @@ export class AllianceDatabaseService
         runtimeMatch: match.runtimeMatch,
         creationMatch: match.creationMatch,
       });
-      return;
+      throw new Error("Can't store to AllianceDatabase without creationMatch");
     }
     await this.insertOrUpdateVerifiedContract(recompiledContract, match);
     logger.info("Stored to AllianceDatabase", {

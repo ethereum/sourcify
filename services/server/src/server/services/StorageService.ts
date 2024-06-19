@@ -28,7 +28,7 @@ import { BadRequestError } from "../../common/errors";
 import { StorageIdentifiers } from "./storageServices/identifiers";
 
 export interface IStorageService {
-  IDENTIFIER: string;
+  IDENTIFIER: StorageIdentifiers;
   storageService: StorageService;
   init(): Promise<boolean>;
   getMetadata(
@@ -85,146 +85,149 @@ export interface StorageServiceOptions {
 
 export class StorageService {
   enabledServices: EnabledServices;
-  services: { [index: string]: IStorageService } = {};
+  services: { [key in StorageIdentifiers]: IStorageService } = {} as {
+    [key in StorageIdentifiers]: IStorageService;
+  };
 
   constructor(options: StorageServiceOptions) {
     this.enabledServices = options.enabledServices;
 
+    const enabledServicesArray = [
+      this.enabledServices.read,
+      ...this.enabledServices.writeOrWarn,
+      ...this.enabledServices.writeOrErr,
+    ];
+
     // repositoryV1
-    if (options.repositoryV1ServiceOptions?.repositoryPath) {
-      const repositoryV1 = new RepositoryV1Service(
-        this,
-        options.repositoryV1ServiceOptions
-      );
-      this.services[repositoryV1.IDENTIFIER] = repositoryV1;
-    } else {
-      logger.warn(
-        "Won't use RepositoryV1, path not set",
-        options.repositoryV2ServiceOptions
-      );
+    if (enabledServicesArray.includes(StorageIdentifiers.RepositoryV1)) {
+      if (options.repositoryV1ServiceOptions?.repositoryPath) {
+        const repositoryV1 = new RepositoryV1Service(
+          this,
+          options.repositoryV1ServiceOptions
+        );
+        this.services[repositoryV1.IDENTIFIER] = repositoryV1;
+      } else {
+        logger.error(
+          "RepositoryV1 enabled, but path not set",
+          options.repositoryV2ServiceOptions
+        );
+        throw new Error("RepositoryV1 enabled, but path not set");
+      }
     }
 
     // repositoryV2
-    if (options.repositoryV2ServiceOptions?.repositoryPath) {
-      const repositoryV2 = new RepositoryV2Service(
-        this,
-        options.repositoryV2ServiceOptions
-      );
-      this.services[repositoryV2.IDENTIFIER] = repositoryV2;
-    } else {
-      logger.warn(
-        "Won't use RepositoryV2, path not set",
-        options.repositoryV2ServiceOptions
-      );
+    if (enabledServicesArray.includes(StorageIdentifiers.RepositoryV2)) {
+      if (options.repositoryV2ServiceOptions?.repositoryPath) {
+        const repositoryV2 = new RepositoryV2Service(
+          this,
+          options.repositoryV2ServiceOptions
+        );
+        this.services[repositoryV2.IDENTIFIER] = repositoryV2;
+      } else {
+        logger.error(
+          "RepositoryV2 enabled, but path not set",
+          options.repositoryV2ServiceOptions
+        );
+        throw new Error("RepositoryV2 enabled, but path not set");
+      }
     }
 
     // SourcifyDatabase
-    if (
-      options.sourcifyDatabaseServiceOptions?.postgres?.host &&
-      options.sourcifyDatabaseServiceOptions?.postgres?.database &&
-      options.sourcifyDatabaseServiceOptions?.postgres?.user &&
-      options.sourcifyDatabaseServiceOptions?.postgres?.password
-    ) {
-      const sourcifyDatabase = new SourcifyDatabaseService(
-        this,
-        options.sourcifyDatabaseServiceOptions
-      );
-      this.services[sourcifyDatabase.IDENTIFIER] = sourcifyDatabase;
-    } else {
-      logger.warn(
-        "Won't use SourcifyDatabase, options not complete",
-        options.sourcifyDatabaseServiceOptions
-      );
+    if (enabledServicesArray.includes(StorageIdentifiers.SourcifyDatabase)) {
+      if (
+        options.sourcifyDatabaseServiceOptions?.postgres?.host &&
+        options.sourcifyDatabaseServiceOptions?.postgres?.database &&
+        options.sourcifyDatabaseServiceOptions?.postgres?.user &&
+        options.sourcifyDatabaseServiceOptions?.postgres?.password
+      ) {
+        const sourcifyDatabase = new SourcifyDatabaseService(
+          this,
+          options.sourcifyDatabaseServiceOptions
+        );
+        this.services[sourcifyDatabase.IDENTIFIER] = sourcifyDatabase;
+      } else {
+        logger.error(
+          "SourcifyDatabase enabled, but options are not complete",
+          options.sourcifyDatabaseServiceOptions
+        );
+        throw new Error(
+          "SourcifyDatabase enabled, but options are not complete"
+        );
+      }
     }
 
     // SourcifyFixedDatabase
     if (
-      options.sourcifyFixedDatabaseServiceOptions?.postgres?.host &&
-      options.sourcifyFixedDatabaseServiceOptions?.postgres?.database &&
-      options.sourcifyFixedDatabaseServiceOptions?.postgres?.user &&
-      options.sourcifyFixedDatabaseServiceOptions?.postgres?.password
+      enabledServicesArray.includes(StorageIdentifiers.SourcifyFixedDatabase)
     ) {
-      const sourcifyFixedDatabase = new SourcifyDatabaseService(
-        this,
-        options.sourcifyFixedDatabaseServiceOptions
-      );
-      sourcifyFixedDatabase.IDENTIFIER =
-        StorageIdentifiers.SourcifyFixedDatabase;
-      this.services[sourcifyFixedDatabase.IDENTIFIER] = sourcifyFixedDatabase;
-    } else {
-      logger.warn(
-        "Won't use SourcifyFixedDatabase, options not complete",
-        options.sourcifyFixedDatabaseServiceOptions
-      );
+      if (
+        options.sourcifyFixedDatabaseServiceOptions?.postgres?.host &&
+        options.sourcifyFixedDatabaseServiceOptions?.postgres?.database &&
+        options.sourcifyFixedDatabaseServiceOptions?.postgres?.user &&
+        options.sourcifyFixedDatabaseServiceOptions?.postgres?.password
+      ) {
+        const sourcifyFixedDatabase = new SourcifyDatabaseService(
+          this,
+          options.sourcifyFixedDatabaseServiceOptions
+        );
+        sourcifyFixedDatabase.IDENTIFIER =
+          StorageIdentifiers.SourcifyFixedDatabase;
+        this.services[sourcifyFixedDatabase.IDENTIFIER] = sourcifyFixedDatabase;
+      } else {
+        logger.error(
+          "SourcifyFixedDatabase enabled, but options are not complete",
+          options.sourcifyFixedDatabaseServiceOptions
+        );
+        throw new Error(
+          "SourcifyFixedDatabase enabled, but options are not complete"
+        );
+      }
     }
 
     // AllianceDatabase
-    if (
-      options.allianceDatabaseServiceOptions?.googleCloudSql ||
-      (options.allianceDatabaseServiceOptions?.postgres?.host &&
-        options.allianceDatabaseServiceOptions?.postgres?.database &&
-        options.allianceDatabaseServiceOptions?.postgres?.user &&
-        options.allianceDatabaseServiceOptions?.postgres?.password)
-    ) {
-      const allianceDatabase = new AllianceDatabaseService(
-        this,
-        options.allianceDatabaseServiceOptions
-      );
-      this.services[allianceDatabase.IDENTIFIER] = allianceDatabase;
-    } else {
-      logger.warn(
-        "Won't use AllianceDatabase, options not complete",
-        options.allianceDatabaseServiceOptions
-      );
+    if (enabledServicesArray.includes(StorageIdentifiers.AllianceDatabase)) {
+      if (
+        options.allianceDatabaseServiceOptions?.googleCloudSql ||
+        (options.allianceDatabaseServiceOptions?.postgres?.host &&
+          options.allianceDatabaseServiceOptions?.postgres?.database &&
+          options.allianceDatabaseServiceOptions?.postgres?.user &&
+          options.allianceDatabaseServiceOptions?.postgres?.password)
+      ) {
+        const allianceDatabase = new AllianceDatabaseService(
+          this,
+          options.allianceDatabaseServiceOptions
+        );
+        this.services[allianceDatabase.IDENTIFIER] = allianceDatabase;
+      } else {
+        logger.error(
+          "AllianceDatabase enabled, but options are not complete",
+          options.allianceDatabaseServiceOptions
+        );
+        throw new Error(
+          "AllianceDatabase enabled, but options are not complete"
+        );
+      }
     }
   }
 
-  getServiceByConfigKey(configKey: string): IStorageService | undefined {
+  getServiceByConfigKey(configKey: StorageIdentifiers): IStorageService {
     return this.services[configKey];
   }
 
   getDefaultReadService(): IStorageService {
-    const storageService = this.getServiceByConfigKey(
-      this.enabledServices.read
-    );
-    if (storageService === undefined) {
-      logger.error("Default read storage service not enabled");
-      throw new Error("Default read storage service not enabled");
-    }
-    return storageService;
+    return this.getServiceByConfigKey(this.enabledServices.read);
   }
 
-  getWriteOrWarnServices(): (IStorageService | undefined)[] {
-    const writeOrWarnServices = (
-      (this.enabledServices.writeOrWarn as []) || []
-    ).map((serviceKey) => {
-      const storageService = this.getServiceByConfigKey(serviceKey);
-      if (storageService === undefined) {
-        logger.warn("Storage service not enabled", {
-          storageService: serviceKey,
-        });
-      }
-      return storageService;
-    });
-
-    return writeOrWarnServices;
+  getWriteOrWarnServices(): IStorageService[] {
+    return this.enabledServices.writeOrWarn.map((serviceKey) =>
+      this.getServiceByConfigKey(serviceKey)
+    );
   }
 
   getWriteOrErrServices(): IStorageService[] {
-    const writeOrErr = ((this.enabledServices.writeOrErr as []) || []).map(
-      (serviceKey) => {
-        const storageService = this.getServiceByConfigKey(serviceKey);
-        if (storageService === undefined) {
-          logger.error("Write storage service not enabled", {
-            storageService: serviceKey,
-          });
-          throw new Error(`Write storage service not enabled: ${serviceKey}`);
-        }
-        return storageService;
-      }
+    return this.enabledServices.writeOrErr.map((serviceKey) =>
+      this.getServiceByConfigKey(serviceKey)
     );
-
-    return writeOrErr;
   }
 
   async init() {
@@ -240,13 +243,13 @@ export class StorageService {
     // Create object: StorageIdentifier => Storage
     const enabledServices = enabledServicesArray.reduce(
       (
-        services: { [index: string]: IStorageService },
+        services: { [key in StorageIdentifiers]: IStorageService },
         service: IStorageService
       ) => {
         services[service.IDENTIFIER] = service;
         return services;
       },
-      {}
+      {} as { [key in StorageIdentifiers]: IStorageService }
     );
 
     logger.debug("Initializing used storage services", {
@@ -254,7 +257,9 @@ export class StorageService {
     });
 
     // Try to initialize used storage services
-    for (const serviceIdentifier of Object.keys(enabledServices)) {
+    for (const serviceIdentifier of Object.keys(
+      enabledServices
+    ) as StorageIdentifiers[]) {
       if (!(await this.services[serviceIdentifier].init())) {
         throw new Error(
           "Cannot initialize default storage service: " + serviceIdentifier
