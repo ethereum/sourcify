@@ -7,19 +7,23 @@ module.exports = {
     port: 5555,
     maxFileSize: 30 * 1024 * 1024, // 30 MB
   },
+  // The storage services where the verified contract be saved and read from
   storage: {
+    // read option will be the "source of truth" where the contracts read from for the API requests.
     read: StorageIdentifiers.SourcifyDatabase,
+    // User request will NOT fail if saving to these fail, but only log a warning
     writeOrWarn: [
       StorageIdentifiers.AllianceDatabase,
       StorageIdentifiers.RepositoryV1,
     ],
+    // The user request will fail if saving to these fail
     writeOrErr: [
       StorageIdentifiers.RepositoryV2,
       StorageIdentifiers.SourcifyDatabase,
       StorageIdentifiers.SourcifyFixedDatabase,
     ],
   },
-  // Deprecated repository
+  // Legacy repository
   repositoryV1: {
     path: "/tmp/sourcify/repository",
     serverUrl: "http://localhost:10000", // Need to keep this as it's used in IpfsRepositoryService.ts fetchAllFileUrls.

@@ -57,7 +57,7 @@ export class Server {
   port: string | number;
   services: Services;
 
-  // TODO: pass options as object
+  // TODO: pass config as object into the constructor. Currently we read config from config files. Server Class itself should be configurable.
   constructor(
     port: string | number,
     verificationServiceOption: SourcifyChainMap,
@@ -367,6 +367,8 @@ if (require.main === module) {
       },
     },
   });
+
+  // Generate the swagger.json and serve it with SwaggerUI at /api-docs
   server
     .loadSwagger(yamljs.load(path.join(__dirname, "..", "openapi.yaml"))) // load the openapi file with the $refs resolved
     .then((swaggerDocument: any) => {

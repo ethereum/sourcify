@@ -403,6 +403,7 @@ export class SourcifyDatabaseService
 
     const sources: { [index: string]: string } = {};
 
+    // Add 'sources/' prefix for API compatibility with the repoV1 responses. RepoV1 filesystem has all source files in 'sources/'
     for (const path of Object.keys(sourcifyMatch.sources)) {
       sources[`sources/${path}`] = sourcifyMatch.sources[path];
     }
