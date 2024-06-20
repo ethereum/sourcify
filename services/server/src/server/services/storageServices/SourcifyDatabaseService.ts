@@ -168,7 +168,7 @@ export class SourcifyDatabaseService
           MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS
         );
 
-      if (perfectMatchAddressesResult.rowCount > 0) {
+      if (perfectMatchAddressesResult.rowCount && perfectMatchAddressesResult.rowCount > 0) {
         res.full = perfectMatchAddressesResult.rows.map((row) =>
           getAddress(row.address)
         );
@@ -185,7 +185,7 @@ export class SourcifyDatabaseService
           MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS
         );
 
-      if (partialMatchAddressesResult.rowCount > 0) {
+      if (partialMatchAddressesResult.rowCount && partialMatchAddressesResult.rowCount > 0) {
         res.partial = partialMatchAddressesResult.rows.map((row) =>
           getAddress(row.address)
         );
@@ -262,7 +262,7 @@ export class SourcifyDatabaseService
         descending
       );
 
-    if (matchAddressesResult.rowCount > 0) {
+    if (matchAddressesResult.rowCount && matchAddressesResult.rowCount > 0) {
       res.pagination.resultsCurrentPage = matchAddressesResult.rowCount;
       res.pagination.hasNextPage =
         res.pagination.currentPage * res.pagination.resultsPerPage +
