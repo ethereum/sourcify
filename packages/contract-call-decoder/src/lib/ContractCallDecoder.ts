@@ -16,8 +16,6 @@ type Transaction = TransactionRosette & {
   readonly chainId?: number;
 };
 
-require('isomorphic-fetch');
-
 export enum MetadataSources {
   Sourcify,
   BytecodeMetadata,

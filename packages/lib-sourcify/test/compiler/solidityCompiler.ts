@@ -8,7 +8,6 @@ import { logDebug, logError, logInfo, logWarn } from '../../src/lib/logger';
 import semver from 'semver';
 import { Worker, WorkerOptions } from 'worker_threads';
 
-require('isomorphic-fetch');
 interface RequestInitTimeout extends RequestInit {
   timeout?: number;
 }

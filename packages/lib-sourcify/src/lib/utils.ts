@@ -1,5 +1,4 @@
 import { logWarn } from './logger';
-require('isomorphic-fetch');
 
 interface RequestInitTimeout extends RequestInit {
   timeout?: number;

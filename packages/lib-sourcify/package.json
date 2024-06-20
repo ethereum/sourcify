@@ -51,7 +51,6 @@
     "bs58": "^5.0.0",
     "ethers": "^6.13.0",
     "http-status-codes": "^2.3.0",
-    "isomorphic-fetch": "^3.0.0",
     "jszip": "^3.10.1",
     "semver": "^7.6.2"
   },

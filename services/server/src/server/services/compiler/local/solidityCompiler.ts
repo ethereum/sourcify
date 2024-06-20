@@ -13,7 +13,6 @@ import {
 import config from "config";
 import logger from "../../../../common/logger";
 
-require("isomorphic-fetch");
 interface RequestInitTimeout extends RequestInit {
   timeout?: number;
 }
