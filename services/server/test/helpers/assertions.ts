@@ -7,7 +7,7 @@ import { getAddress } from "ethers";
 import { getMatchStatus } from "../../src/server/common";
 import type { Response } from "superagent";
 import type { Done } from "mocha";
-import { SourcifyDatabaseService } from "../../src/server/services/storageServices/SourcifyDatabaseService";
+import { Pool } from "pg";
 
 export const assertValidationError = (
   err: Error | null,
@@ -29,7 +29,7 @@ export const assertValidationError = (
 
 // If you pass storageService = false, then the match will not be compared to the database
 export const assertVerification = async (
-  sourcifyDatabase: SourcifyDatabaseService | null,
+  sourcifyDatabase: Pool | null,
   err: Error | null,
   res: Response,
   done: Done | null,
@@ -65,7 +65,7 @@ export const assertVerification = async (
 };
 
 export const assertVerificationSession = async (
-  sourcifyDatabase: SourcifyDatabaseService | null,
+  sourcifyDatabase: Pool | null,
   err: Error | null,
   res: Response,
   done: Done | null,
@@ -109,7 +109,7 @@ export const assertVerificationSession = async (
 };
 
 async function assertContractSaved(
-  sourcifyDatabase: SourcifyDatabaseService | null,
+  sourcifyDatabase: Pool | null,
   expectedAddress: string | undefined,
   expectedChain: string | undefined,
   expectedStatus: string
@@ -131,8 +131,7 @@ async function assertContractSaved(
 
     if (sourcifyDatabase) {
       // Check if saved to the database
-      await sourcifyDatabase.initDatabasePool();
-      const res = await sourcifyDatabase.databasePool.query(
+      const res = await sourcifyDatabase.query(
         `SELECT
         cd.address,
         cd.chain_id,

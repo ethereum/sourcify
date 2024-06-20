@@ -1,36 +1,42 @@
 import rimraf from "rimraf";
 import { resetDatabase } from "../helpers/helpers";
-import { StorageService } from "../../src/server/services/StorageService";
 import { Server } from "../../src/server/server";
 import config from "config";
 import http from "http";
-import { SourcifyDatabaseService } from "../../src/server/services/storageServices/SourcifyDatabaseService";
 import { supportedChainsMap } from "../../src/sourcify-chains";
 import {
   RWStorageIdentifiers,
   StorageIdentifiers,
 } from "../../src/server/services/storageServices/identifiers";
+import { Pool } from "pg";
+import { SourcifyDatabaseService } from "../../src/server/services/storageServices/SourcifyDatabaseService";
 
 export type ServerFixtureOptions = {
   port: number;
   read: RWStorageIdentifiers;
   writeOrWarn: StorageIdentifiers[];
   writeOrErr: StorageIdentifiers[];
+  skipDatabaseReset: boolean;
 };
 
 export class ServerFixture {
   identifier: StorageIdentifiers | undefined;
   readonly maxFileSize = config.get<number>("server.maxFileSize");
 
-  private _sourcifyDatabase?: SourcifyDatabaseService;
   private _server?: Server;
 
   // Getters for type safety
   // Can be safely accessed in "it" blocks
-  get sourcifyDatabase(): SourcifyDatabaseService {
-    if (!this._sourcifyDatabase)
-      throw new Error("storageService not initialized!");
-    return this._sourcifyDatabase;
+  get sourcifyDatabase(): Pool {
+    // sourcifyDatabase is just a shorter way to get databasePool inside SourcifyDatabaseService
+    const _sourcifyDatabase = (
+      this.server.services.storage.rwServices[
+        RWStorageIdentifiers.SourcifyDatabase
+      ] as SourcifyDatabaseService
+    ).databasePool;
+    if (!_sourcifyDatabase)
+      throw new Error("sourcifyDatabase not initialized!");
+    return _sourcifyDatabase;
   }
   get server(): Server {
     if (!this._server) throw new Error("server not initialized!");
@@ -52,6 +58,7 @@ export class ServerFixture {
         read: config.get("storage.read"),
         writeOrWarn: config.get("storage.writeOrWarn"),
         writeOrErr: config.get("storage.writeOrErr"),
+        skipDatabaseReset: false,
       },
       ...options_,
     };
@@ -69,36 +76,6 @@ export class ServerFixture {
       ) {
         throw new Error("Not all required environment variables set");
       }
-      const storageService = new StorageService({
-        enabledServices: {
-          read: config.get("storage.read"),
-          writeOrWarn: config.get("storage.writeOrWarn"),
-          writeOrErr: config.get("storage.writeOrErr"),
-        },
-        repositoryV1ServiceOptions: {
-          ipfsApi: process.env.IPFS_API || "",
-          repositoryPath: config.get("repositoryV1.path"),
-          repositoryServerUrl: config.get("repositoryV1.serverUrl"),
-        },
-        repositoryV2ServiceOptions: {
-          ipfsApi: process.env.IPFS_API || "",
-          repositoryPath: config.get("repositoryV2.path"),
-        },
-        sourcifyDatabaseServiceOptions: {
-          postgres: {
-            host: process.env.SOURCIFY_POSTGRES_HOST,
-            database: process.env.SOURCIFY_POSTGRES_DB,
-            user: process.env.SOURCIFY_POSTGRES_USER,
-            password: process.env.SOURCIFY_POSTGRES_PASSWORD,
-            port: parseInt(process.env.SOURCIFY_POSTGRES_PORT),
-          },
-        },
-      });
-
-      await storageService.init();
-      this._sourcifyDatabase = storageService.rwServices[
-        RWStorageIdentifiers.SourcifyDatabase
-      ] as SourcifyDatabaseService;
 
       this._server = new Server(options.port!, supportedChainsMap, {
         enabledServices: {
@@ -140,8 +117,10 @@ export class ServerFixture {
     beforeEach(async () => {
       rimraf.sync(this.server.repository);
       rimraf.sync(this.server.repositoryV2);
-      await resetDatabase(this.sourcifyDatabase);
-      console.log("Resetting SourcifyDatabase");
+      if (!options.skipDatabaseReset) {
+        await resetDatabase(this.sourcifyDatabase);
+        console.log("Resetting SourcifyDatabase");
+      }
     });
 
     after(() => {

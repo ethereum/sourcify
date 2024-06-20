@@ -13,11 +13,10 @@ import chai from "chai";
 import chaiHttp from "chai-http";
 import path from "path";
 import { promises as fs } from "fs";
-import { StorageService } from "../../src/server/services/StorageService";
 import { ServerFixture } from "./ServerFixture";
 import type { Done } from "mocha";
 import { LocalChainFixture } from "./LocalChainFixture";
-import { SourcifyDatabaseService } from "../../src/server/services/storageServices/SourcifyDatabaseService";
+import { Pool } from "pg";
 
 chai.use(chaiHttp);
 
@@ -232,16 +231,15 @@ export async function readFilesFromDirectory(dirPath: string) {
   }
 }
 
-export async function resetDatabase(sourcifyDatabase: SourcifyDatabaseService) {
+export async function resetDatabase(sourcifyDatabase: Pool) {
   if (!sourcifyDatabase) {
-    chai.assert.fail("No database on StorageService");
+    chai.assert.fail("Database pool not configured");
   }
-  await sourcifyDatabase.initDatabasePool();
-  await sourcifyDatabase.databasePool.query("DELETE FROM sourcify_sync");
-  await sourcifyDatabase.databasePool.query("DELETE FROM sourcify_matches");
-  await sourcifyDatabase.databasePool.query("DELETE FROM verified_contracts");
-  await sourcifyDatabase.databasePool.query("DELETE FROM contract_deployments");
-  await sourcifyDatabase.databasePool.query("DELETE FROM compiled_contracts");
-  await sourcifyDatabase.databasePool.query("DELETE FROM contracts");
-  await sourcifyDatabase.databasePool.query("DELETE FROM code");
+  await sourcifyDatabase.query("DELETE FROM sourcify_sync");
+  await sourcifyDatabase.query("DELETE FROM sourcify_matches");
+  await sourcifyDatabase.query("DELETE FROM verified_contracts");
+  await sourcifyDatabase.query("DELETE FROM contract_deployments");
+  await sourcifyDatabase.query("DELETE FROM compiled_contracts");
+  await sourcifyDatabase.query("DELETE FROM contracts");
+  await sourcifyDatabase.query("DELETE FROM code");
 }

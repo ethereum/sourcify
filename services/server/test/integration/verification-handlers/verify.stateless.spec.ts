@@ -206,7 +206,7 @@ describe("/", function () {
     chai.expect(res.body).to.deep.equal(partialMetadata);
 
     const contractDeploymentWithoutCreatorTransactionHash =
-      await serverFixture.sourcifyDatabase.databasePool.query(
+      await serverFixture.sourcifyDatabase.query(
         "SELECT transaction_hash, block_number, transaction_index, contract_id FROM contract_deployments"
       );
 
@@ -239,7 +239,7 @@ describe("/", function () {
     );
 
     const contractDeploymentWithCreatorTransactionHash =
-      await serverFixture.sourcifyDatabase.databasePool.query(
+      await serverFixture.sourcifyDatabase.query(
         "SELECT encode(transaction_hash, 'hex') as transaction_hash, block_number, transaction_index, contract_id FROM contract_deployments"
       );
 

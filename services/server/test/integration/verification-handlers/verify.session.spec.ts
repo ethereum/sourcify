@@ -43,11 +43,9 @@ describe("/session", function () {
   const serverFixture = new ServerFixture();
 
   it("should store session in database", async () => {
-    await serverFixture.sourcifyDatabase?.databasePool.query(
-      "TRUNCATE TABLE session;"
-    );
+    await serverFixture.sourcifyDatabase.query("TRUNCATE TABLE session;");
     await chai.request(serverFixture.server.app).post("/session/data").send({});
-    const res = await serverFixture.sourcifyDatabase?.databasePool.query(
+    const res = await serverFixture.sourcifyDatabase.query(
       "SELECT * FROM session;"
     );
     chai.expect(res?.rowCount).to.equal(1);

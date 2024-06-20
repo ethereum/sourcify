@@ -4,15 +4,7 @@ import { deployFromAbiAndBytecodeForCreatorTxHash } from "../helpers/helpers";
 import { id as keccak256str, keccak256 } from "ethers";
 import { LocalChainFixture } from "../helpers/LocalChainFixture";
 import { ServerFixture } from "../helpers/ServerFixture";
-import type {
-  CompilerOutput,
-  Match,
-  Metadata,
-  MetadataSourceMap,
-} from "@ethereum-sourcify/lib-sourcify";
-import { createCheckedContract } from "../../src/server/controllers/verification/verification.common";
-import _checkedContract from "../testcontracts/Database/CheckedContract.json";
-import match from "../testcontracts/Database/Match.json";
+import type { MetadataSourceMap } from "@ethereum-sourcify/lib-sourcify";
 
 chai.use(chaiHttp);
 
@@ -129,8 +121,7 @@ describe("Verifier Alliance database", function () {
     if (!serverFixture.sourcifyDatabase) {
       chai.assert.fail("No database on StorageService");
     }
-    await serverFixture.sourcifyDatabase.initDatabasePool();
-    const res = await serverFixture.sourcifyDatabase.databasePool.query(
+    const res = await serverFixture.sourcifyDatabase.query(
       `SELECT 
           compilation_artifacts,
           creation_code_artifacts,
@@ -252,39 +243,6 @@ describe("Verifier Alliance database", function () {
       .expect(row.creation_transformations)
       .to.deep.equal(testCase.creation_transformations);
   };
-
-  it("storeMatch", async () => {
-    // Prepare the CheckedContract
-    const checkedContract = createCheckedContract(
-      _checkedContract.metadata as Metadata,
-      _checkedContract.solidity,
-      _checkedContract.missing,
-      _checkedContract.invalid
-    );
-    checkedContract.creationBytecode = _checkedContract.creationBytecode;
-    checkedContract.runtimeBytecode = _checkedContract.runtimeBytecode;
-    checkedContract.compilerOutput =
-      _checkedContract.compilerOutput as any as CompilerOutput;
-    checkedContract.creationBytecodeCborAuxdata = undefined;
-    checkedContract.runtimeBytecodeCborAuxdata = undefined;
-
-    // Call storeMatch
-    await serverFixture.sourcifyDatabase.storeMatch(
-      checkedContract,
-      match as Match
-    );
-
-    if (!serverFixture.sourcifyDatabase) {
-      chai.assert.fail("No database on StorageService");
-    }
-    const res = await serverFixture.sourcifyDatabase.databasePool.query(
-      "SELECT * FROM sourcify_matches"
-    );
-
-    if (res.rowCount === 1) {
-      chai.expect(res.rows[0].runtime_match).to.equal("partial");
-    }
-  });
 
   it("Libraries have been linked manually instead of using compiler settings. Placeholders are replaced with zero addresses", async () => {
     const verifierAllianceTestLibrariesManuallyLinked = await import(

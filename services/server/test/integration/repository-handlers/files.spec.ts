@@ -19,6 +19,7 @@ describe("Verify repository endpoints", function () {
   const serverFixtureWithDatabase = new ServerFixture();
   serverFixtureWithDatabase.identifier = RWStorageIdentifiers.SourcifyDatabase;
   const serverFixtureWithRepositoryV1 = new ServerFixture({
+    skipDatabaseReset: true,
     port: 5556, // use a different port
     read: RWStorageIdentifiers.RepositoryV1,
     writeOrErr: [RWStorageIdentifiers.RepositoryV1],
