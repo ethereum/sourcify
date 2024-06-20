@@ -62,8 +62,9 @@ export type FileObject = {
 };
 
 export type MethodNames<T> = {
+  // The part: T[K] extends (...args: any) => any checks if T[K] is a function. If yes then it returns K, the method name, else it returns never
   [K in keyof T]: T[K] extends (...args: any) => any ? K : never;
-}[keyof T];
+}[keyof T]; // [keyof T] returns the keys of T, in this case the method names
 
 export type MethodArgs<T, K extends keyof T> = T[K] extends (
   ...args: infer A

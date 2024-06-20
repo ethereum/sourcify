@@ -115,8 +115,7 @@ export async function checkAllByChainAndAddressEndpoint(
         const found: Match[] =
           await req.services.storage.performServiceOperation(
             "checkAllByChainAndAddress",
-            [address, chainId],
-            "Error while calling checkAllByChainAndAddress from default read storage service"
+            [address, chainId]
           );
         if (found.length != 0) {
           if (!map.has(address)) {
@@ -160,11 +159,12 @@ export async function getFileEndpoint(
   next: NextFunction
 ) {
   const { match, chain, address } = req.params;
-  const file = await req.services.storage.performServiceOperation(
-    "getFile",
-    [chain, address, match as MatchLevelWithoutAny, req.params[0]],
-    "Error while getting file from default read storage service"
-  );
+  const file = await req.services.storage.performServiceOperation("getFile", [
+    chain,
+    address,
+    match as MatchLevelWithoutAny,
+    req.params[0],
+  ]);
   if (file === false) {
     return next(new NotFoundError());
   }
@@ -185,8 +185,7 @@ export async function checkByChainAndAddressesEnpoint(
         const found: Match[] =
           await req.services.storage.performServiceOperation(
             "checkByChainAndAddress",
-            [address, chainId],
-            "Error while calling checkByChainAndAddress from default read storage service"
+            [address, chainId]
           );
         if (found.length != 0) {
           if (!map.has(address)) {

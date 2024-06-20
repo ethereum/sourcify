@@ -20,11 +20,11 @@ const router: Router = Router();
     prefix: "/tree/any",
     method: createEndpoint(
       (services, chain, address, match) =>
-        services.storage.performServiceOperation(
-          "getTree",
-          [chain, address, match],
-          "Error while getting tree from default read storage service"
-        ),
+        services.storage.performServiceOperation("getTree", [
+          chain,
+          address,
+          match,
+        ]),
       "any_match",
       true
     ),
@@ -33,11 +33,11 @@ const router: Router = Router();
     prefix: "/any",
     method: createEndpoint(
       (services, chain, address, match) =>
-        services.storage.performServiceOperation(
-          "getContent",
-          [chain, address, match],
-          "Error while getting content from default read storage service"
-        ),
+        services.storage.performServiceOperation("getContent", [
+          chain,
+          address,
+          match,
+        ]),
       "any_match",
       true
     ),
@@ -46,33 +46,31 @@ const router: Router = Router();
     prefix: "/tree",
     method: createEndpoint(
       (services, chain, address, match) =>
-        services.storage.performServiceOperation(
-          "getTree",
-          [chain, address, match],
-          "Error while getting tree from default read storage service"
-        ),
+        services.storage.performServiceOperation("getTree", [
+          chain,
+          address,
+          match,
+        ]),
       "full_match"
     ),
   },
   {
     prefix: "/contracts",
     method: createContractEndpoint((services, chain) =>
-      services.storage.performServiceOperation(
-        "getContracts",
-        [chain],
-        "Error while getting tree from default read storage service"
-      )
+      services.storage.performServiceOperation("getContracts", [chain])
     ),
   },
   {
     prefix: "/contracts/full",
     method: createPaginatedContractEndpoint(
       (services, chain, match, page, limit, descending) =>
-        services.storage.performServiceOperation(
-          "getPaginatedContracts",
-          [chain, match, page, limit, descending],
-          "Error while getting paginated contracts from default read storage service"
-        ),
+        services.storage.performServiceOperation("getPaginatedContracts", [
+          chain,
+          match,
+          page,
+          limit,
+          descending,
+        ]),
       "full_match"
     ),
   },
@@ -80,11 +78,13 @@ const router: Router = Router();
     prefix: "/contracts/partial",
     method: createPaginatedContractEndpoint(
       (services, chain, match, page, limit, descending) =>
-        services.storage.performServiceOperation(
-          "getPaginatedContracts",
-          [chain, match, page, limit, descending],
-          "Error while getting paginated contracts from default read storage service"
-        ),
+        services.storage.performServiceOperation("getPaginatedContracts", [
+          chain,
+          match,
+          page,
+          limit,
+          descending,
+        ]),
       "partial_match"
     ),
   },
@@ -92,11 +92,13 @@ const router: Router = Router();
     prefix: "/contracts/any",
     method: createPaginatedContractEndpoint(
       (services, chain, match, page, limit, descending) =>
-        services.storage.performServiceOperation(
-          "getPaginatedContracts",
-          [chain, match, page, limit, descending],
-          "Error while getting paginated contracts from default read storage service"
-        ),
+        services.storage.performServiceOperation("getPaginatedContracts", [
+          chain,
+          match,
+          page,
+          limit,
+          descending,
+        ]),
       "any_match"
     ),
   },
@@ -104,11 +106,11 @@ const router: Router = Router();
     prefix: "",
     method: createEndpoint(
       (services, chain, address, match) =>
-        services.storage.performServiceOperation(
-          "getContent",
-          [chain, address, match],
-          "Error while getting content from default read storage service"
-        ),
+        services.storage.performServiceOperation("getContent", [
+          chain,
+          address,
+          match,
+        ]),
       "full_match"
     ),
   },

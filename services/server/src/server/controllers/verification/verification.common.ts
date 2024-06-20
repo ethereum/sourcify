@@ -368,8 +368,7 @@ export const verifyContractsInSession = async (
     if (Boolean(contractWrapper.address) && Boolean(contractWrapper.chainId)) {
       const found = await storageService.performServiceOperation(
         "checkByChainAndAddress",
-        [contractWrapper.address as string, contractWrapper.chainId as string],
-        "Error while calling checkByChainAndAddress from default read storage service"
+        [contractWrapper.address as string, contractWrapper.chainId as string]
       );
 
       if (found.length) {

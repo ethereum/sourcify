@@ -260,8 +260,7 @@ export class StorageService {
 
     const existingMatch = await this.performServiceOperation(
       "checkAllByChainAndAddress",
-      [match.address, match.chainId],
-      "Error while calling checkAllByChainAndAddress from default read storage service"
+      [match.address, match.chainId]
     );
     if (
       existingMatch.length > 0 &&
@@ -312,13 +311,11 @@ export class StorageService {
   >(
     methodName: K,
     // MethodArgs gets the parameters types of method K from T
-    args: MethodArgs<T, K>,
-    logMessage: string
+    args: MethodArgs<T, K>
   ) {
+    const service = this.getDefaultReadService() as T;
+    const method = service[methodName];
     try {
-      const service = this.getDefaultReadService() as T;
-      const method = service[methodName];
-
       if (typeof method !== "function") {
         throw new Error(
           `The method ${String(methodName)} doesn't exist or is not a function`
@@ -327,10 +324,14 @@ export class StorageService {
 
       return await method.apply(service, args);
     } catch (error) {
-      logger.error(logMessage, {
-        defaultStorageService: this.getDefaultReadService().IDENTIFIER,
-        error,
-      });
+      logger.error(
+        `Error while calling ${String(methodName)} from ${service.IDENTIFIER}`,
+        {
+          defaultStorageService: this.getDefaultReadService().IDENTIFIER,
+          args,
+          error,
+        }
+      );
       throw error;
     }
   }
