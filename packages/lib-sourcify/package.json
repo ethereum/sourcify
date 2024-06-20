@@ -56,11 +56,12 @@
     "semver": "^7.6.2"
   },
   "devDependencies": {
+    "@types/chai": "^4.3.16",
     "@types/debug": "^4.1.12",
     "@types/mocha": "^10.0.6",
     "@types/node": "^20.14.2",
     "c8": "^10.1.2",
-    "chai": "^5.1.1",
+    "chai": "^4.4.1",
     "cspell": "^8.8.4",
     "cz-conventional-changelog": "^3.3.0",
     "gh-pages": "^6.1.1",

@@ -75,6 +75,7 @@
     "yamljs": "^0.3.0"
   },
   "devDependencies": {
+    "@types/chai": "^4.3.16",
     "@types/bunyan": "^1.8.11",
     "@types/config": "^3.3.4",
     "@types/connect-pg-simple": "^7.0.3",
@@ -92,7 +93,7 @@
     "@types/uuid": "^9.0.8",
     "@types/yamljs": "^0.2.34",
     "c8": "^10.1.2",
-    "chai": "^5.1.1",
+    "chai": "^4.4.1",
     "chai-http": "^5.0.0",
     "commander": "^12.1.0",
     "copyfiles": "^2.4.1",
