@@ -569,6 +569,10 @@
     "sourcifyName": "Crab Mainnet",
     "supported": true
   },
+  "46": {
+    "sourcifyName": "Darwinia Mainnet",
+    "supported": true
+  },
   "9000": {
     "sourcifyName": "Evmos Testnet",
     "supported": true,
