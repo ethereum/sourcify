@@ -21,7 +21,6 @@ module.exports = {
     writeOrErr: [
       WStorageIdentifiers.RepositoryV2,
       RWStorageIdentifiers.SourcifyDatabase,
-      RWStorageIdentifiers.SourcifyFixedDatabase,
     ],
   },
   // Legacy repository

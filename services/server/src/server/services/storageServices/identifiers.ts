@@ -1,7 +1,6 @@
 export enum RWStorageIdentifiers {
   SourcifyDatabase = "SourcifyDatabase",
   RepositoryV1 = "RepositoryV1",
-  SourcifyFixedDatabase = "SourcifyFixedDatabase",
 }
 
 export enum WStorageIdentifiers {

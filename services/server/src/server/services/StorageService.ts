@@ -80,7 +80,6 @@ export interface StorageServiceOptions {
   repositoryV1ServiceOptions: RepositoryV1ServiceOptions;
   repositoryV2ServiceOptions: RepositoryV2ServiceOptions;
   sourcifyDatabaseServiceOptions?: SourcifyDatabaseServiceOptions;
-  sourcifyFixedDatabaseServiceOptions?: SourcifyDatabaseServiceOptions;
   allianceDatabaseServiceOptions?: AllianceDatabaseServiceOptions;
 }
 
@@ -155,35 +154,6 @@ export class StorageService {
         );
         throw new Error(
           "SourcifyDatabase enabled, but options are not complete"
-        );
-      }
-    }
-
-    // SourcifyFixedDatabase
-    if (
-      enabledServicesArray.includes(RWStorageIdentifiers.SourcifyFixedDatabase)
-    ) {
-      if (
-        options.sourcifyFixedDatabaseServiceOptions?.postgres?.host &&
-        options.sourcifyFixedDatabaseServiceOptions?.postgres?.database &&
-        options.sourcifyFixedDatabaseServiceOptions?.postgres?.user &&
-        options.sourcifyFixedDatabaseServiceOptions?.postgres?.password
-      ) {
-        const sourcifyFixedDatabase = new SourcifyDatabaseService(
-          this,
-          options.sourcifyFixedDatabaseServiceOptions
-        );
-        sourcifyFixedDatabase.IDENTIFIER =
-          RWStorageIdentifiers.SourcifyFixedDatabase;
-        this.rwServices[sourcifyFixedDatabase.IDENTIFIER] =
-          sourcifyFixedDatabase;
-      } else {
-        logger.error(
-          "SourcifyFixedDatabase enabled, but options are not complete",
-          options.sourcifyFixedDatabaseServiceOptions
-        );
-        throw new Error(
-          "SourcifyFixedDatabase enabled, but options are not complete"
         );
       }
     }

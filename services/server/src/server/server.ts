@@ -349,15 +349,6 @@ if (require.main === module) {
         port: parseInt(process.env.SOURCIFY_POSTGRES_PORT || "5432"),
       },
     },
-    sourcifyFixedDatabaseServiceOptions: {
-      postgres: {
-        host: process.env.SOURCIFY_FIXED_POSTGRES_HOST as string,
-        database: process.env.SOURCIFY_FIXED_POSTGRES_DB as string,
-        user: process.env.SOURCIFY_FIXED_POSTGRES_USER as string,
-        password: process.env.SOURCIFY_FIXED_POSTGRES_PASSWORD as string,
-        port: parseInt(process.env.SOURCIFY_FIXED_POSTGRES_PORT || "5432"),
-      },
-    },
     allianceDatabaseServiceOptions: {
       postgres: {
         host: process.env.ALLIANCE_POSTGRES_HOST as string,
