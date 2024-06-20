@@ -139,6 +139,7 @@ export class ServerFixture {
 
     beforeEach(async () => {
       rimraf.sync(this.server.repository);
+      rimraf.sync(this.server.repositoryV2);
       await resetDatabase(this.sourcifyDatabase);
       console.log("Resetting SourcifyDatabase");
     });
@@ -146,6 +147,7 @@ export class ServerFixture {
     after(() => {
       httpServer.close();
       rimraf.sync(this.server.repository);
+      rimraf.sync(this.server.repositoryV2);
     });
   }
 }

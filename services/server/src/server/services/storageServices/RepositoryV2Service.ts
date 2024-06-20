@@ -15,6 +15,7 @@ import {
 } from "@ethereum-sourcify/lib-sourcify";
 import {
   MatchLevel,
+  MatchLevelWithoutAny,
   MatchQuality,
   PathConfig,
   RepositoryTag,
@@ -25,7 +26,7 @@ import { getAddress, id as keccak256 } from "ethers";
 import { getMatchStatus } from "../../common";
 import { WStorageService } from "../StorageService";
 import { WStorageIdentifiers } from "./identifiers";
-import { exists } from "../utils/util";
+import { exists, readFile } from "../utils/util";
 
 export interface RepositoryV2ServiceOptions {
   ipfsApi: string;
@@ -55,25 +56,44 @@ export class RepositoryV2Service implements WStorageService {
     return true;
   }
 
+  // TODO: Remove this function, metadata will be in SourcifyDatabase
   getMetadata = async (
     chainId: string,
     address: string,
     match: MatchLevel
   ): Promise<string | false> => {
-    try {
-      return await fs.promises.readFile(
-        this.generateAbsoluteFilePath({
-          matchQuality: match === "full_match" ? "full" : "partial",
-          chainId: chainId,
-          address: address,
-          fileName: "metadata.json",
-        }),
-        { encoding: "utf-8" }
-      );
-    } catch (e) {
-      return false;
+    // First try getting metadata.json from full_match
+    const loadedMetadataFullMatch = await readFile(
+      this.repositoryPath,
+      "full_match",
+      chainId,
+      address,
+      "metadata.json"
+    );
+
+    // If the match is full_match return the retrieved file anyway
+    if (loadedMetadataFullMatch || match === "full_match") {
+      return loadedMetadataFullMatch;
     }
+
+    // If any_match or file wasn't in full_match, get metadata.json from partial_match
+    return await readFile(
+      this.repositoryPath,
+      "partial_match",
+      chainId,
+      address,
+      "metadata.json"
+    );
   };
+
+  async getFile(
+    chainId: string,
+    address: string,
+    match: MatchLevelWithoutAny,
+    path: string
+  ): Promise<string | false> {
+    return await readFile(this.repositoryPath, match, chainId, address, path);
+  }
 
   // /home/user/sourcify/data/repository/contracts/full_match/5/0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4/sources/filename
   public generateAbsoluteFilePath(pathConfig: PathConfig) {

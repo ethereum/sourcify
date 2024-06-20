@@ -12,6 +12,7 @@ import {
   FileObject,
   FilesInfo,
   MatchLevel,
+  MatchLevelWithoutAny,
   MatchQuality,
   PathConfig,
   RepositoryTag,
@@ -28,7 +29,7 @@ import { getMatchStatus } from "../../common";
 import { RWStorageService } from "../StorageService";
 import config from "config";
 import { RWStorageIdentifiers } from "./identifiers";
-import { exists } from "../utils/util";
+import { exists, readFile } from "../utils/util";
 
 export interface RepositoryV1ServiceOptions {
   ipfsApi: string;
@@ -51,49 +52,14 @@ export class RepositoryV1Service implements RWStorageService {
       );
     }
   }
-  getMetadata(
-    chainId: string,
-    address: string,
-    match: MatchLevel
-  ): Promise<string | false> {
-    return this.getFile(chainId, address, match, "metadata.json");
-  }
 
   async getFile(
     chainId: string,
     address: string,
-    match: MatchLevel,
+    match: MatchLevelWithoutAny,
     path: string
   ): Promise<string | false> {
-    const fullPathFullMatch = Path.join(
-      this.repositoryPath,
-      "contracts",
-      "full_match",
-      chainId,
-      getAddress(address),
-      path
-    );
-
-    const loadedFileFullMatch = await fs.promises.readFile(fullPathFullMatch);
-
-    if (loadedFileFullMatch || match === "full_match") {
-      return loadedFileFullMatch.toString() || false;
-    }
-
-    const fullPathPartialMatch = Path.join(
-      this.repositoryPath,
-      "contracts",
-      "partial_match",
-      chainId,
-      getAddress(address),
-      path
-    );
-
-    const loadedFilePartialMatch = await fs.promises.readFile(
-      fullPathPartialMatch
-    );
-
-    return loadedFilePartialMatch.toString() || false;
+    return await readFile(this.repositoryPath, match, chainId, address, path);
   }
 
   async init() {

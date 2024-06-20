@@ -4,6 +4,7 @@ import {
   ContractData,
   FilesInfo,
   MatchLevel,
+  MatchLevelWithoutAny,
   PaginatedContractData,
 } from "../../types";
 import { NotFoundError } from "../../../common/errors";
@@ -145,19 +146,6 @@ export async function checkAllByChainAndAddressEndpoint(
   res.send(resultArray);
 }
 
-export async function getMetadataEndpoint(req: Request, res: Response) {
-  const { match, chain, address } = req.params;
-  const file = await req.services.storage.performServiceOperation(
-    "getMetadata",
-    [chain, address, match as MatchLevel],
-    "Error while getting metadata from default read storage service"
-  );
-  if (file === false) {
-    res.status(404).send();
-  }
-  res.json(JSON.parse(file as string));
-}
-
 function jsonOrString(str: string): object | string {
   try {
     return JSON.parse(str);
@@ -166,15 +154,19 @@ function jsonOrString(str: string): object | string {
   }
 }
 
-export async function getFileEndpoint(req: Request, res: Response) {
+export async function getFileEndpoint(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   const { match, chain, address } = req.params;
   const file = await req.services.storage.performServiceOperation(
     "getFile",
-    [chain, address, match as MatchLevel, req.params[0]],
+    [chain, address, match as MatchLevelWithoutAny, req.params[0]],
     "Error while getting file from default read storage service"
   );
-  if (!file) {
-    res.status(404).send();
+  if (file === false) {
+    return next(new NotFoundError());
   }
   res.send(jsonOrString(file));
 }

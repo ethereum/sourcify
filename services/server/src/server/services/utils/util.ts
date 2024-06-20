@@ -1,6 +1,7 @@
 import Path from "path";
 import fs from "fs";
-import { MatchQuality } from "../../types";
+import { MatchLevelWithoutAny, MatchQuality } from "../../types";
+import { getAddress } from "ethers";
 
 export const getFileRelativePath = (
   chainId: string,
@@ -26,6 +27,29 @@ export async function exists(path: string): Promise<boolean> {
     await fs.promises.access(path);
     return true;
   } catch (e) {
+    return false;
+  }
+}
+
+export async function readFile(
+  repositoryPath: string,
+  matchType: MatchLevelWithoutAny,
+  chainId: string,
+  address: string,
+  path: string
+): Promise<string | false> {
+  const fullPath = Path.join(
+    repositoryPath,
+    "contracts",
+    matchType as string,
+    chainId,
+    getAddress(address),
+    path
+  );
+  try {
+    const loadedFile = await fs.promises.readFile(fullPath);
+    return loadedFile.toString() || false;
+  } catch (error) {
     return false;
   }
 }

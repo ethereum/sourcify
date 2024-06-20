@@ -1,9 +1,11 @@
 // Types used internally by the server.
 
+export type MatchLevelWithoutAny = "full_match" | "partial_match";
+
 /**
  * A type for specfifying the strictness level of querying (only full, partial or any kind of matches)
  */
-export type MatchLevel = "full_match" | "partial_match" | "any_match";
+export type MatchLevel = MatchLevelWithoutAny | "any_match";
 
 /**
  * An array wrapper with info properties.

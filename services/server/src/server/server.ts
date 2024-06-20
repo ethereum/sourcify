@@ -54,6 +54,7 @@ declare module "express-serve-static-core" {
 export class Server {
   app: express.Application;
   repository: string = config.get("repositoryV1.path");
+  repositoryV2: string = config.get("repositoryV2.path");
   port: string | number;
   services: Services;
 

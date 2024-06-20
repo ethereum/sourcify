@@ -23,6 +23,7 @@ import {
   FilesInfo,
   Mandatory,
   MatchLevel,
+  MatchLevelWithoutAny,
   MethodArgs,
   MethodNames,
   PaginatedContractData,
@@ -40,15 +41,10 @@ export interface WStorageService {
 }
 
 export interface RWStorageService extends WStorageService {
-  getMetadata(
-    chainId: string,
-    address: string,
-    match: MatchLevel
-  ): Promise<string | false>;
   getFile(
     chainId: string,
     address: string,
-    match: MatchLevel,
+    match: MatchLevelWithoutAny,
     path: string
   ): Promise<string | false>;
   getTree(

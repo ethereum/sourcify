@@ -27,7 +27,7 @@ describe("Verify repository endpoints", function () {
 
   [serverFixtureWithDatabase, serverFixtureWithRepositoryV1].forEach(
     (serverFixture) => {
-      it(`should fetch files of specific address, using a non-checksummed address. Storage type: ${serverFixture.identifier}`, async function () {
+      it(`should fetch files of full match contract, using a non-checksummed address. Storage type: ${serverFixture.identifier}`, async function () {
         const agent = chai.request.agent(serverFixture.server.app);
         // Wait for the server to complete the previous contract verification
         await waitSecs(1);
@@ -106,6 +106,133 @@ describe("Verify repository endpoints", function () {
           full: [chainFixture.defaultContractAddress],
           partial: [],
         });
+
+        const res5 = await agent.get(
+          `/repository/contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/sources/project:/contracts/Storage.sol`
+        );
+        chai
+          .expect(res5.text)
+          .to.equal(chainFixture.defaultContractSource.toString());
+
+        const res6 = await agent.get(
+          `/repository/contracts/partial_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/sources/project:/contracts/Storage.sol`
+        );
+        chai.expect(res6.status).to.equal(404);
+
+        const res7 = await agent.get(
+          `/repository/contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/metadata.json`
+        );
+        chai
+          .expect(res7.body)
+          .to.deep.equal(
+            JSON.parse(chainFixture.defaultContractMetadata.toString())
+          );
+
+        const res8 = await agent.get(
+          `/repository/contracts/partial_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/metadata.json`
+        );
+        chai.expect(res8.status).to.equal(404);
+      });
+
+      it(`should fetch files of partial match contract. Storage type: ${serverFixture.identifier}`, async function () {
+        const agent = chai.request.agent(serverFixture.server.app);
+        // Wait for the server to complete the previous contract verification
+        await waitSecs(1);
+        await agent
+          .post("/")
+          .field("address", chainFixture.defaultContractAddress)
+          .field("chain", chainFixture.chainId)
+          .attach(
+            "files",
+            chainFixture.defaultContractModifiedMetadata,
+            "metadata.json"
+          )
+          .attach(
+            "files",
+            chainFixture.defaultContractModifiedSource,
+            "StorageModified.sol"
+          );
+        const res0 = await agent.get(
+          `/files/${
+            chainFixture.chainId
+          }/${chainFixture.defaultContractAddress.toLocaleLowerCase()}`
+        );
+        chai.expect(res0.body).to.deep.equal({
+          error: "Files have not been found!",
+          message: "Files have not been found!",
+        });
+        const res1 = await agent.get(
+          `/files/tree/any/${
+            chainFixture.chainId
+          }/${chainFixture.defaultContractAddress.toLocaleLowerCase()}`
+        );
+        chai.expect(res1.body.status).to.equal("partial");
+        chai
+          .expect(res1.body.files)
+          .to.have.members([
+            `http://localhost:10000/contracts/partial_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/sources/contracts/StorageModified.sol`,
+            `http://localhost:10000/contracts/partial_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/metadata.json`,
+          ]);
+        const res2 = await agent.get(
+          `/files/any/${
+            chainFixture.chainId
+          }/${chainFixture.defaultContractAddress.toLocaleLowerCase()}`
+        );
+        chai.expect(res2.body.status).to.equal("partial");
+        chai.expect(res2.body.files).to.include.deep.members([
+          {
+            name: "StorageModified.sol",
+            path: `contracts/partial_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/sources/contracts/StorageModified.sol`,
+            content: chainFixture.defaultContractModifiedSource.toString(),
+          },
+          {
+            name: "metadata.json",
+            path: `contracts/partial_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/metadata.json`,
+            content: chainFixture.defaultContractModifiedMetadata.toString(),
+          },
+        ]);
+        const res3 = await agent.get(
+          `/files/tree/${
+            chainFixture.chainId
+          }/${chainFixture.defaultContractAddress.toLocaleLowerCase()}`
+        );
+        chai.expect(res3.body).to.deep.equal({
+          error: "Files have not been found!",
+          message: "Files have not been found!",
+        });
+        const res4 = await agent.get(
+          `/files/contracts/${chainFixture.chainId}`
+        );
+        chai.expect(res4.body).to.deep.equal({
+          full: [],
+          partial: [chainFixture.defaultContractAddress],
+        });
+
+        const res5 = await agent.get(
+          `/repository/contracts/partial_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/sources/contracts/StorageModified.sol`
+        );
+        chai
+          .expect(res5.text)
+          .to.equal(chainFixture.defaultContractModifiedSource.toString());
+
+        const res6 = await agent.get(
+          `/repository/contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/sources/contracts/StorageModified.sol`
+        );
+        chai.expect(res6.status).to.equal(404);
+
+        const res7 = await agent.get(
+          `/repository/contracts/partial_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/metadata.json`
+        );
+        chai
+          .expect(res7.body)
+          .to.deep.equal(
+            JSON.parse(chainFixture.defaultContractModifiedMetadata.toString())
+          );
+
+        const res8 = await agent.get(
+          `/repository/contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/metadata.json`
+        );
+        chai.expect(res8.status).to.equal(404);
       });
 
       it(`should fetch a .sol file of specific address. Storage type: ${serverFixture.identifier}`, async function () {

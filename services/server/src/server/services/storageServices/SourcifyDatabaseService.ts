@@ -16,6 +16,7 @@ import {
   FilesRaw,
   FilesRawValue,
   MatchLevel,
+  MatchLevelWithoutAny,
   PaginatedContractData,
 } from "../../types";
 import config from "config";
@@ -449,18 +450,52 @@ export class SourcifyDatabaseService
   getFile = async (
     chainId: string,
     address: string,
-    match: MatchLevel,
+    match: MatchLevelWithoutAny,
     path: string
   ): Promise<string | false> => {
+    // this.getFiles queries sourcify_match, it extract always one and only one match
+    // there could never be two matches with different MatchLevelWithoutAny inside sourcify_match
     const { status, files, sources } = await this.getFiles(chainId, address);
+
     if (Object.keys(sources).length === 0) {
       return false;
     }
-    if (match === "full_match" && status === "partial") {
+
+    // returned getFile.status should equal requested MatchLevelWithoutAny
+    if (status === "full" && match !== "full_match") {
       return false;
     }
-    const allFiles = { ...files, ...sources };
-    return allFiles[path];
+    if (status === "partial" && match !== "partial_match") {
+      return false;
+    }
+
+    // For getFile we cannot use getMetadata, since it returns metadata based on MatchLevel logic
+    // we use RepositoryV2Service.getFile to extract metadata.json specifying "full_match" or "partial_match"
+    const metadata = await (
+      this.storageService.wServices[
+        WStorageIdentifiers.RepositoryV2
+      ] as RepositoryV2Service
+    ).getFile(chainId, address, match, "metadata.json");
+
+    if (metadata === false) {
+      throw new Error("Metadata doesn't exist for this file");
+    }
+
+    const allFiles: { [index: string]: string } = {
+      ...files,
+      ...sources,
+      "metadata.json": metadata,
+    };
+
+    if (match === "full_match" && status === "full") {
+      return allFiles[path];
+    }
+
+    if (match === "partial_match" && status === "partial") {
+      return allFiles[path];
+    }
+
+    return false;
   };
 
   /**

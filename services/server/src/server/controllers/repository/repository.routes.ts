@@ -6,7 +6,6 @@ import {
   checkAllByChainAndAddressEndpoint,
   checkByChainAndAddressesEnpoint,
   getFileEndpoint,
-  getMetadataEndpoint,
   createPaginatedContractEndpoint,
   CheckAllByChainAndAddressEndpointRequest,
 } from "./repository.handlers";
@@ -137,11 +136,6 @@ router
  * The function getFileEndpoint get the sources from compiled_contracts.sources
  * We need both of these routes because compiled_contracts.sources doesn't contain the metadata file
  */
-
-// This route covers the metadata.json files, fetching them from RepositoryV2
-router
-  .route("/repository/contracts/:match/:chain/:address/metadata.json")
-  .get(safeHandler(getMetadataEndpoint));
 
 // This route covers constructor-args.txt, creator-tx-hash.txt, library-map.json, immutable-references.json files
 router
