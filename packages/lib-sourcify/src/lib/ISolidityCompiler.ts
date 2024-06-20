@@ -4,6 +4,6 @@ export interface ISolidityCompiler {
   compile(
     version: string,
     solcJsonInput: JsonInput,
-    forceEmscripten?: boolean
+    forceEmscripten?: boolean,
   ): Promise<CompilerOutput>;
 }
