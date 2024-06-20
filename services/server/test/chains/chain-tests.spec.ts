@@ -463,6 +463,14 @@ describe("Test Supported Chains", function () {
     "shared/"
   );
 
+  // Darwinia mainnet
+  verifyContract(
+    "0x572059a7947727f3d093dac66a00c77ed4ea77d4",
+    "46",
+    "Darwinia Mainnet",
+    "shared/"
+  );
+
   // Evmos Testnet
   verifyContract(
     "0x07Eb2490cEfc74bAEb4B13c2dB9119CA0c38959B",
