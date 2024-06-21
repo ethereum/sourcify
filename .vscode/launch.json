@@ -225,26 +225,6 @@
       "smartStep": true,
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Mocha - Source Fetcher",
-      "program": "${workspaceRoot}/node_modules/.bin/mocha",
-      "args": [
-        "${workspaceFolder}/test/sourceFetcher.js",
-        "--no-timeout",
-        // Run a single test when debugging
-        // "--grep=fallback",
-        "--exit"
-      ],
-      "outFiles": [
-        "${workspaceFolder}/dist/**/*.js",
-        "${workspaceFolder}/packages/**/build/**/*.js"
-      ],
-      "smartStep": true,
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen"
     }
   ]
 }
