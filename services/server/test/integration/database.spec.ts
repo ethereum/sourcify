@@ -1,7 +1,7 @@
 import chai from "chai";
 import chaiHttp from "chai-http";
 import { deployFromAbiAndBytecodeForCreatorTxHash } from "../helpers/helpers";
-import { id as keccak256str } from "ethers";
+import { id as keccak256str, keccak256 } from "ethers";
 import { LocalChainFixture } from "../helpers/LocalChainFixture";
 import { ServerFixture } from "../helpers/ServerFixture";
 import type {
@@ -32,27 +32,41 @@ describe("Verifier Alliance database", function () {
       deployWithConstructorArguments: false,
     }
   ) => {
-    let address;
-    let txHash;
+    let address: string;
+    let txHash: string;
+    let blockNumber: number | null;
+    let txIndex: number | undefined;
     if (!deployWithConstructorArguments) {
-      const { contractAddress, txHash: txCreationHash } =
-        await deployFromAbiAndBytecodeForCreatorTxHash(
-          chainFixture.localSigner,
-          testCase.compilation_artifacts.abi,
-          testCase.deployed_creation_code
-        );
+      const {
+        contractAddress,
+        txHash: txCreationHash,
+        blockNumber: blockNumber_,
+        txIndex: txIndex_,
+      } = await deployFromAbiAndBytecodeForCreatorTxHash(
+        chainFixture.localSigner,
+        testCase.compilation_artifacts.abi,
+        testCase.deployed_creation_code
+      );
       address = contractAddress;
       txHash = txCreationHash;
+      blockNumber = blockNumber_;
+      txIndex = txIndex_;
     } else {
-      const { contractAddress, txHash: txCreationHash } =
-        await deployFromAbiAndBytecodeForCreatorTxHash(
-          chainFixture.localSigner,
-          testCase.compilation_artifacts.abi,
-          testCase.compiled_creation_code,
-          [testCase.creation_values.constructorArguments]
-        );
+      const {
+        contractAddress,
+        txHash: txCreationHash,
+        blockNumber: blockNumber_,
+        txIndex: txIndex_,
+      } = await deployFromAbiAndBytecodeForCreatorTxHash(
+        chainFixture.localSigner,
+        testCase.compilation_artifacts.abi,
+        testCase.compiled_creation_code,
+        [testCase.creation_values.constructorArguments]
+      );
       address = contractAddress;
       txHash = txCreationHash;
+      blockNumber = blockNumber_;
+      txIndex = txIndex_;
     }
 
     const compilationTarget: Record<string, string> = {};
@@ -119,60 +133,124 @@ describe("Verifier Alliance database", function () {
     const res =
       await serverFixture.storageService.sourcifyDatabase.databasePool.query(
         `SELECT 
-        compilation_artifacts,
-        creation_code_artifacts,
-        runtime_code_artifacts,
-        creation_match,
-        creation_values,
-        creation_transformations,
-        runtime_match,
-        runtime_values,
-        runtime_transformations,
-        compiled_runtime_code.code as compiled_runtime_code,
-        compiled_creation_code.code as compiled_creation_code
-      FROM verified_contracts vc
-      LEFT JOIN contract_deployments cd ON cd.id = vc.deployment_id
-      LEFT JOIN compiled_contracts cc ON cc.id = vc.compilation_id 
-      LEFT JOIN code compiled_runtime_code ON compiled_runtime_code.code_hash = cc.runtime_code_hash
-      LEFT JOIN code compiled_creation_code ON compiled_creation_code.code_hash = cc.creation_code_hash
-      where cd.address = $1`,
+          compilation_artifacts,
+          creation_code_artifacts,
+          runtime_code_artifacts,
+          creation_match,
+          creation_values,
+          creation_transformations,
+          runtime_match,
+          runtime_values,
+          runtime_transformations,
+          compiled_runtime_code.code as compiled_runtime_code,
+          compiled_creation_code.code as compiled_creation_code,
+          compiled_runtime_code.code_hash as compiled_runtime_code_hash,
+          compiled_creation_code.code_hash as compiled_creation_code_hash,
+          onchain_runtime_code.code as onchain_runtime_code,
+          onchain_creation_code.code as onchain_creation_code,
+          onchain_runtime_code.code_hash as onchain_runtime_code_hash,
+          onchain_creation_code.code_hash as onchain_creation_code_hash,
+          cc.compiler,
+          cc.version,
+          cc.language,
+          cc.name,
+          cc.fully_qualified_name,
+          cc.sources,
+          cc.compiler_settings,
+          cd.chain_id,
+          cd.address,
+          cd.transaction_hash,
+          cd.block_number,
+          cd.transaction_index,
+          cd.deployer
+        FROM verified_contracts vc
+        LEFT JOIN contract_deployments cd ON cd.id = vc.deployment_id
+        LEFT JOIN contracts c ON c.id = cd.contract_id
+        LEFT JOIN compiled_contracts cc ON cc.id = vc.compilation_id 
+        LEFT JOIN code compiled_runtime_code ON compiled_runtime_code.code_hash = cc.runtime_code_hash
+        LEFT JOIN code compiled_creation_code ON compiled_creation_code.code_hash = cc.creation_code_hash
+        LEFT JOIN code onchain_runtime_code ON onchain_runtime_code.code_hash = c.runtime_code_hash
+        LEFT JOIN code onchain_creation_code ON onchain_creation_code.code_hash = c.creation_code_hash
+        where cd.address = $1`,
         [Buffer.from(address.substring(2), "hex")]
       );
     chai.expect(res.rowCount).to.equal(1);
+
+    const row = res.rows[0];
+
+    chai.expect(row.compiler).to.equal(testCase.compiler);
+    chai.expect(row.version).to.equal(testCase.version);
+    chai.expect(row.language).to.equal(testCase.language);
+    chai.expect(row.name).to.equal(testCase.name);
     chai
-      .expect(res.rows[0].compilation_artifacts)
+      .expect(row.fully_qualified_name)
+      .to.equal(testCase.fully_qualified_name);
+    chai.expect(row.sources).to.deep.equal(testCase.sources);
+    chai
+      .expect(row.compiler_settings)
+      .to.deep.equal(testCase.compiler_settings);
+    chai.expect(row.chain_id).to.equal(chainFixture.chainId);
+    chai
+      .expect(row.address)
+      .to.deep.equal(Buffer.from(address.substring(2), "hex"));
+
+    chai
+      .expect(row.deployer)
+      .to.deep.equal(
+        Buffer.from(chainFixture.localSigner.address.substring(2), "hex")
+      );
+
+    chai
+      .expect(row.transaction_hash)
+      .to.deep.equal(Buffer.from(txHash.substring(2), "hex"));
+
+    chai.expect(parseInt(row.block_number)).to.equal(blockNumber);
+    chai.expect(parseInt(row.transaction_index)).to.equal(txIndex);
+
+    ///
+    chai
+      .expect(row.compilation_artifacts)
       .to.deep.equal(testCase.compilation_artifacts);
     chai
-      .expect(`0x${toHexString(res.rows[0].compiled_runtime_code)}`)
+      .expect(`0x${toHexString(row.compiled_runtime_code)}`)
       .to.equal(testCase.compiled_runtime_code);
     chai
-      .expect(res.rows[0].runtime_code_artifacts)
+      .expect(`0x${toHexString(row.compiled_runtime_code_hash)}`)
+      .to.equal(keccak256(testCase.compiled_runtime_code));
+    chai
+      .expect(`0x${toHexString(row.onchain_runtime_code_hash)}`)
+      .to.equal(keccak256(testCase.deployed_runtime_code));
+    chai
+      .expect(`0x${toHexString(row.onchain_runtime_code)}`)
+      .to.equal(testCase.deployed_runtime_code);
+    chai
+      .expect(row.runtime_code_artifacts)
       .to.deep.equal(testCase.runtime_code_artifacts);
+    chai.expect(row.runtime_match).to.deep.equal(testCase.runtime_match);
+    chai.expect(row.runtime_values).to.deep.equal(testCase.runtime_values);
     chai
-      .expect(res.rows[0].runtime_match)
-      .to.deep.equal(testCase.runtime_match);
-    chai
-      .expect(res.rows[0].runtime_values)
-      .to.deep.equal(testCase.runtime_values);
-    chai
-      .expect(res.rows[0].runtime_transformations)
+      .expect(row.runtime_transformations)
       .to.deep.equal(testCase.runtime_transformations);
 
-    // For now disable the creation tests
     chai
-      .expect(`0x${toHexString(res.rows[0].compiled_creation_code)}`)
+      .expect(`0x${toHexString(row.compiled_creation_code_hash)}`)
+      .to.equal(keccak256(testCase.compiled_creation_code));
+    chai
+      .expect(`0x${toHexString(row.compiled_creation_code)}`)
       .to.equal(testCase.compiled_creation_code);
     chai
-      .expect(res.rows[0].creation_code_artifacts)
+      .expect(`0x${toHexString(row.onchain_creation_code_hash)}`)
+      .to.equal(keccak256(testCase.deployed_creation_code));
+    chai
+      .expect(`0x${toHexString(row.onchain_creation_code)}`)
+      .to.equal(testCase.deployed_creation_code);
+    chai
+      .expect(row.creation_code_artifacts)
       .to.deep.equal(testCase.creation_code_artifacts);
+    chai.expect(row.creation_match).to.deep.equal(testCase.creation_match);
+    chai.expect(row.creation_values).to.deep.equal(testCase.creation_values);
     chai
-      .expect(res.rows[0].creation_match)
-      .to.deep.equal(testCase.creation_match);
-    chai
-      .expect(res.rows[0].creation_values)
-      .to.deep.equal(testCase.creation_values);
-    chai
-      .expect(res.rows[0].creation_transformations)
+      .expect(row.creation_transformations)
       .to.deep.equal(testCase.creation_transformations);
   };
 

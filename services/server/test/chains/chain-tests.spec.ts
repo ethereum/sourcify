@@ -455,11 +455,19 @@ describe("Test Supported Chains", function () {
   //
   // );
 
-  // Darwinia Crab Mainnet
+  // Crab Mainnet
   verifyContract(
-    "0xE0E78187F01E026bdD0bd901e5Ae2e10C022366D",
+    "0x2369ccbde92c65986ec708ae293a5df6c7148ec9",
     "44",
-    "Darwinia Pangolin Testnet",
+    "Crab Mainnet",
+    "shared/"
+  );
+
+  // Darwinia mainnet
+  verifyContract(
+    "0x572059a7947727f3d093dac66a00c77ed4ea77d4",
+    "46",
+    "Darwinia Mainnet",
     "shared/"
   );
 
