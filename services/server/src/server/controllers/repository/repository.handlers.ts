@@ -134,6 +134,7 @@ export async function getMetadataEndpoint(req: any, res: Response) {
   const file = await services.storage.getMetadata(chain, address, match);
   if (file === false) {
     res.status(404).send();
+    return;
   }
   res.json(JSON.parse(file as string));
 }
@@ -148,6 +149,7 @@ export async function getFileEndpoint(req: any, res: Response) {
   );
   if (!file) {
     res.status(404).send();
+    return;
   }
   res.send(file);
 }
