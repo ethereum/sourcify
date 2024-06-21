@@ -72,10 +72,7 @@ jobs:
       - run:
           name: Check NEW_CHAIN_ID existence
           command: |
-            echo "Before sourcing BASH_ENV, NEW_CHAIN_ID=$NEW_CHAIN_ID"
-            cat $BASH_ENV
-            source $BASH_ENV
-            echo "After sourcing BASH_ENV, NEW_CHAIN_ID=$NEW_CHAIN_ID"
+            echo "NEW_CHAIN_ID=$NEW_CHAIN_ID"
             if [ -z "${NEW_CHAIN_ID}" ]; then
               echo 'NEW_CHAIN_ID is unset or empty, skipping subsequent steps.'
               circleci-agent step halt
