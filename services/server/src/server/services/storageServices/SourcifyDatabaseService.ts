@@ -6,7 +6,9 @@ import {
 import logger from "../../../common/logger";
 import * as Database from "../utils/database-util";
 import { Pool } from "pg";
-import AbstractDatabaseService from "./AbstractDatabaseService";
+import AbstractDatabaseService, {
+  DatabaseServiceOptions,
+} from "./AbstractDatabaseService";
 import { RWStorageService, StorageService } from "../StorageService";
 import { bytesFromString } from "../utils/database-util";
 import {
@@ -27,16 +29,6 @@ import { BadRequestError } from "../../../common/errors";
 import { RWStorageIdentifiers, WStorageIdentifiers } from "./identifiers";
 import { RepositoryV2Service } from "./RepositoryV2Service";
 
-export interface SourcifyDatabaseServiceOptions {
-  postgres: {
-    host: string;
-    port: number;
-    database: string;
-    user: string;
-    password: string;
-  };
-}
-
 const MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS = 200;
 
 export class SourcifyDatabaseService
@@ -47,68 +39,12 @@ export class SourcifyDatabaseService
   IDENTIFIER = RWStorageIdentifiers.SourcifyDatabase;
   databasePool!: Pool;
 
-  postgresHost?: string;
-  postgresPort?: number;
-  postgresDatabase?: string;
-  postgresUser?: string;
-  postgresPassword?: string;
-
   constructor(
     storageService_: StorageService,
-    options: SourcifyDatabaseServiceOptions
+    options: DatabaseServiceOptions
   ) {
-    super();
-    this.postgresHost = options.postgres.host;
-    this.postgresPort = options.postgres.port;
-    this.postgresDatabase = options.postgres.database;
-    this.postgresUser = options.postgres.user;
-    this.postgresPassword = options.postgres.password;
+    super(options);
     this.storageService = storageService_;
-  }
-
-  async init() {
-    return await this.initDatabasePool();
-  }
-
-  async initDatabasePool(): Promise<boolean> {
-    // if the database is already initialized
-    if (this.databasePool != undefined) {
-      return true;
-    }
-
-    if (this.postgresHost) {
-      this.databasePool = new Pool({
-        host: this.postgresHost,
-        port: this.postgresPort,
-        database: this.postgresDatabase,
-        user: this.postgresUser,
-        password: this.postgresPassword,
-        max: 5,
-      });
-    } else {
-      throw new Error(`${this.IDENTIFIER} is disabled`);
-    }
-
-    // Checking pool health before continuing
-    try {
-      await this.databasePool.query("SELECT 1;");
-    } catch (error) {
-      logger.error(`Cannot connect to ${this.IDENTIFIER}`, {
-        host: this.postgresHost,
-        port: this.postgresPort,
-        database: this.postgresDatabase,
-        user: this.postgresUser,
-        error,
-      });
-      throw new Error(`Cannot connect to ${this.IDENTIFIER}`);
-    }
-
-    logger.info(`${this.IDENTIFIER} initialized`, {
-      host: this.postgresHost,
-      port: this.postgresPort,
-      database: this.postgresDatabase,
-    });
-    return true;
   }
 
   async checkByChainAndAddress(

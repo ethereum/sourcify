@@ -7,14 +7,8 @@ import {
   RepositoryV2Service,
   RepositoryV2ServiceOptions,
 } from "./storageServices/RepositoryV2Service";
-import {
-  SourcifyDatabaseService,
-  SourcifyDatabaseServiceOptions,
-} from "./storageServices/SourcifyDatabaseService";
-import {
-  AllianceDatabaseService,
-  AllianceDatabaseServiceOptions,
-} from "./storageServices/AllianceDatabaseService";
+import { SourcifyDatabaseService } from "./storageServices/SourcifyDatabaseService";
+import { AllianceDatabaseService } from "./storageServices/AllianceDatabaseService";
 import logger from "../../common/logger";
 import { getMatchStatus } from "../common";
 import {
@@ -33,6 +27,7 @@ import {
   StorageIdentifiers,
   WStorageIdentifiers,
 } from "./storageServices/identifiers";
+import { DatabaseServiceOptions } from "./storageServices/AbstractDatabaseService";
 
 export interface WStorageService {
   IDENTIFIER: StorageIdentifiers;
@@ -79,8 +74,8 @@ export interface StorageServiceOptions {
   enabledServices: EnabledServices;
   repositoryV1ServiceOptions: RepositoryV1ServiceOptions;
   repositoryV2ServiceOptions: RepositoryV2ServiceOptions;
-  sourcifyDatabaseServiceOptions?: SourcifyDatabaseServiceOptions;
-  allianceDatabaseServiceOptions?: AllianceDatabaseServiceOptions;
+  sourcifyDatabaseServiceOptions?: DatabaseServiceOptions;
+  allianceDatabaseServiceOptions?: DatabaseServiceOptions;
 }
 
 export class StorageService {
