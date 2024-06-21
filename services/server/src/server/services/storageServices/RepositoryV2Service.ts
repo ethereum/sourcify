@@ -224,7 +224,7 @@ export class RepositoryV2Service implements IStorageService {
     const absolutePath = this.generateAbsoluteFilePath(pathConfig);
 
     if (fs.existsSync(absolutePath)) {
-      fs.rmdirSync(absolutePath, { recursive: true });
+      fs.rmSync(absolutePath, { recursive: true });
     }
   }
 
