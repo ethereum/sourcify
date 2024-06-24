@@ -17,7 +17,8 @@
     "update-chains": "node --experimental-fetch scripts/updateChains.mjs && prettier --write services/server/src/chains.json",
     "test:chains": "cd services/server && npm run test:chains",
     "lerna-test": "lerna run test --stream",
-    "lerna-lint": "lerna run lint",
+    "lerna-lint": "lerna run check",
+    "lerna-fix": "lerna run fix",
     "lerna-version": "lerna version --no-push"
   },
   "repository": {
