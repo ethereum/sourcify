@@ -1,17 +1,19 @@
-const { expect } = require("chai");
-const sinon = require("sinon");
-const Monitor = require("../dist/Monitor").default;
-const logger = require("../dist/logger").default;
-const { JsonRpcProvider, Network } = require("ethers");
-const {
+import { expect } from "chai";
+import sinon, { SinonSandbox } from "sinon";
+import Monitor from "../src/Monitor";
+import logger from "../src/logger";
+import { JsonRpcProvider, JsonRpcSigner, Network } from "ethers";
+import {
   deployFromAbiAndBytecode,
   nockInterceptorForVerification,
-} = require("./helpers");
-const testLogger = require("./testLogger");
-const {
+} from "./helpers";
+import { logger as testLogger } from "./testLogger";
+import {
   startHardhatNetwork,
   stopHardhatNetwork,
-} = require("./hardhat-network-helper");
+} from "./hardhat-network-helper";
+import { ChildProcess } from "child_process";
+import storageContractArtifact from "./sources/Storage/1_Storage.json";
 
 const HARDHAT_PORT = 8546;
 // Configured in hardhat.config.js
@@ -24,13 +26,11 @@ const localChain = {
 };
 
 describe("Monitor", function () {
-  this.timeout(30000);
-
-  let sandbox;
-  let hardhatNodeProcess;
-  let signer;
-  let account;
-  let monitor;
+  let sandbox: SinonSandbox;
+  let hardhatNodeProcess: ChildProcess;
+  let signer: JsonRpcSigner;
+  let account: string;
+  let monitor: Monitor;
 
   beforeEach(async function () {
     sandbox = sinon.createSandbox();
@@ -96,8 +96,8 @@ describe("Monitor", function () {
 
     const contractAddress = await deployFromAbiAndBytecode(
       signer,
-      require("./sources/Storage/1_Storage.json").abi,
-      require("./sources/Storage/1_Storage.json").bytecode,
+      storageContractArtifact.abi,
+      storageContractArtifact.bytecode,
       []
     );
 
@@ -111,15 +111,15 @@ describe("Monitor", function () {
     // start monitor after contract is deployed to avoid sending request before setting up interceptor
     // Need to know the contract address to set up the interceptor
     await monitor.start();
-    // wait 30 seconds
-    await new Promise((resolve) =>
-      setTimeout(resolve, 3 * HARDHAT_BLOCK_TIME_IN_SEC * 1000)
-    );
-
-    expect(
-      nockInterceptor.isDone(),
-      `Server ${MOCK_SOURCIFY_SERVER} not called`
-    ).to.be.true;
+    await new Promise<void>((resolve) => {
+      nockInterceptor.on("replied", () => {
+        expect(
+          nockInterceptor.isDone(),
+          `Server ${MOCK_SOURCIFY_SERVER} not called`
+        ).to.be.true;
+        resolve();
+      });
+    });
   });
   // Add more test cases as needed
 });

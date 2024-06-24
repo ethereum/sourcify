@@ -1,5 +1,6 @@
-const { createLogger, transports, format } = require("winston");
-const logger = createLogger();
+import { createLogger, transports, format } from "winston";
+
+export const logger = createLogger();
 
 // Define the ANSI code for magenta text
 const magenta = "\x1b[35m";
@@ -23,5 +24,3 @@ logger.add(
     ),
   })
 );
-
-module.exports = logger;
