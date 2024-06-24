@@ -116,7 +116,7 @@ workflows:
         #       << pipeline.parameters.run-build-ui >>,
         #     ]
     jobs:
-      - tests-node-v16
+      - tests-node-v22
       - build-push-monitor-amd64:
           run-build: << pipeline.parameters.run-build-monitor >>
           run-build-2: << pipeline.parameters.run-build-packages >> # monitor depends on packages
@@ -170,7 +170,7 @@ workflows:
         - not:
             equal: [staging, << pipeline.git.branch >>]
     jobs:
-      - tests-node-v16
+      - tests-node-v22
 
 #######################
 ### JOB DEFINITIONS ###
@@ -251,7 +251,7 @@ jobs:
           no_output_timeout: 5m
           command: |
             ./.circleci/scripts/trigger_deploy.sh
-  tests-node-v16:
+  tests-node-v22:
     docker:
       - image: cimg/node:22.3.0
       - image: postgres:16-alpine

@@ -7,14 +7,14 @@ workflows:
   # Always run
   node-build:
     jobs:
-      - node-v16
+      - node-v22
   # Has to run always. Can't regex filter on add-chain-{chainId} branch names see: https://stackoverflow.com/questions/55839004/circleci-regex-filtering-match-within-string
   test-new-chain:
     jobs:
       - test-new-chain
 
 jobs:
-  node-v16:
+  node-v22:
     docker:
       - image: cimg/node:22.3.0
       - image: postgres:16-alpine
