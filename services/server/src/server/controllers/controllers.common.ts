@@ -3,8 +3,10 @@ import { InternalServerError } from "../../common/errors";
 import logger from "../../common/logger";
 import { getAddress } from "ethers";
 
-export const safeHandler = (requestHandler: RequestHandler) => {
-  return async (req: Request, res: Response, next: NextFunction) => {
+export const safeHandler = <T extends Request = Request>(
+  requestHandler: (req: T, res: Response, next: NextFunction) => Promise<any>
+) => {
+  return async (req: T, res: Response, next: NextFunction) => {
     // Middlewares can access req.params.* only after routes are defined
     if (req.params.address) {
       req.params.address = getAddress(req.params.address);

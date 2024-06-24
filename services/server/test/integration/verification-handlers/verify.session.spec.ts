@@ -43,14 +43,11 @@ describe("/session", function () {
   const serverFixture = new ServerFixture();
 
   it("should store session in database", async () => {
-    await serverFixture.storageService.sourcifyDatabase?.databasePool.query(
-      "TRUNCATE TABLE session;"
-    );
+    await serverFixture.sourcifyDatabase.query("TRUNCATE TABLE session;");
     await chai.request(serverFixture.server.app).post("/session/data").send({});
-    const res =
-      await serverFixture.storageService.sourcifyDatabase?.databasePool.query(
-        "SELECT * FROM session;"
-      );
+    const res = await serverFixture.sourcifyDatabase.query(
+      "SELECT * FROM session;"
+    );
     chai.expect(res?.rowCount).to.equal(1);
   });
 
@@ -110,7 +107,7 @@ describe("/session", function () {
           .send({ contracts })
           .end(async (err, res) => {
             await assertVerificationSession(
-              serverFixture.storageService,
+              serverFixture.sourcifyDatabase,
               err,
               res,
               done,
@@ -174,7 +171,7 @@ describe("/session", function () {
             contracts[0].chainId = chainFixture.chainId;
             contracts[0].address = chainFixture.defaultContractAddress;
             assertVerificationSession(
-              serverFixture.storageService,
+              serverFixture.sourcifyDatabase,
               err,
               res,
               null,
@@ -187,7 +184,7 @@ describe("/session", function () {
                 .send({ contracts })
                 .end(async (err, res) => {
                   await assertVerificationSession(
-                    serverFixture.storageService,
+                    serverFixture.sourcifyDatabase,
                     err,
                     res,
                     done,
@@ -291,6 +288,35 @@ describe("/session", function () {
               });
           });
       });
+  });
+
+  it("should import a contract using /session/input-contract", async () => {
+    const agent = chai.request.agent(serverFixture.server.app);
+    try {
+      const res = await agent.post("/session/input-contract").send({
+        address: chainFixture.defaultContractAddress,
+        chainId: chainFixture.chainId,
+      });
+      chai.expect(res.body).to.deep.equal({
+        contracts: [
+          {
+            verificationId: res.body.contracts[0].verificationId,
+            compiledPath: "project:/contracts/Storage.sol",
+            name: "Storage",
+            files: {
+              found: ["project:/contracts/Storage.sol"],
+              missing: {},
+              invalid: {},
+            },
+            status: "error",
+          },
+        ],
+        unused: [],
+        files: ["metadata.json"],
+      });
+    } catch (e) {
+      console.log(e);
+    }
   });
 
   it("should fail for a source that is missing and unfetchable", (done) => {

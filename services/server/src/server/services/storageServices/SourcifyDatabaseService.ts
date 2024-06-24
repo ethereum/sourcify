@@ -6,8 +6,10 @@ import {
 import logger from "../../../common/logger";
 import * as Database from "../utils/database-util";
 import { Pool } from "pg";
-import AbstractDatabaseService from "./AbstractDatabaseService";
-import { IStorageService } from "../StorageService";
+import AbstractDatabaseService, {
+  DatabaseServiceOptions,
+} from "./AbstractDatabaseService";
+import { RWStorageService, StorageService } from "../StorageService";
 import { bytesFromString } from "../utils/database-util";
 import {
   ContractData,
@@ -16,6 +18,7 @@ import {
   FilesRaw,
   FilesRawValue,
   MatchLevel,
+  MatchLevelWithoutAny,
   PaginatedContractData,
 } from "../../types";
 import config from "config";
@@ -23,78 +26,47 @@ import Path from "path";
 import { getFileRelativePath } from "../utils/util";
 import { getAddress } from "ethers";
 import { BadRequestError } from "../../../common/errors";
-
-export interface SourcifyDatabaseServiceOptions {
-  postgres: {
-    host: string;
-    port: number;
-    database: string;
-    user: string;
-    password: string;
-  };
-}
+import { RWStorageIdentifiers, WStorageIdentifiers } from "./identifiers";
+import { RepositoryV2Service } from "./RepositoryV2Service";
 
 const MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS = 200;
 
 export class SourcifyDatabaseService
   extends AbstractDatabaseService
-  implements IStorageService
+  implements RWStorageService
 {
-  databaseName = "SourcifyDatabase";
+  storageService: StorageService;
+  IDENTIFIER = RWStorageIdentifiers.SourcifyDatabase;
   databasePool!: Pool;
 
-  postgresHost?: string;
-  postgresPort?: number;
-  postgresDatabase?: string;
-  postgresUser?: string;
-  postgresPassword?: string;
-
-  constructor(options: SourcifyDatabaseServiceOptions) {
-    super();
-    this.postgresHost = options.postgres.host;
-    this.postgresPort = options.postgres.port;
-    this.postgresDatabase = options.postgres.database;
-    this.postgresUser = options.postgres.user;
-    this.postgresPassword = options.postgres.password;
-    logger.debug(`SourcifyDatabaseService created`, {
-      name: this.databaseName,
-      host: this.postgresHost,
-      port: this.postgresPort,
-    });
-  }
-
-  async init(): Promise<boolean> {
-    // if the database is already initialized
-    if (this.databasePool != undefined) {
-      return true;
-    }
-
-    if (this.postgresHost) {
-      this.databasePool = new Pool({
-        host: this.postgresHost,
-        port: this.postgresPort,
-        database: this.postgresDatabase,
-        user: this.postgresUser,
-        password: this.postgresPassword,
-        max: 5,
-      });
-    } else {
-      throw new Error(`${this.databaseName} is disabled`);
-    }
-    logger.info(`SourcifyDatabase initialized`, {
-      name: this.databaseName,
-      host: this.postgresHost,
-      port: this.postgresPort,
-    });
-    return true;
+  constructor(
+    storageService_: StorageService,
+    options: DatabaseServiceOptions
+  ) {
+    super(options);
+    this.storageService = storageService_;
   }
 
   async checkByChainAndAddress(
     address: string,
+    chainId: string
+  ): Promise<Match[]> {
+    return this.checkByChainAndAddressAndMatch(address, chainId, true);
+  }
+
+  async checkAllByChainAndAddress(
+    address: string,
+    chainId: string
+  ): Promise<Match[]> {
+    return this.checkByChainAndAddressAndMatch(address, chainId, false);
+  }
+
+  async checkByChainAndAddressAndMatch(
+    address: string,
     chainId: string,
     onlyPerfectMatches: boolean = false
   ): Promise<Match[]> {
-    await this.init();
+    await this.initDatabasePool();
 
     const existingVerifiedContractResult =
       await Database.getSourcifyMatchByChainAddress(
@@ -122,7 +94,7 @@ export class SourcifyDatabaseService
   }
 
   getContracts = async (chainId: string): Promise<ContractData> => {
-    await this.init();
+    await this.initDatabasePool();
 
     const res: ContractData = {
       full: [],
@@ -202,7 +174,7 @@ export class SourcifyDatabaseService
     limit: number,
     descending: boolean = false
   ): Promise<PaginatedContractData> => {
-    await this.init();
+    await this.initDatabasePool();
 
     // Initialize empty result
     const res: PaginatedContractData = {
@@ -278,13 +250,76 @@ export class SourcifyDatabaseService
     return res;
   };
 
+  async getMetadata(
+    chainId: string,
+    address: string,
+    match: MatchLevel
+  ): Promise<string | false> {
+    return (
+      this.storageService.wServices[
+        WStorageIdentifiers.RepositoryV2
+      ] as RepositoryV2Service
+    ).getMetadata(chainId, address, match);
+  }
+
+  /**
+   * This function inject the metadata file in FilesInfo<T[]>
+   * SourcifyDatabase.getTree and SourcifyDatabase.getContent read files from
+   * `compiled_contracts.sources` where the metadata file is not available
+   */
+  async pushMetadataInFilesInfo<T extends string | FileObject>(
+    responseWithoutMetadata: FilesInfo<T[]>,
+    chainId: string,
+    address: string,
+    match: MatchLevel
+  ) {
+    const metadata = await this.getMetadata(
+      chainId,
+      address,
+      responseWithoutMetadata.status === "full" ? "full_match" : "any_match"
+    );
+
+    if (!metadata) {
+      logger.error("Contract exists in the database but not in RepositoryV2", {
+        chainId,
+        address,
+        match,
+      });
+      throw new Error(
+        "Contract exists in the database but not in RepositoryV2"
+      );
+    }
+
+    const relativePath = getFileRelativePath(
+      chainId,
+      address,
+      responseWithoutMetadata.status,
+      "metadata.json"
+    );
+
+    if (typeof responseWithoutMetadata.files[0] === "string") {
+      // If this function is called with T == string
+      responseWithoutMetadata.files.push(
+        (config.get("repositoryV1.serverUrl") + "/" + relativePath) as T
+      );
+    } else {
+      // If this function is called with T === FileObject
+      // It's safe to handle this case in the else because of <T extends string | FileObject>
+      responseWithoutMetadata.files.push({
+        name: "metadata.json",
+        path: relativePath,
+        content: metadata,
+      } as T);
+    }
+  }
+
   /**
    * getFiles extracts the files from the database `compiled_contracts.sources`
    * and store them into FilesInfo.files, this object is then going to be formatted
    * by getTree, getContent and getFile.
    */
   getFiles = async (chainId: string, address: string): Promise<FilesRaw> => {
-    await this.init();
+    await this.initDatabasePool();
 
     const sourcifyMatchResult = await Database.getSourcifyMatchByChainAddress(
       this.databasePool,
@@ -306,7 +341,12 @@ export class SourcifyDatabaseService
         ? "full"
         : "partial";
 
-    const sources = sourcifyMatch.sources;
+    const sources: { [index: string]: string } = {};
+
+    // Add 'sources/' prefix for API compatibility with the repoV1 responses. RepoV1 filesystem has all source files in 'sources/'
+    for (const path of Object.keys(sourcifyMatch.sources)) {
+      sources[`sources/${path}`] = sourcifyMatch.sources[path];
+    }
     const files: FilesRawValue = {};
 
     if (sourcifyMatch?.creation_values?.constructorArguments) {
@@ -325,7 +365,9 @@ export class SourcifyDatabaseService
       sourcifyMatch?.runtime_values?.libraries &&
       Object.keys(sourcifyMatch.runtime_values.libraries).length > 0
     ) {
-      files["library-map.json"] = sourcifyMatch.runtime_values.libraries;
+      files["library-map.json"] = JSON.stringify(
+        sourcifyMatch.runtime_values.libraries
+      );
     }
 
     if (
@@ -333,8 +375,9 @@ export class SourcifyDatabaseService
       Object.keys(sourcifyMatch.runtime_code_artifacts.immutableReferences)
         .length > 0
     ) {
-      files["immutable-references.json"] =
-        sourcifyMatch.runtime_code_artifacts.immutableReferences;
+      files["immutable-references.json"] = JSON.stringify(
+        sourcifyMatch.runtime_code_artifacts.immutableReferences
+      );
     }
 
     return { status: contractStatus, sources, files };
@@ -343,18 +386,52 @@ export class SourcifyDatabaseService
   getFile = async (
     chainId: string,
     address: string,
-    match: MatchLevel,
+    match: MatchLevelWithoutAny,
     path: string
-  ): Promise<any | false> => {
+  ): Promise<string | false> => {
+    // this.getFiles queries sourcify_match, it extract always one and only one match
+    // there could never be two matches with different MatchLevelWithoutAny inside sourcify_match
     const { status, files, sources } = await this.getFiles(chainId, address);
+
     if (Object.keys(sources).length === 0) {
       return false;
     }
-    if (match === "full_match" && status === "partial") {
+
+    // returned getFile.status should equal requested MatchLevelWithoutAny
+    if (status === "full" && match !== "full_match") {
       return false;
     }
-    const allFiles = { ...files, ...sources };
-    return allFiles[path];
+    if (status === "partial" && match !== "partial_match") {
+      return false;
+    }
+
+    // For getFile we cannot use getMetadata, since it returns metadata based on MatchLevel logic
+    // we use RepositoryV2Service.getFile to extract metadata.json specifying "full_match" or "partial_match"
+    const metadata = await (
+      this.storageService.wServices[
+        WStorageIdentifiers.RepositoryV2
+      ] as RepositoryV2Service
+    ).getFile(chainId, address, match, "metadata.json");
+
+    if (metadata === false) {
+      throw new Error("Metadata doesn't exist for this file");
+    }
+
+    const allFiles: { [index: string]: string } = {
+      ...files,
+      ...sources,
+      "metadata.json": metadata,
+    };
+
+    if (match === "full_match" && status === "full") {
+      return allFiles[path];
+    }
+
+    if (match === "partial_match" && status === "partial") {
+      return allFiles[path];
+    }
+
+    return false;
   };
 
   /**
@@ -371,12 +448,14 @@ export class SourcifyDatabaseService
       files: filesRaw,
     } = await this.getFiles(chainId, address);
 
+    const emptyResponse: FilesInfo<string[]> = {
+      status: "full",
+      files: [],
+    };
+
     // If "full_match" files are requested but the contractStatus if partial return empty
     if (match === "full_match" && contractStatus === "partial") {
-      return {
-        status: "full",
-        files: [],
-      };
+      return emptyResponse;
     }
 
     // Calculate the the repository's url for each file
@@ -385,8 +464,7 @@ export class SourcifyDatabaseService
         chainId,
         address,
         contractStatus,
-        source,
-        { isSource: true }
+        source
       );
       return `${config.get("repositoryV1.serverUrl")}/${relativePath}`;
     });
@@ -401,10 +479,24 @@ export class SourcifyDatabaseService
       return `${config.get("repositoryV1.serverUrl")}/${relativePath}`;
     });
 
-    return {
+    const responseWithoutMetadata = {
       status: contractStatus,
       files: [...sourcesWithUrl, ...filesWithUrl],
     };
+
+    // if files is empty it means that the contract doesn't exist
+    if (responseWithoutMetadata.files.length === 0) {
+      return emptyResponse;
+    }
+
+    await this.pushMetadataInFilesInfo<string>(
+      responseWithoutMetadata,
+      chainId,
+      address,
+      match
+    );
+
+    return responseWithoutMetadata;
   };
 
   /**
@@ -422,12 +514,14 @@ export class SourcifyDatabaseService
       files: filesRaw,
     } = await this.getFiles(chainId, address);
 
+    const emptyResponse: FilesInfo<Array<FileObject>> = {
+      status: "full",
+      files: [],
+    };
+
     // If "full_match" files are requestd but the contractStatus if partial return empty
     if (match === "full_match" && contractStatus === "partial") {
-      return {
-        status: "full",
-        files: [],
-      };
+      return emptyResponse;
     }
 
     // Calculate the the repository's url for each file
@@ -436,8 +530,7 @@ export class SourcifyDatabaseService
         chainId,
         address,
         contractStatus,
-        source,
-        { isSource: true }
+        source
       );
 
       return {
@@ -455,28 +548,31 @@ export class SourcifyDatabaseService
         file
       );
 
-      // Convert json files to string
-      let content = "";
-      if (typeof filesRaw[file] === "string") {
-        content = filesRaw[file];
-      } else if (
-        typeof filesRaw[file] === "object" &&
-        filesRaw[file] !== null
-      ) {
-        content = JSON.stringify(filesRaw[file]);
-      }
-
       return {
         name: Path.basename(file),
         path: relativePath,
-        content,
+        content: filesRaw[file],
       } as FileObject;
     });
 
-    return {
+    const responseWithoutMetadata = {
       status: contractStatus,
       files: [...sourcesWithUrl, ...filesWithUrl],
     };
+
+    // if files is empty it means that the contract doesn't exist
+    if (responseWithoutMetadata.files.length === 0) {
+      return emptyResponse;
+    }
+
+    await this.pushMetadataInFilesInfo<FileObject>(
+      responseWithoutMetadata,
+      chainId,
+      address,
+      match
+    );
+
+    return responseWithoutMetadata;
   };
 
   validateBeforeStoring(
