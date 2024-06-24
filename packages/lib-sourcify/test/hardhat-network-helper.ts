@@ -1,25 +1,25 @@
-import treeKill from "tree-kill";
-import { ChildProcess, spawn } from "child_process";
+import treeKill from 'tree-kill';
+import { ChildProcess, spawn } from 'child_process';
 
 export function startHardhatNetwork(port: number) {
   return new Promise<ChildProcess>((resolve) => {
-    const hardhatNodeProcess = spawn("npx", [
-      "hardhat",
-      "node",
-      "--port",
+    const hardhatNodeProcess = spawn('npx', [
+      'hardhat',
+      'node',
+      '--port',
       port.toString(),
     ]);
 
-    hardhatNodeProcess.stderr.on("data", (data: Buffer) => {
+    hardhatNodeProcess.stderr.on('data', (data: Buffer) => {
       console.error(`Hardhat Network Error: ${data.toString()}`);
     });
 
-    hardhatNodeProcess.stdout.on("data", (data: Buffer) => {
+    hardhatNodeProcess.stdout.on('data', (data: Buffer) => {
       console.log(data.toString());
       if (
         data
           .toString()
-          .includes("Started HTTP and WebSocket JSON-RPC server at")
+          .includes('Started HTTP and WebSocket JSON-RPC server at')
       ) {
         resolve(hardhatNodeProcess);
       }
@@ -29,7 +29,7 @@ export function startHardhatNetwork(port: number) {
 
 export function stopHardhatNetwork(hardhatNodeProcess: ChildProcess) {
   return new Promise<void>((resolve, reject) => {
-    treeKill(hardhatNodeProcess.pid!, "SIGTERM", (err) => {
+    treeKill(hardhatNodeProcess.pid!, 'SIGTERM', (err) => {
       if (err) {
         console.error(`Failed to kill process tree: ${err}`);
         reject(err);

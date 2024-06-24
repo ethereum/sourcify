@@ -14,7 +14,7 @@ interface RequestInitTimeout extends RequestInit {
 
 export async function fetchWithTimeout(
   resource: string,
-  options: RequestInitTimeout = {}
+  options: RequestInitTimeout = {},
 ) {
   const { timeout = 10000 } = options;
 
@@ -62,7 +62,7 @@ export function findSolcPlatform(): string | false {
 export async function useCompiler(
   version: string,
   solcJsonInput: JsonInput,
-  forceEmscripten = false
+  forceEmscripten = false,
 ): Promise<CompilerOutput> {
   // For nightly builds, Solidity version is saved as 0.8.17-ci.2022.8.9+commit.6b60524c instead of 0.8.17-nightly.2022.8.9+commit.6b60524c.
   // Not possible to retrieve compilers with "-ci.".
@@ -105,7 +105,7 @@ export async function useCompiler(
             path.resolve(__dirname, './compilerWorker.ts'),
             {
               workerData: { version, inputStringified },
-            }
+            },
           );
           worker.once('message', (result) => {
             resolve(result);
@@ -128,11 +128,11 @@ export async function useCompiler(
   }
   const compiledJSON = JSON.parse(compiled);
   const errorMessages = compiledJSON?.errors?.filter(
-    (e: any) => e.severity === 'error'
+    (e: any) => e.severity === 'error',
   );
   if (errorMessages && errorMessages.length > 0) {
     const error = new Error(
-      'Compiler error:\n ' + JSON.stringify(errorMessages)
+      'Compiler error:\n ' + JSON.stringify(errorMessages),
     );
     logError(error.message);
     throw error;
@@ -142,7 +142,7 @@ export async function useCompiler(
 
 export async function getSolcExecutable(
   platform: string,
-  version: string
+  version: string,
 ): Promise<string | null> {
   const fileName = `solc-${platform}-v${version}`;
   const repoPath = path.join('/tmp', 'solc-repo');
@@ -203,7 +203,7 @@ async function fetchAndSaveSolc(
   platform: string,
   solcPath: string,
   version: string,
-  fileName: string
+  fileName: string,
 ): Promise<boolean> {
   const encodedURIFilename = encodeURIComponent(fileName);
   const githubSolcURI = `${HOST_SOLC_REPO}${platform}/${encodedURIFilename}`;
@@ -289,7 +289,7 @@ export async function getSolcJs(version = 'latest'): Promise<any> {
 
 function asyncExecSolc(
   inputStringified: string,
-  solcPath: string
+  solcPath: string,
 ): Promise<string> {
   // check if input is valid JSON. The input is untrusted and potentially cause arbitrary execution.
   JSON.parse(inputStringified);
@@ -305,12 +305,12 @@ function asyncExecSolc(
           reject(error);
         } else if (stderr) {
           reject(
-            new Error(`Compiler process returned with errors:\n ${stderr}`)
+            new Error(`Compiler process returned with errors:\n ${stderr}`),
           );
         } else {
           resolve(stdout);
         }
-      }
+      },
     );
     if (!child.stdin) {
       throw new Error('No stdin on child process');

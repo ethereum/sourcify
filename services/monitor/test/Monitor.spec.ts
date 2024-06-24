@@ -41,7 +41,7 @@ describe("Monitor", function () {
     signer = await new JsonRpcProvider(
       `http://localhost:${HARDHAT_PORT}`,
       ethersNetwork,
-      { staticNetwork: ethersNetwork }
+      { staticNetwork: ethersNetwork },
     ).getSigner();
     signer.provider.on("block", (blockNumber) => {
       testLogger.info("New block mined: " + blockNumber);
@@ -61,8 +61,8 @@ describe("Monitor", function () {
     const _monitor = new Monitor([localChain]);
     expect(
       loggerSpy.calledWith(
-        sinon.match(/No config provided, using default config/)
-      )
+        sinon.match(/No config provided, using default config/),
+      ),
     ).to.be.true;
   });
 
@@ -77,9 +77,9 @@ describe("Monitor", function () {
           chainConfigs: {
             2: {},
           },
-        })
+        }),
     ).to.throw(
-      "Chain configs found for chains that are not being monitored: 2"
+      "Chain configs found for chains that are not being monitored: 2",
     );
   });
 
@@ -98,14 +98,14 @@ describe("Monitor", function () {
       signer,
       storageContractArtifact.abi,
       storageContractArtifact.bytecode,
-      []
+      [],
     );
 
     // Set up a nock interceptor to intercept the request to MOCK_SOURCIFY_SERVER url.
     const nockInterceptor = nockInterceptorForVerification(
       MOCK_SOURCIFY_SERVER,
       localChain.chainId,
-      contractAddress
+      contractAddress,
     );
 
     // start monitor after contract is deployed to avoid sending request before setting up interceptor
@@ -115,7 +115,7 @@ describe("Monitor", function () {
       nockInterceptor.on("replied", () => {
         expect(
           nockInterceptor.isDone(),
-          `Server ${MOCK_SOURCIFY_SERVER} not called`
+          `Server ${MOCK_SOURCIFY_SERVER} not called`,
         ).to.be.true;
         resolve();
       });

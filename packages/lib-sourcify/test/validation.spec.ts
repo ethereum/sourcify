@@ -101,7 +101,7 @@ describe('ValidationService', function () {
         __dirname,
         'validation',
         'files',
-        'foobar.sol'
+        'foobar.sol',
       );
       const paths = [
         path.join(__dirname, 'validation', 'files', 'single'),
@@ -116,14 +116,14 @@ describe('ValidationService', function () {
     async function checkSingleWithModifiedEnding(
       directoryName: string,
       expectedLineEnd: string,
-      expectedFileEnd: string
+      expectedFileEnd: string,
     ) {
       const ignoring: string[] = [];
       const directory = path.join(
         __dirname,
         'validation',
         'files',
-        directoryName
+        directoryName,
       );
 
       const filePath = path.join(directory, '1_Storage.sol');
@@ -171,7 +171,7 @@ describe('ValidationService', function () {
       checkSingleWithModifiedEnding(
         'single-remove-trailing-rn',
         '\r\n',
-        '\r\n'
+        '\r\n',
       );
     });
 
@@ -202,7 +202,7 @@ describe('Unit tests', function () {
     const keysInStringMap = Object.keys(stringMap);
     expect(keysInStringMap).lengthOf(1);
     expect(keysInStringMap[0]).equals(
-      './validation/files/hardhat-output/output.json'
+      './validation/files/hardhat-output/output.json',
     );
   });
   it('Should unzip', async function () {
@@ -210,7 +210,7 @@ describe('Unit tests', function () {
       'test',
       'validation',
       'files',
-      'truffle-example.zip'
+      'truffle-example.zip',
     );
     const zippedTruffleBuffer = fs.readFileSync(zippedTrufflePath);
     const files = [
