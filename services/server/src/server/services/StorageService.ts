@@ -289,8 +289,10 @@ export class StorageService {
       if (service) {
         promises.push(
           service.storeMatch(contract, match).catch((e) => {
-            logger.error(`Error storing to ${service.IDENTIFIER}`, {
+            logger.warn(`Error storing to ${service.IDENTIFIER}`, {
               error: e,
+              contract,
+              match,
             });
           })
         );

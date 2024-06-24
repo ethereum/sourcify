@@ -14,13 +14,6 @@ export class AllianceDatabaseService
 
   async storeMatch(recompiledContract: CheckedContract, match: Match) {
     if (!match.creationMatch) {
-      logger.warn(`Can't store to AllianceDatabase without creationMatch`, {
-        name: recompiledContract.name,
-        address: match.address,
-        chainId: match.chainId,
-        runtimeMatch: match.runtimeMatch,
-        creationMatch: match.creationMatch,
-      });
       throw new Error("Can't store to AllianceDatabase without creationMatch");
     }
     await this.insertOrUpdateVerifiedContract(recompiledContract, match);
