@@ -41,7 +41,7 @@ export class SourcifyDatabaseService
 
   constructor(
     storageService_: StorageService,
-    options: DatabaseServiceOptions
+    options: DatabaseServiceOptions,
   ) {
     super(options);
     this.storageService = storageService_;
@@ -49,14 +49,14 @@ export class SourcifyDatabaseService
 
   async checkByChainAndAddress(
     address: string,
-    chainId: string
+    chainId: string,
   ): Promise<Match[]> {
     return this.checkByChainAndAddressAndMatch(address, chainId, true);
   }
 
   async checkAllByChainAndAddress(
     address: string,
-    chainId: string
+    chainId: string,
   ): Promise<Match[]> {
     return this.checkByChainAndAddressAndMatch(address, chainId, false);
   }
@@ -64,7 +64,7 @@ export class SourcifyDatabaseService
   async checkByChainAndAddressAndMatch(
     address: string,
     chainId: string,
-    onlyPerfectMatches: boolean = false
+    onlyPerfectMatches: boolean = false,
   ): Promise<Match[]> {
     await this.initDatabasePool();
 
@@ -73,7 +73,7 @@ export class SourcifyDatabaseService
         this.databasePool,
         parseInt(chainId),
         bytesFromString(address)!,
-        onlyPerfectMatches
+        onlyPerfectMatches,
       );
 
     if (existingVerifiedContractResult.rowCount === 0) {
@@ -103,7 +103,7 @@ export class SourcifyDatabaseService
     const matchAddressesCountResult =
       await Database.countSourcifyMatchAddresses(
         this.databasePool,
-        parseInt(chainId)
+        parseInt(chainId),
       );
 
     if (matchAddressesCountResult.rowCount === 0) {
@@ -112,7 +112,7 @@ export class SourcifyDatabaseService
 
     const fullTotal = parseInt(matchAddressesCountResult.rows[0].full_total);
     const partialTotal = parseInt(
-      matchAddressesCountResult.rows[0].partial_total
+      matchAddressesCountResult.rows[0].partial_total,
     );
     if (
       fullTotal > MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS ||
@@ -123,10 +123,10 @@ export class SourcifyDatabaseService
         {
           maxReturnedContracts: MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS,
           chainId,
-        }
+        },
       );
       throw new BadRequestError(
-        `Cannot fetch more than ${MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS} contracts (${fullTotal} full matches, ${partialTotal} partial matches), please use /contracts/{full|any|partial}/${chainId} with pagination`
+        `Cannot fetch more than ${MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS} contracts (${fullTotal} full matches, ${partialTotal} partial matches), please use /contracts/{full|any|partial}/${chainId} with pagination`,
       );
     }
 
@@ -137,12 +137,15 @@ export class SourcifyDatabaseService
           parseInt(chainId),
           "full_match",
           0,
-          MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS
+          MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS,
         );
 
-      if (perfectMatchAddressesResult.rowCount && perfectMatchAddressesResult.rowCount > 0) {
+      if (
+        perfectMatchAddressesResult.rowCount &&
+        perfectMatchAddressesResult.rowCount > 0
+      ) {
         res.full = perfectMatchAddressesResult.rows.map((row) =>
-          getAddress(row.address)
+          getAddress(row.address),
         );
       }
     }
@@ -154,12 +157,15 @@ export class SourcifyDatabaseService
           parseInt(chainId),
           "partial_match",
           0,
-          MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS
+          MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS,
         );
 
-      if (partialMatchAddressesResult.rowCount && partialMatchAddressesResult.rowCount > 0) {
+      if (
+        partialMatchAddressesResult.rowCount &&
+        partialMatchAddressesResult.rowCount > 0
+      ) {
         res.partial = partialMatchAddressesResult.rows.map((row) =>
-          getAddress(row.address)
+          getAddress(row.address),
         );
       }
     }
@@ -172,7 +178,7 @@ export class SourcifyDatabaseService
     match: MatchLevel,
     page: number,
     limit: number,
-    descending: boolean = false
+    descending: boolean = false,
   ): Promise<PaginatedContractData> => {
     await this.initDatabasePool();
 
@@ -194,7 +200,7 @@ export class SourcifyDatabaseService
     const matchAddressesCountResult =
       await Database.countSourcifyMatchAddresses(
         this.databasePool,
-        parseInt(chainId)
+        parseInt(chainId),
       );
 
     if (matchAddressesCountResult.rowCount === 0) {
@@ -204,7 +210,7 @@ export class SourcifyDatabaseService
     // Calculate totalResults, return empty res if there are no contracts
     const fullTotal = parseInt(matchAddressesCountResult.rows[0].full_total);
     const partialTotal = parseInt(
-      matchAddressesCountResult.rows[0].partial_total
+      matchAddressesCountResult.rows[0].partial_total,
     );
     const anyTotal = fullTotal + partialTotal;
     const matchTotals: Record<MatchLevel, number> = {
@@ -220,7 +226,7 @@ export class SourcifyDatabaseService
     res.pagination.totalResults = matchTotals[match];
 
     res.pagination.totalPages = Math.ceil(
-      res.pagination.totalResults / res.pagination.resultsPerPage
+      res.pagination.totalResults / res.pagination.resultsPerPage,
     );
 
     // Now make the real query for addresses
@@ -231,7 +237,7 @@ export class SourcifyDatabaseService
         match,
         page,
         limit,
-        descending
+        descending,
       );
 
     if (matchAddressesResult.rowCount && matchAddressesResult.rowCount > 0) {
@@ -243,7 +249,7 @@ export class SourcifyDatabaseService
       res.pagination.hasPreviousPage =
         res.pagination.currentPage === 0 ? false : true;
       res.results = matchAddressesResult.rows.map((row) =>
-        getAddress(row.address)
+        getAddress(row.address),
       );
     }
 
@@ -253,7 +259,7 @@ export class SourcifyDatabaseService
   async getMetadata(
     chainId: string,
     address: string,
-    match: MatchLevel
+    match: MatchLevel,
   ): Promise<string | false> {
     return (
       this.storageService.wServices[
@@ -271,12 +277,12 @@ export class SourcifyDatabaseService
     responseWithoutMetadata: FilesInfo<T[]>,
     chainId: string,
     address: string,
-    match: MatchLevel
+    match: MatchLevel,
   ) {
     const metadata = await this.getMetadata(
       chainId,
       address,
-      responseWithoutMetadata.status === "full" ? "full_match" : "any_match"
+      responseWithoutMetadata.status === "full" ? "full_match" : "any_match",
     );
 
     if (!metadata) {
@@ -286,7 +292,7 @@ export class SourcifyDatabaseService
         match,
       });
       throw new Error(
-        "Contract exists in the database but not in RepositoryV2"
+        "Contract exists in the database but not in RepositoryV2",
       );
     }
 
@@ -294,13 +300,13 @@ export class SourcifyDatabaseService
       chainId,
       address,
       responseWithoutMetadata.status,
-      "metadata.json"
+      "metadata.json",
     );
 
     if (typeof responseWithoutMetadata.files[0] === "string") {
       // If this function is called with T == string
       responseWithoutMetadata.files.push(
-        (config.get("repositoryV1.serverUrl") + "/" + relativePath) as T
+        (config.get("repositoryV1.serverUrl") + "/" + relativePath) as T,
       );
     } else {
       // If this function is called with T === FileObject
@@ -324,7 +330,7 @@ export class SourcifyDatabaseService
     const sourcifyMatchResult = await Database.getSourcifyMatchByChainAddress(
       this.databasePool,
       parseInt(chainId),
-      bytesFromString(address)!
+      bytesFromString(address)!,
     );
 
     if (sourcifyMatchResult.rowCount === 0) {
@@ -366,7 +372,7 @@ export class SourcifyDatabaseService
       Object.keys(sourcifyMatch.runtime_values.libraries).length > 0
     ) {
       files["library-map.json"] = JSON.stringify(
-        sourcifyMatch.runtime_values.libraries
+        sourcifyMatch.runtime_values.libraries,
       );
     }
 
@@ -376,7 +382,7 @@ export class SourcifyDatabaseService
         .length > 0
     ) {
       files["immutable-references.json"] = JSON.stringify(
-        sourcifyMatch.runtime_code_artifacts.immutableReferences
+        sourcifyMatch.runtime_code_artifacts.immutableReferences,
       );
     }
 
@@ -387,7 +393,7 @@ export class SourcifyDatabaseService
     chainId: string,
     address: string,
     match: MatchLevelWithoutAny,
-    path: string
+    path: string,
   ): Promise<string | false> => {
     // this.getFiles queries sourcify_match, it extract always one and only one match
     // there could never be two matches with different MatchLevelWithoutAny inside sourcify_match
@@ -440,7 +446,7 @@ export class SourcifyDatabaseService
   getTree = async (
     chainId: string,
     address: string,
-    match: MatchLevel
+    match: MatchLevel,
   ): Promise<FilesInfo<string[]>> => {
     const {
       status: contractStatus,
@@ -464,7 +470,7 @@ export class SourcifyDatabaseService
         chainId,
         address,
         contractStatus,
-        source
+        source,
       );
       return `${config.get("repositoryV1.serverUrl")}/${relativePath}`;
     });
@@ -474,7 +480,7 @@ export class SourcifyDatabaseService
         chainId,
         address,
         contractStatus,
-        file
+        file,
       );
       return `${config.get("repositoryV1.serverUrl")}/${relativePath}`;
     });
@@ -493,7 +499,7 @@ export class SourcifyDatabaseService
       responseWithoutMetadata,
       chainId,
       address,
-      match
+      match,
     );
 
     return responseWithoutMetadata;
@@ -506,7 +512,7 @@ export class SourcifyDatabaseService
   getContent = async (
     chainId: string,
     address: string,
-    match: MatchLevel
+    match: MatchLevel,
   ): Promise<FilesInfo<Array<FileObject>>> => {
     const {
       status: contractStatus,
@@ -530,7 +536,7 @@ export class SourcifyDatabaseService
         chainId,
         address,
         contractStatus,
-        source
+        source,
       );
 
       return {
@@ -545,7 +551,7 @@ export class SourcifyDatabaseService
         chainId,
         address,
         contractStatus,
-        file
+        file,
       );
 
       return {
@@ -569,7 +575,7 @@ export class SourcifyDatabaseService
       responseWithoutMetadata,
       chainId,
       address,
-      match
+      match,
     );
 
     return responseWithoutMetadata;
@@ -577,7 +583,7 @@ export class SourcifyDatabaseService
 
   validateBeforeStoring(
     recompiledContract: CheckedContract,
-    match: Match
+    match: Match,
   ): boolean {
     // Prevent storing matches only if they don't have both onchainRuntimeBytecode and onchainCreationBytecode
     if (
@@ -585,7 +591,7 @@ export class SourcifyDatabaseService
       match.onchainCreationBytecode === undefined
     ) {
       throw new Error(
-        `can only store contracts with at least runtimeBytecode or creationBytecode address=${match.address} chainId=${match.chainId}`
+        `can only store contracts with at least runtimeBytecode or creationBytecode address=${match.address} chainId=${match.chainId}`,
       );
     }
     return true;
@@ -599,7 +605,7 @@ export class SourcifyDatabaseService
     if (type === "insert") {
       if (!verifiedContractId) {
         throw new Error(
-          "VerifiedContractId undefined before inserting sourcify match"
+          "VerifiedContractId undefined before inserting sourcify match",
         );
       }
       await Database.insertSourcifyMatch(this.databasePool, {
@@ -627,7 +633,7 @@ export class SourcifyDatabaseService
       }
       if (!oldVerifiedContractId) {
         throw new Error(
-          "oldVerifiedContractId undefined before updating sourcify match"
+          "oldVerifiedContractId undefined before updating sourcify match",
         );
       }
       await Database.updateSourcifyMatch(
@@ -637,7 +643,7 @@ export class SourcifyDatabaseService
           creation_match: match.creationMatch,
           runtime_match: match.runtimeMatch,
         },
-        oldVerifiedContractId
+        oldVerifiedContractId,
       );
       logger.info("Updated in SourcifyDatabase", {
         address: match.address,
@@ -647,7 +653,7 @@ export class SourcifyDatabaseService
       });
     } else {
       throw new Error(
-        "insertOrUpdateVerifiedContract returned a type that doesn't exist"
+        "insertOrUpdateVerifiedContract returned a type that doesn't exist",
       );
     }
   }

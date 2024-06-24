@@ -36,14 +36,14 @@ const mockEtherscanApi = (
   chainId: string,
   contractAddress: string,
   response: any,
-  apiKey?: string
+  apiKey?: string,
 ): nock.Scope => {
   if (!sourcifyChainsMap[chainId].etherscanApi) {
     chai.assert.fail(`Etherscan for chain ${chainId} not configured`);
   }
   return nock(sourcifyChainsMap[chainId].etherscanApi!.apiURL)
     .get(
-      `/api?module=contract&action=getsourcecode&address=${contractAddress}&apikey=${apiKey ?? process.env["ETHERSCAN_API_KEY"]}`
+      `/api?module=contract&action=getsourcecode&address=${contractAddress}&apikey=${apiKey ?? process.env["ETHERSCAN_API_KEY"]}`,
     )
     .reply(function () {
       return [200, response];
@@ -60,13 +60,13 @@ describe("Import From Etherscan and Verify", function () {
 
   const testChainId = "1";
   const singleContract = testContracts[testChainId].find(
-    (contract) => contract.type === "single"
+    (contract) => contract.type === "single",
   )!;
   const multipleContract = testContracts[testChainId].find(
-    (contract) => contract.type === "multiple"
+    (contract) => contract.type === "multiple",
   )!;
   const standardJsonContract = testContracts[testChainId].find(
-    (contract) => contract.type === "standard-json"
+    (contract) => contract.type === "standard-json",
   )!;
 
   this.afterEach(() => {
@@ -77,7 +77,7 @@ describe("Import From Etherscan and Verify", function () {
     err: Error | null,
     res: Response,
     errorMessage: string,
-    status?: number
+    status?: number,
   ) => {
     try {
       chai.expect(res.status).to.equal(status || StatusCodes.NOT_FOUND);
@@ -100,7 +100,7 @@ describe("Import From Etherscan and Verify", function () {
             err,
             res,
             "address",
-            "request/body must have required property 'address'"
+            "request/body must have required property 'address'",
           );
           done();
         });
@@ -116,7 +116,7 @@ describe("Import From Etherscan and Verify", function () {
             err,
             res,
             "chain",
-            "request/body must have required property 'chain'"
+            "request/body must have required property 'chain'",
           );
           done();
         });
@@ -133,7 +133,7 @@ describe("Import From Etherscan and Verify", function () {
             err,
             res,
             "address",
-            `Invalid address: ${invalidAddress}`
+            `Invalid address: ${invalidAddress}`,
           );
           done();
         });
@@ -150,7 +150,7 @@ describe("Import From Etherscan and Verify", function () {
             err,
             res,
             "chain",
-            `Chain ${unsupportedChain} not supported for verification!`
+            `Chain ${unsupportedChain} not supported for verification!`,
           );
           done();
         });
@@ -160,7 +160,7 @@ describe("Import From Etherscan and Verify", function () {
       const nockScope = mockEtherscanApi(
         testChainId,
         unusedAddress,
-        UNVERIFIED_CONTRACT_RESPONSE
+        UNVERIFIED_CONTRACT_RESPONSE,
       );
       chai
         .request(serverFixture.server.app)
@@ -171,7 +171,7 @@ describe("Import From Etherscan and Verify", function () {
           assertEtherscanError(
             err,
             res,
-            "This contract is not verified on Etherscan"
+            "This contract is not verified on Etherscan",
           );
           chai.expect(nockScope.isDone()).to.equal(true);
           done();
@@ -182,7 +182,7 @@ describe("Import From Etherscan and Verify", function () {
       const nockScope = mockEtherscanApi(
         testChainId,
         singleContract.address,
-        SINGLE_CONTRACT_RESPONSE
+        SINGLE_CONTRACT_RESPONSE,
       );
       verifyAndAssertEtherscan(
         serverFixture,
@@ -192,7 +192,7 @@ describe("Import From Etherscan and Verify", function () {
         () => {
           chai.expect(nockScope.isDone()).to.equal(true);
           done();
-        }
+        },
       );
     });
 
@@ -200,7 +200,7 @@ describe("Import From Etherscan and Verify", function () {
       const nockScope = mockEtherscanApi(
         testChainId,
         multipleContract.address,
-        MULTIPLE_CONTRACT_RESPONSE
+        MULTIPLE_CONTRACT_RESPONSE,
       );
       verifyAndAssertEtherscan(
         serverFixture,
@@ -210,7 +210,7 @@ describe("Import From Etherscan and Verify", function () {
         () => {
           chai.expect(nockScope.isDone()).to.equal(true);
           done();
-        }
+        },
       );
     });
 
@@ -218,7 +218,7 @@ describe("Import From Etherscan and Verify", function () {
       const nockScope = mockEtherscanApi(
         testChainId,
         standardJsonContract.address,
-        STANDARD_JSON_CONTRACT_RESPONSE
+        STANDARD_JSON_CONTRACT_RESPONSE,
       );
       verifyAndAssertEtherscan(
         serverFixture,
@@ -228,7 +228,7 @@ describe("Import From Etherscan and Verify", function () {
         () => {
           chai.expect(nockScope.isDone()).to.equal(true);
           done();
-        }
+        },
       );
     });
 
@@ -238,7 +238,7 @@ describe("Import From Etherscan and Verify", function () {
       const nockScope = mockEtherscanApi(
         testChainId,
         contract.address,
-        SINGLE_CONTRACT_RESPONSE
+        SINGLE_CONTRACT_RESPONSE,
       );
       chai
         .request(serverFixture.server.app)
@@ -256,7 +256,7 @@ describe("Import From Etherscan and Verify", function () {
             },
             contract.address,
             testChainId,
-            contract.expectedStatus
+            contract.expectedStatus,
           );
         });
     });
@@ -268,7 +268,7 @@ describe("Import From Etherscan and Verify", function () {
         testChainId,
         contract.address,
         INVALID_API_KEY_RESPONSE,
-        apiKey
+        apiKey,
       );
       chai
         .request(serverFixture.server.app)
@@ -280,7 +280,7 @@ describe("Import From Etherscan and Verify", function () {
           chai
             .expect(res.body.error)
             .to.equal(
-              "Error in Etherscan API response. Result message: Invalid API Key"
+              "Error in Etherscan API response. Result message: Invalid API Key",
             );
           chai.expect(nockScope.isDone()).to.equal(true);
           done();
@@ -292,7 +292,7 @@ describe("Import From Etherscan and Verify", function () {
       const nockScope = mockEtherscanApi(
         testChainId,
         address,
-        RATE_LIMIT_REACHED_RESPONSE
+        RATE_LIMIT_REACHED_RESPONSE,
       );
       const response = await chai
         .request(serverFixture.server.app)
@@ -303,7 +303,7 @@ describe("Import From Etherscan and Verify", function () {
         null,
         response,
         "Etherscan API rate limit reached, try later",
-        StatusCodes.TOO_MANY_REQUESTS
+        StatusCodes.TOO_MANY_REQUESTS,
       );
       chai.expect(nockScope.isDone()).to.equal(true);
     });
@@ -320,7 +320,7 @@ describe("Import From Etherscan and Verify", function () {
             err,
             res,
             "address",
-            "request/body must have required property 'address'"
+            "request/body must have required property 'address'",
           );
           done();
         });
@@ -336,7 +336,7 @@ describe("Import From Etherscan and Verify", function () {
             err,
             res,
             "chain",
-            "request/body must have required property 'chain'"
+            "request/body must have required property 'chain'",
           );
           done();
         });
@@ -353,7 +353,7 @@ describe("Import From Etherscan and Verify", function () {
             err,
             res,
             "address",
-            `Invalid address: ${invalidAddress}`
+            `Invalid address: ${invalidAddress}`,
           );
           done();
         });
@@ -370,7 +370,7 @@ describe("Import From Etherscan and Verify", function () {
             err,
             res,
             "chain",
-            `Chain ${unsupportedChain} not supported for verification!`
+            `Chain ${unsupportedChain} not supported for verification!`,
           );
           done();
         });
@@ -380,7 +380,7 @@ describe("Import From Etherscan and Verify", function () {
       const nockScope = mockEtherscanApi(
         testChainId,
         unusedAddress,
-        UNVERIFIED_CONTRACT_RESPONSE
+        UNVERIFIED_CONTRACT_RESPONSE,
       );
       chai
         .request(serverFixture.server.app)
@@ -391,7 +391,7 @@ describe("Import From Etherscan and Verify", function () {
           assertEtherscanError(
             err,
             res,
-            "This contract is not verified on Etherscan"
+            "This contract is not verified on Etherscan",
           );
           chai.expect(nockScope.isDone()).to.equal(true);
           done();
@@ -404,7 +404,7 @@ describe("Import From Etherscan and Verify", function () {
         testChainId,
         unusedAddress,
         INVALID_API_KEY_RESPONSE,
-        apiKey
+        apiKey,
       );
       chai
         .request(serverFixture.server.app)
@@ -416,7 +416,7 @@ describe("Import From Etherscan and Verify", function () {
           chai
             .expect(res.body.error)
             .to.equal(
-              "Error in Etherscan API response. Result message: Invalid API Key"
+              "Error in Etherscan API response. Result message: Invalid API Key",
             );
           chai.expect(nockScope.isDone()).to.equal(true);
           done();
@@ -427,7 +427,7 @@ describe("Import From Etherscan and Verify", function () {
       const nockScope = mockEtherscanApi(
         testChainId,
         singleContract.address,
-        SINGLE_CONTRACT_RESPONSE
+        SINGLE_CONTRACT_RESPONSE,
       );
       verifyAndAssertEtherscanSession(
         serverFixture,
@@ -437,7 +437,7 @@ describe("Import From Etherscan and Verify", function () {
         () => {
           chai.expect(nockScope.isDone()).to.equal(true);
           done();
-        }
+        },
       );
     });
 
@@ -445,7 +445,7 @@ describe("Import From Etherscan and Verify", function () {
       const nockScope = mockEtherscanApi(
         testChainId,
         multipleContract.address,
-        MULTIPLE_CONTRACT_RESPONSE
+        MULTIPLE_CONTRACT_RESPONSE,
       );
       verifyAndAssertEtherscanSession(
         serverFixture,
@@ -455,7 +455,7 @@ describe("Import From Etherscan and Verify", function () {
         () => {
           chai.expect(nockScope.isDone()).to.equal(true);
           done();
-        }
+        },
       );
     });
 
@@ -463,7 +463,7 @@ describe("Import From Etherscan and Verify", function () {
       const nockScope = mockEtherscanApi(
         testChainId,
         standardJsonContract.address,
-        STANDARD_JSON_CONTRACT_RESPONSE
+        STANDARD_JSON_CONTRACT_RESPONSE,
       );
       verifyAndAssertEtherscanSession(
         serverFixture,
@@ -473,7 +473,7 @@ describe("Import From Etherscan and Verify", function () {
         () => {
           chai.expect(nockScope.isDone()).to.equal(true);
           done();
-        }
+        },
       );
     });
 
@@ -483,7 +483,7 @@ describe("Import From Etherscan and Verify", function () {
       const nockScope = mockEtherscanApi(
         testChainId,
         contract.address,
-        SINGLE_CONTRACT_RESPONSE
+        SINGLE_CONTRACT_RESPONSE,
       );
       chai
         .request(serverFixture.server.app)
@@ -501,7 +501,7 @@ describe("Import From Etherscan and Verify", function () {
             },
             contract.address,
             testChainId,
-            contract.expectedStatus
+            contract.expectedStatus,
           );
         });
     });
@@ -511,7 +511,7 @@ describe("Import From Etherscan and Verify", function () {
       const nockScope = mockEtherscanApi(
         testChainId,
         address,
-        RATE_LIMIT_REACHED_RESPONSE
+        RATE_LIMIT_REACHED_RESPONSE,
       );
       const response = await chai
         .request(serverFixture.server.app)
@@ -522,7 +522,7 @@ describe("Import From Etherscan and Verify", function () {
         null,
         response,
         "Etherscan API rate limit reached, try later",
-        StatusCodes.TOO_MANY_REQUESTS
+        StatusCodes.TOO_MANY_REQUESTS,
       );
       chai.expect(nockScope.isDone()).to.equal(true);
     });

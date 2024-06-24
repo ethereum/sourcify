@@ -19,14 +19,14 @@ let sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {};
 // If sourcify-chains.json exists, override sourcify-chains-default.json
 if (fs.existsSync(path.resolve(__dirname, "./sourcify-chains.json"))) {
   logger.warn(
-    "Overriding default chains: using sourcify-chains.json instead of sourcify-chains-default.json"
+    "Overriding default chains: using sourcify-chains.json instead of sourcify-chains-default.json",
   );
   const rawSourcifyChainExtentionsFromFile = fs.readFileSync(
     path.resolve(__dirname, "./sourcify-chains.json"),
-    "utf8"
+    "utf8",
   );
   sourcifyChainsExtensions = JSON.parse(
-    rawSourcifyChainExtentionsFromFile
+    rawSourcifyChainExtentionsFromFile,
   ) as SourcifyChainsExtensionsObject;
 }
 // sourcify-chains-default.json
@@ -70,7 +70,7 @@ const LOCAL_CHAINS: SourcifyChain[] = [
  * SourcifyChain expects  url strings or ethers.js FetchRequest objects.
  */
 function buildCustomRpcs(
-  rpc: Array<string | AlchemyInfuraRPC | FetchRequestRPC>
+  rpc: Array<string | AlchemyInfuraRPC | FetchRequestRPC>,
 ) {
   return rpc.map((rpc) => {
     // simple url
@@ -81,12 +81,12 @@ function buildCustomRpcs(
     else if (rpc.type === "Alchemy") {
       return rpc.url.replace(
         "{ALCHEMY_API_KEY}",
-        process.env[rpc.apiKeyEnvName] || process.env["ALCHEMY_API_KEY"] || ""
+        process.env[rpc.apiKeyEnvName] || process.env["ALCHEMY_API_KEY"] || "",
       );
     } else if (rpc.type === "Infura") {
       return rpc.url.replace(
         "{INFURA_API_KEY}",
-        process.env[rpc.apiKeyEnvName] || ""
+        process.env[rpc.apiKeyEnvName] || "",
       );
     }
     // Build ethers.js FetchRequest object for custom rpcs with auth headers
@@ -159,21 +159,21 @@ if (missingChains.length > 0) {
   if (process.env.CIRCLE_PROJECT_REPONAME === "sourcify") {
     throw new Error(
       `Some of the chains in sourcify-chains.json are not in chains.json: ${missingChains.join(
-        ","
-      )}`
+        ",",
+      )}`,
     );
   }
   // Don't throw for forks or others running Sourcify, instead add them to sourcifyChainsMap
   else {
     logger.warn(
       `Some of the chains in sourcify-chains.json are not in chains.json`,
-      missingChains
+      missingChains,
     );
     missingChains.forEach((chainId) => {
       const chain = sourcifyChainsExtensions[chainId];
       if (!chain.rpc) {
         throw new Error(
-          `Chain ${chainId} is missing rpc in sourcify-chains.json`
+          `Chain ${chainId} is missing rpc in sourcify-chains.json`,
         );
       }
       sourcifyChainsMap[chainId] = new SourcifyChain({
@@ -188,12 +188,12 @@ if (missingChains.length > 0) {
 
 const sourcifyChainsArray = getSortedChainsArray(sourcifyChainsMap);
 const supportedChainsArray = sourcifyChainsArray.filter(
-  (chain) => chain.supported
+  (chain) => chain.supported,
 );
 // convert supportedChainArray to a map where the key is the chainId
 const supportedChainsMap = supportedChainsArray.reduce(
   (map, chain) => ((map[chain.chainId.toString()] = chain), map),
-  <SourcifyChainMap>{}
+  <SourcifyChainMap>{},
 );
 
 logger.info("SourcifyChains.Initialized", {
@@ -205,7 +205,7 @@ logger.info("SourcifyChains.Initialized", {
 
 // Gets the chainsMap, sorts the chains, returns SourcifyChain array.
 export function getSortedChainsArray(
-  chainMap: SourcifyChainMap
+  chainMap: SourcifyChainMap,
 ): SourcifyChain[] {
   const chainsArray = Object.values(chainMap);
   // Have Ethereum chains on top.
@@ -227,8 +227,8 @@ export function getSortedChainsArray(
       a.chainId.toString() > b.chainId.toString()
         ? 1
         : a.chainId.toString() < b.chainId.toString()
-        ? -1
-        : 0
+          ? -1
+          : 0,
     );
 
   const sortedChains = ethereumChains.concat(otherChains);
@@ -242,7 +242,7 @@ export function getSortedChainsArray(
 export function checkSupportedChainId(chainId: string) {
   if (!(chainId in sourcifyChainsMap && sourcifyChainsMap[chainId].supported)) {
     throw new ValidationError(
-      `Chain ${chainId} not supported for verification!`
+      `Chain ${chainId} not supported for verification!`,
     );
   }
 

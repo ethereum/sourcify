@@ -21,7 +21,7 @@ describe("Test each Etherscan instance", function () {
   for (chainId in testContracts) {
     if (!sourcifyChainsMap[chainId].supported) {
       throw new Error(
-        `Unsupported chain (${chainId}) found in test configuration`
+        `Unsupported chain (${chainId}) found in test configuration`,
       );
     }
     if (process.env.TEST_CHAIN && process.env.TEST_CHAIN !== chainId) continue;
@@ -38,7 +38,7 @@ describe("Test each Etherscan instance", function () {
             chain,
             address,
             expectedStatus,
-            done
+            done,
           );
         });
       });
@@ -46,12 +46,12 @@ describe("Test each Etherscan instance", function () {
   }
   describe("Double check that all supported chains are tested", () => {
     const supportedEtherscanChains = sourcifyChainsArray.filter(
-      (chain) => chain.etherscanApi && chain.supported
+      (chain) => chain.etherscanApi && chain.supported,
     );
 
     it("should have tested all supported chains", function (done) {
       const untestedChains = supportedEtherscanChains.filter(
-        (chain) => !testedChains.includes(chain.chainId)
+        (chain) => !testedChains.includes(chain.chainId),
       );
       if (process.env.TEST_CHAIN) {
         return this.skip();
@@ -60,7 +60,7 @@ describe("Test each Etherscan instance", function () {
         untestedChains.length == 0,
         `There are untested supported chains!: ${untestedChains
           .map((chain) => `${chain.name} (${chain.chainId})`)
-          .join(", ")}`
+          .join(", ")}`,
       );
 
       done();

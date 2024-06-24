@@ -14,7 +14,7 @@ export interface IVerificationService {
     checkedContract: CheckedContract,
     chainId: string,
     address: string,
-    creatorTxHash?: string
+    creatorTxHash?: string,
   ): Promise<Match>;
 }
 
@@ -30,7 +30,7 @@ export class VerificationService implements IVerificationService {
 
   private throwIfContractIsAlreadyBeingVerified(
     chainId: string,
-    address: string
+    address: string,
   ) {
     if (
       this.activeVerificationsByChainIdAddress[`${chainId}:${address}`] !==
@@ -45,7 +45,7 @@ export class VerificationService implements IVerificationService {
     checkedContract: CheckedContract,
     chainId: string,
     address: string,
-    creatorTxHash?: string
+    creatorTxHash?: string,
   ): Promise<Match> {
     logger.debug("VerificationService.verifyDeployed", {
       chainId,
@@ -66,7 +66,7 @@ export class VerificationService implements IVerificationService {
         checkedContract,
         sourcifyChain,
         address,
-        foundCreatorTxHash
+        foundCreatorTxHash,
       );
       delete this.activeVerificationsByChainIdAddress[`${chainId}:${address}`];
       return res;

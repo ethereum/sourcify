@@ -13,7 +13,7 @@ export const assertValidationError = (
   err: Error | null,
   res: Response,
   field: string,
-  message?: string
+  message?: string,
 ) => {
   try {
     chai.expect(err).to.be.null;
@@ -35,7 +35,7 @@ export const assertVerification = async (
   done: Done | null,
   expectedAddress: string,
   expectedChain: string,
-  expectedStatus = "perfect"
+  expectedStatus = "perfect",
 ) => {
   try {
     chai.expect(err).to.be.null;
@@ -54,12 +54,12 @@ export const assertVerification = async (
       sourcifyDatabase,
       expectedAddress,
       expectedChain,
-      expectedStatus
+      expectedStatus,
     );
     if (done) done();
   } catch (e) {
     throw new Error(
-      `${(e as Error).message}\nResponse body: ${JSON.stringify(res.body)}`
+      `${(e as Error).message}\nResponse body: ${JSON.stringify(res.body)}`,
     );
   }
 };
@@ -71,7 +71,7 @@ export const assertVerificationSession = async (
   done: Done | null,
   expectedAddress: string | undefined,
   expectedChain: string | undefined,
-  expectedStatus: string
+  expectedStatus: string,
 ) => {
   try {
     chai.expect(err).to.be.null;
@@ -93,12 +93,12 @@ export const assertVerificationSession = async (
       sourcifyDatabase,
       expectedAddress,
       expectedChain,
-      expectedStatus
+      expectedStatus,
     );
     if (done) done();
   } catch (e) {
     console.log(
-      `Failing verification for ${expectedAddress} on chain #${expectedChain}.`
+      `Failing verification for ${expectedAddress} on chain #${expectedChain}.`,
     );
     console.log("Response body:");
     console.log(JSON.stringify(res.body, null, 2));
@@ -112,7 +112,7 @@ async function assertContractSaved(
   sourcifyDatabase: Pool | null,
   expectedAddress: string | undefined,
   expectedChain: string | undefined,
-  expectedStatus: string
+  expectedStatus: string,
 ) {
   if (expectedStatus === "perfect" || expectedStatus === "partial") {
     // Check if saved to fs repository
@@ -124,8 +124,8 @@ async function assertContractSaved(
         match,
         expectedChain ?? "",
         getAddress(expectedAddress ?? ""),
-        "metadata.json"
-      )
+        "metadata.json",
+      ),
     );
     chai.expect(isExist, "Contract is not saved").to.be.true;
 
@@ -144,7 +144,10 @@ async function assertContractSaved(
       LEFT JOIN code compiled_runtime_code ON compiled_runtime_code.code_hash = cc.runtime_code_hash
       LEFT JOIN code compiled_creation_code ON compiled_creation_code.code_hash = cc.creation_code_hash
       WHERE cd.address = $1 AND cd.chain_id = $2`,
-        [Buffer.from(expectedAddress?.substring(2) ?? "", "hex"), expectedChain]
+        [
+          Buffer.from(expectedAddress?.substring(2) ?? "", "hex"),
+          expectedChain,
+        ],
       );
 
       const contract = res.rows[0];
@@ -161,7 +164,7 @@ async function assertContractSaved(
             creationMatch: contract.creation_match,
             address: "0x" + contract.address.toString("hex"),
             chainId: contract.chain_id,
-          })
+          }),
         )
         .to.equal(expectedStatus);
     }

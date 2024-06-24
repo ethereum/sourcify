@@ -26,7 +26,7 @@ const router: Router = Router();
           match,
         ]),
       "any_match",
-      true
+      true,
     ),
   },
   {
@@ -39,7 +39,7 @@ const router: Router = Router();
           match,
         ]),
       "any_match",
-      true
+      true,
     ),
   },
   {
@@ -51,13 +51,13 @@ const router: Router = Router();
           address,
           match,
         ]),
-      "full_match"
+      "full_match",
     ),
   },
   {
     prefix: "/contracts",
     method: createContractEndpoint((services, chain) =>
-      services.storage.performServiceOperation("getContracts", [chain])
+      services.storage.performServiceOperation("getContracts", [chain]),
     ),
   },
   {
@@ -71,7 +71,7 @@ const router: Router = Router();
           limit,
           descending,
         ]),
-      "full_match"
+      "full_match",
     ),
   },
   {
@@ -85,7 +85,7 @@ const router: Router = Router();
           limit,
           descending,
         ]),
-      "partial_match"
+      "partial_match",
     ),
   },
   {
@@ -99,7 +99,7 @@ const router: Router = Router();
           limit,
           descending,
         ]),
-      "any_match"
+      "any_match",
     ),
   },
   {
@@ -111,7 +111,7 @@ const router: Router = Router();
           address,
           match,
         ]),
-      "full_match"
+      "full_match",
     ),
   },
 ].forEach((pair) => {
@@ -119,7 +119,7 @@ const router: Router = Router();
     .route(
       !pair.prefix.startsWith("/contracts")
         ? REPOSITORY_CONTROLLER_PREFIX + pair.prefix + "/:chain/:address"
-        : REPOSITORY_CONTROLLER_PREFIX + pair.prefix + "/:chain"
+        : REPOSITORY_CONTROLLER_PREFIX + pair.prefix + "/:chain",
     )
     .get(safeHandler(pair.method));
 });
@@ -129,8 +129,8 @@ router
   .route("/check-all-by-addresses")
   .get(
     safeHandler<CheckAllByChainAndAddressEndpointRequest>(
-      checkAllByChainAndAddressEndpoint
-    )
+      checkAllByChainAndAddressEndpoint,
+    ),
   );
 
 /**

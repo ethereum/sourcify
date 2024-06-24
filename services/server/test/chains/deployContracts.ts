@@ -6,22 +6,22 @@ import { JsonRpcProvider } from "ethers";
 
 program
   .description(
-    "Script to deploy Sourcify's (sourcify.dev) sample contracts (both with immutables and without)"
+    "Script to deploy Sourcify's (sourcify.dev) sample contracts (both with immutables and without)",
   )
   .helpOption("-h, --help", "Output the help message.")
   .usage("--chainId=<chainId> --privateKey=<privateKey>")
   .requiredOption(
     "--chainId <chainId>",
-    "Chain ID of the chain to deploy the contract. The chain must be added to src/sourcify-chains.ts. Also make sure to build typescript after adding the chain with `npx lerna run build`."
+    "Chain ID of the chain to deploy the contract. The chain must be added to src/sourcify-chains.ts. Also make sure to build typescript after adding the chain with `npx lerna run build`.",
   )
   .requiredOption(
     "--privateKey <privateKey>",
-    "Private key of the account that will deploy the contract"
+    "Private key of the account that will deploy the contract",
   )
   // DEPRECATED
   .option(
     "--immutableValue <uint256>",
-    "Value to be stored as the immutable value. (DEPRECATED)"
+    "Value to be stored as the immutable value. (DEPRECATED)",
   )
   .showSuggestionAfterError()
   .showHelpAfterError("(add --help for additional information)");
@@ -38,7 +38,7 @@ async function main(chainId: number, privateKey: string) {
   const chain = chains.find((chain) => chain.chainId == chainId);
   if (!chain) {
     console.error(
-      `Chain config for chainId "${chainId}" not found in list of supported chains, abort.`
+      `Chain config for chainId "${chainId}" not found in list of supported chains, abort.`,
     );
     return;
   }
@@ -48,7 +48,7 @@ async function main(chainId: number, privateKey: string) {
     provider = new JsonRpcProvider(chain.rpc[0]);
   } catch (err) {
     console.log(
-      `Can't initiate a Provider instance with the chain: ${JSON.stringify(chain)}. \n\nMake sure the chainId is added to src/sourcify-chains.ts and built with npx lerna run build`
+      `Can't initiate a Provider instance with the chain: ${JSON.stringify(chain)}. \n\nMake sure the chainId is added to src/sourcify-chains.ts and built with npx lerna run build`,
     );
     throw err;
   }
@@ -59,9 +59,9 @@ async function main(chainId: number, privateKey: string) {
     StorageArtifact.abi,
     StorageArtifact.bytecode,
     privateKey,
-    []
+    [],
   );
   console.log(
-    `Contract deployed at ${contractAddress2} on the chain ${chain.name} (${chain.chainId})`
+    `Contract deployed at ${contractAddress2} on the chain ${chain.name} (${chain.chainId})`,
   );
 }

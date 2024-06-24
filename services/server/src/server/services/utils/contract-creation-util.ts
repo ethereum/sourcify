@@ -21,7 +21,7 @@ const AVALANCHE_SUBNET_SUFFIX =
 
 function getApiContractCreationFetcher(
   url: string,
-  responseParser: Function
+  responseParser: Function,
 ): ContractCreationFetcher {
   return {
     type: "api",
@@ -32,7 +32,7 @@ function getApiContractCreationFetcher(
 
 function getScrapeContractCreationFetcher(
   url: string,
-  scrapeRegex: string[]
+  scrapeRegex: string[],
 ): ContractCreationFetcher {
   return {
     type: "scrape",
@@ -42,29 +42,29 @@ function getScrapeContractCreationFetcher(
 }
 
 function getEtherscanScrapeContractCreatorFetcher(
-  apiURL: string
+  apiURL: string,
 ): ContractCreationFetcher {
   return getScrapeContractCreationFetcher(
     apiURL + ETHERSCAN_SUFFIX,
-    ETHERSCAN_REGEX
+    ETHERSCAN_REGEX,
   );
 }
 
 function getBlockscoutRegex(blockscoutPrefix = "") {
   const tempBlockscoutOld = BLOCKSCOUT_REGEX_OLD.replace(
     "${BLOCKSCOUT_PREFIX}",
-    blockscoutPrefix
+    blockscoutPrefix,
   );
   return [tempBlockscoutOld, BLOCKSCOUT_REGEX_NEW];
 }
 
 function getBlockscoutScrapeContractCreatorFetcher(
   apiURL: string,
-  blockscoutPrefix = ""
+  blockscoutPrefix = "",
 ): ContractCreationFetcher {
   return getScrapeContractCreationFetcher(
     apiURL + BLOCKSCOUT_SUFFIX,
-    getBlockscoutRegex(blockscoutPrefix)
+    getBlockscoutRegex(blockscoutPrefix),
   );
 }
 
@@ -72,75 +72,75 @@ function getBlockscoutScrapeContractCreatorFetcher(
 // For chains with the new Etherscan api that has contract creator tx hash endpoint
 function getEtherscanApiContractCreatorFetcher(
   apiURL: string,
-  apiKey: string
+  apiKey: string,
 ): ContractCreationFetcher {
   return getApiContractCreationFetcher(
     apiURL + ETHERSCAN_API_SUFFIX + apiKey,
     (response: any) => {
       if (response?.result?.[0]?.txHash)
         return response?.result?.[0]?.txHash as string;
-    }
+    },
   );
 }
 
 function getBlockscoutApiContractCreatorFetcher(
-  apiURL: string
+  apiURL: string,
 ): ContractCreationFetcher {
   return getApiContractCreationFetcher(
     apiURL + BLOCKSCOUT_API_SUFFIX,
-    (response: any) => response?.creation_tx_hash
+    (response: any) => response?.creation_tx_hash,
   );
 }
 
 function getBlocksScanApiContractCreatorFetcher(
-  apiURL: string
+  apiURL: string,
 ): ContractCreationFetcher {
   return getApiContractCreationFetcher(
     apiURL + BLOCKSSCAN_SUFFIX,
     (response: any) => {
       if (response.fromTxn) return response.fromTxn as string;
-    }
+    },
   );
 }
 
 function getMeterApiContractCreatorFetcher(
-  apiURL: string
+  apiURL: string,
 ): ContractCreationFetcher {
   return getApiContractCreationFetcher(
     apiURL + METER_SUFFIX,
     (response: any) => {
       return response.account.creationTxHash as string;
-    }
+    },
   );
 }
 
 function getTelosApiContractCreatorFetcher(
-  apiURL: string
+  apiURL: string,
 ): ContractCreationFetcher {
   return getApiContractCreationFetcher(
     apiURL + TELOS_SUFFIX,
     (response: any) => {
       if (response?.results?.[0]?.transaction)
         return response.results[0].transaction as string;
-    }
+    },
   );
 }
 
 function getAvalancheApiContractCreatorFetcher(
-  chainId: string
+  chainId: string,
 ): ContractCreationFetcher {
   return getApiContractCreationFetcher(
     `https://glacier-api.avax.network/v1/chains/${chainId}/${AVALANCHE_SUBNET_SUFFIX}`,
     (response: any) => {
       if (response.nativeTransaction?.txHash)
         return response.nativeTransaction.txHash as string;
-    }
+    },
   );
 }
 
 async function getCreatorTxUsingFetcher(
   fetcher: ContractCreationFetcher,
-  contractAddress: string
+  contractAddress: string,
 ) {
   if (fetcher === undefined) {
     return null;
@@ -148,7 +148,7 @@ async function getCreatorTxUsingFetcher(
 
   const contractFetchAddressFilled = fetcher?.url.replace(
     "${ADDRESS}",
-    contractAddress
+    contractAddress,
   );
 
   logger.debug("Fetching Creator Tx", {
@@ -165,7 +165,7 @@ async function getCreatorTxUsingFetcher(
         if (fetcher?.scrapeRegex) {
           const creatorTx = await getCreatorTxByScraping(
             contractFetchAddressFilled,
-            fetcher?.scrapeRegex
+            fetcher?.scrapeRegex,
           );
           if (creatorTx) {
             logger.debug("Fetched and found creator Tx", {
@@ -220,11 +220,11 @@ async function getCreatorTxUsingFetcher(
  */
 export const getCreatorTx = async (
   sourcifyChain: SourcifyChain,
-  contractAddress: string
+  contractAddress: string,
 ): Promise<string | null> => {
   if (sourcifyChain.fetchContractCreationTxUsing?.blockscoutApi) {
     const fetcher = getBlockscoutApiContractCreatorFetcher(
-      sourcifyChain.fetchContractCreationTxUsing?.blockscoutApi.url
+      sourcifyChain.fetchContractCreationTxUsing?.blockscoutApi.url,
     );
     const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
     if (result) {
@@ -238,7 +238,7 @@ export const getCreatorTx = async (
     const apiKey = process.env[sourcifyChain.etherscanApi.apiKeyEnvName || ""];
     const fetcher = getEtherscanApiContractCreatorFetcher(
       sourcifyChain.etherscanApi.apiURL,
-      apiKey || ""
+      apiKey || "",
     );
     const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
     if (result) {
@@ -247,7 +247,7 @@ export const getCreatorTx = async (
   }
   if (sourcifyChain.fetchContractCreationTxUsing?.avalancheApi) {
     const fetcher = getAvalancheApiContractCreatorFetcher(
-      sourcifyChain.chainId.toString()
+      sourcifyChain.chainId.toString(),
     );
     const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
     if (result) {
@@ -257,7 +257,7 @@ export const getCreatorTx = async (
 
   if (sourcifyChain.fetchContractCreationTxUsing?.blockscoutScrape) {
     const fetcher = getBlockscoutScrapeContractCreatorFetcher(
-      sourcifyChain.fetchContractCreationTxUsing?.blockscoutScrape.url
+      sourcifyChain.fetchContractCreationTxUsing?.blockscoutScrape.url,
     );
     const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
     if (result) {
@@ -266,7 +266,7 @@ export const getCreatorTx = async (
   }
   if (sourcifyChain.fetchContractCreationTxUsing?.blocksScanApi) {
     const fetcher = getBlocksScanApiContractCreatorFetcher(
-      sourcifyChain.fetchContractCreationTxUsing?.blocksScanApi.url
+      sourcifyChain.fetchContractCreationTxUsing?.blocksScanApi.url,
     );
     const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
     if (result) {
@@ -275,7 +275,7 @@ export const getCreatorTx = async (
   }
   if (sourcifyChain.fetchContractCreationTxUsing?.meterApi) {
     const fetcher = getMeterApiContractCreatorFetcher(
-      sourcifyChain.fetchContractCreationTxUsing?.meterApi.url
+      sourcifyChain.fetchContractCreationTxUsing?.meterApi.url,
     );
     const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
     if (result) {
@@ -284,7 +284,7 @@ export const getCreatorTx = async (
   }
   if (sourcifyChain.fetchContractCreationTxUsing?.telosApi) {
     const fetcher = getTelosApiContractCreatorFetcher(
-      sourcifyChain.fetchContractCreationTxUsing?.telosApi.url
+      sourcifyChain.fetchContractCreationTxUsing?.telosApi.url,
     );
     const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
     if (result) {
@@ -293,7 +293,7 @@ export const getCreatorTx = async (
   }
   if (sourcifyChain.fetchContractCreationTxUsing?.etherscanScrape) {
     const fetcher = getEtherscanScrapeContractCreatorFetcher(
-      sourcifyChain.fetchContractCreationTxUsing?.etherscanScrape.url
+      sourcifyChain.fetchContractCreationTxUsing?.etherscanScrape.url,
     );
     const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
     if (result) {
@@ -312,7 +312,7 @@ export const getCreatorTx = async (
  */
 async function getCreatorTxByScraping(
   fetchAddress: string,
-  txRegexs: string[]
+  txRegexs: string[],
 ): Promise<string | null> {
   const res = await fetch(fetchAddress);
   const arrayBuffer = await res.arrayBuffer();
@@ -329,7 +329,7 @@ async function getCreatorTxByScraping(
             fetchAddress,
           });
           throw new Error(
-            `Scraping the creator tx failed because of CAPTCHA at ${fetchAddress}`
+            `Scraping the creator tx failed because of CAPTCHA at ${fetchAddress}`,
           );
         }
       }
@@ -343,7 +343,7 @@ async function getCreatorTxByScraping(
     throw new Error(
       `Scraping the creator tx failed at ${fetchAddress} because of HTTP status code ${res.status} (Forbidden)
       
-      Try manually putting the creator tx hash in the "Creator tx hash" field.`
+      Try manually putting the creator tx hash in the "Creator tx hash" field.`,
     );
   }
   return null;
@@ -357,6 +357,6 @@ async function fetchFromApi(fetchAddress: string) {
   }
 
   throw new Error(
-    `Contract creator tx could not be fetched from ${fetchAddress} because of status code ${res.status}`
+    `Contract creator tx could not be fetched from ${fetchAddress} because of status code ${res.status}`,
   );
 }

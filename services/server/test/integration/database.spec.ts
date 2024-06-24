@@ -22,7 +22,7 @@ describe("Verifier Alliance database", function () {
     testCase: any,
     { deployWithConstructorArguments } = {
       deployWithConstructorArguments: false,
-    }
+    },
   ) => {
     let address: string;
     let txHash: string;
@@ -37,7 +37,7 @@ describe("Verifier Alliance database", function () {
       } = await deployFromAbiAndBytecodeForCreatorTxHash(
         chainFixture.localSigner,
         testCase.compilation_artifacts.abi,
-        testCase.deployed_creation_code
+        testCase.deployed_creation_code,
       );
       address = contractAddress;
       txHash = txCreationHash;
@@ -53,7 +53,7 @@ describe("Verifier Alliance database", function () {
         chainFixture.localSigner,
         testCase.compilation_artifacts.abi,
         testCase.compiled_creation_code,
-        [testCase.creation_values.constructorArguments]
+        [testCase.creation_values.constructorArguments],
       );
       address = contractAddress;
       txHash = txCreationHash;
@@ -79,7 +79,7 @@ describe("Verifier Alliance database", function () {
       libraries: Object.keys(testCase.compiler_settings.libraries || {}).reduce(
         (libraries: Record<string, string>, contractPath) => {
           Object.keys(
-            testCase.compiler_settings.libraries[contractPath]
+            testCase.compiler_settings.libraries[contractPath],
           ).forEach((contractName) => {
             libraries[`${contractPath}:${contractName}`] =
               testCase.compiler_settings.libraries[contractPath][contractName];
@@ -87,7 +87,7 @@ describe("Verifier Alliance database", function () {
 
           return libraries;
         },
-        {}
+        {},
       ),
     };
     await chai
@@ -162,7 +162,7 @@ describe("Verifier Alliance database", function () {
         LEFT JOIN code onchain_runtime_code ON onchain_runtime_code.code_hash = c.runtime_code_hash
         LEFT JOIN code onchain_creation_code ON onchain_creation_code.code_hash = c.creation_code_hash
         where cd.address = $1`,
-      [Buffer.from(address.substring(2), "hex")]
+      [Buffer.from(address.substring(2), "hex")],
     );
     chai.expect(res.rowCount).to.equal(1);
 
@@ -187,7 +187,7 @@ describe("Verifier Alliance database", function () {
     chai
       .expect(row.deployer)
       .to.deep.equal(
-        Buffer.from(chainFixture.localSigner.address.substring(2), "hex")
+        Buffer.from(chainFixture.localSigner.address.substring(2), "hex"),
       );
 
     chai

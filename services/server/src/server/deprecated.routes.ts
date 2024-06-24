@@ -33,7 +33,7 @@ export function initDeprecatedRoutes(app: express.Application) {
         req.url = path;
         req.originalUrl = path;
         next();
-      }
+      },
     );
   });
 }
