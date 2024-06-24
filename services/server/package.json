@@ -23,7 +23,7 @@
     "test-local": "npm run test:unit && npm run test-local:integration",
     "test-local:chains": "export DOCKER_HOST_POSTGRES_TEST_PORT=${DOCKER_HOST_POSTGRES_TEST_PORT:-5431} && npm run postgres-test:start && sleep 2 && npm run test:chains; status=$?; npm run postgres-test:stop; exit $status",
     "test-local:etherscan-instances": "export DOCKER_HOST_POSTGRES_TEST_PORT=${DOCKER_HOST_POSTGRES_TEST_PORT:-5431} && npm run postgres-test:start && sleep 2 && npm run test:etherscan-instances; status=$?; npm run postgres-test:stop; exit $status",
-    "lint": "eslint . --ext .ts",
+    "lint": "eslint .",
     "cov": "run-s -c build test-local cov:html cov:lcov && open-cli coverage/index.html",
     "cov:html": "c8 report --reporter=html",
     "cov:lcov": "c8 report --reporter=lcov",

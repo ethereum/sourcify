@@ -46,7 +46,7 @@
     "build": "react-scripts build",
     "test": "echo \"Error: no test specified\"",
     "eject": "react-scripts eject",
-    "lint": "eslint . --ext .ts"
+    "lint": "eslint ."
   },
   "eslintConfig": {
     "extends": [
