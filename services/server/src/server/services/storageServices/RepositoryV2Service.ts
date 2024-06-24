@@ -56,36 +56,6 @@ export class RepositoryV2Service implements WStorageService {
     return true;
   }
 
-  // TODO: Remove this function, metadata will be in SourcifyDatabase
-  getMetadata = async (
-    chainId: string,
-    address: string,
-    match: MatchLevel
-  ): Promise<string | false> => {
-    // First try getting metadata.json from full_match
-    const loadedMetadataFullMatch = await readFile(
-      this.repositoryPath,
-      "full_match",
-      chainId,
-      address,
-      "metadata.json"
-    );
-
-    // If the match is full_match return the retrieved file anyway
-    if (loadedMetadataFullMatch || match === "full_match") {
-      return loadedMetadataFullMatch;
-    }
-
-    // If any_match or file wasn't in full_match, get metadata.json from partial_match
-    return await readFile(
-      this.repositoryPath,
-      "partial_match",
-      chainId,
-      address,
-      "metadata.json"
-    );
-  };
-
   async getFile(
     chainId: string,
     address: string,

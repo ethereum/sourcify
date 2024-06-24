@@ -3,7 +3,7 @@ import chai from "chai";
 import config from "config";
 import path from "path";
 import fs from "fs";
-import { getAddress } from "ethers";
+import { getAddress, id } from "ethers";
 import { getMatchStatus } from "../../src/server/common";
 import type { Response } from "superagent";
 import type { Done } from "mocha";
@@ -117,17 +117,18 @@ async function assertContractSaved(
   if (expectedStatus === "perfect" || expectedStatus === "partial") {
     // Check if saved to fs repository
     const match = expectedStatus === "perfect" ? "full_match" : "partial_match";
-    const isExist = fs.existsSync(
-      path.join(
-        config.get("repositoryV1.path"),
-        "contracts",
-        match,
-        expectedChain ?? "",
-        getAddress(expectedAddress ?? ""),
-        "metadata.json"
-      )
+    const metadataPath = path.join(
+      config.get("repositoryV1.path"),
+      "contracts",
+      match,
+      expectedChain ?? "",
+      getAddress(expectedAddress ?? ""),
+      "metadata.json"
     );
+    const isExist = fs.existsSync(metadataPath);
     chai.expect(isExist, "Contract is not saved").to.be.true;
+
+    const expectedMetadataHash = id(fs.readFileSync(metadataPath).toString());
 
     if (sourcifyDatabase) {
       // Check if saved to the database
@@ -136,7 +137,8 @@ async function assertContractSaved(
         cd.address,
         cd.chain_id,
         sm.creation_match,
-        sm.runtime_match
+        sm.runtime_match,
+        sm.metadata
       FROM sourcify_matches sm
       LEFT JOIN verified_contracts vc ON vc.id = sm.verified_contract_id
       LEFT JOIN contract_deployments cd ON cd.id = vc.deployment_id
@@ -153,6 +155,10 @@ async function assertContractSaved(
         .expect("0x" + contract.address.toString("hex"))
         .to.equal(expectedAddress?.toLowerCase());
       chai.expect(contract.chain_id).to.equal(expectedChain);
+      chai
+        .expect(id(JSON.stringify(contract.metadata)))
+        .to.equal(expectedMetadataHash);
+
       // When we'll support runtime_match and creation_match as different statuses we can refine this statement
       chai
         .expect(
