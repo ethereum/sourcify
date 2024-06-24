@@ -1,5 +1,4 @@
 import { Response, Request } from "express";
-import { services } from "../../../../services/services";
 import {
   getMappedSourcesFromJsonInput,
   getMetadataFromCompiler,
@@ -33,13 +32,13 @@ export async function verifyFromEtherscan(req: Request, res: Response) {
   const mappedSources = getMappedSourcesFromJsonInput(solcJsonInput);
   const checkedContract = createCheckedContract(metadata, mappedSources);
 
-  const match = await services.verification.verifyDeployed(
+  const match = await req.services.verification.verifyDeployed(
     checkedContract,
     chain,
     address
   );
 
-  await services.storage.storeMatch(checkedContract, match);
+  await req.services.storage.storeMatch(checkedContract, match);
 
   res.send({ result: [getResponseMatchFromMatch(match)] });
 }

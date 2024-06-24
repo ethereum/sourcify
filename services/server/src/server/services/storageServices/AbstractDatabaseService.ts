@@ -10,11 +10,104 @@ import {
   normalizeRecompiledBytecodes,
 } from "../utils/database-util";
 import { Pool } from "pg";
+import { AuthTypes, Connector } from "@google-cloud/cloud-sql-connector";
+import logger from "../../../common/logger";
+
+export interface DatabaseServiceOptions {
+  googleCloudSql?: {
+    instanceName: string;
+    iamAccount: string;
+    database: string;
+  };
+  postgres?: {
+    host: string;
+    port: number;
+    database: string;
+    user: string;
+    password: string;
+  };
+}
 
 export default abstract class AbstractDatabaseService {
-  abstract init(): Promise<boolean>;
   abstract databasePool: Pool;
-  abstract databaseName: string;
+  abstract IDENTIFIER: string;
+
+  googleCloudSqlInstanceName?: string;
+  googleCloudSqlIamAccount?: string;
+  googleCloudSqlDatabase?: string;
+  postgresHost?: string;
+  postgresPort?: number;
+  postgresDatabase?: string;
+  postgresUser?: string;
+  postgresPassword?: string;
+
+  constructor(options: DatabaseServiceOptions) {
+    this.googleCloudSqlInstanceName = options.googleCloudSql?.instanceName;
+    this.googleCloudSqlIamAccount = options.googleCloudSql?.iamAccount;
+    this.googleCloudSqlDatabase = options.googleCloudSql?.database;
+    this.postgresHost = options.postgres?.host;
+    this.postgresPort = options.postgres?.port;
+    this.postgresDatabase = options.postgres?.database;
+    this.postgresUser = options.postgres?.user;
+    this.postgresPassword = options.postgres?.password;
+  }
+
+  async init() {
+    return await this.initDatabasePool();
+  }
+
+  async initDatabasePool(): Promise<boolean> {
+    // if the database is already initialized
+    if (this.databasePool != undefined) {
+      return true;
+    }
+
+    if (this.googleCloudSqlInstanceName) {
+      const connector = new Connector();
+      const clientOpts = await connector.getOptions({
+        instanceConnectionName: this.googleCloudSqlInstanceName, // "verifier-alliance:europe-west3:test-verifier-alliance",
+        authType: AuthTypes.IAM,
+      });
+      this.databasePool = new Pool({
+        ...clientOpts,
+        user: this.googleCloudSqlIamAccount, // "marco.castignoli@ethereum.org",
+        database: this.googleCloudSqlDatabase, // "postgres",
+        max: 5,
+      });
+    } else if (this.postgresHost) {
+      this.databasePool = new Pool({
+        host: this.postgresHost,
+        port: this.postgresPort,
+        database: this.postgresDatabase,
+        user: this.postgresUser,
+        password: this.postgresPassword,
+        max: 5,
+      });
+    } else {
+      throw new Error("Alliance Database is disabled");
+    }
+
+    // Checking pool health before continuing
+    try {
+      await this.databasePool.query("SELECT 1;");
+    } catch (error) {
+      logger.error(`Cannot connect to ${this.IDENTIFIER}`, {
+        host: this.postgresHost,
+        port: this.postgresPort,
+        database: this.postgresDatabase,
+        user: this.postgresUser,
+        error,
+      });
+      throw new Error(`Cannot connect to ${this.IDENTIFIER}`);
+    }
+
+    logger.info(`${this.IDENTIFIER} initialized`, {
+      host: this.postgresHost,
+      port: this.postgresPort,
+      database: this.postgresDatabase,
+    });
+    return true;
+  }
 
   validateBeforeStoring(
     recompiledContract: CheckedContract,
@@ -410,7 +503,7 @@ export default abstract class AbstractDatabaseService {
   }> {
     this.validateBeforeStoring(recompiledContract, match);
 
-    await this.init();
+    await this.initDatabasePool();
 
     // Normalize both creation and runtime recompiled bytecodes before storing them to the database
     normalizeRecompiledBytecodes(recompiledContract, match);

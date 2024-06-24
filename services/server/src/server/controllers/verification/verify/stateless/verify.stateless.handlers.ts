@@ -1,5 +1,4 @@
 import { Response } from "express";
-import { services } from "../../../../services/services";
 import {
   LegacyVerifyRequest,
   extractFiles,
@@ -24,9 +23,9 @@ export async function legacyVerifyEndpoint(
   req: LegacyVerifyRequest,
   res: Response
 ): Promise<any> {
-  const result = await services.storage.checkByChainAndAddress(
-    req.body.address,
-    req.body.chain
+  const result = await req.services.storage.performServiceOperation(
+    "checkByChainAndAddress",
+    [req.body.address, req.body.chain]
   );
   if (result.length != 0) {
     return res.send({ result: [getResponseMatchFromMatch(result[0])] });
@@ -79,7 +78,7 @@ export async function legacyVerifyEndpoint(
   }
 
   try {
-    const match = await services.verification.verifyDeployed(
+    const match = await req.services.verification.verifyDeployed(
       contract,
       req.body.chain,
       req.body.address,
@@ -93,7 +92,7 @@ export async function legacyVerifyEndpoint(
         address: req.body.address,
       });
       const contractWithAllSources = await useAllSources(contract, inputFiles);
-      const tempMatch = await services.verification.verifyDeployed(
+      const tempMatch = await req.services.verification.verifyDeployed(
         contractWithAllSources,
         req.body.chain,
         req.body.address,
@@ -103,7 +102,7 @@ export async function legacyVerifyEndpoint(
         tempMatch.runtimeMatch === "perfect" ||
         tempMatch.creationMatch === "perfect"
       ) {
-        await services.storage.storeMatch(contract, tempMatch);
+        await req.services.storage.storeMatch(contract, tempMatch);
         return res.send({ result: [getResponseMatchFromMatch(tempMatch)] });
       } else if (tempMatch.runtimeMatch === "extra-file-input-bug") {
         throw new ValidationError(
@@ -112,7 +111,7 @@ export async function legacyVerifyEndpoint(
       }
     }
     if (match.runtimeMatch || match.creationMatch) {
-      await services.storage.storeMatch(contract, match);
+      await req.services.storage.storeMatch(contract, match);
     }
     return res.send({ result: [getResponseMatchFromMatch(match)] }); // array is an old expected behavior (e.g. by frontend)
   } catch (error: any) {

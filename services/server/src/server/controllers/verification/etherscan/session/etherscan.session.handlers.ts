@@ -1,5 +1,4 @@
 import { Response, Request } from "express";
-import { services } from "../../../../services/services";
 import {
   ContractWrapperMap,
   checkContractsInSession,
@@ -86,8 +85,8 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
   await verifyContractsInSession(
     verifiable,
     session,
-    services.verification,
-    services.storage
+    req.services.verification,
+    req.services.storage
   );
   res.send(getSessionJSON(session));
 }

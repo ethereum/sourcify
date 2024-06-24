@@ -22,6 +22,17 @@ const storageContractSourcePath = path.join(
 );
 const storageContractSource = fs.readFileSync(storageContractSourcePath);
 
+const storageModifiedContractSourcePath = path.join(
+  __dirname,
+  "..",
+  "testcontracts",
+  "Storage",
+  "StorageModified.sol"
+);
+const storageModifiedContractSource = fs.readFileSync(
+  storageModifiedContractSourcePath
+);
+
 const HARDHAT_PORT = 8545;
 const DEFAULT_CHAIN_ID = "31337";
 
@@ -31,6 +42,7 @@ export type LocalChainFixtureOptions = {
 
 export class LocalChainFixture {
   defaultContractSource = storageContractSource;
+  defaultContractModifiedSource = storageModifiedContractSource;
   defaultContractMetadata = Buffer.from(
     JSON.stringify(storageContractMetadata)
   );

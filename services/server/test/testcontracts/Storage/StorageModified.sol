@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-// This line + changed contract name will cause a partial match to the deployed contract.
+// This line + changed contrract name will cause a partial match to the deployed contract.
 pragma solidity >=0.7.0 <0.9.0;
 
 /**
