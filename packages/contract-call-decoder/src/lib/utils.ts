@@ -29,7 +29,7 @@ type LocalResult = {
  * @returns a javascript rappresentation of the arrays / objects / values passed in the calldata
  */
 export function getValueFromDecodedFunctionData(
-  decodedFunctionData: Result
+  decodedFunctionData: Result,
 ): unknown {
   if (
     Array.isArray(decodedFunctionData) &&
@@ -50,7 +50,7 @@ export function getValueFromDecodedFunctionData(
     return res;
   } else if (Array.isArray(decodedFunctionData)) {
     return decodedFunctionData.map((value) =>
-      getValueFromDecodedFunctionData(value)
+      getValueFromDecodedFunctionData(value),
     );
   } else if (decodedFunctionData instanceof BigNumber) {
     try {

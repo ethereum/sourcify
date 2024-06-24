@@ -30,9 +30,9 @@ test('can evaluate call data', async (t) => {
         to: '0x8521742d3f456bd237e312d6e30724960f72517a',
         data: '0xd5dcf127000000000000000000000000000000000000000000000000000000000000000a',
       },
-      ethereumProvider as unknown as Provider
+      ethereumProvider as unknown as Provider,
     ),
-    'Set the tree age to 10 years'
+    'Set the tree age to 10 years',
   );
 });
 
@@ -48,7 +48,7 @@ test.skip('get metadata of a non-contract address', async (t) => {
   } catch (e) {
     t.is(
       (e as { message: string }).message,
-      `Bytecode not found while using "MetadataSources.BytecodeMetadata"`
+      `Bytecode not found while using "MetadataSources.BytecodeMetadata"`,
     );
   }
 });
@@ -61,7 +61,7 @@ test('can extract metadata from address', async (t) => {
         chainId: 11155111,
       })
     ).language,
-    'Solidity'
+    'Solidity',
   );
 });
 
@@ -85,7 +85,7 @@ test('find by signature', async (t) => {
         stateMutability: 'nonpayable',
         type: 'function',
       },
-    ]
+    ],
   );
 
   if (!selectorAndAbi) {
@@ -120,7 +120,7 @@ test('evaluate calldata can correctly parse addresses, bigints and bytes', async
   }
   t.is(
     decodedContractCall.method.decodedParams[0],
-    '0x7dBA08Bdc233B28e2c99723c402Fc8F4e35AB55B'
+    '0x7dBA08Bdc233B28e2c99723c402Fc8F4e35AB55B',
   );
   t.is(`${decodedContractCall.method.decodedParams[2]}`, '1');
   t.is(`${decodedContractCall.method.decodedParams[3]}`, '0x010101ff');

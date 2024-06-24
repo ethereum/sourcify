@@ -56,7 +56,7 @@ export async function getMetadataFromAddress(options: GetMetadataOptions) {
   } else if (options.source === MetadataSources.BytecodeMetadata) {
     if (!options.rpcProvider) {
       throw new Error(
-        `Missing rpcProvider while using "MetadataSources.BytecodeMetadata"`
+        `Missing rpcProvider while using "MetadataSources.BytecodeMetadata"`,
       );
     }
     const bytecode = (await options?.rpcProvider?.request({
@@ -65,7 +65,7 @@ export async function getMetadataFromAddress(options: GetMetadataOptions) {
     })) as string;
     if (!bytecode || bytecode === '0x') {
       throw new Error(
-        `Bytecode not found while using "MetadataSources.BytecodeMetadata"`
+        `Bytecode not found while using "MetadataSources.BytecodeMetadata"`,
       );
     }
     const { ipfs: metadataIpfsCid } = decodeBytecode(bytecode);
@@ -75,7 +75,7 @@ export async function getMetadataFromAddress(options: GetMetadataOptions) {
     } catch (e) {
       console.log(e);
       throw new Error(
-        `Cannot fetch metadata from ipfs while using "MetadataSources.BytecodeMetadata"`
+        `Cannot fetch metadata from ipfs while using "MetadataSources.BytecodeMetadata"`,
       );
     }
   }
@@ -87,14 +87,14 @@ export const evaluate = async function (
   expression: string,
   abi: string | ReadonlyArray<Fragment | JsonFragment | string>,
   transaction: Transaction,
-  provider: Provider
+  provider: Provider,
 ): Promise<string | undefined> {
   return await radspec(expression, abi, transaction, provider);
 };
 
 export const findSelectorAndAbiItemFromSignatureHash = (
   functionSignatureHash: string,
-  abi: string | ReadonlyArray<Fragment | JsonFragment | string>
+  abi: string | ReadonlyArray<Fragment | JsonFragment | string>,
 ) => {
   try {
     const interf = new Interface(abi);
@@ -144,7 +144,7 @@ type DecodedContractCall = {
 
 export const decodeContractCall = async (
   tx: Transaction,
-  options: GetMetadataOptions = {}
+  options: GetMetadataOptions = {},
 ): Promise<DecodedContractCall | false> => {
   const getMetadataOptions = {
     ...defaultGetMetadataOptions,
@@ -158,7 +158,7 @@ export const decodeContractCall = async (
 
   const selectorAndAbi = findSelectorAndAbiItemFromSignatureHash(
     functionSignatureHash,
-    metadata.output.abi
+    metadata.output.abi,
   );
   if (!selectorAndAbi) {
     throw new Error(`Cannot find the function selector in the provided ABI`);
@@ -171,7 +171,7 @@ export const decodeContractCall = async (
       metadata.output.userdoc.methods[selector].notice,
       metadata.output.abi,
       tx,
-      getMetadataOptions.rpcProvider as unknown as Provider
+      getMetadataOptions.rpcProvider as unknown as Provider,
     );
   }
 
@@ -181,7 +181,7 @@ export const decodeContractCall = async (
       metadata.output?.devdoc?.methods[selector]?.details,
       metadata.output.abi,
       tx,
-      getMetadataOptions.rpcProvider as unknown as Provider
+      getMetadataOptions.rpcProvider as unknown as Provider,
     );
   }
 
