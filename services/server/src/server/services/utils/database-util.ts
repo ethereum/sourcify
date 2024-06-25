@@ -593,10 +593,10 @@ export async function countSourcifyMatchAddresses(
     `
   SELECT
   contract_deployments.chain_id,
-  SUM(CASE 
-    WHEN COALESCE(sourcify_matches.creation_match, '') = 'perfect' OR sourcify_matches.runtime_match = 'perfect' THEN 1 ELSE 0 END) AS full_total,
-  SUM(CASE 
-    WHEN COALESCE(sourcify_matches.creation_match, '') != 'perfect' AND sourcify_matches.runtime_match != 'perfect' THEN 1 ELSE 0 END) AS partial_total
+  CAST(SUM(CASE 
+    WHEN COALESCE(sourcify_matches.creation_match, '') = 'perfect' OR sourcify_matches.runtime_match = 'perfect' THEN 1 ELSE 0 END) AS INTEGER) AS full_total,
+  CAST(SUM(CASE 
+    WHEN COALESCE(sourcify_matches.creation_match, '') != 'perfect' AND sourcify_matches.runtime_match != 'perfect' THEN 1 ELSE 0 END) AS INTEGER) AS partial_total
   FROM sourcify_matches
   JOIN verified_contracts ON verified_contracts.id = sourcify_matches.verified_contract_id
   JOIN contract_deployments ON contract_deployments.id = verified_contracts.deployment_id
