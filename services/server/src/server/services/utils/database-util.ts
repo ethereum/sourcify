@@ -374,44 +374,6 @@ export async function insertVerifiedContract(
   return verifiedContractsInsertResult;
 }
 
-export async function updateVerifiedContract(
-  pool: Pool,
-  {
-    compilation_id,
-    deployment_id,
-    creation_transformations,
-    creation_values,
-    runtime_transformations,
-    runtime_values,
-    runtime_match,
-    creation_match,
-  }: Tables.VerifiedContract,
-) {
-  await pool.query(
-    `
-      UPDATE verified_contracts 
-      SET 
-        creation_transformations = $3,
-        creation_values = $4,
-        runtime_transformations = $5,
-        runtime_values = $6,
-        runtime_match = $7,
-        creation_match = $8
-      WHERE compilation_id = $1 AND deployment_id = $2
-    `,
-    [
-      compilation_id,
-      deployment_id,
-      creation_transformations,
-      creation_values,
-      runtime_transformations,
-      runtime_values,
-      runtime_match,
-      creation_match,
-    ],
-  );
-}
-
 export async function insertSourcifyMatch(
   pool: Pool,
   {
