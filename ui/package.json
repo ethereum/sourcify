@@ -11,10 +11,6 @@
     "@headlessui/react": "^1.4.2",
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",
-    "@types/node": "^20.10.0",
-    "@types/react": "^17.0.37",
-    "@types/react-dom": "^17.0.11",
-    "@types/react-syntax-highlighter": "^13.5.2",
     "aos": "^2.3.4",
     "bytes": "^3.1.2",
     "fuse.js": "^6.5.0",
@@ -26,7 +22,6 @@
     "react-icons": "^4.3.1",
     "react-responsive-carousel": "^3.2.22",
     "react-router-dom": "^6.1.1",
-    "react-scripts": "^5.0.1",
     "react-select-search": "^3.0.9",
     "react-syntax-highlighter": "^15.4.5",
     "react-tooltip": "^4.2.21",
@@ -68,8 +63,13 @@
   "devDependencies": {
     "@types/aos": "^3.0.4",
     "@types/bytes": "^3.1.1",
+    "@types/node": "^20.10.0",
+    "@types/react": "^17.0.37",
+    "@types/react-dom": "^17.0.11",
+    "@types/react-syntax-highlighter": "^13.5.2",
     "autoprefixer": "^10.4.0",
     "postcss": "^8.4.5",
+    "react-scripts": "^5.0.1",
     "tailwindcss": "^3.0.3"
   },
   "homepage": "./"
