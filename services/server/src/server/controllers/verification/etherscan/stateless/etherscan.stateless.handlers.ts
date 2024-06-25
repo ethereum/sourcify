@@ -26,7 +26,7 @@ export async function verifyFromEtherscan(req: Request, res: Response) {
   const metadata = await getMetadataFromCompiler(
     compilerVersion,
     solcJsonInput,
-    contractName
+    contractName,
   );
 
   const mappedSources = getMappedSourcesFromJsonInput(solcJsonInput);
@@ -35,7 +35,7 @@ export async function verifyFromEtherscan(req: Request, res: Response) {
   const match = await req.services.verification.verifyDeployed(
     checkedContract,
     chain,
-    address
+    address,
   );
 
   await req.services.storage.storeMatch(checkedContract, match);

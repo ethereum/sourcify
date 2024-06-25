@@ -40,17 +40,17 @@ export interface RWStorageService extends WStorageService {
     chainId: string,
     address: string,
     match: MatchLevelWithoutAny,
-    path: string
+    path: string,
   ): Promise<string | false>;
   getTree(
     chainId: string,
     address: string,
-    match: MatchLevel
+    match: MatchLevel,
   ): Promise<FilesInfo<string[]>>;
   getContent(
     chainId: string,
     address: string,
-    match: MatchLevel
+    match: MatchLevel,
   ): Promise<FilesInfo<Array<FileObject>>>;
   getContracts(chainId: string): Promise<ContractData>;
   getPaginatedContracts?(
@@ -58,7 +58,7 @@ export interface RWStorageService extends WStorageService {
     match: MatchLevel,
     page: number,
     limit: number,
-    descending: boolean
+    descending: boolean,
   ): Promise<PaginatedContractData>;
   checkByChainAndAddress(address: string, chainId: string): Promise<Match[]>;
   checkAllByChainAndAddress(address: string, chainId: string): Promise<Match[]>;
@@ -101,13 +101,13 @@ export class StorageService {
     if (enabledServicesArray.includes(RWStorageIdentifiers.RepositoryV1)) {
       if (options.repositoryV1ServiceOptions?.repositoryPath) {
         const repositoryV1 = new RepositoryV1Service(
-          options.repositoryV1ServiceOptions
+          options.repositoryV1ServiceOptions,
         );
         this.rwServices[repositoryV1.IDENTIFIER] = repositoryV1;
       } else {
         logger.error(
           "RepositoryV1 enabled, but path not set",
-          options.repositoryV2ServiceOptions
+          options.repositoryV2ServiceOptions,
         );
         throw new Error("RepositoryV1 enabled, but path not set");
       }
@@ -117,13 +117,13 @@ export class StorageService {
     if (enabledServicesArray.includes(WStorageIdentifiers.RepositoryV2)) {
       if (options.repositoryV2ServiceOptions?.repositoryPath) {
         const repositoryV2 = new RepositoryV2Service(
-          options.repositoryV2ServiceOptions
+          options.repositoryV2ServiceOptions,
         );
         this.wServices[repositoryV2.IDENTIFIER] = repositoryV2;
       } else {
         logger.error(
           "RepositoryV2 enabled, but path not set",
-          options.repositoryV2ServiceOptions
+          options.repositoryV2ServiceOptions,
         );
         throw new Error("RepositoryV2 enabled, but path not set");
       }
@@ -139,16 +139,16 @@ export class StorageService {
       ) {
         const sourcifyDatabase = new SourcifyDatabaseService(
           this,
-          options.sourcifyDatabaseServiceOptions
+          options.sourcifyDatabaseServiceOptions,
         );
         this.rwServices[sourcifyDatabase.IDENTIFIER] = sourcifyDatabase;
       } else {
         logger.error(
           "SourcifyDatabase enabled, but options are not complete",
-          options.sourcifyDatabaseServiceOptions
+          options.sourcifyDatabaseServiceOptions,
         );
         throw new Error(
-          "SourcifyDatabase enabled, but options are not complete"
+          "SourcifyDatabase enabled, but options are not complete",
         );
       }
     }
@@ -163,16 +163,16 @@ export class StorageService {
           options.allianceDatabaseServiceOptions?.postgres?.password)
       ) {
         const allianceDatabase = new AllianceDatabaseService(
-          options.allianceDatabaseServiceOptions
+          options.allianceDatabaseServiceOptions,
         );
         this.wServices[allianceDatabase.IDENTIFIER] = allianceDatabase;
       } else {
         logger.error(
           "AllianceDatabase enabled, but options are not complete",
-          options.allianceDatabaseServiceOptions
+          options.allianceDatabaseServiceOptions,
         );
         throw new Error(
-          "AllianceDatabase enabled, but options are not complete"
+          "AllianceDatabase enabled, but options are not complete",
         );
       }
     }
@@ -192,13 +192,13 @@ export class StorageService {
 
   getWriteOrWarnServices(): WStorageService[] {
     return this.enabledServices.writeOrWarn.map((serviceKey) =>
-      this.getWServiceByConfigKey(serviceKey)
+      this.getWServiceByConfigKey(serviceKey),
     );
   }
 
   getWriteOrErrServices(): WStorageService[] {
     return this.enabledServices.writeOrErr.map((serviceKey) =>
-      this.getWServiceByConfigKey(serviceKey)
+      this.getWServiceByConfigKey(serviceKey),
     );
   }
 
@@ -216,12 +216,12 @@ export class StorageService {
     const enabledServices = enabledServicesArray.reduce(
       (
         services: { [key in StorageIdentifiers]: WStorageService },
-        service: WStorageService
+        service: WStorageService,
       ) => {
         services[service.IDENTIFIER] = service;
         return services;
       },
-      {} as { [key in StorageIdentifiers]: WStorageService }
+      {} as { [key in StorageIdentifiers]: WStorageService },
     );
 
     logger.debug("Initializing used storage services", {
@@ -230,7 +230,7 @@ export class StorageService {
 
     // Try to initialize used storage services
     for (const serviceIdentifier of Object.keys(
-      enabledServices
+      enabledServices,
     ) as RWStorageIdentifiers[]) {
       if (
         !(await { ...this.rwServices, ...this.wServices }[
@@ -238,7 +238,7 @@ export class StorageService {
         ].init())
       ) {
         throw new Error(
-          "Cannot initialize default storage service: " + serviceIdentifier
+          "Cannot initialize default storage service: " + serviceIdentifier,
         );
       }
     }
@@ -255,7 +255,7 @@ export class StorageService {
 
     const existingMatch = await this.performServiceOperation(
       "checkAllByChainAndAddress",
-      [match.address, match.chainId]
+      [match.address, match.chainId],
     );
     if (
       existingMatch.length > 0 &&
@@ -267,7 +267,7 @@ export class StorageService {
         address: match.address,
       });
       throw new Error(
-        `The contract ${match.address} on chainId ${match.chainId} is already partially verified. The provided new source code also yielded a partial match and will not be stored unless it's a full match`
+        `The contract ${match.address} on chainId ${match.chainId} is already partially verified. The provided new source code also yielded a partial match and will not be stored unless it's a full match`,
       );
     }
 
@@ -281,8 +281,8 @@ export class StorageService {
             error: e,
           });
           throw e;
-        })
-      )
+        }),
+      ),
     );
 
     this.getWriteOrWarnServices().forEach((service) => {
@@ -294,7 +294,7 @@ export class StorageService {
               contract,
               match,
             });
-          })
+          }),
         );
       }
     });
@@ -304,18 +304,18 @@ export class StorageService {
 
   async performServiceOperation<
     T extends Mandatory<RWStorageService>, // Mandatory is used to allow optional functions like getPaginatedContracts
-    K extends MethodNames<T> // MethodNames extracts T's methods
+    K extends MethodNames<T>, // MethodNames extracts T's methods
   >(
     methodName: K,
     // MethodArgs gets the parameters types of method K from T
-    args: MethodArgs<T, K>
+    args: MethodArgs<T, K>,
   ) {
     const service = this.getDefaultReadService() as T;
     const method = service[methodName];
     try {
       if (typeof method !== "function") {
         throw new Error(
-          `The method ${String(methodName)} doesn't exist or is not a function`
+          `The method ${String(methodName)} doesn't exist or is not a function`,
         );
       }
 
@@ -327,7 +327,7 @@ export class StorageService {
           defaultStorageService: this.getDefaultReadService().IDENTIFIER,
           args,
           error,
-        }
+        },
       );
       throw error;
     }

@@ -18,7 +18,7 @@ const storageContractSourcePath = path.join(
   "..",
   "testcontracts",
   "Storage",
-  "Storage.sol"
+  "Storage.sol",
 );
 const storageContractSource = fs.readFileSync(storageContractSourcePath);
 
@@ -27,10 +27,10 @@ const storageModifiedContractSourcePath = path.join(
   "..",
   "testcontracts",
   "Storage",
-  "StorageModified.sol"
+  "StorageModified.sol",
 );
 const storageModifiedContractSource = fs.readFileSync(
-  storageModifiedContractSourcePath
+  storageModifiedContractSourcePath,
 );
 
 const HARDHAT_PORT = 8545;
@@ -44,10 +44,10 @@ export class LocalChainFixture {
   defaultContractSource = storageContractSource;
   defaultContractModifiedSource = storageModifiedContractSource;
   defaultContractMetadata = Buffer.from(
-    JSON.stringify(storageContractMetadata)
+    JSON.stringify(storageContractMetadata),
   );
   defaultContractModifiedMetadata = Buffer.from(
-    JSON.stringify(storageContractMetadataModified)
+    JSON.stringify(storageContractMetadataModified),
   );
   defaultContractModifiedSourceIpfs = getModifiedSourceIpfs();
   defaultContractArtifact = storageContractArtifact;
@@ -90,7 +90,7 @@ export class LocalChainFixture {
     before(async () => {
       // Init IPFS mock with all the necessary pinned files
       const mockContent = await readFilesFromDirectory(
-        path.join(__dirname, "..", "mocks", "ipfs")
+        path.join(__dirname, "..", "mocks", "ipfs"),
       );
       for (const ipfsKey of Object.keys(mockContent)) {
         nock(process.env.IPFS_GATEWAY || "")
@@ -106,12 +106,12 @@ export class LocalChainFixture {
       const sourcifyChainHardhat = LOCAL_CHAINS[1];
       const ethersNetwork = new Network(
         sourcifyChainHardhat.rpc[0] as string,
-        sourcifyChainHardhat.chainId
+        sourcifyChainHardhat.chainId,
       );
       this._localSigner = await new JsonRpcProvider(
         `http://localhost:${HARDHAT_PORT}`,
         ethersNetwork,
-        { staticNetwork: ethersNetwork }
+        { staticNetwork: ethersNetwork },
       ).getSigner();
       console.log("Initialized Provider");
 
@@ -120,7 +120,7 @@ export class LocalChainFixture {
         await deployFromAbiAndBytecodeForCreatorTxHash(
           this._localSigner,
           storageContractArtifact.abi,
-          storageContractArtifact.bytecode
+          storageContractArtifact.bytecode,
         );
       this._defaultContractAddress = contractAddress;
       this._defaultContractCreatorTx = txHash;
@@ -186,7 +186,7 @@ function getModifiedSourceIpfs(): Buffer {
   // the metadata needs to be deeply cloned here
   // unfortunately `structuredClone` is not available in Node 16
   const modifiedIpfsMetadata = JSON.parse(
-    JSON.stringify(storageContractMetadata)
+    JSON.stringify(storageContractMetadata),
   );
   modifiedIpfsMetadata.sources["project:/contracts/Storage.sol"].urls[1] =
     modifiedIpfsAddress;

@@ -12,7 +12,6 @@
  * node ./scripts/test-high-demand.mjs /home/user/sourcify/repository/contracts full_match 421613
  */
 
-import fetch from 'node-fetch';
 import fs from 'fs'
 import path from 'path'
 

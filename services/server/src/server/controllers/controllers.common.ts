@@ -4,7 +4,7 @@ import logger from "../../common/logger";
 import { getAddress } from "ethers";
 
 export const safeHandler = <T extends Request = Request>(
-  requestHandler: (req: T, res: Response, next: NextFunction) => Promise<any>
+  requestHandler: (req: T, res: Response, next: NextFunction) => Promise<any>,
 ) => {
   return async (req: T, res: Response, next: NextFunction) => {
     // Middlewares can access req.params.* only after routes are defined

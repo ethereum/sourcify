@@ -6,7 +6,7 @@ Sourcify's server for verifying contracts.
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/en/) (v16)
+- [Node.js](https://nodejs.org/en/) (v22)
 - Install the monorepo: `npm install` in the root of the repo
 - Build the monorepo's packages: `npx lerna run build`
 

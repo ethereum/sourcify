@@ -44,7 +44,7 @@ export class RepositoryV2Service implements WStorageService {
       this.ipfsClient = createIpfsClient({ url: options.ipfsApi });
     } else {
       logger.warn(
-        "RepositoryV2: IPFS_API not set, IPFS MFS will not be updated"
+        "RepositoryV2: IPFS_API not set, IPFS MFS will not be updated",
       );
     }
   }
@@ -60,7 +60,7 @@ export class RepositoryV2Service implements WStorageService {
     chainId: string,
     address: string,
     match: MatchLevelWithoutAny,
-    path: string
+    path: string,
   ): Promise<string | false> {
     return await readFile(this.repositoryPath, match, chainId, address, path);
   }
@@ -69,7 +69,7 @@ export class RepositoryV2Service implements WStorageService {
   public generateAbsoluteFilePath(pathConfig: PathConfig) {
     return Path.join(
       this.repositoryPath,
-      this.generateRelativeFilePath(pathConfig)
+      this.generateRelativeFilePath(pathConfig),
     );
   }
 
@@ -78,7 +78,7 @@ export class RepositoryV2Service implements WStorageService {
     return Path.join(
       this.generateRelativeContractDir(pathConfig),
       pathConfig.source ? "sources" : "",
-      pathConfig.fileName || ""
+      pathConfig.fileName || "",
     );
   }
 
@@ -88,7 +88,7 @@ export class RepositoryV2Service implements WStorageService {
       "contracts",
       `${pathConfig.matchQuality}_match`,
       pathConfig.chainId,
-      getAddress(pathConfig.address)
+      getAddress(pathConfig.address),
     );
   }
 
@@ -111,7 +111,7 @@ export class RepositoryV2Service implements WStorageService {
 
   public async storeMatch(
     contract: CheckedContract,
-    match: Match
+    match: Match,
   ): Promise<void | Match> {
     if (
       match.address &&
@@ -128,14 +128,14 @@ export class RepositoryV2Service implements WStorageService {
         this.deletePartialIfExists(match.chainId, match.address);
       }
       const matchQuality: MatchQuality = this.statusToMatchQuality(
-        getMatchStatus(match)
+        getMatchStatus(match),
       );
 
       await this.storeSources(
         matchQuality,
         match.chainId,
         match.address,
-        contract.solidity
+        contract.solidity,
       );
 
       // Store metadata
@@ -144,7 +144,7 @@ export class RepositoryV2Service implements WStorageService {
         match.chainId,
         match.address,
         "metadata.json",
-        contract.metadata
+        contract.metadata,
       );
 
       if (match.abiEncodedConstructorArguments) {
@@ -153,7 +153,7 @@ export class RepositoryV2Service implements WStorageService {
           match.chainId,
           match.address,
           "constructor-args.txt",
-          match.abiEncodedConstructorArguments
+          match.abiEncodedConstructorArguments,
         );
       }
 
@@ -163,7 +163,7 @@ export class RepositoryV2Service implements WStorageService {
           match.chainId,
           match.address,
           "creator-tx-hash.txt",
-          match.creatorTxHash
+          match.creatorTxHash,
         );
       }
 
@@ -173,7 +173,7 @@ export class RepositoryV2Service implements WStorageService {
           match.chainId,
           match.address,
           "library-map.json",
-          match.libraryMap
+          match.libraryMap,
         );
       }
 
@@ -186,7 +186,7 @@ export class RepositoryV2Service implements WStorageService {
           match.chainId,
           match.address,
           "immutable-references.json",
-          match.immutableReferences
+          match.immutableReferences,
         );
       }
 
@@ -214,7 +214,7 @@ export class RepositoryV2Service implements WStorageService {
     const absolutePath = this.generateAbsoluteFilePath(pathConfig);
 
     if (await exists(absolutePath)) {
-      await fs.promises.rmdir(absolutePath, { recursive: true });
+      await fs.promises.rm(absolutePath, { recursive: true });
     }
   }
 
@@ -243,7 +243,7 @@ export class RepositoryV2Service implements WStorageService {
     matchQuality: MatchQuality,
     chainId: string,
     address: string,
-    sources: StringMap
+    sources: StringMap,
   ) {
     for (const sourcePath in sources) {
       await this.save(
@@ -255,7 +255,7 @@ export class RepositoryV2Service implements WStorageService {
           // Store the file with the keccak as name
           fileName: `${keccak256(sources[sourcePath])}.sol`,
         },
-        sources[sourcePath]
+        sources[sourcePath],
       );
     }
   }
@@ -265,7 +265,7 @@ export class RepositoryV2Service implements WStorageService {
     chainId: string,
     address: string,
     fileName: string,
-    contentJSON: any
+    contentJSON: any,
   ) {
     await this.save(
       {
@@ -274,7 +274,7 @@ export class RepositoryV2Service implements WStorageService {
         address,
         fileName,
       },
-      JSON.stringify(contentJSON)
+      JSON.stringify(contentJSON),
     );
   }
 
@@ -283,7 +283,7 @@ export class RepositoryV2Service implements WStorageService {
     chainId: string,
     address: string,
     fileName: string,
-    content: string
+    content: string,
   ) {
     await this.save(
       {
@@ -293,7 +293,7 @@ export class RepositoryV2Service implements WStorageService {
         source: false,
         fileName,
       },
-      content
+      content,
     );
   }
 }

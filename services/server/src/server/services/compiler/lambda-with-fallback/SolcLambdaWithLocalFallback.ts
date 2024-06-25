@@ -14,24 +14,24 @@ export class SolcLambdaWithLocalFallback implements ISolidityCompiler {
   public async compile(
     version: string,
     solcJsonInput: JsonInput,
-    forceEmscripten: boolean = false
+    forceEmscripten: boolean = false,
   ): Promise<CompilerOutput> {
     let compilerOutput: CompilerOutput;
     try {
       compilerOutput = await this.solcLambda.compile(
         version,
         solcJsonInput,
-        forceEmscripten
+        forceEmscripten,
       );
     } catch (e) {
       if (e instanceof LambdaResponseLimitExceeded) {
         logger.warn(
-          "Lambda compilation exceeded stream response limit - Falling back to local compilation"
+          "Lambda compilation exceeded stream response limit - Falling back to local compilation",
         );
         compilerOutput = await this.solcLocal.compile(
           version,
           solcJsonInput,
-          forceEmscripten
+          forceEmscripten,
         );
       } else {
         throw e;

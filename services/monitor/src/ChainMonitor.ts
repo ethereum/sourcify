@@ -36,7 +36,7 @@ export default class ChainMonitor extends EventEmitter {
   constructor(
     sourcifyChain: SourcifyChain,
     sourceFetchers: KnownDecentralizedStorageFetchers,
-    monitorConfig: MonitorConfig
+    monitorConfig: MonitorConfig,
   ) {
     super();
     this.sourcifyChain = sourcifyChain;
@@ -63,8 +63,8 @@ export default class ChainMonitor extends EventEmitter {
     this.chainLogger.info(
       "Created ChainMonitor",
       Object.fromEntries(
-        Object.entries(this).filter(([, v]) => typeof v !== "function") // print everything except functions
-      )
+        Object.entries(this).filter(([, v]) => typeof v !== "function"), // print everything except functions
+      ),
     );
   }
 
@@ -78,7 +78,7 @@ export default class ChainMonitor extends EventEmitter {
       this.running = true;
       if (this.startBlock === undefined) {
         this.chainLogger.info(
-          "No start block provided. Starting from last block"
+          "No start block provided. Starting from last block",
         );
         this.startBlock = await this.sourcifyChain.getBlockNumber();
       }
@@ -121,7 +121,7 @@ export default class ChainMonitor extends EventEmitter {
         });
         const block = await this.sourcifyChain.getBlock(
           currentBlockNumber,
-          true
+          true,
         );
 
         if (block) {
@@ -182,11 +182,11 @@ export default class ChainMonitor extends EventEmitter {
     this.blockInterval *= factor;
     this.blockInterval = Math.min(
       this.blockInterval,
-      this.blockIntervalUpperLimit
+      this.blockIntervalUpperLimit,
     );
     this.blockInterval = Math.max(
       this.blockInterval,
-      this.blockIntervalLowerLimit
+      this.blockIntervalLowerLimit,
     );
     this.chainLogger.info(`${operation.toUpperCase()} block pause.`, {
       blockInterval: this.blockInterval,
@@ -224,7 +224,7 @@ export default class ChainMonitor extends EventEmitter {
       }
 
       await new Promise((resolve) =>
-        setTimeout(resolve, this.bytecodeInterval)
+        setTimeout(resolve, this.bytecodeInterval),
       );
     }
 
@@ -238,7 +238,7 @@ export default class ChainMonitor extends EventEmitter {
   // Gets the contract bytecode, decodes the metadata hash, assembles the contract's files from DecentralizedStorage, and sends them to Sourcify servers.
   private processNewContract = async (
     creatorTxHash: string,
-    address: string
+    address: string,
   ) => {
     try {
       const bytecode = await this.getBytecodeWithRetries(address);
@@ -269,7 +269,7 @@ export default class ChainMonitor extends EventEmitter {
         metadataHash,
         address,
         this.sourcifyChain.chainId,
-        this.sourceFetchers
+        this.sourceFetchers,
       );
       this.chainLogger.debug("New pending contract", { address, metadataHash });
       try {

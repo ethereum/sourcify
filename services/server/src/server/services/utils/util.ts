@@ -8,13 +8,13 @@ export const getFileRelativePath = (
   address: string,
   contractStatus: MatchQuality,
   file: string,
-  { isSource } = { isSource: false }
+  { isSource } = { isSource: false },
 ): string => {
   const baseDir = Path.join(
     "contracts",
     contractStatus === "full" ? "full_match" : "partial_match",
     chainId,
-    address
+    address,
   );
 
   return isSource
@@ -36,7 +36,7 @@ export async function readFile(
   matchType: MatchLevelWithoutAny,
   chainId: string,
   address: string,
-  path: string
+  path: string,
 ): Promise<string | false> {
   const fullPath = Path.join(
     repositoryPath,
@@ -44,7 +44,7 @@ export async function readFile(
     matchType as string,
     chainId,
     getAddress(address),
-    path
+    path,
   );
   try {
     const loadedFile = await fs.promises.readFile(fullPath);

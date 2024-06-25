@@ -39,7 +39,7 @@ const ENDING_VARIATORS = [
 export function checkPaths(
   solidityCompiler: ISolidityCompiler,
   paths: string[],
-  ignoring?: string[]
+  ignoring?: string[],
 ) {
   const files: PathBuffer[] = [];
   paths.forEach((path) => {
@@ -60,7 +60,7 @@ export function checkPaths(
 // Pass all input source files to the CheckedContract, not just those stated in metadata.
 export async function useAllSources(
   contract: CheckedContract,
-  files: PathBuffer[]
+  files: PathBuffer[],
 ) {
   await unzipFiles(files);
   const parsedFiles = files.map((pathBuffer) => ({
@@ -76,7 +76,7 @@ export async function useAllSources(
     contract.metadata,
     stringMapSourceFiles,
     contract.missing,
-    contract.invalid
+    contract.invalid,
   );
   return contractWithAllSources;
 }
@@ -84,7 +84,7 @@ export async function useAllSources(
 export async function checkFiles(
   solidityCompiler: ISolidityCompiler,
   files: PathBuffer[],
-  unused?: string[]
+  unused?: string[],
 ) {
   logInfo('Checking files', { numberOfFiles: files.length });
   await unzipFiles(files);
@@ -109,7 +109,7 @@ export async function checkFiles(
       metadata,
       foundSources,
       missingSources,
-      invalidSources
+      invalidSources,
     );
     checkedContracts.push(checkedContract);
   });
@@ -369,7 +369,7 @@ function generateVariations(pathContent: PathContent): PathContent[] {
 function extractUnused(
   inputFiles: PathContent[],
   usedFiles: string[],
-  unused: string[]
+  unused: string[],
 ): void {
   const usedFilesSet = new Set(usedFiles);
   const tmpUnused = inputFiles
@@ -426,7 +426,7 @@ function isMetadata(obj: any): boolean {
 function traversePathRecursively(
   path: string,
   worker: (filePath: string) => void,
-  afterDirectory?: (filePath: string) => void
+  afterDirectory?: (filePath: string) => void,
 ) {
   if (!fs.existsSync(path)) {
     const msg = `Encountered a nonexistent path: ${path}`;
@@ -509,7 +509,7 @@ export function extractHardhatMetadataAndSources(hardhatFile: PathContent) {
     for (const contractName in contractsObject[path]) {
       if (contractsObject[path][contractName].metadata) {
         const metadataObj = extractMetadataFromString(
-          contractsObject[path][contractName].metadata
+          contractsObject[path][contractName].metadata,
         );
         hardhatMetadataFiles.push(metadataObj);
       }

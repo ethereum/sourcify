@@ -188,7 +188,7 @@ export const ConstructorTransformation = (offset: number): Transformation => ({
 
 export const AuxdataTransformation = (
   offset: number,
-  id: string
+  id: string,
 ): Transformation => ({
   type: 'replace',
   reason: 'auxdata',
@@ -198,7 +198,7 @@ export const AuxdataTransformation = (
 
 export const LibraryTransformation = (
   offset: number,
-  id: string
+  id: string,
 ): Transformation => ({
   type: 'replace',
   reason: 'library',
@@ -208,7 +208,7 @@ export const LibraryTransformation = (
 
 export const ImmutablesTransformation = (
   offset: number,
-  id: string
+  id: string,
 ): Transformation => ({
   type: 'replace',
   reason: 'immutable',

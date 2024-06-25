@@ -8,7 +8,7 @@ export class Services {
 
   constructor(
     verificationServiceOption: SourcifyChainMap,
-    storageServiceOptions: StorageServiceOptions
+    storageServiceOptions: StorageServiceOptions,
   ) {
     this._verification = new VerificationService(verificationServiceOption);
     this._storage = new StorageService(storageServiceOptions);

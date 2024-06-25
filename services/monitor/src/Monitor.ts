@@ -26,7 +26,7 @@ export default class Monitor extends EventEmitter {
     chainsToMonitor:
       | { chainId: number; rpc: string[]; name: string }[]
       | SourcifyChain[],
-    passedConfig?: PassedMonitorConfig
+    passedConfig?: PassedMonitorConfig,
   ) {
     super();
 
@@ -40,17 +40,17 @@ export default class Monitor extends EventEmitter {
 
     logger.info(
       "Starting the monitor using the effective config: " +
-        JSON.stringify(this.config, null, 2) // Stringify here to see the full config clearly
+        JSON.stringify(this.config, null, 2), // Stringify here to see the full config clearly
     );
 
     if (this.config.decentralizedStorages?.ipfs?.enabled) {
       assert(
         this.config.decentralizedStorages.ipfs.gateways.length > 0,
-        "IPFS gateways must be provided"
+        "IPFS gateways must be provided",
       );
       this.sourceFetchers.ipfs = new DecentralizedStorageFetcher(
         "ipfs",
-        this.config.decentralizedStorages.ipfs
+        this.config.decentralizedStorages.ipfs,
       );
     }
 
@@ -78,7 +78,7 @@ export default class Monitor extends EventEmitter {
 
     // Convert the chainId values to strings for comparison with object keys
     const chainIdSet = new Set(
-      chainsToMonitor.map((item) => item.chainId.toString())
+      chainsToMonitor.map((item) => item.chainId.toString()),
     );
 
     const chainsInConfigButNotChainsToMonitor: string[] = [];
@@ -93,13 +93,13 @@ export default class Monitor extends EventEmitter {
     if (chainsInConfigButNotChainsToMonitor.length > 0) {
       throw new Error(
         `Chain configs found for chains that are not being monitored: ${chainsInConfigButNotChainsToMonitor.join(
-          ","
-        )}`
+          ",",
+        )}`,
       );
     }
 
     this.chainMonitors = sourcifyChains.map(
-      (chain) => new ChainMonitor(chain, this.sourceFetchers, this.config)
+      (chain) => new ChainMonitor(chain, this.sourceFetchers, this.config),
     );
   }
 
@@ -163,11 +163,11 @@ function authenticateRpcs(chainId: number, rpcs: string[]) {
       ethersFetchReq.setHeader("Content-Type", "application/json");
       ethersFetchReq.setHeader(
         "CF-Access-Client-Id",
-        process.env.CF_ACCESS_CLIENT_ID || ""
+        process.env.CF_ACCESS_CLIENT_ID || "",
       );
       ethersFetchReq.setHeader(
         "CF-Access-Client-Secret",
-        process.env.CF_ACCESS_CLIENT_SECRET || ""
+        process.env.CF_ACCESS_CLIENT_SECRET || "",
       );
       return ethersFetchReq;
     }

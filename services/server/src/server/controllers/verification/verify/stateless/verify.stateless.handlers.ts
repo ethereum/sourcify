@@ -21,11 +21,11 @@ import logger from "../../../../../common/logger";
 
 export async function legacyVerifyEndpoint(
   req: LegacyVerifyRequest,
-  res: Response
+  res: Response,
 ): Promise<any> {
   const result = await req.services.storage.performServiceOperation(
     "checkByChainAndAddress",
-    [req.body.address, req.body.chain]
+    [req.body.address, req.body.chain],
   );
   if (result.length != 0) {
     return res.send({ result: [getResponseMatchFromMatch(result[0])] });
@@ -50,7 +50,7 @@ export async function legacyVerifyEndpoint(
     .map(stringifyInvalidAndMissing);
   if (errors.length) {
     throw new BadRequestError(
-      "Invalid or missing sources in:\n" + errors.join("\n")
+      "Invalid or missing sources in:\n" + errors.join("\n"),
     );
   }
 
@@ -73,7 +73,7 @@ export async function legacyVerifyEndpoint(
   if (!contract) {
     throw new NotFoundError(
       "Chosen contract not found. Received chosenContract: " +
-        req.body.chosenContract
+        req.body.chosenContract,
     );
   }
 
@@ -82,7 +82,7 @@ export async function legacyVerifyEndpoint(
       contract,
       req.body.chain,
       req.body.address,
-      req.body.creatorTxHash
+      req.body.creatorTxHash,
     );
     // Send to verification again with all source files.
     if (match.runtimeMatch === "extra-file-input-bug") {
@@ -96,7 +96,7 @@ export async function legacyVerifyEndpoint(
         contractWithAllSources,
         req.body.chain,
         req.body.address,
-        req.body.creatorTxHash
+        req.body.creatorTxHash,
       );
       if (
         tempMatch.runtimeMatch === "perfect" ||
@@ -106,7 +106,7 @@ export async function legacyVerifyEndpoint(
         return res.send({ result: [getResponseMatchFromMatch(tempMatch)] });
       } else if (tempMatch.runtimeMatch === "extra-file-input-bug") {
         throw new ValidationError(
-          "It seems your contract's metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618"
+          "It seems your contract's metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618",
         );
       }
     }

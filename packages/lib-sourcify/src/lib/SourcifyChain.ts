@@ -66,7 +66,7 @@ export default class SourcifyChain {
         'No RPC provider was given for this chain with id ' +
           this.chainId +
           ' and name ' +
-          this.name
+          this.name,
       );
 
     for (const rpc of this.rpc) {
@@ -100,7 +100,7 @@ export default class SourcifyChain {
     new Promise<never>((_resolve, reject) => {
       setTimeout(
         () => reject(new Error(`RPC ${host} took too long to respond`)),
-        ms
+        ms,
       );
     });
 
@@ -122,7 +122,7 @@ export default class SourcifyChain {
           return tx;
         } else {
           throw new Error(
-            `Transaction ${creatorTxHash} not found on RPC ${provider.url} and chain ${this.chainId}`
+            `Transaction ${creatorTxHash} not found on RPC ${provider.url} and chain ${this.chainId}`,
           );
         }
       } catch (err) {
@@ -143,7 +143,7 @@ export default class SourcifyChain {
       'None of the RPCs responded fetching tx ' +
         creatorTxHash +
         ' on chain ' +
-        this.chainId
+        this.chainId,
     );
   };
 
@@ -165,7 +165,7 @@ export default class SourcifyChain {
           return tx;
         } else {
           throw new Error(
-            `Transaction's receipt ${creatorTxHash} not found on RPC ${provider.url} and chain ${this.chainId}`
+            `Transaction's receipt ${creatorTxHash} not found on RPC ${provider.url} and chain ${this.chainId}`,
           );
         }
       } catch (err) {
@@ -186,7 +186,7 @@ export default class SourcifyChain {
       'None of the RPCs responded fetching tx ' +
         creatorTxHash +
         ' on chain ' +
-        this.chainId
+        this.chainId,
     );
   };
 
@@ -208,7 +208,7 @@ export default class SourcifyChain {
           return traces;
         } else {
           throw new Error(
-            `Transaction's traces of ${creatorTxHash} on RPC ${provider.url} and chain ${this.chainId} received empty or malformed response`
+            `Transaction's traces of ${creatorTxHash} on RPC ${provider.url} and chain ${this.chainId} received empty or malformed response`,
           );
         }
       } catch (err) {
@@ -230,7 +230,7 @@ export default class SourcifyChain {
       'None of the RPCs responded fetching tx ' +
         creatorTxHash +
         ' on chain ' +
-        this.chainId
+        this.chainId,
     );
   };
 
@@ -285,7 +285,7 @@ export default class SourcifyChain {
       'None of the RPCs responded fetching bytecode for ' +
         address +
         ' on chain ' +
-        this.chainId
+        this.chainId,
     );
   };
 
@@ -331,7 +331,7 @@ export default class SourcifyChain {
       'None of the RPCs responded fetching block ' +
         blockNumber +
         ' on chain ' +
-        this.chainId
+        this.chainId,
     );
   };
 
@@ -365,14 +365,14 @@ export default class SourcifyChain {
     }
     throw new Error(
       'None of the RPCs responded fetching the blocknumber on chain ' +
-        this.chainId
+        this.chainId,
     );
   };
 
   getContractCreationBytecodeAndReceipt = async (
     address: string,
     transactionHash: string,
-    creatorTx?: TransactionResponse
+    creatorTx?: TransactionResponse,
   ): Promise<{
     creationBytecode: string;
     txReceipt: TransactionReceipt;
@@ -402,10 +402,10 @@ export default class SourcifyChain {
       // If traces are available check, otherwise lets just trust
       if (traces.length > 0) {
         const createTraces = traces.filter(
-          (trace: any) => trace.type === 'create'
+          (trace: any) => trace.type === 'create',
         );
         const createdContractAddressesInTx = createTraces.find(
-          (trace) => getAddress(trace.result.address) === address
+          (trace) => getAddress(trace.result.address) === address,
         );
         if (createdContractAddressesInTx === undefined) {
           throw new CreatorTransactionMismatchError();
