@@ -83,9 +83,9 @@ export class SourcifyDatabaseService
         address,
         chainId,
         runtimeMatch: existingVerifiedContractResult.rows[0]
-          .runtime_match_status as Status,
+          .runtime_match as Status,
         creationMatch: existingVerifiedContractResult.rows[0]
-          .creation_match_status as Status,
+          .creation_match as Status,
         storageTimestamp: existingVerifiedContractResult.rows[0]
           .created_at as Date,
       },
@@ -278,8 +278,8 @@ export class SourcifyDatabaseService
 
     // If either one of sourcify_matches.creation_match or sourcify_matches.runtime_match is perfect then "full" status
     const contractStatus =
-      sourcifyMatch.creation_match_status === "perfect" ||
-      sourcifyMatch.runtime_match_status === "perfect"
+      sourcifyMatch.creation_match === "perfect" ||
+      sourcifyMatch.runtime_match === "perfect"
         ? "full"
         : "partial";
 

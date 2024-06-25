@@ -5,10 +5,11 @@ import {
   Libraries,
   Match,
   Metadata,
+  Status,
   Transformation,
   TransformationValues,
 } from "@ethereum-sourcify/lib-sourcify";
-import { Pool } from "pg";
+import { Pool, QueryArrayResult, QueryResult } from "pg";
 
 type Hash = Buffer;
 
@@ -67,17 +68,17 @@ export namespace Tables {
     compilation_id: string;
     deployment_id: string;
     creation_transformations: Transformation[] | undefined;
-    creation_transformation_values: TransformationValues | undefined;
+    creation_values: TransformationValues | undefined;
     runtime_transformations: Transformation[] | undefined;
-    runtime_transformation_values: TransformationValues | undefined;
+    runtime_values: TransformationValues | undefined;
     runtime_match: boolean;
     creation_match: boolean;
   }
 
   export interface SourcifyMatch {
     verified_contract_id: number;
-    runtime_match: string | null;
-    creation_match: string | null;
+    runtime_match: Status | null;
+    creation_match: Status | null;
     metadata: Metadata;
   }
 
@@ -99,31 +100,17 @@ export interface DatabaseColumns {
   verifiedContract: Partial<Tables.VerifiedContract>;
 }
 
-export async function getVerifiedContractByBytecodeHashes(
-  pool: Pool,
-  runtime_bytecode_hash: Hash,
-  creation_bytecode_hash?: Hash,
-) {
-  return await pool.query(
-    `
-      SELECT
-        verified_contracts.*
-      FROM verified_contracts
-      JOIN contract_deployments ON contract_deployments.id = verified_contracts.deployment_id
-      JOIN contracts ON contracts.id = contract_deployments.contract_id
-      WHERE 1=1
-        AND contracts.runtime_code_hash = $1
-        AND (contracts.creation_code_hash = $2 OR (contracts.creation_code_hash IS NULL AND $2 IS NULL))
-    `,
-    [runtime_bytecode_hash, creation_bytecode_hash],
-  );
-}
+export type GetVerifiedContractByChainAndAddressResult =
+  Tables.VerifiedContract & {
+    transaction_hash: Buffer | null;
+    contract_id: string;
+  };
 
 export async function getVerifiedContractByChainAndAddress(
   pool: Pool,
   chain: number,
   address: Buffer,
-) {
+): Promise<QueryResult<GetVerifiedContractByChainAndAddressResult>> {
   return await pool.query(
     `
       SELECT
@@ -140,18 +127,23 @@ export async function getVerifiedContractByChainAndAddress(
   );
 }
 
+export type GetSourcifyMatchByChainAddressResult = Tables.SourcifyMatch &
+  Pick<Tables.VerifiedContract, "creation_values" | "runtime_values"> &
+  Pick<Tables.CompiledContract, "runtime_code_artifacts" | "sources"> &
+  Pick<Tables.ContractDeployment, "transaction_hash">;
+
 export async function getSourcifyMatchByChainAddress(
   pool: Pool,
   chain: number,
   address: Buffer,
   onlyPerfectMatches: boolean = false,
-) {
+): Promise<QueryResult<GetSourcifyMatchByChainAddressResult>> {
   return await pool.query(
     `
       SELECT
         sourcify_matches.created_at,
-        sourcify_matches.creation_match as creation_match_status,
-        sourcify_matches.runtime_match as runtime_match_status,
+        sourcify_matches.creation_match,
+        sourcify_matches.runtime_match,
         sourcify_matches.metadata,
         compiled_contracts.sources,
         verified_contracts.creation_values,
@@ -333,9 +325,9 @@ export async function insertVerifiedContract(
     compilation_id,
     deployment_id,
     creation_transformations,
-    creation_transformation_values,
+    creation_values,
     runtime_transformations,
-    runtime_transformation_values,
+    runtime_values,
     runtime_match,
     creation_match,
   }: Tables.VerifiedContract,
@@ -355,9 +347,9 @@ export async function insertVerifiedContract(
       compilation_id,
       deployment_id,
       JSON.stringify(creation_transformations),
-      creation_transformation_values,
+      creation_values,
       JSON.stringify(runtime_transformations),
-      runtime_transformation_values,
+      runtime_values,
       runtime_match,
       creation_match,
     ],
@@ -384,9 +376,9 @@ export async function updateVerifiedContract(
     compilation_id,
     deployment_id,
     creation_transformations,
-    creation_transformation_values,
+    creation_values,
     runtime_transformations,
-    runtime_transformation_values,
+    runtime_values,
     runtime_match,
     creation_match,
   }: Tables.VerifiedContract,
@@ -407,9 +399,9 @@ export async function updateVerifiedContract(
       compilation_id,
       deployment_id,
       creation_transformations,
-      creation_transformation_values,
+      creation_values,
       runtime_transformations,
-      runtime_transformation_values,
+      runtime_values,
       runtime_match,
       creation_match,
     ],
