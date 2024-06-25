@@ -26,8 +26,7 @@ import Path from "path";
 import { getFileRelativePath } from "../utils/util";
 import { getAddress } from "ethers";
 import { BadRequestError } from "../../../common/errors";
-import { RWStorageIdentifiers, WStorageIdentifiers } from "./identifiers";
-import { RepositoryV2Service } from "./RepositoryV2Service";
+import { RWStorageIdentifiers } from "./identifiers";
 
 const MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS = 200;
 
@@ -256,69 +255,6 @@ export class SourcifyDatabaseService
     return res;
   };
 
-  async getMetadata(
-    chainId: string,
-    address: string,
-    match: MatchLevel,
-  ): Promise<string | false> {
-    return (
-      this.storageService.wServices[
-        WStorageIdentifiers.RepositoryV2
-      ] as RepositoryV2Service
-    ).getMetadata(chainId, address, match);
-  }
-
-  /**
-   * This function inject the metadata file in FilesInfo<T[]>
-   * SourcifyDatabase.getTree and SourcifyDatabase.getContent read files from
-   * `compiled_contracts.sources` where the metadata file is not available
-   */
-  async pushMetadataInFilesInfo<T extends string | FileObject>(
-    responseWithoutMetadata: FilesInfo<T[]>,
-    chainId: string,
-    address: string,
-    match: MatchLevel,
-  ) {
-    const metadata = await this.getMetadata(
-      chainId,
-      address,
-      responseWithoutMetadata.status === "full" ? "full_match" : "any_match",
-    );
-
-    if (!metadata) {
-      logger.error("Contract exists in the database but not in RepositoryV2", {
-        chainId,
-        address,
-        match,
-      });
-      throw new Error(
-        "Contract exists in the database but not in RepositoryV2",
-      );
-    }
-
-    const relativePath = getFileRelativePath(
-      chainId,
-      address,
-      responseWithoutMetadata.status,
-      "metadata.json",
-    );
-
-    if (typeof responseWithoutMetadata.files[0] === "string") {
-      // If this function is called with T == string
-      responseWithoutMetadata.files.push(
-        (config.get("repositoryV1.serverUrl") + "/" + relativePath) as T,
-      );
-    } else {
-      // If this function is called with T === FileObject
-      // It's safe to handle this case in the else because of <T extends string | FileObject>
-      responseWithoutMetadata.files.push({
-        name: "metadata.json",
-        path: relativePath,
-        content: metadata,
-      } as T);
-    }
-  }
-
   /**
    * getFiles extracts the files from the database `compiled_contracts.sources`
    * and store them into FilesInfo.files, this object is then going to be formatted
@@ -354,6 +290,10 @@ export class SourcifyDatabaseService
       sources[`sources/${path}`] = sourcifyMatch.sources[path];
     }
     const files: FilesRawValue = {};
+
+    if (sourcifyMatch.metadata) {
+      files["metadata.json"] = JSON.stringify(sourcifyMatch.metadata);
+    }
 
     if (sourcifyMatch?.creation_values?.constructorArguments) {
       files["constructor-args.txt"] =
@@ -411,22 +351,9 @@ export class SourcifyDatabaseService
       return false;
     }
 
-    // For getFile we cannot use getMetadata, since it returns metadata based on MatchLevel logic
-    // we use RepositoryV2Service.getFile to extract metadata.json specifying "full_match" or "partial_match"
-    const metadata = await (
-      this.storageService.wServices[
-        WStorageIdentifiers.RepositoryV2
-      ] as RepositoryV2Service
-    ).getFile(chainId, address, match, "metadata.json");
-
-    if (metadata === false) {
-      throw new Error("Metadata doesn't exist for this file");
-    }
-
     const allFiles: { [index: string]: string } = {
       ...files,
       ...sources,
-      "metadata.json": metadata,
     };
 
     if (match === "full_match" && status === "full") {
@@ -485,24 +412,17 @@ export class SourcifyDatabaseService
       return `${config.get("repositoryV1.serverUrl")}/${relativePath}`;
     });
 
-    const responseWithoutMetadata = {
+    const response = {
       status: contractStatus,
       files: [...sourcesWithUrl, ...filesWithUrl],
     };
 
     // if files is empty it means that the contract doesn't exist
-    if (responseWithoutMetadata.files.length === 0) {
+    if (response.files.length === 0) {
       return emptyResponse;
     }
 
-    await this.pushMetadataInFilesInfo<string>(
-      responseWithoutMetadata,
-      chainId,
-      address,
-      match,
-    );
-
-    return responseWithoutMetadata;
+    return response;
   };
 
   /**
@@ -561,24 +481,17 @@ export class SourcifyDatabaseService
       } as FileObject;
     });
 
-    const responseWithoutMetadata = {
+    const response = {
       status: contractStatus,
       files: [...sourcesWithUrl, ...filesWithUrl],
     };
 
     // if files is empty it means that the contract doesn't exist
-    if (responseWithoutMetadata.files.length === 0) {
+    if (response.files.length === 0) {
       return emptyResponse;
     }
 
-    await this.pushMetadataInFilesInfo<FileObject>(
-      responseWithoutMetadata,
-      chainId,
-      address,
-      match,
-    );
-
-    return responseWithoutMetadata;
+    return response;
   };
 
   validateBeforeStoring(
@@ -612,6 +525,7 @@ export class SourcifyDatabaseService
         verified_contract_id: verifiedContractId,
         creation_match: match.creationMatch,
         runtime_match: match.runtimeMatch,
+        metadata: recompiledContract.metadata,
       });
       logger.info("Stored to SourcifyDatabase", {
         address: match.address,
@@ -642,6 +556,7 @@ export class SourcifyDatabaseService
           verified_contract_id: verifiedContractId,
           creation_match: match.creationMatch,
           runtime_match: match.runtimeMatch,
+          metadata: recompiledContract.metadata,
         },
         oldVerifiedContractId,
       );

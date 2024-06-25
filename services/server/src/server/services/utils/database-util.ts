@@ -4,6 +4,7 @@ import {
   ImmutableReferences,
   Libraries,
   Match,
+  Metadata,
   Transformation,
   TransformationValues,
 } from "@ethereum-sourcify/lib-sourcify";
@@ -77,6 +78,7 @@ export namespace Tables {
     verified_contract_id: number;
     runtime_match: string | null;
     creation_match: string | null;
+    metadata: Metadata;
   }
 
   export interface SourcifySync {
@@ -150,6 +152,7 @@ export async function getSourcifyMatchByChainAddress(
         sourcify_matches.created_at,
         sourcify_matches.creation_match as creation_match_status,
         sourcify_matches.runtime_match as runtime_match_status,
+        sourcify_matches.metadata,
         compiled_contracts.sources,
         verified_contracts.creation_values,
         verified_contracts.runtime_values,
@@ -415,15 +418,21 @@ export async function updateVerifiedContract(
 
 export async function insertSourcifyMatch(
   pool: Pool,
-  { verified_contract_id, runtime_match, creation_match }: Tables.SourcifyMatch,
+  {
+    verified_contract_id,
+    runtime_match,
+    creation_match,
+    metadata,
+  }: Tables.SourcifyMatch,
 ) {
   await pool.query(
     `INSERT INTO sourcify_matches (
         verified_contract_id,
         creation_match,
-        runtime_match
-      ) VALUES ($1, $2, $3)`,
-    [verified_contract_id, creation_match, runtime_match],
+        runtime_match,
+        metadata
+      ) VALUES ($1, $2, $3, $4)`,
+    [verified_contract_id, creation_match, runtime_match, metadata],
   );
 }
 
@@ -432,19 +441,26 @@ export async function insertSourcifyMatch(
 // The old verified_contracts are not deleted from the verified_contracts table.
 export async function updateSourcifyMatch(
   pool: Pool,
-  { verified_contract_id, runtime_match, creation_match }: Tables.SourcifyMatch,
+  {
+    verified_contract_id,
+    runtime_match,
+    creation_match,
+    metadata,
+  }: Tables.SourcifyMatch,
   oldVerifiedContractId: number,
 ) {
   await pool.query(
     `UPDATE sourcify_matches SET 
       verified_contract_id = $1,
       creation_match=$2,
-      runtime_match=$3
-    WHERE  verified_contract_id = $4`,
+      runtime_match=$3,
+      metadata=$4
+    WHERE  verified_contract_id = $5`,
     [
       verified_contract_id,
       creation_match,
       runtime_match,
+      metadata,
       oldVerifiedContractId,
     ],
   );
