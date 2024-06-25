@@ -26,8 +26,7 @@ import Path from "path";
 import { getFileRelativePath } from "../utils/util";
 import { getAddress } from "ethers";
 import { BadRequestError } from "../../../common/errors";
-import { RWStorageIdentifiers, WStorageIdentifiers } from "./identifiers";
-import { RepositoryV2Service } from "./RepositoryV2Service";
+import { RWStorageIdentifiers } from "./identifiers";
 
 const MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS = 200;
 
@@ -352,22 +351,9 @@ export class SourcifyDatabaseService
       return false;
     }
 
-    // For getFile we cannot use getMetadata, since it returns metadata based on MatchLevel logic
-    // we use RepositoryV2Service.getFile to extract metadata.json specifying "full_match" or "partial_match"
-    const metadata = await (
-      this.storageService.wServices[
-        WStorageIdentifiers.RepositoryV2
-      ] as RepositoryV2Service
-    ).getFile(chainId, address, match, "metadata.json");
-
-    if (metadata === false) {
-      throw new Error("Metadata doesn't exist for this file");
-    }
-
     const allFiles: { [index: string]: string } = {
       ...files,
       ...sources,
-      "metadata.json": metadata,
     };
 
     if (match === "full_match" && status === "full") {
