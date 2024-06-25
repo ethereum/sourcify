@@ -9,7 +9,7 @@ import {
   Transformation,
   TransformationValues,
 } from "@ethereum-sourcify/lib-sourcify";
-import { Pool, QueryArrayResult, QueryResult } from "pg";
+import { Pool, QueryResult } from "pg";
 
 type Hash = Buffer;
 
