@@ -20,7 +20,6 @@ import {
   PathConfig,
   RepositoryTag,
 } from "../../types";
-import { create as createIpfsClient, IPFSHTTPClient } from "ipfs-http-client";
 import logger from "../../../common/logger";
 import { getAddress, id as keccak256 } from "ethers";
 import { getMatchStatus } from "../../common";
@@ -36,17 +35,9 @@ export interface RepositoryV2ServiceOptions {
 export class RepositoryV2Service implements WStorageService {
   IDENTIFIER = WStorageIdentifiers.RepositoryV2;
   repositoryPath: string;
-  private ipfsClient?: IPFSHTTPClient;
 
   constructor(options: RepositoryV2ServiceOptions) {
     this.repositoryPath = options.repositoryPath!;
-    if (options.ipfsApi) {
-      this.ipfsClient = createIpfsClient({ url: options.ipfsApi });
-    } else {
-      logger.warn(
-        "RepositoryV2: IPFS_API not set, IPFS MFS will not be updated",
-      );
-    }
   }
 
   async init() {

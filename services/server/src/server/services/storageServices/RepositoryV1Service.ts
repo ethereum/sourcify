@@ -17,11 +17,6 @@ import {
   PathConfig,
   RepositoryTag,
 } from "../../types";
-import {
-  create as createIpfsClient,
-  IPFSHTTPClient,
-  globSource,
-} from "ipfs-http-client";
 import path from "path";
 import logger from "../../../common/logger";
 import { getAddress } from "ethers";
@@ -40,17 +35,9 @@ export interface RepositoryV1ServiceOptions {
 export class RepositoryV1Service implements RWStorageService {
   IDENTIFIER = RWStorageIdentifiers.RepositoryV1;
   repositoryPath: string;
-  private ipfsClient?: IPFSHTTPClient;
 
   constructor(options: RepositoryV1ServiceOptions) {
     this.repositoryPath = options.repositoryPath;
-    if (options.ipfsApi) {
-      this.ipfsClient = createIpfsClient({ url: options.ipfsApi });
-    } else {
-      logger.warn(
-        "RepositoryV1: IPFS_API not set, IPFS MFS will not be updated",
-      );
-    }
   }
 
   async getFile(
@@ -474,10 +461,6 @@ export class RepositoryV1Service implements RWStorageService {
         runtimeMatch: match.runtimeMatch,
         creationMatch: match.creationMatch,
       });
-      // await this.addToIpfsMfs(matchQuality, match.chainId, match.address);
-      // logger.info(
-      //   `Stored ${contract.name} to IPFS MFS address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
-      // );
     } else if (match.runtimeMatch === "extra-file-input-bug") {
       return match;
     } else {
@@ -594,52 +577,6 @@ export class RepositoryV1Service implements RWStorageService {
     );
   }
 
-  private async addToIpfsMfs(
-    matchQuality: MatchQuality,
-    chainId: string,
-    address: string,
-  ) {
-    if (!this.ipfsClient) return;
-    logger.info("Adding to IPFS MFS", { matchQuality, chainId, address });
-    const contractFolderDir = this.generateAbsoluteFilePath({
-      matchQuality,
-      chainId,
-      address,
-    });
-    const ipfsMFSDir =
-      "/" +
-      this.generateRelativeContractDir({
-        matchQuality,
-        chainId,
-        address,
-      });
-    const filesAsyncIterable = globSource(contractFolderDir, "**/*");
-    for await (const file of filesAsyncIterable) {
-      if (!file.content) continue; // skip directories
-      const mfsPath = path.join(ipfsMFSDir, file.path);
-      try {
-        // If ipfs.files.stat is successful it means the file already exists so we can skip
-        await this.ipfsClient.files.stat(mfsPath);
-        continue;
-      } catch (e) {
-        // If ipfs.files.stat fails it means the file doesn't exist, so we can add the file
-      }
-      await this.ipfsClient.files.mkdir(path.dirname(mfsPath), {
-        parents: true,
-      });
-      // Readstream to Buffers
-      const chunks: Uint8Array[] = [];
-      for await (const chunk of file.content) {
-        chunks.push(chunk);
-      }
-      const fileBuffer = Buffer.concat(chunks);
-      const addResult = await this.ipfsClient.add(fileBuffer, {
-        pin: false,
-      });
-      await this.ipfsClient.files.cp(addResult.cid, mfsPath, { parents: true });
-    }
-    logger.info("Added to IPFS MFS", { matchQuality, chainId, address });
-  }
   private sanitizePath(originalPath: string) {
     // Clean ../ and ./ from the path. Also collapse multiple slashes into one.
     let sanitizedPath = path.normalize(originalPath);
