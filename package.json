@@ -9,7 +9,7 @@
     "ui"
   ],
   "scripts": {
-    "build:clean": "rm -rf node_modules services/monitor/node_modules services/server/node_modules packages/bytecode-utils/node_modules/ packages/contract-call-decoder/node_modules/ packages/lib-sourcify/node_modules/ && npm install && npx lerna run build",
+    "build:clean": "rm -rf node_modules services/monitor/node_modules services/server/node_modules packages/bytecode-utils/node_modules/ packages/lib-sourcify/node_modules/ && npm install && npx lerna run build",
     "build:lerna": "lerna run build",
     "server:start": "cd services/server && node ./dist/server/server.js",
     "ui:start": "cd ui && npm run start",
