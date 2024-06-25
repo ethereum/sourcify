@@ -123,7 +123,7 @@ async function assertContractSaved(
       match,
       expectedChain ?? "",
       getAddress(expectedAddress ?? ""),
-      "metadata.json"
+      "metadata.json",
     );
     const isExist = fs.existsSync(metadataPath);
     chai.expect(isExist, "Contract is not saved").to.be.true;

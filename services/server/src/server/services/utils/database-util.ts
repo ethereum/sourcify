@@ -423,7 +423,7 @@ export async function insertSourcifyMatch(
     runtime_match,
     creation_match,
     metadata,
-  }: Tables.SourcifyMatch
+  }: Tables.SourcifyMatch,
 ) {
   await pool.query(
     `INSERT INTO sourcify_matches (
@@ -432,7 +432,7 @@ export async function insertSourcifyMatch(
         runtime_match,
         metadata
       ) VALUES ($1, $2, $3, $4)`,
-    [verified_contract_id, creation_match, runtime_match, metadata]
+    [verified_contract_id, creation_match, runtime_match, metadata],
   );
 }
 
@@ -447,7 +447,7 @@ export async function updateSourcifyMatch(
     creation_match,
     metadata,
   }: Tables.SourcifyMatch,
-  oldVerifiedContractId: number
+  oldVerifiedContractId: number,
 ) {
   await pool.query(
     `UPDATE sourcify_matches SET 
@@ -462,7 +462,7 @@ export async function updateSourcifyMatch(
       runtime_match,
       metadata,
       oldVerifiedContractId,
-    ]
+    ],
   );
 }
 
