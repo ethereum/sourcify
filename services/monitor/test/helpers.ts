@@ -6,7 +6,7 @@ export async function deployFromAbiAndBytecode(
   signer: JsonRpcSigner,
   abi: any[],
   bytecode: string,
-  args: any[]
+  args: any[],
 ) {
   const contractFactory = new ContractFactory(abi, bytecode, signer);
   console.log(`Deploying contract ${args?.length ? `with args ${args}` : ""}`);
@@ -26,7 +26,7 @@ export async function deployFromAbiAndBytecode(
 export function nockInterceptorForVerification(
   serverUrl: string,
   expectedChainId: number,
-  expectedAddress: string
+  expectedAddress: string,
 ) {
   return nock(serverUrl)
     .post("/")

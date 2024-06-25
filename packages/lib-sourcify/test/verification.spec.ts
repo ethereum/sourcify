@@ -70,7 +70,7 @@ describe('lib-sourcify tests', () => {
       const { match, contractAddress } = await deployCheckAndVerify(
         contractFolderPath,
         sourcifyChainHardhat,
-        signer
+        signer,
       );
       expectMatch(match, 'perfect', contractAddress);
     });
@@ -80,16 +80,16 @@ describe('lib-sourcify tests', () => {
       const modifiedContractFolderPath = path.join(
         __dirname,
         'sources',
-        'StorageModified'
+        'StorageModified',
       );
       const { contractAddress } = await deployFromAbiAndBytecode(
         signer,
-        contractFolderPath
+        contractFolderPath,
       );
       const match = await checkAndVerifyDeployed(
         modifiedContractFolderPath, // Using the modified contract
         sourcifyChainHardhat,
-        contractAddress
+        contractAddress,
       );
 
       expectMatch(match, 'partial', contractAddress);
@@ -100,23 +100,23 @@ describe('lib-sourcify tests', () => {
       const wrongContractFolderPath = path.join(
         __dirname,
         'sources',
-        'UsingLibrary'
+        'UsingLibrary',
       );
       const { contractAddress } = await deployFromAbiAndBytecode(
         signer,
-        contractFolderPath
+        contractFolderPath,
       );
       try {
         await checkAndVerifyDeployed(
           wrongContractFolderPath, // Using the wrong contract
           sourcifyChainHardhat,
-          contractAddress
+          contractAddress,
         );
         throw new Error('Should have failed');
       } catch (err) {
         if (err instanceof Error) {
           expect(err.message).to.equal(
-            "The deployed and recompiled bytecode don't match."
+            "The deployed and recompiled bytecode don't match.",
           );
         } else {
           throw err;
@@ -129,14 +129,14 @@ describe('lib-sourcify tests', () => {
       const match = await checkAndVerifyDeployed(
         contractFolderPath, // Using the wrong contract
         sourcifyChainHardhat,
-        UNUSED_ADDRESS
+        UNUSED_ADDRESS,
       );
       expectMatch(
         match,
         null,
         UNUSED_ADDRESS,
         undefined,
-        `Chain #${sourcifyChainHardhat.chainId} does not have a contract deployed at ${UNUSED_ADDRESS}.`
+        `Chain #${sourcifyChainHardhat.chainId} does not have a contract deployed at ${UNUSED_ADDRESS}.`,
       );
     });
 
@@ -145,12 +145,12 @@ describe('lib-sourcify tests', () => {
       const contractFolderPath = path.join(
         __dirname,
         'sources',
-        'UsingLibrary'
+        'UsingLibrary',
       );
       const { match, contractAddress } = await deployCheckAndVerify(
         contractFolderPath,
         sourcifyChainHardhat,
-        signer
+        signer,
       );
       const expectedLibraryMap = {
         __$da572ae5e60c838574a0f88b27a0543803$__:
@@ -163,12 +163,12 @@ describe('lib-sourcify tests', () => {
       const contractFolderPath = path.join(
         __dirname,
         'sources',
-        'StorageViaIR'
+        'StorageViaIR',
       );
       const { match, contractAddress } = await deployCheckAndVerify(
         contractFolderPath,
         sourcifyChainHardhat,
-        signer
+        signer,
       );
       expectMatch(match, 'perfect', contractAddress);
     });
@@ -177,27 +177,26 @@ describe('lib-sourcify tests', () => {
       const contractFolderPath = path.join(
         __dirname,
         'sources',
-        'WithImmutables'
+        'WithImmutables',
       );
       const { contractAddress } = await deployFromAbiAndBytecode(
         signer,
         contractFolderPath,
-        ['12345']
+        ['12345'],
       );
 
       const match = await checkAndVerifyDeployed(
         contractFolderPath,
         sourcifyChainHardhat,
-        contractAddress
+        contractAddress,
       );
       expectMatch(match, 'perfect', contractAddress);
     });
 
     it('should verify a create2 contract', async () => {
       const contractFolderPath = path.join(__dirname, 'sources', 'Create2');
-      const checkedContracts = await checkFilesFromContractFolder(
-        contractFolderPath
-      );
+      const checkedContracts =
+        await checkFilesFromContractFolder(contractFolderPath);
       const saltNum = 12345;
       const saltHex = '0x' + saltNum.toString(16);
       const match = await verifyCreate2(
@@ -205,20 +204,19 @@ describe('lib-sourcify tests', () => {
         '0xd9145CCE52D386f254917e481eB44e9943F39138',
         saltHex,
         '0x801B9c0Ee599C3E5ED60e4Ec285C95fC9878Ee64',
-        '0x0000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc40000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc4'
+        '0x0000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc40000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc4',
       );
       expectMatch(
         match,
         'perfect',
-        '0x801B9c0Ee599C3E5ED60e4Ec285C95fC9878Ee64'
+        '0x801B9c0Ee599C3E5ED60e4Ec285C95fC9878Ee64',
       );
     });
 
     it('should verify fail to a create2 contract with wrong address', async () => {
       const contractFolderPath = path.join(__dirname, 'sources', 'Create2');
-      const checkedContracts = await checkFilesFromContractFolder(
-        contractFolderPath
-      );
+      const checkedContracts =
+        await checkFilesFromContractFolder(contractFolderPath);
       const saltNum = 12345;
       const saltHex = '0x' + saltNum.toString(16);
       try {
@@ -227,12 +225,12 @@ describe('lib-sourcify tests', () => {
           '0xd9145CCE52D386f254917e481eB44e9943F39138',
           saltHex,
           UNUSED_ADDRESS,
-          '0x0000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc40000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc4'
+          '0x0000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc40000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc4',
         );
       } catch (err) {
         if (err instanceof Error) {
           expect(err.message).to.equal(
-            `The provided create2 address doesn't match server's generated one. Expected: 0x801B9c0Ee599C3E5ED60e4Ec285C95fC9878Ee64 ; Received: ${UNUSED_ADDRESS} ;`
+            `The provided create2 address doesn't match server's generated one. Expected: 0x801B9c0Ee599C3E5ED60e4Ec285C95fC9878Ee64 ; Received: ${UNUSED_ADDRESS} ;`,
           );
         } else {
           throw err;
@@ -244,12 +242,12 @@ describe('lib-sourcify tests', () => {
       const contractFolderPath = path.join(
         __dirname,
         'sources',
-        'StorageInliner'
+        'StorageInliner',
       );
       const { match, contractAddress } = await deployCheckAndVerify(
         contractFolderPath,
         sourcifyChainHardhat,
-        signer
+        signer,
       );
       expectMatch(match, 'perfect', contractAddress);
     });
@@ -347,17 +345,17 @@ describe('lib-sourcify tests', () => {
       const contractFolderPath = path.join(
         __dirname,
         'sources',
-        'WrongMetadata'
+        'WrongMetadata',
       );
       const { contractAddress } = await deployFromAbiAndBytecode(
         signer,
-        contractFolderPath
+        contractFolderPath,
       );
 
       const match = await checkAndVerifyDeployed(
         contractFolderPath,
         sourcifyChainHardhat,
-        contractAddress
+        contractAddress,
       );
       expectMatch(match, 'perfect', contractAddress);
     });
@@ -366,30 +364,29 @@ describe('lib-sourcify tests', () => {
       const contractFolderPath = path.join(__dirname, 'sources', 'Storage');
       const { contractAddress } = await deployFromAbiAndBytecode(
         signer,
-        contractFolderPath
+        contractFolderPath,
       );
 
-      const checkedContracts = await checkFilesFromContractFolder(
-        contractFolderPath
-      );
+      const checkedContracts =
+        await checkFilesFromContractFolder(contractFolderPath);
 
       // Get the unsorted metadata
       const metadataPath = path.join(
         path.join(__dirname, 'sources', 'StorageUnsortedMetadata'),
-        'metadata.json'
+        'metadata.json',
       );
       const metadataBuffer = fs.readFileSync(metadataPath);
 
       // Replace the metadata witht he unsorted one
       checkedContracts[0].initSolcJsonInput(
         JSON.parse(metadataBuffer.toString()),
-        checkedContracts[0].solidity
+        checkedContracts[0].solidity,
       );
 
       const match = await verifyDeployed(
         checkedContracts[0],
         sourcifyChainHardhat,
-        contractAddress
+        contractAddress,
       );
       expectMatch(match, 'perfect', contractAddress);
     });
@@ -398,17 +395,17 @@ describe('lib-sourcify tests', () => {
       const contractFolderPath = path.join(
         __dirname,
         'sources',
-        'CallProtectionForLibraries'
+        'CallProtectionForLibraries',
       );
       const { contractAddress } = await deployFromAbiAndBytecode(
         signer,
-        contractFolderPath
+        contractFolderPath,
       );
 
       const match = await checkAndVerifyDeployed(
         contractFolderPath,
         sourcifyChainHardhat,
-        contractAddress
+        contractAddress,
       );
       expectMatch(match, 'perfect', contractAddress);
     });
@@ -417,17 +414,17 @@ describe('lib-sourcify tests', () => {
       const contractFolderPath = path.join(
         __dirname,
         'sources',
-        'CallProtectionForLibrariesViaIR'
+        'CallProtectionForLibrariesViaIR',
       );
       const { contractAddress } = await deployFromAbiAndBytecode(
         signer,
-        contractFolderPath
+        contractFolderPath,
       );
 
       const match = await checkAndVerifyDeployed(
         contractFolderPath,
         sourcifyChainHardhat,
-        contractAddress
+        contractAddress,
       );
       expectMatch(match, 'perfect', contractAddress);
     });
@@ -439,19 +436,19 @@ describe('lib-sourcify tests', () => {
       // can't really run this if we can't run a platform-native binary but only Emscripten (solc-js)
       if (!solcPlatform) {
         console.log(
-          `skipping test as the running machine can't run a platform-native binary. The platform and architechture is ${process.platform} ${process.arch}`
+          `skipping test as the running machine can't run a platform-native binary. The platform and architechture is ${process.platform} ${process.arch}`,
         );
         this.skip();
       }
       // The artifact has the bytecode from the Emscripten compiler.
       const { contractAddress } = await deployFromAbiAndBytecode(
         signer,
-        contractFolderPath
+        contractFolderPath,
       );
       const match = await checkAndVerifyDeployed(
         contractFolderPath,
         sourcifyChainHardhat,
-        contractAddress
+        contractAddress,
       );
       expectMatch(match, 'perfect', contractAddress);
     });
@@ -461,25 +458,25 @@ describe('lib-sourcify tests', () => {
       const contractFolderPath = path.join(
         __dirname,
         'sources',
-        'ViaIRUnoptimizedMismatch'
+        'ViaIRUnoptimizedMismatch',
       );
       const solcPlatform = findSolcPlatform();
       // can't really run this if we can't run a platform-native binary but only Emscripten (solc-js)
       if (!solcPlatform) {
         console.log(
-          `skipping test as the running machine can't run a platform-native binary. The platform and architechture is ${process.platform} ${process.arch}`
+          `skipping test as the running machine can't run a platform-native binary. The platform and architechture is ${process.platform} ${process.arch}`,
         );
         this.skip();
       }
       // The artifact has the bytecode from the Emscripten compiler.
       const { contractAddress } = await deployFromAbiAndBytecode(
         signer,
-        contractFolderPath
+        contractFolderPath,
       );
       const match = await checkAndVerifyDeployed(
         contractFolderPath,
         sourcifyChainHardhat,
-        contractAddress
+        contractAddress,
       );
       expectMatch(match, 'perfect', contractAddress);
     });
@@ -498,7 +495,7 @@ describe('lib-sourcify tests', () => {
               'No RPC provider was given for this chain with id ' +
                 emptyRpc.chainId +
                 ' and name ' +
-                emptyRpc.name
+                emptyRpc.name,
             );
           } else {
             throw err;
@@ -516,13 +513,13 @@ describe('lib-sourcify tests', () => {
       it('Should fail to get non-existing transaction', async function () {
         try {
           await sourcifyChainHardhat.getTx(
-            '0x79ab5d59fcb70ca3f290aa39ed3f156a5c4b3897176aebd455cd20b6a30b107a'
+            '0x79ab5d59fcb70ca3f290aa39ed3f156a5c4b3897176aebd455cd20b6a30b107a',
           );
           throw new Error('Should have failed');
         } catch (err) {
           if (err instanceof Error) {
             expect(err.message).to.equal(
-              `None of the RPCs responded fetching tx 0x79ab5d59fcb70ca3f290aa39ed3f156a5c4b3897176aebd455cd20b6a30b107a on chain ${hardhatChain.chainId}`
+              `None of the RPCs responded fetching tx 0x79ab5d59fcb70ca3f290aa39ed3f156a5c4b3897176aebd455cd20b6a30b107a on chain ${hardhatChain.chainId}`,
             );
           } else {
             throw err;
@@ -535,8 +532,8 @@ describe('lib-sourcify tests', () => {
         calculateCreate2Address(
           '0x71CB05EE1b1F506fF321Da3dac38f25c0c9ce6E1',
           '123',
-          '0x00'
-        )
+          '0x00',
+        ),
       ).equals('0xA0279ea82DF644AFb68FdD4aDa5848C5Df9F116B');
     });
 
@@ -559,7 +556,7 @@ describe('lib-sourcify tests', () => {
         immutableReferences,
         runtimeBytecode,
         [],
-        {}
+        {},
       );
 
       expect(replacedBytecode).equals(recompiledRuntimeBytecode);
@@ -630,24 +627,23 @@ describe('lib-sourcify tests', () => {
       const contractFolderPath = path.join(
         __dirname,
         'sources',
-        'WithImmutables'
+        'WithImmutables',
       );
       const { contractAddress } = await deployFromAbiAndBytecode(
         signer,
         contractFolderPath,
-        ['12345']
+        ['12345'],
       );
 
       // Get an arbitrary tx hash
       const { txHash: wrongCreatorTxHash } = await deployFromAbiAndBytecode(
         signer,
         contractFolderPath,
-        ['12345']
+        ['12345'],
       );
 
-      const checkedContracts = await checkFilesFromContractFolder(
-        contractFolderPath
-      );
+      const checkedContracts =
+        await checkFilesFromContractFolder(contractFolderPath);
       const recompiled = await checkedContracts[0].recompile();
       const match: Match = {
         address: contractAddress,
@@ -671,12 +667,12 @@ describe('lib-sourcify tests', () => {
           contractAddress,
           wrongCreatorTxHash,
           recompiledMetadata,
-          generateCreationCborAuxdataPositions
+          generateCreationCborAuxdataPositions,
         );
       } catch (err) {
         if (err instanceof Error) {
           expect(err.message).to.equal(
-            "Creator transaction doesn't match the contract"
+            "Creator transaction doesn't match the contract",
           );
         } else {
           throw err;
@@ -690,26 +686,25 @@ describe('lib-sourcify tests', () => {
       const contractFolderPath = path.join(
         __dirname,
         'sources',
-        'WithImmutables'
+        'WithImmutables',
       );
       const maliciousContractFolderPath = path.join(
         __dirname,
         'sources',
-        'WithImmutablesCreationBytecodeAttack'
+        'WithImmutablesCreationBytecodeAttack',
       );
 
-      const maliciousArtifact = require(path.join(
-        maliciousContractFolderPath,
-        'artifact.json'
-      ));
+      const maliciousArtifact = require(
+        path.join(maliciousContractFolderPath, 'artifact.json'),
+      );
       const { contractAddress, txHash } = await deployFromAbiAndBytecode(
         signer,
         contractFolderPath,
-        ['12345']
+        ['12345'],
       );
 
       const checkedContracts = await checkFilesFromContractFolder(
-        maliciousContractFolderPath
+        maliciousContractFolderPath,
       );
       const recompiled = await checkedContracts[0].recompile();
       const match = {
@@ -733,7 +728,7 @@ describe('lib-sourcify tests', () => {
         contractAddress,
         txHash,
         recompiledMetadata,
-        generateCreationCborAuxdataPositions
+        generateCreationCborAuxdataPositions,
       );
       expectMatch(match, null, contractAddress, undefined); // status is null
     });
@@ -742,7 +737,7 @@ describe('lib-sourcify tests', () => {
       const contractFolderPath = path.join(
         __dirname,
         'sources',
-        'WithImmutables'
+        'WithImmutables',
       );
 
       const { contractAddress, txHash: creatorTxHash } =
@@ -751,10 +746,10 @@ describe('lib-sourcify tests', () => {
       const maliciousContractFolderPath = path.join(
         __dirname,
         'sources',
-        'AbstractCreationBytecodeAttack'
+        'AbstractCreationBytecodeAttack',
       );
       const checkedContracts = await checkFilesFromContractFolder(
-        maliciousContractFolderPath
+        maliciousContractFolderPath,
       );
       const recompiled = await checkedContracts[0].recompile();
       const match = {
@@ -778,7 +773,7 @@ describe('lib-sourcify tests', () => {
         contractAddress,
         creatorTxHash,
         recompiledMetadata,
-        generateCreationCborAuxdataPositions
+        generateCreationCborAuxdataPositions,
       );
       expectMatch(match, null, contractAddress, undefined); // status is null
     });
@@ -787,14 +782,13 @@ describe('lib-sourcify tests', () => {
       const contractFolderPath = path.join(
         __dirname,
         'sources',
-        'WithImmutables'
+        'WithImmutables',
       );
       const { contractAddress, txHash: creatorTxHash } =
         await deployFromAbiAndBytecode(signer, contractFolderPath, ['12345']);
 
-      const checkedContracts = await checkFilesFromContractFolder(
-        contractFolderPath
-      );
+      const checkedContracts =
+        await checkFilesFromContractFolder(contractFolderPath);
       const recompiled = await checkedContracts[0].recompile();
       const match = {
         address: contractAddress,
@@ -816,7 +810,7 @@ describe('lib-sourcify tests', () => {
         contractAddress,
         creatorTxHash,
         recompiledMetadata,
-        generateCreationCborAuxdataPositions
+        generateCreationCborAuxdataPositions,
       );
       try {
         expect(match.creationMatch).to.equal('perfect');
@@ -831,14 +825,13 @@ describe('lib-sourcify tests', () => {
       const contractFolderPath = path.join(
         __dirname,
         'sources',
-        'WithMultipleAuxdatas'
+        'WithMultipleAuxdatas',
       );
       const { contractAddress, txHash: creatorTxHash } =
         await deployFromAbiAndBytecode(signer, contractFolderPath, []);
 
-      const checkedContracts = await checkFilesFromContractFolder(
-        contractFolderPath
-      );
+      const checkedContracts =
+        await checkFilesFromContractFolder(contractFolderPath);
       const recompiled = await checkedContracts[0].recompile();
       const match: Match = {
         address: contractAddress,
@@ -860,20 +853,20 @@ describe('lib-sourcify tests', () => {
         contractAddress,
         creatorTxHash,
         recompiledMetadata,
-        generateCreationCborAuxdataPositions
+        generateCreationCborAuxdataPositions,
       );
       try {
         expect(match.creationMatch).to.equal('partial');
         expect(match.address).to.equal(contractAddress);
         // expect every creationTransformationValues
         expect(match.creationTransformationValues?.cborAuxdata?.['1']).to.equal(
-          '0xa2646970667358221220fe338e4778c1623b5865cd4121849802c8ed68e688def4d95b606f2f02ec563e64736f6c63430008090033'
+          '0xa2646970667358221220fe338e4778c1623b5865cd4121849802c8ed68e688def4d95b606f2f02ec563e64736f6c63430008090033',
         );
         expect(match.creationTransformationValues?.cborAuxdata?.['2']).to.equal(
-          '0xa2646970667358221220bc654cadfb13b9ef229b6a2db4424f95dc4c52e3ae9b60648aa276f8eb0b3f8464736f6c63430008090033'
+          '0xa2646970667358221220bc654cadfb13b9ef229b6a2db4424f95dc4c52e3ae9b60648aa276f8eb0b3f8464736f6c63430008090033',
         );
         expect(match.creationTransformationValues?.cborAuxdata?.['3']).to.equal(
-          '0xa2646970667358221220eb4312065a8c0fb940ef11ef5853554a447a5325095ee0f8fbbbbfc43dbb1b7464736f6c63430008090033'
+          '0xa2646970667358221220eb4312065a8c0fb940ef11ef5853554a447a5325095ee0f8fbbbbfc43dbb1b7464736f6c63430008090033',
         );
 
         // expect every creationTransformations

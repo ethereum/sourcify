@@ -23,3 +23,6 @@ logs
 chain-tests-report/
 coverage
 workspace/
+.nx/workspace-data
+.nx/cache
+.nx/installation

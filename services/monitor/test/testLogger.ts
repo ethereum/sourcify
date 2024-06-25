@@ -20,7 +20,7 @@ logger.add(
       format.colorize(),
       format.timestamp(),
       format.errors({ stack: true }),
-      myFormat
+      myFormat,
     ),
-  })
+  }),
 );

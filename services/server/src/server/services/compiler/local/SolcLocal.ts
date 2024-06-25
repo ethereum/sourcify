@@ -9,7 +9,7 @@ export class SolcLocal implements ISolidityCompiler {
   async compile(
     version: string,
     solcJsonInput: JsonInput,
-    forceEmscripten: boolean = false
+    forceEmscripten: boolean = false,
   ): Promise<CompilerOutput> {
     return await useCompiler(version, solcJsonInput, forceEmscripten);
   }

@@ -51,7 +51,7 @@ export async function addInputFilesEndpoint(req: Request, res: Response) {
       session,
       req.services.verification,
       req.services.storage,
-      dryRun
+      dryRun,
     );
   }
   res.send(getSessionJSON(session));
@@ -100,7 +100,7 @@ export async function addInputContractEndpoint(req: Request, res: Response) {
   const pathContents: PathContent[] = [];
 
   const retrievedMetadataBase64 = Buffer.from(retrievedMetadataText).toString(
-    "base64"
+    "base64",
   );
 
   pathContents.push({
@@ -118,7 +118,7 @@ export async function addInputContractEndpoint(req: Request, res: Response) {
       session.contractWrappers,
       session,
       req.services.verification,
-      req.services.storage
+      req.services.storage,
     );
   }
   res.send(getSessionJSON(session));

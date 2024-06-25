@@ -1,5 +1,4 @@
 import { logWarn } from './logger';
-require('isomorphic-fetch');
 
 interface RequestInitTimeout extends RequestInit {
   timeout?: number;
@@ -7,7 +6,7 @@ interface RequestInitTimeout extends RequestInit {
 
 export async function fetchWithTimeout(
   resource: string,
-  options: RequestInitTimeout = {}
+  options: RequestInitTimeout = {},
 ) {
   const { timeout = 10000 } = options;
 
@@ -27,7 +26,7 @@ export async function fetchWithTimeout(
 export const replaceBytecodeAuxdatasWithZeros = (
   bytecode: string,
   offsetStart: number,
-  offsetEnd: number
+  offsetEnd: number,
 ) =>
   bytecode.slice(0, offsetStart) +
   '0'.repeat(offsetEnd - offsetStart) +

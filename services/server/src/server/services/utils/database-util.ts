@@ -100,7 +100,7 @@ export interface DatabaseColumns {
 export async function getVerifiedContractByBytecodeHashes(
   pool: Pool,
   runtime_bytecode_hash: Hash,
-  creation_bytecode_hash?: Hash
+  creation_bytecode_hash?: Hash,
 ) {
   return await pool.query(
     `
@@ -113,14 +113,14 @@ export async function getVerifiedContractByBytecodeHashes(
         AND contracts.runtime_code_hash = $1
         AND (contracts.creation_code_hash = $2 OR (contracts.creation_code_hash IS NULL AND $2 IS NULL))
     `,
-    [runtime_bytecode_hash, creation_bytecode_hash]
+    [runtime_bytecode_hash, creation_bytecode_hash],
   );
 }
 
 export async function getVerifiedContractByChainAndAddress(
   pool: Pool,
   chain: number,
-  address: Buffer
+  address: Buffer,
 ) {
   return await pool.query(
     `
@@ -134,7 +134,7 @@ export async function getVerifiedContractByChainAndAddress(
         AND contract_deployments.chain_id = $1
         AND contract_deployments.address = $2
     `,
-    [chain, address]
+    [chain, address],
   );
 }
 
@@ -142,7 +142,7 @@ export async function getSourcifyMatchByChainAddress(
   pool: Pool,
   chain: number,
   address: Buffer,
-  onlyPerfectMatches: boolean = false
+  onlyPerfectMatches: boolean = false,
 ) {
   return await pool.query(
     `
@@ -168,27 +168,27 @@ ${
     : ""
 }
     `,
-    [chain, address]
+    [chain, address],
   );
 }
 
 export async function insertCode(
   pool: Pool,
-  { bytecode_hash, bytecode }: Tables.Code
+  { bytecode_hash, bytecode }: Tables.Code,
 ) {
   await pool.query(
     "INSERT INTO code (code_hash, code) VALUES ($1, $2) ON CONFLICT (code_hash) DO NOTHING",
-    [bytecode_hash, bytecode]
+    [bytecode_hash, bytecode],
   );
 }
 
 export async function insertContract(
   pool: Pool,
-  { creation_bytecode_hash, runtime_bytecode_hash }: Tables.Contract
+  { creation_bytecode_hash, runtime_bytecode_hash }: Tables.Contract,
 ) {
   let contractInsertResult = await pool.query(
     "INSERT INTO contracts (creation_code_hash, runtime_code_hash) VALUES ($1, $2) ON CONFLICT (creation_code_hash, runtime_code_hash) DO NOTHING RETURNING *",
-    [creation_bytecode_hash, runtime_bytecode_hash]
+    [creation_bytecode_hash, runtime_bytecode_hash],
   );
 
   if (contractInsertResult.rows.length === 0) {
@@ -199,7 +199,7 @@ export async function insertContract(
       FROM contracts
       WHERE creation_code_hash = $1 AND runtime_code_hash = $2
       `,
-      [creation_bytecode_hash, runtime_bytecode_hash]
+      [creation_bytecode_hash, runtime_bytecode_hash],
     );
   }
   return contractInsertResult;
@@ -215,7 +215,7 @@ export async function insertContractDeployment(
     block_number,
     txindex,
     deployer,
-  }: Tables.ContractDeployment
+  }: Tables.ContractDeployment,
 ) {
   let contractDeploymentInsertResult = await pool.query(
     `INSERT INTO 
@@ -236,7 +236,7 @@ export async function insertContractDeployment(
       block_number,
       txindex,
       deployer,
-    ]
+    ],
   );
 
   if (contractDeploymentInsertResult.rows.length === 0) {
@@ -250,7 +250,7 @@ export async function insertContractDeployment(
         AND address = $2
         AND transaction_hash = $3
       `,
-      [chain_id, address, transaction_hash]
+      [chain_id, address, transaction_hash],
     );
   }
   return contractDeploymentInsertResult;
@@ -271,7 +271,7 @@ export async function insertCompiledContract(
     runtime_code_hash,
     creation_code_artifacts,
     runtime_code_artifacts,
-  }: Tables.CompiledContract
+  }: Tables.CompiledContract,
 ) {
   let compiledContractsInsertResult = await pool.query(
     `
@@ -303,7 +303,7 @@ export async function insertCompiledContract(
       runtime_code_hash,
       creation_code_artifacts,
       runtime_code_artifacts,
-    ]
+    ],
   );
 
   if (compiledContractsInsertResult.rows.length === 0) {
@@ -318,7 +318,7 @@ export async function insertCompiledContract(
           AND (creation_code_hash = $3 OR (creation_code_hash IS NULL AND $3 IS NULL))
           AND runtime_code_hash = $4
         `,
-      [compiler, language, creation_code_hash, runtime_code_hash]
+      [compiler, language, creation_code_hash, runtime_code_hash],
     );
   }
   return compiledContractsInsertResult;
@@ -335,7 +335,7 @@ export async function insertVerifiedContract(
     runtime_transformation_values,
     runtime_match,
     creation_match,
-  }: Tables.VerifiedContract
+  }: Tables.VerifiedContract,
 ) {
   let verifiedContractsInsertResult = await pool.query(
     `INSERT INTO verified_contracts (
@@ -357,7 +357,7 @@ export async function insertVerifiedContract(
       runtime_transformation_values,
       runtime_match,
       creation_match,
-    ]
+    ],
   );
   if (verifiedContractsInsertResult.rows.length === 0) {
     verifiedContractsInsertResult = await pool.query(
@@ -369,7 +369,7 @@ export async function insertVerifiedContract(
           AND compilation_id = $1
           AND deployment_id = $2
         `,
-      [compilation_id, deployment_id]
+      [compilation_id, deployment_id],
     );
   }
   return verifiedContractsInsertResult;
@@ -386,7 +386,7 @@ export async function updateVerifiedContract(
     runtime_transformation_values,
     runtime_match,
     creation_match,
-  }: Tables.VerifiedContract
+  }: Tables.VerifiedContract,
 ) {
   await pool.query(
     `
@@ -409,13 +409,13 @@ export async function updateVerifiedContract(
       runtime_transformation_values,
       runtime_match,
       creation_match,
-    ]
+    ],
   );
 }
 
 export async function insertSourcifyMatch(
   pool: Pool,
-  { verified_contract_id, runtime_match, creation_match }: Tables.SourcifyMatch
+  { verified_contract_id, runtime_match, creation_match }: Tables.SourcifyMatch,
 ) {
   await pool.query(
     `INSERT INTO sourcify_matches (
@@ -423,7 +423,7 @@ export async function insertSourcifyMatch(
         creation_match,
         runtime_match
       ) VALUES ($1, $2, $3)`,
-    [verified_contract_id, creation_match, runtime_match]
+    [verified_contract_id, creation_match, runtime_match],
   );
 }
 
@@ -433,7 +433,7 @@ export async function insertSourcifyMatch(
 export async function updateSourcifyMatch(
   pool: Pool,
   { verified_contract_id, runtime_match, creation_match }: Tables.SourcifyMatch,
-  oldVerifiedContractId: number
+  oldVerifiedContractId: number,
 ) {
   await pool.query(
     `UPDATE sourcify_matches SET 
@@ -441,7 +441,12 @@ export async function updateSourcifyMatch(
       creation_match=$2,
       runtime_match=$3
     WHERE  verified_contract_id = $4`,
-    [verified_contract_id, creation_match, runtime_match, oldVerifiedContractId]
+    [
+      verified_contract_id,
+      creation_match,
+      runtime_match,
+      oldVerifiedContractId,
+    ],
   );
 }
 
@@ -469,7 +474,7 @@ export function bytesFromString(str: string | undefined): Buffer | undefined {
 
 export function normalizeRecompiledBytecodes(
   recompiledContract: CheckedContract,
-  match: Match
+  match: Match,
 ) {
   recompiledContract.normalizedRuntimeBytecode =
     recompiledContract.runtimeBytecode;
@@ -488,10 +493,10 @@ export function normalizeRecompiledBytecodes(
       // we multiply by 2 because transformation.offset is stored as the length in bytes
       const before = normalizedRuntimeBytecode.substring(
         0,
-        transformation.offset * 2
+        transformation.offset * 2,
       );
       const after = normalizedRuntimeBytecode.substring(
-        transformation.offset * 2 + PLACEHOLDER_LENGTH
+        transformation.offset * 2 + PLACEHOLDER_LENGTH,
       );
       recompiledContract.normalizedRuntimeBytecode = `0x${
         before + placeholder + after
@@ -514,10 +519,10 @@ export function normalizeRecompiledBytecodes(
         // we multiply by 2 because transformation.offset is stored as the length in bytes
         const before = normalizedCreationBytecode.substring(
           0,
-          transformation.offset * 2
+          transformation.offset * 2,
         );
         const after = normalizedCreationBytecode.substring(
-          transformation.offset * 2 + PLACEHOLDER_LENGTH
+          transformation.offset * 2 + PLACEHOLDER_LENGTH,
         );
         recompiledContract.normalizedCreationBytecode = `0x${
           before + placeholder + after
@@ -555,7 +560,7 @@ export function prepareCompilerSettings(recompiledContract: CheckedContract) {
       libraries[contractPath][contractName] = metadataLibraries[libraryKey];
       return libraries;
     },
-    {} as Libraries
+    {} as Libraries,
   ) as any;
 
   return restSettings;
@@ -575,7 +580,7 @@ export async function countSourcifyMatchAddresses(pool: Pool, chain: number) {
   JOIN contract_deployments ON contract_deployments.id = verified_contracts.deployment_id
   WHERE contract_deployments.chain_id = $1
   GROUP BY contract_deployments.chain_id;`,
-    [chain]
+    [chain],
   );
 }
 
@@ -585,7 +590,7 @@ export async function getSourcifyMatchAddressesByChainAndMatch(
   match: "full_match" | "partial_match" | "any_match",
   page: number,
   paginationSize: number,
-  descending: boolean = false
+  descending: boolean = false,
 ) {
   let queryWhere = "";
   switch (match) {
@@ -625,7 +630,7 @@ export async function getSourcifyMatchAddressesByChainAndMatch(
     ${orderBy}
     OFFSET $2 LIMIT $3
     `,
-    [chain, page * paginationSize, paginationSize]
+    [chain, page * paginationSize, paginationSize],
   );
 }
 
@@ -638,7 +643,7 @@ export async function updateContractDeployment(
     txindex,
     deployer,
     contract_id,
-  }: Omit<Tables.ContractDeployment, "chain_id" | "address">
+  }: Omit<Tables.ContractDeployment, "chain_id" | "address">,
 ) {
   return await pool.query(
     `UPDATE contract_deployments 
@@ -650,6 +655,6 @@ export async function updateContractDeployment(
        contract_id = $6
      WHERE id = $1
      RETURNING *`,
-    [id, transaction_hash, block_number, txindex, deployer, contract_id]
+    [id, transaction_hash, block_number, txindex, deployer, contract_id],
   );
 }

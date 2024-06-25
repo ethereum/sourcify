@@ -7,16 +7,16 @@ workflows:
   # Always run
   node-build:
     jobs:
-      - node-v16
+      - node-v22
   # Has to run always. Can't regex filter on add-chain-{chainId} branch names see: https://stackoverflow.com/questions/55839004/circleci-regex-filtering-match-within-string
   test-new-chain:
     jobs:
       - test-new-chain
 
 jobs:
-  node-v16:
+  node-v22:
     docker:
-      - image: cimg/node:16.15
+      - image: cimg/node:22.3.0
       - image: postgres:16-alpine
         environment:
           POSTGRES_DB: sourcify
@@ -56,7 +56,7 @@ jobs:
     resource_class: large
   test-new-chain:
     docker:
-      - image: cimg/node:16.15
+      - image: cimg/node:22.3.0
       - image: postgres:16-alpine
         environment:
           POSTGRES_DB: sourcify
@@ -72,10 +72,7 @@ jobs:
       - run:
           name: Check NEW_CHAIN_ID existence
           command: |
-            echo "Before sourcing BASH_ENV, NEW_CHAIN_ID=$NEW_CHAIN_ID"
-            cat $BASH_ENV
-            source $BASH_ENV
-            echo "After sourcing BASH_ENV, NEW_CHAIN_ID=$NEW_CHAIN_ID"
+            echo "NEW_CHAIN_ID=$NEW_CHAIN_ID"
             if [ -z "${NEW_CHAIN_ID}" ]; then
               echo 'NEW_CHAIN_ID is unset or empty, skipping subsequent steps.'
               circleci-agent step halt

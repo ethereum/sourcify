@@ -30,7 +30,7 @@ export default class DecentralizedStorageFetcher extends EventEmitter {
 
   constructor(
     origin: DecentralizedStorageOrigin,
-    decentralizedStorageConfig: DecentralizedStorageConfig
+    decentralizedStorageConfig: DecentralizedStorageConfig,
   ) {
     super();
     this.origin = origin;
@@ -50,7 +50,7 @@ export default class DecentralizedStorageFetcher extends EventEmitter {
           fetchRetries:
             decentralizedStorageConfig.retries ||
             defaultConfig.decentralizedStorages.ipfs.retries,
-        })
+        }),
     );
   }
 

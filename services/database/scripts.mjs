@@ -4,7 +4,6 @@ import readdirp from "readdirp";
 import pg from "pg";
 import path from "path";
 import fs from "fs";
-import fetch from "node-fetch";
 
 const { Pool } = pg;
 const { readFile } = fs.promises;

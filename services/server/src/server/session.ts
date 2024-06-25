@@ -12,7 +12,7 @@ function initMemoryStore() {
   const MemoryStore = createMemoryStore(expressSession);
 
   logger.warn(
-    "Using memory based session. Don't use memory session in production!"
+    "Using memory based session. Don't use memory session in production!",
   );
   return new MemoryStore({
     checkPeriod: config.get("session.maxAge"),
@@ -60,10 +60,10 @@ function getSessionStore() {
         return initDatabaseStore();
       } else {
         logger.error(
-          "Database session enabled in config but the environment variables are not specified"
+          "Database session enabled in config but the environment variables are not specified",
         );
         throw new Error(
-          "Database session enabled in config but the environment variables are not specified"
+          "Database session enabled in config but the environment variables are not specified",
         );
       }
     }
@@ -74,7 +74,7 @@ function getSessionStore() {
     default:
       // Throw an error if an unrecognized session storage type is selected
       throw new Error(
-        `Selected session storage type '${sessionStoreType}' doesn't exist.`
+        `Selected session storage type '${sessionStoreType}' doesn't exist.`,
       );
   }
 }

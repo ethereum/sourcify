@@ -62,7 +62,7 @@ export class Server {
   constructor(
     port: string | number,
     verificationServiceOption: SourcifyChainMap,
-    storageServiceOptions: StorageServiceOptions
+    storageServiceOptions: StorageServiceOptions,
   ) {
     // To print regexes in the logs
     Object.defineProperty(RegExp.prototype, "toJSON", {
@@ -79,7 +79,7 @@ export class Server {
 
     this.services = new Services(
       verificationServiceOption,
-      storageServiceOptions
+      storageServiceOptions,
     );
     this.app.use((req, res, next) => {
       req.services = this.services;
@@ -90,7 +90,7 @@ export class Server {
       bodyParser.urlencoded({
         limit: config.get("server.maxFileSize"),
         extended: true,
-      })
+      }),
     );
     this.app.use(bodyParser.json({ limit: config.get("server.maxFileSize") }));
 
@@ -102,7 +102,7 @@ export class Server {
       fileUpload({
         limits: { fileSize: config.get("server.maxFileSize") },
         abortOnLimit: true,
-      })
+      }),
     );
 
     // Inject the requestId to the AsyncLocalStorage to be logged.
@@ -160,41 +160,35 @@ export class Server {
             },
           },
         },
-        formats: [
-          {
-            name: "comma-separated-addresses",
+        formats: {
+          "comma-separated-addresses": {
             type: "string",
             validate: (addresses: string) => validateAddresses(addresses),
           },
-          {
-            name: "address",
+          address: {
             type: "string",
             validate: (address: string) => validateSingleAddress(address),
           },
-          {
-            name: "comma-separated-sourcify-chainIds",
+          "comma-separated-sourcify-chainIds": {
             type: "string",
             validate: (chainIds: string) => validateSourcifyChainIds(chainIds),
           },
-          {
-            name: "supported-chainId",
+          "supported-chainId": {
             type: "string",
             validate: (chainId: string) => checkSupportedChainId(chainId),
           },
-          {
-            // "Sourcify chainIds" include the chains that are revoked verification support, but can have contracts in the repo.
-            name: "sourcify-chainId",
+          // "Sourcify chainIds" include the chains that are revoked verification support, but can have contracts in the repo.
+          "sourcify-chainId": {
             type: "string",
             validate: (chainId: string) => checkSourcifyChainId(chainId),
           },
-          {
-            name: "match-type",
+          "match-type": {
             type: "string",
             validate: (matchType: string) =>
               matchType === "full_match" || matchType === "partial_match",
           },
-        ],
-      })
+        },
+      }),
     );
     // checksum addresses in every request
     this.app.use((req: any, res: any, next: any) => {
@@ -317,7 +311,7 @@ export class Server {
       },
       function (err: any) {
         console.log(err.stack);
-      }
+      },
     );
   }
 }
@@ -366,7 +360,7 @@ if (require.main === module) {
       .loadSwagger(yamljs.load(path.join(__dirname, "..", "openapi.yaml"))) // load the openapi file with the $refs resolved
       .then((swaggerDocument: any) => {
         server.app.get("/api-docs/swagger.json", (req, res) =>
-          res.json(swaggerDocument)
+          res.json(swaggerDocument),
         );
         server.app.use(
           "/api-docs",
@@ -374,7 +368,7 @@ if (require.main === module) {
           swaggerUi.setup(swaggerDocument, {
             customSiteTitle: "Sourcify API",
             customfavIcon: "https://sourcify.dev/favicon.ico",
-          })
+          }),
         );
         server.app.listen(server.port, () => {
           logger.info("Server listening", { port: server.port });

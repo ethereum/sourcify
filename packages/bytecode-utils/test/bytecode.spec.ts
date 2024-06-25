@@ -13,13 +13,13 @@ const BYTECODE_IPFS = readFileSync(`${BYTECODES_FOLDER}/ipfs.hex`).toString();
 const BYTECODE_BZZR1 = readFileSync(`${BYTECODES_FOLDER}/bzzr1.hex`).toString();
 const BYTECODE_WRONG = readFileSync(`${BYTECODES_FOLDER}/wrong.hex`).toString();
 const BYTECODE_EXPERIMENTAL = readFileSync(
-  `${BYTECODES_FOLDER}/experimental.hex`
+  `${BYTECODES_FOLDER}/experimental.hex`,
 ).toString();
 const BYTECODE_WITHOUT0X = readFileSync(
-  `${BYTECODES_FOLDER}/without0x.hex`
+  `${BYTECODES_FOLDER}/without0x.hex`,
 ).toString();
 const BYTECODE_WITHOUTAUXDATA = readFileSync(
-  `${BYTECODES_FOLDER}/withoutauxdata.hex`
+  `${BYTECODES_FOLDER}/withoutauxdata.hex`,
 ).toString();
 
 describe('bytecode utils', function () {
@@ -35,7 +35,7 @@ describe('bytecode utils', function () {
     chai
       .expect(auxadata)
       .to.equal(
-        'a2646970667358221220dceca8706b29e917dacf25fceef95acac8d90d765ac926663ce4096195952b6164736f6c634300060b'
+        'a2646970667358221220dceca8706b29e917dacf25fceef95acac8d90d765ac926663ce4096195952b6164736f6c634300060b',
       );
     chai.expect(`${execution}${auxadata}${length}`, BYTECODE_IPFS);
   });
@@ -50,7 +50,7 @@ describe('bytecode utils', function () {
     chai
       .expect(decode(BYTECODE_BZZR1).bzzr1)
       .to.equal(
-        '0x71e0c183217ae3e9a1406ae7b58c2f36e09f2b16b10e19d46ceb821f3ee6abad'
+        '0x71e0c183217ae3e9a1406ae7b58c2f36e09f2b16b10e19d46ceb821f3ee6abad',
       );
   });
 

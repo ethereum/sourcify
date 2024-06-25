@@ -1,5 +1,5 @@
 # Run from ui/ folder
-FROM node:16.17-alpine AS builder
+FROM node:22.3.0-alpine AS builder
 RUN mkdir -p /home/app
 
 WORKDIR /home/app

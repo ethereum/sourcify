@@ -3,8 +3,6 @@ const path = require("path");
 const fs = require("fs");
 const { exec, spawnSync } = require("child_process");
 const solc = require("solc");
-const fetch = (...args) =>
-  import("node-fetch").then(({ default: fetch }) => fetch(...args));
 const pipeline = require("util").promisify(require("stream").pipeline);
 const { Blob } = require("buffer");
 

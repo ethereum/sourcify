@@ -33,7 +33,7 @@ export const validateAddresses = (addresses: string): boolean => {
 
   if (invalidAddresses.length) {
     throw new BadRequestError(
-      `Invalid addresses: ${invalidAddresses.join(", ")}`
+      `Invalid addresses: ${invalidAddresses.join(", ")}`,
     );
   }
   return true; // if it doesn't throw

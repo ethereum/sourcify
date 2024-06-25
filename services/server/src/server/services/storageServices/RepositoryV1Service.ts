@@ -48,7 +48,7 @@ export class RepositoryV1Service implements RWStorageService {
       this.ipfsClient = createIpfsClient({ url: options.ipfsApi });
     } else {
       logger.warn(
-        "RepositoryV1: IPFS_API not set, IPFS MFS will not be updated"
+        "RepositoryV1: IPFS_API not set, IPFS MFS will not be updated",
       );
     }
   }
@@ -57,7 +57,7 @@ export class RepositoryV1Service implements RWStorageService {
     chainId: string,
     address: string,
     match: MatchLevelWithoutAny,
-    path: string
+    path: string,
   ): Promise<string | false> {
     return await readFile(this.repositoryPath, match, chainId, address, path);
   }
@@ -72,12 +72,12 @@ export class RepositoryV1Service implements RWStorageService {
   fetchAllFileUrls(
     chain: string,
     address: string,
-    match = "full_match"
+    match = "full_match",
   ): Array<string> {
     const files: Array<FileObject> = this.fetchAllFilePaths(
       chain,
       address,
-      match
+      match,
     );
     const urls: Array<string> = [];
     files.forEach((file) => {
@@ -106,14 +106,14 @@ export class RepositoryV1Service implements RWStorageService {
   fetchAllFilePaths(
     chain: string,
     address: string,
-    match = "full_match"
+    match = "full_match",
   ): Array<FileObject> {
     const fullPath = Path.join(
       this.repositoryPath,
       "contracts",
       match,
       chain,
-      getAddress(address)
+      getAddress(address),
     );
     const files: Array<FileObject> = [];
     dirTree(fullPath, {}, (item) => {
@@ -125,7 +125,7 @@ export class RepositoryV1Service implements RWStorageService {
   async fetchAllFileContents(
     chain: string,
     address: string,
-    match = "full_match"
+    match = "full_match",
   ): Promise<Array<FileObject>> {
     const files = this.fetchAllFilePaths(chain, address, match);
     for (const file in files) {
@@ -142,14 +142,14 @@ export class RepositoryV1Service implements RWStorageService {
       this.repositoryPath,
       "contracts",
       "full_match",
-      chain
+      chain,
     );
 
     const partialPath = Path.join(
       this.repositoryPath,
       "contracts",
       "partial_match",
-      chain
+      chain,
     );
 
     const full = (await exists(fullPath))
@@ -167,12 +167,12 @@ export class RepositoryV1Service implements RWStorageService {
   getTree = async (
     chainId: string,
     address: string,
-    match: MatchLevel
+    match: MatchLevel,
   ): Promise<FilesInfo<string[]>> => {
     const fullMatchesTree = this.fetchAllFileUrls(
       chainId,
       address,
-      "full_match"
+      "full_match",
     );
     if (fullMatchesTree.length || match === "full_match") {
       return { status: "full", files: fullMatchesTree };
@@ -185,12 +185,12 @@ export class RepositoryV1Service implements RWStorageService {
   getContent = async (
     chainId: string,
     address: string,
-    match: MatchLevel
+    match: MatchLevel,
   ): Promise<FilesInfo<Array<FileObject>>> => {
     const fullMatchesFiles = await this.fetchAllFileContents(
       chainId,
       address,
-      "full_match"
+      "full_match",
     );
     if (fullMatchesFiles.length || match === "full_match") {
       return { status: "full", files: fullMatchesFiles };
@@ -199,7 +199,7 @@ export class RepositoryV1Service implements RWStorageService {
     const files = await this.fetchAllFileContents(
       chainId,
       address,
-      "partial_match"
+      "partial_match",
     );
     return { status: "partial", files };
   };
@@ -213,7 +213,7 @@ export class RepositoryV1Service implements RWStorageService {
   public generateAbsoluteFilePath(pathConfig: PathConfig) {
     return Path.join(
       this.repositoryPath,
-      this.generateRelativeFilePath(pathConfig)
+      this.generateRelativeFilePath(pathConfig),
     );
   }
 
@@ -222,7 +222,7 @@ export class RepositoryV1Service implements RWStorageService {
     return Path.join(
       this.generateRelativeContractDir(pathConfig),
       pathConfig.source ? "sources" : "",
-      pathConfig.fileName || ""
+      pathConfig.fileName || "",
     );
   }
 
@@ -232,7 +232,7 @@ export class RepositoryV1Service implements RWStorageService {
       "contracts",
       `${pathConfig.matchQuality}_match`,
       pathConfig.chainId,
-      getAddress(pathConfig.address)
+      getAddress(pathConfig.address),
     );
   }
 
@@ -244,7 +244,7 @@ export class RepositoryV1Service implements RWStorageService {
    */
   async fetchFromStorage(
     fullContractPath: string,
-    partialContractPath: string
+    partialContractPath: string,
   ): Promise<{ time: Date; status: Status }> {
     try {
       await fs.promises.access(fullContractPath);
@@ -267,14 +267,14 @@ export class RepositoryV1Service implements RWStorageService {
     }
 
     throw new Error(
-      `Path not found: ${fullContractPath} or ${partialContractPath}`
+      `Path not found: ${fullContractPath} or ${partialContractPath}`,
     );
   }
 
   // Checks contract existence in repository.
   async checkByChainAndAddress(
     address: string,
-    chainId: string
+    chainId: string,
   ): Promise<Match[]> {
     logger.silly("RepositoryV1.checkByChainAndAddress", {
       chainId,
@@ -317,7 +317,7 @@ export class RepositoryV1Service implements RWStorageService {
   // Checks contract existence in repository for full and partial matches.
   async checkAllByChainAndAddress(
     address: string,
-    chainId: string
+    chainId: string,
   ): Promise<Match[]> {
     logger.silly("RepositoryV1.checkAllByChainAndAddress", {
       chainId,
@@ -341,7 +341,7 @@ export class RepositoryV1Service implements RWStorageService {
     try {
       const storage = await this.fetchFromStorage(
         fullContractPath,
-        partialContractPath
+        partialContractPath,
       );
 
       logger.debug("Found full or partial match in RepositoryV1", {
@@ -388,7 +388,7 @@ export class RepositoryV1Service implements RWStorageService {
 
   public async storeMatch(
     contract: CheckedContract,
-    match: Match
+    match: Match,
   ): Promise<void | Match> {
     if (
       match.address &&
@@ -405,14 +405,14 @@ export class RepositoryV1Service implements RWStorageService {
         await this.deletePartialIfExists(match.chainId, match.address);
       }
       const matchQuality: MatchQuality = this.statusToMatchQuality(
-        getMatchStatus(match)
+        getMatchStatus(match),
       );
 
       await this.storeSources(
         matchQuality,
         match.chainId,
         match.address,
-        contract.solidity
+        contract.solidity,
       );
 
       // Store metadata
@@ -421,7 +421,7 @@ export class RepositoryV1Service implements RWStorageService {
         match.chainId,
         match.address,
         "metadata.json",
-        contract.metadata
+        contract.metadata,
       );
 
       if (match.abiEncodedConstructorArguments) {
@@ -430,7 +430,7 @@ export class RepositoryV1Service implements RWStorageService {
           match.chainId,
           match.address,
           "constructor-args.txt",
-          match.abiEncodedConstructorArguments
+          match.abiEncodedConstructorArguments,
         );
       }
 
@@ -440,7 +440,7 @@ export class RepositoryV1Service implements RWStorageService {
           match.chainId,
           match.address,
           "creator-tx-hash.txt",
-          match.creatorTxHash
+          match.creatorTxHash,
         );
       }
 
@@ -450,7 +450,7 @@ export class RepositoryV1Service implements RWStorageService {
           match.chainId,
           match.address,
           "library-map.json",
-          match.libraryMap
+          match.libraryMap,
         );
       }
 
@@ -463,7 +463,7 @@ export class RepositoryV1Service implements RWStorageService {
           match.chainId,
           match.address,
           "immutable-references.json",
-          match.immutableReferences
+          match.immutableReferences,
         );
       }
 
@@ -495,7 +495,7 @@ export class RepositoryV1Service implements RWStorageService {
     const absolutePath = this.generateAbsoluteFilePath(pathConfig);
 
     if (await exists(absolutePath)) {
-      await fs.promises.rmdir(absolutePath, { recursive: true });
+      await fs.promises.rm(absolutePath, { recursive: true });
     }
   }
 
@@ -524,7 +524,7 @@ export class RepositoryV1Service implements RWStorageService {
     matchQuality: MatchQuality,
     chainId: string,
     address: string,
-    sources: StringMap
+    sources: StringMap,
   ) {
     const pathTranslation: StringMap = {};
     for (const sourcePath in sources) {
@@ -540,7 +540,7 @@ export class RepositoryV1Service implements RWStorageService {
           source: true,
           fileName: sanitizedPath,
         },
-        sources[sourcePath]
+        sources[sourcePath],
       );
     }
     // Finally save the path translation
@@ -553,7 +553,7 @@ export class RepositoryV1Service implements RWStorageService {
         source: false,
         fileName: "path-translation.json",
       },
-      JSON.stringify(pathTranslation)
+      JSON.stringify(pathTranslation),
     );
   }
 
@@ -562,7 +562,7 @@ export class RepositoryV1Service implements RWStorageService {
     chainId: string,
     address: string,
     fileName: string,
-    contentJSON: any
+    contentJSON: any,
   ) {
     await this.save(
       {
@@ -571,7 +571,7 @@ export class RepositoryV1Service implements RWStorageService {
         address,
         fileName,
       },
-      JSON.stringify(contentJSON)
+      JSON.stringify(contentJSON),
     );
   }
 
@@ -580,7 +580,7 @@ export class RepositoryV1Service implements RWStorageService {
     chainId: string,
     address: string,
     fileName: string,
-    content: string
+    content: string,
   ) {
     await this.save(
       {
@@ -590,14 +590,14 @@ export class RepositoryV1Service implements RWStorageService {
         source: false,
         fileName,
       },
-      content
+      content,
     );
   }
 
   private async addToIpfsMfs(
     matchQuality: MatchQuality,
     chainId: string,
-    address: string
+    address: string,
   ) {
     if (!this.ipfsClient) return;
     logger.info("Adding to IPFS MFS", { matchQuality, chainId, address });

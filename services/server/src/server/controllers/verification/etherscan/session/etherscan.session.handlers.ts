@@ -39,7 +39,7 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
   const metadata = await getMetadataFromCompiler(
     compilerVersion,
     solcJsonInput,
-    contractName
+    contractName,
   );
 
   const pathContents: PathContent[] = Object.keys(solcJsonInput.sources).map(
@@ -48,7 +48,7 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
         path: path,
         content: stringToBase64(solcJsonInput.sources[path].content),
       };
-    }
+    },
   );
   pathContents.push({
     path: "metadata.json",
@@ -63,7 +63,7 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
   await checkContractsInSession(session);
   if (!session.contractWrappers) {
     throw new BadRequestError(
-      "Unknown error during the Etherscan verification process"
+      "Unknown error during the Etherscan verification process",
     );
     return;
   }
@@ -86,7 +86,7 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
     verifiable,
     session,
     req.services.verification,
-    req.services.storage
+    req.services.storage,
   );
   res.send(getSessionJSON(session));
 }

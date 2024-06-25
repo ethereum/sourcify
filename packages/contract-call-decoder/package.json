@@ -22,16 +22,19 @@
     "build:main": "tsc -p tsconfig.json",
     "build:module": "tsc -p tsconfig.module.json",
     "test": "run-s build test:*",
-    "lint": "eslint src --ext .ts",
-    "test:prettier": "prettier \"src/**/*.ts\" --list-different",
+    "fix": "run-s fix:*",
+    "fix:prettier": "prettier \"./**/*.ts\" --write",
+    "fix:lint": "eslint . --ext .ts --fix",
+    "check": "run-s check:*",
+    "check:eslint": "eslint . --ext .ts",
+    "check:prettier": "prettier \"./**/*.ts\" --check",
     "test:unit": "c8 --reporter=none ava",
     "watch:build": "tsc -p tsconfig.json -w",
     "watch:test": "c8 ava --watch",
     "cov": "run-s build test:unit cov:html cov:lcov && open-cli coverage/index.html",
+    "cov:html": "c8 report --reporter=html",
     "cov:lcov": "c8 report --reporter=lcov",
-    "cov:check": "c8 report && c8 check-coverage --lines 100 --functions 100 --branches 100",
-    "reset-hard": "git clean -dfx && git reset --hard && yarn",
-    "prepare-release": "run-s reset-hard test cov:check"
+    "cov:check": "c8 report && c8 check-coverage --lines 100 --functions 100 --branches 100"
   },
   "engines": {
     "node": ">=10"
@@ -43,8 +46,7 @@
     "@ethersproject/bignumber": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
     "@ethersproject/transactions": "^5.7.0",
-    "ethereum-provider": "^0.7.7",
-    "isomorphic-fetch": "^3.0.0"
+    "ethereum-provider": "^0.7.7"
   },
   "devDependencies": {
     "@ava/typescript": "^1.1.1",
@@ -52,8 +54,7 @@
     "c8": "^8.0.0",
     "cz-conventional-changelog": "^3.3.0",
     "eth-provider": "^0.13.6",
-    "npm-run-all": "^4.1.5",
-    "prettier": "^2.1.1"
+    "npm-run-all": "^4.1.5"
   },
   "files": [
     "build/main",

@@ -18,7 +18,7 @@ const assertLookup = (
   res: Response,
   expectedAddress: string,
   expectedStatus: string,
-  done?: Done
+  done?: Done,
 ) => {
   chai.expect(err).to.be.null;
   chai.expect(res.status).to.equal(StatusCodes.OK);
@@ -38,7 +38,7 @@ const assertLookupAll = (
   res: Response,
   expectedAddress: string,
   expectedChainIds: { chainId: string; status: string }[],
-  done?: Done
+  done?: Done,
 ) => {
   chai.expect(err).to.be.null;
   chai.expect(res.status).to.equal(StatusCodes.OK);
@@ -119,7 +119,7 @@ describe("/check-by-addresses", function () {
           .attach(
             "files",
             chainFixture.defaultContractMetadata,
-            "metadata.json"
+            "metadata.json",
           )
           .attach("files", chainFixture.defaultContractSource)
           .end((err, res) => {
@@ -139,8 +139,8 @@ describe("/check-by-addresses", function () {
                   res,
                   chainFixture.defaultContractAddress,
                   "perfect",
-                  done
-                )
+                  done,
+                ),
               );
           });
       });
@@ -160,7 +160,7 @@ describe("/check-by-addresses", function () {
           res,
           chainFixture.defaultContractAddress,
           "false",
-          done
+          done,
         );
       });
   });
@@ -206,8 +206,8 @@ describe("/check-all-by-addresses", function () {
           res,
           chainFixture.defaultContractAddress,
           "false",
-          done
-        )
+          done,
+        ),
       );
   });
 
@@ -240,7 +240,7 @@ describe("/check-all-by-addresses", function () {
           .attach(
             "files",
             chainFixture.defaultContractMetadata,
-            "metadata.json"
+            "metadata.json",
           )
           .attach("files", chainFixture.defaultContractSource)
           .end((err, res) => {
@@ -260,8 +260,8 @@ describe("/check-all-by-addresses", function () {
                   res,
                   chainFixture.defaultContractAddress,
                   [{ chainId: chainFixture.chainId, status: "perfect" }],
-                  done
-                )
+                  done,
+                ),
               );
           });
       });

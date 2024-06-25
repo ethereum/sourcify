@@ -16,11 +16,11 @@ type RetrieveMethod = (
   services: Services,
   chain: string,
   address: string,
-  match: MatchLevel
+  match: MatchLevel,
 ) => Promise<FilesInfo<any>>;
 type ConractRetrieveMethod = (
   services: Services,
-  chain: string
+  chain: string,
 ) => Promise<ContractData>;
 type PaginatedConractRetrieveMethod = (
   services: Services,
@@ -28,13 +28,13 @@ type PaginatedConractRetrieveMethod = (
   match: MatchLevel,
   page: number,
   limit: number,
-  descending: boolean
+  descending: boolean,
 ) => Promise<PaginatedContractData>;
 
 export function createEndpoint(
   retrieveMethod: RetrieveMethod,
   match: MatchLevel,
-  reportMatchStatus = false
+  reportMatchStatus = false,
 ) {
   return async (req: Request, res: Response, next: NextFunction) => {
     let retrieved: FilesInfo<any>;
@@ -43,7 +43,7 @@ export function createEndpoint(
         req.services,
         req.params.chain,
         req.params.address,
-        match
+        match,
       );
       if (retrieved.files.length === 0)
         return next(new NotFoundError("Files have not been found!"));
@@ -57,7 +57,7 @@ export function createEndpoint(
 }
 
 export function createContractEndpoint(
-  contractRetrieveMethod: ConractRetrieveMethod
+  contractRetrieveMethod: ConractRetrieveMethod,
 ) {
   return async (req: Request, res: Response, next: NextFunction) => {
     let retrieved: ContractData;
@@ -74,7 +74,7 @@ export function createContractEndpoint(
 
 export function createPaginatedContractEndpoint(
   paginatedContractRetrieveMethod: PaginatedConractRetrieveMethod,
-  match: MatchLevel
+  match: MatchLevel,
 ) {
   return async (req: Request, res: Response, next: NextFunction) => {
     let retrieved: PaginatedContractData;
@@ -85,7 +85,7 @@ export function createPaginatedContractEndpoint(
         match,
         parseInt((req.query.page as string) || "0"),
         parseInt((req.query.limit as string) || "200"),
-        req.query.order === "desc" // default is asc
+        req.query.order === "desc", // default is asc
       );
     } catch (err: any) {
       return next(new NotFoundError(err.message));
@@ -103,7 +103,7 @@ export interface CheckAllByChainAndAddressEndpointRequest extends Request {
 
 export async function checkAllByChainAndAddressEndpoint(
   req: CheckAllByChainAndAddressEndpointRequest,
-  res: Response
+  res: Response,
 ) {
   const map: Map<string, any> = new Map();
   const addresses = req.query.addresses.split(",");
@@ -115,7 +115,7 @@ export async function checkAllByChainAndAddressEndpoint(
         const found: Match[] =
           await req.services.storage.performServiceOperation(
             "checkAllByChainAndAddress",
-            [address, chainId]
+            [address, chainId],
           );
         if (found.length != 0) {
           if (!map.has(address)) {
@@ -156,7 +156,7 @@ function jsonOrString(str: string): object | string {
 export async function getFileEndpoint(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   const { match, chain, address } = req.params;
   const file = await req.services.storage.performServiceOperation("getFile", [
@@ -173,7 +173,7 @@ export async function getFileEndpoint(
 
 export async function checkByChainAndAddressesEnpoint(
   req: Request,
-  res: Response
+  res: Response,
 ) {
   const map: Map<string, any> = new Map();
   const addresses = (req.query.addresses as string).split(",");
@@ -185,7 +185,7 @@ export async function checkByChainAndAddressesEnpoint(
         const found: Match[] =
           await req.services.storage.performServiceOperation(
             "checkByChainAndAddress",
-            [address, chainId]
+            [address, chainId],
           );
         if (found.length != 0) {
           if (!map.has(address)) {

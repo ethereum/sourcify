@@ -12,7 +12,7 @@ import logger from "../../../../../common/logger";
 
 export async function verifyContractsInSessionEndpoint(
   req: Request,
-  res: Response
+  res: Response,
 ) {
   const session = req.session;
   if (!session.contractWrappers || isEmpty(session.contractWrappers)) {
@@ -30,7 +30,7 @@ export async function verifyContractsInSessionEndpoint(
         verificationId,
         chainId,
         address,
-      })
+      }),
     ),
   });
   /* eslint-enable indent*/
@@ -54,7 +54,7 @@ export async function verifyContractsInSessionEndpoint(
     session,
     req.services.verification,
     req.services.storage,
-    dryRun
+    dryRun,
   );
   res.send(getSessionJSON(session));
 }

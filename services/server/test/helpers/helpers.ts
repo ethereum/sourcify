@@ -28,7 +28,7 @@ export async function deployFromAbiAndBytecode(
   signer: JsonRpcSigner,
   abi: Interface | InterfaceAbi,
   bytecode: BytesLike | { object: string },
-  args?: any[]
+  args?: any[],
 ) {
   const contractFactory = new ContractFactory(abi, bytecode, signer);
   console.log(`Deploying contract ${args?.length ? `with args ${args}` : ""}`);
@@ -48,7 +48,7 @@ export async function deployFromAbiAndBytecodeForCreatorTxHash(
   signer: JsonRpcSigner,
   abi: Interface | InterfaceAbi,
   bytecode: BytesLike | { object: string },
-  args?: any[]
+  args?: any[],
 ) {
   const contractFactory = new ContractFactory(abi, bytecode, signer);
   console.log(`Deploying contract ${args?.length ? `with args ${args}` : ""}`);
@@ -61,11 +61,11 @@ export async function deployFromAbiAndBytecodeForCreatorTxHash(
     throw new Error(`No deployment transaction found for ${contractAddress}`);
   }
   console.log(
-    `Deployed contract at ${contractAddress} with tx ${creationTx.hash}`
+    `Deployed contract at ${contractAddress} with tx ${creationTx.hash}`,
   );
 
   const txReceipt = await signer.provider.getTransactionReceipt(
-    creationTx.hash
+    creationTx.hash,
   );
 
   return {
@@ -80,13 +80,13 @@ export async function deployAndVerifyContract(
   chai: Chai.ChaiStatic,
   chainFixture: LocalChainFixture,
   serverFixture: ServerFixture,
-  partial: boolean = false
+  partial: boolean = false,
 ) {
   const contractAddress = await deployFromAbiAndBytecode(
     chainFixture.localSigner,
     chainFixture.defaultContractArtifact.abi,
     chainFixture.defaultContractArtifact.bytecode,
-    []
+    [],
   );
   await chai
     .request(serverFixture.server.app)
@@ -98,7 +98,7 @@ export async function deployAndVerifyContract(
       partial
         ? chainFixture.defaultContractModifiedMetadata
         : chainFixture.defaultContractMetadata,
-      "metadata.json"
+      "metadata.json",
     )
     .attach("files", chainFixture.defaultContractSource);
   return contractAddress;
@@ -112,7 +112,7 @@ export async function deployFromPrivateKey(
   abi: Interface | InterfaceAbi,
   bytecode: BytesLike | { object: string },
   privateKey: string,
-  args?: any[]
+  args?: any[],
 ) {
   const signer = new Wallet(privateKey, provider);
   const contractFactory = new ContractFactory(abi, bytecode, signer);
@@ -140,7 +140,7 @@ export async function callContractMethod(
   abi: Interface | InterfaceAbi,
   contractAddress: string,
   methodName: string,
-  args: any[]
+  args: any[],
 ) {
   const contract = new Contract(contractAddress, abi, provider);
   const callResponse = await contract[methodName].staticCall(...args);
@@ -154,7 +154,7 @@ export async function callContractMethodWithTx(
   abi: Interface | InterfaceAbi,
   contractAddress: string,
   methodName: string,
-  args: any[]
+  args: any[],
 ) {
   const contract = new Contract(contractAddress, abi, signer);
   const txResponse = await contract[methodName].send(...args);
@@ -167,7 +167,7 @@ export function verifyAndAssertEtherscan(
   chainId: string,
   address: string,
   expectedStatus: string,
-  done: Done
+  done: Done,
 ) {
   const request = chai
     .request(serverFixture.server.app)
@@ -182,7 +182,7 @@ export function verifyAndAssertEtherscan(
       done,
       address,
       chainId,
-      expectedStatus
+      expectedStatus,
     );
   });
 }
@@ -192,7 +192,7 @@ export function verifyAndAssertEtherscanSession(
   chainId: string,
   address: string,
   expectedStatus: string,
-  done: Done
+  done: Done,
 ) {
   chai
     .request(serverFixture.server.app)
@@ -207,7 +207,7 @@ export function verifyAndAssertEtherscanSession(
         done,
         address,
         chainId,
-        expectedStatus
+        expectedStatus,
       );
     });
 }
