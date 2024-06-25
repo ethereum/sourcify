@@ -20,12 +20,12 @@ export namespace Tables {
     bytecode: Buffer;
   }
   export interface Contract {
-    id?: string;
+    id: string;
     creation_bytecode_hash?: Hash;
     runtime_bytecode_hash: Hash;
   }
   export interface ContractDeployment {
-    id?: string;
+    id: string;
     chain_id: string;
     address: Buffer;
     transaction_hash: Buffer;
@@ -47,7 +47,7 @@ export namespace Tables {
       storageLayout: any;
       sources: any;
     };
-    sources: Object;
+    sources: { [index: string]: string };
     compiler_settings: Object;
     creation_code_hash?: Hash;
     runtime_code_hash: Hash;
@@ -80,6 +80,7 @@ export namespace Tables {
     runtime_match: Status | null;
     creation_match: Status | null;
     metadata: Metadata;
+    created_at: Date;
   }
 
   export interface SourcifySync {
@@ -179,8 +180,11 @@ export async function insertCode(
 
 export async function insertContract(
   pool: Pool,
-  { creation_bytecode_hash, runtime_bytecode_hash }: Tables.Contract,
-) {
+  {
+    creation_bytecode_hash,
+    runtime_bytecode_hash,
+  }: Omit<Tables.Contract, "id">,
+): Promise<QueryResult<Pick<Tables.Contract, "id">>> {
   let contractInsertResult = await pool.query(
     "INSERT INTO contracts (creation_code_hash, runtime_code_hash) VALUES ($1, $2) ON CONFLICT (creation_code_hash, runtime_code_hash) DO NOTHING RETURNING *",
     [creation_bytecode_hash, runtime_bytecode_hash],
@@ -210,8 +214,8 @@ export async function insertContractDeployment(
     block_number,
     txindex,
     deployer,
-  }: Tables.ContractDeployment,
-) {
+  }: Omit<Tables.ContractDeployment, "id">,
+): Promise<QueryResult<Pick<Tables.ContractDeployment, "id">>> {
   let contractDeploymentInsertResult = await pool.query(
     `INSERT INTO 
       contract_deployments (
@@ -415,7 +419,7 @@ export async function insertSourcifyMatch(
     runtime_match,
     creation_match,
     metadata,
-  }: Tables.SourcifyMatch,
+  }: Omit<Tables.SourcifyMatch, "created_at">,
 ) {
   await pool.query(
     `INSERT INTO sourcify_matches (
@@ -438,7 +442,7 @@ export async function updateSourcifyMatch(
     runtime_match,
     creation_match,
     metadata,
-  }: Tables.SourcifyMatch,
+  }: Omit<Tables.SourcifyMatch, "created_at">,
   oldVerifiedContractId: number,
 ) {
   await pool.query(
@@ -574,7 +578,17 @@ export function prepareCompilerSettings(recompiledContract: CheckedContract) {
   return restSettings;
 }
 
-export async function countSourcifyMatchAddresses(pool: Pool, chain: number) {
+export async function countSourcifyMatchAddresses(
+  pool: Pool,
+  chain: number,
+): Promise<
+  QueryResult<
+    Pick<Tables.ContractDeployment, "chain_id"> & {
+      full_total: number;
+      partial_total: number;
+    }
+  >
+> {
   return await pool.query(
     `
   SELECT
@@ -599,7 +613,7 @@ export async function getSourcifyMatchAddressesByChainAndMatch(
   page: number,
   paginationSize: number,
   descending: boolean = false,
-) {
+): Promise<QueryResult<{ address: string }>> {
   let queryWhere = "";
   switch (match) {
     case "full_match": {
