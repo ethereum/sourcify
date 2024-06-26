@@ -231,8 +231,8 @@ export default abstract class AbstractDatabaseService {
       verifiedContract: {
         runtime_transformations: runtimeTransformations,
         creation_transformations: creationTransformations,
-        runtime_transformation_values: runtimeTransformationValues,
-        creation_transformation_values: creationTransformationValues,
+        runtime_values: runtimeTransformationValues,
+        creation_values: creationTransformationValues,
         runtime_match: runtimeMatch,
         creation_match: creationMatch,
       },
@@ -324,14 +324,11 @@ export default abstract class AbstractDatabaseService {
           deployment_id: contractDeploymentInsertResult.rows[0].id,
           creation_transformations:
             databaseColumns.verifiedContract.creation_transformations,
-          creation_transformation_values:
-            databaseColumns.verifiedContract.creation_transformation_values ||
-            {},
+          creation_values:
+            databaseColumns.verifiedContract.creation_values || {},
           runtime_transformations:
             databaseColumns.verifiedContract.runtime_transformations,
-          runtime_transformation_values:
-            databaseColumns.verifiedContract.runtime_transformation_values ||
-            {},
+          runtime_values: databaseColumns.verifiedContract.runtime_values || {},
           runtime_match: databaseColumns.verifiedContract.runtime_match!,
           creation_match: databaseColumns.verifiedContract.creation_match!,
         });
@@ -344,10 +341,7 @@ export default abstract class AbstractDatabaseService {
   }
 
   async updateExistingVerifiedContract(
-    existingVerifiedContractResult: (Database.Tables.VerifiedContract & {
-      transaction_hash: Buffer | null;
-      contract_id: string;
-    })[],
+    existingVerifiedContractResult: Database.GetVerifiedContractByChainAndAddressResult[],
     recompiledContract: CheckedContract,
     match: Match,
     databaseColumns: Database.DatabaseColumns,
@@ -473,14 +467,11 @@ export default abstract class AbstractDatabaseService {
           deployment_id: existingVerifiedContractResult[0].deployment_id,
           creation_transformations:
             databaseColumns.verifiedContract.creation_transformations,
-          creation_transformation_values:
-            databaseColumns.verifiedContract.creation_transformation_values ||
-            {},
+          creation_values:
+            databaseColumns.verifiedContract.creation_values || {},
           runtime_transformations:
             databaseColumns.verifiedContract.runtime_transformations,
-          runtime_transformation_values:
-            databaseColumns.verifiedContract.runtime_transformation_values ||
-            {},
+          runtime_values: databaseColumns.verifiedContract.runtime_values || {},
           runtime_match: databaseColumns.verifiedContract.runtime_match!,
           creation_match: databaseColumns.verifiedContract.creation_match!,
         });

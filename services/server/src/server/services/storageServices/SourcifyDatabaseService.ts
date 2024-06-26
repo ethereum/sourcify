@@ -83,11 +83,10 @@ export class SourcifyDatabaseService
         address,
         chainId,
         runtimeMatch: existingVerifiedContractResult.rows[0]
-          .runtime_match_status as Status,
+          .runtime_match as Status,
         creationMatch: existingVerifiedContractResult.rows[0]
-          .creation_match_status as Status,
-        storageTimestamp: existingVerifiedContractResult.rows[0]
-          .created_at as Date,
+          .creation_match as Status,
+        storageTimestamp: existingVerifiedContractResult.rows[0].created_at,
       },
     ];
   }
@@ -109,10 +108,8 @@ export class SourcifyDatabaseService
       return res;
     }
 
-    const fullTotal = parseInt(matchAddressesCountResult.rows[0].full_total);
-    const partialTotal = parseInt(
-      matchAddressesCountResult.rows[0].partial_total,
-    );
+    const fullTotal = matchAddressesCountResult.rows[0].full_total;
+    const partialTotal = matchAddressesCountResult.rows[0].partial_total;
     if (
       fullTotal > MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS ||
       partialTotal > MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS
@@ -207,10 +204,9 @@ export class SourcifyDatabaseService
     }
 
     // Calculate totalResults, return empty res if there are no contracts
-    const fullTotal = parseInt(matchAddressesCountResult.rows[0].full_total);
-    const partialTotal = parseInt(
-      matchAddressesCountResult.rows[0].partial_total,
-    );
+    const fullTotal = matchAddressesCountResult.rows[0].full_total;
+    const partialTotal = matchAddressesCountResult.rows[0].partial_total;
+
     const anyTotal = fullTotal + partialTotal;
     const matchTotals: Record<MatchLevel, number> = {
       full_match: fullTotal,
@@ -278,8 +274,8 @@ export class SourcifyDatabaseService
 
     // If either one of sourcify_matches.creation_match or sourcify_matches.runtime_match is perfect then "full" status
     const contractStatus =
-      sourcifyMatch.creation_match_status === "perfect" ||
-      sourcifyMatch.runtime_match_status === "perfect"
+      sourcifyMatch.creation_match === "perfect" ||
+      sourcifyMatch.runtime_match === "perfect"
         ? "full"
         : "partial";
 
