@@ -35,6 +35,7 @@ export namespace Tables {
     deployer?: Buffer;
   }
   export interface CompiledContract {
+    id: string;
     compiler: string;
     version: string;
     language: string;
@@ -47,7 +48,7 @@ export namespace Tables {
       storageLayout: any;
       sources: any;
     };
-    sources: { [index: string]: string };
+    sources: Record<string, string>;
     compiler_settings: Object;
     creation_code_hash?: Hash;
     runtime_code_hash: Hash;
@@ -64,7 +65,7 @@ export namespace Tables {
     };
   }
   export interface VerifiedContract {
-    id?: number;
+    id: number;
     compilation_id: string;
     deployment_id: string;
     creation_transformations: Transformation[] | undefined;
@@ -270,8 +271,8 @@ export async function insertCompiledContract(
     runtime_code_hash,
     creation_code_artifacts,
     runtime_code_artifacts,
-  }: Tables.CompiledContract,
-) {
+  }: Omit<Tables.CompiledContract, "id">,
+): Promise<QueryResult<Pick<Tables.CompiledContract, "id">>> {
   let compiledContractsInsertResult = await pool.query(
     `
       INSERT INTO compiled_contracts (
@@ -334,8 +335,8 @@ export async function insertVerifiedContract(
     runtime_values,
     runtime_match,
     creation_match,
-  }: Tables.VerifiedContract,
-) {
+  }: Omit<Tables.VerifiedContract, "id">,
+): Promise<QueryResult<Pick<Tables.VerifiedContract, "id">>> {
   let verifiedContractsInsertResult = await pool.query(
     `INSERT INTO verified_contracts (
         compilation_id,
@@ -637,8 +638,7 @@ export async function updateContractDeployment(
        transaction_index = $4,
        deployer = $5,
        contract_id = $6
-     WHERE id = $1
-     RETURNING *`,
+     WHERE id = $1`,
     [id, transaction_hash, block_number, txindex, deployer, contract_id],
   );
 }
