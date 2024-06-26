@@ -55,7 +55,7 @@
     "abitype": "1.0.2",
     "bunyan": "^1.8.15",
     "chalk": "^4.1.2",
-    "config": "^3.3.11",
+    "config": "^3.3.12",
     "connect-pg-simple": "^9.0.1",
     "cors": "^2.8.5",
     "directory-tree": "^3.5.1",
