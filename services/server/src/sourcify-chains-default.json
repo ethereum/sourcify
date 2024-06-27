@@ -1714,14 +1714,7 @@
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
-    },
-    "rpc": [
-      {
-        "type": "Infura",
-        "url": "https://linea-mainnet.infura.io/v3/{INFURA_API_KEY}",
-        "apiKeyEnvName": "INFURA_API_KEY"
-      }
-    ]
+    }
   },
   "59141": {
     "sourcifyName": "Linea Sepolia",
@@ -1732,13 +1725,6 @@
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
-    },
-    "rpc": [
-      {
-        "type": "Infura",
-        "url": "https://linea-sepolia.infura.io/v3/{INFURA_API_KEY}",
-        "apiKeyEnvName": "INFURA_API_KEY"
-      }
-    ]
+    }
   }
 }
