@@ -9,7 +9,7 @@ The migrations can be run to set up the Sourcify database.
 ## Running the migrations
 
 - Copy paste `.env.template` in `.env` and set the variables.
-- Run `npm run migrate:up ` to update the database to the latest version. This will run the `dev` config in [database.json](./database.json). To run the migrations in production use `npm run migrate:up -- --env production`
+- Run `npm run migrate:up ` to update the database to the latest version. This will run the `dev` config in [database.json](./database.json) with `localhost`. To run the migrations in production with `POSTGRES_HOST` use `npm run migrate:up -- --env production`
 
 For convenience, you can run the Postgres container in `docker-compose.yml` with `docker-compose up`.
 
@@ -24,6 +24,8 @@ For convenience, you can run the Postgres container in `docker-compose.yml` with
 # Migrating from the legacy repository (RepositoryV1) to the database
 
 Following v2.0.0, Sourcify no longer uses the filesystem as its source of truth. To switch from the legacy repository to the new database, contracts need to be re-compiled and verified with a new Sourcify instance.
+
+# Synchronization process
 
 The synchronization process takes two steps, in the first one we are going to store all the contracts from the repov1 into `sourcify_sync`, a table used to keep track of the to-be-synced contracts. In the second step we are using the `sourcify_sync` table to re-verify all the contracts on a new sourcify instance marking every successful synced contract into `sourcify_sync` as `synced`.
 
