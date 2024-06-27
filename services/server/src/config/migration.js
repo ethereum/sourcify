@@ -1,3 +1,7 @@
+const {
+  RWStorageIdentifiers,
+} = require("../server/services/storageServices/identifiers");
+
 module.exports = {
   server: {
     port: 80,
@@ -8,6 +12,12 @@ module.exports = {
   },
   repositoryV2: {
     path: "/home/app/repositoryV2",
+  },
+  // The storage services where the verified contract be saved and read from
+  storage: {
+    read: RWStorageIdentifiers.SourcifyDatabase,
+    writeOrWarn: [],
+    writeOrErr: [],
   },
   solcRepo: "/home/app/compilers/solc",
   solJsonRepo: "/home/app/compilers/soljson",
