@@ -5,6 +5,8 @@ import { id as keccak256str, keccak256 } from "ethers";
 import { LocalChainFixture } from "../helpers/LocalChainFixture";
 import { ServerFixture } from "../helpers/ServerFixture";
 import type { MetadataSourceMap } from "@ethereum-sourcify/lib-sourcify";
+import { sha3_256 } from "js-sha3";
+import { bytesFromString } from "../../src/server/services/utils/database-util";
 
 chai.use(chaiHttp);
 
@@ -136,10 +138,14 @@ describe("Verifier Alliance database", function () {
           compiled_creation_code.code as compiled_creation_code,
           compiled_runtime_code.code_hash as compiled_runtime_code_hash,
           compiled_creation_code.code_hash as compiled_creation_code_hash,
+          compiled_runtime_code.code_hash_keccak as compiled_runtime_code_hash_keccak,
+          compiled_creation_code.code_hash_keccak as compiled_creation_code_hash_keccak,
           onchain_runtime_code.code as onchain_runtime_code,
           onchain_creation_code.code as onchain_creation_code,
           onchain_runtime_code.code_hash as onchain_runtime_code_hash,
           onchain_creation_code.code_hash as onchain_creation_code_hash,
+          onchain_runtime_code.code_hash_keccak as onchain_runtime_code_hash_keccak,
+          onchain_creation_code.code_hash_keccak as onchain_creation_code_hash_keccak,
           cc.compiler,
           cc.version,
           cc.language,
@@ -197,7 +203,19 @@ describe("Verifier Alliance database", function () {
     chai.expect(parseInt(row.block_number)).to.equal(blockNumber);
     chai.expect(parseInt(row.transaction_index)).to.equal(txIndex);
 
-    ///
+    // Check Keccak256 for code.code_hash_keccak
+    chai
+      .expect(`0x${toHexString(row.compiled_creation_code_hash_keccak)}`)
+      .to.equal(keccak256(bytesFromString(testCase.compiled_creation_code)));
+    chai
+      .expect(`0x${toHexString(row.compiled_runtime_code_hash_keccak)}`)
+      .to.equal(keccak256(bytesFromString(testCase.compiled_runtime_code)));
+    chai
+      .expect(`0x${toHexString(row.onchain_creation_code_hash_keccak)}`)
+      .to.equal(keccak256(bytesFromString(testCase.deployed_creation_code)));
+    chai
+      .expect(`0x${toHexString(row.onchain_runtime_code_hash_keccak)}`)
+      .to.equal(keccak256(bytesFromString(testCase.deployed_runtime_code)));
     chai
       .expect(row.compilation_artifacts)
       .to.deep.equal(testCase.compilation_artifacts);
@@ -205,11 +223,11 @@ describe("Verifier Alliance database", function () {
       .expect(`0x${toHexString(row.compiled_runtime_code)}`)
       .to.equal(testCase.compiled_runtime_code);
     chai
-      .expect(`0x${toHexString(row.compiled_runtime_code_hash)}`)
-      .to.equal(keccak256(testCase.compiled_runtime_code));
+      .expect(toHexString(row.compiled_runtime_code_hash))
+      .to.equal(sha3_256(bytesFromString(testCase.compiled_runtime_code)));
     chai
-      .expect(`0x${toHexString(row.onchain_runtime_code_hash)}`)
-      .to.equal(keccak256(testCase.deployed_runtime_code));
+      .expect(toHexString(row.onchain_runtime_code_hash))
+      .to.equal(sha3_256(bytesFromString(testCase.deployed_runtime_code)));
     chai
       .expect(`0x${toHexString(row.onchain_runtime_code)}`)
       .to.equal(testCase.deployed_runtime_code);
@@ -223,14 +241,14 @@ describe("Verifier Alliance database", function () {
       .to.deep.equal(testCase.runtime_transformations);
 
     chai
-      .expect(`0x${toHexString(row.compiled_creation_code_hash)}`)
-      .to.equal(keccak256(testCase.compiled_creation_code));
+      .expect(toHexString(row.compiled_creation_code_hash))
+      .to.equal(sha3_256(bytesFromString(testCase.compiled_creation_code)));
     chai
       .expect(`0x${toHexString(row.compiled_creation_code)}`)
       .to.equal(testCase.compiled_creation_code);
     chai
-      .expect(`0x${toHexString(row.onchain_creation_code_hash)}`)
-      .to.equal(keccak256(testCase.deployed_creation_code));
+      .expect(toHexString(row.onchain_creation_code_hash))
+      .to.equal(sha3_256(bytesFromString(testCase.deployed_creation_code)));
     chai
       .expect(`0x${toHexString(row.onchain_creation_code)}`)
       .to.equal(testCase.deployed_creation_code);

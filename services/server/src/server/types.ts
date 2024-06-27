@@ -75,3 +75,12 @@ export type MethodArgs<T, K extends keyof T> = T[K] extends (
 export type Mandatory<T> = {
   [P in keyof T]-?: T[P];
 };
+
+declare const __brand: unique symbol;
+type Brand<B> = { [__brand]: B };
+type Branded<T, B> = T & Brand<B>;
+
+export type Bytes = Buffer;
+export type BytesSha = Branded<Buffer, "SHA">;
+export type BytesKeccak = Branded<Buffer, "KECCAK">;
+export type BytesTypes = Bytes | BytesKeccak | BytesSha;

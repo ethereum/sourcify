@@ -10,29 +10,29 @@ import {
   TransformationValues,
 } from "@ethereum-sourcify/lib-sourcify";
 import { Pool, QueryResult } from "pg";
-
-type Hash = Buffer;
+import { Bytes, BytesSha, BytesKeccak, BytesTypes } from "../../types";
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Tables {
   export interface Code {
-    bytecode_hash: Hash;
-    bytecode: Buffer;
+    bytecode_hash: BytesSha;
+    bytecode_hash_keccak: BytesKeccak;
+    bytecode: Bytes;
   }
   export interface Contract {
     id: string;
-    creation_bytecode_hash?: Hash;
-    runtime_bytecode_hash: Hash;
+    creation_bytecode_hash?: BytesSha;
+    runtime_bytecode_hash: BytesSha;
   }
   export interface ContractDeployment {
     id: string;
     chain_id: string;
-    address: Buffer;
-    transaction_hash: Buffer;
+    address: Bytes;
+    transaction_hash: Bytes;
     contract_id: string;
     block_number?: number | null;
     txindex?: number;
-    deployer?: Buffer;
+    deployer?: Bytes;
   }
   export interface CompiledContract {
     id: string;
@@ -50,8 +50,8 @@ export namespace Tables {
     };
     sources: Record<string, string>;
     compiler_settings: Object;
-    creation_code_hash?: Hash;
-    runtime_code_hash: Hash;
+    creation_code_hash?: BytesSha;
+    runtime_code_hash: BytesSha;
     creation_code_artifacts: {
       sourceMap: string;
       linkReferences: {};
@@ -93,10 +93,18 @@ export namespace Tables {
 
 export interface DatabaseColumns {
   bytecodeHashes: {
-    recompiledCreation?: Hash;
-    recompiledRuntime: Hash;
-    onchainCreation?: Hash;
-    onchainRuntime: Hash;
+    sha: {
+      recompiledCreation?: BytesSha;
+      recompiledRuntime: BytesSha;
+      onchainCreation?: BytesSha;
+      onchainRuntime: BytesSha;
+    };
+    keccak: {
+      recompiledCreation?: BytesKeccak;
+      recompiledRuntime: BytesKeccak;
+      onchainCreation?: BytesKeccak;
+      onchainRuntime: BytesKeccak;
+    };
   };
   compiledContract: Partial<Tables.CompiledContract>;
   verifiedContract: Partial<Tables.VerifiedContract>;
@@ -104,14 +112,14 @@ export interface DatabaseColumns {
 
 export type GetVerifiedContractByChainAndAddressResult =
   Tables.VerifiedContract & {
-    transaction_hash: Buffer | null;
+    transaction_hash: Bytes | null;
     contract_id: string;
   };
 
 export async function getVerifiedContractByChainAndAddress(
   pool: Pool,
   chain: number,
-  address: Buffer,
+  address: Bytes,
 ): Promise<QueryResult<GetVerifiedContractByChainAndAddressResult>> {
   return await pool.query(
     `
@@ -137,7 +145,7 @@ export type GetSourcifyMatchByChainAddressResult = Tables.SourcifyMatch &
 export async function getSourcifyMatchByChainAddress(
   pool: Pool,
   chain: number,
-  address: Buffer,
+  address: Bytes,
   onlyPerfectMatches: boolean = false,
 ): Promise<QueryResult<GetSourcifyMatchByChainAddressResult>> {
   return await pool.query(
@@ -171,11 +179,11 @@ ${
 
 export async function insertCode(
   pool: Pool,
-  { bytecode_hash, bytecode }: Tables.Code,
+  { bytecode_hash, bytecode_hash_keccak, bytecode }: Tables.Code,
 ) {
   await pool.query(
-    "INSERT INTO code (code_hash, code) VALUES ($1, $2) ON CONFLICT (code_hash) DO NOTHING",
-    [bytecode_hash, bytecode],
+    "INSERT INTO code (code_hash, code_hash_keccak, code) VALUES ($1, $2, $3) ON CONFLICT (code_hash) DO NOTHING",
+    [bytecode_hash, bytecode_hash_keccak, bytecode],
   );
 }
 
@@ -425,7 +433,15 @@ export async function updateSourcifyMatch(
   );
 }
 
-export function bytesFromString(str: string | undefined): Buffer | undefined {
+// Function overloads
+export function bytesFromString<T extends BytesTypes>(str: string): T;
+export function bytesFromString<T extends BytesTypes>(
+  str: string | undefined,
+): T | undefined;
+
+export function bytesFromString<T extends BytesTypes>(
+  str: string | undefined,
+): T | undefined {
   if (str === undefined) {
     return undefined;
   }
@@ -435,7 +451,7 @@ export function bytesFromString(str: string | undefined): Buffer | undefined {
   } else {
     stringWithout0x = str;
   }
-  return Buffer.from(stringWithout0x, "hex");
+  return Buffer.from(stringWithout0x, "hex") as T;
 }
 
 // Use the transformations array to normalize the library transformations in both runtime and creation recompiled bytecodes
