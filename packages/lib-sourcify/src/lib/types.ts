@@ -248,7 +248,7 @@ export interface Match {
   creationTransformationValues?: TransformationValues;
   onchainRuntimeBytecode?: string;
   onchainCreationBytecode?: string;
-  blockNumber?: number | null;
+  blockNumber?: number;
   txIndex?: number;
   deployer?: string;
 }

@@ -28,9 +28,9 @@ export namespace Tables {
     id: string;
     chain_id: string;
     address: Bytes;
-    transaction_hash: Bytes;
+    transaction_hash?: Bytes;
     contract_id: string;
-    block_number?: number | null;
+    block_number?: number;
     txindex?: number;
     deployer?: Bytes;
   }
@@ -93,12 +93,6 @@ export namespace Tables {
 
 export interface DatabaseColumns {
   bytecodeHashes: {
-    sha: {
-      recompiledCreation?: BytesSha;
-      recompiledRuntime: BytesSha;
-      onchainCreation?: BytesSha;
-      onchainRuntime: BytesSha;
-    };
     keccak: {
       recompiledCreation?: BytesKeccak;
       recompiledRuntime: BytesKeccak;
@@ -106,8 +100,23 @@ export interface DatabaseColumns {
       onchainRuntime: BytesKeccak;
     };
   };
-  compiledContract: Partial<Tables.CompiledContract>;
-  verifiedContract: Partial<Tables.VerifiedContract>;
+  compiledContract: Pick<
+    Tables.CompiledContract,
+    | "language"
+    | "fully_qualified_name"
+    | "compilation_artifacts"
+    | "creation_code_artifacts"
+    | "runtime_code_artifacts"
+  >;
+  verifiedContract: Pick<
+    Tables.VerifiedContract,
+    | "runtime_transformations"
+    | "creation_transformations"
+    | "runtime_values"
+    | "creation_values"
+    | "runtime_match"
+    | "creation_match"
+  >;
 }
 
 export type GetVerifiedContractByChainAndAddressResult =
@@ -179,12 +188,22 @@ ${
 
 export async function insertCode(
   pool: Pool,
-  { bytecode_hash, bytecode_hash_keccak, bytecode }: Tables.Code,
-) {
-  await pool.query(
-    "INSERT INTO code (code_hash, code_hash_keccak, code) VALUES ($1, $2, $3) ON CONFLICT (code_hash) DO NOTHING",
-    [bytecode_hash, bytecode_hash_keccak, bytecode],
+  { bytecode_hash_keccak, bytecode }: Omit<Tables.Code, "bytecode_hash">,
+): Promise<QueryResult<Pick<Tables.Code, "bytecode_hash">>> {
+  let codeInsertResult = await pool.query(
+    "INSERT INTO code (code_hash, code, code_hash_keccak) VALUES (digest($1::bytea, 'sha3-256'), $1::bytea, $2) ON CONFLICT (code_hash) DO NOTHING RETURNING code_hash as bytecode_hash",
+    [bytecode, bytecode_hash_keccak],
   );
+  if (codeInsertResult.rows.length === 0) {
+    codeInsertResult = await pool.query(
+      `SELECT
+        code_hash as bytecode_hash
+      FROM code
+      WHERE code_hash = digest($1::bytea, 'sha3-256')`,
+      [bytecode],
+    );
+  }
+  return codeInsertResult;
 }
 
 export async function insertContract(

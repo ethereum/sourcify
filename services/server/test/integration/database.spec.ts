@@ -5,8 +5,9 @@ import { id as keccak256str, keccak256 } from "ethers";
 import { LocalChainFixture } from "../helpers/LocalChainFixture";
 import { ServerFixture } from "../helpers/ServerFixture";
 import type { MetadataSourceMap } from "@ethereum-sourcify/lib-sourcify";
-import { sha3_256 } from "js-sha3";
 import { bytesFromString } from "../../src/server/services/utils/database-util";
+import crypto from "crypto";
+import { Bytes } from "../../src/server/types";
 
 chai.use(chaiHttp);
 
@@ -14,6 +15,12 @@ function toHexString(byteArray: number[]) {
   return Array.from(byteArray, function (byte) {
     return ("0" + (byte & 0xff).toString(16)).slice(-2);
   }).join("");
+}
+
+function sha3_256(data: Bytes) {
+  const hash = crypto.createHash("sha3-256");
+  hash.update(data);
+  return hash.digest("hex");
 }
 
 describe("Verifier Alliance database", function () {
