@@ -471,5 +471,29 @@
       "type": "standard-json",
       "expectedStatus": "perfect"
     }
+  ],
+  "59144": [
+    {
+      "address": "0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0xc808BfCBeD34D90fa9579CAa664e67B9A03C56ca",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
+  ],
+  "59141": [
+    {
+      "address": "0x06565ed324Ee9fb4DB0FF80B7eDbE4Cb007555a3",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x9B1B4b0FD15eF697E2E61C29ee933b227C68dDb2",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
   ]
 }

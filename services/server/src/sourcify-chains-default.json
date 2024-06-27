@@ -41,7 +41,9 @@
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
     },
-    "rpc": ["https://rpc.holesky.ethpandaops.io"]
+    "rpc": [
+      "https://rpc.holesky.ethpandaops.io"
+    ]
   },
   "5": {
     "sourcifyName": "Ethereum Goerli Testnet",
@@ -347,7 +349,9 @@
   "40": {
     "sourcifyName": "Telos Mainnet",
     "supported": true,
-    "rpc": ["https://mainnet15.telos.net/evm"],
+    "rpc": [
+      "https://mainnet15.telos.net/evm"
+    ],
     "fetchContractCreationTxUsing": {
       "telosApi": {
         "url": "https://api.teloscan.io/"
@@ -370,7 +374,9 @@
   "311752642": {
     "sourcifyName": "Oneledger Mainnet",
     "supported": true,
-    "rpc": ["https://mainnet-rpc.oneledger.network"],
+    "rpc": [
+      "https://mainnet-rpc.oneledger.network"
+    ],
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://mainnet-explorer.oneledger.network/"
@@ -1566,7 +1572,9 @@
         "url": "https://explorer-evm.testnet.swisstronik.com/"
       }
     },
-    "rpc": ["https://json-rpc.testnet.swisstronik.com"]
+    "rpc": [
+      "https://json-rpc.testnet.swisstronik.com"
+    ]
   },
   "80002": {
     "sourcifyName": "Polygon Amoy Testnet",
@@ -1696,5 +1704,41 @@
     "etherscanApi": {
       "apiURL": "https://api-sepolia.basescan.org/"
     }
+  },
+  "59144": {
+    "sourcifyName": "Linea Mainnet",
+    "supported": true,
+    "etherscanApi": {
+      "apiURL": "https://api.lineascan.build",
+      "apiKeyEnvName": "LINEASCAN_API_KEY"
+    },
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true
+    },
+    "rpc": [
+      {
+        "type": "Infura",
+        "url": "https://linea-mainnet.infura.io/v3/{INFURA_API_KEY}",
+        "apiKeyEnvName": "INFURA_API_KEY"
+      }
+    ]
+  },
+  "59141": {
+    "sourcifyName": "Linea Sepolia",
+    "supported": true,
+    "etherscanApi": {
+      "apiURL": "https://api-sepolia.lineascan.build",
+      "apiKeyEnvName": "LINEASCAN_API_KEY"
+    },
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true
+    },
+    "rpc": [
+      {
+        "type": "Infura",
+        "url": "https://linea-sepolia.infura.io/v3/{INFURA_API_KEY}",
+        "apiKeyEnvName": "INFURA_API_KEY"
+      }
+    ]
   }
 }

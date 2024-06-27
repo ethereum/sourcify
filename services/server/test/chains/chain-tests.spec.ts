@@ -1547,6 +1547,22 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
+  // Linea
+  verifyContract(
+    "0x1e80eAc9B0f143d1eC8f877AF07aC40E9aE65DBc",
+    "59144",
+    "Linea Mainnet",
+    "shared/",
+  );
+
+  // Linea Testnet
+  verifyContract(
+    "0xD20631457f3c80f77e10C9cCEC11229b5774DB35",
+    "59141",
+    "Linea Sepolia Testnet",
+    "shared/",
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests: ChainApiResponse[] = [];
     supportedChains
