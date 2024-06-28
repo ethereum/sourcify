@@ -17,7 +17,7 @@ module.exports = {
   storage: {
     read: RWStorageIdentifiers.SourcifyDatabase,
     writeOrWarn: [],
-    writeOrErr: [],
+    writeOrErr: [RWStorageIdentifiers.SourcifyDatabase],
   },
   solcRepo: "/home/app/compilers/solc",
   solJsonRepo: "/home/app/compilers/soljson",
