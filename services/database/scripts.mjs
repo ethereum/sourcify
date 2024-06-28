@@ -329,12 +329,16 @@ const processContract = async (
         files,
       };
 
+      const headers = {
+        "Content-Type": "application/json",
+      };
+      if (process.env.BEARER_TOKEN) {
+        headers.Authorization = `Bearer ${process.env.BEARER_TOKEN}`;
+      }
       const request = await fetch(`${sourcifyInstance}/verify`, {
         method: "POST",
         body: JSON.stringify(body),
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
       });
 
       if (request.status === 200) {
