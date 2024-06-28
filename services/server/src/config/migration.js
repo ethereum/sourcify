@@ -30,7 +30,7 @@ module.exports = {
     // credentials as env vars
   },
   rateLimit: {
-    enabled: true,
+    enabled: false,
     windowMs: 1 * 1000, // 1 sec
     max: 2,
   },
