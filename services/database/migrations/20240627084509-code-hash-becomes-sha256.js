@@ -1,3 +1,4 @@
+// Following the issue with empty code hashes in the database (https://github.com/verifier-alliance/pm/issues/4) the decision has been made to calculate the hashes on the DB level, instead of inserting the hash manually. Since keccak was not supported in Postgres natively, we switch to sha3-256 as the refrence hash but add an additional keccak column to the code table.
 "use strict";
 
 var async = require("async");

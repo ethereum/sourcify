@@ -194,6 +194,8 @@ export async function insertCode(
     "INSERT INTO code (code_hash, code, code_hash_keccak) VALUES (digest($1::bytea, 'sha3-256'), $1::bytea, $2) ON CONFLICT (code_hash) DO NOTHING RETURNING code_hash as bytecode_hash",
     [bytecode, bytecode_hash_keccak],
   );
+
+  // If there is a conflict (ie. code already exists), the response will be empty. We still need to return the object to fill other tables
   if (codeInsertResult.rows.length === 0) {
     codeInsertResult = await pool.query(
       `SELECT
