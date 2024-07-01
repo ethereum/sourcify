@@ -1,5 +1,6 @@
 const {
   RWStorageIdentifiers,
+  WStorageIdentifiers,
 } = require("../server/services/storageServices/identifiers");
 
 module.exports = {
@@ -17,7 +18,11 @@ module.exports = {
   storage: {
     read: RWStorageIdentifiers.SourcifyDatabase,
     writeOrWarn: [],
-    writeOrErr: [RWStorageIdentifiers.SourcifyDatabase],
+    writeOrErr: [
+      WStorageIdentifiers.RepositoryV2,
+      RWStorageIdentifiers.RepositoryV1,
+      RWStorageIdentifiers.SourcifyDatabase,
+    ],
   },
   solcRepo: "/home/app/compilers/solc",
   solJsonRepo: "/home/app/compilers/soljson",
