@@ -9,7 +9,7 @@ The migrations can be run to set up the Sourcify database.
 ## Running the migrations
 
 - Copy paste `.env.template` in `.env` and set the variables.
-- Run `npm run migrate:up ` to update the database to the latest version. This will run the `dev` config in [database.json](./database.json) with `localhost`. To run the migrations in production with `POSTGRES_HOST` use `npm run migrate:up -- --env production`
+- Run `npm run migrate:up` to update the database to the latest version. This will run the `dev` config in [database.json](./database.json) with `localhost`. To run the migrations in production with `POSTGRES_HOST` use `npm run migrate:up -- --env production`
 
 For convenience, you can run the Postgres container in `docker-compose.yml` with `docker-compose up`.
 
