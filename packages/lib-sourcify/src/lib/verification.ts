@@ -538,7 +538,7 @@ export async function matchWithCreationTx(
   try {
     creatorTx = await sourcifyChain.getTx(creatorTxHash);
     match.creatorTxHash = creatorTxHash;
-    match.blockNumber = creatorTx.blockNumber;
+    match.blockNumber = creatorTx.blockNumber || undefined;
     match.deployer = creatorTx.from;
 
     const { creationBytecode, txReceipt } =

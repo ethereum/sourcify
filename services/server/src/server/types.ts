@@ -75,3 +75,18 @@ export type MethodArgs<T, K extends keyof T> = T[K] extends (
 export type Mandatory<T> = {
   [P in keyof T]-?: T[P];
 };
+
+// Declare a unique symbol to be used as a brand key
+declare const __brand: unique symbol;
+// Define a generic type `Brand` that uses the unique symbol as a key
+type Brand<B> = { [__brand]: B };
+// Define a generic type `Branded` that combines a type `T` with a brand `B`
+type Branded<T, B> = T & Brand<B>;
+
+// In order to have two different types for BytesSha and BytesKeccak we "brand" them
+// with unique identifiers, this gives us stricter type safety
+export type Bytes = Buffer;
+export type BytesSha = Branded<Buffer, "SHA">;
+export type BytesKeccak = Branded<Buffer, "KECCAK">;
+
+export type BytesTypes = Bytes | BytesKeccak | BytesSha;
