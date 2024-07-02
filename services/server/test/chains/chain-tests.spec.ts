@@ -65,6 +65,20 @@ describe("Test Supported Chains", function () {
       );
     }
   });
+  // Taraxa Mainnet
+  verifyContract(
+    "0xDDb119FaD25d6320c62A205A8d74ae9895E822EA",
+    "841",
+    "Taraxa Mainnet",
+    "shared/",
+  );
+  // Taraxa Testnet
+  verifyContract(
+    "0x98edEa58C0500287B973348ec315f3d26D0e189A",
+    "842",
+    "Taraxa Testnet",
+    "shared/",
+  );
 
   // Symplexia Smart Chain
   verifyContract(
