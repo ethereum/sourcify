@@ -1,4 +1,4 @@
-// Following the issue with empty code hashes in the database (https://github.com/verifier-alliance/pm/issues/4) the decision has been made to calculate the hashes on the DB level, instead of inserting the hash manually. Since keccak was not supported in Postgres natively, we switch to sha3-256 as the refrence hash but add an additional keccak column to the code table.
+// Following the issue with empty code hashes in the database (https://github.com/verifier-alliance/pm/issues/4) the decision has been made to calculate the hashes on the DB level, instead of inserting the hash manually. Since keccak was not supported in Postgres natively, we switch to sha256 as the refrence hash but add an additional keccak column to the code table.
 "use strict";
 
 var async = require("async");
@@ -30,7 +30,7 @@ exports.up = function (db, callback) {
       ),
       db.runSql.bind(
         db,
-        `ALTER TABLE code ADD CONSTRAINT code_hash_check CHECK (code IS NOT NULL AND code_hash = digest(code, 'sha3-256') OR code IS NULL AND code_hash = '\\x'::bytea);`,
+        `ALTER TABLE code ADD CONSTRAINT code_hash_check CHECK (code IS NOT NULL AND code_hash = digest(code, 'sha256') OR code IS NULL AND code_hash = '\\x'::bytea);`,
       ),
       db.runSql.bind(
         db,

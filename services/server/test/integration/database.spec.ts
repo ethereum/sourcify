@@ -18,7 +18,7 @@ function toHexString(byteArray: number[]) {
 }
 
 function sha3_256(data: Bytes) {
-  const hash = crypto.createHash("sha3-256");
+  const hash = crypto.createHash("sha256");
   hash.update(data);
   return hash.digest("hex");
 }
