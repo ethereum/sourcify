@@ -1720,7 +1720,6 @@
     }
   },
   "841": {
-    "chainId": 841,
     "sourcifyName": "Taraxa Mainnet",
     "supported": true,
     "fetchContractCreationTxUsing": {
@@ -1730,7 +1729,6 @@
     }
   },
   "842": {
-    "chainId": 842,
     "sourcifyName": "Taraxa Testnet",
     "supported": true
   }
