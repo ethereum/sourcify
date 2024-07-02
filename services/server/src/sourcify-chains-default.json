@@ -1726,5 +1726,24 @@
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
     }
+  },
+  "841": {
+    "sourcifyName": "Taraxa Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://tara.to/api"
+      }
+    },
+    "rpc": [
+      "https://rpc.mainnet.taraxa.io"
+    ]
+  },
+  "842": {
+    "sourcifyName": "Taraxa Testnet",
+    "supported": true,
+    "rpc": [
+      "https://rpc.testnet.taraxa.io"
+    ]
   }
 }
