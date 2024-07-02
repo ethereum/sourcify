@@ -12,7 +12,7 @@ import {
 import { Pool, QueryResult } from "pg";
 import { AuthTypes, Connector } from "@google-cloud/cloud-sql-connector";
 import logger from "../../../common/logger";
-import { BytesKeccak } from "../../types";
+import { Bytes, BytesKeccak } from "../../types";
 
 export interface DatabaseServiceOptions {
   googleCloudSql?: {
@@ -219,25 +219,76 @@ export default abstract class AbstractDatabaseService {
     const creationMatch =
       match.creationMatch === "perfect" || match.creationMatch === "partial";
 
+    // runtime bytecodes must exist
+    if (recompiledContract.normalizedRuntimeBytecode === undefined) {
+      throw new Error("Missing normalized runtime bytecode");
+    }
+    if (match.onchainRuntimeBytecode === undefined) {
+      throw new Error("Missing onchain runtime bytecode");
+    }
+
+    let recompiledCreationCode:
+      | Omit<Database.Tables.Code, "bytecode_hash">
+      | undefined;
+    if (
+      recompiledContract.normalizedCreationBytecode &&
+      keccak256RecompiledCreationBytecode
+    ) {
+      recompiledCreationCode = {
+        bytecode_hash_keccak: bytesFromString<BytesKeccak>(
+          keccak256RecompiledCreationBytecode,
+        ),
+        bytecode: bytesFromString<Bytes>(
+          recompiledContract.normalizedCreationBytecode,
+        ),
+      };
+    }
+
+    let onchainCreationCode:
+      | Omit<Database.Tables.Code, "bytecode_hash">
+      | undefined;
+
+    if (match.onchainCreationBytecode && keccak256OnchainCreationBytecode) {
+      onchainCreationCode = {
+        bytecode_hash_keccak: bytesFromString<BytesKeccak>(
+          keccak256OnchainCreationBytecode,
+        ),
+        bytecode: bytesFromString<Bytes>(match.onchainCreationBytecode),
+      };
+    }
+
     return {
-      bytecodeHashes: {
-        keccak: {
-          recompiledCreation: bytesFromString<BytesKeccak>(
-            keccak256RecompiledCreationBytecode,
-          ),
-          recompiledRuntime: bytesFromString<BytesKeccak>(
-            keccak256RecompiledRuntimeBytecode,
-          ),
-          onchainCreation: bytesFromString<BytesKeccak>(
-            keccak256OnchainCreationBytecode,
-          ),
-          onchainRuntime: bytesFromString<BytesKeccak>(
-            keccak256OnchainRuntimeBytecode,
-          ),
-        },
+      recompiledCreationCode,
+      recompiledRuntimeCode: {
+        bytecode_hash_keccak: bytesFromString<BytesKeccak>(
+          keccak256RecompiledRuntimeBytecode,
+        ),
+        bytecode: bytesFromString<Bytes>(
+          recompiledContract.normalizedRuntimeBytecode,
+        ),
+      },
+      onchainCreationCode,
+      onchainRuntimeCode: {
+        bytecode_hash_keccak: bytesFromString<BytesKeccak>(
+          keccak256OnchainRuntimeBytecode,
+        ),
+        bytecode: bytesFromString<Bytes>(match.onchainRuntimeBytecode),
+      },
+      contractDeployment: {
+        chain_id: match.chainId,
+        address: bytesFromString(match.address),
+        transaction_hash: bytesFromString(match.creatorTxHash),
+        block_number: match.blockNumber,
+        txindex: match.txIndex,
+        deployer: bytesFromString(match.deployer),
       },
       compiledContract: {
         language,
+        compiler: "solc",
+        compiler_settings: Database.prepareCompilerSettings(recompiledContract),
+        name: recompiledContract.name,
+        sources: recompiledContract.solidity,
+        version: recompiledContract.compilerVersion,
         fully_qualified_name: `${compilationTargetPath}:${compilationTargetName}`,
         compilation_artifacts: compilationArtifacts,
         creation_code_artifacts: creationCodeArtifacts,
@@ -259,13 +310,6 @@ export default abstract class AbstractDatabaseService {
     match: Match,
     databaseColumns: Database.DatabaseColumns,
   ): Promise<number> {
-    // runtime bytecodes must exist
-    if (recompiledContract.normalizedRuntimeBytecode === undefined) {
-      throw new Error("Missing normalized runtime bytecode");
-    }
-    if (match.onchainRuntimeBytecode === undefined) {
-      throw new Error("Missing onchain runtime bytecode");
-    }
     try {
       let recompiledCreationCodeInsertResult:
         | QueryResult<Pick<Database.Tables.Code, "bytecode_hash">>
@@ -273,54 +317,29 @@ export default abstract class AbstractDatabaseService {
       let onchainCreationCodeInsertResult:
         | QueryResult<Pick<Database.Tables.Code, "bytecode_hash">>
         | undefined;
+
       // Add recompiled bytecodes
-      if (
-        recompiledContract.normalizedCreationBytecode &&
-        databaseColumns.bytecodeHashes.keccak.recompiledCreation
-      ) {
+      if (databaseColumns.recompiledCreationCode) {
         recompiledCreationCodeInsertResult = await Database.insertCode(
           this.databasePool,
-          {
-            bytecode_hash_keccak:
-              databaseColumns.bytecodeHashes.keccak.recompiledCreation,
-            bytecode: bytesFromString(
-              recompiledContract.normalizedCreationBytecode,
-            ),
-          },
+          databaseColumns.recompiledCreationCode,
         );
       }
       const recompiledRuntimeCodeInsertResult = await Database.insertCode(
         this.databasePool,
-        {
-          bytecode_hash_keccak:
-            databaseColumns.bytecodeHashes.keccak.recompiledRuntime,
-          bytecode: bytesFromString(
-            recompiledContract.normalizedRuntimeBytecode,
-          ),
-        },
+        databaseColumns.recompiledRuntimeCode,
       );
 
       // Add onchain bytecodes
-      if (
-        match.onchainCreationBytecode &&
-        databaseColumns.bytecodeHashes.keccak.onchainCreation
-      ) {
+      if (databaseColumns.onchainCreationCode) {
         onchainCreationCodeInsertResult = await Database.insertCode(
           this.databasePool,
-          {
-            bytecode_hash_keccak:
-              databaseColumns.bytecodeHashes.keccak.onchainCreation,
-            bytecode: bytesFromString(match.onchainCreationBytecode),
-          },
+          databaseColumns.onchainCreationCode,
         );
       }
       const onchainRuntimeCodeInsertResult = await Database.insertCode(
         this.databasePool,
-        {
-          bytecode_hash_keccak:
-            databaseColumns.bytecodeHashes.keccak.onchainRuntime,
-          bytecode: bytesFromString(match.onchainRuntimeBytecode),
-        },
+        databaseColumns.onchainRuntimeCode,
       );
 
       // Add the onchain contract in contracts
@@ -337,53 +356,26 @@ export default abstract class AbstractDatabaseService {
       // add the onchain contract in contract_deployments
       const contractDeploymentInsertResult =
         await Database.insertContractDeployment(this.databasePool, {
-          chain_id: match.chainId,
-          address: bytesFromString(match.address),
-          transaction_hash: bytesFromString(match.creatorTxHash),
+          ...databaseColumns.contractDeployment,
           contract_id: contractInsertResult.rows[0].id,
-          block_number: match.blockNumber,
-          txindex: match.txIndex,
-          deployer: bytesFromString(match.deployer),
         });
 
       // insert new recompiled contract
       const compiledContractsInsertResult =
         await Database.insertCompiledContract(this.databasePool, {
-          compiler: "solc",
-          version: recompiledContract.compilerVersion,
-          language: databaseColumns.compiledContract.language,
-          name: recompiledContract.name,
-          fully_qualified_name:
-            databaseColumns.compiledContract.fully_qualified_name,
-          compilation_artifacts:
-            databaseColumns.compiledContract.compilation_artifacts,
-          sources: recompiledContract.solidity,
-          compiler_settings:
-            Database.prepareCompilerSettings(recompiledContract),
+          ...databaseColumns.compiledContract,
           creation_code_hash:
             recompiledCreationCodeInsertResult?.rows[0].bytecode_hash,
           runtime_code_hash:
             recompiledRuntimeCodeInsertResult.rows[0].bytecode_hash,
-          creation_code_artifacts:
-            databaseColumns.compiledContract.creation_code_artifacts,
-          runtime_code_artifacts:
-            databaseColumns.compiledContract.runtime_code_artifacts,
         });
 
       // insert new recompiled contract with newly added contract and compiledContract
       const verifiedContractInsertResult =
         await Database.insertVerifiedContract(this.databasePool, {
+          ...databaseColumns.verifiedContract,
           compilation_id: compiledContractsInsertResult.rows[0].id,
           deployment_id: contractDeploymentInsertResult.rows[0].id,
-          creation_transformations:
-            databaseColumns.verifiedContract.creation_transformations,
-          creation_values:
-            databaseColumns.verifiedContract.creation_values || {},
-          runtime_transformations:
-            databaseColumns.verifiedContract.runtime_transformations,
-          runtime_values: databaseColumns.verifiedContract.runtime_values || {},
-          runtime_match: databaseColumns.verifiedContract.runtime_match,
-          creation_match: databaseColumns.verifiedContract.creation_match,
         });
       return verifiedContractInsertResult.rows[0].id;
     } catch (e) {
@@ -457,25 +449,16 @@ export default abstract class AbstractDatabaseService {
       if (
         existingVerifiedContractResult[0].transaction_hash === null &&
         match.creatorTxHash != null &&
-        match.onchainCreationBytecode &&
-        databaseColumns.bytecodeHashes.keccak.onchainCreation
+        databaseColumns.onchainCreationCode
       ) {
         onchainCreationCodeInsertResult = await Database.insertCode(
           this.databasePool,
-          {
-            bytecode_hash_keccak:
-              databaseColumns.bytecodeHashes.keccak.onchainCreation,
-            bytecode: bytesFromString(match.onchainCreationBytecode),
-          },
+          databaseColumns.onchainCreationCode,
         );
 
         const onchainRuntimeCodeInsertResult = await Database.insertCode(
           this.databasePool,
-          {
-            bytecode_hash_keccak:
-              databaseColumns.bytecodeHashes.keccak.onchainRuntime,
-            bytecode: bytesFromString(match.onchainRuntimeBytecode),
-          },
+          databaseColumns.onchainRuntimeCode,
         );
 
         // Add the onchain contract in contracts
@@ -491,10 +474,7 @@ export default abstract class AbstractDatabaseService {
 
         // add the onchain contract in contract_deployments
         await Database.updateContractDeployment(this.databasePool, {
-          transaction_hash: bytesFromString(match.creatorTxHash),
-          block_number: match.blockNumber,
-          txindex: match.txIndex,
-          deployer: bytesFromString(match.deployer),
+          ...databaseColumns.contractDeployment,
           contract_id: contractInsertResult.rows[0].id,
           id: existingVerifiedContractResult[0].deployment_id,
         });
@@ -503,67 +483,34 @@ export default abstract class AbstractDatabaseService {
       // Add recompiled bytecodes
       if (
         recompiledContract.normalizedCreationBytecode &&
-        databaseColumns.bytecodeHashes.keccak.recompiledCreation
+        databaseColumns.recompiledCreationCode
       ) {
         recompiledCreationCodeInsertResult = await Database.insertCode(
           this.databasePool,
-          {
-            bytecode_hash_keccak:
-              databaseColumns.bytecodeHashes.keccak.recompiledCreation,
-            bytecode: bytesFromString(
-              recompiledContract.normalizedCreationBytecode,
-            )!,
-          },
+          databaseColumns.recompiledCreationCode,
         );
       }
       const recompiledRuntimeCodeInsertResult = await Database.insertCode(
         this.databasePool,
-        {
-          bytecode_hash_keccak:
-            databaseColumns.bytecodeHashes.keccak.recompiledRuntime,
-          bytecode: bytesFromString(
-            recompiledContract.normalizedRuntimeBytecode,
-          )!,
-        },
+        databaseColumns.recompiledRuntimeCode,
       );
 
       // insert new recompiled contract
       const compiledContractsInsertResult =
         await Database.insertCompiledContract(this.databasePool, {
-          compiler: recompiledContract.compiledPath,
-          version: recompiledContract.compilerVersion,
-          language: databaseColumns.compiledContract.language,
-          name: recompiledContract.name,
-          fully_qualified_name:
-            databaseColumns.compiledContract.fully_qualified_name,
-          compilation_artifacts:
-            databaseColumns.compiledContract.compilation_artifacts,
-          sources: recompiledContract.solidity,
-          compiler_settings: recompiledContract.metadata.settings,
+          ...databaseColumns.compiledContract,
           creation_code_hash:
             recompiledCreationCodeInsertResult?.rows[0].bytecode_hash,
           runtime_code_hash:
             recompiledRuntimeCodeInsertResult.rows[0].bytecode_hash,
-          creation_code_artifacts:
-            databaseColumns.compiledContract.creation_code_artifacts,
-          runtime_code_artifacts:
-            databaseColumns.compiledContract.runtime_code_artifacts,
         });
 
       // update verified contract with the newly added recompiled contract
       const verifiedContractInsertResult =
         await Database.insertVerifiedContract(this.databasePool, {
+          ...databaseColumns.verifiedContract,
           compilation_id: compiledContractsInsertResult.rows[0].id,
           deployment_id: existingVerifiedContractResult[0].deployment_id,
-          creation_transformations:
-            databaseColumns.verifiedContract.creation_transformations,
-          creation_values:
-            databaseColumns.verifiedContract.creation_values || {},
-          runtime_transformations:
-            databaseColumns.verifiedContract.runtime_transformations,
-          runtime_values: databaseColumns.verifiedContract.runtime_values || {},
-          runtime_match: databaseColumns.verifiedContract.runtime_match,
-          creation_match: databaseColumns.verifiedContract.creation_match,
         });
 
       return verifiedContractInsertResult.rows[0].id;

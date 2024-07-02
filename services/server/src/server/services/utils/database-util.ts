@@ -91,31 +91,20 @@ export namespace Tables {
   }
 }
 
+// This object contains all Tables fields except foreign keys generated during INSERTs
 export interface DatabaseColumns {
-  bytecodeHashes: {
-    keccak: {
-      recompiledCreation?: BytesKeccak;
-      recompiledRuntime: BytesKeccak;
-      onchainCreation?: BytesKeccak;
-      onchainRuntime: BytesKeccak;
-    };
-  };
-  compiledContract: Pick<
+  recompiledCreationCode?: Omit<Tables.Code, "bytecode_hash">;
+  recompiledRuntimeCode: Omit<Tables.Code, "bytecode_hash">;
+  onchainCreationCode?: Omit<Tables.Code, "bytecode_hash">;
+  onchainRuntimeCode: Omit<Tables.Code, "bytecode_hash">;
+  contractDeployment: Omit<Tables.ContractDeployment, "id" | "contract_id">;
+  compiledContract: Omit<
     Tables.CompiledContract,
-    | "language"
-    | "fully_qualified_name"
-    | "compilation_artifacts"
-    | "creation_code_artifacts"
-    | "runtime_code_artifacts"
+    "id" | "creation_code_hash" | "runtime_code_hash"
   >;
-  verifiedContract: Pick<
+  verifiedContract: Omit<
     Tables.VerifiedContract,
-    | "runtime_transformations"
-    | "creation_transformations"
-    | "runtime_values"
-    | "creation_values"
-    | "runtime_match"
-    | "creation_match"
+    "id" | "compilation_id" | "deployment_id"
   >;
 }
 
