@@ -85,6 +85,11 @@ exports.down = function (db, callback) {
       db.dropTable.bind(db, "session"),
       db.dropTable.bind(db, "sourcify_sync"),
       db.dropTable.bind(db, "sourcify_matches"),
+      db.runSql.bind(db, "DELETE FROM verified_contracts;"),
+      db.runSql.bind(db, "DELETE FROM contract_deployments;"),
+      db.runSql.bind(db, "DELETE FROM compiled_contracts;"),
+      db.runSql.bind(db, "DELETE FROM contracts;"),
+      db.runSql.bind(db, "DELETE FROM code;"),
       db.runSql.bind(
         db,
         `ALTER TABLE compiled_contracts DROP CONSTRAINT compiled_contracts_pseudo_pkey;
@@ -92,11 +97,6 @@ exports.down = function (db, callback) {
         ALTER TABLE compiled_contracts ALTER COLUMN creation_code_artifacts SET NOT NULL;
         ALTER TABLE compiled_contracts ALTER COLUMN creation_code_hash SET NOT NULL;`,
       ),
-      db.runSql.bind(db, "DELETE FROM verified_contracts;"),
-      db.runSql.bind(db, "DELETE FROM contract_deployments;"),
-      db.runSql.bind(db, "DELETE FROM compiled_contracts;"),
-      db.runSql.bind(db, "DELETE FROM contracts;"),
-      db.runSql.bind(db, "DELETE FROM code;"),
       db.runSql.bind(
         db,
         `ALTER TABLE contract_deployments ALTER COLUMN deployer SET NOT NULL;
