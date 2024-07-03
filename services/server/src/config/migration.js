@@ -30,7 +30,7 @@ module.exports = {
     secure: true, // Set Secure in the Set-Cookie header i.e. require https
   },
   lambdaCompiler: {
-    enabled: true,
+    enabled: false,
     functionName: "compile",
     // credentials as env vars
   },
