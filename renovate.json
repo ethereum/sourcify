@@ -12,9 +12,13 @@
       "groupSlug": "all-patch"
     },
     {
-      "updateTypes": ["minor"],
+      "matchUpdateTypes": ["minor"],
       "groupName": "all minor dependencies",
       "groupSlug": "all-minor"
+    },
+    {
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
     }
   ],
   "rangeStrategy": "pin",
