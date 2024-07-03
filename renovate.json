@@ -15,12 +15,11 @@
       "matchUpdateTypes": ["minor"],
       "groupName": "all minor dependencies",
       "groupSlug": "all-minor"
-    },
-    {
-      "matchUpdateTypes": ["major"],
-      "dependencyDashboardApproval": true
     }
   ],
+  "major": {
+    "dependencyDashboardApproval": true
+  },
   "rangeStrategy": "pin",
   "timezone": "Europe/Berlin"
 }
