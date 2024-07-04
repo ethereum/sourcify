@@ -39,16 +39,16 @@
   },
   "homepage": "https://sourcify.dev",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^6.9.0",
-    "@typescript-eslint/parser": "^6.9.0",
-    "eslint": "^8.52.0",
-    "eslint-config-prettier": "^9.0.0",
-    "lerna": "^8.1.3",
-    "prettier": "^3.3.2",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.4.5"
+    "@typescript-eslint/eslint-plugin": "6.21.0",
+    "@typescript-eslint/parser": "6.21.0",
+    "eslint": "8.57.0",
+    "eslint-config-prettier": "9.1.0",
+    "lerna": "8.1.5",
+    "prettier": "3.3.2",
+    "ts-node": "10.9.2",
+    "typescript": "5.4.5"
   },
   "optionalDependencies": {
-    "fsevents": "*"
+    "fsevents": "2.3.3"
   }
 }

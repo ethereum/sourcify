@@ -3,37 +3,37 @@
   "version": "1.1.6",
   "private": true,
   "dependencies": {
-    "@ethersproject/abi": "^5.7.0",
-    "@ethersproject/address": "^5.6.1",
-    "@ethersproject/bytes": "^5.7.0",
-    "@ethersproject/hash": "^5.7.0",
-    "@ethersproject/keccak256": "^5.7.0",
-    "@headlessui/react": "^1.4.2",
-    "@testing-library/react": "^12.1.2",
-    "@testing-library/user-event": "^13.5.0",
-    "aos": "^2.3.4",
-    "bytes": "^3.1.2",
-    "fuse.js": "^6.5.0",
-    "http-status-codes": "^2.2.0",
-    "react": "^17.0.2",
-    "react-device-detect": "^2.2.2",
-    "react-dom": "^17.0.2",
-    "react-dropzone": "^11.4.2",
-    "react-icons": "^4.3.1",
-    "react-responsive-carousel": "^3.2.22",
-    "react-router-dom": "^6.1.1",
-    "react-select-search": "^3.0.9",
-    "react-syntax-highlighter": "^15.4.5",
-    "react-tooltip": "^4.2.21",
-    "recharts": "^2.1.8",
-    "web-vitals": "^2.1.2"
+    "@ethersproject/abi": "5.7.0",
+    "@ethersproject/address": "5.7.0",
+    "@ethersproject/bytes": "5.7.0",
+    "@ethersproject/hash": "5.7.0",
+    "@ethersproject/keccak256": "5.7.0",
+    "@headlessui/react": "1.7.19",
+    "@testing-library/react": "12.1.5",
+    "@testing-library/user-event": "13.5.0",
+    "aos": "2.3.4",
+    "bytes": "3.1.2",
+    "fuse.js": "6.6.2",
+    "http-status-codes": "2.3.0",
+    "react": "17.0.2",
+    "react-device-detect": "2.2.3",
+    "react-dom": "17.0.2",
+    "react-dropzone": "11.7.1",
+    "react-icons": "4.12.0",
+    "react-responsive-carousel": "3.2.23",
+    "react-router-dom": "6.24.0",
+    "react-select-search": "3.0.10",
+    "react-syntax-highlighter": "15.5.0",
+    "react-tooltip": "4.5.1",
+    "recharts": "2.12.7",
+    "web-vitals": "2.1.4"
   },
   "optionalDependencies": {
-    "fsevents": "^2.3.2"
+    "fsevents": "2.3.3"
   },
   "overrides": {
     "react-scripts": {
-      "typescript": "^5"
+      "typescript": "5.4.5"
     }
   },
   "scripts": {
@@ -61,16 +61,16 @@
     ]
   },
   "devDependencies": {
-    "@types/aos": "^3.0.4",
-    "@types/bytes": "^3.1.1",
-    "@types/node": "^20.10.0",
-    "@types/react": "^17.0.37",
-    "@types/react-dom": "^17.0.11",
-    "@types/react-syntax-highlighter": "^13.5.2",
-    "autoprefixer": "^10.4.0",
-    "postcss": "^8.4.5",
-    "react-scripts": "^5.0.1",
-    "tailwindcss": "^3.0.3"
+    "@types/aos": "3.0.7",
+    "@types/bytes": "3.1.4",
+    "@types/node": "20.14.8",
+    "@types/react": "17.0.80",
+    "@types/react-dom": "17.0.25",
+    "@types/react-syntax-highlighter": "13.5.2",
+    "autoprefixer": "10.4.19",
+    "postcss": "8.4.38",
+    "react-scripts": "5.0.1",
+    "tailwindcss": "3.4.4"
   },
   "homepage": "./"
 }
