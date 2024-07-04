@@ -572,7 +572,9 @@ export async function performFetch(
     hash,
     fileName,
   });
-  const res = await fetchWithBackoff(url);
+  const res = await fetchWithBackoff(url).catch((err) => {
+    logError(err);
+  });
 
   if (res) {
     if (res.status === 200) {
