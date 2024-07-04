@@ -30,7 +30,7 @@ export async function fetchWithBackoff(
 
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
-      logger.debug("Start fetchWithBackoff", { resource, timeout, attempt });
+      logger.silly("Start fetchWithBackoff", { resource, timeout, attempt });
       const controller = new AbortController();
       const id = setTimeout(() => {
         logger.debug("Aborting request", { resource, timeout, attempt });
@@ -39,7 +39,7 @@ export async function fetchWithBackoff(
       const response = await fetch(resource, {
         signal: controller.signal,
       });
-      logger.debug("Success fetchWithBackoff", { resource, timeout, attempt });
+      logger.silly("Success fetchWithBackoff", { resource, timeout, attempt });
       clearTimeout(id);
       return response;
     } catch (error) {
@@ -264,7 +264,7 @@ async function fetchAndSaveSolc(
 ): Promise<boolean> {
   const encodedURIFilename = encodeURIComponent(fileName);
   const githubSolcURI = `${HOST_SOLC_REPO}${platform}/${encodedURIFilename}`;
-  logger.info("Fetching solc", { version, platform, githubSolcURI });
+  logger.info("Fetching solc", { version, platform, githubSolcURI, solcPath });
   let res = await fetchWithBackoff(githubSolcURI);
   let status = res.status;
   let buffer;
@@ -284,7 +284,6 @@ async function fetchAndSaveSolc(
   }
 
   if (status === StatusCodes.OK && buffer) {
-    logger.info("Fetched solc", { version, platform, githubSolcURI });
     fs.mkdirSync(path.dirname(solcPath), { recursive: true });
 
     try {
@@ -293,10 +292,16 @@ async function fetchAndSaveSolc(
       undefined;
     }
     fs.writeFileSync(solcPath, new DataView(buffer), { mode: 0o755 });
+    logger.info("Saved solc", { version, platform, githubSolcURI, solcPath });
 
     return true;
   } else {
-    logger.warn("Failed fetching solc", { version, platform, githubSolcURI });
+    logger.warn("Failed fetching solc", {
+      version,
+      platform,
+      githubSolcURI,
+      solcPath,
+    });
   }
 
   return false;
@@ -331,7 +336,7 @@ export async function getSolcJs(version = "latest"): Promise<any> {
   const soljsonPath = path.resolve(soljsonRepo, fileName);
 
   if (!fs.existsSync(soljsonPath)) {
-    logger.debug("Solc not found locally, downloading", {
+    logger.debug("Solc-js not found locally, downloading", {
       version,
       soljsonPath,
     });

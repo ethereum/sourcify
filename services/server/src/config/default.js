@@ -45,6 +45,8 @@ module.exports = {
     enabled: false,
     // functionName: "compile",
   },
+  // If true, downloads all production version compilers and saves them.
+  initCompilers: false,
   corsAllowedOrigins: [
     /^https?:\/\/(?:.+\.)?sourcify.dev$/, // sourcify.dev and subdomains
     /^https?:\/\/(?:.+\.)?sourcify.eth$/, // sourcify.eth and subdomains

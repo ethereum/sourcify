@@ -34,6 +34,7 @@ module.exports = {
     functionName: "compile",
     // credentials as env vars
   },
+  initCompilers: true,
   rateLimit: {
     enabled: false,
     windowMs: 1 * 1000, // 1 sec

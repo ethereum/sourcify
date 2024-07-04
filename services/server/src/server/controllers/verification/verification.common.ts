@@ -19,7 +19,7 @@ import {
 import { Session } from "express-session";
 import { AbiConstructor, AbiParameter } from "abitype";
 import QueryString from "qs";
-import { IVerificationService } from "../../services/VerificationService";
+import { VerificationService } from "../../services/VerificationService";
 import { ContractMeta, ContractWrapper, getMatchStatus } from "../../common";
 import { ISolidityCompiler } from "@ethereum-sourcify/lib-sourcify";
 import { SolcLambdaWithLocalFallback } from "../../services/compiler/lambda-with-fallback/SolcLambdaWithLocalFallback";
@@ -343,7 +343,7 @@ export function isVerifiable(contractWrapper: ContractWrapper) {
 export const verifyContractsInSession = async (
   contractWrappers: ContractWrapperMap = {},
   session: Session,
-  verificationService: IVerificationService,
+  verificationService: VerificationService,
   storageService: StorageService,
   dryRun: boolean = false,
 ): Promise<void> => {
