@@ -15,7 +15,7 @@ import {
   StringMap,
 } from './types';
 import semver from 'semver';
-import { fetchWithTimeout } from './utils';
+import { fetchWithBackoff } from './utils';
 import { storeByHash } from './validation';
 import {
   decode as decodeBytecode,
@@ -28,7 +28,6 @@ import { ISolidityCompiler } from './ISolidityCompiler';
 
 // TODO: find a better place for these constants. Reminder: this sould work also in the browser
 const IPFS_PREFIX = 'dweb:/ipfs/';
-const FETCH_TIMEOUT = parseInt(process.env.FETCH_TIMEOUT || '') || 3000; // ms
 /**
  * Abstraction of a checked solidity contract. With metadata and source (solidity) files.
  */
@@ -573,18 +572,7 @@ export async function performFetch(
     hash,
     fileName,
   });
-  const res = await fetchWithTimeout(url, { timeout: FETCH_TIMEOUT }).catch(
-    (err) => {
-      if (err.type === 'aborted')
-        logWarn('Timeout fetching the file', {
-          url,
-          hash,
-          fileName,
-          timeout: FETCH_TIMEOUT,
-        });
-      else logError(err);
-    },
-  );
+  const res = await fetchWithBackoff(url);
 
   if (res) {
     if (res.status === 200) {
