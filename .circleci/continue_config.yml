@@ -29,7 +29,7 @@ parameters:
 aliases:
   - &build-base
     docker:
-      - image: cimg/base:2024.02
+      - image: cimg/base:2024.07
     resource_class: large
     parameters:
       run-build:
@@ -227,7 +227,7 @@ jobs:
       DOCKERFILE: "./ui/Dockerfile"
   publish-multiarch-images:
     docker:
-      - image: cimg/base:2024.02
+      - image: cimg/base:2024.07
     resource_class: small
     steps:
       - checkout
@@ -240,7 +240,7 @@ jobs:
             ./.circleci/scripts/publish_multiarch_images.sh
   deploy:
     docker:
-      - image: cimg/base:2024.02
+      - image: cimg/base:2024.07
     resource_class: small
     steps:
       - checkout

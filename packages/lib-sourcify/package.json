@@ -63,16 +63,16 @@
     "@types/node": "20.14.8",
     "c8": "10.1.2",
     "chai": "4.4.1",
-    "cspell": "8.9.1",
+    "cspell": "8.10.0",
     "cz-conventional-changelog": "3.3.0",
     "gh-pages": "6.1.1",
     "hardhat": "2.22.6",
-    "mocha": "10.5.1",
+    "mocha": "10.6.0",
     "npm-run-all2": "5.0.0",
     "open-cli": "8.0.0",
     "solc": "0.8.26",
     "tree-kill": "1.2.2",
-    "typedoc": "0.25.13"
+    "typedoc": "0.26.3"
   },
   "files": [
     "build/main",

@@ -18,7 +18,7 @@ parameters:
 # the path of an updated fileset see https://circleci.com/docs/2.0/using-dynamic-configuration/
 orbs:
   path-filtering: circleci/path-filtering@0.1.7
-  continuation: circleci/continuation@0.3.1
+  continuation: circleci/continuation@0.5.0
 
 # Can add multiple workflows in setup since only one of these will run. Otherwise it's not possible: https://support.circleci.com/hc/en-us/articles/360060934851--Max-number-of-workflows-exceeded-error
 workflows:
@@ -165,7 +165,7 @@ workflows:
 aliases:
   - &build-base
     docker:
-      - image: cimg/base:2024.02
+      - image: cimg/base:2024.07
     resource_class: large
     parameters:
       run-build:
@@ -246,7 +246,7 @@ jobs:
       DOCKERFILE: "./ui/Dockerfile"
   publish-multiarch-images:
     docker:
-      - image: cimg/base:2024.02
+      - image: cimg/base:2024.07
     resource_class: small
     steps:
       - checkout
