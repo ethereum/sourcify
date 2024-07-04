@@ -14,7 +14,7 @@ import {
 } from "./compiler/local/solidityCompiler";
 
 export interface VerificationServiceOptions {
-  initCompilers: boolean;
+  initCompilers?: boolean;
   supportedChainsMap: SourcifyChainMap;
 }
 
@@ -27,7 +27,7 @@ export class VerificationService {
 
   constructor(options: VerificationServiceOptions) {
     this.supportedChainsMap = options.supportedChainsMap;
-    this.initCompilers = options.initCompilers;
+    this.initCompilers = options.initCompilers || false;
   }
 
   // All of the solidity compilation actually run outside the VerificationService but this is an OK place to init everything.
