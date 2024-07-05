@@ -63,7 +63,7 @@
   "devDependencies": {
     "@types/aos": "3.0.7",
     "@types/bytes": "3.1.4",
-    "@types/node": "20.14.9",
+    "@types/node": "20.14.10",
     "@types/react": "17.0.80",
     "@types/react-dom": "17.0.25",
     "@types/react-syntax-highlighter": "13.5.2",
