@@ -8,11 +8,11 @@ module.exports = {
     port: 80,
   },
   repositoryV1: {
-    path: "/home/app/repository",
+    path: "/home/app/data/repository",
     serverUrl: "https://repo.staging.sourcify.dev",
   },
   repositoryV2: {
-    path: "/home/app/repositoryV2",
+    path: "/home/app/data/repositoryV2",
   },
   // The storage services where the verified contract be saved and read from
   storage: {
@@ -24,8 +24,8 @@ module.exports = {
       RWStorageIdentifiers.SourcifyDatabase,
     ],
   },
-  solcRepo: "/home/app/compilers/solc",
-  solJsonRepo: "/home/app/compilers/soljson",
+  solcRepo: "/home/app/data/compilers/solc",
+  solJsonRepo: "/home/app/data/compilers/soljson",
   session: {
     secure: true, // Set Secure in the Set-Cookie header i.e. require https
   },
