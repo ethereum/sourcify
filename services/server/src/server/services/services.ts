@@ -1,16 +1,18 @@
-import { SourcifyChainMap } from "@ethereum-sourcify/lib-sourcify";
 import { StorageService, StorageServiceOptions } from "./StorageService";
-import { VerificationService } from "./VerificationService";
+import {
+  VerificationService,
+  VerificationServiceOptions,
+} from "./VerificationService";
 
 export class Services {
   private _verification?: VerificationService;
   private _storage?: StorageService;
 
   constructor(
-    verificationServiceOption: SourcifyChainMap,
+    verificationServiceOptions: VerificationServiceOptions,
     storageServiceOptions: StorageServiceOptions,
   ) {
-    this._verification = new VerificationService(verificationServiceOption);
+    this._verification = new VerificationService(verificationServiceOptions);
     this._storage = new StorageService(storageServiceOptions);
   }
 
@@ -26,5 +28,6 @@ export class Services {
 
   public async init() {
     await this.storage.init();
+    await this.verification.init();
   }
 }

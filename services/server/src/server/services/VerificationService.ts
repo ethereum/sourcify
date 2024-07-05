@@ -7,25 +7,75 @@ import {
 import { getCreatorTx } from "./utils/contract-creation-util";
 import { ContractIsAlreadyBeingVerifiedError } from "../../common/errors/ContractIsAlreadyBeingVerifiedError";
 import logger from "../../common/logger";
+import {
+  findSolcPlatform,
+  getSolcExecutable,
+  getSolcJs,
+} from "./compiler/local/solidityCompiler";
 
-export interface IVerificationService {
+export interface VerificationServiceOptions {
+  initCompilers?: boolean;
   supportedChainsMap: SourcifyChainMap;
-  verifyDeployed(
-    checkedContract: CheckedContract,
-    chainId: string,
-    address: string,
-    creatorTxHash?: string,
-  ): Promise<Match>;
 }
 
-export class VerificationService implements IVerificationService {
+export class VerificationService {
+  initCompilers: boolean;
   supportedChainsMap: SourcifyChainMap;
   activeVerificationsByChainIdAddress: {
     [chainIdAndAddress: string]: boolean;
   } = {};
 
-  constructor(supportedChainsMap: SourcifyChainMap) {
-    this.supportedChainsMap = supportedChainsMap;
+  constructor(options: VerificationServiceOptions) {
+    this.supportedChainsMap = options.supportedChainsMap;
+    this.initCompilers = options.initCompilers || false;
+  }
+
+  // All of the solidity compilation actually run outside the VerificationService but this is an OK place to init everything.
+  public async init() {
+    const HOST_SOLC_REPO = "https://binaries.soliditylang.org/";
+
+    if (this.initCompilers) {
+      const platform = findSolcPlatform() || "bin"; // fallback to emscripten binaries "bin"
+      logger.info(`Initializing compilers for platform ${platform}`);
+
+      // solc binary and solc-js downloads are handled with different helpers
+      const downLoadFunc =
+        platform === "bin"
+          ? (version: string) => getSolcJs(version)
+          : (version: string) => getSolcExecutable(platform, version);
+
+      // get the list of compiler versions
+      const solcList = await fetch(`${HOST_SOLC_REPO}${platform}/list.json`)
+        .then((response) => response.json())
+        .then((data) =>
+          (Object.values(data.releases) as string[])
+            .map((str) => str.split("-v")[1]) // e.g. soljson-v0.8.26+commit.8a97fa7a.js or solc-linux-amd64-v0.8.26+commit.8a97fa7a
+            .map(
+              (str) => (str.endsWith(".js") ? str.slice(0, -3) : str), // remove .js extension
+            ),
+        );
+
+      const chunkSize = 10; // Download in chunks to not overload the Solidity server all at once
+      for (let i = 0; i < solcList.length; i += chunkSize) {
+        const chunk = solcList.slice(i, i + chunkSize);
+        const promises = chunk.map((solcVer) => {
+          const now = Date.now();
+          return downLoadFunc(solcVer).then(() => {
+            logger.debug(
+              `Downloaded (or found existing) compiler ${solcVer} in ${Date.now() - now}ms`,
+            );
+          });
+        });
+
+        await Promise.all(promises);
+        logger.debug(
+          `Batch ${i / chunkSize + 1} - Downloaded ${promises.length} - Total ${i + chunkSize}/${solcList.length}`,
+        );
+      }
+
+      logger.info("Initialized compilers");
+    }
+    return true;
   }
 
   private throwIfContractIsAlreadyBeingVerified(

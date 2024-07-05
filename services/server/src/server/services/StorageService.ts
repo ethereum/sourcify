@@ -212,33 +212,18 @@ export class StorageService {
       ...this.getWriteOrErrServices(),
     ].filter((service) => service !== undefined) as WStorageService[];
 
-    // Create object: StorageIdentifier => Storage
-    const enabledServices = enabledServicesArray.reduce(
-      (
-        services: { [key in StorageIdentifiers]: WStorageService },
-        service: WStorageService,
-      ) => {
-        services[service.IDENTIFIER] = service;
-        return services;
-      },
-      {} as { [key in StorageIdentifiers]: WStorageService },
-    );
-
     logger.debug("Initializing used storage services", {
-      storageServices: Object.keys(enabledServices),
+      storageServices: enabledServicesArray.map(
+        (service) => service.IDENTIFIER,
+      ),
     });
 
     // Try to initialize used storage services
-    for (const serviceIdentifier of Object.keys(
-      enabledServices,
-    ) as RWStorageIdentifiers[]) {
-      if (
-        !(await { ...this.rwServices, ...this.wServices }[
-          serviceIdentifier
-        ].init())
-      ) {
+    for (const service of enabledServicesArray) {
+      logger.debug(`Initializing storage service: ${service.IDENTIFIER}`);
+      if (!(await service.init())) {
         throw new Error(
-          "Cannot initialize default storage service: " + serviceIdentifier,
+          "Cannot initialize default storage service: " + service.IDENTIFIER,
         );
       }
     }

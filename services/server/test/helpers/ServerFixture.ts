@@ -77,33 +77,37 @@ export class ServerFixture {
         throw new Error("Not all required environment variables set");
       }
 
-      this._server = new Server(options.port!, supportedChainsMap, {
-        enabledServices: {
-          read: options.read,
-          writeOrWarn: options.writeOrWarn,
-          writeOrErr: options.writeOrErr,
-        },
-        repositoryV1ServiceOptions: {
-          ipfsApi: process.env.IPFS_API as string,
-          repositoryPath: config.get("repositoryV1.path"),
-          repositoryServerUrl: config.get("repositoryV1.serverUrl") as string,
-        },
-        repositoryV2ServiceOptions: {
-          ipfsApi: process.env.IPFS_API as string,
-          repositoryPath: config.has("repositoryV2.path")
-            ? config.get("repositoryV2.path")
-            : undefined,
-        },
-        sourcifyDatabaseServiceOptions: {
-          postgres: {
-            host: process.env.SOURCIFY_POSTGRES_HOST as string,
-            database: process.env.SOURCIFY_POSTGRES_DB as string,
-            user: process.env.SOURCIFY_POSTGRES_USER as string,
-            password: process.env.SOURCIFY_POSTGRES_PASSWORD as string,
-            port: parseInt(process.env.SOURCIFY_POSTGRES_PORT),
+      this._server = new Server(
+        options.port!,
+        { supportedChainsMap },
+        {
+          enabledServices: {
+            read: options.read,
+            writeOrWarn: options.writeOrWarn,
+            writeOrErr: options.writeOrErr,
+          },
+          repositoryV1ServiceOptions: {
+            ipfsApi: process.env.IPFS_API as string,
+            repositoryPath: config.get("repositoryV1.path"),
+            repositoryServerUrl: config.get("repositoryV1.serverUrl") as string,
+          },
+          repositoryV2ServiceOptions: {
+            ipfsApi: process.env.IPFS_API as string,
+            repositoryPath: config.has("repositoryV2.path")
+              ? config.get("repositoryV2.path")
+              : undefined,
+          },
+          sourcifyDatabaseServiceOptions: {
+            postgres: {
+              host: process.env.SOURCIFY_POSTGRES_HOST as string,
+              database: process.env.SOURCIFY_POSTGRES_DB as string,
+              user: process.env.SOURCIFY_POSTGRES_USER as string,
+              password: process.env.SOURCIFY_POSTGRES_PASSWORD as string,
+              port: parseInt(process.env.SOURCIFY_POSTGRES_PORT),
+            },
           },
         },
-      });
+      );
 
       await this._server.services.init();
 

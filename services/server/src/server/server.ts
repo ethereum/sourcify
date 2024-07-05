@@ -42,8 +42,8 @@ import { initDeprecatedRoutes } from "./deprecated.routes";
 import getSessionMiddleware from "./session";
 import { Services } from "./services/services";
 import { supportedChainsMap } from "../sourcify-chains";
-import { SourcifyChainMap } from "@ethereum-sourcify/lib-sourcify";
 import { StorageServiceOptions } from "./services/StorageService";
+import { VerificationServiceOptions } from "./services/VerificationService";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -61,7 +61,7 @@ export class Server {
   // TODO: pass config as object into the constructor. Currently we read config from config files. Server Class itself should be configurable.
   constructor(
     port: string | number,
-    verificationServiceOption: SourcifyChainMap,
+    verificationServiceOptions: VerificationServiceOptions,
     storageServiceOptions: StorageServiceOptions,
   ) {
     // To print regexes in the logs
@@ -78,7 +78,7 @@ export class Server {
     this.app = express();
 
     this.services = new Services(
-      verificationServiceOption,
+      verificationServiceOptions,
       storageServiceOptions,
     );
     this.app.use((req, res, next) => {
@@ -317,42 +317,49 @@ export class Server {
 }
 
 if (require.main === module) {
-  const server = new Server(config.get("server.port"), supportedChainsMap, {
-    enabledServices: {
-      read: config.get("storage.read"),
-      writeOrWarn: config.get("storage.writeOrWarn"),
-      writeOrErr: config.get("storage.writeOrErr"),
+  const server = new Server(
+    config.get("server.port"),
+    {
+      initCompilers: config.get("initCompilers") || false,
+      supportedChainsMap,
     },
-    repositoryV1ServiceOptions: {
-      ipfsApi: process.env.IPFS_API as string,
-      repositoryPath: config.get("repositoryV1.path"),
-      repositoryServerUrl: config.get("repositoryV1.serverUrl") as string,
-    },
-    repositoryV2ServiceOptions: {
-      ipfsApi: process.env.IPFS_API as string,
-      repositoryPath: config.has("repositoryV2.path")
-        ? config.get("repositoryV2.path")
-        : undefined,
-    },
-    sourcifyDatabaseServiceOptions: {
-      postgres: {
-        host: process.env.SOURCIFY_POSTGRES_HOST as string,
-        database: process.env.SOURCIFY_POSTGRES_DB as string,
-        user: process.env.SOURCIFY_POSTGRES_USER as string,
-        password: process.env.SOURCIFY_POSTGRES_PASSWORD as string,
-        port: parseInt(process.env.SOURCIFY_POSTGRES_PORT || "5432"),
+    {
+      enabledServices: {
+        read: config.get("storage.read"),
+        writeOrWarn: config.get("storage.writeOrWarn"),
+        writeOrErr: config.get("storage.writeOrErr"),
+      },
+      repositoryV1ServiceOptions: {
+        ipfsApi: process.env.IPFS_API as string,
+        repositoryPath: config.get("repositoryV1.path"),
+        repositoryServerUrl: config.get("repositoryV1.serverUrl") as string,
+      },
+      repositoryV2ServiceOptions: {
+        ipfsApi: process.env.IPFS_API as string,
+        repositoryPath: config.has("repositoryV2.path")
+          ? config.get("repositoryV2.path")
+          : undefined,
+      },
+      sourcifyDatabaseServiceOptions: {
+        postgres: {
+          host: process.env.SOURCIFY_POSTGRES_HOST as string,
+          database: process.env.SOURCIFY_POSTGRES_DB as string,
+          user: process.env.SOURCIFY_POSTGRES_USER as string,
+          password: process.env.SOURCIFY_POSTGRES_PASSWORD as string,
+          port: parseInt(process.env.SOURCIFY_POSTGRES_PORT || "5432"),
+        },
+      },
+      allianceDatabaseServiceOptions: {
+        postgres: {
+          host: process.env.ALLIANCE_POSTGRES_HOST as string,
+          database: process.env.ALLIANCE_POSTGRES_DB as string,
+          user: process.env.ALLIANCE_POSTGRES_USER as string,
+          password: process.env.ALLIANCE_POSTGRES_PASSWORD as string,
+          port: parseInt(process.env.ALLIANCE_POSTGRES_PORT || "5432"),
+        },
       },
     },
-    allianceDatabaseServiceOptions: {
-      postgres: {
-        host: process.env.ALLIANCE_POSTGRES_HOST as string,
-        database: process.env.ALLIANCE_POSTGRES_DB as string,
-        user: process.env.ALLIANCE_POSTGRES_USER as string,
-        password: process.env.ALLIANCE_POSTGRES_PASSWORD as string,
-        port: parseInt(process.env.ALLIANCE_POSTGRES_PORT || "5432"),
-      },
-    },
-  });
+  );
 
   // Generate the swagger.json and serve it with SwaggerUI at /api-docs
   server.services.init().then(() => {

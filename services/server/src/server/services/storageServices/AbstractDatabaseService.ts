@@ -63,6 +63,8 @@ export default abstract class AbstractDatabaseService {
       return true;
     }
 
+    logger.debug(`Initializing database pool for ${this.IDENTIFIER}`);
+
     if (this.googleCloudSqlInstanceName) {
       const connector = new Connector();
       const clientOpts = await connector.getOptions({
@@ -90,6 +92,7 @@ export default abstract class AbstractDatabaseService {
 
     // Checking pool health before continuing
     try {
+      logger.debug(`Checking database pool health for ${this.IDENTIFIER}`);
       await this.databasePool.query("SELECT 1;");
     } catch (error) {
       logger.error(`Cannot connect to ${this.IDENTIFIER}`, {
