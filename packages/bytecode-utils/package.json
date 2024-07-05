@@ -46,12 +46,12 @@
   "devDependencies": {
     "@types/chai": "4.3.16",
     "@types/mocha": "10.0.7",
-    "@types/node": "20.14.8",
+    "@types/node": "20.14.9",
     "c8": "10.1.2",
     "chai": "4.4.1",
     "cz-conventional-changelog": "3.3.0",
     "mocha": "10.6.0",
-    "npm-run-all2": "5.0.0"
+    "npm-run-all2": "5.0.2"
   },
   "optionalDependencies": {
     "fsevents": "2.3.3"
