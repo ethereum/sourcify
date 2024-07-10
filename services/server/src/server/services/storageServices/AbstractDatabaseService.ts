@@ -12,7 +12,7 @@ import {
 import { Pool, QueryResult } from "pg";
 import { AuthTypes, Connector } from "@google-cloud/cloud-sql-connector";
 import logger from "../../../common/logger";
-import { Bytes, BytesKeccak } from "../../types";
+import { Bytes, BytesKeccak, Nullable } from "../../types";
 
 export interface DatabaseServiceOptions {
   googleCloudSql?: {
@@ -196,25 +196,36 @@ export default abstract class AbstractDatabaseService {
       );
     }
 
+    // Prepare compilation_artifacts.sources by removing everything except id
+    let sources: Nullable<Database.CompilationArtifactsSources> = null;
+    if (recompiledContract.compilerOutput?.sources) {
+      sources = {};
+      for (const source of Object.keys(
+        recompiledContract.compilerOutput.sources,
+      )) {
+        sources[source] = {
+          id: recompiledContract.compilerOutput.sources[source].id,
+        };
+      }
+    }
+
     const compilationArtifacts = {
-      abi: compilerOutput?.abi || {},
-      userdoc: compilerOutput?.userdoc || {},
-      devdoc: compilerOutput?.devdoc || {},
-      storageLayout: compilerOutput?.storageLayout || {},
-      sources: recompiledContract.compilerOutput?.sources || {},
+      abi: compilerOutput?.abi || null,
+      userdoc: compilerOutput?.userdoc || null,
+      devdoc: compilerOutput?.devdoc || null,
+      storageLayout: compilerOutput?.storageLayout || null,
+      sources,
     };
     const creationCodeArtifacts = {
-      sourceMap: compilerOutput?.evm.bytecode.sourceMap || "",
-      linkReferences: compilerOutput?.evm.bytecode.linkReferences || {},
-      cborAuxdata: recompiledContract?.creationBytecodeCborAuxdata,
+      sourceMap: compilerOutput?.evm.bytecode.sourceMap || null,
+      linkReferences: compilerOutput?.evm.bytecode.linkReferences || null,
     };
     const runtimeCodeArtifacts = {
-      sourceMap: compilerOutput?.evm.deployedBytecode?.sourceMap || "",
+      sourceMap: compilerOutput?.evm.deployedBytecode?.sourceMap || null,
       linkReferences:
-        compilerOutput?.evm.deployedBytecode?.linkReferences || {},
+        compilerOutput?.evm.deployedBytecode?.linkReferences || null,
       immutableReferences:
-        compilerOutput?.evm.deployedBytecode?.immutableReferences || {},
-      cborAuxdata: recompiledContract?.runtimeBytecodeCborAuxdata,
+        compilerOutput?.evm.deployedBytecode?.immutableReferences || null,
     };
 
     const runtimeMatch =
@@ -304,6 +315,9 @@ export default abstract class AbstractDatabaseService {
         creation_values: creationTransformationValues,
         runtime_match: runtimeMatch,
         creation_match: creationMatch,
+        // We cover also no-metadata case by using match === "perfect"
+        runtime_metadata_match: match.runtimeMatch === "perfect",
+        creation_metadata_match: match.creationMatch === "perfect",
       },
     };
   }

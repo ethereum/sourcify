@@ -472,11 +472,29 @@ interface CompilerOutputEvmBytecode {
 interface CompilerOutputEvmDeployedBytecode extends CompilerOutputEvmBytecode {
   immutableReferences?: ImmutableReferences;
 }
-interface CompilerOutputSources {
+export interface CompilerOutputSources {
   [globalName: string]: {
     id: number;
     ast: any;
     legacyAST: any;
+  };
+}
+
+export interface StorageLayout {
+  storage: {
+    astId: number;
+    contract: string;
+    label: string;
+    offset: number;
+    slot: string;
+    type: string;
+  };
+  types: {
+    [index: string]: {
+      encoding: string;
+      label: string;
+      numberOfBytes: string;
+    };
   };
 }
 interface CompilerOutputContracts {
@@ -490,7 +508,7 @@ interface CompilerOutputContracts {
       irAst?: any;
       irOptimized?: string;
       irOptimizedAst?: any;
-      storageLayout?: any;
+      storageLayout?: StorageLayout;
       evm: {
         assembly?: string;
         legacyAssembly?: any;
