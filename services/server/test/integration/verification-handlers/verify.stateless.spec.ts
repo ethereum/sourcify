@@ -417,94 +417,97 @@ describe("/", function () {
     chai.expect(isExist, "Immutable references not saved").to.be.true;
   });
 
-  it("should return validation error for adding standard input JSON without a compiler version", async () => {
-    const address = await deployFromAbiAndBytecode(
-      chainFixture.localSigner,
-      chainFixture.defaultContractArtifact.abi, // Storage.sol
-      chainFixture.defaultContractArtifact.bytecode,
-    );
-    const solcJsonPath = path.join(
-      __dirname,
-      "..",
-      "..",
-      "testcontracts",
-      "Storage",
-      "StorageJsonInput.json",
-    );
-    const solcJsonBuffer = fs.readFileSync(solcJsonPath);
+  describe("solc standard input json", () => {
+    it("should return validation error for adding standard input JSON without a compiler version", async () => {
+      const address = await deployFromAbiAndBytecode(
+        chainFixture.localSigner,
+        chainFixture.defaultContractArtifact.abi, // Storage.sol
+        chainFixture.defaultContractArtifact.bytecode,
+      );
+      const solcJsonPath = path.join(
+        __dirname,
+        "..",
+        "..",
+        "testcontracts",
+        "Storage",
+        "StorageJsonInput.json",
+      );
+      const solcJsonBuffer = fs.readFileSync(solcJsonPath);
 
-    const res = await chai
-      .request(serverFixture.server.app)
-      .post("/verify/solc-json")
-      .attach("files", solcJsonBuffer, "solc.json")
-      .field("address", address)
-      .field("chain", chainFixture.chainId)
-      .field("contractName", "Storage");
+      const res = await chai
+        .request(serverFixture.server.app)
+        .post("/verify/solc-json")
+        .attach("files", solcJsonBuffer, "solc.json")
+        .field("address", address)
+        .field("chain", chainFixture.chainId)
+        .field("contractName", "Storage");
 
-    assertValidationError(null, res, "compilerVersion");
+      assertValidationError(null, res, "compilerVersion");
+    });
+
+    it("should return validation error for adding standard input JSON without a contract name", async () => {
+      const address = await deployFromAbiAndBytecode(
+        chainFixture.localSigner,
+        chainFixture.defaultContractArtifact.abi, // Storage.sol
+        chainFixture.defaultContractArtifact.bytecode,
+      );
+      const solcJsonPath = path.join(
+        __dirname,
+        "..",
+        "..",
+        "testcontracts",
+        "Storage",
+        "StorageJsonInput.json",
+      );
+      const solcJsonBuffer = fs.readFileSync(solcJsonPath);
+
+      const res = await chai
+        .request(serverFixture.server.app)
+        .post("/verify/solc-json")
+        .attach("files", solcJsonBuffer)
+        .field("address", address)
+        .field("chain", chainFixture.chainId)
+        .field("compilerVersion", "0.8.4+commit.c7e474f2");
+
+      assertValidationError(null, res, "contractName");
+    });
+
+    it("should verify a contract with Solidity standard input JSON", async () => {
+      const address = await deployFromAbiAndBytecode(
+        chainFixture.localSigner,
+        chainFixture.defaultContractArtifact.abi, // Storage.sol
+        chainFixture.defaultContractArtifact.bytecode,
+      );
+      const solcJsonPath = path.join(
+        __dirname,
+        "..",
+        "..",
+        "testcontracts",
+        "Storage",
+        "StorageJsonInput.json",
+      );
+      const solcJsonBuffer = fs.readFileSync(solcJsonPath);
+
+      const res = await chai
+        .request(serverFixture.server.app)
+        .post("/verify/solc-json")
+        .attach("files", solcJsonBuffer, "solc.json")
+        .field("address", address)
+        .field("chain", chainFixture.chainId)
+        .field("compilerVersion", "0.8.4+commit.c7e474f2")
+        .field("contractName", "Storage");
+
+      await assertVerification(
+        serverFixture.sourcifyDatabase,
+        null,
+        res,
+        null,
+        address,
+        chainFixture.chainId,
+      );
+    });
   });
 
-  it("should return validation error for adding standard input JSON without a contract name", async () => {
-    const address = await deployFromAbiAndBytecode(
-      chainFixture.localSigner,
-      chainFixture.defaultContractArtifact.abi, // Storage.sol
-      chainFixture.defaultContractArtifact.bytecode,
-    );
-    const solcJsonPath = path.join(
-      __dirname,
-      "..",
-      "..",
-      "testcontracts",
-      "Storage",
-      "StorageJsonInput.json",
-    );
-    const solcJsonBuffer = fs.readFileSync(solcJsonPath);
-
-    const res = await chai
-      .request(serverFixture.server.app)
-      .post("/verify/solc-json")
-      .attach("files", solcJsonBuffer)
-      .field("address", address)
-      .field("chain", chainFixture.chainId)
-      .field("compilerVersion", "0.8.4+commit.c7e474f2");
-
-    assertValidationError(null, res, "contractName");
-  });
-
-  it("should verify a contract with Solidity standard input JSON", async () => {
-    const address = await deployFromAbiAndBytecode(
-      chainFixture.localSigner,
-      chainFixture.defaultContractArtifact.abi, // Storage.sol
-      chainFixture.defaultContractArtifact.bytecode,
-    );
-    const solcJsonPath = path.join(
-      __dirname,
-      "..",
-      "..",
-      "testcontracts",
-      "Storage",
-      "StorageJsonInput.json",
-    );
-    const solcJsonBuffer = fs.readFileSync(solcJsonPath);
-
-    const res = await chai
-      .request(serverFixture.server.app)
-      .post("/verify/solc-json")
-      .attach("files", solcJsonBuffer, "solc.json")
-      .field("address", address)
-      .field("chain", chainFixture.chainId)
-      .field("compilerVersion", "0.8.4+commit.c7e474f2")
-      .field("contractName", "Storage");
-
-    await assertVerification(
-      serverFixture.sourcifyDatabase,
-      null,
-      res,
-      null,
-      address,
-      chainFixture.chainId,
-    );
-  });
   describe("hardhat build-info file support", function () {
     let address: string;
     const mainContractIndex = 5;
