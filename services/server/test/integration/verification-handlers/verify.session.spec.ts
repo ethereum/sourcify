@@ -799,6 +799,88 @@ describe("/session", function () {
     assertSingleContractStatus(res2, "perfect");
   });
 
+  it("should store the correct/recompiled metadata file if a wrong metadata input yields a match", async () => {
+    // Mimics contract 0x1CA8C2B9B20E18e86d5b9a72370fC6c91814c97C on Optimism (10)
+    const artifact = await import(
+      path.join(
+        __dirname,
+        "../../testcontracts/ensure-metadata-storage/EIP1967Proxy.json",
+      )
+    );
+    const wrongMetadata = await import(
+      path.join(
+        __dirname,
+        "../../testcontracts/ensure-metadata-storage/wrong-metadata.json",
+      )
+    );
+    const correctMetadata = await import(
+      path.join(
+        __dirname,
+        "../../testcontracts/ensure-metadata-storage/correct-metadata.json",
+      )
+    );
+    const source1Buffer = fs.readFileSync(
+      path.join(
+        __dirname,
+        "../../testcontracts/ensure-metadata-storage/EIP1967Proxy.sol",
+      ),
+    );
+    const source2Buffer = fs.readFileSync(
+      path.join(
+        __dirname,
+        "../../testcontracts/ensure-metadata-storage/EIP1967Admin.sol",
+      ),
+    );
+    const contractAddress = await deployFromAbiAndBytecode(
+      chainFixture.localSigner,
+      correctMetadata.output.abi,
+      artifact.bytecode,
+      [
+        "0x39f0bd56c1439a22ee90b4972c16b7868d161981",
+        "0x000000000000000000000000000000000000dead",
+        "0x0000000000000000000000000000000000000000000000000000000000000000",
+      ],
+    );
+
+    const agent = chai.request.agent(serverFixture.server.app);
+    const res = await agent
+      .post("/session/input-files")
+      .attach("files", Buffer.from(JSON.stringify(wrongMetadata)), "metadata.json");
+    const contracts = res.body.contracts;
+    await agent
+      .post("/session/input-files")
+      .attach("files", source1Buffer, "EIP1967Proxy.sol")
+      .attach("files", source2Buffer, "EIP1967Admin.sol");
+
+    contracts[0].chainId = chainFixture.chainId;
+    contracts[0].address = contractAddress;
+    const verifyRes = await agent
+      .post("/session/verify-validated")
+      .send({ contracts });
+
+    await assertVerificationSession(
+      serverFixture.sourcifyDatabase,
+      null,
+      verifyRes,
+      null,
+      contractAddress,
+      chainFixture.chainId,
+      "perfect",
+    );
+
+    const filesRes = await chai
+      .request(serverFixture.server.app)
+      .get(`/files/${chainFixture.chainId}/${contractAddress}`);
+    const files: Array<Record<string, string>> = filesRes.body;
+    const receivedMetadata = files.find(
+      (file) => file.name === "metadata.json",
+    );
+    chai.expect(receivedMetadata).not.to.be.undefined;
+    chai
+      .expect(receivedMetadata!.content)
+      .to.equal(JSON.stringify(correctMetadata));
+  });
+
   // Test also extra-file-bytecode-mismatch via v2 API as well since the workaround is at the API level i.e. VerificationController
   describe("solc v0.6.12 and v0.7.0 extra files in compilation causing metadata match but bytecode mismatch", function () {
     // Deploy the test contract locally
