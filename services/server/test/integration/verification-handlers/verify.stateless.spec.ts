@@ -168,9 +168,9 @@ describe("/", function () {
   });
 
   it("Should upgrade match from 'partial' to 'full', delete partial from repository and update creationTx information in database", async () => {
-    const partialMetadata = await import(
-      "../../testcontracts/Storage/metadataModified.json"
-    );
+    const partialMetadata = (
+      await import("../../testcontracts/Storage/metadataModified.json")
+    ).default;
     const partialMetadataBuffer = Buffer.from(JSON.stringify(partialMetadata));
 
     const partialSourcePath = path.join(
@@ -268,9 +268,9 @@ describe("/", function () {
   });
 
   it("should return 'partial', then throw when another 'partial' match is received", async () => {
-    const partialMetadata = await import(
-      "../../testcontracts/Storage/metadataModified.json"
-    );
+    const partialMetadata = (
+      await import("../../testcontracts/Storage/metadataModified.json")
+    ).default;
     const partialMetadataBuffer = Buffer.from(JSON.stringify(partialMetadata));
 
     const partialSourcePath = path.join(
@@ -360,9 +360,9 @@ describe("/", function () {
   });
 
   it("should verify a contract with immutables and save immutable-references.json", async () => {
-    const artifact = await import(
-      "../../testcontracts/WithImmutables/artifact.json"
-    );
+    const artifact = (
+      await import("../../testcontracts/WithImmutables/artifact.json")
+    ).default;
     const { contractAddress } = await deployFromAbiAndBytecodeForCreatorTxHash(
       chainFixture.localSigner,
       artifact.abi,
@@ -370,9 +370,11 @@ describe("/", function () {
       [999],
     );
 
-    const metadata = await import(
-      path.join(__dirname, "../../testcontracts/WithImmutables/metadata.json")
-    );
+    const metadata = (
+      await import(
+        path.join(__dirname, "../../testcontracts/WithImmutables/metadata.json")
+      )
+    ).default;
     const sourcePath = path.join(
       __dirname,
       "..",
@@ -419,24 +421,30 @@ describe("/", function () {
 
   it("should store the correct/recompiled metadata file if a wrong metadata input yields a match", async () => {
     // Mimics contract 0x1CA8C2B9B20E18e86d5b9a72370fC6c91814c97C on Optimism (10)
-    const artifact = await import(
-      path.join(
-        __dirname,
-        "../../testcontracts/ensure-metadata-storage/EIP1967Proxy.json",
+    const artifact = (
+      await import(
+        path.join(
+          __dirname,
+          "../../testcontracts/ensure-metadata-storage/EIP1967Proxy.json",
+        )
       )
-    );
-    const wrongMetadata = await import(
-      path.join(
-        __dirname,
-        "../../testcontracts/ensure-metadata-storage/wrong-metadata.json",
+    ).default;
+    const wrongMetadata = (
+      await import(
+        path.join(
+          __dirname,
+          "../../testcontracts/ensure-metadata-storage/wrong-metadata.json",
+        )
       )
-    );
-    const correctMetadata = await import(
-      path.join(
-        __dirname,
-        "../../testcontracts/ensure-metadata-storage/correct-metadata.json",
+    ).default;
+    const correctMetadata = (
+      await import(
+        path.join(
+          __dirname,
+          "../../testcontracts/ensure-metadata-storage/correct-metadata.json",
+        )
       )
-    );
+    ).default;
     const source1Buffer = fs.readFileSync(
       path.join(
         __dirname,
@@ -483,11 +491,17 @@ describe("/", function () {
       "perfect",
     );
 
-    const filesRes = await chai.request(serverFixture.server.app).get(`/files/${chainFixture.chainId}/${contractAddress}`);
-    const files: Array<Record<string,string>> = filesRes.body;
-    const receivedMetadata = files.find((file) => file.name === "metadata.json");
+    const filesRes = await chai
+      .request(serverFixture.server.app)
+      .get(`/files/${chainFixture.chainId}/${contractAddress}`);
+    const files: Array<Record<string, string>> = filesRes.body;
+    const receivedMetadata = files.find(
+      (file) => file.name === "metadata.json",
+    );
     chai.expect(receivedMetadata).not.to.be.undefined;
-    chai.expect(receivedMetadata!.content).to.equal(JSON.stringify(correctMetadata));
+    chai
+      .expect(receivedMetadata!.content)
+      .to.equal(JSON.stringify(correctMetadata));
   });
 
   describe("solc standard input json", () => {
@@ -645,9 +659,9 @@ describe("/", function () {
           chainFixture.defaultContractArtifact.bytecode,
           [],
         );
-      const metadata = await import(
-        "../../testcontracts/Storage/metadata.upMultipleDirs.json"
-      );
+      const metadata = (
+        await import("../../testcontracts/Storage/metadata.upMultipleDirs.json")
+      ).default;
 
       // Now pass the creatorTxHash
       const res = await chai
@@ -691,9 +705,9 @@ describe("/", function () {
     let contractAddress: string;
 
     before(async () => {
-      const bytecodeMismatchArtifact = await import(
-        "../../sources/artifacts/extraFilesBytecodeMismatch.json"
-      );
+      const bytecodeMismatchArtifact = (
+        await import("../../sources/artifacts/extraFilesBytecodeMismatch.json")
+      ).default;
       contractAddress = await deployFromAbiAndBytecode(
         chainFixture.localSigner,
         bytecodeMismatchArtifact.abi,
@@ -750,18 +764,20 @@ describe("/", function () {
   });
 
   it("should verify a contract compiled with Solidity < 0.7.5 and libraries have been linked using compiler settings", async () => {
-    const artifact = await import(
-      "../../testcontracts/LibrariesSolidity075/LibrariesSolidity075.json"
-    );
+    const artifact = (
+      await import(
+        "../../testcontracts/LibrariesSolidity075/LibrariesSolidity075.json"
+      )
+    ).default;
     const address = await deployFromAbiAndBytecode(
       chainFixture.localSigner,
       artifact.abi,
       artifact.bytecode,
     );
 
-    const metadata = await import(
-      "../../testcontracts/LibrariesSolidity075/metadata.json"
-    );
+    const metadata = (
+      await import("../../testcontracts/LibrariesSolidity075/metadata.json")
+    ).default;
 
     const file = fs.readFileSync(
       path.join(

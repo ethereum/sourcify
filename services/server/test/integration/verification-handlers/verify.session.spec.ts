@@ -579,9 +579,9 @@ describe("/session", function () {
   });
 
   it("should verify a contract with immutables and save immutable-references.json", async () => {
-    const artifact = await import(
-      "../../testcontracts/WithImmutables/artifact.json"
-    );
+    const artifact = (
+      await import("../../testcontracts/WithImmutables/artifact.json")
+    ).default;
     const { contractAddress } = await deployFromAbiAndBytecodeForCreatorTxHash(
       chainFixture.localSigner,
       artifact.abi,
@@ -589,9 +589,9 @@ describe("/session", function () {
       [999],
     );
 
-    const metadata = await import(
-      "../../testcontracts/WithImmutables/metadata.json"
-    );
+    const metadata = (
+      await import("../../testcontracts/WithImmutables/metadata.json")
+    ).default;
     const metadataBuffer = Buffer.from(JSON.stringify(metadata));
     const sourcePath = path.join(
       __dirname,
@@ -636,9 +636,9 @@ describe("/session", function () {
   it("should verify a contract created by a factory contract and has immutables", async () => {
     const deployValue = 12345;
 
-    const artifact = await import(
-      "../../testcontracts/FactoryImmutable/Factory.json"
-    );
+    const artifact = (
+      await import("../../testcontracts/FactoryImmutable/Factory.json")
+    ).default;
     const factoryAddress = await deployFromAbiAndBytecode(
       chainFixture.localSigner,
       artifact.abi,
@@ -646,9 +646,9 @@ describe("/session", function () {
     );
 
     // Deploy child by calling deploy(uint)
-    const childMetadata = await import(
-      "../../testcontracts/FactoryImmutable/Child_metadata.json"
-    );
+    const childMetadata = (
+      await import("../../testcontracts/FactoryImmutable/Child_metadata.json")
+    ).default;
     const childMetadataBuffer = Buffer.from(JSON.stringify(childMetadata));
     const txReceipt = await callContractMethodWithTx(
       chainFixture.localSigner,
@@ -692,9 +692,11 @@ describe("/session", function () {
   });
 
   it("should verify a contract created by a factory contract and has immutables without constructor arguments but with msg.sender assigned immutable", async () => {
-    const artifact = await import(
-      "../../testcontracts/FactoryImmutableWithoutConstrArg/Factory3.json"
-    );
+    const artifact = (
+      await import(
+        "../../testcontracts/FactoryImmutableWithoutConstrArg/Factory3.json"
+      )
+    ).default;
     const factoryAddress = await deployFromAbiAndBytecode(
       chainFixture.localSigner,
       artifact.abi,
@@ -702,9 +704,11 @@ describe("/session", function () {
     );
 
     // Deploy child by calling deploy(uint)
-    const childMetadata = await import(
-      "../../testcontracts/FactoryImmutableWithoutConstrArg/Child3_metadata.json"
-    );
+    const childMetadata = (
+      await import(
+        "../../testcontracts/FactoryImmutableWithoutConstrArg/Child3_metadata.json"
+      )
+    ).default;
     const childMetadataBuffer = Buffer.from(JSON.stringify(childMetadata));
     const txReceipt = await callContractMethodWithTx(
       chainFixture.localSigner,
@@ -801,24 +805,30 @@ describe("/session", function () {
 
   it("should store the correct/recompiled metadata file if a wrong metadata input yields a match", async () => {
     // Mimics contract 0x1CA8C2B9B20E18e86d5b9a72370fC6c91814c97C on Optimism (10)
-    const artifact = await import(
-      path.join(
-        __dirname,
-        "../../testcontracts/ensure-metadata-storage/EIP1967Proxy.json",
+    const artifact = (
+      await import(
+        path.join(
+          __dirname,
+          "../../testcontracts/ensure-metadata-storage/EIP1967Proxy.json",
+        )
       )
-    );
-    const wrongMetadata = await import(
-      path.join(
-        __dirname,
-        "../../testcontracts/ensure-metadata-storage/wrong-metadata.json",
+    ).default;
+    const wrongMetadata = (
+      await import(
+        path.join(
+          __dirname,
+          "../../testcontracts/ensure-metadata-storage/wrong-metadata.json",
+        )
       )
-    );
-    const correctMetadata = await import(
-      path.join(
-        __dirname,
-        "../../testcontracts/ensure-metadata-storage/correct-metadata.json",
+    ).default;
+    const correctMetadata = (
+      await import(
+        path.join(
+          __dirname,
+          "../../testcontracts/ensure-metadata-storage/correct-metadata.json",
+        )
       )
-    );
+    ).default;
     const source1Buffer = fs.readFileSync(
       path.join(
         __dirname,
@@ -845,7 +855,11 @@ describe("/session", function () {
     const agent = chai.request.agent(serverFixture.server.app);
     const res = await agent
       .post("/session/input-files")
-      .attach("files", Buffer.from(JSON.stringify(wrongMetadata)), "metadata.json");
+      .attach(
+        "files",
+        Buffer.from(JSON.stringify(wrongMetadata)),
+        "metadata.json",
+      );
     const contracts = res.body.contracts;
     await agent
       .post("/session/input-files")
@@ -888,9 +902,9 @@ describe("/session", function () {
     let contractAddress: string;
 
     before(async () => {
-      const bytecodeMismatchArtifact = await import(
-        "../../sources/artifacts/extraFilesBytecodeMismatch.json"
-      );
+      const bytecodeMismatchArtifact = (
+        await import("../../sources/artifacts/extraFilesBytecodeMismatch.json")
+      ).default;
       contractAddress = await deployFromAbiAndBytecode(
         chainFixture.localSigner,
         bytecodeMismatchArtifact.abi,

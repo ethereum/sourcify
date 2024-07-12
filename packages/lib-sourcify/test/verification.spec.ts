@@ -508,19 +508,21 @@ describe('lib-sourcify tests', () => {
     );
     expectMatch(match, 'perfect', contractAddress);
 
-    const correctMetadata = await import(
-      path.join(
-        __dirname,
-        'sources',
-        'MetadataRewriting',
-        'correct-metadata.json',
+    const correctMetadataRaw = fs
+      .readFileSync(
+        path.join(
+          __dirname,
+          'sources',
+          'MetadataRewriting',
+          'correct-metadata.json',
+        ),
       )
-    );
+      .toString();
 
-    expect(checkedContracts[0].metadata).to.deep.equal(correctMetadata);
-    expect(checkedContracts[0].metadataRaw).to.equal(
-      JSON.stringify(correctMetadata),
+    expect(checkedContracts[0].metadata).to.deep.equal(
+      JSON.parse(correctMetadataRaw),
     );
+    expect(checkedContracts[0].metadataRaw).to.equal(correctMetadataRaw);
   });
 
   describe('Unit tests', function () {
