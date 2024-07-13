@@ -1703,6 +1703,7 @@
     "sourcifyName": "VeChain Testnet",
     "supported": true,
     "rpc": []
+  },
   "84532": {
     "sourcifyName": "Base Sepolia Tesnet",
     "supported": true,
