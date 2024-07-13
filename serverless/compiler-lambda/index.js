@@ -3,25 +3,48 @@ const path = require("path");
 const fs = require("fs");
 const { exec, spawnSync } = require("child_process");
 const solc = require("solc");
-const fetch = (...args) =>
-  import("node-fetch").then(({ default: fetch }) => fetch(...args));
 const pipeline = require("util").promisify(require("stream").pipeline);
 const { Blob } = require("buffer");
 
-async function fetchWithTimeout(resource, options = {}) {
-  const { timeout = 30000 } = options;
+/**
+ * Fetches a resource with an exponential timeout.
+ * 1) Send req, wait backoff * 2^0 ms, abort if doesn't resolve
+ * 2) Send req, wait backoff * 2^1 ms, abort if doesn't resolve
+ * 3) Send req, wait backoff * 2^2 ms, abort if doesn't resolve...
+ * ...
+ * ...
+ */
+export async function fetchWithBackoff(resource, backoff = 10000, retries = 4) {
+  let timeout = backoff;
 
-  const controller = new AbortController();
-  const id = setTimeout(() => {
-    console.warn(`Aborting request ${resource} because of timout ${timeout}`);
-    controller.abort();
-  }, timeout);
-  const response = await fetch(resource, {
-    ...options,
-    signal: controller.signal,
-  });
-  clearTimeout(id);
-  return response;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const controller = new AbortController();
+      const id = setTimeout(() => {
+        controller.abort();
+      }, timeout);
+      const response = await fetch(resource, {
+        signal: controller.signal,
+      });
+      clearTimeout(id);
+      return response;
+    } catch (error) {
+      if (attempt === retries) {
+        console.error("Failed fetchWithBackoff", {
+          resource,
+          attempt,
+          retries,
+          timeout,
+          error,
+        });
+        throw new Error(`Failed fetching ${resource}: ${error}`);
+      } else {
+        timeout *= 2; // exponential backoff
+        continue;
+      }
+    }
+  }
+  throw new Error(`Failed fetching ${resource}`);
 }
 
 const HOST_SOLC_REPO = " https://binaries.soliditylang.org/";
@@ -91,11 +114,11 @@ async function useCompiler(version, solcJsonInput, forceEmscripten = false) {
   }
   const compiledJSON = JSON.parse(compiled);
   const errorMessages = compiledJSON?.errors?.filter(
-    (e) => e.severity === "error"
+    (e) => e.severity === "error",
   );
   if (errorMessages && errorMessages.length > 0) {
     const error = new Error(
-      "Compiler error:\n " + JSON.stringify(errorMessages)
+      "Compiler error:\n " + JSON.stringify(errorMessages),
     );
     console.error(error.message);
     throw error;
@@ -106,7 +129,7 @@ async function useCompiler(version, solcJsonInput, forceEmscripten = false) {
 async function getAllMetadataAndSourcesFromSolcJson(solcJson, compilerVersion) {
   if (solcJson.language !== "Solidity")
     throw new Error(
-      "Only Solidity is supported, the json has language: " + solcJson.language
+      "Only Solidity is supported, the json has language: " + solcJson.language,
     );
 
   const outputSelection = {
@@ -147,17 +170,17 @@ async function getSolcExecutable(platform, version) {
   const solcPath = path.join(repoPath, fileName);
   if (fs.existsSync(solcPath) && validateSolcPath(solcPath)) {
     console.debug(
-      `Found solc ${version} with platform ${platform} at ${solcPath}`
+      `Found solc ${version} with platform ${platform} at ${solcPath}`,
     );
     return solcPath;
   }
 
   console.debug(
-    `Downloading solc ${version} with platform ${platform} at ${solcPath}`
+    `Downloading solc ${version} with platform ${platform} at ${solcPath}`,
   );
   const success = await fetchAndSaveSolc(platform, solcPath, version, fileName);
   console.debug(
-    `Downloaded solc ${version} with platform ${platform} at ${solcPath}`
+    `Downloaded solc ${version} with platform ${platform} at ${solcPath}`,
   );
   if (success && !validateSolcPath(solcPath)) {
     console.error(`Cannot validate solc ${version}.`);
@@ -191,9 +214,9 @@ async function fetchAndSaveSolc(platform, solcPath, version, fileName) {
   const encodedURIFilename = encodeURIComponent(fileName);
   const githubSolcURI = `${HOST_SOLC_REPO}${platform}/${encodedURIFilename}`;
   console.debug(
-    `Fetching solc ${version} on platform ${platform}: ${githubSolcURI}`
+    `Fetching solc ${version} on platform ${platform}: ${githubSolcURI}`,
   );
-  let res = await fetchWithTimeout(githubSolcURI);
+  let res = await fetchWithBackoff(githubSolcURI);
   let status = res.status;
   let buffer;
 
@@ -205,7 +228,7 @@ async function fetchAndSaveSolc(platform, solcPath, version, fileName) {
       /^([\w-]+)-v(\d+\.\d+\.\d+)\+commit\.([a-fA-F0-9]+).*$/.test(responseText)
     ) {
       const githubSolcURI = `${HOST_SOLC_REPO}${platform}/${responseText}`;
-      res = await fetchWithTimeout(githubSolcURI);
+      res = await fetchWithBackoff(githubSolcURI);
       status = res.status;
       buffer = await res.arrayBuffer();
     }
@@ -213,7 +236,7 @@ async function fetchAndSaveSolc(platform, solcPath, version, fileName) {
 
   if (status === 200 && buffer) {
     console.debug(
-      `Fetched solc ${version} on platform ${platform}: ${githubSolcURI}`
+      `Fetched solc ${version} on platform ${platform}: ${githubSolcURI}`,
     );
     fs.mkdirSync(path.dirname(solcPath), { recursive: true });
 
@@ -284,12 +307,12 @@ function asyncExecSolc(inputStringified, solcPath) {
           reject(error);
         } else if (stderr) {
           reject(
-            new Error(`Compiler process returned with errors:\n ${stderr}`)
+            new Error(`Compiler process returned with errors:\n ${stderr}`),
           );
         } else {
           resolve(stdout);
         }
-      }
+      },
     );
     if (!child.stdin) {
       throw new Error("No stdin on child process");
@@ -311,7 +334,7 @@ exports.handler = awslambda.streamifyResponse(
       output = await useCompiler(
         event.version,
         event.solcJsonInput,
-        event.forceEmscripten
+        event.forceEmscripten,
       );
     } catch (e) {
       output = { error: e.message };
@@ -328,7 +351,7 @@ exports.handler = awslambda.streamifyResponse(
     }
 
     await pipeline(outputBlob.stream(), responseStream);
-  }
+  },
 );
 
 /* exports

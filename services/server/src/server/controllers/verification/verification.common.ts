@@ -19,8 +19,7 @@ import {
 import { Session } from "express-session";
 import { AbiConstructor, AbiParameter } from "abitype";
 import QueryString from "qs";
-import fetch from "node-fetch";
-import { IVerificationService } from "../../services/VerificationService";
+import { VerificationService } from "../../services/VerificationService";
 import { ContractMeta, ContractWrapper, getMatchStatus } from "../../common";
 import { ISolidityCompiler } from "@ethereum-sourcify/lib-sourcify";
 import { SolcLambdaWithLocalFallback } from "../../services/compiler/lambda-with-fallback/SolcLambdaWithLocalFallback";
@@ -45,7 +44,7 @@ export function createCheckedContract(
   metadata: Metadata,
   solidity: StringMap,
   missing?: MissingSources,
-  invalid?: InvalidSources
+  invalid?: InvalidSources,
 ) {
   return new CheckedContract(solc, metadata, solidity, missing, invalid);
 }
@@ -100,7 +99,7 @@ export const extractFilesFromJSON = (files: {
 
 export const stringifyInvalidAndMissing = (contract: CheckedContract) => {
   const errors = Object.keys(contract.invalid).concat(
-    Object.keys(contract.missing)
+    Object.keys(contract.missing),
   );
   return `${contract.name} (${errors.join(", ")})`;
 };
@@ -116,7 +115,7 @@ export function generateId(obj: any): string {
 
 export const saveFilesToSession = (
   pathContents: PathContent[],
-  session: Session
+  session: Session,
 ): number => {
   if (!session.inputFiles) {
     session.inputFiles = {};
@@ -173,7 +172,7 @@ export type SendableContract = ContractMeta & {
 
 function getSendableContract(
   contractWrapper: ContractWrapper,
-  verificationId: string
+  verificationId: string,
 ): SendableContract {
   const contract = contractWrapper.contract;
 
@@ -181,7 +180,7 @@ function getSendableContract(
     verificationId,
     constructorArgumentsArray: (
       contract?.metadata?.output?.abi?.find(
-        (abi) => abi.type === "constructor"
+        (abi) => abi.type === "constructor",
       ) as AbiConstructor
     )?.inputs as Mutable<AbiParameter[]>,
     // : contract?.creationBytecode, // Not needed without create2
@@ -271,7 +270,7 @@ export const checkContractsInSession = async (session: Session) => {
     logger.debug("Updated session", {
       sessionId: session.id,
       contracts: Object.keys(session.contractWrappers).map(
-        (id) => session.contractWrappers[id].contract.name
+        (id) => session.contractWrappers[id].contract.name,
       ),
     });
   } catch (error) {
@@ -281,7 +280,7 @@ export const checkContractsInSession = async (session: Session) => {
 };
 
 export async function addRemoteFile(
-  query: QueryString.ParsedQs
+  query: QueryString.ParsedQs,
 ): Promise<PathBuffer[]> {
   logger.debug("addRemoteFile", { query });
   if (typeof query.url !== "string") {
@@ -306,7 +305,8 @@ export async function addRemoteFile(
     res.headers.get("Content-Disposition")?.split("filename=")[1] ||
     query.url.substring(query.url.lastIndexOf("/") + 1) ||
     "file";
-  const buffer = await res.buffer();
+  const arrayBuffer = await res.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
   return [
     {
       path: fileName,
@@ -316,7 +316,7 @@ export async function addRemoteFile(
 }
 
 export const checkAndFetchMissing = async (
-  contract: CheckedContract
+  contract: CheckedContract,
 ): Promise<void> => {
   if (!CheckedContract.isValid(contract)) {
     try {
@@ -343,9 +343,9 @@ export function isVerifiable(contractWrapper: ContractWrapper) {
 export const verifyContractsInSession = async (
   contractWrappers: ContractWrapperMap = {},
   session: Session,
-  verificationService: IVerificationService,
+  verificationService: VerificationService,
   storageService: StorageService,
-  dryRun: boolean = false
+  dryRun: boolean = false,
 ): Promise<void> => {
   logger.debug("verifyContractsInSession", {
     sessionId: session.id,
@@ -366,9 +366,9 @@ export const verifyContractsInSession = async (
     });
     // Check if contract is already verified
     if (Boolean(contractWrapper.address) && Boolean(contractWrapper.chainId)) {
-      const found = await storageService.checkByChainAndAddress(
-        contractWrapper.address as string,
-        contractWrapper.chainId as string
+      const found = await storageService.performServiceOperation(
+        "checkByChainAndAddress",
+        [contractWrapper.address as string, contractWrapper.chainId as string],
       );
 
       if (found.length) {
@@ -386,7 +386,7 @@ export const verifyContractsInSession = async (
       contract.metadata,
       contract.solidity,
       contract.missing,
-      contract.invalid
+      contract.invalid,
     );
 
     await checkAndFetchMissing(checkedContract);
@@ -404,13 +404,13 @@ export const verifyContractsInSession = async (
         checkedContract,
         chainId as string,
         address as string,
-        creatorTxHash
+        creatorTxHash,
       );
       // Send to verification again with all source files.
       if (match.runtimeMatch === "extra-file-input-bug") {
         // Session inputFiles are encoded base64. Why?
         const pathBufferInputFiles: PathBuffer[] = Object.values(
-          session.inputFiles
+          session.inputFiles,
         ).map((base64file) => ({
           path: base64file.path,
           buffer: Buffer.from(base64file.content, FILE_ENCODING),
@@ -419,16 +419,16 @@ export const verifyContractsInSession = async (
           contractWrapper.contract.metadata,
           contractWrapper.contract.solidity,
           contractWrapper.contract.missing,
-          contractWrapper.contract.invalid
+          contractWrapper.contract.invalid,
         );
         const contractWithAllSources = await useAllSources(
           checkedContractWithAllSources,
-          pathBufferInputFiles
+          pathBufferInputFiles,
         );
         const tempMatch = await verificationService.verifyDeployed(
           contractWithAllSources,
           chainId as string,
-          address as string
+          address as string,
         );
         if (
           tempMatch.runtimeMatch === "perfect" ||
@@ -439,7 +439,7 @@ export const verifyContractsInSession = async (
           match = tempMatch;
         } else if (tempMatch.runtimeMatch === "extra-file-input-bug") {
           throw new ValidationError(
-            "It seems your contract's metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618"
+            "It seems your contract's metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618",
           );
         }
       }

@@ -1,27 +1,42 @@
 import rimraf from "rimraf";
 import { resetDatabase } from "../helpers/helpers";
-import { StorageService } from "../../src/server/services/StorageService";
 import { Server } from "../../src/server/server";
 import config from "config";
 import http from "http";
-import { services } from "../../src/server/services/services";
+import { supportedChainsMap } from "../../src/sourcify-chains";
+import {
+  RWStorageIdentifiers,
+  StorageIdentifiers,
+} from "../../src/server/services/storageServices/identifiers";
+import { Pool } from "pg";
+import { SourcifyDatabaseService } from "../../src/server/services/storageServices/SourcifyDatabaseService";
 
 export type ServerFixtureOptions = {
-  port?: number;
+  port: number;
+  read: RWStorageIdentifiers;
+  writeOrWarn: StorageIdentifiers[];
+  writeOrErr: StorageIdentifiers[];
+  skipDatabaseReset: boolean;
 };
 
 export class ServerFixture {
+  identifier: StorageIdentifiers | undefined;
   readonly maxFileSize = config.get<number>("server.maxFileSize");
 
-  private _storageService?: StorageService;
   private _server?: Server;
 
   // Getters for type safety
   // Can be safely accessed in "it" blocks
-  get storageService(): StorageService {
-    if (!this._storageService)
-      throw new Error("storageService not initialized!");
-    return this._storageService;
+  get sourcifyDatabase(): Pool {
+    // sourcifyDatabase is just a shorter way to get databasePool inside SourcifyDatabaseService
+    const _sourcifyDatabase = (
+      this.server.services.storage.rwServices[
+        RWStorageIdentifiers.SourcifyDatabase
+      ] as SourcifyDatabaseService
+    ).databasePool;
+    if (!_sourcifyDatabase)
+      throw new Error("sourcifyDatabase not initialized!");
+    return _sourcifyDatabase;
   }
   get server(): Server {
     if (!this._server) throw new Error("server not initialized!");
@@ -34,8 +49,19 @@ export class ServerFixture {
    * Any tests that may need a different server configuration can be written
    * in a different "describe" block.
    */
-  constructor(options: ServerFixtureOptions = {}) {
+  constructor(options_?: Partial<ServerFixtureOptions>) {
     let httpServer: http.Server;
+
+    const options: ServerFixtureOptions = {
+      ...{
+        port: config.get("server.port"),
+        read: config.get("storage.read"),
+        writeOrWarn: config.get("storage.writeOrWarn"),
+        writeOrErr: config.get("storage.writeOrErr"),
+        skipDatabaseReset: false,
+      },
+      ...options_,
+    };
 
     before(async () => {
       process.env.SOURCIFY_POSTGRES_PORT =
@@ -50,29 +76,41 @@ export class ServerFixture {
       ) {
         throw new Error("Not all required environment variables set");
       }
-      this._storageService = new StorageService({
-        repositoryV1ServiceOptions: {
-          ipfsApi: process.env.IPFS_API || "",
-          repositoryPath: config.get("repositoryV1.path"),
-          repositoryServerUrl: config.get("repositoryV1.serverUrl"),
-        },
-        repositoryV2ServiceOptions: {
-          ipfsApi: process.env.IPFS_API || "",
-          repositoryPath: config.get("repositoryV2.path"),
-        },
-        sourcifyDatabaseServiceOptions: {
-          postgres: {
-            host: process.env.SOURCIFY_POSTGRES_HOST,
-            database: process.env.SOURCIFY_POSTGRES_DB,
-            user: process.env.SOURCIFY_POSTGRES_USER,
-            password: process.env.SOURCIFY_POSTGRES_PASSWORD,
-            port: parseInt(process.env.SOURCIFY_POSTGRES_PORT),
+
+      this._server = new Server(
+        options.port!,
+        { supportedChainsMap },
+        {
+          enabledServices: {
+            read: options.read,
+            writeOrWarn: options.writeOrWarn,
+            writeOrErr: options.writeOrErr,
+          },
+          repositoryV1ServiceOptions: {
+            ipfsApi: process.env.IPFS_API as string,
+            repositoryPath: config.get("repositoryV1.path"),
+            repositoryServerUrl: config.get("repositoryV1.serverUrl") as string,
+          },
+          repositoryV2ServiceOptions: {
+            ipfsApi: process.env.IPFS_API as string,
+            repositoryPath: config.has("repositoryV2.path")
+              ? config.get("repositoryV2.path")
+              : undefined,
+          },
+          sourcifyDatabaseServiceOptions: {
+            postgres: {
+              host: process.env.SOURCIFY_POSTGRES_HOST as string,
+              database: process.env.SOURCIFY_POSTGRES_DB as string,
+              user: process.env.SOURCIFY_POSTGRES_USER as string,
+              password: process.env.SOURCIFY_POSTGRES_PASSWORD as string,
+              port: parseInt(process.env.SOURCIFY_POSTGRES_PORT),
+            },
           },
         },
-      });
+      );
 
-      services["initialize"]();
-      this._server = new Server(options.port);
+      await this._server.services.init();
+
       await new Promise<void>((resolve, reject) => {
         httpServer = this.server.app.listen(this.server.port, resolve);
         httpServer.on("error", reject);
@@ -82,13 +120,17 @@ export class ServerFixture {
 
     beforeEach(async () => {
       rimraf.sync(this.server.repository);
-      await resetDatabase(this.storageService);
-      console.log("Resetting the StorageService");
+      rimraf.sync(this.server.repositoryV2);
+      if (!options.skipDatabaseReset) {
+        await resetDatabase(this.sourcifyDatabase);
+        console.log("Resetting SourcifyDatabase");
+      }
     });
 
     after(() => {
       httpServer.close();
       rimraf.sync(this.server.repository);
+      rimraf.sync(this.server.repositoryV2);
     });
   }
 }

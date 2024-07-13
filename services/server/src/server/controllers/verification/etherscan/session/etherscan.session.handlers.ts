@@ -1,5 +1,4 @@
 import { Response, Request } from "express";
-import { services } from "../../../../services/services";
 import {
   ContractWrapperMap,
   checkContractsInSession,
@@ -40,7 +39,7 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
   const metadata = await getMetadataFromCompiler(
     compilerVersion,
     solcJsonInput,
-    contractName
+    contractName,
   );
 
   const pathContents: PathContent[] = Object.keys(solcJsonInput.sources).map(
@@ -49,7 +48,7 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
         path: path,
         content: stringToBase64(solcJsonInput.sources[path].content),
       };
-    }
+    },
   );
   pathContents.push({
     path: "metadata.json",
@@ -64,7 +63,7 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
   await checkContractsInSession(session);
   if (!session.contractWrappers) {
     throw new BadRequestError(
-      "Unknown error during the Etherscan verification process"
+      "Unknown error during the Etherscan verification process",
     );
     return;
   }
@@ -86,8 +85,8 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
   await verifyContractsInSession(
     verifiable,
     session,
-    services.verification,
-    services.storage
+    req.services.verification,
+    req.services.storage,
   );
   res.send(getSessionJSON(session));
 }

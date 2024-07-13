@@ -4,7 +4,9 @@ paths:
   /verify:
     post:
       description: |
-        Sends provided files for verification
+        Sends provided files for verification. 
+
+        The `chosenContract` is the optional index of the contract to be verified and only needed when there are multiple contracts, i.e. multiple metadata.json in the provided body. For example a full hardhat-output contains metadatas of all contracts compiled.
       tags:
         - Stateless Verification
       requestBody:
@@ -30,11 +32,14 @@ paths:
                   type: object
                   example:
                     metadata.json: "{...}"
-                    SimpleStorage.sol: "// file"
+                    SimpleStorage.sol: "pragma solidity ^0.8.0; contract SimpleStorage { function get() public view returns (uint) { return 1; } }"
                 creatorTxHash:
                   type: string
+                  example: "0xbc2f0848023b6a4b89dd049dadc551428a8e95153bc70d9eee6c14ec843f0a98"
                 chosenContract:
                   type: string
+                  description: "Optional index for the contract if multiple contracts (i.e. metadata.json files) are present."
+                  example: "0" 
           multipart/form-data:
             schema:
               type: object
@@ -65,6 +70,7 @@ paths:
                   type: string
                 chosenContract:
                   type: string
+                  description: "Optional index for the contract if multiple contracts (i.e. metadata.json files) are present."
       responses:
         "200":
           description: The contract has been successfully checked or sourcified

@@ -5,19 +5,19 @@ import { sourcifyChainsArray } from "../../../src/sourcify-chains";
 describe("contract creation util", function () {
   it("should run getCreatorTx with chainId 40", async function () {
     const sourcifyChain = sourcifyChainsArray.find(
-      (sourcifyChain) => sourcifyChain.chainId === 40
+      (sourcifyChain) => sourcifyChain.chainId === 40,
     );
     if (!sourcifyChain) {
       chai.assert.fail("No chain for chainId 40 configured");
     }
     const creatorTx = await getCreatorTx(
       sourcifyChain,
-      "0x4c09368a4bccD1675F276D640A0405Efa9CD4944"
+      "0x4c09368a4bccD1675F276D640A0405Efa9CD4944",
     );
     chai
       .expect(creatorTx)
       .equals(
-        "0xb7efb33c736b1e8ea97e356467f99d99221343f077ce31a3e3ac1d2e0636df1d"
+        "0xb7efb33c736b1e8ea97e356467f99d99221343f077ce31a3e3ac1d2e0636df1d",
       );
   });
 
@@ -42,91 +42,91 @@ describe("contract creation util", function () {
 
   it("should run getCreatorTx with chainId 83", async function () {
     const sourcifyChain = sourcifyChainsArray.find(
-      (sourcifyChain) => sourcifyChain.chainId === 83
+      (sourcifyChain) => sourcifyChain.chainId === 83,
     );
     if (!sourcifyChain) {
       chai.assert.fail("No chain for chainId 83 configured");
     }
     const creatorTx = await getCreatorTx(
       sourcifyChain,
-      "0x89e772941d94Ef4BDA1e4f68E79B4bc5F6096389"
+      "0x89e772941d94Ef4BDA1e4f68E79B4bc5F6096389",
     );
     chai
       .expect(creatorTx)
       .equals(
-        "0x8cc7b0fb66eaf7b32bac7b7938aedfcec6d49f9fe607b8008a5541e72d264069"
+        "0x8cc7b0fb66eaf7b32bac7b7938aedfcec6d49f9fe607b8008a5541e72d264069",
       );
   });
 
   it("should run getCreatorTx with chainId 335", async function () {
     const sourcifyChain = sourcifyChainsArray.find(
-      (sourcifyChain) => sourcifyChain.chainId === 335
+      (sourcifyChain) => sourcifyChain.chainId === 335,
     );
     if (!sourcifyChain) {
       chai.assert.fail("No chain for chainId 335 configured");
     }
     const creatorTx = await getCreatorTx(
       sourcifyChain,
-      "0x40D843D06dAC98b2586fD1DFC5532145208C909F"
+      "0x40D843D06dAC98b2586fD1DFC5532145208C909F",
     );
     chai
       .expect(creatorTx)
       .equals(
-        "0xd125cc92f61d0898d55a918283f8b855bde15bc5f391b621e0c4eee25c9997ee"
+        "0xd125cc92f61d0898d55a918283f8b855bde15bc5f391b621e0c4eee25c9997ee",
       );
   });
 
   it("should run getCreatorTx with regex for new Blockscout", async function () {
     const sourcifyChain = sourcifyChainsArray.find(
-      (sourcifyChain) => sourcifyChain.chainId === 100
+      (sourcifyChain) => sourcifyChain.chainId === 100,
     );
     if (!sourcifyChain) {
       chai.assert.fail("No chain for chainId 100 configured");
     }
     const creatorTx = await getCreatorTx(
       sourcifyChain,
-      "0x3CE1a25376223695284edc4C2b323C3007010C94"
+      "0x3CE1a25376223695284edc4C2b323C3007010C94",
     );
     chai
       .expect(creatorTx)
       .equals(
-        "0x11da550e6716be8b4bd9203cb384e89b8f8941dc460bd99a4928ce2825e05456"
+        "0x11da550e6716be8b4bd9203cb384e89b8f8941dc460bd99a4928ce2825e05456",
       );
   });
 
   it("should run getCreatorTx with regex for old Blockscout", async function () {
     const sourcifyChain = sourcifyChainsArray.find(
-      (sourcifyChain) => sourcifyChain.chainId === 57
+      (sourcifyChain) => sourcifyChain.chainId === 57,
     );
     if (!sourcifyChain) {
       chai.assert.fail("No chain for chainId 57 configured");
     }
     const creatorTx = await getCreatorTx(
       sourcifyChain,
-      "0x43e9f7ca4AEAcd67A7AC4a275cee7BC8AF601bE4"
+      "0x43e9f7ca4AEAcd67A7AC4a275cee7BC8AF601bE4",
     );
     chai
       .expect(creatorTx)
       .equals(
-        "0x89a8c2ac5f93b91a8a551bf4c676755e1ad5272e0a7193b894aa8ba14c43c5ea"
+        "0x89a8c2ac5f93b91a8a551bf4c676755e1ad5272e0a7193b894aa8ba14c43c5ea",
       );
   });
 
   it("should run getCreatorTx with etherscanApi for Etherscan", async function () {
     const sourcifyChain = sourcifyChainsArray.find(
-      (sourcifyChain) => sourcifyChain.chainId === 1
+      (sourcifyChain) => sourcifyChain.chainId === 1,
     );
     if (!sourcifyChain) {
       chai.assert.fail("No chain for chainId 1 configured");
     }
     const creatorTx = await getCreatorTx(
       sourcifyChain,
-      "0x00000000219ab540356cBB839Cbe05303d7705Fa"
+      "0x00000000219ab540356cBB839Cbe05303d7705Fa",
     );
     chai
       .expect(creatorTx)
       .equals(
-        "0xe75fb554e433e03763a1560646ee22dcb74e5274b34c5ad644e7c0f619a7e1d0"
+        "0xe75fb554e433e03763a1560646ee22dcb74e5274b34c5ad644e7c0f619a7e1d0",
       );
   });
 });

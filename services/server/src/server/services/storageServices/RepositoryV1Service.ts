@@ -12,21 +12,19 @@ import {
   FileObject,
   FilesInfo,
   MatchLevel,
+  MatchLevelWithoutAny,
   MatchQuality,
   PathConfig,
   RepositoryTag,
 } from "../../types";
-import {
-  create as createIpfsClient,
-  IPFSHTTPClient,
-  globSource,
-} from "ipfs-http-client";
 import path from "path";
 import logger from "../../../common/logger";
 import { getAddress } from "ethers";
 import { getMatchStatus } from "../../common";
-import { IStorageService } from "../StorageService";
+import { RWStorageService } from "../StorageService";
 import config from "config";
+import { RWStorageIdentifiers } from "./identifiers";
+import { exists, readFile } from "../utils/util";
 
 export interface RepositoryV1ServiceOptions {
   ipfsApi: string;
@@ -34,39 +32,43 @@ export interface RepositoryV1ServiceOptions {
   repositoryServerUrl: string;
 }
 
-export class RepositoryV1Service implements IStorageService {
+export class RepositoryV1Service implements RWStorageService {
+  IDENTIFIER = RWStorageIdentifiers.RepositoryV1;
   repositoryPath: string;
-  private ipfsClient?: IPFSHTTPClient;
 
   constructor(options: RepositoryV1ServiceOptions) {
     this.repositoryPath = options.repositoryPath;
-    if (options.ipfsApi) {
-      this.ipfsClient = createIpfsClient({ url: options.ipfsApi });
-    } else {
-      logger.warn(
-        "RepositoryV1: IPFS_API not set, IPFS MFS will not be updated"
-      );
-    }
+  }
+
+  async getFile(
+    chainId: string,
+    address: string,
+    match: MatchLevelWithoutAny,
+    path: string,
+  ): Promise<string | false> {
+    return await readFile(this.repositoryPath, match, chainId, address, path);
   }
 
   async init() {
+    logger.info(`${this.IDENTIFIER} initialized`, {
+      repositoryPath: this.repositoryPath,
+    });
     return true;
   }
 
   fetchAllFileUrls(
     chain: string,
     address: string,
-    match = "full_match"
+    match = "full_match",
   ): Array<string> {
     const files: Array<FileObject> = this.fetchAllFilePaths(
       chain,
       address,
-      match
+      match,
     );
     const urls: Array<string> = [];
     files.forEach((file) => {
-      const relativePath =
-        "contracts/" + file.path.split("/contracts")[1].substr(1);
+      const relativePath = file.path.replace(this.repositoryPath, "");
       // TODO: Don't use repositoryV1.serverUrl but a relative URL to the server. Requires a breaking chage to the API
       urls.push(`${config.get("repositoryV1.serverUrl")}/${relativePath}`);
     });
@@ -91,11 +93,15 @@ export class RepositoryV1Service implements IStorageService {
   fetchAllFilePaths(
     chain: string,
     address: string,
-    match = "full_match"
+    match = "full_match",
   ): Array<FileObject> {
-    const fullPath: string =
-      this.repositoryPath +
-      `/contracts/${match}/${chain}/${getAddress(address)}/`;
+    const fullPath = Path.join(
+      this.repositoryPath,
+      "contracts",
+      match,
+      chain,
+      getAddress(address),
+    );
     const files: Array<FileObject> = [];
     dirTree(fullPath, {}, (item) => {
       files.push({ name: item.name, path: item.path });
@@ -103,27 +109,41 @@ export class RepositoryV1Service implements IStorageService {
     return files;
   }
 
-  fetchAllFileContents(
+  async fetchAllFileContents(
     chain: string,
     address: string,
-    match = "full_match"
-  ): Array<FileObject> {
+    match = "full_match",
+  ): Promise<Array<FileObject>> {
     const files = this.fetchAllFilePaths(chain, address, match);
     for (const file in files) {
-      const loadedFile = fs.readFileSync(files[file].path);
+      const loadedFile = await fs.promises.readFile(files[file].path);
       files[file].content = loadedFile.toString();
+      files[file].path = files[file].path.replace(this.repositoryPath, "");
     }
 
     return files;
   }
-  fetchAllContracts = async (chain: String): Promise<ContractData> => {
-    const fullPath = this.repositoryPath + `/contracts/full_match/${chain}/`;
-    const partialPath =
-      this.repositoryPath + `/contracts/partial_match/${chain}/`;
 
-    const full = fs.existsSync(fullPath) ? fs.readdirSync(fullPath) : [];
-    const partial = fs.existsSync(partialPath)
-      ? fs.readdirSync(partialPath)
+  fetchAllContracts = async (chain: string): Promise<ContractData> => {
+    const fullPath = Path.join(
+      this.repositoryPath,
+      "contracts",
+      "full_match",
+      chain,
+    );
+
+    const partialPath = Path.join(
+      this.repositoryPath,
+      "contracts",
+      "partial_match",
+      chain,
+    );
+
+    const full = (await exists(fullPath))
+      ? await fs.promises.readdir(fullPath)
+      : [];
+    const partial = (await exists(partialPath))
+      ? await fs.promises.readdir(partialPath)
       : [];
     return {
       full,
@@ -134,12 +154,12 @@ export class RepositoryV1Service implements IStorageService {
   getTree = async (
     chainId: string,
     address: string,
-    match: MatchLevel
+    match: MatchLevel,
   ): Promise<FilesInfo<string[]>> => {
     const fullMatchesTree = this.fetchAllFileUrls(
       chainId,
       address,
-      "full_match"
+      "full_match",
     );
     if (fullMatchesTree.length || match === "full_match") {
       return { status: "full", files: fullMatchesTree };
@@ -152,18 +172,22 @@ export class RepositoryV1Service implements IStorageService {
   getContent = async (
     chainId: string,
     address: string,
-    match: MatchLevel
+    match: MatchLevel,
   ): Promise<FilesInfo<Array<FileObject>>> => {
-    const fullMatchesFiles = this.fetchAllFileContents(
+    const fullMatchesFiles = await this.fetchAllFileContents(
       chainId,
       address,
-      "full_match"
+      "full_match",
     );
     if (fullMatchesFiles.length || match === "full_match") {
       return { status: "full", files: fullMatchesFiles };
     }
 
-    const files = this.fetchAllFileContents(chainId, address, "partial_match");
+    const files = await this.fetchAllFileContents(
+      chainId,
+      address,
+      "partial_match",
+    );
     return { status: "partial", files };
   };
 
@@ -176,7 +200,7 @@ export class RepositoryV1Service implements IStorageService {
   public generateAbsoluteFilePath(pathConfig: PathConfig) {
     return Path.join(
       this.repositoryPath,
-      this.generateRelativeFilePath(pathConfig)
+      this.generateRelativeFilePath(pathConfig),
     );
   }
 
@@ -185,7 +209,7 @@ export class RepositoryV1Service implements IStorageService {
     return Path.join(
       this.generateRelativeContractDir(pathConfig),
       pathConfig.source ? "sources" : "",
-      pathConfig.fileName || ""
+      pathConfig.fileName || "",
     );
   }
 
@@ -195,7 +219,7 @@ export class RepositoryV1Service implements IStorageService {
       "contracts",
       `${pathConfig.matchQuality}_match`,
       pathConfig.chainId,
-      getAddress(pathConfig.address)
+      getAddress(pathConfig.address),
     );
   }
 
@@ -207,7 +231,7 @@ export class RepositoryV1Service implements IStorageService {
    */
   async fetchFromStorage(
     fullContractPath: string,
-    partialContractPath: string
+    partialContractPath: string,
   ): Promise<{ time: Date; status: Status }> {
     try {
       await fs.promises.access(fullContractPath);
@@ -230,14 +254,14 @@ export class RepositoryV1Service implements IStorageService {
     }
 
     throw new Error(
-      `Path not found: ${fullContractPath} or ${partialContractPath}`
+      `Path not found: ${fullContractPath} or ${partialContractPath}`,
     );
   }
 
   // Checks contract existence in repository.
   async checkByChainAndAddress(
     address: string,
-    chainId: string
+    chainId: string,
   ): Promise<Match[]> {
     logger.silly("RepositoryV1.checkByChainAndAddress", {
       chainId,
@@ -280,7 +304,7 @@ export class RepositoryV1Service implements IStorageService {
   // Checks contract existence in repository for full and partial matches.
   async checkAllByChainAndAddress(
     address: string,
-    chainId: string
+    chainId: string,
   ): Promise<Match[]> {
     logger.silly("RepositoryV1.checkAllByChainAndAddress", {
       chainId,
@@ -304,7 +328,7 @@ export class RepositoryV1Service implements IStorageService {
     try {
       const storage = await this.fetchFromStorage(
         fullContractPath,
-        partialContractPath
+        partialContractPath,
       );
 
       logger.debug("Found full or partial match in RepositoryV1", {
@@ -338,20 +362,20 @@ export class RepositoryV1Service implements IStorageService {
    * @param path the path within the repository where the file will be stored
    * @param content the content to be stored
    */
-  save(path: string | PathConfig, content: string) {
+  async save(path: string | PathConfig, content: string) {
     const abolsutePath =
       typeof path === "string"
         ? Path.join(this.repositoryPath, path)
         : this.generateAbsoluteFilePath(path);
-    fs.mkdirSync(Path.dirname(abolsutePath), { recursive: true });
-    fs.writeFileSync(abolsutePath, content);
+    await fs.promises.mkdir(Path.dirname(abolsutePath), { recursive: true });
+    await fs.promises.writeFile(abolsutePath, content);
     logger.silly("Saved file to repositoryV1", { abolsutePath });
-    this.updateRepositoryTag();
+    await this.updateRepositoryTag();
   }
 
   public async storeMatch(
     contract: CheckedContract,
-    match: Match
+    match: Match,
   ): Promise<void | Match> {
     if (
       match.address &&
@@ -365,55 +389,55 @@ export class RepositoryV1Service implements IStorageService {
         match.runtimeMatch === "perfect" ||
         match.creationMatch === "perfect"
       ) {
-        this.deletePartialIfExists(match.chainId, match.address);
+        await this.deletePartialIfExists(match.chainId, match.address);
       }
       const matchQuality: MatchQuality = this.statusToMatchQuality(
-        getMatchStatus(match)
+        getMatchStatus(match),
       );
 
-      this.storeSources(
+      await this.storeSources(
         matchQuality,
         match.chainId,
         match.address,
-        contract.solidity
+        contract.solidity,
       );
 
       // Store metadata
-      this.storeJSON(
+      await this.storeJSON(
         matchQuality,
         match.chainId,
         match.address,
         "metadata.json",
-        contract.metadata
+        contract.metadata,
       );
 
       if (match.abiEncodedConstructorArguments) {
-        this.storeTxt(
+        await this.storeTxt(
           matchQuality,
           match.chainId,
           match.address,
           "constructor-args.txt",
-          match.abiEncodedConstructorArguments
+          match.abiEncodedConstructorArguments,
         );
       }
 
       if (match.creatorTxHash) {
-        this.storeTxt(
+        await this.storeTxt(
           matchQuality,
           match.chainId,
           match.address,
           "creator-tx-hash.txt",
-          match.creatorTxHash
+          match.creatorTxHash,
         );
       }
 
       if (match.libraryMap && Object.keys(match.libraryMap).length) {
-        this.storeJSON(
+        await this.storeJSON(
           matchQuality,
           match.chainId,
           match.address,
           "library-map.json",
-          match.libraryMap
+          match.libraryMap,
         );
       }
 
@@ -421,12 +445,12 @@ export class RepositoryV1Service implements IStorageService {
         match.immutableReferences &&
         Object.keys(match.immutableReferences).length > 0
       ) {
-        this.storeJSON(
+        await this.storeJSON(
           matchQuality,
           match.chainId,
           match.address,
           "immutable-references.json",
-          match.immutableReferences
+          match.immutableReferences,
         );
       }
 
@@ -437,10 +461,6 @@ export class RepositoryV1Service implements IStorageService {
         runtimeMatch: match.runtimeMatch,
         creationMatch: match.creationMatch,
       });
-      // await this.addToIpfsMfs(matchQuality, match.chainId, match.address);
-      // logger.info(
-      //   `Stored ${contract.name} to IPFS MFS address=${match.address} chainId=${match.chainId} match runtimeMatch=${match.runtimeMatch} creationMatch=${match.creationMatch}`
-      // );
     } else if (match.runtimeMatch === "extra-file-input-bug") {
       return match;
     } else {
@@ -448,7 +468,7 @@ export class RepositoryV1Service implements IStorageService {
     }
   }
 
-  deletePartialIfExists(chainId: string, address: string) {
+  async deletePartialIfExists(chainId: string, address: string) {
     const pathConfig: PathConfig = {
       matchQuality: "partial",
       chainId,
@@ -457,18 +477,18 @@ export class RepositoryV1Service implements IStorageService {
     };
     const absolutePath = this.generateAbsoluteFilePath(pathConfig);
 
-    if (fs.existsSync(absolutePath)) {
-      fs.rmdirSync(absolutePath, { recursive: true });
+    if (await exists(absolutePath)) {
+      await fs.promises.rm(absolutePath, { recursive: true });
     }
   }
 
-  updateRepositoryTag() {
+  async updateRepositoryTag() {
     const filePath: string = Path.join(this.repositoryPath, "manifest.json");
     const timestamp = new Date().getTime();
     const tag: RepositoryTag = {
       timestamp: timestamp,
     };
-    fs.writeFileSync(filePath, JSON.stringify(tag));
+    await fs.promises.writeFile(filePath, JSON.stringify(tag));
   }
 
   /**
@@ -483,11 +503,11 @@ export class RepositoryV1Service implements IStorageService {
     throw new Error(`Invalid match status: ${status}`);
   }
 
-  private storeSources(
+  private async storeSources(
     matchQuality: MatchQuality,
     chainId: string,
     address: string,
-    sources: StringMap
+    sources: StringMap,
   ) {
     const pathTranslation: StringMap = {};
     for (const sourcePath in sources) {
@@ -495,7 +515,7 @@ export class RepositoryV1Service implements IStorageService {
       if (sanitizedPath !== originalPath) {
         pathTranslation[originalPath] = sanitizedPath;
       }
-      this.save(
+      await this.save(
         {
           matchQuality,
           chainId,
@@ -503,12 +523,12 @@ export class RepositoryV1Service implements IStorageService {
           source: true,
           fileName: sanitizedPath,
         },
-        sources[sourcePath]
+        sources[sourcePath],
       );
     }
     // Finally save the path translation
     if (Object.keys(pathTranslation).length === 0) return;
-    this.save(
+    await this.save(
       {
         matchQuality,
         chainId,
@@ -516,36 +536,36 @@ export class RepositoryV1Service implements IStorageService {
         source: false,
         fileName: "path-translation.json",
       },
-      JSON.stringify(pathTranslation)
+      JSON.stringify(pathTranslation),
     );
   }
 
-  private storeJSON(
+  private async storeJSON(
     matchQuality: MatchQuality,
     chainId: string,
     address: string,
     fileName: string,
-    contentJSON: any
+    contentJSON: any,
   ) {
-    this.save(
+    await this.save(
       {
         matchQuality,
         chainId,
         address,
         fileName,
       },
-      JSON.stringify(contentJSON)
+      JSON.stringify(contentJSON),
     );
   }
 
-  private storeTxt(
+  private async storeTxt(
     matchQuality: MatchQuality,
     chainId: string,
     address: string,
     fileName: string,
-    content: string
+    content: string,
   ) {
-    this.save(
+    await this.save(
       {
         matchQuality,
         chainId,
@@ -553,56 +573,10 @@ export class RepositoryV1Service implements IStorageService {
         source: false,
         fileName,
       },
-      content
+      content,
     );
   }
 
-  private async addToIpfsMfs(
-    matchQuality: MatchQuality,
-    chainId: string,
-    address: string
-  ) {
-    if (!this.ipfsClient) return;
-    logger.info("Adding to IPFS MFS", { matchQuality, chainId, address });
-    const contractFolderDir = this.generateAbsoluteFilePath({
-      matchQuality,
-      chainId,
-      address,
-    });
-    const ipfsMFSDir =
-      "/" +
-      this.generateRelativeContractDir({
-        matchQuality,
-        chainId,
-        address,
-      });
-    const filesAsyncIterable = globSource(contractFolderDir, "**/*");
-    for await (const file of filesAsyncIterable) {
-      if (!file.content) continue; // skip directories
-      const mfsPath = path.join(ipfsMFSDir, file.path);
-      try {
-        // If ipfs.files.stat is successful it means the file already exists so we can skip
-        await this.ipfsClient.files.stat(mfsPath);
-        continue;
-      } catch (e) {
-        // If ipfs.files.stat fails it means the file doesn't exist, so we can add the file
-      }
-      await this.ipfsClient.files.mkdir(path.dirname(mfsPath), {
-        parents: true,
-      });
-      // Readstream to Buffers
-      const chunks: Uint8Array[] = [];
-      for await (const chunk of file.content) {
-        chunks.push(chunk);
-      }
-      const fileBuffer = Buffer.concat(chunks);
-      const addResult = await this.ipfsClient.add(fileBuffer, {
-        pin: false,
-      });
-      await this.ipfsClient.files.cp(addResult.cid, mfsPath, { parents: true });
-    }
-    logger.info("Added to IPFS MFS", { matchQuality, chainId, address });
-  }
   private sanitizePath(originalPath: string) {
     // Clean ../ and ./ from the path. Also collapse multiple slashes into one.
     let sanitizedPath = path.normalize(originalPath);

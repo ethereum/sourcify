@@ -23,7 +23,7 @@ chai.use(chaiHttp);
 const assertAddressAndChainMissing = (
   res: Response,
   expectedFound: string[],
-  expectedMissing: MissingSources
+  expectedMissing: MissingSources,
 ) => {
   chai.expect(res.status).to.equal(StatusCodes.OK);
   const contracts = res.body.contracts;
@@ -43,14 +43,11 @@ describe("/session", function () {
   const serverFixture = new ServerFixture();
 
   it("should store session in database", async () => {
-    await serverFixture.storageService.sourcifyDatabase?.databasePool.query(
-      "TRUNCATE TABLE session;"
-    );
+    await serverFixture.sourcifyDatabase.query("TRUNCATE TABLE session;");
     await chai.request(serverFixture.server.app).post("/session/data").send({});
-    const res =
-      await serverFixture.storageService.sourcifyDatabase?.databasePool.query(
-        "SELECT * FROM session;"
-      );
+    const res = await serverFixture.sourcifyDatabase.query(
+      "SELECT * FROM session;",
+    );
     chai.expect(res?.rowCount).to.equal(1);
   });
 
@@ -84,7 +81,7 @@ describe("/session", function () {
         assertAddressAndChainMissing(
           res,
           ["project:/contracts/Storage.sol"],
-          {}
+          {},
         );
         done();
       });
@@ -100,7 +97,7 @@ describe("/session", function () {
         const contracts = assertAddressAndChainMissing(
           res,
           ["project:/contracts/Storage.sol"],
-          {}
+          {},
         );
         contracts[0].address = chainFixture.defaultContractAddress;
         contracts[0].chainId = chainFixture.chainId;
@@ -110,13 +107,13 @@ describe("/session", function () {
           .send({ contracts })
           .end(async (err, res) => {
             await assertVerificationSession(
-              serverFixture.storageService,
+              serverFixture.sourcifyDatabase,
               err,
               res,
               done,
               chainFixture.defaultContractAddress,
               chainFixture.chainId,
-              "perfect"
+              "perfect",
             );
           });
       });
@@ -174,26 +171,26 @@ describe("/session", function () {
             contracts[0].chainId = chainFixture.chainId;
             contracts[0].address = chainFixture.defaultContractAddress;
             assertVerificationSession(
-              serverFixture.storageService,
+              serverFixture.sourcifyDatabase,
               err,
               res,
               null,
               undefined,
               undefined,
-              "error"
+              "error",
             ).then(() => {
               agent
                 .post("/session/verify-validated")
                 .send({ contracts })
                 .end(async (err, res) => {
                   await assertVerificationSession(
-                    serverFixture.storageService,
+                    serverFixture.sourcifyDatabase,
                     err,
                     res,
                     done,
                     chainFixture.defaultContractAddress,
                     chainFixture.chainId,
-                    "perfect"
+                    "perfect",
                   );
                 });
             });
@@ -217,7 +214,7 @@ describe("/session", function () {
     const agent = chai.request.agent(serverFixture.server.app);
     let res;
     const maxNumMaxFiles = Math.floor(
-      MAX_SESSION_SIZE / serverFixture.maxFileSize
+      MAX_SESSION_SIZE / serverFixture.maxFileSize,
     ); // Max number of max size files allowed in a session
     const file = "a".repeat((serverFixture.maxFileSize * 3) / 4); // because of base64 encoding which increases size by 1/3, making it 4/3 of the original
     for (let i = 0; i < maxNumMaxFiles; i++) {
@@ -246,7 +243,7 @@ describe("/session", function () {
   const assertSingleContractStatus = (
     res: Response,
     expectedStatus: string,
-    shouldHaveTimestamp?: boolean
+    shouldHaveTimestamp?: boolean,
   ) => {
     chai.expect(res.status).to.equal(StatusCodes.OK);
     chai.expect(res.body).to.haveOwnProperty("contracts");
@@ -293,6 +290,35 @@ describe("/session", function () {
       });
   });
 
+  it("should import a contract using /session/input-contract", async () => {
+    const agent = chai.request.agent(serverFixture.server.app);
+    try {
+      const res = await agent.post("/session/input-contract").send({
+        address: chainFixture.defaultContractAddress,
+        chainId: chainFixture.chainId,
+      });
+      chai.expect(res.body).to.deep.equal({
+        contracts: [
+          {
+            verificationId: res.body.contracts[0].verificationId,
+            compiledPath: "project:/contracts/Storage.sol",
+            name: "Storage",
+            files: {
+              found: ["project:/contracts/Storage.sol"],
+              missing: {},
+              invalid: {},
+            },
+            status: "error",
+          },
+        ],
+        unused: [],
+        files: ["metadata.json"],
+      });
+    } catch (e) {
+      console.log(e);
+    }
+  });
+
   it("should fail for a source that is missing and unfetchable", (done) => {
     const agent = chai.request.agent(serverFixture.server.app);
     agent
@@ -323,7 +349,7 @@ describe("/session", function () {
           assertAddressAndChainMissing(
             res,
             ["project:/contracts/Storage.sol"],
-            {}
+            {},
           );
           done();
         });
@@ -339,7 +365,7 @@ describe("/session", function () {
         const contracts = assertAddressAndChainMissing(
           res,
           ["project:/contracts/Storage.sol"],
-          {}
+          {},
         );
         contracts[0].address = chainFixture.defaultContractAddress;
         contracts[0].chainId = chainFixture.chainId;
@@ -351,8 +377,8 @@ describe("/session", function () {
             "full_match",
             chainFixture.chainId,
             chainFixture.defaultContractAddress,
-            "metadata.json"
-          )
+            "metadata.json",
+          ),
         );
         chai.expect(isExist, "File is saved before calling /verify-validated")
           .to.be.false;
@@ -369,8 +395,8 @@ describe("/session", function () {
                 "full_match",
                 chainFixture.chainId,
                 chainFixture.defaultContractAddress,
-                "metadata.json"
-              )
+                "metadata.json",
+              ),
             );
             chai.expect(isExist, "File is saved even despite dryRun").to.be
               .false;
@@ -388,7 +414,7 @@ describe("/session", function () {
         const contracts = assertAddressAndChainMissing(
           res,
           ["project:/contracts/Storage.sol"],
-          {}
+          {},
         );
         contracts[0].address = chainFixture.defaultContractAddress;
         contracts[0].chainId = chainFixture.chainId;
@@ -410,7 +436,7 @@ describe("/session", function () {
       "..",
       "sources",
       "metadata",
-      "child-contract.meta.object.json"
+      "child-contract.meta.object.json",
     );
     const metadataBuffer = fs.readFileSync(metadataPath);
 
@@ -420,7 +446,7 @@ describe("/session", function () {
       "..",
       "sources",
       "contracts",
-      "ParentContract.sol"
+      "ParentContract.sol",
     );
     const parentBuffer = fs.readFileSync(parentPath);
 
@@ -463,7 +489,7 @@ describe("/session", function () {
       "..",
       "sources",
       "truffle",
-      "truffle-example.zip"
+      "truffle-example.zip",
     );
     const zippedTruffleBuffer = fs.readFileSync(zippedTrufflePath);
     chai
@@ -484,7 +510,7 @@ describe("/session", function () {
       "..",
       "sources",
       "metadata",
-      "child-contract.meta.object.json"
+      "child-contract.meta.object.json",
     );
     const metadataBuffer = fs.readFileSync(metadataPath);
 
@@ -494,7 +520,7 @@ describe("/session", function () {
       "..",
       "sources",
       "contracts",
-      "ParentContract.sol"
+      "ParentContract.sol",
     );
     const parentBuffer = fs.readFileSync(parentPath);
 
@@ -537,7 +563,7 @@ describe("/session", function () {
       "..",
       "sources",
       "truffle",
-      "truffle-example.zip"
+      "truffle-example.zip",
     );
     const zippedTruffleBuffer = fs.readFileSync(zippedTrufflePath);
     chai
@@ -560,7 +586,7 @@ describe("/session", function () {
       chainFixture.localSigner,
       artifact.abi,
       artifact.bytecode,
-      [999]
+      [999],
     );
 
     const metadata = await import(
@@ -574,7 +600,7 @@ describe("/session", function () {
       "testcontracts",
       "WithImmutables",
       "sources",
-      "WithImmutables.sol"
+      "WithImmutables.sol",
     );
     const sourceBuffer = fs.readFileSync(sourcePath);
 
@@ -601,8 +627,8 @@ describe("/session", function () {
         "full_match",
         chainFixture.chainId,
         contractAddress,
-        "immutable-references.json"
-      )
+        "immutable-references.json",
+      ),
     );
     chai.expect(isExist, "Immutable references not saved").to.be.true;
   });
@@ -616,7 +642,7 @@ describe("/session", function () {
     const factoryAddress = await deployFromAbiAndBytecode(
       chainFixture.localSigner,
       artifact.abi,
-      artifact.bytecode
+      artifact.bytecode,
     );
 
     // Deploy child by calling deploy(uint)
@@ -629,7 +655,7 @@ describe("/session", function () {
       artifact.abi,
       factoryAddress,
       "deploy",
-      [deployValue]
+      [deployValue],
     );
 
     if (!txReceipt) {
@@ -643,7 +669,7 @@ describe("/session", function () {
       "..",
       "testcontracts",
       "FactoryImmutable",
-      "FactoryTest.sol"
+      "FactoryTest.sol",
     );
     const sourceBuffer = fs.readFileSync(sourcePath);
 
@@ -672,7 +698,7 @@ describe("/session", function () {
     const factoryAddress = await deployFromAbiAndBytecode(
       chainFixture.localSigner,
       artifact.abi,
-      artifact.bytecode
+      artifact.bytecode,
     );
 
     // Deploy child by calling deploy(uint)
@@ -685,7 +711,7 @@ describe("/session", function () {
       artifact.abi,
       factoryAddress,
       "createChild",
-      []
+      [],
     );
 
     if (!txReceipt) {
@@ -699,7 +725,7 @@ describe("/session", function () {
       "..",
       "testcontracts",
       "FactoryImmutableWithoutConstrArg",
-      "FactoryTest3.sol"
+      "FactoryTest3.sol",
     );
     const sourceBuffer = fs.readFileSync(sourcePath);
 
@@ -729,7 +755,7 @@ describe("/session", function () {
       "..",
       "testcontracts",
       "Storage",
-      "StorageJsonInput.json"
+      "StorageJsonInput.json",
     );
     const solcJsonBuffer = fs.readFileSync(solcJsonPath);
 
@@ -745,7 +771,7 @@ describe("/session", function () {
     const address = await deployFromAbiAndBytecode(
       chainFixture.localSigner,
       chainFixture.defaultContractArtifact.abi, // Storage.sol
-      chainFixture.defaultContractArtifact.bytecode
+      chainFixture.defaultContractArtifact.bytecode,
     );
     const solcJsonPath = path.join(
       __dirname,
@@ -753,7 +779,7 @@ describe("/session", function () {
       "..",
       "testcontracts",
       "Storage",
-      "StorageJsonInput.json"
+      "StorageJsonInput.json",
     );
     const solcJsonBuffer = fs.readFileSync(solcJsonPath);
 
@@ -786,7 +812,7 @@ describe("/session", function () {
       contractAddress = await deployFromAbiAndBytecode(
         chainFixture.localSigner,
         bytecodeMismatchArtifact.abi,
-        bytecodeMismatchArtifact.bytecode
+        bytecodeMismatchArtifact.bytecode,
       );
     });
 

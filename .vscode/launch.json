@@ -137,7 +137,7 @@
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "cwd": "${workspaceFolder}/services/server",
       "env": {
-        "TEST_CHAIN": "100",
+        // "TEST_CHAIN": "84532",
       },
       "preLaunchTask": "database-test:up",
       "postDebugTask": "database-test:down",
@@ -145,6 +145,7 @@
         "${workspaceFolder}/services/server/test/chains/etherscan-instances.spec.ts",
         "-r",
         "${workspaceFolder}/services/server/test/load-env.js",
+        "--no-timeout",
         "--exit"
       ],
       "smartStep": true,
@@ -174,32 +175,16 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Mocha - Contract Call Decoder",
-      "cwd": "${workspaceFolder}/packages/contract-call-decoder",
-      "program": "./node_modules/ava/cli.js",
-      "args": [],
-      "outFiles": [
-        "./**/*.js",
-        "${workspaceFolder}/packages/contract-call-decoder/build/**/*.js"
-      ],
-      "smartStep": true,
-      "console": "integratedTerminal"
-      // "internalConsoleOptions": "neverOpen"
-    },
-    {
-      "type": "node",
-      "request": "launch",
       "name": "Mocha - Monitor",
       "cwd": "${workspaceFolder}/services/monitor",
-      "program": "../../node_modules/.bin/mocha",
+      "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "args": [
-        "./test/**/*.test.js",
+        "${workspaceFolder}/services/monitor/test/**.spec.ts",
         "--no-timeout",
         // Run a single test when debugging
         // "--grep=v0.6.12",
         "--exit"
       ],
-      "sourceMaps": true,
       "smartStep": true,
       "console": "integratedTerminal"
       // "internalConsoleOptions": "neverOpen"
@@ -220,26 +205,6 @@
         "-r",
         "${workspaceFolder}/services/server/test/load-env.js",
         "--exit"
-      ],
-      "smartStep": true,
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Mocha - Source Fetcher",
-      "program": "${workspaceRoot}/node_modules/.bin/mocha",
-      "args": [
-        "${workspaceFolder}/test/sourceFetcher.js",
-        "--no-timeout",
-        // Run a single test when debugging
-        // "--grep=fallback",
-        "--exit"
-      ],
-      "outFiles": [
-        "${workspaceFolder}/dist/**/*.js",
-        "${workspaceFolder}/packages/**/build/**/*.js"
       ],
       "smartStep": true,
       "console": "integratedTerminal",

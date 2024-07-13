@@ -1,29 +1,40 @@
-import ganache from "ganache";
 import path from "path";
 import fs from "fs";
 import {
   deployFromAbiAndBytecodeForCreatorTxHash,
   readFilesFromDirectory,
 } from "./helpers";
-import { deployFromAbiAndBytecode } from "../helpers/helpers";
 import { JsonRpcProvider, JsonRpcSigner, Network } from "ethers";
 import { LOCAL_CHAINS } from "../../src/sourcify-chains";
 import nock from "nock";
 import storageContractArtifact from "../testcontracts/Storage/Storage.json";
 import storageContractMetadata from "../testcontracts/Storage/metadata.json";
 import storageContractMetadataModified from "../testcontracts/Storage/metadataModified.json";
+import { ChildProcess, spawn } from "child_process";
+import treeKill from "tree-kill";
 
 const storageContractSourcePath = path.join(
   __dirname,
   "..",
   "testcontracts",
   "Storage",
-  "Storage.sol"
+  "Storage.sol",
 );
 const storageContractSource = fs.readFileSync(storageContractSourcePath);
 
-const GANACHE_PORT = 8545;
-const DEFAULT_CHAIN_ID = "1337";
+const storageModifiedContractSourcePath = path.join(
+  __dirname,
+  "..",
+  "testcontracts",
+  "Storage",
+  "StorageModified.sol",
+);
+const storageModifiedContractSource = fs.readFileSync(
+  storageModifiedContractSourcePath,
+);
+
+const HARDHAT_PORT = 8545;
+const DEFAULT_CHAIN_ID = "31337";
 
 export type LocalChainFixtureOptions = {
   chainId?: string;
@@ -31,11 +42,12 @@ export type LocalChainFixtureOptions = {
 
 export class LocalChainFixture {
   defaultContractSource = storageContractSource;
+  defaultContractModifiedSource = storageModifiedContractSource;
   defaultContractMetadata = Buffer.from(
-    JSON.stringify(storageContractMetadata)
+    JSON.stringify(storageContractMetadata),
   );
   defaultContractModifiedMetadata = Buffer.from(
-    JSON.stringify(storageContractMetadataModified)
+    JSON.stringify(storageContractMetadataModified),
   );
   defaultContractModifiedSourceIpfs = getModifiedSourceIpfs();
   defaultContractArtifact = storageContractArtifact;
@@ -44,6 +56,8 @@ export class LocalChainFixture {
   private _localSigner?: JsonRpcSigner;
   private _defaultContractAddress?: string;
   private _defaultContractCreatorTx?: string;
+
+  private hardhatNodeProcess?: ChildProcess;
 
   // Getters for type safety
   // Can be safely accessed in "it" blocks
@@ -72,20 +86,11 @@ export class LocalChainFixture {
    */
   constructor(options: LocalChainFixtureOptions = {}) {
     this._chainId = options.chainId ?? DEFAULT_CHAIN_ID;
-    const ganacheServer = ganache.server({
-      wallet: { totalAccounts: 1 },
-      chain: {
-        chainId: parseInt(this._chainId),
-        networkId: parseInt(this._chainId),
-      },
-    });
 
     before(async () => {
-      await ganacheServer.listen(GANACHE_PORT);
-
       // Init IPFS mock with all the necessary pinned files
       const mockContent = await readFilesFromDirectory(
-        path.join(__dirname, "..", "mocks", "ipfs")
+        path.join(__dirname, "..", "mocks", "ipfs"),
       );
       for (const ipfsKey of Object.keys(mockContent)) {
         nock(process.env.IPFS_GATEWAY || "")
@@ -96,16 +101,17 @@ export class LocalChainFixture {
           });
       }
 
-      const sourcifyChainGanache = LOCAL_CHAINS[0];
-      console.log("Started ganache local server on port " + GANACHE_PORT);
+      this.hardhatNodeProcess = await startHardhatNetwork(HARDHAT_PORT);
+
+      const sourcifyChainHardhat = LOCAL_CHAINS[1];
       const ethersNetwork = new Network(
-        sourcifyChainGanache.rpc[0] as string,
-        sourcifyChainGanache.chainId
+        sourcifyChainHardhat.rpc[0] as string,
+        sourcifyChainHardhat.chainId,
       );
       this._localSigner = await new JsonRpcProvider(
-        `http://localhost:${GANACHE_PORT}`,
+        `http://localhost:${HARDHAT_PORT}`,
         ethersNetwork,
-        { staticNetwork: ethersNetwork }
+        { staticNetwork: ethersNetwork },
       ).getSigner();
       console.log("Initialized Provider");
 
@@ -114,18 +120,58 @@ export class LocalChainFixture {
         await deployFromAbiAndBytecodeForCreatorTxHash(
           this._localSigner,
           storageContractArtifact.abi,
-          storageContractArtifact.bytecode
+          storageContractArtifact.bytecode,
         );
-
       this._defaultContractAddress = contractAddress;
       this._defaultContractCreatorTx = txHash;
     });
 
     after(async () => {
-      await ganacheServer.close();
+      if (this.hardhatNodeProcess) {
+        await stopHardhatNetwork(this.hardhatNodeProcess);
+      }
       nock.cleanAll();
     });
   }
+}
+
+function startHardhatNetwork(port: number) {
+  return new Promise<ChildProcess>((resolve) => {
+    const hardhatNodeProcess = spawn("npx", [
+      "hardhat",
+      "node",
+      "--port",
+      port.toString(),
+    ]);
+
+    hardhatNodeProcess.stderr.on("data", (data: Buffer) => {
+      console.error(`Hardhat Network Error: ${data.toString()}`);
+    });
+
+    hardhatNodeProcess.stdout.on("data", (data: Buffer) => {
+      console.log(data.toString());
+      if (
+        data
+          .toString()
+          .includes("Started HTTP and WebSocket JSON-RPC server at")
+      ) {
+        resolve(hardhatNodeProcess);
+      }
+    });
+  });
+}
+
+function stopHardhatNetwork(hardhatNodeProcess: ChildProcess) {
+  return new Promise<void>((resolve, reject) => {
+    treeKill(hardhatNodeProcess.pid!, "SIGTERM", (err) => {
+      if (err) {
+        console.error(`Failed to kill process tree: ${err}`);
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
 }
 
 // Changes the IPFS hash inside the metadata file to make the source unfetchable
@@ -140,7 +186,7 @@ function getModifiedSourceIpfs(): Buffer {
   // the metadata needs to be deeply cloned here
   // unfortunately `structuredClone` is not available in Node 16
   const modifiedIpfsMetadata = JSON.parse(
-    JSON.stringify(storageContractMetadata)
+    JSON.stringify(storageContractMetadata),
   );
   modifiedIpfsMetadata.sources["project:/contracts/Storage.sol"].urls[1] =
     modifiedIpfsAddress;

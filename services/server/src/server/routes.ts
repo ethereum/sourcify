@@ -13,7 +13,7 @@ const router: Router = Router();
 router.use("/chain-tests", testArtifactsRoutes);
 
 router.get("/health", (_req, res) =>
-  res.status(200).send("Alive and kicking!")
+  res.status(200).send("Alive and kicking!"),
 );
 
 // Authenticated route to change the logging level.
@@ -57,7 +57,7 @@ router.get("/chains", (_req, res) => {
         supported,
         etherscanAPI: etherscanApi?.apiURL, // Needed in the UI
       };
-    }
+    },
   );
 
   res.status(200).json(sourcifyChains);

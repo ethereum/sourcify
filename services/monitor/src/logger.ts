@@ -60,13 +60,13 @@ const rawlineFormat = format.printf(
       msg += chalk.grey(metadataMsg);
     }
     return msg;
-  }
+  },
 );
 
 const lineFormat = format.combine(
   format.timestamp(),
   format.colorize(),
-  rawlineFormat
+  rawlineFormat,
 );
 
 const jsonFormat = format.combine(format.timestamp(), format.json());
@@ -106,8 +106,8 @@ export function setLogLevel(level: string): void {
   if (!validLogLevels.includes(level)) {
     throw new Error(
       `Invalid log level: ${level}. level can take: ${validLogLevels.join(
-        ", "
-      )}`
+        ", ",
+      )}`,
     );
   }
   console.warn(`Setting log level to: ${level}`);

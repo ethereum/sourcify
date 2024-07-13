@@ -1,9 +1,29 @@
+const {
+  WStorageIdentifiers,
+  RWStorageIdentifiers,
+} = require("../server/services/storageServices/identifiers");
+
 module.exports = {
   server: {
     port: 5555,
     maxFileSize: 30 * 1024 * 1024, // 30 MB
   },
-  // Deprecated repository
+  // The storage services where the verified contract be saved and read from
+  storage: {
+    // read option will be the "source of truth" where the contracts read from for the API requests.
+    read: RWStorageIdentifiers.SourcifyDatabase,
+    // User request will NOT fail if saving to these fail, but only log a warning
+    writeOrWarn: [
+      WStorageIdentifiers.AllianceDatabase,
+      RWStorageIdentifiers.RepositoryV1,
+    ],
+    // The user request will fail if saving to these fail
+    writeOrErr: [
+      WStorageIdentifiers.RepositoryV2,
+      RWStorageIdentifiers.SourcifyDatabase,
+    ],
+  },
+  // Legacy repository
   repositoryV1: {
     path: "/tmp/sourcify/repository",
     serverUrl: "http://localhost:10000", // Need to keep this as it's used in IpfsRepositoryService.ts fetchAllFileUrls.
@@ -25,6 +45,8 @@ module.exports = {
     enabled: false,
     // functionName: "compile",
   },
+  // If true, downloads all production version compilers and saves them.
+  initCompilers: false,
   corsAllowedOrigins: [
     /^https?:\/\/(?:.+\.)?sourcify.dev$/, // sourcify.dev and subdomains
     /^https?:\/\/(?:.+\.)?sourcify.eth$/, // sourcify.eth and subdomains

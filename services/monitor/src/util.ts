@@ -54,7 +54,7 @@ export class FileHash {
     }
 
     const msg = `None of the keys ${KNOWN_CBOR_ORIGINS.join(
-      ","
+      ",",
     )} found in the CBOR data. CBOR keys found are: ${Object.keys(cborData)}`;
     throw new Error(msg);
   }

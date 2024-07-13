@@ -8,28 +8,58 @@ import { logDebug, logError, logInfo, logWarn } from '../../src/lib/logger';
 import semver from 'semver';
 import { Worker, WorkerOptions } from 'worker_threads';
 
-require('isomorphic-fetch');
-interface RequestInitTimeout extends RequestInit {
-  timeout?: number;
-}
-
-export async function fetchWithTimeout(
+/**
+ * Fetches a resource with an exponential timeout.
+ * 1) Send req, wait backoff * 2^0 ms, abort if doesn't resolve
+ * 2) Send req, wait backoff * 2^1 ms, abort if doesn't resolve
+ * 3) Send req, wait backoff * 2^2 ms, abort if doesn't resolve...
+ * ...
+ * ...
+ */
+export async function fetchWithBackoff(
   resource: string,
-  options: RequestInitTimeout = {}
+  backoff: number = 10000,
+  retries: number = 4,
 ) {
-  const { timeout = 10000 } = options;
+  let timeout = backoff;
 
-  const controller = new AbortController();
-  const id = setTimeout(() => {
-    logWarn('Aborting request', { resource, timeout });
-    controller.abort();
-  }, timeout);
-  const response = await fetch(resource, {
-    ...options,
-    signal: controller.signal,
-  });
-  clearTimeout(id);
-  return response;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      logDebug('Start fetchWithBackoff', { resource, timeout, attempt });
+      const controller = new AbortController();
+      const id = setTimeout(() => {
+        logDebug('Aborting request', { resource, timeout, attempt });
+        controller.abort();
+      }, timeout);
+      const response = await fetch(resource, {
+        signal: controller.signal,
+      });
+      logDebug('Success fetchWithBackoff', { resource, timeout, attempt });
+      clearTimeout(id);
+      return response;
+    } catch (error) {
+      if (attempt === retries) {
+        logError('Failed fetchWithBackoff', {
+          resource,
+          attempt,
+          retries,
+          timeout,
+          error,
+        });
+        throw new Error(`Failed fetching ${resource}: ${error}`);
+      } else {
+        timeout *= 2; // exponential backoff
+        logDebug('Retrying fetchWithBackoff', {
+          resource,
+          attempt,
+          timeout,
+          error,
+        });
+        continue;
+      }
+    }
+  }
+  throw new Error(`Failed fetching ${resource}`);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -63,7 +93,7 @@ export function findSolcPlatform(): string | false {
 export async function useCompiler(
   version: string,
   solcJsonInput: JsonInput,
-  forceEmscripten = false
+  forceEmscripten = false,
 ): Promise<CompilerOutput> {
   // For nightly builds, Solidity version is saved as 0.8.17-ci.2022.8.9+commit.6b60524c instead of 0.8.17-nightly.2022.8.9+commit.6b60524c.
   // Not possible to retrieve compilers with "-ci.".
@@ -106,7 +136,7 @@ export async function useCompiler(
             path.resolve(__dirname, './compilerWorker.ts'),
             {
               workerData: { version, inputStringified },
-            }
+            },
           );
           worker.once('message', (result) => {
             resolve(result);
@@ -129,11 +159,11 @@ export async function useCompiler(
   }
   const compiledJSON = JSON.parse(compiled);
   const errorMessages = compiledJSON?.errors?.filter(
-    (e: any) => e.severity === 'error'
+    (e: any) => e.severity === 'error',
   );
   if (errorMessages && errorMessages.length > 0) {
     const error = new Error(
-      'Compiler error:\n ' + JSON.stringify(errorMessages)
+      'Compiler error:\n ' + JSON.stringify(errorMessages),
     );
     logError(error.message);
     throw error;
@@ -143,7 +173,7 @@ export async function useCompiler(
 
 export async function getSolcExecutable(
   platform: string,
-  version: string
+  version: string,
 ): Promise<string | null> {
   const fileName = `solc-${platform}-v${version}`;
   const repoPath = path.join('/tmp', 'solc-repo');
@@ -204,7 +234,7 @@ async function fetchAndSaveSolc(
   platform: string,
   solcPath: string,
   version: string,
-  fileName: string
+  fileName: string,
 ): Promise<boolean> {
   const encodedURIFilename = encodeURIComponent(fileName);
   const githubSolcURI = `${HOST_SOLC_REPO}${platform}/${encodedURIFilename}`;
@@ -214,7 +244,7 @@ async function fetchAndSaveSolc(
     solcPath,
     githubSolcURI,
   });
-  let res = await fetchWithTimeout(githubSolcURI);
+  let res = await fetchWithBackoff(githubSolcURI);
   let status = res.status;
   let buffer;
 
@@ -226,7 +256,7 @@ async function fetchAndSaveSolc(
       /^([\w-]+)-v(\d+\.\d+\.\d+)\+commit\.([a-fA-F0-9]+).*$/.test(responseText)
     ) {
       const githubSolcURI = `${HOST_SOLC_REPO}${platform}/${responseText}`;
-      res = await fetchWithTimeout(githubSolcURI);
+      res = await fetchWithBackoff(githubSolcURI);
       status = res.status;
       buffer = await res.arrayBuffer();
     }
@@ -290,7 +320,7 @@ export async function getSolcJs(version = 'latest'): Promise<any> {
 
 function asyncExecSolc(
   inputStringified: string,
-  solcPath: string
+  solcPath: string,
 ): Promise<string> {
   // check if input is valid JSON. The input is untrusted and potentially cause arbitrary execution.
   JSON.parse(inputStringified);
@@ -306,12 +336,12 @@ function asyncExecSolc(
           reject(error);
         } else if (stderr) {
           reject(
-            new Error(`Compiler process returned with errors:\n ${stderr}`)
+            new Error(`Compiler process returned with errors:\n ${stderr}`),
           );
         } else {
           resolve(stdout);
         }
-      }
+      },
     );
     if (!child.stdin) {
       throw new Error('No stdin on child process');

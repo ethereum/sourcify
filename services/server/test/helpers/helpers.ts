@@ -8,16 +8,15 @@ import {
   BytesLike,
   Contract,
 } from "ethers";
-import { sourcifyChainsMap } from "../../src/sourcify-chains";
 import { assertVerificationSession, assertVerification } from "./assertions";
 import chai from "chai";
 import chaiHttp from "chai-http";
 import path from "path";
 import { promises as fs } from "fs";
-import { StorageService } from "../../src/server/services/StorageService";
 import { ServerFixture } from "./ServerFixture";
 import type { Done } from "mocha";
 import { LocalChainFixture } from "./LocalChainFixture";
+import { Pool } from "pg";
 
 chai.use(chaiHttp);
 
@@ -29,7 +28,7 @@ export async function deployFromAbiAndBytecode(
   signer: JsonRpcSigner,
   abi: Interface | InterfaceAbi,
   bytecode: BytesLike | { object: string },
-  args?: any[]
+  args?: any[],
 ) {
   const contractFactory = new ContractFactory(abi, bytecode, signer);
   console.log(`Deploying contract ${args?.length ? `with args ${args}` : ""}`);
@@ -49,7 +48,7 @@ export async function deployFromAbiAndBytecodeForCreatorTxHash(
   signer: JsonRpcSigner,
   abi: Interface | InterfaceAbi,
   bytecode: BytesLike | { object: string },
-  args?: any[]
+  args?: any[],
 ) {
   const contractFactory = new ContractFactory(abi, bytecode, signer);
   console.log(`Deploying contract ${args?.length ? `with args ${args}` : ""}`);
@@ -62,23 +61,32 @@ export async function deployFromAbiAndBytecodeForCreatorTxHash(
     throw new Error(`No deployment transaction found for ${contractAddress}`);
   }
   console.log(
-    `Deployed contract at ${contractAddress} with tx ${creationTx.hash}`
+    `Deployed contract at ${contractAddress} with tx ${creationTx.hash}`,
   );
 
-  return { contractAddress, txHash: creationTx.hash };
+  const txReceipt = await signer.provider.getTransactionReceipt(
+    creationTx.hash,
+  );
+
+  return {
+    contractAddress,
+    txHash: creationTx.hash,
+    blockNumber: creationTx.blockNumber,
+    txIndex: txReceipt?.index,
+  };
 }
 
 export async function deployAndVerifyContract(
   chai: Chai.ChaiStatic,
   chainFixture: LocalChainFixture,
   serverFixture: ServerFixture,
-  partial: boolean = false
+  partial: boolean = false,
 ) {
   const contractAddress = await deployFromAbiAndBytecode(
     chainFixture.localSigner,
     chainFixture.defaultContractArtifact.abi,
     chainFixture.defaultContractArtifact.bytecode,
-    []
+    [],
   );
   await chai
     .request(serverFixture.server.app)
@@ -90,7 +98,7 @@ export async function deployAndVerifyContract(
       partial
         ? chainFixture.defaultContractModifiedMetadata
         : chainFixture.defaultContractMetadata,
-      "metadata.json"
+      "metadata.json",
     )
     .attach("files", chainFixture.defaultContractSource);
   return contractAddress;
@@ -104,7 +112,7 @@ export async function deployFromPrivateKey(
   abi: Interface | InterfaceAbi,
   bytecode: BytesLike | { object: string },
   privateKey: string,
-  args?: any[]
+  args?: any[],
 ) {
   const signer = new Wallet(privateKey, provider);
   const contractFactory = new ContractFactory(abi, bytecode, signer);
@@ -132,7 +140,7 @@ export async function callContractMethod(
   abi: Interface | InterfaceAbi,
   contractAddress: string,
   methodName: string,
-  args: any[]
+  args: any[],
 ) {
   const contract = new Contract(contractAddress, abi, provider);
   const callResponse = await contract[methodName].staticCall(...args);
@@ -146,7 +154,7 @@ export async function callContractMethodWithTx(
   abi: Interface | InterfaceAbi,
   contractAddress: string,
   methodName: string,
-  args: any[]
+  args: any[],
 ) {
   const contract = new Contract(contractAddress, abi, signer);
   const txResponse = await contract[methodName].send(...args);
@@ -159,7 +167,7 @@ export function verifyAndAssertEtherscan(
   chainId: string,
   address: string,
   expectedStatus: string,
-  done: Done
+  done: Done,
 ) {
   const request = chai
     .request(serverFixture.server.app)
@@ -174,7 +182,7 @@ export function verifyAndAssertEtherscan(
       done,
       address,
       chainId,
-      expectedStatus
+      expectedStatus,
     );
   });
 }
@@ -184,7 +192,7 @@ export function verifyAndAssertEtherscanSession(
   chainId: string,
   address: string,
   expectedStatus: string,
-  done: Done
+  done: Done,
 ) {
   chai
     .request(serverFixture.server.app)
@@ -199,7 +207,7 @@ export function verifyAndAssertEtherscanSession(
         done,
         address,
         chainId,
-        expectedStatus
+        expectedStatus,
       );
     });
 }
@@ -223,28 +231,15 @@ export async function readFilesFromDirectory(dirPath: string) {
   }
 }
 
-export async function resetDatabase(storageService: StorageService) {
-  if (!storageService.sourcifyDatabase) {
-    chai.assert.fail("No database on StorageService");
+export async function resetDatabase(sourcifyDatabase: Pool) {
+  if (!sourcifyDatabase) {
+    chai.assert.fail("Database pool not configured");
   }
-  await storageService.sourcifyDatabase.init();
-  await storageService.sourcifyDatabase.databasePool.query(
-    "DELETE FROM sourcify_sync"
-  );
-  await storageService.sourcifyDatabase.databasePool.query(
-    "DELETE FROM sourcify_matches"
-  );
-  await storageService.sourcifyDatabase.databasePool.query(
-    "DELETE FROM verified_contracts"
-  );
-  await storageService.sourcifyDatabase.databasePool.query(
-    "DELETE FROM contract_deployments"
-  );
-  await storageService.sourcifyDatabase.databasePool.query(
-    "DELETE FROM compiled_contracts"
-  );
-  await storageService.sourcifyDatabase.databasePool.query(
-    "DELETE FROM contracts"
-  );
-  await storageService.sourcifyDatabase.databasePool.query("DELETE FROM code");
+  await sourcifyDatabase.query("DELETE FROM sourcify_sync");
+  await sourcifyDatabase.query("DELETE FROM sourcify_matches");
+  await sourcifyDatabase.query("DELETE FROM verified_contracts");
+  await sourcifyDatabase.query("DELETE FROM contract_deployments");
+  await sourcifyDatabase.query("DELETE FROM compiled_contracts");
+  await sourcifyDatabase.query("DELETE FROM contracts");
+  await sourcifyDatabase.query("DELETE FROM code");
 }

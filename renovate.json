@@ -1,0 +1,25 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "configMigration": true,
+  "extends": [
+    "config:recommended",
+    "schedule:daily"
+  ],
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["patch", "pin", "digest", "lockFileMaintenance", "rollback", "bump"],
+      "groupName": "all patch dependencies",
+      "groupSlug": "all-patch"
+    },
+    {
+      "matchUpdateTypes": ["minor"],
+      "groupName": "all minor dependencies",
+      "groupSlug": "all-minor"
+    }
+  ],
+  "major": {
+    "dependencyDashboardApproval": true
+  },
+  "rangeStrategy": "pin",
+  "timezone": "Europe/Berlin"
+}

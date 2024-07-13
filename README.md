@@ -19,7 +19,6 @@ Sourcify mainly consists of:
 - Packages:
   - [@ethereum-sourcify/lib-sourcify](/packages/lib-sourcify/): The core library for Sourcify. It contains the logic to verify contracts.
   - [@ethereum-sourcify/bytecode-utils](/packages/bytecode-utils/): A library to extract and parse the CBOR encoded metadata from the bytecode.
-  - [@ethereum-sourcify/contract-call-decoder](/packages/contract-call-decoder/): A library to decode the contract calls from the transaction data and show human-readable information using NatSpec comments (currently stale).
 
 The project aims to serve as a public good infrastructure with fully open-source development and an [open and accessible contract repository](https://docs.sourcify.dev/docs/repository/) of verified contracts. Anyone can easily run their own Sourcify server and monitor to verify contracts on their own. We also aim to provide tooling to verify contracts easier on different platforms e.g. browers.
 

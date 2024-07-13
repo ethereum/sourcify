@@ -57,14 +57,14 @@ describe("/", function () {
       .end(
         async (err, res) =>
           await assertVerification(
-            serverFixture.storageService,
+            serverFixture.sourcifyDatabase,
             err,
             res,
             done,
             chainFixture.defaultContractAddress,
             chainFixture.chainId,
-            "perfect"
-          )
+            "perfect",
+          ),
       );
   });
 
@@ -83,14 +83,14 @@ describe("/", function () {
       .end(
         async (err, res) =>
           await assertVerification(
-            serverFixture.storageService,
+            serverFixture.sourcifyDatabase,
             err,
             res,
             done,
             chainFixture.defaultContractAddress,
             chainFixture.chainId,
-            "perfect"
-          )
+            "perfect",
+          ),
       );
   });
 
@@ -109,14 +109,14 @@ describe("/", function () {
       .end(
         async (err, res) =>
           await assertVerification(
-            serverFixture.storageService,
+            serverFixture.sourcifyDatabase,
             err,
             res,
             done,
             chainFixture.defaultContractAddress,
             chainFixture.chainId,
-            "perfect"
-          )
+            "perfect",
+          ),
       );
   });
 
@@ -138,7 +138,7 @@ describe("/", function () {
       .attach(
         "files",
         chainFixture.defaultContractModifiedSourceIpfs,
-        "metadata.json"
+        "metadata.json",
       )
       .end((err, res) => {
         assertMissingFile(err, res);
@@ -156,14 +156,14 @@ describe("/", function () {
       .end(
         async (err, res) =>
           await assertVerification(
-            serverFixture.storageService,
+            serverFixture.sourcifyDatabase,
             err,
             res,
             done,
             chainFixture.defaultContractAddress,
             chainFixture.chainId,
-            "perfect"
-          )
+            "perfect",
+          ),
       );
   });
 
@@ -179,7 +179,7 @@ describe("/", function () {
       "..",
       "testcontracts",
       "Storage",
-      "StorageModified.sol"
+      "StorageModified.sol",
     );
     const partialSourceBuffer = fs.readFileSync(partialSourcePath);
 
@@ -193,21 +193,21 @@ describe("/", function () {
       .attach("files", partialMetadataBuffer, "metadata.json")
       .attach("files", partialSourceBuffer);
     await assertVerification(
-      serverFixture.storageService,
+      serverFixture.sourcifyDatabase,
       null,
       res,
       null,
       chainFixture.defaultContractAddress,
       chainFixture.chainId,
-      "partial"
+      "partial",
     );
 
     res = await chai.request(serverFixture.server.app).get(partialMetadataURL);
     chai.expect(res.body).to.deep.equal(partialMetadata);
 
     const contractDeploymentWithoutCreatorTransactionHash =
-      await serverFixture.storageService.sourcifyDatabase?.databasePool.query(
-        "SELECT transaction_hash, block_number, transaction_index, contract_id FROM contract_deployments"
+      await serverFixture.sourcifyDatabase.query(
+        "SELECT transaction_hash, block_number, transaction_index, contract_id FROM contract_deployments",
       );
 
     const contractIdWithoutCreatorTransactionHash =
@@ -230,17 +230,17 @@ describe("/", function () {
       .attach("files", chainFixture.defaultContractMetadata, "metadata.json")
       .attach("files", chainFixture.defaultContractSource);
     await assertVerification(
-      serverFixture.storageService,
+      serverFixture.sourcifyDatabase,
       null,
       res,
       null,
       chainFixture.defaultContractAddress,
-      chainFixture.chainId
+      chainFixture.chainId,
     );
 
     const contractDeploymentWithCreatorTransactionHash =
-      await serverFixture.storageService.sourcifyDatabase?.databasePool.query(
-        "SELECT encode(transaction_hash, 'hex') as transaction_hash, block_number, transaction_index, contract_id FROM contract_deployments"
+      await serverFixture.sourcifyDatabase.query(
+        "SELECT encode(transaction_hash, 'hex') as transaction_hash, block_number, transaction_index, contract_id FROM contract_deployments",
       );
 
     const contractIdWithCreatorTransactionHash =
@@ -279,7 +279,7 @@ describe("/", function () {
       "..",
       "testcontracts",
       "Storage",
-      "StorageModified.sol"
+      "StorageModified.sol",
     );
     const partialSourceBuffer = fs.readFileSync(partialSourcePath);
 
@@ -293,13 +293,13 @@ describe("/", function () {
       .attach("files", partialMetadataBuffer, "metadata.json")
       .attach("files", partialSourceBuffer);
     await assertVerification(
-      serverFixture.storageService,
+      serverFixture.sourcifyDatabase,
       null,
       res,
       null,
       chainFixture.defaultContractAddress,
       chainFixture.chainId,
-      "partial"
+      "partial",
     );
 
     res = await chai.request(serverFixture.server.app).get(partialMetadataURL);
@@ -317,7 +317,7 @@ describe("/", function () {
     chai
       .expect(res.body.error)
       .to.equal(
-        `The contract ${chainFixture.defaultContractAddress} on chainId ${chainFixture.chainId} is already partially verified. The provided new source code also yielded a partial match and will not be stored unless it's a full match`
+        `The contract ${chainFixture.defaultContractAddress} on chainId ${chainFixture.chainId} is already partially verified. The provided new source code also yielded a partial match and will not be stored unless it's a full match`,
       );
   });
 
@@ -331,14 +331,14 @@ describe("/", function () {
       "..",
       "sources",
       "metadata",
-      "withoutMetadataHash.meta.object.json"
+      "withoutMetadataHash.meta.object.json",
     );
     const metadataBuffer = fs.readFileSync(metadataPath);
     const metadata = JSON.parse(metadataBuffer.toString());
     const address = await deployFromAbiAndBytecode(
       chainFixture.localSigner,
       metadata.output.abi,
-      bytecode
+      bytecode,
     );
 
     const res = await chai
@@ -349,13 +349,13 @@ describe("/", function () {
       .attach("files", metadataBuffer, "metadata.json");
 
     await assertVerification(
-      serverFixture.storageService,
+      serverFixture.sourcifyDatabase,
       null,
       res,
       null,
       address,
       chainFixture.chainId,
-      "partial"
+      "partial",
     );
   });
 
@@ -367,7 +367,7 @@ describe("/", function () {
       chainFixture.localSigner,
       artifact.abi,
       artifact.bytecode,
-      [999]
+      [999],
     );
 
     const metadata = await import(
@@ -380,7 +380,7 @@ describe("/", function () {
       "testcontracts",
       "WithImmutables",
       "sources",
-      "WithImmutables.sol"
+      "WithImmutables.sol",
     );
     const sourceBuffer = fs.readFileSync(sourcePath);
 
@@ -397,12 +397,12 @@ describe("/", function () {
         },
       });
     await assertVerification(
-      serverFixture.storageService,
+      serverFixture.sourcifyDatabase,
       null,
       res,
       null,
       contractAddress,
-      chainFixture.chainId
+      chainFixture.chainId,
     );
     const isExist = fs.existsSync(
       path.join(
@@ -411,8 +411,8 @@ describe("/", function () {
         "full_match",
         chainFixture.chainId,
         contractAddress,
-        "immutable-references.json"
-      )
+        "immutable-references.json",
+      ),
     );
     chai.expect(isExist, "Immutable references not saved").to.be.true;
   });
@@ -421,7 +421,7 @@ describe("/", function () {
     const address = await deployFromAbiAndBytecode(
       chainFixture.localSigner,
       chainFixture.defaultContractArtifact.abi, // Storage.sol
-      chainFixture.defaultContractArtifact.bytecode
+      chainFixture.defaultContractArtifact.bytecode,
     );
     const solcJsonPath = path.join(
       __dirname,
@@ -429,7 +429,7 @@ describe("/", function () {
       "..",
       "testcontracts",
       "Storage",
-      "StorageJsonInput.json"
+      "StorageJsonInput.json",
     );
     const solcJsonBuffer = fs.readFileSync(solcJsonPath);
 
@@ -448,7 +448,7 @@ describe("/", function () {
     const address = await deployFromAbiAndBytecode(
       chainFixture.localSigner,
       chainFixture.defaultContractArtifact.abi, // Storage.sol
-      chainFixture.defaultContractArtifact.bytecode
+      chainFixture.defaultContractArtifact.bytecode,
     );
     const solcJsonPath = path.join(
       __dirname,
@@ -456,7 +456,7 @@ describe("/", function () {
       "..",
       "testcontracts",
       "Storage",
-      "StorageJsonInput.json"
+      "StorageJsonInput.json",
     );
     const solcJsonBuffer = fs.readFileSync(solcJsonPath);
 
@@ -475,7 +475,7 @@ describe("/", function () {
     const address = await deployFromAbiAndBytecode(
       chainFixture.localSigner,
       chainFixture.defaultContractArtifact.abi, // Storage.sol
-      chainFixture.defaultContractArtifact.bytecode
+      chainFixture.defaultContractArtifact.bytecode,
     );
     const solcJsonPath = path.join(
       __dirname,
@@ -483,7 +483,7 @@ describe("/", function () {
       "..",
       "testcontracts",
       "Storage",
-      "StorageJsonInput.json"
+      "StorageJsonInput.json",
     );
     const solcJsonBuffer = fs.readFileSync(solcJsonPath);
 
@@ -497,12 +497,12 @@ describe("/", function () {
       .field("contractName", "Storage");
 
     await assertVerification(
-      serverFixture.storageService,
+      serverFixture.sourcifyDatabase,
       null,
       res,
       null,
       address,
-      chainFixture.chainId
+      chainFixture.chainId,
     );
   });
   describe("hardhat build-info file support", function () {
@@ -516,7 +516,7 @@ describe("/", function () {
         chainFixture.localSigner,
         MyToken.abi,
         MyToken.evm.bytecode.object,
-        ["Sourcify Hardhat Test", "TEST"]
+        ["Sourcify Hardhat Test", "TEST"],
       );
       console.log(`Contract deployed at ${address}`);
       await waitSecs(3);
@@ -550,13 +550,13 @@ describe("/", function () {
         .attach("files", hardhatOutputBuffer)
         .end(async (err, res) => {
           await assertVerification(
-            serverFixture.storageService,
+            serverFixture.sourcifyDatabase,
             err,
             res,
             done,
             address,
             chainFixture.chainId,
-            "perfect"
+            "perfect",
           );
         });
     });
@@ -567,7 +567,7 @@ describe("/", function () {
           chainFixture.localSigner,
           chainFixture.defaultContractArtifact.abi,
           chainFixture.defaultContractArtifact.bytecode,
-          []
+          [],
         );
       const metadata = await import(
         "../../testcontracts/Storage/metadata.upMultipleDirs.json"
@@ -586,13 +586,13 @@ describe("/", function () {
           },
         });
       await assertVerification(
-        serverFixture.storageService,
+        serverFixture.sourcifyDatabase,
         null,
         res,
         null,
         contractAddress,
         chainFixture.chainId,
-        "partial"
+        "partial",
       );
       const isExist = fs.existsSync(
         path.join(
@@ -602,8 +602,8 @@ describe("/", function () {
           chainFixture.chainId,
           contractAddress,
           "sources",
-          "Storage.sol"
-        )
+          "Storage.sol",
+        ),
       );
       chai.expect(isExist, "Files saved in the wrong directory").to.be.true;
     });
@@ -621,7 +621,7 @@ describe("/", function () {
       contractAddress = await deployFromAbiAndBytecode(
         chainFixture.localSigner,
         bytecodeMismatchArtifact.abi,
-        bytecodeMismatchArtifact.bytecode
+        bytecodeMismatchArtifact.bytecode,
       );
     });
 
@@ -660,13 +660,13 @@ describe("/", function () {
           .attach("files", hardhatOutputBuffer)
           .end(async (err, res) => {
             await assertVerification(
-              serverFixture.storageService,
+              serverFixture.sourcifyDatabase,
               err,
               res,
               done,
               contractAddress,
               chainFixture.chainId,
-              "perfect"
+              "perfect",
             );
           });
       });
@@ -680,7 +680,7 @@ describe("/", function () {
     const address = await deployFromAbiAndBytecode(
       chainFixture.localSigner,
       artifact.abi,
-      artifact.bytecode
+      artifact.bytecode,
     );
 
     const metadata = await import(
@@ -694,8 +694,8 @@ describe("/", function () {
         "..",
         "testcontracts",
         "LibrariesSolidity075",
-        "Example.sol"
-      )
+        "Example.sol",
+      ),
     );
 
     const res = await chai
@@ -707,13 +707,13 @@ describe("/", function () {
       .attach("files", file, "Example.sol");
 
     await assertVerification(
-      serverFixture.storageService,
+      serverFixture.sourcifyDatabase,
       null,
       res,
       null,
       address,
       chainFixture.chainId,
-      "perfect"
+      "perfect",
     );
   });
 });

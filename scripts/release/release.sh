@@ -173,7 +173,7 @@ function run_lerna_version() {
 ### We can't simply let lerna do this because CircleCI doesn't run when all tags are published
 ###
 # Priority packages whose tags should be pushed first in specific order
-declare -a priority_packages=("@ethereum-sourcify/bytecode-utils" "@ethereum-sourcify/contract-call-decoder" "@ethereum-sourcify/lib-sourcify")
+declare -a priority_packages=("@ethereum-sourcify/bytecode-utils" "@ethereum-sourcify/lib-sourcify")
 
 # Push tags one by one with a delay
 push_tag() {

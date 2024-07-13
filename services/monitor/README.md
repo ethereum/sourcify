@@ -129,6 +129,12 @@ The `--chainsPath` and `--configPath` are optional. If not provided, the default
 
 ### 2. Run via Docker
 
+If you want to build yourself, the builds need to be run from the project root context, e.g.:
+
+```bash
+cd sourcify/ && docker build -f services/server/Dockerfile .
+```
+
 The containers are published in the [Github Container Registry](https://github.com/ethereum/sourcify/pkgs/container/sourcify%2Fmonitor)
 
 The recommended way to run the Sourcify Monitor is via Docker.

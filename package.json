@@ -9,7 +9,7 @@
     "ui"
   ],
   "scripts": {
-    "build:clean": "rm -rf node_modules services/monitor/node_modules services/server/node_modules packages/bytecode-utils/node_modules/ packages/contract-call-decoder/node_modules/ packages/lib-sourcify/node_modules/ && npm install && npx lerna run build",
+    "build:clean": "rm -rf node_modules services/monitor/node_modules services/server/node_modules packages/bytecode-utils/node_modules/ packages/lib-sourcify/node_modules/ && npm install && npx lerna run build",
     "build:lerna": "lerna run build",
     "server:start": "cd services/server && node ./dist/server/server.js",
     "ui:start": "cd ui && npm run start",
@@ -17,7 +17,8 @@
     "update-chains": "node --experimental-fetch scripts/updateChains.mjs && prettier --write services/server/src/chains.json",
     "test:chains": "cd services/server && npm run test:chains",
     "lerna-test": "lerna run test --stream",
-    "lerna-lint": "lerna run lint",
+    "lerna-lint": "lerna run check",
+    "lerna-fix": "lerna run fix",
     "lerna-version": "lerna version --no-push"
   },
   "repository": {
@@ -38,16 +39,16 @@
   },
   "homepage": "https://sourcify.dev",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^6.9.0",
-    "@typescript-eslint/parser": "^6.9.0",
-    "eslint": "^8.52.0",
-    "eslint-config-prettier": "^9.0.0",
-    "ganache": "^7.9.1",
-    "lerna": "^7.4.1",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.3.2"
+    "@typescript-eslint/eslint-plugin": "6.21.0",
+    "@typescript-eslint/parser": "6.21.0",
+    "eslint": "8.57.0",
+    "eslint-config-prettier": "9.1.0",
+    "lerna": "8.1.6",
+    "prettier": "3.3.2",
+    "ts-node": "10.9.2",
+    "typescript": "5.5.3"
   },
   "optionalDependencies": {
-    "fsevents": "*"
+    "fsevents": "2.3.3"
   }
 }

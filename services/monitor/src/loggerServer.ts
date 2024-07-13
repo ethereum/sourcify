@@ -36,6 +36,6 @@ const server = http.createServer((req, res) => {
 
 server.listen(port, () => {
   monitorLoggerInstance.info(
-    `Dynamic log level server listening on port ${port}`
+    `Dynamic log level server listening on port ${port}`,
   );
 });

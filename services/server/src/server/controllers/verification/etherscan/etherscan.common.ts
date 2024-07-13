@@ -47,7 +47,7 @@ export const isEtherscanSolcJsonInput = (sourceCodeObject: string) => {
 
 export const getSolcJsonInputFromEtherscanResult = (
   etherscanResult: EtherscanResult,
-  sources: any
+  sources: any,
 ): JsonInput => {
   const generatedSettings = {
     optimizer: {
@@ -76,11 +76,11 @@ export const getSolcJsonInputFromEtherscanResult = (
 export const processRequestFromEtherscan = async (
   sourcifyChain: SourcifyChain,
   address: string,
-  apiKey?: string
+  apiKey?: string,
 ): Promise<any> => {
   if (!sourcifyChain.etherscanApi) {
     throw new BadRequestError(
-      `Requested chain ${sourcifyChain.chainId} is not supported for importing from Etherscan`
+      `Requested chain ${sourcifyChain.chainId} is not supported for importing from Etherscan`,
     );
   }
 
@@ -98,7 +98,7 @@ export const processRequestFromEtherscan = async (
     response = await fetch(secretUrl);
   } catch (e: any) {
     throw new BadGatewayError(
-      `Request to ${url}&apiKey=XXX failed with code ${e.code}`
+      `Request to ${url}&apiKey=XXX failed with code ${e.code}`,
     );
   }
   logger.debug("Fetched from Etherscan", {
@@ -115,7 +115,7 @@ export const processRequestFromEtherscan = async (
       response: JSON.stringify(response),
     });
     throw new BadRequestError(
-      "Error in Etherscan API response. Status code: " + response.status
+      "Error in Etherscan API response. Status code: " + response.status,
     );
   }
 
@@ -142,7 +142,7 @@ export const processRequestFromEtherscan = async (
       resultJson: JSON.stringify(resultJson),
     });
     throw new BadGatewayError(
-      "Error in Etherscan API response. Result message: " + resultJson.result
+      "Error in Etherscan API response. Result message: " + resultJson.result,
     );
   }
   if (resultJson.result[0].SourceCode === "") {
@@ -192,7 +192,7 @@ export const processRequestFromEtherscan = async (
     });
     solcJsonInput = getSolcJsonInputFromEtherscanResult(
       contractResultJson,
-      JSON.parse(sourceCodeObject)
+      JSON.parse(sourceCodeObject),
     );
   } else {
     logger.debug("Etherscan single file contract found", {
@@ -208,7 +208,7 @@ export const processRequestFromEtherscan = async (
     };
     solcJsonInput = getSolcJsonInputFromEtherscanResult(
       contractResultJson,
-      sources
+      sources,
     );
   }
 
@@ -219,7 +219,7 @@ export const processRequestFromEtherscan = async (
       secretUrl,
     });
     throw new BadRequestError(
-      "Sourcify cannot generate the solcJsonInput from Etherscan result"
+      "Sourcify cannot generate the solcJsonInput from Etherscan result",
     );
   }
 
@@ -233,23 +233,23 @@ export const processRequestFromEtherscan = async (
 export const getMetadataFromCompiler = async (
   compilerVersion: string,
   solcJsonInput: JsonInput,
-  contractName: string
+  contractName: string,
 ): Promise<Metadata> => {
   const compilationResult = await solc.compile(compilerVersion, solcJsonInput);
 
   const contractPath = findContractPathFromContractName(
     compilationResult.contracts,
-    contractName
+    contractName,
   );
 
   if (!contractPath) {
     throw new BadRequestError(
-      "This contract was verified with errors on Etherscan"
+      "This contract was verified with errors on Etherscan",
     );
   }
 
   return JSON.parse(
-    compilationResult.contracts[contractPath][contractName].metadata
+    compilationResult.contracts[contractPath][contractName].metadata,
   );
 };
 
