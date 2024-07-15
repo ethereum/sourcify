@@ -1,16 +1,23 @@
 import {
   CheckedContract,
-  CompiledContractCborAuxdata,
   ImmutableReferences,
   Libraries,
   Match,
   Metadata,
   Status,
+  StorageLayout,
   Transformation,
   TransformationValues,
 } from "@ethereum-sourcify/lib-sourcify";
 import { Pool, QueryResult } from "pg";
-import { Bytes, BytesSha, BytesKeccak, BytesTypes } from "../../types";
+import { Abi } from "abitype";
+import {
+  Bytes,
+  BytesSha,
+  BytesKeccak,
+  BytesTypes,
+  Nullable,
+} from "../../types";
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Tables {
@@ -34,6 +41,7 @@ export namespace Tables {
     txindex?: number;
     deployer?: Bytes;
   }
+
   export interface CompiledContract {
     id: string;
     compiler: string;
@@ -42,28 +50,27 @@ export namespace Tables {
     name: string;
     fully_qualified_name: string;
     compilation_artifacts: {
-      abi: {};
-      userdoc: any;
-      devdoc: any;
-      storageLayout: any;
-      sources: any;
+      abi: Nullable<Abi>;
+      userdoc: Nullable<any>;
+      devdoc: Nullable<any>;
+      storageLayout: Nullable<StorageLayout>;
+      sources: Nullable<CompilationArtifactsSources>;
     };
     sources: Record<string, string>;
     compiler_settings: Object;
     creation_code_hash?: BytesSha;
     runtime_code_hash: BytesSha;
     creation_code_artifacts: {
-      sourceMap: string;
-      linkReferences: {};
-      cborAuxdata: CompiledContractCborAuxdata | undefined;
+      sourceMap: Nullable<string>;
+      linkReferences: Nullable<{}>;
     };
     runtime_code_artifacts: {
-      sourceMap: string;
-      linkReferences: {};
-      immutableReferences: ImmutableReferences;
-      cborAuxdata: CompiledContractCborAuxdata | undefined;
+      sourceMap: Nullable<string>;
+      linkReferences: Nullable<{}>;
+      immutableReferences: Nullable<ImmutableReferences>;
     };
   }
+
   export interface VerifiedContract {
     id: number;
     compilation_id: string;
@@ -74,6 +81,8 @@ export namespace Tables {
     runtime_values: TransformationValues | undefined;
     runtime_match: boolean;
     creation_match: boolean;
+    runtime_metadata_match: boolean;
+    creation_metadata_match: boolean;
   }
 
   export interface SourcifyMatch {
@@ -89,6 +98,12 @@ export namespace Tables {
     address: string;
     match_type: string;
   }
+}
+
+export interface CompilationArtifactsSources {
+  [globalName: string]: {
+    id: number;
+  };
 }
 
 // This object contains all Tables fields except foreign keys generated during INSERTs
@@ -353,6 +368,8 @@ export async function insertVerifiedContract(
     runtime_values,
     runtime_match,
     creation_match,
+    runtime_metadata_match,
+    creation_metadata_match,
   }: Omit<Tables.VerifiedContract, "id">,
 ): Promise<QueryResult<Pick<Tables.VerifiedContract, "id">>> {
   let verifiedContractsInsertResult = await pool.query(
@@ -364,8 +381,10 @@ export async function insertVerifiedContract(
         runtime_transformations,
         runtime_values,
         runtime_match,
-        creation_match
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (compilation_id, deployment_id) DO NOTHING RETURNING *`,
+        creation_match,
+        runtime_metadata_match,
+        creation_metadata_match
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) ON CONFLICT (compilation_id, deployment_id) DO NOTHING RETURNING *`,
     [
       compilation_id,
       deployment_id,
@@ -375,6 +394,8 @@ export async function insertVerifiedContract(
       runtime_values,
       runtime_match,
       creation_match,
+      runtime_metadata_match,
+      creation_metadata_match,
     ],
   );
   if (verifiedContractsInsertResult.rows.length === 0) {

@@ -76,6 +76,8 @@ export type Mandatory<T> = {
   [P in keyof T]-?: T[P];
 };
 
+export type Nullable<T> = T | null;
+
 // Declare a unique symbol to be used as a brand key
 declare const __brand: unique symbol;
 // Define a generic type `Brand` that uses the unique symbol as a key
