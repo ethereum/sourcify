@@ -1735,6 +1735,20 @@
       }
     }
   },
+  "16180": {
+    "sourcifyName": "PLYR PHI",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "avalancheApi": true
+    }
+  },
+  "62831": {
+    "sourcifyName": "PLYR TAU Testnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "avalancheApi": true
+    }
+  },
   "842": {
     "sourcifyName": "Taraxa Testnet",
     "supported": true

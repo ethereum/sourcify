@@ -1577,6 +1577,22 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
+  // PLYR PHI
+  verifyContract(
+    "0xf1CFa02d6561C4b71DC3dEd08F7A14c0753E08a3",
+    "16180",
+    "PLYR PHI",
+    "shared/",
+  );
+
+  // PLYR TAU Testnet
+  verifyContract(
+    "0xe440a9C3eCACac255533e4C8d6EDFDBc082304f1",
+    "62831",
+    "PLYR TAU Testnet",
+    "shared/",
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests: ChainApiResponse[] = [];
     supportedChains
