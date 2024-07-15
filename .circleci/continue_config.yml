@@ -77,7 +77,7 @@ aliases:
           command: cd ~/project/metacoin-source-verify && ./scripts/monitor_e2e.sh
           no_output_timeout: 30m
     docker:
-      - image: cimg/node:22.3.0
+      - image: cimg/node:22.4.0
     resource_class: small
   - &verification-e2e-base
     steps:
@@ -94,7 +94,7 @@ aliases:
           name: verification test
           command: cd ~/project/metacoin-source-verify && ./scripts/verification_e2e.sh
     docker:
-      - image: cimg/node:22.3.0
+      - image: cimg/node:22.4.0
     resource_class: small
 ####################
 #### WORKFLOWS #####
@@ -253,7 +253,7 @@ jobs:
             ./.circleci/scripts/trigger_deploy.sh
   tests-node-v22:
     docker:
-      - image: cimg/node:22.3.0
+      - image: cimg/node:22.4.0
       - image: postgres:16-alpine
         environment:
           POSTGRES_DB: sourcify

@@ -67,7 +67,7 @@ export class VerificationService {
           const now = Date.now();
           return downLoadFunc(solcVer).then(() => {
             logger.debug(
-              `Downloaded compiler ${solcVer} in ${Date.now() - now}ms`,
+              `Downloaded (or found existing) compiler ${solcVer} in ${Date.now() - now}ms`,
             );
           });
         });
