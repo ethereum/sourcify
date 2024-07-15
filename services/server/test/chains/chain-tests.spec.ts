@@ -1577,6 +1577,22 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
+  // Vechain Mainnet
+  verifyContract(
+    "0x85D2b3129aA0b6BB215734efC92a2c8f1cC9B3Aa",
+    "100009",
+    "VeChain Mainnet",
+    "shared/",
+  );
+
+  // Vechain Testnet
+  verifyContract(
+    "0x0De8cD785Bb7a8c3eF67F07dB9fe11160215B0bC",
+    "100010",
+    "VeChain Testnet",
+    "shared/",
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests: ChainApiResponse[] = [];
     supportedChains

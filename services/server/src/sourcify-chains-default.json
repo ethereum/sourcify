@@ -1694,6 +1694,14 @@
       "avalancheApi": true
     }
   },
+  "100009": {
+    "sourcifyName": "VeChain Mainnet",
+    "supported": true
+  },
+  "100010": {
+    "sourcifyName": "VeChain Testnet",
+    "supported": true
+  },
   "84532": {
     "sourcifyName": "Base Sepolia Tesnet",
     "supported": true,
