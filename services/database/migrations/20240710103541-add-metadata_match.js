@@ -21,11 +21,11 @@ exports.up = function (db, callback) {
     [
       db.runSql.bind(
         db,
-        `ALTER TABLE public.verified_contracts ADD runtime_metadata_match bool NOT NULL;`,
+        `ALTER TABLE verified_contracts ADD COLUMN runtime_metadata_match bool NOT NULL;`,
       ),
       db.runSql.bind(
         db,
-        `ALTER TABLE public.verified_contracts ADD creation_metadata_match bool NOT NULL;`,
+        `ALTER TABLE verified_contracts ADD COLUMN creation_metadata_match bool NOT NULL;`,
       ),
     ],
     callback,
@@ -37,11 +37,11 @@ exports.down = function (db, callback) {
     [
       db.runSql.bind(
         db,
-        `ALTER TABLE sourcify_matches DROP COLUMN runtime_metadata_match;`,
+        `ALTER TABLE verified_contracts DROP COLUMN runtime_metadata_match;`,
       ),
       db.runSql.bind(
         db,
-        `ALTER TABLE sourcify_matches DROP COLUMN creation_metadata_match;`,
+        `ALTER TABLE verified_contracts DROP COLUMN creation_metadata_match;`,
       ),
     ],
     callback,
