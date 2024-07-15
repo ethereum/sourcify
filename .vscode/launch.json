@@ -101,6 +101,7 @@
         "${workspaceFolder}/services/server/test/unit/**",
         "-r",
         "${workspaceFolder}/services/server/test/load-env.js",
+        // "--grep=should initialize compilers",
         "--exit"
       ],
       "smartStep": true,

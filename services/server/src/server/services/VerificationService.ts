@@ -45,15 +45,20 @@ export class VerificationService {
           : (version: string) => getSolcExecutable(platform, version);
 
       // get the list of compiler versions
-      const solcList = await fetch(`${HOST_SOLC_REPO}${platform}/list.json`)
-        .then((response) => response.json())
-        .then((data) =>
-          (Object.values(data.releases) as string[])
-            .map((str) => str.split("-v")[1]) // e.g. soljson-v0.8.26+commit.8a97fa7a.js or solc-linux-amd64-v0.8.26+commit.8a97fa7a
-            .map(
-              (str) => (str.endsWith(".js") ? str.slice(0, -3) : str), // remove .js extension
-            ),
-        );
+      let solcList: string[];
+      try {
+        solcList = await fetch(`${HOST_SOLC_REPO}${platform}/list.json`)
+          .then((response) => response.json())
+          .then((data) =>
+            (Object.values(data.releases) as string[])
+              .map((str) => str.split("-v")[1]) // e.g. soljson-v0.8.26+commit.8a97fa7a.js or solc-linux-amd64-v0.8.26+commit.8a97fa7a
+              .map(
+                (str) => (str.endsWith(".js") ? str.slice(0, -3) : str), // remove .js extension
+              ),
+          );
+      } catch (e) {
+        throw new Error(`Failed to fetch list of solc versions: ${e}`);
+      }
 
       const chunkSize = 10; // Download in chunks to not overload the Solidity server all at once
       for (let i = 0; i < solcList.length; i += chunkSize) {

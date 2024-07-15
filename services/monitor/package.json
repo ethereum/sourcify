@@ -54,7 +54,7 @@
     "chai": "4.4.1",
     "hardhat": "2.22.6",
     "mocha": "10.6.0",
-    "nock": "14.0.0-beta.7",
+    "nock": "^14.0.0-beta.8",
     "open-cli": "8.0.0",
     "sinon": "18.0.0",
     "tree-kill": "1.2.2"
