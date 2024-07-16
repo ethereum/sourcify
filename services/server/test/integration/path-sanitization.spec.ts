@@ -19,21 +19,23 @@ describe("E2E test path sanitization", function () {
   const serverFixture = new ServerFixture();
 
   it("should sanitize the path of a source file with new line character \\n", async () => {
-    const artifact = await import(
-      "../testcontracts/path-sanitization-new-line/artifact.json"
-    );
+    const artifact = (
+      await import("../testcontracts/path-sanitization-new-line/artifact.json")
+    ).default;
     const { contractAddress } = await deployFromAbiAndBytecodeForCreatorTxHash(
       chainFixture.localSigner,
       artifact.abi,
       artifact.bytecode,
     );
 
-    const metadata = await import(
-      path.join(
-        __dirname,
-        "../testcontracts/path-sanitization-new-line/metadata.json",
+    const metadata = (
+      await import(
+        path.join(
+          __dirname,
+          "../testcontracts/path-sanitization-new-line/metadata.json",
+        )
       )
-    );
+    ).default;
     const sourcePath = path.join(
       __dirname,
       "..",
@@ -78,12 +80,12 @@ describe("E2E test path sanitization", function () {
   });
 
   it("should verify a contract with paths containing misc. chars, save the path translation, and be able access the file over the API", async () => {
-    const sanitizeArtifact = await import(
-      "../testcontracts/path-sanitization/ERC20.json"
-    );
-    const sanitizeMetadata = await import(
-      "../testcontracts/path-sanitization/metadata.json"
-    );
+    const sanitizeArtifact = (
+      await import("../testcontracts/path-sanitization/ERC20.json")
+    ).default;
+    const sanitizeMetadata = (
+      await import("../testcontracts/path-sanitization/metadata.json")
+    ).default;
     // read all files under test/testcontracts/path-sanitization/sources/ and put them in an object
     const sanitizeSourcesObj: Record<string, Buffer> = {};
     fs.readdirSync(

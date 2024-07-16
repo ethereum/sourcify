@@ -467,10 +467,15 @@ export class CheckedContract {
     this.creationBytecode = `0x${contract.evm.bytecode.object}`;
     this.runtimeBytecode = `0x${contract.evm?.deployedBytecode?.object}`;
 
+    // Store the metadata from the compiler output and replace the initial user provided one.
+    // Because the compiler output metadata is the one corresponding to the CBOR auxdata and the user might have provided a modified one e.g. the userdoc,abi fields modified which don't affect the compilation.
+    this.metadataRaw = contract.metadata.trim();
+    this.metadata = JSON.parse(this.metadataRaw);
+
     return {
       creationBytecode: this.creationBytecode,
       runtimeBytecode: this.runtimeBytecode,
-      metadata: contract.metadata.trim(),
+      metadata: this.metadataRaw,
       // Sometimes the compiler returns empty object (not falsey). Convert it to undefined (falsey).
       immutableReferences:
         contract.evm?.deployedBytecode?.immutableReferences &&

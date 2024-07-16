@@ -482,6 +482,49 @@ describe('lib-sourcify tests', () => {
     });
   });
 
+  it('should rewrite metadata on CheckedContract after recompilation', async () => {
+    const contractFolderPath = path.join(
+      __dirname,
+      'sources',
+      'MetadataRewriting',
+      'contract',
+    );
+    const { contractAddress } = await deployFromAbiAndBytecode(
+      signer,
+      contractFolderPath,
+      [
+        '0x39f0bd56c1439a22ee90b4972c16b7868d161981',
+        '0x000000000000000000000000000000000000dead',
+        '0x0000000000000000000000000000000000000000000000000000000000000000',
+      ],
+    );
+    const checkedContracts =
+      await checkFilesFromContractFolder(contractFolderPath);
+
+    const match = await verifyDeployed(
+      checkedContracts[0],
+      sourcifyChainHardhat,
+      contractAddress,
+    );
+    expectMatch(match, 'perfect', contractAddress);
+
+    const correctMetadataRaw = fs
+      .readFileSync(
+        path.join(
+          __dirname,
+          'sources',
+          'MetadataRewriting',
+          'correct-metadata.json',
+        ),
+      )
+      .toString();
+
+    expect(checkedContracts[0].metadata).to.deep.equal(
+      JSON.parse(correctMetadataRaw),
+    );
+    expect(checkedContracts[0].metadataRaw).to.equal(correctMetadataRaw);
+  });
+
   describe('Unit tests', function () {
     describe('SourcifyChain', () => {
       it("Should fail to instantiate with empty rpc's", function () {
