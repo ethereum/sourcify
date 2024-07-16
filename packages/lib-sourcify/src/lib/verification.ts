@@ -74,12 +74,6 @@ export async function verifyDeployed(
     );
   }
 
-  // Store the correct metadata in case the wrong metadata yields a match
-  checkedContract.initSolcJsonInput(
-    JSON.parse(recompiled.metadata),
-    checkedContract.solidity,
-  );
-
   const runtimeBytecode = await sourcifyChain.getBytecode(address);
 
   // Can't match if there is no deployed bytecode

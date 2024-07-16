@@ -467,10 +467,14 @@ export class CheckedContract {
     this.creationBytecode = `0x${contract.evm.bytecode.object}`;
     this.runtimeBytecode = `0x${contract.evm?.deployedBytecode?.object}`;
 
+    // Store the correct metadata in case the wrong metadata yields a match
+    this.metadataRaw = contract.metadata.trim();
+    this.metadata = JSON.parse(this.metadataRaw);
+
     return {
       creationBytecode: this.creationBytecode,
       runtimeBytecode: this.runtimeBytecode,
-      metadata: contract.metadata.trim(),
+      metadata: this.metadataRaw,
       // Sometimes the compiler returns empty object (not falsey). Convert it to undefined (falsey).
       immutableReferences:
         contract.evm?.deployedBytecode?.immutableReferences &&
