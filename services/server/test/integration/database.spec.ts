@@ -335,6 +335,13 @@ describe("Verifier Alliance database", function () {
     await verifierAllianceTest(verifierAllianceTestDoubleAuxdata);
   });
 
+  it.only("Store full match in database for a contract with multiple auxdatas", async () => {
+    const verifierAllianceTestDoubleAuxdata = await import(
+      "../verifier-alliance/full_match_double_auxdata.json"
+    );
+    await verifierAllianceTest(verifierAllianceTestDoubleAuxdata);
+  });
+
   // Tests to be implemented:
   // - genesis: right now not supported,
   // - partial_match_2: I don't know why we have this test
