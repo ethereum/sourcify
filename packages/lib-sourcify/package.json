@@ -63,7 +63,7 @@
     "@types/node": "20.14.10",
     "c8": "10.1.2",
     "chai": "4.4.1",
-    "cspell": "8.10.4",
+    "cspell": "8.11.0",
     "cz-conventional-changelog": "3.3.0",
     "gh-pages": "6.1.1",
     "hardhat": "2.22.6",
