@@ -81,8 +81,8 @@ export namespace Tables {
     runtime_values: Nullable<TransformationValues>;
     runtime_match: boolean;
     creation_match: boolean;
-    runtime_metadata_match: boolean;
-    creation_metadata_match: boolean;
+    runtime_metadata_match: Nullable<boolean>;
+    creation_metadata_match: Nullable<boolean>;
   }
 
   export interface SourcifyMatch {

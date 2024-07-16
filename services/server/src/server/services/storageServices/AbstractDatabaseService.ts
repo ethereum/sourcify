@@ -188,6 +188,7 @@ export default abstract class AbstractDatabaseService {
     // Force _transformations and _values to be not null if match
     let runtime_transformations = null;
     let runtime_values = null;
+    let runtime_metadata_match = null;
     if (runtimeMatch) {
       runtime_transformations = runtimeTransformations
         ? runtimeTransformations
@@ -195,9 +196,11 @@ export default abstract class AbstractDatabaseService {
       runtime_values = runtimeTransformationValues
         ? runtimeTransformationValues
         : {};
+      runtime_metadata_match = match.runtimeMatch === "perfect";
     }
     let creation_transformations = null;
     let creation_values = null;
+    let creation_metadata_match = null;
     if (creationMatch) {
       creation_transformations = creationTransformations
         ? creationTransformations
@@ -205,6 +208,7 @@ export default abstract class AbstractDatabaseService {
       creation_values = creationTransformationValues
         ? creationTransformationValues
         : {};
+      creation_metadata_match = match.creationMatch === "perfect";
     }
 
     const compilationTargetPath = Object.keys(
@@ -340,8 +344,8 @@ export default abstract class AbstractDatabaseService {
         runtime_match: runtimeMatch,
         creation_match: creationMatch,
         // We cover also no-metadata case by using match === "perfect"
-        runtime_metadata_match: match.runtimeMatch === "perfect",
-        creation_metadata_match: match.creationMatch === "perfect",
+        runtime_metadata_match,
+        creation_metadata_match,
       },
     };
   }
