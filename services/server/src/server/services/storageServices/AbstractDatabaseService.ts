@@ -443,11 +443,11 @@ export default abstract class AbstractDatabaseService {
     let needRuntimeMatchUpdate = false;
     let needCreationMatchUpdate = false;
 
-    const existingCompiledContractIds: string[] = [];
-
     existingVerifiedContractResult.forEach((existingVerifiedContract) => {
-      existingCompiledContractIds.push(existingVerifiedContract.compilation_id);
-
+      // Check if we need to do an update. We need an update if:
+      // - We had a partial match (i.e. runtime_metadata_match=false) and now we have perfect match
+      // OR
+      // - We didn't have any runtime match and now we have any type of a match
       if (
         (!existingVerifiedContract.runtime_metadata_match &&
           match.runtimeMatch === "perfect") ||
@@ -458,6 +458,7 @@ export default abstract class AbstractDatabaseService {
         needRuntimeMatchUpdate = true;
       }
 
+      // Same above but for creation
       if (
         (!existingVerifiedContract.creation_metadata_match &&
           match.creationMatch === "perfect") ||
