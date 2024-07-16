@@ -75,10 +75,10 @@ export namespace Tables {
     id: number;
     compilation_id: string;
     deployment_id: string;
-    creation_transformations: Transformation[] | undefined;
-    creation_values: TransformationValues | undefined;
-    runtime_transformations: Transformation[] | undefined;
-    runtime_values: TransformationValues | undefined;
+    creation_transformations: Nullable<Transformation[]>;
+    creation_values: Nullable<TransformationValues>;
+    runtime_transformations: Nullable<Transformation[]>;
+    runtime_values: Nullable<TransformationValues>;
     runtime_match: boolean;
     creation_match: boolean;
     runtime_metadata_match: boolean;
@@ -388,9 +388,14 @@ export async function insertVerifiedContract(
     [
       compilation_id,
       deployment_id,
-      JSON.stringify(creation_transformations),
+      // transformations needs to be converted to json as a workaround:
+      // arrays are not treated as jsonb types by pg module
+      // then they are correctly stored as jsonb by postgresql
+      creation_transformations
+        ? JSON.stringify(creation_transformations)
+        : null,
       creation_values,
-      JSON.stringify(runtime_transformations),
+      runtime_transformations ? JSON.stringify(runtime_transformations) : null,
       runtime_values,
       runtime_match,
       creation_match,
