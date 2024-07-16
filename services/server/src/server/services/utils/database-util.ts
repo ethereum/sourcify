@@ -388,7 +388,7 @@ export async function insertVerifiedContract(
     [
       compilation_id,
       deployment_id,
-      // transformations needs to be converted to json as a workaround:
+      // transformations needs to be converted to string as a workaround:
       // arrays are not treated as jsonb types by pg module
       // then they are correctly stored as jsonb by postgresql
       creation_transformations
