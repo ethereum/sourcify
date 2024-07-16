@@ -1593,6 +1593,14 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
+  // Vechain Testnet
+  verifyContract(
+    "0x393207E1019e4114EE4E9c633D09418252217e22",
+    "16350",
+    "Incentiv Devnet",
+    "shared/",
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests: ChainApiResponse[] = [];
     supportedChains

@@ -1746,5 +1746,9 @@
   "842": {
     "sourcifyName": "Taraxa Testnet",
     "supported": true
+  },
+  "16350": {
+    "supported": true,
+    "sourcifyName": "Incentiv Devnet"
   }
 }
