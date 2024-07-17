@@ -1577,7 +1577,6 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
-
   // PLYR PHI
   verifyContract(
     "0xf1CFa02d6561C4b71DC3dEd08F7A14c0753E08a3",
@@ -1593,7 +1592,7 @@ describe("Test Supported Chains", function () {
     "PLYR TAU Testnet",
     "shared/",
   );
-  
+
   // Vechain Mainnet
   verifyContract(
     "0x85D2b3129aA0b6BB215734efC92a2c8f1cC9B3Aa",
