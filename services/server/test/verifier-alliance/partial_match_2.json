@@ -7,7 +7,7 @@
     "compiled_creation_code": "0x608060405234801561001057600080fd5b50610133806100206000396000f3fe6080604052348015600f57600080fd5b506004361060325760003560e01c80636057361d1460375780638381f58a14604f575b600080fd5b604d60048036038101906049919060af565b6069565b005b60556073565b6040516060919060e4565b60405180910390f35b8060008190555050565b60005481565b600080fd5b6000819050919050565b608f81607e565b8114609957600080fd5b50565b60008135905060a9816088565b92915050565b60006020828403121560c25760c16079565b5b600060ce84828501609c565b91505092915050565b60de81607e565b82525050565b600060208201905060f7600083018460d7565b9291505056fea26469706673582212200d5e45241ace38600195972a3af9542f2a9aec3ed5a7fd2959788cc58857d43564736f6c63430008120033",
     "compiled_runtime_code": "0x6080604052348015600f57600080fd5b506004361060325760003560e01c80636057361d1460375780638381f58a14604f575b600080fd5b604d60048036038101906049919060af565b6069565b005b60556073565b6040516060919060e4565b60405180910390f35b8060008190555050565b60005481565b600080fd5b6000819050919050565b608f81607e565b8114609957600080fd5b50565b60008135905060a9816088565b92915050565b60006020828403121560c25760c16079565b5b600060ce84828501609c565b91505092915050565b60de81607e565b82525050565b600060208201905060f7600083018460d7565b9291505056fea26469706673582212200d5e45241ace38600195972a3af9542f2a9aec3ed5a7fd2959788cc58857d43564736f6c63430008120033",
     "compiler": "solc",
-    "version": "v0.8.18+commit.87f61d96",
+    "version": "0.8.18+commit.87f61d96",
     "language": "solidity",
     "name": "Storage",
     "fully_qualified_name": "contracts/1_Storage.sol:Storage",
@@ -15,18 +15,16 @@
         "contracts/1_Storage.sol": " // SPDX-License-Identifier: GPL-3.0\n\npragma solidity >=0.7.0 <0.9.0;\n\n/**\n * @title Storage\n * @dev Store & retrieve value in a variable\n */\ncontract Storage {\n    uint256 public number;\n\n    /**\n     * @dev Store value in variable\n     * @param modified_num value to store\n     */\n    function store(uint256 modified_num) public {\n        number = modified_num;\n    }\n}"
     },
     "compiler_settings": {
+        "evmVersion": "paris",
+        "metadata": {
+            "bytecodeHash": "ipfs"
+        },
         "optimizer": {
             "enabled": false,
             "runs": 200
         },
         "libraries": {},
-        "outputSelection": {
-            "*": {
-                "*": [
-                    "*"
-                ]
-            }
-        }
+        "remappings": []
     },
     "compilation_artifacts": {
         "abi": [{"inputs":[],"name":"number","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"modified_num","type":"uint256"}],"name":"store","outputs":[],"stateMutability":"nonpayable","type":"function"}],

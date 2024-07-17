@@ -100,7 +100,12 @@ export async function deployAndVerifyContract(
         : chainFixture.defaultContractMetadata,
       "metadata.json",
     )
-    .attach("files", chainFixture.defaultContractSource);
+    .attach(
+      "files",
+      partial
+        ? chainFixture.defaultContractModifiedSource
+        : chainFixture.defaultContractSource,
+    );
   return contractAddress;
 }
 
