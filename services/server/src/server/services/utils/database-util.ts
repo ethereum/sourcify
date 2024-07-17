@@ -8,6 +8,7 @@ import {
   StorageLayout,
   Transformation,
   TransformationValues,
+  CompiledContractCborAuxdata,
 } from "@ethereum-sourcify/lib-sourcify";
 import { Pool, QueryResult } from "pg";
 import { Abi } from "abitype";
@@ -63,11 +64,13 @@ export namespace Tables {
     creation_code_artifacts: {
       sourceMap: Nullable<string>;
       linkReferences: Nullable<{}>;
+      cborAuxdata: Nullable<CompiledContractCborAuxdata>;
     };
     runtime_code_artifacts: {
       sourceMap: Nullable<string>;
       linkReferences: Nullable<{}>;
       immutableReferences: Nullable<ImmutableReferences>;
+      cborAuxdata: Nullable<CompiledContractCborAuxdata>;
     };
   }
 
