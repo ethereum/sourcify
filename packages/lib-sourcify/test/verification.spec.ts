@@ -915,19 +915,19 @@ describe('lib-sourcify tests', () => {
         // expect every creationTransformations
         expect(match.creationTransformations).to.deep.include({
           type: 'replace',
-          reason: 'auxdata',
+          reason: 'cborAuxdata',
           offset: 4148,
           id: '1',
         });
         expect(match.creationTransformations).to.deep.include({
           type: 'replace',
-          reason: 'auxdata',
+          reason: 'cborAuxdata',
           offset: 2775,
           id: '2',
         });
         expect(match.creationTransformations).to.deep.include({
           type: 'replace',
-          reason: 'auxdata',
+          reason: 'cborAuxdata',
           offset: 4095,
           id: '3',
         });

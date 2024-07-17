@@ -163,11 +163,11 @@ export interface RecompilationResult {
 export type Transformation = {
   type: 'insert' | 'replace';
   reason:
-    | 'constructor'
+    | 'constructorArguments'
     | 'library'
     | 'immutable'
-    | 'auxdata'
-    | 'call-protection';
+    | 'cborAuxdata'
+    | 'callProtection';
   offset: number;
   id?: string;
 };
@@ -175,14 +175,14 @@ export type Transformation = {
 // Call protection is always at the start of the runtime bytecode
 export const CallProtectionTransformation = (): Transformation => ({
   type: 'replace',
-  reason: 'call-protection',
+  reason: 'callProtection',
   offset: 0,
 });
 
 // TransformationValues only has one ConstructorTransformatino so no id field is needed
 export const ConstructorTransformation = (offset: number): Transformation => ({
   type: 'insert',
-  reason: 'constructor',
+  reason: 'constructorArguments',
   offset,
 });
 
@@ -191,7 +191,7 @@ export const AuxdataTransformation = (
   id: string,
 ): Transformation => ({
   type: 'replace',
-  reason: 'auxdata',
+  reason: 'cborAuxdata',
   offset,
   id,
 });

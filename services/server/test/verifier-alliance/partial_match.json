@@ -116,7 +116,7 @@
   "creation_transformations": [
     {
       "type": "replace",
-      "reason": "auxdata",
+      "reason": "cborAuxdata",
       "offset": 286,
       "id": "1"
     }
@@ -132,7 +132,7 @@
   "runtime_transformations": [
     {
       "type": "replace",
-      "reason": "auxdata",
+      "reason": "cborAuxdata",
       "offset": 254,
       "id": "1"
     }
