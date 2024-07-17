@@ -252,6 +252,7 @@ export default abstract class AbstractDatabaseService {
     const creationCodeArtifacts = {
       sourceMap: compilerOutput?.evm.bytecode.sourceMap || null,
       linkReferences: compilerOutput?.evm.bytecode.linkReferences || null,
+      cborAuxdata: recompiledContract?.creationBytecodeCborAuxdata || null,
     };
     const runtimeCodeArtifacts = {
       sourceMap: compilerOutput?.evm.deployedBytecode?.sourceMap || null,
@@ -259,6 +260,7 @@ export default abstract class AbstractDatabaseService {
         compilerOutput?.evm.deployedBytecode?.linkReferences || null,
       immutableReferences:
         compilerOutput?.evm.deployedBytecode?.immutableReferences || null,
+      cborAuxdata: recompiledContract?.runtimeBytecodeCborAuxdata || null,
     };
 
     // runtime bytecodes must exist

@@ -461,6 +461,15 @@ export async function matchWithRuntimeBytecode(
     );
   }
 
+  // We call generateCborAuxdataPositions before returning because we always need
+  // to fill cborAuxdata in creation_code_artifacts and runtime_code_artifacts
+  const cborAuxdataPositions = await generateCborAuxdataPositions().catch(
+    (error) => {
+      logError('cannot generate contract artifacts', error);
+      throw new Error('cannot generate contract artifacts');
+    },
+  );
+
   // If onchain bytecode is equal to recompiled bytecode
   if (recompiledRuntimeBytecode === onchainRuntimeBytecode) {
     match.libraryMap = libraryMap;
@@ -475,15 +484,6 @@ export async function matchWithRuntimeBytecode(
   }
 
   // If onchain bytecode is not the same as recompiled bytecode try to match without the auxdatas
-
-  // We call generateCborAuxdataPositions only here because in the case of double auxdata it will
-  // trigger a second compilation. We don't want to run the compiler twice if not strictly needed
-  const cborAuxdataPositions = await generateCborAuxdataPositions().catch(
-    (error) => {
-      logError('cannot generate contract artifacts', error);
-      throw new Error('cannot generate contract artifacts');
-    },
-  );
 
   // We use normalizeBytecodesAuxdata to replace all the auxdatas in both bytecodes with zeros
   const {
