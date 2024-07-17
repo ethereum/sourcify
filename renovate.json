@@ -15,6 +15,10 @@
       "matchUpdateTypes": ["minor"],
       "groupName": "all minor dependencies",
       "groupSlug": "all-minor"
+    },
+    {
+      "matchPackageNames": ["nock"],
+      "dependencyDashboardApproval": true
     }
   ],
   "major": {
