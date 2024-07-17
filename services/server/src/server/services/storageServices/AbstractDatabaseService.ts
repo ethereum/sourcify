@@ -172,12 +172,45 @@ export default abstract class AbstractDatabaseService {
       keccak256RecompiledRuntimeBytecode,
     } = this.getKeccak256Bytecodes(recompiledContract, match);
 
+    const runtimeMatch =
+      match.runtimeMatch === "perfect" || match.runtimeMatch === "partial";
+    const creationMatch =
+      match.creationMatch === "perfect" || match.creationMatch === "partial";
+
     const {
       runtimeTransformations,
       runtimeTransformationValues,
       creationTransformations,
       creationTransformationValues,
     } = match;
+
+    // Force _transformations and _values to be null if not match
+    // Force _transformations and _values to be not null if match
+    let runtime_transformations = null;
+    let runtime_values = null;
+    let runtime_metadata_match = null;
+    if (runtimeMatch) {
+      runtime_transformations = runtimeTransformations
+        ? runtimeTransformations
+        : [];
+      runtime_values = runtimeTransformationValues
+        ? runtimeTransformationValues
+        : {};
+      runtime_metadata_match = match.runtimeMatch === "perfect";
+    }
+    let creation_transformations = null;
+    let creation_values = null;
+    let creation_metadata_match = null;
+    if (creationMatch) {
+      creation_transformations = creationTransformations
+        ? creationTransformations
+        : [];
+      creation_values = creationTransformationValues
+        ? creationTransformationValues
+        : {};
+      creation_metadata_match = match.creationMatch === "perfect";
+    }
+
     const compilationTargetPath = Object.keys(
       recompiledContract.metadata.settings.compilationTarget,
     )[0];
@@ -219,6 +252,7 @@ export default abstract class AbstractDatabaseService {
     const creationCodeArtifacts = {
       sourceMap: compilerOutput?.evm.bytecode.sourceMap || null,
       linkReferences: compilerOutput?.evm.bytecode.linkReferences || null,
+      cborAuxdata: recompiledContract?.creationBytecodeCborAuxdata || null,
     };
     const runtimeCodeArtifacts = {
       sourceMap: compilerOutput?.evm.deployedBytecode?.sourceMap || null,
@@ -226,12 +260,8 @@ export default abstract class AbstractDatabaseService {
         compilerOutput?.evm.deployedBytecode?.linkReferences || null,
       immutableReferences:
         compilerOutput?.evm.deployedBytecode?.immutableReferences || null,
+      cborAuxdata: recompiledContract?.runtimeBytecodeCborAuxdata || null,
     };
-
-    const runtimeMatch =
-      match.runtimeMatch === "perfect" || match.runtimeMatch === "partial";
-    const creationMatch =
-      match.creationMatch === "perfect" || match.creationMatch === "partial";
 
     // runtime bytecodes must exist
     if (recompiledContract.normalizedRuntimeBytecode === undefined) {
@@ -309,15 +339,15 @@ export default abstract class AbstractDatabaseService {
         runtime_code_artifacts: runtimeCodeArtifacts,
       },
       verifiedContract: {
-        runtime_transformations: runtimeTransformations,
-        creation_transformations: creationTransformations,
-        runtime_values: runtimeTransformationValues,
-        creation_values: creationTransformationValues,
+        runtime_transformations,
+        creation_transformations,
+        runtime_values,
+        creation_values,
         runtime_match: runtimeMatch,
         creation_match: creationMatch,
         // We cover also no-metadata case by using match === "perfect"
-        runtime_metadata_match: match.runtimeMatch === "perfect",
-        creation_metadata_match: match.creationMatch === "perfect",
+        runtime_metadata_match,
+        creation_metadata_match,
       },
     };
   }
@@ -419,21 +449,14 @@ export default abstract class AbstractDatabaseService {
     let needRuntimeMatchUpdate = false;
     let needCreationMatchUpdate = false;
 
-    const existingCompiledContractIds: string[] = [];
-
     existingVerifiedContractResult.forEach((existingVerifiedContract) => {
-      existingCompiledContractIds.push(existingVerifiedContract.compilation_id);
-      const hasRuntimeAuxdataTransformation =
-        existingVerifiedContract.runtime_transformations!.some(
-          (trans: Transformation) => trans.reason === "auxdata",
-        );
-      const hasCreationAuxdataTransformation =
-        existingVerifiedContract.creation_transformations!.some(
-          (trans: Transformation) => trans.reason === "auxdata",
-        );
-
+      // Check if we need to do an update. We need an update if:
+      // - We had a partial match (i.e. runtime_metadata_match=false) and now we have perfect match
+      // OR
+      // - We didn't have any runtime match and now we have any type of a match
       if (
-        (hasRuntimeAuxdataTransformation && match.runtimeMatch === "perfect") ||
+        (!existingVerifiedContract.runtime_metadata_match &&
+          match.runtimeMatch === "perfect") ||
         (existingVerifiedContract.runtime_match === false &&
           (match.runtimeMatch === "perfect" ||
             match.runtimeMatch === "partial"))
@@ -441,8 +464,9 @@ export default abstract class AbstractDatabaseService {
         needRuntimeMatchUpdate = true;
       }
 
+      // Same above but for creation
       if (
-        (hasCreationAuxdataTransformation &&
+        (!existingVerifiedContract.creation_metadata_match &&
           match.creationMatch === "perfect") ||
         (existingVerifiedContract.creation_match === false &&
           (match.creationMatch === "perfect" ||
