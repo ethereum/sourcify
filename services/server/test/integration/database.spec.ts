@@ -335,7 +335,7 @@ describe("Verifier Alliance database", function () {
     await verifierAllianceTest(verifierAllianceTestDoubleAuxdata);
   });
 
-  it.only("Store full match in database for a contract with multiple auxdatas", async () => {
+  it("Store full match in database for a contract with multiple auxdatas", async () => {
     const verifierAllianceTestDoubleAuxdata = await import(
       "../verifier-alliance/full_match_double_auxdata.json"
     );
