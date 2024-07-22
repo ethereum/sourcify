@@ -20,7 +20,12 @@ import {
   decode as bytecodeDecode,
   splitAuxdata,
 } from '@ethereum-sourcify/bytecode-utils';
-import { getAddress, getCreateAddress, keccak256 } from 'ethers';
+import {
+  getAddress,
+  getCreateAddress,
+  keccak256,
+  id as keccak256Str,
+} from 'ethers';
 import { hexZeroPad, isHexString } from '@ethersproject/bytes';
 import { BigNumber } from '@ethersproject/bignumber';
 import { defaultAbiCoder as abiCoder, ParamType } from '@ethersproject/abi';
@@ -706,40 +711,44 @@ export function handleLibraries(
   const libraryMap: StringMap = {};
   for (const file in linkReferences) {
     for (const lib in linkReferences[file]) {
-      const fqn = `${file}:${lib}`; // Fully Qualified (FQ) name
+      for (const linkRefObj of linkReferences[file][lib]) {
+        const fqn = `${file}:${lib}`; // Fully Qualified (FQ) name
 
-      const { start, length } = linkReferences[file][lib];
-      const strStart = start * 2 + 2; // Each byte 2 chars and +2 for 0x
-      const strLength = length * 2;
-      const placeholder = template.slice(strStart, strStart + strLength);
+        const { start, length } = linkRefObj;
+        const strStart = start * 2 + 2; // Each byte 2 chars and +2 for 0x
+        const strLength = length * 2;
+        const placeholder = template.slice(strStart, strStart + strLength);
 
-      const calculatedPlaceholder = '__$' + keccak256(fqn).slice(0, 34) + '$__';
-      // Placeholder format was different pre v0.5.0 https://docs.soliditylang.org/en/v0.4.26/contracts.html#libraries
-      const calculatedPreV050Placeholder = '__' + lib.padEnd(38, '_');
+        // slice(2) removes 0x
+        const calculatedPlaceholder =
+          '__$' + keccak256Str(fqn).slice(2).slice(0, 34) + '$__';
+        // Placeholder format was different pre v0.5.0 https://docs.soliditylang.org/en/v0.4.26/contracts.html#libraries
+        const calculatedPreV050Placeholder = '__' + lib.padEnd(38, '_');
 
-      if (
-        !(
-          placeholder === calculatedPlaceholder ||
-          placeholder === calculatedPreV050Placeholder
+        if (
+          !(
+            placeholder === calculatedPlaceholder ||
+            placeholder === calculatedPreV050Placeholder
+          )
         )
-      )
-        throw new Error(
-          `Library placeholder mismatch: ${placeholder} vs ${calculatedPlaceholder} or ${calculatedPreV050Placeholder}`,
-        );
+          throw new Error(
+            `Library placeholder mismatch: ${placeholder} vs ${calculatedPlaceholder} or ${calculatedPreV050Placeholder}`,
+          );
 
-      const address = real.slice(strStart, strLength + strLength);
-      libraryMap[placeholder] = address;
+        const address = real.slice(strStart, strStart + strLength);
+        libraryMap[placeholder] = address;
 
-      // Replace the placeholder with the address in recompiled bytecode
-      template = template.split(placeholder).join(address);
+        // Replace the placeholder with the address in recompiled bytecode
+        template = template.split(placeholder).join(address);
 
-      transformationsArray.push(LibraryTransformation(start, fqn));
+        transformationsArray.push(LibraryTransformation(start, fqn));
 
-      if (!transformationValues.libraries) {
-        transformationValues.libraries = {};
+        if (!transformationValues.libraries) {
+          transformationValues.libraries = {};
+        }
+        // Prepend the library addresses with "0x", this is the format for the DB. FS library-map is without "0x"
+        transformationValues.libraries[fqn] = '0x' + address;
       }
-      // Prepend the library addresses with "0x", this is the format for the DB. FS library-map is without "0x"
-      transformationValues.libraries[fqn] = '0x' + address;
     }
   }
 

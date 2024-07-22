@@ -156,10 +156,12 @@ export interface ImmutableReferences {
 
 export interface LinkReferences {
   [filePath: string]: {
-    [libraryName: string]: {
-      length: number;
-      start: number;
-    };
+    [libraryName: string]: [
+      {
+        length: number;
+        start: number;
+      },
+    ];
   };
 }
 
