@@ -153,11 +153,23 @@ export interface ImmutableReferences {
     start: number;
   }>;
 }
+
+export interface LinkReferences {
+  [filePath: string]: {
+    [libraryName: string]: {
+      length: number;
+      start: number;
+    };
+  };
+}
+
 export interface RecompilationResult {
   creationBytecode: string;
   runtimeBytecode: string;
   metadata: string;
   immutableReferences: ImmutableReferences;
+  creationLinkReferences: LinkReferences;
+  runtimeLinkReferences: LinkReferences;
 }
 
 export type Transformation = {

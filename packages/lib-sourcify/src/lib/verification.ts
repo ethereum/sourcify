@@ -14,6 +14,8 @@ import {
   CallProtectionTransformation,
   TransformationValues,
   CompiledContractCborAuxdata,
+  LinkReferences,
+  FQRefences,
 } from './types';
 import {
   decode as bytecodeDecode,
@@ -114,6 +116,7 @@ export async function verifyDeployed(
       runtimeBytecode,
       generateRuntimeCborAuxdataPositions,
       recompiled.immutableReferences,
+      recompiled.runtimeLinkReferences,
     );
     if (match.runtimeMatch === 'partial') {
       logDebug('Matched with deployed bytecode', {
@@ -169,6 +172,7 @@ export async function verifyDeployed(
         creatorTxHash,
         recompiledMetadata,
         generateCreationCborAuxdataPositions,
+        recompiled.creationLinkReferences,
       );
       if (match.runtimeMatch === 'partial') {
         logDebug('Matched partial with creation tx', {
@@ -190,6 +194,7 @@ export async function verifyDeployed(
               creatorTxHash,
               recompiledMetadata,
               generateCreationCborAuxdataPositions,
+              recompiled.creationLinkReferences,
             );
           },
           'creationMatch',
@@ -413,7 +418,8 @@ export async function matchWithRuntimeBytecode(
   recompiledRuntimeBytecode: string,
   onchainRuntimeBytecode: string,
   generateCborAuxdataPositions: () => Promise<CompiledContractCborAuxdata>,
-  immutableReferences?: ImmutableReferences,
+  immutableReferences: ImmutableReferences,
+  linkReferences: LinkReferences,
 ) {
   // Updating the `match.onchainRuntimeBytecode` here so we are sure to always update it
   match.onchainRuntimeBytecode = onchainRuntimeBytecode;
@@ -436,30 +442,21 @@ export async function matchWithRuntimeBytecode(
   );
 
   // Replace the library placeholders in the recompiled bytecode with values from the deployed bytecode
-  const { replaced, libraryMap } = addLibraryAddresses(
+  const { replaced, libraryMap } = handleLibraries(
     recompiledRuntimeBytecode,
     onchainRuntimeBytecode,
+    linkReferences,
     match.runtimeTransformations,
+    match.runtimeTransformationValues,
   );
   recompiledRuntimeBytecode = replaced;
-  if (Object.keys(libraryMap).length > 0) {
-    // Prepend the library addresses with "0x", this is the format for the DB. FS library-map is without "0x"
-    match.runtimeTransformationValues.libraries = Object.keys(
-      libraryMap,
-    ).reduce((libMap: any, lib) => {
-      libMap[lib] = `0x${libraryMap[lib]}`;
-      return libMap;
-    }, {});
-  }
 
-  if (immutableReferences) {
-    onchainRuntimeBytecode = replaceImmutableReferences(
-      immutableReferences,
-      onchainRuntimeBytecode,
-      match.runtimeTransformations,
-      match.runtimeTransformationValues,
-    );
-  }
+  onchainRuntimeBytecode = replaceImmutableReferences(
+    immutableReferences,
+    onchainRuntimeBytecode,
+    match.runtimeTransformations,
+    match.runtimeTransformationValues,
+  );
 
   // We call generateCborAuxdataPositions before returning because we always need
   // to fill cborAuxdata in creation_code_artifacts and runtime_code_artifacts
@@ -525,6 +522,7 @@ export async function matchWithCreationTx(
   creatorTxHash: string,
   recompiledMetadata: Metadata,
   generateCborAuxdataPositions: () => Promise<CompiledContractCborAuxdata>,
+  linkReferences: LinkReferences,
 ) {
   if (recompiledCreationBytecode === '0x') {
     match.creationMatch = null;
@@ -569,24 +567,17 @@ export async function matchWithCreationTx(
     match.creationTransformationValues = {};
   }
 
-  // The reason why this uses `startsWith` instead of `===` is that creationTxData may contain constructor arguments at the end part.
   // Replace the library placeholders in the recompiled bytecode with values from the deployed bytecode
-  const { replaced, libraryMap } = addLibraryAddresses(
+  const { replaced, libraryMap } = handleLibraries(
     recompiledCreationBytecode,
     match.onchainCreationBytecode,
+    linkReferences,
     match.creationTransformations,
+    match.creationTransformationValues,
   );
   recompiledCreationBytecode = replaced;
-  if (Object.keys(libraryMap).length > 0) {
-    // Prepend the library addresses with "0x", this is the format for the DB. FS library-map is without "0x"
-    match.creationTransformationValues.libraries = Object.keys(
-      libraryMap,
-    ).reduce((libMap: any, lib) => {
-      libMap[lib] = `0x${libraryMap[lib]}`;
-      return libMap;
-    }, {});
-  }
 
+  // The reason why this uses `startsWith` instead of `===` is that creationTxData may contain constructor arguments at the end part.
   if (match.onchainCreationBytecode.startsWith(recompiledCreationBytecode)) {
     // if the bytecode doesn't end with metadata then "partial" match
     if (endsWithMetadataHash(recompiledCreationBytecode)) {
@@ -702,34 +693,54 @@ export async function matchWithCreationTx(
   }
 }
 
-export function addLibraryAddresses(
+export function handleLibraries(
   template: string,
   real: string,
+  linkReferences: LinkReferences,
   transformationsArray: Transformation[],
+  transformationValues: TransformationValues,
 ): {
   replaced: string;
   libraryMap: StringMap;
 } {
-  const PLACEHOLDER_START = '__';
-  const PLACEHOLDER_LENGTH = 40;
-
   const libraryMap: StringMap = {};
+  for (const file in linkReferences) {
+    for (const lib in linkReferences[file]) {
+      const fqn = `${file}:${lib}`; // Fully Qualified (FQ) name
 
-  let index = template.indexOf(PLACEHOLDER_START);
-  while (index !== -1) {
-    const placeholder = template.slice(index, index + PLACEHOLDER_LENGTH);
-    const address = real.slice(index, index + PLACEHOLDER_LENGTH);
-    libraryMap[placeholder] = address;
+      const { start, length } = linkReferences[file][lib];
+      const strStart = start * 2 + 2; // Each byte 2 chars and +2 for 0x
+      const strLength = length * 2;
+      const placeholder = template.slice(strStart, strStart + strLength);
 
-    // Replace regex with simple string replacement
-    template = template.split(placeholder).join(address);
+      const calculatedPlaceholder = '__$' + keccak256(fqn).slice(0, 34) + '$__';
+      // Placeholder format was different pre v0.5.0 https://docs.soliditylang.org/en/v0.4.26/contracts.html#libraries
+      const calculatedPreV050Placeholder = '__' + lib.padEnd(38, '_');
 
-    transformationsArray.push(
-      // we divide by 2 because we store the length in bytes (without 0x)
-      LibraryTransformation((index - 2) / 2, placeholder),
-    );
+      if (
+        !(
+          placeholder === calculatedPlaceholder ||
+          placeholder === calculatedPreV050Placeholder
+        )
+      )
+        throw new Error(
+          `Library placeholder mismatch: ${placeholder} vs ${calculatedPlaceholder} or ${calculatedPreV050Placeholder}`,
+        );
 
-    index = template.indexOf(PLACEHOLDER_START);
+      const address = real.slice(strStart, strLength + strLength);
+      libraryMap[placeholder] = address;
+
+      // Replace the placeholder with the address in recompiled bytecode
+      template = template.split(placeholder).join(address);
+
+      transformationsArray.push(LibraryTransformation(start, fqn));
+
+      if (!transformationValues.libraries) {
+        transformationValues.libraries = {};
+      }
+      // Prepend the library addresses with "0x", this is the format for the DB. FS library-map is without "0x"
+      transformationValues.libraries[fqn] = '0x' + address;
+    }
   }
 
   return {
