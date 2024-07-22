@@ -15,7 +15,6 @@ import {
   TransformationValues,
   CompiledContractCborAuxdata,
   LinkReferences,
-  FQRefences,
 } from './types';
 import {
   decode as bytecodeDecode,
@@ -135,6 +134,7 @@ export async function verifyDeployed(
             runtimeBytecode,
             generateRuntimeCborAuxdataPositions,
             recompiled.immutableReferences,
+            recompiled.runtimeLinkReferences,
           );
         },
         'runtimeMatch',
