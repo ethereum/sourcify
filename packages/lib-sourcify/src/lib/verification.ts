@@ -738,8 +738,11 @@ export function handleLibraries(
         const address = real.slice(strStart, strStart + strLength);
         libraryMap[placeholder] = address;
 
-        // Replace the placeholder with the address in recompiled bytecode
-        template = template.split(placeholder).join(address);
+        // Replace the specific occurrence of the placeholder
+        template =
+          template.slice(0, strStart) +
+          address +
+          template.slice(strStart + strLength);
 
         transformationsArray.push(LibraryTransformation(start, fqn));
 
