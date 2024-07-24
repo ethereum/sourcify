@@ -113,6 +113,11 @@ describe("contract creation util", function () {
   });
 
   it("should run getCreatorTx with etherscanApi for Etherscan", async function () {
+    // Don't run if it's an external PR. Etherscan tests need API keys that can't be exposed to external PRs.
+    if (process.env.CIRCLE_PR_REPONAME !== undefined) {
+      return;
+    }
+
     const sourcifyChain = sourcifyChainsArray.find(
       (sourcifyChain) => sourcifyChain.chainId === 1,
     );
