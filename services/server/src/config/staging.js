@@ -1,6 +1,22 @@
+const {
+  RWStorageIdentifiers,
+  WStorageIdentifiers,
+} = require("../server/services/storageServices/identifiers");
+
 module.exports = {
   server: {
     port: 80,
+  },
+  storage: {
+    read: RWStorageIdentifiers.SourcifyDatabase,
+    writeOrWarn: [
+      // WStorageIdentifiers.AllianceDatabase,
+      RWStorageIdentifiers.RepositoryV1,
+    ],
+    writeOrErr: [
+      WStorageIdentifiers.RepositoryV2,
+      // RWStorageIdentifiers.SourcifyDatabase,
+    ],
   },
   repositoryV1: {
     path: "/home/app/repositoryV1",
