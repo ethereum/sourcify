@@ -711,6 +711,7 @@ describe('lib-sourcify tests', () => {
           wrongCreatorTxHash,
           recompiledMetadata,
           generateCreationCborAuxdataPositions,
+          recompiled.creationLinkReferences,
         );
       } catch (err) {
         if (err instanceof Error) {
@@ -772,6 +773,7 @@ describe('lib-sourcify tests', () => {
         txHash,
         recompiledMetadata,
         generateCreationCborAuxdataPositions,
+        recompiled.creationLinkReferences,
       );
       expectMatch(match, null, contractAddress, undefined); // status is null
     });
@@ -817,6 +819,7 @@ describe('lib-sourcify tests', () => {
         creatorTxHash,
         recompiledMetadata,
         generateCreationCborAuxdataPositions,
+        recompiled.creationLinkReferences,
       );
       expectMatch(match, null, contractAddress, undefined); // status is null
     });
@@ -854,6 +857,7 @@ describe('lib-sourcify tests', () => {
         creatorTxHash,
         recompiledMetadata,
         generateCreationCborAuxdataPositions,
+        recompiled.creationLinkReferences,
       );
       try {
         expect(match.creationMatch).to.equal('perfect');
@@ -897,6 +901,7 @@ describe('lib-sourcify tests', () => {
         creatorTxHash,
         recompiledMetadata,
         generateCreationCborAuxdataPositions,
+        recompiled.creationLinkReferences,
       );
       try {
         expect(match.creationMatch).to.equal('partial');

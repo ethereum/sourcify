@@ -1,4 +1,5 @@
 import {
+  assertTransformations,
   assertValidationError,
   assertVerification,
 } from "../../helpers/assertions";
@@ -17,6 +18,10 @@ import {
   deployFromAbiAndBytecode,
 } from "../../helpers/helpers";
 import hardhatOutputJSON from "../../sources/hardhat-output/output.json";
+import {
+  CallProtectionTransformation,
+  LibraryTransformation,
+} from "@ethereum-sourcify/lib-sourcify";
 
 chai.use(chaiHttp);
 
@@ -761,6 +766,72 @@ describe("/", function () {
           });
       });
     });
+  });
+  it("should verify a contract compiled with Solidity < 0.5.0 with non-keccak values for library placeholders", async () => {
+    const artifact = (
+      await import("../../testcontracts/LibrariesPreSolidity050/artifact.json")
+    ).default;
+    const address = await deployFromAbiAndBytecode(
+      chainFixture.localSigner,
+      artifact.abi,
+      artifact.bytecode,
+    );
+    const metadata = (
+      await import("../../testcontracts/LibrariesPreSolidity050/metadata.json")
+    ).default;
+
+    const file = fs.readFileSync(
+      path.join(
+        __dirname,
+        "..",
+        "..",
+        "testcontracts",
+        "LibrariesPreSolidity050",
+        "sources",
+        "ClaimHolderLibrary.sol",
+      ),
+    );
+
+    const res = await chai
+      .request(serverFixture.server.app)
+      .post("/")
+      .field("address", address)
+      .field("chain", chainFixture.chainId)
+      .attach("files", Buffer.from(JSON.stringify(metadata)), "metadata.json")
+      .attach("files", file, "ClaimHolderLibrary.sol");
+
+    await assertVerification(
+      serverFixture.sourcifyDatabase,
+      null,
+      res,
+      null,
+      address,
+      chainFixture.chainId,
+      "perfect",
+    );
+
+    const libraryFQN = "ClaimHolderLibrary.sol:KeyHolderLibrary";
+    const libraryAddress = "0xcafecafecafecafecafecafecafecafecafecafe";
+
+    await assertTransformations(
+      serverFixture.sourcifyDatabase,
+      address,
+      chainFixture.chainId,
+      [
+        CallProtectionTransformation(),
+        LibraryTransformation(1341, libraryFQN),
+        LibraryTransformation(3043, libraryFQN),
+        LibraryTransformation(3262, libraryFQN),
+      ],
+      {
+        libraries: {
+          [libraryFQN]: libraryAddress,
+        },
+        callProtection: address.toLowerCase(), // call protection works by PUSH20ing contract's own address. Bytecode chars are all lowercase but address is mixed due to checksumming
+      },
+      null,
+      null,
+    );
   });
 
   it("should verify a contract compiled with Solidity < 0.7.5 and libraries have been linked using compiler settings", async () => {

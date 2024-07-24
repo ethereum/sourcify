@@ -2,6 +2,7 @@ import {
   Match,
   CheckedContract,
   Status,
+  StringMap,
 } from "@ethereum-sourcify/lib-sourcify";
 import logger from "../../../common/logger";
 import * as Database from "../utils/database-util";
@@ -22,11 +23,12 @@ import {
   PaginatedContractData,
 } from "../../types";
 import config from "config";
-import Path from "path";
+import Path, { format } from "path";
 import { getFileRelativePath } from "../utils/util";
-import { getAddress } from "ethers";
+import { getAddress, id as keccak256Str } from "ethers";
 import { BadRequestError } from "../../../common/errors";
 import { RWStorageIdentifiers } from "./identifiers";
+import semver from "semver";
 
 const MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS = 200;
 
@@ -307,9 +309,25 @@ export class SourcifyDatabaseService
       sourcifyMatch?.runtime_values?.libraries &&
       Object.keys(sourcifyMatch.runtime_values.libraries).length > 0
     ) {
-      files["library-map.json"] = JSON.stringify(
+      // Must convert "contracts/file.sol:MyLib" FQN format to the placeholder format __$keccak256(file.sol:MyLib)$___ or  __MyLib__________
+      const formattedLibraries: StringMap = {};
+      for (const [key, value] of Object.entries(
         sourcifyMatch.runtime_values.libraries,
-      );
+      )) {
+        let formattedKey;
+        // Solidity >= 0.5.0 is __$keccak256(file.sol:MyLib)$__ (total 40 characters)
+        if (semver.gte(sourcifyMatch.metadata.compiler.version, "0.5.0")) {
+          formattedKey =
+            "__$" + keccak256Str(key).slice(2).slice(0, 34) + "$__";
+        } else {
+          // Solidity < 0.5.0 is __MyLib__________ (total 40 characters)
+          const libName = key.split(":")[1];
+          const trimmedLibName = libName.slice(0, 36); // in case it's longer
+          formattedKey = "__" + trimmedLibName.padEnd(38, "_");
+        }
+        formattedLibraries[formattedKey] = value;
+      }
+      files["library-map.json"] = JSON.stringify(formattedLibraries);
     }
 
     if (

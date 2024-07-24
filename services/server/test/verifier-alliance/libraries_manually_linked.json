@@ -136,7 +136,7 @@
   "creation_match": true,
   "creation_values": {
     "libraries": {
-      "__$b8833469cd54bfd61b3a18436a18bad1f3$__": "0x7d53f102f4d4aa014db4e10d6deec2009b3cda6b"
+      "contracts/1_Storage.sol:Journal": "0x7d53f102f4d4aa014db4e10d6deec2009b3cda6b"
     }
   },
   "creation_transformations": [
@@ -144,7 +144,7 @@
       "type": "replace",
       "reason": "library",
       "offset": 217,
-      "id": "__$b8833469cd54bfd61b3a18436a18bad1f3$__"
+      "id": "contracts/1_Storage.sol:Journal"
     }
   ],
   "creation_metadata_match": true,
@@ -152,7 +152,7 @@
   "runtime_match": true,
   "runtime_values": {
     "libraries": {
-      "__$b8833469cd54bfd61b3a18436a18bad1f3$__": "0x7d53f102f4d4aa014db4e10d6deec2009b3cda6b"
+      "contracts/1_Storage.sol:Journal": "0x7d53f102f4d4aa014db4e10d6deec2009b3cda6b"
     }
   },
   "runtime_transformations": [
@@ -160,7 +160,7 @@
       "type": "replace",
       "reason": "library",
       "offset": 185,
-      "id": "__$b8833469cd54bfd61b3a18436a18bad1f3$__"
+      "id": "contracts/1_Storage.sol:Journal"
     }
   ],
   "runtime_metadata_match": true

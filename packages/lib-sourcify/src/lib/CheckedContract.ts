@@ -478,11 +478,10 @@ export class CheckedContract {
       metadata: this.metadataRaw,
       // Sometimes the compiler returns empty object (not falsey). Convert it to undefined (falsey).
       immutableReferences:
-        contract.evm?.deployedBytecode?.immutableReferences &&
-        Object.keys(contract.evm.deployedBytecode.immutableReferences).length >
-          0
-          ? contract.evm.deployedBytecode.immutableReferences
-          : {},
+        contract.evm?.deployedBytecode?.immutableReferences || {},
+      creationLinkReferences: contract?.evm?.bytecode?.linkReferences || {},
+      runtimeLinkReferences:
+        contract?.evm?.deployedBytecode?.linkReferences || {},
     };
   }
 

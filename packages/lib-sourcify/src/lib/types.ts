@@ -153,11 +153,25 @@ export interface ImmutableReferences {
     start: number;
   }>;
 }
+
+export interface LinkReferences {
+  [filePath: string]: {
+    [libraryName: string]: [
+      {
+        length: number;
+        start: number;
+      },
+    ];
+  };
+}
+
 export interface RecompilationResult {
   creationBytecode: string;
   runtimeBytecode: string;
   metadata: string;
   immutableReferences: ImmutableReferences;
+  creationLinkReferences: LinkReferences;
+  runtimeLinkReferences: LinkReferences;
 }
 
 export type Transformation = {
@@ -176,7 +190,7 @@ export type Transformation = {
 export const CallProtectionTransformation = (): Transformation => ({
   type: 'replace',
   reason: 'callProtection',
-  offset: 0,
+  offset: 1, // 1 byte is always the PUSH20 opcode 0x73
 });
 
 // TransformationValues only has one ConstructorTransformatino so no id field is needed
