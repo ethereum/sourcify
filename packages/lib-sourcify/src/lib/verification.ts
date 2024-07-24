@@ -773,8 +773,9 @@ export function checkCallProtectionAndReplaceAddress(
 
   if (template.startsWith(callProtection)) {
     const replacedCallProtection = real.slice(0, 0 + callProtection.length);
+    const callProtectionAddress = replacedCallProtection.slice(4); // remove 0x73
     transformationsArray.push(CallProtectionTransformation());
-    transformationValues.callProtection = replacedCallProtection;
+    transformationValues.callProtection = '0x' + callProtectionAddress;
 
     return replacedCallProtection + template.substring(callProtection.length);
   }
