@@ -322,7 +322,8 @@ export class SourcifyDatabaseService
         } else {
           // Solidity < 0.5.0 is __MyLib__________ (total 40 characters)
           const libName = key.split(":")[1];
-          formattedKey = "__" + libName.padEnd(38, "_");
+          const trimmedLibName = libName.slice(0, 36); // in case it's longer
+          formattedKey = "__" + trimmedLibName.padEnd(38, "_");
         }
         formattedLibraries[formattedKey] = value;
       }
