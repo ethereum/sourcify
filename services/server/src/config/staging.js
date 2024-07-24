@@ -8,7 +8,7 @@ module.exports = {
     port: 80,
   },
   storage: {
-    read: RWStorageIdentifiers.SourcifyDatabase,
+    read: RWStorageIdentifiers.RepositoryV1,
     writeOrWarn: [
       // WStorageIdentifiers.AllianceDatabase,
       RWStorageIdentifiers.RepositoryV1,
