@@ -723,7 +723,8 @@ export function handleLibraries(
         const calculatedPlaceholder =
           '__$' + keccak256Str(fqn).slice(2).slice(0, 34) + '$__';
         // Placeholder format was different pre v0.5.0 https://docs.soliditylang.org/en/v0.4.26/contracts.html#libraries
-        const calculatedPreV050Placeholder = '__' + lib.padEnd(38, '_');
+        const trimmedFQN = fqn.slice(0, 36); // in case the fqn is too long
+        const calculatedPreV050Placeholder = '__' + trimmedFQN.padEnd(38, '_');
 
         if (
           !(
