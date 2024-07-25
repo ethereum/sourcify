@@ -1,5 +1,14 @@
 # Changelog for `sourcify-database`
 
+## sourcify-database@1.2.0 - 2024-07-25
+
+- Update README on how to run the migrations
+- add prod. env to the database migrations
+- Add new migrations to accomodate the changes in the VerA database
+- Update dependencies
+- Update the script's import-repo command to insert the contracts read from the FS to the Database in batches instead of one-by-one
+
+
 ## sourcify-database@1.1.1 - 2024-05-14
 
 - bump version

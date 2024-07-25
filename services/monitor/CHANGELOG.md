@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-monitor@1.2.0 - 2024-07-25
+
+- Update dependencies
+- Refactor tests and use TS
+
 ## sourcify-monitor@1.1.14 - 2024-05-14
 
 - bump version

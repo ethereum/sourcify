@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-ui@1.1.7 - 2024-07-25
+
+- Update dependencies
+
 ## sourcify-ui@1.1.6 - 2024-05-14
 
 - bump version

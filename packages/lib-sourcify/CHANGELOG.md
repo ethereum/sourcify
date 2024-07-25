@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## @ethereum-sourcify/lib-sourcify@1.9.0 - 2024-07-25
+
+- Update dependencies
+- Fix saving the user input metadata.json instead of the compiler's output metadata.json
+- Use linkReferences to find and parse linked libraries in the bytecode instead of the placeholder. Also save fully qualified lib names in the transformations instead of placeholders.
+- Change Transformation names to be consistent with Transformations and TransormationValues
+
 ## @ethereum-sourcify/lib-sourcify@1.8.0 - 2024-05-14
 
 - Support for verification with double metadata hash (auxdata)

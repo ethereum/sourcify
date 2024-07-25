@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## @ethereum-sourcify/bytecode-utils@1.2.9 - 2024-07-25
+
+- Refactor tests
+
 ## @ethereum-sourcify/bytecode-utils@1.2.8 - 2024-03-28
 
 - Fix typo

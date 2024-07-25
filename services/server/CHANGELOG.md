@@ -2,6 +2,40 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@2.1.0 - 2024-07-25
+
+- Update dependencies
+- Refactor tests and use TS in tests
+- Allow choosing the storage backends in config: SourcifyDatabase, AllianceDatabase, repoV1, repoV2
+- Adjust changes in the VerA DB: #1479 #1478 #1476 #1472
+- Convert FQNs of libraries from the SourcifyDB Transformations to legacy placeholder format when serving "library.json" files #1487
+- Add VerificationService.init() and an option in config to download all compilers in boot
+- Upgrade to Node v22
+- Store metadata in database
+- Fix bytecode hash calculation #1414
+- New chains:
+  - Mante Sepolia Testnet (5003) with Etherscan support
+  - Aura Xstaxy Mainnet (6322)
+  - HOME Verse Mainnet (19011)
+  - Lamina1 (10849)
+  - Lamina1 Identity (10850)
+  - Lamina1 Testnet (764984)
+  - Lamina1 Identity Testnet (767368)
+  - VeChain Mainnet (100009)
+  - VeChain Testnet (100010)
+  - Base Sepolia Tesnet (84532) with Etherscan support
+  - Linea Mainnet (59144) with Etherscan support
+  - Linea Sepolia (59141) with Etherscan support
+  - Taraxa Mainnet (841)
+  - PLYR PHI (16180)
+  - PLYR TAU Testnet (62831)
+  - Taraxa Testnet (842)
+  - Incentiv Devnet (16350)
+- Updated chains:
+  - Add Alchemy fallback to Holesky (17000)
+  - Add fetchContractCreationTx API for Oasis Emerald (42262), Emerald Testnet (42261), Sapphire (23294), and Sapphire Testnet (23295)
+  - Add Etherscan support to Mantle Mainnet (5000)
+
 ## sourcify-server@2.0.0 - 2024-05-28
 
 - Use Sourcify Database as source of truth #1328, from now on existance of verified contracts will be checked from the Sourcify PostgreSQL database and not filesystem based RepositoryV1

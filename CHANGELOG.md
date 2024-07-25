@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 This CHANGELOG will contain monorepo related changes such as CI configs, shared dependencies and the development setup.
 
+## sourcify-monorepo@1.3.0 - 2024-07-25
+
+- Use Node 22.4.0 everywhere
+- Update CircleCI base images and orbs
+- Add codecov support in CircleCI
+- Remove contract-call-decoder module
+- Add nx to .gitignore
+- Add lerna run fix as npm script
+- Upgrade dependencies
+- Add Renovate to manage dependency updates
+- Update verify-massively.msj script
+
 ## sourcify-monorepo@1.2.10 - 2024-05-28
 
 - fix CircleCI new_branch and nightly scripts to support database
