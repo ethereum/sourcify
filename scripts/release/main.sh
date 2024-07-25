@@ -4,10 +4,10 @@ SCRIPT_DIR=$(dirname "$0")
 # A script to (semi)automate the Sourcify release process.
 
 # Exit immediately if a command exits with a non-zero status.
-set -e
+# set -e
 
 # Make sure the script exits if a command in a pipeline fails.
-set -o pipefail
+# set -o pipefail
 
 source "${SCRIPT_DIR}/logging_utils.sh"
 source "${SCRIPT_DIR}/git_utils.sh"
