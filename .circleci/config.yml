@@ -260,7 +260,7 @@ jobs:
   npm-publish:
     working_directory: ~/sourcify
     docker:
-      - image: cimg/node:22.4.0
+      - image: cimg/node:22.5.1
     steps:
       - checkout
       - run:
