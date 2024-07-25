@@ -1,6 +1,6 @@
 {
   "name": "@ethereum-sourcify/bytecode-utils",
-  "version": "1.2.8",
+  "version": "1.2.9",
   "description": "Decode the CBOR encoded data at the end of an Ethereum contract's bytecode.",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
@@ -39,8 +39,8 @@
   },
   "dependencies": {
     "@ethersproject/bytes": "5.7.0",
-    "bs58": "5.0.0",
     "base-x": "4.0.0",
+    "bs58": "5.0.0",
     "cbor-x": "1.5.9"
   },
   "devDependencies": {
