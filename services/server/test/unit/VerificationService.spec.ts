@@ -19,10 +19,8 @@ describe("VerificationService", function () {
   });
 
   it("should initialize compilers", async function () {
-    before(function () {
-      rimraf.sync(config.get("solcRepo"));
-      rimraf.sync(config.get("solJsonRepo"));
-    });
+    rimraf.sync(config.get("solcRepo"));
+    rimraf.sync(config.get("solJsonRepo"));
 
     const platform = findSolcPlatform() || "bin";
     const HOST_SOLC_REPO = "https://binaries.soliditylang.org";
