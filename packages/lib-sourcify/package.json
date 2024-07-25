@@ -35,7 +35,7 @@
     "doc:publish": "gh-pages -m \"[ci skip] Updates\" -d build/docs"
   },
   "engines": {
-    "node": "22.4.0"
+    "node": "22.5.1"
   },
   "dependencies": {
     "@ethereum-sourcify/bytecode-utils": "^1.2.8",
@@ -63,11 +63,11 @@
     "@types/node": "20.14.12",
     "c8": "10.1.2",
     "chai": "4.4.1",
-    "cspell": "8.11.0",
+    "cspell": "8.12.1",
     "cz-conventional-changelog": "3.3.0",
     "gh-pages": "6.1.1",
     "hardhat": "2.22.6",
-    "mocha": "10.6.0",
+    "mocha": "10.7.0",
     "npm-run-all2": "5.0.2",
     "open-cli": "8.0.0",
     "solc": "0.8.26",
