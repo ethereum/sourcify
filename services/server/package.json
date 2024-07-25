@@ -84,7 +84,6 @@
     "@types/config": "3.3.4",
     "@types/connect-pg-simple": "7.0.3",
     "@types/cors": "2.8.17",
-    "@types/dotenv": "8.2.0",
     "@types/express": "4.17.21",
     "@types/express-session": "1.18.0",
     "@types/mocha": "10.0.7",
