@@ -14,12 +14,18 @@ import {
   CallProtectionTransformation,
   TransformationValues,
   CompiledContractCborAuxdata,
+  LinkReferences,
 } from './types';
 import {
   decode as bytecodeDecode,
   splitAuxdata,
 } from '@ethereum-sourcify/bytecode-utils';
-import { getAddress, getCreateAddress, keccak256 } from 'ethers';
+import {
+  getAddress,
+  getCreateAddress,
+  keccak256,
+  id as keccak256Str,
+} from 'ethers';
 import { hexZeroPad, isHexString } from '@ethersproject/bytes';
 import { BigNumber } from '@ethersproject/bignumber';
 import { defaultAbiCoder as abiCoder, ParamType } from '@ethersproject/abi';
@@ -114,6 +120,7 @@ export async function verifyDeployed(
       runtimeBytecode,
       generateRuntimeCborAuxdataPositions,
       recompiled.immutableReferences,
+      recompiled.runtimeLinkReferences,
     );
     if (match.runtimeMatch === 'partial') {
       logDebug('Matched with deployed bytecode', {
@@ -132,6 +139,7 @@ export async function verifyDeployed(
             runtimeBytecode,
             generateRuntimeCborAuxdataPositions,
             recompiled.immutableReferences,
+            recompiled.runtimeLinkReferences,
           );
         },
         'runtimeMatch',
@@ -169,6 +177,7 @@ export async function verifyDeployed(
         creatorTxHash,
         recompiledMetadata,
         generateCreationCborAuxdataPositions,
+        recompiled.creationLinkReferences,
       );
       if (match.runtimeMatch === 'partial') {
         logDebug('Matched partial with creation tx', {
@@ -190,6 +199,7 @@ export async function verifyDeployed(
               creatorTxHash,
               recompiledMetadata,
               generateCreationCborAuxdataPositions,
+              recompiled.creationLinkReferences,
             );
           },
           'creationMatch',
@@ -413,7 +423,8 @@ export async function matchWithRuntimeBytecode(
   recompiledRuntimeBytecode: string,
   onchainRuntimeBytecode: string,
   generateCborAuxdataPositions: () => Promise<CompiledContractCborAuxdata>,
-  immutableReferences?: ImmutableReferences,
+  immutableReferences: ImmutableReferences,
+  linkReferences: LinkReferences,
 ) {
   // Updating the `match.onchainRuntimeBytecode` here so we are sure to always update it
   match.onchainRuntimeBytecode = onchainRuntimeBytecode;
@@ -436,30 +447,30 @@ export async function matchWithRuntimeBytecode(
   );
 
   // Replace the library placeholders in the recompiled bytecode with values from the deployed bytecode
-  const { replaced, libraryMap } = addLibraryAddresses(
+  const { replaced, libraryMap } = handleLibraries(
     recompiledRuntimeBytecode,
     onchainRuntimeBytecode,
+    linkReferences,
     match.runtimeTransformations,
+    match.runtimeTransformationValues,
   );
   recompiledRuntimeBytecode = replaced;
-  if (Object.keys(libraryMap).length > 0) {
-    // Prepend the library addresses with "0x", this is the format for the DB. FS library-map is without "0x"
-    match.runtimeTransformationValues.libraries = Object.keys(
-      libraryMap,
-    ).reduce((libMap: any, lib) => {
-      libMap[lib] = `0x${libraryMap[lib]}`;
-      return libMap;
-    }, {});
-  }
 
-  if (immutableReferences) {
-    onchainRuntimeBytecode = replaceImmutableReferences(
-      immutableReferences,
-      onchainRuntimeBytecode,
-      match.runtimeTransformations,
-      match.runtimeTransformationValues,
-    );
-  }
+  onchainRuntimeBytecode = replaceImmutableReferences(
+    immutableReferences,
+    onchainRuntimeBytecode,
+    match.runtimeTransformations,
+    match.runtimeTransformationValues,
+  );
+
+  // We call generateCborAuxdataPositions before returning because we always need
+  // to fill cborAuxdata in creation_code_artifacts and runtime_code_artifacts
+  const cborAuxdataPositions = await generateCborAuxdataPositions().catch(
+    (error) => {
+      logError('cannot generate contract artifacts', error);
+      throw new Error('cannot generate contract artifacts');
+    },
+  );
 
   // If onchain bytecode is equal to recompiled bytecode
   if (recompiledRuntimeBytecode === onchainRuntimeBytecode) {
@@ -475,15 +486,6 @@ export async function matchWithRuntimeBytecode(
   }
 
   // If onchain bytecode is not the same as recompiled bytecode try to match without the auxdatas
-
-  // We call generateCborAuxdataPositions only here because in the case of double auxdata it will
-  // trigger a second compilation. We don't want to run the compiler twice if not strictly needed
-  const cborAuxdataPositions = await generateCborAuxdataPositions().catch(
-    (error) => {
-      logError('cannot generate contract artifacts', error);
-      throw new Error('cannot generate contract artifacts');
-    },
-  );
 
   // We use normalizeBytecodesAuxdata to replace all the auxdatas in both bytecodes with zeros
   const {
@@ -525,6 +527,7 @@ export async function matchWithCreationTx(
   creatorTxHash: string,
   recompiledMetadata: Metadata,
   generateCborAuxdataPositions: () => Promise<CompiledContractCborAuxdata>,
+  linkReferences: LinkReferences,
 ) {
   if (recompiledCreationBytecode === '0x') {
     match.creationMatch = null;
@@ -569,24 +572,17 @@ export async function matchWithCreationTx(
     match.creationTransformationValues = {};
   }
 
-  // The reason why this uses `startsWith` instead of `===` is that creationTxData may contain constructor arguments at the end part.
   // Replace the library placeholders in the recompiled bytecode with values from the deployed bytecode
-  const { replaced, libraryMap } = addLibraryAddresses(
+  const { replaced, libraryMap } = handleLibraries(
     recompiledCreationBytecode,
     match.onchainCreationBytecode,
+    linkReferences,
     match.creationTransformations,
+    match.creationTransformationValues,
   );
   recompiledCreationBytecode = replaced;
-  if (Object.keys(libraryMap).length > 0) {
-    // Prepend the library addresses with "0x", this is the format for the DB. FS library-map is without "0x"
-    match.creationTransformationValues.libraries = Object.keys(
-      libraryMap,
-    ).reduce((libMap: any, lib) => {
-      libMap[lib] = `0x${libraryMap[lib]}`;
-      return libMap;
-    }, {});
-  }
 
+  // The reason why this uses `startsWith` instead of `===` is that creationTxData may contain constructor arguments at the end part.
   if (match.onchainCreationBytecode.startsWith(recompiledCreationBytecode)) {
     // if the bytecode doesn't end with metadata then "partial" match
     if (endsWithMetadataHash(recompiledCreationBytecode)) {
@@ -702,34 +698,62 @@ export async function matchWithCreationTx(
   }
 }
 
-export function addLibraryAddresses(
+export function handleLibraries(
   template: string,
   real: string,
+  linkReferences: LinkReferences,
   transformationsArray: Transformation[],
+  transformationValues: TransformationValues,
 ): {
   replaced: string;
   libraryMap: StringMap;
 } {
-  const PLACEHOLDER_START = '__';
-  const PLACEHOLDER_LENGTH = 40;
-
   const libraryMap: StringMap = {};
+  for (const file in linkReferences) {
+    for (const lib in linkReferences[file]) {
+      for (const linkRefObj of linkReferences[file][lib]) {
+        const fqn = `${file}:${lib}`; // Fully Qualified (FQ) name
 
-  let index = template.indexOf(PLACEHOLDER_START);
-  while (index !== -1) {
-    const placeholder = template.slice(index, index + PLACEHOLDER_LENGTH);
-    const address = real.slice(index, index + PLACEHOLDER_LENGTH);
-    libraryMap[placeholder] = address;
+        const { start, length } = linkRefObj;
+        const strStart = start * 2 + 2; // Each byte 2 chars and +2 for 0x
+        const strLength = length * 2;
+        const placeholder = template.slice(strStart, strStart + strLength);
 
-    // Replace regex with simple string replacement
-    template = template.split(placeholder).join(address);
+        // slice(2) removes 0x
+        const calculatedPlaceholder =
+          '__$' + keccak256Str(fqn).slice(2).slice(0, 34) + '$__';
+        // Placeholder format was different pre v0.5.0 https://docs.soliditylang.org/en/v0.4.26/contracts.html#libraries
+        const trimmedFQN = fqn.slice(0, 36); // in case the fqn is too long
+        const calculatedPreV050Placeholder = '__' + trimmedFQN.padEnd(38, '_');
 
-    transformationsArray.push(
-      // we divide by 2 because we store the length in bytes (without 0x)
-      LibraryTransformation((index - 2) / 2, placeholder),
-    );
+        if (
+          !(
+            placeholder === calculatedPlaceholder ||
+            placeholder === calculatedPreV050Placeholder
+          )
+        )
+          throw new Error(
+            `Library placeholder mismatch: ${placeholder} vs ${calculatedPlaceholder} or ${calculatedPreV050Placeholder}`,
+          );
 
-    index = template.indexOf(PLACEHOLDER_START);
+        const address = real.slice(strStart, strStart + strLength);
+        libraryMap[placeholder] = address;
+
+        // Replace the specific occurrence of the placeholder
+        template =
+          template.slice(0, strStart) +
+          address +
+          template.slice(strStart + strLength);
+
+        transformationsArray.push(LibraryTransformation(start, fqn));
+
+        if (!transformationValues.libraries) {
+          transformationValues.libraries = {};
+        }
+        // Prepend the library addresses with "0x", this is the format for the DB. FS library-map is without "0x"
+        transformationValues.libraries[fqn] = '0x' + address;
+      }
+    }
   }
 
   return {
@@ -750,8 +774,9 @@ export function checkCallProtectionAndReplaceAddress(
 
   if (template.startsWith(callProtection)) {
     const replacedCallProtection = real.slice(0, 0 + callProtection.length);
+    const callProtectionAddress = replacedCallProtection.slice(4); // remove 0x73
     transformationsArray.push(CallProtectionTransformation());
-    transformationValues.callProtection = replacedCallProtection;
+    transformationValues.callProtection = '0x' + callProtectionAddress;
 
     return replacedCallProtection + template.substring(callProtection.length);
   }

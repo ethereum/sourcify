@@ -16,7 +16,7 @@ workflows:
 jobs:
   node-v22:
     docker:
-      - image: cimg/node:22.4.0
+      - image: cimg/node:22.5.1
       - image: postgres:16-alpine
         environment:
           POSTGRES_DB: sourcify
@@ -56,7 +56,7 @@ jobs:
     resource_class: large
   test-new-chain:
     docker:
-      - image: cimg/node:22.4.0
+      - image: cimg/node:22.5.1
       - image: postgres:16-alpine
         environment:
           POSTGRES_DB: sourcify

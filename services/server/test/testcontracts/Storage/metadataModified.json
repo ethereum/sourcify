@@ -75,8 +75,8 @@
   },
   "sources": {
     "contracts/StorageModified.sol": {
-      "content": "// SPDX-License-Identifier: GPL-3.0\n// This line + changed contrract name will cause a partial match to the deployed contract.\npragma solidity >=0.7.0 <0.9.0;\n\n/**\n * @title Storage\n * @dev Store & retrieve value in a variable\n */\ncontract StorageModified {\n\n    uint256 number;\n\n    /**\n     * @dev Store value in variable\n     * @param num value to store\n     */\n    function store(uint256 num) public {\n        number = num;\n    }\n\n    /**\n     * @dev Return value \n     * @return value of 'number'\n     */\n    function retrieve() public view returns (uint256){\n        return number;\n    }\n}\n",
       "keccak256": "0x50157ddc4d5628690e0325bd6b78e33b0b6055231c98a9d0fa07e1328e504a71",
+      "license": "GPL-3.0",
       "urls": [
         "bzz-raw://504b8df51a851f24032ac73f8f77a9875670f26fd742b247549e15314c444bec",
         "dweb:/ipfs/QmVzsjWz4U2gm6gEm2edtFMK5EwtR2XxHnHYkEWsuXez9f"

@@ -138,9 +138,11 @@ describe("Verifier Alliance database", function () {
           creation_match,
           creation_values,
           creation_transformations,
+          creation_metadata_match,
           runtime_match,
           runtime_values,
           runtime_transformations,
+          runtime_metadata_match,
           compiled_runtime_code.code as compiled_runtime_code,
           compiled_creation_code.code as compiled_creation_code,
           compiled_runtime_code.code_hash as compiled_runtime_code_hash,
@@ -246,6 +248,9 @@ describe("Verifier Alliance database", function () {
     chai
       .expect(row.runtime_transformations)
       .to.deep.equal(testCase.runtime_transformations);
+    chai
+      .expect(row.runtime_metadata_match)
+      .to.equal(testCase.runtime_metadata_match);
 
     chai
       .expect(toHexString(row.compiled_creation_code_hash))
@@ -267,6 +272,9 @@ describe("Verifier Alliance database", function () {
     chai
       .expect(row.creation_transformations)
       .to.deep.equal(testCase.creation_transformations);
+    chai
+      .expect(row.creation_metadata_match)
+      .to.equal(testCase.creation_metadata_match);
   };
 
   it("Libraries have been linked manually instead of using compiler settings. Placeholders are replaced with zero addresses", async () => {
@@ -323,6 +331,13 @@ describe("Verifier Alliance database", function () {
   it("Store partial match in database for a contract with multiple auxdatas", async () => {
     const verifierAllianceTestDoubleAuxdata = await import(
       "../verifier-alliance/partial_match_double_auxdata.json"
+    );
+    await verifierAllianceTest(verifierAllianceTestDoubleAuxdata);
+  });
+
+  it("Store full match in database for a contract with multiple auxdatas", async () => {
+    const verifierAllianceTestDoubleAuxdata = await import(
+      "../verifier-alliance/full_match_double_auxdata.json"
     );
     await verifierAllianceTest(verifierAllianceTestDoubleAuxdata);
   });

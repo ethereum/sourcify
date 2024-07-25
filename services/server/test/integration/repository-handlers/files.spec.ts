@@ -304,13 +304,13 @@ describe("Verify repository endpoints", function () {
       });
 
       it(`should fetch immutable-references.json of specific address, and it should be available in /files/any. Storage type: ${serverFixture.identifier}`, async function () {
-        const artifact = await import(
-          "../../testcontracts/WithImmutables/artifact.json"
-        );
+        const artifact = (
+          await import("../../testcontracts/WithImmutables/artifact.json")
+        ).default;
 
-        const metadata = await import(
-          "../../testcontracts/WithImmutables/metadata.json"
-        );
+        const metadata = (
+          await import("../../testcontracts/WithImmutables/metadata.json")
+        ).default;
         const metadataBuffer = Buffer.from(JSON.stringify(metadata));
         const sourcePath = path.join(
           __dirname,
@@ -372,13 +372,17 @@ describe("Verify repository endpoints", function () {
       });
 
       it(`should fetch library-map.json of specific address, and it should be available in /files/any. Storage type: ${serverFixture.identifier}`, async function () {
-        const artifact = await import(
-          "../../testcontracts/LibrariesLinkedManually/LibrariesLinkedManually.json"
-        );
+        const artifact = (
+          await import(
+            "../../testcontracts/LibrariesLinkedManually/LibrariesLinkedManually.json"
+          )
+        ).default;
 
-        const metadata = await import(
-          "../../testcontracts/LibrariesLinkedManually/metadata.json"
-        );
+        const metadata = (
+          await import(
+            "../../testcontracts/LibrariesLinkedManually/metadata.json"
+          )
+        ).default;
         const metadataBuffer = Buffer.from(JSON.stringify(metadata));
 
         const sourceBuffer = fs.readFileSync(
@@ -479,13 +483,13 @@ describe("Verify repository endpoints", function () {
       });
 
       it(`should fetch constructor-args.txt of specific address, and it should be available in /files/any. Storage type: ${serverFixture.identifier}`, async function () {
-        const artifact = await import(
-          "../../testcontracts/WithImmutables/artifact.json"
-        );
+        const artifact = (
+          await import("../../testcontracts/WithImmutables/artifact.json")
+        ).default;
 
-        const metadata = await import(
-          "../../testcontracts/WithImmutables/metadata.json"
-        );
+        const metadata = (
+          await import("../../testcontracts/WithImmutables/metadata.json")
+        ).default;
         const metadataBuffer = Buffer.from(JSON.stringify(metadata));
         const sourcePath = path.join(
           __dirname,

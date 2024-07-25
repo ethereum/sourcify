@@ -482,6 +482,49 @@ describe('lib-sourcify tests', () => {
     });
   });
 
+  it('should rewrite metadata on CheckedContract after recompilation', async () => {
+    const contractFolderPath = path.join(
+      __dirname,
+      'sources',
+      'MetadataRewriting',
+      'contract',
+    );
+    const { contractAddress } = await deployFromAbiAndBytecode(
+      signer,
+      contractFolderPath,
+      [
+        '0x39f0bd56c1439a22ee90b4972c16b7868d161981',
+        '0x000000000000000000000000000000000000dead',
+        '0x0000000000000000000000000000000000000000000000000000000000000000',
+      ],
+    );
+    const checkedContracts =
+      await checkFilesFromContractFolder(contractFolderPath);
+
+    const match = await verifyDeployed(
+      checkedContracts[0],
+      sourcifyChainHardhat,
+      contractAddress,
+    );
+    expectMatch(match, 'perfect', contractAddress);
+
+    const correctMetadataRaw = fs
+      .readFileSync(
+        path.join(
+          __dirname,
+          'sources',
+          'MetadataRewriting',
+          'correct-metadata.json',
+        ),
+      )
+      .toString();
+
+    expect(checkedContracts[0].metadata).to.deep.equal(
+      JSON.parse(correctMetadataRaw),
+    );
+    expect(checkedContracts[0].metadataRaw).to.equal(correctMetadataRaw);
+  });
+
   describe('Unit tests', function () {
     describe('SourcifyChain', () => {
       it("Should fail to instantiate with empty rpc's", function () {
@@ -668,6 +711,7 @@ describe('lib-sourcify tests', () => {
           wrongCreatorTxHash,
           recompiledMetadata,
           generateCreationCborAuxdataPositions,
+          recompiled.creationLinkReferences,
         );
       } catch (err) {
         if (err instanceof Error) {
@@ -729,6 +773,7 @@ describe('lib-sourcify tests', () => {
         txHash,
         recompiledMetadata,
         generateCreationCborAuxdataPositions,
+        recompiled.creationLinkReferences,
       );
       expectMatch(match, null, contractAddress, undefined); // status is null
     });
@@ -774,6 +819,7 @@ describe('lib-sourcify tests', () => {
         creatorTxHash,
         recompiledMetadata,
         generateCreationCborAuxdataPositions,
+        recompiled.creationLinkReferences,
       );
       expectMatch(match, null, contractAddress, undefined); // status is null
     });
@@ -811,6 +857,7 @@ describe('lib-sourcify tests', () => {
         creatorTxHash,
         recompiledMetadata,
         generateCreationCborAuxdataPositions,
+        recompiled.creationLinkReferences,
       );
       try {
         expect(match.creationMatch).to.equal('perfect');
@@ -854,6 +901,7 @@ describe('lib-sourcify tests', () => {
         creatorTxHash,
         recompiledMetadata,
         generateCreationCborAuxdataPositions,
+        recompiled.creationLinkReferences,
       );
       try {
         expect(match.creationMatch).to.equal('partial');
@@ -872,19 +920,19 @@ describe('lib-sourcify tests', () => {
         // expect every creationTransformations
         expect(match.creationTransformations).to.deep.include({
           type: 'replace',
-          reason: 'auxdata',
+          reason: 'cborAuxdata',
           offset: 4148,
           id: '1',
         });
         expect(match.creationTransformations).to.deep.include({
           type: 'replace',
-          reason: 'auxdata',
+          reason: 'cborAuxdata',
           offset: 2775,
           id: '2',
         });
         expect(match.creationTransformations).to.deep.include({
           type: 'replace',
-          reason: 'auxdata',
+          reason: 'cborAuxdata',
           offset: 4095,
           id: '3',
         });

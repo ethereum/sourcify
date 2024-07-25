@@ -113,6 +113,11 @@ describe("contract creation util", function () {
   });
 
   it("should run getCreatorTx with etherscanApi for Etherscan", async function () {
+    // Don't run if it's an external PR. Etherscan tests need API keys that can't be exposed to external PRs.
+    if (process.env.CIRCLE_PR_REPONAME !== undefined) {
+      return;
+    }
+
     const sourcifyChain = sourcifyChainsArray.find(
       (sourcifyChain) => sourcifyChain.chainId === 1,
     );
@@ -127,6 +132,24 @@ describe("contract creation util", function () {
       .expect(creatorTx)
       .equals(
         "0xe75fb554e433e03763a1560646ee22dcb74e5274b34c5ad644e7c0f619a7e1d0",
+      );
+  });
+
+  it("should run getCreatorTx with nexusApi for Nexus", async function () {
+    const sourcifyChain = sourcifyChainsArray.find(
+      (sourcifyChain) => sourcifyChain.chainId === 23294,
+    );
+    if (!sourcifyChain) {
+      chai.assert.fail("No chain for chainId 23294 configured");
+    }
+    const creatorTx = await getCreatorTx(
+      sourcifyChain,
+      "0x8Bc2B030b299964eEfb5e1e0b36991352E56D2D3",
+    );
+    chai
+      .expect(creatorTx)
+      .equals(
+        "0xce775b521cc6e1341020560441d77cd634b0972fc34bf96f79e9fab81caa8ab7",
       );
   });
 });

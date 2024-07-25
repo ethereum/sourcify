@@ -830,8 +830,9 @@
     "sourcifyName": "Oasis Emerald Mainnet",
     "supported": true,
     "fetchContractCreationTxUsing": {
-      "blockscoutScrape": {
-        "url": "https://old-explorer.emerald.oasis.dev/"
+      "nexusApi": {
+        "url": "https://nexus.oasis.io/",
+        "runtime": "emerald"
       }
     }
   },
@@ -839,8 +840,9 @@
     "sourcifyName": "Oasis Emerald Testnet",
     "supported": true,
     "fetchContractCreationTxUsing": {
-      "blockscoutScrape": {
-        "url": "https://testnet.old-explorer.emerald.oasis.dev/"
+      "nexusApi": {
+        "url": "https://testnet.nexus.oasis.io/",
+        "runtime": "emerald"
       }
     }
   },
@@ -848,8 +850,9 @@
     "sourcifyName": "Oasis Sapphire Mainnet",
     "supported": true,
     "fetchContractCreationTxUsing": {
-      "blockscoutScrape": {
-        "url": "https://old-explorer.sapphire.oasis.io/"
+      "nexusApi": {
+        "url": "https://nexus.oasis.io/",
+        "runtime": "sapphire"
       }
     }
   },
@@ -857,8 +860,9 @@
     "sourcifyName": "Oasis Sapphire Testnet",
     "supported": true,
     "fetchContractCreationTxUsing": {
-      "blockscoutScrape": {
-        "url": "https://testnet.old-explorer.sapphire.oasis.io/"
+      "nexusApi": {
+        "url": "https://testnet.nexus.oasis.io/",
+        "runtime": "sapphire"
       }
     }
   },
@@ -1694,6 +1698,14 @@
       "avalancheApi": true
     }
   },
+  "100009": {
+    "sourcifyName": "VeChain Mainnet",
+    "supported": true
+  },
+  "100010": {
+    "sourcifyName": "VeChain Testnet",
+    "supported": true
+  },
   "84532": {
     "sourcifyName": "Base Sepolia Tesnet",
     "supported": true,
@@ -1735,8 +1747,26 @@
       }
     }
   },
+  "16180": {
+    "sourcifyName": "PLYR PHI",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "avalancheApi": true
+    }
+  },
+  "62831": {
+    "sourcifyName": "PLYR TAU Testnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "avalancheApi": true
+    }
+  },
   "842": {
     "sourcifyName": "Taraxa Testnet",
     "supported": true
+  },
+  "16350": {
+    "supported": true,
+    "sourcifyName": "Incentiv Devnet"
   }
 }
