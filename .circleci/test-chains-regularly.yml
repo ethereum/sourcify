@@ -21,8 +21,20 @@ jobs:
           command: npm install
       - run:
           name: build and test
-          command: npx lerna run build && npx lerna run test:chains
+          command: npx lerna run build && npx lerna run test:chains          
+          environment:
+            DOCKER_HOST_POSTGRES_TEST_PORT: 5432
+            SOURCIFY_POSTGRES_HOST: "localhost"
+            SOURCIFY_POSTGRES_DB: "sourcify"
+            SOURCIFY_POSTGRES_USER: "sourcify"
+            SOURCIFY_POSTGRES_PASSWORD: "sourcify"
+            SOURCIFY_POSTGRES_PORT: 5432
       - store_artifacts: # Store and publish test results for reference
           path: ./services/server/chain-tests-report
     docker:
-      - image: cimg/node:16.15
+      - image: cimg/node:22.5.1
+      - image: postgres:16-alpine
+        environment:
+          POSTGRES_DB: sourcify
+          POSTGRES_USER: sourcify
+          POSTGRES_PASSWORD: sourcify

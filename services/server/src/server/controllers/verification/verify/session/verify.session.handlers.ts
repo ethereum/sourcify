@@ -8,12 +8,11 @@ import {
 } from "../../verification.common";
 import { isEmpty } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError } from "../../../../../common/errors";
-import { services } from "../../../../services/services";
 import logger from "../../../../../common/logger";
 
 export async function verifyContractsInSessionEndpoint(
   req: Request,
-  res: Response
+  res: Response,
 ) {
   const session = req.session;
   if (!session.contractWrappers || isEmpty(session.contractWrappers)) {
@@ -31,7 +30,7 @@ export async function verifyContractsInSessionEndpoint(
         verificationId,
         chainId,
         address,
-      })
+      }),
     ),
   });
   /* eslint-enable indent*/
@@ -53,8 +52,8 @@ export async function verifyContractsInSessionEndpoint(
   await verifyContractsInSession(
     verifiable,
     session,
-    services.verification,
-    services.storage,
+    req.services.verification,
+    req.services.storage,
     dryRun,
   );
   res.send(getSessionJSON(session));

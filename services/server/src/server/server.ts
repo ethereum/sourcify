@@ -40,13 +40,30 @@ import {
 } from "./common";
 import { initDeprecatedRoutes } from "./deprecated.routes";
 import getSessionMiddleware from "./session";
+import { Services } from "./services/services";
+import { supportedChainsMap } from "../sourcify-chains";
+import { StorageServiceOptions } from "./services/StorageService";
+import { VerificationServiceOptions } from "./services/VerificationService";
+
+declare module "express-serve-static-core" {
+  interface Request {
+    services: Services;
+  }
+}
 
 export class Server {
   app: express.Application;
   repository: string = config.get("repositoryV1.path");
+  repositoryV2: string = config.get("repositoryV2.path");
   port: string | number;
+  services: Services;
 
-  constructor(port?: string | number) {
+  // TODO: pass config as object into the constructor. Currently we read config from config files. Server Class itself should be configurable.
+  constructor(
+    port: string | number,
+    verificationServiceOptions: VerificationServiceOptions,
+    storageServiceOptions: StorageServiceOptions,
+  ) {
     // To print regexes in the logs
     Object.defineProperty(RegExp.prototype, "toJSON", {
       value: RegExp.prototype.toString,
@@ -56,15 +73,24 @@ export class Server {
       config: JSON.stringify(config, null, 2),
     });
 
-    this.port = port || config.get("server.port");
+    this.port = port;
     logger.info("Server port set", { port: this.port });
     this.app = express();
+
+    this.services = new Services(
+      verificationServiceOptions,
+      storageServiceOptions,
+    );
+    this.app.use((req, res, next) => {
+      req.services = this.services;
+      next();
+    });
 
     this.app.use(
       bodyParser.urlencoded({
         limit: config.get("server.maxFileSize"),
         extended: true,
-      })
+      }),
     );
     this.app.use(bodyParser.json({ limit: config.get("server.maxFileSize") }));
 
@@ -76,7 +102,7 @@ export class Server {
       fileUpload({
         limits: { fileSize: config.get("server.maxFileSize") },
         abortOnLimit: true,
-      })
+      }),
     );
 
     // Inject the requestId to the AsyncLocalStorage to be logged.
@@ -134,41 +160,35 @@ export class Server {
             },
           },
         },
-        formats: [
-          {
-            name: "comma-separated-addresses",
+        formats: {
+          "comma-separated-addresses": {
             type: "string",
             validate: (addresses: string) => validateAddresses(addresses),
           },
-          {
-            name: "address",
+          address: {
             type: "string",
             validate: (address: string) => validateSingleAddress(address),
           },
-          {
-            name: "comma-separated-sourcify-chainIds",
+          "comma-separated-sourcify-chainIds": {
             type: "string",
             validate: (chainIds: string) => validateSourcifyChainIds(chainIds),
           },
-          {
-            name: "supported-chainId",
+          "supported-chainId": {
             type: "string",
             validate: (chainId: string) => checkSupportedChainId(chainId),
           },
-          {
-            // "Sourcify chainIds" include the chains that are revoked verification support, but can have contracts in the repo.
-            name: "sourcify-chainId",
+          // "Sourcify chainIds" include the chains that are revoked verification support, but can have contracts in the repo.
+          "sourcify-chainId": {
             type: "string",
             validate: (chainId: string) => checkSourcifyChainId(chainId),
           },
-          {
-            name: "match-type",
+          "match-type": {
             type: "string",
             validate: (matchType: string) =>
               matchType === "full_match" || matchType === "partial_match",
           },
-        ],
-      })
+        },
+      }),
     );
     // checksum addresses in every request
     this.app.use((req: any, res: any, next: any) => {
@@ -187,9 +207,6 @@ export class Server {
           .split(",")
           .map((address: string) => getAddress(address))
           .join(",");
-      }
-      if (req.params.address) {
-        req.params.address = getAddress(req.params.address);
       }
       next();
     });
@@ -294,31 +311,77 @@ export class Server {
       },
       function (err: any) {
         console.log(err.stack);
-      }
+      },
     );
   }
 }
 
 if (require.main === module) {
-  const server = new Server();
-  server
-    .loadSwagger(yamljs.load(path.join(__dirname, "..", "openapi.yaml"))) // load the openapi file with the $refs resolved
-    .then((swaggerDocument: any) => {
-      server.app.get("/api-docs/swagger.json", (req, res) =>
-        res.json(swaggerDocument)
-      );
-      server.app.use(
-        "/api-docs",
-        swaggerUi.serve,
-        swaggerUi.setup(swaggerDocument, {
-          customSiteTitle: "Sourcify API",
-          customfavIcon: "https://sourcify.dev/favicon.ico",
-        })
-      );
-      server.app.listen(server.port, () => {
-        logger.info("Server listening", { port: server.port });
+  const server = new Server(
+    config.get("server.port"),
+    {
+      initCompilers: config.get("initCompilers") || false,
+      supportedChainsMap,
+    },
+    {
+      enabledServices: {
+        read: config.get("storage.read"),
+        writeOrWarn: config.get("storage.writeOrWarn"),
+        writeOrErr: config.get("storage.writeOrErr"),
+      },
+      repositoryV1ServiceOptions: {
+        ipfsApi: process.env.IPFS_API as string,
+        repositoryPath: config.get("repositoryV1.path"),
+        repositoryServerUrl: config.get("repositoryV1.serverUrl") as string,
+      },
+      repositoryV2ServiceOptions: {
+        ipfsApi: process.env.IPFS_API as string,
+        repositoryPath: config.has("repositoryV2.path")
+          ? config.get("repositoryV2.path")
+          : undefined,
+      },
+      sourcifyDatabaseServiceOptions: {
+        postgres: {
+          host: process.env.SOURCIFY_POSTGRES_HOST as string,
+          database: process.env.SOURCIFY_POSTGRES_DB as string,
+          user: process.env.SOURCIFY_POSTGRES_USER as string,
+          password: process.env.SOURCIFY_POSTGRES_PASSWORD as string,
+          port: parseInt(process.env.SOURCIFY_POSTGRES_PORT || "5432"),
+        },
+      },
+      allianceDatabaseServiceOptions: {
+        postgres: {
+          host: process.env.ALLIANCE_POSTGRES_HOST as string,
+          database: process.env.ALLIANCE_POSTGRES_DB as string,
+          user: process.env.ALLIANCE_POSTGRES_USER as string,
+          password: process.env.ALLIANCE_POSTGRES_PASSWORD as string,
+          port: parseInt(process.env.ALLIANCE_POSTGRES_PORT || "5432"),
+        },
+      },
+    },
+  );
+
+  // Generate the swagger.json and serve it with SwaggerUI at /api-docs
+  server.services.init().then(() => {
+    server
+      .loadSwagger(yamljs.load(path.join(__dirname, "..", "openapi.yaml"))) // load the openapi file with the $refs resolved
+      .then((swaggerDocument: any) => {
+        server.app.get("/api-docs/swagger.json", (req, res) =>
+          res.json(swaggerDocument),
+        );
+        server.app.use(
+          "/api-docs",
+          swaggerUi.serve,
+          swaggerUi.setup(swaggerDocument, {
+            customSiteTitle: "Sourcify API",
+            customfavIcon: "https://sourcify.dev/favicon.ico",
+          }),
+        );
+        server.app.listen(server.port, () => {
+          logger.info("Server listening", { port: server.port });
+        });
       });
-    });
+  });
 }
 
 function hash(data: string) {

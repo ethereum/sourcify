@@ -15,7 +15,7 @@ import {
   StringMap,
 } from './types';
 import semver from 'semver';
-import { fetchWithTimeout } from './utils';
+import { fetchWithBackoff } from './utils';
 import { storeByHash } from './validation';
 import {
   decode as decodeBytecode,
@@ -28,7 +28,6 @@ import { ISolidityCompiler } from './ISolidityCompiler';
 
 // TODO: find a better place for these constants. Reminder: this sould work also in the browser
 const IPFS_PREFIX = 'dweb:/ipfs/';
-const FETCH_TIMEOUT = parseInt(process.env.FETCH_TIMEOUT || '') || 3000; // ms
 /**
  * Abstraction of a checked solidity contract. With metadata and source (solidity) files.
  */
@@ -78,7 +77,7 @@ export class CheckedContract {
    */
   public static isValid(
     contract: CheckedContract,
-    ignoreMissing = false
+    ignoreMissing = false,
   ): boolean {
     return (
       (isEmpty(contract.missing) || ignoreMissing) && isEmpty(contract.invalid)
@@ -109,7 +108,7 @@ export class CheckedContract {
     metadata: Metadata,
     solidity: StringMap,
     missing: MissingSources = {},
-    invalid: InvalidSources = {}
+    invalid: InvalidSources = {},
   ) {
     this.solidityCompiler = solidityCompiler;
     this.missing = missing;
@@ -127,7 +126,7 @@ export class CheckedContract {
    * @returns the perfectly matching CheckedContract or null otherwise
    */
   async tryToFindPerfectMetadata(
-    runtimeBytecode: string
+    runtimeBytecode: string,
   ): Promise<CheckedContract | null> {
     let decodedAuxdata;
     try {
@@ -143,7 +142,7 @@ export class CheckedContract {
           path,
           content: this.solidity[path] || '',
         };
-      }
+      },
     );
 
     const byHash = storeByHash(pathContent);
@@ -176,14 +175,14 @@ export class CheckedContract {
       // the second parameter of Array.from is needed to pass to the groupBy function
       // an array of all the values of the the mapping, othwerise [key,value] is passed
       Array.from(byHash, ([, value]) => value),
-      'variation'
+      'variation',
     );
 
     // We should canonicalize the metadata when we are generating "metadata variations" when we have a partial match.
     // It could be that the user somehow mixed the orderings of the metadata or added whitespaces etc.
     // For more information read https://github.com/ethereum/sourcify/issues/978
     const metadata: Metadata = reorderAlphabetically(
-      JSON.parse(this.metadataRaw)
+      JSON.parse(this.metadataRaw),
     ) as Metadata;
 
     // For each variation
@@ -211,13 +210,13 @@ export class CheckedContract {
                     return `bzz-raw://${swarmBzzr1Hash(source.content)}`;
                   }
                   return '';
-                }
+                },
               );
             }
           }
           return sources;
         },
-        {}
+        {},
       );
 
       if (decodedAuxdata?.ipfs) {
@@ -226,7 +225,7 @@ export class CheckedContract {
           return new CheckedContract(
             this.solidityCompiler,
             metadata,
-            getSolidityFromPathContents(sources)
+            getSolidityFromPathContents(sources),
           );
         }
       }
@@ -236,7 +235,7 @@ export class CheckedContract {
           return new CheckedContract(
             this.solidityCompiler,
             metadata,
-            getSolidityFromPathContents(sources)
+            getSolidityFromPathContents(sources),
           );
         }
       }
@@ -246,7 +245,7 @@ export class CheckedContract {
           return new CheckedContract(
             this.solidityCompiler,
             metadata,
-            getSolidityFromPathContents(sources)
+            getSolidityFromPathContents(sources),
           );
         }
       }
@@ -268,12 +267,12 @@ export class CheckedContract {
       forceEmscripten: boolean;
     } = JSON.parse(JSON.stringify(compilerSettings));
     Object.values(newCompilerSettings.solcJsonInput.sources).forEach(
-      (source) => (source.content += ' ')
+      (source) => (source.content += ' '),
     );
     return await this.solidityCompiler.compile(
       newCompilerSettings.version,
       newCompilerSettings.solcJsonInput,
-      newCompilerSettings.forceEmscripten
+      newCompilerSettings.forceEmscripten,
     );
   }
 
@@ -297,7 +296,7 @@ export class CheckedContract {
     // Auxdata array extracted from the compiler's `legacyAssembly` field
     const auxdatasFromCompilerOutput = findAuxdatasInLegacyAssembly(
       this.compilerOutput.contracts[this.compiledPath][this.name].evm
-        .legacyAssembly
+        .legacyAssembly,
     );
 
     // Case: there is not auxadata
@@ -311,7 +310,7 @@ export class CheckedContract {
     if (auxdatasFromCompilerOutput.length === 1) {
       // Extract the auxdata from the end of the recompiled runtime bytecode
       const [, runtimeAuxdataCbor, runtimeCborLenghtHex] = splitAuxdata(
-        this.runtimeBytecode
+        this.runtimeBytecode,
       );
 
       const auxdataFromRawRuntimeBytecode = `${runtimeAuxdataCbor}${runtimeCborLenghtHex}`;
@@ -322,7 +321,7 @@ export class CheckedContract {
           "The auxdata from raw bytecode differs from the legacyAssembly's auxdata",
           {
             name: this.name,
-          }
+          },
         );
         return false;
       }
@@ -340,7 +339,7 @@ export class CheckedContract {
 
       // Try to extract the auxdata from the end of the recompiled creation bytecode
       const [, creationAuxdataCbor, creationCborLenghtHex] = splitAuxdata(
-        this.creationBytecode
+        this.creationBytecode,
       );
 
       // If we can find the auxdata at the end of the bytecode return; otherwise continue with `generateEditedContract`
@@ -361,7 +360,7 @@ export class CheckedContract {
         } else {
           logWarn(
             "The creation auxdata from raw bytecode differs from the legacyAssembly's auxdata",
-            { name: this.name }
+            { name: this.name },
           );
           return false;
         }
@@ -388,7 +387,7 @@ export class CheckedContract {
         this.runtimeBytecode,
         `0x${editedContract?.evm?.deployedBytecode?.object}`,
         auxdatasFromCompilerOutput,
-        editedContractAuxdatasFromCompilerOutput
+        editedContractAuxdatasFromCompilerOutput,
       );
     }
 
@@ -396,14 +395,14 @@ export class CheckedContract {
       this.creationBytecode,
       `0x${editedContract?.evm.bytecode.object}`,
       auxdatasFromCompilerOutput,
-      editedContractAuxdatasFromCompilerOutput
+      editedContractAuxdatasFromCompilerOutput,
     );
 
     return true;
   }
 
   public async recompile(
-    forceEmscripten = false
+    forceEmscripten = false,
   ): Promise<RecompilationResult> {
     if (!CheckedContract.isValid(this)) {
       await CheckedContract.fetchMissing(this);
@@ -422,7 +421,7 @@ export class CheckedContract {
     this.compilerOutput = await this.solidityCompiler.compile(
       version,
       this.solcJsonInput,
-      forceEmscripten
+      forceEmscripten,
     );
     if (this.compilerOutput === undefined) {
       const error = new Error('Compiler error');
@@ -468,17 +467,21 @@ export class CheckedContract {
     this.creationBytecode = `0x${contract.evm.bytecode.object}`;
     this.runtimeBytecode = `0x${contract.evm?.deployedBytecode?.object}`;
 
+    // Store the metadata from the compiler output and replace the initial user provided one.
+    // Because the compiler output metadata is the one corresponding to the CBOR auxdata and the user might have provided a modified one e.g. the userdoc,abi fields modified which don't affect the compilation.
+    this.metadataRaw = contract.metadata.trim();
+    this.metadata = JSON.parse(this.metadataRaw);
+
     return {
       creationBytecode: this.creationBytecode,
       runtimeBytecode: this.runtimeBytecode,
-      metadata: contract.metadata.trim(),
+      metadata: this.metadataRaw,
       // Sometimes the compiler returns empty object (not falsey). Convert it to undefined (falsey).
       immutableReferences:
-        contract.evm?.deployedBytecode?.immutableReferences &&
-        Object.keys(contract.evm.deployedBytecode.immutableReferences).length >
-          0
-          ? contract.evm.deployedBytecode.immutableReferences
-          : {},
+        contract.evm?.deployedBytecode?.immutableReferences || {},
+      creationLinkReferences: contract?.evm?.bytecode?.linkReferences || {},
+      runtimeLinkReferences:
+        contract?.evm?.deployedBytecode?.linkReferences || {},
     };
   }
 
@@ -534,7 +537,7 @@ export class CheckedContract {
 
     if (missingFiles.length) {
       const error = new Error(
-        `Resource missing; unsuccessful fetching: ${missingFiles.join(', ')}`
+        `Resource missing; unsuccessful fetching: ${missingFiles.join(', ')}`,
       );
       throw error;
     }
@@ -566,25 +569,16 @@ export class CheckedContract {
 export async function performFetch(
   url: string,
   hash?: string,
-  fileName?: string
+  fileName?: string,
 ): Promise<string | null> {
   logInfo('Fetching file', {
     url,
     hash,
     fileName,
   });
-  const res = await fetchWithTimeout(url, { timeout: FETCH_TIMEOUT }).catch(
-    (err) => {
-      if (err.type === 'aborted')
-        logWarn('Timeout fetching the file', {
-          url,
-          hash,
-          fileName,
-          timeout: FETCH_TIMEOUT,
-        });
-      else logError(err);
-    }
-  );
+  const res = await fetchWithBackoff(url).catch((err) => {
+    logError(err);
+  });
 
   if (res) {
     if (res.status === 200) {
@@ -645,7 +639,7 @@ export function isEmpty(obj: object): boolean {
  */
 function createJsonInputFromMetadata(
   metadata: Metadata,
-  sources: StringMap
+  sources: StringMap,
 ): CompilableMetadata {
   const solcJsonInput: Partial<JsonInput> = {};
   let contractPath = '';
@@ -659,7 +653,7 @@ function createJsonInputFromMetadata(
     Object.keys(metadata.settings.compilationTarget).length != 1
   ) {
     const error = new Error(
-      'createJsonInputFromMetadata: Invalid compilationTarget'
+      'createJsonInputFromMetadata: Invalid compilationTarget',
     );
     throw error;
   }
@@ -675,7 +669,7 @@ function createJsonInputFromMetadata(
   const coercedVersion = semver.coerce(metadata.compiler.version)?.version;
 
   const affectedVersions = versions.filter((version) =>
-    semver.eq(version, coercedVersion || '')
+    semver.eq(version, coercedVersion || ''),
   );
   if (affectedVersions.length > 0) {
     if (solcJsonInput.settings?.optimizer?.details?.inliner) {
@@ -720,7 +714,7 @@ function createJsonInputFromMetadata(
   // settings format: "contracts/1_Storage.sol": { Journal: "0x7d53f102f4d4aa014db4e10d6deec2009b3cda6b" }
   const metadataLibraries = metadata.settings?.libraries || {};
   solcJsonInput.settings.libraries = Object.keys(
-    metadataLibraries || {}
+    metadataLibraries || {},
   ).reduce((libraries, libraryKey) => {
     // Before Solidity v0.7.5: { "ERC20": "0x..."}
     if (!libraryKey.includes(':')) {
@@ -760,7 +754,7 @@ export function getIpfsGateway(): string {
 
 export const findContractPathFromContractName = (
   contracts: any,
-  contractName: string
+  contractName: string,
 ): string | null => {
   for (const key of Object.keys(contracts)) {
     const contractsList = contracts[key];
@@ -779,7 +773,7 @@ export const findContractPathFromContractName = (
  */
 const groupBy = function <T extends { [index: string]: any }>(
   xs: T[],
-  key: string
+  key: string,
 ): { index?: T[] } {
   return xs.reduce(function (rv: { [index: string]: T[] }, x: T) {
     (rv[x[key]] = rv[x[key]] || []).push(x);
@@ -813,7 +807,7 @@ function reorderAlphabetically(obj: any): any {
 
 function getAuxdataInLegacyAssemblyBranch(
   legacyAssemblyBranch: any,
-  auxdatas: string[]
+  auxdatas: string[],
 ) {
   if (typeof legacyAssemblyBranch === 'object') {
     Object.keys(legacyAssemblyBranch).forEach((key) => {
@@ -829,7 +823,7 @@ function getAuxdataInLegacyAssemblyBranch(
           if (key === '.data' || Number.isInteger(Number(key))) {
             return getAuxdataInLegacyAssemblyBranch(
               legacyAssemblyBranch[key],
-              auxdatas
+              auxdatas,
             );
           }
         }
@@ -868,13 +862,13 @@ function getDiffPositions(original: string, modified: string): number[] {
 function bytecodeIncludesAuxdataDiffAt(
   bytecode: string,
   auxdataDiff: AuxdataDiff,
-  position: number
+  position: number,
 ): boolean {
   const { real, diffStart } = auxdataDiff;
   // the difference (i.e metadata hash) starts from "position". To get the whole auxdata instead of metadata go back "diffStart" and until + "real.length" of the auxdata.
   const extracted = bytecode.slice(
     position - diffStart,
-    position - diffStart + real.length
+    position - diffStart + real.length,
   );
   return extracted === real;
 }
@@ -884,14 +878,14 @@ function getAuxdatasDiff(originalAuxdatas: string[], editedAuxdatas: string[]) {
   for (let i = 0; i < originalAuxdatas.length; i++) {
     const diffPositions = getDiffPositions(
       originalAuxdatas[i],
-      editedAuxdatas[i]
+      editedAuxdatas[i],
     );
     auxdataDiffs.push({
       real: originalAuxdatas[i],
       diffStart: diffPositions[0],
       diff: originalAuxdatas[i].substring(
         diffPositions[0],
-        diffPositions[diffPositions.length - 1] + 1
+        diffPositions[diffPositions.length - 1] + 1,
       ),
     });
   }
@@ -908,13 +902,13 @@ function findAuxdataPositions(
   originalBytecode: string,
   editedBytecode: string,
   originalAuxdatas: string[],
-  editedAuxdatas: string[]
+  editedAuxdatas: string[],
 ): CompiledContractCborAuxdata {
   const auxdataDiffObjects = getAuxdatasDiff(originalAuxdatas, editedAuxdatas);
 
   const diffPositionsBytecodes = getDiffPositions(
     originalBytecode,
-    editedBytecode
+    editedBytecode,
   );
   const auxdataPositions: CompiledContractCborAuxdata = {};
 
@@ -933,7 +927,7 @@ function findAuxdataPositions(
         bytecodeIncludesAuxdataDiffAt(
           originalBytecode,
           auxdataDiffObjects[auxdataDiffIndex],
-          diffPosition
+          diffPosition,
         )
       ) {
         auxdataPositions[auxdataPositionsIndex] = {

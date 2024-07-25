@@ -22,13 +22,13 @@ export async function addInputSolcJsonEndpoint(req: Request, res: Response) {
       solcJson = JSON.parse(inputFile.buffer.toString());
     } catch (error: any) {
       throw new BadRequestError(
-        `Couldn't parse JSON ${inputFile.path}. Make sure the contents of the file are syntaxed correctly.`
+        `Couldn't parse JSON ${inputFile.path}. Make sure the contents of the file are syntaxed correctly.`,
       );
     }
 
     const metadataAndSources = await getAllMetadataAndSourcesFromSolcJson(
       solcJson,
-      compilerVersion
+      compilerVersion,
     );
     const metadataAndSourcesPathContents: PathContent[] =
       metadataAndSources.map((pb) => {
@@ -38,7 +38,7 @@ export async function addInputSolcJsonEndpoint(req: Request, res: Response) {
     const session = req.session;
     const newFilesCount = saveFilesToSession(
       metadataAndSourcesPathContents,
-      session
+      session,
     );
     if (newFilesCount) {
       await checkContractsInSession(session);

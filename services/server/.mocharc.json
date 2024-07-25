@@ -1,5 +1,5 @@
 {
   "extension": ["ts"],
-  "require": "ts-node/register",
+  "require": ["ts-node/register", "./test/load-env.js"],
   "timeout": 60000
 }

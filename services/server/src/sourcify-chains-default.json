@@ -41,7 +41,14 @@
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
     },
-    "rpc": ["https://rpc.holesky.ethpandaops.io"]
+    "rpc": [
+      "https://rpc.holesky.ethpandaops.io",
+      {
+        "type": "Alchemy",
+        "url": "https://eth-holesky.g.alchemy.com/v2/{ALCHEMY_API_KEY}",
+        "apiKeyEnvName": "ALCHEMY_API_KEY"
+      }
+    ]
   },
   "5": {
     "sourcifyName": "Ethereum Goerli Testnet",
@@ -566,7 +573,11 @@
     "supported": false
   },
   "44": {
-    "sourcifyName": "Darwinia Crab Mainnet",
+    "sourcifyName": "Crab Mainnet",
+    "supported": true
+  },
+  "46": {
+    "sourcifyName": "Darwinia Mainnet",
     "supported": true
   },
   "9000": {
@@ -819,8 +830,9 @@
     "sourcifyName": "Oasis Emerald Mainnet",
     "supported": true,
     "fetchContractCreationTxUsing": {
-      "blockscoutScrape": {
-        "url": "https://old-explorer.emerald.oasis.dev/"
+      "nexusApi": {
+        "url": "https://nexus.oasis.io/",
+        "runtime": "emerald"
       }
     }
   },
@@ -828,8 +840,9 @@
     "sourcifyName": "Oasis Emerald Testnet",
     "supported": true,
     "fetchContractCreationTxUsing": {
-      "blockscoutScrape": {
-        "url": "https://testnet.old-explorer.emerald.oasis.dev/"
+      "nexusApi": {
+        "url": "https://testnet.nexus.oasis.io/",
+        "runtime": "emerald"
       }
     }
   },
@@ -837,8 +850,9 @@
     "sourcifyName": "Oasis Sapphire Mainnet",
     "supported": true,
     "fetchContractCreationTxUsing": {
-      "blockscoutScrape": {
-        "url": "https://old-explorer.sapphire.oasis.io/"
+      "nexusApi": {
+        "url": "https://nexus.oasis.io/",
+        "runtime": "sapphire"
       }
     }
   },
@@ -846,8 +860,9 @@
     "sourcifyName": "Oasis Sapphire Testnet",
     "supported": true,
     "fetchContractCreationTxUsing": {
-      "blockscoutScrape": {
-        "url": "https://testnet.old-explorer.sapphire.oasis.io/"
+      "nexusApi": {
+        "url": "https://testnet.nexus.oasis.io/",
+        "runtime": "sapphire"
       }
     }
   },
@@ -1323,11 +1338,30 @@
     }
   },
   "5000": {
-    "sourcifyName": "Mantle",
+    "sourcifyName": "Mantle Mainnet",
     "supported": true,
+    "etherscanApi": {
+      "apiURL": "https://api.mantlescan.xyz/",
+      "apiKeyEnvName": "MANTLESCAN_API_KEY"
+    },
     "fetchContractCreationTxUsing": {
+      "etherscanApi": true,
       "blockscoutScrape": {
         "url": "https://explorer.mantle.xyz/"
+      }
+    }
+  },
+  "5003": {
+    "sourcifyName": "Mantle Sepolia Testnet",
+    "supported": true,
+    "etherscanApi": {
+      "apiURL": "https://api-sepolia.mantlescan.xyz/",
+      "apiKeyEnvName": "MANTLESCAN_API_KEY"
+    },
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true,
+      "blockscoutScrape": {
+        "url": "https://explorer.sepolia.mantle.xyz/"
       }
     }
   },
@@ -1595,6 +1629,10 @@
     "sourcifyName": "Aura Euphoria Testnet",
     "supported": true
   },
+  "6322": {
+    "sourcifyName": "Aura Xstaxy Mainnet",
+    "supported": true
+  },
   "200901": {
     "sourcifyName": "Bitlayer Mainnet",
     "supported": true
@@ -1627,5 +1665,108 @@
     "fetchContractCreationTxUsing": {
       "avalancheApi": true
     }
+  },
+  "19011": {
+    "sourcifyName": "HOME Verse Mainnet",
+    "supported": true
+  },
+  "10849": {
+    "sourcifyName": "Lamina1",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "avalancheApi": true
+    }
+  },
+  "10850": {
+    "sourcifyName": "Lamina1 Identity",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "avalancheApi": true
+    }
+  },
+  "764984": {
+    "sourcifyName": "Lamina1 Testnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "avalancheApi": true
+    }
+  },
+  "767368": {
+    "sourcifyName": "Lamina1 Identity Testnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "avalancheApi": true
+    }
+  },
+  "100009": {
+    "sourcifyName": "VeChain Mainnet",
+    "supported": true
+  },
+  "100010": {
+    "sourcifyName": "VeChain Testnet",
+    "supported": true
+  },
+  "84532": {
+    "sourcifyName": "Base Sepolia Tesnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true
+    },
+    "etherscanApi": {
+      "apiURL": "https://api-sepolia.basescan.org/"
+    }
+  },
+  "59144": {
+    "sourcifyName": "Linea Mainnet",
+    "supported": true,
+    "etherscanApi": {
+      "apiURL": "https://api.lineascan.build",
+      "apiKeyEnvName": "LINEASCAN_API_KEY"
+    },
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true
+    }
+  },
+  "59141": {
+    "sourcifyName": "Linea Sepolia",
+    "supported": true,
+    "etherscanApi": {
+      "apiURL": "https://api-sepolia.lineascan.build",
+      "apiKeyEnvName": "LINEASCAN_API_KEY"
+    },
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true
+    }
+  },
+  "841": {
+    "sourcifyName": "Taraxa Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://tara.to/api"
+      }
+    }
+  },
+  "16180": {
+    "sourcifyName": "PLYR PHI",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "avalancheApi": true
+    }
+  },
+  "62831": {
+    "sourcifyName": "PLYR TAU Testnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "avalancheApi": true
+    }
+  },
+  "842": {
+    "sourcifyName": "Taraxa Testnet",
+    "supported": true
+  },
+  "16350": {
+    "supported": true,
+    "sourcifyName": "Incentiv Devnet"
   }
 }

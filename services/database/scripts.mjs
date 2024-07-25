@@ -4,7 +4,6 @@ import readdirp from "readdirp";
 import pg from "pg";
 import path from "path";
 import fs from "fs";
-import fetch from "node-fetch";
 
 const { Pool } = pg;
 const { readFile } = fs.promises;
@@ -19,7 +18,7 @@ if (
   !process.env.POSTGRES_PASSWORD
 ) {
   console.error(
-    "Create a .env file containing all the needed environment variables for the database connection"
+    "Create a .env file containing all the needed environment variables for the database connection",
   );
   process.exit(2);
 }
@@ -29,14 +28,16 @@ program
   .description("Import repository_v1 to Sourcify's sourcify_sync table")
   .argument(
     "<string>",
-    "Path to repository v1 contracts folder (e.g. /Users/user/sourcify/repository/contracts)"
+    "Path to repository v1 contracts folder (e.g. /Users/user/sourcify/repository/contracts)",
   )
   .option("-sf, --start-from [number]", "Start from a specific timestamp (ms)")
   .option("-un, --until [number]", "Stop at a specific timestamp (ms)")
   .action(async (repositoryV1Path, options) => {
+    const INSERT_CHUNK_SIZE = 10000;
+
     if (path.parse(repositoryV1Path).base !== "contracts") {
       console.error(
-        "Passed repositoryV1 path is not correct: " + repositoryV1Path
+        "Passed repositoryV1 path is not correct: " + repositoryV1Path,
       );
       process.exit(4);
     }
@@ -47,6 +48,10 @@ program
     try {
       let contracts = [];
 
+      console.log("Reading from " + repositoryV1Path);
+
+      let dirCount = 0;
+      const dirCountToReport = 100000;
       for await (const entry of readdirp(repositoryV1Path, {
         alwaysStat: true,
         depth: 2,
@@ -67,74 +72,81 @@ program
             timestamp: entry.stats.birthtime,
             matchType,
           });
+
+          dirCount++;
+        }
+
+        if (dirCount % dirCountToReport === 0 && dirCount > 0) {
+          console.log(
+            new Date() + " - Read " + dirCount + " contract directories",
+          );
         }
       }
 
+      console.log(
+        new Date() +
+          " - Finished reading " +
+          dirCount +
+          " contract directories",
+      );
+
       contractsSorted = contracts.sort(
-        (o1, o2) => o1.timestamp.getTime() - o2.timestamp.getTime()
+        (o1, o2) => o1.timestamp.getTime() - o2.timestamp.getTime(),
       );
 
       if (options.startFrom) {
         contractsSorted = contractsSorted.filter(
-          (obj) => obj.timestamp.getTime() > options.startFrom
+          (obj) => obj.timestamp.getTime() > options.startFrom,
         );
       }
 
       if (options.until) {
         contractsSorted = contractsSorted.filter(
-          (obj) => obj.timestamp.getTime() < options.until
+          (obj) => obj.timestamp.getTime() < options.until,
         );
       }
+
+      console.log(
+        `Filtered ${contracts.length} contracts to ${contractsSorted.length}`,
+      );
     } catch (e) {
       console.error(
-        "Error while reading and formatting files from the repository"
+        "Error while reading and formatting files from the repository",
       );
       console.error(e);
       process.exit(3);
     }
 
     // 2. Insert contracts to sourcify_sync table
-    try {
-      const databasePool = new Pool({
-        host: process.env.POSTGRES_HOST,
-        port: process.env.POSTGRES_PORT,
-        database: process.env.POSTGRES_DB,
-        user: process.env.POSTGRES_USER,
-        password: process.env.POSTGRES_PASSWORD,
-        max: 5,
-      });
 
-      for (const contract of contractsSorted) {
-        await databasePool.query(
-          `INSERT INTO sourcify_sync (chain_id, address, match_type, created_at) VALUES ($1, $2, $3, $4) ON CONFLICT (chain_id, address) DO NOTHING`,
-          [
-            contract.chainId,
-            contract.address,
-            contract.matchType,
-            contract.timestamp,
-          ]
-        );
+    console.log("Inserting contracts to sourcify_sync table");
+    const databasePool = new Pool({
+      host: process.env.POSTGRES_HOST,
+      port: process.env.POSTGRES_PORT,
+      database: process.env.POSTGRES_DB,
+      user: process.env.POSTGRES_USER,
+      password: process.env.POSTGRES_PASSWORD,
+      max: 5,
+    });
+    try {
+      // Splitting contracts array into chunks
+      console.log(
+        `Splitting ${contractsSorted.length} contracts into chunks of ${INSERT_CHUNK_SIZE} contracts`,
+      );
+      const contractChunks = chunkArray(contractsSorted, INSERT_CHUNK_SIZE);
+      console.log(`Number of chunks created: ${contractChunks.length}`);
+      for (let i = 0; i < contractChunks.length; i++) {
+        const chunk = contractChunks[i];
+        const startTime = Date.now();
+        await insertContractsBatch(chunk, databasePool);
+        const elapsedTime = Date.now() - startTime;
         console.log(
-          `Contract inserted to the sourcify_sync table: \n ${[
-            contract.chainId,
-            contract.address,
-            contract.matchType,
-            contract.timestamp.getTime(),
-          ]}`
+          `Processed chunk ${i + 1}/${contractChunks.length} in ${elapsedTime} ms`,
         );
       }
-
-      console.log(
-        "successfuly imported from '" +
-          repositoryV1Path +
-          "' " +
-          contractsSorted.length +
-          " contracts."
-      );
       databasePool.end();
     } catch (e) {
-      console.error("Error while storing contract in the database");
-      console.error(e);
+      console.error("Error while storing contracts in the database", e);
       process.exit(3);
     }
   });
@@ -144,22 +156,26 @@ program
   .description("Verifies contracts in the sourcify_sync table")
   .argument(
     "<string>",
-    "Sourcify instance url: e.g. https://sourcify.dev/server"
+    "Sourcify instance url: e.g. https://sourcify.dev/server",
   )
   .argument(
     "<string>",
-    "Path to repository v1 contracts folder (e.g. /Users/user/sourcify/repository/contracts)"
+    "Path to repository v1 contracts folder (e.g. /Users/user/sourcify/repository/contracts)",
   )
   .option(
-    "-c, --chainsExceptions [items]",
-    "List of chains exceptions separated by comma (e.g. 1,5,...)"
+    "-c, --chains [items]",
+    "List of chains to sync separated by comma (e.g. 1,5,...)",
+  )
+  .option(
+    "-ce, --chainsExceptions [items]",
+    "List of chains exceptions separated by comma (e.g. 1,5,...)",
   )
   .option("-sf, --start-from [number]", "Start from a specific timestamp (ms)")
   .option("-l, --limit [number]", "Limit of concurrent verifications (ms)")
   .action(async (sourcifyInstance, repositoryV1Path, options) => {
     if (path.parse(repositoryV1Path).base !== "contracts") {
       console.error(
-        "Passed repositoryV1 path is not correct: " + repositoryV1Path
+        "Passed repositoryV1 path is not correct: " + repositoryV1Path,
       );
       process.exit(4);
     }
@@ -176,15 +192,24 @@ program
     // Get chains from database
     let chains = [];
     const query = "SELECT DISTINCT chain_id FROM sourcify_sync";
-    const chainsResult = await databasePool.query(query);
+    const chainsResult = await executeQueryWithRetry(databasePool, query);
     if (chainsResult.rowCount > 0) {
       chains = chainsResult.rows.map(({ chain_id }) => chain_id);
     }
 
+    // Specify which chain to sync
+    if (options.chains) {
+      chains = chains.filter((chain) =>
+        options.chains.split(",").includes(`${chain}`),
+      );
+    }
+
     // Remove exceptions using --chainsException and 0
-    chains = chains.filter(
-      (chain) => !options.chainsExceptions?.split(",").includes(`${chain}`)
-    );
+    if (options.chainsExceptions) {
+      chains = chains.filter(
+        (chain) => !options.chainsExceptions.split(",").includes(`${chain}`),
+      );
+    }
 
     let monitoring = {
       totalSynced: 0,
@@ -199,9 +224,9 @@ program
           chainId,
           JSON.parse(JSON.stringify(options)),
           databasePool,
-          monitoring
-        )
-      )
+          monitoring,
+        ),
+      ),
     );
 
     databasePool.end();
@@ -213,7 +238,7 @@ const startSyncChain = async (
   chainId,
   options,
   databasePool,
-  monitoring
+  monitoring,
 ) => {
   let activePromises = 0;
   let limit = options.limit ? options.limit : 1;
@@ -232,7 +257,7 @@ const startSyncChain = async (
     let nextContract = await fetchNextContract(
       databasePool,
       optionsSafe,
-      chainId
+      chainId,
     );
     if (!nextContract && activePromises === 0) break; // Exit loop if no more contracts
     if (!nextContract) {
@@ -255,7 +280,7 @@ const startSyncChain = async (
             `Successfully sync: ${[res[1]]}. Currently running at ${(
               (1000 * monitoring.totalSynced) /
               (Date.now() - monitoring.startedAt)
-            ).toFixed(2)} v/s`
+            ).toFixed(2)} v/s`,
           );
         } else {
           console.error(`Failed to sync ${[res[1]]}`);
@@ -275,7 +300,7 @@ const processContract = async (
   sourcifyInstance,
   repositoryV1Path,
   databasePool,
-  contract
+  contract,
 ) => {
   return new Promise(async (resolve) => {
     try {
@@ -288,7 +313,7 @@ const processContract = async (
         matchType,
         chainId,
         address,
-        "/"
+        "/",
       );
 
       const files = {};
@@ -304,18 +329,23 @@ const processContract = async (
         files,
       };
 
+      const headers = {
+        "Content-Type": "application/json",
+      };
+      if (process.env.BEARER_TOKEN) {
+        headers.Authorization = `Bearer ${process.env.BEARER_TOKEN}`;
+      }
       const request = await fetch(`${sourcifyInstance}/verify`, {
         method: "POST",
         body: JSON.stringify(body),
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
       });
 
       if (request.status === 200) {
         const response = await request.json();
         if (response.result[0].status !== null) {
-          await databasePool.query(
+          await executeQueryWithRetry(
+            databasePool,
             `
           UPDATE sourcify_sync
           SET 
@@ -325,7 +355,7 @@ const processContract = async (
             AND address = $2
             AND match_type = $3   
           `,
-            [contract.chain_id, contract.address, contract.match_type]
+            [contract.chain_id, contract.address, contract.match_type],
           );
         }
         resolve([
@@ -368,7 +398,7 @@ const fetchNextContract = async (databasePool, options, chainId) => {
       ORDER BY id ASC
       LIMIT 1
     `;
-    const contractResult = await databasePool.query(query, [
+    const contractResult = await executeQueryWithRetry(databasePool, query, [
       options.startFrom ? options.startFrom : 0,
       chainId,
     ]);
@@ -384,8 +414,69 @@ const fetchNextContract = async (databasePool, options, chainId) => {
   }
 };
 
+/**
+ * Chunk an array into smaller arrays
+ * e.g. [1, 2, 3, 4, 5, 6] => [[1, 2], [3, 4], [5, 6]]
+ */
+function chunkArray(array, chunkSize) {
+  const chunks = [];
+  for (let i = 0; i < array.length; i += chunkSize) {
+    chunks.push(array.slice(i, i + chunkSize));
+  }
+  return chunks;
+}
+
+const insertContractsBatch = async (contractsChunk, pool) => {
+  const query = `
+    INSERT INTO sourcify_sync (chain_id, address, match_type, created_at)
+    VALUES ${contractsChunk.map((_, index) => `($${index * 4 + 1}, $${index * 4 + 2}, $${index * 4 + 3}, $${index * 4 + 4})`).join(", ")}
+    ON CONFLICT (chain_id, address) DO NOTHING
+  `;
+
+  const params = contractsChunk.flatMap((contract) => [
+    contract.chainId,
+    contract.address,
+    contract.matchType,
+    contract.timestamp,
+  ]);
+
+  try {
+    await executeQueryWithRetry(pool, query, params);
+    console.log(
+      `Batch inserted ${contractsChunk.length} contracts successfully.`,
+    );
+  } catch (e) {
+    console.error("Failed to batch insert contracts", e);
+  }
+};
+
 function isNumber(value) {
   return !isNaN(parseFloat(value)) && isFinite(value);
 }
+
+const executeQueryWithRetry = async (
+  databasePool,
+  query,
+  params,
+  maxRetries = 5,
+  delay = 5000,
+) => {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const result = await databasePool.query(query, params);
+      return result;
+    } catch (error) {
+      if (error.code === "ECONNREFUSED" || error.code === "ETIMEDOUT") {
+        console.error(
+          `Database connection error. Retrying attempt ${attempt + 1}...`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      } else {
+        throw error;
+      }
+    }
+  }
+  throw new Error("Max retries reached. Could not connect to the database.");
+};
 
 program.parse(process.argv);

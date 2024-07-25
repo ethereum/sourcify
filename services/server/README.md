@@ -6,7 +6,7 @@ Sourcify's server for verifying contracts.
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/en/) (v16)
+- [Node.js](https://nodejs.org/en/) (v22)
 - Install the monorepo: `npm install` in the root of the repo
 - Build the monorepo's packages: `npx lerna run build`
 
@@ -98,7 +98,49 @@ A full example of a chain entry is as follows:
 }
 ```
 
+### Choosing the storage backend
+
+sourcify-server can use either a PostgreSQL database or a filesystem as its storage backend. This can be configured in the config file under the `storage` field:
+
+```js
+  // The storage services where the verified contract be saved and read from
+  storage: {
+    // read option will be the "source of truth" where the contracts read from for the API requests.
+    read: RWStorageIdentifiers.SourcifyDatabase,
+    // User request will NOT fail if saving to these fail, but only log a warning
+    writeOrWarn: [
+      WStorageIdentifiers.AllianceDatabase,
+      RWStorageIdentifiers.RepositoryV1,
+    ],
+    // The user request will fail if saving to these fail
+    writeOrErr: [
+      WStorageIdentifiers.RepositoryV2,
+      RWStorageIdentifiers.SourcifyDatabase,
+    ],
+  },
+```
+
+There are two types of storages: `RWStorageIdentifiers` and `WStorageIdentifiers`. These are the possible options:
+
+- `RWStorageIdentifiers.RepositoryV1` - the legacy repository that saves the source files and metadata as is inside a filesystem. A file system has many limitations and newer versions of the sourcify-server keeps it for backwards compatibility.
+- `WStorageIdentifiers.RepositoryV2` - a filesystem for serving source files and metadata on IPFS. Since pinning files on IPFS is done over a file system, Sourcify saves these files here. This repository does not save source file names as given in the metadata file (e.g. `contracts/MyContract.sol`) but saves each file with their keccak256 hash. This is done to avoid file name issues, as source file names can be arbitrary strings.
+
+- `WStorageIdentifiers.AllianceDatabase` - the PostgreSQL for the [Verifier Alliance](https://verifieralliance.org)
+- `RWStorageIdentifiers.SourcifyDatabase` - the PostgreSQL database that is an extension of the Verifier Alliance database.
+
+`RWStorageIdentifiers` can both be used as a source of truth (`read`) and store (`writeOr...`) the verified contracts. `WStorageIdentifiers` can only store (write) verified contracts. For instance, Sourcify can write to the [Verifier Alliance](https://verifieralliance.org) whenever it receives a verified contract, but this can't be the source of truth for the Sourcify APIs.
+
+### Database
+
+Sourcify's database schema is defined in the [services/database](../database/) and available as database migrations. To use the database, you need to run a PostgreSQL database and run the migrations to define its schema. See the [database README](../database/) for more information.
+
 ## Docker
+
+If you want to build yourself, the builds need to be run from the project root context, e.g.:
+
+```bash
+cd sourcify/ && docker build -f services/server/Dockerfile .
+```
 
 The containers are published in the [Github Container Registry](https://github.com/ethereum/sourcify/pkgs/container/sourcify%2Fserver)
 

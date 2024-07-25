@@ -1,12 +1,12 @@
-# Needs to be run from the project root context
+# Needs to be run from the project root context e.g. `cd sourcify/ && docker build -f services/monitor/Dockerfile .`
 
 # Builder image
-FROM node:16.17.0-bullseye as builder
+FROM node:22.5.1-bullseye as builder
 
 RUN mkdir -p /home/app
 WORKDIR /home/app
 
-COPY  . .
+COPY . .
 
 # Install server's dependencies and build the server
 RUN npm ci --workspace=sourcify-server --include-workspace-root
@@ -15,7 +15,7 @@ RUN npx lerna run build --scope sourcify-server
 ######################
 ## Production image ##
 ######################
-FROM node:16.17.0-bullseye-slim as production
+FROM node:22.5.1-bullseye-slim as production
 
 RUN mkdir -p /home/app/services/server
 

@@ -68,7 +68,7 @@ function combineLinks(links: Link[]) {
           link.hash,
           Buffer.from([0x12, 0x00, 0x18]),
           varintEncoding(link.blockSize),
-        ])
+        ]),
       ),
     ]);
 
@@ -86,7 +86,7 @@ function combineLinks(links: Link[]) {
         Buffer.from([0x08, 0x02, 0x18]),
         varintEncoding(chunk.size),
         lengths,
-      ])
+      ]),
     ),
   ]);
 
@@ -137,7 +137,7 @@ function ipfsHashData(data: Uint8Array) {
 
   for (let chunkIndex = 0; chunkIndex < chunkCount; chunkIndex++) {
     const chunkBytes = Buffer.from(
-      data.slice(chunkIndex * maxChunkSize, (chunkIndex + 1) * maxChunkSize)
+      data.slice(chunkIndex * maxChunkSize, (chunkIndex + 1) * maxChunkSize),
     );
 
     const lengthAsVarint = varintEncoding(chunkBytes.length);

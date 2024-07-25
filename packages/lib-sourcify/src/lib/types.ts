@@ -153,21 +153,35 @@ export interface ImmutableReferences {
     start: number;
   }>;
 }
+
+export interface LinkReferences {
+  [filePath: string]: {
+    [libraryName: string]: [
+      {
+        length: number;
+        start: number;
+      },
+    ];
+  };
+}
+
 export interface RecompilationResult {
   creationBytecode: string;
   runtimeBytecode: string;
   metadata: string;
   immutableReferences: ImmutableReferences;
+  creationLinkReferences: LinkReferences;
+  runtimeLinkReferences: LinkReferences;
 }
 
 export type Transformation = {
   type: 'insert' | 'replace';
   reason:
-    | 'constructor'
+    | 'constructorArguments'
     | 'library'
     | 'immutable'
-    | 'auxdata'
-    | 'call-protection';
+    | 'cborAuxdata'
+    | 'callProtection';
   offset: number;
   id?: string;
 };
@@ -175,30 +189,30 @@ export type Transformation = {
 // Call protection is always at the start of the runtime bytecode
 export const CallProtectionTransformation = (): Transformation => ({
   type: 'replace',
-  reason: 'call-protection',
-  offset: 0,
+  reason: 'callProtection',
+  offset: 1, // 1 byte is always the PUSH20 opcode 0x73
 });
 
 // TransformationValues only has one ConstructorTransformatino so no id field is needed
 export const ConstructorTransformation = (offset: number): Transformation => ({
   type: 'insert',
-  reason: 'constructor',
+  reason: 'constructorArguments',
   offset,
 });
 
 export const AuxdataTransformation = (
   offset: number,
-  id: string
+  id: string,
 ): Transformation => ({
   type: 'replace',
-  reason: 'auxdata',
+  reason: 'cborAuxdata',
   offset,
   id,
 });
 
 export const LibraryTransformation = (
   offset: number,
-  id: string
+  id: string,
 ): Transformation => ({
   type: 'replace',
   reason: 'library',
@@ -208,7 +222,7 @@ export const LibraryTransformation = (
 
 export const ImmutablesTransformation = (
   offset: number,
-  id: string
+  id: string,
 ): Transformation => ({
   type: 'replace',
   reason: 'immutable',
@@ -248,7 +262,7 @@ export interface Match {
   creationTransformationValues?: TransformationValues;
   onchainRuntimeBytecode?: string;
   onchainCreationBytecode?: string;
-  blockNumber?: number | null;
+  blockNumber?: number;
   txIndex?: number;
   deployer?: string;
 }
@@ -295,6 +309,10 @@ export interface FetchContractCreationTxMethods {
     url: string;
   };
   avalancheApi?: boolean;
+  nexusApi?: {
+    url: string;
+    runtime: string;
+  };
 }
 
 export type AlchemyInfuraRPC = {
@@ -472,11 +490,29 @@ interface CompilerOutputEvmBytecode {
 interface CompilerOutputEvmDeployedBytecode extends CompilerOutputEvmBytecode {
   immutableReferences?: ImmutableReferences;
 }
-interface CompilerOutputSources {
+export interface CompilerOutputSources {
   [globalName: string]: {
     id: number;
     ast: any;
     legacyAST: any;
+  };
+}
+
+export interface StorageLayout {
+  storage: {
+    astId: number;
+    contract: string;
+    label: string;
+    offset: number;
+    slot: string;
+    type: string;
+  };
+  types: {
+    [index: string]: {
+      encoding: string;
+      label: string;
+      numberOfBytes: string;
+    };
   };
 }
 interface CompilerOutputContracts {
@@ -490,7 +526,7 @@ interface CompilerOutputContracts {
       irAst?: any;
       irOptimized?: string;
       irOptimizedAst?: any;
-      storageLayout?: any;
+      storageLayout?: StorageLayout;
       evm: {
         assembly?: string;
         legacyAssembly?: any;

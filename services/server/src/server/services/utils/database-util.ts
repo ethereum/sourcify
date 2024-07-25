@@ -1,79 +1,99 @@
 import {
   CheckedContract,
-  CompiledContractCborAuxdata,
   ImmutableReferences,
+  Libraries,
   Match,
+  Metadata,
+  Status,
+  StorageLayout,
   Transformation,
   TransformationValues,
+  CompiledContractCborAuxdata,
 } from "@ethereum-sourcify/lib-sourcify";
-import { Pool } from "pg";
-
-type Hash = Buffer;
+import { Pool, QueryResult } from "pg";
+import { Abi } from "abitype";
+import {
+  Bytes,
+  BytesSha,
+  BytesKeccak,
+  BytesTypes,
+  Nullable,
+} from "../../types";
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Tables {
   export interface Code {
-    bytecode_hash: Hash;
-    bytecode: Buffer;
+    bytecode_hash: BytesSha;
+    bytecode_hash_keccak: BytesKeccak;
+    bytecode: Bytes;
   }
   export interface Contract {
-    creation_bytecode_hash?: Hash;
-    runtime_bytecode_hash: Hash;
+    id: string;
+    creation_bytecode_hash?: BytesSha;
+    runtime_bytecode_hash: BytesSha;
   }
   export interface ContractDeployment {
+    id: string;
     chain_id: string;
-    address: Buffer;
-    transaction_hash: Buffer;
+    address: Bytes;
+    transaction_hash?: Bytes;
     contract_id: string;
-    block_number?: number | null;
+    block_number?: number;
     txindex?: number;
-    deployer?: Buffer;
+    deployer?: Bytes;
   }
+
   export interface CompiledContract {
+    id: string;
     compiler: string;
     version: string;
     language: string;
     name: string;
     fully_qualified_name: string;
     compilation_artifacts: {
-      abi: {};
-      userdoc: any;
-      devdoc: any;
-      storageLayout: any;
-      sources: any;
+      abi: Nullable<Abi>;
+      userdoc: Nullable<any>;
+      devdoc: Nullable<any>;
+      storageLayout: Nullable<StorageLayout>;
+      sources: Nullable<CompilationArtifactsSources>;
     };
-    sources: Object;
+    sources: Record<string, string>;
     compiler_settings: Object;
-    creation_code_hash?: Hash;
-    runtime_code_hash: Hash;
+    creation_code_hash?: BytesSha;
+    runtime_code_hash: BytesSha;
     creation_code_artifacts: {
-      sourceMap: string;
-      linkReferences: {};
-      cborAuxdata: CompiledContractCborAuxdata | undefined;
+      sourceMap: Nullable<string>;
+      linkReferences: Nullable<{}>;
+      cborAuxdata: Nullable<CompiledContractCborAuxdata>;
     };
     runtime_code_artifacts: {
-      sourceMap: string;
-      linkReferences: {};
-      immutableReferences: ImmutableReferences;
-      cborAuxdata: CompiledContractCborAuxdata | undefined;
+      sourceMap: Nullable<string>;
+      linkReferences: Nullable<{}>;
+      immutableReferences: Nullable<ImmutableReferences>;
+      cborAuxdata: Nullable<CompiledContractCborAuxdata>;
     };
   }
+
   export interface VerifiedContract {
-    id?: number;
+    id: number;
     compilation_id: string;
     deployment_id: string;
-    creation_transformations: Transformation[] | undefined;
-    creation_transformation_values: TransformationValues | undefined;
-    runtime_transformations: Transformation[] | undefined;
-    runtime_transformation_values: TransformationValues | undefined;
+    creation_transformations: Nullable<Transformation[]>;
+    creation_values: Nullable<TransformationValues>;
+    runtime_transformations: Nullable<Transformation[]>;
+    runtime_values: Nullable<TransformationValues>;
     runtime_match: boolean;
     creation_match: boolean;
+    runtime_metadata_match: Nullable<boolean>;
+    creation_metadata_match: Nullable<boolean>;
   }
 
   export interface SourcifyMatch {
     verified_contract_id: number;
-    runtime_match: string | null;
-    creation_match: string | null;
+    runtime_match: Status | null;
+    creation_match: Status | null;
+    metadata: Metadata;
+    created_at: Date;
   }
 
   export interface SourcifySync {
@@ -83,69 +103,79 @@ export namespace Tables {
   }
 }
 
-export interface DatabaseColumns {
-  bytecodeHashes: {
-    recompiledCreation?: Hash;
-    recompiledRuntime: Hash;
-    onchainCreation?: Hash;
-    onchainRuntime: Hash;
+export interface CompilationArtifactsSources {
+  [globalName: string]: {
+    id: number;
   };
-  compiledContract: Partial<Tables.CompiledContract>;
-  verifiedContract: Partial<Tables.VerifiedContract>;
 }
 
-export async function getVerifiedContractByBytecodeHashes(
-  pool: Pool,
-  runtime_bytecode_hash: Hash,
-  creation_bytecode_hash?: Hash
-) {
-  return await pool.query(
-    `
-      SELECT
-        verified_contracts.*
-      FROM verified_contracts
-      JOIN contract_deployments ON contract_deployments.id = verified_contracts.deployment_id
-      JOIN contracts ON contracts.id = contract_deployments.contract_id
-      WHERE 1=1
-        AND contracts.runtime_code_hash = $1
-        AND contracts.creation_code_hash = $2
-    `,
-    [runtime_bytecode_hash, creation_bytecode_hash]
-  );
+// This object contains all Tables fields except foreign keys generated during INSERTs
+export interface DatabaseColumns {
+  recompiledCreationCode?: Omit<Tables.Code, "bytecode_hash">;
+  recompiledRuntimeCode: Omit<Tables.Code, "bytecode_hash">;
+  onchainCreationCode?: Omit<Tables.Code, "bytecode_hash">;
+  onchainRuntimeCode: Omit<Tables.Code, "bytecode_hash">;
+  contractDeployment: Omit<Tables.ContractDeployment, "id" | "contract_id">;
+  compiledContract: Omit<
+    Tables.CompiledContract,
+    "id" | "creation_code_hash" | "runtime_code_hash"
+  >;
+  verifiedContract: Omit<
+    Tables.VerifiedContract,
+    "id" | "compilation_id" | "deployment_id"
+  >;
 }
+
+export type GetVerifiedContractByChainAndAddressResult =
+  Tables.VerifiedContract & {
+    transaction_hash: Bytes | null;
+    contract_id: string;
+  };
 
 export async function getVerifiedContractByChainAndAddress(
   pool: Pool,
   chain: number,
-  address: Buffer
-) {
+  address: Bytes,
+): Promise<QueryResult<GetVerifiedContractByChainAndAddressResult>> {
   return await pool.query(
     `
       SELECT
-        verified_contracts.*
+        verified_contracts.*,
+        contract_deployments.transaction_hash,
+        contract_deployments.contract_id
       FROM verified_contracts
       JOIN contract_deployments ON contract_deployments.id = verified_contracts.deployment_id
       WHERE 1=1
         AND contract_deployments.chain_id = $1
         AND contract_deployments.address = $2
     `,
-    [chain, address]
+    [chain, address],
   );
 }
+
+export type GetSourcifyMatchByChainAddressResult = Tables.SourcifyMatch &
+  Pick<Tables.VerifiedContract, "creation_values" | "runtime_values"> &
+  Pick<Tables.CompiledContract, "runtime_code_artifacts" | "sources"> &
+  Pick<Tables.ContractDeployment, "transaction_hash">;
 
 export async function getSourcifyMatchByChainAddress(
   pool: Pool,
   chain: number,
-  address: Buffer,
-  onlyPerfectMatches: boolean = false
-) {
+  address: Bytes,
+  onlyPerfectMatches: boolean = false,
+): Promise<QueryResult<GetSourcifyMatchByChainAddressResult>> {
   return await pool.query(
     `
       SELECT
         sourcify_matches.created_at,
-        sourcify_matches.creation_match as creation_match_status,
-        sourcify_matches.runtime_match as runtime_match_status,
-        compiled_contracts.sources
+        sourcify_matches.creation_match,
+        sourcify_matches.runtime_match,
+        sourcify_matches.metadata,
+        compiled_contracts.sources,
+        verified_contracts.creation_values,
+        verified_contracts.runtime_values,
+        compiled_contracts.runtime_code_artifacts,
+        contract_deployments.transaction_hash
       FROM sourcify_matches
       JOIN verified_contracts ON verified_contracts.id = sourcify_matches.verified_contract_id
       JOIN compiled_contracts ON compiled_contracts.id = verified_contracts.compilation_id
@@ -158,36 +188,43 @@ ${
     ? "WHERE sourcify_matches.creation_match = 'perfect' OR sourcify_matches.runtime_match = 'perfect'"
     : ""
 }
-      ORDER BY
-        CASE 
-          WHEN sourcify_matches.creation_match = 'perfect' AND sourcify_matches.runtime_match = 'perfect' THEN 1
-          WHEN sourcify_matches.creation_match = 'perfect' AND sourcify_matches.runtime_match = 'partial' THEN 2
-          WHEN sourcify_matches.creation_match = 'partial' AND sourcify_matches.runtime_match = 'perfect' THEN 3
-          WHEN sourcify_matches.creation_match = 'partial' AND sourcify_matches.runtime_match = 'partial' THEN 4
-          ELSE 4
-        END;
     `,
-    [chain, address]
+    [chain, address],
   );
 }
 
 export async function insertCode(
   pool: Pool,
-  { bytecode_hash, bytecode }: Tables.Code
-) {
-  await pool.query(
-    "INSERT INTO code (code_hash, code) VALUES ($1, $2) ON CONFLICT (code_hash) DO NOTHING",
-    [bytecode_hash, bytecode]
+  { bytecode_hash_keccak, bytecode }: Omit<Tables.Code, "bytecode_hash">,
+): Promise<QueryResult<Pick<Tables.Code, "bytecode_hash">>> {
+  let codeInsertResult = await pool.query(
+    "INSERT INTO code (code_hash, code, code_hash_keccak) VALUES (digest($1::bytea, 'sha256'), $1::bytea, $2) ON CONFLICT (code_hash) DO NOTHING RETURNING code_hash as bytecode_hash",
+    [bytecode, bytecode_hash_keccak],
   );
+
+  // If there is a conflict (ie. code already exists), the response will be empty. We still need to return the object to fill other tables
+  if (codeInsertResult.rows.length === 0) {
+    codeInsertResult = await pool.query(
+      `SELECT
+        code_hash as bytecode_hash
+      FROM code
+      WHERE code_hash = digest($1::bytea, 'sha256')`,
+      [bytecode],
+    );
+  }
+  return codeInsertResult;
 }
 
 export async function insertContract(
   pool: Pool,
-  { creation_bytecode_hash, runtime_bytecode_hash }: Tables.Contract
-) {
+  {
+    creation_bytecode_hash,
+    runtime_bytecode_hash,
+  }: Omit<Tables.Contract, "id">,
+): Promise<QueryResult<Pick<Tables.Contract, "id">>> {
   let contractInsertResult = await pool.query(
     "INSERT INTO contracts (creation_code_hash, runtime_code_hash) VALUES ($1, $2) ON CONFLICT (creation_code_hash, runtime_code_hash) DO NOTHING RETURNING *",
-    [creation_bytecode_hash, runtime_bytecode_hash]
+    [creation_bytecode_hash, runtime_bytecode_hash],
   );
 
   if (contractInsertResult.rows.length === 0) {
@@ -198,7 +235,7 @@ export async function insertContract(
       FROM contracts
       WHERE creation_code_hash = $1 AND runtime_code_hash = $2
       `,
-      [creation_bytecode_hash, runtime_bytecode_hash]
+      [creation_bytecode_hash, runtime_bytecode_hash],
     );
   }
   return contractInsertResult;
@@ -214,8 +251,8 @@ export async function insertContractDeployment(
     block_number,
     txindex,
     deployer,
-  }: Tables.ContractDeployment
-) {
+  }: Omit<Tables.ContractDeployment, "id">,
+): Promise<QueryResult<Pick<Tables.ContractDeployment, "id">>> {
   let contractDeploymentInsertResult = await pool.query(
     `INSERT INTO 
       contract_deployments (
@@ -235,7 +272,7 @@ export async function insertContractDeployment(
       block_number,
       txindex,
       deployer,
-    ]
+    ],
   );
 
   if (contractDeploymentInsertResult.rows.length === 0) {
@@ -249,7 +286,7 @@ export async function insertContractDeployment(
         AND address = $2
         AND transaction_hash = $3
       `,
-      [chain_id, address, transaction_hash]
+      [chain_id, address, transaction_hash],
     );
   }
   return contractDeploymentInsertResult;
@@ -270,8 +307,8 @@ export async function insertCompiledContract(
     runtime_code_hash,
     creation_code_artifacts,
     runtime_code_artifacts,
-  }: Tables.CompiledContract
-) {
+  }: Omit<Tables.CompiledContract, "id">,
+): Promise<QueryResult<Pick<Tables.CompiledContract, "id">>> {
   let compiledContractsInsertResult = await pool.query(
     `
       INSERT INTO compiled_contracts (
@@ -302,7 +339,7 @@ export async function insertCompiledContract(
       runtime_code_hash,
       creation_code_artifacts,
       runtime_code_artifacts,
-    ]
+    ],
   );
 
   if (compiledContractsInsertResult.rows.length === 0) {
@@ -314,10 +351,10 @@ export async function insertCompiledContract(
         WHERE 1=1
           AND compiler = $1
           AND language = $2
-          AND creation_code_hash = $3
+          AND (creation_code_hash = $3 OR (creation_code_hash IS NULL AND $3 IS NULL))
           AND runtime_code_hash = $4
         `,
-      [compiler, language, creation_code_hash, runtime_code_hash]
+      [compiler, language, creation_code_hash, runtime_code_hash],
     );
   }
   return compiledContractsInsertResult;
@@ -329,13 +366,15 @@ export async function insertVerifiedContract(
     compilation_id,
     deployment_id,
     creation_transformations,
-    creation_transformation_values,
+    creation_values,
     runtime_transformations,
-    runtime_transformation_values,
+    runtime_values,
     runtime_match,
     creation_match,
-  }: Tables.VerifiedContract
-) {
+    runtime_metadata_match,
+    creation_metadata_match,
+  }: Omit<Tables.VerifiedContract, "id">,
+): Promise<QueryResult<Pick<Tables.VerifiedContract, "id">>> {
   let verifiedContractsInsertResult = await pool.query(
     `INSERT INTO verified_contracts (
         compilation_id,
@@ -345,18 +384,27 @@ export async function insertVerifiedContract(
         runtime_transformations,
         runtime_values,
         runtime_match,
-        creation_match
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (compilation_id, deployment_id) DO NOTHING RETURNING *`,
+        creation_match,
+        runtime_metadata_match,
+        creation_metadata_match
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) ON CONFLICT (compilation_id, deployment_id) DO NOTHING RETURNING *`,
     [
       compilation_id,
       deployment_id,
-      JSON.stringify(creation_transformations),
-      creation_transformation_values,
-      JSON.stringify(runtime_transformations),
-      runtime_transformation_values,
+      // transformations needs to be converted to string as a workaround:
+      // arrays are not treated as jsonb types by pg module
+      // then they are correctly stored as jsonb by postgresql
+      creation_transformations
+        ? JSON.stringify(creation_transformations)
+        : null,
+      creation_values,
+      runtime_transformations ? JSON.stringify(runtime_transformations) : null,
+      runtime_values,
       runtime_match,
       creation_match,
-    ]
+      runtime_metadata_match,
+      creation_metadata_match,
+    ],
   );
   if (verifiedContractsInsertResult.rows.length === 0) {
     verifiedContractsInsertResult = await pool.query(
@@ -368,107 +416,29 @@ export async function insertVerifiedContract(
           AND compilation_id = $1
           AND deployment_id = $2
         `,
-      [compilation_id, deployment_id]
+      [compilation_id, deployment_id],
     );
   }
   return verifiedContractsInsertResult;
 }
 
-export async function updateVerifiedContract(
-  pool: Pool,
-  {
-    compilation_id,
-    deployment_id,
-    creation_transformations,
-    creation_transformation_values,
-    runtime_transformations,
-    runtime_transformation_values,
-    runtime_match,
-    creation_match,
-  }: Tables.VerifiedContract
-) {
-  await pool.query(
-    `
-      UPDATE verified_contracts 
-      SET 
-        creation_transformations = $3,
-        creation_values = $4,
-        runtime_transformations = $5,
-        runtime_values = $6,
-        runtime_match = $7,
-        creation_match = $8
-      WHERE compilation_id = $1 AND deployment_id = $2
-    `,
-    [
-      compilation_id,
-      deployment_id,
-      creation_transformations,
-      creation_transformation_values,
-      runtime_transformations,
-      runtime_transformation_values,
-      runtime_match,
-      creation_match,
-    ]
-  );
-}
-
 export async function insertSourcifyMatch(
   pool: Pool,
-  { verified_contract_id, runtime_match, creation_match }: Tables.SourcifyMatch
+  {
+    verified_contract_id,
+    runtime_match,
+    creation_match,
+    metadata,
+  }: Omit<Tables.SourcifyMatch, "created_at">,
 ) {
   await pool.query(
     `INSERT INTO sourcify_matches (
         verified_contract_id,
         creation_match,
-        runtime_match
-      ) VALUES ($1, $2, $3)`,
-    [verified_contract_id, creation_match, runtime_match]
-  );
-}
-
-export async function insertSourcifySync(
-  pool: Pool,
-  { chain_id, address, match_type }: Tables.SourcifySync
-) {
-  // I'm doing this because before passing the match_type I'm calling getMatchStatus(match)
-  // but then I need to convert the status to full_match | partial_match
-  let matchType;
-  switch (match_type) {
-    case "perfect":
-      matchType = "full_match";
-      break;
-    case "partial":
-      matchType = "partial_match";
-      break;
-  }
-  await pool.query(
-    `INSERT INTO sourcify_sync 
-      (chain_id, address, match_type, synced)
-      VALUES ($1, $2, $3, true)`,
-    [chain_id, address, match_type]
-  );
-}
-
-export async function updateSourcifySync(
-  pool: Pool,
-  { chain_id, address, match_type }: Tables.SourcifySync
-) {
-  // I'm doing this because before passing the match_type I'm calling getMatchStatus(match)
-  // but then I need to convert the status to full_match | partial_match
-  let matchType;
-  switch (match_type) {
-    case "perfect":
-      matchType = "full_match";
-      break;
-    case "partial":
-      matchType = "partial_match";
-      break;
-  }
-  await pool.query(
-    `UPDATE sourcify_sync SET
-      match_type=$3
-    WHERE chain_id=$1 AND address=$2;`,
-    [chain_id, address, match_type]
+        runtime_match,
+        metadata
+      ) VALUES ($1, $2, $3, $4)`,
+    [verified_contract_id, creation_match, runtime_match, metadata],
   );
 }
 
@@ -477,20 +447,40 @@ export async function updateSourcifySync(
 // The old verified_contracts are not deleted from the verified_contracts table.
 export async function updateSourcifyMatch(
   pool: Pool,
-  { verified_contract_id, runtime_match, creation_match }: Tables.SourcifyMatch,
-  oldVerifiedContractId: number
+  {
+    verified_contract_id,
+    runtime_match,
+    creation_match,
+    metadata,
+  }: Omit<Tables.SourcifyMatch, "created_at">,
+  oldVerifiedContractId: number,
 ) {
   await pool.query(
     `UPDATE sourcify_matches SET 
       verified_contract_id = $1,
       creation_match=$2,
-      runtime_match=$3
-    WHERE  verified_contract_id = $4`,
-    [verified_contract_id, creation_match, runtime_match, oldVerifiedContractId]
+      runtime_match=$3,
+      metadata=$4
+    WHERE  verified_contract_id = $5`,
+    [
+      verified_contract_id,
+      creation_match,
+      runtime_match,
+      metadata,
+      oldVerifiedContractId,
+    ],
   );
 }
 
-export function bytesFromString(str: string | undefined): Buffer | undefined {
+// Function overloads
+export function bytesFromString<T extends BytesTypes>(str: string): T;
+export function bytesFromString<T extends BytesTypes>(
+  str: string | undefined,
+): T | undefined;
+
+export function bytesFromString<T extends BytesTypes>(
+  str: string | undefined,
+): T | undefined {
   if (str === undefined) {
     return undefined;
   }
@@ -500,7 +490,7 @@ export function bytesFromString(str: string | undefined): Buffer | undefined {
   } else {
     stringWithout0x = str;
   }
-  return Buffer.from(stringWithout0x, "hex");
+  return Buffer.from(stringWithout0x, "hex") as T;
 }
 
 // Use the transformations array to normalize the library transformations in both runtime and creation recompiled bytecodes
@@ -514,7 +504,7 @@ export function bytesFromString(str: string | undefined): Buffer | undefined {
 
 export function normalizeRecompiledBytecodes(
   recompiledContract: CheckedContract,
-  match: Match
+  match: Match,
 ) {
   recompiledContract.normalizedRuntimeBytecode =
     recompiledContract.runtimeBytecode;
@@ -533,10 +523,10 @@ export function normalizeRecompiledBytecodes(
       // we multiply by 2 because transformation.offset is stored as the length in bytes
       const before = normalizedRuntimeBytecode.substring(
         0,
-        transformation.offset * 2
+        transformation.offset * 2,
       );
       const after = normalizedRuntimeBytecode.substring(
-        transformation.offset * 2 + PLACEHOLDER_LENGTH
+        transformation.offset * 2 + PLACEHOLDER_LENGTH,
       );
       recompiledContract.normalizedRuntimeBytecode = `0x${
         before + placeholder + after
@@ -559,10 +549,10 @@ export function normalizeRecompiledBytecodes(
         // we multiply by 2 because transformation.offset is stored as the length in bytes
         const before = normalizedCreationBytecode.substring(
           0,
-          transformation.offset * 2
+          transformation.offset * 2,
         );
         const after = normalizedCreationBytecode.substring(
-          transformation.offset * 2 + PLACEHOLDER_LENGTH
+          transformation.offset * 2 + PLACEHOLDER_LENGTH,
         );
         recompiledContract.normalizedCreationBytecode = `0x${
           before + placeholder + after
@@ -572,21 +562,65 @@ export function normalizeRecompiledBytecodes(
   }
 }
 
-export async function countSourcifyMatchAddresses(pool: Pool, chain: number) {
+export function prepareCompilerSettings(recompiledContract: CheckedContract) {
+  // The metadata.settings contains recompiledContract that is not a field of compiler input
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { compilationTarget, ...restSettings } =
+    recompiledContract.metadata.settings;
+
+  const metadataLibraries =
+    recompiledContract.metadata.settings?.libraries || {};
+  restSettings.libraries = Object.keys(metadataLibraries || {}).reduce(
+    (libraries, libraryKey) => {
+      // Before Solidity v0.7.5: { "ERC20": "0x..."}
+      if (!libraryKey.includes(":")) {
+        if (!libraries[""]) {
+          libraries[""] = {};
+        }
+        // try using the global method, available for pre 0.7.5 versions
+        libraries[""][libraryKey] = metadataLibraries[libraryKey];
+        return libraries;
+      }
+
+      // After Solidity v0.7.5: { "ERC20.sol:ERC20": "0x..."}
+      const [contractPath, contractName] = libraryKey.split(":");
+      if (!libraries[contractPath]) {
+        libraries[contractPath] = {};
+      }
+      libraries[contractPath][contractName] = metadataLibraries[libraryKey];
+      return libraries;
+    },
+    {} as Libraries,
+  ) as any;
+
+  return restSettings;
+}
+
+export async function countSourcifyMatchAddresses(
+  pool: Pool,
+  chain: number,
+): Promise<
+  QueryResult<
+    Pick<Tables.ContractDeployment, "chain_id"> & {
+      full_total: number;
+      partial_total: number;
+    }
+  >
+> {
   return await pool.query(
     `
-    SELECT
-        contract_deployments.chain_id,
-        SUM(CASE WHEN sourcify_matches.creation_match = 'perfect' OR sourcify_matches.runtime_match = 'perfect' THEN 1 ELSE 0 END) AS full_total,
-        SUM(CASE WHEN sourcify_matches.creation_match != 'perfect' AND sourcify_matches.runtime_match != 'perfect' THEN 1 ELSE 0 END) AS partial_total
-    FROM sourcify_matches
-    JOIN verified_contracts ON verified_contracts.id = sourcify_matches.verified_contract_id
-    JOIN contract_deployments ON 
-        contract_deployments.id = verified_contracts.deployment_id
-        AND contract_deployments.chain_id = $1
-    GROUP BY contract_deployments.chain_id;
-    `,
-    [chain]
+  SELECT
+  contract_deployments.chain_id,
+  CAST(SUM(CASE 
+    WHEN COALESCE(sourcify_matches.creation_match, '') = 'perfect' OR sourcify_matches.runtime_match = 'perfect' THEN 1 ELSE 0 END) AS INTEGER) AS full_total,
+  CAST(SUM(CASE 
+    WHEN COALESCE(sourcify_matches.creation_match, '') != 'perfect' AND sourcify_matches.runtime_match != 'perfect' THEN 1 ELSE 0 END) AS INTEGER) AS partial_total
+  FROM sourcify_matches
+  JOIN verified_contracts ON verified_contracts.id = sourcify_matches.verified_contract_id
+  JOIN contract_deployments ON contract_deployments.id = verified_contracts.deployment_id
+  WHERE contract_deployments.chain_id = $1
+  GROUP BY contract_deployments.chain_id;`,
+    [chain],
   );
 }
 
@@ -595,18 +629,19 @@ export async function getSourcifyMatchAddressesByChainAndMatch(
   chain: number,
   match: "full_match" | "partial_match" | "any_match",
   page: number,
-  paginationSize: number
-) {
+  paginationSize: number,
+  descending: boolean = false,
+): Promise<QueryResult<{ address: string }>> {
   let queryWhere = "";
   switch (match) {
     case "full_match": {
       queryWhere =
-        "WHERE sourcify_matches.creation_match = 'perfect' OR sourcify_matches.runtime_match = 'perfect'";
+        "WHERE COALESCE(sourcify_matches.creation_match, '') = 'perfect' OR sourcify_matches.runtime_match = 'perfect'";
       break;
     }
     case "partial_match": {
       queryWhere =
-        "WHERE sourcify_matches.creation_match != 'perfect' AND sourcify_matches.runtime_match != 'perfect'";
+        "WHERE COALESCE(sourcify_matches.creation_match, '') != 'perfect' AND sourcify_matches.runtime_match != 'perfect'";
       break;
     }
     case "any_match": {
@@ -617,6 +652,11 @@ export async function getSourcifyMatchAddressesByChainAndMatch(
       throw new Error("Match type not supported");
     }
   }
+
+  const orderBy = descending
+    ? "ORDER BY verified_contracts.id DESC"
+    : "ORDER BY verified_contracts.id ASC";
+
   return await pool.query(
     `
     SELECT
@@ -627,8 +667,33 @@ export async function getSourcifyMatchAddressesByChainAndMatch(
         contract_deployments.id = verified_contracts.deployment_id
         AND contract_deployments.chain_id = $1
     ${queryWhere}
+    ${orderBy}
     OFFSET $2 LIMIT $3
     `,
-    [chain, page * paginationSize, paginationSize]
+    [chain, page * paginationSize, paginationSize],
+  );
+}
+
+export async function updateContractDeployment(
+  pool: Pool,
+  {
+    id,
+    transaction_hash,
+    block_number,
+    txindex,
+    deployer,
+    contract_id,
+  }: Omit<Tables.ContractDeployment, "chain_id" | "address">,
+) {
+  return await pool.query(
+    `UPDATE contract_deployments 
+     SET 
+       transaction_hash = $2,
+       block_number = $3,
+       transaction_index = $4,
+       deployer = $5,
+       contract_id = $6
+     WHERE id = $1`,
+    [id, transaction_hash, block_number, txindex, deployer, contract_id],
   );
 }

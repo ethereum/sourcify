@@ -21,40 +21,40 @@
     "build": "run-p build:*",
     "build:main": "tsc -p tsconfig.json",
     "build:module": "tsc -p tsconfig.module.json",
-    "test": "run-s build test:*",
-    "lint": "eslint src --ext .ts",
-    "test:prettier": "prettier \"src/**/*.ts\" --list-different",
-    "test:unit": "c8 --reporter=none ava",
+    "fix": "run-s fix:*",
+    "fix:prettier": "prettier \"./**/*.ts\" --write",
+    "fix:lint": "eslint . --ext .ts --fix",
+    "check": "run-s check:*",
+    "check:eslint": "eslint . --ext .ts",
+    "check:prettier": "prettier \"./**/*.ts\" --check",
+    "test": "c8 --reporter=none mocha --exit test/**",
     "watch:build": "tsc -p tsconfig.json -w",
-    "watch:test": "c8 ava --watch",
     "cov": "run-s build test:unit cov:html cov:lcov && open-cli coverage/index.html",
+    "cov:html": "c8 report --reporter=html",
     "cov:lcov": "c8 report --reporter=lcov",
-    "cov:send-disabled": "run-s cov:lcov && codecov",
-    "cov:check": "c8 report && c8 check-coverage --lines 100 --functions 100 --branches 100",
-    "reset-hard": "git clean -dfx && git reset --hard && yarn",
-    "prepare-release": "run-s reset-hard test cov:check"
+    "cov:check": "c8 report && c8 check-coverage --lines 100 --functions 100 --branches 100"
   },
   "engines": {
-    "node": ">=10"
+    "node": "22.5.1"
   },
   "dependencies": {
-    "@ethersproject/bytes": "^5.7.0",
-    "bs58": "^5.0.0",
-    "cbor-x": "^1.5.7"
+    "@ethersproject/bytes": "5.7.0",
+    "bs58": "5.0.0",
+    "base-x": "4.0.0",
+    "cbor-x": "1.5.9"
   },
   "devDependencies": {
-    "@ava/typescript": "^1.1.1",
-    "@types/node": "^20.10.0",
-    "ava": "^3.12.1",
-    "c8": "^8.0.0",
-    "codecov": "^3.5.0",
-    "cz-conventional-changelog": "^3.3.0",
-    "eslint": "^7.8.0",
-    "npm-run-all": "^4.1.5",
-    "prettier": "^2.1.1"
+    "@types/chai": "4.3.16",
+    "@types/mocha": "10.0.7",
+    "@types/node": "20.14.12",
+    "c8": "10.1.2",
+    "chai": "4.4.1",
+    "cz-conventional-changelog": "3.3.0",
+    "mocha": "10.7.0",
+    "npm-run-all2": "5.0.2"
   },
   "optionalDependencies": {
-    "fsevents": "*"
+    "fsevents": "2.3.3"
   },
   "files": [
     "build/main",
@@ -64,24 +64,19 @@
     "LICENSE",
     "README.md"
   ],
-  "ava": {
-    "failFast": true,
-    "timeout": "60s",
-    "typescript": {
-      "rewritePaths": {
-        "src/": "build/main/"
-      }
-    },
-    "files": [
-      "!build/module/**"
-    ]
-  },
   "prettier": {
     "singleQuote": true
   },
   "c8": {
     "exclude": [
-      "**/*.spec.js"
+      "**/*.spec.js",
+      "**/*.spec.ts"
+    ],
+    "reporter": [
+      "html",
+      "lcov",
+      "text",
+      "text-summary"
     ]
   }
 }

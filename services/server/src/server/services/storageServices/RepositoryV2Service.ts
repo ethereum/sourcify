@@ -14,72 +14,53 @@ import {
   CheckedContract,
 } from "@ethereum-sourcify/lib-sourcify";
 import {
-  FileObject,
-  FilesInfo,
   MatchLevel,
+  MatchLevelWithoutAny,
   MatchQuality,
   PathConfig,
   RepositoryTag,
 } from "../../types";
-import {
-  create as createIpfsClient,
-  IPFSHTTPClient,
-  globSource,
-} from "ipfs-http-client";
 import logger from "../../../common/logger";
 import { getAddress, id as keccak256 } from "ethers";
 import { getMatchStatus } from "../../common";
-import { IStorageService } from "../StorageService";
+import { WStorageService } from "../StorageService";
+import { WStorageIdentifiers } from "./identifiers";
+import { exists, readFile } from "../utils/util";
 
 export interface RepositoryV2ServiceOptions {
   ipfsApi: string;
   repositoryPath?: string;
 }
 
-export class RepositoryV2Service implements IStorageService {
+export class RepositoryV2Service implements WStorageService {
+  IDENTIFIER = WStorageIdentifiers.RepositoryV2;
   repositoryPath: string;
-  private ipfsClient?: IPFSHTTPClient;
 
   constructor(options: RepositoryV2ServiceOptions) {
     this.repositoryPath = options.repositoryPath!;
-    if (options.ipfsApi) {
-      this.ipfsClient = createIpfsClient({ url: options.ipfsApi });
-    } else {
-      logger.warn(
-        "RepositoryV2: IPFS_API not set, IPFS MFS will not be updated"
-      );
-    }
   }
 
   async init() {
+    logger.info(`${this.IDENTIFIER} initialized`, {
+      repositoryPath: this.repositoryPath,
+    });
     return true;
   }
 
-  getMetadata = async (
+  async getFile(
     chainId: string,
     address: string,
-    match: MatchLevel
-  ): Promise<string | false> => {
-    try {
-      return fs.readFileSync(
-        this.generateAbsoluteFilePath({
-          matchQuality: match === "full_match" ? "full" : "partial",
-          chainId: chainId,
-          address: address,
-          fileName: "metadata.json",
-        }),
-        { encoding: "utf-8" }
-      );
-    } catch (e) {
-      return false;
-    }
-  };
+    match: MatchLevelWithoutAny,
+    path: string,
+  ): Promise<string | false> {
+    return await readFile(this.repositoryPath, match, chainId, address, path);
+  }
 
   // /home/user/sourcify/data/repository/contracts/full_match/5/0x00878Ac0D6B8d981ae72BA7cDC967eA0Fae69df4/sources/filename
   public generateAbsoluteFilePath(pathConfig: PathConfig) {
     return Path.join(
       this.repositoryPath,
-      this.generateRelativeFilePath(pathConfig)
+      this.generateRelativeFilePath(pathConfig),
     );
   }
 
@@ -88,7 +69,7 @@ export class RepositoryV2Service implements IStorageService {
     return Path.join(
       this.generateRelativeContractDir(pathConfig),
       pathConfig.source ? "sources" : "",
-      pathConfig.fileName || ""
+      pathConfig.fileName || "",
     );
   }
 
@@ -98,7 +79,7 @@ export class RepositoryV2Service implements IStorageService {
       "contracts",
       `${pathConfig.matchQuality}_match`,
       pathConfig.chainId,
-      getAddress(pathConfig.address)
+      getAddress(pathConfig.address),
     );
   }
 
@@ -108,20 +89,20 @@ export class RepositoryV2Service implements IStorageService {
    * @param path the path within the repository where the file will be stored
    * @param content the content to be stored
    */
-  save(path: string | PathConfig, content: string) {
+  async save(path: string | PathConfig, content: string) {
     const abolsutePath =
       typeof path === "string"
         ? Path.join(this.repositoryPath, path)
         : this.generateAbsoluteFilePath(path);
-    fs.mkdirSync(Path.dirname(abolsutePath), { recursive: true });
-    fs.writeFileSync(abolsutePath, content);
+    await fs.promises.mkdir(Path.dirname(abolsutePath), { recursive: true });
+    await fs.promises.writeFile(abolsutePath, content);
     logger.silly("Saved file to repositoryV2", { abolsutePath });
     this.updateRepositoryTag();
   }
 
   public async storeMatch(
     contract: CheckedContract,
-    match: Match
+    match: Match,
   ): Promise<void | Match> {
     if (
       match.address &&
@@ -138,52 +119,52 @@ export class RepositoryV2Service implements IStorageService {
         this.deletePartialIfExists(match.chainId, match.address);
       }
       const matchQuality: MatchQuality = this.statusToMatchQuality(
-        getMatchStatus(match)
+        getMatchStatus(match),
       );
 
-      this.storeSources(
+      await this.storeSources(
         matchQuality,
         match.chainId,
         match.address,
-        contract.solidity
+        contract.solidity,
       );
 
       // Store metadata
-      this.storeJSON(
+      await this.storeJSON(
         matchQuality,
         match.chainId,
         match.address,
         "metadata.json",
-        contract.metadata
+        contract.metadata,
       );
 
       if (match.abiEncodedConstructorArguments) {
-        this.storeTxt(
+        await this.storeTxt(
           matchQuality,
           match.chainId,
           match.address,
           "constructor-args.txt",
-          match.abiEncodedConstructorArguments
+          match.abiEncodedConstructorArguments,
         );
       }
 
       if (match.creatorTxHash) {
-        this.storeTxt(
+        await this.storeTxt(
           matchQuality,
           match.chainId,
           match.address,
           "creator-tx-hash.txt",
-          match.creatorTxHash
+          match.creatorTxHash,
         );
       }
 
       if (match.libraryMap && Object.keys(match.libraryMap).length) {
-        this.storeJSON(
+        await this.storeJSON(
           matchQuality,
           match.chainId,
           match.address,
           "library-map.json",
-          match.libraryMap
+          match.libraryMap,
         );
       }
 
@@ -191,12 +172,12 @@ export class RepositoryV2Service implements IStorageService {
         match.immutableReferences &&
         Object.keys(match.immutableReferences).length > 0
       ) {
-        this.storeJSON(
+        await this.storeJSON(
           matchQuality,
           match.chainId,
           match.address,
           "immutable-references.json",
-          match.immutableReferences
+          match.immutableReferences,
         );
       }
 
@@ -214,7 +195,7 @@ export class RepositoryV2Service implements IStorageService {
     }
   }
 
-  deletePartialIfExists(chainId: string, address: string) {
+  async deletePartialIfExists(chainId: string, address: string) {
     const pathConfig: PathConfig = {
       matchQuality: "partial",
       chainId,
@@ -223,18 +204,18 @@ export class RepositoryV2Service implements IStorageService {
     };
     const absolutePath = this.generateAbsoluteFilePath(pathConfig);
 
-    if (fs.existsSync(absolutePath)) {
-      fs.rmdirSync(absolutePath, { recursive: true });
+    if (await exists(absolutePath)) {
+      await fs.promises.rm(absolutePath, { recursive: true });
     }
   }
 
-  updateRepositoryTag() {
+  async updateRepositoryTag() {
     const filePath: string = Path.join(this.repositoryPath, "manifest.json");
     const timestamp = new Date().getTime();
     const tag: RepositoryTag = {
       timestamp: timestamp,
     };
-    fs.writeFileSync(filePath, JSON.stringify(tag));
+    await fs.promises.writeFile(filePath, JSON.stringify(tag));
   }
 
   /**
@@ -249,14 +230,14 @@ export class RepositoryV2Service implements IStorageService {
     throw new Error(`Invalid match status: ${status}`);
   }
 
-  private storeSources(
+  private async storeSources(
     matchQuality: MatchQuality,
     chainId: string,
     address: string,
-    sources: StringMap
+    sources: StringMap,
   ) {
     for (const sourcePath in sources) {
-      this.save(
+      await this.save(
         {
           matchQuality,
           chainId,
@@ -265,37 +246,37 @@ export class RepositoryV2Service implements IStorageService {
           // Store the file with the keccak as name
           fileName: `${keccak256(sources[sourcePath])}.sol`,
         },
-        sources[sourcePath]
+        sources[sourcePath],
       );
     }
   }
 
-  private storeJSON(
+  private async storeJSON(
     matchQuality: MatchQuality,
     chainId: string,
     address: string,
     fileName: string,
-    contentJSON: any
+    contentJSON: any,
   ) {
-    this.save(
+    await this.save(
       {
         matchQuality,
         chainId,
         address,
         fileName,
       },
-      JSON.stringify(contentJSON)
+      JSON.stringify(contentJSON),
     );
   }
 
-  private storeTxt(
+  private async storeTxt(
     matchQuality: MatchQuality,
     chainId: string,
     address: string,
     fileName: string,
-    content: string
+    content: string,
   ) {
-    this.save(
+    await this.save(
       {
         matchQuality,
         chainId,
@@ -303,7 +284,7 @@ export class RepositoryV2Service implements IStorageService {
         source: false,
         fileName,
       },
-      content
+      content,
     );
   }
 }

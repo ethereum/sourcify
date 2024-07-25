@@ -8,13 +8,15 @@ import {
   BytesLike,
   Contract,
 } from "ethers";
-import { sourcifyChainsMap } from "../../src/sourcify-chains";
 import { assertVerificationSession, assertVerification } from "./assertions";
 import chai from "chai";
 import chaiHttp from "chai-http";
 import path from "path";
 import { promises as fs } from "fs";
-import { StorageService } from "../../src/server/services/StorageService";
+import { ServerFixture } from "./ServerFixture";
+import type { Done } from "mocha";
+import { LocalChainFixture } from "./LocalChainFixture";
+import { Pool } from "pg";
 
 chai.use(chaiHttp);
 
@@ -26,7 +28,7 @@ export async function deployFromAbiAndBytecode(
   signer: JsonRpcSigner,
   abi: Interface | InterfaceAbi,
   bytecode: BytesLike | { object: string },
-  args?: any[]
+  args?: any[],
 ) {
   const contractFactory = new ContractFactory(abi, bytecode, signer);
   console.log(`Deploying contract ${args?.length ? `with args ${args}` : ""}`);
@@ -46,7 +48,7 @@ export async function deployFromAbiAndBytecodeForCreatorTxHash(
   signer: JsonRpcSigner,
   abi: Interface | InterfaceAbi,
   bytecode: BytesLike | { object: string },
-  args?: any[]
+  args?: any[],
 ) {
   const contractFactory = new ContractFactory(abi, bytecode, signer);
   console.log(`Deploying contract ${args?.length ? `with args ${args}` : ""}`);
@@ -59,11 +61,54 @@ export async function deployFromAbiAndBytecodeForCreatorTxHash(
     throw new Error(`No deployment transaction found for ${contractAddress}`);
   }
   console.log(
-    `Deployed contract at ${contractAddress} with tx ${creationTx.hash}`
+    `Deployed contract at ${contractAddress} with tx ${creationTx.hash}`,
   );
 
-  return { contractAddress, txHash: creationTx.hash };
+  const txReceipt = await signer.provider.getTransactionReceipt(
+    creationTx.hash,
+  );
+
+  return {
+    contractAddress,
+    txHash: creationTx.hash,
+    blockNumber: creationTx.blockNumber,
+    txIndex: txReceipt?.index,
+  };
 }
+
+export async function deployAndVerifyContract(
+  chai: Chai.ChaiStatic,
+  chainFixture: LocalChainFixture,
+  serverFixture: ServerFixture,
+  partial: boolean = false,
+) {
+  const contractAddress = await deployFromAbiAndBytecode(
+    chainFixture.localSigner,
+    chainFixture.defaultContractArtifact.abi,
+    chainFixture.defaultContractArtifact.bytecode,
+    [],
+  );
+  await chai
+    .request(serverFixture.server.app)
+    .post("/")
+    .field("address", contractAddress)
+    .field("chain", chainFixture.chainId)
+    .attach(
+      "files",
+      partial
+        ? chainFixture.defaultContractModifiedMetadata
+        : chainFixture.defaultContractMetadata,
+      "metadata.json",
+    )
+    .attach(
+      "files",
+      partial
+        ? chainFixture.defaultContractModifiedSource
+        : chainFixture.defaultContractSource,
+    );
+  return contractAddress;
+}
+
 /**
  * Function to deploy contracts from an external account with private key
  */
@@ -72,7 +117,7 @@ export async function deployFromPrivateKey(
   abi: Interface | InterfaceAbi,
   bytecode: BytesLike | { object: string },
   privateKey: string,
-  args?: any[]
+  args?: any[],
 ) {
   const signer = new Wallet(privateKey, provider);
   const contractFactory = new ContractFactory(abi, bytecode, signer);
@@ -100,7 +145,7 @@ export async function callContractMethod(
   abi: Interface | InterfaceAbi,
   contractAddress: string,
   methodName: string,
-  args: any[]
+  args: any[],
 ) {
   const contract = new Contract(contractAddress, abi, provider);
   const callResponse = await contract[methodName].staticCall(...args);
@@ -114,7 +159,7 @@ export async function callContractMethodWithTx(
   abi: Interface | InterfaceAbi,
   contractAddress: string,
   methodName: string,
-  args: any[]
+  args: any[],
 ) {
   const contract = new Contract(contractAddress, abi, signer);
   const txResponse = await contract[methodName].send(...args);
@@ -123,57 +168,53 @@ export async function callContractMethodWithTx(
 }
 
 export function verifyAndAssertEtherscan(
-  serverApp: Express.Application,
+  serverFixture: ServerFixture,
   chainId: string,
   address: string,
   expectedStatus: string,
-  type: string
+  done: Done,
 ) {
-  it(`Non-Session: Should import a ${type} contract from  #${chainId} ${sourcifyChainsMap[chainId].name} (${sourcifyChainsMap[chainId].etherscanApi?.apiURL}) and verify the contract, finding a ${expectedStatus} match`, (done) => {
-    const request = chai
-      .request(serverApp)
-      .post("/verify/etherscan")
-      .field("address", address)
-      .field("chain", chainId);
-    request.end(async (err, res) => {
-      await assertVerification(
+  const request = chai
+    .request(serverFixture.server.app)
+    .post("/verify/etherscan")
+    .field("address", address)
+    .field("chain", chainId);
+  request.end(async (err, res) => {
+    await assertVerification(
+      null,
+      err,
+      res,
+      done,
+      address,
+      chainId,
+      expectedStatus,
+    );
+  });
+}
+
+export function verifyAndAssertEtherscanSession(
+  serverFixture: ServerFixture,
+  chainId: string,
+  address: string,
+  expectedStatus: string,
+  done: Done,
+) {
+  chai
+    .request(serverFixture.server.app)
+    .post("/session/verify/etherscan")
+    .field("address", address)
+    .field("chainId", chainId)
+    .end(async (err, res) => {
+      await assertVerificationSession(
         null,
         err,
         res,
         done,
         address,
         chainId,
-        expectedStatus
+        expectedStatus,
       );
     });
-  });
-}
-
-export function verifyAndAssertEtherscanSession(
-  serverApp: Express.Application,
-  chainId: string,
-  address: string,
-  expectedStatus: string,
-  type: string
-) {
-  it(`Session: Should import a ${type} contract from  #${chainId} ${sourcifyChainsMap[chainId].name} (${sourcifyChainsMap[chainId].etherscanApi?.apiURL}) and verify the contract, finding a ${expectedStatus} match`, (done) => {
-    chai
-      .request(serverApp)
-      .post("/session/verify/etherscan")
-      .field("address", address)
-      .field("chainId", chainId)
-      .end(async (err, res) => {
-        await assertVerificationSession(
-          null,
-          err,
-          res,
-          done,
-          address,
-          chainId,
-          expectedStatus
-        );
-      });
-  });
 }
 
 export async function readFilesFromDirectory(dirPath: string) {
@@ -195,28 +236,15 @@ export async function readFilesFromDirectory(dirPath: string) {
   }
 }
 
-export async function resetDatabase(storageService: StorageService) {
-  if (!storageService.sourcifyDatabase) {
-    chai.assert.fail("No database on StorageService");
+export async function resetDatabase(sourcifyDatabase: Pool) {
+  if (!sourcifyDatabase) {
+    chai.assert.fail("Database pool not configured");
   }
-  await storageService.sourcifyDatabase.init();
-  await storageService.sourcifyDatabase.databasePool.query(
-    "DELETE FROM sourcify_sync"
-  );
-  await storageService.sourcifyDatabase.databasePool.query(
-    "DELETE FROM sourcify_matches"
-  );
-  await storageService.sourcifyDatabase.databasePool.query(
-    "DELETE FROM verified_contracts"
-  );
-  await storageService.sourcifyDatabase.databasePool.query(
-    "DELETE FROM contract_deployments"
-  );
-  await storageService.sourcifyDatabase.databasePool.query(
-    "DELETE FROM compiled_contracts"
-  );
-  await storageService.sourcifyDatabase.databasePool.query(
-    "DELETE FROM contracts"
-  );
-  await storageService.sourcifyDatabase.databasePool.query("DELETE FROM code");
+  await sourcifyDatabase.query("DELETE FROM sourcify_sync");
+  await sourcifyDatabase.query("DELETE FROM sourcify_matches");
+  await sourcifyDatabase.query("DELETE FROM verified_contracts");
+  await sourcifyDatabase.query("DELETE FROM contract_deployments");
+  await sourcifyDatabase.query("DELETE FROM compiled_contracts");
+  await sourcifyDatabase.query("DELETE FROM contracts");
+  await sourcifyDatabase.query("DELETE FROM code");
 }

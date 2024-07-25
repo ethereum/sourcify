@@ -15,16 +15,16 @@
     "contracts/1_Storage.sol": "// SPDX-License-Identifier: GPL-3.0\n\npragma solidity >=0.7.0 <0.9.0;\n\nlibrary Journal {\n    function record(mapping(uint256 => uint256) storage journal, uint256 num) public {\n        journal[block.number] = num;\n    }\n}\n\n/**\n * @title Storage\n * @dev Store & retrieve value in a variable\n */\ncontract Storage {\n    uint256 public number;\n\n    mapping(uint256 => uint256) public journal;\n\n    /**\n     * @dev Store value in variable\n     * @param num value to store\n     */\n    function store(uint256 num) public {\n        number = num;\n        Journal.record(journal, num);\n    }\n}"
   },
   "compiler_settings": {
+    "evmVersion": "paris",
+    "metadata": {
+      "bytecodeHash": "ipfs"
+    },
     "optimizer": {
       "enabled": false,
       "runs": 200
     },
     "libraries": {},
-    "outputSelection": {
-      "*": {
-        "*": ["*"]
-      }
-    }
+    "remappings": []
   },
   "compilation_artifacts": {
     "abi": [
@@ -136,7 +136,7 @@
   "creation_match": true,
   "creation_values": {
     "libraries": {
-      "__$b8833469cd54bfd61b3a18436a18bad1f3$__": "0x7d53f102f4d4aa014db4e10d6deec2009b3cda6b"
+      "contracts/1_Storage.sol:Journal": "0x7d53f102f4d4aa014db4e10d6deec2009b3cda6b"
     }
   },
   "creation_transformations": [
@@ -144,14 +144,15 @@
       "type": "replace",
       "reason": "library",
       "offset": 217,
-      "id": "__$b8833469cd54bfd61b3a18436a18bad1f3$__"
+      "id": "contracts/1_Storage.sol:Journal"
     }
   ],
+  "creation_metadata_match": true,
 
   "runtime_match": true,
   "runtime_values": {
     "libraries": {
-      "__$b8833469cd54bfd61b3a18436a18bad1f3$__": "0x7d53f102f4d4aa014db4e10d6deec2009b3cda6b"
+      "contracts/1_Storage.sol:Journal": "0x7d53f102f4d4aa014db4e10d6deec2009b3cda6b"
     }
   },
   "runtime_transformations": [
@@ -159,7 +160,8 @@
       "type": "replace",
       "reason": "library",
       "offset": 185,
-      "id": "__$b8833469cd54bfd61b3a18436a18bad1f3$__"
+      "id": "contracts/1_Storage.sol:Journal"
     }
-  ]
+  ],
+  "runtime_metadata_match": true
 }

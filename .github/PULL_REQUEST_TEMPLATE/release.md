@@ -21,5 +21,4 @@
 - [ ] I have bumped the versions of the packages under `packages/`, if necessary
   - [ ] `lib-sourcify`
   - [ ] `bytecode-utils`
-  - [ ] `contract-call-decoder`
 - [ ] All tests are passing

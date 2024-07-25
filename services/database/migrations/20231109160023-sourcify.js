@@ -21,19 +21,21 @@ exports.up = function (db, callback) {
     [
       db.runSql.bind(
         db,
-        `ALTER TABLE contracts ALTER COLUMN creation_code_hash DROP NOT NULL;`
+        `ALTER TABLE contracts ALTER COLUMN creation_code_hash DROP NOT NULL;`,
       ),
       db.runSql.bind(
         db,
         `ALTER TABLE contract_deployments ALTER COLUMN transaction_hash DROP NOT NULL;
         ALTER TABLE contract_deployments ALTER COLUMN block_number DROP NOT NULL;
         ALTER TABLE contract_deployments ALTER COLUMN transaction_index DROP NOT NULL;
-        ALTER TABLE contract_deployments ALTER COLUMN deployer DROP NOT NULL;`
+        ALTER TABLE contract_deployments ALTER COLUMN deployer DROP NOT NULL;`,
       ),
       db.runSql.bind(
         db,
         `ALTER TABLE compiled_contracts ALTER COLUMN creation_code_hash DROP NOT NULL;
-        ALTER TABLE compiled_contracts ALTER COLUMN creation_code_artifacts DROP NOT NULL;`
+        ALTER TABLE compiled_contracts ALTER COLUMN creation_code_artifacts DROP NOT NULL;
+        ALTER TABLE compiled_contracts DROP CONSTRAINT compiled_contracts_pseudo_pkey;
+        ALTER TABLE compiled_contracts ADD CONSTRAINT compiled_contracts_pseudo_pkey UNIQUE NULLS NOT DISTINCT (compiler, language, creation_code_hash, runtime_code_hash);`,
       ),
       db.runSql.bind(
         db,
@@ -47,7 +49,7 @@ exports.up = function (db, callback) {
             CONSTRAINT sourcify_matches_pseudo_pkey UNIQUE (verified_contract_id)
         );
         CREATE INDEX sourcify_matches_verified_contract_id_idx ON sourcify_matches USING btree (verified_contract_id);
-        ALTER TABLE sourcify_matches ADD CONSTRAINT sourcify_matches_verified_contract_id_fk FOREIGN KEY (verified_contract_id) REFERENCES verified_contracts(id) ON DELETE RESTRICT ON UPDATE RESTRICT;`
+        ALTER TABLE sourcify_matches ADD CONSTRAINT sourcify_matches_verified_contract_id_fk FOREIGN KEY (verified_contract_id) REFERENCES verified_contracts(id) ON DELETE RESTRICT ON UPDATE RESTRICT;`,
       ),
       db.runSql.bind(
         db,
@@ -60,7 +62,7 @@ exports.up = function (db, callback) {
             created_at timestamptz NOT NULL DEFAULT now(),
             CONSTRAINT sourcify_sync_pkey PRIMARY KEY (id),
             CONSTRAINT sourcify_sync_pseudo_pkey UNIQUE (chain_id, address)
-        );`
+        );`,
       ),
       db.runSql.bind(
         db,
@@ -70,19 +72,43 @@ exports.up = function (db, callback) {
             "expire" timestamp(6) NOT NULL
         ) WITH (OIDS=FALSE);
         ALTER TABLE "session" ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid") NOT DEFERRABLE INITIALLY IMMEDIATE;
-        CREATE INDEX "IDX_session_expire" ON "session" ("expire");`
+        CREATE INDEX "IDX_session_expire" ON "session" ("expire");`,
       ),
     ],
-    callback
+    callback,
   );
 };
 
 exports.down = function (db, callback) {
   async.series(
     [
+      db.dropTable.bind(db, "session"),
       db.dropTable.bind(db, "sourcify_sync"),
       db.dropTable.bind(db, "sourcify_matches"),
+      db.runSql.bind(db, "DELETE FROM verified_contracts;"),
+      db.runSql.bind(db, "DELETE FROM contract_deployments;"),
+      db.runSql.bind(db, "DELETE FROM compiled_contracts;"),
+      db.runSql.bind(db, "DELETE FROM contracts;"),
+      db.runSql.bind(db, "DELETE FROM code;"),
+      db.runSql.bind(
+        db,
+        `ALTER TABLE compiled_contracts DROP CONSTRAINT compiled_contracts_pseudo_pkey;
+        ALTER TABLE compiled_contracts ADD CONSTRAINT compiled_contracts_pseudo_pkey UNIQUE (compiler, language, creation_code_hash, runtime_code_hash);
+        ALTER TABLE compiled_contracts ALTER COLUMN creation_code_artifacts SET NOT NULL;
+        ALTER TABLE compiled_contracts ALTER COLUMN creation_code_hash SET NOT NULL;`,
+      ),
+      db.runSql.bind(
+        db,
+        `ALTER TABLE contract_deployments ALTER COLUMN deployer SET NOT NULL;
+        ALTER TABLE contract_deployments ALTER COLUMN transaction_index SET NOT NULL;
+        ALTER TABLE contract_deployments ALTER COLUMN block_number SET NOT NULL;
+        ALTER TABLE contract_deployments ALTER COLUMN transaction_hash SET NOT NULL;`,
+      ),
+      db.runSql.bind(
+        db,
+        `ALTER TABLE contracts ALTER COLUMN creation_code_hash SET NOT NULL;`,
+      ),
     ],
-    callback
+    callback,
   );
 };

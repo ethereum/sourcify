@@ -37,7 +37,7 @@ const rawlineFormat = format.printf(
       : "";
 
     let msg = `${timestamp} [${level}] ${service ? service : ""} ${chalk.bold(
-      message
+      message,
     )}`;
     if (metadata && Object.keys(metadata).length > 0) {
       msg += " - ";
@@ -57,7 +57,7 @@ const rawlineFormat = format.printf(
       msg += requestIdMsg && " - " + requestIdMsg;
     }
     return msg;
-  }
+  },
 );
 
 // Error formatter, since error objects are non-enumerable and will return "{}"
@@ -71,7 +71,7 @@ const errorFormatter = format((info) => {
         stack: info.error.stack,
         name: info.error.name,
       },
-      info.error
+      info.error,
     );
   }
   return info;
@@ -88,14 +88,14 @@ const lineFormat = format.combine(
   errorFormatter(),
   format.timestamp(),
   format.colorize(),
-  rawlineFormat
+  rawlineFormat,
 );
 
 const jsonFormat = format.combine(
   errorFormatter(),
   format.timestamp(),
   injectRequestId(),
-  format.json()
+  format.json(),
 );
 
 const consoleTransport = new transports.Console({
@@ -135,8 +135,8 @@ export function setLogLevel(level: string): void {
   if (!validLogLevels.includes(level)) {
     throw new Error(
       `Invalid log level: ${level}. level can take: ${validLogLevels.join(
-        ", "
-      )}`
+        ", ",
+      )}`,
     );
   }
   console.warn(`Setting log level to: ${level}`);

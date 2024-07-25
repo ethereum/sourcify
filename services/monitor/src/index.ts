@@ -12,12 +12,12 @@ program
   .option(
     "--configPath <path>",
     "Path to the configuration JSON file",
-    path.resolve(__dirname, "../config.json")
+    path.resolve(__dirname, "../config.json"),
   )
   .option(
     "--chainsPath <path>",
     "Path to the chains JSON file",
-    path.resolve(__dirname, "../monitorChains.json")
+    path.resolve(__dirname, "../monitorChains.json"),
   );
 
 // Parse the arguments

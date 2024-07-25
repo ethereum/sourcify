@@ -33,7 +33,7 @@ function swarmHashSimple(data: Uint8Array, size: number): string {
 function swarmHashIntermediate(
   input: Uint8Array,
   offset: number,
-  length: number
+  length: number,
 ): string {
   let ref: Uint8Array;
   let innerNodes = new Uint8Array();

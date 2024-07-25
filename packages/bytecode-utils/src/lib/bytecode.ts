@@ -104,13 +104,13 @@ export const splitAuxdata = (bytecode: string): string[] => {
   // Extract the cbor object using the extracted lenght
   const auxdata = bytecode.substring(
     bytecode.length - bytesLength - cborBytesLength,
-    bytecode.length - bytesLength
+    bytecode.length - bytesLength,
   );
 
   // Extract exection bytecode
   const executionBytecode = bytecode.substring(
     0,
-    bytecode.length - bytesLength - cborBytesLength
+    bytecode.length - bytesLength - cborBytesLength,
   );
 
   try {

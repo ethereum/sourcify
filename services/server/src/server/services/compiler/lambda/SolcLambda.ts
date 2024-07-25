@@ -21,7 +21,7 @@ export class SolcLambda implements ISolidityCompiler {
       process.env.AWS_SECRET_ACCESS_KEY === undefined
     ) {
       throw new Error(
-        "AWS credentials not set. Please set them to run the compiler on AWS Lambda."
+        "AWS credentials not set. Please set them to run the compiler on AWS Lambda.",
       );
     }
     // Initialize Lambda client with environment variables for credentials
@@ -37,7 +37,7 @@ export class SolcLambda implements ISolidityCompiler {
   public async compile(
     version: string,
     solcJsonInput: JsonInput,
-    forceEmscripten: boolean = false
+    forceEmscripten: boolean = false,
   ): Promise<CompilerOutput> {
     const param = JSON.stringify({ version, solcJsonInput, forceEmscripten });
     logger.silly("Invoking Lambda function", { param });
@@ -59,7 +59,7 @@ export class SolcLambda implements ISolidityCompiler {
 
     if (!response.EventStream) {
       throw new Error(
-        "Error: No response stream received from Lambda function"
+        "Error: No response stream received from Lambda function",
       );
     }
 
@@ -73,11 +73,11 @@ export class SolcLambda implements ISolidityCompiler {
           lambdaRequestId: response.$metadata.requestId,
         });
         throw new Error(
-          `AWS Lambda error: ${event.InvokeComplete.ErrorCode} - ${event.InvokeComplete.ErrorDetails} - lamdbaRequestId: ${response.$metadata.requestId}`
+          `AWS Lambda error: ${event.InvokeComplete.ErrorCode} - ${event.InvokeComplete.ErrorDetails} - lamdbaRequestId: ${response.$metadata.requestId}`,
         );
       } else if (event.PayloadChunk?.Payload) {
         streamResult += Buffer.from(event.PayloadChunk.Payload).toString(
-          "utf8"
+          "utf8",
         );
       }
     }
@@ -92,7 +92,7 @@ export class SolcLambda implements ISolidityCompiler {
         lambdaRequestId: response.$metadata.requestId,
       });
       throw new Error(
-        `AWS Lambda error: ${e} - lamdbaRequestId: ${response.$metadata.requestId}`
+        `AWS Lambda error: ${e} - lamdbaRequestId: ${response.$metadata.requestId}`,
       );
     }
 
