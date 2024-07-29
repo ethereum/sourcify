@@ -12,7 +12,6 @@ orbs:
 commands:
   gcp-oidc-generate-cred-config-file:
     description: "Authenticate with GCP using a CircleCI OIDC token."
-    name: "Authenticate with GCP using a CircleCI OIDC token."
     parameters:
       gcp_cred_config_file_path: 
         type: string
