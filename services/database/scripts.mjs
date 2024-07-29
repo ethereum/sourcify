@@ -4,6 +4,11 @@ import readdirp from "readdirp";
 import pg from "pg";
 import path from "path";
 import fs from "fs";
+import { dirname } from "path";
+import { fileURLToPath } from "url";
+
+// Convert the URL to a file path and get the directory name. Workaround for .mjs scripts
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const { Pool } = pg;
 const { readFile } = fs.promises;
@@ -241,11 +246,12 @@ const startSyncChain = async (
   monitoring,
 ) => {
   let activePromises = 0;
-  let limit = options.limit ? options.limit : 1;
+  let maxLimit = options.limit ? options.limit : 1; // Maximum allowed parallel requests
+  let currentLimit = 1; // Starting with 1 request at a time
 
   let processedContracts = 0;
   while (true) {
-    while (activePromises >= limit) {
+    while (activePromises >= currentLimit) {
       await new Promise((resolve) => setTimeout(resolve, 200));
     }
 
@@ -266,7 +272,6 @@ const startSyncChain = async (
     options.startFrom = nextContract.id;
 
     // Process contract if within activePromises limit
-
     activePromises++;
     processContract(sourcifyInstance, repositoryV1Path, databasePool, {
       address: nextContract.address.toString(),
@@ -276,23 +281,40 @@ const startSyncChain = async (
       .then((res) => {
         if (res[0]) {
           monitoring.totalSynced++;
-          console.log(
-            `Successfully sync: ${[res[1]]}. Currently running at ${(
+          logToFile(
+            chainId,
+            `Successfully synced: ${[res[1]]}. Currently running at ${(
               (1000 * monitoring.totalSynced) /
               (Date.now() - monitoring.startedAt)
             ).toFixed(2)} v/s`,
           );
         } else {
+          logToFile(chainId, `Failed to sync: ${[res[1]]}`);
           console.error(`Failed to sync ${[res[1]]}`);
         }
         activePromises--;
+
+        // Increment currentLimit after a successful process and if it hasn't reached the max limit yet
+        if (currentLimit < maxLimit) {
+          currentLimit++;
+          logToFile(
+            chainId,
+            `Slow start: Increasing chain #${chainId}'s currentLimit to ${currentLimit}`,
+          );
+        }
+
         processedContracts++;
       })
       .catch((e) => {
+        logToFile(chainId, e.message);
         console.error(e);
+        activePromises--;
       });
   }
-  console.log(`Synced ${processedContracts} contracts for chainId ${chainId}`);
+  logToFile(
+    chainId,
+    `Synced ${processedContracts} contracts for chainId ${chainId}`,
+  );
 };
 
 // Utils functions
@@ -384,6 +406,24 @@ const processContract = async (
     }
   });
 };
+
+function logToFile(chainId, message) {
+  const logDirectory = path.join(__dirname, "chain-sync-logs");
+  const logFilename = `${chainId}.log`;
+  const logPath = path.join(logDirectory, logFilename);
+  const timestampedMessage = `${new Date().toISOString()} - ${message}`;
+
+  // Ensure the log directory exists
+  if (!fs.existsSync(logDirectory)) {
+    fs.mkdirSync(logDirectory, { recursive: true });
+  }
+
+  // Append message to the log file
+  fs.appendFileSync(logPath, timestampedMessage + "\n");
+
+  // Also log to console
+  console.log(timestampedMessage);
+}
 
 const fetchNextContract = async (databasePool, options, chainId) => {
   try {
