@@ -1,3 +1,4 @@
+// Constraints for the `compiled_contracts` table, according to the Verifier Alliance schema https://github.com/verifier-alliance/database-specs/pull/12
 "use strict";
 
 var async = require("async");
