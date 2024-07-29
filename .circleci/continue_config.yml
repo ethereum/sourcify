@@ -4,6 +4,46 @@ version: 2.1
 
 orbs:
   codecov: codecov/codecov@4.1.0
+  gcp-cli: circleci/gcp-cli@3.2.1
+
+## Commands via the gcp-cli orb to authenticate with GCP
+# From https://github.com/jtreutel/circleci-gcp-oidc-test/blob/master/.circleci/config.yml
+# And from the tutorial https://circleci.com/blog/openid-connect-identity-tokens/
+commands:
+  gcp-oidc-generate-cred-config-file:
+    description: "Authenticate with GCP using a CircleCI OIDC token."
+    parameters:
+      gcp_cred_config_file_path: 
+        type: string
+        default: /home/circleci/gcp_cred_config.json
+      oidc_token_file_path: 
+        type: string
+        default: /home/circleci/oidc_token.json
+    steps:
+      - run:
+          command: |
+            # Store OIDC token in temp file
+            echo $CIRCLE_OIDC_TOKEN > << parameters.oidc_token_file_path >>
+            # Create a credential configuration for the generated OIDC ID Token
+            gcloud iam workload-identity-pools create-cred-config \
+                "projects/sourcify-project/locations/global/workloadIdentityPools/circleci/providers/ethereum-org-circleci"\
+                --output-file="<< parameters.gcp_cred_config_file_path >>" \
+                --service-account=sourcify-cloud-run-deployer@sourcify-project.iam.gserviceaccount.com \
+                --credential-source-file=<< parameters.oidc_token_file_path >>
+
+  gcp-oidc-authenticate:
+    description: "Authenticate with GCP using a GCP credentials file."
+    parameters:
+      gcp_cred_config_file_path: 
+        type: string
+        default: /home/circleci/gcp_cred_config.json
+    steps:
+      - run:
+          command: |
+            # Configure gcloud to leverage the generated credential configuration
+            gcloud auth login --brief --cred-file "<< parameters.gcp_cred_config_file_path >>"
+            # Configure ADC
+            echo "export GOOGLE_APPLICATION_CREDENTIALS='<< parameters.gcp_cred_config_file_path >>'" | tee -a $BASH_ENV
 
 # Pipeline parameters to run module builds if related files have been changed
 parameters:
@@ -239,18 +279,28 @@ jobs:
           command: |
             ./.circleci/scripts/publish_multiarch_images.sh
   deploy:
-    docker:
-      - image: cimg/base:2024.07
+    executor: gcp-cli/default
     resource_class: small
     steps:
       - checkout
       - attach_workspace:
           at: workspace
+      # Temporarily we'll deploy both to GCP and Argo
+      # Deploy to Argo by running the trigger_deploy.sh script
       - run:
           name: Trigger Deploy Events
           no_output_timeout: 5m
           command: |
             ./.circleci/scripts/trigger_deploy.sh
+      # Deploy to GCP
+      - gcp-cli/install
+      - gcp-oidc-generate-cred-config-file
+      - gcp-oidc-authenticate
+      - run: 
+          name: Deploy to GCP
+          no_output_timeout: 5m
+          command: |
+            ./.circleci/scripts/deploy_to_gcp.sh
   tests-node-v22:
     docker:
       - image: cimg/node:22.5.1
