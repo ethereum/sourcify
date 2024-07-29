@@ -12,6 +12,7 @@ orbs:
 commands:
   gcp-oidc-generate-cred-config-file:
     description: "Authenticate with GCP using a CircleCI OIDC token."
+    name: "Authenticate with GCP using a CircleCI OIDC token."
     parameters:
       gcp_cred_config_file_path: 
         type: string
@@ -21,6 +22,7 @@ commands:
         default: /home/circleci/oidc_token.json
     steps:
       - run:
+          name: "Generate OIDC Token, Authentiace and save the gcp credential file"
           command: |
             # Store OIDC token in temp file
             echo $CIRCLE_OIDC_TOKEN > << parameters.oidc_token_file_path >>
@@ -39,6 +41,7 @@ commands:
         default: /home/circleci/gcp_cred_config.json
     steps:
       - run:
+          name: "Authenticate with GCP using the GCP credentials file"
           command: |
             # Configure gcloud to leverage the generated credential configuration
             gcloud auth login --brief --cred-file "<< parameters.gcp_cred_config_file_path >>"
