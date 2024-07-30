@@ -88,7 +88,7 @@
     "@types/express-session": "1.18.0",
     "@types/mocha": "10.0.7",
     "@types/mochawesome": "6.2.4",
-    "@types/node": "20.14.12",
+    "@types/node": "20.14.13",
     "@types/pg": "8.11.6",
     "@types/serve-index": "1.9.4",
     "@types/swagger-ui-express": "4.1.6",
