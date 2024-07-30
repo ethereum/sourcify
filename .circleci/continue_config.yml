@@ -27,7 +27,7 @@ commands:
             echo $CIRCLE_OIDC_TOKEN > << parameters.oidc_token_file_path >>
             # Create a credential configuration for the generated OIDC ID Token
             gcloud iam workload-identity-pools create-cred-config \
-                "projects/sourcify-project/locations/global/workloadIdentityPools/circleci/providers/ethereum-org-circleci"\
+                "projects/1019539084286/locations/global/workloadIdentityPools/circleci/providers/ethereum-org-circleci"\
                 --output-file="<< parameters.gcp_cred_config_file_path >>" \
                 --service-account=sourcify-cloud-run-deployer@sourcify-project.iam.gserviceaccount.com \
                 --credential-source-file=<< parameters.oidc_token_file_path >>
