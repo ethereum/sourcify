@@ -41,7 +41,7 @@ for service in "${services[@]}"; do
             image_tag="$CIRCLE_BRANCH"@"$image_sha"
 
             # sourcify-staging-server or sourcify-production-server
-            cmd="gcloud run deploy sourcify-$ENVIRONMENT-$service --project sourcify-project --image $ARTIFACT_REGISTRY_URL$service:$image_tag"
+            cmd="gcloud run deploy sourcify-$ENVIRONMENT-$service --project sourcify-project --region europe-west1 --image $ARTIFACT_REGISTRY_URL$service:$image_tag"
 
             echo "Running cmd"
             echo $cmd
