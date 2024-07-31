@@ -146,19 +146,19 @@ export default class DecentralizedStorageFetcher extends EventEmitter {
         // Notify the subscribers
         this.emit(`${fileHash.hash} fetched`, file);
         return;
-      } catch (err: any) {
-        if (err.timeout) {
+      } catch (error: any) {
+        if (error.timeout) {
           this.storageFetcherLogger.info("Timeout fetching from gateway", {
             fileHash,
             gatewayFetcherUrl: gatewayFetcher.url,
-            err,
+            error,
           });
         } else {
           // Something's wront with the GW. Use fallback
           this.storageFetcherLogger.error("Error fetching from gateway", {
             fileHash,
             gatewayFetcherUrl: gatewayFetcher.url,
-            err,
+            error,
           });
         }
       }
