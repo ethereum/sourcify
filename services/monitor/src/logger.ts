@@ -33,6 +33,22 @@ const loggerInstance: Logger = createLogger({
     (process.env.NODE_ENV === "production" ? "info" : "debug"),
 });
 
+const errorFormatter = format((info) => {
+  if (info.error instanceof Error) {
+    // Convert the error object to a plain object
+    // Including standard error properties and any custom ones
+    info.error = Object.assign(
+      {
+        message: info.error.message,
+        stack: info.error.stack,
+        name: info.error.name,
+      },
+      info.error,
+    );
+  }
+  return info;
+});
+
 // 2024-03-06T17:04:16.375Z [warn]: [Monitor] [ChainMonitor #1115511] Storing contract address=0x5FbDB2315678afecb367f032d93F642f64180aa3, chainId=1337, matchQuality=0.5
 const rawlineFormat = format.printf(
   ({ level, message, timestamp, service, moduleName, ...metadata }: any) => {
@@ -43,11 +59,7 @@ const rawlineFormat = format.printf(
       msg += " - ";
       const metadataMsg = Object.entries(metadata)
         .map(([key, value]) => {
-          if (value instanceof Error) {
-            // JSON.stringify will give a "{}" on Error objects becuase message and stack properties are non-enumberable.
-            // Instead do it manually
-            value = JSON.stringify(value, Object.getOwnPropertyNames(value));
-          } else if (typeof value === "object") {
+          if (typeof value === "object") {
             try {
               value = JSON.stringify(value);
             } catch (e) {
@@ -64,12 +76,17 @@ const rawlineFormat = format.printf(
 );
 
 const lineFormat = format.combine(
+  errorFormatter(),
   format.timestamp(),
   format.colorize(),
   rawlineFormat,
 );
 
-const jsonFormat = format.combine(format.timestamp(), format.json());
+const jsonFormat = format.combine(
+  errorFormatter(),
+  format.timestamp(),
+  format.json(),
+);
 
 const consoleTransport = new transports.Console({
   // NODE_LOG_LEVEL is takes precedence, otherwise use "info" if in production, "debug" otherwise

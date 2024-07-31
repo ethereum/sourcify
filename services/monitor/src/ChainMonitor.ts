@@ -90,8 +90,8 @@ export default class ChainMonitor extends EventEmitter {
 
       // Listen to new blocks
       this.on(NEW_BLOCK_EVENT, this.processBlockListener);
-    } catch (err: any) {
-      this.chainLogger.error("Error starting ChainMonitor", { err });
+    } catch (error: any) {
+      this.chainLogger.error("Error starting ChainMonitor", { error });
     }
   };
 
@@ -202,8 +202,8 @@ export default class ChainMonitor extends EventEmitter {
       }
       this.chainLogger.debug("Fetched bytecode", { address });
       return bytecode;
-    } catch (err: any) {
-      this.chainLogger.error("Error fetching bytecode", { address, err });
+    } catch (error: any) {
+      this.chainLogger.error("Error fetching bytecode", { address, error });
       return null;
     }
   }
@@ -294,16 +294,16 @@ export default class ChainMonitor extends EventEmitter {
       this.sourcifyServerURLs.forEach(async (url) => {
         try {
           await pendingContract.sendToSourcifyServer(url, creatorTxHash);
-        } catch (err: any) {
+        } catch (error: any) {
           this.chainLogger.error("Error sending contract to Sourcify server", {
             url,
-            err,
+            error,
             address,
           });
         }
       });
-    } catch (err: any) {
-      this.chainLogger.error("Error processing bytecode", { address, err });
+    } catch (error: any) {
+      this.chainLogger.error("Error processing bytecode", { address, error });
     }
   };
 }
