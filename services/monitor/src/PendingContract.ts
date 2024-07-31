@@ -6,6 +6,7 @@ import { KnownDecentralizedStorageFetchers } from "./types";
 import assert from "assert";
 import dotenv from "dotenv";
 import { Logger } from "winston";
+import axios from "axios";
 
 dotenv.config();
 
@@ -142,13 +143,14 @@ export default class PendingContract {
     }
 
     // Send to Sourcify server.
-    const response = await fetch(sourcifyServerURL, {
+    const response = await axios({
+      url: sourcifyServerURL,
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "User-Agent": "sourcify-monitor",
       },
-      body: JSON.stringify({
+      data: JSON.stringify({
         chainId: this.chainId.toString(),
         address: this.address,
         files: {
@@ -168,14 +170,14 @@ export default class PendingContract {
           sourcifyServerURL,
         },
       );
-      return response.json();
+      return response.data;
     } else {
       throw new Error(
         `Error sending contract ${
           this.address
         } to Sourcify server ${sourcifyServerURL}: ${
           response.statusText
-        } ${await response.text()}`,
+        } ${await response.data}`,
       );
     }
   };
