@@ -408,6 +408,12 @@ export const verifyContractsInSession = async (
       );
       // Send to verification again with all source files.
       if (match.runtimeMatch === "extra-file-input-bug") {
+        logger.debug(
+          "verifyContractsInSession: extra-file-input-bug encountered",
+          {
+            contractId: id,
+          },
+        );
         // Session inputFiles are encoded base64. Why?
         const pathBufferInputFiles: PathBuffer[] = Object.values(
           session.inputFiles,

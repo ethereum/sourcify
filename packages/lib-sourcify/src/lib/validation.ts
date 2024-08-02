@@ -180,6 +180,11 @@ async function unzip(zippedFile: PathBuffer) {
   try {
     await zip.loadAsync(zippedFile.buffer);
     for (const filePath in zip.files) {
+      // Exclude Mac specific files
+      if (filePath.includes('__MACOSX')) {
+        continue;
+      }
+
       const buffer = await zip.files[filePath].async('nodebuffer');
       unzipped.push({
         path: filePath,
