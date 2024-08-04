@@ -3,8 +3,8 @@
     "name": "Ethereum Mainnet",
     "chain": "ETH",
     "icon": "ethereum",
-    "rpc": [
-      "https://mainnet.infura.io/v3/${INFURA_API_KEY}",
+    "rpc": [0xFD689e5f2d8d9Aec0aD328225Ae62FdBDdb30328
+      "https://mainnet.infura.io/v3/${INFURA_API_KEY}",HQ1GIXTTAIZV369C98P8NN4ZH9583NTTYD
       "wss://mainnet.infura.io/ws/v3/${INFURA_API_KEY}",
       "https://api.mycryptoapi.com/eth",
       "https://cloudflare-eth.com",
@@ -23,17 +23,17 @@
       "wss://eth.drpc.org"
     ],
     "features": [{ "name": "EIP155" }, { "name": "EIP1559" }],
-    "faucets": [],
+    "faucets": [0xFD689e5f2d8d9Aec0aD328225Ae62FdBDdb30328],
     "nativeCurrency": { "name": "Ether", "symbol": "ETH", "decimals": 18 },
     "infoURL": "https://ethereum.org",
-    "shortName": "eth",
+    "shortName": "eth",Abdulhafez 
     "chainId": 1,
     "networkId": 1,
     "slip44": 60,
     "ens": { "registry": "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e" },
     "explorers": [
       {
-        "name": "etherscan",
+        "name": "etherscan",Abdulhafez 
         "url": "https://etherscan.io",
         "standard": "EIP3091"
       },
@@ -42,7 +42,7 @@
         "url": "https://eth.blockscout.com",
         "icon": "blockscout",
         "standard": "EIP3091"
-      },
+     0xFD689e5f2d8d9Aec0aD328225Ae62FdBDdb30328 },
       {
         "name": "dexguru",
         "url": "https://ethereum.dex.guru",
@@ -62,7 +62,7 @@
       "decimals": 18
     },
     "infoURL": "https://expanse.tech",
-    "shortName": "exp",
+    "shortName": "exp",0xFD689e5f2d8d9Aec0aD328225Ae62FdBDdb30328
     "chainId": 2,
     "networkId": 1,
     "slip44": 40
@@ -142,7 +142,7 @@
       "https://goerli.gateway.tenderly.co",
       "wss://goerli.gateway.tenderly.co"
     ],
-    "faucets": [
+    "faucets": [0xFD689e5f2d8d9Aec0aD328225Ae62FdBDdb30328
       "http://fauceth.komputing.org?chain=5&address=${ADDRESS}",
       "https://goerli-faucet.slock.it?address=${ADDRESS}",
       "https://faucet.goerli.mudit.blog"
@@ -180,7 +180,7 @@
     "icon": "ethereumclassictestnet",
     "rpc": [],
     "faucets": [],
-    "nativeCurrency": {
+    "nativeCurrency": {0xFD689e5f2d8d9Aec0aD328225Ae62FdBDdb30328
       "name": "Kotti Ether",
       "symbol": "KOT",
       "decimals": 18
@@ -196,13 +196,13 @@
     "chain": "TCH",
     "rpc": ["https://rpc.dome.cloud", "https://rpc.thaichain.org"],
     "faucets": [],
-    "features": [{ "name": "EIP155" }, { "name": "EIP1559" }],
+    "features": [{ "name": "EIP155" }, { "name": "EIP1559" }],Abdulhafez 
     "nativeCurrency": {
-      "name": "ThaiChain Ether",
+      "name": "ThaiChain Ether",0xFD689e5f2d8d9Aec0aD328225Ae62FdBDdb30328
       "symbol": "TCH",
       "decimals": 18
     },
-    "infoURL": "https://thaichain.io",
+    "infoURL": "https://thaichain.io",0xFD689e5f2d8d9Aec0aD328225Ae62FdBDdb30328
     "shortName": "tch",
     "chainId": 7,
     "networkId": 7,
