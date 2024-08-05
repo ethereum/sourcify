@@ -19,11 +19,11 @@ module.exports = {
     ],
   },
   repositoryV1: {
-    path: "/home/app/repositoryV1",
+    path: "/home/app/data/repositoryV1",
     serverUrl: "https://repo.staging.sourcify.dev",
   },
   repositoryV2: {
-    path: "/home/app/repositoryV2",
+    path: "/home/app/data/repositoryV2",
   },
   solcRepo: "/home/app/compilers/solc",
   solJsonRepo: "/home/app/compilers/soljson",
