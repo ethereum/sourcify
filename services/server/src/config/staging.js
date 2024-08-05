@@ -25,8 +25,8 @@ module.exports = {
   repositoryV2: {
     path: "/home/app/data/repositoryV2",
   },
-  solcRepo: "/home/app/compilers/solc",
-  solJsonRepo: "/home/app/compilers/soljson",
+  solcRepo: "/home/app/data/compilers/solc",
+  solJsonRepo: "/home/app/data/compilers/soljson",
   session: {
     secure: true, // Set Secure in the Set-Cookie header i.e. require https
     storeType: "database",
