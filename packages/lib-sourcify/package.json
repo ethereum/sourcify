@@ -60,7 +60,7 @@
     "@types/chai": "4.3.16",
     "@types/debug": "4.1.12",
     "@types/mocha": "10.0.7",
-    "@types/node": "20.14.13",
+    "@types/node": "20.14.14",
     "c8": "10.1.2",
     "chai": "4.4.1",
     "cspell": "8.12.1",
