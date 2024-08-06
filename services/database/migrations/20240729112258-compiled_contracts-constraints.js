@@ -23,12 +23,20 @@ exports.up = function (db, callback) {
       db.runSql.bind(
         db,
         `
+        CREATE OR REPLACE FUNCTION is_object(obj jsonb)
+            RETURNS boolean AS
+        $$
+        BEGIN
+            RETURN
+                jsonb_typeof(obj) = 'object';
+        END;
+        $$ LANGUAGE plpgsql;
+
         CREATE OR REPLACE FUNCTION validate_json_object_keys(obj jsonb, mandatory_keys text[], optional_keys text[])
             RETURNS boolean AS
         $$
         BEGIN
             RETURN
-                (jsonb_typeof(obj) = 'object') AND
                 -- ensures that all keys on the right exist as keys inside obj
                 obj ?& mandatory_keys AND
                 -- check that no unknown key exists inside obj
@@ -41,7 +49,7 @@ exports.up = function (db, callback) {
             RETURNS boolean AS
         $$
         BEGIN
-            RETURN validate_json_object_keys(obj, mandatory_keys, array []::text[]);
+            RETURN is_object(obj) AND validate_json_object_keys(obj, mandatory_keys, array []::text[]);
         END;
         $$ LANGUAGE plpgsql;
 
@@ -49,7 +57,11 @@ exports.up = function (db, callback) {
             RETURNS boolean AS
         $$
         BEGIN
-            RETURN validate_json_object_keys(obj, array ['abi', 'userdoc', 'devdoc', 'sources', 'storageLayout']);
+            RETURN is_object(obj) AND validate_json_object_keys(
+              obj, 
+              array ['abi', 'userdoc', 'devdoc', 'sources', 'storageLayout'],
+              array []::text[]
+            );
         END;
         $$ LANGUAGE plpgsql;
 
@@ -57,7 +69,7 @@ exports.up = function (db, callback) {
             RETURNS boolean AS
         $$
         BEGIN
-            RETURN validate_json_object_keys(obj, array ['sourceMap', 'linkReferences'], array ['cborAuxdata']);
+            RETURN is_object(obj) AND validate_json_object_keys(obj, array ['sourceMap', 'linkReferences'], array ['cborAuxdata']);
         END;
         $$ LANGUAGE plpgsql;
 
@@ -65,7 +77,7 @@ exports.up = function (db, callback) {
             RETURNS boolean AS
         $$
         BEGIN
-            RETURN validate_json_object_keys(obj, array ['sourceMap', 'linkReferences', 'immutableReferences'],
+            RETURN is_object(obj) AND validate_json_object_keys(obj, array ['sourceMap', 'linkReferences', 'immutableReferences'],
                                             array ['cborAuxdata']);
         END;
         $$ LANGUAGE plpgsql;
