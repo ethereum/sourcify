@@ -37,20 +37,49 @@ export default class DecentralizedStorageFetcher extends EventEmitter {
     this.storageFetcherLogger = logger.child({
       moduleName: "DecentralizedStorageFetcher " + origin,
     });
+    // decentralizedStorageConfig.gateways can be either string or GatewayFetcherConfig
     this.gatewayFetchers = decentralizedStorageConfig.gateways.map(
-      (gatewayURL) =>
-        new GatewayFetcher({
-          url: gatewayURL,
-          fetchTimeout:
-            decentralizedStorageConfig.timeout ||
-            defaultConfig.decentralizedStorages.ipfs.timeout,
-          fetchInterval:
-            decentralizedStorageConfig.interval ||
-            defaultConfig.decentralizedStorages.ipfs.interval,
-          fetchRetries:
-            decentralizedStorageConfig.retries ||
-            defaultConfig.decentralizedStorages.ipfs.retries,
-        }),
+      (gateway) => {
+        if (typeof gateway === "string") {
+          // If gateway is a string use decentralizedStorageConfig options
+          //  if not available then use defaultConfig
+          return new GatewayFetcher({
+            url: gateway,
+            timeout:
+              decentralizedStorageConfig.timeout ||
+              defaultConfig.decentralizedStorages.ipfs.timeout,
+            interval:
+              decentralizedStorageConfig.interval ||
+              defaultConfig.decentralizedStorages.ipfs.interval,
+            retries:
+              decentralizedStorageConfig.retries ||
+              defaultConfig.decentralizedStorages.ipfs.retries,
+            headers: decentralizedStorageConfig.headers,
+          });
+        } else if (gateway.url) {
+          // If gateway is object use gateway's options
+          //  if not avaible then use decentralizedStorageConfig
+          //  if not available then use defaultConfig
+          return new GatewayFetcher({
+            url: gateway.url,
+            timeout:
+              gateway.timeout ||
+              decentralizedStorageConfig.timeout ||
+              defaultConfig.decentralizedStorages.ipfs.timeout,
+            interval:
+              gateway.interval ||
+              decentralizedStorageConfig.interval ||
+              defaultConfig.decentralizedStorages.ipfs.interval,
+            retries:
+              gateway.retries ||
+              decentralizedStorageConfig.retries ||
+              defaultConfig.decentralizedStorages.ipfs.retries,
+            headers: gateway.headers || decentralizedStorageConfig.headers,
+          });
+        } else {
+          throw new Error("You need to specify gateway url");
+        }
+      },
     );
   }
 

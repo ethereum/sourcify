@@ -42,13 +42,25 @@ The structure of the file is as such:
   decentralizedStorages: {
     ipfs: {
       enabled: true,
-      gateways: ["https://ipfs.io/ipfs/", "http://localhost:8080/ipfs/"],
+      gateways: [
+        // Passing gateway as a string will use default settings
+        "https://ipfs.io/ipfs/",
+        // If you need gateways specific settings you can pass them in an object
+        {
+          url: "http://localhost:8080/ipfs/",
+          headers: {
+            "Authentication": "xxx"
+          }
+        }
+      ],
       // Time when the request to the gateway will timeout i.e. canceled in ms
       timeout: 30000,
       // Time between each request to the gateway in ms
       interval: 5000,
       // Number of retries before giving up
       retries: 5,
+      // (optional) Headers passed to the fetch headers parameter
+      headers: {}
     },
     // can also have swarm
   },
