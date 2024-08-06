@@ -215,7 +215,11 @@ export async function verifyDeployed(
     });
   }
 
-  // Case when extra unused files in compiler input cause different bytecode (https://github.com/ethereum/sourcify/issues/618)
+  // Case when extra unused files in compiler input cause different bytecode
+  // See issues:
+  // https://github.com/ethereum/sourcify/issues/618
+  // https://github.com/ethereum/solidity/issues/14250
+  // https://github.com/ethereum/solidity/issues/14494
   try {
     if (
       splitAuxdata(match.onchainRuntimeBytecode || '')[1] ===

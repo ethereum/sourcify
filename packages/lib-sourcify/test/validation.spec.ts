@@ -222,4 +222,21 @@ describe('Unit tests', function () {
     await unzipFiles(files);
     expect(files).lengthOf(19);
   });
+  it('Should unzip and exclude any __MACOSX folders', async function () {
+    const zippedTrufflePath = path.join(
+      'test',
+      'validation',
+      'files',
+      'truffle-example-with-macosx.zip',
+    );
+    const zippedTruffleBuffer = fs.readFileSync(zippedTrufflePath);
+    const files = [
+      {
+        path: zippedTrufflePath,
+        buffer: zippedTruffleBuffer,
+      },
+    ];
+    await unzipFiles(files);
+    expect(files).lengthOf(19);
+  });
 });
