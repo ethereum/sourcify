@@ -177,6 +177,10 @@ program
   )
   .option("-sf, --start-from [number]", "Start from a specific timestamp (ms)")
   .option("-l, --limit [number]", "Limit of concurrent verifications (ms)")
+  .option(
+    "-d, --deprecated [items]",
+    "Pass --deprecated to sync deprecated networks",
+  )
   .action(async (sourcifyInstance, repositoryV1Path, options) => {
     if (path.parse(repositoryV1Path).base !== "contracts") {
       console.error(
@@ -209,10 +213,14 @@ program
       );
     }
 
-    // Remove exceptions using --chainsException and 0
-    if (options.chainsExceptions) {
+    if (options.deprecated?.length > 0) {
+      chains = chains.filter((chain) =>
+        options.deprecated?.split(",").includes(`${chain}`),
+      );
+    } else {
+      // Remove exceptions using --chainsException and 0
       chains = chains.filter(
-        (chain) => !options.chainsExceptions.split(",").includes(`${chain}`),
+        (chain) => !options.chainsExceptions?.split(",").includes(`${chain}`),
       );
     }
 
@@ -273,11 +281,17 @@ const startSyncChain = async (
 
     // Process contract if within activePromises limit
     activePromises++;
-    processContract(sourcifyInstance, repositoryV1Path, databasePool, {
-      address: nextContract.address.toString(),
-      chain_id: nextContract.chain_id,
-      match_type: nextContract.match_type,
-    })
+    processContract(
+      sourcifyInstance,
+      repositoryV1Path,
+      databasePool,
+      options.deprecated?.length > 0,
+      {
+        address: nextContract.address.toString(),
+        chain_id: nextContract.chain_id,
+        match_type: nextContract.match_type,
+      },
+    )
       .then((res) => {
         if (res[0]) {
           monitoring.totalSynced++;
@@ -322,6 +336,7 @@ const processContract = async (
   sourcifyInstance,
   repositoryV1Path,
   databasePool,
+  deprecated = false,
   contract,
 ) => {
   return new Promise(async (resolve) => {
@@ -357,7 +372,21 @@ const processContract = async (
       if (process.env.BEARER_TOKEN) {
         headers.Authorization = `Bearer ${process.env.BEARER_TOKEN}`;
       }
-      const request = await fetch(`${sourcifyInstance}/verify`, {
+      let url = `${sourcifyInstance}/verify`;
+      if (deprecated) {
+        url = `${sourcifyInstance}/verify-deprecated`;
+        switch (matchType) {
+          case "full_match":
+            body.match = "perfect";
+            break;
+          case "partial_match":
+            body.match = "partial";
+            break;
+          default:
+            throw new Error("Cannot infer match type");
+        }
+      }
+      const request = await fetch(url, {
         method: "POST",
         body: JSON.stringify(body),
         headers,
