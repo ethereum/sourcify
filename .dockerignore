@@ -8,3 +8,9 @@
 **/Dockerfile*
 **/.DS_Store
 .nx
+**/.env
+**/.env-backup
+**/*.key
+
+# Config files
+**/config/local.js
