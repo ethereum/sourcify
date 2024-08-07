@@ -6,7 +6,7 @@ import { KnownDecentralizedStorageFetchers } from "./types";
 import assert from "assert";
 import dotenv from "dotenv";
 import { Logger } from "winston";
-import axios from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 
 dotenv.config();
 
@@ -142,24 +142,36 @@ export default class PendingContract {
       formattedSources[sourceUnitName] = source.content;
     }
 
-    // Send to Sourcify server.
-    const response = await axios({
-      url: sourcifyServerURL,
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "User-Agent": "sourcify-monitor",
-      },
-      data: JSON.stringify({
-        chainId: this.chainId.toString(),
-        address: this.address,
-        files: {
-          ...formattedSources,
-          "metadata.json": JSON.stringify(this.metadata),
+    let response: AxiosResponse;
+    try {
+      // Send to Sourcify server.
+      response = await axios({
+        url: sourcifyServerURL,
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "User-Agent": "sourcify-monitor",
         },
-        creatorTxHash,
-      }),
-    });
+        data: JSON.stringify({
+          chainId: this.chainId.toString(),
+          address: this.address,
+          files: {
+            ...formattedSources,
+            "metadata.json": JSON.stringify(this.metadata),
+          },
+          creatorTxHash,
+        }),
+      });
+    } catch (error: any) {
+      if (error instanceof AxiosError) {
+        // If the error contains the request's body then it fails to log because of payload size
+        if (error.config?.data) {
+          delete error.config.data;
+        }
+        throw error;
+      }
+      throw error;
+    }
 
     if (response.status === 200) {
       this.contractLogger.info(
