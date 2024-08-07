@@ -19,20 +19,20 @@ module.exports = {
     ],
   },
   repositoryV1: {
-    path: "/home/app/repository",
+    path: "/home/app/data/repository",
     serverUrl: "https://repo.sourcify.dev",
   },
   repositoryV2: {
-    path: "/home/app/repositoryV2",
+    path: "/home/app/data/repositoryV2",
   },
-  solcRepo: "/data/compilers/solc",
-  solJsonRepo: "/data/compilers/soljson",
+  solcRepo: "/home/app/data/compilers/solc",
+  solJsonRepo: "/home/app/data/compilers/soljson",
   session: {
     secure: true, // Set Secure in the Set-Cookie header i.e. require https
     storeType: "database",
   },
   lambdaCompiler: {
-    enabled: true,
+    enabled: false,
     functionName: "compile-production:3",
     // credentials as env vars
   },

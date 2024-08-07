@@ -32,7 +32,7 @@ module.exports = {
     storeType: "database",
   },
   lambdaCompiler: {
-    enabled: true,
+    enabled: false,
     functionName: "compile:3",
     // credentials as env vars
   },
