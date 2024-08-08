@@ -1023,6 +1023,10 @@
       }
     }
   },
+  "2017": {
+    "sourcifyName": "Telcoin Network",
+    "supported": true
+  },
   "25925": {
     "sourcifyName": "Bitkub Chain Testnet",
     "supported": true,

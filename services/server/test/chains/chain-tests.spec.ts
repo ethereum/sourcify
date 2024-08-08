@@ -896,6 +896,14 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
+  // Telcoin Network
+  verifyContract(
+    "0x25E8aB38013CB30D74992Aa5d1a74B65409Dc6b1",
+    "2017",
+    "Telcoin Network",
+    "shared/",
+  );
+
   // Bitkub Chain Testnet
   verifyContract(
     "0x58909Ef2F2b167F52cF46575f1582500287cCE48",
