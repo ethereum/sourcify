@@ -206,9 +206,13 @@ program
       chainsFromDB = chainsResult.rows.map(({ chain_id }) => chain_id);
     }
 
-    let chainsToSync = [];
+    console.log(
+      `Chains to sync from sourciy_sync table: ${chainsFromDB.join(",")}`,
+    );
+
+    let chainsToSync = chainsFromDB;
     // Specify which chain to sync
-    if (options.chains) {
+    if (options.chains?.length > 0) {
       chainsToSync = chainsFromDB.filter((chain) =>
         options.chains.split(",").includes(`${chain}`),
       );
@@ -218,6 +222,9 @@ program
     if (options.deprecated?.length > 0) {
       deprecatedChains = chainsFromDB.filter((chain) =>
         options.deprecated?.split(",").includes(`${chain}`),
+      );
+      chainsToSync = chainsToSync.filter(
+        (chain) => !options.deprecated.split(",").includes(`${chain}`),
       );
     }
 
@@ -281,7 +288,7 @@ const startSyncChain = async (
 
   while (true) {
     while (activePromises >= maxLimit) {
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 10));
     }
 
     // Fetch next contract
