@@ -368,9 +368,7 @@ const processContract = async (
     );
 
     const files = {};
-    for await (const entry of readdirp(repoPath, {
-      fileFilter: ["*.sol", "metadata.json"],
-    })) {
+    for await (const entry of readdirp(repoPath)) {
       files[entry.path] = await readFile(entry.fullPath, "utf8");
     }
 
