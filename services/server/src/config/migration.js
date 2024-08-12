@@ -35,6 +35,7 @@ module.exports = {
     // credentials as env vars
   },
   initCompilers: true,
+  verifyDeprecated: true,
   rateLimit: {
     enabled: false,
     windowMs: 1 * 1000, // 1 sec

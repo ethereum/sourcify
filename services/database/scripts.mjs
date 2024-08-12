@@ -177,6 +177,10 @@ program
   )
   .option("-sf, --start-from [number]", "Start from a specific timestamp (ms)")
   .option("-l, --limit [number]", "Limit of concurrent verifications (ms)")
+  .option(
+    "-d, --deprecated [items]",
+    "Pass --deprecated to sync deprecated networks",
+  )
   .action(async (sourcifyInstance, repositoryV1Path, options) => {
     if (path.parse(repositoryV1Path).base !== "contracts") {
       console.error(
@@ -195,44 +199,75 @@ program
     });
 
     // Get chains from database
-    let chains = [];
+    let chainsFromDB = [];
     const query = "SELECT DISTINCT chain_id FROM sourcify_sync";
     const chainsResult = await executeQueryWithRetry(databasePool, query);
     if (chainsResult.rowCount > 0) {
-      chains = chainsResult.rows.map(({ chain_id }) => chain_id);
+      chainsFromDB = chainsResult.rows.map(({ chain_id }) => chain_id);
     }
 
+    console.log(
+      `Chains to sync from sourciy_sync table: ${chainsFromDB.join(",")}`,
+    );
+
+    let chainsToSync = chainsFromDB;
     // Specify which chain to sync
-    if (options.chains) {
-      chains = chains.filter((chain) =>
+    if (options.chains?.length > 0) {
+      chainsToSync = chainsFromDB.filter((chain) =>
         options.chains.split(",").includes(`${chain}`),
       );
     }
 
-    // Remove exceptions using --chainsException and 0
-    if (options.chainsExceptions) {
-      chains = chains.filter(
-        (chain) => !options.chainsExceptions.split(",").includes(`${chain}`),
+    let deprecatedChains = [];
+    if (options.deprecated?.length > 0) {
+      deprecatedChains = chainsFromDB.filter((chain) =>
+        options.deprecated?.split(",").includes(`${chain}`),
+      );
+      chainsToSync = chainsToSync.filter(
+        (chain) => !options.deprecated.split(",").includes(`${chain}`),
       );
     }
+
+    // Remove exceptions using --chainsException and 0
+    chainsToSync = chainsToSync.filter(
+      (chain) => !options.chainsExceptions?.split(",").includes(`${chain}`),
+    );
 
     let monitoring = {
       totalSynced: 0,
       startedAt: Date.now(),
     };
-    // For each chain start a parallel process
-    await Promise.all(
-      chains.map((chainId) =>
-        startSyncChain(
-          sourcifyInstance,
-          repositoryV1Path,
-          chainId,
-          JSON.parse(JSON.stringify(options)),
-          databasePool,
-          monitoring,
-        ),
+
+    console.log(
+      `Syncing chains: ${chainsToSync.join(",")} and deprecated chains: ${deprecatedChains.join(",")}`,
+    );
+
+    // Sync in parallel
+    const syncPromises = chainsToSync.map((chainId) =>
+      startSyncChain(
+        sourcifyInstance,
+        repositoryV1Path,
+        chainId,
+        JSON.parse(JSON.stringify(options)),
+        databasePool,
+        monitoring,
       ),
     );
+
+    // Also sync deprecated in parallel
+    const deprecatedSyncPromises = deprecatedChains.map((chainId) =>
+      startSyncChain(
+        sourcifyInstance,
+        repositoryV1Path,
+        chainId,
+        JSON.parse(JSON.stringify(options)),
+        databasePool,
+        monitoring,
+        true,
+      ),
+    );
+
+    await Promise.all([...syncPromises, ...deprecatedSyncPromises]);
 
     databasePool.end();
   });
@@ -244,19 +279,17 @@ const startSyncChain = async (
   options,
   databasePool,
   monitoring,
+  deprecated = false,
 ) => {
   let activePromises = 0;
   let maxLimit = options.limit ? options.limit : 1; // Maximum allowed parallel requests
-  let currentLimit = 1; // Starting with 1 request at a time
 
   let processedContracts = 0;
-  while (true) {
-    while (activePromises >= currentLimit) {
-      await new Promise((resolve) => setTimeout(resolve, 200));
-    }
 
-    // Helps to reduce the rpc hit limit error
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+  while (true) {
+    while (activePromises >= maxLimit) {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    }
 
     // Fetch next contract
     let optionsSafe = JSON.parse(JSON.stringify(options));
@@ -273,11 +306,17 @@ const startSyncChain = async (
 
     // Process contract if within activePromises limit
     activePromises++;
-    processContract(sourcifyInstance, repositoryV1Path, databasePool, {
-      address: nextContract.address.toString(),
-      chain_id: nextContract.chain_id,
-      match_type: nextContract.match_type,
-    })
+    processContract(
+      sourcifyInstance,
+      repositoryV1Path,
+      databasePool,
+      deprecated,
+      {
+        address: nextContract.address.toString(),
+        chain_id: nextContract.chain_id,
+        match_type: nextContract.match_type,
+      },
+    )
       .then((res) => {
         if (res[0]) {
           monitoring.totalSynced++;
@@ -293,16 +332,6 @@ const startSyncChain = async (
           console.error(`Failed to sync ${[res[1]]}`);
         }
         activePromises--;
-
-        // Increment currentLimit after a successful process and if it hasn't reached the max limit yet
-        if (currentLimit < maxLimit) {
-          currentLimit++;
-          logToFile(
-            chainId,
-            `Slow start: Increasing chain #${chainId}'s currentLimit to ${currentLimit}`,
-          );
-        }
-
         processedContracts++;
       })
       .catch((e) => {
@@ -322,53 +351,65 @@ const processContract = async (
   sourcifyInstance,
   repositoryV1Path,
   databasePool,
+  deprecated = false,
   contract,
 ) => {
-  return new Promise(async (resolve) => {
-    try {
-      const address = contract.address;
-      const chainId = contract.chain_id;
-      const matchType = contract.match_type;
+  try {
+    const address = contract.address;
+    const chainId = contract.chain_id;
+    const matchType = contract.match_type;
 
-      const repoPath = path.join(
-        repositoryV1Path,
-        matchType,
-        chainId,
-        address,
-        "/",
-      );
+    const repoPath = path.join(
+      repositoryV1Path,
+      matchType,
+      chainId,
+      address,
+      "/",
+    );
 
-      const files = {};
-      for await (const entry of readdirp(repoPath, {
-        fileFilter: ["*.sol", "metadata.json"],
-      })) {
-        files[entry.path] = await readFile(entry.fullPath, "utf8");
+    const files = {};
+    for await (const entry of readdirp(repoPath)) {
+      files[entry.path] = await readFile(entry.fullPath, "utf8");
+    }
+
+    const body = {
+      address: address,
+      chain: chainId,
+      files,
+    };
+
+    const headers = {
+      "Content-Type": "application/json",
+    };
+    if (process.env.BEARER_TOKEN) {
+      headers.Authorization = `Bearer ${process.env.BEARER_TOKEN}`;
+    }
+    let url = `${sourcifyInstance}/verify`;
+    if (deprecated) {
+      url = `${sourcifyInstance}/verify-deprecated`;
+      switch (matchType) {
+        case "full_match":
+          body.match = "perfect";
+          break;
+        case "partial_match":
+          body.match = "partial";
+          break;
+        default:
+          throw new Error("Cannot infer match type");
       }
+    }
+    const request = await fetch(url, {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers,
+    });
 
-      const body = {
-        address: address,
-        chain: chainId,
-        files,
-      };
-
-      const headers = {
-        "Content-Type": "application/json",
-      };
-      if (process.env.BEARER_TOKEN) {
-        headers.Authorization = `Bearer ${process.env.BEARER_TOKEN}`;
-      }
-      const request = await fetch(`${sourcifyInstance}/verify`, {
-        method: "POST",
-        body: JSON.stringify(body),
-        headers,
-      });
-
-      if (request.status === 200) {
-        const response = await request.json();
-        if (response.result[0].status !== null) {
-          await executeQueryWithRetry(
-            databasePool,
-            `
+    if (request.status === 200) {
+      const response = await request.json();
+      if (response.result[0].status !== null) {
+        await executeQueryWithRetry(
+          databasePool,
+          `
           UPDATE sourcify_sync
           SET 
             synced = true
@@ -377,34 +418,30 @@ const processContract = async (
             AND address = $2
             AND match_type = $3   
           `,
-            [contract.chain_id, contract.address, contract.match_type],
-          );
-        }
-        resolve([
-          true,
           [contract.chain_id, contract.address, contract.match_type],
-        ]);
-      } else {
-        resolve([
-          false,
-          `${[
-            contract.chain_id,
-            contract.address,
-            contract.match_type,
-          ]} with error: ${await request.text()}`,
-        ]);
+        );
       }
-    } catch (e) {
-      resolve([
+      return [true, [contract.chain_id, contract.address, contract.match_type]];
+    } else {
+      return [
         false,
         `${[
           contract.chain_id,
           contract.address,
           contract.match_type,
-        ]} with error: ${e}`,
-      ]);
+        ]} with error: ${await request.text()}`,
+      ];
     }
-  });
+  } catch (e) {
+    return [
+      false,
+      `${[
+        contract.chain_id,
+        contract.address,
+        contract.match_type,
+      ]} with error: ${e}`,
+    ];
+  }
 };
 
 function logToFile(chainId, message) {
@@ -425,7 +462,7 @@ function logToFile(chainId, message) {
   console.log(timestampedMessage);
 }
 
-const fetchNextContract = async (databasePool, options, chainId) => {
+const fetchNextContract = async (databasePool, options, chainId, limit = 1) => {
   try {
     const query = `
       SELECT
@@ -436,7 +473,7 @@ const fetchNextContract = async (databasePool, options, chainId) => {
         AND chain_id = $2
         AND synced = false
       ORDER BY id ASC
-      LIMIT 1
+      LIMIT ${limit}
     `;
     const contractResult = await executeQueryWithRetry(databasePool, query, [
       options.startFrom ? options.startFrom : 0,
