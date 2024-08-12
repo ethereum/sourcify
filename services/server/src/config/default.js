@@ -54,6 +54,8 @@ module.exports = {
     /^https?:\/\/(?:.+\.)?ipfs.dweb.link$/, // dweb links used by Brave browser etc.
     process.env.NODE_ENV !== "production" && /^https?:\/\/localhost(?::\d+)?$/, // localhost on any port
   ],
+  // verify-deprecated endpoint used in services/database/scripts.mjs. Used when recreating the DB with deprecated chains that don't have an RPC.
+  verifyDeprecated: false,
   rateLimit: {
     enabled: false,
     // Check done with "startsWith"
