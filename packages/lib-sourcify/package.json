@@ -68,6 +68,7 @@
     "gh-pages": "6.1.1",
     "hardhat": "2.22.8",
     "mocha": "10.7.3",
+    "nock": "^14.0.0-beta.9",
     "npm-run-all2": "5.0.2",
     "open-cli": "8.0.0",
     "solc": "0.8.26",
