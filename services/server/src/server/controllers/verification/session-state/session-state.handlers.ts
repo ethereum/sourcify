@@ -89,9 +89,15 @@ export async function addInputContractEndpoint(req: Request, res: Response) {
     throw new BadRequestError("The contract doesn't have a metadata IPFS CID");
   }
 
-  const ipfsUrl = `${getIpfsGateway()}${metadataIpfsCid}`;
+  const ipfsGateway = getIpfsGateway();
+  const ipfsUrl = `${ipfsGateway.url}${metadataIpfsCid}`;
   const metadataFileName = "metadata.json";
-  const retrievedMetadataText = await performFetch(ipfsUrl);
+  const retrievedMetadataText = await performFetch(
+    ipfsUrl,
+    undefined,
+    undefined,
+    ipfsGateway.headers,
+  );
 
   if (!retrievedMetadataText) {
     logger.info("Could not retrieve metadata", { ipfsUrl });
