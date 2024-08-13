@@ -183,7 +183,7 @@ describe('Checked contract', () => {
       ),
     ).equals(null);
   });
-  it.only('Should performFetch', async () => {
+  it('Should performFetch', async () => {
     const ipfsGateway = getIpfsGateway();
     expect(
       await performFetch(
