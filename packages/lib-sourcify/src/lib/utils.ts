@@ -10,6 +10,7 @@ import { logDebug, logError } from './logger';
  */
 export async function fetchWithBackoff(
   resource: string,
+  headers: HeadersInit = {},
   backoff: number = 10000,
   retries: number = 4,
 ) {
@@ -25,6 +26,7 @@ export async function fetchWithBackoff(
       }, timeout);
       const response = await fetch(resource, {
         signal: controller.signal,
+        headers,
       });
       logDebug('Success fetchWithBackoff', { resource, timeout, attempt });
       clearTimeout(id);

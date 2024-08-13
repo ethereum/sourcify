@@ -10,6 +10,7 @@ import {
 import {
   CheckedContract,
   getGithubUrl,
+  getIpfsGateway,
   performFetch,
 } from '../src/lib/CheckedContract';
 import storageMetadata from './sources/Storage/metadata.json';
@@ -19,6 +20,11 @@ import SimplyLog from './sources/WrongMetadata/SimplyLog.json';
 import earlyCompilerInput from './sources/json-input/pre-v0.4.0/input.json';
 import { keccak256 } from 'ethers';
 import { solc } from './utils';
+import { fetchWithBackoff } from '../src/lib/utils';
+import http from 'http';
+import { Done } from 'mocha';
+import { AddressInfo } from 'net';
+
 describe('Verify Solidity Compiler', () => {
   it('Should fetch latest SolcJS compiler', async () => {
     expect(await getSolcJs()).not.equals(null);
@@ -137,18 +143,43 @@ describe('Checked contract', () => {
   it('Should return null after failed performFetch', async () => {
     expect(await performFetch('httpx://')).to.equal(null);
   });
+  it('Should call fetchWithBackoff with headers', (done: Done) => {
+    const server = http.createServer((req) => {
+      expect(req.headers['test']).to.equal('test');
+      server.close();
+      done();
+    });
+    // Passing 0 assign first available port
+    server.listen(0, () => {
+      const { port } = server.address() as AddressInfo;
+      fetchWithBackoff(`http://localhost:${port}`, {
+        test: 'test',
+      });
+    });
+  });
+  it('Should return getIpfsGateway with headers', async () => {
+    process.env.IPFS_GATEWAY_HEADERS = `{ "test": "test" }`;
+    const ipfsGateway = getIpfsGateway();
+    expect(ipfsGateway.headers).to.deep.equal({
+      test: 'test',
+    });
+  });
   it('Should fail performFetch because mismatching keccak256', async () => {
+    const ipfsGateway = getIpfsGateway();
     expect(
       await performFetch(
-        'https://ipfs.io/ipfs/QmTkSBN1QffhGKwx365m5va6Pikz3pUJcAfaSRybkeCCDr',
+        ipfsGateway.url +
+          '/ipfs/QmTkSBN1QffhGKwx365m5va6Pikz3pUJcAfaSRybkeCCDr',
         '0x00',
       ),
     ).equals(null);
   });
   it('Should performFetch', async () => {
+    const ipfsGateway = getIpfsGateway();
     expect(
       await performFetch(
-        'https://ipfs.io/ipfs/QmTkSBN1QffhGKwx365m5va6Pikz3pUJcAfaSRybkeCCDr',
+        ipfsGateway.url +
+          '/ipfs/QmTkSBN1QffhGKwx365m5va6Pikz3pUJcAfaSRybkeCCDr',
         '0xe76037d6a371fa3a073db88b7b76c371e0ab601be742fa1b089a74b996e360be',
       ),
     ).to.not.equal(null);

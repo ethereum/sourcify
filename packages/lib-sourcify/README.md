@@ -68,6 +68,8 @@ Each contract source either has a `content` field containing the Solidity code a
 CheckedContract.fetchMissing(checkedContracts[0]); // static method
 ```
 
+By default, IPFS resources will be fetched via https://ipfs.io/ipfs. You can specify a custom IPFS gateway using `process.env.IPFS_GATEWAY=https://custom-gateway`, if you need to pass additional headers to the request (e.g. for authentication) you can use `process.env.IPFS_GATEWAY_HEADERS={ 'custom-header': 'value' }`.
+
 You can check if a contract is ready to be compiled with:
 
 ```ts
@@ -87,7 +89,7 @@ export async function verifyDeployed(
   checkedContract: CheckedContract,
   sourcifyChain: SourcifyChain,
   address: string,
-  creatorTxHash?: string
+  creatorTxHash?: string,
 ): Promise<Match>;
 ```
 
@@ -122,7 +124,7 @@ export async function verifyCreate2(
   deployerAddress: string,
   salt: string,
   create2Address: string,
-  abiEncodedConstructorArguments?: string
+  abiEncodedConstructorArguments?: string,
 ): Promise<Match>;
 ```
 
@@ -134,7 +136,7 @@ const match = await verifyCreate2(
   deployerAddress,
   salt,
   create2Address,
-  abiEncodedConstructorArguments
+  abiEncodedConstructorArguments,
 );
 
 console.log(match.chainId); // '0'. create2 matches return 0 as chainId

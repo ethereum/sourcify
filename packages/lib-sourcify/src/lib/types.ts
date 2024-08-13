@@ -574,3 +574,8 @@ export interface AuxdataDiff {
   diffStart: number;
   diff: string;
 }
+
+export interface IpfsGateway {
+  url: string;
+  headers?: HeadersInit;
+}
