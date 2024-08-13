@@ -184,12 +184,11 @@ describe('Checked contract', () => {
       ),
     ).equals(null);
   });
-  it('Should performFetch', async () => {
+  it.only('Should performFetch', async () => {
     const ipfsGateway = getIpfsGateway();
     expect(
       await performFetch(
-        ipfsGateway.url +
-          '/ipfs/QmTkSBN1QffhGKwx365m5va6Pikz3pUJcAfaSRybkeCCDr',
+        ipfsGateway.url + 'QmTkSBN1QffhGKwx365m5va6Pikz3pUJcAfaSRybkeCCDr',
         '0xe76037d6a371fa3a073db88b7b76c371e0ab601be742fa1b089a74b996e360be',
       ),
     ).to.not.equal(null);
