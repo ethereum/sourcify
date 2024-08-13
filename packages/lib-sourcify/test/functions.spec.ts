@@ -21,9 +21,7 @@ import earlyCompilerInput from './sources/json-input/pre-v0.4.0/input.json';
 import { keccak256 } from 'ethers';
 import { solc } from './utils';
 import { fetchWithBackoff } from '../src/lib/utils';
-import http from 'http';
-import { Done } from 'mocha';
-import { AddressInfo } from 'net';
+import nock from 'nock';
 
 describe('Verify Solidity Compiler', () => {
   it('Should fetch latest SolcJS compiler', async () => {
@@ -143,19 +141,21 @@ describe('Checked contract', () => {
   it('Should return null after failed performFetch', async () => {
     expect(await performFetch('httpx://')).to.equal(null);
   });
-  it('Should call fetchWithBackoff with headers', (done: Done) => {
-    const server = http.createServer((req) => {
-      expect(req.headers['test']).to.equal('test');
-      server.close();
-      done();
-    });
-    // Passing 0 assign first available port
-    server.listen(0, () => {
-      const { port } = server.address() as AddressInfo;
-      fetchWithBackoff(`http://localhost:${port}`, {
+  it('Should call fetchWithBackoff with headers', async () => {
+    const ipfsGateway = 'http://ipfs-gateway';
+    nock(ipfsGateway, {
+      reqheaders: {
         test: 'test',
+      },
+    })
+      .get('/')
+      .reply(function () {
+        return [200];
       });
+    const response = await fetchWithBackoff(ipfsGateway, {
+      test: 'test',
     });
+    expect(response.status).to.equal(200);
   });
   it('Should fail getIpfsGateway with unparsable headers', async () => {
     process.env.IPFS_GATEWAY_HEADERS = `{ "test": unparsable-value }`;
