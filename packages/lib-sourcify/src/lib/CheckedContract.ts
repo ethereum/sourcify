@@ -757,11 +757,18 @@ function createJsonInputFromMetadata(
  * This will likely moved to server or somewhere else. But keep it here for now.
  */
 export function getIpfsGateway(): IpfsGateway {
+  let ipfsGatewaysHeaders;
+  if (process.env.IPFS_GATEWAY_HEADERS) {
+    try {
+      ipfsGatewaysHeaders = JSON.parse(process.env.IPFS_GATEWAY_HEADERS);
+    } catch (error) {
+      logError('Error while parsing IPFS_GATEWAY_HEADERS option', { error });
+      throw new Error('Error while parsing IPFS_GATEWAY_HEADERS option');
+    }
+  }
   return {
     url: process.env.IPFS_GATEWAY || 'https://ipfs.io/ipfs/',
-    headers: process.env.IPFS_GATEWAY_HEADERS
-      ? JSON.parse(process.env.IPFS_GATEWAY_HEADERS)
-      : undefined,
+    headers: ipfsGatewaysHeaders,
   };
 }
 
