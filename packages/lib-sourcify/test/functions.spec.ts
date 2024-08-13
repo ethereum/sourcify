@@ -157,6 +157,16 @@ describe('Checked contract', () => {
       });
     });
   });
+  it('Should fail getIpfsGateway with unparsable headers', async () => {
+    process.env.IPFS_GATEWAY_HEADERS = `{ "test": unparsable-value }`;
+    try {
+      getIpfsGateway();
+    } catch (error: any) {
+      expect(error.message).to.equal(
+        'Error while parsing IPFS_GATEWAY_HEADERS option',
+      );
+    }
+  });
   it('Should return getIpfsGateway with headers', async () => {
     process.env.IPFS_GATEWAY_HEADERS = `{ "test": "test" }`;
     const ipfsGateway = getIpfsGateway();
