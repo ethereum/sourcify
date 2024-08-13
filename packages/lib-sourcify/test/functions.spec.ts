@@ -178,8 +178,7 @@ describe('Checked contract', () => {
     const ipfsGateway = getIpfsGateway();
     expect(
       await performFetch(
-        ipfsGateway.url +
-          '/ipfs/QmTkSBN1QffhGKwx365m5va6Pikz3pUJcAfaSRybkeCCDr',
+        ipfsGateway.url + 'QmTkSBN1QffhGKwx365m5va6Pikz3pUJcAfaSRybkeCCDr',
         '0x00',
       ),
     ).equals(null);
