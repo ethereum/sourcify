@@ -21,10 +21,10 @@
       "groupSlug": "all-minor"
     },
     {
-      "matchPackagePatterns": ["node"],
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "all Node.js dependencies",
-      "groupSlug": "all-node"
+      "groupSlug": "all-node",
+      "matchPackageNames": ["/node/"]
     }
   ],
   "major": {
