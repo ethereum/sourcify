@@ -766,8 +766,14 @@ export function getIpfsGateway(): IpfsGateway {
       throw new Error('Error while parsing IPFS_GATEWAY_HEADERS option');
     }
   }
+
+  const ipfsGatewayUrl = process.env.IPFS_GATEWAY || 'https://ipfs.io/ipfs/';
+  const urlWithTrailingSlash = ipfsGatewayUrl.endsWith('/')
+    ? ipfsGatewayUrl
+    : `${ipfsGatewayUrl}/`;
+
   return {
-    url: process.env.IPFS_GATEWAY || 'https://ipfs.io/ipfs/',
+    url: urlWithTrailingSlash,
     headers: ipfsGatewaysHeaders,
   };
 }
