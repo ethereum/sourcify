@@ -66,7 +66,7 @@ The structure of the file is as such:
   },
   // Sourcify instances to verify the contracts on. Can be multiple
   sourcifyServerURLs: ["https://sourcify.dev/server/", "http://localhost:5555/"],
-  sourcifyRequest: {
+  sourcifyRequestOptions: {
     // Maximum number of retry attempts for contract verification requests after encountering an error
     maxRetries: 3,
     // Delay in milliseconds between each retry attempt for verification requests to Sourcify
