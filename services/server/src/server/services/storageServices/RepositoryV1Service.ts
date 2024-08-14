@@ -370,7 +370,6 @@ export class RepositoryV1Service implements RWStorageService {
     await fs.promises.mkdir(Path.dirname(abolsutePath), { recursive: true });
     await fs.promises.writeFile(abolsutePath, content);
     logger.silly("Saved file to repositoryV1", { abolsutePath });
-    await this.updateRepositoryTag();
   }
 
   public async storeMatch(
@@ -480,15 +479,6 @@ export class RepositoryV1Service implements RWStorageService {
     if (await exists(absolutePath)) {
       await fs.promises.rm(absolutePath, { recursive: true });
     }
-  }
-
-  async updateRepositoryTag() {
-    const filePath: string = Path.join(this.repositoryPath, "manifest.json");
-    const timestamp = new Date().getTime();
-    const tag: RepositoryTag = {
-      timestamp: timestamp,
-    };
-    await fs.promises.writeFile(filePath, JSON.stringify(tag));
   }
 
   /**
