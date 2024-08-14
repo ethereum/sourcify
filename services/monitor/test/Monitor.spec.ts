@@ -14,11 +14,14 @@ import {
 } from "./hardhat-network-helper";
 import { ChildProcess } from "child_process";
 import storageContractArtifact from "./sources/Storage/1_Storage.json";
+import nock from "nock";
 
 const HARDHAT_PORT = 8546;
 // Configured in hardhat.config.js
 const HARDHAT_BLOCK_TIME_IN_SEC = 3;
 const MOCK_SOURCIFY_SERVER = "http://mocksourcifyserver.dev/server/";
+const MOCK_SOURCIFY_SERVER_RETURNING_ERRORS =
+  "http://mocksourcifyserver-returning-errors.dev/server/";
 const localChain = {
   chainId: 1337,
   rpc: [`http://localhost:${HARDHAT_PORT}`],
@@ -119,6 +122,43 @@ describe("Monitor", function () {
         ).to.be.true;
         resolve();
       });
+    });
+  });
+
+  it("should use retry mechanism for failed Sourcify request", (done) => {
+    const maxRetries = 2;
+    monitor = new Monitor([localChain], {
+      sourcifyServerURLs: [MOCK_SOURCIFY_SERVER_RETURNING_ERRORS],
+      sourcifyRequestOptions: {
+        maxRetries,
+        retryDelay: 1000,
+      },
+      chainConfigs: {
+        [localChain.chainId]: {
+          startBlock: 0,
+          blockInterval: HARDHAT_BLOCK_TIME_IN_SEC * 1000,
+        },
+      },
+    });
+
+    deployFromAbiAndBytecode(
+      signer,
+      storageContractArtifact.abi,
+      storageContractArtifact.bytecode,
+      [],
+    ).then(() => {
+      let sourcifyMockTimesCalled = 0;
+      nock(MOCK_SOURCIFY_SERVER_RETURNING_ERRORS)
+        .post("/")
+        .times(maxRetries)
+        .reply(function () {
+          sourcifyMockTimesCalled++;
+          if (sourcifyMockTimesCalled === maxRetries) {
+            done();
+          }
+          return [500];
+        });
+      monitor.start();
     });
   });
   // Add more test cases as needed
