@@ -45,9 +45,15 @@ export type DefatultChainMonitorConfig = {
   bytecodeNumberOfTries: number;
 };
 
+export type SourcifyRequestOptions = {
+  maxRetries: number;
+  retryDelay: number;
+};
+
 export type MonitorConfig = {
   decentralizedStorages: DecentralizedStorageConfigMap;
   sourcifyServerURLs: string[];
+  sourcifyRequestOptions: SourcifyRequestOptions;
   defaultChainConfig: DefatultChainMonitorConfig;
   chainConfigs?: {
     [chainId: number]: ChainMonitorConfig;
@@ -57,6 +63,7 @@ export type MonitorConfig = {
 export type PassedMonitorConfig = {
   decentralizedStorages?: DecentralizedStorageConfig;
   sourcifyServerURLs?: string[];
+  sourcifyRequestOptions?: Partial<SourcifyRequestOptions>;
   defaultChainConfig?: DefatultChainMonitorConfig;
   chainConfigs?: {
     [chainId: number]: ChainMonitorConfig;

@@ -5,7 +5,11 @@ import { EventEmitter } from "stream";
 import { decode as bytecodeDecode } from "@ethereum-sourcify/bytecode-utils";
 import { SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
 import logger from "./logger";
-import { KnownDecentralizedStorageFetchers, MonitorConfig } from "./types";
+import {
+  KnownDecentralizedStorageFetchers,
+  MonitorConfig,
+  SourcifyRequestOptions,
+} from "./types";
 import PendingContract from "./PendingContract";
 import { Logger } from "winston";
 
@@ -22,6 +26,7 @@ export default class ChainMonitor extends EventEmitter {
   public sourcifyChain: SourcifyChain;
   private sourceFetchers: KnownDecentralizedStorageFetchers;
   private sourcifyServerURLs: string[];
+  private sourcifyRequestOptions: SourcifyRequestOptions;
 
   private chainLogger: Logger;
   private startBlock?: number;
@@ -46,6 +51,7 @@ export default class ChainMonitor extends EventEmitter {
     });
 
     this.sourcifyServerURLs = monitorConfig.sourcifyServerURLs;
+    this.sourcifyRequestOptions = monitorConfig.sourcifyRequestOptions;
 
     const chainConfig = {
       ...monitorConfig.defaultChainConfig,
@@ -292,14 +298,51 @@ export default class ChainMonitor extends EventEmitter {
       });
 
       this.sourcifyServerURLs.forEach(async (url) => {
-        try {
-          await pendingContract.sendToSourcifyServer(url, creatorTxHash);
-        } catch (error: any) {
-          this.chainLogger.error("Error sending contract to Sourcify server", {
-            url,
-            error,
-            address,
-          });
+        // Setup retry mechanism
+        let sourcifyRequestAttempt = 0;
+        while (
+          sourcifyRequestAttempt < this.sourcifyRequestOptions.maxRetries
+        ) {
+          try {
+            await pendingContract.sendToSourcifyServer(url, creatorTxHash);
+            break;
+          } catch (error: any) {
+            this.chainLogger.error(
+              "Error sending contract to Sourcify server",
+              {
+                url,
+                error,
+                address,
+                sourcifyRequestAttempt,
+              },
+            );
+
+            // If request fails increment number of attempts
+            sourcifyRequestAttempt++;
+
+            if (
+              sourcifyRequestAttempt < this.sourcifyRequestOptions.maxRetries
+            ) {
+              // If number of attempts is less than maxRetries, wait and retry
+              await new Promise((resolve) =>
+                setTimeout(resolve, this.sourcifyRequestOptions.retryDelay),
+              );
+            } else {
+              // If number of attempts >= maxRetries throw Error
+              this.chainLogger.error(
+                "Failed to send contract to Sourcify server after multiple attempts.",
+                {
+                  url,
+                  error,
+                  address,
+                  sourcifyRequestAttempt,
+                },
+              );
+              throw new Error(
+                "Failed to send contract to Sourcify server after multiple attempts.",
+              );
+            }
+          }
         }
       });
     } catch (error: any) {
