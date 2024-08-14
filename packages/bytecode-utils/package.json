@@ -41,14 +41,14 @@
     "@ethersproject/bytes": "5.7.0",
     "base-x": "4.0.0",
     "bs58": "5.0.0",
-    "cbor-x": "1.5.9"
+    "cbor-x": "1.6.0"
   },
   "devDependencies": {
     "@types/chai": "4.3.17",
     "@types/mocha": "10.0.7",
     "@types/node": "20.14.14",
     "c8": "10.1.2",
-    "chai": "4.4.1",
+    "chai": "4.5.0",
     "cz-conventional-changelog": "3.3.0",
     "mocha": "10.7.0",
     "npm-run-all2": "5.0.2"

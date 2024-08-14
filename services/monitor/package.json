@@ -44,7 +44,7 @@
     "commander": "12.1.0",
     "dotenv": "16.4.5",
     "ethers": "6.13.2",
-    "winston": "3.13.1"
+    "winston": "3.14.1"
   },
   "devDependencies": {
     "@types/chai": "4.3.17",
@@ -52,7 +52,7 @@
     "@types/node": "20.14.14",
     "@types/sinon": "17.0.3",
     "c8": "10.1.2",
-    "chai": "4.4.1",
+    "chai": "4.5.0",
     "hardhat": "2.22.7",
     "mocha": "10.7.0",
     "nock": "14.0.0-beta.9",
