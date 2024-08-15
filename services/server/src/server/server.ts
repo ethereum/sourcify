@@ -105,25 +105,28 @@ export class Server {
       }),
     );
 
-    // Inject the requestId to the AsyncLocalStorage to be logged.
+    // Inject the traceId to the AsyncLocalStorage to be logged.
     this.app.use((req, res, next) => {
-      // GCP sets the `x-cloud-trace-context` header
-      if (req.headers["x-cloud-trace-context"]) {
-        req.headers["x-request-id"] = req.headers["x-cloud-trace-context"];
+      let traceId;
+      // GCP uses the standard `traceparent` header https://www.w3.org/TR/trace-context/
+      if (req.headers["traceparent"]) {
+        // Apparently req.headers can be an array
+        const traceparent = Array.isArray(req.headers["traceparent"])
+          ? req.headers["traceparent"][0]
+          : req.headers["traceparent"];
+        // traceparent format is: # {version}-{trace_id}-{span_id}-{trace_flags}
+        traceId = traceparent.split("-")[1];
+      } else if (req.headers["x-request-id"]) {
+        // continue supporting legacy `x-request-id`
+        traceId = Array.isArray(req.headers["x-request-id"])
+          ? req.headers["x-request-id"][0]
+          : req.headers["x-request-id"];
+      } else {
+        traceId = uuidv4();
       }
 
-      // create a new id if it doesn't exist. Should be assigned by the nginx in production.
-      if (!req.headers["x-request-id"]) {
-        req.headers["x-request-id"] = uuidv4();
-      }
-
-      // Apparently req.headers can be an array
-      const requestId = Array.isArray(req.headers["x-request-id"])
-        ? req.headers["x-request-id"][0]
-        : req.headers["x-request-id"];
-
-      const context = { requestId };
-      // Run the rest of the request stack in the context of the requestId
+      const context = { traceId };
+      // Run the rest of the request stack in the context of the traceId
       asyncLocalStorage.run(context, () => {
         next();
       });
