@@ -107,6 +107,11 @@ export class Server {
 
     // Inject the requestId to the AsyncLocalStorage to be logged.
     this.app.use((req, res, next) => {
+      // GCP sets the `x-cloud-trace-context` header
+      if (req.headers["x-cloud-trace-context"]) {
+        req.headers["x-request-id"] = req.headers["x-cloud-trace-context"];
+      }
+
       // create a new id if it doesn't exist. Should be assigned by the nginx in production.
       if (!req.headers["x-request-id"]) {
         req.headers["x-request-id"] = uuidv4();
