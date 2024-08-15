@@ -83,19 +83,50 @@ const injectRequestId = format((info) => {
   return requestId ? { ...info, requestId } : info;
 });
 
+// Choose between the GCP and the standard JSON format.
+const chooseJSONFormat = () => {
+  const isOnGCP = process.env.K_SERVICE || process.env.GOOGLE_CLOUD_PROJECT;
+
+  // Google Cloud uses a different field for indicating severity. Map `level` to `severity`
+  const gcpFormat = format.printf(
+    ({ level, message, timestamp, service, ...metadata }) => {
+      const severityMap: { [key: string]: string } = {
+        error: "ERROR",
+        warn: "WARNING",
+        info: "INFO",
+        debug: "DEBUG",
+        silly: "DEBUG", // GCP does not have an equivalent to 'silly', so map to 'DEBUG'
+      };
+
+      const severity = severityMap[level] || "DEFAULT";
+
+      const logObject = {
+        severity,
+        message,
+        service,
+        timestamp,
+        ...metadata,
+      };
+
+      return JSON.stringify(logObject);
+    },
+  );
+
+  return format.combine(
+    errorFormatter(),
+    format.timestamp(),
+    injectRequestId(),
+    isOnGCP ? gcpFormat : format.json(),
+  );
+};
+
+const jsonFormat = chooseJSONFormat();
 const lineFormat = format.combine(
   injectRequestId(),
   errorFormatter(),
   format.timestamp(),
   format.colorize(),
   rawlineFormat,
-);
-
-const jsonFormat = format.combine(
-  errorFormatter(),
-  format.timestamp(),
-  injectRequestId(),
-  format.json(),
 );
 
 const consoleTransport = new transports.Console({

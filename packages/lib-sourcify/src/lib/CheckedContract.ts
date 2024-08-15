@@ -5,6 +5,7 @@ import {
   CompiledContractCborAuxdata,
   CompilerOutput,
   InvalidSources,
+  IpfsGateway,
   JsonInput,
   Libraries,
   Metadata,
@@ -506,8 +507,14 @@ export class CheckedContract {
         for (const url of file.urls) {
           if (url.startsWith(IPFS_PREFIX)) {
             const ipfsCode = url.slice(IPFS_PREFIX.length);
-            const ipfsUrl = getIpfsGateway() + ipfsCode;
-            retrievedContent = await performFetch(ipfsUrl, hash, fileName);
+            const ipfsGateway = getIpfsGateway();
+            const ipfsUrl = ipfsGateway.url + ipfsCode;
+            retrievedContent = await performFetch(
+              ipfsUrl,
+              hash,
+              fileName,
+              ipfsGateway.headers,
+            );
             if (retrievedContent) {
               break;
             }
@@ -570,13 +577,14 @@ export async function performFetch(
   url: string,
   hash?: string,
   fileName?: string,
+  headers: HeadersInit = {},
 ): Promise<string | null> {
   logInfo('Fetching file', {
     url,
     hash,
     fileName,
   });
-  const res = await fetchWithBackoff(url).catch((err) => {
+  const res = await fetchWithBackoff(url, headers).catch((err) => {
     logError(err);
   });
 
@@ -748,8 +756,26 @@ function createJsonInputFromMetadata(
  *
  * This will likely moved to server or somewhere else. But keep it here for now.
  */
-export function getIpfsGateway(): string {
-  return process.env.IPFS_GATEWAY || 'https://ipfs.io/ipfs/';
+export function getIpfsGateway(): IpfsGateway {
+  let ipfsGatewaysHeaders;
+  if (process.env.IPFS_GATEWAY_HEADERS) {
+    try {
+      ipfsGatewaysHeaders = JSON.parse(process.env.IPFS_GATEWAY_HEADERS);
+    } catch (error) {
+      logError('Error while parsing IPFS_GATEWAY_HEADERS option', { error });
+      throw new Error('Error while parsing IPFS_GATEWAY_HEADERS option');
+    }
+  }
+
+  const ipfsGatewayUrl = process.env.IPFS_GATEWAY || 'https://ipfs.io/ipfs/';
+  const urlWithTrailingSlash = ipfsGatewayUrl.endsWith('/')
+    ? ipfsGatewayUrl
+    : `${ipfsGatewayUrl}/`;
+
+  return {
+    url: urlWithTrailingSlash,
+    headers: ipfsGatewaysHeaders,
+  };
 }
 
 export const findContractPathFromContractName = (

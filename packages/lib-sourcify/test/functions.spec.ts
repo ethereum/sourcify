@@ -10,6 +10,7 @@ import {
 import {
   CheckedContract,
   getGithubUrl,
+  getIpfsGateway,
   performFetch,
 } from '../src/lib/CheckedContract';
 import storageMetadata from './sources/Storage/metadata.json';
@@ -19,6 +20,9 @@ import SimplyLog from './sources/WrongMetadata/SimplyLog.json';
 import earlyCompilerInput from './sources/json-input/pre-v0.4.0/input.json';
 import { keccak256 } from 'ethers';
 import { solc } from './utils';
+import { fetchWithBackoff } from '../src/lib/utils';
+import nock from 'nock';
+
 describe('Verify Solidity Compiler', () => {
   it('Should fetch latest SolcJS compiler', async () => {
     expect(await getSolcJs()).not.equals(null);
@@ -137,18 +141,53 @@ describe('Checked contract', () => {
   it('Should return null after failed performFetch', async () => {
     expect(await performFetch('httpx://')).to.equal(null);
   });
+  it('Should call fetchWithBackoff with headers', async () => {
+    const ipfsGateway = 'http://ipfs-gateway';
+    nock(ipfsGateway, {
+      reqheaders: {
+        test: 'test',
+      },
+    })
+      .get('/')
+      .reply(function () {
+        return [200];
+      });
+    const response = await fetchWithBackoff(ipfsGateway, {
+      test: 'test',
+    });
+    expect(response.status).to.equal(200);
+  });
+  it('Should fail getIpfsGateway with unparsable headers', async () => {
+    process.env.IPFS_GATEWAY_HEADERS = `{ "test": unparsable-value }`;
+    try {
+      getIpfsGateway();
+    } catch (error: any) {
+      expect(error.message).to.equal(
+        'Error while parsing IPFS_GATEWAY_HEADERS option',
+      );
+    }
+  });
+  it('Should return getIpfsGateway with headers', async () => {
+    process.env.IPFS_GATEWAY_HEADERS = `{ "test": "test" }`;
+    const ipfsGateway = getIpfsGateway();
+    expect(ipfsGateway.headers).to.deep.equal({
+      test: 'test',
+    });
+  });
   it('Should fail performFetch because mismatching keccak256', async () => {
+    const ipfsGateway = getIpfsGateway();
     expect(
       await performFetch(
-        'https://ipfs.io/ipfs/QmTkSBN1QffhGKwx365m5va6Pikz3pUJcAfaSRybkeCCDr',
+        ipfsGateway.url + 'QmTkSBN1QffhGKwx365m5va6Pikz3pUJcAfaSRybkeCCDr',
         '0x00',
       ),
     ).equals(null);
   });
   it('Should performFetch', async () => {
+    const ipfsGateway = getIpfsGateway();
     expect(
       await performFetch(
-        'https://ipfs.io/ipfs/QmTkSBN1QffhGKwx365m5va6Pikz3pUJcAfaSRybkeCCDr',
+        ipfsGateway.url + 'QmTkSBN1QffhGKwx365m5va6Pikz3pUJcAfaSRybkeCCDr',
         '0xe76037d6a371fa3a073db88b7b76c371e0ab601be742fa1b089a74b996e360be',
       ),
     ).to.not.equal(null);

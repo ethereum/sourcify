@@ -10,6 +10,7 @@ import { logDebug, logError } from './logger';
  */
 export async function fetchWithBackoff(
   resource: string,
+  headers: HeadersInit = {},
   backoff: number = 10000,
   retries: number = 4,
 ) {
@@ -17,14 +18,20 @@ export async function fetchWithBackoff(
 
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
-      logDebug('Start fetchWithBackoff', { resource, timeout, attempt });
+      logDebug('Start fetchWithBackoff', {
+        resource,
+        headers,
+        timeout,
+        attempt,
+      });
       const controller = new AbortController();
       const id = setTimeout(() => {
-        logDebug('Aborting request', { resource, timeout, attempt });
+        logDebug('Aborting request', { resource, headers, timeout, attempt });
         controller.abort();
       }, timeout);
       const response = await fetch(resource, {
         signal: controller.signal,
+        headers,
       });
       logDebug('Success fetchWithBackoff', { resource, timeout, attempt });
       clearTimeout(id);
@@ -33,6 +40,7 @@ export async function fetchWithBackoff(
       if (attempt === retries) {
         logError('Failed fetchWithBackoff', {
           resource,
+          headers,
           attempt,
           retries,
           timeout,
@@ -43,6 +51,7 @@ export async function fetchWithBackoff(
         timeout *= 2; // exponential backoff
         logDebug('Retrying fetchWithBackoff', {
           resource,
+          headers,
           attempt,
           timeout,
           error,
