@@ -98,13 +98,18 @@ const chooseJSONFormat = () => {
 
       const severity = severityMap[level] || "DEFAULT";
 
+      const projectId =
+        process.env.GOOGLE_CLOUD_PROJECT ||
+        process.env.GCP_PROJECT ||
+        process.env.GCLOUD_PROJECT;
+
       const logObject = {
         severity,
         message,
         service,
         timestamp,
         // Add the trace under this field to allow easy correction of traces https://cloud.google.com/run/docs/logging#correlate-logs
-        "logging.googleapis.com/trace": `projects/${process.env.GOOGLE_CLOUD_PROJECT}/traces/${traceId}`,
+        "logging.googleapis.com/trace": `projects/${projectId}/traces/${traceId}`,
         ...metadata,
       };
 
