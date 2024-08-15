@@ -104,7 +104,7 @@ const chooseJSONFormat = () => {
         service,
         timestamp,
         // Add the trace under this field to allow easy correction of traces https://cloud.google.com/run/docs/logging#correlate-logs
-        logging: { "googleapis.com/trace": traceId },
+        "logging.googleapis.com/trace": `projects/${process.env.GOOGLE_CLOUD_PROJECT}/traces/${traceId}`,
         ...metadata,
       };
 
