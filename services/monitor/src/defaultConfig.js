@@ -9,6 +9,10 @@ const defaultConfig = {
     },
   },
   sourcifyServerURLs: ["https://sourcify.dev/server/"],
+  sourcifyRequestOptions: {
+    maxRetries: 3,
+    retryDelay: 30000,
+  },
   defaultChainConfig: {
     startBlock: undefined,
     blockInterval: 10000,
