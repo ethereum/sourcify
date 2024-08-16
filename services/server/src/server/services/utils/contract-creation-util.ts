@@ -173,44 +173,22 @@ async function getCreatorTxUsingFetcher(
 
   if (!contractFetchAddressFilled) return null;
 
+  let creatorTx: string | null = null;
   try {
     switch (fetcher.type) {
       case "scrape": {
         if (fetcher?.scrapeRegex) {
-          const creatorTx = await getCreatorTxByScraping(
+          creatorTx = await getCreatorTxByScraping(
             contractFetchAddressFilled,
             fetcher?.scrapeRegex,
           );
-          if (creatorTx) {
-            logger.debug("Fetched and found creator Tx", {
-              fetcher,
-              contractFetchAddressFilled,
-              contractAddress,
-              creatorTx,
-            });
-            return creatorTx;
-          }
-          logger.debug("Fetched but transaction not found", {
-            fetcher,
-            contractFetchAddressFilled,
-            creatorTx,
-          });
         }
         break;
       }
       case "api": {
         if (fetcher?.responseParser) {
           const response = await fetchFromApi(contractFetchAddressFilled);
-          const creatorTx = fetcher?.responseParser(response);
-          logger.debug("Fetched Creator Tx", {
-            fetcher,
-            contractFetchAddressFilled,
-            contractAddress,
-            creatorTx,
-          });
-          if (creatorTx) {
-            return creatorTx;
-          }
+          creatorTx = fetcher.responseParser(response);
         }
         break;
       }
@@ -222,6 +200,21 @@ async function getCreatorTxUsingFetcher(
     return null;
   }
 
+  if (creatorTx) {
+    logger.debug("Fetched and found creator Tx", {
+      fetcher,
+      contractFetchAddressFilled,
+      contractAddress,
+      creatorTx,
+    });
+    return creatorTx;
+  }
+
+  logger.debug("Fetched but transaction not found", {
+    fetcher,
+    contractFetchAddressFilled,
+    creatorTx,
+  });
   return null;
 }
 

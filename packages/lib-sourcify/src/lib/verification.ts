@@ -56,6 +56,7 @@ export async function verifyDeployed(
     name: checkedContract.name,
     address,
     chainId: sourcifyChain.chainId,
+    creatorTxHash,
   });
 
   let useEmscripten = forceEmscripten;
