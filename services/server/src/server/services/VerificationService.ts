@@ -110,10 +110,12 @@ export class VerificationService {
     this.activeVerificationsByChainIdAddress[`${chainId}:${address}`] = true;
 
     const sourcifyChain = this.supportedChainsMap[chainId];
-    const foundCreatorTxHash =
-      creatorTxHash ||
-      (await getCreatorTx(sourcifyChain, address)) ||
-      undefined;
+
+    let foundCreatorTxHash: string | undefined;
+    if (!creatorTxHash) {
+      foundCreatorTxHash =
+        (await getCreatorTx(sourcifyChain, address)) || undefined;
+    }
 
     /* eslint-disable no-useless-catch */
     try {
@@ -121,8 +123,11 @@ export class VerificationService {
         checkedContract,
         sourcifyChain,
         address,
-        foundCreatorTxHash,
+        creatorTxHash || foundCreatorTxHash,
       );
+      if (foundCreatorTxHash && !res.creatorTxHash) {
+        res.creatorTxHash = foundCreatorTxHash;
+      }
       delete this.activeVerificationsByChainIdAddress[`${chainId}:${address}`];
       return res;
     } catch (e) {

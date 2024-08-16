@@ -22,6 +22,9 @@ import {
   CallProtectionTransformation,
   LibraryTransformation,
 } from "@ethereum-sourcify/lib-sourcify";
+import { sourcifyChainsMap } from "../../../src/sourcify-chains";
+import Sinon from "sinon";
+import * as contractCreationUtil from "../../../src/server/services/utils/contract-creation-util";
 
 chai.use(chaiHttp);
 
@@ -270,6 +273,40 @@ describe("/", function () {
 
     res = await chai.request(serverFixture.server.app).get(partialMetadataURL);
     chai.expect(res.status).to.equal(StatusCodes.NOT_FOUND);
+  });
+
+  it("should still include the creatorTxHash in the match if getContractCreationBytecodeAndReceipt fails", async () => {
+    const sourcifyChain = sourcifyChainsMap[chainFixture.chainId];
+    Sinon.stub(sourcifyChain, "getContractCreationBytecodeAndReceipt").throws();
+    Sinon.stub(contractCreationUtil, "getCreatorTx").returns(
+      Promise.resolve(chainFixture.defaultContractCreatorTx),
+    );
+
+    const res = await chai
+      .request(serverFixture.server.app)
+      .post("/")
+      .field("address", chainFixture.defaultContractAddress)
+      .field("chain", chainFixture.chainId)
+      .attach("files", chainFixture.defaultContractMetadata, "metadata.json")
+      .attach("files", chainFixture.defaultContractSource, "Storage.sol");
+
+    await assertVerification(
+      serverFixture.sourcifyDatabase,
+      null,
+      res,
+      null,
+      chainFixture.defaultContractAddress,
+      chainFixture.chainId,
+      "perfect",
+    );
+
+    const creatorTxHash = await serverFixture.sourcifyDatabase.query(
+      "SELECT encode(transaction_hash, 'hex') as transaction_hash FROM contract_deployments",
+    );
+
+    chai.expect(creatorTxHash?.rows[0]).to.deep.equal({
+      transaction_hash: chainFixture.defaultContractCreatorTx.substring(2),
+    });
   });
 
   it("should return 'partial', then throw when another 'partial' match is received", async () => {
