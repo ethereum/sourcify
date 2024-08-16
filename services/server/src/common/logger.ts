@@ -101,7 +101,8 @@ const chooseJSONFormat = () => {
       const projectId =
         process.env.GOOGLE_CLOUD_PROJECT ||
         process.env.GCP_PROJECT ||
-        process.env.GCLOUD_PROJECT;
+        process.env.GCLOUD_PROJECT ||
+        "sourcify-project";
 
       const logObject = {
         severity,
