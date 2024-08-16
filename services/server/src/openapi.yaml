@@ -22,6 +22,8 @@ paths:
     $ref: "server/controllers/verification/etherscan/stateless/etherscan.stateless.paths.yaml#/paths/~1verify~1etherscan"
   /verify/solc-json:
     $ref: "server/controllers/verification/solc-json/stateless/solc-json.stateless.paths.yaml#/paths/~1verify~1solc-json"
+  /repository/contracts/{full_match | partial_match}/{chain}/{address}/{filePath}:
+    $ref: "server/controllers/repository/get-file-static.stateless.paths.yaml#/paths/~1repository~1contracts~1{full_match | partial_match}~1{chain}~1{address}~1{filePath}"
   /check-all-by-addresses:
     $ref: "server/controllers/repository/check-all-by-addresses.stateless.paths.yaml#/paths/~1check-all-by-addresses"
   /check-by-addresses:
@@ -30,8 +32,6 @@ paths:
     $ref: "server/controllers/repository/get-source-files-all.stateless.paths.yaml#/paths/~1files~1any~1{chain}~1{address}"
   /files/{chain}/{address}:
     $ref: "server/controllers/repository/get-source-files-full.stateless.paths.yaml#/paths/~1files~1{chain}~1{address}"
-  /repository/contracts/{full_match | partial_match}/{chain}/{address}/{filePath}:
-    $ref: "server/controllers/repository/get-file-static.stateless.paths.yaml#/paths/~1repository~1contracts~1{full_match | partial_match}~1{chain}~1{address}~1{filePath}"
   /files/contracts/{chain}:
     $ref: "server/controllers/repository/get-contract-addresses-all.stateless.paths.yaml#/paths/~1files~1contracts~1{chain}"
   /files/contracts/any/{chain}:
