@@ -46,7 +46,7 @@ npm run sourcify:database sync https://sourcify.dev/server /home/app/repository/
 
 ## 3. Verifying deprecated chains
 
-If there are chains that have been deprecated, their RPCs will not be available anymore so there's no way to fetch the deployment information for these contracts. We had verified these contracts so we might want to have these contracts regardless in our DB. To achive that we need to put placeholders for the data related to the contract deployment, mostly on the `contract_deployments` table.
+If there are chains that have been deprecated, their RPCs will not be available anymore so there's no way to fetch the deployment information for these contracts. We had verified these contracts so we might want to have these contracts regardless in our DB. To achieve that we need to put placeholders for the data related to the contract deployment, mostly on the `contract_deployments` table.
 
 The script has a `--deprecated` flag that will take these chains and place their contracts in the database without actually "verifying" them i.e. not comparing the compiled vs onchain contract. In that case the script will submit the contracts to the `/verify-deprecated` endpoint of the Sourcify instance instead of `/verify`. This endpoint is activated if you pass the ` verifiedDeprecated: true` option in the Sourcify server config file.
 
