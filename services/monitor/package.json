@@ -44,7 +44,7 @@
     "commander": "12.1.0",
     "dotenv": "16.4.5",
     "ethers": "6.13.2",
-    "winston": "3.14.1"
+    "winston": "3.14.2"
   },
   "devDependencies": {
     "@types/chai": "4.3.17",
@@ -55,7 +55,7 @@
     "chai": "4.5.0",
     "hardhat": "2.22.8",
     "mocha": "10.7.3",
-    "nock": "14.0.0-beta.9",
+    "nock": "14.0.0-beta.11",
     "open-cli": "8.0.0",
     "sinon": "18.0.0",
     "tree-kill": "1.2.2"
