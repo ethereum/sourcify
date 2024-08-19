@@ -157,6 +157,65 @@ program
   });
 
 program
+  .command("sync-single")
+  .description("Sync a specific contract by chain ID, address, and match type")
+  .argument(
+    "<string>",
+    "Sourcify instance url: e.g. https://sourcify.dev/server",
+  )
+  .argument(
+    "<string>",
+    "Path to repository v1 contracts folder (e.g. /Users/user/sourcify/repository/contracts)",
+  )
+  .option(
+    "-c, --chainId <string>",
+    "List of chains to sync separated by comma (e.g. 1,5,...)",
+  )
+  .option(
+    "-a, --address <string>",
+    "List of chains exceptions separated by comma (e.g. 1,5,...)",
+  )
+  .option(
+    "-m, --matchType <type>",
+    "Type of match: 'full_match' or 'partial_match'",
+    "full_match", // Default is 'full'
+  )
+  .action(async (sourcifyInstance, repositoryV1Path, options) => {
+    const databasePool = new Pool({
+      host: process.env.POSTGRES_HOST,
+      port: process.env.POSTGRES_PORT,
+      database: process.env.POSTGRES_DB,
+      user: process.env.POSTGRES_USER,
+      password: process.env.POSTGRES_PASSWORD,
+      max: 5,
+    });
+
+    const { chainId, address, matchType } = options;
+    await processContract(
+      sourcifyInstance,
+      repositoryV1Path,
+      databasePool,
+      false,
+      {
+        chain_id: chainId,
+        address,
+        match_type: matchType,
+      },
+    )
+      .then((res) => {
+        if (res[0]) {
+          console.log(`Successfully synced: ${[res[1]]}`);
+        } else {
+          console.error(`Failed to sync ${[res[1]]}`);
+        }
+      })
+      .catch((e) => {
+        console.error(e);
+      });
+    databasePool.end();
+  });
+
+program
   .command("sync")
   .description("Verifies contracts in the sourcify_sync table")
   .argument(
@@ -336,7 +395,7 @@ const startSyncChain = async (
       })
       .catch((e) => {
         logToFile(chainId, e.message);
-        console.error(e);
+        console.error(e.message);
         activePromises--;
       });
   }
@@ -420,27 +479,34 @@ const processContract = async (
           `,
           [contract.chain_id, contract.address, contract.match_type],
         );
+      } else {
+        throw new Error([
+          false,
+          `${[
+            contract.chain_id,
+            contract.address,
+            contract.match_type,
+          ]} with error: ${response.result[0].message}`,
+        ]);
       }
       return [true, [contract.chain_id, contract.address, contract.match_type]];
     } else {
-      return [
-        false,
-        `${[
+      throw new Error(
+        `Failed to sync: ${[
           contract.chain_id,
           contract.address,
           contract.match_type,
         ]} with error: ${await request.text()}`,
-      ];
+      );
     }
   } catch (e) {
-    return [
-      false,
-      `${[
+    throw new Error(
+      `Failed to sync ${[
         contract.chain_id,
         contract.address,
         contract.match_type,
       ]} with error: ${e}`,
-    ];
+    );
   }
 };
 
