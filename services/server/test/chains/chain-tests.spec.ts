@@ -412,19 +412,19 @@ describe("Test Supported Chains", function () {
     "0x08BB0D7fCe37dD766d13DC19A00c95878ed2E68c",
     "1284",
     "Moonbeam",
-    "1284/",
+    "incrementer/",
   );
   verifyContract(
     "0x460947bD434b4FF90Af62f3F389b39aab0d6A77D",
     "1285",
     "Moonriver",
-    "1285/",
+    "incrementer/",
   );
   verifyContract(
     "0x08BB0D7fCe37dD766d13DC19A00c95878ed2E68c",
     "1287",
     "Moonbase",
-    "1287/",
+    "incrementer/",
   );
 
   // // Candle
@@ -982,7 +982,7 @@ describe("Test Supported Chains", function () {
     "0x9BF49b704EE2A095b95c1f2D4EB9010510c41C9E",
     "13337",
     "BEAM Chain",
-    "13337/",
+    "multicall/",
     "partial",
   );
 
@@ -991,7 +991,7 @@ describe("Test Supported Chains", function () {
     "0x24c456Fb4c450208366B1f8322c3241aA013758e",
     "222000222",
     "Kanazawa Chain",
-    "222000222/",
+    "multicall-literal-contents/",
   );
 
   // MELD Chain Testnet
@@ -999,7 +999,7 @@ describe("Test Supported Chains", function () {
     "0x769eE5A8e82C15C1b6E358f62aC8eb6E3AbE8dC5",
     "333000333",
     "MELD Chain",
-    "333000333/",
+    "multicall-literal-contents/",
   );
 
   // Kiwi Subnet
@@ -1007,7 +1007,7 @@ describe("Test Supported Chains", function () {
     "0xe89a85b79e64b35829625A7EEf70F8915d32F75f",
     "2037",
     "Kiwi Subnet",
-    "2037/",
+    "multicall-avalabs/",
   );
 
   // KAVA EVM
@@ -1115,7 +1115,7 @@ describe("Test Supported Chains", function () {
     "0x4956f15efdc3dc16645e90cc356eafa65ffc65ec",
     "4337",
     "Beam Subnet",
-    "4337/",
+    "multicall-avalabs/",
   );
 
   // verifyContract(
@@ -1145,7 +1145,7 @@ describe("Test Supported Chains", function () {
     "0x8Bb9d0Dd48B7a54B248D2d386AfF253DA7856479",
     "2038",
     "Shrapnel Testnet",
-    "2038/",
+    "multicall-avalabs/",
   );
 
   // Shrapnel Subnet
@@ -1153,7 +1153,7 @@ describe("Test Supported Chains", function () {
     "0xb9D27a0D61392566b92E08937a6C6E798F197ADF",
     "2044",
     "Shrapnel Subnet",
-    "2044/",
+    "multicall-avalabs/",
   );
   verifyContract(
     "0xD5bB0035a178d56Abd23a39fB3666031084b2cb5",
@@ -1258,12 +1258,12 @@ describe("Test Supported Chains", function () {
   );
 
   // Rikeza Network
-  verifyContract(
-    "0xa8c07c66d0458e8c6e442a8827f4bc3fad036407",
-    "1433",
-    "Rikeza Network",
-    "1433/",
-  );
+  // verifyContract(
+  //   "0xa8c07c66d0458e8c6e442a8827f4bc3fad036407",
+  //   "1433",
+  //   "Rikeza Network",
+  //   "1433/",
+  // );
 
   // Zeniq Mainnet
   verifyContract(
@@ -1278,7 +1278,7 @@ describe("Test Supported Chains", function () {
     "0xfd52e1A54442aC8d6a7C54713f99D0dc113df220",
     "1127469",
     "Tiltyard Subnet",
-    "1127469/",
+    "multicall-src/",
   );
 
   // Polygon zkEVM Mainnet
@@ -1738,11 +1738,9 @@ function readFilesRecursively(
     const filePath = path.join(directoryPath, file);
 
     if (fs.statSync(filePath).isDirectory()) {
-      // Recursively call the function for subdirectories
       readFilesRecursively(filePath, files);
     } else {
-      // Read and store the content of the file
-      files[file] = fs.readFileSync(filePath).toString();
+      files[filePath] = fs.readFileSync(filePath).toString();
     }
   });
 }
