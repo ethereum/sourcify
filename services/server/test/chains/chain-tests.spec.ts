@@ -1731,7 +1731,11 @@ describe("Test Supported Chains", function () {
 function readFilesRecursively(
   directoryPath: string,
   files: Record<string, string>,
+  baseDirectory?: string,
 ) {
+  // If baseDirectory is not provided, set it to directoryPath
+  baseDirectory = baseDirectory || directoryPath;
+
   const filesInDirectory = fs.readdirSync(directoryPath);
 
   filesInDirectory.forEach((file) => {
