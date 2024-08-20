@@ -1380,7 +1380,7 @@
   },
   "1433": {
     "sourcifyName": "Rikeza Network",
-    "supported": true,
+    "supported": false,
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://rikscan.com/"

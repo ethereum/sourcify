@@ -102,6 +102,11 @@ export async function checkFiles(
   metadataFiles.forEach((metadata) => {
     const { foundSources, missingSources, invalidSources, metadata2provided } =
       rearrangeSources(metadata, byHash);
+    logDebug(`Checking contract`, {
+      foundSourcesCount: Object.keys(foundSources).length,
+      missingSources: Object.keys(missingSources),
+      invalidSources: Object.keys(invalidSources),
+    });
     const currentUsedFiles = Object.values(metadata2provided);
     usedFiles.push(...currentUsedFiles);
     const checkedContract = new CheckedContract(
