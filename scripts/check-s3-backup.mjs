@@ -3,10 +3,13 @@ import { GetObjectCommand } from "@aws-sdk/client-s3";
 import assert from "assert";
 
 const bareBonesS3 = new S3Client({
-  region: "eu-west-2",
+  region: "us-east-1",
   credentials: {
     accessKeyId: process.env.AWS_S3_READ_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_S3_READ_SECRET_ACCESS_KEY,
+  },
+  endpoint: {
+    url: "https://s3.filebase.com",
   },
 });
 
@@ -67,8 +70,8 @@ for (const job of jobs) {
   try {
     const s3Object = await bareBonesS3.send(
       new GetObjectCommand({
-        Key: `stable/repository/contracts/full_match/${deploymentChain}/${deploymentAddress}/metadata.json`,
-        Bucket: "sourcify-backup-s3",
+        Key: `contracts/full_match/${deploymentChain}/${deploymentAddress}/metadata.json`,
+        Bucket: "sourcify-repository-production",
       })
     );
 
@@ -79,7 +82,7 @@ for (const job of jobs) {
   } catch (e) {
     console.log(e);
     console.log(
-      `not in backup: stable/repository/contracts/full_match/${deploymentChain}/${deploymentAddress}/metadata.json`
+      `not in backup: contracts/full_match/${deploymentChain}/${deploymentAddress}/metadata.json`
     );
   }
 }
