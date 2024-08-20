@@ -1738,11 +1738,9 @@ function readFilesRecursively(
     const filePath = path.join(directoryPath, file);
 
     if (fs.statSync(filePath).isDirectory()) {
-      // Recursively call the function for subdirectories
       readFilesRecursively(filePath, files);
     } else {
-      // Read and store the content of the file
-      files[file] = fs.readFileSync(filePath).toString();
+      files[filePath] = fs.readFileSync(filePath).toString();
     }
   });
 }
