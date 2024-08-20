@@ -1731,18 +1731,22 @@ describe("Test Supported Chains", function () {
 function readFilesRecursively(
   directoryPath: string,
   files: Record<string, string>,
+  baseDirectory?: string,
 ) {
+  // If baseDirectory is not provided, set it to directoryPath
+  baseDirectory = baseDirectory || directoryPath;
+
   const filesInDirectory = fs.readdirSync(directoryPath);
 
   filesInDirectory.forEach((file) => {
     const filePath = path.join(directoryPath, file);
 
     if (fs.statSync(filePath).isDirectory()) {
-      // Recursively call the function for subdirectories
-      readFilesRecursively(filePath, files);
+      readFilesRecursively(filePath, files, baseDirectory);
     } else {
-      // Read and store the content of the file
-      files[file] = fs.readFileSync(filePath).toString();
+      // Use the relativePath as key instead of `file` which is just the filename. Needed when there are files with the same name in the directory.
+      const relativeFilePath = path.relative(baseDirectory, filePath);
+      files[relativeFilePath] = fs.readFileSync(filePath).toString();
     }
   });
 }
