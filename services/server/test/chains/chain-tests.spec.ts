@@ -1625,6 +1625,14 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
+  // Gravity Alpha Mainnet
+  verifyContract(
+    "0x7518998F38b4A83B4BE4BCC8AB976e822cc00457",
+    "1625",
+    "Gravity Alpha Mainnet",
+    "shared/",
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests: ChainApiResponse[] = [];
     supportedChains

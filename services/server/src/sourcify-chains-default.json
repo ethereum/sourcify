@@ -1772,5 +1772,10 @@
   "16350": {
     "supported": true,
     "sourcifyName": "Incentiv Devnet"
+  },
+  "1625": {
+    "supported": true,
+    "sourcifyName": "Gravity Alpha Mainnet",
+    "rpc": ["https://rpc.gravity.xyz"]
   }
 }
