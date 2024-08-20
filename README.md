@@ -9,7 +9,7 @@
 
 Sourcify ([sourcify.dev](https://sourcify.dev)) is a Solidity source code verification service for Ethereum smart contracts.
 
-Different than other verification services, Sourcify leverages the [Solidity metadata](https://docs.sourcify.dev/docs/metadata/) file to ["fully verify"](https://docs.sourcify.dev/docs/full-vs-partial-match/) the contracts.
+Unlike other verification services, Sourcify leverages the [Solidity metadata](https://docs.sourcify.dev/docs/metadata/) file to ["fully verify"](https://docs.sourcify.dev/docs/full-vs-partial-match/) the contracts.
 
 Sourcify mainly consists of:
 
@@ -22,7 +22,7 @@ Sourcify mainly consists of:
 
 The project aims to serve as a public good infrastructure with fully open-source development and an [open and accessible contract repository](https://docs.sourcify.dev/docs/repository/) of verified contracts. Anyone can easily run their own Sourcify server and monitor to verify contracts on their own. We also aim to provide tooling to verify contracts easier on different platforms e.g. browers.
 
-_ℹ️ [This monorepo](https://github.com/ethereum/sourcify) the main modules. The [sourcifyeth Github organization](https://github.com/sourcifyeth) contains all other auxiliary services and components._
+_ℹ️ [This monorepo](https://github.com/ethereum/sourcify) contains the main modules. The [sourcifyeth Github organization](https://github.com/sourcifyeth) contains all other auxiliary services and components._
 
 ## Documentation
 
@@ -30,7 +30,7 @@ For more details refer to [docs.sourcify.dev](https://docs.sourcify.dev/docs/int
 
 ## Questions?
 
-🔍 Check out docs [F.A.Q.](https://docs.sourcify.dev/docs/faq/) and use search in docs.
+🔍 Check out the docs [F.A.Q.](https://docs.sourcify.dev/docs/faq/) and use search in docs.
 
 💬 Chat with us on [Matrix chat](https://matrix.to/#/#ethereum_source-verify:gitter.im) or [Discord](https://discord.gg/6aqd9cfZ9s)
 
