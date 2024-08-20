@@ -5,18 +5,7 @@
     "rpc": [
       "https://rpc.mainnet.ethpandaops.io",
       "https://eth-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"
-    ],
-    "etherscanAPI": "https://api.etherscan.io"
-  },
-  {
-    "name": "Ethereum Testnet Goerli",
-    "title": "Ethereum Testnet Goerli",
-    "chainId": 5,
-    "rpc": [
-      "https://rpc.goerli.ethpandaops.io",
-      "https://eth-goerli.g.alchemy.com/v2/{ALCHEMY_API_KEY}"
-    ],
-    "etherscanAPI": "https://api-goerli.etherscan.io"
+    ]
   },
   {
     "name": "Ethereum Testnet Sepolia",
@@ -25,8 +14,7 @@
     "rpc": [
       "https://rpc.sepolia.ethpandaops.io",
       "https://eth-sepolia.g.alchemy.com/v2/{ALCHEMY_API_KEY}"
-    ],
-    "etherscanAPI": "https://api-sepolia.etherscan.io"
+    ]
   },
   {
     "name": "Ethereum Testnet Holesky",
@@ -35,32 +23,22 @@
     "rpc": [
       "https://rpc.holesky.ethpandaops.io",
       "https://ethereum-holesky.publicnode.com"
-    ],
-    "etherscanAPI": "https://api-holesky.etherscan.io"
-  },
-  {
-    "name": "Arbitrum Goerli",
-    "title": "Arbitrum Goerli Rollup Testnet",
-    "chainId": 421613,
-    "rpc": ["https://arb-goerli.g.alchemy.com/v2/{ALCHEMY_API_KEY}"],
-    "etherscanAPI": "https://api-goerli.arbiscan.io"
+    ]
   },
   {
     "name": "Arbitrum One",
     "chainId": 42161,
-    "rpc": ["https://arb-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"],
-    "etherscanAPI": "https://api.arbiscan.io"
+    "rpc": ["https://arb-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"]
   },
   {
-    "name": "Base Goerli Testnet",
-    "chainId": 84531,
-    "rpc": [
-      "https://goerli.base.org",
-      "https://base-goerli.gateway.tenderly.co",
-      "wss://base-goerli.gateway.tenderly.co",
-      "https://base-goerli.publicnode.com"
-    ],
-    "etherscanAPI": "https://api-goerli.basescan.org/"
+    "name": "Arbitrum Sepolia Testnet",
+    "chainId": 421614,
+    "rpc": ["https://arb-sepolia.g.alchemy.com/v2/{ALCHEMY_API_KEY}"]
+  },
+  {
+    "name": "Arbitrum Nova",
+    "chainId": 42170,
+    "rpc": ["https://arbnova-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"]
   },
   {
     "name": "Gnosis",
@@ -76,8 +54,7 @@
       "https://web3endpoints.com/gnosischain-mainnet",
       "https://gnosis.oat.farm",
       "wss://rpc.gnosischain.com/wss"
-    ],
-    "etherscanAPI": "https://api.gnosisscan.io"
+    ]
   },
   {
     "name": "Meter Mainnet",
@@ -90,28 +67,126 @@
     "rpc": ["https://rpctest.meter.io"]
   },
   {
-    "name": "Mumbai",
-    "title": "Polygon Testnet Mumbai",
-    "chainId": 80001,
-    "rpc": ["https://polygon-mumbai.g.alchemy.com/v2/{ALCHEMY_API_KEY}"],
-    "etherscanAPI": "https://api-testnet.polygonscan.com"
-  },
-  {
     "name": "OP Mainnet",
     "chainId": 10,
-    "rpc": ["https://opt-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"],
-    "etherscanAPI": "https://api-optimistic.etherscan.io"
+    "rpc": ["https://opt-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"]
   },
   {
-    "name": "Optimism Goerli Testnet",
-    "chainId": 420,
-    "rpc": ["https://opt-goerli.g.alchemy.com/v2/{ALCHEMY_API_KEY}"],
-    "etherscanAPI": "https://api-goerli-optimism.etherscan.io"
+    "name": "OP Sepolia Testnet",
+    "chainId": 11155420,
+    "rpc": ["https://opt-sepolia.g.alchemy.com/v2/{ALCHEMY_API_KEY}"]
   },
   {
     "name": "Polygon Mainnet",
     "chainId": 137,
-    "rpc": ["https://polygon-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"],
-    "etherscanAPI": "https://api.polygonscan.com"
+    "rpc": ["https://polygon-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"]
+  },
+  {
+    "name": "Polygon Amoy Testnet",
+    "chainId": 80002,
+    "rpc": ["https://polygon-amoy.g.alchemy.com/v2/{ALCHEMY_API_KEY}"]
+  },
+  {
+    "name": "Polygon zkEVM Mainnet",
+    "chainId": 1101,
+    "rpc": ["https://polygonzkevm-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"]
+  },
+  {
+    "name": "Avalanche C-Chain",
+    "chainId": 43114,
+    "rpc": [
+      "https://api.avax.network/ext/bc/C/rpc",
+      "https://avalanche-c-chain-rpc.publicnode.com"
+    ]
+  },
+  {
+    "name": "Avalanche Fuji Testnet",
+    "chainId": 43113,
+    "rpc": [
+      "https://api.avax-test.network/ext/bc/C/rpc",
+      "https://avalanche-fuji-c-chain-rpc.publicnode.com"
+    ]
+  },
+  {
+    "name": "Base",
+    "chainId": 8453,
+    "rpc": ["https://base-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"]
+  },
+  {
+    "name": "Base Sepolia Testnet",
+    "chainId": 84531,
+    "rpc": ["https://base-sepolia.g.alchemy.com/v2/{ALCHEMY_API_KEY}"]
+  },
+  {
+    "name": "Hedera Mainnet",
+    "chainId": 295,
+    "rpc": ["https://mainnet.hashio.io/api"]
+  },
+  {
+    "name": "Celo Mainnet",
+    "chainId": 42220,
+    "rpc": ["https://forno.celo.org"]
+  },
+  {
+    "name": "Celo Alfajores Testnet",
+    "chainId": 44787,
+    "rpc": ["https://alfajores-forno.celo-testnet.org"]
+  },
+  {
+    "name": "Celo Baklava Testnet",
+    "chainId": 62320,
+    "rpc": ["https://baklava-forno.celo-testnet.org"]
+  },
+  {
+    "name": "Filecoin Mainnet",
+    "chainId": 314,
+    "rpc": [
+      "https://api.node.glif.io/",
+      "https://rpc.ankr.com/filecoin",
+      "https://filecoin-mainnet.chainstacklabs.com/rpc/v1",
+      "https://filfox.info/rpc/v1",
+      "https://filecoin.drpc.org"
+    ]
+  },
+  {
+    "name": "Filecoin Calibration Testnet",
+    "chainId": 314159,
+    "rpc": [
+      "https://api.calibration.node.glif.io/rpc/v1",
+      "https://rpc.ankr.com/filecoin_testnet",
+      "https://filecoin-calibration.chainstacklabs.com/rpc/v1",
+      "https://filecoin-calibration.chainup.net/rpc/v1",
+      "https://calibration.filfox.info/rpc/v1",
+      "https://filecoin-calibration.drpc.org"
+    ]
+  },
+  {
+    "name": "Linea Mainnet",
+    "chainId": 59144,
+    "rpc": ["https://linea-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"]
+  },
+  {
+    "name": "Linea Sepolia Testnet",
+    "chainId": 59141,
+    "rpc": ["https://linea-sepolia.g.alchemy.com/v2/{ALCHEMY_API_KEY}"]
+  },
+  {
+    "name": "Scroll Mainnet",
+    "chainId": 534352,
+    "rpc": [
+      "https://rpc.scroll.io",
+      "https://rpc.ankr.com/scroll",
+      "https://scroll-mainnet.chainstacklabs.com"
+    ]
+  },
+  {
+    "name": "Scroll Testnet",
+    "chainId": 534351,
+    "rpc": [
+      "https://sepolia-rpc.scroll.io",
+      "https://rpc.ankr.com/scroll_sepolia_testnet",
+      "https://scroll-sepolia.chainstacklabs.com",
+      "https://scroll-testnet-public.unifra.io"
+    ]
   }
 ]
