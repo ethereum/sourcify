@@ -75,17 +75,56 @@ const rawlineFormat = format.printf(
   },
 );
 
+// Choose between the GCP and the standard JSON format.
+const chooseJSONFormat = () => {
+  const isOnGCP = process.env.K_SERVICE || process.env.GOOGLE_CLOUD_PROJECT;
+
+  const gcpFormat = format.printf(
+    ({ level, message, timestamp, service, traceId, ...metadata }) => {
+      // Google Cloud uses a different field for indicating severity. Map `level` to `severity`
+      const severityMap: { [key: string]: string } = {
+        error: "ERROR",
+        warn: "WARNING",
+        info: "INFO",
+        debug: "DEBUG",
+        silly: "DEBUG", // GCP does not have an equivalent to 'silly', so map to 'DEBUG'
+      };
+
+      const severity = severityMap[level] || "DEFAULT";
+
+      const projectId =
+        process.env.GOOGLE_CLOUD_PROJECT ||
+        process.env.GCP_PROJECT ||
+        process.env.GCLOUD_PROJECT ||
+        "sourcify-project";
+
+      const logObject = {
+        severity,
+        message,
+        service,
+        timestamp,
+        // Add the trace under this field to allow easy correction of traces https://cloud.google.com/run/docs/logging#correlate-logs
+        "logging.googleapis.com/trace": `projects/${projectId}/traces/${traceId}`,
+        ...metadata,
+      };
+
+      return JSON.stringify(logObject);
+    },
+  );
+
+  return format.combine(
+    errorFormatter(),
+    format.timestamp(),
+    isOnGCP ? gcpFormat : format.json(),
+  );
+};
+
+const jsonFormat = chooseJSONFormat();
 const lineFormat = format.combine(
   errorFormatter(),
   format.timestamp(),
   format.colorize(),
   rawlineFormat,
-);
-
-const jsonFormat = format.combine(
-  errorFormatter(),
-  format.timestamp(),
-  format.json(),
 );
 
 const consoleTransport = new transports.Console({
