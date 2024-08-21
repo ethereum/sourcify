@@ -318,7 +318,7 @@ describe("/", function () {
       .attach("files", partialMetadataBuffer, "metadata.json")
       .attach("files", partialSourceBuffer);
 
-    chai.expect(res.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+    chai.expect(res.status).to.equal(StatusCodes.CONFLICT);
     chai
       .expect(res.body.error)
       .to.equal(
