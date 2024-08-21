@@ -157,6 +157,133 @@ program
   });
 
 program
+  .command("import-creator-tx-hash")
+  .description(
+    "Import repository_v1 creator-tx-hash.txt files to Sourcify's sourcify_transaction_hash table",
+  )
+  .argument(
+    "<string>",
+    "Path to repository v1 contracts folder (e.g. /Users/user/sourcify/repository/contracts)",
+  )
+  .action(async (repositoryV1Path, options) => {
+    const INSERT_CHUNK_SIZE = 10000;
+
+    if (path.parse(repositoryV1Path).base !== "contracts") {
+      console.error(
+        "Passed repositoryV1 path is not correct: " + repositoryV1Path,
+      );
+      process.exit(4);
+    }
+
+    let contracts = [];
+
+    // 1. Read contracts from repository
+    try {
+      console.log("Reading from " + repositoryV1Path);
+
+      let dirCount = 0;
+      const dirCountToReport = 100000;
+      for await (const entry of readdirp(repositoryV1Path, {
+        alwaysStat: true,
+        depth: 3,
+        type: "files",
+        fileFilter: "creator-tx-hash.txt",
+      })) {
+        const pathParts = entry.fullPath.split("/");
+        const creatorTxHash_ = pathParts.pop();
+        const address = pathParts.pop();
+        const chainId = pathParts.pop();
+        const matchType = pathParts.pop();
+
+        let creatorTxHash;
+        try {
+          creatorTxHash = (
+            await fs.promises.readFile(entry.fullPath)
+          ).toString();
+        } catch (e) {
+          console.error(
+            "Cannot read file",
+            JSON.stringify(
+              {
+                address,
+                chainId,
+                matchType,
+              },
+              undefined,
+              2,
+            ),
+          );
+        }
+
+        if (
+          (matchType === "full_match" || matchType === "partial_match") &&
+          isNumber(chainId) &&
+          creatorTxHash
+        ) {
+          contracts.push({
+            chainId,
+            address,
+            creatorTxHash,
+          });
+
+          dirCount++;
+        }
+
+        if (dirCount % dirCountToReport === 0 && dirCount > 0) {
+          console.log(
+            new Date() + " - Read " + dirCount + " contract directories",
+          );
+        }
+      }
+
+      console.log(
+        new Date() +
+          " - Finished reading " +
+          dirCount +
+          " contract directories",
+      );
+    } catch (e) {
+      console.error(
+        "Error while reading and formatting files from the repository",
+      );
+      console.error(e);
+      process.exit(3);
+    }
+
+    // 2. Insert contracts to sourcify_transaction_hash table
+    console.log("Inserting contracts to sourcify_transaction_hash table");
+    const databasePool = new Pool({
+      host: process.env.POSTGRES_HOST,
+      port: process.env.POSTGRES_PORT,
+      database: process.env.POSTGRES_DB,
+      user: process.env.POSTGRES_USER,
+      password: process.env.POSTGRES_PASSWORD,
+      max: 5,
+    });
+    try {
+      // Splitting contracts array into chunks
+      console.log(
+        `Splitting ${contracts.length} contracts into chunks of ${INSERT_CHUNK_SIZE} contracts`,
+      );
+      const contractChunks = chunkArray(contracts, INSERT_CHUNK_SIZE);
+      console.log(`Number of chunks created: ${contractChunks.length}`);
+      for (let i = 0; i < contractChunks.length; i++) {
+        const chunk = contractChunks[i];
+        const startTime = Date.now();
+        await insertContractsTxHashBatch(chunk, databasePool);
+        const elapsedTime = Date.now() - startTime;
+        console.log(
+          `Processed chunk ${i + 1}/${contractChunks.length} in ${elapsedTime} ms`,
+        );
+      }
+      databasePool.end();
+    } catch (e) {
+      console.error("Error while storing contracts in the database", e);
+      process.exit(3);
+    }
+  });
+
+program
   .command("sync-single")
   .description("Sync a specific contract by chain ID, address, and match type")
   .argument(
@@ -581,6 +708,42 @@ const insertContractsBatch = async (contractsChunk, pool) => {
     contract.address,
     contract.matchType,
     contract.timestamp,
+  ]);
+
+  try {
+    await executeQueryWithRetry(pool, query, params);
+    console.log(
+      `Batch inserted ${contractsChunk.length} contracts successfully.`,
+    );
+  } catch (e) {
+    console.error("Failed to batch insert contracts", e);
+  }
+};
+
+export function bytesFromString(str) {
+  if (str === undefined) {
+    return undefined;
+  }
+  let stringWithout0x;
+  if (str.substring(0, 2) === "0x") {
+    stringWithout0x = str.substring(2);
+  } else {
+    stringWithout0x = str;
+  }
+  return Buffer.from(stringWithout0x, "hex");
+}
+
+const insertContractsTxHashBatch = async (contractsChunk, pool) => {
+  const query = `
+    INSERT INTO sourcify_transaction_hash (chain_id, address, transaction_hash)
+    VALUES ${contractsChunk.map((_, index) => `($${index * 3 + 1}, $${index * 3 + 2}, $${index * 3 + 3})`).join(", ")}
+    ON CONFLICT (chain_id, address) DO NOTHING
+  `;
+
+  const params = contractsChunk.flatMap((contract) => [
+    contract.chainId,
+    bytesFromString(contract.address),
+    bytesFromString(contract.creatorTxHash),
   ]);
 
   try {
