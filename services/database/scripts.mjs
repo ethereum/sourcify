@@ -28,6 +28,9 @@ if (
   process.exit(2);
 }
 
+const INSERT_CHUNK_SIZE = 10000;
+const dirCountToReport = 100000;
+
 program
   .command("import-repo")
   .description("Import repository_v1 to Sourcify's sourcify_sync table")
@@ -38,122 +41,15 @@ program
   .option("-sf, --start-from [number]", "Start from a specific timestamp (ms)")
   .option("-un, --until [number]", "Stop at a specific timestamp (ms)")
   .action(async (repositoryV1Path, options) => {
-    const INSERT_CHUNK_SIZE = 10000;
-
-    if (path.parse(repositoryV1Path).base !== "contracts") {
-      console.error(
-        "Passed repositoryV1 path is not correct: " + repositoryV1Path,
-      );
-      process.exit(4);
-    }
-
-    let contractsSorted;
-
-    // 1. Read contracts from repository
-    try {
-      let contracts = [];
-
-      console.log("Reading from " + repositoryV1Path);
-
-      let dirCount = 0;
-      const dirCountToReport = 100000;
-      for await (const entry of readdirp(repositoryV1Path, {
-        alwaysStat: true,
-        depth: 2,
-        type: "directories",
-      })) {
-        const pathParts = entry.fullPath.split("/");
-        const address = pathParts.pop();
-        const chainId = pathParts.pop();
-        const matchType = pathParts.pop();
-
-        if (
-          (matchType === "full_match" || matchType === "partial_match") &&
-          isNumber(chainId)
-        ) {
-          contracts.push({
-            chainId,
-            address,
-            timestamp: entry.stats.birthtime,
-            matchType,
-          });
-
-          dirCount++;
-        }
-
-        if (dirCount % dirCountToReport === 0 && dirCount > 0) {
-          console.log(
-            new Date() + " - Read " + dirCount + " contract directories",
-          );
-        }
-      }
-
-      console.log(
-        new Date() +
-          " - Finished reading " +
-          dirCount +
-          " contract directories",
-      );
-
-      contractsSorted = contracts.sort(
-        (o1, o2) => o1.timestamp.getTime() - o2.timestamp.getTime(),
-      );
-
-      if (options.startFrom) {
-        contractsSorted = contractsSorted.filter(
-          (obj) => obj.timestamp.getTime() > options.startFrom,
-        );
-      }
-
-      if (options.until) {
-        contractsSorted = contractsSorted.filter(
-          (obj) => obj.timestamp.getTime() < options.until,
-        );
-      }
-
-      console.log(
-        `Filtered ${contracts.length} contracts to ${contractsSorted.length}`,
-      );
-    } catch (e) {
-      console.error(
-        "Error while reading and formatting files from the repository",
-      );
-      console.error(e);
-      process.exit(3);
-    }
-
-    // 2. Insert contracts to sourcify_sync table
-
-    console.log("Inserting contracts to sourcify_sync table");
-    const databasePool = new Pool({
-      host: process.env.POSTGRES_HOST,
-      port: process.env.POSTGRES_PORT,
-      database: process.env.POSTGRES_DB,
-      user: process.env.POSTGRES_USER,
-      password: process.env.POSTGRES_PASSWORD,
-      max: 5,
-    });
-    try {
-      // Splitting contracts array into chunks
-      console.log(
-        `Splitting ${contractsSorted.length} contracts into chunks of ${INSERT_CHUNK_SIZE} contracts`,
-      );
-      const contractChunks = chunkArray(contractsSorted, INSERT_CHUNK_SIZE);
-      console.log(`Number of chunks created: ${contractChunks.length}`);
-      for (let i = 0; i < contractChunks.length; i++) {
-        const chunk = contractChunks[i];
-        const startTime = Date.now();
-        await insertContractsBatch(chunk, databasePool);
-        const elapsedTime = Date.now() - startTime;
-        console.log(
-          `Processed chunk ${i + 1}/${contractChunks.length} in ${elapsedTime} ms`,
-        );
-      }
-      databasePool.end();
-    } catch (e) {
-      console.error("Error while storing contracts in the database", e);
-      process.exit(3);
-    }
+    validateRepositoryPath(repositoryV1Path);
+    let contracts = await readContracts(
+      repositoryV1Path,
+      2,
+      "directories",
+      processDirectoryPathParts,
+    );
+    contracts = filterContracts(contracts, options.startFrom, options.until);
+    await insertContractsToDatabase(contracts, insertContractsBatch);
   });
 
 program
@@ -165,123 +61,152 @@ program
     "<string>",
     "Path to repository v1 contracts folder (e.g. /Users/user/sourcify/repository/contracts)",
   )
-  .action(async (repositoryV1Path, options) => {
-    const INSERT_CHUNK_SIZE = 10000;
-
-    if (path.parse(repositoryV1Path).base !== "contracts") {
-      console.error(
-        "Passed repositoryV1 path is not correct: " + repositoryV1Path,
-      );
-      process.exit(4);
-    }
-
-    let contracts = [];
-
-    // 1. Read contracts from repository
-    try {
-      console.log("Reading from " + repositoryV1Path);
-
-      let dirCount = 0;
-      const dirCountToReport = 100000;
-      for await (const entry of readdirp(repositoryV1Path, {
-        alwaysStat: true,
-        depth: 3,
-        type: "files",
-        fileFilter: "creator-tx-hash.txt",
-      })) {
-        const pathParts = entry.fullPath.split("/");
-        const creatorTxHash_ = pathParts.pop();
-        const address = pathParts.pop();
-        const chainId = pathParts.pop();
-        const matchType = pathParts.pop();
-
-        let creatorTxHash;
-        try {
-          creatorTxHash = (
-            await fs.promises.readFile(entry.fullPath)
-          ).toString();
-        } catch (e) {
-          console.error(
-            "Cannot read file",
-            JSON.stringify(
-              {
-                address,
-                chainId,
-                matchType,
-              },
-              undefined,
-              2,
-            ),
-          );
-        }
-
-        if (
-          (matchType === "full_match" || matchType === "partial_match") &&
-          isNumber(chainId) &&
-          creatorTxHash
-        ) {
-          contracts.push({
-            chainId,
-            address,
-            creatorTxHash,
-          });
-
-          dirCount++;
-        }
-
-        if (dirCount % dirCountToReport === 0 && dirCount > 0) {
-          console.log(
-            new Date() + " - Read " + dirCount + " contract directories",
-          );
-        }
-      }
-
-      console.log(
-        new Date() +
-          " - Finished reading " +
-          dirCount +
-          " contract directories",
-      );
-    } catch (e) {
-      console.error(
-        "Error while reading and formatting files from the repository",
-      );
-      console.error(e);
-      process.exit(3);
-    }
-
-    // 2. Insert contracts to sourcify_transaction_hash table
-    console.log("Inserting contracts to sourcify_transaction_hash table");
-    const databasePool = new Pool({
-      host: process.env.POSTGRES_HOST,
-      port: process.env.POSTGRES_PORT,
-      database: process.env.POSTGRES_DB,
-      user: process.env.POSTGRES_USER,
-      password: process.env.POSTGRES_PASSWORD,
-      max: 5,
-    });
-    try {
-      // Splitting contracts array into chunks
-      console.log(
-        `Splitting ${contracts.length} contracts into chunks of ${INSERT_CHUNK_SIZE} contracts`,
-      );
-      const contractChunks = chunkArray(contracts, INSERT_CHUNK_SIZE);
-      console.log(`Number of chunks created: ${contractChunks.length}`);
-      for (let i = 0; i < contractChunks.length; i++) {
-        const chunk = contractChunks[i];
-        const startTime = Date.now();
-        await insertContractsTxHashBatch(chunk, databasePool);
-        const elapsedTime = Date.now() - startTime;
-        console.log(
-          `Processed chunk ${i + 1}/${contractChunks.length} in ${elapsedTime} ms`,
-        );
-      }
-      databasePool.end();
-    } catch (e) {
-      console.error("Error while storing contracts in the database", e);
-      process.exit(3);
-    }
+  .action(async (repositoryV1Path) => {
+    validateRepositoryPath(repositoryV1Path);
+    let contracts = await readContracts(
+      repositoryV1Path,
+      3,
+      "files",
+      processFilePathParts,
+      "creator-tx-hash.txt",
+    );
+    await insertContractsToDatabase(contracts, insertContractsTxHashBatch);
   });
+
+function validateRepositoryPath(repositoryV1Path) {
+  if (path.parse(repositoryV1Path).base !== "contracts") {
+    console.error(
+      "Passed repositoryV1 path is not correct: " + repositoryV1Path,
+    );
+    process.exit(4);
+  }
+}
+
+async function readContracts(
+  repositoryV1Path,
+  depth,
+  type,
+  processPathParts,
+  fileFilter,
+) {
+  let contracts = [];
+  let dirCount = 0;
+
+  console.log("Reading from " + repositoryV1Path);
+
+  for await (const entry of readdirp(repositoryV1Path, {
+    alwaysStat: true,
+    depth,
+    type,
+    fileFilter,
+  })) {
+    const pathParts = entry.fullPath.split("/");
+    const contractData = await processPathParts(pathParts, entry);
+
+    if (contractData) {
+      contracts.push(contractData);
+      dirCount++;
+    }
+
+    if (dirCount % dirCountToReport === 0 && dirCount > 0) {
+      console.log(new Date() + " - Read " + dirCount + " contract directories");
+    }
+  }
+
+  console.log(
+    new Date() + " - Finished reading " + dirCount + " contract directories",
+  );
+  return contracts;
+}
+
+function filterContracts(contracts, startFrom, until) {
+  let contractsSorted = contracts.sort(
+    (o1, o2) => o1.timestamp.getTime() - o2.timestamp.getTime(),
+  );
+  if (startFrom) {
+    contractsSorted = contractsSorted.filter(
+      (obj) => obj.timestamp.getTime() > startFrom,
+    );
+  }
+  if (until) {
+    contractsSorted = contractsSorted.filter(
+      (obj) => obj.timestamp.getTime() < until,
+    );
+  }
+  return contractsSorted;
+}
+
+async function insertContractsToDatabase(contracts, insertFunction) {
+  console.log(
+    `Splitting ${contracts.length} contracts into chunks of ${INSERT_CHUNK_SIZE} contracts`,
+  );
+  const contractChunks = chunkArray(contracts, INSERT_CHUNK_SIZE);
+  console.log(`Number of chunks created: ${contractChunks.length}`);
+  const databasePool = new Pool({
+    host: process.env.POSTGRES_HOST,
+    port: process.env.POSTGRES_PORT,
+    database: process.env.POSTGRES_DB,
+    user: process.env.POSTGRES_USER,
+    password: process.env.POSTGRES_PASSWORD,
+    max: 5,
+  });
+
+  try {
+    for (let i = 0; i < contractChunks.length; i++) {
+      const chunk = contractChunks[i];
+      const startTime = Date.now();
+      await insertFunction(chunk, databasePool);
+      const elapsedTime = Date.now() - startTime;
+      console.log(
+        `Processed chunk ${i + 1}/${contractChunks.length} in ${elapsedTime} ms`,
+      );
+    }
+  } catch (e) {
+    console.error("Error while storing contracts in the database", e);
+    process.exit(3);
+  } finally {
+    await databasePool.end();
+  }
+}
+
+async function processDirectoryPathParts(pathParts, entry) {
+  const address = pathParts.pop();
+  const chainId = pathParts.pop();
+  const matchType = pathParts.pop();
+
+  if (
+    (matchType === "full_match" || matchType === "partial_match") &&
+    isNumber(chainId)
+  ) {
+    return { chainId, address, timestamp: entry.stats.birthtime, matchType };
+  }
+  return null;
+}
+
+async function processFilePathParts(pathParts, entry) {
+  const creatorTxHashFileName = pathParts.pop();
+  const address = pathParts.pop();
+  const chainId = pathParts.pop();
+  const matchType = pathParts.pop();
+
+  if (
+    (matchType === "full_match" || matchType === "partial_match") &&
+    isNumber(chainId)
+  ) {
+    try {
+      const creatorTxHash = await fs.promises.readFile(entry.fullPath, "utf8"); // Await here
+      return { chainId, address, creatorTxHash };
+    } catch (e) {
+      console.error("Cannot read file", {
+        address,
+        chainId,
+        matchType,
+        error: e.message,
+      });
+    }
+  }
+  return null;
+}
 
 program
   .command("sync-single")
