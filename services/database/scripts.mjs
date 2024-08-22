@@ -181,7 +181,7 @@ async function extractPathParts(pathParts) {
   ) {
     return { chainId, address, matchType };
   }
-  return null;
+  throw new Error("Cannot extract path parts for: " + entry.fullPath);
 }
 
 async function processDirectoryPathParts(pathParts, entry) {
@@ -189,27 +189,17 @@ async function processDirectoryPathParts(pathParts, entry) {
   if (result) {
     return { ...result, timestamp: entry.stats.birthtime };
   }
-  console.error("Cannot process contract at path: " + entry.fullPath);
-  return null;
+  throw new Error("Cannot process contract at path: " + entry.fullPath);
 }
 
 async function processFilePathParts(pathParts, entry) {
   pathParts.pop(); // Remove file name
   const result = await extractPathParts(pathParts);
   if (result) {
-    try {
-      const creatorTxHash = await fs.promises.readFile(entry.fullPath, "utf8");
-      return { ...result, creatorTxHash };
-    } catch (e) {
-      console.error("Cannot read file at path: " + entry.fullPath, {
-        ...result,
-        error: e.message,
-      });
-      return null;
-    }
+    const creatorTxHash = await fs.promises.readFile(entry.fullPath, "utf8");
+    return { ...result, creatorTxHash };
   }
-  console.error("Cannot process contract at path: " + entry.fullPath);
-  return null;
+  throw new Error("Cannot process contract at path: " + entry.fullPath);
 }
 
 program
