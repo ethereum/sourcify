@@ -170,7 +170,7 @@ async function insertContractsToDatabase(contracts, insertFunction) {
   }
 }
 
-async function processDirectoryPathParts(pathParts, entry) {
+async function extractPathParts(pathParts) {
   const address = pathParts.pop();
   const chainId = pathParts.pop();
   const matchType = pathParts.pop();
@@ -179,34 +179,35 @@ async function processDirectoryPathParts(pathParts, entry) {
     (matchType === "full_match" || matchType === "partial_match") &&
     isNumber(chainId)
   ) {
-    return { chainId, address, timestamp: entry.stats.birthtime, matchType };
+    return { chainId, address, matchType };
   }
   return null;
 }
 
-async function processFilePathParts(pathParts, entry) {
-  // The last pathParts item is the name of the file that we don't need
-  const creatorTxHashFileName = pathParts.pop();
-  const address = pathParts.pop();
-  const chainId = pathParts.pop();
-  const matchType = pathParts.pop();
+async function processDirectoryPathParts(pathParts, entry) {
+  const result = await extractPathParts(pathParts);
+  if (result) {
+    return { ...result, timestamp: entry.stats.birthtime };
+  }
+  console.error("Cannot process contract at path: " + entry.fullPath);
+  return null;
+}
 
-  if (
-    (matchType === "full_match" || matchType === "partial_match") &&
-    isNumber(chainId)
-  ) {
+async function processFilePathParts(pathParts, entry) {
+  pathParts.pop(); // Remove file name
+  const result = await extractPathParts(pathParts);
+  if (result) {
     try {
       const creatorTxHash = await fs.promises.readFile(entry.fullPath, "utf8");
-      return { chainId, address, creatorTxHash, matchType };
+      return { ...result, creatorTxHash };
     } catch (e) {
       console.error("Cannot read file", {
-        address,
-        chainId,
-        matchType,
+        ...result,
         error: e.message,
       });
     }
   }
+  console.error("Cannot process contract at path: " + entry.fullPath);
   return null;
 }
 
