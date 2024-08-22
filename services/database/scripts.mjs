@@ -30,6 +30,7 @@ if (
 
 const INSERT_CHUNK_SIZE = 10000;
 const dirCountToReport = 100000;
+const defaultSourcifySyncTable = "sourcify_sync";
 
 program
   .command("import-repo")
@@ -184,6 +185,7 @@ async function processDirectoryPathParts(pathParts, entry) {
 }
 
 async function processFilePathParts(pathParts, entry) {
+  // The last pathParts item is the name of the file that we don't need
   const creatorTxHashFileName = pathParts.pop();
   const address = pathParts.pop();
   const chainId = pathParts.pop();
@@ -194,8 +196,8 @@ async function processFilePathParts(pathParts, entry) {
     isNumber(chainId)
   ) {
     try {
-      const creatorTxHash = await fs.promises.readFile(entry.fullPath, "utf8"); // Await here
-      return { chainId, address, creatorTxHash };
+      const creatorTxHash = await fs.promises.readFile(entry.fullPath, "utf8");
+      return { chainId, address, creatorTxHash, matchType };
     } catch (e) {
       console.error("Cannot read file", {
         address,
@@ -292,6 +294,10 @@ program
     "-d, --deprecated [items]",
     "Pass --deprecated to sync deprecated networks",
   )
+  .option(
+    "-st, --sync-table [string]",
+    "Specify an alternative sourcify_sync table",
+  )
   .action(async (sourcifyInstance, repositoryV1Path, options) => {
     if (path.parse(repositoryV1Path).base !== "contracts") {
       console.error(
@@ -311,14 +317,14 @@ program
 
     // Get chains from database
     let chainsFromDB = [];
-    const query = "SELECT DISTINCT chain_id FROM sourcify_sync";
+    const query = `SELECT DISTINCT chain_id FROM ${options.syncTable || defaultSourcifySyncTable}`;
     const chainsResult = await executeQueryWithRetry(databasePool, query);
     if (chainsResult.rowCount > 0) {
       chainsFromDB = chainsResult.rows.map(({ chain_id }) => chain_id);
     }
 
     console.log(
-      `Chains to sync from sourciy_sync table: ${chainsFromDB.join(",")}`,
+      `Chains to sync from ${options.syncTable || defaultSourcifySyncTable} table: ${chainsFromDB.join(",")}`,
     );
 
     let chainsToSync = chainsFromDB;
@@ -423,10 +429,12 @@ const startSyncChain = async (
       databasePool,
       deprecated,
       {
-        address: nextContract.address.toString(),
+        address: nextContract.address,
         chain_id: nextContract.chain_id,
         match_type: nextContract.match_type,
+        transaction_hash: nextContract.transaction_hash,
       },
+      options.syncTable,
     )
       .then((res) => {
         if (res[0]) {
@@ -464,11 +472,23 @@ const processContract = async (
   databasePool,
   deprecated = false,
   contract,
+  syncTable = defaultSourcifySyncTable,
 ) => {
+  let address;
+  const chainId = contract.chain_id;
+  const matchType = contract.match_type;
+  let creatorTxHash;
+
   try {
-    const address = contract.address;
-    const chainId = contract.chain_id;
-    const matchType = contract.match_type;
+    // Support for sourcify_sync in which we write a string in the bytea field
+    // TODO:  after we review the sourcify_sync table let's fix this by
+    //        always storing address as bytes
+    address = !contract.address.toString().startsWith("0x")
+      ? `0x${contract.address.toString("hex")}`
+      : contract.address.toString();
+    creatorTxHash =
+      contract.transaction_hash &&
+      `0x${contract.transaction_hash.toString("hex")}`;
 
     const repoPath = path.join(
       repositoryV1Path,
@@ -487,6 +507,7 @@ const processContract = async (
       address: address,
       chain: chainId,
       files,
+      creatorTxHash,
     };
 
     const headers = {
@@ -521,7 +542,7 @@ const processContract = async (
         await executeQueryWithRetry(
           databasePool,
           `
-          UPDATE sourcify_sync
+          UPDATE ${syncTable}
           SET 
             synced = true
           WHERE 1=1
@@ -536,7 +557,7 @@ const processContract = async (
           false,
           `${[
             contract.chain_id,
-            contract.address,
+            address,
             contract.match_type,
           ]} with error: ${response.result[0].message}`,
         ]);
@@ -546,7 +567,7 @@ const processContract = async (
       throw new Error(
         `Failed to sync: ${[
           contract.chain_id,
-          contract.address,
+          address,
           contract.match_type,
         ]} with error: ${await request.text()}`,
       );
@@ -555,7 +576,7 @@ const processContract = async (
     throw new Error(
       `Failed to sync ${[
         contract.chain_id,
-        contract.address,
+        address,
         contract.match_type,
       ]} with error: ${e}`,
     );
@@ -585,7 +606,7 @@ const fetchNextContract = async (databasePool, options, chainId, limit = 1) => {
     const query = `
       SELECT
         *
-      FROM sourcify_sync
+      FROM ${options.syncTable || defaultSourcifySyncTable}
       WHERE 1=1
         AND id > $1
         AND chain_id = $2
@@ -660,14 +681,15 @@ export function bytesFromString(str) {
 
 const insertContractsTxHashBatch = async (contractsChunk, pool) => {
   const query = `
-    INSERT INTO sourcify_transaction_hash (chain_id, address, transaction_hash)
-    VALUES ${contractsChunk.map((_, index) => `($${index * 3 + 1}, $${index * 3 + 2}, $${index * 3 + 3})`).join(", ")}
+    INSERT INTO sourcify_transaction_hash (chain_id, address, match_type, transaction_hash)
+    VALUES ${contractsChunk.map((_, index) => `($${index * 4 + 1}, $${index * 4 + 2}, $${index * 4 + 3}, $${index * 4 + 4})`).join(", ")}
     ON CONFLICT (chain_id, address) DO NOTHING
   `;
 
   const params = contractsChunk.flatMap((contract) => [
     contract.chainId,
     bytesFromString(contract.address),
+    contract.matchType,
     bytesFromString(contract.creatorTxHash),
   ]);
 
