@@ -79,48 +79,42 @@ export async function legacyVerifyEndpoint(
     );
   }
 
-  try {
-    const match = await req.services.verification.verifyDeployed(
-      contract,
+  const match = await req.services.verification.verifyDeployed(
+    contract,
+    req.body.chain,
+    req.body.address,
+    req.body.creatorTxHash,
+  );
+  // Send to verification again with all source files.
+  if (match.runtimeMatch === "extra-file-input-bug") {
+    logger.info("Found extra-file-input-bug", {
+      contract: contract.name,
+      chain: req.body.chain,
+      address: req.body.address,
+    });
+    const contractWithAllSources = await useAllSources(contract, inputFiles);
+    const tempMatch = await req.services.verification.verifyDeployed(
+      contractWithAllSources,
       req.body.chain,
       req.body.address,
       req.body.creatorTxHash,
     );
-    // Send to verification again with all source files.
-    if (match.runtimeMatch === "extra-file-input-bug") {
-      logger.info("Found extra-file-input-bug", {
-        contract: contract.name,
-        chain: req.body.chain,
-        address: req.body.address,
-      });
-      const contractWithAllSources = await useAllSources(contract, inputFiles);
-      const tempMatch = await req.services.verification.verifyDeployed(
-        contractWithAllSources,
-        req.body.chain,
-        req.body.address,
-        req.body.creatorTxHash,
+    if (
+      tempMatch.runtimeMatch === "perfect" ||
+      tempMatch.creationMatch === "perfect"
+    ) {
+      await req.services.storage.storeMatch(contract, tempMatch);
+      return res.send({ result: [getResponseMatchFromMatch(tempMatch)] });
+    } else if (tempMatch.runtimeMatch === "extra-file-input-bug") {
+      throw new ValidationError(
+        "It seems your contract's metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618",
       );
-      if (
-        tempMatch.runtimeMatch === "perfect" ||
-        tempMatch.creationMatch === "perfect"
-      ) {
-        await req.services.storage.storeMatch(contract, tempMatch);
-        return res.send({ result: [getResponseMatchFromMatch(tempMatch)] });
-      } else if (tempMatch.runtimeMatch === "extra-file-input-bug") {
-        throw new ValidationError(
-          "It seems your contract's metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618",
-        );
-      }
     }
-    if (match.runtimeMatch || match.creationMatch) {
-      await req.services.storage.storeMatch(contract, match);
-    }
-    return res.send({ result: [getResponseMatchFromMatch(match)] }); // array is an old expected behavior (e.g. by frontend)
-  } catch (error: any) {
-    res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .send({ error: error.message });
   }
+  if (match.runtimeMatch || match.creationMatch) {
+    await req.services.storage.storeMatch(contract, match);
+  }
+  return res.send({ result: [getResponseMatchFromMatch(match)] }); // array is an old expected behavior (e.g. by frontend)
 }
 
 export async function verifyDeprecated(
