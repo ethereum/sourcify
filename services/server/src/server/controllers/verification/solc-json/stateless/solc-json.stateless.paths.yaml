@@ -161,6 +161,19 @@ paths:
                 File Not Found:
                   value:
                     error: "Couldn't extract files from the request. Please make sure you have added files"
+        "409":
+          description: Conflict - The contract is already partially verified and the verification yieled a partial match. The files won't be saved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                Already Partially Verified:
+                  value:
+                    error: "The contract 0x00000000219ab540356cBB839Cbe05303d7705Fa on chainId 11155111 is already partially verified. The provided new source code also yielded a partial match and will not be stored unless it's a full match"
         "500":
           description: Internal Server Error
           content:
