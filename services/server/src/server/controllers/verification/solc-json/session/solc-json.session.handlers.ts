@@ -7,12 +7,12 @@ import {
   saveFilesToSession,
 } from "../../verification.common";
 import { PathContent } from "@ethereum-sourcify/lib-sourcify";
-import { BadRequestError, ValidationError } from "../../../../../common/errors";
+import { BadRequestError } from "../../../../../common/errors";
 import { getAllMetadataAndSourcesFromSolcJson } from "../../../../services/compiler/local/solidityCompiler";
 
 export async function addInputSolcJsonEndpoint(req: Request, res: Response) {
   const inputFiles = extractFiles(req, true);
-  if (!inputFiles) throw new ValidationError("No files found");
+  if (!inputFiles) throw new BadRequestError("No files found");
 
   const compilerVersion = req.body.compilerVersion;
 

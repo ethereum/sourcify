@@ -12,11 +12,7 @@ import {
   matchWithRuntimeBytecode,
   useAllSources,
 } from "@ethereum-sourcify/lib-sourcify";
-import {
-  BadRequestError,
-  NotFoundError,
-  ValidationError,
-} from "../../../../../common/errors";
+import { BadRequestError, NotFoundError } from "../../../../../common/errors";
 import { StatusCodes } from "http-status-codes";
 import { getMatchStatus, getResponseMatchFromMatch } from "../../../../common";
 import logger from "../../../../../common/logger";
@@ -106,7 +102,7 @@ export async function legacyVerifyEndpoint(
       await req.services.storage.storeMatch(contract, tempMatch);
       return res.send({ result: [getResponseMatchFromMatch(tempMatch)] });
     } else if (tempMatch.runtimeMatch === "extra-file-input-bug") {
-      throw new ValidationError(
+      throw new BadRequestError(
         "It seems your contract's metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618",
       );
     }

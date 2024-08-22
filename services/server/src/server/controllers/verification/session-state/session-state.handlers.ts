@@ -18,7 +18,7 @@ import {
   isEmpty,
   performFetch,
 } from "@ethereum-sourcify/lib-sourcify";
-import { BadRequestError, ValidationError } from "../../../../common/errors";
+import { BadRequestError } from "../../../../common/errors";
 
 import { StatusCodes } from "http-status-codes";
 import { decode as bytecodeDecode } from "@ethereum-sourcify/bytecode-utils";
@@ -36,7 +36,7 @@ export async function addInputFilesEndpoint(req: Request, res: Response) {
   } else {
     inputFiles = extractFiles(req, true);
   }
-  if (!inputFiles) throw new ValidationError("No files found");
+  if (!inputFiles) throw new BadRequestError("No files found");
   const pathContents: PathContent[] = inputFiles.map((pb) => {
     return { path: pb.path, content: pb.buffer.toString(FILE_ENCODING) };
   });

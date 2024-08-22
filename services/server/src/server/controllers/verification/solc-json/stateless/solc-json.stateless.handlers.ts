@@ -1,13 +1,13 @@
 import { Response, Request } from "express";
 import { extractFiles, solc } from "../../verification.common";
 import { checkFiles, useAllSources } from "@ethereum-sourcify/lib-sourcify";
-import { BadRequestError, ValidationError } from "../../../../../common/errors";
+import { BadRequestError } from "../../../../../common/errors";
 import { getResponseMatchFromMatch } from "../../../../common";
 import { getAllMetadataAndSourcesFromSolcJson } from "../../../../services/compiler/local/solidityCompiler";
 
 export async function verifySolcJsonEndpoint(req: Request, res: Response) {
   const inputFiles = extractFiles(req, true);
-  if (!inputFiles) throw new ValidationError("No files found");
+  if (!inputFiles) throw new BadRequestError("No files found");
   if (inputFiles.length !== 1)
     throw new BadRequestError(
       "Only one Solidity JSON Input file at a time is allowed",
@@ -67,7 +67,7 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
       await req.services.storage.storeMatch(contractToVerify, tempMatch);
       return res.send({ result: [tempMatch] });
     } else if (tempMatch.runtimeMatch === "extra-file-input-bug") {
-      throw new ValidationError(
+      throw new BadRequestError(
         "It seems your contract's metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618",
       );
     }
