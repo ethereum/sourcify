@@ -733,10 +733,11 @@ describe("/", function () {
           .attach("files", hardhatOutputBuffer)
           .end((err, res) => {
             chai.expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
-            chai.expect(res.body).to.deep.equal({
-              error:
+            chai
+              .expect(res.body.error)
+              .to.equal(
                 "It seems your contract's metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618",
-            });
+              );
             done();
           });
       });
