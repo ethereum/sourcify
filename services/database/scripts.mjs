@@ -56,11 +56,11 @@ program
 program
   .command("import-creator-tx-hash")
   .description(
-    "Import repository_v1 creator-tx-hash.txt files to Sourcify's sourcify_transaction_hash table",
+    "Import repository creator-tx-hash.txt files to Sourcify's sourcify_transaction_hash table",
   )
   .argument(
     "<string>",
-    "Path to repository v1 contracts folder (e.g. /Users/user/sourcify/repository/contracts)",
+    "Path to repository contracts folder (e.g. /Users/user/sourcify/repository/contracts)",
   )
   .action(async (repositoryV1Path) => {
     validateRepositoryPath(repositoryV1Path);
@@ -201,10 +201,11 @@ async function processFilePathParts(pathParts, entry) {
       const creatorTxHash = await fs.promises.readFile(entry.fullPath, "utf8");
       return { ...result, creatorTxHash };
     } catch (e) {
-      console.error("Cannot read file", {
+      console.error("Cannot read file at path: " + entry.fullPath, {
         ...result,
         error: e.message,
       });
+      return null;
     }
   }
   console.error("Cannot process contract at path: " + entry.fullPath);
@@ -429,12 +430,7 @@ const startSyncChain = async (
       repositoryV1Path,
       databasePool,
       deprecated,
-      {
-        address: nextContract.address,
-        chain_id: nextContract.chain_id,
-        match_type: nextContract.match_type,
-        transaction_hash: nextContract.transaction_hash,
-      },
+      nextContract,
       options.syncTable,
     )
       .then((res) => {
