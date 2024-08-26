@@ -28,6 +28,7 @@ import {
   WStorageIdentifiers,
 } from "./storageServices/identifiers";
 import { DatabaseServiceOptions } from "./storageServices/AbstractDatabaseService";
+import { ConflictError } from "../../common/errors/ConflictError";
 
 export interface WStorageService {
   IDENTIFIER: StorageIdentifiers;
@@ -251,7 +252,7 @@ export class StorageService {
         chain: match.chainId,
         address: match.address,
       });
-      throw new Error(
+      throw new ConflictError(
         `The contract ${match.address} on chainId ${match.chainId} is already partially verified. The provided new source code also yielded a partial match and will not be stored unless it's a full match`,
       );
     }

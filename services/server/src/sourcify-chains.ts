@@ -6,7 +6,7 @@ import {
   AlchemyInfuraRPC,
   FetchRequestRPC,
 } from "@ethereum-sourcify/lib-sourcify";
-import { ValidationError } from "./common/errors";
+import { BadRequestError } from "./common/errors";
 import { FetchRequest } from "ethers";
 import chainsRaw from "./chains.json";
 import rawSourcifyChainExtentions from "./sourcify-chains-default.json";
@@ -241,7 +241,7 @@ export function getSortedChainsArray(
  */
 export function checkSupportedChainId(chainId: string) {
   if (!(chainId in sourcifyChainsMap && sourcifyChainsMap[chainId].supported)) {
-    throw new ValidationError(
+    throw new BadRequestError(
       `Chain ${chainId} not supported for verification!`,
     );
   }
