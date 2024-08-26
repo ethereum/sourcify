@@ -1,9 +1,5 @@
 import { Request } from "express";
-import {
-  BadRequestError,
-  PayloadTooLargeError,
-  ValidationError,
-} from "../../../common/errors";
+import { BadRequestError, PayloadTooLargeError } from "../../../common/errors";
 import {
   CheckedContract,
   InvalidSources,
@@ -70,7 +66,7 @@ export const extractFiles = (req: Request, shouldThrow = false) => {
   }
 
   if (shouldThrow) {
-    throw new ValidationError("There should be files in the <files> field");
+    throw new BadRequestError("There should be files in the <files> field");
   }
 };
 
@@ -444,7 +440,7 @@ export const verifyContractsInSession = async (
         ) {
           match = tempMatch;
         } else if (tempMatch.runtimeMatch === "extra-file-input-bug") {
-          throw new ValidationError(
+          throw new BadRequestError(
             "It seems your contract's metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618",
           );
         }

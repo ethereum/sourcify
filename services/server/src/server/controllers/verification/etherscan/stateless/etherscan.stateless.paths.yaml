@@ -91,6 +91,19 @@ paths:
                         chainId: "1"
                         status: "null"
                         message: "Chain #1 does not have a contract deployed at 0x...."
+        "409":
+          description: Conflict - The contract is already partially verified and the verification yieled a partial match. The files won't be saved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                Already Partially Verified:
+                  value:
+                    error: "The contract 0x00000000219ab540356cBB839Cbe05303d7705Fa on chainId 11155111 is already partially verified. The provided new source code also yielded a partial match and will not be stored unless it's a full match"
         "429":
           description: Too Many Requests sent through Sourcify's own API key
           content:
