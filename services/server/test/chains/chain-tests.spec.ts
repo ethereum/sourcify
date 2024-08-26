@@ -72,13 +72,13 @@ describe("Test Supported Chains", function () {
     "Taraxa Mainnet",
     "shared/",
   );
-  // Taraxa Testnet
-  verifyContract(
-    "0x98edEa58C0500287B973348ec315f3d26D0e189A",
-    "842",
-    "Taraxa Testnet",
-    "shared/",
-  );
+  // // Taraxa Testnet
+  // verifyContract(
+  //   "0x98edEa58C0500287B973348ec315f3d26D0e189A",
+  //   "842",
+  //   "Taraxa Testnet",
+  //   "shared/",
+  // );
 
   // Symplexia Smart Chain
   verifyContract(
@@ -517,13 +517,13 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
-  // Gather Mainnet
-  verifyContract(
-    "0x5b470D7B8165D109E3Fd2e2B4E7a30Cb89C051e5",
-    "192837465",
-    "GTH",
-    "shared/",
-  );
+  // // Gather Mainnet
+  // verifyContract(
+  //   "0x5b470D7B8165D109E3Fd2e2B4E7a30Cb89C051e5",
+  //   "192837465",
+  //   "GTH",
+  //   "shared/",
+  // );
 
   // // Gather Testnet
   // verifyContract(
@@ -563,12 +563,12 @@ describe("Test Supported Chains", function () {
     "Mind Smart Chain Mainnet",
     "shared/",
   );
-  verifyContract(
-    "0x6720b7a5974373C3F6bdE96c09bA4ffdddEEAeD7",
-    "9977",
-    "Mind Smart Chain Testnet",
-    "shared/",
-  );
+  // verifyContract(
+  //   "0x6720b7a5974373C3F6bdE96c09bA4ffdddEEAeD7",
+  //   "9977",
+  //   "Mind Smart Chain Testnet",
+  //   "shared/",
+  // );
   // Energy Web Volta Testnet
   verifyContract(
     "0x4667b7ce62e56B71146885555c68d2DDdf63349A",

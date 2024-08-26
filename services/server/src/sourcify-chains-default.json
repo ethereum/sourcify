@@ -470,7 +470,7 @@
   },
   "9977": {
     "sourcifyName": "Mind Smart Chain Testnet",
-    "supported": true,
+    "supported": false,
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://testnet.mindscan.info/"
@@ -611,7 +611,7 @@
   },
   "192837465": {
     "sourcifyName": "Gather Mainnet",
-    "supported": true,
+    "supported": false,
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://explorer.gather.network/"
@@ -1767,7 +1767,7 @@
   },
   "842": {
     "sourcifyName": "Taraxa Testnet",
-    "supported": true
+    "supported": false
   },
   "16350": {
     "supported": true,
