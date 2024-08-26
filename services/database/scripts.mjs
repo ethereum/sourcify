@@ -43,12 +43,7 @@ program
   .option("-un, --until [number]", "Stop at a specific timestamp (ms)")
   .action(async (repositoryV1Path, options) => {
     validateRepositoryPath(repositoryV1Path);
-    let contracts = await readContracts(
-      repositoryV1Path,
-      2,
-      "directories",
-      processDirectoryPathParts,
-    );
+    let contracts = await readContracts(repositoryV1Path, 2, "directories");
     contracts = filterContracts(contracts, options.startFrom, options.until);
     await insertContractsToDatabase(contracts, insertContractsBatch);
   });
@@ -68,7 +63,6 @@ program
       repositoryV1Path,
       3,
       "files",
-      processFilePathParts,
       "creator-tx-hash.txt",
     );
     await insertContractsToDatabase(contracts, insertContractsTxHashBatch);
@@ -83,13 +77,7 @@ function validateRepositoryPath(repositoryV1Path) {
   }
 }
 
-async function readContracts(
-  repositoryV1Path,
-  depth,
-  type,
-  processPathParts,
-  fileFilter,
-) {
+async function readContracts(repositoryV1Path, depth, type, fileFilter) {
   let contracts = [];
   let dirCount = 0;
 
@@ -101,8 +89,7 @@ async function readContracts(
     type,
     fileFilter,
   })) {
-    const pathParts = entry.fullPath.split("/");
-    const contractData = await processPathParts(pathParts, entry);
+    const contractData = await processContractPath(entry, fileFilter);
 
     if (contractData) {
       contracts.push(contractData);
@@ -170,36 +157,28 @@ async function insertContractsToDatabase(contracts, insertFunction) {
   }
 }
 
-async function extractPathParts(pathParts) {
+async function processContractPath(entry, fileFilter) {
+  const pathParts = entry.fullPath.split("/");
+
   const address = pathParts.pop();
   const chainId = pathParts.pop();
   const matchType = pathParts.pop();
 
   if (
-    (matchType === "full_match" || matchType === "partial_match") &&
-    isNumber(chainId)
+    !(matchType === "full_match" || matchType === "partial_match") ||
+    !isNumber(chainId)
   ) {
-    return { chainId, address, matchType };
+    throw new Error("Unexpected contract path: " + entry.fullPath);
   }
-  throw new Error("Cannot extract path parts for: " + entry.fullPath);
-}
 
-async function processDirectoryPathParts(pathParts, entry) {
-  const result = await extractPathParts(pathParts);
-  if (result) {
-    return { ...result, timestamp: entry.stats.birthtime };
-  }
-  throw new Error("Cannot process contract at path: " + entry.fullPath);
-}
+  const result = { chainId, address, matchType };
 
-async function processFilePathParts(pathParts, entry) {
-  pathParts.pop(); // Remove file name
-  const result = await extractPathParts(pathParts);
-  if (result) {
+  if (fileFilter) {
+    // read file contents
     const creatorTxHash = await fs.promises.readFile(entry.fullPath, "utf8");
     return { ...result, creatorTxHash };
   }
-  throw new Error("Cannot process contract at path: " + entry.fullPath);
+  return { ...result, timestamp: entry.stats.birthtime };
 }
 
 program
