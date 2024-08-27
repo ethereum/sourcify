@@ -227,7 +227,7 @@ export default class SourcifyChain {
     }
 
     throw new Error(
-      'None of the RPCs responded fetching tx ' +
+      'None of the RPCs could successfully fetch tx traces for ' +
         creatorTxHash +
         ' on chain ' +
         this.chainId,
@@ -420,7 +420,9 @@ export default class SourcifyChain {
     }
 
     if (!creationBytecode) {
-      throw new Error('Cannot get creation bytecode');
+      throw new Error(
+        `Cannot get the creation bytecode for ${address} from the transaction hash ${transactionHash} on chain ${this.chainId}`,
+      );
     }
 
     return {
