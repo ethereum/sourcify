@@ -5,14 +5,12 @@
   "description": "Monorepo containing all Sourcify packages, and services",
   "workspaces": [
     "packages/*",
-    "services/*",
-    "ui"
+    "services/*"
   ],
   "scripts": {
     "build:clean": "rm -rf node_modules services/monitor/node_modules services/server/node_modules packages/bytecode-utils/node_modules/ packages/lib-sourcify/node_modules/ && npm install && npx lerna run build",
     "build:lerna": "lerna run build",
     "server:start": "cd services/server && node ./dist/server/server.js",
-    "ui:start": "cd ui && npm run start",
     "monitor:start": "node ./services/monitor/dist/index.js",
     "update-chains": "node --experimental-fetch scripts/updateChains.mjs && prettier --write services/server/src/chains.json",
     "test:chains": "cd services/server && npm run test:chains",

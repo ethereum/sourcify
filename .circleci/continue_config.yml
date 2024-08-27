@@ -52,9 +52,6 @@ parameters:
   run-build-repository:
     type: boolean
     default: false
-  run-build-ui:
-    type: boolean
-    default: false
   run-build-server:
     type: boolean
     default: false
@@ -167,8 +164,6 @@ workflows:
       - build-push-server-amd64:
           run-build: << pipeline.parameters.run-build-server >>
           run-build-2: << pipeline.parameters.run-build-packages >> # server depends on packages
-      - build-push-ui-amd64:
-          run-build: << pipeline.parameters.run-build-ui >>
       - build-push-monitor-arm64:
           run-build: << pipeline.parameters.run-build-monitor >>
           run-build-2: << pipeline.parameters.run-build-packages >> # monitor depends on packages
@@ -177,18 +172,14 @@ workflows:
       - build-push-server-arm64:
           run-build: << pipeline.parameters.run-build-server >>
           run-build-2: << pipeline.parameters.run-build-packages >> # server depends on packages
-      - build-push-ui-arm64:
-          run-build: << pipeline.parameters.run-build-ui >>
       - publish-multiarch-images:
           requires:
             - build-push-monitor-amd64
             - build-push-repository-amd64
             - build-push-server-amd64
-            - build-push-ui-amd64
             - build-push-monitor-arm64
             - build-push-repository-arm64
             - build-push-server-arm64
-            - build-push-ui-arm64
       - deploy:
           requires:
             - publish-multiarch-images
@@ -236,12 +227,6 @@ jobs:
       SERVICE: "server"
       DOCKER_BUILD_CONTEXT: "."
       DOCKERFILE: "services/server/Dockerfile"
-  build-push-ui-amd64:
-    <<: *build-base
-    environment:
-      SERVICE: "ui"
-      DOCKER_BUILD_CONTEXT: "./ui"
-      DOCKERFILE: "./ui/Dockerfile"
   # ARM64 builds
   build-push-monitor-arm64:
     <<: *build-base-arm64
@@ -261,12 +246,6 @@ jobs:
       SERVICE: "server"
       DOCKER_BUILD_CONTEXT: "."
       DOCKERFILE: "services/server/Dockerfile"
-  build-push-ui-arm64:
-    <<: *build-base-arm64
-    environment:
-      SERVICE: "ui"
-      DOCKER_BUILD_CONTEXT: "./ui"
-      DOCKERFILE: "./ui/Dockerfile"
   publish-multiarch-images:
     docker:
       - image: cimg/base:2024.07
