@@ -1,14 +1,13 @@
 #!/bin/bash
 
-# Checks the new tag of the built image for each service (ui, server, monitor, repository)
+# Checks the new tag of the built image for each service (server, monitor, repository)
 # The tag value is persisted in worspace/{service}_image_sha.txt by each respective build job
 # If a new image is built with a new tag, a deploy trigger is sent to the sourcifyeth/infra repo
 
-
 # Define the list of services
-services=("ui" "server" "monitor" "repository")
+services=("server" "monitor" "repository")
 
-if [ "$CIRCLE_BRANCH" == "staging" ]; then 
+if [ "$CIRCLE_BRANCH" == "staging" ]; then
     ENVIRONMENT='staging'
 elif [ "$CIRCLE_BRANCH" == "master" ]; then
     ENVIRONMENT='production'
@@ -30,7 +29,7 @@ for service in "${services[@]}"; do
         # Check if the content is not an empty string
         if [ -n "$image_sha" ]; then
             echo "File is not empty."
-            
+
             image_tag="$CIRCLE_BRANCH"@"$image_sha"
             # sha: Git commit SHA vs. image_sha: Docker image SHA
             body="{\"event_type\":\"deploy\",\"client_payload\":{\"environment\":\"$ENVIRONMENT\",\"component\":\"$service\",\"image_tag\":\"$image_tag\",\"ref\":\"$CIRCLE_BRANCH\",\"sha\":\"$CIRCLE_SHA1\"}}"
@@ -49,7 +48,7 @@ for service in "${services[@]}"; do
 
         else
             echo "File for $service is empty."
-            exit 1;
+            exit 1
         fi
     else
         echo "File $filePath does not exist."
@@ -62,9 +61,8 @@ for service in "${services[@]}"; do
 done
 
 # Wait 6 minutes in 1 minute intervals for the deploy to complete. 6 min is 2x the default 3min polling time of ArgoCD
-for i in {1..6}
-do
-  echo "Waiting for $i minute(s)..."
-  sleep 60
+for i in {1..6}; do
+    echo "Waiting for $i minute(s)..."
+    sleep 60
 done
 echo "Done waiting."

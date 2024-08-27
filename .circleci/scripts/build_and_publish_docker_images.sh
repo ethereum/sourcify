@@ -3,15 +3,6 @@ set -e
 
 echo $SERVICE
 
-# To pass variables React build time in build-ui.yaml
-if [ "$SERVICE" == "ui" ]; then
-    if [ -n "$CIRCLE_BRANCH" ]; then
-        cp ui/.env.build.$CIRCLE_BRANCH ui/.env
-    elif [ -n "$CIRCLE_TAG" ]; then
-        cp ui/.env.build.master ui/.env
-    fi
-fi
-
 # Extract the arch from the job name
 if [[ "$CIRCLE_JOB" == *"arm64"* ]]; then
     echo "Job is for arm64."
@@ -21,7 +12,7 @@ elif [[ "$CIRCLE_JOB" == *"amd64"* ]]; then
     ARCH="amd64"
 else
     echo "Error: CIRCLE_JOB does not contain 'arm64' or 'amd64'."
-    exit 1  # Exit with a non-zero status to indicate an error.
+    exit 1 # Exit with a non-zero status to indicate an error.
 fi
 
 NAMESPACE="ghcr.io/ethereum/sourcify"
@@ -44,17 +35,16 @@ if [ -n "$CIRCLE_TAG" ]; then
     VERSION=${CIRCLE_TAG##*@}
     VERSION_TAG="$IMAGE_NAME:$VERSION-$ARCH"
     LATEST_TAG="$IMAGE_NAME:latest-$ARCH"
-    
+
     TAG_COMMAND="-t $LATEST_TAG -t $VERSION_TAG"
 fi
 
 docker build \
     -f $DOCKERFILE \
     $TAG_COMMAND \
-    $DOCKER_BUILD_CONTEXT \
+    $DOCKER_BUILD_CONTEXT
 
 docker push --all-tags $IMAGE_NAME
-
 
 mkdir -p workspace
 
@@ -64,7 +54,7 @@ if [ -n "$CIRCLE_BRANCH" ]; then
     REPO_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $BRANCH_TAG | cut -d '@' -f 2)
     echo "Branch tag $BRANCH_TAG SHA: $REPO_DIGEST"
     echo "Writing sha ${REPO_DIGEST} to workspace/${SERVICE}_${ARCH}_image_sha.txt"
-    echo -n $REPO_DIGEST > workspace/"$SERVICE"_"$ARCH"_image_sha.txt
+    echo -n $REPO_DIGEST >workspace/"$SERVICE"_"$ARCH"_image_sha.txt
 fi
 
 # No need to extract the image tag if the build is triggered by a tag because the deployment will be done by the branch trigger.

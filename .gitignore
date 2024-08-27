@@ -4,9 +4,6 @@ db/
 node_modules/
 mockRepository*
 server.log
-ui/node_modules/
-ui/dist/
-ui/.cache/
 source-verify.dab
 dist/
 **/.env

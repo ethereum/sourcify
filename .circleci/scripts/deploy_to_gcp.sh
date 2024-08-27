@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Checks the new tag of the built image for each service (ui, server, monitor, repository)
+# Checks the new tag of the built image for each service (server, monitor, repository)
 # The tag value is persisted in worspace/{service}_image_sha.txt by each respective build job
 # If a new image is built with a new tag, a deploy trigger is sent to the sourcifyeth/infra repo
 
@@ -12,7 +12,7 @@ services=("server" "monitor" "repository")
 
 ARTIFACT_REGISTRY_URL="europe-west1-docker.pkg.dev/sourcify-project/ghcr-proxy/ethereum/sourcify/"
 
-if [ "$CIRCLE_BRANCH" == "staging" ]; then 
+if [ "$CIRCLE_BRANCH" == "staging" ]; then
     ENVIRONMENT='staging'
 elif [ "$CIRCLE_BRANCH" == "master" ]; then
     ENVIRONMENT='production'
@@ -37,7 +37,7 @@ for service in "${services[@]}"; do
         # Check if the content is not an empty string
         if [ -n "$image_sha" ]; then
             echo "File is not empty."
-            
+
             image_tag="$CIRCLE_BRANCH"@"$image_sha"
 
             # sourcify-staging-server or sourcify-production-server
@@ -53,7 +53,7 @@ for service in "${services[@]}"; do
             echo $cmd
         else
             echo "File for $service is empty."
-            exit 1;
+            exit 1
         fi
     else
         echo "File $filePath does not exist."

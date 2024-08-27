@@ -7,24 +7,6 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Server",
-      "program": "${workspaceFolder}/services/server/dist/server/server.js",
-      "envFile": "${workspaceFolder}/services/server/.env",
-      "preLaunchTask": "npm: build:lerna",
-      "outFiles": [
-        "${workspaceFolder}/services/server/dist/**/*.js",
-        "${workspaceFolder}/packages/**/build/**/*.js"
-      ],
-      "env": {
-        // "DEBUG": "express:*" // Debug all express modules *
-      },
-      "smartStep": true,
-      "console": "integratedTerminal",
-      "outputCapture": "std"
-    },
-    {
-      "type": "node",
-      "request": "launch",
       "name": "Server - without build",
       "program": "${workspaceFolder}/services/server/dist/server/server.js",
       "envFile": "${workspaceFolder}/services/server/.env",
@@ -49,14 +31,6 @@
       "localRoot": "${workspaceFolder}",
       "port": 9229,
       "address": "localhost"
-    },
-    {
-      // Make sure the UI webserver is already running with `npm start`
-      "name": "UI",
-      "type": "chrome",
-      "request": "launch",
-      "url": "http://localhost:3000",
-      "webRoot": "${workspaceRoot}/ui/src"
     },
     {
       "type": "node",

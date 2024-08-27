@@ -14,15 +14,15 @@ Different than other verification services, Sourcify leverages the [Solidity met
 Sourcify mainly consists of:
 
 - [sourcify-server](/services/server) - an HTTP server to do verifications and store the verified contracts for supported chains through an [API](https://docs.sourcify.dev/docs/api/)
-- [sourcify-ui](/ui) - a web UI to interact with the server, lookup, and verify contracts
 - [sourcify-monitor](/services/monitor) - a standalone service that listens to various EVM chains for new contract creations and automatically submits them to a Sourcify API for verification.
 - Packages:
   - [@ethereum-sourcify/lib-sourcify](/packages/lib-sourcify/): The core library for Sourcify. It contains the logic to verify contracts.
   - [@ethereum-sourcify/bytecode-utils](/packages/bytecode-utils/): A library to extract and parse the CBOR encoded metadata from the bytecode.
+- [Sourcify UI](https://github.com/sourcifyeth/ui) - a web UI to interact with the server, lookup, and verify contracts
 
 The project aims to serve as a public good infrastructure with fully open-source development and an [open and accessible contract repository](https://docs.sourcify.dev/docs/repository/) of verified contracts. Anyone can easily run their own Sourcify server and monitor to verify contracts on their own. We also aim to provide tooling to verify contracts easier on different platforms e.g. browers.
 
-_ℹ️ [This monorepo](https://github.com/ethereum/sourcify) the main modules. The [sourcifyeth Github organization](https://github.com/sourcifyeth) contains all other auxiliary services and components._
+_ℹ️ [This monorepo](https://github.com/ethereum/sourcify) contains the main modules. The [sourcifyeth Github organization](https://github.com/sourcifyeth) contains all other auxiliary services and components._
 
 ## Documentation
 
