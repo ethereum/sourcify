@@ -179,11 +179,11 @@ export async function verifyDeployed(
         generateCreationCborAuxdataPositions,
         recompiled.creationLinkReferences,
       );
-      if (match.runtimeMatch === 'partial') {
+      if (match.creationMatch === 'partial') {
         logDebug('Matched partial with creation tx', {
           chain: sourcifyChain.chainId,
           address,
-          runtimeMatch: match.runtimeMatch,
+          creationMatch: match.creationMatch,
           creatorTxHash,
         });
         match = await tryToFindPerfectMetadataAndMatch(
