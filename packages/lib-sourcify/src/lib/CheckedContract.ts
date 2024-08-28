@@ -363,7 +363,6 @@ export class CheckedContract {
             "The creation auxdata from raw bytecode differs from the legacyAssembly's auxdata",
             { name: this.name },
           );
-          return false;
         }
       }
     }
