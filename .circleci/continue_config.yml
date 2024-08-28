@@ -266,13 +266,6 @@ jobs:
       - checkout
       - attach_workspace:
           at: workspace
-      # Temporarily we'll deploy both to GCP and Argo
-      # Deploy to Argo by running the trigger_deploy.sh script
-      - run:
-          name: Trigger Deploy Events
-          no_output_timeout: 5m
-          command: |
-            ./.circleci/scripts/trigger_deploy.sh
       # Deploy to GCP
       - gcp-cli/install
       - gcp-oidc-generate-cred-config-file
