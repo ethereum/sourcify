@@ -1,5 +1,5 @@
 import { NextFunction, RequestHandler, Request, Response } from "express";
-import { InternalServerError } from "../../common/errors";
+import { BadRequestError, InternalServerError } from "../../common/errors";
 import logger from "../../common/logger";
 import { getAddress } from "ethers";
 
@@ -7,9 +7,21 @@ export const safeHandler = <T extends Request = Request>(
   requestHandler: (req: T, res: Response, next: NextFunction) => Promise<any>,
 ) => {
   return async (req: T, res: Response, next: NextFunction) => {
-    // Middlewares can access req.params.* only after routes are defined
-    if (req.params.address) {
-      req.params.address = getAddress(req.params.address);
+    try {
+      // Middlewares can access req.params.* only after routes are defined
+      if (req.params.address) {
+        // Checksum the address
+        req.params.address = getAddress(req.params.address);
+      }
+    } catch (err: any) {
+      logger.info("Invalid address in params", {
+        errorMessage: err.message,
+        errorStack: err.stack,
+        params: req.params,
+      });
+      return next(
+        new BadRequestError(`Invalid address: ${req.params.address}`),
+      );
     }
     try {
       return await requestHandler(req, res as any, next);
@@ -18,7 +30,9 @@ export const safeHandler = <T extends Request = Request>(
         errorMessage: err.message,
         errorStack: err.stack,
       });
-      next(typeof err === "object" ? err : new InternalServerError(err.mesage));
+      return next(
+        typeof err === "object" ? err : new InternalServerError(err.mesage),
+      );
     }
   };
 };
