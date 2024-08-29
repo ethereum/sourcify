@@ -39,7 +39,7 @@
   "dependencies": {
     "@ethereum-sourcify/bytecode-utils": "^1.2.10",
     "@ethereum-sourcify/lib-sourcify": "^1.9.1",
-    "axios": "1.7.4",
+    "axios": "1.7.5",
     "chalk": "4.1.2",
     "commander": "12.1.0",
     "dotenv": "16.4.5",
@@ -47,13 +47,13 @@
     "winston": "3.14.2"
   },
   "devDependencies": {
-    "@types/chai": "4.3.17",
+    "@types/chai": "4.3.19",
     "@types/mocha": "10.0.7",
     "@types/node": "20.14.14",
     "@types/sinon": "17.0.3",
     "c8": "10.1.2",
     "chai": "4.5.0",
-    "hardhat": "2.22.8",
+    "hardhat": "2.22.9",
     "mocha": "10.7.3",
     "nock": "14.0.0-beta.11",
     "open-cli": "8.0.0",

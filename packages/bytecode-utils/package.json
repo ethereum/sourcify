@@ -44,7 +44,7 @@
     "cbor-x": "1.6.0"
   },
   "devDependencies": {
-    "@types/chai": "4.3.17",
+    "@types/chai": "4.3.19",
     "@types/mocha": "10.0.7",
     "@types/node": "20.14.14",
     "c8": "10.1.2",
