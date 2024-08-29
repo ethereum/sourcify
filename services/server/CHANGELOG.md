@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@2.2.0 - 2024-08-29
+
+- Add IPFS Gateway Headers env var
+- Change requestId to traceID and make it compatible for GCP with W3C standard "traceparent" headers
+- Remove duplicate ValidationError in favor of BadRequestError
+- Add ConflictError for when a contract is already partially verified and the verification yields partial again (HTTP 409)
+- Add `verifyDeprecated` endpoint for syncing/migration
+- Change the default Storage backend to the SourcifyDatabase
+- Change config for the GCP setup e.g. turn off lambda compiler
+- Don't update repository tag on every new verification.
+- New chains:
+  - Telcoin Network (2017)
+- Deprecated chains:
+  - Mind Smart Chain Testnet (9977)
+  - Gather Mainnet (192837465)
+  - Rikeza Network (1433)
+  - Taraxa Testnet (842)
+- Clean up tests to re-use duplicate sources in chain tests
+
 ## sourcify-server@2.1.0 - 2024-07-25
 
 - Update dependencies

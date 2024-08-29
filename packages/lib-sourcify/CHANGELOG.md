@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## @ethereum-sourcify/lib-sourcify@1.9.1 - 2024-08-29
+
+- Add custom headers for the IPFS Gateway
+- Fix passing the runtimeMatch when matching with the creation bytecode
+- Add logs
+- Update packages
+
 ## @ethereum-sourcify/lib-sourcify@1.9.0 - 2024-07-25
 
 - Update dependencies

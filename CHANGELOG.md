@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 This CHANGELOG will contain monorepo related changes such as CI configs, shared dependencies and the development setup.
 
+## sourcify-monorepo@1.4.0 - 2024-08-29
+
+- Remove UI and all related CI/CD code
+- Add GCP deployment to CI/CD
+- Update packages
+- Update h5ai-nginx link
+
 ## sourcify-monorepo@1.3.0 - 2024-07-25
 
 - Use Node 22.4.0 everywhere
