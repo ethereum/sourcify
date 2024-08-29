@@ -1,5 +1,14 @@
 # Changelog for `sourcify-database`
 
+## sourcify-database@1.3.0 - 2024-08-29
+
+- Added constraints for `compiled_contracts` table in migrations
+- Updated the script:
+  - Added `single-sync` command to send one contract
+  - Added `import-creator-tx` to import all contracts with a creator-tx-hash.txt file. Needed for contracts that failed to verify with creation tx durign the sync
+  - Refactor some parts
+  - Change deprecated chains sync code
+
 ## sourcify-database@1.2.0 - 2024-07-25
 
 - Update README on how to run the migrations
