@@ -272,7 +272,7 @@ jobs:
       - gcp-oidc-authenticate
       - run: 
           name: Deploy to GCP
-          no_output_timeout: 5m
+          no_output_timeout: 10m
           command: |
             ./.circleci/scripts/deploy_to_gcp.sh
   tests-node-v22:
