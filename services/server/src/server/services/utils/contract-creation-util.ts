@@ -236,6 +236,7 @@ export const getCreatorTx = async (
   sourcifyChain: SourcifyChain,
   contractAddress: string,
 ): Promise<string | null> => {
+  // Try blockscout first
   if (sourcifyChain.fetchContractCreationTxUsing?.blockscoutApi) {
     const fetcher = getBlockscoutApiContractCreatorFetcher(
       sourcifyChain.fetchContractCreationTxUsing?.blockscoutApi.url,
@@ -245,6 +246,8 @@ export const getCreatorTx = async (
       return result;
     }
   }
+
+  // Try etherscan if blockscout fails
   if (
     sourcifyChain.fetchContractCreationTxUsing?.etherscanApi &&
     sourcifyChain?.etherscanApi?.apiURL
