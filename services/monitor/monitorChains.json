@@ -79,16 +79,6 @@
     ]
   },
   {
-    "name": "Meter Mainnet",
-    "chainId": 82,
-    "rpc": ["https://rpc.meter.io"]
-  },
-  {
-    "name": "Meter Testnet",
-    "chainId": 83,
-    "rpc": ["https://rpctest.meter.io"]
-  },
-  {
     "name": "OP Mainnet",
     "chainId": 10,
     "rpc": [
