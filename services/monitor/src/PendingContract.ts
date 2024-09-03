@@ -6,7 +6,6 @@ import { KnownDecentralizedStorageFetchers } from "./types";
 import assert from "assert";
 import dotenv from "dotenv";
 import { Logger } from "winston";
-import axios, { AxiosError, AxiosResponse } from "axios";
 
 dotenv.config();
 
@@ -142,17 +141,16 @@ export default class PendingContract {
       formattedSources[sourceUnitName] = source.content;
     }
 
-    let response: AxiosResponse;
+    let response: Response;
     try {
       // Send to Sourcify server.
-      response = await axios({
-        url: sourcifyServerURL,
+      response = await fetch(sourcifyServerURL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "User-Agent": "sourcify-monitor",
         },
-        data: JSON.stringify({
+        body: JSON.stringify({
           chainId: this.chainId.toString(),
           address: this.address,
           files: {
@@ -162,36 +160,27 @@ export default class PendingContract {
           creatorTxHash,
         }),
       });
-    } catch (error: any) {
-      if (error instanceof AxiosError) {
-        // If the error contains the request's body then it fails to log because of payload size
-        if (error.config?.data) {
-          delete error.config.data;
-        }
-        throw error;
+
+      if (!response.ok) {
+        throw new Error(
+          `Error sending contract ${this.address} to Sourcify server ${sourcifyServerURL} - response status not ok: ${response.statusText} ${await response.text()}`,
+        );
       }
-      throw error;
+    } catch (error: any) {
+      throw new Error(
+        `Error sending contract ${this.address} to Sourcify server ${sourcifyServerURL} - network error: ${error.message}`,
+      );
     }
 
-    if (response.status === 200) {
-      this.contractLogger.info(
-        "[PendingContract.sendToSourcifyServer] Contract sent",
-        {
-          address: this.address,
-          chainId: this.chainId,
-          sourcifyServerURL,
-        },
-      );
-      return response.data;
-    } else {
-      throw new Error(
-        `Error sending contract ${
-          this.address
-        } to Sourcify server ${sourcifyServerURL}: ${
-          response.statusText
-        } ${await response.data}`,
-      );
-    }
+    this.contractLogger.info(
+      "[PendingContract.sendToSourcifyServer] Contract sent",
+      {
+        address: this.address,
+        chainId: this.chainId,
+        sourcifyServerURL,
+      },
+    );
+    return await response.json();
   };
 
   private movePendingToFetchedSources = (sourceUnitName: string) => {
