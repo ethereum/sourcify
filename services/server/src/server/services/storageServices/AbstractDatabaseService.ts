@@ -301,6 +301,19 @@ export default abstract class AbstractDatabaseService {
       };
     }
 
+    const sourcesInformation = Object.keys(recompiledContract.solidity).map(
+      (path) => {
+        return {
+          path,
+          source_code_hash_keccak: bytesFromString<BytesKeccak>(
+            keccak256(Buffer.from(recompiledContract.solidity[path])),
+          ),
+          language: "solidity",
+          content: recompiledContract.solidity[path],
+        };
+      },
+    );
+
     return {
       recompiledCreationCode,
       recompiledRuntimeCode: {
@@ -331,13 +344,13 @@ export default abstract class AbstractDatabaseService {
         compiler: "solc",
         compiler_settings: Database.prepareCompilerSettings(recompiledContract),
         name: recompiledContract.name,
-        sources: recompiledContract.solidity,
         version: recompiledContract.compilerVersion,
         fully_qualified_name: `${compilationTargetPath}:${compilationTargetName}`,
         compilation_artifacts: compilationArtifacts,
         creation_code_artifacts: creationCodeArtifacts,
         runtime_code_artifacts: runtimeCodeArtifacts,
       },
+      sourcesInformation,
       verifiedContract: {
         runtime_transformations,
         creation_transformations,
@@ -417,11 +430,18 @@ export default abstract class AbstractDatabaseService {
             recompiledRuntimeCodeInsertResult.rows[0].bytecode_hash,
         });
 
+      const compiledContractId = compiledContractsInsertResult.rows[0].id;
+
+      await Database.insertCompiledContractsSources(this.databasePool, {
+        sourcesInformation: databaseColumns.sourcesInformation,
+        compilation_id: compiledContractId,
+      });
+
       // insert new recompiled contract with newly added contract and compiledContract
       const verifiedContractInsertResult =
         await Database.insertVerifiedContract(this.databasePool, {
           ...databaseColumns.verifiedContract,
-          compilation_id: compiledContractsInsertResult.rows[0].id,
+          compilation_id: compiledContractId,
           deployment_id: contractDeploymentInsertResult.rows[0].id,
         });
       return verifiedContractInsertResult.rows[0].id;
