@@ -5,7 +5,7 @@
     "rpc": [
       {
         "type": "ApiKey",
-        "url": "https://lb.drpc.org/ogrpc?network=ethereum&dkey={DRPC_API_KEY}",
+        "url": "https://lb.drpc.org/ogrpc?network=ethereum&dkey={API_KEY}",
         "apiKeyEnvName": "DRPC_API_KEY"
       }
     ]
@@ -17,7 +17,7 @@
     "rpc": [
       {
         "type": "ApiKey",
-        "url": "https://lb.drpc.org/ogrpc?network=sepolia&dkey={DRPC_API_KEY}",
+        "url": "https://lb.drpc.org/ogrpc?network=sepolia&dkey={API_KEY}",
         "apiKeyEnvName": "DRPC_API_KEY"
       }
     ]
@@ -29,7 +29,7 @@
     "rpc": [
       {
         "type": "ApiKey",
-        "url": "https://lb.drpc.org/ogrpc?network=holesky&dkey={DRPC_API_KEY}",
+        "url": "https://lb.drpc.org/ogrpc?network=holesky&dkey={API_KEY}",
         "apiKeyEnvName": "DRPC_API_KEY"
       }
     ]
@@ -40,7 +40,7 @@
     "rpc": [
       {
         "type": "ApiKey",
-        "url": "https://lb.drpc.org/ogrpc?network=arbitrum&dkey={DRPC_API_KEY}",
+        "url": "https://lb.drpc.org/ogrpc?network=arbitrum&dkey={API_KEY}",
         "apiKeyEnvName": "DRPC_API_KEY"
       }
     ]
@@ -51,7 +51,7 @@
     "rpc": [
       {
         "type": "ApiKey",
-        "url": "https://lb.drpc.org/ogrpc?network=arbitrum-sepolia&dkey={DRPC_API_KEY}",
+        "url": "https://lb.drpc.org/ogrpc?network=arbitrum-sepolia&dkey={API_KEY}",
         "apiKeyEnvName": "DRPC_API_KEY"
       }
     ]
@@ -62,7 +62,7 @@
     "rpc": [
       {
         "type": "ApiKey",
-        "url": "https://lb.drpc.org/ogrpc?network=arbitrum-nova&dkey={DRPC_API_KEY}",
+        "url": "https://lb.drpc.org/ogrpc?network=arbitrum-nova&dkey={API_KEY}",
         "apiKeyEnvName": "DRPC_API_KEY"
       }
     ]
@@ -73,7 +73,7 @@
     "rpc": [
       {
         "type": "ApiKey",
-        "url": "https://lb.drpc.org/ogrpc?network=gnosis&dkey={DRPC_API_KEY}",
+        "url": "https://lb.drpc.org/ogrpc?network=gnosis&dkey={API_KEY}",
         "apiKeyEnvName": "DRPC_API_KEY"
       }
     ]
@@ -84,7 +84,7 @@
     "rpc": [
       {
         "type": "ApiKey",
-        "url": "https://lb.drpc.org/ogrpc?network=optimism&dkey={DRPC_API_KEY}",
+        "url": "https://lb.drpc.org/ogrpc?network=optimism&dkey={API_KEY}",
         "apiKeyEnvName": "DRPC_API_KEY"
       }
     ]
@@ -95,7 +95,7 @@
     "rpc": [
       {
         "type": "ApiKey",
-        "url": "https://lb.drpc.org/ogrpc?network=optimism-sepolia&dkey={DRPC_API_KEY}",
+        "url": "https://lb.drpc.org/ogrpc?network=optimism-sepolia&dkey={API_KEY}",
         "apiKeyEnvName": "DRPC_API_KEY"
       }
     ]
@@ -106,7 +106,7 @@
     "rpc": [
       {
         "type": "ApiKey",
-        "url": "https://lb.drpc.org/ogrpc?network=polygon&dkey={DRPC_API_KEY}",
+        "url": "https://lb.drpc.org/ogrpc?network=polygon&dkey={API_KEY}",
         "apiKeyEnvName": "DRPC_API_KEY"
       }
     ]
@@ -117,7 +117,7 @@
     "rpc": [
       {
         "type": "ApiKey",
-        "url": "https://lb.drpc.org/ogrpc?network=polygon-amoy&dkey={DRPC_API_KEY}",
+        "url": "https://lb.drpc.org/ogrpc?network=polygon-amoy&dkey={API_KEY}",
         "apiKeyEnvName": "DRPC_API_KEY"
       }
     ]
@@ -128,7 +128,7 @@
     "rpc": [
       {
         "type": "ApiKey",
-        "url": "https://lb.drpc.org/ogrpc?network=polygon-zkevm&dkey={DRPC_API_KEY}",
+        "url": "https://lb.drpc.org/ogrpc?network=polygon-zkevm&dkey={API_KEY}",
         "apiKeyEnvName": "DRPC_API_KEY"
       }
     ]
@@ -139,7 +139,7 @@
     "rpc": [
       {
         "type": "ApiKey",
-        "url": "https://lb.drpc.org/ogrpc?network=avalanche&dkey={DRPC_API_KEY}",
+        "url": "https://lb.drpc.org/ogrpc?network=avalanche&dkey={API_KEY}",
         "apiKeyEnvName": "DRPC_API_KEY"
       }
     ]
@@ -150,7 +150,7 @@
     "rpc": [
       {
         "type": "ApiKey",
-        "url": "https://lb.drpc.org/ogrpc?network=avalanche-fuji&dkey={DRPC_API_KEY}",
+        "url": "https://lb.drpc.org/ogrpc?network=avalanche-fuji&dkey={API_KEY}",
         "apiKeyEnvName": "DRPC_API_KEY"
       }
     ]
@@ -161,7 +161,7 @@
     "rpc": [
       {
         "type": "ApiKey",
-        "url": "https://lb.drpc.org/ogrpc?network=base&dkey={DRPC_API_KEY}",
+        "url": "https://lb.drpc.org/ogrpc?network=base&dkey={API_KEY}",
         "apiKeyEnvName": "DRPC_API_KEY"
       }
     ]
@@ -172,7 +172,7 @@
     "rpc": [
       {
         "type": "ApiKey",
-        "url": "https://lb.drpc.org/ogrpc?network=base-sepolia&dkey={DRPC_API_KEY}",
+        "url": "https://lb.drpc.org/ogrpc?network=base-sepolia&dkey={API_KEY}",
         "apiKeyEnvName": "DRPC_API_KEY"
       }
     ]
@@ -188,7 +188,7 @@
     "rpc": [
       {
         "type": "ApiKey",
-        "url": "https://lb.drpc.org/ogrpc?network=celo&dkey={DRPC_API_KEY}",
+        "url": "https://lb.drpc.org/ogrpc?network=celo&dkey={API_KEY}",
         "apiKeyEnvName": "DRPC_API_KEY"
       }
     ]
@@ -199,7 +199,7 @@
     "rpc": [
       {
         "type": "ApiKey",
-        "url": "https://lb.drpc.org/ogrpc?network=celo-alfajores&dkey={DRPC_API_KEY}",
+        "url": "https://lb.drpc.org/ogrpc?network=celo-alfajores&dkey={API_KEY}",
         "apiKeyEnvName": "DRPC_API_KEY"
       }
     ]
@@ -215,7 +215,7 @@
     "rpc": [
       {
         "type": "ApiKey",
-        "url": "https://lb.drpc.org/ogrpc?network=filecoin&dkey={DRPC_API_KEY}",
+        "url": "https://lb.drpc.org/ogrpc?network=filecoin&dkey={API_KEY}",
         "apiKeyEnvName": "DRPC_API_KEY"
       }
     ]
@@ -226,7 +226,7 @@
     "rpc": [
       {
         "type": "ApiKey",
-        "url": "https://lb.drpc.org/ogrpc?network=filecoin-calibration&dkey={DRPC_API_KEY}",
+        "url": "https://lb.drpc.org/ogrpc?network=filecoin-calibration&dkey={API_KEY}",
         "apiKeyEnvName": "DRPC_API_KEY"
       }
     ]
@@ -237,7 +237,7 @@
     "rpc": [
       {
         "type": "ApiKey",
-        "url": "https://lb.drpc.org/ogrpc?network=linea&dkey={DRPC_API_KEY}",
+        "url": "https://lb.drpc.org/ogrpc?network=linea&dkey={API_KEY}",
         "apiKeyEnvName": "DRPC_API_KEY"
       }
     ]
@@ -248,7 +248,7 @@
     "rpc": [
       {
         "type": "ApiKey",
-        "url": "https://lb.drpc.org/ogrpc?network=linea-sepolia&dkey={DRPC_API_KEY}",
+        "url": "https://lb.drpc.org/ogrpc?network=linea-sepolia&dkey={API_KEY}",
         "apiKeyEnvName": "DRPC_API_KEY"
       }
     ]
@@ -259,7 +259,7 @@
     "rpc": [
       {
         "type": "ApiKey",
-        "url": "https://lb.drpc.org/ogrpc?network=scroll&dkey={DRPC_API_KEY}",
+        "url": "https://lb.drpc.org/ogrpc?network=scroll&dkey={API_KEY}",
         "apiKeyEnvName": "DRPC_API_KEY"
       }
     ]
@@ -270,7 +270,7 @@
     "rpc": [
       {
         "type": "ApiKey",
-        "url": "https://lb.drpc.org/ogrpc?network=scroll-sepolia&dkey={DRPC_API_KEY}",
+        "url": "https://lb.drpc.org/ogrpc?network=scroll-sepolia&dkey={API_KEY}",
         "apiKeyEnvName": "DRPC_API_KEY"
       }
     ]
