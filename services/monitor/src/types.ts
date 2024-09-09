@@ -70,7 +70,7 @@ export type PassedMonitorConfig = {
   };
 };
 
-type RpcObject = {
+export type RpcObject = {
   type: "ApiKey";
   url: string;
   apiKeyEnvName: string;
