@@ -127,9 +127,22 @@ export default class Monitor extends EventEmitter {
   };
 }
 
-function authenticateRpcs(chain: MonitorChain) {
+export function authenticateRpcs(chain: MonitorChain) {
   return chain.rpc.map((rpc) => {
     if (typeof rpc === "string") {
+      if (rpc?.includes("ethpandaops.io")) {
+        const ethersFetchReq = new FetchRequest(rpc);
+        ethersFetchReq.setHeader("Content-Type", "application/json");
+        ethersFetchReq.setHeader(
+          "CF-Access-Client-Id",
+          process.env.CF_ACCESS_CLIENT_ID || "",
+        );
+        ethersFetchReq.setHeader(
+          "CF-Access-Client-Secret",
+          process.env.CF_ACCESS_CLIENT_SECRET || "",
+        );
+        return ethersFetchReq;
+      }
       return rpc;
     }
     if (rpc?.type === "ApiKey") {
@@ -140,19 +153,6 @@ function authenticateRpcs(chain: MonitorChain) {
         );
       }
       return rpc.url.replace("{API_KEY}", apiKey);
-    }
-    if (rpc.url.includes("ethpandaops.io")) {
-      const ethersFetchReq = new FetchRequest(rpc.url);
-      ethersFetchReq.setHeader("Content-Type", "application/json");
-      ethersFetchReq.setHeader(
-        "CF-Access-Client-Id",
-        process.env.CF_ACCESS_CLIENT_ID || "",
-      );
-      ethersFetchReq.setHeader(
-        "CF-Access-Client-Secret",
-        process.env.CF_ACCESS_CLIENT_SECRET || "",
-      );
-      return ethersFetchReq;
     }
     throw new Error("Invalid rpc object: " + JSON.stringify(rpc));
   });

@@ -1,8 +1,8 @@
 import { expect } from "chai";
 import sinon, { SinonSandbox } from "sinon";
-import Monitor from "../src/Monitor";
+import Monitor, { authenticateRpcs } from "../src/Monitor";
 import logger from "../src/logger";
-import { JsonRpcProvider, JsonRpcSigner, Network } from "ethers";
+import { FetchRequest, JsonRpcProvider, JsonRpcSigner, Network } from "ethers";
 import {
   deployFromAbiAndBytecode,
   nockInterceptorForVerification,
@@ -15,6 +15,7 @@ import {
 import { ChildProcess } from "child_process";
 import storageContractArtifact from "./sources/Storage/1_Storage.json";
 import nock from "nock";
+import { RpcObject } from "../src/types";
 
 const HARDHAT_PORT = 8546;
 // Configured in hardhat.config.js
@@ -57,6 +58,78 @@ describe("Monitor", function () {
     await stopHardhatNetwork(hardhatNodeProcess);
     if (monitor) monitor.stop();
     sandbox.restore();
+  });
+
+  describe("authenticateRpcs", () => {
+    let originalEnv: NodeJS.ProcessEnv;
+
+    beforeEach(() => {
+      originalEnv = process.env;
+      process.env = { ...originalEnv };
+    });
+
+    afterEach(() => {
+      process.env = originalEnv;
+      sinon.restore();
+    });
+
+    it("should return string RPC unchanged", () => {
+      const rpc = "https://example.com/rpc";
+      const result = authenticateRpcs({ chainId: 1, rpc: [rpc], name: "Test" });
+      expect(result).to.deep.equal([rpc]);
+    });
+
+    it("should replace API key in URL for ApiKey type", () => {
+      process.env.TEST_API_KEY = "testkey123";
+      const rpc: RpcObject = {
+        type: "ApiKey",
+        url: "https://example.com/rpc/{API_KEY}",
+        apiKeyEnvName: "TEST_API_KEY",
+      };
+      const result = authenticateRpcs({ chainId: 1, rpc: [rpc], name: "Test" });
+      expect(result).to.deep.equal(["https://example.com/rpc/testkey123"]);
+    });
+
+    it("should throw error if API key is not found in environment variables", () => {
+      const rpc: RpcObject = {
+        type: "ApiKey",
+        url: "https://example.com/rpc/{API_KEY}",
+        apiKeyEnvName: "NONEXISTENT_API_KEY",
+      };
+      expect(() =>
+        authenticateRpcs({ chainId: 1, rpc: [rpc], name: "Test" }),
+      ).to.throw(
+        "API key NONEXISTENT_API_KEY not found in environment variables",
+      );
+    });
+
+    it("should create FetchRequest for ethpandaops.io URLs", () => {
+      process.env.CF_ACCESS_CLIENT_ID = "client123";
+      process.env.CF_ACCESS_CLIENT_SECRET = "secret456";
+      const rpc = ["https://rpc.ethpandaops.io/test"];
+      const result = authenticateRpcs({ chainId: 1, rpc: rpc, name: "Test" });
+
+      expect(result[0]).to.be.instanceOf(FetchRequest);
+      const fetchRequest = result[0] as FetchRequest;
+      expect(fetchRequest.url).to.equal("https://rpc.ethpandaops.io/test");
+      expect(fetchRequest.getHeader("Content-Type")).to.equal(
+        "application/json",
+      );
+      expect(fetchRequest.getHeader("CF-Access-Client-Id")).to.equal(
+        "client123",
+      );
+      expect(fetchRequest.getHeader("CF-Access-Client-Secret")).to.equal(
+        "secret456",
+      );
+    });
+
+    it("should throw error for invalid RPC object", () => {
+      const rpc = { invalidProp: "test" };
+      expect(() =>
+        // @ts-ignore
+        authenticateRpcs({ chainId: 1, rpc: [rpc], name: "Test" }),
+      ).to.throw('Invalid rpc object: {"invalidProp":"test"}');
+    });
   });
 
   it("should use default config when no config is provided", () => {
