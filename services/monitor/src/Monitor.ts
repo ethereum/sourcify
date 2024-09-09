@@ -7,6 +7,7 @@ import "./loggerServer"; // Start the dynamic log level server
 import ChainMonitor from "./ChainMonitor";
 import {
   KnownDecentralizedStorageFetchers,
+  MonitorChain,
   MonitorConfig,
   PassedMonitorConfig,
 } from "./types";
@@ -23,9 +24,7 @@ export default class Monitor extends EventEmitter {
   private config: MonitorConfig;
 
   constructor(
-    chainsToMonitor:
-      | { chainId: number; rpc: string[]; name: string }[]
-      | SourcifyChain[],
+    chainsToMonitor: MonitorChain[],
     passedConfig?: PassedMonitorConfig,
   ) {
     super();
@@ -60,7 +59,7 @@ export default class Monitor extends EventEmitter {
       } else {
         return new SourcifyChain({
           chainId: chain.chainId,
-          rpc: authenticateRpcs(chain.chainId, chain.rpc),
+          rpc: authenticateRpcs(chain),
           name: chain.name,
           supported: true,
         });
@@ -128,38 +127,22 @@ export default class Monitor extends EventEmitter {
   };
 }
 
-function authenticateRpcs(chainId: number, rpcs: string[]) {
-  return rpcs.map((rpcUrl) => {
-    if (rpcUrl.includes("{INFURA_API_KEY}") && process.env.INFURA_API_KEY) {
-      return rpcUrl.replace("{INFURA_API_KEY}", process.env.INFURA_API_KEY);
+function authenticateRpcs(chain: MonitorChain) {
+  return chain.rpc.map((rpc) => {
+    if (typeof rpc === "string") {
+      return rpc;
     }
-    if (rpcUrl.includes("{ALCHEMY_API_KEY}")) {
-      let alchemyApiKey;
-      switch (chainId) {
-        case 10 /** Optimism Mainnet */:
-        case 420 /** Optimism Goerli */:
-        case 69 /** Optimism Kovan */:
-          alchemyApiKey =
-            process.env["ALCHEMY_API_KEY_OPTIMISM"] ||
-            process.env["ALCHEMY_API_KEY"];
-          break;
-        case 42161 /** Arbitrum One Mainnet */:
-        case 421613 /** Arbitrum Goerli Testnet */:
-        case 421611 /** Arbitrum Rinkeby Testnet */:
-          alchemyApiKey =
-            process.env["ALCHEMY_API_KEY_ARBITRUM"] ||
-            process.env["ALCHEMY_API_KEY"];
-          break;
-        default:
-          alchemyApiKey = process.env["ALCHEMY_API_KEY"];
-          break;
+    if (rpc?.type === "ApiKey") {
+      const apiKey = process.env[rpc.apiKeyEnvName] || "";
+      if (!apiKey) {
+        throw new Error(
+          `API key ${rpc.apiKeyEnvName} not found in environment variables`,
+        );
       }
-      if (alchemyApiKey) {
-        return rpcUrl.replace("{ALCHEMY_API_KEY}", alchemyApiKey);
-      }
+      return rpc.url.replace("{API_KEY}", apiKey);
     }
-    if (rpcUrl.includes("ethpandaops.io")) {
-      const ethersFetchReq = new FetchRequest(rpcUrl);
+    if (rpc.url.includes("ethpandaops.io")) {
+      const ethersFetchReq = new FetchRequest(rpc.url);
       ethersFetchReq.setHeader("Content-Type", "application/json");
       ethersFetchReq.setHeader(
         "CF-Access-Client-Id",
@@ -171,7 +154,7 @@ function authenticateRpcs(chainId: number, rpcs: string[]) {
       );
       return ethersFetchReq;
     }
-    return rpcUrl;
+    throw new Error("Invalid rpc object: " + JSON.stringify(rpc));
   });
 }
 
