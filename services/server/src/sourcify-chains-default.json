@@ -1793,5 +1793,9 @@
   "16350": {
     "supported": true,
     "sourcifyName": "Incentiv Devnet"
+  },
+  "33111": {
+    "sourcifyName": "Curtis",
+    "supported": true
   }
 }

@@ -1625,6 +1625,14 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
+  // Curtis Testnet
+  verifyContract(
+    "0xF4574BEcc73d834566389453577742Ad1C97DA16",
+    "33111",
+    "Curtis",
+    "shared/",
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests: ChainApiResponse[] = [];
     supportedChains
