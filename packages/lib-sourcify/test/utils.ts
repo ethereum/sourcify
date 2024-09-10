@@ -99,15 +99,21 @@ export const checkFilesFromContractFolder = async (
   const metadataBuffer = fs.readFileSync(metadataPath);
   const metadataPathBuffer = { path: metadataPath, buffer: metadataBuffer };
 
-  const sourceFilePaths = fs.readdirSync(
-    path.join(contractFolderPath, 'sources'),
-  );
-  const sourcePathBuffers = sourceFilePaths.map((sourceFilePath) => {
-    const sourceBuffer = fs.readFileSync(
-      path.join(contractFolderPath, 'sources', sourceFilePath),
-    );
-    return { path: sourceFilePath, buffer: sourceBuffer };
-  });
+  const sourcePathBuffers: { path: string; buffer: Buffer }[] = [];
+  const traverseDirectory = (dirPath: string, basePath: string = '') => {
+    const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dirPath, entry.name);
+      const relativePath = path.join(basePath, entry.name);
+      if (entry.isDirectory()) {
+        traverseDirectory(fullPath, relativePath);
+      } else {
+        const sourceBuffer = fs.readFileSync(fullPath);
+        sourcePathBuffers.push({ path: relativePath, buffer: sourceBuffer });
+      }
+    }
+  };
+  traverseDirectory(path.join(contractFolderPath, 'sources'));
   const checkedContracts = await checkFiles(solc, [
     metadataPathBuffer,
     ...sourcePathBuffers,
