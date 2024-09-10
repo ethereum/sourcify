@@ -1,4 +1,8 @@
-import { Match, CheckedContract } from "@ethereum-sourcify/lib-sourcify";
+import {
+  Match,
+  CheckedContract,
+  Status,
+} from "@ethereum-sourcify/lib-sourcify";
 import {
   RepositoryV1Service,
   RepositoryV1ServiceOptions,
@@ -230,6 +234,52 @@ export class StorageService {
     }
   }
 
+  /**
+   * This function returns a positive number if the first Status
+   * is better than the second one; 0 if they are the same; or a
+   * negative number if the first Status is worse than the second one
+   */
+  getStatusDiff(status1: Status, status2: Status): number {
+    const statusPriority = [null, "partial", "perfect"];
+    const status1Priority = Math.max(
+      0,
+      statusPriority.findIndex((status) => status === status1),
+    );
+    const status2Priority = Math.max(
+      0,
+      statusPriority.findIndex((status) => status === status2),
+    );
+    return status1Priority - status2Priority;
+  }
+
+  /**
+   * Verify that either the newMatch runtime or creation match is better
+   * ensuring that neither the newMatch runtime nor creation is worse
+   * than the existing match
+   */
+  isBetterMatch(newMatch: Match, existingMatch: Match): boolean {
+    if (
+      /** if newMatch.creationMatch is better */
+      this.getStatusDiff(newMatch.creationMatch, existingMatch.creationMatch) >
+        0 &&
+      /** and newMatch.runtimeMatch is not worse */
+      this.getStatusDiff(newMatch.runtimeMatch, existingMatch.runtimeMatch) >= 0
+    ) {
+      return true;
+    }
+    if (
+      /** if newMatch.runtimeMatch is better */
+      this.getStatusDiff(newMatch.runtimeMatch, existingMatch.runtimeMatch) >
+        0 &&
+      /** and newMatch.creationMatch is not worse */
+      this.getStatusDiff(newMatch.creationMatch, existingMatch.creationMatch) >=
+        0
+    ) {
+      return true;
+    }
+    return false;
+  }
+
   async storeMatch(contract: CheckedContract, match: Match) {
     logger.info("Storing match on StorageService", {
       name: contract.name,
@@ -245,8 +295,7 @@ export class StorageService {
     );
     if (
       existingMatch.length > 0 &&
-      getMatchStatus(existingMatch[0]) === "partial" &&
-      getMatchStatus(match) === "partial"
+      !this.isBetterMatch(match, existingMatch[0])
     ) {
       logger.info("Partial match already exists", {
         chain: match.chainId,
