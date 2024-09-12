@@ -251,6 +251,7 @@ export default class ChainMonitor extends EventEmitter {
     address: string,
   ) => {
     try {
+      let metadataHash: FileHash;
       const bytecode = await this.getBytecodeWithRetries(address);
       if (!bytecode) {
         this.chainLogger.warn("Could not fetch bytecode for contract", {
@@ -258,12 +259,14 @@ export default class ChainMonitor extends EventEmitter {
         });
         return;
       }
-      const cborData = bytecodeDecode(bytecode);
-      let metadataHash: FileHash;
       try {
+        const cborData = bytecodeDecode(bytecode);
         metadataHash = FileHash.fromCborData(cborData);
       } catch (err: any) {
-        this.chainLogger.info("Error getting metadatahash", { address, err });
+        this.chainLogger.info("Error extracting cborAuxdata or metadata hash", {
+          address,
+          err,
+        });
         return;
       }
 
