@@ -2,6 +2,7 @@ import Path from "path";
 import fs from "fs";
 import { MatchLevelWithoutAny, MatchQuality } from "../../types";
 import { getAddress } from "ethers";
+import { Status } from "@ethereum-sourcify/lib-sourcify";
 
 export const getFileRelativePath = (
   chainId: string,
@@ -52,4 +53,21 @@ export async function readFile(
   } catch (error) {
     return false;
   }
+}
+
+/**
+ * This function returns a positive number if the first Status
+ * is better than the second one; 0 if they are the same; or a
+ * negative number if the first Status is worse than the second one
+ */
+export function getStatusDiff(status1: Status, status2: Status): number {
+  const scores = {
+    error: 0,
+    "extra-file-input-bug": 0,
+    partial: 1,
+    perfect: 2,
+  };
+  const status1Value = status1 != null ? scores[status1] : 0;
+  const status2Value = status2 != null ? scores[status2] : 0;
+  return status1Value - status2Value;
 }

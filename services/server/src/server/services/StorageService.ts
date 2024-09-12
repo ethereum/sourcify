@@ -1,8 +1,4 @@
-import {
-  Match,
-  CheckedContract,
-  Status,
-} from "@ethereum-sourcify/lib-sourcify";
+import { Match, CheckedContract } from "@ethereum-sourcify/lib-sourcify";
 import {
   RepositoryV1Service,
   RepositoryV1ServiceOptions,
@@ -33,6 +29,7 @@ import {
 } from "./storageServices/identifiers";
 import { DatabaseServiceOptions } from "./storageServices/AbstractDatabaseService";
 import { ConflictError } from "../../common/errors/ConflictError";
+import { getStatusDiff } from "./utils/util";
 
 export interface WStorageService {
   IDENTIFIER: StorageIdentifiers;
@@ -235,24 +232,6 @@ export class StorageService {
   }
 
   /**
-   * This function returns a positive number if the first Status
-   * is better than the second one; 0 if they are the same; or a
-   * negative number if the first Status is worse than the second one
-   */
-  getStatusDiff(status1: Status, status2: Status): number {
-    const statusPriority = [null, "partial", "perfect"];
-    const status1Priority = Math.max(
-      0,
-      statusPriority.findIndex((status) => status === status1),
-    );
-    const status2Priority = Math.max(
-      0,
-      statusPriority.findIndex((status) => status === status2),
-    );
-    return status1Priority - status2Priority;
-  }
-
-  /**
    * Verify that either the newMatch runtime or creation match is better
    * ensuring that neither the newMatch runtime nor creation is worse
    * than the existing match
@@ -260,20 +239,17 @@ export class StorageService {
   isBetterMatch(newMatch: Match, existingMatch: Match): boolean {
     if (
       /** if newMatch.creationMatch is better */
-      this.getStatusDiff(newMatch.creationMatch, existingMatch.creationMatch) >
-        0 &&
+      getStatusDiff(newMatch.creationMatch, existingMatch.creationMatch) > 0 &&
       /** and newMatch.runtimeMatch is not worse */
-      this.getStatusDiff(newMatch.runtimeMatch, existingMatch.runtimeMatch) >= 0
+      getStatusDiff(newMatch.runtimeMatch, existingMatch.runtimeMatch) >= 0
     ) {
       return true;
     }
     if (
       /** if newMatch.runtimeMatch is better */
-      this.getStatusDiff(newMatch.runtimeMatch, existingMatch.runtimeMatch) >
-        0 &&
+      getStatusDiff(newMatch.runtimeMatch, existingMatch.runtimeMatch) > 0 &&
       /** and newMatch.creationMatch is not worse */
-      this.getStatusDiff(newMatch.creationMatch, existingMatch.creationMatch) >=
-        0
+      getStatusDiff(newMatch.creationMatch, existingMatch.creationMatch) >= 0
     ) {
       return true;
     }
@@ -300,6 +276,10 @@ export class StorageService {
       logger.info("Partial match already exists", {
         chain: match.chainId,
         address: match.address,
+        newRuntimeMatch: match.runtimeMatch,
+        newCreationMatch: match.creationMatch,
+        existingRuntimeMatch: existingMatch[0].runtimeMatch,
+        existingCreationMatch: existingMatch[0].creationMatch,
       });
       throw new ConflictError(
         `The contract ${match.address} on chainId ${match.chainId} is already partially verified. The provided new source code also yielded a partial match and will not be stored unless it's a full match`,
