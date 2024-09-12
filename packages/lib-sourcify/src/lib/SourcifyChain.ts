@@ -301,6 +301,7 @@ export default class SourcifyChain {
         if (block) {
           logInfo('Fetched block', {
             blockNumber,
+            timestamp: block.timestamp,
             providerUrl: provider.url,
             chainId: this.chainId,
           });

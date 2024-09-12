@@ -28,7 +28,7 @@ export class GatewayFetcher {
     let hitTimeout = false;
 
     for (let i = 0; i < this.retries; i++) {
-      this.gwLogger.info("Fetching attempt", {
+      this.gwLogger.debug("Fetching attempt", {
         attempt: i + 1,
         url: this.url,
         fileHash,
