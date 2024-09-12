@@ -29,7 +29,7 @@ import {
 } from "./storageServices/identifiers";
 import { DatabaseServiceOptions } from "./storageServices/AbstractDatabaseService";
 import { ConflictError } from "../../common/errors/ConflictError";
-import { getStatusDiff } from "./utils/util";
+import { isBetterMatch } from "./utils/util";
 
 export interface WStorageService {
   IDENTIFIER: StorageIdentifiers;
@@ -231,31 +231,6 @@ export class StorageService {
     }
   }
 
-  /**
-   * Verify that either the newMatch runtime or creation match is better
-   * ensuring that neither the newMatch runtime nor creation is worse
-   * than the existing match
-   */
-  isBetterMatch(newMatch: Match, existingMatch: Match): boolean {
-    if (
-      /** if newMatch.creationMatch is better */
-      getStatusDiff(newMatch.creationMatch, existingMatch.creationMatch) > 0 &&
-      /** and newMatch.runtimeMatch is not worse */
-      getStatusDiff(newMatch.runtimeMatch, existingMatch.runtimeMatch) >= 0
-    ) {
-      return true;
-    }
-    if (
-      /** if newMatch.runtimeMatch is better */
-      getStatusDiff(newMatch.runtimeMatch, existingMatch.runtimeMatch) > 0 &&
-      /** and newMatch.creationMatch is not worse */
-      getStatusDiff(newMatch.creationMatch, existingMatch.creationMatch) >= 0
-    ) {
-      return true;
-    }
-    return false;
-  }
-
   async storeMatch(contract: CheckedContract, match: Match) {
     logger.info("Storing match on StorageService", {
       name: contract.name,
@@ -269,10 +244,7 @@ export class StorageService {
       "checkAllByChainAndAddress",
       [match.address, match.chainId],
     );
-    if (
-      existingMatch.length > 0 &&
-      !this.isBetterMatch(match, existingMatch[0])
-    ) {
+    if (existingMatch.length > 0 && !isBetterMatch(match, existingMatch[0])) {
       logger.info("Partial match already exists", {
         chain: match.chainId,
         address: match.address,

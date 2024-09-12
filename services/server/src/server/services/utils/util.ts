@@ -2,7 +2,7 @@ import Path from "path";
 import fs from "fs";
 import { MatchLevelWithoutAny, MatchQuality } from "../../types";
 import { getAddress } from "ethers";
-import { Status } from "@ethereum-sourcify/lib-sourcify";
+import { Match, Status } from "@ethereum-sourcify/lib-sourcify";
 
 export const getFileRelativePath = (
   chainId: string,
@@ -70,4 +70,29 @@ export function getStatusDiff(status1: Status, status2: Status): number {
   const status1Value = status1 != null ? scores[status1] : 0;
   const status2Value = status2 != null ? scores[status2] : 0;
   return status1Value - status2Value;
+}
+
+/**
+ * Verify that either the newMatch runtime or creation match is better
+ * ensuring that neither the newMatch runtime nor creation is worse
+ * than the existing match
+ */
+export function isBetterMatch(newMatch: Match, existingMatch: Match): boolean {
+  if (
+    /** if newMatch.creationMatch is better */
+    getStatusDiff(newMatch.creationMatch, existingMatch.creationMatch) > 0 &&
+    /** and newMatch.runtimeMatch is not worse */
+    getStatusDiff(newMatch.runtimeMatch, existingMatch.runtimeMatch) >= 0
+  ) {
+    return true;
+  }
+  if (
+    /** if newMatch.runtimeMatch is better */
+    getStatusDiff(newMatch.runtimeMatch, existingMatch.runtimeMatch) > 0 &&
+    /** and newMatch.creationMatch is not worse */
+    getStatusDiff(newMatch.creationMatch, existingMatch.creationMatch) >= 0
+  ) {
+    return true;
+  }
+  return false;
 }
