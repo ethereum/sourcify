@@ -17,6 +17,7 @@ import {
   waitSecs,
   deployFromAbiAndBytecodeForCreatorTxHash,
   deployFromAbiAndBytecode,
+  testPartialUpgrade,
 } from "../../helpers/helpers";
 import hardhatOutputJSON from "../../sources/hardhat-output/output.json";
 import {
@@ -275,121 +276,13 @@ describe("/", function () {
   });
 
   it("Should upgrade creation match from 'partial' to 'perfect' even if existing runtime match is already 'perfect'", async () => {
-    const partialMetadata = (
-      await import("../../testcontracts/Storage/metadataModified.json")
-    ).default;
-    const partialMetadataBuffer = Buffer.from(JSON.stringify(partialMetadata));
+    // The third parameter is the matchType that is going to be forcely set to "perfect" before re-verifying with the original metadata
+    await testPartialUpgrade(serverFixture, chainFixture, "runtime");
+  });
 
-    const partialSourcePath = path.join(
-      __dirname,
-      "..",
-      "..",
-      "testcontracts",
-      "Storage",
-      "StorageModified.sol",
-    );
-    const partialSourceBuffer = fs.readFileSync(partialSourcePath);
-
-    let res = await chai
-      .request(serverFixture.server.app)
-      .post("/")
-      .field("address", chainFixture.defaultContractAddress)
-      .field("chain", chainFixture.chainId)
-      .field("creatorTxHash", chainFixture.defaultContractCreatorTx)
-      .attach("files", partialMetadataBuffer, "metadata.json")
-      .attach("files", partialSourceBuffer);
-    await assertVerification(
-      serverFixture.sourcifyDatabase,
-      null,
-      res,
-      null,
-      chainFixture.defaultContractAddress,
-      chainFixture.chainId,
-      "partial",
-    );
-
-    const contractMatchesWithPartialMetadata =
-      await serverFixture.sourcifyDatabase.query(
-        "SELECT runtime_match, creation_match FROM sourcify_matches;",
-      );
-
-    chai
-      .expect(contractMatchesWithPartialMetadata.rows[0].runtime_match)
-      .to.equal("partial");
-    chai
-      .expect(contractMatchesWithPartialMetadata.rows[0].creation_match)
-      .to.equal("partial");
-
-    const contractDeploymentWithoutCreatorTransactionHash =
-      await serverFixture.sourcifyDatabase.query(
-        "SELECT encode(transaction_hash, 'hex') as transaction_hash, block_number, transaction_index, contract_id FROM contract_deployments",
-      );
-    const contractIdWithoutCreatorTransactionHash =
-      contractDeploymentWithoutCreatorTransactionHash?.rows[0].contract_id;
-
-    // Force full runtime match by setting sourcify_match.runtimeMatch = "perfect" and moving contract to full_match
-    await serverFixture.sourcifyDatabase.query(
-      "UPDATE sourcify_matches SET runtime_match='perfect' WHERE 1=1",
-    );
-    const existingPath = path.join(
-      config.get("repositoryV1.path"),
-      "contracts",
-      "partial_match",
-      chainFixture.chainId,
-      chainFixture.defaultContractAddress,
-    );
-    const newPath = path.join(
-      config.get("repositoryV1.path"),
-      "contracts",
-      "full_match",
-      chainFixture.chainId,
-      chainFixture.defaultContractAddress,
-    );
-    await fs.promises.mkdir(path.dirname(newPath), { recursive: true });
-    await fs.promises.rename(existingPath, newPath);
-
-    // verify again with original metadata file
-    res = await chai
-      .request(serverFixture.server.app)
-      .post("/")
-      .field("address", chainFixture.defaultContractAddress)
-      .field("chain", chainFixture.chainId)
-      .field("creatorTxHash", chainFixture.defaultContractCreatorTx)
-      .attach("files", chainFixture.defaultContractMetadata, "metadata.json")
-      .attach("files", chainFixture.defaultContractSource);
-    await assertVerification(
-      serverFixture.sourcifyDatabase,
-      null,
-      res,
-      null,
-      chainFixture.defaultContractAddress,
-      chainFixture.chainId,
-    );
-
-    const contractMatchesWithPerfectMetadata =
-      await serverFixture.sourcifyDatabase.query(
-        "SELECT runtime_match, creation_match FROM sourcify_matches;",
-      );
-
-    chai
-      .expect(contractMatchesWithPerfectMetadata.rows[0].runtime_match)
-      .to.equal("perfect");
-    chai
-      .expect(contractMatchesWithPerfectMetadata.rows[0].creation_match)
-      .to.equal("perfect");
-
-    const contractDeploymentWithCreatorTransactionHash =
-      await serverFixture.sourcifyDatabase.query(
-        "SELECT encode(transaction_hash, 'hex') as transaction_hash, block_number, transaction_index, contract_id FROM contract_deployments",
-      );
-
-    const contractIdWithCreatorTransactionHash =
-      contractDeploymentWithCreatorTransactionHash?.rows[0].contract_id;
-
-    // There should not be a new contract_id
-    chai
-      .expect(contractIdWithCreatorTransactionHash)
-      .to.equal(contractIdWithoutCreatorTransactionHash);
+  it("Should upgrade runtime match from 'partial' to 'perfect' even if existing creation match is already 'perfect'", async () => {
+    // The third parameter is the matchType that is going to be forcely set to "perfect" before re-verifying with the original metadata
+    await testPartialUpgrade(serverFixture, chainFixture, "creation");
   });
 
   it("should return 'partial', then throw when another 'partial' match is received", async () => {
