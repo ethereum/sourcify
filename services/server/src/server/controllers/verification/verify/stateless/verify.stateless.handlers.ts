@@ -25,7 +25,13 @@ export async function legacyVerifyEndpoint(
     "checkByChainAndAddress",
     [req.body.address, req.body.chain],
   );
-  if (result.length != 0) {
+  // checkByChainAndAddress returns contracts that have either `runtimeMatch` OR `creationMatch` set as "perfect"
+  // We should skip recompilation only if both `runtimeMatch` AND `creationMatch` are "perfect"
+  if (
+    result.length != 0 &&
+    result[0].runtimeMatch === "perfect" &&
+    result[0].creationMatch === "perfect"
+  ) {
     return res.send({ result: [getResponseMatchFromMatch(result[0])] });
   }
 
