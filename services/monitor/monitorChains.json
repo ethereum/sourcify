@@ -202,28 +202,6 @@
     "rpc": ["https://baklava-forno.celo-testnet.org"]
   },
   {
-    "name": "Filecoin Mainnet",
-    "chainId": 314,
-    "rpc": [
-      {
-        "type": "ApiKey",
-        "url": "https://lb.drpc.org/ogrpc?network=filecoin&dkey={API_KEY}",
-        "apiKeyEnvName": "DRPC_API_KEY"
-      }
-    ]
-  },
-  {
-    "name": "Filecoin Calibration Testnet",
-    "chainId": 314159,
-    "rpc": [
-      {
-        "type": "ApiKey",
-        "url": "https://lb.drpc.org/ogrpc?network=filecoin-calibration&dkey={API_KEY}",
-        "apiKeyEnvName": "DRPC_API_KEY"
-      }
-    ]
-  },
-  {
     "name": "Linea Mainnet",
     "chainId": 59144,
     "rpc": ["https://rpc.linea.build"]
