@@ -156,9 +156,6 @@ export default class ChainMonitor extends EventEmitter {
 
   // ListenerFunction
   private processBlockListener = async (block: Block) => {
-    this.chainLogger.info("Found and processing block", {
-      blockNumber: block.number,
-    });
     this.chainLogger.silly("Block", block);
 
     for (const tx of block.prefetchedTransactions) {
@@ -194,7 +191,7 @@ export default class ChainMonitor extends EventEmitter {
       this.blockInterval,
       this.blockIntervalLowerLimit,
     );
-    this.chainLogger.info(`${operation.toUpperCase()} block pause.`, {
+    this.chainLogger.debug(`${operation.toUpperCase()} block pause.`, {
       blockInterval: this.blockInterval,
     });
   };
