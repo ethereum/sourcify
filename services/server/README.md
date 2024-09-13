@@ -7,14 +7,45 @@ Sourcify's server for verifying contracts.
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/en/) (v22)
-- Install the monorepo: `npm install` in the root of the repo
-- Build the monorepo's packages: `npx lerna run build`
+- (Optional) Postgres (See [Choosing the storage backend](#choosing-the-storage-backend))
+- (Optional) Docker and docker-compose for tests
 
-### Environment Variables
+## Quick Start
 
-Copy the `.env.dev` file into a file named `.env` and fill in the values.
+1. Install
 
-### Running
+```bash
+npm install
+```
+
+2. Change the server storage backend to a filesystem for easy start. Create a `src/config/local.js`:
+
+See the [Config](#config) section below for details.
+
+```js
+const {
+  RWStorageIdentifiers,
+} = require("../server/services/storageServices/identifiers");
+
+module.exports = {
+  storage: {
+    read: RWStorageIdentifiers.RepositoryV1,
+    writeOrErr: [
+    read: RWStorageIdentifiers.RepositoryV1
+    ]
+  }
+}
+```
+
+3. Build the monorepo's packages
+
+```bash
+npx lerna run build
+```
+
+4. Copy the `.env.dev` file into a file named `.env` and fill in the values. You can run without filling values but to connect to RPCs you need to add keys or change [Chains config](#chains-config).
+
+5. Start
 
 ```bash
 cd services/server
@@ -29,9 +60,13 @@ The server config is defined in [`src/config/default.js`](src/config/default.js)
 
 To override the default config, you can create a `local.js` file and override the default config. The parameters are overridden one by one, so you only need to override the parameters you want to change.
 
-Or if you are running in a deployment you can pass the `NODE_CONFIG_ENV` name as the config file name and it will take precedence. For example, if you are running in a `NODE_CONFIG_ENV=staging` environment, you can create a [`config/staging.js`](src/config/staging.js) file and it will be used instead of the default config. Local takes precedence over `NODE_CONFIG_ENV`. The file precedence is defined in [node-config package](https://github.com/node-config/node-config/wiki/Configuration-Files#multi-instance-deployments).
+Once you've written your own config, you must build the server again for changes to take effect:
 
-Note that this requires building the project. The config files are copied to the `dist` folder during the build process. See [Docker](#docker) for running directly.
+```
+npx lerna run build
+```
+
+Alternatively, if you are running in a deployment you can pass the `NODE_CONFIG_ENV` name as the config file name and it will take precedence. For example, if you are running in a `NODE_CONFIG_ENV=staging` environment, you can create a [`config/staging.js`](src/config/staging.js) file and it will be used instead of the default config. Local takes precedence over `NODE_CONFIG_ENV`. The file precedence is defined in [node-config package](https://github.com/node-config/node-config/wiki/Configuration-Files#multi-instance-deployments).
 
 ### Chains Config
 
