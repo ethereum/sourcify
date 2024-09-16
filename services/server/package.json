@@ -2,7 +2,8 @@
   "name": "sourcify-server",
   "version": "2.2.0",
   "description": "Solidity metadata-based re-compilation and source verification tool",
-  "private": true,
+  "main": "dist/server/server.js",
+  "types": "dist/server/server.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ethereum/sourcify.git"
