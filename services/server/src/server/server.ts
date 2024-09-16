@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 dotenv.config({ path: path.resolve(__dirname, "..", "..", ".env") });
 // Make sure config is relative to server.ts and not where the server is run from
 process.env["NODE_CONFIG_DIR"] = path.resolve(__dirname, "..", "config");
-import config from "config";
+import config, { IConfig } from "config";
 import express, { Request } from "express";
 import cors from "cors";
 import util from "util";
@@ -53,14 +53,11 @@ declare module "express-serve-static-core" {
 
 export class Server {
   app: express.Application;
-  repository: string = config.get("repositoryV1.path");
-  repositoryV2: string = config.get("repositoryV2.path");
   port: string | number;
   services: Services;
 
-  // TODO: pass config as object into the constructor. Currently we read config from config files. Server Class itself should be configurable.
   constructor(
-    port: string | number,
+    config: IConfig,
     verificationServiceOptions: VerificationServiceOptions,
     storageServiceOptions: StorageServiceOptions,
   ) {
@@ -73,7 +70,7 @@ export class Server {
       config: JSON.stringify(config, null, 2),
     });
 
-    this.port = port;
+    this.port = config.get("server.port");
     logger.info("Server port set", { port: this.port });
     this.app = express();
 
@@ -326,7 +323,7 @@ export class Server {
 
 if (require.main === module) {
   const server = new Server(
-    config.get("server.port"),
+    config,
     {
       initCompilers: config.get("initCompilers") || false,
       supportedChainsMap,
