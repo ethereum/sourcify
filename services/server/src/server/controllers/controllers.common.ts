@@ -1,9 +1,9 @@
-import { Request, Response, NextFunction } from 'express';
-import { getAddress } from 'ethers';
-import { BadRequestError, InternalServerError } from '../../common/errors';
-import logger from '../../common/logger';
-import { isContractAlreadyPerfect } from './verification/verification.common';
-import { getResponseMatchFromMatch } from '../common';
+import { Request, Response, NextFunction } from "express";
+import { getAddress } from "ethers";
+import { BadRequestError, InternalServerError } from "../../common/errors";
+import logger from "../../common/logger";
+import { isContractAlreadyPerfect } from "./verification/verification.common";
+import { getResponseMatchFromMatch } from "../common";
 
 export const safeHandler = <T extends Request = Request>(
   requestHandler: (req: T, res: Response, next: NextFunction) => Promise<any>,
@@ -22,7 +22,11 @@ export const safeHandler = <T extends Request = Request>(
     }
   };
 };
-export function validateAddress(req: Request, res: Response, next: NextFunction) {
+export function validateAddress(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   if (req.params.address) {
     try {
       // Checksum the address
@@ -33,13 +37,19 @@ export function validateAddress(req: Request, res: Response, next: NextFunction)
         errorStack: err.stack,
         params: req.params,
       });
-      return next(new BadRequestError(`Invalid address: ${req.params.address}`));
+      return next(
+        new BadRequestError(`Invalid address: ${req.params.address}`),
+      );
     }
   }
   next();
 }
 
-export async function checkPerfectMatch(req: Request, res: Response, next: NextFunction) {
+export async function checkPerfectMatch(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   // address and chain are always available because of openAPI validation
   const { address, chain } = req.body;
 
@@ -61,6 +71,10 @@ export async function checkPerfectMatch(req: Request, res: Response, next: NextF
       address,
       chain,
     });
-    return next(new InternalServerError("Error while checking for existing perfect match"));
+    return next(
+      new InternalServerError(
+        "Error while checking for existing perfect match",
+      ),
+    );
   }
 }

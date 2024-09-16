@@ -8,10 +8,14 @@ import { checkPerfectMatch, safeHandler } from "../../../controllers.common";
 
 const router: Router = Router();
 
-router.route("/verify").post(checkPerfectMatch, safeHandler(legacyVerifyEndpoint));
+router
+  .route("/verify")
+  .post(checkPerfectMatch, safeHandler(legacyVerifyEndpoint));
 
 if (config.get("verifyDeprecated")) {
-  router.route("/verify-deprecated").post(checkPerfectMatch, safeHandler(verifyDeprecated));
+  router
+    .route("/verify-deprecated")
+    .post(checkPerfectMatch, safeHandler(verifyDeprecated));
 } else {
   router.route("/verify-deprecated").all((req, res) => {
     res.status(400).send("Not found");

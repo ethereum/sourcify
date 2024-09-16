@@ -212,7 +212,7 @@ describe("/", function () {
     );
     // If the contract is perfectly verified (both creation and runtime), the storageTimestamp is returned
     chai.expect(res.body.result[0].storageTimestamp).to.exist;
-  })
+  });
 
   it("Should upgrade creation match from 'null' to 'perfect', delete partial from repository and update creationTx information in database", async () => {
     const partialMetadata = (
