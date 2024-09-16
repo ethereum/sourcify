@@ -3,15 +3,15 @@ import {
   legacyVerifyEndpoint,
   verifyDeprecated,
 } from "./verify.stateless.handlers";
-import { safeHandler } from "../../../controllers.common";
 import config from "config";
+import { checkPerfectMatch, safeHandler } from "../../../controllers.common";
 
 const router: Router = Router();
 
-router.route("/verify").post(safeHandler(legacyVerifyEndpoint));
+router.route("/verify").post(checkPerfectMatch, safeHandler(legacyVerifyEndpoint));
 
 if (config.get("verifyDeprecated")) {
-  router.route("/verify-deprecated").post(safeHandler(verifyDeprecated));
+  router.route("/verify-deprecated").post(checkPerfectMatch, safeHandler(verifyDeprecated));
 } else {
   router.route("/verify-deprecated").all((req, res) => {
     res.status(400).send("Not found");

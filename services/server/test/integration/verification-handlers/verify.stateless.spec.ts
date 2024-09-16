@@ -174,6 +174,46 @@ describe("/", function () {
       );
   });
 
+  it("Should skip compilation if contract is already verified", async () => {
+    let res = await chai
+      .request(serverFixture.server.app)
+      .post("/")
+      .field("address", chainFixture.defaultContractAddress)
+      .field("chain", chainFixture.chainId)
+      .attach("files", chainFixture.defaultContractMetadata, "metadata.json")
+      .field("creatorTxHash", chainFixture.defaultContractCreatorTx)
+      .attach("files", chainFixture.defaultContractSource);
+    await assertVerification(
+      serverFixture.sourcifyDatabase,
+      null,
+      res,
+      null,
+      chainFixture.defaultContractAddress,
+      chainFixture.chainId,
+      "perfect",
+    );
+    // The first time the contract is verified, the storageTimestamp is not returned
+    chai.expect(res.body.result[0].storageTimestamp).to.not.exist;
+    res = await chai
+      .request(serverFixture.server.app)
+      .post("/")
+      .field("address", chainFixture.defaultContractAddress)
+      .field("chain", chainFixture.chainId)
+      .attach("files", chainFixture.defaultContractMetadata, "metadata.json")
+      .attach("files", chainFixture.defaultContractSource);
+    await assertVerification(
+      serverFixture.sourcifyDatabase,
+      null,
+      res,
+      null,
+      chainFixture.defaultContractAddress,
+      chainFixture.chainId,
+      "perfect",
+    );
+    // If the contract is perfectly verified (both creation and runtime), the storageTimestamp is returned
+    chai.expect(res.body.result[0].storageTimestamp).to.exist;
+  })
+
   it("Should upgrade creation match from 'null' to 'perfect', delete partial from repository and update creationTx information in database", async () => {
     const partialMetadata = (
       await import("../../testcontracts/Storage/metadataModified.json")

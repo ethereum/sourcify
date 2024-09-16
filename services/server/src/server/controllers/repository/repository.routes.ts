@@ -9,6 +9,7 @@ import {
   createPaginatedContractEndpoint,
   CheckAllByChainAndAddressEndpointRequest,
 } from "./repository.handlers";
+import { validateAddress } from "../controllers.common";
 import { safeHandler } from "../controllers.common";
 
 const REPOSITORY_CONTROLLER_PREFIX = "/files";
@@ -121,7 +122,7 @@ const router: Router = Router();
         ? REPOSITORY_CONTROLLER_PREFIX + pair.prefix + "/:chain/:address"
         : REPOSITORY_CONTROLLER_PREFIX + pair.prefix + "/:chain",
     )
-    .get(safeHandler(pair.method));
+    .get(validateAddress, safeHandler(pair.method));
 });
 
 // check(All)ByAddresses endpoints have different format then the ones above. check(All)ByAddresses take query params instead of path params.
@@ -142,7 +143,7 @@ router
 // This route covers constructor-args.txt, creator-tx-hash.txt, library-map.json, immutable-references.json files
 router
   .route("/repository/contracts/:match/:chain/:address/*")
-  .get(safeHandler(getFileEndpoint));
+  .get(validateAddress, getFileEndpoint);
 
 router
   .route("/check-by-addresses")
