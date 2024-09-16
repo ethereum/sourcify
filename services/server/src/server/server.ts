@@ -51,13 +51,25 @@ declare module "express-serve-static-core" {
   }
 }
 
+export interface ServerOptions {
+  port: string | number;
+  maxFileSize: number;
+  rateLimit: {
+    enabled: boolean;
+    windowMs?: number;
+    max?: number;
+    whitelist?: string[];
+  };
+  corsAllowedOrigins: string[];
+}
+
 export class Server {
   app: express.Application;
   port: string | number;
   services: Services;
 
   constructor(
-    config: IConfig,
+    options: ServerOptions,
     verificationServiceOptions: VerificationServiceOptions,
     storageServiceOptions: StorageServiceOptions,
   ) {
@@ -70,7 +82,7 @@ export class Server {
       config: JSON.stringify(config, null, 2),
     });
 
-    this.port = config.get("server.port");
+    this.port = options.port;
     logger.info("Server port set", { port: this.port });
     this.app = express();
 
@@ -85,11 +97,11 @@ export class Server {
 
     this.app.use(
       bodyParser.urlencoded({
-        limit: config.get("server.maxFileSize"),
+        limit: options.maxFileSize,
         extended: true,
       }),
     );
-    this.app.use(bodyParser.json({ limit: config.get("server.maxFileSize") }));
+    this.app.use(bodyParser.json({ limit: options.maxFileSize }));
 
     // Init deprecated routes before OpenApiValidator so that it can handle the request with the defined paths.
     // initDeprecatedRoutes is a middleware that replaces the deprecated paths with the real ones.
@@ -97,7 +109,7 @@ export class Server {
 
     this.app.use(
       fileUpload({
-        limits: { fileSize: config.get("server.maxFileSize") },
+        limits: { fileSize: options.maxFileSize },
         abortOnLimit: true,
       }),
     );
@@ -216,10 +228,10 @@ export class Server {
       next();
     });
 
-    if (config.get("rateLimit.enabled")) {
+    if (options.rateLimit.enabled) {
       const limiter = rateLimit({
-        windowMs: config.get("rateLimit.windowMs"),
-        max: config.get("rateLimit.max"),
+        windowMs: options.rateLimit.windowMs,
+        max: options.rateLimit.max,
         standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
         legacyHeaders: false, // Disable the `X-RateLimit-*` headers
         message: {
@@ -245,7 +257,7 @@ export class Server {
         },
         skip: (req) => {
           const ip = getIp(req);
-          const whitelist = config.get("rateLimit.whitelist") as string[];
+          const whitelist = options.rateLimit.whitelist as string[];
           for (const ipPrefix of whitelist) {
             if (ip?.startsWith(ipPrefix)) return true;
           }
@@ -270,7 +282,7 @@ export class Server {
       // startsWith to match /session*
       if (sessionPaths.some((substr) => req.path.startsWith(substr))) {
         return cors({
-          origin: config.get("corsAllowedOrigins"),
+          origin: options.corsAllowedOrigins,
           credentials: true,
         })(req, res, next);
       }
@@ -322,8 +334,14 @@ export class Server {
 }
 
 if (require.main === module) {
+
   const server = new Server(
-    config,
+    {
+      port: config.get("port"),
+      maxFileSize: config.get("maxFileSize"),
+      rateLimit: config.get("rateLimit"),
+      corsAllowedOrigins: config.get("corsAllowedOrigins"),
+    },
     {
       initCompilers: config.get("initCompilers") || false,
       supportedChainsMap,
