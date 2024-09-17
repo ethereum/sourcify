@@ -16,11 +16,13 @@ import {
 export interface VerificationServiceOptions {
   initCompilers?: boolean;
   supportedChainsMap: SourcifyChainMap;
+  repoPath: string;
 }
 
 export class VerificationService {
   initCompilers: boolean;
   supportedChainsMap: SourcifyChainMap;
+  repoPath: string;
   activeVerificationsByChainIdAddress: {
     [chainIdAndAddress: string]: boolean;
   } = {};
@@ -28,6 +30,7 @@ export class VerificationService {
   constructor(options: VerificationServiceOptions) {
     this.supportedChainsMap = options.supportedChainsMap;
     this.initCompilers = options.initCompilers || false;
+    this.repoPath = options.repoPath;
   }
 
   // All of the solidity compilation actually run outside the VerificationService but this is an OK place to init everything.
@@ -42,7 +45,7 @@ export class VerificationService {
       const downLoadFunc =
         platform === "bin"
           ? (version: string) => getSolcJs(version)
-          : (version: string) => getSolcExecutable(platform, version);
+          : (version: string) => getSolcExecutable(this.repoPath, platform, version);
 
       // get the list of compiler versions
       let solcList: string[];

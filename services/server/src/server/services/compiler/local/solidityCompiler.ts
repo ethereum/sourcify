@@ -10,7 +10,6 @@ import {
   JsonInput,
   PathBuffer,
 } from "@ethereum-sourcify/lib-sourcify";
-import config from "config";
 import logger from "../../../../common/logger";
 
 /**
@@ -95,6 +94,7 @@ export function findSolcPlatform(): string | false {
  */
 
 export async function useCompiler(
+  repoPath: string,
   version: string,
   solcJsonInput: JsonInput,
   forceEmscripten = false,
@@ -108,7 +108,7 @@ export async function useCompiler(
   const solcPlatform = findSolcPlatform();
   let solcPath;
   if (solcPlatform && !forceEmscripten) {
-    solcPath = await getSolcExecutable(solcPlatform, version);
+    solcPath = await getSolcExecutable(repoPath, solcPlatform, version);
   }
   let startCompilation: number;
   if (solcPath && !forceEmscripten) {
@@ -174,6 +174,7 @@ export async function useCompiler(
 }
 
 export async function getAllMetadataAndSourcesFromSolcJson(
+  repoPath: string,
   solcJson: JsonInput,
   compilerVersion: string,
 ): Promise<PathBuffer[]> {
@@ -193,7 +194,7 @@ export async function getAllMetadataAndSourcesFromSolcJson(
     };
   }
   solcJson.settings.outputSelection = outputSelection;
-  const compiled = await useCompiler(compilerVersion, solcJson);
+  const compiled = await useCompiler(repoPath, compilerVersion, solcJson);
   const metadataAndSources: PathBuffer[] = [];
   if (!compiled.contracts)
     throw new Error("No contracts found in the compiled json output");
@@ -215,12 +216,11 @@ export async function getAllMetadataAndSourcesFromSolcJson(
 }
 
 export async function getSolcExecutable(
+  repoPath: string,
   platform: string,
   version: string,
 ): Promise<string | null> {
   const fileName = `solc-${platform}-v${version}`;
-  const repoPath =
-    (config.get("solcRepo") as string) || path.join("/tmp", "solc-repo");
   const solcPath = path.join(repoPath, fileName);
   if (fs.existsSync(solcPath) && validateSolcPath(solcPath)) {
     logger.debug("Found existing solc", { version, platform, solcPath });
@@ -323,15 +323,13 @@ async function fetchAndSaveSolc(
  *
  * @returns the requested solc instance
  */
-export async function getSolcJs(version = "latest"): Promise<any> {
+export async function getSolcJs(soljsonRepo: string, version = "latest"): Promise<any> {
   // /^\d+\.\d+\.\d+\+commit\.[a-f0-9]{8}$/
   version = version.trim();
   if (version !== "latest" && !version.startsWith("v")) {
     version = "v" + version;
   }
 
-  const soljsonRepo =
-    (config.get("solJsonRepo") as string) || path.join("/tmp", "soljson-repo");
   const fileName = `soljson-${version}.js`;
   const soljsonPath = path.resolve(soljsonRepo, fileName);
 

@@ -6,7 +6,7 @@ import {
   isVerifiable,
   verifyContractsInSession,
 } from "../../verification.common";
-import { isEmpty } from "@ethereum-sourcify/lib-sourcify";
+import { isEmpty, ISolidityCompiler } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError } from "../../../../../common/errors";
 import logger from "../../../../../common/logger";
 
@@ -49,7 +49,10 @@ export async function verifyContractsInSessionEndpoint(
     }
   }
 
+  const solc = req.app.get("solc") as ISolidityCompiler;
+
   await verifyContractsInSession(
+    solc,
     verifiable,
     session,
     req.services.verification,

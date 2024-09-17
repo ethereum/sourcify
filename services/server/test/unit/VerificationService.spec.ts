@@ -64,6 +64,7 @@ describe("VerificationService", function () {
     const verificationService = new VerificationService({
       initCompilers: true,
       supportedChainsMap: {},
+      repoPath: config.get("solcRepo"),
     });
 
     // Call the init method to trigger the download

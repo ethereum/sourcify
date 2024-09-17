@@ -4,19 +4,19 @@ import {
   verifyDeprecated,
 } from "./verify.stateless.handlers";
 import { safeHandler } from "../../../controllers.common";
-import config from "config";
 
 const router: Router = Router();
 
 router.route("/verify").post(safeHandler(legacyVerifyEndpoint));
 
-if (config.get("verifyDeprecated")) {
-  router.route("/verify-deprecated").post(safeHandler(verifyDeprecated));
-} else {
-  router.route("/verify-deprecated").all((req, res) => {
+router.route("/verify-deprecated").post((req, res, next) => {
+  const verifyDeprecatedEnabled = req.app.get('verifyDeprecated') as boolean;
+  if (verifyDeprecatedEnabled) {
+    safeHandler(verifyDeprecated)(req, res, next);
+  } else {
     res.status(400).send("Not found");
-  });
-}
+  }
+});
 
 export const deprecatedRoutesVerifyStateless = {
   "/": {

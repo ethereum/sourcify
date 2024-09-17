@@ -15,14 +15,12 @@ import {
   MatchLevelWithoutAny,
   MatchQuality,
   PathConfig,
-  RepositoryTag,
 } from "../../types";
 import path from "path";
 import logger from "../../../common/logger";
 import { getAddress } from "ethers";
 import { getMatchStatus } from "../../common";
 import { RWStorageService } from "../StorageService";
-import config from "config";
 import { RWStorageIdentifiers } from "./identifiers";
 import { exists, readFile } from "../utils/util";
 
@@ -35,9 +33,11 @@ export interface RepositoryV1ServiceOptions {
 export class RepositoryV1Service implements RWStorageService {
   IDENTIFIER = RWStorageIdentifiers.RepositoryV1;
   repositoryPath: string;
+  repositoryServerUrl: string;
 
   constructor(options: RepositoryV1ServiceOptions) {
     this.repositoryPath = options.repositoryPath;
+    this.repositoryServerUrl = options.repositoryServerUrl;
   }
 
   async getFile(
@@ -70,7 +70,7 @@ export class RepositoryV1Service implements RWStorageService {
     files.forEach((file) => {
       const relativePath = file.path.replace(this.repositoryPath, "");
       // TODO: Don't use repositoryV1.serverUrl but a relative URL to the server. Requires a breaking chage to the API
-      urls.push(`${config.get("repositoryV1.serverUrl")}/${relativePath}`);
+      urls.push(`${this.repositoryServerUrl}/${relativePath}`);
     });
     return urls;
   }

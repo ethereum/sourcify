@@ -2,11 +2,11 @@ import { Response } from "express";
 import {
   LegacyVerifyRequest,
   extractFiles,
-  solc,
   stringifyInvalidAndMissing,
 } from "../../verification.common";
 import {
   CheckedContract,
+  ISolidityCompiler,
   Match,
   checkFiles,
   matchWithRuntimeBytecode,
@@ -35,6 +35,8 @@ export async function legacyVerifyEndpoint(
       "Couldn't extract files from the request. Please make sure you have added files";
     throw new NotFoundError(msg);
   }
+
+  const solc = req.app.get("solc") as ISolidityCompiler;
 
   let checkedContracts: CheckedContract[];
   try {
@@ -134,6 +136,8 @@ export async function verifyDeprecated(
       "Couldn't extract files from the request. Please make sure you have added files";
     throw new NotFoundError(msg);
   }
+
+  const solc = req.app.get("solc") as ISolidityCompiler;
 
   let checkedContracts: CheckedContract[];
   try {

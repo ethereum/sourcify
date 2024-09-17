@@ -7,18 +7,15 @@ import {
   saveFilesToSession,
   verifyContractsInSession,
 } from "../../verification.common";
-import { PathContent } from "@ethereum-sourcify/lib-sourcify";
+import { ISolidityCompiler, PathContent } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError } from "../../../../../common/errors";
 import {
   getMetadataFromCompiler,
   processRequestFromEtherscan,
   stringToBase64,
 } from "../etherscan.common";
-import {
-  checkSupportedChainId,
-  sourcifyChainsMap,
-} from "../../../../../sourcify-chains";
 import logger from "../../../../../common/logger";
+import { ChainRepository } from "../../../../../sourcify-chain-repository";
 
 export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
   logger.info("sessionVerifyFromEtherscan", {
@@ -26,17 +23,21 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
     address: req.body.address,
   });
 
-  checkSupportedChainId(req.body.chain);
+  const chainRepository = req.app.get('chainRepository') as ChainRepository;
+  const solc = req.app.get('solc') as ISolidityCompiler;
+
+  chainRepository.checkSupportedChainId(req.body.chain);
 
   const chain = req.body.chain;
   const address = req.body.address;
   const apiKey = req.body.apiKey;
-  const sourcifyChain = sourcifyChainsMap[chain];
+  const sourcifyChain = chainRepository.supportedChainMap[chain];
 
   const { compilerVersion, solcJsonInput, contractName } =
     await processRequestFromEtherscan(sourcifyChain, address, apiKey);
 
   const metadata = await getMetadataFromCompiler(
+    solc,
     compilerVersion,
     solcJsonInput,
     contractName,
@@ -60,7 +61,7 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
     throw new BadRequestError("The contract didn't add any new file");
   }
 
-  await checkContractsInSession(session);
+  await checkContractsInSession(solc, session);
   if (!session.contractWrappers) {
     throw new BadRequestError(
       "Unknown error during the Etherscan verification process",
@@ -83,6 +84,7 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
   }
 
   await verifyContractsInSession(
+    solc,
     verifiable,
     session,
     req.services.verification,

@@ -6,11 +6,15 @@ import {
 import { useCompiler } from "./solidityCompiler";
 
 export class SolcLocal implements ISolidityCompiler {
+
+  constructor(private repoPath: string) {
+  }
+
   async compile(
     version: string,
     solcJsonInput: JsonInput,
     forceEmscripten: boolean = false,
   ): Promise<CompilerOutput> {
-    return await useCompiler(version, solcJsonInput, forceEmscripten);
+    return await useCompiler(this.repoPath, version, solcJsonInput, forceEmscripten);
   }
 }

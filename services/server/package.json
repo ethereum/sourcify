@@ -4,6 +4,7 @@
   "description": "Solidity metadata-based re-compilation and source verification tool",
   "main": "dist/server/server.js",
   "types": "dist/server/server.d.ts",
+  "bin": "dist/server/cli.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ethereum/sourcify.git"
@@ -11,7 +12,7 @@
   "scripts": {
     "prebuild": "copyfiles -u 1 src/**/*.yaml src/*.json dist",
     "build": "tsc",
-    "start": "node ./dist/server/server.js",
+    "start": "node ./dist/server/cli.js",
     "postgres-test:start": "docker-compose -f test/docker-compose.yml up -d",
     "postgres-test:stop": "docker-compose -f test/docker-compose.yml rm -fsv",
     "postgres-test:migrate": "cd ../database && npm run migrate:up -- --env test",
