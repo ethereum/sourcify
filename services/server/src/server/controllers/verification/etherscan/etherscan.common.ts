@@ -123,7 +123,7 @@ export const processRequestFromEtherscan = async (
 
   if (
     resultJson.message === "NOTOK" &&
-    resultJson.result.includes("Max rate limit reached")
+    resultJson.result.includes("rate limit reached")
   ) {
     logger.info("Etherscan Rate Limit", {
       secretUrl,

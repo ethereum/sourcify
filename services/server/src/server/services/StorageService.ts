@@ -29,6 +29,7 @@ import {
 } from "./storageServices/identifiers";
 import { DatabaseServiceOptions } from "./storageServices/AbstractDatabaseService";
 import { ConflictError } from "../../common/errors/ConflictError";
+import { isBetterMatch } from "./utils/util";
 
 export interface WStorageService {
   IDENTIFIER: StorageIdentifiers;
@@ -243,14 +244,14 @@ export class StorageService {
       "checkAllByChainAndAddress",
       [match.address, match.chainId],
     );
-    if (
-      existingMatch.length > 0 &&
-      getMatchStatus(existingMatch[0]) === "partial" &&
-      getMatchStatus(match) === "partial"
-    ) {
+    if (existingMatch.length > 0 && !isBetterMatch(match, existingMatch[0])) {
       logger.info("Partial match already exists", {
         chain: match.chainId,
         address: match.address,
+        newRuntimeMatch: match.runtimeMatch,
+        newCreationMatch: match.creationMatch,
+        existingRuntimeMatch: existingMatch[0].runtimeMatch,
+        existingCreationMatch: existingMatch[0].creationMatch,
       });
       throw new ConflictError(
         `The contract ${match.address} on chainId ${match.chainId} is already partially verified. The provided new source code also yielded a partial match and will not be stored unless it's a full match`,

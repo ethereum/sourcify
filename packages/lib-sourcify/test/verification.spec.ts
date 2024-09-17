@@ -525,6 +525,47 @@ describe('lib-sourcify tests', () => {
     expect(checkedContracts[0].metadataRaw).to.equal(correctMetadataRaw);
   });
 
+  // For https://github.com/ethereum/sourcify/pull/1623
+  it('should verify a contract partially with the creation bytecode after transformation fields are normalized', async () => {
+    const contractFolderPath = path.join(
+      __dirname,
+      'sources',
+      'ConstructorModified',
+    );
+    const { contractAddress, txHash } = await deployFromAbiAndBytecode(
+      signer,
+      contractFolderPath,
+      ['12345'],
+    );
+    const match = await checkAndVerifyDeployed(
+      contractFolderPath,
+      sourcifyChainHardhat,
+      contractAddress,
+      txHash,
+    );
+    expect(match.creationMatch).to.equal('partial');
+    expect(match.creationTransformations).to.deep.equal([
+      {
+        type: 'replace',
+        reason: 'cborAuxdata',
+        offset: 279,
+        id: '1',
+      },
+      {
+        type: 'insert',
+        reason: 'constructorArguments',
+        offset: 332,
+      },
+    ]);
+    expect(match.creationTransformationValues).to.deep.equal({
+      cborAuxdata: {
+        '1': '0xa26469706673582212208a693a7ed29129e25fc67a65f83955fb3d86f5fbc378940d697827714b955df564736f6c634300081a0033',
+      },
+      constructorArguments:
+        '0x0000000000000000000000000000000000000000000000000000000000003039',
+    });
+  });
+
   describe('Unit tests', function () {
     describe('SourcifyChain', () => {
       it("Should fail to instantiate with empty rpc's", function () {

@@ -19,14 +19,9 @@
       "matchUpdateTypes": ["minor"],
       "groupName": "all minor dependencies",
       "groupSlug": "all-minor"
-    },
-    {
-      "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "all Node.js dependencies",
-      "groupSlug": "all-node",
-      "matchPackageNames": ["/node/"]
     }
   ],
+  "ignoreDeps": ["node", "cimg/node"],
   "major": {
     "dependencyDashboardApproval": true
   },

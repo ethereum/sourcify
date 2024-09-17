@@ -3,8 +3,11 @@
     "name": "Ethereum Mainnet",
     "chainId": 1,
     "rpc": [
-      "https://rpc.mainnet.ethpandaops.io",
-      "https://eth-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"
+      {
+        "type": "ApiKey",
+        "url": "https://eth-mainnet.g.alchemy.com/v2/{API_KEY}",
+        "apiKeyEnvName": "ALCHEMY_API_KEY"
+      }
     ]
   },
   {
@@ -12,8 +15,11 @@
     "title": "Ethereum Testnet Sepolia",
     "chainId": 11155111,
     "rpc": [
-      "https://rpc.sepolia.ethpandaops.io",
-      "https://eth-sepolia.g.alchemy.com/v2/{ALCHEMY_API_KEY}"
+      {
+        "type": "ApiKey",
+        "url": "https://eth-sepolia.g.alchemy.com/v2/{API_KEY}",
+        "apiKeyEnvName": "ALCHEMY_API_KEY"
+      }
     ]
   },
   {
@@ -21,24 +27,45 @@
     "title": "Ethereum Testnet Holesky",
     "chainId": 17000,
     "rpc": [
-      "https://rpc.holesky.ethpandaops.io",
-      "https://ethereum-holesky.publicnode.com"
+      {
+        "type": "ApiKey",
+        "url": "https://eth-holesky.g.alchemy.com/v2/{API_KEY}",
+        "apiKeyEnvName": "ALCHEMY_API_KEY"
+      }
     ]
   },
   {
     "name": "Arbitrum One",
     "chainId": 42161,
-    "rpc": ["https://arb-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"]
+    "rpc": [
+      {
+        "type": "ApiKey",
+        "url": "https://arb-mainnet.g.alchemy.com/v2/{API_KEY}",
+        "apiKeyEnvName": "ALCHEMY_API_KEY_ARBITRUM"
+      }
+    ]
   },
   {
     "name": "Arbitrum Sepolia Testnet",
     "chainId": 421614,
-    "rpc": ["https://arb-sepolia.g.alchemy.com/v2/{ALCHEMY_API_KEY}"]
+    "rpc": [
+      {
+        "type": "ApiKey",
+        "url": "https://arb-sepolia.g.alchemy.com/v2/{API_KEY}",
+        "apiKeyEnvName": "ALCHEMY_API_KEY_ARBITRUM"
+      }
+    ]
   },
   {
     "name": "Arbitrum Nova",
     "chainId": 42170,
-    "rpc": ["https://arbnova-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"]
+    "rpc": [
+      {
+        "type": "ApiKey",
+        "url": "https://arbnova-mainnet.g.alchemy.com/v2/{API_KEY}",
+        "apiKeyEnvName": "ALCHEMY_API_KEY_ARBITRUM"
+      }
+    ]
   },
   {
     "name": "Gnosis",
@@ -57,65 +84,102 @@
     ]
   },
   {
-    "name": "Meter Mainnet",
-    "chainId": 82,
-    "rpc": ["https://rpc.meter.io"]
-  },
-  {
-    "name": "Meter Testnet",
-    "chainId": 83,
-    "rpc": ["https://rpctest.meter.io"]
-  },
-  {
     "name": "OP Mainnet",
     "chainId": 10,
-    "rpc": ["https://opt-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"]
+    "rpc": [
+      {
+        "type": "ApiKey",
+        "url": "https://opt-mainnet.g.alchemy.com/v2/{API_KEY}",
+        "apiKeyEnvName": "ALCHEMY_API_KEY_OPTIMISM"
+      }
+    ]
   },
   {
     "name": "OP Sepolia Testnet",
     "chainId": 11155420,
-    "rpc": ["https://opt-sepolia.g.alchemy.com/v2/{ALCHEMY_API_KEY}"]
+    "rpc": [
+      {
+        "type": "ApiKey",
+        "url": "https://opt-sepolia.g.alchemy.com/v2/{API_KEY}",
+        "apiKeyEnvName": "ALCHEMY_API_KEY_OPTIMISM"
+      }
+    ]
   },
   {
     "name": "Polygon Mainnet",
     "chainId": 137,
-    "rpc": ["https://polygon-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"]
+    "rpc": [
+      {
+        "type": "ApiKey",
+        "url": "https://polygon-mainnet.g.alchemy.com/v2/{API_KEY}",
+        "apiKeyEnvName": "ALCHEMY_API_KEY"
+      }
+    ]
   },
   {
     "name": "Polygon Amoy Testnet",
     "chainId": 80002,
-    "rpc": ["https://polygon-amoy.g.alchemy.com/v2/{ALCHEMY_API_KEY}"]
+    "rpc": [
+      {
+        "type": "ApiKey",
+        "url": "https://polygon-amoy.g.alchemy.com/v2/{API_KEY}",
+        "apiKeyEnvName": "ALCHEMY_API_KEY"
+      }
+    ]
   },
   {
     "name": "Polygon zkEVM Mainnet",
     "chainId": 1101,
-    "rpc": ["https://polygonzkevm-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"]
+    "rpc": [
+      {
+        "type": "ApiKey",
+        "url": "https://polygonzkevm-mainnet.g.alchemy.com/v2/{API_KEY}",
+        "apiKeyEnvName": "ALCHEMY_API_KEY"
+      }
+    ]
   },
   {
     "name": "Avalanche C-Chain",
     "chainId": 43114,
     "rpc": [
-      "https://api.avax.network/ext/bc/C/rpc",
-      "https://avalanche-c-chain-rpc.publicnode.com"
+      {
+        "type": "ApiKey",
+        "url": "https://avax-mainnet.g.alchemy.com/v2/{API_KEY}",
+        "apiKeyEnvName": "ALCHEMY_API_KEY"
+      }
     ]
   },
   {
     "name": "Avalanche Fuji Testnet",
     "chainId": 43113,
     "rpc": [
-      "https://api.avax-test.network/ext/bc/C/rpc",
-      "https://avalanche-fuji-c-chain-rpc.publicnode.com"
+      {
+        "type": "ApiKey",
+        "url": "https://avax-fuji.g.alchemy.com/v2/{API_KEY}",
+        "apiKeyEnvName": "ALCHEMY_API_KEY"
+      }
     ]
   },
   {
     "name": "Base",
     "chainId": 8453,
-    "rpc": ["https://base-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"]
+    "rpc": [
+      "https://mainnet.base.org/",
+      "https://developer-access-mainnet.base.org/",
+      "https://base.gateway.tenderly.co",
+      "wss://base.gateway.tenderly.co",
+      "https://base-rpc.publicnode.com",
+      "wss://base-rpc.publicnode.com"
+    ]
   },
   {
     "name": "Base Sepolia Testnet",
     "chainId": 84531,
-    "rpc": ["https://base-sepolia.g.alchemy.com/v2/{ALCHEMY_API_KEY}"]
+    "rpc": [
+      "https://sepolia.base.org",
+      "https://base-sepolia-rpc.publicnode.com",
+      "wss://base-sepolia-rpc.publicnode.com"
+    ]
   },
   {
     "name": "Hedera Mainnet",
@@ -138,37 +202,14 @@
     "rpc": ["https://baklava-forno.celo-testnet.org"]
   },
   {
-    "name": "Filecoin Mainnet",
-    "chainId": 314,
-    "rpc": [
-      "https://api.node.glif.io/",
-      "https://rpc.ankr.com/filecoin",
-      "https://filecoin-mainnet.chainstacklabs.com/rpc/v1",
-      "https://filfox.info/rpc/v1",
-      "https://filecoin.drpc.org"
-    ]
-  },
-  {
-    "name": "Filecoin Calibration Testnet",
-    "chainId": 314159,
-    "rpc": [
-      "https://api.calibration.node.glif.io/rpc/v1",
-      "https://rpc.ankr.com/filecoin_testnet",
-      "https://filecoin-calibration.chainstacklabs.com/rpc/v1",
-      "https://filecoin-calibration.chainup.net/rpc/v1",
-      "https://calibration.filfox.info/rpc/v1",
-      "https://filecoin-calibration.drpc.org"
-    ]
-  },
-  {
     "name": "Linea Mainnet",
     "chainId": 59144,
-    "rpc": ["https://linea-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"]
+    "rpc": ["https://rpc.linea.build"]
   },
   {
     "name": "Linea Sepolia Testnet",
     "chainId": 59141,
-    "rpc": ["https://linea-sepolia.g.alchemy.com/v2/{ALCHEMY_API_KEY}"]
+    "rpc": ["https://rpc.sepolia.linea.build"]
   },
   {
     "name": "Scroll Mainnet",

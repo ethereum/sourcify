@@ -7,6 +7,9 @@
       "apiKeyEnvName": "ETHERSCAN_API_KEY"
     },
     "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://eth.blockscout.com/"
+      },
       "etherscanApi": true
     },
     "rpc": [
@@ -39,6 +42,9 @@
       "apiKeyEnvName": "ETHERSCAN_API_KEY"
     },
     "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://eth-holesky.blockscout.com/"
+      },
       "etherscanApi": true
     },
     "rpc": [
@@ -83,6 +89,9 @@
       }
     ],
     "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://eth-sepolia.blockscout.com/"
+      },
       "etherscanApi": true
     }
   },
@@ -203,6 +212,9 @@
       "apiKeyEnvName": "POLYGONSCAN_API_KEY"
     },
     "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://polygon.blockscout.com/"
+      },
       "etherscanApi": true
     },
     "rpc": [
@@ -266,6 +278,9 @@
       "apiKeyEnvName": "ARBISCAN_API_KEY"
     },
     "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://arbitrum.blockscout.com/"
+      },
       "etherscanApi": true
     },
     "rpc": [
@@ -288,6 +303,9 @@
       "apiKeyEnvName": "ARBISCAN_API_KEY"
     },
     "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://arbitrum-sepolia.blockscout.com/"
+      },
       "etherscanApi": true
     }
   },
@@ -396,6 +414,9 @@
       "apiKeyEnvName": "OPTIMISMSCAN_API_KEY"
     },
     "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://optimism.blockscout.com/"
+      },
       "etherscanApi": true
     },
     "rpc": [
@@ -418,6 +439,9 @@
       "apiKeyEnvName": "OPTIMISMSCAN_API_KEY"
     },
     "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://optimism-sepolia.blockscout.com/"
+      },
       "etherscanApi": true
     },
     "rpc": [
@@ -940,13 +964,7 @@
   },
   "84531": {
     "sourcifyName": "Base Goerli Testnet",
-    "supported": false,
-    "etherscanApi": {
-      "apiURL": "https://api-goerli.basescan.org/"
-    },
-    "fetchContractCreationTxUsing": {
-      "etherscanApi": true
-    }
+    "supported": false
   },
   "8453": {
     "sourcifyName": "Base Mainnet",
@@ -956,6 +974,9 @@
       "apiKeyEnvName": "BASESCAN_API_KEY"
     },
     "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://base.blockscout.com/"
+      },
       "etherscanApi": true
     }
   },
@@ -1411,6 +1432,9 @@
       "apiKeyEnvName": "ZKEVM_POLYGONSCAN_API_KEY"
     },
     "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://zkevm.blockscout.com/"
+      },
       "etherscanApi": true
     }
   },
@@ -1422,10 +1446,7 @@
       "apiKeyEnvName": "SCROLLSCAN_API_KEY"
     },
     "fetchContractCreationTxUsing": {
-      "etherscanApi": true,
-      "blockscoutScrape": {
-        "url": "https://blockscout.scroll.io/"
-      }
+      "etherscanApi": true
     }
   },
   "534351": {
@@ -1436,10 +1457,7 @@
       "apiKeyEnvName": "SCROLLSCAN_API_KEY"
     },
     "fetchContractCreationTxUsing": {
-      "etherscanApi": true,
-      "blockscoutScrape": {
-        "url": "https://sepolia-blockscout.scroll.io"
-      }
+      "etherscanApi": true
     }
   },
   "34443": {
@@ -1474,10 +1492,10 @@
     "sourcifyName": "ZKFair Mainnet",
     "supported": true,
     "fetchContractCreationTxUsing": {
-      "etherscanApi": true,
       "blockscoutApi": {
         "url": "https://scan.zkfair.io/"
-      }
+      },
+      "etherscanApi": true
     }
   },
   "1890": {
@@ -1506,10 +1524,10 @@
       "apiKeyEnvName": "KROMASCAN_API_KEY"
     },
     "fetchContractCreationTxUsing": {
-      "etherscanApi": true,
       "blockscoutApi": {
         "url": "https://blockscout.kroma.network/"
-      }
+      },
+      "etherscanApi": true
     }
   },
   "2358": {
@@ -1520,10 +1538,10 @@
       "apiKeyEnvName": "KROMASCAN_API_KEY"
     },
     "fetchContractCreationTxUsing": {
-      "etherscanApi": true,
       "blockscoutApi": {
         "url": "https://blockscout.sepolia.kroma.network/"
-      }
+      },
+      "etherscanApi": true
     }
   },
   "4000": {
@@ -1714,6 +1732,9 @@
     "sourcifyName": "Base Sepolia Tesnet",
     "supported": true,
     "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://base-sepolia.blockscout.com/"
+      },
       "etherscanApi": true
     },
     "etherscanApi": {
@@ -1772,5 +1793,9 @@
   "16350": {
     "supported": true,
     "sourcifyName": "Incentiv Devnet"
+  },
+  "33111": {
+    "sourcifyName": "Curtis",
+    "supported": true
   }
 }

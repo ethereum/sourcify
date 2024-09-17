@@ -446,39 +446,6 @@ export default abstract class AbstractDatabaseService {
       throw new Error("Missing onchain runtime bytecode");
     }
 
-    let needRuntimeMatchUpdate = false;
-    let needCreationMatchUpdate = false;
-
-    existingVerifiedContractResult.forEach((existingVerifiedContract) => {
-      // Check if we need to do an update. We need an update if:
-      // - We had a partial match (i.e. runtime_metadata_match=false) and now we have perfect match
-      // OR
-      // - We didn't have any runtime match and now we have any type of a match
-      if (
-        (!existingVerifiedContract.runtime_metadata_match &&
-          match.runtimeMatch === "perfect") ||
-        (existingVerifiedContract.runtime_match === false &&
-          (match.runtimeMatch === "perfect" ||
-            match.runtimeMatch === "partial"))
-      ) {
-        needRuntimeMatchUpdate = true;
-      }
-
-      // Same above but for creation
-      if (
-        (!existingVerifiedContract.creation_metadata_match &&
-          match.creationMatch === "perfect") ||
-        (existingVerifiedContract.creation_match === false &&
-          (match.creationMatch === "perfect" ||
-            match.creationMatch === "partial"))
-      ) {
-        needCreationMatchUpdate = true;
-      }
-    });
-
-    if (!needRuntimeMatchUpdate && !needCreationMatchUpdate) {
-      return false;
-    }
     try {
       let recompiledCreationCodeInsertResult:
         | QueryResult<Pick<Database.Tables.Code, "bytecode_hash">>

@@ -40,7 +40,6 @@
       "program": "dist/index.js",
       "args": ["--chainsPath=chains-dev.json"],
       "envFile": ".env",
-      "preLaunchTask": "npm: build",
       "outFiles": [
         "${workspaceFolder}/services/monitor/dist/**/*.js",
         "${workspaceFolder}/packages/**/build/**/*.js"
