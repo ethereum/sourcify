@@ -47,16 +47,16 @@
   },
   "devDependencies": {
     "@types/chai": "4.3.19",
-    "@types/mocha": "10.0.7",
+    "@types/mocha": "10.0.8",
     "@types/node": "20.16.5",
     "@types/sinon": "17.0.3",
     "c8": "10.1.2",
     "chai": "4.5.0",
     "hardhat": "2.22.10",
     "mocha": "10.7.3",
-    "nock": "14.0.0-beta.12",
+    "nock": "14.0.0-beta.14",
     "open-cli": "8.0.0",
-    "sinon": "18.0.0",
+    "sinon": "18.0.1",
     "tree-kill": "1.2.2"
   },
   "c8": {
