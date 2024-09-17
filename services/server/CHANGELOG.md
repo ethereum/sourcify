@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@2.2.1 - 2024-09-17
+
+- Check Blockscout first instead of Etherscan for creatorTxHash'es
+- Fix passing invalid addresses in url crashing server
+- Fix saving the contract when there's an improved match
+- Added chains:
+  - Curtis Testnet (3311)
+
 ## sourcify-server@2.2.0 - 2024-08-29
 
 - Add IPFS Gateway Headers env var

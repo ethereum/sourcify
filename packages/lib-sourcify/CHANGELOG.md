@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## @ethereum-sourcify/lib-sourcify@1.9.2 - 2024-09-17
+
+- Fix wrong bytecode comparison on creation bytecode matching, use .startsWith() instead
+- Fix the check for already existing partial match
+- Added test for above cases
+
 ## @ethereum-sourcify/lib-sourcify@1.9.1 - 2024-08-29
 
 - Add custom headers for the IPFS Gateway

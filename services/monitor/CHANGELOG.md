@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-monitor@1.3.1 - 2024-09-17
+
+- Allow generic ApiKeys for chains in chains.json
+- Log blockIntervals every min regularly
+- Update logging
+- Add tests for parsing authenticated RPCs
+- Update dependencies
+
 ## sourcify-monitor@1.3.0 - 2024-08-29
 
 - Added retry mechanism when sending contracts to the Sourcify server.
