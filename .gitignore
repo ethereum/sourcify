@@ -23,3 +23,6 @@ workspace/
 .nx/workspace-data
 .nx/cache
 .nx/installation
+
+# Ignore the server local config file. See .nxignore
+**/config/local.js

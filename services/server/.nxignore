@@ -1,3 +1,0 @@
-# Explicitly don't ignore local.js config file, even if it's ignored by git.
-# This should invalidate the cache for tasks if local.js is changed
-!src/config/local.js

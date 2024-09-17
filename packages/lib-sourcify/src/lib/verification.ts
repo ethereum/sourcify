@@ -630,7 +630,9 @@ export async function matchWithCreationTx(
 
     // If after the normalization the bytecodes are the same, we have a partial match
     if (
-      normalizedRecompiledCreationBytecode == normalizedOnchainCreationBytecode
+      normalizedOnchainCreationBytecode.startsWith(
+        normalizedRecompiledCreationBytecode,
+      )
     ) {
       match.libraryMap = libraryMap;
       match.creationMatch = 'partial';
