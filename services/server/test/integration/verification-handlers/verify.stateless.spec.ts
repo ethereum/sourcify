@@ -24,6 +24,7 @@ import {
   CallProtectionTransformation,
   LibraryTransformation,
 } from "@ethereum-sourcify/lib-sourcify";
+import sinon from "sinon";
 
 chai.use(chaiHttp);
 
@@ -174,8 +175,16 @@ describe("/", function () {
       );
   });
 
-  it("Should skip compilation if contract is already verified", async () => {
-    let res = await chai
+  // We cannot split this into multiple tests because there is a global beforeEach that resets the database
+  it("Should skip verification for /verify, /verify/etherscan and /verify/solc-json if contract is already verified", async () => {
+    // Spy on the verifyDeployed method
+    const verifyDeployedSpy = sinon.spy(
+      serverFixture.server.services.verification,
+      "verifyDeployed",
+    );
+
+    // Perform the initial verification
+    const initialResponse = await chai
       .request(serverFixture.server.app)
       .post("/")
       .field("address", chainFixture.defaultContractAddress)
@@ -183,24 +192,45 @@ describe("/", function () {
       .attach("files", chainFixture.defaultContractMetadata, "metadata.json")
       .field("creatorTxHash", chainFixture.defaultContractCreatorTx)
       .attach("files", chainFixture.defaultContractSource);
+
     await assertVerification(
       serverFixture.sourcifyDatabase,
       null,
-      res,
+      initialResponse,
       null,
       chainFixture.defaultContractAddress,
       chainFixture.chainId,
       "perfect",
     );
+
+    // Verify that verifyDeployed was called during the initial verification
+    chai.expect(
+      verifyDeployedSpy.calledOnce,
+      "verifyDeployed should be called once during initial verification",
+    ).to.be.true;
+
     // The first time the contract is verified, the storageTimestamp is not returned
-    chai.expect(res.body.result[0].storageTimestamp).to.not.exist;
-    res = await chai
+    chai.expect(initialResponse.body.result[0].storageTimestamp).to.not.exist;
+
+    // Reset the spy before calling the endpoint again
+    verifyDeployedSpy.resetHistory();
+
+    /**
+     * Test /verify endpoint is not calling verifyDeployed again
+     */
+    chai.expect(
+      verifyDeployedSpy.notCalled,
+      "verifyDeployed should not be called for /verify",
+    ).to.be.true;
+    let res = await chai
       .request(serverFixture.server.app)
-      .post("/")
+      .post("/verify")
       .field("address", chainFixture.defaultContractAddress)
       .field("chain", chainFixture.chainId)
       .attach("files", chainFixture.defaultContractMetadata, "metadata.json")
+      .field("creatorTxHash", chainFixture.defaultContractCreatorTx)
       .attach("files", chainFixture.defaultContractSource);
+
     await assertVerification(
       serverFixture.sourcifyDatabase,
       null,
@@ -210,8 +240,81 @@ describe("/", function () {
       chainFixture.chainId,
       "perfect",
     );
-    // If the contract is perfectly verified (both creation and runtime), the storageTimestamp is returned
+
+    // Verify that verifyDeployed was NOT called
+    chai.expect(
+      verifyDeployedSpy.notCalled,
+      "verifyDeployed should not be called for /verify",
+    ).to.be.true;
     chai.expect(res.body.result[0].storageTimestamp).to.exist;
+
+    /**
+     * Test /verify/etherscan endpoint is not calling verifyDeployed again
+     */
+    res = await chai
+      .request(serverFixture.server.app)
+      .post("/verify/etherscan")
+      .field("address", chainFixture.defaultContractAddress)
+      .field("chain", chainFixture.chainId);
+
+    await assertVerification(
+      serverFixture.sourcifyDatabase,
+      null,
+      res,
+      null,
+      chainFixture.defaultContractAddress,
+      chainFixture.chainId,
+      "perfect",
+    );
+
+    // Verify that verifyDeployed was NOT called
+    chai.expect(
+      verifyDeployedSpy.notCalled,
+      "verifyDeployed should not be called for /verify/etherscan",
+    ).to.be.true;
+    chai.expect(res.body.result[0].storageTimestamp).to.exist;
+
+    /**
+     * Test /verify/solc-json endpoint is not calling verifyDeployed again
+     */
+    const solcJsonPath = path.join(
+      __dirname,
+      "..",
+      "..",
+      "testcontracts",
+      "Storage",
+      "StorageJsonInput.json",
+    );
+    const solcJsonBuffer = fs.readFileSync(solcJsonPath);
+
+    res = await chai
+      .request(serverFixture.server.app)
+      .post("/verify/solc-json")
+      .attach("files", solcJsonBuffer, "solc.json")
+      .field("address", chainFixture.defaultContractAddress)
+      .field("chain", chainFixture.chainId)
+      .field("compilerVersion", "0.8.4+commit.c7e474f2")
+      .field("contractName", "Storage");
+
+    await assertVerification(
+      serverFixture.sourcifyDatabase,
+      null,
+      res,
+      null,
+      chainFixture.defaultContractAddress,
+      chainFixture.chainId,
+      "perfect",
+    );
+
+    // Verify that verifyDeployed was NOT called
+    chai.expect(
+      verifyDeployedSpy.notCalled,
+      "verifyDeployed should not be called for /verify/solc-json",
+    ).to.be.true;
+    chai.expect(res.body.result[0].storageTimestamp).to.exist;
+
+    // Restore the original verifyDeployed method
+    verifyDeployedSpy.restore();
   });
 
   it("Should upgrade creation match from 'null' to 'perfect', delete partial from repository and update creationTx information in database", async () => {
