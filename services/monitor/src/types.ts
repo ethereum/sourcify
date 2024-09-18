@@ -69,3 +69,16 @@ export type PassedMonitorConfig = {
     [chainId: number]: ChainMonitorConfig;
   };
 };
+
+export type RpcObject = {
+  type: "ApiKey";
+  url: string;
+  apiKeyEnvName: string;
+};
+
+export type MonitorChain = {
+  name: string;
+  title?: string;
+  chainId: number;
+  rpc: Array<string | RpcObject>;
+};

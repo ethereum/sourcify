@@ -21,14 +21,6 @@ export async function legacyVerifyEndpoint(
   req: LegacyVerifyRequest,
   res: Response,
 ): Promise<any> {
-  const result = await req.services.storage.performServiceOperation(
-    "checkByChainAndAddress",
-    [req.body.address, req.body.chain],
-  );
-  if (result.length != 0) {
-    return res.send({ result: [getResponseMatchFromMatch(result[0])] });
-  }
-
   const inputFiles = extractFiles(req);
   if (!inputFiles) {
     const msg =
@@ -118,15 +110,6 @@ export async function verifyDeprecated(
   res: Response,
 ): Promise<any> {
   const { services } = req;
-
-  const result = await services.storage.performServiceOperation(
-    "checkByChainAndAddress",
-    [req.body.address, req.body.chain],
-  );
-
-  if (result.length != 0) {
-    return res.send({ result: [getResponseMatchFromMatch(result[0])] });
-  }
 
   const inputFiles = extractFiles(req);
   if (!inputFiles) {

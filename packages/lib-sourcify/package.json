@@ -1,6 +1,6 @@
 {
   "name": "@ethereum-sourcify/lib-sourcify",
-  "version": "1.9.1",
+  "version": "1.9.2",
   "description": "Library for Sourcify's contract verification methods, contract validation, types, and interfaces.",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
@@ -38,13 +38,13 @@
     "node": "22.5.1"
   },
   "dependencies": {
-    "@ethereum-sourcify/bytecode-utils": "^1.2.10",
+    "@ethereum-sourcify/bytecode-utils": "^1.2.11",
     "@ethereumjs/blockchain": "7.3.0",
     "@ethereumjs/common": "4.4.0",
-    "@ethereumjs/evm": "3.1.0",
+    "@ethereumjs/evm": "3.1.1",
     "@ethereumjs/statemanager": "2.4.0",
     "@ethereumjs/util": "9.1.0",
-    "@ethereumjs/vm": "8.1.0",
+    "@ethereumjs/vm": "8.1.1",
     "@ethersproject/abi": "5.7.0",
     "@ethersproject/bignumber": "5.7.0",
     "@ethersproject/bytes": "5.7.0",
@@ -59,21 +59,21 @@
   "devDependencies": {
     "@types/chai": "4.3.19",
     "@types/debug": "4.1.12",
-    "@types/mocha": "10.0.7",
-    "@types/node": "20.14.14",
+    "@types/mocha": "10.0.8",
+    "@types/node": "20.16.5",
     "c8": "10.1.2",
     "chai": "4.5.0",
     "cspell": "8.14.2",
     "cz-conventional-changelog": "3.3.0",
     "gh-pages": "6.1.1",
-    "hardhat": "2.22.9",
+    "hardhat": "2.22.10",
     "mocha": "10.7.3",
-    "nock": "14.0.0-beta.11",
+    "nock": "14.0.0-beta.14",
     "npm-run-all2": "5.0.2",
     "open-cli": "8.0.0",
-    "solc": "0.8.26",
+    "solc": "0.8.27",
     "tree-kill": "1.2.2",
-    "typedoc": "0.26.6"
+    "typedoc": "0.26.7"
   },
   "files": [
     "build/main",

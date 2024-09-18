@@ -37,6 +37,7 @@ export default class ChainMonitor extends EventEmitter {
   private bytecodeInterval: number;
   private bytecodeNumberOfTries: number;
   private running = false;
+  private blockPauseLogInterval: NodeJS.Timeout | null = null;
 
   constructor(
     sourcifyChain: SourcifyChain,
@@ -96,6 +97,9 @@ export default class ChainMonitor extends EventEmitter {
 
       // Listen to new blocks
       this.on(NEW_BLOCK_EVENT, this.processBlockListener);
+
+      // Start logging block pause periodically
+      this.startBlockPauseLogging();
     } catch (error: any) {
       this.chainLogger.error("Error starting ChainMonitor", { error });
     }
@@ -108,6 +112,9 @@ export default class ChainMonitor extends EventEmitter {
     this.chainLogger.info("Stopping ChainMonitor", { ...this });
     this.running = false;
     this.off(NEW_BLOCK_EVENT, this.processBlockListener);
+
+    // Stop logging block pause
+    this.stopBlockPauseLogging();
   };
 
   // Tries to get the next block by polling in variable intervals.
@@ -156,9 +163,6 @@ export default class ChainMonitor extends EventEmitter {
 
   // ListenerFunction
   private processBlockListener = async (block: Block) => {
-    this.chainLogger.info("Found and processing block", {
-      blockNumber: block.number,
-    });
     this.chainLogger.silly("Block", block);
 
     for (const tx of block.prefetchedTransactions) {
@@ -194,7 +198,7 @@ export default class ChainMonitor extends EventEmitter {
       this.blockInterval,
       this.blockIntervalLowerLimit,
     );
-    this.chainLogger.info(`${operation.toUpperCase()} block pause.`, {
+    this.chainLogger.debug(`${operation.toUpperCase()} block pause.`, {
       blockInterval: this.blockInterval,
     });
   };
@@ -247,6 +251,7 @@ export default class ChainMonitor extends EventEmitter {
     address: string,
   ) => {
     try {
+      let metadataHash: FileHash;
       const bytecode = await this.getBytecodeWithRetries(address);
       if (!bytecode) {
         this.chainLogger.warn("Could not fetch bytecode for contract", {
@@ -254,12 +259,14 @@ export default class ChainMonitor extends EventEmitter {
         });
         return;
       }
-      const cborData = bytecodeDecode(bytecode);
-      let metadataHash: FileHash;
       try {
+        const cborData = bytecodeDecode(bytecode);
         metadataHash = FileHash.fromCborData(cborData);
       } catch (err: any) {
-        this.chainLogger.info("Error getting metadatahash", { address, err });
+        this.chainLogger.info("Error extracting cborAuxdata or metadata hash", {
+          address,
+          err,
+        });
         return;
       }
 
@@ -284,7 +291,7 @@ export default class ChainMonitor extends EventEmitter {
         this.chainLogger.info("Couldn't assemble contract", { address, err });
         return;
       }
-      if (!isEmpty(pendingContract.pendingSources)) {
+      if (!this.isEmpty(pendingContract.pendingSources)) {
         logger.warn("PendingSources not empty", {
           address: pendingContract.address,
           pendingSources: pendingContract.pendingSources,
@@ -349,8 +356,24 @@ export default class ChainMonitor extends EventEmitter {
       this.chainLogger.error("Error processing bytecode", { address, error });
     }
   };
-}
 
-function isEmpty(obj: object): boolean {
-  return !Object.keys(obj).length && obj.constructor === Object;
+  private startBlockPauseLogging = (): void => {
+    this.blockPauseLogInterval = setInterval(() => {
+      this.chainLogger.info("Current block pause", {
+        chainId: this.sourcifyChain.chainId,
+        blockInterval: this.blockInterval,
+      });
+    }, 60000); // Log every 60 seconds (1 minute)
+  };
+
+  private stopBlockPauseLogging = (): void => {
+    if (this.blockPauseLogInterval) {
+      clearInterval(this.blockPauseLogInterval);
+      this.blockPauseLogInterval = null;
+    }
+  };
+
+  private isEmpty(obj: object): boolean {
+    return !Object.keys(obj).length && obj.constructor === Object;
+  }
 }

@@ -1,3 +1,4 @@
+import config from "config";
 import {
   assertTransformations,
   assertValidationError,
@@ -16,12 +17,14 @@ import {
   waitSecs,
   deployFromAbiAndBytecodeForCreatorTxHash,
   deployFromAbiAndBytecode,
+  testPartialUpgrade,
 } from "../../helpers/helpers";
 import hardhatOutputJSON from "../../sources/hardhat-output/output.json";
 import {
   CallProtectionTransformation,
   LibraryTransformation,
 } from "@ethereum-sourcify/lib-sourcify";
+import sinon from "sinon";
 
 chai.use(chaiHttp);
 
@@ -172,7 +175,149 @@ describe("/", function () {
       );
   });
 
-  it("Should upgrade match from 'partial' to 'full', delete partial from repository and update creationTx information in database", async () => {
+  // We cannot split this into multiple tests because there is a global beforeEach that resets the database
+  it("Should skip verification for /verify, /verify/etherscan and /verify/solc-json if contract is already verified", async () => {
+    // Spy on the verifyDeployed method
+    const verifyDeployedSpy = sinon.spy(
+      serverFixture.server.services.verification,
+      "verifyDeployed",
+    );
+
+    // Perform the initial verification
+    const initialResponse = await chai
+      .request(serverFixture.server.app)
+      .post("/")
+      .field("address", chainFixture.defaultContractAddress)
+      .field("chain", chainFixture.chainId)
+      .attach("files", chainFixture.defaultContractMetadata, "metadata.json")
+      .field("creatorTxHash", chainFixture.defaultContractCreatorTx)
+      .attach("files", chainFixture.defaultContractSource);
+
+    await assertVerification(
+      serverFixture.sourcifyDatabase,
+      null,
+      initialResponse,
+      null,
+      chainFixture.defaultContractAddress,
+      chainFixture.chainId,
+      "perfect",
+    );
+
+    // Verify that verifyDeployed was called during the initial verification
+    chai.expect(
+      verifyDeployedSpy.calledOnce,
+      "verifyDeployed should be called once during initial verification",
+    ).to.be.true;
+
+    // The first time the contract is verified, the storageTimestamp is not returned
+    chai.expect(initialResponse.body.result[0].storageTimestamp).to.not.exist;
+
+    // Reset the spy before calling the endpoint again
+    verifyDeployedSpy.resetHistory();
+
+    /**
+     * Test /verify endpoint is not calling verifyDeployed again
+     */
+    chai.expect(
+      verifyDeployedSpy.notCalled,
+      "verifyDeployed should not be called for /verify",
+    ).to.be.true;
+    let res = await chai
+      .request(serverFixture.server.app)
+      .post("/verify")
+      .field("address", chainFixture.defaultContractAddress)
+      .field("chain", chainFixture.chainId)
+      .attach("files", chainFixture.defaultContractMetadata, "metadata.json")
+      .field("creatorTxHash", chainFixture.defaultContractCreatorTx)
+      .attach("files", chainFixture.defaultContractSource);
+
+    await assertVerification(
+      serverFixture.sourcifyDatabase,
+      null,
+      res,
+      null,
+      chainFixture.defaultContractAddress,
+      chainFixture.chainId,
+      "perfect",
+    );
+
+    // Verify that verifyDeployed was NOT called
+    chai.expect(
+      verifyDeployedSpy.notCalled,
+      "verifyDeployed should not be called for /verify",
+    ).to.be.true;
+    chai.expect(res.body.result[0].storageTimestamp).to.exist;
+
+    /**
+     * Test /verify/etherscan endpoint is not calling verifyDeployed again
+     */
+    res = await chai
+      .request(serverFixture.server.app)
+      .post("/verify/etherscan")
+      .field("address", chainFixture.defaultContractAddress)
+      .field("chain", chainFixture.chainId);
+
+    await assertVerification(
+      serverFixture.sourcifyDatabase,
+      null,
+      res,
+      null,
+      chainFixture.defaultContractAddress,
+      chainFixture.chainId,
+      "perfect",
+    );
+
+    // Verify that verifyDeployed was NOT called
+    chai.expect(
+      verifyDeployedSpy.notCalled,
+      "verifyDeployed should not be called for /verify/etherscan",
+    ).to.be.true;
+    chai.expect(res.body.result[0].storageTimestamp).to.exist;
+
+    /**
+     * Test /verify/solc-json endpoint is not calling verifyDeployed again
+     */
+    const solcJsonPath = path.join(
+      __dirname,
+      "..",
+      "..",
+      "testcontracts",
+      "Storage",
+      "StorageJsonInput.json",
+    );
+    const solcJsonBuffer = fs.readFileSync(solcJsonPath);
+
+    res = await chai
+      .request(serverFixture.server.app)
+      .post("/verify/solc-json")
+      .attach("files", solcJsonBuffer, "solc.json")
+      .field("address", chainFixture.defaultContractAddress)
+      .field("chain", chainFixture.chainId)
+      .field("compilerVersion", "0.8.4+commit.c7e474f2")
+      .field("contractName", "Storage");
+
+    await assertVerification(
+      serverFixture.sourcifyDatabase,
+      null,
+      res,
+      null,
+      chainFixture.defaultContractAddress,
+      chainFixture.chainId,
+      "perfect",
+    );
+
+    // Verify that verifyDeployed was NOT called
+    chai.expect(
+      verifyDeployedSpy.notCalled,
+      "verifyDeployed should not be called for /verify/solc-json",
+    ).to.be.true;
+    chai.expect(res.body.result[0].storageTimestamp).to.exist;
+
+    // Restore the original verifyDeployed method
+    verifyDeployedSpy.restore();
+  });
+
+  it("Should upgrade creation match from 'null' to 'perfect', delete partial from repository and update creationTx information in database", async () => {
     const partialMetadata = (
       await import("../../testcontracts/Storage/metadataModified.json")
     ).default;
@@ -241,6 +386,7 @@ describe("/", function () {
       null,
       chainFixture.defaultContractAddress,
       chainFixture.chainId,
+      "perfect",
     );
 
     const contractDeploymentWithCreatorTransactionHash =
@@ -270,6 +416,16 @@ describe("/", function () {
 
     res = await chai.request(serverFixture.server.app).get(partialMetadataURL);
     chai.expect(res.status).to.equal(StatusCodes.NOT_FOUND);
+  });
+
+  it("Should upgrade creation match from 'partial' to 'perfect' even if existing runtime match is already 'perfect'", async () => {
+    // The third parameter is the matchType that is going to be forcely set to "perfect" before re-verifying with the original metadata
+    await testPartialUpgrade(serverFixture, chainFixture, "runtime");
+  });
+
+  it("Should upgrade runtime match from 'partial' to 'perfect' even if existing creation match is already 'perfect'", async () => {
+    // The third parameter is the matchType that is going to be forcely set to "perfect" before re-verifying with the original metadata
+    await testPartialUpgrade(serverFixture, chainFixture, "creation");
   });
 
   it("should return 'partial', then throw when another 'partial' match is received", async () => {

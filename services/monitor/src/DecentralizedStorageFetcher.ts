@@ -95,7 +95,7 @@ export default class DecentralizedStorageFetcher extends EventEmitter {
         }
         this.removeListener(`${fileHash.hash} fetched`, successListener);
         this.removeListener(`${fileHash.hash} fetch failed`, failListener);
-        this.storageFetcherLogger.info("Removed file listener", {
+        this.storageFetcherLogger.debug("Removed file listener", {
           fileHash,
           origin: this.origin,
           subscriberCounter: this.subcriberCounter,
@@ -151,7 +151,7 @@ export default class DecentralizedStorageFetcher extends EventEmitter {
     });
     for (let gwIndex = 0; gwIndex < this.gatewayFetchers.length; gwIndex++) {
       const gatewayFetcher = this.gatewayFetchers[gwIndex];
-      this.storageFetcherLogger.info("Fetching from gateway", {
+      this.storageFetcherLogger.debug("Fetching from gateway", {
         fileHash,
         origin: this.origin,
         subscriberCounter: this.subcriberCounter,

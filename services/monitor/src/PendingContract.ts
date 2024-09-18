@@ -51,7 +51,7 @@ export default class PendingContract {
           `Can't fetch metadata address=${this.address} hash=${this.metadataHash.hash} origin=${this.metadataHash.origin}: ${err}`,
         );
       });
-    this.contractLogger.info("[PendingContract.assemble] Fetched metadata", {
+    this.contractLogger.info("Fetched metadata", {
       metadataHash: this.metadataHash,
       address: this.address,
       chainId: this.chainId,
@@ -109,15 +109,12 @@ export default class PendingContract {
             continue;
           }
           fetchedContent = await fetcher.fetch(fileHash);
-          this.contractLogger.info(
-            "[PendingContract.assemble] Fetched source",
-            {
-              sourceUnitName,
-              address: this.address,
-              chainId: this.chainId,
-              fileHash,
-            },
-          );
+          this.contractLogger.info("Fetched source", {
+            sourceUnitName,
+            address: this.address,
+            chainId: this.chainId,
+            fileHash,
+          });
           source.content = fetchedContent;
           this.movePendingToFetchedSources(sourceUnitName);
         }

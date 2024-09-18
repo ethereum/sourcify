@@ -342,7 +342,7 @@ export class RepositoryV1Service implements RWStorageService {
           address,
           chainId,
           runtimeMatch: storage?.status,
-          creationMatch: null,
+          creationMatch: storage?.status,
           storageTimestamp: storage?.time,
         },
       ];

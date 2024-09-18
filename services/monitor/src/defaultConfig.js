@@ -18,7 +18,7 @@ const defaultConfig = {
     blockInterval: 10000,
     blockIntervalFactor: 1.1,
     blockIntervalUpperLimit: 300000,
-    blockIntervalLowerLimit: 100,
+    blockIntervalLowerLimit: 25,
     bytecodeInterval: 5000,
     bytecodeNumberOfTries: 5,
   },

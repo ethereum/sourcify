@@ -1,6 +1,6 @@
 {
   "name": "@ethereum-sourcify/bytecode-utils",
-  "version": "1.2.10",
+  "version": "1.2.11",
   "description": "Decode the CBOR encoded data at the end of an Ethereum contract's bytecode.",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
@@ -45,8 +45,8 @@
   },
   "devDependencies": {
     "@types/chai": "4.3.19",
-    "@types/mocha": "10.0.7",
-    "@types/node": "20.14.14",
+    "@types/mocha": "10.0.8",
+    "@types/node": "20.16.5",
     "c8": "10.1.2",
     "chai": "4.5.0",
     "cz-conventional-changelog": "3.3.0",

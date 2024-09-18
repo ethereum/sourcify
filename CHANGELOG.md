@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 This CHANGELOG will contain monorepo related changes such as CI configs, shared dependencies and the development setup.
 
+## sourcify-monorepo@1.4.1 - 2024-09-17
+
+- Increase GCP deploy step timeout
+- Update .gitignore and .nxignore
+
 ## sourcify-monorepo@1.4.0 - 2024-08-29
 
 - Remove UI and all related CI/CD code
