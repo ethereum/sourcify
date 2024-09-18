@@ -130,6 +130,7 @@ describe("Verifier Alliance database", function () {
     if (!serverFixture.sourcifyDatabase) {
       chai.assert.fail("No database on StorageService");
     }
+    const addressBuffer = Buffer.from(address.substring(2), "hex");
     const res = await serverFixture.sourcifyDatabase.query(
       `SELECT 
           compilation_artifacts,
@@ -160,7 +161,6 @@ describe("Verifier Alliance database", function () {
           cc.language,
           cc.name,
           cc.fully_qualified_name,
-          cc.sources,
           cc.compiler_settings,
           cd.chain_id,
           cd.address,
@@ -177,7 +177,19 @@ describe("Verifier Alliance database", function () {
         LEFT JOIN code onchain_runtime_code ON onchain_runtime_code.code_hash = c.runtime_code_hash
         LEFT JOIN code onchain_creation_code ON onchain_creation_code.code_hash = c.creation_code_hash
         where cd.address = $1`,
-      [Buffer.from(address.substring(2), "hex")],
+      [addressBuffer],
+    );
+    const resSources = await serverFixture.sourcifyDatabase.query(
+      `SELECT
+          ccs.*,
+          s.*
+        FROM verified_contracts vc
+        LEFT JOIN contract_deployments cd ON cd.id = vc.deployment_id
+        LEFT JOIN compiled_contracts cc ON cc.id = vc.compilation_id 
+        LEFT JOIN compiled_contracts_sources ccs on ccs.compilation_id = cc.id
+        LEFT JOIN sources s ON s.source_hash = ccs.source_hash
+        where cd.address = $1`,
+      [addressBuffer],
     );
     chai.expect(res.rowCount).to.equal(1);
 
@@ -190,7 +202,14 @@ describe("Verifier Alliance database", function () {
     chai
       .expect(row.fully_qualified_name)
       .to.equal(testCase.fully_qualified_name);
-    chai.expect(row.sources).to.deep.equal(testCase.sources);
+    chai
+      .expect(
+        resSources.rows.reduce((sources, source) => {
+          sources[source.path] = source.content;
+          return sources;
+        }, {}),
+      )
+      .to.deep.equal(testCase.sources);
     chai
       .expect(row.compiler_settings)
       .to.deep.equal(testCase.compiler_settings);

@@ -254,7 +254,7 @@ export class SourcifyDatabaseService
   };
 
   /**
-   * getFiles extracts the files from the database `compiled_contracts.sources`
+   * getFiles extracts the files from the database `compiled_contracts_sources`
    * and store them into FilesInfo.files, this object is then going to be formatted
    * by getTree, getContent and getFile.
    */
@@ -281,13 +281,18 @@ export class SourcifyDatabaseService
         ? "full"
         : "partial";
 
-    const sources: { [index: string]: string } = {};
-
-    // Add 'sources/' prefix for API compatibility with the repoV1 responses. RepoV1 filesystem has all source files in 'sources/'
-    // TODO: Extract sources from the new sources tables
-    /* for (const path of Object.keys(sourcifyMatch.sources)) {
-      sources[`sources/${path}`] = sourcifyMatch.sources[path];
-    } */
+    const sourcesResult = await Database.getCompiledContractSources(
+      this.databasePool,
+      sourcifyMatch.compilation_id,
+    );
+    const sources = sourcesResult.rows.reduce(
+      (sources, source) => {
+        // Add 'sources/' prefix for API compatibility with the repoV1 responses. RepoV1 filesystem has all source files in 'sources/'
+        sources[`sources/${source.path}`] = source.content;
+        return sources;
+      },
+      {} as Record<string, string>,
+    );
     const files: FilesRawValue = {};
 
     if (sourcifyMatch.metadata) {

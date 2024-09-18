@@ -305,10 +305,9 @@ export default abstract class AbstractDatabaseService {
       (path) => {
         return {
           path,
-          source_code_hash_keccak: bytesFromString<BytesKeccak>(
+          source_hash_keccak: bytesFromString<BytesKeccak>(
             keccak256(Buffer.from(recompiledContract.solidity[path])),
           ),
-          language: "solidity",
           content: recompiledContract.solidity[path],
         };
       },

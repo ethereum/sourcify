@@ -136,8 +136,8 @@ router
 
 /**
  * The following two routes are the replacement for the removed static file route that exposed RepositoryV1
- * The function getFileEndpoint get the sources from compiled_contracts.sources
- * We need both of these routes because compiled_contracts.sources doesn't contain the metadata file
+ * The function getFileEndpoint get the sources from compiled_contracts_sources
+ * We need both of these routes because compiled_contracts_sources doesn't contain the metadata file
  */
 
 // This route covers constructor-args.txt, creator-tx-hash.txt, library-map.json, immutable-references.json files
