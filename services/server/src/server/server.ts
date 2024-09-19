@@ -32,7 +32,7 @@ import {
   SourcifyChainMap,
 } from "@ethereum-sourcify/lib-sourcify";
 import { ChainRepository } from "../sourcify-chain-repository";
-import session, { SessionOptions } from "express-session";
+import { SessionOptions } from "express-session";
 
 declare module "express-serve-static-core" {
   interface Request {

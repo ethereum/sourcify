@@ -1,4 +1,4 @@
-import { NextFunction, RequestHandler, Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { BadRequestError, InternalServerError } from "../../common/errors";
 import logger from "../../common/logger";
 import { getAddress } from "ethers";

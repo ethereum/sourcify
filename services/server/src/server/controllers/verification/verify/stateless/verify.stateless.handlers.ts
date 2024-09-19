@@ -202,7 +202,7 @@ export async function verifyDeprecated(
       runtimeBytecode: recompiledRuntimeBytecode,
       immutableReferences,
       runtimeLinkReferences,
-      creationLinkReferences,
+      // creationLinkReferences,
     } = await contract.recompile();
 
     // we are running also matchWithRuntimeBytecode to extract transformations

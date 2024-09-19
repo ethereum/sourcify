@@ -341,7 +341,7 @@ describe("/session", function () {
 
   it("should fetch missing sources", (done) => {
     const agent = chai.request.agent(serverFixture.server.app);
-    agent.post("/session/clear").then((res) => {
+    agent.post("/session/clear").then(() => {
       agent
         .post("/session/input-files")
         .attach("files", chainFixture.defaultContractMetadata)
