@@ -61,7 +61,7 @@ exports.up = function (db, callback) {
           CREATE INDEX compiled_contracts_sources_source_hash ON compiled_contracts_sources USING btree (source_hash);
           CREATE INDEX compiled_contracts_sources_compilation_id ON compiled_contracts_sources (compilation_id);
 
-          -- ALTER TABLE compiled_contracts DROP COLUMN sources;
+          ALTER TABLE compiled_contracts DROP COLUMN sources;
         `,
       ),
     ],
@@ -77,6 +77,7 @@ exports.down = function (db, callback) {
         `
       DROP TABLE compiled_contracts_sources;
       DROP TABLE sources;
+      ALTER TABLE compiled_contracts ADD COLUMN sources jsonb NOT NULL;
     `,
       ),
     ],

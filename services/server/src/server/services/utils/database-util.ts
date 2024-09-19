@@ -19,6 +19,7 @@ import {
   BytesTypes,
   Nullable,
 } from "../../types";
+import logger from "../../../common/logger";
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Tables {
@@ -364,7 +365,7 @@ export async function insertCompiledContract(
         runtime_code_hash,
         creation_code_artifacts,
         runtime_code_artifacts
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) ON CONFLICT (compiler, language, creation_code_hash, runtime_code_hash) DO NOTHING RETURNING *
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) ON CONFLICT (compiler, language, creation_code_hash, runtime_code_hash) DO NOTHING RETURNING *
     `,
     [
       compiler,
@@ -457,13 +458,24 @@ export async function insertCompiledContractsSources(
         `($${compiledContractsSourcesQueryIndex * 3 + 1}, $${compiledContractsSourcesQueryIndex * 3 + 2}, $${compiledContractsSourcesQueryIndex * 3 + 3})`,
       );
       compiledContractsSourcesQueryValues.push(compilation_id);
-      compiledContractsSourcesQueryValues.push(
-        sourceCodesQueryResult.rows.find(
-          (sc) =>
-            sc.source_hash_keccak.toString("hex") ===
-            compiledContractsSource.source_hash_keccak.toString("hex"),
-        )?.source_hash,
+      const source = sourceCodesQueryResult.rows.find(
+        (sc) =>
+          sc.source_hash_keccak.toString("hex") ===
+          compiledContractsSource.source_hash_keccak.toString("hex"),
       );
+      if (!source) {
+        logger.error(
+          "Source not found while inserting compiled contracts sources",
+          {
+            compilation_id,
+            compiledContractsSource,
+          },
+        );
+        throw new Error(
+          "Source not found while inserting compiled contracts sources",
+        );
+      }
+      compiledContractsSourcesQueryValues.push(source?.source_hash);
       compiledContractsSourcesQueryValues.push(compiledContractsSource.path);
     },
   );
