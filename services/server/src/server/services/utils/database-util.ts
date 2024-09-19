@@ -359,7 +359,6 @@ export async function insertCompiledContract(
         name,
         fully_qualified_name,
         compilation_artifacts,
-        sources,
         compiler_settings,
         creation_code_hash,
         runtime_code_hash,
@@ -374,8 +373,6 @@ export async function insertCompiledContract(
       name,
       fully_qualified_name,
       compilation_artifacts,
-      // TODO: remove this
-      "{}",
       compiler_settings,
       creation_code_hash,
       runtime_code_hash,
