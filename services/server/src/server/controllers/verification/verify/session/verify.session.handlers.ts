@@ -9,11 +9,15 @@ import {
 import { isEmpty, ISolidityCompiler } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError } from "../../../../../common/errors";
 import logger from "../../../../../common/logger";
+import { Services } from "../../../../services/services";
 
 export async function verifyContractsInSessionEndpoint(
   req: Request,
   res: Response,
 ) {
+  const services = req.app.get("services") as Services;
+  const solc = req.app.get("solc") as ISolidityCompiler;
+
   const session = req.session;
   if (!session.contractWrappers || isEmpty(session.contractWrappers)) {
     throw new BadRequestError("There are currently no pending contracts.");
@@ -49,14 +53,12 @@ export async function verifyContractsInSessionEndpoint(
     }
   }
 
-  const solc = req.app.get("solc") as ISolidityCompiler;
-
   await verifyContractsInSession(
     solc,
     verifiable,
     session,
-    req.services.verification,
-    req.services.storage,
+    services.verification,
+    services.storage,
     dryRun,
   );
   res.send(getSessionJSON(session));

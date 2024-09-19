@@ -6,7 +6,10 @@ import {
   getSessionJSON,
   saveFilesToSession,
 } from "../../verification.common";
-import { ISolidityCompiler, PathContent } from "@ethereum-sourcify/lib-sourcify";
+import {
+  ISolidityCompiler,
+  PathContent,
+} from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError } from "../../../../../common/errors";
 import { getAllMetadataAndSourcesFromSolcJson } from "../../../../services/compiler/local/solidityCompiler";
 
@@ -15,7 +18,6 @@ export async function addInputSolcJsonEndpoint(req: Request, res: Response) {
   if (!inputFiles) throw new BadRequestError("No files found");
 
   const solc = req.app.get("solc") as ISolidityCompiler;
-  const solcRepoPath = req.app.get("solcRepoPath") as string;
 
   const compilerVersion = req.body.compilerVersion;
 
@@ -30,7 +32,7 @@ export async function addInputSolcJsonEndpoint(req: Request, res: Response) {
     }
 
     const metadataAndSources = await getAllMetadataAndSourcesFromSolcJson(
-      solcRepoPath,
+      solc,
       solcJson,
       compilerVersion,
     );

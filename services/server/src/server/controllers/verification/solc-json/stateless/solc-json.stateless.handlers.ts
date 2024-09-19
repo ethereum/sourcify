@@ -1,11 +1,19 @@
 import { Response, Request } from "express";
 import { extractFiles } from "../../verification.common";
-import { checkFiles, ISolidityCompiler, useAllSources } from "@ethereum-sourcify/lib-sourcify";
+import {
+  checkFiles,
+  ISolidityCompiler,
+  useAllSources,
+} from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError } from "../../../../../common/errors";
 import { getResponseMatchFromMatch } from "../../../../common";
 import { getAllMetadataAndSourcesFromSolcJson } from "../../../../services/compiler/local/solidityCompiler";
+import { Services } from "../../../../services/services";
 
 export async function verifySolcJsonEndpoint(req: Request, res: Response) {
+  const services = req.app.get("services") as Services;
+  const solc = req.app.get("solc") as ISolidityCompiler;
+
   const inputFiles = extractFiles(req, true);
   if (!inputFiles) throw new BadRequestError("No files found");
   if (inputFiles.length !== 1)
@@ -25,11 +33,9 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
   const contractName = req.body.contractName;
   const chain = req.body.chain;
   const address = req.body.address;
-  const solc = req.app.get("solc") as ISolidityCompiler;
-  const solcRepoPath = req.app.get("solcRepoPath") as string;
 
   const metadataAndSourcesPathBuffers =
-    await getAllMetadataAndSourcesFromSolcJson(solcRepoPath, solcJson, compilerVersion);
+    await getAllMetadataAndSourcesFromSolcJson(solc, solcJson, compilerVersion);
 
   const checkedContracts = await checkFiles(
     solc,
@@ -44,7 +50,7 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
     );
   }
 
-  const match = await req.services.verification.verifyDeployed(
+  const match = await services.verification.verifyDeployed(
     contractToVerify,
     chain,
     address,
@@ -56,7 +62,7 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
       contractToVerify,
       metadataAndSourcesPathBuffers,
     );
-    const tempMatch = await req.services.verification.verifyDeployed(
+    const tempMatch = await services.verification.verifyDeployed(
       contractWithAllSources,
       chain,
       address, // Due to the old API taking an array of addresses.
@@ -66,7 +72,7 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
       tempMatch.runtimeMatch === "perfect" ||
       tempMatch.creationMatch === "perfect"
     ) {
-      await req.services.storage.storeMatch(contractToVerify, tempMatch);
+      await services.storage.storeMatch(contractToVerify, tempMatch);
       return res.send({ result: [tempMatch] });
     } else if (tempMatch.runtimeMatch === "extra-file-input-bug") {
       throw new BadRequestError(
@@ -75,7 +81,7 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
     }
   }
   if (match.runtimeMatch || match.creationMatch) {
-    await req.services.storage.storeMatch(contractToVerify, match);
+    await services.storage.storeMatch(contractToVerify, match);
   }
   return res.send({ result: [getResponseMatchFromMatch(match)] }); // array is an old expected behavior (e.g. by frontend)
 }

@@ -22,7 +22,6 @@ import { SolcLambdaWithLocalFallback } from "./services/compiler/lambda-with-fal
 import { SolcLocal } from "./services/compiler/local/SolcLocal";
 import session from "express-session";
 
-
 // Supported Chains
 
 const chainRepository = new ChainRepository(sourcifyChainsMap);
@@ -36,9 +35,10 @@ logger.info("SourcifyChains.Initialized", {
 
 // Solidity Compiler
 
-
-const repoPath = (config.get("solcRepo") as string) || path.join("/tmp", "solc-repo");
-const soljsonRepo = (config.get("solJsonRepo") as string) || path.join("/tmp", "soljson-repo");
+const solcRepoPath =
+  (config.get("solcRepo") as string) || path.join("/tmp", "solc-repo");
+const solJsonRepoPath =
+  (config.get("solJsonRepo") as string) || path.join("/tmp", "soljson-repo");
 
 if (
   process.env.AWS_REGION === undefined ||
@@ -58,17 +58,17 @@ if (config.get("lambdaCompiler.enabled")) {
     process.env.AWS_ACCESS_KEY_ID as string,
     process.env.AWS_SECRET_ACCESS_KEY as string,
     config.get("lambdaCompiler.functionName"),
-    repoPath
+    solcRepoPath,
+    solJsonRepoPath,
   );
 } else {
   logger.info("Using local solidity compiler");
-  selectedSolidityCompiler = new SolcLocal(repoPath);
+  selectedSolidityCompiler = new SolcLocal(solcRepoPath, solJsonRepoPath);
 }
 
 export const solc = selectedSolidityCompiler;
 
 // Start Server
-
 
 const server = new Server(
   {
@@ -84,7 +84,8 @@ const server = new Server(
   {
     initCompilers: config.get("initCompilers") || false,
     supportedChainsMap: chainRepository.supportedChainMap,
-    repoPath
+    solcRepoPath,
+    solJsonRepoPath,
   },
   {
     enabledServices: {
@@ -100,8 +101,8 @@ const server = new Server(
     repositoryV2ServiceOptions: {
       ipfsApi: process.env.IPFS_API as string,
       repositoryPath: config.has("repositoryV2.path")
-      ? config.get("repositoryV2.path")
-      : undefined,
+        ? config.get("repositoryV2.path")
+        : undefined,
     },
     sourcifyDatabaseServiceOptions: {
       postgres: {
@@ -127,23 +128,23 @@ const server = new Server(
 // Generate the swagger.json and serve it with SwaggerUI at /api-docs
 server.services.init().then(() => {
   server
-  .loadSwagger(yamljs.load(path.join(__dirname, "..", "openapi.yaml"))) // load the openapi file with the $refs resolved
-  .then((swaggerDocument: any) => {
-    server.app.get("/api-docs/swagger.json", (req, res) =>
-     res.json(swaggerDocument),
-    );
-    server.app.use(
-      "/api-docs",
-      swaggerUi.serve,
-      swaggerUi.setup(swaggerDocument, {
-        customSiteTitle: "Sourcify API",
-        customfavIcon: "https://sourcify.dev/favicon.ico",
-      }),
-    );
-    server.app.listen(server.port, () => {
-      logger.info("Server listening", { port: server.port });
+    .loadSwagger(yamljs.load(path.join(__dirname, "..", "openapi.yaml"))) // load the openapi file with the $refs resolved
+    .then((swaggerDocument: any) => {
+      server.app.get("/api-docs/swagger.json", (req, res) =>
+        res.json(swaggerDocument),
+      );
+      server.app.use(
+        "/api-docs",
+        swaggerUi.serve,
+        swaggerUi.setup(swaggerDocument, {
+          customSiteTitle: "Sourcify API",
+          customfavIcon: "https://sourcify.dev/favicon.ico",
+        }),
+      );
+      server.app.listen(server.port, () => {
+        logger.info("Server listening", { port: server.port });
+      });
     });
-  });
 });
 
 function initMemoryStore() {

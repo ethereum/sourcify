@@ -9,12 +9,14 @@ import { createCheckedContract } from "../../verification.common";
 import logger from "../../../../../common/logger";
 import { ChainRepository } from "../../../../../sourcify-chain-repository";
 import { ISolidityCompiler } from "@ethereum-sourcify/lib-sourcify";
+import { Services } from "../../../../services/services";
 
 export async function verifyFromEtherscan(req: Request, res: Response) {
-  const chainRepository = req.app.get('chainRepository') as ChainRepository;
+  const services = req.app.get("services") as Services;
+  const chainRepository = req.app.get("chainRepository") as ChainRepository;
   chainRepository.checkSupportedChainId(req.body.chain);
 
-  const solc = req.app.get('solc') as ISolidityCompiler;
+  const solc = req.app.get("solc") as ISolidityCompiler;
 
   const chain = req.body.chain as string;
   const address = req.body.address;
@@ -36,13 +38,13 @@ export async function verifyFromEtherscan(req: Request, res: Response) {
   const mappedSources = getMappedSourcesFromJsonInput(solcJsonInput);
   const checkedContract = createCheckedContract(solc, metadata, mappedSources);
 
-  const match = await req.services.verification.verifyDeployed(
+  const match = await services.verification.verifyDeployed(
     checkedContract,
     chain,
     address,
   );
 
-  await req.services.storage.storeMatch(checkedContract, match);
+  await services.storage.storeMatch(checkedContract, match);
 
   res.send({ result: [getResponseMatchFromMatch(match)] });
 }

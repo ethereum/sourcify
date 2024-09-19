@@ -21,16 +21,16 @@ import { asyncLocalStorage } from "../common/async-context";
 import logger from "../common/logger";
 import routes from "./routes";
 import genericErrorHandler from "../common/errors/GenericErrorHandler";
-import {
-  validateAddresses,
-  validateSingleAddress,
-} from "./common";
+import { validateAddresses, validateSingleAddress } from "./common";
 import { initDeprecatedRoutes } from "./deprecated.routes";
 import getSessionMiddleware from "./session";
 import { Services } from "./services/services";
 import { StorageServiceOptions } from "./services/StorageService";
 import { VerificationServiceOptions } from "./services/VerificationService";
-import { ISolidityCompiler, SourcifyChainMap } from "@ethereum-sourcify/lib-sourcify";
+import {
+  ISolidityCompiler,
+  SourcifyChainMap,
+} from "@ethereum-sourcify/lib-sourcify";
 import { ChainRepository } from "../sourcify-chain-repository";
 import session, { SessionOptions } from "express-session";
 
@@ -74,7 +74,11 @@ export class Server {
 
     logger.info("Starting server with config", {
       options: JSON.stringify(options, null, 2),
-      verificationServiceOptions: JSON.stringify(verificationServiceOptions, null, 2),
+      verificationServiceOptions: JSON.stringify(
+        verificationServiceOptions,
+        null,
+        2,
+      ),
       storageServiceOptions: JSON.stringify(storageServiceOptions, null, 2),
     });
 
@@ -84,20 +88,16 @@ export class Server {
 
     this.chainRepository = new ChainRepository(options.chains);
 
-    this.app.set('chainRepository', this.chainRepository);
-    this.app.set('solc', options.solc);
-    this.app.set('verifyDeprecated', options.verifyDeprecated);
-    this.app.set('sessionOptions', options.sessionOptions);
-    this.app.set('solcRepoPath', verificationServiceOptions.repoPath);
-
     this.services = new Services(
       verificationServiceOptions,
       storageServiceOptions,
     );
-    this.app.use((req, res, next) => {
-      req.services = this.services;
-      next();
-    });
+
+    this.app.set("chainRepository", this.chainRepository);
+    this.app.set("solc", options.solc);
+    this.app.set("verifyDeprecated", options.verifyDeprecated);
+    this.app.set("sessionOptions", options.sessionOptions);
+    this.app.set("services", this.services);
 
     this.app.use(
       bodyParser.urlencoded({
@@ -192,16 +192,19 @@ export class Server {
           },
           "comma-separated-sourcify-chainIds": {
             type: "string",
-            validate: (chainIds: string) => this.chainRepository.validateSourcifyChainIds(chainIds),
+            validate: (chainIds: string) =>
+              this.chainRepository.validateSourcifyChainIds(chainIds),
           },
           "supported-chainId": {
             type: "string",
-            validate: (chainId: string) => this.chainRepository.checkSupportedChainId(chainId),
+            validate: (chainId: string) =>
+              this.chainRepository.checkSupportedChainId(chainId),
           },
           // "Sourcify chainIds" include the chains that are revoked verification support, but can have contracts in the repo.
           "sourcify-chainId": {
             type: "string",
-            validate: (chainId: string) => this.chainRepository.checkSourcifyChainId(chainId),
+            validate: (chainId: string) =>
+              this.chainRepository.checkSourcifyChainId(chainId),
           },
           "match-type": {
             type: "string",

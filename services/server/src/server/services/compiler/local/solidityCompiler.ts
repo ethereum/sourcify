@@ -7,6 +7,7 @@ import semver from "semver";
 import { Worker, WorkerOptions } from "worker_threads";
 import {
   CompilerOutput,
+  ISolidityCompiler,
   JsonInput,
   PathBuffer,
 } from "@ethereum-sourcify/lib-sourcify";
@@ -94,7 +95,8 @@ export function findSolcPlatform(): string | false {
  */
 
 export async function useCompiler(
-  repoPath: string,
+  solcRepoPath: string,
+  solJsonRepoPath: string,
   version: string,
   solcJsonInput: JsonInput,
   forceEmscripten = false,
@@ -108,7 +110,7 @@ export async function useCompiler(
   const solcPlatform = findSolcPlatform();
   let solcPath;
   if (solcPlatform && !forceEmscripten) {
-    solcPath = await getSolcExecutable(repoPath, solcPlatform, version);
+    solcPath = await getSolcExecutable(solcRepoPath, solcPlatform, version);
   }
   let startCompilation: number;
   if (solcPath && !forceEmscripten) {
@@ -124,7 +126,7 @@ export async function useCompiler(
     }
   } else {
     logger.info("Compiling with solc-js", { version });
-    const solJson = await getSolcJs(version);
+    const solJson = await getSolcJs(solJsonRepoPath, version);
     startCompilation = Date.now();
     if (solJson) {
       const coercedVersion =
@@ -135,7 +137,7 @@ export async function useCompiler(
           const worker = importWorker(
             path.resolve(__dirname, "./compilerWorker.ts"),
             {
-              workerData: { version, inputStringified },
+              workerData: { solJsonRepoPath, version, inputStringified },
             },
           );
           worker.once("message", (result) => {
@@ -174,13 +176,14 @@ export async function useCompiler(
 }
 
 export async function getAllMetadataAndSourcesFromSolcJson(
-  repoPath: string,
-  solcJson: JsonInput,
+  solc: ISolidityCompiler,
+  solcJsonInput: JsonInput,
   compilerVersion: string,
 ): Promise<PathBuffer[]> {
-  if (solcJson.language !== "Solidity")
+  if (solcJsonInput.language !== "Solidity")
     throw new Error(
-      "Only Solidity is supported, the json has language: " + solcJson.language,
+      "Only Solidity is supported, the json has language: " +
+        solcJsonInput.language,
     );
 
   const outputSelection = {
@@ -188,13 +191,13 @@ export async function getAllMetadataAndSourcesFromSolcJson(
       "*": ["metadata"],
     },
   };
-  if (!solcJson.settings) {
-    solcJson.settings = {
+  if (!solcJsonInput.settings) {
+    solcJsonInput.settings = {
       outputSelection: outputSelection,
     };
   }
-  solcJson.settings.outputSelection = outputSelection;
-  const compiled = await useCompiler(repoPath, compilerVersion, solcJson);
+  solcJsonInput.settings.outputSelection = outputSelection;
+  const compiled = await solc.compile(compilerVersion, solcJsonInput);
   const metadataAndSources: PathBuffer[] = [];
   if (!compiled.contracts)
     throw new Error("No contracts found in the compiled json output");
@@ -208,7 +211,9 @@ export async function getAllMetadataAndSourcesFromSolcJson(
       });
       metadataAndSources.push({
         path: `${contractPath}`,
-        buffer: Buffer.from(solcJson.sources[contractPath].content as string),
+        buffer: Buffer.from(
+          solcJsonInput.sources[contractPath].content as string,
+        ),
       });
     }
   }
@@ -216,12 +221,12 @@ export async function getAllMetadataAndSourcesFromSolcJson(
 }
 
 export async function getSolcExecutable(
-  repoPath: string,
+  solcRepoPath: string,
   platform: string,
   version: string,
 ): Promise<string | null> {
   const fileName = `solc-${platform}-v${version}`;
-  const solcPath = path.join(repoPath, fileName);
+  const solcPath = path.join(solcRepoPath, fileName);
   if (fs.existsSync(solcPath) && validateSolcPath(solcPath)) {
     logger.debug("Found existing solc", { version, platform, solcPath });
     return solcPath;
@@ -323,7 +328,10 @@ async function fetchAndSaveSolc(
  *
  * @returns the requested solc instance
  */
-export async function getSolcJs(soljsonRepo: string, version = "latest"): Promise<any> {
+export async function getSolcJs(
+  solJsonRepoPath: string,
+  version: string,
+): Promise<any> {
   // /^\d+\.\d+\.\d+\+commit\.[a-f0-9]{8}$/
   version = version.trim();
   if (version !== "latest" && !version.startsWith("v")) {
@@ -331,19 +339,19 @@ export async function getSolcJs(soljsonRepo: string, version = "latest"): Promis
   }
 
   const fileName = `soljson-${version}.js`;
-  const soljsonPath = path.resolve(soljsonRepo, fileName);
+  const solJsonPath = path.resolve(solJsonRepoPath, fileName);
 
-  if (!fs.existsSync(soljsonPath)) {
+  if (!fs.existsSync(solJsonPath)) {
     logger.debug("Solc-js not found locally, downloading", {
       version,
-      soljsonPath,
+      solJsonPath,
     });
-    if (!(await fetchAndSaveSolc("bin", soljsonPath, version, fileName))) {
+    if (!(await fetchAndSaveSolc("bin", solJsonPath, version, fileName))) {
       return false;
     }
   }
 
-  const solcjsImports = await import(soljsonPath);
+  const solcjsImports = await import(solJsonPath);
   return solc.setupMethods(solcjsImports);
 }
 

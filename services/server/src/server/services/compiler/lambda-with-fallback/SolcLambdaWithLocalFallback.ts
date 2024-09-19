@@ -16,7 +16,8 @@ export class SolcLambdaWithLocalFallback implements ISolidityCompiler {
     awsAccessKeyId: string,
     awsSecretAccessKey: string,
     lambdaCompilerFunctionName: string = "compile",
-    repoPath: string,
+    solcRepoPath: string,
+    solJsonRepoPath: string,
   ) {
     this.solcLambda = new SolcLambda(
       awsRegion,
@@ -24,7 +25,7 @@ export class SolcLambdaWithLocalFallback implements ISolidityCompiler {
       awsSecretAccessKey,
       lambdaCompilerFunctionName,
     );
-    this.solcLocal = new SolcLocal(repoPath);
+    this.solcLocal = new SolcLocal(solcRepoPath, solJsonRepoPath);
   }
 
   public async compile(

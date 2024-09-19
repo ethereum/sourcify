@@ -16,12 +16,16 @@ import { BadRequestError, NotFoundError } from "../../../../../common/errors";
 import { StatusCodes } from "http-status-codes";
 import { getMatchStatus, getResponseMatchFromMatch } from "../../../../common";
 import logger from "../../../../../common/logger";
+import { Services } from "../../../../services/services";
 
 export async function legacyVerifyEndpoint(
   req: LegacyVerifyRequest,
   res: Response,
 ): Promise<any> {
-  const result = await req.services.storage.performServiceOperation(
+  const services = req.app.get("services") as Services;
+  const solc = req.app.get("solc") as ISolidityCompiler;
+
+  const result = await services.storage.performServiceOperation(
     "checkByChainAndAddress",
     [req.body.address, req.body.chain],
   );
@@ -35,8 +39,6 @@ export async function legacyVerifyEndpoint(
       "Couldn't extract files from the request. Please make sure you have added files";
     throw new NotFoundError(msg);
   }
-
-  const solc = req.app.get("solc") as ISolidityCompiler;
 
   let checkedContracts: CheckedContract[];
   try {
@@ -77,7 +79,7 @@ export async function legacyVerifyEndpoint(
     );
   }
 
-  const match = await req.services.verification.verifyDeployed(
+  const match = await services.verification.verifyDeployed(
     contract,
     req.body.chain,
     req.body.address,
@@ -91,7 +93,7 @@ export async function legacyVerifyEndpoint(
       address: req.body.address,
     });
     const contractWithAllSources = await useAllSources(contract, inputFiles);
-    const tempMatch = await req.services.verification.verifyDeployed(
+    const tempMatch = await services.verification.verifyDeployed(
       contractWithAllSources,
       req.body.chain,
       req.body.address,
@@ -101,7 +103,7 @@ export async function legacyVerifyEndpoint(
       tempMatch.runtimeMatch === "perfect" ||
       tempMatch.creationMatch === "perfect"
     ) {
-      await req.services.storage.storeMatch(contract, tempMatch);
+      await services.storage.storeMatch(contract, tempMatch);
       return res.send({ result: [getResponseMatchFromMatch(tempMatch)] });
     } else if (tempMatch.runtimeMatch === "extra-file-input-bug") {
       throw new BadRequestError(
@@ -110,7 +112,7 @@ export async function legacyVerifyEndpoint(
     }
   }
   if (match.runtimeMatch || match.creationMatch) {
-    await req.services.storage.storeMatch(contract, match);
+    await services.storage.storeMatch(contract, match);
   }
   return res.send({ result: [getResponseMatchFromMatch(match)] }); // array is an old expected behavior (e.g. by frontend)
 }
@@ -119,7 +121,8 @@ export async function verifyDeprecated(
   req: LegacyVerifyRequest,
   res: Response,
 ): Promise<any> {
-  const { services } = req;
+  const solc = req.app.get("solc") as ISolidityCompiler;
+  const services = req.app.get("services") as Services;
 
   const result = await services.storage.performServiceOperation(
     "checkByChainAndAddress",
@@ -136,8 +139,6 @@ export async function verifyDeprecated(
       "Couldn't extract files from the request. Please make sure you have added files";
     throw new NotFoundError(msg);
   }
-
-  const solc = req.app.get("solc") as ISolidityCompiler;
 
   let checkedContracts: CheckedContract[];
   try {

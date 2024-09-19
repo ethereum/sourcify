@@ -7,7 +7,10 @@ import {
   saveFilesToSession,
   verifyContractsInSession,
 } from "../../verification.common";
-import { ISolidityCompiler, PathContent } from "@ethereum-sourcify/lib-sourcify";
+import {
+  ISolidityCompiler,
+  PathContent,
+} from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError } from "../../../../../common/errors";
 import {
   getMetadataFromCompiler,
@@ -16,15 +19,17 @@ import {
 } from "../etherscan.common";
 import logger from "../../../../../common/logger";
 import { ChainRepository } from "../../../../../sourcify-chain-repository";
+import { Services } from "../../../../services/services";
 
 export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
+  const services = req.app.get("services") as Services;
   logger.info("sessionVerifyFromEtherscan", {
     chainId: req.body.chain,
     address: req.body.address,
   });
 
-  const chainRepository = req.app.get('chainRepository') as ChainRepository;
-  const solc = req.app.get('solc') as ISolidityCompiler;
+  const chainRepository = req.app.get("chainRepository") as ChainRepository;
+  const solc = req.app.get("solc") as ISolidityCompiler;
 
   chainRepository.checkSupportedChainId(req.body.chain);
 
@@ -87,8 +92,8 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
     solc,
     verifiable,
     session,
-    req.services.verification,
-    req.services.storage,
+    services.verification,
+    services.storage,
   );
   res.send(getSessionJSON(session));
 }
