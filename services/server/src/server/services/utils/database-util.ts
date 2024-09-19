@@ -91,7 +91,6 @@ export namespace Tables {
   export interface Sources {
     source_hash: BytesSha;
     source_hash_keccak: BytesKeccak;
-    language: string;
     content: string;
   }
 
