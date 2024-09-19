@@ -1,17 +1,15 @@
-import { SourcifyChain, SourcifyChainMap } from "@ethereum-sourcify/lib-sourcify";
+import {
+  SourcifyChain,
+  SourcifyChainMap,
+} from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError } from "./common/errors/BadRequestError";
 
-
-
 export class ChainRepository {
-
   readonly sourcifyChainsArray: SourcifyChain[];
   readonly supportedChainsArray: SourcifyChain[];
   readonly supportedChainMap: SourcifyChainMap;
-    
-  constructor(
-    readonly sourcifyChainMap: SourcifyChainMap,
-  ) {
+
+  constructor(readonly sourcifyChainMap: SourcifyChainMap) {
     this.sourcifyChainsArray = this._sourcifyChainsArray();
     this.supportedChainsArray = this._supportedChainsArray();
     this.supportedChainMap = this._supportedChainMap();
@@ -29,7 +27,8 @@ export class ChainRepository {
         return;
       }
       // Use long form name for Ethereum netorks e.g. "Ethereum Testnet Goerli" instead of "Goerli"
-      this.sourcifyChainMap[id].name = this.sourcifyChainMap[id].title || this.sourcifyChainMap[id].name;
+      this.sourcifyChainMap[id].name =
+        this.sourcifyChainMap[id].title || this.sourcifyChainMap[id].name;
       ethereumChains.push(this.sourcifyChainMap[id]);
     });
     // Others, sorted by chainId strings
@@ -55,25 +54,27 @@ export class ChainRepository {
   }
 
   _supportedChainsArray(): SourcifyChain[] {
-    return this._sourcifyChainsArray().filter(
-      (chain) => chain.supported,
-    );
+    return this._sourcifyChainsArray().filter((chain) => chain.supported);
   }
-
 
   /**
    * To check if a chain is supported for verification.
    * Note that there might be chains not supported for verification anymore but still exist as a SourcifyChain e.g. Ropsten.
    */
   checkSupportedChainId(chainId: string) {
-    if (!(chainId in this.sourcifyChainMap && this.sourcifyChainMap[chainId].supported)) {
+    if (
+      !(
+        chainId in this.sourcifyChainMap &&
+        this.sourcifyChainMap[chainId].supported
+      )
+    ) {
       throw new BadRequestError(
         `Chain ${chainId} not supported for verification!`,
       );
     }
     return true;
   }
-  
+
   /**
    * To check if a chain exists as a SourcifyChain.
    * Note that there might be chains not supported for verification anymore but still exist as a SourcifyChain e.g. Ropsten.
@@ -93,7 +94,7 @@ export class ChainRepository {
    * Note that this checks if a chain exists as a SourcifyChain.
    * This is different that checking for verification support i.e. supported: true or monitoring support i.e. monitored: true
    */
-  validateSourcifyChainIds (chainIds: string) {
+  validateSourcifyChainIds(chainIds: string) {
     const chainIdsArray = chainIds.split(",");
     const validChainIds: string[] = [];
     const invalidChainIds: string[] = [];
@@ -111,5 +112,5 @@ export class ChainRepository {
       throw new Error(`Invalid chainIds: ${invalidChainIds.join(", ")}`);
     }
     return true;
-  };
+  }
 }

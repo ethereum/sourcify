@@ -10,7 +10,7 @@ const router: Router = Router();
 router.route("/verify").post(safeHandler(legacyVerifyEndpoint));
 
 router.route("/verify-deprecated").post((req, res, next) => {
-  const verifyDeprecatedEnabled = req.app.get('verifyDeprecated') as boolean;
+  const verifyDeprecatedEnabled = req.app.get("verifyDeprecated") as boolean;
   if (verifyDeprecatedEnabled) {
     safeHandler(verifyDeprecated)(req, res, next);
   } else {

@@ -5,7 +5,8 @@ import { ChainRepository } from "../../../src/sourcify-chain-repository";
 
 describe("contract creation util", function () {
   it("should run getCreatorTx with chainId 40", async function () {
-    const sourcifyChainsArray = new ChainRepository(sourcifyChainsMap).sourcifyChainsArray;
+    const sourcifyChainsArray = new ChainRepository(sourcifyChainsMap)
+      .sourcifyChainsArray;
     const sourcifyChain = sourcifyChainsArray.find(
       (sourcifyChain) => sourcifyChain.chainId === 40,
     );
@@ -43,7 +44,8 @@ describe("contract creation util", function () {
   // });
 
   it("should run getCreatorTx with chainId 83", async function () {
-    const sourcifyChainsArray = new ChainRepository(sourcifyChainsMap).sourcifyChainsArray;
+    const sourcifyChainsArray = new ChainRepository(sourcifyChainsMap)
+      .sourcifyChainsArray;
     const sourcifyChain = sourcifyChainsArray.find(
       (sourcifyChain) => sourcifyChain.chainId === 83,
     );
@@ -62,7 +64,8 @@ describe("contract creation util", function () {
   });
 
   it("should run getCreatorTx with chainId 335", async function () {
-    const sourcifyChainsArray = new ChainRepository(sourcifyChainsMap).sourcifyChainsArray;
+    const sourcifyChainsArray = new ChainRepository(sourcifyChainsMap)
+      .sourcifyChainsArray;
     const sourcifyChain = sourcifyChainsArray.find(
       (sourcifyChain) => sourcifyChain.chainId === 335,
     );
@@ -81,7 +84,8 @@ describe("contract creation util", function () {
   });
 
   it("should run getCreatorTx with regex for new Blockscout", async function () {
-    const sourcifyChainsArray = new ChainRepository(sourcifyChainsMap).sourcifyChainsArray;
+    const sourcifyChainsArray = new ChainRepository(sourcifyChainsMap)
+      .sourcifyChainsArray;
     const sourcifyChain = sourcifyChainsArray.find(
       (sourcifyChain) => sourcifyChain.chainId === 100,
     );
@@ -100,7 +104,8 @@ describe("contract creation util", function () {
   });
 
   it("should run getCreatorTx with regex for old Blockscout", async function () {
-    const sourcifyChainsArray = new ChainRepository(sourcifyChainsMap).sourcifyChainsArray;
+    const sourcifyChainsArray = new ChainRepository(sourcifyChainsMap)
+      .sourcifyChainsArray;
     const sourcifyChain = sourcifyChainsArray.find(
       (sourcifyChain) => sourcifyChain.chainId === 57,
     );
@@ -124,7 +129,8 @@ describe("contract creation util", function () {
       return;
     }
 
-    const sourcifyChainsArray = new ChainRepository(sourcifyChainsMap).sourcifyChainsArray;
+    const sourcifyChainsArray = new ChainRepository(sourcifyChainsMap)
+      .sourcifyChainsArray;
     const sourcifyChain = sourcifyChainsArray.find(
       (sourcifyChain) => sourcifyChain.chainId === 1,
     );
@@ -143,7 +149,8 @@ describe("contract creation util", function () {
   });
 
   it("should run getCreatorTx with nexusApi for Nexus", async function () {
-    const sourcifyChainsArray = new ChainRepository(sourcifyChainsMap).sourcifyChainsArray;
+    const sourcifyChainsArray = new ChainRepository(sourcifyChainsMap)
+      .sourcifyChainsArray;
     const sourcifyChain = sourcifyChainsArray.find(
       (sourcifyChain) => sourcifyChain.chainId === 23294,
     );

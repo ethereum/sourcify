@@ -209,7 +209,10 @@ export function updateUnused(unused: string[], session: Session) {
   session.unusedSources = unused;
 }
 
-export const checkContractsInSession = async (solc: ISolidityCompiler,session: Session) => {
+export const checkContractsInSession = async (
+  solc: ISolidityCompiler,
+  session: Session,
+) => {
   const pathBuffers: PathBuffer[] = [];
   for (const id in session.inputFiles) {
     const pathContent = session.inputFiles[id];

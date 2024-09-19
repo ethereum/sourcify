@@ -48,7 +48,8 @@ export class VerificationService {
       const downLoadFunc =
         platform === "bin"
           ? (version: string) => getSolcJs(this.solJsonRepoPath, version)
-          : (version: string) =>
+          : // eslint-disable-next-line indent
+            (version: string) =>
               getSolcExecutable(this.solcRepoPath, platform, version);
 
       // get the list of compiler versions

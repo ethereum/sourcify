@@ -185,4 +185,4 @@ if (missingChains.length > 0) {
   }
 }
 
-export { sourcifyChainsMap }
+export { sourcifyChainsMap };

@@ -141,7 +141,7 @@ export class StorageService {
         const sourcifyDatabase = new SourcifyDatabaseService(
           this,
           options.sourcifyDatabaseServiceOptions,
-          options.repositoryV1ServiceOptions.repositoryServerUrl
+          options.repositoryV1ServiceOptions.repositoryServerUrl,
         );
         this.rwServices[sourcifyDatabase.IDENTIFIER] = sourcifyDatabase;
       } else {
