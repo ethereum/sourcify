@@ -10,7 +10,7 @@ import {
   TransformationValues,
   CompiledContractCborAuxdata,
 } from "@ethereum-sourcify/lib-sourcify";
-import { Pool, QueryResult } from "pg";
+import { Pool, PoolClient, QueryResult } from "pg";
 import { Abi } from "abitype";
 import {
   Bytes,
@@ -237,7 +237,7 @@ export async function getCompiledContractSources(
 }
 
 export async function insertCode(
-  pool: Pool,
+  pool: PoolClient,
   { bytecode_hash_keccak, bytecode }: Omit<Tables.Code, "bytecode_hash">,
 ): Promise<QueryResult<Pick<Tables.Code, "bytecode_hash">>> {
   let codeInsertResult = await pool.query(
@@ -259,7 +259,7 @@ export async function insertCode(
 }
 
 export async function insertContract(
-  pool: Pool,
+  pool: PoolClient,
   {
     creation_bytecode_hash,
     runtime_bytecode_hash,
@@ -285,7 +285,7 @@ export async function insertContract(
 }
 
 export async function insertContractDeployment(
-  pool: Pool,
+  pool: PoolClient,
   {
     chain_id,
     address,
@@ -336,7 +336,7 @@ export async function insertContractDeployment(
 }
 
 export async function insertCompiledContract(
-  pool: Pool,
+  pool: PoolClient,
   {
     compiler,
     version,
@@ -401,7 +401,7 @@ export async function insertCompiledContract(
 }
 
 export async function insertCompiledContractsSources(
-  pool: Pool,
+  pool: PoolClient,
   {
     sourcesInformation,
     compilation_id,
@@ -492,7 +492,7 @@ export async function insertCompiledContractsSources(
 }
 
 export async function insertVerifiedContract(
-  pool: Pool,
+  pool: PoolClient,
   {
     compilation_id,
     deployment_id,
@@ -806,7 +806,7 @@ export async function getSourcifyMatchAddressesByChainAndMatch(
 }
 
 export async function updateContractDeployment(
-  pool: Pool,
+  pool: PoolClient,
   {
     id,
     transaction_hash,

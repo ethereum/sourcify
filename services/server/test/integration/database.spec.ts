@@ -5,10 +5,15 @@ import { id as keccak256str, keccak256 } from "ethers";
 import { LocalChainFixture } from "../helpers/LocalChainFixture";
 import { ServerFixture } from "../helpers/ServerFixture";
 import type { MetadataSourceMap } from "@ethereum-sourcify/lib-sourcify";
-import { bytesFromString } from "../../src/server/services/utils/database-util";
+import * as databaseUtil from "../../src/server/services/utils/database-util";
 import crypto from "crypto";
 import { Bytes } from "../../src/server/types";
+import sinon from "sinon";
+import { assertVerification } from "../helpers/assertions";
+import path from "path";
+import fs from "fs";
 
+const bytesFromString = databaseUtil.bytesFromString;
 chai.use(chaiHttp);
 
 function toHexString(byteArray: number[]) {
@@ -364,4 +369,145 @@ describe("Verifier Alliance database", function () {
   // Tests to be implemented:
   // - genesis: right now not supported,
   // - partial_match_2: I don't know why we have this test
+});
+
+describe("Sourcify database", function () {
+  const chainFixture = new LocalChainFixture();
+  const serverFixture = new ServerFixture();
+
+  it("When inserting a new match, nothing should be stored if an error occurs in the middle of the sql transaction", async () => {
+    const sandbox = sinon.createSandbox();
+
+    // Sinon will throw an error if the function is called
+    sandbox
+      .stub(databaseUtil, "insertVerifiedContract")
+      .throws(new Error("Simulated database error"));
+
+    try {
+      const res = await chai
+        .request(serverFixture.server.app)
+        .post("/")
+        .field("address", chainFixture.defaultContractAddress)
+        .field("chain", chainFixture.chainId)
+        .attach("files", chainFixture.defaultContractMetadata, "metadata.json")
+        .attach("files", chainFixture.defaultContractSource, "Storage.sol");
+
+      // Request should fail
+      chai.expect(res).to.have.status(500);
+
+      // query the database to check that nothing was stored, in any of the tables
+      const verifiedContracts = await serverFixture.sourcifyDatabase.query(
+        "SELECT * FROM verified_contracts",
+      );
+      chai.expect(verifiedContracts.rows).to.have.length(0);
+      const contractDeployments = await serverFixture.sourcifyDatabase.query(
+        "SELECT * FROM contract_deployments",
+      );
+      chai.expect(contractDeployments.rows).to.have.length(0);
+      const compiledContracts = await serverFixture.sourcifyDatabase.query(
+        "SELECT * FROM compiled_contracts",
+      );
+      chai.expect(compiledContracts.rows).to.have.length(0);
+      const sources = await serverFixture.sourcifyDatabase.query(
+        "SELECT * FROM sources",
+      );
+      chai.expect(sources.rows).to.have.length(0);
+      const code =
+        await serverFixture.sourcifyDatabase.query("SELECT * FROM code");
+      chai.expect(code.rows).to.have.length(0);
+      const sourcifyMatches = await serverFixture.sourcifyDatabase.query(
+        "SELECT * FROM sourcify_matches",
+      );
+      chai.expect(sourcifyMatches.rows).to.have.length(0);
+    } finally {
+      // Ensure we restore the original function after the test
+      sandbox.restore();
+    }
+  });
+
+  it("When updating an existing match, nothing should be updated if an error occurs in the middle of the sql transaction", async () => {
+    const partialMetadata = (
+      await import("../testcontracts/Storage/metadataModified.json")
+    ).default;
+    const partialMetadataBuffer = Buffer.from(JSON.stringify(partialMetadata));
+
+    const partialSourcePath = path.join(
+      __dirname,
+      "..",
+      "testcontracts",
+      "Storage",
+      "StorageModified.sol",
+    );
+    const partialSourceBuffer = fs.readFileSync(partialSourcePath);
+
+    let res = await chai
+      .request(serverFixture.server.app)
+      .post("/")
+      .field("address", chainFixture.defaultContractAddress)
+      .field("chain", chainFixture.chainId)
+      .attach("files", partialMetadataBuffer, "metadata.json")
+      .attach("files", partialSourceBuffer);
+    await assertVerification(
+      serverFixture.sourcifyDatabase,
+      null,
+      res,
+      null,
+      chainFixture.defaultContractAddress,
+      chainFixture.chainId,
+      "partial",
+    );
+
+    const beforeTables = [
+      "verified_contracts",
+      "contract_deployments",
+      "contracts",
+      "compiled_contracts",
+      "sources",
+      "code",
+      "sourcify_matches",
+    ];
+    const beforeData: Record<string, any[]> = {};
+
+    for (const table of beforeTables) {
+      const result = await serverFixture.sourcifyDatabase.query(
+        `SELECT * FROM ${table}`,
+      );
+      beforeData[table] = result.rows;
+    }
+
+    const sandbox = sinon.createSandbox();
+
+    // Sinon will throw an error if the function is called
+    sandbox
+      .stub(databaseUtil, "insertVerifiedContract")
+      .throws(new Error("Simulated database error"));
+
+    try {
+      res = await chai
+        .request(serverFixture.server.app)
+        .post("/")
+        .field("address", chainFixture.defaultContractAddress)
+        .field("chain", chainFixture.chainId)
+        .field("creatorTxHash", chainFixture.defaultContractCreatorTx)
+        .attach("files", chainFixture.defaultContractMetadata, "metadata.json")
+        .attach("files", chainFixture.defaultContractSource);
+
+      // Request should fail
+      chai.expect(res).to.have.status(500);
+
+      const afterData: Record<string, any[]> = {};
+
+      for (const table of beforeTables) {
+        const result = await serverFixture.sourcifyDatabase.query(
+          `SELECT * FROM ${table}`,
+        );
+        afterData[table] = result.rows;
+      }
+
+      chai.expect(afterData).to.deep.equal(beforeData);
+    } finally {
+      // Ensure we restore the original function after the test
+      sandbox.restore();
+    }
+  });
 });
