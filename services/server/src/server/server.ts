@@ -81,7 +81,14 @@ export class Server {
       "sessionOptions",
     ];
     logger.info("Starting server with config", {
-      options: JSON.stringify(options, printable, 2),
+      serverOptions: JSON.stringify(
+        {
+          ...options,
+          chains: undefined, // don't print the whole sourcify-chains object
+        },
+        null,
+        2,
+      ),
       verificationServiceOptions: JSON.stringify(
         verificationServiceOptions,
         null,
