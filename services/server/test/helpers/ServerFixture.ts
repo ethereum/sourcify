@@ -10,14 +10,9 @@ import {
 } from "../../src/server/services/storageServices/identifiers";
 import { Pool } from "pg";
 import { SourcifyDatabaseService } from "../../src/server/services/storageServices/SourcifyDatabaseService";
-import path from "path";
-import { ISolidityCompiler } from "@ethereum-sourcify/lib-sourcify";
-import logger from "../../src/common/logger";
-import { SolcLambdaWithLocalFallback } from "../../src/server/services/compiler/lambda-with-fallback/SolcLambdaWithLocalFallback";
-import { SolcLocal } from "../../src/server/services/compiler/local/SolcLocal";
-import session from "express-session";
 import genFunc from "connect-pg-simple";
-import createMemoryStore from "memorystore";
+import expressSession from "express-session";
+import { SolcLocal } from "../../src/server/services/compiler/local/SolcLocal";
 
 export type ServerFixtureOptions = {
   port: number;
@@ -29,6 +24,8 @@ export type ServerFixtureOptions = {
 
 export class ServerFixture {
   identifier: StorageIdentifiers | undefined;
+  readonly maxFileSize: number;
+  readonly repositoryV1Path: string;
 
   private _server?: Server;
 
@@ -58,22 +55,8 @@ export class ServerFixture {
    */
   constructor(fixtureOptions_?: Partial<ServerFixtureOptions>) {
     let httpServer: http.Server;
-
-    const serverOptions: ServerOptions = {
-      port: fixtureOptions_?.port || config.get<number>("server.port"),
-      maxFileSize: config.get<number>("server.maxFileSize"),
-      rateLimit: config.get<{
-        enabled: boolean;
-        windowMs?: number;
-        max?: number;
-        whitelist?: string[];
-      }>("rateLimit"),
-      corsAllowedOrigins: config.get<string[]>("corsAllowedOrigins"),
-      chains: sourcifyChainsMap,
-      solc: new SolcLocal(config.get("solcRepo"), config.get("solJsonRepo")),
-      verifyDeprecated: config.get("verifyDeprecated"),
-      sessionOptions: config.get("session"),
-    };
+    this.maxFileSize = config.get<number>("server.maxFileSize");
+    this.repositoryV1Path = config.get<string>("repositoryV1.path");
 
     before(async () => {
       process.env.SOURCIFY_POSTGRES_PORT =
@@ -88,40 +71,44 @@ export class ServerFixture {
       ) {
         throw new Error("Not all required environment variables set");
       }
+      const PostgresqlStore = genFunc(expressSession);
+      const postgresSessionStore = new PostgresqlStore({
+        pool: new Pool({
+          host: process.env.SOURCIFY_POSTGRES_HOST,
+          database: process.env.SOURCIFY_POSTGRES_DB,
+          user: process.env.SOURCIFY_POSTGRES_USER,
+          password: process.env.SOURCIFY_POSTGRES_PASSWORD,
+          port: parseInt(process.env.SOURCIFY_POSTGRES_PORT),
+        }),
+      });
 
-      // Set up the solidity compiler
-      const solcRepoPath =
-        (config.get("solcRepo") as string) || path.join("/tmp", "solc-repo");
-      const solJsonRepoPath =
-        (config.get("solJsonRepo") as string) ||
-        path.join("/tmp", "soljson-repo");
-
-      let selectedSolidityCompiler: ISolidityCompiler;
-      if (config.get("lambdaCompiler.enabled")) {
-        logger.info("Using lambda solidity compiler with local fallback");
-        if (
-          process.env.AWS_REGION === undefined ||
-          process.env.AWS_ACCESS_KEY_ID === undefined ||
-          process.env.AWS_SECRET_ACCESS_KEY === undefined
-        ) {
-          throw new Error(
-            "AWS credentials not set. Please set them to run the compiler on AWS Lambda.",
-          );
-        }
-        selectedSolidityCompiler = new SolcLambdaWithLocalFallback(
-          process.env.AWS_REGION as string,
-          process.env.AWS_ACCESS_KEY_ID as string,
-          process.env.AWS_SECRET_ACCESS_KEY as string,
-          config.get("lambdaCompiler.functionName"),
-          solcRepoPath,
-          solJsonRepoPath,
-        );
-      } else {
-        logger.info("Using local solidity compiler");
-        selectedSolidityCompiler = new SolcLocal(solcRepoPath, solJsonRepoPath);
-      }
-
-      const solc = selectedSolidityCompiler;
+      const serverOptions: ServerOptions = {
+        port: fixtureOptions_?.port || config.get<number>("server.port"),
+        maxFileSize: config.get<number>("server.maxFileSize"),
+        rateLimit: config.get<{
+          enabled: boolean;
+          windowMs?: number;
+          max?: number;
+          whitelist?: string[];
+        }>("rateLimit"),
+        corsAllowedOrigins: config.get<string[]>("corsAllowedOrigins"),
+        chains: sourcifyChainsMap,
+        solc: new SolcLocal(config.get("solcRepo"), config.get("solJsonRepo")),
+        verifyDeprecated: config.get("verifyDeprecated"),
+        sessionOptions: {
+          secret: config.get("session.secret"),
+          name: "sourcify_vid",
+          rolling: true,
+          resave: false,
+          saveUninitialized: true,
+          cookie: {
+            maxAge: config.get("session.maxAge"),
+            secure: config.get("session.secure"),
+            sameSite: "lax",
+          },
+          store: postgresSessionStore,
+        },
+      };
 
       this._server = new Server(
         serverOptions,
@@ -182,98 +169,4 @@ export class ServerFixture {
       rimraf.sync(config.get("repositoryV2.path"));
     });
   }
-}
-
-function initMemoryStore() {
-  const MemoryStore = createMemoryStore(session);
-
-  logger.warn(
-    "Using memory based session. Don't use memory session in production!",
-  );
-  return new MemoryStore({
-    checkPeriod: config.get("session.maxAge"),
-  });
-}
-
-function initDatabaseStore() {
-  const pool = new Pool({
-    host: process.env.SOURCIFY_POSTGRES_HOST,
-    database: process.env.SOURCIFY_POSTGRES_DB,
-    user: process.env.SOURCIFY_POSTGRES_USER,
-    password: process.env.SOURCIFY_POSTGRES_PASSWORD,
-    port: parseInt(process.env.SOURCIFY_POSTGRES_PORT || "5432"),
-  });
-
-  // This listener is necessary otherwise the sourcify process crashes if the database is closed
-  pool.prependListener("error", (e) => {
-    logger.error("Database connection lost for session pool", {
-      error: e,
-    });
-    throw new Error("Database connection lost for session pool");
-  });
-
-  const PostgresqlStore = genFunc(session);
-
-  logger.info("Using database based session");
-  return new PostgresqlStore({
-    pool: pool,
-    // Pruning expired sessions every 12 hours
-    pruneSessionInterval: 12 * 60 * 60,
-  });
-}
-
-function getSessionStore() {
-  const sessionStoreType = config.get("session.storeType");
-
-  switch (sessionStoreType) {
-    case "database": {
-      if (
-        process.env.SOURCIFY_POSTGRES_HOST &&
-        process.env.SOURCIFY_POSTGRES_DB &&
-        process.env.SOURCIFY_POSTGRES_USER &&
-        process.env.SOURCIFY_POSTGRES_PASSWORD
-      ) {
-        return initDatabaseStore();
-      } else {
-        logger.error(
-          "Database session enabled in config but the environment variables are not specified",
-        );
-        throw new Error(
-          "Database session enabled in config but the environment variables are not specified",
-        );
-      }
-    }
-
-    case "memory": {
-      return initMemoryStore();
-    }
-    default:
-      // Throw an error if an unrecognized session storage type is selected
-      throw new Error(
-        `Selected session storage type '${sessionStoreType}' doesn't exist.`,
-      );
-  }
-}
-
-function getSessionOptions(): session.SessionOptions {
-  if (config.get("session.secret") === "CHANGE_ME") {
-    const msg =
-      "The session secret is not set, please set it in the config file";
-    process.env.NODE_ENV === "production"
-      ? logger.error(msg)
-      : logger.warn(msg);
-  }
-  return {
-    secret: config.get("session.secret"),
-    name: "sourcify_vid",
-    rolling: true,
-    resave: false,
-    saveUninitialized: true,
-    cookie: {
-      maxAge: config.get("session.maxAge"),
-      secure: config.get("session.secure"),
-      sameSite: "lax",
-    },
-    store: getSessionStore(),
-  };
 }

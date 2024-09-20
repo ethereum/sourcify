@@ -1,3 +1,6 @@
+// !!! SHOULD NOT BE IMPORTED IN ANY OTHER MODULES on top of the files
+// Module to be run when running the server from the CLI
+
 import path from "path";
 // First env vars need to be loaded before config
 import dotenv from "dotenv";
@@ -67,13 +70,30 @@ if (config.get("lambdaCompiler.enabled")) {
 
 export const solc = selectedSolidityCompiler;
 
+// To print regexes in the config object logs below
+Object.defineProperty(RegExp.prototype, "toJSON", {
+  value: RegExp.prototype.toString,
+});
 // Start Server
-
+logger.info("Starting server with config", {
+  config: JSON.stringify(config.util.toObject(), null, 2),
+});
 const server = new Server(
   {
     port: config.get("server.port"),
     maxFileSize: config.get("server.maxFileSize"),
-    rateLimit: config.get("rateLimit"),
+    rateLimit: {
+      enabled: config.get("rateLimit.enabled"),
+      windowMs: config.get("rateLimit.enabled")
+        ? config.get("rateLimit.windowMs")
+        : undefined,
+      max: config.get("rateLimit.enabled")
+        ? config.get("rateLimit.max")
+        : undefined,
+      whitelist: config.get("rateLimit.enabled")
+        ? config.get("rateLimit.whitelist")
+        : undefined,
+    },
     corsAllowedOrigins: config.get("corsAllowedOrigins"),
     solc,
     chains: chainRepository.sourcifyChainMap,
@@ -216,7 +236,7 @@ function getSessionStore() {
   }
 }
 
-function getSessionOptions(): session.SessionOptions {
+export function getSessionOptions(): session.SessionOptions {
   if (config.get("session.secret") === "CHANGE_ME") {
     const msg =
       "The session secret is not set, please set it in the config file";

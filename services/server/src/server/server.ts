@@ -67,36 +67,6 @@ export class Server {
     verificationServiceOptions: VerificationServiceOptions,
     storageServiceOptions: StorageServiceOptions,
   ) {
-    // To print regexes in the logs
-    Object.defineProperty(RegExp.prototype, "toJSON", {
-      value: RegExp.prototype.toString,
-    });
-
-    const printable = [
-      "port",
-      "maxFileSize",
-      "rateLimit",
-      "corsAllowedOrigins",
-      "verifyDeprecated",
-      "sessionOptions",
-    ];
-    logger.info("Starting server with config", {
-      serverOptions: JSON.stringify(
-        {
-          ...options,
-          chains: undefined, // don't print the whole sourcify-chains object
-        },
-        null,
-        2,
-      ),
-      verificationServiceOptions: JSON.stringify(
-        verificationServiceOptions,
-        null,
-        2,
-      ),
-      storageServiceOptions: JSON.stringify(storageServiceOptions, null, 2),
-    });
-
     this.port = options.port;
     logger.info("Server port set", { port: this.port });
     this.app = express();

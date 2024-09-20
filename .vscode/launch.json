@@ -8,7 +8,7 @@
       "type": "node",
       "request": "launch",
       "name": "Server - without build",
-      "program": "${workspaceFolder}/services/server/dist/server/server.js",
+      "program": "${workspaceFolder}/services/server/dist/server/cli.js",
       "envFile": "${workspaceFolder}/services/server/.env",
       "outFiles": [
         "${workspaceFolder}/services/server/dist/**/*.js",

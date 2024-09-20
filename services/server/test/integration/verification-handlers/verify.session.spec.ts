@@ -372,7 +372,7 @@ describe("/session", function () {
 
         const isExist = fs.existsSync(
           path.join(
-            serverFixture.server.repository,
+            serverFixture.repositoryV1Path,
             "contracts",
             "full_match",
             chainFixture.chainId,
@@ -390,7 +390,7 @@ describe("/session", function () {
             assertSingleContractStatus(res, "perfect");
             const isExist = fs.existsSync(
               path.join(
-                serverFixture.server.repository,
+                serverFixture.repositoryV1Path,
                 "contracts",
                 "full_match",
                 chainFixture.chainId,
@@ -622,7 +622,7 @@ describe("/session", function () {
     assertSingleContractStatus(res2, "perfect");
     const isExist = fs.existsSync(
       path.join(
-        serverFixture.server.repository,
+        serverFixture.repositoryV1Path,
         "contracts",
         "full_match",
         chainFixture.chainId,

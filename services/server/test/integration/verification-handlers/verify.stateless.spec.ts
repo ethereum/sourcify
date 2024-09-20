@@ -413,7 +413,7 @@ describe("/", function () {
     );
     const isExist = fs.existsSync(
       path.join(
-        serverFixture.server.repository,
+        serverFixture.repositoryV1Path,
         "contracts",
         "full_match",
         chainFixture.chainId,
@@ -691,7 +691,7 @@ describe("/", function () {
       );
       const isExist = fs.existsSync(
         path.join(
-          serverFixture.server.repository,
+          serverFixture.repositoryV1Path,
           "contracts",
           "partial_match",
           chainFixture.chainId,
