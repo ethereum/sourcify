@@ -96,7 +96,6 @@ export class Server {
     this.app.set("chainRepository", this.chainRepository);
     this.app.set("solc", options.solc);
     this.app.set("verifyDeprecated", options.verifyDeprecated);
-    this.app.set("sessionOptions", options.sessionOptions);
     this.app.set("services", this.services);
 
     this.app.use(
