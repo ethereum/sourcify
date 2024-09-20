@@ -40,19 +40,18 @@ const solcRepoPath =
 const solJsonRepoPath =
   (config.get("solJsonRepo") as string) || path.join("/tmp", "soljson-repo");
 
-if (
-  process.env.AWS_REGION === undefined ||
-  process.env.AWS_ACCESS_KEY_ID === undefined ||
-  process.env.AWS_SECRET_ACCESS_KEY === undefined
-) {
-  throw new Error(
-    "AWS credentials not set. Please set them to run the compiler on AWS Lambda.",
-  );
-}
-
 let selectedSolidityCompiler: ISolidityCompiler;
 if (config.get("lambdaCompiler.enabled")) {
   logger.info("Using lambda solidity compiler with local fallback");
+  if (
+    process.env.AWS_REGION === undefined ||
+    process.env.AWS_ACCESS_KEY_ID === undefined ||
+    process.env.AWS_SECRET_ACCESS_KEY === undefined
+  ) {
+    throw new Error(
+      "AWS credentials not set. Please set them to run the compiler on AWS Lambda.",
+    );
+  }
   selectedSolidityCompiler = new SolcLambdaWithLocalFallback(
     process.env.AWS_REGION as string,
     process.env.AWS_ACCESS_KEY_ID as string,
