@@ -71,8 +71,8 @@ export const solc = selectedSolidityCompiler;
 
 const server = new Server(
   {
-    port: config.get("port"),
-    maxFileSize: config.get("maxFileSize"),
+    port: config.get("server.port"),
+    maxFileSize: config.get("server.maxFileSize"),
     rateLimit: config.get("rateLimit"),
     corsAllowedOrigins: config.get("corsAllowedOrigins"),
     solc,
