@@ -40,7 +40,7 @@ export async function verifyFromEtherscan(req: Request, res: Response) {
 
   const match = await services.verification.verifyDeployed(
     checkedContract,
-    chain,
+    sourcifyChain,
     address,
   );
 

@@ -3,6 +3,7 @@ import {
   CheckedContract,
   SourcifyChainMap,
   Match,
+  SourcifyChain,
 } from "@ethereum-sourcify/lib-sourcify";
 import { getCreatorTx } from "./utils/contract-creation-util";
 import { ContractIsAlreadyBeingVerifiedError } from "../../common/errors/ContractIsAlreadyBeingVerifiedError";
@@ -15,14 +16,12 @@ import {
 
 export interface VerificationServiceOptions {
   initCompilers?: boolean;
-  supportedChainsMap: SourcifyChainMap;
   solcRepoPath: string;
   solJsonRepoPath: string;
 }
 
 export class VerificationService {
   initCompilers: boolean;
-  supportedChainsMap: SourcifyChainMap;
   solcRepoPath: string;
   solJsonRepoPath: string;
   activeVerificationsByChainIdAddress: {
@@ -30,7 +29,6 @@ export class VerificationService {
   } = {};
 
   constructor(options: VerificationServiceOptions) {
-    this.supportedChainsMap = options.supportedChainsMap;
     this.initCompilers = options.initCompilers || false;
     this.solcRepoPath = options.solcRepoPath;
     this.solJsonRepoPath = options.solJsonRepoPath;
@@ -106,10 +104,11 @@ export class VerificationService {
 
   public async verifyDeployed(
     checkedContract: CheckedContract,
-    chainId: string,
+    sourcifyChain: SourcifyChain,
     address: string,
     creatorTxHash?: string,
   ): Promise<Match> {
+    const chainId = sourcifyChain.chainId.toString();
     logger.debug("VerificationService.verifyDeployed", {
       chainId,
       address,
@@ -117,7 +116,6 @@ export class VerificationService {
     this.throwIfContractIsAlreadyBeingVerified(chainId, address);
     this.activeVerificationsByChainIdAddress[`${chainId}:${address}`] = true;
 
-    const sourcifyChain = this.supportedChainsMap[chainId];
     const foundCreatorTxHash =
       creatorTxHash ||
       (await getCreatorTx(sourcifyChain, address)) ||

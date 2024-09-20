@@ -23,13 +23,13 @@ import { Services } from "../../../../services/services";
 
 export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
   const services = req.app.get("services") as Services;
+  const chainRepository = req.app.get("chainRepository") as ChainRepository;
+  const solc = req.app.get("solc") as ISolidityCompiler;
+
   logger.info("sessionVerifyFromEtherscan", {
     chainId: req.body.chain,
     address: req.body.address,
   });
-
-  const chainRepository = req.app.get("chainRepository") as ChainRepository;
-  const solc = req.app.get("solc") as ISolidityCompiler;
 
   chainRepository.checkSupportedChainId(req.body.chain);
 
@@ -94,6 +94,7 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
     session,
     services.verification,
     services.storage,
+    chainRepository,
   );
   res.send(getSessionJSON(session));
 }

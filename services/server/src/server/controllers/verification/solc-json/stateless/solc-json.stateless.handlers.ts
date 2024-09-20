@@ -9,10 +9,12 @@ import { BadRequestError } from "../../../../../common/errors";
 import { getResponseMatchFromMatch } from "../../../../common";
 import { getAllMetadataAndSourcesFromSolcJson } from "../../../../services/compiler/local/solidityCompiler";
 import { Services } from "../../../../services/services";
+import { ChainRepository } from "../../../../../sourcify-chain-repository";
 
 export async function verifySolcJsonEndpoint(req: Request, res: Response) {
   const services = req.app.get("services") as Services;
   const solc = req.app.get("solc") as ISolidityCompiler;
+  const chainRepository = req.app.get("chainRepository") as ChainRepository;
 
   const inputFiles = extractFiles(req, true);
   if (!inputFiles) throw new BadRequestError("No files found");
@@ -52,7 +54,7 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
 
   const match = await services.verification.verifyDeployed(
     contractToVerify,
-    chain,
+    chainRepository.sourcifyChainMap[chain],
     address,
     req.body.creatorTxHash,
   );
@@ -64,7 +66,7 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
     );
     const tempMatch = await services.verification.verifyDeployed(
       contractWithAllSources,
-      chain,
+      chainRepository.sourcifyChainMap[chain],
       address, // Due to the old API taking an array of addresses.
       req.body.creatorTxHash,
     );

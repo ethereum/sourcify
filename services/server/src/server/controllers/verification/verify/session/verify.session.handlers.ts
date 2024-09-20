@@ -10,6 +10,7 @@ import { isEmpty, ISolidityCompiler } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError } from "../../../../../common/errors";
 import logger from "../../../../../common/logger";
 import { Services } from "../../../../services/services";
+import { ChainRepository } from "../../../../../sourcify-chain-repository";
 
 export async function verifyContractsInSessionEndpoint(
   req: Request,
@@ -17,6 +18,7 @@ export async function verifyContractsInSessionEndpoint(
 ) {
   const services = req.app.get("services") as Services;
   const solc = req.app.get("solc") as ISolidityCompiler;
+  const chainRepository = req.app.get("chainRepository") as ChainRepository;
 
   const session = req.session;
   if (!session.contractWrappers || isEmpty(session.contractWrappers)) {
@@ -59,6 +61,7 @@ export async function verifyContractsInSessionEndpoint(
     session,
     services.verification,
     services.storage,
+    chainRepository,
     dryRun,
   );
   res.send(getSessionJSON(session));

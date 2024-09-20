@@ -21,6 +21,7 @@ import { ISolidityCompiler } from "@ethereum-sourcify/lib-sourcify";
 import { StorageService } from "../../services/StorageService";
 import logger from "../../../common/logger";
 import { createHash } from "crypto";
+import { ChainRepository } from "../../../sourcify-chain-repository";
 
 export function createCheckedContract(
   solc: ISolidityCompiler,
@@ -332,6 +333,7 @@ export const verifyContractsInSession = async (
   session: Session,
   verificationService: VerificationService,
   storageService: StorageService,
+  chainRepository: ChainRepository,
   dryRun: boolean = false,
 ): Promise<void> => {
   logger.debug("verifyContractsInSession", {
@@ -390,7 +392,7 @@ export const verifyContractsInSession = async (
     try {
       match = await verificationService.verifyDeployed(
         checkedContract,
-        chainId as string,
+        chainRepository.sourcifyChainMap[chainId as string],
         address as string,
         creatorTxHash,
       );
@@ -422,7 +424,7 @@ export const verifyContractsInSession = async (
         );
         const tempMatch = await verificationService.verifyDeployed(
           contractWithAllSources,
-          chainId as string,
+          chainRepository.sourcifyChainMap[chainId as string],
           address as string,
         );
         if (

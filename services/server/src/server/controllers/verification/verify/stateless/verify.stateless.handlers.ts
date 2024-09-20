@@ -17,6 +17,7 @@ import { StatusCodes } from "http-status-codes";
 import { getMatchStatus, getResponseMatchFromMatch } from "../../../../common";
 import logger from "../../../../../common/logger";
 import { Services } from "../../../../services/services";
+import { ChainRepository } from "../../../../../sourcify-chain-repository";
 
 export async function legacyVerifyEndpoint(
   req: LegacyVerifyRequest,
@@ -24,6 +25,7 @@ export async function legacyVerifyEndpoint(
 ): Promise<any> {
   const services = req.app.get("services") as Services;
   const solc = req.app.get("solc") as ISolidityCompiler;
+  const chainRepository = req.app.get("chainRepository") as ChainRepository;
 
   const result = await services.storage.performServiceOperation(
     "checkByChainAndAddress",
@@ -81,7 +83,7 @@ export async function legacyVerifyEndpoint(
 
   const match = await services.verification.verifyDeployed(
     contract,
-    req.body.chain,
+    chainRepository.sourcifyChainMap[req.body.chain],
     req.body.address,
     req.body.creatorTxHash,
   );
@@ -95,7 +97,7 @@ export async function legacyVerifyEndpoint(
     const contractWithAllSources = await useAllSources(contract, inputFiles);
     const tempMatch = await services.verification.verifyDeployed(
       contractWithAllSources,
-      req.body.chain,
+      chainRepository.sourcifyChainMap[req.body.chain],
       req.body.address,
       req.body.creatorTxHash,
     );

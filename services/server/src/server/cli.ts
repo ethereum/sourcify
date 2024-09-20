@@ -82,7 +82,6 @@ const server = new Server(
   },
   {
     initCompilers: config.get("initCompilers") || false,
-    supportedChainsMap: chainRepository.supportedChainMap,
     solcRepoPath,
     solJsonRepoPath,
   },

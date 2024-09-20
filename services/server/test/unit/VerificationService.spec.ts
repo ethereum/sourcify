@@ -63,7 +63,6 @@ describe("VerificationService", function () {
 
     const verificationService = new VerificationService({
       initCompilers: true,
-      supportedChainsMap: {},
       solcRepoPath: config.get("solcRepo"),
       solJsonRepoPath: config.get("solJsonRepo"),
     });

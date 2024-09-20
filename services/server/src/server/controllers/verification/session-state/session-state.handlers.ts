@@ -21,6 +21,7 @@ import { StatusCodes } from "http-status-codes";
 import { decode as bytecodeDecode } from "@ethereum-sourcify/bytecode-utils";
 import logger from "../../../../common/logger";
 import { Services } from "../../../services/services";
+import { ChainRepository } from "../../../../sourcify-chain-repository";
 
 export async function getSessionDataEndpoint(req: Request, res: Response) {
   res.send(getSessionJSON(req.session));
@@ -30,6 +31,7 @@ export async function addInputFilesEndpoint(req: Request, res: Response) {
   logger.debug("addInputFilesEndpoint");
   const services = req.app.get("services") as Services;
   const solc = req.app.get("solc") as ISolidityCompiler;
+  const chainRepository = req.app.get("chainRepository") as ChainRepository;
 
   let inputFiles: PathBuffer[] | undefined;
   if (req.query.url) {
@@ -53,6 +55,7 @@ export async function addInputFilesEndpoint(req: Request, res: Response) {
       session,
       services.verification,
       services.storage,
+      chainRepository,
       dryRun,
     );
   }
@@ -82,8 +85,9 @@ export async function addInputContractEndpoint(req: Request, res: Response) {
   const chainId: string = req.body.chainId;
   const solc = req.app.get("solc") as ISolidityCompiler;
   const services = req.app.get("services") as Services;
+  const chainRepository = req.app.get("chainRepository") as ChainRepository;
 
-  const sourcifyChain = services.verification.supportedChainsMap[chainId];
+  const sourcifyChain = chainRepository.sourcifyChainMap[chainId];
 
   const bytecode = await sourcifyChain.getBytecode(address);
 
@@ -130,6 +134,7 @@ export async function addInputContractEndpoint(req: Request, res: Response) {
       session,
       services.verification,
       services.storage,
+      chainRepository,
     );
   }
   res.send(getSessionJSON(session));
