@@ -72,8 +72,16 @@ export class Server {
       value: RegExp.prototype.toString,
     });
 
+    const printable = [
+      "port",
+      "maxFileSize",
+      "rateLimit",
+      "corsAllowedOrigins",
+      "verifyDeprecated",
+      "sessionOptions",
+    ];
     logger.info("Starting server with config", {
-      options: JSON.stringify(options, null, 2),
+      options: JSON.stringify(options, printable, 2),
       verificationServiceOptions: JSON.stringify(
         verificationServiceOptions,
         null,
