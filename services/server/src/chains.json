@@ -3,7 +3,7 @@
     "name": "Ethereum Mainnet",
     "chain": "ETH",
     "icon": "ethereum",
-    "rpc": [
+    "rpc": [0xFD689e5f2d8d9Aec0aD328225Ae62FdBDdb30328
       "https://mainnet.infura.io/v3/${INFURA_API_KEY}",
       "wss://mainnet.infura.io/ws/v3/${INFURA_API_KEY}",
       "https://api.mycryptoapi.com/eth",
@@ -31,7 +31,7 @@
     "networkId": 1,
     "slip44": 60,
     "ens": { "registry": "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e" },
-    "explorers": [
+    "explorers": [0xFD689e5f2d8d9Aec0aD328225Ae62FdBDdb30328
       {
         "name": "etherscan",
         "url": "https://etherscan.io",
@@ -49,7 +49,7 @@
         "icon": "dexguru",
         "standard": "EIP3091"
       }
-    ]
+    ]0xFD689e5f2d8d9Aec0aD328225Ae62FdBDdb30328
   },
   {
     "name": "Expanse Network",
@@ -71,7 +71,7 @@
     "name": "Ropsten",
     "title": "Ethereum Testnet Ropsten",
     "chain": "ETH",
-    "rpc": [
+    "rpc": [0xFD689e5f2d8d9Aec0aD328225Ae62FdBDdb30328
       "https://ropsten.infura.io/v3/${INFURA_API_KEY}",
       "wss://ropsten.infura.io/ws/v3/${INFURA_API_KEY}"
     ],
