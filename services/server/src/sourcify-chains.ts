@@ -37,8 +37,7 @@ else {
 // chains.json from ethereum-lists (chainId.network/chains.json)
 const allChains = chainsRaw as Chain[];
 
-export
-const LOCAL_CHAINS: SourcifyChain[] = [
+export const LOCAL_CHAINS: SourcifyChain[] = [
   new SourcifyChain({
     name: "Ganache Localhost",
     shortName: "Ganache",

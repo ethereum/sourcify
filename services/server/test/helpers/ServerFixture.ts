@@ -20,7 +20,8 @@ import session from "express-session";
 import genFunc from "connect-pg-simple";
 import createMemoryStore from "memorystore";
 
-const supportedChainsMap = new ChainRepository(sourcifyChainsMap).supportedChainMap;
+const supportedChainsMap = new ChainRepository(sourcifyChainsMap)
+  .supportedChainMap;
 
 export type ServerFixtureOptions = {
   port: number;
@@ -92,8 +93,9 @@ export class ServerFixture {
       const solcRepoPath =
         (config.get("solcRepo") as string) || path.join("/tmp", "solc-repo");
       const solJsonRepoPath =
-        (config.get("solJsonRepo") as string) || path.join("/tmp", "soljson-repo");
-      
+        (config.get("solJsonRepo") as string) ||
+        path.join("/tmp", "soljson-repo");
+
       let selectedSolidityCompiler: ISolidityCompiler;
       if (config.get("lambdaCompiler.enabled")) {
         logger.info("Using lambda solidity compiler with local fallback");
@@ -118,7 +120,7 @@ export class ServerFixture {
         logger.info("Using local solidity compiler");
         selectedSolidityCompiler = new SolcLocal(solcRepoPath, solJsonRepoPath);
       }
-    
+
       const solc = selectedSolidityCompiler;
 
       this._server = new Server(
@@ -176,8 +178,8 @@ export class ServerFixture {
     });
 
     beforeEach(async () => {
-      rimraf.sync(config.get('repositoryV1.path'));
-      rimraf.sync(config.get('repositoryV2.path'));
+      rimraf.sync(config.get("repositoryV1.path"));
+      rimraf.sync(config.get("repositoryV2.path"));
       if (!options.skipDatabaseReset) {
         await resetDatabase(this.sourcifyDatabase);
         console.log("Resetting SourcifyDatabase");
@@ -186,8 +188,8 @@ export class ServerFixture {
 
     after(() => {
       httpServer.close();
-      rimraf.sync(config.get('repositoryV1.path'));
-      rimraf.sync(config.get('repositoryV2.path'));
+      rimraf.sync(config.get("repositoryV1.path"));
+      rimraf.sync(config.get("repositoryV2.path"));
     });
   }
 }
