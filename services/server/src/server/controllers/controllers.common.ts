@@ -4,6 +4,7 @@ import { BadRequestError, InternalServerError } from "../../common/errors";
 import logger from "../../common/logger";
 import { isContractAlreadyPerfect } from "./verification/verification.common";
 import { getResponseMatchFromMatch } from "../common";
+import { Services } from "../services/services";
 
 export const safeHandler = <T extends Request = Request>(
   requestHandler: (req: T, res: Response, next: NextFunction) => Promise<any>,
@@ -52,10 +53,11 @@ export async function checkPerfectMatch(
 ) {
   // address and chain are always available because of openAPI validation
   const { address, chain } = req.body;
+  const services = req.app.get("services") as Services;
 
   try {
     const result = await isContractAlreadyPerfect(
-      req.services.storage,
+      services.storage,
       address,
       chain,
     );
