@@ -23,6 +23,10 @@ export async function legacyVerifyEndpoint(
   req: LegacyVerifyRequest,
   res: Response,
 ): Promise<any> {
+  const services = req.app.get("services") as Services;
+  const solc = req.app.get("solc") as ISolidityCompiler;
+  const chainRepository = req.app.get("chainRepository") as ChainRepository;
+
   const inputFiles = extractFiles(req);
   if (!inputFiles) {
     const msg =
