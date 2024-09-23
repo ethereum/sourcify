@@ -356,6 +356,7 @@ if (require.main === module) {
           password: process.env.SOURCIFY_POSTGRES_PASSWORD as string,
           port: parseInt(process.env.SOURCIFY_POSTGRES_PORT || "5432"),
         },
+        schema: process.env.SOURCIFY_POSTGRES_SCHEMA as string,
       },
       allianceDatabaseServiceOptions: {
         postgres: {
@@ -365,6 +366,7 @@ if (require.main === module) {
           password: process.env.ALLIANCE_POSTGRES_PASSWORD as string,
           port: parseInt(process.env.ALLIANCE_POSTGRES_PORT || "5432"),
         },
+        schema: process.env.ALLIANCE_POSTGRES_SCHEMA as string,
       },
     },
   );

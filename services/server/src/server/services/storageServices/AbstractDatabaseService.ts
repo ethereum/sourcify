@@ -27,6 +27,7 @@ export interface DatabaseServiceOptions {
     user: string;
     password: string;
   };
+  schema?: string;
 }
 
 export default abstract class AbstractDatabaseService {
@@ -41,6 +42,7 @@ export default abstract class AbstractDatabaseService {
   postgresDatabase?: string;
   postgresUser?: string;
   postgresPassword?: string;
+  schema: string = "public";
 
   constructor(options: DatabaseServiceOptions) {
     this.googleCloudSqlInstanceName = options.googleCloudSql?.instanceName;
@@ -51,6 +53,9 @@ export default abstract class AbstractDatabaseService {
     this.postgresDatabase = options.postgres?.database;
     this.postgresUser = options.postgres?.user;
     this.postgresPassword = options.postgres?.password;
+    if (options.schema) {
+      this.schema = options.schema;
+    }
   }
 
   async init() {
@@ -369,11 +374,13 @@ export default abstract class AbstractDatabaseService {
       if (databaseColumns.recompiledCreationCode) {
         recompiledCreationCodeInsertResult = await Database.insertCode(
           this.databasePool,
+          this.schema,
           databaseColumns.recompiledCreationCode,
         );
       }
       const recompiledRuntimeCodeInsertResult = await Database.insertCode(
         this.databasePool,
+        this.schema,
         databaseColumns.recompiledRuntimeCode,
       );
 
@@ -381,17 +388,20 @@ export default abstract class AbstractDatabaseService {
       if (databaseColumns.onchainCreationCode) {
         onchainCreationCodeInsertResult = await Database.insertCode(
           this.databasePool,
+          this.schema,
           databaseColumns.onchainCreationCode,
         );
       }
       const onchainRuntimeCodeInsertResult = await Database.insertCode(
         this.databasePool,
+        this.schema,
         databaseColumns.onchainRuntimeCode,
       );
 
       // Add the onchain contract in contracts
       const contractInsertResult = await Database.insertContract(
         this.databasePool,
+        this.schema,
         {
           creation_bytecode_hash:
             onchainCreationCodeInsertResult?.rows[0].bytecode_hash,
@@ -402,14 +412,18 @@ export default abstract class AbstractDatabaseService {
 
       // add the onchain contract in contract_deployments
       const contractDeploymentInsertResult =
-        await Database.insertContractDeployment(this.databasePool, {
-          ...databaseColumns.contractDeployment,
-          contract_id: contractInsertResult.rows[0].id,
-        });
+        await Database.insertContractDeployment(
+          this.databasePool,
+          this.schema,
+          {
+            ...databaseColumns.contractDeployment,
+            contract_id: contractInsertResult.rows[0].id,
+          },
+        );
 
       // insert new recompiled contract
       const compiledContractsInsertResult =
-        await Database.insertCompiledContract(this.databasePool, {
+        await Database.insertCompiledContract(this.databasePool, this.schema, {
           ...databaseColumns.compiledContract,
           creation_code_hash:
             recompiledCreationCodeInsertResult?.rows[0].bytecode_hash,
@@ -419,7 +433,7 @@ export default abstract class AbstractDatabaseService {
 
       // insert new recompiled contract with newly added contract and compiledContract
       const verifiedContractInsertResult =
-        await Database.insertVerifiedContract(this.databasePool, {
+        await Database.insertVerifiedContract(this.databasePool, this.schema, {
           ...databaseColumns.verifiedContract,
           compilation_id: compiledContractsInsertResult.rows[0].id,
           deployment_id: contractDeploymentInsertResult.rows[0].id,
@@ -461,17 +475,20 @@ export default abstract class AbstractDatabaseService {
       ) {
         onchainCreationCodeInsertResult = await Database.insertCode(
           this.databasePool,
+          this.schema,
           databaseColumns.onchainCreationCode,
         );
 
         const onchainRuntimeCodeInsertResult = await Database.insertCode(
           this.databasePool,
+          this.schema,
           databaseColumns.onchainRuntimeCode,
         );
 
         // Add the onchain contract in contracts
         const contractInsertResult = await Database.insertContract(
           this.databasePool,
+          this.schema,
           {
             creation_bytecode_hash:
               onchainCreationCodeInsertResult.rows[0].bytecode_hash,
@@ -481,11 +498,15 @@ export default abstract class AbstractDatabaseService {
         );
 
         // add the onchain contract in contract_deployments
-        await Database.updateContractDeployment(this.databasePool, {
-          ...databaseColumns.contractDeployment,
-          contract_id: contractInsertResult.rows[0].id,
-          id: existingVerifiedContractResult[0].deployment_id,
-        });
+        await Database.updateContractDeployment(
+          this.databasePool,
+          this.schema,
+          {
+            ...databaseColumns.contractDeployment,
+            contract_id: contractInsertResult.rows[0].id,
+            id: existingVerifiedContractResult[0].deployment_id,
+          },
+        );
       }
 
       // Add recompiled bytecodes
@@ -495,17 +516,19 @@ export default abstract class AbstractDatabaseService {
       ) {
         recompiledCreationCodeInsertResult = await Database.insertCode(
           this.databasePool,
+          this.schema,
           databaseColumns.recompiledCreationCode,
         );
       }
       const recompiledRuntimeCodeInsertResult = await Database.insertCode(
         this.databasePool,
+        this.schema,
         databaseColumns.recompiledRuntimeCode,
       );
 
       // insert new recompiled contract
       const compiledContractsInsertResult =
-        await Database.insertCompiledContract(this.databasePool, {
+        await Database.insertCompiledContract(this.databasePool, this.schema, {
           ...databaseColumns.compiledContract,
           creation_code_hash:
             recompiledCreationCodeInsertResult?.rows[0].bytecode_hash,
@@ -515,7 +538,7 @@ export default abstract class AbstractDatabaseService {
 
       // update verified contract with the newly added recompiled contract
       const verifiedContractInsertResult =
-        await Database.insertVerifiedContract(this.databasePool, {
+        await Database.insertVerifiedContract(this.databasePool, this.schema, {
           ...databaseColumns.verifiedContract,
           compilation_id: compiledContractsInsertResult.rows[0].id,
           deployment_id: existingVerifiedContractResult[0].deployment_id,
@@ -553,6 +576,7 @@ export default abstract class AbstractDatabaseService {
     const existingVerifiedContractResult =
       await Database.getVerifiedContractByChainAndAddress(
         this.databasePool,
+        this.schema,
         parseInt(match.chainId),
         bytesFromString(match.address)!,
       );
