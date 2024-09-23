@@ -134,6 +134,7 @@ export type GetVerifiedContractByChainAndAddressResult =
 
 export async function getVerifiedContractByChainAndAddress(
   pool: Pool,
+  schema: string,
   chain: number,
   address: Bytes,
 ): Promise<QueryResult<GetVerifiedContractByChainAndAddressResult>> {
@@ -143,8 +144,8 @@ export async function getVerifiedContractByChainAndAddress(
         verified_contracts.*,
         contract_deployments.transaction_hash,
         contract_deployments.contract_id
-      FROM verified_contracts
-      JOIN contract_deployments ON contract_deployments.id = verified_contracts.deployment_id
+      FROM ${schema}.verified_contracts
+      JOIN ${schema}.contract_deployments ON contract_deployments.id = verified_contracts.deployment_id
       WHERE 1=1
         AND contract_deployments.chain_id = $1
         AND contract_deployments.address = $2
@@ -160,6 +161,7 @@ export type GetSourcifyMatchByChainAddressResult = Tables.SourcifyMatch &
 
 export async function getSourcifyMatchByChainAddress(
   pool: Pool,
+  schema: string,
   chain: number,
   address: Bytes,
   onlyPerfectMatches: boolean = false,
@@ -176,10 +178,10 @@ export async function getSourcifyMatchByChainAddress(
         verified_contracts.runtime_values,
         compiled_contracts.runtime_code_artifacts,
         contract_deployments.transaction_hash
-      FROM sourcify_matches
-      JOIN verified_contracts ON verified_contracts.id = sourcify_matches.verified_contract_id
-      JOIN compiled_contracts ON compiled_contracts.id = verified_contracts.compilation_id
-      JOIN contract_deployments ON 
+      FROM ${schema}.sourcify_matches
+      JOIN ${schema}.verified_contracts ON verified_contracts.id = sourcify_matches.verified_contract_id
+      JOIN ${schema}.compiled_contracts ON compiled_contracts.id = verified_contracts.compilation_id
+      JOIN ${schema}.contract_deployments ON 
         contract_deployments.id = verified_contracts.deployment_id 
         AND contract_deployments.chain_id = $1 
         AND contract_deployments.address = $2
@@ -195,10 +197,11 @@ ${
 
 export async function insertCode(
   pool: Pool,
+  schema: string,
   { bytecode_hash_keccak, bytecode }: Omit<Tables.Code, "bytecode_hash">,
 ): Promise<QueryResult<Pick<Tables.Code, "bytecode_hash">>> {
   let codeInsertResult = await pool.query(
-    "INSERT INTO code (code_hash, code, code_hash_keccak) VALUES (digest($1::bytea, 'sha256'), $1::bytea, $2) ON CONFLICT (code_hash) DO NOTHING RETURNING code_hash as bytecode_hash",
+    `INSERT INTO ${schema}.code (code_hash, code, code_hash_keccak) VALUES (digest($1::bytea, 'sha256'), $1::bytea, $2) ON CONFLICT (code_hash) DO NOTHING RETURNING code_hash as bytecode_hash`,
     [bytecode, bytecode_hash_keccak],
   );
 
@@ -207,7 +210,7 @@ export async function insertCode(
     codeInsertResult = await pool.query(
       `SELECT
         code_hash as bytecode_hash
-      FROM code
+      FROM ${schema}.code
       WHERE code_hash = digest($1::bytea, 'sha256')`,
       [bytecode],
     );
@@ -217,13 +220,14 @@ export async function insertCode(
 
 export async function insertContract(
   pool: Pool,
+  schema: string,
   {
     creation_bytecode_hash,
     runtime_bytecode_hash,
   }: Omit<Tables.Contract, "id">,
 ): Promise<QueryResult<Pick<Tables.Contract, "id">>> {
   let contractInsertResult = await pool.query(
-    "INSERT INTO contracts (creation_code_hash, runtime_code_hash) VALUES ($1, $2) ON CONFLICT (creation_code_hash, runtime_code_hash) DO NOTHING RETURNING *",
+    `INSERT INTO ${schema}.contracts (creation_code_hash, runtime_code_hash) VALUES ($1, $2) ON CONFLICT (creation_code_hash, runtime_code_hash) DO NOTHING RETURNING *`,
     [creation_bytecode_hash, runtime_bytecode_hash],
   );
 
@@ -232,7 +236,7 @@ export async function insertContract(
       `
       SELECT
         id
-      FROM contracts
+      FROM ${schema}.contracts
       WHERE creation_code_hash = $1 AND runtime_code_hash = $2
       `,
       [creation_bytecode_hash, runtime_bytecode_hash],
@@ -243,6 +247,7 @@ export async function insertContract(
 
 export async function insertContractDeployment(
   pool: Pool,
+  schema: string,
   {
     chain_id,
     address,
@@ -255,7 +260,7 @@ export async function insertContractDeployment(
 ): Promise<QueryResult<Pick<Tables.ContractDeployment, "id">>> {
   let contractDeploymentInsertResult = await pool.query(
     `INSERT INTO 
-      contract_deployments (
+      ${schema}.contract_deployments (
         chain_id,
         address,
         transaction_hash,
@@ -280,7 +285,7 @@ export async function insertContractDeployment(
       `
       SELECT
         id
-      FROM contract_deployments
+      FROM ${schema}.contract_deployments
       WHERE 1=1 
         AND chain_id = $1
         AND address = $2
@@ -294,6 +299,7 @@ export async function insertContractDeployment(
 
 export async function insertCompiledContract(
   pool: Pool,
+  schema: string,
   {
     compiler,
     version,
@@ -311,7 +317,7 @@ export async function insertCompiledContract(
 ): Promise<QueryResult<Pick<Tables.CompiledContract, "id">>> {
   let compiledContractsInsertResult = await pool.query(
     `
-      INSERT INTO compiled_contracts (
+      INSERT INTO ${schema}.compiled_contracts (
         compiler,
         version,
         language,
@@ -347,7 +353,7 @@ export async function insertCompiledContract(
       `
         SELECT
           id
-        FROM compiled_contracts
+        FROM ${schema}.compiled_contracts
         WHERE 1=1
           AND compiler = $1
           AND language = $2
@@ -362,6 +368,7 @@ export async function insertCompiledContract(
 
 export async function insertVerifiedContract(
   pool: Pool,
+  schema: string,
   {
     compilation_id,
     deployment_id,
@@ -376,7 +383,7 @@ export async function insertVerifiedContract(
   }: Omit<Tables.VerifiedContract, "id">,
 ): Promise<QueryResult<Pick<Tables.VerifiedContract, "id">>> {
   let verifiedContractsInsertResult = await pool.query(
-    `INSERT INTO verified_contracts (
+    `INSERT INTO ${schema}.verified_contracts (
         compilation_id,
         deployment_id,
         creation_transformations,
@@ -411,7 +418,7 @@ export async function insertVerifiedContract(
       `
         SELECT
           id
-        FROM verified_contracts
+        FROM ${schema}.verified_contracts
         WHERE 1=1
           AND compilation_id = $1
           AND deployment_id = $2
@@ -424,6 +431,7 @@ export async function insertVerifiedContract(
 
 export async function insertSourcifyMatch(
   pool: Pool,
+  schema: string,
   {
     verified_contract_id,
     runtime_match,
@@ -432,7 +440,7 @@ export async function insertSourcifyMatch(
   }: Omit<Tables.SourcifyMatch, "created_at">,
 ) {
   await pool.query(
-    `INSERT INTO sourcify_matches (
+    `INSERT INTO ${schema}.sourcify_matches (
         verified_contract_id,
         creation_match,
         runtime_match,
@@ -447,6 +455,7 @@ export async function insertSourcifyMatch(
 // The old verified_contracts are not deleted from the verified_contracts table.
 export async function updateSourcifyMatch(
   pool: Pool,
+  schema: string,
   {
     verified_contract_id,
     runtime_match,
@@ -456,7 +465,7 @@ export async function updateSourcifyMatch(
   oldVerifiedContractId: number,
 ) {
   await pool.query(
-    `UPDATE sourcify_matches SET 
+    `UPDATE ${schema}.sourcify_matches SET 
       verified_contract_id = $1,
       creation_match=$2,
       runtime_match=$3,
@@ -598,6 +607,7 @@ export function prepareCompilerSettings(recompiledContract: CheckedContract) {
 
 export async function countSourcifyMatchAddresses(
   pool: Pool,
+  schema: string,
   chain: number,
 ): Promise<
   QueryResult<
@@ -615,9 +625,9 @@ export async function countSourcifyMatchAddresses(
     WHEN COALESCE(sourcify_matches.creation_match, '') = 'perfect' OR sourcify_matches.runtime_match = 'perfect' THEN 1 ELSE 0 END) AS INTEGER) AS full_total,
   CAST(SUM(CASE 
     WHEN COALESCE(sourcify_matches.creation_match, '') != 'perfect' AND sourcify_matches.runtime_match != 'perfect' THEN 1 ELSE 0 END) AS INTEGER) AS partial_total
-  FROM sourcify_matches
-  JOIN verified_contracts ON verified_contracts.id = sourcify_matches.verified_contract_id
-  JOIN contract_deployments ON contract_deployments.id = verified_contracts.deployment_id
+  FROM ${schema}.sourcify_matches
+  JOIN ${schema}.verified_contracts ON verified_contracts.id = sourcify_matches.verified_contract_id
+  JOIN ${schema}.contract_deployments ON contract_deployments.id = verified_contracts.deployment_id
   WHERE contract_deployments.chain_id = $1
   GROUP BY contract_deployments.chain_id;`,
     [chain],
@@ -626,6 +636,7 @@ export async function countSourcifyMatchAddresses(
 
 export async function getSourcifyMatchAddressesByChainAndMatch(
   pool: Pool,
+  schema: string,
   chain: number,
   match: "full_match" | "partial_match" | "any_match",
   page: number,
@@ -661,9 +672,9 @@ export async function getSourcifyMatchAddressesByChainAndMatch(
     `
     SELECT
       concat('0x',encode(contract_deployments.address, 'hex')) as address
-    FROM sourcify_matches
-    JOIN verified_contracts ON verified_contracts.id = sourcify_matches.verified_contract_id
-    JOIN contract_deployments ON 
+    FROM ${schema}.sourcify_matches
+    JOIN ${schema}.verified_contracts ON verified_contracts.id = sourcify_matches.verified_contract_id
+    JOIN ${schema}.contract_deployments ON 
         contract_deployments.id = verified_contracts.deployment_id
         AND contract_deployments.chain_id = $1
     ${queryWhere}
@@ -676,6 +687,7 @@ export async function getSourcifyMatchAddressesByChainAndMatch(
 
 export async function updateContractDeployment(
   pool: Pool,
+  schema: string,
   {
     id,
     transaction_hash,
@@ -686,7 +698,7 @@ export async function updateContractDeployment(
   }: Omit<Tables.ContractDeployment, "chain_id" | "address">,
 ) {
   return await pool.query(
-    `UPDATE contract_deployments 
+    `UPDATE ${schema}.contract_deployments 
      SET 
        transaction_hash = $2,
        block_number = $3,
