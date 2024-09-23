@@ -114,6 +114,7 @@ export default abstract class AbstractDatabaseService {
       host: this.postgresHost,
       port: this.postgresPort,
       database: this.postgresDatabase,
+      schema: this.schema,
     });
     return true;
   }
