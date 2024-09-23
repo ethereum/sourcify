@@ -23,18 +23,6 @@ export async function legacyVerifyEndpoint(
   req: LegacyVerifyRequest,
   res: Response,
 ): Promise<any> {
-  const services = req.app.get("services") as Services;
-  const solc = req.app.get("solc") as ISolidityCompiler;
-  const chainRepository = req.app.get("chainRepository") as ChainRepository;
-
-  const result = await services.storage.performServiceOperation(
-    "checkByChainAndAddress",
-    [req.body.address, req.body.chain],
-  );
-  if (result.length != 0) {
-    return res.send({ result: [getResponseMatchFromMatch(result[0])] });
-  }
-
   const inputFiles = extractFiles(req);
   if (!inputFiles) {
     const msg =
@@ -125,15 +113,6 @@ export async function verifyDeprecated(
 ): Promise<any> {
   const solc = req.app.get("solc") as ISolidityCompiler;
   const services = req.app.get("services") as Services;
-
-  const result = await services.storage.performServiceOperation(
-    "checkByChainAndAddress",
-    [req.body.address, req.body.chain],
-  );
-
-  if (result.length != 0) {
-    return res.send({ result: [getResponseMatchFromMatch(result[0])] });
-  }
 
   const inputFiles = extractFiles(req);
   if (!inputFiles) {

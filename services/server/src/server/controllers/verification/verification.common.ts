@@ -355,15 +355,16 @@ export const verifyContractsInSession = async (
     });
     // Check if contract is already verified
     if (Boolean(contractWrapper.address) && Boolean(contractWrapper.chainId)) {
-      const found = await storageService.performServiceOperation(
-        "checkByChainAndAddress",
-        [contractWrapper.address as string, contractWrapper.chainId as string],
+      const found = await isContractAlreadyPerfect(
+        storageService,
+        contractWrapper.address as string,
+        contractWrapper.chainId as string,
       );
 
-      if (found.length) {
-        contractWrapper.status = found[0].runtimeMatch || "error";
-        contractWrapper.statusMessage = found[0].message;
-        contractWrapper.storageTimestamp = found[0].storageTimestamp;
+      if (found) {
+        contractWrapper.status = found.runtimeMatch || "error";
+        contractWrapper.statusMessage = found.message;
+        contractWrapper.storageTimestamp = found.storageTimestamp;
         continue;
       }
     }
@@ -464,3 +465,23 @@ export const verifyContractsInSession = async (
     }
   }
 };
+
+export async function isContractAlreadyPerfect(
+  storageService: StorageService,
+  address: string,
+  chainId: string,
+): Promise<Match | false> {
+  const result = await storageService.performServiceOperation(
+    "checkByChainAndAddress",
+    [address, chainId],
+  );
+  if (
+    result.length != 0 &&
+    result[0].runtimeMatch === "perfect" &&
+    result[0].creationMatch === "perfect"
+  ) {
+    return result[0];
+  } else {
+    return false;
+  }
+}

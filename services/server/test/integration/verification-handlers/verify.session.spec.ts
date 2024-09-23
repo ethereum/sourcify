@@ -264,7 +264,8 @@ describe("/session", function () {
       .then((res) => {
         const contracts = assertSingleContractStatus(res, "error");
         contracts[0].address = chainFixture.defaultContractAddress;
-
+        // Pass the creatorTxHash to achieve also perfect creation match
+        contracts[0].creatorTxHash = chainFixture.defaultContractCreatorTx;
         agent
           .post("/session/verify-validated")
           .send({ contracts })
