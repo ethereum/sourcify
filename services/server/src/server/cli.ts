@@ -93,6 +93,8 @@ const server = new Server(
       whitelist: config.get("rateLimit.enabled")
         ? config.get("rateLimit.whitelist")
         : undefined,
+      // Don't log IPs in production master
+      hideIpInLogs: process.env.NODE_ENV === "production",
     },
     corsAllowedOrigins: config.get("corsAllowedOrigins"),
     solc,

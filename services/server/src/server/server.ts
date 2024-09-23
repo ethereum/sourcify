@@ -48,6 +48,7 @@ export interface ServerOptions {
     windowMs?: number;
     max?: number;
     whitelist?: string[];
+    hideIpInLogs?: boolean;
   };
   corsAllowedOrigins: string[];
   chains: SourcifyChainMap;
@@ -221,6 +222,7 @@ export class Server {
     });
 
     if (options.rateLimit.enabled) {
+      const hideIpInLogs = options.rateLimit.hideIpInLogs;
       const limiter = rateLimit({
         windowMs: options.rateLimit.windowMs,
         max: options.rateLimit.max,
@@ -233,7 +235,7 @@ export class Server {
         handler: (req, res, next, options) => {
           const ip = getIp(req);
           const ipHash = ip ? hash(ip) : "";
-          const ipLog = process.env.NODE_ENV === "production" ? ipHash : ip; // Don't log IPs in production master
+          const ipLog = hideIpInLogs ? ipHash : ip;
           const store = options.store as ExpressRateLimitMemoryStore;
           const hits = store.hits[ip || ""];
           logger.debug("Rate limit hit", {

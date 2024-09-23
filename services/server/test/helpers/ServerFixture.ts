@@ -90,6 +90,7 @@ export class ServerFixture {
           windowMs?: number;
           max?: number;
           whitelist?: string[];
+          hideIpInLogs?: boolean;
         }>("rateLimit"),
         corsAllowedOrigins: config.get<string[]>("corsAllowedOrigins"),
         chains: sourcifyChainsMap,
