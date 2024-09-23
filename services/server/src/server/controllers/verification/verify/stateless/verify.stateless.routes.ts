@@ -11,15 +11,19 @@ router
   .route("/verify")
   .post(checkPerfectMatch, safeHandler(legacyVerifyEndpoint));
 
-if (config.get("verifyDeprecated")) {
-  router
-    .route("/verify-deprecated")
-    .post(checkPerfectMatch, safeHandler(verifyDeprecated));
-} else {
-  router.route("/verify-deprecated").all((req, res) => {
-    res.status(400).send("Not found");
-  }
-});
+router.route("/verify-deprecated").post(
+  // Middleware to check if verifyDeprecated is enabled
+  (req, res, next) => {
+    const verifyDeprecatedEnabled = req.app.get("verifyDeprecated") as boolean;
+    if (verifyDeprecatedEnabled) {
+      next();
+    } else {
+      res.status(400).send("Not found");
+    }
+  },
+  checkPerfectMatch,
+  safeHandler(verifyDeprecated),
+);
 
 export const deprecatedRoutesVerifyStateless = {
   "/": {
