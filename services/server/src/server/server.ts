@@ -54,6 +54,7 @@ export interface ServerOptions {
   solc: ISolidityCompiler;
   verifyDeprecated: boolean;
   sessionOptions: SessionOptions;
+  loggingToken?: string;
 }
 
 export class Server {
@@ -161,7 +162,7 @@ export class Server {
               // This is a placeholder token. In a real application, use a more secure method for managing and validating tokens.
               const token = authHeader && authHeader.split(" ")[1];
 
-              return token === process.env.SETLOGGING_TOKEN;
+              return token === options.loggingToken;
             },
           },
         },

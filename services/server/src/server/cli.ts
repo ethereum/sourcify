@@ -99,6 +99,7 @@ const server = new Server(
     chains: chainRepository.sourcifyChainMap,
     verifyDeprecated: config.get("verifyDeprecated"),
     sessionOptions: getSessionOptions(),
+    loggingToken: process.env.SETLOGGING_TOKEN,
   },
   {
     initCompilers: config.get("initCompilers") || false,
