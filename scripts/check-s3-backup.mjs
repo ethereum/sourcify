@@ -19,20 +19,21 @@ const circleCIWorkflowsUrl = `https://circleci.com/api/v2/insights/gh/ethereum/s
 const circleCIWorkflowsResult = await fetch(circleCIWorkflowsUrl);
 const circleCIWorkflowsJson = await circleCIWorkflowsResult.json();
 
-const yesterday = new Date();
-yesterday.setDate(yesterday.getDate() - 1);
-const circleCIWorkflowsYesterdayItem = circleCIWorkflowsJson.items.find(
+const nDaysAgo = 2;
+const nDaysAgoDate = new Date();
+nDaysAgoDate.setDate(nDaysAgoDate.getDate() - nDaysAgo);
+const circleCIWorkflowsNDaysAgoItem = circleCIWorkflowsJson.items.find(
   (item) => {
     const workflowDate = new Date(item.created_at);
-    return yesterday.toDateString() === workflowDate.toDateString();
-  }
+    return nDaysAgoDate.toDateString() === workflowDate.toDateString();
+  },
 );
 assert(
-  circleCIWorkflowsYesterdayItem !== undefined,
-  `There is no backup workflow from yesterday`
+  circleCIWorkflowsNDaysAgoItem !== undefined,
+  `There is no backup workflow from ${nDaysAgo} days ago`,
 );
 
-const workflowId = circleCIWorkflowsYesterdayItem.id;
+const workflowId = circleCIWorkflowsNDaysAgoItem.id;
 
 // find jobs id of verification-e2e-sepolia, verification-e2e-goerli
 const jobsWithArtifacts = [
@@ -44,7 +45,7 @@ console.log("Fetching jobs from: ", circleCIJobsUrl);
 const circleCIJobsUrlResult = await fetch(circleCIJobsUrl);
 const circleCIJobsUrlJson = await circleCIJobsUrlResult.json();
 const jobs = circleCIJobsUrlJson.items.filter((job) =>
-  jobsWithArtifacts.includes(job.name)
+  jobsWithArtifacts.includes(job.name),
 );
 
 // for each job id get the artifact and check the existance on s3
@@ -54,7 +55,7 @@ for (const job of jobs) {
   const circleCIArtifactVerifiedContractUrl = `https://dl.circleci.com/private/output/job/${job.id}/artifacts/0/~/project/metacoin-source-verify/verified-contracts/saved.json`;
   console.log("Fetching artifact from: ", circleCIArtifactVerifiedContractUrl);
   const circleCIArtifactVerifiedContractResult = await fetch(
-    circleCIArtifactVerifiedContractUrl
+    circleCIArtifactVerifiedContractUrl,
   );
   const circleCIArtifactVerifiedContractJson =
     await circleCIArtifactVerifiedContractResult.json();
@@ -63,7 +64,7 @@ for (const job of jobs) {
 
   if (!deploymentAddress || !deploymentChain) {
     throw new Error(
-      `Deployment address or chain not found in job ${job.id} with name ${job.name}. Deployment address: ${deploymentAddress}, Deployment chain: ${deploymentChain}`
+      `Deployment address or chain not found in job ${job.id} with name ${job.name}. Deployment address: ${deploymentAddress}, Deployment chain: ${deploymentChain}`,
     );
   }
 
@@ -72,7 +73,7 @@ for (const job of jobs) {
       new GetObjectCommand({
         Key: `contracts/full_match/${deploymentChain}/${deploymentAddress}/metadata.json`,
         Bucket: "sourcify-repository-production",
-      })
+      }),
     );
 
     if (s3Object.ETag?.length > 0) {
@@ -82,7 +83,7 @@ for (const job of jobs) {
   } catch (e) {
     console.log(e);
     console.log(
-      `not in backup: contracts/full_match/${deploymentChain}/${deploymentAddress}/metadata.json`
+      `not in backup: contracts/full_match/${deploymentChain}/${deploymentAddress}/metadata.json`,
     );
   }
 }
