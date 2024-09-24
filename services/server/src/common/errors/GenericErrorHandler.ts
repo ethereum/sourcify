@@ -6,6 +6,7 @@ export default function genericErrorHandler(
   _req: Request,
   res: Response,
   // Next function is required for Express to recognize this as an error handler. Error handlers must have 4 parameters.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _next: any,
 ): void {
   const errorCode = +err.code || err.status || 500;

@@ -1,21 +1,18 @@
 import { Response, Request } from "express";
 import {
-  ContractWrapperMap,
   FILE_ENCODING,
-  SendableContract,
   addRemoteFile,
   checkContractsInSession,
   extractFiles,
   getSessionJSON,
-  isVerifiable,
   saveFilesToSession,
   verifyContractsInSession,
 } from "../verification.common";
 import {
+  ISolidityCompiler,
   PathBuffer,
   PathContent,
   getIpfsGateway,
-  isEmpty,
   performFetch,
 } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError } from "../../../../common/errors";
@@ -23,6 +20,8 @@ import { BadRequestError } from "../../../../common/errors";
 import { StatusCodes } from "http-status-codes";
 import { decode as bytecodeDecode } from "@ethereum-sourcify/bytecode-utils";
 import logger from "../../../../common/logger";
+import { Services } from "../../../services/services";
+import { ChainRepository } from "../../../../sourcify-chain-repository";
 
 export async function getSessionDataEndpoint(req: Request, res: Response) {
   res.send(getSessionJSON(req.session));
@@ -30,6 +29,10 @@ export async function getSessionDataEndpoint(req: Request, res: Response) {
 
 export async function addInputFilesEndpoint(req: Request, res: Response) {
   logger.debug("addInputFilesEndpoint");
+  const services = req.app.get("services") as Services;
+  const solc = req.app.get("solc") as ISolidityCompiler;
+  const chainRepository = req.app.get("chainRepository") as ChainRepository;
+
   let inputFiles: PathBuffer[] | undefined;
   if (req.query.url) {
     inputFiles = await addRemoteFile(req.query);
@@ -45,12 +48,14 @@ export async function addInputFilesEndpoint(req: Request, res: Response) {
   const session = req.session;
   const newFilesCount = saveFilesToSession(pathContents, session);
   if (newFilesCount) {
-    await checkContractsInSession(session);
+    await checkContractsInSession(solc, session);
     await verifyContractsInSession(
+      solc,
       session.contractWrappers,
       session,
-      req.services.verification,
-      req.services.storage,
+      services.verification,
+      services.storage,
+      chainRepository,
       dryRun,
     );
   }
@@ -78,8 +83,11 @@ export async function restartSessionEndpoint(req: Request, res: Response) {
 export async function addInputContractEndpoint(req: Request, res: Response) {
   const address: string = req.body.address;
   const chainId: string = req.body.chainId;
+  const solc = req.app.get("solc") as ISolidityCompiler;
+  const services = req.app.get("services") as Services;
+  const chainRepository = req.app.get("chainRepository") as ChainRepository;
 
-  const sourcifyChain = req.services.verification.supportedChainsMap[chainId];
+  const sourcifyChain = chainRepository.sourcifyChainMap[chainId];
 
   const bytecode = await sourcifyChain.getBytecode(address);
 
@@ -118,13 +126,15 @@ export async function addInputContractEndpoint(req: Request, res: Response) {
 
   const newFilesCount = saveFilesToSession(pathContents, session);
   if (newFilesCount) {
-    await checkContractsInSession(session);
+    await checkContractsInSession(solc, session);
     // verifyValidated fetches missing files from the contract
     await verifyContractsInSession(
+      solc,
       session.contractWrappers,
       session,
-      req.services.verification,
-      req.services.storage,
+      services.verification,
+      services.storage,
+      chainRepository,
     );
   }
   res.send(getSessionJSON(session));

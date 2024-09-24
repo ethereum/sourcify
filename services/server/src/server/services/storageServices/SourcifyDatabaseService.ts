@@ -22,8 +22,7 @@ import {
   MatchLevelWithoutAny,
   PaginatedContractData,
 } from "../../types";
-import config from "config";
-import Path, { format } from "path";
+import Path from "path";
 import { getFileRelativePath } from "../utils/util";
 import { getAddress, id as keccak256Str } from "ethers";
 import { BadRequestError } from "../../../common/errors";
@@ -37,15 +36,18 @@ export class SourcifyDatabaseService
   implements RWStorageService
 {
   storageService: StorageService;
+  repositoryV1ServerUrl: string;
   IDENTIFIER = RWStorageIdentifiers.SourcifyDatabase;
   databasePool!: Pool;
 
   constructor(
     storageService_: StorageService,
     options: DatabaseServiceOptions,
+    repositoryV1ServerUrl: string,
   ) {
     super(options);
     this.storageService = storageService_;
+    this.repositoryV1ServerUrl = repositoryV1ServerUrl;
   }
 
   async checkByChainAndAddress(
@@ -420,7 +422,7 @@ export class SourcifyDatabaseService
         contractStatus,
         source,
       );
-      return `${config.get("repositoryV1.serverUrl")}/${relativePath}`;
+      return `${this.repositoryV1ServerUrl}/${relativePath}`;
     });
 
     const filesWithUrl = Object.keys(filesRaw).map((file) => {
@@ -430,7 +432,7 @@ export class SourcifyDatabaseService
         contractStatus,
         file,
       );
-      return `${config.get("repositoryV1.serverUrl")}/${relativePath}`;
+      return `${this.repositoryV1ServerUrl}/${relativePath}`;
     });
 
     const response = {

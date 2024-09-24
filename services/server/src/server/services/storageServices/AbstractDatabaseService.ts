@@ -1,8 +1,4 @@
-import {
-  Match,
-  CheckedContract,
-  Transformation,
-} from "@ethereum-sourcify/lib-sourcify";
+import { Match, CheckedContract } from "@ethereum-sourcify/lib-sourcify";
 import { keccak256 } from "ethers";
 import * as Database from "../utils/database-util";
 import {

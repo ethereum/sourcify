@@ -1,15 +1,8 @@
 import path from "path";
-// First env vars need to be loaded before config
-import dotenv from "dotenv";
-dotenv.config({ path: path.resolve(__dirname, "..", "..", ".env") });
-// Make sure config is relative to server.ts and not where the server is run from
-process.env["NODE_CONFIG_DIR"] = path.resolve(__dirname, "..", "config");
-import config from "config";
 import express, { Request } from "express";
 import cors from "cors";
 import util from "util";
 import * as OpenApiValidator from "express-openapi-validator";
-import swaggerUi from "swagger-ui-express";
 import yamljs from "yamljs";
 import { resolveRefs } from "json-refs";
 import { getAddress } from "ethers";
@@ -21,7 +14,6 @@ import {
   rateLimit,
 } from "express-rate-limit";
 import crypto from "crypto";
-import serveIndex from "serve-index";
 import { v4 as uuidv4 } from "uuid";
 import { asyncLocalStorage } from "../common/async-context";
 
@@ -29,21 +21,18 @@ import { asyncLocalStorage } from "../common/async-context";
 import logger from "../common/logger";
 import routes from "./routes";
 import genericErrorHandler from "../common/errors/GenericErrorHandler";
-import {
-  checkSourcifyChainId,
-  checkSupportedChainId,
-} from "../sourcify-chains";
-import {
-  validateAddresses,
-  validateSingleAddress,
-  validateSourcifyChainIds,
-} from "./common";
+import { validateAddresses, validateSingleAddress } from "./common";
 import { initDeprecatedRoutes } from "./deprecated.routes";
 import getSessionMiddleware from "./session";
 import { Services } from "./services/services";
-import { supportedChainsMap } from "../sourcify-chains";
 import { StorageServiceOptions } from "./services/StorageService";
 import { VerificationServiceOptions } from "./services/VerificationService";
+import {
+  ISolidityCompiler,
+  SourcifyChainMap,
+} from "@ethereum-sourcify/lib-sourcify";
+import { ChainRepository } from "../sourcify-chain-repository";
+import { SessionOptions } from "express-session";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -51,48 +40,58 @@ declare module "express-serve-static-core" {
   }
 }
 
+export interface ServerOptions {
+  port: string | number;
+  maxFileSize: number;
+  rateLimit: {
+    enabled: boolean;
+    windowMs?: number;
+    max?: number;
+    whitelist?: string[];
+    hideIpInLogs?: boolean;
+  };
+  corsAllowedOrigins: string[];
+  chains: SourcifyChainMap;
+  solc: ISolidityCompiler;
+  verifyDeprecated: boolean;
+  sessionOptions: SessionOptions;
+  loggingToken?: string;
+}
+
 export class Server {
   app: express.Application;
-  repository: string = config.get("repositoryV1.path");
-  repositoryV2: string = config.get("repositoryV2.path");
   port: string | number;
   services: Services;
+  chainRepository: ChainRepository;
 
-  // TODO: pass config as object into the constructor. Currently we read config from config files. Server Class itself should be configurable.
   constructor(
-    port: string | number,
+    options: ServerOptions,
     verificationServiceOptions: VerificationServiceOptions,
     storageServiceOptions: StorageServiceOptions,
   ) {
-    // To print regexes in the logs
-    Object.defineProperty(RegExp.prototype, "toJSON", {
-      value: RegExp.prototype.toString,
-    });
-
-    logger.info("Starting server with config", {
-      config: JSON.stringify(config, null, 2),
-    });
-
-    this.port = port;
+    this.port = options.port;
     logger.info("Server port set", { port: this.port });
     this.app = express();
+
+    this.chainRepository = new ChainRepository(options.chains);
 
     this.services = new Services(
       verificationServiceOptions,
       storageServiceOptions,
     );
-    this.app.use((req, res, next) => {
-      req.services = this.services;
-      next();
-    });
+
+    this.app.set("chainRepository", this.chainRepository);
+    this.app.set("solc", options.solc);
+    this.app.set("verifyDeprecated", options.verifyDeprecated);
+    this.app.set("services", this.services);
 
     this.app.use(
       bodyParser.urlencoded({
-        limit: config.get("server.maxFileSize"),
+        limit: options.maxFileSize,
         extended: true,
       }),
     );
-    this.app.use(bodyParser.json({ limit: config.get("server.maxFileSize") }));
+    this.app.use(bodyParser.json({ limit: options.maxFileSize }));
 
     // Init deprecated routes before OpenApiValidator so that it can handle the request with the defined paths.
     // initDeprecatedRoutes is a middleware that replaces the deprecated paths with the real ones.
@@ -100,7 +99,7 @@ export class Server {
 
     this.app.use(
       fileUpload({
-        limits: { fileSize: config.get("server.maxFileSize") },
+        limits: { fileSize: options.maxFileSize },
         abortOnLimit: true,
       }),
     );
@@ -164,7 +163,10 @@ export class Server {
               // This is a placeholder token. In a real application, use a more secure method for managing and validating tokens.
               const token = authHeader && authHeader.split(" ")[1];
 
-              return token === process.env.SETLOGGING_TOKEN;
+              if (!options.loggingToken) {
+                return false;
+              }
+              return token === options.loggingToken;
             },
           },
         },
@@ -179,16 +181,19 @@ export class Server {
           },
           "comma-separated-sourcify-chainIds": {
             type: "string",
-            validate: (chainIds: string) => validateSourcifyChainIds(chainIds),
+            validate: (chainIds: string) =>
+              this.chainRepository.validateSourcifyChainIds(chainIds),
           },
           "supported-chainId": {
             type: "string",
-            validate: (chainId: string) => checkSupportedChainId(chainId),
+            validate: (chainId: string) =>
+              this.chainRepository.checkSupportedChainId(chainId),
           },
           // "Sourcify chainIds" include the chains that are revoked verification support, but can have contracts in the repo.
           "sourcify-chainId": {
             type: "string",
-            validate: (chainId: string) => checkSourcifyChainId(chainId),
+            validate: (chainId: string) =>
+              this.chainRepository.checkSourcifyChainId(chainId),
           },
           "match-type": {
             type: "string",
@@ -219,10 +224,11 @@ export class Server {
       next();
     });
 
-    if (config.get("rateLimit.enabled")) {
+    if (options.rateLimit.enabled) {
+      const hideIpInLogs = options.rateLimit.hideIpInLogs;
       const limiter = rateLimit({
-        windowMs: config.get("rateLimit.windowMs"),
-        max: config.get("rateLimit.max"),
+        windowMs: options.rateLimit.windowMs,
+        max: options.rateLimit.max,
         standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
         legacyHeaders: false, // Disable the `X-RateLimit-*` headers
         message: {
@@ -232,7 +238,7 @@ export class Server {
         handler: (req, res, next, options) => {
           const ip = getIp(req);
           const ipHash = ip ? hash(ip) : "";
-          const ipLog = process.env.NODE_ENV === "production" ? ipHash : ip; // Don't log IPs in production master
+          const ipLog = hideIpInLogs ? ipHash : ip;
           const store = options.store as ExpressRateLimitMemoryStore;
           const hits = store.hits[ip || ""];
           logger.debug("Rate limit hit", {
@@ -248,7 +254,7 @@ export class Server {
         },
         skip: (req) => {
           const ip = getIp(req);
-          const whitelist = config.get("rateLimit.whitelist") as string[];
+          const whitelist = options.rateLimit.whitelist as string[];
           for (const ipPrefix of whitelist) {
             if (ip?.startsWith(ipPrefix)) return true;
           }
@@ -273,7 +279,7 @@ export class Server {
       // startsWith to match /session*
       if (sessionPaths.some((substr) => req.path.startsWith(substr))) {
         return cors({
-          origin: config.get("corsAllowedOrigins"),
+          origin: options.corsAllowedOrigins,
           credentials: true,
         })(req, res, next);
       }
@@ -289,7 +295,7 @@ export class Server {
     // for the case "X-Forwarded-For: 2.2.2.2, 192.168.1.5", we want 2.2.2.2 to be used
     this.app.set("trust proxy", true);
     // Enable session only for session endpoints
-    this.app.use("/*session*", getSessionMiddleware());
+    this.app.use("/*session*", getSessionMiddleware(options.sessionOptions));
 
     this.app.use("/", routes);
     this.app.use(genericErrorHandler);
@@ -322,76 +328,6 @@ export class Server {
       },
     );
   }
-}
-
-if (require.main === module) {
-  const server = new Server(
-    config.get("server.port"),
-    {
-      initCompilers: config.get("initCompilers") || false,
-      supportedChainsMap,
-    },
-    {
-      enabledServices: {
-        read: config.get("storage.read"),
-        writeOrWarn: config.get("storage.writeOrWarn"),
-        writeOrErr: config.get("storage.writeOrErr"),
-      },
-      repositoryV1ServiceOptions: {
-        ipfsApi: process.env.IPFS_API as string,
-        repositoryPath: config.get("repositoryV1.path"),
-        repositoryServerUrl: config.get("repositoryV1.serverUrl") as string,
-      },
-      repositoryV2ServiceOptions: {
-        ipfsApi: process.env.IPFS_API as string,
-        repositoryPath: config.has("repositoryV2.path")
-          ? config.get("repositoryV2.path")
-          : undefined,
-      },
-      sourcifyDatabaseServiceOptions: {
-        postgres: {
-          host: process.env.SOURCIFY_POSTGRES_HOST as string,
-          database: process.env.SOURCIFY_POSTGRES_DB as string,
-          user: process.env.SOURCIFY_POSTGRES_USER as string,
-          password: process.env.SOURCIFY_POSTGRES_PASSWORD as string,
-          port: parseInt(process.env.SOURCIFY_POSTGRES_PORT || "5432"),
-        },
-        schema: process.env.SOURCIFY_POSTGRES_SCHEMA as string,
-      },
-      allianceDatabaseServiceOptions: {
-        postgres: {
-          host: process.env.ALLIANCE_POSTGRES_HOST as string,
-          database: process.env.ALLIANCE_POSTGRES_DB as string,
-          user: process.env.ALLIANCE_POSTGRES_USER as string,
-          password: process.env.ALLIANCE_POSTGRES_PASSWORD as string,
-          port: parseInt(process.env.ALLIANCE_POSTGRES_PORT || "5432"),
-        },
-        schema: process.env.ALLIANCE_POSTGRES_SCHEMA as string,
-      },
-    },
-  );
-
-  // Generate the swagger.json and serve it with SwaggerUI at /api-docs
-  server.services.init().then(() => {
-    server
-      .loadSwagger(yamljs.load(path.join(__dirname, "..", "openapi.yaml"))) // load the openapi file with the $refs resolved
-      .then((swaggerDocument: any) => {
-        server.app.get("/api-docs/swagger.json", (req, res) =>
-          res.json(swaggerDocument),
-        );
-        server.app.use(
-          "/api-docs",
-          swaggerUi.serve,
-          swaggerUi.setup(swaggerDocument, {
-            customSiteTitle: "Sourcify API",
-            customfavIcon: "https://sourcify.dev/favicon.ico",
-          }),
-        );
-        server.app.listen(server.port, () => {
-          logger.info("Server listening", { port: server.port });
-        });
-      });
-  });
 }
 
 function hash(data: string) {

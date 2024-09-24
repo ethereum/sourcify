@@ -8,8 +8,25 @@ import { SolcLambda, LambdaResponseLimitExceeded } from "../lambda/SolcLambda";
 import { SolcLocal } from "../local/SolcLocal";
 
 export class SolcLambdaWithLocalFallback implements ISolidityCompiler {
-  private solcLambda = new SolcLambda();
-  private solcLocal = new SolcLocal();
+  private solcLambda;
+  private solcLocal;
+
+  constructor(
+    awsRegion: string,
+    awsAccessKeyId: string,
+    awsSecretAccessKey: string,
+    lambdaCompilerFunctionName: string = "compile",
+    solcRepoPath: string,
+    solJsonRepoPath: string,
+  ) {
+    this.solcLambda = new SolcLambda(
+      awsRegion,
+      awsAccessKeyId,
+      awsSecretAccessKey,
+      lambdaCompilerFunctionName,
+    );
+    this.solcLocal = new SolcLocal(solcRepoPath, solJsonRepoPath);
+  }
 
   public async compile(
     version: string,

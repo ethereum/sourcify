@@ -13,13 +13,7 @@ import {
   StringMap,
   CheckedContract,
 } from "@ethereum-sourcify/lib-sourcify";
-import {
-  MatchLevel,
-  MatchLevelWithoutAny,
-  MatchQuality,
-  PathConfig,
-  RepositoryTag,
-} from "../../types";
+import { MatchLevelWithoutAny, MatchQuality, PathConfig } from "../../types";
 import logger from "../../../common/logger";
 import { getAddress, id as keccak256 } from "ethers";
 import { getMatchStatus } from "../../common";

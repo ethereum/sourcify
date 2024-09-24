@@ -1,15 +1,18 @@
 import rimraf from "rimraf";
 import { resetDatabase } from "../helpers/helpers";
-import { Server } from "../../src/server/server";
+import { Server, ServerOptions } from "../../src/server/server";
 import config from "config";
 import http from "http";
-import { supportedChainsMap } from "../../src/sourcify-chains";
+import { sourcifyChainsMap } from "../../src/sourcify-chains";
 import {
   RWStorageIdentifiers,
   StorageIdentifiers,
 } from "../../src/server/services/storageServices/identifiers";
 import { Pool } from "pg";
 import { SourcifyDatabaseService } from "../../src/server/services/storageServices/SourcifyDatabaseService";
+import genFunc from "connect-pg-simple";
+import expressSession from "express-session";
+import { SolcLocal } from "../../src/server/services/compiler/local/SolcLocal";
 
 export type ServerFixtureOptions = {
   port: number;
@@ -21,7 +24,8 @@ export type ServerFixtureOptions = {
 
 export class ServerFixture {
   identifier: StorageIdentifiers | undefined;
-  readonly maxFileSize = config.get<number>("server.maxFileSize");
+  readonly maxFileSize: number;
+  readonly repositoryV1Path: string;
 
   private _server?: Server;
 
@@ -49,19 +53,10 @@ export class ServerFixture {
    * Any tests that may need a different server configuration can be written
    * in a different "describe" block.
    */
-  constructor(options_?: Partial<ServerFixtureOptions>) {
+  constructor(fixtureOptions_?: Partial<ServerFixtureOptions>) {
     let httpServer: http.Server;
-
-    const options: ServerFixtureOptions = {
-      ...{
-        port: config.get("server.port"),
-        read: config.get("storage.read"),
-        writeOrWarn: config.get("storage.writeOrWarn"),
-        writeOrErr: config.get("storage.writeOrErr"),
-        skipDatabaseReset: false,
-      },
-      ...options_,
-    };
+    this.maxFileSize = config.get<number>("server.maxFileSize");
+    this.repositoryV1Path = config.get<string>("repositoryV1.path");
 
     before(async () => {
       process.env.SOURCIFY_POSTGRES_PORT =
@@ -76,15 +71,59 @@ export class ServerFixture {
       ) {
         throw new Error("Not all required environment variables set");
       }
+      const PostgresqlStore = genFunc(expressSession);
+      const postgresSessionStore = new PostgresqlStore({
+        pool: new Pool({
+          host: process.env.SOURCIFY_POSTGRES_HOST,
+          database: process.env.SOURCIFY_POSTGRES_DB,
+          user: process.env.SOURCIFY_POSTGRES_USER,
+          password: process.env.SOURCIFY_POSTGRES_PASSWORD,
+          port: parseInt(process.env.SOURCIFY_POSTGRES_PORT),
+        }),
+      });
+
+      const serverOptions: ServerOptions = {
+        port: fixtureOptions_?.port || config.get<number>("server.port"),
+        maxFileSize: config.get<number>("server.maxFileSize"),
+        rateLimit: config.get<{
+          enabled: boolean;
+          windowMs?: number;
+          max?: number;
+          whitelist?: string[];
+          hideIpInLogs?: boolean;
+        }>("rateLimit"),
+        corsAllowedOrigins: config.get<string[]>("corsAllowedOrigins"),
+        chains: sourcifyChainsMap,
+        solc: new SolcLocal(config.get("solcRepo"), config.get("solJsonRepo")),
+        verifyDeprecated: config.get("verifyDeprecated"),
+        sessionOptions: {
+          secret: config.get("session.secret"),
+          name: "sourcify_vid",
+          rolling: true,
+          resave: false,
+          saveUninitialized: true,
+          cookie: {
+            maxAge: config.get("session.maxAge"),
+            secure: config.get("session.secure"),
+            sameSite: "lax",
+          },
+          store: postgresSessionStore,
+        },
+      };
 
       this._server = new Server(
-        options.port!,
-        { supportedChainsMap },
+        serverOptions,
+        {
+          solcRepoPath: config.get("solcRepo"),
+          solJsonRepoPath: config.get("solJsonRepo"),
+        },
         {
           enabledServices: {
-            read: options.read,
-            writeOrWarn: options.writeOrWarn,
-            writeOrErr: options.writeOrErr,
+            read: fixtureOptions_?.read || config.get("storage.read"),
+            writeOrWarn:
+              fixtureOptions_?.writeOrWarn || config.get("storage.writeOrWarn"),
+            writeOrErr:
+              fixtureOptions_?.writeOrErr || config.get("storage.writeOrErr"),
           },
           repositoryV1ServiceOptions: {
             ipfsApi: process.env.IPFS_API as string,
@@ -93,9 +132,7 @@ export class ServerFixture {
           },
           repositoryV2ServiceOptions: {
             ipfsApi: process.env.IPFS_API as string,
-            repositoryPath: config.has("repositoryV2.path")
-              ? config.get("repositoryV2.path")
-              : undefined,
+            repositoryPath: config.get("repositoryV2.path"),
           },
           sourcifyDatabaseServiceOptions: {
             postgres: {
@@ -119,9 +156,9 @@ export class ServerFixture {
     });
 
     beforeEach(async () => {
-      rimraf.sync(this.server.repository);
-      rimraf.sync(this.server.repositoryV2);
-      if (!options.skipDatabaseReset) {
+      rimraf.sync(config.get("repositoryV1.path"));
+      rimraf.sync(config.get("repositoryV2.path"));
+      if (!fixtureOptions_?.skipDatabaseReset) {
         await resetDatabase(this.sourcifyDatabase);
         console.log("Resetting SourcifyDatabase");
       }
@@ -129,8 +166,8 @@ export class ServerFixture {
 
     after(() => {
       httpServer.close();
-      rimraf.sync(this.server.repository);
-      rimraf.sync(this.server.repositoryV2);
+      rimraf.sync(config.get("repositoryV1.path"));
+      rimraf.sync(config.get("repositoryV2.path"));
     });
   }
 }

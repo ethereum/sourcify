@@ -1,5 +1,6 @@
 import { BadRequestError, NotFoundError } from "../../../../common/errors";
 import {
+  ISolidityCompiler,
   JsonInput,
   Metadata,
   SourcifyChain,
@@ -7,7 +8,6 @@ import {
 } from "@ethereum-sourcify/lib-sourcify";
 import { TooManyRequests } from "../../../../common/errors/TooManyRequests";
 import { BadGatewayError } from "../../../../common/errors/BadGatewayError";
-import { solc } from "../verification.common";
 import logger from "../../../../common/logger";
 
 export type EtherscanResult = {
@@ -231,6 +231,7 @@ export const processRequestFromEtherscan = async (
 };
 
 export const getMetadataFromCompiler = async (
+  solc: ISolidityCompiler,
   compilerVersion: string,
   solcJsonInput: JsonInput,
   contractName: string,
