@@ -530,7 +530,7 @@ export default abstract class AbstractDatabaseService {
         );
 
         // add the onchain contract in contract_deployments
-        await Database.updateContractDeployment(client, this.schema {
+        await Database.updateContractDeployment(client, this.schema, {
           ...databaseColumns.contractDeployment,
           contract_id: contractInsertResult.rows[0].id,
           id: existingVerifiedContractResult[0].deployment_id,
