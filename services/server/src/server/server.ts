@@ -163,6 +163,9 @@ export class Server {
               // This is a placeholder token. In a real application, use a more secure method for managing and validating tokens.
               const token = authHeader && authHeader.split(" ")[1];
 
+              if (!options.loggingToken) {
+                return false;
+              }
               return token === options.loggingToken;
             },
           },
