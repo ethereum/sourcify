@@ -7,7 +7,6 @@ import {
 } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError } from "../../../../../common/errors";
 import { getResponseMatchFromMatch } from "../../../../common";
-import { getAllMetadataAndSourcesFromSolcJson } from "../../../../services/compiler/local/solidityCompiler";
 import { Services } from "../../../../services/services";
 import { ChainRepository } from "../../../../../sourcify-chain-repository";
 
@@ -37,7 +36,11 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
   const address = req.body.address;
 
   const metadataAndSourcesPathBuffers =
-    await getAllMetadataAndSourcesFromSolcJson(solc, solcJson, compilerVersion);
+    await services.verification.getAllMetadataAndSourcesFromSolcJson(
+      solc,
+      solcJson,
+      compilerVersion,
+    );
 
   const checkedContracts = await checkFiles(
     solc,

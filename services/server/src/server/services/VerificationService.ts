@@ -1,9 +1,11 @@
 import {
   verifyDeployed as libSourcifyVerifyDeployed,
   CheckedContract,
-  SourcifyChainMap,
   Match,
   SourcifyChain,
+  ISolidityCompiler,
+  JsonInput,
+  PathBuffer,
 } from "@ethereum-sourcify/lib-sourcify";
 import { getCreatorTx } from "./utils/contract-creation-util";
 import { ContractIsAlreadyBeingVerifiedError } from "../../common/errors/ContractIsAlreadyBeingVerifiedError";
@@ -136,5 +138,49 @@ export class VerificationService {
       throw e;
     }
   }
-  /* eslint-enable no-useless-catch */
+
+  async getAllMetadataAndSourcesFromSolcJson(
+    solc: ISolidityCompiler,
+    solcJsonInput: JsonInput,
+    compilerVersion: string,
+  ): Promise<PathBuffer[]> {
+    if (solcJsonInput.language !== "Solidity")
+      throw new Error(
+        "Only Solidity is supported, the json has language: " +
+          solcJsonInput.language,
+      );
+
+    const outputSelection = {
+      "*": {
+        "*": ["metadata"],
+      },
+    };
+    if (!solcJsonInput.settings) {
+      solcJsonInput.settings = {
+        outputSelection: outputSelection,
+      };
+    }
+    solcJsonInput.settings.outputSelection = outputSelection;
+    const compiled = await solc.compile(compilerVersion, solcJsonInput);
+    const metadataAndSources: PathBuffer[] = [];
+    if (!compiled.contracts)
+      throw new Error("No contracts found in the compiled json output");
+    for (const contractPath in compiled.contracts) {
+      for (const contract in compiled.contracts[contractPath]) {
+        const metadata = compiled.contracts[contractPath][contract].metadata;
+        const metadataPath = `${contractPath}-metadata.json`;
+        metadataAndSources.push({
+          path: metadataPath,
+          buffer: Buffer.from(metadata),
+        });
+        metadataAndSources.push({
+          path: `${contractPath}`,
+          buffer: Buffer.from(
+            solcJsonInput.sources[contractPath].content as string,
+          ),
+        });
+      }
+    }
+    return metadataAndSources;
+  }
 }
