@@ -43,6 +43,7 @@ function initDatabaseStore() {
     pool: pool,
     // Pruning expired sessions every 12 hours
     pruneSessionInterval: 12 * 60 * 60,
+    schemaName: process.env.SOURCIFY_POSTGRES_SCHEMA as string,
   });
 }
 
