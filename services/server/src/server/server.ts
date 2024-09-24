@@ -337,7 +337,3 @@ function getIp(req: Request) {
   }
   return req.ip;
 }
-
-if (require.main === module) {
-  import("./cli");
-}
