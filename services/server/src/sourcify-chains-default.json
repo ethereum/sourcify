@@ -10,6 +10,9 @@
       "blockscoutApi": {
         "url": "https://eth.blockscout.com/"
       },
+      "routescanApi": {
+        "type": "mainnet"
+      },
       "avalancheApi": true,
       "etherscanApi": true
     },
@@ -46,7 +49,10 @@
       "blockscoutApi": {
         "url": "https://eth-holesky.blockscout.com/"
       },
-      "etherscanApi": true
+      "etherscanApi": true,
+      "routescanApi": {
+        "type": "testnet"
+      }
     },
     "rpc": [
       "https://rpc.holesky.ethpandaops.io",
@@ -93,7 +99,10 @@
       "blockscoutApi": {
         "url": "https://eth-sepolia.blockscout.com/"
       },
-      "etherscanApi": true
+      "etherscanApi": true,
+      "routescanApi": {
+        "type": "testnet"
+      }
     }
   },
   "369": {
@@ -307,6 +316,9 @@
       "blockscoutApi": {
         "url": "https://arbitrum-sepolia.blockscout.com/"
       },
+      "routescanApi": {
+        "type": "testnet"
+      },
       "etherscanApi": true
     }
   },
@@ -319,7 +331,10 @@
     },
     "fetchContractCreationTxUsing": {
       "avalancheApi": true,
-      "etherscanApi": true
+      "etherscanApi": true,
+      "routescanApi": {
+        "type": "testnet"
+      }
     }
   },
   "43114": {
@@ -331,7 +346,10 @@
     },
     "fetchContractCreationTxUsing": {
       "avalancheApi": true,
-      "etherscanApi": true
+      "etherscanApi": true,
+      "routescanApi": {
+        "type": "mainnet"
+      }
     }
   },
   "57": {
@@ -418,6 +436,9 @@
       "blockscoutApi": {
         "url": "https://optimism.blockscout.com/"
       },
+      "routescanApi": {
+        "type": "mainnet"
+      },
       "etherscanApi": true
     },
     "rpc": [
@@ -463,6 +484,9 @@
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://blockexplorer.boba.network/"
+      },
+      "routescanApi": {
+        "type": "mainnet"
       }
     }
   },
@@ -665,14 +689,20 @@
     "sourcifyName": "DFK Chain Testnet",
     "supported": true,
     "fetchContractCreationTxUsing": {
-      "avalancheApi": true
+      "avalancheApi": true,
+      "routescanApi": {
+        "type": "testnet"
+      }
     }
   },
   "53935": {
     "sourcifyName": "DFK Chain Mainnet",
     "supported": true,
     "fetchContractCreationTxUsing": {
-      "avalancheApi": true
+      "avalancheApi": true,
+      "routescanApi": {
+        "type": "mainnet"
+      }
     }
   },
   "73799": {
@@ -715,14 +745,20 @@
     "sourcifyName": "Dexalot Testnet",
     "supported": true,
     "fetchContractCreationTxUsing": {
-      "avalancheApi": true
+      "avalancheApi": true,
+      "routescanApi": {
+        "type": "testnet"
+      }
     }
   },
   "432204": {
     "sourcifyName": "Dexalot Mainnet",
     "supported": true,
     "fetchContractCreationTxUsing": {
-      "avalancheApi": true
+      "avalancheApi": true,
+      "routescanApi": {
+        "type": "mainnet"
+      }
     }
   },
   "103090": {
@@ -897,6 +933,9 @@
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://songbird-explorer.flare.network/"
+      },
+      "routescanApi": {
+        "type": "mainnet"
       }
     }
   },
@@ -906,6 +945,9 @@
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://flare-explorer.flare.network/"
+      },
+      "routescanApi": {
+        "type": "mainnet"
       }
     }
   },
@@ -978,6 +1020,9 @@
       "blockscoutApi": {
         "url": "https://base.blockscout.com/"
       },
+      "routescanApi": {
+        "type": "mainnet"
+      },
       "etherscanApi": true
     }
   },
@@ -989,7 +1034,10 @@
       "apiKeyEnvName": "FRAXSCAN_API_KEY"
     },
     "fetchContractCreationTxUsing": {
-      "etherscanApi": true
+      "etherscanApi": true,
+      "routescanApi": {
+        "type": "mainnet"
+      }
     }
   },
   "2522": {
@@ -1000,7 +1048,10 @@
       "apiKeyEnvName": "FRAXSCAN_API_KEY"
     },
     "fetchContractCreationTxUsing": {
-      "etherscanApi": true
+      "etherscanApi": true,
+      "routescanApi": {
+        "type": "testnet"
+      }
     }
   },
   "888": {
@@ -1101,6 +1152,9 @@
     "fetchContractCreationTxUsing": {
       "blockscoutApi": {
         "url": "https://explorer.zora.co/"
+      },
+      "routescanApi": {
+        "type": "mainnet"
       }
     }
   },
@@ -1108,7 +1162,10 @@
     "sourcifyName": "UPTN Mainnet",
     "supported": true,
     "fetchContractCreationTxUsing": {
-      "avalancheApi": true
+      "avalancheApi": true,
+      "routescanApi": {
+        "type": "mainnet"
+      }
     }
   },
   "13337": {
@@ -1129,7 +1186,10 @@
     "sourcifyName": "MELD",
     "supported": true,
     "fetchContractCreationTxUsing": {
-      "avalancheApi": true
+      "avalancheApi": true,
+      "routescanApi": {
+        "type": "mainnet"
+      }
     }
   },
   "2222": {
@@ -1196,7 +1256,12 @@
   },
   "250": {
     "sourcifyName": "FTM Fantom Opera Mainnet",
-    "supported": true
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "routescanApi": {
+        "type": "mainnet"
+      }
+    }
   },
   "42170": {
     "sourcifyName": "Arbitrum Nova",
@@ -1213,7 +1278,10 @@
     "sourcifyName": "Beam",
     "supported": true,
     "fetchContractCreationTxUsing": {
-      "avalancheApi": true
+      "avalancheApi": true,
+      "routescanApi": {
+        "type": "mainnet"
+      }
     }
   },
   "78432": {
@@ -1248,7 +1316,10 @@
     "sourcifyName": "Shrapnel Subnet",
     "supported": true,
     "fetchContractCreationTxUsing": {
-      "avalancheApi": true
+      "avalancheApi": true,
+      "routescanApi": {
+        "type": "mainnet"
+      }
     }
   },
   "10242": {
@@ -1342,6 +1413,9 @@
     "fetchContractCreationTxUsing": {
       "blockscoutApi": {
         "url": "https://sepolia.explorer.zora.energy/"
+      },
+      "routescanApi": {
+        "type": "testnet"
       }
     }
   },
@@ -1374,6 +1448,9 @@
       "etherscanApi": true,
       "blockscoutScrape": {
         "url": "https://explorer.mantle.xyz/"
+      },
+      "routescanApi": {
+        "type": "mainnet"
       }
     }
   },
@@ -1388,6 +1465,9 @@
       "etherscanApi": true,
       "blockscoutScrape": {
         "url": "https://explorer.sepolia.mantle.xyz/"
+      },
+      "routescanApi": {
+        "type": "testnet"
       }
     }
   },
@@ -1467,6 +1547,9 @@
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://explorer.mode.network/"
+      },
+      "routescanApi": {
+        "type": "mainnet"
       }
     }
   },
@@ -1476,6 +1559,9 @@
     "fetchContractCreationTxUsing": {
       "blockscoutApi": {
         "url": "https://sepolia.explorer.mode.network/"
+      },
+      "routescanApi": {
+        "type": "testnet"
       }
     }
   },
@@ -1697,7 +1783,10 @@
     "sourcifyName": "Lamina1",
     "supported": true,
     "fetchContractCreationTxUsing": {
-      "avalancheApi": true
+      "avalancheApi": true,
+      "routescanApi": {
+        "type": "mainnet"
+      }
     }
   },
   "10850": {
