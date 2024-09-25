@@ -10,6 +10,7 @@
       "blockscoutApi": {
         "url": "https://eth.blockscout.com/"
       },
+      "avalancheApi": true,
       "etherscanApi": true
     },
     "rpc": [
