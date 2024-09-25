@@ -228,7 +228,7 @@ export class RepositoryV2Service implements WStorageService {
           address,
           source: true,
           // Store the file with the keccak as name
-          fileName: `${keccak256(sources[sourcePath])}.sol`,
+          fileName: `${keccak256(sources[sourcePath])}`,
         },
         sources[sourcePath],
       );
