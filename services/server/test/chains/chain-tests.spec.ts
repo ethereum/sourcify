@@ -1633,6 +1633,14 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
+  //TixChain Testnet
+  verifyContract(
+    "0x6dbE8dA3D34cb97aF6ADf15fC98fDAD3a8E62Bd7",
+    "723107",
+    "TixChain Testnet",
+    "shared/",
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests: ChainApiResponse[] = [];
     supportedChains
