@@ -1,7 +1,5 @@
 import { BadRequestError } from "../common/errors";
-import { checkSourcifyChainId } from "../sourcify-chains";
 import {
-  CheckedContract,
   InvalidSources,
   Match,
   Metadata,
@@ -37,31 +35,6 @@ export const validateAddresses = (addresses: string): boolean => {
     );
   }
   return true; // if it doesn't throw
-};
-
-/**
- * Validation function for multiple chainIds
- * Note that this checks if a chain exists as a SourcifyChain.
- * This is different that checking for verification support i.e. supported: true or monitoring support i.e. monitored: true
- */
-export const validateSourcifyChainIds = (chainIds: string) => {
-  const chainIdsArray = chainIds.split(",");
-  const validChainIds: string[] = [];
-  const invalidChainIds: string[] = [];
-  for (const chainId of chainIdsArray) {
-    try {
-      if (checkSourcifyChainId(chainId)) {
-        validChainIds.push(chainId);
-      }
-    } catch (e) {
-      invalidChainIds.push(chainId);
-    }
-  }
-
-  if (invalidChainIds.length) {
-    throw new Error(`Invalid chainIds: ${invalidChainIds.join(", ")}`);
-  }
-  return true;
 };
 
 export interface PathContentMap {

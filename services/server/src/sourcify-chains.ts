@@ -6,7 +6,6 @@ import {
   AlchemyInfuraRPC,
   FetchRequestRPC,
 } from "@ethereum-sourcify/lib-sourcify";
-import { BadRequestError } from "./common/errors";
 import { FetchRequest } from "ethers";
 import chainsRaw from "./chains.json";
 import rawSourcifyChainExtentions from "./sourcify-chains-default.json";
@@ -38,7 +37,7 @@ else {
 // chains.json from ethereum-lists (chainId.network/chains.json)
 const allChains = chainsRaw as Chain[];
 
-const LOCAL_CHAINS: SourcifyChain[] = [
+export const LOCAL_CHAINS: SourcifyChain[] = [
   new SourcifyChain({
     name: "Ganache Localhost",
     shortName: "Ganache",
@@ -186,88 +185,4 @@ if (missingChains.length > 0) {
   }
 }
 
-const sourcifyChainsArray = getSortedChainsArray(sourcifyChainsMap);
-const supportedChainsArray = sourcifyChainsArray.filter(
-  (chain) => chain.supported,
-);
-// convert supportedChainArray to a map where the key is the chainId
-const supportedChainsMap = supportedChainsArray.reduce(
-  (map, chain) => ((map[chain.chainId.toString()] = chain), map),
-  <SourcifyChainMap>{},
-);
-
-logger.info("SourcifyChains.Initialized", {
-  supportedChainsCount: supportedChainsArray.length,
-  allChainsCount: sourcifyChainsArray.length,
-  supportedChains: supportedChainsArray.map((c) => c.chainId),
-  allChains: sourcifyChainsArray.map((c) => c.chainId),
-});
-
-// Gets the chainsMap, sorts the chains, returns SourcifyChain array.
-export function getSortedChainsArray(
-  chainMap: SourcifyChainMap,
-): SourcifyChain[] {
-  const chainsArray = Object.values(chainMap);
-  // Have Ethereum chains on top.
-  const ethereumChainIds = [1, 17000, 5, 11155111, 3, 4];
-  const ethereumChains = [] as SourcifyChain[];
-  ethereumChainIds.forEach((id) => {
-    // Ethereum chains might not be in a custom chains.json
-    if (chainMap[id] === undefined) {
-      return;
-    }
-    // Use long form name for Ethereum netorks e.g. "Ethereum Testnet Goerli" instead of "Goerli"
-    chainMap[id].name = chainMap[id].title || chainMap[id].name;
-    ethereumChains.push(chainMap[id]);
-  });
-  // Others, sorted by chainId strings
-  const otherChains = chainsArray
-    .filter((chain) => !ethereumChainIds.includes(chain.chainId))
-    .sort((a, b) =>
-      a.chainId.toString() > b.chainId.toString()
-        ? 1
-        : a.chainId.toString() < b.chainId.toString()
-          ? -1
-          : 0,
-    );
-
-  const sortedChains = ethereumChains.concat(otherChains);
-  return sortedChains;
-}
-
-/**
- * To check if a chain is supported for verification.
- * Note that there might be chains not supported for verification anymore but still exist as a SourcifyChain e.g. Ropsten.
- */
-export function checkSupportedChainId(chainId: string) {
-  if (!(chainId in sourcifyChainsMap && sourcifyChainsMap[chainId].supported)) {
-    throw new BadRequestError(
-      `Chain ${chainId} not supported for verification!`,
-    );
-  }
-
-  return true;
-}
-
-/**
- * To check if a chain exists as a SourcifyChain.
- * Note that there might be chains not supported for verification anymore but still exist as a SourcifyChain e.g. Ropsten.
- */
-export function checkSourcifyChainId(chainId: string) {
-  if (
-    !(chainId in sourcifyChainsMap && sourcifyChainsMap[chainId]) &&
-    chainId != "0"
-  ) {
-    throw new Error(`Chain ${chainId} is not a Sourcify chain!`);
-  }
-
-  return true;
-}
-
-export {
-  sourcifyChainsMap,
-  sourcifyChainsArray,
-  supportedChainsMap,
-  supportedChainsArray,
-  LOCAL_CHAINS,
-};
+export { sourcifyChainsMap };

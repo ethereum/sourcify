@@ -37,10 +37,11 @@ export function createEndpoint(
   reportMatchStatus = false,
 ) {
   return async (req: Request, res: Response, next: NextFunction) => {
+    const services = req.app.get("services") as Services;
     let retrieved: FilesInfo<any>;
     try {
       retrieved = await retrieveMethod(
-        req.services,
+        services,
         req.params.chain,
         req.params.address,
         match,
@@ -60,9 +61,10 @@ export function createContractEndpoint(
   contractRetrieveMethod: ConractRetrieveMethod,
 ) {
   return async (req: Request, res: Response, next: NextFunction) => {
+    const services = req.app.get("services") as Services;
     let retrieved: ContractData;
     try {
-      retrieved = await contractRetrieveMethod(req.services, req.params.chain);
+      retrieved = await contractRetrieveMethod(services, req.params.chain);
       if (retrieved.full.length === 0 && retrieved.partial.length === 0)
         return next(new NotFoundError("Contracts have not been found!"));
     } catch (err: any) {
@@ -77,10 +79,11 @@ export function createPaginatedContractEndpoint(
   match: MatchLevel,
 ) {
   return async (req: Request, res: Response, next: NextFunction) => {
+    const services = req.app.get("services") as Services;
     let retrieved: PaginatedContractData;
     try {
       retrieved = await paginatedContractRetrieveMethod(
-        req.services,
+        services,
         req.params.chain,
         match,
         parseInt((req.query.page as string) || "0"),
@@ -105,6 +108,7 @@ export async function checkAllByChainAndAddressEndpoint(
   req: CheckAllByChainAndAddressEndpointRequest,
   res: Response,
 ) {
+  const services = req.app.get("services") as Services;
   const map: Map<string, any> = new Map();
   const addresses = req.query.addresses.split(",");
   const chainIds = req.query.chainIds?.split?.(",");
@@ -112,11 +116,10 @@ export async function checkAllByChainAndAddressEndpoint(
   for (const address of addresses) {
     for (const chainId of chainIds) {
       try {
-        const found: Match[] =
-          await req.services.storage.performServiceOperation(
-            "checkAllByChainAndAddress",
-            [address, chainId],
-          );
+        const found: Match[] = await services.storage.performServiceOperation(
+          "checkAllByChainAndAddress",
+          [address, chainId],
+        );
         if (found.length != 0) {
           if (!map.has(address)) {
             map.set(address, {
@@ -159,7 +162,8 @@ export async function getFileEndpoint(
   next: NextFunction,
 ) {
   const { match, chain, address } = req.params;
-  const file = await req.services.storage.performServiceOperation("getFile", [
+  const services = req.app.get("services") as Services;
+  const file = await services.storage.performServiceOperation("getFile", [
     chain,
     address,
     match as MatchLevelWithoutAny,
@@ -175,6 +179,7 @@ export async function checkByChainAndAddressesEnpoint(
   req: Request,
   res: Response,
 ) {
+  const services = req.app.get("services") as Services;
   const map: Map<string, any> = new Map();
   const addresses = (req.query.addresses as string).split(",");
   const chainIds = (req.query.chainIds as string).split(",");
@@ -182,11 +187,10 @@ export async function checkByChainAndAddressesEnpoint(
   for (const address of addresses) {
     for (const chainId of chainIds) {
       try {
-        const found: Match[] =
-          await req.services.storage.performServiceOperation(
-            "checkByChainAndAddress",
-            [address, chainId],
-          );
+        const found: Match[] = await services.storage.performServiceOperation(
+          "checkByChainAndAddress",
+          [address, chainId],
+        );
         if (found.length != 0) {
           if (!map.has(address)) {
             map.set(address, { address, status: "perfect", chainIds: [] });

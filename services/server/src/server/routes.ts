@@ -5,8 +5,8 @@ import sessionStateRoutes from "./controllers/verification/session-state/session
 import verifyRoutes from "./controllers/verification/verify/verify.routes";
 import solcJsonRoutes from "./controllers/verification/solc-json/solc-json.routes";
 import etherscanRoutes from "./controllers/verification/etherscan/etherscan.routes";
-import { sourcifyChainsArray } from "../sourcify-chains";
 import logger, { setLogLevel } from "../common/logger";
+import { ChainRepository } from "../sourcify-chain-repository";
 
 const router: Router = Router();
 
@@ -33,6 +33,8 @@ router.post("/change-log-level", (req, res) => {
 });
 
 router.get("/chains", (_req, res) => {
+  const chainRepository = _req.app.get("chainRepository") as ChainRepository;
+  const sourcifyChainsArray = chainRepository.sourcifyChainsArray;
   const sourcifyChains = sourcifyChainsArray.map(
     ({ rpc, name, title, chainId, supported, etherscanApi }) => {
       // Don't publish providers

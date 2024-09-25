@@ -9,7 +9,6 @@ import {
 import { sourcifyChainsMap } from "../../src/sourcify-chains";
 import testContracts from "../helpers/etherscanInstanceContracts.json";
 import {
-  waitSecs,
   unusedAddress,
   invalidAddress,
   unsupportedChain,

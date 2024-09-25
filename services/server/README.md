@@ -26,12 +26,13 @@ See the [Config](#config) section below for details.
 const {
   RWStorageIdentifiers,
 } = require("../server/services/storageServices/identifiers");
-
+  
 module.exports = {
   storage: {
     read: RWStorageIdentifiers.RepositoryV1,
+    writeOrWarn: [],
     writeOrErr: [
-    read: RWStorageIdentifiers.RepositoryV1
+      RWStorageIdentifiers.RepositoryV1
     ]
   }
 }

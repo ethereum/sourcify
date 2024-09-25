@@ -11,6 +11,8 @@ import { LocalChainFixture } from "../helpers/LocalChainFixture";
 import { ServerFixture } from "../helpers/ServerFixture";
 import { assertVerification } from "../helpers/assertions";
 import { id as keccak256str } from "ethers";
+import { RWStorageIdentifiers } from "../../src/server/services/storageServices/identifiers";
+import { RepositoryV1Service } from "../../src/server/services/storageServices/RepositoryV1Service";
 
 chai.use(chaiHttp);
 
@@ -65,9 +67,10 @@ describe("E2E test path sanitization", function () {
       contractAddress,
       chainFixture.chainId,
     );
+
     const isExist = fs.existsSync(
       path.join(
-        serverFixture.server.repository,
+        serverFixture.repositoryV1Path,
         "contracts",
         "full_match",
         chainFixture.chainId,
@@ -135,8 +138,9 @@ describe("E2E test path sanitization", function () {
 
     chai.expect(verificationResponse.status).to.equal(StatusCodes.OK);
     chai.expect(verificationResponse.body.result[0].status).to.equal("perfect");
+
     const contractSavedPath = path.join(
-      serverFixture.server.repository,
+      serverFixture.repositoryV1Path,
       "contracts",
       "full_match",
       chainFixture.chainId,
@@ -229,8 +233,9 @@ describe("E2E test path sanitization", function () {
             chainFixture.chainId,
             "perfect",
           );
+
           const contractSavedPath = path.join(
-            serverFixture.server.repository,
+            serverFixture.repositoryV1Path,
             "contracts",
             "full_match",
             chainFixture.chainId,

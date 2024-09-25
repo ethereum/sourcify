@@ -6,14 +6,20 @@ import {
   isVerifiable,
   verifyContractsInSession,
 } from "../../verification.common";
-import { isEmpty } from "@ethereum-sourcify/lib-sourcify";
+import { isEmpty, ISolidityCompiler } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError } from "../../../../../common/errors";
 import logger from "../../../../../common/logger";
+import { Services } from "../../../../services/services";
+import { ChainRepository } from "../../../../../sourcify-chain-repository";
 
 export async function verifyContractsInSessionEndpoint(
   req: Request,
   res: Response,
 ) {
+  const services = req.app.get("services") as Services;
+  const solc = req.app.get("solc") as ISolidityCompiler;
+  const chainRepository = req.app.get("chainRepository") as ChainRepository;
+
   const session = req.session;
   if (!session.contractWrappers || isEmpty(session.contractWrappers)) {
     throw new BadRequestError("There are currently no pending contracts.");
@@ -50,10 +56,12 @@ export async function verifyContractsInSessionEndpoint(
   }
 
   await verifyContractsInSession(
+    solc,
     verifiable,
     session,
-    req.services.verification,
-    req.services.storage,
+    services.verification,
+    services.storage,
+    chainRepository,
     dryRun,
   );
   res.send(getSessionJSON(session));

@@ -18,25 +18,13 @@ import QueryString from "qs";
 import { VerificationService } from "../../services/VerificationService";
 import { ContractMeta, ContractWrapper, getMatchStatus } from "../../common";
 import { ISolidityCompiler } from "@ethereum-sourcify/lib-sourcify";
-import { SolcLambdaWithLocalFallback } from "../../services/compiler/lambda-with-fallback/SolcLambdaWithLocalFallback";
-import { SolcLocal } from "../../services/compiler/local/SolcLocal";
 import { StorageService } from "../../services/StorageService";
 import logger from "../../../common/logger";
-import config from "config";
 import { createHash } from "crypto";
-
-let selectedSolidityCompiler: ISolidityCompiler;
-if (config.get("lambdaCompiler.enabled")) {
-  logger.info("Using lambda solidity compiler with local fallback");
-  selectedSolidityCompiler = new SolcLambdaWithLocalFallback();
-} else {
-  logger.info("Using local solidity compiler");
-  selectedSolidityCompiler = new SolcLocal();
-}
-
-export const solc = selectedSolidityCompiler;
+import { ChainRepository } from "../../../sourcify-chain-repository";
 
 export function createCheckedContract(
+  solc: ISolidityCompiler,
   metadata: Metadata,
   solidity: StringMap,
   missing?: MissingSources,
@@ -222,7 +210,10 @@ export function updateUnused(unused: string[], session: Session) {
   session.unusedSources = unused;
 }
 
-export const checkContractsInSession = async (session: Session) => {
+export const checkContractsInSession = async (
+  solc: ISolidityCompiler,
+  session: Session,
+) => {
   const pathBuffers: PathBuffer[] = [];
   for (const id in session.inputFiles) {
     const pathContent = session.inputFiles[id];
@@ -337,10 +328,12 @@ export function isVerifiable(contractWrapper: ContractWrapper) {
 }
 
 export const verifyContractsInSession = async (
+  solc: ISolidityCompiler,
   contractWrappers: ContractWrapperMap = {},
   session: Session,
   verificationService: VerificationService,
   storageService: StorageService,
+  chainRepository: ChainRepository,
   dryRun: boolean = false,
 ): Promise<void> => {
   logger.debug("verifyContractsInSession", {
@@ -380,6 +373,7 @@ export const verifyContractsInSession = async (
 
     // The session saves the CheckedContract as a simple object, so we need to reinstantiate it
     const checkedContract = createCheckedContract(
+      solc,
       contract.metadata,
       contract.solidity,
       contract.missing,
@@ -399,7 +393,7 @@ export const verifyContractsInSession = async (
     try {
       match = await verificationService.verifyDeployed(
         checkedContract,
-        chainId as string,
+        chainRepository.sourcifyChainMap[chainId as string],
         address as string,
         creatorTxHash,
       );
@@ -419,6 +413,7 @@ export const verifyContractsInSession = async (
           buffer: Buffer.from(base64file.content, FILE_ENCODING),
         }));
         const checkedContractWithAllSources = createCheckedContract(
+          solc,
           contractWrapper.contract.metadata,
           contractWrapper.contract.solidity,
           contractWrapper.contract.missing,
@@ -430,7 +425,7 @@ export const verifyContractsInSession = async (
         );
         const tempMatch = await verificationService.verifyDeployed(
           contractWithAllSources,
-          chainId as string,
+          chainRepository.sourcifyChainMap[chainId as string],
           address as string,
         );
         if (

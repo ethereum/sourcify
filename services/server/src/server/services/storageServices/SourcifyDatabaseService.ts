@@ -22,8 +22,7 @@ import {
   MatchLevelWithoutAny,
   PaginatedContractData,
 } from "../../types";
-import config from "config";
-import Path, { format } from "path";
+import Path from "path";
 import { getFileRelativePath } from "../utils/util";
 import { getAddress, id as keccak256Str } from "ethers";
 import { BadRequestError } from "../../../common/errors";
@@ -37,15 +36,18 @@ export class SourcifyDatabaseService
   implements RWStorageService
 {
   storageService: StorageService;
+  repositoryV1ServerUrl: string;
   IDENTIFIER = RWStorageIdentifiers.SourcifyDatabase;
   databasePool!: Pool;
 
   constructor(
     storageService_: StorageService,
     options: DatabaseServiceOptions,
+    repositoryV1ServerUrl: string,
   ) {
     super(options);
     this.storageService = storageService_;
+    this.repositoryV1ServerUrl = repositoryV1ServerUrl;
   }
 
   async checkByChainAndAddress(
@@ -72,6 +74,7 @@ export class SourcifyDatabaseService
     const existingVerifiedContractResult =
       await Database.getSourcifyMatchByChainAddress(
         this.databasePool,
+        this.schema,
         parseInt(chainId),
         bytesFromString(address)!,
         onlyPerfectMatches,
@@ -103,6 +106,7 @@ export class SourcifyDatabaseService
     const matchAddressesCountResult =
       await Database.countSourcifyMatchAddresses(
         this.databasePool,
+        this.schema,
         parseInt(chainId),
       );
 
@@ -132,6 +136,7 @@ export class SourcifyDatabaseService
       const perfectMatchAddressesResult =
         await Database.getSourcifyMatchAddressesByChainAndMatch(
           this.databasePool,
+          this.schema,
           parseInt(chainId),
           "full_match",
           0,
@@ -152,6 +157,7 @@ export class SourcifyDatabaseService
       const partialMatchAddressesResult =
         await Database.getSourcifyMatchAddressesByChainAndMatch(
           this.databasePool,
+          this.schema,
           parseInt(chainId),
           "partial_match",
           0,
@@ -198,6 +204,7 @@ export class SourcifyDatabaseService
     const matchAddressesCountResult =
       await Database.countSourcifyMatchAddresses(
         this.databasePool,
+        this.schema,
         parseInt(chainId),
       );
 
@@ -230,6 +237,7 @@ export class SourcifyDatabaseService
     const matchAddressesResult =
       await Database.getSourcifyMatchAddressesByChainAndMatch(
         this.databasePool,
+        this.schema,
         parseInt(chainId),
         match,
         page,
@@ -263,6 +271,7 @@ export class SourcifyDatabaseService
 
     const sourcifyMatchResult = await Database.getSourcifyMatchByChainAddress(
       this.databasePool,
+      this.schema,
       parseInt(chainId),
       bytesFromString(address)!,
     );
@@ -413,7 +422,7 @@ export class SourcifyDatabaseService
         contractStatus,
         source,
       );
-      return `${config.get("repositoryV1.serverUrl")}/${relativePath}`;
+      return `${this.repositoryV1ServerUrl}/${relativePath}`;
     });
 
     const filesWithUrl = Object.keys(filesRaw).map((file) => {
@@ -423,7 +432,7 @@ export class SourcifyDatabaseService
         contractStatus,
         file,
       );
-      return `${config.get("repositoryV1.serverUrl")}/${relativePath}`;
+      return `${this.repositoryV1ServerUrl}/${relativePath}`;
     });
 
     const response = {
@@ -535,7 +544,7 @@ export class SourcifyDatabaseService
           "VerifiedContractId undefined before inserting sourcify match",
         );
       }
-      await Database.insertSourcifyMatch(this.databasePool, {
+      await Database.insertSourcifyMatch(this.databasePool, this.schema, {
         verified_contract_id: verifiedContractId,
         creation_match: match.creationMatch,
         runtime_match: match.runtimeMatch,
@@ -566,6 +575,7 @@ export class SourcifyDatabaseService
       }
       await Database.updateSourcifyMatch(
         this.databasePool,
+        this.schema,
         {
           verified_contract_id: verifiedContractId,
           creation_match: match.creationMatch,
