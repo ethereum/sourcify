@@ -2,6 +2,7 @@ import chai from "chai";
 import { getCreatorTx } from "../../../src/server/services/utils/contract-creation-util";
 import { sourcifyChainsMap } from "../../../src/sourcify-chains";
 import { ChainRepository } from "../../../src/sourcify-chain-repository";
+import { FetchContractCreationTxMethod } from "@ethereum-sourcify/lib-sourcify";
 
 describe("contract creation util", function () {
   it("should run getCreatorTx with chainId 40", async function () {
@@ -123,31 +124,6 @@ describe("contract creation util", function () {
       );
   });
 
-  it("should run getCreatorTx with etherscanApi for Etherscan", async function () {
-    // Don't run if it's an external PR. Etherscan tests need API keys that can't be exposed to external PRs.
-    if (process.env.CIRCLE_PR_REPONAME !== undefined) {
-      return;
-    }
-
-    const sourcifyChainsArray = new ChainRepository(sourcifyChainsMap)
-      .sourcifyChainsArray;
-    const sourcifyChain = sourcifyChainsArray.find(
-      (sourcifyChain) => sourcifyChain.chainId === 1,
-    );
-    if (!sourcifyChain) {
-      chai.assert.fail("No chain for chainId 1 configured");
-    }
-    const creatorTx = await getCreatorTx(
-      sourcifyChain,
-      "0x00000000219ab540356cBB839Cbe05303d7705Fa",
-    );
-    chai
-      .expect(creatorTx)
-      .equals(
-        "0xe75fb554e433e03763a1560646ee22dcb74e5274b34c5ad644e7c0f619a7e1d0",
-      );
-  });
-
   it("should run getCreatorTx with nexusApi for Nexus", async function () {
     const sourcifyChainsArray = new ChainRepository(sourcifyChainsMap)
       .sourcifyChainsArray;
@@ -167,4 +143,53 @@ describe("contract creation util", function () {
         "0xce775b521cc6e1341020560441d77cd634b0972fc34bf96f79e9fab81caa8ab7",
       );
   });
+
+  // Test each fetchContractCreationTxUsing method
+  // We can use the Mainnet to test all below as all support Mainnet
+  const testCases: FetchContractCreationTxMethod[] = [
+    "blockscoutApi",
+    "routescanApi",
+    "etherscanApi",
+    "avalancheApi",
+  ];
+  for (const testCase of testCases) {
+    it(`should run getCreatorTx with ${testCase}`, async function () {
+      const sourcifyChainsArray = new ChainRepository(sourcifyChainsMap)
+        .sourcifyChainsArray;
+      const sourcifyChain = sourcifyChainsArray.find(
+        (sourcifyChain) => sourcifyChain.chainId === 1,
+      );
+      if (!sourcifyChain) {
+        chai.assert.fail("No chain for chainId 1 configured");
+      }
+
+      // Don't run if it's an external PR. Etherscan tests need API keys that can't be exposed to external PRs.
+      if (
+        testCase === "etherscanApi" &&
+        process.env.CIRCLE_PR_REPONAME !== undefined
+      ) {
+        console.log("Skipping Etherscan test for external PR");
+        return;
+      }
+
+      // Remove all other fetchContractCreationTxUsing methods except the one we're testing
+      const testChain = { ...sourcifyChain };
+      if (testChain.fetchContractCreationTxUsing) {
+        testChain.fetchContractCreationTxUsing = {
+          [testCase]: testChain.fetchContractCreationTxUsing[testCase],
+        };
+      }
+
+      const creatorTx = await getCreatorTx(
+        testChain,
+        "0x00000000219ab540356cBB839Cbe05303d7705Fa",
+      );
+      chai
+        .expect(creatorTx)
+        .equals(
+          "0xe75fb554e433e03763a1560646ee22dcb74e5274b34c5ad644e7c0f619a7e1d0",
+          `Failed for ${testCase}`,
+        );
+    });
+  }
 });
