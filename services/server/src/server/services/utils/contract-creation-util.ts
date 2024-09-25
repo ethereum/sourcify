@@ -19,6 +19,8 @@ const METER_SUFFIX = "api/accounts/${ADDRESS}";
 const AVALANCHE_SUBNET_SUFFIX =
   "contracts/${ADDRESS}/transactions:getDeployment";
 const NEXUS_SUFFIX = "v1/${RUNTIME}/accounts/${ADDRESS}";
+const ROUTESCAN_API_URL =
+  "https://api.routescan.io/v2/network/${CHAIN_TYPE}/evm/${CHAIN_ID}/etherscan?module=contract&action=getcontractcreation&contractaddresses=${ADDRESS}";
 
 function getApiContractCreationFetcher(
   url: string,
@@ -90,6 +92,21 @@ function getBlockscoutApiContractCreatorFetcher(
   return getApiContractCreationFetcher(
     apiURL + BLOCKSCOUT_API_SUFFIX,
     (response: any) => response?.creation_tx_hash,
+  );
+}
+
+function getRoutescanApiContractCreatorFetcher(
+  type: "mainnet" | "testnet",
+  chainId: number,
+): ContractCreationFetcher {
+  // Don't replace ${ADDRESS} because it's done inside getCreatorTxUsingFetcher()
+  const url = ROUTESCAN_API_URL.replace("${CHAIN_TYPE}", type).replace(
+    "${CHAIN_ID}",
+    chainId.toString(),
+  );
+  return getApiContractCreationFetcher(
+    url,
+    (response: any) => response?.result?.[0]?.txHash,
   );
 }
 
@@ -247,7 +264,19 @@ export const getCreatorTx = async (
     }
   }
 
-  // Try etherscan if blockscout fails
+  // Try routescan if blockscout fails
+  if (sourcifyChain.fetchContractCreationTxUsing?.routescanApi) {
+    const fetcher = getRoutescanApiContractCreatorFetcher(
+      sourcifyChain.fetchContractCreationTxUsing?.routescanApi.type,
+      sourcifyChain.chainId,
+    );
+    const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
+    if (result) {
+      return result;
+    }
+  }
+
+  // Try etherscan if routescan fails
   if (
     sourcifyChain.fetchContractCreationTxUsing?.etherscanApi &&
     sourcifyChain?.etherscanApi?.apiURL
