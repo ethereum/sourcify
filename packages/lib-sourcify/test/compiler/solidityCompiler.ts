@@ -176,8 +176,8 @@ export async function getSolcExecutable(
   version: string,
 ): Promise<string | null> {
   const fileName = `solc-${platform}-v${version}`;
-  const repoPath = path.join('/tmp', 'solc-repo');
-  const solcPath = path.join(repoPath, fileName);
+  const compilersPath = path.join('/tmp', 'solc-repo');
+  const solcPath = path.join(compilersPath, fileName);
   if (fs.existsSync(solcPath) && validateSolcPath(solcPath)) {
     logDebug('Found solc binary', {
       version,

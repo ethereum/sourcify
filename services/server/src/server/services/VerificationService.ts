@@ -1,8 +1,11 @@
 import {
   verifyDeployed as libSourcifyVerifyDeployed,
   CheckedContract,
-  SourcifyChainMap,
   Match,
+  SourcifyChain,
+  ISolidityCompiler,
+  JsonInput,
+  PathBuffer,
 } from "@ethereum-sourcify/lib-sourcify";
 import { getCreatorTx } from "./utils/contract-creation-util";
 import { ContractIsAlreadyBeingVerifiedError } from "../../common/errors/ContractIsAlreadyBeingVerifiedError";
@@ -15,19 +18,22 @@ import {
 
 export interface VerificationServiceOptions {
   initCompilers?: boolean;
-  supportedChainsMap: SourcifyChainMap;
+  solcRepoPath: string;
+  solJsonRepoPath: string;
 }
 
 export class VerificationService {
   initCompilers: boolean;
-  supportedChainsMap: SourcifyChainMap;
+  solcRepoPath: string;
+  solJsonRepoPath: string;
   activeVerificationsByChainIdAddress: {
     [chainIdAndAddress: string]: boolean;
   } = {};
 
   constructor(options: VerificationServiceOptions) {
-    this.supportedChainsMap = options.supportedChainsMap;
     this.initCompilers = options.initCompilers || false;
+    this.solcRepoPath = options.solcRepoPath;
+    this.solJsonRepoPath = options.solJsonRepoPath;
   }
 
   // All of the solidity compilation actually run outside the VerificationService but this is an OK place to init everything.
@@ -41,8 +47,10 @@ export class VerificationService {
       // solc binary and solc-js downloads are handled with different helpers
       const downLoadFunc =
         platform === "bin"
-          ? (version: string) => getSolcJs(version)
-          : (version: string) => getSolcExecutable(platform, version);
+          ? (version: string) => getSolcJs(this.solJsonRepoPath, version)
+          : // eslint-disable-next-line indent
+            (version: string) =>
+              getSolcExecutable(this.solcRepoPath, platform, version);
 
       // get the list of compiler versions
       let solcList: string[];
@@ -98,10 +106,11 @@ export class VerificationService {
 
   public async verifyDeployed(
     checkedContract: CheckedContract,
-    chainId: string,
+    sourcifyChain: SourcifyChain,
     address: string,
     creatorTxHash?: string,
   ): Promise<Match> {
+    const chainId = sourcifyChain.chainId.toString();
     logger.debug("VerificationService.verifyDeployed", {
       chainId,
       address,
@@ -109,7 +118,6 @@ export class VerificationService {
     this.throwIfContractIsAlreadyBeingVerified(chainId, address);
     this.activeVerificationsByChainIdAddress[`${chainId}:${address}`] = true;
 
-    const sourcifyChain = this.supportedChainsMap[chainId];
     const foundCreatorTxHash =
       creatorTxHash ||
       (await getCreatorTx(sourcifyChain, address)) ||
@@ -130,5 +138,49 @@ export class VerificationService {
       throw e;
     }
   }
-  /* eslint-enable no-useless-catch */
+
+  async getAllMetadataAndSourcesFromSolcJson(
+    solc: ISolidityCompiler,
+    solcJsonInput: JsonInput,
+    compilerVersion: string,
+  ): Promise<PathBuffer[]> {
+    if (solcJsonInput.language !== "Solidity")
+      throw new Error(
+        "Only Solidity is supported, the json has language: " +
+          solcJsonInput.language,
+      );
+
+    const outputSelection = {
+      "*": {
+        "*": ["metadata"],
+      },
+    };
+    if (!solcJsonInput.settings) {
+      solcJsonInput.settings = {
+        outputSelection: outputSelection,
+      };
+    }
+    solcJsonInput.settings.outputSelection = outputSelection;
+    const compiled = await solc.compile(compilerVersion, solcJsonInput);
+    const metadataAndSources: PathBuffer[] = [];
+    if (!compiled.contracts)
+      throw new Error("No contracts found in the compiled json output");
+    for (const contractPath in compiled.contracts) {
+      for (const contract in compiled.contracts[contractPath]) {
+        const metadata = compiled.contracts[contractPath][contract].metadata;
+        const metadataPath = `${contractPath}-metadata.json`;
+        metadataAndSources.push({
+          path: metadataPath,
+          buffer: Buffer.from(metadata),
+        });
+        metadataAndSources.push({
+          path: `${contractPath}`,
+          buffer: Buffer.from(
+            solcJsonInput.sources[contractPath].content as string,
+          ),
+        });
+      }
+    }
+    return metadataAndSources;
+  }
 }

@@ -2,11 +2,11 @@ import { Response } from "express";
 import {
   LegacyVerifyRequest,
   extractFiles,
-  solc,
   stringifyInvalidAndMissing,
 } from "../../verification.common";
 import {
   CheckedContract,
+  ISolidityCompiler,
   Match,
   checkFiles,
   matchWithRuntimeBytecode,
@@ -16,11 +16,17 @@ import { BadRequestError, NotFoundError } from "../../../../../common/errors";
 import { StatusCodes } from "http-status-codes";
 import { getMatchStatus, getResponseMatchFromMatch } from "../../../../common";
 import logger from "../../../../../common/logger";
+import { Services } from "../../../../services/services";
+import { ChainRepository } from "../../../../../sourcify-chain-repository";
 
 export async function legacyVerifyEndpoint(
   req: LegacyVerifyRequest,
   res: Response,
 ): Promise<any> {
+  const services = req.app.get("services") as Services;
+  const solc = req.app.get("solc") as ISolidityCompiler;
+  const chainRepository = req.app.get("chainRepository") as ChainRepository;
+
   const inputFiles = extractFiles(req);
   if (!inputFiles) {
     const msg =
@@ -67,9 +73,9 @@ export async function legacyVerifyEndpoint(
     );
   }
 
-  const match = await req.services.verification.verifyDeployed(
+  const match = await services.verification.verifyDeployed(
     contract,
-    req.body.chain,
+    chainRepository.sourcifyChainMap[req.body.chain],
     req.body.address,
     req.body.creatorTxHash,
   );
@@ -81,9 +87,9 @@ export async function legacyVerifyEndpoint(
       address: req.body.address,
     });
     const contractWithAllSources = await useAllSources(contract, inputFiles);
-    const tempMatch = await req.services.verification.verifyDeployed(
+    const tempMatch = await services.verification.verifyDeployed(
       contractWithAllSources,
-      req.body.chain,
+      chainRepository.sourcifyChainMap[req.body.chain],
       req.body.address,
       req.body.creatorTxHash,
     );
@@ -91,7 +97,7 @@ export async function legacyVerifyEndpoint(
       tempMatch.runtimeMatch === "perfect" ||
       tempMatch.creationMatch === "perfect"
     ) {
-      await req.services.storage.storeMatch(contract, tempMatch);
+      await services.storage.storeMatch(contract, tempMatch);
       return res.send({ result: [getResponseMatchFromMatch(tempMatch)] });
     } else if (tempMatch.runtimeMatch === "extra-file-input-bug") {
       throw new BadRequestError(
@@ -100,7 +106,7 @@ export async function legacyVerifyEndpoint(
     }
   }
   if (match.runtimeMatch || match.creationMatch) {
-    await req.services.storage.storeMatch(contract, match);
+    await services.storage.storeMatch(contract, match);
   }
   return res.send({ result: [getResponseMatchFromMatch(match)] }); // array is an old expected behavior (e.g. by frontend)
 }
@@ -109,7 +115,8 @@ export async function verifyDeprecated(
   req: LegacyVerifyRequest,
   res: Response,
 ): Promise<any> {
-  const { services } = req;
+  const solc = req.app.get("solc") as ISolidityCompiler;
+  const services = req.app.get("services") as Services;
 
   const inputFiles = extractFiles(req);
   if (!inputFiles) {
@@ -180,7 +187,7 @@ export async function verifyDeprecated(
       runtimeBytecode: recompiledRuntimeBytecode,
       immutableReferences,
       runtimeLinkReferences,
-      creationLinkReferences,
+      // creationLinkReferences,
     } = await contract.recompile();
 
     // we are running also matchWithRuntimeBytecode to extract transformations

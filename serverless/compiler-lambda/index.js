@@ -166,8 +166,8 @@ async function getAllMetadataAndSourcesFromSolcJson(solcJson, compilerVersion) {
 
 async function getSolcExecutable(platform, version) {
   const fileName = `solc-${platform}-v${version}`;
-  const repoPath = process.env.SOLC_REPO || path.join("/tmp", "solc-repo");
-  const solcPath = path.join(repoPath, fileName);
+  const compilersPath = process.env.SOLC_REPO || path.join("/tmp", "solc-repo");
+  const solcPath = path.join(compilersPath, fileName);
   if (fs.existsSync(solcPath) && validateSolcPath(solcPath)) {
     console.debug(
       `Found solc ${version} with platform ${platform} at ${solcPath}`,

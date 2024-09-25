@@ -8,28 +8,25 @@ import {
   ISolidityCompiler,
   JsonInput,
 } from "@ethereum-sourcify/lib-sourcify";
-import config from "config";
 import logger from "../../../../common/logger";
 
 export class SolcLambda implements ISolidityCompiler {
   private lambdaClient: LambdaClient;
+  private lambdaCompilerFunctionName: string;
 
-  constructor() {
-    if (
-      process.env.AWS_REGION === undefined ||
-      process.env.AWS_ACCESS_KEY_ID === undefined ||
-      process.env.AWS_SECRET_ACCESS_KEY === undefined
-    ) {
-      throw new Error(
-        "AWS credentials not set. Please set them to run the compiler on AWS Lambda.",
-      );
-    }
+  constructor(
+    awsRegion: string,
+    awsAccessKeyId: string,
+    awsSecretAccessKey: string,
+    lambdaCompilerFunctionName: string = "compile",
+  ) {
+    this.lambdaCompilerFunctionName = lambdaCompilerFunctionName;
     // Initialize Lambda client with environment variables for credentials
     this.lambdaClient = new LambdaClient({
-      region: process.env.AWS_REGION,
+      region: awsRegion,
       credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+        accessKeyId: awsAccessKeyId,
+        secretAccessKey: awsSecretAccessKey,
       },
     });
   }
@@ -50,7 +47,7 @@ export class SolcLambda implements ISolidityCompiler {
 
   private async invokeLambdaFunction(payload: string): Promise<CompilerOutput> {
     const params: InvokeWithResponseStreamCommandInput = {
-      FunctionName: config.get("lambdaCompiler.functionName") || "compile",
+      FunctionName: this.lambdaCompilerFunctionName,
       Payload: payload,
     };
 
