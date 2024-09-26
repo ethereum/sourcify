@@ -37,11 +37,14 @@ jobs:
           name: install dependencies
           command: npm install
       - run:
+          name: build
+          command: npx lerna run build
+      - run:
           name: lint
           command: npm run lerna-lint
       - run:
-          name: tsc and test
-          command: npx lerna run build && npx lerna run lerna-test
+          name: test
+          command: npx lerna run lerna-test
           environment:
             DOCKER_HOST_POSTGRES_TEST_PORT: 5432
             SOURCIFY_POSTGRES_HOST: "localhost"
