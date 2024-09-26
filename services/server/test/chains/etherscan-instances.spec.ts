@@ -1,13 +1,11 @@
 // Periodical tests of Import from Etherscan for each instance e.g. Arbiscan, Etherscan, Bscscan, etc.
 
 import testContracts from "../helpers/etherscanInstanceContracts.json";
-import {
-  sourcifyChainsMap,
-  sourcifyChainsArray,
-} from "../../src/sourcify-chains";
+import { sourcifyChainsMap } from "../../src/sourcify-chains";
 import { verifyAndAssertEtherscan } from "../helpers/helpers";
 import chai from "chai";
 import { ServerFixture } from "../helpers/ServerFixture";
+import { ChainRepository } from "../../src/sourcify-chain-repository";
 
 const CUSTOM_PORT = 5679;
 
@@ -15,6 +13,8 @@ describe("Test each Etherscan instance", function () {
   const serverFixture = new ServerFixture({
     port: CUSTOM_PORT,
   });
+  const sourcifyChainsArray = new ChainRepository(sourcifyChainsMap)
+    .sourcifyChainsArray;
 
   const testedChains: number[] = [];
   let chainId: keyof typeof testContracts;
