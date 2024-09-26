@@ -31,6 +31,7 @@
     "check": "run-s check:*",
     "check:eslint": "eslint . --ext .ts",
     "check:prettier": "prettier \"./**/*.ts\" --check",
+    "check:tsc": "tsc --noEmit -p ./tsconfig.lint.json",
     "cov": "run-s -c build test-local cov:html cov:lcov && open-cli coverage/index.html",
     "cov:html": "c8 report --reporter=html",
     "cov:lcov": "c8 report --reporter=lcov",
