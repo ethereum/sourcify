@@ -295,6 +295,9 @@ export interface FetchContractCreationTxMethods {
     url: string;
     blockscoutPrefix?: string;
   };
+  routescanApi?: {
+    type: 'mainnet' | 'testnet';
+  };
   etherscanApi?: boolean;
   etherscanScrape?: {
     url: string;
@@ -314,6 +317,10 @@ export interface FetchContractCreationTxMethods {
     runtime: string;
   };
 }
+
+// types of the keys of FetchContractCreationTxMethods
+export type FetchContractCreationTxMethod =
+  keyof FetchContractCreationTxMethods;
 
 export type AlchemyInfuraRPC = {
   type: 'Alchemy' | 'Infura';
