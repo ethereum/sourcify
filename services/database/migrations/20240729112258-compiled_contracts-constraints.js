@@ -107,11 +107,16 @@ exports.down = function (db, callback) {
         ALTER TABLE compiled_contracts
         ADD CONSTRAINT compiled_contracts_pseudo_pkey UNIQUE (compiler, language, creation_code_hash, runtime_code_hash);
 
-        DROP FUNCTION IF EXISTS validate_json_object_keys;
-        DROP FUNCTION IF EXISTS validate_json_object_keys;
-        DROP FUNCTION IF EXISTS validate_compilation_artifacts;
-        DROP FUNCTION IF EXISTS validate_creation_code_artifacts;
+        ALTER TABLE compiled_contracts
+        DROP CONSTRAINT IF EXISTS compilation_artifacts_object,
+        DROP CONSTRAINT IF EXISTS creation_code_artifacts_object,
+        DROP CONSTRAINT IF EXISTS runtime_code_artifacts_object;
+
         DROP FUNCTION IF EXISTS validate_runtime_code_artifacts;
+        DROP FUNCTION IF EXISTS validate_creation_code_artifacts;
+        DROP FUNCTION IF EXISTS validate_compilation_artifacts;
+        DROP FUNCTION IF EXISTS validate_json_object_keys(jsonb, text[], text[]);
+        DROP FUNCTION IF EXISTS validate_json_object_keys(jsonb, text[]);
         `,
       ),
     ],

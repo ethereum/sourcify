@@ -10,7 +10,7 @@ import {
   TransformationValues,
   CompiledContractCborAuxdata,
 } from "@ethereum-sourcify/lib-sourcify";
-import { Pool, QueryResult } from "pg";
+import { Pool, PoolClient, QueryResult } from "pg";
 import { Abi } from "abitype";
 import {
   Bytes,
@@ -19,6 +19,7 @@ import {
   BytesTypes,
   Nullable,
 } from "../../types";
+import logger from "../../../common/logger";
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Tables {
@@ -57,7 +58,6 @@ export namespace Tables {
       storageLayout: Nullable<StorageLayout>;
       sources: Nullable<CompilationArtifactsSources>;
     };
-    sources: Record<string, string>;
     compiler_settings: Object;
     creation_code_hash?: BytesSha;
     runtime_code_hash: BytesSha;
@@ -88,6 +88,19 @@ export namespace Tables {
     creation_metadata_match: Nullable<boolean>;
   }
 
+  export interface Sources {
+    source_hash: BytesSha;
+    source_hash_keccak: BytesKeccak;
+    content: string;
+  }
+
+  export interface CompiledContractsSources {
+    id: string;
+    compilation_id: string;
+    source_hash: BytesSha;
+    path: string;
+  }
+
   export interface SourcifyMatch {
     verified_contract_id: number;
     runtime_match: Status | null;
@@ -109,6 +122,12 @@ export interface CompilationArtifactsSources {
   };
 }
 
+export interface SourceInformation {
+  source_hash_keccak: BytesKeccak;
+  content: string;
+  path: string;
+}
+
 // This object contains all Tables fields except foreign keys generated during INSERTs
 export interface DatabaseColumns {
   recompiledCreationCode?: Omit<Tables.Code, "bytecode_hash">;
@@ -124,6 +143,7 @@ export interface DatabaseColumns {
     Tables.VerifiedContract,
     "id" | "compilation_id" | "deployment_id"
   >;
+  sourcesInformation: SourceInformation[];
 }
 
 export type GetVerifiedContractByChainAndAddressResult =
@@ -155,8 +175,11 @@ export async function getVerifiedContractByChainAndAddress(
 }
 
 export type GetSourcifyMatchByChainAddressResult = Tables.SourcifyMatch &
-  Pick<Tables.VerifiedContract, "creation_values" | "runtime_values"> &
-  Pick<Tables.CompiledContract, "runtime_code_artifacts" | "sources"> &
+  Pick<
+    Tables.VerifiedContract,
+    "creation_values" | "runtime_values" | "compilation_id"
+  > &
+  Pick<Tables.CompiledContract, "runtime_code_artifacts"> &
   Pick<Tables.ContractDeployment, "transaction_hash">;
 
 export async function getSourcifyMatchByChainAddress(
@@ -173,9 +196,9 @@ export async function getSourcifyMatchByChainAddress(
         sourcify_matches.creation_match,
         sourcify_matches.runtime_match,
         sourcify_matches.metadata,
-        compiled_contracts.sources,
         verified_contracts.creation_values,
         verified_contracts.runtime_values,
+        verified_contracts.compilation_id,
         compiled_contracts.runtime_code_artifacts,
         contract_deployments.transaction_hash
       FROM ${schema}.sourcify_matches
@@ -195,8 +218,27 @@ ${
   );
 }
 
-export async function insertCode(
+export async function getCompiledContractSources(
   pool: Pool,
+  compilation_id: string,
+): Promise<
+  QueryResult<Tables.CompiledContractsSources & Pick<Tables.Sources, "content">>
+> {
+  return await pool.query(
+    `
+      SELECT
+        compiled_contracts_sources.*,
+        sources.content
+      FROM compiled_contracts_sources
+      LEFT JOIN sources ON sources.source_hash = compiled_contracts_sources.source_hash
+      WHERE compilation_id = $1
+    `,
+    [compilation_id],
+  );
+}
+
+export async function insertCode(
+  pool: PoolClient,
   schema: string,
   { bytecode_hash_keccak, bytecode }: Omit<Tables.Code, "bytecode_hash">,
 ): Promise<QueryResult<Pick<Tables.Code, "bytecode_hash">>> {
@@ -219,7 +261,7 @@ export async function insertCode(
 }
 
 export async function insertContract(
-  pool: Pool,
+  pool: PoolClient,
   schema: string,
   {
     creation_bytecode_hash,
@@ -246,7 +288,7 @@ export async function insertContract(
 }
 
 export async function insertContractDeployment(
-  pool: Pool,
+  pool: PoolClient,
   schema: string,
   {
     chain_id,
@@ -298,7 +340,7 @@ export async function insertContractDeployment(
 }
 
 export async function insertCompiledContract(
-  pool: Pool,
+  pool: PoolClient,
   schema: string,
   {
     compiler,
@@ -307,7 +349,6 @@ export async function insertCompiledContract(
     name,
     fully_qualified_name,
     compilation_artifacts,
-    sources,
     compiler_settings,
     creation_code_hash,
     runtime_code_hash,
@@ -324,13 +365,12 @@ export async function insertCompiledContract(
         name,
         fully_qualified_name,
         compilation_artifacts,
-        sources,
         compiler_settings,
         creation_code_hash,
         runtime_code_hash,
         creation_code_artifacts,
         runtime_code_artifacts
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) ON CONFLICT (compiler, language, creation_code_hash, runtime_code_hash) DO NOTHING RETURNING *
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) ON CONFLICT (compiler, language, creation_code_hash, runtime_code_hash) DO NOTHING RETURNING *
     `,
     [
       compiler,
@@ -339,7 +379,6 @@ export async function insertCompiledContract(
       name,
       fully_qualified_name,
       compilation_artifacts,
-      sources,
       compiler_settings,
       creation_code_hash,
       runtime_code_hash,
@@ -366,8 +405,99 @@ export async function insertCompiledContract(
   return compiledContractsInsertResult;
 }
 
+export async function insertCompiledContractsSources(
+  pool: PoolClient,
+  {
+    sourcesInformation,
+    compilation_id,
+  }: {
+    sourcesInformation: SourceInformation[];
+    compilation_id: string;
+  },
+) {
+  const sourceCodesQueryIndexes: string[] = [];
+  const sourceCodesQueryValues: any[] = [];
+
+  // Loop through each `sourceInformation` to generate the `INSERT INTO sources` query placeholders and values
+  sourcesInformation.forEach((sourceCode, sourceCodesQueryIndex) => {
+    sourceCodesQueryIndexes.push(
+      // `sourceCodesQueryIndex * 2` comes from the number of unique values in the insert query, `sourceCode.content` is used for the first two columns
+      `(digest($${sourceCodesQueryIndex * 2 + 1}, 'sha256'), $${sourceCodesQueryIndex * 2 + 1}, $${sourceCodesQueryIndex * 2 + 2}::bytea)`,
+    );
+    sourceCodesQueryValues.push(sourceCode.content);
+    sourceCodesQueryValues.push(sourceCode.source_hash_keccak);
+  });
+  const sourceCodesQuery = `INSERT INTO sources (
+    source_hash,
+    content,
+    source_hash_keccak
+  ) VALUES ${sourceCodesQueryIndexes.join(",")} ON CONFLICT (source_hash) DO NOTHING RETURNING *`;
+  const sourceCodesQueryResult = await pool.query(
+    sourceCodesQuery,
+    sourceCodesQueryValues,
+  );
+
+  // If some source codes already exist, fetch their hashes from the database
+  if (sourceCodesQueryResult.rows.length < sourcesInformation.length) {
+    const existingSourcesQuery = `
+      SELECT * 
+      FROM sources
+      WHERE source_hash_keccak = ANY($1::bytea[])
+    `;
+    const existingSourcesResult = await pool.query(existingSourcesQuery, [
+      sourcesInformation.map((source) => source.source_hash_keccak),
+    ]);
+    sourceCodesQueryResult.rows = existingSourcesResult.rows;
+  }
+
+  const compiledContractsSourcesQueryIndexes: string[] = [];
+  const compiledContractsSourcesQueryValues: any[] = [];
+
+  // Loop through each `sourceInformation` to generate the query placeholders and values for the `INSERT INTO compiled_contracts_sources` query.
+  // We separate these into two steps because we first need to batch insert into `sources`.
+  // After that, we use the newly inserted `sources.source_hash` to perform the batch insert into `compiled_contracts_sources`.
+  sourcesInformation.forEach(
+    (compiledContractsSource, compiledContractsSourcesQueryIndex) => {
+      compiledContractsSourcesQueryIndexes.push(
+        // `sourceCodesQueryIndex * 3` comes from the number of unique values in the insert query
+        `($${compiledContractsSourcesQueryIndex * 3 + 1}, $${compiledContractsSourcesQueryIndex * 3 + 2}, $${compiledContractsSourcesQueryIndex * 3 + 3})`,
+      );
+      compiledContractsSourcesQueryValues.push(compilation_id);
+      const source = sourceCodesQueryResult.rows.find(
+        (sc) =>
+          sc.source_hash_keccak.toString("hex") ===
+          compiledContractsSource.source_hash_keccak.toString("hex"),
+      );
+      if (!source) {
+        logger.error(
+          "Source not found while inserting compiled contracts sources",
+          {
+            compilation_id,
+            compiledContractsSource,
+          },
+        );
+        throw new Error(
+          "Source not found while inserting compiled contracts sources",
+        );
+      }
+      compiledContractsSourcesQueryValues.push(source?.source_hash);
+      compiledContractsSourcesQueryValues.push(compiledContractsSource.path);
+    },
+  );
+
+  const compiledContractsSourcesQuery = `INSERT INTO compiled_contracts_sources (
+    compilation_id,
+    source_hash,
+    path
+  ) VALUES ${compiledContractsSourcesQueryIndexes.join(",")} ON CONFLICT (compilation_id, path) DO NOTHING`;
+  await pool.query(
+    compiledContractsSourcesQuery,
+    compiledContractsSourcesQueryValues,
+  );
+}
+
 export async function insertVerifiedContract(
-  pool: Pool,
+  pool: PoolClient,
   schema: string,
   {
     compilation_id,
@@ -686,7 +816,7 @@ export async function getSourcifyMatchAddressesByChainAndMatch(
 }
 
 export async function updateContractDeployment(
-  pool: Pool,
+  pool: PoolClient,
   schema: string,
   {
     id,
