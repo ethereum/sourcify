@@ -83,15 +83,63 @@ merge_locally() {
   echo "Merged staging into master"
 }
 
-push_to_master_and_staging() {
+switch_to_staging() {
+  echo "Switching to staging..."
+  git checkout staging
+  echo "Checked out staging"
+}
+
+push_to_master() {
   # Push to master
   echo "Pushing to master..."
   git push origin master
-  # Go back to staging and merge fast forward master. Then push to staging
-  echo "Switching to staging..."
-  git checkout staging
-  echo "Merging master into staging..."
-  git merge master
+  echo "Pushed to master"
+}
+
+ask_if_changelog_pr_merged() {
+  echo "Now please review and approve the PR from the changelogs branch to staging."
+}
+
+push_to_staging() {
   echo "Pushing to staging..."
   git push origin staging
+}
+
+switch_to_master() {
+  echo "Switching to master..."
+  git checkout master
+  echo "Checked out master"
+}
+
+create_new_branch() {
+  local branch_name=$1
+  echo "Creating new branch..."
+  git checkout -b "$branch_name"
+  echo "Created new branch $branch_name"
+}
+
+commit_changelogs() {
+  git commit -m "Update changelogs"
+}
+
+publish_branch() {
+  local branch_name=$1
+  echo "Publishing branch..."
+  git push -u origin "$branch_name"
+  echo "Branch $branch_name published"
+}
+
+open_pr_to_staging() {
+  local branch_name=$1
+  echo "Opening PR to staging..."
+  gh pr create --title "Commit changelogs" --body "" --head "$branch_name" --base staging
+  echo "Opened PR to staging"
+}
+
+switch_to_staging_and_pull() {
+  echo "Switching to staging..."
+  git checkout staging
+  echo "Checked out staging"
+  git pull
+  echo "Pulled latest staging"
 }
