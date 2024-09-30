@@ -469,12 +469,12 @@ export class CheckedContract {
 
     // Store the metadata from the compiler output and replace the initial user provided one.
     // Because the compiler output metadata is the one corresponding to the CBOR auxdata and the user might have provided a modified one e.g. the userdoc,abi fields modified which don't affect the compilation.
-    this.metadataRaw = contract.metadata.trim();
+    this.metadataRaw = '{}';
     this.metadata = JSON.parse(this.metadataRaw);
 
     return {
-      creationBytecode: this.creationBytecode,
-      runtimeBytecode: this.runtimeBytecode,
+      creationBytecode: this.creationBytecode.replace('0x', ''),
+      runtimeBytecode: this.runtimeBytecode.replace('0x', ''),
       metadata: this.metadataRaw,
       // Sometimes the compiler returns empty object (not falsey). Convert it to undefined (falsey).
       immutableReferences:
@@ -700,20 +700,33 @@ function createJsonInputFromMetadata(
     solcJsonInput.settings.outputSelection['*'] || {};
 
   solcJsonInput.settings.outputSelection['*']['*'] = [
+    // 'abi',
+    // 'devdoc',
+    // 'userdoc',
+    // // 'storageLayout',
+    // 'evm.legacyAssembly',
+    // 'evm.bytecode.object',
+    // 'evm.bytecode.sourceMap',
+    // // 'evm.bytecode.linkReferences',
+    // // 'evm.bytecode.generatedSources',
+    // 'evm.deployedBytecode.object',
+    // 'evm.deployedBytecode.sourceMap',
+    // 'evm.deployedBytecode.linkReferences',
+    // 'evm.deployedBytecode.immutableReferences',
+    // 'metadata',
     'abi',
-    'devdoc',
+    'ast',
+    'interface',
+    'ir',
     'userdoc',
-    'storageLayout',
-    'evm.legacyAssembly',
+    'devdoc',
     'evm.bytecode.object',
-    'evm.bytecode.sourceMap',
-    'evm.bytecode.linkReferences',
-    'evm.bytecode.generatedSources',
+    'evm.bytecode.opcodes',
     'evm.deployedBytecode.object',
+    'evm.deployedBytecode.opcodes',
     'evm.deployedBytecode.sourceMap',
-    'evm.deployedBytecode.linkReferences',
-    'evm.deployedBytecode.immutableReferences',
-    'metadata',
+    'evm.deployedBytecode.sourceMapFull',
+    'evm.methodIdentifiers',
   ];
 
   // Convert the libraries from the metadata format to the compiler_settings format

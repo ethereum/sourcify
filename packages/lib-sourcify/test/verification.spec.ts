@@ -8,10 +8,12 @@ import {
   deployCheckAndVerify,
   deployFromAbiAndBytecode,
   expectMatch,
+  vyperCompiler,
 } from './utils';
 import { describe, it, before } from 'mocha';
 import { expect } from 'chai';
 import {
+  CheckedContract,
   SourcifyChain,
   calculateCreate2Address,
   /* 
@@ -523,6 +525,65 @@ describe('lib-sourcify tests', () => {
       JSON.parse(correctMetadataRaw),
     );
     expect(checkedContracts[0].metadataRaw).to.equal(correctMetadataRaw);
+  });
+
+  it.only('should rewrite metadata on CheckedContract after recompilation', async () => {
+    const contractFolderPath = path.join(
+      __dirname,
+      'sources',
+      'Vyper',
+      'contract',
+    );
+    const { contractAddress } = await deployFromAbiAndBytecode(
+      signer,
+      contractFolderPath,
+      [],
+    );
+    const checkedContract = new CheckedContract(
+      vyperCompiler,
+      {
+        compiler: { version: '0.8.4+commit.c7e474f2' },
+        language: 'Vyper',
+        output: {
+          abi: [],
+          devdoc: {
+            kind: 'dev',
+            methods: {},
+          },
+          userdoc: { kind: 'user', methods: {} },
+        },
+        settings: {
+          compilationTarget: { 'test.vyper': 'test' },
+          evmVersion: 'istanbul',
+          libraries: {},
+          metadata: { bytecodeHash: 'ipfs' },
+          optimizer: { enabled: false, runs: 200 },
+        },
+        sources: {},
+        version: 1,
+      },
+      {
+        'test.vyper': `# @version >=0.3.2
+
+# @notice Simple greeting contract
+
+# @notice Returns the string "Hello World!"
+# @notice The @external decorator means this function can only be called by external parties ie. by other contracts or by a wallet making a transaction
+# @notice The @view decorator means that this function can read the contract state but not alter it. Cannot consume gas.
+@external
+@view
+def helloWorld() -> String[24]:
+    return "Hello World!"
+        `,
+      },
+    );
+
+    const match = await verifyDeployed(
+      checkedContract,
+      sourcifyChainHardhat,
+      contractAddress,
+    );
+    console.log(match, checkedContract);
   });
 
   // For https://github.com/ethereum/sourcify/pull/1623
