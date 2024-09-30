@@ -5,8 +5,8 @@ source "${SCRIPT_DIR}/logging_utils.sh"
 check_current_branch() {
   ## Check if the current branch is master
   local current_branch=$(git rev-parse --abbrev-ref HEAD)
-  if [ "$current_branch" != "master" ]; then
-    error_exit "You are not on the master branch. Please switch to the master branch before running this script."
+  if [ "$current_branch" != "staging" ]; then
+    error_exit "You are not on the staging branch. Please switch to the staging branch before running this script."
   fi
 }
 

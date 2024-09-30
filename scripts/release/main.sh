@@ -25,8 +25,6 @@ if [ -z "$OPEN_PR_NUMBER" ]; then
   OPEN_PR_NUMBER=$(gh pr list --base master --state open | grep staging | awk '{print $1}')
 fi
 
-prompt_execute_or_skip "switching to staging" switch_to_staging
-
 # Define arrays to hold package directories, names, and versions. These are global and needed
 declare -a directories
 declare -a packageNames
