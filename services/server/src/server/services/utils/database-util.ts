@@ -447,7 +447,9 @@ export async function insertCompiledContractsSources(
     `;
     const existingSourcesResult = await pool.query(existingSourcesQuery, [
       sourcesInformation.map((source) =>
-        createHash("sha256").update(source.content).digest("hex"),
+        bytesFromString(
+          createHash("sha256").update(source.content).digest("hex"),
+        ),
       ),
     ]);
     sourceCodesQueryResult.rows = existingSourcesResult.rows;
