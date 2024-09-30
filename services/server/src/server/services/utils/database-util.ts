@@ -20,6 +20,7 @@ import {
   Nullable,
 } from "../../types";
 import logger from "../../../common/logger";
+import { createHash } from "crypto";
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Tables {
@@ -442,10 +443,14 @@ export async function insertCompiledContractsSources(
     const existingSourcesQuery = `
       SELECT * 
       FROM sources
-      WHERE source_hash_keccak = ANY($1::bytea[])
+      WHERE source_hash = ANY($1::bytea[])
     `;
     const existingSourcesResult = await pool.query(existingSourcesQuery, [
-      sourcesInformation.map((source) => source.source_hash_keccak),
+      sourcesInformation.map((source) =>
+        bytesFromString(
+          createHash("sha256").update(source.content).digest("hex"),
+        ),
+      ),
     ]);
     sourceCodesQueryResult.rows = existingSourcesResult.rows;
   }
@@ -463,10 +468,11 @@ export async function insertCompiledContractsSources(
         `($${compiledContractsSourcesQueryIndex * 3 + 1}, $${compiledContractsSourcesQueryIndex * 3 + 2}, $${compiledContractsSourcesQueryIndex * 3 + 3})`,
       );
       compiledContractsSourcesQueryValues.push(compilation_id);
+      const contentHash = createHash("sha256")
+        .update(compiledContractsSource.content)
+        .digest("hex");
       const source = sourceCodesQueryResult.rows.find(
-        (sc) =>
-          sc.source_hash_keccak.toString("hex") ===
-          compiledContractsSource.source_hash_keccak.toString("hex"),
+        (sc) => sc.source_hash.toString("hex") === contentHash,
       );
       if (!source) {
         logger.error(
