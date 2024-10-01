@@ -260,7 +260,7 @@ describe("Verify repository endpoints", function () {
         );
         const url = res.body.find((url: string) => url.includes("Storage.sol"));
         const res1 = await agent.get(
-          "/repository/" + url.replace("${serverUrl}/repository/", ""),
+          "/repository/" + url.replace(`${serverUrl}/repository/`, ""),
         );
         chai
           .expect(res1.text)
