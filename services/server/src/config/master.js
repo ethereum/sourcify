@@ -4,6 +4,7 @@ const {
 } = require("../server/services/storageServices/identifiers");
 
 module.exports = {
+  serverUrl: "https://sourcify.dev/server",
   server: {
     port: 80,
   },
@@ -20,7 +21,6 @@ module.exports = {
   },
   repositoryV1: {
     path: "/home/app/data/repository",
-    serverUrl: "https://repo.sourcify.dev",
   },
   repositoryV2: {
     path: "/home/app/data/repositoryV2",

@@ -109,6 +109,7 @@ const server = new Server(
     solJsonRepoPath,
   },
   {
+    serverUrl: config.get("serverUrl"),
     enabledServices: {
       read: config.get("storage.read"),
       writeOrWarn: config.get("storage.writeOrWarn"),
@@ -117,7 +118,6 @@ const server = new Server(
     repositoryV1ServiceOptions: {
       ipfsApi: process.env.IPFS_API as string,
       repositoryPath: config.get("repositoryV1.path"),
-      repositoryServerUrl: config.get("repositoryV1.serverUrl") as string,
     },
     repositoryV2ServiceOptions: {
       ipfsApi: process.env.IPFS_API as string,
