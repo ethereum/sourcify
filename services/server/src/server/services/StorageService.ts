@@ -73,6 +73,7 @@ export interface EnabledServices {
 }
 
 export interface StorageServiceOptions {
+  serverUrl: string;
   enabledServices: EnabledServices;
   repositoryV1ServiceOptions: RepositoryV1ServiceOptions;
   repositoryV2ServiceOptions: RepositoryV2ServiceOptions;
@@ -104,6 +105,7 @@ export class StorageService {
       if (options.repositoryV1ServiceOptions?.repositoryPath) {
         const repositoryV1 = new RepositoryV1Service(
           options.repositoryV1ServiceOptions,
+          options.serverUrl,
         );
         this.rwServices[repositoryV1.IDENTIFIER] = repositoryV1;
       } else {
@@ -142,7 +144,7 @@ export class StorageService {
         const sourcifyDatabase = new SourcifyDatabaseService(
           this,
           options.sourcifyDatabaseServiceOptions,
-          options.repositoryV1ServiceOptions.repositoryServerUrl,
+          options.serverUrl,
         );
         this.rwServices[sourcifyDatabase.IDENTIFIER] = sourcifyDatabase;
       } else {

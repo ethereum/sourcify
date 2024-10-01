@@ -36,18 +36,18 @@ export class SourcifyDatabaseService
   implements RWStorageService
 {
   storageService: StorageService;
-  repositoryV1ServerUrl: string;
+  serverUrl: string;
   IDENTIFIER = RWStorageIdentifiers.SourcifyDatabase;
   databasePool!: Pool;
 
   constructor(
     storageService_: StorageService,
     options: DatabaseServiceOptions,
-    repositoryV1ServerUrl: string,
+    serverUrl: string,
   ) {
     super(options);
     this.storageService = storageService_;
-    this.repositoryV1ServerUrl = repositoryV1ServerUrl;
+    this.serverUrl = serverUrl;
   }
 
   async checkByChainAndAddress(
@@ -428,7 +428,7 @@ export class SourcifyDatabaseService
         contractStatus,
         source,
       );
-      return `${this.repositoryV1ServerUrl}/${relativePath}`;
+      return `${this.serverUrl}/repository/${relativePath}`;
     });
 
     const filesWithUrl = Object.keys(filesRaw).map((file) => {
@@ -438,7 +438,7 @@ export class SourcifyDatabaseService
         contractStatus,
         file,
       );
-      return `${this.repositoryV1ServerUrl}/${relativePath}`;
+      return `${this.serverUrl}/repository/${relativePath}`;
     });
 
     const response = {

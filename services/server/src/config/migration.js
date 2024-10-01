@@ -9,7 +9,6 @@ module.exports = {
   },
   repositoryV1: {
     path: "/home/app/data/repository",
-    serverUrl: "https://repo.staging.sourcify.dev",
   },
   repositoryV2: {
     path: "/home/app/data/repositoryV2",

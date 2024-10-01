@@ -69,6 +69,74 @@ npx lerna run build
 
 Alternatively, if you are running in a deployment you can pass the `NODE_CONFIG_ENV` name as the config file name and it will take precedence. For example, if you are running in a `NODE_CONFIG_ENV=staging` environment, you can create a [`config/staging.js`](src/config/staging.js) file and it will be used instead of the default config. Local takes precedence over `NODE_CONFIG_ENV`. The file precedence is defined in [node-config package](https://github.com/node-config/node-config/wiki/Configuration-Files#multi-instance-deployments).
 
+<details>
+  <summary>**Full list of config options**</summary>
+  
+```js
+const {
+  WStorageIdentifiers,
+  RWStorageIdentifiers,
+} = require("../server/services/storageServices/identifiers");
+
+module.exports = {
+  serverUrl: "http://sourcify.dev/server", // The public URL of the server
+  server: {
+    port: 5555, // The port the server will run on
+    maxFileSize: 30 * 1024 * 1024, // The maximum uploaded file size in bytes
+  },
+  // The storage services where the verified contract be saved and read from
+  storage: {
+    // read option will be the "source of truth" where the contracts read from for the API requests.
+    read: RWStorageIdentifiers.SourcifyDatabase,
+    // User request will NOT fail if saving to these fail, but only log a warning
+    writeOrWarn: [
+      WStorageIdentifiers.AllianceDatabase,
+      RWStorageIdentifiers.RepositoryV1,
+    ],
+    // The user request will fail if saving to these fail
+    writeOrErr: [
+      WStorageIdentifiers.RepositoryV2,
+      RWStorageIdentifiers.SourcifyDatabase,
+    ],
+  },
+  repositoryV1: {
+    path: "/tmp/sourcify/repository", // The path to the repositoryV1 on the filesystem
+  },
+  repositoryV2: {
+    path: "/tmp/sourcify/repositoryV2", // The path to the repositoryV2 on the filesystem
+  },
+  solcRepo: "/tmp/solc-bin/linux-amd64", // The path to the solc binaries on the filesystem
+  solJsonRepo: "/tmp/solc-bin/soljson", // The path to the solJson binaries on the filesystem
+  session: {
+    secret: process.env.SESSION * SECRET || "CHANGE_ME", // The secret used to sign the session cookie
+    maxAge: 12 * 60 * 60 * 1000, // The maximum age of the session in milliseconds
+    secure: false, //
+    storeType: "memory", // Where to save the session info. "memory" is only good for testing and local development. Don't use it in production!
+  },
+  // It is possible to outsource the compilation to a lambda function instead of running locally. Turned on in production.
+  // Requires env vars AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+  lambdaCompiler: {
+    enabled: false,
+    // functionName: "compile",
+  },
+  // If true, downloads all production version compilers and saves them.
+  initCompilers: false,
+  // The origins that are allowed to access the server, regex allowed
+  corsAllowedOrigins: [/^https?:\/\/(?:.+\.)?sourcify.dev$/],
+  // verify-deprecated endpoint used in services/database/scripts.mjs. Used when recreating the DB with deprecated chains that don't have an RPC.
+  verifyDeprecated: false,
+  rateLimit: {
+    enabled: false,
+    // Maximum number (max) of requests allowed per IP address within the specified time window (windowMs)
+    max: 100,
+    windowMs: 10 * 60 * 1000,
+    // List of IP addresses that are whitelisted from rate limiting
+    whitelist: ["127.0.0.1"],
+  },
+};
+```
+</details>
+
 ### Chains Config
 
 The chains supported by the Sourcify server are defined in `src/sourcify-chains-default.json`.

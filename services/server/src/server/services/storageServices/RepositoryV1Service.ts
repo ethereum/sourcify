@@ -27,17 +27,16 @@ import { exists, readFile } from "../utils/util";
 export interface RepositoryV1ServiceOptions {
   ipfsApi: string;
   repositoryPath: string;
-  repositoryServerUrl: string;
 }
 
 export class RepositoryV1Service implements RWStorageService {
   IDENTIFIER = RWStorageIdentifiers.RepositoryV1;
   repositoryPath: string;
-  repositoryServerUrl: string;
+  serverUrl: string;
 
-  constructor(options: RepositoryV1ServiceOptions) {
+  constructor(options: RepositoryV1ServiceOptions, serverUrl: string) {
     this.repositoryPath = options.repositoryPath;
-    this.repositoryServerUrl = options.repositoryServerUrl;
+    this.serverUrl = serverUrl;
   }
 
   async getFile(
@@ -69,8 +68,7 @@ export class RepositoryV1Service implements RWStorageService {
     const urls: Array<string> = [];
     files.forEach((file) => {
       const relativePath = file.path.replace(this.repositoryPath, "");
-      // TODO: Don't use repositoryV1.serverUrl but a relative URL to the server. Requires a breaking chage to the API
-      urls.push(`${this.repositoryServerUrl}/${relativePath}`);
+      urls.push(`${this.serverUrl}/repository/${relativePath}`);
     });
     return urls;
   }

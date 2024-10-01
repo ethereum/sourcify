@@ -118,6 +118,7 @@ export class ServerFixture {
           solJsonRepoPath: config.get("solJsonRepo"),
         },
         {
+          serverUrl: config.get("serverUrl"),
           enabledServices: {
             read: fixtureOptions_?.read || config.get("storage.read"),
             writeOrWarn:
@@ -128,7 +129,6 @@ export class ServerFixture {
           repositoryV1ServiceOptions: {
             ipfsApi: process.env.IPFS_API as string,
             repositoryPath: config.get("repositoryV1.path"),
-            repositoryServerUrl: config.get("repositoryV1.serverUrl") as string,
           },
           repositoryV2ServiceOptions: {
             ipfsApi: process.env.IPFS_API as string,
