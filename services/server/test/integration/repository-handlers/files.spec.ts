@@ -1,4 +1,5 @@
 import chai from "chai";
+import config from "config";
 import chaiHttp from "chai-http";
 import {
   deployAndVerifyContract,
@@ -15,6 +16,7 @@ import { RWStorageIdentifiers } from "../../../src/server/services/storageServic
 chai.use(chaiHttp);
 
 describe("Verify repository endpoints", function () {
+  const serverUrl = config.get("serverUrl");
   const chainFixture = new LocalChainFixture();
   const serverFixtureWithDatabase = new ServerFixture();
   serverFixtureWithDatabase.identifier = RWStorageIdentifiers.SourcifyDatabase;
@@ -68,8 +70,8 @@ describe("Verify repository endpoints", function () {
         chai
           .expect(res1.body.files)
           .to.have.members([
-            `http://localhost:5555/repository/contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/sources/project:/contracts/Storage.sol`,
-            `http://localhost:5555/repository/contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/metadata.json`,
+            `${serverUrl}/repository/contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/sources/project:/contracts/Storage.sol`,
+            `${serverUrl}/repository/contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/metadata.json`,
           ]);
         const res2 = await agent.get(
           `/files/any/${
@@ -97,8 +99,8 @@ describe("Verify repository endpoints", function () {
         chai
           .expect(res3.body)
           .to.have.members([
-            `http://localhost:5555/repository/contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/sources/project:/contracts/Storage.sol`,
-            `http://localhost:5555/repository/contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/metadata.json`,
+            `${serverUrl}/repository/contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/sources/project:/contracts/Storage.sol`,
+            `${serverUrl}/repository/contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/metadata.json`,
           ]);
         const res4 = await agent.get(
           `/files/contracts/${chainFixture.chainId}`,
@@ -171,8 +173,8 @@ describe("Verify repository endpoints", function () {
         chai
           .expect(res1.body.files)
           .to.have.members([
-            `http://localhost:5555/repository/contracts/partial_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/sources/contracts/StorageModified.sol`,
-            `http://localhost:5555/repository/contracts/partial_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/metadata.json`,
+            `${serverUrl}/repository/contracts/partial_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/sources/contracts/StorageModified.sol`,
+            `${serverUrl}/repository/contracts/partial_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/metadata.json`,
           ]);
         const res2 = await agent.get(
           `/files/any/${
@@ -258,7 +260,7 @@ describe("Verify repository endpoints", function () {
         );
         const url = res.body.find((url: string) => url.includes("Storage.sol"));
         const res1 = await agent.get(
-          "/repository/" + url.replace("http://localhost:5555/repository/", ""),
+          "/repository/" + url.replace("${serverUrl}/repository/", ""),
         );
         chai
           .expect(res1.text)
