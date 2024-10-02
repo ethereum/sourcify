@@ -19,7 +19,7 @@ const pool = new Pool({
 });
 const schema = process.env.POSTGRES_SCHEMA || "public";
 
-const BATCH_SIZE = process.env.BATCH_SIZE || 1000;
+const BATCH_SIZE = parseInt(process.env.BATCH_SIZE || "1000");
 
 async function updateSourceHashes() {
   const client = await pool.connect();
