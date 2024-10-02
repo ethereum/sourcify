@@ -560,6 +560,13 @@ export default abstract class AbstractDatabaseService {
             recompiledRuntimeCodeInsertResult.rows[0].bytecode_hash,
         });
 
+      const compiledContractId = compiledContractsInsertResult.rows[0].id;
+
+      await Database.insertCompiledContractsSources(client, {
+        sourcesInformation: databaseColumns.sourcesInformation,
+        compilation_id: compiledContractId,
+      });
+
       // update verified contract with the newly added recompiled contract
       const verifiedContractInsertResult =
         await Database.insertVerifiedContract(client, this.schema, {

@@ -371,4 +371,20 @@ export async function testPartialUpgrade(
   chai
     .expect(contractIdWithCreatorTransactionHash)
     .to.equal(contractIdWithoutCreatorTransactionHash);
+
+  const sourcesResult = await serverFixture.sourcifyDatabase.query(
+    "SELECT encode(source_hash, 'hex') as source_hash FROM compiled_contracts_sources",
+  );
+
+  chai.expect(sourcesResult?.rows).to.have.length(2);
+  chai.expect(sourcesResult?.rows).to.deep.equal([
+    {
+      source_hash:
+        "fd080cadfc692807b0d856c83148034ab5c47ededd67ea6c93c500a2a0fd4378",
+    },
+    {
+      source_hash:
+        "fb898a1d72892619d00d572bca59a5d98a9664169ff850e2389373e2421af4aa",
+    },
+  ]);
 }
