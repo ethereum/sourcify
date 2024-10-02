@@ -87,9 +87,10 @@ async function updateSourceHashes() {
 updateSourceHashes()
   .then(() => {
     console.log("Source hash update complete");
-    pool.end();
   })
   .catch((error) => {
     console.error("Error in updateSourceHashes:", error);
+  })
+  .finally(() => {
     pool.end();
   });
