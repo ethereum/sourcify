@@ -1646,7 +1646,7 @@ describe("Test Supported Chains", function () {
     "970",
     "OORT Mainnet",
     "shared/",
-  )
+  );
 
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests: ChainApiResponse[] = [];
