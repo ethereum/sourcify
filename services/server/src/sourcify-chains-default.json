@@ -1892,5 +1892,10 @@
     "sourcifyName": "TixChain Testnet",
     "supported": true,
     "rpc": ["https://subnets.avax.network/tixchain/testnet/rpc"]
-  }
+  },
+  "970": {
+      "sourcifyName": "OORT Mainnet",
+      "supported": true,
+      "rpc": ["https://mainnet-rpc.oortech.com"]
+    }
 }

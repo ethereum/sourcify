@@ -1640,6 +1640,13 @@ describe("Test Supported Chains", function () {
     "TixChain Testnet",
     "shared/",
   );
+  //OORT Mainnet
+  verifyContract(
+    "0x90166E6D26cda2aae4126F2A82744697DC90D306",
+    "970",
+    "OORT Mainnet",
+    "shared/",
+  )
 
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests: ChainApiResponse[] = [];
