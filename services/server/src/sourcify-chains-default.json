@@ -1895,7 +1895,6 @@
   },
   "970": {
       "sourcifyName": "OORT Mainnet",
-      "supported": true,
-      "rpc": ["https://mainnet-rpc.oortech.com"]
+      "supported": true
     }
 }
