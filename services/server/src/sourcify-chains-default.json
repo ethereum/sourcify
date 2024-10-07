@@ -1903,9 +1903,6 @@
       "blockscoutApi": {
         "url": "https://mainnet-backend.bsquared.network"
       },
-      "routescanApi": {
-        "type": "mainnet"
-      },
       "etherscanApi": true
     }
   }
