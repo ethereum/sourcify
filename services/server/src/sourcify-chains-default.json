@@ -1900,14 +1900,10 @@
   "223": {
     "sourcifyName": "B2 Mainnet",
     "supported": true,
-    "etherscanApi": {
-      "apiURL": "https://explorer.bsquared.network/api"
-    },
     "fetchContractCreationTxUsing": {
       "blockscoutApi": {
         "url": "https://mainnet-backend.bsquared.network"
-      },
-      "etherscanApi": true
+      }
     }
   }
 }
