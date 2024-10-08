@@ -1,5 +1,4 @@
 import logger from "../../../common/logger";
-import { Pool } from "pg";
 import AbstractDatabaseService from "./AbstractDatabaseService";
 import { WStorageService } from "../StorageService";
 import { CheckedContract, Match } from "@ethereum-sourcify/lib-sourcify";
@@ -10,8 +9,6 @@ export class AllianceDatabaseService
   implements WStorageService
 {
   IDENTIFIER = WStorageIdentifiers.AllianceDatabase;
-  databasePool!: Pool;
-
   async storeMatch(recompiledContract: CheckedContract, match: Match) {
     if (!match.creationMatch) {
       throw new Error("Can't store to AllianceDatabase without creationMatch");

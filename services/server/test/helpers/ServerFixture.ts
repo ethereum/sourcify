@@ -37,7 +37,7 @@ export class ServerFixture {
       this.server.services.storage.rwServices[
         RWStorageIdentifiers.SourcifyDatabase
       ] as SourcifyDatabaseService
-    ).databasePool;
+    ).database.pool;
     if (!_sourcifyDatabase)
       throw new Error("sourcifyDatabase not initialized!");
     return _sourcifyDatabase;
