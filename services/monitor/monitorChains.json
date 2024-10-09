@@ -139,7 +139,7 @@
     "rpc": [
       {
         "type": "ApiKey",
-        "url": "https://ava-mainnet.blastapi.io/{API_KEY}",
+        "url": "https://ava-mainnet.blastapi.io/{API_KEY}/ext/bc/C/rpc",
         "apiKeyEnvName": "BLAST_API_KEY"
       }
     ]
@@ -150,7 +150,7 @@
     "rpc": [
       {
         "type": "ApiKey",
-        "url": "https://ava-testnet.blastapi.io/{API_KEY}",
+        "url": "https://ava-testnet.blastapi.io/{API_KEY}/ext/bc/C/rpc",
         "apiKeyEnvName": "BLAST_API_KEY"
       }
     ]
