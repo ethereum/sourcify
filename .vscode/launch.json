@@ -35,22 +35,6 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Monitor",
-      "cwd": "${workspaceFolder}/services/monitor",
-      "program": "dist/index.js",
-      "args": ["--chainsPath=chains-dev.json"],
-      "envFile": ".env",
-      "outFiles": [
-        "${workspaceFolder}/services/monitor/dist/**/*.js",
-        "${workspaceFolder}/packages/**/build/**/*.js"
-      ],
-      "smartStep": true,
-      "console": "integratedTerminal",
-      "outputCapture": "std"
-    },
-    {
-      "type": "node",
-      "request": "launch",
       "name": "Monitor - without build",
       "cwd": "${workspaceFolder}/services/monitor",
       "program": "dist/index.js",

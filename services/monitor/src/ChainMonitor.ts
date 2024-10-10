@@ -49,6 +49,7 @@ export default class ChainMonitor extends EventEmitter {
     this.sourceFetchers = sourceFetchers; // TODO: handle multipe
     this.chainLogger = logger.child({
       moduleName: "ChainMonitor #" + this.sourcifyChain.chainId,
+      chainId: this.sourcifyChain.chainId,
     });
 
     this.sourcifyServerURLs = monitorConfig.sourcifyServerURLs;
@@ -344,9 +345,6 @@ export default class ChainMonitor extends EventEmitter {
                   address,
                   sourcifyRequestAttempt,
                 },
-              );
-              throw new Error(
-                "Failed to send contract to Sourcify server after multiple attempts.",
               );
             }
           }
