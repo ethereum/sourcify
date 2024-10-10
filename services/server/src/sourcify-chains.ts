@@ -94,10 +94,12 @@ function buildCustomRpcs(
     }
     // Fill in the api keys
     else if (sourcifyRpc.type === "APIKeyRPC") {
-      const url = sourcifyRpc.url.replace(
-        "{API_KEY}",
-        process.env[sourcifyRpc.apiKeyEnvName] || process.env["API_KEY"] || "",
-      );
+      const apiKey =
+        process.env[sourcifyRpc.apiKeyEnvName] || process.env["API_KEY"] || "";
+      if (!apiKey) {
+        throw new Error(`API key not found for ${sourcifyRpc.apiKeyEnvName}`);
+      }
+      const url = sourcifyRpc.url.replace("{API_KEY}", apiKey);
       return rpc.push(url);
     }
     // Build ethers.js FetchRequest object for custom rpcs with auth headers
