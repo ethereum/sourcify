@@ -5,8 +5,6 @@ import {
   StringMap,
 } from "@ethereum-sourcify/lib-sourcify";
 import logger from "../../../common/logger";
-import * as Database from "../utils/database-util";
-import { Pool } from "pg";
 import AbstractDatabaseService, {
   DatabaseServiceOptions,
 } from "./AbstractDatabaseService";
@@ -38,7 +36,6 @@ export class SourcifyDatabaseService
   storageService: StorageService;
   serverUrl: string;
   IDENTIFIER = RWStorageIdentifiers.SourcifyDatabase;
-  databasePool!: Pool;
 
   constructor(
     storageService_: StorageService,
@@ -69,12 +66,10 @@ export class SourcifyDatabaseService
     chainId: string,
     onlyPerfectMatches: boolean = false,
   ): Promise<Match[]> {
-    await this.initDatabasePool();
+    await this.init();
 
     const existingVerifiedContractResult =
-      await Database.getSourcifyMatchByChainAddress(
-        this.databasePool,
-        this.schema,
+      await this.database.getSourcifyMatchByChainAddress(
         parseInt(chainId),
         bytesFromString(address)!,
         onlyPerfectMatches,
@@ -97,18 +92,14 @@ export class SourcifyDatabaseService
   }
 
   getContracts = async (chainId: string): Promise<ContractData> => {
-    await this.initDatabasePool();
+    await this.init();
 
     const res: ContractData = {
       full: [],
       partial: [],
     };
     const matchAddressesCountResult =
-      await Database.countSourcifyMatchAddresses(
-        this.databasePool,
-        this.schema,
-        parseInt(chainId),
-      );
+      await this.database.countSourcifyMatchAddresses(parseInt(chainId));
 
     if (matchAddressesCountResult.rowCount === 0) {
       return res;
@@ -134,9 +125,7 @@ export class SourcifyDatabaseService
 
     if (fullTotal > 0) {
       const perfectMatchAddressesResult =
-        await Database.getSourcifyMatchAddressesByChainAndMatch(
-          this.databasePool,
-          this.schema,
+        await this.database.getSourcifyMatchAddressesByChainAndMatch(
           parseInt(chainId),
           "full_match",
           0,
@@ -155,9 +144,7 @@ export class SourcifyDatabaseService
 
     if (partialTotal > 0) {
       const partialMatchAddressesResult =
-        await Database.getSourcifyMatchAddressesByChainAndMatch(
-          this.databasePool,
-          this.schema,
+        await this.database.getSourcifyMatchAddressesByChainAndMatch(
           parseInt(chainId),
           "partial_match",
           0,
@@ -184,7 +171,7 @@ export class SourcifyDatabaseService
     limit: number,
     descending: boolean = false,
   ): Promise<PaginatedContractData> => {
-    await this.initDatabasePool();
+    await this.init();
 
     // Initialize empty result
     const res: PaginatedContractData = {
@@ -202,11 +189,7 @@ export class SourcifyDatabaseService
 
     // Count perfect and partial matches
     const matchAddressesCountResult =
-      await Database.countSourcifyMatchAddresses(
-        this.databasePool,
-        this.schema,
-        parseInt(chainId),
-      );
+      await this.database.countSourcifyMatchAddresses(parseInt(chainId));
 
     if (matchAddressesCountResult.rowCount === 0) {
       return res;
@@ -235,9 +218,7 @@ export class SourcifyDatabaseService
 
     // Now make the real query for addresses
     const matchAddressesResult =
-      await Database.getSourcifyMatchAddressesByChainAndMatch(
-        this.databasePool,
-        this.schema,
+      await this.database.getSourcifyMatchAddressesByChainAndMatch(
         parseInt(chainId),
         match,
         page,
@@ -267,14 +248,13 @@ export class SourcifyDatabaseService
    * by getTree, getContent and getFile.
    */
   getFiles = async (chainId: string, address: string): Promise<FilesRaw> => {
-    await this.initDatabasePool();
+    await this.init();
 
-    const sourcifyMatchResult = await Database.getSourcifyMatchByChainAddress(
-      this.databasePool,
-      this.schema,
-      parseInt(chainId),
-      bytesFromString(address)!,
-    );
+    const sourcifyMatchResult =
+      await this.database.getSourcifyMatchByChainAddress(
+        parseInt(chainId),
+        bytesFromString(address)!,
+      );
 
     if (sourcifyMatchResult.rowCount === 0) {
       // This is how you handle a non existing contract
@@ -290,8 +270,7 @@ export class SourcifyDatabaseService
         ? "full"
         : "partial";
 
-    const sourcesResult = await Database.getCompiledContractSources(
-      this.databasePool,
+    const sourcesResult = await this.database.getCompiledContractSources(
       sourcifyMatch.compilation_id,
     );
     const sources = sourcesResult.rows.reduce(
@@ -550,7 +529,7 @@ export class SourcifyDatabaseService
           "VerifiedContractId undefined before inserting sourcify match",
         );
       }
-      await Database.insertSourcifyMatch(this.databasePool, this.schema, {
+      await this.database.insertSourcifyMatch({
         verified_contract_id: verifiedContractId,
         creation_match: match.creationMatch,
         runtime_match: match.runtimeMatch,
@@ -579,9 +558,7 @@ export class SourcifyDatabaseService
           "oldVerifiedContractId undefined before updating sourcify match",
         );
       }
-      await Database.updateSourcifyMatch(
-        this.databasePool,
-        this.schema,
+      await this.database.updateSourcifyMatch(
         {
           verified_contract_id: verifiedContractId,
           creation_match: match.creationMatch,
