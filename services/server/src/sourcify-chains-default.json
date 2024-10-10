@@ -608,7 +608,7 @@
     },
     "rpc": [
       {
-        "type": "A",
+        "type": "APIKeyRPC",
         "url": "https://palm-testnet.infura.io/v3/{API_KEY}",
         "apiKeyEnvName": "INFURA_API_KEY"
       }
