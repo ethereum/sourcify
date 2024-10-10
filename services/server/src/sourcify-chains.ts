@@ -5,6 +5,8 @@ import {
   Chain,
   APIKeyRPC,
   FetchRequestRPC,
+  BaseRPC,
+  TraceSupportedRPC,
 } from "@ethereum-sourcify/lib-sourcify";
 import { FetchRequest } from "ethers";
 import chainsRaw from "./chains.json";
@@ -68,34 +70,52 @@ export const LOCAL_CHAINS: SourcifyChain[] = [
  * Function to take the rpc format in sourcify-chains.json and convert it to the format SourcifyChain expects.
  * SourcifyChain expects  url strings or ethers.js FetchRequest objects.
  */
-function buildCustomRpcs(rpc: Array<string | APIKeyRPC | FetchRequestRPC>) {
-  return rpc.map((rpc) => {
-    // simple url
-    if (typeof rpc === "string") {
-      return rpc;
+function buildCustomRpcs(
+  sourcifyRpcs: Array<string | BaseRPC | APIKeyRPC | FetchRequestRPC>,
+) {
+  const traceSupportedRPCs: TraceSupportedRPC[] = [];
+  const rpc: (string | FetchRequest)[] = [];
+  sourcifyRpcs.forEach((sourcifyRpc, index) => {
+    // simple url, can't have traceSupport
+    if (typeof sourcifyRpc === "string") {
+      rpc.push(sourcifyRpc);
+      return;
+    }
+
+    if (sourcifyRpc.traceSupport) {
+      traceSupportedRPCs.push({
+        type: sourcifyRpc.traceSupport,
+        index,
+      });
+    }
+
+    if (sourcifyRpc.type === "BaseRPC") {
+      return rpc.push(sourcifyRpc.url);
     }
     // Fill in the api keys
-    else if (rpc.type === "APIKeyRPC") {
-      return rpc.url.replace(
+    else if (sourcifyRpc.type === "APIKeyRPC") {
+      const url = sourcifyRpc.url.replace(
         "{API_KEY}",
-        process.env[rpc.apiKeyEnvName] || process.env["API_KEY"] || "",
+        process.env[sourcifyRpc.apiKeyEnvName] || process.env["API_KEY"] || "",
       );
+      return rpc.push(url);
     }
     // Build ethers.js FetchRequest object for custom rpcs with auth headers
-    else if (rpc.type === "FetchRequest") {
-      const ethersFetchReq = new FetchRequest(rpc.url);
+    else if (sourcifyRpc.type === "FetchRequest") {
+      const ethersFetchReq = new FetchRequest(sourcifyRpc.url);
       ethersFetchReq.setHeader("Content-Type", "application/json");
-      const headers = rpc.headers;
+      const headers = sourcifyRpc.headers;
       if (headers) {
         headers.forEach(({ headerName, headerEnvName }) => {
           const headerValue = process.env[headerEnvName];
           ethersFetchReq.setHeader(headerName, headerValue || "");
         });
       }
-      return ethersFetchReq;
+      return rpc.push(ethersFetchReq);
     }
-    throw new Error(`Invalid rpc type: ${rpc}`);
+    throw new Error(`Invalid rpc type: ${sourcifyRpc}`);
   });
+  return { rpc, traceSupportedRPCs };
 }
 
 const sourcifyChainsMap: SourcifyChainMap = {};
@@ -127,13 +147,15 @@ for (const i in allChains) {
 
   if (chainId in sourcifyChainsExtensions) {
     const sourcifyExtension = sourcifyChainsExtensions[chainId];
+    const { rpc, traceSupportedRPCs } = buildCustomRpcs(
+      sourcifyExtension.rpc || chain.rpc,
+    );
     // sourcifyExtension is spread later to overwrite chains.json values, rpc specifically
     const sourcifyChain = new SourcifyChain({
       ...chain,
       ...sourcifyExtension,
-      rpc: sourcifyExtension.rpc
-        ? buildCustomRpcs(sourcifyExtension.rpc)
-        : chain.rpc, // avoid rpc ending up as undefined
+      rpc,
+      traceSupportedRPCs,
     });
     sourcifyChainsMap[chainId] = sourcifyChain;
   }
@@ -168,11 +190,13 @@ if (missingChains.length > 0) {
           `Chain ${chainId} is missing rpc in sourcify-chains.json`,
         );
       }
+      const { rpc, traceSupportedRPCs } = buildCustomRpcs(chain.rpc);
       sourcifyChainsMap[chainId] = new SourcifyChain({
         name: chain.sourcifyName,
         chainId: parseInt(chainId),
         supported: chain.supported,
-        rpc: buildCustomRpcs(chain.rpc),
+        rpc,
+        traceSupportedRPCs,
       });
     });
   }

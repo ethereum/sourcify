@@ -10,6 +10,7 @@ import {
   Chain,
   FetchContractCreationTxMethods,
   SourcifyChainExtension,
+  TraceSupportedRPC,
 } from './types';
 import { logDebug, logError, logInfo, logWarn } from './logger';
 
@@ -27,6 +28,7 @@ interface JsonRpcProviderWithUrl extends JsonRpcProvider {
 export type SourcifyChainInstance = Omit<Chain, 'rpc'> &
   Omit<SourcifyChainExtension, 'rpc' | 'sourcifyName'> & {
     rpc: Array<string | FetchRequest>;
+    traceSupportedRPCs?: TraceSupportedRPC[];
   };
 
 class CreatorTransactionMismatchError extends Error {
@@ -40,6 +42,8 @@ export default class SourcifyChain {
   title?: string | undefined;
   chainId: number;
   rpc: Array<string | FetchRequest>;
+  traceSupport?: boolean;
+  traceSupportedRPCs?: TraceSupportedRPC[];
   supported: boolean;
   providers: JsonRpcProviderWithUrl[];
   fetchContractCreationTxUsing?: FetchContractCreationTxMethods;
@@ -58,6 +62,10 @@ export default class SourcifyChain {
     this.fetchContractCreationTxUsing =
       sourcifyChainObj.fetchContractCreationTxUsing;
     this.etherscanApi = sourcifyChainObj.etherscanApi;
+    this.traceSupportedRPCs = sourcifyChainObj.traceSupportedRPCs;
+    this.traceSupport =
+      sourcifyChainObj.traceSupportedRPCs &&
+      sourcifyChainObj.traceSupportedRPCs.length > 0;
 
     if (!this.supported) return; // Don't create providers if chain is not supported
 
@@ -190,48 +198,108 @@ export default class SourcifyChain {
     );
   };
 
-  getTxTraces = async (creatorTxHash: string) => {
-    // Try sequentially all providers
-    for (const provider of this.providers) {
-      try {
-        // Race the RPC call with a timeout
-        const traces = await Promise.race([
-          provider.send('trace_transaction', [creatorTxHash]),
-          this.rejectInMs(RPC_TIMEOUT, provider.url),
-        ]);
-        if (traces instanceof Array && traces.length > 0) {
-          logInfo('Fetched tx traces', {
-            creatorTxHash,
-            providerUrl: provider.url,
-            chainId: this.chainId,
-          });
-          return traces;
-        } else {
-          throw new Error(
-            `Transaction's traces of ${creatorTxHash} on RPC ${provider.url} and chain ${this.chainId} received empty or malformed response`,
-          );
-        }
-      } catch (err) {
-        if (err instanceof Error) {
-          logWarn('Failed to fetch tx traces', {
-            creatorTxHash,
-            providerUrl: provider.url,
-            chainId: this.chainId,
-            error: err.message,
-          });
-          continue;
-        } else {
-          throw err;
-        }
-      }
+  /**
+   * Tries to fetch the creation bytecode for a factory contract with the available methods.
+   * Not limited to traces but might fetch it from other resources too.
+   */
+  getCreationBytecodeForFactory = async (
+    creatorTxHash: string,
+    address: string,
+  ) => {
+    // TODO: Alternative methods e.g. getting from Coleslaw. Not only traces.
+
+    if (!this.traceSupport || !this.traceSupportedRPCs) {
+      throw new Error(
+        `No trace support for chain ${this.chainId}. No other method to get the creation bytecode`,
+      );
     }
 
+    // Try sequentially all providers with trace support
+    for (const traceSupportedRPCObj of this.traceSupportedRPCs) {
+      const { index, type } = traceSupportedRPCObj;
+      const provider = this.providers[index];
+      // Parity type `trace_transaction`
+      if (type === 'trace_transaction') {
+        logDebug('Fetching creation bytecode from parity traces', {
+          creatorTxHash,
+          address,
+          providerUrl: provider.url,
+          chainId: this.chainId,
+        });
+        try {
+          const creationBytecode = await this.extractFromParityTraceProvider(
+            creatorTxHash,
+            address,
+            provider,
+          );
+          return creationBytecode;
+        } catch (e: any) {
+          // Catch to continue with the next provider
+          logWarn('Failed to fetch creation bytecode from parity traces', {
+            creatorTxHash,
+            address,
+            providerUrl: provider.url,
+            chainId: this.chainId,
+            error: e.message,
+          });
+          continue;
+        }
+      }
+      // Geth type `debug_traceTransaction`
+      else if (type === 'debug_traceTransaction') {
+        // TODO: Implement
+        throw new Error('debug_traceTransaction not implemented yet');
+      }
+    }
     throw new Error(
-      'None of the RPCs could successfully fetch tx traces for ' +
+      'Couldnt get the creation bytecode for factory ' +
+        address +
+        ' with tx ' +
         creatorTxHash +
         ' on chain ' +
         this.chainId,
     );
+  };
+
+  /**
+   * For Parity style traces `trace_transaction`
+   * Extracts the creation bytecode from the traces of a transaction
+   */
+  extractFromParityTraceProvider = async (
+    creatorTxHash: string,
+    address: string,
+    provider: JsonRpcProviderWithUrl,
+  ) => {
+    // Race the RPC call with a timeout
+    const traces = await Promise.race([
+      provider.send('trace_transaction', [creatorTxHash]),
+      this.rejectInMs(RPC_TIMEOUT, provider.url),
+    ]);
+    if (traces instanceof Array && traces.length > 0) {
+      logInfo('Fetched tx traces', {
+        creatorTxHash,
+        providerUrl: provider.url,
+        chainId: this.chainId,
+      });
+    } else {
+      throw new Error(
+        `Transaction's traces of ${creatorTxHash} on RPC ${provider.url} and chain ${this.chainId} received empty or malformed response`,
+      );
+    }
+
+    const createTraces = traces.filter((trace: any) => trace.type === 'create');
+    const createdContractAddressesInTx = createTraces.find(
+      (trace) => getAddress(trace.result.address) === address,
+    );
+    if (createdContractAddressesInTx === undefined) {
+      throw new CreatorTransactionMismatchError();
+    }
+    logDebug('Found contract bytecode in traces', {
+      address,
+      creatorTxHash,
+      chainId: this.chainId,
+    });
+    return createdContractAddressesInTx.result.code as string;
   };
 
   /**
@@ -390,39 +458,16 @@ export default class SourcifyChain {
       creationBytecode = creatorTx.data;
       logDebug(`Contract ${address} created with an EOA`);
     } else {
-      // Factory created
-      let traces;
+      // Else, contract was created with a factory
+      if (!this.traceSupport) {
+        throw new Error(
+          `No trace support for chain ${this.chainId}. No other method to get the creation bytecode`,
+        );
+      }
       logDebug(`Contract ${address} created with a factory. Fetching traces`);
-      try {
-        traces = await this.getTxTraces(transactionHash);
-      } catch (e: any) {
-        logInfo(e.message);
-        traces = [];
-      }
-
-      // If traces are available check, otherwise lets just trust
-      if (traces.length > 0) {
-        const createTraces = traces.filter(
-          (trace: any) => trace.type === 'create',
-        );
-        const createdContractAddressesInTx = createTraces.find(
-          (trace) => getAddress(trace.result.address) === address,
-        );
-        if (createdContractAddressesInTx === undefined) {
-          throw new CreatorTransactionMismatchError();
-        }
-        logDebug('Found contract bytecode in traces', {
-          address,
-          transactionHash,
-          chainId: this.chainId,
-        });
-        creationBytecode = createdContractAddressesInTx.result.code;
-      }
-    }
-
-    if (!creationBytecode) {
-      throw new Error(
-        `Cannot get the creation bytecode for ${address} from the transaction hash ${transactionHash} on chain ${this.chainId}`,
+      creationBytecode = await this.getCreationBytecodeForFactory(
+        transactionHash,
+        address,
       );
     }
 

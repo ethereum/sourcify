@@ -1,5 +1,6 @@
 import { Abi } from 'abitype';
 import SourcifyChain from './SourcifyChain';
+import { FetchRequest } from 'ethers';
 export interface PathBuffer {
   path: string;
   buffer: Buffer;
@@ -322,16 +323,32 @@ export interface FetchContractCreationTxMethods {
 export type FetchContractCreationTxMethod =
   keyof FetchContractCreationTxMethods;
 
-export type APIKeyRPC = {
-  type: 'APIKeyRPC';
+export type TraceSupport = 'trace_transaction' | 'debug_traceTransaction';
+
+export type BaseRPC = {
   url: string;
+  type: 'BaseRPC';
+  traceSupport?: TraceSupport;
+};
+
+// override the type of BaseRPC to add the type field
+export type APIKeyRPC = Omit<BaseRPC, 'type'> & {
+  type: 'APIKeyRPC';
   apiKeyEnvName: string;
 };
 
-export type FetchRequestRPC = {
+// override the type of BaseRPC to add the type field
+export type FetchRequestRPC = Omit<BaseRPC, 'type'> & {
   type: 'FetchRequest';
-  url: string;
-  headers?: Array<{ headerName: string; headerEnvName: string }>;
+  headers?: Array<{
+    headerName: string;
+    headerEnvName: string;
+  }>;
+};
+
+export type TraceSupportedRPC = {
+  type: TraceSupport;
+  index: number;
 };
 
 export type SourcifyChainExtension = {
@@ -342,7 +359,12 @@ export type SourcifyChainExtension = {
     apiKeyEnvName?: string;
   };
   fetchContractCreationTxUsing?: FetchContractCreationTxMethods;
-  rpc?: Array<string | APIKeyRPC | FetchRequestRPC>;
+  rpc?: Array<string | BaseRPC | APIKeyRPC | FetchRequestRPC>;
+};
+
+export type RPCObjectWithTraceSupport = {
+  rpc: string | FetchRequest;
+  traceSupport?: TraceSupport;
 };
 
 export interface SourcifyChainsExtensionsObject {
