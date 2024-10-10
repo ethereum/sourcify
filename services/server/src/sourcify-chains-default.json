@@ -1894,7 +1894,27 @@
     "rpc": ["https://subnets.avax.network/tixchain/testnet/rpc"]
   },
   "970": {
-      "sourcifyName": "OORT Mainnet",
-      "supported": true
+    "sourcifyName": "OORT Mainnet",
+    "supported": true
+  },
+  "223": {
+    "sourcifyName": "B2 Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://mainnet-backend.bsquared.network"
+      }
     }
+  },
+  "2442": {
+    "sourcifyName": "Polygon zkEVM Cardona Testnet",
+    "supported": true,
+    "etherscanApi": {
+      "apiURL": "https://api-cardona-zkevm.polygonscan.com",
+      "apiKeyEnvName": "POLYGONSCAN_API_KEY"
+    },
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true
+    }
+  }
 }

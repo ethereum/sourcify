@@ -1648,6 +1648,22 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
+  //B2 Mainnet
+  verifyContract(
+    "0x3A3a009856AC673D91892b05068EB82080ff8744",
+    "223",
+    "B2 Mainnet",
+    "shared/",
+  );
+
+  // Polygon zkEVM Cardona Testnet
+  verifyContract(
+    "0x0c18F206943DD4dbE2Ab2af28c6062AE7EDba5ED",
+    "2442",
+    "Polygon zkEVM Cardona Testnet",
+    "shared/",
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests: ChainApiResponse[] = [];
     supportedChains

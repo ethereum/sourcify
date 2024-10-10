@@ -495,5 +495,22 @@
       "type": "standard-json",
       "expectedStatus": "perfect"
     }
+  ],
+  "2442": [
+    {
+      "address": "0x76de3276bd6adda3f00a29d6dff8b8fdf570d230",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0x010788D1A2bbd1135c38648e2F99bd6D6cF70625",
+      "type": "multiple",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0xd5a515CE2dF4C69aA809De5b9318a3D4452D86BE",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    }
   ]
 }
