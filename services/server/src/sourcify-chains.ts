@@ -3,7 +3,7 @@ import {
   SourcifyChainMap,
   SourcifyChainsExtensionsObject,
   Chain,
-  AlchemyInfuraRPC,
+  APIKeyRPC,
   FetchRequestRPC,
 } from "@ethereum-sourcify/lib-sourcify";
 import { FetchRequest } from "ethers";
@@ -68,24 +68,17 @@ export const LOCAL_CHAINS: SourcifyChain[] = [
  * Function to take the rpc format in sourcify-chains.json and convert it to the format SourcifyChain expects.
  * SourcifyChain expects  url strings or ethers.js FetchRequest objects.
  */
-function buildCustomRpcs(
-  rpc: Array<string | AlchemyInfuraRPC | FetchRequestRPC>,
-) {
+function buildCustomRpcs(rpc: Array<string | APIKeyRPC | FetchRequestRPC>) {
   return rpc.map((rpc) => {
     // simple url
     if (typeof rpc === "string") {
       return rpc;
     }
     // Fill in the api keys
-    else if (rpc.type === "Alchemy") {
+    else if (rpc.type === "APIKeyRPC") {
       return rpc.url.replace(
-        "{ALCHEMY_API_KEY}",
-        process.env[rpc.apiKeyEnvName] || process.env["ALCHEMY_API_KEY"] || "",
-      );
-    } else if (rpc.type === "Infura") {
-      return rpc.url.replace(
-        "{INFURA_API_KEY}",
-        process.env[rpc.apiKeyEnvName] || "",
+        "{API_KEY}",
+        process.env[rpc.apiKeyEnvName] || process.env["API_KEY"] || "",
       );
     }
     // Build ethers.js FetchRequest object for custom rpcs with auth headers
@@ -101,7 +94,7 @@ function buildCustomRpcs(
       }
       return ethersFetchReq;
     }
-    throw new Error(`Invalid rpc type: ${rpc.type}`);
+    throw new Error(`Invalid rpc type: ${rpc}`);
   });
 }
 

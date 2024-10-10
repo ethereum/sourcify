@@ -322,8 +322,8 @@ export interface FetchContractCreationTxMethods {
 export type FetchContractCreationTxMethod =
   keyof FetchContractCreationTxMethods;
 
-export type AlchemyInfuraRPC = {
-  type: 'Alchemy' | 'Infura';
+export type APIKeyRPC = {
+  type: 'APIKeyRPC';
   url: string;
   apiKeyEnvName: string;
 };
@@ -342,7 +342,7 @@ export type SourcifyChainExtension = {
     apiKeyEnvName?: string;
   };
   fetchContractCreationTxUsing?: FetchContractCreationTxMethods;
-  rpc?: Array<string | AlchemyInfuraRPC | FetchRequestRPC>;
+  rpc?: Array<string | APIKeyRPC | FetchRequestRPC>;
 };
 
 export interface SourcifyChainsExtensionsObject {

@@ -32,8 +32,8 @@
         ]
       },
       {
-        "type": "Alchemy",
-        "url": "https://eth-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}",
+        "type": "APIKeyRPC",
+        "url": "https://eth-mainnet.g.alchemy.com/v2/{API_KEY}",
         "apiKeyEnvName": "ALCHEMY_API_KEY"
       }
     ]
@@ -57,8 +57,8 @@
     "rpc": [
       "https://rpc.holesky.ethpandaops.io",
       {
-        "type": "Alchemy",
-        "url": "https://eth-holesky.g.alchemy.com/v2/{ALCHEMY_API_KEY}",
+        "type": "APIKeyRPC",
+        "url": "https://eth-holesky.g.alchemy.com/v2/{API_KEY}",
         "apiKeyEnvName": "ALCHEMY_API_KEY"
       }
     ]
@@ -90,8 +90,8 @@
         ]
       },
       {
-        "type": "Alchemy",
-        "url": "https://eth-sepolia.g.alchemy.com/v2/{ALCHEMY_API_KEY}",
+        "type": "APIKeyRPC",
+        "url": "https://eth-sepolia.g.alchemy.com/v2/{API_KEY}",
         "apiKeyEnvName": "ALCHEMY_API_KEY"
       }
     ],
@@ -229,8 +229,8 @@
     },
     "rpc": [
       {
-        "type": "Alchemy",
-        "url": "https://polygon-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}",
+        "type": "APIKeyRPC",
+        "url": "https://polygon-mainnet.g.alchemy.com/v2/{API_KEY}",
         "apiKeyEnvName": "ALCHEMY_API_KEY"
       }
     ]
@@ -295,8 +295,8 @@
     },
     "rpc": [
       {
-        "type": "Alchemy",
-        "url": "https://arb-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}",
+        "type": "APIKeyRPC",
+        "url": "https://arb-mainnet.g.alchemy.com/v2/{API_KEY}",
         "apiKeyEnvName": "ALCHEMY_API_KEY_ARBITRUM"
       }
     ]
@@ -443,8 +443,8 @@
     },
     "rpc": [
       {
-        "type": "Alchemy",
-        "url": "https://opt-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}",
+        "type": "APIKeyRPC",
+        "url": "https://opt-mainnet.g.alchemy.com/v2/{API_KEY}",
         "apiKeyEnvName": "ALCHEMY_API_KEY_OPTIMISM"
       }
     ]
@@ -468,8 +468,8 @@
     },
     "rpc": [
       {
-        "type": "Alchemy",
-        "url": "https://opt-sepolia.g.alchemy.com/v2/{ALCHEMY_API_KEY}",
+        "type": "APIKeyRPC",
+        "url": "https://opt-sepolia.g.alchemy.com/v2/{API_KEY}",
         "apiKeyEnvName": "ALCHEMY_API_KEY_OPTIMISM"
       }
     ]
@@ -586,8 +586,8 @@
     },
     "rpc": [
       {
-        "type": "Infura",
-        "url": "https://palm-mainnet.infura.io/v3/{INFURA_API_KEY}",
+        "type": "APIKeyRPC",
+        "url": "https://palm-mainnet.infura.io/v3/{API_KEY}",
         "apiKeyEnvName": "INFURA_API_KEY"
       }
     ]
@@ -602,8 +602,8 @@
     },
     "rpc": [
       {
-        "type": "Infura",
-        "url": "https://palm-testnet.infura.io/v3/{INFURA_API_KEY}",
+        "type": "A",
+        "url": "https://palm-testnet.infura.io/v3/{API_KEY}",
         "apiKeyEnvName": "INFURA_API_KEY"
       }
     ]
