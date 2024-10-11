@@ -284,11 +284,13 @@ export default class SourcifyChain {
     const createTraces = traces.filter((trace: any) => trace.type === 'create');
     // This line makes sure the tx in question is indeed for the contract being verified and not a random tx.
     const contractTrace = createTraces.find(
-      (trace) => getAddress(trace.result.address) === address,
+      (trace) =>
+        (trace.result.address as string).toLowerCase() ===
+        address.toLowerCase(),
     );
-    if (contractTrace === undefined) {
+    if (!contractTrace) {
       throw new Error(
-        `Provided tx ${creatorTxHash} creates the address ${contractTrace.result.address} and not the expected address ${address}`,
+        `Provided tx ${creatorTxHash} does not create the expected contract ${address}. Created contracts by this tx: ${createTraces.map((t) => t.result.address).join(', ')}`,
       );
     }
     logDebug('Found contract bytecode in traces', {
