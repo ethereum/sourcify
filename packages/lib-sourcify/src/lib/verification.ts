@@ -688,16 +688,6 @@ export async function matchWithCreationTx(
         abiEncodedConstructorArguments;
     }
 
-    // we need to check if this contract creation tx actually yields the same contract address https://github.com/ethereum/sourcify/issues/887
-    const createdContractAddress = getCreateAddress({
-      from: creatorTx.from,
-      nonce: creatorTx.nonce,
-    });
-    if (createdContractAddress.toLowerCase() !== address.toLowerCase()) {
-      match.creationMatch = null;
-      match.message = `The address being verified ${address} doesn't match the expected ddress of the contract ${createdContractAddress} that will be created by the transaction ${creatorTxHash}.`;
-      return;
-    }
     match.libraryMap = libraryMap;
 
     match.abiEncodedConstructorArguments = abiEncodedConstructorArguments;

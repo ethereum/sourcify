@@ -31,12 +31,6 @@ export type SourcifyChainInstance = Omit<Chain, 'rpc'> &
     traceSupportedRPCs?: TraceSupportedRPC[];
   };
 
-class CreatorTransactionMismatchError extends Error {
-  constructor() {
-    super("Creator transaction doesn't match the contract");
-  }
-}
-
 export default class SourcifyChain {
   name: string;
   title?: string | undefined;
@@ -288,19 +282,22 @@ export default class SourcifyChain {
     }
 
     const createTraces = traces.filter((trace: any) => trace.type === 'create');
-    const createdContractAddressesInTx = createTraces.find(
+    // This line makes sure the tx in question is indeed for the contract being verified and not a random tx.
+    const contractTrace = createTraces.find(
       (trace) => getAddress(trace.result.address) === address,
     );
-    if (createdContractAddressesInTx === undefined) {
-      throw new CreatorTransactionMismatchError();
+    if (contractTrace === undefined) {
+      throw new Error(
+        `Provided tx ${creatorTxHash} creates the address ${contractTrace.result.address} and not the expected address ${address}`,
+      );
     }
     logDebug('Found contract bytecode in traces', {
       address,
       creatorTxHash,
       chainId: this.chainId,
     });
-    if (createdContractAddressesInTx.action.init) {
-      return createdContractAddressesInTx.action.init as string;
+    if (contractTrace.action.init) {
+      return contractTrace.action.init as string;
     } else {
       throw new Error('.action.init not found in traces');
     }
@@ -457,7 +454,10 @@ export default class SourcifyChain {
     // Non null txreceipt.contractAddress means that the contract was created with an EOA
     if (txReceipt.contractAddress !== null) {
       if (txReceipt.contractAddress !== address) {
-        throw new CreatorTransactionMismatchError();
+        // we need to check if this contract creation tx actually yields the same contract address https://github.com/ethereum/sourcify/issues/887
+        throw new Error(
+          `Address of the contract being verified ${address} doesn't match the address ${txReceipt.contractAddress} created by this transaction ${transactionHash}`,
+        );
       }
       creationBytecode = creatorTx.data;
       logDebug(`Contract ${address} created with an EOA`);
