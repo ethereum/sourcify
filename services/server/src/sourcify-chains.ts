@@ -115,7 +115,7 @@ function buildCustomRpcs(
       }
       return rpc.push(ethersFetchReq);
     }
-    throw new Error(`Invalid rpc type: ${sourcifyRpc}`);
+    throw new Error(`Invalid rpc type: ${JSON.stringify(sourcifyRpc)}`);
   });
   return { rpc, traceSupportedRPCs };
 }

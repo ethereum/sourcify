@@ -299,7 +299,11 @@ export default class SourcifyChain {
       creatorTxHash,
       chainId: this.chainId,
     });
-    return createdContractAddressesInTx.result.code as string;
+    if (createdContractAddressesInTx.action.init) {
+      return createdContractAddressesInTx.action.init as string;
+    } else {
+      throw new Error('.action.init not found in traces');
+    }
   };
 
   /**
