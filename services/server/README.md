@@ -26,16 +26,14 @@ See the [Config](#config) section below for details.
 const {
   RWStorageIdentifiers,
 } = require("../server/services/storageServices/identifiers");
-  
+
 module.exports = {
   storage: {
     read: RWStorageIdentifiers.RepositoryV1,
     writeOrWarn: [],
-    writeOrErr: [
-      RWStorageIdentifiers.RepositoryV1
-    ]
-  }
-}
+    writeOrErr: [RWStorageIdentifiers.RepositoryV1],
+  },
+};
 ```
 
 3. Build the monorepo's packages
@@ -188,13 +186,13 @@ A full example of a chain entry is as follows:
         ]
       },
       {
-        "type": "Alchemy", // Alchemy RPCs
-        "url": "https://eth-mainnet.alchemyapi.io/v2/{ALCHEMY_API_KEY}",
+        "type": "APIKeyRPC", // Alchemy RPCs
+        "url": "https://eth-mainnet.alchemyapi.io/v2/{API_KEY}",
         "apiKeyEnvName": "ALCHEMY_API_KEY"
       },
       {
-        "type": "Infura", // Infura RPCs
-        "url": "https://palm-mainnet.infura.io/v3/{INFURA_API_KEY}",
+        "type": "APIKeyRPC", // Infura RPCs
+        "url": "https://palm-mainnet.infura.io/v3/{API_KEY}",
         "apiKeyEnvName": "INFURA_API_KEY"
       }
     ]
