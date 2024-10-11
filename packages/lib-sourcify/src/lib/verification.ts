@@ -20,12 +20,7 @@ import {
   decode as bytecodeDecode,
   splitAuxdata,
 } from '@ethereum-sourcify/bytecode-utils';
-import {
-  getAddress,
-  getCreateAddress,
-  keccak256,
-  id as keccak256Str,
-} from 'ethers';
+import { getAddress, keccak256, id as keccak256Str } from 'ethers';
 import { hexZeroPad, isHexString } from '@ethersproject/bytes';
 import { BigNumber } from '@ethersproject/bignumber';
 import { defaultAbiCoder as abiCoder, ParamType } from '@ethersproject/abi';
