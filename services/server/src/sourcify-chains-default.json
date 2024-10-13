@@ -1916,5 +1916,36 @@
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
     }
+  },
+  "1088": {
+    "sourcifyName": "Metis Andromeda Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://andromeda-explorer.metis.io"
+      },
+      "routescanApi": {
+        "type": "mainnet"
+      }
+    },
+    "rpc": [
+      "https://andromeda.metis.io/?owner=1088",
+      "https://metis.drpc.org",
+      "wss://metis.drpc.org",
+      {
+        "type": "Alchemy",
+        "url": "https://metis-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}",
+        "apiKeyEnvName": "ALCHEMY_API_KEY"
+      }
+    ]
+  },
+  "59902": {
+    "sourcifyName": "Metis Sepolia Testnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://sepolia-explorer.metisdevops.link"
+      }
+    }
   }
 }

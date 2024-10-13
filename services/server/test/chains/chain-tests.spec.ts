@@ -1664,6 +1664,22 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
+  // Metis Andromeda Mainnet
+  verifyContract(
+    "0xaCe60DF34CEeb11B52B0901Be3F58871A5E83D64",
+    "1088",
+    "Metis Andromeda Mainnet",
+    "shared/",
+  );
+
+  // Metis Sepolia Testnet
+  verifyContract(
+    "0xF282C3784C0187C48747c779C362eCBaddB5F020",
+    "59902",
+    "Metis Sepolia Testnet",
+    "shared/",
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests: ChainApiResponse[] = [];
     supportedChains
