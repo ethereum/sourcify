@@ -33,7 +33,7 @@ declare -A selected_versions
 
 check_packages_for_update # Must run this because it sets the above variables
 
-prompt_execute_or_skip "creating new branch" create_new_branch "commit-changelogs-$(date +'%Y-%m-%d')"
+prompt_execute_or_skip "creating new branch because we can't commit to staging directly" create_new_branch "commit-changelogs-$(date +'%Y-%m-%d')"
 prompt_execute_or_skip "choosing versions for each package and writing changelogs" update_packages_and_changelog
 prompt_execute_or_skip "commiting the changelogs" commit_changelogs
 prompt_execute_or_skip "publishing the branch" publish_branch "commit-changelogs-$(date +'%Y-%m-%d')"

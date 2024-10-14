@@ -65,7 +65,7 @@ update_packages_and_changelog() {
     current_version="${versions[$index]}"
 
     prompt_execute_or_skip "selecting a version for $pkg_name" select_new_version "$pkg_name" "$current_version"
-    prompt_execute_or_skip "updating the chagelog for $pkg_name" update_changelog "$pkg_name" "${directories[$index]}"
+    prompt_execute_or_skip "updating the changelog for $pkg_name" update_changelog "$pkg_name" "${directories[$index]}"
   done
 }
 
