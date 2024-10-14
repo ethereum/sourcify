@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@2.3.0 - 2024-10-14
+
+- Incorporate the new DB schema with separate sources table
+- Reusable server module (#1637): It's possible to create server instances fully with `new Server()`.
+- Use server public url in getTree instead of repositoryV1 url (#1677)
+- Use source_hash instead of source_hash_keccak when finding sources (#1671)
+- Remove .sol extension in repositoryV2 (#1648)
+- New chains:
+  - Polygon zkEVM Cardona Testnet (2442)
+  - B2 Mainnet (223)
+  - OORT Mainnet (970)
+  - TixChain Testnet (723107)
+ 
+
+
 ## sourcify-server@2.2.1 - 2024-09-17
 
 - Check Blockscout first instead of Etherscan for creatorTxHash'es

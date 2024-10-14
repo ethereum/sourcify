@@ -1,5 +1,11 @@
 # Changelog for `sourcify-database`
 
+## sourcify-database@2.0.0 - 2024-10-14
+
+- Update the Sourcify Database to incorporate the new Verifier Alliance Database schema
+- Support for custom schema name in Postgres
+- Add the script to migrate the database from v0 to v1
+
 ## sourcify-database@1.3.0 - 2024-08-29
 
 - Added constraints for `compiled_contracts` table in migrations

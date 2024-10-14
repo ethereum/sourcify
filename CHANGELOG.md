@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 This CHANGELOG will contain monorepo related changes such as CI configs, shared dependencies and the development setup.
 
+## sourcify-monorepo@1.4.2 - 2024-10-14
+
+- Build before testing in CI
+- Update release process
+- Remove build and debug from VSCode launch.json
+- Run cli.js instead of server.js
+- Update packages
+- Add script to rename files with .sol in repoV2 to without file extension
+
 ## sourcify-monorepo@1.4.1 - 2024-09-17
 
 - Increase GCP deploy step timeout

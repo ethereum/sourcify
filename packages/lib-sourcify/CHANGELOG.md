@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## @ethereum-sourcify/lib-sourcify@1.9.3 - 2024-10-14
+
+- Add routescan for creatorTx fetching and types
+- Update packages
+
 ## @ethereum-sourcify/lib-sourcify@1.9.2 - 2024-09-17
 
 - Fix wrong bytecode comparison on creation bytecode matching, use .startsWith() instead
