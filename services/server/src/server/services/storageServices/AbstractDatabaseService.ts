@@ -1,15 +1,14 @@
 import { Match, CheckedContract } from "@ethereum-sourcify/lib-sourcify";
 import { keccak256 } from "ethers";
-import * as Database from "../utils/database-util";
+import * as DatabaseUtil from "../utils/database-util";
 import {
   bytesFromString,
   normalizeRecompiledBytecodes,
 } from "../utils/database-util";
-import { Pool, QueryResult } from "pg";
-import { AuthTypes, Connector } from "@google-cloud/cloud-sql-connector";
-import logger from "../../../common/logger";
-import { Bytes, BytesKeccak, Nullable } from "../../types";
 
+import { Bytes, BytesKeccak, Nullable } from "../../types";
+import { Database } from "../utils/Database";
+import { QueryResult } from "pg";
 export interface DatabaseServiceOptions {
   googleCloudSql?: {
     instanceName: string;
@@ -27,92 +26,15 @@ export interface DatabaseServiceOptions {
 }
 
 export default abstract class AbstractDatabaseService {
-  abstract databasePool: Pool;
+  public database: Database;
   abstract IDENTIFIER: string;
 
-  googleCloudSqlInstanceName?: string;
-  googleCloudSqlIamAccount?: string;
-  googleCloudSqlDatabase?: string;
-  postgresHost?: string;
-  postgresPort?: number;
-  postgresDatabase?: string;
-  postgresUser?: string;
-  postgresPassword?: string;
-  schema: string = "public";
-
   constructor(options: DatabaseServiceOptions) {
-    this.googleCloudSqlInstanceName = options.googleCloudSql?.instanceName;
-    this.googleCloudSqlIamAccount = options.googleCloudSql?.iamAccount;
-    this.googleCloudSqlDatabase = options.googleCloudSql?.database;
-    this.postgresHost = options.postgres?.host;
-    this.postgresPort = options.postgres?.port;
-    this.postgresDatabase = options.postgres?.database;
-    this.postgresUser = options.postgres?.user;
-    this.postgresPassword = options.postgres?.password;
-    if (options.schema) {
-      this.schema = options.schema;
-    }
+    this.database = new Database(options);
   }
 
   async init() {
-    return await this.initDatabasePool();
-  }
-
-  async initDatabasePool(): Promise<boolean> {
-    // if the database is already initialized
-    if (this.databasePool != undefined) {
-      return true;
-    }
-
-    logger.debug(`Initializing database pool for ${this.IDENTIFIER}`);
-
-    if (this.googleCloudSqlInstanceName) {
-      const connector = new Connector();
-      const clientOpts = await connector.getOptions({
-        instanceConnectionName: this.googleCloudSqlInstanceName, // "verifier-alliance:europe-west3:test-verifier-alliance",
-        authType: AuthTypes.IAM,
-      });
-      this.databasePool = new Pool({
-        ...clientOpts,
-        user: this.googleCloudSqlIamAccount, // "marco.castignoli@ethereum.org",
-        database: this.googleCloudSqlDatabase, // "postgres",
-        max: 5,
-      });
-    } else if (this.postgresHost) {
-      this.databasePool = new Pool({
-        host: this.postgresHost,
-        port: this.postgresPort,
-        database: this.postgresDatabase,
-        user: this.postgresUser,
-        password: this.postgresPassword,
-        max: 5,
-      });
-    } else {
-      throw new Error("Alliance Database is disabled");
-    }
-
-    // Checking pool health before continuing
-    try {
-      logger.debug(`Checking database pool health for ${this.IDENTIFIER}`);
-      await this.databasePool.query("SELECT 1;");
-    } catch (error) {
-      logger.error(`Cannot connect to ${this.IDENTIFIER}`, {
-        host: this.postgresHost,
-        port: this.postgresPort,
-        database: this.postgresDatabase,
-        user: this.postgresUser,
-        error,
-      });
-      throw new Error(`Cannot connect to ${this.IDENTIFIER}`);
-    }
-
-    logger.info(`${this.IDENTIFIER} initialized`, {
-      host: this.postgresHost,
-      port: this.postgresPort,
-      database: this.postgresDatabase,
-      schema: this.schema,
-    });
-    return true;
+    return await this.database.initDatabasePool(this.IDENTIFIER);
   }
 
   validateBeforeStoring(
@@ -166,7 +88,7 @@ export default abstract class AbstractDatabaseService {
   async getDatabaseColumns(
     recompiledContract: CheckedContract,
     match: Match,
-  ): Promise<Database.DatabaseColumns> {
+  ): Promise<DatabaseUtil.DatabaseColumns> {
     const {
       keccak256OnchainCreationBytecode,
       keccak256OnchainRuntimeBytecode,
@@ -232,7 +154,7 @@ export default abstract class AbstractDatabaseService {
     }
 
     // Prepare compilation_artifacts.sources by removing everything except id
-    let sources: Nullable<Database.CompilationArtifactsSources> = null;
+    let sources: Nullable<DatabaseUtil.CompilationArtifactsSources> = null;
     if (recompiledContract.compilerOutput?.sources) {
       sources = {};
       for (const source of Object.keys(
@@ -274,7 +196,7 @@ export default abstract class AbstractDatabaseService {
     }
 
     let recompiledCreationCode:
-      | Omit<Database.Tables.Code, "bytecode_hash">
+      | Omit<DatabaseUtil.Tables.Code, "bytecode_hash">
       | undefined;
     if (
       recompiledContract.normalizedCreationBytecode &&
@@ -291,7 +213,7 @@ export default abstract class AbstractDatabaseService {
     }
 
     let onchainCreationCode:
-      | Omit<Database.Tables.Code, "bytecode_hash">
+      | Omit<DatabaseUtil.Tables.Code, "bytecode_hash">
       | undefined;
 
     if (match.onchainCreationBytecode && keccak256OnchainCreationBytecode) {
@@ -343,7 +265,8 @@ export default abstract class AbstractDatabaseService {
       compiledContract: {
         language,
         compiler: "solc",
-        compiler_settings: Database.prepareCompilerSettings(recompiledContract),
+        compiler_settings:
+          DatabaseUtil.prepareCompilerSettings(recompiledContract),
         name: recompiledContract.name,
         version: recompiledContract.compilerVersion,
         fully_qualified_name: `${compilationTargetPath}:${compilationTargetName}`,
@@ -367,73 +290,64 @@ export default abstract class AbstractDatabaseService {
   }
 
   async insertNewVerifiedContract(
-    recompiledContract: CheckedContract,
     match: Match,
-    databaseColumns: Database.DatabaseColumns,
+    databaseColumns: DatabaseUtil.DatabaseColumns,
   ): Promise<number> {
     // Get a client from the pool, so that we can execute all the insert queries within the same transaction
-    const client = await this.databasePool.connect();
+    const client = await this.database.pool.connect();
 
     try {
       // Start the sql transaction
       await client.query("BEGIN");
       let recompiledCreationCodeInsertResult:
-        | QueryResult<Pick<Database.Tables.Code, "bytecode_hash">>
+        | QueryResult<Pick<DatabaseUtil.Tables.Code, "bytecode_hash">>
         | undefined;
       let onchainCreationCodeInsertResult:
-        | QueryResult<Pick<Database.Tables.Code, "bytecode_hash">>
+        | QueryResult<Pick<DatabaseUtil.Tables.Code, "bytecode_hash">>
         | undefined;
 
       // Add recompiled bytecodes
       if (databaseColumns.recompiledCreationCode) {
-        recompiledCreationCodeInsertResult = await Database.insertCode(
+        recompiledCreationCodeInsertResult = await this.database.insertCode(
           client,
-          this.schema,
           databaseColumns.recompiledCreationCode,
         );
       }
-      const recompiledRuntimeCodeInsertResult = await Database.insertCode(
+      const recompiledRuntimeCodeInsertResult = await this.database.insertCode(
         client,
-        this.schema,
         databaseColumns.recompiledRuntimeCode,
       );
 
       // Add onchain bytecodes
       if (databaseColumns.onchainCreationCode) {
-        onchainCreationCodeInsertResult = await Database.insertCode(
+        onchainCreationCodeInsertResult = await this.database.insertCode(
           client,
-          this.schema,
           databaseColumns.onchainCreationCode,
         );
       }
-      const onchainRuntimeCodeInsertResult = await Database.insertCode(
+      const onchainRuntimeCodeInsertResult = await this.database.insertCode(
         client,
-        this.schema,
         databaseColumns.onchainRuntimeCode,
       );
 
       // Add the onchain contract in contracts
-      const contractInsertResult = await Database.insertContract(
-        client,
-        this.schema,
-        {
-          creation_bytecode_hash:
-            onchainCreationCodeInsertResult?.rows[0].bytecode_hash,
-          runtime_bytecode_hash:
-            onchainRuntimeCodeInsertResult.rows[0].bytecode_hash,
-        },
-      );
+      const contractInsertResult = await this.database.insertContract(client, {
+        creation_bytecode_hash:
+          onchainCreationCodeInsertResult?.rows[0].bytecode_hash,
+        runtime_bytecode_hash:
+          onchainRuntimeCodeInsertResult.rows[0].bytecode_hash,
+      });
 
       // add the onchain contract in contract_deployments
       const contractDeploymentInsertResult =
-        await Database.insertContractDeployment(client, this.schema, {
+        await this.database.insertContractDeployment(client, {
           ...databaseColumns.contractDeployment,
           contract_id: contractInsertResult.rows[0].id,
         });
 
       // insert new recompiled contract
       const compiledContractsInsertResult =
-        await Database.insertCompiledContract(client, this.schema, {
+        await this.database.insertCompiledContract(client, {
           ...databaseColumns.compiledContract,
           creation_code_hash:
             recompiledCreationCodeInsertResult?.rows[0].bytecode_hash,
@@ -443,14 +357,14 @@ export default abstract class AbstractDatabaseService {
 
       const compiledContractId = compiledContractsInsertResult.rows[0].id;
 
-      await Database.insertCompiledContractsSources(client, {
+      await this.database.insertCompiledContractsSources(client, {
         sourcesInformation: databaseColumns.sourcesInformation,
         compilation_id: compiledContractId,
       });
 
       // insert new recompiled contract with newly added contract and compiledContract
       const verifiedContractInsertResult =
-        await Database.insertVerifiedContract(client, this.schema, {
+        await this.database.insertVerifiedContract(client, {
           ...databaseColumns.verifiedContract,
           compilation_id: compiledContractId,
           deployment_id: contractDeploymentInsertResult.rows[0].id,
@@ -470,10 +384,10 @@ export default abstract class AbstractDatabaseService {
   }
 
   async updateExistingVerifiedContract(
-    existingVerifiedContractResult: Database.GetVerifiedContractByChainAndAddressResult[],
+    existingVerifiedContractResult: DatabaseUtil.GetVerifiedContractByChainAndAddressResult[],
     recompiledContract: CheckedContract,
     match: Match,
-    databaseColumns: Database.DatabaseColumns,
+    databaseColumns: DatabaseUtil.DatabaseColumns,
   ): Promise<number | false> {
     // runtime bytecodes must exist
     if (recompiledContract.normalizedRuntimeBytecode === undefined) {
@@ -484,16 +398,16 @@ export default abstract class AbstractDatabaseService {
     }
 
     // Get a client from the pool, so that we can execute all the insert queries within the same transaction
-    const client = await this.databasePool.connect();
+    const client = await this.database.pool.connect();
     try {
       // Start the sql transaction
       await client.query("BEGIN");
 
       let recompiledCreationCodeInsertResult:
-        | QueryResult<Pick<Database.Tables.Code, "bytecode_hash">>
+        | QueryResult<Pick<DatabaseUtil.Tables.Code, "bytecode_hash">>
         | undefined;
       let onchainCreationCodeInsertResult:
-        | QueryResult<Pick<Database.Tables.Code, "bytecode_hash">>
+        | QueryResult<Pick<DatabaseUtil.Tables.Code, "bytecode_hash">>
         | undefined;
       // Check if contracts_deployed needs to be updated
       if (
@@ -501,22 +415,19 @@ export default abstract class AbstractDatabaseService {
         match.creatorTxHash != null &&
         databaseColumns.onchainCreationCode
       ) {
-        onchainCreationCodeInsertResult = await Database.insertCode(
+        onchainCreationCodeInsertResult = await this.database.insertCode(
           client,
-          this.schema,
           databaseColumns.onchainCreationCode,
         );
 
-        const onchainRuntimeCodeInsertResult = await Database.insertCode(
+        const onchainRuntimeCodeInsertResult = await this.database.insertCode(
           client,
-          this.schema,
           databaseColumns.onchainRuntimeCode,
         );
 
         // Add the onchain contract in contracts
-        const contractInsertResult = await Database.insertContract(
+        const contractInsertResult = await this.database.insertContract(
           client,
-          this.schema,
           {
             creation_bytecode_hash:
               onchainCreationCodeInsertResult.rows[0].bytecode_hash,
@@ -526,7 +437,7 @@ export default abstract class AbstractDatabaseService {
         );
 
         // add the onchain contract in contract_deployments
-        await Database.updateContractDeployment(client, this.schema, {
+        await this.database.updateContractDeployment(client, {
           ...databaseColumns.contractDeployment,
           contract_id: contractInsertResult.rows[0].id,
           id: existingVerifiedContractResult[0].deployment_id,
@@ -538,21 +449,19 @@ export default abstract class AbstractDatabaseService {
         recompiledContract.normalizedCreationBytecode &&
         databaseColumns.recompiledCreationCode
       ) {
-        recompiledCreationCodeInsertResult = await Database.insertCode(
+        recompiledCreationCodeInsertResult = await this.database.insertCode(
           client,
-          this.schema,
           databaseColumns.recompiledCreationCode,
         );
       }
-      const recompiledRuntimeCodeInsertResult = await Database.insertCode(
+      const recompiledRuntimeCodeInsertResult = await this.database.insertCode(
         client,
-        this.schema,
         databaseColumns.recompiledRuntimeCode,
       );
 
       // insert new recompiled contract
       const compiledContractsInsertResult =
-        await Database.insertCompiledContract(client, this.schema, {
+        await this.database.insertCompiledContract(client, {
           ...databaseColumns.compiledContract,
           creation_code_hash:
             recompiledCreationCodeInsertResult?.rows[0].bytecode_hash,
@@ -562,14 +471,14 @@ export default abstract class AbstractDatabaseService {
 
       const compiledContractId = compiledContractsInsertResult.rows[0].id;
 
-      await Database.insertCompiledContractsSources(client, {
+      await this.database.insertCompiledContractsSources(client, {
         sourcesInformation: databaseColumns.sourcesInformation,
         compilation_id: compiledContractId,
       });
 
       // update verified contract with the newly added recompiled contract
       const verifiedContractInsertResult =
-        await Database.insertVerifiedContract(client, this.schema, {
+        await this.database.insertVerifiedContract(client, {
           ...databaseColumns.verifiedContract,
           compilation_id: compiledContractsInsertResult.rows[0].id,
           deployment_id: existingVerifiedContractResult[0].deployment_id,
@@ -599,7 +508,7 @@ export default abstract class AbstractDatabaseService {
   }> {
     this.validateBeforeStoring(recompiledContract, match);
 
-    await this.initDatabasePool();
+    await this.init();
 
     // Normalize both creation and runtime recompiled bytecodes before storing them to the database
     normalizeRecompiledBytecodes(recompiledContract, match);
@@ -609,11 +518,9 @@ export default abstract class AbstractDatabaseService {
       match,
     );
 
-    // Get all the verified contracts existing in the Database for these exact onchain bytecodes.
+    // Get all the verified contracts existing in the DatabaseUtil for these exact onchain bytecodes.
     const existingVerifiedContractResult =
-      await Database.getVerifiedContractByChainAndAddress(
-        this.databasePool,
-        this.schema,
+      await this.database.getVerifiedContractByChainAndAddress(
         parseInt(match.chainId),
         bytesFromString(match.address)!,
       );
@@ -622,7 +529,6 @@ export default abstract class AbstractDatabaseService {
       return {
         type: "insert",
         verifiedContractId: await this.insertNewVerifiedContract(
-          recompiledContract,
           match,
           databaseColumns,
         ),
