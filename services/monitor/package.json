@@ -42,7 +42,7 @@
     "chalk": "4.1.2",
     "commander": "12.1.0",
     "dotenv": "16.4.5",
-    "ethers": "6.13.3",
+    "ethers": "6.13.4",
     "winston": "3.15.0"
   },
   "devDependencies": {
@@ -52,7 +52,7 @@
     "@types/sinon": "17.0.3",
     "c8": "10.1.2",
     "chai": "4.5.0",
-    "hardhat": "2.22.12",
+    "hardhat": "2.22.13",
     "mocha": "10.7.3",
     "nock": "14.0.0-beta.15",
     "open-cli": "8.0.0",
