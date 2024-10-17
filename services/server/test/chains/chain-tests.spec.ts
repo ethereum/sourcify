@@ -60,8 +60,8 @@ describe("Test Supported Chains", function () {
     if (!anyTestsPass && newAddedChainIds.length) {
       throw new Error(
         "There needs to be at least one passing test. Did you forget to add a test for your new chain with the id(s) " +
-          newAddedChainIds.join(",") +
-          "?",
+        newAddedChainIds.join(",") +
+        "?",
       );
     }
   });
@@ -758,14 +758,13 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
-  // // Flare Mainnet
-  // verifyContract(
-  //   "0xbBc2EdeDc9d2d97970eE20d0Dc7216216a27e635",
-  //   "14",
-  //   "Flare Mainnet",
-  //   "shared/"
-  //
-  // );
+  // Flare Mainnet
+  verifyContract(
+    "0x24AaDc3168a88a0058DF9437CAD3275170CDd581",
+    "14",
+    "Flare Mainnet",
+    "shared/"
+  );
 
   // Oasis Sapphire Mainnet
   verifyContract(
