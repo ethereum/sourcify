@@ -1947,5 +1947,14 @@
         "url": "https://sepolia-explorer.metisdevops.link"
       }
     }
+  },
+  "48900": {
+    "sourcifyName": "Zircuit Mainnet",
+    "supported": true
+  },
+  "48899": {
+    "sourcifyName": "Zircuit Testnet",
+    "supported": true,
+    "rpc": ["https://zircuit1-testnet.p2pify.com/"]
   }
 }
