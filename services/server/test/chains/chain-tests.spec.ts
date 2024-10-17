@@ -763,7 +763,7 @@ describe("Test Supported Chains", function () {
     "0x24AaDc3168a88a0058DF9437CAD3275170CDd581",
     "14",
     "Flare Mainnet",
-    "shared/"
+    "shared/",
   );
 
   // Oasis Sapphire Mainnet
