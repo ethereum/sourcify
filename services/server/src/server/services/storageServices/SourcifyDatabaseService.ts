@@ -87,6 +87,9 @@ export class SourcifyDatabaseService
         creationMatch: existingVerifiedContractResult.rows[0]
           .creation_match as Status,
         storageTimestamp: existingVerifiedContractResult.rows[0].created_at,
+        onchainRuntimeBytecode:
+          existingVerifiedContractResult.rows[0].onchain_runtime_code,
+        contractName: existingVerifiedContractResult.rows[0].name,
       },
     ];
   }

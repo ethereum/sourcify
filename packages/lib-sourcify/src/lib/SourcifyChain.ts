@@ -536,6 +536,41 @@ export default class SourcifyChain {
     );
   };
 
+  getStorageAt = async (address: string, position: number | string) => {
+    // Request sequentially. Custom node is always before ALCHEMY so we don't waste resources if succeeds.
+    for (const provider of this.providers) {
+      try {
+        // Race the RPC call with a timeout
+        const block = await Promise.race([
+          provider.getStorage(address, position),
+          this.rejectInMs(RPC_TIMEOUT, provider.url),
+        ]);
+        logInfo('Fetched eth_getStorageAt', {
+          address,
+          position,
+          providerUrl: provider.url,
+          chainId: this.chainId,
+        });
+        return block;
+      } catch (err) {
+        if (err instanceof Error) {
+          logWarn('Failed to fetch eth_getStorageAt', {
+            providerUrl: provider.url,
+            chainId: this.chainId,
+            error: err.message,
+          });
+          continue;
+        } else {
+          throw err;
+        }
+      }
+    }
+    throw new Error(
+      'None of the RPCs responded fetching the storage slot on chain ' +
+        this.chainId,
+    );
+  };
+
   getContractCreationBytecodeAndReceipt = async (
     address: string,
     transactionHash: string,
