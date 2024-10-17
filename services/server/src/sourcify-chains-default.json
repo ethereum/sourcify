@@ -941,7 +941,7 @@
   },
   "14": {
     "sourcifyName": "Flare Mainnet",
-    "supported": false,
+    "supported": true,
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://flare-explorer.flare.network/"
