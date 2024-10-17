@@ -1680,6 +1680,22 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
+  // Zircuit Testnet
+  verifyContract(
+    "0x0cfE351147DEb353a57623859F7b2A4984645433",
+    "48899",
+    "Zircuit Testnet",
+    "shared/",
+  );
+
+  // Zircuit Mainnet
+  verifyContract(
+    "0x0cfE351147DEb353a57623859F7b2A4984645433",
+    "48900",
+    "Zircuit Mainnet",
+    "shared/",
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests: ChainApiResponse[] = [];
     supportedChains
