@@ -155,8 +155,10 @@ export type GetSourcifyMatchByChainAddressResult = Tables.SourcifyMatch &
     Tables.VerifiedContract,
     "creation_values" | "runtime_values" | "compilation_id"
   > &
-  Pick<Tables.CompiledContract, "runtime_code_artifacts"> &
-  Pick<Tables.ContractDeployment, "transaction_hash">;
+  Pick<Tables.CompiledContract, "runtime_code_artifacts" | "name"> &
+  Pick<Tables.ContractDeployment, "transaction_hash"> & {
+    onchain_runtime_code: string;
+  };
 
 // Function overloads
 export function bytesFromString<T extends BytesTypes>(str: string): T;

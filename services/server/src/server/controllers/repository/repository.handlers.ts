@@ -11,6 +11,11 @@ import { NotFoundError } from "../../../common/errors";
 import { Match } from "@ethereum-sourcify/lib-sourcify";
 import logger from "../../../common/logger";
 import { Services } from "../../services/services";
+import {
+  ProxyContractResolver,
+  ProxyType,
+} from "../../services/utils/proxy-contract-util";
+import { ChainRepository } from "../../../sourcify-chain-repository";
 
 type RetrieveMethod = (
   services: Services,
@@ -109,6 +114,7 @@ export async function checkAllByChainAndAddressEndpoint(
   res: Response,
 ) {
   const services = req.app.get("services") as Services;
+  const chainRepository = req.app.get("chainRepository") as ChainRepository;
   const map: Map<string, any> = new Map();
   const addresses = req.query.addresses.split(",");
   const chainIds = req.query.chainIds?.split?.(",");
@@ -128,9 +134,55 @@ export async function checkAllByChainAndAddressEndpoint(
             });
           }
 
-          map
-            .get(address)
-            .chainIds.push({ chainId, status: found[0].runtimeMatch });
+          // Proxy detection and resolution
+          const proxyStatus: {
+            isProxy?: boolean;
+            proxyType?: ProxyType;
+            implementationAddresses?: string[];
+          } = {};
+          if (found[0].onchainRuntimeBytecode) {
+            const proxyResolver = new ProxyContractResolver(
+              found[0].onchainRuntimeBytecode,
+              address,
+            );
+            const proxyType = await proxyResolver.detectProxy();
+            proxyStatus.isProxy = proxyType !== null;
+            if (proxyType) {
+              proxyStatus.proxyType = proxyType;
+
+              const sourcifyChain = chainRepository.supportedChainMap[chainId];
+              const implementationAddresses =
+                await proxyResolver.resolve(sourcifyChain);
+
+              type Implementation = { address: string; name?: string };
+              const implementations: Implementation[] = [];
+              for (const implementationAddress of implementationAddresses) {
+                const implementation: Implementation = {
+                  address: implementationAddress,
+                };
+
+                const implementationFound: Match[] =
+                  await services.storage.performServiceOperation(
+                    "checkAllByChainAndAddress",
+                    [implementationAddress, chainId],
+                  );
+                if (
+                  implementationFound.length > 0 &&
+                  implementationFound[0].contractName
+                ) {
+                  implementation.name = implementationFound[0].contractName;
+                }
+
+                implementations.push(implementation);
+              }
+            }
+          }
+
+          map.get(address).chainIds.push({
+            chainId,
+            status: found[0].runtimeMatch,
+            ...proxyStatus,
+          });
         }
       } catch (error) {
         // ignore

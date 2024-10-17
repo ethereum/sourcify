@@ -131,7 +131,9 @@ export class Database {
           verified_contracts.runtime_values,
           verified_contracts.compilation_id,
           compiled_contracts.runtime_code_artifacts,
-          contract_deployments.transaction_hash
+          compiled_contracts.name
+          contract_deployments.transaction_hash,
+          encode(onchain_runtime_code.code, 'hex') as onchain_runtime_code
         FROM ${this.schema}.sourcify_matches
         JOIN ${this.schema}.verified_contracts ON verified_contracts.id = sourcify_matches.verified_contract_id
         JOIN ${this.schema}.compiled_contracts ON compiled_contracts.id = verified_contracts.compilation_id
@@ -139,6 +141,8 @@ export class Database {
           contract_deployments.id = verified_contracts.deployment_id 
           AND contract_deployments.chain_id = $1 
           AND contract_deployments.address = $2
+        JOIN ${this.schema}.contracts ON contracts.id = contract_deployments.contract_id
+        JOIN ${this.schema}.code as onchain_runtime_code ON onchain_runtime_code.code_hash = contracts.runtime_code_hash
 ${
   onlyPerfectMatches
     ? "WHERE sourcify_matches.creation_match = 'perfect' OR sourcify_matches.runtime_match = 'perfect'"
