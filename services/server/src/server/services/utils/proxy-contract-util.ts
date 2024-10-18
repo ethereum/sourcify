@@ -28,7 +28,9 @@ export async function detectAndResolveProxy(
     [address]: bytecode,
   };
   const cachedCodeProvider = whatsabi.providers.WithCachedCode(
-    {}, // Provider not needed for detection only
+    {
+      request: () => {},
+    }, // Provider not needed for detection only
     codeCache,
   );
 
@@ -66,7 +68,7 @@ export async function detectAndResolveProxy(
       const facets = AbiCoder.defaultAbiCoder().decode(
         ["address[]"],
         encodedFacets,
-      );
+      )[0];
       return {
         isProxy: true,
         proxyType: "DiamondProxy",
