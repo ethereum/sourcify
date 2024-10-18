@@ -12,7 +12,7 @@ import { Match } from "@ethereum-sourcify/lib-sourcify";
 import logger from "../../../common/logger";
 import { Services } from "../../services/services";
 import {
-  ProxyContractResolver,
+  detectAndResolveProxy,
   ProxyType,
 } from "../../services/utils/proxy-contract-util";
 import { ChainRepository } from "../../../sourcify-chain-repository";
@@ -106,6 +106,7 @@ export interface CheckAllByChainAndAddressEndpointRequest extends Request {
   query: {
     addresses: string;
     chainIds: string;
+    resolveProxies?: boolean;
   };
 }
 
@@ -135,46 +136,56 @@ export async function checkAllByChainAndAddressEndpoint(
           }
 
           // Proxy detection and resolution
-          const proxyStatus: {
+          type Implementation = { address: string; name?: string };
+          let proxyStatus: {
             isProxy?: boolean;
-            proxyType?: ProxyType;
-            implementationAddresses?: string[];
+            proxyType?: ProxyType | null;
+            implementations?: Implementation[];
           } = {};
-          if (found[0].onchainRuntimeBytecode) {
-            const proxyResolver = new ProxyContractResolver(
-              found[0].onchainRuntimeBytecode,
-              address,
-            );
-            const proxyType = await proxyResolver.detectProxy();
-            proxyStatus.isProxy = proxyType !== null;
-            if (proxyType) {
-              proxyStatus.proxyType = proxyType;
-
+          if (req.query.resolveProxies && found[0].onchainRuntimeBytecode) {
+            try {
               const sourcifyChain = chainRepository.supportedChainMap[chainId];
-              const implementationAddresses =
-                await proxyResolver.resolve(sourcifyChain);
+              const proxyDetectionResult = await detectAndResolveProxy(
+                found[0].onchainRuntimeBytecode,
+                address,
+                sourcifyChain,
+              );
 
-              type Implementation = { address: string; name?: string };
-              const implementations: Implementation[] = [];
-              for (const implementationAddress of implementationAddresses) {
-                const implementation: Implementation = {
-                  address: implementationAddress,
-                };
+              const implementations = await Promise.all(
+                proxyDetectionResult.implementations.map(
+                  async (implementationAddress) => {
+                    const implementation: Implementation = {
+                      address: implementationAddress,
+                    };
 
-                const implementationFound: Match[] =
-                  await services.storage.performServiceOperation(
-                    "checkAllByChainAndAddress",
-                    [implementationAddress, chainId],
-                  );
-                if (
-                  implementationFound.length > 0 &&
-                  implementationFound[0].contractName
-                ) {
-                  implementation.name = implementationFound[0].contractName;
-                }
+                    const implementationFound: Match[] =
+                      await services.storage.performServiceOperation(
+                        "checkAllByChainAndAddress",
+                        [implementationAddress, chainId],
+                      );
+                    if (
+                      implementationFound.length > 0 &&
+                      implementationFound[0].contractName
+                    ) {
+                      implementation.name = implementationFound[0].contractName;
+                    }
+                    return implementation;
+                  },
+                ),
+              );
 
-                implementations.push(implementation);
-              }
+              proxyStatus = { ...proxyDetectionResult, implementations };
+              logger.debug("Ran proxy detection and resolution", {
+                chainId,
+                address,
+                proxyStatus,
+              });
+            } catch (error) {
+              logger.error("Error detecting and resolving proxy", {
+                chainId,
+                address,
+                error,
+              });
             }
           }
 
