@@ -1,9 +1,5 @@
 import { whatsabi } from "@shazow/whatsabi";
 import { SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
-import {
-  DiamondProxyResolver,
-  FixedProxyResolver,
-} from "@shazow/whatsabi/lib.types/proxies";
 import { AbiCoder } from "ethers";
 
 export type ProxyType =
@@ -46,7 +42,7 @@ export async function detectAndResolveProxy(
 
   // Resolution
   const fixedProxy = proxies.find(
-    (proxy) => proxy instanceof FixedProxyResolver,
+    (proxy) => proxy instanceof whatsabi.proxies.FixedProxyResolver,
   );
   if (fixedProxy && isEIP1167Proxy(bytecode, fixedProxy.resolvedAddress)) {
     return {
@@ -56,7 +52,11 @@ export async function detectAndResolveProxy(
     };
   } // Ignore FixedProxy otherwise because it could be a false-positive
 
-  if (proxies.some((proxy) => proxy instanceof DiamondProxyResolver)) {
+  if (
+    proxies.some(
+      (proxy) => proxy instanceof whatsabi.proxies.DiamondProxyResolver,
+    )
+  ) {
     try {
       // Call facetAddresses()
       const encodedFacets = await sourcifyChain.call({
