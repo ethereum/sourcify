@@ -541,7 +541,7 @@ export default class SourcifyChain {
     for (const provider of this.providers) {
       try {
         // Race the RPC call with a timeout
-        const block = await Promise.race([
+        const data = await Promise.race([
           provider.getStorage(address, position),
           this.rejectInMs(RPC_TIMEOUT, provider.url),
         ]);
@@ -551,7 +551,7 @@ export default class SourcifyChain {
           providerUrl: provider.url,
           chainId: this.chainId,
         });
-        return block;
+        return data;
       } catch (err) {
         if (err instanceof Error) {
           logWarn('Failed to fetch eth_getStorageAt', {
@@ -567,6 +567,40 @@ export default class SourcifyChain {
     }
     throw new Error(
       'None of the RPCs responded fetching the storage slot on chain ' +
+        this.chainId,
+    );
+  };
+
+  call = async (transaction: { to: string; data: string }) => {
+    // Request sequentially. Custom node is always before ALCHEMY so we don't waste resources if succeeds.
+    for (const provider of this.providers) {
+      try {
+        // Race the RPC call with a timeout
+        const callResult = await Promise.race([
+          provider.call(transaction),
+          this.rejectInMs(RPC_TIMEOUT, provider.url),
+        ]);
+        logInfo('Fetched eth_call result', {
+          tx: transaction,
+          providerUrl: provider.url,
+          chainId: this.chainId,
+        });
+        return callResult;
+      } catch (err) {
+        if (err instanceof Error) {
+          logWarn('Failed to fetch eth_call result', {
+            providerUrl: provider.url,
+            chainId: this.chainId,
+            error: err.message,
+          });
+          continue;
+        } else {
+          throw err;
+        }
+      }
+    }
+    throw new Error(
+      'None of the RPCs responded with eth_call result on chain ' +
         this.chainId,
     );
   };
