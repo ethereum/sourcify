@@ -4,6 +4,7 @@ import {
   DiamondProxyResolver,
   FixedProxyResolver,
 } from "@shazow/whatsabi/lib.types/proxies";
+import { AbiCoder } from "ethers";
 
 export type ProxyType =
   | "EIP1167Proxy"
@@ -55,12 +56,25 @@ export async function detectAndResolveProxy(
     };
   } // Ignore FixedProxy otherwise because it could be a false-positive
 
-  const diamondProxy = proxies.find(
-    (proxy) => proxy instanceof DiamondProxyResolver,
-  );
-  if (diamondProxy) {
-    // TODO
-    return { isProxy: true, proxyType: "DiamondProxy", implementations: [] };
+  if (proxies.some((proxy) => proxy instanceof DiamondProxyResolver)) {
+    try {
+      // Call facetAddresses()
+      const encodedFacets = await sourcifyChain.call({
+        to: address,
+        data: "0x52ef6b2c",
+      });
+      const facets = AbiCoder.defaultAbiCoder().decode(
+        ["address[]"],
+        encodedFacets,
+      );
+      return {
+        isProxy: true,
+        proxyType: "DiamondProxy",
+        implementations: facets,
+      };
+    } catch (error) {
+      // Falsely detected as a diamond proxy
+    }
   }
 
   const checkedProxyTypes: Set<ProxyType> = new Set([
