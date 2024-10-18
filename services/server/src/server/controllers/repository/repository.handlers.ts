@@ -106,7 +106,7 @@ export interface CheckAllByChainAndAddressEndpointRequest extends Request {
   query: {
     addresses: string;
     chainIds: string;
-    resolveProxies?: boolean;
+    resolveProxies: string;
   };
 }
 
@@ -142,7 +142,10 @@ export async function checkAllByChainAndAddressEndpoint(
             proxyType?: ProxyType | null;
             implementations?: Implementation[];
           } = {};
-          if (req.query.resolveProxies && found[0].onchainRuntimeBytecode) {
+          if (
+            req.query.resolveProxies === "true" &&
+            found[0].onchainRuntimeBytecode
+          ) {
             try {
               const sourcifyChain = chainRepository.supportedChainMap[chainId];
               const proxyDetectionResult = await detectAndResolveProxy(
