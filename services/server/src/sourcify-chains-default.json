@@ -66,6 +66,12 @@
         "type": "APIKeyRPC",
         "url": "https://eth-holesky.g.alchemy.com/v2/{API_KEY}",
         "apiKeyEnvName": "ALCHEMY_API_KEY"
+      },
+      {
+        "type": "APIKeyRPC",
+        "url": "https://clean-lingering-meadow.ethereum-holesky.quiknode.pro/{API_KEY}",
+        "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "traceSupport": "trace_transaction"
       }
     ]
   },
@@ -99,6 +105,12 @@
         "type": "APIKeyRPC",
         "url": "https://eth-sepolia.g.alchemy.com/v2/{API_KEY}",
         "apiKeyEnvName": "ALCHEMY_API_KEY"
+      },
+      {
+        "type": "APIKeyRPC",
+        "url": "https://clean-lingering-meadow.ethereum-sepolia.quiknode.pro/{API_KEY}",
+        "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "traceSupport": "trace_transaction"
       }
     ],
     "fetchContractCreationTxUsing": {
@@ -146,7 +158,27 @@
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
-    }
+    },
+    "rpc": [
+      "https://bsc-dataseed1.bnbchain.org",
+      "https://bsc-dataseed2.bnbchain.org",
+      "https://bsc-dataseed3.bnbchain.org",
+      "https://bsc-dataseed4.bnbchain.org",
+      "https://bsc-dataseed1.defibit.io",
+      "https://bsc-dataseed2.defibit.io",
+      "https://bsc-dataseed3.defibit.io",
+      "https://bsc-dataseed4.defibit.io",
+      "https://bsc-dataseed1.ninicoin.io",
+      "https://bsc-dataseed2.ninicoin.io",
+      "https://bsc-dataseed3.ninicoin.io",
+      "https://bsc-dataseed4.ninicoin.io",
+      {
+        "type": "APIKeyRPC",
+        "url": "https://clean-lingering-meadow.bsc.quiknode.pro/{API_KEY}",
+        "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "traceSupport": "trace_transaction"
+      }
+    ]
   },
   "61": {
     "sourcifyName": "Ethereum Classic Mainnet",
@@ -188,7 +220,22 @@
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
-    }
+    },
+    "rpc": [
+      "https://data-seed-prebsc-1-s1.bnbchain.org:8545",
+      "https://data-seed-prebsc-2-s1.bnbchain.org:8545",
+      "https://data-seed-prebsc-1-s2.bnbchain.org:8545",
+      "https://data-seed-prebsc-2-s2.bnbchain.org:8545",
+      "https://data-seed-prebsc-1-s3.bnbchain.org:8545",
+      "https://data-seed-prebsc-2-s3.bnbchain.org:8545",
+      "https://bsc-testnet-rpc.publicnode.com",
+      {
+        "type": "APIKeyRPC",
+        "url": "https://clean-lingering-meadow.bsc-testnet.quiknode.pro/{API_KEY}",
+        "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "traceSupport": "trace_transaction"
+      }
+    ]
   },
   "100": {
     "sourcifyName": "Gnosis Mainnet",
@@ -202,7 +249,22 @@
         "url": "https://gnosis.blockscout.com/"
       },
       "etherscanApi": true
-    }
+    },
+    "rpc": [
+      "https://rpc.gnosischain.com",
+      "https://rpc.gnosis.gateway.fm",
+      "https://rpc.ankr.com/gnosis",
+      "https://gnosischain-rpc.gateway.pokt.network",
+      "https://gnosis-mainnet.public.blastapi.io",
+      "https://gnosis.api.onfinality.io/public",
+      "https://gnosis.blockpi.network/v1/rpc/public",
+      {
+        "type": "APIKeyRPC",
+        "url": "https://clean-lingering-meadow.xdai.quiknode.pro/{API_KEY}",
+        "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "traceSupport": "trace_transaction"
+      }
+    ]
   },
   "295": {
     "sourcifyName": "Hedera Mainnet",
@@ -238,6 +300,12 @@
         "type": "APIKeyRPC",
         "url": "https://polygon-mainnet.g.alchemy.com/v2/{API_KEY}",
         "apiKeyEnvName": "ALCHEMY_API_KEY"
+      },
+      {
+        "type": "APIKeyRPC",
+        "url": "https://clean-lingering-meadow.matic.quiknode.pro/{API_KEY}",
+        "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "traceSupport": "trace_transaction"
       }
     ]
   },
@@ -452,6 +520,12 @@
         "type": "APIKeyRPC",
         "url": "https://opt-mainnet.g.alchemy.com/v2/{API_KEY}",
         "apiKeyEnvName": "ALCHEMY_API_KEY_OPTIMISM"
+      },
+      {
+        "type": "APIKeyRPC",
+        "url": "https://clean-lingering-meadow.optimism.quiknode.pro/{API_KEY}",
+        "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "traceSupport": "trace_transaction"
       }
     ]
   },
@@ -477,6 +551,12 @@
         "type": "APIKeyRPC",
         "url": "https://opt-sepolia.g.alchemy.com/v2/{API_KEY}",
         "apiKeyEnvName": "ALCHEMY_API_KEY_OPTIMISM"
+      },
+      {
+        "type": "APIKeyRPC",
+        "url": "https://clean-lingering-meadow.optimism-sepolia.quiknode.pro/{API_KEY}",
+        "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "traceSupport": "trace_transaction"
       }
     ]
   },
@@ -1030,7 +1110,18 @@
         "type": "mainnet"
       },
       "etherscanApi": true
-    }
+    },
+    "rpc": [
+      "https://mainnet.base.org/",
+      "https://developer-access-mainnet.base.org/",
+      "https://base.gateway.tenderly.co",
+      {
+        "type": "APIKeyRPC",
+        "url": "https://clean-lingering-meadow.base-mainnet.quiknode.pro/{API_KEY}",
+        "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "traceSupport": "trace_transaction"
+      }
+    ]
   },
   "252": {
     "sourcifyName": "Fraxtal",
@@ -1523,7 +1614,17 @@
         "url": "https://zkevm.blockscout.com/"
       },
       "etherscanApi": true
-    }
+    },
+    "rpc": [
+      "https://zkevm-rpc.com",
+      "https://polygon-zkevm.drpc.org",
+      {
+        "type": "APIKeyRPC",
+        "url": "https://clean-lingering-meadow.zkevm-mainnet.quiknode.pro/{API_KEY}",
+        "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "traceSupport": "trace_transaction"
+      }
+    ]
   },
   "534352": {
     "sourcifyName": "Scroll",
@@ -1702,7 +1803,17 @@
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
-    }
+    },
+    "rpc": [
+      "https://rpc-amoy.polygon.technology",
+      "https://polygon-amoy-bor-rpc.publicnode.com",
+      {
+        "type": "APIKeyRPC",
+        "url": "https://clean-lingering-meadow.matic-amoy.quiknode.pro/{API_KEY}",
+        "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "traceSupport": "trace_transaction"
+      }
+    ]
   },
   "666666666": {
     "sourcifyName": "DEGEN Chain",
@@ -1835,7 +1946,17 @@
     },
     "etherscanApi": {
       "apiURL": "https://api-sepolia.basescan.org/"
-    }
+    },
+    "rpc": [
+      "https://sepolia.base.org",
+      "https://base-sepolia-rpc.publicnode.com",
+      {
+        "type": "APIKeyRPC",
+        "url": "https://clean-lingering-meadow.base-sepolia.quiknode.pro/{API_KEY}",
+        "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "traceSupport": "trace_transaction"
+      }
+    ]
   },
   "59144": {
     "sourcifyName": "Linea Mainnet",
@@ -1921,7 +2042,16 @@
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
-    }
+    },
+    "rpc": [
+      "https://rpc.cardona.zkevm-rpc.com",
+      {
+        "type": "APIKeyRPC",
+        "url": "https://clean-lingering-meadow.zkevm-cardona.quiknode.pro/{API_KEY}",
+        "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "traceSupport": "trace_transaction"
+      }
+    ]
   },
   "1088": {
     "sourcifyName": "Metis Andromeda Mainnet",
