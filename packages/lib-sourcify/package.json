@@ -63,7 +63,7 @@
     "@types/node": "20.16.11",
     "c8": "10.1.2",
     "chai": "4.5.0",
-    "cspell": "8.15.2",
+    "cspell": "8.15.4",
     "cz-conventional-changelog": "3.3.0",
     "gh-pages": "6.2.0",
     "hardhat": "2.22.13",
@@ -73,7 +73,7 @@
     "open-cli": "8.0.0",
     "solc": "0.8.28",
     "tree-kill": "1.2.2",
-    "typedoc": "0.26.9"
+    "typedoc": "0.26.10"
   },
   "files": [
     "build/main",
