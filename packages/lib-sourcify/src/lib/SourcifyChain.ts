@@ -7,6 +7,7 @@ import {
   getAddress,
 } from 'ethers';
 import {
+  CallFrame,
   Chain,
   FetchContractCreationTxMethods,
   SourcifyChainExtension,
@@ -241,8 +242,30 @@ export default class SourcifyChain {
       }
       // Geth type `debug_traceTransaction`
       else if (type === 'debug_traceTransaction') {
-        // TODO: Implement
-        throw new Error('debug_traceTransaction not implemented yet');
+        logDebug('Fetching creation bytecode from geth traces', {
+          creatorTxHash,
+          address,
+          providerUrl: provider.url,
+          chainId: this.chainId,
+        });
+        try {
+          const creationBytecode = await this.extractFromGethTraceProvider(
+            creatorTxHash,
+            address,
+            provider,
+          );
+          return creationBytecode;
+        } catch (e: any) {
+          // Catch to continue with the next provider
+          logWarn('Failed to fetch creation bytecode from geth traces', {
+            creatorTxHash,
+            address,
+            providerUrl: provider.url,
+            chainId: this.chainId,
+            error: e.message,
+          });
+          continue;
+        }
       }
     }
     throw new Error(
@@ -305,6 +328,72 @@ export default class SourcifyChain {
     }
   };
 
+  extractFromGethTraceProvider = async (
+    creatorTxHash: string,
+    address: string,
+    provider: JsonRpcProviderWithUrl,
+  ) => {
+    const traces = await Promise.race([
+      provider.send('debug_traceTransaction', [
+        creatorTxHash,
+        { tracer: 'callTracer' },
+      ]),
+      this.rejectInMs(RPC_TIMEOUT, provider.url),
+    ]);
+    if (traces?.calls instanceof Array && traces.calls.length > 0) {
+      logInfo('Fetched tx traces', {
+        creatorTxHash,
+        providerUrl: provider.url,
+        chainId: this.chainId,
+      });
+    } else {
+      throw new Error(
+        `Transaction's traces of ${creatorTxHash} on RPC ${provider.url} and chain ${this.chainId} received empty or malformed response`,
+      );
+    }
+
+    const createCalls: CallFrame[] = [];
+    this.findCreateInDebugTraceTransactionCalls(
+      traces.calls as CallFrame[],
+      createCalls,
+    );
+
+    if (createCalls.length === 0) {
+      throw new Error(
+        `No CREATE or CREATE2 calls found in the traces of ${creatorTxHash} on RPC ${provider.url} and chain ${this.chainId}`,
+      );
+    }
+
+    // A call can have multiple contracts created. We need the one that matches the address we are verifying.
+    const ourCreateCall = createCalls.find(
+      (createCall) => createCall.to.toLowerCase() === address.toLowerCase(),
+    );
+
+    if (!ourCreateCall) {
+      throw new Error(
+        `No CREATE or CREATE2 call found for the address ${address} in the traces of ${creatorTxHash} on RPC ${provider.url} and chain ${this.chainId}`,
+      );
+    }
+
+    return ourCreateCall.input;
+  };
+
+  /**
+   * Find CREATE or CREATE2 operations recursively in the call frames. Because a call can have nested calls.
+   * Pushes the found call frames to the createCalls array.
+   */
+  findCreateInDebugTraceTransactionCalls(
+    calls: CallFrame[],
+    createCalls: CallFrame[],
+  ) {
+    calls.forEach((call) => {
+      if (call?.type === 'CREATE' || call?.type === 'CREATE2') {
+        createCalls.push(call);
+      } else if (call?.calls?.length > 0) {
+        this.findCreateInDebugTraceTransactionCalls(call.calls, createCalls);
+      }
+    });
+  }
   /**
    * Fetches the contract's deployed bytecode from SourcifyChain's rpc's.
    * Tries to fetch sequentially if the first RPC is a local eth node. Fetches in parallel otherwise.

@@ -608,3 +608,18 @@ export interface IpfsGateway {
   url: string;
   headers?: HeadersInit;
 }
+
+// https://geth.ethereum.org/docs/developers/evm-tracing/built-in-tracers#call-tracer
+export interface CallFrame {
+  type: string;
+  from: string;
+  to: string;
+  value: string;
+  gas: string;
+  gasUsed: string;
+  input: string;
+  output: string;
+  error: string;
+  revertReason: string;
+  calls: CallFrame[];
+}

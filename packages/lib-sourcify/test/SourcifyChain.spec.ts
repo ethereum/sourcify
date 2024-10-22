@@ -103,6 +103,76 @@ describe('SourcifyChain', () => {
       expect(mockProvider1.send).to.have.been.called;
       expect(mockProvider2.send).to.have.been.called;
     });
+
+    it('should extract creation bytecode from geth traces', async () => {
+      sourcifyChain.traceSupportedRPCs = [
+        { index: 0, type: 'debug_traceTransaction' },
+      ] as TraceSupportedRPC[];
+      const mockProvider = sourcifyChain.providers[0] as JsonRpcProvider;
+      sandbox.stub(mockProvider, 'send').resolves({
+        calls: [
+          {
+            type: 'CREATE',
+            to: '0xaddress',
+            input: '0xcreationBytecode',
+          },
+        ],
+      });
+
+      const result = await sourcifyChain.getCreationBytecodeForFactory(
+        '0xhash',
+        '0xaddress',
+      );
+      expect(result).to.equal('0xcreationBytecode');
+      expect(mockProvider.send).to.have.been.calledWith(
+        'debug_traceTransaction',
+        ['0xhash', { tracer: 'callTracer' }],
+      );
+    });
+
+    it('should throw an error if no CREATE or CREATE2 calls are found in geth traces', async () => {
+      sourcifyChain.traceSupportedRPCs = [
+        { index: 0, type: 'debug_traceTransaction' },
+      ] as TraceSupportedRPC[];
+      const mockProvider = sourcifyChain.providers[0] as JsonRpcProvider;
+      sandbox.stub(mockProvider, 'send').resolves({
+        calls: [
+          {
+            type: 'CALL',
+            to: '0xsomeaddress',
+            input: '0xsomeinput',
+          },
+        ],
+      });
+
+      await expect(
+        sourcifyChain.getCreationBytecodeForFactory('0xhash', '0xaddress'),
+      ).to.be.rejectedWith(
+        'Couldnt get the creation bytecode for factory 0xaddress with tx 0xhash on chain 1',
+      );
+    });
+
+    it('should throw an error if the contract address is not found in geth traces', async () => {
+      sourcifyChain.traceSupportedRPCs = [
+        { index: 0, type: 'debug_traceTransaction' },
+      ] as TraceSupportedRPC[];
+      const mockProvider = sourcifyChain.providers[0] as JsonRpcProvider;
+      sandbox.stub(mockProvider, 'send').resolves({
+        calls: [
+          {
+            type: 'CREATE',
+            to: '0xdifferentaddress',
+            input: '0xcreationBytecode',
+          },
+        ],
+      });
+
+      await expect(
+        sourcifyChain.getCreationBytecodeForFactory('0xhash', '0xaddress'),
+      ).to.be.rejectedWith(
+        'Couldnt get the creation bytecode for factory 0xaddress with tx 0xhash on chain 1',
+      );
+    });
   });
 
   describe('extractFromParityTraceProvider', () => {
@@ -147,5 +217,65 @@ describe('SourcifyChain', () => {
     });
 
     // Add more tests for extractFromParityTraceProvider here if needed
+  });
+
+  describe('extractFromGethTraceProvider', () => {
+    it('should extract creation bytecode from geth traces', async () => {
+      const mockProvider = sourcifyChain.providers[0] as JsonRpcProvider;
+      sandbox.stub(mockProvider, 'send').resolves({
+        calls: [
+          {
+            type: 'CREATE',
+            to: '0xaddress',
+            input: '0xcreationBytecode',
+          },
+        ],
+      });
+
+      const result = await sourcifyChain.extractFromGethTraceProvider(
+        '0xhash',
+        '0xaddress',
+        mockProvider,
+      );
+      expect(result).to.equal('0xcreationBytecode');
+    });
+
+    it('should handle nested CREATE calls in geth traces', async () => {
+      const mockProvider = sourcifyChain.providers[0] as JsonRpcProvider;
+      sandbox.stub(mockProvider, 'send').resolves({
+        calls: [
+          {
+            type: 'CALL',
+            calls: [
+              {
+                type: 'CREATE',
+                to: '0xaddress',
+                input: '0xcreationBytecode',
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = await sourcifyChain.extractFromGethTraceProvider(
+        '0xhash',
+        '0xaddress',
+        mockProvider,
+      );
+      expect(result).to.equal('0xcreationBytecode');
+    });
+
+    it('should throw an error if traces response is empty or malformed', async () => {
+      const mockProvider = sourcifyChain.providers[0] as JsonRpcProvider;
+      sandbox.stub(mockProvider, 'send').resolves({});
+
+      await expect(
+        sourcifyChain.extractFromGethTraceProvider(
+          '0xhash',
+          '0xaddress',
+          mockProvider,
+        ),
+      ).to.be.rejectedWith('received empty or malformed response');
+    });
   });
 });
