@@ -51,7 +51,7 @@
   },
   "homepage": "https://github.com/ethereum/sourcify#readme",
   "dependencies": {
-    "@aws-sdk/client-lambda": "3.670.0",
+    "@aws-sdk/client-lambda": "3.675.0",
     "@ethereum-sourcify/bytecode-utils": "^1.2.12",
     "@ethereum-sourcify/lib-sourcify": "^1.9.3",
     "@google-cloud/cloud-sql-connector": "1.4.0",
@@ -91,7 +91,7 @@
     "@types/express-session": "1.18.0",
     "@types/mocha": "10.0.9",
     "@types/mochawesome": "6.2.4",
-    "@types/node": "20.16.11",
+    "@types/node": "20.16.14",
     "@types/pg": "8.11.10",
     "@types/serve-index": "1.9.4",
     "@types/swagger-ui-express": "4.1.6",
