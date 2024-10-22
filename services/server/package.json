@@ -96,6 +96,7 @@
     "@types/node": "22.10.0",
     "@types/pg": "8.11.10",
     "@types/serve-index": "1.9.4",
+    "@types/sinon": "17.0.3",
     "@types/swagger-ui-express": "4.1.7",
     "@types/uuid": "9.0.8",
     "@types/yamljs": "0.2.34",

@@ -6,9 +6,10 @@ import { LOCAL_CHAINS } from "../../../src/sourcify-chains";
 
 describe("proxy contract util", function () {
   const mockSourcifyChain = LOCAL_CHAINS[0];
+  const sandbox = sinon.createSandbox();
 
-  afterEach(function () {
-    sinon.restore();
+  afterEach(() => {
+    sandbox.restore();
   });
 
   it("should detect EIP1167Proxy", async function () {
@@ -26,7 +27,7 @@ describe("proxy contract util", function () {
   });
 
   it("should detect DiamondProxy", async function () {
-    mockSourcifyChain.call = sinon
+    mockSourcifyChain.call = sandbox
       .stub()
       .resolves(
         "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000005000000000000000000000000798c3dfb0f66b7f6be23b1aef54f95a2c07ca82e000000000000000000000000f77c3c52b615a477dd434c876ab87a93736ed2540000000000000000000000003ba37715ee934cf160a5ed88d1b8c0cea6ea839f00000000000000000000000044a3f16cb323d54d393f06526d6e661fe9282cfa000000000000000000000000c965aef3625ad80873001d238eae5e5dfb93b529",
@@ -52,7 +53,7 @@ describe("proxy contract util", function () {
   });
 
   it("should detect EIP1967Proxy", async function () {
-    mockSourcifyChain.getStorageAt = sinon
+    mockSourcifyChain.getStorageAt = sandbox
       .stub()
       .resolves(
         "000000000000000000000000ac805a864be8b5c6727a7ecd502c287a20c91379",
