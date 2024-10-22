@@ -2174,8 +2174,8 @@
       "https://metis.drpc.org",
       "wss://metis.drpc.org",
       {
-        "type": "Alchemy",
-        "url": "https://metis-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}",
+        "type": "APIKeyRPC",
+        "url": "https://metis-mainnet.g.alchemy.com/v2/{API_KEY}",
         "apiKeyEnvName": "ALCHEMY_API_KEY"
       }
     ]
