@@ -29,6 +29,7 @@ interface JsonRpcProviderWithUrl extends JsonRpcProvider {
 export type SourcifyChainInstance = Omit<Chain, 'rpc'> &
   Omit<SourcifyChainExtension, 'rpc' | 'sourcifyName'> & {
     rpc: Array<string | FetchRequest>;
+    rpcWithoutApiKeys?: Array<string>;
     traceSupportedRPCs?: TraceSupportedRPC[];
   };
 
@@ -37,6 +38,7 @@ export default class SourcifyChain {
   title?: string | undefined;
   chainId: number;
   rpc: Array<string | FetchRequest>;
+  rpcWithoutApiKeys?: Array<string>;
   traceSupport?: boolean;
   traceSupportedRPCs?: TraceSupportedRPC[];
   supported: boolean;
@@ -52,6 +54,7 @@ export default class SourcifyChain {
     this.title = sourcifyChainObj.title;
     this.chainId = sourcifyChainObj.chainId;
     this.rpc = sourcifyChainObj.rpc;
+    this.rpcWithoutApiKeys = sourcifyChainObj?.rpcWithoutApiKeys;
     this.supported = sourcifyChainObj.supported;
     this.providers = [];
     this.fetchContractCreationTxUsing =

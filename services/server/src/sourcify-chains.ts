@@ -75,10 +75,12 @@ function buildCustomRpcs(
 ) {
   const traceSupportedRPCs: TraceSupportedRPC[] = [];
   const rpc: (string | FetchRequest)[] = [];
+  const rpcWithoutApiKeys: string[] = [];
   sourcifyRpcs.forEach((sourcifyRpc, index) => {
     // simple url, can't have traceSupport
     if (typeof sourcifyRpc === "string") {
       rpc.push(sourcifyRpc);
+      rpcWithoutApiKeys.push(sourcifyRpc);
       return;
     }
 
@@ -90,7 +92,9 @@ function buildCustomRpcs(
     }
 
     if (sourcifyRpc.type === "BaseRPC") {
-      return rpc.push(sourcifyRpc.url);
+      rpc.push(sourcifyRpc.url);
+      rpcWithoutApiKeys.push(sourcifyRpc.url);
+      return;
     }
     // Fill in the api keys
     else if (sourcifyRpc.type === "APIKeyRPC") {
@@ -100,7 +104,9 @@ function buildCustomRpcs(
         throw new Error(`API key not found for ${sourcifyRpc.apiKeyEnvName}`);
       }
       const url = sourcifyRpc.url.replace("{API_KEY}", apiKey);
-      return rpc.push(url);
+      rpc.push(url);
+      rpcWithoutApiKeys.push(sourcifyRpc.url);
+      return;
     }
     // Build ethers.js FetchRequest object for custom rpcs with auth headers
     else if (sourcifyRpc.type === "FetchRequest") {
@@ -113,11 +119,18 @@ function buildCustomRpcs(
           ethersFetchReq.setHeader(headerName, headerValue || "");
         });
       }
-      return rpc.push(ethersFetchReq);
+      rpc.push(ethersFetchReq);
+      rpcWithoutApiKeys.push(sourcifyRpc.url);
+      return;
     }
     throw new Error(`Invalid rpc type: ${JSON.stringify(sourcifyRpc)}`);
   });
-  return { rpc, traceSupportedRPCs };
+  return {
+    rpc,
+    rpcWithoutApiKeys,
+    traceSupportedRPCs:
+      traceSupportedRPCs.length > 0 ? traceSupportedRPCs : undefined,
+  };
 }
 
 const sourcifyChainsMap: SourcifyChainMap = {};
@@ -149,7 +162,7 @@ for (const i in allChains) {
 
   if (chainId in sourcifyChainsExtensions) {
     const sourcifyExtension = sourcifyChainsExtensions[chainId];
-    const { rpc, traceSupportedRPCs } = buildCustomRpcs(
+    const { rpc, rpcWithoutApiKeys, traceSupportedRPCs } = buildCustomRpcs(
       sourcifyExtension.rpc || chain.rpc,
     );
     // sourcifyExtension is spread later to overwrite chains.json values, rpc specifically
@@ -157,6 +170,7 @@ for (const i in allChains) {
       ...chain,
       ...sourcifyExtension,
       rpc,
+      rpcWithoutApiKeys,
       traceSupportedRPCs,
     });
     sourcifyChainsMap[chainId] = sourcifyChain;
@@ -192,12 +206,15 @@ if (missingChains.length > 0) {
           `Chain ${chainId} is missing rpc in sourcify-chains.json`,
         );
       }
-      const { rpc, traceSupportedRPCs } = buildCustomRpcs(chain.rpc);
+      const { rpc, rpcWithoutApiKeys, traceSupportedRPCs } = buildCustomRpcs(
+        chain.rpc,
+      );
       sourcifyChainsMap[chainId] = new SourcifyChain({
         name: chain.sourcifyName,
         chainId: parseInt(chainId),
         supported: chain.supported,
         rpc,
+        rpcWithoutApiKeys,
         traceSupportedRPCs,
       });
     });
