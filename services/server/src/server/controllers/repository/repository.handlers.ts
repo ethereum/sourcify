@@ -16,6 +16,7 @@ import {
   ProxyType,
 } from "../../services/utils/proxy-contract-util";
 import { ChainRepository } from "../../../sourcify-chain-repository";
+import { getAddress } from "ethers";
 
 type RetrieveMethod = (
   services: Services,
@@ -141,6 +142,7 @@ export async function checkAllByChainAndAddressEndpoint(
             isProxy?: boolean;
             proxyType?: ProxyType | null;
             implementations?: Implementation[];
+            proxyResolutionError?: string;
           } = {};
           if (
             req.query.resolveProxies === "true" &&
@@ -157,6 +159,7 @@ export async function checkAllByChainAndAddressEndpoint(
               const implementations = await Promise.all(
                 proxyDetectionResult.implementations.map(
                   async (implementationAddress) => {
+                    implementationAddress = getAddress(implementationAddress);
                     const implementation: Implementation = {
                       address: implementationAddress,
                     };
@@ -184,6 +187,7 @@ export async function checkAllByChainAndAddressEndpoint(
                 proxyStatus,
               });
             } catch (error) {
+              proxyStatus.proxyResolutionError = (error as Error)?.message;
               logger.error("Error detecting and resolving proxy", {
                 chainId,
                 address,

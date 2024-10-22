@@ -2,11 +2,19 @@ import { assertValidationError } from "../../helpers/assertions";
 import chai from "chai";
 import chaiHttp from "chai-http";
 import { StatusCodes } from "http-status-codes";
-import { invalidAddress } from "../../helpers/helpers";
+import {
+  deployFromAbiAndBytecode,
+  invalidAddress,
+} from "../../helpers/helpers";
 import { LocalChainFixture } from "../../helpers/LocalChainFixture";
 import { ServerFixture } from "../../helpers/ServerFixture";
 import type { Done } from "mocha";
 import type { Response } from "superagent";
+import type { ProxyType } from "../../../src/server/services/utils/proxy-contract-util";
+import fs from "fs";
+import path from "path";
+import sinon from "sinon";
+import * as proxyContractUtil from "../../../src/server/services/utils/proxy-contract-util";
 
 chai.use(chaiHttp);
 
@@ -37,7 +45,14 @@ const assertLookupAll = (
   err: Error | null,
   res: Response,
   expectedAddress: string,
-  expectedChainIds: { chainId: string; status: string }[],
+  expectedChainIds: {
+    chainId: string;
+    status: string;
+    isProxy?: boolean;
+    proxyType?: ProxyType | null;
+    implementations?: { address: string; name?: string }[];
+    proxyResolutionError?: string;
+  }[],
   done?: Done,
 ) => {
   chai.expect(err).to.be.null;
@@ -169,6 +184,11 @@ describe("/check-by-addresses", function () {
 describe("/check-all-by-addresses", function () {
   const chainFixture = new LocalChainFixture();
   const serverFixture = new ServerFixture();
+  const sandbox = sinon.createSandbox();
+
+  afterEach(() => {
+    sandbox.restore();
+  });
 
   it("should fail for missing chainIds", (done) => {
     chai
@@ -286,5 +306,187 @@ describe("/check-all-by-addresses", function () {
         chai.expect(result.status).to.equal("false");
         done();
       });
+  });
+
+  describe("proxy detection", () => {
+    it("should not return proxy status if contract is not verified", (done) => {
+      chai
+        .request(serverFixture.server.app)
+        .get("/check-all-by-addresses")
+        .query({
+          chainIds: chainFixture.chainId,
+          addresses: chainFixture.defaultContractAddress,
+          resolveProxies: "true",
+        })
+        .end((err, res) => {
+          assertLookup(err, res, chainFixture.defaultContractAddress, "false");
+          done();
+        });
+    });
+
+    it("should correctly detect non-proxy contracts", (done) => {
+      chai
+        .request(serverFixture.server.app)
+        .post("/")
+        .field("address", chainFixture.defaultContractAddress)
+        .field("chain", chainFixture.chainId)
+        .attach("files", chainFixture.defaultContractMetadata, "metadata.json")
+        .attach("files", chainFixture.defaultContractSource)
+        .end((err, res) => {
+          chai.expect(err).to.be.null;
+          chai.expect(res.status).to.equal(StatusCodes.OK);
+
+          chai
+            .request(serverFixture.server.app)
+            .get("/check-all-by-addresses")
+            .query({
+              chainIds: chainFixture.chainId,
+              addresses: chainFixture.defaultContractAddress,
+              resolveProxies: "true",
+            })
+            .end((err, res) =>
+              assertLookupAll(
+                err,
+                res,
+                chainFixture.defaultContractAddress,
+                [
+                  {
+                    chainId: chainFixture.chainId,
+                    status: "perfect",
+                    isProxy: false,
+                    proxyType: null,
+                    implementations: [],
+                  },
+                ],
+                done,
+              ),
+            );
+        });
+    });
+
+    it("should correctly detect proxy contracts", async () => {
+      const proxyArtifact = (
+        await import("../../testcontracts/Proxy/Proxy_flattened.json")
+      ).default;
+      const proxyMetadata = (
+        await import("../../testcontracts/Proxy/metadata.json")
+      ).default;
+      const proxySource = fs.readFileSync(
+        path.join(
+          __dirname,
+          "..",
+          "..",
+          "testcontracts",
+          "Proxy",
+          "Proxy_flattened.sol",
+        ),
+      );
+
+      const logicAddress = chainFixture.defaultContractAddress;
+
+      const contractAddress = await deployFromAbiAndBytecode(
+        chainFixture.localSigner,
+        proxyArtifact.abi,
+        proxyArtifact.bytecode,
+        [logicAddress, chainFixture.localSigner.address, "0x"],
+      );
+
+      let res = await chai
+        .request(serverFixture.server.app)
+        .post("/")
+        .field("address", contractAddress)
+        .field("chain", chainFixture.chainId)
+        .attach(
+          "files",
+          Buffer.from(JSON.stringify(proxyMetadata)),
+          "metadata.json",
+        )
+        .attach("files", proxySource, "Proxy_flattened.sol");
+
+      chai.expect(res.status).to.equal(StatusCodes.OK);
+
+      res = await chai
+        .request(serverFixture.server.app)
+        .get("/check-all-by-addresses")
+        .query({
+          chainIds: chainFixture.chainId,
+          addresses: contractAddress,
+          resolveProxies: "true",
+        });
+
+      assertLookupAll(null, res, contractAddress, [
+        {
+          chainId: chainFixture.chainId,
+          status: "perfect",
+          isProxy: true,
+          proxyType: "EIP1967Proxy",
+          implementations: [{ address: logicAddress }],
+        },
+      ]);
+    });
+
+    it("should show an error if the proxy resolution fails", async () => {
+      const errorMessage = "Proxy resolution failed";
+      sandbox
+        .stub(proxyContractUtil, "detectAndResolveProxy")
+        .throws(new Error(errorMessage));
+
+      const proxyArtifact = (
+        await import("../../testcontracts/Proxy/Proxy_flattened.json")
+      ).default;
+      const proxyMetadata = (
+        await import("../../testcontracts/Proxy/metadata.json")
+      ).default;
+      const proxySource = fs.readFileSync(
+        path.join(
+          __dirname,
+          "..",
+          "..",
+          "testcontracts",
+          "Proxy",
+          "Proxy_flattened.sol",
+        ),
+      );
+
+      const logicAddress = chainFixture.defaultContractAddress;
+
+      const contractAddress = await deployFromAbiAndBytecode(
+        chainFixture.localSigner,
+        proxyArtifact.abi,
+        proxyArtifact.bytecode,
+        [logicAddress, chainFixture.localSigner.address, "0x"],
+      );
+
+      let res = await chai
+        .request(serverFixture.server.app)
+        .post("/")
+        .field("address", contractAddress)
+        .field("chain", chainFixture.chainId)
+        .attach(
+          "files",
+          Buffer.from(JSON.stringify(proxyMetadata)),
+          "metadata.json",
+        )
+        .attach("files", proxySource, "Proxy_flattened.sol");
+
+      chai.expect(res.status).to.equal(StatusCodes.OK);
+
+      res = await chai
+        .request(serverFixture.server.app)
+        .get("/check-all-by-addresses")
+        .query({
+          chainIds: chainFixture.chainId,
+          addresses: contractAddress,
+          resolveProxies: "true",
+        });
+
+      assertLookupAll(null, res, contractAddress, [
+        {
+          chainId: chainFixture.chainId,
+          status: "perfect",
+          proxyResolutionError: errorMessage,
+        },
+      ]);
+    });
   });
 });

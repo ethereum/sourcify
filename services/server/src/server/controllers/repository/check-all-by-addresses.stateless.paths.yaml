@@ -28,7 +28,7 @@ paths:
           required: false
           schema:
             type: string
-            enum: [true, false]
+            enum: ["true", "false"]
           description: Check if the contracts are proxies and what their implementations are.
       responses:
         "200":
@@ -50,6 +50,21 @@ paths:
                           chainId:
                             type: string
                           status:
+                            type: string
+                          isProxy:
+                            type: boolean
+                          proxyType:
+                            type: string
+                          implementations:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                address:
+                                  type: string
+                                name:
+                                  type: string
+                          proxyResolutionError:
                             type: string
               examples:
                 multiple results:
@@ -104,3 +119,10 @@ paths:
                       status: "false"
                     - address: "0x8D2548A5f641b00Cf0f5B693d4A72D8c0aE24d31"
                       status: "false"
+                proxy resolution error:
+                  value: 
+                    - address: "0xEb30853fc616Bbb8f1444451A3c202cbcd08Fb47"
+                      chainIds: 
+                        - chainId: "43114"
+                          status: "perfect"
+                          proxyResolutionError: "Proxy resolution failed"
