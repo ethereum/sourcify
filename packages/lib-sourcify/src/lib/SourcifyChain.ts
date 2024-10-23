@@ -39,7 +39,10 @@ export default class SourcifyChain {
   chainId: number;
   rpc: Array<string | FetchRequest>;
   rpcWithoutApiKeys?: Array<string>;
+  /** Whether the chain supports tracing, used for fetching the creation bytecode for factory contracts */
   traceSupport?: boolean;
+  /** The RPCs that support tracing. Needed in a separate field than `this.rpc` because the `rpc` was an array of strings or FetchRequest. Modifying the `rpc` to be something else would have caused a breaking change. */
+  // TODO: in a future breaking change, merge traceSupportedRPCs with rpc and make rpc an array of objects with url and type.
   traceSupportedRPCs?: TraceSupportedRPC[];
   supported: boolean;
   providers: JsonRpcProviderWithUrl[];
