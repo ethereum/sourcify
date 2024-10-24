@@ -36,26 +36,21 @@ router.get("/chains", (_req, res) => {
   const chainRepository = _req.app.get("chainRepository") as ChainRepository;
   const sourcifyChainsArray = chainRepository.sourcifyChainsArray;
   const sourcifyChains = sourcifyChainsArray.map(
-    ({ rpc, name, title, chainId, supported, etherscanApi }) => {
-      // Don't publish providers
-      // Don't show Alchemy & Infura IDs
-      rpc = rpc.map((url) => {
-        if (typeof url === "string") {
-          if (url.includes("alchemy"))
-            return url.replace(/\/[^/]*$/, "/{ALCHEMY_API_KEY}");
-          else if (url.includes("infura"))
-            return url.replace(/\/[^/]*$/, "/{INFURA_API_KEY}");
-          else return url;
-        } else {
-          // FetchRequest
-          return url.url;
-        }
-      });
+    ({
+      rpcWithoutApiKeys,
+      name,
+      title,
+      chainId,
+      supported,
+      etherscanApi,
+      traceSupportedRPCs,
+    }) => {
       return {
         name,
         title,
         chainId,
-        rpc,
+        rpc: rpcWithoutApiKeys,
+        traceSupportedRPCs,
         supported,
         etherscanAPI: etherscanApi?.apiURL, // Needed in the UI
       };

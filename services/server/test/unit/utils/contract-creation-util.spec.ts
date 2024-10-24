@@ -173,7 +173,10 @@ describe("contract creation util", function () {
       }
 
       // Remove all other fetchContractCreationTxUsing methods except the one we're testing
-      const testChain = { ...sourcifyChain };
+      const testChain = Object.create(
+        Object.getPrototypeOf(sourcifyChain),
+        Object.getOwnPropertyDescriptors(sourcifyChain),
+      );
       if (testChain.fetchContractCreationTxUsing) {
         testChain.fetchContractCreationTxUsing = {
           [testCase]: testChain.fetchContractCreationTxUsing[testCase],
