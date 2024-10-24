@@ -38,8 +38,9 @@
       },
       {
         "type": "APIKeyRPC",
-        "url": "https://clean-lingering-meadow.quiknode.pro/{API_KEY}",
+        "url": "https://{SUBDOMAIN}.quiknode.pro/{API_KEY}",
         "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "subDomainEnvName": "QUICKNODE_SUBDOMAIN",
         "traceSupport": "trace_transaction"
       }
     ]
@@ -69,8 +70,9 @@
       },
       {
         "type": "APIKeyRPC",
-        "url": "https://clean-lingering-meadow.ethereum-holesky.quiknode.pro/{API_KEY}",
+        "url": "https://{SUBDOMAIN}.ethereum-holesky.quiknode.pro/{API_KEY}",
         "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "subDomainEnvName": "QUICKNODE_SUBDOMAIN",
         "traceSupport": "trace_transaction"
       }
     ]
@@ -108,8 +110,9 @@
       },
       {
         "type": "APIKeyRPC",
-        "url": "https://clean-lingering-meadow.ethereum-sepolia.quiknode.pro/{API_KEY}",
+        "url": "https://{SUBDOMAIN}.ethereum-sepolia.quiknode.pro/{API_KEY}",
         "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "subDomainEnvName": "QUICKNODE_SUBDOMAIN",
         "traceSupport": "trace_transaction"
       }
     ],
@@ -174,8 +177,9 @@
       "https://bsc-dataseed4.ninicoin.io",
       {
         "type": "APIKeyRPC",
-        "url": "https://clean-lingering-meadow.bsc.quiknode.pro/{API_KEY}",
+        "url": "https://{SUBDOMAIN}.bsc.quiknode.pro/{API_KEY}",
         "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "subDomainEnvName": "QUICKNODE_SUBDOMAIN",
         "traceSupport": "trace_transaction"
       }
     ]
@@ -231,8 +235,9 @@
       "https://bsc-testnet-rpc.publicnode.com",
       {
         "type": "APIKeyRPC",
-        "url": "https://clean-lingering-meadow.bsc-testnet.quiknode.pro/{API_KEY}",
+        "url": "https://{SUBDOMAIN}.bsc-testnet.quiknode.pro/{API_KEY}",
         "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "subDomainEnvName": "QUICKNODE_SUBDOMAIN",
         "traceSupport": "trace_transaction"
       }
     ]
@@ -260,8 +265,9 @@
       "https://gnosis.blockpi.network/v1/rpc/public",
       {
         "type": "APIKeyRPC",
-        "url": "https://clean-lingering-meadow.xdai.quiknode.pro/{API_KEY}",
+        "url": "https://{SUBDOMAIN}.xdai.quiknode.pro/{API_KEY}",
         "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "subDomainEnvName": "QUICKNODE_SUBDOMAIN",
         "traceSupport": "trace_transaction"
       }
     ]
@@ -303,8 +309,9 @@
       },
       {
         "type": "APIKeyRPC",
-        "url": "https://clean-lingering-meadow.matic.quiknode.pro/{API_KEY}",
+        "url": "https://{SUBDOMAIN}.matic.quiknode.pro/{API_KEY}",
         "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "subDomainEnvName": "QUICKNODE_SUBDOMAIN",
         "traceSupport": "trace_transaction"
       }
     ]
@@ -331,8 +338,9 @@
       "https://rpc.ankr.com/celo",
       {
         "type": "APIKeyRPC",
-        "url": "https://clean-lingering-meadow.celo-mainnet.quiknode.pro/{API_KEY}",
+        "url": "https://{SUBDOMAIN}.celo-mainnet.quiknode.pro/{API_KEY}",
         "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "subDomainEnvName": "QUICKNODE_SUBDOMAIN",
         "traceSupport": "debug_traceTransaction"
       }
     ]
@@ -385,8 +393,9 @@
       },
       {
         "type": "APIKeyRPC",
-        "url": "https://clean-lingering-meadow.arbitrum-mainnet.quiknode.pro/{API_KEY}",
+        "url": "https://{SUBDOMAIN}.arbitrum-mainnet.quiknode.pro/{API_KEY}",
         "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "subDomainEnvName": "QUICKNODE_SUBDOMAIN",
         "traceSupport": "debug_traceTransaction"
       }
     ]
@@ -416,8 +425,9 @@
       "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
       {
         "type": "APIKeyRPC",
-        "url": "https://clean-lingering-meadow.arbitrum-sepolia.quiknode.pro/{API_KEY}",
+        "url": "https://{SUBDOMAIN}.arbitrum-sepolia.quiknode.pro/{API_KEY}",
         "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "subDomainEnvName": "QUICKNODE_SUBDOMAIN",
         "traceSupport": "debug_traceTransaction"
       }
     ]
@@ -441,8 +451,9 @@
       "https://avalanche-fuji-c-chain-rpc.publicnode.com",
       {
         "type": "APIKeyRPC",
-        "url": "https://clean-lingering-meadow.avalanche-testnet.quiknode.pro/{API_KEY}/ext/bc/C/rpc/",
+        "url": "https://{SUBDOMAIN}.avalanche-testnet.quiknode.pro/{API_KEY}/ext/bc/C/rpc/",
         "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "subDomainEnvName": "QUICKNODE_SUBDOMAIN",
         "traceSupport": "debug_traceTransaction"
       }
     ]
@@ -466,8 +477,9 @@
       "https://avalanche-c-chain-rpc.publicnode.com",
       {
         "type": "APIKeyRPC",
-        "url": "https://clean-lingering-meadow.avalanche-mainnet.quiknode.pro/{API_KEY}/ext/bc/C/rpc/",
+        "url": "https://{SUBDOMAIN}.avalanche-mainnet.quiknode.pro/{API_KEY}/ext/bc/C/rpc/",
         "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "subDomainEnvName": "QUICKNODE_SUBDOMAIN",
         "traceSupport": "debug_traceTransaction"
       }
     ]
@@ -569,8 +581,9 @@
       },
       {
         "type": "APIKeyRPC",
-        "url": "https://clean-lingering-meadow.optimism.quiknode.pro/{API_KEY}",
+        "url": "https://{SUBDOMAIN}.optimism.quiknode.pro/{API_KEY}",
         "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "subDomainEnvName": "QUICKNODE_SUBDOMAIN",
         "traceSupport": "trace_transaction"
       }
     ]
@@ -600,8 +613,9 @@
       },
       {
         "type": "APIKeyRPC",
-        "url": "https://clean-lingering-meadow.optimism-sepolia.quiknode.pro/{API_KEY}",
+        "url": "https://{SUBDOMAIN}.optimism-sepolia.quiknode.pro/{API_KEY}",
         "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "subDomainEnvName": "QUICKNODE_SUBDOMAIN",
         "traceSupport": "trace_transaction"
       }
     ]
@@ -1163,8 +1177,9 @@
       "https://base.gateway.tenderly.co",
       {
         "type": "APIKeyRPC",
-        "url": "https://clean-lingering-meadow.base-mainnet.quiknode.pro/{API_KEY}",
+        "url": "https://{SUBDOMAIN}.base-mainnet.quiknode.pro/{API_KEY}",
         "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "subDomainEnvName": "QUICKNODE_SUBDOMAIN",
         "traceSupport": "trace_transaction"
       }
     ]
@@ -1422,8 +1437,9 @@
       "https://arbitrum-nova-rpc.publicnode.com",
       {
         "type": "APIKeyRPC",
-        "url": "https://clean-lingering-meadow.nova-mainnet.quiknode.pro/{API_KEY}",
+        "url": "https://{SUBDOMAIN}.nova-mainnet.quiknode.pro/{API_KEY}",
         "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "subDomainEnvName": "QUICKNODE_SUBDOMAIN",
         "traceSupport": "debug_traceTransaction"
       }
     ]
@@ -1619,8 +1635,9 @@
       "https://mantle-rpc.publicnode.com",
       {
         "type": "APIKeyRPC",
-        "url": "https://clean-lingering-meadow.mantle-mainnet.quiknode.pro/{API_KEY}",
+        "url": "https://{SUBDOMAIN}.mantle-mainnet.quiknode.pro/{API_KEY}",
         "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "subDomainEnvName": "QUICKNODE_SUBDOMAIN",
         "traceSupport": "debug_traceTransaction"
       }
     ]
@@ -1645,8 +1662,9 @@
       "https://rpc.sepolia.mantle.xyz",
       {
         "type": "APIKeyRPC",
-        "url": "https://clean-lingering-meadow.mantle-sepolia.quiknode.pro/{API_KEY}",
+        "url": "https://{SUBDOMAIN}.mantle-sepolia.quiknode.pro/{API_KEY}",
         "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "subDomainEnvName": "QUICKNODE_SUBDOMAIN",
         "traceSupport": "debug_traceTransaction"
       }
     ]
@@ -1703,8 +1721,9 @@
       "https://polygon-zkevm.drpc.org",
       {
         "type": "APIKeyRPC",
-        "url": "https://clean-lingering-meadow.zkevm-mainnet.quiknode.pro/{API_KEY}",
+        "url": "https://{SUBDOMAIN}.zkevm-mainnet.quiknode.pro/{API_KEY}",
         "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "subDomainEnvName": "QUICKNODE_SUBDOMAIN",
         "traceSupport": "trace_transaction"
       }
     ]
@@ -1725,8 +1744,9 @@
       "https://1rpc.io/scroll",
       {
         "type": "APIKeyRPC",
-        "url": "https://clean-lingering-meadow.scroll-mainnet.quiknode.pro/{API_KEY}",
+        "url": "https://{SUBDOMAIN}.scroll-mainnet.quiknode.pro/{API_KEY}",
         "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "subDomainEnvName": "QUICKNODE_SUBDOMAIN",
         "traceSupport": "debug_traceTransaction"
       }
     ]
@@ -1747,8 +1767,9 @@
       "https://rpc.ankr.com/scroll_sepolia_testnet",
       {
         "type": "APIKeyRPC",
-        "url": "https://clean-lingering-meadow.scroll-testnet.quiknode.pro/{API_KEY}",
+        "url": "https://{SUBDOMAIN}.scroll-testnet.quiknode.pro/{API_KEY}",
         "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "subDomainEnvName": "QUICKNODE_SUBDOMAIN",
         "traceSupport": "debug_traceTransaction"
       }
     ]
@@ -1914,8 +1935,9 @@
       "https://polygon-amoy-bor-rpc.publicnode.com",
       {
         "type": "APIKeyRPC",
-        "url": "https://clean-lingering-meadow.matic-amoy.quiknode.pro/{API_KEY}",
+        "url": "https://{SUBDOMAIN}.matic-amoy.quiknode.pro/{API_KEY}",
         "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "subDomainEnvName": "QUICKNODE_SUBDOMAIN",
         "traceSupport": "trace_transaction"
       }
     ]
@@ -2057,8 +2079,9 @@
       "https://base-sepolia-rpc.publicnode.com",
       {
         "type": "APIKeyRPC",
-        "url": "https://clean-lingering-meadow.base-sepolia.quiknode.pro/{API_KEY}",
+        "url": "https://{SUBDOMAIN}.base-sepolia.quiknode.pro/{API_KEY}",
         "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "subDomainEnvName": "QUICKNODE_SUBDOMAIN",
         "traceSupport": "trace_transaction"
       }
     ]
@@ -2152,8 +2175,9 @@
       "https://rpc.cardona.zkevm-rpc.com",
       {
         "type": "APIKeyRPC",
-        "url": "https://clean-lingering-meadow.zkevm-cardona.quiknode.pro/{API_KEY}",
+        "url": "https://{SUBDOMAIN}.zkevm-cardona.quiknode.pro/{API_KEY}",
         "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "subDomainEnvName": "QUICKNODE_SUBDOMAIN",
         "traceSupport": "trace_transaction"
       }
     ]

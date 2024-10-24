@@ -103,7 +103,10 @@ function buildCustomRpcs(
       if (!apiKey) {
         throw new Error(`API key not found for ${sourcifyRpc.apiKeyEnvName}`);
       }
-      const url = sourcifyRpc.url.replace("{API_KEY}", apiKey);
+      const subDomain = process.env[sourcifyRpc.subDomainEnvName || ""];
+      const url = sourcifyRpc.url
+        .replace("{API_KEY}", apiKey)
+        .replace("{SUBDOMAIN}", subDomain);
       rpc.push(url);
       rpcWithoutApiKeys.push(sourcifyRpc.url);
       return;
