@@ -1,4 +1,4 @@
-eimport { Response } from "express";
+import { Response } from "express";
 import {
   LegacyVerifyRequest,
   extractFiles,
