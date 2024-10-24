@@ -74,7 +74,6 @@ export type RpcObject = {
   type: "ApiKey";
   url: string;
   apiKeyEnvName: string;
-  subDomainEnvName?: string;
 };
 
 export type MonitorChain = {

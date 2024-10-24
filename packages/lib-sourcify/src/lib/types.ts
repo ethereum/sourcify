@@ -335,6 +335,7 @@ export type BaseRPC = {
 export type APIKeyRPC = Omit<BaseRPC, 'type'> & {
   type: 'APIKeyRPC';
   apiKeyEnvName: string;
+  subDomainEnvName?: string;
 };
 
 // override the type of BaseRPC to add the type field

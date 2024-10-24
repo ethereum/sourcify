@@ -101,12 +101,16 @@ function buildCustomRpcs(
       const apiKey =
         process.env[sourcifyRpc.apiKeyEnvName] || process.env["API_KEY"] || "";
       if (!apiKey) {
+        // API key is required for all APIKeyRPCs
         throw new Error(`API key not found for ${sourcifyRpc.apiKeyEnvName}`);
       }
+      let url = sourcifyRpc.url.replace("{API_KEY}", apiKey);
+
       const subDomain = process.env[sourcifyRpc.subDomainEnvName || ""];
-      const url = sourcifyRpc.url
-        .replace("{API_KEY}", apiKey)
-        .replace("{SUBDOMAIN}", subDomain);
+      if (subDomain) {
+        // subDomain is optional
+        url = url.replace("{SUBDOMAIN}", subDomain);
+      }
       rpc.push(url);
       rpcWithoutApiKeys.push(sourcifyRpc.url);
       return;
