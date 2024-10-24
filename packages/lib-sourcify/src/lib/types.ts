@@ -266,6 +266,7 @@ export interface Match {
   blockNumber?: number;
   txIndex?: number;
   deployer?: string;
+  contractName?: string;
 }
 
 export type Status =
