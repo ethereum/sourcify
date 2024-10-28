@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## @ethereum-sourcify/lib-sourcify@1.10.0 - 2024-10-28
+
+- Add RPCs with trace support in SourcifyChains
+- Add support for getting the tx traces from `trace_transaction` and `debug_traceTransaction` type traces.
+- Update packages
+
 ## @ethereum-sourcify/lib-sourcify@1.9.3 - 2024-10-14
 
 - Add routescan for creatorTx fetching and types

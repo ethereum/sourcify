@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@2.2.2 - 2024-10-28
+
+- Refactor database utils into class #1689
+- Add chains that have trace support in Quicknode with trace support
+- Change `AlchemyInfura` type RPCs to generic API key RPCs
+- Add `subdomain` env support for Quicknode RPCs
+- New chains
+  - Zircuit Mainnet (48900)
+  - Zircuit Testnet (48899)
+  - Metis Andromeda Mainnet (1088)
+  - Metis Sepolia Testnet (59902)
+- Turn Flare Mainnet back on
+
 ## sourcify-server@2.3.0 - 2024-10-14
 
 - Incorporate the new DB schema with separate sources table
