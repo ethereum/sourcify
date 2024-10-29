@@ -8,7 +8,7 @@ npm config set //registry.npmjs.org/:_authToken=${NPM_TOKEN}
 packages=(
   "packages/bytecode-utils:@ethereum-sourcify/bytecode-utils"
   "packages/lib-sourcify:@ethereum-sourcify/lib-sourcify"
-  "services/server:@ethereum-sourcify/server"
+  "services/server:sourcify-server"
 )
 
 # Publish packages
