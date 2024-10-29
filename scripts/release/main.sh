@@ -49,3 +49,4 @@ prompt_execute_or_skip "choosing same versions in lerna to create git tags and u
 prompt_execute_or_skip "pushing the tags to GitHub" push_tags_in_order
 prompt_execute_or_skip "pushing the commits to master" push_to_master
 prompt_execute_or_skip "creating GitHub releases" create_github_releases
+prompt_execute_or_skip "creating a PR to merge the new versions to the staging branch" open_pr_to_staging master
