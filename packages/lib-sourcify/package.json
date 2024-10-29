@@ -1,6 +1,6 @@
 {
   "name": "@ethereum-sourcify/lib-sourcify",
-  "version": "1.9.3",
+  "version": "1.10.0",
   "description": "Library for Sourcify's contract verification methods, contract validation, types, and interfaces.",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
@@ -38,7 +38,7 @@
     "node": "22.5.1"
   },
   "dependencies": {
-    "@ethereum-sourcify/bytecode-utils": "^1.2.12",
+    "@ethereum-sourcify/bytecode-utils": "^1.2.13",
     "@ethereumjs/blockchain": "7.3.0",
     "@ethereumjs/common": "4.4.0",
     "@ethereumjs/evm": "3.1.1",
@@ -62,12 +62,12 @@
     "@types/debug": "4.1.12",
     "@types/mocha": "10.0.9",
     "@types/node": "20.17.2",
-    "c8": "10.1.2",
-    "chai": "4.5.0",
-    "cspell": "8.15.4",
     "@types/sinon": "^17.0.3",
     "@types/sinon-chai": "^4.0.0",
+    "c8": "10.1.2",
+    "chai": "4.5.0",
     "chai-as-promised": "^7.1.2",
+    "cspell": "8.15.4",
     "cz-conventional-changelog": "3.3.0",
     "gh-pages": "6.2.0",
     "hardhat": "2.22.13",
@@ -75,9 +75,9 @@
     "nock": "14.0.0-beta.15",
     "npm-run-all2": "5.0.2",
     "open-cli": "8.0.0",
-    "solc": "0.8.28",
     "sinon": "^19.0.2",
     "sinon-chai": "^3.7.0",
+    "solc": "0.8.28",
     "tree-kill": "1.2.2",
     "typedoc": "0.26.10"
   },
