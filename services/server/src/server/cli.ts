@@ -125,6 +125,14 @@ const server = new Server(
         ? config.get("repositoryV2.path")
         : undefined,
     },
+    s3RepositoryServiceOptions: {
+      s3Bucket: process.env.S3_BUCKET as string,
+      s3Region: process.env.S3_REGION as string,
+      s3AccessKeyId: process.env.S3_ACCESS_KEY_ID as string,
+      s3SecretAccessKey: process.env.S3_SECRET_ACCESS_KEY as string,
+      endpoint: process.env.S3_ENDPOINT as string,
+      signatureVersion: process.env.S3_SIGNATURE_VERSION as string,
+    },
     sourcifyDatabaseServiceOptions: {
       postgres: {
         host: process.env.SOURCIFY_POSTGRES_HOST as string,

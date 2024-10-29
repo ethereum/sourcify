@@ -30,6 +30,10 @@ import {
 import { DatabaseServiceOptions } from "./storageServices/AbstractDatabaseService";
 import { ConflictError } from "../../common/errors/ConflictError";
 import { isBetterMatch } from "./utils/util";
+import {
+  RepositoryS3Service,
+  RepositoryS3ServiceOptions,
+} from "./storageServices/RepositoryS3Service";
 
 export interface WStorageService {
   IDENTIFIER: StorageIdentifiers;
@@ -79,6 +83,7 @@ export interface StorageServiceOptions {
   repositoryV2ServiceOptions: RepositoryV2ServiceOptions;
   sourcifyDatabaseServiceOptions?: DatabaseServiceOptions;
   allianceDatabaseServiceOptions?: DatabaseServiceOptions;
+  s3RepositoryServiceOptions?: RepositoryS3ServiceOptions;
 }
 
 export class StorageService {
@@ -178,6 +183,29 @@ export class StorageService {
         );
         throw new Error(
           "AllianceDatabase enabled, but options are not complete",
+        );
+      }
+    }
+
+    // S3Repository
+    if (enabledServicesArray.includes(WStorageIdentifiers.S3Repository)) {
+      if (
+        options.s3RepositoryServiceOptions?.s3Bucket &&
+        options.s3RepositoryServiceOptions?.s3Region &&
+        options.s3RepositoryServiceOptions?.s3AccessKeyId &&
+        options.s3RepositoryServiceOptions?.s3SecretAccessKey
+      ) {
+        const repositoryS3 = new RepositoryS3Service(
+          options.s3RepositoryServiceOptions,
+        );
+        this.wServices[repositoryS3.IDENTIFIER] = repositoryS3;
+      } else {
+        logger.error(
+          "S3Repository enabled, but S3 options are not fully set",
+          options.s3RepositoryServiceOptions,
+        );
+        throw new Error(
+          "S3Repository enabled, but S3 options are not fully set",
         );
       }
     }
