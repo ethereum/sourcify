@@ -1,5 +1,9 @@
 # Changelog for `sourcify-database`
 
+## sourcify-database@2.0.1 - 2024-10-29
+
+- Update packages
+
 ## sourcify-database@2.0.0 - 2024-10-14
 
 - Update the Sourcify Database to incorporate the new Verifier Alliance Database schema

@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This CHANGELOG will contain monorepo related changes such as CI configs, shared dependencies and the development setup.
 
+## sourcify-monorepo@1.4.3 - 2024-10-29
+
+- Publish sourcify-server to npm on CI runs
+- Turn off S3 backup check tests temporarily
+- Update packages
+
 ## sourcify-monorepo@1.4.2 - 2024-10-14
 
 - Build before testing in CI
