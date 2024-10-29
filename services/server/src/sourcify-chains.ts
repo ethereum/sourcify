@@ -3,8 +3,10 @@ import {
   SourcifyChainMap,
   SourcifyChainsExtensionsObject,
   Chain,
-  AlchemyInfuraRPC,
+  APIKeyRPC,
   FetchRequestRPC,
+  BaseRPC,
+  TraceSupportedRPC,
 } from "@ethereum-sourcify/lib-sourcify";
 import { FetchRequest } from "ethers";
 import chainsRaw from "./chains.json";
@@ -69,40 +71,73 @@ export const LOCAL_CHAINS: SourcifyChain[] = [
  * SourcifyChain expects  url strings or ethers.js FetchRequest objects.
  */
 function buildCustomRpcs(
-  rpc: Array<string | AlchemyInfuraRPC | FetchRequestRPC>,
+  sourcifyRpcs: Array<string | BaseRPC | APIKeyRPC | FetchRequestRPC>,
 ) {
-  return rpc.map((rpc) => {
-    // simple url
-    if (typeof rpc === "string") {
-      return rpc;
+  const traceSupportedRPCs: TraceSupportedRPC[] = [];
+  const rpc: (string | FetchRequest)[] = [];
+  const rpcWithoutApiKeys: string[] = [];
+  sourcifyRpcs.forEach((sourcifyRpc, index) => {
+    // simple url, can't have traceSupport
+    if (typeof sourcifyRpc === "string") {
+      rpc.push(sourcifyRpc);
+      rpcWithoutApiKeys.push(sourcifyRpc);
+      return;
+    }
+
+    if (sourcifyRpc.traceSupport) {
+      traceSupportedRPCs.push({
+        type: sourcifyRpc.traceSupport,
+        index,
+      });
+    }
+
+    if (sourcifyRpc.type === "BaseRPC") {
+      rpc.push(sourcifyRpc.url);
+      rpcWithoutApiKeys.push(sourcifyRpc.url);
+      return;
     }
     // Fill in the api keys
-    else if (rpc.type === "Alchemy") {
-      return rpc.url.replace(
-        "{ALCHEMY_API_KEY}",
-        process.env[rpc.apiKeyEnvName] || process.env["ALCHEMY_API_KEY"] || "",
-      );
-    } else if (rpc.type === "Infura") {
-      return rpc.url.replace(
-        "{INFURA_API_KEY}",
-        process.env[rpc.apiKeyEnvName] || "",
-      );
+    else if (sourcifyRpc.type === "APIKeyRPC") {
+      const apiKey =
+        process.env[sourcifyRpc.apiKeyEnvName] || process.env["API_KEY"] || "";
+      if (!apiKey) {
+        // API key is required for all APIKeyRPCs
+        throw new Error(`API key not found for ${sourcifyRpc.apiKeyEnvName}`);
+      }
+      let url = sourcifyRpc.url.replace("{API_KEY}", apiKey);
+
+      const subDomain = process.env[sourcifyRpc.subDomainEnvName || ""];
+      if (subDomain) {
+        // subDomain is optional
+        url = url.replace("{SUBDOMAIN}", subDomain);
+      }
+      rpc.push(url);
+      rpcWithoutApiKeys.push(sourcifyRpc.url);
+      return;
     }
     // Build ethers.js FetchRequest object for custom rpcs with auth headers
-    else if (rpc.type === "FetchRequest") {
-      const ethersFetchReq = new FetchRequest(rpc.url);
+    else if (sourcifyRpc.type === "FetchRequest") {
+      const ethersFetchReq = new FetchRequest(sourcifyRpc.url);
       ethersFetchReq.setHeader("Content-Type", "application/json");
-      const headers = rpc.headers;
+      const headers = sourcifyRpc.headers;
       if (headers) {
         headers.forEach(({ headerName, headerEnvName }) => {
           const headerValue = process.env[headerEnvName];
           ethersFetchReq.setHeader(headerName, headerValue || "");
         });
       }
-      return ethersFetchReq;
+      rpc.push(ethersFetchReq);
+      rpcWithoutApiKeys.push(sourcifyRpc.url);
+      return;
     }
-    throw new Error(`Invalid rpc type: ${rpc.type}`);
+    throw new Error(`Invalid rpc type: ${JSON.stringify(sourcifyRpc)}`);
   });
+  return {
+    rpc,
+    rpcWithoutApiKeys,
+    traceSupportedRPCs:
+      traceSupportedRPCs.length > 0 ? traceSupportedRPCs : undefined,
+  };
 }
 
 const sourcifyChainsMap: SourcifyChainMap = {};
@@ -134,13 +169,16 @@ for (const i in allChains) {
 
   if (chainId in sourcifyChainsExtensions) {
     const sourcifyExtension = sourcifyChainsExtensions[chainId];
+    const { rpc, rpcWithoutApiKeys, traceSupportedRPCs } = buildCustomRpcs(
+      sourcifyExtension.rpc || chain.rpc,
+    );
     // sourcifyExtension is spread later to overwrite chains.json values, rpc specifically
     const sourcifyChain = new SourcifyChain({
       ...chain,
       ...sourcifyExtension,
-      rpc: sourcifyExtension.rpc
-        ? buildCustomRpcs(sourcifyExtension.rpc)
-        : chain.rpc, // avoid rpc ending up as undefined
+      rpc,
+      rpcWithoutApiKeys,
+      traceSupportedRPCs,
     });
     sourcifyChainsMap[chainId] = sourcifyChain;
   }
@@ -175,11 +213,16 @@ if (missingChains.length > 0) {
           `Chain ${chainId} is missing rpc in sourcify-chains.json`,
         );
       }
+      const { rpc, rpcWithoutApiKeys, traceSupportedRPCs } = buildCustomRpcs(
+        chain.rpc,
+      );
       sourcifyChainsMap[chainId] = new SourcifyChain({
         name: chain.sourcifyName,
         chainId: parseInt(chainId),
         supported: chain.supported,
-        rpc: buildCustomRpcs(chain.rpc),
+        rpc,
+        rpcWithoutApiKeys,
+        traceSupportedRPCs,
       });
     });
   }

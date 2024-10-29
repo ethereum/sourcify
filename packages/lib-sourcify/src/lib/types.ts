@@ -1,5 +1,6 @@
 import { Abi } from 'abitype';
 import SourcifyChain from './SourcifyChain';
+import { FetchRequest } from 'ethers';
 export interface PathBuffer {
   path: string;
   buffer: Buffer;
@@ -322,16 +323,33 @@ export interface FetchContractCreationTxMethods {
 export type FetchContractCreationTxMethod =
   keyof FetchContractCreationTxMethods;
 
-export type AlchemyInfuraRPC = {
-  type: 'Alchemy' | 'Infura';
+export type TraceSupport = 'trace_transaction' | 'debug_traceTransaction';
+
+export type BaseRPC = {
   url: string;
-  apiKeyEnvName: string;
+  type: 'BaseRPC';
+  traceSupport?: TraceSupport;
 };
 
-export type FetchRequestRPC = {
+// override the type of BaseRPC to add the type field
+export type APIKeyRPC = Omit<BaseRPC, 'type'> & {
+  type: 'APIKeyRPC';
+  apiKeyEnvName: string;
+  subDomainEnvName?: string;
+};
+
+// override the type of BaseRPC to add the type field
+export type FetchRequestRPC = Omit<BaseRPC, 'type'> & {
   type: 'FetchRequest';
-  url: string;
-  headers?: Array<{ headerName: string; headerEnvName: string }>;
+  headers?: Array<{
+    headerName: string;
+    headerEnvName: string;
+  }>;
+};
+
+export type TraceSupportedRPC = {
+  type: TraceSupport;
+  index: number;
 };
 
 export type SourcifyChainExtension = {
@@ -342,7 +360,12 @@ export type SourcifyChainExtension = {
     apiKeyEnvName?: string;
   };
   fetchContractCreationTxUsing?: FetchContractCreationTxMethods;
-  rpc?: Array<string | AlchemyInfuraRPC | FetchRequestRPC>;
+  rpc?: Array<string | BaseRPC | APIKeyRPC | FetchRequestRPC>;
+};
+
+export type RPCObjectWithTraceSupport = {
+  rpc: string | FetchRequest;
+  traceSupport?: TraceSupport;
 };
 
 export interface SourcifyChainsExtensionsObject {
@@ -585,4 +608,19 @@ export interface AuxdataDiff {
 export interface IpfsGateway {
   url: string;
   headers?: HeadersInit;
+}
+
+// https://geth.ethereum.org/docs/developers/evm-tracing/built-in-tracers#call-tracer
+export interface CallFrame {
+  type: string;
+  from: string;
+  to: string;
+  value: string;
+  gas: string;
+  gasUsed: string;
+  input: string;
+  output: string;
+  error: string;
+  revertReason: string;
+  calls: CallFrame[];
 }

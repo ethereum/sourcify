@@ -758,14 +758,13 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
-  // // Flare Mainnet
-  // verifyContract(
-  //   "0xbBc2EdeDc9d2d97970eE20d0Dc7216216a27e635",
-  //   "14",
-  //   "Flare Mainnet",
-  //   "shared/"
-  //
-  // );
+  // Flare Mainnet
+  verifyContract(
+    "0x24AaDc3168a88a0058DF9437CAD3275170CDd581",
+    "14",
+    "Flare Mainnet",
+    "shared/",
+  );
 
   // Oasis Sapphire Mainnet
   verifyContract(
@@ -1661,6 +1660,38 @@ describe("Test Supported Chains", function () {
     "0x0c18F206943DD4dbE2Ab2af28c6062AE7EDba5ED",
     "2442",
     "Polygon zkEVM Cardona Testnet",
+    "shared/",
+  );
+
+  // Metis Andromeda Mainnet
+  verifyContract(
+    "0xaCe60DF34CEeb11B52B0901Be3F58871A5E83D64",
+    "1088",
+    "Metis Andromeda Mainnet",
+    "shared/",
+  );
+
+  // Metis Sepolia Testnet
+  verifyContract(
+    "0xF282C3784C0187C48747c779C362eCBaddB5F020",
+    "59902",
+    "Metis Sepolia Testnet",
+    "shared/",
+  );
+
+  // Zircuit Testnet
+  verifyContract(
+    "0x0cfE351147DEb353a57623859F7b2A4984645433",
+    "48899",
+    "Zircuit Testnet",
+    "shared/",
+  );
+
+  // Zircuit Mainnet
+  verifyContract(
+    "0x0cfE351147DEb353a57623859F7b2A4984645433",
+    "48900",
+    "Zircuit Mainnet",
     "shared/",
   );
 

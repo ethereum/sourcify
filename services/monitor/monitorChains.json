@@ -14,167 +14,129 @@
     "name": "Ethereum Testnet Sepolia",
     "title": "Ethereum Testnet Sepolia",
     "chainId": 11155111,
-    "rpc": [
-      {
-        "type": "ApiKey",
-        "url": "https://eth-sepolia.blastapi.io/{API_KEY}",
-        "apiKeyEnvName": "BLAST_API_KEY"
-      }
-    ]
+    "rpc": ["https://sepolia.drpc.org", "https://1rpc.io/sepolia"]
   },
   {
     "name": "Ethereum Testnet Holesky",
     "title": "Ethereum Testnet Holesky",
     "chainId": 17000,
-    "rpc": [
-      {
-        "type": "ApiKey",
-        "url": "https://eth-holesky.blastapi.io/{API_KEY}",
-        "apiKeyEnvName": "BLAST_API_KEY"
-      }
-    ]
+    "rpc": ["https://holesky.drpc.org", "https://1rpc.io/holesky"]
   },
   {
     "name": "Arbitrum One",
     "chainId": 42161,
     "rpc": [
-      {
-        "type": "ApiKey",
-        "url": "https://arb-mainnet.g.alchemy.com/v2/{API_KEY}",
-        "apiKeyEnvName": "ALCHEMY_API_KEY_ARBITRUM"
-      }
+      "https://arb1.arbitrum.io/rpc",
+      "https://1rpc.io/arb",
+      "https://arbitrum.meowrpc.com",
+      "https://arbitrum.drpc.org"
     ]
   },
   {
     "name": "Arbitrum Sepolia Testnet",
     "chainId": 421614,
     "rpc": [
-      {
-        "type": "ApiKey",
-        "url": "https://arb-sepolia.g.alchemy.com/v2/{API_KEY}",
-        "apiKeyEnvName": "ALCHEMY_API_KEY_ARBITRUM"
-      }
+      "https://sepolia-rollup.arbitrum.io/rpc",
+      "https://api.zan.top/arb-sepolia",
+      "https://arbitrum-sepolia.gateway.tenderly.co"
     ]
   },
   {
     "name": "Arbitrum Nova",
     "chainId": 42170,
     "rpc": [
-      {
-        "type": "ApiKey",
-        "url": "https://arbnova-mainnet.g.alchemy.com/v2/{API_KEY}",
-        "apiKeyEnvName": "ALCHEMY_API_KEY_ARBITRUM"
-      }
+      "https://nova.arbitrum.io/rpc",
+      "https://arbitrum-nova.public.blastapi.io",
+      "https://arbitrum-nova.gateway.tenderly.co"
     ]
   },
   {
     "name": "Gnosis",
     "chainId": 100,
     "rpc": [
-      {
-        "type": "ApiKey",
-        "url": "https://gnosis-mainnet.blastapi.io/{API_KEY}",
-        "apiKeyEnvName": "BLAST_API_KEY"
-      }
+      "https://rpc.gnosischain.com",
+      "https://1rpc.io/gnosis",
+      "https://gnosis.blockpi.network/v1/rpc/public"
     ]
   },
   {
     "name": "OP Mainnet",
     "chainId": 10,
     "rpc": [
-      {
-        "type": "ApiKey",
-        "url": "https://optimism-mainnet.blastapi.io/{API_KEY}",
-        "apiKeyEnvName": "BLAST_API_KEY"
-      }
+      "https://mainnet.optimism.io",
+      "https://optimism.gateway.tenderly.co",
+      "https://optimism.llamarpc.com"
     ]
   },
   {
     "name": "OP Sepolia Testnet",
     "chainId": 11155420,
     "rpc": [
-      {
-        "type": "ApiKey",
-        "url": "https://optimism-sepolia.blastapi.io/{API_KEY}",
-        "apiKeyEnvName": "BLAST_API_KEY"
-      }
+      "https://sepolia.optimism.io",
+      "https://optimism-sepolia.gateway.tenderly.co",
+      "https://optimism-sepolia.blockpi.network/v1/rpc/public"
     ]
   },
   {
     "name": "Polygon Mainnet",
     "chainId": 137,
     "rpc": [
-      {
-        "type": "ApiKey",
-        "url": "https://polygon-mainnet.blastapi.io/{API_KEY}",
-        "apiKeyEnvName": "BLAST_API_KEY"
-      }
+      "https://polygon.llamarpc.com",
+      "https://1rpc.io/matic",
+      "https://polygon.meowrpc.com"
     ]
   },
   {
     "name": "Polygon Amoy Testnet",
     "chainId": 80002,
     "rpc": [
-      {
-        "type": "ApiKey",
-        "url": "https://polygon-amoy.blastapi.io/{API_KEY}",
-        "apiKeyEnvName": "BLAST_API_KEY"
-      }
+      "https://rpc-amoy.polygon.technology",
+      "https://rpc.ankr.com/polygon_amoy"
     ]
   },
   {
     "name": "Polygon zkEVM Mainnet",
     "chainId": 1101,
     "rpc": [
-      {
-        "type": "ApiKey",
-        "url": "https://polygon-zkevm-mainnet.blastapi.io/{API_KEY}",
-        "apiKeyEnvName": "BLAST_API_KEY"
-      }
+      "https://rpc.ankr.com/polygon_zkevm",
+      "https://zkevm-rpc.com",
+      "https://rpc.polygon-zkevm.gateway.fm"
     ]
   },
   {
     "name": "Avalanche C-Chain",
     "chainId": 43114,
     "rpc": [
-      {
-        "type": "ApiKey",
-        "url": "https://ava-mainnet.blastapi.io/{API_KEY}/ext/bc/C/rpc",
-        "apiKeyEnvName": "BLAST_API_KEY"
-      }
+      "https://avalanche-c-chain-rpc.publicnode.com",
+      "https://1rpc.io/avax/c",
+      "https://api.avax.network/ext/bc/C/rpc"
     ]
   },
   {
     "name": "Avalanche Fuji Testnet",
     "chainId": 43113,
     "rpc": [
-      {
-        "type": "ApiKey",
-        "url": "https://ava-testnet.blastapi.io/{API_KEY}/ext/bc/C/rpc",
-        "apiKeyEnvName": "BLAST_API_KEY"
-      }
+      "https://avalanche-fuji-c-chain-rpc.publicnode.com",
+      "https://ava-testnet.public.blastapi.io/ext/bc/C/rpc",
+      "https://rpc.ankr.com/avalanche_fuji"
     ]
   },
   {
     "name": "Base",
     "chainId": 8453,
     "rpc": [
-      {
-        "type": "ApiKey",
-        "url": "https://base-mainnet.blastapi.io/{API_KEY}",
-        "apiKeyEnvName": "BLAST_API_KEY"
-      }
+      "https://mainnet.base.org",
+      "https://base.llamarpc.com",
+      "https://base-mainnet.public.blastapi.io"
     ]
   },
   {
     "name": "Base Sepolia Testnet",
-    "chainId": 84531,
+    "chainId": 84532,
     "rpc": [
-      {
-        "type": "ApiKey",
-        "url": "https://base-sepolia.blastapi.io/{API_KEY}",
-        "apiKeyEnvName": "BLAST_API_KEY"
-      }
+      "https://sepolia.base.org",
+      "https://base-sepolia-rpc.publicnode.com",
+      "https://base-sepolia.blockpi.network/v1/rpc/public"
     ]
   },
   {
@@ -201,44 +163,36 @@
     "name": "Linea Mainnet",
     "chainId": 59144,
     "rpc": [
-      {
-        "type": "ApiKey",
-        "url": "https://linea-mainnet.blastapi.io/{API_KEY}",
-        "apiKeyEnvName": "BLAST_API_KEY"
-      }
+      "https://rpc.linea.build",
+      "https://linea-rpc.publicnode.com",
+      "https://linea.blockpi.network/v1/rpc/public"
     ]
   },
   {
     "name": "Linea Sepolia Testnet",
     "chainId": 59141,
     "rpc": [
-      {
-        "type": "ApiKey",
-        "url": "https://linea-sepolia.blastapi.io/{API_KEY}",
-        "apiKeyEnvName": "BLAST_API_KEY"
-      }
+      "https://rpc.sepolia.linea.build",
+      "https://linea-sepolia.blockpi.network/v1/rpc/public",
+      "https://linea-sepolia-rpc.publicnode.com"
     ]
   },
   {
     "name": "Scroll Mainnet",
     "chainId": 534352,
     "rpc": [
-      {
-        "type": "ApiKey",
-        "url": "https://scroll-mainnet.blastapi.io/{API_KEY}",
-        "apiKeyEnvName": "BLAST_API_KEY"
-      }
+      "https://rpc.scroll.io",
+      "https://scroll.drpc.org",
+      "https://1rpc.io/scroll"
     ]
   },
   {
     "name": "Scroll Testnet",
     "chainId": 534351,
     "rpc": [
-      {
-        "type": "ApiKey",
-        "url": "https://scroll-sepolia.blastapi.io/{API_KEY}",
-        "apiKeyEnvName": "BLAST_API_KEY"
-      }
+      "https://sepolia-rpc.scroll.io",
+      "https://rpc.ankr.com/scroll_sepolia_testnet",
+      "https://scroll-sepolia-rpc.publicnode.com"
     ]
   }
 ]

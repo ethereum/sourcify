@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-monitor@1.3.3 - 2024-10-29
+
+- Update monitor RPCs to public ones
+- Update packages
+
 ## sourcify-monitor@1.3.2 - 2024-10-14
 
 - Update monitor RPCs

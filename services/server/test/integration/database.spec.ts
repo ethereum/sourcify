@@ -5,7 +5,7 @@ import { id as keccak256str, keccak256 } from "ethers";
 import { LocalChainFixture } from "../helpers/LocalChainFixture";
 import { ServerFixture } from "../helpers/ServerFixture";
 import type { MetadataSourceMap } from "@ethereum-sourcify/lib-sourcify";
-import * as databaseUtil from "../../src/server/services/utils/database-util";
+import { Database } from "../../src/server/services/utils/Database";
 import { bytesFromString } from "../../src/server/services/utils/database-util";
 import crypto from "crypto";
 import { Bytes } from "../../src/server/types";
@@ -383,7 +383,7 @@ describe("Sourcify database", function () {
   it("When inserting a new match, nothing should be stored if an error occurs in the middle of the sql transaction", async () => {
     // Sinon will throw an error if the function is called
     sandbox
-      .stub(databaseUtil, "insertVerifiedContract")
+      .stub(Database.prototype, "insertVerifiedContract")
       .throws(new Error("Simulated database error"));
 
     const res = await chai
@@ -475,7 +475,7 @@ describe("Sourcify database", function () {
 
     // Sinon will throw an error if the function is called
     sandbox
-      .stub(databaseUtil, "insertVerifiedContract")
+      .stub(Database.prototype, "insertVerifiedContract")
       .throws(new Error("Simulated database error"));
 
     res = await chai
