@@ -197,7 +197,7 @@ async function assertContractSaved(
     const expectedMetadataContent = fs.readFileSync(metadataPath).toString();
     const expectedMetadataHash = id(expectedMetadataContent);
 
-    // Check if saved to S3 by the normal verification process
+    // Check if saved to S3
     const getS3MetadataPath = (match: string) =>
       path.join(
         testS3Path,
