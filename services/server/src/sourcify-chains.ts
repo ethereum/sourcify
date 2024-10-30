@@ -102,7 +102,14 @@ function buildCustomRpcs(
         process.env[sourcifyRpc.apiKeyEnvName] || process.env["API_KEY"] || "";
       if (!apiKey) {
         // API key is required for all APIKeyRPCs
-        throw new Error(`API key not found for ${sourcifyRpc.apiKeyEnvName}`);
+        if (process.env.CI === "true") {
+          logger.warn(
+            `API key not found for ${sourcifyRpc.apiKeyEnvName}, skipping on CI`,
+          );
+          return;
+        } else {
+          throw new Error(`API key not found for ${sourcifyRpc.apiKeyEnvName}`);
+        }
       }
       let url = sourcifyRpc.url.replace("{API_KEY}", apiKey);
 
