@@ -4,24 +4,22 @@ import { WStorageIdentifiers } from "./identifiers";
 import logger from "../../../common/logger";
 import {
   S3Client,
-  GetObjectCommand,
   PutObjectCommand,
   ListObjectsV2Command,
   DeleteObjectsCommand,
 } from "@aws-sdk/client-s3";
-import { MatchLevelWithoutAny, PathConfig } from "../../types";
+import { PathConfig } from "../../types";
 import Path from "path";
 
-export interface RepositoryS3ServiceOptions {
+export interface S3RepositoryServiceOptions {
   s3Bucket: string;
   s3Region: string;
   s3AccessKeyId: string;
   s3SecretAccessKey: string;
   endpoint?: string;
-  signatureVersion?: string;
 }
 
-export class RepositoryS3Service
+export class S3RepositoryService
   extends RepositoryV2Service
   implements WStorageService
 {
@@ -29,7 +27,7 @@ export class RepositoryS3Service
   private s3: S3Client;
   private bucket: string;
 
-  constructor(options: RepositoryS3ServiceOptions) {
+  constructor(options: S3RepositoryServiceOptions) {
     super({ ipfsApi: "", repositoryPath: "" });
     this.bucket = options.s3Bucket;
     this.s3 = new S3Client({

@@ -131,7 +131,6 @@ const server = new Server(
       s3AccessKeyId: process.env.S3_ACCESS_KEY_ID as string,
       s3SecretAccessKey: process.env.S3_SECRET_ACCESS_KEY as string,
       endpoint: process.env.S3_ENDPOINT as string,
-      signatureVersion: process.env.S3_SIGNATURE_VERSION as string,
     },
     sourcifyDatabaseServiceOptions: {
       postgres: {

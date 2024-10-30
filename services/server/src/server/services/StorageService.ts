@@ -31,9 +31,9 @@ import { DatabaseServiceOptions } from "./storageServices/AbstractDatabaseServic
 import { ConflictError } from "../../common/errors/ConflictError";
 import { isBetterMatch } from "./utils/util";
 import {
-  RepositoryS3Service,
-  RepositoryS3ServiceOptions,
-} from "./storageServices/RepositoryS3Service";
+  S3RepositoryService,
+  S3RepositoryServiceOptions,
+} from "./storageServices/S3RepositoryService";
 
 export interface WStorageService {
   IDENTIFIER: StorageIdentifiers;
@@ -83,7 +83,7 @@ export interface StorageServiceOptions {
   repositoryV2ServiceOptions: RepositoryV2ServiceOptions;
   sourcifyDatabaseServiceOptions?: DatabaseServiceOptions;
   allianceDatabaseServiceOptions?: DatabaseServiceOptions;
-  s3RepositoryServiceOptions?: RepositoryS3ServiceOptions;
+  s3RepositoryServiceOptions?: S3RepositoryServiceOptions;
 }
 
 export class StorageService {
@@ -187,7 +187,7 @@ export class StorageService {
       }
     }
 
-    // S3Repository
+    // S3RepositoryService
     if (enabledServicesArray.includes(WStorageIdentifiers.S3Repository)) {
       if (
         options.s3RepositoryServiceOptions?.s3Bucket &&
@@ -195,10 +195,10 @@ export class StorageService {
         options.s3RepositoryServiceOptions?.s3AccessKeyId &&
         options.s3RepositoryServiceOptions?.s3SecretAccessKey
       ) {
-        const repositoryS3 = new RepositoryS3Service(
+        const s3repository = new S3RepositoryService(
           options.s3RepositoryServiceOptions,
         );
-        this.wServices[repositoryS3.IDENTIFIER] = repositoryS3;
+        this.wServices[s3repository.IDENTIFIER] = s3repository;
       } else {
         logger.error(
           "S3Repository enabled, but S3 options are not fully set",
