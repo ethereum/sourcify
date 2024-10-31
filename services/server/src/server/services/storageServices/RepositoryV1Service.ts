@@ -25,7 +25,6 @@ import { RWStorageIdentifiers } from "./identifiers";
 import { exists, readFile } from "../utils/util";
 
 export interface RepositoryV1ServiceOptions {
-  ipfsApi: string;
   repositoryPath: string;
 }
 

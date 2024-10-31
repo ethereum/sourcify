@@ -116,11 +116,9 @@ const server = new Server(
       writeOrErr: config.get("storage.writeOrErr"),
     },
     repositoryV1ServiceOptions: {
-      ipfsApi: process.env.IPFS_API as string,
       repositoryPath: config.get("repositoryV1.path"),
     },
     repositoryV2ServiceOptions: {
-      ipfsApi: process.env.IPFS_API as string,
       repositoryPath: config.has("repositoryV2.path")
         ? config.get("repositoryV2.path")
         : undefined,

@@ -28,7 +28,7 @@ export class S3RepositoryService
   private bucket: string;
 
   constructor(options: S3RepositoryServiceOptions) {
-    super({ ipfsApi: "", repositoryPath: "" });
+    super({ repositoryPath: "" });
     this.bucket = options.s3Bucket;
     this.s3 = new S3Client({
       region: options.s3Region,

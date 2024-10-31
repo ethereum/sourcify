@@ -446,7 +446,7 @@ describe("Sourcify database", function () {
       .attach("files", partialMetadataBuffer, "metadata.json")
       .attach("files", partialSourceBuffer);
     await assertVerification(
-      serverFixture.sourcifyDatabase,
+      serverFixture,
       null,
       res,
       null,

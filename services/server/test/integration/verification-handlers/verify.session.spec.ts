@@ -107,7 +107,7 @@ describe("/session", function () {
           .send({ contracts })
           .end(async (err, res) => {
             await assertVerificationSession(
-              serverFixture.sourcifyDatabase,
+              serverFixture,
               err,
               res,
               done,
@@ -171,7 +171,7 @@ describe("/session", function () {
             contracts[0].chainId = chainFixture.chainId;
             contracts[0].address = chainFixture.defaultContractAddress;
             assertVerificationSession(
-              serverFixture.sourcifyDatabase,
+              serverFixture,
               err,
               res,
               null,
@@ -184,7 +184,7 @@ describe("/session", function () {
                 .send({ contracts })
                 .end(async (err, res) => {
                   await assertVerificationSession(
-                    serverFixture.sourcifyDatabase,
+                    serverFixture,
                     err,
                     res,
                     done,
@@ -874,7 +874,7 @@ describe("/session", function () {
       .send({ contracts });
 
     await assertVerificationSession(
-      serverFixture.sourcifyDatabase,
+      serverFixture,
       null,
       verifyRes,
       null,

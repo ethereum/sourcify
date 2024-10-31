@@ -60,7 +60,7 @@ describe("E2E test path sanitization", function () {
         },
       });
     await assertVerification(
-      serverFixture.sourcifyDatabase,
+      serverFixture,
       null,
       res,
       null,
@@ -225,7 +225,7 @@ describe("E2E test path sanitization", function () {
         })
         .end(async (err, res) => {
           await assertVerification(
-            serverFixture.sourcifyDatabase,
+            serverFixture,
             err,
             res,
             null,

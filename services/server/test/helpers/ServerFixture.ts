@@ -13,14 +13,8 @@ import { SourcifyDatabaseService } from "../../src/server/services/storageServic
 import genFunc from "connect-pg-simple";
 import expressSession from "express-session";
 import { SolcLocal } from "../../src/server/services/compiler/local/SolcLocal";
-import sinon from "sinon";
-import { S3Client } from "@aws-sdk/client-s3";
-import { createS3Client } from "mock-aws-s3-v3";
 import path from "path";
-import fs from "fs";
-
-export const testS3Path = "./test-s3";
-export const testS3Bucket = "test-bucket";
+import { testS3Bucket, testS3Path } from "./S3ClientMock";
 
 export type ServerFixtureOptions = {
   port: number;
@@ -34,6 +28,8 @@ export class ServerFixture {
   identifier: StorageIdentifiers | undefined;
   readonly maxFileSize: number;
   readonly repositoryV1Path: string;
+  readonly testS3Path: string = testS3Path;
+  readonly testS3Bucket: string = testS3Bucket;
 
   private _server?: Server;
 
@@ -119,21 +115,6 @@ export class ServerFixture {
         },
       };
 
-      // Create test S3 directory if it doesn't exist
-      await fs.promises
-        .access(path.join(testS3Path, testS3Bucket))
-        .catch(async () => {
-          await fs.promises.mkdir(path.join(testS3Path, testS3Bucket), {
-            recursive: true,
-          });
-        });
-      // Initialize S3 mock before server creation
-      const mockS3Client = createS3Client(testS3Path);
-
-      // Stub the S3Client class
-      const stub = sinon.stub().callsFake(() => mockS3Client);
-      Object.setPrototypeOf(S3Client, stub);
-
       this._server = new Server(
         serverOptions,
         {
@@ -150,11 +131,9 @@ export class ServerFixture {
               fixtureOptions_?.writeOrErr || config.get("storage.writeOrErr"),
           },
           repositoryV1ServiceOptions: {
-            ipfsApi: process.env.IPFS_API as string,
             repositoryPath: config.get("repositoryV1.path"),
           },
           repositoryV2ServiceOptions: {
-            ipfsApi: process.env.IPFS_API as string,
             repositoryPath: config.get("repositoryV2.path"),
           },
           sourcifyDatabaseServiceOptions: {
@@ -198,8 +177,7 @@ export class ServerFixture {
       httpServer.close();
       rimraf.sync(config.get("repositoryV1.path"));
       rimraf.sync(config.get("repositoryV2.path"));
-      rimraf.sync(testS3Path);
-      sinon.restore();
+      rimraf.sync(path.join(testS3Path, testS3Bucket));
     });
   }
 }

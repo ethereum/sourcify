@@ -1,5 +1,9 @@
 {
   "extension": ["ts"],
-  "require": ["ts-node/register", "./test/load-env.js"],
+  "require": [
+    "ts-node/register",
+    "./test/load-env.js",
+    "./test/global-mocks.ts"
+  ],
   "timeout": 60000
 }

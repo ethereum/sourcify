@@ -22,7 +22,6 @@ import { WStorageIdentifiers } from "./identifiers";
 import { exists, readFile } from "../utils/util";
 
 export interface RepositoryV2ServiceOptions {
-  ipfsApi: string;
   repositoryPath?: string;
 }
 
