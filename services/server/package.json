@@ -52,11 +52,11 @@
   "homepage": "https://github.com/ethereum/sourcify#readme",
   "dependencies": {
     "@aws-sdk/client-lambda": "3.680.0",
+    "@aws-sdk/client-s3": "^3.682.0",
     "@ethereum-sourcify/bytecode-utils": "^1.2.13",
     "@ethereum-sourcify/lib-sourcify": "^1.10.0",
     "@google-cloud/cloud-sql-connector": "1.4.0",
     "abitype": "1.0.6",
-    "aws-sdk": "^2.1691.0",
     "bunyan": "1.8.15",
     "chalk": "4.1.2",
     "config": "3.3.12",
