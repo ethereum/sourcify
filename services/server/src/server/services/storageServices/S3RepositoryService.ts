@@ -73,9 +73,8 @@ export class S3RepositoryService
     }
   }
 
-  async save(path: string | PathConfig, content: string) {
-    const filePath =
-      typeof path === "string" ? path : this.generateRelativeFilePath(path);
+  async save(path: PathConfig, content: string) {
+    const filePath = this.generateRelativeFilePath(path);
 
     try {
       await this.s3.send(
