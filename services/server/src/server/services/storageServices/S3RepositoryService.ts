@@ -6,16 +6,16 @@ import {
   S3Client,
   PutObjectCommand,
   ListObjectsV2Command,
-  DeleteObjectsCommand,
+  DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
 import { PathConfig } from "../../types";
 import Path from "path";
 
 export interface S3RepositoryServiceOptions {
-  s3Bucket: string;
-  s3Region: string;
-  s3AccessKeyId: string;
-  s3SecretAccessKey: string;
+  bucket: string;
+  region: string;
+  accessKeyId: string;
+  secretAccessKey: string;
   endpoint?: string;
 }
 
@@ -29,12 +29,12 @@ export class S3RepositoryService
 
   constructor(options: S3RepositoryServiceOptions) {
     super({ repositoryPath: "" });
-    this.bucket = options.s3Bucket;
+    this.bucket = options.bucket;
     this.s3 = new S3Client({
-      region: options.s3Region,
+      region: options.region,
       credentials: {
-        accessKeyId: options.s3AccessKeyId,
-        secretAccessKey: options.s3SecretAccessKey,
+        accessKeyId: options.accessKeyId,
+        secretAccessKey: options.secretAccessKey,
       },
       endpoint: options.endpoint,
     });
@@ -57,16 +57,19 @@ export class S3RepositoryService
         return;
       }
 
-      const deleteParams = {
-        Bucket: this.bucket,
-        Delete: {
-          Objects: listedObjects.Contents.filter(
-            (obj): obj is { Key: string } => obj.Key !== undefined,
-          ).map(({ Key }) => ({ Key })),
-        },
-      };
+      // Unfortunately `DeleteObjectsCommand` is not supported by all s3 servers (e.g. Filebase), so we have to delete each object individually.
+      const deletePromises = listedObjects.Contents.filter(
+        (obj): obj is { Key: string } => obj.Key !== undefined,
+      ).map(({ Key }) =>
+        this.s3.send(
+          new DeleteObjectCommand({
+            Bucket: this.bucket,
+            Key: Key,
+          }),
+        ),
+      );
 
-      await this.s3.send(new DeleteObjectsCommand(deleteParams));
+      await Promise.all(deletePromises);
     } catch (error) {
       logger.error("Failed to delete partial match from S3", { error, prefix });
       throw error;

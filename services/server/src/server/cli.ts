@@ -124,10 +124,10 @@ const server = new Server(
         : undefined,
     },
     s3RepositoryServiceOptions: {
-      s3Bucket: process.env.S3_BUCKET as string,
-      s3Region: process.env.S3_REGION as string,
-      s3AccessKeyId: process.env.S3_ACCESS_KEY_ID as string,
-      s3SecretAccessKey: process.env.S3_SECRET_ACCESS_KEY as string,
+      bucket: process.env.S3_BUCKET as string,
+      region: process.env.S3_REGION as string,
+      accessKeyId: process.env.S3_ACCESS_KEY_ID as string,
+      secretAccessKey: process.env.S3_SECRET_ACCESS_KEY as string,
       endpoint: process.env.S3_ENDPOINT as string,
     },
     sourcifyDatabaseServiceOptions: {

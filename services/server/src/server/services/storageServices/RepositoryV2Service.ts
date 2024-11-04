@@ -105,7 +105,7 @@ export class RepositoryV2Service implements WStorageService {
         match.runtimeMatch === "perfect" ||
         match.creationMatch === "perfect"
       ) {
-        this.deletePartialIfExists(match.chainId, match.address);
+        await this.deletePartialIfExists(match.chainId, match.address);
       }
       const matchQuality: MatchQuality = this.statusToMatchQuality(
         getMatchStatus(match),

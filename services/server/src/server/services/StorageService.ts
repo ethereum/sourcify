@@ -190,10 +190,10 @@ export class StorageService {
     // S3RepositoryService
     if (enabledServicesArray.includes(WStorageIdentifiers.S3Repository)) {
       if (
-        options.s3RepositoryServiceOptions?.s3Bucket &&
-        options.s3RepositoryServiceOptions?.s3Region &&
-        options.s3RepositoryServiceOptions?.s3AccessKeyId &&
-        options.s3RepositoryServiceOptions?.s3SecretAccessKey
+        options.s3RepositoryServiceOptions?.bucket &&
+        options.s3RepositoryServiceOptions?.region &&
+        options.s3RepositoryServiceOptions?.accessKeyId &&
+        options.s3RepositoryServiceOptions?.secretAccessKey
       ) {
         const s3repository = new S3RepositoryService(
           options.s3RepositoryServiceOptions,

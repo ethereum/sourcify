@@ -24,12 +24,10 @@ export default class S3ClientMock {
         (command as any).input.Body as Buffer,
       );
       return {};
-    } else if ((command as any).constructor.name === "DeleteObjectsCommand") {
-      const objects = (command as any).input.Delete.Objects;
-      for (const obj of objects) {
-        const filePath = path.join(this.testS3Path, this.testS3Bucket, obj.Key);
-        await fs.promises.rm(filePath, { force: true });
-      }
+    } else if ((command as any).constructor.name === "DeleteObjectCommand") {
+      const key = (command as any).input.Key;
+      const filePath = path.join(this.testS3Path, this.testS3Bucket, key);
+      await fs.promises.rm(filePath, { force: true });
       return {};
     } else if ((command as any).constructor.name === "ListObjectsV2Command") {
       const prefix = (command as any).input.Prefix || "";

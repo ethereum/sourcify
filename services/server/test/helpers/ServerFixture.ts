@@ -146,10 +146,11 @@ export class ServerFixture {
             },
           },
           s3RepositoryServiceOptions: {
-            s3Bucket: testS3Bucket,
-            s3Region: "test-region",
-            s3AccessKeyId: "test-key",
-            s3SecretAccessKey: "test-secret",
+            bucket: process.env.S3_BUCKET as string,
+            region: process.env.S3_REGION as string,
+            accessKeyId: process.env.S3_ACCESS_KEY_ID as string,
+            secretAccessKey: process.env.S3_SECRET_ACCESS_KEY as string,
+            endpoint: process.env.S3_ENDPOINT as string,
           },
         },
       );
