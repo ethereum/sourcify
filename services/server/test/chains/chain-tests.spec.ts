@@ -1695,6 +1695,22 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
+  // Bitrock Mainnet
+  verifyContract(
+    "0x391D6076D64E3f716F48d7a74959958751C432e3",
+    "7171",
+    "Bitrock Mainnet",
+    "shared/",
+  );
+
+  // Bitrock Testnet
+  verifyContract(
+    "0x3b89e156B7835c02a7C60aC93a64A3a785727b5B",
+    "7771",
+    "Bitrock Testnet",
+    "shared/",
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests: ChainApiResponse[] = [];
     supportedChains
