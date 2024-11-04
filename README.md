@@ -5,7 +5,7 @@
   <a href="https://sourcify.dev"><img src="https://raw.githubusercontent.com/sourcifyeth/assets/master/logo-assets-svg/logoText.svg" alt="sourcify logo" role="presentation"></a>
 </p>
 
-[![codecov](https://codecov.io/gh/ethereum/sourcify/branch/staging/graph/badge.svg?token=eN6XDAwWfV&flag=server)](https://codecov.io/gh/ethereum/sourcify)
+[![codecov](https://codecov.io/gh/ethereum/sourcify/branch/staging/graph/badge.svg?token=eN6XDAwWfV)](https://codecov.io/gh/ethereum/sourcify)
 
 Sourcify ([sourcify.dev](https://sourcify.dev)) is a Solidity source code verification service for Ethereum smart contracts.
 
