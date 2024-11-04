@@ -176,9 +176,22 @@ for (const i in allChains) {
 
   if (chainId in sourcifyChainsExtensions) {
     const sourcifyExtension = sourcifyChainsExtensions[chainId];
-    const { rpc, rpcWithoutApiKeys, traceSupportedRPCs } = buildCustomRpcs(
-      sourcifyExtension.rpc || chain.rpc,
-    );
+
+    let rpc: (string | FetchRequest)[] = [];
+    let rpcWithoutApiKeys: string[] = [];
+    let traceSupportedRPCs: TraceSupportedRPC[] | undefined = undefined;
+    if (sourcifyExtension.rpc) {
+      ({ rpc, rpcWithoutApiKeys, traceSupportedRPCs } = buildCustomRpcs(
+        sourcifyExtension.rpc,
+      ));
+    }
+    // Fallback to rpcs of chains.json
+    if (!rpc.length) {
+      ({ rpc, rpcWithoutApiKeys, traceSupportedRPCs } = buildCustomRpcs(
+        chain.rpc,
+      ));
+    }
+
     // sourcifyExtension is spread later to overwrite chains.json values, rpc specifically
     const sourcifyChain = new SourcifyChain({
       ...chain,
