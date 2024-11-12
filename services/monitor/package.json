@@ -43,17 +43,17 @@
     "commander": "12.1.0",
     "dotenv": "16.4.5",
     "ethers": "6.13.4",
-    "winston": "3.15.0"
+    "winston": "3.17.0"
   },
   "devDependencies": {
     "@types/chai": "4.3.20",
     "@types/mocha": "10.0.9",
-    "@types/node": "22.8.7",
+    "@types/node": "22.9.0",
     "@types/sinon": "17.0.3",
     "c8": "10.1.2",
     "chai": "4.5.0",
     "hardhat": "2.22.15",
-    "mocha": "10.7.3",
+    "mocha": "10.8.2",
     "nock": "14.0.0-beta.15",
     "open-cli": "8.0.0",
     "sinon": "19.0.2",
