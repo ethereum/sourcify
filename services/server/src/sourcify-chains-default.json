@@ -2221,5 +2221,13 @@
     "sourcifyName": "Zircuit Testnet",
     "supported": true,
     "rpc": ["https://zircuit1-testnet.p2pify.com/"]
+  },
+  "7171": {
+    "sourcifyName": "Bitrock Mainnet",
+    "supported": true
+  },
+  "7771": {
+    "sourcifyName": "Bitrock Testnet",
+    "supported": true
   }
 }
