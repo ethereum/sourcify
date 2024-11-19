@@ -86,7 +86,7 @@ export class RepositoryV2Service implements WStorageService {
     const abolsutePath = this.generateAbsoluteFilePath(path);
     await fs.promises.mkdir(Path.dirname(abolsutePath), { recursive: true });
     await fs.promises.writeFile(abolsutePath, content);
-    logger.silly("Saved file to repositoryV2", { abolsutePath });
+    logger.silly(`Saved file to ${this.IDENTIFIER}`, { abolsutePath });
   }
 
   public async storeMatch(
@@ -170,7 +170,7 @@ export class RepositoryV2Service implements WStorageService {
         );
       }
 
-      logger.info("Stored contract to RepositoryV2", {
+      logger.info(`Stored contract to ${this.IDENTIFIER}`, {
         address: match.address,
         chainId: match.chainId,
         runtimeMatch: match.runtimeMatch,
