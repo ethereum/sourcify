@@ -280,7 +280,7 @@ export async function testPartialUpgrade(
     .attach("files", partialMetadataBuffer, "metadata.json")
     .attach("files", partialSourceBuffer);
   await assertVerification(
-    serverFixture.sourcifyDatabase,
+    serverFixture,
     null,
     res,
     null,
@@ -339,7 +339,7 @@ export async function testPartialUpgrade(
     .attach("files", chainFixture.defaultContractMetadata, "metadata.json")
     .attach("files", chainFixture.defaultContractSource);
   await assertVerification(
-    serverFixture.sourcifyDatabase,
+    serverFixture,
     null,
     res,
     null,

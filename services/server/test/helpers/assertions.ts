@@ -12,6 +12,7 @@ import {
   Transformation,
   TransformationValues,
 } from "@ethereum-sourcify/lib-sourcify";
+import { ServerFixture } from "./ServerFixture";
 
 export const assertValidationError = (
   err: Error | null,
@@ -33,7 +34,7 @@ export const assertValidationError = (
 
 // If you pass storageService = false, then the match will not be compared to the database
 export const assertVerification = async (
-  sourcifyDatabase: Pool | null,
+  serverFixture: ServerFixture | null,
   err: Error | null,
   res: Response,
   done: Done | null,
@@ -55,10 +56,12 @@ export const assertVerification = async (
     chai.expect(result.status).to.equal(expectedStatus);
 
     await assertContractSaved(
-      sourcifyDatabase,
+      serverFixture?.sourcifyDatabase ?? null,
       expectedAddress,
       expectedChain,
       expectedStatus,
+      serverFixture?.testS3Path ?? null,
+      serverFixture?.testS3Bucket ?? null,
     );
     if (done) done();
   } catch (e) {
@@ -69,7 +72,7 @@ export const assertVerification = async (
 };
 
 export const assertVerificationSession = async (
-  sourcifyDatabase: Pool | null,
+  serverFixture: ServerFixture | null,
   err: Error | null,
   res: Response,
   done: Done | null,
@@ -94,10 +97,12 @@ export const assertVerificationSession = async (
     chai.expect(contract.files.invalid).to.be.empty;
 
     await assertContractSaved(
-      sourcifyDatabase,
+      serverFixture?.sourcifyDatabase ?? null,
       expectedAddress,
       expectedChain,
       expectedStatus,
+      serverFixture?.testS3Path ?? null,
+      serverFixture?.testS3Bucket ?? null,
     );
     if (done) done();
   } catch (e) {
@@ -166,22 +171,73 @@ async function assertContractSaved(
   expectedAddress: string | undefined,
   expectedChain: string | undefined,
   expectedStatus: string,
+  testS3Path: string | null,
+  testS3Bucket: string | null,
 ) {
   if (expectedStatus === "perfect" || expectedStatus === "partial") {
     // Check if saved to fs repository
     const match = expectedStatus === "perfect" ? "full_match" : "partial_match";
-    const metadataPath = path.join(
-      config.get("repositoryV1.path"),
-      "contracts",
-      match,
-      expectedChain ?? "",
-      getAddress(expectedAddress ?? ""),
-      "metadata.json",
-    );
-    const isExist = fs.existsSync(metadataPath);
-    chai.expect(isExist, "Contract is not saved").to.be.true;
+    const getMetadataPath = (match: string) =>
+      path.join(
+        config.get("repositoryV1.path"),
+        "contracts",
+        match,
+        expectedChain ?? "",
+        getAddress(expectedAddress ?? ""),
+        "metadata.json",
+      );
+    const metadataPath = getMetadataPath(match);
+    const matchMetadadataExist = fs.existsSync(metadataPath);
+    chai.expect(matchMetadadataExist, "Contract is not saved to filesystem").to
+      .be.true;
 
-    const expectedMetadataHash = id(fs.readFileSync(metadataPath).toString());
+    // If perfect match then check that partial match does not exist in the repository
+    if (expectedStatus === "perfect") {
+      const partialMatchMetadataPath = getMetadataPath("partial_match");
+      chai.expect(
+        fs.existsSync(partialMatchMetadataPath),
+        "Partial match should not exist",
+      ).to.be.false;
+    }
+
+    const expectedMetadataContent = fs.readFileSync(metadataPath).toString();
+    const expectedMetadataHash = id(expectedMetadataContent);
+
+    // Check if saved to S3
+    if (testS3Path && testS3Bucket) {
+      const getS3MetadataPath = (match: string) =>
+        path.join(
+          testS3Path,
+          testS3Bucket,
+          "contracts",
+          match,
+          expectedChain ?? "",
+          getAddress(expectedAddress ?? ""),
+          "metadata.json",
+        );
+      const s3MetadataPath = getS3MetadataPath(match);
+
+      chai.expect(
+        fs.existsSync(s3MetadataPath),
+        "S3 metadata file should exist",
+      ).to.be.true;
+
+      // If perfect match then check that partial match does not exist in s3
+      if (expectedStatus === "perfect") {
+        const partialMatchS3MetadataPath = getS3MetadataPath("partial_match");
+        chai.expect(
+          fs.existsSync(partialMatchS3MetadataPath),
+          "Partial match should not exist",
+        ).to.be.false;
+      }
+      const s3Content = fs.readFileSync(s3MetadataPath).toString();
+      chai
+        .expect(id(s3Content))
+        .to.equal(
+          expectedMetadataHash,
+          "S3 metadata hash doesn't match filesystem metadata hash",
+        );
+    }
 
     if (sourcifyDatabase) {
       // Check if saved to the database

@@ -65,7 +65,7 @@ describe("/", function () {
       .end(
         async (err, res) =>
           await assertVerification(
-            serverFixture.sourcifyDatabase,
+            serverFixture,
             err,
             res,
             done,
@@ -91,7 +91,7 @@ describe("/", function () {
       .end(
         async (err, res) =>
           await assertVerification(
-            serverFixture.sourcifyDatabase,
+            serverFixture,
             err,
             res,
             done,
@@ -117,7 +117,7 @@ describe("/", function () {
       .end(
         async (err, res) =>
           await assertVerification(
-            serverFixture.sourcifyDatabase,
+            serverFixture,
             err,
             res,
             done,
@@ -164,7 +164,7 @@ describe("/", function () {
       .end(
         async (err, res) =>
           await assertVerification(
-            serverFixture.sourcifyDatabase,
+            serverFixture,
             err,
             res,
             done,
@@ -194,7 +194,7 @@ describe("/", function () {
       .attach("files", chainFixture.defaultContractSource);
 
     await assertVerification(
-      serverFixture.sourcifyDatabase,
+      serverFixture,
       null,
       initialResponse,
       null,
@@ -232,7 +232,7 @@ describe("/", function () {
       .attach("files", chainFixture.defaultContractSource);
 
     await assertVerification(
-      serverFixture.sourcifyDatabase,
+      serverFixture,
       null,
       res,
       null,
@@ -258,7 +258,7 @@ describe("/", function () {
       .field("chain", chainFixture.chainId);
 
     await assertVerification(
-      serverFixture.sourcifyDatabase,
+      serverFixture,
       null,
       res,
       null,
@@ -297,7 +297,7 @@ describe("/", function () {
       .field("contractName", "Storage");
 
     await assertVerification(
-      serverFixture.sourcifyDatabase,
+      serverFixture,
       null,
       res,
       null,
@@ -343,7 +343,7 @@ describe("/", function () {
       .attach("files", partialMetadataBuffer, "metadata.json")
       .attach("files", partialSourceBuffer);
     await assertVerification(
-      serverFixture.sourcifyDatabase,
+      serverFixture,
       null,
       res,
       null,
@@ -380,7 +380,7 @@ describe("/", function () {
       .attach("files", chainFixture.defaultContractMetadata, "metadata.json")
       .attach("files", chainFixture.defaultContractSource);
     await assertVerification(
-      serverFixture.sourcifyDatabase,
+      serverFixture,
       null,
       res,
       null,
@@ -470,7 +470,7 @@ describe("/", function () {
       .attach("files", partialMetadataBuffer, "metadata.json")
       .attach("files", partialSourceBuffer);
     await assertVerification(
-      serverFixture.sourcifyDatabase,
+      serverFixture,
       null,
       res,
       null,
@@ -526,7 +526,7 @@ describe("/", function () {
       .attach("files", metadataBuffer, "metadata.json");
 
     await assertVerification(
-      serverFixture.sourcifyDatabase,
+      serverFixture,
       null,
       res,
       null,
@@ -576,7 +576,7 @@ describe("/", function () {
         },
       });
     await assertVerification(
-      serverFixture.sourcifyDatabase,
+      serverFixture,
       null,
       res,
       null,
@@ -659,7 +659,7 @@ describe("/", function () {
       });
 
     await assertVerification(
-      serverFixture.sourcifyDatabase,
+      serverFixture,
       null,
       verifyRes,
       null,
@@ -762,7 +762,7 @@ describe("/", function () {
         .field("contractName", "Storage");
 
       await assertVerification(
-        serverFixture.sourcifyDatabase,
+        serverFixture,
         null,
         res,
         null,
@@ -817,7 +817,7 @@ describe("/", function () {
         .attach("files", hardhatOutputBuffer)
         .end(async (err, res) => {
           await assertVerification(
-            serverFixture.sourcifyDatabase,
+            serverFixture,
             err,
             res,
             done,
@@ -853,7 +853,7 @@ describe("/", function () {
           },
         });
       await assertVerification(
-        serverFixture.sourcifyDatabase,
+        serverFixture,
         null,
         res,
         null,
@@ -928,7 +928,7 @@ describe("/", function () {
           .attach("files", hardhatOutputBuffer)
           .end(async (err, res) => {
             await assertVerification(
-              serverFixture.sourcifyDatabase,
+              serverFixture,
               err,
               res,
               done,
@@ -974,7 +974,7 @@ describe("/", function () {
       .attach("files", file, "ClaimHolderLibrary.sol");
 
     await assertVerification(
-      serverFixture.sourcifyDatabase,
+      serverFixture,
       null,
       res,
       null,
@@ -1043,7 +1043,7 @@ describe("/", function () {
       .attach("files", file, "Example.sol");
 
     await assertVerification(
-      serverFixture.sourcifyDatabase,
+      serverFixture,
       null,
       res,
       null,

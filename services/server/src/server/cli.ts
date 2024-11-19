@@ -116,14 +116,19 @@ const server = new Server(
       writeOrErr: config.get("storage.writeOrErr"),
     },
     repositoryV1ServiceOptions: {
-      ipfsApi: process.env.IPFS_API as string,
       repositoryPath: config.get("repositoryV1.path"),
     },
     repositoryV2ServiceOptions: {
-      ipfsApi: process.env.IPFS_API as string,
       repositoryPath: config.has("repositoryV2.path")
         ? config.get("repositoryV2.path")
         : undefined,
+    },
+    s3RepositoryServiceOptions: {
+      bucket: process.env.S3_BUCKET as string,
+      region: process.env.S3_REGION as string,
+      accessKeyId: process.env.S3_ACCESS_KEY_ID as string,
+      secretAccessKey: process.env.S3_SECRET_ACCESS_KEY as string,
+      endpoint: process.env.S3_ENDPOINT as string,
     },
     sourcifyDatabaseServiceOptions: {
       postgres: {

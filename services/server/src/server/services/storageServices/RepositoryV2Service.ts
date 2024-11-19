@@ -22,7 +22,6 @@ import { WStorageIdentifiers } from "./identifiers";
 import { exists, readFile } from "../utils/util";
 
 export interface RepositoryV2ServiceOptions {
-  ipfsApi: string;
   repositoryPath?: string;
 }
 
@@ -83,11 +82,8 @@ export class RepositoryV2Service implements WStorageService {
    * @param path the path within the repository where the file will be stored
    * @param content the content to be stored
    */
-  async save(path: string | PathConfig, content: string) {
-    const abolsutePath =
-      typeof path === "string"
-        ? Path.join(this.repositoryPath, path)
-        : this.generateAbsoluteFilePath(path);
+  async save(path: PathConfig, content: string) {
+    const abolsutePath = this.generateAbsoluteFilePath(path);
     await fs.promises.mkdir(Path.dirname(abolsutePath), { recursive: true });
     await fs.promises.writeFile(abolsutePath, content);
     logger.silly("Saved file to repositoryV2", { abolsutePath });
@@ -109,7 +105,7 @@ export class RepositoryV2Service implements WStorageService {
         match.runtimeMatch === "perfect" ||
         match.creationMatch === "perfect"
       ) {
-        this.deletePartialIfExists(match.chainId, match.address);
+        await this.deletePartialIfExists(match.chainId, match.address);
       }
       const matchQuality: MatchQuality = this.statusToMatchQuality(
         getMatchStatus(match),

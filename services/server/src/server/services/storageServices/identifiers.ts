@@ -6,6 +6,7 @@ export enum RWStorageIdentifiers {
 export enum WStorageIdentifiers {
   AllianceDatabase = "VerifierAllianceDatabase",
   RepositoryV2 = "RepositoryV2",
+  S3Repository = "S3Repository",
 }
 
 export type StorageIdentifiers = RWStorageIdentifiers | WStorageIdentifiers;

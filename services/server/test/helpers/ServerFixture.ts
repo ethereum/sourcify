@@ -13,6 +13,8 @@ import { SourcifyDatabaseService } from "../../src/server/services/storageServic
 import genFunc from "connect-pg-simple";
 import expressSession from "express-session";
 import { SolcLocal } from "../../src/server/services/compiler/local/SolcLocal";
+import path from "path";
+import { testS3Bucket, testS3Path } from "./S3ClientMock";
 
 export type ServerFixtureOptions = {
   port: number;
@@ -26,6 +28,8 @@ export class ServerFixture {
   identifier: StorageIdentifiers | undefined;
   readonly maxFileSize: number;
   readonly repositoryV1Path: string;
+  readonly testS3Path: string = testS3Path;
+  readonly testS3Bucket: string = testS3Bucket;
 
   private _server?: Server;
 
@@ -127,11 +131,9 @@ export class ServerFixture {
               fixtureOptions_?.writeOrErr || config.get("storage.writeOrErr"),
           },
           repositoryV1ServiceOptions: {
-            ipfsApi: process.env.IPFS_API as string,
             repositoryPath: config.get("repositoryV1.path"),
           },
           repositoryV2ServiceOptions: {
-            ipfsApi: process.env.IPFS_API as string,
             repositoryPath: config.get("repositoryV2.path"),
           },
           sourcifyDatabaseServiceOptions: {
@@ -142,6 +144,12 @@ export class ServerFixture {
               password: process.env.SOURCIFY_POSTGRES_PASSWORD as string,
               port: parseInt(process.env.SOURCIFY_POSTGRES_PORT),
             },
+          },
+          s3RepositoryServiceOptions: {
+            bucket: testS3Bucket,
+            region: "test-region",
+            accessKeyId: "test-key",
+            secretAccessKey: "test-secret",
           },
         },
       );
@@ -158,6 +166,7 @@ export class ServerFixture {
     beforeEach(async () => {
       rimraf.sync(config.get("repositoryV1.path"));
       rimraf.sync(config.get("repositoryV2.path"));
+      rimraf.sync(path.join(testS3Path, testS3Bucket, "contracts"));
       if (!fixtureOptions_?.skipDatabaseReset) {
         await resetDatabase(this.sourcifyDatabase);
         console.log("Resetting SourcifyDatabase");
@@ -168,6 +177,7 @@ export class ServerFixture {
       httpServer.close();
       rimraf.sync(config.get("repositoryV1.path"));
       rimraf.sync(config.get("repositoryV2.path"));
+      rimraf.sync(path.join(testS3Path, testS3Bucket));
     });
   }
 }

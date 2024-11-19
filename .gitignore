@@ -3,6 +3,7 @@
 db/
 node_modules/
 mockRepository*
+test-s3/
 server.log
 source-verify.dab
 dist/
