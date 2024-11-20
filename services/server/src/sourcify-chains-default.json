@@ -1839,29 +1839,19 @@
   "255": {
     "sourcifyName": "Kroma",
     "supported": true,
-    "etherscanApi": {
-      "apiURL": "https://api.kromascan.com",
-      "apiKeyEnvName": "KROMASCAN_API_KEY"
-    },
     "fetchContractCreationTxUsing": {
       "blockscoutApi": {
         "url": "https://blockscout.kroma.network/"
-      },
-      "etherscanApi": true
+      }
     }
   },
   "2358": {
     "sourcifyName": "Kroma Sepolia",
     "supported": true,
-    "etherscanApi": {
-      "apiURL": "https://api-sepolia.kromascan.com",
-      "apiKeyEnvName": "KROMASCAN_API_KEY"
-    },
     "fetchContractCreationTxUsing": {
       "blockscoutApi": {
         "url": "https://blockscout.sepolia.kroma.network/"
-      },
-      "etherscanApi": true
+      }
     }
   },
   "4000": {
