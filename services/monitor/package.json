@@ -47,14 +47,14 @@
   },
   "devDependencies": {
     "@types/chai": "4.3.20",
-    "@types/mocha": "10.0.9",
-    "@types/node": "22.9.0",
+    "@types/mocha": "10.0.10",
+    "@types/node": "22.9.3",
     "@types/sinon": "17.0.3",
     "c8": "10.1.2",
     "chai": "4.5.0",
-    "hardhat": "2.22.15",
+    "hardhat": "2.22.16",
     "mocha": "10.8.2",
-    "nock": "14.0.0-beta.15",
+    "nock": "14.0.0-beta.17",
     "open-cli": "8.0.0",
     "sinon": "19.0.2",
     "tree-kill": "1.2.2"
