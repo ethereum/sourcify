@@ -203,7 +203,13 @@ export async function checkAllByChainAndAddressEndpoint(
           });
         }
       } catch (error) {
-        // ignore
+        // This should only be triggered if performServiceOperation fails
+        // The address for this chainId will be ignored
+        logger.warn("Error during checkAllByChainAndAddresses", {
+          chainId,
+          address,
+          error,
+        });
       }
     }
     if (!map.has(address)) {
