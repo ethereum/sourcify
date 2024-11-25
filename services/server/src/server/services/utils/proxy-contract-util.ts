@@ -23,39 +23,47 @@ export async function detectAndResolveProxy(
   address: string,
   sourcifyChain: SourcifyChain,
 ): Promise<ProxyDetectionResult> {
-  // Detection
+  // Pass our bytecode to whatsabi so it does not need to fetch it from an rpc
   const codeCache = {
     [address]: bytecode,
   };
   const cachedCodeProvider = whatsabi.providers.WithCachedCode(
+    // This object mocks a provider as it is not needed for detection only
     {
       request: () => {},
-    }, // Provider not needed for detection only
+    },
     codeCache,
   );
 
+  // Detect proxies but skip other functionalities of whatsabi
   const detectionResult = await whatsabi.autoload(address, {
     provider: cachedCodeProvider,
     abiLoader: false,
     signatureLookup: false,
     followProxies: false,
   });
-  const proxies = detectionResult.proxies;
+  const proxyResolvers = detectionResult.proxies;
 
-  // Resolution
-  const fixedProxy = proxies.find(
+  // In the following, we check the returned proxy resolvers
+  // and resolve the implementation address for the first valid proxy resolver.
+  // We first handle FixedProxies and DiamondProxies, as their implementations are resolved differently.
+  // Most of the assumptions here are based on the proxy detection experiments in:
+  // https://github.com/sourcifyeth/data-analysis-scripts
+
+  const fixedProxy = proxyResolvers.find(
     (proxy) => proxy instanceof whatsabi.proxies.FixedProxyResolver,
   );
+  // Only return EIP1167Proxies because whatsabi can falsely detect non-proxy contracts as FixedProxies (e.g. libraries)
   if (fixedProxy && isEIP1167Proxy(bytecode, fixedProxy.resolvedAddress)) {
     return {
       isProxy: true,
       proxyType: "EIP1167Proxy",
       implementations: [fixedProxy.resolvedAddress],
     };
-  } // Ignore FixedProxy otherwise because it could be a false-positive
+  }
 
   if (
-    proxies.some(
+    proxyResolvers.some(
       (proxy) => proxy instanceof whatsabi.proxies.DiamondProxyResolver,
     )
   ) {
@@ -75,19 +83,25 @@ export async function detectAndResolveProxy(
         implementations: facets,
       };
     } catch (error) {
-      // Falsely detected as a diamond proxy
+      // Falsely detected as a diamond proxy,
+      // ignore and check if there are other proxy resolvers
     }
   }
 
+  // In the following we check all remaining proxy types.
+  // As whatsabi might return multiple instances of the same proxy resolver,
+  // we keep track of the already checked proxy types to avoid unnecessary rpc calls.
   const checkedProxyTypes: Set<ProxyType> = new Set([
     "FixedProxy",
     "DiamondProxy",
-  ]); // Needed because of potential duplicates
-  for (const proxy of proxies) {
+  ]);
+  for (const proxy of proxyResolvers) {
     if (checkedProxyTypes.has(proxy.name as ProxyType)) {
       continue;
     }
 
+    // Tries to resolve the implementation address by querying a specific storage slot from the rpc.
+    // The storage slot depends on the proxy type.
     const resolvedAddress = await proxy.resolve(sourcifyChain, address);
     if (resolvedAddress !== "0x0000000000000000000000000000000000000000") {
       return {

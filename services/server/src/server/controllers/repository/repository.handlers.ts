@@ -156,6 +156,7 @@ export async function checkAllByChainAndAddressEndpoint(
                 sourcifyChain,
               );
 
+              // Find contract names if the implementations are verified on Sourcify
               const implementations = await Promise.all(
                 proxyDetectionResult.implementations.map(
                   async (implementationAddress) => {
