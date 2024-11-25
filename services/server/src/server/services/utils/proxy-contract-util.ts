@@ -42,6 +42,12 @@ export async function detectAndResolveProxy(
     signatureLookup: false,
     followProxies: false,
   });
+
+  // Ignore contracts that have CREATE opcodes as they could falsely be detected as proxies.
+  if (detectionResult.isFactory) {
+    return { isProxy: false, proxyType: null, implementations: [] };
+  }
+
   const proxyResolvers = detectionResult.proxies;
 
   // In the following, we check the returned proxy resolvers

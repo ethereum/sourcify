@@ -72,6 +72,21 @@ describe("proxy contract util", function () {
     });
   });
 
+  it("should return false for factories that deploy proxies", async function () {
+    // Based on 0x7dB8637A5fd20BbDab1176BdF49C943A96F2E9c6 deployed on ETH Mainnet
+    const result = await detectAndResolveProxy(
+      proxyBytecodes.FactoryDeployingProxies,
+      "0x7dB8637A5fd20BbDab1176BdF49C943A96F2E9c6",
+      mockSourcifyChain,
+    );
+
+    chai.expect(result).to.deep.equal({
+      isProxy: false,
+      proxyType: null,
+      implementations: [],
+    });
+  });
+
   it("should return false for non-proxy contracts", async function () {
     const result = await detectAndResolveProxy(
       proxyBytecodes.NoProxy,
