@@ -126,6 +126,10 @@
       }
     }
   },
+  "7078815900": {
+    "sourcifyName": "Ethereum Mekong Testnet",
+    "supported": true
+  },
   "369": {
     "sourcifyName": "PulseChain Mainnet",
     "supported": true,

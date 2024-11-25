@@ -110,6 +110,14 @@ describe("Test Supported Chains", function () {
   //   "shared/"
   // );
 
+  // Ethereum Mekong Testnet
+  verifyContract(
+    "0x247a8A599c99336dF37af1975661b32f7A26a88E",
+    "7078815900",
+    "Ethereum Mekong Testnet",
+    "shared/",
+  );
+
   verifyContract(
     "0x7ecedB5ca848e695ee8aB33cce9Ad1E1fe7865F8",
     "17000",
