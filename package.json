@@ -42,9 +42,9 @@
     "eslint": "8.57.1",
     "eslint-config-prettier": "9.1.0",
     "lerna": "8.1.9",
-    "prettier": "3.3.3",
+    "prettier": "3.4.1",
     "ts-node": "10.9.2",
-    "typescript": "5.6.3"
+    "typescript": "5.7.2"
   },
   "optionalDependencies": {
     "fsevents": "2.3.3"
