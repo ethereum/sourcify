@@ -28,11 +28,7 @@
     "cov": "run-s -c build test:unit cov:html cov:lcov && open-cli coverage/index.html",
     "cov:html": "c8 report --reporter=html",
     "cov:lcov": "c8 report --reporter=lcov",
-    "cov:check": "c8 report && c8 check-coverage --lines 100 --functions 100 --branches 100",
-    "doc": "run-s doc:html && open-cli build/docs/index.html",
-    "doc:html": "typedoc src/ --exclude **/*.spec.ts --target ES6 --mode file --out build/docs",
-    "doc:json": "typedoc src/ --exclude **/*.spec.ts --target ES6 --mode file --json build/docs/typedoc.json",
-    "doc:publish": "gh-pages -m \"[ci skip] Updates\" -d build/docs"
+    "cov:check": "c8 report && c8 check-coverage --lines 100 --functions 100 --branches 100"
   },
   "engines": {
     "node": "22.5.1"
@@ -78,8 +74,7 @@
     "sinon": "19.0.2",
     "sinon-chai": "3.7.0",
     "solc": "0.8.28",
-    "tree-kill": "1.2.2",
-    "typedoc": "0.26.11"
+    "tree-kill": "1.2.2"
   },
   "files": [
     "build/main",
