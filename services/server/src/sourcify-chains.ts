@@ -15,6 +15,10 @@ import logger from "./common/logger";
 import fs from "fs";
 import path from "path";
 
+import dotenv from "dotenv";
+
+dotenv.config();
+
 let sourcifyChainsExtensions: SourcifyChainsExtensionsObject = {};
 
 // If sourcify-chains.json exists, override sourcify-chains-default.json
