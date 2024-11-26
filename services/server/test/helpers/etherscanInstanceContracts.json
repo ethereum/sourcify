@@ -330,30 +330,6 @@
       "expectedStatus": "perfect"
     }
   ],
-  "2358": [
-    {
-      "address": "0xa1CBa9Fe0b212237D96f6a3DA49949990c27919c",
-      "type": "single",
-      "expectedStatus": "partial"
-    },
-    {
-      "address": "0x6fE4439Ae7F93e4aa7989a057109d36Fbcd98bA9",
-      "type": "standard-json",
-      "expectedStatus": "perfect"
-    }
-  ],
-  "255": [
-    {
-      "address": "0x88A7cEF051B427B75cB473715B550E56E958992e",
-      "type": "single",
-      "expectedStatus": "partial"
-    },
-    {
-      "address": "0xC4782aDc7D2836fa23542E9E79391580E958500e",
-      "type": "standard-json",
-      "expectedStatus": "perfect"
-    }
-  ],
   "534351": [
     {
       "address": "0xFc2bfE03d07eC96F62D6F209667A660e4BF65D74",
