@@ -310,11 +310,11 @@ export class CheckedContract {
     // Case: there is only one auxdata, no need to recompile
     if (auxdatasFromCompilerOutput.length === 1) {
       // Extract the auxdata from the end of the recompiled runtime bytecode
-      const [, runtimeAuxdataCbor, runtimeCborLenghtHex] = splitAuxdata(
+      const [, runtimeAuxdataCbor, runtimeCborLengthHex] = splitAuxdata(
         this.runtimeBytecode,
       );
 
-      const auxdataFromRawRuntimeBytecode = `${runtimeAuxdataCbor}${runtimeCborLenghtHex}`;
+      const auxdataFromRawRuntimeBytecode = `${runtimeAuxdataCbor}${runtimeCborLengthHex}`;
 
       // For some reason the auxdata from raw bytecode differs from the legacyAssembly's auxdata
       if (auxdatasFromCompilerOutput[0] !== auxdataFromRawRuntimeBytecode) {
@@ -332,27 +332,27 @@ export class CheckedContract {
         '1': {
           offset:
             this.runtimeBytecode.substring(2).length / 2 -
-            parseInt(runtimeCborLenghtHex, 16) -
+            parseInt(runtimeCborLengthHex, 16) -
             2,
           value: `0x${auxdataFromRawRuntimeBytecode}`,
         },
       };
 
       // Try to extract the auxdata from the end of the recompiled creation bytecode
-      const [, creationAuxdataCbor, creationCborLenghtHex] = splitAuxdata(
+      const [, creationAuxdataCbor, creationCborLengthHex] = splitAuxdata(
         this.creationBytecode,
       );
 
       // If we can find the auxdata at the end of the bytecode return; otherwise continue with `generateEditedContract`
       if (creationAuxdataCbor) {
-        const auxdataFromRawCreationBytecode = `${creationAuxdataCbor}${creationCborLenghtHex}`;
+        const auxdataFromRawCreationBytecode = `${creationAuxdataCbor}${creationCborLengthHex}`;
         if (auxdatasFromCompilerOutput[0] === auxdataFromRawCreationBytecode) {
           // we divide by 2 because we store the length in bytes (without 0x)
           this.creationBytecodeCborAuxdata = {
             '1': {
               offset:
                 this.creationBytecode.substring(2).length / 2 -
-                parseInt(creationCborLenghtHex, 16) -
+                parseInt(creationCborLengthHex, 16) -
                 2,
               value: `0x${auxdataFromRawCreationBytecode}`,
             },

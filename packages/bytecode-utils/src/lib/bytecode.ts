@@ -93,15 +93,15 @@ export const splitAuxdata = (bytecode: string): string[] => {
   const bytesLength = 4;
 
   // Take latest 2 bytes of the bytecode (length of the cbor object)
-  const cborLenghtHex = `${bytecode.slice(-bytesLength)}`;
-  const cborLength = parseInt(cborLenghtHex, 16);
+  const cborLengthHex = `${bytecode.slice(-bytesLength)}`;
+  const cborLength = parseInt(cborLengthHex, 16);
   const cborBytesLength = cborLength * 2;
 
   // If the length of the cbor is more or equal to the length of the execution bytecode, it means there is no cbor
   if (bytecode.length - bytesLength - cborBytesLength <= 0) {
     return [bytecode];
   }
-  // Extract the cbor object using the extracted lenght
+  // Extract the cbor object using the extracted length
   const auxdata = bytecode.substring(
     bytecode.length - bytesLength - cborBytesLength,
     bytecode.length - bytesLength,
@@ -116,7 +116,7 @@ export const splitAuxdata = (bytecode: string): string[] => {
   try {
     // return the complete array only if the auxdata is actually cbor encoded
     CBOR.decode(arrayify(`0x${auxdata}`));
-    return [executionBytecode, auxdata, cborLenghtHex];
+    return [executionBytecode, auxdata, cborLengthHex];
   } catch (e) {
     return [bytecode];
   }
