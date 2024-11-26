@@ -1352,6 +1352,22 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
+  // Kroma Sepolia
+  verifyContract(
+    "0x4d5f06cC2A7d3a625C95D04Cfaec5AEb5eCfA33D",
+    "2358",
+    "Kroma Sepolia",
+    "shared/",
+  );
+
+  // Kroma
+  verifyContract(
+    "0x270236c25d28a2cd85ed9a1ef0b31835fb9e4ff6",
+    "255",
+    "Kroma",
+    "shared/",
+  );
+
   // Ozone Chain Mainnet
   verifyContract(
     "0x50A9B085260F80CFEb1Af8c7131980fC11238ccB",
