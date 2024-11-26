@@ -128,7 +128,12 @@
   },
   "7078815900": {
     "sourcifyName": "Ethereum Mekong Testnet",
-    "supported": true
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://explorer.mekong.ethpandaops.io/"
+      }
+    }
   },
   "369": {
     "sourcifyName": "PulseChain Mainnet",
