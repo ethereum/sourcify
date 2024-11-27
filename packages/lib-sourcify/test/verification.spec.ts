@@ -8,10 +8,12 @@ import {
   deployCheckAndVerify,
   deployFromAbiAndBytecode,
   expectMatch,
+  vyperCompiler,
 } from './utils';
 import { describe, it, before } from 'mocha';
 import { expect } from 'chai';
 import {
+  VyperCheckedContract,
   SourcifyChain,
   calculateCreate2Address,
   /* 
@@ -564,6 +566,45 @@ describe('lib-sourcify tests', () => {
       constructorArguments:
         '0x0000000000000000000000000000000000000000000000000000000000003039',
     });
+  });
+
+  it.only('should verify a vyper contract', async () => {
+    const contractFolderPath = path.join(
+      __dirname,
+      'sources',
+      'Vyper',
+      'contract',
+    );
+    const { contractAddress } = await deployFromAbiAndBytecode(
+      signer,
+      contractFolderPath,
+      [],
+    );
+    const vyperContent = await fs.promises.readFile(
+      path.join(__dirname, 'sources', 'Vyper', 'contract', 'test.vy'),
+    );
+    const checkedContract = new VyperCheckedContract(
+      vyperCompiler,
+      '0.8.4+commit.c7e474f2',
+      'test.vy',
+      'test',
+      {
+        evmVersion: 'istanbul',
+        outputSelection: {
+          '*': ['evm.bytecode'],
+        },
+      },
+      {
+        'test.vy': vyperContent.toString(),
+      },
+    );
+
+    const match = await verifyDeployed(
+      checkedContract,
+      sourcifyChainHardhat,
+      contractAddress,
+    );
+    console.log(match, checkedContract);
   });
 
   describe('Unit tests', function () {

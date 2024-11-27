@@ -21,6 +21,8 @@ import { expect } from 'chai';
 import { ContractFactory, Signer } from 'ethers';
 import { ISolidityCompiler } from '../src/lib/ISolidityCompiler';
 import { useCompiler } from './compiler/solidityCompiler';
+import { useVyperCompiler } from './compiler/vyperCompiler';
+import { IVyperCompiler, VyperJsonInput } from '../src/lib/IVyperCompiler';
 /**
  *  Function to deploy contracts from provider unlocked accounts
  *  contractFolderPath must contain an artifact.json file with "abi" and "bytecode" fields
@@ -64,6 +66,18 @@ class Solc implements ISolidityCompiler {
 }
 
 export const solc = new Solc();
+
+class VyperCompiler implements IVyperCompiler {
+  async compile(
+    version: string,
+    solcJsonInput: VyperJsonInput,
+    forceEmscripten: boolean = false,
+  ): Promise<CompilerOutput> {
+    return await useVyperCompiler(version, solcJsonInput, forceEmscripten);
+  }
+}
+
+export const vyperCompiler = new VyperCompiler();
 
 /**
  * Checks the contract from metadata and source files under contractFolderPath and

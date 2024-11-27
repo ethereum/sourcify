@@ -29,9 +29,10 @@ import { logDebug, logError, logInfo, logWarn } from './logger';
 import SourcifyChain from './SourcifyChain';
 import { lt } from 'semver';
 import { replaceBytecodeAuxdatasWithZeros } from './utils';
+import { VyperCheckedContract } from './VyperCheckedContract';
 
 export async function verifyDeployed(
-  checkedContract: CheckedContract,
+  checkedContract: CheckedContract | VyperCheckedContract,
   sourcifyChain: SourcifyChain,
   address: string,
   creatorTxHash?: string,
@@ -97,7 +98,10 @@ export async function verifyDeployed(
   }
 
   const generateRuntimeCborAuxdataPositions = async () => {
-    if (!checkedContract.runtimeBytecodeCborAuxdata) {
+    if (
+      checkedContract instanceof CheckedContract &&
+      !checkedContract.runtimeBytecodeCborAuxdata
+    ) {
       await checkedContract.generateCborAuxdataPositions();
     }
     return checkedContract.runtimeBytecodeCborAuxdata || {};
@@ -123,22 +127,24 @@ export async function verifyDeployed(
         address,
         runtimeMatch: match.runtimeMatch,
       });
-      match = await tryToFindPerfectMetadataAndMatch(
-        checkedContract,
-        runtimeBytecode,
-        match,
-        async (match, recompiled) => {
-          await matchWithRuntimeBytecode(
-            match,
-            recompiled.runtimeBytecode,
-            runtimeBytecode,
-            generateRuntimeCborAuxdataPositions,
-            recompiled.immutableReferences,
-            recompiled.runtimeLinkReferences,
-          );
-        },
-        'runtimeMatch',
-      );
+      if (checkedContract instanceof CheckedContract) {
+        match = await tryToFindPerfectMetadataAndMatch(
+          checkedContract,
+          runtimeBytecode,
+          match,
+          async (match, recompiled) => {
+            await matchWithRuntimeBytecode(
+              match,
+              recompiled.runtimeBytecode,
+              runtimeBytecode,
+              generateRuntimeCborAuxdataPositions,
+              recompiled.immutableReferences,
+              recompiled.runtimeLinkReferences,
+            );
+          },
+          'runtimeMatch',
+        );
+      }
     }
   } catch (e: any) {
     logWarn('Error matching with runtime bytecode', {
@@ -149,7 +155,10 @@ export async function verifyDeployed(
   }
 
   const generateCreationCborAuxdataPositions = async () => {
-    if (!checkedContract.creationBytecodeCborAuxdata) {
+    if (
+      checkedContract instanceof CheckedContract &&
+      !checkedContract.creationBytecodeCborAuxdata
+    ) {
       await checkedContract.generateCborAuxdataPositions();
     }
     return checkedContract.creationBytecodeCborAuxdata || {};
@@ -181,24 +190,26 @@ export async function verifyDeployed(
           creationMatch: match.creationMatch,
           creatorTxHash,
         });
-        match = await tryToFindPerfectMetadataAndMatch(
-          checkedContract,
-          runtimeBytecode, // TODO: This is also weird we pass the runtime bytecode here
-          match,
-          async (match, recompiled) => {
-            await matchWithCreationTx(
-              match,
-              recompiled.creationBytecode,
-              sourcifyChain,
-              address,
-              creatorTxHash,
-              recompiledMetadata,
-              generateCreationCborAuxdataPositions,
-              recompiled.creationLinkReferences,
-            );
-          },
-          'creationMatch',
-        );
+        if (checkedContract instanceof CheckedContract) {
+          match = await tryToFindPerfectMetadataAndMatch(
+            checkedContract,
+            runtimeBytecode, // TODO: This is also weird we pass the runtime bytecode here
+            match,
+            async (match, recompiled) => {
+              await matchWithCreationTx(
+                match,
+                recompiled.creationBytecode,
+                sourcifyChain,
+                address,
+                creatorTxHash,
+                recompiledMetadata,
+                generateCreationCborAuxdataPositions,
+                recompiled.creationLinkReferences,
+              );
+            },
+            'creationMatch',
+          );
+        }
       }
     }
   } catch (e: any) {
