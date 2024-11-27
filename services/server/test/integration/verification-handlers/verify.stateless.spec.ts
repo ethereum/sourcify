@@ -1053,7 +1053,7 @@ describe("/", function () {
     );
   });
 
-  it.only("should verify a vyper contract resulting in a partial match", async () => {
+  it("should verify a vyper contract resulting in a partial match", async () => {
     const vyperSourcePath = path.join(
       __dirname,
       "..",
