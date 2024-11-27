@@ -1,4 +1,4 @@
-import { CheckedContract } from './CheckedContract';
+import { SolidityCheckedContract } from './SolidityCheckedContract';
 import { id as keccak256str } from 'ethers';
 import {
   InvalidSources,
@@ -59,7 +59,7 @@ export function checkPaths(
 
 // Pass all input source files to the CheckedContract, not just those stated in metadata.
 export async function useAllSources(
-  contract: CheckedContract,
+  contract: SolidityCheckedContract,
   files: PathBuffer[],
 ) {
   await unzipFiles(files);
@@ -71,7 +71,7 @@ export async function useAllSources(
   const stringMapSourceFiles = pathContentArrayToStringMap(sourceFiles);
   // Files at contract.sources are already hash matched with the sources in metadata. Use them instead of the user input .sol files.
   Object.assign(stringMapSourceFiles, contract.sources);
-  const contractWithAllSources = new CheckedContract(
+  const contractWithAllSources = new SolidityCheckedContract(
     contract.solidityCompiler,
     contract.metadata,
     stringMapSourceFiles,
@@ -94,7 +94,7 @@ export async function checkFiles(
   }));
   const { metadataFiles, sourceFiles } = splitFiles(parsedFiles);
 
-  const checkedContracts: CheckedContract[] = [];
+  const checkedContracts: SolidityCheckedContract[] = [];
 
   const byHash = storeByHash(sourceFiles);
   const usedFiles: string[] = [];
@@ -109,7 +109,7 @@ export async function checkFiles(
     });
     const currentUsedFiles = Object.values(metadata2provided);
     usedFiles.push(...currentUsedFiles);
-    const checkedContract = new CheckedContract(
+    const checkedContract = new SolidityCheckedContract(
       solidityCompiler,
       metadata,
       foundSources,

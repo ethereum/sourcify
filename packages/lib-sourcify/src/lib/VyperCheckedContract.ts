@@ -1,7 +1,5 @@
 import {
-  CompiledContractCborAuxdata,
   CompilerOutput,
-  Metadata,
   MetadataOutput,
   RecompilationResult,
   StringMap,
@@ -12,42 +10,16 @@ import {
   VyperJsonInput,
   VyperSettings,
 } from './IVyperCompiler';
+import { AbstractCheckedContract } from './AbstractCheckedContract';
 
 /**
  * Abstraction of a checked vyper contract. With metadata and source (vyper) files.
  */
-export class VyperCheckedContract {
+export class VyperCheckedContract extends AbstractCheckedContract {
   /** The vyper compiler used to compile the checked contract */
   vyperCompiler: IVyperCompiler;
-  metadata!: Metadata;
-
   vyperSettings: VyperSettings;
-
-  /** SourceMap mapping the original compilation path to PathContent. */
-  sources: StringMap;
-
-  /** Object containing input for solc when used with the --standard-json flag. */
   vyperJsonInput!: VyperJsonInput;
-
-  /** The path of the contract during compile-time. */
-
-  /** The version of the Solidity compiler to use for compilation. */
-  compilerVersion: string;
-  compiledPath: string;
-  name: string;
-  creationBytecode?: string;
-  runtimeBytecode?: string;
-
-  /** The raw string representation of the contract's metadata. Needed to generate a unique session id for the VyperCheckedContract*/
-  metadataRaw!: string;
-  compilerOutput?: CompilerOutput;
-
-  /** Marks the positions of the CborAuxdata parts in the bytecode */
-  creationBytecodeCborAuxdata?: CompiledContractCborAuxdata;
-  runtimeBytecodeCborAuxdata?: CompiledContractCborAuxdata;
-
-  normalizedRuntimeBytecode?: string;
-  normalizedCreationBytecode?: string;
 
   generateMetadata(output?: CompilerOutput) {
     let outputMetadata: MetadataOutput;
@@ -122,6 +94,7 @@ export class VyperCheckedContract {
     vyperSettings: VyperSettings,
     sources: StringMap,
   ) {
+    super();
     this.vyperCompiler = vyperCompiler;
     this.compilerVersion = vyperCompilerVersion;
     this.compiledPath = compiledPath;

@@ -8,11 +8,11 @@ import {
   useCompiler,
 } from './compiler/solidityCompiler';
 import {
-  CheckedContract,
+  SolidityCheckedContract,
   getGithubUrl,
   getIpfsGateway,
   performFetch,
-} from '../src/lib/CheckedContract';
+} from '../src/lib/SolidityCheckedContract';
 import storageMetadata from './sources/Storage/metadata.json';
 import { Metadata, MissingSources } from '../src/lib/types';
 import WrongMetadata from './sources/WrongMetadata/metadata.json';
@@ -210,22 +210,26 @@ describe('Checked contract', () => {
         '0x88c47206b5ec3d60ab820e9d126c4ac54cb17fa7396ff49ebe27db2862982ad8',
       urls: ['dweb:/ipfs/QmaFRC9ZtT7y3t9XNWCbDuMTEwKkyaQJzYFzw3NbeohSn5'],
     };
-    const contract = new CheckedContract(
+    const contract = new SolidityCheckedContract(
       solc,
       storageMetadata as any as Metadata,
       {},
       missingSources,
       {},
     );
-    await CheckedContract.fetchMissing(contract);
+    await SolidityCheckedContract.fetchMissing(contract);
     const sources = Object.keys(contract.sources);
     expect(sources).lengthOf(1);
     expect(sources[0]).equals('Storage.sol');
   });
   it('Should tryToFindPerfectMetadata from checked contract', async () => {
-    const contract = new CheckedContract(solc, WrongMetadata as Metadata, {
-      'SimplyLog.sol': SimplyLog.source,
-    });
+    const contract = new SolidityCheckedContract(
+      solc,
+      WrongMetadata as Metadata,
+      {
+        'SimplyLog.sol': SimplyLog.source,
+      },
+    );
 
     const contractWithPerfectMetadata = await contract.tryToFindPerfectMetadata(
       SimplyLog.bytecode,

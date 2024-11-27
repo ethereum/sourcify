@@ -3,7 +3,6 @@ import {
   AuxdataDiff,
   CompilableMetadata,
   CompiledContractCborAuxdata,
-  CompilerOutput,
   InvalidSources,
   IpfsGateway,
   JsonInput,
@@ -26,19 +25,16 @@ import { ipfsHash } from './hashFunctions/ipfsHash';
 import { swarmBzzr0Hash, swarmBzzr1Hash } from './hashFunctions/swarmHash';
 import { logError, logInfo, logSilly, logWarn } from './logger';
 import { ISolidityCompiler } from './ISolidityCompiler';
+import { AbstractCheckedContract } from './AbstractCheckedContract';
 
 // TODO: find a better place for these constants. Reminder: this sould work also in the browser
 const IPFS_PREFIX = 'dweb:/ipfs/';
 /**
  * Abstraction of a checked solidity contract. With metadata and source (solidity) files.
  */
-export class CheckedContract {
+export class SolidityCheckedContract extends AbstractCheckedContract {
   /** The solidity compiler used to compile the checked contract */
   solidityCompiler: ISolidityCompiler;
-  metadata!: Metadata;
-
-  /** SourceMap mapping the original compilation path to PathContent. */
-  sources!: StringMap;
 
   /** Object containing the information about missing source files. */
   missing: MissingSources;
@@ -49,26 +45,6 @@ export class CheckedContract {
   /** Object containing input for solc when used with the --standard-json flag. */
   solcJsonInput: any;
 
-  /** The path of the contract during compile-time. */
-  compiledPath!: string;
-
-  /** The version of the Solidity compiler to use for compilation. */
-  compilerVersion!: string;
-  name!: string;
-  creationBytecode?: string;
-  runtimeBytecode?: string;
-
-  /** The raw string representation of the contract's metadata. Needed to generate a unique session id for the CheckedContract*/
-  metadataRaw!: string;
-  compilerOutput?: CompilerOutput;
-
-  /** Marks the positions of the CborAuxdata parts in the bytecode */
-  creationBytecodeCborAuxdata?: CompiledContractCborAuxdata;
-  runtimeBytecodeCborAuxdata?: CompiledContractCborAuxdata;
-
-  normalizedRuntimeBytecode?: string;
-  normalizedCreationBytecode?: string;
-
   /** Checks whether this contract is valid or not.
    *  This is a static method due to persistence issues.
    *
@@ -77,7 +53,7 @@ export class CheckedContract {
    * @returns true if no sources are missing or are invalid (malformed); false otherwise
    */
   public static isValid(
-    contract: CheckedContract,
+    contract: SolidityCheckedContract,
     ignoreMissing = false,
   ): boolean {
     return (
@@ -111,6 +87,7 @@ export class CheckedContract {
     missing: MissingSources = {},
     invalid: InvalidSources = {},
   ) {
+    super();
     this.solidityCompiler = solidityCompiler;
     this.missing = missing;
     this.invalid = invalid;
@@ -128,7 +105,7 @@ export class CheckedContract {
    */
   async tryToFindPerfectMetadata(
     runtimeBytecode: string,
-  ): Promise<CheckedContract | null> {
+  ): Promise<SolidityCheckedContract | null> {
     let decodedAuxdata;
     try {
       decodedAuxdata = decodeBytecode(runtimeBytecode);
@@ -221,7 +198,7 @@ export class CheckedContract {
       if (decodedAuxdata?.ipfs) {
         const compiledMetadataIpfsCID = ipfsHash(JSON.stringify(metadata));
         if (decodedAuxdata?.ipfs === compiledMetadataIpfsCID) {
-          return new CheckedContract(
+          return new SolidityCheckedContract(
             this.solidityCompiler,
             metadata,
             getSolidityFromPathContents(sources),
@@ -231,7 +208,7 @@ export class CheckedContract {
       if (decodedAuxdata?.bzzr1) {
         const compiledMetadataBzzr1 = swarmBzzr1Hash(JSON.stringify(metadata));
         if (decodedAuxdata?.bzzr1 === compiledMetadataBzzr1) {
-          return new CheckedContract(
+          return new SolidityCheckedContract(
             this.solidityCompiler,
             metadata,
             getSolidityFromPathContents(sources),
@@ -241,7 +218,7 @@ export class CheckedContract {
       if (decodedAuxdata?.bzzr0) {
         const compiledMetadataBzzr0 = swarmBzzr0Hash(JSON.stringify(metadata));
         if (decodedAuxdata?.bzzr0 === compiledMetadataBzzr0) {
-          return new CheckedContract(
+          return new SolidityCheckedContract(
             this.solidityCompiler,
             metadata,
             getSolidityFromPathContents(sources),
@@ -402,8 +379,8 @@ export class CheckedContract {
   public async recompile(
     forceEmscripten = false,
   ): Promise<RecompilationResult> {
-    if (!CheckedContract.isValid(this)) {
-      await CheckedContract.fetchMissing(this);
+    if (!SolidityCheckedContract.isValid(this)) {
+      await SolidityCheckedContract.fetchMissing(this);
     }
 
     const version = this.metadata.compiler.version;
@@ -488,7 +465,9 @@ export class CheckedContract {
    *
    * @param log log object
    */
-  public static async fetchMissing(contract: CheckedContract): Promise<void> {
+  public static async fetchMissing(
+    contract: SolidityCheckedContract,
+  ): Promise<void> {
     const retrieved: StringMap = {};
     const missingFiles: string[] = [];
     for (const fileName in contract.missing) {

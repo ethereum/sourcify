@@ -1,4 +1,4 @@
-import { CheckedContract } from './CheckedContract';
+import { SolidityCheckedContract } from './SolidityCheckedContract';
 import {
   Create2Args,
   ImmutableReferences,
@@ -29,10 +29,10 @@ import { logDebug, logError, logInfo, logWarn } from './logger';
 import SourcifyChain from './SourcifyChain';
 import { lt } from 'semver';
 import { replaceBytecodeAuxdatasWithZeros } from './utils';
-import { VyperCheckedContract } from './VyperCheckedContract';
+import { AbstractCheckedContract } from './AbstractCheckedContract';
 
 export async function verifyDeployed(
-  checkedContract: CheckedContract | VyperCheckedContract,
+  checkedContract: AbstractCheckedContract,
   sourcifyChain: SourcifyChain,
   address: string,
   creatorTxHash?: string,
@@ -99,7 +99,7 @@ export async function verifyDeployed(
 
   const generateRuntimeCborAuxdataPositions = async () => {
     if (
-      checkedContract instanceof CheckedContract &&
+      checkedContract instanceof SolidityCheckedContract &&
       !checkedContract.runtimeBytecodeCborAuxdata
     ) {
       await checkedContract.generateCborAuxdataPositions();
@@ -127,7 +127,7 @@ export async function verifyDeployed(
         address,
         runtimeMatch: match.runtimeMatch,
       });
-      if (checkedContract instanceof CheckedContract) {
+      if (checkedContract instanceof SolidityCheckedContract) {
         match = await tryToFindPerfectMetadataAndMatch(
           checkedContract,
           runtimeBytecode,
@@ -156,7 +156,7 @@ export async function verifyDeployed(
 
   const generateCreationCborAuxdataPositions = async () => {
     if (
-      checkedContract instanceof CheckedContract &&
+      checkedContract instanceof SolidityCheckedContract &&
       !checkedContract.creationBytecodeCborAuxdata
     ) {
       await checkedContract.generateCborAuxdataPositions();
@@ -190,7 +190,7 @@ export async function verifyDeployed(
           creationMatch: match.creationMatch,
           creatorTxHash,
         });
-        if (checkedContract instanceof CheckedContract) {
+        if (checkedContract instanceof SolidityCheckedContract) {
           match = await tryToFindPerfectMetadataAndMatch(
             checkedContract,
             runtimeBytecode, // TODO: This is also weird we pass the runtime bytecode here
@@ -304,7 +304,7 @@ export async function verifyDeployed(
 }
 
 async function tryToFindPerfectMetadataAndMatch(
-  checkedContract: CheckedContract,
+  checkedContract: SolidityCheckedContract,
   runtimeBytecode: string,
   match: Match,
   matchFunction: (
@@ -334,7 +334,7 @@ async function tryToFindPerfectMetadataAndMatch(
 }
 
 export async function verifyCreate2(
-  checkedContract: CheckedContract,
+  checkedContract: SolidityCheckedContract,
   deployerAddress: string,
   salt: string,
   create2Address: string,
