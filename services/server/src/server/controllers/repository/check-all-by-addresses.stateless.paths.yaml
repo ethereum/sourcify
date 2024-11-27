@@ -23,6 +23,13 @@ paths:
             type: string
             format: comma-separated-sourcify-chainIds
           allowReserved: true
+        - name: resolveProxies
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: ["true", "false"]
+          description: Check if the contracts are proxies and what their implementations are.
       responses:
         "200":
           description: OK. Also returns `200` with status `false` when not found
@@ -44,6 +51,21 @@ paths:
                             type: string
                           status:
                             type: string
+                          isProxy:
+                            type: boolean
+                          proxyType:
+                            type: string
+                          implementations:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                address:
+                                  type: string
+                                name:
+                                  type: string
+                          proxyResolutionError:
+                            type: string
               examples:
                 multiple results:
                   value: 
@@ -51,20 +73,38 @@ paths:
                       chainIds: 
                         - chainId: "5"
                           status: "perfect"
+                          isProxy: false
+                          proxyType: null
+                          implementations: []
                         - chainId: "10"
                           status: "partial"
+                          isProxy: false
+                          proxyType: null
+                          implementations: []
                         - chainId: "11155111"
                           status: "perfect"
+                          isProxy: false
+                          proxyType: null
+                          implementations: []
                     - address: "0x751D7C0Cf91a9b7704541b44E5fF7BeC3D2caA6F"
                       chainIds: 
                         - chainId: "5"
                           status: "partial"
+                          isProxy: true
+                          proxyType: "EIP1967Proxy"
+                          implementations: [{address: "0x787ec93dd71a90563979417879f5a3298389227f", name: "LogicContract"}]
                         - chainId: "10"
                           status: "perfect"
+                          isProxy: true
+                          proxyType: "EIP1967Proxy"
+                          implementations: [{address: "0x787ec93dd71a90563979417879f5a3298389227f", name: "LogicContract"}]
                     - address: "0x8D2548A5f641b00Cf0f5B693d4A72D8c0aE24d31"
                       chainIds:
                         - chainId: "5"
                           status: "perfect"
+                          isProxy: false
+                          proxyType: null
+                          implementations: []
                     - address: "0x1f9cA631AE0C4890F99b38634C969b7E4f8719F0"
                       status: "false"
                 single result:
@@ -78,4 +118,11 @@ paths:
                     - address: "0x1f9cA631AE0C4890F99b38634C969b7E4f8719F0"
                       status: "false"
                     - address: "0x8D2548A5f641b00Cf0f5B693d4A72D8c0aE24d31"
-                      statues: "false"
+                      status: "false"
+                proxy resolution error:
+                  value: 
+                    - address: "0xEb30853fc616Bbb8f1444451A3c202cbcd08Fb47"
+                      chainIds: 
+                        - chainId: "43114"
+                          status: "perfect"
+                          proxyResolutionError: "Proxy resolution failed"

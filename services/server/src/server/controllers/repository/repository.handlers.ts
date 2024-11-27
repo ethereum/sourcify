@@ -11,6 +11,12 @@ import { NotFoundError } from "../../../common/errors";
 import { Match } from "@ethereum-sourcify/lib-sourcify";
 import logger from "../../../common/logger";
 import { Services } from "../../services/services";
+import {
+  detectAndResolveProxy,
+  ProxyType,
+} from "../../services/utils/proxy-contract-util";
+import { ChainRepository } from "../../../sourcify-chain-repository";
+import { getAddress } from "ethers";
 
 type RetrieveMethod = (
   services: Services,
@@ -101,6 +107,7 @@ export interface CheckAllByChainAndAddressEndpointRequest extends Request {
   query: {
     addresses: string;
     chainIds: string;
+    resolveProxies: string;
   };
 }
 
@@ -109,6 +116,7 @@ export async function checkAllByChainAndAddressEndpoint(
   res: Response,
 ) {
   const services = req.app.get("services") as Services;
+  const chainRepository = req.app.get("chainRepository") as ChainRepository;
   const map: Map<string, any> = new Map();
   const addresses = req.query.addresses.split(",");
   const chainIds = req.query.chainIds?.split?.(",");
@@ -128,12 +136,81 @@ export async function checkAllByChainAndAddressEndpoint(
             });
           }
 
-          map
-            .get(address)
-            .chainIds.push({ chainId, status: found[0].runtimeMatch });
+          // Proxy detection and resolution
+          type Implementation = { address: string; name?: string };
+          let proxyStatus: {
+            isProxy?: boolean;
+            proxyType?: ProxyType | null;
+            implementations?: Implementation[];
+            proxyResolutionError?: string;
+          } = {};
+          if (
+            req.query.resolveProxies === "true" &&
+            found[0].onchainRuntimeBytecode
+          ) {
+            try {
+              const sourcifyChain = chainRepository.supportedChainMap[chainId];
+              const proxyDetectionResult = await detectAndResolveProxy(
+                found[0].onchainRuntimeBytecode,
+                address,
+                sourcifyChain,
+              );
+
+              // Find contract names if the implementations are verified on Sourcify
+              const implementations = await Promise.all(
+                proxyDetectionResult.implementations.map(
+                  async (implementationAddress) => {
+                    implementationAddress = getAddress(implementationAddress);
+                    const implementation: Implementation = {
+                      address: implementationAddress,
+                    };
+
+                    const implementationFound: Match[] =
+                      await services.storage.performServiceOperation(
+                        "checkAllByChainAndAddress",
+                        [implementationAddress, chainId],
+                      );
+                    if (
+                      implementationFound.length > 0 &&
+                      implementationFound[0].contractName
+                    ) {
+                      implementation.name = implementationFound[0].contractName;
+                    }
+                    return implementation;
+                  },
+                ),
+              );
+
+              proxyStatus = { ...proxyDetectionResult, implementations };
+              logger.debug("Ran proxy detection and resolution", {
+                chainId,
+                address,
+                proxyStatus,
+              });
+            } catch (error) {
+              proxyStatus.proxyResolutionError = (error as Error)?.message;
+              logger.error("Error detecting and resolving proxy", {
+                chainId,
+                address,
+                error,
+              });
+            }
+          }
+
+          map.get(address).chainIds.push({
+            chainId,
+            status: found[0].runtimeMatch,
+            ...proxyStatus,
+          });
         }
       } catch (error) {
-        // ignore
+        // This should only be triggered if performServiceOperation fails
+        // The address for this chainId will be ignored
+        logger.warn("Error during checkAllByChainAndAddresses", {
+          chainId,
+          address,
+          error,
+        });
       }
     }
     if (!map.has(address)) {
