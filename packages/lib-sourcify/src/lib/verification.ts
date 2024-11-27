@@ -325,7 +325,7 @@ async function tryToFindPerfectMetadataAndMatch(
       // Replace the metadata and solidity files that will be saved in the repo
       checkedContract.initSolcJsonInput(
         checkedContractWithPerfectMetadata.metadata,
-        checkedContractWithPerfectMetadata.solidity,
+        checkedContractWithPerfectMetadata.sources,
       );
       return matchWithPerfectMetadata;
     }

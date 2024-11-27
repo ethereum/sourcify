@@ -50,9 +50,9 @@ describe('ValidationService', function () {
       chai.expect(onlyContract.compiledPath).to.equal('browser/1_Storage.sol');
 
       chai.expect(CheckedContract.isValid(onlyContract)).to.be.true;
-      chai.expect(objectLength(onlyContract.solidity)).to.equal(1);
+      chai.expect(objectLength(onlyContract.sources)).to.equal(1);
       chai
-        .expect(onlyContract.solidity)
+        .expect(onlyContract.sources)
         .to.have.all.keys('browser/1_Storage.sol');
       chai.expect(onlyContract.missing).to.be.empty;
       chai.expect(onlyContract.invalid).to.be.empty;
@@ -73,7 +73,7 @@ describe('ValidationService', function () {
       chai.expect(onlyContract.compiledPath).to.equal('browser/1_Storage.sol');
 
       chai.expect(CheckedContract.isValid(onlyContract)).to.be.false;
-      chai.expect(onlyContract.solidity).to.be.empty;
+      chai.expect(onlyContract.sources).to.be.empty;
       chai.expect(objectLength(onlyContract.missing)).to.equal(1);
       chai.expect(onlyContract.missing).to.have.key('browser/1_Storage.sol');
       chai.expect(onlyContract.invalid).to.be.empty;

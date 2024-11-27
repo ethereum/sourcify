@@ -24,7 +24,7 @@ export class VyperCheckedContract {
   vyperSettings: VyperSettings;
 
   /** SourceMap mapping the original compilation path to PathContent. */
-  vyper: StringMap;
+  sources: StringMap;
 
   /** Object containing input for solc when used with the --standard-json flag. */
   vyperJsonInput!: VyperJsonInput;
@@ -105,7 +105,7 @@ export class VyperCheckedContract {
     this.vyperJsonInput = {
       language: 'Vyper',
       sources: Object.fromEntries(
-        Object.entries(this.vyper).map(([path, content]) => [
+        Object.entries(this.sources).map(([path, content]) => [
           path,
           { content },
         ]),
@@ -120,13 +120,13 @@ export class VyperCheckedContract {
     compiledPath: string,
     name: string,
     vyperSettings: VyperSettings,
-    vyper: StringMap,
+    sources: StringMap,
   ) {
     this.vyperCompiler = vyperCompiler;
     this.compilerVersion = vyperCompilerVersion;
     this.compiledPath = compiledPath;
     this.name = name;
-    this.vyper = vyper;
+    this.sources = sources;
     this.vyperSettings = vyperSettings;
     this.initVyperJsonInput();
   }

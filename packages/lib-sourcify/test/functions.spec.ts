@@ -218,7 +218,7 @@ describe('Checked contract', () => {
       {},
     );
     await CheckedContract.fetchMissing(contract);
-    const sources = Object.keys(contract.solidity);
+    const sources = Object.keys(contract.sources);
     expect(sources).lengthOf(1);
     expect(sources[0]).equals('Storage.sol');
   });

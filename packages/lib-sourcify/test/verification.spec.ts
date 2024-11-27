@@ -382,7 +382,7 @@ describe('lib-sourcify tests', () => {
       // Replace the metadata witht he unsorted one
       checkedContracts[0].initSolcJsonInput(
         JSON.parse(metadataBuffer.toString()),
-        checkedContracts[0].solidity,
+        checkedContracts[0].sources,
       );
 
       const match = await verifyDeployed(

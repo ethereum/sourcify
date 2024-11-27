@@ -38,7 +38,7 @@ export class CheckedContract {
   metadata!: Metadata;
 
   /** SourceMap mapping the original compilation path to PathContent. */
-  solidity!: StringMap;
+  sources!: StringMap;
 
   /** Object containing the information about missing source files. */
   missing: MissingSources;
@@ -85,10 +85,10 @@ export class CheckedContract {
     );
   }
 
-  initSolcJsonInput(metadata: Metadata, solidity: StringMap) {
+  initSolcJsonInput(metadata: Metadata, sources: StringMap) {
     this.metadataRaw = JSON.stringify(metadata);
     this.metadata = JSON.parse(JSON.stringify(metadata));
-    this.solidity = solidity;
+    this.sources = sources;
 
     if (metadata.compiler && metadata.compiler.version) {
       this.compilerVersion = metadata.compiler.version;
@@ -97,7 +97,7 @@ export class CheckedContract {
     }
 
     const { solcJsonInput, contractPath, contractName } =
-      createJsonInputFromMetadata(metadata, solidity);
+      createJsonInputFromMetadata(metadata, sources);
 
     this.solcJsonInput = solcJsonInput;
     this.compiledPath = contractPath;
@@ -107,20 +107,20 @@ export class CheckedContract {
   public constructor(
     solidityCompiler: ISolidityCompiler,
     metadata: Metadata,
-    solidity: StringMap,
+    sources: StringMap,
     missing: MissingSources = {},
     invalid: InvalidSources = {},
   ) {
     this.solidityCompiler = solidityCompiler;
     this.missing = missing;
     this.invalid = invalid;
-    this.initSolcJsonInput(metadata, solidity);
+    this.initSolcJsonInput(metadata, sources);
   }
 
   /**
    * Function to try to generate variations of the metadata of the contract such that it will match to the hash in the onchain bytecode.
    * Generates variations of the given source files and replaces the hashes in the metadata with the hashes of the variations.
-   * If found, replaces this.metadata and this.solidity with the found variations.
+   * If found, replaces this.metadata and this.sources with the found variations.
    * Useful for finding perfect matches for known types of variations such as different line endings.
    *
    * @param runtimeBytecode
@@ -137,14 +137,12 @@ export class CheckedContract {
       return null;
     }
 
-    const pathContent: PathContent[] = Object.keys(this.solidity).map(
-      (path) => {
-        return {
-          path,
-          content: this.solidity[path] || '',
-        };
-      },
-    );
+    const pathContent: PathContent[] = Object.keys(this.sources).map((path) => {
+      return {
+        path,
+        content: this.sources[path] || '',
+      };
+    });
 
     const byHash = storeByHash(pathContent);
 
@@ -531,11 +529,11 @@ export class CheckedContract {
 
     for (const fileName in retrieved) {
       delete contract.missing[fileName];
-      contract.solidity[fileName] = retrieved[fileName];
+      contract.sources[fileName] = retrieved[fileName];
     }
 
     const { solcJsonInput, contractPath, contractName } =
-      createJsonInputFromMetadata(contract.metadata, contract.solidity);
+      createJsonInputFromMetadata(contract.metadata, contract.sources);
 
     contract.solcJsonInput = solcJsonInput;
     contract.compiledPath = contractPath;
@@ -553,7 +551,7 @@ export class CheckedContract {
   exportConstructorArguments() {
     return {
       metadata: this.metadata,
-      solidity: this.solidity,
+      solidity: this.sources,
       missing: this.missing,
       invalid: this.invalid,
       // creationBytecode: this.creationBytecode, // Not needed without create2

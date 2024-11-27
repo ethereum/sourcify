@@ -69,8 +69,8 @@ export async function useAllSources(
   }));
   const { sourceFiles } = splitFiles(parsedFiles);
   const stringMapSourceFiles = pathContentArrayToStringMap(sourceFiles);
-  // Files at contract.solidity are already hash matched with the sources in metadata. Use them instead of the user input .sol files.
-  Object.assign(stringMapSourceFiles, contract.solidity);
+  // Files at contract.sources are already hash matched with the sources in metadata. Use them instead of the user input .sol files.
+  Object.assign(stringMapSourceFiles, contract.sources);
   const contractWithAllSources = new CheckedContract(
     contract.solidityCompiler,
     contract.metadata,
