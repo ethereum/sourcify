@@ -17,7 +17,7 @@ export async function verifyVyper(
   res: Response,
 ): Promise<any> {
   const services = req.app.get("services") as Services;
-  const vyperCompiler = req.app.get("vyperc") as IVyperCompiler;
+  const vyperCompiler = req.app.get("vyper") as IVyperCompiler;
   const chainRepository = req.app.get("chainRepository") as ChainRepository;
 
   const inputFiles = extractFiles(req);

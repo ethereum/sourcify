@@ -6,11 +6,12 @@ import {
 import { useVyperCompiler } from "./vyperCompiler";
 
 export class VyperLocal implements ISolidityCompiler {
+  constructor(private vyperRepoPath: string) {}
+
   async compile(
     version: string,
     vyperJsonInput: VyperJsonInput,
-    forceEmscripten: boolean = false,
   ): Promise<CompilerOutput> {
-    return await useVyperCompiler(version, vyperJsonInput);
+    return await useVyperCompiler(this.vyperRepoPath, version, vyperJsonInput);
   }
 }

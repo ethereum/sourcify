@@ -79,7 +79,6 @@ export class VyperCheckedContract extends AbstractCheckedContract {
         'evm.deployedBytecode.object',
         'evm.deployedBytecode.opcodes',
         'evm.deployedBytecode.sourceMap',
-        'evm.deployedBytecode.sourceMapFull',
         'evm.methodIdentifiers',
       ],
     };

@@ -100,8 +100,7 @@ export class ServerFixture {
         corsAllowedOrigins: config.get<string[]>("corsAllowedOrigins"),
         chains: sourcifyChainsMap,
         solc: new SolcLocal(config.get("solcRepo"), config.get("solJsonRepo")),
-        vyperc:
-          new VyperLocal(/* config.get("vyperRepo"), config.get("vyperJsonRepo") */),
+        vyper: new VyperLocal(config.get("vyperRepo")),
         verifyDeprecated: config.get("verifyDeprecated"),
         sessionOptions: {
           secret: config.get("session.secret"),

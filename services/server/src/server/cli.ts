@@ -73,7 +73,9 @@ if (config.get("lambdaCompiler.enabled")) {
 export const solc = selectedSolidityCompiler;
 
 logger.info("Using local vyper compiler");
-export const vyperc = new VyperLocal(/* vyperRepoPath, vyperJsonRepoPath */);
+const vyperRepoPath =
+  (config.get("vyperRepo") as string) || path.join("/tmp", "vyper-repo");
+export const vyper = new VyperLocal(vyperRepoPath);
 
 // To print regexes in the config object logs below
 Object.defineProperty(RegExp.prototype, "toJSON", {
@@ -103,7 +105,7 @@ const server = new Server(
     },
     corsAllowedOrigins: config.get("corsAllowedOrigins"),
     solc,
-    vyperc,
+    vyper,
     chains: chainRepository.sourcifyChainMap,
     verifyDeprecated: config.get("verifyDeprecated"),
     sessionOptions: getSessionOptions(),

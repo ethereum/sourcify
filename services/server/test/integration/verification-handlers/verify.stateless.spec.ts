@@ -1095,7 +1095,7 @@ describe("/", function () {
         },
         contractPath: "test.vy",
         contractName: "test",
-        compilerVersion: "0.3.2",
+        compilerVersion: "0.3.10+commit.91361694",
         compilerSettings: {
           evmVersion: "istanbul",
           outputSelection: {

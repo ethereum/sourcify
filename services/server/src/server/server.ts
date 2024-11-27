@@ -54,7 +54,7 @@ export interface ServerOptions {
   corsAllowedOrigins: string[];
   chains: SourcifyChainMap;
   solc: ISolidityCompiler;
-  vyperc: IVyperCompiler;
+  vyper: IVyperCompiler;
   verifyDeprecated: boolean;
   sessionOptions: SessionOptions;
   loggingToken?: string;
@@ -84,7 +84,7 @@ export class Server {
 
     this.app.set("chainRepository", this.chainRepository);
     this.app.set("solc", options.solc);
-    this.app.set("vyperc", options.vyperc);
+    this.app.set("vyper", options.vyper);
     this.app.set("verifyDeprecated", options.verifyDeprecated);
     this.app.set("services", this.services);
 
