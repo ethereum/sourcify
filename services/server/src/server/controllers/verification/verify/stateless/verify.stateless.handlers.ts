@@ -5,7 +5,7 @@ import {
   stringifyInvalidAndMissing,
 } from "../../verification.common";
 import {
-  CheckedContract,
+  SolidityCheckedContract,
   ISolidityCompiler,
   Match,
   checkFiles,
@@ -34,7 +34,7 @@ export async function legacyVerifyEndpoint(
     throw new NotFoundError(msg);
   }
 
-  let checkedContracts: CheckedContract[];
+  let checkedContracts: SolidityCheckedContract[];
   try {
     checkedContracts = await checkFiles(solc, inputFiles);
   } catch (error: any) {
@@ -42,7 +42,7 @@ export async function legacyVerifyEndpoint(
   }
 
   const errors = checkedContracts
-    .filter((contract) => !CheckedContract.isValid(contract, true))
+    .filter((contract) => !SolidityCheckedContract.isValid(contract, true))
     .map(stringifyInvalidAndMissing);
   if (errors.length) {
     throw new BadRequestError(
@@ -62,7 +62,7 @@ export async function legacyVerifyEndpoint(
       .send({ error: msg, contractsToChoose });
   }
 
-  const contract: CheckedContract = req.body.chosenContract
+  const contract: SolidityCheckedContract = req.body.chosenContract
     ? checkedContracts[req.body.chosenContract]
     : checkedContracts[0];
 
@@ -125,7 +125,7 @@ export async function verifyDeprecated(
     throw new NotFoundError(msg);
   }
 
-  let checkedContracts: CheckedContract[];
+  let checkedContracts: SolidityCheckedContract[];
   try {
     checkedContracts = await checkFiles(solc, inputFiles);
   } catch (error: any) {
@@ -133,7 +133,7 @@ export async function verifyDeprecated(
   }
 
   const errors = checkedContracts
-    .filter((contract) => !CheckedContract.isValid(contract, true))
+    .filter((contract) => !SolidityCheckedContract.isValid(contract, true))
     .map(stringifyInvalidAndMissing);
   if (errors.length) {
     throw new BadRequestError(
@@ -153,7 +153,7 @@ export async function verifyDeprecated(
       .send({ error: msg, contractsToChoose });
   }
 
-  const contract: CheckedContract = req.body.chosenContract
+  const contract: SolidityCheckedContract = req.body.chosenContract
     ? checkedContracts[req.body.chosenContract]
     : checkedContracts[0];
 

@@ -4,6 +4,7 @@ export * from './lib/validation';
 export * from './lib/verification';
 export * from './lib/SolidityCheckedContract';
 export * from './lib/VyperCheckedContract';
+export * from './lib/AbstractCheckedContract';
 export { default as SourcifyChain } from './lib/SourcifyChain';
 export * from './lib/types';
 export const setLibSourcifyLogger = setLogger;

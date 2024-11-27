@@ -1,5 +1,5 @@
 import {
-  CheckedContract,
+  SolidityCheckedContract,
   ImmutableReferences,
   Libraries,
   Match,
@@ -190,7 +190,7 @@ export function bytesFromString<T extends BytesTypes>(
 //     1. Replace library address placeholders ("__$53aea86b7d70b31448b230b20ae141a537$__") with zeros
 //     2. Immutables are already set to zeros
 export function normalizeRecompiledBytecodes(
-  recompiledContract: CheckedContract,
+  recompiledContract: SolidityCheckedContract,
   match: Match,
 ) {
   recompiledContract.normalizedRuntimeBytecode =
@@ -249,7 +249,9 @@ export function normalizeRecompiledBytecodes(
   }
 }
 
-export function prepareCompilerSettings(recompiledContract: CheckedContract) {
+export function prepareCompilerSettings(
+  recompiledContract: SolidityCheckedContract,
+) {
   // The metadata.settings contains recompiledContract that is not a field of compiler input
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { compilationTarget, ...restSettings } =

@@ -5,7 +5,7 @@ import {
   Match,
   Status,
   StringMap,
-  CheckedContract,
+  SolidityCheckedContract,
 } from "@ethereum-sourcify/lib-sourcify";
 import {
   ContractData,
@@ -367,7 +367,7 @@ export class RepositoryV1Service implements RWStorageService {
   }
 
   public async storeMatch(
-    contract: CheckedContract,
+    contract: SolidityCheckedContract,
     match: Match,
   ): Promise<void | Match> {
     if (
@@ -392,7 +392,7 @@ export class RepositoryV1Service implements RWStorageService {
         matchQuality,
         match.chainId,
         match.address,
-        contract.solidity,
+        contract.sources,
       );
 
       // Store metadata

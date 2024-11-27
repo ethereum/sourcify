@@ -1,4 +1,7 @@
-import { Match, CheckedContract } from "@ethereum-sourcify/lib-sourcify";
+import {
+  Match,
+  SolidityCheckedContract,
+} from "@ethereum-sourcify/lib-sourcify";
 import { keccak256 } from "ethers";
 import * as DatabaseUtil from "../utils/database-util";
 import {
@@ -38,7 +41,7 @@ export default abstract class AbstractDatabaseService {
   }
 
   validateBeforeStoring(
-    recompiledContract: CheckedContract,
+    recompiledContract: SolidityCheckedContract,
     match: Match,
   ): boolean {
     if (
@@ -59,7 +62,10 @@ export default abstract class AbstractDatabaseService {
     return true;
   }
 
-  getKeccak256Bytecodes(recompiledContract: CheckedContract, match: Match) {
+  getKeccak256Bytecodes(
+    recompiledContract: SolidityCheckedContract,
+    match: Match,
+  ) {
     if (recompiledContract.normalizedRuntimeBytecode === undefined) {
       throw new Error("normalizedRuntimeBytecode cannot be undefined");
     }
@@ -86,7 +92,7 @@ export default abstract class AbstractDatabaseService {
   }
 
   async getDatabaseColumns(
-    recompiledContract: CheckedContract,
+    recompiledContract: SolidityCheckedContract,
     match: Match,
   ): Promise<DatabaseUtil.DatabaseColumns> {
     const {
@@ -225,14 +231,14 @@ export default abstract class AbstractDatabaseService {
       };
     }
 
-    const sourcesInformation = Object.keys(recompiledContract.solidity).map(
+    const sourcesInformation = Object.keys(recompiledContract.sources).map(
       (path) => {
         return {
           path,
           source_hash_keccak: bytesFromString<BytesKeccak>(
-            keccak256(Buffer.from(recompiledContract.solidity[path])),
+            keccak256(Buffer.from(recompiledContract.sources[path])),
           ),
-          content: recompiledContract.solidity[path],
+          content: recompiledContract.sources[path],
         };
       },
     );
@@ -385,7 +391,7 @@ export default abstract class AbstractDatabaseService {
 
   async updateExistingVerifiedContract(
     existingVerifiedContractResult: DatabaseUtil.GetVerifiedContractByChainAndAddressResult[],
-    recompiledContract: CheckedContract,
+    recompiledContract: SolidityCheckedContract,
     match: Match,
     databaseColumns: DatabaseUtil.DatabaseColumns,
   ): Promise<number | false> {
@@ -499,7 +505,7 @@ export default abstract class AbstractDatabaseService {
   }
 
   async insertOrUpdateVerifiedContract(
-    recompiledContract: CheckedContract,
+    recompiledContract: SolidityCheckedContract,
     match: Match,
   ): Promise<{
     type: "update" | "insert";

@@ -5,7 +5,7 @@ import {
   processRequestFromEtherscan,
 } from "../etherscan.common";
 import { getResponseMatchFromMatch } from "../../../../common";
-import { createCheckedContract } from "../../verification.common";
+import { createSolidityCheckedContract } from "../../verification.common";
 import logger from "../../../../../common/logger";
 import { ChainRepository } from "../../../../../sourcify-chain-repository";
 import { ISolidityCompiler } from "@ethereum-sourcify/lib-sourcify";
@@ -36,7 +36,11 @@ export async function verifyFromEtherscan(req: Request, res: Response) {
   );
 
   const mappedSources = getMappedSourcesFromJsonInput(solcJsonInput);
-  const checkedContract = createCheckedContract(solc, metadata, mappedSources);
+  const checkedContract = createSolidityCheckedContract(
+    solc,
+    metadata,
+    mappedSources,
+  );
 
   const match = await services.verification.verifyDeployed(
     checkedContract,

@@ -1,7 +1,7 @@
 import { Request } from "express";
 import { BadRequestError, PayloadTooLargeError } from "../../../common/errors";
 import {
-  CheckedContract,
+  SolidityCheckedContract,
   InvalidSources,
   Match,
   Metadata,
@@ -23,14 +23,20 @@ import logger from "../../../common/logger";
 import { createHash } from "crypto";
 import { ChainRepository } from "../../../sourcify-chain-repository";
 
-export function createCheckedContract(
+export function createSolidityCheckedContract(
   solc: ISolidityCompiler,
   metadata: Metadata,
   solidity: StringMap,
   missing?: MissingSources,
   invalid?: InvalidSources,
 ) {
-  return new CheckedContract(solc, metadata, solidity, missing, invalid);
+  return new SolidityCheckedContract(
+    solc,
+    metadata,
+    solidity,
+    missing,
+    invalid,
+  );
 }
 
 type PathBuffer = {
@@ -81,7 +87,9 @@ export const extractFilesFromJSON = (files: {
   return inputFiles;
 };
 
-export const stringifyInvalidAndMissing = (contract: CheckedContract) => {
+export const stringifyInvalidAndMissing = (
+  contract: SolidityCheckedContract,
+) => {
   const errors = Object.keys(contract.invalid).concat(
     Object.keys(contract.missing),
   );
@@ -230,7 +238,7 @@ export const checkContractsInSession = async (
     const newPendingContracts: ContractWrapperMap = {};
     for (const contract of contracts) {
       newPendingContracts[generateId(JSON.stringify(contract.metadataRaw))] = {
-        // Remove large (e.g. bytecodes) and unnecessary (e.g. `solidityCompiler`) fields in CheckedContract before saving to the session. Essentially a CheckedContract only needs a few fields to be generated.
+        // Remove large (e.g. bytecodes) and unnecessary (e.g. `solidityCompiler`) fields in SolidityCheckedContract before saving to the session. Essentially a SolidityCheckedContract only needs a few fields to be generated.
         contract: contract.exportConstructorArguments(),
       };
     }
@@ -303,12 +311,12 @@ export async function addRemoteFile(
 }
 
 export const checkAndFetchMissing = async (
-  contract: CheckedContract,
+  contract: SolidityCheckedContract,
 ): Promise<void> => {
-  if (!CheckedContract.isValid(contract)) {
+  if (!SolidityCheckedContract.isValid(contract)) {
     try {
       // Try to fetch missing files
-      await CheckedContract.fetchMissing(contract);
+      await SolidityCheckedContract.fetchMissing(contract);
     } catch (e) {
       // There's no need to throw inside fetchMissing if we're going to do an empty catch. This would cause not being able to catch other potential errors inside the function. TODO: Don't throw inside `fetchMissing` and remove the try/catch block.
       // Missing files are accessible from the contract.missingFiles array.
@@ -371,8 +379,8 @@ export const verifyContractsInSession = async (
 
     const { address, chainId, contract, creatorTxHash } = contractWrapper;
 
-    // The session saves the CheckedContract as a simple object, so we need to reinstantiate it
-    const checkedContract = createCheckedContract(
+    // The session saves the SolidityCheckedContract as a simple object, so we need to reinstantiate it
+    const checkedContract = createSolidityCheckedContract(
       solc,
       contract.metadata,
       contract.solidity,
@@ -412,7 +420,7 @@ export const verifyContractsInSession = async (
           path: base64file.path,
           buffer: Buffer.from(base64file.content, FILE_ENCODING),
         }));
-        const checkedContractWithAllSources = createCheckedContract(
+        const checkedContractWithAllSources = createSolidityCheckedContract(
           solc,
           contractWrapper.contract.metadata,
           contractWrapper.contract.solidity,
