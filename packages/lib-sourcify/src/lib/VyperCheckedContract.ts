@@ -11,6 +11,7 @@ import {
   VyperSettings,
 } from './IVyperCompiler';
 import { AbstractCheckedContract } from './AbstractCheckedContract';
+import { id } from 'ethers';
 
 /**
  * Abstraction of a checked vyper contract. With metadata and source (vyper) files.
@@ -39,6 +40,17 @@ export class VyperCheckedContract extends AbstractCheckedContract {
       };
     }
 
+    const sourcesWithHashes = Object.entries(this.sources).reduce(
+      (acc, [path, content]) => ({
+        ...acc,
+        [path]: {
+          content,
+          keccak256: id(content),
+        },
+      }),
+      {},
+    );
+
     this.metadata = {
       compiler: { version: this.compilerVersion },
       language: 'Vyper',
@@ -47,7 +59,7 @@ export class VyperCheckedContract extends AbstractCheckedContract {
         ...this.vyperSettings,
         compilationTarget: { [this.compiledPath]: this.name },
       },
-      sources: {},
+      sources: sourcesWithHashes,
       version: 1,
     };
     this.metadataRaw = JSON.stringify(this.metadata);

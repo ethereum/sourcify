@@ -1052,4 +1052,66 @@ describe("/", function () {
       "perfect",
     );
   });
+
+  it.only("should verify a vyper contract resulting in a partial match", async () => {
+    const vyperSourcePath = path.join(
+      __dirname,
+      "..",
+      "..",
+      "sources",
+      "vyper",
+      "contract",
+      "test.vy",
+    );
+    const vyperContent = fs.readFileSync(vyperSourcePath);
+
+    const vyperArtifactPath = path.join(
+      __dirname,
+      "..",
+      "..",
+      "sources",
+      "vyper",
+      "contract",
+      "artifact.json",
+    );
+    const vyperArtifact = JSON.parse(
+      fs.readFileSync(vyperArtifactPath).toString(),
+    );
+
+    const address = await deployFromAbiAndBytecode(
+      chainFixture.localSigner,
+      vyperArtifact.abi,
+      vyperArtifact.bytecode,
+    );
+
+    const res = await chai
+      .request(serverFixture.server.app)
+      .post("/verify/vyper")
+      .send({
+        address: address,
+        chain: chainFixture.chainId,
+        files: {
+          "test.vy": vyperContent.toString(),
+        },
+        contractPath: "test.vy",
+        contractName: "test",
+        compilerVersion: "0.3.2",
+        compilerSettings: {
+          evmVersion: "istanbul",
+          outputSelection: {
+            "*": ["evm.bytecode"],
+          },
+        },
+      });
+
+    await assertVerification(
+      serverFixture,
+      null,
+      res,
+      null,
+      address,
+      chainFixture.chainId,
+      "partial",
+    );
+  });
 });

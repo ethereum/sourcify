@@ -2,6 +2,7 @@ import {
   Match,
   AbstractCheckedContract,
   SolidityCheckedContract,
+  VyperCheckedContract,
 } from "@ethereum-sourcify/lib-sourcify";
 import { keccak256 } from "ethers";
 import * as DatabaseUtil from "../utils/database-util";
@@ -92,6 +93,15 @@ export default abstract class AbstractDatabaseService {
     };
   }
 
+  getCompiler(recompiledContract: AbstractCheckedContract): string {
+    if (recompiledContract instanceof SolidityCheckedContract) {
+      return "solc";
+    } else if (recompiledContract instanceof VyperCheckedContract) {
+      return "vyper";
+    }
+    throw new Error("Unknown compiler");
+  }
+
   async getDatabaseColumns(
     recompiledContract: AbstractCheckedContract,
     match: Match,
@@ -148,7 +158,6 @@ export default abstract class AbstractDatabaseService {
     const compilationTargetName = Object.values(
       recompiledContract.metadata.settings.compilationTarget,
     )[0];
-    const language = "solidity";
     const compilerOutput =
       recompiledContract.compilerOutput?.contracts[
         recompiledContract.compiledPath
@@ -272,8 +281,8 @@ export default abstract class AbstractDatabaseService {
         deployer: bytesFromString(match.deployer),
       },
       compiledContract: {
-        language,
-        compiler: "solc",
+        language: recompiledContract.metadata.language.toLocaleLowerCase(),
+        compiler: this.getCompiler(recompiledContract),
         compiler_settings:
           DatabaseUtil.prepareCompilerSettings(recompiledContract),
         name: recompiledContract.name,
