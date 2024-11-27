@@ -55,7 +55,7 @@
       "program": "${workspaceRoot}/node_modules/.bin/mocha",
       "cwd": "${workspaceFolder}/services/server",
       "args": [
-        "${workspaceFolder}/services/server/test/unit/**",
+        "${workspaceFolder}/services/server/test/unit/**/*.spec.ts",
         "-r",
         "${workspaceFolder}/services/server/test/load-env.js",
         // "--grep=should initialize compilers",
@@ -76,7 +76,7 @@
       "preLaunchTask": "database-test:up",
       "postDebugTask": "database-test:down",
       "args": [
-        "${workspaceFolder}/services/server/test/integration/**",
+        "${workspaceFolder}/services/server/test/integration/**/*.spec.ts",
         "-r",
         "${workspaceFolder}/services/server/test/load-env.js",
         "--no-timeout",
