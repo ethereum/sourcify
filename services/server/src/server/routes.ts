@@ -7,6 +7,7 @@ import solcJsonRoutes from "./controllers/verification/solc-json/solc-json.route
 import etherscanRoutes from "./controllers/verification/etherscan/etherscan.routes";
 import logger, { setLogLevel } from "../common/logger";
 import { ChainRepository } from "../sourcify-chain-repository";
+import vyperRoutes from "./controllers/verification/vyper/vyper.routes";
 
 const router: Router = Router();
 
@@ -66,5 +67,6 @@ router.use("/", sessionStateRoutes);
 router.use("/", verifyRoutes);
 router.use("/", solcJsonRoutes);
 router.use("/", etherscanRoutes);
+router.use("/", vyperRoutes);
 
 export default router;

@@ -568,7 +568,7 @@ describe('lib-sourcify tests', () => {
     });
   });
 
-  it.only('should verify a vyper contract', async () => {
+  it('should verify a vyper contract', async () => {
     const contractFolderPath = path.join(
       __dirname,
       'sources',
