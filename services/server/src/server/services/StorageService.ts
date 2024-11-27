@@ -1,6 +1,6 @@
 import {
   Match,
-  SolidityCheckedContract,
+  AbstractCheckedContract,
 } from "@ethereum-sourcify/lib-sourcify";
 import {
   RepositoryV1Service,
@@ -13,7 +13,6 @@ import {
 import { SourcifyDatabaseService } from "./storageServices/SourcifyDatabaseService";
 import { AllianceDatabaseService } from "./storageServices/AllianceDatabaseService";
 import logger from "../../common/logger";
-import { getMatchStatus } from "../common";
 import {
   ContractData,
   FileObject,
@@ -42,7 +41,7 @@ export interface WStorageService {
   IDENTIFIER: StorageIdentifiers;
   init(): Promise<boolean>;
   storeMatch(
-    contract: SolidityCheckedContract,
+    contract: AbstractCheckedContract,
     match: Match,
   ): Promise<void | Match>;
 }
@@ -268,7 +267,7 @@ export class StorageService {
     }
   }
 
-  async storeMatch(contract: SolidityCheckedContract, match: Match) {
+  async storeMatch(contract: AbstractCheckedContract, match: Match) {
     logger.info("Storing match on StorageService", {
       name: contract.name,
       address: match.address,

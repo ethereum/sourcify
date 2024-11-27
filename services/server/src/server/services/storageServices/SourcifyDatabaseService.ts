@@ -1,6 +1,6 @@
 import {
   Match,
-  SolidityCheckedContract,
+  AbstractCheckedContract,
   Status,
   StringMap,
 } from "@ethereum-sourcify/lib-sourcify";
@@ -506,7 +506,7 @@ export class SourcifyDatabaseService
   };
 
   validateBeforeStoring(
-    recompiledContract: SolidityCheckedContract,
+    recompiledContract: AbstractCheckedContract,
     match: Match,
   ): boolean {
     // Prevent storing matches only if they don't have both onchainRuntimeBytecode and onchainCreationBytecode
@@ -522,7 +522,7 @@ export class SourcifyDatabaseService
   }
 
   // Override this method to include the SourcifyMatch
-  async storeMatch(recompiledContract: SolidityCheckedContract, match: Match) {
+  async storeMatch(recompiledContract: AbstractCheckedContract, match: Match) {
     const { type, verifiedContractId, oldVerifiedContractId } =
       await super.insertOrUpdateVerifiedContract(recompiledContract, match);
 

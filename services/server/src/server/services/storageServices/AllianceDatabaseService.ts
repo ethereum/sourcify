@@ -2,7 +2,7 @@ import logger from "../../../common/logger";
 import AbstractDatabaseService from "./AbstractDatabaseService";
 import { WStorageService } from "../StorageService";
 import {
-  SolidityCheckedContract,
+  AbstractCheckedContract,
   Match,
 } from "@ethereum-sourcify/lib-sourcify";
 import { WStorageIdentifiers } from "./identifiers";
@@ -12,7 +12,7 @@ export class AllianceDatabaseService
   implements WStorageService
 {
   IDENTIFIER = WStorageIdentifiers.AllianceDatabase;
-  async storeMatch(recompiledContract: SolidityCheckedContract, match: Match) {
+  async storeMatch(recompiledContract: AbstractCheckedContract, match: Match) {
     if (!match.creationMatch) {
       throw new Error("Can't store to AllianceDatabase without creationMatch");
     }

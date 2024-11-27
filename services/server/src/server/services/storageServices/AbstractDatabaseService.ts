@@ -1,5 +1,6 @@
 import {
   Match,
+  AbstractCheckedContract,
   SolidityCheckedContract,
 } from "@ethereum-sourcify/lib-sourcify";
 import { keccak256 } from "ethers";
@@ -41,7 +42,7 @@ export default abstract class AbstractDatabaseService {
   }
 
   validateBeforeStoring(
-    recompiledContract: SolidityCheckedContract,
+    recompiledContract: AbstractCheckedContract,
     match: Match,
   ): boolean {
     if (
@@ -63,7 +64,7 @@ export default abstract class AbstractDatabaseService {
   }
 
   getKeccak256Bytecodes(
-    recompiledContract: SolidityCheckedContract,
+    recompiledContract: AbstractCheckedContract,
     match: Match,
   ) {
     if (recompiledContract.normalizedRuntimeBytecode === undefined) {
@@ -92,7 +93,7 @@ export default abstract class AbstractDatabaseService {
   }
 
   async getDatabaseColumns(
-    recompiledContract: SolidityCheckedContract,
+    recompiledContract: AbstractCheckedContract,
     match: Match,
   ): Promise<DatabaseUtil.DatabaseColumns> {
     const {
@@ -153,10 +154,12 @@ export default abstract class AbstractDatabaseService {
         recompiledContract.compiledPath
       ][recompiledContract.name];
 
-    if (!(await recompiledContract.generateCborAuxdataPositions())) {
-      throw new Error(
-        `cannot generate contract artifacts address=${match.address} chainId=${match.chainId}`,
-      );
+    if (recompiledContract instanceof SolidityCheckedContract) {
+      if (!(await recompiledContract.generateCborAuxdataPositions())) {
+        throw new Error(
+          `cannot generate contract artifacts address=${match.address} chainId=${match.chainId}`,
+        );
+      }
     }
 
     // Prepare compilation_artifacts.sources by removing everything except id
@@ -391,7 +394,7 @@ export default abstract class AbstractDatabaseService {
 
   async updateExistingVerifiedContract(
     existingVerifiedContractResult: DatabaseUtil.GetVerifiedContractByChainAndAddressResult[],
-    recompiledContract: SolidityCheckedContract,
+    recompiledContract: AbstractCheckedContract,
     match: Match,
     databaseColumns: DatabaseUtil.DatabaseColumns,
   ): Promise<number | false> {
@@ -505,7 +508,7 @@ export default abstract class AbstractDatabaseService {
   }
 
   async insertOrUpdateVerifiedContract(
-    recompiledContract: SolidityCheckedContract,
+    recompiledContract: AbstractCheckedContract,
     match: Match,
   ): Promise<{
     type: "update" | "insert";
