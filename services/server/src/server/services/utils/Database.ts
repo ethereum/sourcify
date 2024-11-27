@@ -14,8 +14,9 @@ import logger from "../../../common/logger";
 export interface DatabaseOptions {
   googleCloudSql?: {
     instanceName: string;
-    iamAccount: string;
     database: string;
+    user: string;
+    password: string;
   };
   postgres?: {
     host: string;
@@ -31,7 +32,8 @@ export class Database {
   private _pool?: Pool;
   private schema: string = "public";
   private googleCloudSqlInstanceName?: string;
-  private googleCloudSqlIamAccount?: string;
+  private googleCloudSqlUser?: string;
+  private googleCloudSqlPassword?: string;
   private googleCloudSqlDatabase?: string;
   private postgresHost?: string;
   private postgresPort?: number;
@@ -41,7 +43,8 @@ export class Database {
 
   constructor(options: DatabaseOptions) {
     this.googleCloudSqlInstanceName = options.googleCloudSql?.instanceName;
-    this.googleCloudSqlIamAccount = options.googleCloudSql?.iamAccount;
+    this.googleCloudSqlUser = options.googleCloudSql?.user;
+    this.googleCloudSqlPassword = options.googleCloudSql?.password;
     this.googleCloudSqlDatabase = options.googleCloudSql?.database;
     this.postgresHost = options.postgres?.host;
     this.postgresPort = options.postgres?.port;
@@ -70,13 +73,14 @@ export class Database {
       const connector = new Connector();
       const clientOpts = await connector.getOptions({
         instanceConnectionName: this.googleCloudSqlInstanceName,
-        authType: AuthTypes.IAM,
+        authType: AuthTypes.PASSWORD,
       });
       this._pool = new Pool({
         ...clientOpts,
-        user: this.googleCloudSqlIamAccount,
+        user: this.googleCloudSqlUser,
         database: this.googleCloudSqlDatabase,
         max: 5,
+        password: this.googleCloudSqlPassword,
       });
     } else if (this.postgresHost) {
       this._pool = new Pool({

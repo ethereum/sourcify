@@ -5,9 +5,7 @@ import {
   StringMap,
 } from "@ethereum-sourcify/lib-sourcify";
 import logger from "../../../common/logger";
-import AbstractDatabaseService, {
-  DatabaseServiceOptions,
-} from "./AbstractDatabaseService";
+import AbstractDatabaseService from "./AbstractDatabaseService";
 import { RWStorageService, StorageService } from "../StorageService";
 import { bytesFromString } from "../utils/database-util";
 import {
@@ -26,6 +24,7 @@ import { getAddress, id as keccak256Str } from "ethers";
 import { BadRequestError } from "../../../common/errors";
 import { RWStorageIdentifiers } from "./identifiers";
 import semver from "semver";
+import { DatabaseOptions } from "../utils/Database";
 
 const MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS = 200;
 
@@ -39,7 +38,7 @@ export class SourcifyDatabaseService
 
   constructor(
     storageService_: StorageService,
-    options: DatabaseServiceOptions,
+    options: DatabaseOptions,
     serverUrl: string,
   ) {
     super(options);

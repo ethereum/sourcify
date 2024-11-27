@@ -7,29 +7,14 @@ import {
 } from "../utils/database-util";
 
 import { Bytes, BytesKeccak, Nullable } from "../../types";
-import { Database } from "../utils/Database";
+import { Database, DatabaseOptions } from "../utils/Database";
 import { QueryResult } from "pg";
-export interface DatabaseServiceOptions {
-  googleCloudSql?: {
-    instanceName: string;
-    iamAccount: string;
-    database: string;
-  };
-  postgres?: {
-    host: string;
-    port: number;
-    database: string;
-    user: string;
-    password: string;
-  };
-  schema?: string;
-}
 
 export default abstract class AbstractDatabaseService {
   public database: Database;
   abstract IDENTIFIER: string;
 
-  constructor(options: DatabaseServiceOptions) {
+  constructor(options: DatabaseOptions) {
     this.database = new Database(options);
   }
 
