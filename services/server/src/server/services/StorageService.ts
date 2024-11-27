@@ -10,7 +10,6 @@ import {
 import { SourcifyDatabaseService } from "./storageServices/SourcifyDatabaseService";
 import { AllianceDatabaseService } from "./storageServices/AllianceDatabaseService";
 import logger from "../../common/logger";
-import { getMatchStatus } from "../common";
 import {
   ContractData,
   FileObject,
@@ -27,13 +26,13 @@ import {
   StorageIdentifiers,
   WStorageIdentifiers,
 } from "./storageServices/identifiers";
-import { DatabaseServiceOptions } from "./storageServices/AbstractDatabaseService";
 import { ConflictError } from "../../common/errors/ConflictError";
 import { isBetterMatch } from "./utils/util";
 import {
   S3RepositoryService,
   S3RepositoryServiceOptions,
 } from "./storageServices/S3RepositoryService";
+import { DatabaseOptions } from "./utils/Database";
 
 export interface WStorageService {
   IDENTIFIER: StorageIdentifiers;
@@ -81,8 +80,8 @@ export interface StorageServiceOptions {
   enabledServices: EnabledServices;
   repositoryV1ServiceOptions: RepositoryV1ServiceOptions;
   repositoryV2ServiceOptions: RepositoryV2ServiceOptions;
-  sourcifyDatabaseServiceOptions?: DatabaseServiceOptions;
-  allianceDatabaseServiceOptions?: DatabaseServiceOptions;
+  sourcifyDatabaseServiceOptions?: DatabaseOptions;
+  allianceDatabaseServiceOptions?: DatabaseOptions;
   s3RepositoryServiceOptions?: S3RepositoryServiceOptions;
 }
 
@@ -166,7 +165,10 @@ export class StorageService {
     // AllianceDatabase
     if (enabledServicesArray.includes(WStorageIdentifiers.AllianceDatabase)) {
       if (
-        options.allianceDatabaseServiceOptions?.googleCloudSql ||
+        (options.allianceDatabaseServiceOptions?.googleCloudSql?.instanceName &&
+          options.allianceDatabaseServiceOptions?.googleCloudSql?.database &&
+          options.allianceDatabaseServiceOptions?.googleCloudSql?.user &&
+          options.allianceDatabaseServiceOptions?.googleCloudSql?.password) ||
         (options.allianceDatabaseServiceOptions?.postgres?.host &&
           options.allianceDatabaseServiceOptions?.postgres?.database &&
           options.allianceDatabaseServiceOptions?.postgres?.user &&

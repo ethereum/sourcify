@@ -11,6 +11,7 @@ module.exports = {
   storage: {
     read: RWStorageIdentifiers.SourcifyDatabase,
     writeOrWarn: [
+      WStorageIdentifiers.AllianceDatabase,
       WStorageIdentifiers.S3Repository,
       RWStorageIdentifiers.RepositoryV1,
     ],

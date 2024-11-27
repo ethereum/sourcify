@@ -141,6 +141,12 @@ const server = new Server(
       schema: process.env.SOURCIFY_POSTGRES_SCHEMA as string,
     },
     allianceDatabaseServiceOptions: {
+      googleCloudSql: {
+        instanceName: process.env.ALLIANCE_GOOGLE_CLOUD_SQL_INSTANCE_NAME as string,
+        database: process.env.ALLIANCE_GOOGLE_CLOUD_SQL_DATABASE as string,
+        user: process.env.ALLIANCE_GOOGLE_CLOUD_SQL_USER as string,
+        password: process.env.ALLIANCE_GOOGLE_CLOUD_SQL_PASSWORD as string,
+      },
       postgres: {
         host: process.env.ALLIANCE_POSTGRES_HOST as string,
         database: process.env.ALLIANCE_POSTGRES_DB as string,
