@@ -3,102 +3,56 @@ import path from 'path';
 import fs from 'fs';
 import { exec, spawnSync } from 'child_process';
 import { StatusCodes } from 'http-status-codes';
-import { CompilerOutput } from '../../src';
+import {
+  CompilerOutput,
+  VyperJsonInput,
+} from '@ethereum-sourcify/lib-sourcify';
+import { fetchWithBackoff } from './common';
 import { logDebug, logError, logWarn } from '../../src/lib/logger';
-import { VyperJsonInput } from '../../src/lib/IVyperCompiler';
 
-/**
- * Fetches a resource with an exponential timeout.
- * 1) Send req, wait backoff * 2^0 ms, abort if doesn't resolve
- * 2) Send req, wait backoff * 2^1 ms, abort if doesn't resolve
- * 3) Send req, wait backoff * 2^2 ms, abort if doesn't resolve...
- * ...
- * ...
- */
-export async function fetchWithBackoff(
-  resource: string,
-  backoff: number = 10000,
-  retries: number = 4,
-) {
-  let timeout = backoff;
+const HOST_VYPER_REPO = 'https://github.com/vyperlang/vyper/releases/download/';
 
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    try {
-      logDebug('Start fetchWithBackoff', { resource, timeout, attempt });
-      const controller = new AbortController();
-      const id = setTimeout(() => {
-        logDebug('Aborting request', { resource, timeout, attempt });
-        controller.abort();
-      }, timeout);
-      const response = await fetch(resource, {
-        signal: controller.signal,
-      });
-      logDebug('Success fetchWithBackoff', { resource, timeout, attempt });
-      clearTimeout(id);
-      return response;
-    } catch (error) {
-      if (attempt === retries) {
-        logError('Failed fetchWithBackoff', {
-          resource,
-          attempt,
-          retries,
-          timeout,
-          error,
-        });
-        throw new Error(`Failed fetching ${resource}: ${error}`);
-      } else {
-        timeout *= 2; // exponential backoff
-        logDebug('Retrying fetchWithBackoff', {
-          resource,
-          attempt,
-          timeout,
-          error,
-        });
-        continue;
-      }
-    }
-  }
-  throw new Error(`Failed fetching ${resource}`);
-}
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const solc = require('solc');
-
-const HOST_SOLC_REPO = ' https://binaries.soliditylang.org/';
-
-export function findSolcPlatform(): string | false {
-  if (process.platform === 'darwin' && process.arch === 'x64') {
-    return 'macosx-amd64';
+export function findVyperPlatform(): string | false {
+  if (process.platform === 'darwin') {
+    return 'darwin';
   }
   if (process.platform === 'linux' && process.arch === 'x64') {
-    return 'linux-amd64';
+    return 'linux';
   }
   if (process.platform === 'win32' && process.arch === 'x64') {
-    return 'windows-amd64';
+    return 'windows.exe';
   }
   return false;
 }
 /**
- * Searches for a solc: first for a local executable version, then from HOST_SOLC_REPO
- * and then using the getSolcJs function.
- * Once the compiler is retrieved, it is used, and the stringified solc output is returned.
+ * Searches for a vyper compiler: first for a local executable version, then from HOST_VYPER_REPO
+ * Once the compiler is retrieved, it is used, and the stringified vyper output is returned.
  *
- * @param version the version of solc to be used for compilation
- * @param input a JSON object of the standard-json format compatible with solc
+ * @param version the version of vyper to be used for compilation
+ * @param input a JSON object of the standard-json format compatible with vyper
  * @param log the logger
- * @returns stringified solc output
+ * @returns stringified vyper output
  */
 
 export async function useVyperCompiler(
+  vyperRepoPath: string,
   version: string,
-  solcJsonInput: VyperJsonInput,
-  forceEmscripten = false,
+  vyperJsonInput: VyperJsonInput,
 ): Promise<CompilerOutput> {
-  console.log(version, forceEmscripten);
+  const vyperPlatform = findVyperPlatform();
+  let vyperPath;
+  if (vyperPlatform) {
+    vyperPath = await getVyperExecutable(vyperRepoPath, vyperPlatform, version);
+  }
+
+  if (!vyperPath) {
+    throw new Error('Vyper path not found');
+  }
+
   let compiled: string | undefined;
-  const inputStringified = JSON.stringify(solcJsonInput);
+  const inputStringified = JSON.stringify(vyperJsonInput);
   try {
-    compiled = await asyncExecSolc(inputStringified, '/opt/homebrew/bin/vyper');
+    compiled = await asyncExecVyper(inputStringified, vyperPath);
   } catch (error: any) {
     if (error?.code === 'ENOBUFS') {
       throw new Error('Compilation output size too large');
@@ -124,47 +78,52 @@ export async function useVyperCompiler(
   return compiledJSON;
 }
 
-export async function getSolcExecutable(
+export async function getVyperExecutable(
+  vyperRepoPath: string,
   platform: string,
   version: string,
 ): Promise<string | null> {
-  const fileName = `solc-${platform}-v${version}`;
-  const repoPath = path.join('/tmp', 'solc-repo');
-  const solcPath = path.join(repoPath, fileName);
-  if (fs.existsSync(solcPath) && validateSolcPath(solcPath)) {
-    logDebug('Found solc binary', {
+  const fileName = `vyper.${version}.${platform}`;
+  const vyperPath = path.join(vyperRepoPath, fileName);
+  if (fs.existsSync(vyperPath) && validateVyperPath(vyperPath)) {
+    logDebug('Found vyper binary', {
       version,
-      solcPath,
+      vyperPath,
       platform,
     });
-    return solcPath;
+    return vyperPath;
   }
 
-  logDebug('Downloading solc', {
+  logDebug('Downloading vyper', {
     version,
-    solcPath,
+    vyperPath,
     platform,
   });
-  const success = await fetchAndSaveSolc(platform, solcPath, version, fileName);
-  logDebug('Downloaded solc', {
+  const success = await fetchAndSaveVyper(
+    platform,
+    vyperPath,
     version,
-    solcPath,
+    fileName,
+  );
+  logDebug('Downloaded vyper', {
+    version,
+    vyperPath,
     platform,
   });
-  if (success && !validateSolcPath(solcPath)) {
-    logError('Cannot validate solc', {
+  if (success && !validateVyperPath(vyperPath)) {
+    logError('Cannot validate vyper', {
       version,
-      solcPath,
+      vyperPath,
       platform,
     });
     return null;
   }
-  return success ? solcPath : null;
+  return success ? vyperPath : null;
 }
 
-function validateSolcPath(solcPath: string): boolean {
+function validateVyperPath(vyperPath: string): boolean {
   // TODO: Handle nodejs only dependencies
-  const spawned = spawnSync(solcPath, ['--version']);
+  const spawned = spawnSync(vyperPath, ['--version']);
   if (spawned.status === 0) {
     return true;
   }
@@ -172,115 +131,63 @@ function validateSolcPath(solcPath: string): boolean {
   const error =
     spawned?.error?.message ||
     spawned.stderr.toString() ||
-    'Error running solc, are you on the right platform? (e.g. x64 vs arm)';
+    'Error running vyper, are you on the right platform? (e.g. x64 vs arm)';
 
   logWarn(error);
   return false;
 }
 
 /**
- * Fetches a solc binary and saves it to the given path.
- *
- * If platform is "bin", it will download the solc-js binary.
+ * Fetches a vyper binary and saves it to the given path.
  */
-async function fetchAndSaveSolc(
+async function fetchAndSaveVyper(
   platform: string,
-  solcPath: string,
+  vyperPath: string,
   version: string,
   fileName: string,
 ): Promise<boolean> {
   const encodedURIFilename = encodeURIComponent(fileName);
-  const githubSolcURI = `${HOST_SOLC_REPO}${platform}/${encodedURIFilename}`;
-  logDebug('Fetching solc', {
+  const versionWithoutCommit = version.split('+')[0];
+  const githubVyperURI = `${HOST_VYPER_REPO}v${versionWithoutCommit}/${encodedURIFilename}`;
+  logDebug('Fetching vyper', {
     version,
     platform,
-    solcPath,
-    githubSolcURI,
+    vyperPath,
+    githubVyperURI,
   });
-  let res = await fetchWithBackoff(githubSolcURI);
-  let status = res.status;
-  let buffer;
-
-  // handle case in which the response is a link to another version
-  if (status === StatusCodes.OK) {
-    buffer = await res.arrayBuffer();
-    const responseText = Buffer.from(buffer).toString();
-    if (
-      /^([\w-]+)-v(\d+\.\d+\.\d+)\+commit\.([a-fA-F0-9]+).*$/.test(responseText)
-    ) {
-      const githubSolcURI = `${HOST_SOLC_REPO}${platform}/${responseText}`;
-      res = await fetchWithBackoff(githubSolcURI);
-      status = res.status;
-      buffer = await res.arrayBuffer();
-    }
-  }
+  const res = await fetchWithBackoff(githubVyperURI);
+  const status = res.status;
+  const buffer = await res.arrayBuffer();
 
   if (status === StatusCodes.OK && buffer) {
-    logDebug('Fetched solc', { version, platform, solcPath });
-    fs.mkdirSync(path.dirname(solcPath), { recursive: true });
+    logDebug('Fetched vyper', { version, platform, vyperPath });
+    fs.mkdirSync(path.dirname(vyperPath), { recursive: true });
 
     try {
-      fs.unlinkSync(solcPath);
+      fs.unlinkSync(vyperPath);
     } catch (_e) {
       undefined;
     }
-    fs.writeFileSync(solcPath, new DataView(buffer), { mode: 0o755 });
+    fs.writeFileSync(vyperPath, new DataView(buffer), { mode: 0o755 });
 
     return true;
   } else {
-    logWarn('Failed fetching solc', { version, platform, solcPath });
+    logWarn('Failed fetching vyper', { version, platform, vyperPath });
   }
 
   return false;
 }
 
-/**
- * Fetches the requested version of the Solidity compiler (soljson).
- * First attempts to search locally; if that fails, falls back to downloading it.
- *
- * @param version the solc version to retrieve: the expected format is
- *
- * "[v]<major>.<minor>.<patch>+commit.<hash>"
- *
- * e.g.: "0.6.6+commit.6c089d02"
- *
- * defaults to "latest"
- *
- * @param log a logger to track the course of events
- *
- * @returns the requested solc instance
- */
-export async function getSolcJs(version = 'latest'): Promise<any> {
-  // /^\d+\.\d+\.\d+\+commit\.[a-f0-9]{8}$/
-  version = version.trim();
-  if (version !== 'latest' && !version.startsWith('v')) {
-    version = 'v' + version;
-  }
-
-  const soljsonRepo = path.join('/tmp', 'soljson-repo');
-  const fileName = `soljson-${version}.js`;
-  const soljsonPath = path.resolve(soljsonRepo, fileName);
-
-  if (!fs.existsSync(soljsonPath)) {
-    if (!(await fetchAndSaveSolc('bin', soljsonPath, version, fileName))) {
-      return false;
-    }
-  }
-
-  const solcjsImports = await import(soljsonPath);
-  return solc.setupMethods(solcjsImports);
-}
-
-function asyncExecSolc(
+function asyncExecVyper(
   inputStringified: string,
-  solcPath: string,
+  vyperPath: string,
 ): Promise<string> {
   // check if input is valid JSON. The input is untrusted and potentially cause arbitrary execution.
   JSON.parse(inputStringified);
 
   return new Promise((resolve, reject) => {
     const child = exec(
-      `${solcPath} --standard-json`,
+      `${vyperPath} --standard-json`,
       {
         maxBuffer: 1000 * 1000 * 20,
       },

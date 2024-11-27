@@ -71,9 +71,12 @@ class VyperCompiler implements IVyperCompiler {
   async compile(
     version: string,
     solcJsonInput: VyperJsonInput,
-    forceEmscripten: boolean = false,
   ): Promise<CompilerOutput> {
-    return await useVyperCompiler(version, solcJsonInput, forceEmscripten);
+    return await useVyperCompiler(
+      path.join('/tmp', 'vyper-repo'),
+      version,
+      solcJsonInput,
+    );
   }
 }
 

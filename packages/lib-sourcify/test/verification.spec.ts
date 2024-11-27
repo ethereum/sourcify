@@ -585,7 +585,7 @@ describe('lib-sourcify tests', () => {
     );
     const checkedContract = new VyperCheckedContract(
       vyperCompiler,
-      '0.8.4+commit.c7e474f2',
+      '0.3.10+commit.91361694',
       'test.vy',
       'test',
       {
