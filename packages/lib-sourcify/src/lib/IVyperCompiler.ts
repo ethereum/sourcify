@@ -1,13 +1,13 @@
 import { CompilerOutput } from './types';
 
 export interface VyperSettings {
-  /** EVM version to compile for. Can be london, paris, shanghai or cancun (default) */
+  /** EVM version to compile for */
   evmVersion: 'london' | 'paris' | 'shanghai' | 'cancun' | 'istanbul';
-  /** Optimization mode. Defaults to "gas". */
+  /** Optimization mode */
   optimize?: 'gas' | 'codesize' | 'none' | boolean;
-  /** Whether the bytecode should include Vyper's signature. Defaults to true */
+  /** Whether the bytecode should include Vyper's signature */
   bytecodeMetadata?: boolean;
-  /** Whether to use the experimental venom pipeline. Defaults to false */
+  /** Whether to use the experimental venom pipeline */
   experimentalCodegen?: boolean;
   /** The search paths to use for resolving imports */
   search_paths?: string[];
