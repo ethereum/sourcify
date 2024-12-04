@@ -3,10 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { exec, spawnSync } from 'child_process';
 import { StatusCodes } from 'http-status-codes';
-import {
-  CompilerOutput,
-  VyperJsonInput,
-} from '@ethereum-sourcify/lib-sourcify';
+import { VyperOutput, VyperJsonInput } from '@ethereum-sourcify/lib-sourcify';
 import { fetchWithBackoff } from './common';
 import { logDebug, logError, logWarn } from '../../src/lib/logger';
 
@@ -38,7 +35,7 @@ export async function useVyperCompiler(
   vyperRepoPath: string,
   version: string,
   vyperJsonInput: VyperJsonInput,
-): Promise<CompilerOutput> {
+): Promise<VyperOutput> {
   const vyperPlatform = findVyperPlatform();
   let vyperPath;
   if (vyperPlatform) {

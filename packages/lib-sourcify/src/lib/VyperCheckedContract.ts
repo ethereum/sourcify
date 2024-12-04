@@ -1,13 +1,9 @@
-import {
-  CompilerOutput,
-  MetadataOutput,
-  RecompilationResult,
-  StringMap,
-} from './types';
+import { MetadataOutput, RecompilationResult, StringMap } from './types';
 import { logInfo, logSilly, logWarn } from './logger';
 import {
   IVyperCompiler,
   VyperJsonInput,
+  VyperOutput,
   VyperSettings,
 } from './IVyperCompiler';
 import { AbstractCheckedContract } from './AbstractCheckedContract';
@@ -21,8 +17,9 @@ export class VyperCheckedContract extends AbstractCheckedContract {
   vyperCompiler: IVyperCompiler;
   vyperSettings: VyperSettings;
   vyperJsonInput!: VyperJsonInput;
+  compilerOutput?: VyperOutput;
 
-  generateMetadata(output?: CompilerOutput) {
+  generateMetadata(output?: VyperOutput) {
     let outputMetadata: MetadataOutput;
 
     if (output?.contracts?.[this.compiledPath]?.[this.name]) {
@@ -115,9 +112,7 @@ export class VyperCheckedContract extends AbstractCheckedContract {
     this.initVyperJsonInput();
   }
 
-  public async recompile(
-    forceEmscripten = false,
-  ): Promise<RecompilationResult> {
+  public async recompile(): Promise<RecompilationResult> {
     const version = this.metadata.compiler.version;
 
     const compilationStartTime = Date.now();
@@ -125,13 +120,11 @@ export class VyperCheckedContract extends AbstractCheckedContract {
       version,
       contract: this.name,
       path: this.compiledPath,
-      forceEmscripten,
     });
     logSilly('Compilation input', { VyperJsonInput: this.vyperJsonInput });
     this.compilerOutput = await this.vyperCompiler.compile(
       version,
       this.vyperJsonInput,
-      forceEmscripten,
     );
     if (this.compilerOutput === undefined) {
       const error = new Error('Compiler error');
@@ -148,7 +141,6 @@ export class VyperCheckedContract extends AbstractCheckedContract {
       version,
       contract: this.name,
       path: this.compiledPath,
-      forceEmscripten,
       compilationDuration: `${compilationDuration}ms`,
     });
 
@@ -184,11 +176,9 @@ export class VyperCheckedContract extends AbstractCheckedContract {
       runtimeBytecode: this.runtimeBytecode,
       metadata: this.metadataRaw,
       // Sometimes the compiler returns empty object (not falsey). Convert it to undefined (falsey).
-      immutableReferences:
-        contract.evm?.deployedBytecode?.immutableReferences || {},
-      creationLinkReferences: contract?.evm?.bytecode?.linkReferences || {},
-      runtimeLinkReferences:
-        contract?.evm?.deployedBytecode?.linkReferences || {},
+      immutableReferences: {},
+      creationLinkReferences: {},
+      runtimeLinkReferences: {},
     };
   }
 }

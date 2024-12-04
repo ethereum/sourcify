@@ -5,7 +5,7 @@ import { exec, spawnSync } from "child_process";
 import { StatusCodes } from "http-status-codes";
 import semver from "semver";
 import { Worker, WorkerOptions } from "worker_threads";
-import { CompilerOutput, JsonInput } from "@ethereum-sourcify/lib-sourcify";
+import { SolidityOutput, JsonInput } from "@ethereum-sourcify/lib-sourcify";
 import logger from "../../../../common/logger";
 import { fetchWithBackoff } from "./common";
 
@@ -43,7 +43,7 @@ export async function useCompiler(
   version: string,
   solcJsonInput: JsonInput,
   forceEmscripten = false,
-): Promise<CompilerOutput> {
+): Promise<SolidityOutput> {
   // For nightly builds, Solidity version is saved as 0.8.17-ci.2022.8.9+commit.6b60524c instead of 0.8.17-nightly.2022.8.9+commit.6b60524c.
   // Not possible to retrieve compilers with "-ci.".
   if (version.includes("-ci.")) version = version.replace("-ci.", "-nightly.");
@@ -98,6 +98,7 @@ export async function useCompiler(
 
   const endCompilation = Date.now();
   logger.info("Local compiler - Compilation done", {
+    compiler: "solidity",
     timeInMs: endCompilation - startCompilation,
   });
 

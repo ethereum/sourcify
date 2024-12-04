@@ -1065,18 +1065,9 @@ describe("/", function () {
     );
     const vyperContent = fs.readFileSync(vyperSourcePath);
 
-    const vyperArtifactPath = path.join(
-      __dirname,
-      "..",
-      "..",
-      "sources",
-      "vyper",
-      "contract",
-      "artifact.json",
-    );
-    const vyperArtifact = JSON.parse(
-      fs.readFileSync(vyperArtifactPath).toString(),
-    );
+    const vyperArtifact = (
+      await import("../../sources/vyper/contract/artifact.json")
+    ).default;
 
     const address = await deployFromAbiAndBytecode(
       chainFixture.localSigner,

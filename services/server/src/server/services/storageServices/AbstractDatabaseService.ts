@@ -3,6 +3,7 @@ import {
   AbstractCheckedContract,
   SolidityCheckedContract,
   VyperCheckedContract,
+  SolidityOutputContracts,
 } from "@ethereum-sourcify/lib-sourcify";
 import { keccak256 } from "ethers";
 import * as DatabaseUtil from "../utils/database-util";
@@ -184,24 +185,32 @@ export default abstract class AbstractDatabaseService {
       }
     }
 
+    // For some property we cast compilerOutput as SolidityOutputContracts because VyperOutput does not have them
     const compilationArtifacts = {
       abi: compilerOutput?.abi || null,
       userdoc: compilerOutput?.userdoc || null,
       devdoc: compilerOutput?.devdoc || null,
-      storageLayout: compilerOutput?.storageLayout || null,
+      storageLayout:
+        (compilerOutput as SolidityOutputContracts)?.storageLayout || null,
       sources,
     };
     const creationCodeArtifacts = {
-      sourceMap: compilerOutput?.evm.bytecode.sourceMap || null,
-      linkReferences: compilerOutput?.evm.bytecode.linkReferences || null,
+      sourceMap:
+        (compilerOutput as SolidityOutputContracts)?.evm?.bytecode?.sourceMap ||
+        null,
+      linkReferences:
+        (compilerOutput as SolidityOutputContracts)?.evm?.bytecode
+          ?.linkReferences || null,
       cborAuxdata: recompiledContract?.creationBytecodeCborAuxdata || null,
     };
     const runtimeCodeArtifacts = {
       sourceMap: compilerOutput?.evm.deployedBytecode?.sourceMap || null,
       linkReferences:
-        compilerOutput?.evm.deployedBytecode?.linkReferences || null,
+        (compilerOutput as SolidityOutputContracts)?.evm?.deployedBytecode
+          ?.linkReferences || null,
       immutableReferences:
-        compilerOutput?.evm.deployedBytecode?.immutableReferences || null,
+        (compilerOutput as SolidityOutputContracts)?.evm?.deployedBytecode
+          ?.immutableReferences || null,
       cborAuxdata: recompiledContract?.runtimeBytecodeCborAuxdata || null,
     };
 

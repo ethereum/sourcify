@@ -59,8 +59,9 @@ export async function verifyDeployed(
   // See https://github.com/ethereum/sourcify/issues/1159
   // The nightlies and pre-0.4.10 platform binaries are not available
   if (
-    lt(checkedContract.metadata.compiler.version, '0.4.10') ||
-    checkedContract.metadata.compiler.version.includes('nightly')
+    checkedContract instanceof SolidityCheckedContract &&
+    (lt(checkedContract.metadata.compiler.version, '0.4.10') ||
+      checkedContract.metadata.compiler.version.includes('nightly'))
   ) {
     useEmscripten = true;
   }
@@ -228,6 +229,7 @@ export async function verifyDeployed(
   // https://github.com/ethereum/solidity/issues/14494
   try {
     if (
+      checkedContract instanceof SolidityCheckedContract &&
       splitAuxdata(match.onchainRuntimeBytecode || '')[1] ===
         splitAuxdata(checkedContract.runtimeBytecode || '')[1] &&
       match.runtimeMatch === null &&

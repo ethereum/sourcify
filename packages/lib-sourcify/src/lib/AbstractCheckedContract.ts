@@ -1,8 +1,9 @@
+import { VyperOutput } from './IVyperCompiler';
 import {
   CompiledContractCborAuxdata,
-  CompilerOutput,
   Metadata,
   RecompilationResult,
+  SolidityOutput,
   StringMap,
 } from './types';
 
@@ -15,7 +16,7 @@ export abstract class AbstractCheckedContract {
   creationBytecode?: string;
   runtimeBytecode?: string;
   metadataRaw!: string;
-  compilerOutput?: CompilerOutput;
+  abstract compilerOutput?: SolidityOutput | VyperOutput;
 
   /** Marks the positions of the CborAuxdata parts in the bytecode */
   creationBytecodeCborAuxdata?: CompiledContractCborAuxdata;

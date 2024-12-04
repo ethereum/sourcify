@@ -16,10 +16,10 @@ The `lib-sourcify` library does not come with the Solidity compiler as a depende
 // The external Solidity Compiler
 import solidityCompiler from "./compiler/solidityCompiler";
 
-// Include also CompilerOutput and JsonInput as dependncies of ISolidityCompiler
+// Include also SolidityOutput and JsonInput as dependncies of ISolidityCompiler
 import {
   ISolidityCompiler
-  CompilerOutput,
+  SolidityOutput,
   JsonInput,
 } from "@ethereum-sourcify/lib-sourcify";
 
@@ -29,7 +29,7 @@ class Solc implements ISolidityCompiler {
     version: string,
     solcJsonInput: JsonInput,
     forceEmscripten: boolean = false
-  ): Promise<CompilerOutput> {
+  ): Promise<SolidityOutput> {
     return await solidityCompiler.compile(version, solcJsonInput, forceEmscripten);
   }
 }

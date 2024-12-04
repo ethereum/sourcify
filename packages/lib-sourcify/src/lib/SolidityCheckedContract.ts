@@ -12,6 +12,7 @@ import {
   MissingSources,
   PathContent,
   RecompilationResult,
+  SolidityOutput,
   StringMap,
 } from './types';
 import semver from 'semver';
@@ -44,6 +45,7 @@ export class SolidityCheckedContract extends AbstractCheckedContract {
 
   /** Object containing input for solc when used with the --standard-json flag. */
   solcJsonInput: any;
+  compilerOutput?: SolidityOutput;
 
   /** Checks whether this contract is valid or not.
    *  This is a static method due to persistence issues.

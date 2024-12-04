@@ -1,19 +1,27 @@
-import { Response } from "express";
-import { LegacyVerifyRequest, extractFiles } from "../../verification.common";
+import { Response, Request } from "express";
+import { extractFiles } from "../../verification.common";
 import {
   VyperCheckedContract,
   IVyperCompiler,
   StringMap,
 } from "@ethereum-sourcify/lib-sourcify";
-import { BadRequestError, NotFoundError } from "../../../../../common/errors";
-import { StatusCodes } from "http-status-codes";
-import { getMatchStatus, getResponseMatchFromMatch } from "../../../../common";
-import logger from "../../../../../common/logger";
+import { NotFoundError } from "../../../../../common/errors";
+import { getResponseMatchFromMatch } from "../../../../common";
 import { Services } from "../../../../services/services";
 import { ChainRepository } from "../../../../../sourcify-chain-repository";
 
+export type VerifyVyperRequest = Request & {
+  body: {
+    files: { [key: string]: string };
+    compilerVersion: string;
+    compilerSettings: string;
+    contractPath: string;
+    contractName: string;
+  };
+};
+
 export async function verifyVyper(
-  req: LegacyVerifyRequest,
+  req: VerifyVyperRequest,
   res: Response,
 ): Promise<any> {
   const services = req.app.get("services") as Services;

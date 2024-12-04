@@ -1,5 +1,3 @@
-import { CompilerOutput } from './types';
-
 export interface VyperSettings {
   /** EVM version to compile for */
   evmVersion: 'london' | 'paris' | 'shanghai' | 'cancun' | 'istanbul';
@@ -38,10 +36,61 @@ export interface VyperJsonInput {
   settings?: VyperSettings;
 }
 
+export interface VyperError {
+  sourceLocation?: {
+    file: string;
+    lineno: number;
+    col_offset: number;
+  };
+  type: string;
+  component: string;
+  severity: 'error' | 'warning';
+  message: string;
+  formattedMessage?: string;
+}
+
+interface VyperOutputSource {
+  id: number;
+  ast: any;
+}
+
+interface VyperOutputContracts {
+  [sourcePath: string]: {
+    [contractName: string]: {
+      abi: any[];
+      devdoc: any;
+      ir: string;
+      userdoc: any;
+      evm: {
+        bytecode: {
+          object: string;
+          opcodes: string;
+        };
+        deployedBytecode: {
+          object: string;
+          opcodes: string;
+          sourceMap: string;
+        };
+        methodIdentifiers: {
+          [methodName: string]: string;
+        };
+      };
+    };
+  };
+}
+
+export interface VyperOutput {
+  compiler: string;
+  errors?: VyperError[];
+  sources: {
+    [sourcePath: string]: VyperOutputSource;
+  };
+  contracts: VyperOutputContracts;
+}
+
 export interface IVyperCompiler {
   compile(
     version: string,
-    solcJsonInput: VyperJsonInput,
-    forceEmscripten?: boolean,
-  ): Promise<CompilerOutput>;
+    vyperJsonInput: VyperJsonInput,
+  ): Promise<VyperOutput>;
 }

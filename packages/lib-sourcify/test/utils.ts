@@ -10,7 +10,7 @@
 import path from 'path';
 import fs from 'fs';
 import {
-  CompilerOutput,
+  SolidityOutput,
   JsonInput,
   Match,
   SourcifyChain,
@@ -22,7 +22,11 @@ import { ContractFactory, Signer } from 'ethers';
 import { ISolidityCompiler } from '../src/lib/ISolidityCompiler';
 import { useCompiler } from './compiler/solidityCompiler';
 import { useVyperCompiler } from './compiler/vyperCompiler';
-import { IVyperCompiler, VyperJsonInput } from '../src/lib/IVyperCompiler';
+import {
+  IVyperCompiler,
+  VyperJsonInput,
+  VyperOutput,
+} from '../src/lib/IVyperCompiler';
 /**
  *  Function to deploy contracts from provider unlocked accounts
  *  contractFolderPath must contain an artifact.json file with "abi" and "bytecode" fields
@@ -60,7 +64,7 @@ class Solc implements ISolidityCompiler {
     version: string,
     solcJsonInput: JsonInput,
     forceEmscripten: boolean = false,
-  ): Promise<CompilerOutput> {
+  ): Promise<SolidityOutput> {
     return await useCompiler(version, solcJsonInput, forceEmscripten);
   }
 }
@@ -71,7 +75,7 @@ class VyperCompiler implements IVyperCompiler {
   async compile(
     version: string,
     solcJsonInput: VyperJsonInput,
-  ): Promise<CompilerOutput> {
+  ): Promise<VyperOutput> {
     return await useVyperCompiler(
       path.join('/tmp', 'vyper-repo'),
       version,

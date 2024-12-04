@@ -5,10 +5,7 @@ import { exec, spawnSync } from "child_process";
 import { StatusCodes } from "http-status-codes";
 
 import logger from "../../../../common/logger";
-import {
-  CompilerOutput,
-  VyperJsonInput,
-} from "@ethereum-sourcify/lib-sourcify";
+import { VyperJsonInput, VyperOutput } from "@ethereum-sourcify/lib-sourcify";
 import { fetchWithBackoff } from "./common";
 
 const HOST_VYPER_REPO = "https://github.com/vyperlang/vyper/releases/download/";
@@ -39,7 +36,7 @@ export async function useVyperCompiler(
   vyperRepoPath: string,
   version: string,
   vyperJsonInput: VyperJsonInput,
-): Promise<CompilerOutput> {
+): Promise<VyperOutput> {
   const vyperPlatform = findVyperPlatform();
   let vyperPath;
   if (vyperPlatform) {
@@ -52,6 +49,7 @@ export async function useVyperCompiler(
 
   let compiled: string | undefined;
   const inputStringified = JSON.stringify(vyperJsonInput);
+  const startCompilation = Date.now();
   try {
     compiled = await asyncExecVyper(inputStringified, vyperPath);
   } catch (error: any) {
@@ -61,6 +59,11 @@ export async function useVyperCompiler(
     logger.warn(error.message);
     throw error;
   }
+  const endCompilation = Date.now();
+  logger.info("Local compiler - Compilation done", {
+    compiler: "vyper",
+    timeInMs: endCompilation - startCompilation,
+  });
 
   if (!compiled) {
     throw new Error("Compilation failed. No output from the compiler.");
