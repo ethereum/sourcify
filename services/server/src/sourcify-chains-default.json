@@ -2228,5 +2228,15 @@
   "7771": {
     "sourcifyName": "Bitrock Testnet",
     "supported": true
+  },
+  "1516": {
+    "sourcifyName": "Story Odyssey",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutScrape": {
+        "url": "https://explorer.odyssey.storyrpc.io/"
+      }
+    },
+    "rpc": ["https://rpc.odyssey.storyrpc.io"]
   }
 }
