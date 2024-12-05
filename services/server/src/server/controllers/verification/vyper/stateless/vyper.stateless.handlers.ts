@@ -12,7 +12,7 @@ import { ChainRepository } from "../../../../../sourcify-chain-repository";
 
 export type VerifyVyperRequest = Request & {
   body: {
-    files: { [key: string]: string };
+    files: Record<string, string>;
     compilerVersion: string;
     compilerSettings: string;
     contractPath: string;

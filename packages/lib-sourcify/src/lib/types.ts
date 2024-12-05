@@ -546,7 +546,7 @@ export interface StorageLayout {
     };
   };
 }
-export interface SolidityOutputContracts {
+export interface SolidityOutputContract {
   abi: Abi;
   metadata: string;
   userdoc?: any;
@@ -588,7 +588,7 @@ export interface SolidityOutput {
   sources?: SolidityOutputSources;
   contracts: {
     [globalName: string]: {
-      [contractName: string]: SolidityOutputContracts;
+      [contractName: string]: SolidityOutputContract;
     };
   };
 }

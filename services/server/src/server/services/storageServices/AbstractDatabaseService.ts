@@ -3,7 +3,7 @@ import {
   AbstractCheckedContract,
   SolidityCheckedContract,
   VyperCheckedContract,
-  SolidityOutputContracts,
+  SolidityOutputContract,
 } from "@ethereum-sourcify/lib-sourcify";
 import { keccak256 } from "ethers";
 import * as DatabaseUtil from "../utils/database-util";
@@ -185,31 +185,31 @@ export default abstract class AbstractDatabaseService {
       }
     }
 
-    // For some property we cast compilerOutput as SolidityOutputContracts because VyperOutput does not have them
+    // For some property we cast compilerOutput as SolidityOutputContract because VyperOutput does not have them
     const compilationArtifacts = {
       abi: compilerOutput?.abi || null,
       userdoc: compilerOutput?.userdoc || null,
       devdoc: compilerOutput?.devdoc || null,
       storageLayout:
-        (compilerOutput as SolidityOutputContracts)?.storageLayout || null,
+        (compilerOutput as SolidityOutputContract)?.storageLayout || null,
       sources,
     };
     const creationCodeArtifacts = {
       sourceMap:
-        (compilerOutput as SolidityOutputContracts)?.evm?.bytecode?.sourceMap ||
+        (compilerOutput as SolidityOutputContract)?.evm?.bytecode?.sourceMap ||
         null,
       linkReferences:
-        (compilerOutput as SolidityOutputContracts)?.evm?.bytecode
+        (compilerOutput as SolidityOutputContract)?.evm?.bytecode
           ?.linkReferences || null,
       cborAuxdata: recompiledContract?.creationBytecodeCborAuxdata || null,
     };
     const runtimeCodeArtifacts = {
       sourceMap: compilerOutput?.evm.deployedBytecode?.sourceMap || null,
       linkReferences:
-        (compilerOutput as SolidityOutputContracts)?.evm?.deployedBytecode
+        (compilerOutput as SolidityOutputContract)?.evm?.deployedBytecode
           ?.linkReferences || null,
       immutableReferences:
-        (compilerOutput as SolidityOutputContracts)?.evm?.deployedBytecode
+        (compilerOutput as SolidityOutputContract)?.evm?.deployedBytecode
           ?.immutableReferences || null,
       cborAuxdata: recompiledContract?.runtimeBytecodeCborAuxdata || null,
     };
