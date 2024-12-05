@@ -4,7 +4,7 @@ import { Match, Metadata } from '../src/lib/types';
 import {
   /* callContractMethodWithTx, */
   checkAndVerifyDeployed,
-  checkFilesFromContractFolder,
+  checkFilesWithMetadataFromContractFolder,
   deployCheckAndVerify,
   deployFromAbiAndBytecode,
   expectMatch,
@@ -198,7 +198,7 @@ describe('lib-sourcify tests', () => {
     it('should verify a create2 contract', async () => {
       const contractFolderPath = path.join(__dirname, 'sources', 'Create2');
       const checkedContracts =
-        await checkFilesFromContractFolder(contractFolderPath);
+        await checkFilesWithMetadataFromContractFolder(contractFolderPath);
       const saltNum = 12345;
       const saltHex = '0x' + saltNum.toString(16);
       const match = await verifyCreate2(
@@ -218,7 +218,7 @@ describe('lib-sourcify tests', () => {
     it('should verify fail to a create2 contract with wrong address', async () => {
       const contractFolderPath = path.join(__dirname, 'sources', 'Create2');
       const checkedContracts =
-        await checkFilesFromContractFolder(contractFolderPath);
+        await checkFilesWithMetadataFromContractFolder(contractFolderPath);
       const saltNum = 12345;
       const saltHex = '0x' + saltNum.toString(16);
       try {
@@ -370,7 +370,7 @@ describe('lib-sourcify tests', () => {
       );
 
       const checkedContracts =
-        await checkFilesFromContractFolder(contractFolderPath);
+        await checkFilesWithMetadataFromContractFolder(contractFolderPath);
 
       // Get the unsorted metadata
       const metadataPath = path.join(
@@ -501,7 +501,7 @@ describe('lib-sourcify tests', () => {
       ],
     );
     const checkedContracts =
-      await checkFilesFromContractFolder(contractFolderPath);
+      await checkFilesWithMetadataFromContractFolder(contractFolderPath);
 
     const match = await verifyDeployed(
       checkedContracts[0],
@@ -718,7 +718,7 @@ describe('lib-sourcify tests', () => {
       );
       const childAddress = txReceipt.events.ChildCreated.returnValues[0];
 
-      const checkedContracts = await checkFilesFromContractFolder(
+      const checkedContracts = await checkFilesWithMetadataFromContractFolder(
         childFolderPath
       );
       const recompiled = await checkedContracts[0].recompile();
@@ -768,7 +768,7 @@ describe('lib-sourcify tests', () => {
       );
 
       const checkedContracts =
-        await checkFilesFromContractFolder(contractFolderPath);
+        await checkFilesWithMetadataFromContractFolder(contractFolderPath);
       const recompiled = await checkedContracts[0].recompile();
       const match: Match = {
         address: contractAddress,
@@ -829,7 +829,7 @@ describe('lib-sourcify tests', () => {
         ['12345'],
       );
 
-      const checkedContracts = await checkFilesFromContractFolder(
+      const checkedContracts = await checkFilesWithMetadataFromContractFolder(
         maliciousContractFolderPath,
       );
       const recompiled = await checkedContracts[0].recompile();
@@ -875,7 +875,7 @@ describe('lib-sourcify tests', () => {
         'sources',
         'AbstractCreationBytecodeAttack',
       );
-      const checkedContracts = await checkFilesFromContractFolder(
+      const checkedContracts = await checkFilesWithMetadataFromContractFolder(
         maliciousContractFolderPath,
       );
       const recompiled = await checkedContracts[0].recompile();
@@ -916,7 +916,7 @@ describe('lib-sourcify tests', () => {
         await deployFromAbiAndBytecode(signer, contractFolderPath, ['12345']);
 
       const checkedContracts =
-        await checkFilesFromContractFolder(contractFolderPath);
+        await checkFilesWithMetadataFromContractFolder(contractFolderPath);
       const recompiled = await checkedContracts[0].recompile();
       const match = {
         address: contractAddress,
@@ -960,7 +960,7 @@ describe('lib-sourcify tests', () => {
         await deployFromAbiAndBytecode(signer, contractFolderPath, []);
 
       const checkedContracts =
-        await checkFilesFromContractFolder(contractFolderPath);
+        await checkFilesWithMetadataFromContractFolder(contractFolderPath);
       const recompiled = await checkedContracts[0].recompile();
       const match: Match = {
         address: contractAddress,

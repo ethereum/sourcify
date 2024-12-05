@@ -16,7 +16,7 @@ import {
   SourcifyChain,
   verifyDeployed,
 } from '../src';
-import { checkFiles } from '../src';
+import { checkFilesWithMetadata } from '../src';
 import { expect } from 'chai';
 import { ContractFactory, Signer } from 'ethers';
 import { ISolidityCompiler } from '../src/lib/ISolidityCompiler';
@@ -98,7 +98,7 @@ export const checkAndVerifyDeployed = async (
   creatorTxHash?: string,
 ) => {
   const checkedContracts =
-    await checkFilesFromContractFolder(contractFolderPath);
+    await checkFilesWithMetadataFromContractFolder(contractFolderPath);
 
   const match = await verifyDeployed(
     checkedContracts[0],
@@ -113,7 +113,7 @@ export const checkAndVerifyDeployed = async (
  * Creates a CheckedContract[] from the files under contractFolderPath.
  * The metadata must be at contractFolderPath/metadata.json and the sources must be under contractFolderPath/sources.
  */
-export const checkFilesFromContractFolder = async (
+export const checkFilesWithMetadataFromContractFolder = async (
   contractFolderPath: string,
 ) => {
   const metadataPath = path.join(contractFolderPath, 'metadata.json');
@@ -135,7 +135,7 @@ export const checkFilesFromContractFolder = async (
     }
   };
   traverseDirectory(path.join(contractFolderPath, 'sources'));
-  const checkedContracts = await checkFiles(solc, [
+  const checkedContracts = await checkFilesWithMetadata(solc, [
     metadataPathBuffer,
     ...sourcePathBuffers,
   ]);

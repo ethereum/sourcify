@@ -8,7 +8,7 @@ import {
   SolidityCheckedContract,
   ISolidityCompiler,
   Match,
-  checkFiles,
+  checkFilesWithMetadata,
   matchWithRuntimeBytecode,
   useAllSources,
 } from "@ethereum-sourcify/lib-sourcify";
@@ -36,7 +36,7 @@ export async function legacyVerifyEndpoint(
 
   let checkedContracts: SolidityCheckedContract[];
   try {
-    checkedContracts = await checkFiles(solc, inputFiles);
+    checkedContracts = await checkFilesWithMetadata(solc, inputFiles);
   } catch (error: any) {
     throw new BadRequestError(error.message);
   }
@@ -127,7 +127,7 @@ export async function verifyDeprecated(
 
   let checkedContracts: SolidityCheckedContract[];
   try {
-    checkedContracts = await checkFiles(solc, inputFiles);
+    checkedContracts = await checkFilesWithMetadata(solc, inputFiles);
   } catch (error: any) {
     throw new BadRequestError(error.message);
   }

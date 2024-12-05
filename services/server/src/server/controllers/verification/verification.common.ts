@@ -8,7 +8,7 @@ import {
   MissingSources,
   PathContent,
   StringMap,
-  checkFiles,
+  checkFilesWithMetadata,
   isEmpty,
   useAllSources,
 } from "@ethereum-sourcify/lib-sourcify";
@@ -233,7 +233,7 @@ export const checkContractsInSession = async (
 
   try {
     const unused: string[] = [];
-    const contracts = await checkFiles(solc, pathBuffers, unused);
+    const contracts = await checkFilesWithMetadata(solc, pathBuffers, unused);
 
     const newPendingContracts: ContractWrapperMap = {};
     for (const contract of contracts) {

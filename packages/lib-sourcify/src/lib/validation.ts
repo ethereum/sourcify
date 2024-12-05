@@ -54,7 +54,7 @@ export function checkPaths(
     }
   });
 
-  return checkFiles(solidityCompiler, files);
+  return checkFilesWithMetadata(solidityCompiler, files);
 }
 
 // Pass all input source files to the CheckedContract, not just those stated in metadata.
@@ -81,7 +81,7 @@ export async function useAllSources(
   return contractWithAllSources;
 }
 
-export async function checkFiles(
+export async function checkFilesWithMetadata(
   solidityCompiler: ISolidityCompiler,
   files: PathBuffer[],
   unused?: string[],
