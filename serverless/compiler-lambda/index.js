@@ -72,7 +72,11 @@ function findSolcPlatform() {
  * @returns stringified solc output
  */
 
-async function useCompiler(version, solcJsonInput, forceEmscripten = false) {
+async function useSolidityCompiler(
+  version,
+  solcJsonInput,
+  forceEmscripten = false,
+) {
   // For nightly builds, Solidity version is saved as 0.8.17-ci.2022.8.9+commit.6b60524c instead of 0.8.17-nightly.2022.8.9+commit.6b60524c.
   // Not possible to retrieve compilers with "-ci.".
   if (version.includes("-ci.")) version = version.replace("-ci.", "-nightly.");
@@ -143,7 +147,7 @@ async function getAllMetadataAndSourcesFromSolcJson(solcJson, compilerVersion) {
     };
   }
   solcJson.settings.outputSelection = outputSelection;
-  const compiled = await useCompiler(compilerVersion, solcJson);
+  const compiled = await useSolidityCompiler(compilerVersion, solcJson);
   const metadataAndSources = [];
   if (!compiled.contracts)
     throw new Error("No contracts found in the compiled json output");
@@ -331,7 +335,7 @@ exports.handler = awslambda.streamifyResponse(
   async (event, responseStream, _context) => {
     let output;
     try {
-      output = await useCompiler(
+      output = await useSolidityCompiler(
         event.version,
         event.solcJsonInput,
         event.forceEmscripten,

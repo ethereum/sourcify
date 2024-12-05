@@ -7,7 +7,7 @@ import semver from "semver";
 import { Worker, WorkerOptions } from "worker_threads";
 import { SolidityOutput, JsonInput } from "@ethereum-sourcify/lib-sourcify";
 import logger from "../../../../common/logger";
-import { fetchWithBackoff } from "./common";
+import { asyncExec, fetchWithBackoff } from "./common";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const solc = require("solc");
@@ -37,7 +37,7 @@ export function findSolcPlatform(): string | false {
  * @returns stringified solc output
  */
 
-export async function useCompiler(
+export async function useSolidityCompiler(
   solcRepoPath: string,
   solJsonRepoPath: string,
   version: string,
@@ -60,7 +60,11 @@ export async function useCompiler(
     logger.info("Compiling with solc binary", { version, solcPath });
     startCompilation = Date.now();
     try {
-      compiled = await asyncExecSolc(inputStringified, solcPath);
+      compiled = await asyncExec(
+        `${solcPath} --standard-json`,
+        inputStringified,
+        250 * 1024 * 1024,
+      );
     } catch (error: any) {
       if (error?.code === "ENOBUFS") {
         throw new Error("Compilation output size too large");
@@ -252,40 +256,6 @@ export async function getSolcJs(
 
   const solcjsImports = await import(solJsonPath);
   return solc.setupMethods(solcjsImports);
-}
-
-function asyncExecSolc(
-  inputStringified: string,
-  solcPath: string,
-): Promise<string> {
-  // check if input is valid JSON. The input is untrusted and potentially cause arbitrary execution.
-  JSON.parse(inputStringified);
-
-  return new Promise((resolve, reject) => {
-    const child = exec(
-      `${solcPath} --standard-json`,
-      {
-        maxBuffer: 250 * 1024 * 1024,
-      },
-      (error, stdout, stderr) => {
-        if (error) {
-          reject(error);
-        } else if (stderr) {
-          reject(
-            new Error(`Compiler process returned with errors:\n ${stderr}`),
-          );
-        } else {
-          resolve(stdout);
-        }
-      },
-    );
-    if (!child.stdin) {
-      throw new Error("No stdin on child process");
-    }
-    // Write input to child process's stdin
-    child.stdin.write(inputStringified);
-    child.stdin.end();
-  });
 }
 
 // https://stackoverflow.com/questions/71795469/ts-node-using-worker-thread-cause-cannot-use-import-statement-outside-a-module

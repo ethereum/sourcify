@@ -37,7 +37,7 @@ export function findSolcPlatform(): string | false {
  * @returns stringified solc output
  */
 
-export async function useCompiler(
+export async function useSolidityCompiler(
   version: string,
   solcJsonInput: JsonInput,
   forceEmscripten = false,

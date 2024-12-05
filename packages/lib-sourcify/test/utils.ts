@@ -20,7 +20,7 @@ import { checkFilesWithMetadata } from '../src';
 import { expect } from 'chai';
 import { ContractFactory, Signer } from 'ethers';
 import { ISolidityCompiler } from '../src/lib/ISolidityCompiler';
-import { useCompiler } from './compiler/solidityCompiler';
+import { useSolidityCompiler } from './compiler/solidityCompiler';
 import { useVyperCompiler } from './compiler/vyperCompiler';
 import {
   IVyperCompiler,
@@ -65,7 +65,7 @@ class Solc implements ISolidityCompiler {
     solcJsonInput: JsonInput,
     forceEmscripten: boolean = false,
   ): Promise<SolidityOutput> {
-    return await useCompiler(version, solcJsonInput, forceEmscripten);
+    return await useSolidityCompiler(version, solcJsonInput, forceEmscripten);
   }
 }
 

@@ -5,7 +5,7 @@ import { expect } from 'chai';
 import {
   getSolcExecutable,
   getSolcJs,
-  useCompiler,
+  useSolidityCompiler,
 } from './compiler/solidityCompiler';
 import {
   SolidityCheckedContract,
@@ -41,21 +41,24 @@ describe('Verify Solidity Compiler', () => {
     });
     it('Should compile with solc', async () => {
       try {
-        const compiledJSON = await useCompiler('0.8.9+commit.e5eed63a', {
-          language: 'Solidity',
-          sources: {
-            'test.sol': {
-              content: 'contract C { function f() public  {} }',
+        const compiledJSON = await useSolidityCompiler(
+          '0.8.9+commit.e5eed63a',
+          {
+            language: 'Solidity',
+            sources: {
+              'test.sol': {
+                content: 'contract C { function f() public  {} }',
+              },
             },
-          },
-          settings: {
-            outputSelection: {
-              '*': {
-                '*': ['*'],
+            settings: {
+              outputSelection: {
+                '*': {
+                  '*': ['*'],
+                },
               },
             },
           },
-        });
+        );
         expect(compiledJSON?.contracts?.['test.sol']?.C).to.not.equals(
           undefined,
         );
@@ -66,7 +69,7 @@ describe('Verify Solidity Compiler', () => {
   }
   it('Should return a compiler error', async () => {
     try {
-      await useCompiler('0.8.9+commit.e5eed63a', {
+      await useSolidityCompiler('0.8.9+commit.e5eed63a', {
         language: 'Solidity',
         sources: {
           'test.sol': {
@@ -92,7 +95,7 @@ describe('Verify Solidity Compiler', () => {
       writable: false,
     });
     try {
-      const compiledJSON = await useCompiler('0.8.9+commit.e5eed63a', {
+      const compiledJSON = await useSolidityCompiler('0.8.9+commit.e5eed63a', {
         language: 'Solidity',
         sources: {
           'test.sol': {
@@ -121,10 +124,10 @@ describe('Verify Solidity Compiler', () => {
   // See https://github.com/ethereum/sourcify/issues/1099
   it(`Should should use a clean compiler context with pre 0.4.0 versions`, async () => {
     // Run compiler once to change compiler "context"
-    await useCompiler('0.1.5+commit.23865e3', earlyCompilerInput);
+    await useSolidityCompiler('0.1.5+commit.23865e3', earlyCompilerInput);
 
     // A second run needs to produce the same result
-    const compilerResult = await useCompiler(
+    const compilerResult = await useSolidityCompiler(
       '0.1.5+commit.23865e3',
       earlyCompilerInput,
     );

@@ -164,7 +164,7 @@ export const processRequestFromEtherscan = async (
     contractResultJson.CompilerVersion.charAt(0) === "v"
       ? contractResultJson.CompilerVersion.slice(1)
       : contractResultJson.CompilerVersion;
-  // TODO: this is not used by lib-sourcify's useCompiler
+  // TODO: this is not used by lib-sourcify's useSolidityCompiler
   const contractName = contractResultJson.ContractName;
 
   let solcJsonInput: JsonInput;

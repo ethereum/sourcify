@@ -1,12 +1,11 @@
 // TODO: Handle nodejs only dependencies
 import path from "path";
 import fs from "fs";
-import { exec, spawnSync } from "child_process";
+import { spawnSync } from "child_process";
 import { StatusCodes } from "http-status-codes";
-
 import logger from "../../../../common/logger";
 import { VyperJsonInput, VyperOutput } from "@ethereum-sourcify/lib-sourcify";
-import { fetchWithBackoff } from "./common";
+import { asyncExec, fetchWithBackoff } from "./common";
 
 const HOST_VYPER_REPO = "https://github.com/vyperlang/vyper/releases/download/";
 
@@ -51,7 +50,11 @@ export async function useVyperCompiler(
   const inputStringified = JSON.stringify(vyperJsonInput);
   const startCompilation = Date.now();
   try {
-    compiled = await asyncExecVyper(inputStringified, vyperPath);
+    compiled = await asyncExec(
+      `${vyperPath} --standard-json`,
+      inputStringified,
+      250 * 1024 * 1024,
+    );
   } catch (error: any) {
     if (error?.code === "ENOBUFS") {
       throw new Error("Compilation output size too large");
@@ -180,38 +183,4 @@ async function fetchAndSaveVyper(
   }
 
   return false;
-}
-
-function asyncExecVyper(
-  inputStringified: string,
-  vyperPath: string,
-): Promise<string> {
-  // check if input is valid JSON. The input is untrusted and potentially cause arbitrary execution.
-  JSON.parse(inputStringified);
-
-  return new Promise((resolve, reject) => {
-    const child = exec(
-      `${vyperPath} --standard-json`,
-      {
-        maxBuffer: 1000 * 1000 * 20,
-      },
-      (error, stdout, stderr) => {
-        if (error) {
-          reject(error);
-        } else if (stderr) {
-          reject(
-            new Error(`Compiler process returned with errors:\n ${stderr}`),
-          );
-        } else {
-          resolve(stdout);
-        }
-      },
-    );
-    if (!child.stdin) {
-      throw new Error("No stdin on child process");
-    }
-    // Write input to child process's stdin
-    child.stdin.write(inputStringified);
-    child.stdin.end();
-  });
 }

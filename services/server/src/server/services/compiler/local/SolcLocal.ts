@@ -3,7 +3,7 @@ import {
   ISolidityCompiler,
   JsonInput,
 } from "@ethereum-sourcify/lib-sourcify";
-import { useCompiler } from "./solidityCompiler";
+import { useSolidityCompiler } from "./solidityCompiler";
 
 export class SolcLocal implements ISolidityCompiler {
   constructor(
@@ -16,7 +16,7 @@ export class SolcLocal implements ISolidityCompiler {
     solcJsonInput: JsonInput,
     forceEmscripten: boolean = false,
   ): Promise<SolidityOutput> {
-    return await useCompiler(
+    return await useSolidityCompiler(
       this.solcRepoPath,
       this.solJsonRepoPath,
       version,
