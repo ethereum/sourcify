@@ -53,6 +53,10 @@ module.exports = {
     /^https?:\/\/(?:.+\.)?sourcify.eth.link$/, // sourcify.eth.link and subdomains
     /^https?:\/\/(?:.+\.)?ipfs.dweb.link$/, // dweb links used by Brave browser etc.
     process.env.NODE_ENV !== "production" && /^https?:\/\/localhost(?::\d+)?$/, // localhost on any port
+    process.env.NODE_ENV !== "production" &&
+      /^https?:\/\/192\.168(?:\.\d{1,3}){2}(?::\d+)?$/, // local IPs with 192.168.x.x
+    process.env.NODE_ENV !== "production" &&
+      /^https?:\/\/10(?:\.\d{1,3}){3}(?::\d+)?$/, // local IPs with 10.x.x.x
   ],
   // verify-deprecated endpoint used in services/database/scripts.mjs. Used when recreating the DB with deprecated chains that don't have an RPC.
   verifyDeprecated: false,
