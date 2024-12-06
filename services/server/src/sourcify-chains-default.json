@@ -989,22 +989,12 @@
     }
   },
   "1001": {
-    "sourcifyName": "Klaytn Testnet Baobab",
-    "supported": true,
-    "fetchContractCreationTxUsing": {
-      "blockscoutScrape": {
-        "url": "https://klaytn-testnet.blockscout.com/"
-      }
-    }
+    "sourcifyName": "Kaia Kairos Testnet",
+    "supported": true
   },
   "8217": {
-    "sourcifyName": "Klaytn Mainnet Cypress",
-    "supported": false,
-    "fetchContractCreationTxUsing": {
-      "blockscoutScrape": {
-        "url": "https://klaytn-mainnet.blockscout.com/"
-      }
-    }
+    "sourcifyName": "Kaia Mainnet",
+    "supported": true
   },
   "336": {
     "sourcifyName": "Shiden (EVM)",

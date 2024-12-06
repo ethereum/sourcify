@@ -692,21 +692,21 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
-  // Klaytn Testnet Baobab
+  // Kaia Kairos Testnet
   verifyContract(
     "0x662749a392CeB1b5973a90FB2c388a2C18B8812c",
     "1001",
-    "Klaytn Testnet Baobab",
+    "Kaia Kairos Testnet",
     "shared/",
   );
 
-  // Klaytn Mainnet Cypress
-  // verifyContract(
-  //   "0x3b2e3383AeE77A58f252aFB3635bCBd842BaeCB3",
-  //   "8217",
-  //   "Klaytn Mainnet Cypress",
-  //   "shared/"
-  // );
+  // Kaia Mainnet
+  verifyContract(
+    "0x3b2e3383AeE77A58f252aFB3635bCBd842BaeCB3",
+    "8217",
+    "Kaia Mainnet",
+    "shared/",
+  );
 
   // Shiden (EVM)
   verifyContract(
