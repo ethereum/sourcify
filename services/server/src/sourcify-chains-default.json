@@ -2234,7 +2234,7 @@
     "supported": true,
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
-        "url": "https://explorer.odyssey.storyrpc.io/"
+        "url": "https://odyssey.storyscan.xyz/"
       }
     },
     "rpc": ["https://rpc.odyssey.storyrpc.io"]
