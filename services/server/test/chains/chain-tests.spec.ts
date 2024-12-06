@@ -1719,6 +1719,14 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
+  // Story Odyssey
+  verifyContract(
+    "0x78418e6efE946a65900E354e949C5dF0317dd411",
+    "1516",
+    "Story Odyssey",
+    "shared/",
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests: ChainApiResponse[] = [];
     supportedChains
