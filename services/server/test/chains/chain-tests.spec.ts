@@ -692,11 +692,11 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
-  // Kaia Testnet Kairos
+  // Kaia Kairos Testnet
   verifyContract(
     "0x662749a392CeB1b5973a90FB2c388a2C18B8812c",
     "1001",
-    "Kaia Testnet Kairos",
+    "Kaia Kairos Testnet",
     "shared/",
   );
 
@@ -705,7 +705,7 @@ describe("Test Supported Chains", function () {
     "0x3b2e3383AeE77A58f252aFB3635bCBd842BaeCB3",
     "8217",
     "Kaia Mainnet",
-    "shared/"
+    "shared/",
   );
 
   // Shiden (EVM)
