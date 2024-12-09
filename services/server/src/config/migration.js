@@ -25,6 +25,7 @@ module.exports = {
   },
   solcRepo: "/home/app/data/compilers/solc",
   solJsonRepo: "/home/app/data/compilers/soljson",
+  vyperRepo: "/home/app/data/compilers/vyper",
   session: {
     secure: true, // Set Secure in the Set-Cookie header i.e. require https
   },

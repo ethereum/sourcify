@@ -23,7 +23,9 @@ import { ChainRepository } from "../sourcify-chain-repository";
 import { ISolidityCompiler } from "@ethereum-sourcify/lib-sourcify";
 import { SolcLambdaWithLocalFallback } from "./services/compiler/lambda-with-fallback/SolcLambdaWithLocalFallback";
 import { SolcLocal } from "./services/compiler/local/SolcLocal";
+
 import session from "express-session";
+import { VyperLocal } from "./services/compiler/local/VyperLocal";
 
 // Supported Chains
 
@@ -70,6 +72,11 @@ if (config.get("lambdaCompiler.enabled")) {
 
 export const solc = selectedSolidityCompiler;
 
+logger.info("Using local vyper compiler");
+const vyperRepoPath =
+  (config.get("vyperRepo") as string) || path.join("/tmp", "vyper-repo");
+export const vyper = new VyperLocal(vyperRepoPath);
+
 // To print regexes in the config object logs below
 Object.defineProperty(RegExp.prototype, "toJSON", {
   value: RegExp.prototype.toString,
@@ -98,6 +105,7 @@ const server = new Server(
     },
     corsAllowedOrigins: config.get("corsAllowedOrigins"),
     solc,
+    vyper,
     chains: chainRepository.sourcifyChainMap,
     verifyDeprecated: config.get("verifyDeprecated"),
     sessionOptions: getSessionOptions(),

@@ -1,5 +1,5 @@
 import {
-  CompilerOutput,
+  SolidityOutput,
   ISolidityCompiler,
   JsonInput,
 } from "@ethereum-sourcify/lib-sourcify";
@@ -32,8 +32,8 @@ export class SolcLambdaWithLocalFallback implements ISolidityCompiler {
     version: string,
     solcJsonInput: JsonInput,
     forceEmscripten: boolean = false,
-  ): Promise<CompilerOutput> {
-    let compilerOutput: CompilerOutput;
+  ): Promise<SolidityOutput> {
+    let compilerOutput: SolidityOutput;
     try {
       compilerOutput = await this.solcLambda.compile(
         version,

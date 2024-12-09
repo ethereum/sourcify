@@ -5,7 +5,7 @@ import {
   unzipFiles,
 } from '../src';
 import path from 'path';
-import { CheckedContract } from '../src';
+import { SolidityCheckedContract } from '../src';
 import fs from 'fs';
 import chai, { expect } from 'chai';
 import hardhatOutput from './validation/files/hardhat-output/output.json';
@@ -42,17 +42,17 @@ describe('ValidationService', function () {
       expectationsOfSingle(checkedContracts);
     });
 
-    function expectationsOfSingle(checkedContracts: CheckedContract[]) {
+    function expectationsOfSingle(checkedContracts: SolidityCheckedContract[]) {
       chai.expect(checkedContracts.length).to.equal(1);
       const onlyContract = checkedContracts[0];
 
       chai.expect(onlyContract.name).to.equal('Storage');
       chai.expect(onlyContract.compiledPath).to.equal('browser/1_Storage.sol');
 
-      chai.expect(CheckedContract.isValid(onlyContract)).to.be.true;
-      chai.expect(objectLength(onlyContract.solidity)).to.equal(1);
+      chai.expect(SolidityCheckedContract.isValid(onlyContract)).to.be.true;
+      chai.expect(objectLength(onlyContract.sources)).to.equal(1);
       chai
-        .expect(onlyContract.solidity)
+        .expect(onlyContract.sources)
         .to.have.all.keys('browser/1_Storage.sol');
       chai.expect(onlyContract.missing).to.be.empty;
       chai.expect(onlyContract.invalid).to.be.empty;
@@ -72,8 +72,8 @@ describe('ValidationService', function () {
       chai.expect(onlyContract.name).to.equal('Storage');
       chai.expect(onlyContract.compiledPath).to.equal('browser/1_Storage.sol');
 
-      chai.expect(CheckedContract.isValid(onlyContract)).to.be.false;
-      chai.expect(onlyContract.solidity).to.be.empty;
+      chai.expect(SolidityCheckedContract.isValid(onlyContract)).to.be.false;
+      chai.expect(onlyContract.sources).to.be.empty;
       chai.expect(objectLength(onlyContract.missing)).to.equal(1);
       chai.expect(onlyContract.missing).to.have.key('browser/1_Storage.sol');
       chai.expect(onlyContract.invalid).to.be.empty;
@@ -148,7 +148,7 @@ describe('ValidationService', function () {
 
       const contract = checkedContracts[0];
       chai.expect(contract.name).to.equal('Storage');
-      chai.expect(CheckedContract.isValid(contract)).to.be.true;
+      chai.expect(SolidityCheckedContract.isValid(contract)).to.be.true;
     }
 
     it('should replace \\r\\n with \\n', function () {

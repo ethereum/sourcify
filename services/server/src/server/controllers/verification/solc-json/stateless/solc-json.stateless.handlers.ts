@@ -1,7 +1,7 @@
 import { Response, Request } from "express";
 import { extractFiles } from "../../verification.common";
 import {
-  checkFiles,
+  checkFilesWithMetadata,
   ISolidityCompiler,
   useAllSources,
 } from "@ethereum-sourcify/lib-sourcify";
@@ -42,7 +42,7 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
       compilerVersion,
     );
 
-  const checkedContracts = await checkFiles(
+  const checkedContracts = await checkFilesWithMetadata(
     solc,
     metadataAndSourcesPathBuffers,
   );

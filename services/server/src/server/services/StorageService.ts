@@ -1,4 +1,7 @@
-import { Match, CheckedContract } from "@ethereum-sourcify/lib-sourcify";
+import {
+  Match,
+  AbstractCheckedContract,
+} from "@ethereum-sourcify/lib-sourcify";
 import {
   RepositoryV1Service,
   RepositoryV1ServiceOptions,
@@ -37,7 +40,10 @@ import { DatabaseOptions } from "./utils/Database";
 export interface WStorageService {
   IDENTIFIER: StorageIdentifiers;
   init(): Promise<boolean>;
-  storeMatch(contract: CheckedContract, match: Match): Promise<void | Match>;
+  storeMatch(
+    contract: AbstractCheckedContract,
+    match: Match,
+  ): Promise<void | Match>;
 }
 
 export interface RWStorageService extends WStorageService {
@@ -264,7 +270,7 @@ export class StorageService {
     }
   }
 
-  async storeMatch(contract: CheckedContract, match: Match) {
+  async storeMatch(contract: AbstractCheckedContract, match: Match) {
     logger.info("Storing match on StorageService", {
       name: contract.name,
       address: match.address,

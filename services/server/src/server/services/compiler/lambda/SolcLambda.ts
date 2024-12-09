@@ -4,7 +4,7 @@ import {
   InvokeWithResponseStreamCommandInput,
 } from "@aws-sdk/client-lambda";
 import {
-  CompilerOutput,
+  SolidityOutput,
   ISolidityCompiler,
   JsonInput,
 } from "@ethereum-sourcify/lib-sourcify";
@@ -35,7 +35,7 @@ export class SolcLambda implements ISolidityCompiler {
     version: string,
     solcJsonInput: JsonInput,
     forceEmscripten: boolean = false,
-  ): Promise<CompilerOutput> {
+  ): Promise<SolidityOutput> {
     const param = JSON.stringify({ version, solcJsonInput, forceEmscripten });
     logger.silly("Invoking Lambda function", { param });
     logger.debug("Compiling with Lambda", { version });
@@ -45,7 +45,7 @@ export class SolcLambda implements ISolidityCompiler {
     return response;
   }
 
-  private async invokeLambdaFunction(payload: string): Promise<CompilerOutput> {
+  private async invokeLambdaFunction(payload: string): Promise<SolidityOutput> {
     const params: InvokeWithResponseStreamCommandInput = {
       FunctionName: this.lambdaCompilerFunctionName,
       Payload: payload,

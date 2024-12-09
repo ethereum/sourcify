@@ -1,4 +1,4 @@
-import { CheckedContract } from './CheckedContract';
+import { SolidityCheckedContract } from './SolidityCheckedContract';
 import {
   Create2Args,
   ImmutableReferences,
@@ -29,9 +29,10 @@ import { logDebug, logError, logInfo, logWarn } from './logger';
 import SourcifyChain from './SourcifyChain';
 import { lt } from 'semver';
 import { replaceBytecodeAuxdatasWithZeros } from './utils';
+import { AbstractCheckedContract } from './AbstractCheckedContract';
 
 export async function verifyDeployed(
-  checkedContract: CheckedContract,
+  checkedContract: AbstractCheckedContract,
   sourcifyChain: SourcifyChain,
   address: string,
   creatorTxHash?: string,
@@ -58,8 +59,9 @@ export async function verifyDeployed(
   // See https://github.com/ethereum/sourcify/issues/1159
   // The nightlies and pre-0.4.10 platform binaries are not available
   if (
-    lt(checkedContract.metadata.compiler.version, '0.4.10') ||
-    checkedContract.metadata.compiler.version.includes('nightly')
+    checkedContract instanceof SolidityCheckedContract &&
+    (lt(checkedContract.metadata.compiler.version, '0.4.10') ||
+      checkedContract.metadata.compiler.version.includes('nightly'))
   ) {
     useEmscripten = true;
   }
@@ -97,7 +99,10 @@ export async function verifyDeployed(
   }
 
   const generateRuntimeCborAuxdataPositions = async () => {
-    if (!checkedContract.runtimeBytecodeCborAuxdata) {
+    if (
+      checkedContract instanceof SolidityCheckedContract &&
+      !checkedContract.runtimeBytecodeCborAuxdata
+    ) {
       await checkedContract.generateCborAuxdataPositions();
     }
     return checkedContract.runtimeBytecodeCborAuxdata || {};
@@ -123,22 +128,24 @@ export async function verifyDeployed(
         address,
         runtimeMatch: match.runtimeMatch,
       });
-      match = await tryToFindPerfectMetadataAndMatch(
-        checkedContract,
-        runtimeBytecode,
-        match,
-        async (match, recompiled) => {
-          await matchWithRuntimeBytecode(
-            match,
-            recompiled.runtimeBytecode,
-            runtimeBytecode,
-            generateRuntimeCborAuxdataPositions,
-            recompiled.immutableReferences,
-            recompiled.runtimeLinkReferences,
-          );
-        },
-        'runtimeMatch',
-      );
+      if (checkedContract instanceof SolidityCheckedContract) {
+        match = await tryToFindPerfectMetadataAndMatch(
+          checkedContract,
+          runtimeBytecode,
+          match,
+          async (match, recompiled) => {
+            await matchWithRuntimeBytecode(
+              match,
+              recompiled.runtimeBytecode,
+              runtimeBytecode,
+              generateRuntimeCborAuxdataPositions,
+              recompiled.immutableReferences,
+              recompiled.runtimeLinkReferences,
+            );
+          },
+          'runtimeMatch',
+        );
+      }
     }
   } catch (e: any) {
     logWarn('Error matching with runtime bytecode', {
@@ -149,7 +156,10 @@ export async function verifyDeployed(
   }
 
   const generateCreationCborAuxdataPositions = async () => {
-    if (!checkedContract.creationBytecodeCborAuxdata) {
+    if (
+      checkedContract instanceof SolidityCheckedContract &&
+      !checkedContract.creationBytecodeCborAuxdata
+    ) {
       await checkedContract.generateCborAuxdataPositions();
     }
     return checkedContract.creationBytecodeCborAuxdata || {};
@@ -181,24 +191,26 @@ export async function verifyDeployed(
           creationMatch: match.creationMatch,
           creatorTxHash,
         });
-        match = await tryToFindPerfectMetadataAndMatch(
-          checkedContract,
-          runtimeBytecode, // TODO: This is also weird we pass the runtime bytecode here
-          match,
-          async (match, recompiled) => {
-            await matchWithCreationTx(
-              match,
-              recompiled.creationBytecode,
-              sourcifyChain,
-              address,
-              creatorTxHash,
-              recompiledMetadata,
-              generateCreationCborAuxdataPositions,
-              recompiled.creationLinkReferences,
-            );
-          },
-          'creationMatch',
-        );
+        if (checkedContract instanceof SolidityCheckedContract) {
+          match = await tryToFindPerfectMetadataAndMatch(
+            checkedContract,
+            runtimeBytecode, // TODO: This is also weird we pass the runtime bytecode here
+            match,
+            async (match, recompiled) => {
+              await matchWithCreationTx(
+                match,
+                recompiled.creationBytecode,
+                sourcifyChain,
+                address,
+                creatorTxHash,
+                recompiledMetadata,
+                generateCreationCborAuxdataPositions,
+                recompiled.creationLinkReferences,
+              );
+            },
+            'creationMatch',
+          );
+        }
       }
     }
   } catch (e: any) {
@@ -217,6 +229,7 @@ export async function verifyDeployed(
   // https://github.com/ethereum/solidity/issues/14494
   try {
     if (
+      checkedContract instanceof SolidityCheckedContract &&
       splitAuxdata(match.onchainRuntimeBytecode || '')[1] ===
         splitAuxdata(checkedContract.runtimeBytecode || '')[1] &&
       match.runtimeMatch === null &&
@@ -293,7 +306,7 @@ export async function verifyDeployed(
 }
 
 async function tryToFindPerfectMetadataAndMatch(
-  checkedContract: CheckedContract,
+  checkedContract: SolidityCheckedContract,
   runtimeBytecode: string,
   match: Match,
   matchFunction: (
@@ -314,7 +327,7 @@ async function tryToFindPerfectMetadataAndMatch(
       // Replace the metadata and solidity files that will be saved in the repo
       checkedContract.initSolcJsonInput(
         checkedContractWithPerfectMetadata.metadata,
-        checkedContractWithPerfectMetadata.solidity,
+        checkedContractWithPerfectMetadata.sources,
       );
       return matchWithPerfectMetadata;
     }
@@ -323,7 +336,7 @@ async function tryToFindPerfectMetadataAndMatch(
 }
 
 export async function verifyCreate2(
-  checkedContract: CheckedContract,
+  checkedContract: SolidityCheckedContract,
   deployerAddress: string,
   salt: string,
   create2Address: string,

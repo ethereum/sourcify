@@ -1,6 +1,6 @@
 import {
   verifyDeployed as libSourcifyVerifyDeployed,
-  CheckedContract,
+  AbstractCheckedContract,
   Match,
   SourcifyChain,
   ISolidityCompiler,
@@ -105,7 +105,7 @@ export class VerificationService {
   }
 
   public async verifyDeployed(
-    checkedContract: CheckedContract,
+    checkedContract: AbstractCheckedContract,
     sourcifyChain: SourcifyChain,
     address: string,
     creatorTxHash?: string,

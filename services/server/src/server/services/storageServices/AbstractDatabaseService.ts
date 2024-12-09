@@ -1,4 +1,10 @@
-import { Match, CheckedContract } from "@ethereum-sourcify/lib-sourcify";
+import {
+  Match,
+  AbstractCheckedContract,
+  SolidityCheckedContract,
+  VyperCheckedContract,
+  SolidityOutputContract,
+} from "@ethereum-sourcify/lib-sourcify";
 import { keccak256 } from "ethers";
 import * as DatabaseUtil from "../utils/database-util";
 import {
@@ -23,7 +29,7 @@ export default abstract class AbstractDatabaseService {
   }
 
   validateBeforeStoring(
-    recompiledContract: CheckedContract,
+    recompiledContract: AbstractCheckedContract,
     match: Match,
   ): boolean {
     if (
@@ -44,7 +50,10 @@ export default abstract class AbstractDatabaseService {
     return true;
   }
 
-  getKeccak256Bytecodes(recompiledContract: CheckedContract, match: Match) {
+  getKeccak256Bytecodes(
+    recompiledContract: AbstractCheckedContract,
+    match: Match,
+  ) {
     if (recompiledContract.normalizedRuntimeBytecode === undefined) {
       throw new Error("normalizedRuntimeBytecode cannot be undefined");
     }
@@ -70,8 +79,17 @@ export default abstract class AbstractDatabaseService {
     };
   }
 
+  getCompiler(recompiledContract: AbstractCheckedContract): string {
+    if (recompiledContract instanceof SolidityCheckedContract) {
+      return "solc";
+    } else if (recompiledContract instanceof VyperCheckedContract) {
+      return "vyper";
+    }
+    throw new Error("Unknown compiler");
+  }
+
   async getDatabaseColumns(
-    recompiledContract: CheckedContract,
+    recompiledContract: AbstractCheckedContract,
     match: Match,
   ): Promise<DatabaseUtil.DatabaseColumns> {
     const {
@@ -126,16 +144,17 @@ export default abstract class AbstractDatabaseService {
     const compilationTargetName = Object.values(
       recompiledContract.metadata.settings.compilationTarget,
     )[0];
-    const language = "solidity";
     const compilerOutput =
       recompiledContract.compilerOutput?.contracts[
         recompiledContract.compiledPath
       ][recompiledContract.name];
 
-    if (!(await recompiledContract.generateCborAuxdataPositions())) {
-      throw new Error(
-        `cannot generate contract artifacts address=${match.address} chainId=${match.chainId}`,
-      );
+    if (recompiledContract instanceof SolidityCheckedContract) {
+      if (!(await recompiledContract.generateCborAuxdataPositions())) {
+        throw new Error(
+          `cannot generate contract artifacts address=${match.address} chainId=${match.chainId}`,
+        );
+      }
     }
 
     // Prepare compilation_artifacts.sources by removing everything except id
@@ -151,24 +170,32 @@ export default abstract class AbstractDatabaseService {
       }
     }
 
+    // For some property we cast compilerOutput as SolidityOutputContract because VyperOutput does not have them
     const compilationArtifacts = {
       abi: compilerOutput?.abi || null,
       userdoc: compilerOutput?.userdoc || null,
       devdoc: compilerOutput?.devdoc || null,
-      storageLayout: compilerOutput?.storageLayout || null,
+      storageLayout:
+        (compilerOutput as SolidityOutputContract)?.storageLayout || null,
       sources,
     };
     const creationCodeArtifacts = {
-      sourceMap: compilerOutput?.evm.bytecode.sourceMap || null,
-      linkReferences: compilerOutput?.evm.bytecode.linkReferences || null,
+      sourceMap:
+        (compilerOutput as SolidityOutputContract)?.evm?.bytecode?.sourceMap ||
+        null,
+      linkReferences:
+        (compilerOutput as SolidityOutputContract)?.evm?.bytecode
+          ?.linkReferences || null,
       cborAuxdata: recompiledContract?.creationBytecodeCborAuxdata || null,
     };
     const runtimeCodeArtifacts = {
       sourceMap: compilerOutput?.evm.deployedBytecode?.sourceMap || null,
       linkReferences:
-        compilerOutput?.evm.deployedBytecode?.linkReferences || null,
+        (compilerOutput as SolidityOutputContract)?.evm?.deployedBytecode
+          ?.linkReferences || null,
       immutableReferences:
-        compilerOutput?.evm.deployedBytecode?.immutableReferences || null,
+        (compilerOutput as SolidityOutputContract)?.evm?.deployedBytecode
+          ?.immutableReferences || null,
       cborAuxdata: recompiledContract?.runtimeBytecodeCborAuxdata || null,
     };
 
@@ -210,14 +237,14 @@ export default abstract class AbstractDatabaseService {
       };
     }
 
-    const sourcesInformation = Object.keys(recompiledContract.solidity).map(
+    const sourcesInformation = Object.keys(recompiledContract.sources).map(
       (path) => {
         return {
           path,
           source_hash_keccak: bytesFromString<BytesKeccak>(
-            keccak256(Buffer.from(recompiledContract.solidity[path])),
+            keccak256(Buffer.from(recompiledContract.sources[path])),
           ),
-          content: recompiledContract.solidity[path],
+          content: recompiledContract.sources[path],
         };
       },
     );
@@ -248,8 +275,8 @@ export default abstract class AbstractDatabaseService {
         deployer: bytesFromString(match.deployer),
       },
       compiledContract: {
-        language,
-        compiler: "solc",
+        language: recompiledContract.metadata.language.toLocaleLowerCase(),
+        compiler: this.getCompiler(recompiledContract),
         compiler_settings:
           DatabaseUtil.prepareCompilerSettings(recompiledContract),
         name: recompiledContract.name,
@@ -370,7 +397,7 @@ export default abstract class AbstractDatabaseService {
 
   async updateExistingVerifiedContract(
     existingVerifiedContractResult: DatabaseUtil.GetVerifiedContractByChainAndAddressResult[],
-    recompiledContract: CheckedContract,
+    recompiledContract: AbstractCheckedContract,
     match: Match,
     databaseColumns: DatabaseUtil.DatabaseColumns,
   ): Promise<number | false> {
@@ -484,7 +511,7 @@ export default abstract class AbstractDatabaseService {
   }
 
   async insertOrUpdateVerifiedContract(
-    recompiledContract: CheckedContract,
+    recompiledContract: AbstractCheckedContract,
     match: Match,
   ): Promise<{
     type: "update" | "insert";
