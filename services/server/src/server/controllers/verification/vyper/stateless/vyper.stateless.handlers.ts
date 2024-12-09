@@ -5,10 +5,11 @@ import {
   IVyperCompiler,
   StringMap,
 } from "@ethereum-sourcify/lib-sourcify";
-import { NotFoundError } from "../../../../../common/errors";
+import { NotFoundError, BadRequestError } from "../../../../../common/errors";
 import { getResponseMatchFromMatch } from "../../../../common";
 import { Services } from "../../../../services/services";
 import { ChainRepository } from "../../../../../sourcify-chain-repository";
+import logger from "../../../../../common/logger";
 
 export type VerifyVyperRequest = Request & {
   body: {
@@ -35,32 +36,29 @@ export async function verifyVyper(
     throw new NotFoundError(msg);
   }
 
-  const compilerVersion = req.body.compilerVersion; // "0.8.4+commit.c7e474f2";
-  const compilerSettings = req.body.compilerSettings;
+  let checkedContract: VyperCheckedContract;
+  try {
+    const sources = inputFiles.reduce((files, file) => {
+      files[file.path] = file.buffer.toString();
+      return files;
+    }, {} as StringMap);
 
-  const contractPath = req.body.contractPath;
-  const contractName = req.body.contractName;
-
-  const sources = inputFiles.reduce((acc, file) => {
-    acc[file.path] = file.buffer.toString();
-    return acc;
-  }, {} as StringMap);
-
-  const checkedContract = new VyperCheckedContract(
-    vyperCompiler,
-    compilerVersion,
-    contractPath,
-    contractName,
-    compilerSettings,
-    sources,
-  );
-
-  /* if (!contract) {
-    throw new NotFoundError(
-      "Chosen contract not found. Received chosenContract: " +
-        req.body.chosenContract,
+    checkedContract = new VyperCheckedContract(
+      vyperCompiler,
+      req.body.compilerVersion,
+      req.body.contractPath,
+      req.body.contractName,
+      req.body.compilerSettings,
+      sources,
     );
-  } */
+  } catch (error: any) {
+    logger.warn("Error initializing Vyper compiler input", {
+      error: error,
+    });
+    throw new BadRequestError(
+      "Error initializing Vyper compiler input, please check files and settings",
+    );
+  }
 
   const match = await services.verification.verifyDeployed(
     checkedContract,
@@ -71,5 +69,5 @@ export async function verifyVyper(
   if (match.runtimeMatch || match.creationMatch) {
     await services.storage.storeMatch(checkedContract, match);
   }
-  return res.send({ result: [getResponseMatchFromMatch(match)] }); // array is an old expected behavior (e.g. by frontend)
+  return res.send({ result: [getResponseMatchFromMatch(match)] });
 }
