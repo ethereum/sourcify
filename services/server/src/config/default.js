@@ -33,6 +33,7 @@ module.exports = {
   },
   solcRepo: "/tmp/solc-bin/linux-amd64",
   solJsonRepo: "/tmp/solc-bin/soljson",
+  vyperRepo: "/tmp/vyper-bin",
   session: {
     secret: process.env.SESSION_SECRET || "CHANGE_ME",
     maxAge: 12 * 60 * 60 * 1000, // 12 hrs in millis

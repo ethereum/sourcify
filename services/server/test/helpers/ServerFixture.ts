@@ -13,6 +13,7 @@ import { SourcifyDatabaseService } from "../../src/server/services/storageServic
 import genFunc from "connect-pg-simple";
 import expressSession from "express-session";
 import { SolcLocal } from "../../src/server/services/compiler/local/SolcLocal";
+import { VyperLocal } from "../../src/server/services/compiler/local/VyperLocal";
 import path from "path";
 import { testS3Bucket, testS3Path } from "./S3ClientMock";
 
@@ -99,6 +100,7 @@ export class ServerFixture {
         corsAllowedOrigins: config.get<string[]>("corsAllowedOrigins"),
         chains: sourcifyChainsMap,
         solc: new SolcLocal(config.get("solcRepo"), config.get("solJsonRepo")),
+        vyper: new VyperLocal(config.get("vyperRepo")),
         verifyDeprecated: config.get("verifyDeprecated"),
         sessionOptions: {
           secret: config.get("session.secret"),

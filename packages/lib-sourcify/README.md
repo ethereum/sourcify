@@ -16,10 +16,10 @@ The `lib-sourcify` library does not come with the Solidity compiler as a depende
 // The external Solidity Compiler
 import solidityCompiler from "./compiler/solidityCompiler";
 
-// Include also CompilerOutput and JsonInput as dependncies of ISolidityCompiler
+// Include also SolidityOutput and JsonInput as dependncies of ISolidityCompiler
 import {
   ISolidityCompiler
-  CompilerOutput,
+  SolidityOutput,
   JsonInput,
 } from "@ethereum-sourcify/lib-sourcify";
 
@@ -29,7 +29,7 @@ class Solc implements ISolidityCompiler {
     version: string,
     solcJsonInput: JsonInput,
     forceEmscripten: boolean = false
-  ): Promise<CompilerOutput> {
+  ): Promise<SolidityOutput> {
     return await solidityCompiler.compile(version, solcJsonInput, forceEmscripten);
   }
 }
@@ -46,7 +46,7 @@ const checkedContract = new CheckedContract(
 
 ## Validation
 
-The initial step to verify a contract is to validation, i.e. creating a `CheckedContract`. This can be done with `checkFiles` which takes files in `PathBuffer` as input and outputs a `CheckedContract` array:
+The initial step to verify a contract is to validation, i.e. creating a `CheckedContract`. This can be done with `checkFilesWithMetadata` which takes files in `PathBuffer` as input and outputs a `CheckedContract` array:
 
 ```ts
 const pathBuffers: PathBuffer[] = [];
@@ -59,7 +59,7 @@ pathBuffers.push({
 For a `CheckedContract` to be valid i.e. compilable, you need to provide a [contract metadata JSON](https://docs.soliditylang.org/en/latest/metadata.html) file identifying the contract and the source files of the contract listed under the `sources` field of the metadata.
 
 ```ts
-const checkedContracts: CheckedContract[] = await checkFiles(solc, pathBuffers);
+const checkedContracts: CheckedContract[] = await checkFilesWithMetadata(solc, pathBuffers);
 ```
 
 Each contract source either has a `content` field containing the Solidity code as a string, or urls to fetch the sources from (Github, IPFS, Swarm etc.). If the contract sources are available, you can fetch them with.

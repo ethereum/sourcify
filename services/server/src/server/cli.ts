@@ -21,7 +21,9 @@ import { sourcifyChainsMap } from "../sourcify-chains";
 import { Server } from "./server";
 import { ChainRepository } from "../sourcify-chain-repository";
 import { SolcLocal } from "./services/compiler/local/SolcLocal";
+
 import session from "express-session";
+import { VyperLocal } from "./services/compiler/local/VyperLocal";
 
 // Supported Chains
 
@@ -45,6 +47,11 @@ logger.info("Using local solidity compiler");
 const selectedSolidityCompiler = new SolcLocal(solcRepoPath, solJsonRepoPath);
 
 export const solc = selectedSolidityCompiler;
+
+logger.info("Using local vyper compiler");
+const vyperRepoPath =
+  (config.get("vyperRepo") as string) || path.join("/tmp", "vyper-repo");
+export const vyper = new VyperLocal(vyperRepoPath);
 
 // To print regexes in the config object logs below
 Object.defineProperty(RegExp.prototype, "toJSON", {
@@ -74,6 +81,7 @@ const server = new Server(
     },
     corsAllowedOrigins: config.get("corsAllowedOrigins"),
     solc,
+    vyper,
     chains: chainRepository.sourcifyChainMap,
     verifyDeprecated: config.get("verifyDeprecated"),
     sessionOptions: getSessionOptions(),

@@ -5,14 +5,14 @@ import { expect } from 'chai';
 import {
   getSolcExecutable,
   getSolcJs,
-  useCompiler,
+  useSolidityCompiler,
 } from './compiler/solidityCompiler';
 import {
-  CheckedContract,
+  SolidityCheckedContract,
   getGithubUrl,
   getIpfsGateway,
   performFetch,
-} from '../src/lib/CheckedContract';
+} from '../src/lib/SolidityCheckedContract';
 import storageMetadata from './sources/Storage/metadata.json';
 import { Metadata, MissingSources } from '../src/lib/types';
 import WrongMetadata from './sources/WrongMetadata/metadata.json';
@@ -41,21 +41,24 @@ describe('Verify Solidity Compiler', () => {
     });
     it('Should compile with solc', async () => {
       try {
-        const compiledJSON = await useCompiler('0.8.9+commit.e5eed63a', {
-          language: 'Solidity',
-          sources: {
-            'test.sol': {
-              content: 'contract C { function f() public  {} }',
+        const compiledJSON = await useSolidityCompiler(
+          '0.8.9+commit.e5eed63a',
+          {
+            language: 'Solidity',
+            sources: {
+              'test.sol': {
+                content: 'contract C { function f() public  {} }',
+              },
             },
-          },
-          settings: {
-            outputSelection: {
-              '*': {
-                '*': ['*'],
+            settings: {
+              outputSelection: {
+                '*': {
+                  '*': ['*'],
+                },
               },
             },
           },
-        });
+        );
         expect(compiledJSON?.contracts?.['test.sol']?.C).to.not.equals(
           undefined,
         );
@@ -66,7 +69,7 @@ describe('Verify Solidity Compiler', () => {
   }
   it('Should return a compiler error', async () => {
     try {
-      await useCompiler('0.8.9+commit.e5eed63a', {
+      await useSolidityCompiler('0.8.9+commit.e5eed63a', {
         language: 'Solidity',
         sources: {
           'test.sol': {
@@ -92,7 +95,7 @@ describe('Verify Solidity Compiler', () => {
       writable: false,
     });
     try {
-      const compiledJSON = await useCompiler('0.8.9+commit.e5eed63a', {
+      const compiledJSON = await useSolidityCompiler('0.8.9+commit.e5eed63a', {
         language: 'Solidity',
         sources: {
           'test.sol': {
@@ -121,10 +124,10 @@ describe('Verify Solidity Compiler', () => {
   // See https://github.com/ethereum/sourcify/issues/1099
   it(`Should should use a clean compiler context with pre 0.4.0 versions`, async () => {
     // Run compiler once to change compiler "context"
-    await useCompiler('0.1.5+commit.23865e3', earlyCompilerInput);
+    await useSolidityCompiler('0.1.5+commit.23865e3', earlyCompilerInput);
 
     // A second run needs to produce the same result
-    const compilerResult = await useCompiler(
+    const compilerResult = await useSolidityCompiler(
       '0.1.5+commit.23865e3',
       earlyCompilerInput,
     );
@@ -210,22 +213,26 @@ describe('Checked contract', () => {
         '0x88c47206b5ec3d60ab820e9d126c4ac54cb17fa7396ff49ebe27db2862982ad8',
       urls: ['dweb:/ipfs/QmaFRC9ZtT7y3t9XNWCbDuMTEwKkyaQJzYFzw3NbeohSn5'],
     };
-    const contract = new CheckedContract(
+    const contract = new SolidityCheckedContract(
       solc,
       storageMetadata as any as Metadata,
       {},
       missingSources,
       {},
     );
-    await CheckedContract.fetchMissing(contract);
-    const sources = Object.keys(contract.solidity);
+    await SolidityCheckedContract.fetchMissing(contract);
+    const sources = Object.keys(contract.sources);
     expect(sources).lengthOf(1);
     expect(sources[0]).equals('Storage.sol');
   });
   it('Should tryToFindPerfectMetadata from checked contract', async () => {
-    const contract = new CheckedContract(solc, WrongMetadata as Metadata, {
-      'SimplyLog.sol': SimplyLog.source,
-    });
+    const contract = new SolidityCheckedContract(
+      solc,
+      WrongMetadata as Metadata,
+      {
+        'SimplyLog.sol': SimplyLog.source,
+      },
+    );
 
     const contractWithPerfectMetadata = await contract.tryToFindPerfectMetadata(
       SimplyLog.bytecode,

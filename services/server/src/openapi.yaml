@@ -18,6 +18,8 @@ tags:
 paths:
   /verify:
     $ref: "server/controllers/verification/verify/stateless/verify.stateless.paths.yaml#/paths/~1verify"
+  /verify/vyper:
+    $ref: "server/controllers/verification/vyper/stateless/vyper.stateless.paths.yaml#/paths/~1verify~1vyper"
   /verify/etherscan:
     $ref: "server/controllers/verification/etherscan/stateless/etherscan.stateless.paths.yaml#/paths/~1verify~1etherscan"
   /verify/solc-json:

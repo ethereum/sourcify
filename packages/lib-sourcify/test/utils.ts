@@ -10,17 +10,23 @@
 import path from 'path';
 import fs from 'fs';
 import {
-  CompilerOutput,
+  SolidityOutput,
   JsonInput,
   Match,
   SourcifyChain,
   verifyDeployed,
 } from '../src';
-import { checkFiles } from '../src';
+import { checkFilesWithMetadata } from '../src';
 import { expect } from 'chai';
 import { ContractFactory, Signer } from 'ethers';
 import { ISolidityCompiler } from '../src/lib/ISolidityCompiler';
-import { useCompiler } from './compiler/solidityCompiler';
+import { useSolidityCompiler } from './compiler/solidityCompiler';
+import { useVyperCompiler } from './compiler/vyperCompiler';
+import {
+  IVyperCompiler,
+  VyperJsonInput,
+  VyperOutput,
+} from '../src/lib/IVyperCompiler';
 /**
  *  Function to deploy contracts from provider unlocked accounts
  *  contractFolderPath must contain an artifact.json file with "abi" and "bytecode" fields
@@ -58,12 +64,27 @@ class Solc implements ISolidityCompiler {
     version: string,
     solcJsonInput: JsonInput,
     forceEmscripten: boolean = false,
-  ): Promise<CompilerOutput> {
-    return await useCompiler(version, solcJsonInput, forceEmscripten);
+  ): Promise<SolidityOutput> {
+    return await useSolidityCompiler(version, solcJsonInput, forceEmscripten);
   }
 }
 
 export const solc = new Solc();
+
+class VyperCompiler implements IVyperCompiler {
+  async compile(
+    version: string,
+    solcJsonInput: VyperJsonInput,
+  ): Promise<VyperOutput> {
+    return await useVyperCompiler(
+      path.join('/tmp', 'vyper-repo'),
+      version,
+      solcJsonInput,
+    );
+  }
+}
+
+export const vyperCompiler = new VyperCompiler();
 
 /**
  * Checks the contract from metadata and source files under contractFolderPath and
@@ -77,7 +98,7 @@ export const checkAndVerifyDeployed = async (
   creatorTxHash?: string,
 ) => {
   const checkedContracts =
-    await checkFilesFromContractFolder(contractFolderPath);
+    await checkFilesWithMetadataFromContractFolder(contractFolderPath);
 
   const match = await verifyDeployed(
     checkedContracts[0],
@@ -92,7 +113,7 @@ export const checkAndVerifyDeployed = async (
  * Creates a CheckedContract[] from the files under contractFolderPath.
  * The metadata must be at contractFolderPath/metadata.json and the sources must be under contractFolderPath/sources.
  */
-export const checkFilesFromContractFolder = async (
+export const checkFilesWithMetadataFromContractFolder = async (
   contractFolderPath: string,
 ) => {
   const metadataPath = path.join(contractFolderPath, 'metadata.json');
@@ -114,7 +135,7 @@ export const checkFilesFromContractFolder = async (
     }
   };
   traverseDirectory(path.join(contractFolderPath, 'sources'));
-  const checkedContracts = await checkFiles(solc, [
+  const checkedContracts = await checkFilesWithMetadata(solc, [
     metadataPathBuffer,
     ...sourcePathBuffers,
   ]);
