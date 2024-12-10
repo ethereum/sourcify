@@ -164,6 +164,39 @@ export const deployCheckAndVerify = async (
   return { match, contractAddress };
 };
 
+// export const deployAndVerifyVyper = async (
+//   signer: Signer,
+//   sourcifyChain: SourcifyChain,
+//   contractFolderPath: string,
+//   contractFileName: string,
+//   compilerSettings: VyperSettings,
+// ) => {
+//   const { contractAddress } = await deployFromAbiAndBytecode(
+//     signer,
+//     contractFolderPath,
+//     [],
+//   );
+//   const fileContent = await fs.promises.readFile(
+//     path.join(contractFolderPath, contractFileName),
+//   );
+//   const checkedContract = new VyperCheckedContract(
+//     vyperCompiler,
+//     '0.3.10+commit.91361694',
+//     contractFileName,
+//     contractFileName.split('.')[0],
+//     compilerSettings,
+//     {
+//       contractFileName: fileContent.toString(),
+//     },
+//   );
+//   const match = await verifyDeployed(
+//     checkedContract,
+//     sourcifyChain,
+//     contractAddress,
+//   );
+//   return { match, contractAddress };
+// };
+
 export const expectMatch = (
   match: Match,
   status: string | null,

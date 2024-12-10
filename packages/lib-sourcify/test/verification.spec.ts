@@ -568,43 +568,91 @@ describe('lib-sourcify tests', () => {
     });
   });
 
-  it('should verify a vyper contract', async () => {
-    const contractFolderPath = path.join(
-      __dirname,
-      'sources',
-      'Vyper',
-      'contract',
-    );
-    const { contractAddress } = await deployFromAbiAndBytecode(
-      signer,
-      contractFolderPath,
-      [],
-    );
-    const vyperContent = await fs.promises.readFile(
-      path.join(__dirname, 'sources', 'Vyper', 'contract', 'test.vy'),
-    );
-    const checkedContract = new VyperCheckedContract(
-      vyperCompiler,
-      '0.3.10+commit.91361694',
-      'test.vy',
-      'test',
-      {
-        evmVersion: 'istanbul',
-        outputSelection: {
-          '*': ['evm.bytecode'],
-        },
-      },
-      {
-        'test.vy': vyperContent.toString(),
-      },
-    );
+  describe('Vyper', () => {
+    it('should verify a vyper contract', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        'sources',
+        'Vyper',
+        'testcontract',
+      );
+      const contractFileName = 'test.vy';
+      const vyperContent = await fs.promises.readFile(
+        path.join(contractFolderPath, contractFileName),
+      );
 
-    const match = await verifyDeployed(
-      checkedContract,
-      sourcifyChainHardhat,
-      contractAddress,
-    );
-    console.log(match, checkedContract);
+      const { contractAddress } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath,
+        [],
+      );
+      const checkedContract = new VyperCheckedContract(
+        vyperCompiler,
+        '0.3.10+commit.91361694',
+        contractFileName,
+        contractFileName.split('.')[0],
+        {
+          evmVersion: 'istanbul',
+          outputSelection: {
+            '*': ['evm.bytecode'],
+          },
+        },
+        {
+          [contractFileName]: vyperContent.toString(),
+        },
+      );
+      const match = await verifyDeployed(
+        checkedContract,
+        sourcifyChainHardhat,
+        contractAddress,
+      );
+
+      expectMatch(match, 'partial', contractAddress);
+    });
+
+    it('should fail to verify a different Vyper contract', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        'sources',
+        'Vyper',
+        'testcontract',
+      );
+      const { contractAddress } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath,
+        [],
+      );
+
+      const contractFileName = 'test.vy';
+      const wrongContractContent = await fs.promises.readFile(
+        path.join(
+          __dirname,
+          'sources',
+          'Vyper',
+          'testcontract2',
+          contractFileName,
+        ),
+      );
+      const checkedContract = new VyperCheckedContract(
+        vyperCompiler,
+        '0.3.10+commit.91361694',
+        contractFileName,
+        contractFileName.split('.')[0],
+        {
+          evmVersion: 'istanbul',
+          outputSelection: {
+            '*': ['evm.bytecode'],
+          },
+        },
+        {
+          [contractFileName]: wrongContractContent.toString(),
+        },
+      );
+
+      await expect(
+        verifyDeployed(checkedContract, sourcifyChainHardhat, contractAddress),
+      ).to.be.rejectedWith("The deployed and recompiled bytecode don't match.");
+    });
   });
 
   describe('Unit tests', function () {
