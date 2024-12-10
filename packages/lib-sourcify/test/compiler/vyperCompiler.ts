@@ -10,7 +10,10 @@ import { logDebug, logError, logWarn } from '../../src/lib/logger';
 const HOST_VYPER_REPO = 'https://github.com/vyperlang/vyper/releases/download/';
 
 export function findVyperPlatform(): string | false {
-  if (process.platform === 'darwin') {
+  if (
+    process.platform === 'darwin' &&
+    (process.arch === 'x64' || process.arch === 'arm64')
+  ) {
     return 'darwin';
   }
   if (process.platform === 'linux' && process.arch === 'x64') {
@@ -37,13 +40,20 @@ export async function useVyperCompiler(
   vyperJsonInput: VyperJsonInput,
 ): Promise<VyperOutput> {
   const vyperPlatform = findVyperPlatform();
-  let vyperPath;
-  if (vyperPlatform) {
-    vyperPath = await getVyperExecutable(vyperRepoPath, vyperPlatform, version);
+  if (!vyperPlatform) {
+    throw new Error('Vyper is not supported on this machine.');
   }
 
+  const vyperPath = await getVyperExecutable(
+    vyperRepoPath,
+    vyperPlatform,
+    version,
+  );
+
   if (!vyperPath) {
-    throw new Error('Vyper path not found');
+    throw new Error(
+      'Vyper path not found. Maybe an incorrect version was provided.',
+    );
   }
 
   let compiled: string | undefined;
