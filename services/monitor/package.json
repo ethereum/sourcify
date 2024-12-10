@@ -41,7 +41,7 @@
     "@ethereum-sourcify/lib-sourcify": "^1.10.0",
     "chalk": "4.1.2",
     "commander": "12.1.0",
-    "dotenv": "16.4.6",
+    "dotenv": "16.4.7",
     "ethers": "6.13.4",
     "winston": "3.17.0"
   },
@@ -52,9 +52,9 @@
     "@types/sinon": "17.0.3",
     "c8": "10.1.2",
     "chai": "4.5.0",
-    "hardhat": "2.22.16",
+    "hardhat": "2.22.17",
     "mocha": "10.8.2",
-    "nock": "14.0.0-beta.18",
+    "nock": "14.0.0-beta.19",
     "open-cli": "8.0.0",
     "sinon": "19.0.2",
     "tree-kill": "1.2.2"
