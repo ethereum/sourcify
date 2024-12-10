@@ -102,11 +102,13 @@ export async function getVyperExecutable(
     version,
     fileName,
   );
-  logDebug('Downloaded vyper', {
-    version,
-    vyperPath,
-    platform,
-  });
+  if (success) {
+    logDebug('Downloaded vyper', {
+      version,
+      vyperPath,
+      platform,
+    });
+  }
   if (success && !validateVyperPath(vyperPath)) {
     logError('Cannot validate vyper', {
       version,
