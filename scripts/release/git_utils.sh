@@ -131,8 +131,9 @@ publish_branch() {
 
 open_pr_to_staging() {
   local branch_name=$1
+  local title=$2
   echo "Opening PR to staging..."
-  gh pr create --title "Commit changelogs" --body "" --head "$branch_name" --base staging
+  gh pr create --title "$title" --body "" --head "$branch_name" --base staging
   echo "Opened PR to staging"
 }
 

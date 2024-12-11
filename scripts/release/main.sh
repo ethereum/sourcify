@@ -37,7 +37,7 @@ prompt_execute_or_skip "creating new branch because we can't commit to staging d
 prompt_execute_or_skip "choosing versions for each package and writing changelogs" update_packages_and_changelog
 prompt_execute_or_skip "commiting the changelogs" commit_changelogs
 prompt_execute_or_skip "publishing the branch" publish_branch "commit-changelogs-$(date +'%Y-%m-%d')"
-prompt_execute_or_skip "opening PR to staging" open_pr_to_staging "commit-changelogs-$(date +'%Y-%m-%d')"
+prompt_execute_or_skip "opening PR to staging" open_pr_to_staging "commit-changelogs-$(date +'%Y-%m-%d')" "Update changelogs"
 
 prompt_execute_or_skip "asking if changelogs PR is merged" ask_if_changelog_pr_merged
 prompt_execute_or_skip "switching to staging and pulling latest" switch_to_staging_and_pull
@@ -49,4 +49,4 @@ prompt_execute_or_skip "choosing same versions in lerna to create git tags and u
 prompt_execute_or_skip "pushing the tags to GitHub" push_tags_in_order
 prompt_execute_or_skip "pushing the commits to master" push_to_master
 prompt_execute_or_skip "creating GitHub releases" create_github_releases
-prompt_execute_or_skip "creating a PR to merge the new versions to the staging branch" open_pr_to_staging master
+prompt_execute_or_skip "creating a PR to merge the new versions to the staging branch" open_pr_to_staging master "Update new package versions in master"
