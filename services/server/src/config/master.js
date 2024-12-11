@@ -31,11 +31,6 @@ module.exports = {
     secure: true, // Set Secure in the Set-Cookie header i.e. require https
     storeType: "database",
   },
-  lambdaCompiler: {
-    enabled: false,
-    functionName: "compile-production:3",
-    // credentials as env vars
-  },
   rateLimit: {
     enabled: false,
     windowMs: 1 * 1000, // 1 sec

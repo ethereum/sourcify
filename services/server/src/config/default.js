@@ -39,12 +39,6 @@ module.exports = {
     secure: false, // Set Secure in the Set-Cookie header i.e. require https
     storeType: "memory", // Where to save the session info. "memory" is only good for testing and local development. Don't use it in production!
   },
-  // It is possible to outsource the compilation to a lambda function instead of running locally. Turned on in production.
-  // Requires env vars AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
-  lambdaCompiler: {
-    enabled: false,
-    // functionName: "compile",
-  },
   // If true, downloads all production version compilers and saves them.
   initCompilers: false,
   corsAllowedOrigins: [

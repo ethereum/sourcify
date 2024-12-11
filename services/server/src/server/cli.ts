@@ -20,8 +20,6 @@ import logger from "../common/logger";
 import { sourcifyChainsMap } from "../sourcify-chains";
 import { Server } from "./server";
 import { ChainRepository } from "../sourcify-chain-repository";
-import { ISolidityCompiler } from "@ethereum-sourcify/lib-sourcify";
-import { SolcLambdaWithLocalFallback } from "./services/compiler/lambda-with-fallback/SolcLambdaWithLocalFallback";
 import { SolcLocal } from "./services/compiler/local/SolcLocal";
 import session from "express-session";
 
@@ -43,30 +41,8 @@ const solcRepoPath =
 const solJsonRepoPath =
   (config.get("solJsonRepo") as string) || path.join("/tmp", "soljson-repo");
 
-let selectedSolidityCompiler: ISolidityCompiler;
-if (config.get("lambdaCompiler.enabled")) {
-  logger.info("Using lambda solidity compiler with local fallback");
-  if (
-    process.env.AWS_REGION === undefined ||
-    process.env.AWS_ACCESS_KEY_ID === undefined ||
-    process.env.AWS_SECRET_ACCESS_KEY === undefined
-  ) {
-    throw new Error(
-      "AWS credentials not set. Please set them to run the compiler on AWS Lambda.",
-    );
-  }
-  selectedSolidityCompiler = new SolcLambdaWithLocalFallback(
-    process.env.AWS_REGION as string,
-    process.env.AWS_ACCESS_KEY_ID as string,
-    process.env.AWS_SECRET_ACCESS_KEY as string,
-    config.get("lambdaCompiler.functionName"),
-    solcRepoPath,
-    solJsonRepoPath,
-  );
-} else {
-  logger.info("Using local solidity compiler");
-  selectedSolidityCompiler = new SolcLocal(solcRepoPath, solJsonRepoPath);
-}
+logger.info("Using local solidity compiler");
+const selectedSolidityCompiler = new SolcLocal(solcRepoPath, solJsonRepoPath);
 
 export const solc = selectedSolidityCompiler;
 
