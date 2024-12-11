@@ -1,6 +1,6 @@
 {
   "name": "sourcify-server",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "description": "Solidity metadata-based re-compilation and source verification tool",
   "main": "dist/server/server.js",
   "types": "dist/server/server.d.ts",
@@ -53,8 +53,8 @@
   "dependencies": {
     "@aws-sdk/client-lambda": "3.699.0",
     "@aws-sdk/client-s3": "3.705.0",
-    "@ethereum-sourcify/bytecode-utils": "^1.2.13",
-    "@ethereum-sourcify/lib-sourcify": "^1.10.0",
+    "@ethereum-sourcify/bytecode-utils": "^1.2.14",
+    "@ethereum-sourcify/lib-sourcify": "^1.10.1",
     "@google-cloud/cloud-sql-connector": "1.4.0",
     "@shazow/whatsabi": "0.17.0",
     "abitype": "1.0.7",

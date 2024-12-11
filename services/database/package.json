@@ -1,6 +1,6 @@
 {
   "name": "sourcify-database",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "private": true,
   "description": "The Sourcify database",
   "main": "index.js",
