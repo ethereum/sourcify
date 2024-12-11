@@ -4,6 +4,7 @@ import {
   VyperCheckedContract,
   IVyperCompiler,
   StringMap,
+  VyperSettings,
 } from "@ethereum-sourcify/lib-sourcify";
 import { NotFoundError, BadRequestError } from "../../../../../common/errors";
 import { getResponseMatchFromMatch } from "../../../../common";
@@ -11,13 +12,16 @@ import { Services } from "../../../../services/services";
 import { ChainRepository } from "../../../../../sourcify-chain-repository";
 import logger from "../../../../../common/logger";
 
-export type VerifyVyperRequest = Request & {
+export type VerifyVyperRequest = Omit<Request, "body"> & {
   body: {
     files: Record<string, string>;
     compilerVersion: string;
-    compilerSettings: string;
+    compilerSettings: VyperSettings;
     contractPath: string;
     contractName: string;
+    address: string;
+    creatorTxHash: string;
+    chain: string;
   };
 };
 
@@ -30,7 +34,7 @@ export async function verifyVyper(
   const chainRepository = req.app.get("chainRepository") as ChainRepository;
 
   const inputFiles = extractFiles(req);
-  if (!inputFiles) {
+  if (!inputFiles || !inputFiles.length) {
     const msg =
       "Couldn't extract files from the request. Please make sure you have added files";
     throw new NotFoundError(msg);
