@@ -2,7 +2,7 @@ import chai from 'chai';
 import { readFileSync } from 'fs';
 import path from 'path';
 
-import { decode, splitAuxdata } from '../src/lib/bytecode';
+import { AuxdataStyle, decode, splitAuxdata } from '../src/lib/bytecode';
 
 type Error = {
   message: string;
@@ -21,17 +21,35 @@ const BYTECODE_WITHOUT0X = readFileSync(
 const BYTECODE_WITHOUTAUXDATA = readFileSync(
   `${BYTECODES_FOLDER}/withoutauxdata.hex`,
 ).toString();
+const BYTECODE_VYPER_INTEGRITY = readFileSync(
+  `${BYTECODES_FOLDER}/vyper-integrity.hex`,
+).toString();
+const BYTECODE_VYPER_NO_INTEGRITY = readFileSync(
+  `${BYTECODES_FOLDER}/vyper-no-integrity.hex`,
+).toString();
+const BYTECODE_VYPER_NO_ARRAY = readFileSync(
+  `${BYTECODES_FOLDER}/vyper-cbor-no-array.hex`,
+).toString();
+const BYTECODE_VYPER_NO_AUXDATA_LENGTH = readFileSync(
+  `${BYTECODES_FOLDER}/vyper-no-auxdata-length.hex`,
+).toString();
 
 describe('bytecode utils', function () {
   it("return the whole bytecode when the bytecode that doesn't contain auxdata", () => {
-    const [execution, auxadata, length] = splitAuxdata(BYTECODE_WITHOUTAUXDATA);
+    const [execution, auxadata, length] = splitAuxdata(
+      BYTECODE_WITHOUTAUXDATA,
+      AuxdataStyle.SOLIDITY,
+    );
     chai.expect(auxadata).to.be.undefined;
     chai.expect(length).to.be.undefined;
     chai.expect(`${execution}`).to.equal(BYTECODE_WITHOUTAUXDATA);
   });
 
   it('split succesfully bytecode into execution bytecode and auxadata', () => {
-    const [execution, auxadata, length] = splitAuxdata(BYTECODE_IPFS);
+    const [execution, auxadata, length] = splitAuxdata(
+      BYTECODE_IPFS,
+      AuxdataStyle.SOLIDITY,
+    );
     chai
       .expect(auxadata)
       .to.equal(
@@ -42,25 +60,70 @@ describe('bytecode utils', function () {
 
   it('bytecode decode cbor with `ipfs` property', () => {
     chai
-      .expect(decode(BYTECODE_IPFS).ipfs)
+      .expect(decode(BYTECODE_IPFS, AuxdataStyle.SOLIDITY).ipfs)
       .to.equal('QmdD3hpMj6mEFVy9DP4QqjHaoeYbhKsYvApX1YZNfjTVWp');
   });
 
   it('bytecode decode cbor with `bzzr1` property', () => {
     chai
-      .expect(decode(BYTECODE_BZZR1).bzzr1)
+      .expect(decode(BYTECODE_BZZR1, AuxdataStyle.SOLIDITY).bzzr1)
       .to.equal(
         '0x71e0c183217ae3e9a1406ae7b58c2f36e09f2b16b10e19d46ceb821f3ee6abad',
       );
   });
 
   it('bytecode decode cbor with `experimental` property', () => {
-    chai.expect(decode(BYTECODE_EXPERIMENTAL).experimental).to.be.true;
+    chai.expect(
+      decode(BYTECODE_EXPERIMENTAL, AuxdataStyle.SOLIDITY).experimental,
+    ).to.be.true;
+  });
+
+  it('bytecode decode Vyper cbor auxdata for version >= 0.4.1', () => {
+    chai
+      .expect(decode(BYTECODE_VYPER_INTEGRITY, AuxdataStyle.VYPER))
+      .to.deep.equal({
+        integrity: new Uint8Array([
+          5, 183, 84, 197, 139, 46, 84, 10, 20, 171, 166, 241, 103, 23, 171, 44,
+          48, 237, 199, 73, 54, 200, 152, 93, 119, 177, 82, 205, 151, 136, 126,
+          7,
+        ]),
+        runtimeSize: 143,
+        dataSizes: [],
+        immutableSize: 0,
+        compiler: '0.4.1',
+      });
+  });
+
+  it('bytecode decode Vyper cbor auxdata for version >= 0.3.10 and < 0.4.1', () => {
+    chai
+      .expect(decode(BYTECODE_VYPER_NO_INTEGRITY, AuxdataStyle.VYPER))
+      .to.deep.equal({
+        runtimeSize: 143,
+        dataSizes: [],
+        immutableSize: 0,
+        compiler: '0.3.10',
+      });
+  });
+
+  it('bytecode decode Vyper cbor auxdata for version < 0.3.10', () => {
+    chai
+      .expect(decode(BYTECODE_VYPER_NO_ARRAY, AuxdataStyle.VYPER))
+      .to.deep.equal({
+        compiler: '0.3.8',
+      });
+  });
+
+  it('bytecode decode Vyper cbor auxdata for version < 0.3.5', () => {
+    chai
+      .expect(decode(BYTECODE_VYPER_NO_AUXDATA_LENGTH, AuxdataStyle.VYPER))
+      .to.deep.equal({
+        compiler: '0.3.4',
+      });
   });
 
   it('bytecode decode should fail gracefully when input is undefined', () => {
     try {
-      decode('');
+      decode('', AuxdataStyle.SOLIDITY);
     } catch (e) {
       chai.expect((e as Error).message).to.equal('Bytecode cannot be null');
     }
@@ -68,13 +131,13 @@ describe('bytecode utils', function () {
 
   it('decode a bytecode not starting with 0x', () => {
     chai
-      .expect(decode(BYTECODE_WITHOUT0X).ipfs)
+      .expect(decode(BYTECODE_WITHOUT0X, AuxdataStyle.SOLIDITY).ipfs)
       .to.equal('QmbFc3AoHDC977j2UH2WwYSwsSRrBGj8bsiiyigXhHzyuZ');
   });
 
   it('bytecode decode should fail gracefully when input is corrupted', () => {
     try {
-      decode(BYTECODE_WRONG);
+      decode(BYTECODE_WRONG, AuxdataStyle.SOLIDITY);
     } catch (e) {
       chai
         .expect((e as Error).message)

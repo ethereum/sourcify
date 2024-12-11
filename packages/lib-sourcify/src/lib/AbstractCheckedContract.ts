@@ -30,4 +30,7 @@ export abstract class AbstractCheckedContract {
    * @param forceEmscripten Whether to force using emscripten for compilation
    */
   abstract recompile(forceEmscripten?: boolean): Promise<RecompilationResult>;
+  abstract generateCborAuxdataPositions(
+    forceEmscripten?: boolean,
+  ): Promise<boolean>;
 }

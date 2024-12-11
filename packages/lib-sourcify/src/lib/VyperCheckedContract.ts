@@ -8,6 +8,7 @@ import {
 } from './IVyperCompiler';
 import { AbstractCheckedContract } from './AbstractCheckedContract';
 import { id } from 'ethers';
+import { AuxdataStyle, splitAuxdata } from '@ethereum-sourcify/bytecode-utils';
 
 /**
  * Abstraction of a checked vyper contract. With metadata and source (vyper) files.
@@ -18,6 +19,7 @@ export class VyperCheckedContract extends AbstractCheckedContract {
   vyperSettings: VyperSettings;
   vyperJsonInput!: VyperJsonInput;
   compilerOutput?: VyperOutput;
+  auxdataStyle: AuxdataStyle.VYPER = AuxdataStyle.VYPER;
 
   generateMetadata(output?: VyperOutput) {
     let outputMetadata: MetadataOutput;
@@ -180,5 +182,72 @@ export class VyperCheckedContract extends AbstractCheckedContract {
       creationLinkReferences: {},
       runtimeLinkReferences: {},
     };
+  }
+
+  public async generateCborAuxdataPositions() {
+    if (
+      this.creationBytecode === undefined ||
+      this.runtimeBytecode === undefined
+    ) {
+      return false;
+    }
+
+    if (this.compilerOutput === undefined) {
+      return false;
+    }
+
+    // Extract the auxdata from the end of the recompiled runtime bytecode
+    const [, runtimeAuxdataCbor, runtimeCborLengthHex] = splitAuxdata(
+      this.runtimeBytecode,
+      this.auxdataStyle,
+    );
+
+    this.runtimeBytecodeCborAuxdata = {};
+    if (runtimeAuxdataCbor) {
+      const auxdataFromRawRuntimeBytecode = `${runtimeAuxdataCbor}${runtimeCborLengthHex}`;
+
+      // we divide by 2 because we store the length in bytes (without 0x)
+      this.runtimeBytecodeCborAuxdata = {
+        '1': {
+          offset:
+            this.runtimeBytecode.substring(2).length / 2 -
+            parseInt(
+              runtimeCborLengthHex ||
+                '0' /** handles vyper lower than 0.3.5 in which runtimeCborLengthHex is '' */,
+              16,
+            ) -
+            2,
+          value: `0x${auxdataFromRawRuntimeBytecode}`,
+        },
+      };
+    }
+
+    // Try to extract the auxdata from the end of the recompiled creation bytecode
+    const [, creationAuxdataCbor, creationCborLengthHex] = splitAuxdata(
+      this.creationBytecode,
+      this.auxdataStyle,
+    );
+
+    this.creationBytecodeCborAuxdata = {};
+    // If we can find the auxdata at the end of the bytecode return; otherwise continue with `generateEditedContract`
+    if (creationAuxdataCbor) {
+      const auxdataFromRawCreationBytecode = `${creationAuxdataCbor}${creationCborLengthHex}`;
+
+      // we divide by 2 because we store the length in bytes (without 0x)
+      this.creationBytecodeCborAuxdata = {
+        '1': {
+          offset:
+            this.creationBytecode.substring(2).length / 2 -
+            parseInt(
+              creationCborLengthHex ||
+                '0' /** handles vyper lower than 0.3.5 in which creationCborLengthHex is '' */,
+              16,
+            ),
+          value: `0x${auxdataFromRawCreationBytecode}`,
+        },
+      };
+      return true;
+    }
+    return true;
   }
 }

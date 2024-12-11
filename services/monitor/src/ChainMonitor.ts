@@ -2,7 +2,10 @@ import { FileHash } from "./util";
 import { Block, TransactionResponse, getCreateAddress } from "ethers";
 import assert from "assert";
 import { EventEmitter } from "stream";
-import { decode as bytecodeDecode } from "@ethereum-sourcify/bytecode-utils";
+import {
+  AuxdataStyle,
+  decode as bytecodeDecode,
+} from "@ethereum-sourcify/bytecode-utils";
 import { SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
 import logger from "./logger";
 import {
@@ -261,7 +264,7 @@ export default class ChainMonitor extends EventEmitter {
         return;
       }
       try {
-        const cborData = bytecodeDecode(bytecode);
+        const cborData = bytecodeDecode(bytecode, AuxdataStyle.SOLIDITY);
         metadataHash = FileHash.fromCborData(cborData);
       } catch (err: any) {
         this.chainLogger.info("Error extracting cborAuxdata or metadata hash", {

@@ -18,7 +18,10 @@ import {
 import { BadRequestError } from "../../../../common/errors";
 
 import { StatusCodes } from "http-status-codes";
-import { decode as bytecodeDecode } from "@ethereum-sourcify/bytecode-utils";
+import {
+  AuxdataStyle,
+  decode as bytecodeDecode,
+} from "@ethereum-sourcify/bytecode-utils";
 import logger from "../../../../common/logger";
 import { Services } from "../../../services/services";
 import { ChainRepository } from "../../../../sourcify-chain-repository";
@@ -91,7 +94,10 @@ export async function addInputContractEndpoint(req: Request, res: Response) {
 
   const bytecode = await sourcifyChain.getBytecode(address);
 
-  const { ipfs: metadataIpfsCid } = bytecodeDecode(bytecode);
+  const { ipfs: metadataIpfsCid } = bytecodeDecode(
+    bytecode,
+    AuxdataStyle.SOLIDITY,
+  );
 
   if (!metadataIpfsCid) {
     throw new BadRequestError("The contract doesn't have a metadata IPFS CID");
