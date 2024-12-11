@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## @ethereum-sourcify/bytecode-utils@1.2.14 - 2024-12-11
+
+- Typos
+- Update dependencies
+
 ## @ethereum-sourcify/bytecode-utils@1.2.13 - 2024-10-29
 
 - Update packages
