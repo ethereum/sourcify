@@ -28,11 +28,6 @@ module.exports = {
   session: {
     secure: true, // Set Secure in the Set-Cookie header i.e. require https
   },
-  lambdaCompiler: {
-    enabled: false,
-    functionName: "compile",
-    // credentials as env vars
-  },
   initCompilers: true,
   verifyDeprecated: true,
   rateLimit: {
