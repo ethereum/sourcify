@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@2.4.1 - 2024-12-11
+
+- Add S3StorageService to write contracts to S3/IPFS
+- Add proxy contract detection and resolution
+- Change auth type and connection to the Alliance DB
+- CORS options for local IPs
+- New chains:
+  - Ethereum Mekong Testnet (7078815900)
+  - Bitrock Mainnet (7171)
+  - Bitrock Testnet (7771)
+  - Story Odyssey (1516)
+  - Kaia Mainnet (8217) (renamed from Klaytn)
+  - Kaia Kairos Testnet (1001) (renamed from Klaytn)
+
 ## sourcify-server@2.4.0 - 2024-10-29
 
 

@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## @ethereum-sourcify/lib-sourcify@1.10.1 - 2024-12-11
+
+- Add SourcifyChain.getStorageAt 
+- Update dependencies
+
 ## @ethereum-sourcify/lib-sourcify@1.10.0 - 2024-10-29
 
 - Add RPCs with trace support in SourcifyChains
