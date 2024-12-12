@@ -18,10 +18,14 @@ import { Metadata, MissingSources } from '../src/lib/types';
 import WrongMetadata from './sources/WrongMetadata/metadata.json';
 import SimplyLog from './sources/WrongMetadata/SimplyLog.json';
 import earlyCompilerInput from './sources/json-input/pre-v0.4.0/input.json';
-import { keccak256 } from 'ethers';
-import { solc } from './utils';
+import { id, keccak256 } from 'ethers';
+import { solc, vyperCompiler } from './utils';
 import { fetchWithBackoff } from '../src/lib/utils';
 import nock from 'nock';
+import path from 'path';
+import fs from 'fs';
+import { VyperCheckedContract, VyperJsonInput, VyperSettings } from '../src';
+import Sinon from 'sinon';
 
 describe('Verify Solidity Compiler', () => {
   it('Should fetch latest SolcJS compiler', async () => {
@@ -141,6 +145,16 @@ describe('Verify Solidity Compiler', () => {
 });
 
 describe('Checked contract', () => {
+  let sandbox: sinon.SinonSandbox;
+
+  beforeEach(() => {
+    sandbox = Sinon.createSandbox();
+  });
+
+  afterEach(() => {
+    sandbox.restore();
+  });
+
   it('Should return null after failed performFetch', async () => {
     expect(await performFetch('httpx://')).to.equal(null);
   });
@@ -244,5 +258,140 @@ describe('Checked contract', () => {
     ).equals(
       '0x8e7a1207ba791693fd76c6cf3e99908f53b8c67a5ae9f7b4ab628c74901711c9',
     );
+  });
+  it('Should mock a metadata object for a Vyper contract', async () => {
+    const contractFolderPath = path.join(
+      __dirname,
+      'sources',
+      'Vyper',
+      'testcontract',
+    );
+    const contractFileName = 'test.vy';
+    const contractName = 'test';
+    const vyperContent = await fs.promises.readFile(
+      path.join(contractFolderPath, contractFileName),
+    );
+    const vyperVersion = '0.3.10+commit.91361694';
+    const vyperSettings = {
+      evmVersion: 'istanbul',
+      outputSelection: {
+        '*': ['evm.bytecode'],
+      },
+    } as VyperSettings;
+
+    const checkedContract = new VyperCheckedContract(
+      vyperCompiler,
+      vyperVersion,
+      contractFileName,
+      contractName,
+      vyperSettings,
+      {
+        [contractFileName]: vyperContent.toString(),
+      },
+    );
+
+    expect(checkedContract.metadata).to.deep.equal({
+      compiler: { version: vyperVersion },
+      language: 'Vyper',
+      output: {
+        abi: [],
+        devdoc: { kind: 'dev', methods: {} },
+        userdoc: { kind: 'user', methods: {} },
+      },
+      settings: {
+        ...vyperSettings,
+        compilationTarget: { [contractFileName]: contractName },
+      },
+      sources: {
+        [contractFileName]: {
+          content: vyperContent.toString(),
+          keccak256: id(vyperContent.toString()),
+        },
+      },
+      version: 1,
+    });
+  });
+
+  it('Should throw an error on recompilation for a wrong name of a Vyper contract', async () => {
+    const contractFolderPath = path.join(
+      __dirname,
+      'sources',
+      'Vyper',
+      'testcontract',
+    );
+    const contractFileName = 'test.vy';
+    const wrongContractName = 'tes';
+    const vyperContent = await fs.promises.readFile(
+      path.join(contractFolderPath, contractFileName),
+    );
+    const vyperVersion = '0.3.10+commit.91361694';
+    const vyperSettings = {
+      evmVersion: 'istanbul',
+      outputSelection: {
+        '*': ['evm.bytecode'],
+      },
+    } as VyperSettings;
+
+    const checkedContract = new VyperCheckedContract(
+      vyperCompiler,
+      vyperVersion,
+      contractFileName,
+      wrongContractName,
+      vyperSettings,
+      {
+        [contractFileName]: vyperContent.toString(),
+      },
+    );
+
+    try {
+      await checkedContract.recompile();
+      expect.fail('Should have thrown an error');
+    } catch (e: any) {
+      expect(e.message).to.equal('Compiler error');
+    }
+  });
+
+  it('Should provide a correct VyperJsonInput to the vyper compiler', async () => {
+    const compileSpy = sandbox.spy(vyperCompiler, 'compile');
+
+    const contractFolderPath = path.join(
+      __dirname,
+      'sources',
+      'Vyper',
+      'testcontract',
+    );
+    const contractFileName = 'test.vy';
+    const contractName = 'test';
+    const vyperContent = await fs.promises.readFile(
+      path.join(contractFolderPath, contractFileName),
+    );
+    const vyperVersion = '0.3.10+commit.91361694';
+    const vyperSettings = {
+      evmVersion: 'istanbul',
+      outputSelection: {
+        '*': ['evm.bytecode'],
+      },
+    } as VyperSettings;
+
+    const checkedContract = new VyperCheckedContract(
+      vyperCompiler,
+      vyperVersion,
+      contractFileName,
+      contractName,
+      vyperSettings,
+      {
+        [contractFileName]: vyperContent.toString(),
+      },
+    );
+
+    await checkedContract.recompile();
+
+    const expectedVyperJsonInput = {
+      language: 'Vyper',
+      sources: { [contractFileName]: { content: vyperContent.toString() } },
+      settings: vyperSettings,
+    } as VyperJsonInput;
+    expect(compileSpy.calledWith(vyperVersion, expectedVyperJsonInput)).to.be
+      .true;
   });
 });
