@@ -4,7 +4,7 @@
 
 lib-sourcify is [Sourcify](https://sourcify.dev)'s reusable backbone library for verifying contracts. Additionally it contains:
 
-- support for Vyper contracts via `VyperCheckedContract`
+- support for both Solidity and Vyper contracts via `SolidityCheckedContract` and `VyperCheckedContract`
 - contract validation methods for creating `SolidityCheckedContract`s
   - an abstraction for a contract ready to be compiled and verified: fetching and assembling its source files, compiling etc.
 - Sourcify types and interfaces
