@@ -4,21 +4,24 @@
 
 lib-sourcify is [Sourcify](https://sourcify.dev)'s reusable backbone library for verifying contracts. Additionally it contains:
 
-- contract validation methods for creating `CheckedContract`s
+- support for Vyper contracts via `VyperCheckedContract`
+- contract validation methods for creating `SolidityCheckedContract`s
   - an abstraction for a contract ready to be compiled and verified: fetching and assembling its source files, compiling etc.
 - Sourcify types and interfaces
 
-## Solc Compiler
+## Compiler Setup
 
-The `lib-sourcify` library does not come with the Solidity compiler as a dependency. Instead, you need to provide a class that implements the `ISolidityCompiler` interface and pass it to any function that requires a compiler.
+The `lib-sourcify` library does not come with compilers as dependencies. Instead, you need to provide a class that implements either the `ISolidityCompiler` or `IVyperCompiler` interface and pass it to any function that requires a compiler.
+
+### Solidity Compiler Example
 
 ```typescript
 // The external Solidity Compiler
 import solidityCompiler from "./compiler/solidityCompiler";
 
-// Include also SolidityOutput and JsonInput as dependncies of ISolidityCompiler
+// Include also SolidityOutput and JsonInput as dependencies of ISolidityCompiler
 import {
-  ISolidityCompiler
+  ISolidityCompiler,
   SolidityOutput,
   JsonInput,
 } from "@ethereum-sourcify/lib-sourcify";
@@ -36,17 +39,50 @@ class Solc implements ISolidityCompiler {
 const solc = new Solc()
 
 // Pass the class to the functions that needs it
-const checkedContract = new CheckedContract(
+const checkedContract = new SolidityCheckedContract(
   solc,
   {/** metadata */},
   {/** solidity files */},
 )
+```
 
+### Vyper Compiler Example
+
+```typescript
+import vyperCompiler from "./compiler/vyperCompiler";
+
+import {
+  IVyperCompiler,
+  VyperOutput,
+  VyperJsonInput,
+} from "@ethereum-sourcify/lib-sourcify";
+
+class Vyper implements IVyperCompiler {
+  async compile(
+    version: string,
+    vyperJsonInput: VyperJsonInput
+  ): Promise<VyperOutput> {
+    return await vyperCompiler.compile(version, vyperJsonInput);
+  }
+}
+const vyper = new Vyper()
+
+// Pass the class to create a VyperCheckedContract
+const checkedContract = new VyperCheckedContract(
+  vyper,
+  "0.3.7", // vyper version
+  "contract.vy", // contract path
+  "MyContract", // contract name
+  {/** vyper settings */},
+  {/** vyper source files */}
+)
 ```
 
 ## Validation
 
-The initial step to verify a contract is to validation, i.e. creating a `CheckedContract`. This can be done with `checkFilesWithMetadata` which takes files in `PathBuffer` as input and outputs a `CheckedContract` array:
+Note: Vyper contracts do not support validation through metadata files since they do not include a metadata JSON field in their bytecode. Instead, Vyper contracts must be verified directly using their source files and compiler settings.
+
+The initial step to verify a contract is validation, i.e. creating a `SolidityCheckedContract`. This can be done with `checkFilesWithMetadata` which takes files in `PathBuffer` as input and outputs a `SolidityCheckedContract` array:
 
 ```ts
 const pathBuffers: PathBuffer[] = [];
@@ -56,16 +92,16 @@ pathBuffers.push({
 });
 ```
 
-For a `CheckedContract` to be valid i.e. compilable, you need to provide a [contract metadata JSON](https://docs.soliditylang.org/en/latest/metadata.html) file identifying the contract and the source files of the contract listed under the `sources` field of the metadata.
+For a `SolidityCheckedContract` to be valid i.e. compilable, you need to provide a [contract metadata JSON](https://docs.soliditylang.org/en/latest/metadata.html) file identifying the contract and the source files of the contract listed under the `sources` field of the metadata.
 
 ```ts
-const checkedContracts: CheckedContract[] = await checkFilesWithMetadata(solc, pathBuffers);
+const checkedContracts: SolidityCheckedContract[] = await checkFilesWithMetadata(solc, pathBuffers);
 ```
 
 Each contract source either has a `content` field containing the Solidity code as a string, or urls to fetch the sources from (Github, IPFS, Swarm etc.). If the contract sources are available, you can fetch them with.
 
 ```ts
-CheckedContract.fetchMissing(checkedContracts[0]); // static method
+SolidityCheckedContract.fetchMissing(checkedContracts[0]); // static method
 ```
 
 By default, IPFS resources will be fetched via https://ipfs.io/ipfs. You can specify a custom IPFS gateway using `process.env.IPFS_GATEWAY=https://custom-gateway`, if you need to pass additional headers to the request (e.g. for authentication) you can use `process.env.IPFS_GATEWAY_HEADERS={ 'custom-header': 'value' }`.
@@ -73,12 +109,12 @@ By default, IPFS resources will be fetched via https://ipfs.io/ipfs. You can spe
 You can check if a contract is ready to be compiled with:
 
 ```ts
-CheckedContract.isValid(checkedContracts[0]); // true
+SolidityCheckedContract.isValid(checkedContracts[0]); // true
 ```
 
 ## Verification
 
-A contract verification essentially requires a `CheckedContract` and an on-chain contract to compare against the `CheckedContract`.
+A contract verification essentially requires a `AbstractCheckedContract` and an on-chain contract to compare against the `AbstractCheckedContract`. The library supports both Solidity (`SolidityCheckedContract`) and Vyper (`VyperCheckedContract`) contracts.
 
 ### Deployed Contract
 
@@ -86,7 +122,7 @@ You can verify a deployed contract with:
 
 ```ts
 export async function verifyDeployed(
-  checkedContract: CheckedContract,
+  checkedContract: AbstractCheckedContract, // Can be SolidityCheckedContract or VyperCheckedContract
   sourcifyChain: SourcifyChain,
   address: string,
   creatorTxHash?: string,
@@ -120,7 +156,7 @@ Alternatively you can verify counterfactual contracts created with the [CREATE2]
 
 ```ts
 export async function verifyCreate2(
-  checkedContract: CheckedContract,
+  checkedContract: SolidityCheckedContract,
   deployerAddress: string,
   salt: string,
   create2Address: string,
