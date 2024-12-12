@@ -114,12 +114,14 @@ SolidityCheckedContract.isValid(checkedContracts[0]); // true
 
 ## Verification
 
-A contract verification essentially requires an `AbstractCheckedContract` and an on-chain contract to compare against. The library provides two concrete implementations:
+A contract verification essentially requires an `AbstractCheckedContract` and an on-chain contract to compare against. The library provides two concrete implementations of `AbstractCheckedContract`:
 
 - `SolidityCheckedContract`: For Solidity smart contracts
 - `VyperCheckedContract`: For Vyper smart contracts
 
-Both classes extend the `AbstractCheckedContract` base class, providing specific compilation and verification logic for their respective languages.
+Both classes provide specific compilation and verification logic for their respective languages.
+
+The library automatically fetches the contract bytecode from the on-chain contract and verifies it against the `AbstractCheckedContract`.
 
 ### Deployed Contract
 
@@ -134,7 +136,7 @@ export async function verifyDeployed(
 ): Promise<Match>;
 ```
 
-a `SourcifyChain` here is the chain object of [ethereum-lists/chains](https://chainid.network/chains.json). This states which chain to look the contract in (e.g. `chainId`) and through which `rpc`s to retrieve the deployed contract from.
+The `SourcifyChain` parameter is the chain object of [ethereum-lists/chains](https://chainid.network/chains.json). This states which chain to look the contract in (e.g. `chainId`) and through which `rpc`s to retrieve the deployed contract from.
 
 ```ts
 const goerliChain =   {
