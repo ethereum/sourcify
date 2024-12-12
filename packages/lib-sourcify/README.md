@@ -114,7 +114,12 @@ SolidityCheckedContract.isValid(checkedContracts[0]); // true
 
 ## Verification
 
-A contract verification essentially requires a `AbstractCheckedContract` and an on-chain contract to compare against the `AbstractCheckedContract`. The library supports both Solidity (`SolidityCheckedContract`) and Vyper (`VyperCheckedContract`) contracts.
+A contract verification essentially requires an `AbstractCheckedContract` and an on-chain contract to compare against. The library provides two concrete implementations:
+
+- `SolidityCheckedContract`: For Solidity smart contracts
+- `VyperCheckedContract`: For Vyper smart contracts
+
+Both classes extend the `AbstractCheckedContract` base class, providing specific compilation and verification logic for their respective languages.
 
 ### Deployed Contract
 
