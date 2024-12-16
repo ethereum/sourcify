@@ -1,4 +1,4 @@
-import { DecodedObject } from "@ethereum-sourcify/bytecode-utils";
+import { SolidityDecodedObject } from "@ethereum-sourcify/bytecode-utils";
 import { DecentralizedStorageOrigin } from "./types";
 
 export type FetchedFileCallback = (fetchedFile: string) => any;
@@ -45,7 +45,7 @@ export class FileHash {
     return null;
   }
 
-  static fromCborData(cborData: DecodedObject): FileHash {
+  static fromCborData(cborData: SolidityDecodedObject): FileHash {
     for (const origin of KNOWN_CBOR_ORIGINS) {
       const fileHash = cborData[origin];
       if (fileHash) {

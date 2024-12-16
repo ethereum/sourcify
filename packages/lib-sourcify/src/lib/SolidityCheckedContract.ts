@@ -19,6 +19,7 @@ import semver from 'semver';
 import { fetchWithBackoff } from './utils';
 import { storeByHash } from './validation';
 import {
+  AuxdataStyle,
   decode as decodeBytecode,
   splitAuxdata,
 } from '@ethereum-sourcify/bytecode-utils';
@@ -46,6 +47,8 @@ export class SolidityCheckedContract extends AbstractCheckedContract {
   /** Object containing input for solc when used with the --standard-json flag. */
   solcJsonInput: any;
   compilerOutput?: SolidityOutput;
+
+  static readonly auxdataStyle: AuxdataStyle.SOLIDITY = AuxdataStyle.SOLIDITY;
 
   /** Checks whether this contract is valid or not.
    *  This is a static method due to persistence issues.
@@ -110,7 +113,10 @@ export class SolidityCheckedContract extends AbstractCheckedContract {
   ): Promise<SolidityCheckedContract | null> {
     let decodedAuxdata;
     try {
-      decodedAuxdata = decodeBytecode(runtimeBytecode);
+      decodedAuxdata = decodeBytecode(
+        runtimeBytecode,
+        SolidityCheckedContract.auxdataStyle,
+      );
     } catch (err) {
       // There is no auxdata at all in this contract
       return null;
@@ -257,17 +263,14 @@ export class SolidityCheckedContract extends AbstractCheckedContract {
   /**
    * Finds the positions of the auxdata in the runtime and creation bytecodes.
    * Saves the CborAuxdata position (offset) and value in the runtime- and creationBytecodeCborAuxdata fields.
-   *
+   * @returns false if the auxdata positions cannot be generated or if the auxdata in legacyAssembly differs from the auxdata in the bytecode, true otherwise.
    */
   public async generateCborAuxdataPositions(forceEmscripten = false) {
     if (
-      this.creationBytecode === undefined ||
-      this.runtimeBytecode === undefined
+      !this.creationBytecode ||
+      !this.runtimeBytecode ||
+      !this.compilerOutput
     ) {
-      return false;
-    }
-
-    if (this.compilerOutput === undefined) {
       return false;
     }
 
@@ -289,6 +292,7 @@ export class SolidityCheckedContract extends AbstractCheckedContract {
       // Extract the auxdata from the end of the recompiled runtime bytecode
       const [, runtimeAuxdataCbor, runtimeCborLengthHex] = splitAuxdata(
         this.runtimeBytecode,
+        SolidityCheckedContract.auxdataStyle,
       );
 
       const auxdataFromRawRuntimeBytecode = `${runtimeAuxdataCbor}${runtimeCborLengthHex}`;
@@ -310,7 +314,7 @@ export class SolidityCheckedContract extends AbstractCheckedContract {
           offset:
             this.runtimeBytecode.substring(2).length / 2 -
             parseInt(runtimeCborLengthHex, 16) -
-            2,
+            2, // bytecode has 2 bytes of cbor length prefix at the end
           value: `0x${auxdataFromRawRuntimeBytecode}`,
         },
       };
@@ -318,6 +322,7 @@ export class SolidityCheckedContract extends AbstractCheckedContract {
       // Try to extract the auxdata from the end of the recompiled creation bytecode
       const [, creationAuxdataCbor, creationCborLengthHex] = splitAuxdata(
         this.creationBytecode,
+        SolidityCheckedContract.auxdataStyle,
       );
 
       // If we can find the auxdata at the end of the bytecode return; otherwise continue with `generateEditedContract`
@@ -330,7 +335,7 @@ export class SolidityCheckedContract extends AbstractCheckedContract {
               offset:
                 this.creationBytecode.substring(2).length / 2 -
                 parseInt(creationCborLengthHex, 16) -
-                2,
+                2, // bytecode has 2 bytes of cbor length prefix at the end
               value: `0x${auxdataFromRawCreationBytecode}`,
             },
           };

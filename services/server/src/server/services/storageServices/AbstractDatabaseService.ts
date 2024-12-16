@@ -149,7 +149,11 @@ export default abstract class AbstractDatabaseService {
         recompiledContract.compiledPath
       ][recompiledContract.name];
 
-    if (recompiledContract instanceof SolidityCheckedContract) {
+    // If during verification `generateCborAuxdataPositions` was not called, we call it now
+    if (
+      recompiledContract.runtimeBytecodeCborAuxdata === undefined &&
+      recompiledContract.creationBytecodeCborAuxdata === undefined
+    ) {
       if (!(await recompiledContract.generateCborAuxdataPositions())) {
         throw new Error(
           `cannot generate contract artifacts address=${match.address} chainId=${match.chainId}`,

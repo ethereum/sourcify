@@ -1,4 +1,9 @@
-import { MetadataOutput, RecompilationResult, StringMap } from './types';
+import {
+  CompiledContractCborAuxdata,
+  MetadataOutput,
+  RecompilationResult,
+  StringMap,
+} from './types';
 import { logInfo, logSilly, logWarn } from './logger';
 import {
   IVyperCompiler,
@@ -8,6 +13,8 @@ import {
 } from './IVyperCompiler';
 import { AbstractCheckedContract } from './AbstractCheckedContract';
 import { id } from 'ethers';
+import { AuxdataStyle, splitAuxdata } from '@ethereum-sourcify/bytecode-utils';
+import semver from 'semver';
 
 /**
  * Abstraction of a checked vyper contract. With metadata and source (vyper) files.
@@ -18,6 +25,10 @@ export class VyperCheckedContract extends AbstractCheckedContract {
   vyperSettings: VyperSettings;
   vyperJsonInput!: VyperJsonInput;
   compilerOutput?: VyperOutput;
+  auxdataStyle:
+    | AuxdataStyle.VYPER
+    | AuxdataStyle.VYPER_LT_0_3_10
+    | AuxdataStyle.VYPER_LT_0_3_5;
 
   generateMetadata(output?: VyperOutput) {
     let outputMetadata: MetadataOutput;
@@ -105,6 +116,27 @@ export class VyperCheckedContract extends AbstractCheckedContract {
     super();
     this.vyperCompiler = vyperCompiler;
     this.compilerVersion = vyperCompilerVersion;
+
+    // Vyper beta and rc versions are not semver compliant, so we need to handle them differently
+    let compilerVersionForComparison = this.compilerVersion;
+    if (!semver.valid(this.compilerVersion)) {
+      // Check for beta or release candidate versions
+      if (this.compilerVersion.match(/\d+\.\d+\.\d+(b\d+|rc\d+)/)) {
+        compilerVersionForComparison = `${this.compilerVersion
+          .split('+')[0]
+          .replace(/(b\d+|rc\d+)$/, '')}+${this.compilerVersion.split('+')[1]}`;
+      } else {
+        throw new Error('Invalid Vyper compiler version');
+      }
+    }
+    // Vyper version support for auxdata is different for each version
+    if (semver.lt(compilerVersionForComparison, '0.3.5')) {
+      this.auxdataStyle = AuxdataStyle.VYPER_LT_0_3_5;
+    } else if (semver.lt(compilerVersionForComparison, '0.3.10')) {
+      this.auxdataStyle = AuxdataStyle.VYPER_LT_0_3_10;
+    } else {
+      this.auxdataStyle = AuxdataStyle.VYPER;
+    }
     this.compiledPath = compiledPath;
     this.name = name;
     this.sources = sources;
@@ -179,6 +211,70 @@ export class VyperCheckedContract extends AbstractCheckedContract {
       immutableReferences: {},
       creationLinkReferences: {},
       runtimeLinkReferences: {},
+    };
+  }
+
+  /**
+   * Generate the cbor auxdata positions for the creation and runtime bytecodes.
+   * @returns false if the auxdata positions cannot be generated, true otherwise.
+   */
+  public async generateCborAuxdataPositions() {
+    if (
+      !this.creationBytecode ||
+      !this.runtimeBytecode ||
+      !this.compilerOutput
+    ) {
+      return false;
+    }
+
+    const [, runtimeAuxdataCbor, runtimeCborLengthHex] = splitAuxdata(
+      this.runtimeBytecode,
+      this.auxdataStyle,
+    );
+
+    this.runtimeBytecodeCborAuxdata = this.tryGenerateCborAuxdataPosition(
+      this.runtimeBytecode,
+      runtimeAuxdataCbor,
+      runtimeCborLengthHex,
+    );
+
+    const [, creationAuxdataCbor, creationCborLengthHex] = splitAuxdata(
+      this.creationBytecode,
+      this.auxdataStyle,
+    );
+
+    this.creationBytecodeCborAuxdata = this.tryGenerateCborAuxdataPosition(
+      this.creationBytecode,
+      creationAuxdataCbor,
+      creationCborLengthHex,
+    );
+
+    return true;
+  }
+
+  private tryGenerateCborAuxdataPosition(
+    bytecode: string,
+    auxdataCbor: string,
+    cborLengthHex: string,
+  ): CompiledContractCborAuxdata {
+    if (!auxdataCbor) {
+      return {};
+    }
+
+    const auxdataFromRawBytecode = `${auxdataCbor}${cborLengthHex}`;
+
+    return {
+      '1': {
+        offset:
+          // we divide by 2 because we store the length in bytes (without 0x)
+          bytecode.substring(2).length / 2 -
+          parseInt(
+            cborLengthHex ||
+              '0' /** handles vyper lower than 0.3.5 in which cborLengthHex is '' */,
+            16,
+          ),
+        value: `0x${auxdataFromRawBytecode}`,
+      },
     };
   }
 }

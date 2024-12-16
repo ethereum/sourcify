@@ -2,7 +2,10 @@ import { FileHash } from "./util";
 import { Block, TransactionResponse, getCreateAddress } from "ethers";
 import assert from "assert";
 import { EventEmitter } from "stream";
-import { decode as bytecodeDecode } from "@ethereum-sourcify/bytecode-utils";
+import {
+  AuxdataStyle,
+  decode as bytecodeDecode,
+} from "@ethereum-sourcify/bytecode-utils";
 import { SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
 import logger from "./logger";
 import {
@@ -261,7 +264,13 @@ export default class ChainMonitor extends EventEmitter {
         return;
       }
       try {
-        const cborData = bytecodeDecode(bytecode);
+        /**
+         * We decode the bytecode using `AuxdataStyle.SOLIDITY` since Solidity is currently
+         * the only smart contract language that includes metadata information in its bytecode.
+         * This metadata contains an IPFS CID that points to a JSON file with the contract's
+         * source code and compiler settings.
+         */
+        const cborData = bytecodeDecode(bytecode, AuxdataStyle.SOLIDITY);
         metadataHash = FileHash.fromCborData(cborData);
       } catch (err: any) {
         this.chainLogger.info("Error extracting cborAuxdata or metadata hash", {
