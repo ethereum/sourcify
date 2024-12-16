@@ -24,9 +24,7 @@ export type VyperDecodedObject = {
   runtimeSize?: number;
   dataSizes?: number[];
   immutableSize?: number;
-  compiler: {
-    vyper: [number, number, number];
-  };
+  vyperVersion: string;
 };
 
 export enum AuxdataStyle {
@@ -83,14 +81,14 @@ export const decode = <T extends AuxdataStyle>(
           runtimeSize: cborDecodedObject[1],
           dataSizes: cborDecodedObject[2],
           immutableSize: cborDecodedObject[3],
-          compiler: compilerVersion,
+          vyperVersion: compilerVersion,
         } as any;
       } else if (semver.gte(compilerVersion, '0.3.10')) {
         return {
           runtimeSize: cborDecodedObject[0],
           dataSizes: cborDecodedObject[1],
           immutableSize: cborDecodedObject[2],
-          compiler: compilerVersion,
+          vyperVersion: compilerVersion,
         } as any;
       }
     }
@@ -102,7 +100,7 @@ export const decode = <T extends AuxdataStyle>(
     // cbor decode the object and get a json
     const cborDecodedObject = CBOR.decode(arrayify(`0x${auxdata}`));
     return {
-      compiler: cborDecodedObject.vyper.join('.'),
+      vyperVersion: cborDecodedObject.vyper.join('.'),
     } as any;
   } else if (auxdataStyle === AuxdataStyle.SOLIDITY) {
     // cbor decode the object and get a json

@@ -90,7 +90,7 @@ describe('bytecode utils', function () {
         runtimeSize: 143,
         dataSizes: [],
         immutableSize: 0,
-        compiler: '0.4.1',
+        vyperVersion: '0.4.1',
       });
   });
 
@@ -101,7 +101,7 @@ describe('bytecode utils', function () {
         runtimeSize: 143,
         dataSizes: [],
         immutableSize: 0,
-        compiler: '0.3.10',
+        vyperVersion: '0.3.10',
       });
   });
 
@@ -109,7 +109,7 @@ describe('bytecode utils', function () {
     chai
       .expect(decode(BYTECODE_VYPER_NO_ARRAY, AuxdataStyle.VYPER_LT_0_3_10))
       .to.deep.equal({
-        compiler: '0.3.8',
+        vyperVersion: '0.3.8',
       });
   });
 
@@ -119,7 +119,7 @@ describe('bytecode utils', function () {
         decode(BYTECODE_VYPER_NO_AUXDATA_LENGTH, AuxdataStyle.VYPER_LT_0_3_5),
       )
       .to.deep.equal({
-        compiler: '0.3.4',
+        vyperVersion: '0.3.4',
       });
   });
 
