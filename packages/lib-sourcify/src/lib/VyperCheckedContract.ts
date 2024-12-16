@@ -1,4 +1,9 @@
-import { MetadataOutput, RecompilationResult, StringMap } from './types';
+import {
+  CompiledContractCborAuxdata,
+  MetadataOutput,
+  RecompilationResult,
+  StringMap,
+} from './types';
 import { logInfo, logSilly, logWarn } from './logger';
 import {
   IVyperCompiler,
@@ -211,68 +216,61 @@ export class VyperCheckedContract extends AbstractCheckedContract {
 
   public async generateCborAuxdataPositions() {
     if (
-      this.creationBytecode === undefined ||
-      this.runtimeBytecode === undefined
+      !this.creationBytecode ||
+      !this.runtimeBytecode ||
+      !this.compilerOutput
     ) {
       return false;
     }
 
-    if (this.compilerOutput === undefined) {
-      return false;
-    }
-
-    // Extract the auxdata from the end of the recompiled runtime bytecode
     const [, runtimeAuxdataCbor, runtimeCborLengthHex] = splitAuxdata(
       this.runtimeBytecode,
       this.auxdataStyle,
     );
 
-    this.runtimeBytecodeCborAuxdata = {};
-    if (runtimeAuxdataCbor) {
-      const auxdataFromRawRuntimeBytecode = `${runtimeAuxdataCbor}${runtimeCborLengthHex}`;
+    this.runtimeBytecodeCborAuxdata = this.tryGenerateCborAuxdataPosition(
+      this.runtimeBytecode,
+      runtimeAuxdataCbor,
+      runtimeCborLengthHex,
+    );
 
-      // we divide by 2 because we store the length in bytes (without 0x)
-      this.runtimeBytecodeCborAuxdata = {
-        '1': {
-          offset:
-            this.runtimeBytecode.substring(2).length / 2 -
-            parseInt(
-              runtimeCborLengthHex ||
-                '0' /** handles vyper lower than 0.3.5 in which runtimeCborLengthHex is '' */,
-              16,
-            ) -
-            2,
-          value: `0x${auxdataFromRawRuntimeBytecode}`,
-        },
-      };
-    }
-
-    // Try to extract the auxdata from the end of the recompiled creation bytecode
     const [, creationAuxdataCbor, creationCborLengthHex] = splitAuxdata(
       this.creationBytecode,
       this.auxdataStyle,
     );
 
-    this.creationBytecodeCborAuxdata = {};
-    // If we can find the auxdata at the end of the bytecode return; otherwise continue with `generateEditedContract`
-    if (creationAuxdataCbor) {
-      const auxdataFromRawCreationBytecode = `${creationAuxdataCbor}${creationCborLengthHex}`;
+    this.creationBytecodeCborAuxdata = this.tryGenerateCborAuxdataPosition(
+      this.creationBytecode,
+      creationAuxdataCbor,
+      creationCborLengthHex,
+    );
 
-      // we divide by 2 because we store the length in bytes (without 0x)
-      this.creationBytecodeCborAuxdata = {
-        '1': {
-          offset:
-            this.creationBytecode.substring(2).length / 2 -
-            parseInt(
-              creationCborLengthHex ||
-                '0' /** handles vyper lower than 0.3.5 in which creationCborLengthHex is '' */,
-              16,
-            ),
-          value: `0x${auxdataFromRawCreationBytecode}`,
-        },
-      };
-      return true;
-    }
     return true;
+  }
+
+  private tryGenerateCborAuxdataPosition(
+    bytecode: string,
+    auxdataCbor: string,
+    cborLengthHex: string,
+  ): CompiledContractCborAuxdata {
+    if (!auxdataCbor) {
+      return {};
+    }
+
+    const auxdataFromRawBytecode = `${auxdataCbor}${cborLengthHex}`;
+
+    return {
+      '1': {
+        offset:
+          // we divide by 2 because we store the length in bytes (without 0x)
+          bytecode.substring(2).length / 2 -
+          parseInt(
+            cborLengthHex ||
+              '0' /** handles vyper lower than 0.3.5 in which cborLengthHex is '' */,
+            16,
+          ),
+        value: `0x${auxdataFromRawBytecode}`,
+      },
+    };
   }
 }

@@ -48,7 +48,7 @@ export class SolidityCheckedContract extends AbstractCheckedContract {
   solcJsonInput: any;
   compilerOutput?: SolidityOutput;
 
-  auxdataStyle: AuxdataStyle.SOLIDITY = AuxdataStyle.SOLIDITY;
+  static readonly auxdataStyle: AuxdataStyle.SOLIDITY = AuxdataStyle.SOLIDITY;
 
   /** Checks whether this contract is valid or not.
    *  This is a static method due to persistence issues.
@@ -113,7 +113,10 @@ export class SolidityCheckedContract extends AbstractCheckedContract {
   ): Promise<SolidityCheckedContract | null> {
     let decodedAuxdata;
     try {
-      decodedAuxdata = decodeBytecode(runtimeBytecode, this.auxdataStyle);
+      decodedAuxdata = decodeBytecode(
+        runtimeBytecode,
+        SolidityCheckedContract.auxdataStyle,
+      );
     } catch (err) {
       // There is no auxdata at all in this contract
       return null;
@@ -264,13 +267,10 @@ export class SolidityCheckedContract extends AbstractCheckedContract {
    */
   public async generateCborAuxdataPositions(forceEmscripten = false) {
     if (
-      this.creationBytecode === undefined ||
-      this.runtimeBytecode === undefined
+      !this.creationBytecode ||
+      !this.runtimeBytecode ||
+      !this.compilerOutput
     ) {
-      return false;
-    }
-
-    if (this.compilerOutput === undefined) {
       return false;
     }
 
@@ -292,7 +292,7 @@ export class SolidityCheckedContract extends AbstractCheckedContract {
       // Extract the auxdata from the end of the recompiled runtime bytecode
       const [, runtimeAuxdataCbor, runtimeCborLengthHex] = splitAuxdata(
         this.runtimeBytecode,
-        this.auxdataStyle,
+        SolidityCheckedContract.auxdataStyle,
       );
 
       const auxdataFromRawRuntimeBytecode = `${runtimeAuxdataCbor}${runtimeCborLengthHex}`;
@@ -322,7 +322,7 @@ export class SolidityCheckedContract extends AbstractCheckedContract {
       // Try to extract the auxdata from the end of the recompiled creation bytecode
       const [, creationAuxdataCbor, creationCborLengthHex] = splitAuxdata(
         this.creationBytecode,
-        this.auxdataStyle,
+        SolidityCheckedContract.auxdataStyle,
       );
 
       // If we can find the auxdata at the end of the bytecode return; otherwise continue with `generateEditedContract`
