@@ -17,6 +17,7 @@ import {
   LinkReferences,
 } from './types';
 import {
+  AuxdataStyle,
   decode as bytecodeDecode,
   splitAuxdata,
 } from '@ethereum-sourcify/bytecode-utils';
@@ -99,10 +100,7 @@ export async function verifyDeployed(
   }
 
   const generateRuntimeCborAuxdataPositions = async () => {
-    if (
-      checkedContract instanceof SolidityCheckedContract &&
-      !checkedContract.runtimeBytecodeCborAuxdata
-    ) {
+    if (!checkedContract.runtimeBytecodeCborAuxdata) {
       await checkedContract.generateCborAuxdataPositions();
     }
     return checkedContract.runtimeBytecodeCborAuxdata || {};
@@ -156,10 +154,7 @@ export async function verifyDeployed(
   }
 
   const generateCreationCborAuxdataPositions = async () => {
-    if (
-      checkedContract instanceof SolidityCheckedContract &&
-      !checkedContract.creationBytecodeCborAuxdata
-    ) {
+    if (!checkedContract.creationBytecodeCborAuxdata) {
       await checkedContract.generateCborAuxdataPositions();
     }
     return checkedContract.creationBytecodeCborAuxdata || {};
@@ -230,14 +225,26 @@ export async function verifyDeployed(
   try {
     if (
       checkedContract instanceof SolidityCheckedContract &&
-      splitAuxdata(match.onchainRuntimeBytecode || '')[1] ===
-        splitAuxdata(checkedContract.runtimeBytecode || '')[1] &&
+      splitAuxdata(
+        match.onchainRuntimeBytecode || '',
+        AuxdataStyle.SOLIDITY,
+      )[1] ===
+        splitAuxdata(
+          checkedContract.runtimeBytecode || '',
+          AuxdataStyle.SOLIDITY,
+        )[1] &&
       match.runtimeMatch === null &&
       match.creationMatch === null &&
       checkedContract.metadata.settings.optimizer?.enabled
     ) {
-      const [, deployedAuxdata] = splitAuxdata(runtimeBytecode);
-      const [, recompiledAuxdata] = splitAuxdata(recompiled.runtimeBytecode);
+      const [, deployedAuxdata] = splitAuxdata(
+        runtimeBytecode,
+        AuxdataStyle.SOLIDITY,
+      );
+      const [, recompiledAuxdata] = splitAuxdata(
+        recompiled.runtimeBytecode,
+        AuxdataStyle.SOLIDITY,
+      );
       // Metadata hashes match but bytecodes don't match.
       if (deployedAuxdata === recompiledAuxdata) {
         (match as Match).runtimeMatch = 'extra-file-input-bug';
@@ -888,7 +895,7 @@ const saltToHex = (salt: string) => {
 function endsWithMetadataHash(bytecode: string) {
   let endsWithMetadata: boolean;
   try {
-    const decodedCBOR = bytecodeDecode(bytecode);
+    const decodedCBOR = bytecodeDecode(bytecode, AuxdataStyle.SOLIDITY);
     endsWithMetadata =
       !!decodedCBOR.ipfs || !!decodedCBOR['bzzr0'] || !!decodedCBOR['bzzr1'];
   } catch (e) {

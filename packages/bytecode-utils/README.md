@@ -13,7 +13,7 @@ yarn add @ethereum-sourcify/bytecode-utils
 ### Solidity Contracts
 
 ```ts
-import { decode } from "@ethereum-sourcify/bytecode-utils";
+import { decode, AuxdataStyle } from "@ethereum-sourcify/bytecode-utils";
 
 const bytecodeRaw = "0x60806040526004361061003f5760003560e01...7265206c656e677468a2646970667358221220dceca8706b29e917dacf25fceef95acac8d90d765ac926663ce4096195952b6164736f6c634300060b0033"
 
