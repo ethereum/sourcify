@@ -52,9 +52,7 @@ decode(vyperBytecodeRaw, AuxdataStyle.VYPER);
   "runtimeSize": 1234,
   "dataSizes": [32, 64, 128],
   "immutableSize": 256,
-  "compiler": {
-    "vyper": "0.3.10"
-  }
+  "vyperVersion": "0.3.10"
 }
 ```
 
