@@ -107,7 +107,7 @@ describe('bytecode utils', function () {
 
   it('bytecode decode Vyper cbor auxdata for version < 0.3.10', () => {
     chai
-      .expect(decode(BYTECODE_VYPER_NO_ARRAY, AuxdataStyle.VYPER))
+      .expect(decode(BYTECODE_VYPER_NO_ARRAY, AuxdataStyle.VYPER_LT_0_3_10))
       .to.deep.equal({
         compiler: '0.3.8',
       });
@@ -115,7 +115,9 @@ describe('bytecode utils', function () {
 
   it('bytecode decode Vyper cbor auxdata for version < 0.3.5', () => {
     chai
-      .expect(decode(BYTECODE_VYPER_NO_AUXDATA_LENGTH, AuxdataStyle.VYPER))
+      .expect(
+        decode(BYTECODE_VYPER_NO_AUXDATA_LENGTH, AuxdataStyle.VYPER_LT_0_3_5),
+      )
       .to.deep.equal({
         compiler: '0.3.4',
       });
@@ -141,7 +143,7 @@ describe('bytecode utils', function () {
     } catch (e) {
       chai
         .expect((e as Error).message)
-        .to.equal('Auxdata is not in the execution bytecode');
+        .to.equal('Auxdata is not in the bytecode');
     }
   });
 });

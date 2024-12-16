@@ -39,9 +39,10 @@ export enum AuxdataStyle {
 /**
  * Decode contract's bytecode
  * @param bytecode - hex of the bytecode with 0x prefix
+ * @param auxdataStyle - The style of auxdata, check AuxdataStyle enum for more info
  * @returns Object describing the contract
  */
-export const decode = <T extends AuxdataStyle.SOLIDITY | AuxdataStyle.VYPER>(
+export const decode = <T extends AuxdataStyle>(
   bytecode: string,
   auxdataStyle: T,
 ): T extends AuxdataStyle.SOLIDITY
@@ -56,35 +57,18 @@ export const decode = <T extends AuxdataStyle.SOLIDITY | AuxdataStyle.VYPER>(
 
   // split auxdata
   const [, auxdata] = splitAuxdata(bytecode, auxdataStyle);
+  if (!auxdata) {
+    throw Error('Auxdata is not in the bytecode');
+  }
+
   // See more here: https://github.com/vyperlang/vyper/pull/3010
   if (auxdataStyle === AuxdataStyle.VYPER) {
-    if (!auxdata) {
-      // Attempt fallback auxdata styles for older Vyper versions
-      const fallbackStyles = [
-        AuxdataStyle.VYPER_LT_0_3_10, // Vyper bytecode before version 0.3.10 uses SOLIDITY AuxdataStyle
-        AuxdataStyle.VYPER_LT_0_3_5, // Vyper bytecode before version 0.3.5 doesn't include auxdata length
-      ];
-
-      for (const style of fallbackStyles) {
-        const [, fallbackAuxdata] = splitAuxdata(bytecode, style);
-        if (fallbackAuxdata) {
-          // cbor decode the object and get a json
-          const cborDecodedObject = CBOR.decode(
-            arrayify(`0x${fallbackAuxdata}`),
-          );
-          return {
-            compiler: cborDecodedObject.vyper.join('.'),
-          } as any;
-        }
-      }
-
-      throw Error('Auxdata is not in the execution bytecode');
-    }
-
     // cbor decode the object and get a json
     const cborDecodedObject = CBOR.decode(arrayify(`0x${auxdata}`));
 
     // Starting with version 0.3.10, Vyper stores the auxdata as an array
+    // after 0.3.10: [integrity, runtimesize, datasize,immutablesize,version_cbor_object]
+    // after 0.4.1: [runtimesize, datasize,immutablesize,version_cbor_object]
     // See more here: https://github.com/vyperlang/vyper/pull/3584
     if (cborDecodedObject instanceof Array) {
       // read the last element from array, it contains the compiler version
@@ -111,14 +95,16 @@ export const decode = <T extends AuxdataStyle.SOLIDITY | AuxdataStyle.VYPER>(
       }
     }
     throw Error('This version of Vyper is not supported');
+  } else if (
+    auxdataStyle === AuxdataStyle.VYPER_LT_0_3_10 ||
+    auxdataStyle === AuxdataStyle.VYPER_LT_0_3_5
+  ) {
+    // cbor decode the object and get a json
+    const cborDecodedObject = CBOR.decode(arrayify(`0x${auxdata}`));
+    return {
+      compiler: cborDecodedObject.vyper.join('.'),
+    } as any;
   } else if (auxdataStyle === AuxdataStyle.SOLIDITY) {
-    // split auxdata
-    const [, auxdata] = splitAuxdata(bytecode, auxdataStyle);
-
-    if (!auxdata) {
-      throw Error('Auxdata is not in the execution bytecode');
-    }
-
     // cbor decode the object and get a json
     const cborDecodedObject = CBOR.decode(arrayify(`0x${auxdata}`));
 
