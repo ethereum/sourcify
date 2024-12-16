@@ -7,9 +7,9 @@
 
 [![codecov](https://codecov.io/gh/ethereum/sourcify/branch/staging/graph/badge.svg?token=eN6XDAwWfV)](https://codecov.io/gh/ethereum/sourcify)
 
-Sourcify ([sourcify.dev](https://sourcify.dev)) is a Solidity source code verification service for Ethereum smart contracts.
+Sourcify ([sourcify.dev](https://sourcify.dev)) is a source code verification service for Ethereum smart contracts supporting Solidity and Vyper.
 
-Different than other verification services, Sourcify leverages the [Solidity metadata](https://docs.sourcify.dev/docs/metadata/) file to ["fully verify"](https://docs.sourcify.dev/docs/full-vs-partial-match/) the contracts.
+Different than other verification services, Sourcify leverages the [metadata](https://docs.sourcify.dev/docs/metadata/) file to ["fully verify"](https://docs.sourcify.dev/docs/full-vs-partial-match/) the Solidity contracts.
 
 Sourcify mainly consists of:
 
