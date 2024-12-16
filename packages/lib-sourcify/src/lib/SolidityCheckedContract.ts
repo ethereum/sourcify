@@ -263,7 +263,7 @@ export class SolidityCheckedContract extends AbstractCheckedContract {
   /**
    * Finds the positions of the auxdata in the runtime and creation bytecodes.
    * Saves the CborAuxdata position (offset) and value in the runtime- and creationBytecodeCborAuxdata fields.
-   *
+   * @returns false if the auxdata positions cannot be generated or if the auxdata in legacyAssembly differs from the auxdata in the bytecode, true otherwise.
    */
   public async generateCborAuxdataPositions(forceEmscripten = false) {
     if (

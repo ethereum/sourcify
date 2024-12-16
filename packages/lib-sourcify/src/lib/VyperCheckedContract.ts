@@ -214,6 +214,10 @@ export class VyperCheckedContract extends AbstractCheckedContract {
     };
   }
 
+  /**
+   * Generate the cbor auxdata positions for the creation and runtime bytecodes.
+   * @returns false if the auxdata positions cannot be generated, true otherwise.
+   */
   public async generateCborAuxdataPositions() {
     if (
       !this.creationBytecode ||
