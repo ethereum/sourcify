@@ -653,6 +653,51 @@ describe('lib-sourcify tests', () => {
         verifyDeployed(checkedContract, sourcifyChainHardhat, contractAddress),
       ).to.be.rejectedWith("The deployed and recompiled bytecode don't match.");
     });
+
+    it('should have transformation information for a contract compiled with Vyper 0.3.4', async () => {
+      const { contractFileName, contractFileContent, contractAddress } = await deployDefaultVyperContract();
+
+      const checkedContract = new VyperCheckedContract(
+        vyperCompiler,
+        '0.3.4+commit.f31f0ec4',
+        contractFileName,
+        contractFileName.split('.')[0],
+        {
+          evmVersion: 'istanbul',
+          outputSelection: {
+            '*': ['evm.bytecode'],
+          },
+        },
+        {
+          [contractFileName]: contractFileContent.toString(),
+        },
+      );
+      const match = await verifyDeployed(
+        checkedContract,
+        sourcifyChainHardhat,
+        contractAddress,
+      );
+
+      expect(match.creationTransformationValues).to.deep.equal({
+        cborAuxdata: {
+          '1': '0xa165767970657283000304',
+        },
+      });
+
+    expect(match.creationTransformations).to.deep.equal([
+      {
+        type: 'replace',
+        reason: 'cborAuxdata',
+        offset: 279,
+        id: '1',
+      },
+    ]);
+    expect(match.creationTransformationValues).to.deep.equal({
+      cborAuxdata: {
+        '1': '0xa26469706673582212208a693a7ed29129e25fc67a65f83955fb3d86f5fbc378940d697827714b955df564736f6c634300081a0033',
+      },
+    });
+    });
   });
 
   describe('Unit tests', function () {
