@@ -65,8 +65,8 @@ export const decode = <T extends AuxdataStyle>(
     const cborDecodedObject = CBOR.decode(arrayify(`0x${auxdata}`));
 
     // Starting with version 0.3.10, Vyper stores the auxdata as an array
-    // after 0.3.10: [integrity, runtimesize, datasize,immutablesize,version_cbor_object]
-    // after 0.4.1: [runtimesize, datasize,immutablesize,version_cbor_object]
+    // after 0.3.10: [runtimesize, datasize,immutablesize,version_cbor_object]
+    // after 0.4.1: [integrity,runtimesize, datasize,immutablesize,version_cbor_object]
     // See more here: https://github.com/vyperlang/vyper/pull/3584
     if (cborDecodedObject instanceof Array) {
       // read the last element from array, it contains the compiler version
