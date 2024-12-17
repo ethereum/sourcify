@@ -569,7 +569,7 @@ describe('lib-sourcify tests', () => {
     });
   });
 
-  describe.only('Vyper', () => {
+  describe('Vyper', () => {
     it('should verify a vyper contract', async () => {
       const contractFolderPath = path.join(
         __dirname,
