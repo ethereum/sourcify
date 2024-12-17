@@ -34,6 +34,7 @@ import {
   startHardhatNetwork,
   stopHardhatNetwork,
 } from './hardhat-network-helper';
+import { AuxdataStyle } from '@ethereum-sourcify/bytecode-utils';
 
 const HARDHAT_PORT = 8544;
 
@@ -568,7 +569,7 @@ describe('lib-sourcify tests', () => {
     });
   });
 
-  describe('Vyper', () => {
+  describe.only('Vyper', () => {
     it('should verify a vyper contract', async () => {
       const contractFolderPath = path.join(
         __dirname,
@@ -608,6 +609,75 @@ describe('lib-sourcify tests', () => {
       );
 
       expectMatch(match, 'partial', contractAddress);
+    });
+
+    it('should verify a vyper contract with immutable references and constructor arguments', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        'sources',
+        'Vyper',
+        'withImmutables',
+      );
+      const contractFileName = 'test.vy';
+      const vyperContent = await fs.promises.readFile(
+        path.join(contractFolderPath, contractFileName),
+      );
+
+      console.log('deploying', await signer.getAddress());
+      const { contractAddress, txHash } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath,
+        [5],
+      );
+      const checkedContract = new VyperCheckedContract(
+        vyperCompiler,
+        '0.4.0+commit.e9db8d9f',
+        contractFileName,
+        contractFileName.split('.')[0],
+        {
+          evmVersion: 'london',
+          outputSelection: {
+            '*': ['evm.bytecode'],
+          },
+          optimize: 'codesize',
+        },
+        {
+          [contractFileName]: vyperContent.toString(),
+        },
+      );
+      const match = await verifyDeployed(
+        checkedContract,
+        sourcifyChainHardhat,
+        contractAddress,
+        txHash,
+      );
+
+      expectMatch(match, 'partial', contractAddress);
+      expect(match.creationMatch).to.equal('partial');
+      expect(match.creationTransformations).to.deep.equal([
+        {
+          type: 'insert',
+          reason: 'constructorArguments',
+          offset: 245,
+        },
+      ]);
+      expect(match.creationTransformationValues).to.deep.equal({
+        constructorArguments:
+          '0x0000000000000000000000000000000000000000000000000000000000000005',
+      });
+      expect(match.runtimeTransformations).to.deep.equal([
+        {
+          type: 'replace',
+          reason: 'immutable',
+          offset: 167,
+          id: '0',
+        },
+      ]);
+      expect(match.runtimeTransformationValues).to.deep.equal({
+        immutables: {
+          '0': '0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266000000000000000000000000000000000000000000000000000000000000000500000000000000000000000000000000000000000000000000eca7a2f8618d6f',
+        },
+      });
     });
 
     it('should fail to verify a different Vyper contract', async () => {
@@ -730,6 +800,7 @@ describe('lib-sourcify tests', () => {
         runtimeBytecode,
         [],
         {},
+        AuxdataStyle.SOLIDITY,
       );
 
       expect(replacedBytecode).equals(recompiledRuntimeBytecode);
