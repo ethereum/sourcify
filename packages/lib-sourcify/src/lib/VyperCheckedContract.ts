@@ -163,7 +163,7 @@ export class VyperCheckedContract extends AbstractCheckedContract {
       try {
         const { immutableSize } = decode(
           this.creationBytecode,
-          AuxdataStyle.VYPER,
+          this.auxdataStyle,
         );
         if (immutableSize) {
           immutableReferences = {
