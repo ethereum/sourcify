@@ -667,7 +667,7 @@ describe('lib-sourcify tests', () => {
       });
       expect(match.runtimeTransformations).to.deep.equal([
         {
-          type: 'replace',
+          type: 'insert',
           reason: 'immutable',
           offset: 167,
           id: '0',

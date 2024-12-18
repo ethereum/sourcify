@@ -39,10 +39,6 @@ export async function verifyDeployed(
   creatorTxHash?: string,
   forceEmscripten = false,
 ): Promise<Match> {
-  const auxdataStyle =
-    checkedContract instanceof SolidityCheckedContract
-      ? AuxdataStyle.SOLIDITY
-      : AuxdataStyle.VYPER;
   let match: Match = {
     address,
     chainId: sourcifyChain.chainId.toString(),
@@ -123,7 +119,7 @@ export async function verifyDeployed(
       generateRuntimeCborAuxdataPositions,
       recompiled.immutableReferences,
       recompiled.runtimeLinkReferences,
-      auxdataStyle,
+      checkedContract.auxdataStyle,
     );
     if (match.runtimeMatch === 'partial') {
       logDebug('Matched with deployed bytecode', {
@@ -144,7 +140,7 @@ export async function verifyDeployed(
               generateRuntimeCborAuxdataPositions,
               recompiled.immutableReferences,
               recompiled.runtimeLinkReferences,
-              auxdataStyle,
+              checkedContract.auxdataStyle,
             );
           },
           'runtimeMatch',
@@ -821,7 +817,13 @@ export function replaceImmutableReferences(
       const { start, length } = reference;
 
       // Save the transformation
-      transformationsArray.push(ImmutablesTransformation(start, astId));
+      transformationsArray.push(
+        ImmutablesTransformation(
+          start,
+          astId,
+          auxdataStyle === AuxdataStyle.SOLIDITY ? 'replace' : 'insert',
+        ),
+      );
       const immutableValue = onchainRuntimeBytecode.slice(
         start * 2,
         start * 2 + length * 2,
@@ -841,7 +843,7 @@ export function replaceImmutableReferences(
           zeros +
           onchainRuntimeBytecode.slice(start * 2 + length * 2);
       } else if (auxdataStyle === AuxdataStyle.VYPER) {
-        // Write zeros in the place
+        // This case works only for Vyper 0.3.10 and above
         onchainRuntimeBytecode = onchainRuntimeBytecode.slice(0, start * 2);
       }
     });
