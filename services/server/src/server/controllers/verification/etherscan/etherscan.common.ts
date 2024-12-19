@@ -4,11 +4,73 @@ import {
   JsonInput,
   Metadata,
   SourcifyChain,
+  VyperJsonInput,
   findContractPathFromContractName,
 } from "@ethereum-sourcify/lib-sourcify";
 import { TooManyRequests } from "../../../../common/errors/TooManyRequests";
 import { BadGatewayError } from "../../../../common/errors/BadGatewayError";
 import logger from "../../../../common/logger";
+
+interface VyperVersion {
+  compiler_version: string;
+  tag: string;
+}
+
+interface VyperVersionCache {
+  versions: VyperVersion[];
+  lastFetch: number;
+}
+
+let vyperVersionCache: VyperVersionCache | null = null;
+const CACHE_DURATION_MS = 60 * 60 * 1000; // 1 hour default
+
+export const getVyperCompilerVersion = async (
+  compilerString: string,
+  cacheDurationMs: number = CACHE_DURATION_MS,
+): Promise<string | undefined> => {
+  const now = Date.now();
+
+  // Check if cache needs refresh
+  if (
+    !vyperVersionCache ||
+    now - vyperVersionCache.lastFetch > cacheDurationMs
+  ) {
+    try {
+      const response = await fetch(
+        "https://vyper-releases-mirror.hardhat.org/list.json",
+      );
+      const versions = await response.json();
+      vyperVersionCache = {
+        versions: versions.map((version: any) => ({
+          compiler_version: version.assets[0]?.name
+            .replace("vyper.", "")
+            .replace(".darwin", "")
+            .replace(".linux", "")
+            .replace(".windows.exe", ""),
+          tag: version.tag_name.substring(1),
+        })),
+        lastFetch: now,
+      };
+    } catch (error) {
+      logger.error("Failed to fetch Vyper versions", { error });
+      // If cache exists but is stale, use it rather than failing
+      if (vyperVersionCache) {
+        logger.warn("Using stale Vyper versions cache");
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  if (!vyperVersionCache) {
+    return undefined;
+  }
+
+  const versionNumber = compilerString.split(":")[1];
+  return vyperVersionCache.versions.find(
+    (version) => version.tag === versionNumber,
+  )?.compiler_version;
+};
 
 export type EtherscanResult = {
   SourceCode: string;
@@ -26,7 +88,7 @@ export type EtherscanResult = {
   SwarmSource: string;
 };
 
-export const parseSolcJsonInput = (sourceCodeObject: string) => {
+export const parseJsonInput = (sourceCodeObject: string) => {
   return JSON.parse(sourceCodeObject.slice(1, -1));
 };
 
@@ -38,7 +100,7 @@ export const isEtherscanMultipleFilesObject = (sourceCodeObject: string) => {
   }
 };
 
-export const isEtherscanSolcJsonInput = (sourceCodeObject: string) => {
+export const isEtherscanJsonInput = (sourceCodeObject: string) => {
   if (sourceCodeObject.startsWith("{{")) {
     return true;
   }
@@ -71,6 +133,27 @@ export const getSolcJsonInputFromEtherscanResult = (
     settings: generatedSettings,
   };
   return solcJsonInput;
+};
+
+export const getVyperJsonInputFromEtherscanResult = (
+  etherscanResult: EtherscanResult,
+  sources: any,
+): VyperJsonInput => {
+  const generatedSettings = {
+    outputSelection: {
+      "*": ["evm.deployedBytecode.object"],
+    },
+    evmVersion:
+      etherscanResult.EVMVersion !== "Default"
+        ? (etherscanResult.EVMVersion as any)
+        : undefined,
+    search_paths: ["."],
+  };
+  return {
+    language: "Vyper",
+    sources,
+    settings: generatedSettings,
+  };
 };
 
 export const processRequestFromEtherscan = async (
@@ -156,78 +239,141 @@ export const processRequestFromEtherscan = async (
   const contractResultJson = resultJson.result[0];
   const sourceCodeObject = contractResultJson.SourceCode;
 
-  if (contractResultJson.CompilerVersion.startsWith("vyper")) {
-    throw new Error("Sourcify currently cannot verify Vyper contracts");
-  }
-
-  const compilerVersion =
-    contractResultJson.CompilerVersion.charAt(0) === "v"
-      ? contractResultJson.CompilerVersion.slice(1)
-      : contractResultJson.CompilerVersion;
   // TODO: this is not used by lib-sourcify's useSolidityCompiler
   const contractName = contractResultJson.ContractName;
 
-  let solcJsonInput: JsonInput;
-  // SourceCode can be the Solidity code if there is only one contract file, or the json object if there are multiple files
-  if (isEtherscanSolcJsonInput(sourceCodeObject)) {
-    logger.debug("Etherscan solcJsonInput contract found", {
-      chainId: sourcifyChain.chainId,
-      address,
-      secretUrl,
-    });
-    solcJsonInput = parseSolcJsonInput(sourceCodeObject);
+  if (contractResultJson.CompilerVersion.startsWith("solc")) {
+    const compilerVersion =
+      contractResultJson.CompilerVersion.charAt(0) === "v"
+        ? contractResultJson.CompilerVersion.slice(1)
+        : contractResultJson.CompilerVersion;
 
-    if (solcJsonInput?.settings) {
-      // Tell compiler to output metadata and bytecode
-      solcJsonInput.settings.outputSelection["*"]["*"] = [
-        "metadata",
-        "evm.deployedBytecode.object",
-      ];
+    let solcJsonInput: JsonInput;
+    // SourceCode can be the Solidity code if there is only one contract file, or the json object if there are multiple files
+    if (isEtherscanJsonInput(sourceCodeObject)) {
+      logger.debug("Etherscan solcJsonInput contract found", {
+        chainId: sourcifyChain.chainId,
+        address,
+        secretUrl,
+      });
+      solcJsonInput = parseJsonInput(sourceCodeObject);
+
+      if (solcJsonInput?.settings) {
+        // Tell compiler to output metadata and bytecode
+        solcJsonInput.settings.outputSelection["*"]["*"] = [
+          "metadata",
+          "evm.deployedBytecode.object",
+        ];
+      }
+    } else if (isEtherscanMultipleFilesObject(sourceCodeObject)) {
+      logger.debug("Etherscan multiple file contract found", {
+        chainId: sourcifyChain.chainId,
+        address,
+        secretUrl,
+      });
+      solcJsonInput = getSolcJsonInputFromEtherscanResult(
+        contractResultJson,
+        JSON.parse(sourceCodeObject),
+      );
+    } else {
+      logger.debug("Etherscan Solidity single file contract found", {
+        chainId: sourcifyChain.chainId,
+        address,
+        secretUrl,
+      });
+      const contractPath = contractResultJson.ContractName + ".sol";
+      const sources = {
+        [contractPath]: {
+          content: sourceCodeObject,
+        },
+      };
+      solcJsonInput = getSolcJsonInputFromEtherscanResult(
+        contractResultJson,
+        sources,
+      );
     }
-  } else if (isEtherscanMultipleFilesObject(sourceCodeObject)) {
-    logger.debug("Etherscan multiple file contract found", {
-      chainId: sourcifyChain.chainId,
-      address,
-      secretUrl,
-    });
-    solcJsonInput = getSolcJsonInputFromEtherscanResult(
-      contractResultJson,
-      JSON.parse(sourceCodeObject),
-    );
-  } else {
-    logger.debug("Etherscan single file contract found", {
-      chainId: sourcifyChain.chainId,
-      address,
-      secretUrl,
-    });
-    const contractPath = contractResultJson.ContractName + ".sol";
-    const sources = {
-      [contractPath]: {
-        content: sourceCodeObject,
-      },
+
+    if (!solcJsonInput) {
+      logger.info("Etherscan API - no solcJsonInput", {
+        chainId: sourcifyChain.chainId,
+        address,
+        secretUrl,
+      });
+      throw new BadRequestError(
+        "Sourcify cannot generate the solcJsonInput from Etherscan result",
+      );
+    }
+
+    return {
+      language: "Solidity", // TODO: maybe we can use an enum or something else to differenciate between the languages
+      compilerVersion,
+      solcJsonInput,
+      contractName,
     };
-    solcJsonInput = getSolcJsonInputFromEtherscanResult(
-      contractResultJson,
-      sources,
+  } else if (contractResultJson.CompilerVersion.startsWith("vyper")) {
+    const compilerVersion = await getVyperCompilerVersion(
+      contractResultJson.CompilerVersion,
     );
-  }
+    if (isEtherscanJsonInput(sourceCodeObject)) {
+      logger.debug("Etherscan vyperJsonInput contract found", {
+        chainId: sourcifyChain.chainId,
+        address,
+        secretUrl,
+      });
+      const vyperJsonInput = parseJsonInput(sourceCodeObject);
+      const formattedSources: { [key: string]: string } = {};
 
-  if (!solcJsonInput) {
-    logger.info("Etherscan API - no solcJsonInput", {
-      chainId: sourcifyChain.chainId,
-      address,
-      secretUrl,
-    });
-    throw new BadRequestError(
-      "Sourcify cannot generate the solcJsonInput from Etherscan result",
-    );
-  }
+      // Transform sources from {path: {content, keccak}} to {path: content}
+      Object.entries(vyperJsonInput.sources).forEach(
+        ([path, source]: [string, any]) => {
+          formattedSources[path] = source.content;
+        },
+      );
 
-  return {
-    compilerVersion,
-    solcJsonInput,
-    contractName,
-  };
+      const contractPath = Object.keys(
+        vyperJsonInput.settings.outputSelection,
+      )[0]; // TODO search for the contract path using `contractName`
+      if (contractPath === "*") {
+        throw new BadRequestError(
+          "This Vyper contracts is not verifiable by using Import From Etherscan",
+        );
+      }
+
+      return {
+        language: "Vyper", // TODO: maybe we can use an enum or something else to differenciate between the languages
+        compilerVersion,
+        vyperJsonInput: {
+          language: "Vyper",
+          sources: formattedSources,
+          settings: vyperJsonInput.settings,
+        },
+        contractPath,
+        contractName: contractName,
+      };
+    } else {
+      logger.debug("Etherscan Vyper single file contract found", {
+        chainId: sourcifyChain.chainId,
+        address,
+        secretUrl,
+      });
+      const contractPath = contractResultJson.ContractName + ".vy";
+      const sources = {
+        [contractPath]: sourceCodeObject,
+      };
+      // TODO: in this case, we encounter the following error:
+      //   [{"component":"compiler","message":"substring not found","severity":"error","sourceLocation":{"file":"LiquidityGaugeV6.vy"},"type":"ValueError"}]
+      return {
+        language: "Vyper", // TODO: maybe we can use an enum or something else to differenciate between the languages
+        compilerVersion,
+        vyperJsonInput: getVyperJsonInputFromEtherscanResult(
+          contractResultJson,
+          sources,
+        ),
+        contractPath,
+        contractName: contractName,
+      };
+    }
+  }
 };
 
 export const getMetadataFromCompiler = async (
