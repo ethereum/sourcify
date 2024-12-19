@@ -224,8 +224,9 @@ export const LibraryTransformation = (
 export const ImmutablesTransformation = (
   offset: number,
   id: string,
+  type: 'replace' | 'insert',
 ): Transformation => ({
-  type: 'replace',
+  type,
   reason: 'immutable',
   offset,
   id,

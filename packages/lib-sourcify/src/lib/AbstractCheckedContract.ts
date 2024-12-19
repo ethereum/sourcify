@@ -1,3 +1,4 @@
+import { AuxdataStyle } from '@ethereum-sourcify/bytecode-utils';
 import { VyperOutput } from './IVyperCompiler';
 import {
   CompiledContractCborAuxdata,
@@ -17,6 +18,7 @@ export abstract class AbstractCheckedContract {
   runtimeBytecode?: string;
   metadataRaw!: string;
   abstract compilerOutput?: SolidityOutput | VyperOutput;
+  abstract auxdataStyle: AuxdataStyle;
 
   /** Marks the positions of the CborAuxdata parts in the bytecode */
   creationBytecodeCborAuxdata?: CompiledContractCborAuxdata;

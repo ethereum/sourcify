@@ -1,5 +1,6 @@
 import {
   CompiledContractCborAuxdata,
+  ImmutableReferences,
   MetadataOutput,
   RecompilationResult,
   StringMap,
@@ -13,8 +14,12 @@ import {
 } from './IVyperCompiler';
 import { AbstractCheckedContract } from './AbstractCheckedContract';
 import { id } from 'ethers';
-import { AuxdataStyle, splitAuxdata } from '@ethereum-sourcify/bytecode-utils';
-import semver from 'semver';
+import {
+  AuxdataStyle,
+  decode,
+  splitAuxdata,
+} from '@ethereum-sourcify/bytecode-utils';
+import semver, { gte } from 'semver';
 
 /**
  * Abstraction of a checked vyper contract. With metadata and source (vyper) files.
@@ -29,6 +34,7 @@ export class VyperCheckedContract extends AbstractCheckedContract {
     | AuxdataStyle.VYPER
     | AuxdataStyle.VYPER_LT_0_3_10
     | AuxdataStyle.VYPER_LT_0_3_5;
+  compilerVersionCompatibleWithSemver: string;
 
   generateMetadata(output?: VyperOutput) {
     let outputMetadata: MetadataOutput;
@@ -118,21 +124,23 @@ export class VyperCheckedContract extends AbstractCheckedContract {
     this.compilerVersion = vyperCompilerVersion;
 
     // Vyper beta and rc versions are not semver compliant, so we need to handle them differently
-    let compilerVersionForComparison = this.compilerVersion;
-    if (!semver.valid(this.compilerVersion)) {
+    if (semver.valid(this.compilerVersion)) {
+      this.compilerVersionCompatibleWithSemver = this.compilerVersion;
+    } else {
       // Check for beta or release candidate versions
       if (this.compilerVersion.match(/\d+\.\d+\.\d+(b\d+|rc\d+)/)) {
-        compilerVersionForComparison = `${this.compilerVersion
+        this.compilerVersionCompatibleWithSemver = `${this.compilerVersion
           .split('+')[0]
           .replace(/(b\d+|rc\d+)$/, '')}+${this.compilerVersion.split('+')[1]}`;
       } else {
         throw new Error('Invalid Vyper compiler version');
       }
     }
+
     // Vyper version support for auxdata is different for each version
-    if (semver.lt(compilerVersionForComparison, '0.3.5')) {
+    if (semver.lt(this.compilerVersionCompatibleWithSemver, '0.3.5')) {
       this.auxdataStyle = AuxdataStyle.VYPER_LT_0_3_5;
-    } else if (semver.lt(compilerVersionForComparison, '0.3.10')) {
+    } else if (semver.lt(this.compilerVersionCompatibleWithSemver, '0.3.10')) {
       this.auxdataStyle = AuxdataStyle.VYPER_LT_0_3_10;
     } else {
       this.auxdataStyle = AuxdataStyle.VYPER;
@@ -142,6 +150,38 @@ export class VyperCheckedContract extends AbstractCheckedContract {
     this.sources = sources;
     this.vyperSettings = vyperSettings;
     this.initVyperJsonInput();
+  }
+
+  private getImmutableReferences(): ImmutableReferences {
+    if (!this.creationBytecode || !this.runtimeBytecode) {
+      throw new Error(
+        'Cannot generate immutable references if bytecodes are not set',
+      );
+    }
+    let immutableReferences = {};
+    if (gte(this.compilerVersionCompatibleWithSemver, '0.3.10')) {
+      try {
+        const { immutableSize } = decode(
+          this.creationBytecode,
+          this.auxdataStyle,
+        );
+        if (immutableSize) {
+          immutableReferences = {
+            '0': [
+              {
+                length: immutableSize,
+                start: this.runtimeBytecode.substring(2).length / 2,
+              },
+            ],
+          };
+        }
+      } catch (e) {
+        logWarn('Cannot decode vyper contract bytecode', {
+          creationBytecode: this.creationBytecode,
+        });
+      }
+    }
+    return immutableReferences;
   }
 
   public async recompile(): Promise<RecompilationResult> {
@@ -207,8 +247,7 @@ export class VyperCheckedContract extends AbstractCheckedContract {
       creationBytecode: this.creationBytecode,
       runtimeBytecode: this.runtimeBytecode,
       metadata: this.metadataRaw,
-      // Sometimes the compiler returns empty object (not falsey). Convert it to undefined (falsey).
-      immutableReferences: {},
+      immutableReferences: this.getImmutableReferences(),
       creationLinkReferences: {},
       runtimeLinkReferences: {},
     };
