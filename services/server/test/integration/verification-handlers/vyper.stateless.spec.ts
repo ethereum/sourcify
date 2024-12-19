@@ -3,12 +3,21 @@ import path from "path";
 import fs from "fs";
 import { LocalChainFixture } from "../../helpers/LocalChainFixture";
 import { ServerFixture } from "../../helpers/ServerFixture";
-import { deployFromAbiAndBytecode } from "../../helpers/helpers";
-import { assertVerification } from "../../helpers/assertions";
+import {
+  deployFromAbiAndBytecode,
+  deployFromAbiAndBytecodeForCreatorTxHash,
+} from "../../helpers/helpers";
+import {
+  assertTransformations,
+  assertVerification,
+} from "../../helpers/assertions";
 import chaiHttp from "chai-http";
 import { StatusCodes } from "http-status-codes";
 import { VerifyVyperRequest } from "../../../src/server/controllers/verification/vyper/stateless/vyper.stateless.handlers";
-import { VyperSettings } from "@ethereum-sourcify/lib-sourcify";
+import {
+  AuxdataTransformation,
+  VyperSettings,
+} from "@ethereum-sourcify/lib-sourcify";
 import contractArtifact from "../../sources/vyper/testcontract/artifact.json";
 
 chai.use(chaiHttp);
@@ -133,5 +142,51 @@ describe("/verify/vyper", function () {
 
     chai.expect(res.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
     chai.expect(res.body).to.haveOwnProperty("error");
+  });
+
+  it("should have an auxdata transformation for a contract with a wrong integrity hash on chain", async () => {
+    const creationCodeWithWrongIntegrityHash =
+      "0x61008f61000f60003961008f6000f360003560e01c63c605f76c8118610084573461008a57602080608052600c6040527f48656c6c6f20576f726c6421000000000000000000000000000000000000000060605260408160800181518152602082015160208201528051806020830101601f82600003163682375050601f19601f8251602001011690509050810190506080f35b60006000fd5b600080fd8558201111111111111111111111111111111111111111111111111111111111111111188f8000a1657679706572830004010034";
+    const { contractAddress: address, txHash: creatorTxHash } =
+      await deployFromAbiAndBytecodeForCreatorTxHash(
+        chainFixture.localSigner,
+        contractArtifact.abi,
+        creationCodeWithWrongIntegrityHash,
+      );
+
+    const res = await verifyVyperTestContract(address, {
+      compilerVersion: "0.4.1b1+commit.039d3692",
+      compilerSettings: {
+        evmVersion: "london",
+        outputSelection: {
+          "*": ["evm.bytecode"],
+        },
+      },
+      creatorTxHash,
+    });
+
+    await assertVerification(
+      serverFixture,
+      null,
+      res,
+      null,
+      address,
+      chainFixture.chainId,
+      "partial",
+    );
+
+    await assertTransformations(
+      serverFixture.sourcifyDatabase,
+      address,
+      chainFixture.chainId,
+      [],
+      {},
+      [AuxdataTransformation(158, "1")],
+      {
+        cborAuxdata: {
+          "1": "0x8558201111111111111111111111111111111111111111111111111111111111111111188f8000a1657679706572830004010034",
+        },
+      },
+    );
   });
 });
