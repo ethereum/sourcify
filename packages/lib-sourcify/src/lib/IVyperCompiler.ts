@@ -1,6 +1,6 @@
 export interface VyperSettings {
   /** EVM version to compile for */
-  evmVersion: 'london' | 'paris' | 'shanghai' | 'cancun' | 'istanbul';
+  evmVersion?: 'london' | 'paris' | 'shanghai' | 'cancun' | 'istanbul';
   /** Optimization mode */
   optimize?: 'gas' | 'codesize' | 'none' | boolean;
   /** Whether the bytecode should include Vyper's signature */
