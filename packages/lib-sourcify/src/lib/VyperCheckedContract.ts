@@ -302,6 +302,10 @@ export class VyperCheckedContract extends AbstractCheckedContract {
 
     const auxdataFromRawBytecode = `${auxdataCbor}${cborLengthHex}`;
 
+    // Handles vyper lower than 0.3.10 in which the auxdata length bytes count
+    const auxdataLengthOffset =
+      this.auxdataStyle === AuxdataStyle.VYPER_LT_0_3_10 ? 2 : 0;
+
     return {
       '1': {
         offset:
@@ -309,9 +313,10 @@ export class VyperCheckedContract extends AbstractCheckedContract {
           bytecode.substring(2).length / 2 -
           parseInt(
             cborLengthHex ||
-              '0' /** handles vyper lower than 0.3.5 in which cborLengthHex is '' */,
+              'b' /** handles vyper lower than 0.3.5 in which cborLengthHex is '' */,
             16,
-          ),
+          ) -
+          auxdataLengthOffset,
         value: `0x${auxdataFromRawBytecode}`,
       },
     };

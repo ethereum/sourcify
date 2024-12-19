@@ -132,6 +132,45 @@ describe("Verifier Alliance database", function () {
           ...testCase.sources,
         },
       });
+    await assertDatabase(testCase, address, txHash, blockNumber, txIndex);
+  };
+
+  const verifierAllianceTestVyper = async (testCase: any) => {
+    const { contractAddress, txHash, blockNumber, txIndex } =
+      await deployFromAbiAndBytecodeForCreatorTxHash(
+        chainFixture.localSigner,
+        testCase.compilation_artifacts.abi,
+        testCase.deployed_creation_code,
+      );
+    await chai
+      .request(serverFixture.server.app)
+      .post("/verify/vyper")
+      .send({
+        address: contractAddress,
+        chain: chainFixture.chainId,
+        creatorTxHash: txHash,
+        files: testCase.sources,
+        compilerVersion: testCase.version,
+        compilerSettings: testCase.compiler_settings,
+        contractPath: testCase.fully_qualified_name.split(":")[0],
+        contractName: testCase.name,
+      });
+    await assertDatabase(
+      testCase,
+      contractAddress,
+      txHash,
+      blockNumber,
+      txIndex,
+    );
+  };
+
+  const assertDatabase = async (
+    testCase: any,
+    address: string,
+    txHash: string,
+    blockNumber: number | null,
+    txIndex: number | undefined,
+  ) => {
     if (!serverFixture.sourcifyDatabase) {
       chai.assert.fail("No database on StorageService");
     }
@@ -199,6 +238,17 @@ describe("Verifier Alliance database", function () {
     chai.expect(res.rowCount).to.equal(1);
 
     const row = res.rows[0];
+
+    console.log("runtime", row.runtime_code_artifacts.cborAuxdata);
+    console.log(
+      "expected runtime",
+      testCase.runtime_code_artifacts.cborAuxdata,
+    );
+    console.log("creation", row.creation_code_artifacts.cborAuxdata);
+    console.log(
+      "expected creation",
+      testCase.creation_code_artifacts.cborAuxdata,
+    );
 
     chai.expect(row.compiler).to.equal(testCase.compiler);
     chai.expect(row.version).to.equal(testCase.version);
@@ -369,6 +419,36 @@ describe("Verifier Alliance database", function () {
   // Tests to be implemented:
   // - genesis: right now not supported,
   // - partial_match_2: I don't know why we have this test
+
+  describe("Vyper", () => {
+    it("should store auxdata for a Vyper contract compiled with 0.3.4", async () => {
+      const vyperTestAuxdata0_3_4 = await import(
+        "../verifier-alliance/vyper/auxdata-0.3.4.json"
+      );
+      await verifierAllianceTestVyper(vyperTestAuxdata0_3_4);
+    });
+
+    it("should store auxdata for a Vyper contract compiled with 0.3.8", async () => {
+      const vyperTestAuxdata0_3_8 = await import(
+        "../verifier-alliance/vyper/auxdata-0.3.8.json"
+      );
+      await verifierAllianceTestVyper(vyperTestAuxdata0_3_8);
+    });
+
+    it("should store auxdata for a Vyper contract compiled with 0.4.0", async () => {
+      const vyperTestAuxdata0_4_0 = await import(
+        "../verifier-alliance/vyper/auxdata-0.4.0.json"
+      );
+      await verifierAllianceTestVyper(vyperTestAuxdata0_4_0);
+    });
+
+    it("should store auxdata for a Vyper contract compiled with 0.4.1", async () => {
+      const vyperTestAuxdata0_4_1 = await import(
+        "../verifier-alliance/vyper/auxdata-0.4.1.json"
+      );
+      await verifierAllianceTestVyper(vyperTestAuxdata0_4_1);
+    });
+  });
 });
 
 describe("Sourcify database", function () {

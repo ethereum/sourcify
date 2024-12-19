@@ -118,7 +118,7 @@ export const assertVerificationSession = async (
 };
 
 export async function assertTransformations(
-  sourcifyDatabase: Pool | null,
+  sourcifyDatabase: Pool,
   expectedAddress: string | undefined,
   expectedChain: string | undefined,
   expectedRuntimeTransformations: Transformation[] | null,
@@ -126,10 +126,9 @@ export async function assertTransformations(
   expectedCreationTransformations: Transformation[] | null,
   expectedCreationTransformationValues: TransformationValues | null,
 ) {
-  if (sourcifyDatabase) {
-    // Check if saved to the database
-    const res = await sourcifyDatabase.query(
-      `SELECT
+  // Check if saved to the database
+  const res = await sourcifyDatabase.query(
+    `SELECT
       cd.address,
       cd.chain_id,
       vc.runtime_transformations,
@@ -140,30 +139,29 @@ export async function assertTransformations(
     LEFT JOIN verified_contracts vc ON vc.id = sm.verified_contract_id
     LEFT JOIN contract_deployments cd ON cd.id = vc.deployment_id
     WHERE cd.address = $1 AND cd.chain_id = $2`,
-      [Buffer.from(expectedAddress?.substring(2) ?? "", "hex"), expectedChain],
-    );
+    [Buffer.from(expectedAddress?.substring(2) ?? "", "hex"), expectedChain],
+  );
 
-    const contract = res.rows[0];
-    chai.expect(contract).to.not.be.null;
+  const contract = res.rows[0];
+  chai.expect(contract).to.not.be.null;
 
-    chai
-      .expect("0x" + contract.address.toString("hex"))
-      .to.equal(expectedAddress?.toLowerCase());
-    chai.expect(contract.chain_id).to.equal(expectedChain);
+  chai
+    .expect("0x" + contract.address.toString("hex"))
+    .to.equal(expectedAddress?.toLowerCase());
+  chai.expect(contract.chain_id).to.equal(expectedChain);
 
-    chai
-      .expect(contract.runtime_transformations)
-      .to.deep.equal(expectedRuntimeTransformations);
-    chai
-      .expect(contract.runtime_values)
-      .to.deep.equal(expectedRuntimeTransformationValues);
-    chai
-      .expect(contract.creation_transformations)
-      .to.deep.equal(expectedCreationTransformations);
-    chai
-      .expect(contract.creation_values)
-      .to.deep.equal(expectedCreationTransformationValues);
-  }
+  chai
+    .expect(contract.runtime_transformations)
+    .to.deep.equal(expectedRuntimeTransformations);
+  chai
+    .expect(contract.runtime_values)
+    .to.deep.equal(expectedRuntimeTransformationValues);
+  chai
+    .expect(contract.creation_transformations)
+    .to.deep.equal(expectedCreationTransformations);
+  chai
+    .expect(contract.creation_values)
+    .to.deep.equal(expectedCreationTransformationValues);
 }
 
 async function assertContractSaved(
