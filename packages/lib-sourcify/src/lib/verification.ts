@@ -119,6 +119,7 @@ export async function verifyDeployed(
       generateRuntimeCborAuxdataPositions,
       recompiled.immutableReferences,
       recompiled.runtimeLinkReferences,
+      checkedContract.auxdataStyle,
     );
     if (match.runtimeMatch === 'partial') {
       logDebug('Matched with deployed bytecode', {
@@ -139,6 +140,7 @@ export async function verifyDeployed(
               generateRuntimeCborAuxdataPositions,
               recompiled.immutableReferences,
               recompiled.runtimeLinkReferences,
+              checkedContract.auxdataStyle,
             );
           },
           'runtimeMatch',
@@ -444,6 +446,7 @@ export async function matchWithRuntimeBytecode(
   generateCborAuxdataPositions: () => Promise<CompiledContractCborAuxdata>,
   immutableReferences: ImmutableReferences,
   linkReferences: LinkReferences,
+  auxdataStyle: AuxdataStyle,
 ) {
   // Updating the `match.onchainRuntimeBytecode` here so we are sure to always update it
   match.onchainRuntimeBytecode = onchainRuntimeBytecode;
@@ -480,6 +483,7 @@ export async function matchWithRuntimeBytecode(
     onchainRuntimeBytecode,
     match.runtimeTransformations,
     match.runtimeTransformationValues,
+    auxdataStyle,
   );
 
   // We call generateCborAuxdataPositions before returning because we always need
@@ -804,6 +808,7 @@ export function replaceImmutableReferences(
   onchainRuntimeBytecode: string,
   transformationsArray: Transformation[],
   transformationValues: TransformationValues,
+  auxdataStyle: AuxdataStyle,
 ) {
   onchainRuntimeBytecode = onchainRuntimeBytecode.slice(2); // remove "0x"
 
@@ -812,7 +817,13 @@ export function replaceImmutableReferences(
       const { start, length } = reference;
 
       // Save the transformation
-      transformationsArray.push(ImmutablesTransformation(start, astId));
+      transformationsArray.push(
+        ImmutablesTransformation(
+          start,
+          astId,
+          auxdataStyle === AuxdataStyle.SOLIDITY ? 'replace' : 'insert',
+        ),
+      );
       const immutableValue = onchainRuntimeBytecode.slice(
         start * 2,
         start * 2 + length * 2,
@@ -824,12 +835,17 @@ export function replaceImmutableReferences(
       }
       transformationValues.immutables[astId] = `0x${immutableValue}`;
 
-      // Write zeros in the place
-      const zeros = '0'.repeat(length * 2);
-      onchainRuntimeBytecode =
-        onchainRuntimeBytecode.slice(0, start * 2) +
-        zeros +
-        onchainRuntimeBytecode.slice(start * 2 + length * 2);
+      if (auxdataStyle === AuxdataStyle.SOLIDITY) {
+        // Write zeros in the place
+        const zeros = '0'.repeat(length * 2);
+        onchainRuntimeBytecode =
+          onchainRuntimeBytecode.slice(0, start * 2) +
+          zeros +
+          onchainRuntimeBytecode.slice(start * 2 + length * 2);
+      } else if (auxdataStyle === AuxdataStyle.VYPER) {
+        // This case works only for Vyper 0.3.10 and above
+        onchainRuntimeBytecode = onchainRuntimeBytecode.slice(0, start * 2);
+      }
     });
   });
   return '0x' + onchainRuntimeBytecode;

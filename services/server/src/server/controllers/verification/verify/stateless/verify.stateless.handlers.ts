@@ -18,6 +18,7 @@ import { getMatchStatus, getResponseMatchFromMatch } from "../../../../common";
 import logger from "../../../../../common/logger";
 import { Services } from "../../../../services/services";
 import { ChainRepository } from "../../../../../sourcify-chain-repository";
+import { AuxdataStyle } from "@ethereum-sourcify/bytecode-utils";
 
 export async function legacyVerifyEndpoint(
   req: LegacyVerifyRequest,
@@ -198,6 +199,7 @@ export async function verifyDeprecated(
       generateRuntimeCborAuxdataPositions,
       immutableReferences,
       runtimeLinkReferences,
+      AuxdataStyle.SOLIDITY,
     );
 
     match;

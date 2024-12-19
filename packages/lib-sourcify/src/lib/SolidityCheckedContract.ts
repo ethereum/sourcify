@@ -48,7 +48,7 @@ export class SolidityCheckedContract extends AbstractCheckedContract {
   solcJsonInput: any;
   compilerOutput?: SolidityOutput;
 
-  static readonly auxdataStyle: AuxdataStyle.SOLIDITY = AuxdataStyle.SOLIDITY;
+  readonly auxdataStyle: AuxdataStyle.SOLIDITY = AuxdataStyle.SOLIDITY;
 
   /** Checks whether this contract is valid or not.
    *  This is a static method due to persistence issues.
@@ -113,10 +113,7 @@ export class SolidityCheckedContract extends AbstractCheckedContract {
   ): Promise<SolidityCheckedContract | null> {
     let decodedAuxdata;
     try {
-      decodedAuxdata = decodeBytecode(
-        runtimeBytecode,
-        SolidityCheckedContract.auxdataStyle,
-      );
+      decodedAuxdata = decodeBytecode(runtimeBytecode, this.auxdataStyle);
     } catch (err) {
       // There is no auxdata at all in this contract
       return null;
@@ -292,7 +289,7 @@ export class SolidityCheckedContract extends AbstractCheckedContract {
       // Extract the auxdata from the end of the recompiled runtime bytecode
       const [, runtimeAuxdataCbor, runtimeCborLengthHex] = splitAuxdata(
         this.runtimeBytecode,
-        SolidityCheckedContract.auxdataStyle,
+        this.auxdataStyle,
       );
 
       const auxdataFromRawRuntimeBytecode = `${runtimeAuxdataCbor}${runtimeCborLengthHex}`;
@@ -322,7 +319,7 @@ export class SolidityCheckedContract extends AbstractCheckedContract {
       // Try to extract the auxdata from the end of the recompiled creation bytecode
       const [, creationAuxdataCbor, creationCborLengthHex] = splitAuxdata(
         this.creationBytecode,
-        SolidityCheckedContract.auxdataStyle,
+        this.auxdataStyle,
       );
 
       // If we can find the auxdata at the end of the bytecode return; otherwise continue with `generateEditedContract`
