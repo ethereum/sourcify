@@ -32,48 +32,18 @@ describe("Verifier Alliance database", function () {
   const chainFixture = new LocalChainFixture();
   const serverFixture = new ServerFixture();
 
-  const verifierAllianceTest = async (
-    testCase: any,
-    { deployWithConstructorArguments } = {
-      deployWithConstructorArguments: false,
-    },
-  ) => {
-    let address: string;
-    let txHash: string;
-    let blockNumber: number | null;
-    let txIndex: number | undefined;
-    if (!deployWithConstructorArguments) {
-      const {
-        contractAddress,
-        txHash: txCreationHash,
-        blockNumber: blockNumber_,
-        txIndex: txIndex_,
-      } = await deployFromAbiAndBytecodeForCreatorTxHash(
+  const verifierAllianceTest = async (testCase: any) => {
+    const constructorArguments =
+      testCase?.creation_values?.constructorArguments;
+    const { contractAddress, txHash, blockNumber, txIndex } =
+      await deployFromAbiAndBytecodeForCreatorTxHash(
         chainFixture.localSigner,
         testCase.compilation_artifacts.abi,
-        testCase.deployed_creation_code,
+        constructorArguments
+          ? testCase.compiled_creation_code
+          : testCase.deployed_creation_code,
+        constructorArguments ? [constructorArguments] : undefined,
       );
-      address = contractAddress;
-      txHash = txCreationHash;
-      blockNumber = blockNumber_;
-      txIndex = txIndex_;
-    } else {
-      const {
-        contractAddress,
-        txHash: txCreationHash,
-        blockNumber: blockNumber_,
-        txIndex: txIndex_,
-      } = await deployFromAbiAndBytecodeForCreatorTxHash(
-        chainFixture.localSigner,
-        testCase.compilation_artifacts.abi,
-        testCase.compiled_creation_code,
-        [testCase.creation_values.constructorArguments],
-      );
-      address = contractAddress;
-      txHash = txCreationHash;
-      blockNumber = blockNumber_;
-      txIndex = txIndex_;
-    }
 
     const compilationTarget: Record<string, string> = {};
     const fullyQualifiedName: string[] =
@@ -108,7 +78,7 @@ describe("Verifier Alliance database", function () {
       .request(serverFixture.server.app)
       .post("/")
       .send({
-        address: address,
+        address: contractAddress,
         chain: chainFixture.chainId,
         creatorTxHash: txHash,
         files: {
@@ -132,15 +102,26 @@ describe("Verifier Alliance database", function () {
           ...testCase.sources,
         },
       });
-    await assertDatabase(testCase, address, txHash, blockNumber, txIndex);
+    await assertDatabase(
+      testCase,
+      contractAddress,
+      txHash,
+      blockNumber,
+      txIndex,
+    );
   };
 
   const verifierAllianceTestVyper = async (testCase: any) => {
+    const constructorArguments =
+      testCase?.creation_values?.constructorArguments;
     const { contractAddress, txHash, blockNumber, txIndex } =
       await deployFromAbiAndBytecodeForCreatorTxHash(
         chainFixture.localSigner,
         testCase.compilation_artifacts.abi,
-        testCase.deployed_creation_code,
+        constructorArguments
+          ? testCase.compiled_creation_code
+          : testCase.deployed_creation_code,
+        constructorArguments ? [constructorArguments] : undefined,
       );
     await chai
       .request(serverFixture.server.app)
@@ -238,17 +219,6 @@ describe("Verifier Alliance database", function () {
     chai.expect(res.rowCount).to.equal(1);
 
     const row = res.rows[0];
-
-    console.log("runtime", row.runtime_code_artifacts.cborAuxdata);
-    console.log(
-      "expected runtime",
-      testCase.runtime_code_artifacts.cborAuxdata,
-    );
-    console.log("creation", row.creation_code_artifacts.cborAuxdata);
-    console.log(
-      "expected creation",
-      testCase.creation_code_artifacts.cborAuxdata,
-    );
 
     chai.expect(row.compiler).to.equal(testCase.compiler);
     chai.expect(row.version).to.equal(testCase.version);
@@ -397,9 +367,7 @@ describe("Verifier Alliance database", function () {
     const verifierAllianceTestConstructorArguments = await import(
       "../verifier-alliance/constructor_arguments.json"
     );
-    await verifierAllianceTest(verifierAllianceTestConstructorArguments, {
-      deployWithConstructorArguments: true,
-    });
+    await verifierAllianceTest(verifierAllianceTestConstructorArguments);
   });
 
   it("Store partial match in database for a contract with multiple auxdatas", async () => {
@@ -447,6 +415,15 @@ describe("Verifier Alliance database", function () {
         "../verifier-alliance/vyper/auxdata-0.4.1.json"
       );
       await verifierAllianceTestVyper(vyperTestAuxdata0_4_1);
+    });
+
+    it("should store transformations for constructor arguments and immutables", async () => {
+      const vyperTestConstructorArgumentsAndImmutables = await import(
+        "../verifier-alliance/vyper/constructor_args_immutables.json"
+      );
+      await verifierAllianceTestVyper(
+        vyperTestConstructorArgumentsAndImmutables,
+      );
     });
   });
 });
