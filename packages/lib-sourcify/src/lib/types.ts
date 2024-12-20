@@ -107,7 +107,7 @@ export interface Metadata {
     compilationTarget: {
       [sourceName: string]: string;
     };
-    evmVersion: string;
+    evmVersion?: string;
     libraries?: {
       [index: string]: string;
     };
