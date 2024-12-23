@@ -28,6 +28,10 @@ _ℹ️ [This monorepo](https://github.com/ethereum/sourcify) contains the main 
 
 For more details refer to [docs.sourcify.dev](https://docs.sourcify.dev/docs/intro/)
 
+## How we work
+
+Sourcify aims to be fully open and transparent. You can see what we are working day-to-day on on our [Public Issue Board](https://github.com/orgs/ethereum/projects/46) as well our [Quarterly Milestones](https://github.com/orgs/ethereum/projects/46/views/3) for our longer term plans.
+
 ## Questions?
 
 🔍 Check out docs [F.A.Q.](https://docs.sourcify.dev/docs/faq/) and use search in docs.
