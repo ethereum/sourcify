@@ -304,7 +304,6 @@ describe('Checked contract', () => {
       },
       sources: {
         [contractFileName]: {
-          content: vyperContent.toString(),
           keccak256: id(vyperContent.toString()),
         },
       },
