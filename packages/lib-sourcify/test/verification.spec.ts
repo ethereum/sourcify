@@ -570,7 +570,7 @@ describe('lib-sourcify tests', () => {
   });
 
   describe('Vyper', () => {
-    it('should verify a vyper contract', async () => {
+    const deployDefaultVyperContract = async (artifactSubfolder?: string) => {
       const contractFolderPath = path.join(
         __dirname,
         'sources',
@@ -578,15 +578,30 @@ describe('lib-sourcify tests', () => {
         'testcontract',
       );
       const contractFileName = 'test.vy';
-      const vyperContent = await fs.promises.readFile(
+      const contractFileContent = await fs.promises.readFile(
         path.join(contractFolderPath, contractFileName),
       );
-
-      const { contractAddress } = await deployFromAbiAndBytecode(
+      const artifactFolderPath = artifactSubfolder
+        ? path.join(contractFolderPath, artifactSubfolder)
+        : contractFolderPath;
+      const { contractAddress, txHash } = await deployFromAbiAndBytecode(
         signer,
-        contractFolderPath,
+        artifactFolderPath,
         [],
       );
+
+      return {
+        contractAddress,
+        creationTxHash: txHash,
+        contractFileContent,
+        contractFileName,
+      };
+    };
+
+    it('should verify a vyper contract', async () => {
+      const { contractAddress, contractFileContent, contractFileName } =
+        await deployDefaultVyperContract();
+
       const checkedContract = new VyperCheckedContract(
         vyperCompiler,
         '0.3.10+commit.91361694',
@@ -599,7 +614,7 @@ describe('lib-sourcify tests', () => {
           },
         },
         {
-          [contractFileName]: vyperContent.toString(),
+          [contractFileName]: contractFileContent.toString(),
         },
       );
       const match = await verifyDeployed(
@@ -623,7 +638,6 @@ describe('lib-sourcify tests', () => {
         path.join(contractFolderPath, contractFileName),
       );
 
-      console.log('deploying', await signer.getAddress());
       const { contractAddress, txHash } = await deployFromAbiAndBytecode(
         signer,
         contractFolderPath,
@@ -681,19 +695,9 @@ describe('lib-sourcify tests', () => {
     });
 
     it('should fail to verify a different Vyper contract', async () => {
-      const contractFolderPath = path.join(
-        __dirname,
-        'sources',
-        'Vyper',
-        'testcontract',
-      );
-      const { contractAddress } = await deployFromAbiAndBytecode(
-        signer,
-        contractFolderPath,
-        [],
-      );
+      const { contractAddress, contractFileName } =
+        await deployDefaultVyperContract();
 
-      const contractFileName = 'test.vy';
       const wrongContractContent = await fs.promises.readFile(
         path.join(
           __dirname,
@@ -722,6 +726,53 @@ describe('lib-sourcify tests', () => {
       await expect(
         verifyDeployed(checkedContract, sourcifyChainHardhat, contractAddress),
       ).to.be.rejectedWith("The deployed and recompiled bytecode don't match.");
+    });
+
+    it('should have transformation information for a contract compiled with Vyper 0.3.4', async () => {
+      const {
+        contractAddress,
+        contractFileName,
+        contractFileContent,
+        creationTxHash,
+      } = await deployDefaultVyperContract('wrongAuxdata');
+
+      const checkedContract = new VyperCheckedContract(
+        vyperCompiler,
+        '0.3.10+commit.91361694',
+        contractFileName,
+        contractFileName.split('.')[0],
+        {
+          evmVersion: 'istanbul',
+          outputSelection: {
+            '*': ['evm.bytecode'],
+          },
+        },
+        {
+          [contractFileName]: contractFileContent.toString(),
+        },
+      );
+      const match = await verifyDeployed(
+        checkedContract,
+        sourcifyChainHardhat,
+        contractAddress,
+        creationTxHash,
+      );
+
+      expect(match.creationTransformations).to.deep.equal([
+        {
+          type: 'replace',
+          reason: 'cborAuxdata',
+          offset: 158,
+          id: '1',
+        },
+      ]);
+      expect(match.creationTransformationValues).to.deep.equal({
+        cborAuxdata: {
+          '1': '0x84188f8000a1657679706572830003090012',
+        },
+      });
+      expect(match.runtimeTransformations).to.be.deep.equal([]);
+      expect(match.runtimeTransformationValues).to.be.deep.equal({});
     });
   });
 
