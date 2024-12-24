@@ -32,48 +32,18 @@ describe("Verifier Alliance database", function () {
   const chainFixture = new LocalChainFixture();
   const serverFixture = new ServerFixture();
 
-  const verifierAllianceTest = async (
-    testCase: any,
-    { deployWithConstructorArguments } = {
-      deployWithConstructorArguments: false,
-    },
-  ) => {
-    let address: string;
-    let txHash: string;
-    let blockNumber: number | null;
-    let txIndex: number | undefined;
-    if (!deployWithConstructorArguments) {
-      const {
-        contractAddress,
-        txHash: txCreationHash,
-        blockNumber: blockNumber_,
-        txIndex: txIndex_,
-      } = await deployFromAbiAndBytecodeForCreatorTxHash(
+  const verifierAllianceTest = async (testCase: any) => {
+    const constructorArguments =
+      testCase?.creation_values?.constructorArguments;
+    const { contractAddress, txHash, blockNumber, txIndex } =
+      await deployFromAbiAndBytecodeForCreatorTxHash(
         chainFixture.localSigner,
         testCase.compilation_artifacts.abi,
-        testCase.deployed_creation_code,
+        constructorArguments
+          ? testCase.compiled_creation_code
+          : testCase.deployed_creation_code,
+        constructorArguments ? [constructorArguments] : undefined,
       );
-      address = contractAddress;
-      txHash = txCreationHash;
-      blockNumber = blockNumber_;
-      txIndex = txIndex_;
-    } else {
-      const {
-        contractAddress,
-        txHash: txCreationHash,
-        blockNumber: blockNumber_,
-        txIndex: txIndex_,
-      } = await deployFromAbiAndBytecodeForCreatorTxHash(
-        chainFixture.localSigner,
-        testCase.compilation_artifacts.abi,
-        testCase.compiled_creation_code,
-        [testCase.creation_values.constructorArguments],
-      );
-      address = contractAddress;
-      txHash = txCreationHash;
-      blockNumber = blockNumber_;
-      txIndex = txIndex_;
-    }
 
     const compilationTarget: Record<string, string> = {};
     const fullyQualifiedName: string[] =
@@ -108,7 +78,7 @@ describe("Verifier Alliance database", function () {
       .request(serverFixture.server.app)
       .post("/")
       .send({
-        address: address,
+        address: contractAddress,
         chain: chainFixture.chainId,
         creatorTxHash: txHash,
         files: {
@@ -132,6 +102,56 @@ describe("Verifier Alliance database", function () {
           ...testCase.sources,
         },
       });
+    await assertDatabase(
+      testCase,
+      contractAddress,
+      txHash,
+      blockNumber,
+      txIndex,
+    );
+  };
+
+  const verifierAllianceTestVyper = async (testCase: any) => {
+    const constructorArguments =
+      testCase?.creation_values?.constructorArguments;
+    const { contractAddress, txHash, blockNumber, txIndex } =
+      await deployFromAbiAndBytecodeForCreatorTxHash(
+        chainFixture.localSigner,
+        testCase.compilation_artifacts.abi,
+        constructorArguments
+          ? testCase.compiled_creation_code
+          : testCase.deployed_creation_code,
+        constructorArguments ? [constructorArguments] : undefined,
+      );
+    await chai
+      .request(serverFixture.server.app)
+      .post("/verify/vyper")
+      .send({
+        address: contractAddress,
+        chain: chainFixture.chainId,
+        creatorTxHash: txHash,
+        files: testCase.sources,
+        compilerVersion: testCase.version,
+        compilerSettings: testCase.compiler_settings,
+        contractPath: testCase.fully_qualified_name.split(":")[0],
+        contractName: testCase.name,
+      });
+    await assertDatabase(
+      testCase,
+      contractAddress,
+      txHash,
+      blockNumber,
+      txIndex,
+    );
+  };
+
+  const assertDatabase = async (
+    testCase: any,
+    address: string,
+    txHash: string,
+    blockNumber: number | null,
+    txIndex: number | undefined,
+  ) => {
     if (!serverFixture.sourcifyDatabase) {
       chai.assert.fail("No database on StorageService");
     }
@@ -347,9 +367,7 @@ describe("Verifier Alliance database", function () {
     const verifierAllianceTestConstructorArguments = await import(
       "../verifier-alliance/constructor_arguments.json"
     );
-    await verifierAllianceTest(verifierAllianceTestConstructorArguments, {
-      deployWithConstructorArguments: true,
-    });
+    await verifierAllianceTest(verifierAllianceTestConstructorArguments);
   });
 
   it("Store partial match in database for a contract with multiple auxdatas", async () => {
@@ -369,6 +387,45 @@ describe("Verifier Alliance database", function () {
   // Tests to be implemented:
   // - genesis: right now not supported,
   // - partial_match_2: I don't know why we have this test
+
+  describe("Vyper", () => {
+    it("should store auxdata for a Vyper contract compiled with 0.3.4", async () => {
+      const vyperTestAuxdata0_3_4 = await import(
+        "../verifier-alliance/vyper/auxdata-0.3.4.json"
+      );
+      await verifierAllianceTestVyper(vyperTestAuxdata0_3_4);
+    });
+
+    it("should store auxdata for a Vyper contract compiled with 0.3.8", async () => {
+      const vyperTestAuxdata0_3_8 = await import(
+        "../verifier-alliance/vyper/auxdata-0.3.8.json"
+      );
+      await verifierAllianceTestVyper(vyperTestAuxdata0_3_8);
+    });
+
+    it("should store auxdata for a Vyper contract compiled with 0.4.0", async () => {
+      const vyperTestAuxdata0_4_0 = await import(
+        "../verifier-alliance/vyper/auxdata-0.4.0.json"
+      );
+      await verifierAllianceTestVyper(vyperTestAuxdata0_4_0);
+    });
+
+    it("should store auxdata for a Vyper contract compiled with 0.4.1", async () => {
+      const vyperTestAuxdata0_4_1 = await import(
+        "../verifier-alliance/vyper/auxdata-0.4.1.json"
+      );
+      await verifierAllianceTestVyper(vyperTestAuxdata0_4_1);
+    });
+
+    it("should store transformations for constructor arguments and immutables", async () => {
+      const vyperTestConstructorArgumentsAndImmutables = await import(
+        "../verifier-alliance/vyper/constructor_args_immutables.json"
+      );
+      await verifierAllianceTestVyper(
+        vyperTestConstructorArgumentsAndImmutables,
+      );
+    });
+  });
 });
 
 describe("Sourcify database", function () {
