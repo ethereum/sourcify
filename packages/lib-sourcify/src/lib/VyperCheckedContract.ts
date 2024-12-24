@@ -58,7 +58,6 @@ export class VyperCheckedContract extends AbstractCheckedContract {
       (acc, [path, content]) => ({
         ...acc,
         [path]: {
-          content,
           keccak256: id(content),
         },
       }),
