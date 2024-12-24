@@ -61,19 +61,20 @@ export async function deployFromAbiAndBytecodeForCreatorTxHash(
   if (!creationTx) {
     throw new Error(`No deployment transaction found for ${contractAddress}`);
   }
+  if (creationTx.blockNumber === null) {
+    throw new Error(
+      `No block number found for deployment transaction ${creationTx.hash}. Block number: ${creationTx.blockNumber}`,
+    );
+  }
   console.log(
     `Deployed contract at ${contractAddress} with tx ${creationTx.hash}`,
-  );
-
-  const txReceipt = await signer.provider.getTransactionReceipt(
-    creationTx.hash,
   );
 
   return {
     contractAddress,
     txHash: creationTx.hash,
     blockNumber: creationTx.blockNumber,
-    txIndex: txReceipt?.index,
+    txIndex: creationTx.index,
   };
 }
 

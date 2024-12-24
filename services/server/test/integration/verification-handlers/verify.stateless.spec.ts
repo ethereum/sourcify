@@ -25,6 +25,7 @@ import {
   LibraryTransformation,
 } from "@ethereum-sourcify/lib-sourcify";
 import sinon from "sinon";
+import nock from "nock";
 
 chai.use(chaiHttp);
 
@@ -335,6 +336,30 @@ describe("/", function () {
 
     const partialMetadataURL = `/repository/contracts/partial_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/metadata.json`;
 
+    // Intercept only eth_getTransactionReceipt calls but allow other RPC calls
+    // This will block the binary search for the creation tx hash and creationMatch will be set to null
+    nock("http://localhost:8545")
+      .post("/")
+      .reply(function (uri, requestBody) {
+        const body =
+          typeof requestBody === "string"
+            ? JSON.parse(requestBody)
+            : requestBody;
+        if (body.method === "eth_getTransactionReceipt") {
+          return [
+            500,
+            {
+              error: {
+                message: "Blocked getTransactionReceipt",
+              },
+            },
+          ];
+        }
+        // Remove all interceptors and let this request pass through to the real endpoint
+        nock.cleanAll();
+        return [404]; // This response won't be used since the interceptor is removed
+      });
+
     let res = await chai
       .request(serverFixture.server.app)
       .post("/")
@@ -342,6 +367,10 @@ describe("/", function () {
       .field("chain", chainFixture.chainId)
       .attach("files", partialMetadataBuffer, "metadata.json")
       .attach("files", partialSourceBuffer);
+
+    // Clean up nock interceptors
+    nock.cleanAll();
+
     await assertVerification(
       serverFixture,
       null,
@@ -407,8 +436,8 @@ describe("/", function () {
       .expect(contractDeploymentWithCreatorTransactionHash?.rows[0])
       .to.deep.equal({
         transaction_hash: chainFixture.defaultContractCreatorTx.substring(2),
-        block_number: "1",
-        transaction_index: "0",
+        block_number: chainFixture.defaultContractBlockNumber.toString(),
+        transaction_index: chainFixture.defaultContractTxIndex.toString(),
         contract_id: contractIdWithCreatorTransactionHash,
       });
 
@@ -1002,8 +1031,16 @@ describe("/", function () {
         },
         callProtection: address.toLowerCase(), // call protection works by PUSH20ing contract's own address. Bytecode chars are all lowercase but address is mixed due to checksumming
       },
-      null,
-      null,
+      [
+        LibraryTransformation(1389, libraryFQN),
+        LibraryTransformation(3091, libraryFQN),
+        LibraryTransformation(3310, libraryFQN),
+      ],
+      {
+        libraries: {
+          [libraryFQN]: libraryAddress,
+        },
+      },
     );
   });
 
