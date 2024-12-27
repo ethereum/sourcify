@@ -29,7 +29,7 @@ import nock from "nock";
 
 chai.use(chaiHttp);
 
-describe("/", function () {
+describe.only("/", function () {
   const chainFixture = new LocalChainFixture();
   const serverFixture = new ServerFixture();
 
@@ -356,7 +356,7 @@ describe("/", function () {
           ];
         }
 
-        return [404]; // This response won't be used since the interceptor is removed
+        return nock.restore(); // Else let pass
       });
 
     let res = await chai
