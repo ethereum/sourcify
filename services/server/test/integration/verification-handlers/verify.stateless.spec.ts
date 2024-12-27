@@ -338,7 +338,7 @@ describe("/", function () {
 
     // Intercept only eth_getTransactionReceipt calls but allow other RPC calls
     // This will block the binary search for the creation tx hash and creationMatch will be set to null
-    nock("http://localhost:8545")
+    const scope = nock("http://localhost:8545")
       .post("/")
       .reply(function (uri, requestBody) {
         const body =
@@ -355,8 +355,7 @@ describe("/", function () {
             },
           ];
         }
-        // Remove all interceptors and let this request pass through to the real endpoint
-        nock.cleanAll();
+
         return [404]; // This response won't be used since the interceptor is removed
       });
 
@@ -368,8 +367,8 @@ describe("/", function () {
       .attach("files", partialMetadataBuffer, "metadata.json")
       .attach("files", partialSourceBuffer);
 
-    // Clean up nock interceptors
-    nock.cleanAll();
+    // Remove only this specific interceptor instead of all
+    scope.done();
 
     await assertVerification(
       serverFixture,
