@@ -20,6 +20,8 @@ export class ContractVerifier {
     this.fetchedNextContractsSize = -1;
     this.isFetching = false;
     this.chainIds = options.chains;
+    this.currentConcurrency = 3; // for cold start
+    this.concurrencyExponent = 1.2;
   }
 
   async fetchContractsToVerify() {
@@ -275,11 +277,25 @@ export class ContractVerifier {
           }
         } else {
           // Wait until we have space for a new verification
-          if (this.activeVerifications >= this.options.concurrent) {
+          if (this.activeVerifications >= this.currentConcurrency) {
             await new Promise((resolve) =>
               setTimeout(resolve, this.options.interval),
             );
             continue;
+          }
+
+          // Gradually increase concurrency up to the maximum
+          if (
+            this.currentConcurrency < this.options.concurrent &&
+            this.verifiedCount >= this.currentConcurrency
+          ) {
+            this.currentConcurrency = Math.min(
+              this.currentConcurrency * this.concurrencyExponent,
+              this.options.concurrent,
+            );
+            logger.info("Increasing concurrency", {
+              newConcurrency: this.currentConcurrency,
+            });
           }
 
           // Also don't await this one
