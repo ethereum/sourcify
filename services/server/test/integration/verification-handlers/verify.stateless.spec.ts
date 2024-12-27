@@ -335,6 +335,17 @@ describe("/", function () {
 
     const partialMetadataURL = `/repository/contracts/partial_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/metadata.json`;
 
+    // Block the getTransactionReceipt call and the binary search for the creation tx hash and creationMatch will be set to null
+    const restoreGetTx =
+      serverFixture.server.chainRepository.sourcifyChainMap[
+        chainFixture.chainId
+      ].getTx;
+    serverFixture.server.chainRepository.sourcifyChainMap[
+      chainFixture.chainId
+    ].getTx = async () => {
+      throw new Error("Blocked getTransactionReceipt");
+    };
+
     let res = await chai
       .request(serverFixture.server.app)
       .post("/")
@@ -342,6 +353,12 @@ describe("/", function () {
       .field("chain", chainFixture.chainId)
       .attach("files", partialMetadataBuffer, "metadata.json")
       .attach("files", partialSourceBuffer);
+
+    // Restore the getTransactionReceipt call
+    serverFixture.server.chainRepository.sourcifyChainMap[
+      chainFixture.chainId
+    ].getTx = restoreGetTx;
+
     await assertVerification(
       serverFixture,
       null,
@@ -407,8 +424,8 @@ describe("/", function () {
       .expect(contractDeploymentWithCreatorTransactionHash?.rows[0])
       .to.deep.equal({
         transaction_hash: chainFixture.defaultContractCreatorTx.substring(2),
-        block_number: "1",
-        transaction_index: "0",
+        block_number: chainFixture.defaultContractBlockNumber.toString(),
+        transaction_index: chainFixture.defaultContractTxIndex.toString(),
         contract_id: contractIdWithCreatorTransactionHash,
       });
 
@@ -1002,8 +1019,16 @@ describe("/", function () {
         },
         callProtection: address.toLowerCase(), // call protection works by PUSH20ing contract's own address. Bytecode chars are all lowercase but address is mixed due to checksumming
       },
-      null,
-      null,
+      [
+        LibraryTransformation(1389, libraryFQN),
+        LibraryTransformation(3091, libraryFQN),
+        LibraryTransformation(3310, libraryFQN),
+      ],
+      {
+        libraries: {
+          [libraryFQN]: libraryAddress,
+        },
+      },
     );
   });
 

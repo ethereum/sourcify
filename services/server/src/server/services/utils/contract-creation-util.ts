@@ -207,11 +207,6 @@ async function getCreatorTxUsingFetcher(
             });
             return creatorTx;
           }
-          logger.debug("Fetched but transaction not found", {
-            fetcher,
-            contractFetchAddressFilled,
-            creatorTx,
-          });
         }
         break;
       }
@@ -356,6 +351,24 @@ export const getCreatorTx = async (
       return result;
     }
   }
+
+  // Try binary search as last resort
+  logger.debug("Trying binary search to find contract creation transaction", {
+    contractAddress,
+  });
+  const result = await findContractCreationTxByBinarySearch(
+    sourcifyChain,
+    contractAddress,
+  );
+  if (result) {
+    return result;
+  }
+
+  logger.warn("Couldn't fetch creator tx", {
+    chainId: sourcifyChain.chainId,
+    contractAddress,
+  });
+
   return null;
 };
 
@@ -402,6 +415,11 @@ async function getCreatorTxByScraping(
       Try manually putting the creator tx hash in the "Creator tx hash" field.`,
     );
   }
+
+  logger.debug("Couldn't find creator tx via scraping", {
+    fetchAddress,
+    status: res.status,
+  });
   return null;
 }
 
@@ -415,4 +433,118 @@ async function fetchFromApi(fetchAddress: string) {
   throw new Error(
     `Contract creator tx could not be fetched from ${fetchAddress} because of status code ${res.status}`,
   );
+}
+
+/**
+ * Finds the transaction that created the contract by lower bound binary searching through the blocks.
+ * Calls `eth_getCode` on the middle blocks to see if the contract has code. If yes, the contract should be created before this block. If no code, the contract should be created after this block.
+ * Once the block is found, searches through all the tx's of the block to see if any of them created this contract.
+ *
+ * Only supports EOA contract creations (tx.to === null). Tracing every single tx would've been quite expensive.
+ *
+ */
+export async function findContractCreationTxByBinarySearch(
+  sourcifyChain: SourcifyChain,
+  contractAddress: string,
+): Promise<string | null> {
+  try {
+    const currentBlockNumber = await sourcifyChain.getBlockNumber();
+    let left = 0;
+    let right = currentBlockNumber;
+
+    logger.debug("Starting binary search for contract creation block", {
+      chainId: sourcifyChain.chainId,
+      contractAddress,
+      currentBlockNumber,
+    });
+
+    let binarySearchCount = 0;
+
+    // Binary search to find the first block where the contract exists
+    while (left < right) {
+      const mid = Math.floor((left + right) / 2);
+      const code = await sourcifyChain.getBytecode(contractAddress, mid);
+      binarySearchCount++;
+
+      // If no code at mid, contract was created after this block
+      if (code === "0x") {
+        left = mid + 1;
+      }
+      // If code exists at mid, contract was created at or before this block
+      else {
+        right = mid;
+      }
+    }
+
+    // left is now the first block where the contract exists (creation block)
+    const creationBlock = left;
+
+    logger.debug("Found contract creation block", {
+      chainId: sourcifyChain.chainId,
+      contractAddress,
+      creationBlock,
+      binarySearchCount,
+    });
+
+    // Get all transactions in the creation block
+    const block = await sourcifyChain.getBlock(creationBlock, true);
+    if (!block || !block.prefetchedTransactions) {
+      logger.warn("Block empty or not found during binary search", {
+        chainId: sourcifyChain.chainId,
+        contractAddress,
+        creationBlock,
+        binarySearchCount,
+      });
+      return null;
+    }
+
+    // Check each transaction in the block to find the creation transaction
+    for (const tx of block.prefetchedTransactions) {
+      // Skip if not a contract creation transaction
+      if (tx.to !== null) continue;
+
+      logger.debug("Found tx with tx.to===null", {
+        contractAddress,
+        chainId: sourcifyChain.chainId,
+        txHash: tx.hash,
+        block: block.number,
+      });
+
+      try {
+        const receipt = await sourcifyChain.getTxReceipt(tx.hash);
+
+        // Check if this transaction created our contract
+        if (
+          receipt.contractAddress?.toLowerCase() ===
+          contractAddress.toLowerCase()
+        ) {
+          logger.info(
+            "Found contract creation transaction using binary search",
+            {
+              contractAddress,
+              creationBlock,
+              transactionHash: tx.hash,
+              chainId: sourcifyChain.chainId,
+            },
+          );
+          return tx.hash;
+        }
+      } catch (error) {
+        continue; // Skip if we can't get receipt
+      }
+    }
+    logger.info("Could not find creation transaction with binary search", {
+      contractAddress,
+      creationBlock,
+      binarySearchCount,
+      chainId: sourcifyChain.chainId,
+    });
+    return null;
+  } catch (error: any) {
+    logger.warn("Error in binary search for contract creation", {
+      contractAddress,
+      error: error.message,
+    });
+    return null;
+  }
 }
