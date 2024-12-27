@@ -21,7 +21,7 @@ export class ContractVerifier {
     this.isFetching = false;
     this.chainIds = options.chains;
     this.currentConcurrency = 3; // for cold start
-    this.concurrencyExponent = 1.1;
+    this.coldStartSeconds = options.coldStartSeconds || 300; // Default 5 minutes
   }
 
   async fetchContractsToVerify() {
@@ -244,6 +244,28 @@ export class ContractVerifier {
     this.prevBatchTime = Date.now();
   }
 
+  updateConcurrency() {
+    const elapsedSeconds = (Date.now() - this.startTime) / 1000;
+    const maxConcurrency = this.options.concurrent;
+    const oldConcurrency = this.currentConcurrency;
+
+    // Using natural log function to create a smooth ramp-up
+    // Formula: current = maxConcurrency * ln(1 + (elapsed/target)) / ln(2)
+    // This ensures we reach ~maxConcurrency when elapsed = target
+    this.currentConcurrency = Math.min(
+      (maxConcurrency * Math.log(1 + elapsedSeconds / this.coldStartSeconds)) /
+        Math.log(2),
+      maxConcurrency,
+    );
+
+    if (Math.floor(oldConcurrency) !== Math.floor(this.currentConcurrency)) {
+      logger.info("Increasing concurrency", {
+        newConcurrency: Math.floor(this.currentConcurrency),
+        elapsedSeconds: elapsedSeconds.toFixed(1),
+      });
+    }
+  }
+
   async run() {
     this.startTime = Date.now();
     this.prevBatchTime = Date.now();
@@ -284,18 +306,9 @@ export class ContractVerifier {
             continue;
           }
 
-          // Gradually increase concurrency up to the maximum
-          if (
-            this.currentConcurrency < this.options.concurrent &&
-            this.verifiedCount >= this.currentConcurrency
-          ) {
-            this.currentConcurrency = Math.min(
-              this.currentConcurrency * this.concurrencyExponent,
-              this.options.concurrent,
-            );
-            logger.info("Increasing concurrency", {
-              newConcurrency: this.currentConcurrency,
-            });
+          // Replace the old concurrency update with the new logarithmic function
+          if (this.currentConcurrency < this.options.concurrent) {
+            this.updateConcurrency();
           }
 
           // Also don't await this one

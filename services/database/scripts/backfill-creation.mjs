@@ -186,6 +186,12 @@ program
     5,
   )
   .option(
+    "--cold-start-seconds <number>",
+    "Number of seconds to ramp up concurrency to the given max value. Will use a logarithmic ramp up.",
+    (value) => parseInt(value) || 300,
+    300,
+  )
+  .option(
     "-i, --interval <number>",
     "Interval in milliseconds to wait between checking if a new contract can be verified concurrently",
     (value) => parseInt(value) || 100,
