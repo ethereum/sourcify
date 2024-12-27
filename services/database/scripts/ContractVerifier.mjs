@@ -21,7 +21,7 @@ export class ContractVerifier {
     this.isFetching = false;
     this.chainIds = options.chains;
     this.currentConcurrency = 3; // for cold start
-    this.concurrencyExponent = 1.2;
+    this.concurrencyExponent = 1.1;
   }
 
   async fetchContractsToVerify() {
