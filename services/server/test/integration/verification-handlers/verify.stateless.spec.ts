@@ -25,11 +25,10 @@ import {
   LibraryTransformation,
 } from "@ethereum-sourcify/lib-sourcify";
 import sinon from "sinon";
-import nock from "nock";
 
 chai.use(chaiHttp);
 
-describe.only("/", function () {
+describe("/", function () {
   const chainFixture = new LocalChainFixture();
   const serverFixture = new ServerFixture();
 
@@ -336,28 +335,16 @@ describe.only("/", function () {
 
     const partialMetadataURL = `/repository/contracts/partial_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/metadata.json`;
 
-    // Intercept only eth_getTransactionReceipt calls but allow other RPC calls
-    // This will block the binary search for the creation tx hash and creationMatch will be set to null
-    const scope = nock("http://localhost:8545")
-      .post("/")
-      .reply(function (uri, requestBody) {
-        const body =
-          typeof requestBody === "string"
-            ? JSON.parse(requestBody)
-            : requestBody;
-        if (body.method === "eth_getTransactionReceipt") {
-          return [
-            500,
-            {
-              error: {
-                message: "Blocked getTransactionReceipt",
-              },
-            },
-          ];
-        }
-
-        return nock.restore(); // Else let pass
-      });
+    // Block the getTransactionReceipt call and the binary search for the creation tx hash and creationMatch will be set to null
+    const restoreGetTx =
+      serverFixture.server.chainRepository.sourcifyChainMap[
+        chainFixture.chainId
+      ].getTx;
+    serverFixture.server.chainRepository.sourcifyChainMap[
+      chainFixture.chainId
+    ].getTx = async () => {
+      throw new Error("Blocked getTransactionReceipt");
+    };
 
     let res = await chai
       .request(serverFixture.server.app)
@@ -367,8 +354,10 @@ describe.only("/", function () {
       .attach("files", partialMetadataBuffer, "metadata.json")
       .attach("files", partialSourceBuffer);
 
-    // Remove only this specific interceptor instead of all
-    scope.done();
+    // Restore the getTransactionReceipt call
+    serverFixture.server.chainRepository.sourcifyChainMap[
+      chainFixture.chainId
+    ].getTx = restoreGetTx;
 
     await assertVerification(
       serverFixture,
