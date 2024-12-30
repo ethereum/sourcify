@@ -1,17 +1,5 @@
 /**
- * Backfill Creation Script
- *
- * This script identifies and tracks contracts that are missing transaction hashes in the database.
- * It creates a table 'missing_transaction_hash' if it doesn't exist and populates it with contracts
- * that have null or empty transaction hashes.
- *
- * Usage:
- *   node backfill-creation.mjs [options]
- *
- * Options:
- *   -l, --limit <number>  Limit the number of contracts to process
- *   -d, --dry-run        Only show results without writing to database
- *   -h, --help          Display help information
+ * Scripts to backfill the missing_transaction_hash table and verify contracts missing transaction hashes
  *
  * Environment Variables Required:
  *   - POSTGRES_HOST
@@ -27,7 +15,6 @@ import { program } from "commander";
 import dotenv from "dotenv";
 import pg from "pg";
 import sourcifyChains from "../../server/src/sourcify-chains-default.json" with { type: "json" };
-import fetch from "node-fetch";
 import { logger } from "./logger.js";
 import { ContractVerifier } from "./ContractVerifier.mjs";
 
@@ -158,11 +145,10 @@ process.on("SIGTERM", async () => {
   process.exit(0);
 });
 
-// Update the verify command to use the imported class
 program
   .command("verify")
   .description(
-    "Verify contracts using source files and metadata\n" +
+    "Verify contracts missing transaction hashes. Requires the `missing_transaction_hash` table to be populated using the `find-missing-tx-hashes` command.\n" +
       "Logging level can be configured using NODE_LOG_LEVEL environment variable (default: 'info')\n\n" +
       "Example:\n" +
       "NODE_LOG_LEVEL=debug node backfill-creation.mjs verify \\\n" +
@@ -235,7 +221,9 @@ program
 
 program
   .command("find-missing-tx-hashes")
-  .description("Find contracts missing transaction hashes and track them")
+  .description(
+    "Find contracts missing transaction hashes in the Sourcify DB, and insert them into the missing_transaction_hash table",
+  )
   .option("-l, --limit <number>", "Limit the number of contracts to process")
   .option("-d, --dry-run", "Only show results without writing to database")
   .action(async (options) => {
