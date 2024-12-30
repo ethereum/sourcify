@@ -56,6 +56,8 @@ export class LocalChainFixture {
   private _localSigner?: JsonRpcSigner;
   private _defaultContractAddress?: string;
   private _defaultContractCreatorTx?: string;
+  private _defaultContractBlockNumber?: number;
+  private _defaultContractTxIndex?: number;
 
   private hardhatNodeProcess?: ChildProcess;
 
@@ -78,6 +80,16 @@ export class LocalChainFixture {
     if (!this._defaultContractCreatorTx)
       throw new Error("defaultContractCreatorTx not initialized!");
     return this._defaultContractCreatorTx;
+  }
+  get defaultContractBlockNumber(): number {
+    if (this._defaultContractBlockNumber === undefined)
+      throw new Error("defaultContractBlockNumber not initialized!");
+    return this._defaultContractBlockNumber;
+  }
+  get defaultContractTxIndex(): number {
+    if (this._defaultContractTxIndex === undefined)
+      throw new Error("defaultContractTxIndex not initialized!");
+    return this._defaultContractTxIndex;
   }
 
   /**
@@ -116,7 +128,7 @@ export class LocalChainFixture {
       console.log("Initialized Provider");
 
       // Deploy the test contract
-      const { contractAddress, txHash } =
+      const { contractAddress, txHash, blockNumber, txIndex } =
         await deployFromAbiAndBytecodeForCreatorTxHash(
           this._localSigner,
           storageContractArtifact.abi,
@@ -124,6 +136,8 @@ export class LocalChainFixture {
         );
       this._defaultContractAddress = contractAddress;
       this._defaultContractCreatorTx = txHash;
+      this._defaultContractBlockNumber = blockNumber;
+      this._defaultContractTxIndex = txIndex;
     });
 
     after(async () => {

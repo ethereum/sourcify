@@ -407,7 +407,10 @@ export default class SourcifyChain {
    * @param {SourcifyChain} sourcifyChain - chain object with rpc's
    * @param {string} address - contract address
    */
-  getBytecode = async (address: string): Promise<string> => {
+  getBytecode = async (
+    address: string,
+    blockNumber?: number,
+  ): Promise<string> => {
     address = getAddress(address);
 
     // Request sequentially. Custom node is always before ALCHEMY so we don't waste resources if succeeds.
@@ -417,6 +420,7 @@ export default class SourcifyChain {
       try {
         logDebug('Fetching bytecode', {
           address,
+          blockNumber,
           providerUrl: provider.url,
           chainId: this.chainId,
           currentProviderIndex,
@@ -424,11 +428,12 @@ export default class SourcifyChain {
         });
         // Race the RPC call with a timeout
         const bytecode = await Promise.race([
-          provider.getCode(address),
+          provider.getCode(address, blockNumber),
           this.rejectInMs(RPC_TIMEOUT, provider.url),
         ]);
         logInfo('Fetched bytecode', {
           address,
+          blockNumber,
           providerUrl: provider.url,
           chainId: this.chainId,
         });
@@ -437,6 +442,7 @@ export default class SourcifyChain {
         if (err instanceof Error) {
           logWarn('Failed to fetch bytecode', {
             address,
+            blockNumber,
             providerUrl: provider.url,
             chainId: this.chainId,
             error: err.message,
@@ -450,6 +456,7 @@ export default class SourcifyChain {
     throw new Error(
       'None of the RPCs responded fetching bytecode for ' +
         address +
+        (blockNumber ? ` at block ${blockNumber}` : '') +
         ' on chain ' +
         this.chainId,
     );

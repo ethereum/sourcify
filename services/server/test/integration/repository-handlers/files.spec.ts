@@ -60,6 +60,11 @@ describe("Verify repository endpoints", function () {
             path: `contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/metadata.json`,
             content: chainFixture.defaultContractMetadata.toString(),
           },
+          {
+            name: "creator-tx-hash.txt",
+            path: `contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/creator-tx-hash.txt`,
+            content: chainFixture.defaultContractCreatorTx,
+          },
         ]);
         const res1 = await agent.get(
           `/files/tree/any/${
@@ -72,6 +77,7 @@ describe("Verify repository endpoints", function () {
           .to.have.members([
             `${serverUrl}/repository/contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/sources/project:/contracts/Storage.sol`,
             `${serverUrl}/repository/contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/metadata.json`,
+            `${serverUrl}/repository/contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/creator-tx-hash.txt`,
           ]);
         const res2 = await agent.get(
           `/files/any/${
@@ -90,6 +96,11 @@ describe("Verify repository endpoints", function () {
             path: `contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/metadata.json`,
             content: chainFixture.defaultContractMetadata.toString(),
           },
+          {
+            name: "creator-tx-hash.txt",
+            path: `contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/creator-tx-hash.txt`,
+            content: chainFixture.defaultContractCreatorTx,
+          },
         ]);
         const res3 = await agent.get(
           `/files/tree/${
@@ -101,6 +112,7 @@ describe("Verify repository endpoints", function () {
           .to.have.members([
             `${serverUrl}/repository/contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/sources/project:/contracts/Storage.sol`,
             `${serverUrl}/repository/contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/metadata.json`,
+            `${serverUrl}/repository/contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/creator-tx-hash.txt`,
           ]);
         const res4 = await agent.get(
           `/files/contracts/${chainFixture.chainId}`,
@@ -135,6 +147,17 @@ describe("Verify repository endpoints", function () {
           `/repository/contracts/partial_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/metadata.json`,
         );
         chai.expect(res8.status).to.equal(404);
+
+        const res9 = await agent.get(
+          `/repository/contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/creator-tx-hash.txt`,
+        );
+
+        chai.expect(res9.text).to.equal(chainFixture.defaultContractCreatorTx);
+
+        const res10 = await agent.get(
+          `/repository/contracts/partial_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/constructor-args.txt`,
+        );
+        chai.expect(res10.status).to.equal(404);
       });
 
       it(`should fetch files of partial match contract. Storage type: ${serverFixture.identifier}`, async function () {
@@ -175,6 +198,7 @@ describe("Verify repository endpoints", function () {
           .to.have.members([
             `${serverUrl}/repository/contracts/partial_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/sources/contracts/StorageModified.sol`,
             `${serverUrl}/repository/contracts/partial_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/metadata.json`,
+            `${serverUrl}/repository/contracts/partial_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/creator-tx-hash.txt`,
           ]);
         const res2 = await agent.get(
           `/files/any/${
@@ -192,6 +216,11 @@ describe("Verify repository endpoints", function () {
             name: "metadata.json",
             path: `contracts/partial_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/metadata.json`,
             content: chainFixture.defaultContractModifiedMetadata.toString(),
+          },
+          {
+            name: "creator-tx-hash.txt",
+            path: `contracts/partial_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/creator-tx-hash.txt`,
+            content: chainFixture.defaultContractCreatorTx,
           },
         ]);
         const res3 = await agent.get(
@@ -211,6 +240,7 @@ describe("Verify repository endpoints", function () {
           partial: [chainFixture.defaultContractAddress],
         });
 
+        // Check the sources/contracts/StorageModified.sol
         const res5 = await agent.get(
           `/repository/contracts/partial_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/sources/contracts/StorageModified.sol`,
         );
@@ -223,6 +253,7 @@ describe("Verify repository endpoints", function () {
         );
         chai.expect(res6.status).to.equal(404);
 
+        // Check the metadata.json
         const res7 = await agent.get(
           `/repository/contracts/partial_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/metadata.json`,
         );
@@ -236,6 +267,17 @@ describe("Verify repository endpoints", function () {
           `/repository/contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/metadata.json`,
         );
         chai.expect(res8.status).to.equal(404);
+
+        // Check the creator tx hash
+        const res9 = await agent.get(
+          `/repository/contracts/partial_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/creator-tx-hash.txt`,
+        );
+        chai.expect(res9.text).to.equal(chainFixture.defaultContractCreatorTx);
+
+        const res10 = await agent.get(
+          `/repository/contracts/full_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/constructor-args.txt`,
+        );
+        chai.expect(res10.status).to.equal(404);
       });
 
       it(`should fetch a .sol file of specific address. Storage type: ${serverFixture.identifier}`, async function () {
