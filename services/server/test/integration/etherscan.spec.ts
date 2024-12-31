@@ -25,6 +25,8 @@ import {
   SINGLE_CONTRACT_RESPONSE,
   STANDARD_JSON_CONTRACT_RESPONSE,
   UNVERIFIED_CONTRACT_RESPONSE,
+  VYPER_SINGLE_CONTRACT_RESPONSE,
+  VYPER_STANDARD_JSON_CONTRACT_RESPONSE,
 } from "../helpers/etherscanResponseMocks";
 
 chai.use(chaiHttp);
@@ -224,6 +226,42 @@ describe("Import From Etherscan and Verify", function () {
         testChainId,
         standardJsonContract.address,
         standardJsonContract.expectedStatus,
+        () => {
+          chai.expect(nockScope.isDone()).to.equal(true);
+          done();
+        },
+      );
+    });
+
+    it(`Non-Session: Should import a Vyper single contract from ${sourcifyChainsMap[testChainId].name} (${sourcifyChainsMap[testChainId].etherscanApi?.apiURL}) and verify the contract, finding a partial match`, (done) => {
+      const nockScope = mockEtherscanApi(
+        testChainId,
+        "0x7BA33456EC00812C6B6BB6C1C3dfF579c34CC2cc",
+        VYPER_SINGLE_CONTRACT_RESPONSE,
+      );
+      verifyAndAssertEtherscan(
+        serverFixture,
+        testChainId,
+        "0x7BA33456EC00812C6B6BB6C1C3dfF579c34CC2cc",
+        "partial",
+        () => {
+          chai.expect(nockScope.isDone()).to.equal(true);
+          done();
+        },
+      );
+    });
+
+    it(`Non-Session: Should import a Vyper standard-json contract from ${sourcifyChainsMap[testChainId].name} (${sourcifyChainsMap[testChainId].etherscanApi?.apiURL}) and verify the contract, finding a partial match`, (done) => {
+      const nockScope = mockEtherscanApi(
+        testChainId,
+        "0x2dFd89449faff8a532790667baB21cF733C064f2",
+        VYPER_STANDARD_JSON_CONTRACT_RESPONSE,
+      );
+      verifyAndAssertEtherscan(
+        serverFixture,
+        testChainId,
+        "0x2dFd89449faff8a532790667baB21cF733C064f2",
+        "partial",
         () => {
           chai.expect(nockScope.isDone()).to.equal(true);
           done();
