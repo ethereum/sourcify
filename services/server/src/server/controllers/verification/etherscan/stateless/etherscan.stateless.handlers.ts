@@ -11,7 +11,9 @@ import { ChainRepository } from "../../../../../sourcify-chain-repository";
 import {
   ISolidityCompiler,
   IVyperCompiler,
+  JsonInput,
   VyperCheckedContract,
+  VyperJsonInput,
 } from "@ethereum-sourcify/lib-sourcify";
 import { Services } from "../../../../services/services";
 import { BadRequestError } from "../../../../../common/errors";
@@ -19,7 +21,7 @@ import { BadRequestError } from "../../../../../common/errors";
 async function processEtherscanSolidityContract(
   solc: ISolidityCompiler,
   compilerVersion: string,
-  solcJsonInput: any,
+  solcJsonInput: JsonInput,
   contractName: string,
 ) {
   const metadata = await getMetadataFromCompiler(
@@ -36,17 +38,29 @@ async function processEtherscanSolidityContract(
 async function processEtherscanVyperContract(
   vyperCompiler: IVyperCompiler,
   compilerVersion: string,
-  vyperJsonInput: any,
+  vyperJsonInput: VyperJsonInput,
   contractPath: string,
   contractName: string,
 ) {
+  if (!vyperJsonInput.settings) {
+    throw new BadRequestError(
+      "Couldn't get Vyper compiler settings from Etherscan",
+    );
+  }
+  const sourceMap = Object.fromEntries(
+    Object.entries(vyperJsonInput.sources).map(([path, content]) => [
+      path,
+      content.content,
+    ]),
+  );
+
   return new VyperCheckedContract(
     vyperCompiler,
     compilerVersion,
     contractPath,
     contractName,
     vyperJsonInput.settings,
-    vyperJsonInput.sources,
+    sourceMap,
   );
 }
 
@@ -65,36 +79,31 @@ export async function verifyFromEtherscan(req: Request, res: Response) {
 
   logger.info("verifyFromEtherscan", { chain, address, apiKey });
 
-  const {
-    language,
-    compilerVersion,
-    solcJsonInput,
-    vyperJsonInput,
-    contractName,
-    contractPath,
-  } = await processRequestFromEtherscan(sourcifyChain, address, apiKey);
+  const { vyperResult, solidityResult } = await processRequestFromEtherscan(
+    sourcifyChain,
+    address,
+    apiKey,
+  );
 
   let checkedContract;
-  if (language === "Solidity") {
+  if (solidityResult) {
     checkedContract = await processEtherscanSolidityContract(
       solc,
-      compilerVersion,
-      solcJsonInput,
-      contractName,
+      solidityResult.compilerVersion,
+      solidityResult.solcJsonInput,
+      solidityResult.contractName,
     );
-  } else if (language === "Vyper") {
+  } else if (vyperResult) {
     checkedContract = await processEtherscanVyperContract(
       vyperCompiler,
-      compilerVersion,
-      vyperJsonInput,
-      contractPath,
-      contractName,
+      vyperResult.compilerVersion,
+      vyperResult.vyperJsonInput,
+      vyperResult.contractPath,
+      vyperResult.contractName,
     );
   } else {
-    logger.error("Import from Etherscan: unsupported language", {
-      language,
-    });
-    throw new BadRequestError("Unsupported language: " + language);
+    logger.error("Import from Etherscan: unsupported language");
+    throw new BadRequestError("Received unsupported language from Etherscan");
   }
 
   const match = await services.verification.verifyDeployed(
