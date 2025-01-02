@@ -20,7 +20,7 @@ export class ContractVerifier {
     this.fetchedNextContractsSize = -1;
     this.isFetching = false;
     this.chainIds = options.chains;
-    this.currentConcurrency = 3; // for cold start
+    this.currentConcurrency = 1; // for cold start
     this.coldStartSeconds = options.coldStartSeconds || 300; // Default 5 minutes
   }
 
