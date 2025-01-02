@@ -91,7 +91,8 @@ function getBlockscoutApiContractCreatorFetcher(
 ): ContractCreationFetcher {
   return getApiContractCreationFetcher(
     apiURL + BLOCKSCOUT_API_SUFFIX,
-    (response: any) => response?.creation_tx_hash,
+    (response: any) =>
+      response?.creation_tx_hash || response?.creation_transaction_hash,
   );
 }
 
