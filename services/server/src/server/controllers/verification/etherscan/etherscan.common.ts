@@ -351,10 +351,18 @@ const processVyperResultFromEtherscan = async (
 
     // Etherscan derives the ContractName from the @title natspec. Therefore, we cannot use the ContractName to find the contract path.
     contractPath = Object.keys(parsedJsonInput.settings.outputSelection)[0];
+
+    // contractPath can be also be "*" or "<unknown>", in the case of "<unknown>" both contractPath and contractName will be "<unknown>"
     if (contractPath === "*") {
-      throw new BadRequestError(
-        "This Vyper contracts is not verifiable by using Import From Etherscan",
-      );
+      // in the case of "*", we extract the contract path from the sources using `ContractName`
+      contractPath = Object.keys(parsedJsonInput.sources).find((source) =>
+        source.includes(contractResultJson.ContractName),
+      )!;
+      if (!contractPath) {
+        throw new BadRequestError(
+          "This Vyper contracts is not verifiable by using Import From Etherscan",
+        );
+      }
     }
 
     // We need to use the name from the contractPath, because VyperCheckedContract uses it for selecting the compiler output.
