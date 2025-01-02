@@ -107,7 +107,7 @@ export interface Metadata {
     compilationTarget: {
       [sourceName: string]: string;
     };
-    evmVersion: string;
+    evmVersion?: string;
     libraries?: {
       [index: string]: string;
     };
@@ -224,8 +224,9 @@ export const LibraryTransformation = (
 export const ImmutablesTransformation = (
   offset: number,
   id: string,
+  type: 'replace' | 'insert',
 ): Transformation => ({
-  type: 'replace',
+  type,
   reason: 'immutable',
   offset,
   id,
@@ -493,7 +494,7 @@ export interface JsonInput {
   sources: Sources;
   settings?: Settings;
 }
-interface CompilerOutputError {
+interface SolidityOutputError {
   sourceLocation?: {
     file: string;
     start: number;
@@ -505,7 +506,7 @@ interface CompilerOutputError {
   message: string;
   formattedMessage?: string;
 }
-interface CompilerOutputEvmBytecode {
+interface SolidityOutputEvmBytecode {
   object: string;
   opcodes?: string;
   sourceMap?: string;
@@ -518,10 +519,10 @@ interface CompilerOutputEvmBytecode {
       };
 }
 
-interface CompilerOutputEvmDeployedBytecode extends CompilerOutputEvmBytecode {
+interface SolidityOutputEvmDeployedBytecode extends SolidityOutputEvmBytecode {
   immutableReferences?: ImmutableReferences;
 }
-export interface CompilerOutputSources {
+export interface SolidityOutputSources {
   [globalName: string]: {
     id: number;
     ast: any;
@@ -546,51 +547,51 @@ export interface StorageLayout {
     };
   };
 }
-interface CompilerOutputContracts {
-  [globalName: string]: {
-    [contractName: string]: {
-      abi: Abi;
-      metadata: string;
-      userdoc?: any;
-      devdoc?: any;
-      ir?: string;
-      irAst?: any;
-      irOptimized?: string;
-      irOptimizedAst?: any;
-      storageLayout?: StorageLayout;
-      evm: {
-        assembly?: string;
-        legacyAssembly?: any;
-        bytecode: CompilerOutputEvmBytecode;
-        deployedBytecode?: CompilerOutputEvmDeployedBytecode;
-        methodIdentifiers?: {
-          [methodName: string]: string;
-        };
-        gasEstimates?: {
-          creation: {
-            codeDepositCost: string;
-            executionCost: string;
-            totalCost: string;
-          };
-          external: {
-            [functionSignature: string]: string;
-          };
-          internal: {
-            [functionSignature: string]: string;
-          };
-        };
+export interface SolidityOutputContract {
+  abi: Abi;
+  metadata: string;
+  userdoc?: any;
+  devdoc?: any;
+  ir?: string;
+  irAst?: any;
+  irOptimized?: string;
+  irOptimizedAst?: any;
+  storageLayout?: StorageLayout;
+  evm: {
+    assembly?: string;
+    legacyAssembly?: any;
+    bytecode: SolidityOutputEvmBytecode;
+    deployedBytecode?: SolidityOutputEvmDeployedBytecode;
+    methodIdentifiers?: {
+      [methodName: string]: string;
+    };
+    gasEstimates?: {
+      creation: {
+        codeDepositCost: string;
+        executionCost: string;
+        totalCost: string;
       };
-      ewasm?: {
-        wast: string;
-        wasm: string;
+      external: {
+        [functionSignature: string]: string;
+      };
+      internal: {
+        [functionSignature: string]: string;
       };
     };
   };
+  ewasm?: {
+    wast: string;
+    wasm: string;
+  };
 }
-export interface CompilerOutput {
-  errors?: CompilerOutputError[];
-  sources?: CompilerOutputSources;
-  contracts: CompilerOutputContracts;
+export interface SolidityOutput {
+  errors?: SolidityOutputError[];
+  sources?: SolidityOutputSources;
+  contracts: {
+    [globalName: string]: {
+      [contractName: string]: SolidityOutputContract;
+    };
+  };
 }
 
 export interface CompiledContractCborAuxdata {

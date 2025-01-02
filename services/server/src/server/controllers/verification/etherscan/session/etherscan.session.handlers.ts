@@ -38,8 +38,15 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
   const apiKey = req.body.apiKey;
   const sourcifyChain = chainRepository.supportedChainMap[chain];
 
-  const { compilerVersion, solcJsonInput, contractName } =
-    await processRequestFromEtherscan(sourcifyChain, address, apiKey);
+  const { solidityResult } = await processRequestFromEtherscan(
+    sourcifyChain,
+    address,
+    apiKey,
+  );
+  if (!solidityResult) {
+    throw new BadRequestError("Received unsupported language from Etherscan");
+  }
+  const { compilerVersion, solcJsonInput, contractName } = solidityResult;
 
   const metadata = await getMetadataFromCompiler(
     solc,
@@ -52,7 +59,7 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
     (path) => {
       return {
         path: path,
-        content: stringToBase64(solcJsonInput.sources[path].content),
+        content: stringToBase64(solcJsonInput.sources[path].content!),
       };
     },
   );

@@ -4,14 +4,16 @@ import { Match, Metadata } from '../src/lib/types';
 import {
   /* callContractMethodWithTx, */
   checkAndVerifyDeployed,
-  checkFilesFromContractFolder,
+  checkFilesWithMetadataFromContractFolder,
   deployCheckAndVerify,
   deployFromAbiAndBytecode,
   expectMatch,
+  vyperCompiler,
 } from './utils';
 import { describe, it, before } from 'mocha';
 import { expect } from 'chai';
 import {
+  VyperCheckedContract,
   SourcifyChain,
   calculateCreate2Address,
   /* 
@@ -32,6 +34,7 @@ import {
   startHardhatNetwork,
   stopHardhatNetwork,
 } from './hardhat-network-helper';
+import { AuxdataStyle } from '@ethereum-sourcify/bytecode-utils';
 
 const HARDHAT_PORT = 8544;
 
@@ -196,7 +199,7 @@ describe('lib-sourcify tests', () => {
     it('should verify a create2 contract', async () => {
       const contractFolderPath = path.join(__dirname, 'sources', 'Create2');
       const checkedContracts =
-        await checkFilesFromContractFolder(contractFolderPath);
+        await checkFilesWithMetadataFromContractFolder(contractFolderPath);
       const saltNum = 12345;
       const saltHex = '0x' + saltNum.toString(16);
       const match = await verifyCreate2(
@@ -216,7 +219,7 @@ describe('lib-sourcify tests', () => {
     it('should verify fail to a create2 contract with wrong address', async () => {
       const contractFolderPath = path.join(__dirname, 'sources', 'Create2');
       const checkedContracts =
-        await checkFilesFromContractFolder(contractFolderPath);
+        await checkFilesWithMetadataFromContractFolder(contractFolderPath);
       const saltNum = 12345;
       const saltHex = '0x' + saltNum.toString(16);
       try {
@@ -368,7 +371,7 @@ describe('lib-sourcify tests', () => {
       );
 
       const checkedContracts =
-        await checkFilesFromContractFolder(contractFolderPath);
+        await checkFilesWithMetadataFromContractFolder(contractFolderPath);
 
       // Get the unsorted metadata
       const metadataPath = path.join(
@@ -380,7 +383,7 @@ describe('lib-sourcify tests', () => {
       // Replace the metadata witht he unsorted one
       checkedContracts[0].initSolcJsonInput(
         JSON.parse(metadataBuffer.toString()),
-        checkedContracts[0].solidity,
+        checkedContracts[0].sources,
       );
 
       const match = await verifyDeployed(
@@ -499,7 +502,7 @@ describe('lib-sourcify tests', () => {
       ],
     );
     const checkedContracts =
-      await checkFilesFromContractFolder(contractFolderPath);
+      await checkFilesWithMetadataFromContractFolder(contractFolderPath);
 
     const match = await verifyDeployed(
       checkedContracts[0],
@@ -563,6 +566,213 @@ describe('lib-sourcify tests', () => {
       },
       constructorArguments:
         '0x0000000000000000000000000000000000000000000000000000000000003039',
+    });
+  });
+
+  describe('Vyper', () => {
+    const deployDefaultVyperContract = async (artifactSubfolder?: string) => {
+      const contractFolderPath = path.join(
+        __dirname,
+        'sources',
+        'Vyper',
+        'testcontract',
+      );
+      const contractFileName = 'test.vy';
+      const contractFileContent = await fs.promises.readFile(
+        path.join(contractFolderPath, contractFileName),
+      );
+      const artifactFolderPath = artifactSubfolder
+        ? path.join(contractFolderPath, artifactSubfolder)
+        : contractFolderPath;
+      const { contractAddress, txHash } = await deployFromAbiAndBytecode(
+        signer,
+        artifactFolderPath,
+        [],
+      );
+
+      return {
+        contractAddress,
+        creationTxHash: txHash,
+        contractFileContent,
+        contractFileName,
+      };
+    };
+
+    it('should verify a vyper contract', async () => {
+      const { contractAddress, contractFileContent, contractFileName } =
+        await deployDefaultVyperContract();
+
+      const checkedContract = new VyperCheckedContract(
+        vyperCompiler,
+        '0.3.10+commit.91361694',
+        contractFileName,
+        contractFileName.split('.')[0],
+        {
+          evmVersion: 'istanbul',
+          outputSelection: {
+            '*': ['evm.bytecode'],
+          },
+        },
+        {
+          [contractFileName]: contractFileContent.toString(),
+        },
+      );
+      const match = await verifyDeployed(
+        checkedContract,
+        sourcifyChainHardhat,
+        contractAddress,
+      );
+
+      expectMatch(match, 'partial', contractAddress);
+    });
+
+    it('should verify a vyper contract with immutable references and constructor arguments', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        'sources',
+        'Vyper',
+        'withImmutables',
+      );
+      const contractFileName = 'test.vy';
+      const vyperContent = await fs.promises.readFile(
+        path.join(contractFolderPath, contractFileName),
+      );
+
+      const { contractAddress, txHash } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath,
+        [5],
+      );
+      const checkedContract = new VyperCheckedContract(
+        vyperCompiler,
+        '0.4.0+commit.e9db8d9f',
+        contractFileName,
+        contractFileName.split('.')[0],
+        {
+          evmVersion: 'london',
+          outputSelection: {
+            '*': ['evm.bytecode'],
+          },
+          optimize: 'codesize',
+        },
+        {
+          [contractFileName]: vyperContent.toString(),
+        },
+      );
+      const match = await verifyDeployed(
+        checkedContract,
+        sourcifyChainHardhat,
+        contractAddress,
+        txHash,
+      );
+
+      expectMatch(match, 'partial', contractAddress);
+      expect(match.creationMatch).to.equal('partial');
+      expect(match.creationTransformations).to.deep.equal([
+        {
+          type: 'insert',
+          reason: 'constructorArguments',
+          offset: 245,
+        },
+      ]);
+      expect(match.creationTransformationValues).to.deep.equal({
+        constructorArguments:
+          '0x0000000000000000000000000000000000000000000000000000000000000005',
+      });
+      expect(match.runtimeTransformations).to.deep.equal([
+        {
+          type: 'insert',
+          reason: 'immutable',
+          offset: 167,
+          id: '0',
+        },
+      ]);
+      expect(match.runtimeTransformationValues).to.deep.equal({
+        immutables: {
+          '0': '0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266000000000000000000000000000000000000000000000000000000000000000500000000000000000000000000000000000000000000000000eca7a2f8618d6f',
+        },
+      });
+    });
+
+    it('should fail to verify a different Vyper contract', async () => {
+      const { contractAddress, contractFileName } =
+        await deployDefaultVyperContract();
+
+      const wrongContractContent = await fs.promises.readFile(
+        path.join(
+          __dirname,
+          'sources',
+          'Vyper',
+          'testcontract2',
+          contractFileName,
+        ),
+      );
+      const checkedContract = new VyperCheckedContract(
+        vyperCompiler,
+        '0.3.10+commit.91361694',
+        contractFileName,
+        contractFileName.split('.')[0],
+        {
+          evmVersion: 'istanbul',
+          outputSelection: {
+            '*': ['evm.bytecode'],
+          },
+        },
+        {
+          [contractFileName]: wrongContractContent.toString(),
+        },
+      );
+
+      await expect(
+        verifyDeployed(checkedContract, sourcifyChainHardhat, contractAddress),
+      ).to.be.rejectedWith("The deployed and recompiled bytecode don't match.");
+    });
+
+    it('should have transformation information for a contract compiled with Vyper 0.3.4', async () => {
+      const {
+        contractAddress,
+        contractFileName,
+        contractFileContent,
+        creationTxHash,
+      } = await deployDefaultVyperContract('wrongAuxdata');
+
+      const checkedContract = new VyperCheckedContract(
+        vyperCompiler,
+        '0.3.10+commit.91361694',
+        contractFileName,
+        contractFileName.split('.')[0],
+        {
+          evmVersion: 'istanbul',
+          outputSelection: {
+            '*': ['evm.bytecode'],
+          },
+        },
+        {
+          [contractFileName]: contractFileContent.toString(),
+        },
+      );
+      const match = await verifyDeployed(
+        checkedContract,
+        sourcifyChainHardhat,
+        contractAddress,
+        creationTxHash,
+      );
+
+      expect(match.creationTransformations).to.deep.equal([
+        {
+          type: 'replace',
+          reason: 'cborAuxdata',
+          offset: 158,
+          id: '1',
+        },
+      ]);
+      expect(match.creationTransformationValues).to.deep.equal({
+        cborAuxdata: {
+          '1': '0x84188f8000a1657679706572830003090012',
+        },
+      });
+      expect(match.runtimeTransformations).to.be.deep.equal([]);
+      expect(match.runtimeTransformationValues).to.be.deep.equal({});
     });
   });
 
@@ -641,6 +851,7 @@ describe('lib-sourcify tests', () => {
         runtimeBytecode,
         [],
         {},
+        AuxdataStyle.SOLIDITY,
       );
 
       expect(replacedBytecode).equals(recompiledRuntimeBytecode);
@@ -677,7 +888,7 @@ describe('lib-sourcify tests', () => {
       );
       const childAddress = txReceipt.events.ChildCreated.returnValues[0];
 
-      const checkedContracts = await checkFilesFromContractFolder(
+      const checkedContracts = await checkFilesWithMetadataFromContractFolder(
         childFolderPath
       );
       const recompiled = await checkedContracts[0].recompile();
@@ -727,7 +938,7 @@ describe('lib-sourcify tests', () => {
       );
 
       const checkedContracts =
-        await checkFilesFromContractFolder(contractFolderPath);
+        await checkFilesWithMetadataFromContractFolder(contractFolderPath);
       const recompiled = await checkedContracts[0].recompile();
       const match: Match = {
         address: contractAddress,
@@ -788,7 +999,7 @@ describe('lib-sourcify tests', () => {
         ['12345'],
       );
 
-      const checkedContracts = await checkFilesFromContractFolder(
+      const checkedContracts = await checkFilesWithMetadataFromContractFolder(
         maliciousContractFolderPath,
       );
       const recompiled = await checkedContracts[0].recompile();
@@ -834,7 +1045,7 @@ describe('lib-sourcify tests', () => {
         'sources',
         'AbstractCreationBytecodeAttack',
       );
-      const checkedContracts = await checkFilesFromContractFolder(
+      const checkedContracts = await checkFilesWithMetadataFromContractFolder(
         maliciousContractFolderPath,
       );
       const recompiled = await checkedContracts[0].recompile();
@@ -875,7 +1086,7 @@ describe('lib-sourcify tests', () => {
         await deployFromAbiAndBytecode(signer, contractFolderPath, ['12345']);
 
       const checkedContracts =
-        await checkFilesFromContractFolder(contractFolderPath);
+        await checkFilesWithMetadataFromContractFolder(contractFolderPath);
       const recompiled = await checkedContracts[0].recompile();
       const match = {
         address: contractAddress,
@@ -919,7 +1130,7 @@ describe('lib-sourcify tests', () => {
         await deployFromAbiAndBytecode(signer, contractFolderPath, []);
 
       const checkedContracts =
-        await checkFilesFromContractFolder(contractFolderPath);
+        await checkFilesWithMetadataFromContractFolder(contractFolderPath);
       const recompiled = await checkedContracts[0].recompile();
       const match: Match = {
         address: contractAddress,

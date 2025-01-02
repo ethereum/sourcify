@@ -105,6 +105,7 @@ module.exports = {
   },
   solcRepo: "/tmp/solc-bin/linux-amd64", // The path to the solc binaries on the filesystem
   solJsonRepo: "/tmp/solc-bin/soljson", // The path to the solJson binaries on the filesystem
+  vyperRepo: "/tmp/vyper-bin/linux-amd64", // The path to the vyper binaries on the filesystem
   session: {
     secret: process.env.SESSION * SECRET || "CHANGE_ME", // The secret used to sign the session cookie
     maxAge: 12 * 60 * 60 * 1000, // The maximum age of the session in milliseconds

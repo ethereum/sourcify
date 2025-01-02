@@ -1,4 +1,4 @@
-import { CheckedContract } from './CheckedContract';
+import { SolidityCheckedContract } from './SolidityCheckedContract';
 import {
   Create2Args,
   ImmutableReferences,
@@ -17,6 +17,7 @@ import {
   LinkReferences,
 } from './types';
 import {
+  AuxdataStyle,
   decode as bytecodeDecode,
   splitAuxdata,
 } from '@ethereum-sourcify/bytecode-utils';
@@ -29,9 +30,10 @@ import { logDebug, logError, logInfo, logWarn } from './logger';
 import SourcifyChain from './SourcifyChain';
 import { lt } from 'semver';
 import { replaceBytecodeAuxdatasWithZeros } from './utils';
+import { AbstractCheckedContract } from './AbstractCheckedContract';
 
 export async function verifyDeployed(
-  checkedContract: CheckedContract,
+  checkedContract: AbstractCheckedContract,
   sourcifyChain: SourcifyChain,
   address: string,
   creatorTxHash?: string,
@@ -58,8 +60,9 @@ export async function verifyDeployed(
   // See https://github.com/ethereum/sourcify/issues/1159
   // The nightlies and pre-0.4.10 platform binaries are not available
   if (
-    lt(checkedContract.metadata.compiler.version, '0.4.10') ||
-    checkedContract.metadata.compiler.version.includes('nightly')
+    checkedContract instanceof SolidityCheckedContract &&
+    (lt(checkedContract.metadata.compiler.version, '0.4.10') ||
+      checkedContract.metadata.compiler.version.includes('nightly'))
   ) {
     useEmscripten = true;
   }
@@ -116,6 +119,7 @@ export async function verifyDeployed(
       generateRuntimeCborAuxdataPositions,
       recompiled.immutableReferences,
       recompiled.runtimeLinkReferences,
+      checkedContract.auxdataStyle,
     );
     if (match.runtimeMatch === 'partial') {
       logDebug('Matched with deployed bytecode', {
@@ -123,22 +127,25 @@ export async function verifyDeployed(
         address,
         runtimeMatch: match.runtimeMatch,
       });
-      match = await tryToFindPerfectMetadataAndMatch(
-        checkedContract,
-        runtimeBytecode,
-        match,
-        async (match, recompiled) => {
-          await matchWithRuntimeBytecode(
-            match,
-            recompiled.runtimeBytecode,
-            runtimeBytecode,
-            generateRuntimeCborAuxdataPositions,
-            recompiled.immutableReferences,
-            recompiled.runtimeLinkReferences,
-          );
-        },
-        'runtimeMatch',
-      );
+      if (checkedContract instanceof SolidityCheckedContract) {
+        match = await tryToFindPerfectMetadataAndMatch(
+          checkedContract,
+          runtimeBytecode,
+          match,
+          async (match, recompiled) => {
+            await matchWithRuntimeBytecode(
+              match,
+              recompiled.runtimeBytecode,
+              runtimeBytecode,
+              generateRuntimeCborAuxdataPositions,
+              recompiled.immutableReferences,
+              recompiled.runtimeLinkReferences,
+              checkedContract.auxdataStyle,
+            );
+          },
+          'runtimeMatch',
+        );
+      }
     }
   } catch (e: any) {
     logWarn('Error matching with runtime bytecode', {
@@ -181,24 +188,26 @@ export async function verifyDeployed(
           creationMatch: match.creationMatch,
           creatorTxHash,
         });
-        match = await tryToFindPerfectMetadataAndMatch(
-          checkedContract,
-          runtimeBytecode, // TODO: This is also weird we pass the runtime bytecode here
-          match,
-          async (match, recompiled) => {
-            await matchWithCreationTx(
-              match,
-              recompiled.creationBytecode,
-              sourcifyChain,
-              address,
-              creatorTxHash,
-              recompiledMetadata,
-              generateCreationCborAuxdataPositions,
-              recompiled.creationLinkReferences,
-            );
-          },
-          'creationMatch',
-        );
+        if (checkedContract instanceof SolidityCheckedContract) {
+          match = await tryToFindPerfectMetadataAndMatch(
+            checkedContract,
+            runtimeBytecode, // TODO: This is also weird we pass the runtime bytecode here
+            match,
+            async (match, recompiled) => {
+              await matchWithCreationTx(
+                match,
+                recompiled.creationBytecode,
+                sourcifyChain,
+                address,
+                creatorTxHash,
+                recompiledMetadata,
+                generateCreationCborAuxdataPositions,
+                recompiled.creationLinkReferences,
+              );
+            },
+            'creationMatch',
+          );
+        }
       }
     }
   } catch (e: any) {
@@ -217,14 +226,27 @@ export async function verifyDeployed(
   // https://github.com/ethereum/solidity/issues/14494
   try {
     if (
-      splitAuxdata(match.onchainRuntimeBytecode || '')[1] ===
-        splitAuxdata(checkedContract.runtimeBytecode || '')[1] &&
+      checkedContract instanceof SolidityCheckedContract &&
+      splitAuxdata(
+        match.onchainRuntimeBytecode || '',
+        AuxdataStyle.SOLIDITY,
+      )[1] ===
+        splitAuxdata(
+          checkedContract.runtimeBytecode || '',
+          AuxdataStyle.SOLIDITY,
+        )[1] &&
       match.runtimeMatch === null &&
       match.creationMatch === null &&
       checkedContract.metadata.settings.optimizer?.enabled
     ) {
-      const [, deployedAuxdata] = splitAuxdata(runtimeBytecode);
-      const [, recompiledAuxdata] = splitAuxdata(recompiled.runtimeBytecode);
+      const [, deployedAuxdata] = splitAuxdata(
+        runtimeBytecode,
+        AuxdataStyle.SOLIDITY,
+      );
+      const [, recompiledAuxdata] = splitAuxdata(
+        recompiled.runtimeBytecode,
+        AuxdataStyle.SOLIDITY,
+      );
       // Metadata hashes match but bytecodes don't match.
       if (deployedAuxdata === recompiledAuxdata) {
         (match as Match).runtimeMatch = 'extra-file-input-bug';
@@ -293,7 +315,7 @@ export async function verifyDeployed(
 }
 
 async function tryToFindPerfectMetadataAndMatch(
-  checkedContract: CheckedContract,
+  checkedContract: SolidityCheckedContract,
   runtimeBytecode: string,
   match: Match,
   matchFunction: (
@@ -314,7 +336,7 @@ async function tryToFindPerfectMetadataAndMatch(
       // Replace the metadata and solidity files that will be saved in the repo
       checkedContract.initSolcJsonInput(
         checkedContractWithPerfectMetadata.metadata,
-        checkedContractWithPerfectMetadata.solidity,
+        checkedContractWithPerfectMetadata.sources,
       );
       return matchWithPerfectMetadata;
     }
@@ -323,7 +345,7 @@ async function tryToFindPerfectMetadataAndMatch(
 }
 
 export async function verifyCreate2(
-  checkedContract: CheckedContract,
+  checkedContract: SolidityCheckedContract,
   deployerAddress: string,
   salt: string,
   create2Address: string,
@@ -424,6 +446,7 @@ export async function matchWithRuntimeBytecode(
   generateCborAuxdataPositions: () => Promise<CompiledContractCborAuxdata>,
   immutableReferences: ImmutableReferences,
   linkReferences: LinkReferences,
+  auxdataStyle: AuxdataStyle,
 ) {
   // Updating the `match.onchainRuntimeBytecode` here so we are sure to always update it
   match.onchainRuntimeBytecode = onchainRuntimeBytecode;
@@ -460,6 +483,7 @@ export async function matchWithRuntimeBytecode(
     onchainRuntimeBytecode,
     match.runtimeTransformations,
     match.runtimeTransformationValues,
+    auxdataStyle,
   );
 
   // We call generateCborAuxdataPositions before returning because we always need
@@ -784,6 +808,7 @@ export function replaceImmutableReferences(
   onchainRuntimeBytecode: string,
   transformationsArray: Transformation[],
   transformationValues: TransformationValues,
+  auxdataStyle: AuxdataStyle,
 ) {
   onchainRuntimeBytecode = onchainRuntimeBytecode.slice(2); // remove "0x"
 
@@ -792,7 +817,13 @@ export function replaceImmutableReferences(
       const { start, length } = reference;
 
       // Save the transformation
-      transformationsArray.push(ImmutablesTransformation(start, astId));
+      transformationsArray.push(
+        ImmutablesTransformation(
+          start,
+          astId,
+          auxdataStyle === AuxdataStyle.SOLIDITY ? 'replace' : 'insert',
+        ),
+      );
       const immutableValue = onchainRuntimeBytecode.slice(
         start * 2,
         start * 2 + length * 2,
@@ -804,12 +835,17 @@ export function replaceImmutableReferences(
       }
       transformationValues.immutables[astId] = `0x${immutableValue}`;
 
-      // Write zeros in the place
-      const zeros = '0'.repeat(length * 2);
-      onchainRuntimeBytecode =
-        onchainRuntimeBytecode.slice(0, start * 2) +
-        zeros +
-        onchainRuntimeBytecode.slice(start * 2 + length * 2);
+      if (auxdataStyle === AuxdataStyle.SOLIDITY) {
+        // Write zeros in the place
+        const zeros = '0'.repeat(length * 2);
+        onchainRuntimeBytecode =
+          onchainRuntimeBytecode.slice(0, start * 2) +
+          zeros +
+          onchainRuntimeBytecode.slice(start * 2 + length * 2);
+      } else if (auxdataStyle === AuxdataStyle.VYPER) {
+        // This case works only for Vyper 0.3.10 and above
+        onchainRuntimeBytecode = onchainRuntimeBytecode.slice(0, start * 2);
+      }
     });
   });
   return '0x' + onchainRuntimeBytecode;
@@ -875,7 +911,7 @@ const saltToHex = (salt: string) => {
 function endsWithMetadataHash(bytecode: string) {
   let endsWithMetadata: boolean;
   try {
-    const decodedCBOR = bytecodeDecode(bytecode);
+    const decodedCBOR = bytecodeDecode(bytecode, AuxdataStyle.SOLIDITY);
     endsWithMetadata =
       !!decodedCBOR.ipfs || !!decodedCBOR['bzzr0'] || !!decodedCBOR['bzzr1'];
   } catch (e) {
