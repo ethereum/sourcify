@@ -185,6 +185,10 @@ describe("contract creation util", function () {
           [testCase]: testChain.fetchContractCreationTxUsing[testCase],
         };
       }
+      // Block the getBlockNumber call to block the binary search
+      testChain.getBlockNumber = async () => {
+        throw new Error("Blocked getBlockNumber");
+      };
 
       const creatorTx = await getCreatorTx(
         testChain,
