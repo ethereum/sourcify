@@ -13,6 +13,7 @@ module.exports = {
     writeOrWarn: [
       // WStorageIdentifiers.AllianceDatabase,
       RWStorageIdentifiers.RepositoryV1,
+      WStorageIdentifiers.S3Repository,
     ],
     writeOrErr: [
       WStorageIdentifiers.RepositoryV2,
