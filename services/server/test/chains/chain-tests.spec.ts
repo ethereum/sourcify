@@ -225,7 +225,7 @@ describe("Test Supported Chains", function () {
   );
 
   verifyContract(
-    "0x6ADEca067c7b72A7A78c21D22d1E3652686BC65F",
+    "0xE71aC8e30C5f7671eb96Fa089aC0B8b926798Dd1",
     "216",
     "Happychain Testnet",
     "shared/",
