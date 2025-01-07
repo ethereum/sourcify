@@ -50,7 +50,7 @@ const hardhatChain = {
   nativeCurrency: { name: 'localETH', symbol: 'localETH', decimals: 18 },
   network: 'testnet',
   networkId: 31337,
-  rpc: [`http://localhost:${HARDHAT_PORT}`],
+  rpc: [`http://127.0.0.1:${HARDHAT_PORT}`],
   supported: true,
 };
 const sourcifyChainHardhat: SourcifyChain = new SourcifyChain(hardhatChain);
