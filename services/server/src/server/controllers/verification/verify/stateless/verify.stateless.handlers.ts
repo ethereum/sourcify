@@ -49,7 +49,7 @@ export async function legacyVerifyEndpoint(
   }
 
   const errors = checkedContracts
-    .filter((contract) => !contract.isValid())
+    .filter((contract) => !contract.isValid(true))
     .map(stringifyInvalidAndMissing);
   if (errors.length) {
     throw new BadRequestError(
@@ -145,7 +145,7 @@ export async function verifyDeprecated(
   }
 
   const errors = checkedContracts
-    .filter((contract) => !contract.isValid())
+    .filter((contract) => !contract.isValid(true))
     .map(stringifyInvalidAndMissing);
   if (errors.length) {
     throw new BadRequestError(
