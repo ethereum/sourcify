@@ -2,7 +2,10 @@ import { AuxdataStyle } from '@ethereum-sourcify/bytecode-utils';
 import { VyperOutput } from './IVyperCompiler';
 import {
   CompiledContractCborAuxdata,
+  InvalidSources,
+  Language,
   Metadata,
+  MissingSources,
   RecompilationResult,
   SolidityOutput,
   StringMap,
@@ -35,4 +38,15 @@ export abstract class AbstractCheckedContract {
   abstract generateCborAuxdataPositions(
     forceEmscripten?: boolean,
   ): Promise<boolean>;
+
+  // Function to export the minimum information to reconstruct the CheckedContract
+  abstract exportConstructorArguments(): {
+    language: Language;
+    metadata: Metadata;
+    sources: StringMap;
+    compiledPath: string;
+    name: string;
+    missing: MissingSources;
+    invalid: InvalidSources;
+  };
 }

@@ -1,6 +1,7 @@
 import {
   CompiledContractCborAuxdata,
   ImmutableReferences,
+  Language,
   MetadataOutput,
   RecompilationResult,
   StringMap,
@@ -318,6 +319,19 @@ export class VyperCheckedContract extends AbstractCheckedContract {
           auxdataLengthOffset,
         value: `0x${auxdataFromRawBytecode}`,
       },
+    };
+  }
+  // Function to export the minimum information to reconstruct the CheckedContract
+  exportConstructorArguments() {
+    return {
+      language: Language.Vyper,
+      metadata: this.metadata,
+      sources: this.sources,
+      // creationBytecode: this.creationBytecode, // Not needed without create2
+      compiledPath: this.compiledPath,
+      name: this.name,
+      missing: {},
+      invalid: {},
     };
   }
 }

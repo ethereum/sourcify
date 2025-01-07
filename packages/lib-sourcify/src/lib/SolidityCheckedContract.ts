@@ -6,6 +6,7 @@ import {
   InvalidSources,
   IpfsGateway,
   JsonInput,
+  Language,
   Libraries,
   Metadata,
   MetadataSourceMap,
@@ -533,8 +534,9 @@ export class SolidityCheckedContract extends AbstractCheckedContract {
   // Function to export the minimum information to reconstruct the CheckedContract
   exportConstructorArguments() {
     return {
+      language: Language.Solidity,
       metadata: this.metadata,
-      solidity: this.sources,
+      sources: this.sources,
       missing: this.missing,
       invalid: this.invalid,
       // creationBytecode: this.creationBytecode, // Not needed without create2

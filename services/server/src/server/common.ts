@@ -1,6 +1,7 @@
 import { BadRequestError } from "../common/errors";
 import {
   InvalidSources,
+  Language,
   Match,
   Metadata,
   MissingSources,
@@ -54,8 +55,9 @@ export type ContractMeta = {
 
 export type ContractWrapper = ContractMeta & {
   contract: {
+    language: Language;
     metadata: Metadata;
-    solidity: StringMap;
+    sources: StringMap;
     missing: MissingSources;
     invalid: InvalidSources;
     creationBytecode?: string;
