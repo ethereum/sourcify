@@ -1222,6 +1222,13 @@ describe("Test Supported Chains", function () {
   );
 
   verifyContract(
+    "0xbC3559436348f1D96029b2Ccc16d2bBDE8016865",
+    "1114",
+    "Core Blockchain Testnet2",
+    "shared/",
+  );
+
+  verifyContract(
     "0x612C7dE4039655B9C9aE9A9B41f3A22319F0dF65",
     "1115",
     "Core Blockchain Testnet",
