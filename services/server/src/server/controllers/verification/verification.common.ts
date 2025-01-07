@@ -323,7 +323,7 @@ export async function addRemoteFile(
 export const checkAndFetchMissing = async (
   contract: SolidityCheckedContract,
 ): Promise<void> => {
-  if (!SolidityCheckedContract.isValid(contract)) {
+  if (!contract.isValid()) {
     try {
       // Try to fetch missing files
       await SolidityCheckedContract.fetchMissing(contract);

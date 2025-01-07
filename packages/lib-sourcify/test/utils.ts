@@ -135,7 +135,7 @@ export const checkFilesWithMetadataFromContractFolder = async (
     }
   };
   traverseDirectory(path.join(contractFolderPath, 'sources'));
-  const checkedContracts = await checkFilesWithMetadata(solc, [
+  const checkedContracts = await checkFilesWithMetadata(solc, vyperCompiler, [
     metadataPathBuffer,
     ...sourcePathBuffers,
   ]);

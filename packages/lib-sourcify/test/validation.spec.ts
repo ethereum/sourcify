@@ -1,15 +1,15 @@
 import {
+  AbstractCheckedContract,
   checkPaths,
   extractHardhatMetadataAndSources,
   pathContentArrayToStringMap,
   unzipFiles,
 } from '../src';
 import path from 'path';
-import { SolidityCheckedContract } from '../src';
 import fs from 'fs';
 import chai, { expect } from 'chai';
 import hardhatOutput from './validation/files/hardhat-output/output.json';
-import { solc } from './utils';
+import { solc, vyperCompiler } from './utils';
 
 function objectLength(obj: any) {
   return Object.keys(obj).length;
@@ -24,7 +24,12 @@ describe('ValidationService', function () {
     it('should succeed for single source file', async function () {
       const ignoring: string[] = [];
       const paths = [path.join(__dirname, 'validation', 'files', 'single')];
-      const checkedContracts = await checkPaths(solc, paths, ignoring);
+      const checkedContracts = await checkPaths(
+        solc,
+        vyperCompiler,
+        paths,
+        ignoring,
+      );
 
       chai.expect(ignoring).to.be.empty;
       expectationsOfSingle(checkedContracts);
@@ -36,20 +41,25 @@ describe('ValidationService', function () {
         path.join(__dirname, 'validation', 'files', 'single', '1_Storage.sol'),
         path.join(__dirname, 'validation', 'files', 'single', 'metadata.json'),
       ];
-      const checkedContracts = await checkPaths(solc, paths, ignoring);
+      const checkedContracts = await checkPaths(
+        solc,
+        vyperCompiler,
+        paths,
+        ignoring,
+      );
 
       chai.expect(ignoring).to.be.empty;
       expectationsOfSingle(checkedContracts);
     });
 
-    function expectationsOfSingle(checkedContracts: SolidityCheckedContract[]) {
+    function expectationsOfSingle(checkedContracts: AbstractCheckedContract[]) {
       chai.expect(checkedContracts.length).to.equal(1);
       const onlyContract = checkedContracts[0];
 
       chai.expect(onlyContract.name).to.equal('Storage');
       chai.expect(onlyContract.compiledPath).to.equal('browser/1_Storage.sol');
 
-      chai.expect(SolidityCheckedContract.isValid(onlyContract)).to.be.true;
+      chai.expect(onlyContract.isValid()).to.be.true;
       chai.expect(objectLength(onlyContract.sources)).to.equal(1);
       chai
         .expect(onlyContract.sources)
@@ -63,7 +73,12 @@ describe('ValidationService', function () {
       const paths = [
         path.join(__dirname, 'validation', 'files', 'single', 'metadata.json'),
       ];
-      const checkedContracts = await checkPaths(solc, paths, ignoring);
+      const checkedContracts = await checkPaths(
+        solc,
+        vyperCompiler,
+        paths,
+        ignoring,
+      );
 
       chai.expect(ignoring).to.be.empty;
       chai.expect(checkedContracts.length).to.equal(1);
@@ -72,7 +87,7 @@ describe('ValidationService', function () {
       chai.expect(onlyContract.name).to.equal('Storage');
       chai.expect(onlyContract.compiledPath).to.equal('browser/1_Storage.sol');
 
-      chai.expect(SolidityCheckedContract.isValid(onlyContract)).to.be.false;
+      chai.expect(onlyContract.isValid()).to.be.false;
       chai.expect(onlyContract.sources).to.be.empty;
       chai.expect(objectLength(onlyContract.missing)).to.equal(1);
       chai.expect(onlyContract.missing).to.have.key('browser/1_Storage.sol');
@@ -85,7 +100,7 @@ describe('ValidationService', function () {
         path.join(__dirname, 'validation', 'files', 'single', '1_Storage.sol'),
       ];
       try {
-        await checkPaths(solc, paths);
+        await checkPaths(solc, vyperCompiler, paths);
       } catch (e) {
         if (e instanceof Error) error = e;
       }
@@ -107,7 +122,12 @@ describe('ValidationService', function () {
         path.join(__dirname, 'validation', 'files', 'single'),
         invalidPath,
       ];
-      const checkedContracts = await checkPaths(solc, paths, ignoring);
+      const checkedContracts = await checkPaths(
+        solc,
+        vyperCompiler,
+        paths,
+        ignoring,
+      );
 
       chai.expect(ignoring).to.deep.equal([invalidPath]);
       expectationsOfSingle(checkedContracts);
@@ -141,14 +161,19 @@ describe('ValidationService', function () {
       const fileEnd = content.slice(content.length - endLength);
       chai.expect(fileEnd).to.equal(expectedFileEnd);
 
-      const checkedContracts = await checkPaths(solc, [directory], ignoring);
+      const checkedContracts = await checkPaths(
+        solc,
+        vyperCompiler,
+        [directory],
+        ignoring,
+      );
 
       chai.expect(ignoring).to.be.empty;
       chai.expect(checkedContracts).to.have.a.lengthOf(1);
 
       const contract = checkedContracts[0];
       chai.expect(contract.name).to.equal('Storage');
-      chai.expect(SolidityCheckedContract.isValid(contract)).to.be.true;
+      chai.expect(contract.isValid()).to.be.true;
     }
 
     it('should replace \\r\\n with \\n', function () {

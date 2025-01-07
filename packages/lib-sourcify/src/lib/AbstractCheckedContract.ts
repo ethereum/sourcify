@@ -11,6 +11,15 @@ import {
   StringMap,
 } from './types';
 
+/**
+ * Checks whether the provided object contains any keys or not.
+ * @param obj The object whose emptiness is tested.
+ * @returns true if any keys present; false otherwise
+ */
+export function isEmpty(obj: object): boolean {
+  return !Object.keys(obj).length && obj.constructor === Object;
+}
+
 export abstract class AbstractCheckedContract {
   metadata!: Metadata;
   sources!: StringMap;
@@ -20,6 +29,8 @@ export abstract class AbstractCheckedContract {
   creationBytecode?: string;
   runtimeBytecode?: string;
   metadataRaw!: string;
+  missing: MissingSources = {};
+  invalid: InvalidSources = {};
   abstract compilerOutput?: SolidityOutput | VyperOutput;
   abstract auxdataStyle: AuxdataStyle;
 
@@ -49,4 +60,12 @@ export abstract class AbstractCheckedContract {
     missing: MissingSources;
     invalid: InvalidSources;
   };
+
+  /** Checks whether this contract is valid or not.
+   * @param ignoreMissing a flag indicating that missing sources should be ignored
+   * @returns true if no sources are missing or are invalid (malformed); false otherwise
+   */
+  public isValid(ignoreMissing = false): boolean {
+    return (isEmpty(this.missing) || ignoreMissing) && isEmpty(this.invalid);
+  }
 }
