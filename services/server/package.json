@@ -51,7 +51,7 @@
   },
   "homepage": "https://github.com/ethereum/sourcify#readme",
   "dependencies": {
-    "@aws-sdk/client-s3": "3.717.0",
+    "@aws-sdk/client-s3": "3.723.0",
     "@ethereum-sourcify/bytecode-utils": "^1.2.14",
     "@ethereum-sourcify/lib-sourcify": "^1.10.1",
     "@google-cloud/cloud-sql-connector": "1.5.0",
@@ -67,7 +67,7 @@
     "ethers": "6.13.4",
     "express": "4.21.2",
     "express-fileupload": "1.5.1",
-    "express-openapi-validator": "5.3.9",
+    "express-openapi-validator": "5.4.2",
     "express-rate-limit": "6.11.2",
     "express-session": "1.18.1",
     "http-status-codes": "2.3.0",
