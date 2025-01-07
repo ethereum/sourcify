@@ -1,15 +1,18 @@
 import { BadRequestError, NotFoundError } from "../../../../common/errors";
 import {
   ISolidityCompiler,
+  IVyperCompiler,
   JsonInput,
   Metadata,
   SourcifyChain,
+  VyperCheckedContract,
   VyperJsonInput,
   findContractPathFromContractName,
 } from "@ethereum-sourcify/lib-sourcify";
 import { TooManyRequests } from "../../../../common/errors/TooManyRequests";
 import { BadGatewayError } from "../../../../common/errors/BadGatewayError";
 import logger from "../../../../common/logger";
+import { createSolidityCheckedContract } from "../verification.common";
 
 interface VyperVersion {
   compiler_version: string;
@@ -442,3 +445,49 @@ export const getMappedSourcesFromJsonInput = (jsonInput: JsonInput) => {
 export const stringToBase64 = (str: string): string => {
   return Buffer.from(str, "utf8").toString("base64");
 };
+
+export async function processEtherscanSolidityContract(
+  solc: ISolidityCompiler,
+  compilerVersion: string,
+  solcJsonInput: JsonInput,
+  contractName: string,
+) {
+  const metadata = await getMetadataFromCompiler(
+    solc,
+    compilerVersion,
+    solcJsonInput,
+    contractName,
+  );
+
+  const mappedSources = getMappedSourcesFromJsonInput(solcJsonInput);
+  return createSolidityCheckedContract(solc, metadata, mappedSources);
+}
+
+export async function processEtherscanVyperContract(
+  vyperCompiler: IVyperCompiler,
+  compilerVersion: string,
+  vyperJsonInput: VyperJsonInput,
+  contractPath: string,
+  contractName: string,
+) {
+  if (!vyperJsonInput.settings) {
+    throw new BadRequestError(
+      "Couldn't get Vyper compiler settings from Etherscan",
+    );
+  }
+  const sourceMap = Object.fromEntries(
+    Object.entries(vyperJsonInput.sources).map(([path, content]) => [
+      path,
+      content.content,
+    ]),
+  );
+
+  return new VyperCheckedContract(
+    vyperCompiler,
+    compilerVersion,
+    contractPath,
+    contractName,
+    vyperJsonInput.settings,
+    sourceMap,
+  );
+}

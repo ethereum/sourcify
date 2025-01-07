@@ -10,6 +10,7 @@ import {
 } from "../verification.common";
 import {
   ISolidityCompiler,
+  IVyperCompiler,
   PathBuffer,
   PathContent,
   getIpfsGateway,
@@ -34,6 +35,7 @@ export async function addInputFilesEndpoint(req: Request, res: Response) {
   logger.debug("addInputFilesEndpoint");
   const services = req.app.get("services") as Services;
   const solc = req.app.get("solc") as ISolidityCompiler;
+  const vyper = req.app.get("vyper") as IVyperCompiler;
   const chainRepository = req.app.get("chainRepository") as ChainRepository;
 
   let inputFiles: PathBuffer[] | undefined;
@@ -51,9 +53,10 @@ export async function addInputFilesEndpoint(req: Request, res: Response) {
   const session = req.session;
   const newFilesCount = saveFilesToSession(pathContents, session);
   if (newFilesCount) {
-    await checkContractsInSession(solc, session);
+    await checkContractsInSession(solc, vyper, session);
     await verifyContractsInSession(
       solc,
+      vyper,
       session.contractWrappers,
       session,
       services.verification,
@@ -87,6 +90,7 @@ export async function addInputContractEndpoint(req: Request, res: Response) {
   const address: string = req.body.address;
   const chainId: string = req.body.chainId;
   const solc = req.app.get("solc") as ISolidityCompiler;
+  const vyper = req.app.get("vyper") as IVyperCompiler;
   const services = req.app.get("services") as Services;
   const chainRepository = req.app.get("chainRepository") as ChainRepository;
 
@@ -138,10 +142,11 @@ export async function addInputContractEndpoint(req: Request, res: Response) {
 
   const newFilesCount = saveFilesToSession(pathContents, session);
   if (newFilesCount) {
-    await checkContractsInSession(solc, session);
+    await checkContractsInSession(solc, vyper, session);
     // verifyValidated fetches missing files from the contract
     await verifyContractsInSession(
       solc,
+      vyper,
       session.contractWrappers,
       session,
       services.verification,

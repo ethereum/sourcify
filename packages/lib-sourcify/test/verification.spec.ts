@@ -24,6 +24,7 @@ import {
   replaceImmutableReferences,
   verifyCreate2,
   verifyDeployed,
+  SolidityCheckedContract,
 } from '../src';
 
 import fs from 'fs';
@@ -203,7 +204,7 @@ describe('lib-sourcify tests', () => {
       const saltNum = 12345;
       const saltHex = '0x' + saltNum.toString(16);
       const match = await verifyCreate2(
-        checkedContracts[0],
+        checkedContracts[0] as SolidityCheckedContract,
         '0xd9145CCE52D386f254917e481eB44e9943F39138',
         saltHex,
         '0x801B9c0Ee599C3E5ED60e4Ec285C95fC9878Ee64',
@@ -224,7 +225,7 @@ describe('lib-sourcify tests', () => {
       const saltHex = '0x' + saltNum.toString(16);
       try {
         await verifyCreate2(
-          checkedContracts[0],
+          checkedContracts[0] as SolidityCheckedContract,
           '0xd9145CCE52D386f254917e481eB44e9943F39138',
           saltHex,
           UNUSED_ADDRESS,
@@ -381,7 +382,7 @@ describe('lib-sourcify tests', () => {
       const metadataBuffer = fs.readFileSync(metadataPath);
 
       // Replace the metadata witht he unsorted one
-      checkedContracts[0].initSolcJsonInput(
+      (checkedContracts[0] as SolidityCheckedContract).initSolcJsonInput(
         JSON.parse(metadataBuffer.toString()),
         checkedContracts[0].sources,
       );

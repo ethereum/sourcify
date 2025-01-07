@@ -1,68 +1,18 @@
 import { Response, Request } from "express";
 import {
-  getMappedSourcesFromJsonInput,
-  getMetadataFromCompiler,
+  processEtherscanSolidityContract,
+  processEtherscanVyperContract,
   processRequestFromEtherscan,
 } from "../etherscan.common";
 import { getResponseMatchFromMatch } from "../../../../common";
-import { createSolidityCheckedContract } from "../../verification.common";
 import logger from "../../../../../common/logger";
 import { ChainRepository } from "../../../../../sourcify-chain-repository";
 import {
   ISolidityCompiler,
   IVyperCompiler,
-  JsonInput,
-  VyperCheckedContract,
-  VyperJsonInput,
 } from "@ethereum-sourcify/lib-sourcify";
 import { Services } from "../../../../services/services";
 import { BadRequestError } from "../../../../../common/errors";
-
-async function processEtherscanSolidityContract(
-  solc: ISolidityCompiler,
-  compilerVersion: string,
-  solcJsonInput: JsonInput,
-  contractName: string,
-) {
-  const metadata = await getMetadataFromCompiler(
-    solc,
-    compilerVersion,
-    solcJsonInput,
-    contractName,
-  );
-
-  const mappedSources = getMappedSourcesFromJsonInput(solcJsonInput);
-  return createSolidityCheckedContract(solc, metadata, mappedSources);
-}
-
-async function processEtherscanVyperContract(
-  vyperCompiler: IVyperCompiler,
-  compilerVersion: string,
-  vyperJsonInput: VyperJsonInput,
-  contractPath: string,
-  contractName: string,
-) {
-  if (!vyperJsonInput.settings) {
-    throw new BadRequestError(
-      "Couldn't get Vyper compiler settings from Etherscan",
-    );
-  }
-  const sourceMap = Object.fromEntries(
-    Object.entries(vyperJsonInput.sources).map(([path, content]) => [
-      path,
-      content.content,
-    ]),
-  );
-
-  return new VyperCheckedContract(
-    vyperCompiler,
-    compilerVersion,
-    contractPath,
-    contractName,
-    vyperJsonInput.settings,
-    sourceMap,
-  );
-}
 
 export async function verifyFromEtherscan(req: Request, res: Response) {
   const services = req.app.get("services") as Services;

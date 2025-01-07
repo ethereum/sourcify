@@ -6,7 +6,11 @@ import {
   isVerifiable,
   verifyContractsInSession,
 } from "../../verification.common";
-import { isEmpty, ISolidityCompiler } from "@ethereum-sourcify/lib-sourcify";
+import {
+  isEmpty,
+  ISolidityCompiler,
+  IVyperCompiler,
+} from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError } from "../../../../../common/errors";
 import logger from "../../../../../common/logger";
 import { Services } from "../../../../services/services";
@@ -18,6 +22,7 @@ export async function verifyContractsInSessionEndpoint(
 ) {
   const services = req.app.get("services") as Services;
   const solc = req.app.get("solc") as ISolidityCompiler;
+  const vyper = req.app.get("vyper") as IVyperCompiler;
   const chainRepository = req.app.get("chainRepository") as ChainRepository;
 
   const session = req.session;
@@ -57,6 +62,7 @@ export async function verifyContractsInSessionEndpoint(
 
   await verifyContractsInSession(
     solc,
+    vyper,
     verifiable,
     session,
     services.verification,

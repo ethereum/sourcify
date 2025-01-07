@@ -9,11 +9,14 @@ import {
 } from "../../verification.common";
 import {
   ISolidityCompiler,
+  IVyperCompiler,
   PathContent,
+  Sources,
 } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError } from "../../../../../common/errors";
 import {
-  getMetadataFromCompiler,
+  processEtherscanSolidityContract,
+  processEtherscanVyperContract,
   processRequestFromEtherscan,
   stringToBase64,
 } from "../etherscan.common";
@@ -25,6 +28,7 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
   const services = req.app.get("services") as Services;
   const chainRepository = req.app.get("chainRepository") as ChainRepository;
   const solc = req.app.get("solc") as ISolidityCompiler;
+  const vyper = req.app.get("vyper") as IVyperCompiler;
 
   logger.info("sessionVerifyFromEtherscan", {
     chainId: req.body.chain,
@@ -38,34 +42,50 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
   const apiKey = req.body.apiKey;
   const sourcifyChain = chainRepository.supportedChainMap[chain];
 
-  const { solidityResult } = await processRequestFromEtherscan(
+  const { vyperResult, solidityResult } = await processRequestFromEtherscan(
     sourcifyChain,
     address,
     apiKey,
   );
-  if (!solidityResult) {
+
+  let checkedContract;
+  let sources: Sources;
+  if (solidityResult) {
+    checkedContract = await processEtherscanSolidityContract(
+      solc,
+      solidityResult.compilerVersion,
+      solidityResult.solcJsonInput,
+      solidityResult.contractName,
+    );
+    sources = solidityResult.solcJsonInput.sources;
+  } else if (vyperResult) {
+    checkedContract = await processEtherscanVyperContract(
+      vyper,
+      vyperResult.compilerVersion,
+      vyperResult.vyperJsonInput,
+      vyperResult.contractPath,
+      vyperResult.contractName,
+    );
+    sources = vyperResult.vyperJsonInput.sources;
+  } else {
+    logger.error("Import from Etherscan: unsupported language");
     throw new BadRequestError("Received unsupported language from Etherscan");
   }
-  const { compilerVersion, solcJsonInput, contractName } = solidityResult;
 
-  const metadata = await getMetadataFromCompiler(
-    solc,
-    compilerVersion,
-    solcJsonInput,
-    contractName,
-  );
-
-  const pathContents: PathContent[] = Object.keys(solcJsonInput.sources).map(
-    (path) => {
-      return {
-        path: path,
-        content: stringToBase64(solcJsonInput.sources[path].content!),
-      };
-    },
-  );
+  const pathContents: PathContent[] = Object.keys(sources).map((path) => {
+    if (!sources[path].content) {
+      throw new BadRequestError(
+        `The contract doesn't have a content for the path ${path}`,
+      );
+    }
+    return {
+      path: path,
+      content: stringToBase64(sources[path].content),
+    };
+  });
   pathContents.push({
     path: "metadata.json",
-    content: stringToBase64(JSON.stringify(metadata)),
+    content: stringToBase64(JSON.stringify(checkedContract.metadata)),
   });
   const session = req.session;
   const newFilesCount = saveFilesToSession(pathContents, session);
@@ -73,7 +93,7 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
     throw new BadRequestError("The contract didn't add any new file");
   }
 
-  await checkContractsInSession(solc, session);
+  await checkContractsInSession(solc, vyper, session);
   if (!session.contractWrappers) {
     throw new BadRequestError(
       "Unknown error during the Etherscan verification process",
@@ -97,6 +117,7 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
 
   await verifyContractsInSession(
     solc,
+    vyper,
     verifiable,
     session,
     services.verification,

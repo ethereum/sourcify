@@ -8,6 +8,7 @@ import {
 } from "../../verification.common";
 import {
   ISolidityCompiler,
+  IVyperCompiler,
   PathContent,
 } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError } from "../../../../../common/errors";
@@ -18,6 +19,7 @@ export async function addInputSolcJsonEndpoint(req: Request, res: Response) {
   if (!inputFiles) throw new BadRequestError("No files found");
 
   const solc = req.app.get("solc") as ISolidityCompiler;
+  const vyper = req.app.get("vyper") as IVyperCompiler;
   const { verification } = req.app.get("services") as Services;
   const compilerVersion = req.body.compilerVersion;
 
@@ -48,7 +50,7 @@ export async function addInputSolcJsonEndpoint(req: Request, res: Response) {
       session,
     );
     if (newFilesCount) {
-      await checkContractsInSession(solc, session);
+      await checkContractsInSession(solc, vyper, session);
     }
     res.send(getSessionJSON(session));
   }

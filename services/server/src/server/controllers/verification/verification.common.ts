@@ -11,6 +11,10 @@ import {
   checkFilesWithMetadata,
   isEmpty,
   useAllSources,
+  IVyperCompiler,
+  Language,
+  AbstractCheckedContract,
+  VyperCheckedContract,
 } from "@ethereum-sourcify/lib-sourcify";
 import { Session } from "express-session";
 import { AbiConstructor, AbiParameter } from "abitype";
@@ -181,7 +185,7 @@ function getSendableContract(
     address: contractWrapper.address,
     chainId: contractWrapper.chainId,
     files: {
-      found: Object.keys(contract.solidity), // Source paths
+      found: Object.keys(contract.sources), // Source paths
       missing: contract.missing,
       invalid: contract.invalid,
     },
@@ -220,6 +224,7 @@ export function updateUnused(unused: string[], session: Session) {
 
 export const checkContractsInSession = async (
   solc: ISolidityCompiler,
+  vyper: IVyperCompiler,
   session: Session,
 ) => {
   const pathBuffers: PathBuffer[] = [];
@@ -233,7 +238,12 @@ export const checkContractsInSession = async (
 
   try {
     const unused: string[] = [];
-    const contracts = await checkFilesWithMetadata(solc, pathBuffers, unused);
+    const contracts = await checkFilesWithMetadata(
+      solc,
+      vyper,
+      pathBuffers,
+      unused,
+    );
 
     const newPendingContracts: ContractWrapperMap = {};
     for (const contract of contracts) {
@@ -248,13 +258,13 @@ export const checkContractsInSession = async (
       const newContractWrapper = newPendingContracts[newId];
       const oldContractWrapper = session.contractWrappers[newId];
       if (oldContractWrapper) {
-        for (const path in newContractWrapper.contract.solidity) {
-          oldContractWrapper.contract.solidity[path] =
-            newContractWrapper.contract.solidity[path];
+        for (const path in newContractWrapper.contract.sources) {
+          oldContractWrapper.contract.sources[path] =
+            newContractWrapper.contract.sources[path];
           delete oldContractWrapper.contract.missing[path];
         }
-        oldContractWrapper.contract.solidity =
-          newContractWrapper.contract.solidity;
+        oldContractWrapper.contract.sources =
+          newContractWrapper.contract.sources;
         oldContractWrapper.contract.missing =
           newContractWrapper.contract.missing;
       } else {
@@ -313,7 +323,7 @@ export async function addRemoteFile(
 export const checkAndFetchMissing = async (
   contract: SolidityCheckedContract,
 ): Promise<void> => {
-  if (!SolidityCheckedContract.isValid(contract)) {
+  if (!contract.isValid()) {
     try {
       // Try to fetch missing files
       await SolidityCheckedContract.fetchMissing(contract);
@@ -337,6 +347,7 @@ export function isVerifiable(contractWrapper: ContractWrapper) {
 
 export const verifyContractsInSession = async (
   solc: ISolidityCompiler,
+  vyper: IVyperCompiler,
   contractWrappers: ContractWrapperMap = {},
   session: Session,
   verificationService: VerificationService,
@@ -379,16 +390,36 @@ export const verifyContractsInSession = async (
 
     const { address, chainId, contract, creatorTxHash } = contractWrapper;
 
-    // The session saves the SolidityCheckedContract as a simple object, so we need to reinstantiate it
-    const checkedContract = createSolidityCheckedContract(
-      solc,
-      contract.metadata,
-      contract.solidity,
-      contract.missing,
-      contract.invalid,
-    );
-
-    await checkAndFetchMissing(checkedContract);
+    let checkedContract: AbstractCheckedContract;
+    if (contract.language === Language.Solidity) {
+      // The session saves the SolidityCheckedContract as a simple object, so we need to reinstantiate it
+      checkedContract = createSolidityCheckedContract(
+        solc,
+        contract.metadata,
+        contract.sources,
+        contract.missing,
+        contract.invalid,
+      );
+      await checkAndFetchMissing(checkedContract as SolidityCheckedContract);
+    } else if (contract.language === Language.Vyper) {
+      const compilationTarget = contract.metadata.settings.compilationTarget;
+      const contractPath = Object.keys(compilationTarget)[0];
+      const compilationSettings = JSON.parse(
+        JSON.stringify(contract.metadata.settings),
+      );
+      delete compilationSettings.compilationTarget;
+      const contractName = compilationTarget[contractPath];
+      checkedContract = new VyperCheckedContract(
+        vyper,
+        contract.metadata.compiler.version,
+        contractPath,
+        contractName,
+        compilationSettings,
+        contract.sources,
+      );
+    } else {
+      throw new BadRequestError("Unsupported language");
+    }
 
     if (!isVerifiable(contractWrapper)) {
       logger.debug("verifyContractsInSession: not verifiable", {
@@ -423,7 +454,7 @@ export const verifyContractsInSession = async (
         const checkedContractWithAllSources = createSolidityCheckedContract(
           solc,
           contractWrapper.contract.metadata,
-          contractWrapper.contract.solidity,
+          contractWrapper.contract.sources,
           contractWrapper.contract.missing,
           contractWrapper.contract.invalid,
         );

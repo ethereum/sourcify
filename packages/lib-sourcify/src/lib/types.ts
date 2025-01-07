@@ -404,7 +404,7 @@ interface File {
   content?: string;
 }
 
-interface Sources {
+export interface Sources {
   [key: string]: File;
 }
 
@@ -625,4 +625,9 @@ export interface CallFrame {
   error: string;
   revertReason: string;
   calls: CallFrame[];
+}
+
+export enum Language {
+  Solidity = 'Solidity',
+  Vyper = 'Vyper',
 }

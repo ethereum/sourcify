@@ -13,6 +13,9 @@ import fs from 'fs';
 import Path from 'path';
 import { ISolidityCompiler } from './ISolidityCompiler';
 import { logDebug, logInfo } from './logger';
+import { IVyperCompiler } from './IVyperCompiler';
+import { AbstractCheckedContract } from './AbstractCheckedContract';
+import { VyperCheckedContract } from './VyperCheckedContract';
 
 /**
  * Regular expression matching metadata nested within another json.
@@ -38,6 +41,7 @@ const ENDING_VARIATORS = [
 
 export function checkPaths(
   solidityCompiler: ISolidityCompiler,
+  vyperCompiler: IVyperCompiler,
   paths: string[],
   ignoring?: string[],
 ) {
@@ -54,7 +58,7 @@ export function checkPaths(
     }
   });
 
-  return checkFilesWithMetadata(solidityCompiler, files);
+  return checkFilesWithMetadata(solidityCompiler, vyperCompiler, files);
 }
 
 // Pass all input source files to the CheckedContract, not just those stated in metadata.
@@ -83,6 +87,7 @@ export async function useAllSources(
 
 export async function checkFilesWithMetadata(
   solidityCompiler: ISolidityCompiler,
+  vyperCompiler: IVyperCompiler,
   files: PathBuffer[],
   unused?: string[],
 ) {
@@ -94,29 +99,53 @@ export async function checkFilesWithMetadata(
   }));
   const { metadataFiles, sourceFiles } = splitFiles(parsedFiles);
 
-  const checkedContracts: SolidityCheckedContract[] = [];
+  const checkedContracts: AbstractCheckedContract[] = [];
 
   const byHash = storeByHash(sourceFiles);
   const usedFiles: string[] = [];
 
   metadataFiles.forEach((metadata) => {
-    const { foundSources, missingSources, invalidSources, metadata2provided } =
-      rearrangeSources(metadata, byHash);
+    const {
+      foundSources,
+      missingSources,
+      invalidSources,
+      metadata2provided,
+      language,
+    } = rearrangeSources(metadata, byHash);
     logDebug(`Checking contract`, {
+      language: language,
       foundSourcesCount: Object.keys(foundSources).length,
       missingSources: Object.keys(missingSources),
       invalidSources: Object.keys(invalidSources),
     });
-    const currentUsedFiles = Object.values(metadata2provided);
-    usedFiles.push(...currentUsedFiles);
-    const checkedContract = new SolidityCheckedContract(
-      solidityCompiler,
-      metadata,
-      foundSources,
-      missingSources,
-      invalidSources,
-    );
-    checkedContracts.push(checkedContract);
+    if (language === 'Solidity') {
+      const currentUsedFiles = Object.values(metadata2provided);
+      usedFiles.push(...currentUsedFiles);
+      const checkedContract = new SolidityCheckedContract(
+        solidityCompiler,
+        metadata,
+        foundSources,
+        missingSources,
+        invalidSources,
+      );
+      checkedContracts.push(checkedContract);
+    } else if (language === 'Vyper') {
+      const compilationTarget = metadata.settings.compilationTarget;
+      const compiledPath = Object.keys(compilationTarget)[0];
+      const name = compilationTarget[compiledPath];
+      delete metadata.settings.compilationTarget;
+      const checkedContract = new VyperCheckedContract(
+        vyperCompiler,
+        metadata.compiler.version,
+        compiledPath,
+        name,
+        metadata.settings,
+        foundSources,
+      );
+      checkedContracts.push(checkedContract);
+    } else {
+      throw new Error('Unsupported language');
+    }
   });
 
   if (unused) {
@@ -320,7 +349,13 @@ function rearrangeSources(metadata: any, byHash: Map<string, PathContent>) {
     }
   }
 
-  return { foundSources, missingSources, invalidSources, metadata2provided };
+  return {
+    foundSources,
+    missingSources,
+    invalidSources,
+    metadata2provided,
+    language: metadata.language,
+  };
 }
 
 /**
@@ -416,7 +451,7 @@ function extractMetadataFromString(file: string): any {
  */
 function isMetadata(obj: any): boolean {
   return (
-    obj?.language === 'Solidity' &&
+    (obj?.language === 'Vyper' || obj?.language === 'Solidity') &&
     !!obj?.settings?.compilationTarget &&
     !!obj?.version &&
     !!obj?.output?.abi &&

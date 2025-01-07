@@ -3,6 +3,8 @@ import { extractFiles } from "../../verification.common";
 import {
   checkFilesWithMetadata,
   ISolidityCompiler,
+  IVyperCompiler,
+  SolidityCheckedContract,
   useAllSources,
 } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError } from "../../../../../common/errors";
@@ -13,6 +15,7 @@ import { ChainRepository } from "../../../../../sourcify-chain-repository";
 export async function verifySolcJsonEndpoint(req: Request, res: Response) {
   const services = req.app.get("services") as Services;
   const solc = req.app.get("solc") as ISolidityCompiler;
+  const vyper = req.app.get("vyper") as IVyperCompiler;
   const chainRepository = req.app.get("chainRepository") as ChainRepository;
 
   const inputFiles = extractFiles(req, true);
@@ -44,6 +47,7 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
 
   const checkedContracts = await checkFilesWithMetadata(
     solc,
+    vyper,
     metadataAndSourcesPathBuffers,
   );
   const contractToVerify = checkedContracts.find(
@@ -64,7 +68,7 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
   // Send to verification again with all source files.
   if (match.runtimeMatch === "extra-file-input-bug") {
     const contractWithAllSources = await useAllSources(
-      contractToVerify,
+      contractToVerify as SolidityCheckedContract,
       metadataAndSourcesPathBuffers,
     );
     const tempMatch = await services.verification.verifyDeployed(
