@@ -251,6 +251,15 @@
       }
     ]
   },
+  "216": {
+    "sourcifyName": "Happychain Testnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://https://happy-testnet-sepolia.explorer.caldera.xyz"
+      }
+    }
+  },
   "100": {
     "sourcifyName": "Gnosis Mainnet",
     "supported": true,

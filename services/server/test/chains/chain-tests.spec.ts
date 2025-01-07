@@ -225,6 +225,14 @@ describe("Test Supported Chains", function () {
   );
 
   verifyContract(
+    "0x0912105a5383b63DF25BBe39Bedc3De407c6c64B",
+    "216",
+    "Happychain Testnet",
+    "shared/",
+    "partial",
+  );
+
+  verifyContract(
     "0x8F78b9c92a68DdF719849a40702cFBfa4EB60dD0",
     "41",
     "Telos EVM Testnet",
