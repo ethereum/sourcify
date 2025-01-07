@@ -219,6 +219,12 @@ describe("contract creation util", function () {
 
     // Not a unit test fetches from live chain, but it's useful for debugging
     it("should find contract creation transaction using binary search for a live chain", async function () {
+      // Don't run if it's an external PR. RPCs need API keys that can't be exposed to external PRs.
+      if (process.env.CIRCLE_PR_REPONAME !== undefined) {
+        console.log("Skipping binary search test for external PR");
+        return;
+      }
+
       // Create a copy of the mainnet chain
       const mainnetChain = Object.create(
         Object.getPrototypeOf(sourcifyChainsMap[1]),
