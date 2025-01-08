@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@2.5.0 - 2025-01-08
+
+- Add Vyper verification support
+- Remove lambda compiler
+- New chains:
+  - Happy Chain Testnet (216)
+  - Quantum Portal Network (26100)
+
 ## sourcify-server@2.4.1 - 2024-12-11
 
 - Add S3StorageService to write contracts to S3/IPFS

@@ -1,5 +1,10 @@
 # Changelog for `sourcify-database`
 
+## sourcify-database@2.1.0 - 2025-01-08
+
+- Add missing creation-tx backfill scripts
+
+
 ## sourcify-database@2.0.2 - 2024-12-11
 
 - Update dependencies

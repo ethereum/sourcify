@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 This CHANGELOG will contain monorepo related changes such as CI configs, shared dependencies and the development setup.
 
+## sourcify-monorepo@1.4.5 - 2025-01-08
+
+- Add Vyper descriptions to README
+- Add Mocha - bytecode-utils VSCode debugging suite
+- Remove lambda compiler
+- Update release script
+- Update dependencies
+
 ## sourcify-monorepo@1.4.4 - 2024-12-11
 
 - Update dependencies
