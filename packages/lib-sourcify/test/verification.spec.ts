@@ -1161,7 +1161,7 @@ describe('lib-sourcify tests', () => {
       expect(match.creationMatch).to.equal('perfect');
     });
 
-    it.only('should find a perfect match for a contract that has multiple metadata hashes in the middle of the creation bytecode', async () => {
+    it('should find a perfect match for a contract that has multiple metadata hashes in the middle of the creation bytecode', async () => {
       const contractFolderPath = path.join(
         __dirname,
         'sources',
