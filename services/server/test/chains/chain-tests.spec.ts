@@ -1735,11 +1735,11 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
-  // Ferrum Quantum Portal Network
+  // Quantum Portal Network
   verifyContract(
     "0x511f9B726559384f10371Bc7f19A925F864a9997",
     "26100",
-    "Ferrum Quantum Portal Network",
+    "Quantum Portal Network",
     "shared/",
   );
 

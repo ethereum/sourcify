@@ -2239,7 +2239,7 @@
     "rpc": ["https://rpc.odyssey.storyrpc.io"]
   },
   "26100": {
-    "sourcifyName": "Ferrum Quantum Portal Network",
+    "sourcifyName": "Quantum Portal Network",
     "supported": true
   }
 }
