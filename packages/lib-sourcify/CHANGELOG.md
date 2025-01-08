@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## @ethereum-sourcify/lib-sourcify@1.11.0 - 2025-01-08
+
+- Add Vyper verification support
+- Update dependencies
+
 ## @ethereum-sourcify/lib-sourcify@1.10.1 - 2024-12-11
 
 - Add SourcifyChain.getStorageAt 
