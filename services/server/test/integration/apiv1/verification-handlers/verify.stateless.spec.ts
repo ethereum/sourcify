@@ -281,6 +281,7 @@ describe("/", function () {
       __dirname,
       "..",
       "..",
+      "..",
       "testcontracts",
       "Storage",
       "StorageJsonInput.json",
@@ -319,12 +320,13 @@ describe("/", function () {
 
   it("Should upgrade creation match from 'null' to 'perfect', delete partial from repository and update creationTx information in database", async () => {
     const partialMetadata = (
-      await import("../../testcontracts/Storage/metadataModified.json")
+      await import("../../../testcontracts/Storage/metadataModified.json")
     ).default;
     const partialMetadataBuffer = Buffer.from(JSON.stringify(partialMetadata));
 
     const partialSourcePath = path.join(
       __dirname,
+      "..",
       "..",
       "..",
       "testcontracts",
@@ -463,12 +465,13 @@ describe("/", function () {
 
   it("should return 'partial', then throw when another 'partial' match is received", async () => {
     const partialMetadata = (
-      await import("../../testcontracts/Storage/metadataModified.json")
+      await import("../../../testcontracts/Storage/metadataModified.json")
     ).default;
     const partialMetadataBuffer = Buffer.from(JSON.stringify(partialMetadata));
 
     const partialSourcePath = path.join(
       __dirname,
+      "..",
       "..",
       "..",
       "testcontracts",
@@ -523,6 +526,7 @@ describe("/", function () {
       __dirname,
       "..",
       "..",
+      "..",
       "sources",
       "metadata",
       "withoutMetadataHash.meta.object.json",
@@ -555,7 +559,7 @@ describe("/", function () {
 
   it("should verify a contract with immutables and save immutable-references.json", async () => {
     const artifact = (
-      await import("../../testcontracts/WithImmutables/artifact.json")
+      await import("../../../testcontracts/WithImmutables/artifact.json")
     ).default;
     const { contractAddress } = await deployFromAbiAndBytecodeForCreatorTxHash(
       chainFixture.localSigner,
@@ -566,11 +570,20 @@ describe("/", function () {
 
     const metadata = (
       await import(
-        path.join(__dirname, "../../testcontracts/WithImmutables/metadata.json")
+        path.join(
+          __dirname,
+          "..",
+          "..",
+          "..",
+          "testcontracts",
+          "WithImmutables",
+          "metadata.json",
+        )
       )
     ).default;
     const sourcePath = path.join(
       __dirname,
+      "..",
       "..",
       "..",
       "testcontracts",
@@ -619,7 +632,12 @@ describe("/", function () {
       await import(
         path.join(
           __dirname,
-          "../../testcontracts/ensure-metadata-storage/EIP1967Proxy.json",
+          "..",
+          "..",
+          "..",
+          "testcontracts",
+          "ensure-metadata-storage",
+          "EIP1967Proxy.json",
         )
       )
     ).default;
@@ -627,7 +645,12 @@ describe("/", function () {
       await import(
         path.join(
           __dirname,
-          "../../testcontracts/ensure-metadata-storage/wrong-metadata.json",
+          "..",
+          "..",
+          "..",
+          "testcontracts",
+          "ensure-metadata-storage",
+          "wrong-metadata.json",
         )
       )
     ).default;
@@ -635,20 +658,35 @@ describe("/", function () {
       await import(
         path.join(
           __dirname,
-          "../../testcontracts/ensure-metadata-storage/correct-metadata.json",
+          "..",
+          "..",
+          "..",
+          "testcontracts",
+          "ensure-metadata-storage",
+          "correct-metadata.json",
         )
       )
     ).default;
     const source1Buffer = fs.readFileSync(
       path.join(
         __dirname,
-        "../../testcontracts/ensure-metadata-storage/EIP1967Proxy.sol",
+        "..",
+        "..",
+        "..",
+        "testcontracts",
+        "ensure-metadata-storage",
+        "EIP1967Proxy.sol",
       ),
     );
     const source2Buffer = fs.readFileSync(
       path.join(
         __dirname,
-        "../../testcontracts/ensure-metadata-storage/EIP1967Admin.sol",
+        "..",
+        "..",
+        "..",
+        "testcontracts",
+        "ensure-metadata-storage",
+        "EIP1967Admin.sol",
       ),
     );
     const contractAddress = await deployFromAbiAndBytecode(
@@ -709,6 +747,7 @@ describe("/", function () {
         __dirname,
         "..",
         "..",
+        "..",
         "testcontracts",
         "Storage",
         "StorageJsonInput.json",
@@ -736,6 +775,7 @@ describe("/", function () {
         __dirname,
         "..",
         "..",
+        "..",
         "testcontracts",
         "Storage",
         "StorageJsonInput.json",
@@ -761,6 +801,7 @@ describe("/", function () {
       );
       const solcJsonPath = path.join(
         __dirname,
+        "..",
         "..",
         "..",
         "testcontracts",
@@ -854,7 +895,9 @@ describe("/", function () {
           [],
         );
       const metadata = (
-        await import("../../testcontracts/Storage/metadata.upMultipleDirs.json")
+        await import(
+          "../../../testcontracts/Storage/metadata.upMultipleDirs.json"
+        )
       ).default;
 
       // Now pass the creatorTxHash
@@ -900,7 +943,9 @@ describe("/", function () {
 
     before(async () => {
       const bytecodeMismatchArtifact = (
-        await import("../../sources/artifacts/extraFilesBytecodeMismatch.json")
+        await import(
+          "../../../sources/artifacts/extraFilesBytecodeMismatch.json"
+        )
       ).default;
       contractAddress = await deployFromAbiAndBytecode(
         chainFixture.localSigner,
@@ -911,7 +956,7 @@ describe("/", function () {
 
     it("should warn the user about the issue when metadata match but not bytecodes", (done) => {
       import(
-        "../../sources/hardhat-output/extraFilesBytecodeMismatch-onlyMetadata.json"
+        "../../../sources/hardhat-output/extraFilesBytecodeMismatch-onlyMetadata.json"
       ).then((hardhatOutput) => {
         const hardhatOutputBuffer = Buffer.from(JSON.stringify(hardhatOutput));
         chai
@@ -934,7 +979,7 @@ describe("/", function () {
 
     it("should verify with all input files and not only those in metadata", (done) => {
       import(
-        "../../sources/hardhat-output/extraFilesBytecodeMismatch.json"
+        "../../../sources/hardhat-output/extraFilesBytecodeMismatch.json"
       ).then((hardhatOutput) => {
         const hardhatOutputBuffer = Buffer.from(JSON.stringify(hardhatOutput));
         chai
@@ -959,7 +1004,9 @@ describe("/", function () {
   });
   it("should verify a contract compiled with Solidity < 0.5.0 with non-keccak values for library placeholders", async () => {
     const artifact = (
-      await import("../../testcontracts/LibrariesPreSolidity050/artifact.json")
+      await import(
+        "../../../testcontracts/LibrariesPreSolidity050/artifact.json"
+      )
     ).default;
     const address = await deployFromAbiAndBytecode(
       chainFixture.localSigner,
@@ -967,12 +1014,15 @@ describe("/", function () {
       artifact.bytecode,
     );
     const metadata = (
-      await import("../../testcontracts/LibrariesPreSolidity050/metadata.json")
+      await import(
+        "../../../testcontracts/LibrariesPreSolidity050/metadata.json"
+      )
     ).default;
 
     const file = fs.readFileSync(
       path.join(
         __dirname,
+        "..",
         "..",
         "..",
         "testcontracts",
@@ -1035,7 +1085,7 @@ describe("/", function () {
   it("should verify a contract compiled with Solidity < 0.7.5 and libraries have been linked using compiler settings", async () => {
     const artifact = (
       await import(
-        "../../testcontracts/LibrariesSolidity075/LibrariesSolidity075.json"
+        "../../../testcontracts/LibrariesSolidity075/LibrariesSolidity075.json"
       )
     ).default;
     const address = await deployFromAbiAndBytecode(
@@ -1045,12 +1095,13 @@ describe("/", function () {
     );
 
     const metadata = (
-      await import("../../testcontracts/LibrariesSolidity075/metadata.json")
+      await import("../../../testcontracts/LibrariesSolidity075/metadata.json")
     ).default;
 
     const file = fs.readFileSync(
       path.join(
         __dirname,
+        "..",
         "..",
         "..",
         "testcontracts",

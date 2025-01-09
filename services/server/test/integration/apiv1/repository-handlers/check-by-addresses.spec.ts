@@ -366,14 +366,15 @@ describe("/check-all-by-addresses", function () {
 
     it("should correctly detect proxy contracts", async () => {
       const proxyArtifact = (
-        await import("../../testcontracts/Proxy/Proxy_flattened.json")
+        await import("../../../testcontracts/Proxy/Proxy_flattened.json")
       ).default;
       const proxyMetadata = (
-        await import("../../testcontracts/Proxy/metadata.json")
+        await import("../../../testcontracts/Proxy/metadata.json")
       ).default;
       const proxySource = fs.readFileSync(
         path.join(
           __dirname,
+          "..",
           "..",
           "..",
           "testcontracts",
@@ -432,14 +433,15 @@ describe("/check-all-by-addresses", function () {
         .throws(new Error(errorMessage));
 
       const proxyArtifact = (
-        await import("../../testcontracts/Proxy/Proxy_flattened.json")
+        await import("../../../testcontracts/Proxy/Proxy_flattened.json")
       ).default;
       const proxyMetadata = (
-        await import("../../testcontracts/Proxy/metadata.json")
+        await import("../../../testcontracts/Proxy/metadata.json")
       ).default;
       const proxySource = fs.readFileSync(
         path.join(
           __dirname,
+          "..",
           "..",
           "..",
           "testcontracts",
