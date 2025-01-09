@@ -1,12 +1,12 @@
 import {
   assertValidationError,
   assertVerificationSession,
-} from "../../helpers/assertions";
+} from "../../../helpers/assertions";
 import chai from "chai";
 import chaiHttp from "chai-http";
 import { StatusCodes } from "http-status-codes";
-import { LocalChainFixture } from "../../helpers/LocalChainFixture";
-import { ServerFixture } from "../../helpers/ServerFixture";
+import { LocalChainFixture } from "../../../helpers/LocalChainFixture";
+import { ServerFixture } from "../../../helpers/ServerFixture";
 import type { Response } from "superagent";
 import path from "path";
 import fs from "fs";
@@ -14,9 +14,9 @@ import {
   deployFromAbiAndBytecodeForCreatorTxHash,
   deployFromAbiAndBytecode,
   callContractMethodWithTx,
-} from "../../helpers/helpers";
+} from "../../../helpers/helpers";
 import type { MissingSources } from "@ethereum-sourcify/lib-sourcify";
-import { MAX_SESSION_SIZE } from "../../../src/server/controllers/verification/verification.common";
+import { MAX_SESSION_SIZE } from "../../../../src/server/apiv1/verification/verification.common";
 
 chai.use(chaiHttp);
 
@@ -435,6 +435,7 @@ describe("/session", function () {
       __dirname,
       "..",
       "..",
+      "..",
       "sources",
       "metadata",
       "child-contract.meta.object.json",
@@ -443,6 +444,7 @@ describe("/session", function () {
 
     const parentPath = path.join(
       __dirname,
+      "..",
       "..",
       "..",
       "sources",
@@ -486,6 +488,7 @@ describe("/session", function () {
   it("should find contracts in a zipped Truffle project", (done) => {
     const zippedTrufflePath = path.join(
       __dirname,
+      "..",
       "..",
       "..",
       "sources",
@@ -509,6 +512,7 @@ describe("/session", function () {
       __dirname,
       "..",
       "..",
+      "..",
       "sources",
       "metadata",
       "child-contract.meta.object.json",
@@ -517,6 +521,7 @@ describe("/session", function () {
 
     const parentPath = path.join(
       __dirname,
+      "..",
       "..",
       "..",
       "sources",
@@ -562,6 +567,7 @@ describe("/session", function () {
       __dirname,
       "..",
       "..",
+      "..",
       "sources",
       "truffle",
       "truffle-example.zip",
@@ -581,7 +587,7 @@ describe("/session", function () {
 
   it("should verify a contract with immutables and save immutable-references.json", async () => {
     const artifact = (
-      await import("../../testcontracts/WithImmutables/artifact.json")
+      await import("../../../testcontracts/WithImmutables/artifact.json")
     ).default;
     const { contractAddress } = await deployFromAbiAndBytecodeForCreatorTxHash(
       chainFixture.localSigner,
@@ -591,11 +597,12 @@ describe("/session", function () {
     );
 
     const metadata = (
-      await import("../../testcontracts/WithImmutables/metadata.json")
+      await import("../../../testcontracts/WithImmutables/metadata.json")
     ).default;
     const metadataBuffer = Buffer.from(JSON.stringify(metadata));
     const sourcePath = path.join(
       __dirname,
+      "..",
       "..",
       "..",
       "testcontracts",
@@ -638,7 +645,7 @@ describe("/session", function () {
     const deployValue = 12345;
 
     const artifact = (
-      await import("../../testcontracts/FactoryImmutable/Factory.json")
+      await import("../../../testcontracts/FactoryImmutable/Factory.json")
     ).default;
     const factoryAddress = await deployFromAbiAndBytecode(
       chainFixture.localSigner,
@@ -648,7 +655,9 @@ describe("/session", function () {
 
     // Deploy child by calling deploy(uint)
     const childMetadata = (
-      await import("../../testcontracts/FactoryImmutable/Child_metadata.json")
+      await import(
+        "../../../testcontracts/FactoryImmutable/Child_metadata.json"
+      )
     ).default;
     const childMetadataBuffer = Buffer.from(JSON.stringify(childMetadata));
     const txReceipt = await callContractMethodWithTx(
@@ -666,6 +675,7 @@ describe("/session", function () {
     const childAddress = txReceipt.logs[0].args[0];
     const sourcePath = path.join(
       __dirname,
+      "..",
       "..",
       "..",
       "testcontracts",
@@ -695,7 +705,7 @@ describe("/session", function () {
   it("should verify a contract created by a factory contract and has immutables without constructor arguments but with msg.sender assigned immutable", async () => {
     const artifact = (
       await import(
-        "../../testcontracts/FactoryImmutableWithoutConstrArg/Factory3.json"
+        "../../../testcontracts/FactoryImmutableWithoutConstrArg/Factory3.json"
       )
     ).default;
     const factoryAddress = await deployFromAbiAndBytecode(
@@ -707,7 +717,7 @@ describe("/session", function () {
     // Deploy child by calling deploy(uint)
     const childMetadata = (
       await import(
-        "../../testcontracts/FactoryImmutableWithoutConstrArg/Child3_metadata.json"
+        "../../../testcontracts/FactoryImmutableWithoutConstrArg/Child3_metadata.json"
       )
     ).default;
     const childMetadataBuffer = Buffer.from(JSON.stringify(childMetadata));
@@ -726,6 +736,7 @@ describe("/session", function () {
     const childAddress = txReceipt.logs[0].args[0];
     const sourcePath = path.join(
       __dirname,
+      "..",
       "..",
       "..",
       "testcontracts",
@@ -758,6 +769,7 @@ describe("/session", function () {
       __dirname,
       "..",
       "..",
+      "..",
       "testcontracts",
       "Storage",
       "StorageJsonInput.json",
@@ -780,6 +792,7 @@ describe("/session", function () {
     );
     const solcJsonPath = path.join(
       __dirname,
+      "..",
       "..",
       "..",
       "testcontracts",
@@ -810,7 +823,12 @@ describe("/session", function () {
       await import(
         path.join(
           __dirname,
-          "../../testcontracts/ensure-metadata-storage/EIP1967Proxy.json",
+          "..",
+          "..",
+          "..",
+          "testcontracts",
+          "ensure-metadata-storage",
+          "EIP1967Proxy.json",
         )
       )
     ).default;
@@ -818,7 +836,12 @@ describe("/session", function () {
       await import(
         path.join(
           __dirname,
-          "../../testcontracts/ensure-metadata-storage/wrong-metadata.json",
+          "..",
+          "..",
+          "..",
+          "testcontracts",
+          "ensure-metadata-storage",
+          "wrong-metadata.json",
         )
       )
     ).default;
@@ -826,20 +849,35 @@ describe("/session", function () {
       await import(
         path.join(
           __dirname,
-          "../../testcontracts/ensure-metadata-storage/correct-metadata.json",
+          "..",
+          "..",
+          "..",
+          "testcontracts",
+          "ensure-metadata-storage",
+          "correct-metadata.json",
         )
       )
     ).default;
     const source1Buffer = fs.readFileSync(
       path.join(
         __dirname,
-        "../../testcontracts/ensure-metadata-storage/EIP1967Proxy.sol",
+        "..",
+        "..",
+        "..",
+        "testcontracts",
+        "ensure-metadata-storage",
+        "EIP1967Proxy.sol",
       ),
     );
     const source2Buffer = fs.readFileSync(
       path.join(
         __dirname,
-        "../../testcontracts/ensure-metadata-storage/EIP1967Admin.sol",
+        "..",
+        "..",
+        "..",
+        "testcontracts",
+        "ensure-metadata-storage",
+        "EIP1967Admin.sol",
       ),
     );
     const contractAddress = await deployFromAbiAndBytecode(
@@ -904,7 +942,9 @@ describe("/session", function () {
 
     before(async () => {
       const bytecodeMismatchArtifact = (
-        await import("../../sources/artifacts/extraFilesBytecodeMismatch.json")
+        await import(
+          "../../../sources/artifacts/extraFilesBytecodeMismatch.json"
+        )
       ).default;
       contractAddress = await deployFromAbiAndBytecode(
         chainFixture.localSigner,
@@ -915,7 +955,7 @@ describe("/session", function () {
 
     it("should warn the user about the issue when metadata match but not bytecodes", (done) => {
       import(
-        "../../sources/hardhat-output/extraFilesBytecodeMismatch-onlyMetadata.json"
+        "../../../sources/hardhat-output/extraFilesBytecodeMismatch-onlyMetadata.json"
       ).then((hardhatOutput) => {
         const hardhatOutputBuffer = Buffer.from(JSON.stringify(hardhatOutput));
         const agent = chai.request.agent(serverFixture.server.app);
@@ -939,7 +979,7 @@ describe("/session", function () {
 
     it("should verify with all input files and not only those in metadata", (done) => {
       import(
-        "../../sources/hardhat-output/extraFilesBytecodeMismatch.json"
+        "../../../sources/hardhat-output/extraFilesBytecodeMismatch.json"
       ).then((hardhatOutput) => {
         const hardhatOutputBuffer = Buffer.from(JSON.stringify(hardhatOutput));
 

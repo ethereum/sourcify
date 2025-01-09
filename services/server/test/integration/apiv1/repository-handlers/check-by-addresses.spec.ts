@@ -1,20 +1,20 @@
-import { assertValidationError } from "../../helpers/assertions";
+import { assertValidationError } from "../../../helpers/assertions";
 import chai from "chai";
 import chaiHttp from "chai-http";
 import { StatusCodes } from "http-status-codes";
 import {
   deployFromAbiAndBytecode,
   invalidAddress,
-} from "../../helpers/helpers";
-import { LocalChainFixture } from "../../helpers/LocalChainFixture";
-import { ServerFixture } from "../../helpers/ServerFixture";
+} from "../../../helpers/helpers";
+import { LocalChainFixture } from "../../../helpers/LocalChainFixture";
+import { ServerFixture } from "../../../helpers/ServerFixture";
 import type { Done } from "mocha";
 import type { Response } from "superagent";
-import type { ProxyType } from "../../../src/server/services/utils/proxy-contract-util";
+import type { ProxyType } from "../../../../src/server/services/utils/proxy-contract-util";
 import fs from "fs";
 import path from "path";
 import sinon from "sinon";
-import * as proxyContractUtil from "../../../src/server/services/utils/proxy-contract-util";
+import * as proxyContractUtil from "../../../../src/server/services/utils/proxy-contract-util";
 
 chai.use(chaiHttp);
 
@@ -366,14 +366,15 @@ describe("/check-all-by-addresses", function () {
 
     it("should correctly detect proxy contracts", async () => {
       const proxyArtifact = (
-        await import("../../testcontracts/Proxy/Proxy_flattened.json")
+        await import("../../../testcontracts/Proxy/Proxy_flattened.json")
       ).default;
       const proxyMetadata = (
-        await import("../../testcontracts/Proxy/metadata.json")
+        await import("../../../testcontracts/Proxy/metadata.json")
       ).default;
       const proxySource = fs.readFileSync(
         path.join(
           __dirname,
+          "..",
           "..",
           "..",
           "testcontracts",
@@ -432,14 +433,15 @@ describe("/check-all-by-addresses", function () {
         .throws(new Error(errorMessage));
 
       const proxyArtifact = (
-        await import("../../testcontracts/Proxy/Proxy_flattened.json")
+        await import("../../../testcontracts/Proxy/Proxy_flattened.json")
       ).default;
       const proxyMetadata = (
-        await import("../../testcontracts/Proxy/metadata.json")
+        await import("../../../testcontracts/Proxy/metadata.json")
       ).default;
       const proxySource = fs.readFileSync(
         path.join(
           __dirname,
+          "..",
           "..",
           "..",
           "testcontracts",
