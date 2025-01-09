@@ -11,6 +11,7 @@ import {
   checkFilesWithMetadata,
   matchWithRuntimeBytecode,
   useAllSources,
+  IVyperCompiler,
 } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError, NotFoundError } from "../../../../../common/errors";
 import { StatusCodes } from "http-status-codes";
@@ -26,6 +27,7 @@ export async function legacyVerifyEndpoint(
 ): Promise<any> {
   const services = req.app.get("services") as Services;
   const solc = req.app.get("solc") as ISolidityCompiler;
+  const vyper = req.app.get("vyper") as IVyperCompiler;
   const chainRepository = req.app.get("chainRepository") as ChainRepository;
 
   const inputFiles = extractFiles(req);
@@ -37,13 +39,17 @@ export async function legacyVerifyEndpoint(
 
   let checkedContracts: SolidityCheckedContract[];
   try {
-    checkedContracts = await checkFilesWithMetadata(solc, inputFiles);
+    checkedContracts = (await checkFilesWithMetadata(
+      solc,
+      vyper,
+      inputFiles,
+    )) as SolidityCheckedContract[];
   } catch (error: any) {
     throw new BadRequestError(error.message);
   }
 
   const errors = checkedContracts
-    .filter((contract) => !SolidityCheckedContract.isValid(contract, true))
+    .filter((contract) => !contract.isValid(true))
     .map(stringifyInvalidAndMissing);
   if (errors.length) {
     throw new BadRequestError(
@@ -117,6 +123,7 @@ export async function verifyDeprecated(
   res: Response,
 ): Promise<any> {
   const solc = req.app.get("solc") as ISolidityCompiler;
+  const vyper = req.app.get("vyper") as IVyperCompiler;
   const services = req.app.get("services") as Services;
 
   const inputFiles = extractFiles(req);
@@ -128,13 +135,17 @@ export async function verifyDeprecated(
 
   let checkedContracts: SolidityCheckedContract[];
   try {
-    checkedContracts = await checkFilesWithMetadata(solc, inputFiles);
+    checkedContracts = (await checkFilesWithMetadata(
+      solc,
+      vyper,
+      inputFiles,
+    )) as SolidityCheckedContract[];
   } catch (error: any) {
     throw new BadRequestError(error.message);
   }
 
   const errors = checkedContracts
-    .filter((contract) => !SolidityCheckedContract.isValid(contract, true))
+    .filter((contract) => !contract.isValid(true))
     .map(stringifyInvalidAndMissing);
   if (errors.length) {
     throw new BadRequestError(

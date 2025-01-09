@@ -6,6 +6,7 @@ import {
   InvalidSources,
   IpfsGateway,
   JsonInput,
+  Language,
   Libraries,
   Metadata,
   MetadataSourceMap,
@@ -38,33 +39,11 @@ export class SolidityCheckedContract extends AbstractCheckedContract {
   /** The solidity compiler used to compile the checked contract */
   solidityCompiler: ISolidityCompiler;
 
-  /** Object containing the information about missing source files. */
-  missing: MissingSources;
-
-  /** Contains the invalid source files. */
-  invalid: InvalidSources;
-
   /** Object containing input for solc when used with the --standard-json flag. */
   solcJsonInput: any;
   compilerOutput?: SolidityOutput;
 
   readonly auxdataStyle: AuxdataStyle.SOLIDITY = AuxdataStyle.SOLIDITY;
-
-  /** Checks whether this contract is valid or not.
-   *  This is a static method due to persistence issues.
-   *
-   * @param contract the contract to be checked
-   * @param ignoreMissing a flag indicating that missing sources should be ignored
-   * @returns true if no sources are missing or are invalid (malformed); false otherwise
-   */
-  public static isValid(
-    contract: SolidityCheckedContract,
-    ignoreMissing = false,
-  ): boolean {
-    return (
-      (isEmpty(contract.missing) || ignoreMissing) && isEmpty(contract.invalid)
-    );
-  }
 
   initSolcJsonInput(metadata: Metadata, sources: StringMap) {
     this.metadataRaw = JSON.stringify(metadata);
@@ -383,7 +362,7 @@ export class SolidityCheckedContract extends AbstractCheckedContract {
   public async recompile(
     forceEmscripten = false,
   ): Promise<RecompilationResult> {
-    if (!SolidityCheckedContract.isValid(this)) {
+    if (!this.isValid()) {
       await SolidityCheckedContract.fetchMissing(this);
     }
 
@@ -533,8 +512,9 @@ export class SolidityCheckedContract extends AbstractCheckedContract {
   // Function to export the minimum information to reconstruct the CheckedContract
   exportConstructorArguments() {
     return {
+      language: Language.Solidity,
       metadata: this.metadata,
-      solidity: this.sources,
+      sources: this.sources,
       missing: this.missing,
       invalid: this.invalid,
       // creationBytecode: this.creationBytecode, // Not needed without create2
@@ -608,15 +588,6 @@ export function getGithubUrl(url: string): string | null {
   return url
     .replace('github.com', 'raw.githubusercontent.com')
     .replace('/blob/', '/');
-}
-
-/**
- * Checks whether the provided object contains any keys or not.
- * @param obj The object whose emptiness is tested.
- * @returns true if any keys present; false otherwise
- */
-export function isEmpty(obj: object): boolean {
-  return !Object.keys(obj).length && obj.constructor === Object;
 }
 
 /**

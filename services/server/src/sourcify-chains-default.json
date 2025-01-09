@@ -2248,5 +2248,9 @@
       }
     },
     "rpc": ["https://rpc.odyssey.storyrpc.io"]
+  },
+  "26100": {
+    "sourcifyName": "Quantum Portal Network",
+    "supported": true
   }
 }

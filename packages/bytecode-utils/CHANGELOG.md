@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## @ethereum-sourcify/bytecode-utils@1.3.0 - 2025-01-08
+
+- Add Vyper bytecode utils
+- Update dependencies
+
 ## @ethereum-sourcify/bytecode-utils@1.2.14 - 2024-12-11
 
 - Typos
