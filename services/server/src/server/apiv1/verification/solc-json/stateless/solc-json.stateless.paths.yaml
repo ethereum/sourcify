@@ -5,7 +5,7 @@ paths:
     post:
       summary: Verify solc-json
       tags:
-        - Stateless Verification
+        - API v1 - Stateless Verification
       requestBody:
         content:
           application/json:

@@ -204,6 +204,9 @@ export class Server {
               matchType === "full_match" || matchType === "partial_match",
           },
         },
+        $refParser: {
+          mode: "dereference",
+        },
       }),
     );
     // checksum addresses in every request

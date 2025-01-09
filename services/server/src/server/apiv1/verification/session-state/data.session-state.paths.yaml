@@ -5,7 +5,7 @@ paths:
     get:
       summary: Get session data
       tags:
-        - Session Verification
+        - API v1 - Session Verification
       responses:
         "200":
           description: OK

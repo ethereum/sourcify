@@ -5,7 +5,7 @@ paths:
     post:
       summary: Add input files
       tags:
-        - Session Verification
+        - API v1 - Session Verification
       requestBody:
         content:
           application/json:

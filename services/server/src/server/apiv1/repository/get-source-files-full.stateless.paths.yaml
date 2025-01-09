@@ -6,7 +6,7 @@ paths:
       summary: Get all files of a contract (full match)
       description: Returns all files for the desired contract with the address and chain. Searches only for full matches.
       tags:
-        - Repository
+        - API v1 - Repository
       parameters:
         - name: chain
           in: path

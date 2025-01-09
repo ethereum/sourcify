@@ -6,7 +6,7 @@ paths:
       description: |
         Sends provided Vyper contract files for verification.
       tags:
-        - Stateless Verification
+        - API v1 - Stateless Verification
       requestBody:
         required: true
         content:

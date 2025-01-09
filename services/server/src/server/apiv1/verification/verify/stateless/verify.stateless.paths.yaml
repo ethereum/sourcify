@@ -8,7 +8,7 @@ paths:
 
         The `chosenContract` is the optional index of the contract to be verified and only needed when there are multiple contracts, i.e. multiple metadata.json in the provided body. For example a full hardhat-output contains metadatas of all contracts compiled.
       tags:
-        - Stateless Verification
+        - API v1 - Stateless Verification
       requestBody:
         required: true
         content:
@@ -183,7 +183,7 @@ paths:
       description: |
         Sends provided files for verification
       tags:
-        - Stateless Verification
+        - API v1 - Stateless Verification
       requestBody:
         required: true
         content:
