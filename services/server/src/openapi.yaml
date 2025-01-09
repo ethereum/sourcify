@@ -17,47 +17,47 @@ tags:
     description: Used by the Sourcify UI to verify contracts. Not intended for external usage. Will require CORS.
 paths:
   /verify:
-    $ref: "server/controllers/verification/verify/stateless/verify.stateless.paths.yaml#/paths/~1verify"
+    $ref: "server/apiv1/verification/verify/stateless/verify.stateless.paths.yaml#/paths/~1verify"
   /verify/vyper:
-    $ref: "server/controllers/verification/vyper/stateless/vyper.stateless.paths.yaml#/paths/~1verify~1vyper"
+    $ref: "server/apiv1/verification/vyper/stateless/vyper.stateless.paths.yaml#/paths/~1verify~1vyper"
   /verify/etherscan:
-    $ref: "server/controllers/verification/etherscan/stateless/etherscan.stateless.paths.yaml#/paths/~1verify~1etherscan"
+    $ref: "server/apiv1/verification/etherscan/stateless/etherscan.stateless.paths.yaml#/paths/~1verify~1etherscan"
   /verify/solc-json:
-    $ref: "server/controllers/verification/solc-json/stateless/solc-json.stateless.paths.yaml#/paths/~1verify~1solc-json"
+    $ref: "server/apiv1/verification/solc-json/stateless/solc-json.stateless.paths.yaml#/paths/~1verify~1solc-json"
   /repository/contracts/{full_match | partial_match}/{chain}/{address}/{filePath}:
-    $ref: "server/controllers/repository/get-file-static.stateless.paths.yaml#/paths/~1repository~1contracts~1{full_match | partial_match}~1{chain}~1{address}~1{filePath}"
+    $ref: "server/apiv1/repository/get-file-static.stateless.paths.yaml#/paths/~1repository~1contracts~1{full_match | partial_match}~1{chain}~1{address}~1{filePath}"
   /check-all-by-addresses:
-    $ref: "server/controllers/repository/check-all-by-addresses.stateless.paths.yaml#/paths/~1check-all-by-addresses"
+    $ref: "server/apiv1/repository/check-all-by-addresses.stateless.paths.yaml#/paths/~1check-all-by-addresses"
   /check-by-addresses:
-    $ref: "server/controllers/repository/check-by-addresses.stateless.paths.yaml#/paths/~1check-by-addresses"
+    $ref: "server/apiv1/repository/check-by-addresses.stateless.paths.yaml#/paths/~1check-by-addresses"
   /files/any/{chain}/{address}:
-    $ref: "server/controllers/repository/get-source-files-all.stateless.paths.yaml#/paths/~1files~1any~1{chain}~1{address}"
+    $ref: "server/apiv1/repository/get-source-files-all.stateless.paths.yaml#/paths/~1files~1any~1{chain}~1{address}"
   /files/{chain}/{address}:
-    $ref: "server/controllers/repository/get-source-files-full.stateless.paths.yaml#/paths/~1files~1{chain}~1{address}"
+    $ref: "server/apiv1/repository/get-source-files-full.stateless.paths.yaml#/paths/~1files~1{chain}~1{address}"
   /files/contracts/{chain}:
-    $ref: "server/controllers/repository/get-contract-addresses-all.stateless.paths.yaml#/paths/~1files~1contracts~1{chain}"
+    $ref: "server/apiv1/repository/get-contract-addresses-all.stateless.paths.yaml#/paths/~1files~1contracts~1{chain}"
   /files/contracts/any/{chain}:
-    $ref: "server/controllers/repository/get-contract-addresses-paginated-all.stateless.paths.yaml#/paths/~1files~1contracts~1any~1{chain}"
+    $ref: "server/apiv1/repository/get-contract-addresses-paginated-all.stateless.paths.yaml#/paths/~1files~1contracts~1any~1{chain}"
   /files/contracts/full/{chain}:
-    $ref: "server/controllers/repository/get-contract-addresses-paginated-full.stateless.paths.yaml#/paths/~1files~1contracts~1full~1{chain}"
+    $ref: "server/apiv1/repository/get-contract-addresses-paginated-full.stateless.paths.yaml#/paths/~1files~1contracts~1full~1{chain}"
   /files/tree/any/{chain}/{address}:
-    $ref: "server/controllers/repository/get-file-tree-all.stateless.paths.yaml#/paths/~1files~1tree~1any~1{chain}~1{address}"
+    $ref: "server/apiv1/repository/get-file-tree-all.stateless.paths.yaml#/paths/~1files~1tree~1any~1{chain}~1{address}"
   /files/tree/{chain}/{address}:
-    $ref: "server/controllers/repository/get-file-tree-full.stateless.paths.yaml#/paths/~1files~1tree~1{chain}~1{address}"
+    $ref: "server/apiv1/repository/get-file-tree-full.stateless.paths.yaml#/paths/~1files~1tree~1{chain}~1{address}"
   /session/data:
-    $ref: "server/controllers/verification/session-state/data.session-state.paths.yaml#/paths/~1session~1data"
+    $ref: "server/apiv1/verification/session-state/data.session-state.paths.yaml#/paths/~1session~1data"
   /session/clear:
-    $ref: "server/controllers/verification/session-state/clear.session-state.paths.yaml#/paths/~1session~1clear"
+    $ref: "server/apiv1/verification/session-state/clear.session-state.paths.yaml#/paths/~1session~1clear"
   /session/input-files:
-    $ref: "server/controllers/verification/session-state/input-files.session-state.paths.yaml#/paths/~1session~1input-files"
+    $ref: "server/apiv1/verification/session-state/input-files.session-state.paths.yaml#/paths/~1session~1input-files"
   /session/input-contract:
-    $ref: "server/controllers/verification/session-state/input-contract.session-state.paths.yaml#/paths/~1session~1input-contract"
+    $ref: "server/apiv1/verification/session-state/input-contract.session-state.paths.yaml#/paths/~1session~1input-contract"
   /session/verify-checked:
-    $ref: "server/controllers/verification/verify/session/verify.session.paths.yaml#/paths/~1session~1verify-checked"
+    $ref: "server/apiv1/verification/verify/session/verify.session.paths.yaml#/paths/~1session~1verify-checked"
   /session/input-solc-json:
-    $ref: "server/controllers/verification/solc-json/session/solc-json.session.paths.yaml#/paths/~1session~1input-solc-json"
+    $ref: "server/apiv1/verification/solc-json/session/solc-json.session.paths.yaml#/paths/~1session~1input-solc-json"
   /session/verify/etherscan:
-    $ref: "server/controllers/verification/etherscan/session/etherscan.session.paths.yaml#/paths/~1session~1verify~1etherscan"
+    $ref: "server/apiv1/verification/etherscan/session/etherscan.session.paths.yaml#/paths/~1session~1verify~1etherscan"
   /change-log-level:
     post:
       summary: Change the logging level of the application

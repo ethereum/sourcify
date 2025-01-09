@@ -1,13 +1,13 @@
 import { Router } from "express"; // static is a reserved word
-import testArtifactsRoutes from "./controllers/testartifacts/testartifacts.routes";
-import repositoryRoutes from "./controllers/repository/repository.routes";
-import sessionStateRoutes from "./controllers/verification/session-state/session-state.routes";
-import verifyRoutes from "./controllers/verification/verify/verify.routes";
-import solcJsonRoutes from "./controllers/verification/solc-json/solc-json.routes";
-import etherscanRoutes from "./controllers/verification/etherscan/etherscan.routes";
+import testArtifactsRoutes from "./apiv1/testartifacts/testartifacts.routes";
+import repositoryRoutes from "./apiv1/repository/repository.routes";
+import sessionStateRoutes from "./apiv1/verification/session-state/session-state.routes";
+import verifyRoutes from "./apiv1/verification/verify/verify.routes";
+import solcJsonRoutes from "./apiv1/verification/solc-json/solc-json.routes";
+import etherscanRoutes from "./apiv1/verification/etherscan/etherscan.routes";
 import logger, { setLogLevel } from "../common/logger";
 import { ChainRepository } from "../sourcify-chain-repository";
-import vyperRoutes from "./controllers/verification/vyper/vyper.routes";
+import vyperRoutes from "./apiv1/verification/vyper/vyper.routes";
 
 const router: Router = Router();
 

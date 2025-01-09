@@ -16,7 +16,7 @@ import {
   callContractMethodWithTx,
 } from "../../helpers/helpers";
 import type { MissingSources } from "@ethereum-sourcify/lib-sourcify";
-import { MAX_SESSION_SIZE } from "../../../src/server/controllers/verification/verification.common";
+import { MAX_SESSION_SIZE } from "../../../src/server/apiv1/verification/verification.common";
 
 chai.use(chaiHttp);
 

@@ -13,7 +13,7 @@ import {
 } from "../../helpers/assertions";
 import chaiHttp from "chai-http";
 import { StatusCodes } from "http-status-codes";
-import { VerifyVyperRequest } from "../../../src/server/controllers/verification/vyper/stateless/vyper.stateless.handlers";
+import { VerifyVyperRequest } from "../../../src/server/apiv1/verification/vyper/stateless/vyper.stateless.handlers";
 import {
   AuxdataTransformation,
   VyperSettings,
