@@ -3,12 +3,12 @@ import {
   assertTransformations,
   assertValidationError,
   assertVerification,
-} from "../../helpers/assertions";
+} from "../../../helpers/assertions";
 import chai from "chai";
 import chaiHttp from "chai-http";
 import { StatusCodes } from "http-status-codes";
-import { LocalChainFixture } from "../../helpers/LocalChainFixture";
-import { ServerFixture } from "../../helpers/ServerFixture";
+import { LocalChainFixture } from "../../../helpers/LocalChainFixture";
+import { ServerFixture } from "../../../helpers/ServerFixture";
 import type { Done } from "mocha";
 import type { Response } from "superagent";
 import path from "path";
@@ -18,8 +18,8 @@ import {
   deployFromAbiAndBytecodeForCreatorTxHash,
   deployFromAbiAndBytecode,
   testPartialUpgrade,
-} from "../../helpers/helpers";
-import hardhatOutputJSON from "../../sources/hardhat-output/output.json";
+} from "../../../helpers/helpers";
+import hardhatOutputJSON from "../../../sources/hardhat-output/output.json";
 import {
   CallProtectionTransformation,
   LibraryTransformation,
