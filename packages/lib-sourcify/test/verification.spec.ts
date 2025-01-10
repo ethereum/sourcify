@@ -531,18 +531,21 @@ describe('lib-sourcify tests', () => {
 
   // For https://github.com/ethereum/sourcify/pull/1623
   it('should verify a contract partially with the creation bytecode after transformation fields are normalized', async () => {
-    const contractFolderPath = path.join(
-      __dirname,
-      'sources',
-      'ConstructorModified',
-    );
+    const contractFolderPath = path.join(__dirname, 'sources', 'Constructor');
     const { contractAddress, txHash } = await deployFromAbiAndBytecode(
       signer,
       contractFolderPath,
       ['12345'],
     );
+
+    const modifiedContractFolderPath = path.join(
+      __dirname,
+      'sources',
+      'ConstructorModified',
+    );
+
     const match = await checkAndVerifyDeployed(
-      contractFolderPath,
+      modifiedContractFolderPath,
       sourcifyChainHardhat,
       contractAddress,
       txHash,
