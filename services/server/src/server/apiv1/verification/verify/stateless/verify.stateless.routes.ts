@@ -3,7 +3,8 @@ import {
   legacyVerifyEndpoint,
   verifyDeprecated,
 } from "./verify.stateless.handlers";
-import { checkPerfectMatch, safeHandler } from "../../../controllers.common";
+import { checkPerfectMatch } from "../../../controllers.common";
+import { safeHandler } from "../../../../common";
 
 const router: Router = Router();
 

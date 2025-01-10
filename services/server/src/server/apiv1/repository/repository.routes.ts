@@ -10,7 +10,7 @@ import {
   CheckAllByChainAndAddressEndpointRequest,
 } from "./repository.handlers";
 import { validateAddress } from "../controllers.common";
-import { safeHandler } from "../controllers.common";
+import { safeHandler } from "../../common";
 
 const REPOSITORY_CONTROLLER_PREFIX = "/files";
 

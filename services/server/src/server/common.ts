@@ -10,6 +10,27 @@ import {
   StringMap,
 } from "@ethereum-sourcify/lib-sourcify";
 import { getAddress, isAddress } from "ethers";
+import logger from "../common/logger";
+import { InternalServerError } from "express-openapi-validator/dist/openapi.validator";
+import { Request, Response, NextFunction } from "express";
+
+export const safeHandler = <T extends Request = Request>(
+  requestHandler: (req: T, res: Response, next: NextFunction) => Promise<any>,
+) => {
+  return async (req: T, res: Response, next: NextFunction) => {
+    try {
+      return await requestHandler(req, res as any, next);
+    } catch (err: any) {
+      logger.info("safeHandler", {
+        errorMessage: err.message,
+        errorStack: err.stack,
+      });
+      return next(
+        typeof err === "object" ? err : new InternalServerError(err.message),
+      );
+    }
+  };
+};
 
 export const validateSingleAddress = (address: string): boolean => {
   if (!isAddress(address)) {
