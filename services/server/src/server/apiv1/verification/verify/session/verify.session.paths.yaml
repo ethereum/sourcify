@@ -3,9 +3,10 @@ openapi: "3.0.0"
 paths:
   /session/verify-checked:
     post:
+      deprecated: true
       summary: Verify checked contract in session
       tags:
-        - API v1 - Session Verification
+        - Session Verification (Deprecated)
       requestBody:
         content:
           application/json:

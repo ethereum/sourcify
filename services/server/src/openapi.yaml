@@ -10,17 +10,17 @@ servers:
   $ref: "servers.yaml"
 tags:
   - name: Verify Contracts
-    description: Endpoints for initiating contract verification
+    description: API v2 - Endpoints for initiating contract verification
   - name: Verification Jobs
-    description: APIs related to checking job management
+    description: API v2 - APIs related to checking job management
   - name: Contract Lookup
-    description: Tools and endpoints for looking up contract information
-  - name: API v1 - Stateless Verification
-    description: Main verification endpoints
-  - name: API v1 - Repository
-    description: Access to already verified contracts and files
-  - name: API v1 - Session Verification
-    description: Used by the Sourcify UI to verify contracts. Not intended for external usage. Will require CORS.
+    description: API v2 - Tools and endpoints for looking up contract information
+  - name: Stateless Verification (Deprecated)
+    description: API v1 - Main verification endpoints
+  - name: Repository (Deprecated)
+    description: API v1 - Access to already verified contracts and files
+  - name: Session Verification (Deprecated)
+    description: API v1 - Used by the Sourcify UI to verify contracts. Not intended for external usage. Will require CORS.
 paths:
   /v2/verify/{chainId}/{address}:
     $ref: "apiv2.yaml#/paths/~1v2~1verify~1{chainId}~1{address}"
