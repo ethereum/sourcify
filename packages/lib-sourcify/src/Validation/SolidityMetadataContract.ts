@@ -13,6 +13,7 @@ import {
 } from '..';
 import { id as keccak256str } from 'ethers';
 import semver from 'semver';
+import { getIpfsGateway, performFetch } from './fetchUtils';
 
 const CONTENT_VARIATORS = [
   (content: string) => content,
@@ -81,7 +82,23 @@ export class SolidityMetadataContract {
     this.providedSources = providedSources;
     this.providedSourcesByHash = this.storeByHash(providedSources);
     this.assembleContract();
-    if 
+    if (this.isCompilable()) {
+      this.createJsonInputFromMetadata();
+    }
+  }
+
+  createCompilation(compiler: ISolidityCompiler) {
+    if (!this.solcJsonInput) {
+      throw new Error(
+        `No JsonInput found, cannot create compilation for SolidityMetadataContract: ${this.path}:${this.name}`,
+      );
+    }
+    this.compilation = new Compilation(
+      compiler,
+      this.metadata.compiler.version,
+      this.path + ':' + this.name,
+      this.solcJsonInput,
+    );
   }
 
   /**
@@ -152,6 +169,61 @@ export class SolidityMetadataContract {
     this.unusedSourceFiles = this.providedSources
       .map((pc) => pc.path)
       .filter((file) => !usedFilesSet.has(file));
+  }
+
+  /**
+   * Asynchronously attempts to fetch the missing sources of this contract. An error is thrown in case of a failure.
+   *
+   * @param log log object
+   */
+  async fetchMissing(): Promise<void> {
+    const IPFS_PREFIX = 'dweb:/ipfs/';
+
+    for (const fileName in this.missingSources) {
+      const file = this.missingSources[fileName];
+      const hash = file.keccak256;
+
+      let retrievedContent = null;
+
+      // Sometimes file paths are github urls, try to fetch from there
+      if (fileName.includes('github.com')) {
+        const githubUrl = fileName
+          .replace('github.com', 'raw.githubusercontent.com')
+          .replace('/blob/', '/');
+        retrievedContent = await performFetch(githubUrl, hash, fileName);
+      } else {
+        for (const url of file.urls) {
+          if (url.startsWith(IPFS_PREFIX)) {
+            const ipfsCID = url.slice(IPFS_PREFIX.length);
+            const ipfsGateway = getIpfsGateway();
+            const ipfsUrl = ipfsGateway.url + ipfsCID;
+            retrievedContent = await performFetch(
+              ipfsUrl,
+              hash,
+              fileName,
+              ipfsGateway.headers,
+            );
+            if (retrievedContent) {
+              break;
+            }
+          }
+        }
+      }
+
+      if (retrievedContent) {
+        this.foundSources[fileName] = retrievedContent;
+        delete this.missingSources[fileName];
+      }
+    }
+
+    if (Object.keys(this.missingSources).length) {
+      const error = new Error(
+        `Resource missing; unsuccessful fetching: ${Object.keys(this.missingSources).join(', ')}`,
+      );
+      throw error;
+    }
+
+    this.createJsonInputFromMetadata();
   }
 
   private generateVariations(pathContent: PathContent): PathContent[] {
@@ -295,5 +367,12 @@ export class SolidityMetadataContract {
         delete this.solcJsonInput.settings.optimizer.details.inliner;
       }
     }
+  }
+
+  isCompilable() {
+    return (
+      Object.keys(this.missingSources).length === 0 &&
+      Object.keys(this.invalidSources).length === 0
+    );
   }
 }
