@@ -6,7 +6,7 @@ paths:
       deprecated: true
       summary: Verify solc-json
       tags:
-        - Stateless Verification (Deprecated)
+        - (Deprecated) Stateless Verification
       requestBody:
         content:
           application/json:

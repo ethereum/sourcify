@@ -7,7 +7,7 @@ paths:
       summary: Get the contract addresses partially verified on a chain
       description: Returns the partially verified contracts from the repository for the desired chain. API is paginated. Limit must be a number between 1 and 200.
       tags:
-        - Repository (Deprecated)
+        - (Deprecated) Repository
       parameters:
         - name: chain
           in: path

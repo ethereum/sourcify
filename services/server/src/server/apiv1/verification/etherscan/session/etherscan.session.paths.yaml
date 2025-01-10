@@ -6,7 +6,7 @@ paths:
       deprecated: true
       summary: Verify from Etherscan
       tags:
-        - Session Verification (Deprecated)
+        - (Deprecated) Session Verification
       requestBody:
         content:
           application/json:

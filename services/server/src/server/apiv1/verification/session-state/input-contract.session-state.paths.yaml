@@ -6,7 +6,7 @@ paths:
       deprecated: true
       summary: Import deployed contract trying to fetch metadata and files form IPFS
       tags:
-        - Session Verification (Deprecated)
+        - (Deprecated) Session Verification
       requestBody:
         required: true
         content:

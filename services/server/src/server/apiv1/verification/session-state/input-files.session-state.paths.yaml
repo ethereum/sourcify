@@ -6,7 +6,7 @@ paths:
       deprecated: true
       summary: Add input files
       tags:
-        - Session Verification (Deprecated)
+        - (Deprecated) Session Verification
       requestBody:
         content:
           application/json:

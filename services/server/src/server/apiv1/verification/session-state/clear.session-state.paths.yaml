@@ -6,7 +6,7 @@ paths:
       deprecated: true
       summary: Clear session data
       tags:
-        - Session Verification (Deprecated)
+        - (Deprecated) Session Verification
       responses:
         "200":
           description: OK
