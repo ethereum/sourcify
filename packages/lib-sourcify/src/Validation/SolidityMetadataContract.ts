@@ -83,22 +83,29 @@ export class SolidityMetadataContract {
     this.providedSourcesByHash = this.storeByHash(providedSources);
     this.assembleContract();
     if (this.isCompilable()) {
-      this.createJsonInputFromMetadata();
+      this.#createJsonInputFromMetadata();
     }
   }
 
-  createCompilation(compiler: ISolidityCompiler) {
+  async createCompilation(compiler: ISolidityCompiler) {
     if (!this.solcJsonInput) {
       throw new Error(
         `No JsonInput found, cannot create compilation for SolidityMetadataContract: ${this.path}:${this.name}`,
       );
     }
+
+    if (Object.keys(this.missingSources).length > 0) {
+      await this.fetchMissing();
+    }
+
     this.compilation = new Compilation(
       compiler,
       this.metadata.compiler.version,
       this.path + ':' + this.name,
       this.solcJsonInput,
     );
+
+    return this.compilation;
   }
 
   /**
@@ -223,7 +230,7 @@ export class SolidityMetadataContract {
       throw error;
     }
 
-    this.createJsonInputFromMetadata();
+    this.#createJsonInputFromMetadata();
   }
 
   private generateVariations(pathContent: PathContent): PathContent[] {
@@ -260,7 +267,7 @@ export class SolidityMetadataContract {
     });
   }
 
-  createJsonInputFromMetadata() {
+  #createJsonInputFromMetadata() {
     if (
       Object.keys(this.missingSources).length > 0 ||
       Object.keys(this.invalidSources).length > 0
