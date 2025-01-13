@@ -15,7 +15,10 @@ const NESTED_METADATA_REGEX =
   /"{\\"compiler\\":{\\"version\\".*?},\\"version\\":1}"/;
 const HARDHAT_OUTPUT_FORMAT_REGEX = /"hh-sol-build-info-1"/;
 
-export function checkPaths(paths: string[], ignoring?: string[]) {
+export function createMetadataContractsFromPaths(
+  paths: string[],
+  ignoring?: string[],
+) {
   const files: PathBuffer[] = [];
   paths.forEach((path) => {
     if (fs.existsSync(path)) {
@@ -29,11 +32,13 @@ export function checkPaths(paths: string[], ignoring?: string[]) {
     }
   });
 
-  return checkFilesWithMetadata(files);
+  return createMetadataContractsFromFiles(files);
 }
 
-export async function checkFilesWithMetadata(files: PathBuffer[]) {
-  logInfo('Checking files', { numberOfFiles: files.length });
+export async function createMetadataContractsFromFiles(files: PathBuffer[]) {
+  logInfo('Creating metadata contracts from files', {
+    numberOfFiles: files.length,
+  });
   await unzipFiles(files);
   const parsedFiles: PathContent[] = files.map((pathBuffer) => ({
     content: pathBuffer.buffer.toString(),
