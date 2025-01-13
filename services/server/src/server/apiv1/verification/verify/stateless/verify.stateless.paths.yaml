@@ -3,12 +3,13 @@ openapi: "3.0.0"
 paths:
   /verify:
     post:
+      deprecated: true
       description: |
         Sends provided files for verification. 
 
         The `chosenContract` is the optional index of the contract to be verified and only needed when there are multiple contracts, i.e. multiple metadata.json in the provided body. For example a full hardhat-output contains metadatas of all contracts compiled.
       tags:
-        - Stateless Verification
+        - (Deprecated) Stateless Verification
       requestBody:
         required: true
         content:
@@ -180,10 +181,11 @@ paths:
                     error: "The deployed and recompiled bytecode don't match."
   /verify-deprecated:
     post:
+      deprecated: true
       description: |
         Sends provided files for verification
       tags:
-        - Stateless Verification
+        - (Deprecated) Stateless Verification
       requestBody:
         required: true
         content:
