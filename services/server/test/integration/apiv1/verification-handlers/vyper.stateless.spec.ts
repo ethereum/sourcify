@@ -1,24 +1,24 @@
 import chai from "chai";
 import path from "path";
 import fs from "fs";
-import { LocalChainFixture } from "../../helpers/LocalChainFixture";
-import { ServerFixture } from "../../helpers/ServerFixture";
+import { LocalChainFixture } from "../../../helpers/LocalChainFixture";
+import { ServerFixture } from "../../../helpers/ServerFixture";
 import {
   deployFromAbiAndBytecode,
   deployFromAbiAndBytecodeForCreatorTxHash,
-} from "../../helpers/helpers";
+} from "../../../helpers/helpers";
 import {
   assertTransformations,
   assertVerification,
-} from "../../helpers/assertions";
+} from "../../../helpers/assertions";
 import chaiHttp from "chai-http";
 import { StatusCodes } from "http-status-codes";
-import { VerifyVyperRequest } from "../../../src/server/controllers/verification/vyper/stateless/vyper.stateless.handlers";
+import { VerifyVyperRequest } from "../../../../src/server/apiv1/verification/vyper/stateless/vyper.stateless.handlers";
 import {
   AuxdataTransformation,
   VyperSettings,
 } from "@ethereum-sourcify/lib-sourcify";
-import contractArtifact from "../../sources/vyper/testcontract/artifact.json";
+import contractArtifact from "../../../sources/vyper/testcontract/artifact.json";
 
 chai.use(chaiHttp);
 
@@ -30,6 +30,7 @@ describe("/verify/vyper", function () {
   const contractFileName = "test.vy";
   const contractSourcePath = path.join(
     __dirname,
+    "..",
     "..",
     "..",
     "sources",
@@ -128,7 +129,7 @@ describe("/verify/vyper", function () {
 
   it("should return an error if the deployed and recompiled bytecodes mismatch", async () => {
     const contract2Artifact = (
-      await import("../../sources/vyper/testcontract2/artifact.json")
+      await import("../../../sources/vyper/testcontract2/artifact.json")
     ).default;
 
     const contract2Address = await deployFromAbiAndBytecode(

@@ -6,12 +6,12 @@ import {
   deployFromAbiAndBytecode,
   deployFromAbiAndBytecodeForCreatorTxHash,
   waitSecs,
-} from "../../helpers/helpers";
-import { LocalChainFixture } from "../../helpers/LocalChainFixture";
-import { ServerFixture } from "../../helpers/ServerFixture";
+} from "../../../helpers/helpers";
+import { LocalChainFixture } from "../../../helpers/LocalChainFixture";
+import { ServerFixture } from "../../../helpers/ServerFixture";
 import path from "path";
 import fs from "fs";
-import { RWStorageIdentifiers } from "../../../src/server/services/storageServices/identifiers";
+import { RWStorageIdentifiers } from "../../../../src/server/services/storageServices/identifiers";
 
 chai.use(chaiHttp);
 
@@ -349,15 +349,16 @@ describe("Verify repository endpoints", function () {
 
       it(`should fetch immutable-references.json of specific address, and it should be available in /files/any. Storage type: ${serverFixture.identifier}`, async function () {
         const artifact = (
-          await import("../../testcontracts/WithImmutables/artifact.json")
+          await import("../../../testcontracts/WithImmutables/artifact.json")
         ).default;
 
         const metadata = (
-          await import("../../testcontracts/WithImmutables/metadata.json")
+          await import("../../../testcontracts/WithImmutables/metadata.json")
         ).default;
         const metadataBuffer = Buffer.from(JSON.stringify(metadata));
         const sourcePath = path.join(
           __dirname,
+          "..",
           "..",
           "..",
           "testcontracts",
@@ -418,13 +419,13 @@ describe("Verify repository endpoints", function () {
       it(`should fetch library-map.json of specific address, and it should be available in /files/any. Storage type: ${serverFixture.identifier}`, async function () {
         const artifact = (
           await import(
-            "../../testcontracts/LibrariesLinkedManually/LibrariesLinkedManually.json"
+            "../../../testcontracts/LibrariesLinkedManually/LibrariesLinkedManually.json"
           )
         ).default;
 
         const metadata = (
           await import(
-            "../../testcontracts/LibrariesLinkedManually/metadata.json"
+            "../../../testcontracts/LibrariesLinkedManually/metadata.json"
           )
         ).default;
         const metadataBuffer = Buffer.from(JSON.stringify(metadata));
@@ -432,6 +433,7 @@ describe("Verify repository endpoints", function () {
         const sourceBuffer = fs.readFileSync(
           path.join(
             __dirname,
+            "..",
             "..",
             "..",
             "testcontracts",
@@ -528,15 +530,16 @@ describe("Verify repository endpoints", function () {
 
       it(`should fetch constructor-args.txt of specific address, and it should be available in /files/any. Storage type: ${serverFixture.identifier}`, async function () {
         const artifact = (
-          await import("../../testcontracts/WithImmutables/artifact.json")
+          await import("../../../testcontracts/WithImmutables/artifact.json")
         ).default;
 
         const metadata = (
-          await import("../../testcontracts/WithImmutables/metadata.json")
+          await import("../../../testcontracts/WithImmutables/metadata.json")
         ).default;
         const metadataBuffer = Buffer.from(JSON.stringify(metadata));
         const sourcePath = path.join(
           __dirname,
+          "..",
           "..",
           "..",
           "testcontracts",
