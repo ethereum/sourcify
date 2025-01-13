@@ -43,9 +43,9 @@ describe.only('VyperCompilation', () => {
       },
     );
 
-    const result = await compilation.recompile();
-    expect(result.creationBytecode).to.not.be.undefined;
-    expect(result.runtimeBytecode).to.not.be.undefined;
+    await compilation.compile();
+    expect(compilation.getCreationBytecode()).to.not.be.undefined;
+    expect(compilation.getRuntimeBytecode()).to.not.be.undefined;
   });
 
   it('should handle immutable references correctly', async () => {
@@ -85,8 +85,8 @@ describe.only('VyperCompilation', () => {
       },
     );
 
-    const result = await compilation.recompile();
-    expect(result.immutableReferences).to.not.be.empty;
+    await compilation.compile();
+    expect(compilation.getImmutableReferences()).to.not.be.empty;
   });
 
   it('should generate correct CBOR auxdata positions', async () => {
@@ -126,7 +126,7 @@ describe.only('VyperCompilation', () => {
       },
     );
 
-    await compilation.recompile();
+    await compilation.compile();
     const success = await compilation.generateCborAuxdataPositions();
     expect(success).to.be.true;
     expect(compilation.creationBytecodeCborAuxdata).to.not.be.empty;
@@ -176,9 +176,9 @@ describe.only('VyperCompilation', () => {
         },
       );
 
-      const result = await compilation.recompile();
-      expect(result.creationBytecode).to.not.be.undefined;
-      expect(result.runtimeBytecode).to.not.be.undefined;
+      await compilation.compile();
+      expect(compilation.getCreationBytecode()).to.not.be.undefined;
+      expect(compilation.getRuntimeBytecode()).to.not.be.undefined;
     }
   });
 });

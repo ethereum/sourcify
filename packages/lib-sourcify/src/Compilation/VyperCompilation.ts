@@ -1,4 +1,4 @@
-import { logError, logWarn } from '../lib/logger';
+import { logWarn } from '../lib/logger';
 import { AbstractCompilation } from './AbstractCompilation';
 import { id } from 'ethers';
 import {
@@ -16,8 +16,6 @@ import {
 import {
   CompilationTarget,
   CompiledContractCborAuxdata,
-  MetadataOutput,
-  RecompilationResult,
 } from './CompilationTypes';
 import { ImmutableReferences } from './SolidityTypes';
 
@@ -27,7 +25,7 @@ import { ImmutableReferences } from './SolidityTypes';
 export class VyperCompilation extends AbstractCompilation {
   // Use declare to override AbstractCompilation's types to target Solidity types
   declare compilerOutput?: VyperOutput;
-  declare recompileAndReturnContract: (
+  declare compileAndReturnCompilationTarget: (
     forceEmscripten: boolean,
   ) => Promise<VyperOutputContract>;
 
@@ -40,30 +38,13 @@ export class VyperCompilation extends AbstractCompilation {
   // Vyper version is not semver compliant, so we need to handle it differently
   public compilerVersionCompatibleWithSemver: string;
 
-  generateMetadata(output?: VyperOutput) {
-    let outputMetadata: MetadataOutput;
-
-    if (
-      output?.contracts?.[this.compilationTarget.path]?.[
-        this.compilationTarget.name
-      ]
-    ) {
-      const contract =
-        output.contracts[this.compilationTarget.path][
-          this.compilationTarget.name
-        ];
-      outputMetadata = {
-        abi: contract.abi,
-        devdoc: contract.devdoc,
-        userdoc: contract.userdoc,
-      };
-    } else {
-      outputMetadata = {
-        abi: [],
-        devdoc: { kind: 'dev', methods: {} },
-        userdoc: { kind: 'user', methods: {} },
-      };
-    }
+  generateMetadata() {
+    const contract = this.getCompilationTarget();
+    const outputMetadata = {
+      abi: contract.abi,
+      devdoc: contract.devdoc,
+      userdoc: contract.userdoc,
+    };
 
     const sourcesWithHashes = Object.entries(this.jsonInput.sources).reduce(
       (acc, [path, source]) => ({
@@ -89,7 +70,6 @@ export class VyperCompilation extends AbstractCompilation {
       sources: sourcesWithHashes,
       version: 1,
     };
-    this.metadataRaw = JSON.stringify(this.metadata);
   }
 
   initVyperJsonInput() {
@@ -145,8 +125,8 @@ export class VyperCompilation extends AbstractCompilation {
     this.initVyperJsonInput();
   }
 
-  private getImmutableReferences(): ImmutableReferences {
-    if (!this.creationBytecode || !this.runtimeBytecode) {
+  getImmutableReferences(): ImmutableReferences {
+    if (!this.getCreationBytecode() || !this.getRuntimeBytecode()) {
       throw new Error(
         'Cannot generate immutable references if bytecodes are not set',
       );
@@ -155,7 +135,7 @@ export class VyperCompilation extends AbstractCompilation {
     if (gte(this.compilerVersionCompatibleWithSemver, '0.3.10')) {
       try {
         const { immutableSize } = decode(
-          this.creationBytecode,
+          this.getCreationBytecode(),
           this.auxdataStyle,
         );
         if (immutableSize) {
@@ -163,73 +143,47 @@ export class VyperCompilation extends AbstractCompilation {
             '0': [
               {
                 length: immutableSize,
-                start: this.runtimeBytecode.substring(2).length / 2,
+                start: this.getRuntimeBytecode().substring(2).length / 2,
               },
             ],
           };
         }
       } catch (e) {
         logWarn('Cannot decode vyper contract bytecode', {
-          creationBytecode: this.creationBytecode,
+          creationBytecode: this.getCreationBytecode(),
         });
       }
     }
     return immutableReferences;
   }
 
-  public async recompile(): Promise<RecompilationResult> {
-    await this.recompileAndReturnContract(false);
-    this.generateMetadata(this.compilerOutput);
-
-    if (!this.metadataRaw) {
-      logError('Cannot generate fake metadata for vyper', {
-        compilerVersion: this.compilerVersion,
-        compilationTarget: this.compilationTarget,
-      });
-      throw new Error('Cannot generate fake metadata for vyper');
-    }
-
-    return {
-      creationBytecode: this.creationBytecode!,
-      runtimeBytecode: this.runtimeBytecode!,
-      metadata: this.metadataRaw,
-      immutableReferences: this.getImmutableReferences(),
-      creationLinkReferences: {},
-      runtimeLinkReferences: {},
-    };
+  public async compile() {
+    await this.compileAndReturnCompilationTarget(false);
+    this.generateMetadata();
   }
-
   /**
    * Generate the cbor auxdata positions for the creation and runtime bytecodes.
    * @returns false if the auxdata positions cannot be generated, true otherwise.
    */
   public async generateCborAuxdataPositions() {
-    if (
-      !this.creationBytecode ||
-      !this.runtimeBytecode ||
-      !this.compilerOutput
-    ) {
-      return false;
-    }
-
     const [, runtimeAuxdataCbor, runtimeCborLengthHex] = splitAuxdata(
-      this.runtimeBytecode,
+      this.getRuntimeBytecode(),
       this.auxdataStyle,
     );
 
     this.runtimeBytecodeCborAuxdata = this.tryGenerateCborAuxdataPosition(
-      this.runtimeBytecode,
+      this.getRuntimeBytecode(),
       runtimeAuxdataCbor,
       runtimeCborLengthHex,
     );
 
     const [, creationAuxdataCbor, creationCborLengthHex] = splitAuxdata(
-      this.creationBytecode,
+      this.getCreationBytecode(),
       this.auxdataStyle,
     );
 
     this.creationBytecodeCborAuxdata = this.tryGenerateCborAuxdataPosition(
-      this.creationBytecode,
+      this.getCreationBytecode(),
       creationAuxdataCbor,
       creationCborLengthHex,
     );

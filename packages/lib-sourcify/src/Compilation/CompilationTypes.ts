@@ -12,15 +12,6 @@ export interface LinkReferences {
   };
 }
 
-export interface RecompilationResult {
-  creationBytecode: string;
-  runtimeBytecode: string;
-  metadata: string;
-  immutableReferences: ImmutableReferences;
-  creationLinkReferences: LinkReferences;
-  runtimeLinkReferences: LinkReferences;
-}
-
 export interface MetadataSource {
   keccak256: string;
   content?: string;

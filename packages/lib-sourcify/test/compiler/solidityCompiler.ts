@@ -3,11 +3,14 @@ import path from 'path';
 import fs from 'fs';
 import { exec, spawnSync } from 'child_process';
 import { StatusCodes } from 'http-status-codes';
-import { SolidityOutput, JsonInput } from '../../src';
 import { logDebug, logError, logInfo, logWarn } from '../../src/lib/logger';
 import semver from 'semver';
 import { Worker, WorkerOptions } from 'worker_threads';
 import { fetchWithBackoff } from './common';
+import {
+  SolidityJsonInput,
+  SolidityOutput,
+} from '../../src/Compilation/SolidityTypes';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const solc = require('solc');
@@ -39,7 +42,7 @@ export function findSolcPlatform(): string | false {
 
 export async function useSolidityCompiler(
   version: string,
-  solcJsonInput: JsonInput,
+  solcJsonInput: SolidityJsonInput,
   forceEmscripten = false,
 ): Promise<SolidityOutput> {
   // For nightly builds, Solidity version is saved as 0.8.17-ci.2022.8.9+commit.6b60524c instead of 0.8.17-nightly.2022.8.9+commit.6b60524c.

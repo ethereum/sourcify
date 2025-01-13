@@ -172,7 +172,7 @@ export interface SolidityOutputContract {
     assembly?: string;
     legacyAssembly?: any;
     bytecode: SolidityOutputEvmBytecode;
-    deployedBytecode?: SolidityOutputEvmDeployedBytecode;
+    deployedBytecode: SolidityOutputEvmDeployedBytecode;
     methodIdentifiers?: {
       [methodName: string]: string;
     };

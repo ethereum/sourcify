@@ -3,9 +3,9 @@ import {
   CompilationTarget,
   CompiledContractCborAuxdata,
   Metadata,
-  RecompilationResult,
 } from './CompilationTypes';
 import {
+  ImmutableReferences,
   ISolidityCompiler,
   SolidityJsonInput,
   SolidityOutput,
@@ -29,9 +29,6 @@ export abstract class AbstractCompilation {
   abstract jsonInput: SolidityJsonInput | VyperJsonInput;
 
   metadata?: Metadata;
-  metadataRaw?: string;
-  creationBytecode?: string;
-  runtimeBytecode?: string;
   compilerOutput?: SolidityOutput | VyperOutput;
 
   abstract auxdataStyle: AuxdataStyle;
@@ -40,19 +37,16 @@ export abstract class AbstractCompilation {
   creationBytecodeCborAuxdata?: CompiledContractCborAuxdata;
   runtimeBytecodeCborAuxdata?: CompiledContractCborAuxdata;
 
-  normalizedRuntimeBytecode?: string;
-  normalizedCreationBytecode?: string;
-
   /**
    * Recompiles the contract with the specified compiler settings
    * @param forceEmscripten Whether to force using emscripten for compilation
    */
-  abstract recompile(forceEmscripten?: boolean): Promise<RecompilationResult>;
+  abstract compile(forceEmscripten?: boolean): Promise<void>;
   abstract generateCborAuxdataPositions(
     forceEmscripten?: boolean,
   ): Promise<boolean>;
 
-  public async recompileAndReturnContract(
+  public async compileAndReturnCompilationTarget(
     forceEmscripten = false,
   ): Promise<SolidityOutputContract | VyperOutputContract> {
     const version = this.compilerVersion;
@@ -89,6 +83,14 @@ export abstract class AbstractCompilation {
       compilationDuration: `${compilationDuration}ms`,
     });
 
+    return this.getCompilationTarget();
+  }
+
+  getCompilationTarget(): SolidityOutputContract | VyperOutputContract {
+    if (!this.compilerOutput) {
+      logWarn('Compiler output is undefined');
+      throw new Error('Compiler output is undefined');
+    }
     if (
       !this.compilerOutput.contracts ||
       !this.compilerOutput.contracts[this.compilationTarget.path] ||
@@ -100,15 +102,25 @@ export abstract class AbstractCompilation {
       logWarn('Contract not found in compiler output');
       throw error;
     }
-
-    const contract =
-      this.compilerOutput.contracts[this.compilationTarget.path][
-        this.compilationTarget.name
-      ];
-
-    this.creationBytecode = `0x${contract.evm.bytecode.object}`;
-    this.runtimeBytecode = `0x${contract.evm?.deployedBytecode?.object}`;
-
-    return contract;
+    return this.compilerOutput.contracts[this.compilationTarget.path][
+      this.compilationTarget.name
+    ];
   }
+
+  getCreationBytecode() {
+    return this.getCompilationTarget().evm.bytecode.object;
+  }
+
+  getRuntimeBytecode() {
+    return this.getCompilationTarget().evm.deployedBytecode.object;
+  }
+
+  getMetadata(): Metadata {
+    if (!this.metadata) {
+      throw new Error('Metadata is not set');
+    }
+    return this.metadata;
+  }
+
+  abstract getImmutableReferences(): ImmutableReferences;
 }

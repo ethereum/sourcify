@@ -56,9 +56,9 @@ describe.only('SolidityCompilation', () => {
       getCompilationTargetFromMetadata(metadata),
     );
 
-    const result = await compilation.recompile();
-    expect(result.creationBytecode).to.not.be.undefined;
-    expect(result.runtimeBytecode).to.not.be.undefined;
+    await compilation.compile();
+    expect(compilation.getCreationBytecode()).to.not.be.undefined;
+    expect(compilation.getRuntimeBytecode()).to.not.be.undefined;
   });
 
   it('should generate correct CBOR auxdata positions', async () => {
@@ -86,7 +86,7 @@ describe.only('SolidityCompilation', () => {
       getCompilationTargetFromMetadata(metadata),
     );
 
-    await compilation.recompile();
+    await compilation.compile();
     const success = await compilation.generateCborAuxdataPositions();
     expect(success).to.be.true;
     expect(compilation.runtimeBytecodeCborAuxdata).to.not.be.empty;
@@ -127,10 +127,12 @@ describe.only('SolidityCompilation', () => {
       getCompilationTargetFromMetadata(metadata),
     );
 
-    await compilation.recompile();
+    await compilation.compile();
     const success = await compilation.generateCborAuxdataPositions();
     expect(success).to.be.true;
 
+    console.log(compilation.runtimeBytecodeCborAuxdata);
+    console.log(compilation.creationBytecodeCborAuxdata);
     expect(compilation.runtimeBytecodeCborAuxdata).to.not.be.undefined;
     expect(compilation.creationBytecodeCborAuxdata).to.not.be.undefined;
     expect(
@@ -178,7 +180,7 @@ describe.only('SolidityCompilation', () => {
       getCompilationTargetFromMetadata(metadata),
     );
 
-    await compilation.recompile();
+    await compilation.compile();
     const result = await compilation.generateCborAuxdataPositions();
 
     expect(result).to.be.true;
@@ -211,7 +213,7 @@ describe.only('SolidityCompilation', () => {
       getCompilationTargetFromMetadata(metadata),
     );
 
-    await compilation.recompile();
+    await compilation.compile();
 
     const result = await compilation.generateCborAuxdataPositions();
 
@@ -257,7 +259,7 @@ describe.only('SolidityCompilation', () => {
       { name: 'NonExistentContract', path: 'Storage.sol' },
     );
 
-    await expect(compilation.recompile()).to.be.eventually.rejectedWith(
+    await expect(compilation.compile()).to.be.eventually.rejectedWith(
       'Contract not found in compiler output',
     );
   });
