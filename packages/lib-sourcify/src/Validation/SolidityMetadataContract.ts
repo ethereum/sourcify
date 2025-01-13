@@ -303,27 +303,6 @@ export class SolidityMetadataContract {
 
     this.solcJsonInput.language = this.metadata.language;
 
-    this.solcJsonInput.settings.outputSelection = {};
-    this.solcJsonInput.settings.outputSelection['*'] =
-      this.solcJsonInput.settings.outputSelection['*'] || {};
-
-    this.solcJsonInput.settings.outputSelection['*']['*'] = [
-      'abi',
-      'devdoc',
-      'userdoc',
-      'storageLayout',
-      'evm.legacyAssembly',
-      'evm.bytecode.object',
-      'evm.bytecode.sourceMap',
-      'evm.bytecode.linkReferences',
-      'evm.bytecode.generatedSources',
-      'evm.deployedBytecode.object',
-      'evm.deployedBytecode.sourceMap',
-      'evm.deployedBytecode.linkReferences',
-      'evm.deployedBytecode.immutableReferences',
-      'metadata',
-    ];
-
     // Convert the libraries from the metadata format to the compiler_settings format
     // metadata format: "contracts/1_Storage.sol:Journal": "0x7d53f102f4d4aa014db4e10d6deec2009b3cda6b"
     // settings format: "contracts/1_Storage.sol": { Journal: "0x7d53f102f4d4aa014db4e10d6deec2009b3cda6b" }
