@@ -1,4 +1,4 @@
-import { logError, logInfo, logSilly, logWarn } from '../lib/logger';
+import { logError, logWarn } from '../lib/logger';
 import { AbstractCompilation } from './AbstractCompilation';
 import { id } from 'ethers';
 import {
@@ -7,7 +7,12 @@ import {
   splitAuxdata,
 } from '@ethereum-sourcify/bytecode-utils';
 import semver, { gte } from 'semver';
-import { IVyperCompiler, VyperJsonInput, VyperOutput } from './VyperTypes';
+import {
+  IVyperCompiler,
+  VyperJsonInput,
+  VyperOutput,
+  VyperOutputContract,
+} from './VyperTypes';
 import {
   CompilationTarget,
   CompiledContractCborAuxdata,
@@ -20,8 +25,11 @@ import { ImmutableReferences } from './SolidityTypes';
  * Abstraction of a checked vyper contract. With metadata and source (vyper) files.
  */
 export class VyperCompilation extends AbstractCompilation {
-  // Use declare to specify the type of compilerOutput
+  // Use declare to override AbstractCompilation's types to target Solidity types
   declare compilerOutput?: VyperOutput;
+  declare recompileAndReturnContract: (
+    forceEmscripten: boolean,
+  ) => Promise<VyperOutputContract>;
 
   // Specify the auxdata style, used for extracting the auxdata from the compiler output
   public auxdataStyle:
@@ -170,67 +178,7 @@ export class VyperCompilation extends AbstractCompilation {
   }
 
   public async recompile(): Promise<RecompilationResult> {
-    const version = this.compilerVersion;
-
-    const compilationStartTime = Date.now();
-    logInfo('Compiling contract', {
-      version,
-      contract: this.compilationTarget.name,
-      path: this.compilationTarget.path,
-    });
-    logSilly('Compilation input', { VyperJsonInput: this.jsonInput });
-    this.compilerOutput = await this.compiler.compile(version, this.jsonInput);
-    if (this.compilerOutput === undefined) {
-      const error = new Error('Compiler error');
-      logWarn('Compiler error', {
-        errorMessages: ['compilerOutput is undefined'],
-      });
-      throw error;
-    }
-
-    const compilationEndTime = Date.now();
-    const compilationDuration = compilationEndTime - compilationStartTime;
-    logSilly('Compilation output', { compilerOutput: this.compilerOutput });
-    logInfo('Compiled contract', {
-      version,
-      contract: this.compilationTarget.name,
-      path: this.compilationTarget.path,
-      compilationDuration: `${compilationDuration}ms`,
-    });
-
-    if (
-      !this.compilerOutput.contracts ||
-      !this.compilerOutput.contracts[this.compilationTarget.path] ||
-      !this.compilerOutput.contracts[this.compilationTarget.path][
-        this.compilationTarget.name
-      ] ||
-      !this.compilerOutput.contracts[this.compilationTarget.path][
-        this.compilationTarget.name
-      ].evm ||
-      !this.compilerOutput.contracts[this.compilationTarget.path][
-        this.compilationTarget.name
-      ].evm.bytecode
-    ) {
-      const errorMessages =
-        this.compilerOutput.errors
-          ?.filter((e: any) => e.severity === 'error')
-          .map((e: any) => e.formattedMessage) || [];
-
-      const error = new Error('Compiler error');
-      logWarn('Compiler error', {
-        errorMessages,
-      });
-      throw error;
-    }
-
-    const contract =
-      this.compilerOutput.contracts[this.compilationTarget.path][
-        this.compilationTarget.name
-      ];
-
-    this.creationBytecode = `${contract.evm.bytecode.object}`;
-    this.runtimeBytecode = `${contract.evm?.deployedBytecode?.object}`;
-
+    await this.recompileAndReturnContract(false);
     this.generateMetadata(this.compilerOutput);
 
     if (!this.metadataRaw) {
@@ -242,8 +190,8 @@ export class VyperCompilation extends AbstractCompilation {
     }
 
     return {
-      creationBytecode: this.creationBytecode,
-      runtimeBytecode: this.runtimeBytecode,
+      creationBytecode: this.creationBytecode!,
+      runtimeBytecode: this.runtimeBytecode!,
       metadata: this.metadataRaw,
       immutableReferences: this.getImmutableReferences(),
       creationLinkReferences: {},

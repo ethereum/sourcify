@@ -48,6 +48,7 @@ interface Debug {
 interface SettingsMetadata {
   useLiteralContent?: boolean;
   bytecodeHash?: string;
+  appendCBOR?: boolean;
 }
 
 interface MapContractAddress {
@@ -94,7 +95,7 @@ interface Settings {
 export interface SolidityJsonInput {
   language: string;
   sources: Sources;
-  settings?: Settings;
+  settings: Settings;
 }
 
 interface SolidityOutputError {

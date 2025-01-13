@@ -1,10 +1,11 @@
 import { AuxdataStyle, splitAuxdata } from '@ethereum-sourcify/bytecode-utils';
-import { logInfo, logSilly, logWarn } from '../lib/logger';
+import { logWarn } from '../lib/logger';
 import { AbstractCompilation } from './AbstractCompilation';
 import {
   ISolidityCompiler,
   SolidityJsonInput,
   SolidityOutput,
+  SolidityOutputContract,
 } from './SolidityTypes';
 import {
   AuxdataDiff,
@@ -17,8 +18,11 @@ import {
  * Abstraction of a solidity compilation
  */
 export class SolidityCompilation extends AbstractCompilation {
-  // Use declare to specify the type of compilerOutput
+  // Use declare to override AbstractCompilation's types to target Solidity types
   declare compilerOutput?: SolidityOutput;
+  declare recompileAndReturnContract: (
+    forceEmscripten: boolean,
+  ) => Promise<SolidityOutputContract>;
 
   // Specify the auxdata style, used for extracting the auxdata from the compiler output
   readonly auxdataStyle: AuxdataStyle.SOLIDITY = AuxdataStyle.SOLIDITY;
@@ -30,6 +34,30 @@ export class SolidityCompilation extends AbstractCompilation {
     public compilationTarget: CompilationTarget,
   ) {
     super();
+    this.initSolidityJsonInput();
+  }
+
+  initSolidityJsonInput() {
+    this.jsonInput.settings.outputSelection = {
+      '*': {
+        '*': [
+          'abi',
+          'devdoc',
+          'userdoc',
+          'storageLayout',
+          'evm.legacyAssembly',
+          'evm.bytecode.object',
+          'evm.bytecode.sourceMap',
+          'evm.bytecode.linkReferences',
+          'evm.bytecode.generatedSources',
+          'evm.deployedBytecode.object',
+          'evm.deployedBytecode.sourceMap',
+          'evm.deployedBytecode.linkReferences',
+          'evm.deployedBytecode.immutableReferences',
+          'metadata',
+        ],
+      },
+    };
   }
 
   /** Generates an edited contract with a space at the end of each source file to create a different source file hash and consequently a different metadata hash.
@@ -184,72 +212,7 @@ export class SolidityCompilation extends AbstractCompilation {
   public async recompile(
     forceEmscripten = false,
   ): Promise<RecompilationResult> {
-    const version = this.compilerVersion;
-
-    const compilationStartTime = Date.now();
-    logInfo('Compiling contract', {
-      version,
-      contract: this.compilationTarget.name,
-      path: this.compilationTarget.path,
-      forceEmscripten,
-    });
-    logSilly('Compilation input', { solcJsonInput: this.jsonInput });
-    this.compilerOutput = await this.compiler.compile(
-      version,
-      this.jsonInput,
-      forceEmscripten,
-    );
-    if (this.compilerOutput === undefined) {
-      const error = new Error('Compiler error');
-      logWarn('Compiler error', {
-        errorMessages: ['compilerOutput is undefined'],
-      });
-      throw error;
-    }
-
-    const compilationEndTime = Date.now();
-    const compilationDuration = compilationEndTime - compilationStartTime;
-    logSilly('Compilation output', { compilerOutput: this.compilerOutput });
-    logInfo('Compiled contract', {
-      version,
-      contract: this.compilationTarget.name,
-      path: this.compilationTarget.path,
-      forceEmscripten,
-      compilationDuration: `${compilationDuration}ms`,
-    });
-
-    if (
-      !this.compilerOutput.contracts ||
-      !this.compilerOutput.contracts[this.compilationTarget.path] ||
-      !this.compilerOutput.contracts[this.compilationTarget.path][
-        this.compilationTarget.name
-      ] ||
-      !this.compilerOutput.contracts[this.compilationTarget.path][
-        this.compilationTarget.name
-      ].evm ||
-      !this.compilerOutput.contracts[this.compilationTarget.path][
-        this.compilationTarget.name
-      ].evm.bytecode
-    ) {
-      const errorMessages =
-        this.compilerOutput.errors
-          ?.filter((e: any) => e.severity === 'error')
-          .map((e: any) => e.formattedMessage) || [];
-
-      const error = new Error('Compiler error');
-      logWarn('Compiler error', {
-        errorMessages,
-      });
-      throw error;
-    }
-
-    const contract =
-      this.compilerOutput.contracts[this.compilationTarget.path][
-        this.compilationTarget.name
-      ];
-
-    this.creationBytecode = `0x${contract.evm.bytecode.object}`;
-    this.runtimeBytecode = `0x${contract.evm?.deployedBytecode?.object}`;
+    const contract = await this.recompileAndReturnContract(forceEmscripten);
 
     // Store the metadata from the compiler output and replace the initial user provided one.
     // Because the compiler output metadata is the one corresponding to the CBOR auxdata and the user might have provided a modified one e.g. the userdoc,abi fields modified which don't affect the compilation.
@@ -257,8 +220,8 @@ export class SolidityCompilation extends AbstractCompilation {
     this.metadata = JSON.parse(this.metadataRaw);
 
     return {
-      creationBytecode: this.creationBytecode,
-      runtimeBytecode: this.runtimeBytecode,
+      creationBytecode: this.creationBytecode!,
+      runtimeBytecode: this.runtimeBytecode!,
       metadata: this.metadataRaw,
       // Sometimes the compiler returns empty object (not falsey). Convert it to undefined (falsey).
       immutableReferences:

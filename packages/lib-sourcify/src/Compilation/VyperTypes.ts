@@ -54,28 +54,30 @@ interface VyperOutputSource {
   ast: any;
 }
 
+export interface VyperOutputContract {
+  abi: any[];
+  devdoc: any;
+  ir: string;
+  userdoc: any;
+  evm: {
+    bytecode: {
+      object: string;
+      opcodes: string;
+    };
+    deployedBytecode: {
+      object: string;
+      opcodes: string;
+      sourceMap: string;
+    };
+    methodIdentifiers: {
+      [methodName: string]: string;
+    };
+  };
+}
+
 interface VyperOutputContracts {
   [sourcePath: string]: {
-    [contractName: string]: {
-      abi: any[];
-      devdoc: any;
-      ir: string;
-      userdoc: any;
-      evm: {
-        bytecode: {
-          object: string;
-          opcodes: string;
-        };
-        deployedBytecode: {
-          object: string;
-          opcodes: string;
-          sourceMap: string;
-        };
-        methodIdentifiers: {
-          [methodName: string]: string;
-        };
-      };
-    };
+    [contractName: string]: VyperOutputContract;
   };
 }
 
