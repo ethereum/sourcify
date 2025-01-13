@@ -16,13 +16,11 @@ import semver from 'semver';
 import { getIpfsGateway, performFetch } from './fetchUtils';
 
 const CONTENT_VARIATORS = [
-  (content: string) => content,
   (content: string) => content.replace(/\r?\n/g, '\r\n'),
   (content: string) => content.replace(/\r\n/g, '\n'),
 ];
 
 const ENDING_VARIATORS = [
-  (content: string) => content,
   (content: string) => content.trimEnd(),
   (content: string) => content.trimEnd() + '\n',
   (content: string) => content.trimEnd() + '\r\n',
@@ -111,24 +109,31 @@ export class SolidityMetadataContract {
   /**
    * Generates a map of files indexed by the keccak hash of their content.
    *
-   * @param  {string[]}  files Array containing sources.
-   * @returns Map object that maps hash to PathContent.
    */
   storeByHash(files: PathContent[]): Map<string, PathContent> {
     const byHash: Map<string, PathContent> = new Map();
 
     for (const pathContent of files) {
-      for (const variation of this.generateVariations(pathContent)) {
-        const calculatedHash = keccak256str(variation.content);
-        byHash.set(calculatedHash, variation);
-      }
+      const calculatedHash = keccak256str(pathContent.content);
+      byHash.set(calculatedHash, pathContent);
     }
 
     return byHash;
   }
 
+  generateSourceVariations() {
+    for (const pathContent of this.providedSources) {
+      const variations = this.generateVariations(pathContent);
+      for (const variation of variations) {
+        const calculatedHash = keccak256str(variation.content);
+        this.providedSourcesByHash.set(calculatedHash, variation);
+      }
+    }
+  }
+
   /**
    * Assembles the contract by checking the sources in the metadata and finding them with the hash in the sourcesByHash map.
+   * First optimistically tries to find the source in the provided sources. If not all found, it will generate variations of source files and try again.
    * Marks missing sources and invalid sources.
    */
   private assembleContract() {
@@ -167,6 +172,20 @@ export class SolidityMetadataContract {
           keccak256: expectedHash,
           urls: sourceInfoFromMetadata.urls!,
         };
+      }
+    }
+
+    // If there are still missing sources, generate variations of the provided sources and try again. We optimistically tried to find the source in the provided sources first.
+    if (Object.keys(this.missingSources).length > 0) {
+      this.generateSourceVariations();
+      for (const missingSource in this.missingSources) {
+        const missingKeccak = this.missingSources[missingSource].keccak256;
+        const pathContent = this.providedSourcesByHash.get(missingKeccak);
+        if (pathContent) {
+          this.foundSources[missingSource] = pathContent.content;
+          this.metadata2provided[missingSource] = pathContent.path;
+          delete this.missingSources[missingSource];
+        }
       }
     }
 
