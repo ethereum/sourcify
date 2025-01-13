@@ -55,7 +55,7 @@ paths:
     post:
       tags:
         - Verify Contracts
-      summary: Verify Contract (Solidity Metadata)
+      summary: Verify Contract (using Solidity metadata.json)
       description: Endpoint to submit a verification with the Solidity metadata.json
       operationId: verify-metadata
       parameters:
