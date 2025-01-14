@@ -57,7 +57,7 @@ export class SolidityMetadataContract {
   missingSources: MissingSources;
   invalidSources: InvalidSources;
   unusedSourceFiles: string[];
-  metadata2provided: StringMap; // maps the file path as in metadata.sources to the path of the provided by the user. E.g. metadata can have "contracts/1_Storage.sol" but the user provided "/Users/user/project/contracts/1_Storage.sol"
+  metadataPathToProvidedFilePath: StringMap; // maps the file path as in metadata.sources to the path of the provided by the user. E.g. metadata can have "contracts/1_Storage.sol" but the user provided "/Users/user/project/contracts/1_Storage.sol"
   compilation: Compilation | null;
   solcJsonInput: JsonInput | null;
 
@@ -68,7 +68,7 @@ export class SolidityMetadataContract {
     this.missingSources = {};
     this.invalidSources = {};
     this.unusedSourceFiles = [];
-    this.metadata2provided = {};
+    this.metadataPathToProvidedFilePath = {};
     this.compilation = null;
     this.solcJsonInput = null;
 
@@ -161,7 +161,7 @@ export class SolidityMetadataContract {
         const pathContent = this.providedSourcesByHash.get(expectedHash);
         if (pathContent) {
           file = pathContent;
-          this.metadata2provided[sourcePath] = pathContent.path;
+          this.metadataPathToProvidedFilePath[sourcePath] = pathContent.path;
         } // else: no file has the hash that was searched for
       }
 
@@ -183,14 +183,14 @@ export class SolidityMetadataContract {
         const pathContent = this.providedSourcesByHash.get(missingKeccak);
         if (pathContent) {
           this.foundSources[missingSource] = pathContent.content;
-          this.metadata2provided[missingSource] = pathContent.path;
+          this.metadataPathToProvidedFilePath[missingSource] = pathContent.path;
           delete this.missingSources[missingSource];
         }
       }
     }
 
     // Finally, extract unused source files
-    const usedFilePaths = Object.values(this.metadata2provided);
+    const usedFilePaths = Object.values(this.metadataPathToProvidedFilePath);
     const usedFilesSet = new Set(usedFilePaths);
     this.unusedSourceFiles = this.providedSources
       .map((pc) => pc.path)
