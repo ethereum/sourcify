@@ -111,11 +111,11 @@ export abstract class AbstractCompilation {
   }
 
   getCreationBytecode() {
-    return this.getCompilationTarget().evm.bytecode.object;
+    return `0x${this.getCompilationTarget().evm.bytecode.object}`;
   }
 
   getRuntimeBytecode() {
-    return this.getCompilationTarget().evm.deployedBytecode.object;
+    return `0x${this.getCompilationTarget().evm.deployedBytecode.object}`;
   }
 
   getMetadata(): Metadata {

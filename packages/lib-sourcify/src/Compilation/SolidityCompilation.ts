@@ -183,7 +183,7 @@ export class SolidityCompilation extends AbstractCompilation {
     // so no need to call `findAuxdataPositions`
     if (this.runtimeBytecodeCborAuxdata === undefined) {
       this.runtimeBytecodeCborAuxdata = findAuxdataPositions(
-        `0x${this.getRuntimeBytecode()}`,
+        this.getRuntimeBytecode(),
         `0x${editedContract?.evm?.deployedBytecode?.object}`,
         auxdatasFromCompilerOutput,
         editedContractAuxdatasFromCompilerOutput,
@@ -191,7 +191,7 @@ export class SolidityCompilation extends AbstractCompilation {
     }
 
     this.creationBytecodeCborAuxdata = findAuxdataPositions(
-      `0x${this.getCreationBytecode()}`,
+      this.getCreationBytecode(),
       `0x${editedContract?.evm.bytecode.object}`,
       auxdatasFromCompilerOutput,
       editedContractAuxdatasFromCompilerOutput,
