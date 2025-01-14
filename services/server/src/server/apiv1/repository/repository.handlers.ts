@@ -5,7 +5,7 @@ import {
   FilesInfo,
   MatchLevel,
   MatchLevelWithoutAny,
-  PaginatedContractData,
+  PaginatedData,
 } from "../../types";
 import { NotFoundError } from "../../../common/errors";
 import { Match } from "@ethereum-sourcify/lib-sourcify";
@@ -35,7 +35,7 @@ type PaginatedConractRetrieveMethod = (
   page: number,
   limit: number,
   descending: boolean,
-) => Promise<PaginatedContractData>;
+) => Promise<PaginatedData<string>>;
 
 export function createEndpoint(
   retrieveMethod: RetrieveMethod,
@@ -86,7 +86,7 @@ export function createPaginatedContractEndpoint(
 ) {
   return async (req: Request, res: Response, next: NextFunction) => {
     const services = req.app.get("services") as Services;
-    let retrieved: PaginatedContractData;
+    let retrieved: PaginatedData<string>;
     try {
       retrieved = await paginatedContractRetrieveMethod(
         services,

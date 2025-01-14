@@ -79,7 +79,6 @@ export async function deployFromAbiAndBytecodeForCreatorTxHash(
 }
 
 export async function deployAndVerifyContract(
-  chai: Chai.ChaiStatic,
   chainFixture: LocalChainFixture,
   serverFixture: ServerFixture,
   partial: boolean = false,

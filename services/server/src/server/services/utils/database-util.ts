@@ -160,6 +160,11 @@ export type GetSourcifyMatchByChainAddressResult = Tables.SourcifyMatch &
     onchain_runtime_code: string;
   };
 
+export type GetSourcifyMatchesByChainResult = Pick<
+  Tables.SourcifyMatch,
+  "creation_match" | "runtime_match" | "created_at"
+> & { address: string };
+
 // Function overloads
 export function bytesFromString<T extends BytesTypes>(str: string): T;
 export function bytesFromString<T extends BytesTypes>(

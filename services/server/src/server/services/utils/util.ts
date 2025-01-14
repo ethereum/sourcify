@@ -1,6 +1,6 @@
 import Path from "path";
 import fs from "fs";
-import { MatchLevelWithoutAny, MatchQuality } from "../../types";
+import { MatchLevelWithoutAny, MatchQuality, V2MatchLevel } from "../../types";
 import { getAddress } from "ethers";
 import { Match, Status } from "@ethereum-sourcify/lib-sourcify";
 
@@ -95,4 +95,15 @@ export function isBetterMatch(newMatch: Match, existingMatch: Match): boolean {
     return true;
   }
   return false;
+}
+
+export function toV2MatchLevel(status: Status): V2MatchLevel {
+  switch (status) {
+    case "perfect":
+      return "exact_match";
+    case "partial":
+      return "match";
+    default:
+      return null;
+  }
 }

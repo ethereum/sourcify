@@ -65,13 +65,10 @@ const router: Router = Router();
     prefix: "/contracts/full",
     method: createPaginatedContractEndpoint(
       (services, chain, match, page, limit, descending) =>
-        services.storage.performServiceOperation("getPaginatedContracts", [
-          chain,
-          match,
-          page,
-          limit,
-          descending,
-        ]),
+        services.storage.performServiceOperation(
+          "getPaginatedContractAddresses",
+          [chain, match, page, limit, descending],
+        ),
       "full_match",
     ),
   },
@@ -79,13 +76,10 @@ const router: Router = Router();
     prefix: "/contracts/partial",
     method: createPaginatedContractEndpoint(
       (services, chain, match, page, limit, descending) =>
-        services.storage.performServiceOperation("getPaginatedContracts", [
-          chain,
-          match,
-          page,
-          limit,
-          descending,
-        ]),
+        services.storage.performServiceOperation(
+          "getPaginatedContractAddresses",
+          [chain, match, page, limit, descending],
+        ),
       "partial_match",
     ),
   },
@@ -93,13 +87,10 @@ const router: Router = Router();
     prefix: "/contracts/any",
     method: createPaginatedContractEndpoint(
       (services, chain, match, page, limit, descending) =>
-        services.storage.performServiceOperation("getPaginatedContracts", [
-          chain,
-          match,
-          page,
-          limit,
-          descending,
-        ]),
+        services.storage.performServiceOperation(
+          "getPaginatedContractAddresses",
+          [chain, match, page, limit, descending],
+        ),
       "any_match",
     ),
   },

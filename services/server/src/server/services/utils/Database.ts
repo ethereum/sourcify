@@ -3,6 +3,7 @@ import { Bytes } from "../../types";
 import {
   bytesFromString,
   GetSourcifyMatchByChainAddressResult,
+  GetSourcifyMatchesByChainResult,
   GetVerifiedContractByChainAndAddressResult,
   SourceInformation,
   Tables,
@@ -265,6 +266,35 @@ ${
   WHERE contract_deployments.chain_id = $1
   GROUP BY contract_deployments.chain_id;`,
       [chain],
+    );
+  }
+
+  async getSourcifyMatchesByChain(
+    chain: number,
+    page: number,
+    paginationSize: number,
+    descending: boolean = false,
+  ): Promise<QueryResult<GetSourcifyMatchesByChainResult>> {
+    const orderBy = descending
+      ? "ORDER BY verified_contracts.id DESC"
+      : "ORDER BY verified_contracts.id ASC";
+
+    return await this.pool.query(
+      `
+    SELECT
+      sourcify_matches.creation_match,
+      sourcify_matches.runtime_match,
+      concat('0x',encode(contract_deployments.address, 'hex')) as address,
+      sourcify_matches.created_at
+    FROM ${this.schema}.sourcify_matches
+    JOIN ${this.schema}.verified_contracts ON verified_contracts.id = sourcify_matches.verified_contract_id
+    JOIN ${this.schema}.contract_deployments ON 
+        contract_deployments.id = verified_contracts.deployment_id
+        AND contract_deployments.chain_id = $1
+    ${orderBy}
+    OFFSET $2 LIMIT $3
+    `,
+      [chain, page * paginationSize, paginationSize],
     );
   }
 

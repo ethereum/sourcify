@@ -1,3 +1,5 @@
+import { Response } from "express";
+
 // Types used internally by the server.
 
 export type MatchLevelWithoutAny = "full_match" | "partial_match";
@@ -6,6 +8,18 @@ export type MatchLevelWithoutAny = "full_match" | "partial_match";
  * A type for specfifying the strictness level of querying (only full, partial or any kind of matches)
  */
 export type MatchLevel = MatchLevelWithoutAny | "any_match";
+
+// New naming for matches in API v2
+export type V2MatchLevel = "match" | "exact_match" | null;
+
+export interface VerifiedContractMinimal {
+  match: V2MatchLevel;
+  creationMatch: V2MatchLevel;
+  runtimeMatch: V2MatchLevel;
+  chainId: string;
+  address: string;
+  verifiedAt: string;
+}
 
 /**
  * An array wrapper with info properties.
@@ -25,22 +39,24 @@ export type FilesRaw = {
  */
 export type MatchQuality = "full" | "partial";
 
-export declare interface ContractData {
+export interface ContractData {
   full: string[];
   partial: string[];
 }
 
-export declare interface PaginatedContractData {
-  results: string[];
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    resultsCurrentPage: number;
-    resultsPerPage: number;
-    totalResults: number;
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-  };
+export interface Pagination {
+  currentPage: number;
+  totalPages: number;
+  resultsCurrentPage: number;
+  resultsPerPage: number;
+  totalResults: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
+export interface PaginatedData<T> {
+  results: T[];
+  pagination: Pagination;
 }
 
 export type RepositoryTag = {
@@ -72,6 +88,12 @@ export type MethodArgs<T, K extends keyof T> = T[K] extends (
   ? A
   : never;
 
+export type MethodReturnType<T, K extends keyof T> = T[K] extends (
+  ...args: any
+) => infer R
+  ? R
+  : never;
+
 export type Mandatory<T> = {
   [P in keyof T]-?: T[P];
 };
@@ -92,3 +114,7 @@ export type BytesSha = Branded<Buffer, "SHA">;
 export type BytesKeccak = Branded<Buffer, "KECCAK">;
 
 export type BytesTypes = Bytes | BytesKeccak | BytesSha;
+
+export type TypedResponse<T> = Omit<Response, "json" | "status"> & {
+  json(data: T): TypedResponse<T>;
+} & { status(code: number): TypedResponse<T> };

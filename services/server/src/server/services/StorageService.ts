@@ -22,7 +22,9 @@ import {
   MatchLevelWithoutAny,
   MethodArgs,
   MethodNames,
-  PaginatedContractData,
+  MethodReturnType,
+  PaginatedData,
+  VerifiedContractMinimal,
 } from "../types";
 import {
   RWStorageIdentifiers,
@@ -64,13 +66,19 @@ export interface RWStorageService extends WStorageService {
     match: MatchLevel,
   ): Promise<FilesInfo<Array<FileObject>>>;
   getContracts(chainId: string): Promise<ContractData>;
-  getPaginatedContracts?(
+  getPaginatedContractAddresses?(
     chainId: string,
     match: MatchLevel,
     page: number,
     limit: number,
     descending: boolean,
-  ): Promise<PaginatedContractData>;
+  ): Promise<PaginatedData<string>>;
+  getPaginatedContracts?(
+    chainId: string,
+    page: number,
+    limit: number,
+    descending: boolean,
+  ): Promise<PaginatedData<VerifiedContractMinimal>>;
   checkByChainAndAddress(address: string, chainId: string): Promise<Match[]>;
   checkAllByChainAndAddress(address: string, chainId: string): Promise<Match[]>;
 }
@@ -328,14 +336,14 @@ export class StorageService {
     return await Promise.all(promises);
   }
 
-  async performServiceOperation<
+  performServiceOperation<
     T extends Mandatory<RWStorageService>, // Mandatory is used to allow optional functions like getPaginatedContracts
     K extends MethodNames<T>, // MethodNames extracts T's methods
   >(
     methodName: K,
     // MethodArgs gets the parameters types of method K from T
     args: MethodArgs<T, K>,
-  ) {
+  ): MethodReturnType<T, K> {
     const service = this.getDefaultReadService() as T;
     const method = service[methodName];
     try {
@@ -345,7 +353,7 @@ export class StorageService {
         );
       }
 
-      return await method.apply(service, args);
+      return method.apply(service, args);
     } catch (error) {
       logger.error(
         `Error while calling ${String(methodName)} from ${service.IDENTIFIER}`,
