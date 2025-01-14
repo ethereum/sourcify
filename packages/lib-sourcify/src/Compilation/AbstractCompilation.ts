@@ -72,6 +72,9 @@ export abstract class AbstractCompilation {
       throw error;
     }
 
+    // We call getCompilationTarget() before logging because it can throw an error
+    const compilationTarget = this.getCompilationTarget();
+
     const compilationEndTime = Date.now();
     const compilationDuration = compilationEndTime - compilationStartTime;
     logSilly('Compilation output', { compilerOutput: this.compilerOutput });
@@ -83,7 +86,7 @@ export abstract class AbstractCompilation {
       compilationDuration: `${compilationDuration}ms`,
     });
 
-    return this.getCompilationTarget();
+    return compilationTarget;
   }
 
   getCompilationTarget(): SolidityOutputContract | VyperOutputContract {
