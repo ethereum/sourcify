@@ -1,6 +1,6 @@
 import { logWarn } from '../lib/logger';
 import { AbstractCompilation } from './AbstractCompilation';
-import { id } from 'ethers';
+import { id as keccak256str } from 'ethers';
 import {
   AuxdataStyle,
   decode,
@@ -20,7 +20,7 @@ import {
 import { ImmutableReferences } from './SolidityTypes';
 
 /**
- * Abstraction of a checked vyper contract. With metadata and source (vyper) files.
+ * Abstraction of a vyper compilation
  */
 export class VyperCompilation extends AbstractCompilation {
   // Use declare to override AbstractCompilation's types to target Solidity types
@@ -38,6 +38,10 @@ export class VyperCompilation extends AbstractCompilation {
   // Vyper version is not semver compliant, so we need to handle it differently
   public compilerVersionCompatibleWithSemver: string;
 
+  /**
+   * Vyper compiler does not produce a metadata but we generate it ourselves for backward
+   * compatibility reasons e.g. in the legacy Sourcify API that always assumes a metadata.json
+   */
   generateMetadata() {
     const contract = this.getCompilationTarget();
     const outputMetadata = {
@@ -50,7 +54,7 @@ export class VyperCompilation extends AbstractCompilation {
       (acc, [path, source]) => ({
         ...acc,
         [path]: {
-          keccak256: id(source.content),
+          keccak256: keccak256str(source.content),
           content: source.content,
         },
       }),
@@ -171,11 +175,14 @@ export class VyperCompilation extends AbstractCompilation {
       this.auxdataStyle,
     );
 
-    this.runtimeBytecodeCborAuxdata = this.tryGenerateCborAuxdataPosition(
-      this.getRuntimeBytecode(),
-      runtimeAuxdataCbor,
-      runtimeCborLengthHex,
-    );
+    // Vyper 0.3.10 and higher does not have the auxdata in the runtime bytecode
+    if (this.auxdataStyle === AuxdataStyle.VYPER_LT_0_3_10) {
+      this.runtimeBytecodeCborAuxdata = this.tryGenerateCborAuxdataPosition(
+        this.getRuntimeBytecode(),
+        runtimeAuxdataCbor,
+        runtimeCborLengthHex,
+      );
+    }
 
     const [, creationAuxdataCbor, creationCborLengthHex] = splitAuxdata(
       this.getCreationBytecode(),

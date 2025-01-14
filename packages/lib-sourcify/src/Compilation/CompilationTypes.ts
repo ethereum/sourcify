@@ -1,5 +1,4 @@
 import { Abi } from 'abitype';
-import { ImmutableReferences } from './SolidityTypes';
 
 export interface LinkReferences {
   [filePath: string]: {
