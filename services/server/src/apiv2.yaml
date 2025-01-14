@@ -180,14 +180,34 @@ paths:
       parameters:
         - name: sort
           in: query
-          description: Default is `asc` (most recent first). `desc` for oldest contract first
+          description: 'Sorts the contracts by most recent first (`desc`, default), or by oldest first (`asc`)'
           schema:
             type: string
             enum:
               - asc
               - desc
+            default: desc
             examples:
-              - desc
+              - asc
+        - name: page
+          in: query
+          description: Specifies which page should be returned
+          schema:
+            type: number
+            minimum: 0
+            default: 0
+            examples:
+              - 6
+        - name: limit
+          in: query
+          description: Number of contracts that should be returned per page
+          schema:
+            type: number
+            minimum: 1
+            maximum: 200
+            default: 200
+            examples:
+              - 50
         - $ref: '#/components/parameters/chainId'
       responses:
         '200':
