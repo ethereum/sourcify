@@ -1,8 +1,8 @@
 import express, { Response, Request, NextFunction } from "express";
-import { deprecatedRoutesVerifyStateless } from "./apiv1/verification/verify/stateless/verify.stateless.routes";
-import { deprecatedRoutesVerifySession } from "./apiv1/verification/verify/session/verify.session.routes";
-import { deprecatedRoutesSessionState } from "./apiv1/verification/session-state/session-state.routes";
-import { deprecatedRoutesRepository } from "./apiv1/repository/repository.routes";
+import { deprecatedRoutesVerifyStateless } from "./verification/verify/stateless/verify.stateless.routes";
+import { deprecatedRoutesVerifySession } from "./verification/verify/session/verify.session.routes";
+import { deprecatedRoutesSessionState } from "./verification/session-state/session-state.routes";
+import { deprecatedRoutesRepository } from "./repository/repository.routes";
 
 type HTTPMethod =
   | "get"
