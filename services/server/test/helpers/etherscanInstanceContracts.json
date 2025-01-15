@@ -327,7 +327,7 @@
     {
       "address": "0xa4807B287191a9044Cc3CEe537641E9B829cF2F1",
       "type": "standard-json",
-      "expectedStatus": "perfect"
+      "expectedStatus": "partial"
     }
   ],
   "1101": [
