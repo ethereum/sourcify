@@ -2,17 +2,13 @@
   "compilerOptions": {
     "allowJs": true,
     "target": "es2017",
-    "sourceMap": true,
     "esModuleInterop": true,
     "strict": true,
     "outDir": "dist",
-    "rootDir": "src",
     "resolveJsonModule": true,
-    "declaration": true,
-    "declarationMap": true,
     "module": "commonjs",
     "skipLibCheck": true
   },
-  "include": ["src/**/*.ts", "src/**/*.js"],
+  "include": ["./**/*.ts"],
   "exclude": ["node_modules/**"]
 }

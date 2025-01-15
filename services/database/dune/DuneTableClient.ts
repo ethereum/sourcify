@@ -5,22 +5,40 @@ interface SchemaField {
 }
 
 interface CreateTableRequest {
-  namespace: string;
   table_name: string;
   schema: SchemaField[];
 }
 
-async function createCodeTable(
-  baseUrl: string,
-  headers: Record<string, string>,
-) {
-  console.log("Creating code table...");
-  await fetch(baseUrl, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({
-      namespace: "test_sourcify",
-      table_name: "sourcify_code",
+export default class DuneTableClient {
+  private readonly baseUrl = "https://api.dune.com/api/v1/table";
+  private readonly headers: Record<string, string>;
+  private readonly namespace: string;
+
+  constructor(apiKey: string) {
+    if (!apiKey) {
+      throw new Error("API key is required");
+    }
+
+    this.headers = {
+      "x-dune-api-key": apiKey,
+      "Content-Type": "application/json",
+    };
+    this.namespace = "sourcify_team";
+  }
+
+  private async createTable(request: CreateTableRequest): Promise<Response> {
+    console.log(`Creating ${request.table_name} table...`);
+    const response = await fetch(`${this.baseUrl}/create`, {
+      method: "POST",
+      headers: this.headers,
+      body: JSON.stringify(request),
+    });
+    return response;
+  }
+
+  async createCodeTable(): Promise<Response> {
+    return this.createTable({
+      table_name: "code",
       schema: [
         {
           name: "code_hash",
@@ -58,22 +76,12 @@ async function createCodeTable(
           nullable: false,
         },
       ],
-    } as CreateTableRequest),
-  });
-  console.log("Code table created successfully");
-}
+    });
+  }
 
-async function createCompiledContractsTable(
-  baseUrl: string,
-  headers: Record<string, string>,
-) {
-  console.log("Creating compiled_contracts table...");
-  await fetch(baseUrl, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({
-      namespace: "test_sourcify",
-      table_name: "sourcify_compiled_contracts",
+  async createCompiledContractsTable(): Promise<Response> {
+    return this.createTable({
+      table_name: "compiled_contracts",
       schema: [
         {
           name: "id",
@@ -161,22 +169,12 @@ async function createCompiledContractsTable(
           nullable: false,
         },
       ],
-    } as CreateTableRequest),
-  });
-  console.log("Compiled contracts table created successfully");
-}
+    });
+  }
 
-async function createCompiledContractsSourcesTable(
-  baseUrl: string,
-  headers: Record<string, string>,
-) {
-  console.log("Creating compiled_contracts_sources table...");
-  await fetch(baseUrl, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({
-      namespace: "test_sourcify",
-      table_name: "sourcify_compiled_contracts_sources",
+  async createCompiledContractsSourcesTable(): Promise<Response> {
+    return this.createTable({
+      table_name: "compiled_contracts_sources",
       schema: [
         {
           name: "id",
@@ -199,22 +197,12 @@ async function createCompiledContractsSourcesTable(
           nullable: false,
         },
       ],
-    } as CreateTableRequest),
-  });
-  console.log("Compiled contracts sources table created successfully");
-}
+    });
+  }
 
-async function createContractDeploymentsTable(
-  baseUrl: string,
-  headers: Record<string, string>,
-) {
-  console.log("Creating contract_deployments table...");
-  await fetch(baseUrl, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({
-      namespace: "test_sourcify",
-      table_name: "sourcify_contract_deployments",
+  async createContractDeploymentsTable(): Promise<Response> {
+    return this.createTable({
+      table_name: "contract_deployments",
       schema: [
         {
           name: "id",
@@ -277,22 +265,12 @@ async function createContractDeploymentsTable(
           nullable: false,
         },
       ],
-    } as CreateTableRequest),
-  });
-  console.log("Contract deployments table created successfully");
-}
+    });
+  }
 
-async function createContractsTable(
-  baseUrl: string,
-  headers: Record<string, string>,
-) {
-  console.log("Creating contracts table...");
-  await fetch(baseUrl, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({
-      namespace: "test_sourcify",
-      table_name: "sourcify_contracts",
+  async createContractsTable(): Promise<Response> {
+    return this.createTable({
+      table_name: "contracts",
       schema: [
         {
           name: "id",
@@ -330,22 +308,12 @@ async function createContractsTable(
           nullable: false,
         },
       ],
-    } as CreateTableRequest),
-  });
-  console.log("Contracts table created successfully");
-}
+    });
+  }
 
-async function createSourcesTable(
-  baseUrl: string,
-  headers: Record<string, string>,
-) {
-  console.log("Creating sources table...");
-  await fetch(baseUrl, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({
-      namespace: "test_sourcify",
-      table_name: "sourcify_sources",
+  async createSourcesTable(): Promise<Response> {
+    return this.createTable({
+      table_name: "sources",
       schema: [
         {
           name: "source_hash",
@@ -383,21 +351,11 @@ async function createSourcesTable(
           nullable: false,
         },
       ],
-    } as CreateTableRequest),
-  });
-  console.log("Sources table created successfully");
-}
+    });
+  }
 
-async function createSourcifyMatchesTable(
-  baseUrl: string,
-  headers: Record<string, string>,
-) {
-  console.log("Creating sourcify_matches table...");
-  await fetch(baseUrl, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({
-      namespace: "test_sourcify",
+  async createSourcifyMatchesTable(): Promise<Response> {
+    return this.createTable({
       table_name: "sourcify_matches",
       schema: [
         {
@@ -431,26 +389,16 @@ async function createSourcifyMatchesTable(
           nullable: false,
         },
       ],
-    } as CreateTableRequest),
-  });
-  console.log("Sourcify matches table created successfully");
-}
+    });
+  }
 
-async function createVerifiedContractsTable(
-  baseUrl: string,
-  headers: Record<string, string>,
-) {
-  console.log("Creating verified_contracts table...");
-  await fetch(baseUrl, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({
-      namespace: "test_sourcify",
-      table_name: "sourcify_verified_contracts",
+  async createVerifiedContractsTable(): Promise<Response> {
+    return this.createTable({
+      table_name: "verified_contracts",
       schema: [
         {
           name: "id",
-          type: "integer",
+          type: "bigint",
           nullable: false,
         },
         {
@@ -524,33 +472,67 @@ async function createVerifiedContractsTable(
           nullable: true,
         },
       ],
-    } as CreateTableRequest),
-  });
-  console.log("Verified contracts table created successfully");
-}
+    });
+  }
 
-async function createTables(apiKey: string): Promise<void> {
-  console.log("Starting table creation process...");
-  const baseUrl = "https://api.dune.com/api/v1/table";
-  const headers = {
-    "x-dune-api-key": apiKey,
-    "Content-Type": "application/json",
-  };
+  async deleteTable(table_name: string): Promise<Response> {
+    console.log(`Deleting ${this.namespace}/${table_name} table...`);
+    return fetch(`${this.baseUrl}/${this.namespace}/${table_name}`, {
+      method: "DELETE",
+      headers: this.headers,
+    });
+  }
 
-  try {
-    await createCodeTable(baseUrl, headers);
-    await createCompiledContractsTable(baseUrl, headers);
-    await createCompiledContractsSourcesTable(baseUrl, headers);
-    await createContractDeploymentsTable(baseUrl, headers);
-    await createContractsTable(baseUrl, headers);
-    await createSourcesTable(baseUrl, headers);
-    await createSourcifyMatchesTable(baseUrl, headers);
-    await createVerifiedContractsTable(baseUrl, headers);
-    console.log("All tables created successfully!");
-  } catch (error) {
-    console.error("Error creating tables:", error);
-    throw error;
+  async deleteVerifiedContractsTable(): Promise<Response> {
+    return this.deleteTable("verified_contracts");
+  }
+  async deleteCodeTable(): Promise<Response> {
+    return this.deleteTable("code");
+  }
+
+  async deleteCompiledContractsTable(): Promise<Response> {
+    return this.deleteTable("compiled_contracts");
+  }
+
+  async deleteCompiledContractsSourcesTable(): Promise<Response> {
+    return this.deleteTable("compiled_contracts_sources");
+  }
+
+  async deleteContractDeploymentsTable(): Promise<Response> {
+    return this.deleteTable("contract_deployments");
+  }
+
+  async deleteContractsTable(): Promise<Response> {
+    return this.deleteTable("contracts");
+  }
+
+  async deleteSourcesTable(): Promise<Response> {
+    return this.deleteTable("sources");
+  }
+
+  async deleteSourcifyMatchesTable(): Promise<Response> {
+    return this.deleteTable("sourcify_matches");
+  }
+
+  async createAllTables(): Promise<void> {
+    console.log("Starting table creation process...");
+    try {
+      await Promise.all([
+        this.createCodeTable(),
+        this.createCompiledContractsTable(),
+        this.createCompiledContractsSourcesTable(),
+        this.createContractDeploymentsTable(),
+        this.createContractsTable(),
+        this.createSourcesTable(),
+        this.createSourcifyMatchesTable(),
+        this.createVerifiedContractsTable(),
+      ]);
+      console.log("All tables created successfully!");
+    } catch (error) {
+      console.error("Error creating tables:", error);
+      throw error;
+    }
   }
 }
 
-export { createTables };
+export type { CreateTableRequest, SchemaField };

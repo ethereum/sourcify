@@ -1,13 +1,14 @@
 import dotenv from "dotenv";
-import path from "path";
 import pg from "pg";
-import { dirname } from "path";
-import { fileURLToPath } from "url";
+import { VerifiedContract } from "../pg-types";
+import { InsertData } from "./DuneDataClient";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.join(__dirname, "../.env") });
+dotenv.config();
 
 const { Pool } = pg;
+
+console.log(__dirname);
+console.log(process.env.POSTGRES_HOST);
 
 if (
   !process.env.POSTGRES_HOST ||
@@ -22,25 +23,9 @@ if (
   process.exit(2);
 }
 
-interface VerifiedContract {
-  id: number;
-  created_at: Date;
-  updated_at: Date;
-  created_by: string;
-  updated_by: string;
-  deployment_id: string;
-  compilation_id: string;
-  creation_match: boolean;
-  creation_values: any | null;
-  creation_transformations: any | null;
-  runtime_match: boolean;
-  runtime_values: any | null;
-  runtime_transformations: any | null;
-  runtime_metadata_match: boolean | null;
-  creation_metadata_match: boolean | null;
-}
-
-export async function fetchVerifiedContract(): Promise<VerifiedContract | null> {
+export async function fetchVerifiedContracts(): Promise<
+  VerifiedContract[] | null
+> {
   const pool = new Pool({
     host: process.env.POSTGRES_HOST!,
     port: parseInt(process.env.POSTGRES_PORT!),
@@ -77,13 +62,26 @@ export async function fetchVerifiedContract(): Promise<VerifiedContract | null> 
       return null;
     }
 
-    const verifiedContract = result.rows[0];
-    console.log("Found verified contract:", verifiedContract.id);
-    return verifiedContract;
+    const verifiedContracts = result.rows as VerifiedContract[];
+    console.log("Found verified contracts:", verifiedContracts.length);
+    return verifiedContracts;
   } catch (error) {
     console.error("Error fetching verified contract:", error);
     throw error;
   } finally {
     await pool.end();
   }
+}
+
+export function formatVerifiedContracts(
+  verifiedContracts: VerifiedContract[],
+): InsertData["verified_contracts"] {
+  return verifiedContracts.map((row) => ({
+    ...row,
+    id: parseInt(row.id),
+    creation_values: JSON.stringify(row.creation_values),
+    creation_transformations: JSON.stringify(row.creation_transformations),
+    runtime_values: JSON.stringify(row.runtime_values),
+    runtime_transformations: JSON.stringify(row.runtime_transformations),
+  }));
 }
