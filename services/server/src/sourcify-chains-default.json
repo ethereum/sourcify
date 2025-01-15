@@ -1572,6 +1572,17 @@
       }
     }
   },
+  "1114": {
+    "sourcifyName": "Core Blockchain Testnet2",
+    "supported": true,
+    "etherscanApi": {
+      "apiURL": "https://api.test2.btcs.network/",
+      "apiKeyEnvName": "COREDAO_TESTNET2_API_KEY"
+    },
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true
+    }
+  },
   "1115": {
     "sourcifyName": "Core Blockchain Testnet",
     "supported": true,
