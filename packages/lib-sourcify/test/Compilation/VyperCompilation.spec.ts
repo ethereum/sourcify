@@ -5,7 +5,7 @@ import fs from 'fs';
 import { VyperCompilation } from '../../src/Compilation/VyperCompilation';
 import { vyperCompiler } from '../utils';
 
-describe.only('VyperCompilation', () => {
+describe('VyperCompilation', () => {
   it('should compile a simple Vyper contract', async () => {
     const contractPath = path.join(
       __dirname,

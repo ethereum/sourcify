@@ -30,7 +30,7 @@ function getCompilationTargetFromMetadata(
   };
 }
 
-describe.only('SolidityCompilation', () => {
+describe('SolidityCompilation', () => {
   it('should compile a simple contract', async () => {
     const contractPath = path.join(__dirname, '..', 'sources', 'Storage');
     const metadata = JSON.parse(
