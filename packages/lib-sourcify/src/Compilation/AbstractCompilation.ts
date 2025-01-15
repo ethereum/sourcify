@@ -39,7 +39,7 @@ export abstract class AbstractCompilation {
 
   /**
    * Recompiles the contract with the specified compiler settings
-   * @param forceEmscripten Whether to force using emscripten for compilation
+   * @param forceEmscripten Whether to force using the WebAssembly binary for compilation (only for Solidity)
    */
   abstract compile(forceEmscripten?: boolean): Promise<void>;
   abstract generateCborAuxdataPositions(
