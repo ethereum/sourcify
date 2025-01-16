@@ -134,11 +134,6 @@ export default class DuneTableClient {
           nullable: false,
         },
         {
-          name: "sources",
-          type: "varchar",
-          nullable: true,
-        },
-        {
           name: "compiler_settings",
           type: "varchar",
           nullable: false,
@@ -211,7 +206,7 @@ export default class DuneTableClient {
         },
         {
           name: "chain_id",
-          type: "double",
+          type: "bigint",
           nullable: false,
         },
         {
@@ -226,12 +221,12 @@ export default class DuneTableClient {
         },
         {
           name: "block_number",
-          type: "double",
+          type: "bigint",
           nullable: true,
         },
         {
           name: "transaction_index",
-          type: "double",
+          type: "integer",
           nullable: true,
         },
         {
@@ -360,12 +355,12 @@ export default class DuneTableClient {
       schema: [
         {
           name: "id",
-          type: "integer",
+          type: "bigint",
           nullable: false,
         },
         {
           name: "verified_contract_id",
-          type: "integer",
+          type: "bigint",
           nullable: false,
         },
         {

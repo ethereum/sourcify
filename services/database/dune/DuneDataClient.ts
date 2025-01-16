@@ -1,8 +1,8 @@
 export interface InsertData {
   code: Array<{
-    code_hash: Buffer;
-    code: Buffer | null;
-    code_hash_keccak: Buffer;
+    code_hash: string;
+    code: string | null;
+    code_hash_keccak: string;
     created_at: Date;
     updated_at: Date;
     created_by: string;
@@ -19,28 +19,27 @@ export interface InsertData {
     language: string;
     name: string;
     fully_qualified_name: string;
-    sources: any | null;
     compiler_settings: any;
     compilation_artifacts: any;
-    creation_code_hash: Buffer;
+    creation_code_hash: string;
     creation_code_artifacts: any;
-    runtime_code_hash: Buffer;
+    runtime_code_hash: string;
     runtime_code_artifacts: any;
   }>;
   compiled_contracts_sources: Array<{
     id: string;
     compilation_id: string;
-    source_hash: Buffer;
+    source_hash: string;
     path: string;
   }>;
   contract_deployments: Array<{
     id: string;
-    chain_id: number;
-    address: Buffer;
-    transaction_hash: Buffer | null;
-    block_number: number | null;
+    chain_id: string; // bigint
+    address: string;
+    transaction_hash: string | null;
+    block_number: string | null; // bigint
     transaction_index: number | null;
-    deployer: Buffer | null;
+    deployer: string | null;
     contract_id: string;
     created_at: Date;
     updated_at: Date;
@@ -49,16 +48,16 @@ export interface InsertData {
   }>;
   contracts: Array<{
     id: string;
-    creation_code_hash: Buffer | null;
-    runtime_code_hash: Buffer;
+    creation_code_hash: string | null;
+    runtime_code_hash: string;
     created_at: Date;
     updated_at: Date;
     created_by: string;
     updated_by: string;
   }>;
   sources: Array<{
-    source_hash: Buffer;
-    source_hash_keccak: Buffer;
+    source_hash: string;
+    source_hash_keccak: string;
     content: string;
     created_at: Date;
     updated_at: Date;
@@ -66,15 +65,15 @@ export interface InsertData {
     updated_by: string;
   }>;
   sourcify_matches: Array<{
-    id: number;
-    verified_contract_id: number;
+    id: string; // bigint
+    verified_contract_id: string; // bigint
     creation_match: string | null;
     runtime_match: string | null;
     created_at: Date;
     metadata: any;
   }>;
   verified_contracts: Array<{
-    id: number;
+    id: string; // bigint
     created_at: Date;
     updated_at: Date;
     created_by: string;
@@ -108,134 +107,65 @@ export default class DuneClient {
     };
   }
 
-  async insertCode(code: InsertData["code"]): Promise<void> {
-    await fetch(`${this.baseUrl}/${this.namespace}/sourcify_code/insert`, {
-      method: "POST",
-      headers: this.headers,
-      body: JSON.stringify(
-        code.map((row) => ({
-          ...row,
-          code_hash: row.code_hash.toString("hex"),
-          code: row.code?.toString("hex"),
-          code_hash_keccak: row.code_hash_keccak.toString("hex"),
-        })),
-      ),
-    });
+  async insertCode(code: InsertData["code"]) {
+    return this.prepareInsertRequest(code, "code");
   }
 
   async insertCompiledContracts(
     compiledContracts: InsertData["compiled_contracts"],
-  ): Promise<void> {
-    await fetch(`${this.baseUrl}/${this.namespace}/compiled_contracts/insert`, {
-      method: "POST",
-      headers: this.headers,
-      body: JSON.stringify(
-        compiledContracts.map((row) => ({
-          ...row,
-          sources: row.sources ? JSON.stringify(row.sources) : null,
-          compiler_settings: JSON.stringify(row.compiler_settings),
-          compilation_artifacts: JSON.stringify(row.compilation_artifacts),
-          creation_code_hash: row.creation_code_hash.toString("hex"),
-          creation_code_artifacts: JSON.stringify(row.creation_code_artifacts),
-          runtime_code_hash: row.runtime_code_hash.toString("hex"),
-          runtime_code_artifacts: JSON.stringify(row.runtime_code_artifacts),
-        })),
-      ),
-    });
+  ) {
+    return this.prepareInsertRequest(compiledContracts, "compiled_contracts");
   }
 
   async insertCompiledContractsSources(
     compiledContractsSources: InsertData["compiled_contracts_sources"],
-  ): Promise<void> {
-    await fetch(
-      `${this.baseUrl}/${this.namespace}/compiled_contracts_sources/insert`,
-      {
-        method: "POST",
-        headers: this.headers,
-        body: JSON.stringify(
-          compiledContractsSources.map((row) => ({
-            ...row,
-            source_hash: row.source_hash.toString("hex"),
-          })),
-        ),
-      },
+  ) {
+    return this.prepareInsertRequest(
+      compiledContractsSources,
+      "compiled_contracts_sources",
     );
   }
 
   async insertContractDeployments(
     contractDeployments: InsertData["contract_deployments"],
-  ): Promise<void> {
-    await fetch(
-      `${this.baseUrl}/${this.namespace}/contract_deployments/insert`,
-      {
-        method: "POST",
-        headers: this.headers,
-        body: JSON.stringify(
-          contractDeployments.map((row) => ({
-            ...row,
-            address: row.address.toString("hex"),
-            transaction_hash: row.transaction_hash?.toString("hex"),
-            deployer: row.deployer?.toString("hex"),
-          })),
-        ),
-      },
+  ) {
+    return this.prepareInsertRequest(
+      contractDeployments,
+      "contract_deployments",
     );
   }
 
-  async insertContracts(contracts: InsertData["contracts"]): Promise<void> {
-    await fetch(`${this.baseUrl}/${this.namespace}/contracts/insert`, {
-      method: "POST",
-      headers: this.headers,
-      body: JSON.stringify(
-        contracts.map((row) => ({
-          ...row,
-          creation_code_hash: row.creation_code_hash?.toString("hex"),
-          runtime_code_hash: row.runtime_code_hash.toString("hex"),
-        })),
-      ),
-    });
+  async insertContracts(contracts: InsertData["contracts"]) {
+    return this.prepareInsertRequest(contracts, "contracts");
   }
 
-  async insertSources(sources: InsertData["sources"]): Promise<void> {
-    await fetch(`${this.baseUrl}/${this.namespace}/sources/insert`, {
-      method: "POST",
-      headers: this.headers,
-      body: JSON.stringify(
-        sources.map((row) => ({
-          ...row,
-          source_hash: row.source_hash.toString("hex"),
-          source_hash_keccak: row.source_hash_keccak.toString("hex"),
-        })),
-      ),
-    });
+  async insertSources(sources: InsertData["sources"]) {
+    return this.prepareInsertRequest(sources, "sources");
   }
 
-  async insertSourcifyMatches(
-    sourcifyMatches: InsertData["sourcify_matches"],
-  ): Promise<void> {
-    await fetch(`${this.baseUrl}/${this.namespace}/sourcify_matches/insert`, {
-      method: "POST",
-      headers: this.headers,
-      body: JSON.stringify(
-        sourcifyMatches.map((row) => ({
-          ...row,
-          metadata: JSON.stringify(row.metadata),
-        })),
-      ),
-    });
+  async insertSourcifyMatches(sourcifyMatches: InsertData["sourcify_matches"]) {
+    return this.prepareInsertRequest(sourcifyMatches, "sourcify_matches");
   }
 
   async insertVerifiedContracts(
     verifiedContracts: InsertData["verified_contracts"],
   ): Promise<Response> {
+    return this.prepareInsertRequest(verifiedContracts, "verified_contracts");
+  }
+
+  private prepareInsertRequest(data: any, tableName: string) {
     return fetch(
-      `${this.baseUrl}/${this.namespace}/verified_contracts/insert`,
-      {
-        method: "POST",
-        headers: this.headers,
-        body: JSON.stringify(verifiedContracts),
-      },
+      `${this.baseUrl}/${this.namespace}/${tableName}/insert`,
+      this.prepareRequestOptions(data),
     );
+  }
+
+  private prepareRequestOptions(data: any) {
+    return {
+      method: "POST",
+      headers: this.headers,
+      body: data.map((row: any) => JSON.stringify(row)).join("\n"), // Must send as newline delimited json (NDJSON)
+    };
   }
 
   // async insertData(data: InsertData): Promise<void> {
