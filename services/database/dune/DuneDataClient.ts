@@ -1,8 +1,16 @@
+/**
+ * Data types when inserting into Dune
+ */
+
+type DuneVarbinary = string;
+type DuneBigint = string;
+type DuneObject = string;
+
 export interface InsertData {
   code: Array<{
-    code_hash: string;
-    code: string | null;
-    code_hash_keccak: string;
+    code_hash: DuneVarbinary;
+    code: DuneVarbinary | null;
+    code_hash_keccak: DuneVarbinary;
     created_at: Date;
     updated_at: Date;
     created_by: string;
@@ -19,27 +27,27 @@ export interface InsertData {
     language: string;
     name: string;
     fully_qualified_name: string;
-    compiler_settings: any;
-    compilation_artifacts: any;
-    creation_code_hash: string;
-    creation_code_artifacts: any;
-    runtime_code_hash: string;
-    runtime_code_artifacts: any;
+    compiler_settings: DuneObject;
+    compilation_artifacts: DuneObject;
+    creation_code_hash: DuneVarbinary;
+    creation_code_artifacts: DuneObject;
+    runtime_code_hash: DuneVarbinary;
+    runtime_code_artifacts: DuneObject;
   }>;
   compiled_contracts_sources: Array<{
     id: string;
     compilation_id: string;
-    source_hash: string;
+    source_hash: DuneVarbinary;
     path: string;
   }>;
   contract_deployments: Array<{
     id: string;
-    chain_id: string; // bigint
-    address: string;
-    transaction_hash: string | null;
-    block_number: string | null; // bigint
+    chain_id: DuneBigint;
+    address: DuneVarbinary;
+    transaction_hash: DuneVarbinary | null;
+    block_number: DuneBigint | null;
     transaction_index: number | null;
-    deployer: string | null;
+    deployer: DuneVarbinary | null;
     contract_id: string;
     created_at: Date;
     updated_at: Date;
@@ -48,32 +56,32 @@ export interface InsertData {
   }>;
   contracts: Array<{
     id: string;
-    creation_code_hash: string | null;
-    runtime_code_hash: string;
+    creation_code_hash: DuneVarbinary | null;
+    runtime_code_hash: DuneVarbinary;
     created_at: Date;
     updated_at: Date;
     created_by: string;
     updated_by: string;
   }>;
   sources: Array<{
-    source_hash: string;
-    source_hash_keccak: string;
-    content: string;
+    source_hash: DuneVarbinary;
+    source_hash_keccak: DuneVarbinary;
+    content: DuneVarbinary;
     created_at: Date;
     updated_at: Date;
     created_by: string;
     updated_by: string;
   }>;
   sourcify_matches: Array<{
-    id: string; // bigint
-    verified_contract_id: string; // bigint
-    creation_match: string | null;
-    runtime_match: string | null;
+    id: DuneBigint;
+    verified_contract_id: DuneBigint;
+    creation_match: DuneVarbinary | null;
+    runtime_match: DuneVarbinary | null;
     created_at: Date;
-    metadata: any;
+    metadata: DuneObject;
   }>;
   verified_contracts: Array<{
-    id: string; // bigint
+    id: DuneBigint;
     created_at: Date;
     updated_at: Date;
     created_by: string;
@@ -81,11 +89,11 @@ export interface InsertData {
     deployment_id: string;
     compilation_id: string;
     creation_match: boolean;
-    creation_values: string | null;
-    creation_transformations: string | null;
+    creation_values: DuneObject | null;
+    creation_transformations: DuneObject | null;
     runtime_match: boolean;
-    runtime_values: string | null;
-    runtime_transformations: string | null;
+    runtime_values: DuneObject | null;
+    runtime_transformations: DuneObject | null;
     runtime_metadata_match: boolean | null;
     creation_metadata_match: boolean | null;
   }>;
