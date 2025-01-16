@@ -130,11 +130,6 @@ export class VyperCompilation extends AbstractCompilation {
   }
 
   getImmutableReferences(): ImmutableReferences {
-    if (!this.getCreationBytecode() || !this.getRuntimeBytecode()) {
-      throw new Error(
-        'Cannot generate immutable references if bytecodes are not set',
-      );
-    }
     let immutableReferences = {};
     if (gte(this.compilerVersionCompatibleWithSemver, '0.3.10')) {
       try {
@@ -170,32 +165,39 @@ export class VyperCompilation extends AbstractCompilation {
    * @returns false if the auxdata positions cannot be generated, true otherwise.
    */
   public async generateCborAuxdataPositions() {
-    const [, runtimeAuxdataCbor, runtimeCborLengthHex] = splitAuxdata(
-      this.getRuntimeBytecode(),
-      this.auxdataStyle,
-    );
-
-    // Vyper 0.3.10 and higher does not have the auxdata in the runtime bytecode
-    if (this.auxdataStyle === AuxdataStyle.VYPER_LT_0_3_10) {
-      this.runtimeBytecodeCborAuxdata = this.tryGenerateCborAuxdataPosition(
+    try {
+      const [, runtimeAuxdataCbor, runtimeCborLengthHex] = splitAuxdata(
         this.getRuntimeBytecode(),
-        runtimeAuxdataCbor,
-        runtimeCborLengthHex,
+        this.auxdataStyle,
       );
+
+      // Vyper 0.3.10 and higher does not have the auxdata in the runtime bytecode
+      if (this.auxdataStyle === AuxdataStyle.VYPER_LT_0_3_10) {
+        this.runtimeBytecodeCborAuxdata = this.tryGenerateCborAuxdataPosition(
+          this.getRuntimeBytecode(),
+          runtimeAuxdataCbor,
+          runtimeCborLengthHex,
+        );
+      }
+
+      const [, creationAuxdataCbor, creationCborLengthHex] = splitAuxdata(
+        this.getCreationBytecode(),
+        this.auxdataStyle,
+      );
+
+      this.creationBytecodeCborAuxdata = this.tryGenerateCborAuxdataPosition(
+        this.getCreationBytecode(),
+        creationAuxdataCbor,
+        creationCborLengthHex,
+      );
+
+      return true;
+    } catch (error) {
+      logWarn('Cannot generate cbor auxdata positions', {
+        error,
+      });
+      return false;
     }
-
-    const [, creationAuxdataCbor, creationCborLengthHex] = splitAuxdata(
-      this.getCreationBytecode(),
-      this.auxdataStyle,
-    );
-
-    this.creationBytecodeCborAuxdata = this.tryGenerateCborAuxdataPosition(
-      this.getCreationBytecode(),
-      creationAuxdataCbor,
-      creationCborLengthHex,
-    );
-
-    return true;
   }
 
   private tryGenerateCborAuxdataPosition(
@@ -203,10 +205,6 @@ export class VyperCompilation extends AbstractCompilation {
     auxdataCbor: string,
     cborLengthHex: string,
   ): CompiledContractCborAuxdata {
-    if (!auxdataCbor) {
-      return {};
-    }
-
     const auxdataFromRawBytecode = `${auxdataCbor}${cborLengthHex}`;
 
     // Handles vyper lower than 0.3.10 in which the auxdata length bytes count
