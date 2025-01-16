@@ -263,4 +263,75 @@ describe('SolidityCompilation', () => {
       'Contract not found in compiler output',
     );
   });
+
+  it('should return empty object when no immutable references exist', async () => {
+    const contractPath = path.join(
+      __dirname,
+      '..',
+      'sources',
+      'NoImmutableField',
+    );
+    const metadata = JSON.parse(
+      fs.readFileSync(path.join(contractPath, 'metadata.json'), 'utf8'),
+    );
+    const sources = {
+      'NoImmutable.sol': {
+        content: fs.readFileSync(
+          path.join(contractPath, 'sources', 'NoImmutable.sol'),
+          'utf8',
+        ),
+      },
+    };
+
+    const compilation = new SolidityCompilation(
+      solc,
+      metadata.compiler.version,
+      {
+        language: 'Solidity',
+        sources,
+        settings: getSolcSettingsFromMetadata(metadata),
+      },
+      getCompilationTargetFromMetadata(metadata),
+    );
+
+    await compilation.compile();
+    const immutableRefs = compilation.getImmutableReferences();
+    expect(immutableRefs).to.deep.equal({});
+  });
+
+  it('should return immutable references when they exist', async () => {
+    const contractPath = path.join(
+      __dirname,
+      '..',
+      'sources',
+      'WithImmutables',
+    );
+    const metadata = JSON.parse(
+      fs.readFileSync(path.join(contractPath, 'metadata.json'), 'utf8'),
+    );
+    const sources = {
+      'contracts/WithImmutables.sol': {
+        content: fs.readFileSync(
+          path.join(contractPath, 'sources', 'WithImmutables.sol'),
+          'utf8',
+        ),
+      },
+    };
+
+    const compilation = new SolidityCompilation(
+      solc,
+      metadata.compiler.version,
+      {
+        language: 'Solidity',
+        sources,
+        settings: getSolcSettingsFromMetadata(metadata),
+      },
+      getCompilationTargetFromMetadata(metadata),
+    );
+
+    await compilation.compile();
+    const immutableRefs = compilation.getImmutableReferences();
+    expect(immutableRefs).to.not.deep.equal({});
+    expect(Object.keys(immutableRefs).length).to.be.greaterThan(0);
+  });
 });
