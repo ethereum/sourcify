@@ -189,15 +189,6 @@ paths:
             default: desc
             examples:
               - asc
-        - name: page
-          in: query
-          description: Specifies which page should be returned
-          schema:
-            type: number
-            minimum: 0
-            default: 0
-            examples:
-              - 6
         - name: limit
           in: query
           description: Number of contracts that should be returned per page
@@ -208,6 +199,11 @@ paths:
             default: 200
             examples:
               - 50
+        - name: afterMatchId
+          in: query
+          description: The last `matchId` returned to get contracts older or newer than it (depending on `sort`)
+          schema:
+            type: string
         - $ref: '#/components/parameters/chainId'
       responses:
         '200':
@@ -458,6 +454,10 @@ components:
                     properties:
                       language:
                         $ref: '#/components/schemas/Language'
+                      compiler:
+                        type: string
+                        examples:
+                          - solc
                       compilerVersion:
                         $ref: '#/components/schemas/SolidityCompilerVersion'
                       compilerSettings:
@@ -842,21 +842,6 @@ components:
                 type: array
                 items:
                   $ref: '#/components/schemas/VerifiedContractMinimal'
-              pagination:
-                type: object
-                properties:
-                  currentPage:
-                    type: integer
-                  totalPages:
-                    type: integer
-                  resultsPerPage:
-                    type: integer
-                  totalResults:
-                    type: integer
-                  hasNextPage:
-                    type: boolean
-                  hasPreviousPage:
-                    type: boolean
           examples:
             Example 1:
               value:
@@ -986,10 +971,15 @@ components:
           format: date-time
           examples:
             - '2024-07-24T12:00:00Z'
+        matchId:
+          type: string
+          examples:
+            - '3266227'
       required:
         - match
         - creationMatch
         - runtimeMatch
+        - matchId
     VerificationStatusNullable:
       type: string
       enum:
