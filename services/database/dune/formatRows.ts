@@ -70,12 +70,10 @@ export function formatContractDeployments(
 ): InsertData["contract_deployments"] {
   return contractDeployments.map((row) => ({
     ...row,
-    chain_id: row.chain_id,
     address: bufferToHex(row.address),
     transaction_hash: row.transaction_hash
       ? bufferToHex(row.transaction_hash)
       : null,
-    block_number: row.block_number ? row.block_number : null,
     transaction_index: row.transaction_index
       ? parseInt(row.transaction_index)
       : null,
@@ -101,7 +99,6 @@ export function formatVerifiedContracts(
 ): InsertData["verified_contracts"] {
   return verifiedContracts.map((row) => ({
     ...row,
-    id: row.id,
     creation_values: row.creation_values
       ? JSON.stringify(row.creation_values)
       : null,
