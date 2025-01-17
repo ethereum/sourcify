@@ -107,3 +107,13 @@ export function toV2MatchLevel(status: Status): V2MatchLevel {
       return null;
   }
 }
+
+export function getTotalMatchLevel(
+  creationStatus: Status,
+  runtimeStatus: Status,
+): V2MatchLevel {
+  if (creationStatus === "perfect" || runtimeStatus === "perfect") {
+    return "exact_match";
+  }
+  return "match";
+}

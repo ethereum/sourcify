@@ -21,7 +21,11 @@ import {
   VerifiedContractMinimal,
 } from "../../types";
 import Path from "path";
-import { getFileRelativePath, toV2MatchLevel } from "../utils/util";
+import {
+  getFileRelativePath,
+  getTotalMatchLevel,
+  toV2MatchLevel,
+} from "../utils/util";
 import { getAddress, id as keccak256Str } from "ethers";
 import { BadRequestError } from "../../../common/errors";
 import { RWStorageIdentifiers } from "./identifiers";
@@ -276,10 +280,7 @@ export class SourcifyDatabaseService
 
     const results: VerifiedContractMinimal[] = sourcifyMatchesResult.rows.map(
       (row) => ({
-        match:
-          row.runtime_match === "perfect" || row.creation_match === "perfect"
-            ? "exact_match"
-            : "match",
+        match: getTotalMatchLevel(row.creation_match, row.runtime_match),
         creationMatch: toV2MatchLevel(row.creation_match),
         runtimeMatch: toV2MatchLevel(row.runtime_match),
         chainId,
